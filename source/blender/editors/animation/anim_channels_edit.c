@@ -1695,7 +1695,7 @@ static int animchannels_group_exec(bContext *C, wmOperator *op)
 
     /* Handle each animdata block separately, so that the regrouping doesn't flow into blocks. */
     filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ANIMDATA |
-              ANIMFILTER_NODUPLIS);
+              ANIMFILTER_NODUPLIS | ANIMFILTER_FCURVESONLY);
     ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
     for (ale = anim_data.first; ale; ale = ale->next) {
@@ -3260,10 +3260,14 @@ static int mouse_anim_channels(bContext *C,
   bAnimListElem *ale;
   int filter;
   int notifierFlags = 0;
+  ScrArea *area = CTX_wm_area(C);
 
   /* get the channel that was clicked on */
   /* filter channels */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+  if (ELEM(area->spacetype, SPACE_NLA, SPACE_GRAPH)) {
+    filter |= ANIMFILTER_FCURVESONLY;
+  }
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   /* get channel from index */
