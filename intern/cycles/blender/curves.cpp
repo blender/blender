@@ -707,6 +707,21 @@ static void attr_create_motion(Hair *hair, BL::Attribute &b_attribute, const flo
   }
 }
 
+static void attr_create_uv(AttributeSet &attributes,
+                           BL::Curves &b_curves,
+                           BL::Attribute &b_attribute,
+                           const ustring name)
+{
+  BL::Float2Attribute b_float2_attribute{b_attribute};
+  Attribute *attr = attributes.add(ATTR_STD_UV, name);
+
+  float2 *data = attr->data_float2();
+  fill_generic_attribute(b_curves, data, ATTR_ELEMENT_CURVE, [&](int i) {
+    BL::Array<float, 2> v = b_float2_attribute.data[i].vector();
+    return make_float2(v[0], v[1]);
+  });
+}
+
 static void attr_create_generic(Scene *scene,
                                 Hair *hair,
                                 BL::Curves &b_curves,
@@ -715,12 +730,26 @@ static void attr_create_generic(Scene *scene,
 {
   AttributeSet &attributes = hair->attributes;
   static const ustring u_velocity("velocity");
+  const bool need_uv = hair->need_attribute(scene, ATTR_STD_UV);
+  bool have_uv = false;
 
   for (BL::Attribute &b_attribute : b_curves.attributes) {
     const ustring name{b_attribute.name().c_str()};
 
+    const BL::Attribute::domain_enum b_domain = b_attribute.domain();
+    const BL::Attribute::data_type_enum b_data_type = b_attribute.data_type();
+
     if (need_motion && name == u_velocity) {
       attr_create_motion(hair, b_attribute, motion_scale);
+      continue;
+    }
+
+    /* Weak, use first float2 attribute as standard UV. */
+    if (need_uv && !have_uv && b_data_type == BL::Attribute::data_type_FLOAT2 &&
+        b_domain == BL::Attribute::domain_CURVE) {
+      attr_create_uv(attributes, b_curves, b_attribute, name);
+      have_uv = true;
+      continue;
     }
 
     if (!hair->need_attribute(scene, name)) {
@@ -729,9 +758,6 @@ static void attr_create_generic(Scene *scene,
     if (attributes.find(name)) {
       continue;
     }
-
-    const BL::Attribute::domain_enum b_domain = b_attribute.domain();
-    const BL::Attribute::data_type_enum b_data_type = b_attribute.data_type();
 
     AttributeElement element = ATTR_ELEMENT_NONE;
     switch (b_domain) {
@@ -844,79 +870,84 @@ static void export_hair_curves(Scene *scene,
 {
   /* TODO: optimize so we can straight memcpy arrays from Blender? */
 
-  /* Add requested attributes. */
-  Attribute *attr_intercept = NULL;
-  Attribute *attr_length = NULL;
-  Attribute *attr_random = NULL;
-
-  if (hair->need_attribute(scene, ATTR_STD_CURVE_INTERCEPT)) {
-    attr_intercept = hair->attributes.add(ATTR_STD_CURVE_INTERCEPT);
-  }
-  if (hair->need_attribute(scene, ATTR_STD_CURVE_LENGTH)) {
-    attr_length = hair->attributes.add(ATTR_STD_CURVE_LENGTH);
-  }
-  if (hair->need_attribute(scene, ATTR_STD_CURVE_RANDOM)) {
-    attr_random = hair->attributes.add(ATTR_STD_CURVE_RANDOM);
-  }
-
-  /* Reserve memory. */
   const int num_keys = b_curves.points.length();
   const int num_curves = b_curves.curves.length();
 
-  hair->reserve_curves(num_curves, num_keys);
+  hair->resize_curves(num_curves, num_keys);
+
+  float3 *curve_keys = hair->get_curve_keys().data();
+  float *curve_radius = hair->get_curve_radius().data();
+  int *curve_first_key = hair->get_curve_first_key().data();
+  int *curve_shader = hair->get_curve_shader().data();
+
+  /* Add requested attributes. */
+  float *attr_intercept = NULL;
+  float *attr_length = NULL;
+  float *attr_random = NULL;
+
+  if (hair->need_attribute(scene, ATTR_STD_CURVE_INTERCEPT)) {
+    attr_intercept = hair->attributes.add(ATTR_STD_CURVE_INTERCEPT)->data_float();
+  }
+  if (hair->need_attribute(scene, ATTR_STD_CURVE_LENGTH)) {
+    attr_length = hair->attributes.add(ATTR_STD_CURVE_LENGTH)->data_float();
+  }
+  if (hair->need_attribute(scene, ATTR_STD_CURVE_RANDOM)) {
+    attr_random = hair->attributes.add(ATTR_STD_CURVE_RANDOM)->data_float();
+  }
 
   BL::FloatVectorAttribute b_attr_position = find_curves_position_attribute(b_curves);
   std::optional<BL::FloatAttribute> b_attr_radius = find_curves_radius_attribute(b_curves);
 
   /* Export curves and points. */
-  vector<float> points_length;
-
   for (int i = 0; i < num_curves; i++) {
     const int first_point_index = b_curves.curve_offset_data[i].value();
     const int num_points = b_curves.curve_offset_data[i + 1].value() - first_point_index;
 
     float3 prev_co = zero_float3();
     float length = 0.0f;
-    if (attr_intercept) {
-      points_length.clear();
-      points_length.reserve(num_points);
-    }
 
     /* Position and radius. */
-    for (int i = 0; i < num_points; i++) {
-      const float3 co = get_float3(b_attr_position.data[first_point_index + i].vector());
-      const float radius = b_attr_radius ? b_attr_radius->data[first_point_index + i].value() :
-                                           0.005f;
-      hair->add_curve_key(co, radius);
+    for (int j = 0; j < num_points; j++) {
+      const int point_offset = first_point_index + j;
+      const float3 co = get_float3(b_attr_position.data[point_offset].vector());
+      const float radius = b_attr_radius ? b_attr_radius->data[point_offset].value() : 0.0f;
 
-      if (attr_intercept) {
-        if (i > 0) {
+      curve_keys[point_offset] = co;
+      curve_radius[point_offset] = radius;
+
+      if (attr_length || attr_intercept) {
+        if (j > 0) {
           length += len(co - prev_co);
-          points_length.push_back(length);
         }
         prev_co = co;
+
+        if (attr_intercept) {
+          attr_intercept[point_offset] = length;
+        }
       }
     }
 
     /* Normalized 0..1 attribute along curve. */
-    if (attr_intercept) {
-      for (int i = 0; i < num_points; i++) {
-        attr_intercept->add((length == 0.0f) ? 0.0f : points_length[i] / length);
+    if (attr_intercept && length > 0.0f) {
+      for (int j = 1; j < num_points; j++) {
+        const int point_offset = first_point_index + j;
+        attr_intercept[point_offset] /= length;
       }
     }
 
+    /* Curve length. */
     if (attr_length) {
-      attr_length->add(length);
+      attr_length[i] = length;
     }
 
     /* Random number per curve. */
     if (attr_random != NULL) {
-      attr_random->add(hash_uint2_to_float(i, 0));
+      attr_random[i] = hash_uint2_to_float(i, 0);
     }
 
     /* Curve. */
-    const int shader_index = 0;
-    hair->add_curve(first_point_index, shader_index);
+    curve_shader[i] = 0;
+    curve_first_key[i] = first_point_index;
   }
 
   attr_create_generic(scene, hair, b_curves, need_motion, motion_scale);
