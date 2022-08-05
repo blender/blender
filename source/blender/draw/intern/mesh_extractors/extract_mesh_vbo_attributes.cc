@@ -58,7 +58,6 @@ template<typename AttributeType, typename VBOType> struct AttributeTypeConverter
   }
 };
 
-/* Similar to the one in #extract_mesh_vcol_vbo.cc */
 struct gpuMeshCol {
   ushort r, g, b, a;
 };
