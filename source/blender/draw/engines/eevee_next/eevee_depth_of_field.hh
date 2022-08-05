@@ -122,7 +122,8 @@ class DepthOfField {
   DRWPass *filter_bg_ps_ = nullptr;
 
   /** Scatter convolution: A quad is emitted for every 4 bright enough half pixels. */
-  Framebuffer scatter_fb_ = {"dof_scatter"};
+  Framebuffer scatter_fg_fb_ = {"dof_scatter_fg"};
+  Framebuffer scatter_bg_fb_ = {"dof_scatter_bg"};
   DRWPass *scatter_fg_ps_ = nullptr;
   DRWPass *scatter_bg_ps_ = nullptr;
 

@@ -685,6 +685,7 @@ void DepthOfField::render(GPUTexture **input_tx,
 
     SwapChain<TextureFromPool, 2> &color_tx = is_background ? color_bg_tx_ : color_fg_tx_;
     SwapChain<TextureFromPool, 2> &weight_tx = is_background ? weight_bg_tx_ : weight_fg_tx_;
+    Framebuffer &scatter_fb = is_background ? scatter_bg_fb_ : scatter_fg_fb_;
     DRWPass *gather_ps = is_background ? gather_bg_ps_ : gather_fg_ps_;
     DRWPass *filter_ps = is_background ? filter_bg_ps_ : filter_fg_ps_;
     DRWPass *scatter_ps = is_background ? scatter_bg_ps_ : scatter_fg_ps_;
@@ -711,9 +712,9 @@ void DepthOfField::render(GPUTexture **input_tx,
 
     GPU_memory_barrier(GPU_BARRIER_FRAMEBUFFER);
 
-    scatter_fb_.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(color_tx.current()));
+    scatter_fb.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(color_tx.current()));
 
-    GPU_framebuffer_bind(scatter_fb_);
+    GPU_framebuffer_bind(scatter_fb);
     DRW_draw_pass(scatter_ps);
 
     /* Used by scatter pass. */
