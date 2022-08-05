@@ -5607,7 +5607,7 @@ bool BKE_image_clear_renderslot(Image *ima, ImageUser *iuser, int slot)
   }
 
   RenderSlot *render_slot = static_cast<RenderSlot *>(BLI_findlink(&ima->renderslots, slot));
-  if (!slot) {
+  if (!render_slot) {
     return false;
   }
   if (render_slot->render) {
