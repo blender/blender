@@ -1196,6 +1196,28 @@ bool ED_view3d_camera_lock_autokey(struct View3D *v3d,
 
 void ED_view3d_lock_clear(struct View3D *v3d);
 
+/**
+ * Create an undo step when the camera is locked to the view.
+ * \param str: The name of the undo step (typically #wmOperatorType.name should be used).
+ *
+ * \return true when the call to push an undo step was made.
+ */
+bool ED_view3d_camera_lock_undo_push(const char *str,
+                                     View3D *v3d,
+                                     struct RegionView3D *rv3d,
+                                     struct bContext *C);
+
+/**
+ * A version of #ED_view3d_camera_lock_undo_push that performs a grouped undo push.
+ *
+ * \note use for actions that are likely to be repeated such as mouse wheel to zoom,
+ * where adding a separate undo step each time isn't desirable.
+ */
+bool ED_view3d_camera_lock_undo_grouped_push(const char *str,
+                                             View3D *v3d,
+                                             struct RegionView3D *rv3d,
+                                             struct bContext *C);
+
 #define VIEW3D_MARGIN 1.4f
 #define VIEW3D_DIST_FALLBACK 1.0f
 
