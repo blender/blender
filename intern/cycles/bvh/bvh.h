@@ -74,6 +74,13 @@ class BVH {
   {
   }
 
+  virtual void replace_geometry(const vector<Geometry *> &geometry,
+                                const vector<Object *> &objects)
+  {
+    this->geometry = geometry;
+    this->objects = objects;
+  }
+
  protected:
   BVH(const BVHParams &params,
       const vector<Geometry *> &geometry,

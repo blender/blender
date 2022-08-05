@@ -217,8 +217,7 @@ void Geometry::compute_bvh(Device *device,
     if (bvh && !need_update_rebuild) {
       progress->set_status(msg, "Refitting BVH");
 
-      bvh->geometry = geometry;
-      bvh->objects = objects;
+      bvh->replace_geometry(geometry, objects);
 
       device->build_bvh(bvh, *progress, true);
     }
