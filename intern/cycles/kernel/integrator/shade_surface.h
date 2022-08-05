@@ -43,11 +43,9 @@ ccl_device_forceinline bool integrate_surface_holdout(KernelGlobals kg,
   if (((sd->flag & SD_HOLDOUT) || (sd->object_flag & SD_OBJECT_HOLDOUT_MASK)) &&
       (path_flag & PATH_RAY_TRANSPARENT_BACKGROUND)) {
     const float3 holdout_weight = shader_holdout_apply(kg, sd);
-    if (kernel_data.background.transparent) {
-      const float3 throughput = INTEGRATOR_STATE(state, path, throughput);
-      const float transparent = average(holdout_weight * throughput);
-      kernel_accum_holdout(kg, state, path_flag, transparent, render_buffer);
-    }
+    const float3 throughput = INTEGRATOR_STATE(state, path, throughput);
+    const float transparent = average(holdout_weight * throughput);
+    kernel_accum_holdout(kg, state, path_flag, transparent, render_buffer);
     if (isequal(holdout_weight, one_float3())) {
       return false;
     }
