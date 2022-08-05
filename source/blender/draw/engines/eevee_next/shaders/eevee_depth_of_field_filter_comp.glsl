@@ -132,7 +132,11 @@ FilterLmhResult filter_lmh(FilterSample s1, FilterSample s2, FilterSample s3)
 
 void main()
 {
-  /* OPTI(fclem) Could early return on some tiles. */
+  /**
+   * NOTE: We can **NOT** optimize by discarding some tiles as the result is sampled using bilinear
+   * filtering in the resolve pass. Not outputing to a tile means that border texels have undefined
+   * value and tile border will be noticeable in the final image.
+   */
 
   cache_init();
 
