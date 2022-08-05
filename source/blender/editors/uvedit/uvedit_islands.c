@@ -259,9 +259,8 @@ static float uv_nearest_image_tile_distance(const Image *image,
                                             const float coords[2],
                                             float nearest_tile_co[2])
 {
-  if (BKE_image_find_nearest_tile_with_offset(image, coords, nearest_tile_co) == -1) {
-    zero_v2(nearest_tile_co);
-  }
+  BKE_image_find_nearest_tile_with_offset(image, coords, nearest_tile_co);
+
   /* Add 0.5 to get tile center coordinates. */
   float nearest_tile_center_co[2] = {nearest_tile_co[0], nearest_tile_co[1]};
   add_v2_fl(nearest_tile_center_co, 0.5f);

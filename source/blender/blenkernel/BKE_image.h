@@ -420,9 +420,9 @@ void BKE_image_get_tile_uv(const struct Image *ima, const int tile_number, float
  */
 int BKE_image_find_nearest_tile_with_offset(const struct Image *image,
                                             const float co[2],
-                                            float r_uv_offset[2]) ATTR_NONNULL(1, 2, 3);
+                                            float r_uv_offset[2]) ATTR_NONNULL(2, 3);
 int BKE_image_find_nearest_tile(const struct Image *image, const float co[2])
-    ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
+    ATTR_NONNULL(2) ATTR_WARN_UNUSED_RESULT;
 
 void BKE_image_get_size(struct Image *image, struct ImageUser *iuser, int *r_width, int *r_height);
 void BKE_image_get_size_fl(struct Image *image, struct ImageUser *iuser, float r_size[2]);
