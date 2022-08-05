@@ -55,8 +55,6 @@ void DepthOfField::init()
   /* Reminder: These are parameters not interpolated by motion blur. */
   int update = 0;
   int sce_flag = sce_eevee.flag;
-  update += assign_if_different(do_hq_slight_focus_,
-                                (sce_flag & SCE_EEVEE_DOF_HQ_SLIGHT_FOCUS) != 0);
   update += assign_if_different(do_jitter_, (sce_flag & SCE_EEVEE_DOF_JITTER) != 0);
   update += assign_if_different(user_overblur_, sce_eevee.bokeh_overblur / 100.0f);
   update += assign_if_different(fx_max_coc_, sce_eevee.bokeh_max_size);
@@ -462,8 +460,7 @@ void DepthOfField::resolve_pass_sync()
 
   resolve_ps_ = DRW_pass_create("Dof.resolve_ps_", DRW_STATE_NO_DRAW);
   bool use_lut = bokeh_lut_ps_ != nullptr;
-  eShaderType sh_type = do_hq_slight_focus_ ? (use_lut ? DOF_RESOLVE_LUT_HQ : DOF_RESOLVE_HQ) :
-                                              (use_lut ? DOF_RESOLVE_LUT : DOF_RESOLVE);
+  eShaderType sh_type = use_lut ? DOF_RESOLVE_LUT : DOF_RESOLVE;
   GPUShader *sh = inst_.shaders.static_shader_get(sh_type);
   DRWShadingGroup *grp = DRW_shgroup_create(sh, resolve_ps_);
   inst_.sampling.bind_resources(grp);

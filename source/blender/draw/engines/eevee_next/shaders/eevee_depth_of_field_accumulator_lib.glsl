@@ -578,68 +578,63 @@ void dof_slight_focus_gather(sampler2D depth_tx,
                              out float out_center_coc)
 {
   vec2 frag_coord = vec2(gl_GlobalInvocationID.xy) + 0.5;
-  float noise_offset = sampling_rng_1D_get(SAMPLING_LENS_U);
-  float noise = no_gather_random ? 0.0 : interlieved_gradient_noise(frag_coord, 3, noise_offset);
+  vec2 noise_offset = sampling_rng_2D_get(SAMPLING_LENS_U);
+  vec2 noise = no_gather_random ? vec2(0.0) :
+                                  vec2(interlieved_gradient_noise(frag_coord, 3, noise_offset.x),
+                                       interlieved_gradient_noise(frag_coord, 5, noise_offset.y));
 
   DofGatherData fg_accum = GATHER_DATA_INIT;
   DofGatherData bg_accum = GATHER_DATA_INIT;
 
   int i_radius = clamp(int(radius), 0, int(dof_layer_threshold));
-  const int resolve_ring_density = DOF_SLIGHT_FOCUS_DENSITY;
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+
+  const float sample_count_max = float(DOF_SLIGHT_FOCUS_SAMPLE_MAX);
+  /* Scale by search area. */
+  float sample_count = sample_count_max * saturate(sqr(radius) / sqr(dof_layer_threshold));
 
   bool first_ring = true;
 
-  for (int ring = i_radius; ring > 0; ring--) {
-    DofGatherData fg_ring = GATHER_DATA_INIT;
-    DofGatherData bg_ring = GATHER_DATA_INIT;
+  for (float s = 0.0; s < sample_count; s++) {
+    vec2 rand2 = fract(hammersley_2d(s, sample_count) + noise);
+    vec2 offset = sample_disk(rand2);
+    float ring_dist = sqrt(rand2.y);
 
-    int ring_distance = ring;
-    int ring_sample_count = resolve_ring_density * ring_distance;
-    for (int sample_id = 0; sample_id < ring_sample_count; sample_id++) {
-      int s = sample_id * (4 / resolve_ring_density) +
-              int(noise * float((4 - resolve_ring_density) * ring_distance));
-
-      ivec2 offset = dof_square_ring_sample_offset(ring_distance, s);
-      float ring_dist = length(vec2(offset));
-
-      DofGatherData pair_data[2];
-      for (int i = 0; i < 2; i++) {
-        ivec2 sample_offset = ((i == 0) ? offset : -offset);
-        ivec2 sample_texel = texel + sample_offset;
-        /* OPTI: could precompute the factor. */
-        vec2 sample_uv = (vec2(sample_texel) + 0.5) / vec2(textureSize(depth_tx, 0));
-        float depth = textureLod(depth_tx, sample_uv, 0.0).r;
-        pair_data[i].coc = dof_coc_from_depth(dof_buf, sample_uv, depth);
-        pair_data[i].color = safe_color(textureLod(color_tx, sample_uv, 0.0));
-        pair_data[i].dist = ring_dist;
-        if (DOF_BOKEH_TEXTURE) {
-          /* Contains subpixel distance to bokeh shape. */
-          sample_offset += dof_max_slight_focus_radius;
-          pair_data[i].dist = texelFetch(bkh_lut_tx, sample_offset, 0).r;
-        }
-        pair_data[i].coc = clamp(pair_data[i].coc, -dof_buf.coc_abs_max, dof_buf.coc_abs_max);
-      }
-
-      float bordering_radius = ring_dist + 0.5;
-      const float isect_mul = 1.0;
-      dof_gather_accumulate_sample_pair(
-          pair_data, bordering_radius, isect_mul, first_ring, false, false, bg_ring, bg_accum);
-
+    DofGatherData pair_data[2];
+    for (int i = 0; i < 2; i++) {
+      vec2 sample_offset = ((i == 0) ? offset : -offset);
+      /* OPTI: could precompute the factor. */
+      vec2 sample_uv = (frag_coord + sample_offset) / vec2(textureSize(depth_tx, 0));
+      float depth = textureLod(depth_tx, sample_uv, 0.0).r;
+      pair_data[i].coc = dof_coc_from_depth(dof_buf, sample_uv, depth);
+      pair_data[i].color = safe_color(textureLod(color_tx, sample_uv, 0.0));
+      pair_data[i].dist = ring_dist;
       if (DOF_BOKEH_TEXTURE) {
-        /* Swap distances in order to flip bokeh shape for foreground. */
-        float tmp = pair_data[0].dist;
-        pair_data[0].dist = pair_data[1].dist;
-        pair_data[1].dist = tmp;
+        /* Contains subpixel distance to bokeh shape. */
+        ivec2 lut_texel = ivec2(round(sample_offset)) + dof_max_slight_focus_radius;
+        pair_data[i].dist = texelFetch(bkh_lut_tx, lut_texel, 0).r;
       }
-      dof_gather_accumulate_sample_pair(
-          pair_data, bordering_radius, isect_mul, first_ring, false, true, fg_ring, fg_accum);
+      pair_data[i].coc = clamp(pair_data[i].coc, -dof_buf.coc_abs_max, dof_buf.coc_abs_max);
     }
 
-    dof_gather_accumulate_sample_ring(
-        bg_ring, ring_sample_count * 2, first_ring, false, false, bg_accum);
-    dof_gather_accumulate_sample_ring(
-        fg_ring, ring_sample_count * 2, first_ring, false, true, fg_accum);
+    float bordering_radius = ring_dist + 0.5;
+    const float isect_mul = 1.0;
+    DofGatherData bg_ring = GATHER_DATA_INIT;
+    dof_gather_accumulate_sample_pair(
+        pair_data, bordering_radius, isect_mul, first_ring, false, false, bg_ring, bg_accum);
+    /* Treat each sample as a ring. */
+    dof_gather_accumulate_sample_ring(bg_ring, 2, first_ring, false, false, bg_accum);
+
+    if (DOF_BOKEH_TEXTURE) {
+      /* Swap distances in order to flip bokeh shape for foreground. */
+      float tmp = pair_data[0].dist;
+      pair_data[0].dist = pair_data[1].dist;
+      pair_data[1].dist = tmp;
+    }
+    DofGatherData fg_ring = GATHER_DATA_INIT;
+    dof_gather_accumulate_sample_pair(
+        pair_data, bordering_radius, isect_mul, first_ring, false, true, fg_ring, fg_accum);
+    /* Treat each sample as a ring. */
+    dof_gather_accumulate_sample_ring(fg_ring, 2, first_ring, false, true, fg_accum);
 
     first_ring = false;
   }
@@ -666,7 +661,7 @@ void dof_slight_focus_gather(sampler2D depth_tx,
   float bg_weight, fg_weight;
   vec2 unused_occlusion;
 
-  int total_sample_count = dof_gather_total_sample_count(i_radius + 1, resolve_ring_density);
+  int total_sample_count = int(sample_count) * 2 + 1;
   dof_gather_accumulate_resolve(total_sample_count, bg_accum, bg_col, bg_weight, unused_occlusion);
   dof_gather_accumulate_resolve(total_sample_count, fg_accum, fg_col, fg_weight, unused_occlusion);
 

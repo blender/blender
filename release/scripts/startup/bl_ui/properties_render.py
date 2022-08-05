@@ -267,7 +267,6 @@ class RENDER_PT_eevee_next_depth_of_field(RenderButtonsPanel, Panel):
         col.prop(props, "bokeh_max_size")
         col.prop(props, "bokeh_threshold")
         col.prop(props, "bokeh_neighbor_max")
-        col.prop(props, "use_bokeh_high_quality_slight_defocus")
         col.prop(props, "use_bokeh_jittered")
 
         col = layout.column()

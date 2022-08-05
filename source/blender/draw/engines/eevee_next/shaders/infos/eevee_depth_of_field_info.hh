@@ -130,23 +130,17 @@ GPU_SHADER_CREATE_INFO(eevee_depth_of_field_lut)
 
 GPU_SHADER_CREATE_INFO(eevee_depth_of_field_background).define("DOF_FOREGROUND_PASS", "false");
 GPU_SHADER_CREATE_INFO(eevee_depth_of_field_foreground).define("DOF_FOREGROUND_PASS", "true");
-GPU_SHADER_CREATE_INFO(eevee_depth_of_field_hq).define("DOF_SLIGHT_FOCUS_DENSITY", "4");
-GPU_SHADER_CREATE_INFO(eevee_depth_of_field_lq).define("DOF_SLIGHT_FOCUS_DENSITY", "2");
 
 #define EEVEE_DOF_FINAL_VARIATION(name, ...) \
   GPU_SHADER_CREATE_INFO(name).additional_info(__VA_ARGS__).do_static_compilation(true);
 
 #define EEVEE_DOF_LUT_VARIATIONS(prefix, ...) \
   EEVEE_DOF_FINAL_VARIATION(prefix##_lut, "eevee_depth_of_field_lut", __VA_ARGS__) \
-  EEVEE_DOF_FINAL_VARIATION(prefix, "eevee_depth_of_field_no_lut", __VA_ARGS__)
+  EEVEE_DOF_FINAL_VARIATION(prefix##_no_lut, "eevee_depth_of_field_no_lut", __VA_ARGS__)
 
 #define EEVEE_DOF_GROUND_VARIATIONS(name, ...) \
   EEVEE_DOF_LUT_VARIATIONS(name##_background, "eevee_depth_of_field_background", __VA_ARGS__) \
   EEVEE_DOF_LUT_VARIATIONS(name##_foreground, "eevee_depth_of_field_foreground", __VA_ARGS__)
-
-#define EEVEE_DOF_HQ_VARIATIONS(name, ...) \
-  EEVEE_DOF_LUT_VARIATIONS(name##_hq, "eevee_depth_of_field_hq", __VA_ARGS__) \
-  EEVEE_DOF_LUT_VARIATIONS(name##_lq, "eevee_depth_of_field_lq", __VA_ARGS__)
 
 /** \} */
 
@@ -247,6 +241,6 @@ GPU_SHADER_CREATE_INFO(eevee_depth_of_field_resolve)
     .image(2, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_color_img")
     .compute_source("eevee_depth_of_field_resolve_comp.glsl");
 
-EEVEE_DOF_HQ_VARIATIONS(eevee_depth_of_field_resolve, "eevee_depth_of_field_resolve")
+EEVEE_DOF_LUT_VARIATIONS(eevee_depth_of_field_resolve, "eevee_depth_of_field_resolve")
 
 /** \} */
