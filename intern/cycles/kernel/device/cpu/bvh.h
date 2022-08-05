@@ -114,27 +114,37 @@ ccl_device_inline bool kernel_embree_is_self_intersection(const KernelGlobals kg
                                                           const RTCHit *hit,
                                                           const Ray *ray)
 {
-  bool status = false;
+  int object, prim;
+
   if (hit->instID[0] != RTC_INVALID_GEOMETRY_ID) {
-    const int oID = hit->instID[0] / 2;
-    if ((ray->self.object == oID) || (ray->self.light_object == oID)) {
+    object = hit->instID[0] / 2;
+    if ((ray->self.object == object) || (ray->self.light_object == object)) {
       RTCScene inst_scene = (RTCScene)rtcGetGeometryUserData(
           rtcGetGeometry(kernel_data.device_bvh, hit->instID[0]));
-      const int pID = hit->primID +
-                      (intptr_t)rtcGetGeometryUserData(rtcGetGeometry(inst_scene, hit->geomID));
-      status = intersection_skip_self_shadow(ray->self, oID, pID);
+      prim = hit->primID +
+             (intptr_t)rtcGetGeometryUserData(rtcGetGeometry(inst_scene, hit->geomID));
+    }
+    else {
+      return false;
     }
   }
   else {
-    const int oID = hit->geomID / 2;
-    if ((ray->self.object == oID) || (ray->self.light_object == oID)) {
-      const int pID = hit->primID + (intptr_t)rtcGetGeometryUserData(
-                                        rtcGetGeometry(kernel_data.device_bvh, hit->geomID));
-      status = intersection_skip_self_shadow(ray->self, oID, pID);
+    object = hit->geomID / 2;
+    if ((ray->self.object == object) || (ray->self.light_object == object)) {
+      prim = hit->primID +
+             (intptr_t)rtcGetGeometryUserData(rtcGetGeometry(kernel_data.device_bvh, hit->geomID));
+    }
+    else {
+      return false;
     }
   }
 
-  return status;
+  const bool is_hair = hit->geomID & 1;
+  if (is_hair) {
+    prim = kernel_data_fetch(curve_segments, prim).prim;
+  }
+
+  return intersection_skip_self_shadow(ray->self, object, prim);
 }
 
 ccl_device_inline void kernel_embree_convert_hit(KernelGlobals kg,

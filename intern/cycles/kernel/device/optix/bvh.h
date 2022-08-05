@@ -143,14 +143,10 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
   }
 #  endif
 
-  ccl_private Ray *const ray = get_payload_ptr_6<Ray>();
-  if (intersection_skip_self_shadow(ray->self, object, prim)) {
-    return optixIgnoreIntersection();
-  }
-
   float u = 0.0f, v = 0.0f;
   int type = 0;
   if (optixIsTriangleHit()) {
+    /* Triangle. */
     const float2 barycentrics = optixGetTriangleBarycentrics();
     u = barycentrics.x;
     v = barycentrics.y;
@@ -158,6 +154,7 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
   }
 #  ifdef __HAIR__
   else if ((optixGetHitKind() & (~PRIMITIVE_MOTION)) != PRIMITIVE_POINT) {
+    /* Curve. */
     u = __uint_as_float(optixGetAttribute_0());
     v = __uint_as_float(optixGetAttribute_1());
 
@@ -174,9 +171,15 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
   }
 #  endif
   else {
+    /* Point. */
     type = kernel_data_fetch(objects, object).primitive_type;
     u = 0.0f;
     v = 0.0f;
+  }
+
+  ccl_private Ray *const ray = get_payload_ptr_6<Ray>();
+  if (intersection_skip_self_shadow(ray->self, object, prim)) {
+    return optixIgnoreIntersection();
   }
 
 #  ifndef __TRANSPARENT_SHADOWS__
@@ -307,7 +310,17 @@ extern "C" __global__ void __anyhit__kernel_optix_visibility_test()
   }
 #endif
 
-  const int prim = optixGetPrimitiveIndex();
+  int prim = optixGetPrimitiveIndex();
+  if (optixIsTriangleHit()) {
+    /* Triangle. */
+  }
+#ifdef __HAIR__
+  else if ((optixGetHitKind() & (~PRIMITIVE_MOTION)) != PRIMITIVE_POINT) {
+    /* Curve. */
+    prim = kernel_data_fetch(curve_segments, prim).prim;
+  }
+#endif
+
   ccl_private Ray *const ray = get_payload_ptr_6<Ray>();
 
   if (visibility & PATH_RAY_SHADOW_OPAQUE) {
