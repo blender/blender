@@ -446,7 +446,7 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
       }
 
       blender::threading::parallel_for(
-          IndexRange(target->totvert), 2048, [&](const IndexRange range) {
+          IndexRange(target->totvert), 4096, [&](const IndexRange range) {
             for (const int i : range) {
               BVHTreeNearest nearest;
               nearest.index = -1;
