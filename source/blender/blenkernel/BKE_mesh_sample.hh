@@ -26,22 +26,22 @@ namespace blender::bke::mesh_surface_sample {
 void sample_point_attribute(const Mesh &mesh,
                             Span<int> looptri_indices,
                             Span<float3> bary_coords,
-                            const GVArray &data_in,
-                            const IndexMask mask,
-                            GMutableSpan data_out);
+                            const GVArray &src,
+                            IndexMask mask,
+                            GMutableSpan dst);
 
 void sample_corner_attribute(const Mesh &mesh,
                              Span<int> looptri_indices,
                              Span<float3> bary_coords,
-                             const GVArray &data_in,
-                             const IndexMask mask,
-                             GMutableSpan data_out);
+                             const GVArray &src,
+                             IndexMask mask,
+                             GMutableSpan dst);
 
 void sample_face_attribute(const Mesh &mesh,
                            Span<int> looptri_indices,
-                           const GVArray &data_in,
-                           const IndexMask mask,
-                           GMutableSpan data_out);
+                           const GVArray &src,
+                           IndexMask mask,
+                           GMutableSpan dst);
 
 enum class eAttributeMapMode {
   INTERPOLATED,
@@ -56,7 +56,6 @@ enum class eAttributeMapMode {
  * these are computed lazily when needed and re-used.
  */
 class MeshAttributeInterpolator {
- private:
   const Mesh *mesh_;
   const IndexMask mask_;
   const Span<float3> positions_;
@@ -67,14 +66,14 @@ class MeshAttributeInterpolator {
 
  public:
   MeshAttributeInterpolator(const Mesh *mesh,
-                            const IndexMask mask,
-                            const Span<float3> positions,
-                            const Span<int> looptri_indices);
+                            IndexMask mask,
+                            Span<float3> positions,
+                            Span<int> looptri_indices);
 
   void sample_data(const GVArray &src,
                    eAttrDomain domain,
                    eAttributeMapMode mode,
-                   const GMutableSpan dst);
+                   GMutableSpan dst);
 
  protected:
   Span<float3> ensure_barycentric_coords();
