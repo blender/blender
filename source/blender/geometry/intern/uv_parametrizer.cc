@@ -2287,7 +2287,7 @@ static void p_abf_setup_system(PAbfSystem *sys)
   sys->lambdaPlanar = (float *)MEM_callocN(sizeof(float) * sys->ninterior, "ABFlamdaplane");
   sys->lambdaLength = (float *)MEM_mallocN(sizeof(float) * sys->ninterior, "ABFlambdalen");
 
-  sys->J2dt = MEM_mallocN(sizeof(float) * sys->nangles * 3, "ABFj2dt");
+  sys->J2dt = static_cast<float(*)[3]>(MEM_mallocN(sizeof(float) * sys->nangles * 3, "ABFj2dt"));
   sys->bstar = (float *)MEM_mallocN(sizeof(float) * sys->nfaces, "ABFbstar");
   sys->dstar = (float *)MEM_mallocN(sizeof(float) * sys->nfaces, "ABFdstar");
 
@@ -3666,7 +3666,7 @@ static void p_chart_rotate_minimum_area(PChart *chart)
 
 static void p_chart_rotate_fit_aabb(PChart *chart)
 {
-  float(*points)[2] = MEM_mallocN(sizeof(*points) * chart->nverts, __func__);
+  float(*points)[2] = static_cast<float(*)[2]>(MEM_mallocN(sizeof(*points) * chart->nverts, __func__));
 
   p_chart_uv_to_array(chart, points);
 
@@ -3827,8 +3827,8 @@ static void p_add_ngon(ParamHandle *handle,
   MemArena *arena = handle->polyfill_arena;
   Heap *heap = handle->polyfill_heap;
   uint nfilltri = nverts - 2;
-  uint(*tris)[3] = BLI_memarena_alloc(arena, sizeof(*tris) * (size_t)nfilltri);
-  float(*projverts)[2] = BLI_memarena_alloc(arena, sizeof(*projverts) * (size_t)nverts);
+  uint(*tris)[3] = static_cast<uint(*)[3]>(BLI_memarena_alloc(arena, sizeof(*tris) * (size_t)nfilltri));
+  float(*projverts)[2] = static_cast<float(*)[2]>(BLI_memarena_alloc(arena, sizeof(*projverts) * (size_t)nverts));
 
   /* Calc normal, flipped: to get a positive 2d cross product. */
   float normal[3];
