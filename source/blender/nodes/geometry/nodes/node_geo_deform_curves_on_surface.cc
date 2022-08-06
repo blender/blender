@@ -222,13 +222,13 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Object *self_ob_eval = params.self_object();
   if (self_ob_eval == nullptr || self_ob_eval->type != OB_CURVES) {
     pass_through_input();
+    params.error_message_add(NodeWarningType::Error, TIP_("Node only works for curves objects"));
     return;
   }
   const Curves *self_curves_eval = static_cast<const Curves *>(self_ob_eval->data);
   if (self_curves_eval->surface_uv_map == nullptr || self_curves_eval->surface_uv_map[0] == '\0') {
     pass_through_input();
-    const char *message = TIP_("Surface UV map not defined");
-    params.error_message_add(NodeWarningType::Error, message);
+    params.error_message_add(NodeWarningType::Error, TIP_("Surface UV map not defined"));
     return;
   }
   /* Take surface information from self-object. */
@@ -242,7 +242,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
   if (surface_ob_eval == nullptr || surface_ob_eval->type != OB_MESH) {
     pass_through_input();
-    params.error_message_add(NodeWarningType::Error, "Curves not attached to a surface");
+    params.error_message_add(NodeWarningType::Error, TIP_("Curves not attached to a surface"));
     return;
   }
   Object *surface_ob_orig = DEG_get_original_object(surface_ob_eval);
@@ -258,7 +258,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   Mesh *surface_mesh_eval = BKE_modifier_get_evaluated_mesh_from_evaluated_object(surface_ob_eval);
   if (surface_mesh_eval == nullptr) {
     pass_through_input();
-    params.error_message_add(NodeWarningType::Error, "Surface has no mesh");
+    params.error_message_add(NodeWarningType::Error, TIP_("Surface has no mesh"));
     return;
   }
 
@@ -272,7 +272,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   if (!mesh_attributes_eval.contains(uv_map_name)) {
     pass_through_input();
-    char *message = BLI_sprintfN(TIP_("Evaluated surface missing UV map: %s"),
+    char *message = BLI_sprintfN(TIP_("Evaluated surface missing UV map: \"%s\""),
                                  uv_map_name.c_str());
     params.error_message_add(NodeWarningType::Error, message);
     MEM_freeN(message);
@@ -280,7 +280,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
   if (!mesh_attributes_orig.contains(uv_map_name)) {
     pass_through_input();
-    char *message = BLI_sprintfN(TIP_("Original surface missing UV map: %s"), uv_map_name.c_str());
+    char *message = BLI_sprintfN(TIP_("Original surface missing UV map: \"%s\""),
+                                 uv_map_name.c_str());
     params.error_message_add(NodeWarningType::Error, message);
     MEM_freeN(message);
     return;
@@ -288,7 +289,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (!mesh_attributes_eval.contains(rest_position_name)) {
     pass_through_input();
     params.error_message_add(NodeWarningType::Error,
-                             TIP_("Evaluated surface missing attribute: rest_position"));
+                             TIP_("Evaluated surface missing attribute: \"rest_position\""));
     return;
   }
   if (curves.surface_uv_coords().is_empty() && curves.curves_num() > 0) {
