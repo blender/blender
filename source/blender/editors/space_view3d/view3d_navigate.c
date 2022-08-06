@@ -1554,6 +1554,7 @@ static int viewpan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   viewmove_apply(vod, vod->prev.event_xy[0] + x, vod->prev.event_xy[1] + y);
 
+  ED_view3d_camera_lock_undo_push(op->type->name, vod->v3d, vod->rv3d, C);
   viewops_data_free(C, vod);
 
   return OPERATOR_FINISHED;

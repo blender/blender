@@ -1079,6 +1079,7 @@ static int fly_modal(bContext *C, wmOperator *op, const wmEvent *event)
   int exit_code;
   bool do_draw = false;
   FlyInfo *fly = op->customdata;
+  View3D *v3d = fly->v3d;
   RegionView3D *rv3d = fly->rv3d;
   Object *fly_object = ED_view3d_cameracontrol_object_get(fly->v3d_camera_control);
 
@@ -1102,6 +1103,9 @@ static int fly_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   exit_code = flyEnd(C, fly);
 
+  if (exit_code == OPERATOR_FINISHED) {
+    ED_view3d_camera_lock_undo_push(op->type->name, v3d, rv3d, C);
+  }
   if (exit_code != OPERATOR_RUNNING_MODAL) {
     do_draw = true;
   }
