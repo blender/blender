@@ -999,9 +999,14 @@ typedef enum eLineartGpencilModifierSource {
 } eLineartGpencilModifierSource;
 
 typedef enum eLineartGpencilModifierShadowFilter {
+  /* These options need to be ordered in this way because those latter options requires line art to
+     run a few extra stages. Having those values set up this way will allow
+     #BKE_gpencil_get_lineart_modifier_limits() to find out maximum stages needed in multiple
+     cached line art modifiers. */
   LRT_SHADOW_FILTER_NONE = 0,
-  LRT_SHADOW_FILTER_LIT = 1,
+  LRT_SHADOW_FILTER_ILLUMINATED = 1,
   LRT_SHADOW_FILTER_SHADED = 2,
+  LRT_SHADOW_FILTER_ILLUMINATED_ENCLOSED_SHAPES = 3,
 } eLineartGpencilModifierShadowFilter;
 
 typedef enum eLineartGpencilModifierSilhouetteFilter {
