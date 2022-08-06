@@ -13,7 +13,6 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_attribute.h"
-#include "BKE_attribute.hh"
 
 struct Mesh;
 struct BVHTreeFromMesh;
@@ -76,10 +75,6 @@ class MeshAttributeInterpolator {
                    eAttrDomain domain,
                    eAttributeMapMode mode,
                    const GMutableSpan dst);
-
-  void sample_attribute(const GAttributeReader &src_attribute,
-                        GSpanAttributeWriter &dst_attribute,
-                        eAttributeMapMode mode);
 
  protected:
   Span<float3> ensure_barycentric_coords();

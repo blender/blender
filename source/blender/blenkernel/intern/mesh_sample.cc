@@ -252,15 +252,6 @@ void MeshAttributeInterpolator::sample_data(const GVArray &src,
   }
 }
 
-void MeshAttributeInterpolator::sample_attribute(const GAttributeReader &src_attribute,
-                                                 GSpanAttributeWriter &dst_attribute,
-                                                 eAttributeMapMode mode)
-{
-  if (src_attribute && dst_attribute) {
-    this->sample_data(src_attribute.varray, src_attribute.domain, mode, dst_attribute.span);
-  }
-}
-
 int sample_surface_points_spherical(RandomNumberGenerator &rng,
                                     const Mesh &mesh,
                                     const Span<int> looptri_indices_to_sample,
