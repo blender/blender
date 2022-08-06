@@ -304,13 +304,12 @@ void lineart_edge_cut(LineartData *ld,
     /* The enclosed shape flag will override regular lit/shaded
      * flags. See LineartEdgeSegment::shadow_mask_bits for details. */
     if (shadow_bits == LRT_SHADOW_MASK_ENCLOSED_SHAPE) {
-      if (seg->shadow_mask_bits & LRT_SHADOW_MASK_LIT || e->flags & LRT_EDGE_FLAG_LIGHT_CONTOUR) {
-        seg->shadow_mask_bits &= ~LRT_SHADOW_MASK_LIT;
+      if (seg->shadow_mask_bits & LRT_SHADOW_MASK_ILLUMINATED ||
+          e->flags & LRT_EDGE_FLAG_LIGHT_CONTOUR) {
         seg->shadow_mask_bits |= LRT_SHADOW_MASK_INHIBITED;
       }
       else if (seg->shadow_mask_bits & LRT_SHADOW_MASK_SHADED) {
-        seg->shadow_mask_bits &= ~LRT_SHADOW_MASK_SHADED;
-        seg->shadow_mask_bits |= LRT_SHADOW_MASK_LIT;
+        seg->shadow_mask_bits |= LRT_SHADOW_MASK_ILLUMINATED_SHAPE;
       }
     }
     else {
@@ -3643,7 +3642,8 @@ static LineartData *lineart_create_render_buffer(Scene *scene,
                          (lmd->light_contour_object != NULL));
 
   ld->conf.shadow_selection = lmd->shadow_selection_override;
-  ld->conf.shadow_enclose_shapes = (lmd->calculation_flags & LRT_SHADOW_ENCLOSED_SHAPES) != 0;
+  ld->conf.shadow_enclose_shapes = lmd->shadow_selection_override ==
+                                   LRT_SHADOW_FILTER_ILLUMINATED_ENCLOSED_SHAPES;
   ld->conf.shadow_use_silhouette = lmd->shadow_use_silhouette_override != 0;
 
   ld->conf.use_back_face_culling = (lmd->calculation_flags & LRT_USE_BACK_FACE_CULLING) != 0;
@@ -5227,12 +5227,21 @@ static void lineart_gpencil_generate(LineartCache *cache,
     }
     if (shaodow_selection) {
       if (ec->shadow_mask_bits != LRT_SHADOW_MASK_UNDEFINED) {
-        /* TODO(@Yiming): Give a behavior option for how to display undefined shadow info. */
-        if ((shaodow_selection == LRT_SHADOW_FILTER_LIT &&
-             (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_LIT))) ||
-            (shaodow_selection == LRT_SHADOW_FILTER_SHADED &&
-             (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_SHADED)))) {
+        /* TODO(Yiming): Give a behaviour option for how to display undefined shadow info. */
+        if ((shaodow_selection == LRT_SHADOW_FILTER_ILLUMINATED &&
+             (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_ILLUMINATED)))) {
           continue;
+        }
+        else if ((shaodow_selection == LRT_SHADOW_FILTER_SHADED &&
+                  (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_SHADED)))) {
+          continue;
+        }
+        else if (shaodow_selection == LRT_SHADOW_FILTER_ILLUMINATED_ENCLOSED_SHAPES) {
+          uint32_t test_bits = ec->shadow_mask_bits & LRT_SHADOW_TEST_SHAPE_BITS;
+          if ((test_bits != LRT_SHADOW_MASK_ILLUMINATED) &&
+              (test_bits != (LRT_SHADOW_MASK_SHADED | LRT_SHADOW_MASK_ILLUMINATED_SHAPE))) {
+            continue;
+          }
         }
       }
     }

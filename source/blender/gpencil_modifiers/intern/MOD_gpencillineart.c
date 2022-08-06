@@ -373,19 +373,16 @@ static void edge_types_panel_draw(const bContext *UNUSED(C), Panel *panel)
   }
 
   sub = uiLayoutRow(col, false);
-  uiItemR(sub, ptr, "use_crease", 0, "", ICON_NONE);
-  entry = uiLayoutColumn(sub, false);
-  uiItemL(entry, IFACE_("Crease"), ICON_NONE);
-  uiLayoutSetActive(entry, RNA_boolean_get(ptr, "use_crease") || is_first);
   if (use_cache && !is_first) {
-    uiItemL(entry, IFACE_("Crease Angle Cached"), ICON_INFO);
+    uiItemR(sub, ptr, "use_crease", 0, IFACE_("Crease (Angle Cached)"), ICON_NONE);
   }
   else {
-    uiItemR(entry,
+    uiItemR(sub, ptr, "use_crease", 0, "", ICON_NONE);
+    uiItemR(sub,
             ptr,
             "crease_threshold",
             UI_ITEM_R_SLIDER | UI_ITEM_R_FORCE_BLANK_DECORATE,
-            IFACE_("Default Angle"),
+            NULL,
             ICON_NONE);
   }
 
@@ -447,8 +444,6 @@ static void options_light_reference_draw(const bContext *UNUSED(C), Panel *panel
   uiLayout *col = uiLayoutColumn(remaining, true);
   uiItemR(col, ptr, "shadow_camera_near", 0, "Near", ICON_NONE);
   uiItemR(col, ptr, "shadow_camera_far", 0, "Far", ICON_NONE);
-
-  uiItemR(layout, ptr, "use_shadow_enclosed_shapes", 0, IFACE_("Enclosed Shapes"), ICON_NONE);
 }
 
 static void options_panel_draw(const bContext *UNUSED(C), Panel *panel)
