@@ -110,7 +110,12 @@ class PathToEdgeSelectionFieldInput final : public GeometryFieldInput {
 
   bool is_equal_to(const fn::FieldNode &other) const override
   {
-    return dynamic_cast<const PathToEdgeSelectionFieldInput *>(&other) != nullptr;
+    if (const PathToEdgeSelectionFieldInput *other_field =
+            dynamic_cast<const PathToEdgeSelectionFieldInput *>(&other)) {
+      return other_field->start_vertices_ == start_vertices_ &&
+             other_field->next_vertex_ == next_vertex_;
+    }
+    return false;
   }
 };
 
