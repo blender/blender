@@ -465,7 +465,7 @@ static void stitch_calculate_island_snapping(StitchState *state,
 
       angle_to_mat2(rotation_mat, rotation);
       numOfIslandUVs = getNumOfIslandUvs(state->element_map, i);
-      element = &state->element_map->buf[state->element_map->islandIndices[i]];
+      element = &state->element_map->storage[state->element_map->islandIndices[i]];
       for (j = 0; j < numOfIslandUVs; j++, element++) {
         /* stitchable uvs have already been processed, don't process */
         if (!(element->flag & STITCH_PROCESSED)) {
@@ -527,8 +527,8 @@ static void stitch_island_calculate_edge_rotation(UvEdge *edge,
   luv2 = CustomData_bmesh_get(&bm->ldata, element2->l->head.data, CD_MLOOPUV);
 
   if (ssc->mode == STITCH_VERT) {
-    index1 = uvfinal_map[element1 - state->element_map->buf];
-    index2 = uvfinal_map[element2 - state->element_map->buf];
+    index1 = uvfinal_map[element1 - state->element_map->storage];
+    index2 = uvfinal_map[element2 - state->element_map->storage];
   }
   else {
     index1 = edge->uv1;
@@ -569,7 +569,6 @@ static void stitch_island_calculate_vert_rotation(UvElement *element,
                                                   StitchState *state,
                                                   IslandStitchData *island_stitch_data)
 {
-  float edgecos = 1.0f, edgesin = 0.0f;
   int index;
   UvElement *element_iter;
   float rotation = 0, rotation_neg = 0;
@@ -589,7 +588,6 @@ static void stitch_island_calculate_vert_rotation(UvElement *element,
   for (; element_iter; element_iter = element_iter->next) {
     if (element_iter->separate &&
         stitch_check_uvs_state_stitchable(element, element_iter, ssc, state)) {
-      int index_tmp1, index_tmp2;
       float normal[2];
 
       /* only calculate rotation against static island uv verts */
@@ -597,14 +595,14 @@ static void stitch_island_calculate_vert_rotation(UvElement *element,
         continue;
       }
 
-      index_tmp1 = element_iter - state->element_map->buf;
+      int index_tmp1 = element_iter - state->element_map->storage;
       index_tmp1 = state->map[index_tmp1];
-      index_tmp2 = element - state->element_map->buf;
+      int index_tmp2 = element - state->element_map->storage;
       index_tmp2 = state->map[index_tmp2];
 
       negate_v2_v2(normal, state->normals + index_tmp2 * 2);
-      edgecos = dot_v2v2(normal, state->normals + index_tmp1 * 2);
-      edgesin = cross_v2v2(normal, state->normals + index_tmp1 * 2);
+      float edgecos = dot_v2v2(normal, state->normals + index_tmp1 * 2);
+      float edgesin = cross_v2v2(normal, state->normals + index_tmp1 * 2);
       if (edgesin > 0.0f) {
         rotation += acosf(max_ff(-1.0f, min_ff(1.0f, edgecos)));
         rot_elem++;
@@ -679,10 +677,7 @@ static void stitch_uv_edge_generate_linked_edges(GHash *edge_hash, StitchState *
   UvEdge *edges = state->edges;
   const int *map = state->map;
   UvElementMap *element_map = state->element_map;
-  UvElement *first_element = element_map->buf;
-  int i;
-
-  for (i = 0; i < state->total_separate_edges; i++) {
+  for (int i = 0; i < state->total_separate_edges; i++) {
     UvEdge *edge = edges + i;
 
     if (edge->first) {
@@ -713,8 +708,8 @@ static void stitch_uv_edge_generate_linked_edges(GHash *edge_hash, StitchState *
         }
 
         if (iter2) {
-          int index1 = map[iter1 - first_element];
-          int index2 = map[iter2 - first_element];
+          int index1 = map[iter1 - element_map->storage];
+          int index2 = map[iter2 - element_map->storage];
           UvEdge edgetmp;
           UvEdge *edge2, *eiter;
           bool valid = true;
@@ -1176,7 +1171,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
         int numOfIslandUVs = 0, j;
         UvElement *element;
         numOfIslandUVs = getNumOfIslandUvs(state->element_map, i);
-        element = &state->element_map->buf[state->element_map->islandIndices[i]];
+        element = &state->element_map->storage[state->element_map->islandIndices[i]];
         for (j = 0; j < numOfIslandUVs; j++, element++) {
           stitch_set_face_preview_buffer_position(element->l->f, preview, preview_position);
         }
@@ -1283,7 +1278,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
         l = element->l;
         luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
 
-        uvfinal_map[element - state->element_map->buf] = i;
+        uvfinal_map[element - state->element_map->storage] = i;
 
         copy_v2_v2(final_position[i].uv, luv->uv);
         final_position[i].count = 1;
@@ -1541,6 +1536,7 @@ static int stitch_process_data_all(StitchStateContainer *ssc, Scene *scene, int 
 static uint uv_edge_hash(const void *key)
 {
   const UvEdge *edge = key;
+  BLI_assert(edge->uv1 < edge->uv2);
   return (BLI_ghashutil_uinthash(edge->uv2) + BLI_ghashutil_uinthash(edge->uv1));
 }
 
@@ -1548,6 +1544,8 @@ static bool uv_edge_compare(const void *a, const void *b)
 {
   const UvEdge *edge1 = a;
   const UvEdge *edge2 = b;
+  BLI_assert(edge1->uv1 < edge1->uv2);
+  BLI_assert(edge2->uv1 < edge2->uv2);
 
   if ((edge1->uv1 == edge2->uv1) && (edge1->uv2 == edge2->uv2)) {
     return 0;
@@ -1849,8 +1847,8 @@ static UvEdge *uv_edge_get(BMLoop *l, StitchState *state)
   UvElement *element1 = BM_uv_element_get(state->element_map, l->f, l);
   UvElement *element2 = BM_uv_element_get(state->element_map, l->f, l->next);
 
-  int uv1 = state->map[element1 - state->element_map->buf];
-  int uv2 = state->map[element2 - state->element_map->buf];
+  int uv1 = state->map[element1 - state->element_map->storage];
+  int uv2 = state->map[element2 - state->element_map->storage];
 
   if (uv1 < uv2) {
     tmp_edge.uv1 = uv1;
@@ -1943,7 +1941,7 @@ static StitchState *stitch_init(bContext *C,
         state->uvs[counter] = element;
       }
       /* Pointer arithmetic to the rescue, as always :). */
-      map[element - state->element_map->buf] = counter;
+      map[element - state->element_map->storage] = counter;
     }
   }
 
@@ -1957,13 +1955,13 @@ static StitchState *stitch_init(bContext *C,
 
     BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
       UvElement *element = BM_uv_element_get(state->element_map, efa, l);
-      int offset1, itmp1 = element - state->element_map->buf;
-      int offset2,
-          itmp2 = BM_uv_element_get(state->element_map, efa, l->next) - state->element_map->buf;
+      int itmp1 = element - state->element_map->storage;
+      int itmp2 = BM_uv_element_get(state->element_map, efa, l->next) -
+                  state->element_map->storage;
       UvEdge *edge;
 
-      offset1 = map[itmp1];
-      offset2 = map[itmp2];
+      int offset1 = map[itmp1];
+      int offset2 = map[itmp2];
 
       all_edges[counter].next = NULL;
       all_edges[counter].first = NULL;
@@ -2083,13 +2081,13 @@ static StitchState *stitch_init(bContext *C,
         efa = BM_face_at_index(em->bm, faceIndex);
         element = BM_uv_element_get(
             state->element_map, efa, BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, efa, elementIndex));
-        uv1 = map[element - state->element_map->buf];
+        uv1 = map[element - state->element_map->storage];
 
         element = BM_uv_element_get(
             state->element_map,
             efa,
             BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, efa, (elementIndex + 1) % efa->len));
-        uv2 = map[element - state->element_map->buf];
+        uv2 = map[element - state->element_map->storage];
 
         if (uv1 < uv2) {
           tmp_edge.uv1 = uv1;

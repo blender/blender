@@ -603,7 +603,7 @@ static void bm_uv_assign_island(UvElementMap *element_map,
                                 int islandbufsize)
 {
   element->island = nisland;
-  map[element - element_map->buf] = islandbufsize;
+  map[element - element_map->storage] = islandbufsize;
 
   /* Copy *element to islandbuf[islandbufsize]. */
   islandbuf[islandbufsize].l = element->l;
@@ -625,11 +625,11 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
   /* For each UvElement, locate the "separate" UvElement that precedes it in the linked list. */
   UvElement **head_table = MEM_mallocN(sizeof(*head_table) * total_uvs, "uv_island_head_table");
   for (int i = 0; i < total_uvs; i++) {
-    UvElement *head = element_map->buf + i;
+    UvElement *head = element_map->storage + i;
     if (head->separate) {
       UvElement *element = head;
       while (element) {
-        head_table[element - element_map->buf] = head;
+        head_table[element - element_map->storage] = head;
         element = element->next;
         if (element && element->separate) {
           break;
@@ -646,7 +646,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
                                      "uv_island_element_stack");
   int stacksize_uv = 0;
   for (int i = 0; i < total_uvs; i++) {
-    UvElement *element = element_map->buf + i;
+    UvElement *element = element_map->storage + i;
     if (element->island != INVALID_ISLAND) {
       /* Unique UV (element and all it's children) are already part of an island. */
       continue;
@@ -676,7 +676,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
         if (!uv_selected || uvedit_edge_select_test(scene, element->l, cd_loop_uv_offset)) {
           UvElement *next = BM_uv_element_get(element_map, element->l->next->f, element->l->next);
           if (next->island == INVALID_ISLAND) {
-            UvElement *tail = head_table[next - element_map->buf];
+            UvElement *tail = head_table[next - element_map->storage];
             stack_uv[stacksize_uv++] = tail;
             while (tail) {
               bm_uv_assign_island(element_map, tail, nislands, map, islandbuf, islandbufsize++);
@@ -692,7 +692,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
         if (!uv_selected || uvedit_edge_select_test(scene, element->l->prev, cd_loop_uv_offset)) {
           UvElement *prev = BM_uv_element_get(element_map, element->l->prev->f, element->l->prev);
           if (prev->island == INVALID_ISLAND) {
-            UvElement *tail = head_table[prev - element_map->buf];
+            UvElement *tail = head_table[prev - element_map->storage];
             stack_uv[stacksize_uv++] = tail;
             while (tail) {
               bm_uv_assign_island(element_map, tail, nislands, map, islandbuf, islandbufsize++);
@@ -736,7 +736,6 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
   BMIter iter, liter;
   /* vars from original func */
   UvElementMap *element_map;
-  UvElement *buf;
   bool *winding = NULL;
   BLI_buffer_declare_static(vec2f, tf_uv_buf, BLI_BUFFER_NOP, BM_DEFAULT_NGON_STACK_SIZE);
 
@@ -781,13 +780,14 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
   element_map->total_uvs = totuv;
   element_map->vert = (UvElement **)MEM_callocN(sizeof(*element_map->vert) * totverts,
                                                 "UvElementVerts");
-  buf = element_map->buf = (UvElement *)MEM_callocN(sizeof(*element_map->buf) * totuv,
-                                                    "UvElement");
+  element_map->storage = (UvElement *)MEM_callocN(sizeof(*element_map->storage) * totuv,
+                                                  "UvElement");
 
   if (use_winding) {
     winding = MEM_callocN(sizeof(*winding) * totfaces, "winding");
   }
 
+  UvElement *buf = element_map->storage;
   BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, j) {
 
     if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
@@ -882,7 +882,8 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
         iterv = next;
       }
 
-      newvlist->separate = 1;
+      element_map->total_unique_uvs++;
+      newvlist->separate = true;
     }
 
     element_map->vert[i] = newvlist;
@@ -894,8 +895,6 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
 
   if (do_islands) {
     uint *map;
-    BMFace **stack;
-    int stacksize = 0;
     UvElement *islandbuf;
     /* island number for faces */
     int *island_number = NULL;
@@ -904,7 +903,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
 
     /* map holds the map from current vmap->buf to the new, sorted map */
     map = MEM_mallocN(sizeof(*map) * totuv, "uvelement_remap");
-    stack = MEM_mallocN(sizeof(*stack) * bm->totface, "uv_island_face_stack");
+    BMFace **stack = MEM_mallocN(sizeof(*stack) * bm->totface, "uv_island_face_stack");
     islandbuf = MEM_callocN(sizeof(*islandbuf) * totuv, "uvelement_island_buffer");
     island_number = MEM_mallocN(sizeof(*island_number) * totfaces, "uv_island_number_face");
     copy_vn_i(island_number, totfaces, INVALID_ISLAND);
@@ -921,9 +920,10 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     /* at this point, every UvElement in vert points to a UvElement sharing the same vertex.
      * Now we should sort uv's in islands. */
     for (i = 0; i < totuv; i++) {
-      if (element_map->buf[i].island == INVALID_ISLAND) {
-        element_map->buf[i].island = nislands;
-        stack[0] = element_map->buf[i].l->f;
+      if (element_map->storage[i].island == INVALID_ISLAND) {
+        int stacksize = 0;
+        element_map->storage[i].island = nislands;
+        stack[0] = element_map->storage[i].l->f;
         island_number[BM_elem_index_get(stack[0])] = nislands;
         stacksize = 1;
 
@@ -974,7 +974,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     for (i = 0; i < bm->totvert; i++) {
       /* important since we may do selection only. Some of these may be NULL */
       if (element_map->vert[i]) {
-        element_map->vert[i] = &islandbuf[map[element_map->vert[i] - element_map->buf]];
+        element_map->vert[i] = &islandbuf[map[element_map->vert[i] - element_map->storage]];
       }
     }
 
@@ -982,12 +982,12 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
                                              "UvElementMap_island_indices");
     j = 0;
     for (i = 0; i < totuv; i++) {
-      UvElement *element = element_map->buf[i].next;
+      UvElement *element = element_map->storage[i].next;
       if (element == NULL) {
         islandbuf[map[i]].next = NULL;
       }
       else {
-        islandbuf[map[i]].next = &islandbuf[map[element - element_map->buf]];
+        islandbuf[map[i]].next = &islandbuf[map[element - element_map->storage]];
       }
 
       if (islandbuf[i].island != j) {
@@ -996,19 +996,19 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
       }
     }
 
-    MEM_freeN(element_map->buf);
-
-    element_map->buf = islandbuf;
+    MEM_SAFE_FREE(element_map->storage);
+    element_map->storage = islandbuf;
+    islandbuf = NULL;
     element_map->totalIslands = nislands;
-    MEM_freeN(stack);
-    MEM_freeN(map);
+    MEM_SAFE_FREE(stack);
+    MEM_SAFE_FREE(map);
   }
 
   BLI_buffer_free(&tf_uv_buf);
 
   element_map->total_unique_uvs = 0;
   for (int i = 0; i < element_map->total_uvs; i++) {
-    if (element_map->buf[i].separate) {
+    if (element_map->storage[i].separate) {
       element_map->total_unique_uvs++;
     }
   }
@@ -1032,16 +1032,10 @@ void BM_uv_vert_map_free(UvVertMap *vmap)
 void BM_uv_element_map_free(UvElementMap *element_map)
 {
   if (element_map) {
-    if (element_map->vert) {
-      MEM_freeN(element_map->vert);
-    }
-    if (element_map->buf) {
-      MEM_freeN(element_map->buf);
-    }
-    if (element_map->islandIndices) {
-      MEM_freeN(element_map->islandIndices);
-    }
-    MEM_freeN(element_map);
+    MEM_SAFE_FREE(element_map->vert);
+    MEM_SAFE_FREE(element_map->storage);
+    MEM_SAFE_FREE(element_map->islandIndices);
+    MEM_SAFE_FREE(element_map);
   }
 }
 

@@ -434,7 +434,7 @@ static int uv_element_offset_from_face_get(
   if (!element || (doIslands && element->island != island_index)) {
     return -1;
   }
-  return element - map->buf;
+  return element - map->storage;
 }
 
 static uint uv_edge_hash(const void *key)
@@ -520,8 +520,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     if (do_island_optimization) {
       unique_uvs = 0;
       for (int i = 0; i < data->elementMap->total_uvs; i++) {
-        if (data->elementMap->buf[i].separate &&
-            (data->elementMap->buf[i].island == island_index)) {
+        if (data->elementMap->storage[i].separate &&
+            (data->elementMap->storage[i].island == island_index)) {
           unique_uvs++;
         }
       }
@@ -569,7 +569,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
           data->uv[counter].uv = luv->uv;
         }
         /* Pointer arithmetic to the rescue, as always :). */
-        uniqueUv[element - data->elementMap->buf] = counter;
+        uniqueUv[element - data->elementMap->storage] = counter;
       }
     }
 

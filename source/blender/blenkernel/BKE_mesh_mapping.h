@@ -17,11 +17,10 @@ struct MLoopUV;
 struct MPoly;
 struct MVert;
 
-/* map from uv vertex to face (for select linked, stitch, uv suburf) */
-
 /* UvVertMap */
 #define STD_UV_CONNECT_LIMIT 0.0001f
 
+/* Map from uv vertex to face. Used by select linked, uv subsurf and obj exporter. */
 typedef struct UvVertMap {
   struct UvMapVert **vert;
   struct UvMapVert *buf;
@@ -64,8 +63,8 @@ typedef struct UvElement {
 typedef struct UvElementMap {
   /* address UvElements by their vertex */
   struct UvElement **vert;
-  /* UvElement Store */
-  struct UvElement *buf;
+  /** UvElement Storage. */
+  struct UvElement *storage;
   /** Total number of UVs. */
   int total_uvs;
   /** Total number of unique UVs. */
