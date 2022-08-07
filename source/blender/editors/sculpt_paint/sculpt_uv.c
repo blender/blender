@@ -549,7 +549,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     int counter = -1;
     /* initialize the unique UVs */
     for (int i = 0; i < bm->totvert; i++) {
-      UvElement *element = data->elementMap->vert[i];
+      UvElement *element = data->elementMap->vertex[i];
       for (; element; element = element->next) {
         if (element->separate) {
           if (do_island_optimization && (element->island != island_index)) {

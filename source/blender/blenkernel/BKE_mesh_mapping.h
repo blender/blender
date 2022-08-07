@@ -61,14 +61,16 @@ typedef struct UvElement {
  * the number of uvs per island.
  */
 typedef struct UvElementMap {
-  /* address UvElements by their vertex */
-  struct UvElement **vert;
   /** UvElement Storage. */
   struct UvElement *storage;
   /** Total number of UVs. */
   int total_uvs;
   /** Total number of unique UVs. */
   int total_unique_uvs;
+
+  /* If Non-NULL, address UvElements by `BM_elem_index_get(BMVert*)`. */
+  struct UvElement **vertex;
+
   /* Number of Islands in the mesh */
   int totalIslands;
   /* Stores the starting index in buf where each island begins */

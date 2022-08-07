@@ -144,6 +144,7 @@ void BM_uv_element_map_free(struct UvElementMap *element_map);
 struct UvElement *BM_uv_element_get(struct UvElementMap *map,
                                     struct BMFace *efa,
                                     struct BMLoop *l);
+struct UvElement *BM_uv_element_get_head(struct UvElementMap *map, struct UvElement *child);
 
 /**
  * Can we edit UV's for this mesh?

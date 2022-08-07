@@ -569,22 +569,14 @@ static void stitch_island_calculate_vert_rotation(UvElement *element,
                                                   StitchState *state,
                                                   IslandStitchData *island_stitch_data)
 {
-  int index;
-  UvElement *element_iter;
   float rotation = 0, rotation_neg = 0;
   int rot_elem = 0, rot_elem_neg = 0;
-  BMLoop *l;
 
   if (element->island == ssc->static_island && !ssc->midpoints) {
     return;
   }
 
-  l = element->l;
-
-  index = BM_elem_index_get(l->v);
-
-  element_iter = state->element_map->vert[index];
-
+  UvElement *element_iter = BM_uv_element_get_head(state->element_map, element);
   for (; element_iter; element_iter = element_iter->next) {
     if (element_iter->separate &&
         stitch_check_uvs_state_stitchable(element, element_iter, ssc, state)) {
@@ -690,7 +682,7 @@ static void stitch_uv_edge_generate_linked_edges(GHash *edge_hash, StitchState *
       UvElement *element2 = state->uvs[edge->uv2];
 
       /* Now iterate through all faces and try to find edges sharing the same vertices */
-      UvElement *iter1 = element_map->vert[BM_elem_index_get(element1->l->v)];
+      UvElement *iter1 = BM_uv_element_get_head(state->element_map, element1);
       UvEdge *last_set = edge;
       int elemindex2 = BM_elem_index_get(element2->l->v);
 
@@ -758,15 +750,7 @@ static void determine_uv_stitchability(UvElement *element,
                                        StitchState *state,
                                        IslandStitchData *island_stitch_data)
 {
-  int vert_index;
-  UvElement *element_iter;
-  BMLoop *l;
-
-  l = element->l;
-
-  vert_index = BM_elem_index_get(l->v);
-  element_iter = state->element_map->vert[vert_index];
-
+  UvElement *element_iter = BM_uv_element_get_head(state->element_map, element);
   for (; element_iter; element_iter = element_iter->next) {
     if (element_iter->separate) {
       if (stitch_check_uvs_stitchable(element, element_iter, ssc, state)) {
@@ -847,16 +831,7 @@ static void stitch_validate_uv_stitchability(UvElement *element,
     return;
   }
 
-  UvElement *element_iter;
-  int vert_index;
-  BMLoop *l;
-
-  l = element->l;
-
-  vert_index = BM_elem_index_get(l->v);
-
-  element_iter = state->element_map->vert[vert_index];
-
+  UvElement *element_iter = BM_uv_element_get_head(state->element_map, element);
   for (; element_iter; element_iter = element_iter->next) {
     if (element_iter->separate) {
       if (element_iter == element) {
@@ -1273,7 +1248,6 @@ static int stitch_process_data(StitchStateContainer *ssc,
       if (element->flag & STITCH_STITCHABLE) {
         BMLoop *l;
         MLoopUV *luv;
-        UvElement *element_iter;
 
         l = element->l;
         luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
@@ -1287,8 +1261,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
           continue;
         }
 
-        element_iter = state->element_map->vert[BM_elem_index_get(l->v)];
-
+        UvElement *element_iter = state->element_map->vertex[BM_elem_index_get(l->v)];
         for (; element_iter; element_iter = element_iter->next) {
           if (element_iter->separate) {
             if (stitch_check_uvs_state_stitchable(element, element_iter, ssc, state)) {
@@ -1585,13 +1558,8 @@ static void stitch_select_edge(UvEdge *edge, StitchState *state, int always_sele
 /* Select all common uvs */
 static void stitch_select_uv(UvElement *element, StitchState *state, int always_select)
 {
-  BMLoop *l;
-  UvElement *element_iter;
   UvElement **selection_stack = (UvElement **)state->selection_stack;
-
-  l = element->l;
-
-  element_iter = state->element_map->vert[BM_elem_index_get(l->v)];
+  UvElement *element_iter = BM_uv_element_get_head(state->element_map, element);
   /* first deselect all common uvs */
   for (; element_iter; element_iter = element_iter->next) {
     if (element_iter->separate) {
@@ -1934,7 +1902,7 @@ static StitchState *stitch_init(bContext *C,
   int counter = -1;
   /* initialize the unique UVs and map */
   for (int i = 0; i < em->bm->totvert; i++) {
-    UvElement *element = state->element_map->vert[i];
+    UvElement *element = state->element_map->vertex[i];
     for (; element; element = element->next) {
       if (element->separate) {
         counter++;
