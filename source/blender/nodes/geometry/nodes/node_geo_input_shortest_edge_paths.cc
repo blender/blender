@@ -148,7 +148,11 @@ class ShortestEdgePathsNextVertFieldInput final : public GeometryFieldInput {
 
   bool is_equal_to(const fn::FieldNode &other) const override
   {
-    return dynamic_cast<const ShortestEdgePathsNextVertFieldInput *>(&other) != nullptr;
+    if (const ShortestEdgePathsNextVertFieldInput *other_field =
+            dynamic_cast<const ShortestEdgePathsNextVertFieldInput *>(&other)) {
+      return other_field->end_selection_ == end_selection_ && other_field->cost_ == cost_;
+    }
+    return false;
   }
 };
 
@@ -215,7 +219,11 @@ class ShortestEdgePathsCostFieldInput final : public GeometryFieldInput {
 
   bool is_equal_to(const fn::FieldNode &other) const override
   {
-    return dynamic_cast<const ShortestEdgePathsCostFieldInput *>(&other) != nullptr;
+    if (const ShortestEdgePathsCostFieldInput *other_field =
+            dynamic_cast<const ShortestEdgePathsCostFieldInput *>(&other)) {
+      return other_field->end_selection_ == end_selection_ && other_field->cost_ == cost_;
+    }
+    return false;
   }
 };
 
