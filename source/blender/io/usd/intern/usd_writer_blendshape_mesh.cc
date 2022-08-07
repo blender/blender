@@ -97,7 +97,6 @@ static void print_blendshape_info(Object *obj)
   // BKE_keyblock_element_count_from_shape()
   LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
     printf("%s %f %f\n", kb->name, kb->curval, kb->pos);
-
   }
 
   printf("anim pointer %p\n", key->adt);
@@ -110,46 +109,38 @@ bool is_blendshape_mesh(Object *obj)
   return key && key->totkey > 0 && key->type == KEY_RELATIVE;
 }
 
-USDBlendShapeMeshWriter::USDBlendShapeMeshWriter(const USDExporterContext &ctx) : USDMeshWriter(ctx)
+USDBlendShapeMeshWriter::USDBlendShapeMeshWriter(const USDExporterContext &ctx)
+    : USDMeshWriter(ctx)
 {
 }
 
 void USDBlendShapeMeshWriter::do_write(HierarchyContext &context)
 {
   if (!this->frame_has_been_written_) {
-    /* Even though this writer is potentially animated
-     * because it may have animating blendshape weights,
-     * the mesh is never animated.  Setting the is_animated_
-     * varialbe to false before writing the mesh prevents
-     * unwanted time samples for mesh properties from being
-     * written.  Hopefully, there could be nicer way to do this. */
-    bool prev_is_animated = is_animated_;
-    is_animated_ = false;
-    try {
-      USDGenericMeshWriter::do_write(context);
-      is_animated_ = prev_is_animated;
-    }
-    catch (...) {
-      is_animated_ = prev_is_animated;
-      throw;
-    }
+    USDGenericMeshWriter::do_write(context);
   }
 
+  write_blendshape(context);
+}
+
+bool USDBlendShapeMeshWriter::is_supported(const HierarchyContext *context) const
+{
+  return is_blendshape_mesh(context->object) && USDGenericMeshWriter::is_supported(context);
+}
+
+bool USDBlendShapeMeshWriter::check_is_animated(const HierarchyContext &context) const
+{
+  const Key *key = get_shape_key(context.object);
+
+  return key && key->totkey > 0 && key->adt != nullptr;
+}
+
+void USDBlendShapeMeshWriter::write_blendshape(HierarchyContext &context) const
+{
   /* A blendshape writer might be created even if
    * there are no blendshapes, so check that blendshapes
    * exist before continuting. */
   if (!is_blendshape_mesh(context.object)) {
-    return;
-  }
-
-  pxr::UsdStageRefPtr stage = usd_export_context_.stage;
-  pxr::UsdTimeCode timecode = get_export_time_code();
-
-  pxr::UsdPrim mesh_prim = stage->GetPrimAtPath(usd_export_context_.usd_path);
-
-  if (!mesh_prim.IsValid()) {
-    printf("WARNING: couldn't get valid mesh prim for blendshape mesh %s\n",
-           this->usd_export_context_.usd_path.GetString().c_str());
     return;
   }
 
@@ -163,25 +154,28 @@ void USDBlendShapeMeshWriter::do_write(HierarchyContext &context)
 
   const Key *key = get_shape_key(context.object);
 
+  if (!key) {
+    printf("WARNING: couldn't get shape key for blendshape mesh prim %s\n",
+           this->usd_export_context_.usd_path.GetString().c_str());
+    return;
+  }
+
   if (!this->frame_has_been_written_) {
+    pxr::UsdPrim mesh_prim = usd_export_context_.stage->GetPrimAtPath(
+        usd_export_context_.usd_path);
+
+    if (!mesh_prim.IsValid()) {
+      printf("WARNING: couldn't get valid mesh prim for blendshape mesh %s\n",
+             this->usd_export_context_.usd_path.GetString().c_str());
+      return;
+    }
+
     create_blend_shapes(key, mesh_prim, skel);
   }
 
   if (exporting_anim(key)) {
     add_weights_sample(key, skel);
   }
-}
-
-bool USDBlendShapeMeshWriter::is_supported(const HierarchyContext *context) const
-{
-  return is_blendshape_mesh(context->object) && USDGenericMeshWriter::is_supported(context);
-}
-
-bool USDBlendShapeMeshWriter::check_is_animated(const HierarchyContext & context) const
-{
-  const Key *key = get_shape_key(context.object);
-
-  return key && key->totkey > 0 && key->adt != nullptr;
 }
 
 void USDBlendShapeMeshWriter::create_blend_shapes(const Key *key,
@@ -230,7 +224,8 @@ void USDBlendShapeMeshWriter::create_blend_shapes(const Key *key,
     pxr::SdfPath path = usd_export_context_.usd_path.AppendChild(name);
     blendshape_paths.push_back(path);
 
-    pxr::UsdSkelBlendShape blendshape = usd_export_context_.usd_define_or_over<pxr::UsdSkelBlendShape>(path);
+    pxr::UsdSkelBlendShape blendshape =
+        usd_export_context_.usd_define_or_over<pxr::UsdSkelBlendShape>(path);
 
     pxr::UsdAttribute offsets_attr = blendshape.CreateOffsetsAttr();
 
@@ -262,23 +257,19 @@ void USDBlendShapeMeshWriter::create_blend_shapes(const Key *key,
   blendshape_attr.Set(blendshape_names);
   skel_api.CreateBlendShapeTargetsRel().SetTargets(blendshape_paths);
 
-  /* Some DCCs seem to require joint names, indices and weights to
-   * bind the skeleton. */
-  pxr::VtTokenArray joints({usdtokens::joint1});
-  pxr::VtArray<int> joint_indices(basis_totelem, 0);
-  pxr::VtArray<float> joint_weights(basis_totelem, 1.0f);
+  /* Some DCCs seem to require joint indices and weights to
+   * bind the skeleton for blendshapes, so we we create these
+   * primvars, if needed. */
 
-  skel_api.CreateJointsAttr().Set(joints);
-  skel_api.CreateJointIndicesPrimvar(false, 1).GetAttr().Set(joint_indices);
-  skel_api.CreateJointWeightsPrimvar(false, 1).GetAttr().Set(joint_weights);
+  if (!skel_api.GetJointIndicesAttr().HasAuthoredValue()) {
+    pxr::VtArray<int> joint_indices(basis_totelem, 0);
+    skel_api.CreateJointIndicesPrimvar(false, 1).GetAttr().Set(joint_indices);
+  }
 
-  /* Initialize the skeleton. */
-  pxr::VtMatrix4dArray bind_transforms(1, pxr::GfMatrix4d(1.0));
-  pxr::VtMatrix4dArray rest_transforms(1, pxr::GfMatrix4d(1.0));
-  skel.CreateBindTransformsAttr().Set(bind_transforms);
-  skel.GetRestTransformsAttr().Set(rest_transforms);
-
-  skel.CreateJointsAttr().Set(joints);
+  if (!skel_api.GetJointWeightsAttr().HasAuthoredValue()) {
+    pxr::VtArray<float> joint_weights(basis_totelem, 1.0f);
+    skel_api.CreateJointWeightsPrimvar(false, 1).GetAttr().Set(joint_weights);
+  }
 
   /* Create the skeleton animation. */
   pxr::SdfPath anim_path = skel.GetPath().AppendChild(usdtokens::Anim);
@@ -286,12 +277,6 @@ void USDBlendShapeMeshWriter::create_blend_shapes(const Key *key,
       anim_path);
 
   if (anim) {
-    /* Specify the animation source on the skeleton. */
-    skel_api = pxr::UsdSkelBindingAPI::Apply(skel.GetPrim());
-    skel_api.CreateAnimationSourceRel().AddTarget(pxr::SdfPath(usdtokens::Anim));
-
-    anim.CreateJointsAttr().Set(joints);
-
     /* Set the blendshape names on the animation. */
     pxr::UsdAttribute blendshape_attr = anim.CreateBlendShapesAttr();
     blendshape_attr.Set(blendshape_names);
@@ -300,7 +285,6 @@ void USDBlendShapeMeshWriter::create_blend_shapes(const Key *key,
     pxr::UsdAttribute weights_attr = anim.CreateBlendShapeWeightsAttr();
     weights_attr.Set(weights);
   }
-
 }
 
 void USDBlendShapeMeshWriter::add_weights_sample(const Key *key,
@@ -324,7 +308,25 @@ pxr::UsdSkelSkeleton USDBlendShapeMeshWriter::get_skeleton(const HierarchyContex
   pxr::SdfPath skel_path = usd_export_context_.usd_path.GetParentPath().AppendChild(
       usdtokens::Skel);
 
-  return usd_export_context_.usd_define_or_over<pxr::UsdSkelSkeleton>(skel_path);
+  pxr::UsdSkelSkeleton skel = usd_export_context_.usd_define_or_over<pxr::UsdSkelSkeleton>(
+      skel_path);
+
+  /* Initialize the skeleton. */
+  pxr::VtMatrix4dArray bind_transforms(1, pxr::GfMatrix4d(1.0));
+  pxr::VtMatrix4dArray rest_transforms(1, pxr::GfMatrix4d(1.0));
+  skel.CreateBindTransformsAttr().Set(bind_transforms);
+  skel.GetRestTransformsAttr().Set(rest_transforms);
+
+  /* Some DCCs seem to require joint names to bind the
+   * skeleton to blendshapes. */
+  pxr::VtTokenArray joints({usdtokens::joint1});
+  skel.CreateJointsAttr().Set(joints);
+
+  /* Specify the animation source on the skeleton. */
+  pxr::UsdSkelBindingAPI skel_api(skel.GetPrim());
+  skel_api.CreateAnimationSourceRel().AddTarget(pxr::SdfPath(usdtokens::Anim));
+
+  return skel;
 }
 
 Mesh *USDBlendShapeMeshWriter::get_export_mesh(Object *object_eval, bool &r_needsfree)
@@ -352,14 +354,27 @@ Mesh *USDBlendShapeMeshWriter::get_export_mesh(Object *object_eval, bool &r_need
     return nullptr;
   }
 
-  Mesh *temp_mesh = reinterpret_cast<Mesh *>(BKE_id_copy_ex(
-      nullptr, &src_mesh->id, nullptr, LIB_ID_COPY_LOCALIZE));
+  Mesh *temp_mesh = reinterpret_cast<Mesh *>(
+      BKE_id_copy_ex(nullptr, &src_mesh->id, nullptr, LIB_ID_COPY_LOCALIZE));
 
   BKE_keyblock_convert_to_mesh(basis, temp_mesh->mvert, temp_mesh->totvert);
 
   r_needsfree = true;
 
   return temp_mesh;
+}
+
+/* Blend shape meshes are never animated, but the blendshape writer itself
+ * might be animating as it must add time samples to skeletal animations.
+ * This function ensures that the mesh data is written as non-timesampled.
+ * This is currently required to work around a bug in Create which causes
+ * a crash if the blendhshape mesh is timesampled. */
+pxr::UsdTimeCode USDBlendShapeMeshWriter::get_mesh_export_time_code() const
+{
+  /* By using the default timecode USD won't even write a single `timeSample` for non-animated
+   * data. Instead, it writes it as non-timesampled. */
+  static pxr::UsdTimeCode default_timecode = pxr::UsdTimeCode::Default();
+  return default_timecode;
 }
 
 bool USDBlendShapeMeshWriter::exporting_anim(const Key *shape_key) const

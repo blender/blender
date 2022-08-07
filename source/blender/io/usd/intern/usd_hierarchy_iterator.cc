@@ -136,7 +136,7 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_data_writer(const Hierarch
           data_writer = new USDSkinnedMeshWriter(usd_export_context);
         }
         else if (usd_export_context.export_params.export_blendshapes &&
-            is_blendshape_mesh(context->object)) {
+                 is_blendshape_mesh(context->object)) {
           data_writer = new USDBlendShapeMeshWriter(usd_export_context);
         }
         else {

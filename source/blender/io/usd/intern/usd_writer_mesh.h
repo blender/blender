@@ -24,6 +24,11 @@ class USDGenericMeshWriter : public USDAbstractWriter {
   virtual Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree) = 0;
   virtual void free_export_mesh(Mesh *mesh);
 
+  /* Get time code for writing mesh properties.
+   * The default implementation is equivalent to
+   * calling USDAbstractWriter::get_export_time_code(). */
+  virtual pxr::UsdTimeCode get_mesh_export_time_code() const;
+
  private:
   /* Mapping from material slot number to array of face indices with that material. */
   typedef std::map<short, pxr::VtIntArray> MaterialFaceGroups;

@@ -70,12 +70,19 @@ static Object *get_armature_obj(Object *obj)
   return mod ? mod->object : nullptr;
 }
 
-USDSkinnedMeshWriter::USDSkinnedMeshWriter(const USDExporterContext &ctx) : USDMeshWriter(ctx)
+USDSkinnedMeshWriter::USDSkinnedMeshWriter(const USDExporterContext &ctx)
+    : USDBlendShapeMeshWriter(ctx)
 {
 }
 
 void USDSkinnedMeshWriter::do_write(HierarchyContext &context)
 {
+  if (this->frame_has_been_written_ && usd_export_context_.export_params.export_blendshapes) {
+    /* Only blendshapes may be animated on skinned meshes. */
+    write_blendshape(context);
+    return;
+  }
+
   Object *arm_obj = get_armature_obj(context.object);
 
   if (!arm_obj) {
@@ -126,21 +133,14 @@ void USDSkinnedMeshWriter::do_write(HierarchyContext &context)
     return;
   }
 
-  ID *arm_id = reinterpret_cast<ID *>(arm_obj->data);
-
-  std::string skel_path = usd_export_context_.hierarchy_iterator->get_object_export_path(arm_id);
-
-  if (skel_path.empty()) {
+  pxr::SdfPath skel_path = get_skel_path(arm_obj);
+  if (skel_path.IsEmpty()) {
     printf("WARNING: couldn't get USD skeleton path for skinned mesh %s\n",
            this->usd_export_context_.usd_path.GetString().c_str());
     return;
   }
 
-  if (strlen(usd_export_context_.export_params.root_prim_path) != 0) {
-    skel_path = std::string(usd_export_context_.export_params.root_prim_path) + skel_path;
-  }
-
-  usd_skel_api.CreateSkeletonRel().SetTargets(pxr::SdfPathVector({pxr::SdfPath(skel_path)}));
+  usd_skel_api.CreateSkeletonRel().SetTargets(pxr::SdfPathVector({skel_path}));
 
   if (pxr::UsdAttribute geom_bind_attr = usd_skel_api.CreateGeomBindTransformAttr()) {
     pxr::GfMatrix4f mat_world(context.matrix_world);
@@ -172,6 +172,10 @@ void USDSkinnedMeshWriter::do_write(HierarchyContext &context)
 
   if (needs_free) {
     free_export_mesh(mesh);
+  }
+
+  if (usd_export_context_.export_params.export_blendshapes) {
+    write_blendshape(context);
   }
 }
 
@@ -303,11 +307,38 @@ bool USDSkinnedMeshWriter::is_supported(const HierarchyContext *context) const
   return is_skinned_mesh(context->object) && USDGenericMeshWriter::is_supported(context);
 }
 
-bool USDSkinnedMeshWriter::check_is_animated(const HierarchyContext & /*context*/) const
+bool USDSkinnedMeshWriter::check_is_animated(const HierarchyContext &context) const
 {
-  /* We assume that skinned meshes are never animated, as the source of
-   * any animation is the mesh's bound skeleton. */
-  return false;
+  return usd_export_context_.export_params.export_blendshapes &&
+         USDBlendShapeMeshWriter::check_is_animated(context);
+}
+
+pxr::SdfPath USDSkinnedMeshWriter::get_skel_path(Object *arm_obj) const
+{
+  ID *arm_id = reinterpret_cast<ID *>(arm_obj->data);
+
+  std::string skel_path = usd_export_context_.hierarchy_iterator->get_object_export_path(arm_id);
+
+  if (skel_path.empty()) {
+    return pxr::SdfPath();
+  }
+
+  if (strlen(usd_export_context_.export_params.root_prim_path) != 0) {
+    skel_path = std::string(usd_export_context_.export_params.root_prim_path) + skel_path;
+  }
+
+  return pxr::SdfPath(skel_path);
+}
+
+pxr::UsdSkelSkeleton USDSkinnedMeshWriter::get_skeleton(const HierarchyContext &context) const
+{
+  Object *arm_obj = get_armature_obj(context.object);
+  if (!arm_obj) {
+    return pxr::UsdSkelSkeleton();
+  }
+
+  pxr::SdfPath skel_path = get_skel_path(arm_obj);
+  return usd_export_context_.usd_define_or_over<pxr::UsdSkelSkeleton>(skel_path);
 }
 
 }  // namespace blender::io::usd

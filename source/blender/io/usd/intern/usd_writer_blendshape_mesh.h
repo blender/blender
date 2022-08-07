@@ -41,14 +41,17 @@ class USDBlendShapeMeshWriter : public USDMeshWriter {
 
   virtual Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree) override;
 
+  virtual pxr::UsdTimeCode get_mesh_export_time_code() const override;
+
   virtual pxr::UsdSkelSkeleton get_skeleton(const HierarchyContext &context) const;
+
+  void write_blendshape(HierarchyContext &context) const;
 
   void create_blend_shapes(const Key *shape_key,
                            const pxr::UsdPrim &mesh_prim,
                            const pxr::UsdSkelSkeleton &skel) const;
 
-  void add_weights_sample(const Key *shape_key,
-                          const pxr::UsdSkelSkeleton &skel) const;
+  void add_weights_sample(const Key *shape_key, const pxr::UsdSkelSkeleton &skel) const;
 
   bool exporting_anim(const Key *shape_key) const;
 };

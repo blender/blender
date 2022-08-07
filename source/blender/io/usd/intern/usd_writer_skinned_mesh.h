@@ -18,7 +18,7 @@
  */
 #pragma once
 
-#include "usd_writer_mesh.h"
+#include "usd_writer_blendshape_mesh.h"
 
 #include <pxr/usd/usdSkel/bindingAPI.h>
 
@@ -29,7 +29,7 @@ namespace blender::io::usd {
 
 bool is_skinned_mesh(Object *obj);
 
-class USDSkinnedMeshWriter : public USDMeshWriter {
+class USDSkinnedMeshWriter : public USDBlendShapeMeshWriter {
  public:
   USDSkinnedMeshWriter(const USDExporterContext &ctx);
 
@@ -43,6 +43,10 @@ class USDSkinnedMeshWriter : public USDMeshWriter {
                      const Mesh *mesh,
                      const pxr::UsdSkelBindingAPI &skel_api,
                      const std::vector<std::string> &bone_names) const;
+
+  pxr::SdfPath get_skel_path(Object *arm_obj) const;
+
+  virtual pxr::UsdSkelSkeleton get_skeleton(const HierarchyContext &context) const override;
 };
 
 }  // namespace blender::io::usd

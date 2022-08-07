@@ -161,6 +161,11 @@ void USDGenericMeshWriter::free_export_mesh(Mesh *mesh)
   BKE_id_free(nullptr, mesh);
 }
 
+pxr::UsdTimeCode USDGenericMeshWriter::get_mesh_export_time_code() const
+{
+  return get_export_time_code();
+}
+
 struct USDMeshData {
   pxr::VtArray<pxr::GfVec3f> points;
   pxr::VtIntArray face_vertex_counts;
@@ -461,7 +466,7 @@ void USDGenericMeshWriter::write_face_maps(const Object *ob,
 
 void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
 {
-  pxr::UsdTimeCode timecode = get_export_time_code();
+  pxr::UsdTimeCode timecode = get_mesh_export_time_code();
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
 
   pxr::UsdGeomMesh usd_mesh =
