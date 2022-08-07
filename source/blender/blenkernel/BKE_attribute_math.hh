@@ -464,12 +464,12 @@ template<> struct DefaultMixerStruct<int8_t> {
   using type = SimpleMixerWithAccumulationType<int8_t, float, float_to_int8_t>;
 };
 
-template<typename T> struct DefaultPropatationMixerStruct {
+template<typename T> struct DefaultPropagationMixerStruct {
   /* Use void by default. This can be checked for in `if constexpr` statements. */
   using type = typename DefaultMixerStruct<T>::type;
 };
 
-template<> struct DefaultPropatationMixerStruct<bool> {
+template<> struct DefaultPropagationMixerStruct<bool> {
   using type = BooleanPropagationMixer;
 };
 
@@ -479,7 +479,7 @@ template<> struct DefaultPropatationMixerStruct<bool> {
  * (the default mixing for booleans).
  */
 template<typename T>
-using DefaultPropatationMixer = typename DefaultPropatationMixerStruct<T>::type;
+using DefaultPropagationMixer = typename DefaultPropagationMixerStruct<T>::type;
 
 /* Utility to get a good default mixer for a given type. This is `void` when there is no default
  * mixer for the given type. */
