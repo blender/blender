@@ -620,11 +620,11 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
                                            bool uv_selected,
                                            int cd_loop_uv_offset)
 {
-  int totuv = element_map->totalUVs;
+  int total_uvs = element_map->total_uvs;
 
   /* For each UvElement, locate the "separate" UvElement that precedes it in the linked list. */
-  UvElement **head_table = MEM_mallocN(sizeof(*head_table) * totuv, "uv_island_head_table");
-  for (int i = 0; i < totuv; i++) {
+  UvElement **head_table = MEM_mallocN(sizeof(*head_table) * total_uvs, "uv_island_head_table");
+  for (int i = 0; i < total_uvs; i++) {
     UvElement *head = element_map->buf + i;
     if (head->separate) {
       UvElement *element = head;
@@ -641,11 +641,11 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
   /* Depth first search the graph, building islands as we go. */
   int nislands = 0;
   int islandbufsize = 0;
-  int stack_upper_bound = totuv;
+  int stack_upper_bound = total_uvs;
   UvElement **stack_uv = MEM_mallocN(sizeof(*stack_uv) * stack_upper_bound,
                                      "uv_island_element_stack");
   int stacksize_uv = 0;
-  for (int i = 0; i < totuv; i++) {
+  for (int i = 0; i < total_uvs; i++) {
     UvElement *element = element_map->buf + i;
     if (element->island != INVALID_ISLAND) {
       /* Unique UV (element and all it's children) are already part of an island. */
@@ -713,7 +713,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
     }
     nislands++;
   }
-  BLI_assert(islandbufsize == totuv);
+  BLI_assert(islandbufsize == total_uvs);
 
   MEM_SAFE_FREE(stack_uv);
   MEM_SAFE_FREE(head_table);
@@ -778,7 +778,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
   }
 
   element_map = (UvElementMap *)MEM_callocN(sizeof(*element_map), "UvElementMap");
-  element_map->totalUVs = totuv;
+  element_map->total_uvs = totuv;
   element_map->vert = (UvElement **)MEM_callocN(sizeof(*element_map->vert) * totverts,
                                                 "UvElementVerts");
   buf = element_map->buf = (UvElement *)MEM_callocN(sizeof(*element_map->buf) * totuv,
@@ -1005,6 +1005,13 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
   }
 
   BLI_buffer_free(&tf_uv_buf);
+
+  element_map->total_unique_uvs = 0;
+  for (int i = 0; i < element_map->total_uvs; i++) {
+    if (element_map->buf[i].separate) {
+      element_map->total_unique_uvs++;
+    }
+  }
 
   return element_map;
 }

@@ -52,17 +52,24 @@ typedef struct UvElement {
   unsigned int island;
 } UvElement;
 
-/* UvElementMap is a container for UvElements of a mesh. It stores some UvElements belonging to the
- * same uv island in sequence and the number of uvs per island so it is possible to access all uvs
- * belonging to an island directly by iterating through the buffer.
+/** UvElementMap is a container for UvElements of a BMesh.
+ *
+ * It simplifies access to UV information and ensures the
+ * different UV selection modes are respected.
+ *
+ * If islands are calculated, it also stores UvElements
+ * belonging to the same uv island in sequence and
+ * the number of uvs per island.
  */
 typedef struct UvElementMap {
   /* address UvElements by their vertex */
   struct UvElement **vert;
   /* UvElement Store */
   struct UvElement *buf;
-  /* Total number of UVs in the layer. Useful to know */
-  int totalUVs;
+  /** Total number of UVs. */
+  int total_uvs;
+  /** Total number of unique UVs. */
+  int total_unique_uvs;
   /* Number of Islands in the mesh */
   int totalIslands;
   /* Stores the starting index in buf where each island begins */

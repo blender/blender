@@ -290,7 +290,7 @@ static void stitch_update_header(StitchStateContainer *ssc, bContext *C)
 static int getNumOfIslandUvs(UvElementMap *elementMap, int island)
 {
   if (island == elementMap->totalIslands - 1) {
-    return elementMap->totalUVs - elementMap->islandIndices[island];
+    return elementMap->total_uvs - elementMap->islandIndices[island];
   }
   return elementMap->islandIndices[island + 1] - elementMap->islandIndices[island];
 }
@@ -653,9 +653,8 @@ static void state_delete(StitchState *state)
     if (state->edges) {
       MEM_freeN(state->edges);
     }
-    if (state->stitch_preview) {
-      stitch_preview_delete(state->stitch_preview);
-    }
+    stitch_preview_delete(state->stitch_preview);
+    state->stitch_preview = NULL;
     if (state->edge_hash) {
       BLI_ghash_free(state->edge_hash, NULL, NULL);
     }
@@ -1263,7 +1262,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
   if (ssc->mode == STITCH_VERT) {
     final_position = MEM_callocN(state->selection_size * sizeof(*final_position),
                                  "stitch_uv_average");
-    uvfinal_map = MEM_mallocN(state->element_map->totalUVs * sizeof(*uvfinal_map),
+    uvfinal_map = MEM_mallocN(state->element_map->total_uvs * sizeof(*uvfinal_map),
                               "stitch_uv_final_map");
   }
   else {
@@ -1878,7 +1877,6 @@ static StitchState *stitch_init(bContext *C,
   int total_edges;
   /* maps uvelements to their first coincident uv */
   int *map;
-  int counter = 0, i;
   BMFace *efa;
   BMLoop *l;
   BMIter iter, liter;
@@ -1913,37 +1911,31 @@ static StitchState *stitch_init(bContext *C,
   ED_uvedit_get_aspect(obedit, &aspx, &aspy);
   state->aspect = aspx / aspy;
 
-  /* Count 'unique' uvs */
-  for (i = 0; i < state->element_map->totalUVs; i++) {
-    if (state->element_map->buf[i].separate) {
-      counter++;
-    }
-  }
+  int unique_uvs = state->element_map->total_unique_uvs;
+  state->total_separate_uvs = unique_uvs;
 
-  /* explicitly set preview to NULL,
-   * to avoid deleting an invalid pointer on stitch_process_data */
-  state->stitch_preview = NULL;
   /* Allocate the unique uv buffers */
-  state->uvs = MEM_mallocN(sizeof(*state->uvs) * counter, "uv_stitch_unique_uvs");
+  state->uvs = MEM_mallocN(sizeof(*state->uvs) * unique_uvs, "uv_stitch_unique_uvs");
   /* internal uvs need no normals but it is hard and slow to keep a map of
-   * normals only for boundary uvs, so allocating for all uvs */
-  state->normals = MEM_callocN(sizeof(*state->normals) * counter * 2, "uv_stitch_normals");
-  state->total_separate_uvs = counter;
-  state->map = map = MEM_mallocN(sizeof(*map) * state->element_map->totalUVs,
+   * normals only for boundary uvs, so allocating for all uvs.
+   * Times 2 because each `float[2]` is stored as `{n[2 * i], n[2*i + 1]}`. */
+  state->normals = MEM_callocN(sizeof(*state->normals) * 2 * unique_uvs, "uv_stitch_normals");
+  state->map = map = MEM_mallocN(sizeof(*map) * state->element_map->total_uvs,
                                  "uv_stitch_unique_map");
   /* Allocate the edge stack */
   edge_hash = BLI_ghash_new(uv_edge_hash, uv_edge_compare, "stitch_edge_hash");
-  all_edges = MEM_mallocN(sizeof(*all_edges) * state->element_map->totalUVs, "ssc_edges");
+  all_edges = MEM_mallocN(sizeof(*all_edges) * state->element_map->total_uvs, "ssc_edges");
 
+  BLI_assert(!state->stitch_preview); /* Paranoia. */
   if (!state->uvs || !map || !edge_hash || !all_edges) {
     state_delete(state);
     return NULL;
   }
 
-  /* So that we can use this as index for the UvElements */
-  counter = -1;
+  /* Index for the UvElements. */
+  int counter = -1;
   /* initialize the unique UVs and map */
-  for (i = 0; i < em->bm->totvert; i++) {
+  for (int i = 0; i < em->bm->totvert; i++) {
     UvElement *element = state->element_map->vert[i];
     for (; element; element = element->next) {
       if (element->separate) {
@@ -2012,7 +2004,7 @@ static StitchState *stitch_init(bContext *C,
   state->total_separate_edges = total_edges;
 
   /* fill the edges with data */
-  i = 0;
+  int i = 0;
   GHASH_ITER (gh_iter, edge_hash) {
     edges[i++] = *((UvEdge *)BLI_ghashIterator_getKey(&gh_iter));
   }
