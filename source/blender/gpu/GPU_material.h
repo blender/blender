@@ -167,10 +167,6 @@ bool GPU_stack_link(GPUMaterial *mat,
                     GPUNodeStack *in,
                     GPUNodeStack *out,
                     ...);
-GPUNodeLink *GPU_uniformbuf_link_out(struct GPUMaterial *mat,
-                                     struct bNode *node,
-                                     struct GPUNodeStack *stack,
-                                     int index);
 
 void GPU_material_output_surface(GPUMaterial *material, GPUNodeLink *link);
 void GPU_material_output_volume(GPUMaterial *material, GPUNodeLink *link);

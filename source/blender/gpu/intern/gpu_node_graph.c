@@ -738,14 +738,6 @@ bool GPU_stack_link(GPUMaterial *material,
   return valid;
 }
 
-GPUNodeLink *GPU_uniformbuf_link_out(GPUMaterial *mat,
-                                     bNode *node,
-                                     GPUNodeStack *stack,
-                                     const int index)
-{
-  return gpu_uniformbuffer_link(mat, node, stack, index, SOCK_OUT);
-}
-
 /* Node Graph */
 
 static void gpu_inputs_free(ListBase *inputs)
