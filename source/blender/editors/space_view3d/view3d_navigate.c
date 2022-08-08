@@ -1451,7 +1451,12 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
   ED_view3d_smooth_view_force_finish(C, v3d, region);
 
   if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0 || (view_opposite != RV3D_VIEW_USER)) {
-    if ((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d)) {
+    const bool is_camera_lock = ED_view3d_camera_lock_check(v3d, rv3d);
+    if ((rv3d->persp != RV3D_CAMOB) || is_camera_lock) {
+      if (is_camera_lock) {
+        const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+        ED_view3d_camera_lock_init(depsgraph, v3d, rv3d);
+      }
       int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
       float quat_mul[4];
       float quat_new[4];
