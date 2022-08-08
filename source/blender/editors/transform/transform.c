@@ -641,46 +641,8 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
     }
     case TFM_MODAL_TRANSLATE:
     case TFM_MODAL_ROTATE:
-    case TFM_MODAL_RESIZE:
-    case TFM_MODAL_VERT_EDGE_SLIDE:
-    case TFM_MODAL_TRACKBALL: {
+    case TFM_MODAL_RESIZE: {
       if (!transform_mode_is_changeable(t->mode)) {
-        return false;
-      }
-      if (value == TFM_MODAL_TRANSLATE && t->mode == TFM_TRANSLATION) {
-        return false;
-      }
-      if (value == TFM_MODAL_ROTATE && t->mode == TFM_ROTATION) {
-        return false;
-      }
-      if (value == TFM_MODAL_RESIZE && t->mode == TFM_RESIZE) {
-        return false;
-      }
-      if (value == TFM_MODAL_VERT_EDGE_SLIDE &&
-          (t->data_type != &TransConvertType_Mesh ||
-           /* WORKAROUND: Avoid repeated keys in status bar.
-            *
-            * Previously, `Vert/Edge Slide` and `Move` were triggered by the same modal key.
-            * But now, to fix T100129, `Vert/Edge Slide` has its own modal key.
-            * However by default it uses the same key as `Move` (G).
-            * So, to avoid displaying the same key twice (G and G), only display this modal key
-            * during the `Move` operation.
-            *
-            * Ideally we should check if it really uses the same key. */
-           t->mode != TFM_TRANSLATION)) {
-        return false;
-      }
-      if (value == TFM_MODAL_TRACKBALL &&
-          /* WORKAROUND: Avoid repeated keys in status bar.
-           *
-           * Previously, `Trackball` and `Rotate` were triggered by the same modal key.
-           * But now, to fix T100129, `Trackball` has its own modal key.
-           * However by default it uses the same key as `Rotate` (R).
-           * So, to avoid displaying the same key twice (R and R), only display this modal key
-           * during the `Rotate` operation.
-           *
-           * Ideally we should check if it really uses the same key. */
-          t->mode != TFM_ROTATION) {
         return false;
       }
       break;
@@ -729,9 +691,7 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
        "Toggle Direction for Node Auto-Offset",
        ""},
       {TFM_MODAL_TRANSLATE, "TRANSLATE", 0, "Move", ""},
-      {TFM_MODAL_VERT_EDGE_SLIDE, "VERT_EDGE_SLIDE", 0, "Vert/Edge Slide", ""},
       {TFM_MODAL_ROTATE, "ROTATE", 0, "Rotate", ""},
-      {TFM_MODAL_TRACKBALL, "TRACKBALL", 0, "TrackBall", ""},
       {TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
       {TFM_MODAL_AUTOCONSTRAINT, "AUTOCONSTRAIN", 0, "Automatic Constraint", ""},
       {TFM_MODAL_AUTOCONSTRAINTPLANE, "AUTOCONSTRAINPLANE", 0, "Automatic Constraint Plane", ""},
@@ -974,15 +934,8 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         handled = true;
         break;
       case TFM_MODAL_TRANSLATE:
-      case TFM_MODAL_VERT_EDGE_SLIDE:
         /* only switch when... */
-        if (!transform_mode_is_changeable(t->mode)) {
-          break;
-        }
-        if (event->val == TFM_MODAL_VERT_EDGE_SLIDE) {
-          if (ELEM(t->mode, TFM_VERT_SLIDE, TFM_EDGE_SLIDE)) {
-            break;
-          }
+        if (t->mode == TFM_TRANSLATION) {
           if ((t->obedit_type == OB_MESH) && (t->spacetype == SPACE_VIEW3D)) {
             restoreTransObjects(t);
             resetTransModal(t);
@@ -1008,11 +961,15 @@ int transformEvent(TransInfo *t, const wmEvent *event)
             t->redraw |= TREDRAW_HARD;
             handled = true;
           }
-        }
-        else {
-          if (t->mode == TFM_TRANSLATION) {
-            break;
+          else if (t->options & (CTX_MOVIECLIP | CTX_MASK)) {
+            restoreTransObjects(t);
+
+            t->flag ^= T_ALT_TRANSFORM;
+            t->redraw |= TREDRAW_HARD;
+            handled = true;
           }
+        }
+        else if (transform_mode_is_changeable(t->mode)) {
           restoreTransObjects(t);
           resetTransModal(t);
           resetTransRestrictions(t);
@@ -1023,33 +980,23 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         }
         break;
       case TFM_MODAL_ROTATE:
-      case TFM_MODAL_TRACKBALL:
         /* only switch when... */
-        if (!transform_mode_is_changeable(t->mode)) {
-          break;
-        }
-        if (event->val == TFM_MODAL_TRACKBALL) {
-          if (t->mode == TFM_TRACKBALL) {
-            break;
-          }
-        }
-        else if (t->mode == TFM_ROTATION) {
-          break;
-        }
         if (!(t->options & CTX_TEXTURE_SPACE) && !(t->options & (CTX_MOVIECLIP | CTX_MASK))) {
-          restoreTransObjects(t);
-          resetTransModal(t);
-          resetTransRestrictions(t);
+          if (transform_mode_is_changeable(t->mode)) {
+            restoreTransObjects(t);
+            resetTransModal(t);
+            resetTransRestrictions(t);
 
-          if (event->val == TFM_MODAL_TRACKBALL) {
-            transform_mode_init(t, NULL, TFM_TRACKBALL);
+            if (t->mode == TFM_ROTATION) {
+              transform_mode_init(t, NULL, TFM_TRACKBALL);
+            }
+            else {
+              transform_mode_init(t, NULL, TFM_ROTATION);
+            }
+            initSnapping(t, NULL); /* need to reinit after mode change */
+            t->redraw |= TREDRAW_HARD;
+            handled = true;
           }
-          else {
-            transform_mode_init(t, NULL, TFM_ROTATION);
-          }
-          initSnapping(t, NULL); /* need to reinit after mode change */
-          t->redraw |= TREDRAW_HARD;
-          handled = true;
         }
         break;
       case TFM_MODAL_RESIZE:
