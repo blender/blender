@@ -351,7 +351,6 @@ void initRotation(TransInfo *t)
 
   t->mode = TFM_ROTATION;
   t->transform = applyRotation;
-  t->handleEvent = NULL;
   t->transform_matrix = applyRotationMatrix;
   t->tsnap.applySnap = ApplySnapRotation;
   t->tsnap.distance = RotationBetween;

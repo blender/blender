@@ -56,8 +56,6 @@ struct TranslateCustomData {
   struct {
     enum eTranslateRotateMode rotate_mode;
   } prev;
-
-  const wmKeyMapItem *move_kmi;
 };
 
 /** \} */
@@ -167,27 +165,6 @@ static void transdata_elem_translate_fn(void *__restrict iter_data_v,
     return;
   }
   transdata_elem_translate(data->t, data->tc, td, data->pivot_local, data->vec, data->rotate_mode);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Events to Move Clip and Mask
- * \{ */
-
-static eRedrawFlag translate_handleEvent(struct TransInfo *t, const wmEvent *event)
-{
-  BLI_assert(t->options & (CTX_MOVIECLIP | CTX_MASK));
-  struct TranslateCustomData *custom_data = t->custom.mode.data;
-  const wmKeyMapItem *kmi = custom_data->move_kmi;
-  if (kmi && event->type == kmi->type && event->val == kmi->val) {
-    /* Toggles the handle offset effect. */
-    restoreTransObjects(t);
-
-    t->flag ^= T_ALT_TRANSFORM;
-    return TREDRAW_HARD;
-  }
-  return TREDRAW_NOTHING;
 }
 
 /** \} */
@@ -643,11 +620,6 @@ void initTranslation(TransInfo *t)
   custom_data->prev.rotate_mode = TRANSLATE_ROTATE_OFF;
   t->custom.mode.data = custom_data;
   t->custom.mode.use_free = true;
-
-  if (t->keymap && (t->options & (CTX_MOVIECLIP | CTX_MASK))) {
-    custom_data->move_kmi = WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_TRANSLATE);
-    t->handleEvent = translate_handleEvent;
-  }
 }
 
 /** \} */
