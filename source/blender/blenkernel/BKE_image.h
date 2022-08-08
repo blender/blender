@@ -237,11 +237,13 @@ void BKE_image_ensure_viewer_views(const struct RenderData *rd,
  */
 void BKE_image_user_frame_calc(struct Image *ima, struct ImageUser *iuser, int cfra);
 int BKE_image_user_frame_get(const struct ImageUser *iuser, int cfra, bool *r_is_in_range);
-void BKE_image_user_file_path(struct ImageUser *iuser, struct Image *ima, char *path);
-void BKE_image_user_file_path_ex(struct ImageUser *iuser,
-                                 struct Image *ima,
+void BKE_image_user_file_path(const struct ImageUser *iuser, const struct Image *ima, char *path);
+void BKE_image_user_file_path_ex(const struct Main *bmain,
+                                 const struct ImageUser *iuser,
+                                 const struct Image *ima,
                                  char *path,
-                                 bool resolve_udim);
+                                 const bool resolve_udim,
+                                 const bool resolve_multiview);
 void BKE_image_editors_update_frame(const struct Main *bmain, int cfra);
 
 /**
@@ -259,15 +261,15 @@ struct RenderPass *BKE_image_multilayer_index(struct RenderResult *rr, struct Im
 /**
  * Sets index offset for multi-view files.
  */
-void BKE_image_multiview_index(struct Image *ima, struct ImageUser *iuser);
+void BKE_image_multiview_index(const struct Image *ima, struct ImageUser *iuser);
 
 /**
  * For multi-layer images as well as for render-viewer
  * and because rendered results use fake layer/passes, don't correct for wrong indices here.
  */
-bool BKE_image_is_multilayer(struct Image *ima);
-bool BKE_image_is_multiview(struct Image *ima);
-bool BKE_image_is_stereo(struct Image *ima);
+bool BKE_image_is_multilayer(const struct Image *ima);
+bool BKE_image_is_multiview(const struct Image *ima);
+bool BKE_image_is_stereo(const struct Image *ima);
 struct RenderResult *BKE_image_acquire_renderresult(struct Scene *scene, struct Image *ima);
 void BKE_image_release_renderresult(struct Scene *scene, struct Image *ima);
 

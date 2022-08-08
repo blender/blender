@@ -1008,13 +1008,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
             t->redraw |= TREDRAW_HARD;
             handled = true;
           }
-          else if (t->options & (CTX_MOVIECLIP | CTX_MASK)) {
-            restoreTransObjects(t);
-
-            t->flag ^= T_ALT_TRANSFORM;
-            t->redraw |= TREDRAW_HARD;
-            handled = true;
-          }
         }
         else {
           if (t->mode == TFM_TRANSLATION) {
