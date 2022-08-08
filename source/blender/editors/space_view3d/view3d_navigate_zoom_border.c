@@ -173,6 +173,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
                         &(const V3D_SmoothParams){
                             .ofs = new_ofs,
                             .dist = &new_dist,
+                            .undo_str = op->type->name,
                         });
 
   if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXVIEW) {
