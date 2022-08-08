@@ -836,7 +836,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
       UvElement *v = vlist;
       vlist = vlist->next;
       v->next = newvlist;
-      UvElement *newvlist = v;
+      newvlist = v;
 
       luv = BM_ELEM_CD_GET_VOID_P(v->l, cd_loop_uv_offset);
       const float *uv = luv->uv;
