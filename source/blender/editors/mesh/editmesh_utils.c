@@ -826,10 +826,10 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
   }
 
   /* For each BMVert, sort associated linked list into unique uvs. */
-  int i;
-  BM_ITER_MESH_INDEX (ev, &iter, bm, BM_VERTS_OF_MESH, i) {
+  int ev_index;
+  BM_ITER_MESH_INDEX (ev, &iter, bm, BM_VERTS_OF_MESH, ev_index) {
     UvElement *newvlist = NULL;
-    UvElement *vlist = element_map->vertex[i];
+    UvElement *vlist = element_map->vertex[ev_index];
     while (vlist) {
 
       /* Detach head from unsorted list. */
@@ -881,7 +881,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     }
 
     /* Write back sorted list. */
-    element_map->vertex[i] = newvlist;
+    element_map->vertex[ev_index] = newvlist;
   }
 
   MEM_SAFE_FREE(winding);
@@ -912,7 +912,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
 
     /* at this point, every UvElement in vert points to a UvElement sharing the same vertex.
      * Now we should sort uv's in islands. */
-    for (i = 0; i < totuv; i++) {
+    for (int i = 0; i < totuv; i++) {
       if (element_map->storage[i].island == INVALID_ISLAND) {
         int stacksize = 0;
         element_map->storage[i].island = nislands;
@@ -965,7 +965,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     MEM_SAFE_FREE(island_number);
 
     /* remap */
-    for (i = 0; i < bm->totvert; i++) {
+    for (int i = 0; i < bm->totvert; i++) {
       /* important since we may do selection only. Some of these may be NULL */
       if (element_map->vertex[i]) {
         element_map->vertex[i] = &islandbuf[map[element_map->vertex[i] - element_map->storage]];
@@ -975,7 +975,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     element_map->islandIndices = MEM_callocN(sizeof(*element_map->islandIndices) * nislands,
                                              "UvElementMap_island_indices");
     j = 0;
-    for (i = 0; i < totuv; i++) {
+    for (int i = 0; i < totuv; i++) {
       UvElement *element = element_map->storage[i].next;
       if (element == NULL) {
         islandbuf[map[i]].next = NULL;

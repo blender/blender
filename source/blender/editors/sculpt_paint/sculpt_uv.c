@@ -629,11 +629,13 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     }
 
     /* fill the edges with data */
-    int i = 0;
-    GHASH_ITER (gh_iter, edgeHash) {
-      data->uvedges[i++] = *((UvEdge *)BLI_ghashIterator_getKey(&gh_iter));
+    {
+      int i = 0;
+      GHASH_ITER (gh_iter, edgeHash) {
+        data->uvedges[i++] = *((UvEdge *)BLI_ghashIterator_getKey(&gh_iter));
+      }
+      data->totalUvEdges = BLI_ghash_len(edgeHash);
     }
-    data->totalUvEdges = BLI_ghash_len(edgeHash);
 
     /* cleanup temporary stuff */
     BLI_ghash_free(edgeHash, NULL, NULL);

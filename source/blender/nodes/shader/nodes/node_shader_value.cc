@@ -17,7 +17,7 @@ static void sh_node_value_declare(NodeDeclarationBuilder &b)
 static int gpu_shader_value(GPUMaterial *mat,
                             bNode *node,
                             bNodeExecData *UNUSED(execdata),
-                            GPUNodeStack *in,
+                            GPUNodeStack * /*in*/,
                             GPUNodeStack *out)
 {
   const bNodeSocket *socket = static_cast<bNodeSocket *>(node->outputs.first);
