@@ -3028,6 +3028,8 @@ void DRW_engines_free(void)
   DRW_stats_free();
   DRW_globals_free();
 
+  drw_debug_module_free(DST.debug);
+
   DRW_UBO_FREE_SAFE(G_draw.block_ubo);
   DRW_UBO_FREE_SAFE(G_draw.view_ubo);
   DRW_TEXTURE_FREE_SAFE(G_draw.ramp);

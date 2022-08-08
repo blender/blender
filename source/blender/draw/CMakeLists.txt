@@ -83,7 +83,7 @@ set(SRC
   intern/draw_color_management.cc
   intern/draw_common.c
   intern/draw_curves.cc
-  intern/draw_debug.c
+  intern/draw_debug.cc
   intern/draw_fluid.c
   intern/draw_hair.cc
   intern/draw_instance_data.c
@@ -214,6 +214,7 @@ set(SRC
   intern/draw_common_shader_shared.h
   intern/draw_curves_private.h
   intern/draw_debug.h
+  intern/draw_debug.hh
   intern/draw_hair_private.h
   intern/draw_instance_data.h
   intern/draw_manager.h
@@ -434,20 +435,19 @@ set(GLSL_SRC
 
   intern/shaders/common_attribute_lib.glsl
   intern/shaders/common_colormanagement_lib.glsl
+  intern/shaders/common_debug_draw_lib.glsl
+  intern/shaders/common_debug_print_lib.glsl
+  intern/shaders/common_fullscreen_vert.glsl
+  intern/shaders/common_fxaa_lib.glsl
   intern/shaders/common_globals_lib.glsl
   intern/shaders/common_gpencil_lib.glsl
-  intern/shaders/common_pointcloud_lib.glsl
   intern/shaders/common_hair_lib.glsl
-  intern/shaders/common_hair_refine_vert.glsl
   intern/shaders/common_hair_refine_comp.glsl
-  intern/shaders/common_math_lib.glsl
+  intern/shaders/common_hair_refine_vert.glsl
   intern/shaders/common_math_geom_lib.glsl
-  intern/shaders/common_view_clipping_lib.glsl
-  intern/shaders/common_view_lib.glsl
-  intern/shaders/common_fxaa_lib.glsl
+  intern/shaders/common_math_lib.glsl
+  intern/shaders/common_pointcloud_lib.glsl
   intern/shaders/common_smaa_lib.glsl
-  intern/shaders/common_fullscreen_vert.glsl
-
   intern/shaders/common_subdiv_custom_data_interp_comp.glsl
   intern/shaders/common_subdiv_ibo_lines_comp.glsl
   intern/shaders/common_subdiv_ibo_tris_comp.glsl
@@ -460,6 +460,13 @@ set(GLSL_SRC
   intern/shaders/common_subdiv_vbo_edituv_strech_area_comp.glsl
   intern/shaders/common_subdiv_vbo_lnor_comp.glsl
   intern/shaders/common_subdiv_vbo_sculpt_data_comp.glsl
+  intern/shaders/common_view_clipping_lib.glsl
+  intern/shaders/common_view_lib.glsl
+  intern/shaders/draw_debug_draw_display_frag.glsl
+  intern/shaders/draw_debug_draw_display_vert.glsl
+  intern/shaders/draw_debug_info.hh
+  intern/shaders/draw_debug_print_display_frag.glsl
+  intern/shaders/draw_debug_print_display_vert.glsl
 
   intern/draw_common_shader_shared.h
   intern/draw_shader_shared.h

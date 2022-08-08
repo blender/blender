@@ -37,6 +37,9 @@ layout(std140) uniform viewBlock
 #  endif
 #endif
 
+#define IS_DEBUG_MOUSE_FRAGMENT (ivec2(gl_FragCoord) == drw_view.mouse_pixel)
+#define IS_FIRST_INVOCATION (gl_GlobalInvocationID == uvec3(0))
+
 #define ViewNear (ViewVecs[0].w)
 #define ViewFar (ViewVecs[1].w)
 

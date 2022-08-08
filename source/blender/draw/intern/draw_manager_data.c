@@ -17,9 +17,14 @@
 #include "BKE_pbvh.h"
 #include "BKE_volume.h"
 
+/* For debug cursor position. */
+#include "WM_api.h"
+#include "wm_window.h"
+
 #include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_screen_types.h"
 
 #include "BLI_alloca.h"
 #include "BLI_hash.h"
@@ -38,6 +43,16 @@
 #include "GPU_uniform_buffer.h"
 
 #include "intern/gpu_codegen.h"
+
+/**
+ * IMPORTANT:
+ * In order to be able to write to the same print buffer sequentially, we add a barrier to allow
+ * multiple shader calls writting to the same buffer.
+ * However, this adds explicit synchronisation events which might change the rest of the
+ * application behavior and hide some bugs. If you know you are using shader debug print in only
+ * one shader pass, you can comment this out to remove the aforementioned barrier.
+ */
+#define DISABLE_DEBUG_SHADER_PRINT_BARRIER
 
 /* -------------------------------------------------------------------- */
 /** \name Uniform Buffer Object (DRW_uniformbuffer)
@@ -647,7 +662,7 @@ static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, Object *ob)
   drw_call_calc_orco(ob, ob_infos->orcotexfac);
   /* Random float value. */
   uint random = (DST.dupli_source) ?
-                     DST.dupli_source->random_id :
+                    DST.dupli_source->random_id :
                      /* TODO(fclem): this is rather costly to do at runtime. Maybe we can
                       * put it in ob->runtime and make depsgraph ensure it is up to date. */
                      BLI_hash_int_2d(BLI_hash_string(ob->id.name + 2), 0);
@@ -1510,6 +1525,27 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
         shgroup, view_ubo_location, DRW_UNIFORM_BLOCK, G_draw.view_ubo, 0, 0, 1);
   }
 
+#ifdef DEBUG
+  int debug_print_location = GPU_shader_get_builtin_ssbo(shader, GPU_STORAGE_BUFFER_DEBUG_PRINT);
+  if (debug_print_location != -1) {
+    GPUStorageBuf *buf = drw_debug_gpu_print_buf_get();
+    drw_shgroup_uniform_create_ex(
+        shgroup, debug_print_location, DRW_UNIFORM_STORAGE_BLOCK, buf, 0, 0, 1);
+#  ifndef DISABLE_DEBUG_SHADER_PRINT_BARRIER
+    /* Add a barrier to allow multiple shader writting to the same buffer. */
+    DRW_shgroup_barrier(shgroup, GPU_BARRIER_SHADER_STORAGE);
+#  endif
+  }
+
+  int debug_draw_location = GPU_shader_get_builtin_ssbo(shader, GPU_STORAGE_BUFFER_DEBUG_VERTS);
+  if (debug_draw_location != -1) {
+    GPUStorageBuf *buf = drw_debug_gpu_draw_buf_get();
+    drw_shgroup_uniform_create_ex(
+        shgroup, debug_draw_location, DRW_UNIFORM_STORAGE_BLOCK, buf, 0, 0, 1);
+    /* NOTE(fclem): No barrier as ordering is not important. */
+  }
+#endif
+
   /* Not supported. */
   BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MODELVIEW_INV) == -1);
   BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MODELVIEW) == -1);
@@ -1985,6 +2021,13 @@ DRWView *DRW_view_create(const float viewmat[4][4],
   view->parent = NULL;
 
   copy_v4_fl4(view->storage.viewcamtexcofac, 1.0f, 1.0f, 0.0f, 0.0f);
+
+  if (DST.draw_ctx.evil_C && DST.draw_ctx.region) {
+    int region_origin[2] = {DST.draw_ctx.region->winrct.xmin, DST.draw_ctx.region->winrct.ymin};
+    struct wmWindow *win = CTX_wm_window(DST.draw_ctx.evil_C);
+    wm_cursor_position_get(win, &view->storage.mouse_pixel[0], &view->storage.mouse_pixel[1]);
+    sub_v2_v2v2_int(view->storage.mouse_pixel, view->storage.mouse_pixel, region_origin);
+  }
 
   DRW_view_update(view, viewmat, winmat, culling_viewmat, culling_winmat);
 

@@ -306,6 +306,14 @@ void gpu_shader_create_info_init()
       info->builtins_ |= gpu_shader_dependency_get_builtins(info->fragment_source_);
       info->builtins_ |= gpu_shader_dependency_get_builtins(info->geometry_source_);
       info->builtins_ |= gpu_shader_dependency_get_builtins(info->compute_source_);
+
+      /* Automatically amend the create info for ease of use of the debug feature. */
+      if ((info->builtins_ & BuiltinBits::USE_DEBUG_DRAW) == BuiltinBits::USE_DEBUG_DRAW) {
+        info->additional_info("draw_debug_draw");
+      }
+      if ((info->builtins_ & BuiltinBits::USE_DEBUG_PRINT) == BuiltinBits::USE_DEBUG_PRINT) {
+        info->additional_info("draw_debug_print");
+      }
     }
   }
 

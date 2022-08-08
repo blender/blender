@@ -127,8 +127,12 @@ enum class BuiltinBits {
   VERTEX_ID = (1 << 14),
   WORK_GROUP_ID = (1 << 15),
   WORK_GROUP_SIZE = (1 << 16),
+
+  /* Not a builtin but a flag we use to tag shaders that use the debug features. */
+  USE_DEBUG_DRAW = (1 << 29),
+  USE_DEBUG_PRINT = (1 << 30),
 };
-ENUM_OPERATORS(BuiltinBits, BuiltinBits::WORK_GROUP_SIZE);
+ENUM_OPERATORS(BuiltinBits, BuiltinBits::USE_DEBUG_PRINT);
 
 /**
  * Follow convention described in:

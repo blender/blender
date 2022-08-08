@@ -501,20 +501,6 @@ typedef struct DRWCommandSmallChunk {
 BLI_STATIC_ASSERT_ALIGN(DRWCommandChunk, 16);
 #endif
 
-/* ------------- DRAW DEBUG ------------ */
-
-typedef struct DRWDebugLine {
-  struct DRWDebugLine *next; /* linked list */
-  float pos[2][3];
-  float color[4];
-} DRWDebugLine;
-
-typedef struct DRWDebugSphere {
-  struct DRWDebugSphere *next; /* linked list */
-  float mat[4][4];
-  float color[4];
-} DRWDebugSphere;
-
 /* ------------- Memory Pools ------------ */
 
 /* Contains memory pools information */
@@ -656,11 +642,7 @@ typedef struct DRWManager {
 
   GPUDrawList *draw_list;
 
-  struct {
-    /* TODO(@fclem): optimize: use chunks. */
-    DRWDebugLine *lines;
-    DRWDebugSphere *spheres;
-  } debug;
+  DRWDebugModule *debug;
 } DRWManager;
 
 extern DRWManager DST; /* TODO: get rid of this and allow multi-threaded rendering. */
@@ -675,6 +657,9 @@ void drw_state_set(DRWState state);
 
 void drw_debug_draw(void);
 void drw_debug_init(void);
+void drw_debug_module_free(DRWDebugModule *module);
+GPUStorageBuf *drw_debug_gpu_draw_buf_get(void);
+GPUStorageBuf *drw_debug_gpu_print_buf_get(void);
 
 eDRWCommandType command_type_get(const uint64_t *command_type_bits, int index);
 

@@ -14,6 +14,9 @@ typedef struct CurvesInfos CurvesInfos;
 typedef struct DrawCommand DrawCommand;
 typedef struct DrawCommandIndexed DrawCommandIndexed;
 typedef struct DispatchCommand DispatchCommand;
+typedef struct DRWDebugPrintBuffer DRWDebugPrintBuffer;
+typedef struct DRWDebugVert DRWDebugVert;
+typedef struct DRWDebugDrawBuffer DRWDebugDrawBuffer;
 #endif
 
 #define DRW_SHADER_SHARED_H
@@ -48,6 +51,12 @@ struct ViewInfos {
   /** NOTE: vec3 arrays are padded to vec4. */
   float4 frustum_corners[8];
   float4 frustum_planes[6];
+
+  /** For debugging purpose */
+  /* Mouse pixel. */
+  int2 mouse_pixel;
+
+  int2 _pad0;
 };
 BLI_STATIC_ASSERT_ALIGN(ViewInfos, 16)
 
@@ -131,3 +140,59 @@ struct DispatchCommand {
   uint _pad0;
 };
 BLI_STATIC_ASSERT_ALIGN(DispatchCommand, 16)
+
+/* -------------------------------------------------------------------- */
+/** \name Debug print
+ * \{ */
+
+/* Take the header (DrawCommand) into account. */
+#define DRW_DEBUG_PRINT_MAX (8 * 1024) - 4
+/* NOTE: Cannot be more than 255 (because of column encoding). */
+#define DRW_DEBUG_PRINT_WORD_WRAP_COLUMN 120u
+
+/* The debug print buffer is laid-out as the following struct.
+ * But we use plain array in shader code instead because of driver issues. */
+struct DRWDebugPrintBuffer {
+  DrawCommand command;
+  /** Each character is encoded as 3 uchar with char_index, row and column position. */
+  uint char_array[DRW_DEBUG_PRINT_MAX];
+};
+BLI_STATIC_ASSERT_ALIGN(DRWDebugPrintBuffer, 16)
+
+/* Use number of char as vertex count. Equivalent to `DRWDebugPrintBuffer.command.v_count`. */
+#define drw_debug_print_cursor drw_debug_print_buf[0]
+/* Reuse first instance as row index as we don't use instancing. Equivalent to
+ * `DRWDebugPrintBuffer.command.i_first`. */
+#define drw_debug_print_row_shared drw_debug_print_buf[3]
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Debug draw shapes
+ * \{ */
+
+struct DRWDebugVert {
+  /* This is a weird layout, but needed to be able to use DRWDebugVert as
+   * a DrawCommand and avoid alignment issues. See drw_debug_verts_buf[] definition. */
+  uint pos0;
+  uint pos1;
+  uint pos2;
+  uint color;
+};
+BLI_STATIC_ASSERT_ALIGN(DRWDebugVert, 16)
+
+/* Take the header (DrawCommand) into account. */
+#define DRW_DEBUG_DRAW_VERT_MAX (64 * 1024) - 1
+
+/* The debug draw buffer is laid-out as the following struct.
+ * But we use plain array in shader code instead because of driver issues. */
+struct DRWDebugDrawBuffer {
+  DrawCommand command;
+  DRWDebugVert verts[DRW_DEBUG_DRAW_VERT_MAX];
+};
+BLI_STATIC_ASSERT_ALIGN(DRWDebugPrintBuffer, 16)
+
+/* Equivalent to `DRWDebugDrawBuffer.command.v_count`. */
+#define drw_debug_draw_v_count drw_debug_verts_buf[0].pos0
+
+/** \} */

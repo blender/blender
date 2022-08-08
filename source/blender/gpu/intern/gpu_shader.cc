@@ -578,6 +578,12 @@ int GPU_shader_get_builtin_block(GPUShader *shader, int builtin)
   return interface->ubo_builtin((GPUUniformBlockBuiltin)builtin);
 }
 
+int GPU_shader_get_builtin_ssbo(GPUShader *shader, int builtin)
+{
+  ShaderInterface *interface = unwrap(shader)->interface;
+  return interface->ssbo_builtin((GPUStorageBufferBuiltin)builtin);
+}
+
 int GPU_shader_get_ssbo(GPUShader *shader, const char *name)
 {
   ShaderInterface *interface = unwrap(shader)->interface;
