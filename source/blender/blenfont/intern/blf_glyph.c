@@ -103,6 +103,7 @@ static GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
   }
   else {
     /* Font does not have a face or does not contain "0" so use CSS fallback of 1/2 of em. */
+    blf_ensure_size(font);
     gc->fixed_width = (int)((font->ft_size->metrics.height / 2) >> 6);
   }
   if (gc->fixed_width < 1) {
@@ -899,6 +900,8 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
   if (glyph_font != settings_font) {
     blf_font_size(glyph_font, settings_font->size, settings_font->dpi);
   }
+
+  blf_ensure_size(glyph_font);
 
   /* We need to keep track if changes are still needed. */
   bool weight_done = false;

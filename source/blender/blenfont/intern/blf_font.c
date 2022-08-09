@@ -109,6 +109,14 @@ static FT_Error blf_cache_face_requester(FTC_FaceID faceID,
   return err;
 }
 
+/* Called when FreeType is removing a font size. */
+static void blf_size_finalizer(void *object)
+{
+  FT_Size size = object;
+  FontBLF *font = (FontBLF *)size->generic.data;
+  font->ft_size = NULL;
+}
+
 /* Use cache, not blf_get_char_index, to return glyph id from charcode. */
 uint blf_get_char_index(struct FontBLF *font, uint charcode)
 {
@@ -122,6 +130,9 @@ uint blf_get_char_index(struct FontBLF *font, uint charcode)
 /* Convert a FreeType 26.6 value representing an unscaled design size to fractional pixels. */
 static ft_pix blf_unscaled_F26Dot6_to_pixels(FontBLF *font, FT_Pos value)
 {
+  /* Make sure we have a valid font->ft_size. */
+  blf_ensure_size(font);
+
   /* Scale value by font size using integer-optimized multiplication. */
   FT_Long scaled = FT_MulFix(value, font->ft_size->metrics.x_scale);
 
@@ -1157,6 +1168,7 @@ int blf_font_count_missing_chars(FontBLF *font,
 
 static ft_pix blf_font_height_max_ft_pix(FontBLF *font)
 {
+  blf_ensure_size(font);
   /* Metrics.height is rounded to pixel. Force minimum of one pixel. */
   return MAX2((ft_pix)font->ft_size->metrics.height, ft_pix_from_int(1));
 }
@@ -1168,6 +1180,7 @@ int blf_font_height_max(FontBLF *font)
 
 static ft_pix blf_font_width_max_ft_pix(FontBLF *font)
 {
+  blf_ensure_size(font);
   /* Metrics.max_advance is rounded to pixel. Force minimum of one pixel. */
   return MAX2((ft_pix)font->ft_size->metrics.max_advance, ft_pix_from_int(1));
 }
@@ -1179,11 +1192,13 @@ int blf_font_width_max(FontBLF *font)
 
 int blf_font_descender(FontBLF *font)
 {
+  blf_ensure_size(font);
   return ft_pix_to_int((ft_pix)font->ft_size->metrics.descender);
 }
 
 int blf_font_ascender(FontBLF *font)
 {
+  blf_ensure_size(font);
   return ft_pix_to_int((ft_pix)font->ft_size->metrics.ascender);
 }
 
@@ -1519,6 +1534,30 @@ void blf_font_free(FontBLF *font)
 /** \name Font Configure
  * \{ */
 
+bool blf_ensure_size(FontBLF *font)
+{
+  if (font->ft_size) {
+    return true;
+  }
+
+  FTC_ScalerRec scaler = {0};
+  scaler.face_id = font;
+  scaler.width = 0;
+  scaler.height = round_fl_to_uint(font->size * 64.0f);
+  scaler.pixel = 0;
+  scaler.x_res = font->dpi;
+  scaler.y_res = font->dpi;
+
+  if (FTC_Manager_LookupSize(ftc_manager, &scaler, &font->ft_size) == FT_Err_Ok) {
+    font->ft_size->generic.data = (void *)font;
+    font->ft_size->generic.finalizer = blf_size_finalizer;
+    return true;
+  }
+
+  BLI_assert_unreachable();
+  return false;
+}
+
 bool blf_font_size(FontBLF *font, float size, unsigned int dpi)
 {
   if (!blf_ensure_face(font)) {
@@ -1528,26 +1567,11 @@ bool blf_font_size(FontBLF *font, float size, unsigned int dpi)
   /* FreeType uses fixed-point integers in 64ths. */
   FT_UInt ft_size = round_fl_to_uint(size * 64.0f);
   /* Adjust our new size to be on even 64ths. */
-  size = (float)ft_size / 64.0f;
-
-  FTC_ScalerRec scaler = {0};
-  scaler.face_id = font;
-  scaler.width = 0;
-  scaler.height = ft_size;
-  scaler.pixel = 0;
-  scaler.x_res = dpi;
-  scaler.y_res = dpi;
-
-  if (FTC_Manager_LookupSize(ftc_manager, &scaler, &font->ft_size) != FT_Err_Ok) {
-    printf("The current font don't support the size, %f and dpi, %u\n", size, dpi);
-    return false;
-  }
-
-  font->size = size;
+  font->size = (float)ft_size / 64.0f;
   font->dpi = dpi;
-  font->ft_size->generic.data = (void *)font;
+  font->ft_size = NULL;
 
-  return true;
+  return blf_ensure_size(font);
 }
 
 /** \} */

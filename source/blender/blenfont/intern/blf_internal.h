@@ -49,6 +49,7 @@ bool blf_font_id_is_valid(int fontid);
 uint blf_get_char_index(struct FontBLF *font, uint charcode);
 
 bool blf_ensure_face(struct FontBLF *font);
+bool blf_ensure_size(struct FontBLF *font);
 
 void blf_draw_buffer__start(struct FontBLF *font);
 void blf_draw_buffer__end(void);
