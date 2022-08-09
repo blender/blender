@@ -1107,7 +1107,7 @@ static void gpencil_primitive_update(bContext *C, wmOperator *op, tGPDprimitive 
 /* Initialize mouse points. */
 static void gpencil_primitive_interaction_begin(tGPDprimitive *tgpi, const wmEvent *event)
 {
-  copy_v2fl_v2i(tgpi->mval, event->mval);
+  WM_event_drag_start_mval_fl(event, tgpi->region, tgpi->mval);
   copy_v2_v2(tgpi->origin, tgpi->mval);
   copy_v2_v2(tgpi->start, tgpi->mval);
   copy_v2_v2(tgpi->end, tgpi->mval);
