@@ -88,19 +88,19 @@ void BM_mesh_elem_toolflags_ensure(BMesh *bm)
   BMVert_OFlag *v_olfag;
   BLI_mempool *toolflagpool = bm->vtoolflagpool;
   BM_ITER_MESH (v_olfag, &iter, bm, BM_VERTS_OF_MESH) {
-    v_olfag->oflags = (BMFlagLayer *)BLI_mempool_calloc(toolflagpool);
+    v_olfag->oflags = static_cast<BMFlagLayer *>(BLI_mempool_calloc(toolflagpool));
   }
 
   BMEdge_OFlag *e_olfag;
   toolflagpool = bm->etoolflagpool;
   BM_ITER_MESH (e_olfag, &iter, bm, BM_EDGES_OF_MESH) {
-    e_olfag->oflags = (BMFlagLayer *)BLI_mempool_calloc(toolflagpool);
+    e_olfag->oflags = static_cast<BMFlagLayer *>(BLI_mempool_calloc(toolflagpool));
   }
 
   BMFace_OFlag *f_olfag;
   toolflagpool = bm->ftoolflagpool;
   BM_ITER_MESH (f_olfag, &iter, bm, BM_FACES_OF_MESH) {
-    f_olfag->oflags = (BMFlagLayer *)BLI_mempool_calloc(toolflagpool);
+    f_olfag->oflags = static_cast<BMFlagLayer *>(BLI_mempool_calloc(toolflagpool));
   }
 
   bm->totflags = 1;
@@ -125,7 +125,7 @@ void BM_mesh_elem_toolflags_clear(BMesh *bm)
 BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreateParams *params)
 {
   /* allocate the structure */
-  BMesh *bm = (BMesh *)MEM_callocN(sizeof(BMesh), __func__);
+  BMesh *bm = static_cast<BMesh *>(MEM_callocN(sizeof(BMesh), __func__));
 
   /* allocate the memory pools for the mesh elements */
   bm_mempool_init(bm, allocsize, params->use_toolflags);
@@ -262,7 +262,7 @@ void BM_mesh_free(BMesh *bm)
   if (bm->py_handle) {
     /* keep this out of 'BM_mesh_data_free' because we want python
      * to be able to clear the mesh and maintain access. */
-    bpy_bm_generic_invalidate((BPy_BMGeneric *)bm->py_handle);
+    bpy_bm_generic_invalidate(static_cast<BPy_BMGeneric *>(bm->py_handle));
     bm->py_handle = nullptr;
   }
 
@@ -581,7 +581,8 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
       if (bm->vtable) {
         MEM_freeN(bm->vtable);
       }
-      bm->vtable = (BMVert **)MEM_mallocN(sizeof(void **) * bm->totvert, "bm->vtable");
+      bm->vtable = static_cast<BMVert **>(
+          MEM_mallocN(sizeof(void **) * bm->totvert, "bm->vtable"));
       bm->vtable_tot = bm->totvert;
     }
     BM_iter_as_array(bm, BM_VERTS_OF_MESH, nullptr, (void **)bm->vtable, bm->totvert);
@@ -594,7 +595,8 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
       if (bm->etable) {
         MEM_freeN(bm->etable);
       }
-      bm->etable = (BMEdge **)MEM_mallocN(sizeof(void **) * bm->totedge, "bm->etable");
+      bm->etable = static_cast<BMEdge **>(
+          MEM_mallocN(sizeof(void **) * bm->totedge, "bm->etable"));
       bm->etable_tot = bm->totedge;
     }
     BM_iter_as_array(bm, BM_EDGES_OF_MESH, nullptr, (void **)bm->etable, bm->totedge);
@@ -607,7 +609,8 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
       if (bm->ftable) {
         MEM_freeN(bm->ftable);
       }
-      bm->ftable = (BMFace **)MEM_mallocN(sizeof(void **) * bm->totface, "bm->ftable");
+      bm->ftable = static_cast<BMFace **>(
+          MEM_mallocN(sizeof(void **) * bm->totface, "bm->ftable"));
       bm->ftable_tot = bm->totface;
     }
     BM_iter_as_array(bm, BM_FACES_OF_MESH, nullptr, (void **)bm->ftable, bm->totface);
@@ -647,17 +650,17 @@ void BM_mesh_elem_table_free(BMesh *bm, const char htype)
 
 BMVert *BM_vert_at_index_find(BMesh *bm, const int index)
 {
-  return (BMVert *)BLI_mempool_findelem(bm->vpool, index);
+  return static_cast<BMVert *>(BLI_mempool_findelem(bm->vpool, index));
 }
 
 BMEdge *BM_edge_at_index_find(BMesh *bm, const int index)
 {
-  return (BMEdge *)BLI_mempool_findelem(bm->epool, index);
+  return static_cast<BMEdge *>(BLI_mempool_findelem(bm->epool, index));
 }
 
 BMFace *BM_face_at_index_find(BMesh *bm, const int index)
 {
-  return (BMFace *)BLI_mempool_findelem(bm->fpool, index);
+  return static_cast<BMFace *>(BLI_mempool_findelem(bm->fpool, index));
 }
 
 BMLoop *BM_loop_at_index_find(BMesh *bm, const int index)
@@ -754,16 +757,17 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
 
     /* Make a copy of all vertices. */
     verts_pool = bm->vtable;
-    verts_copy = (BMVert *)MEM_mallocN(sizeof(BMVert) * totvert, "BM_mesh_remap verts copy");
+    verts_copy = static_cast<BMVert *>(
+        MEM_mallocN(sizeof(BMVert) * totvert, "BM_mesh_remap verts copy"));
     void **pyptrs = (cd_vert_pyptr != -1) ?
-                        (void **)MEM_mallocN(sizeof(void *) * totvert, __func__) :
+                        static_cast<void **>(MEM_mallocN(sizeof(void *) * totvert, __func__)) :
                         nullptr;
     for (i = totvert, ve = verts_copy + totvert - 1, vep = verts_pool + totvert - 1; i--;
          ve--, vep--) {
       *ve = **vep;
       // printf("*vep: %p, verts_pool[%d]: %p\n", *vep, i, verts_pool[i]);
       if (cd_vert_pyptr != -1) {
-        void **pyptr = (void **)BM_ELEM_CD_GET_VOID_P(((BMElem *)ve), cd_vert_pyptr);
+        void **pyptr = static_cast<void **>(BM_ELEM_CD_GET_VOID_P(((BMElem *)ve), cd_vert_pyptr));
         pyptrs[i] = *pyptr;
       }
     }
@@ -781,7 +785,8 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
 #endif
       BLI_ghash_insert(vptr_map, *vep, new_vep);
       if (cd_vert_pyptr != -1) {
-        void **pyptr = (void **)BM_ELEM_CD_GET_VOID_P(((BMElem *)new_vep), cd_vert_pyptr);
+        void **pyptr = static_cast<void **>(
+            BM_ELEM_CD_GET_VOID_P(((BMElem *)new_vep), cd_vert_pyptr));
         *pyptr = pyptrs[*new_idx];
       }
     }
@@ -808,15 +813,16 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
 
     /* Make a copy of all vertices. */
     edges_pool = bm->etable;
-    edges_copy = (BMEdge *)MEM_mallocN(sizeof(BMEdge) * totedge, "BM_mesh_remap edges copy");
+    edges_copy = static_cast<BMEdge *>(
+        MEM_mallocN(sizeof(BMEdge) * totedge, "BM_mesh_remap edges copy"));
     void **pyptrs = (cd_edge_pyptr != -1) ?
-                        (void **)MEM_mallocN(sizeof(void *) * totedge, __func__) :
+                        static_cast<void **>(MEM_mallocN(sizeof(void *) * totedge, __func__)) :
                         nullptr;
     for (i = totedge, ed = edges_copy + totedge - 1, edp = edges_pool + totedge - 1; i--;
          ed--, edp--) {
       *ed = **edp;
       if (cd_edge_pyptr != -1) {
-        void **pyptr = (void **)BM_ELEM_CD_GET_VOID_P(((BMElem *)ed), cd_edge_pyptr);
+        void **pyptr = static_cast<void **>(BM_ELEM_CD_GET_VOID_P(((BMElem *)ed), cd_edge_pyptr));
         pyptrs[i] = *pyptr;
       }
     }
@@ -834,7 +840,8 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
           "mapping edge from %d to %d (%p/%p to %p)\n", i, *new_idx, *edp, edges_pool[i], new_edp);
 #endif
       if (cd_edge_pyptr != -1) {
-        void **pyptr = (void **)BM_ELEM_CD_GET_VOID_P(((BMElem *)new_edp), cd_edge_pyptr);
+        void **pyptr = static_cast<void **>(
+            BM_ELEM_CD_GET_VOID_P(((BMElem *)new_edp), cd_edge_pyptr));
         *pyptr = pyptrs[*new_idx];
       }
     }
@@ -861,15 +868,16 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
 
     /* Make a copy of all vertices. */
     faces_pool = bm->ftable;
-    faces_copy = (BMFace *)MEM_mallocN(sizeof(BMFace) * totface, "BM_mesh_remap faces copy");
+    faces_copy = static_cast<BMFace *>(
+        MEM_mallocN(sizeof(BMFace) * totface, "BM_mesh_remap faces copy"));
     void **pyptrs = (cd_poly_pyptr != -1) ?
-                        (void **)MEM_mallocN(sizeof(void *) * totface, __func__) :
+                        static_cast<void **>(MEM_mallocN(sizeof(void *) * totface, __func__)) :
                         nullptr;
     for (i = totface, fa = faces_copy + totface - 1, fap = faces_pool + totface - 1; i--;
          fa--, fap--) {
       *fa = **fap;
       if (cd_poly_pyptr != -1) {
-        void **pyptr = (void **)BM_ELEM_CD_GET_VOID_P(((BMElem *)fa), cd_poly_pyptr);
+        void **pyptr = static_cast<void **>(BM_ELEM_CD_GET_VOID_P(((BMElem *)fa), cd_poly_pyptr));
         pyptrs[i] = *pyptr;
       }
     }
@@ -883,7 +891,8 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
       *new_fap = *fa;
       BLI_ghash_insert(fptr_map, *fap, new_fap);
       if (cd_poly_pyptr != -1) {
-        void **pyptr = (void **)BM_ELEM_CD_GET_VOID_P(((BMElem *)new_fap), cd_poly_pyptr);
+        void **pyptr = static_cast<void **>(
+            BM_ELEM_CD_GET_VOID_P(((BMElem *)new_fap), cd_poly_pyptr));
         *pyptr = pyptrs[*new_idx];
       }
     }
@@ -903,7 +912,7 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
     BM_ITER_MESH (ve, &iter, bm, BM_VERTS_OF_MESH) {
       // printf("Vert e: %p -> %p\n", ve->e, BLI_ghash_lookup(eptr_map, ve->e));
       if (ve->e) {
-        ve->e = (BMEdge *)BLI_ghash_lookup(eptr_map, ve->e);
+        ve->e = static_cast<BMEdge *>(BLI_ghash_lookup(eptr_map, ve->e));
         BLI_assert(ve->e);
       }
     }
@@ -919,8 +928,8 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
         printf("Edge v1: %p -> %p\n", ed->v1, BLI_ghash_lookup(vptr_map, ed->v1));
         printf("Edge v2: %p -> %p\n", ed->v2, BLI_ghash_lookup(vptr_map, ed->v2));
 #endif
-        ed->v1 = (BMVert *)BLI_ghash_lookup(vptr_map, ed->v1);
-        ed->v2 = (BMVert *)BLI_ghash_lookup(vptr_map, ed->v2);
+        ed->v1 = static_cast<BMVert *>(BLI_ghash_lookup(vptr_map, ed->v1));
+        ed->v2 = static_cast<BMVert *>(BLI_ghash_lookup(vptr_map, ed->v2));
         BLI_assert(ed->v1);
         BLI_assert(ed->v2);
       }
@@ -939,10 +948,14 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
                ed->v2_disk_link.next,
                BLI_ghash_lookup(eptr_map, ed->v2_disk_link.next));
 #endif
-        ed->v1_disk_link.prev = (BMEdge *)BLI_ghash_lookup(eptr_map, ed->v1_disk_link.prev);
-        ed->v1_disk_link.next = (BMEdge *)BLI_ghash_lookup(eptr_map, ed->v1_disk_link.next);
-        ed->v2_disk_link.prev = (BMEdge *)BLI_ghash_lookup(eptr_map, ed->v2_disk_link.prev);
-        ed->v2_disk_link.next = (BMEdge *)BLI_ghash_lookup(eptr_map, ed->v2_disk_link.next);
+        ed->v1_disk_link.prev = static_cast<BMEdge *>(
+            BLI_ghash_lookup(eptr_map, ed->v1_disk_link.prev));
+        ed->v1_disk_link.next = static_cast<BMEdge *>(
+            BLI_ghash_lookup(eptr_map, ed->v1_disk_link.next));
+        ed->v2_disk_link.prev = static_cast<BMEdge *>(
+            BLI_ghash_lookup(eptr_map, ed->v2_disk_link.prev));
+        ed->v2_disk_link.next = static_cast<BMEdge *>(
+            BLI_ghash_lookup(eptr_map, ed->v2_disk_link.next));
         BLI_assert(ed->v1_disk_link.prev);
         BLI_assert(ed->v1_disk_link.next);
         BLI_assert(ed->v2_disk_link.prev);
@@ -956,17 +969,17 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
     BM_ITER_ELEM (lo, &iterl, fa, BM_LOOPS_OF_FACE) {
       if (vptr_map) {
         // printf("Loop v: %p -> %p\n", lo->v, BLI_ghash_lookup(vptr_map, lo->v));
-        lo->v = (BMVert *)BLI_ghash_lookup(vptr_map, lo->v);
+        lo->v = static_cast<BMVert *>(BLI_ghash_lookup(vptr_map, lo->v));
         BLI_assert(lo->v);
       }
       if (eptr_map) {
         // printf("Loop e: %p -> %p\n", lo->e, BLI_ghash_lookup(eptr_map, lo->e));
-        lo->e = (BMEdge *)BLI_ghash_lookup(eptr_map, lo->e);
+        lo->e = static_cast<BMEdge *>(BLI_ghash_lookup(eptr_map, lo->e));
         BLI_assert(lo->e);
       }
       if (fptr_map) {
         // printf("Loop f: %p -> %p\n", lo->f, BLI_ghash_lookup(fptr_map, lo->f));
-        lo->f = (BMFace *)BLI_ghash_lookup(fptr_map, lo->f);
+        lo->f = static_cast<BMFace *>(BLI_ghash_lookup(fptr_map, lo->f));
         BLI_assert(lo->f);
       }
     }
@@ -975,23 +988,23 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
   /* Selection history */
   {
     BMEditSelection *ese;
-    for (ese = (BMEditSelection *)bm->selected.first; ese; ese = ese->next) {
+    for (ese = static_cast<BMEditSelection *>(bm->selected.first); ese; ese = ese->next) {
       switch (ese->htype) {
         case BM_VERT:
           if (vptr_map) {
-            ese->ele = (BMElem *)BLI_ghash_lookup(vptr_map, ese->ele);
+            ese->ele = static_cast<BMElem *>(BLI_ghash_lookup(vptr_map, ese->ele));
             BLI_assert(ese->ele);
           }
           break;
         case BM_EDGE:
           if (eptr_map) {
-            ese->ele = (BMElem *)BLI_ghash_lookup(eptr_map, ese->ele);
+            ese->ele = static_cast<BMElem *>(BLI_ghash_lookup(eptr_map, ese->ele));
             BLI_assert(ese->ele);
           }
           break;
         case BM_FACE:
           if (fptr_map) {
-            ese->ele = (BMElem *)BLI_ghash_lookup(fptr_map, ese->ele);
+            ese->ele = static_cast<BMElem *>(BLI_ghash_lookup(fptr_map, ese->ele));
             BLI_assert(ese->ele);
           }
           break;
@@ -1001,7 +1014,7 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
 
   if (fptr_map) {
     if (bm->act_face) {
-      bm->act_face = (BMFace *)BLI_ghash_lookup(fptr_map, bm->act_face);
+      bm->act_face = static_cast<BMFace *>(BLI_ghash_lookup(fptr_map, bm->act_face));
       BLI_assert(bm->act_face);
     }
   }
@@ -1027,18 +1040,18 @@ void BM_mesh_rebuild(BMesh *bm,
   const char remap = (vpool_dst ? BM_VERT : 0) | (epool_dst ? BM_EDGE : 0) |
                      (lpool_dst ? BM_LOOP : 0) | (fpool_dst ? BM_FACE : 0);
 
-  BMVert **vtable_dst = (remap & BM_VERT) ?
-                            (BMVert **)MEM_mallocN(bm->totvert * sizeof(BMVert *), __func__) :
-                            nullptr;
-  BMEdge **etable_dst = (remap & BM_EDGE) ?
-                            (BMEdge **)MEM_mallocN(bm->totedge * sizeof(BMEdge *), __func__) :
-                            nullptr;
-  BMLoop **ltable_dst = (remap & BM_LOOP) ?
-                            (BMLoop **)MEM_mallocN(bm->totloop * sizeof(BMLoop *), __func__) :
-                            nullptr;
-  BMFace **ftable_dst = (remap & BM_FACE) ?
-                            (BMFace **)MEM_mallocN(bm->totface * sizeof(BMFace *), __func__) :
-                            nullptr;
+  BMVert **vtable_dst = (remap & BM_VERT) ? static_cast<BMVert **>(MEM_mallocN(
+                                                sizeof(BMVert *) * bm->totvert, __func__)) :
+                                            nullptr;
+  BMEdge **etable_dst = (remap & BM_EDGE) ? static_cast<BMEdge **>(MEM_mallocN(
+                                                sizeof(BMEdge *) * bm->totedge, __func__)) :
+                                            nullptr;
+  BMLoop **ltable_dst = (remap & BM_LOOP) ? static_cast<BMLoop **>(MEM_mallocN(
+                                                sizeof(BMLoop *) * bm->totloop, __func__)) :
+                                            nullptr;
+  BMFace **ftable_dst = (remap & BM_FACE) ? static_cast<BMFace **>(MEM_mallocN(
+                                                sizeof(BMFace *) * bm->totface, __func__)) :
+                                            nullptr;
 
   const bool use_toolflags = params->use_toolflags;
 
@@ -1047,12 +1060,13 @@ void BM_mesh_rebuild(BMesh *bm,
     int index;
     BMVert *v_src;
     BM_ITER_MESH_INDEX (v_src, &iter, bm, BM_VERTS_OF_MESH, index) {
-      BMVert *v_dst = (BMVert *)BLI_mempool_alloc(vpool_dst);
+      BMVert *v_dst = static_cast<BMVert *>(BLI_mempool_alloc(vpool_dst));
       memcpy(v_dst, v_src, sizeof(BMVert));
       if (use_toolflags) {
-        ((BMVert_OFlag *)v_dst)->oflags = bm->vtoolflagpool ? (BMFlagLayer *)BLI_mempool_calloc(
-                                                                  bm->vtoolflagpool) :
-                                                              nullptr;
+        ((BMVert_OFlag *)v_dst)->oflags = bm->vtoolflagpool ?
+                                              static_cast<BMFlagLayer *>(
+                                                  BLI_mempool_calloc(bm->vtoolflagpool)) :
+                                              nullptr;
       }
 
       vtable_dst[index] = v_dst;
@@ -1065,12 +1079,13 @@ void BM_mesh_rebuild(BMesh *bm,
     int index;
     BMEdge *e_src;
     BM_ITER_MESH_INDEX (e_src, &iter, bm, BM_EDGES_OF_MESH, index) {
-      BMEdge *e_dst = (BMEdge *)BLI_mempool_alloc(epool_dst);
+      BMEdge *e_dst = static_cast<BMEdge *>(BLI_mempool_alloc(epool_dst));
       memcpy(e_dst, e_src, sizeof(BMEdge));
       if (use_toolflags) {
-        ((BMEdge_OFlag *)e_dst)->oflags = bm->etoolflagpool ? (BMFlagLayer *)BLI_mempool_calloc(
-                                                                  bm->etoolflagpool) :
-                                                              nullptr;
+        ((BMEdge_OFlag *)e_dst)->oflags = bm->etoolflagpool ?
+                                              static_cast<BMFlagLayer *>(
+                                                  BLI_mempool_calloc(bm->etoolflagpool)) :
+                                              nullptr;
       }
 
       etable_dst[index] = e_dst;
@@ -1085,12 +1100,13 @@ void BM_mesh_rebuild(BMesh *bm,
     BM_ITER_MESH_INDEX (f_src, &iter, bm, BM_FACES_OF_MESH, index) {
 
       if (remap & BM_FACE) {
-        BMFace *f_dst = (BMFace *)BLI_mempool_alloc(fpool_dst);
+        BMFace *f_dst = static_cast<BMFace *>(BLI_mempool_alloc(fpool_dst));
         memcpy(f_dst, f_src, sizeof(BMFace));
         if (use_toolflags) {
-          ((BMFace_OFlag *)f_dst)->oflags = bm->ftoolflagpool ? (BMFlagLayer *)BLI_mempool_calloc(
-                                                                    bm->ftoolflagpool) :
-                                                                nullptr;
+          ((BMFace_OFlag *)f_dst)->oflags = bm->ftoolflagpool ?
+                                                static_cast<BMFlagLayer *>(
+                                                    BLI_mempool_calloc(bm->ftoolflagpool)) :
+                                                nullptr;
         }
 
         ftable_dst[index] = f_dst;
@@ -1102,7 +1118,7 @@ void BM_mesh_rebuild(BMesh *bm,
         BMLoop *l_iter_src, *l_first_src;
         l_iter_src = l_first_src = BM_FACE_FIRST_LOOP((BMFace *)f_src);
         do {
-          BMLoop *l_dst = (BMLoop *)BLI_mempool_alloc(lpool_dst);
+          BMLoop *l_dst = static_cast<BMLoop *>(BLI_mempool_alloc(lpool_dst));
           memcpy(l_dst, l_iter_src, sizeof(BMLoop));
           ltable_dst[index_loop] = l_dst;
           BM_elem_index_set(l_iter_src, index_loop++); /* set_ok */
@@ -1319,7 +1335,8 @@ void BM_mesh_vert_coords_get(BMesh *bm, float (*vert_coords)[3])
 
 float (*BM_mesh_vert_coords_alloc(BMesh *bm, int *r_vert_len))[3]
 {
-  float(*vert_coords)[3] = (float(*)[3])MEM_mallocN(bm->totvert * sizeof(*vert_coords), __func__);
+  float(*vert_coords)[3] = static_cast<float(*)[3]>(
+      MEM_mallocN(bm->totvert * sizeof(*vert_coords), __func__));
   BM_mesh_vert_coords_get(bm, vert_coords);
   *r_vert_len = bm->totvert;
   return vert_coords;
