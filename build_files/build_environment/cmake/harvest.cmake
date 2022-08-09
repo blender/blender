@@ -43,7 +43,8 @@ function(harvest from to)
     install(
       FILES ${LIBDIR}/${from}
       DESTINATION ${HARVEST_TARGET}/${dirpath}
-      RENAME ${filename})
+      RENAME ${filename}
+    )
   else()
     install(
       DIRECTORY ${LIBDIR}/${from}/
@@ -53,7 +54,8 @@ function(harvest from to)
       PATTERN "pkgconfig" EXCLUDE
       PATTERN "cmake" EXCLUDE
       PATTERN "__pycache__" EXCLUDE
-      PATTERN "tests" EXCLUDE)
+      PATTERN "tests" EXCLUDE
+    )
   endif()
 endfunction()
 

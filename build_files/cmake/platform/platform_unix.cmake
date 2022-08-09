@@ -803,7 +803,8 @@ if(CMAKE_COMPILER_IS_GNUCC)
           "The mold linker could not find the directory containing the linker command "
           "(typically "
           "\"${MOLD_PREFIX}/libexec/mold/ld\") or "
-          "\"${MOLD_PREFIX}/lib/mold/ld\") using system linker.")
+          "\"${MOLD_PREFIX}/lib/mold/ld\") using system linker."
+        )
         set(WITH_LINKER_MOLD OFF)
       endif()
       unset(MOLD_PREFIX)
@@ -942,7 +943,8 @@ function(CONFIGURE_ATOMIC_LIB_IF_NEEDED)
       int main(int argc, char **argv) {
         std::atomic<uint64_t> uint64; uint64++;
         return 0;
-      }")
+      }"
+  )
 
   include(CheckCXXSourceCompiles)
   check_cxx_source_compiles("${_source}" ATOMIC_OPS_WITHOUT_LIBATOMIC)
