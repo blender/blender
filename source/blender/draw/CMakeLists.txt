@@ -77,7 +77,7 @@ set(SRC
   intern/draw_cache_impl_mesh.cc
   intern/draw_cache_impl_metaball.c
   intern/draw_cache_impl_particles.c
-  intern/draw_cache_impl_pointcloud.c
+  intern/draw_cache_impl_pointcloud.cc
   intern/draw_cache_impl_subdivision.cc
   intern/draw_cache_impl_volume.c
   intern/draw_color_management.cc
