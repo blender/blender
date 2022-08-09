@@ -760,10 +760,10 @@ static void mesh_ensure_tessellation_customdata(Mesh *me)
 
       /* TODO: add some `--debug-mesh` option. */
       if (G.debug & G_DEBUG) {
-        /* NOTE(campbell): this warning may be un-called for if we are initializing the mesh for
-         * the first time from #BMesh, rather than giving a warning about this we could be smarter
-         * and check if there was any data to begin with, for now just print the warning with
-         * some info to help troubleshoot what's going on. */
+        /* NOTE(@campbellbarton): this warning may be un-called for if we are initializing the mesh
+         * for the first time from #BMesh, rather than giving a warning about this we could be
+         * smarter and check if there was any data to begin with, for now just print the warning
+         * with some info to help troubleshoot what's going on. */
         printf(
             "%s: warning! Tessellation uvs or vcol data got out of sync, "
             "had to reset!\n    CD_MTFACE: %d != CD_MLOOPUV: %d || CD_MCOL: %d != "

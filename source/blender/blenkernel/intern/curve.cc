@@ -2470,7 +2470,7 @@ static void make_bevel_list_segment_2D(BevList *bl)
 
 static void make_bevel_list_2D(BevList *bl)
 {
-  /* NOTE(campbell): `bevp->dir` and `bevp->quat` are not needed for beveling but are
+  /* NOTE(@campbellbarton): `bevp->dir` and `bevp->quat` are not needed for beveling but are
    * used when making a path from a 2D curve, therefore they need to be set. */
 
   BevPoint *bevp0, *bevp1, *bevp2;

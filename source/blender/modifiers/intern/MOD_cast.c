@@ -501,7 +501,7 @@ static void deformVertsEM(ModifierData *md,
     BLI_assert(mesh->totvert == verts_num);
   }
 
-  /* TODO(Campbell): use edit-mode data only (remove this line). */
+  /* TODO(@campbellbarton): use edit-mode data only (remove this line). */
   if (mesh_src != NULL) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }

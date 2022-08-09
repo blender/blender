@@ -7,7 +7,7 @@
  * ToolTip Region and Construction
  */
 
-/* TODO(campbell):
+/* TODO(@campbellbarton):
  * We may want to have a higher level API that initializes a timer,
  * checks for mouse motion and clears the tool-tip afterwards.
  * We never want multiple tool-tips at once

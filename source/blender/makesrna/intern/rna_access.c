@@ -2073,7 +2073,7 @@ static void rna_property_update(
     }
 
 #if 1
-    /* TODO(campbell): Should eventually be replaced entirely by message bus (below)
+    /* TODO(@campbellbarton): Should eventually be replaced entirely by message bus (below)
      * for now keep since COW, bugs are hard to track when we have other missing updates. */
     if (prop->noteflag) {
       WM_main_add_notifier(prop->noteflag, ptr->owner_id);

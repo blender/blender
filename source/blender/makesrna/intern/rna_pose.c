@@ -600,7 +600,7 @@ static void rna_PoseChannel_constraints_remove(
 
   ED_object_constraint_update(bmain, ob);
 
-  /* XXX(Campbell): is this really needed? */
+  /* XXX(@campbellbarton): is this really needed? */
   BKE_constraints_active_set(&pchan->constraints, NULL);
 
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, id);

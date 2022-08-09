@@ -891,7 +891,7 @@ void ED_vgroup_vert_remove(Object *ob, bDeformGroup *dg, int vertnum)
    * deform group.
    */
 
-  /* TODO(campbell): This is slow in a loop, better pass def_nr directly,
+  /* TODO(@campbellbarton): This is slow in a loop, better pass def_nr directly,
    * but leave for later. */
   const ListBase *defbase = BKE_object_defgroup_list(ob);
   const int def_nr = BLI_findindex(defbase, dg);
@@ -1118,7 +1118,7 @@ static void vgroup_duplicate(Object *ob)
   BKE_object_defgroup_active_index_set(ob, BLI_listbase_count(defbase));
   icdg = BKE_object_defgroup_active_index_get(ob) - 1;
 
-  /* TODO(campbell): we might want to allow only copy selected verts here? */
+  /* TODO(@campbellbarton): we might want to allow only copy selected verts here? */
   ED_vgroup_parray_alloc(ob->data, &dvert_array, &dvert_tot, false);
 
   if (dvert_array) {

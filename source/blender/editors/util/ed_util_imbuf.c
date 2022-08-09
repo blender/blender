@@ -431,7 +431,7 @@ void ED_imbuf_sample_draw(const bContext *C, ARegion *region, void *arg_info)
       immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
       immUniformColor3fv(color);
 
-      /* TODO(campbell): lock to pixels. */
+      /* TODO(@campbellbarton): lock to pixels. */
       rctf sample_rect_fl;
       BLI_rctf_init_pt_radius(
           &sample_rect_fl,

@@ -1524,7 +1524,7 @@ void EDBM_update(Mesh *mesh, const struct EDBMUpdate_Params *params)
   }
 
   if (params->is_destructive) {
-    /* TODO(campbell): we may be able to remove this now! */
+    /* TODO(@campbellbarton): we may be able to remove this now! */
     // BM_mesh_elem_table_free(em->bm, BM_ALL_NOLOOP);
   }
   else {

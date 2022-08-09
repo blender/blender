@@ -1128,7 +1128,7 @@ static int object_select_all_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
   if (any_visible == false) {
-    /* TODO(campbell): Looks like we could remove this,
+    /* TODO(@campbellbarton): Looks like we could remove this,
      * if not comment should say why its needed. */
     return OPERATOR_PASS_THROUGH;
   }

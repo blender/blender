@@ -969,7 +969,7 @@ void psys_get_birth_coords(
           float tmat[3][3];
 
           /* NOTE: utan_local is not taken from 'utan', we calculate from rot_vec/vtan. */
-          /* NOTE(campbell): it looks like rotation phase may be applied twice
+          /* NOTE(@campbellbarton): it looks like rotation phase may be applied twice
            * (once with vtan, again below) however this isn't the case. */
           float *rot_vec_local = tmat[0];
           float *vtan_local = tmat[1];

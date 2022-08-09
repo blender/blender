@@ -335,7 +335,7 @@ static void deformVertsEM(ModifierData *md,
         ctx->object, editData, mesh, NULL, verts_num, false, false);
   }
 
-  /* TODO(Campbell): use edit-mode data only (remove this line). */
+  /* TODO(@campbellbarton): use edit-mode data only (remove this line). */
   if (mesh_src != NULL) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }

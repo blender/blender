@@ -1310,7 +1310,7 @@ static bool ui_but_event_operator_string_from_panel(const bContext *C,
   IDP_AddToGroup(prop_panel, IDP_New(IDP_INT, &region_type_val, "region_type"));
 
   for (int i = 0; i < 2; i++) {
-    /* FIXME(campbell): We can't reasonably search all configurations - long term. */
+    /* FIXME(@campbellbarton): We can't reasonably search all configurations - long term. */
     IDPropertyTemplate val = {0};
     val.i = i;
 

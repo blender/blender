@@ -100,7 +100,7 @@ static int script_reload_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* TODO(campbell): this crashes on netrender and keying sets, need to look into why
+  /* TODO(@campbellbarton): this crashes on netrender and keying sets, need to look into why
    * disable for now unless running in debug mode. */
 
   /* It would be nice if we could detect when this is called from the Python

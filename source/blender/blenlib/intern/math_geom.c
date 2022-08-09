@@ -1667,8 +1667,8 @@ bool isect_ray_tri_v3(const float ray_origin[3],
                       float *r_lambda,
                       float r_uv[2])
 {
-  /* NOTE(campbell): these values were 0.000001 in 2.4x but for projection snapping on
-   * a human head (1BU == 1m), subsurf level 2, this gave many errors. */
+  /* NOTE(@campbellbarton): these values were 0.000001 in 2.4x but for projection snapping on
+   * a human head `(1BU == 1m)`, subdivision-surface level 2, this gave many errors. */
   const float epsilon = 0.00000001f;
   float p[3], s[3], e1[3], e2[3], q[3];
   float a, f, u, v;
@@ -3773,7 +3773,7 @@ void barycentric_weights_v2_quad(const float v1[2],
                                  const float co[2],
                                  float w[4])
 {
-  /* NOTE(campbell): fabsf() here is not needed for convex quads
+  /* NOTE(@campbellbarton): fabsf() here is not needed for convex quads
    * (and not used in #interp_weights_poly_v2).
    * But in the case of concave/bow-tie quads for the mask rasterizer it
    * gives unreliable results without adding `absf()`. If this becomes an issue for more general

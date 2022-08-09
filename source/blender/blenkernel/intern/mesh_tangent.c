@@ -716,7 +716,7 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
 {
   BKE_mesh_runtime_looptri_ensure(me_eval);
 
-  /* TODO(campbell): store in Mesh.runtime to avoid recalculation. */
+  /* TODO(@campbellbarton): store in Mesh.runtime to avoid recalculation. */
   short tangent_mask = 0;
   BKE_mesh_calc_loop_tangent_ex(me_eval->mvert,
                                 me_eval->mpoly,

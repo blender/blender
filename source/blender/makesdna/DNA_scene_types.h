@@ -9,7 +9,7 @@
 
 #include "DNA_defs.h"
 
-/* XXX(campbell): temp feature. */
+/* XXX(@campbellbarton): temp feature. */
 #define DURIAN_CAMERA_SWITCH
 
 /* check for cyclic set-scene,

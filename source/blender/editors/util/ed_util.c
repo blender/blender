@@ -176,7 +176,7 @@ void ED_editors_init(bContext *C)
       }
     }
     else {
-      /* TODO(campbell): avoid operator calls. */
+      /* TODO(@campbellbarton): avoid operator calls. */
       if (obact == ob) {
         ED_object_mode_set(C, mode);
       }

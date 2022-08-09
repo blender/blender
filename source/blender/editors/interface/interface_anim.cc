@@ -325,7 +325,7 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy)
     return;
   }
 
-  /* FIXME(campbell), swapping active pointer is weak. */
+  /* FIXME(@campbellbarton): swapping active pointer is weak. */
   SWAP(struct uiHandleButtonData *, but_anim->active, but_decorate->but.active);
   wm->op_undo_depth++;
 

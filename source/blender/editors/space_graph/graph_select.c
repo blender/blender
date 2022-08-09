@@ -1128,7 +1128,7 @@ static const EnumPropertyItem prop_column_select_types[] = {
 /* ------------------- */
 
 /* Selects all visible keyframes between the specified markers */
-/* TODO(campbell): this is almost an _exact_ duplicate of a function of the same name in
+/* TODO(@campbellbarton): this is almost an _exact_ duplicate of a function of the same name in
  * action_select.c should de-duplicate. */
 static void markers_selectkeys_between(bAnimContext *ac)
 {

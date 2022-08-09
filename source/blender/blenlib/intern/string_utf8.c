@@ -403,7 +403,7 @@ int BLI_str_utf8_char_width_safe(const char *p)
 
 /* copied from glib's gutf8.c, added 'Err' arg */
 
-/* NOTE(campbell): glib uses uint for unicode, best we do the same,
+/* NOTE(@campbellbarton): glib uses uint for unicode, best we do the same,
  * though we don't typedef it. */
 
 #define UTF8_COMPUTE(Char, Mask, Len, Err) \
