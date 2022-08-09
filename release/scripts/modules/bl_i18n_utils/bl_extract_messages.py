@@ -876,7 +876,7 @@ def dump_preset_messages(msgs, reports, settings):
             except ValueError:
                 rel_path = path
             files.append(rel_path)
-    for rel_path in files:
+    for rel_path in sorted(files):
         msgsrc, msgid = os.path.split(rel_path)
         msgsrc = "Preset from " + msgsrc
         msgid = bpy.path.display_name(msgid, title_case=False)
