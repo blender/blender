@@ -326,6 +326,7 @@ set(SRC_UTIL_HEADERS
   ../util/rect.h
   ../util/static_assert.h
   ../util/transform.h
+  ../util/transform_inverse.h
   ../util/texture.h
   ../util/types.h
   ../util/types_float2.h
