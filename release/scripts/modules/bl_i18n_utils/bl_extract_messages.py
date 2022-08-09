@@ -206,8 +206,6 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
             "Context", "Event", "Function", "UILayout", "UnknownType", "Property", "Struct",
             # registerable classes
             "Panel", "Menu", "Header", "RenderEngine", "Operator", "OperatorMacro", "Macro", "KeyingSetInfo",
-            # window classes
-            "Window",
         )
         }
 
