@@ -37,6 +37,10 @@ void OutputFileNode::map_input_sockets(NodeConverter &converter,
 
 void OutputFileNode::add_preview_to_first_linked_input(NodeConverter &converter) const
 {
+  if (get_input_sockets().is_empty()) {
+    return;
+  }
+
   NodeInput *first_socket = this->get_input_socket(0);
   if (first_socket->is_linked()) {
     converter.add_node_input_preview(first_socket);
