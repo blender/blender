@@ -864,6 +864,21 @@ static void rna_Window_view_layer_set(PointerRNA *ptr,
   WM_window_set_active_view_layer(win, view_layer);
 }
 
+static void rna_KeyMap_modal_event_values_items_begin(CollectionPropertyIterator *iter,
+                                                      PointerRNA *ptr)
+{
+  wmKeyMap *km = ptr->data;
+
+  const EnumPropertyItem *items = rna_enum_keymap_propvalue_items;
+  if ((km->flag & KEYMAP_MODAL) != 0 && km->modal_items != NULL) {
+    items = km->modal_items;
+  }
+
+  const int totitem = RNA_enum_items_count(items);
+
+  rna_iterator_array_begin(iter, (void *)items, sizeof(EnumPropertyItem), totitem, false, NULL);
+}
+
 static PointerRNA rna_KeyMapItem_properties_get(PointerRNA *ptr)
 {
   wmKeyMapItem *kmi = ptr->data;
@@ -2616,6 +2631,23 @@ static void rna_def_keyconfig(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_CHILDREN_EXPANDED);
   RNA_def_property_ui_text(prop, "Children Expanded", "Children expanded in the user interface");
   RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
+
+  prop = RNA_def_property(srna, "modal_event_values", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_struct_type(prop, "EnumPropertyItem");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_KeyMap_modal_event_values_items_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    NULL);
+  RNA_def_property_ui_text(prop,
+                           "Modal Events",
+                           "Give access to the possible event values of this modal keymap's items "
+                           "(#KeyMapItem.propvalue), for API introspection");
 
   RNA_api_keymap(srna);
 
