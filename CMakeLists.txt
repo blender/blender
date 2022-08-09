@@ -196,7 +196,7 @@ endif()
 option(WITH_GMP "Enable features depending on GMP (Exact Boolean)" ON)
 
 # Compositor
-option(WITH_COMPOSITOR         "Enable the tile based nodal compositor" ON)
+option(WITH_COMPOSITOR_CPU     "Enable the tile based CPU nodal compositor" ON)
 option(WITH_OPENIMAGEDENOISE   "Enable the OpenImageDenoise compositing node" ON)
 
 option(WITH_OPENSUBDIV    "Enable OpenSubdiv for surface subdivision" ON)

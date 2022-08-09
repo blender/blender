@@ -165,11 +165,11 @@ if(WIN32 OR APPLE)
   endif()
 endif()
 
-if(WITH_COMPOSITOR)
+if(WITH_COMPOSITOR_CPU)
   list(APPEND LIB
     bf_compositor
   )
-  add_definitions(-DWITH_COMPOSITOR)
+  add_definitions(-DWITH_COMPOSITOR_CPU)
 endif()
 
 if(WITH_XR_OPENXR)

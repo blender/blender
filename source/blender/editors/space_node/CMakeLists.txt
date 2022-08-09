@@ -50,8 +50,8 @@ set(LIB
   bf_editor_screen
 )
 
-if(WITH_COMPOSITOR)
-  add_definitions(-DWITH_COMPOSITOR)
+if(WITH_COMPOSITOR_CPU)
+  add_definitions(-DWITH_COMPOSITOR_CPU)
 endif()
 
 if(WITH_OPENIMAGEDENOISE)

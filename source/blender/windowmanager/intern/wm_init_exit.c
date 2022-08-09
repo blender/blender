@@ -540,7 +540,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
   BKE_vfont_clipboard_free();
   BKE_node_clipboard_free();
 
-#ifdef WITH_COMPOSITOR
+#ifdef WITH_COMPOSITOR_CPU
   COM_deinitialize();
 #endif
 
