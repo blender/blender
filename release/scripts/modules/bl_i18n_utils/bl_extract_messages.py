@@ -359,12 +359,25 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
 
         walk_properties(cls)
 
+    def walk_keymap_modal_events(keyconfigs, keymap_name, msgsrc_prev, km_i18n_context):
+        for keyconfig in keyconfigs:
+            keymap = keyconfig.keymaps.get(keymap_name, None)
+            if keymap and keymap.is_modal:
+                for modal_event in keymap.modal_event_values:
+                    msgsrc = msgsrc_prev + ":'{}'".format(modal_event.identifier)
+                    if modal_event.name:
+                        process_msg(msgs, km_i18n_context, modal_event.name, msgsrc, reports, None, settings)
+                    if modal_event.description:
+                        process_msg(msgs, default_context, modal_event.description, msgsrc, reports, None, settings)
+
     def walk_keymap_hierarchy(hier, msgsrc_prev):
         km_i18n_context = bpy.app.translations.contexts.id_windowmanager
         for lvl in hier:
             msgsrc = msgsrc_prev + "." + lvl[1]
             if isinstance(lvl[0], str):  # Can be a function too, now, with tool system...
-                process_msg(msgs, km_i18n_context, lvl[0], msgsrc, reports, None, settings)
+                keymap_name = lvl[0]
+                process_msg(msgs, km_i18n_context, keymap_name, msgsrc, reports, None, settings)
+                walk_keymap_modal_events(bpy.data.window_managers[0].keyconfigs, keymap_name, msgsrc, km_i18n_context)
             if lvl[3]:
                 walk_keymap_hierarchy(lvl[3], msgsrc)
 
