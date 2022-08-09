@@ -31,6 +31,52 @@ ccl_device_forceinline void integrate_surface_shader_setup(KernelGlobals kg,
   shader_setup_from_ray(kg, sd, &ray, &isect);
 }
 
+ccl_device_forceinline float3 integrate_surface_ray_offset(KernelGlobals kg,
+                                                           const ccl_private ShaderData *sd,
+                                                           const float3 ray_P,
+                                                           const float3 ray_D)
+{
+  /* No ray offset needed for other primitive types. */
+  if (!(sd->type & PRIMITIVE_TRIANGLE)) {
+    return ray_P;
+  }
+
+  /* Self intersection tests already account for the case where a ray hits the
+   * same primitive. However precision issues can still cause neighboring
+   * triangles to be hit. Here we test if the ray-triangle intersection with
+   * the same primitive would miss, implying that a neighbouring triangle would
+   * be hit instead.
+   *
+   * This relies on triangle intersection to be watertight, and the object inverse
+   * object transform to match the one used by ray intersection exactly.
+   *
+   * Potential improvements:
+   * - It appears this happens when either barycentric coordinates are small,
+   *   or dot(sd->Ng, ray_D)  is small. Detect such cases and skip test?
+   * - Instead of ray offset, can we tweak P to lie within the triangle?
+   */
+  const uint tri_vindex = kernel_data_fetch(tri_vindex, sd->prim).w;
+  const packed_float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex + 0),
+                      tri_b = kernel_data_fetch(tri_verts, tri_vindex + 1),
+                      tri_c = kernel_data_fetch(tri_verts, tri_vindex + 2);
+
+  float3 local_ray_P = ray_P;
+  float3 local_ray_D = ray_D;
+
+  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
+    const Transform itfm = object_get_inverse_transform(kg, sd);
+    local_ray_P = transform_point(&itfm, local_ray_P);
+    local_ray_D = transform_direction(&itfm, local_ray_D);
+  }
+
+  if (ray_triangle_intersect_self(local_ray_P, local_ray_D, tri_a, tri_b, tri_c)) {
+    return ray_P;
+  }
+  else {
+    return ray_offset(ray_P, sd->Ng);
+  }
+}
+
 #ifdef __HOLDOUT__
 ccl_device_forceinline bool integrate_surface_holdout(KernelGlobals kg,
                                                       ConstIntegratorState state,
@@ -200,6 +246,10 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
 #  endif
   }
 
+  if (ray.self.object != OBJECT_NONE) {
+    ray.P = integrate_surface_ray_offset(kg, sd, ray.P, ray.D);
+  }
+
   /* Write shadow ray and associated state to global memory. */
   integrator_state_write_shadow_ray(kg, shadow_state, &ray);
   // Save memory by storing the light and object indices in the shadow_isect
@@ -328,8 +378,9 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   }
   else {
     /* Setup ray with changed origin and direction. */
-    INTEGRATOR_STATE_WRITE(state, ray, P) = sd->P;
-    INTEGRATOR_STATE_WRITE(state, ray, D) = normalize(bsdf_omega_in);
+    const float3 D = normalize(bsdf_omega_in);
+    INTEGRATOR_STATE_WRITE(state, ray, P) = integrate_surface_ray_offset(kg, sd, sd->P, D);
+    INTEGRATOR_STATE_WRITE(state, ray, D) = D;
     INTEGRATOR_STATE_WRITE(state, ray, tmin) = 0.0f;
     INTEGRATOR_STATE_WRITE(state, ray, tmax) = FLT_MAX;
 #ifdef __RAY_DIFFERENTIALS__
@@ -423,6 +474,9 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
   Ray ray ccl_optional_struct_init;
   ray.P = shadow_ray_offset(kg, sd, ao_D, &skip_self);
   ray.D = ao_D;
+  if (skip_self) {
+    ray.P = integrate_surface_ray_offset(kg, sd, ray.P, ray.D);
+  }
   ray.tmin = 0.0f;
   ray.tmax = kernel_data.integrator.ao_bounces_distance;
   ray.time = sd->time;
