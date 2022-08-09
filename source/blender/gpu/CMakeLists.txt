@@ -190,8 +190,8 @@ set(OPENGL_SRC
 
 set(METAL_SRC
   metal/mtl_backend.mm
-  metal/mtl_context.mm
   metal/mtl_command_buffer.mm
+  metal/mtl_context.mm
   metal/mtl_debug.mm
   metal/mtl_framebuffer.mm
   metal/mtl_memory.mm
@@ -470,8 +470,8 @@ set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/overlay/shaders/infos/overlay_grid_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_outline_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_paint_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_sculpt_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_sculpt_curves_info.hh
+  ../draw/engines/overlay/shaders/infos/overlay_sculpt_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_volume_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_wireframe_info.hh
   ../draw/engines/select/shaders/infos/select_id_info.hh
@@ -593,9 +593,9 @@ if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
 
   endif()
   target_link_libraries(shader_builder PUBLIC
+    bf_blenlib
     bf_gpu
     bf_intern_clog
-    bf_blenlib
     bf_intern_ghost
     ${PLATFORM_LINKLIBS}
   )
