@@ -1197,6 +1197,14 @@ bool ED_view3d_camera_lock_autokey(struct View3D *v3d,
 void ED_view3d_lock_clear(struct View3D *v3d);
 
 /**
+ * Check if creating an undo step should be performed if the viewport moves.
+ * \return true if #ED_view3d_camera_lock_undo_push would do an undo push.
+ */
+bool ED_view3d_camera_lock_undo_test(const View3D *v3d,
+                                     const RegionView3D *rv3d,
+                                     struct bContext *C);
+
+/**
  * Create an undo step when the camera is locked to the view.
  * \param str: The name of the undo step (typically #wmOperatorType.name should be used).
  *

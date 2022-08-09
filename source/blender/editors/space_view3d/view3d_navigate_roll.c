@@ -202,6 +202,9 @@ static int viewroll_exec(bContext *C, wmOperator *op)
                           &(const V3D_SmoothParams){
                               .quat = quat_new,
                               .dyn_ofs = dyn_ofs_pt,
+                              /* Group as successive roll may run by holding a key. */
+                              .undo_str = op->type->name,
+                              .undo_grouped = true,
                           });
 
     viewops_data_free(C, op->customdata);

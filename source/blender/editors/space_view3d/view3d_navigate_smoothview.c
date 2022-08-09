@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 
 #include "BKE_context.h"
@@ -20,6 +21,124 @@
 
 #include "view3d_intern.h"
 #include "view3d_navigate.h" /* own include */
+
+static void view3d_smoothview_apply_ex(bContext *C,
+                                       View3D *v3d,
+                                       ARegion *region,
+                                       bool sync_boxview,
+                                       bool use_autokey,
+                                       const float step,
+                                       const bool finished);
+
+/* -------------------------------------------------------------------- */
+/** \name Smooth View Undo Handling
+ *
+ * When the camera is locked to the viewport smooth-view operations
+ * may need to perform an undo push.
+ *
+ * In this case the smooth-view camera transformation is temporarily completed,
+ * undo is pushed then the change is rewound, and smooth-view completes from it's timer.
+ * In the case smooth-view executed the change immediately - an undo push is called.
+ *
+ * NOTE(@campbellbarton): While this is not ideal it's necessary as making the undo-push
+ * once smooth-view is complete because smooth-view is non-blocking and it's possible other
+ * operations are executed once smooth-view has started.
+ * \{ */
+
+void ED_view3d_smooth_view_undo_begin(bContext *C, ScrArea *area)
+{
+  const View3D *v3d = area->spacedata.first;
+  Object *camera = v3d->camera;
+  if (!camera) {
+    return;
+  }
+
+  /* Tag the camera object so it's known smooth-view is applied to the view-ports camera
+   * (needed to detect when a locked camera is being manipulated).
+   * NOTE: It doesn't matter if the actual object being manipulated is the camera or not. */
+  camera->id.tag &= ~LIB_TAG_DOIT;
+
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    if (region->regiontype != RGN_TYPE_WINDOW) {
+      continue;
+    }
+    RegionView3D *rv3d = region->regiondata;
+    if (ED_view3d_camera_lock_undo_test(v3d, rv3d, C)) {
+      camera->id.tag |= LIB_TAG_DOIT;
+      break;
+    }
+  }
+}
+
+void ED_view3d_smooth_view_undo_end(bContext *C,
+                                    ScrArea *area,
+                                    const char *undo_str,
+                                    const bool undo_grouped)
+{
+  View3D *v3d = area->spacedata.first;
+  Object *camera = v3d->camera;
+  if (!camera) {
+    return;
+  }
+  if (camera->id.tag & LIB_TAG_DOIT) {
+    /* Smooth view didn't touch the camera. */
+    camera->id.tag &= ~LIB_TAG_DOIT;
+    return;
+  }
+
+  if ((U.uiflag & USER_GLOBALUNDO) == 0) {
+    return;
+  }
+
+  /* NOTE(@campbellbarton): It is not possible that a single viewport references different cameras
+   * so even in the case there is a quad-view with multiple camera views set, these will all
+   * reference the same camera. In this case it doesn't matter which region is used.
+   * If in the future multiple cameras are supported, this logic can be extended. */
+  ARegion *region_camera = NULL;
+
+  /* An undo push should be performed. */
+  bool is_interactive = false;
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    if (region->regiontype != RGN_TYPE_WINDOW) {
+      continue;
+    }
+    RegionView3D *rv3d = region->regiondata;
+    if (ED_view3d_camera_lock_undo_test(v3d, rv3d, C)) {
+      region_camera = region;
+      if (rv3d->sms) {
+        is_interactive = true;
+      }
+    }
+  }
+
+  if (region_camera == NULL) {
+    return;
+  }
+
+  /* Arguments to #view3d_smoothview_apply_ex to temporarily apply transformation. */
+  const bool sync_boxview = false;
+  const bool use_autokey = false;
+  const bool finished = false;
+
+  /* Fast forward, undo push, then rewind. */
+  if (is_interactive) {
+    view3d_smoothview_apply_ex(C, v3d, region_camera, sync_boxview, use_autokey, 1.0f, finished);
+  }
+
+  RegionView3D *rv3d = region_camera->regiondata;
+  if (undo_grouped) {
+    ED_view3d_camera_lock_undo_grouped_push(undo_str, v3d, rv3d, C);
+  }
+  else {
+    ED_view3d_camera_lock_undo_push(undo_str, v3d, rv3d, C);
+  }
+
+  if (is_interactive) {
+    view3d_smoothview_apply_ex(C, v3d, region_camera, sync_boxview, use_autokey, 0.0f, finished);
+  }
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Smooth View Operator & Utilities
@@ -86,6 +205,11 @@ void ED_view3d_smooth_view_ex(
     const int smooth_viewtx,
     const V3D_SmoothParams *sview)
 {
+  /* In this case use #ED_view3d_smooth_view_undo_begin & end functions
+   * instead of passing in undo. */
+  BLI_assert_msg(sview->undo_str == NULL,
+                 "Only the 'ED_view3d_smooth_view' version of this function handles undo!");
+
   RegionView3D *rv3d = region->regiondata;
   struct SmoothView3DStore sms = {{0}};
 
@@ -236,6 +360,13 @@ void ED_view3d_smooth_view_ex(
 
     WM_event_add_mousemove(win);
   }
+
+  if (sms.to_camera == false) {
+    /* See comments in #ED_view3d_smooth_view_undo_begin for why this is needed. */
+    if (v3d->camera) {
+      v3d->camera->id.tag &= ~LIB_TAG_DOIT;
+    }
+  }
 }
 
 void ED_view3d_smooth_view(bContext *C,
@@ -249,26 +380,37 @@ void ED_view3d_smooth_view(bContext *C,
   wmWindow *win = CTX_wm_window(C);
   ScrArea *area = CTX_wm_area(C);
 
-  ED_view3d_smooth_view_ex(depsgraph, wm, win, area, v3d, region, smooth_viewtx, sview);
+  /* #ED_view3d_smooth_view_ex asserts this is not set as it doesn't support undo. */
+  struct V3D_SmoothParams sview_no_undo = *sview;
+  sview_no_undo.undo_str = NULL;
+  sview_no_undo.undo_grouped = false;
+
+  const bool do_undo = (sview->undo_str != NULL);
+  if (do_undo) {
+    ED_view3d_smooth_view_undo_begin(C, area);
+  }
+
+  ED_view3d_smooth_view_ex(depsgraph, wm, win, area, v3d, region, smooth_viewtx, &sview_no_undo);
+
+  if (do_undo) {
+    ED_view3d_smooth_view_undo_end(C, area, sview->undo_str, sview->undo_grouped);
+  }
 }
 
-/* only meant for timer usage */
-static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *region, bool sync_boxview)
+static void view3d_smoothview_apply_ex(bContext *C,
+                                       View3D *v3d,
+                                       ARegion *region,
+                                       bool sync_boxview,
+                                       bool use_autokey,
+                                       const float step,
+                                       const bool finished)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   RegionView3D *rv3d = region->regiondata;
   struct SmoothView3DStore *sms = rv3d->sms;
-  float step, step_inv;
-
-  if (sms->time_allowed != 0.0) {
-    step = (float)((rv3d->smooth_timer->duration) / sms->time_allowed);
-  }
-  else {
-    step = 1.0f;
-  }
 
   /* end timer */
-  if (step >= 1.0f) {
+  if (finished) {
     wmWindow *win = CTX_wm_window(C);
 
     /* if we went to camera, store the original */
@@ -301,9 +443,7 @@ static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *region, b
   }
   else {
     /* ease in/out */
-    step = (3.0f * step * step - 2.0f * step * step * step);
-
-    step_inv = 1.0f - step;
+    const float step_inv = 1.0f - step;
 
     interp_qt_qtqt(rv3d->viewquat, sms->src.quat, sms->dst.quat, step);
 
@@ -320,7 +460,7 @@ static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *region, b
 
     const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     ED_view3d_camera_lock_sync(depsgraph, v3d, rv3d);
-    if (ED_screen_animation_playing(wm)) {
+    if (use_autokey && ED_screen_animation_playing(wm)) {
       ED_view3d_camera_lock_autokey(v3d, rv3d, C, true, true);
     }
   }
@@ -340,6 +480,27 @@ static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *region, b
   else {
     ED_region_tag_redraw(region);
   }
+}
+
+/* only meant for timer usage */
+
+static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *region, bool sync_boxview)
+{
+  RegionView3D *rv3d = region->regiondata;
+  struct SmoothView3DStore *sms = rv3d->sms;
+  float step;
+
+  if (sms->time_allowed != 0.0) {
+    step = (float)((rv3d->smooth_timer->duration) / sms->time_allowed);
+  }
+  else {
+    step = 1.0f;
+  }
+  const bool finished = step >= 1.0f;
+  if (!finished) {
+    step = (3.0f * step * step - 2.0f * step * step * step);
+  }
+  view3d_smoothview_apply_ex(C, v3d, region, sync_boxview, true, step, finished);
 }
 
 static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
