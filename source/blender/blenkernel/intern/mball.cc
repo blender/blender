@@ -11,12 +11,12 @@
  * texture coordinates are patched within the displist
  */
 
-#include <ctype.h>
-#include <float.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cctype>
+#include <cfloat>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -72,11 +72,11 @@ static void metaball_copy_data(Main *UNUSED(bmain),
 
   BLI_duplicatelist(&metaball_dst->elems, &metaball_src->elems);
 
-  metaball_dst->mat = MEM_dupallocN(metaball_src->mat);
+  metaball_dst->mat = static_cast<Material **>(MEM_dupallocN(metaball_src->mat));
 
-  metaball_dst->editelems = NULL;
-  metaball_dst->lastelem = NULL;
-  metaball_dst->batch_cache = NULL;
+  metaball_dst->editelems = nullptr;
+  metaball_dst->lastelem = nullptr;
+  metaball_dst->batch_cache = nullptr;
 }
 
 static void metaball_free_data(ID *id)
@@ -107,11 +107,11 @@ static void metaball_blend_write(BlendWriter *writer, ID *id, const void *id_add
 
   /* Clean up, important in undo case to reduce false detection of changed datablocks. */
   BLI_listbase_clear(&mb->disp);
-  mb->editelems = NULL;
+  mb->editelems = nullptr;
   /* Must always be cleared (meta's don't have their own edit-data). */
   mb->needs_flush_to_id = 0;
-  mb->lastelem = NULL;
-  mb->batch_cache = NULL;
+  mb->lastelem = nullptr;
+  mb->batch_cache = nullptr;
 
   /* write LibData */
   BLO_write_id_struct(writer, MetaBall, id_address, &mb->id);
@@ -139,12 +139,12 @@ static void metaball_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_list(reader, &(mb->elems));
 
   BLI_listbase_clear(&mb->disp);
-  mb->editelems = NULL;
+  mb->editelems = nullptr;
   /* Must always be cleared (meta's don't have their own edit-data). */
   mb->needs_flush_to_id = 0;
-  // mb->edit_elems.first = mb->edit_elems.last = NULL;
-  mb->lastelem = NULL;
-  mb->batch_cache = NULL;
+  // mb->edit_elems.first = mb->edit_elems.last = nullptr;
+  mb->lastelem = nullptr;
+  mb->batch_cache = nullptr;
 }
 
 static void metaball_blend_read_lib(BlendLibReader *reader, ID *id)
@@ -166,49 +166,46 @@ static void metaball_blend_read_expand(BlendExpander *expander, ID *id)
 }
 
 IDTypeInfo IDType_ID_MB = {
-    .id_code = ID_MB,
-    .id_filter = FILTER_ID_MB,
-    .main_listbase_index = INDEX_ID_MB,
-    .struct_size = sizeof(MetaBall),
-    .name = "Metaball",
-    .name_plural = "metaballs",
-    .translation_context = BLT_I18NCONTEXT_ID_METABALL,
-    .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    .asset_type_info = NULL,
+    /* id_code */ ID_MB,
+    /* id_filter */ FILTER_ID_MB,
+    /* main_listbase_index */ INDEX_ID_MB,
+    /* struct_size */ sizeof(MetaBall),
+    /* name */ "Metaball",
+    /* name_plural */ "metaballs",
+    /* translation_context */ BLT_I18NCONTEXT_ID_METABALL,
+    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /* asset_type_info */ nullptr,
 
-    .init_data = metaball_init_data,
-    .copy_data = metaball_copy_data,
-    .free_data = metaball_free_data,
-    .make_local = NULL,
-    .foreach_id = metaball_foreach_id,
-    .foreach_cache = NULL,
-    .foreach_path = NULL,
-    .owner_get = NULL,
+    /* init_data */ metaball_init_data,
+    /* copy_data */ metaball_copy_data,
+    /* free_data */ metaball_free_data,
+    /* make_local */ nullptr,
+    /* foreach_id */ metaball_foreach_id,
+    /* foreach_cache */ nullptr,
+    /* foreach_path */ nullptr,
+    /* owner_get */ nullptr,
 
-    .blend_write = metaball_blend_write,
-    .blend_read_data = metaball_blend_read_data,
-    .blend_read_lib = metaball_blend_read_lib,
-    .blend_read_expand = metaball_blend_read_expand,
+    /* blend_write */ metaball_blend_write,
+    /* blend_read_data */ metaball_blend_read_data,
+    /* blend_read_lib */ metaball_blend_read_lib,
+    /* blend_read_expand */ metaball_blend_read_expand,
 
-    .blend_read_undo_preserve = NULL,
+    /* blend_read_undo_preserve */ nullptr,
 
-    .lib_override_apply_post = NULL,
+    /* lib_override_apply_post */ nullptr,
 };
 
 /* Functions */
 
 MetaBall *BKE_mball_add(Main *bmain, const char *name)
 {
-  MetaBall *mb;
-
-  mb = BKE_id_new(bmain, ID_MB, name);
-
+  MetaBall *mb = static_cast<MetaBall *>(BKE_id_new(bmain, ID_MB, name));
   return mb;
 }
 
 MetaElem *BKE_mball_element_add(MetaBall *mb, const int type)
 {
-  MetaElem *ml = MEM_callocN(sizeof(MetaElem), "metaelem");
+  MetaElem *ml = MEM_cnew<MetaElem>(__func__);
 
   unit_qt(ml->quat);
 
@@ -260,8 +257,8 @@ void BKE_mball_texspace_calc(Object *ob)
   int tot;
   bool do_it = false;
 
-  if (ob->runtime.bb == NULL) {
-    ob->runtime.bb = MEM_callocN(sizeof(BoundBox), "mb boundbox");
+  if (ob->runtime.bb == nullptr) {
+    ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
   }
   bb = ob->runtime.bb;
 
@@ -270,7 +267,7 @@ void BKE_mball_texspace_calc(Object *ob)
   (min)[0] = (min)[1] = (min)[2] = 1.0e30f;
   (max)[0] = (max)[1] = (max)[2] = -1.0e30f;
 
-  dl = ob->runtime.curve_cache->disp.first;
+  dl = static_cast<DispList *>(ob->runtime.curve_cache->disp.first);
   while (dl) {
     tot = dl->nr;
     if (tot) {
@@ -299,13 +296,13 @@ BoundBox *BKE_mball_boundbox_get(Object *ob)
 {
   BLI_assert(ob->type == OB_MBALL);
 
-  if (ob->runtime.bb != NULL && (ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) {
+  if (ob->runtime.bb != nullptr && (ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) {
     return ob->runtime.bb;
   }
 
   /* This should always only be called with evaluated objects,
    * but currently RNA is a problem here... */
-  if (ob->runtime.curve_cache != NULL) {
+  if (ob->runtime.curve_cache != nullptr) {
     BKE_mball_texspace_calc(ob);
   }
 
@@ -329,8 +326,8 @@ float *BKE_mball_make_orco(Object *ob, ListBase *dispbase)
   loc[2] = (bb->vec[0][2] + bb->vec[1][2]) / 2.0f;
   size[2] = bb->vec[1][2] - loc[2];
 
-  dl = dispbase->first;
-  orcodata = MEM_mallocN(sizeof(float[3]) * dl->nr, "MballOrco");
+  dl = static_cast<DispList *>(dispbase->first);
+  orcodata = static_cast<float *>(MEM_mallocN(sizeof(float[3]) * dl->nr, __func__));
 
   data = dl->verts;
   orco = orcodata;
@@ -393,7 +390,7 @@ bool BKE_mball_is_basis_for(const Object *ob1, const Object *ob2)
 
 bool BKE_mball_is_any_selected(const MetaBall *mb)
 {
-  for (const MetaElem *ml = mb->editelems->first; ml != NULL; ml = ml->next) {
+  LISTBASE_FOREACH (const MetaElem *, ml, mb->editelems) {
     if (ml->flag & SELECT) {
       return true;
     }
@@ -415,7 +412,7 @@ bool BKE_mball_is_any_selected_multi(Base **bases, int bases_len)
 
 bool BKE_mball_is_any_unselected(const MetaBall *mb)
 {
-  for (const MetaElem *ml = mb->editelems->first; ml != NULL; ml = ml->next) {
+  LISTBASE_FOREACH (const MetaElem *, ml, mb->editelems) {
     if ((ml->flag & SELECT) == 0) {
       return true;
     }
@@ -451,9 +448,10 @@ void BKE_mball_properties_copy(Main *bmain, MetaBall *metaball_src)
    * Solving this case would drastically increase the complexity of this code though, so don't
    * think it would be worth it.
    */
-  for (Object *ob_src = bmain->objects.first; ob_src != NULL && !ID_IS_LINKED(ob_src);) {
+  for (Object *ob_src = static_cast<Object *>(bmain->objects.first);
+       ob_src != nullptr && !ID_IS_LINKED(ob_src);) {
     if (ob_src->data != metaball_src) {
-      ob_src = ob_src->id.next;
+      ob_src = static_cast<Object *>(ob_src->id.next);
       continue;
     }
 
@@ -466,12 +464,13 @@ void BKE_mball_properties_copy(Main *bmain, MetaBall *metaball_src)
      * Using this, it is possible to process the whole set of meta-balls with a single loop on the
      * whole list of Objects, though additionally going backward on part of the list in some cases.
      */
-    Object *ob_iter = NULL;
+    Object *ob_iter = nullptr;
     int obactive_nr, ob_nr;
     char obactive_name[MAX_ID_NAME], ob_name[MAX_ID_NAME];
     BLI_split_name_num(obactive_name, &obactive_nr, ob_src->id.name + 2, '.');
 
-    for (ob_iter = ob_src->id.prev; ob_iter != NULL; ob_iter = ob_iter->id.prev) {
+    for (ob_iter = static_cast<Object *>(ob_src->id.prev); ob_iter != nullptr;
+         ob_iter = static_cast<Object *>(ob_iter->id.prev)) {
       if (ob_iter->id.name[2] != obactive_name[0]) {
         break;
       }
@@ -483,10 +482,11 @@ void BKE_mball_properties_copy(Main *bmain, MetaBall *metaball_src)
         break;
       }
 
-      mball_data_properties_copy(ob_iter->data, metaball_src);
+      mball_data_properties_copy(static_cast<MetaBall *>(ob_iter->data), metaball_src);
     }
 
-    for (ob_iter = ob_src->id.next; ob_iter != NULL; ob_iter = ob_iter->id.next) {
+    for (ob_iter = static_cast<Object *>(ob_src->id.next); ob_iter != nullptr;
+         ob_iter = static_cast<Object *>(ob_iter->id.next)) {
       if (ob_iter->id.name[2] != obactive_name[0] || ID_IS_LINKED(ob_iter)) {
         break;
       }
@@ -498,7 +498,7 @@ void BKE_mball_properties_copy(Main *bmain, MetaBall *metaball_src)
         break;
       }
 
-      mball_data_properties_copy(ob_iter->data, metaball_src);
+      mball_data_properties_copy(static_cast<MetaBall *>(ob_iter->data), metaball_src);
     }
 
     ob_src = ob_iter;
@@ -682,7 +682,7 @@ bool BKE_mball_select_all_multi_ex(Base **bases, int bases_len)
   bool changed_multi = false;
   for (uint ob_index = 0; ob_index < bases_len; ob_index++) {
     Object *obedit = bases[ob_index]->object;
-    MetaBall *mb = obedit->data;
+    MetaBall *mb = static_cast<MetaBall *>(obedit->data);
     changed_multi |= BKE_mball_select_all(mb);
   }
   return changed_multi;
@@ -705,7 +705,7 @@ bool BKE_mball_deselect_all_multi_ex(Base **bases, int bases_len)
   bool changed_multi = false;
   for (uint ob_index = 0; ob_index < bases_len; ob_index++) {
     Object *obedit = bases[ob_index]->object;
-    MetaBall *mb = obedit->data;
+    MetaBall *mb = static_cast<MetaBall *>(obedit->data);
     changed_multi |= BKE_mball_deselect_all(mb);
     DEG_id_tag_update(&mb->id, ID_RECALC_SELECT);
   }
@@ -737,8 +737,8 @@ bool BKE_mball_select_swap_multi_ex(Base **bases, int bases_len)
 
 /* Draw Engine */
 
-void (*BKE_mball_batch_cache_dirty_tag_cb)(MetaBall *mb, int mode) = NULL;
-void (*BKE_mball_batch_cache_free_cb)(MetaBall *mb) = NULL;
+void (*BKE_mball_batch_cache_dirty_tag_cb)(MetaBall *mb, int mode) = nullptr;
+void (*BKE_mball_batch_cache_free_cb)(MetaBall *mb) = nullptr;
 
 void BKE_mball_batch_cache_dirty_tag(MetaBall *mb, int mode)
 {
