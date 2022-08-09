@@ -3029,6 +3029,7 @@ void DRW_engines_free(void)
   DRW_globals_free();
 
   drw_debug_module_free(DST.debug);
+  DST.debug = NULL;
 
   DRW_UBO_FREE_SAFE(G_draw.block_ubo);
   DRW_UBO_FREE_SAFE(G_draw.view_ubo);

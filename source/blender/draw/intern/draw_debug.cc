@@ -595,11 +595,13 @@ blender::draw::DebugDraw *DRW_debug_get()
 
 void drw_debug_draw()
 {
-  if (!GPU_shader_storage_buffer_objects_support()) {
+#ifdef DEBUG
+  if (!GPU_shader_storage_buffer_objects_support() || DST.debug == nullptr) {
     return;
   }
   /* TODO(fclem): Convenience for now. Will have to move to DRWManager. */
   reinterpret_cast<blender::draw::DebugDraw *>(DST.debug)->display_to_view();
+#endif
 }
 
 /**
