@@ -29,6 +29,7 @@
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
+#include "DNA_volume_types.h"
 
 #include "BKE_collection.h"
 #include "BKE_duplilist.h"
@@ -164,10 +165,8 @@ static bool copy_dupli_context(
  *
  * \param mat: is transform of the object relative to current context (including #Object.obmat).
  */
-static DupliObject *make_dupli(const DupliContext *ctx,
-                               Object *ob,
-                               const float mat[4][4],
-                               int index)
+static DupliObject *make_dupli(
+    const DupliContext *ctx, Object *ob, const ID *object_data, const float mat[4][4], int index)
 {
   DupliObject *dob;
   int i;
@@ -182,7 +181,7 @@ static DupliObject *make_dupli(const DupliContext *ctx,
   }
 
   dob->ob = ob;
-  dob->ob_data = (ID *)ob->data;
+  dob->ob_data = const_cast<ID *>(object_data);
   mul_m4_m4m4(dob->mat, (float(*)[4])ctx->space_mat, mat);
   dob->type = ctx->gen->type;
 
@@ -224,6 +223,14 @@ static DupliObject *make_dupli(const DupliContext *ctx,
   }
 
   return dob;
+}
+
+static DupliObject *make_dupli(const DupliContext *ctx,
+                               Object *ob,
+                               const float mat[4][4],
+                               int index)
+{
+  return make_dupli(ctx, ob, static_cast<ID *>(ob->data), mat, index);
 }
 
 /**
@@ -777,28 +784,24 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
   int component_index = 0;
   if (ctx->object->type != OB_MESH || geometry_set_is_instance) {
     if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
-      DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);
-      dupli->ob_data = (ID *)mesh;
+      make_dupli(ctx, ctx->object, &mesh->id, parent_transform, component_index++);
     }
   }
   if (ctx->object->type != OB_VOLUME || geometry_set_is_instance) {
     if (const Volume *volume = geometry_set.get_volume_for_read()) {
-      DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);
-      dupli->ob_data = (ID *)volume;
+      make_dupli(ctx, ctx->object, &volume->id, parent_transform, component_index++);
     }
   }
   if (!ELEM(ctx->object->type, OB_CURVES_LEGACY, OB_FONT, OB_CURVES) || geometry_set_is_instance) {
     if (const CurveComponent *component = geometry_set.get_component_for_read<CurveComponent>()) {
       if (const Curve *curve = component->get_curve_for_render()) {
-        DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);
-        dupli->ob_data = (ID *)curve;
+        make_dupli(ctx, ctx->object, &curve->id, parent_transform, component_index++);
       }
     }
   }
   if (ctx->object->type != OB_POINTCLOUD || geometry_set_is_instance) {
     if (const PointCloud *pointcloud = geometry_set.get_pointcloud_for_read()) {
-      DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);
-      dupli->ob_data = (ID *)pointcloud;
+      make_dupli(ctx, ctx->object, &pointcloud->id, parent_transform, component_index++);
     }
   }
   const bool creates_duplis_for_components = component_index >= 1;
