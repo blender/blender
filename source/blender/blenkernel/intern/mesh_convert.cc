@@ -985,6 +985,12 @@ static Mesh *mesh_new_from_curve_type_object(const Object *object)
 
   /* If evaluating the curve replaced object data with different data, free the original data. */
   if (temp_data != temp_object->data) {
+    if (GS(temp_data->name) == ID_CU_LEGACY) {
+      /* Clear edit mode pointers that were explicitly copied to the temporary curve. */
+      Curve *curve = reinterpret_cast<Curve *>(temp_data);
+      curve->editfont = nullptr;
+      curve->editnurb = nullptr;
+    }
     BKE_id_free(nullptr, temp_data);
   }
 
