@@ -329,7 +329,7 @@ typedef struct FontBLF {
   /* freetype2 face. */
   FT_Face face;
 
-  /* FreeType size is separated from face when using their caching subsystem. */
+  /* Point to face->size or to cache's size. */
   FT_Size ft_size;
 
   /* Copy of the font->face->face_flags, in case we don't have a face loaded. */

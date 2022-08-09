@@ -17,7 +17,6 @@
 #include <ft2build.h>
 
 #include FT_FREETYPE_H
-#include FT_CACHE_H /* FreeType Cache. */
 #include FT_GLYPH_H
 #include FT_MULTIPLE_MASTERS_H /* Variable font support. */
 #include FT_TRUETYPE_IDS_H     /* Codepoint coverage constants. */
@@ -56,8 +55,6 @@ BatchBLF g_batch;
 
 /* freetype2 handle ONLY for this file! */
 static FT_Library ft_lib = NULL;
-static FTC_Manager ftc_manager = NULL;
-static FTC_CMapCache ftc_charmap_cache = NULL;
 
 static SpinLock ft_lib_mutex;
 static SpinLock blf_glyph_cache_mutex;
@@ -69,58 +66,11 @@ static ft_pix blf_font_height_max_ft_pix(struct FontBLF *font);
 static ft_pix blf_font_width_max_ft_pix(struct FontBLF *font);
 
 /* -------------------------------------------------------------------- */
-/** \name FreeType Caching
- * \{ */
 
-/* Called when a face is removed. FreeType will call FT_Done_Face itself. */
-static void blf_face_finalizer(void *object)
-{
-  FT_Face face = object;
-  FontBLF *font = (FontBLF *)face->generic.data;
-  font->face = NULL;
-}
-
-/* Called in response to FTC_Manager_LookupFace. Add a face to our font. */
-static FT_Error blf_cache_face_requester(FTC_FaceID faceID,
-                                         FT_Library lib,
-                                         FT_Pointer UNUSED(reqData),
-                                         FT_Face *face)
-{
-  FontBLF *font = (FontBLF *)faceID;
-  int err = FT_Err_Cannot_Open_Resource;
-
-  BLI_spin_lock(font->ft_lib_mutex);
-
-  if (font->filepath) {
-    err = FT_New_Face(lib, font->filepath, 0, face);
-  }
-  else if (font->mem) {
-    err = FT_New_Memory_Face(lib, font->mem, (FT_Long)font->mem_size, 0, face);
-  }
-
-  BLI_spin_unlock(font->ft_lib_mutex);
-
-  if (err == FT_Err_Ok) {
-    font->face = *face;
-    font->face->generic.data = font;
-    font->face->generic.finalizer = blf_face_finalizer;
-  }
-
-  return err;
-}
-
-/* Called when FreeType is removing a font size. */
-static void blf_size_finalizer(void *object)
-{
-  FT_Size size = object;
-  FontBLF *font = (FontBLF *)size->generic.data;
-  font->ft_size = NULL;
-}
-
-/* Use cache, not blf_get_char_index, to return glyph id from charcode. */
+/* Return glyph id from charcode. */
 uint blf_get_char_index(struct FontBLF *font, uint charcode)
 {
-  return FTC_CMapCache_Lookup(ftc_charmap_cache, font, -1, charcode);
+  return FT_Get_Char_Index(font->face, charcode);
 }
 
 /* -------------------------------------------------------------------- */
@@ -130,9 +80,6 @@ uint blf_get_char_index(struct FontBLF *font, uint charcode)
 /* Convert a FreeType 26.6 value representing an unscaled design size to fractional pixels. */
 static ft_pix blf_unscaled_F26Dot6_to_pixels(FontBLF *font, FT_Pos value)
 {
-  /* Make sure we have a valid font->ft_size. */
-  blf_ensure_size(font);
-
   /* Scale value by font size using integer-optimized multiplication. */
   FT_Long scaled = FT_MulFix(value, font->ft_size->metrics.x_scale);
 
@@ -1168,7 +1115,6 @@ int blf_font_count_missing_chars(FontBLF *font,
 
 static ft_pix blf_font_height_max_ft_pix(FontBLF *font)
 {
-  blf_ensure_size(font);
   /* Metrics.height is rounded to pixel. Force minimum of one pixel. */
   return MAX2((ft_pix)font->ft_size->metrics.height, ft_pix_from_int(1));
 }
@@ -1180,7 +1126,6 @@ int blf_font_height_max(FontBLF *font)
 
 static ft_pix blf_font_width_max_ft_pix(FontBLF *font)
 {
-  blf_ensure_size(font);
   /* Metrics.max_advance is rounded to pixel. Force minimum of one pixel. */
   return MAX2((ft_pix)font->ft_size->metrics.max_advance, ft_pix_from_int(1));
 }
@@ -1192,13 +1137,11 @@ int blf_font_width_max(FontBLF *font)
 
 int blf_font_descender(FontBLF *font)
 {
-  blf_ensure_size(font);
   return ft_pix_to_int((ft_pix)font->ft_size->metrics.descender);
 }
 
 int blf_font_ascender(FontBLF *font)
 {
-  blf_ensure_size(font);
   return ft_pix_to_int((ft_pix)font->ft_size->metrics.ascender);
 }
 
@@ -1222,27 +1165,12 @@ int blf_font_init(void)
   BLI_spin_init(&ft_lib_mutex);
   BLI_spin_init(&blf_glyph_cache_mutex);
   int err = FT_Init_FreeType(&ft_lib);
-  if (err == FT_Err_Ok) {
-    err = FTC_Manager_New(ft_lib,
-                          BLF_CACHE_MAX_FACES,
-                          BLF_CACHE_MAX_SIZES,
-                          BLF_CACHE_BYTES,
-                          blf_cache_face_requester,
-                          NULL,
-                          &ftc_manager);
-    if (err == FT_Err_Ok) {
-      err = FTC_CMapCache_New(ftc_manager, &ftc_charmap_cache);
-    }
-  }
   return err;
 }
 
 void blf_font_exit(void)
 {
   BLI_spin_end(&ft_lib_mutex);
-  if (ftc_manager) {
-    FTC_Manager_Done(ftc_manager);
-  }
   if (ft_lib) {
     FT_Done_FreeType(ft_lib);
   }
@@ -1324,7 +1252,12 @@ bool blf_ensure_face(FontBLF *font)
 
   FT_Error err;
 
-  err = FTC_Manager_LookupFace(ftc_manager, font, &font->face);
+  if (font->filepath) {
+    err = FT_New_Face(ft_lib, font->filepath, 0, &font->face);
+  }
+  if (font->mem) {
+    err = FT_New_Memory_Face(ft_lib, font->mem, (FT_Long)font->mem_size, 0, &font->face);
+  }
 
   if (err) {
     if (ELEM(err, FT_Err_Unknown_File_Format, FT_Err_Unimplemented_Feature)) {
@@ -1364,6 +1297,7 @@ bool blf_ensure_face(FontBLF *font)
     }
   }
 
+  font->ft_size = font->face->size;
   font->face_flags = font->face->face_flags;
 
   if (FT_HAS_MULTIPLE_MASTERS(font)) {
@@ -1516,7 +1450,7 @@ void blf_font_free(FontBLF *font)
   }
 
   if (font->face) {
-    FTC_Manager_RemoveFaceID(ftc_manager, font);
+    FT_Done_Face(font->face);
     font->face = NULL;
   }
   if (font->filepath) {
@@ -1534,30 +1468,6 @@ void blf_font_free(FontBLF *font)
 /** \name Font Configure
  * \{ */
 
-bool blf_ensure_size(FontBLF *font)
-{
-  if (font->ft_size) {
-    return true;
-  }
-
-  FTC_ScalerRec scaler = {0};
-  scaler.face_id = font;
-  scaler.width = 0;
-  scaler.height = round_fl_to_uint(font->size * 64.0f);
-  scaler.pixel = 0;
-  scaler.x_res = font->dpi;
-  scaler.y_res = font->dpi;
-
-  if (FTC_Manager_LookupSize(ftc_manager, &scaler, &font->ft_size) == FT_Err_Ok) {
-    font->ft_size->generic.data = (void *)font;
-    font->ft_size->generic.finalizer = blf_size_finalizer;
-    return true;
-  }
-
-  BLI_assert_unreachable();
-  return false;
-}
-
 bool blf_font_size(FontBLF *font, float size, unsigned int dpi)
 {
   if (!blf_ensure_face(font)) {
@@ -1567,11 +1477,20 @@ bool blf_font_size(FontBLF *font, float size, unsigned int dpi)
   /* FreeType uses fixed-point integers in 64ths. */
   FT_UInt ft_size = round_fl_to_uint(size * 64.0f);
   /* Adjust our new size to be on even 64ths. */
-  font->size = (float)ft_size / 64.0f;
-  font->dpi = dpi;
-  font->ft_size = NULL;
+  size = (float)ft_size / 64.0f;
 
-  return blf_ensure_size(font);
+  if (font->size != size || font->dpi != dpi) {
+    if (FT_Set_Char_Size(font->face, 0, ft_size, dpi, dpi) == FT_Err_Ok) {
+      font->size = size;
+      font->dpi = dpi;
+    }
+    else {
+      printf("The current font does not support the size, %f and DPI, %u\n", size, dpi);
+      return false;
+    }
+  }
+
+  return true;
 }
 
 /** \} */
