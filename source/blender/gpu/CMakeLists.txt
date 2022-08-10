@@ -323,10 +323,15 @@ set(GLSL_SRC
   shaders/common/gpu_shader_common_math_utils.glsl
   shaders/common/gpu_shader_common_mix_rgb.glsl
 
+  shaders/compositor/compositor_alpha_crop.glsl
   shaders/compositor/compositor_box_mask.glsl
   shaders/compositor/compositor_convert.glsl
   shaders/compositor/compositor_ellipse_mask.glsl
+  shaders/compositor/compositor_flip.glsl
+  shaders/compositor/compositor_image_crop.glsl
+  shaders/compositor/compositor_projector_lens_distortion.glsl
   shaders/compositor/compositor_realize_on_domain.glsl
+  shaders/compositor/compositor_screen_lens_distortion.glsl
   shaders/compositor/compositor_set_alpha.glsl
   shaders/compositor/compositor_split_viewer.glsl
 
@@ -562,10 +567,15 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_shader_text_info.hh
   shaders/infos/gpu_srgb_to_framebuffer_space_info.hh
 
+  shaders/compositor/infos/compositor_alpha_crop_info.hh
   shaders/compositor/infos/compositor_box_mask_info.hh
   shaders/compositor/infos/compositor_convert_info.hh
   shaders/compositor/infos/compositor_ellipse_mask_info.hh
+  shaders/compositor/infos/compositor_flip_info.hh
+  shaders/compositor/infos/compositor_image_crop_info.hh
+  shaders/compositor/infos/compositor_projector_lens_distortion_info.hh
   shaders/compositor/infos/compositor_realize_on_domain_info.hh
+  shaders/compositor/infos/compositor_screen_lens_distortion_info.hh
   shaders/compositor/infos/compositor_set_alpha_info.hh
   shaders/compositor/infos/compositor_split_viewer_info.hh
 )

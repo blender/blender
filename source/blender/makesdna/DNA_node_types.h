@@ -1874,6 +1874,13 @@ typedef enum CMPNodeChannelMatteLimitAlgorithm {
   CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_MAX = 1,
 } CMPNodeChannelMatteLimitAlgorithm;
 
+/* Flip Node. Stored in custom1. */
+typedef enum CMPNodeFlipMode {
+  CMP_NODE_FLIP_X = 0,
+  CMP_NODE_FLIP_Y = 1,
+  CMP_NODE_FLIP_X_Y = 2,
+} CMPNodeFlipMode;
+
 /* Plane track deform node. */
 
 enum {
