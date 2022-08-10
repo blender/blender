@@ -406,8 +406,7 @@ static void use_all_vertices_if_no_faces(Geometry *geom,
             all_geometries.begin(), all_geometries.end(), [](const std::unique_ptr<Geometry> &g) {
               return g->get_vertex_count() == 0;
             })) {
-      geom->track_vertex_index(0);
-      geom->track_vertex_index(global_vertices.vertices.size() - 1);
+      geom->track_all_vertices(global_vertices.vertices.size());
     }
   }
 }
