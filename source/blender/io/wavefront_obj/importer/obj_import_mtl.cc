@@ -134,6 +134,14 @@ static Image *load_texture_image(Main *bmain,
       return image;
     }
   }
+  /* Try taking just the basename from input path. */
+  std::string base_path{tex_map.mtl_dir_path + BLI_path_basename(tex_map.image_path.c_str())};
+  if (base_path != tex_path) {
+    image = load_image_at_path(bmain, base_path, relative_paths);
+    if (image != nullptr) {
+      return image;
+    }
+  }
 
   image = create_placeholder_image(bmain, tex_path);
   return image;
