@@ -227,7 +227,7 @@ void OperationNode::tag_update(Depsgraph *graph, eUpdateSource source)
    * the evaluated clues that evaluation needs to happen again. */
   graph->add_entry_tag(this);
 
-  /* Enforce dynamic visibility codepath update.
+  /* Enforce dynamic visibility code-path update.
    * This ensures visibility flags are consistently propagated throughout the dependency graph when
    * there is no animated visibility in the graph.
    *

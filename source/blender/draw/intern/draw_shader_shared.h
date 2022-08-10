@@ -154,7 +154,7 @@ BLI_STATIC_ASSERT_ALIGN(DispatchCommand, 16)
  * But we use plain array in shader code instead because of driver issues. */
 struct DRWDebugPrintBuffer {
   DrawCommand command;
-  /** Each character is encoded as 3 uchar with char_index, row and column position. */
+  /** Each character is encoded as 3 `uchar` with char_index, row and column position. */
   uint char_array[DRW_DEBUG_PRINT_MAX];
 };
 BLI_STATIC_ASSERT_ALIGN(DRWDebugPrintBuffer, 16)

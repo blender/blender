@@ -225,8 +225,8 @@ void ShaderOperation::declare_operation_input(DInputSocket input_socket,
 
   /* Add a new GPU attribute representing an input to the GPU material. Instead of using the
    * attribute directly, we link it to an appropriate set function and use its output link instead.
-   * This is needed because the gputype member of the attribute is only initialized if it is linked
-   * to a GPU node. */
+   * This is needed because the `gputype` member of the attribute is only initialized if it is
+   * linked to a GPU node. */
   GPUNodeLink *attribute_link;
   GPU_link(material,
            get_set_function_name(input_descriptor.type),

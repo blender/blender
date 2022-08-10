@@ -9,7 +9,7 @@
 namespace blender::gpu {
 
 static const size_t VISIBILITY_COUNT_PER_BUFFER = 512;
-/* defined in the documentation but not queryable programmatically:
+/* Defined in the documentation but can't be queried programmatically:
  * https://developer.apple.com/documentation/metal/mtlvisibilityresultmode/mtlvisibilityresultmodeboolean?language=objc
  */
 static const size_t VISIBILITY_RESULT_SIZE_IN_BYTES = 8;
