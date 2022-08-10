@@ -8,6 +8,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "COM_node_operation.hh"
+
 #include "node_composite_util.hh"
 
 /* **************** FILTER  ******************** */
@@ -36,6 +38,23 @@ static void node_composit_buts_despeckle(uiLayout *layout, bContext *UNUSED(C), 
   uiItemR(col, ptr, "threshold_neighbor", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
+using namespace blender::realtime_compositor;
+
+class DespeckleOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    get_input("Image").pass_through(get_result("Image"));
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, DNode node)
+{
+  return new DespeckleOperation(context, node);
+}
+
 }  // namespace blender::nodes::node_composite_despeckle_cc
 
 void register_node_type_cmp_despeckle()
@@ -49,6 +68,7 @@ void register_node_type_cmp_despeckle()
   ntype.draw_buttons = file_ns::node_composit_buts_despeckle;
   ntype.flag |= NODE_PREVIEW;
   node_type_init(&ntype, file_ns::node_composit_init_despeckle);
+  ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);
 }

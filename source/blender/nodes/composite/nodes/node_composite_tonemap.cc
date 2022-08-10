@@ -10,6 +10,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "COM_node_operation.hh"
+
 #include "node_composite_util.hh"
 
 namespace blender::nodes::node_composite_tonemap_cc {
@@ -58,6 +60,23 @@ static void node_composit_buts_tonemap(uiLayout *layout, bContext *UNUSED(C), Po
   }
 }
 
+using namespace blender::realtime_compositor;
+
+class ToneMapOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    get_input("Image").pass_through(get_result("Image"));
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, DNode node)
+{
+  return new ToneMapOperation(context, node);
+}
+
 }  // namespace blender::nodes::node_composite_tonemap_cc
 
 void register_node_type_cmp_tonemap()
@@ -71,6 +90,7 @@ void register_node_type_cmp_tonemap()
   ntype.draw_buttons = file_ns::node_composit_buts_tonemap;
   node_type_init(&ntype, file_ns::node_composit_init_tonemap);
   node_type_storage(&ntype, "NodeTonemap", node_free_standard_storage, node_copy_standard_storage);
+  ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);
 }

@@ -8,6 +8,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "COM_node_operation.hh"
+
 #include "node_composite_util.hh"
 
 /* **************** FILTER  ******************** */
@@ -26,6 +28,23 @@ static void node_composit_buts_filter(uiLayout *layout, bContext *UNUSED(C), Poi
   uiItemR(layout, ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
+using namespace blender::realtime_compositor;
+
+class FilterOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    get_input("Image").pass_through(get_result("Image"));
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, DNode node)
+{
+  return new FilterOperation(context, node);
+}
+
 }  // namespace blender::nodes::node_composite_filter_cc
 
 void register_node_type_cmp_filter()
@@ -39,6 +58,7 @@ void register_node_type_cmp_filter()
   ntype.draw_buttons = file_ns::node_composit_buts_filter;
   ntype.labelfunc = node_filter_label;
   ntype.flag |= NODE_PREVIEW;
+  ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);
 }

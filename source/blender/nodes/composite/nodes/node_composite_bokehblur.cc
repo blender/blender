@@ -8,6 +8,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "COM_node_operation.hh"
+
 #include "node_composite_util.hh"
 
 /* **************** BLUR ******************** */
@@ -37,6 +39,23 @@ static void node_composit_buts_bokehblur(uiLayout *layout, bContext *UNUSED(C), 
   uiItemR(layout, ptr, "use_extended_bounds", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
+using namespace blender::realtime_compositor;
+
+class BokehBlurOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    get_input("Image").pass_through(get_result("Image"));
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, DNode node)
+{
+  return new BokehBlurOperation(context, node);
+}
+
 }  // namespace blender::nodes::node_composite_bokehblur_cc
 
 void register_node_type_cmp_bokehblur()
@@ -49,6 +68,7 @@ void register_node_type_cmp_bokehblur()
   ntype.declare = file_ns::cmp_node_bokehblur_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_bokehblur;
   node_type_init(&ntype, file_ns::node_composit_init_bokehblur);
+  ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);
 }
