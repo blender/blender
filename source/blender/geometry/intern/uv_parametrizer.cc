@@ -3733,8 +3733,10 @@ void GEO_uv_parametrizer_delete(ParamHandle *phandle)
   BLI_memarena_free(phandle->polyfill_arena);
   BLI_heap_free(phandle->polyfill_heap, NULL);
 
-  BLI_rng_free(phandle->rng);
-  phandle->rng = NULL;
+  if (phandle->rng) {
+    BLI_rng_free(phandle->rng);
+    phandle->rng = NULL;
+  }
 
   MEM_freeN(phandle);
 }
