@@ -107,7 +107,6 @@ static blender::bke::cryptomatte::CryptomatteSessionPtr cryptomatte_init_from_no
   return session;
 }
 
-extern "C" {
 static CryptomatteEntry *cryptomatte_find(const NodeCryptomatte &n, float encoded_hash)
 {
   LISTBASE_FOREACH (CryptomatteEntry *, entry, &n.entries) {
@@ -428,4 +427,3 @@ void register_node_type_cmp_cryptomatte_legacy()
 }
 
 /** \} */
-}
