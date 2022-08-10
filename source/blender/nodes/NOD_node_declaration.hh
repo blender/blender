@@ -88,6 +88,14 @@ class SocketDeclaration {
   InputSocketFieldType input_field_type_ = InputSocketFieldType::None;
   OutputFieldDependency output_field_dependency_;
 
+  /** The priority of the input for determining the domain of the node. See
+   * realtime_compositor::InputDescriptor for more information. */
+  int compositor_domain_priority_ = 0;
+
+  /** This input expects a single value and can't operate on non-single values. See
+   * realtime_compositor::InputDescriptor for more information. */
+  bool compositor_expects_single_value_ = false;
+
   /** Utility method to make the socket available if there is a straightforward way to do so. */
   std::function<void(bNode &)> make_available_fn_;
 
@@ -123,6 +131,9 @@ class SocketDeclaration {
 
   InputSocketFieldType input_field_type() const;
   const OutputFieldDependency &output_field_dependency() const;
+
+  int compositor_domain_priority() const;
+  bool compositor_expects_single_value() const;
 
  protected:
   void set_common_flags(bNodeSocket &socket) const;
@@ -235,6 +246,22 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
   {
     decl_->output_field_dependency_ = OutputFieldDependency::ForPartiallyDependentField(
         std::move(input_dependencies));
+    return *(Self *)this;
+  }
+
+  /** The priority of the input for determining the domain of the node. See
+   * realtime_compositor::InputDescriptor for more information. */
+  Self &compositor_domain_priority(int priority)
+  {
+    decl_->compositor_domain_priority_ = priority;
+    return *(Self *)this;
+  }
+
+  /** This input expects a single value and can't operate on non-single values. See
+   * realtime_compositor::InputDescriptor for more information. */
+  Self &compositor_expects_single_value(bool value = true)
+  {
+    decl_->compositor_expects_single_value_ = value;
     return *(Self *)this;
   }
 
@@ -426,6 +453,16 @@ inline InputSocketFieldType SocketDeclaration::input_field_type() const
 inline const OutputFieldDependency &SocketDeclaration::output_field_dependency() const
 {
   return output_field_dependency_;
+}
+
+inline int SocketDeclaration::compositor_domain_priority() const
+{
+  return compositor_domain_priority_;
+}
+
+inline bool SocketDeclaration::compositor_expects_single_value() const
+{
+  return compositor_expects_single_value_;
 }
 
 inline void SocketDeclaration::make_available(bNode &node) const

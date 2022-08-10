@@ -101,6 +101,7 @@ typedef struct bNodeSocketTemplate {
 namespace blender {
 class CPPType;
 namespace nodes {
+class DNode;
 class NodeMultiFunctionBuilder;
 class GeoNodeExecParams;
 class NodeDeclarationBuilder;
@@ -109,6 +110,11 @@ class GatherLinkSearchOpParams;
 namespace fn {
 class MFDataType;
 }  // namespace fn
+namespace realtime_compositor {
+class Context;
+class NodeOperation;
+class ShaderNode;
+}  // namespace realtime_compositor
 }  // namespace blender
 
 using CPPTypeHandle = blender::CPPType;
@@ -123,7 +129,14 @@ using SocketGetGeometryNodesCPPValueFunction = void (*)(const struct bNodeSocket
 using NodeGatherSocketLinkOperationsFunction =
     void (*)(blender::nodes::GatherLinkSearchOpParams &params);
 
+using NodeGetCompositorOperationFunction = blender::realtime_compositor::NodeOperation
+    *(*)(blender::realtime_compositor::Context &context, blender::nodes::DNode node);
+using NodeGetCompositorShaderNodeFunction =
+    blender::realtime_compositor::ShaderNode *(*)(blender::nodes::DNode node);
+
 #else
+typedef void *NodeGetCompositorOperationFunction;
+typedef void *NodeGetCompositorShaderNodeFunction;
 typedef void *NodeMultiFunctionBuildFunction;
 typedef void *NodeGeometryExecFunction;
 typedef void *NodeDeclareFunction;
@@ -308,6 +321,14 @@ typedef struct bNodeType {
   NodeExecFunction exec_fn;
   /* gpu */
   NodeGPUExecFunction gpu_fn;
+
+  /* Get an instance of this node's compositor operation. Freeing the instance is the
+   * responsibility of the caller. */
+  NodeGetCompositorOperationFunction get_compositor_operation;
+
+  /* Get an instance of this node's compositor shader node. Freeing the instance is the
+   * responsibility of the caller. */
+  NodeGetCompositorShaderNodeFunction get_compositor_shader_node;
 
   /* Build a multi-function for this node. */
   NodeMultiFunctionBuildFunction build_multi_function;

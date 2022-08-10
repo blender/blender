@@ -1210,6 +1210,9 @@ static void view3d_main_region_listener(const wmRegionListenerParams *params)
           break;
       }
       break;
+    case NC_NODE:
+      ED_region_tag_redraw(region);
+      break;
     case NC_WORLD:
       switch (wmn->data) {
         case ND_WORLD_DRAW:

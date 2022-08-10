@@ -323,6 +323,14 @@ set(GLSL_SRC
   shaders/common/gpu_shader_common_math_utils.glsl
   shaders/common/gpu_shader_common_mix_rgb.glsl
 
+  shaders/compositor/compositor_convert.glsl
+  shaders/compositor/compositor_realize_on_domain.glsl
+
+  shaders/compositor/library/gpu_shader_compositor_main.glsl
+  shaders/compositor/library/gpu_shader_compositor_store_output.glsl
+  shaders/compositor/library/gpu_shader_compositor_texture_utilities.glsl
+  shaders/compositor/library/gpu_shader_compositor_type_conversion.glsl
+
   shaders/material/gpu_shader_material_add_shader.glsl
   shaders/material/gpu_shader_material_ambient_occlusion.glsl
   shaders/material/gpu_shader_material_anisotropic.glsl
@@ -527,6 +535,9 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_shader_simple_lighting_info.hh
   shaders/infos/gpu_shader_text_info.hh
   shaders/infos/gpu_srgb_to_framebuffer_space_info.hh
+
+  shaders/compositor/infos/compositor_convert_info.hh
+  shaders/compositor/infos/compositor_realize_on_domain_info.hh
 )
 
 set(SHADER_CREATE_INFOS_CONTENT "")

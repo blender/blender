@@ -23,6 +23,7 @@ set(INC
   ../nodes
   ../render
   ../render/intern
+  ../compositor/realtime_compositor
   ../windowmanager
 
   ../../../intern/atomic
@@ -103,6 +104,7 @@ set(SRC
   intern/smaa_textures.c
   engines/basic/basic_engine.c
   engines/basic/basic_shader.c
+  engines/compositor/compositor_engine.cc
   engines/image/image_engine.cc
   engines/image/image_shader.cc
   engines/eevee/eevee_bloom.c
@@ -231,6 +233,7 @@ set(SRC
   intern/smaa_textures.h
   engines/basic/basic_engine.h
   engines/basic/basic_private.h
+  engines/compositor/compositor_engine.h
   engines/eevee/eevee_engine.h
   engines/eevee/eevee_lightcache.h
   engines/eevee/eevee_lut.h
@@ -262,6 +265,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  bf_realtime_compositor
   bf_windowmanager
 )
 

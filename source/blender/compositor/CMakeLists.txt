@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright 2011 Blender Foundation. All rights reserved.
 
-if(WITH_COMPOSITOR_CPU)
+add_subdirectory(realtime_compositor)
 
+if(WITH_COMPOSITOR_CPU)
   set(INC
     .
     intern
