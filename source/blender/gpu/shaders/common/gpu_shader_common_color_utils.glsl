@@ -140,6 +140,8 @@ void hsl_to_rgb(vec4 hsl, out vec4 outcol)
   outcol = vec4((nr - 0.5) * chroma + l, (ng - 0.5) * chroma + l, (nb - 0.5) * chroma + l, hsl.w);
 }
 
+/* ** Alpha Handling ** */
+
 void color_alpha_clear(vec4 color, out vec4 result)
 {
   result = vec4(color.rgb, 1.0);
@@ -147,15 +149,50 @@ void color_alpha_clear(vec4 color, out vec4 result)
 
 void color_alpha_premultiply(vec4 color, out vec4 result)
 {
-  result = vec4(color.rgb * color.a, 1.0);
+  result = vec4(color.rgb * color.a, color.a);
 }
 
 void color_alpha_unpremultiply(vec4 color, out vec4 result)
 {
   if (color.a == 0.0 || color.a == 1.0) {
-    result = vec4(color.rgb, 1.0);
+    result = color;
   }
   else {
-    result = vec4(color.rgb / color.a, 1.0);
+    result = vec4(color.rgb / color.a, color.a);
   }
+}
+
+float linear_rgb_to_srgb(float color)
+{
+  if (color < 0.0031308) {
+    return (color < 0.0) ? 0.0 : color * 12.92;
+  }
+
+  return 1.055 * pow(color, 1.0 / 2.4) - 0.055;
+}
+
+vec3 linear_rgb_to_srgb(vec3 color)
+{
+  return vec3(
+      linear_rgb_to_srgb(color.r), linear_rgb_to_srgb(color.g), linear_rgb_to_srgb(color.b));
+}
+
+float srgb_to_linear_rgb(float color)
+{
+  if (color < 0.04045) {
+    return (color < 0.0) ? 0.0 : color * (1.0 / 12.92);
+  }
+
+  return pow((color + 0.055) * (1.0 / 1.055), 2.4);
+}
+
+vec3 srgb_to_linear_rgb(vec3 color)
+{
+  return vec3(
+      srgb_to_linear_rgb(color.r), srgb_to_linear_rgb(color.g), srgb_to_linear_rgb(color.b));
+}
+
+float get_luminance(vec3 color, vec3 luminance_coefficients)
+{
+  return dot(color, luminance_coefficients);
 }

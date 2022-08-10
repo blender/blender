@@ -1844,6 +1844,12 @@ typedef enum CMPNodeSplitViewerAxis {
   CMP_NODE_SPLIT_VIEWER_VERTICAL = 1,
 } CMPNodeSplitViewerAxis;
 
+/* Color Balance Node. Stored in custom1. */
+typedef enum CMPNodeColorBalanceMethod {
+  CMP_NODE_COLOR_BALANCE_LGG = 0,
+  CMP_NODE_COLOR_BALANCE_ASC_CDL = 1,
+} CMPNodeColorBalanceMethod;
+
 /* Plane track deform node. */
 
 enum {
