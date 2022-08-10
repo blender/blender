@@ -260,8 +260,7 @@ ccl_device_forceinline float bssrdf_pdf(const Spectrum radius, float r)
 
 /* Setup */
 
-ccl_device_inline ccl_private Bssrdf *bssrdf_alloc(ccl_private ShaderData *sd,
-                                                   Spectrum weight)
+ccl_device_inline ccl_private Bssrdf *bssrdf_alloc(ccl_private ShaderData *sd, Spectrum weight)
 {
   ccl_private Bssrdf *bssrdf = (ccl_private Bssrdf *)closure_alloc(
       sd, sizeof(Bssrdf), CLOSURE_NONE_ID, weight);

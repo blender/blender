@@ -221,7 +221,7 @@ BLI_NOINLINE static void update_elimination_mask_based_on_density_factors(
     const float v2_density_factor = std::max(0.0f, density_factors[v2_loop]);
 
     const float probability = v0_density_factor * bary_coord.x + v1_density_factor * bary_coord.y +
-                             v2_density_factor * bary_coord.z;
+                              v2_density_factor * bary_coord.z;
 
     const float hash = noise::hash_float_to_float(bary_coord);
     if (hash > probability) {
