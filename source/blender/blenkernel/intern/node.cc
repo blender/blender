@@ -3047,7 +3047,9 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
     }
   }
 
-  if (node_has_id) {
+  /* Also update relations for the scene time node, which causes a dependency
+   * on time that users expect to be removed when the node is removed. */
+  if (node_has_id || node->type == GEO_NODE_INPUT_SCENE_TIME) {
     if (bmain != nullptr) {
       DEG_relations_tag_update(bmain);
     }
