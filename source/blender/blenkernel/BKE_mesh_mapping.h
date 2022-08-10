@@ -20,7 +20,7 @@ struct MVert;
 /* UvVertMap */
 #define STD_UV_CONNECT_LIMIT 0.0001f
 
-/* Map from uv vertex to face. Used by select linked, uv subsurf and obj exporter. */
+/* Map from uv vertex to face. Used by select linked, uv subdivision-surface and obj exporter. */
 typedef struct UvVertMap {
   struct UvMapVert **vert;
   struct UvMapVert *buf;

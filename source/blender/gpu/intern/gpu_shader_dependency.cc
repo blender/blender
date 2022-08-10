@@ -660,7 +660,7 @@ struct GPUSource {
 
       std::string func_args = input_args;
       /* Workaround to support function call inside prints. We replace commas by a non control
-       * caracter $ in order to use simpler regex later. */
+       * character `$` in order to use simpler regex later. */
       bool string_scope = false;
       int func_scope = 0;
       for (char &c : func_args) {
@@ -682,7 +682,7 @@ struct GPUSource {
 
       const bool print_as_variable = (input_args[0] != '"') && find_token(input_args, ',') == -1;
       if (print_as_variable) {
-        /* Variable or expression debuging. */
+        /* Variable or expression debugging. */
         std::string arg = input_args;
         /* Pad align most values. */
         while (arg.length() % 4 != 0) {

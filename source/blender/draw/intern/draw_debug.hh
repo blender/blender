@@ -98,7 +98,7 @@ class DebugDraw {
   void draw_matrix_as_bbox(float4x4 mat, const float4 color = {1, 0, 0, 1});
 
   /**
-   * Will draw all debug shapes and text cached up until now to the current view / framebuffer.
+   * Will draw all debug shapes and text cached up until now to the current view / frame-buffer.
    * Draw buffers will be emptied and ready for new debug data.
    */
   void display_to_view();

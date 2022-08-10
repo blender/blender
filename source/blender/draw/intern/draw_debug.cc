@@ -599,7 +599,7 @@ void drw_debug_draw()
   if (!GPU_shader_storage_buffer_objects_support() || DST.debug == nullptr) {
     return;
   }
-  /* TODO(fclem): Convenience for now. Will have to move to DRWManager. */
+  /* TODO(@fclem): Convenience for now. Will have to move to #DRWManager. */
   reinterpret_cast<blender::draw::DebugDraw *>(DST.debug)->display_to_view();
 #endif
 }
@@ -610,12 +610,12 @@ void drw_debug_draw()
 void drw_debug_init()
 {
   /* Module should not be used in release builds. */
-  /* TODO(fclem): Hide the functions declarations without using ifdefs everywhere. */
+  /* TODO(@fclem): Hide the functions declarations without using `ifdefs` everywhere. */
 #ifdef DEBUG
   if (!GPU_shader_storage_buffer_objects_support()) {
     return;
   }
-  /* TODO(fclem): Convenience for now. Will have to move to DRWManager. */
+  /* TODO(@fclem): Convenience for now. Will have to move to #DRWManager. */
   if (DST.debug == nullptr) {
     DST.debug = reinterpret_cast<DRWDebugModule *>(new blender::draw::DebugDraw());
   }

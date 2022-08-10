@@ -1975,7 +1975,7 @@ static int sel_to_copy_ints(const BPoint *bp,
     else if (not_full == -1) {
       not_full = selected_in_curr_leg;
     }
-    /* We have partialy selected leg in opposite dimension if condition is met. */
+    /* We have partially selected leg in opposite dimension if condition is met. */
     else if (not_full != selected_in_curr_leg) {
       return -1;
     }

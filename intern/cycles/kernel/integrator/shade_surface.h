@@ -44,7 +44,7 @@ ccl_device_forceinline float3 integrate_surface_ray_offset(KernelGlobals kg,
   /* Self intersection tests already account for the case where a ray hits the
    * same primitive. However precision issues can still cause neighboring
    * triangles to be hit. Here we test if the ray-triangle intersection with
-   * the same primitive would miss, implying that a neighbouring triangle would
+   * the same primitive would miss, implying that a neighboring triangle would
    * be hit instead.
    *
    * This relies on triangle intersection to be watertight, and the object inverse
