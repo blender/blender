@@ -332,13 +332,18 @@ set(GLSL_SRC
   shaders/compositor/library/gpu_shader_compositor_bright_contrast.glsl
   shaders/compositor/library/gpu_shader_compositor_color_balance.glsl
   shaders/compositor/library/gpu_shader_compositor_color_correction.glsl
+  shaders/compositor/library/gpu_shader_compositor_color_to_luminance.glsl
   shaders/compositor/library/gpu_shader_compositor_exposure.glsl
   shaders/compositor/library/gpu_shader_compositor_gamma.glsl
   shaders/compositor/library/gpu_shader_compositor_hue_correct.glsl
   shaders/compositor/library/gpu_shader_compositor_hue_saturation_value.glsl
   shaders/compositor/library/gpu_shader_compositor_invert.glsl
   shaders/compositor/library/gpu_shader_compositor_main.glsl
+  shaders/compositor/library/gpu_shader_compositor_map_value.glsl
+  shaders/compositor/library/gpu_shader_compositor_normal.glsl
   shaders/compositor/library/gpu_shader_compositor_posterize.glsl
+  shaders/compositor/library/gpu_shader_compositor_separate_combine.glsl
+  shaders/compositor/library/gpu_shader_compositor_set_alpha.glsl
   shaders/compositor/library/gpu_shader_compositor_store_output.glsl
   shaders/compositor/library/gpu_shader_compositor_texture_utilities.glsl
   shaders/compositor/library/gpu_shader_compositor_type_conversion.glsl

@@ -1850,6 +1850,12 @@ typedef enum CMPNodeColorBalanceMethod {
   CMP_NODE_COLOR_BALANCE_ASC_CDL = 1,
 } CMPNodeColorBalanceMethod;
 
+/* Alpha Convert Node. Stored in custom1. */
+typedef enum CMPNodeAlphaConvertMode {
+  CMP_NODE_ALPHA_CONVERT_PREMULTIPLY = 0,
+  CMP_NODE_ALPHA_CONVERT_UNPREMULTIPLY = 1,
+} CMPNodeAlphaConvertMode;
+
 /* Plane track deform node. */
 
 enum {

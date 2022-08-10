@@ -8,6 +8,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "COM_node_operation.hh"
+
 #include "node_composite_util.hh"
 
 /* **************** Switch ******************** */
@@ -26,6 +28,30 @@ static void node_composit_buts_switch(uiLayout *layout, bContext *UNUSED(C), Poi
   uiItemR(layout, ptr, "check", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
+using namespace blender::realtime_compositor;
+
+class SwitchOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    Result &input = get_input(get_condition() ? "On" : "Off");
+    Result &result = get_result("Image");
+    input.pass_through(result);
+  }
+
+  bool get_condition()
+  {
+    return bnode().custom1;
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, DNode node)
+{
+  return new SwitchOperation(context, node);
+}
+
 }  // namespace blender::nodes::node_composite_switch_cc
 
 void register_node_type_cmp_switch()
@@ -38,5 +64,7 @@ void register_node_type_cmp_switch()
   ntype.declare = file_ns::cmp_node_switch_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_switch;
   node_type_size_preset(&ntype, NODE_SIZE_SMALL);
+  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+
   nodeRegisterType(&ntype);
 }

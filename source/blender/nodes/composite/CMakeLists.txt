@@ -10,6 +10,7 @@ set(INC
   ../../blenlib
   ../../blentranslation
   ../../depsgraph
+  ../../functions
   ../../gpu
   ../../imbuf
   ../../makesdna
