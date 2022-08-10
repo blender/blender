@@ -721,6 +721,120 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
   return nislands;
 }
 
+static void bm_uv_build_islands(UvElementMap *element_map,
+                                BMesh *bm,
+                                const Scene *scene,
+                                bool uv_selected)
+{
+  int totuv = element_map->total_uvs;
+  int nislands = 0;
+  int islandbufsize = 0;
+
+  /* map holds the map from current vmap->buf to the new, sorted map */
+  uint *map = MEM_mallocN(sizeof(*map) * totuv, "uvelement_remap");
+  BMFace **stack = MEM_mallocN(sizeof(*stack) * bm->totface, "uv_island_face_stack");
+  UvElement *islandbuf = MEM_callocN(sizeof(*islandbuf) * totuv, "uvelement_island_buffer");
+  /* Island number for BMFaces. */
+  int *island_number = MEM_callocN(sizeof(*island_number) * bm->totface, "uv_island_number_face");
+  copy_vn_i(island_number, bm->totface, INVALID_ISLAND);
+
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+
+  const bool use_uv_edge_connectivity = scene->toolsettings->uv_flag & UV_SYNC_SELECTION ?
+                                            scene->toolsettings->selectmode & SCE_SELECT_EDGE :
+                                            scene->toolsettings->uv_selectmode & UV_SELECT_EDGE;
+  if (use_uv_edge_connectivity) {
+    nislands = bm_uv_edge_select_build_islands(
+        element_map, scene, islandbuf, map, uv_selected, cd_loop_uv_offset);
+    islandbufsize = totuv;
+  }
+
+  for (int i = 0; i < totuv; i++) {
+    if (element_map->storage[i].island == INVALID_ISLAND) {
+      int stacksize = 0;
+      element_map->storage[i].island = nislands;
+      stack[0] = element_map->storage[i].l->f;
+      island_number[BM_elem_index_get(stack[0])] = nislands;
+      stacksize = 1;
+
+      while (stacksize > 0) {
+        BMFace *efa = stack[--stacksize];
+
+        BMLoop *l;
+        BMIter liter;
+        BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+          if (uv_selected && !uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+            continue;
+          }
+
+          UvElement *initelement = element_map->vertex[BM_elem_index_get(l->v)];
+
+          for (UvElement *element = initelement; element; element = element->next) {
+            if (element->separate) {
+              initelement = element;
+            }
+
+            if (element->l->f == efa) {
+              /* found the uv corresponding to our face and vertex.
+               * Now fill it to the buffer */
+              bm_uv_assign_island(element_map, element, nislands, map, islandbuf, islandbufsize++);
+
+              for (element = initelement; element; element = element->next) {
+                if (element->separate && element != initelement) {
+                  break;
+                }
+
+                if (island_number[BM_elem_index_get(element->l->f)] == INVALID_ISLAND) {
+                  stack[stacksize++] = element->l->f;
+                  island_number[BM_elem_index_get(element->l->f)] = nislands;
+                }
+              }
+              break;
+            }
+          }
+        }
+      }
+
+      nislands++;
+    }
+  }
+
+  MEM_SAFE_FREE(island_number);
+
+  /* remap */
+  for (int i = 0; i < bm->totvert; i++) {
+    /* important since we may do selection only. Some of these may be NULL */
+    if (element_map->vertex[i]) {
+      element_map->vertex[i] = &islandbuf[map[element_map->vertex[i] - element_map->storage]];
+    }
+  }
+
+  element_map->islandIndices = MEM_callocN(sizeof(*element_map->islandIndices) * nislands,
+                                           "UvElementMap_island_indices");
+  int j = 0;
+  for (int i = 0; i < totuv; i++) {
+    UvElement *element = element_map->storage[i].next;
+    if (element == NULL) {
+      islandbuf[map[i]].next = NULL;
+    }
+    else {
+      islandbuf[map[i]].next = &islandbuf[map[element - element_map->storage]];
+    }
+
+    if (islandbuf[i].island != j) {
+      j++;
+      element_map->islandIndices[j] = i;
+    }
+  }
+
+  MEM_SAFE_FREE(element_map->storage);
+  element_map->storage = islandbuf;
+  islandbuf = NULL;
+  element_map->totalIslands = nislands;
+  MEM_SAFE_FREE(stack);
+  MEM_SAFE_FREE(map);
+}
+
 UvElementMap *BM_uv_element_map_create(BMesh *bm,
                                        const Scene *scene,
                                        const bool uv_selected,
@@ -824,6 +938,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
       winding[j] = cross_poly_v2(tf_uv, efa->len) > 0;
     }
   }
+  BLI_buffer_free(&tf_uv_buf);
 
   /* For each BMVert, sort associated linked list into unique uvs. */
   int ev_index;
@@ -845,21 +960,32 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
       UvElement *lastv = NULL;
       UvElement *iterv = vlist;
 
-      /* Scan through unsorted list, finding UvElements which match `v`. */
+      /* Scan through unsorted list, finding UvElements which are connected to `v`. */
       while (iterv) {
         UvElement *next = iterv->next;
-
         luv = BM_ELEM_CD_GET_VOID_P(iterv->l, cd_loop_uv_offset);
-        const float *uv2 = luv->uv;
-        const bool uv2_vert_sel = uvedit_uv_select_test(scene, iterv->l, cd_loop_uv_offset);
 
-        /* Check if the uv loops share the same selection state (if not, they are not connected as
-         * they have been ripped or other edit commands have separated them). */
-        const bool connected = (uv_vert_sel == uv2_vert_sel) &&
-                               compare_v2v2(uv2, uv, STD_UV_CONNECT_LIMIT);
+        bool connected = true; /* Assume connected unless we can prove otherwise. */
 
-        if (connected && (!use_winding || winding[BM_elem_index_get(iterv->l->f)] ==
-                                              winding[BM_elem_index_get(v->l->f)])) {
+        if (connected) {
+          /* Are the two UVs close together? */
+          const float *uv2 = luv->uv;
+          connected = compare_v2v2(uv2, uv, STD_UV_CONNECT_LIMIT);
+        }
+
+        if (connected) {
+          /* Check if the uv loops share the same selection state (if not, they are not connected
+           * as they have been ripped or other edit commands have separated them). */
+          const bool uv2_vert_sel = uvedit_uv_select_test(scene, iterv->l, cd_loop_uv_offset);
+          connected = (uv_vert_sel == uv2_vert_sel);
+        }
+
+        if (connected && use_winding) {
+          connected = winding[BM_elem_index_get(iterv->l->f)] ==
+                      winding[BM_elem_index_get(v->l->f)];
+        }
+
+        if (connected) {
           if (lastv) {
             lastv->next = next;
           }
@@ -886,120 +1012,13 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
 
   MEM_SAFE_FREE(winding);
 
+  /* at this point, every UvElement in vert points to a UvElement sharing the same vertex.
+   * Now we should sort uv's in islands. */
   if (do_islands) {
-    uint *map;
-    UvElement *islandbuf;
-
-    int nislands = 0, islandbufsize = 0;
-
-    /* map holds the map from current vmap->buf to the new, sorted map */
-    map = MEM_mallocN(sizeof(*map) * totuv, "uvelement_remap");
-    BMFace **stack = MEM_mallocN(sizeof(*stack) * bm->totface, "uv_island_face_stack");
-    islandbuf = MEM_callocN(sizeof(*islandbuf) * totuv, "uvelement_island_buffer");
-    /* Island number for BMFaces. */
-    int *island_number = MEM_callocN(sizeof(*island_number) * bm->totface,
-                                     "uv_island_number_face");
-    copy_vn_i(island_number, bm->totface, INVALID_ISLAND);
-
-    const bool use_uv_edge_connectivity = scene->toolsettings->uv_flag & UV_SYNC_SELECTION ?
-                                              scene->toolsettings->selectmode & SCE_SELECT_EDGE :
-                                              scene->toolsettings->uv_selectmode & UV_SELECT_EDGE;
-    if (use_uv_edge_connectivity) {
-      nislands = bm_uv_edge_select_build_islands(
-          element_map, scene, islandbuf, map, uv_selected, cd_loop_uv_offset);
-      islandbufsize = totuv;
-    }
-
-    /* at this point, every UvElement in vert points to a UvElement sharing the same vertex.
-     * Now we should sort uv's in islands. */
-    for (int i = 0; i < totuv; i++) {
-      if (element_map->storage[i].island == INVALID_ISLAND) {
-        int stacksize = 0;
-        element_map->storage[i].island = nislands;
-        stack[0] = element_map->storage[i].l->f;
-        island_number[BM_elem_index_get(stack[0])] = nislands;
-        stacksize = 1;
-
-        while (stacksize > 0) {
-          efa = stack[--stacksize];
-
-          BMLoop *l;
-          BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-            if (uv_selected && !uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-              continue;
-            }
-
-            UvElement *initelement = element_map->vertex[BM_elem_index_get(l->v)];
-
-            for (UvElement *element = initelement; element; element = element->next) {
-              if (element->separate) {
-                initelement = element;
-              }
-
-              if (element->l->f == efa) {
-                /* found the uv corresponding to our face and vertex.
-                 * Now fill it to the buffer */
-                bm_uv_assign_island(
-                    element_map, element, nislands, map, islandbuf, islandbufsize++);
-
-                for (element = initelement; element; element = element->next) {
-                  if (element->separate && element != initelement) {
-                    break;
-                  }
-
-                  if (island_number[BM_elem_index_get(element->l->f)] == INVALID_ISLAND) {
-                    stack[stacksize++] = element->l->f;
-                    island_number[BM_elem_index_get(element->l->f)] = nislands;
-                  }
-                }
-                break;
-              }
-            }
-          }
-        }
-
-        nislands++;
-      }
-    }
-
-    MEM_SAFE_FREE(island_number);
-
-    /* remap */
-    for (int i = 0; i < bm->totvert; i++) {
-      /* important since we may do selection only. Some of these may be NULL */
-      if (element_map->vertex[i]) {
-        element_map->vertex[i] = &islandbuf[map[element_map->vertex[i] - element_map->storage]];
-      }
-    }
-
-    element_map->islandIndices = MEM_callocN(sizeof(*element_map->islandIndices) * nislands,
-                                             "UvElementMap_island_indices");
-    j = 0;
-    for (int i = 0; i < totuv; i++) {
-      UvElement *element = element_map->storage[i].next;
-      if (element == NULL) {
-        islandbuf[map[i]].next = NULL;
-      }
-      else {
-        islandbuf[map[i]].next = &islandbuf[map[element - element_map->storage]];
-      }
-
-      if (islandbuf[i].island != j) {
-        j++;
-        element_map->islandIndices[j] = i;
-      }
-    }
-
-    MEM_SAFE_FREE(element_map->storage);
-    element_map->storage = islandbuf;
-    islandbuf = NULL;
-    element_map->totalIslands = nislands;
-    MEM_SAFE_FREE(stack);
-    MEM_SAFE_FREE(map);
+    bm_uv_build_islands(element_map, bm, scene, uv_selected);
   }
 
-  BLI_buffer_free(&tf_uv_buf);
-
+  /* TODO: Confirm element_map->total_unique_uvs doesn't require recalculating. */
   element_map->total_unique_uvs = 0;
   for (int i = 0; i < element_map->total_uvs; i++) {
     if (element_map->storage[i].separate) {
