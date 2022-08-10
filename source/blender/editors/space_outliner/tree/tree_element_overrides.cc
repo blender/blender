@@ -371,8 +371,7 @@ void OverrideRNAPathTreeBuilder::ensure_entire_collection(
     const char *coll_prop_path,
     short &index)
 {
-  AbstractTreeElement *abstract_parent = tree_element_cast<AbstractTreeElement>(&te_to_expand);
-  BLI_assert(abstract_parent != nullptr);
+  BLI_assert(tree_element_cast<AbstractTreeElement>(&te_to_expand) != nullptr);
 
   TreeElement *previous_te = nullptr;
   int item_idx = 0;
