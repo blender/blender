@@ -10,11 +10,13 @@ set(INC
   ../../blenlib
   ../../blentranslation
   ../../depsgraph
+  ../../gpu
   ../../imbuf
   ../../makesdna
   ../../makesrna
   ../../render
   ../../windowmanager
+  ../../compositor/realtime_compositor
   ../../../../intern/guardedalloc
 
   # dna_type_offsets.h
@@ -118,6 +120,10 @@ set(SRC
   node_composite_util.cc
 
   node_composite_util.hh
+)
+
+set(LIB
+  bf_realtime_compositor
 )
 
 if(WITH_IMAGE_OPENEXR)

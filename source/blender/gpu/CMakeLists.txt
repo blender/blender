@@ -325,6 +325,8 @@ set(GLSL_SRC
 
   shaders/compositor/compositor_convert.glsl
   shaders/compositor/compositor_realize_on_domain.glsl
+  shaders/compositor/compositor_set_alpha.glsl
+  shaders/compositor/compositor_split_viewer.glsl
 
   shaders/compositor/library/gpu_shader_compositor_main.glsl
   shaders/compositor/library/gpu_shader_compositor_store_output.glsl
@@ -538,6 +540,8 @@ set(SRC_SHADER_CREATE_INFOS
 
   shaders/compositor/infos/compositor_convert_info.hh
   shaders/compositor/infos/compositor_realize_on_domain_info.hh
+  shaders/compositor/infos/compositor_set_alpha_info.hh
+  shaders/compositor/infos/compositor_split_viewer_info.hh
 )
 
 set(SHADER_CREATE_INFOS_CONTENT "")
