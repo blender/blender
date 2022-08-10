@@ -5,6 +5,8 @@
  * \ingroup cmpnodes
  */
 
+#include "COM_node_operation.hh"
+
 #include "node_composite_util.hh"
 
 /* **************** Displace  ******************** */
