@@ -35,7 +35,7 @@ class RealizeOnDomainOperation : public SimpleOperation {
   static SimpleOperation *construct_if_needed(Context &context,
                                               const Result &input_result,
                                               const InputDescriptor &input_descriptor,
-                                              const Domain &operaiton_domain);
+                                              const Domain &operation_domain);
 
  protected:
   /* The operation domain is just the target domain. */

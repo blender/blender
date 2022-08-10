@@ -51,27 +51,32 @@ SimpleOperation *ConversionOperation::construct_if_needed(Context &context,
 
   /* If the result type differs from the expected type, return an instance of an appropriate
    * conversion operation. Otherwise, return a null pointer. */
+
   if (result_type == ResultType::Float && expected_type == ResultType::Vector) {
     return new ConvertFloatToVectorOperation(context);
   }
-  else if (result_type == ResultType::Float && expected_type == ResultType::Color) {
+
+  if (result_type == ResultType::Float && expected_type == ResultType::Color) {
     return new ConvertFloatToColorOperation(context);
   }
-  else if (result_type == ResultType::Color && expected_type == ResultType::Float) {
+
+  if (result_type == ResultType::Color && expected_type == ResultType::Float) {
     return new ConvertColorToFloatOperation(context);
   }
-  else if (result_type == ResultType::Color && expected_type == ResultType::Vector) {
+
+  if (result_type == ResultType::Color && expected_type == ResultType::Vector) {
     return new ConvertColorToVectorOperation(context);
   }
-  else if (result_type == ResultType::Vector && expected_type == ResultType::Float) {
+
+  if (result_type == ResultType::Vector && expected_type == ResultType::Float) {
     return new ConvertVectorToFloatOperation(context);
   }
-  else if (result_type == ResultType::Vector && expected_type == ResultType::Color) {
+
+  if (result_type == ResultType::Vector && expected_type == ResultType::Color) {
     return new ConvertVectorToColorOperation(context);
   }
-  else {
-    return nullptr;
-  }
+
+  return nullptr;
 }
 
 /* -------------------------------------------------------------------------------------------------

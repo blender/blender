@@ -146,7 +146,7 @@ class Operation {
   void declare_input_descriptor(StringRef identifier, InputDescriptor descriptor);
 
   /* Get a reference to the descriptor of the input identified by the given identified. */
-  InputDescriptor &get_input_descriptor(StringRef identified);
+  InputDescriptor &get_input_descriptor(StringRef identifier);
 
   /* Returns a reference to the compositor context. */
   Context &context();

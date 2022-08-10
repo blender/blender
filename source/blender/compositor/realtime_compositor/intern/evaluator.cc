@@ -67,7 +67,7 @@ bool Evaluator::validate_node_tree()
 
 void Evaluator::compile_and_evaluate()
 {
-  derived_node_tree_.reset(new DerivedNodeTree(node_tree_, node_tree_reference_map_));
+  derived_node_tree_ = std::make_unique<DerivedNodeTree>(node_tree_, node_tree_reference_map_);
 
   if (!validate_node_tree()) {
     return;

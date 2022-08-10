@@ -136,7 +136,7 @@ class Engine {
 
 using namespace blender::draw::compositor;
 
-typedef struct COMPOSITOR_Data {
+struct COMPOSITOR_Data {
   DrawEngineType *engine_type;
   DRWViewportEmptyList *fbl;
   DRWViewportEmptyList *txl;
@@ -144,7 +144,7 @@ typedef struct COMPOSITOR_Data {
   DRWViewportEmptyList *stl;
   Engine *instance_data;
   char info[GPU_INFO_SIZE];
-} COMPOSITOR_Data;
+};
 
 static void compositor_engine_init(void *data)
 {
