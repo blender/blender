@@ -87,7 +87,6 @@ class _defs_view3d_generic:
             icon="ops.generic.cursor",
             keymap="3D View Tool: Cursor",
             draw_settings=draw_settings,
-            options={'KEYMAP_FALLBACK'},
         )
 
     @ToolDef.from_fn
@@ -1715,7 +1714,6 @@ class _defs_image_generic:
             ),
             icon="ops.generic.cursor",
             keymap=(),
-            options={'KEYMAP_FALLBACK'},
         )
 
     # Currently a place holder so we can switch away from the annotation tool.
@@ -2546,7 +2544,6 @@ class _defs_sequencer_generic:
             ),
             icon="ops.generic.cursor",
             keymap="Sequencer Tool: Cursor",
-            options={'KEYMAP_FALLBACK'},
         )
 
     @ToolDef.from_fn
