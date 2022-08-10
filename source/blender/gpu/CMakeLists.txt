@@ -323,21 +323,30 @@ set(GLSL_SRC
   shaders/common/gpu_shader_common_math_utils.glsl
   shaders/common/gpu_shader_common_mix_rgb.glsl
 
+  shaders/compositor/compositor_box_mask.glsl
   shaders/compositor/compositor_convert.glsl
+  shaders/compositor/compositor_ellipse_mask.glsl
   shaders/compositor/compositor_realize_on_domain.glsl
   shaders/compositor/compositor_set_alpha.glsl
   shaders/compositor/compositor_split_viewer.glsl
 
   shaders/compositor/library/gpu_shader_compositor_alpha_over.glsl
   shaders/compositor/library/gpu_shader_compositor_bright_contrast.glsl
+  shaders/compositor/library/gpu_shader_compositor_channel_matte.glsl
+  shaders/compositor/library/gpu_shader_compositor_chroma_matte.glsl
   shaders/compositor/library/gpu_shader_compositor_color_balance.glsl
   shaders/compositor/library/gpu_shader_compositor_color_correction.glsl
+  shaders/compositor/library/gpu_shader_compositor_color_matte.glsl
+  shaders/compositor/library/gpu_shader_compositor_color_spill.glsl
   shaders/compositor/library/gpu_shader_compositor_color_to_luminance.glsl
+  shaders/compositor/library/gpu_shader_compositor_difference_matte.glsl
+  shaders/compositor/library/gpu_shader_compositor_distance_matte.glsl
   shaders/compositor/library/gpu_shader_compositor_exposure.glsl
   shaders/compositor/library/gpu_shader_compositor_gamma.glsl
   shaders/compositor/library/gpu_shader_compositor_hue_correct.glsl
   shaders/compositor/library/gpu_shader_compositor_hue_saturation_value.glsl
   shaders/compositor/library/gpu_shader_compositor_invert.glsl
+  shaders/compositor/library/gpu_shader_compositor_luminance_matte.glsl
   shaders/compositor/library/gpu_shader_compositor_main.glsl
   shaders/compositor/library/gpu_shader_compositor_map_value.glsl
   shaders/compositor/library/gpu_shader_compositor_normal.glsl
@@ -553,7 +562,9 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_shader_text_info.hh
   shaders/infos/gpu_srgb_to_framebuffer_space_info.hh
 
+  shaders/compositor/infos/compositor_box_mask_info.hh
   shaders/compositor/infos/compositor_convert_info.hh
+  shaders/compositor/infos/compositor_ellipse_mask_info.hh
   shaders/compositor/infos/compositor_realize_on_domain_info.hh
   shaders/compositor/infos/compositor_set_alpha_info.hh
   shaders/compositor/infos/compositor_split_viewer_info.hh

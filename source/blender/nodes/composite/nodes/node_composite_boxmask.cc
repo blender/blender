@@ -5,8 +5,17 @@
  * \ingroup cmpnodes
  */
 
+#include <cmath>
+
+#include "BLI_math_vec_types.hh"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "GPU_shader.h"
+
+#include "COM_node_operation.hh"
+#include "COM_utilities.hh"
 
 #include "node_composite_util.hh"
 
@@ -48,6 +57,98 @@ static void node_composit_buts_boxmask(uiLayout *layout, bContext *UNUSED(C), Po
   uiItemR(layout, ptr, "mask_type", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
+using namespace blender::realtime_compositor;
+
+class BoxMaskOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    GPUShader *shader = shader_manager().get(get_shader_name());
+    GPU_shader_bind(shader);
+
+    const Domain domain = compute_domain();
+
+    GPU_shader_uniform_2iv(shader, "domain_size", domain.size);
+
+    GPU_shader_uniform_2fv(shader, "location", get_location());
+    GPU_shader_uniform_2fv(shader, "size", get_size() / 2.0f);
+    GPU_shader_uniform_1f(shader, "cos_angle", std::cos(get_angle()));
+    GPU_shader_uniform_1f(shader, "sin_angle", std::sin(get_angle()));
+
+    const Result &input_mask = get_input("Mask");
+    input_mask.bind_as_texture(shader, "base_mask_tx");
+
+    const Result &value = get_input("Value");
+    value.bind_as_texture(shader, "mask_value_tx");
+
+    Result &output_mask = get_result("Mask");
+    output_mask.allocate_texture(domain);
+    output_mask.bind_as_image(shader, "output_mask_img");
+
+    compute_dispatch_threads_at_least(shader, domain.size);
+
+    input_mask.unbind_as_texture();
+    value.unbind_as_texture();
+    output_mask.unbind_as_image();
+    GPU_shader_unbind();
+  }
+
+  Domain compute_domain() override
+  {
+    if (get_input("Mask").is_single_value()) {
+      return Domain(context().get_output_size());
+    }
+    return get_input("Mask").domain();
+  }
+
+  CMPNodeMaskType get_mask_type()
+  {
+    return (CMPNodeMaskType)bnode().custom1;
+  }
+
+  const char *get_shader_name()
+  {
+    switch (get_mask_type()) {
+      default:
+      case CMP_NODE_MASKTYPE_ADD:
+        return "compositor_box_mask_add";
+      case CMP_NODE_MASKTYPE_SUBTRACT:
+        return "compositor_box_mask_subtract";
+      case CMP_NODE_MASKTYPE_MULTIPLY:
+        return "compositor_box_mask_multiply";
+      case CMP_NODE_MASKTYPE_NOT:
+        return "compositor_box_mask_not";
+    }
+  }
+
+  NodeBoxMask &get_node_box_mask()
+  {
+    return *static_cast<NodeBoxMask *>(bnode().storage);
+  }
+
+  float2 get_location()
+  {
+    return float2(get_node_box_mask().x, get_node_box_mask().y);
+  }
+
+  float2 get_size()
+  {
+    return float2(get_node_box_mask().width, get_node_box_mask().height);
+  }
+
+  float get_angle()
+  {
+    return get_node_box_mask().rotation;
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, DNode node)
+{
+  return new BoxMaskOperation(context, node);
+}
+
 }  // namespace blender::nodes::node_composite_boxmask_cc
 
 void register_node_type_cmp_boxmask()
@@ -61,6 +162,7 @@ void register_node_type_cmp_boxmask()
   ntype.draw_buttons = file_ns::node_composit_buts_boxmask;
   node_type_init(&ntype, file_ns::node_composit_init_boxmask);
   node_type_storage(&ntype, "NodeBoxMask", node_free_standard_storage, node_copy_standard_storage);
+  ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);
 }
