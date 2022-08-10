@@ -30,7 +30,7 @@
 
 /* Special Purpose Hash */
 
-typedef intptr_t PHashKey;
+typedef uintptr_t PHashKey;
 
 typedef struct PHashLink {
   struct PHashLink *next;
@@ -45,7 +45,7 @@ typedef struct PHash {
 
 /* Simplices */
 
-typedef struct PVert {
+struct PVert {
   struct PVert *nextlink;
 
   union PVertUnion {
@@ -58,9 +58,9 @@ typedef struct PVert {
   float co[3];
   float uv[2];
   uint flag;
-} PVert;
+};
 
-typedef struct PEdge {
+struct PEdge {
   struct PEdge *nextlink;
 
   union PEdgeUnion {
@@ -76,9 +76,9 @@ typedef struct PEdge {
   struct PFace *face;
   float *orig_uv, old_uv[2];
   uint flag;
-} PEdge;
+};
 
-typedef struct PFace {
+struct PFace {
   struct PFace *nextlink;
 
   union PFaceUnion {
@@ -89,8 +89,8 @@ typedef struct PFace {
   } u;
 
   struct PEdge *edge;
-  uchar flag;
-} PFace;
+  uint flag;
+};
 
 enum PVertFlag {
   PVERT_PIN = 1,
@@ -123,7 +123,7 @@ enum PFaceFlag {
 
 /* Chart */
 
-typedef struct PChart {
+struct PChart {
   PVert *verts;
   PEdge *edges;
   PFace *faces;
@@ -151,7 +151,7 @@ typedef struct PChart {
   } u;
 
   bool has_pins;
-} PChart;
+};
 
 enum PHandleState {
   PHANDLE_STATE_ALLOCATED,
@@ -160,7 +160,7 @@ enum PHandleState {
   PHANDLE_STATE_STRETCH,
 };
 
-typedef struct ParamHandle {
+struct ParamHandle {
   enum PHandleState state;
   MemArena *arena;
   MemArena *polyfill_arena;
@@ -181,7 +181,7 @@ typedef struct ParamHandle {
 
   RNG *rng;
   float blend;
-} ParamHandle;
+};
 
 /* PHash
  * - special purpose hash that keeps all its elements in a single linked list.
@@ -3684,9 +3684,9 @@ static void p_chart_rotate_fit_aabb(PChart *chart)
 
 /* Exported */
 
-ParamHandle *GEO_uv_parametrizer_construct_begin(void)
+ParamHandle *GEO_uv_parametrizer_construct_begin()
 {
-  ParamHandle *handle = (ParamHandle *)MEM_callocN(sizeof(*handle), "ParamHandle");
+  ParamHandle *handle = new ParamHandle();
   handle->construction_chart = (PChart *)MEM_callocN(sizeof(PChart), "PChart");
   handle->state = PHANDLE_STATE_ALLOCATED;
   handle->arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "param construct arena");
@@ -3710,6 +3710,9 @@ void GEO_uv_parametrizer_aspect_ratio(ParamHandle *phandle, float aspx, float as
 
 void GEO_uv_parametrizer_delete(ParamHandle *phandle)
 {
+  if (!phandle) {
+    return;
+  }
   param_assert(ELEM(phandle->state, PHANDLE_STATE_ALLOCATED, PHANDLE_STATE_CONSTRUCTED));
 
   for (int i = 0; i < phandle->ncharts; i++) {
@@ -3738,7 +3741,7 @@ void GEO_uv_parametrizer_delete(ParamHandle *phandle)
     phandle->rng = NULL;
   }
 
-  MEM_freeN(phandle);
+  delete phandle;
 }
 
 typedef struct GeoUVPinIndex {
