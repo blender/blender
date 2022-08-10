@@ -593,6 +593,31 @@ UvMapVert *BM_uv_vert_map_at_index(UvVertMap *vmap, uint v)
   return vmap->vert[v];
 }
 
+static void bm_uv_ensure_head_table(UvElementMap *element_map)
+{
+  if (element_map->head_table) {
+    return;
+  }
+
+  /* For each UvElement, locate the "separate" UvElement that precedes it in the linked list. */
+  element_map->head_table = MEM_mallocN(sizeof(*element_map->head_table) * element_map->total_uvs,
+                                        "uv_element_map_head_table");
+  UvElement **head_table = element_map->head_table;
+  for (int i = 0; i < element_map->total_uvs; i++) {
+    UvElement *head = element_map->storage + i;
+    if (head->separate) {
+      UvElement *element = head;
+      while (element) {
+        head_table[element - element_map->storage] = head;
+        element = element->next;
+        if (element && element->separate) {
+          break;
+        }
+      }
+    }
+  }
+}
+
 #define INVALID_ISLAND ((unsigned int)-1)
 
 static void bm_uv_assign_island(UvElementMap *element_map,
@@ -620,23 +645,9 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
                                            bool uv_selected,
                                            int cd_loop_uv_offset)
 {
-  int total_uvs = element_map->total_uvs;
+  bm_uv_ensure_head_table(element_map);
 
-  /* For each UvElement, locate the "separate" UvElement that precedes it in the linked list. */
-  UvElement **head_table = MEM_mallocN(sizeof(*head_table) * total_uvs, "uv_island_head_table");
-  for (int i = 0; i < total_uvs; i++) {
-    UvElement *head = element_map->storage + i;
-    if (head->separate) {
-      UvElement *element = head;
-      while (element) {
-        head_table[element - element_map->storage] = head;
-        element = element->next;
-        if (element && element->separate) {
-          break;
-        }
-      }
-    }
-  }
+  int total_uvs = element_map->total_uvs;
 
   /* Depth first search the graph, building islands as we go. */
   int nislands = 0;
@@ -676,7 +687,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
         if (!uv_selected || uvedit_edge_select_test(scene, element->l, cd_loop_uv_offset)) {
           UvElement *next = BM_uv_element_get(element_map, element->l->next->f, element->l->next);
           if (next->island == INVALID_ISLAND) {
-            UvElement *tail = head_table[next - element_map->storage];
+            UvElement *tail = element_map->head_table[next - element_map->storage];
             stack_uv[stacksize_uv++] = tail;
             while (tail) {
               bm_uv_assign_island(element_map, tail, nislands, map, islandbuf, islandbufsize++);
@@ -692,7 +703,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
         if (!uv_selected || uvedit_edge_select_test(scene, element->l->prev, cd_loop_uv_offset)) {
           UvElement *prev = BM_uv_element_get(element_map, element->l->prev->f, element->l->prev);
           if (prev->island == INVALID_ISLAND) {
-            UvElement *tail = head_table[prev - element_map->storage];
+            UvElement *tail = element_map->head_table[prev - element_map->storage];
             stack_uv[stacksize_uv++] = tail;
             while (tail) {
               bm_uv_assign_island(element_map, tail, nislands, map, islandbuf, islandbufsize++);
@@ -716,7 +727,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
   BLI_assert(islandbufsize == total_uvs);
 
   MEM_SAFE_FREE(stack_uv);
-  MEM_SAFE_FREE(head_table);
+  MEM_SAFE_FREE(element_map->head_table);
 
   return nislands;
 }
@@ -1047,6 +1058,7 @@ void BM_uv_element_map_free(UvElementMap *element_map)
   if (element_map) {
     MEM_SAFE_FREE(element_map->storage);
     MEM_SAFE_FREE(element_map->vertex);
+    MEM_SAFE_FREE(element_map->head_table);
     MEM_SAFE_FREE(element_map->islandIndices);
     MEM_SAFE_FREE(element_map);
   }
