@@ -1226,7 +1226,7 @@ static bool is_compositor_enabled(void)
     return false;
   }
 
-  if (!(DST.draw_ctx.v3d->shading.type > OB_MATERIAL)) {
+  if (!(DST.draw_ctx.v3d->shading.type >= OB_MATERIAL)) {
     return false;
   }
 
