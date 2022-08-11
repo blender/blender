@@ -136,6 +136,7 @@ struct USDImportParams {
   bool import_lights;
   bool import_materials;
   bool import_meshes;
+  bool import_blendshapes;
   bool import_volumes;
   char *prim_path_mask;
   bool import_subdiv;

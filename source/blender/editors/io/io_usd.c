@@ -963,6 +963,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   const bool import_lights = RNA_boolean_get(op->ptr, "import_lights");
   const bool import_materials = RNA_boolean_get(op->ptr, "import_materials");
   const bool import_meshes = RNA_boolean_get(op->ptr, "import_meshes");
+  const bool import_blendshapes = RNA_boolean_get(op->ptr, "import_blendshapes");
   const bool import_volumes = RNA_boolean_get(op->ptr, "import_volumes");
 
   const bool import_subdiv = RNA_boolean_get(op->ptr, "import_subdiv");
@@ -1028,6 +1029,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
                                    .import_lights = import_lights,
                                    .import_materials = import_materials,
                                    .import_meshes = import_meshes,
+                                   .import_blendshapes = import_blendshapes,
                                    .import_volumes = import_volumes,
                                    .prim_path_mask = prim_path_mask,
                                    .import_subdiv = import_subdiv,
@@ -1068,6 +1070,7 @@ static void wm_usd_import_draw(bContext *UNUSED(C), wmOperator *op)
   uiItemR(col, ptr, "import_lights", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "import_materials", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "import_meshes", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "import_blendshapes", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "import_volumes", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "prim_path_mask", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "scale", 0, NULL, ICON_NONE);
@@ -1163,6 +1166,7 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "import_lights", true, "Lights", "");
   RNA_def_boolean(ot->srna, "import_materials", true, "Materials", "");
   RNA_def_boolean(ot->srna, "import_meshes", true, "Meshes", "");
+  RNA_def_boolean(ot->srna, "import_blendshapes", true, "Blend Shapes", "");
   RNA_def_boolean(ot->srna, "import_volumes", true, "Volumes", "");
 
   RNA_def_boolean(ot->srna,

@@ -69,6 +69,7 @@ set(SRC
   intern/usd_common.cc
   intern/usd_hierarchy_iterator.cc
   intern/usd_light_convert.cc
+  intern/usd_skel_convert.cc
 
   intern/usd_reader_camera.cc
   intern/usd_reader_curve.cc
@@ -107,6 +108,7 @@ set(SRC
   intern/usd_exporter_context.h
   intern/usd_hierarchy_iterator.h
   intern/usd_light_convert.h
+  intern/usd_skel_convert.h
 
   intern/usd_reader_camera.h
   intern/usd_reader_curve.h

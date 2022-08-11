@@ -5,6 +5,7 @@
 
 #include "usd_reader_mesh.h"
 #include "usd_reader_material.h"
+#include "usd_skel_convert.h"
 
 #include "BKE_customdata.h"
 #include "BKE_main.h"
@@ -270,6 +271,10 @@ void USDMeshReader::read_object_data(Main *bmain, const double motionSampleTime)
     if (subdivScheme == pxr::UsdGeomTokens->catmullClark) {
       add_subdiv_modifier();
     }
+  }
+
+  if (import_params_.import_blendshapes) {
+    import_blendshapes(bmain, object_, prim_);
   }
 
   USDXformReader::read_object_data(bmain, motionSampleTime);
