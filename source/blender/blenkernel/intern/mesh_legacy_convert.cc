@@ -906,11 +906,11 @@ void BKE_mesh_legacy_convert_hide_layers_to_flags(Mesh *mesh)
   });
 
   MutableSpan<MPoly> polygons(mesh->mpoly, mesh->totpoly);
-  const VArray<bool> hide_face = attributes.lookup_or_default<bool>(
+  const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
       ".hide_poly", ATTR_DOMAIN_FACE, false);
   threading::parallel_for(polygons.index_range(), 4096, [&](IndexRange range) {
     for (const int i : range) {
-      SET_FLAG_FROM_TEST(polygons[i].flag, hide_face[i], ME_HIDE);
+      SET_FLAG_FROM_TEST(polygons[i].flag, hide_poly[i], ME_HIDE);
     }
   });
 }
@@ -952,14 +952,14 @@ void BKE_mesh_legacy_convert_flags_to_hide_layers(Mesh *mesh)
   if (std::any_of(polygons.begin(), polygons.end(), [](const MPoly &poly) {
         return poly.flag & ME_HIDE;
       })) {
-    SpanAttributeWriter<bool> hide_face = attributes.lookup_or_add_for_write_only_span<bool>(
+    SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_only_span<bool>(
         ".hide_poly", ATTR_DOMAIN_FACE);
     threading::parallel_for(polygons.index_range(), 4096, [&](IndexRange range) {
       for (const int i : range) {
-        hide_face.span[i] = polygons[i].flag & ME_HIDE;
+        hide_poly.span[i] = polygons[i].flag & ME_HIDE;
       }
     });
-    hide_face.finish();
+    hide_poly.finish();
   }
 }
 

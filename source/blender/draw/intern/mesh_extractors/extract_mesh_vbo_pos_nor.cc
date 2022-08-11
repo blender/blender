@@ -87,7 +87,7 @@ static void extract_pos_nor_iter_poly_mesh(const MeshRenderData *mr,
                                            void *_data)
 {
   MeshExtract_PosNor_Data *data = static_cast<MeshExtract_PosNor_Data *>(_data);
-  const bool face_hidden = mr->hide_poly && mr->hide_poly[mp_index];
+  const bool poly_hidden = mr->hide_poly && mr->hide_poly[mp_index];
 
   const MLoop *mloop = mr->mloop;
   const int ml_index_end = mp->loopstart + mp->totloop;
@@ -100,7 +100,7 @@ static void extract_pos_nor_iter_poly_mesh(const MeshRenderData *mr,
     copy_v3_v3(vert->pos, mv->co);
     vert->nor = data->normals[ml->v].low;
     /* Flag for paint mode overlay. */
-    if (face_hidden || vert_hidden ||
+    if (poly_hidden || vert_hidden ||
         ((mr->extract_type == MR_EXTRACT_MAPPED) && (mr->v_origindex) &&
          (mr->v_origindex[ml->v] == ORIGINDEX_NONE))) {
       vert->nor.w = -1;
@@ -434,7 +434,7 @@ static void extract_pos_nor_hq_iter_poly_mesh(const MeshRenderData *mr,
                                               void *_data)
 {
   MeshExtract_PosNorHQ_Data *data = static_cast<MeshExtract_PosNorHQ_Data *>(_data);
-  const bool face_hidden = mr->hide_poly && mr->hide_poly[mp - mr->mpoly];
+  const bool poly_hidden = mr->hide_poly && mr->hide_poly[mp - mr->mpoly];
 
   const MLoop *mloop = mr->mloop;
   const int ml_index_end = mp->loopstart + mp->totloop;
@@ -448,7 +448,7 @@ static void extract_pos_nor_hq_iter_poly_mesh(const MeshRenderData *mr,
     copy_v3_v3_short(vert->nor, data->normals[ml->v].high);
 
     /* Flag for paint mode overlay. */
-    if (face_hidden || vert_hidden ||
+    if (poly_hidden || vert_hidden ||
         ((mr->extract_type == MR_EXTRACT_MAPPED) && (mr->v_origindex) &&
          (mr->v_origindex[ml->v] == ORIGINDEX_NONE))) {
       vert->nor[3] = -1;

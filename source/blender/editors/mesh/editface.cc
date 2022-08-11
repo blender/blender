@@ -82,12 +82,12 @@ void paintface_flush_flags(bContext *C,
       me_orig->mpoly[i].flag = me->mpoly[i].flag;
     }
     if (flush_hidden) {
-      const VArray<bool> hide_face_me = attributes_me.lookup_or_default<bool>(
+      const VArray<bool> hide_poly_me = attributes_me.lookup_or_default<bool>(
           ".hide_poly", ATTR_DOMAIN_FACE, false);
-      bke::SpanAttributeWriter<bool> hide_face_orig =
+      bke::SpanAttributeWriter<bool> hide_poly_orig =
           attributes_orig.lookup_or_add_for_write_only_span<bool>(".hide_poly", ATTR_DOMAIN_FACE);
-      hide_face_me.materialize(hide_face_orig.span);
-      hide_face_orig.finish();
+      hide_poly_me.materialize(hide_poly_orig.span);
+      hide_poly_orig.finish();
     }
 
     /* Mesh polys => Final derived polys */
@@ -103,17 +103,17 @@ void paintface_flush_flags(bContext *C,
           polys[i].flag = mp_orig->flag;
         }
       }
-      const VArray<bool> hide_face_orig = attributes_orig.lookup_or_default<bool>(
+      const VArray<bool> hide_poly_orig = attributes_orig.lookup_or_default<bool>(
           ".hide_poly", ATTR_DOMAIN_FACE, false);
-      bke::SpanAttributeWriter<bool> hide_face_eval =
+      bke::SpanAttributeWriter<bool> hide_poly_eval =
           attributes_eval.lookup_or_add_for_write_only_span<bool>(".hide_poly", ATTR_DOMAIN_FACE);
       for (const int i : IndexRange(me_eval->totpoly)) {
-        const int orig_face_index = index_array[i];
-        if (orig_face_index != ORIGINDEX_NONE) {
-          hide_face_eval.span[i] = hide_face_orig[orig_face_index];
+        const int orig_poly_index = index_array[i];
+        if (orig_poly_index != ORIGINDEX_NONE) {
+          hide_poly_eval.span[i] = hide_poly_orig[orig_poly_index];
         }
       }
-      hide_face_eval.finish();
+      hide_poly_eval.finish();
 
       updated = true;
     }
