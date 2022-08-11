@@ -11,12 +11,13 @@
 
 #pragma once
 
-/**
- * Number of items in a culling batch. Needs to be Power of 2. Must be <= to 65536.
- * Current limiting factor is the sorting phase which is single pass and only sort within a
- * thread-group which maximum size is 1024.
- */
-#define CULLING_BATCH_SIZE 1024
+/* Avoid too much overhead caused by resizing the light buffers too many time. */
+#define LIGHT_CHUNK 256
+
+#define CULLING_SELECT_GROUP_SIZE 256
+#define CULLING_SORT_GROUP_SIZE 256
+#define CULLING_ZBIN_GROUP_SIZE 1024
+#define CULLING_TILE_GROUP_SIZE 1024
 
 /**
  * IMPORTANT: Some data packing are tweaked for these values.

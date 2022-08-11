@@ -101,12 +101,12 @@ DRWShadingGroup *ForwardPipeline::material_opaque_add(::Material *blender_mat, G
 {
   RenderBuffers &rbufs = inst_.render_buffers;
   DRWPass *pass = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) ? opaque_culled_ps_ : opaque_ps_;
-  // LightModule &lights = inst_.lights;
+  LightModule &lights = inst_.lights;
   // LightProbeModule &lightprobes = inst_.lightprobes;
   // RaytracingModule &raytracing = inst_.raytracing;
   // eGPUSamplerState no_interp = GPU_SAMPLER_DEFAULT;
   DRWShadingGroup *grp = DRW_shgroup_material_create(gpumat, pass);
-  // lights.shgroup_resources(grp);
+  lights.bind_resources(grp);
   // DRW_shgroup_uniform_block(grp, "sampling_buf", inst_.sampling.ubo_get());
   // DRW_shgroup_uniform_block(grp, "grids_buf", lightprobes.grid_ubo_get());
   // DRW_shgroup_uniform_block(grp, "cubes_buf", lightprobes.cube_ubo_get());
@@ -163,12 +163,12 @@ DRWShadingGroup *ForwardPipeline::material_transparent_add(::Material *blender_m
                                                            GPUMaterial *gpumat)
 {
   RenderBuffers &rbufs = inst_.render_buffers;
-  // LightModule &lights = inst_.lights;
+  LightModule &lights = inst_.lights;
   // LightProbeModule &lightprobes = inst_.lightprobes;
   // RaytracingModule &raytracing = inst_.raytracing;
   // eGPUSamplerState no_interp = GPU_SAMPLER_DEFAULT;
   DRWShadingGroup *grp = DRW_shgroup_material_create(gpumat, transparent_ps_);
-  // lights.shgroup_resources(grp);
+  lights.bind_resources(grp);
   // DRW_shgroup_uniform_block(grp, "sampling_buf", inst_.sampling.ubo_get());
   // DRW_shgroup_uniform_block(grp, "grids_buf", lightprobes.grid_ubo_get());
   // DRW_shgroup_uniform_block(grp, "cubes_buf", lightprobes.cube_ubo_get());

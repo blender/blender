@@ -53,6 +53,10 @@ void Instance::init(const int2 &output_res,
   v3d = v3d_;
   rv3d = rv3d_;
 
+  if (assign_if_different(debug_mode, (eDebugMode)G.debug_value)) {
+    sampling.reset();
+  }
+
   info = "";
 
   update_eval_members();
@@ -96,6 +100,7 @@ void Instance::begin_sync()
 {
   materials.begin_sync();
   velocity.begin_sync(); /* NOTE: Also syncs camera. */
+  lights.begin_sync();
 
   gpencil_engine_enabled = false;
 
@@ -109,7 +114,7 @@ void Instance::begin_sync()
 
 void Instance::object_sync(Object *ob)
 {
-  const bool is_renderable_type = ELEM(ob->type, OB_CURVES, OB_GPENCIL, OB_MESH);
+  const bool is_renderable_type = ELEM(ob->type, OB_CURVES, OB_GPENCIL, OB_MESH, OB_LAMP);
   const int ob_visibility = DRW_object_visibility_in_active_context(ob);
   const bool partsys_is_visible = (ob_visibility & OB_VISIBLE_PARTICLES) != 0 &&
                                   (ob->type == OB_MESH);
@@ -133,6 +138,7 @@ void Instance::object_sync(Object *ob)
   if (object_is_visible) {
     switch (ob->type) {
       case OB_LAMP:
+        lights.sync_light(ob, ob_handle);
         break;
       case OB_MESH:
       case OB_CURVES_LEGACY:
@@ -172,6 +178,7 @@ void Instance::object_sync_render(void *instance_,
 void Instance::end_sync()
 {
   velocity.end_sync();
+  lights.end_sync();
   sampling.end_sync();
   film.end_sync();
 }

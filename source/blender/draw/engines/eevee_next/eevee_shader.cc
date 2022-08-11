@@ -124,6 +124,16 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_depth_of_field_tiles_dilate_minmax";
     case DOF_TILES_FLATTEN:
       return "eevee_depth_of_field_tiles_flatten";
+    case LIGHT_CULLING_DEBUG:
+      return "eevee_light_culling_debug";
+    case LIGHT_CULLING_SELECT:
+      return "eevee_light_culling_select";
+    case LIGHT_CULLING_SORT:
+      return "eevee_light_culling_sort";
+    case LIGHT_CULLING_TILE:
+      return "eevee_light_culling_tile";
+    case LIGHT_CULLING_ZBIN:
+      return "eevee_light_culling_zbin";
     /* To avoid compiler warning about missing case. */
     case MAX_SHADER_TYPE:
       return "";
