@@ -325,6 +325,16 @@ TEST_F(obj_importer_test, import_cubes_with_textures_rel)
        float3(1, -1, -1),
        float3(0, 1, 0),
        float2(0.9935f, 0.0020f)},
+      {"OBCubeTexMul",
+       OB_MESH,
+       8,
+       12,
+       6,
+       24,
+       float3(4, -2, -1),
+       float3(4, -4, -1),
+       float3(0, 1, 0),
+       float2(0.9935f, 0.0020f)},
       {"OBCubeTiledTex",
        OB_MESH,
        8,
@@ -346,7 +356,7 @@ TEST_F(obj_importer_test, import_cubes_with_textures_rel)
        float3(0, 1, 0),
        float2(0.9935f, 0.0020f)},
   };
-  import_and_check("cubes_with_textures_rel.obj", expect, std::size(expect), 3, 4);
+  import_and_check("cubes_with_textures_rel.obj", expect, std::size(expect), 4, 4);
 }
 
 TEST_F(obj_importer_test, import_faces_invalid_or_with_holes)

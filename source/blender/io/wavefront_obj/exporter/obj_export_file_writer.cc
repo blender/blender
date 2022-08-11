@@ -547,20 +547,29 @@ StringRefNull MTLWriter::mtl_file_path() const
   return mtl_filepath_;
 }
 
-void MTLWriter::write_bsdf_properties(const MTLMaterial &mtl_material)
+void MTLWriter::write_bsdf_properties(const MTLMaterial &mtl)
 {
-  fmt_handler_.write<eMTLSyntaxElement::Ns>(mtl_material.Ns);
-  fmt_handler_.write<eMTLSyntaxElement::Ka>(
-      mtl_material.Ka.x, mtl_material.Ka.y, mtl_material.Ka.z);
-  fmt_handler_.write<eMTLSyntaxElement::Kd>(
-      mtl_material.Kd.x, mtl_material.Kd.y, mtl_material.Kd.z);
-  fmt_handler_.write<eMTLSyntaxElement::Ks>(
-      mtl_material.Ks.x, mtl_material.Ks.y, mtl_material.Ks.z);
-  fmt_handler_.write<eMTLSyntaxElement::Ke>(
-      mtl_material.Ke.x, mtl_material.Ke.y, mtl_material.Ke.z);
-  fmt_handler_.write<eMTLSyntaxElement::Ni>(mtl_material.Ni);
-  fmt_handler_.write<eMTLSyntaxElement::d>(mtl_material.d);
-  fmt_handler_.write<eMTLSyntaxElement::illum>(mtl_material.illum);
+  /* For various material properties, we only capture information
+   * coming from the texture, or the default value of the socket.
+   * When the texture is present, do not emit the default value. */
+  if (!mtl.tex_map_of_type(eMTLSyntaxElement::map_Ns).is_valid()) {
+    fmt_handler_.write<eMTLSyntaxElement::Ns>(mtl.Ns);
+  }
+  fmt_handler_.write<eMTLSyntaxElement::Ka>(mtl.Ka.x, mtl.Ka.y, mtl.Ka.z);
+  if (!mtl.tex_map_of_type(eMTLSyntaxElement::map_Kd).is_valid()) {
+    fmt_handler_.write<eMTLSyntaxElement::Kd>(mtl.Kd.x, mtl.Kd.y, mtl.Kd.z);
+  }
+  if (!mtl.tex_map_of_type(eMTLSyntaxElement::map_Ks).is_valid()) {
+    fmt_handler_.write<eMTLSyntaxElement::Ks>(mtl.Ks.x, mtl.Ks.y, mtl.Ks.z);
+  }
+  if (!mtl.tex_map_of_type(eMTLSyntaxElement::map_Ke).is_valid()) {
+    fmt_handler_.write<eMTLSyntaxElement::Ke>(mtl.Ke.x, mtl.Ke.y, mtl.Ke.z);
+  }
+  fmt_handler_.write<eMTLSyntaxElement::Ni>(mtl.Ni);
+  if (!mtl.tex_map_of_type(eMTLSyntaxElement::map_d).is_valid()) {
+    fmt_handler_.write<eMTLSyntaxElement::d>(mtl.d);
+  }
+  fmt_handler_.write<eMTLSyntaxElement::illum>(mtl.illum);
 }
 
 void MTLWriter::write_texture_map(
@@ -583,12 +592,13 @@ void MTLWriter::write_texture_map(
     options.append(" -bm ").append(std::to_string(mtl_material.map_Bump_strength));
   }
 
+  std::string path = path_reference(
+      texture_map.value.image_path.c_str(), blen_filedir, dest_dir, path_mode, &copy_set);
+  /* Always emit forward slashes for cross-platform compatibility. */
+  std::replace(path.begin(), path.end(), '\\', '/');
+
 #define SYNTAX_DISPATCH(eMTLSyntaxElement) \
   if (texture_map.key == eMTLSyntaxElement) { \
-    std::string path = path_reference( \
-        texture_map.value.image_path.c_str(), blen_filedir, dest_dir, path_mode, &copy_set); \
-    /* Always emit forward slashes for cross-platform compatibility. */ \
-    std::replace(path.begin(), path.end(), '\\', '/'); \
     fmt_handler_.write<eMTLSyntaxElement>(options, path.c_str()); \
     return; \
   }
@@ -600,6 +610,7 @@ void MTLWriter::write_texture_map(
   SYNTAX_DISPATCH(eMTLSyntaxElement::map_refl);
   SYNTAX_DISPATCH(eMTLSyntaxElement::map_Ke);
   SYNTAX_DISPATCH(eMTLSyntaxElement::map_Bump);
+#undef SYNTAX_DISPATCH
 
   BLI_assert(!"This map type was not written to the file.");
 }
@@ -626,7 +637,7 @@ void MTLWriter::write_materials(const char *blen_filepath,
     fmt_handler_.write<eMTLSyntaxElement::newmtl>(mtlmat.name);
     write_bsdf_properties(mtlmat);
     for (const auto &tex : mtlmat.texture_maps.items()) {
-      if (tex.value.image_path.empty()) {
+      if (!tex.value.is_valid()) {
         continue;
       }
       write_texture_map(mtlmat, tex, blen_filedir, dest_dir, path_mode, copy_set);
