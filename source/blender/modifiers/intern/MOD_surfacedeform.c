@@ -215,8 +215,7 @@ static void freeData(ModifierData *md)
           MEM_SAFE_FREE(smd->verts[i].binds[j].vert_inds);
           MEM_SAFE_FREE(smd->verts[i].binds[j].vert_weights);
         }
-
-        MEM_SAFE_FREE(smd->verts[i].binds);
+        MEM_freeN(smd->verts[i].binds);
       }
     }
 

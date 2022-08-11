@@ -219,8 +219,8 @@ static void phash_delete(PHash *ph)
 {
   if (ph) {
     MEM_SAFE_FREE(ph->buckets);
+    MEM_freeN(ph);
   }
-  MEM_SAFE_FREE(ph);
 }
 
 static int phash_size(PHash *ph)
@@ -873,7 +873,7 @@ static int p_connect_pairs(ParamHandle *handle, bool topology_from_uvs)
     ncharts++;
   }
 
-  MEM_SAFE_FREE(stackbase);
+  MEM_freeN(stackbase);
 
   return ncharts;
 }
@@ -3495,8 +3495,8 @@ static bool p_chart_convex_hull(PChart *chart, PVert ***r_verts, int *r_nverts, 
   *r_nverts = npoints;
   *r_right = ulen - 1;
 
-  MEM_SAFE_FREE(U);
-  MEM_SAFE_FREE(L);
+  MEM_freeN(U);
+  MEM_freeN(L);
 
   return true;
 }
@@ -3644,8 +3644,8 @@ static float p_chart_minimum_area_angle(PChart *chart)
     minangle -= (float)M_PI_2;
   }
 
-  MEM_SAFE_FREE(angles);
-  MEM_SAFE_FREE(points);
+  MEM_freeN(angles);
+  MEM_freeN(points);
 
   return minangle;
 }
@@ -3716,7 +3716,7 @@ void GEO_uv_parametrizer_delete(ParamHandle *phandle)
   param_assert(ELEM(phandle->state, PHANDLE_STATE_ALLOCATED, PHANDLE_STATE_CONSTRUCTED));
 
   for (int i = 0; i < phandle->ncharts; i++) {
-    MEM_SAFE_FREE(phandle->charts[i]);
+    MEM_freeN(phandle->charts[i]);
   }
 
   MEM_SAFE_FREE(phandle->charts);
@@ -3943,7 +3943,8 @@ void GEO_uv_parametrizer_construct_end(ParamHandle *phandle,
   phandle->ncharts = p_connect_pairs(phandle, topology_from_uvs);
   phandle->charts = p_split_charts(phandle, chart, phandle->ncharts);
 
-  MEM_SAFE_FREE(phandle->construction_chart);
+  MEM_freeN(phandle->construction_chart);
+  phandle->construction_chart = nullptr;
 
   phash_delete(phandle->hash_verts);
   phash_delete(phandle->hash_edges);
@@ -3957,7 +3958,7 @@ void GEO_uv_parametrizer_construct_end(ParamHandle *phandle,
     p_chart_boundaries(chart, &outer);
 
     if (!topology_from_uvs && chart->nboundaries == 0) {
-      MEM_SAFE_FREE(chart);
+      MEM_freeN(chart);
       if (count_fail != NULL) {
         *count_fail += 1;
       }
@@ -4219,7 +4220,7 @@ void GEO_uv_parametrizer_pack(ParamHandle *handle,
     p_chart_uv_translate(chart, trans);
     p_chart_uv_scale(chart, scale);
   }
-  MEM_SAFE_FREE(boxarray);
+  MEM_freeN(boxarray);
 
   if (handle->aspx != handle->aspy) {
     GEO_uv_parametrizer_scale(handle, handle->aspx, handle->aspy);

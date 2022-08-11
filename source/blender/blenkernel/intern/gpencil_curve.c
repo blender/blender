@@ -337,7 +337,6 @@ static void gpencil_convert_spline(Main *bmain,
   /* Add stroke to frame. */
   BLI_addtail(&gpf->strokes, gps);
 
-  float *coord_array = NULL;
   float init_co[3];
 
   switch (nu->type) {
@@ -376,8 +375,7 @@ static void gpencil_convert_spline(Main *bmain,
         BezTriple *bezt = &nu->bezt[inext];
         bool last = (bool)(s == segments - 1);
 
-        coord_array = MEM_callocN((size_t)3 * resolu * sizeof(float), __func__);
-
+        float *coord_array = MEM_callocN(sizeof(float[3]) * resolu, __func__);
         for (int j = 0; j < 3; j++) {
           BKE_curve_forward_diff_bezier(prevbezt->vec[1][j],
                                         prevbezt->vec[2][j],
@@ -397,8 +395,9 @@ static void gpencil_convert_spline(Main *bmain,
 
         gpencil_add_new_points(
             gps, coord_array, radius_start, radius_end, init, resolu, init_co, last);
+
         /* Free memory. */
-        MEM_SAFE_FREE(coord_array);
+        MEM_freeN(coord_array);
 
         /* As the last point of segment is the first point of next segment, back one array
          * element to avoid duplicated points on the same location.
@@ -419,7 +418,7 @@ static void gpencil_convert_spline(Main *bmain,
           nurb_points = (nu->pntsu - 1) * resolu;
         }
         /* Get all curve points. */
-        coord_array = MEM_callocN(sizeof(float[3]) * nurb_points, __func__);
+        float *coord_array = MEM_callocN(sizeof(float[3]) * nurb_points, __func__);
         BKE_nurb_makeCurve(nu, coord_array, NULL, NULL, NULL, resolu, sizeof(float[3]));
 
         /* Allocate memory for storage points. */
@@ -429,7 +428,7 @@ static void gpencil_convert_spline(Main *bmain,
         /* Add points. */
         gpencil_add_new_points(gps, coord_array, 1.0f, 1.0f, 0, gps->totpoints, init_co, false);
 
-        MEM_SAFE_FREE(coord_array);
+        MEM_freeN(coord_array);
       }
       break;
     }
