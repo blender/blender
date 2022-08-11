@@ -766,9 +766,10 @@ void BKE_mesh_flush_hidden_from_verts(Mesh *me)
       ".hide_poly", ATTR_DOMAIN_FACE);
   for (const int i : polys.index_range()) {
     const MPoly &poly = polys[i];
-    const Span<MLoop> loops = loops.slice(poly.loopstart, poly.totloop);
-    hide_poly.span[i] = std::any_of(
-        loops.begin(), loops.end(), [&](const MLoop &loop) { return hide_vert_span[loop.v]; });
+    const Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
+    hide_poly.span[i] = std::any_of(poly_loops.begin(), poly_loops.end(), [&](const MLoop &loop) {
+      return hide_vert_span[loop.v];
+    });
   }
   hide_poly.finish();
 }
