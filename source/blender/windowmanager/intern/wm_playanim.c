@@ -1807,20 +1807,21 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   AUD_Sound_free(source);
   source = NULL;
 #endif
+
   /* we still miss freeing a lot!,
    * but many areas could skip initialization too for anim play */
 
-  GPU_shader_free_builtin_shaders();
-
-  if (g_WS.gpu_context) {
-    GPU_context_active_set(g_WS.gpu_context);
-    GPU_context_discard(g_WS.gpu_context);
-    g_WS.gpu_context = NULL;
-  }
+  IMB_exit();
+  DEG_free_node_types();
 
   BLF_exit();
 
-  GPU_exit();
+  if (g_WS.gpu_context) {
+    GPU_context_active_set(g_WS.gpu_context);
+    GPU_exit();
+    GPU_context_discard(g_WS.gpu_context);
+    g_WS.gpu_context = NULL;
+  }
 
   GHOST_DisposeWindow(g_WS.ghost_system, g_WS.ghost_window);
 
@@ -1829,9 +1830,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
     BLI_strncpy(filepath, ps.dropped_file, sizeof(filepath));
     return filepath;
   }
-
-  IMB_exit();
-  DEG_free_node_types();
 
   totblock = MEM_get_memory_blocks_in_use();
   if (totblock != 0) {
