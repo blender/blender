@@ -5395,7 +5395,7 @@ static void uv_isolate_selected_islands(const Scene *scene,
     return;
   }
 
-  int num_islands = elementmap->totalIslands;
+  int num_islands = elementmap->total_islands;
   /* Boolean array that tells if island with index i is completely selected or not. */
   bool *is_island_not_selected = MEM_callocN(sizeof(bool) * (num_islands), __func__);
 

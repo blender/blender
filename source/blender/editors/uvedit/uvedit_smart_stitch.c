@@ -287,14 +287,6 @@ static void stitch_update_header(StitchStateContainer *ssc, bContext *C)
   }
 }
 
-static int getNumOfIslandUvs(UvElementMap *elementMap, int island)
-{
-  if (island == elementMap->totalIslands - 1) {
-    return elementMap->total_uvs - elementMap->islandIndices[island];
-  }
-  return elementMap->islandIndices[island + 1] - elementMap->islandIndices[island];
-}
-
 static void stitch_uv_rotate(const float mat[2][2],
                              const float medianPoint[2],
                              float uv[2],
@@ -419,10 +411,9 @@ static void stitch_calculate_island_snapping(StitchState *state,
                                              int final)
 {
   BMesh *bm = state->em->bm;
-  int i;
   UvElement *element;
 
-  for (i = 0; i < state->element_map->totalIslands; i++) {
+  for (int i = 0; i < state->element_map->total_islands; i++) {
     if (island_stitch_data[i].addedForPreview) {
       int numOfIslandUVs = 0, j;
       int totelem = island_stitch_data[i].num_rot_elements_neg +
@@ -464,8 +455,8 @@ static void stitch_calculate_island_snapping(StitchState *state,
       }
 
       angle_to_mat2(rotation_mat, rotation);
-      numOfIslandUVs = getNumOfIslandUvs(state->element_map, i);
-      element = &state->element_map->storage[state->element_map->islandIndices[i]];
+      numOfIslandUVs = state->element_map->island_total_uvs[i];
+      element = &state->element_map->storage[state->element_map->island_indices[i]];
       for (j = 0; j < numOfIslandUVs; j++, element++) {
         /* stitchable uvs have already been processed, don't process */
         if (!(element->flag & STITCH_PROCESSED)) {
@@ -984,7 +975,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
     preview_position[i].data_position = STITCH_NO_PREVIEW;
   }
 
-  island_stitch_data = MEM_callocN(sizeof(*island_stitch_data) * state->element_map->totalIslands,
+  island_stitch_data = MEM_callocN(sizeof(*island_stitch_data) * state->element_map->total_islands,
                                    "stitch_island_data");
   if (!island_stitch_data) {
     return 0;
@@ -1009,7 +1000,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
   }
 
   /* Remember stitchable candidates as places the 'I' button will stop at. */
-  for (int island_idx = 0; island_idx < state->element_map->totalIslands; island_idx++) {
+  for (int island_idx = 0; island_idx < state->element_map->total_islands; island_idx++) {
     state->island_is_stitchable[island_idx] = island_stitch_data[island_idx].stitchableCandidate ?
                                                   true :
                                                   false;
@@ -1017,10 +1008,10 @@ static int stitch_process_data(StitchStateContainer *ssc,
 
   if (is_active_state) {
     /* set static island to one that is added for preview */
-    ssc->static_island %= state->element_map->totalIslands;
+    ssc->static_island %= state->element_map->total_islands;
     while (!(island_stitch_data[ssc->static_island].stitchableCandidate)) {
       ssc->static_island++;
-      ssc->static_island %= state->element_map->totalIslands;
+      ssc->static_island %= state->element_map->total_islands;
       /* this is entirely possible if for example limit stitching
        * with no stitchable verts or no selection */
       if (ssc->static_island == previous_island) {
@@ -1141,13 +1132,11 @@ static int stitch_process_data(StitchStateContainer *ssc,
    * Setup preview for stitchable islands *
    ****************************************/
   if (ssc->snap_islands) {
-    for (i = 0; i < state->element_map->totalIslands; i++) {
+    for (i = 0; i < state->element_map->total_islands; i++) {
       if (island_stitch_data[i].addedForPreview) {
-        int numOfIslandUVs = 0, j;
-        UvElement *element;
-        numOfIslandUVs = getNumOfIslandUvs(state->element_map, i);
-        element = &state->element_map->storage[state->element_map->islandIndices[i]];
-        for (j = 0; j < numOfIslandUVs; j++, element++) {
+        int numOfIslandUVs = state->element_map->island_total_uvs[i];
+        UvElement *element = &state->element_map->storage[state->element_map->island_indices[i]];
+        for (int j = 0; j < numOfIslandUVs; j++, element++) {
           stitch_set_face_preview_buffer_position(element->l->f, preview, preview_position);
         }
       }
@@ -2120,8 +2109,8 @@ static StitchState *stitch_init(bContext *C,
   /***** initialize static island preview data *****/
 
   state->tris_per_island = MEM_mallocN(
-      sizeof(*state->tris_per_island) * state->element_map->totalIslands, "stitch island tris");
-  for (i = 0; i < state->element_map->totalIslands; i++) {
+      sizeof(*state->tris_per_island) * state->element_map->total_islands, "stitch island tris");
+  for (i = 0; i < state->element_map->total_islands; i++) {
     state->tris_per_island[i] = 0;
   }
 
@@ -2133,7 +2122,7 @@ static StitchState *stitch_init(bContext *C,
     }
   }
 
-  state->island_is_stitchable = MEM_callocN(sizeof(bool) * state->element_map->totalIslands,
+  state->island_is_stitchable = MEM_callocN(sizeof(bool) * state->element_map->total_islands,
                                             "stitch I stops");
   if (!state->island_is_stitchable) {
     state_delete(state);
@@ -2157,7 +2146,7 @@ static bool goto_next_island(StitchStateContainer *ssc)
 
   do {
     ssc->static_island++;
-    if (ssc->static_island >= active_state->element_map->totalIslands) {
+    if (ssc->static_island >= active_state->element_map->total_islands) {
       /* go to next object */
       ssc->active_object_index++;
       ssc->active_object_index %= ssc->objects_len;
@@ -2307,7 +2296,7 @@ static int stitch_init_all(bContext *C, wmOperator *op)
   ssc->static_island = RNA_int_get(op->ptr, "static_island");
 
   StitchState *state = ssc->states[ssc->active_object_index];
-  ssc->static_island %= state->element_map->totalIslands;
+  ssc->static_island %= state->element_map->total_islands;
 
   /* If the initial active object doesn't have any stitchable islands
    * then no active island will be seen in the UI.

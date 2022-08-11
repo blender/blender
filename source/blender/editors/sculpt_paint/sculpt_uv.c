@@ -518,13 +518,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     /* Count 'unique' UV's */
     int unique_uvs = data->elementMap->total_unique_uvs;
     if (do_island_optimization) {
-      unique_uvs = 0;
-      for (int i = 0; i < data->elementMap->total_uvs; i++) {
-        if (data->elementMap->storage[i].separate &&
-            (data->elementMap->storage[i].island == island_index)) {
-          unique_uvs++;
-        }
-      }
+      unique_uvs = data->elementMap->island_total_unique_uvs[island_index];
     }
 
     /* Allocate the unique uv buffers */
@@ -572,6 +566,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
         uniqueUv[element - data->elementMap->storage] = counter;
       }
     }
+    BLI_assert(counter + 1 == unique_uvs);
 
     /* Now, on to generate our uv connectivity data */
     counter = 0;

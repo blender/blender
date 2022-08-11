@@ -68,16 +68,20 @@ typedef struct UvElementMap {
   /** Total number of unique UVs. */
   int total_unique_uvs;
 
-  /* If Non-NULL, address UvElements by `BM_elem_index_get(BMVert*)`. */
+  /** If Non-NULL, address UvElements by `BM_elem_index_get(BMVert*)`. */
   struct UvElement **vertex;
 
-  /* If Non-NULL, pointer to local head of each unique UV. */
+  /** If Non-NULL, pointer to local head of each unique UV. */
   struct UvElement **head_table;
 
-  /* Number of Islands in the mesh */
-  int totalIslands;
-  /* Stores the starting index in buf where each island begins */
-  int *islandIndices;
+  /** Number of islands, or zero if not calculated. */
+  int total_islands;
+  /** Array of starting index in #storage where each island begins. */
+  int *island_indices;
+  /** Array of number of UVs in each island. */
+  int *island_total_uvs;
+  /** Array of number of unique UVs in each island. */
+  int *island_total_unique_uvs;
 } UvElementMap;
 
 /* Connectivity data */

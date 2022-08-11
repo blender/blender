@@ -820,28 +820,32 @@ static void bm_uv_build_islands(UvElementMap *element_map,
     }
   }
 
-  element_map->islandIndices = MEM_callocN(sizeof(*element_map->islandIndices) * nislands,
-                                           "UvElementMap_island_indices");
+  element_map->island_indices = MEM_callocN(sizeof(*element_map->island_indices) * nislands,
+                                            __func__);
+  element_map->island_total_uvs = MEM_callocN(sizeof(*element_map->island_total_uvs) * nislands,
+                                              __func__);
+  element_map->island_total_unique_uvs = MEM_callocN(
+      sizeof(*element_map->island_total_unique_uvs) * nislands, __func__);
   int j = 0;
   for (int i = 0; i < totuv; i++) {
-    UvElement *element = element_map->storage[i].next;
-    if (element == NULL) {
-      islandbuf[map[i]].next = NULL;
-    }
-    else {
-      islandbuf[map[i]].next = &islandbuf[map[element - element_map->storage]];
-    }
+    UvElement *next = element_map->storage[i].next;
+    islandbuf[map[i]].next = next ? &islandbuf[map[next - element_map->storage]] : NULL;
 
     if (islandbuf[i].island != j) {
       j++;
-      element_map->islandIndices[j] = i;
+      element_map->island_indices[j] = i;
+    }
+    BLI_assert(islandbuf[i].island == j);
+    element_map->island_total_uvs[j]++;
+    if (islandbuf[i].separate) {
+      element_map->island_total_unique_uvs[j]++;
     }
   }
 
   MEM_SAFE_FREE(element_map->storage);
   element_map->storage = islandbuf;
   islandbuf = NULL;
-  element_map->totalIslands = nislands;
+  element_map->total_islands = nislands;
   MEM_SAFE_FREE(stack);
   MEM_SAFE_FREE(map);
 }
@@ -1059,7 +1063,9 @@ void BM_uv_element_map_free(UvElementMap *element_map)
     MEM_SAFE_FREE(element_map->storage);
     MEM_SAFE_FREE(element_map->vertex);
     MEM_SAFE_FREE(element_map->head_table);
-    MEM_SAFE_FREE(element_map->islandIndices);
+    MEM_SAFE_FREE(element_map->island_indices);
+    MEM_SAFE_FREE(element_map->island_total_uvs);
+    MEM_SAFE_FREE(element_map->island_total_unique_uvs);
     MEM_SAFE_FREE(element_map);
   }
 }

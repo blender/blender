@@ -541,14 +541,11 @@ static bool uvedit_uv_straighten(Scene *scene, BMesh *bm, eUVWeldAlign tool)
   }
 
   bool changed = false;
-
-  /* Loop backwards to simplify logic. */
-  int j1 = element_map->total_uvs;
-  for (int i = element_map->totalIslands - 1; i >= 0; --i) {
-    int j0 = element_map->islandIndices[i];
-    changed |= uvedit_uv_straighten_elements(
-        element_map->storage + j0, j1 - j0, cd_loop_uv_offset, tool);
-    j1 = j0;
+  for (int i = 0; i < element_map->total_islands; i++) {
+    changed |= uvedit_uv_straighten_elements(element_map->storage + element_map->island_indices[i],
+                                             element_map->island_total_uvs[i],
+                                             cd_loop_uv_offset,
+                                             tool);
   }
 
   BM_uv_element_map_free(element_map);

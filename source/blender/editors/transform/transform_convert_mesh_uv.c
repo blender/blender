@@ -270,7 +270,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
         continue;
       }
 
-      island_center = MEM_callocN(sizeof(*island_center) * elementmap->totalIslands, __func__);
+      island_center = MEM_callocN(sizeof(*island_center) * elementmap->total_islands, __func__);
     }
 
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
@@ -315,9 +315,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
     }
 
     if (is_island_center) {
-      int i;
-
-      for (i = 0; i < elementmap->totalIslands; i++) {
+      for (int i = 0; i < elementmap->total_islands; i++) {
         mul_v2_fl(island_center[i].co, 1.0f / island_center[i].co_num);
         mul_v2_v2(island_center[i].co, t->aspect);
       }
