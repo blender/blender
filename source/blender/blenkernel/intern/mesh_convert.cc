@@ -22,6 +22,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -54,6 +55,8 @@
 #include "DEG_depsgraph_query.h"
 
 using blender::IndexRange;
+using blender::MutableSpan;
+using blender::Span;
 
 /* Define for cases when you want extra validation of mesh
  * after certain modifications.
@@ -127,29 +130,28 @@ void BKE_mesh_from_metaball(ListBase *lb, Mesh *me)
 /**
  * Specialized function to use when we _know_ existing edges don't overlap with poly edges.
  */
-static void make_edges_mdata_extend(
-    MEdge **r_alledge, int *r_totedge, const MPoly *mpoly, MLoop *mloop, const int totpoly)
+static void make_edges_mdata_extend(Mesh &mesh)
 {
-  int totedge = *r_totedge;
-  int totedge_new;
-  EdgeHash *eh;
-  uint eh_reserve;
+  int totedge = mesh.totedge;
   const MPoly *mp;
   int i;
 
-  eh_reserve = max_ii(totedge, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(totpoly));
-  eh = BLI_edgehash_new_ex(__func__, eh_reserve);
+  Span<MPoly> polygons(mesh.mpoly, mesh.totpoly);
+  MutableSpan<MLoop> loops(mesh.mloop, mesh.totloop);
 
-  for (i = 0, mp = mpoly; i < totpoly; i++, mp++) {
-    BKE_mesh_poly_edgehash_insert(eh, mp, mloop + mp->loopstart);
+  const int eh_reserve = max_ii(totedge, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(mesh.totpoly));
+  EdgeHash *eh = BLI_edgehash_new_ex(__func__, eh_reserve);
+
+  for (const MPoly &poly : polygons) {
+    BKE_mesh_poly_edgehash_insert(eh, &poly, &loops[poly.loopstart]);
   }
 
-  totedge_new = BLI_edgehash_len(eh);
+  const int totedge_new = BLI_edgehash_len(eh);
 
 #ifdef DEBUG
   /* ensure that there's no overlap! */
   if (totedge_new) {
-    MEdge *medge = *r_alledge;
+    MEdge *medge = mesh.medge;
     for (i = 0; i < totedge; i++, medge++) {
       BLI_assert(BLI_edgehash_haskey(eh, medge->v1, medge->v2) == false);
     }
@@ -157,19 +159,15 @@ static void make_edges_mdata_extend(
 #endif
 
   if (totedge_new) {
+    CustomData_realloc(&mesh.edata, totedge + totedge_new);
+    BKE_mesh_update_customdata_pointers(&mesh, false);
+
+    MEdge *medge = mesh.medge + totedge;
+
+    mesh.totedge += totedge_new;
+
     EdgeHashIterator *ehi;
-    MEdge *medge;
     uint e_index = totedge;
-
-    *r_alledge = medge = (MEdge *)(*r_alledge ?
-                                       MEM_reallocN(*r_alledge,
-                                                    sizeof(MEdge) * (totedge + totedge_new)) :
-                                       MEM_calloc_arrayN(totedge_new, sizeof(MEdge), __func__));
-    medge += totedge;
-
-    totedge += totedge_new;
-
-    /* --- */
     for (ehi = BLI_edgehashIterator_new(eh); BLI_edgehashIterator_isDone(ehi) == false;
          BLI_edgehashIterator_step(ehi), ++medge, e_index++) {
       BLI_edgehashIterator_getKey(ehi, &medge->v1, &medge->v2);
@@ -180,10 +178,8 @@ static void make_edges_mdata_extend(
     }
     BLI_edgehashIterator_free(ehi);
 
-    *r_totedge = totedge;
-
-    for (i = 0, mp = mpoly; i < totpoly; i++, mp++) {
-      MLoop *l = &mloop[mp->loopstart];
+    for (i = 0, mp = mesh.mpoly; i < mesh.totpoly; i++, mp++) {
+      MLoop *l = &loops[mp->loopstart];
       MLoop *l_prev = (l + (mp->totloop - 1));
       int j;
       for (j = 0; j < mp->totloop; j++, l++) {
@@ -197,25 +193,8 @@ static void make_edges_mdata_extend(
   BLI_edgehash_free(eh, nullptr);
 }
 
-/* Initialize mverts, medges and, faces for converting nurbs to mesh and derived mesh */
-/* use specified dispbase */
-static int mesh_nurbs_displist_to_mdata(const Curve *cu,
-                                        const ListBase *dispbase,
-                                        MVert **r_allvert,
-                                        int *r_totvert,
-                                        MEdge **r_alledge,
-                                        int *r_totedge,
-                                        MLoop **r_allloop,
-                                        MPoly **r_allpoly,
-                                        MLoopUV **r_alluv,
-                                        int *r_totloop,
-                                        int *r_totpoly)
+static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispbase)
 {
-  MVert *mvert;
-  MPoly *mpoly;
-  MLoop *mloop;
-  MLoopUV *mloopuv = nullptr;
-  MEdge *medge;
   const float *data;
   int a, b, ofs, vertcount, startvert, totvert = 0, totedge = 0, totloop = 0, totpoly = 0;
   int p1, p2, p3, p4, *index;
@@ -257,21 +236,21 @@ static int mesh_nurbs_displist_to_mdata(const Curve *cu,
   }
 
   if (totvert == 0) {
-    /* Make Sure you check ob->data is a curve. */
-    // error("can't convert");
-    return -1;
+    return BKE_mesh_new_nomain(0, 0, 0, 0, 0);
   }
 
-  *r_allvert = mvert = (MVert *)MEM_calloc_arrayN(totvert, sizeof(MVert), "nurbs_init mvert");
-  *r_alledge = medge = (MEdge *)MEM_calloc_arrayN(totedge, sizeof(MEdge), "nurbs_init medge");
-  *r_allloop = mloop = (MLoop *)MEM_calloc_arrayN(
-      totpoly, sizeof(MLoop[4]), "nurbs_init mloop"); /* totloop */
-  *r_allpoly = mpoly = (MPoly *)MEM_calloc_arrayN(totpoly, sizeof(MPoly), "nurbs_init mloop");
+  Mesh *mesh = BKE_mesh_new_nomain(totvert, totedge, 0, totloop, totpoly);
+  MutableSpan<MVert> vertices(mesh->mvert, mesh->totvert);
+  MutableSpan<MEdge> edges(mesh->medge, mesh->totedge);
+  MutableSpan<MPoly> polygons(mesh->mpoly, mesh->totpoly);
+  MutableSpan<MLoop> loops(mesh->mloop, mesh->totloop);
 
-  if (r_alluv) {
-    *r_alluv = mloopuv = (MLoopUV *)MEM_calloc_arrayN(
-        totpoly, sizeof(MLoopUV[4]), "nurbs_init mloopuv");
-  }
+  MVert *mvert = vertices.data();
+  MEdge *medge = edges.data();
+  MPoly *mpoly = polygons.data();
+  MLoop *mloop = loops.data();
+  MLoopUV *mloopuv = static_cast<MLoopUV *>(CustomData_add_layer_named(
+      &mesh->ldata, CD_MLOOPUV, CD_CALLOC, nullptr, mesh->totloop, "UVMap"));
 
   /* verts and faces */
   vertcount = 0;
@@ -346,7 +325,7 @@ static int mesh_nurbs_displist_to_mdata(const Curve *cu,
         mloop[0].v = startvert + index[0];
         mloop[1].v = startvert + index[2];
         mloop[2].v = startvert + index[1];
-        mpoly->loopstart = (int)(mloop - (*r_allloop));
+        mpoly->loopstart = (int)(mloop - loops.data());
         mpoly->totloop = 3;
         mpoly->mat_nr = dl->col;
 
@@ -406,7 +385,7 @@ static int mesh_nurbs_displist_to_mdata(const Curve *cu,
           mloop[1].v = p3;
           mloop[2].v = p4;
           mloop[3].v = p2;
-          mpoly->loopstart = (int)(mloop - (*r_allloop));
+          mpoly->loopstart = (int)(mloop - loops.data());
           mpoly->totloop = 4;
           mpoly->mat_nr = dl->col;
 
@@ -458,15 +437,10 @@ static int mesh_nurbs_displist_to_mdata(const Curve *cu,
   }
 
   if (totpoly) {
-    make_edges_mdata_extend(r_alledge, &totedge, *r_allpoly, *r_allloop, totpoly);
+    make_edges_mdata_extend(*mesh);
   }
 
-  *r_totpoly = totpoly;
-  *r_totloop = totloop;
-  *r_totedge = totedge;
-  *r_totvert = totvert;
-
-  return 0;
+  return mesh;
 }
 
 /**
@@ -487,59 +461,11 @@ static void mesh_copy_texture_space_from_curve_type(const Curve *cu, Mesh *me)
 Mesh *BKE_mesh_new_nomain_from_curve_displist(const Object *ob, const ListBase *dispbase)
 {
   const Curve *cu = (const Curve *)ob->data;
-  Mesh *mesh;
-  MVert *allvert;
-  MEdge *alledge;
-  MLoop *allloop;
-  MPoly *allpoly;
-  MLoopUV *alluv = nullptr;
-  int totvert, totedge, totloop, totpoly;
 
-  if (mesh_nurbs_displist_to_mdata(cu,
-                                   dispbase,
-                                   &allvert,
-                                   &totvert,
-                                   &alledge,
-                                   &totedge,
-                                   &allloop,
-                                   &allpoly,
-                                   &alluv,
-                                   &totloop,
-                                   &totpoly) != 0) {
-    /* Error initializing mdata. This often happens when curve is empty */
-    return BKE_mesh_new_nomain(0, 0, 0, 0, 0);
-  }
-
-  mesh = BKE_mesh_new_nomain(totvert, totedge, 0, totloop, totpoly);
-
-  if (totvert != 0) {
-    memcpy(mesh->mvert, allvert, totvert * sizeof(MVert));
-  }
-  if (totedge != 0) {
-    memcpy(mesh->medge, alledge, totedge * sizeof(MEdge));
-  }
-  if (totloop != 0) {
-    memcpy(mesh->mloop, allloop, totloop * sizeof(MLoop));
-  }
-  if (totpoly != 0) {
-    memcpy(mesh->mpoly, allpoly, totpoly * sizeof(MPoly));
-  }
-
-  if (alluv) {
-    const char *uvname = "UVMap";
-    CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_ASSIGN, alluv, totloop, uvname);
-  }
-
+  Mesh *mesh = mesh_nurbs_displist_to_mesh(cu, dispbase);
   mesh_copy_texture_space_from_curve_type(cu, mesh);
-
-  /* Copy curve materials. */
   mesh->mat = (Material **)MEM_dupallocN(cu->mat);
   mesh->totcol = cu->totcol;
-
-  MEM_freeN(allvert);
-  MEM_freeN(alledge);
-  MEM_freeN(allloop);
-  MEM_freeN(allpoly);
 
   return mesh;
 }
