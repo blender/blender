@@ -2893,11 +2893,6 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
   bool changed = false;
   int mval[2];
 
-  RNA_int_get_array(op->ptr, "location", mval);
-
-  view3d_operator_needs_opengl(C);
-  BKE_object_update_select_id(CTX_data_main(C));
-
   if (object_only) {
     obedit = NULL;
     obact = NULL;
@@ -2907,6 +2902,19 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
      * from 2.4x where Ctrl+Select in edit-mode does object select only. */
     center = false;
   }
+
+  if (obedit && enumerate) {
+    /* Enumerate makes no sense in edit-mode unless also explicitly picking objects or bones.
+     * Pass the event through so the event may be handled by loop-select for e.g. see: T100204. */
+    if (obedit->type != OB_ARMATURE) {
+      return OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED;
+    }
+  }
+
+  RNA_int_get_array(op->ptr, "location", mval);
+
+  view3d_operator_needs_opengl(C);
+  BKE_object_update_select_id(CTX_data_main(C));
 
   if (obedit && object_only == false) {
     if (obedit->type == OB_MESH) {
