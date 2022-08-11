@@ -410,9 +410,10 @@ static void view3d_smoothview_apply_with_interp(
   v3d->lens = interpf(sms->dst.lens, sms->src.lens, factor);
 
   const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ED_view3d_camera_lock_sync(depsgraph, v3d, rv3d);
-  if (use_autokey) {
-    ED_view3d_camera_lock_autokey(v3d, rv3d, C, true, true);
+  if (ED_view3d_camera_lock_sync(depsgraph, v3d, rv3d)) {
+    if (use_autokey) {
+      ED_view3d_camera_lock_autokey(v3d, rv3d, C, true, true);
+    }
   }
 }
 
@@ -436,8 +437,9 @@ static void view3d_smoothview_apply_and_finish(bContext *C, View3D *v3d, RegionV
 
     view3d_smooth_view_state_restore(&sms->dst, v3d, rv3d);
 
-    ED_view3d_camera_lock_sync(depsgraph, v3d, rv3d);
-    ED_view3d_camera_lock_autokey(v3d, rv3d, C, true, true);
+    if (ED_view3d_camera_lock_sync(depsgraph, v3d, rv3d)) {
+      ED_view3d_camera_lock_autokey(v3d, rv3d, C, true, true);
+    }
   }
 
   if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0) {

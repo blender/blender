@@ -1171,7 +1171,7 @@ void ED_view3d_camera_lock_init(const struct Depsgraph *depsgraph,
  *
  * Apply the 3D Viewport transformation back to the camera object.
  *
- * \return true if the camera is moved.
+ * \return true if the camera (or one of it's parents) was moved.
  */
 bool ED_view3d_camera_lock_sync(const struct Depsgraph *depsgraph,
                                 struct View3D *v3d,
