@@ -495,7 +495,9 @@ void Session::do_delayed_reset()
   if (!params.background) {
     progress.set_start_time();
   }
+  const double time_limit = params.time_limit * ((double)tile_manager_.get_num_tiles());
   progress.set_render_start_time();
+  progress.set_time_limit(time_limit);
 }
 
 void Session::reset(const SessionParams &session_params, const BufferParams &buffer_params)
@@ -590,7 +592,8 @@ double Session::get_estimated_remaining_time() const
   progress.get_time(total_time, render_time);
   double remaining = (1.0 - (double)completed) * (render_time / (double)completed);
 
-  const double time_limit = render_scheduler_.get_time_limit();
+  const double time_limit = render_scheduler_.get_time_limit() *
+                            ((double)tile_manager_.get_num_tiles());
   if (time_limit != 0.0) {
     remaining = min(remaining, max(time_limit - render_time, 0.0));
   }
