@@ -83,6 +83,10 @@ static void output_handle_done(void *data, struct wl_output *wl_output);
 static bool use_gnome_confine_hack = false;
 #endif
 
+#define XKB_STATE_MODS_ALL \
+  (enum xkb_state_component)(XKB_STATE_MODS_DEPRESSED | XKB_STATE_MODS_LATCHED | \
+                             XKB_STATE_MODS_LOCKED | XKB_STATE_MODS_EFFECTIVE)
+
 /* -------------------------------------------------------------------- */
 /** \name Inline Event Codes
  *
@@ -306,6 +310,20 @@ struct input_t {
    * If number-lock is not supported by the key-map, this is set to NULL.
    */
   struct xkb_state *xkb_state_empty_with_numlock = nullptr;
+
+  /**
+   * Cache result of `xkb_keymap_mod_get_index`
+   * so every time a modifier is accessed a string lookup isn't required.
+   * Be sure to check for #XKB_MOD_INVALID before using.
+   */
+  struct {
+    xkb_mod_index_t shift; /* #XKB_MOD_NAME_SHIFT */
+    xkb_mod_index_t caps;  /* #XKB_MOD_NAME_CAPS */
+    xkb_mod_index_t ctrl;  /* #XKB_MOD_NAME_CTRL */
+    xkb_mod_index_t alt;   /* #XKB_MOD_NAME_ALT */
+    xkb_mod_index_t num;   /* #XKB_MOD_NAME_NUM */
+    xkb_mod_index_t logo;  /* #XKB_MOD_NAME_LOGO */
+  } xkb_keymap_mod_index;
 
   struct {
     /** Key repetition in character per second. */
@@ -2102,6 +2120,13 @@ static void keyboard_handle_keymap(void *data,
     }
   }
 
+  input->xkb_keymap_mod_index.shift = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_SHIFT);
+  input->xkb_keymap_mod_index.caps = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_CAPS);
+  input->xkb_keymap_mod_index.ctrl = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_CTRL);
+  input->xkb_keymap_mod_index.alt = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_ALT);
+  input->xkb_keymap_mod_index.num = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_NUM);
+  input->xkb_keymap_mod_index.logo = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_LOGO);
+
   xkb_keymap_unref(keymap);
 }
 
@@ -2939,31 +2964,35 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
     return GHOST_kFailure;
   }
 
-  static const xkb_state_component mods_all = xkb_state_component(
-      XKB_STATE_MODS_DEPRESSED | XKB_STATE_MODS_LATCHED | XKB_STATE_MODS_LOCKED |
-      XKB_STATE_MODS_EFFECTIVE);
+  input_t *input = d->inputs[0];
 
   bool val;
 
-  /* NOTE: XKB doesn't seem to differentiate between left/right modifiers. */
+  /* NOTE: XKB doesn't differentiate between left/right modifiers
+   * for it's internal modifier state storage. */
+  const xkb_mod_mask_t state = xkb_state_serialize_mods(input->xkb_state, XKB_STATE_MODS_ALL);
 
-  val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_SHIFT, mods_all) == 1;
+#define MOD_TEST(state, mod) ((mod != XKB_MOD_INVALID) && (state & (1 << mod)))
+
+  val = MOD_TEST(state, input->xkb_keymap_mod_index.shift);
   keys.set(GHOST_kModifierKeyLeftShift, val);
   keys.set(GHOST_kModifierKeyRightShift, val);
 
-  val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_ALT, mods_all) == 1;
+  val = MOD_TEST(state, input->xkb_keymap_mod_index.alt);
   keys.set(GHOST_kModifierKeyLeftAlt, val);
   keys.set(GHOST_kModifierKeyRightAlt, val);
 
-  val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_CTRL, mods_all) == 1;
+  val = MOD_TEST(state, input->xkb_keymap_mod_index.ctrl);
   keys.set(GHOST_kModifierKeyLeftControl, val);
   keys.set(GHOST_kModifierKeyRightControl, val);
 
-  val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_LOGO, mods_all) == 1;
+  val = MOD_TEST(state, input->xkb_keymap_mod_index.logo);
   keys.set(GHOST_kModifierKeyOS, val);
 
-  val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_NUM, mods_all) == 1;
+  val = MOD_TEST(state, input->xkb_keymap_mod_index.num);
   keys.set(GHOST_kModifierKeyNum, val);
+
+#undef MOD_TEST
 
   return GHOST_kSuccess;
 }
