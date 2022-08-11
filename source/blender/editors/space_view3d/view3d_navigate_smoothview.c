@@ -23,7 +23,7 @@
 #include "view3d_navigate.h" /* own include */
 
 static void view3d_smoothview_apply_with_interp(
-    bContext *C, View3D *v3d, ARegion *region, const bool use_autokey, const float factor);
+    bContext *C, View3D *v3d, RegionView3D *rv3d, const bool use_autokey, const float factor);
 
 /* -------------------------------------------------------------------- */
 /** \name Smooth View Undo Handling
@@ -40,7 +40,7 @@ static void view3d_smoothview_apply_with_interp(
  * operations are executed once smooth-view has started.
  * \{ */
 
-void ED_view3d_smooth_view_undo_begin(bContext *C, ScrArea *area)
+void ED_view3d_smooth_view_undo_begin(bContext *C, const ScrArea *area)
 {
   const View3D *v3d = area->spacedata.first;
   Object *camera = v3d->camera;
@@ -53,11 +53,11 @@ void ED_view3d_smooth_view_undo_begin(bContext *C, ScrArea *area)
    * NOTE: It doesn't matter if the actual object being manipulated is the camera or not. */
   camera->id.tag &= ~LIB_TAG_DOIT;
 
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+  LISTBASE_FOREACH (const ARegion *, region, &area->regionbase) {
     if (region->regiontype != RGN_TYPE_WINDOW) {
       continue;
     }
-    RegionView3D *rv3d = region->regiondata;
+    const RegionView3D *rv3d = region->regiondata;
     if (ED_view3d_camera_lock_undo_test(v3d, rv3d, C)) {
       camera->id.tag |= LIB_TAG_DOIT;
       break;
@@ -66,7 +66,7 @@ void ED_view3d_smooth_view_undo_begin(bContext *C, ScrArea *area)
 }
 
 void ED_view3d_smooth_view_undo_end(bContext *C,
-                                    ScrArea *area,
+                                    const ScrArea *area,
                                     const char *undo_str,
                                     const bool undo_grouped)
 {
@@ -89,15 +89,15 @@ void ED_view3d_smooth_view_undo_end(bContext *C,
    * so even in the case there is a quad-view with multiple camera views set, these will all
    * reference the same camera. In this case it doesn't matter which region is used.
    * If in the future multiple cameras are supported, this logic can be extended. */
-  ARegion *region_camera = NULL;
+  const ARegion *region_camera = NULL;
 
   /* An undo push should be performed. */
   bool is_interactive = false;
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+  LISTBASE_FOREACH (const ARegion *, region, &area->regionbase) {
     if (region->regiontype != RGN_TYPE_WINDOW) {
       continue;
     }
-    RegionView3D *rv3d = region->regiondata;
+    const RegionView3D *rv3d = region->regiondata;
     if (ED_view3d_camera_lock_undo_test(v3d, rv3d, C)) {
       region_camera = region;
       if (rv3d->sms) {
@@ -110,12 +110,13 @@ void ED_view3d_smooth_view_undo_end(bContext *C,
     return;
   }
 
+  RegionView3D *rv3d = region_camera->regiondata;
+
   /* Fast forward, undo push, then rewind. */
   if (is_interactive) {
-    view3d_smoothview_apply_with_interp(C, v3d, region_camera, false, 1.0f);
+    view3d_smoothview_apply_with_interp(C, v3d, rv3d, false, 1.0f);
   }
 
-  RegionView3D *rv3d = region_camera->regiondata;
   if (undo_grouped) {
     ED_view3d_camera_lock_undo_grouped_push(undo_str, v3d, rv3d, C);
   }
@@ -124,7 +125,7 @@ void ED_view3d_smooth_view_undo_end(bContext *C,
   }
 
   if (is_interactive) {
-    view3d_smoothview_apply_with_interp(C, v3d, region_camera, false, 0.0f);
+    view3d_smoothview_apply_with_interp(C, v3d, rv3d, false, 0.0f);
   }
 }
 
@@ -391,9 +392,8 @@ void ED_view3d_smooth_view(bContext *C,
  * Apply with interpolation, on completion run #view3d_smoothview_apply_and_finish.
  */
 static void view3d_smoothview_apply_with_interp(
-    bContext *C, View3D *v3d, ARegion *region, const bool use_autokey, const float factor)
+    bContext *C, View3D *v3d, RegionView3D *rv3d, const bool use_autokey, const float factor)
 {
-  RegionView3D *rv3d = region->regiondata;
   struct SmoothView3DStore *sms = rv3d->sms;
 
   interp_qt_qtqt(rv3d->viewquat, sms->src.quat, sms->dst.quat, factor);
@@ -414,17 +414,14 @@ static void view3d_smoothview_apply_with_interp(
   if (use_autokey) {
     ED_view3d_camera_lock_autokey(v3d, rv3d, C, true, true);
   }
-
-  ED_region_tag_redraw(region);
 }
 
 /**
  * Apply the view-port transformation & free smooth-view related data.
  */
-static void view3d_smoothview_apply_and_finish(bContext *C, View3D *v3d, ARegion *region)
+static void view3d_smoothview_apply_and_finish(bContext *C, View3D *v3d, RegionView3D *rv3d)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  RegionView3D *rv3d = region->regiondata;
   struct SmoothView3DStore *sms = rv3d->sms;
 
   wmWindow *win = CTX_wm_window(C);
@@ -481,18 +478,20 @@ static void view3d_smoothview_apply_from_timer(bContext *C, View3D *v3d, ARegion
     factor = 1.0f;
   }
   if (factor >= 1.0f) {
-    view3d_smoothview_apply_and_finish(C, v3d, region);
+    view3d_smoothview_apply_and_finish(C, v3d, rv3d);
   }
   else {
     /* Ease in/out smoothing. */
     factor = (3.0f * factor * factor - 2.0f * factor * factor * factor);
     const bool use_autokey = ED_screen_animation_playing(wm);
-    view3d_smoothview_apply_with_interp(C, v3d, region, use_autokey, factor);
+    view3d_smoothview_apply_with_interp(C, v3d, rv3d, use_autokey, factor);
   }
 
   if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXVIEW) {
     view3d_boxview_copy(CTX_wm_area(C), region);
   }
+
+  ED_region_tag_redraw(region);
 }
 
 static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
@@ -514,11 +513,10 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const w
 void ED_view3d_smooth_view_force_finish(bContext *C, View3D *v3d, ARegion *region)
 {
   RegionView3D *rv3d = region->regiondata;
-
   if (rv3d && rv3d->sms) {
-    view3d_smoothview_apply_and_finish(C, v3d, region);
+    view3d_smoothview_apply_and_finish(C, v3d, rv3d);
 
-    /* force update of view matrix so tools that run immediately after
+    /* Force update of view matrix so tools that run immediately after
      * can use them without redrawing first */
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     Scene *scene = CTX_data_scene(C);

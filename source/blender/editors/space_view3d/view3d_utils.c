@@ -708,8 +708,11 @@ bool ED_view3d_camera_lock_undo_test(const View3D *v3d,
  * unnecessary undo steps so undo push for them is not supported for now. Also operators that uses
  * smooth view for navigation are excluded too, but they can be supported, see: D15345.
  */
-static bool view3d_camera_lock_undo_ex(
-    const char *str, View3D *v3d, RegionView3D *rv3d, struct bContext *C, bool undo_group)
+static bool view3d_camera_lock_undo_ex(const char *str,
+                                       const View3D *v3d,
+                                       const RegionView3D *rv3d,
+                                       struct bContext *C,
+                                       const bool undo_group)
 {
   if (ED_view3d_camera_lock_undo_test(v3d, rv3d, C)) {
     if (undo_group) {
@@ -723,14 +726,17 @@ static bool view3d_camera_lock_undo_ex(
   return false;
 }
 
-bool ED_view3d_camera_lock_undo_push(const char *str, View3D *v3d, RegionView3D *rv3d, bContext *C)
+bool ED_view3d_camera_lock_undo_push(const char *str,
+                                     const View3D *v3d,
+                                     const RegionView3D *rv3d,
+                                     bContext *C)
 {
   return view3d_camera_lock_undo_ex(str, v3d, rv3d, C, false);
 }
 
 bool ED_view3d_camera_lock_undo_grouped_push(const char *str,
-                                             View3D *v3d,
-                                             RegionView3D *rv3d,
+                                             const View3D *v3d,
+                                             const RegionView3D *rv3d,
                                              bContext *C)
 {
   return view3d_camera_lock_undo_ex(str, v3d, rv3d, C, true);

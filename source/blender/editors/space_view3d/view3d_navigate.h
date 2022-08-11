@@ -266,12 +266,12 @@ void ED_view3d_smooth_view(struct bContext *C,
  * or when calling #ED_view3d_smooth_view_ex.
  * Otherwise pass in #V3D_SmoothParams.undo_str so an undo step is pushed as needed.
  */
-void ED_view3d_smooth_view_undo_begin(struct bContext *C, struct ScrArea *area);
+void ED_view3d_smooth_view_undo_begin(struct bContext *C, const struct ScrArea *area);
 /**
  * Run after multiple smooth-view operations have run to push undo as needed.
  */
 void ED_view3d_smooth_view_undo_end(struct bContext *C,
-                                    struct ScrArea *area,
+                                    const struct ScrArea *area,
                                     const char *undo_str,
                                     bool undo_grouped);
 
