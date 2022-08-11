@@ -1113,25 +1113,28 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
     }
     wmWindow *win = GHOST_GetWindowUserData(ghostwin);
 
+    /* Win23/GHOST modifier bug, see T40317 */
+#ifndef WIN32
+//#  define USE_WIN_ACTIVATE
+#endif
+
     switch (type) {
       case GHOST_kEventWindowDeactivate:
         wm_event_add_ghostevent(wm, win, type, data);
         win->active = 0; /* XXX */
 
-        /* clear modifiers for inactive windows */
+        /* When window activation is enabled, these modifiers are set with window activation.
+         * Otherwise leave them set so re-activation doesn't loose keys which are held. */
+#ifdef USE_WIN_ACTIVATE
         win->eventstate->modifier = 0;
         win->eventstate->keymodifier = 0;
+#endif
 
         break;
       case GHOST_kEventWindowActivate: {
         const int keymodifier = ((query_qual(SHIFT) ? KM_SHIFT : 0) |
                                  (query_qual(CONTROL) ? KM_CTRL : 0) |
                                  (query_qual(ALT) ? KM_ALT : 0) | (query_qual(OS) ? KM_OSKEY : 0));
-
-        /* Win23/GHOST modifier bug, see T40317 */
-#ifndef WIN32
-//#  define USE_WIN_ACTIVATE
-#endif
 
         /* No context change! C->wm->windrawable is drawable, or for area queues. */
         wm->winactive = win;

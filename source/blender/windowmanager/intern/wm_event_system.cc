@@ -5214,6 +5214,13 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
   event.prev_type = event.type;
   event.prev_val = event.val;
 
+  /* Always use modifiers from the active window since
+     changes to modifiers aren't sent to inactive windows, see: T66088. */
+  if ((wm->winactive != win) && (wm->winactive && wm->winactive->eventstate)) {
+    event.modifier = wm->winactive->eventstate->modifier;
+    event.keymodifier = wm->winactive->eventstate->keymodifier;
+  }
+
   /* Ensure the event state is correct, any deviation from this may cause bugs.
    *
    * NOTE: #EVENT_NONE is set when unknown keys are pressed,
@@ -5255,6 +5262,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       wmWindow *win_other = wm_event_cursor_other_windows(wm, win, &event);
       if (win_other) {
         wmEvent event_other = *win_other->eventstate;
+
+        /* Use the modifier state of this window. */
+        event_other.modifier = event.modifier;
+        event_other.keymodifier = event.keymodifier;
 
         /* See comment for this operation on `event` for details. */
         event_other.prev_type = event_other.type;
@@ -5344,6 +5355,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       wmWindow *win_other = wm_event_cursor_other_windows(wm, win, &event);
       if (win_other) {
         wmEvent event_other = *win_other->eventstate;
+
+        /* Use the modifier state of this window. */
+        event_other.modifier = event.modifier;
+        event_other.keymodifier = event.keymodifier;
 
         /* See comment for this operation on `event` for details. */
         event_other.prev_type = event_other.type;
