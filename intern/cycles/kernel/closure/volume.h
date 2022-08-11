@@ -101,14 +101,10 @@ henyey_greenstrein_sample(float3 D, float g, float randu, float randv, ccl_priva
 
 ccl_device int volume_henyey_greenstein_sample(ccl_private const ShaderVolumeClosure *svc,
                                                float3 I,
-                                               float3 dIdx,
-                                               float3 dIdy,
                                                float randu,
                                                float randv,
                                                ccl_private Spectrum *eval,
                                                ccl_private float3 *omega_in,
-                                               ccl_private float3 *domega_in_dx,
-                                               ccl_private float3 *domega_in_dy,
                                                ccl_private float *pdf)
 {
   float g = svc->g;
@@ -116,12 +112,6 @@ ccl_device int volume_henyey_greenstein_sample(ccl_private const ShaderVolumeClo
   /* note that I points towards the viewer and so is used negated */
   *omega_in = henyey_greenstrein_sample(-I, g, randu, randv, pdf);
   *eval = make_spectrum(*pdf); /* perfect importance sampling */
-
-#ifdef __RAY_DIFFERENTIALS__
-  /* todo: implement ray differential estimation */
-  *domega_in_dx = make_float3(0.0f, 0.0f, 0.0f);
-  *domega_in_dy = make_float3(0.0f, 0.0f, 0.0f);
-#endif
 
   return LABEL_VOLUME_SCATTER;
 }
@@ -142,20 +132,9 @@ ccl_device int volume_phase_sample(ccl_private const ShaderData *sd,
                                    float randv,
                                    ccl_private Spectrum *eval,
                                    ccl_private float3 *omega_in,
-                                   ccl_private differential3 *domega_in,
                                    ccl_private float *pdf)
 {
-  return volume_henyey_greenstein_sample(svc,
-                                         sd->I,
-                                         sd->dI.dx,
-                                         sd->dI.dy,
-                                         randu,
-                                         randv,
-                                         eval,
-                                         omega_in,
-                                         &domega_in->dx,
-                                         &domega_in->dy,
-                                         pdf);
+  return volume_henyey_greenstein_sample(svc, sd->I, randu, randv, eval, omega_in, pdf);
 }
 
 /* Volume sampling utilities. */

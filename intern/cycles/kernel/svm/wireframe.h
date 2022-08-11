@@ -14,6 +14,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline float wireframe(KernelGlobals kg,
                                   ccl_private ShaderData *sd,
+                                  const differential3 dP,
                                   float size,
                                   int pixel_size,
                                   ccl_private float3 *P)
@@ -46,8 +47,8 @@ ccl_device_inline float wireframe(KernelGlobals kg,
     if (pixel_size) {
       // Project the derivatives of P to the viewing plane defined
       // by I so we have a measure of how big is a pixel at this point
-      float pixelwidth_x = len(sd->dP.dx - dot(sd->dP.dx, sd->I) * sd->I);
-      float pixelwidth_y = len(sd->dP.dy - dot(sd->dP.dy, sd->I) * sd->I);
+      float pixelwidth_x = len(dP.dx - dot(dP.dx, sd->I) * sd->I);
+      float pixelwidth_y = len(dP.dy - dot(dP.dy, sd->I) * sd->I);
       // Take the average of both axis' length
       pixelwidth = (pixelwidth_x + pixelwidth_y) * 0.5f;
     }
@@ -86,16 +87,17 @@ ccl_device_noinline void svm_node_wireframe(KernelGlobals kg,
   int pixel_size = (int)use_pixel_size;
 
   /* Calculate wireframe */
-  float f = wireframe(kg, sd, size, pixel_size, &sd->P);
+  const differential3 dP = differential_from_compact(sd->Ng, sd->dP);
+  float f = wireframe(kg, sd, dP, size, pixel_size, &sd->P);
 
   /* TODO(sergey): Think of faster way to calculate derivatives. */
   if (bump_offset == NODE_BUMP_OFFSET_DX) {
-    float3 Px = sd->P - sd->dP.dx;
-    f += (f - wireframe(kg, sd, size, pixel_size, &Px)) / len(sd->dP.dx);
+    float3 Px = sd->P - dP.dx;
+    f += (f - wireframe(kg, sd, dP, size, pixel_size, &Px)) / len(dP.dx);
   }
   else if (bump_offset == NODE_BUMP_OFFSET_DY) {
-    float3 Py = sd->P - sd->dP.dy;
-    f += (f - wireframe(kg, sd, size, pixel_size, &Py)) / len(sd->dP.dy);
+    float3 Py = sd->P - dP.dy;
+    f += (f - wireframe(kg, sd, dP, size, pixel_size, &Py)) / len(dP.dy);
   }
 
   if (stack_valid(out_fac))

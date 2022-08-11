@@ -87,14 +87,10 @@ ccl_device Spectrum bsdf_ashikhmin_velvet_eval_transmit(ccl_private const Shader
 ccl_device int bsdf_ashikhmin_velvet_sample(ccl_private const ShaderClosure *sc,
                                             float3 Ng,
                                             float3 I,
-                                            float3 dIdx,
-                                            float3 dIdy,
                                             float randu,
                                             float randv,
                                             ccl_private Spectrum *eval,
                                             ccl_private float3 *omega_in,
-                                            ccl_private float3 *domega_in_dx,
-                                            ccl_private float3 *domega_in_dy,
                                             ccl_private float *pdf)
 {
   ccl_private const VelvetBsdf *bsdf = (ccl_private const VelvetBsdf *)sc;
@@ -130,12 +126,6 @@ ccl_device int bsdf_ashikhmin_velvet_sample(ccl_private const ShaderClosure *sc,
       float power = 0.25f * (D * G) / cosNO;
 
       *eval = make_spectrum(power);
-
-#ifdef __RAY_DIFFERENTIALS__
-      // TODO: find a better approximation for the retroreflective bounce
-      *domega_in_dx = (2 * dot(N, dIdx)) * N - dIdx;
-      *domega_in_dy = (2 * dot(N, dIdy)) * N - dIdy;
-#endif
     }
     else {
       *pdf = 0.0f;

@@ -15,14 +15,6 @@ ccl_device float fresnel_dielectric(float eta,
                                     const float3 I,
                                     ccl_private float3 *R,
                                     ccl_private float3 *T,
-#ifdef __RAY_DIFFERENTIALS__
-                                    const float3 dIdx,
-                                    const float3 dIdy,
-                                    ccl_private float3 *dRdx,
-                                    ccl_private float3 *dRdy,
-                                    ccl_private float3 *dTdx,
-                                    ccl_private float3 *dTdy,
-#endif
                                     ccl_private bool *is_inside)
 {
   float cos = dot(N, I), neta;
@@ -45,28 +37,16 @@ ccl_device float fresnel_dielectric(float eta,
 
   // compute reflection
   *R = (2 * cos) * Nn - I;
-#ifdef __RAY_DIFFERENTIALS__
-  *dRdx = (2 * dot(Nn, dIdx)) * Nn - dIdx;
-  *dRdy = (2 * dot(Nn, dIdy)) * Nn - dIdy;
-#endif
 
   float arg = 1 - (neta * neta * (1 - (cos * cos)));
   if (arg < 0) {
     *T = make_float3(0.0f, 0.0f, 0.0f);
-#ifdef __RAY_DIFFERENTIALS__
-    *dTdx = make_float3(0.0f, 0.0f, 0.0f);
-    *dTdy = make_float3(0.0f, 0.0f, 0.0f);
-#endif
     return 1;  // total internal reflection
   }
   else {
     float dnp = max(sqrtf(arg), 1e-7f);
     float nK = (neta * cos) - dnp;
     *T = -(neta * I) + (nK * Nn);
-#ifdef __RAY_DIFFERENTIALS__
-    *dTdx = -(neta * dIdx) + ((neta - neta * neta * cos / dnp) * dot(dIdx, Nn)) * Nn;
-    *dTdy = -(neta * dIdy) + ((neta - neta * neta * cos / dnp) * dot(dIdy, Nn)) * Nn;
-#endif
     // compute Fresnel terms
     float cosTheta1 = cos;  // N.R
     float cosTheta2 = -dot(Nn, *T);

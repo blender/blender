@@ -1102,8 +1102,9 @@ bool OSLRenderServices::get_background_attribute(const KernelGlobalsCPU *kg,
       ndc[0] = camera_world_to_ndc(kg, sd, sd->P);
 
       if (derivatives) {
-        ndc[1] = camera_world_to_ndc(kg, sd, sd->P + sd->dP.dx) - ndc[0];
-        ndc[2] = camera_world_to_ndc(kg, sd, sd->P + sd->dP.dy) - ndc[0];
+        const differential3 dP = differential_from_compact(sd->Ng, sd->dP);
+        ndc[1] = camera_world_to_ndc(kg, sd, sd->P + dP.dx) - ndc[0];
+        ndc[2] = camera_world_to_ndc(kg, sd, sd->P + dP.dy) - ndc[0];
       }
     }
 
@@ -1755,11 +1756,13 @@ bool OSLRenderServices::getmessage(OSL::ShaderGlobals *sg,
           return set_attribute_float3(sd->Ng, type, derivatives, val);
         }
         else if (name == u_P) {
-          float3 f[3] = {sd->P, sd->dP.dx, sd->dP.dy};
+          const differential3 dP = differential_from_compact(sd->Ng, sd->dP);
+          float3 f[3] = {sd->P, dP.dx, dP.dy};
           return set_attribute_float3(f, type, derivatives, val);
         }
         else if (name == u_I) {
-          float3 f[3] = {sd->I, sd->dI.dx, sd->dI.dy};
+          const differential3 dI = differential_from_compact(sd->I, sd->dI);
+          float3 f[3] = {sd->I, dI.dx, dI.dy};
           return set_attribute_float3(f, type, derivatives, val);
         }
         else if (name == u_u) {

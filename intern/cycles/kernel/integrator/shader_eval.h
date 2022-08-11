@@ -339,7 +339,6 @@ ccl_device int shader_bsdf_sample_closure(KernelGlobals kg,
                                           float randv,
                                           ccl_private BsdfEval *bsdf_eval,
                                           ccl_private float3 *omega_in,
-                                          ccl_private differential3 *domega_in,
                                           ccl_private float *pdf)
 {
   /* BSSRDF should already have been handled elsewhere. */
@@ -349,7 +348,7 @@ ccl_device int shader_bsdf_sample_closure(KernelGlobals kg,
   Spectrum eval = zero_spectrum();
 
   *pdf = 0.0f;
-  label = bsdf_sample(kg, sd, sc, randu, randv, &eval, omega_in, domega_in, pdf);
+  label = bsdf_sample(kg, sd, sc, randu, randv, &eval, omega_in, pdf);
 
   if (*pdf != 0.0f) {
     bsdf_eval_init(bsdf_eval, sc->type, eval * sc->weight);
@@ -708,7 +707,6 @@ ccl_device int shader_volume_phase_sample(KernelGlobals kg,
                                           float randv,
                                           ccl_private BsdfEval *phase_eval,
                                           ccl_private float3 *omega_in,
-                                          ccl_private differential3 *domega_in,
                                           ccl_private float *pdf)
 {
   int sampled = 0;
@@ -751,7 +749,7 @@ ccl_device int shader_volume_phase_sample(KernelGlobals kg,
   Spectrum eval = zero_spectrum();
 
   *pdf = 0.0f;
-  label = volume_phase_sample(sd, svc, randu, randv, &eval, omega_in, domega_in, pdf);
+  label = volume_phase_sample(sd, svc, randu, randv, &eval, omega_in, pdf);
 
   if (*pdf != 0.0f) {
     bsdf_eval_init(phase_eval, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID, eval);
@@ -767,14 +765,13 @@ ccl_device int shader_phase_sample_closure(KernelGlobals kg,
                                            float randv,
                                            ccl_private BsdfEval *phase_eval,
                                            ccl_private float3 *omega_in,
-                                           ccl_private differential3 *domega_in,
                                            ccl_private float *pdf)
 {
   int label;
   Spectrum eval = zero_spectrum();
 
   *pdf = 0.0f;
-  label = volume_phase_sample(sd, sc, randu, randv, &eval, omega_in, domega_in, pdf);
+  label = volume_phase_sample(sd, sc, randu, randv, &eval, omega_in, pdf);
 
   if (*pdf != 0.0f)
     bsdf_eval_init(phase_eval, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID, eval);

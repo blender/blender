@@ -873,10 +873,10 @@ typedef struct ccl_align(16) ShaderData
   float ray_length;
 
 #ifdef __RAY_DIFFERENTIALS__
-  /* differential of P. these are orthogonal to Ng, not N */
-  differential3 dP;
-  /* differential of I */
-  differential3 dI;
+  /* Radius of differential of P. */
+  float dP;
+  /* Radius of differential of I. */
+  float dI;
   /* differential of u, v */
   differential du;
   differential dv;
