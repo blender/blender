@@ -444,18 +444,20 @@ struct ID *BKE_id_copy(struct Main *bmain, const struct ID *id);
  * Currently, it only handles the given ID, and their shape keys and actions if any, according to
  * the given `duplicate_flags`.
  *
- * \param duplicate_flags is of type #eDupli_ID_Flags, see #UserDef.dupflag. Currently only
+ * \param duplicate_flags: is of type #eDupli_ID_Flags, see #UserDef.dupflag. Currently only
  * `USER_DUP_LINKED_ID` and `USER_DUP_ACT` have an effect here.
- * \param copy_flags flags passed to #BKE_id_copy_ex.
+ * \param copy_flags: flags passed to #BKE_id_copy_ex.
  */
 struct ID *BKE_id_copy_for_duplicate(struct Main *bmain,
                                      struct ID *id,
                                      uint duplicate_flags,
                                      int copy_flags);
 
-/* Special version of BKE_id_copy which is safe from using evaluated id as source with a copy
+/**
+ * Special version of #BKE_id_copy which is safe from using evaluated id as source with a copy
  * result appearing in the main database.
- * Takes care of the referenced data-blocks consistency. */
+ * Takes care of the referenced data-blocks consistency.
+ */
 struct ID *BKE_id_copy_for_use_in_bmain(struct Main *bmain, const struct ID *id);
 
 /**

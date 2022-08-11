@@ -6136,7 +6136,7 @@ class VIEW3D_PT_shading_compositor(Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.space_data.shading.type in ('MATERIAL', 'RENDERED') and
+        return (context.space_data.shading.type in {'MATERIAL', 'RENDERED'} and
                 context.preferences.experimental.use_realtime_compositor)
 
     def draw(self, context):
