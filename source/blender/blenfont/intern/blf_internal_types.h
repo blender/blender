@@ -323,9 +323,6 @@ typedef struct FontBLF {
   /* freetype2 lib handle. */
   FT_Library ft_lib;
 
-  /* Mutex lock for library */
-  SpinLock *ft_lib_mutex;
-
   /* freetype2 face. */
   FT_Face face;
 
@@ -339,7 +336,7 @@ typedef struct FontBLF {
   FontBufInfoBLF buf_info;
 
   /* Mutex lock for glyph cache. */
-  SpinLock *glyph_cache_mutex;
+  ThreadMutex glyph_cache_mutex;
 } FontBLF;
 
 typedef struct DirBLF {

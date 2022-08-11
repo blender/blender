@@ -56,8 +56,8 @@ BatchBLF g_batch;
 /* freetype2 handle ONLY for this file! */
 static FT_Library ft_lib = NULL;
 
-static SpinLock ft_lib_mutex;
-static SpinLock blf_glyph_cache_mutex;
+/* Lock for FreeType library, used around face creation and deletion.  */
+static ThreadMutex ft_lib_mutex;
 
 /* May be set to #UI_widgetbase_draw_cache_flush. */
 static void (*blf_draw_cache_flush)(void) = NULL;
@@ -1162,19 +1162,17 @@ char *blf_display_name(FontBLF *font)
 int blf_font_init(void)
 {
   memset(&g_batch, 0, sizeof(g_batch));
-  BLI_spin_init(&ft_lib_mutex);
-  BLI_spin_init(&blf_glyph_cache_mutex);
+  BLI_mutex_init(&ft_lib_mutex);
   int err = FT_Init_FreeType(&ft_lib);
   return err;
 }
 
 void blf_font_exit(void)
 {
-  BLI_spin_end(&ft_lib_mutex);
+  BLI_mutex_end(&ft_lib_mutex);
   if (ft_lib) {
     FT_Done_FreeType(ft_lib);
   }
-  BLI_spin_end(&blf_glyph_cache_mutex);
   blf_batch_draw_exit();
 }
 
@@ -1233,8 +1231,6 @@ static void blf_font_fill(FontBLF *font)
   font->buf_info.col_init[3] = 0;
 
   font->ft_lib = ft_lib;
-  font->ft_lib_mutex = &ft_lib_mutex;
-  font->glyph_cache_mutex = &blf_glyph_cache_mutex;
 }
 
 /**
@@ -1252,12 +1248,14 @@ bool blf_ensure_face(FontBLF *font)
 
   FT_Error err;
 
+  BLI_mutex_lock(&ft_lib_mutex);
   if (font->filepath) {
     err = FT_New_Face(ft_lib, font->filepath, 0, &font->face);
   }
   if (font->mem) {
     err = FT_New_Memory_Face(ft_lib, font->mem, (FT_Long)font->mem_size, 0, &font->face);
   }
+  BLI_mutex_unlock(&ft_lib_mutex);
 
   if (err) {
     if (ELEM(err, FT_Err_Unknown_File_Format, FT_Err_Unimplemented_Feature)) {
@@ -1384,6 +1382,8 @@ static FontBLF *blf_font_new_ex(const char *name,
   }
   blf_font_fill(font);
 
+  BLI_mutex_init(&font->glyph_cache_mutex);
+
   /* If we have static details about this font we don't need to load the Face. */
   const eFaceDetails *static_details = NULL;
   char filename[256];
@@ -1450,7 +1450,9 @@ void blf_font_free(FontBLF *font)
   }
 
   if (font->face) {
+    BLI_mutex_lock(&ft_lib_mutex);
     FT_Done_Face(font->face);
+    BLI_mutex_unlock(&ft_lib_mutex);
     font->face = NULL;
   }
   if (font->filepath) {
@@ -1459,6 +1461,9 @@ void blf_font_free(FontBLF *font)
   if (font->name) {
     MEM_freeN(font->name);
   }
+
+  BLI_mutex_end(&font->glyph_cache_mutex);
+
   MEM_freeN(font);
 }
 

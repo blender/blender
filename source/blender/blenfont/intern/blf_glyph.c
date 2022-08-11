@@ -115,7 +115,7 @@ static GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 
 GlyphCacheBLF *blf_glyph_cache_acquire(FontBLF *font)
 {
-  BLI_spin_lock(font->glyph_cache_mutex);
+  BLI_mutex_lock(&font->glyph_cache_mutex);
 
   GlyphCacheBLF *gc = blf_glyph_cache_find(font, font->size, font->dpi);
 
@@ -128,7 +128,7 @@ GlyphCacheBLF *blf_glyph_cache_acquire(FontBLF *font)
 
 void blf_glyph_cache_release(FontBLF *font)
 {
-  BLI_spin_unlock(font->glyph_cache_mutex);
+  BLI_mutex_unlock(&font->glyph_cache_mutex);
 }
 
 static void blf_glyph_cache_free(GlyphCacheBLF *gc)
@@ -152,13 +152,13 @@ void blf_glyph_cache_clear(FontBLF *font)
 {
   GlyphCacheBLF *gc;
 
-  BLI_spin_lock(font->glyph_cache_mutex);
+  BLI_mutex_lock(&font->glyph_cache_mutex);
 
   while ((gc = BLI_pophead(&font->cache))) {
     blf_glyph_cache_free(gc);
   }
 
-  BLI_spin_unlock(font->glyph_cache_mutex);
+  BLI_mutex_unlock(&font->glyph_cache_mutex);
 }
 
 /**
