@@ -242,25 +242,7 @@ void import_blendshapes(Main *bmain, Object *obj, pxr::UsdPrim prim)
     }
   }
 
-  if (!skel_api.GetSkeletonRel().HasAuthoredTargets()) {
-    return;
-  }
-
-  pxr::UsdRelationship skel_rel = skel_api.GetSkeletonRel();
-
-  if (!skel_api.GetSkeletonRel().GetTargets(&targets)) {
-    std::cout << "Couldn't get skeleton targets for prim " << prim.GetPath() << std::endl;
-    return;
-  }
-
-  if (targets.empty()) {
-    return;
-  }
-
-  /* TODO(makowalski): do we need to account for multiple skeleton targets? */
-  pxr::SdfPath skel_path = targets.front();
-
-  pxr::UsdSkelSkeleton skel_prim(stage->GetPrimAtPath(skel_path));
+  pxr::UsdSkelSkeleton skel_prim = skel_api.GetInheritedSkeleton();
 
   if (!skel_prim) {
     return;
@@ -272,8 +254,9 @@ void import_blendshapes(Main *bmain, Object *obj, pxr::UsdPrim prim)
     return;
   }
 
-  pxr::UsdPrim anim_prim;
-  if (!skel_api.GetAnimationSource(&anim_prim)) {
+  pxr::UsdPrim anim_prim = skel_api.GetInheritedAnimationSource();
+
+  if (!anim_prim) {
     return;
   }
 
@@ -320,8 +303,10 @@ void import_blendshapes(Main *bmain, Object *obj, pxr::UsdPrim prim)
   for (auto blendshape_name : blendshapes) {
 
     if (shapekey_names.find(blendshape_name) == shapekey_names.end()) {
-      printf("Warning: blendshape %s doesn't match any shapekey name\n",
-             blendshape_name.GetString().c_str());
+      /* We didn't create a shapekey fo this blendshape, so we don't
+       * create a curve and insert a null placeholder in the curve array. */
+      curves.push_back(nullptr);
+      continue;
     }
 
     std::string rna_path = "key_blocks[\"" + blendshape_name.GetString() + "\"].value";
@@ -339,12 +324,14 @@ void import_blendshapes(Main *bmain, Object *obj, pxr::UsdPrim prim)
     }
 
     if (weights.size() != curves.size()) {
-      std::cout << "Programmer error: number of weight samples doesn't match number of shapekey curves for time " << time << std::endl;
+      std::cout << "Programmer error: number of weight samples doesn't match number of shapekey curve entries for time " << time << std::endl;
       continue;
     }
 
     for (int wi = 0; wi < weights.size(); ++wi) {
-      add_bezt(curves[wi], frame, weights[wi]);
+      if (curves[wi] != nullptr) {
+        add_bezt(curves[wi], frame, weights[wi]);
+      }
     }
   }
 
