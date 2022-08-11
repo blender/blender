@@ -2489,7 +2489,7 @@ static void xdg_output_handle_logical_size(void *data,
      * done (we can't match exactly because fractional scaling can't be
      * detected otherwise), then override if necessary. */
     if ((output->size_logical[0] == width) && (output->scale_fractional == wl_fixed_from_int(1))) {
-      GHOST_PRINT("xdg_output scale did not match, overriding with wl_output scale");
+      GHOST_PRINT("xdg_output scale did not match, overriding with wl_output scale\n");
 
 #ifdef USE_GNOME_CONFINE_HACK
       /* Use a bug in GNOME to check GNOME is in use. If the bug is fixed this won't cause an issue
