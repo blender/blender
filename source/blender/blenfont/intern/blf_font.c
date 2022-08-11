@@ -70,7 +70,7 @@ static ft_pix blf_font_width_max_ft_pix(struct FontBLF *font);
 /* Return glyph id from charcode. */
 uint blf_get_char_index(struct FontBLF *font, uint charcode)
 {
-  return FT_Get_Char_Index(font->face, charcode);
+  return blf_ensure_face(font) ? FT_Get_Char_Index(font->face, charcode) : 0;
 }
 
 /* -------------------------------------------------------------------- */
