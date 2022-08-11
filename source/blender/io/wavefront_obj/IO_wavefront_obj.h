@@ -75,6 +75,7 @@ struct OBJImportParams {
   bool import_vertex_groups;
   bool validate_meshes;
   bool relative_paths;
+  bool clear_selection;
 };
 
 /**
