@@ -5,6 +5,18 @@
 /** \name Math intersection & projection functions.
  * \{ */
 
+vec4 plane_from_quad(vec3 v0, vec3 v1, vec3 v2, vec3 v3)
+{
+  vec3 nor = normalize(cross(v2 - v1, v0 - v1) + cross(v0 - v3, v2 - v3));
+  return vec4(nor, -dot(nor, v2));
+}
+
+vec4 plane_from_tri(vec3 v0, vec3 v1, vec3 v2)
+{
+  vec3 nor = normalize(cross(v2 - v1, v0 - v1));
+  return vec4(nor, -dot(nor, v2));
+}
+
 float point_plane_projection_dist(vec3 line_origin, vec3 plane_origin, vec3 plane_normal)
 {
   return dot(plane_normal, plane_origin - line_origin);

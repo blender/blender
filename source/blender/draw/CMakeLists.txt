@@ -437,10 +437,12 @@ set(GLSL_SRC
 
   engines/workbench/workbench_shader_shared.h
 
+  intern/shaders/common_aabb_lib.glsl
   intern/shaders/common_attribute_lib.glsl
   intern/shaders/common_colormanagement_lib.glsl
   intern/shaders/common_debug_draw_lib.glsl
   intern/shaders/common_debug_print_lib.glsl
+  intern/shaders/common_debug_shape_lib.glsl
   intern/shaders/common_fullscreen_vert.glsl
   intern/shaders/common_fxaa_lib.glsl
   intern/shaders/common_globals_lib.glsl
@@ -448,9 +450,11 @@ set(GLSL_SRC
   intern/shaders/common_hair_lib.glsl
   intern/shaders/common_hair_refine_comp.glsl
   intern/shaders/common_hair_refine_vert.glsl
+  intern/shaders/common_intersect_lib.glsl
   intern/shaders/common_math_geom_lib.glsl
   intern/shaders/common_math_lib.glsl
   intern/shaders/common_pointcloud_lib.glsl
+  intern/shaders/common_shape_lib.glsl
   intern/shaders/common_smaa_lib.glsl
   intern/shaders/common_subdiv_custom_data_interp_comp.glsl
   intern/shaders/common_subdiv_ibo_lines_comp.glsl
