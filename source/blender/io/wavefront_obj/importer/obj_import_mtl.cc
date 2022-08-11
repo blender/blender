@@ -342,7 +342,7 @@ void ShaderNodetreeWrap::set_bsdf_socket_values(Material *mat)
   if (emission_color.x >= 0 && emission_color.y >= 0 && emission_color.z >= 0) {
     set_property_of_socket(SOCK_RGBA, "Emission", {emission_color, 3}, bsdf_);
   }
-  if (mtl_mat_.texture_maps.contains_as(eMTLSyntaxElement::map_Ke)) {
+  if (mtl_mat_.tex_map_of_type(eMTLSyntaxElement::map_Ke).is_valid()) {
     set_property_of_socket(SOCK_FLOAT, "Emission Strength", {1.0f}, bsdf_);
   }
   set_property_of_socket(SOCK_FLOAT, "Specular", {specular}, bsdf_);
@@ -365,7 +365,7 @@ void ShaderNodetreeWrap::add_image_textures(Main *bmain, Material *mat, bool rel
 {
   for (const Map<const eMTLSyntaxElement, tex_map_XX>::Item texture_map :
        mtl_mat_.texture_maps.items()) {
-    if (texture_map.value.image_path.empty()) {
+    if (!texture_map.value.is_valid()) {
       /* No Image texture node of this map type can be added to this material. */
       continue;
     }
