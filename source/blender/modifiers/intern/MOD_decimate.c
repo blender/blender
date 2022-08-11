@@ -201,10 +201,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   updateFaceCount(ctx, dmd, bm->totface);
 
-  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
   /* make sure we never alloc'd these */
   BLI_assert(bm->vtoolflagpool == NULL && bm->etoolflagpool == NULL && bm->ftoolflagpool == NULL);
   BLI_assert(bm->vtable == NULL && bm->etable == NULL && bm->ftable == NULL);
+
+  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
 
   BM_mesh_free(bm);
 

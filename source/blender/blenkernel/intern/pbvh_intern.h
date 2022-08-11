@@ -144,10 +144,11 @@ struct PBVH {
   int leaf_limit;
 
   /* Mesh data */
-  const struct Mesh *mesh;
+  struct Mesh *mesh;
 
   /* NOTE: Normals are not `const` because they can be updated for drawing by sculpt code. */
   float (*vert_normals)[3];
+  bool *hide_vert;
   struct MVert *verts;
   const struct MPoly *mpoly;
   const struct MLoop *mloop;

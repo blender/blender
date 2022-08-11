@@ -335,14 +335,16 @@ static bool edbm_backbuf_check_and_select_verts_obmode(Mesh *me,
                                                        const eSelectOp sel_op)
 {
   MVert *mv = me->mvert;
-  uint index;
   bool changed = false;
 
   const BLI_bitmap *select_bitmap = esel->select_bitmap;
 
   if (mv) {
-    for (index = 0; index < me->totvert; index++, mv++) {
-      if (!(mv->flag & ME_HIDE)) {
+    const bool *hide_vert = (const bool *)CustomData_get_layer_named(
+        &me->vdata, CD_PROP_BOOL, ".hide_vert");
+
+    for (int index = 0; index < me->totvert; index++, mv++) {
+      if (!(hide_vert && hide_vert[index])) {
         const bool is_select = mv->flag & SELECT;
         const bool is_inside = BLI_BITMAP_TEST_BOOL(select_bitmap, index);
         const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
@@ -362,14 +364,16 @@ static bool edbm_backbuf_check_and_select_faces_obmode(Mesh *me,
                                                        const eSelectOp sel_op)
 {
   MPoly *mpoly = me->mpoly;
-  uint index;
   bool changed = false;
 
   const BLI_bitmap *select_bitmap = esel->select_bitmap;
 
   if (mpoly) {
-    for (index = 0; index < me->totpoly; index++, mpoly++) {
-      if (!(mpoly->flag & ME_HIDE)) {
+    const bool *hide_poly = (const bool *)CustomData_get_layer_named(
+        &me->vdata, CD_PROP_BOOL, ".hide_poly");
+
+    for (int index = 0; index < me->totpoly; index++, mpoly++) {
+      if (!(hide_poly && hide_poly[index])) {
         const bool is_select = mpoly->flag & ME_FACE_SEL;
         const bool is_inside = BLI_BITMAP_TEST_BOOL(select_bitmap, index);
         const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
@@ -1260,7 +1264,7 @@ static bool do_lasso_select_paintface(ViewContext *vc,
   }
 
   if (changed) {
-    paintface_flush_flags(vc->C, ob, SELECT);
+    paintface_flush_flags(vc->C, ob, true, false);
   }
   return changed;
 }
@@ -3192,7 +3196,7 @@ static bool do_paintface_box_select(ViewContext *vc,
   }
 
   if (changed) {
-    paintface_flush_flags(vc->C, vc->obact, SELECT);
+    paintface_flush_flags(vc->C, vc->obact, true, false);
   }
   return changed;
 }
@@ -4093,7 +4097,7 @@ static bool paint_facesel_circle_select(ViewContext *vc,
   }
 
   if (changed) {
-    paintface_flush_flags(vc->C, ob, SELECT);
+    paintface_flush_flags(vc->C, ob, true, false);
   }
   return changed;
 }

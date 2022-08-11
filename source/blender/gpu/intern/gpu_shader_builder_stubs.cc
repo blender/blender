@@ -137,7 +137,7 @@ eAttrDomain BKE_id_attribute_domain(const struct ID *UNUSED(id),
 /** \name Stubs of BKE_paint.h
  * \{ */
 bool paint_is_face_hidden(const struct MLoopTri *UNUSED(lt),
-                          const struct MVert *UNUSED(mvert),
+                          const bool *UNUSED(hide_vert),
                           const struct MLoop *UNUSED(mloop))
 {
   BLI_assert_unreachable();

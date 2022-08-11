@@ -1034,6 +1034,7 @@ static void vgroup_select_verts(Object *ob, int select)
     }
     else {
       if (me->dvert) {
+        const bool *hide_vert = CustomData_get_layer_named(&me->vdata, CD_PROP_BOOL, ".hide_vert");
         MVert *mv;
         MDeformVert *dv;
         int i;
@@ -1042,7 +1043,7 @@ static void vgroup_select_verts(Object *ob, int select)
         dv = me->dvert;
 
         for (i = 0; i < me->totvert; i++, mv++, dv++) {
-          if (!(mv->flag & ME_HIDE)) {
+          if (hide_vert != NULL && !hide_vert[i]) {
             if (BKE_defvert_find_index(dv, def_nr)) {
               if (select) {
                 mv->flag |= SELECT;
@@ -1930,7 +1931,11 @@ static void vgroup_smooth_subset(Object *ob,
 #define IS_BM_VERT_READ(v) (use_hide ? (BM_elem_flag_test(v, BM_ELEM_HIDDEN) == 0) : true)
 #define IS_BM_VERT_WRITE(v) (use_select ? (BM_elem_flag_test(v, BM_ELEM_SELECT) != 0) : true)
 
-#define IS_ME_VERT_READ(v) (use_hide ? (((v)->flag & ME_HIDE) == 0) : true)
+  const bool *hide_vert = me ? (const bool *)CustomData_get_layer_named(
+                                   &me->vdata, CD_PROP_BOOL, ".hide_vert") :
+                               NULL;
+
+#define IS_ME_VERT_READ(v) (use_hide ? (hide_vert && hide_vert[v]) : true)
 #define IS_ME_VERT_WRITE(v) (use_select ? (((v)->flag & SELECT) != 0) : true)
 
   /* initialize used verts */
@@ -1956,8 +1961,8 @@ static void vgroup_smooth_subset(Object *ob,
       if (IS_ME_VERT_WRITE(v)) {
         for (int j = 0; j < emap[i].count; j++) {
           const MEdge *e = &me->medge[emap[i].indices[j]];
-          const MVert *v_other = &me->mvert[(e->v1 == i) ? e->v2 : e->v1];
-          if (IS_ME_VERT_READ(v_other)) {
+          const int i_other = (e->v1 == i) ? e->v2 : e->v1;
+          if (IS_ME_VERT_READ(i_other)) {
             STACK_PUSH(verts_used, i);
             break;
           }
@@ -2031,9 +2036,7 @@ static void vgroup_smooth_subset(Object *ob,
           for (j = 0; j < emap[i].count; j++) {
             MEdge *e = &me->medge[emap[i].indices[j]];
             const int i_other = (e->v1 == i ? e->v2 : e->v1);
-            MVert *v_other = &me->mvert[i_other];
-
-            if (IS_ME_VERT_READ(v_other)) {
+            if (IS_ME_VERT_READ(i_other)) {
               WEIGHT_ACCUMULATE;
             }
           }

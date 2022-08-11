@@ -205,6 +205,7 @@ typedef struct foreachScreenObjectVert_userData {
   void (*func)(void *userData, MVert *mv, const float screen_co[2], int index);
   void *userData;
   ViewContext vc;
+  const bool *hide_vert;
   eV3DProjTest clip_flag;
 } foreachScreenObjectVert_userData;
 
@@ -262,18 +263,19 @@ static void meshobject_foreachScreenVert__mapFunc(void *userData,
                                                   const float UNUSED(no[3]))
 {
   foreachScreenObjectVert_userData *data = userData;
+  if (data->hide_vert && data->hide_vert[index]) {
+    return;
+  }
   struct MVert *mv = &((Mesh *)(data->vc.obact->data))->mvert[index];
 
-  if (!(mv->flag & ME_HIDE)) {
-    float screen_co[2];
+  float screen_co[2];
 
-    if (ED_view3d_project_float_object(data->vc.region, co, screen_co, data->clip_flag) !=
-        V3D_PROJ_RET_OK) {
-      return;
-    }
-
-    data->func(data->userData, mv, screen_co, index);
+  if (ED_view3d_project_float_object(data->vc.region, co, screen_co, data->clip_flag) !=
+      V3D_PROJ_RET_OK) {
+    return;
   }
+
+  data->func(data->userData, mv, screen_co, index);
 }
 
 void meshobject_foreachScreenVert(
@@ -297,6 +299,8 @@ void meshobject_foreachScreenVert(
   data.func = func;
   data.userData = userData;
   data.clip_flag = clip_flag;
+  data.hide_vert = (const bool *)CustomData_get_layer_named(
+      &me->vdata, CD_PROP_BOOL, ".hide_vert");
 
   if (clip_flag & V3D_PROJ_TEST_CLIP_BB) {
     ED_view3d_clipping_local(vc->rv3d, vc->obact->obmat);

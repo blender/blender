@@ -30,10 +30,13 @@ typedef struct MVert {
 } MVert;
 
 /** #MVert.flag */
+
+#ifdef DNA_DEPRECATED_ALLOW
 enum {
   /*  SELECT = (1 << 0), */
   ME_HIDE = (1 << 4),
 };
+#endif
 
 /**
  * Mesh Edges.
@@ -351,7 +354,7 @@ typedef struct MDisps {
 
   /**
    * Used for hiding parts of a multires mesh.
-   * Essentially the multires equivalent of #MVert.flag's ME_HIDE bit.
+   * Essentially the multires equivalent of the mesh ".hide_vert" boolean layer.
    *
    * \note This is a bitmap, keep in sync with type used in BLI_bitmap.h
    */

@@ -390,7 +390,10 @@ void ED_keymap_mesh(struct wmKeyConfig *keyconf);
  * Copy the face flags, most importantly selection from the mesh to the final derived mesh,
  * use in object mode when selecting faces (while painting).
  */
-void paintface_flush_flags(struct bContext *C, struct Object *ob, short flag);
+void paintface_flush_flags(struct bContext *C,
+                           struct Object *ob,
+                           bool flush_selection,
+                           bool flush_hidden);
 /**
  * \return True when pick finds an element or the selection changed.
  */

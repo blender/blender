@@ -27,6 +27,8 @@
 
 #include "MEM_guardedalloc.h"
 
+using blender::VArray;
+
 /* -------------------------------------------------------------------- */
 /** \name BVHCache
  * \{ */
@@ -1181,9 +1183,13 @@ static BLI_bitmap *loose_edges_map_get(const MEdge *medge,
 }
 
 static BLI_bitmap *looptri_no_hidden_map_get(const MPoly *mpoly,
+                                             const VArray<bool> &hide_poly,
                                              const int looptri_len,
                                              int *r_looptri_active_len)
 {
+  if (hide_poly.is_single() && !hide_poly.get_internal_single()) {
+    return nullptr;
+  }
   BLI_bitmap *looptri_mask = BLI_BITMAP_NEW(looptri_len, __func__);
 
   int looptri_no_hidden_len = 0;
@@ -1191,8 +1197,7 @@ static BLI_bitmap *looptri_no_hidden_map_get(const MPoly *mpoly,
   int i_poly = 0;
   while (looptri_iter != looptri_len) {
     int mp_totlooptri = mpoly[i_poly].totloop - 2;
-    const MPoly &mp = mpoly[i_poly];
-    if (mp.flag & ME_HIDE) {
+    if (hide_poly[i_poly]) {
       looptri_iter += mp_totlooptri;
     }
     else {
@@ -1276,9 +1281,15 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
           0.0f, tree_type, 6, mesh->mvert, mesh->mface, mesh->totface, nullptr, -1);
       break;
 
-    case BVHTREE_FROM_LOOPTRI_NO_HIDDEN:
-      mask = looptri_no_hidden_map_get(mesh->mpoly, looptri_len, &mask_bits_act_len);
+    case BVHTREE_FROM_LOOPTRI_NO_HIDDEN: {
+      blender::bke::AttributeAccessor attributes = blender::bke::mesh_attributes(*mesh);
+      mask = looptri_no_hidden_map_get(
+          mesh->mpoly,
+          attributes.lookup_or_default(".hide_poly", ATTR_DOMAIN_FACE, false),
+          looptri_len,
+          &mask_bits_act_len);
       ATTR_FALLTHROUGH;
+    }
     case BVHTREE_FROM_LOOPTRI:
       data->tree = bvhtree_from_mesh_looptri_create_tree(0.0f,
                                                          tree_type,

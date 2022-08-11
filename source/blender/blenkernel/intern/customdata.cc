@@ -26,6 +26,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_mempool.h"
 #include "BLI_path_util.h"
+#include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
@@ -58,6 +59,7 @@
 #include "data_transfer_intern.h"
 
 using blender::IndexRange;
+using blender::Set;
 using blender::Span;
 using blender::StringRef;
 using blender::Vector;
@@ -2342,6 +2344,43 @@ bool CustomData_merge(const CustomData *source,
   return changed;
 }
 
+static bool attribute_stored_in_bmesh_flag(const StringRef name)
+{
+  return ELEM(name, ".hide_vert", ".hide_edge", ".hide_poly");
+}
+
+static CustomData shallow_copy_remove_non_bmesh_attributes(const CustomData &src)
+{
+  Vector<CustomDataLayer> dst_layers;
+  for (const CustomDataLayer &layer : Span<CustomDataLayer>{src.layers, src.totlayer}) {
+    if (!attribute_stored_in_bmesh_flag(layer.name)) {
+      dst_layers.append(layer);
+    }
+  }
+
+  CustomData dst = src;
+  dst.layers = static_cast<CustomDataLayer *>(
+      MEM_calloc_arrayN(dst_layers.size(), sizeof(CustomDataLayer), __func__));
+  dst.totlayer = dst_layers.size();
+  memcpy(dst.layers, dst_layers.data(), dst_layers.as_span().size_in_bytes());
+
+  CustomData_update_typemap(&dst);
+
+  return dst;
+}
+
+bool CustomData_merge_mesh_to_bmesh(const CustomData *source,
+                                    CustomData *dest,
+                                    const eCustomDataMask mask,
+                                    const eCDAllocType alloctype,
+                                    const int totelem)
+{
+  CustomData source_copy = shallow_copy_remove_non_bmesh_attributes(*source);
+  const bool result = CustomData_merge(&source_copy, dest, mask, alloctype, totelem);
+  MEM_SAFE_FREE(source_copy.layers);
+  return result;
+}
+
 void CustomData_realloc(CustomData *data, const int totelem)
 {
   BLI_assert(totelem >= 0);
@@ -2371,6 +2410,17 @@ void CustomData_copy(const CustomData *source,
   }
 
   CustomData_merge(source, dest, mask, alloctype, totelem);
+}
+
+void CustomData_copy_mesh_to_bmesh(const CustomData *source,
+                                   CustomData *dest,
+                                   const eCustomDataMask mask,
+                                   const eCDAllocType alloctype,
+                                   const int totelem)
+{
+  CustomData source_copy = shallow_copy_remove_non_bmesh_attributes(*source);
+  CustomData_copy(&source_copy, dest, mask, alloctype, totelem);
+  MEM_SAFE_FREE(source_copy.layers);
 }
 
 static void customData_free_layer__internal(CustomDataLayer *layer, const int totelem)
@@ -4303,13 +4353,18 @@ void CustomData_file_write_info(int type, const char **r_struct_name, int *r_str
   *r_struct_num = typeInfo->structnum;
 }
 
-void CustomData_blend_write_prepare(CustomData &data, Vector<CustomDataLayer, 16> &layers_to_write)
+void CustomData_blend_write_prepare(CustomData &data,
+                                    Vector<CustomDataLayer, 16> &layers_to_write,
+                                    const Set<StringRef> &skip_names)
 {
   for (const CustomDataLayer &layer : Span(data.layers, data.totlayer)) {
     if (layer.flag & CD_FLAG_NOCOPY) {
       continue;
     }
     if (layer.anonymous_id != nullptr) {
+      continue;
+    }
+    if (skip_names.contains(layer.name)) {
       continue;
     }
     layers_to_write.append(layer);

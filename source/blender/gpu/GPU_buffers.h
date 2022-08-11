@@ -48,7 +48,6 @@ typedef struct GPU_PBVH_Buffers GPU_PBVH_Buffers;
  * Threaded: do not call any functions that use OpenGL calls!
  */
 GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const struct Mesh *mesh,
-                                              const struct MVert *vertices,
                                               const struct MLoopTri *looptri,
                                               const int *sculpt_face_sets,
                                               const int *face_indices,

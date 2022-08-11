@@ -346,14 +346,13 @@ static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode, bool 
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 
-  if (unode->maxvert) {
-    MVert *mvert = ss->mvert;
+  bool *hide_vert = BKE_pbvh_get_vert_hide_for_write(ss->pbvh);
 
+  if (unode->maxvert) {
     for (int i = 0; i < unode->totvert; i++) {
-      MVert *v = &mvert[unode->index[i]];
-      if ((BLI_BITMAP_TEST(unode->vert_hidden, i) != 0) != ((v->flag & ME_HIDE) != 0)) {
+      if ((BLI_BITMAP_TEST(unode->vert_hidden, i) != 0) != hide_vert[i]) {
         BLI_BITMAP_FLIP(unode->vert_hidden, i);
-        v->flag ^= ME_HIDE;
+        hide_vert[unode->index[i]] = !hide_vert[i];
         modified_vertices[unode->index[i]] = true;
       }
     }
@@ -1247,6 +1246,11 @@ static void sculpt_undo_store_hidden(Object *ob, SculptUndoNode *unode)
   PBVH *pbvh = ob->sculpt->pbvh;
   PBVHNode *node = unode->node;
 
+  const bool *hide_vert = BKE_pbvh_get_vert_hide(pbvh);
+  if (hide_vert == NULL) {
+    return;
+  }
+
   if (unode->grids) {
     /* Already stored during allocation. */
   }
@@ -1258,7 +1262,7 @@ static void sculpt_undo_store_hidden(Object *ob, SculptUndoNode *unode)
     BKE_pbvh_node_num_verts(pbvh, node, NULL, &allvert);
     BKE_pbvh_node_get_verts(pbvh, node, &vert_indices, &mvert);
     for (int i = 0; i < allvert; i++) {
-      BLI_BITMAP_SET(unode->vert_hidden, i, mvert[vert_indices[i]].flag & ME_HIDE);
+      BLI_BITMAP_SET(unode->vert_hidden, i, hide_vert[vert_indices[i]]);
     }
   }
 }

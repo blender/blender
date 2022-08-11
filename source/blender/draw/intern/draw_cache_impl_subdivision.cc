@@ -668,7 +668,9 @@ static void draw_subdiv_cache_extra_coarse_face_data_bm(BMesh *bm,
   }
 }
 
-static void draw_subdiv_cache_extra_coarse_face_data_mesh(Mesh *mesh, uint32_t *flags_data)
+static void draw_subdiv_cache_extra_coarse_face_data_mesh(const MeshRenderData *mr,
+                                                          Mesh *mesh,
+                                                          uint32_t *flags_data)
 {
   for (int i = 0; i < mesh->totpoly; i++) {
     uint32_t flag = 0;
@@ -678,7 +680,7 @@ static void draw_subdiv_cache_extra_coarse_face_data_mesh(Mesh *mesh, uint32_t *
     if ((mesh->mpoly[i].flag & ME_FACE_SEL) != 0) {
       flag |= SUBDIV_COARSE_FACE_FLAG_SELECT;
     }
-    if ((mesh->mpoly[i].flag & ME_HIDE) != 0) {
+    if (mr->hide_poly && mr->hide_poly[i]) {
       flag |= SUBDIV_COARSE_FACE_FLAG_HIDDEN;
     }
     flags_data[i] = (uint)(mesh->mpoly[i].loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
@@ -691,7 +693,7 @@ static void draw_subdiv_cache_extra_coarse_face_data_mapped(Mesh *mesh,
                                                             uint32_t *flags_data)
 {
   if (bm == nullptr) {
-    draw_subdiv_cache_extra_coarse_face_data_mesh(mesh, flags_data);
+    draw_subdiv_cache_extra_coarse_face_data_mesh(mr, mesh, flags_data);
     return;
   }
 
@@ -726,7 +728,7 @@ static void draw_subdiv_cache_update_extra_coarse_face_data(DRWSubdivCache *cach
     draw_subdiv_cache_extra_coarse_face_data_mapped(mesh, cache->bm, mr, flags_data);
   }
   else {
-    draw_subdiv_cache_extra_coarse_face_data_mesh(mesh, flags_data);
+    draw_subdiv_cache_extra_coarse_face_data_mesh(mr, mesh, flags_data);
   }
 
   /* Make sure updated data is re-uploaded. */

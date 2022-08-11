@@ -228,9 +228,9 @@ static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCa
     }
   }
   else {
-    const MPoly *mp = &mr->mpoly[0];
-    for (int i = 0; i < mr->poly_len; i++, mp++) {
-      if (!(mr->use_hide && (mp->flag & ME_HIDE))) {
+    for (int i = 0; i < mr->poly_len; i++) {
+      if (!(mr->use_hide && mr->hide_poly && mr->hide_poly[i])) {
+        const MPoly *mp = &mr->mpoly[i];
         const int mat = min_ii(mp->mat_nr, mat_last);
         tri_first_index[i] = mat_tri_offs[mat];
         mat_tri_offs[mat] += mp->totloop - 2;
@@ -269,7 +269,7 @@ static void mesh_render_data_mat_tri_len_mesh_range_fn(void *__restrict userdata
   int *mat_tri_len = static_cast<int *>(tls->userdata_chunk);
 
   const MPoly *mp = &mr->mpoly[iter];
-  if (!(mr->use_hide && (mp->flag & ME_HIDE))) {
+  if (!(mr->use_hide && mr->hide_poly && mr->hide_poly[iter])) {
     int mat = min_ii(mp->mat_nr, mr->mat_len - 1);
     mat_tri_len[mat] += mp->totloop - 2;
   }
@@ -578,6 +578,13 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->v_origindex = static_cast<const int *>(CustomData_get_layer(&mr->me->vdata, CD_ORIGINDEX));
     mr->e_origindex = static_cast<const int *>(CustomData_get_layer(&mr->me->edata, CD_ORIGINDEX));
     mr->p_origindex = static_cast<const int *>(CustomData_get_layer(&mr->me->pdata, CD_ORIGINDEX));
+
+    mr->hide_vert = static_cast<const bool *>(
+        CustomData_get_layer_named(&me->vdata, CD_PROP_BOOL, ".hide_vert"));
+    mr->hide_edge = static_cast<const bool *>(
+        CustomData_get_layer_named(&me->edata, CD_PROP_BOOL, ".hide_edge"));
+    mr->hide_poly = static_cast<const bool *>(
+        CustomData_get_layer_named(&me->pdata, CD_PROP_BOOL, ".hide_poly"));
   }
   else {
     /* #BMesh */

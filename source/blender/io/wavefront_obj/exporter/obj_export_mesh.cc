@@ -296,7 +296,7 @@ void OBJMesh::store_uv_coords_and_indices()
   const float limit[2] = {STD_UV_CONNECT_LIMIT, STD_UV_CONNECT_LIMIT};
 
   UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(
-      mpoly, mloop, mloopuv, totpoly, totvert, limit, false, false);
+      mpoly, nullptr, mloop, mloopuv, totpoly, totvert, limit, false, false);
 
   uv_indices_.resize(totpoly);
   /* At least total vertices of a mesh will be present in its texture map. So

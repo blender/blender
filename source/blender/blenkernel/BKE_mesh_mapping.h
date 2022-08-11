@@ -92,6 +92,7 @@ typedef struct MeshElemMap {
 
 /* mapping */
 UvVertMap *BKE_mesh_uv_vert_map_create(const struct MPoly *mpoly,
+                                       const bool *hide_poly,
                                        const struct MLoop *mloop,
                                        const struct MLoopUV *mloopuv,
                                        unsigned int totpoly,
