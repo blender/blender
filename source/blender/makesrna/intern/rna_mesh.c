@@ -418,7 +418,7 @@ static void rna_MeshVertex_hide_set(PointerRNA *ptr, bool value)
       &mesh->vdata, CD_PROP_BOOL, ".hide_vert", mesh->totvert);
   if (!hide_vert) {
     if (!value) {
-      /* Skip adding layer if it doesn't exist already anyway and we're not hiding an element.. */
+      /* Skip adding layer if it doesn't exist already anyway and we're not hiding an element. */
       return;
     }
     hide_vert = (bool *)CustomData_add_layer_named(
@@ -552,7 +552,7 @@ static void rna_MeshPolygon_hide_set(PointerRNA *ptr, bool value)
       &mesh->pdata, CD_PROP_BOOL, ".hide_poly", mesh->totpoly);
   if (!hide_poly) {
     if (!value) {
-      /* Skip adding layer if it doesn't exist already anyway and we're not hiding an element.. */
+      /* Skip adding layer if it doesn't exist already anyway and we're not hiding an element. */
       return;
     }
     hide_poly = (bool *)CustomData_add_layer_named(
@@ -1276,7 +1276,7 @@ static bool rna_MeshEdge_hide_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
   const bool *hide_edge = (const bool *)CustomData_get_layer_named(
-      &mesh->pdata, CD_PROP_BOOL, ".hide_edge");
+      &mesh->edata, CD_PROP_BOOL, ".hide_edge");
   const int index = rna_MeshEdge_index_get(ptr);
   return hide_edge == NULL ? false : hide_edge[index];
 }
@@ -1288,7 +1288,7 @@ static void rna_MeshEdge_hide_set(PointerRNA *ptr, bool value)
       &mesh->edata, CD_PROP_BOOL, ".hide_edge", mesh->totedge);
   if (!hide_edge) {
     if (!value) {
-      /* Skip adding layer if it doesn't exist already anyway and we're not hiding an element.. */
+      /* Skip adding layer if it doesn't exist already anyway and we're not hiding an element. */
       return;
     }
     hide_edge = (bool *)CustomData_add_layer_named(

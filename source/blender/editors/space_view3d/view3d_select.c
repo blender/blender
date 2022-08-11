@@ -370,7 +370,7 @@ static bool edbm_backbuf_check_and_select_faces_obmode(Mesh *me,
 
   if (mpoly) {
     const bool *hide_poly = (const bool *)CustomData_get_layer_named(
-        &me->vdata, CD_PROP_BOOL, ".hide_poly");
+        &me->pdata, CD_PROP_BOOL, ".hide_poly");
 
     for (int index = 0; index < me->totpoly; index++, mpoly++) {
       if (!(hide_poly && hide_poly[index])) {
