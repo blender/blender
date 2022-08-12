@@ -21,10 +21,19 @@
 
 typedef struct TseGroup {
   TreeStoreElem **elems;
+  /* Index of last used #TreeStoreElem item, to speed up search for another one. */
   int lastused;
+  /* Counter used to reduce the amount of 'rests' of `lastused` index, otherwise search for unused
+   * item is exponential and becomes critically slow when there are a lot of items in the group. */
+  int lastused_reset_count;
+  /* Number of items currently in use. */
   int size;
+  /* Number of items currently allocated. */
   int allocated;
 } TseGroup;
+
+/* Only allow reset of #TseGroup.lastused counter to 0 once every 1k search. */
+#define TSEGROUP_LASTUSED_RESET_VALUE 10000
 
 /* Allocate structure for TreeStoreElements;
  * Most of elements in treestore have no duplicates,
@@ -47,6 +56,7 @@ static void tse_group_add_element(TseGroup *tse_group, TreeStoreElem *elem)
                                     sizeof(TreeStoreElem *) * tse_group->allocated);
   }
   tse_group->elems[tse_group->size] = elem;
+  tse_group->lastused = tse_group->size;
   tse_group->size++;
 }
 
@@ -136,6 +146,7 @@ void BKE_outliner_treehash_clear_used(void *treehash)
   GHASH_ITER (gh_iter, treehash) {
     TseGroup *group = BLI_ghashIterator_getValue(&gh_iter);
     group->lastused = 0;
+    group->lastused_reset_count = 0;
   }
 }
 
@@ -157,7 +168,6 @@ void BKE_outliner_treehash_add_element(void *treehash, TreeStoreElem *elem)
     *val_p = tse_group_create();
   }
   group = *val_p;
-  group->lastused = 0;
   tse_group_add_element(group, elem);
 }
 
@@ -204,7 +214,15 @@ TreeStoreElem *BKE_outliner_treehash_lookup_unused(void *treehash,
     int offset = group->lastused;
 
     for (int i = 0; i < size; i++, offset++) {
+      /* Once at the end of the array of items, in most cases it just means that all items are
+       * used, so only check the whole array once every TSEGROUP_LASTUSED_RESET_VALUE times. */
       if (offset >= size) {
+        if (LIKELY(group->lastused_reset_count <= TSEGROUP_LASTUSED_RESET_VALUE)) {
+          group->lastused_reset_count++;
+          group->lastused = group->size - 1;
+          break;
+        }
+        group->lastused_reset_count = 0;
         offset = 0;
       }
 
