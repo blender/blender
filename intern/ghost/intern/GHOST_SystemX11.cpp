@@ -674,11 +674,12 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
           GHOST_WindowX11 *window = findGhostWindow(xevent.xany.window);
           if (window && !window->getX11_XIC() && window->createX11_XIC()) {
             GHOST_PRINT("XIM input context created\n");
-            if (xevent.type == KeyPress)
+            if (xevent.type == KeyPress) {
               /* we can assume the window has input focus
                * here, because key events are received only
                * when the window is focused. */
               XSetICFocus(window->getX11_XIC());
+            }
           }
         }
       }
@@ -2384,10 +2385,11 @@ class DialogData {
   /* Is the mouse inside the given button */
   bool isInsideButton(XEvent &e, uint button_num)
   {
-    return ((e.xmotion.y > height - padding_y - button_height) &&
-            (e.xmotion.y < height - padding_y) &&
-            (e.xmotion.x > width - (padding_x + button_width) * button_num) &&
-            (e.xmotion.x < width - padding_x - (padding_x + button_width) * (button_num - 1)));
+    return (
+        (e.xmotion.y > (int)(height - padding_y - button_height)) &&
+        (e.xmotion.y < (int)(height - padding_y)) &&
+        (e.xmotion.x > (int)(width - (padding_x + button_width) * button_num)) &&
+        (e.xmotion.x < (int)(width - padding_x - (padding_x + button_width) * (button_num - 1))));
   }
 };
 
