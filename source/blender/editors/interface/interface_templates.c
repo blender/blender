@@ -663,7 +663,7 @@ static void template_id_liboverride_hierarchy_create(bContext *C,
    * system override with reset. */
   if (!ID_IS_LINKED(id) && ID_IS_OVERRIDE_LIBRARY(id)) {
     if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
-      BKE_lib_override_library_get(bmain, id, &id);
+      BKE_lib_override_library_get(bmain, id, NULL, &id);
     }
     if (id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED) {
       id->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;

@@ -50,7 +50,7 @@
 #include "lineart_intern.h"
 
 typedef struct LineartIsecSingle {
-  float v1[3], v2[3];
+  double v1[3], v2[3];
   LineartTriangle *tri1, *tri2;
 } LineartIsecSingle;
 
@@ -3285,8 +3285,8 @@ static void lineart_add_isec_thread(LineartIsecThread *th,
     th->array = new_array;
   }
   LineartIsecSingle *isec_single = &th->array[th->current];
-  copy_v3fl_v3db(isec_single->v1, v1);
-  copy_v3fl_v3db(isec_single->v2, v2);
+  copy_v3_v3_db(isec_single->v1, v1);
+  copy_v3_v3_db(isec_single->v2, v2);
   isec_single->tri1 = tri1;
   isec_single->tri2 = tri2;
   if (tri1->target_reference > tri2->target_reference) {
@@ -4582,8 +4582,8 @@ static void lineart_create_edges_from_isec_data(LineartIsecData *d)
       LineartIsecSingle *is = &th->array[j];
       LineartVert *v1 = v;
       LineartVert *v2 = v + 1;
-      copy_v3db_v3fl(v1->gloc, is->v1);
-      copy_v3db_v3fl(v2->gloc, is->v2);
+      copy_v3_v3_db(v1->gloc, is->v1);
+      copy_v3_v3_db(v2->gloc, is->v2);
       /* The intersection line has been generated only in geometry space, so we need to transform
        * them as well. */
       mul_v4_m4v3_db(v1->fbcoord, ld->conf.view_projection, v1->gloc);

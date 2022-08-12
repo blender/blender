@@ -162,7 +162,7 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
-static ID *collection_owner_get(Main *bmain, ID *id)
+static ID *collection_owner_get(Main *bmain, ID *id, ID *owner_id_hint)
 {
   if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
     return id;
@@ -171,6 +171,11 @@ static ID *collection_owner_get(Main *bmain, ID *id)
 
   Collection *master_collection = (Collection *)id;
   BLI_assert((master_collection->flag & COLLECTION_IS_MASTER) != 0);
+
+  if (owner_id_hint != NULL && GS(owner_id_hint->name) == ID_SCE &&
+      ((Scene *)owner_id_hint)->master_collection == master_collection) {
+    return owner_id_hint;
+  }
 
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     if (scene->master_collection == master_collection) {

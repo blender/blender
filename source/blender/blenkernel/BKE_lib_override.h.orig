@@ -60,14 +60,18 @@ void BKE_lib_override_library_clear(struct IDOverrideLibrary *override, bool do_
 void BKE_lib_override_library_free(struct IDOverrideLibrary **override, bool do_id_user);
 
 /**
- * Return the actual #IDOverrideLibrary data 'controlling' the given `id`, and the acutal ID owning
+ * Return the actual #IDOverrideLibrary data 'controlling' the given `id`, and the actual ID owning
  * it.
  *
  * \note This is especially useful when `id` is a non-real override (e.g. embedded ID like a master
  * collection or root node tree, or a shape key).
  *
+<<<<<<< HEAD
+ * \param r_owner_id: If given, will be set with the actual ID owning the return liboverride data.
+=======
  * \param owner_id_hint If not NULL, a potential owner for the given override-embedded `id`.
  * \param r_owner_id If given, will be set with the actual ID owning the return liboverride data.
+>>>>>>> blender-v3.3-release
  */
 IDOverrideLibrary *BKE_lib_override_library_get(struct Main *bmain,
                                                 struct ID *id,
