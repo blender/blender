@@ -66,10 +66,12 @@ void BKE_lib_override_library_free(struct IDOverrideLibrary **override, bool do_
  * \note This is especially useful when `id` is a non-real override (e.g. embedded ID like a master
  * collection or root node tree, or a shape key).
  *
+ * \param owner_id_hint If not NULL, a potential owner for the given override-embedded `id`.
  * \param r_owner_id If given, will be set with the actual ID owning the return liboverride data.
  */
 IDOverrideLibrary *BKE_lib_override_library_get(struct Main *bmain,
                                                 struct ID *id,
+                                                struct ID *owner_id_hint,
                                                 struct ID **r_owner_id);
 
 /**
