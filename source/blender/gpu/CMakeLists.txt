@@ -645,9 +645,9 @@ if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
 
   endif()
   target_link_libraries(shader_builder PUBLIC
-    bf_blenlib
     bf_gpu
     bf_intern_clog
+    bf_blenlib
     bf_intern_ghost
     ${PLATFORM_LINKLIBS}
   )
