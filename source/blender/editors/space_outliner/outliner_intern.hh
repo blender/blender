@@ -530,6 +530,8 @@ void OUTLINER_OT_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_scene_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_object_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_lib_operation(struct wmOperatorType *ot);
+void OUTLINER_OT_liboverride_operation(struct wmOperatorType *ot);
+void OUTLINER_OT_liboverride_troubleshoot_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_id_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_id_remap(struct wmOperatorType *ot);
 void OUTLINER_OT_id_copy(struct wmOperatorType *ot);
