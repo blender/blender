@@ -340,8 +340,12 @@ static void deformVertsEM(ModifierData *md,
   Mesh *mesh_src = NULL;
 
   if (wmd->flag & MOD_WAVE_NORM) {
+    /* NOTE(@campbellbarton): don't request normals here because `use_normals == false`
+     * because #BKE_mesh_wrapper_ensure_mdata has not run yet.
+     * While this could be supported the argument is documented to be removed,
+     * so pass false here and let the normals be created when requested. */
     mesh_src = MOD_deform_mesh_eval_get(
-        ctx->object, editData, mesh, vertexCos, numVerts, true, false);
+        ctx->object, editData, mesh, vertexCos, numVerts, false, false);
   }
   else if (wmd->texture != NULL || wmd->defgrp_name[0] != '\0') {
     mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, numVerts, false, false);
@@ -355,6 +359,12 @@ static void deformVertsEM(ModifierData *md,
   waveModifier_do(wmd, ctx, ctx->object, mesh_src, vertexCos, numVerts);
 
   if (!ELEM(mesh_src, NULL, mesh)) {
+    /* Important not to free `vertexCos` owned by the caller. */
+    EditMeshData *edit_data = mesh_src->runtime.edit_data;
+    if (edit_data->vertexCos == vertexCos) {
+      edit_data->vertexCos = NULL;
+    }
+
     BKE_id_free(NULL, mesh_src);
   }
 }
