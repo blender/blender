@@ -6477,7 +6477,7 @@ static void def_sh_script(StructRNA *srna)
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "add_socket", "rna_ShaderNodeScript_add_socket");
-  RNA_def_function_ui_description(func, "Add a socket socket");
+  RNA_def_function_ui_description(func, "Add a socket");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID);
   parm = RNA_def_string(func, "name", NULL, 0, "Name", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
@@ -6488,7 +6488,7 @@ static void def_sh_script(StructRNA *srna)
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove_socket", "rna_ShaderNodeScript_remove_socket");
-  RNA_def_function_ui_description(func, "Remove a socket socket");
+  RNA_def_function_ui_description(func, "Remove a socket");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID);
   parm = RNA_def_pointer(func, "sock", "NodeSocket", "Socket", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);

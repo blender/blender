@@ -1040,7 +1040,7 @@ static void rna_def_paint_mode(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(
       prop, NULL, NULL, NULL, "rna_PaintModeSettings_canvas_image_poll");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_CONTEXT_UPDATE);
-  RNA_def_property_ui_text(prop, "Texture", "Image used as as painting target");
+  RNA_def_property_ui_text(prop, "Texture", "Image used as painting target");
 }
 
 static void rna_def_image_paint(BlenderRNA *brna)

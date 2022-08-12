@@ -2158,7 +2158,7 @@ static void rna_def_ID(BlenderRNA *brna)
 
   func = RNA_def_function(srna, "animation_data_clear", "rna_ID_animation_data_free");
   RNA_def_function_flag(func, FUNC_USE_MAIN);
-  RNA_def_function_ui_description(func, "Clear animation on this this ID");
+  RNA_def_function_ui_description(func, "Clear animation on this ID");
 
   func = RNA_def_function(srna, "update_tag", "rna_ID_update_tag");
   RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
