@@ -373,6 +373,7 @@ void OverrideRNAPathTreeBuilder::ensure_entire_collection(
 {
   AbstractTreeElement *abstract_parent = tree_element_cast<AbstractTreeElement>(&te_to_expand);
   BLI_assert(abstract_parent != nullptr);
+  UNUSED_VARS_NDEBUG(abstract_parent);
 
   TreeElement *previous_te = nullptr;
   int item_idx = 0;
