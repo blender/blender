@@ -6,6 +6,10 @@ It can be useful to perform an action when a property is changed and can be
 used to update other properties or synchronize with external data.
 
 All properties define update functions except for CollectionProperty.
+
+.. warning::
+   Remember that these callbacks may be executed in threaded context.
+
 """
 
 import bpy

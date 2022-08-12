@@ -7,6 +7,15 @@ Custom properties can be added to any subclass of an :class:`ID`,
 
 These properties can be animated, accessed by the user interface and python
 like Blender's existing properties.
+
+.. warning::
+
+   Access to these properties might happen in threaded context, on a per-data-block level.
+   This has to be carefully considered when using accessors or update callbacks.
+
+   Typically, these callbacks should not affect any other data that the one owned by their data-block.
+   When accessing external non-Blender data, thread safety mechanisms should be considered.
+
 """
 
 import bpy
