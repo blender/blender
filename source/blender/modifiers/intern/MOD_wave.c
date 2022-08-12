@@ -302,11 +302,10 @@ static void deformVerts(ModifierData *md,
   Mesh *mesh_src = NULL;
 
   if (wmd->flag & MOD_WAVE_NORM) {
-    mesh_src = MOD_deform_mesh_eval_get(
-        ctx->object, NULL, mesh, vertexCos, verts_num, true, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, vertexCos, verts_num, false);
   }
   else if (wmd->texture != NULL || wmd->defgrp_name[0] != '\0') {
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
   }
 
   waveModifier_do(wmd, ctx, ctx->object, mesh_src, vertexCos, verts_num);
@@ -327,16 +326,10 @@ static void deformVertsEM(ModifierData *md,
   Mesh *mesh_src = NULL;
 
   if (wmd->flag & MOD_WAVE_NORM) {
-    /* NOTE(@campbellbarton): don't request normals here because `use_normals == false`
-     * because #BKE_mesh_wrapper_ensure_mdata has not run yet.
-     * While this could be supported the argument is documented to be removed,
-     * so pass false here and let the normals be created when requested. */
-    mesh_src = MOD_deform_mesh_eval_get(
-        ctx->object, editData, mesh, vertexCos, verts_num, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, vertexCos, verts_num, false);
   }
   else if (wmd->texture != NULL || wmd->defgrp_name[0] != '\0') {
-    mesh_src = MOD_deform_mesh_eval_get(
-        ctx->object, editData, mesh, NULL, verts_num, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, verts_num, false);
   }
 
   /* TODO(@campbellbarton): use edit-mode data only (remove this line). */

@@ -169,7 +169,6 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
                                Mesh *mesh,
                                const float (*vertexCos)[3],
                                const int verts_num,
-                               const bool use_normals,
                                const bool use_orco)
 {
   if (mesh != NULL) {
@@ -214,14 +213,6 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
     if (mesh != NULL && mesh->totvert != verts_num) {
       BKE_id_free(NULL, mesh);
       mesh = NULL;
-    }
-  }
-
-  /* TODO: Remove this "use_normals" argument, since the caller should retrieve normals afterwards
-   * if necessary. */
-  if (use_normals) {
-    if (LIKELY(mesh)) {
-      BKE_mesh_vertex_normals_ensure(mesh);
     }
   }
 

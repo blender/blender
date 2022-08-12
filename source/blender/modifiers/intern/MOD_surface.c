@@ -114,7 +114,7 @@ static void deformVerts(ModifierData *md,
     surmd->mesh = (Mesh *)BKE_id_copy_ex(NULL, (ID *)mesh, NULL, LIB_ID_COPY_LOCALIZE);
   }
   else {
-    surmd->mesh = MOD_deform_mesh_eval_get(ctx->object, NULL, NULL, NULL, verts_num, false, false);
+    surmd->mesh = MOD_deform_mesh_eval_get(ctx->object, NULL, NULL, NULL, verts_num, false);
   }
 
   if (!ctx->object->pd) {

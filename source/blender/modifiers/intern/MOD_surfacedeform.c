@@ -1577,7 +1577,7 @@ static void deformVerts(ModifierData *md,
 
   if (smd->defgrp_name[0] != '\0') {
     /* Only need to use mesh_src when a vgroup is used. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
   }
 
   surfacedeformModifier_do(md, ctx, vertexCos, verts_num, ctx->object, mesh_src);
@@ -1599,7 +1599,7 @@ static void deformVertsEM(ModifierData *md,
 
   if (smd->defgrp_name[0] != '\0') {
     /* Only need to use mesh_src when a vgroup is used. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, NULL, verts_num, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, NULL, verts_num, false);
   }
 
   surfacedeformModifier_do(md, ctx, vertexCos, verts_num, ctx->object, mesh_src);
