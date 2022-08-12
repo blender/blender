@@ -1887,9 +1887,6 @@ static void wm_autosave_location(char *filepath)
 {
   const int pid = abs(getpid());
   char path[1024];
-#ifdef WIN32
-  const char *savedir;
-#endif
 
   /* Normally there is no need to check for this to be NULL,
    * however this runs on exit when it may be cleared. */
@@ -1915,7 +1912,7 @@ static void wm_autosave_location(char *filepath)
    * through BLI_windows_get_default_root_dir().
    * If there is no C:\tmp autosave fails. */
   if (!BLI_exists(BKE_tempdir_base())) {
-    savedir = BKE_appdir_folder_id_create(BLENDER_USER_AUTOSAVE, NULL);
+    const char *savedir = BKE_appdir_folder_id_create(BLENDER_USER_AUTOSAVE, NULL);
     BLI_make_file_string("/", filepath, savedir, path);
     return;
   }
