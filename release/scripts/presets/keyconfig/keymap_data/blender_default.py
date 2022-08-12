@@ -490,16 +490,13 @@ def _template_items_tool_select(
             ]
 
     if params.select_mouse == 'LEFTMOUSE':
-        # By default use 'PRESS' for immediate select without quick delay.
-        # Fallback key-maps 'CLICK' since 'PRESS' events passes through (allowing either click or drag).
-        #
-        # NOTE: When the active (non-fallback) tool uses a key-map that activates it's primary tool on drag,
-        # it's important that this key-map uses click and not press. Otherwise it becomes impossible to use
-        # the tool without selecting elements under the cursor.
+        # Use 'PRESS' for immediate select without delay.
+        # Tools that allow dragging anywhere should _NOT_ enable the fallback tool
+        # unless it is expected that the tool should operate on the selection (click-drag to rip for e.g.).
         return [
-            (operator, {"type": 'LEFTMOUSE', "value": 'CLICK' if fallback else 'PRESS'},
+            (operator, {"type": 'LEFTMOUSE', "value": 'PRESS'},
              {"properties": [("deselect_all", True), *operator_props]}),
-            (operator, {"type": 'LEFTMOUSE', "value": 'CLICK' if fallback else 'PRESS', "shift": True},
+            (operator, {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
              {"properties": [("toggle", True), *operator_props]}),
 
             # Fallback key-map must transform as the primary tool is expected
