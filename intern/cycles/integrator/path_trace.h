@@ -263,7 +263,7 @@ class PathTrace {
   unique_ptr<Denoiser> denoiser_;
 
   /* Denoiser device descriptor which holds the denoised big tile for multi-device workloads. */
-  unique_ptr<PathTraceWork> denoiser_buffer_;
+  unique_ptr<PathTraceWork> big_tile_denoise_work_;
 
   /* State which is common for all the steps of the render work.
    * Is brought up to date in the `render()` call and is accessed from all the steps involved into
