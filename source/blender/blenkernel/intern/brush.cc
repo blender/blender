@@ -2512,8 +2512,10 @@ struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool
   if (display_gradient || have_texture) {
     for (int i = 0; i < side; i++) {
       for (int j = 0; j < side; j++) {
-        float magn = sqrtf(pow2f(i - half) + pow2f(j - half));
-        im->rect_float[i * side + j] *= BKE_brush_curve_strength_clamped(br, magn, half);
+        const float magn = sqrtf(pow2f(i - half) + pow2f(j - half));
+        const float strength = BKE_brush_curve_strength_clamped(br, magn, half);
+        im->rect_float[i * side + j] = (have_texture) ? im->rect_float[i * side + j] * strength :
+                                                        strength;
       }
     }
   }
