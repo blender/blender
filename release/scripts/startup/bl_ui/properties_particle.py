@@ -2,8 +2,10 @@
 import bpy
 from bpy.types import Panel, Menu
 from rna_prop_ui import PropertyPanel
-from bpy.app.translations import pgettext_iface as iface_
-from bpy.app.translations import contexts as i18n_contexts
+from bpy.app.translations import (
+    contexts as i18n_contexts,
+    pgettext_iface as iface_,
+)
 from bl_ui.utils import PresetPanel
 
 from bl_ui.properties_physics_common import (
