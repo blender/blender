@@ -975,7 +975,6 @@ static void id_override_library_create_hierarchy_pre_process_fn(bContext *C,
   BLI_assert(do_hierarchy);
   UNUSED_VARS_NDEBUG(do_hierarchy);
 
-  printf("Adding %s as selected item to get editable override\n", id_root_reference->name);
   data->selected_id_uid.add(id_root_reference->session_uuid);
 
   if (ID_IS_OVERRIDE_LIBRARY_REAL(id_root_reference) && !ID_IS_LINKED(id_root_reference)) {
@@ -989,7 +988,6 @@ static void id_override_library_create_hierarchy_pre_process_fn(bContext *C,
     Collection *root_collection = reinterpret_cast<Collection *>(id_root_reference);
     FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (root_collection, object_iter) {
       if (id_root_reference->lib == object_iter->id.lib && object_iter->type == OB_ARMATURE) {
-        printf("Adding %s as selected item to get editable override\n", object_iter->id.name);
         data->selected_id_uid.add(object_iter->id.session_uuid);
       }
     }
