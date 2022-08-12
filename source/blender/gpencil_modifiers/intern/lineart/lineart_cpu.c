@@ -1799,7 +1799,7 @@ static void lineart_add_edge_to_array_thread(LineartObjectInfo *obi, LineartEdge
  * #pe.  */
 void lineart_finalize_object_edge_array_reserve(LineartPendingEdges *pe, int count)
 {
-  if (pe->max || pe->array) {
+  if (pe->max || pe->array || count == 0) {
     return;
   }
 
