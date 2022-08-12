@@ -638,6 +638,11 @@ GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw,
 GHOST_TKey GHOST_SystemWin32::processSpecialKey(short vKey, short scanCode) const
 {
   GHOST_TKey key = GHOST_kKeyUnknown;
+  if (vKey == 0xFF) {
+    /* 0xFF is not a valid virtual key code. */
+    return key;
+  }
+
   char ch = (char)MapVirtualKeyA(vKey, MAPVK_VK_TO_CHAR);
   switch (ch) {
     case u'\"':
