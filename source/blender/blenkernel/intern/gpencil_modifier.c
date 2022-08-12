@@ -360,7 +360,8 @@ GpencilModifierData *BKE_gpencil_modifier_new(int type)
   md->type = type;
   md->mode = eGpencilModifierMode_Realtime | eGpencilModifierMode_Render;
   md->flag = eGpencilModifierFlag_OverrideLibrary_Local;
-  md->ui_expand_flag = 1; /* Only expand the parent panel at first. */
+  /* Only expand the parent panel at first. */
+  md->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT;
 
   if (mti->flags & eGpencilModifierTypeFlag_EnableInEditmode) {
     md->mode |= eGpencilModifierMode_Editmode;
