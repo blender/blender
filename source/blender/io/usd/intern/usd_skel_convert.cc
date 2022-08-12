@@ -324,7 +324,7 @@ void import_blendshapes(Main *bmain, Object *obj, pxr::UsdPrim prim)
     }
 
     if (weights.size() != curves.size()) {
-      std::cout << "Programmer error: number of weight samples doesn't match number of shapekey curve entries for time " << time << std::endl;
+      std::cout << "Programmer error: number of weight samples doesn't match number of shapekey curve entries for frame " << frame << std::endl;
       continue;
     }
 
