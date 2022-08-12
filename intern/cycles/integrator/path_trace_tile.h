@@ -24,7 +24,7 @@ class PathTraceTile : public OutputDriver::Tile {
 
  private:
   PathTrace &path_trace_;
-  bool copied_from_device_;
+  mutable bool copied_from_device_;
 };
 
 CCL_NAMESPACE_END

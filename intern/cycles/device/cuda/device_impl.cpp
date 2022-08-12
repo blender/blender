@@ -1202,11 +1202,11 @@ bool CUDADevice::should_use_graphics_interop()
   }
 
   vector<CUdevice> gl_devices(num_all_devices);
-  uint num_gl_devices;
+  uint num_gl_devices = 0;
   cuGLGetDevices(&num_gl_devices, gl_devices.data(), num_all_devices, CU_GL_DEVICE_LIST_ALL);
 
-  for (CUdevice gl_device : gl_devices) {
-    if (gl_device == cuDevice) {
+  for (uint i = 0; i < num_gl_devices; ++i) {
+    if (gl_devices[i] == cuDevice) {
       return true;
     }
   }
