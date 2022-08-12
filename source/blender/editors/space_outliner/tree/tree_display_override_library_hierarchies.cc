@@ -15,6 +15,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_lib_override.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 
@@ -80,6 +81,7 @@ ListBase TreeDisplayOverrideLibraryHierarchies::buildTree(const TreeSourceData &
 
 class OverrideIDHierarchyBuilder {
   SpaceOutliner &space_outliner_;
+  Main &bmain_;
   MainIDRelations &id_relations_;
 
   struct HierarchyBuildData {
@@ -93,8 +95,10 @@ class OverrideIDHierarchyBuilder {
   };
 
  public:
-  OverrideIDHierarchyBuilder(SpaceOutliner &space_outliner, MainIDRelations &id_relations)
-      : space_outliner_(space_outliner), id_relations_(id_relations)
+  OverrideIDHierarchyBuilder(SpaceOutliner &space_outliner,
+                             Main &bmain,
+                             MainIDRelations &id_relations)
+      : space_outliner_(space_outliner), bmain_(bmain), id_relations_(id_relations)
   {
   }
 
@@ -115,7 +119,7 @@ ListBase TreeDisplayOverrideLibraryHierarchies::build_hierarchy_for_lib_or_main(
    * returning. */
   BKE_main_relations_create(bmain, 0);
 
-  OverrideIDHierarchyBuilder builder(space_outliner_, *bmain->relations);
+  OverrideIDHierarchyBuilder builder(space_outliner_, *bmain, *bmain->relations);
 
   /* Keep track over which ID base elements were already added, and expand them once added. */
   Map<ID_Type, TreeElement *> id_base_te_map;
@@ -165,7 +169,8 @@ void OverrideIDHierarchyBuilder::build_hierarchy_for_ID(ID &override_root_id,
 static void foreach_natural_hierarchy_child(const MainIDRelations &id_relations,
                                             const ID &parent_id,
                                             FunctionRef<void(ID &)> fn);
-static bool id_is_in_override_hierarchy(const ID &id,
+static bool id_is_in_override_hierarchy(const Main &bmain,
+                                        const ID &id,
                                         const ID &relationship_parent_id,
                                         const ID &override_root_id);
 
@@ -177,7 +182,11 @@ void OverrideIDHierarchyBuilder::build_hierarchy_for_ID_recursive(const ID &pare
   build_data.parent_ids.add(&parent_id);
 
   foreach_natural_hierarchy_child(id_relations_, parent_id, [&](ID &id) {
-    if (!id_is_in_override_hierarchy(id, parent_id, build_data.override_root_id_)) {
+    /* Some IDs can use themselves, early abort. */
+    if (&id == &parent_id) {
+      return;
+    }
+    if (!id_is_in_override_hierarchy(bmain_, id, parent_id, build_data.override_root_id_)) {
       return;
     }
 
@@ -276,7 +285,8 @@ static void foreach_natural_hierarchy_child(const MainIDRelations &id_relations,
   }
 }
 
-static bool id_is_in_override_hierarchy(const ID &id,
+static bool id_is_in_override_hierarchy(const Main &bmain,
+                                        const ID &id,
                                         const ID &relationship_parent_id,
                                         const ID &override_root_id)
 {
@@ -286,20 +296,12 @@ static bool id_is_in_override_hierarchy(const ID &id,
   const ID *real_override_id = &id;
 
   if (ID_IS_OVERRIDE_LIBRARY_VIRTUAL(&id)) {
-    /* This assumes that the parent ID is always the owner of the 'embedded' one, I.e. that no
-     * other ID directly uses the embedded one. Should be true, but the debug code adds some checks
-     * to validate this assumption. */
-    real_override_id = &relationship_parent_id;
-
-#ifndef NDEBUG
-    if (GS(id.name) == ID_KE) {
-      const Key *key = (Key *)&id;
-      BLI_assert(real_override_id == key->from);
-    }
-    else {
-      BLI_assert((id.flag & LIB_EMBEDDED_DATA) != 0);
-    }
-#endif
+    /* In many cases, `relationship_parent_id` is the owner, but not always (e.g. there can be
+     * drivers directly between an object and a shapekey). */
+    BKE_lib_override_library_get(const_cast<Main *>(&bmain),
+                                 const_cast<ID *>(&id),
+                                 const_cast<ID *>(&relationship_parent_id),
+                                 const_cast<ID **>(&real_override_id));
   }
 
   if (!ID_IS_OVERRIDE_LIBRARY(real_override_id)) {
