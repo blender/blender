@@ -39,6 +39,9 @@ CCL_NAMESPACE_BEGIN
 // The original code is Copyright NVIDIA Corporation, BSD-3-Clause.
 namespace {
 
+#  if OPTIX_ABI_VERSION >= 60
+using ::optixUtilDenoiserInvokeTiled;
+#  else
 static OptixResult optixUtilDenoiserSplitImage(const OptixImage2D &input,
                                                const OptixImage2D &output,
                                                unsigned int overlapWindowSizeInPixels,
@@ -215,6 +218,7 @@ static OptixResult optixUtilDenoiserInvokeTiled(OptixDenoiser denoiser,
   }
   return OPTIX_SUCCESS;
 }
+#  endif
 
 #  if OPTIX_ABI_VERSION >= 55
 static void execute_optix_task(TaskPool &pool, OptixTask task, OptixResult &failure_reason)

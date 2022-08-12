@@ -26,6 +26,7 @@ PathTrace::PathTrace(Device *device,
                      RenderScheduler &render_scheduler,
                      TileManager &tile_manager)
     : device_(device),
+      film_(film),
       device_scene_(device_scene),
       render_scheduler_(render_scheduler),
       tile_manager_(tile_manager)
@@ -60,7 +61,17 @@ PathTrace::~PathTrace()
 void PathTrace::load_kernels()
 {
   if (denoiser_) {
+    /* Activate graphics interop while denoiser device is created, so that it can choose a device
+     * that supports interop for faster display updates. */
+    if (display_ && path_trace_works_.size() > 1) {
+      display_->graphics_interop_activate();
+    }
+
     denoiser_->load_kernels(progress_);
+
+    if (display_ && path_trace_works_.size() > 1) {
+      display_->graphics_interop_deactivate();
+    }
   }
 }
 
@@ -506,27 +517,29 @@ void PathTrace::denoise(const RenderWork &render_work)
   const double start_time = time_dt();
 
   RenderBuffers *buffer_to_denoise = nullptr;
-
-  unique_ptr<RenderBuffers> multi_device_buffers;
   bool allow_inplace_modification = false;
 
-  if (path_trace_works_.size() == 1) {
-    buffer_to_denoise = path_trace_works_.front()->get_render_buffers();
+  Device *denoiser_device = denoiser_->get_denoiser_device();
+  if (path_trace_works_.size() > 1 && denoiser_device && !big_tile_denoise_work_) {
+    big_tile_denoise_work_ = PathTraceWork::create(denoiser_device, film_, device_scene_, nullptr);
   }
-  else {
-    Device *denoiser_device = denoiser_->get_denoiser_device();
-    if (!denoiser_device) {
-      return;
-    }
 
-    multi_device_buffers = make_unique<RenderBuffers>(denoiser_device);
-    multi_device_buffers->reset(render_state_.effective_big_tile_params);
+  if (big_tile_denoise_work_) {
+    big_tile_denoise_work_->set_effective_buffer_params(render_state_.effective_big_tile_params,
+                                                        render_state_.effective_big_tile_params,
+                                                        render_state_.effective_big_tile_params);
 
-    buffer_to_denoise = multi_device_buffers.get();
+    buffer_to_denoise = big_tile_denoise_work_->get_render_buffers();
+    buffer_to_denoise->reset(render_state_.effective_big_tile_params);
 
-    copy_to_render_buffers(multi_device_buffers.get());
+    copy_to_render_buffers(buffer_to_denoise);
 
     allow_inplace_modification = true;
+  }
+  else {
+    DCHECK_EQ(path_trace_works_.size(), 1);
+
+    buffer_to_denoise = path_trace_works_.front()->get_render_buffers();
   }
 
   if (denoiser_->denoise_buffer(render_state_.effective_big_tile_params,
@@ -534,14 +547,6 @@ void PathTrace::denoise(const RenderWork &render_work)
                                 get_num_samples_in_buffer(),
                                 allow_inplace_modification)) {
     render_state_.has_denoised_result = true;
-  }
-
-  if (multi_device_buffers) {
-    multi_device_buffers->copy_from_device();
-    parallel_for_each(
-        path_trace_works_, [&multi_device_buffers](unique_ptr<PathTraceWork> &path_trace_work) {
-          path_trace_work->copy_from_denoised_render_buffers(multi_device_buffers.get());
-        });
   }
 
   render_scheduler_.report_denoise_time(render_work, time_dt() - start_time);
@@ -635,8 +640,13 @@ void PathTrace::update_display(const RenderWork &render_work)
     /* TODO(sergey): When using multi-device rendering map the GPUDisplay once and copy data from
      * all works in parallel. */
     const int num_samples = get_num_samples_in_buffer();
-    for (auto &&path_trace_work : path_trace_works_) {
-      path_trace_work->copy_to_display(display_.get(), pass_mode, num_samples);
+    if (big_tile_denoise_work_ && render_state_.has_denoised_result) {
+      big_tile_denoise_work_->copy_to_display(display_.get(), pass_mode, num_samples);
+    }
+    else {
+      for (auto &&path_trace_work : path_trace_works_) {
+        path_trace_work->copy_to_display(display_.get(), pass_mode, num_samples);
+      }
     }
 
     display_->update_end();
@@ -721,11 +731,10 @@ void PathTrace::write_tile_buffer(const RenderWork &render_work)
     VLOG_WORK << "Write tile result via buffer write callback.";
     tile_buffer_write();
   }
-
   /* Write tile to disk, so that the render work's render buffer can be re-used for the next tile.
    */
-  if (has_multiple_tiles) {
-    VLOG_WORK << "Write tile result into .";
+  else {
+    VLOG_WORK << "Write tile result to disk.";
     tile_buffer_write_to_disk();
   }
 }
@@ -901,6 +910,10 @@ bool PathTrace::copy_render_tile_from_device()
     return true;
   }
 
+  if (big_tile_denoise_work_ && render_state_.has_denoised_result) {
+    return big_tile_denoise_work_->copy_render_buffers_from_device();
+  }
+
   bool success = true;
 
   parallel_for_each(path_trace_works_, [&](unique_ptr<PathTraceWork> &path_trace_work) {
@@ -1002,6 +1015,10 @@ bool PathTrace::get_render_tile_pixels(const PassAccessor &pass_accessor,
     return pass_accessor.get_render_tile_pixels(full_frame_state_.render_buffers, destination);
   }
 
+  if (big_tile_denoise_work_ && render_state_.has_denoised_result) {
+    return big_tile_denoise_work_->get_render_tile_pixels(pass_accessor, destination);
+  }
+
   bool success = true;
 
   parallel_for_each(path_trace_works_, [&](unique_ptr<PathTraceWork> &path_trace_work) {
@@ -1081,6 +1098,10 @@ void PathTrace::destroy_gpu_resources()
   if (display_) {
     for (auto &&path_trace_work : path_trace_works_) {
       path_trace_work->destroy_gpu_resources(display_.get());
+    }
+
+    if (big_tile_denoise_work_) {
+      big_tile_denoise_work_->destroy_gpu_resources(display_.get());
     }
   }
 }
