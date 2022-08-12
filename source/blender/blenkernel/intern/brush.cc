@@ -597,7 +597,7 @@ using eGPCurveMappingPreset = enum eGPCurveMappingPreset {
   GPCURVE_PRESET_CHISEL_STRENGTH = 5,
 };
 
-static void brush_gpencil_curvemap_reset(CurveMap *cuma, int tot, int preset)
+static void brush_gpencil_curvemap_reset(CurveMap *cuma, int tot, eGPCurveMappingPreset preset)
 {
   if (cuma->curve) {
     MEM_freeN(cuma->curve);
