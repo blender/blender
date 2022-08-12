@@ -411,8 +411,9 @@ static bool nearHomePosition(GHOST_TEventNDOFMotionData *ndof, float threshold)
 
 bool GHOST_NDOFManager::sendMotionEvent()
 {
-  if (!m_motionEventPending)
+  if (!m_motionEventPending) {
     return false;
+  }
 
   m_motionEventPending = false; /* Any pending motion is handled right now. */
 

@@ -514,8 +514,9 @@ static void destroyIMCallback(XIM /*xim*/, XPointer ptr, XPointer /*data*/)
 
 bool GHOST_SystemX11::openX11_IM()
 {
-  if (!m_display)
+  if (!m_display) {
     return false;
+  }
 
   /* set locale modifiers such as `@im=ibus` specified by XMODIFIERS. */
   XSetLocaleModifiers("");
@@ -585,7 +586,7 @@ struct init_timestamp_data {
   Time timestamp;
 };
 
-static Bool init_timestamp_scanner(Display *, XEvent *event, XPointer arg)
+static Bool init_timestamp_scanner(Display * /*display*/, XEvent *event, XPointer arg)
 {
   init_timestamp_data *data = reinterpret_cast<init_timestamp_data *>(arg);
   switch (event->type) {
@@ -1321,10 +1322,12 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
       XIC xic = window->getX11_XIC();
       if (xic) {
-        if (xe->type == FocusIn)
+        if (xe->type == FocusIn) {
           XSetICFocus(xic);
-        else
+        }
+        else {
           XUnsetICFocus(xic);
+        }
       }
 #endif
 

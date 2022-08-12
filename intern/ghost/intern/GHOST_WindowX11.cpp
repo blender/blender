@@ -147,16 +147,19 @@ static XVisualInfo *x11_visualinfo_from_glx(Display *display,
       /* take a frame buffer config that has alpha cap */
       for (int i = 0; i < nbfbconfig; i++) {
         XVisualInfo *visual = (XVisualInfo *)glXGetVisualFromFBConfig(display, fbconfigs[i]);
-        if (!visual)
+        if (!visual) {
           continue;
+        }
         /* if we don't need a alpha background, the first config will do, otherwise
          * test the alphaMask as it won't necessarily be present */
         if (needAlpha) {
           XRenderPictFormat *pict_format = XRenderFindVisualFormat(display, visual->visual);
-          if (!pict_format)
+          if (!pict_format) {
             continue;
-          if (pict_format->direct.alphaMask <= 0)
+          }
+          if (pict_format->direct.alphaMask <= 0) {
             continue;
+          }
         }
 
         *fbconfig = fbconfigs[i];
@@ -487,8 +490,9 @@ static Bool destroyICCallback(XIC /*xic*/, XPointer ptr, XPointer /*data*/)
 bool GHOST_WindowX11::createX11_XIC()
 {
   XIM xim = m_system->getX11_XIM();
-  if (!xim)
+  if (!xim) {
     return false;
+  }
 
   XICCallback destroy;
   destroy.callback = (XICProc)destroyICCallback;
@@ -536,17 +540,21 @@ void GHOST_WindowX11::refreshXInputDevices()
       XEventClass ev;
 
       DeviceMotionNotify(xtablet.Device, xtablet.MotionEvent, ev);
-      if (ev)
+      if (ev) {
         xevents.push_back(ev);
+      }
       DeviceButtonPress(xtablet.Device, xtablet.PressEvent, ev);
-      if (ev)
+      if (ev) {
         xevents.push_back(ev);
+      }
       ProximityIn(xtablet.Device, xtablet.ProxInEvent, ev);
-      if (ev)
+      if (ev) {
         xevents.push_back(ev);
+      }
       ProximityOut(xtablet.Device, xtablet.ProxOutEvent, ev);
-      if (ev)
+      if (ev) {
         xevents.push_back(ev);
+      }
     }
 
     XSelectExtensionEvent(m_display, m_window, xevents.data(), (int)xevents.size());
