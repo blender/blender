@@ -234,6 +234,10 @@ const struct IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 
 #  include "WM_api.h"
 
+#  ifdef WITH_PYTHON
+#    include "BPY_extern.h"
+#  endif
+
 void rna_ID_override_library_property_operation_refname_get(PointerRNA *ptr, char *value)
 {
   IDOverrideLibraryPropertyOperation *opop = ptr->data;
@@ -695,7 +699,16 @@ static ID *rna_ID_override_create(ID *id, Main *bmain, bool remap_local_usages)
     BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, true);
   }
 
-  ID *local_id = BKE_lib_override_library_create_from_id(bmain, id, remap_local_usages);
+  ID *local_id = NULL;
+#  ifdef WITH_PYTHON
+  BPy_BEGIN_ALLOW_THREADS;
+#  endif
+
+  local_id = BKE_lib_override_library_create_from_id(bmain, id, remap_local_usages);
+
+#  ifdef WITH_PYTHON
+  BPy_END_ALLOW_THREADS;
+#  endif
 
   if (remap_local_usages) {
     BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
@@ -717,8 +730,17 @@ static ID *rna_ID_override_hierarchy_create(
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
   ID *id_root_override = NULL;
+
+#  ifdef WITH_PYTHON
+  BPy_BEGIN_ALLOW_THREADS;
+#  endif
+
   BKE_lib_override_library_create(
       bmain, scene, view_layer, NULL, id, id, id_instance_hint, &id_root_override, false);
+
+#  ifdef WITH_PYTHON
+  BPy_END_ALLOW_THREADS;
+#  endif
 
   WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
   WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
