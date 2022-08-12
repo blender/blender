@@ -2855,7 +2855,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
 }
 
 /**
- * \return Return true if the element has an icon that was drawn, false if it doesn't have an icon.
+ * \return true if the element has an icon that was drawn, false if it doesn't have an icon.
  */
 static bool tselem_draw_icon(uiBlock *block,
                              int xmax,

@@ -179,7 +179,7 @@ class LensDistortionOperation : public NodeOperation {
     return float3(red_distortion, green_distortion, blue_distortion) * DISTORTION_SCALE;
   }
 
-  /* The distortion model model will distort the image in such a way that the result will no longer
+  /* The distortion model will distort the image in such a way that the result will no longer
    * fit the domain of the original image, so we scale the image to account for that. If get_is_fit
    * is false, then the scaling factor will be such that the furthest pixels horizontally and
    * vertically are at the boundary of the image. Otherwise, if get_is_fit is true, the scaling

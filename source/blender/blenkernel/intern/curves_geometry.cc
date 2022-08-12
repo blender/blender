@@ -1190,7 +1190,7 @@ static CurvesGeometry copy_with_removed_points(const CurvesGeometry &curves,
       },
       [&]() {
         /* Copy over curve attributes.
-         * In some cases points are just dissolved, so the the number of
+         * In some cases points are just dissolved, so the number of
          * curves will be the same. That could be optimized in the future. */
         for (bke::AttributeTransferData &attribute : curve_attributes) {
           if (new_curves.curves_num() == curves.curves_num()) {

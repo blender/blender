@@ -1480,7 +1480,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
        * - The dependency graph has handling of edit mode pointers (see #update_edit_mode_pointers)
        *   but it doesn't seem to work in this case.
        *
-       * Since the the plan is to replace this legacy curve object with the curves data-block
+       * Since the plan is to replace this legacy curve object with the curves data-block
        * (see T95355), this somewhat hacky inefficient solution is relatively temporary.
        */
       Curve &cow_curve = *reinterpret_cast<Curve *>(

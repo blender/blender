@@ -4300,7 +4300,7 @@ static void knifetool_finish_single_pre(KnifeTool_OpData *kcd, Object *ob)
 }
 
 /**
- * A post version is needed to to delay recalculating tessellation after making cuts.
+ * A post version is needed to delay recalculating tessellation after making cuts.
  * Without this, knife-project can't use the BVH tree to select geometry after a cut, see: T98349.
  */
 static void knifetool_finish_single_post(KnifeTool_OpData *UNUSED(kcd), Object *ob)

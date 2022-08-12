@@ -97,7 +97,7 @@ class CurvesGeometryRuntime {
   mutable Span<float3> evaluated_positions_span;
 
   /**
-   * Cache of lengths along each evaluated curve for for each evaluated point. If a curve is
+   * Cache of lengths along each evaluated curve for each evaluated point. If a curve is
    * cyclic, it needs one more length value to correspond to the last segment, so in order to
    * make slicing this array for a curve fast, an extra float is stored for every curve.
    */

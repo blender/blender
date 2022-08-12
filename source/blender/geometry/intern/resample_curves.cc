@@ -154,7 +154,7 @@ static void gather_point_attributes_to_interpolate(const CurveComponent &src_com
   retrieve_attribute_spans(
       ids, src_component, dst_component, result.src, result.dst, result.dst_attributes);
 
-  /* Attributes that aren't interpolated like Bezier handles still have to be be copied
+  /* Attributes that aren't interpolated like Bezier handles still have to be copied
    * to the result when there are any unselected curves of the corresponding type. */
   retrieve_attribute_spans(ids_no_interpolation,
                            src_component,

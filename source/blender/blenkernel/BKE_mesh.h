@@ -853,7 +853,7 @@ struct Mesh *BKE_mesh_merge_verts(struct Mesh *mesh,
                                   int merge_mode);
 
 /**
- * Account for custom-data such as UV's becoming detached because of of imprecision
+ * Account for custom-data such as UV's becoming detached because of imprecision
  * in custom-data interpolation.
  * Without running this operation subdivision surface can cause UV's to be disconnected,
  * see: T81065.

@@ -82,9 +82,8 @@ static pxr::UsdShadeMaterial compute_bound_material(const pxr::UsdPrim &prim)
   return mtl;
 }
 
-/* Returns an existing Blender material that corresponds to the USD
- * material with with the given path.  Returns null if no such material
- * exists. */
+/* Returns an existing Blender material that corresponds to the USD material with the given path.
+ * Returns null if no such material exists. */
 static Material *find_existing_material(
     const pxr::SdfPath &usd_mat_path,
     const USDImportParams &params,

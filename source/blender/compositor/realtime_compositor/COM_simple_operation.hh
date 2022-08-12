@@ -48,7 +48,7 @@ class SimpleOperation : public Operation {
 
   /* Populate the result of the operation, this essentially calls the super populate_result method
    * with the output identifier of the operation and sets the initial reference count of the result
-   * to 1, since the result of an operation operation is guaranteed to have a single user. */
+   * to 1, since the result of an operation is guaranteed to have a single user. */
   void populate_result(Result result);
 
   /* Declare the descriptor of the input of the operation to be the given descriptor, this
