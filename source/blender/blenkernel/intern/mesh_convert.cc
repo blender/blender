@@ -136,13 +136,13 @@ static void make_edges_mdata_extend(Mesh &mesh)
   const MPoly *mp;
   int i;
 
-  Span<MPoly> polygons(mesh.mpoly, mesh.totpoly);
+  Span<MPoly> polys(mesh.mpoly, mesh.totpoly);
   MutableSpan<MLoop> loops(mesh.mloop, mesh.totloop);
 
   const int eh_reserve = max_ii(totedge, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(mesh.totpoly));
   EdgeHash *eh = BLI_edgehash_new_ex(__func__, eh_reserve);
 
-  for (const MPoly &poly : polygons) {
+  for (const MPoly &poly : polys) {
     BKE_mesh_poly_edgehash_insert(eh, &poly, &loops[poly.loopstart]);
   }
 
@@ -240,14 +240,14 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
   }
 
   Mesh *mesh = BKE_mesh_new_nomain(totvert, totedge, 0, totloop, totpoly);
-  MutableSpan<MVert> vertices(mesh->mvert, mesh->totvert);
+  MutableSpan<MVert> verts(mesh->mvert, mesh->totvert);
   MutableSpan<MEdge> edges(mesh->medge, mesh->totedge);
-  MutableSpan<MPoly> polygons(mesh->mpoly, mesh->totpoly);
+  MutableSpan<MPoly> polys(mesh->mpoly, mesh->totpoly);
   MutableSpan<MLoop> loops(mesh->mloop, mesh->totloop);
 
-  MVert *mvert = vertices.data();
+  MVert *mvert = verts.data();
   MEdge *medge = edges.data();
-  MPoly *mpoly = polygons.data();
+  MPoly *mpoly = polys.data();
   MLoop *mloop = loops.data();
   MLoopUV *mloopuv = static_cast<MLoopUV *>(CustomData_add_layer_named(
       &mesh->ldata, CD_MLOOPUV, CD_CALLOC, nullptr, mesh->totloop, "UVMap"));

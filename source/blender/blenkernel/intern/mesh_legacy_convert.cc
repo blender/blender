@@ -887,12 +887,12 @@ void BKE_mesh_legacy_convert_hide_layers_to_flags(Mesh *mesh)
   using namespace blender::bke;
   const AttributeAccessor attributes = mesh_attributes(*mesh);
 
-  MutableSpan<MVert> vertices(mesh->mvert, mesh->totvert);
+  MutableSpan<MVert> verts(mesh->mvert, mesh->totvert);
   const VArray<bool> hide_vert = attributes.lookup_or_default<bool>(
       ".hide_vert", ATTR_DOMAIN_POINT, false);
-  threading::parallel_for(vertices.index_range(), 4096, [&](IndexRange range) {
+  threading::parallel_for(verts.index_range(), 4096, [&](IndexRange range) {
     for (const int i : range) {
-      SET_FLAG_FROM_TEST(vertices[i].flag, hide_vert[i], ME_HIDE);
+      SET_FLAG_FROM_TEST(verts[i].flag, hide_vert[i], ME_HIDE);
     }
   });
 
@@ -905,12 +905,12 @@ void BKE_mesh_legacy_convert_hide_layers_to_flags(Mesh *mesh)
     }
   });
 
-  MutableSpan<MPoly> polygons(mesh->mpoly, mesh->totpoly);
+  MutableSpan<MPoly> polys(mesh->mpoly, mesh->totpoly);
   const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
       ".hide_poly", ATTR_DOMAIN_FACE, false);
-  threading::parallel_for(polygons.index_range(), 4096, [&](IndexRange range) {
+  threading::parallel_for(polys.index_range(), 4096, [&](IndexRange range) {
     for (const int i : range) {
-      SET_FLAG_FROM_TEST(polygons[i].flag, hide_poly[i], ME_HIDE);
+      SET_FLAG_FROM_TEST(polys[i].flag, hide_poly[i], ME_HIDE);
     }
   });
 }
@@ -921,15 +921,14 @@ void BKE_mesh_legacy_convert_flags_to_hide_layers(Mesh *mesh)
   using namespace blender::bke;
   MutableAttributeAccessor attributes = mesh_attributes_for_write(*mesh);
 
-  const Span<MVert> vertices(mesh->mvert, mesh->totvert);
-  if (std::any_of(vertices.begin(), vertices.end(), [](const MVert &vert) {
-        return vert.flag & ME_HIDE;
-      })) {
+  const Span<MVert> verts(mesh->mvert, mesh->totvert);
+  if (std::any_of(
+          verts.begin(), verts.end(), [](const MVert &vert) { return vert.flag & ME_HIDE; })) {
     SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_only_span<bool>(
         ".hide_vert", ATTR_DOMAIN_POINT);
-    threading::parallel_for(vertices.index_range(), 4096, [&](IndexRange range) {
+    threading::parallel_for(verts.index_range(), 4096, [&](IndexRange range) {
       for (const int i : range) {
-        hide_vert.span[i] = vertices[i].flag & ME_HIDE;
+        hide_vert.span[i] = verts[i].flag & ME_HIDE;
       }
     });
     hide_vert.finish();
@@ -948,15 +947,14 @@ void BKE_mesh_legacy_convert_flags_to_hide_layers(Mesh *mesh)
     hide_edge.finish();
   }
 
-  const Span<MPoly> polygons(mesh->mpoly, mesh->totpoly);
-  if (std::any_of(polygons.begin(), polygons.end(), [](const MPoly &poly) {
-        return poly.flag & ME_HIDE;
-      })) {
+  const Span<MPoly> polys(mesh->mpoly, mesh->totpoly);
+  if (std::any_of(
+          polys.begin(), polys.end(), [](const MPoly &poly) { return poly.flag & ME_HIDE; })) {
     SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_only_span<bool>(
         ".hide_poly", ATTR_DOMAIN_FACE);
-    threading::parallel_for(polygons.index_range(), 4096, [&](IndexRange range) {
+    threading::parallel_for(polys.index_range(), 4096, [&](IndexRange range) {
       for (const int i : range) {
-        hide_poly.span[i] = polygons[i].flag & ME_HIDE;
+        hide_poly.span[i] = polys[i].flag & ME_HIDE;
       }
     });
     hide_poly.finish();

@@ -633,10 +633,10 @@ void paintvert_hide(bContext *C, Object *ob, const bool unselected)
   bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*me);
   bke::SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_span<bool>(
       ".hide_vert", ATTR_DOMAIN_POINT);
-  MutableSpan<MVert> vertices(me->mvert, me->totvert);
+  MutableSpan<MVert> verts(me->mvert, me->totvert);
 
-  for (const int i : vertices.index_range()) {
-    MVert &vert = vertices[i];
+  for (const int i : verts.index_range()) {
+    MVert &vert = verts[i];
     if (!hide_vert.span[i]) {
       if (((vert.flag & SELECT) == 0) == unselected) {
         hide_vert.span[i] = true;
@@ -666,10 +666,10 @@ void paintvert_reveal(bContext *C, Object *ob, const bool select)
   bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*me);
   const VArray<bool> hide_vert = attributes.lookup_or_default<bool>(
       ".hide_vert", ATTR_DOMAIN_POINT, false);
-  MutableSpan<MVert> vertices(me->mvert, me->totvert);
+  MutableSpan<MVert> verts(me->mvert, me->totvert);
 
-  for (const int i : vertices.index_range()) {
-    MVert &vert = vertices[i];
+  for (const int i : verts.index_range()) {
+    MVert &vert = verts[i];
     if (hide_vert[i]) {
       SET_FLAG_FROM_TEST(vert.flag, select, SELECT);
     }
