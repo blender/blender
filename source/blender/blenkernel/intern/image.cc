@@ -926,7 +926,7 @@ int BKE_image_find_nearest_tile_with_offset(const Image *image,
   zero_v2(r_uv_offset);
   int tile_number_best = -1;
 
-  if (image->source != IMA_SRC_TILED) {
+  if (!image || image->source != IMA_SRC_TILED) {
     return tile_number_best;
   }
 
