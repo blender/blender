@@ -113,17 +113,17 @@ class DebugDraw {
     print_no_endl(str, args...);
     print_newline();
   }
-  template<typename T> void print(const T &&value)
+  template<typename T> void print(const T &value)
   {
     print_value(value);
     print_newline();
   }
-  template<typename T> void print_hex(const T &&value)
+  template<typename T> void print_hex(const T &value)
   {
     print_value_hex(value);
     print_newline();
   }
-  template<typename T> void print_binary(const T &&value)
+  template<typename T> void print_binary(const T &value)
   {
     print_value_binary(value);
     print_newline();
