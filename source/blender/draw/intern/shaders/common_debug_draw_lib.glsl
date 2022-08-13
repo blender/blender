@@ -148,14 +148,14 @@ void drw_debug_sphere(vec3 p, float radius, vec4 color)
     for (int axis = 0; axis < 3; axis++) {
       for (int edge = 0; edge < circle_resolution; edge++) {
         float angle1 = (2.0 * 3.141592) * float(edge + 0) / float(circle_resolution);
-        vec3 p1 = vec3(cos(angle1), sin(angle1), 0.0);
+        vec3 p1 = vec3(cos(angle1), sin(angle1), 0.0) * radius;
         p1 = vec3(p1[(0 + axis) % 3], p1[(1 + axis) % 3], p1[(2 + axis) % 3]);
 
         float angle2 = (2.0 * 3.141592) * float(edge + 1) / float(circle_resolution);
-        vec3 p2 = vec3(cos(angle2), sin(angle2), 0.0);
+        vec3 p2 = vec3(cos(angle2), sin(angle2), 0.0) * radius;
         p2 = vec3(p2[(0 + axis) % 3], p2[(1 + axis) % 3], p2[(2 + axis) % 3]);
 
-        drw_debug_line(vertid, p1, p2, pcolor);
+        drw_debug_line(vertid, p + p1, p + p2, pcolor);
       }
     }
   }
