@@ -321,7 +321,7 @@ inline TReturnType metalrt_visibility_test(
     constant KernelParamsMetal &launch_params_metal,
     ray_data MetalKernelContext::MetalRTIntersectionPayload &payload,
     const uint object,
-    const uint prim,
+    uint prim,
     const float u)
 {
   TReturnType result;
