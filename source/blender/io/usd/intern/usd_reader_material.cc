@@ -719,6 +719,12 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
   /* Try to load the texture image. */
   pxr::UsdShadeInput file_input = usd_shader.GetInput(usdtokens::file);
 
+  if (!file_input) {
+    std::cerr << "WARNING: Couldn't get file input for USD shader " << usd_shader.GetPath()
+              << std::endl;
+    return;
+  }
+
   /* File input may have a connected source, e.g., if it's been overridden by
    * an input on the mateial. */
   if (file_input.HasConnectedSource()) {
@@ -733,12 +739,6 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
       std::cerr << "ERROR: couldn't get connected source for file input "
         << file_input.GetPrim().GetPath() << " " << file_input.GetFullName() << std::endl;
     }
-  }
-
-  if (!file_input) {
-    std::cerr << "WARNING: Couldn't get file input for USD shader " << usd_shader.GetPath()
-              << std::endl;
-    return;
   }
 
   pxr::VtValue file_val;
