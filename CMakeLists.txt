@@ -196,7 +196,7 @@ endif()
 option(WITH_GMP "Enable features depending on GMP (Exact Boolean)" ON)
 
 # Compositor
-option(WITH_COMPOSITOR         "Enable the tile based nodal compositor" ON)
+option(WITH_COMPOSITOR_CPU     "Enable the tile based CPU nodal compositor" ON)
 option(WITH_OPENIMAGEDENOISE   "Enable the OpenImageDenoise compositing node" ON)
 
 option(WITH_OPENSUBDIV    "Enable OpenSubdiv for surface subdivision" ON)
@@ -223,7 +223,7 @@ if(UNIX AND NOT (APPLE OR HAIKU))
   option(WITH_GHOST_WAYLAND "Enable building Blender against Wayland for windowing (under development)" OFF)
   mark_as_advanced(WITH_GHOST_WAYLAND)
 
-  if (WITH_GHOST_WAYLAND)
+  if(WITH_GHOST_WAYLAND)
     option(WITH_GHOST_WAYLAND_LIBDECOR "Optionally build with LibDecor window decorations" OFF)
     mark_as_advanced(WITH_GHOST_WAYLAND_LIBDECOR)
 
@@ -366,7 +366,7 @@ if(WIN32 OR APPLE)
 endif()
 option(WITH_INPUT_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" ON)
 if(UNIX AND NOT APPLE)
-  option(WITH_INSTALL_PORTABLE "Install redistributeable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
+  option(WITH_INSTALL_PORTABLE "Install redistributable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
   option(WITH_STATIC_LIBS "Try to link with static libraries, as much as possible, to make blender more portable across distributions" OFF)
   if(WITH_STATIC_LIBS)
     option(WITH_BOOST_ICU "Boost uses ICU library (required for linking with static Boost built with libicu)." OFF)
@@ -464,8 +464,8 @@ if(NOT APPLE)
   option(WITH_CYCLES_ONEAPI_SYCL_HOST_ENABLED "Enable use of SYCL host (CPU) device execution by oneAPI implementation. This option is for debugging purposes and impacts GPU execution." OFF)
 
   # https://www.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-cpp-compiler-dev-guide-and-reference/top/compilation/ahead-of-time-compilation.html
-  SET (CYCLES_ONEAPI_SPIR64_GEN_DEVICES "dg2" CACHE STRING "oneAPI Intel GPU architectures to build binaries for")
-  SET (CYCLES_ONEAPI_SYCL_TARGETS spir64 spir64_gen CACHE STRING "oneAPI targets to build AOT binaries for")
+  set(CYCLES_ONEAPI_SPIR64_GEN_DEVICES "dg2" CACHE STRING "oneAPI Intel GPU architectures to build binaries for")
+  set(CYCLES_ONEAPI_SYCL_TARGETS spir64 spir64_gen CACHE STRING "oneAPI targets to build AOT binaries for")
 
   mark_as_advanced(WITH_CYCLES_ONEAPI_SYCL_HOST_ENABLED)
   mark_as_advanced(CYCLES_ONEAPI_SPIR64_GEN_DEVICES)
@@ -580,14 +580,14 @@ endif()
 
 # Metal
 
-if (APPLE)
+if(APPLE)
   option(WITH_METAL_BACKEND "Use Metal for graphics instead of (or as well as) OpenGL on macOS." OFF)
   mark_as_advanced(WITH_METAL_BACKEND)
 else()
   set(WITH_METAL_BACKEND OFF)
 endif()
 
-if (WITH_METAL_BACKEND)
+if(WITH_METAL_BACKEND)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version" FORCE)
 endif()
 
@@ -1196,7 +1196,8 @@ if(WITH_OPENVDB)
   list(APPEND OPENVDB_INCLUDE_DIRS
     ${BOOST_INCLUDE_DIR}
     ${TBB_INCLUDE_DIRS}
-    ${OPENEXR_INCLUDE_DIRS})
+    ${OPENEXR_INCLUDE_DIRS}
+  )
 
   list(APPEND OPENVDB_LIBRARIES ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES})
 
@@ -1346,7 +1347,7 @@ endif()
 
 #-----------------------------------------------------------------------------
 # Configure Metal.
-if (WITH_METAL_BACKEND)
+if(WITH_METAL_BACKEND)
   add_definitions(-DWITH_METAL_BACKEND)
 
   # No need to add frameworks here, all the ones we need for Metal and

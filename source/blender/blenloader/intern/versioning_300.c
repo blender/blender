@@ -57,6 +57,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_screen.h"
@@ -860,6 +861,34 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
         continue;
       }
       SEQ_for_each_callback(&ed->seqbase, seq_speed_factor_set, scene);
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 303, 6)) {
+    /* In the Dope Sheet, for every mode other than Timeline, open the Properties panel. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype != SPACE_ACTION) {
+            continue;
+          }
+
+          /* Skip the timeline, it shouldn't get its Properties panel opened. */
+          SpaceAction *saction = (SpaceAction *)sl;
+          if (saction->mode == SACTCONT_TIMELINE) {
+            continue;
+          }
+
+          const bool is_first_space = sl == area->spacedata.first;
+          ListBase *regionbase = is_first_space ? &area->regionbase : &sl->regionbase;
+          ARegion *region = BKE_region_find_in_listbase_by_type(regionbase, RGN_TYPE_UI);
+          if (region == NULL) {
+            continue;
+          }
+
+          region->flag &= ~RGN_FLAG_HIDDEN;
+        }
+      }
     }
   }
 
@@ -2017,7 +2046,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
   /* Font names were copied directly into ID names, see: T90417. */
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 16)) {
     ListBase *lb = which_libbase(bmain, ID_VF);
-    BKE_main_id_repair_duplicate_names_listbase(lb);
+    BKE_main_id_repair_duplicate_names_listbase(bmain, lb);
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 17)) {
@@ -3257,18 +3286,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
   }
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 303, 6)) {
     /* Initialize brush curves sculpt settings. */
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       if (brush->ob_mode != OB_MODE_SCULPT_CURVES) {
@@ -3282,6 +3301,35 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       if (ob->type == OB_CURVES) {
         ob->dtx &= ~OB_DRAWBOUNDOX;
+      }
+    }
+
+    BKE_main_namemap_validate_and_fix(bmain);
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
+
+    /* Image generation information transferred to tiles. */
+    if (!DNA_struct_elem_find(fd->filesdna, "ImageTile", "int", "gen_x")) {
+      for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
+        for (ImageTile *tile = ima->tiles.first; tile; tile = tile->next) {
+          tile->gen_x = ima->gen_x;
+          tile->gen_y = ima->gen_y;
+          tile->gen_type = ima->gen_type;
+          tile->gen_flag = ima->gen_flag;
+          tile->gen_depth = ima->gen_depth;
+          copy_v4_v4(tile->gen_color, ima->gen_color);
+        }
       }
     }
   }

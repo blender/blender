@@ -7,6 +7,7 @@
 #include "MEM_guardedalloc.h"
 #include "RNA_access.h"
 #include "RNA_blender_cpp.h"
+#include "RNA_path.h"
 #include "RNA_types.h"
 
 #include "blender/id_map.h"
@@ -83,7 +84,9 @@ class BlenderSync {
   }
 
   /* get parameters */
-  static SceneParams get_scene_params(BL::Scene &b_scene, bool background);
+  static SceneParams get_scene_params(BL::Scene &b_scene,
+                                      const bool background,
+                                      const bool use_developer_ui);
   static SessionParams get_session_params(BL::RenderEngine &b_engine,
                                           BL::Preferences &b_userpref,
                                           BL::Scene &b_scene,

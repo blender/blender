@@ -330,7 +330,7 @@ void BKE_mesh_vert_coords_apply_with_mat4(struct Mesh *mesh,
                                           const float mat[4][4]);
 void BKE_mesh_vert_coords_apply(struct Mesh *mesh, const float (*vert_coords)[3]);
 
-/* *** mesh_tessellate.c *** */
+/* *** mesh_tessellate.cc *** */
 
 /**
  * Calculate tessellation into #MLoopTri which exist only for this purpose.
@@ -865,19 +865,7 @@ void BKE_mesh_merge_customdata_for_apply_modifier(struct Mesh *me);
 /**
  * Update the hide flag for edges and faces from the corresponding flag in verts.
  */
-void BKE_mesh_flush_hidden_from_verts_ex(const struct MVert *mvert,
-                                         const struct MLoop *mloop,
-                                         struct MEdge *medge,
-                                         int totedge,
-                                         struct MPoly *mpoly,
-                                         int totpoly);
 void BKE_mesh_flush_hidden_from_verts(struct Mesh *me);
-void BKE_mesh_flush_hidden_from_polys_ex(struct MVert *mvert,
-                                         const struct MLoop *mloop,
-                                         struct MEdge *medge,
-                                         int totedge,
-                                         const struct MPoly *mpoly,
-                                         int totpoly);
 void BKE_mesh_flush_hidden_from_polys(struct Mesh *me);
 /**
  * simple poly -> vert/edge selection.

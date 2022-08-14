@@ -205,7 +205,15 @@ static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int la
         mesh->totloop, sizeof(int), "loop uv vertex index");
   }
   UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(
-      mpoly, mloop, mloopuv, num_poly, num_vert, limit, false, true);
+      mpoly,
+      (const bool *)CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, ".hide_poly"),
+      mloop,
+      mloopuv,
+      num_poly,
+      num_vert,
+      limit,
+      false,
+      true);
   /* NOTE: First UV vertex is supposed to be always marked as separate. */
   storage->num_uv_coordinates = -1;
   for (int vertex_index = 0; vertex_index < num_vert; vertex_index++) {

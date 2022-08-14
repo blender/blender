@@ -11,6 +11,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "COM_node_operation.hh"
+
 #include "node_composite_util.hh"
 
 /* **************** SWITCH VIEW ******************** */
@@ -140,6 +142,25 @@ static void node_composit_buts_switch_view_ex(uiLayout *layout,
               nullptr);
 }
 
+using namespace blender::realtime_compositor;
+
+class SwitchViewOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    Result &input = get_input(context().get_view_name());
+    Result &result = get_result("Image");
+    input.pass_through(result);
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, DNode node)
+{
+  return new SwitchViewOperation(context, node);
+}
+
 }  // namespace blender::nodes::node_composite_switchview_cc
 
 void register_node_type_cmp_switch_view()
@@ -153,6 +174,7 @@ void register_node_type_cmp_switch_view()
   ntype.draw_buttons_ex = file_ns::node_composit_buts_switch_view_ex;
   ntype.initfunc_api = file_ns::init_switch_view;
   node_type_update(&ntype, file_ns::cmp_node_switch_view_update);
+  ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);
 }

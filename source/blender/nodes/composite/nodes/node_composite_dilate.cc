@@ -10,6 +10,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "COM_node_operation.hh"
+
 #include "node_composite_util.hh"
 
 /* **************** Dilate/Erode ******************** */
@@ -43,6 +45,23 @@ static void node_composit_buts_dilateerode(uiLayout *layout, bContext *UNUSED(C)
   }
 }
 
+using namespace blender::realtime_compositor;
+
+class DilateErodeOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    get_input("Mask").pass_through(get_result("Mask"));
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, DNode node)
+{
+  return new DilateErodeOperation(context, node);
+}
+
 }  // namespace blender::nodes::node_composite_dilate_cc
 
 void register_node_type_cmp_dilateerode()
@@ -57,6 +76,7 @@ void register_node_type_cmp_dilateerode()
   node_type_init(&ntype, file_ns::node_composit_init_dilateerode);
   node_type_storage(
       &ntype, "NodeDilateErode", node_free_standard_storage, node_copy_standard_storage);
+  ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);
 }

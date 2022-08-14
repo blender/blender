@@ -124,7 +124,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Subdiv = {
-    /* name */ "Subdivide",
+    /* name */ N_("Subdivide"),
     /* structName */ "SubdivGpencilModifierData",
     /* structSize */ sizeof(SubdivGpencilModifierData),
     /* type */ eGpencilModifierTypeType_Gpencil,

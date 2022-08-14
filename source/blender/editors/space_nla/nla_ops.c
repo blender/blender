@@ -16,6 +16,8 @@
 #include "ED_anim_api.h"
 #include "ED_screen.h"
 
+#include "RNA_access.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -136,6 +138,28 @@ void nla_operatortypes(void)
   WM_operatortype_append(NLA_OT_fmodifier_add);
   WM_operatortype_append(NLA_OT_fmodifier_copy);
   WM_operatortype_append(NLA_OT_fmodifier_paste);
+}
+
+void ED_operatormacros_nla()
+{
+  wmOperatorType *ot;
+  wmOperatorTypeMacro *otmacro;
+
+  ot = WM_operatortype_append_macro("NLA_OT_duplicate_move",
+                                    "Duplicate",
+                                    "Duplicate selected strips and their Actions and move them",
+                                    OPTYPE_UNDO | OPTYPE_REGISTER);
+  otmacro = WM_operatortype_macro_define(ot, "NLA_OT_duplicate");
+  RNA_boolean_set(otmacro->ptr, "linked", false);
+  WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+
+  ot = WM_operatortype_append_macro("NLA_OT_duplicate_linked_move",
+                                    "Duplicate Linked",
+                                    "Duplicate selected strips and move them",
+                                    OPTYPE_UNDO | OPTYPE_REGISTER);
+  otmacro = WM_operatortype_macro_define(ot, "NLA_OT_duplicate");
+  RNA_boolean_set(otmacro->ptr, "linked", true);
+  WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 }
 
 /* ************************** registration - keymaps **********************************/

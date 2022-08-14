@@ -5,8 +5,14 @@
  * \ingroup cmpnodes
  */
 
+#include "IMB_colormanagement.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "GPU_material.h"
+
+#include "COM_shader_node.hh"
 
 #include "node_composite_util.hh"
 
@@ -16,8 +22,14 @@ namespace blender::nodes::node_composite_colorcorrection_cc {
 
 static void cmp_node_colorcorrection_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Float>(N_("Mask")).default_value(1.0f).min(0.0f).max(1.0f);
+  b.add_input<decl::Color>(N_("Image"))
+      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .compositor_domain_priority(0);
+  b.add_input<decl::Float>(N_("Mask"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .compositor_domain_priority(1);
   b.add_output<decl::Color>(N_("Image"));
 }
 
@@ -266,6 +278,73 @@ static void node_composit_buts_colorcorrection_ex(uiLayout *layout,
   uiItemR(row, ptr, "midtones_end", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
+using namespace blender::realtime_compositor;
+
+class ColorCorrectionShaderNode : public ShaderNode {
+ public:
+  using ShaderNode::ShaderNode;
+
+  void compile(GPUMaterial *material) override
+  {
+    GPUNodeStack *inputs = get_inputs_array();
+    GPUNodeStack *outputs = get_outputs_array();
+
+    float enabled_channels[3];
+    get_enabled_channels(enabled_channels);
+    float luminance_coefficients[3];
+    IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
+
+    const NodeColorCorrection *node_color_correction = get_node_color_correction();
+
+    GPU_stack_link(material,
+                   &bnode(),
+                   "node_composite_color_correction",
+                   inputs,
+                   outputs,
+                   GPU_constant(enabled_channels),
+                   GPU_uniform(&node_color_correction->startmidtones),
+                   GPU_uniform(&node_color_correction->endmidtones),
+                   GPU_uniform(&node_color_correction->master.saturation),
+                   GPU_uniform(&node_color_correction->master.contrast),
+                   GPU_uniform(&node_color_correction->master.gamma),
+                   GPU_uniform(&node_color_correction->master.gain),
+                   GPU_uniform(&node_color_correction->master.lift),
+                   GPU_uniform(&node_color_correction->shadows.saturation),
+                   GPU_uniform(&node_color_correction->shadows.contrast),
+                   GPU_uniform(&node_color_correction->shadows.gamma),
+                   GPU_uniform(&node_color_correction->shadows.gain),
+                   GPU_uniform(&node_color_correction->shadows.lift),
+                   GPU_uniform(&node_color_correction->midtones.saturation),
+                   GPU_uniform(&node_color_correction->midtones.contrast),
+                   GPU_uniform(&node_color_correction->midtones.gamma),
+                   GPU_uniform(&node_color_correction->midtones.gain),
+                   GPU_uniform(&node_color_correction->midtones.lift),
+                   GPU_uniform(&node_color_correction->highlights.saturation),
+                   GPU_uniform(&node_color_correction->highlights.contrast),
+                   GPU_uniform(&node_color_correction->highlights.gamma),
+                   GPU_uniform(&node_color_correction->highlights.gain),
+                   GPU_uniform(&node_color_correction->highlights.lift),
+                   GPU_constant(luminance_coefficients));
+  }
+
+  void get_enabled_channels(float enabled_channels[3])
+  {
+    for (int i = 0; i < 3; i++) {
+      enabled_channels[i] = (bnode().custom1 & (1 << i)) ? 1.0f : 0.0f;
+    }
+  }
+
+  NodeColorCorrection *get_node_color_correction()
+  {
+    return static_cast<NodeColorCorrection *>(bnode().storage);
+  }
+};
+
+static ShaderNode *get_compositor_shader_node(DNode node)
+{
+  return new ColorCorrectionShaderNode(node);
+}
+
 }  // namespace blender::nodes::node_composite_colorcorrection_cc
 
 void register_node_type_cmp_colorcorrection()
@@ -282,6 +361,7 @@ void register_node_type_cmp_colorcorrection()
   node_type_init(&ntype, file_ns::node_composit_init_colorcorrection);
   node_type_storage(
       &ntype, "NodeColorCorrection", node_free_standard_storage, node_copy_standard_storage);
+  ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
   nodeRegisterType(&ntype);
 }

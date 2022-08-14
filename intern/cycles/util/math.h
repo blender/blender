@@ -511,6 +511,11 @@ ccl_device_inline float4 float3_to_float4(const float3 a)
   return make_float4(a.x, a.y, a.z, 1.0f);
 }
 
+ccl_device_inline float4 float3_to_float4(const float3 a, const float w)
+{
+  return make_float4(a.x, a.y, a.z, w);
+}
+
 ccl_device_inline float inverse_lerp(float a, float b, float x)
 {
   return (x - a) / (b - a);
@@ -535,6 +540,7 @@ CCL_NAMESPACE_END
 #include "util/math_float2.h"
 #include "util/math_float3.h"
 #include "util/math_float4.h"
+#include "util/math_float8.h"
 
 #include "util/rect.h"
 
@@ -589,26 +595,26 @@ ccl_device_inline void make_orthonormals(const float3 N,
 
 /* Color division */
 
-ccl_device_inline float3 safe_invert_color(float3 a)
+ccl_device_inline Spectrum safe_invert_color(Spectrum a)
 {
-  float x, y, z;
+  FOREACH_SPECTRUM_CHANNEL (i) {
+    GET_SPECTRUM_CHANNEL(a, i) = (GET_SPECTRUM_CHANNEL(a, i) != 0.0f) ?
+                                     1.0f / GET_SPECTRUM_CHANNEL(a, i) :
+                                     0.0f;
+  }
 
-  x = (a.x != 0.0f) ? 1.0f / a.x : 0.0f;
-  y = (a.y != 0.0f) ? 1.0f / a.y : 0.0f;
-  z = (a.z != 0.0f) ? 1.0f / a.z : 0.0f;
-
-  return make_float3(x, y, z);
+  return a;
 }
 
-ccl_device_inline float3 safe_divide_color(float3 a, float3 b)
+ccl_device_inline Spectrum safe_divide_color(Spectrum a, Spectrum b)
 {
-  float x, y, z;
+  FOREACH_SPECTRUM_CHANNEL (i) {
+    GET_SPECTRUM_CHANNEL(a, i) = (GET_SPECTRUM_CHANNEL(b, i) != 0.0f) ?
+                                     GET_SPECTRUM_CHANNEL(a, i) / GET_SPECTRUM_CHANNEL(b, i) :
+                                     0.0f;
+  }
 
-  x = (b.x != 0.0f) ? a.x / b.x : 0.0f;
-  y = (b.y != 0.0f) ? a.y / b.y : 0.0f;
-  z = (b.z != 0.0f) ? a.z / b.z : 0.0f;
-
-  return make_float3(x, y, z);
+  return a;
 }
 
 ccl_device_inline float3 safe_divide_even_color(float3 a, float3 b)
@@ -947,7 +953,11 @@ ccl_device_inline uint prev_power_of_two(uint x)
 ccl_device_inline uint32_t reverse_integer_bits(uint32_t x)
 {
   /* Use a native instruction if it exists. */
-#if defined(__aarch64__) || defined(_M_ARM64)
+#if defined(__KERNEL_CUDA__)
+  return __brev(x);
+#elif defined(__KERNEL_METAL__)
+  return reverse_bits(x);
+#elif defined(__aarch64__) || defined(_M_ARM64)
   /* Assume the rbit is always available on 64bit ARM architecture. */
   __asm__("rbit %w0, %w1" : "=r"(x) : "r"(x));
   return x;
@@ -956,10 +966,6 @@ ccl_device_inline uint32_t reverse_integer_bits(uint32_t x)
    * This 32-bit Thumb instruction is available in ARMv6T2 and above. */
   __asm__("rbit %0, %1" : "=r"(x) : "r"(x));
   return x;
-#elif defined(__KERNEL_CUDA__)
-  return __brev(x);
-#elif defined(__KERNEL_METAL__)
-  return reverse_bits(x);
 #elif __has_builtin(__builtin_bitreverse32)
   return __builtin_bitreverse32(x);
 #else

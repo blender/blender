@@ -27,8 +27,8 @@ ccl_device_inline float3 motion_triangle_point_from_uv(KernelGlobals kg,
                                                        const float v,
                                                        float3 verts[3])
 {
-  float w = 1.0f - u - v;
-  float3 P = u * verts[0] + v * verts[1] + w * verts[2];
+  /* This appears to give slightly better precision than interpolating with w = (1 - u - v). */
+  float3 P = verts[0] + u * (verts[1] - verts[0]) + v * (verts[2] - verts[0]);
 
   if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     const Transform tfm = object_get_transform(kg, sd);

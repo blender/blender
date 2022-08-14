@@ -444,44 +444,6 @@ bool ED_mesh_color_ensure(Mesh *me, const char *name)
   return (layer != nullptr);
 }
 
-bool ED_mesh_color_remove_index(Mesh *me, const int n)
-{
-  CustomData *ldata = GET_CD_DATA(me, ldata);
-  CustomDataLayer *cdl;
-  int index;
-
-  index = CustomData_get_layer_index_n(ldata, CD_PROP_BYTE_COLOR, n);
-  cdl = (index == -1) ? nullptr : &ldata->layers[index];
-
-  if (!cdl) {
-    return false;
-  }
-
-  delete_customdata_layer(me, cdl);
-  DEG_id_tag_update(&me->id, 0);
-  WM_main_add_notifier(NC_GEOM | ND_DATA, me);
-
-  return true;
-}
-bool ED_mesh_color_remove_active(Mesh *me)
-{
-  CustomData *ldata = GET_CD_DATA(me, ldata);
-  const int n = CustomData_get_active_layer(ldata, CD_PROP_BYTE_COLOR);
-  if (n != -1) {
-    return ED_mesh_color_remove_index(me, n);
-  }
-  return false;
-}
-bool ED_mesh_color_remove_named(Mesh *me, const char *name)
-{
-  CustomData *ldata = GET_CD_DATA(me, ldata);
-  const int n = CustomData_get_named_layer(ldata, CD_PROP_BYTE_COLOR, name);
-  if (n != -1) {
-    return ED_mesh_color_remove_index(me, n);
-  }
-  return false;
-}
-
 /*********************** General poll ************************/
 
 static bool layers_poll(bContext *C)
@@ -494,25 +456,7 @@ static bool layers_poll(bContext *C)
 
 /*********************** Sculpt Vertex colors operators ************************/
 
-static bool sculpt_vertex_color_remove_poll(bContext *C)
-{
-  if (!layers_poll(C)) {
-    return false;
-  }
-
-  Object *ob = ED_object_context(C);
-  Mesh *me = static_cast<Mesh *>(ob->data);
-  CustomData *vdata = GET_CD_DATA(me, vdata);
-  const int active = CustomData_get_active_layer(vdata, CD_PROP_COLOR);
-  if (active != -1) {
-    return true;
-  }
-
-  return false;
-}
-
-int ED_mesh_sculpt_color_add(
-    Mesh *me, const char *name, const bool active_set, const bool do_init, ReportList *reports)
+int ED_mesh_sculpt_color_add(Mesh *me, const char *name, const bool do_init, ReportList *reports)
 {
   /* NOTE: keep in sync with #ED_mesh_uv_add. */
 
@@ -536,7 +480,7 @@ int ED_mesh_sculpt_color_add(
       const int layernum_dst = CustomData_get_active_layer(&em->bm->vdata, CD_PROP_COLOR);
       BM_data_layer_copy(em->bm, &em->bm->vdata, CD_PROP_COLOR, layernum_dst, layernum);
     }
-    if (active_set || layernum == 0) {
+    if (layernum == 0) {
       CustomData_set_layer_active(&em->bm->vdata, CD_PROP_COLOR, layernum);
     }
   }
@@ -559,7 +503,7 @@ int ED_mesh_sculpt_color_add(
           &me->vdata, CD_PROP_COLOR, CD_DEFAULT, nullptr, me->totvert, name);
     }
 
-    if (active_set || layernum == 0) {
+    if (layernum == 0) {
       CustomData_set_layer_active(&me->vdata, CD_PROP_COLOR, layernum);
     }
 
@@ -570,58 +514,6 @@ int ED_mesh_sculpt_color_add(
   WM_main_add_notifier(NC_GEOM | ND_DATA, me);
 
   return layernum;
-}
-
-bool ED_mesh_sculpt_color_ensure(Mesh *me, const char *name)
-{
-  BLI_assert(me->edit_mesh == nullptr);
-
-  if (me->totvert && !CustomData_has_layer(&me->vdata, CD_PROP_COLOR)) {
-    CustomData_add_layer_named(&me->vdata, CD_PROP_COLOR, CD_DEFAULT, nullptr, me->totvert, name);
-    BKE_mesh_update_customdata_pointers(me, true);
-  }
-
-  DEG_id_tag_update(&me->id, 0);
-
-  return (me->mloopcol != nullptr);
-}
-
-bool ED_mesh_sculpt_color_remove_index(Mesh *me, const int n)
-{
-  CustomData *vdata = GET_CD_DATA(me, vdata);
-  CustomDataLayer *cdl;
-  int index;
-
-  index = CustomData_get_layer_index_n(vdata, CD_PROP_COLOR, n);
-  cdl = (index == -1) ? nullptr : &vdata->layers[index];
-
-  if (!cdl) {
-    return false;
-  }
-
-  delete_customdata_layer(me, cdl);
-  DEG_id_tag_update(&me->id, 0);
-  WM_main_add_notifier(NC_GEOM | ND_DATA, me);
-
-  return true;
-}
-bool ED_mesh_sculpt_color_remove_active(Mesh *me)
-{
-  CustomData *vdata = GET_CD_DATA(me, vdata);
-  const int n = CustomData_get_active_layer(vdata, CD_PROP_COLOR);
-  if (n != -1) {
-    return ED_mesh_sculpt_color_remove_index(me, n);
-  }
-  return false;
-}
-bool ED_mesh_sculpt_color_remove_named(Mesh *me, const char *name)
-{
-  CustomData *vdata = GET_CD_DATA(me, vdata);
-  const int n = CustomData_get_named_layer(vdata, CD_PROP_COLOR, name);
-  if (n != -1) {
-    return ED_mesh_sculpt_color_remove_index(me, n);
-  }
-  return false;
 }
 
 /*********************** UV texture operators ************************/
@@ -704,135 +596,6 @@ void MESH_OT_uv_texture_remove(wmOperatorType *ot)
   /* api callbacks */
   ot->poll = uv_texture_remove_poll;
   ot->exec = mesh_uv_texture_remove_exec;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-/*********************** vertex color operators ************************/
-
-static bool vertex_color_remove_poll(bContext *C)
-{
-  if (!layers_poll(C)) {
-    return false;
-  }
-
-  Object *ob = ED_object_context(C);
-  Mesh *me = static_cast<Mesh *>(ob->data);
-  CustomData *ldata = GET_CD_DATA(me, ldata);
-  const int active = CustomData_get_active_layer(ldata, CD_PROP_BYTE_COLOR);
-  if (active != -1) {
-    return true;
-  }
-
-  return false;
-}
-
-static int mesh_vertex_color_add_exec(bContext *C, wmOperator *op)
-{
-  Object *ob = ED_object_context(C);
-  Mesh *me = static_cast<Mesh *>(ob->data);
-
-  if (ED_mesh_color_add(me, nullptr, true, true, op->reports) == -1) {
-    return OPERATOR_CANCELLED;
-  }
-
-  return OPERATOR_FINISHED;
-}
-
-void MESH_OT_vertex_color_add(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Add Vertex Color";
-  ot->description = "Add vertex color layer";
-  ot->idname = "MESH_OT_vertex_color_add";
-
-  /* api callbacks */
-  ot->poll = layers_poll;
-  ot->exec = mesh_vertex_color_add_exec;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-static int mesh_vertex_color_remove_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  Object *ob = ED_object_context(C);
-  Mesh *me = static_cast<Mesh *>(ob->data);
-
-  if (!ED_mesh_color_remove_active(me)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  return OPERATOR_FINISHED;
-}
-
-void MESH_OT_vertex_color_remove(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Remove Vertex Color";
-  ot->description = "Remove vertex color layer";
-  ot->idname = "MESH_OT_vertex_color_remove";
-
-  /* api callbacks */
-  ot->exec = mesh_vertex_color_remove_exec;
-  ot->poll = vertex_color_remove_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-/*********************** Sculpt Vertex Color Operators ************************/
-
-static int mesh_sculpt_vertex_color_add_exec(bContext *C, wmOperator *op)
-{
-  Object *ob = ED_object_context(C);
-  Mesh *me = static_cast<Mesh *>(ob->data);
-
-  if (ED_mesh_sculpt_color_add(me, nullptr, true, true, op->reports) == -1) {
-    return OPERATOR_CANCELLED;
-  }
-
-  return OPERATOR_FINISHED;
-}
-
-void MESH_OT_sculpt_vertex_color_add(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Add Sculpt Vertex Color";
-  ot->description = "Add vertex color layer";
-  ot->idname = "MESH_OT_sculpt_vertex_color_add";
-
-  /* api callbacks */
-  ot->poll = layers_poll;
-  ot->exec = mesh_sculpt_vertex_color_add_exec;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-static int mesh_sculpt_vertex_color_remove_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  Object *ob = ED_object_context(C);
-  Mesh *me = static_cast<Mesh *>(ob->data);
-
-  if (!ED_mesh_sculpt_color_remove_active(me)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  return OPERATOR_FINISHED;
-}
-
-void MESH_OT_sculpt_vertex_color_remove(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Remove Sculpt Vertex Color";
-  ot->description = "Remove vertex color layer";
-  ot->idname = "MESH_OT_sculpt_vertex_color_remove";
-
-  /* api callbacks */
-  ot->exec = mesh_sculpt_vertex_color_remove_exec;
-  ot->poll = sculpt_vertex_color_remove_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

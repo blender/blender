@@ -139,7 +139,7 @@ static void deformVertsEM(ModifierData *md,
         ctx->object, editData, mesh, NULL, verts_num, false, false);
   }
 
-  /* TODO(Campbell): use edit-mode data only (remove this line). */
+  /* TODO(@campbellbarton): use edit-mode data only (remove this line). */
   if (mesh_src != NULL) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }
@@ -186,7 +186,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
       DEG_add_special_eval_flag(ctx->node, &smd->auxTarget->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);
     }
   }
-  DEG_add_modifier_to_transform_relation(ctx->node, "Shrinkwrap Modifier");
+  DEG_add_depends_on_transform_relation(ctx->node, "Shrinkwrap Modifier");
 }
 
 static bool dependsOnNormals(ModifierData *md)

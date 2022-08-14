@@ -320,13 +320,13 @@ struct LinkData *BLI_genericNodeN(void *data);
   } \
   ((void)0)
 
-#define LISTBASE_CIRCULAR_BACKWARD_BEGIN(lb, lb_iter, lb_init) \
-  if ((lb)->last && (lb_init || (lb_init = (lb)->last))) { \
+#define LISTBASE_CIRCULAR_BACKWARD_BEGIN(type, lb, lb_iter, lb_init) \
+  if ((lb)->last && (lb_init || (lb_init = (type)(lb)->last))) { \
     lb_iter = lb_init; \
     do {
-#define LISTBASE_CIRCULAR_BACKWARD_END(lb, lb_iter, lb_init) \
+#define LISTBASE_CIRCULAR_BACKWARD_END(type, lb, lb_iter, lb_init) \
   } \
-  while ((lb_iter = (lb_iter)->prev ? (lb_iter)->prev : (lb)->last), (lb_iter != lb_init)) \
+  while ((lb_iter = (lb_iter)->prev ? (lb_iter)->prev : (type)(lb)->last), (lb_iter != lb_init)) \
     ; \
   } \
   ((void)0)

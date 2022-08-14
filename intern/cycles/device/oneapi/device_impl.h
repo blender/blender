@@ -89,6 +89,9 @@ class OneapiDevice : public Device {
 
   virtual unique_ptr<DeviceQueue> gpu_queue_create() override;
 
+  int get_num_multiprocessors();
+  int get_max_num_threads_per_multiprocessor();
+
   /* NOTE(@nsirgien): Create this methods to avoid some compilation problems on Windows with host
    * side compilation (MSVC). */
   void *usm_aligned_alloc_host(size_t memory_size, size_t alignment);

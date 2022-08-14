@@ -7,6 +7,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_matrix.h"
 #include "BLI_string_utils.h"
 
 #include "GPU_capabilities.h"
@@ -382,6 +383,8 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
     sources.append(resources.c_str());
     sources.append(layout.c_str());
     sources.extend(code);
+    sources.extend(info.dependencies_generated);
+    sources.append(info.compute_source_generated.c_str());
 
     shader->compute_shader_from_glsl(sources);
   }
@@ -575,6 +578,12 @@ int GPU_shader_get_builtin_block(GPUShader *shader, int builtin)
   return interface->ubo_builtin((GPUUniformBlockBuiltin)builtin);
 }
 
+int GPU_shader_get_builtin_ssbo(GPUShader *shader, int builtin)
+{
+  ShaderInterface *interface = unwrap(shader)->interface;
+  return interface->ssbo_builtin((GPUStorageBufferBuiltin)builtin);
+}
+
 int GPU_shader_get_ssbo(GPUShader *shader, const char *name)
 {
   ShaderInterface *interface = unwrap(shader)->interface;
@@ -702,10 +711,23 @@ void GPU_shader_uniform_4fv(GPUShader *sh, const char *name, const float data[4]
   GPU_shader_uniform_vector(sh, loc, 4, 1, data);
 }
 
+void GPU_shader_uniform_2iv(GPUShader *sh, const char *name, const int data[2])
+{
+  const int loc = GPU_shader_get_uniform(sh, name);
+  GPU_shader_uniform_vector_int(sh, loc, 2, 1, data);
+}
+
 void GPU_shader_uniform_mat4(GPUShader *sh, const char *name, const float data[4][4])
 {
   const int loc = GPU_shader_get_uniform(sh, name);
   GPU_shader_uniform_vector(sh, loc, 16, 1, (const float *)data);
+}
+
+void GPU_shader_uniform_mat3_as_mat4(GPUShader *sh, const char *name, const float data[3][3])
+{
+  float matrix[4][4];
+  copy_m4_m3(matrix, data);
+  GPU_shader_uniform_mat4(sh, name, matrix);
 }
 
 void GPU_shader_uniform_2fv_array(GPUShader *sh, const char *name, int len, const float (*val)[2])

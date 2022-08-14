@@ -130,7 +130,7 @@ typedef enum { PBVH_DYNTOPO_SMOOTH_SHADING = 1 } PBVHFlags;
 typedef struct PBVHBMeshLog PBVHBMeshLog;
 
 struct PBVH {
-  PBVHType type;
+  struct PBVHPublic header;
   PBVHFlags flags;
 
   PBVHNode *nodes;
@@ -144,10 +144,11 @@ struct PBVH {
   int leaf_limit;
 
   /* Mesh data */
-  const struct Mesh *mesh;
+  struct Mesh *mesh;
 
   /* NOTE: Normals are not `const` because they can be updated for drawing by sculpt code. */
   float (*vert_normals)[3];
+  bool *hide_vert;
   struct MVert *verts;
   const struct MPoly *mpoly;
   const struct MLoop *mloop;
@@ -183,7 +184,6 @@ struct PBVH {
   bool respect_hide;
 
   /* Dynamic topology */
-  BMesh *bm;
   float bm_max_edge_len;
   float bm_min_edge_len;
   int cd_vert_node_offset;
@@ -265,7 +265,7 @@ bool pbvh_bmesh_node_raycast(PBVHNode *node,
                              struct IsectRayPrecalc *isect_precalc,
                              float *dist,
                              bool use_original,
-                             int *r_active_vertex_index,
+                             PBVHVertRef *r_active_vertex,
                              float *r_face_normal);
 bool pbvh_bmesh_node_nearest_to_ray(PBVHNode *node,
                                     const float ray_start[3],

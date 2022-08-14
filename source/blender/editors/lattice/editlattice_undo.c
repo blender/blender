@@ -46,7 +46,7 @@ static CLG_LogRef LOG = {"ed.undo.lattice"};
 /** \name Undo Conversion
  * \{ */
 
-/* TODO(Campbell): this could contain an entire 'Lattice' struct. */
+/* TODO(@campbellbarton): this could contain an entire 'Lattice' struct. */
 typedef struct UndoLattice {
   BPoint *def;
   int pntsu, pntsv, pntsw, actbp;

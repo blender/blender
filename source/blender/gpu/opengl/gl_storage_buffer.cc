@@ -72,7 +72,7 @@ void GLStorageBuf::bind(int slot)
   if (slot >= GLContext::max_ssbo_binds) {
     fprintf(
         stderr,
-        "Error: Trying to bind \"%s\" ssbo to slot %d which is above the reported limit of %d.",
+        "Error: Trying to bind \"%s\" ssbo to slot %d which is above the reported limit of %d.\n",
         name_,
         slot,
         GLContext::max_ssbo_binds);

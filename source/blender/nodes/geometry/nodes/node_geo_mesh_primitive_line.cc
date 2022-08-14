@@ -183,6 +183,7 @@ Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
   MutableSpan<MEdge> edges{mesh->medge, mesh->totedge};
 
   threading::parallel_invoke(
+      1024 < count,
       [&]() {
         threading::parallel_for(verts.index_range(), 4096, [&](IndexRange range) {
           for (const int i : range) {

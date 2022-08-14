@@ -784,7 +784,7 @@ IDProperty *IDP_GetProperties(ID *id, const bool create_if_needed)
   if (create_if_needed) {
     id->properties = MEM_callocN(sizeof(IDProperty), "IDProperty");
     id->properties->type = IDP_GROUP;
-    /* NOTE(campbell): Don't overwrite the data's name and type
+    /* NOTE(@campbellbarton): Don't overwrite the data's name and type
      * some functions might need this if they
      * don't have a real ID, should be named elsewhere. */
     // strcpy(id->name, "top_level_group");
@@ -1428,7 +1428,7 @@ void IDP_BlendReadData_impl(BlendDataReader *reader, IDProperty **prop, const ch
   }
 }
 
-void IDP_BlendReadLib(BlendLibReader *reader, IDProperty *prop)
+void IDP_BlendReadLib(BlendLibReader *reader, Library *lib, IDProperty *prop)
 {
   if (!prop) {
     return;
@@ -1437,7 +1437,7 @@ void IDP_BlendReadLib(BlendLibReader *reader, IDProperty *prop)
   switch (prop->type) {
     case IDP_ID: /* PointerProperty */
     {
-      void *newaddr = BLO_read_get_new_id_address(reader, NULL, IDP_Id(prop));
+      void *newaddr = BLO_read_get_new_id_address(reader, lib, IDP_Id(prop));
       if (IDP_Id(prop) && !newaddr && G.debug) {
         printf("Error while loading \"%s\". Data not found in file!\n", prop->name);
       }
@@ -1448,14 +1448,14 @@ void IDP_BlendReadLib(BlendLibReader *reader, IDProperty *prop)
     {
       IDProperty *idp_array = IDP_IDPArray(prop);
       for (int i = 0; i < prop->len; i++) {
-        IDP_BlendReadLib(reader, &(idp_array[i]));
+        IDP_BlendReadLib(reader, lib, &(idp_array[i]));
       }
       break;
     }
     case IDP_GROUP: /* PointerProperty */
     {
       LISTBASE_FOREACH (IDProperty *, loop, &prop->data.group) {
-        IDP_BlendReadLib(reader, loop);
+        IDP_BlendReadLib(reader, lib, loop);
       }
       break;
     }

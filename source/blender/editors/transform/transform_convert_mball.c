@@ -22,7 +22,7 @@
 /** \name Meta Elements Transform Creation
  * \{ */
 
-void createTransMBallVerts(TransInfo *t)
+static void createTransMBallVerts(bContext *UNUSED(C), TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     MetaBall *mb = (MetaBall *)tc->obedit->data;
@@ -119,7 +119,7 @@ void createTransMBallVerts(TransInfo *t)
 /** \name Recalc Meta Ball
  * \{ */
 
-void recalcData_mball(TransInfo *t)
+static void recalcData_mball(TransInfo *t)
 {
   if (t->state != TRANS_CANCEL) {
     applySnappingIndividual(t);
@@ -132,3 +132,10 @@ void recalcData_mball(TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_MBall = {
+    /* flags */ (T_EDIT | T_POINTS),
+    /* createTransData */ createTransMBallVerts,
+    /* recalcData */ recalcData_mball,
+    /* special_aftertrans_update */ NULL,
+};

@@ -110,6 +110,9 @@ def svn_update(args, release_version):
                 if not make_utils.command_missing(args.svn_command):
                     call(svn_non_interactive + ["cleanup", lib_dirpath])
                 continue
+            elif dirname.startswith("."):
+                # Temporary paths such as ".mypy_cache" will report a warning, skip hidden directories.
+                continue
 
             svn_dirpath = os.path.join(dirpath, ".svn")
             svn_root_dirpath = os.path.join(lib_dirpath, ".svn")

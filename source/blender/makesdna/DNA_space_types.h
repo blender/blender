@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_utildefines.h"
+
 #include "DNA_asset_types.h"
 #include "DNA_color_types.h" /* for Histogram */
 #include "DNA_defs.h"
@@ -1028,6 +1030,7 @@ typedef enum eFileSel_Params_Flag {
   /** Enables filtering by asset catalog. */
   FILE_FILTER_ASSET_CATALOG = (1 << 15),
 } eFileSel_Params_Flag;
+ENUM_OPERATORS(eFileSel_Params_Flag, FILE_FILTER_ASSET_CATALOG);
 
 typedef enum eFileSel_Params_AssetCatalogVisibility {
   FILE_SHOW_ASSETS_ALL_CATALOGS,

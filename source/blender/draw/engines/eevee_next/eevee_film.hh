@@ -8,6 +8,12 @@
  * The film class handles accumulation of samples with any distorted camera_type
  * using a pixel filter. Inputs needs to be jittered so that the filter converges to the right
  * result.
+ *
+ * In viewport, we switch between 2 accumulation mode depending on the scene state.
+ * - For static scene, we use a classic weighted accumulation.
+ * - For dynamic scene (if an update is detected), we use a more temporally stable accumulation
+ *   following the Temporal Anti-Aliasing method (a.k.a. Temporal Super-Sampling). This does
+ *   history reprojection and rectification to avoid most of the flickering.
  */
 
 #pragma once
@@ -28,9 +34,14 @@ class Film {
  public:
   /** Stores indirection table of AOVs based on their name hash and their type. */
   AOVsInfoDataBuf aovs_info;
+  /** For debugging purpose but could be a user option in the future. */
+  static constexpr bool use_box_filter = false;
 
  private:
   Instance &inst_;
+
+  /** Incoming combined buffer with post FX applied (motion blur + depth of field). */
+  GPUTexture *combined_final_tx_ = nullptr;
 
   /** Main accumulation textures containing every render-pass except depth and combined. */
   Texture color_accum_tx_;
@@ -41,8 +52,8 @@ class Film {
   SwapChain<Texture, 2> combined_tx_;
   /** Weight buffers. Double buffered to allow updating it during accumulation. */
   SwapChain<Texture, 2> weight_tx_;
-  /** Extent used by the render buffers when rendering the main views. */
-  int2 render_extent_ = int2(-1);
+  /** User setting to disable reprojection. Useful for debugging or have a more precise render. */
+  bool force_disable_reprojection_ = false;
 
   DRWPass *accumulate_ps_ = nullptr;
 
@@ -60,7 +71,7 @@ class Film {
   void end_sync();
 
   /** Accumulate the newly rendered sample contained in #RenderBuffers and blit to display. */
-  void accumulate(const DRWView *view);
+  void accumulate(const DRWView *view, GPUTexture *combined_final_tx);
 
   /** Blit to display. No rendered sample needed. */
   void display();
@@ -68,17 +79,20 @@ class Film {
   float *read_pass(eViewLayerEEVEEPassType pass_type);
   float *read_aov(ViewLayerAOV *aov);
 
+  /** Returns shading views internal resolution. */
   int2 render_extent_get() const
   {
-    return render_extent_;
+    return data_.render_extent;
   }
 
   float2 pixel_jitter_get() const;
 
-  eViewLayerEEVEEPassType enabled_passes_get() const
+  float background_opacity_get() const
   {
-    return enabled_passes_;
+    return data_.background_opacity;
   }
+
+  eViewLayerEEVEEPassType enabled_passes_get() const;
 
   static bool pass_is_value(eViewLayerEEVEEPassType pass_type)
   {
@@ -87,6 +101,23 @@ class Film {
       case EEVEE_RENDER_PASS_MIST:
       case EEVEE_RENDER_PASS_SHADOW:
       case EEVEE_RENDER_PASS_AO:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  static bool pass_is_float3(eViewLayerEEVEEPassType pass_type)
+  {
+    switch (pass_type) {
+      case EEVEE_RENDER_PASS_NORMAL:
+      case EEVEE_RENDER_PASS_DIFFUSE_LIGHT:
+      case EEVEE_RENDER_PASS_DIFFUSE_COLOR:
+      case EEVEE_RENDER_PASS_SPECULAR_LIGHT:
+      case EEVEE_RENDER_PASS_SPECULAR_COLOR:
+      case EEVEE_RENDER_PASS_VOLUME_LIGHT:
+      case EEVEE_RENDER_PASS_EMIT:
+      case EEVEE_RENDER_PASS_ENVIRONMENT:
         return true;
       default:
         return false;

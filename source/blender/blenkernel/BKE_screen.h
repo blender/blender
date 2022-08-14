@@ -291,7 +291,7 @@ enum {
 
 /* Draw an item in the uiList */
 typedef void (*uiListDrawItemFunc)(struct uiList *ui_list,
-                                   struct bContext *C,
+                                   const struct bContext *C,
                                    struct uiLayout *layout,
                                    struct PointerRNA *dataptr,
                                    struct PointerRNA *itemptr,
@@ -303,12 +303,12 @@ typedef void (*uiListDrawItemFunc)(struct uiList *ui_list,
 
 /* Draw the filtering part of an uiList */
 typedef void (*uiListDrawFilterFunc)(struct uiList *ui_list,
-                                     struct bContext *C,
+                                     const struct bContext *C,
                                      struct uiLayout *layout);
 
 /* Filter items of an uiList */
 typedef void (*uiListFilterItemsFunc)(struct uiList *ui_list,
-                                      struct bContext *C,
+                                      const struct bContext *C,
                                       struct PointerRNA *,
                                       const char *propname);
 

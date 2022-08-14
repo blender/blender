@@ -240,8 +240,12 @@ typedef struct FontBLF {
   /* # of times this font was loaded */
   unsigned int reference_count;
 
-  /** File-path or NULL. */
+  /* Full path to font file or NULL if from memory. */
   char *filepath;
+
+  /* Pointer to in-memory font, or NULL if from file. */
+  void *mem;
+  size_t mem_size;
 
   /* Copied from the SFNT OS/2 table. Bit flags for unicode blocks and ranges
    * considered "functional". Cached here because face might not always exist.
@@ -319,17 +323,20 @@ typedef struct FontBLF {
   /* freetype2 lib handle. */
   FT_Library ft_lib;
 
-  /* Mutex lock for library */
-  SpinLock *ft_lib_mutex;
-
   /* freetype2 face. */
   FT_Face face;
+
+  /* Point to face->size or to cache's size. */
+  FT_Size ft_size;
+
+  /* Copy of the font->face->face_flags, in case we don't have a face loaded. */
+  FT_Long face_flags;
 
   /* data for buffer usage (drawing into a texture buffer) */
   FontBufInfoBLF buf_info;
 
   /* Mutex lock for glyph cache. */
-  SpinLock *glyph_cache_mutex;
+  ThreadMutex glyph_cache_mutex;
 } FontBLF;
 
 typedef struct DirBLF {

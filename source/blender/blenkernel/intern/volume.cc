@@ -1089,6 +1089,8 @@ static void volume_evaluate_modifiers(struct Depsgraph *depsgraph,
   ModifierApplyFlag apply_flag = use_render ? MOD_APPLY_RENDER : MOD_APPLY_USECACHE;
   const ModifierEvalContext mectx = {depsgraph, object, apply_flag};
 
+  BKE_modifiers_clear_errors(object);
+
   /* Get effective list of modifiers to execute. Some effects like shape keys
    * are added as virtual modifiers before the user created modifiers. */
   VirtualModifierData virtualModifierData;

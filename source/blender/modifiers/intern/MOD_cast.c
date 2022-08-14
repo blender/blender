@@ -87,7 +87,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   CastModifierData *cmd = (CastModifierData *)md;
   if (cmd->object != NULL) {
     DEG_add_object_relation(ctx->node, cmd->object, DEG_OB_COMP_TRANSFORM, "Cast Modifier");
-    DEG_add_modifier_to_transform_relation(ctx->node, "Cast Modifier");
+    DEG_add_depends_on_transform_relation(ctx->node, "Cast Modifier");
   }
 }
 
@@ -501,7 +501,7 @@ static void deformVertsEM(ModifierData *md,
     BLI_assert(mesh->totvert == verts_num);
   }
 
-  /* TODO(Campbell): use edit-mode data only (remove this line). */
+  /* TODO(@campbellbarton): use edit-mode data only (remove this line). */
   if (mesh_src != NULL) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }

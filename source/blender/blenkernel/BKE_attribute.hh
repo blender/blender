@@ -537,10 +537,7 @@ class MutableAttributeAccessor : public AttributeAccessor {
    * Get a writable attribute or none if it does not exist.
    * Make sure to call #finish after changes are done.
    */
-  GAttributeWriter lookup_for_write(const AttributeIDRef &attribute_id)
-  {
-    return fn_->lookup_for_write(owner_, attribute_id);
-  }
+  GAttributeWriter lookup_for_write(const AttributeIDRef &attribute_id);
 
   /**
    * Get a writable attribute or non if it does not exist.
@@ -665,6 +662,22 @@ class MutableAttributeAccessor : public AttributeAccessor {
    */
   void remove_anonymous();
 };
+
+struct AttributeTransferData {
+  /* Expect that if an attribute exists, it is stored as a contiguous array internally anyway. */
+  GVArraySpan src;
+  AttributeMetaData meta_data;
+  bke::GSpanAttributeWriter dst;
+};
+/**
+ * Retrieve attribute arrays and writers for attributes that should be transferred between
+ * data-blocks of the same type.
+ */
+Vector<AttributeTransferData> retrieve_attributes_for_transfer(
+    const bke::AttributeAccessor src_attributes,
+    bke::MutableAttributeAccessor dst_attributes,
+    eAttrDomainMask domain_mask,
+    const Set<std::string> &skip = {});
 
 bool allow_procedural_attribute_access(StringRef attribute_name);
 extern const char *no_procedural_access_message;

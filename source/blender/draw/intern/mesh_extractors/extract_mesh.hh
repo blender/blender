@@ -83,8 +83,14 @@ struct MeshRenderData {
   MLoopTri *mlooptri;
   const float (*vert_normals)[3];
   const float (*poly_normals)[3];
+  const bool *hide_vert;
+  const bool *hide_edge;
+  const bool *hide_poly;
   float (*loop_normals)[3];
   int *lverts, *ledges;
+
+  const char *active_color_name;
+  const char *default_color_name;
 
   struct {
     int *tri_first_index;
@@ -92,6 +98,82 @@ struct MeshRenderData {
     int visible_tri_len;
   } poly_sorted;
 };
+
+BLI_INLINE const Mesh *editmesh_final_or_this(const Object *object, const Mesh *me)
+{
+  if (me->edit_mesh != nullptr) {
+    Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object);
+    if (editmesh_eval_final != nullptr) {
+      return editmesh_eval_final;
+    }
+  }
+
+  return me;
+}
+
+BLI_INLINE const CustomData *mesh_cd_ldata_get_from_mesh(const Mesh *me)
+{
+  switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+    case ME_WRAPPER_TYPE_SUBD:
+    case ME_WRAPPER_TYPE_MDATA:
+      return &me->ldata;
+      break;
+    case ME_WRAPPER_TYPE_BMESH:
+      return &me->edit_mesh->bm->ldata;
+      break;
+  }
+
+  BLI_assert(0);
+  return &me->ldata;
+}
+
+BLI_INLINE const CustomData *mesh_cd_pdata_get_from_mesh(const Mesh *me)
+{
+  switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+    case ME_WRAPPER_TYPE_SUBD:
+    case ME_WRAPPER_TYPE_MDATA:
+      return &me->pdata;
+      break;
+    case ME_WRAPPER_TYPE_BMESH:
+      return &me->edit_mesh->bm->pdata;
+      break;
+  }
+
+  BLI_assert(0);
+  return &me->pdata;
+}
+
+BLI_INLINE const CustomData *mesh_cd_edata_get_from_mesh(const Mesh *me)
+{
+  switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+    case ME_WRAPPER_TYPE_SUBD:
+    case ME_WRAPPER_TYPE_MDATA:
+      return &me->edata;
+      break;
+    case ME_WRAPPER_TYPE_BMESH:
+      return &me->edit_mesh->bm->edata;
+      break;
+  }
+
+  BLI_assert(0);
+  return &me->edata;
+}
+
+BLI_INLINE const CustomData *mesh_cd_vdata_get_from_mesh(const Mesh *me)
+{
+  switch ((eMeshWrapperType)me->runtime.wrapper_type) {
+    case ME_WRAPPER_TYPE_SUBD:
+    case ME_WRAPPER_TYPE_MDATA:
+      return &me->vdata;
+      break;
+    case ME_WRAPPER_TYPE_BMESH:
+      return &me->edit_mesh->bm->vdata;
+      break;
+  }
+
+  BLI_assert(0);
+  return &me->vdata;
+}
 
 BLI_INLINE BMFace *bm_original_face_get(const MeshRenderData *mr, int idx)
 {

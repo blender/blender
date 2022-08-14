@@ -11,7 +11,9 @@
 #include "GHOST_EventDragnDrop.h"
 #include "GHOST_EventKey.h"
 #include "GHOST_EventWheel.h"
+#include "GHOST_PathUtils.h"
 #include "GHOST_TimerManager.h"
+#include "GHOST_WaylandUtils.h"
 #include "GHOST_WindowManager.h"
 #include "GHOST_utildefines.h"
 
@@ -81,6 +83,10 @@ static void output_handle_done(void *data, struct wl_output *wl_output);
 #ifdef USE_GNOME_CONFINE_HACK
 static bool use_gnome_confine_hack = false;
 #endif
+
+#define XKB_STATE_MODS_ALL \
+  (enum xkb_state_component)(XKB_STATE_MODS_DEPRESSED | XKB_STATE_MODS_LATCHED | \
+                             XKB_STATE_MODS_LOCKED | XKB_STATE_MODS_EFFECTIVE)
 
 /* -------------------------------------------------------------------- */
 /** \name Inline Event Codes
@@ -305,6 +311,20 @@ struct input_t {
    * If number-lock is not supported by the key-map, this is set to NULL.
    */
   struct xkb_state *xkb_state_empty_with_numlock = nullptr;
+
+  /**
+   * Cache result of `xkb_keymap_mod_get_index`
+   * so every time a modifier is accessed a string lookup isn't required.
+   * Be sure to check for #XKB_MOD_INVALID before using.
+   */
+  struct {
+    xkb_mod_index_t shift; /* #XKB_MOD_NAME_SHIFT */
+    xkb_mod_index_t caps;  /* #XKB_MOD_NAME_CAPS */
+    xkb_mod_index_t ctrl;  /* #XKB_MOD_NAME_CTRL */
+    xkb_mod_index_t alt;   /* #XKB_MOD_NAME_ALT */
+    xkb_mod_index_t num;   /* #XKB_MOD_NAME_NUM */
+    xkb_mod_index_t logo;  /* #XKB_MOD_NAME_LOGO */
+  } xkb_keymap_mod_index;
 
   struct {
     /** Key repetition in character per second. */
@@ -1138,6 +1158,7 @@ static void data_device_handle_enter(void *data,
   input_t *input = static_cast<input_t *>(data);
   std::lock_guard lock{input->data_offer_dnd_mutex};
 
+  delete input->data_offer_dnd;
   input->data_offer_dnd = static_cast<data_offer_t *>(wl_data_offer_get_user_data(id));
   data_offer_t *data_offer = input->data_offer_dnd;
 
@@ -1197,14 +1218,14 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
   input_t *input = static_cast<input_t *>(data);
   std::lock_guard lock{input->data_offer_dnd_mutex};
 
-  CLOG_INFO(LOG, 2, "drop");
-
   data_offer_t *data_offer = input->data_offer_dnd;
 
   const std::string mime_receive = *std::find_first_of(mime_preference_order.begin(),
                                                        mime_preference_order.end(),
                                                        data_offer->types.begin(),
                                                        data_offer->types.end());
+
+  CLOG_INFO(LOG, 2, "drop mime_recieve=%s", mime_receive.c_str());
 
   auto read_uris_fn = [](input_t *const input,
                          data_offer_t *data_offer,
@@ -1214,9 +1235,15 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
 
     const std::string data = read_pipe(data_offer, mime_receive, nullptr);
 
+    CLOG_INFO(
+        LOG, 2, "drop_read_uris mime_receive=%s, data=%s", mime_receive.c_str(), data.c_str());
+
     wl_data_offer_finish(data_offer->id);
     wl_data_offer_destroy(data_offer->id);
 
+    if (input->data_offer_dnd == data_offer) {
+      input->data_offer_dnd = nullptr;
+    }
     delete data_offer;
     data_offer = nullptr;
 
@@ -1224,7 +1251,9 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
 
     if (mime_receive == mime_text_uri) {
       static constexpr const char *file_proto = "file://";
-      static constexpr const char *crlf = "\r\n";
+      /* NOTE: some applications CRLF (`\r\n`) GTK3 for e.g. & others don't `pcmanfm-qt`.
+       * So support both, once `\n` is found, strip the preceding `\r` if found. */
+      static constexpr const char *lf = "\n";
 
       GHOST_WindowWayland *win = ghost_wl_surface_user_data(surface);
       std::vector<std::string> uris;
@@ -1233,13 +1262,18 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
       while (true) {
         pos = data.find(file_proto, pos);
         const size_t start = pos + sizeof(file_proto) - 1;
-        pos = data.find(crlf, pos);
-        const size_t end = pos;
+        pos = data.find(lf, pos);
 
         if (pos == std::string::npos) {
           break;
         }
+        /* Account for 'CRLF' case. */
+        size_t end = pos;
+        if (data[end - 1] == '\r') {
+          end -= 1;
+        }
         uris.push_back(data.substr(start, end - start));
+        CLOG_INFO(LOG, 2, "drop_read_uris pos=%zu, text_uri=\"%s\"", start, uris.back().c_str());
       }
 
       GHOST_TStringArray *flist = static_cast<GHOST_TStringArray *>(
@@ -1247,10 +1281,10 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
       flist->count = int(uris.size());
       flist->strings = static_cast<uint8_t **>(malloc(uris.size() * sizeof(uint8_t *)));
       for (size_t i = 0; i < uris.size(); i++) {
-        flist->strings[i] = static_cast<uint8_t *>(malloc((uris[i].size() + 1) * sizeof(uint8_t)));
-        memcpy(flist->strings[i], uris[i].data(), uris[i].size() + 1);
+        flist->strings[i] = (uint8_t *)GHOST_URL_decode_alloc(uris[i].c_str());
       }
 
+      CLOG_INFO(LOG, 2, "drop_read_uris_fn file_count=%d", flist->count);
       const wl_fixed_t scale = win->scale();
       system->pushEvent(new GHOST_EventDragnDrop(system->getMilliSeconds(),
                                                  GHOST_kEventDraggingDropDone,
@@ -1263,12 +1297,13 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
     else if (ELEM(mime_receive, mime_text_plain, mime_text_utf8)) {
       /* TODO: enable use of internal functions 'txt_insert_buf' and
        * 'text_update_edited' to behave like dropped text was pasted. */
+      CLOG_INFO(LOG, 2, "drop_read_uris_fn (text_plain, text_utf8), unhandled!");
     }
     wl_display_roundtrip(system->display());
   };
 
   /* Pass in `input->focus_dnd` instead of accessing it from `input` since the leave callback
-   * (#data_device_leave) will clear the value once this function starts. */
+   * (#data_device_handle_leave) will clear the value once this function starts. */
   std::thread read_thread(read_uris_fn, input, data_offer, input->focus_dnd, mime_receive);
   read_thread.detach();
 }
@@ -1580,13 +1615,38 @@ static void pointer_handle_button(void *data,
   }
 }
 
-static void pointer_handle_axis(void *data,
+static void pointer_handle_axis(void * /*data*/,
                                 struct wl_pointer * /*wl_pointer*/,
                                 const uint32_t /*time*/,
                                 const uint32_t axis,
                                 const wl_fixed_t value)
 {
   CLOG_INFO(LOG, 2, "axis (axis=%u, value=%d)", axis, value);
+}
+
+static void pointer_handle_frame(void * /*data*/, struct wl_pointer * /*wl_pointer*/)
+{
+  CLOG_INFO(LOG, 2, "frame");
+}
+static void pointer_handle_axis_source(void * /*data*/,
+                                       struct wl_pointer * /*wl_pointer*/,
+                                       uint32_t axis_source)
+{
+  CLOG_INFO(LOG, 2, "axis_source (axis_source=%u)", axis_source);
+}
+static void pointer_handle_axis_stop(void * /*data*/,
+                                     struct wl_pointer * /*wl_pointer*/,
+                                     uint32_t /*time*/,
+                                     uint32_t axis)
+{
+  CLOG_INFO(LOG, 2, "axis_stop (axis=%u)", axis);
+}
+static void pointer_handle_axis_discrete(void *data,
+                                         struct wl_pointer * /*wl_pointer*/,
+                                         uint32_t axis,
+                                         int32_t discrete)
+{
+  CLOG_INFO(LOG, 2, "axis_discrete (axis=%u, discrete=%d)", axis, discrete);
 
   input_t *input = static_cast<input_t *>(data);
   if (axis != WL_POINTER_AXIS_VERTICAL_SCROLL) {
@@ -1596,7 +1656,7 @@ static void pointer_handle_axis(void *data,
   if (wl_surface *focus_surface = input->pointer.wl_surface) {
     GHOST_WindowWayland *win = ghost_wl_surface_user_data(focus_surface);
     input->system->pushEvent(new GHOST_EventWheel(
-        input->system->getMilliSeconds(), win, std::signbit(value) ? +1 : -1));
+        input->system->getMilliSeconds(), win, std::signbit(discrete) ? +1 : -1));
   }
 }
 
@@ -1606,6 +1666,10 @@ static const struct wl_pointer_listener pointer_listener = {
     pointer_handle_motion,
     pointer_handle_button,
     pointer_handle_axis,
+    pointer_handle_frame,
+    pointer_handle_axis_source,
+    pointer_handle_axis_stop,
+    pointer_handle_axis_discrete,
 };
 
 #undef LOG
@@ -2057,6 +2121,13 @@ static void keyboard_handle_keymap(void *data,
     }
   }
 
+  input->xkb_keymap_mod_index.shift = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_SHIFT);
+  input->xkb_keymap_mod_index.caps = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_CAPS);
+  input->xkb_keymap_mod_index.ctrl = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_CTRL);
+  input->xkb_keymap_mod_index.alt = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_ALT);
+  input->xkb_keymap_mod_index.num = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_NUM);
+  input->xkb_keymap_mod_index.logo = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_LOGO);
+
   xkb_keymap_unref(keymap);
 }
 
@@ -2070,7 +2141,7 @@ static void keyboard_handle_enter(void *data,
                                   struct wl_keyboard * /*wl_keyboard*/,
                                   const uint32_t serial,
                                   struct wl_surface *surface,
-                                  struct wl_array * /*keys*/)
+                                  struct wl_array *keys)
 {
   if (!ghost_wl_surface_own(surface)) {
     CLOG_INFO(LOG, 2, "enter (skipped)");
@@ -2081,6 +2152,49 @@ static void keyboard_handle_enter(void *data,
   input_t *input = static_cast<input_t *>(data);
   input->keyboard.serial = serial;
   input->keyboard.wl_surface = surface;
+
+  if (keys->size != 0) {
+    /* If there are any keys held when activating the window,
+     * modifiers will be compared against the input state,
+     * only enabling modifiers that were previously disabled. */
+
+    const xkb_mod_mask_t state = xkb_state_serialize_mods(input->xkb_state, XKB_STATE_MODS_ALL);
+    uint32_t *key;
+    WL_ARRAY_FOR_EACH (key, keys) {
+      const xkb_keycode_t key_code = *key + EVDEV_OFFSET;
+      const xkb_keysym_t sym = xkb_state_key_get_one_sym(input->xkb_state, key_code);
+      GHOST_TKey gkey = GHOST_kKeyUnknown;
+
+#define MOD_TEST(state, mod) ((mod != XKB_MOD_INVALID) && (state & (1 << mod)))
+#define MOD_TEST_CASE(xkb_key, ghost_key, mod_index) \
+  case xkb_key: \
+    if (!MOD_TEST(state, input->xkb_keymap_mod_index.mod_index)) { \
+      gkey = ghost_key; \
+    } \
+    break
+
+      switch (sym) {
+        MOD_TEST_CASE(XKB_KEY_Shift_L, GHOST_kKeyLeftShift, shift);
+        MOD_TEST_CASE(XKB_KEY_Shift_R, GHOST_kKeyRightShift, shift);
+        MOD_TEST_CASE(XKB_KEY_Control_L, GHOST_kKeyLeftControl, ctrl);
+        MOD_TEST_CASE(XKB_KEY_Control_R, GHOST_kKeyRightControl, ctrl);
+        MOD_TEST_CASE(XKB_KEY_Alt_L, GHOST_kKeyLeftAlt, alt);
+        MOD_TEST_CASE(XKB_KEY_Alt_R, GHOST_kKeyRightAlt, alt);
+        MOD_TEST_CASE(XKB_KEY_Super_L, GHOST_kKeyOS, logo);
+        MOD_TEST_CASE(XKB_KEY_Super_R, GHOST_kKeyOS, logo);
+      }
+
+#undef MOD_TEST
+#undef MOD_TEST_CASE
+
+      if (gkey != GHOST_kKeyUnknown) {
+        GHOST_IWindow *win = ghost_wl_surface_user_data(surface);
+        GHOST_SystemWayland *system = input->system;
+        input->system->pushEvent(
+            new GHOST_EventKey(system->getMilliSeconds(), GHOST_kEventKeyDown, win, gkey, false));
+      }
+    }
+  }
 }
 
 /**
@@ -2307,7 +2421,13 @@ static void keyboard_handle_modifiers(void *data,
                                       const uint32_t mods_locked,
                                       const uint32_t group)
 {
-  CLOG_INFO(LOG, 2, "modifiers");
+  CLOG_INFO(LOG,
+            2,
+            "modifiers (depressed=%u, latched=%u, locked=%u, group=%u)",
+            mods_depressed,
+            mods_latched,
+            mods_locked,
+            group);
 
   input_t *input = static_cast<input_t *>(data);
   xkb_state_update_mask(input->xkb_state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
@@ -2444,7 +2564,7 @@ static void xdg_output_handle_logical_size(void *data,
      * done (we can't match exactly because fractional scaling can't be
      * detected otherwise), then override if necessary. */
     if ((output->size_logical[0] == width) && (output->scale_fractional == wl_fixed_from_int(1))) {
-      GHOST_PRINT("xdg_output scale did not match, overriding with wl_output scale");
+      GHOST_PRINT("xdg_output scale did not match, overriding with wl_output scale\n");
 
 #ifdef USE_GNOME_CONFINE_HACK
       /* Use a bug in GNOME to check GNOME is in use. If the bug is fixed this won't cause an issue
@@ -2744,7 +2864,7 @@ static void global_handle_add(void *data,
     input->xkb_context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
     input->data_source = new data_source_t;
     input->wl_seat = static_cast<wl_seat *>(
-        wl_registry_bind(wl_registry, name, &wl_seat_interface, 4));
+        wl_registry_bind(wl_registry, name, &wl_seat_interface, 5));
     display->inputs.push_back(input);
     wl_seat_add_listener(input->wl_seat, &seat_listener, input);
   }
@@ -2894,31 +3014,35 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
     return GHOST_kFailure;
   }
 
-  static const xkb_state_component mods_all = xkb_state_component(
-      XKB_STATE_MODS_DEPRESSED | XKB_STATE_MODS_LATCHED | XKB_STATE_MODS_LOCKED |
-      XKB_STATE_MODS_EFFECTIVE);
+  input_t *input = d->inputs[0];
 
   bool val;
 
-  /* NOTE: XKB doesn't seem to differentiate between left/right modifiers. */
+  /* NOTE: XKB doesn't differentiate between left/right modifiers
+   * for it's internal modifier state storage. */
+  const xkb_mod_mask_t state = xkb_state_serialize_mods(input->xkb_state, XKB_STATE_MODS_ALL);
 
-  val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_SHIFT, mods_all) == 1;
+#define MOD_TEST(state, mod) ((mod != XKB_MOD_INVALID) && (state & (1 << mod)))
+
+  val = MOD_TEST(state, input->xkb_keymap_mod_index.shift);
   keys.set(GHOST_kModifierKeyLeftShift, val);
   keys.set(GHOST_kModifierKeyRightShift, val);
 
-  val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_ALT, mods_all) == 1;
+  val = MOD_TEST(state, input->xkb_keymap_mod_index.alt);
   keys.set(GHOST_kModifierKeyLeftAlt, val);
   keys.set(GHOST_kModifierKeyRightAlt, val);
 
-  val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_CTRL, mods_all) == 1;
+  val = MOD_TEST(state, input->xkb_keymap_mod_index.ctrl);
   keys.set(GHOST_kModifierKeyLeftControl, val);
   keys.set(GHOST_kModifierKeyRightControl, val);
 
-  val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_LOGO, mods_all) == 1;
+  val = MOD_TEST(state, input->xkb_keymap_mod_index.logo);
   keys.set(GHOST_kModifierKeyOS, val);
 
-  val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_NUM, mods_all) == 1;
+  val = MOD_TEST(state, input->xkb_keymap_mod_index.num);
   keys.set(GHOST_kModifierKeyNum, val);
+
+#undef MOD_TEST
 
   return GHOST_kSuccess;
 }
@@ -3852,11 +3976,15 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
       input->relative_pointer = nullptr;
     }
     if (input->locked_pointer) {
+      /* Potentially add a motion event so the application has updated X/Y coordinates. */
+      int32_t xy_motion[2] = {0, 0};
+      bool xy_motion_create_event = false;
+
       /* Request location to restore to. */
       if (mode_current == GHOST_kGrabWrap) {
         /* Since this call is initiated by Blender, we can be sure the window wasn't closed
          * by logic outside this function - as the window was needed to make this call. */
-        int32_t xy_new[2] = {UNPACK2(input->pointer.xy)};
+        int32_t xy_next[2] = {UNPACK2(input->pointer.xy)};
 
         GHOST_Rect bounds_scale;
 
@@ -3865,21 +3993,18 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
         bounds_scale.m_r = wl_fixed_from_int(wrap_bounds->m_r) / scale;
         bounds_scale.m_b = wl_fixed_from_int(wrap_bounds->m_b) / scale;
 
-        bounds_scale.wrapPoint(UNPACK2(xy_new), 0, wrap_axis);
+        bounds_scale.wrapPoint(UNPACK2(xy_next), 0, wrap_axis);
 
         /* Push an event so the new location is registered. */
-        if ((xy_new[0] != input->pointer.xy[0]) || (xy_new[1] != input->pointer.xy[1])) {
-          input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
-                                                         GHOST_kEventCursorMove,
-                                                         ghost_wl_surface_user_data(surface),
-                                                         wl_fixed_to_int(scale * xy_new[0]),
-                                                         wl_fixed_to_int(scale * xy_new[1]),
-                                                         GHOST_TABLET_DATA_NONE));
+        if ((xy_next[0] != input->pointer.xy[0]) || (xy_next[1] != input->pointer.xy[1])) {
+          xy_motion[0] = xy_next[0];
+          xy_motion[1] = xy_next[1];
+          xy_motion_create_event = true;
         }
-        input->pointer.xy[0] = xy_new[0];
-        input->pointer.xy[1] = xy_new[1];
+        input->pointer.xy[0] = xy_next[0];
+        input->pointer.xy[1] = xy_next[1];
 
-        zwp_locked_pointer_v1_set_cursor_position_hint(input->locked_pointer, UNPACK2(xy_new));
+        zwp_locked_pointer_v1_set_cursor_position_hint(input->locked_pointer, UNPACK2(xy_next));
         wl_surface_commit(surface);
       }
       else if (mode_current == GHOST_kGrabHide) {
@@ -3891,6 +4016,13 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
           };
           zwp_locked_pointer_v1_set_cursor_position_hint(input->locked_pointer, UNPACK2(xy_next));
           wl_surface_commit(surface);
+
+          /* NOTE(@campbellbarton): The new cursor position is a hint,
+           * it's possible the hint is ignored. It doesn't seem like there is a good way to
+           * know if the hint will be used or not, at least not immediately. */
+          xy_motion[0] = xy_next[0];
+          xy_motion[1] = xy_next[1];
+          xy_motion_create_event = true;
         }
       }
 #ifdef USE_GNOME_CONFINE_HACK
@@ -3902,6 +4034,15 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
         }
       }
 #endif
+
+      if (xy_motion_create_event) {
+        input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
+                                                       GHOST_kEventCursorMove,
+                                                       ghost_wl_surface_user_data(surface),
+                                                       wl_fixed_to_int(scale * xy_motion[0]),
+                                                       wl_fixed_to_int(scale * xy_motion[1]),
+                                                       GHOST_TABLET_DATA_NONE));
+      }
 
       zwp_locked_pointer_v1_destroy(input->locked_pointer);
       input->locked_pointer = nullptr;

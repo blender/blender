@@ -199,6 +199,15 @@ extern size_t (*MEM_get_peak_memory)(void) ATTR_WARN_UNUSED_RESULT;
 
 #ifndef NDEBUG
 extern const char *(*MEM_name_ptr)(void *vmemh);
+/**
+ * Change the debugging name/string assigned to the memory allocated at \a vmemh. Only affects the
+ * guarded allocator. The name must be a static string, because only a pointer to it is stored!
+ *
+ * Handy when debugging leaking memory allocated by some often called, generic function with a
+ * unspecific name. A caller with more info can set a more specific name, and see which call to the
+ * generic function allocates the leaking memory.
+ */
+extern void (*MEM_name_ptr_set)(void *vmemh, const char *str) ATTR_NONNULL();
 #endif
 
 /**

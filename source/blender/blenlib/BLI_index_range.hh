@@ -90,10 +90,10 @@ class IndexRange {
       return *this;
     }
 
-    constexpr Iterator operator++(int) const
+    constexpr Iterator operator++(int)
     {
       Iterator copied_iterator = *this;
-      ++copied_iterator;
+      ++(*this);
       return copied_iterator;
     }
 
@@ -195,6 +195,16 @@ class IndexRange {
     BLI_assert(n < size_);
     BLI_assert(this->size() > 0);
     return start_ + size_ - 1 - n;
+  }
+
+  /**
+   * Get the element one before the beginning. The returned value is undefined when the range is
+   * empty, and the range must start after zero already.
+   */
+  constexpr int64_t one_before_start() const
+  {
+    BLI_assert(start_ > 0);
+    return start_ - 1;
   }
 
   /**

@@ -26,6 +26,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_key_types.h"
@@ -92,6 +93,7 @@
 #include "BKE_world.h"
 
 #include "RNA_access.h"
+#include "RNA_path.h"
 #include "RNA_prototypes.h"
 #include "RNA_types.h"
 
@@ -107,6 +109,7 @@
 #include "intern/depsgraph_tag.h"
 #include "intern/depsgraph_type.h"
 #include "intern/eval/deg_eval_copy_on_write.h"
+#include "intern/eval/deg_eval_visibility.h"
 #include "intern/node/deg_node.h"
 #include "intern/node/deg_node_component.h"
 #include "intern/node/deg_node_id.h"
@@ -174,18 +177,32 @@ IDNode *DepsgraphNodeBuilder::add_id_node(ID *id)
       ComponentNode *comp_cow = id_node->add_component(NodeType::COPY_ON_WRITE);
       OperationNode *op_cow = comp_cow->add_operation(
           [id_node](::Depsgraph *depsgraph) { deg_evaluate_copy_on_write(depsgraph, id_node); },
-          OperationCode::COPY_ON_WRITE,
-          "",
-          -1);
+          OperationCode::COPY_ON_WRITE);
       graph_->operations.append(op_cow);
     }
 
     ComponentNode *visibility_component = id_node->add_component(NodeType::VISIBILITY);
-    OperationNode *visibility_operation = visibility_component->add_operation(
-        nullptr, OperationCode::OPERATION, "", -1);
+    OperationNode *visibility_operation;
+
+    /* Optimization: currently only objects need a special visibility evaluation. For the rest ID
+     * types keep the node as a NO-OP so that relations can still be routed, but without penalty
+     * during the graph evaluation. */
+    if (id_type == ID_OB) {
+      visibility_operation = visibility_component->add_operation(
+          [id_node](::Depsgraph *depsgraph) {
+            deg_evaluate_object_node_visibility(depsgraph, id_node);
+          },
+          OperationCode::VISIBILITY);
+    }
+    else {
+      visibility_operation = visibility_component->add_operation(nullptr,
+                                                                 OperationCode::VISIBILITY);
+    }
+
     /* Pin the node so that it and its relations are preserved by the unused nodes/relations
      * deletion. This is mainly to make it easier to debug visibility. */
-    visibility_operation->flag |= OperationFlag::DEPSOP_FLAG_PINNED;
+    visibility_operation->flag |= (OperationFlag::DEPSOP_FLAG_PINNED |
+                                   OperationFlag::DEPSOP_FLAG_AFFECTS_VISIBILITY);
     graph_->operations.append(visibility_operation);
   }
   return id_node;
@@ -654,7 +671,7 @@ void DepsgraphNodeBuilder::build_collection(LayerCollection *from_layer_collecti
   IDNode *id_node;
   if (built_map_.checkIsBuiltAndTag(collection)) {
     id_node = find_id_node(&collection->id);
-    if (is_collection_visible && id_node->is_directly_visible == false &&
+    if (is_collection_visible && id_node->is_visible_on_build == false &&
         id_node->is_collection_fully_expanded == true) {
       /* Collection became visible, make sure nested collections and
        * objects are poked with the new visibility flag, since they
@@ -671,7 +688,7 @@ void DepsgraphNodeBuilder::build_collection(LayerCollection *from_layer_collecti
   else {
     /* Collection itself. */
     id_node = add_id_node(&collection->id);
-    id_node->is_directly_visible = is_collection_visible;
+    id_node->is_visible_on_build = is_collection_visible;
 
     build_idproperties(collection->id.properties);
     add_operation_node(&collection->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE);
@@ -718,7 +735,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
       build_object_flags(base_index, object, linked_state);
     }
     id_node->linked_state = max(id_node->linked_state, linked_state);
-    id_node->is_directly_visible |= is_visible;
+    id_node->is_visible_on_build |= is_visible;
     id_node->has_base |= (base_index != -1);
 
     /* There is no relation path which will connect current object with all the ones which come
@@ -737,10 +754,10 @@ void DepsgraphNodeBuilder::build_object(int base_index,
    * Probably need to assign that to something non-nullptr, but then the logic here will still be
    * somewhat weird. */
   if (scene_ != nullptr && object == scene_->camera) {
-    id_node->is_directly_visible = true;
+    id_node->is_visible_on_build = true;
   }
   else {
-    id_node->is_directly_visible = is_visible;
+    id_node->is_visible_on_build = is_visible;
   }
   id_node->has_base |= (base_index != -1);
   /* Various flags, flushing from bases/collections. */
@@ -752,11 +769,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
     build_object(-1, object->parent, DEG_ID_LINKED_INDIRECTLY, is_visible);
   }
   /* Modifiers. */
-  if (object->modifiers.first != nullptr) {
-    BuilderWalkUserData data;
-    data.builder = this;
-    BKE_modifiers_foreach_ID_link(object, modifier_walk, &data);
-  }
+  build_object_modifiers(object);
   /* Grease Pencil Modifiers. */
   if (object->greasepencil_modifiers.first != nullptr) {
     BuilderWalkUserData data;
@@ -858,6 +871,44 @@ void DepsgraphNodeBuilder::build_object_instance_collection(Object *object, bool
   is_parent_collection_visible_ = is_object_visible;
   build_collection(nullptr, object->instance_collection);
   is_parent_collection_visible_ = is_current_parent_collection_visible;
+}
+
+void DepsgraphNodeBuilder::build_object_modifiers(Object *object)
+{
+  if (BLI_listbase_is_empty(&object->modifiers)) {
+    return;
+  }
+
+  const ModifierMode modifier_mode = (graph_->mode == DAG_EVAL_VIEWPORT) ? eModifierMode_Realtime :
+                                                                           eModifierMode_Render;
+
+  IDNode *id_node = find_id_node(&object->id);
+
+  add_operation_node(&object->id,
+                     NodeType::GEOMETRY,
+                     OperationCode::VISIBILITY,
+                     [id_node](::Depsgraph *depsgraph) {
+                       deg_evaluate_object_modifiers_mode_node_visibility(depsgraph, id_node);
+                     });
+
+  LISTBASE_FOREACH (ModifierData *, modifier, &object->modifiers) {
+    OperationNode *modifier_node = add_operation_node(
+        &object->id, NodeType::GEOMETRY, OperationCode::MODIFIER, nullptr, modifier->name);
+
+    /* Mute modifier mode if the modifier is not enabled for the dependency graph mode.
+     * This handles static (non-animated) mode of the modifier. */
+    if ((modifier->mode & modifier_mode) == 0) {
+      modifier_node->flag |= DEPSOP_FLAG_MUTE;
+    }
+
+    if (is_modifier_visibility_animated(object, modifier)) {
+      graph_->has_animated_visibility = true;
+    }
+  }
+
+  BuilderWalkUserData data;
+  data.builder = this;
+  BKE_modifiers_foreach_ID_link(object, modifier_walk, &data);
 }
 
 void DepsgraphNodeBuilder::build_object_data(Object *object)
@@ -1548,8 +1599,14 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata)
       break;
     }
     case ID_CV: {
+      Curves *curves_id = reinterpret_cast<Curves *>(obdata);
+
       op_node = add_operation_node(obdata, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
       op_node->set_as_entry();
+
+      if (curves_id->surface != nullptr) {
+        build_object(-1, curves_id->surface, DEG_ID_LINKED_INDIRECTLY, false);
+      }
       break;
     }
     case ID_PT: {

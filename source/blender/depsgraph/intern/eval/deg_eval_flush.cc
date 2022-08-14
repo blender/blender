@@ -378,11 +378,6 @@ void deg_graph_flush_updates(Depsgraph *graph)
 
 void deg_graph_clear_tags(Depsgraph *graph)
 {
-  /* Go over all operation nodes, clearing tags. */
-  for (OperationNode *node : graph->operations) {
-    node->flag &= ~(DEPSOP_FLAG_DIRECTLY_MODIFIED | DEPSOP_FLAG_NEEDS_UPDATE |
-                    DEPSOP_FLAG_USER_MODIFIED);
-  }
   /* Clear any entry tags which haven't been flushed. */
   graph->entry_tags.clear();
 

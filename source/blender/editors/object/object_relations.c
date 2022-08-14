@@ -1830,6 +1830,11 @@ static void single_obdata_users(
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
         switch (ob->type) {
+          case OB_EMPTY:
+            ob->data = ID_NEW_SET(
+                ob->data,
+                BKE_id_copy_ex(bmain, ob->data, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
+            break;
           case OB_LAMP:
             ob->data = la = ID_NEW_SET(
                 ob->data,

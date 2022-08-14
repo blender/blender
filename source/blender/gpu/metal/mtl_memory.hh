@@ -78,8 +78,10 @@
  *  Usage:
  *    MTLContext::get_global_memory_manager();  - static routine to fetch global memory manager.
  *
- *    gpu::MTLBuffer *allocate_buffer(size, is_cpu_visibile, bytes=nullptr)
- *    gpu::MTLBuffer *allocate_buffer_aligned(size, alignment, is_cpu_visibile, bytes=nullptr)
+ *    gpu::MTLBuffer *allocate(size, is_cpu_visibile)
+ *    gpu::MTLBuffer *allocate_aligned(size, alignment, is_cpu_visibile)
+ *    gpu::MTLBuffer *allocate_with_data(size, is_cpu_visibile, data_ptr)
+ *    gpu::MTLBuffer *allocate_aligned_with_data(size, alignment, is_cpu_visibile, data_ptr)
  */
 
 /* Debug memory statistics: Disabled by Macro rather than guarded for
@@ -389,11 +391,13 @@ class MTLBufferPool {
   void init(id<MTLDevice> device);
   ~MTLBufferPool();
 
-  gpu::MTLBuffer *allocate_buffer(uint64_t size, bool cpu_visible, const void *bytes = nullptr);
-  gpu::MTLBuffer *allocate_buffer_aligned(uint64_t size,
-                                          uint alignment,
-                                          bool cpu_visible,
-                                          const void *bytes = nullptr);
+  gpu::MTLBuffer *allocate(uint64_t size, bool cpu_visible);
+  gpu::MTLBuffer *allocate_aligned(uint64_t size, uint alignment, bool cpu_visible);
+  gpu::MTLBuffer *allocate_with_data(uint64_t size, bool cpu_visible, const void *data = nullptr);
+  gpu::MTLBuffer *allocate_aligned_with_data(uint64_t size,
+                                             uint alignment,
+                                             bool cpu_visible,
+                                             const void *data = nullptr);
   bool free_buffer(gpu::MTLBuffer *buffer);
 
   /* Flush MTLSafeFreeList buffers, for completed lists in `completed_safelist_queue_`,

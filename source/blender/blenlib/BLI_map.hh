@@ -669,10 +669,10 @@ class Map {
       return *this;
     }
 
-    BaseIterator operator++(int) const
+    BaseIterator operator++(int)
     {
       BaseIterator copied_iterator = *this;
-      ++copied_iterator;
+      ++(*this);
       return copied_iterator;
     }
 

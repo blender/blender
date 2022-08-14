@@ -188,6 +188,7 @@ typedef enum {
   DRW_CMD_DRAW_INSTANCE = 2,
   DRW_CMD_DRAW_INSTANCE_RANGE = 3,
   DRW_CMD_DRAW_PROCEDURAL = 4,
+  DRW_CMD_DRAW_INDIRECT = 5,
 
   /* Compute Commands. */
   DRW_CMD_COMPUTE = 8,
@@ -203,7 +204,7 @@ typedef enum {
   /* Needs to fit in 4bits */
 } eDRWCommandType;
 
-#define DRW_MAX_DRAW_CMD_TYPE DRW_CMD_DRAW_PROCEDURAL
+#define DRW_MAX_DRAW_CMD_TYPE DRW_CMD_DRAW_INDIRECT
 
 typedef struct DRWCommandDraw {
   GPUBatch *batch;
@@ -231,6 +232,12 @@ typedef struct DRWCommandDrawInstanceRange {
   uint inst_first;
   uint inst_count;
 } DRWCommandDrawInstanceRange;
+
+typedef struct DRWCommandDrawIndirect {
+  GPUBatch *batch;
+  DRWResourceHandle handle;
+  GPUStorageBuf *indirect_buf;
+} DRWCommandDrawIndirect;
 
 typedef struct DRWCommandCompute {
   int groups_x_len;
@@ -286,6 +293,7 @@ typedef union DRWCommand {
   DRWCommandDrawInstance instance;
   DRWCommandDrawInstanceRange instance_range;
   DRWCommandDrawProcedural procedural;
+  DRWCommandDrawIndirect draw_indirect;
   DRWCommandCompute compute;
   DRWCommandComputeRef compute_ref;
   DRWCommandComputeIndirect compute_indirect;
@@ -493,20 +501,6 @@ typedef struct DRWCommandSmallChunk {
 BLI_STATIC_ASSERT_ALIGN(DRWCommandChunk, 16);
 #endif
 
-/* ------------- DRAW DEBUG ------------ */
-
-typedef struct DRWDebugLine {
-  struct DRWDebugLine *next; /* linked list */
-  float pos[2][3];
-  float color[4];
-} DRWDebugLine;
-
-typedef struct DRWDebugSphere {
-  struct DRWDebugSphere *next; /* linked list */
-  float mat[4][4];
-  float color[4];
-} DRWDebugSphere;
-
 /* ------------- Memory Pools ------------ */
 
 /* Contains memory pools information */
@@ -533,10 +527,12 @@ typedef struct DRWData {
   void *volume_grids_ubos; /* VolumeUniformBufPool */
   /** List of smoke textures to free after drawing. */
   ListBase smoke_textures;
-  /** Texture pool to reuse temp texture across engines. */
-  /* TODO(@fclem): The pool could be shared even between view-ports. */
+  /**
+   * Texture pool to reuse temp texture across engines.
+   * TODO(@fclem): The pool could be shared even between view-ports.
+   */
   struct DRWTexturePool *texture_pool;
-  /** Per stereo view data. Contains engine data and default framebuffers. */
+  /** Per stereo view data. Contains engine data and default frame-buffers. */
   struct DRWViewData *view_data[2];
   /** Per draw-call curves object data. */
   struct CurvesUniformBufPool *curves_ubos;
@@ -646,11 +642,7 @@ typedef struct DRWManager {
 
   GPUDrawList *draw_list;
 
-  struct {
-    /* TODO(@fclem): optimize: use chunks. */
-    DRWDebugLine *lines;
-    DRWDebugSphere *spheres;
-  } debug;
+  DRWDebugModule *debug;
 } DRWManager;
 
 extern DRWManager DST; /* TODO: get rid of this and allow multi-threaded rendering. */
@@ -665,6 +657,9 @@ void drw_state_set(DRWState state);
 
 void drw_debug_draw(void);
 void drw_debug_init(void);
+void drw_debug_module_free(DRWDebugModule *module);
+GPUStorageBuf *drw_debug_gpu_draw_buf_get(void);
+GPUStorageBuf *drw_debug_gpu_print_buf_get(void);
 
 eDRWCommandType command_type_get(const uint64_t *command_type_bits, int index);
 
@@ -683,6 +678,7 @@ void drw_resource_buffer_finish(DRWData *vmempool);
 GPUBatch *drw_cache_procedural_points_get(void);
 GPUBatch *drw_cache_procedural_lines_get(void);
 GPUBatch *drw_cache_procedural_triangles_get(void);
+GPUBatch *drw_cache_procedural_triangle_strips_get(void);
 
 void drw_uniform_attrs_pool_update(struct GHash *table,
                                    struct GPUUniformAttrList *key,

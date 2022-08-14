@@ -121,6 +121,7 @@ typedef struct GPUCodegenOutput {
   char *surface;
   char *volume;
   char *thickness;
+  char *composite;
   char *material_functions;
 
   GPUShaderCreateInfo *create_info;
@@ -131,6 +132,11 @@ typedef void (*GPUCodegenCallbackFn)(void *thunk, GPUMaterial *mat, GPUCodegenOu
 GPUNodeLink *GPU_constant(const float *num);
 GPUNodeLink *GPU_uniform(const float *num);
 GPUNodeLink *GPU_attribute(GPUMaterial *mat, eCustomDataType type, const char *name);
+/**
+ * Add a GPU attribute that refers to the default color attribute on a geometry.
+ * The name, type, and domain are unknown and do not depend on the material.
+ */
+GPUNodeLink *GPU_attribute_default_color(GPUMaterial *mat);
 GPUNodeLink *GPU_attribute_with_default(GPUMaterial *mat,
                                         eCustomDataType type,
                                         const char *name,
@@ -161,10 +167,6 @@ bool GPU_stack_link(GPUMaterial *mat,
                     GPUNodeStack *in,
                     GPUNodeStack *out,
                     ...);
-GPUNodeLink *GPU_uniformbuf_link_out(struct GPUMaterial *mat,
-                                     struct bNode *node,
-                                     struct GPUNodeStack *stack,
-                                     int index);
 
 void GPU_material_output_surface(GPUMaterial *material, GPUNodeLink *link);
 void GPU_material_output_volume(GPUMaterial *material, GPUNodeLink *link);
@@ -172,6 +174,8 @@ void GPU_material_output_displacement(GPUMaterial *material, GPUNodeLink *link);
 void GPU_material_output_thickness(GPUMaterial *material, GPUNodeLink *link);
 
 void GPU_material_add_output_link_aov(GPUMaterial *material, GPUNodeLink *link, int hash);
+
+void GPU_material_add_output_link_composite(GPUMaterial *material, GPUNodeLink *link);
 
 /**
  * Wrap a part of the material graph into a function. You need then need to call the function by
@@ -213,6 +217,7 @@ GPUMaterial *GPU_material_from_nodetree(struct Scene *scene,
                                         void *thunk);
 
 void GPU_material_compile(GPUMaterial *mat);
+void GPU_material_free_single(GPUMaterial *material);
 void GPU_material_free(struct ListBase *gpumaterial);
 
 void GPU_material_acquire(GPUMaterial *mat);
@@ -266,6 +271,12 @@ typedef struct GPUMaterialAttribute {
   eGPUDefaultValue default_value; /* Only for volumes attributes. */
   int id;
   int users;
+  /**
+   * If true, the corresponding attribute is the specified default color attribute on the mesh,
+   * if it exists. In that case the type and name data can vary per geometry, so it will not be
+   * valid here.
+   */
+  bool is_default_color;
 } GPUMaterialAttribute;
 
 typedef struct GPUMaterialTexture {
@@ -307,6 +318,16 @@ GPUUniformAttrList *GPU_material_uniform_attributes(GPUMaterial *material);
 struct GHash *GPU_uniform_attr_list_hash_new(const char *info);
 void GPU_uniform_attr_list_copy(GPUUniformAttrList *dest, GPUUniformAttrList *src);
 void GPU_uniform_attr_list_free(GPUUniformAttrList *set);
+
+/* A callback passed to GPU_material_from_callbacks to construct the material graph by adding and
+ * linking the necessary GPU material nodes. */
+typedef void (*ConstructGPUMaterialFn)(void *thunk, GPUMaterial *material);
+
+/* Construct a GPU material from a set of callbacks. See the callback types for more information.
+ * The given thunk will be passed as the first parameter of each callback. */
+GPUMaterial *GPU_material_from_callbacks(ConstructGPUMaterialFn construct_function_cb,
+                                         GPUCodegenCallbackFn generate_code_function_cb,
+                                         void *thunk);
 
 #ifdef __cplusplus
 }

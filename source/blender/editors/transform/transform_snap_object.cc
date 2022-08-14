@@ -498,7 +498,8 @@ static bool snap_object_is_snappable(const SnapObjectContext *sctx,
   const bool is_edited = (base->object->mode == OB_MODE_EDIT);
   const bool is_selectable = (base->flag & BASE_SELECTABLE);
   /* Get attributes of state. */
-  const bool is_in_object_mode = (base_act == NULL) || (base_act->object->mode == OB_MODE_OBJECT);
+  const bool is_in_object_mode = (base_act == nullptr) ||
+                                 (base_act->object->mode == OB_MODE_OBJECT);
 
   if (is_in_object_mode) {
     /* Handle target selection options that make sense for object mode. */

@@ -34,8 +34,7 @@ struct Depsgraph;
 
 struct CustomData_MeshMasks;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 /* Commonly used types. */
 using std::deque;
@@ -153,5 +152,4 @@ struct DEGCustomDataMeshMasks {
   }
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

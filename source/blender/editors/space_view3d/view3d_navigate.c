@@ -495,6 +495,8 @@ static void axis_set_view(bContext *C,
                               .camera_old = v3d->camera,
                               .ofs = rv3d->ofs,
                               .quat = quat,
+                              /* No undo because this switches to/from camera. */
+                              .undo_str = NULL,
                           });
   }
   else if (orig_persp == RV3D_CAMOB && v3d->camera) {
@@ -518,6 +520,8 @@ static void axis_set_view(bContext *C,
                               .ofs = ofs,
                               .quat = quat,
                               .dist = &dist,
+                              /* No undo because this switches to/from camera. */
+                              .undo_str = NULL,
                           });
   }
   else {
@@ -540,6 +544,8 @@ static void axis_set_view(bContext *C,
                           &(const V3D_SmoothParams){
                               .quat = quat,
                               .dyn_ofs = dyn_ofs_pt,
+                              /* No undo because this isn't a camera view. */
+                              .undo_str = NULL,
                           });
   }
 }
@@ -694,6 +700,8 @@ static void view3d_from_minmax(bContext *C,
                               .camera_old = v3d->camera,
                               .ofs = new_ofs,
                               .dist = ok_dist ? &new_dist : NULL,
+                              /* The caller needs to use undo begin/end calls. */
+                              .undo_str = NULL,
                           });
   }
   else {
@@ -704,6 +712,8 @@ static void view3d_from_minmax(bContext *C,
                           &(const V3D_SmoothParams){
                               .ofs = new_ofs,
                               .dist = ok_dist ? &new_dist : NULL,
+                              /* The caller needs to use undo begin/end calls. */
+                              .undo_str = NULL,
                           });
   }
 
@@ -736,6 +746,7 @@ static void view3d_from_minmax_multi(bContext *C,
 
 static int view3d_all_exec(bContext *C, wmOperator *op)
 {
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -802,6 +813,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
     /* This is an approximation, see function documentation for details. */
     ED_view3d_clipping_clamp_minmax(rv3d, min, max);
   }
+  ED_view3d_smooth_view_undo_begin(C, area);
 
   if (use_all_regions) {
     view3d_from_minmax_multi(C, v3d, min, max, true, smooth_viewtx);
@@ -809,6 +821,8 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
   else {
     view3d_from_minmax(C, v3d, region, min, max, true, smooth_viewtx);
   }
+
+  ED_view3d_smooth_view_undo_end(C, area, op->type->name, false);
 
   return OPERATOR_FINISHED;
 }
@@ -842,6 +856,7 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
 
 static int viewselected_exec(bContext *C, wmOperator *op)
 {
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -971,12 +986,16 @@ static int viewselected_exec(bContext *C, wmOperator *op)
     ED_view3d_clipping_clamp_minmax(rv3d, min, max);
   }
 
+  ED_view3d_smooth_view_undo_begin(C, area);
+
   if (use_all_regions) {
     view3d_from_minmax_multi(C, v3d, min, max, ok_dist, smooth_viewtx);
   }
   else {
     view3d_from_minmax(C, v3d, region, min, max, ok_dist, smooth_viewtx);
   }
+
+  ED_view3d_smooth_view_undo_end(C, area, op->type->name, false);
 
   return OPERATOR_FINISHED;
 }
@@ -1020,8 +1039,14 @@ static int viewcenter_cursor_exec(bContext *C, wmOperator *op)
     /* non camera center */
     float new_ofs[3];
     negate_v3_v3(new_ofs, scene->cursor.location);
-    ED_view3d_smooth_view(
-        C, v3d, region, smooth_viewtx, &(const V3D_SmoothParams){.ofs = new_ofs});
+    ED_view3d_smooth_view(C,
+                          v3d,
+                          region,
+                          smooth_viewtx,
+                          &(const V3D_SmoothParams){
+                              .ofs = new_ofs,
+                              .undo_str = op->type->name,
+                          });
 
     /* Smooth view does view-lock #RV3D_BOXVIEW copy. */
   }
@@ -1074,8 +1099,14 @@ static int viewcenter_pick_invoke(bContext *C, wmOperator *op, const wmEvent *ev
       ED_view3d_win_to_3d_int(v3d, region, new_ofs, event->mval, new_ofs);
     }
     negate_v3(new_ofs);
-    ED_view3d_smooth_view(
-        C, v3d, region, smooth_viewtx, &(const V3D_SmoothParams){.ofs = new_ofs});
+    ED_view3d_smooth_view(C,
+                          v3d,
+                          region,
+                          smooth_viewtx,
+                          &(const V3D_SmoothParams){
+                              .ofs = new_ofs,
+                              .undo_str = op->type->name,
+                          });
   }
 
   return OPERATOR_FINISHED;
@@ -1318,17 +1349,20 @@ static int view_camera_exec(bContext *C, wmOperator *op)
 
       /* finally do snazzy view zooming */
       rv3d->persp = RV3D_CAMOB;
-      ED_view3d_smooth_view(C,
-                            v3d,
-                            region,
-                            smooth_viewtx,
-                            &(const V3D_SmoothParams){
-                                .camera = v3d->camera,
-                                .ofs = rv3d->ofs,
-                                .quat = rv3d->viewquat,
-                                .dist = &rv3d->dist,
-                                .lens = &v3d->lens,
-                            });
+      ED_view3d_smooth_view(
+          C,
+          v3d,
+          region,
+          smooth_viewtx,
+          &(const V3D_SmoothParams){
+              .camera = v3d->camera,
+              .ofs = rv3d->ofs,
+              .quat = rv3d->viewquat,
+              .dist = &rv3d->dist,
+              .lens = &v3d->lens,
+              /* No undo because this changes cameras (and wont move the camera). */
+              .undo_str = NULL,
+          });
     }
     else {
       /* return to settings of last view */
@@ -1417,7 +1451,12 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
   ED_view3d_smooth_view_force_finish(C, v3d, region);
 
   if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0 || (view_opposite != RV3D_VIEW_USER)) {
-    if ((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d)) {
+    const bool is_camera_lock = ED_view3d_camera_lock_check(v3d, rv3d);
+    if ((rv3d->persp != RV3D_CAMOB) || is_camera_lock) {
+      if (is_camera_lock) {
+        const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+        ED_view3d_camera_lock_init(depsgraph, v3d, rv3d);
+      }
       int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
       float quat_mul[4];
       float quat_new[4];
@@ -1475,6 +1514,9 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
                             &(const V3D_SmoothParams){
                                 .quat = quat_new,
                                 .dyn_ofs = dyn_ofs_pt,
+                                /* Group as successive orbit may run by holding a key. */
+                                .undo_str = op->type->name,
+                                .undo_grouped = true,
                             });
 
       return OPERATOR_FINISHED;
@@ -1554,6 +1596,7 @@ static int viewpan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   viewmove_apply(vod, vod->prev.event_xy[0] + x, vod->prev.event_xy[1] + y);
 
+  ED_view3d_camera_lock_undo_push(op->type->name, vod->v3d, vod->rv3d, C);
   viewops_data_free(C, vod);
 
   return OPERATOR_FINISHED;

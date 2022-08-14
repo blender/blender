@@ -110,7 +110,7 @@ ScrArea *area_split(const wmWindow *win,
     return NULL;
   }
 
-  /* NOTE(campbell): regarding (fac > 0.5f) checks below.
+  /* NOTE(@campbellbarton): regarding (fac > 0.5f) checks below.
    * normally it shouldn't matter which is used since the copy should match the original
    * however with viewport rendering and python console this isn't the case. */
 

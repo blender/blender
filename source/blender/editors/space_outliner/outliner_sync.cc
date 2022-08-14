@@ -77,8 +77,8 @@ void ED_outliner_select_sync_flag_outliners(const bContext *C)
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
 
-  for (bScreen *screen = reinterpret_cast<bScreen *>(bmain->screens.first); screen;
-       screen = reinterpret_cast<bScreen *>(screen->id.next)) {
+  for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen;
+       screen = static_cast<bScreen *>(screen->id.next)) {
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
         if (sl->spacetype == SPACE_OUTLINER) {
@@ -259,7 +259,7 @@ static void outliner_select_sync_to_pose_bone(TreeElement *te,
                                               GSet *selected_pbones)
 {
   Object *ob = (Object *)tselem->id;
-  bArmature *arm = reinterpret_cast<bArmature *>(ob->data);
+  bArmature *arm = static_cast<bArmature *>(ob->data);
   bPoseChannel *pchan = (bPoseChannel *)te->directdata;
 
   short bone_flag = pchan->bone->flag;

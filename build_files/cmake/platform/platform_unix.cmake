@@ -96,6 +96,18 @@ find_package_wrapper(PNG REQUIRED)
 find_package_wrapper(ZLIB REQUIRED)
 find_package_wrapper(Zstd REQUIRED)
 
+function(check_freetype_for_brotli)
+  include(CheckSymbolExists)
+  set(CMAKE_REQUIRED_INCLUDES ${FREETYPE_INCLUDE_DIRS})
+  check_symbol_exists(FT_CONFIG_OPTION_USE_BROTLI
+  "freetype/config/ftconfig.h" HAVE_BROTLI)
+  if(NOT HAVE_BROTLI)
+    unset(HAVE_BROTLI CACHE)
+    message(FATAL_ERROR "Freetype needs to be compiled with brotli support!")
+  endif()
+  unset(HAVE_BROTLI CACHE)
+endfunction()
+
 if(NOT WITH_SYSTEM_FREETYPE)
   # FreeType compiled with Brotli compression for woff2.
   find_package_wrapper(Freetype REQUIRED)
@@ -110,6 +122,7 @@ if(NOT WITH_SYSTEM_FREETYPE)
     #   ${BROTLI_LIBRARIES}
     # )
   endif()
+  check_freetype_for_brotli()
 endif()
 
 if(WITH_PYTHON)
@@ -202,6 +215,9 @@ if(WITH_CODEC_FFMPEG)
       vpx
       x264
       xvidcore)
+    if(EXISTS ${LIBDIR}/ffmpeg/lib/libaom.a)
+      list(APPEND FFMPEG_FIND_COMPONENTS aom)
+    endif()
   elseif(FFMPEG)
     # Old cache variable used for root dir, convert to new standard.
     set(FFMPEG_ROOT_DIR ${FFMPEG})
@@ -584,6 +600,7 @@ if(WITH_SYSTEM_FREETYPE)
   if(NOT FREETYPE_FOUND)
     message(FATAL_ERROR "Failed finding system FreeType version!")
   endif()
+  check_freetype_for_brotli()
 endif()
 
 if(WITH_LZO AND WITH_SYSTEM_LZO)
@@ -786,7 +803,8 @@ if(CMAKE_COMPILER_IS_GNUCC)
           "The mold linker could not find the directory containing the linker command "
           "(typically "
           "\"${MOLD_PREFIX}/libexec/mold/ld\") or "
-          "\"${MOLD_PREFIX}/lib/mold/ld\") using system linker.")
+          "\"${MOLD_PREFIX}/lib/mold/ld\") using system linker."
+        )
         set(WITH_LINKER_MOLD OFF)
       endif()
       unset(MOLD_PREFIX)
@@ -885,8 +903,9 @@ unset(_IS_LINKER_DEFAULT)
 
 # Avoid conflicts with Mesa llvmpipe, Luxrender, and other plug-ins that may
 # use the same libraries as Blender with a different version or build options.
+set(PLATFORM_SYMBOLS_MAP ${CMAKE_SOURCE_DIR}/source/creator/symbols_unix.map)
 set(PLATFORM_LINKFLAGS
-  "${PLATFORM_LINKFLAGS} -Wl,--version-script='${CMAKE_SOURCE_DIR}/source/creator/blender.map'"
+  "${PLATFORM_LINKFLAGS} -Wl,--version-script='${PLATFORM_SYMBOLS_MAP}'"
 )
 
 # Don't use position independent executable for portable install since file
@@ -924,7 +943,8 @@ function(CONFIGURE_ATOMIC_LIB_IF_NEEDED)
       int main(int argc, char **argv) {
         std::atomic<uint64_t> uint64; uint64++;
         return 0;
-      }")
+      }"
+  )
 
   include(CheckCXXSourceCompiles)
   check_cxx_source_compiles("${_source}" ATOMIC_OPS_WITHOUT_LIBATOMIC)

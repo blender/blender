@@ -6,7 +6,8 @@ DLL_INTERFACE_CALL(oneapi_device_capabilities, char *)
 DLL_INTERFACE_CALL(oneapi_free, void, void *)
 DLL_INTERFACE_CALL(oneapi_get_memcapacity, size_t, SyclQueue *queue)
 
-DLL_INTERFACE_CALL(oneapi_get_compute_units_amount, size_t, SyclQueue *queue)
+DLL_INTERFACE_CALL(oneapi_get_num_multiprocessors, int, SyclQueue *queue)
+DLL_INTERFACE_CALL(oneapi_get_max_num_threads_per_multiprocessor, int, SyclQueue *queue)
 DLL_INTERFACE_CALL(oneapi_iterate_devices, void, OneAPIDeviceIteratorCallback cb, void *user_ptr)
 DLL_INTERFACE_CALL(oneapi_set_error_cb, void, OneAPIErrorCallback, void *user_ptr)
 

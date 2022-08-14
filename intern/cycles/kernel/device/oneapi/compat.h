@@ -30,7 +30,7 @@
 #define ccl_global
 #define ccl_always_inline __attribute__((always_inline))
 #define ccl_device_inline inline
-#define ccl_noinline
+#define ccl_noinline __attribute__((noinline))
 #define ccl_inline_constant const constexpr
 #define ccl_static_constant const
 #define ccl_device_forceinline __attribute__((always_inline))
@@ -149,24 +149,12 @@ void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \
 /* clang-format on */
 
 /* Types */
+
 /* It's not possible to use sycl types like sycl::float3, sycl::int3, etc
- * because these types have different interfaces from blender version */
+ * because these types have different interfaces from blender version. */
 
 using uchar = unsigned char;
 using sycl::half;
-
-struct float3 {
-  float x, y, z;
-};
-
-ccl_always_inline float3 make_float3(float x, float y, float z)
-{
-  return {x, y, z};
-}
-ccl_always_inline float3 make_float3(float x)
-{
-  return {x, x, x};
-}
 
 /* math functions */
 #define fabsf(x) sycl::fabs((x))

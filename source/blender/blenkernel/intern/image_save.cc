@@ -144,13 +144,9 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
 
     opts->im_format.color_management = R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE;
 
-    if (ibuf->name[0] == '\0' || ima->source == IMA_SRC_TILED) {
-      BLI_strncpy(opts->filepath, ima->filepath, sizeof(opts->filepath));
-      BLI_path_abs(opts->filepath, ID_BLEND_PATH_FROM_GLOBAL(&ima->id));
-    }
-    else {
-      BLI_strncpy(opts->filepath, ibuf->name, sizeof(opts->filepath));
-    }
+    /* Compute filepath, but don't resolve multiview and UDIM which are handled
+     * by the image saving code itself. */
+    BKE_image_user_file_path_ex(bmain, iuser, ima, opts->filepath, false, false);
 
     /* sanitize all settings */
 
@@ -320,6 +316,8 @@ static void image_save_post(ReportList *reports,
   if (ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER)) {
     ima->source = IMA_SRC_FILE;
     ima->type = IMA_TYPE_IMAGE;
+    ImageTile *base_tile = BKE_image_get_tile(ima, 0);
+    base_tile->gen_flag &= ~IMA_GEN_TILE;
   }
 
   /* Update image file color space when saving to another color space. */
@@ -666,8 +664,11 @@ bool BKE_image_save(
       }
     }
 
-    /* Set the image path only if all tiles were ok. */
+    /* Set the image path and clear the per-tile generated flag only if all tiles were ok. */
     if (ok) {
+      LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+        tile->gen_flag &= ~IMA_GEN_TILE;
+      }
       image_save_update_filepath(ima, opts->filepath, opts);
     }
     MEM_freeN(udim_pattern);

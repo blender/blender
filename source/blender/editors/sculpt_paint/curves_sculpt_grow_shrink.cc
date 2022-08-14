@@ -4,8 +4,7 @@
 
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_float4x4.hh"
-#include "BLI_kdtree.h"
-#include "BLI_rand.hh"
+#include "BLI_length_parameterize.hh"
 #include "BLI_vector.hh"
 
 #include "PIL_time.h"
@@ -14,19 +13,13 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_brush.h"
-#include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
-#include "BKE_mesh.h"
-#include "BKE_mesh_runtime.h"
 #include "BKE_paint.h"
-#include "BKE_spline.hh"
 
 #include "DNA_brush_enums.h"
 #include "DNA_brush_types.h"
 #include "DNA_curves_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -70,6 +63,24 @@ class ShrinkCurvesEffect : public CurvesEffect {
  private:
   const Brush &brush_;
 
+  /** Storage of per-curve parameterization data to avoid reallocation. */
+  struct ParameterizationBuffers {
+    Array<float3> old_positions;
+    Array<float> old_lengths;
+    Array<float> sample_lengths;
+    Array<int> indices;
+    Array<float> factors;
+
+    void reinitialize(const int points_num)
+    {
+      this->old_positions.reinitialize(points_num);
+      this->old_lengths.reinitialize(length_parameterize::segments_num(points_num, false));
+      this->sample_lengths.reinitialize(points_num);
+      this->indices.reinitialize(points_num);
+      this->factors.reinitialize(points_num);
+    }
+  };
+
  public:
   ShrinkCurvesEffect(const Brush &brush) : brush_(brush)
   {
@@ -81,46 +92,42 @@ class ShrinkCurvesEffect : public CurvesEffect {
   {
     MutableSpan<float3> positions_cu = curves.positions_for_write();
     threading::parallel_for(curve_indices.index_range(), 256, [&](const IndexRange range) {
+      ParameterizationBuffers data;
       for (const int influence_i : range) {
         const int curve_i = curve_indices[influence_i];
         const float move_distance_cu = move_distances_cu[influence_i];
-        const IndexRange curve_points = curves.points_for_curve(curve_i);
-        this->shrink_curve(positions_cu, curve_points, move_distance_cu);
+        const IndexRange points = curves.points_for_curve(curve_i);
+        this->shrink_curve(positions_cu.slice(points), move_distance_cu, data);
       }
     });
   }
 
+ private:
   void shrink_curve(MutableSpan<float3> positions,
-                    const IndexRange curve_points,
-                    const float shrink_length) const
+                    const float shrink_length,
+                    ParameterizationBuffers &data) const
   {
-    PolySpline spline;
-    spline.resize(curve_points.size());
-    MutableSpan<float3> spline_positions = spline.positions();
-    spline_positions.copy_from(positions.slice(curve_points));
-    spline.mark_cache_invalid();
+    namespace lp = length_parameterize;
+    data.reinitialize(positions.size());
+
+    /* Copy the old positions to facilitate mixing from neighbors for the resulting curve. */
+    data.old_positions.as_mutable_span().copy_from(positions);
+
+    lp::accumulate_lengths<float3>(data.old_positions, false, data.old_lengths);
+
     const float min_length = brush_.curves_sculpt_settings->minimum_length;
-    const float old_length = spline.length();
+    const float old_length = data.old_lengths.last();
     const float new_length = std::max(min_length, old_length - shrink_length);
     const float length_factor = std::clamp(new_length / old_length, 0.0f, 1.0f);
 
-    Vector<float> old_point_lengths;
-    old_point_lengths.append(0.0f);
-    for (const int i : spline_positions.index_range().drop_back(1)) {
-      const float3 &p1 = spline_positions[i];
-      const float3 &p2 = spline_positions[i + 1];
-      const float length = math::distance(p1, p2);
-      old_point_lengths.append(old_point_lengths.last() + length);
+    data.sample_lengths.first() = 0.0f;
+    for (const int i : data.old_lengths.index_range()) {
+      data.sample_lengths[i + 1] = data.old_lengths[i] * length_factor;
     }
 
-    for (const int i : spline_positions.index_range()) {
-      const float eval_length = old_point_lengths[i] * length_factor;
-      const Spline::LookupResult lookup = spline.lookup_evaluated_length(eval_length);
-      const float index_factor = lookup.evaluated_index + lookup.factor;
-      float3 p;
-      spline.sample_with_index_factors<float3>(spline_positions, {&index_factor, 1}, {&p, 1});
-      positions[curve_points[i]] = p;
-    }
+    lp::sample_at_lengths(data.old_lengths, data.sample_lengths, data.indices, data.factors);
+
+    lp::interpolate<float3>(data.old_positions, data.indices, data.factors, positions);
   }
 };
 
@@ -335,7 +342,8 @@ struct CurvesEffectOperationExecutor {
   void gather_influences_projected(
       threading::EnumerableThreadSpecific<Influences> &influences_for_thread)
   {
-    const Span<float3> positions_cu = curves_->positions();
+    const bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
 
     float4x4 projection;
     ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
@@ -361,8 +369,8 @@ struct CurvesEffectOperationExecutor {
         float max_move_distance_cu = 0.0f;
         for (const float4x4 &brush_transform_inv : symmetry_brush_transforms_inv) {
           for (const int segment_i : points.drop_back(1)) {
-            const float3 p1_cu = brush_transform_inv * positions_cu[segment_i];
-            const float3 p2_cu = brush_transform_inv * positions_cu[segment_i + 1];
+            const float3 p1_cu = brush_transform_inv * deformation.positions[segment_i];
+            const float3 p2_cu = brush_transform_inv * deformation.positions[segment_i + 1];
 
             float2 p1_re, p2_re;
             ED_view3d_project_float_v2_m4(ctx_.region, p1_cu, p1_re, projection.values);
@@ -423,7 +431,8 @@ struct CurvesEffectOperationExecutor {
   void gather_influences_spherical(
       threading::EnumerableThreadSpecific<Influences> &influences_for_thread)
   {
-    const Span<float3> positions_cu = curves_->positions();
+    const bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
 
     float3 brush_pos_start_wo, brush_pos_end_wo;
     ED_view3d_win_to_3d(ctx_.v3d,
@@ -461,8 +470,8 @@ struct CurvesEffectOperationExecutor {
           const float3 brush_pos_end_transformed_cu = brush_transform * brush_pos_end_cu;
 
           for (const int segment_i : points.drop_back(1)) {
-            const float3 &p1_cu = positions_cu[segment_i];
-            const float3 &p2_cu = positions_cu[segment_i + 1];
+            const float3 &p1_cu = deformation.positions[segment_i];
+            const float3 &p2_cu = deformation.positions[segment_i + 1];
 
             float3 closest_on_segment_cu;
             float3 closest_on_brush_cu;

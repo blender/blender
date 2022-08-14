@@ -15,6 +15,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_vector.hh"
 
 #include "DNA_material_types.h"
 
@@ -26,7 +27,6 @@
 #include <pxr/usd/usdShade/shader.h>
 
 #include <iostream>
-#include <optional>
 #include <vector>
 
 namespace usdtokens {
@@ -111,9 +111,9 @@ static void link_nodes(
 
 /* Returns a layer handle retrieved from the given attribute's property specs.
  * Note that the returned handle may be invalid if no layer could be found. */
-static pxr::SdfLayerHandle get_layer_handle(const pxr::UsdAttribute &Attribute)
+static pxr::SdfLayerHandle get_layer_handle(const pxr::UsdAttribute &attribute)
 {
-  for (auto PropertySpec : Attribute.GetPropertyStack(pxr::UsdTimeCode::EarliestTime())) {
+  for (auto PropertySpec : attribute.GetPropertyStack(pxr::UsdTimeCode::EarliestTime())) {
     if (PropertySpec->HasDefaultValue() ||
         PropertySpec->GetLayer()->GetNumTimeSamplesForPath(PropertySpec->GetPath()) > 0) {
       return PropertySpec->GetLayer();
@@ -129,9 +129,8 @@ static bool is_udim_path(const std::string &path)
 }
 
 /* For the given UDIM path (assumed to contain the UDIM token), returns an array
- * containing valid tile indices.
- * Returns std::nullopt if no tiles were found. */
-static std::optional<blender::Vector<int>> get_udim_tiles(const std::string &file_path)
+ * containing valid tile indices. */
+static blender::Vector<int> get_udim_tiles(const std::string &file_path)
 {
   char base_udim_path[FILE_MAX];
   BLI_strncpy(base_udim_path, file_path.c_str(), sizeof(base_udim_path));
@@ -150,10 +149,6 @@ static std::optional<blender::Vector<int>> get_udim_tiles(const std::string &fil
   }
 
   BLI_freelistN(&tiles);
-
-  if (udim_tiles.is_empty()) {
-    return std::nullopt;
-  }
 
   return udim_tiles;
 }
@@ -772,7 +767,7 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
 
   /* If this is a UDIM texture, this will store the
    * UDIM tile indices. */
-  std::optional<blender::Vector<int>> udim_tiles;
+  blender::Vector<int> udim_tiles;
 
   if (is_udim_path(file_path)) {
     udim_tiles = get_udim_tiles(file_path);
@@ -788,10 +783,8 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
     return;
   }
 
-  if (udim_tiles) {
-    /* Not calling udim_tiles.value(), which is not
-     * supported in macOS versions prior to 10.14.1. */
-    add_udim_tiles(image, *udim_tiles);
+  if (udim_tiles.size() > 0) {
+    add_udim_tiles(image, udim_tiles);
   }
 
   tex_image->id = &image->id;

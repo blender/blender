@@ -190,7 +190,7 @@ void wm_event_free(wmEvent *event)
     printf("%s: 'is_repeat=true' for non-keyboard event, this should not happen.\n", __func__);
     WM_event_print(event);
   }
-  if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) && (event->val != KM_NOTHING)) {
+  if (ISMOUSE_MOTION(event->type) && (event->val != KM_NOTHING)) {
     printf("%s: 'val != NOTHING' for a cursor motion event, this should not happen.\n", __func__);
     WM_event_print(event);
   }
@@ -3095,7 +3095,7 @@ static int wm_handlers_do_intern(bContext *C, wmWindow *win, wmEvent *event, Lis
   const bool do_debug_handler =
       (G.debug & G_DEBUG_HANDLERS) &&
       /* Comment this out to flood the console! (if you really want to test). */
-      !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE);
+      !ISMOUSE_MOTION(event->type);
 
   wmWindowManager *wm = CTX_wm_manager(C);
   int action = WM_HANDLER_CONTINUE;
@@ -3286,7 +3286,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
     return action;
   }
 
-  if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+  if (ISMOUSE_MOTION(event->type)) {
     /* Test for #KM_CLICK_DRAG events. */
 
     /* NOTE(@campbellbarton): Needed so drag can be used for editors that support both click
@@ -3568,7 +3568,7 @@ static void wm_event_drag_and_drop_test(wmWindowManager *wm, wmWindow *win, wmEv
     /* Clear drop icon. */
     screen->do_draw_drag = true;
 
-    /* Restore cursor (disabled, see `wm_dragdrop.c`) */
+    /* Restore cursor (disabled, see `wm_dragdrop.cc`) */
     // WM_cursor_modal_restore(win);
   }
 }
@@ -3821,15 +3821,14 @@ void wm_event_do_handlers(bContext *C)
       /* Active screen might change during handlers, update pointer. */
       screen = WM_window_get_active_screen(win);
 
-      if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS) &&
-          !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+      if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS) && !ISMOUSE_MOTION(event->type)) {
         printf("\n%s: Handling event\n", __func__);
         WM_event_print(event);
       }
 
       /* Take care of pie event filter. */
       if (wm_event_pie_filter(win, event)) {
-        if (!ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+        if (!ISMOUSE_MOTION(event->type)) {
           CLOG_INFO(WM_LOG_HANDLERS, 1, "event filtered due to pie button pressed");
         }
         BLI_remlink(&win->event_queue, event);
@@ -3851,7 +3850,7 @@ void wm_event_do_handlers(bContext *C)
 
       /* Clear tool-tip on mouse move. */
       if (screen->tool_tip && screen->tool_tip->exit_on_event) {
-        if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+        if (ISMOUSE_MOTION(event->type)) {
           if (len_manhattan_v2v2_int(screen->tool_tip->event_xy, event->xy) >
               WM_EVENT_CURSOR_MOTION_THRESHOLD) {
             WM_tooltip_clear(C, win);
@@ -4975,7 +4974,7 @@ static bool wm_event_is_double_click(const wmEvent *event)
 {
   if ((event->type == event->prev_type) && (event->prev_val == KM_RELEASE) &&
       (event->val == KM_PRESS)) {
-    if (ISMOUSE(event->type) && WM_event_drag_test(event, event->prev_press_xy)) {
+    if (ISMOUSE_BUTTON(event->type) && WM_event_drag_test(event, event->prev_press_xy)) {
       /* Pass. */
     }
     else {
@@ -5175,7 +5174,7 @@ static bool wm_event_is_ignorable_key_press(const wmWindow *win, const wmEvent &
     return false;
   }
 
-  const wmEvent &last_event = *reinterpret_cast<const wmEvent *>(win->event_queue.last);
+  const wmEvent &last_event = *static_cast<const wmEvent *>(win->event_queue.last);
 
   return wm_event_is_same_key_press(last_event, event);
 }
@@ -5214,6 +5213,13 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
    */
   event.prev_type = event.type;
   event.prev_val = event.val;
+
+  /* Always use modifiers from the active window since
+     changes to modifiers aren't sent to inactive windows, see: T66088. */
+  if ((wm->winactive != win) && (wm->winactive && wm->winactive->eventstate)) {
+    event.modifier = wm->winactive->eventstate->modifier;
+    event.keymodifier = wm->winactive->eventstate->keymodifier;
+  }
 
   /* Ensure the event state is correct, any deviation from this may cause bugs.
    *
@@ -5256,6 +5262,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       wmWindow *win_other = wm_event_cursor_other_windows(wm, win, &event);
       if (win_other) {
         wmEvent event_other = *win_other->eventstate;
+
+        /* Use the modifier state of this window. */
+        event_other.modifier = event.modifier;
+        event_other.keymodifier = event.keymodifier;
 
         /* See comment for this operation on `event` for details. */
         event_other.prev_type = event_other.type;
@@ -5345,6 +5355,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       wmWindow *win_other = wm_event_cursor_other_windows(wm, win, &event);
       if (win_other) {
         wmEvent event_other = *win_other->eventstate;
+
+        /* Use the modifier state of this window. */
+        event_other.modifier = event.modifier;
+        event_other.keymodifier = event.keymodifier;
 
         /* See comment for this operation on `event` for details. */
         event_other.prev_type = event_other.type;

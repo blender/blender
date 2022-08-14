@@ -11,8 +11,7 @@
 
 struct ID;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 class BuilderMap {
  public:
@@ -60,5 +59,4 @@ class BuilderMap {
   Map<ID *, int> id_tags_;
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

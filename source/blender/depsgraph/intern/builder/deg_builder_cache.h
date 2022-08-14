@@ -17,8 +17,7 @@ struct ID;
 struct PointerRNA;
 struct PropertyRNA;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 class DepsgraphBuilderCache;
 
@@ -28,14 +27,14 @@ class AnimatedPropertyID {
   AnimatedPropertyID();
   AnimatedPropertyID(const PointerRNA *pointer_rna, const PropertyRNA *property_rna);
   AnimatedPropertyID(const PointerRNA &pointer_rna, const PropertyRNA *property_rna);
-  AnimatedPropertyID(ID *id, StructRNA *type, const char *property_name);
-  AnimatedPropertyID(ID *id, StructRNA *type, void *data, const char *property_name);
+  AnimatedPropertyID(const ID *id, StructRNA *type, const char *property_name);
+  AnimatedPropertyID(const ID *id, StructRNA *type, void *data, const char *property_name);
 
   uint64_t hash() const;
   friend bool operator==(const AnimatedPropertyID &a, const AnimatedPropertyID &b);
 
   /* Corresponds to PointerRNA.data. */
-  void *data;
+  const void *data;
   const PropertyRNA *property_rna;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("AnimatedPropertyID");
@@ -45,7 +44,7 @@ class AnimatedPropertyStorage {
  public:
   AnimatedPropertyStorage();
 
-  void initializeFromID(DepsgraphBuilderCache *builder_cache, ID *id);
+  void initializeFromID(DepsgraphBuilderCache *builder_cache, const ID *id);
 
   void tagPropertyAsAnimated(const AnimatedPropertyID &property_id);
   void tagPropertyAsAnimated(const PointerRNA *pointer_rna, const PropertyRNA *property_rna);
@@ -59,7 +58,7 @@ class AnimatedPropertyStorage {
   bool is_fully_initialized;
 
   /* indexed by PointerRNA.data. */
-  Set<void *> animated_objects_set;
+  Set<const void *> animated_objects_set;
   Set<AnimatedPropertyID> animated_properties_set;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("AnimatedPropertyStorage");
@@ -71,8 +70,8 @@ class DepsgraphBuilderCache {
   ~DepsgraphBuilderCache();
 
   /* Makes sure storage for animated properties exists and initialized for the given ID. */
-  AnimatedPropertyStorage *ensureAnimatedPropertyStorage(ID *id);
-  AnimatedPropertyStorage *ensureInitializedAnimatedPropertyStorage(ID *id);
+  AnimatedPropertyStorage *ensureAnimatedPropertyStorage(const ID *id);
+  AnimatedPropertyStorage *ensureInitializedAnimatedPropertyStorage(const ID *id);
 
   /* Shortcuts to go through ensureInitializedAnimatedPropertyStorage and its
    * isPropertyAnimated.
@@ -82,7 +81,7 @@ class DepsgraphBuilderCache {
    *
    * TODO(sergey): Technically, this makes this class something else than just a cache, but what is
    * the better name? */
-  template<typename... Args> bool isPropertyAnimated(ID *id, Args... args)
+  template<typename... Args> bool isPropertyAnimated(const ID *id, Args... args)
   {
     AnimatedPropertyStorage *animated_property_storage = ensureInitializedAnimatedPropertyStorage(
         id);
@@ -96,10 +95,9 @@ class DepsgraphBuilderCache {
     return animated_property_storage->isAnyPropertyAnimated(ptr);
   }
 
-  Map<ID *, AnimatedPropertyStorage *> animated_property_storage_map_;
+  Map<const ID *, AnimatedPropertyStorage *> animated_property_storage_map_;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("DepsgraphBuilderCache");
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

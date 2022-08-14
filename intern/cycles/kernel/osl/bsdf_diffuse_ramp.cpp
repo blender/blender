@@ -14,10 +14,15 @@
 #include "kernel/osl/closures.h"
 
 // clang-format off
+#include "kernel/device/cpu/compat.h"
+#include "kernel/device/cpu/globals.h"
+
 #include "kernel/types.h"
 #include "kernel/closure/alloc.h"
 #include "kernel/closure/bsdf_diffuse_ramp.h"
 #include "kernel/closure/bsdf_util.h"
+
+#include "kernel/util/color.h"
 // clang-format on
 
 CCL_NAMESPACE_BEGIN
@@ -34,7 +39,7 @@ class DiffuseRampClosure : public CBSDFClosure {
     params.N = ensure_valid_reflection(sd->Ng, sd->I, params.N);
 
     DiffuseRampBsdf *bsdf = (DiffuseRampBsdf *)bsdf_alloc_osl(
-        sd, sizeof(DiffuseRampBsdf), weight, &params);
+        sd, sizeof(DiffuseRampBsdf), rgb_to_spectrum(weight), &params);
 
     if (bsdf) {
       bsdf->colors = (float3 *)closure_alloc_extra(sd, sizeof(float3) * 8);

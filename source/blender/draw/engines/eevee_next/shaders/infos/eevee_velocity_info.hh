@@ -31,26 +31,7 @@ GPU_SHADER_CREATE_INFO(eevee_velocity_geom)
     .storage_buf(
         7, Qualifier::READ, "VelocityIndex", "velocity_indirection_buf[]", Frequency::PASS)
     .vertex_out(eevee_velocity_surface_iface)
-    .fragment_out(0, Type::VEC4, "out_velocity_view")
+    .fragment_out(0, Type::VEC4, "out_velocity")
     .additional_info("eevee_velocity_camera");
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Velocity Resolve
- *
- * Computes velocity for static objects.
- * Also converts motion to camera space (as opposed to view space) if needed.
- * \{ */
-
-GPU_SHADER_CREATE_INFO(eevee_velocity_resolve)
-    .do_static_compilation(true)
-    .local_group_size(8, 8)
-    .sampler(0, ImageType::DEPTH_2D, "depth_tx")
-    .image(0, GPU_RG16F, Qualifier::READ_WRITE, ImageType::FLOAT_2D, "velocity_view_img")
-    .image(1, GPU_RG16F, Qualifier::WRITE, ImageType::FLOAT_2D, "velocity_camera_img")
-    .additional_info("eevee_shared")
-    .compute_source("eevee_velocity_resolve_comp.glsl")
-    .additional_info("draw_view", "eevee_velocity_camera");
 
 /** \} */

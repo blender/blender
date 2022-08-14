@@ -30,6 +30,7 @@
 #include "UI_view2d.h"
 
 #include "RNA_access.h"
+#include "RNA_path.h"
 
 #include "text_format.h"
 #include "text_intern.h" /* own include */

@@ -17,9 +17,14 @@
 #include "BKE_pbvh.h"
 #include "BKE_volume.h"
 
+/* For debug cursor position. */
+#include "WM_api.h"
+#include "wm_window.h"
+
 #include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_screen_types.h"
 
 #include "BLI_alloca.h"
 #include "BLI_hash.h"
@@ -38,6 +43,16 @@
 #include "GPU_uniform_buffer.h"
 
 #include "intern/gpu_codegen.h"
+
+/**
+ * IMPORTANT:
+ * In order to be able to write to the same print buffer sequentially, we add a barrier to allow
+ * multiple shader calls writing to the same buffer.
+ * However, this adds explicit synchronization events which might change the rest of the
+ * application behavior and hide some bugs. If you know you are using shader debug print in only
+ * one shader pass, you can comment this out to remove the aforementioned barrier.
+ */
+#define DISABLE_DEBUG_SHADER_PRINT_BARRIER
 
 /* -------------------------------------------------------------------- */
 /** \name Uniform Buffer Object (DRW_uniformbuffer)
@@ -878,6 +893,17 @@ static void drw_command_draw_procedural(DRWShadingGroup *shgroup,
   cmd->vert_count = vert_count;
 }
 
+static void drw_command_draw_indirect(DRWShadingGroup *shgroup,
+                                      GPUBatch *batch,
+                                      DRWResourceHandle handle,
+                                      GPUStorageBuf *indirect_buf)
+{
+  DRWCommandDrawIndirect *cmd = drw_command_create(shgroup, DRW_CMD_DRAW_INDIRECT);
+  cmd->batch = batch;
+  cmd->handle = handle;
+  cmd->indirect_buf = indirect_buf;
+}
+
 static void drw_command_set_select_id(DRWShadingGroup *shgroup, GPUVertBuf *buf, uint select_id)
 {
   /* Only one can be valid. */
@@ -1005,6 +1031,7 @@ void DRW_shgroup_call_compute_indirect(DRWShadingGroup *shgroup, GPUStorageBuf *
 
   drw_command_compute_indirect(shgroup, indirect_buf);
 }
+
 void DRW_shgroup_barrier(DRWShadingGroup *shgroup, eGPUBarrier type)
 {
   BLI_assert(GPU_compute_shader_support());
@@ -1042,6 +1069,38 @@ void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *shgroup, Object *ob,
 {
   struct GPUBatch *geom = drw_cache_procedural_triangles_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, tri_count * 3);
+}
+
+void DRW_shgroup_call_procedural_indirect(DRWShadingGroup *shgroup,
+                                          GPUPrimType primitive_type,
+                                          Object *ob,
+                                          GPUStorageBuf *indirect_buf)
+{
+  struct GPUBatch *geom = NULL;
+  switch (primitive_type) {
+    case GPU_PRIM_POINTS:
+      geom = drw_cache_procedural_points_get();
+      break;
+    case GPU_PRIM_LINES:
+      geom = drw_cache_procedural_lines_get();
+      break;
+    case GPU_PRIM_TRIS:
+      geom = drw_cache_procedural_triangles_get();
+      break;
+    case GPU_PRIM_TRI_STRIP:
+      geom = drw_cache_procedural_triangle_strips_get();
+      break;
+    default:
+      BLI_assert_msg(0,
+                     "Unsupported primitive type in DRW_shgroup_call_procedural_indirect. Add new "
+                     "one as needed.");
+      break;
+  }
+  if (G.f & G_FLAG_PICKSEL) {
+    drw_command_set_select_id(shgroup, NULL, DST.select_id);
+  }
+  DRWResourceHandle handle = drw_resource_handle(shgroup, ob ? ob->obmat : NULL, ob);
+  drw_command_draw_indirect(shgroup, geom, handle, indirect_buf);
 }
 
 void DRW_shgroup_call_instances(DRWShadingGroup *shgroup,
@@ -1465,6 +1524,27 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
     drw_shgroup_uniform_create_ex(
         shgroup, view_ubo_location, DRW_UNIFORM_BLOCK, G_draw.view_ubo, 0, 0, 1);
   }
+
+#ifdef DEBUG
+  int debug_print_location = GPU_shader_get_builtin_ssbo(shader, GPU_STORAGE_BUFFER_DEBUG_PRINT);
+  if (debug_print_location != -1) {
+    GPUStorageBuf *buf = drw_debug_gpu_print_buf_get();
+    drw_shgroup_uniform_create_ex(
+        shgroup, debug_print_location, DRW_UNIFORM_STORAGE_BLOCK, buf, 0, 0, 1);
+#  ifndef DISABLE_DEBUG_SHADER_PRINT_BARRIER
+    /* Add a barrier to allow multiple shader writing to the same buffer. */
+    DRW_shgroup_barrier(shgroup, GPU_BARRIER_SHADER_STORAGE);
+#  endif
+  }
+
+  int debug_draw_location = GPU_shader_get_builtin_ssbo(shader, GPU_STORAGE_BUFFER_DEBUG_VERTS);
+  if (debug_draw_location != -1) {
+    GPUStorageBuf *buf = drw_debug_gpu_draw_buf_get();
+    drw_shgroup_uniform_create_ex(
+        shgroup, debug_draw_location, DRW_UNIFORM_STORAGE_BLOCK, buf, 0, 0, 1);
+    /* NOTE(fclem): No barrier as ordering is not important. */
+  }
+#endif
 
   /* Not supported. */
   BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MODELVIEW_INV) == -1);
@@ -1941,6 +2021,13 @@ DRWView *DRW_view_create(const float viewmat[4][4],
   view->parent = NULL;
 
   copy_v4_fl4(view->storage.viewcamtexcofac, 1.0f, 1.0f, 0.0f, 0.0f);
+
+  if (DST.draw_ctx.evil_C && DST.draw_ctx.region) {
+    int region_origin[2] = {DST.draw_ctx.region->winrct.xmin, DST.draw_ctx.region->winrct.ymin};
+    struct wmWindow *win = CTX_wm_window(DST.draw_ctx.evil_C);
+    wm_cursor_position_get(win, &view->storage.mouse_pixel[0], &view->storage.mouse_pixel[1]);
+    sub_v2_v2v2_int(view->storage.mouse_pixel, view->storage.mouse_pixel, region_origin);
+  }
 
   DRW_view_update(view, viewmat, winmat, culling_viewmat, culling_winmat);
 

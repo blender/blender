@@ -1295,7 +1295,7 @@ static const EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext
   ID *id = ptr->owner_id;
   const bool is_render = (id && GS(id->name) == ID_SCE);
 
-  /* NOTE(campbell): we need to act differently for render
+  /* NOTE(@campbellbarton): we need to act differently for render
    * where 'BW' will force grayscale even if the output format writes
    * as RGBA, this is age old blender convention and not sure how useful
    * it really is but keep it for now. */
@@ -2501,7 +2501,7 @@ static void rna_ViewLayerLightgroup_name_set(PointerRNA *ptr, const char *value)
   Scene *scene = (Scene *)ptr->owner_id;
   ViewLayer *view_layer = BKE_view_layer_find_with_lightgroup(scene, lightgroup);
 
-  BKE_view_layer_rename_lightgroup(view_layer, lightgroup, value);
+  BKE_view_layer_rename_lightgroup(scene, view_layer, lightgroup, value);
 }
 
 /* Fake value, used internally (not saved to DNA). */

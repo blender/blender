@@ -18,7 +18,7 @@ ccl_device void shader_setup_object_transforms(KernelGlobals kg,
 {
   if (sd->object_flag & SD_OBJECT_MOTION) {
     sd->ob_tfm_motion = object_fetch_transform_motion(kg, sd->object, time);
-    sd->ob_itfm_motion = transform_quick_inverse(sd->ob_tfm_motion);
+    sd->ob_itfm_motion = transform_inverse(sd->ob_tfm_motion);
   }
 }
 #endif

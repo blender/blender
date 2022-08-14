@@ -95,8 +95,10 @@ class SPREADSHEET_HT_header(bpy.types.Header):
         obj = root_context.object
         if obj is None:
             return False
-        if obj.type != 'MESH' or obj.mode != 'EDIT':
-            return False
+        if obj.type == 'MESH':
+            return obj.mode == 'EDIT'
+        if obj.type == 'CURVES':
+            return obj.mode == 'SCULPT_CURVES'
         return True
 
 

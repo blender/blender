@@ -553,7 +553,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
                    "particle_system",
                    &particle_obj_ptr,
                    "particle_systems",
-                   "Particle System",
+                   IFACE_("Particle System"),
                    ICON_NONE);
   }
   else {

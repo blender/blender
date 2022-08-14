@@ -835,7 +835,7 @@ static void ntree_blend_read_data(BlendDataReader *reader, ID *id)
 
 static void lib_link_node_socket(BlendLibReader *reader, Library *lib, bNodeSocket *sock)
 {
-  IDP_BlendReadLib(reader, sock->prop);
+  IDP_BlendReadLib(reader, lib, sock->prop);
 
   /* This can happen for all socket types when a file is saved in an older version of Blender than
    * it was originally created in (T86298). Some socket types still require a default value. The
@@ -901,7 +901,7 @@ void ntreeBlendReadLib(struct BlendLibReader *reader, struct bNodeTree *ntree)
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     /* Link ID Properties -- and copy this comment EXACTLY for easy finding
      * of library blocks that implement this. */
-    IDP_BlendReadLib(reader, node->prop);
+    IDP_BlendReadLib(reader, lib, node->prop);
 
     BLO_read_id_address(reader, lib, &node->id);
 
@@ -3047,7 +3047,9 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
     }
   }
 
-  if (node_has_id) {
+  /* Also update relations for the scene time node, which causes a dependency
+   * on time that users expect to be removed when the node is removed. */
+  if (node_has_id || node->type == GEO_NODE_INPUT_SCENE_TIME) {
     if (bmain != nullptr) {
       DEG_relations_tag_update(bmain);
     }
@@ -4751,17 +4753,17 @@ static void registerGeometryNodes()
   register_node_type_geo_curve_trim();
   register_node_type_geo_deform_curves_on_surface();
   register_node_type_geo_delete_geometry();
-  register_node_type_geo_duplicate_elements();
   register_node_type_geo_distribute_points_on_faces();
   register_node_type_geo_dual_mesh();
+  register_node_type_geo_duplicate_elements();
+  register_node_type_geo_edge_paths_to_curves();
+  register_node_type_geo_edge_paths_to_selection();
   register_node_type_geo_edge_split();
   register_node_type_geo_extrude_mesh();
   register_node_type_geo_field_at_index();
-  register_node_type_geo_field_on_domain();
   register_node_type_geo_flip_faces();
   register_node_type_geo_geometry_to_instance();
   register_node_type_geo_image_texture();
-  register_node_type_geo_input_named_attribute();
   register_node_type_geo_input_curve_handles();
   register_node_type_geo_input_curve_tilt();
   register_node_type_geo_input_id();
@@ -4778,17 +4780,20 @@ static void registerGeometryNodes()
   register_node_type_geo_input_mesh_face_neighbors();
   register_node_type_geo_input_mesh_island();
   register_node_type_geo_input_mesh_vertex_neighbors();
+  register_node_type_geo_input_named_attribute();
   register_node_type_geo_input_normal();
   register_node_type_geo_input_position();
   register_node_type_geo_input_radius();
   register_node_type_geo_input_scene_time();
   register_node_type_geo_input_shade_smooth();
+  register_node_type_geo_input_shortest_edge_paths();
   register_node_type_geo_input_spline_cyclic();
   register_node_type_geo_input_spline_length();
   register_node_type_geo_input_spline_resolution();
   register_node_type_geo_input_tangent();
   register_node_type_geo_instance_on_points();
   register_node_type_geo_instances_to_points();
+  register_node_type_geo_interpolate_domain();
   register_node_type_geo_is_viewport();
   register_node_type_geo_join_geometry();
   register_node_type_geo_material_replace();
@@ -4807,9 +4812,9 @@ static void registerGeometryNodes()
   register_node_type_geo_mesh_to_points();
   register_node_type_geo_mesh_to_volume();
   register_node_type_geo_object_info();
-  register_node_type_geo_points();
   register_node_type_geo_points_to_vertices();
   register_node_type_geo_points_to_volume();
+  register_node_type_geo_points();
   register_node_type_geo_proximity();
   register_node_type_geo_raycast();
   register_node_type_geo_realize_instances();
@@ -4839,11 +4844,11 @@ static void registerGeometryNodes()
   register_node_type_geo_transform();
   register_node_type_geo_translate_instances();
   register_node_type_geo_triangulate();
+  register_node_type_geo_uv_pack_islands();
+  register_node_type_geo_uv_unwrap();
   register_node_type_geo_viewer();
   register_node_type_geo_volume_cube();
   register_node_type_geo_volume_to_mesh();
-  register_node_type_geo_uv_pack_islands();
-  register_node_type_geo_uv_unwrap();
 }
 
 static void registerFunctionNodes()

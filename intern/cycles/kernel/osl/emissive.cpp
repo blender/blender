@@ -14,9 +14,13 @@
 
 // clang-format off
 #include "kernel/device/cpu/compat.h"
+#include "kernel/device/cpu/globals.h"
+
 #include "kernel/types.h"
 #include "kernel/closure/alloc.h"
 #include "kernel/closure/emissive.h"
+
+#include "kernel/util/color.h"
 // clang-format on
 
 CCL_NAMESPACE_BEGIN
@@ -34,7 +38,7 @@ class GenericEmissiveClosure : public CClosurePrimitive {
  public:
   void setup(ShaderData *sd, uint32_t /* path_flag */, float3 weight)
   {
-    emission_setup(sd, weight);
+    emission_setup(sd, rgb_to_spectrum(weight));
   }
 };
 

@@ -280,6 +280,7 @@ class GPUCodegen {
 
   void node_serialize(std::stringstream &eval_ss, const GPUNode *node);
   char *graph_serialize(eGPUNodeTag tree_tag, GPUNodeLink *output_link);
+  char *graph_serialize(eGPUNodeTag tree_tag);
 
   static char *extract_c_str(std::stringstream &stream)
   {
@@ -500,6 +501,19 @@ char *GPUCodegen::graph_serialize(eGPUNodeTag tree_tag, GPUNodeLink *output_link
   return eval_c_str;
 }
 
+char *GPUCodegen::graph_serialize(eGPUNodeTag tree_tag)
+{
+  std::stringstream eval_ss;
+  LISTBASE_FOREACH (GPUNode *, node, &graph.nodes) {
+    if (node->tag & tree_tag) {
+      node_serialize(eval_ss, node);
+    }
+  }
+  char *eval_c_str = extract_c_str(eval_ss);
+  BLI_hash_mm2a_add(&hm2a_, (uchar *)eval_c_str, eval_ss.str().size());
+  return eval_c_str;
+}
+
 void GPUCodegen::generate_uniform_buffer()
 {
   /* Extract uniform inputs. */
@@ -539,6 +553,9 @@ void GPUCodegen::generate_graphs()
   output.volume = graph_serialize(GPU_NODE_TAG_VOLUME, graph.outlink_volume);
   output.displacement = graph_serialize(GPU_NODE_TAG_DISPLACEMENT, graph.outlink_displacement);
   output.thickness = graph_serialize(GPU_NODE_TAG_THICKNESS, graph.outlink_thickness);
+  if (!BLI_listbase_is_empty(&graph.outlink_compositor)) {
+    output.composite = graph_serialize(GPU_NODE_TAG_COMPOSITOR);
+  }
 
   if (!BLI_listbase_is_empty(&graph.material_functions)) {
     std::stringstream eval_ss;
@@ -569,9 +586,10 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
                            GPUCodegenCallbackFn finalize_source_cb,
                            void *thunk)
 {
-  /* Prune the unused nodes and extract attributes before compiling so the
-   * generated VBOs are ready to accept the future shader. */
   gpu_node_graph_prune_unused(graph);
+
+  /* Extract attributes before compiling so the generated VBOs are ready to accept the future
+   * shader. */
   gpu_node_graph_finalize_uniform_attrs(graph);
 
   GPUCodegen codegen(material, graph);

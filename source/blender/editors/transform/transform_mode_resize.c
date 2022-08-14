@@ -126,25 +126,14 @@ static void constrain_scale_to_boundary(const float numerator,
 
 static bool clip_uv_transform_resize(TransInfo *t, float vec[2])
 {
-  /* Check if the current image in UV editor is a tiled image or not. */
-  const SpaceImage *sima = t->area->spacedata.first;
-  const Image *image = sima->image;
-  const bool is_tiled_image = image && (image->source == IMA_SRC_TILED);
 
   /* Stores the coordinates of the closest UDIM tile.
    * Also acts as an offset to the tile from the origin of UV space. */
   float base_offset[2] = {0.0f, 0.0f};
 
   /* If tiled image then constrain to correct/closest UDIM tile, else 0-1 UV space. */
-  if (is_tiled_image) {
-    int nearest_tile_index = BKE_image_find_nearest_tile(image, t->center_global);
-    if (nearest_tile_index != -1) {
-      nearest_tile_index -= 1001;
-      /* Getting coordinates of nearest tile from the tile index. */
-      base_offset[0] = nearest_tile_index % 10;
-      base_offset[1] = nearest_tile_index / 10;
-    }
-  }
+  const SpaceImage *sima = t->area->spacedata.first;
+  BKE_image_find_nearest_tile_with_offset(sima->image, t->center_global, base_offset);
 
   /* Assume no change is required. */
   float scale = 1.0f;

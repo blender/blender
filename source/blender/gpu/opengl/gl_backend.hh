@@ -133,11 +133,11 @@ class GLBackend : public GPUBackend {
 
     dynamic_cast<GLStorageBuf *>(indirect_buf)->bind_as(GL_DISPATCH_INDIRECT_BUFFER);
     /* This barrier needs to be here as it only work on the currently bound indirect buffer. */
-    glMemoryBarrier(GL_DRAW_INDIRECT_BUFFER);
+    glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
 
     glDispatchComputeIndirect((GLintptr)0);
     /* Unbind. */
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+    glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, 0);
   }
 
   /* Render Frame Coordination */

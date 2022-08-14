@@ -760,8 +760,8 @@ void RE_bake_pixels_populate(Mesh *me,
       for (int a = 0; a < 3; a++) {
         const float *uv = mloopuv[lt->tri[a]].uv;
 
-        /* NOTE(campbell): workaround for pixel aligned UVs which are common and can screw up our
-         * intersection tests where a pixel gets in between 2 faces or the middle of a quad,
+        /* NOTE(@campbellbarton): workaround for pixel aligned UVs which are common and can screw
+         * up our intersection tests where a pixel gets in between 2 faces or the middle of a quad,
          * camera aligned quads also have this problem but they are less common.
          * Add a small offset to the UVs, fixes bug T18685. */
         vec[a][0] = (uv[0] - bk_image->uv_offset[0]) * (float)bk_image->width - (0.5f + 0.001f);

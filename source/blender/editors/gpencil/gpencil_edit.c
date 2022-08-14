@@ -3395,6 +3395,7 @@ static int gpencil_stroke_caps_set_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   Object *ob = CTX_data_active_object(C);
   const int type = RNA_enum_get(op->ptr, "type");
+  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
   /* sanity checks */
   if (ELEM(NULL, gpd)) {
@@ -3404,45 +3405,56 @@ static int gpencil_stroke_caps_set_exec(bContext *C, wmOperator *op)
   bool changed = false;
   /* loop all selected strokes */
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-    if (gpl->actframe == NULL) {
-      continue;
-    }
+    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
 
-    for (bGPDstroke *gps = gpl->actframe->strokes.last; gps; gps = gps->prev) {
-      MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, gps->mat_nr + 1);
-
-      /* skip strokes that are not selected or invalid for current view */
-      if (((gps->flag & GP_STROKE_SELECT) == 0) || (ED_gpencil_stroke_can_use(C, gps) == false)) {
-        continue;
-      }
-      /* skip hidden or locked colors */
-      if (!gp_style || (gp_style->flag & GP_MATERIAL_HIDE) ||
-          (gp_style->flag & GP_MATERIAL_LOCKED)) {
-        continue;
-      }
-
-      short prev_first = gps->caps[0];
-      short prev_last = gps->caps[1];
-
-      if (ELEM(type, GP_STROKE_CAPS_TOGGLE_BOTH, GP_STROKE_CAPS_TOGGLE_START)) {
-        ++gps->caps[0];
-        if (gps->caps[0] >= GP_STROKE_CAP_MAX) {
-          gps->caps[0] = GP_STROKE_CAP_ROUND;
+    for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+      if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
+        if (gpf == NULL) {
+          continue;
         }
-      }
-      if (ELEM(type, GP_STROKE_CAPS_TOGGLE_BOTH, GP_STROKE_CAPS_TOGGLE_END)) {
-        ++gps->caps[1];
-        if (gps->caps[1] >= GP_STROKE_CAP_MAX) {
-          gps->caps[1] = GP_STROKE_CAP_ROUND;
-        }
-      }
-      if (type == GP_STROKE_CAPS_TOGGLE_DEFAULT) {
-        gps->caps[0] = GP_STROKE_CAP_ROUND;
-        gps->caps[1] = GP_STROKE_CAP_ROUND;
-      }
 
-      if (prev_first != gps->caps[0] || prev_last != gps->caps[1]) {
-        changed = true;
+        for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+          MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, gps->mat_nr + 1);
+
+          /* skip strokes that are not selected or invalid for current view */
+          if (((gps->flag & GP_STROKE_SELECT) == 0) ||
+              (ED_gpencil_stroke_can_use(C, gps) == false)) {
+            continue;
+          }
+          /* skip hidden or locked colors */
+          if (!gp_style || (gp_style->flag & GP_MATERIAL_HIDE) ||
+              (gp_style->flag & GP_MATERIAL_LOCKED)) {
+            continue;
+          }
+
+          short prev_first = gps->caps[0];
+          short prev_last = gps->caps[1];
+
+          if (ELEM(type, GP_STROKE_CAPS_TOGGLE_BOTH, GP_STROKE_CAPS_TOGGLE_START)) {
+            ++gps->caps[0];
+            if (gps->caps[0] >= GP_STROKE_CAP_MAX) {
+              gps->caps[0] = GP_STROKE_CAP_ROUND;
+            }
+          }
+          if (ELEM(type, GP_STROKE_CAPS_TOGGLE_BOTH, GP_STROKE_CAPS_TOGGLE_END)) {
+            ++gps->caps[1];
+            if (gps->caps[1] >= GP_STROKE_CAP_MAX) {
+              gps->caps[1] = GP_STROKE_CAP_ROUND;
+            }
+          }
+          if (type == GP_STROKE_CAPS_TOGGLE_DEFAULT) {
+            gps->caps[0] = GP_STROKE_CAP_ROUND;
+            gps->caps[1] = GP_STROKE_CAP_ROUND;
+          }
+
+          if (prev_first != gps->caps[0] || prev_last != gps->caps[1]) {
+            changed = true;
+          }
+        }
+        /* If not multi-edit, exit loop. */
+        if (!is_multiedit) {
+          break;
+        }
       }
     }
   }
@@ -3550,9 +3562,9 @@ static int gpencil_stroke_join_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   bGPDlayer *activegpl = BKE_gpencil_layer_active_get(gpd);
   Object *ob = CTX_data_active_object(C);
-  /* Limit the number of strokes to join. It makes no sense to allow an very high number of strokes
-   * for CPU time and because to have a stroke with thousands of points is unpractical, so limit
-   * this number avoid to joining a full frame scene in one single stroke. */
+  /* Limit the number of strokes to join. It makes no sense to allow an very high number of
+   * strokes for CPU time and because to have a stroke with thousands of points is unpractical,
+   * so limit this number avoid to joining a full frame scene in one single stroke. */
   const int max_join_strokes = 128;
 
   const int type = RNA_enum_get(op->ptr, "type");
@@ -3989,6 +4001,7 @@ static void gpencil_smooth_stroke(bContext *C, wmOperator *op)
       /* TODO use `BKE_gpencil_stroke_smooth` when the weights are better used. */
       bGPDstroke gps_old = *gps;
       gps_old.points = (bGPDspoint *)MEM_dupallocN(gps->points);
+      bool need_update = false;
       /* Here the iteration needs to be done outside the smooth functions,
        * as there are points that don't get smoothed. */
       for (int n = 0; n < repeat; n++) {
@@ -4000,6 +4013,7 @@ static void gpencil_smooth_stroke(bContext *C, wmOperator *op)
           /* Perform smoothing. */
           if (smooth_position) {
             BKE_gpencil_stroke_smooth_point(&gps_old, i, factor, 1, false, false, gps);
+            need_update = true;
           }
           if (smooth_strength) {
             BKE_gpencil_stroke_smooth_strength(&gps_old, i, factor, 1, gps);
@@ -4009,6 +4023,7 @@ static void gpencil_smooth_stroke(bContext *C, wmOperator *op)
           }
           if (smooth_uv) {
             BKE_gpencil_stroke_smooth_uv(&gps_old, i, factor, 1, gps);
+            need_update = true;
           }
         }
         if (n < repeat - 1) {
@@ -4016,6 +4031,11 @@ static void gpencil_smooth_stroke(bContext *C, wmOperator *op)
         }
       }
       MEM_freeN(gps_old.points);
+
+      if (need_update) {
+        gps->flag |= GP_STROKE_NEEDS_CURVE_UPDATE;
+        BKE_gpencil_stroke_geometry_update(gpd_, gps);
+      }
     }
   }
   GP_EDITABLE_STROKES_END(gpstroke_iter);

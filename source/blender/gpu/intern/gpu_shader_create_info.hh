@@ -127,8 +127,12 @@ enum class BuiltinBits {
   VERTEX_ID = (1 << 14),
   WORK_GROUP_ID = (1 << 15),
   WORK_GROUP_SIZE = (1 << 16),
+
+  /* Not a builtin but a flag we use to tag shaders that use the debug features. */
+  USE_DEBUG_DRAW = (1 << 29),
+  USE_DEBUG_PRINT = (1 << 30),
 };
-ENUM_OPERATORS(BuiltinBits, BuiltinBits::WORK_GROUP_SIZE);
+ENUM_OPERATORS(BuiltinBits, BuiltinBits::USE_DEBUG_PRINT);
 
 /**
  * Follow convention described in:
@@ -298,6 +302,7 @@ struct ShaderCreateInfo {
   /** Manually set generated code. */
   std::string vertex_source_generated = "";
   std::string fragment_source_generated = "";
+  std::string compute_source_generated = "";
   std::string geometry_source_generated = "";
   std::string typedef_source_generated = "";
   /** Manually set generated dependencies. */
@@ -818,6 +823,7 @@ struct ShaderCreateInfo {
     TEST_EQUAL(*this, b, builtins_);
     TEST_EQUAL(*this, b, vertex_source_generated);
     TEST_EQUAL(*this, b, fragment_source_generated);
+    TEST_EQUAL(*this, b, compute_source_generated);
     TEST_EQUAL(*this, b, typedef_source_generated);
     TEST_VECTOR_EQUAL(*this, b, vertex_inputs_);
     TEST_EQUAL(*this, b, geometry_layout_);

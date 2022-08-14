@@ -155,6 +155,11 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
                                  1.0f - u);
   }
 
+  /* Convert from Blender to Cycles/Embree/OptiX barycentric convention. */
+  const float tmp = u;
+  u = v;
+  v = 1.0f - tmp - v;
+
   /* Position and normal on triangle. */
   const int object = kernel_data.bake.object_index;
   float3 P, Ng;

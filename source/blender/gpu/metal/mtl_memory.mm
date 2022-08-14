@@ -57,17 +57,23 @@ void MTLBufferPool::free()
   buffer_pools_.clear();
 }
 
-gpu::MTLBuffer *MTLBufferPool::allocate_buffer(uint64_t size, bool cpu_visible, const void *bytes)
+gpu::MTLBuffer *MTLBufferPool::allocate(uint64_t size, bool cpu_visible)
 {
   /* Allocate buffer with default HW-compatible alignment of 256 bytes.
    * See https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf for more. */
-  return this->allocate_buffer_aligned(size, 256, cpu_visible, bytes);
+  return this->allocate_aligned(size, 256, cpu_visible);
 }
 
-gpu::MTLBuffer *MTLBufferPool::allocate_buffer_aligned(uint64_t size,
-                                                       uint alignment,
-                                                       bool cpu_visible,
-                                                       const void *bytes)
+gpu::MTLBuffer *MTLBufferPool::allocate_with_data(uint64_t size,
+                                                  bool cpu_visible,
+                                                  const void *data)
+{
+  /* Allocate buffer with default HW-compatible alignment of 256 bytes.
+   * See https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf for more. */
+  return this->allocate_aligned_with_data(size, 256, cpu_visible, data);
+}
+
+gpu::MTLBuffer *MTLBufferPool::allocate_aligned(uint64_t size, uint alignment, bool cpu_visible)
 {
   /* Check not required. Main GPU module usage considered thread-safe. */
   // BLI_assert(BLI_thread_is_main());
@@ -153,20 +159,28 @@ gpu::MTLBuffer *MTLBufferPool::allocate_buffer_aligned(uint64_t size,
   /* Flag buffer as actively in-use. */
   new_buffer->flag_in_use(true);
 
-  /* Upload initial data if provided -- Size based on original size param, not aligned size*/
-  if (bytes) {
-    BLI_assert(!(options & MTLResourceStorageModePrivate));
-    BLI_assert(size <= aligned_alloc_size);
-    BLI_assert(size <= [new_buffer->get_metal_buffer() length]);
-    memcpy(new_buffer->get_host_ptr(), bytes, size);
-    new_buffer->flush_range(0, size);
-  }
-
 #if MTL_DEBUG_MEMORY_STATISTICS == 1
   this->per_frame_allocation_count++;
 #endif
 
   return new_buffer;
+}
+
+gpu::MTLBuffer *MTLBufferPool::allocate_aligned_with_data(uint64_t size,
+                                                          uint alignment,
+                                                          bool cpu_visible,
+                                                          const void *data)
+{
+  gpu::MTLBuffer *buf = this->allocate_aligned(size, 256, cpu_visible);
+
+  /* Upload initial data. */
+  BLI_assert(data != nullptr);
+  BLI_assert(!(buf->get_resource_options() & MTLResourceStorageModePrivate));
+  BLI_assert(size <= buf->get_size());
+  BLI_assert(size <= [buf->get_metal_buffer() length]);
+  memcpy(buf->get_host_ptr(), data, size);
+  buf->flush_range(0, size);
+  return buf;
 }
 
 bool MTLBufferPool::free_buffer(gpu::MTLBuffer *buffer)
@@ -356,7 +370,7 @@ void MTLBufferPool::insert_buffer_into_pool(MTLResourceOptions options, gpu::MTL
 
 #if MTL_DEBUG_MEMORY_STATISTICS == 1
   /* Debug statistics. */
-  allocations_in_pool_ += buffer->size;
+  allocations_in_pool_ += buffer->get_size();
   buffers_in_pool_++;
 #endif
 }
@@ -413,7 +427,7 @@ void MTLSafeFreeList::decrement_reference()
 {
   lock_.lock();
   BLI_assert(in_free_queue_ == false);
-  int ref_count = reference_count_--;
+  int ref_count = --reference_count_;
 
   if (ref_count == 0) {
     MTLContext::get_global_memory_manager().push_completed_safe_list(this);

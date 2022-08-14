@@ -92,13 +92,16 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
 {
   int cd_node_layer_index;
 
-  char layer_id[] = "_dyntopo_node_id";
+  char node_vertex_id[] = "_dyntopo_vnode_id";
+  char node_face_id[] = "_dyntopo_fnode_id";
 
-  cd_node_layer_index = CustomData_get_named_layer_index(&ss->bm->vdata, CD_PROP_INT32, layer_id);
+  cd_node_layer_index = CustomData_get_named_layer_index(
+      &ss->bm->vdata, CD_PROP_INT32, node_vertex_id);
+
   if (cd_node_layer_index == -1) {
-    BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_INT32, layer_id);
+    BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_INT32, node_vertex_id);
     cd_node_layer_index = CustomData_get_named_layer_index(
-        &ss->bm->vdata, CD_PROP_INT32, layer_id);
+        &ss->bm->vdata, CD_PROP_INT32, node_vertex_id);
   }
 
   ss->cd_vert_node_offset = CustomData_get_n_offset(
@@ -108,11 +111,12 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
 
   ss->bm->vdata.layers[cd_node_layer_index].flag |= CD_FLAG_TEMPORARY;
 
-  cd_node_layer_index = CustomData_get_named_layer_index(&ss->bm->pdata, CD_PROP_INT32, layer_id);
+  cd_node_layer_index = CustomData_get_named_layer_index(
+      &ss->bm->pdata, CD_PROP_INT32, node_face_id);
   if (cd_node_layer_index == -1) {
-    BM_data_layer_add_named(ss->bm, &ss->bm->pdata, CD_PROP_INT32, layer_id);
+    BM_data_layer_add_named(ss->bm, &ss->bm->pdata, CD_PROP_INT32, node_face_id);
     cd_node_layer_index = CustomData_get_named_layer_index(
-        &ss->bm->pdata, CD_PROP_INT32, layer_id);
+        &ss->bm->pdata, CD_PROP_INT32, node_face_id);
   }
 
   ss->cd_face_node_offset = CustomData_get_n_offset(
@@ -223,8 +227,9 @@ static void SCULPT_dynamic_topology_disable_ex(
     me->face_sets_color_default = 1;
 
     /* Sync the visibility to vertices manually as the pmap is still not initialized. */
-    for (int i = 0; i < me->totvert; i++) {
-      me->mvert[i].flag &= ~ME_HIDE;
+    bool *hide_vert = (bool *)CustomData_get_layer_named(&me->vdata, CD_PROP_BOOL, ".hide_vert");
+    if (hide_vert != NULL) {
+      memset(hide_vert, 0, sizeof(bool) * me->totvert);
     }
   }
 

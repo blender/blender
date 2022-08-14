@@ -8,7 +8,6 @@
 #include <optix.h>
 
 #define __KERNEL_GPU__
-#define __KERNEL_GPU_RAYTRACING__
 #define __KERNEL_CUDA__ /* OptiX kernels are implicitly CUDA kernels too */
 #define __KERNEL_OPTIX__
 #define CCL_NAMESPACE_BEGIN

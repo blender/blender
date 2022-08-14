@@ -402,6 +402,7 @@ static void draw_marker_name(const uchar *text_color,
                              const uiFontStyle *fstyle,
                              TimeMarker *marker,
                              float marker_x,
+                             float xmax,
                              float text_y)
 {
   const char *name = marker->name;
@@ -419,8 +420,16 @@ static void draw_marker_name(const uchar *text_color,
   }
 #endif
 
-  int name_x = marker_x + UI_DPI_ICON_SIZE * 0.6;
-  UI_fontstyle_draw_simple(fstyle, name_x, text_y, name, final_text_color);
+  const int icon_half_width = UI_DPI_ICON_SIZE * 0.6;
+  const struct uiFontStyleDraw_Params fs_params = {.align = UI_STYLE_TEXT_LEFT, .word_wrap = 0};
+  const struct rcti rect = {
+      .xmin = marker_x + icon_half_width,
+      .xmax = xmax - icon_half_width,
+      .ymin = text_y,
+      .ymax = text_y,
+  };
+
+  UI_fontstyle_draw(fstyle, &rect, name, strlen(name), final_text_color, &fs_params);
 }
 
 static void draw_marker_line(const uchar *color, int xpos, int ymin, int ymax)
@@ -462,8 +471,13 @@ static int marker_get_icon_id(TimeMarker *marker, int flag)
   return (marker->flag & SELECT) ? ICON_MARKER_HLT : ICON_MARKER;
 }
 
-static void draw_marker(
-    const uiFontStyle *fstyle, TimeMarker *marker, int cfra, int xpos, int flag, int region_height)
+static void draw_marker(const uiFontStyle *fstyle,
+                        TimeMarker *marker,
+                        int xpos,
+                        int xmax,
+                        int flag,
+                        int region_height,
+                        bool is_elevated)
 {
   uchar line_color[4], text_color[4];
 
@@ -479,12 +493,11 @@ static void draw_marker(
   GPU_blend(GPU_BLEND_NONE);
 
   float name_y = UI_DPI_FAC * 18;
-  /* Give an offset to the marker name when selected,
-   * or when near the current frame (5 frames range, starting from the current one). */
-  if ((marker->flag & SELECT) || (cfra - 4 <= marker->frame && marker->frame <= cfra)) {
+  /* Give an offset to the marker that is elevated. */
+  if (is_elevated) {
     name_y += UI_DPI_FAC * 10;
   }
-  draw_marker_name(text_color, fstyle, marker, xpos, name_y);
+  draw_marker_name(text_color, fstyle, marker, xpos, xmax, name_y);
 }
 
 static void draw_markers_background(rctf *rect)
@@ -532,6 +545,14 @@ static void get_marker_clip_frame_range(View2D *v2d, float xscale, int r_range[2
   r_range[1] = v2d->cur.xmax + font_width_max;
 }
 
+static int markers_frame_sort(const void *a, const void *b)
+{
+  const TimeMarker *marker_a = a;
+  const TimeMarker *marker_b = b;
+
+  return marker_a->frame > marker_b->frame;
+}
+
 void ED_markers_draw(const bContext *C, int flag)
 {
   ListBase *markers = ED_context_get_markers(C);
@@ -561,21 +582,68 @@ void ED_markers_draw(const bContext *C, int flag)
 
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 
-  /* Separate loops in order to draw selected markers on top */
-  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-    if ((marker->flag & SELECT) == 0) {
-      if (marker_is_in_frame_range(marker, clip_frame_range)) {
-        draw_marker(fstyle, marker, cfra, marker->frame * xscale, flag, region->winy);
-      }
+  /* Markers are not stored by frame order, so we need to sort it here. */
+  ListBase sorted_markers;
+
+  BLI_duplicatelist(&sorted_markers, markers);
+  BLI_listbase_sort(&sorted_markers, markers_frame_sort);
+
+  /**
+   * Set a temporary bit in the marker's flag to indicate that it should be elevated.
+   * This bit will be flipped back at the end of this function.
+   */
+  const int ELEVATED = 0x10;
+  LISTBASE_FOREACH (TimeMarker *, marker, &sorted_markers) {
+    const bool is_elevated = (marker->flag & SELECT) ||
+                             (cfra >= marker->frame &&
+                              (marker->next == NULL || cfra < marker->next->frame));
+    SET_FLAG_FROM_TEST(marker->flag, is_elevated, ELEVATED);
+  }
+
+  /* Separate loops in order to draw selected markers on top. */
+
+  /**
+   * Draw non-elevated markers first.
+   * Note that unlike the elevated markers, these marker names will always be clipped by the
+   * proceeding marker. This is done because otherwise, the text overlaps with the icon of the
+   * marker itself.
+   */
+  LISTBASE_FOREACH (TimeMarker *, marker, &sorted_markers) {
+    if ((marker->flag & ELEVATED) == 0 && marker_is_in_frame_range(marker, clip_frame_range)) {
+      const int xmax = marker->next ? marker->next->frame : clip_frame_range[1] + 1;
+      draw_marker(
+          fstyle, marker, marker->frame * xscale, xmax * xscale, flag, region->winy, false);
     }
   }
-  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-    if (marker->flag & SELECT) {
-      if (marker_is_in_frame_range(marker, clip_frame_range)) {
-        draw_marker(fstyle, marker, cfra, marker->frame * xscale, flag, region->winy);
-      }
+
+  /* Now draw the elevated markers */
+  for (TimeMarker *marker = sorted_markers.first; marker != NULL;) {
+
+    /* Skip this marker if it is elevated or out of the frame range. */
+    if ((marker->flag & ELEVATED) == 0 || !marker_is_in_frame_range(marker, clip_frame_range)) {
+      marker = marker->next;
+      continue;
     }
+
+    /* Find the next elevated marker. */
+    /* We use the next marker to determine how wide our text should be */
+    TimeMarker *next_marker = marker->next;
+    while (next_marker != NULL && (next_marker->flag & ELEVATED) == 0) {
+      next_marker = next_marker->next;
+    }
+
+    const int xmax = next_marker ? next_marker->frame : clip_frame_range[1] + 1;
+    draw_marker(fstyle, marker, marker->frame * xscale, xmax * xscale, flag, region->winy, true);
+
+    marker = next_marker;
   }
+
+  /* Reset the elevated flag. */
+  LISTBASE_FOREACH (TimeMarker *, marker, &sorted_markers) {
+    marker->flag &= ~ELEVATED;
+  }
+
+  BLI_freelistN(&sorted_markers);
 
   GPU_matrix_pop();
 }

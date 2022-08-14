@@ -14,8 +14,7 @@ struct ID;
 struct PointerRNA;
 struct PropertyRNA;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct Depsgraph;
 struct Node;
@@ -94,5 +93,4 @@ class RNANodeQuery {
 
 bool rna_prop_affects_parameters_node(const PointerRNA *ptr, const PropertyRNA *prop);
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

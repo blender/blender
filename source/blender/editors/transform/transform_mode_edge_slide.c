@@ -1204,7 +1204,7 @@ void drawEdgeSlide(TransInfo *t)
     immUniformThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
     immBegin(GPU_PRIM_LINES, sld->totsv * 2);
 
-    /* TODO(campbell): Loop over all verts. */
+    /* TODO(@campbellbarton): Loop over all verts. */
     sv = sld->sv;
     for (i = 0; i < sld->totsv; i++, sv++) {
       float a[3], b[3];

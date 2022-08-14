@@ -1622,7 +1622,7 @@ static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
     }
   }
 
-  if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+  if (ISMOUSE_MOTION(event->type)) {
     /* Check if dragging */
     if (!cpd->dragging && WM_event_drag_test(event, event->prev_press_xy)) {
       cpd->dragging = true;

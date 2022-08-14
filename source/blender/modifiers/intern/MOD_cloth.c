@@ -144,7 +144,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
     DEG_add_forcefield_relations(
         ctx->node, ctx->object, clmd->sim_parms->effector_weights, true, 0, "Cloth Field");
   }
-  DEG_add_modifier_to_transform_relation(ctx->node, "Cloth Modifier");
+  DEG_add_depends_on_transform_relation(ctx->node, "Cloth Modifier");
 }
 
 static void requiredDataMask(Object *UNUSED(ob),

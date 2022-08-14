@@ -26,6 +26,7 @@ set(INC
   ../../../intern/glew-mx
   ../../../intern/guardedalloc
   ../../../intern/memutil
+  ../bmesh
 
   # for writefile.c: dna_type_offsets.h
   ${CMAKE_BINARY_DIR}/source/blender/makesdna/intern
@@ -36,7 +37,7 @@ set(INC
 set(SRC
   intern/wm.c
   intern/wm_cursors.c
-  intern/wm_dragdrop.c
+  intern/wm_dragdrop.cc
   intern/wm_draw.c
   intern/wm_event_query.c
   intern/wm_event_system.cc
@@ -164,11 +165,11 @@ if(WIN32 OR APPLE)
   endif()
 endif()
 
-if(WITH_COMPOSITOR)
+if(WITH_COMPOSITOR_CPU)
   list(APPEND LIB
     bf_compositor
   )
-  add_definitions(-DWITH_COMPOSITOR)
+  add_definitions(-DWITH_COMPOSITOR_CPU)
 endif()
 
 if(WITH_XR_OPENXR)

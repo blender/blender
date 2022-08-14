@@ -480,7 +480,7 @@ static void clear_trans_object_base_flags(TransInfo *t)
   }
 }
 
-void createTransObject(bContext *C, TransInfo *t)
+static void createTransObject(bContext *C, TransInfo *t)
 {
   Main *bmain = CTX_data_main(C);
   TransData *td = NULL;
@@ -860,7 +860,7 @@ static bool motionpath_need_update_object(Scene *scene, Object *ob)
 /** \name Recalc Data object
  * \{ */
 
-void recalcData_objects(TransInfo *t)
+static void recalcData_objects(TransInfo *t)
 {
   bool motionpath_update = false;
 
@@ -918,7 +918,7 @@ void recalcData_objects(TransInfo *t)
 /** \name Special After Transform Object
  * \{ */
 
-void special_aftertrans_update__object(bContext *C, TransInfo *t)
+static void special_aftertrans_update__object(bContext *C, TransInfo *t)
 {
   BLI_assert(t->options & CTX_OBJECT);
 
@@ -991,3 +991,10 @@ void special_aftertrans_update__object(bContext *C, TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_Object = {
+    /* flags */ 0,
+    /* createTransData */ createTransObject,
+    /* recalcData */ recalcData_objects,
+    /* special_aftertrans_update */ special_aftertrans_update__object,
+};

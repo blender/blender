@@ -186,7 +186,7 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
     triangle_vertices_and_normals(kg, sd_vtx->prim, verts, normals);
 
     /* Compute refined position (same code as in triangle_point_from_uv). */
-    sd_vtx->P = isect->u * verts[0] + isect->v * verts[1] + (1.f - isect->u - isect->v) * verts[2];
+    sd_vtx->P = (1.f - isect->u - isect->v) * verts[0] + isect->u * verts[1] + isect->v * verts[2];
     if (!(sd_vtx->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
       const Transform tfm = object_get_transform(kg, sd_vtx);
       sd_vtx->P = transform_point(&tfm, sd_vtx->P);
@@ -213,8 +213,8 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
   }
 
   /* Tangent space (position derivatives) WRT barycentric (u, v). */
-  float3 dp_du = verts[0] - verts[2];
-  float3 dp_dv = verts[1] - verts[2];
+  float3 dp_du = verts[1] - verts[0];
+  float3 dp_dv = verts[2] - verts[0];
 
   /* Geometric normal. */
   vtx->ng = normalize(cross(dp_du, dp_dv));
@@ -223,16 +223,16 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
 
   /* Shading normals: Interpolate normals between vertices. */
   float n_len;
-  vtx->n = normalize_len(normals[0] * sd_vtx->u + normals[1] * sd_vtx->v +
-                             normals[2] * (1.0f - sd_vtx->u - sd_vtx->v),
+  vtx->n = normalize_len(normals[0] * (1.0f - sd_vtx->u - sd_vtx->v) + normals[1] * sd_vtx->u +
+                             normals[2] * sd_vtx->v,
                          &n_len);
 
   /* Shading normal derivatives WRT barycentric (u, v)
    * we calculate the derivative of n = |u*n0 + v*n1 + (1-u-v)*n2| using:
    * d/du [f(u)/|f(u)|] = [d/du f(u)]/|f(u)| - f(u)/|f(u)|^3 <f(u), d/du f(u)>. */
   const float inv_n_len = 1.f / n_len;
-  float3 dn_du = inv_n_len * (normals[0] - normals[2]);
-  float3 dn_dv = inv_n_len * (normals[1] - normals[2]);
+  float3 dn_du = inv_n_len * (normals[1] - normals[0]);
+  float3 dn_dv = inv_n_len * (normals[2] - normals[0]);
   dn_du -= vtx->n * dot(vtx->n, dn_du);
   dn_dv -= vtx->n * dot(vtx->n, dn_dv);
 
@@ -634,9 +634,9 @@ mnee_sample_bsdf_dh(ClosureType type, float alpha_x, float alpha_y, float sample
  * We assume here that the pdf (in half-vector measure) is the same as
  * the one calculation when sampling the microfacet normals from the
  * specular chain above: this allows us to simplify the bsdf weight */
-ccl_device_forceinline float3 mnee_eval_bsdf_contribution(ccl_private ShaderClosure *closure,
-                                                          float3 wi,
-                                                          float3 wo)
+ccl_device_forceinline Spectrum mnee_eval_bsdf_contribution(ccl_private ShaderClosure *closure,
+                                                            float3 wi,
+                                                            float3 wo)
 {
   ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)closure;
 
@@ -835,7 +835,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
                                                              1;
   INTEGRATOR_STATE_WRITE(state, path, bounce) = bounce + vertex_count;
 
-  float3 light_eval = light_sample_shader_eval(kg, state, sd_mnee, ls, sd->time);
+  Spectrum light_eval = light_sample_shader_eval(kg, state, sd_mnee, ls, sd->time);
   bsdf_eval_mul(throughput, light_eval / ls->pdf);
 
   /* Generalized geometry term. */
@@ -924,7 +924,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
     /* Evaluate product term inside eq.6 at solution interface. vi
      * divided by corresponding sampled pdf:
      * fr(vi)_do / pdf_dh(vi) x |do/dh| x |n.wo / n.h| */
-    float3 bsdf_contribution = mnee_eval_bsdf_contribution(v.bsdf, wi, wo);
+    Spectrum bsdf_contribution = mnee_eval_bsdf_contribution(v.bsdf, wi, wo);
     bsdf_eval_mul(throughput, bsdf_contribution);
   }
 

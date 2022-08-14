@@ -45,6 +45,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
@@ -55,6 +56,8 @@
 
 #include "BLO_readfile.h"
 
+#include "BLT_translation.h"
+
 #include "versioning_common.h"
 
 /* Make preferences read-only, use versioning_userdef.c. */
@@ -63,8 +66,9 @@
 static bool blo_is_builtin_template(const char *app_template)
 {
   /* For all builtin templates shipped with Blender. */
-  return (!app_template ||
-          STR_ELEM(app_template, "2D_Animation", "Sculpting", "VFX", "Video_Editing"));
+  return (
+      !app_template ||
+      STR_ELEM(app_template, N_("2D_Animation"), N_("Sculpting"), N_("VFX"), N_("Video_Editing")));
 }
 
 static void blo_update_defaults_screen(bScreen *screen,
@@ -131,6 +135,14 @@ static void blo_update_defaults_screen(bScreen *screen,
         LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
           if (region->regiontype == RGN_TYPE_CHANNELS) {
             region->flag |= RGN_FLAG_HIDDEN;
+          }
+        }
+      }
+      else {
+        /* Open properties panel by default. */
+        LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+          if (region->regiontype == RGN_TYPE_UI) {
+            region->flag &= ~RGN_FLAG_HIDDEN;
           }
         }
       }
@@ -479,8 +491,11 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
         /* Default only has one window. */
         if (layout->screen) {
           bScreen *screen = layout->screen;
-          BLI_strncpy(screen->id.name + 2, workspace->id.name + 2, sizeof(screen->id.name) - 2);
-          BLI_libblock_ensure_unique_name(bmain, screen->id.name);
+          if (!STREQ(screen->id.name + 2, workspace->id.name + 2)) {
+            BKE_main_namemap_remove_name(bmain, &screen->id, screen->id.name + 2);
+            BLI_strncpy(screen->id.name + 2, workspace->id.name + 2, sizeof(screen->id.name) - 2);
+            BLI_libblock_ensure_unique_name(bmain, screen->id.name);
+          }
         }
 
         /* For some reason we have unused screens, needed until re-saving.
@@ -566,14 +581,14 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   /* Materials */
   for (Material *ma = bmain->materials.first; ma; ma = ma->id.next) {
     /* Update default material to be a bit more rough. */
-    ma->roughness = 0.4f;
+    ma->roughness = 0.5f;
 
     if (ma->nodetree) {
       LISTBASE_FOREACH (bNode *, node, &ma->nodetree->nodes) {
         if (node->type == SH_NODE_BSDF_PRINCIPLED) {
           bNodeSocket *roughness_socket = nodeFindSocket(node, SOCK_IN, "Roughness");
           bNodeSocketValueFloat *roughness_data = roughness_socket->default_value;
-          roughness_data->value = 0.4f;
+          roughness_data->value = 0.5f;
           node->custom2 = SHD_SUBSURFACE_RANDOM_WALK;
           BKE_ntree_update_tag_node_property(ma->nodetree, node);
         }

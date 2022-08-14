@@ -7,8 +7,10 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 
 #include "BLI_string_ref.hh"
+#include "UI_resources.h"
 
 struct ListBase;
 struct SpaceOutliner;
@@ -62,6 +64,25 @@ class AbstractTreeElement {
    * the message in the tooltip.
    */
   virtual StringRefNull getWarning() const;
+
+  /**
+   * Define the icon to be displayed for this element. If this returns an icon, this will be
+   * displayed. Otherwise, #tree_element_get_icon() may still determine an icon. By default no
+   * value is returned (#std::nullopt).
+   *
+   * All elements should be ported to use this over #tree_element_get_icon().
+   */
+  virtual std::optional<BIFIconID> getIcon() const;
+
+  /**
+   * Debugging helper: Print effective path of this tree element, constructed out of the
+   * #TreeElement.name of each element. E.g.:
+   * - Lorem
+   *   - ipsum dolor sit
+   *     - amet
+   * will print: Lorem/ipsum dolor sit/amet.
+   */
+  void print_path();
 
   /**
    * Expand this tree element if it is displayed for the first time (as identified by its

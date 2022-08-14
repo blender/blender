@@ -70,8 +70,6 @@ void BKE_object_data_transfer_dttypes_to_cdmask(const int dtdata_types,
       r_data_masks->lmask |= CD_MASK_MLOOPUV;
     }
     else if (cddata_type == CD_FAKE_LNOR) {
-      r_data_masks->vmask |= CD_MASK_NORMAL;
-      r_data_masks->pmask |= CD_MASK_NORMAL;
       r_data_masks->lmask |= CD_MASK_NORMAL | CD_MASK_CUSTOMLOOPNORMAL;
     }
   }
@@ -1410,7 +1408,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
   BKE_mesh_remap_calc_source_cddata_masks_from_map_modes(
       map_vert_mode, map_edge_mode, map_loop_mode, map_poly_mode, &me_src_mask);
   if (is_modifier) {
-    me_src = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_src, false);
+    me_src = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_src);
 
     if (me_src == NULL ||
         !CustomData_MeshMasks_are_matching(&ob_src->runtime.last_data_mask, &me_src_mask)) {

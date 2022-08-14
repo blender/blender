@@ -14,6 +14,10 @@
 
 #include "UI_resources.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define RNA_MAGIC ((int)~0)
 
 struct AssetLibraryReference;
@@ -504,9 +508,7 @@ void RNA_def_main_cachefiles(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_paintcurves(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_workspaces(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_lightprobes(BlenderRNA *brna, PropertyRNA *cprop);
-#ifdef WITH_NEW_CURVES_TYPE
 void RNA_def_main_hair_curves(BlenderRNA *brna, PropertyRNA *cprop);
-#endif
 void RNA_def_main_pointclouds(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_volumes(BlenderRNA *brna, PropertyRNA *cprop);
 #ifdef WITH_SIMULATION_DATABLOCK
@@ -692,4 +694,8 @@ void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values);
              : INT_MIN, unsigned int : 0, float \
              : -FLT_MAX, double \
              : -DBL_MAX)
+#endif
+
+#ifdef __cplusplus
+}
 #endif

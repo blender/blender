@@ -8,6 +8,9 @@
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
+#include "BKE_modifier.h"
+#include "BKE_object.h"
+#include "BKE_report.h"
 
 #include "ED_view3d.h"
 
@@ -19,6 +22,10 @@
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_length_parameterize.hh"
 #include "BLI_task.hh"
+
+#include "DEG_depsgraph_query.h"
+
+#include "BLT_translation.h"
 
 /**
  * The code below uses a prefix naming convention to indicate the coordinate space:
@@ -48,7 +55,8 @@ static std::optional<float3> find_curves_brush_position(const CurvesGeometry &cu
                                                         const float brush_radius_re,
                                                         const ARegion &region,
                                                         const RegionView3D &rv3d,
-                                                        const Object &object)
+                                                        const Object &object,
+                                                        const Span<float3> positions)
 {
   /* This value might have to be adjusted based on user feedback. */
   const float brush_inner_radius_re = std::min<float>(brush_radius_re, (float)UI_UNIT_X / 3.0f);
@@ -87,8 +95,6 @@ static std::optional<float3> find_curves_brush_position(const CurvesGeometry &cu
       a = b;
     }
   };
-
-  const Span<float3> positions = curves.positions();
 
   BrushPositionCandidate best_candidate = threading::parallel_reduce(
       curves.curves_range(),
@@ -175,20 +181,21 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
 {
   const Curves &curves_id = *static_cast<Curves *>(curves_object.data);
   const CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
-  const Object *surface_object = curves_id.surface;
+  Object *surface_object = curves_id.surface;
+  Object *surface_object_eval = DEG_get_evaluated_object(&depsgraph, surface_object);
 
   float3 center_ray_start_wo, center_ray_end_wo;
   ED_view3d_win_to_segment_clipped(
       &depsgraph, &region, &v3d, brush_pos_re, center_ray_start_wo, center_ray_end_wo, true);
 
   /* Shorten ray when the surface object is hit. */
-  if (surface_object != nullptr) {
+  if (surface_object_eval != nullptr) {
     const float4x4 surface_to_world_mat = surface_object->obmat;
     const float4x4 world_to_surface_mat = surface_to_world_mat.inverted();
 
-    Mesh &surface = *static_cast<Mesh *>(surface_object->data);
+    Mesh *surface_eval = BKE_object_get_evaluated_mesh(surface_object_eval);
     BVHTreeFromMesh surface_bvh;
-    BKE_bvhtree_from_mesh_get(&surface_bvh, &surface, BVHTREE_FROM_LOOPTRI, 2);
+    BKE_bvhtree_from_mesh_get(&surface_bvh, surface_eval, BVHTREE_FROM_LOOPTRI, 2);
     BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh); });
 
     const float3 center_ray_start_su = world_to_surface_mat * center_ray_start_wo;
@@ -222,6 +229,9 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
   const float3 center_ray_start_cu = world_to_curves_mat * center_ray_start_wo;
   const float3 center_ray_end_cu = world_to_curves_mat * center_ray_end_wo;
 
+  const bke::crazyspace::GeometryDeformation deformation =
+      bke::crazyspace::get_evaluated_curves_deformation(depsgraph, curves_object);
+
   const std::optional<float3> brush_position_optional_cu = find_curves_brush_position(
       curves,
       center_ray_start_cu,
@@ -229,7 +239,8 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
       brush_radius_re,
       region,
       rv3d,
-      curves_object);
+      curves_object,
+      deformation.positions);
   if (!brush_position_optional_cu.has_value()) {
     /* Nothing found. */
     return std::nullopt;
@@ -366,7 +377,7 @@ void move_last_point_and_resample(MutableSpan<float3> positions, const float3 &n
   length_parameterize::sample_at_lengths(orig_lengths, new_lengths, indices, factors);
 
   Array<float3> new_positions(positions.size() - 1);
-  length_parameterize::linear_interpolation<float3>(positions, indices, factors, new_positions);
+  length_parameterize::interpolate<float3>(positions, indices, factors, new_positions);
   positions.drop_back(1).copy_from(new_positions);
   positions.last() = new_last_position;
 }
@@ -378,6 +389,38 @@ CurvesSculptCommonContext::CurvesSculptCommonContext(const bContext &C)
   this->region = CTX_wm_region(&C);
   this->v3d = CTX_wm_view3d(&C);
   this->rv3d = CTX_wm_region_view3d(&C);
+}
+
+void report_empty_original_surface(ReportList *reports)
+{
+  BKE_report(reports, RPT_WARNING, TIP_("Original surface mesh is empty"));
+}
+
+void report_empty_evaluated_surface(ReportList *reports)
+{
+  BKE_report(reports, RPT_WARNING, TIP_("Evaluated surface mesh is empty"));
+}
+
+void report_missing_surface(ReportList *reports)
+{
+  BKE_report(reports, RPT_WARNING, TIP_("Missing surface mesh"));
+}
+
+void report_missing_uv_map_on_original_surface(ReportList *reports)
+{
+  BKE_report(
+      reports, RPT_WARNING, TIP_("Missing UV map for attaching curves on original surface"));
+}
+
+void report_missing_uv_map_on_evaluated_surface(ReportList *reports)
+{
+  BKE_report(
+      reports, RPT_WARNING, TIP_("Missing UV map for attaching curves on evaluated surface"));
+}
+
+void report_invalid_uv_map(ReportList *reports)
+{
+  BKE_report(reports, RPT_WARNING, TIP_("Invalid UV map: UV islands must not overlap"));
 }
 
 }  // namespace blender::ed::sculpt_paint

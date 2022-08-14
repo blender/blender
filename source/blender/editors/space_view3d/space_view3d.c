@@ -960,7 +960,7 @@ static void view3d_widgets(void)
   WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_camera);
   WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_camera_view);
   WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_empty_image);
-  /* TODO(campbell): Not working well enough, disable for now. */
+  /* TODO(@campbellbarton): Not working well enough, disable for now. */
 #if 0
   WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_armature_spline);
 #endif
@@ -1209,6 +1209,9 @@ static void view3d_main_region_listener(const wmRegionListenerParams *params)
           ED_region_tag_redraw(region);
           break;
       }
+      break;
+    case NC_NODE:
+      ED_region_tag_redraw(region);
       break;
     case NC_WORLD:
       switch (wmn->data) {

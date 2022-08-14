@@ -1402,7 +1402,7 @@ static void rna_def_gizmogroup(BlenderRNA *brna)
        "TOOL_FALLBACK_KEYMAP",
        0,
        "Use fallback tools keymap",
-       "Add fallback tools keymap to this gizmo type."},
+       "Add fallback tools keymap to this gizmo type"},
       {WM_GIZMOGROUPTYPE_VR_REDRAWS,
        "VR_REDRAWS",
        0,

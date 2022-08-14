@@ -1216,12 +1216,9 @@ static int nlaedit_duplicate_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
-static int nlaedit_duplicate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int nlaedit_duplicate_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   nlaedit_duplicate_exec(C, op);
-
-  RNA_enum_set(op->ptr, "mode", TFM_TRANSLATION);
-  WM_operator_name_call(C, "TRANSFORM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr, event);
 
   return OPERATOR_FINISHED;
 }
@@ -1248,9 +1245,6 @@ void NLA_OT_duplicate(wmOperatorType *ot)
                              false,
                              "Linked",
                              "When duplicating strips, assign new copies of the actions they use");
-
-  /* to give to transform */
-  RNA_def_enum(ot->srna, "mode", rna_enum_transform_mode_types, TFM_TRANSLATION, "Mode", "");
 }
 
 /** \} */

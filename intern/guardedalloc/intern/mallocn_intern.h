@@ -131,6 +131,7 @@ void MEM_lockfree_reset_peak_memory(void);
 size_t MEM_lockfree_get_peak_memory(void) ATTR_WARN_UNUSED_RESULT;
 #ifndef NDEBUG
 const char *MEM_lockfree_name_ptr(void *vmemh);
+void MEM_lockfree_name_ptr_set(void *vmemh, const char *str);
 #endif
 
 /* Prototypes for fully guarded allocator functions */
@@ -174,6 +175,7 @@ void MEM_guarded_reset_peak_memory(void);
 size_t MEM_guarded_get_peak_memory(void) ATTR_WARN_UNUSED_RESULT;
 #ifndef NDEBUG
 const char *MEM_guarded_name_ptr(void *vmemh);
+void MEM_guarded_name_ptr_set(void *vmemh, const char *str);
 #endif
 
 #ifdef __cplusplus

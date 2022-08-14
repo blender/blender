@@ -438,7 +438,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   if (smd->origin != NULL) {
     DEG_add_object_relation(
         ctx->node, smd->origin, DEG_OB_COMP_TRANSFORM, "SimpleDeform Modifier");
-    DEG_add_modifier_to_transform_relation(ctx->node, "SimpleDeform Modifier");
+    DEG_add_depends_on_transform_relation(ctx->node, "SimpleDeform Modifier");
   }
 }
 
@@ -479,7 +479,7 @@ static void deformVertsEM(ModifierData *md,
         ctx->object, editData, mesh, NULL, verts_num, false, false);
   }
 
-  /* TODO(Campbell): use edit-mode data only (remove this line). */
+  /* TODO(@campbellbarton): use edit-mode data only (remove this line). */
   if (mesh_src != NULL) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }

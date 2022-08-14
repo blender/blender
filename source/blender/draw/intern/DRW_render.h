@@ -454,6 +454,10 @@ void DRW_shgroup_call_compute_indirect(DRWShadingGroup *shgroup, GPUStorageBuf *
 void DRW_shgroup_call_procedural_points(DRWShadingGroup *sh, Object *ob, uint point_count);
 void DRW_shgroup_call_procedural_lines(DRWShadingGroup *sh, Object *ob, uint line_count);
 void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *sh, Object *ob, uint tri_count);
+void DRW_shgroup_call_procedural_indirect(DRWShadingGroup *shgroup,
+                                          GPUPrimType primitive_type,
+                                          Object *ob,
+                                          GPUStorageBuf *indirect_buf);
 /**
  * \warning Only use with Shaders that have `IN_PLACE_INSTANCES` defined.
  * TODO: Should be removed.
@@ -791,7 +795,7 @@ bool DRW_culling_box_test(const DRWView *view, const BoundBox *bbox);
 bool DRW_culling_plane_test(const DRWView *view, const float plane[4]);
 /**
  * Return True if the given box intersect the current view frustum.
- * This function will have to be replaced when world space bb per objects is implemented.
+ * This function will have to be replaced when world space bounding-box per objects is implemented.
  */
 bool DRW_culling_min_max_test(const DRWView *view, float obmat[4][4], float min[3], float max[3]);
 
@@ -887,7 +891,6 @@ bool DRW_object_is_in_edit_mode(const struct Object *ob);
  * we are rendering or drawing in the viewport.
  */
 int DRW_object_visibility_in_active_context(const struct Object *ob);
-bool DRW_object_is_flat_normal(const struct Object *ob);
 bool DRW_object_use_hide_faces(const struct Object *ob);
 
 bool DRW_object_is_visible_psys_in_active_context(const struct Object *object,

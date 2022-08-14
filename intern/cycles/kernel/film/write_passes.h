@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "kernel/util/color.h"
+
 #ifdef __KERNEL_GPU__
 #  define __ATOMIC_PASS_WRITE__
 #endif
@@ -34,6 +36,12 @@ ccl_device_inline void kernel_write_pass_float3(ccl_global float *ccl_restrict b
   buffer[1] += value.y;
   buffer[2] += value.z;
 #endif
+}
+
+ccl_device_inline void kernel_write_pass_spectrum(ccl_global float *ccl_restrict buffer,
+                                                  Spectrum value)
+{
+  kernel_write_pass_float3(buffer, spectrum_to_rgb(value));
 }
 
 ccl_device_inline void kernel_write_pass_float4(ccl_global float *ccl_restrict buffer,

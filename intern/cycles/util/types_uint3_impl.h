@@ -1,8 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0
  * Copyright 2011-2022 Blender Foundation */
 
-#ifndef __UTIL_TYPES_UINT3_IMPL_H__
-#define __UTIL_TYPES_UINT3_IMPL_H__
+#pragma once
 
 #ifndef __UTIL_TYPES_H__
 #  error "Do not include this file directly, include util/types.h instead."
@@ -10,7 +9,8 @@
 
 CCL_NAMESPACE_BEGIN
 
-#if !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__)
+#ifndef __KERNEL_NATIVE_VECTOR_TYPES__
+#  ifndef __KERNEL_GPU__
 __forceinline uint uint3::operator[](uint i) const
 {
   util_assert(i < 3);
@@ -22,14 +22,13 @@ __forceinline uint &uint3::operator[](uint i)
   util_assert(i < 3);
   return *(&x + i);
 }
+#  endif
 
 ccl_device_inline uint3 make_uint3(uint x, uint y, uint z)
 {
   uint3 a = {x, y, z};
   return a;
 }
-#endif /* !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__) */
+#endif /* __KERNEL_NATIVE_VECTOR_TYPES__ */
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_TYPES_UINT3_IMPL_H__ */

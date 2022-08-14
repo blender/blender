@@ -37,8 +37,8 @@ set(SRC
   curves_sculpt_ops.cc
   curves_sculpt_pinch.cc
   curves_sculpt_puff.cc
-  curves_sculpt_selection_paint.cc
   curves_sculpt_selection.cc
+  curves_sculpt_selection_paint.cc
   curves_sculpt_slide.cc
   curves_sculpt_smooth.cc
   curves_sculpt_snake_hook.cc

@@ -109,6 +109,8 @@ def mesh_node_items(context):
     if not space:
         return
     yield NodeItem("GeometryNodeDualMesh")
+    yield NodeItem("GeometryNodeEdgePathsToCurves")
+    yield NodeItem("GeometryNodeEdgePathsToSelection")
     yield NodeItem("GeometryNodeExtrudeMesh")
     yield NodeItem("GeometryNodeFlipFaces")
     yield NodeItem("GeometryNodeMeshBoolean")
@@ -129,6 +131,7 @@ def mesh_node_items(context):
     yield NodeItem("GeometryNodeInputMeshFaceIsPlanar")
     yield NodeItem("GeometryNodeInputMeshIsland")
     yield NodeItem("GeometryNodeInputShadeSmooth")
+    yield NodeItem("GeometryNodeInputShortestEdgePaths")
     yield NodeItem("GeometryNodeInputMeshVertexNeighbors")
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
     yield NodeItem("GeometryNodeSetShadeSmooth")

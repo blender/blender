@@ -405,7 +405,7 @@ void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
 
   prop = RNA_def_float_color(
       ot->srna, "color", 4, nullptr, 0.0f, FLT_MAX, "Color", "Default fill color", 0.0f, 1.0f);
-  RNA_def_property_subtype(prop, PROP_COLOR_GAMMA);
+  RNA_def_property_subtype(prop, PROP_COLOR);
   RNA_def_property_float_array_default(prop, default_color);
 }
 

@@ -110,8 +110,8 @@ ccl_device float schlick_fresnel(float u)
 }
 
 /* Calculate the fresnel color which is a blend between white and the F0 color (cspec0) */
-ccl_device_forceinline float3
-interpolate_fresnel_color(float3 L, float3 H, float ior, float F0, float3 cspec0)
+ccl_device_forceinline Spectrum
+interpolate_fresnel_color(float3 L, float3 H, float ior, float F0, Spectrum cspec0)
 {
   /* Calculate the fresnel interpolation factor
    * The value from fresnel_dielectric_cos(...) has to be normalized because
@@ -121,7 +121,7 @@ interpolate_fresnel_color(float3 L, float3 H, float ior, float F0, float3 cspec0
   float FH = (fresnel_dielectric_cos(dot(L, H), ior) - F0) * F0_norm;
 
   /* Blend between white and a specular color with respect to the fresnel */
-  return cspec0 * (1.0f - FH) + make_float3(1.0f, 1.0f, 1.0f) * FH;
+  return cspec0 * (1.0f - FH) + make_spectrum(FH);
 }
 
 ccl_device float3 ensure_valid_reflection(float3 Ng, float3 I, float3 N)

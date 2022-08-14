@@ -5,6 +5,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_context.h"
+#include "BKE_curves.hh"
 #include "BKE_editmesh.h"
 #include "BKE_geometry_fields.hh"
 #include "BKE_global.h"
@@ -22,6 +23,7 @@
 
 #include "DEG_depsgraph_query.h"
 
+#include "ED_curves_sculpt.h"
 #include "ED_spreadsheet.h"
 
 #include "NOD_geometry_nodes_eval_log.hh"
@@ -232,23 +234,31 @@ int GeometryDataSource::tot_rows() const
   return attributes.domain_size(domain_);
 }
 
-/**
- * Only data sets corresponding to mesh objects in edit mode currently support selection filtering.
- */
 bool GeometryDataSource::has_selection_filter() const
 {
   Object *object_orig = DEG_get_original_object(object_eval_);
-  if (object_orig->type != OB_MESH) {
-    return false;
+  switch (component_->type()) {
+    case GEO_COMPONENT_TYPE_MESH: {
+      if (object_orig->type != OB_MESH) {
+        return false;
+      }
+      if (object_orig->mode != OB_MODE_EDIT) {
+        return false;
+      }
+      return true;
+    }
+    case GEO_COMPONENT_TYPE_CURVE: {
+      if (object_orig->type != OB_CURVES) {
+        return false;
+      }
+      if (object_orig->mode != OB_MODE_SCULPT_CURVES) {
+        return false;
+      }
+      return true;
+    }
+    default:
+      return false;
   }
-  if (object_orig->mode != OB_MODE_EDIT) {
-    return false;
-  }
-  if (component_->type() != GEO_COMPONENT_TYPE_MESH) {
-    return false;
-  }
-
-  return true;
 }
 
 IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) const
@@ -256,50 +266,73 @@ IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) c
   std::lock_guard lock{mutex_};
   const IndexMask full_range(this->tot_rows());
 
-  BLI_assert(object_eval_->mode == OB_MODE_EDIT);
-  BLI_assert(component_->type() == GEO_COMPONENT_TYPE_MESH);
-  Object *object_orig = DEG_get_original_object(object_eval_);
-  const MeshComponent *mesh_component = static_cast<const MeshComponent *>(component_);
-  const Mesh *mesh_eval = mesh_component->get_for_read();
-  Mesh *mesh_orig = (Mesh *)object_orig->data;
-  BMesh *bm = mesh_orig->edit_mesh->bm;
-  BM_mesh_elem_table_ensure(bm, BM_VERT);
+  switch (component_->type()) {
+    case GEO_COMPONENT_TYPE_MESH: {
+      BLI_assert(object_eval_->type == OB_MESH);
+      BLI_assert(object_eval_->mode == OB_MODE_EDIT);
+      Object *object_orig = DEG_get_original_object(object_eval_);
+      const Mesh *mesh_eval = geometry_set_.get_mesh_for_read();
+      const bke::AttributeAccessor attributes_eval = bke::mesh_attributes(*mesh_eval);
+      Mesh *mesh_orig = (Mesh *)object_orig->data;
+      BMesh *bm = mesh_orig->edit_mesh->bm;
+      BM_mesh_elem_table_ensure(bm, BM_VERT);
 
-  const int *orig_indices = (int *)CustomData_get_layer(&mesh_eval->vdata, CD_ORIGINDEX);
-  if (orig_indices != nullptr) {
-    /* Use CD_ORIGINDEX layer if it exists. */
-    VArray<bool> selection = mesh_component->attributes()->adapt_domain<bool>(
-        VArray<bool>::ForFunc(mesh_eval->totvert,
-                              [bm, orig_indices](int vertex_index) -> bool {
-                                const int i_orig = orig_indices[vertex_index];
-                                if (i_orig < 0) {
-                                  return false;
-                                }
-                                if (i_orig >= bm->totvert) {
-                                  return false;
-                                }
-                                BMVert *vert = bm->vtable[i_orig];
-                                return BM_elem_flag_test(vert, BM_ELEM_SELECT);
-                              }),
-        ATTR_DOMAIN_POINT,
-        domain_);
-    return index_mask_ops::find_indices_from_virtual_array(full_range, selection, 1024, indices);
+      const int *orig_indices = (int *)CustomData_get_layer(&mesh_eval->vdata, CD_ORIGINDEX);
+      if (orig_indices != nullptr) {
+        /* Use CD_ORIGINDEX layer if it exists. */
+        VArray<bool> selection = attributes_eval.adapt_domain<bool>(
+            VArray<bool>::ForFunc(mesh_eval->totvert,
+                                  [bm, orig_indices](int vertex_index) -> bool {
+                                    const int i_orig = orig_indices[vertex_index];
+                                    if (i_orig < 0) {
+                                      return false;
+                                    }
+                                    if (i_orig >= bm->totvert) {
+                                      return false;
+                                    }
+                                    const BMVert *vert = BM_vert_at_index(bm, i_orig);
+                                    return BM_elem_flag_test(vert, BM_ELEM_SELECT);
+                                  }),
+            ATTR_DOMAIN_POINT,
+            domain_);
+        return index_mask_ops::find_indices_from_virtual_array(
+            full_range, selection, 1024, indices);
+      }
+
+      if (mesh_eval->totvert == bm->totvert) {
+        /* Use a simple heuristic to match original vertices to evaluated ones. */
+        VArray<bool> selection = attributes_eval.adapt_domain<bool>(
+            VArray<bool>::ForFunc(mesh_eval->totvert,
+                                  [bm](int vertex_index) -> bool {
+                                    const BMVert *vert = BM_vert_at_index(bm, vertex_index);
+                                    return BM_elem_flag_test(vert, BM_ELEM_SELECT);
+                                  }),
+            ATTR_DOMAIN_POINT,
+            domain_);
+        return index_mask_ops::find_indices_from_virtual_array(
+            full_range, selection, 2048, indices);
+      }
+
+      return full_range;
+    }
+    case GEO_COMPONENT_TYPE_CURVE: {
+      BLI_assert(object_eval_->type == OB_CURVES);
+      BLI_assert(object_eval_->mode == OB_MODE_SCULPT_CURVES);
+      const CurveComponent &component = static_cast<const CurveComponent &>(*component_);
+      const Curves &curves_id = *component.get_for_read();
+      switch (domain_) {
+        case ATTR_DOMAIN_POINT:
+          return sculpt_paint::retrieve_selected_points(curves_id, indices);
+        case ATTR_DOMAIN_CURVE:
+          return sculpt_paint::retrieve_selected_curves(curves_id, indices);
+        default:
+          BLI_assert_unreachable();
+      }
+      return full_range;
+    }
+    default:
+      return full_range;
   }
-
-  if (mesh_eval->totvert == bm->totvert) {
-    /* Use a simple heuristic to match original vertices to evaluated ones. */
-    VArray<bool> selection = mesh_component->attributes()->adapt_domain<bool>(
-        VArray<bool>::ForFunc(mesh_eval->totvert,
-                              [bm](int vertex_index) -> bool {
-                                BMVert *vert = bm->vtable[vertex_index];
-                                return BM_elem_flag_test(vert, BM_ELEM_SELECT);
-                              }),
-        ATTR_DOMAIN_POINT,
-        domain_);
-    return index_mask_ops::find_indices_from_virtual_array(full_range, selection, 2048, indices);
-  }
-
-  return full_range;
 }
 
 void VolumeDataSource::foreach_default_column_ids(
@@ -412,7 +445,7 @@ GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspread
   }
   else {
     if (object_eval->mode == OB_MODE_EDIT && object_eval->type == OB_MESH) {
-      Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_eval, false);
+      Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_eval);
       if (mesh == nullptr) {
         return geometry_set;
       }
@@ -526,7 +559,7 @@ static void add_fields_as_extra_columns(SpaceSpreadsheet *sspreadsheet,
           std::make_unique<GeometryComponentCacheKey>(component));
 
   const eAttrDomain domain = (eAttrDomain)sspreadsheet->attribute_domain;
-  const int domain_num = component.attributes()->domain_size(domain);
+  const int domain_num = component.attribute_domain_size(domain);
   for (const auto item : fields_to_show.items()) {
     const StringRef name = item.key;
     const GField &field = item.value;

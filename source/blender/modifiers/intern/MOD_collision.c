@@ -236,7 +236,7 @@ static void deformVerts(ModifierData *md,
 
 static void updateDepsgraph(ModifierData *UNUSED(md), const ModifierUpdateDepsgraphContext *ctx)
 {
-  DEG_add_modifier_to_transform_relation(ctx->node, "Collision Modifier");
+  DEG_add_depends_on_transform_relation(ctx->node, "Collision Modifier");
 }
 
 static void panel_draw(const bContext *UNUSED(C), Panel *panel)

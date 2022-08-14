@@ -13,6 +13,7 @@
 #include "obj_import_file_reader.hh"
 #include "obj_import_string_utils.hh"
 
+#include <algorithm>
 #include <charconv>
 
 namespace blender::io::obj {
@@ -394,6 +395,22 @@ static bool parse_keyword(const char *&p, const char *end, StringRef keyword)
   return true;
 }
 
+/* Special case: if there were no faces/edges in any geometries,
+ * treat all the vertices as a point cloud. */
+static void use_all_vertices_if_no_faces(Geometry *geom,
+                                         const Vector<std::unique_ptr<Geometry>> &all_geometries,
+                                         const GlobalVertices &global_vertices)
+{
+  if (!global_vertices.vertices.is_empty() && geom && geom->geom_type_ == GEOM_MESH) {
+    if (std::all_of(
+            all_geometries.begin(), all_geometries.end(), [](const std::unique_ptr<Geometry> &g) {
+              return g->get_vertex_count() == 0;
+            })) {
+      geom->track_all_vertices(global_vertices.vertices.size());
+    }
+  }
+}
+
 void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
                       GlobalVertices &r_global_vertices)
 {
@@ -571,6 +588,7 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
     buffer_offset = left_size;
   }
 
+  use_all_vertices_if_no_faces(curr_geom, r_all_geometries, r_global_vertices);
   add_default_mtl_library();
 }
 

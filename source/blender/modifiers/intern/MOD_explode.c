@@ -742,7 +742,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
 
   /* override original facepa (original pointer is saved in caller function) */
 
-  /* TODO(campbell): `(totfsplit * 2)` over allocation is used since the quads are
+  /* TODO(@campbellbarton): `(totfsplit * 2)` over allocation is used since the quads are
    * later interpreted as tri's, for this to work right I think we probably
    * have to stop using tessface. */
 

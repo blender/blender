@@ -12,7 +12,10 @@
 #include "BLI_virtual_array.hh"
 
 #include "BKE_attribute.h"
+#include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
+
+#include "ED_curves_sculpt.h"
 
 struct ARegion;
 struct RegionView3D;
@@ -22,6 +25,7 @@ struct Object;
 struct Brush;
 struct Scene;
 struct BVHTreeFromMesh;
+struct ReportList;
 
 namespace blender::ed::sculpt_paint {
 
@@ -32,6 +36,7 @@ struct StrokeExtension {
   bool is_first;
   float2 mouse_position;
   float pressure;
+  ReportList *reports = nullptr;
 };
 
 float brush_radius_factor(const Brush &brush, const StrokeExtension &stroke_extension);
@@ -53,8 +58,7 @@ class CurvesSculptStrokeOperation {
   virtual void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) = 0;
 };
 
-std::unique_ptr<CurvesSculptStrokeOperation> new_add_operation(const bContext &C,
-                                                               ReportList *reports);
+std::unique_ptr<CurvesSculptStrokeOperation> new_add_operation();
 std::unique_ptr<CurvesSculptStrokeOperation> new_comb_operation();
 std::unique_ptr<CurvesSculptStrokeOperation> new_delete_operation();
 std::unique_ptr<CurvesSculptStrokeOperation> new_snake_hook_operation();
@@ -98,12 +102,6 @@ VArray<float> get_curves_selection(const Curves &curves_id);
  */
 VArray<float> get_point_selection(const Curves &curves_id);
 
-/**
- * Find curves that have any point selected (a selection factor greater than zero),
- * or curves that have their own selection factor greater than zero.
- */
-IndexMask retrieve_selected_curves(const Curves &curves_id, Vector<int64_t> &r_indices);
-
 void move_last_point_and_resample(MutableSpan<float3> positions, const float3 &new_last_position);
 
 class CurvesSculptCommonContext {
@@ -129,5 +127,12 @@ std::optional<CurvesBrush3D> sample_curves_surface_3d_brush(
 float transform_brush_radius(const float4x4 &transform,
                              const float3 &brush_position,
                              const float old_radius);
+
+void report_empty_original_surface(ReportList *reports);
+void report_empty_evaluated_surface(ReportList *reports);
+void report_missing_surface(ReportList *reports);
+void report_missing_uv_map_on_original_surface(ReportList *reports);
+void report_missing_uv_map_on_evaluated_surface(ReportList *reports);
+void report_invalid_uv_map(ReportList *reports);
 
 }  // namespace blender::ed::sculpt_paint

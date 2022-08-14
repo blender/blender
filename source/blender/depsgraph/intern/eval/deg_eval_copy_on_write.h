@@ -27,8 +27,7 @@ struct ID;
 
 struct Depsgraph;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct Depsgraph;
 class DepsgraphNodeBuilder;
@@ -77,5 +76,4 @@ bool deg_copy_on_write_is_expanded(const struct ID *id_cow);
 bool deg_copy_on_write_is_needed(const ID *id_orig);
 bool deg_copy_on_write_is_needed(const ID_Type id_type);
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

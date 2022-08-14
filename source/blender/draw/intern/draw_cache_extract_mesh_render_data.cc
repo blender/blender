@@ -228,9 +228,9 @@ static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCa
     }
   }
   else {
-    const MPoly *mp = &mr->mpoly[0];
-    for (int i = 0; i < mr->poly_len; i++, mp++) {
-      if (!(mr->use_hide && (mp->flag & ME_HIDE))) {
+    for (int i = 0; i < mr->poly_len; i++) {
+      if (!(mr->use_hide && mr->hide_poly && mr->hide_poly[i])) {
+        const MPoly *mp = &mr->mpoly[i];
         const int mat = min_ii(mp->mat_nr, mat_last);
         tri_first_index[i] = mat_tri_offs[mat];
         mat_tri_offs[mat] += mp->totloop - 2;
@@ -269,7 +269,7 @@ static void mesh_render_data_mat_tri_len_mesh_range_fn(void *__restrict userdata
   int *mat_tri_len = static_cast<int *>(tls->userdata_chunk);
 
   const MPoly *mp = &mr->mpoly[iter];
-  if (!(mr->use_hide && (mp->flag & ME_HIDE))) {
+  if (!(mr->use_hide && mr->hide_poly && mr->hide_poly[iter])) {
     int mat = min_ii(mp->mat_nr, mr->mat_len - 1);
     mat_tri_len[mat] += mp->totloop - 2;
   }
@@ -332,7 +332,7 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
   if (mr->extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
     if ((iter_type & MR_ITER_LOOPTRI) || (data_flag & MR_DATA_LOOPTRI)) {
-      /* NOTE(campbell): It's possible to skip allocating tessellation,
+      /* NOTE(@campbellbarton): It's possible to skip allocating tessellation,
        * the tessellation can be calculated as part of the iterator, see: P2188.
        * The overall advantage is small (around 1%), so keep this as-is. */
       mr->mlooptri = static_cast<MLoopTri *>(
@@ -431,6 +431,30 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
   }
 }
 
+static void retrieve_active_attribute_names(MeshRenderData &mr,
+                                            const Object &object,
+                                            const Mesh &mesh)
+{
+  const Mesh *mesh_final = editmesh_final_or_this(&object, &mesh);
+  const CustomData *cd_vdata = mesh_cd_vdata_get_from_mesh(mesh_final);
+  const CustomData *cd_ldata = mesh_cd_ldata_get_from_mesh(mesh_final);
+
+  /* Necessary because which attributes are active/default is stored in #CustomData. */
+  Mesh me_query = blender::dna::shallow_zero_initialize();
+  BKE_id_attribute_copy_domains_temp(
+      ID_ME, cd_vdata, nullptr, cd_ldata, nullptr, nullptr, &me_query.id);
+
+  mr.active_color_name = nullptr;
+  mr.default_color_name = nullptr;
+
+  if (const CustomDataLayer *active = BKE_id_attributes_active_color_get(&me_query.id)) {
+    mr.active_color_name = active->name;
+  }
+  if (const CustomDataLayer *render = BKE_id_attributes_render_color_get(&me_query.id)) {
+    mr.default_color_name = render->name;
+  }
+}
+
 MeshRenderData *mesh_render_data_create(Object *object,
                                         Mesh *me,
                                         const bool is_editmode,
@@ -514,8 +538,8 @@ MeshRenderData *mesh_render_data_create(Object *object,
 
     /* Seems like the mesh_eval_final do not have the right origin indices.
      * Force not mapped in this case. */
-    if (use_mapped && do_final && editmesh_eval_final != editmesh_eval_cage) {
-      // mr->edit_bmesh = nullptr;
+    if (has_mdata && do_final && editmesh_eval_final != editmesh_eval_cage) {
+      // mr->edit_bmesh = NULL;
       mr->extract_type = MR_EXTRACT_MESH;
     }
   }
@@ -554,6 +578,13 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->v_origindex = static_cast<const int *>(CustomData_get_layer(&mr->me->vdata, CD_ORIGINDEX));
     mr->e_origindex = static_cast<const int *>(CustomData_get_layer(&mr->me->edata, CD_ORIGINDEX));
     mr->p_origindex = static_cast<const int *>(CustomData_get_layer(&mr->me->pdata, CD_ORIGINDEX));
+
+    mr->hide_vert = static_cast<const bool *>(
+        CustomData_get_layer_named(&me->vdata, CD_PROP_BOOL, ".hide_vert"));
+    mr->hide_edge = static_cast<const bool *>(
+        CustomData_get_layer_named(&me->edata, CD_PROP_BOOL, ".hide_edge"));
+    mr->hide_poly = static_cast<const bool *>(
+        CustomData_get_layer_named(&me->pdata, CD_PROP_BOOL, ".hide_poly"));
   }
   else {
     /* #BMesh */
@@ -565,6 +596,8 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->poly_len = bm->totface;
     mr->tri_len = poly_to_tri_count(mr->poly_len, mr->loop_len);
   }
+
+  retrieve_active_attribute_names(*mr, *object, *me);
 
   return mr;
 }

@@ -42,4 +42,5 @@ endif()
 add_dependencies(
   external_alembic
   external_openexr
+  external_imath
 )

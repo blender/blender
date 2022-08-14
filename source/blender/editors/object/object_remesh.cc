@@ -577,10 +577,18 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   /* Use the Bounding Box face normal as the basis Z. */
   normal_tri_v3(cd->text_mat[2], cd->preview_plane[0], cd->preview_plane[1], cd->preview_plane[2]);
 
+  /* Invert object scale. */
+  float scale[3];
+  mat4_to_size(scale, active_object->obmat);
+  invert_v3(scale);
+  size_to_mat4(scale_mat, scale);
+
+  mul_m4_m4_pre(cd->text_mat, scale_mat);
+
   /* Write the text position into the matrix. */
   copy_v3_v3(cd->text_mat[3], text_pos);
 
-  /* Scale the text. */
+  /* Scale the text to constant viewport size. */
   float text_pos_word_space[3];
   mul_v3_m4v3(text_pos_word_space, active_object->obmat, text_pos);
   const float pixelsize = ED_view3d_pixel_size(rv3d, text_pos_word_space);

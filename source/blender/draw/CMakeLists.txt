@@ -23,6 +23,7 @@ set(INC
   ../nodes
   ../render
   ../render/intern
+  ../compositor/realtime_compositor
   ../windowmanager
 
   ../../../intern/atomic
@@ -67,7 +68,6 @@ set(SRC
   intern/mesh_extractors/extract_mesh_vbo_skin_roots.cc
   intern/mesh_extractors/extract_mesh_vbo_tan.cc
   intern/mesh_extractors/extract_mesh_vbo_uv.cc
-  intern/mesh_extractors/extract_mesh_vbo_vcol.cc
   intern/mesh_extractors/extract_mesh_vbo_weights.cc
   intern/draw_attributes.cc
   intern/draw_cache_impl_curve.cc
@@ -78,13 +78,13 @@ set(SRC
   intern/draw_cache_impl_mesh.cc
   intern/draw_cache_impl_metaball.c
   intern/draw_cache_impl_particles.c
-  intern/draw_cache_impl_pointcloud.c
+  intern/draw_cache_impl_pointcloud.cc
   intern/draw_cache_impl_subdivision.cc
   intern/draw_cache_impl_volume.c
   intern/draw_color_management.cc
   intern/draw_common.c
   intern/draw_curves.cc
-  intern/draw_debug.c
+  intern/draw_debug.cc
   intern/draw_fluid.c
   intern/draw_hair.cc
   intern/draw_instance_data.c
@@ -104,6 +104,7 @@ set(SRC
   intern/smaa_textures.c
   engines/basic/basic_engine.c
   engines/basic/basic_shader.c
+  engines/compositor/compositor_engine.cc
   engines/image/image_engine.cc
   engines/image/image_shader.cc
   engines/eevee/eevee_bloom.c
@@ -135,10 +136,12 @@ set(SRC
   engines/eevee/eevee_temporal_sampling.c
   engines/eevee/eevee_volumes.c
   engines/eevee_next/eevee_camera.cc
+  engines/eevee_next/eevee_depth_of_field.cc
   engines/eevee_next/eevee_engine.cc
   engines/eevee_next/eevee_film.cc
   engines/eevee_next/eevee_instance.cc
   engines/eevee_next/eevee_material.cc
+  engines/eevee_next/eevee_motion_blur.cc
   engines/eevee_next/eevee_pipeline.cc
   engines/eevee_next/eevee_renderbuffers.cc
   engines/eevee_next/eevee_sampling.cc
@@ -213,6 +216,7 @@ set(SRC
   intern/draw_common_shader_shared.h
   intern/draw_curves_private.h
   intern/draw_debug.h
+  intern/draw_debug.hh
   intern/draw_hair_private.h
   intern/draw_instance_data.h
   intern/draw_manager.h
@@ -229,6 +233,7 @@ set(SRC
   intern/smaa_textures.h
   engines/basic/basic_engine.h
   engines/basic/basic_private.h
+  engines/compositor/compositor_engine.h
   engines/eevee/eevee_engine.h
   engines/eevee/eevee_lightcache.h
   engines/eevee/eevee_lut.h
@@ -260,6 +265,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  bf_realtime_compositor
   bf_windowmanager
 )
 
@@ -340,6 +346,7 @@ set(GLSL_SRC
   engines/eevee/shaders/raytrace_lib.glsl
   engines/eevee/shaders/renderpass_lib.glsl
   engines/eevee/shaders/renderpass_postprocess_frag.glsl
+  engines/eevee/shaders/cryptomatte_lib.glsl
   engines/eevee/shaders/cryptomatte_frag.glsl
   engines/eevee/shaders/cryptomatte_vert.glsl
   engines/eevee/shaders/ltc_lib.glsl
@@ -361,6 +368,22 @@ set(GLSL_SRC
 
   engines/eevee_next/shaders/eevee_attributes_lib.glsl
   engines/eevee_next/shaders/eevee_camera_lib.glsl
+  engines/eevee_next/shaders/eevee_colorspace_lib.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_accumulator_lib.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_bokeh_lut_comp.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_downsample_comp.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_filter_comp.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_gather_comp.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_hole_fill_comp.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_lib.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_reduce_comp.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_resolve_comp.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_scatter_frag.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_scatter_vert.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_setup_comp.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_stabilize_comp.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_tiles_dilate_comp.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_tiles_flatten_comp.glsl
   engines/eevee_next/shaders/eevee_film_comp.glsl
   engines/eevee_next/shaders/eevee_film_frag.glsl
   engines/eevee_next/shaders/eevee_film_lib.glsl
@@ -368,14 +391,18 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_geom_gpencil_vert.glsl
   engines/eevee_next/shaders/eevee_geom_mesh_vert.glsl
   engines/eevee_next/shaders/eevee_geom_world_vert.glsl
+  engines/eevee_next/shaders/eevee_motion_blur_dilate_comp.glsl
+  engines/eevee_next/shaders/eevee_motion_blur_flatten_comp.glsl
+  engines/eevee_next/shaders/eevee_motion_blur_gather_comp.glsl
+  engines/eevee_next/shaders/eevee_motion_blur_lib.glsl
   engines/eevee_next/shaders/eevee_nodetree_lib.glsl
+  engines/eevee_next/shaders/eevee_sampling_lib.glsl
   engines/eevee_next/shaders/eevee_surf_deferred_frag.glsl
   engines/eevee_next/shaders/eevee_surf_depth_frag.glsl
   engines/eevee_next/shaders/eevee_surf_forward_frag.glsl
   engines/eevee_next/shaders/eevee_surf_lib.glsl
   engines/eevee_next/shaders/eevee_surf_world_frag.glsl
   engines/eevee_next/shaders/eevee_velocity_lib.glsl
-  engines/eevee_next/shaders/eevee_velocity_resolve_comp.glsl
 
   engines/eevee_next/eevee_defines.hh
   engines/eevee_next/eevee_shader_shared.hh
@@ -412,20 +439,19 @@ set(GLSL_SRC
 
   intern/shaders/common_attribute_lib.glsl
   intern/shaders/common_colormanagement_lib.glsl
+  intern/shaders/common_debug_draw_lib.glsl
+  intern/shaders/common_debug_print_lib.glsl
+  intern/shaders/common_fullscreen_vert.glsl
+  intern/shaders/common_fxaa_lib.glsl
   intern/shaders/common_globals_lib.glsl
   intern/shaders/common_gpencil_lib.glsl
-  intern/shaders/common_pointcloud_lib.glsl
   intern/shaders/common_hair_lib.glsl
-  intern/shaders/common_hair_refine_vert.glsl
   intern/shaders/common_hair_refine_comp.glsl
-  intern/shaders/common_math_lib.glsl
+  intern/shaders/common_hair_refine_vert.glsl
   intern/shaders/common_math_geom_lib.glsl
-  intern/shaders/common_view_clipping_lib.glsl
-  intern/shaders/common_view_lib.glsl
-  intern/shaders/common_fxaa_lib.glsl
+  intern/shaders/common_math_lib.glsl
+  intern/shaders/common_pointcloud_lib.glsl
   intern/shaders/common_smaa_lib.glsl
-  intern/shaders/common_fullscreen_vert.glsl
-
   intern/shaders/common_subdiv_custom_data_interp_comp.glsl
   intern/shaders/common_subdiv_ibo_lines_comp.glsl
   intern/shaders/common_subdiv_ibo_tris_comp.glsl
@@ -438,6 +464,13 @@ set(GLSL_SRC
   intern/shaders/common_subdiv_vbo_edituv_strech_area_comp.glsl
   intern/shaders/common_subdiv_vbo_lnor_comp.glsl
   intern/shaders/common_subdiv_vbo_sculpt_data_comp.glsl
+  intern/shaders/common_view_clipping_lib.glsl
+  intern/shaders/common_view_lib.glsl
+  intern/shaders/draw_debug_draw_display_frag.glsl
+  intern/shaders/draw_debug_draw_display_vert.glsl
+  intern/shaders/draw_debug_info.hh
+  intern/shaders/draw_debug_print_display_frag.glsl
+  intern/shaders/draw_debug_print_display_vert.glsl
 
   intern/draw_common_shader_shared.h
   intern/draw_shader_shared.h

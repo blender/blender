@@ -101,7 +101,7 @@ set(SRC
   intern/colortools.c
   intern/constraint.c
   intern/context.c
-  intern/crazyspace.c
+  intern/crazyspace.cc
   intern/cryptomatte.cc
   intern/curve.cc
   intern/curve_bevel.c
@@ -139,6 +139,7 @@ set(SRC
   intern/freestyle.c
   intern/geometry_component_curve.cc
   intern/geometry_component_curves.cc
+  intern/geometry_component_edit_data.cc
   intern/geometry_component_instances.cc
   intern/geometry_component_mesh.cc
   intern/geometry_component_pointcloud.cc
@@ -185,11 +186,12 @@ set(SRC
   intern/linestyle.c
   intern/main.c
   intern/main_idmap.c
+  intern/main_namemap.cc
   intern/mask.c
   intern/mask_evaluate.c
   intern/mask_rasterize.c
   intern/material.c
-  intern/mball.c
+  intern/mball.cc
   intern/mball_tessellate.c
   intern/mesh.cc
   intern/mesh_boolean_convert.cc
@@ -210,7 +212,7 @@ set(SRC
   intern/mesh_runtime.cc
   intern/mesh_sample.cc
   intern/mesh_tangent.c
-  intern/mesh_tessellate.c
+  intern/mesh_tessellate.cc
   intern/mesh_validate.cc
   intern/mesh_wrapper.cc
   intern/modifier.c
@@ -352,6 +354,7 @@ set(SRC
   BKE_constraint.h
   BKE_context.h
   BKE_crazyspace.h
+  BKE_crazyspace.hh
   BKE_cryptomatte.h
   BKE_cryptomatte.hh
   BKE_curve.h
@@ -412,6 +415,7 @@ set(SRC
   BKE_linestyle.h
   BKE_main.h
   BKE_main_idmap.h
+  BKE_main_namemap.h
   BKE_mask.h
   BKE_material.h
   BKE_mball.h

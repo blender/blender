@@ -338,7 +338,7 @@ ccl_device_inline IntegratorState integrator_state_shadow_catcher_split(KernelGl
   return to_state;
 }
 
-#ifdef __KERNEL_CPU__
+#ifndef __KERNEL_GPU__
 ccl_device_inline int integrator_state_bounce(ConstIntegratorState state, const int)
 {
   return INTEGRATOR_STATE(state, path, bounce);

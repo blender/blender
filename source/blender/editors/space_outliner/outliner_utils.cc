@@ -98,7 +98,7 @@ static TreeElement *outliner_find_item_at_x_in_row_recursive(const TreeElement *
                                                              float view_co_x,
                                                              bool *r_is_merged_icon)
 {
-  TreeElement *child_te = reinterpret_cast<TreeElement *>(parent_te->subtree.first);
+  TreeElement *child_te = static_cast<TreeElement *>(parent_te->subtree.first);
 
   while (child_te) {
     const bool over_element = (view_co_x > child_te->xs) && (view_co_x < child_te->xend);
@@ -282,8 +282,7 @@ bool outliner_tree_traverse(const SpaceOutliner *space_outliner,
                             TreeTraversalFunc func,
                             void *customdata)
 {
-  for (TreeElement *te = reinterpret_cast<TreeElement *>(tree->first), *te_next; te;
-       te = te_next) {
+  for (TreeElement *te = static_cast<TreeElement *>(tree->first), *te_next; te; te = te_next) {
     TreeTraversalAction func_retval = TRAVERSE_CONTINUE;
     /* in case te is freed in callback */
     TreeStoreElem *tselem = TREESTORE(te);

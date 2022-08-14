@@ -5,10 +5,12 @@
  */
 
 #include "BKE_image.h"
+#include "BKE_main.h"
 #include "BKE_node.h"
 
 #include "BLI_map.hh"
 #include "BLI_math_vector.h"
+#include "BLI_path_util.h"
 
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -60,61 +62,95 @@ static void set_property_of_socket(eNodeSocketDatatype property_type,
   }
 }
 
-static bool load_texture_image_at_path(Main *bmain,
-                                       const tex_map_XX &tex_map,
-                                       bNode *r_node,
-                                       const std::string &path)
+static Image *load_image_at_path(Main *bmain, const std::string &path, bool relative_paths)
 {
-  Image *tex_image = BKE_image_load(bmain, path.c_str());
-  if (!tex_image) {
+  Image *image = BKE_image_load_exists(bmain, path.c_str());
+  if (!image) {
     fprintf(stderr, "Cannot load image file: '%s'\n", path.c_str());
-    return false;
+    return nullptr;
   }
   fprintf(stderr, "Loaded image from: '%s'\n", path.c_str());
-  r_node->id = reinterpret_cast<ID *>(tex_image);
-  NodeTexImage *image = static_cast<NodeTexImage *>(r_node->storage);
-  image->projection = tex_map.projection_type;
-  return true;
+  if (relative_paths) {
+    BLI_path_rel(image->filepath, BKE_main_blendfile_path(bmain));
+  }
+  return image;
 }
 
-/**
- * Load image for Image Texture node and set the node properties.
- * Return success if Image can be loaded successfully.
- */
-static bool load_texture_image(Main *bmain, const tex_map_XX &tex_map, bNode *r_node)
+static Image *create_placeholder_image(Main *bmain, const std::string &path)
+{
+  const float color[4] = {0, 0, 0, 1};
+  Image *image = BKE_image_add_generated(bmain,
+                                         32,
+                                         32,
+                                         BLI_path_basename(path.c_str()),
+                                         24,
+                                         false,
+                                         IMA_GENTYPE_BLANK,
+                                         color,
+                                         false,
+                                         false,
+                                         false);
+  STRNCPY(image->filepath, path.c_str());
+  image->source = IMA_SRC_FILE;
+  return image;
+}
+
+static Image *load_texture_image(Main *bmain,
+                                 const tex_map_XX &tex_map,
+                                 bNode *r_node,
+                                 bool relative_paths)
 {
   BLI_assert(r_node && r_node->type == SH_NODE_TEX_IMAGE);
+  Image *image = nullptr;
 
   /* First try treating texture path as relative. */
   std::string tex_path{tex_map.mtl_dir_path + tex_map.image_path};
-  if (load_texture_image_at_path(bmain, tex_map, r_node, tex_path)) {
-    return true;
+  image = load_image_at_path(bmain, tex_path, relative_paths);
+  if (image != nullptr) {
+    return image;
   }
   /* Then try using it directly as absolute path. */
   std::string raw_path{tex_map.image_path};
-  if (load_texture_image_at_path(bmain, tex_map, r_node, raw_path)) {
-    return true;
+  image = load_image_at_path(bmain, raw_path, relative_paths);
+  if (image != nullptr) {
+    return image;
   }
   /* Try removing quotes. */
   std::string no_quote_path{tex_path};
   auto end_pos = std::remove(no_quote_path.begin(), no_quote_path.end(), '"');
   no_quote_path.erase(end_pos, no_quote_path.end());
-  if (no_quote_path != tex_path &&
-      load_texture_image_at_path(bmain, tex_map, r_node, no_quote_path)) {
-    return true;
+  if (no_quote_path != tex_path) {
+    image = load_image_at_path(bmain, no_quote_path, relative_paths);
+    if (image != nullptr) {
+      return image;
+    }
   }
   /* Try replacing underscores with spaces. */
   std::string no_underscore_path{no_quote_path};
   std::replace(no_underscore_path.begin(), no_underscore_path.end(), '_', ' ');
-  if (no_underscore_path != no_quote_path && no_underscore_path != tex_path &&
-      load_texture_image_at_path(bmain, tex_map, r_node, no_underscore_path)) {
-    return true;
+  if (no_underscore_path != no_quote_path && no_underscore_path != tex_path) {
+    image = load_image_at_path(bmain, no_underscore_path, relative_paths);
+    if (image != nullptr) {
+      return image;
+    }
+  }
+  /* Try taking just the basename from input path. */
+  std::string base_path{tex_map.mtl_dir_path + BLI_path_basename(tex_map.image_path.c_str())};
+  if (base_path != tex_path) {
+    image = load_image_at_path(bmain, base_path, relative_paths);
+    if (image != nullptr) {
+      return image;
+    }
   }
 
-  return false;
+  image = create_placeholder_image(bmain, tex_path);
+  return image;
 }
 
-ShaderNodetreeWrap::ShaderNodetreeWrap(Main *bmain, const MTLMaterial &mtl_mat, Material *mat)
+ShaderNodetreeWrap::ShaderNodetreeWrap(Main *bmain,
+                                       const MTLMaterial &mtl_mat,
+                                       Material *mat,
+                                       bool relative_paths)
     : mtl_mat_(mtl_mat)
 {
   nodetree_.reset(ntreeAddTree(nullptr, "Shader Nodetree", ntreeType_Shader->idname));
@@ -122,7 +158,7 @@ ShaderNodetreeWrap::ShaderNodetreeWrap(Main *bmain, const MTLMaterial &mtl_mat, 
   shader_output_ = add_node_to_tree(SH_NODE_OUTPUT_MATERIAL);
 
   set_bsdf_socket_values(mat);
-  add_image_textures(bmain, mat);
+  add_image_textures(bmain, mat, relative_paths);
   link_sockets(bsdf_, "BSDF", shader_output_, "Surface", 4);
 
   nodeSetActive(nodetree_.get(), shader_output_);
@@ -306,7 +342,7 @@ void ShaderNodetreeWrap::set_bsdf_socket_values(Material *mat)
   if (emission_color.x >= 0 && emission_color.y >= 0 && emission_color.z >= 0) {
     set_property_of_socket(SOCK_RGBA, "Emission", {emission_color, 3}, bsdf_);
   }
-  if (mtl_mat_.texture_maps.contains_as(eMTLSyntaxElement::map_Ke)) {
+  if (mtl_mat_.tex_map_of_type(eMTLSyntaxElement::map_Ke).is_valid()) {
     set_property_of_socket(SOCK_FLOAT, "Emission Strength", {1.0f}, bsdf_);
   }
   set_property_of_socket(SOCK_FLOAT, "Specular", {specular}, bsdf_);
@@ -325,20 +361,23 @@ void ShaderNodetreeWrap::set_bsdf_socket_values(Material *mat)
   }
 }
 
-void ShaderNodetreeWrap::add_image_textures(Main *bmain, Material *mat)
+void ShaderNodetreeWrap::add_image_textures(Main *bmain, Material *mat, bool relative_paths)
 {
   for (const Map<const eMTLSyntaxElement, tex_map_XX>::Item texture_map :
        mtl_mat_.texture_maps.items()) {
-    if (texture_map.value.image_path.empty()) {
+    if (!texture_map.value.is_valid()) {
       /* No Image texture node of this map type can be added to this material. */
       continue;
     }
 
     bNode *image_texture = add_node_to_tree(SH_NODE_TEX_IMAGE);
-    if (!load_texture_image(bmain, texture_map.value, image_texture)) {
-      /* Image could not be added, so don't add or link further nodes. */
+    Image *image = load_texture_image(bmain, texture_map.value, image_texture, relative_paths);
+    if (image == nullptr) {
       continue;
     }
+    image_texture->id = &image->id;
+    static_cast<NodeTexImage *>(image_texture->storage)->projection =
+        texture_map.value.projection_type;
 
     /* Add normal map node if needed. */
     bNode *normal_map = nullptr;

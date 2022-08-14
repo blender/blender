@@ -98,7 +98,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 
   if (need_transform_relation) {
-    DEG_add_modifier_to_transform_relation(ctx->node, "Wave Modifier");
+    DEG_add_depends_on_transform_relation(ctx->node, "Wave Modifier");
   }
 }
 
@@ -335,7 +335,7 @@ static void deformVertsEM(ModifierData *md,
         ctx->object, editData, mesh, NULL, verts_num, false, false);
   }
 
-  /* TODO(Campbell): use edit-mode data only (remove this line). */
+  /* TODO(@campbellbarton): use edit-mode data only (remove this line). */
   if (mesh_src != NULL) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }

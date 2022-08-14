@@ -10,6 +10,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "COM_node_operation.hh"
+
 #include "node_composite_util.hh"
 
 /* **************** Scale  ******************** */
@@ -55,6 +57,23 @@ static void node_composit_buts_scale(uiLayout *layout, bContext *UNUSED(C), Poin
   }
 }
 
+using namespace blender::realtime_compositor;
+
+class ScaleOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    get_input("Image").pass_through(get_result("Image"));
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, DNode node)
+{
+  return new ScaleOperation(context, node);
+}
+
 }  // namespace blender::nodes::node_composite_scale_cc
 
 void register_node_type_cmp_scale()
@@ -67,6 +86,7 @@ void register_node_type_cmp_scale()
   ntype.declare = file_ns::cmp_node_scale_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_scale;
   node_type_update(&ntype, file_ns::node_composite_update_scale);
+  ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);
 }

@@ -533,6 +533,7 @@ class SpellChecker:
         "tonemap",
         "toon",
         "transmissive",
+        "uvproject",
         "vividlight",
         "volumetrics",
         "voronoi",

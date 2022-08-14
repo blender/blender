@@ -1481,7 +1481,7 @@ static void scene_blend_read_lib(BlendLibReader *reader, ID *id)
   }
 
   LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
-    IDP_BlendReadLib(reader, marker->prop);
+    IDP_BlendReadLib(reader, sce->id.lib, marker->prop);
 
     if (marker->camera) {
       BLO_read_id_address(reader, sce->id.lib, &marker->camera);
@@ -2501,7 +2501,7 @@ static bool check_rendered_viewport_visible(Main *bmain)
   return false;
 }
 
-/* TODO(campbell): shouldn't we be able to use 'DEG_get_view_layer' here?
+/* TODO(@campbellbarton): shouldn't we be able to use 'DEG_get_view_layer' here?
  * Currently this is nullptr on load, so don't. */
 static void prepare_mesh_for_viewport_render(Main *bmain, const ViewLayer *view_layer)
 {

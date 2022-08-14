@@ -215,8 +215,7 @@ static void freeData(ModifierData *md)
           MEM_SAFE_FREE(smd->verts[i].binds[j].vert_inds);
           MEM_SAFE_FREE(smd->verts[i].binds[j].vert_weights);
         }
-
-        MEM_SAFE_FREE(smd->verts[i].binds);
+        MEM_freeN(smd->verts[i].binds);
       }
     }
 
@@ -1449,7 +1448,7 @@ static void surfacedeformModifier_do(ModifierData *md,
   }
 
   Object *ob_target = smd->target;
-  target = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target, false);
+  target = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target);
   if (!target) {
     BKE_modifier_set_error(ob, md, "No valid target mesh");
     return;

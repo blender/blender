@@ -14,7 +14,7 @@
 CCL_NAMESPACE_BEGIN
 
 /* Evaluate shader on light. */
-ccl_device_noinline_cpu float3
+ccl_device_noinline_cpu Spectrum
 light_sample_shader_eval(KernelGlobals kg,
                          IntegratorState state,
                          ccl_private ShaderData *ccl_restrict emission_sd,
@@ -22,7 +22,7 @@ light_sample_shader_eval(KernelGlobals kg,
                          float time)
 {
   /* setup shading at emitter */
-  float3 eval = zero_float3();
+  Spectrum eval = zero_spectrum();
 
   if (shader_constant_emission_eval(kg, ls->shader, &eval)) {
     if ((ls->prim != PRIM_NONE) && dot(ls->Ng, ls->D) > 0.0f) {
@@ -82,7 +82,8 @@ light_sample_shader_eval(KernelGlobals kg,
 
   if (ls->lamp != LAMP_NONE) {
     ccl_global const KernelLight *klight = &kernel_data_fetch(lights, ls->lamp);
-    eval *= make_float3(klight->strength[0], klight->strength[1], klight->strength[2]);
+    eval *= rgb_to_spectrum(
+        make_float3(klight->strength[0], klight->strength[1], klight->strength[2]));
   }
 
   return eval;
@@ -137,8 +138,9 @@ ccl_device_inline float3 shadow_ray_smooth_surface_offset(
     triangle_vertices_and_normals(kg, sd->prim, V, N);
   }
 
-  const float u = sd->u, v = sd->v;
-  const float w = 1 - u - v;
+  const float u = 1.0f - sd->u - sd->v;
+  const float v = sd->u;
+  const float w = sd->v;
   float3 P = V[0] * u + V[1] * v + V[2] * w; /* Local space */
   float3 n = N[0] * u + N[1] * v + N[2] * w; /* We get away without normalization */
 

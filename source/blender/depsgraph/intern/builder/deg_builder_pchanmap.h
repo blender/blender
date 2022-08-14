@@ -9,8 +9,7 @@
 
 #include "intern/depsgraph_type.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct RootPChanMap {
   /** Debug contents of map. */
@@ -30,5 +29,4 @@ struct RootPChanMap {
   Map<StringRefNull, Set<StringRefNull>> map_;
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

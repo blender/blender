@@ -10,6 +10,7 @@
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 
 #include "DNA_ID.h"
 #include "DNA_mesh_types.h"
@@ -57,69 +58,24 @@ TEST(lib_id_main_sort, local_ids_1)
   test_lib_id_main_sort_check_order({id_a, id_b, id_c});
 }
 
-static void change_lib(Main * /*bmain*/, ID *id, Library *lib)
+static void change_lib(Main *bmain, ID *id, Library *lib)
 {
+  if (id->lib == lib) {
+    return;
+  }
+  BKE_main_namemap_remove_name(bmain, id, id->name + 2);
   id->lib = lib;
+  BKE_main_namemap_get_name(bmain, id, id->name + 2);
 }
 
 static void change_name(Main *bmain, ID *id, const char *name)
 {
+  BKE_main_namemap_remove_name(bmain, id, id->name + 2);
   BLI_strncpy(id->name + 2, name, MAX_NAME);
-  BKE_id_new_name_validate(&bmain->objects, id, nullptr, true);
+  BKE_id_new_name_validate(bmain, &bmain->objects, id, nullptr, true);
 }
 
 TEST(lib_id_main_sort, linked_ids_1)
-{
-  LibIDMainSortTestContext ctx;
-  EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
-
-  Library *lib_a = static_cast<Library *>(BKE_id_new(ctx.bmain, ID_LI, "LI_A"));
-  Library *lib_b = static_cast<Library *>(BKE_id_new(ctx.bmain, ID_LI, "LI_B"));
-  ID *id_c = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_C"));
-  ID *id_a = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_A"));
-  ID *id_b = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_B"));
-
-  id_a->lib = lib_a;
-  id_sort_by_name(&ctx.bmain->objects, id_a, nullptr);
-  id_b->lib = lib_a;
-  id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
-  EXPECT_TRUE(ctx.bmain->objects.first == id_c);
-  EXPECT_TRUE(ctx.bmain->objects.last == id_b);
-  test_lib_id_main_sort_check_order({id_c, id_a, id_b});
-
-  id_a->lib = lib_b;
-  id_sort_by_name(&ctx.bmain->objects, id_a, nullptr);
-  EXPECT_TRUE(ctx.bmain->objects.first == id_c);
-  EXPECT_TRUE(ctx.bmain->objects.last == id_a);
-  test_lib_id_main_sort_check_order({id_c, id_b, id_a});
-
-  id_b->lib = lib_b;
-  id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
-  EXPECT_TRUE(ctx.bmain->objects.first == id_c);
-  EXPECT_TRUE(ctx.bmain->objects.last == id_b);
-  test_lib_id_main_sort_check_order({id_c, id_a, id_b});
-}
-
-TEST(lib_id_main_unique_name, local_ids_1)
-{
-  LibIDMainSortTestContext ctx;
-  EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
-
-  ID *id_c = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_C"));
-  ID *id_a = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_A"));
-  ID *id_b = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_B"));
-  test_lib_id_main_sort_check_order({id_a, id_b, id_c});
-
-  change_name(ctx.bmain, id_c, "OB_A");
-
-  EXPECT_STREQ(id_c->name + 2, "OB_A.001");
-  EXPECT_STREQ(id_a->name + 2, "OB_A");
-  EXPECT_TRUE(ctx.bmain->objects.first == id_a);
-  EXPECT_TRUE(ctx.bmain->objects.last == id_b);
-  test_lib_id_main_sort_check_order({id_a, id_c, id_b});
-}
-
-TEST(lib_id_main_unique_name, linked_ids_1)
 {
   LibIDMainSortTestContext ctx;
   EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
@@ -134,6 +90,65 @@ TEST(lib_id_main_unique_name, linked_ids_1)
   id_sort_by_name(&ctx.bmain->objects, id_a, nullptr);
   change_lib(ctx.bmain, id_b, lib_a);
   id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
+  EXPECT_TRUE(ctx.bmain->objects.first == id_c);
+  EXPECT_TRUE(ctx.bmain->objects.last == id_b);
+  test_lib_id_main_sort_check_order({id_c, id_a, id_b});
+
+  change_lib(ctx.bmain, id_a, lib_b);
+  id_sort_by_name(&ctx.bmain->objects, id_a, nullptr);
+  EXPECT_TRUE(ctx.bmain->objects.first == id_c);
+  EXPECT_TRUE(ctx.bmain->objects.last == id_a);
+  test_lib_id_main_sort_check_order({id_c, id_b, id_a});
+
+  change_lib(ctx.bmain, id_b, lib_b);
+  id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
+  EXPECT_TRUE(ctx.bmain->objects.first == id_c);
+  EXPECT_TRUE(ctx.bmain->objects.last == id_b);
+  test_lib_id_main_sort_check_order({id_c, id_a, id_b});
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+}
+
+TEST(lib_id_main_unique_name, local_ids_1)
+{
+  LibIDMainSortTestContext ctx;
+  EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
+
+  ID *id_c = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_C"));
+  ID *id_a = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_A"));
+  ID *id_b = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_B"));
+  test_lib_id_main_sort_check_order({id_a, id_b, id_c});
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  change_name(ctx.bmain, id_c, "OB_A");
+
+  EXPECT_STREQ(id_c->name + 2, "OB_A.001");
+  EXPECT_STREQ(id_a->name + 2, "OB_A");
+  EXPECT_TRUE(ctx.bmain->objects.first == id_a);
+  EXPECT_TRUE(ctx.bmain->objects.last == id_b);
+  test_lib_id_main_sort_check_order({id_a, id_c, id_b});
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+}
+
+TEST(lib_id_main_unique_name, linked_ids_1)
+{
+  LibIDMainSortTestContext ctx;
+  EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
+
+  Library *lib_a = static_cast<Library *>(BKE_id_new(ctx.bmain, ID_LI, "LI_A"));
+  Library *lib_b = static_cast<Library *>(BKE_id_new(ctx.bmain, ID_LI, "LI_B"));
+  ID *id_c = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_C"));
+  ID *id_a = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_A"));
+  ID *id_b = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_B"));
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
+  change_lib(ctx.bmain, id_a, lib_a);
+  id_sort_by_name(&ctx.bmain->objects, id_a, nullptr);
+  change_lib(ctx.bmain, id_b, lib_a);
+  id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
 
   change_name(ctx.bmain, id_b, "OB_A");
   EXPECT_STREQ(id_b->name + 2, "OB_A.001");
@@ -141,6 +156,8 @@ TEST(lib_id_main_unique_name, linked_ids_1)
   EXPECT_TRUE(ctx.bmain->objects.first == id_c);
   EXPECT_TRUE(ctx.bmain->objects.last == id_b);
   test_lib_id_main_sort_check_order({id_c, id_a, id_b});
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
 
   change_lib(ctx.bmain, id_b, lib_b);
   id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
@@ -150,6 +167,8 @@ TEST(lib_id_main_unique_name, linked_ids_1)
   EXPECT_TRUE(ctx.bmain->objects.first == id_c);
   EXPECT_TRUE(ctx.bmain->objects.last == id_b);
   test_lib_id_main_sort_check_order({id_c, id_a, id_b});
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
 }
 
 TEST(lib_id_main_unique_name, ids_sorted_by_default)
@@ -161,12 +180,14 @@ TEST(lib_id_main_unique_name, ids_sorted_by_default)
   ID *id_baz = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "Baz"));
   ID *id_yes = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "Yes"));
   test_lib_id_main_sort_check_order({id_bar, id_baz, id_foo, id_yes});
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
 }
 
 static ID *add_id_in_library(Main *bmain, const char *name, Library *lib)
 {
   ID *id = static_cast<ID *>(BKE_id_new(bmain, ID_OB, name));
-  id->lib = lib;
+  change_lib(bmain, id, lib);
   id_sort_by_name(&bmain->objects, id, nullptr);
   return id;
 }
@@ -189,6 +210,8 @@ TEST(lib_id_main_unique_name, ids_sorted_by_default_with_libraries)
   ID *id_yes = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "Yes"));
 
   test_lib_id_main_sort_check_order({id_bar, id_baz, id_foo, id_yes, id_l1a, id_l1c, id_l2b});
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
 }
 
 TEST(lib_id_main_unique_name, name_too_long_handling)
@@ -205,6 +228,8 @@ TEST(lib_id_main_unique_name, name_too_long_handling)
   EXPECT_STREQ(id_a->name + 2, "Long_Name_That_Does_Not_Fit_Into_Max_Name_Limit_And_Should_Get_");
   EXPECT_STREQ(id_b->name + 2, "Another_Long_Name_That_Does_Not_Fit_And_Has_A_Number_Suffix.123");
   EXPECT_STREQ(id_c->name + 2, "Name_That_Has_Too_Long_Number_Suffix.1234567890"); /* Unchanged */
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
 }
 
 TEST(lib_id_main_unique_name, create_equivalent_numeric_suffixes)
@@ -238,6 +263,8 @@ TEST(lib_id_main_unique_name, create_equivalent_numeric_suffixes)
   EXPECT_STREQ(id_j->name + 2, "Foo..001");
   EXPECT_STREQ(id_k->name + 2, "Foo..000");
 
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
   /* Now create their exact duplicates again, and check what happens. */
   id_a = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "Foo.123"));
   id_b = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "Foo.000"));
@@ -262,6 +289,8 @@ TEST(lib_id_main_unique_name, create_equivalent_numeric_suffixes)
   EXPECT_STREQ(id_i->name + 2, "Foo...001");
   EXPECT_STREQ(id_j->name + 2, "Foo..003");
   EXPECT_STREQ(id_k->name + 2, "Foo..004");
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
 }
 
 TEST(lib_id_main_unique_name, zero_suffix_is_never_assigned)
@@ -277,6 +306,8 @@ TEST(lib_id_main_unique_name, zero_suffix_is_never_assigned)
   EXPECT_STREQ(id_002->name + 2, "Foo.002");
   EXPECT_STREQ(id_001->name + 2, "Foo.001");
   EXPECT_STREQ(id_003->name + 2, "Foo.003");
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
 }
 
 TEST(lib_id_main_unique_name, remove_after_dup_get_original_name)
@@ -290,8 +321,12 @@ TEST(lib_id_main_unique_name, remove_after_dup_get_original_name)
   EXPECT_STREQ(id_b->name + 2, "Foo.001");
   BKE_id_free(ctx.bmain, id_a);
 
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
   id_a = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "Foo"));
   EXPECT_STREQ(id_a->name + 2, "Foo");
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
 }
 
 TEST(lib_id_main_unique_name, name_number_suffix_assignment)
@@ -310,10 +345,14 @@ TEST(lib_id_main_unique_name, name_number_suffix_assignment)
   EXPECT_STREQ(ids[1]->name + 2, "Foo.001");
   EXPECT_STREQ(ids[total_object_count / 2 - 1]->name + 2, "Foo.599");
 
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
   /* Free some of the objects. */
   BKE_id_free(ctx.bmain, ids[10]);
   BKE_id_free(ctx.bmain, ids[20]);
   BKE_id_free(ctx.bmain, ids[30]);
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
 
   /* Create objects again; they should get suffixes that were just free'd up. */
   ID *id_010 = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "Foo"));
@@ -329,12 +368,16 @@ TEST(lib_id_main_unique_name, name_number_suffix_assignment)
   ID *id_600 = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "Foo"));
   EXPECT_STREQ(id_600->name + 2, "Foo.600");
 
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
   /* Max possible numeric suffix. */
   ID *id_max = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "Foo.999999999"));
   EXPECT_STREQ(id_max->name + 2, "Foo.999999999");
   /* Try with max. possible suffix again: will assign free suffix under 1k. */
   ID *id_max1 = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "Foo.999999999"));
   EXPECT_STREQ(id_max1->name + 2, "Foo.601");
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
 
   /* Now create the rest of objects, to use all the suffixes up to 1k.
    * Once all the ones up to 1k are used, the logic will fall back to
@@ -352,6 +395,8 @@ TEST(lib_id_main_unique_name, name_number_suffix_assignment)
   EXPECT_STREQ(id_fo179->name + 2, "Fo.179");
   ID *id_fo180 = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "Foo.999999999"));
   EXPECT_STREQ(id_fo180->name + 2, "Fo.180");
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
 }
 
 TEST(lib_id_main_unique_name, renames_with_duplicates)
@@ -366,6 +411,8 @@ TEST(lib_id_main_unique_name, renames_with_duplicates)
   EXPECT_STREQ(id_b->name + 2, "Foo.001");
   EXPECT_STREQ(id_c->name + 2, "Bar");
 
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+
   BKE_libblock_rename(ctx.bmain, id_a, "Foo.002");
   EXPECT_STREQ(id_a->name + 2, "Foo.002");
   BKE_libblock_rename(ctx.bmain, id_b, "Bar");
@@ -374,6 +421,8 @@ TEST(lib_id_main_unique_name, renames_with_duplicates)
   EXPECT_STREQ(id_c->name + 2, "Foo");
   BKE_libblock_rename(ctx.bmain, id_b, "Bar");
   EXPECT_STREQ(id_b->name + 2, "Bar");
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
 }
 
 TEST(lib_id_main_unique_name, names_are_unique_per_id_type)
@@ -387,6 +436,23 @@ TEST(lib_id_main_unique_name, names_are_unique_per_id_type)
   EXPECT_STREQ(id_a->name + 2, "Foo");
   EXPECT_STREQ(id_b->name + 2, "Foo"); /* Different types (OB & CA) can have the same name. */
   EXPECT_STREQ(id_c->name + 2, "Foo.001");
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
+}
+
+TEST(lib_id_main_unique_name, name_huge_number_suffix)
+{
+  LibIDMainSortTestContext ctx;
+
+  /* Use numeric suffix that is really large: should come through
+   * fine, since no duplicates with other names. */
+  ID *id_a = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "SuperLong.1234567890"));
+  EXPECT_STREQ(id_a->name + 2, "SuperLong.1234567890");
+  /* Now create with the same name again: should get 001 suffix. */
+  ID *id_b = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "SuperLong.1234567890"));
+  EXPECT_STREQ(id_b->name + 2, "SuperLong.001");
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
 }
 
 }  // namespace blender::bke::tests

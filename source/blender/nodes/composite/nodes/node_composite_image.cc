@@ -8,6 +8,7 @@
 #include "node_composite_util.hh"
 
 #include "BLI_linklist.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -16,6 +17,8 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
+
+#include "DEG_depsgraph_query.h"
 
 #include "DNA_scene_types.h"
 
@@ -26,6 +29,12 @@
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "GPU_shader.h"
+#include "GPU_texture.h"
+
+#include "COM_node_operation.hh"
+#include "COM_utilities.hh"
 
 /* **************** IMAGE (and RenderResult, multilayer image) ******************** */
 
@@ -433,6 +442,215 @@ static void node_composit_copy_image(bNodeTree *UNUSED(dest_ntree),
   }
 }
 
+using namespace blender::realtime_compositor;
+
+class ImageOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    if (!is_valid()) {
+      allocate_invalid();
+      return;
+    }
+
+    update_image_frame_number();
+
+    for (const OutputSocketRef *output : node()->outputs()) {
+      compute_output(output->identifier());
+    }
+  }
+
+  /* Returns true if the node results can be computed, otherwise, returns false. */
+  bool is_valid()
+  {
+    Image *image = get_image();
+    ImageUser *image_user = get_image_user();
+    if (!image || !image_user) {
+      return false;
+    }
+
+    if (BKE_image_is_multilayer(image)) {
+      if (!image->rr) {
+        return false;
+      }
+
+      RenderLayer *render_layer = get_render_layer();
+      if (!render_layer) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /* Allocate all needed outputs as invalid. This should be called when is_valid returns false. */
+  void allocate_invalid()
+  {
+    for (const OutputSocketRef *output : node()->outputs()) {
+      if (!should_compute_output(output->identifier())) {
+        continue;
+      }
+
+      Result &result = get_result(output->identifier());
+      result.allocate_invalid();
+    }
+  }
+
+  /* Compute the effective frame number of the image if it was animated and invalidate the cached
+   * GPU texture if the computed frame number is different. */
+  void update_image_frame_number()
+  {
+    BKE_image_user_frame_calc(get_image(), get_image_user(), context().get_frame_number());
+  }
+
+  void compute_output(StringRef identifier)
+  {
+    if (!should_compute_output(identifier)) {
+      return;
+    }
+
+    ImageUser image_user = compute_image_user_for_output(identifier);
+    GPUTexture *image_texture = BKE_image_get_gpu_texture(get_image(), &image_user, nullptr);
+
+    const int2 size = int2(GPU_texture_width(image_texture), GPU_texture_height(image_texture));
+    Result &result = get_result(identifier);
+    result.allocate_texture(Domain(size));
+
+    GPUShader *shader = shader_manager().get(get_shader_name(identifier));
+    GPU_shader_bind(shader);
+
+    const int input_unit = GPU_shader_get_texture_binding(shader, "input_tx");
+    GPU_texture_bind(image_texture, input_unit);
+
+    result.bind_as_image(shader, "output_img");
+
+    compute_dispatch_threads_at_least(shader, size);
+
+    GPU_shader_unbind();
+    GPU_texture_unbind(image_texture);
+    result.unbind_as_image();
+  }
+
+  /* Get a copy of the image user that is appropriate to retrieve the image buffer for the output
+   * with the given identifier. This essentially sets the appropriate pass and view indices that
+   * corresponds to the output.  */
+  ImageUser compute_image_user_for_output(StringRef identifier)
+  {
+    ImageUser image_user = *get_image_user();
+
+    /* Set the needed view. */
+    image_user.view = get_view_index();
+
+    /* Set the needed pass. */
+    if (BKE_image_is_multilayer(get_image())) {
+      image_user.pass = get_pass_index(get_pass_name(identifier));
+      BKE_image_multilayer_index(get_image()->rr, &image_user);
+    }
+    else {
+      BKE_image_multiview_index(get_image(), &image_user);
+    }
+
+    return image_user;
+  }
+
+  /* Get the shader that should be used to compute the output with the given identifier. The
+   * shaders just copy the retrieved image textures into the results except for the alpha output,
+   * which extracts the alpha and writes it to the result instead. Note that a call to a host
+   * texture copy doesn't work because results are stored in a different half float formats. */
+  const char *get_shader_name(StringRef identifier)
+  {
+    if (identifier == "Alpha") {
+      return "compositor_extract_alpha_from_color";
+    }
+    else if (get_result(identifier).type() == ResultType::Color) {
+      return "compositor_convert_color_to_half_color";
+    }
+    else {
+      return "compositor_convert_float_to_half_float";
+    }
+  }
+
+  Image *get_image()
+  {
+    return (Image *)bnode().id;
+  }
+
+  ImageUser *get_image_user()
+  {
+    return static_cast<ImageUser *>(bnode().storage);
+  }
+
+  /* Get the render layer selected in the node assuming the image is a multilayer image. */
+  RenderLayer *get_render_layer()
+  {
+    const ListBase *layers = &get_image()->rr->layers;
+    return static_cast<RenderLayer *>(BLI_findlink(layers, get_image_user()->layer));
+  }
+
+  /* Get the name of the pass corresponding to the output with the given identifier assuming the
+   * image is a multilayer image. */
+  const char *get_pass_name(StringRef identifier)
+  {
+    DOutputSocket output = node().output_by_identifier(identifier);
+    return static_cast<NodeImageLayer *>(output->bsocket()->storage)->pass_name;
+  }
+
+  /* Get the index of the pass with the given name in the selected render layer's passes list
+   * assuming the image is a multilayer image. */
+  int get_pass_index(const char *name)
+  {
+    return BLI_findstringindex(&get_render_layer()->passes, name, offsetof(RenderPass, name));
+  }
+
+  /* Get the index of the view selected in the node. If the image is not a multi-view image or only
+   * has a single view, then zero is returned. Otherwise, if the image is a multi-view image, the
+   * index of the selected view is returned. However, note that the value of the view member of the
+   * image user is not the actual index of the view. More specifically, the index 0 is reserved to
+   * denote the special mode of operation "All", which dynamically selects the view whose name
+   * matches the view currently being rendered. It follows that the views are then indexed starting
+   * from 1. So for non zero view values, the actual index of the view is the value of the view
+   * member of the image user minus 1. */
+  int get_view_index()
+  {
+    /* The image is not a multi-view image, so just return zero. */
+    if (!BKE_image_is_multiview(get_image())) {
+      return 0;
+    }
+
+    const ListBase *views = &get_image()->rr->views;
+    /* There is only one view and its index is 0. */
+    if (BLI_listbase_count_at_most(views, 2) < 2) {
+      return 0;
+    }
+
+    const int view = get_image_user()->view;
+    /* The view is not zero, which means it is manually specified and the actual index is then the
+     * view value minus 1. */
+    if (view != 0) {
+      return view - 1;
+    }
+
+    /* Otherwise, the view value is zero, denoting the special mode of operation "All", which finds
+     * the index of the view whose name matches the view currently being rendered. */
+    const char *view_name = context().get_view_name().data();
+    const int matched_view = BLI_findstringindex(views, view_name, offsetof(RenderView, name));
+
+    /* No view matches the view currently being rendered, so fallback to the first view. */
+    if (matched_view == -1) {
+      return 0;
+    }
+
+    return matched_view;
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, DNode node)
+{
+  return new ImageOperation(context, node);
+}
+
 }  // namespace blender::nodes::node_composite_image_cc
 
 void register_node_type_cmp_image()
@@ -446,6 +664,7 @@ void register_node_type_cmp_image()
   node_type_storage(
       &ntype, "ImageUser", file_ns::node_composit_free_image, file_ns::node_composit_copy_image);
   node_type_update(&ntype, file_ns::cmp_node_image_update);
+  ntype.get_compositor_operation = file_ns::get_compositor_operation;
   ntype.labelfunc = node_image_label;
   ntype.flag |= NODE_PREVIEW;
 
@@ -469,7 +688,7 @@ const char *node_cmp_rlayers_sock_to_pass(int sock_index)
   return (STREQ(name, "Alpha")) ? RE_PASSNAME_COMBINED : name;
 }
 
-namespace blender::nodes::node_composite_image_cc {
+namespace blender::nodes::node_composite_render_layer_cc {
 
 static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)
 {
@@ -595,11 +814,60 @@ static void node_composit_buts_viewlayers(uiLayout *layout, bContext *C, Pointer
   RNA_string_set(&op_ptr, "scene", scene_name);
 }
 
-}  // namespace blender::nodes::node_composite_image_cc
+using namespace blender::realtime_compositor;
+
+class RenderLayerOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    const int view_layer = bnode().custom1;
+    GPUTexture *pass_texture = context().get_input_texture(view_layer, SCE_PASS_COMBINED);
+    const int2 size = int2(GPU_texture_width(pass_texture), GPU_texture_height(pass_texture));
+
+    /* Compute image output. */
+    Result &image_result = get_result("Image");
+    image_result.allocate_texture(Domain(size));
+    GPU_texture_copy(image_result.texture(), pass_texture);
+
+    /* Compute alpha output. */
+    Result &alpha_result = get_result("Alpha");
+    alpha_result.allocate_texture(Domain(size));
+
+    GPUShader *shader = shader_manager().get("compositor_extract_alpha_from_color");
+    GPU_shader_bind(shader);
+
+    const int input_unit = GPU_shader_get_texture_binding(shader, "input_tx");
+    GPU_texture_bind(pass_texture, input_unit);
+
+    alpha_result.bind_as_image(shader, "output_img");
+
+    compute_dispatch_threads_at_least(shader, size);
+
+    GPU_shader_unbind();
+    GPU_texture_unbind(pass_texture);
+    alpha_result.unbind_as_image();
+
+    /* Other output passes are not supported for now, so allocate them as invalid. */
+    for (const OutputSocketRef *output : node()->outputs()) {
+      if (output->identifier() != "Image" && output->identifier() != "Alpha") {
+        get_result(output->identifier()).allocate_invalid();
+      }
+    }
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, DNode node)
+{
+  return new RenderLayerOperation(context, node);
+}
+
+}  // namespace blender::nodes::node_composite_render_layer_cc
 
 void register_node_type_cmp_rlayers()
 {
-  namespace file_ns = blender::nodes::node_composite_image_cc;
+  namespace file_ns = blender::nodes::node_composite_render_layer_cc;
 
   static bNodeType ntype;
 
@@ -608,6 +876,7 @@ void register_node_type_cmp_rlayers()
   ntype.draw_buttons = file_ns::node_composit_buts_viewlayers;
   ntype.initfunc_api = file_ns::node_composit_init_rlayers;
   ntype.poll = file_ns::node_composit_poll_rlayers;
+  ntype.get_compositor_operation = file_ns::get_compositor_operation;
   ntype.flag |= NODE_PREVIEW;
   node_type_storage(
       &ntype, nullptr, file_ns::node_composit_free_rlayers, file_ns::node_composit_copy_rlayers);

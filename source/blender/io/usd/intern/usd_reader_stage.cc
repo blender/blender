@@ -30,6 +30,9 @@
 
 #include <iostream>
 
+#include "BLI_sort.hh"
+#include "BLI_string.h"
+
 namespace blender::io::usd {
 
 USDStageReader::USDStageReader(pxr::UsdStageRefPtr stage,
@@ -291,8 +294,6 @@ USDPrimReader *USDStageReader::collect_readers(Main *bmain,
     return nullptr;
   }
 
-  reader->create_object(bmain, 0.0);
-
   r_readers.push_back(reader);
   reader->incref();
 
@@ -385,6 +386,16 @@ void USDStageReader::clear_proto_readers()
   }
 
   proto_readers_.clear();
+}
+
+void USDStageReader::sort_readers()
+{
+  blender::parallel_sort(
+      readers_.begin(), readers_.end(), [](const USDPrimReader *a, const USDPrimReader *b) {
+        const char *na = a ? a->name().c_str() : "";
+        const char *nb = b ? b->name().c_str() : "";
+        return BLI_strcasecmp(na, nb) < 0;
+      });
 }
 
 }  // Namespace blender::io::usd

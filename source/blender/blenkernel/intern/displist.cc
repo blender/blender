@@ -86,19 +86,6 @@ DispList *BKE_displist_find(ListBase *lb, int type)
   return nullptr;
 }
 
-void BKE_displist_copy(ListBase *lbn, const ListBase *lb)
-{
-  BKE_displist_free(lbn);
-
-  LISTBASE_FOREACH (const DispList *, dl, lb) {
-    DispList *dln = (DispList *)MEM_dupallocN(dl);
-    BLI_addtail(lbn, dln);
-    dln->verts = (float *)MEM_dupallocN(dl->verts);
-    dln->nors = (float *)MEM_dupallocN(dl->nors);
-    dln->index = (int *)MEM_dupallocN(dl->index);
-  }
-}
-
 void BKE_displist_normals_add(ListBase *lb)
 {
   float *vdata, *ndata, nor[3];

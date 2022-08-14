@@ -14,6 +14,7 @@
 
 #include "GPU_index_buffer.h"
 #include "GPU_shader.h"
+#include "GPU_storage_buffer.h"
 #include "GPU_uniform_buffer.h"
 #include "GPU_vertex_buffer.h"
 
@@ -92,8 +93,10 @@ void GPU_batch_init_ex(GPUBatch *batch,
  */
 void GPU_batch_copy(GPUBatch *batch_dst, GPUBatch *batch_src);
 
-#define GPU_batch_create(prim, verts, elem) GPU_batch_create_ex(prim, verts, elem, 0)
-#define GPU_batch_init(batch, prim, verts, elem) GPU_batch_init_ex(batch, prim, verts, elem, 0)
+#define GPU_batch_create(prim, verts, elem) \
+  GPU_batch_create_ex(prim, verts, elem, (eGPUBatchFlag)0)
+#define GPU_batch_init(batch, prim, verts, elem) \
+  GPU_batch_init_ex(batch, prim, verts, elem, (eGPUBatchFlag)0)
 
 /**
  * Same as discard but does not free. (does not call free callback).
@@ -171,7 +174,13 @@ void GPU_batch_draw_instanced(GPUBatch *batch, int i_count);
 /**
  * This does not bind/unbind shader and does not call GPU_matrix_bind().
  */
-void GPU_batch_draw_advanced(GPUBatch *, int v_first, int v_count, int i_first, int i_count);
+void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_first, int i_count);
+
+/**
+ * Issue a draw call using GPU computed arguments. The argument are expected to be valid for the
+ * type of geometry drawn (index or non-indexed).
+ */
+void GPU_batch_draw_indirect(GPUBatch *batch, GPUStorageBuf *indirect_buf);
 
 #if 0 /* future plans */
 

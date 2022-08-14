@@ -2,6 +2,7 @@
 
 #include "NOD_geometry_nodes_eval_log.hh"
 
+#include "BKE_curves.hh"
 #include "BKE_geometry_set_instances.hh"
 
 #include "DNA_modifier_types.h"
@@ -262,6 +263,17 @@ GeometryValueLog::GeometryValueLog(const GeometrySet &geometry_set, bool log_ful
         const InstancesComponent &instances_component = *(const InstancesComponent *)component;
         InstancesInfo &info = this->instances_info.emplace();
         info.instances_num = instances_component.instances_num();
+        break;
+      }
+      case GEO_COMPONENT_TYPE_EDIT: {
+        const GeometryComponentEditData &edit_component = *(
+            const GeometryComponentEditData *)component;
+        if (const bke::CurvesEditHints *curve_edit_hints =
+                edit_component.curves_edit_hints_.get()) {
+          EditDataInfo &info = this->edit_data_info.emplace();
+          info.has_deform_matrices = curve_edit_hints->deform_mats.has_value();
+          info.has_deformed_positions = curve_edit_hints->positions.has_value();
+        }
         break;
       }
       case GEO_COMPONENT_TYPE_VOLUME: {

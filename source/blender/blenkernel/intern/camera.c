@@ -25,8 +25,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_anim_data.h"
 #include "BKE_action.h"
+#include "BKE_anim_data.h"
 #include "BKE_camera.h"
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
@@ -222,7 +222,8 @@ float BKE_camera_object_dof_distance(const Object *ob)
   if (cam->dof.focus_object) {
     float view_dir[3], dof_dir[3];
     normalize_v3_v3(view_dir, ob->obmat[2]);
-    bPoseChannel *pchan = BKE_pose_channel_find_name(cam->dof.focus_object->pose, cam->dof.focus_subtarget);
+    bPoseChannel *pchan = BKE_pose_channel_find_name(cam->dof.focus_object->pose,
+                                                     cam->dof.focus_subtarget);
     if (pchan) {
       float posemat[4][4];
       mul_m4_m4m4(posemat, cam->dof.focus_object->obmat, pchan->pose_mat);

@@ -869,7 +869,8 @@ void uiTemplateImage(uiLayout *layout,
     uiItemS(col);
 
     uiItemR(col, &imaptr, "generated_type", UI_ITEM_R_EXPAND, IFACE_("Type"), ICON_NONE);
-    if (ima->gen_type == IMA_GENTYPE_BLANK) {
+    ImageTile *base_tile = BKE_image_get_tile(ima, 0);
+    if (base_tile->gen_type == IMA_GENTYPE_BLANK) {
       uiItemR(col, &imaptr, "generated_color", 0, NULL, ICON_NONE);
     }
   }
@@ -1210,6 +1211,11 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
     if (ibuf->zbuf || ibuf->zbuf_float) {
       ofs += BLI_strncpy_rlen(str + ofs, TIP_(" + Z"), len - ofs);
     }
+
+    eGPUTextureFormat texture_format = IMB_gpu_get_texture_format(ibuf,
+                                                                  ima->flag & IMA_HIGH_BITDEPTH);
+    const char *texture_format_description = GPU_texture_format_description(texture_format);
+    ofs += BLI_snprintf_rlen(str + ofs, len - ofs, TIP_(",  %s"), texture_format_description);
 
     uiItemL(col, str, ICON_NONE);
   }

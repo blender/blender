@@ -512,16 +512,24 @@ void BM_mesh_copy_init_customdata_from_mesh_array(BMesh *bm_dst,
   for (int i = 0; i < me_src_array_len; i++) {
     const Mesh *me_src = me_src_array[i];
     if (i == 0) {
-      CustomData_copy(&me_src->vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_CALLOC, 0);
-      CustomData_copy(&me_src->edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_CALLOC, 0);
-      CustomData_copy(&me_src->ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_CALLOC, 0);
-      CustomData_copy(&me_src->pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_CALLOC, 0);
+      CustomData_copy_mesh_to_bmesh(
+          &me_src->vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_CALLOC, 0);
+      CustomData_copy_mesh_to_bmesh(
+          &me_src->edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_CALLOC, 0);
+      CustomData_copy_mesh_to_bmesh(
+          &me_src->ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_CALLOC, 0);
+      CustomData_copy_mesh_to_bmesh(
+          &me_src->pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_CALLOC, 0);
     }
     else {
-      CustomData_merge(&me_src->vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_CALLOC, 0);
-      CustomData_merge(&me_src->edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_CALLOC, 0);
-      CustomData_merge(&me_src->ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_CALLOC, 0);
-      CustomData_merge(&me_src->pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_CALLOC, 0);
+      CustomData_merge_mesh_to_bmesh(
+          &me_src->vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_CALLOC, 0);
+      CustomData_merge_mesh_to_bmesh(
+          &me_src->edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_CALLOC, 0);
+      CustomData_merge_mesh_to_bmesh(
+          &me_src->ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_CALLOC, 0);
+      CustomData_merge_mesh_to_bmesh(
+          &me_src->pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_CALLOC, 0);
     }
 
     cd_flag |= me_src->cd_flag;
@@ -714,26 +722,25 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 
 char BM_vert_flag_from_mflag(const char mflag)
 {
-  return (((mflag & SELECT) ? BM_ELEM_SELECT : 0) | ((mflag & ME_HIDE) ? BM_ELEM_HIDDEN : 0));
+  return ((mflag & SELECT) ? BM_ELEM_SELECT : 0);
 }
 char BM_edge_flag_from_mflag(const short mflag)
 {
   return (((mflag & SELECT) ? BM_ELEM_SELECT : 0) | ((mflag & ME_SEAM) ? BM_ELEM_SEAM : 0) |
           ((mflag & ME_EDGEDRAW) ? BM_ELEM_DRAW : 0) |
-          ((mflag & ME_SHARP) == 0 ? BM_ELEM_SMOOTH : 0) | /* invert */
-          ((mflag & ME_HIDE) ? BM_ELEM_HIDDEN : 0));
+          ((mflag & ME_SHARP) == 0 ? BM_ELEM_SMOOTH : 0));
 }
 char BM_face_flag_from_mflag(const char mflag)
 {
   return (((mflag & ME_FACE_SEL) ? BM_ELEM_SELECT : 0) |
-          ((mflag & ME_SMOOTH) ? BM_ELEM_SMOOTH : 0) | ((mflag & ME_HIDE) ? BM_ELEM_HIDDEN : 0));
+          ((mflag & ME_SMOOTH) ? BM_ELEM_SMOOTH : 0));
 }
 
 char BM_vert_flag_to_mflag(BMVert *v)
 {
   const char hflag = v->head.hflag;
 
-  return (((hflag & BM_ELEM_SELECT) ? SELECT : 0) | ((hflag & BM_ELEM_HIDDEN) ? ME_HIDE : 0));
+  return (((hflag & BM_ELEM_SELECT) ? SELECT : 0));
 }
 
 short BM_edge_flag_to_mflag(BMEdge *e)
@@ -743,7 +750,6 @@ short BM_edge_flag_to_mflag(BMEdge *e)
   return (((hflag & BM_ELEM_SELECT) ? SELECT : 0) | ((hflag & BM_ELEM_SEAM) ? ME_SEAM : 0) |
           ((hflag & BM_ELEM_DRAW) ? ME_EDGEDRAW : 0) |
           ((hflag & BM_ELEM_SMOOTH) == 0 ? ME_SHARP : 0) |
-          ((hflag & BM_ELEM_HIDDEN) ? ME_HIDE : 0) |
           (BM_edge_is_wire(e) ? ME_LOOSEEDGE : 0) | /* not typical */
           ME_EDGERENDER);
 }
@@ -752,5 +758,5 @@ char BM_face_flag_to_mflag(BMFace *f)
   const char hflag = f->head.hflag;
 
   return (((hflag & BM_ELEM_SELECT) ? ME_FACE_SEL : 0) |
-          ((hflag & BM_ELEM_SMOOTH) ? ME_SMOOTH : 0) | ((hflag & BM_ELEM_HIDDEN) ? ME_HIDE : 0));
+          ((hflag & BM_ELEM_SMOOTH) ? ME_SMOOTH : 0));
 }

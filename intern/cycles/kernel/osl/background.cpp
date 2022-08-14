@@ -14,8 +14,12 @@
 
 // clang-format off
 #include "kernel/device/cpu/compat.h"
+#include "kernel/device/cpu/globals.h"
+
 #include "kernel/closure/alloc.h"
 #include "kernel/closure/emissive.h"
+
+#include "kernel/util/color.h"
 // clang-format on
 
 CCL_NAMESPACE_BEGIN
@@ -32,7 +36,7 @@ class GenericBackgroundClosure : public CClosurePrimitive {
  public:
   void setup(ShaderData *sd, uint32_t /* path_flag */, float3 weight)
   {
-    background_setup(sd, weight);
+    background_setup(sd, rgb_to_spectrum(weight));
   }
 };
 
@@ -47,7 +51,7 @@ class HoldoutClosure : CClosurePrimitive {
  public:
   void setup(ShaderData *sd, uint32_t /* path_flag */, float3 weight)
   {
-    closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_HOLDOUT_ID, weight);
+    closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_HOLDOUT_ID, rgb_to_spectrum(weight));
     sd->flag |= SD_HOLDOUT;
   }
 };

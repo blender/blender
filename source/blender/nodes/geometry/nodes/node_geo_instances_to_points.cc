@@ -22,16 +22,6 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Points"));
 }
 
-template<typename T>
-static void copy_attribute_to_points(const VArray<T> &src,
-                                     const IndexMask mask,
-                                     MutableSpan<T> dst)
-{
-  for (const int i : mask.index_range()) {
-    dst[i] = src[mask[i]];
-  }
-}
-
 static void convert_instances_to_points(GeometrySet &geometry_set,
                                         Field<float3> position_field,
                                         Field<float> radius_field,
@@ -51,16 +41,24 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
   if (selection.is_empty()) {
     return;
   }
+  const VArray<float3> &positions = evaluator.get_evaluated<float3>(0);
+  const VArray<float> radii = evaluator.get_evaluated<float>(1);
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
   geometry_set.replace_pointcloud(pointcloud);
 
-  PointCloudComponent &points = geometry_set.get_component_for_write<PointCloudComponent>();
+  bke::MutableAttributeAccessor point_attributes = bke::pointcloud_attributes_for_write(
+      *pointcloud);
 
-  const VArray<float3> &positions = evaluator.get_evaluated<float3>(0);
-  copy_attribute_to_points(positions, selection, {(float3 *)pointcloud->co, pointcloud->totpoint});
-  const VArray<float> radii = evaluator.get_evaluated<float>(1);
-  copy_attribute_to_points(radii, selection, {pointcloud->radius, pointcloud->totpoint});
+  bke::SpanAttributeWriter<float3> point_positions =
+      point_attributes.lookup_or_add_for_write_only_span<float3>("position", ATTR_DOMAIN_POINT);
+  bke::SpanAttributeWriter<float> point_radii =
+      point_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
+
+  positions.materialize_compressed_to_uninitialized(selection, point_positions.span);
+  radii.materialize_compressed_to_uninitialized(selection, point_radii.span);
+  point_positions.finish();
+  point_radii.finish();
 
   Map<AttributeIDRef, AttributeKind> attributes_to_propagate;
   geometry_set.gather_attributes_for_propagation({GEO_COMPONENT_TYPE_INSTANCES},
@@ -78,14 +76,11 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
     const GVArray src = instances.attributes()->lookup_or_default(
         attribute_id, ATTR_DOMAIN_INSTANCE, attribute_kind.data_type);
     BLI_assert(src);
-    GSpanAttributeWriter dst = points.attributes_for_write()->lookup_or_add_for_write_only_span(
+    GSpanAttributeWriter dst = point_attributes.lookup_or_add_for_write_only_span(
         attribute_id, ATTR_DOMAIN_POINT, attribute_kind.data_type);
     BLI_assert(dst);
 
-    attribute_math::convert_to_static_type(attribute_kind.data_type, [&](auto dummy) {
-      using T = decltype(dummy);
-      copy_attribute_to_points(src.typed<T>(), selection, dst.span.typed<T>());
-    });
+    src.materialize_compressed_to_uninitialized(selection, dst.span.data());
     dst.finish();
   }
 }
@@ -99,7 +94,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                 params.extract_input<Field<float3>>("Position"),
                                 params.extract_input<Field<float>>("Radius"),
                                 params.extract_input<Field<bool>>("Selection"));
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_POINT_CLOUD});
+    geometry_set.keep_only({GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_EDIT});
     params.set_output("Points", std::move(geometry_set));
   }
   else {

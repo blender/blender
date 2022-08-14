@@ -315,6 +315,12 @@ template<typename T> class VArrayImpl_For_Span_final final : public VArrayImpl_F
  public:
   using VArrayImpl_For_Span<T>::VArrayImpl_For_Span;
 
+  VArrayImpl_For_Span_final(const Span<T> data)
+      /* Cast const away, because the implementation for const and non const spans is shared. */
+      : VArrayImpl_For_Span<T>({const_cast<T *>(data.data()), data.size()})
+  {
+  }
+
  private:
   CommonVArrayInfo common_info() const final
   {
@@ -898,10 +904,7 @@ template<typename T> class VArray : public VArrayCommon<T> {
 
   VArray(varray_tag::span /* tag */, Span<T> span)
   {
-    /* Cast const away, because the virtual array implementation for const and non const spans is
-     * shared. */
-    MutableSpan<T> mutable_span{const_cast<T *>(span.data()), span.size()};
-    this->template emplace<VArrayImpl_For_Span_final<T>>(mutable_span);
+    this->template emplace<VArrayImpl_For_Span_final<T>>(span);
   }
 
   VArray(varray_tag::single /* tag */, T value, const int64_t size)

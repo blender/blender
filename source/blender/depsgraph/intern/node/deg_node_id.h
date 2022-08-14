@@ -12,8 +12,7 @@
 #include "DNA_ID.h"
 #include "intern/node/deg_node.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct ComponentNode;
 
@@ -92,8 +91,21 @@ struct IDNode : public Node {
 
   eDepsNode_LinkedState_Type linked_state;
 
-  /* Indicates the data-block is visible in the evaluated scene. */
-  bool is_directly_visible;
+  /* Indicates the data-block is to be considered visible in the evaluated scene.
+   *
+   * This flag is set during dependency graph build where check for an actual visibility might not
+   * be available yet due to driven or animated restriction flags. So it is more of an intent or,
+   * in other words, plausibility of the data-block to be visible. */
+  bool is_visible_on_build;
+
+  /* Evaluated state of whether evaluation considered this data-block "enabled".
+   *
+   * For objects this is derived from the base restriction flags, which might be animated or
+   * driven. It is set to `BASE_ENABLED_<VIEWPORT, RENDER>` (depending on the graph mode) after
+   * the object's flags from layer were evaluated.
+   *
+   * For other data-types is currently always true. */
+  bool is_enabled_on_eval;
 
   /* For the collection type of ID, denotes whether collection was fully
    * recursed into. */
@@ -117,5 +129,4 @@ struct IDNode : public Node {
   DEG_DEPSNODE_DECLARE;
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

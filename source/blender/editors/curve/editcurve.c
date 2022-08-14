@@ -1279,7 +1279,7 @@ void ED_curve_editnurb_make(Object *obedit)
 
     if (actkey) {
       // XXX strcpy(G.editModeTitleExtra, "(Key) ");
-      /* TODO(campbell): undo_system: investigate why this was needed. */
+      /* TODO(@campbellbarton): undo_system: investigate why this was needed. */
 #if 0
       undo_editmode_clear();
 #endif
@@ -1540,67 +1540,6 @@ void CURVE_OT_split(wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 /** \name Flag Utility Functions
  * \{ */
-
-static bool isNurbselUV(const Nurb *nu, uint8_t flag, int *r_u, int *r_v)
-{
-  /* return (u != -1): 1 row in u-direction selected. U has value between 0-pntsv
-   * return (v != -1): 1 column in v-direction selected. V has value between 0-pntsu
-   */
-  BPoint *bp;
-  int a, b, sel;
-
-  *r_u = *r_v = -1;
-
-  bp = nu->bp;
-  for (b = 0; b < nu->pntsv; b++) {
-    sel = 0;
-    for (a = 0; a < nu->pntsu; a++, bp++) {
-      if (bp->f1 & flag) {
-        sel++;
-      }
-    }
-    if (sel == nu->pntsu) {
-      if (*r_u == -1) {
-        *r_u = b;
-      }
-      else {
-        return 0;
-      }
-    }
-    else if (sel > 1) {
-      return 0; /* because sel == 1 is still ok */
-    }
-  }
-
-  for (a = 0; a < nu->pntsu; a++) {
-    sel = 0;
-    bp = &nu->bp[a];
-    for (b = 0; b < nu->pntsv; b++, bp += nu->pntsu) {
-      if (bp->f1 & flag) {
-        sel++;
-      }
-    }
-    if (sel == nu->pntsv) {
-      if (*r_v == -1) {
-        *r_v = a;
-      }
-      else {
-        return 0;
-      }
-    }
-    else if (sel > 1) {
-      return 0;
-    }
-  }
-
-  if (*r_u == -1 && *r_v > -1) {
-    return 1;
-  }
-  if (*r_v == -1 && *r_u > -1) {
-    return 1;
-  }
-  return 0;
-}
 
 /* return true if U direction is selected and number of selected columns v */
 static bool isNurbselU(Nurb *nu, int *v, int flag)
@@ -1976,119 +1915,201 @@ static void ed_curve_delete_selected(Object *obedit, View3D *v3d)
   }
 }
 
+static void select_bpoints(BPoint *bp,
+                           const int stride,
+                           const int count,
+                           const bool selstatus,
+                           const uint8_t flag,
+                           const bool hidden)
+{
+  for (int i = 0; i < count; i++) {
+    select_bpoint(bp, selstatus, flag, hidden);
+    bp += stride;
+  }
+}
+
+/**
+ * Calculate and return fully selected legs along i dimension.
+ * Calculates intervals to create extrusion by duplicating existing points while copied to
+ * destination NURBS. For ex. for curve of 3 points indexed by 0..2  to extrude first and last
+ * point copy intervals would be [0, 0][0, 2][2, 2]. Representation in copy_intervals array would
+ * be [0, 0, 2, 2]. Returns -1 if selection is not valid.
+ */
+static int sel_to_copy_ints(const BPoint *bp,
+                            const int next_j,
+                            const int max_j,
+                            const int next_i,
+                            const int max_i,
+                            const uint8_t flag,
+                            int copy_intervals[],
+                            int *interval_count,
+                            bool *out_is_first_sel)
+{
+  const BPoint *bp_j = bp;
+
+  int selected_leg_count = 0;
+  int ins = 0;
+  int selected_in_prev_leg = -1;
+  int not_full = -1;
+
+  bool is_first_sel = false;
+  bool is_last_sel = false;
+
+  for (int j = 0; j < max_j; j++, bp_j += next_j) {
+    const BPoint *bp_j_i = bp_j;
+    int selected_in_curr_leg = 0;
+    for (int i = 0; i < max_i; i++, bp_j_i += next_i) {
+      if (bp_j_i->f1 & flag) {
+        selected_in_curr_leg++;
+      }
+    }
+    if (selected_in_curr_leg == max_i) {
+      selected_leg_count++;
+      if (j == 0) {
+        is_first_sel = true;
+      }
+      else if (j + 1 == max_j) {
+        is_last_sel = true;
+      }
+    }
+    else if (not_full == -1) {
+      not_full = selected_in_curr_leg;
+    }
+    /* We have partially selected leg in opposite dimension if condition is met. */
+    else if (not_full != selected_in_curr_leg) {
+      return -1;
+    }
+    /* Extrusion area starts/ends if met. */
+    if (selected_in_prev_leg != selected_in_curr_leg) {
+      copy_intervals[ins] = selected_in_curr_leg == max_i || j == 0 ? j : j - 1;
+      ins++;
+      selected_in_prev_leg = selected_in_curr_leg;
+    }
+    copy_intervals[ins] = j;
+  }
+  if (selected_leg_count &&
+      /* Prevents leading and trailing unselected legs if all selected.
+       * Unless it is extrusion from point or curve.*/
+      (selected_leg_count < max_j || max_j == 1)) {
+    /* Prepend unselected leg if more than one leg selected at the starting edge.
+     * max_j == 1 handles extrusion from point to curve and from curve to surface cases. */
+    if (is_first_sel && (copy_intervals[0] < copy_intervals[1] || max_j == 1)) {
+      memmove(copy_intervals + 1, copy_intervals, (ins + 1) * sizeof(copy_intervals[0]));
+      copy_intervals[0] = 0;
+      ins++;
+      is_first_sel = false;
+    }
+    /* Append unselected leg if more than one leg selected at the end. */
+    if (is_last_sel && copy_intervals[ins - 1] < copy_intervals[ins]) {
+      copy_intervals[ins + 1] = copy_intervals[ins];
+      ins++;
+    }
+  }
+  *interval_count = ins;
+  *out_is_first_sel = ins > 1 ? is_first_sel : false;
+  return selected_leg_count;
+}
+
+typedef struct NurbDim {
+  int pntsu;
+  int pntsv;
+} NurbDim;
+
+static NurbDim editnurb_find_max_points_num(const EditNurb *editnurb)
+{
+  NurbDim ret = {0, 0};
+  LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
+    if (nu->pntsu > ret.pntsu) {
+      ret.pntsu = nu->pntsu;
+    }
+    if (nu->pntsv > ret.pntsv) {
+      ret.pntsv = nu->pntsv;
+    }
+  }
+  return ret;
+}
+
 bool ed_editnurb_extrude_flag(EditNurb *editnurb, const uint8_t flag)
 {
-  BPoint *bp, *bpn, *newbp;
-  int a, u, v, len;
+  const NurbDim max = editnurb_find_max_points_num(editnurb);
+  /* One point induces at most one interval. Except single point case, it can give + 1.
+   * Another +1 is for first element of the first interval. */
+  int *const intvls_u = MEM_malloc_arrayN(max.pntsu + 2, sizeof(int), "extrudeNurb0");
+  int *const intvls_v = MEM_malloc_arrayN(max.pntsv + 2, sizeof(int), "extrudeNurb1");
   bool ok = false;
 
   LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
-    if (nu->pntsv == 1) {
-      bp = nu->bp;
-      a = nu->pntsu;
-      while (a) {
-        if (bp->f1 & flag) {
-          /* pass */
-        }
-        else {
-          break;
-        }
-        bp++;
-        a--;
-      }
-      if (a == 0) {
-        ok = true;
-        newbp = (BPoint *)MEM_mallocN(2 * nu->pntsu * sizeof(BPoint), "extrudeNurb1");
-        ED_curve_bpcpy(editnurb, newbp, nu->bp, nu->pntsu);
-        bp = newbp + nu->pntsu;
-        ED_curve_bpcpy(editnurb, bp, nu->bp, nu->pntsu);
-        MEM_freeN(nu->bp);
-        nu->bp = newbp;
-        a = nu->pntsu;
-        while (a--) {
-          select_bpoint(bp, SELECT, flag, HIDDEN);
-          select_bpoint(newbp, DESELECT, flag, HIDDEN);
-          bp++;
-          newbp++;
-        }
+    int intvl_cnt_u;
+    bool is_first_sel_u;
 
-        nu->pntsv = 2;
-        nu->orderv = 2;
-        BKE_nurb_knot_calc_v(nu);
-      }
+    /* Calculate selected U legs and intervals for their extrusion. */
+    const int selected_us = sel_to_copy_ints(
+        nu->bp, 1, nu->pntsu, nu->pntsu, nu->pntsv, flag, intvls_u, &intvl_cnt_u, &is_first_sel_u);
+    if (selected_us == -1) {
+      continue;
+    }
+    int intvl_cnt_v;
+    bool is_first_sel_v;
+
+    const bool is_point = nu->pntsu == 1;
+    const bool is_curve = nu->pntsv == 1;
+    const bool extrude_every_u_point = selected_us == nu->pntsu;
+    if (is_point || (is_curve && !extrude_every_u_point)) {
+      intvls_v[0] = intvls_v[1] = 0;
+      intvl_cnt_v = 1;
+      is_first_sel_v = false;
     }
     else {
-      /* which row or column is selected */
+      sel_to_copy_ints(nu->bp,
+                       nu->pntsu,
+                       nu->pntsv,
+                       1,
+                       nu->pntsu,
+                       flag,
+                       intvls_v,
+                       &intvl_cnt_v,
+                       &is_first_sel_v);
+    }
 
-      if (isNurbselUV(nu, flag, &u, &v)) {
+    const int new_pntsu = nu->pntsu + intvl_cnt_u - 1;
+    const int new_pntsv = nu->pntsv + intvl_cnt_v - 1;
+    BPoint *const new_bp = (BPoint *)MEM_malloc_arrayN(
+        new_pntsu * new_pntsv, sizeof(BPoint), "extrudeNurb2");
+    BPoint *new_bp_v = new_bp;
 
-        /* deselect all */
-        bp = nu->bp;
-        a = nu->pntsu * nu->pntsv;
-        while (a--) {
-          select_bpoint(bp, DESELECT, flag, HIDDEN);
-          bp++;
-        }
-
-        if (ELEM(u, 0, nu->pntsv - 1)) { /* row in u-direction selected */
-          ok = true;
-          newbp = (BPoint *)MEM_mallocN(nu->pntsu * (nu->pntsv + 1) * sizeof(BPoint),
-                                        "extrudeNurb1");
-          if (u == 0) {
-            len = nu->pntsv * nu->pntsu;
-            ED_curve_bpcpy(editnurb, newbp + nu->pntsu, nu->bp, len);
-            ED_curve_bpcpy(editnurb, newbp, nu->bp, nu->pntsu);
-            bp = newbp;
-          }
-          else {
-            len = nu->pntsv * nu->pntsu;
-            ED_curve_bpcpy(editnurb, newbp, nu->bp, len);
-            ED_curve_bpcpy(editnurb, newbp + len, &nu->bp[len - nu->pntsu], nu->pntsu);
-            bp = newbp + len;
-          }
-
-          a = nu->pntsu;
-          while (a--) {
-            select_bpoint(bp, SELECT, flag, HIDDEN);
-            bp++;
-          }
-
-          MEM_freeN(nu->bp);
-          nu->bp = newbp;
-          nu->pntsv++;
-          BKE_nurb_knot_calc_v(nu);
-        }
-        else if (ELEM(v, 0, nu->pntsu - 1)) { /* column in v-direction selected */
-          ok = true;
-          bpn = newbp = (BPoint *)MEM_mallocN((nu->pntsu + 1) * nu->pntsv * sizeof(BPoint),
-                                              "extrudeNurb1");
-          bp = nu->bp;
-
-          for (a = 0; a < nu->pntsv; a++) {
-            if (v == 0) {
-              *bpn = *bp;
-              bpn->f1 |= flag;
-              bpn++;
-            }
-            ED_curve_bpcpy(editnurb, bpn, bp, nu->pntsu);
-            bp += nu->pntsu;
-            bpn += nu->pntsu;
-            if (v == nu->pntsu - 1) {
-              *bpn = *(bp - 1);
-              bpn->f1 |= flag;
-              bpn++;
-            }
-          }
-
-          MEM_freeN(nu->bp);
-          nu->bp = newbp;
-          nu->pntsu++;
-          BKE_nurb_knot_calc_u(nu);
+    bool selected_v = is_first_sel_v;
+    for (int j = 1; j <= intvl_cnt_v; j++, selected_v = !selected_v) {
+      BPoint *old_bp_v = nu->bp + intvls_v[j - 1] * nu->pntsu;
+      for (int v_j = intvls_v[j - 1]; v_j <= intvls_v[j];
+           v_j++, new_bp_v += new_pntsu, old_bp_v += nu->pntsu) {
+        BPoint *new_bp_u_v = new_bp_v;
+        bool selected_u = is_first_sel_u;
+        for (int i = 1; i <= intvl_cnt_u; i++, selected_u = !selected_u) {
+          const int copy_from = intvls_u[i - 1];
+          const int copy_to = intvls_u[i];
+          const int copy_count = copy_to - copy_from + 1;
+          const bool sel_status = selected_u || selected_v ? SELECT : DESELECT;
+          ED_curve_bpcpy(editnurb, new_bp_u_v, old_bp_v + copy_from, copy_count);
+          select_bpoints(new_bp_u_v, 1, copy_count, sel_status, flag, HIDDEN);
+          new_bp_u_v += copy_count;
         }
       }
     }
-  }
 
+    MEM_freeN(nu->bp);
+    nu->bp = new_bp;
+    nu->pntsu = new_pntsu;
+    if (nu->pntsv == 1 && new_pntsv > 1) {
+      nu->orderv = 2;
+    }
+    nu->pntsv = new_pntsv;
+    BKE_nurb_knot_calc_u(nu);
+    BKE_nurb_knot_calc_v(nu);
+
+    ok = true;
+  }
+  MEM_freeN(intvls_u);
+  MEM_freeN(intvls_v);
   return ok;
 }
 
@@ -5695,23 +5716,12 @@ static int curve_extrude_exec(bContext *C, wmOperator *UNUSED(op))
     Curve *cu = obedit->data;
     EditNurb *editnurb = cu->editnurb;
     bool changed = false;
-    bool as_curve = false;
 
     if (!ED_curve_select_check(v3d, cu->editnurb)) {
       continue;
     }
 
-    /* First test: curve? */
-    if (obedit->type != OB_CURVES_LEGACY) {
-      LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
-        if ((nu->pntsv == 1) && (ED_curve_nurb_select_count(v3d, nu) < nu->pntsu)) {
-          as_curve = true;
-          break;
-        }
-      }
-    }
-
-    if (obedit->type == OB_CURVES_LEGACY || as_curve) {
+    if (obedit->type == OB_CURVES_LEGACY) {
       changed = ed_editcurve_extrude(cu, editnurb, v3d);
     }
     else {

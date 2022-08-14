@@ -913,8 +913,6 @@ void BlenderDisplayDriver::flush()
 void BlenderDisplayDriver::draw(const Params &params)
 {
   /* See do_update_begin() for why no locking is required here. */
-  const bool transparent = true;  // TODO(sergey): Derive this from Film.
-
   if (use_gl_context_) {
     gl_context_mutex_.lock();
   }
@@ -935,10 +933,8 @@ void BlenderDisplayDriver::draw(const Params &params)
     glWaitSync((GLsync)gl_upload_sync_, 0, GL_TIMEOUT_IGNORED);
   }
 
-  if (transparent) {
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-  }
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
   glActiveTexture(GL_TEXTURE0);
 
@@ -975,9 +971,7 @@ void BlenderDisplayDriver::draw(const Params &params)
 
   glDeleteVertexArrays(1, &vertex_array_object);
 
-  if (transparent) {
-    glDisable(GL_BLEND);
-  }
+  glDisable(GL_BLEND);
 
   gl_render_sync_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
   glFlush();

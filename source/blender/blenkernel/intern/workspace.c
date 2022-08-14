@@ -456,12 +456,12 @@ WorkSpaceLayout *BKE_workspace_layout_iter_circular(const WorkSpace *workspace,
   WorkSpaceLayout *iter_layout;
 
   if (iter_backward) {
-    LISTBASE_CIRCULAR_BACKWARD_BEGIN (&workspace->layouts, iter_layout, start) {
+    LISTBASE_CIRCULAR_BACKWARD_BEGIN (WorkSpaceLayout *, &workspace->layouts, iter_layout, start) {
       if (!callback(iter_layout, arg)) {
         return iter_layout;
       }
     }
-    LISTBASE_CIRCULAR_BACKWARD_END(&workspace->layouts, iter_layout, start);
+    LISTBASE_CIRCULAR_BACKWARD_END(WorkSpaceLayout *, &workspace->layouts, iter_layout, start);
   }
   else {
     LISTBASE_CIRCULAR_FORWARD_BEGIN (&workspace->layouts, iter_layout, start) {

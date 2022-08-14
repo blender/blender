@@ -51,7 +51,9 @@
 typedef struct SeqDropCoords {
   float start_frame, channel;
   int strip_len, channel_len;
+  float playback_rate;
   bool in_use;
+  bool has_read_mouse_pos;
   bool is_intersecting;
   bool use_snapping;
   float snap_point_x;
@@ -63,7 +65,7 @@ typedef struct SeqDropCoords {
  * preloading data on drag start.
  * Therefore we will for now use a global variable for this.
  */
-static SeqDropCoords g_drop_coords = {.in_use = false};
+static SeqDropCoords g_drop_coords = {.in_use = false, .has_read_mouse_pos = false};
 
 static void generic_poll_operations(const wmEvent *event, uint8_t type)
 {
@@ -82,31 +84,134 @@ static bool image_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *ev
     }
   }
 
-  return WM_drag_is_ID_type(drag, ID_IM);
+  if (WM_drag_is_ID_type(drag, ID_IM)) {
+    generic_poll_operations(event, TH_SEQ_IMAGE);
+    return true;
+  }
+
+  return false;
+}
+
+static bool is_movie(wmDrag *drag)
+{
+  if (drag->type == WM_DRAG_PATH) {
+    if (ELEM(drag->icon, ICON_FILE_MOVIE, ICON_FILE_BLANK)) { /* Rule might not work? */
+      return true;
+    }
+  }
+  if (WM_drag_is_ID_type(drag, ID_MC)) {
+    return true;
+  }
+  return false;
 }
 
 static bool movie_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *event)
 {
+  if (is_movie(drag)) {
+    generic_poll_operations(event, TH_SEQ_MOVIE);
+    return true;
+  }
+
+  return false;
+}
+
+static bool is_sound(wmDrag *drag)
+{
   if (drag->type == WM_DRAG_PATH) {
-    if (ELEM(drag->icon, 0, ICON_FILE_MOVIE, ICON_FILE_BLANK)) { /* Rule might not work? */
-      generic_poll_operations(event, TH_SEQ_MOVIE);
+    if (ELEM(drag->icon, ICON_FILE_SOUND, ICON_FILE_BLANK)) { /* Rule might not work? */
       return true;
     }
   }
-
-  return WM_drag_is_ID_type(drag, ID_MC);
+  if (WM_drag_is_ID_type(drag, ID_SO)) {
+    return true;
+  }
+  return false;
 }
 
 static bool sound_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *event)
 {
-  if (drag->type == WM_DRAG_PATH) {
-    if (ELEM(drag->icon, ICON_FILE_SOUND, ICON_FILE_BLANK)) { /* Rule might not work? */
-      generic_poll_operations(event, TH_SEQ_AUDIO);
-      return true;
+  if (is_sound(drag)) {
+    generic_poll_operations(event, TH_SEQ_AUDIO);
+    return true;
+  }
+
+  return false;
+}
+
+static float update_overlay_strip_position_data(bContext *C, const int mval[2])
+{
+  SeqDropCoords *coords = &g_drop_coords;
+  ARegion *region = CTX_wm_region(C);
+  Scene *scene = CTX_data_scene(C);
+  int hand;
+  View2D *v2d = &region->v2d;
+
+  /* Update the position were we would place the strip if we complete the drag and drop action.
+   */
+  UI_view2d_region_to_view(v2d, mval[0], mval[1], &coords->start_frame, &coords->channel);
+  coords->start_frame = roundf(coords->start_frame);
+  if (coords->channel < 1.0f) {
+    coords->channel = 1;
+  }
+
+  float start_frame = coords->start_frame;
+  float end_frame;
+  float strip_len;
+
+  if (coords->playback_rate != 0.0f) {
+    float scene_playback_rate = (float)scene->r.frs_sec / scene->r.frs_sec_base;
+    strip_len = coords->strip_len / (coords->playback_rate / scene_playback_rate);
+  }
+  else {
+    strip_len = coords->strip_len;
+  }
+
+  end_frame = coords->start_frame + strip_len;
+
+  if (coords->use_snapping) {
+    /* Do snapping via the existing transform code. */
+    int snap_delta;
+    float snap_frame;
+    bool valid_snap;
+
+    valid_snap = ED_transform_snap_sequencer_to_closest_strip_calc(
+        scene, region, start_frame, end_frame, &snap_delta, &snap_frame);
+
+    if (valid_snap) {
+      /* We snapped onto something! */
+      start_frame += snap_delta;
+      coords->start_frame = start_frame;
+      end_frame = start_frame + strip_len;
+      coords->snap_point_x = snap_frame;
+    }
+    else {
+      /* Nothing was snapped to, disable snap drawing. */
+      coords->use_snapping = false;
     }
   }
 
-  return WM_drag_is_ID_type(drag, ID_SO);
+  if (strip_len < 1) {
+    /* Only check if there is a strip already under the mouse cursor. */
+    coords->is_intersecting = find_nearest_seq(scene, &region->v2d, &hand, mval);
+  }
+  else {
+    /* Check if there is a strip that would intersect with the new strip(s). */
+    coords->is_intersecting = false;
+    Sequence dummy_seq = {.machine = coords->channel,
+                          .start = coords->start_frame,
+                          .len = coords->strip_len,
+                          .speed_factor = 1.0f,
+                          .media_playback_rate = coords->playback_rate,
+                          .flag = SEQ_AUTO_PLAYBACK_RATE};
+    Editing *ed = SEQ_editing_ensure(scene);
+
+    for (int i = 0; i < coords->channel_len && !coords->is_intersecting; i++) {
+      coords->is_intersecting = SEQ_transform_test_overlap(scene, ed->seqbasep, &dummy_seq);
+      dummy_seq.machine++;
+    }
+  }
+
+  return strip_len;
 }
 
 static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
@@ -153,93 +258,77 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
       RNA_collection_add(drop->ptr, "files", &itemptr);
       RNA_string_set(&itemptr, "name", file);
     }
+  }
 
-    if (g_drop_coords.in_use) {
-      RNA_int_set(drop->ptr, "frame_start", g_drop_coords.start_frame);
-      RNA_int_set(drop->ptr, "channel", g_drop_coords.channel);
-      RNA_boolean_set(drop->ptr, "overlap_shuffle_override", true);
+  if (g_drop_coords.in_use) {
+    if (!g_drop_coords.has_read_mouse_pos) {
+      /* We didn't read the mouse position, so we need to do it manually here. */
+      int xy[2];
+      wmWindow *win = CTX_wm_window(C);
+      xy[0] = win->eventstate->xy[0];
+      xy[1] = win->eventstate->xy[1];
+
+      ARegion *region = CTX_wm_region(C);
+      int mval[2];
+      /* Convert mouse coordinates to region local coordinates. */
+      mval[0] = xy[0] - region->winrct.xmin;
+      mval[1] = xy[1] - region->winrct.ymin;
+
+      update_overlay_strip_position_data(C, mval);
     }
-    else {
-      Scene *scene = CTX_data_scene(C);
-      Editing *ed = SEQ_editing_get(scene);
-      ListBase *seqbase = SEQ_active_seqbase_get(ed);
-      ListBase *channels = SEQ_channels_displayed_get(ed);
-      SpaceSeq *sseq = CTX_wm_space_seq(C);
 
-      SeqCollection *strips = SEQ_query_rendered_strips(
-          scene, channels, seqbase, scene->r.cfra, sseq->chanshown);
+    RNA_int_set(drop->ptr, "frame_start", g_drop_coords.start_frame);
+    RNA_int_set(drop->ptr, "channel", g_drop_coords.channel);
+    RNA_boolean_set(drop->ptr, "overlap_shuffle_override", true);
+  }
+  else {
+    /* We are dropped inside the preview region. Put the strip on top of the
+     * current displayed frame. */
+    Scene *scene = CTX_data_scene(C);
+    Editing *ed = SEQ_editing_get(scene);
+    ListBase *seqbase = SEQ_active_seqbase_get(ed);
+    ListBase *channels = SEQ_channels_displayed_get(ed);
+    SpaceSeq *sseq = CTX_wm_space_seq(C);
 
-      /* Get the top most strip channel that is in view.*/
-      Sequence *seq;
-      int max_channel = -1;
-      SEQ_ITERATOR_FOREACH (seq, strips) {
-        max_channel = max_ii(seq->machine, max_channel);
-      }
+    SeqCollection *strips = SEQ_query_rendered_strips(
+        scene, channels, seqbase, scene->r.cfra, sseq->chanshown);
 
-      if (max_channel != -1) {
-        RNA_int_set(drop->ptr, "channel", max_channel);
-      }
-      SEQ_collection_free(strips);
+    /* Get the top most strip channel that is in view.*/
+    Sequence *seq;
+    int max_channel = -1;
+    SEQ_ITERATOR_FOREACH (seq, strips) {
+      max_channel = max_ii(seq->machine, max_channel);
     }
+
+    if (max_channel != -1) {
+      RNA_int_set(drop->ptr, "channel", max_channel);
+    }
+    SEQ_collection_free(strips);
   }
 }
 
-static void update_overlay_strip_poistion_data(bContext *C, const int mval[2])
+static void get_drag_path(wmDrag *drag, char r_path[FILE_MAX])
 {
-  SeqDropCoords *coords = &g_drop_coords;
-  ARegion *region = CTX_wm_region(C);
-  Scene *scene = CTX_data_scene(C);
-  int hand;
-  View2D *v2d = &region->v2d;
-
-  /* Update the position were we would place the strip if we complete the drag and drop action.
-   */
-  UI_view2d_region_to_view(v2d, mval[0], mval[1], &coords->start_frame, &coords->channel);
-  coords->start_frame = roundf(coords->start_frame);
-  if (coords->channel < 1.0f) {
-    coords->channel = 1;
-  }
-
-  float start_frame = coords->start_frame;
-  float end_frame = coords->start_frame + coords->strip_len;
-
-  if (coords->use_snapping) {
-    /* Do snapping via the existing transform code. */
-    int snap_delta;
-    float snap_frame;
-    bool valid_snap;
-
-    valid_snap = ED_transform_snap_sequencer_to_closest_strip_calc(
-        scene, region, start_frame, end_frame, &snap_delta, &snap_frame);
-
-    if (valid_snap) {
-      /* We snapped onto something! */
-      start_frame += snap_delta;
-      coords->start_frame = start_frame;
-      end_frame = start_frame + coords->strip_len;
-      coords->snap_point_x = snap_frame;
+  ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
+  /* ID dropped. */
+  if (id != NULL) {
+    const ID_Type id_type = GS(id->name);
+    if (id_type == ID_IM) {
+      Image *ima = (Image *)id;
+      BLI_strncpy(r_path, ima->filepath, FILE_MAX);
     }
-    else {
-      /* Nothing was snapped to, disable snap drawing. */
-      coords->use_snapping = false;
+    else if (id_type == ID_MC) {
+      MovieClip *clip = (MovieClip *)id;
+      BLI_strncpy(r_path, clip->filepath, FILE_MAX);
     }
-  }
-
-  if (coords->strip_len < 1) {
-    /* Only check if there is a strip already under the mouse cursor. */
-    coords->is_intersecting = find_nearest_seq(scene, &region->v2d, &hand, mval);
+    else if (id_type == ID_SO) {
+      bSound *sound = (bSound *)id;
+      BLI_strncpy(r_path, sound->filepath, FILE_MAX);
+    }
+    BLI_path_abs(r_path, BKE_main_blendfile_path_from_global());
   }
   else {
-    /* Check if there is a strip that would intersect with the new strip(s). */
-    coords->is_intersecting = false;
-    Sequence dummy_seq = {
-        .machine = coords->channel, .start = coords->start_frame, .len = coords->strip_len};
-    Editing *ed = SEQ_editing_ensure(scene);
-
-    for (int i = 0; i < coords->channel_len && !coords->is_intersecting; i++) {
-      coords->is_intersecting = SEQ_transform_test_overlap(scene, ed->seqbasep, &dummy_seq);
-      dummy_seq.machine++;
-    }
+    BLI_strncpy(r_path, drag->path, FILE_MAX);
   }
 }
 
@@ -256,7 +345,7 @@ static void draw_seq_in_view(bContext *C, wmWindow *UNUSED(win), wmDrag *drag, c
   mval[0] = xy[0] - region->winrct.xmin;
   mval[1] = xy[1] - region->winrct.ymin;
 
-  update_overlay_strip_poistion_data(C, mval);
+  float strip_len = update_overlay_strip_position_data(C, mval);
 
   GPU_matrix_push();
   UI_view2d_view_ortho(&region->v2d);
@@ -280,7 +369,7 @@ static void draw_seq_in_view(bContext *C, wmWindow *UNUSED(win), wmDrag *drag, c
 
   /* Draw strips. The code here is taken from sequencer_draw. */
   float x1 = coords->start_frame;
-  float x2 = coords->start_frame + coords->strip_len;
+  float x2 = coords->start_frame + floorf(strip_len);
   float strip_color[3];
   uchar text_color[4] = {255, 255, 255, 255};
   float pixelx = BLI_rctf_size_x(&region->v2d.cur) / BLI_rcti_size_x(&region->v2d.mask);
@@ -354,21 +443,22 @@ static void draw_seq_in_view(bContext *C, wmWindow *UNUSED(win), wmDrag *drag, c
     const char *text_array[5];
     char text_display[FILE_MAX];
     char filename[FILE_MAX];
-    char rel_path[FILE_MAX];
+    char path[FILE_MAX];
     char strip_duration_text[16];
     int len_text_arr = 0;
 
+    get_drag_path(drag, path);
+
     if (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_NAME) {
-      BLI_split_file_part(drag->path, filename, FILE_MAX);
+      BLI_split_file_part(path, filename, FILE_MAX);
       text_array[len_text_arr++] = filename;
     }
 
     if (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_SOURCE) {
       Main *bmain = CTX_data_main(C);
-      BLI_strncpy(rel_path, drag->path, FILE_MAX);
-      BLI_path_rel(rel_path, BKE_main_blendfile_path(bmain));
+      BLI_path_rel(path, BKE_main_blendfile_path(bmain));
       text_array[len_text_arr++] = text_sep;
-      text_array[len_text_arr++] = rel_path;
+      text_array[len_text_arr++] = path;
     }
 
     if (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_DURATION) {
@@ -442,6 +532,14 @@ static void prefetch_data_fn(void *custom_data,
 
   if (anim != NULL) {
     g_drop_coords.strip_len = IMB_anim_get_duration(anim, IMB_TC_NONE);
+    short frs_sec;
+    float frs_sec_base;
+    if (IMB_anim_get_fps(anim, &frs_sec, &frs_sec_base, true)) {
+      g_drop_coords.playback_rate = (float)frs_sec / frs_sec_base;
+    }
+    else {
+      g_drop_coords.playback_rate = 0;
+    }
     IMB_free_anim(anim);
 #ifdef WITH_AUDASPACE
     /* Try to load sound and see if the video has a sound channel. */
@@ -464,7 +562,7 @@ static void free_prefetch_data_fn(void *custom_data)
   MEM_freeN(job_data);
 }
 
-static void start_audio_video_job(bContext *C, char *path, bool only_audio)
+static void start_audio_video_job(bContext *C, wmDrag *drag, bool only_audio)
 {
   g_drop_coords.strip_len = 0;
   g_drop_coords.channel_len = 1;
@@ -478,8 +576,8 @@ static void start_audio_video_job(bContext *C, char *path, bool only_audio)
 
   DropJobData *job_data = (DropJobData *)MEM_mallocN(sizeof(DropJobData),
                                                      "SeqDragDropPreviewData");
+  get_drag_path(drag, job_data->path);
 
-  BLI_strncpy(job_data->path, path, FILE_MAX);
   job_data->only_audio = only_audio;
   job_data->scene_fps = FPS;
 
@@ -492,15 +590,15 @@ static void start_audio_video_job(bContext *C, char *path, bool only_audio)
 
 static void video_prefetch(bContext *C, wmDrag *drag)
 {
-  if (drag->type == WM_DRAG_PATH && ELEM(drag->icon, ICON_FILE_MOVIE, ICON_FILE_BLANK)) {
-    start_audio_video_job(C, drag->path, false);
+  if (is_movie(drag)) {
+    start_audio_video_job(C, drag, false);
   }
 }
 
 static void audio_prefetch(bContext *C, wmDrag *drag)
 {
-  if (drag->type == WM_DRAG_PATH && ELEM(drag->icon, ICON_FILE_SOUND, ICON_FILE_BLANK)) {
-    start_audio_video_job(C, drag->path, true);
+  if (is_sound(drag)) {
+    start_audio_video_job(C, drag, true);
   }
 }
 
@@ -534,6 +632,7 @@ static void sequencer_drop_draw_deactivate(struct wmDropBox *drop, wmDrag *UNUSE
   SeqDropCoords *coords = drop->draw_data;
   if (coords) {
     coords->in_use = false;
+    coords->has_read_mouse_pos = false;
     drop->draw_data = NULL;
   }
 }

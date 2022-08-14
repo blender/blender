@@ -4,6 +4,7 @@
 
 #include "DEG_depsgraph_query.h"
 
+#include "BKE_curves.hh"
 #include "BKE_type_conversions.hh"
 
 #include "NOD_geometry_exec.hh"
@@ -94,9 +95,25 @@ void GeoNodeExecParams::check_input_geometry_set(StringRef identifier,
         message += TIP_("Curve");
         break;
       }
+      case GEO_COMPONENT_TYPE_EDIT: {
+        continue;
+      }
     }
     this->error_message_add(NodeWarningType::Info, std::move(message));
   }
+}
+
+void GeoNodeExecParams::check_output_geometry_set(const GeometrySet &geometry_set) const
+{
+  UNUSED_VARS_NDEBUG(geometry_set);
+#ifdef DEBUG
+  if (const bke::CurvesEditHints *curve_edit_hints =
+          geometry_set.get_curve_edit_hints_for_read()) {
+    /* If this is not valid, it's likely that the number of stored deformed points does not match
+     * the number of points in the original data. */
+    BLI_assert(curve_edit_hints->is_valid());
+  }
+#endif
 }
 
 const bNodeSocket *GeoNodeExecParams::find_available_socket(const StringRef name) const

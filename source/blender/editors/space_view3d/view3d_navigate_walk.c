@@ -659,7 +659,7 @@ static void walkEvent(WalkInfo *walk, const wmEvent *event)
   if (event->type == TIMER && event->customdata == walk->timer) {
     walk->redraw = true;
   }
-  else if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+  else if (ISMOUSE_MOTION(event->type)) {
 
 #ifdef USE_TABLET_SUPPORT
     if ((walk->is_cursor_absolute == false) && event->tablet.is_motion_absolute) {
@@ -1386,6 +1386,7 @@ static int walk_modal(bContext *C, wmOperator *op, const wmEvent *event)
   int exit_code;
   bool do_draw = false;
   WalkInfo *walk = op->customdata;
+  View3D *v3d = walk->v3d;
   RegionView3D *rv3d = walk->rv3d;
   Object *walk_object = ED_view3d_cameracontrol_object_get(walk->v3d_camera_control);
 
@@ -1411,6 +1412,9 @@ static int walk_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   if (exit_code != OPERATOR_RUNNING_MODAL) {
     do_draw = true;
+  }
+  if (exit_code == OPERATOR_FINISHED) {
+    ED_view3d_camera_lock_undo_push(op->type->name, v3d, rv3d, C);
   }
 
   if (do_draw) {

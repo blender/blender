@@ -177,7 +177,7 @@ static void rna_Action_fcurve_clear(bAction *act)
 static TimeMarker *rna_Action_pose_markers_new(bAction *act, const char name[])
 {
   TimeMarker *marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
-  marker->flag = 1;
+  marker->flag = SELECT;
   marker->frame = 1;
   BLI_strncpy_utf8(marker->name, name, sizeof(marker->name));
   BLI_addtail(&act->markers, marker);
@@ -694,6 +694,11 @@ static void rna_def_action_group(BlenderRNA *brna)
   prop = RNA_def_property(srna, "lock", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_PROTECTED);
   RNA_def_property_ui_text(prop, "Lock", "Action group is locked");
+  RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+
+  prop = RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_MUTED);
+  RNA_def_property_ui_text(prop, "Mute", "Action group is muted");
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 
   prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);

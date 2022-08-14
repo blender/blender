@@ -52,6 +52,7 @@ set(SRC
   tree/tree_element_id.cc
   tree/tree_element_id_library.cc
   tree/tree_element_id_scene.cc
+  tree/tree_element_label.cc
   tree/tree_element_nla.cc
   tree/tree_element_overrides.cc
   tree/tree_element_rna.cc
@@ -71,6 +72,7 @@ set(SRC
   tree/tree_element_id.hh
   tree/tree_element_id_library.hh
   tree/tree_element_id_scene.hh
+  tree/tree_element_label.hh
   tree/tree_element_nla.hh
   tree/tree_element_overrides.hh
   tree/tree_element_rna.hh

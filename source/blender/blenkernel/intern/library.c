@@ -26,14 +26,26 @@
 #include "BKE_lib_query.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 #include "BKE_packedFile.h"
 
 /* Unused currently. */
 // static CLG_LogRef LOG = {.identifier = "bke.library"};
 
+struct BlendWriter;
+struct BlendDataReader;
+
+static void library_runtime_reset(Library *lib)
+{
+  if (lib->runtime.name_map) {
+    BKE_main_namemap_destroy(&lib->runtime.name_map);
+  }
+}
+
 static void library_free_data(ID *id)
 {
   Library *library = (Library *)id;
+  library_runtime_reset(library);
   if (library->packedfile) {
     BKE_packedfile_free(library->packedfile);
   }
@@ -61,6 +73,12 @@ static void library_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   }
 }
 
+static void library_blend_read_data(struct BlendDataReader *UNUSED(reader), ID *id)
+{
+  Library *lib = (Library *)id;
+  lib->runtime.name_map = NULL;
+}
+
 IDTypeInfo IDType_ID_LI = {
     .id_code = ID_LI,
     .id_filter = FILTER_ID_LI,
@@ -82,7 +100,7 @@ IDTypeInfo IDType_ID_LI = {
     .owner_get = NULL,
 
     .blend_write = NULL,
-    .blend_read_data = NULL,
+    .blend_read_data = library_blend_read_data,
     .blend_read_lib = NULL,
     .blend_read_expand = NULL,
 
@@ -104,7 +122,7 @@ void BKE_library_filepath_set(Main *bmain, Library *lib, const char *filepath)
   /* Not essential but set `filepath_abs` is an absolute copy of value which
    * is more useful if its kept in sync. */
   if (BLI_path_is_rel(lib->filepath_abs)) {
-    /* NOTE(campbell): the file may be unsaved, in this case, setting the
+    /* NOTE(@campbellbarton): the file may be unsaved, in this case, setting the
      * `filepath_abs` on an indirectly linked path is not allowed from the
      * outliner, and its not really supported but allow from here for now
      * since making local could cause this to be directly linked.

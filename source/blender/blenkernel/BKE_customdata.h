@@ -11,7 +11,9 @@
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 #ifdef __cplusplus
+#  include "BLI_set.hh"
 #  include "BLI_span.hh"
+#  include "BLI_string_ref.hh"
 #  include "BLI_vector.hh"
 #endif
 
@@ -141,6 +143,15 @@ void CustomData_copy(const struct CustomData *source,
                      eCDAllocType alloctype,
                      int totelem);
 
+/**
+ * Like #CustomData_copy but skips copying layers that are stored as flags on #BMesh.
+ */
+void CustomData_copy_mesh_to_bmesh(const struct CustomData *source,
+                                   struct CustomData *dest,
+                                   eCustomDataMask mask,
+                                   eCDAllocType alloctype,
+                                   int totelem);
+
 /* BMESH_TODO, not really a public function but readfile.c needs it */
 void CustomData_update_typemap(struct CustomData *data);
 
@@ -153,6 +164,15 @@ bool CustomData_merge(const struct CustomData *source,
                       eCustomDataMask mask,
                       eCDAllocType alloctype,
                       int totelem);
+
+/**
+ * Like #CustomData_copy but skips copying layers that are stored as flags on #BMesh.
+ */
+bool CustomData_merge_mesh_to_bmesh(const struct CustomData *source,
+                                    struct CustomData *dest,
+                                    eCustomDataMask mask,
+                                    eCDAllocType alloctype,
+                                    int totelem);
 
 /**
  * Reallocate custom data to a new element count.
@@ -408,6 +428,7 @@ void *CustomData_get_layer(const struct CustomData *data, int type);
 void *CustomData_get_layer_n(const struct CustomData *data, int type, int n);
 void *CustomData_get_layer_named(const struct CustomData *data, int type, const char *name);
 int CustomData_get_offset(const struct CustomData *data, int type);
+int CustomData_get_offset_named(const CustomData *data, int type, const char *name);
 int CustomData_get_n_offset(const struct CustomData *data, int type, int n);
 
 int CustomData_get_layer_index(const struct CustomData *data, int type);
@@ -696,7 +717,8 @@ void CustomData_data_transfer(const struct MeshPairRemap *me_remap,
  * the struct.
  */
 void CustomData_blend_write_prepare(CustomData &data,
-                                    blender::Vector<CustomDataLayer, 16> &layers_to_write);
+                                    blender::Vector<CustomDataLayer, 16> &layers_to_write,
+                                    const blender::Set<blender::StringRef> &skip_names = {});
 
 /**
  * \param layers_to_write: Layers created by #CustomData_blend_write_prepare.

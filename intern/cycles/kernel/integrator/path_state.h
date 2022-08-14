@@ -13,7 +13,7 @@ CCL_NAMESPACE_BEGIN
 ccl_device_inline void path_state_init_queues(IntegratorState state)
 {
   INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = 0;
-#ifdef __KERNEL_CPU__
+#ifndef __KERNEL_GPU__
   INTEGRATOR_STATE_WRITE(&state->shadow, shadow_path, queued_kernel) = 0;
   INTEGRATOR_STATE_WRITE(&state->ao, shadow_path, queued_kernel) = 0;
 #endif
@@ -54,7 +54,7 @@ ccl_device_inline void path_state_init_integrator(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, path, mis_ray_pdf) = 0.0f;
   INTEGRATOR_STATE_WRITE(state, path, min_ray_pdf) = FLT_MAX;
   INTEGRATOR_STATE_WRITE(state, path, continuation_probability) = 1.0f;
-  INTEGRATOR_STATE_WRITE(state, path, throughput) = make_float3(1.0f, 1.0f, 1.0f);
+  INTEGRATOR_STATE_WRITE(state, path, throughput) = one_spectrum();
 
 #ifdef __MNEE__
   INTEGRATOR_STATE_WRITE(state, path, mnee) = 0;
@@ -74,7 +74,7 @@ ccl_device_inline void path_state_init_integrator(KernelGlobals kg,
 #ifdef __DENOISING_FEATURES__
   if (kernel_data.kernel_features & KERNEL_FEATURE_DENOISING) {
     INTEGRATOR_STATE_WRITE(state, path, flag) |= PATH_RAY_DENOISING_FEATURES;
-    INTEGRATOR_STATE_WRITE(state, path, denoising_feature_throughput) = one_float3();
+    INTEGRATOR_STATE_WRITE(state, path, denoising_feature_throughput) = one_spectrum();
   }
 #endif
 }

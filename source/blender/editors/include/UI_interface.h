@@ -74,10 +74,8 @@ typedef struct uiLayout uiLayout;
 typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 /* C handle for C++ #ui::AbstractView type. */
 typedef struct uiViewHandle uiViewHandle;
-/* C handle for C++ #ui::AbstractTreeViewItem type. */
-typedef struct uiTreeViewItemHandle uiTreeViewItemHandle;
-/* C handle for C++ #ui::AbstractGridViewItem type. */
-typedef struct uiGridViewItemHandle uiGridViewItemHandle;
+/* C handle for C++ #ui::AbstractViewItem type. */
+typedef struct uiViewItemHandle uiViewItemHandle;
 
 /* Defines */
 
@@ -87,7 +85,7 @@ typedef struct uiGridViewItemHandle uiGridViewItemHandle;
 
 /* Separator for text in search menus (right pointing arrow).
  * keep in sync with `string_search.cc`. */
-#define UI_MENU_ARROW_SEP "\xe2\x96\xb6"
+#define UI_MENU_ARROW_SEP "\xe2\x96\xb8"
 
 /* names */
 #define UI_MAX_DRAW_STR 400
@@ -391,10 +389,8 @@ typedef enum {
   /** Resize handle (resize uilist). */
   UI_BTYPE_GRIP = 57 << 9,
   UI_BTYPE_DECORATOR = 58 << 9,
-  /* An item in a tree view. Parent items may be collapsible. */
-  UI_BTYPE_TREEROW = 59 << 9,
-  /* An item in a grid view. */
-  UI_BTYPE_GRID_TILE = 60 << 9,
+  /* An item a view (see #ui::AbstractViewItem). */
+  UI_BTYPE_VIEW_ITEM = 59 << 9,
 } eButType;
 
 #define BUTTYPE (63 << 9)
@@ -1685,8 +1681,6 @@ int UI_search_items_find_index(uiSearchItems *items, const char *name);
  */
 void UI_but_hint_drawstr_set(uiBut *but, const char *string);
 
-void UI_but_treerow_indentation_set(uiBut *but, int indentation);
-
 void UI_but_node_link_set(uiBut *but, struct bNodeSocket *socket, const float draw_color[4]);
 
 void UI_but_number_step_size_set(uiBut *but, float step_size);
@@ -2488,7 +2482,7 @@ enum uiTemplateListFlags {
 ENUM_OPERATORS(enum uiTemplateListFlags, UI_TEMPLATE_LIST_FLAGS_LAST);
 
 void uiTemplateList(uiLayout *layout,
-                    struct bContext *C,
+                    const struct bContext *C,
                     const char *listtype_name,
                     const char *list_id,
                     struct PointerRNA *dataptr,
@@ -2502,7 +2496,7 @@ void uiTemplateList(uiLayout *layout,
                     int columns,
                     enum uiTemplateListFlags flags);
 struct uiList *uiTemplateList_ex(uiLayout *layout,
-                                 struct bContext *C,
+                                 const struct bContext *C,
                                  const char *listtype_name,
                                  const char *list_id,
                                  struct PointerRNA *dataptr,
@@ -2572,7 +2566,7 @@ enum {
   UI_TEMPLATE_ASSET_DRAW_NO_LIBRARY = (1 << 2),
 };
 void uiTemplateAssetView(struct uiLayout *layout,
-                         struct bContext *C,
+                         const struct bContext *C,
                          const char *list_id,
                          struct PointerRNA *asset_library_dataptr,
                          const char *asset_library_propname,
@@ -3201,45 +3195,44 @@ void UI_interface_tag_script_reload(void);
 void UI_block_views_listen(const uiBlock *block,
                            const struct wmRegionListenerParams *listener_params);
 
-bool UI_grid_view_item_is_active(const uiGridViewItemHandle *item_handle);
-bool UI_tree_view_item_is_active(const uiTreeViewItemHandle *item);
-bool UI_grid_view_item_matches(const uiGridViewItemHandle *a, const uiGridViewItemHandle *b);
-bool UI_tree_view_item_matches(const uiTreeViewItemHandle *a, const uiTreeViewItemHandle *b);
+bool UI_view_item_is_active(const uiViewItemHandle *item_handle);
+bool UI_view_item_matches(const uiViewItemHandle *a_handle, const uiViewItemHandle *b_handle);
 /**
- * Attempt to start dragging the tree-item \a item_. This will not work if the tree item doesn't
- * support dragging, i.e. it won't create a drag-controller upon request.
- * \return True if dragging started successfully, otherwise false.
- */
-bool UI_tree_view_item_drag_start(struct bContext *C, uiTreeViewItemHandle *item_);
-bool UI_tree_view_item_can_drop(const uiTreeViewItemHandle *item_,
-                                const struct wmDrag *drag,
-                                const char **r_disabled_hint);
-char *UI_tree_view_item_drop_tooltip(const uiTreeViewItemHandle *item, const struct wmDrag *drag);
-/**
- * Let a tree-view item handle a drop event.
- * \return True if the drop was handled by the tree-view item.
- */
-bool UI_tree_view_item_drop_handle(struct bContext *C,
-                                   const uiTreeViewItemHandle *item_,
-                                   const struct ListBase *drags);
-/**
- * Can \a item_handle be renamed right now? Not that this isn't just a mere wrapper around
- * #AbstractTreeViewItem::can_rename(). This also checks if there is another item being renamed,
+ * Can \a item_handle be renamed right now? Note that this isn't just a mere wrapper around
+ * #AbstractViewItem::supports_renaming(). This also checks if there is another item being renamed,
  * and returns false if so.
  */
-bool UI_tree_view_item_can_rename(const uiTreeViewItemHandle *item_handle);
-void UI_tree_view_item_begin_rename(uiTreeViewItemHandle *item_handle);
+bool UI_view_item_can_rename(const uiViewItemHandle *item_handle);
+void UI_view_item_begin_rename(uiViewItemHandle *item_handle);
 
-void UI_tree_view_item_context_menu_build(struct bContext *C,
-                                          const uiTreeViewItemHandle *item,
-                                          uiLayout *column);
+void UI_view_item_context_menu_build(struct bContext *C,
+                                     const uiViewItemHandle *item_handle,
+                                     uiLayout *column);
 
 /**
- * \param xy: Coordinate to find a tree-row item at, in window space.
+ * Attempt to start dragging \a item_. This will not work if the view item doesn't
+ * support dragging, i.e. if it won't create a drag-controller upon request.
+ * \return True if dragging started successfully, otherwise false.
  */
-uiTreeViewItemHandle *UI_block_tree_view_find_item_at(const struct ARegion *region,
-                                                      const int xy[2]) ATTR_NONNULL(1, 2);
-uiTreeViewItemHandle *UI_block_tree_view_find_active_item(const struct ARegion *region);
+bool UI_view_item_drag_start(struct bContext *C, const uiViewItemHandle *item_);
+bool UI_view_item_can_drop(const uiViewItemHandle *item_,
+                           const struct wmDrag *drag,
+                           const char **r_disabled_hint);
+char *UI_view_item_drop_tooltip(const uiViewItemHandle *item, const struct wmDrag *drag);
+/**
+ * Let a view item handle a drop event.
+ * \return True if the drop was handled by the view item.
+ */
+bool UI_view_item_drop_handle(struct bContext *C,
+                              const uiViewItemHandle *item_,
+                              const struct ListBase *drags);
+
+/**
+ * \param xy: Coordinate to find a view item at, in window space.
+ */
+uiViewItemHandle *UI_region_views_find_item_at(const struct ARegion *region, const int xy[2])
+    ATTR_NONNULL();
+uiViewItemHandle *UI_region_views_find_active_item(const struct ARegion *region);
 
 #ifdef __cplusplus
 }

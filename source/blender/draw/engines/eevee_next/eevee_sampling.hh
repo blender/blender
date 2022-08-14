@@ -27,13 +27,13 @@ class Sampling {
   Instance &inst_;
 
   /* Number of samples in the first ring of jittered depth of field. */
-  constexpr static uint64_t dof_web_density_ = 6;
+  static constexpr uint64_t dof_web_density_ = 6;
   /* High number of sample for viewport infinite rendering. */
-  constexpr static uint64_t infinite_sample_count_ = 0xFFFFFFu;
+  static constexpr uint64_t infinite_sample_count_ = 0xFFFFFFu;
   /* During interactive rendering, loop over the first few samples. */
-  constexpr static uint64_t interactive_sample_max_ = 8;
+  static constexpr uint64_t interactive_sample_max_ = 8;
 
-  /** 0 based current sample. */
+  /** 0 based current sample. Might not increase sequentially in viewport. */
   uint64_t sample_ = 0;
   /** Target sample count. */
   uint64_t sample_count_ = 64;
@@ -43,7 +43,7 @@ class Sampling {
   uint64_t dof_sample_count_ = 1;
   /** Motion blur steps. */
   uint64_t motion_blur_steps_ = 1;
-  /** Increases if the view and the scene is static. */
+  /** Increases if the view and the scene is static. Does increase sequentially. */
   int64_t viewport_sample_ = 0;
   /** Tag to reset sampling for the next sample. */
   bool reset_ = false;
@@ -52,6 +52,12 @@ class Sampling {
    * In interactive mode, image stability is prioritized over quality.
    */
   bool interactive_mode_ = false;
+  /**
+   * Sample count after which we use the static accumulation.
+   * Interactive sampling from sample 0 to (interactive_mode_threshold - 1).
+   * Accumulation sampling from sample interactive_mode_threshold to sample_count_.
+   */
+  static constexpr int interactive_mode_threshold = 3;
 
   SamplingDataBuf data_;
 
@@ -102,13 +108,24 @@ class Sampling {
   /* Returns true if rendering has finished. */
   bool finished() const
   {
-    return (sample_ >= sample_count_ - 1);
+    return (sample_ >= sample_count_);
   }
 
   /* Returns true if viewport smoothing and sampling has finished. */
   bool finished_viewport() const
   {
-    return finished() && (viewport_sample_ >= interactive_sample_max_);
+    return (viewport_sample_ >= sample_count_) && !interactive_mode_;
+  }
+
+  /* Returns true if viewport renderer is in interactive mode and should use TAA. */
+  bool interactive_mode() const
+  {
+    return interactive_mode_;
+  }
+
+  uint64_t sample_count() const
+  {
+    return sample_count_;
   }
 
   /* Return true if we are starting a new motion blur step. We need to run sync again since

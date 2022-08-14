@@ -95,7 +95,7 @@ void BKE_gpencil_cache_data_init(Depsgraph *depsgraph, Object *ob)
           MEM_SAFE_FREE(mmd->cache_data);
         }
         Object *ob_target = DEG_get_evaluated_object(depsgraph, ob);
-        Mesh *target = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target, false);
+        Mesh *target = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target);
         mmd->cache_data = MEM_callocN(sizeof(ShrinkwrapTreeData), __func__);
         if (BKE_shrinkwrap_init_tree(
                 mmd->cache_data, target, mmd->shrink_type, mmd->shrink_mode, false)) {
@@ -360,7 +360,8 @@ GpencilModifierData *BKE_gpencil_modifier_new(int type)
   md->type = type;
   md->mode = eGpencilModifierMode_Realtime | eGpencilModifierMode_Render;
   md->flag = eGpencilModifierFlag_OverrideLibrary_Local;
-  md->ui_expand_flag = 1; /* Only expand the parent panel at first. */
+  /* Only expand the parent panel at first. */
+  md->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT;
 
   if (mti->flags & eGpencilModifierTypeFlag_EnableInEditmode) {
     md->mode |= eGpencilModifierMode_Editmode;

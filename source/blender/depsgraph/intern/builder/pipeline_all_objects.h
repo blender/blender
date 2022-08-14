@@ -9,8 +9,7 @@
 
 #include "pipeline_view_layer.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 /* Builds a dependency graph that contains all objects in the view layer.
  * This is contrary to the regular ViewLayerBuilderPipeline, which is limited to visible objects
@@ -24,5 +23,4 @@ class AllObjectsBuilderPipeline : public ViewLayerBuilderPipeline {
   virtual unique_ptr<DepsgraphRelationBuilder> construct_relation_builder() override;
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

@@ -40,7 +40,7 @@
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_global.h"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
@@ -200,7 +200,7 @@ static bool node_needs_own_transform_relation(const bNode &node)
 
 static void process_nodes_for_depsgraph(const bNodeTree &tree,
                                         Set<ID *> &ids,
-                                        bool &needs_own_transform_relation)
+                                        bool &r_needs_own_transform_relation)
 {
   Set<const bNodeTree *> handled_groups;
 
@@ -211,10 +211,10 @@ static void process_nodes_for_depsgraph(const bNodeTree &tree,
     if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
       const bNodeTree *group = (bNodeTree *)node->id;
       if (group != nullptr && handled_groups.add(group)) {
-        process_nodes_for_depsgraph(*group, ids, needs_own_transform_relation);
+        process_nodes_for_depsgraph(*group, ids, r_needs_own_transform_relation);
       }
     }
-    needs_own_transform_relation |= node_needs_own_transform_relation(*node);
+    r_needs_own_transform_relation |= node_needs_own_transform_relation(*node);
   }
 }
 
@@ -307,7 +307,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 
   if (needs_own_transform_relation) {
-    DEG_add_modifier_to_transform_relation(ctx->node, "Nodes Modifier");
+    DEG_add_depends_on_transform_relation(ctx->node, "Nodes Modifier");
   }
 }
 
@@ -416,15 +416,16 @@ static bool input_has_attribute_toggle(const bNodeTree &node_tree, const int soc
   return field_interface.inputs[socket_index] != InputSocketFieldType::None;
 }
 
-static IDProperty *id_property_create_from_socket(const bNodeSocket &socket)
+static std::unique_ptr<IDProperty, blender::bke::idprop::IDPropertyDeleter>
+id_property_create_from_socket(const bNodeSocket &socket)
 {
+  using namespace blender;
   switch (socket.type) {
     case SOCK_FLOAT: {
-      bNodeSocketValueFloat *value = (bNodeSocketValueFloat *)socket.default_value;
-      IDPropertyTemplate idprop = {0};
-      idprop.f = value->value;
-      IDProperty *property = IDP_New(IDP_FLOAT, &idprop, socket.identifier);
-      IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(property);
+      const bNodeSocketValueFloat *value = static_cast<const bNodeSocketValueFloat *>(
+          socket.default_value);
+      auto property = bke::idprop::create(socket.identifier, value->value);
+      IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(property.get());
       ui_data->base.rna_subtype = value->subtype;
       ui_data->min = ui_data->soft_min = (double)value->min;
       ui_data->max = ui_data->soft_max = (double)value->max;
@@ -432,11 +433,10 @@ static IDProperty *id_property_create_from_socket(const bNodeSocket &socket)
       return property;
     }
     case SOCK_INT: {
-      bNodeSocketValueInt *value = (bNodeSocketValueInt *)socket.default_value;
-      IDPropertyTemplate idprop = {0};
-      idprop.i = value->value;
-      IDProperty *property = IDP_New(IDP_INT, &idprop, socket.identifier);
-      IDPropertyUIDataInt *ui_data = (IDPropertyUIDataInt *)IDP_ui_data_ensure(property);
+      const bNodeSocketValueInt *value = static_cast<const bNodeSocketValueInt *>(
+          socket.default_value);
+      auto property = bke::idprop::create(socket.identifier, value->value);
+      IDPropertyUIDataInt *ui_data = (IDPropertyUIDataInt *)IDP_ui_data_ensure(property.get());
       ui_data->base.rna_subtype = value->subtype;
       ui_data->min = ui_data->soft_min = value->min;
       ui_data->max = ui_data->soft_max = value->max;
@@ -444,13 +444,11 @@ static IDProperty *id_property_create_from_socket(const bNodeSocket &socket)
       return property;
     }
     case SOCK_VECTOR: {
-      bNodeSocketValueVector *value = (bNodeSocketValueVector *)socket.default_value;
-      IDPropertyTemplate idprop = {0};
-      idprop.array.len = 3;
-      idprop.array.type = IDP_FLOAT;
-      IDProperty *property = IDP_New(IDP_ARRAY, &idprop, socket.identifier);
-      copy_v3_v3((float *)IDP_Array(property), value->value);
-      IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(property);
+      const bNodeSocketValueVector *value = static_cast<const bNodeSocketValueVector *>(
+          socket.default_value);
+      auto property = bke::idprop::create(
+          socket.identifier, Span<float>{value->value[0], value->value[1], value->value[2]});
+      IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(property.get());
       ui_data->base.rna_subtype = value->subtype;
       ui_data->min = ui_data->soft_min = (double)value->min;
       ui_data->max = ui_data->soft_max = (double)value->max;
@@ -462,13 +460,12 @@ static IDProperty *id_property_create_from_socket(const bNodeSocket &socket)
       return property;
     }
     case SOCK_RGBA: {
-      bNodeSocketValueRGBA *value = (bNodeSocketValueRGBA *)socket.default_value;
-      IDPropertyTemplate idprop = {0};
-      idprop.array.len = 4;
-      idprop.array.type = IDP_FLOAT;
-      IDProperty *property = IDP_New(IDP_ARRAY, &idprop, socket.identifier);
-      copy_v4_v4((float *)IDP_Array(property), value->value);
-      IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(property);
+      const bNodeSocketValueRGBA *value = static_cast<const bNodeSocketValueRGBA *>(
+          socket.default_value);
+      auto property = bke::idprop::create(
+          socket.identifier,
+          Span<float>{value->value[0], value->value[1], value->value[2], value->value[3]});
+      IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(property.get());
       ui_data->base.rna_subtype = PROP_COLOR;
       ui_data->default_array = (double *)MEM_mallocN(sizeof(double[4]), __func__);
       ui_data->default_array_len = 4;
@@ -482,53 +479,48 @@ static IDProperty *id_property_create_from_socket(const bNodeSocket &socket)
       return property;
     }
     case SOCK_BOOLEAN: {
-      bNodeSocketValueBoolean *value = (bNodeSocketValueBoolean *)socket.default_value;
-      IDPropertyTemplate idprop = {0};
-      idprop.i = value->value != 0;
-      IDProperty *property = IDP_New(IDP_INT, &idprop, socket.identifier);
-      IDPropertyUIDataInt *ui_data = (IDPropertyUIDataInt *)IDP_ui_data_ensure(property);
+      const bNodeSocketValueBoolean *value = static_cast<const bNodeSocketValueBoolean *>(
+          socket.default_value);
+      auto property = bke::idprop::create(socket.identifier, int(value->value));
+      IDPropertyUIDataInt *ui_data = (IDPropertyUIDataInt *)IDP_ui_data_ensure(property.get());
       ui_data->min = ui_data->soft_min = 0;
       ui_data->max = ui_data->soft_max = 1;
       ui_data->default_value = value->value != 0;
       return property;
     }
     case SOCK_STRING: {
-      bNodeSocketValueString *value = (bNodeSocketValueString *)socket.default_value;
-      IDProperty *property = IDP_NewString(
-          value->value, socket.identifier, BLI_strnlen(value->value, sizeof(value->value)) + 1);
-      IDPropertyUIDataString *ui_data = (IDPropertyUIDataString *)IDP_ui_data_ensure(property);
+      const bNodeSocketValueString *value = static_cast<const bNodeSocketValueString *>(
+          socket.default_value);
+      auto property = bke::idprop::create(socket.identifier, value->value);
+      IDPropertyUIDataString *ui_data = (IDPropertyUIDataString *)IDP_ui_data_ensure(
+          property.get());
       ui_data->default_value = BLI_strdup(value->value);
       return property;
     }
     case SOCK_OBJECT: {
-      bNodeSocketValueObject *value = (bNodeSocketValueObject *)socket.default_value;
-      IDPropertyTemplate idprop = {0};
-      idprop.id = (ID *)value->value;
-      return IDP_New(IDP_ID, &idprop, socket.identifier);
+      const bNodeSocketValueObject *value = static_cast<const bNodeSocketValueObject *>(
+          socket.default_value);
+      return bke::idprop::create(socket.identifier, reinterpret_cast<ID *>(value->value));
     }
     case SOCK_COLLECTION: {
-      bNodeSocketValueCollection *value = (bNodeSocketValueCollection *)socket.default_value;
-      IDPropertyTemplate idprop = {0};
-      idprop.id = (ID *)value->value;
-      return IDP_New(IDP_ID, &idprop, socket.identifier);
+      const bNodeSocketValueCollection *value = static_cast<const bNodeSocketValueCollection *>(
+          socket.default_value);
+      return bke::idprop::create(socket.identifier, reinterpret_cast<ID *>(value->value));
     }
     case SOCK_TEXTURE: {
-      bNodeSocketValueTexture *value = (bNodeSocketValueTexture *)socket.default_value;
-      IDPropertyTemplate idprop = {0};
-      idprop.id = (ID *)value->value;
-      return IDP_New(IDP_ID, &idprop, socket.identifier);
+      const bNodeSocketValueTexture *value = static_cast<const bNodeSocketValueTexture *>(
+          socket.default_value);
+      return bke::idprop::create(socket.identifier, reinterpret_cast<ID *>(value->value));
     }
     case SOCK_IMAGE: {
-      bNodeSocketValueImage *value = (bNodeSocketValueImage *)socket.default_value;
-      IDPropertyTemplate idprop = {0};
-      idprop.id = (ID *)value->value;
-      return IDP_New(IDP_ID, &idprop, socket.identifier);
+      const bNodeSocketValueImage *value = static_cast<const bNodeSocketValueImage *>(
+          socket.default_value);
+      return bke::idprop::create(socket.identifier, reinterpret_cast<ID *>(value->value));
     }
     case SOCK_MATERIAL: {
-      bNodeSocketValueMaterial *value = (bNodeSocketValueMaterial *)socket.default_value;
-      IDPropertyTemplate idprop = {0};
-      idprop.id = (ID *)value->value;
-      return IDP_New(IDP_ID, &idprop, socket.identifier);
+      const bNodeSocketValueMaterial *value = static_cast<const bNodeSocketValueMaterial *>(
+          socket.default_value);
+      return bke::idprop::create(socket.identifier, reinterpret_cast<ID *>(value->value));
     }
   }
   return nullptr;
@@ -658,7 +650,7 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
 
   int socket_index;
   LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &nmd->node_group->inputs, socket_index) {
-    IDProperty *new_prop = id_property_create_from_socket(*socket);
+    IDProperty *new_prop = id_property_create_from_socket(*socket).release();
     if (new_prop == nullptr) {
       /* Out of the set of supported input sockets, only
        * geometry sockets aren't added to the modifier. */

@@ -269,6 +269,10 @@ void output_aov(vec4 color, float value, uint hash)
 #  define nodetree_thickness() 0.1
 #endif
 
+#ifdef GPU_VERTEX_SHADER
+#  define closure_to_rgba(a) vec4(0.0)
+#endif
+
 /* -------------------------------------------------------------------- */
 /** \name Fragment Displacement
  *
@@ -371,5 +375,45 @@ vec3 coordinate_incoming(vec3 P)
   return cameraVec(P);
 #endif
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Volume Attribute post
+ *
+ * TODO(@fclem): These implementation details should concern the DRWManager and not be a fix on
+ * the engine side. But as of now, the engines are responsible for loading the attributes.
+ *
+ * \{ */
+
+#if defined(MAT_GEOM_VOLUME)
+
+float attr_load_temperature_post(float attr)
+{
+  /* Bring the into standard range without having to modify the grid values */
+  attr = (attr > 0.01) ? (attr * drw_volume.temperature_mul + drw_volume.temperature_bias) : 0.0;
+  return attr;
+}
+vec4 attr_load_color_post(vec4 attr)
+{
+  /* Density is premultiplied for interpolation, divide it out here. */
+  attr.rgb *= safe_rcp(attr.a);
+  attr.rgb *= drw_volume.color_mul.rgb;
+  attr.a = 1.0;
+  return attr;
+}
+
+#else /* Noop for any other surface. */
+
+float attr_load_temperature_post(float attr)
+{
+  return attr;
+}
+vec4 attr_load_color_post(vec4 attr)
+{
+  return attr;
+}
+
+#endif
 
 /** \} */

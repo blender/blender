@@ -10,6 +10,18 @@
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
 
+vec4 closure_to_rgba(Closure cl)
+{
+  vec4 out_color;
+  out_color.rgb = g_emission;
+  out_color.a = saturate(1.0 - avg(g_transmittance));
+
+  /* Reset for the next closure tree. */
+  closure_weights_reset();
+
+  return out_color;
+}
+
 /* From the paper "Hashed Alpha Testing" by Chris Wyman and Morgan McGuire. */
 float hash(vec2 a)
 {
@@ -61,7 +73,7 @@ void main()
 
   nodetree_surface();
 
-  // float noise_offset = sampling_rng_1D_get(sampling_buf, SAMPLING_TRANSPARENCY);
+  // float noise_offset = sampling_rng_1D_get(SAMPLING_TRANSPARENCY);
   float noise_offset = 0.5;
   float random_threshold = hashed_alpha_threshold(1.0, noise_offset, g_data.P);
 
@@ -72,14 +84,7 @@ void main()
 #endif
 
 #ifdef MAT_VELOCITY
-  vec4 out_velocity_camera; /* TODO(fclem): Panoramic cameras. */
-  velocity_camera(interp.P + motion.prev,
-                  interp.P,
-                  interp.P - motion.next,
-                  out_velocity_camera,
-                  out_velocity_view);
-
-  /* For testing in viewport. */
-  out_velocity_view.zw = vec2(0.0);
+  out_velocity = velocity_surface(interp.P + motion.prev, interp.P, interp.P + motion.next);
+  out_velocity = velocity_pack(out_velocity);
 #endif
 }

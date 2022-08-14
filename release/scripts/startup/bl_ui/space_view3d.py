@@ -603,8 +603,8 @@ class VIEW3D_HT_header(Header):
             show_snap = True
         else:
             if (object_mode not in {
-                    'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT',
-                    'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL', 'VERTEX_GPENCIL'
+                    'SCULPT', 'SCULPT_CURVES', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT',
+                    'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL', 'VERTEX_GPENCIL',
             }) or has_pose_mode:
                 show_snap = True
             else:
@@ -6128,6 +6128,24 @@ class VIEW3D_PT_shading_render_pass(Panel):
         layout.prop(shading, "render_pass", text="")
 
 
+class VIEW3D_PT_shading_compositor(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_label = "Compositor"
+    bl_parent_id = 'VIEW3D_PT_shading'
+
+    @classmethod
+    def poll(cls, context):
+        return (context.space_data.shading.type in {'MATERIAL', 'RENDERED'} and
+                context.preferences.experimental.use_realtime_compositor)
+
+    def draw(self, context):
+        shading = context.space_data.shading
+
+        layout = self.layout
+        layout.prop(shading, "use_compositor")
+
+
 class VIEW3D_PT_gizmo_display(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
@@ -7047,13 +7065,13 @@ class VIEW3D_PT_overlay_gpencil_options(Panel):
         row.prop(overlay, "use_gpencil_fade_layers", text="")
         sub = row.row()
         sub.active = overlay.use_gpencil_fade_layers
-        sub.prop(overlay, "gpencil_fade_layer", text="Fade Layers", slider=True)
+        sub.prop(overlay, "gpencil_fade_layer", text="Fade Inactive Layers", slider=True)
 
         row = col.row()
         row.prop(overlay, "use_gpencil_fade_objects", text="")
         sub = row.row(align=True)
         sub.active = overlay.use_gpencil_fade_objects
-        sub.prop(overlay, "gpencil_fade_objects", text="Fade Objects", slider=True)
+        sub.prop(overlay, "gpencil_fade_objects", text="Fade Inactive Objects", slider=True)
         sub.prop(overlay, "use_gpencil_fade_gp_objects", text="", icon='OUTLINER_OB_GREASEPENCIL')
 
         if context.object.mode in {'EDIT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL', 'VERTEX_GPENCIL'}:
@@ -7064,18 +7082,17 @@ class VIEW3D_PT_overlay_gpencil_options(Panel):
             col.prop(overlay, "use_gpencil_multiedit_line_only", text="Only in Multiframe")
 
             if context.object.mode == 'EDIT_GPENCIL':
+                gpd = context.object.data
                 split = layout.split()
                 col = split.column()
                 col.prop(overlay, "use_gpencil_show_directions")
                 col = split.column()
                 col.prop(overlay, "use_gpencil_show_material_name", text="Material Name")
 
-            layout.prop(overlay, "vertex_opacity", text="Vertex Opacity", slider=True)
-
-            # Handles for Curve Edit
-            if context.object.mode == 'EDIT_GPENCIL':
-                gpd = context.object.data
-                if gpd.use_curve_edit:
+                if not gpd.use_curve_edit:
+                    layout.prop(overlay, "vertex_opacity", text="Vertex Opacity", slider=True)
+                else:
+                    # Handles for Curve Edit
                     layout.prop(overlay, "display_handle", text="Handles")
 
         if context.object.mode in {'PAINT_GPENCIL', 'VERTEX_GPENCIL'}:
@@ -7968,6 +7985,7 @@ classes = (
     VIEW3D_PT_shading_options_shadow,
     VIEW3D_PT_shading_options_ssao,
     VIEW3D_PT_shading_render_pass,
+    VIEW3D_PT_shading_compositor,
     VIEW3D_PT_gizmo_display,
     VIEW3D_PT_overlay,
     VIEW3D_PT_overlay_guides,

@@ -30,6 +30,7 @@
 #include "BKE_object.h"
 
 #include "RNA_access.h"
+#include "RNA_path.h"
 
 #include "atomic_ops.h"
 

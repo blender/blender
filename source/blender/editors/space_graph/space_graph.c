@@ -90,7 +90,6 @@ static SpaceLink *graph_create(const ScrArea *UNUSED(area), const Scene *scene)
   BLI_addtail(&sipo->regionbase, region);
   region->regiontype = RGN_TYPE_UI;
   region->alignment = RGN_ALIGN_RIGHT;
-  region->flag = RGN_FLAG_HIDDEN;
 
   /* main region */
   region = MEM_callocN(sizeof(ARegion), "main region for graphedit");
@@ -626,7 +625,7 @@ static void graph_refresh_fcurve_colors(const bContext *C)
    * - we don't include ANIMFILTER_CURVEVISIBLE filter, as that will result in a
    *   mismatch between channel-colors and the drawn curves
    */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS | ANIMFILTER_FCURVESONLY);
   items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* loop over F-Curves, assigning colors */

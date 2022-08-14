@@ -632,12 +632,12 @@ typedef struct bNodeSocketValueMaterial {
 
 /* Data structs, for `node->storage`. */
 
-enum {
+typedef enum CMPNodeMaskType {
   CMP_NODE_MASKTYPE_ADD = 0,
   CMP_NODE_MASKTYPE_SUBTRACT = 1,
   CMP_NODE_MASKTYPE_MULTIPLY = 2,
   CMP_NODE_MASKTYPE_NOT = 3,
-};
+} CMPNodeMaskType;
 
 enum {
   CMP_NODE_DILATEERODE_STEP = 0,
@@ -1837,6 +1837,49 @@ enum {
 
 /* viewer and composite output. */
 #define CMP_NODE_OUTPUT_IGNORE_ALPHA 1
+
+/** Split Viewer Node. Stored in `custom2`. */
+typedef enum CMPNodeSplitViewerAxis {
+  CMP_NODE_SPLIT_VIEWER_HORIZONTAL = 0,
+  CMP_NODE_SPLIT_VIEWER_VERTICAL = 1,
+} CMPNodeSplitViewerAxis;
+
+/** Color Balance Node. Stored in `custom1`. */
+typedef enum CMPNodeColorBalanceMethod {
+  CMP_NODE_COLOR_BALANCE_LGG = 0,
+  CMP_NODE_COLOR_BALANCE_ASC_CDL = 1,
+} CMPNodeColorBalanceMethod;
+
+/** Alpha Convert Node. Stored in `custom1`. */
+typedef enum CMPNodeAlphaConvertMode {
+  CMP_NODE_ALPHA_CONVERT_PREMULTIPLY = 0,
+  CMP_NODE_ALPHA_CONVERT_UNPREMULTIPLY = 1,
+} CMPNodeAlphaConvertMode;
+
+/** Distance Matte Node. Stored in #NodeChroma.channel. */
+typedef enum CMPNodeDistanceMatteColorSpace {
+  CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_YCCA = 0,
+  CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA = 1,
+} CMPNodeDistanceMatteColorSpace;
+
+/** Color Spill Node. Stored in `custom2`. */
+typedef enum CMPNodeColorSpillLimitAlgorithm {
+  CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_SINGLE = 0,
+  CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_AVERAGE = 1,
+} CMPNodeColorSpillLimitAlgorithm;
+
+/** Channel Matte Node. Stored in #NodeChroma.algorithm. */
+typedef enum CMPNodeChannelMatteLimitAlgorithm {
+  CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_SINGLE = 0,
+  CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_MAX = 1,
+} CMPNodeChannelMatteLimitAlgorithm;
+
+/* Flip Node. Stored in custom1. */
+typedef enum CMPNodeFlipMode {
+  CMP_NODE_FLIP_X = 0,
+  CMP_NODE_FLIP_Y = 1,
+  CMP_NODE_FLIP_X_Y = 2,
+} CMPNodeFlipMode;
 
 /* Plane track deform node. */
 

@@ -166,7 +166,7 @@ bool ED_armature_pose_select_pick_bone(ViewLayer *view_layer,
 
     /* Since we do unified select, we don't shift+select a bone if the
      * armature object was not active yet.
-     * NOTE(campbell): special exception for armature mode so we can do multi-select
+     * NOTE(@campbellbarton): special exception for armature mode so we can do multi-select
      * we could check for multi-select explicitly but think its fine to
      * always give predictable behavior in weight paint mode. */
     if ((ob_act == NULL) || ((ob_act != ob) && (ob_act->mode & OB_MODE_ALL_WEIGHT_PAINT) == 0)) {

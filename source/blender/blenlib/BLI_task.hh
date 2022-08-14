@@ -105,6 +105,22 @@ template<typename... Functions> void parallel_invoke(Functions &&...functions)
 #endif
 }
 
+/**
+ * Same #parallel_invoke, but allows disabling threading dynamically. This is useful because when
+ * the individual functions do very little work, there is a lot of overhead from starting parallel
+ * tasks.
+ */
+template<typename... Functions>
+void parallel_invoke(const bool use_threading, Functions &&...functions)
+{
+  if (use_threading) {
+    parallel_invoke(std::forward<Functions>(functions)...);
+  }
+  else {
+    (functions(), ...);
+  }
+}
+
 /** See #BLI_task_isolate for a description of what isolating a task means. */
 template<typename Function> void isolate_task(const Function &function)
 {

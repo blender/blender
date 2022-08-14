@@ -74,7 +74,7 @@ void MovieClipBaseOperation::execute_pixel_sampled(float output[4],
     zero_v4(output);
   }
   else if (ibuf->rect == nullptr && ibuf->rect_float == nullptr) {
-    /* Happens for multilayer exr, i.e. */
+    /* Happens for multi-layer EXR, i.e. */
     zero_v4(output);
   }
   else {

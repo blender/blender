@@ -9,6 +9,7 @@
 #include "BKE_lib_id.h"
 
 #include "BLI_map.hh"
+#include "BLI_math_base.hh"
 #include "BLI_math_vec_types.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
@@ -92,6 +93,8 @@ struct Geometry {
 
   int vertex_index_min_ = INT_MAX;
   int vertex_index_max_ = -1;
+  VectorSet<int> vertices_;
+  Map<int, int> global_to_local_vertices_;
   /** Edges written in the file in addition to (or even without polygon) elements. */
   Vector<MEdge> edges_;
 
@@ -105,14 +108,26 @@ struct Geometry {
 
   int get_vertex_count() const
   {
-    if (vertex_index_max_ < vertex_index_min_)
-      return 0;
-    return vertex_index_max_ - vertex_index_min_ + 1;
+    return (int)vertices_.size();
   }
   void track_vertex_index(int index)
   {
-    vertex_index_min_ = std::min(vertex_index_min_, index);
-    vertex_index_max_ = std::max(vertex_index_max_, index);
+    if (vertices_.add(index)) {
+      global_to_local_vertices_.add_new(index, (int)vertices_.size() - 1);
+    }
+    math::min_inplace(vertex_index_min_, index);
+    math::max_inplace(vertex_index_max_, index);
+  }
+  void track_all_vertices(int count)
+  {
+    vertices_.reserve(count);
+    global_to_local_vertices_.reserve(count);
+    for (int i = 0; i < count; ++i) {
+      vertices_.add(i);
+      global_to_local_vertices_.add(i, i);
+    }
+    vertex_index_min_ = 0;
+    vertex_index_max_ = count - 1;
   }
 };
 

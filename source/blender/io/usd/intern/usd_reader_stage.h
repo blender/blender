@@ -85,6 +85,8 @@ class USDStageReader {
     return dome_lights_;
   };
 
+  void sort_readers();
+
  private:
   USDPrimReader *collect_readers(Main *bmain,
                                  const pxr::UsdPrim &prim,

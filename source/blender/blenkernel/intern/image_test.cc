@@ -32,8 +32,12 @@ TEST(udim, image_ensure_tile_token)
   verify("test_1002_ao.png", "test_<UDIM>_ao.png");
   verify("test.1002.ver0023.png", "test.<UDIM>.ver0023.png");
   verify("test.ver0023.1002.png", "test.ver0023.<UDIM>.png");
-  verify("1002test.png", "<UDIM>test.png");
-  verify("test1002.png", "test<UDIM>.png");
+  verify("test.1002.1.png", "test.<UDIM>.1.png");
+  verify("test.1.1002.png", "test.1.<UDIM>.png");
+  verify("test-2022-01-01.1002.png", "test-2022-01-01.<UDIM>.png");
+  verify("1111_11.1002.png", "1111_11.<UDIM>.png");
+  verify("2111_01.1002.png", "2111_01.<UDIM>.png");
+  verify("2022_1002_100200.1002.png", "2022_1002_100200.<UDIM>.png");
 
   /* UVTILE pattern detection. */
   verify("uv-test.u2_v10.png", "uv-test.<UVTILE>.png");
@@ -44,8 +48,15 @@ TEST(udim, image_ensure_tile_token)
   verify("u2_v10uv-test.png", "<UVTILE>uv-test.png");
   verify("u2_v10u_v-test.png", "<UVTILE>u_v-test.png");
 
-  /* Incorrect patterns. */
-  for (const char *incorrect : {"test.123.png",
+  /* Patterns which should not be detected as UDIMs. */
+  for (const char *incorrect : {"1002.png",
+                                "1002test.png",
+                                "test1002.png",
+                                "test(1002).png",
+                                "(1002)test.png",
+                                "test-1080p.png",
+                                "test-1920x1080.png",
+                                "test.123.png",
                                 "test.12345.png",
                                 "test.uv.png",
                                 "test.u1v.png",

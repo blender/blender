@@ -813,7 +813,7 @@ static void initSnappingMode(TransInfo *t)
       t->tsnap.use_backface_culling = snap_use_backface_culling(t);
       t->tsnap.object_context = ED_transform_snap_object_context_create(t->scene, 0);
 
-      if (t->data_type == TC_MESH_VERTS) {
+      if (t->data_type == &TransConvertType_Mesh) {
         /* Ignore elements being transformed. */
         ED_transform_snap_object_context_set_editmesh_callbacks(
             t->tsnap.object_context,
@@ -1252,7 +1252,7 @@ static void snap_target_grid_ensure(TransInfo *t)
 {
   /* Only need to calculate once. */
   if ((t->tsnap.status & TARGET_GRID_INIT) == 0) {
-    if (t->data_type == TC_CURSOR_VIEW3D) {
+    if (t->data_type == &TransConvertType_Cursor3D) {
       /* Use a fallback when transforming the cursor.
        * In this case the center is _not_ derived from the cursor which is being transformed. */
       copy_v3_v3(t->tsnap.snapTargetGrid, TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->data->iloc);

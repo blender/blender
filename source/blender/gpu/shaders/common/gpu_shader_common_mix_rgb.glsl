@@ -2,28 +2,24 @@
 
 void mix_blend(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
-  fac = clamp(fac, 0.0, 1.0);
   outcol = mix(col1, col2, fac);
   outcol.a = col1.a;
 }
 
 void mix_add(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
-  fac = clamp(fac, 0.0, 1.0);
   outcol = mix(col1, col1 + col2, fac);
   outcol.a = col1.a;
 }
 
 void mix_mult(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
-  fac = clamp(fac, 0.0, 1.0);
   outcol = mix(col1, col1 * col2, fac);
   outcol.a = col1.a;
 }
 
 void mix_screen(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
-  fac = clamp(fac, 0.0, 1.0);
   float facm = 1.0 - fac;
 
   outcol = vec4(1.0) - (vec4(facm) + fac * (vec4(1.0) - col2)) * (vec4(1.0) - col1);
@@ -32,7 +28,6 @@ void mix_screen(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 
 void mix_overlay(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
-  fac = clamp(fac, 0.0, 1.0);
   float facm = 1.0 - fac;
 
   outcol = col1;
@@ -61,14 +56,30 @@ void mix_overlay(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 
 void mix_sub(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
-  fac = clamp(fac, 0.0, 1.0);
   outcol = mix(col1, col1 - col2, fac);
   outcol.a = col1.a;
 }
 
 void mix_div(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
-  fac = clamp(fac, 0.0, 1.0);
+  float facm = 1.0 - fac;
+
+  outcol = vec4(vec3(0.0), col1.a);
+
+  if (col2.r != 0.0) {
+    outcol.r = facm * col1.r + fac * col1.r / col2.r;
+  }
+  if (col2.g != 0.0) {
+    outcol.g = facm * col1.g + fac * col1.g / col2.g;
+  }
+  if (col2.b != 0.0) {
+    outcol.b = facm * col1.b + fac * col1.b / col2.b;
+  }
+}
+
+/* A variant of mix_div that fallback to the first color upon zero division. */
+void mix_div_fallback(float fac, vec4 col1, vec4 col2, out vec4 outcol)
+{
   float facm = 1.0 - fac;
 
   outcol = col1;
@@ -86,28 +97,24 @@ void mix_div(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 
 void mix_diff(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
-  fac = clamp(fac, 0.0, 1.0);
   outcol = mix(col1, abs(col1 - col2), fac);
   outcol.a = col1.a;
 }
 
 void mix_dark(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
-  fac = clamp(fac, 0.0, 1.0);
   outcol.rgb = mix(col1.rgb, min(col1.rgb, col2.rgb), fac);
   outcol.a = col1.a;
 }
 
 void mix_light(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
-  fac = clamp(fac, 0.0, 1.0);
   outcol.rgb = mix(col1.rgb, max(col1.rgb, col2.rgb), fac);
   outcol.a = col1.a;
 }
 
 void mix_dodge(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
-  fac = clamp(fac, 0.0, 1.0);
   outcol = col1;
 
   if (outcol.r != 0.0) {
@@ -150,7 +157,6 @@ void mix_dodge(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 
 void mix_burn(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
-  fac = clamp(fac, 0.0, 1.0);
   float tmp, facm = 1.0 - fac;
 
   outcol = col1;
@@ -200,7 +206,6 @@ void mix_burn(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 
 void mix_hue(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
-  fac = clamp(fac, 0.0, 1.0);
   float facm = 1.0 - fac;
 
   outcol = col1;
@@ -220,7 +225,6 @@ void mix_hue(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 
 void mix_sat(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
-  fac = clamp(fac, 0.0, 1.0);
   float facm = 1.0 - fac;
 
   outcol = col1;
@@ -238,7 +242,6 @@ void mix_sat(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 
 void mix_val(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
-  fac = clamp(fac, 0.0, 1.0);
   float facm = 1.0 - fac;
 
   vec4 hsv, hsv2;
@@ -251,7 +254,6 @@ void mix_val(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 
 void mix_color(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
-  fac = clamp(fac, 0.0, 1.0);
   float facm = 1.0 - fac;
 
   outcol = col1;
@@ -272,22 +274,26 @@ void mix_color(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 
 void mix_soft(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
-  fac = clamp(fac, 0.0, 1.0);
   float facm = 1.0 - fac;
 
   vec4 one = vec4(1.0);
   vec4 scr = one - (one - col2) * (one - col1);
   outcol = facm * col1 + fac * ((one - col1) * col2 * col1 + col1 * scr);
+  outcol.a = col1.a;
 }
 
 void mix_linear(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {
-  fac = clamp(fac, 0.0, 1.0);
-
   outcol = col1 + fac * (2.0 * (col2 - vec4(0.5)));
+  outcol.a = col1.a;
 }
 
-void clamp_color(vec3 vec, vec3 min, vec3 max, out vec3 out_vec)
+void clamp_color(vec4 vec, const vec4 min, const vec4 max, out vec4 out_vec)
 {
   out_vec = clamp(vec, min, max);
+}
+
+void multiply_by_alpha(float factor, vec4 color, out float result)
+{
+  result = factor * color.a;
 }

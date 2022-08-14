@@ -56,6 +56,21 @@ class Context(StructRNA):
         if value is None:
             return value
 
+        # If the attribute is a list property, apply subscripting.
+        if isinstance(value, list) and path_rest.startswith("["):
+            index_str, div, index_tail = path_rest[1:].partition("]")
+            if not div:
+                raise ValueError("Path index is not terminated: %s%s" % (attr, path_rest))
+            try:
+                index = int(index_str)
+            except ValueError:
+                raise ValueError("Path index is invalid: %s[%s]" % (attr, index_str))
+            if 0 <= index < len(value):
+                path_rest = index_tail
+                value = value[index]
+            else:
+                raise IndexError("Path index out of range: %s[%s]" % (attr, index_str))
+
         # Resolve the rest of the path if necessary.
         if path_rest:
             path_resolve_fn = getattr(value, "path_resolve", None)
@@ -1059,6 +1074,7 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         - preset_operator_defaults (dict of keyword args)
         """
         import bpy
+        from bpy.app.translations import pgettext_iface as iface_
         ext_valid = getattr(self, "preset_extensions", {".py", ".xml"})
         props_default = getattr(self, "preset_operator_defaults", None)
         add_operator = getattr(self, "preset_add_operator", None)
@@ -1068,7 +1084,8 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
             props_default=props_default,
             filter_ext=lambda ext: ext.lower() in ext_valid,
             add_operator=add_operator,
-            display_name=lambda name: bpy.path.display_name(name, title_case=False)
+            display_name=lambda name: iface_(
+                bpy.path.display_name(name, title_case=False))
         )
 
     @classmethod

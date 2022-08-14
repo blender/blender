@@ -220,11 +220,11 @@ BLI_NOINLINE static void update_elimination_mask_based_on_density_factors(
     const float v1_density_factor = std::max(0.0f, density_factors[v1_loop]);
     const float v2_density_factor = std::max(0.0f, density_factors[v2_loop]);
 
-    const float probablity = v0_density_factor * bary_coord.x + v1_density_factor * bary_coord.y +
-                             v2_density_factor * bary_coord.z;
+    const float probability = v0_density_factor * bary_coord.x + v1_density_factor * bary_coord.y +
+                              v2_density_factor * bary_coord.z;
 
     const float hash = noise::hash_float_to_float(bary_coord);
-    if (hash > probablity) {
+    if (hash > probability) {
       elimination_mask[i] = true;
     }
   }
@@ -497,8 +497,17 @@ static void point_distribution_calculate(GeometrySet &geometry_set,
   }
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(positions.size());
-  memcpy(pointcloud->co, positions.data(), sizeof(float3) * positions.size());
-  uninitialized_fill_n(pointcloud->radius, pointcloud->totpoint, 0.05f);
+  bke::MutableAttributeAccessor point_attributes = bke::pointcloud_attributes_for_write(
+      *pointcloud);
+  bke::SpanAttributeWriter<float3> point_positions =
+      point_attributes.lookup_or_add_for_write_only_span<float3>("position", ATTR_DOMAIN_POINT);
+  bke::SpanAttributeWriter<float> point_radii =
+      point_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
+  point_positions.span.copy_from(positions);
+  point_radii.span.fill(0.05f);
+  point_positions.finish();
+  point_radii.finish();
+
   geometry_set.replace_pointcloud(pointcloud);
 
   PointCloudComponent &point_component =
@@ -541,7 +550,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         geometry_set, selection_field, method, seed, attribute_outputs, params);
     /* Keep instances because the original geometry set may contain instances that are processed as
      * well. */
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_INSTANCES});
+    geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_POINT_CLOUD});
   });
 
   params.set_output("Points", std::move(geometry_set));

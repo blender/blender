@@ -67,9 +67,9 @@ ReverseUVSampler::Result ReverseUVSampler::sample(const float2 &query_uv) const
     const float z_dist = std::max(-bary_weights.z, bary_weights.z - 1.0f);
     const float dist = MAX3(x_dist, y_dist, z_dist);
 
-    if (dist <= 0.0f) {
-      /* Return early if the uv coordinate is in the triangle. */
-      return Result{ResultType::Ok, &looptri, bary_weights};
+    if (dist <= 0.0f && best_dist <= 0.0f) {
+      /* The uv sample is in multiple triangles. */
+      return Result{ResultType::Multiple};
     }
 
     if (dist < best_dist) {

@@ -619,7 +619,6 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   EXTRACT_ADD_REQUESTED(vbo, lnor);
   EXTRACT_ADD_REQUESTED(vbo, uv);
   EXTRACT_ADD_REQUESTED(vbo, tan);
-  EXTRACT_ADD_REQUESTED(vbo, vcol);
   EXTRACT_ADD_REQUESTED(vbo, sculpt_data);
   EXTRACT_ADD_REQUESTED(vbo, orco);
   EXTRACT_ADD_REQUESTED(vbo, edge_fac);
@@ -848,7 +847,6 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
   EXTRACT_ADD_REQUESTED(vbo, edituv_stretch_angle);
   EXTRACT_ADD_REQUESTED(ibo, lines_paint_mask);
   EXTRACT_ADD_REQUESTED(ibo, lines_adjacency);
-  EXTRACT_ADD_REQUESTED(vbo, vcol);
   EXTRACT_ADD_REQUESTED(vbo, weights);
   EXTRACT_ADD_REQUESTED(vbo, sculpt_data);
 

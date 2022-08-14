@@ -43,6 +43,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_world_types.h"
 
 #include "ED_gpencil.h"
@@ -84,6 +85,7 @@
 #include "draw_cache_impl.h"
 
 #include "engines/basic/basic_engine.h"
+#include "engines/compositor/compositor_engine.h"
 #include "engines/eevee/eevee_engine.h"
 #include "engines/eevee_next/eevee_engine.h"
 #include "engines/external/external_engine.h"
@@ -210,17 +212,6 @@ int DRW_object_visibility_in_active_context(const Object *ob)
 {
   const eEvaluationMode mode = DRW_state_is_scene_render() ? DAG_EVAL_RENDER : DAG_EVAL_VIEWPORT;
   return BKE_object_visibility(ob, mode);
-}
-
-bool DRW_object_is_flat_normal(const Object *ob)
-{
-  if (ob->type == OB_MESH) {
-    const Mesh *me = ob->data;
-    if (me->mpoly && me->mpoly[0].flag & ME_SMOOTH) {
-      return false;
-    }
-  }
-  return true;
 }
 
 bool DRW_object_use_hide_faces(const struct Object *ob)
@@ -1225,6 +1216,31 @@ static void drw_engines_enable_editors(void)
   }
 }
 
+static bool is_compositor_enabled(void)
+{
+  if (!U.experimental.use_realtime_compositor) {
+    return false;
+  }
+
+  if (!(DST.draw_ctx.v3d->shading.flag & V3D_SHADING_COMPOSITOR)) {
+    return false;
+  }
+
+  if (!(DST.draw_ctx.v3d->shading.type >= OB_MATERIAL)) {
+    return false;
+  }
+
+  if (!DST.draw_ctx.scene->use_nodes) {
+    return false;
+  }
+
+  if (!DST.draw_ctx.scene->nodetree) {
+    return false;
+  }
+
+  return true;
+}
+
 static void drw_engines_enable(ViewLayer *UNUSED(view_layer),
                                RenderEngineType *engine_type,
                                bool gpencil_engine_needed)
@@ -1237,6 +1253,11 @@ static void drw_engines_enable(ViewLayer *UNUSED(view_layer),
   if (gpencil_engine_needed && ((drawtype >= OB_SOLID) || !use_xray)) {
     use_drw_engine(&draw_engine_gpencil_type);
   }
+
+  if (is_compositor_enabled()) {
+    use_drw_engine(&draw_engine_compositor_type);
+  }
+
   drw_engines_enable_overlays();
 
 #ifdef WITH_DRAW_DEBUG
@@ -1608,7 +1629,6 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
                              GPUViewport *viewport,
                              const bContext *evil_C)
 {
-
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
   RegionView3D *rv3d = region->regiondata;
@@ -2959,6 +2979,7 @@ void DRW_engines_register(void)
   DRW_engine_register(&draw_engine_overlay_type);
   DRW_engine_register(&draw_engine_select_type);
   DRW_engine_register(&draw_engine_basic_type);
+  DRW_engine_register(&draw_engine_compositor_type);
 #ifdef WITH_DRAW_DEBUG
   DRW_engine_register(&draw_engine_debug_select_type);
 #endif
@@ -3038,6 +3059,9 @@ void DRW_engines_free(void)
   DRW_shape_cache_free();
   DRW_stats_free();
   DRW_globals_free();
+
+  drw_debug_module_free(DST.debug);
+  DST.debug = NULL;
 
   DRW_UBO_FREE_SAFE(G_draw.block_ubo);
   DRW_UBO_FREE_SAFE(G_draw.view_ubo);

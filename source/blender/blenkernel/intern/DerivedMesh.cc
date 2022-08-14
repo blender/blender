@@ -1595,7 +1595,7 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
 
   /* Add orco coordinates to final and deformed mesh if requested. */
   if (final_datamask.vmask & CD_MASK_ORCO) {
-    /* FIXME(Campbell): avoid the need to convert to mesh data just to add an orco layer. */
+    /* FIXME(@campbellbarton): avoid the need to convert to mesh data just to add an orco layer. */
     BKE_mesh_wrapper_ensure_mdata(mesh_final);
 
     add_orco_mesh(ob, em_input, mesh_final, mesh_orco, CD_ORCO);

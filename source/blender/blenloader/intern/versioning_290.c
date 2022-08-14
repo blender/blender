@@ -849,7 +849,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       short id_codes[] = {ID_BR, ID_PAL};
       for (int i = 0; i < ARRAY_SIZE(id_codes); i++) {
         ListBase *lb = which_libbase(bmain, id_codes[i]);
-        BKE_main_id_repair_duplicate_names_listbase(lb);
+        BKE_main_id_repair_duplicate_names_listbase(bmain, lb);
       }
     }
 
@@ -926,7 +926,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
         LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
           if (md->mode & eModifierMode_Expanded_DEPRECATED) {
-            md->ui_expand_flag = 1;
+            md->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT;
           }
           else {
             md->ui_expand_flag = 0;
@@ -954,7 +954,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
         LISTBASE_FOREACH (bConstraint *, con, &object->constraints) {
           if (con->flag & CONSTRAINT_EXPAND_DEPRECATED) {
-            con->ui_expand_flag = 1;
+            con->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT;
           }
           else {
             con->ui_expand_flag = 0;
@@ -968,7 +968,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
         LISTBASE_FOREACH (GpencilModifierData *, md, &object->greasepencil_modifiers) {
           if (md->mode & eGpencilModifierMode_Expanded_DEPRECATED) {
-            md->ui_expand_flag = 1;
+            md->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT;
           }
           else {
             md->ui_expand_flag = 0;
@@ -982,7 +982,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
         LISTBASE_FOREACH (ShaderFxData *, fx, &object->shader_fx) {
           if (fx->mode & eShaderFxMode_Expanded_DEPRECATED) {
-            fx->ui_expand_flag = 1;
+            fx->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT;
           }
           else {
             fx->ui_expand_flag = 0;
@@ -1697,7 +1697,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Add subpanels for FModifiers, which requires a field to store expansion. */
+    /* Add sub-panels for FModifiers, which requires a field to store expansion. */
     if (!DNA_struct_elem_find(fd->filesdna, "FModifier", "short", "ui_expand_flag")) {
       LISTBASE_FOREACH (bAction *, act, &bmain->actions) {
         LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {

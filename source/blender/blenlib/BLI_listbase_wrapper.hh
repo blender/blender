@@ -50,7 +50,7 @@ template<typename T> class ListBaseWrapper {
     Iterator operator++(int)
     {
       Iterator iterator = *this;
-      ++*this;
+      ++(*this);
       return iterator;
     }
 

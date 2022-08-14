@@ -11,7 +11,7 @@
 CCL_NAMESPACE_BEGIN
 
 ccl_device void bsdf_transparent_setup(ccl_private ShaderData *sd,
-                                       const float3 weight,
+                                       const Spectrum weight,
                                        uint32_t path_flag)
 {
   /* Check cutoff weight. */
@@ -59,22 +59,22 @@ ccl_device void bsdf_transparent_setup(ccl_private ShaderData *sd,
   }
 }
 
-ccl_device float3 bsdf_transparent_eval_reflect(ccl_private const ShaderClosure *sc,
-                                                const float3 I,
-                                                const float3 omega_in,
-                                                ccl_private float *pdf)
+ccl_device Spectrum bsdf_transparent_eval_reflect(ccl_private const ShaderClosure *sc,
+                                                  const float3 I,
+                                                  const float3 omega_in,
+                                                  ccl_private float *pdf)
 {
   *pdf = 0.0f;
-  return make_float3(0.0f, 0.0f, 0.0f);
+  return zero_spectrum();
 }
 
-ccl_device float3 bsdf_transparent_eval_transmit(ccl_private const ShaderClosure *sc,
-                                                 const float3 I,
-                                                 const float3 omega_in,
-                                                 ccl_private float *pdf)
+ccl_device Spectrum bsdf_transparent_eval_transmit(ccl_private const ShaderClosure *sc,
+                                                   const float3 I,
+                                                   const float3 omega_in,
+                                                   ccl_private float *pdf)
 {
   *pdf = 0.0f;
-  return make_float3(0.0f, 0.0f, 0.0f);
+  return zero_spectrum();
 }
 
 ccl_device int bsdf_transparent_sample(ccl_private const ShaderClosure *sc,
@@ -84,7 +84,7 @@ ccl_device int bsdf_transparent_sample(ccl_private const ShaderClosure *sc,
                                        float3 dIdy,
                                        float randu,
                                        float randv,
-                                       ccl_private float3 *eval,
+                                       ccl_private Spectrum *eval,
                                        ccl_private float3 *omega_in,
                                        ccl_private float3 *domega_in_dx,
                                        ccl_private float3 *domega_in_dy,
@@ -97,7 +97,7 @@ ccl_device int bsdf_transparent_sample(ccl_private const ShaderClosure *sc,
   *domega_in_dy = -dIdy;
 #endif
   *pdf = 1;
-  *eval = make_float3(1, 1, 1);
+  *eval = one_spectrum();
   return LABEL_TRANSMIT | LABEL_TRANSPARENT;
 }
 

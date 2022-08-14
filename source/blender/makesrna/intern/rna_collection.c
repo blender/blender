@@ -39,6 +39,7 @@ const EnumPropertyItem rna_enum_collection_color_items[] = {
 
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
+#  include "DEG_depsgraph_query.h"
 
 #  include "BKE_collection.h"
 #  include "BKE_global.h"
@@ -79,26 +80,45 @@ static PointerRNA rna_Collection_objects_get(CollectionPropertyIterator *iter)
   return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, cob->ob);
 }
 
+static bool rna_collection_objects_edit_check(Collection *collection,
+                                              ReportList *reports,
+                                              Object *object)
+{
+  if (!DEG_is_original_id(&collection->id)) {
+    BKE_reportf(
+        reports, RPT_ERROR, "Collection '%s' is not an original ID", collection->id.name + 2);
+    return false;
+  }
+  if (!DEG_is_original_id(&object->id)) {
+    BKE_reportf(reports, RPT_ERROR, "Collection '%s' is not an original ID", object->id.name + 2);
+    return false;
+  }
+  /* Currently this should not be allowed (might be supported in the future though...). */
+  if (ID_IS_OVERRIDE_LIBRARY(&collection->id)) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Could not (un)link the object '%s' because the collection '%s' is overridden",
+                object->id.name + 2,
+                collection->id.name + 2);
+    return false;
+  }
+  if (ID_IS_LINKED(&collection->id)) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Could not (un)link the object '%s' because the collection '%s' is linked",
+                object->id.name + 2,
+                collection->id.name + 2);
+    return false;
+  }
+  return true;
+}
+
 static void rna_Collection_objects_link(Collection *collection,
                                         Main *bmain,
                                         ReportList *reports,
                                         Object *object)
 {
-  /* Currently this should not be allowed (might be supported in the future though...). */
-  if (ID_IS_OVERRIDE_LIBRARY(&collection->id)) {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Could not link the object '%s' because the collection '%s' is overridden",
-                object->id.name + 2,
-                collection->id.name + 2);
-    return;
-  }
-  if (ID_IS_LINKED(&collection->id)) {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Could not link the object '%s' because the collection '%s' is linked",
-                object->id.name + 2,
-                collection->id.name + 2);
+  if (!rna_collection_objects_edit_check(collection, reports, object)) {
     return;
   }
   if (!BKE_collection_object_add(bmain, collection, object)) {
@@ -120,6 +140,9 @@ static void rna_Collection_objects_unlink(Collection *collection,
                                           ReportList *reports,
                                           Object *object)
 {
+  if (!rna_collection_objects_edit_check(collection, reports, object)) {
+    return;
+  }
   if (!BKE_collection_object_remove(bmain, collection, object, false)) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -204,11 +227,47 @@ static PointerRNA rna_Collection_children_get(CollectionPropertyIterator *iter)
   return rna_pointer_inherit_refine(&iter->parent, &RNA_Collection, child->collection);
 }
 
+static bool rna_collection_children_edit_check(Collection *collection,
+                                               ReportList *reports,
+                                               Collection *child)
+{
+  if (!DEG_is_original_id(&collection->id)) {
+    BKE_reportf(
+        reports, RPT_ERROR, "Collection '%s' is not an original ID", collection->id.name + 2);
+    return false;
+  }
+  if (!DEG_is_original_id(&child->id)) {
+    BKE_reportf(reports, RPT_ERROR, "Collection '%s' is not an original ID", child->id.name + 2);
+    return false;
+  }
+  /* Currently this should not be allowed (might be supported in the future though...). */
+  if (ID_IS_OVERRIDE_LIBRARY(&collection->id)) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Could not (un)link the collection '%s' because the collection '%s' is overridden",
+                child->id.name + 2,
+                collection->id.name + 2);
+    return false;
+  }
+  if (ID_IS_LINKED(&collection->id)) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Could not (un)link the collection '%s' because the collection '%s' is linked",
+                child->id.name + 2,
+                collection->id.name + 2);
+    return false;
+  }
+  return true;
+}
+
 static void rna_Collection_children_link(Collection *collection,
                                          Main *bmain,
                                          ReportList *reports,
                                          Collection *child)
 {
+  if (!rna_collection_children_edit_check(collection, reports, child)) {
+    return;
+  }
   if (!BKE_collection_child_add(bmain, collection, child)) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -228,6 +287,9 @@ static void rna_Collection_children_unlink(Collection *collection,
                                            ReportList *reports,
                                            Collection *child)
 {
+  if (!rna_collection_children_edit_check(collection, reports, child)) {
+    return;
+  }
   if (!BKE_collection_child_remove(bmain, collection, child)) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -359,6 +421,14 @@ static void rna_Collection_color_tag_update(Main *UNUSED(bmain),
   WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, scene);
 }
 
+static void rna_Collection_instance_offset_update(Main *UNUSED(bmain),
+                                                  Scene *UNUSED(scene),
+                                                  PointerRNA *ptr)
+{
+  Collection *collection = (Collection *)ptr->data;
+  DEG_id_tag_update(&collection->id, ID_RECALC_GEOMETRY);
+}
+
 #else
 
 /* collection.objects */
@@ -433,7 +503,7 @@ void RNA_def_collections(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Instance Offset", "Offset from the origin to use when instancing");
   RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, RNA_TRANSLATION_PREC_DEFAULT);
-  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Collection_instance_offset_update");
 
   prop = RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "Object");

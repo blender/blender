@@ -20,6 +20,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_compiler_compat.h"
+#include "BLI_edgehash.h"
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
@@ -830,19 +831,6 @@ void AbcMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const ISampleSel
 
 /* ************************************************************************** */
 
-BLI_INLINE MEdge *find_edge(MEdge *edges, int totedge, int v1, int v2)
-{
-  for (int i = 0, e = totedge; i < e; i++) {
-    MEdge &edge = edges[i];
-
-    if (edge.v1 == v1 && edge.v2 == v2) {
-      return &edge;
-    }
-  }
-
-  return nullptr;
-}
-
 static void read_subd_sample(const std::string &iobject_full_name,
                              ImportSettings *settings,
                              const ISubDSchema &schema,
@@ -927,7 +915,14 @@ static void read_edge_creases(Mesh *mesh,
   }
 
   MEdge *edges = mesh->medge;
-  int totedge = mesh->totedge;
+  const int totedge = mesh->totedge;
+
+  EdgeHash *edge_hash = BLI_edgehash_new_ex(__func__, mesh->totedge);
+
+  for (int i = 0; i < totedge; i++) {
+    MEdge *edge = &edges[i];
+    BLI_edgehash_insert(edge_hash, edge->v1, edge->v2, edge);
+  }
 
   for (int i = 0, s = 0, e = indices->size(); i < e; i += 2, s++) {
     int v1 = (*indices)[i];
@@ -939,15 +934,17 @@ static void read_edge_creases(Mesh *mesh,
       std::swap(v1, v2);
     }
 
-    MEdge *edge = find_edge(edges, totedge, v1, v2);
+    MEdge *edge = static_cast<MEdge *>(BLI_edgehash_lookup(edge_hash, v1, v2));
     if (edge == nullptr) {
-      edge = find_edge(edges, totedge, v2, v1);
+      edge = static_cast<MEdge *>(BLI_edgehash_lookup(edge_hash, v2, v1));
     }
 
     if (edge) {
       edge->crease = unit_float_to_uchar_clamp((*sharpnesses)[s]);
     }
   }
+
+  BLI_edgehash_free(edge_hash, nullptr);
 
   mesh->cd_flag |= ME_CDFLAG_EDGE_CREASE;
 }

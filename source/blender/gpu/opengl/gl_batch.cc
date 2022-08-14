@@ -18,6 +18,7 @@
 #include "gl_debug.hh"
 #include "gl_index_buffer.hh"
 #include "gl_primitive.hh"
+#include "gl_storage_buffer.hh"
 #include "gl_vertex_array.hh"
 
 #include "gl_batch.hh"
@@ -324,6 +325,29 @@ void GLBatch::draw(int v_first, int v_count, int i_first, int i_count)
     glEnable(GL_PRIMITIVE_RESTART);
 #endif
   }
+}
+
+void GLBatch::draw_indirect(GPUStorageBuf *indirect_buf)
+{
+  GL_CHECK_RESOURCES("Batch");
+
+  this->bind(0);
+
+  dynamic_cast<GLStorageBuf *>(unwrap(indirect_buf))->bind_as(GL_DRAW_INDIRECT_BUFFER);
+  /* This barrier needs to be here as it only work on the currently bound indirect buffer. */
+  glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
+
+  GLenum gl_type = to_gl(prim_type);
+  if (elem) {
+    const GLIndexBuf *el = this->elem_();
+    GLenum index_type = to_gl(el->index_type_);
+    glDrawElementsIndirect(gl_type, index_type, (GLvoid *)nullptr);
+  }
+  else {
+    glDrawArraysIndirect(gl_type, (GLvoid *)nullptr);
+  }
+  /* Unbind. */
+  glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 }
 
 /** \} */

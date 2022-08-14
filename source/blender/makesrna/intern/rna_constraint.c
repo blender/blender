@@ -603,7 +603,7 @@ static const EnumPropertyItem *rna_Constraint_target_space_itemf(bContext *UNUSE
 
   if (BKE_constraint_targets_get(con, &targets)) {
     for (ct = targets.first; ct; ct = ct->next) {
-      if (ct->tar && ct->tar->type == OB_ARMATURE) {
+      if (ct->tar && ct->tar->type == OB_ARMATURE && !(ct->flag & CONSTRAINT_TAR_CUSTOM_SPACE)) {
         break;
       }
     }
@@ -3450,6 +3450,7 @@ void RNA_def_constraint(BlenderRNA *brna)
   RNA_def_struct_refine_func(srna, "rna_ConstraintType_refine");
   RNA_def_struct_path_func(srna, "rna_Constraint_path");
   RNA_def_struct_sdna(srna, "bConstraint");
+  RNA_def_struct_ui_icon(srna, ICON_CONSTRAINT);
 
   /* strings */
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);

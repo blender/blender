@@ -13,7 +13,6 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_attribute.h"
-#include "BKE_attribute.hh"
 
 struct Mesh;
 struct BVHTreeFromMesh;
@@ -27,22 +26,22 @@ namespace blender::bke::mesh_surface_sample {
 void sample_point_attribute(const Mesh &mesh,
                             Span<int> looptri_indices,
                             Span<float3> bary_coords,
-                            const GVArray &data_in,
-                            const IndexMask mask,
-                            GMutableSpan data_out);
+                            const GVArray &src,
+                            IndexMask mask,
+                            GMutableSpan dst);
 
 void sample_corner_attribute(const Mesh &mesh,
                              Span<int> looptri_indices,
                              Span<float3> bary_coords,
-                             const GVArray &data_in,
-                             const IndexMask mask,
-                             GMutableSpan data_out);
+                             const GVArray &src,
+                             IndexMask mask,
+                             GMutableSpan dst);
 
 void sample_face_attribute(const Mesh &mesh,
                            Span<int> looptri_indices,
-                           const GVArray &data_in,
-                           const IndexMask mask,
-                           GMutableSpan data_out);
+                           const GVArray &src,
+                           IndexMask mask,
+                           GMutableSpan dst);
 
 enum class eAttributeMapMode {
   INTERPOLATED,
@@ -57,7 +56,6 @@ enum class eAttributeMapMode {
  * these are computed lazily when needed and re-used.
  */
 class MeshAttributeInterpolator {
- private:
   const Mesh *mesh_;
   const IndexMask mask_;
   const Span<float3> positions_;
@@ -68,18 +66,14 @@ class MeshAttributeInterpolator {
 
  public:
   MeshAttributeInterpolator(const Mesh *mesh,
-                            const IndexMask mask,
-                            const Span<float3> positions,
-                            const Span<int> looptri_indices);
+                            IndexMask mask,
+                            Span<float3> positions,
+                            Span<int> looptri_indices);
 
   void sample_data(const GVArray &src,
                    eAttrDomain domain,
                    eAttributeMapMode mode,
-                   const GMutableSpan dst);
-
-  void sample_attribute(const GAttributeReader &src_attribute,
-                        GSpanAttributeWriter &dst_attribute,
-                        eAttributeMapMode mode);
+                   GMutableSpan dst);
 
  protected:
   Span<float3> ensure_barycentric_coords();
@@ -136,5 +130,16 @@ int sample_surface_points_projected(
 float3 compute_bary_coord_in_triangle(const Mesh &mesh,
                                       const MLoopTri &looptri,
                                       const float3 &position);
+
+template<typename T>
+inline T sample_corner_attrribute_with_bary_coords(const float3 &bary_weights,
+                                                   const MLoopTri &looptri,
+                                                   const Span<T> corner_attribute)
+{
+  return attribute_math::mix3(bary_weights,
+                              corner_attribute[looptri.tri[0]],
+                              corner_attribute[looptri.tri[1]],
+                              corner_attribute[looptri.tri[2]]);
+}
 
 }  // namespace blender::bke::mesh_surface_sample

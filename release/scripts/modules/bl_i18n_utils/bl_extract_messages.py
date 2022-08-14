@@ -206,8 +206,6 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
             "Context", "Event", "Function", "UILayout", "UnknownType", "Property", "Struct",
             # registerable classes
             "Panel", "Menu", "Header", "RenderEngine", "Operator", "OperatorMacro", "Macro", "KeyingSetInfo",
-            # window classes
-            "Window",
         )
         }
 
@@ -361,12 +359,25 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
 
         walk_properties(cls)
 
+    def walk_keymap_modal_events(keyconfigs, keymap_name, msgsrc_prev, km_i18n_context):
+        for keyconfig in keyconfigs:
+            keymap = keyconfig.keymaps.get(keymap_name, None)
+            if keymap and keymap.is_modal:
+                for modal_event in keymap.modal_event_values:
+                    msgsrc = msgsrc_prev + ":'{}'".format(modal_event.identifier)
+                    if modal_event.name:
+                        process_msg(msgs, km_i18n_context, modal_event.name, msgsrc, reports, None, settings)
+                    if modal_event.description:
+                        process_msg(msgs, default_context, modal_event.description, msgsrc, reports, None, settings)
+
     def walk_keymap_hierarchy(hier, msgsrc_prev):
         km_i18n_context = bpy.app.translations.contexts.id_windowmanager
         for lvl in hier:
             msgsrc = msgsrc_prev + "." + lvl[1]
             if isinstance(lvl[0], str):  # Can be a function too, now, with tool system...
-                process_msg(msgs, km_i18n_context, lvl[0], msgsrc, reports, None, settings)
+                keymap_name = lvl[0]
+                process_msg(msgs, km_i18n_context, keymap_name, msgsrc, reports, None, settings)
+                walk_keymap_modal_events(bpy.data.window_managers[0].keyconfigs, keymap_name, msgsrc, km_i18n_context)
             if lvl[3]:
                 walk_keymap_hierarchy(lvl[3], msgsrc)
 
@@ -853,6 +864,25 @@ def dump_src_messages(msgs, reports, settings):
             dump_src_file(path, rel_path, msgs, reports, settings)
 
 
+def dump_preset_messages(msgs, reports, settings):
+    files = []
+    for dpath, _, fnames in os.walk(settings.PRESETS_DIR):
+        for fname in fnames:
+            if fname.startswith("_") or not fname.endswith(".py"):
+                continue
+            path = os.path.join(dpath, fname)
+            try:  # can't always find the relative path (between drive letters on windows)
+                rel_path = os.path.relpath(path, settings.PRESETS_DIR)
+            except ValueError:
+                rel_path = path
+            files.append(rel_path)
+    for rel_path in sorted(files):
+        msgsrc, msgid = os.path.split(rel_path)
+        msgsrc = "Preset from " + msgsrc
+        msgid = bpy.path.display_name(msgid, title_case=False)
+        process_msg(msgs, settings.DEFAULT_CONTEXT, msgid, msgsrc, reports, None, settings)
+
+
 ##### Main functions! #####
 def dump_messages(do_messages, do_checks, settings):
     bl_ver = "Blender " + bpy.app.version_string
@@ -884,6 +914,9 @@ def dump_messages(do_messages, do_checks, settings):
 
     # Get strings from C source code.
     dump_src_messages(msgs, reports, settings)
+
+    # Get strings from presets.
+    dump_preset_messages(msgs, reports, settings)
 
     # Get strings from addons' categories.
     for uid, label, tip in bpy.types.WindowManager.addon_filter.keywords['items'](
@@ -962,7 +995,12 @@ def dump_addon_messages(module_name, do_checks, settings):
     # and make the diff!
     for key in minus_msgs:
         if key != settings.PO_HEADER_KEY:
-            del msgs[key]
+            if key in msgs:
+                del msgs[key]
+            else:
+                # This should not happen, but some messages seem to have
+                # leaked on add-on unregister and register?
+                print(f"Key not found in msgs: {key}")
 
     if check_ctxt:
         _diff_check_ctxt(check_ctxt, minus_check_ctxt)

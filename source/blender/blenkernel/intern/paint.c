@@ -1243,11 +1243,13 @@ void BKE_paint_blend_read_lib(BlendLibReader *reader, Scene *sce, Paint *p)
   }
 }
 
-bool paint_is_face_hidden(const MLoopTri *lt, const MVert *mvert, const MLoop *mloop)
+bool paint_is_face_hidden(const MLoopTri *lt, const bool *hide_vert, const MLoop *mloop)
 {
-  return ((mvert[mloop[lt->tri[0]].v].flag & ME_HIDE) ||
-          (mvert[mloop[lt->tri[1]].v].flag & ME_HIDE) ||
-          (mvert[mloop[lt->tri[2]].v].flag & ME_HIDE));
+  if (!hide_vert) {
+    return false;
+  }
+  return ((hide_vert[mloop[lt->tri[0]].v]) || (hide_vert[mloop[lt->tri[1]].v]) ||
+          (hide_vert[mloop[lt->tri[2]].v]));
 }
 
 bool paint_is_grid_face_hidden(const uint *grid_hidden, int gridsize, int x, int y)
@@ -1433,10 +1435,10 @@ static void sculptsession_free_pbvh(Object *object)
 
   MEM_SAFE_FREE(ss->persistent_base);
 
-  MEM_SAFE_FREE(ss->preview_vert_index_list);
-  ss->preview_vert_index_count = 0;
+  MEM_SAFE_FREE(ss->preview_vert_list);
+  ss->preview_vert_count = 0;
 
-  MEM_SAFE_FREE(ss->preview_vert_index_list);
+  MEM_SAFE_FREE(ss->preview_vert_list);
 
   MEM_SAFE_FREE(ss->vertex_info.connected_component);
   MEM_SAFE_FREE(ss->vertex_info.boundary);
@@ -2068,9 +2070,11 @@ void BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(Mesh *mesh)
   }
 
   int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+  const bool *hide_poly = (const bool *)CustomData_get_layer_named(
+      &mesh->pdata, CD_PROP_BOOL, ".hide_poly");
 
   for (int i = 0; i < mesh->totpoly; i++) {
-    if (!(mesh->mpoly[i].flag & ME_HIDE)) {
+    if (!(hide_poly && hide_poly[i])) {
       continue;
     }
 
@@ -2095,9 +2099,13 @@ void BKE_sculpt_sync_face_sets_visibility_to_base_mesh(Mesh *mesh)
     return;
   }
 
+  bool *hide_poly = (bool *)CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, ".hide_poly");
+  if (!hide_poly) {
+    return;
+  }
+
   for (int i = 0; i < mesh->totpoly; i++) {
-    const bool is_face_set_visible = face_sets[i] >= 0;
-    SET_FLAG_FROM_TEST(mesh->mpoly[i].flag, !is_face_set_visible, ME_HIDE);
+    hide_poly[i] = face_sets[i] < 0;
   }
 
   BKE_mesh_flush_hidden_from_polys(mesh);

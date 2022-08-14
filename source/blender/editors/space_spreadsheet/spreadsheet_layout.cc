@@ -287,7 +287,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
     for (const int i : values.index_range()) {
       std::stringstream ss;
       const float value = values[i];
-      ss << std::fixed << std::setprecision(3) << value;
+      ss << " " << std::fixed << std::setprecision(3) << value;
       const std::string value_str = ss.str();
       uiBut *but = uiDefIconTextBut(params.block,
                                     UI_BTYPE_LABEL,
@@ -318,7 +318,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
     for (const int i : values.index_range()) {
       std::stringstream ss;
       const float value = values[i];
-      ss << std::fixed << std::setprecision(3) << value;
+      ss << " " << std::fixed << std::setprecision(3) << value;
       const std::string value_str = ss.str();
       uiBut *but = uiDefIconTextBut(params.block,
                                     UI_BTYPE_LABEL,

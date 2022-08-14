@@ -79,7 +79,6 @@ static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
   BLI_addtail(&snla->regionbase, region);
   region->regiontype = RGN_TYPE_UI;
   region->alignment = RGN_ALIGN_RIGHT;
-  region->flag = RGN_FLAG_HIDDEN;
 
   /* main region */
   region = MEM_callocN(sizeof(ARegion), "main region for nla");

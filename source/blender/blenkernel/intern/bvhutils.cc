@@ -19,12 +19,15 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_bvhutils.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 
 #include "MEM_guardedalloc.h"
+
+using blender::VArray;
 
 /* -------------------------------------------------------------------- */
 /** \name BVHCache
@@ -1180,9 +1183,13 @@ static BLI_bitmap *loose_edges_map_get(const MEdge *medge,
 }
 
 static BLI_bitmap *looptri_no_hidden_map_get(const MPoly *mpoly,
+                                             const VArray<bool> &hide_poly,
                                              const int looptri_len,
                                              int *r_looptri_active_len)
 {
+  if (hide_poly.is_single() && !hide_poly.get_internal_single()) {
+    return nullptr;
+  }
   BLI_bitmap *looptri_mask = BLI_BITMAP_NEW(looptri_len, __func__);
 
   int looptri_no_hidden_len = 0;
@@ -1190,8 +1197,7 @@ static BLI_bitmap *looptri_no_hidden_map_get(const MPoly *mpoly,
   int i_poly = 0;
   while (looptri_iter != looptri_len) {
     int mp_totlooptri = mpoly[i_poly].totloop - 2;
-    const MPoly &mp = mpoly[i_poly];
-    if (mp.flag & ME_HIDE) {
+    if (hide_poly[i_poly]) {
       looptri_iter += mp_totlooptri;
     }
     else {
@@ -1275,9 +1281,15 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
           0.0f, tree_type, 6, mesh->mvert, mesh->mface, mesh->totface, nullptr, -1);
       break;
 
-    case BVHTREE_FROM_LOOPTRI_NO_HIDDEN:
-      mask = looptri_no_hidden_map_get(mesh->mpoly, looptri_len, &mask_bits_act_len);
+    case BVHTREE_FROM_LOOPTRI_NO_HIDDEN: {
+      blender::bke::AttributeAccessor attributes = blender::bke::mesh_attributes(*mesh);
+      mask = looptri_no_hidden_map_get(
+          mesh->mpoly,
+          attributes.lookup_or_default(".hide_poly", ATTR_DOMAIN_FACE, false),
+          looptri_len,
+          &mask_bits_act_len);
       ATTR_FALLTHROUGH;
+    }
     case BVHTREE_FROM_LOOPTRI:
       data->tree = bvhtree_from_mesh_looptri_create_tree(0.0f,
                                                          tree_type,
@@ -1430,13 +1442,17 @@ BVHTree *BKE_bvhtree_from_pointcloud_get(BVHTreeFromPointCloud *data,
     return nullptr;
   }
 
-  for (int i = 0; i < pointcloud->totpoint; i++) {
-    BLI_bvhtree_insert(tree, i, pointcloud->co[i], 1);
+  blender::bke::AttributeAccessor attributes = blender::bke::pointcloud_attributes(*pointcloud);
+  blender::VArraySpan<blender::float3> positions = attributes.lookup_or_default<blender::float3>(
+      "position", ATTR_DOMAIN_POINT, blender::float3(0));
+
+  for (const int i : positions.index_range()) {
+    BLI_bvhtree_insert(tree, i, positions[i], 1);
   }
   BLI_assert(BLI_bvhtree_get_len(tree) == pointcloud->totpoint);
   bvhtree_balance(tree, false);
 
-  data->coords = pointcloud->co;
+  data->coords = (const float(*)[3])positions.data();
   data->tree = tree;
   data->nearest_callback = nullptr;
 

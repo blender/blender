@@ -245,12 +245,9 @@ void draw_nodespace_back_pix(const bContext &C,
 
 /* node_add.cc */
 
-/**
- * XXX Does some additional initialization on top of #nodeAddNode
- * Can be used with both custom and static nodes,
- * if `idname == nullptr` the static int type will be used instead.
- */
-bNode *node_add_node(const bContext &C, const char *idname, int type, float locx, float locy);
+bNode *add_node(const bContext &C, StringRef idname, const float2 &location);
+bNode *add_static_node(const bContext &C, int type, const float2 &location);
+
 void NODE_OT_add_reroute(wmOperatorType *ot);
 void NODE_OT_add_group(wmOperatorType *ot);
 void NODE_OT_add_object(wmOperatorType *ot);

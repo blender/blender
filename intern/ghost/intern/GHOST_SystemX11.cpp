@@ -287,7 +287,7 @@ uint8_t GHOST_SystemX11::getNumDisplays() const
 void GHOST_SystemX11::getMainDisplayDimensions(uint32_t &width, uint32_t &height) const
 {
   if (m_display) {
-    /* NOTE(campbell): for this to work as documented,
+    /* NOTE(@campbellbarton): for this to work as documented,
      * we would need to use Xinerama check r54370 for code that did this,
      * we've since removed since its not worth the extra dependency. */
     getAllDisplayDimensions(width, height);

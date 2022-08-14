@@ -55,6 +55,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_path.h"
 
 #include "GPU_material.h"
 
@@ -597,9 +598,9 @@ static int outliner_id_remap_exec(bContext *C, wmOperator *op)
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
   const short id_type = (short)RNA_enum_get(op->ptr, "id_type");
-  ID *old_id = reinterpret_cast<ID *>(
+  ID *old_id = static_cast<ID *>(
       BLI_findlink(which_libbase(CTX_data_main(C), id_type), RNA_enum_get(op->ptr, "old_id")));
-  ID *new_id = reinterpret_cast<ID *>(
+  ID *new_id = static_cast<ID *>(
       BLI_findlink(which_libbase(CTX_data_main(C), id_type), RNA_enum_get(op->ptr, "new_id")));
 
   /* check for invalid states */
@@ -693,9 +694,9 @@ static const EnumPropertyItem *outliner_id_itemf(bContext *C,
   int i = 0;
 
   short id_type = (short)RNA_enum_get(ptr, "id_type");
-  ID *id = reinterpret_cast<ID *>(which_libbase(CTX_data_main(C), id_type)->first);
+  ID *id = static_cast<ID *>(which_libbase(CTX_data_main(C), id_type)->first);
 
-  for (; id; id = reinterpret_cast<ID *>(id->next)) {
+  for (; id; id = static_cast<ID *>(id->next)) {
     item_tmp.identifier = item_tmp.name = id->name + 2;
     item_tmp.value = i++;
     RNA_enum_item_add(&item, &totitem, &item_tmp);
@@ -1817,7 +1818,7 @@ static void tree_element_to_path(TreeElement *te,
         /* ptr->data not ptr->owner_id seems to be the one we want,
          * since ptr->data is sometimes the owner of this ID? */
         if (RNA_struct_is_ID(ptr.type)) {
-          *id = reinterpret_cast<ID *>(ptr.data);
+          *id = static_cast<ID *>(ptr.data);
 
           /* clear path */
           if (*path) {
@@ -2052,8 +2053,7 @@ static KeyingSet *verify_active_keyingset(Scene *scene, short add)
 
   /* try to find one from scene */
   if (scene->active_keyingset > 0) {
-    ks = reinterpret_cast<KeyingSet *>(
-        BLI_findlink(&scene->keyingsets, scene->active_keyingset - 1));
+    ks = static_cast<KeyingSet *>(BLI_findlink(&scene->keyingsets, scene->active_keyingset - 1));
   }
 
   /* Add if none found */

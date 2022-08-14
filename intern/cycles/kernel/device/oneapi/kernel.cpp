@@ -904,11 +904,26 @@ size_t oneapi_get_memcapacity(SyclQueue *queue)
       .get_info<sycl::info::device::global_mem_size>();
 }
 
-size_t oneapi_get_compute_units_amount(SyclQueue *queue)
+int oneapi_get_num_multiprocessors(SyclQueue *queue)
 {
-  return reinterpret_cast<sycl::queue *>(queue)
-      ->get_device()
-      .get_info<sycl::info::device::max_compute_units>();
+  const sycl::device &device = reinterpret_cast<sycl::queue *>(queue)->get_device();
+  if (device.has(sycl::aspect::ext_intel_gpu_eu_count)) {
+    return device.get_info<sycl::info::device::ext_intel_gpu_eu_count>();
+  }
+  else
+    return 0;
+}
+
+int oneapi_get_max_num_threads_per_multiprocessor(SyclQueue *queue)
+{
+  const sycl::device &device = reinterpret_cast<sycl::queue *>(queue)->get_device();
+  if (device.has(sycl::aspect::ext_intel_gpu_eu_simd_width) &&
+      device.has(sycl::aspect::ext_intel_gpu_hw_threads_per_eu)) {
+    return device.get_info<sycl::info::device::ext_intel_gpu_eu_simd_width>() *
+           device.get_info<sycl::info::device::ext_intel_gpu_hw_threads_per_eu>();
+  }
+  else
+    return 0;
 }
 
 #endif /* WITH_ONEAPI */

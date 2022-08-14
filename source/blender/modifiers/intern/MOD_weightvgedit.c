@@ -139,7 +139,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 
   if (need_transform_relation) {
-    DEG_add_modifier_to_transform_relation(ctx->node, "WeightVGEdit Modifier");
+    DEG_add_depends_on_transform_relation(ctx->node, "WeightVGEdit Modifier");
   }
 }
 
@@ -316,7 +316,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   sub = uiLayoutRow(sub, true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_add"));
   uiLayoutSetPropSep(sub, false);
-  uiItemR(sub, ptr, "add_threshold", UI_ITEM_R_SLIDER, "Threshold", ICON_NONE);
+  uiItemR(sub, ptr, "add_threshold", UI_ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
   uiItemDecoratorR(row, ptr, "add_threshold", 0);
 
   col = uiLayoutColumnWithHeading(layout, false, IFACE_("Group Remove"));
@@ -327,7 +327,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   sub = uiLayoutRow(sub, true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_remove"));
   uiLayoutSetPropSep(sub, false);
-  uiItemR(sub, ptr, "remove_threshold", UI_ITEM_R_SLIDER, "Threshold", ICON_NONE);
+  uiItemR(sub, ptr, "remove_threshold", UI_ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
   uiItemDecoratorR(row, ptr, "remove_threshold", 0);
 
   uiItemR(layout, ptr, "normalize", 0, NULL, ICON_NONE);

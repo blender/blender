@@ -49,29 +49,48 @@ namespace blender::ed::space_node {
 /** \name Utilities
  * \{ */
 
-bNode *node_add_node(const bContext &C, const char *idname, int type, float locx, float locy)
+static void position_node_based_on_mouse(bNode &node, const float2 &location)
+{
+  node.locx = location.x - NODE_DY * 1.5f / UI_DPI_FAC;
+  node.locy = location.y + NODE_DY * 0.5f / UI_DPI_FAC;
+}
+
+bNode *add_node(const bContext &C, const StringRef idname, const float2 &location)
 {
   SpaceNode &snode = *CTX_wm_space_node(&C);
   Main &bmain = *CTX_data_main(&C);
-  bNode *node = nullptr;
 
   node_deselect_all(snode);
 
-  if (idname) {
-    node = nodeAddNode(&C, snode.edittree, idname);
-  }
-  else {
-    node = nodeAddStaticNode(&C, snode.edittree, type);
-  }
+  const std::string idname_str = idname;
+
+  bNode *node = nodeAddNode(&C, snode.edittree, idname_str.c_str());
   BLI_assert(node && node->typeinfo);
 
-  /* Position mouse in node header. */
-  node->locx = locx - NODE_DY * 1.5f / UI_DPI_FAC;
-  node->locy = locy + NODE_DY * 0.5f / UI_DPI_FAC;
+  position_node_based_on_mouse(*node, location);
 
   nodeSetSelected(node, true);
-
   ED_node_set_active(&bmain, &snode, snode.edittree, node, nullptr);
+
+  ED_node_tree_propagate_change(&C, &bmain, snode.edittree);
+  return node;
+}
+
+bNode *add_static_node(const bContext &C, int type, const float2 &location)
+{
+  SpaceNode &snode = *CTX_wm_space_node(&C);
+  Main &bmain = *CTX_data_main(&C);
+
+  node_deselect_all(snode);
+
+  bNode *node = nodeAddStaticNode(&C, snode.edittree, type);
+  BLI_assert(node && node->typeinfo);
+
+  position_node_based_on_mouse(*node, location);
+
+  nodeSetSelected(node, true);
+  ED_node_set_active(&bmain, &snode, snode.edittree, node, nullptr);
+
   ED_node_tree_propagate_change(&C, &bmain, snode.edittree);
   return node;
 }
@@ -338,9 +357,9 @@ static int node_add_group_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
-  bNodeTree *node_group;
 
-  if (!(node_group = node_add_group_get_and_poll_group_node_tree(bmain, op, ntree))) {
+  bNodeTree *node_group = node_add_group_get_and_poll_group_node_tree(bmain, op, ntree);
+  if (!node_group) {
     return OPERATOR_CANCELLED;
   }
 
@@ -352,12 +371,7 @@ static int node_add_group_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  bNode *group_node = node_add_node(*C,
-                                    node_idname,
-                                    (node_group->type == NTREE_CUSTOM) ? NODE_CUSTOM_GROUP :
-                                                                         NODE_GROUP,
-                                    snode->runtime->cursor[0],
-                                    snode->runtime->cursor[1]);
+  bNode *group_node = add_node(*C, node_idname, snode->runtime->cursor);
   if (!group_node) {
     BKE_report(op->reports, RPT_WARNING, "Could not add node group");
     return OPERATOR_CANCELLED;
@@ -445,8 +459,7 @@ static int node_add_object_exec(bContext *C, wmOperator *op)
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
-  bNode *object_node = node_add_node(
-      *C, nullptr, GEO_NODE_OBJECT_INFO, snode->runtime->cursor[0], snode->runtime->cursor[1]);
+  bNode *object_node = add_static_node(*C, GEO_NODE_OBJECT_INFO, snode->runtime->cursor);
   if (!object_node) {
     BKE_report(op->reports, RPT_WARNING, "Could not add node object");
     return OPERATOR_CANCELLED;
@@ -522,7 +535,7 @@ static int node_add_collection_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
-  bNodeTree *ntree = snode.edittree;
+  bNodeTree &ntree = *snode.edittree;
 
   Collection *collection = reinterpret_cast<Collection *>(
       WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_GR));
@@ -533,8 +546,7 @@ static int node_add_collection_exec(bContext *C, wmOperator *op)
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
-  bNode *collection_node = node_add_node(
-      *C, nullptr, GEO_NODE_COLLECTION_INFO, snode.runtime->cursor[0], snode.runtime->cursor[1]);
+  bNode *collection_node = add_static_node(*C, GEO_NODE_COLLECTION_INFO, snode.runtime->cursor);
   if (!collection_node) {
     BKE_report(op->reports, RPT_WARNING, "Could not add node collection");
     return OPERATOR_CANCELLED;
@@ -550,8 +562,8 @@ static int node_add_collection_exec(bContext *C, wmOperator *op)
   socket_data->value = collection;
   id_us_plus(&collection->id);
 
-  nodeSetActive(ntree, collection_node);
-  ED_node_tree_propagate_change(C, bmain, ntree);
+  nodeSetActive(&ntree, collection_node);
+  ED_node_tree_propagate_change(C, bmain, &ntree);
   DEG_relations_tag_update(bmain);
 
   return OPERATOR_FINISHED;
@@ -617,11 +629,9 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
-  bNode *node;
-  Image *ima;
   int type = 0;
 
-  ima = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
+  Image *ima = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
   if (!ima) {
     return OPERATOR_CANCELLED;
   }
@@ -645,7 +655,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
-  node = node_add_node(*C, nullptr, type, snode.runtime->cursor[0], snode.runtime->cursor[1]);
+  bNode *node = add_static_node(*C, type, snode.runtime->cursor);
 
   if (!node) {
     BKE_report(op->reports, RPT_WARNING, "Could not add an image node");
@@ -690,8 +700,8 @@ static int node_add_file_invoke(bContext *C, wmOperator *op, const wmEvent *even
   snode->runtime->cursor[0] /= UI_DPI_FAC;
   snode->runtime->cursor[1] /= UI_DPI_FAC;
 
-  if (RNA_struct_property_is_set(op->ptr, "filepath") ||
-      RNA_struct_property_is_set(op->ptr, "name")) {
+  if (WM_operator_properties_id_lookup_is_set(op->ptr) ||
+      RNA_struct_property_is_set(op->ptr, "filepath")) {
     return node_add_file_exec(C, op);
   }
   return WM_operator_filesel(C, op, event);
@@ -739,7 +749,6 @@ static int node_add_mask_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
-  bNode *node;
 
   ID *mask = WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_MSK);
   if (!mask) {
@@ -748,8 +757,7 @@ static int node_add_mask_exec(bContext *C, wmOperator *op)
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
-  node = node_add_node(
-      *C, nullptr, CMP_NODE_MASK, snode.runtime->cursor[0], snode.runtime->cursor[1]);
+  bNode *node = add_static_node(*C, CMP_NODE_MASK, snode.runtime->cursor);
 
   if (!node) {
     BKE_report(op->reports, RPT_WARNING, "Could not add a mask node");

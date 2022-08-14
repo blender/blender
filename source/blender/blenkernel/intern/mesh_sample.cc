@@ -16,9 +16,9 @@ template<typename T>
 BLI_NOINLINE static void sample_point_attribute(const Mesh &mesh,
                                                 const Span<int> looptri_indices,
                                                 const Span<float3> bary_coords,
-                                                const VArray<T> &data_in,
+                                                const VArray<T> &src,
                                                 const IndexMask mask,
-                                                const MutableSpan<T> data_out)
+                                                const MutableSpan<T> dst)
 {
   const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
                                 BKE_mesh_runtime_looptri_len(&mesh)};
@@ -32,30 +32,30 @@ BLI_NOINLINE static void sample_point_attribute(const Mesh &mesh,
     const int v1_index = mesh.mloop[looptri.tri[1]].v;
     const int v2_index = mesh.mloop[looptri.tri[2]].v;
 
-    const T v0 = data_in[v0_index];
-    const T v1 = data_in[v1_index];
-    const T v2 = data_in[v2_index];
+    const T v0 = src[v0_index];
+    const T v1 = src[v1_index];
+    const T v2 = src[v2_index];
 
     const T interpolated_value = attribute_math::mix3(bary_coord, v0, v1, v2);
-    data_out[i] = interpolated_value;
+    dst[i] = interpolated_value;
   }
 }
 
 void sample_point_attribute(const Mesh &mesh,
                             const Span<int> looptri_indices,
                             const Span<float3> bary_coords,
-                            const GVArray &data_in,
+                            const GVArray &src,
                             const IndexMask mask,
-                            const GMutableSpan data_out)
+                            const GMutableSpan dst)
 {
-  BLI_assert(data_in.size() == mesh.totvert);
-  BLI_assert(data_in.type() == data_out.type());
+  BLI_assert(src.size() == mesh.totvert);
+  BLI_assert(src.type() == dst.type());
 
-  const CPPType &type = data_in.type();
+  const CPPType &type = src.type();
   attribute_math::convert_to_static_type(type, [&](auto dummy) {
     using T = decltype(dummy);
     sample_point_attribute<T>(
-        mesh, looptri_indices, bary_coords, data_in.typed<T>(), mask, data_out.typed<T>());
+        mesh, looptri_indices, bary_coords, src.typed<T>(), mask, dst.typed<T>());
   });
 }
 
@@ -63,9 +63,9 @@ template<typename T>
 BLI_NOINLINE static void sample_corner_attribute(const Mesh &mesh,
                                                  const Span<int> looptri_indices,
                                                  const Span<float3> bary_coords,
-                                                 const VArray<T> &data_in,
+                                                 const VArray<T> &src,
                                                  const IndexMask mask,
-                                                 const MutableSpan<T> data_out)
+                                                 const MutableSpan<T> dst)
 {
   const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
                                 BKE_mesh_runtime_looptri_len(&mesh)};
@@ -79,39 +79,39 @@ BLI_NOINLINE static void sample_corner_attribute(const Mesh &mesh,
     const int loop_index_1 = looptri.tri[1];
     const int loop_index_2 = looptri.tri[2];
 
-    const T v0 = data_in[loop_index_0];
-    const T v1 = data_in[loop_index_1];
-    const T v2 = data_in[loop_index_2];
+    const T v0 = src[loop_index_0];
+    const T v1 = src[loop_index_1];
+    const T v2 = src[loop_index_2];
 
     const T interpolated_value = attribute_math::mix3(bary_coord, v0, v1, v2);
-    data_out[i] = interpolated_value;
+    dst[i] = interpolated_value;
   }
 }
 
 void sample_corner_attribute(const Mesh &mesh,
                              const Span<int> looptri_indices,
                              const Span<float3> bary_coords,
-                             const GVArray &data_in,
+                             const GVArray &src,
                              const IndexMask mask,
-                             const GMutableSpan data_out)
+                             const GMutableSpan dst)
 {
-  BLI_assert(data_in.size() == mesh.totloop);
-  BLI_assert(data_in.type() == data_out.type());
+  BLI_assert(src.size() == mesh.totloop);
+  BLI_assert(src.type() == dst.type());
 
-  const CPPType &type = data_in.type();
+  const CPPType &type = src.type();
   attribute_math::convert_to_static_type(type, [&](auto dummy) {
     using T = decltype(dummy);
     sample_corner_attribute<T>(
-        mesh, looptri_indices, bary_coords, data_in.typed<T>(), mask, data_out.typed<T>());
+        mesh, looptri_indices, bary_coords, src.typed<T>(), mask, dst.typed<T>());
   });
 }
 
 template<typename T>
 void sample_face_attribute(const Mesh &mesh,
                            const Span<int> looptri_indices,
-                           const VArray<T> &data_in,
+                           const VArray<T> &src,
                            const IndexMask mask,
-                           const MutableSpan<T> data_out)
+                           const MutableSpan<T> dst)
 {
   const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
                                 BKE_mesh_runtime_looptri_len(&mesh)};
@@ -120,23 +120,23 @@ void sample_face_attribute(const Mesh &mesh,
     const int looptri_index = looptri_indices[i];
     const MLoopTri &looptri = looptris[looptri_index];
     const int poly_index = looptri.poly;
-    data_out[i] = data_in[poly_index];
+    dst[i] = src[poly_index];
   }
 }
 
 void sample_face_attribute(const Mesh &mesh,
                            const Span<int> looptri_indices,
-                           const GVArray &data_in,
+                           const GVArray &src,
                            const IndexMask mask,
-                           const GMutableSpan data_out)
+                           const GMutableSpan dst)
 {
-  BLI_assert(data_in.size() == mesh.totpoly);
-  BLI_assert(data_in.type() == data_out.type());
+  BLI_assert(src.size() == mesh.totpoly);
+  BLI_assert(src.type() == dst.type());
 
-  const CPPType &type = data_in.type();
+  const CPPType &type = src.type();
   attribute_math::convert_to_static_type(type, [&](auto dummy) {
     using T = decltype(dummy);
-    sample_face_attribute<T>(mesh, looptri_indices, data_in.typed<T>(), mask, data_out.typed<T>());
+    sample_face_attribute<T>(mesh, looptri_indices, src.typed<T>(), mask, dst.typed<T>());
   });
 }
 
@@ -219,45 +219,31 @@ void MeshAttributeInterpolator::sample_data(const GVArray &src,
   if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
     switch (mode) {
       case eAttributeMapMode::INTERPOLATED:
-        weights = ensure_barycentric_coords();
+        weights = this->ensure_barycentric_coords();
         break;
       case eAttributeMapMode::NEAREST:
-        weights = ensure_nearest_weights();
+        weights = this->ensure_nearest_weights();
         break;
     }
   }
 
   /* Interpolate the source attributes on the surface. */
   switch (domain) {
-    case ATTR_DOMAIN_POINT: {
+    case ATTR_DOMAIN_POINT:
       sample_point_attribute(*mesh_, looptri_indices_, weights, src, mask_, dst);
       break;
-    }
-    case ATTR_DOMAIN_FACE: {
+    case ATTR_DOMAIN_FACE:
       sample_face_attribute(*mesh_, looptri_indices_, src, mask_, dst);
       break;
-    }
-    case ATTR_DOMAIN_CORNER: {
+    case ATTR_DOMAIN_CORNER:
       sample_corner_attribute(*mesh_, looptri_indices_, weights, src, mask_, dst);
       break;
-    }
-    case ATTR_DOMAIN_EDGE: {
+    case ATTR_DOMAIN_EDGE:
       /* Not yet supported. */
       break;
-    }
-    default: {
+    default:
       BLI_assert_unreachable();
       break;
-    }
-  }
-}
-
-void MeshAttributeInterpolator::sample_attribute(const GAttributeReader &src_attribute,
-                                                 GSpanAttributeWriter &dst_attribute,
-                                                 eAttributeMapMode mode)
-{
-  if (src_attribute && dst_attribute) {
-    this->sample_data(src_attribute.varray, src_attribute.domain, mode, dst_attribute.span);
   }
 }
 

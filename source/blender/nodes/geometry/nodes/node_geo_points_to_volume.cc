@@ -224,7 +224,7 @@ static void initialize_volume_component_from_points(GeoNodeExecParams &params,
   new_grid->transform().postScale(voxel_size);
   BKE_volume_grid_add_vdb(*volume, "density", std::move(new_grid));
 
-  r_geometry_set.keep_only({GEO_COMPONENT_TYPE_VOLUME, GEO_COMPONENT_TYPE_INSTANCES});
+  r_geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_VOLUME});
   r_geometry_set.replace_volume(volume);
 }
 #endif

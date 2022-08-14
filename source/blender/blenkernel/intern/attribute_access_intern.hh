@@ -226,12 +226,12 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
   using AsReadAttribute = GVArray (*)(const void *data, int element_num);
   using AsWriteAttribute = GVMutableArray (*)(void *data, int element_num);
   using UpdateOnRead = void (*)(const void *owner);
-  using UpdateOnWrite = void (*)(void *owner);
+  using UpdateOnChange = void (*)(void *owner);
   const eCustomDataType stored_type_;
   const CustomDataAccessInfo custom_data_access_;
   const AsReadAttribute as_read_attribute_;
   const AsWriteAttribute as_write_attribute_;
-  const UpdateOnWrite update_on_write_;
+  const UpdateOnChange update_on_change_;
   bool stored_as_named_attribute_;
 
  public:
@@ -245,14 +245,14 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
                                  const CustomDataAccessInfo custom_data_access,
                                  const AsReadAttribute as_read_attribute,
                                  const AsWriteAttribute as_write_attribute,
-                                 const UpdateOnWrite update_on_write)
+                                 const UpdateOnChange update_on_write)
       : BuiltinAttributeProvider(
             std::move(attribute_name), domain, attribute_type, creatable, writable, deletable),
         stored_type_(stored_type),
         custom_data_access_(custom_data_access),
         as_read_attribute_(as_read_attribute),
         as_write_attribute_(as_write_attribute),
-        update_on_write_(update_on_write),
+        update_on_change_(update_on_write),
         stored_as_named_attribute_(data_type_ == stored_type_)
   {
   }

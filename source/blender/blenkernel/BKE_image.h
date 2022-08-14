@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 
 #include "BLI_rect.h"
@@ -236,11 +237,13 @@ void BKE_image_ensure_viewer_views(const struct RenderData *rd,
  */
 void BKE_image_user_frame_calc(struct Image *ima, struct ImageUser *iuser, int cfra);
 int BKE_image_user_frame_get(const struct ImageUser *iuser, int cfra, bool *r_is_in_range);
-void BKE_image_user_file_path(struct ImageUser *iuser, struct Image *ima, char *path);
-void BKE_image_user_file_path_ex(struct ImageUser *iuser,
-                                 struct Image *ima,
+void BKE_image_user_file_path(const struct ImageUser *iuser, const struct Image *ima, char *path);
+void BKE_image_user_file_path_ex(const struct Main *bmain,
+                                 const struct ImageUser *iuser,
+                                 const struct Image *ima,
                                  char *path,
-                                 bool resolve_udim);
+                                 const bool resolve_udim,
+                                 const bool resolve_multiview);
 void BKE_image_editors_update_frame(const struct Main *bmain, int cfra);
 
 /**
@@ -258,15 +261,15 @@ struct RenderPass *BKE_image_multilayer_index(struct RenderResult *rr, struct Im
 /**
  * Sets index offset for multi-view files.
  */
-void BKE_image_multiview_index(struct Image *ima, struct ImageUser *iuser);
+void BKE_image_multiview_index(const struct Image *ima, struct ImageUser *iuser);
 
 /**
  * For multi-layer images as well as for render-viewer
  * and because rendered results use fake layer/passes, don't correct for wrong indices here.
  */
-bool BKE_image_is_multilayer(struct Image *ima);
-bool BKE_image_is_multiview(struct Image *ima);
-bool BKE_image_is_stereo(struct Image *ima);
+bool BKE_image_is_multilayer(const struct Image *ima);
+bool BKE_image_is_multiview(const struct Image *ima);
+bool BKE_image_is_stereo(const struct Image *ima);
 struct RenderResult *BKE_image_acquire_renderresult(struct Scene *scene, struct Image *ima);
 void BKE_image_release_renderresult(struct Scene *scene, struct Image *ima);
 
@@ -363,14 +366,7 @@ bool BKE_image_remove_tile(struct Image *ima, struct ImageTile *tile);
 void BKE_image_reassign_tile(struct Image *ima, struct ImageTile *tile, int new_tile_number);
 void BKE_image_sort_tiles(struct Image *ima);
 
-bool BKE_image_fill_tile(struct Image *ima,
-                         struct ImageTile *tile,
-                         int width,
-                         int height,
-                         const float color[4],
-                         int gen_type,
-                         int planes,
-                         bool is_float);
+bool BKE_image_fill_tile(struct Image *ima, struct ImageTile *tile);
 
 typedef enum {
   UDIM_TILE_FORMAT_NONE = 0,
@@ -422,9 +418,13 @@ int BKE_image_get_tile_from_pos(struct Image *ima,
 void BKE_image_get_tile_uv(const struct Image *ima, const int tile_number, float r_uv[2]);
 
 /**
- * Return the tile_number for the closest UDIM tile.
+ * Return the tile_number for the closest UDIM tile to `co`.
  */
-int BKE_image_find_nearest_tile(const struct Image *image, const float co[2]);
+int BKE_image_find_nearest_tile_with_offset(const struct Image *image,
+                                            const float co[2],
+                                            float r_uv_offset[2]) ATTR_NONNULL(2, 3);
+int BKE_image_find_nearest_tile(const struct Image *image, const float co[2])
+    ATTR_NONNULL(2) ATTR_WARN_UNUSED_RESULT;
 
 void BKE_image_get_size(struct Image *image, struct ImageUser *iuser, int *r_width, int *r_height);
 void BKE_image_get_size_fl(struct Image *image, struct ImageUser *iuser, float r_size[2]);

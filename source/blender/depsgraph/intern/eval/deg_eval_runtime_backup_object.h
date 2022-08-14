@@ -17,8 +17,7 @@
 
 struct Object;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct Depsgraph;
 
@@ -46,5 +45,4 @@ class ObjectRuntimeBackup {
   Map<SessionUUID, bPoseChannel_Runtime> pose_channel_runtime_data;
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

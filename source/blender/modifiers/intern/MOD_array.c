@@ -93,7 +93,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 
   if (need_transform_dependency) {
-    DEG_add_modifier_to_transform_relation(ctx->node, "Array Modifier");
+    DEG_add_depends_on_transform_relation(ctx->node, "Array Modifier");
   }
 }
 
@@ -402,7 +402,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
           start_cap_ob, ctx->object, &vgroup_start_cap_remap_len);
     }
 
-    start_cap_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(start_cap_ob, false);
+    start_cap_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(start_cap_ob);
     if (start_cap_mesh) {
       start_cap_nverts = start_cap_mesh->totvert;
       start_cap_nedges = start_cap_mesh->totedge;
@@ -417,7 +417,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
           end_cap_ob, ctx->object, &vgroup_end_cap_remap_len);
     }
 
-    end_cap_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(end_cap_ob, false);
+    end_cap_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(end_cap_ob);
     if (end_cap_mesh) {
       end_cap_nverts = end_cap_mesh->totvert;
       end_cap_nedges = end_cap_mesh->totedge;

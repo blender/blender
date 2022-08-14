@@ -668,7 +668,9 @@ static void draw_subdiv_cache_extra_coarse_face_data_bm(BMesh *bm,
   }
 }
 
-static void draw_subdiv_cache_extra_coarse_face_data_mesh(Mesh *mesh, uint32_t *flags_data)
+static void draw_subdiv_cache_extra_coarse_face_data_mesh(const MeshRenderData *mr,
+                                                          Mesh *mesh,
+                                                          uint32_t *flags_data)
 {
   for (int i = 0; i < mesh->totpoly; i++) {
     uint32_t flag = 0;
@@ -678,7 +680,7 @@ static void draw_subdiv_cache_extra_coarse_face_data_mesh(Mesh *mesh, uint32_t *
     if ((mesh->mpoly[i].flag & ME_FACE_SEL) != 0) {
       flag |= SUBDIV_COARSE_FACE_FLAG_SELECT;
     }
-    if ((mesh->mpoly[i].flag & ME_HIDE) != 0) {
+    if (mr->hide_poly && mr->hide_poly[i]) {
       flag |= SUBDIV_COARSE_FACE_FLAG_HIDDEN;
     }
     flags_data[i] = (uint)(mesh->mpoly[i].loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
@@ -691,7 +693,7 @@ static void draw_subdiv_cache_extra_coarse_face_data_mapped(Mesh *mesh,
                                                             uint32_t *flags_data)
 {
   if (bm == nullptr) {
-    draw_subdiv_cache_extra_coarse_face_data_mesh(mesh, flags_data);
+    draw_subdiv_cache_extra_coarse_face_data_mesh(mr, mesh, flags_data);
     return;
   }
 
@@ -726,7 +728,7 @@ static void draw_subdiv_cache_update_extra_coarse_face_data(DRWSubdivCache *cach
     draw_subdiv_cache_extra_coarse_face_data_mapped(mesh, cache->bm, mr, flags_data);
   }
   else {
-    draw_subdiv_cache_extra_coarse_face_data_mesh(mesh, flags_data);
+    draw_subdiv_cache_extra_coarse_face_data_mesh(mr, mesh, flags_data);
   }
 
   /* Make sure updated data is re-uploaded. */
@@ -2019,6 +2021,7 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
                                                  const float obmat[4][4],
                                                  const bool do_final,
                                                  const bool do_uvedit,
+                                                 const bool do_cage,
                                                  const ToolSettings *ts,
                                                  const bool use_hide,
                                                  OpenSubdiv_EvaluatorCache *evaluator_cache)
@@ -2045,7 +2048,7 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
   draw_subdiv_invalidate_evaluator_for_orco(subdiv, mesh_eval);
 
   if (!BKE_subdiv_eval_begin_from_mesh(
-          subdiv, mesh_eval, nullptr, SUBDIV_EVALUATOR_TYPE_GLSL_COMPUTE, evaluator_cache)) {
+          subdiv, mesh_eval, nullptr, SUBDIV_EVALUATOR_TYPE_GPU, evaluator_cache)) {
     /* This could happen in two situations:
      * - OpenSubdiv is disabled.
      * - Something totally bad happened, and OpenSubdiv rejected our
@@ -2062,9 +2065,8 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
     return false;
   }
 
-  /* Edges which do not come from coarse edges should not be drawn in edit mode, only in object
-   * mode when optimal display in turned off. */
-  const bool optimal_display = runtime_data->use_optimal_display || is_editmode;
+  /* Edges which do not come from coarse edges should not be drawn in edit cage mode. */
+  const bool optimal_display = runtime_data->use_optimal_display || (is_editmode && !do_cage);
 
   draw_cache->bm = bm;
   draw_cache->mesh = mesh_eval;
@@ -2216,11 +2218,12 @@ void DRW_create_subdivision(Object *ob,
                             const float obmat[4][4],
                             const bool do_final,
                             const bool do_uvedit,
+                            const bool do_cage,
                             const ToolSettings *ts,
                             const bool use_hide)
 {
   if (g_evaluator_cache == nullptr) {
-    g_evaluator_cache = openSubdiv_createEvaluatorCache(OPENSUBDIV_EVALUATOR_GLSL_COMPUTE);
+    g_evaluator_cache = openSubdiv_createEvaluatorCache(OPENSUBDIV_EVALUATOR_GPU);
   }
 
 #undef TIME_SUBDIV
@@ -2239,6 +2242,7 @@ void DRW_create_subdivision(Object *ob,
                                             obmat,
                                             do_final,
                                             do_uvedit,
+                                            do_cage,
                                             ts,
                                             use_hide,
                                             g_evaluator_cache)) {

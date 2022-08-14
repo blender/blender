@@ -38,8 +38,7 @@ ccl_device void integrator_volume_stack_update_for_subsurface(KernelGlobals kg,
 
 #ifdef __VOLUME_RECORD_ALL__
   Intersection hits[2 * MAX_VOLUME_STACK_SIZE + 1];
-  uint num_hits = scene_intersect_volume_all(
-      kg, &volume_ray, hits, 2 * volume_stack_size, visibility);
+  uint num_hits = scene_intersect_volume(kg, &volume_ray, hits, 2 * volume_stack_size, visibility);
   if (num_hits > 0) {
     Intersection *isect = hits;
 
@@ -108,8 +107,7 @@ ccl_device void integrator_volume_stack_init(KernelGlobals kg, IntegratorState s
 
 #ifdef __VOLUME_RECORD_ALL__
   Intersection hits[2 * MAX_VOLUME_STACK_SIZE + 1];
-  uint num_hits = scene_intersect_volume_all(
-      kg, &volume_ray, hits, 2 * volume_stack_size, visibility);
+  uint num_hits = scene_intersect_volume(kg, &volume_ray, hits, 2 * volume_stack_size, visibility);
   if (num_hits > 0) {
     int enclosed_volumes[MAX_VOLUME_STACK_SIZE];
     Intersection *isect = hits;

@@ -19,10 +19,6 @@
 
 #include "kernel/svm/types.h"
 
-#ifndef __KERNEL_GPU__
-#  define __KERNEL_CPU__
-#endif
-
 CCL_NAMESPACE_BEGIN
 
 /* Constants */
@@ -51,10 +47,10 @@ CCL_NAMESPACE_BEGIN
 #define INTEGRATOR_SHADOW_ISECT_SIZE_CPU 1024U
 #define INTEGRATOR_SHADOW_ISECT_SIZE_GPU 4U
 
-#ifdef __KERNEL_CPU__
-#  define INTEGRATOR_SHADOW_ISECT_SIZE INTEGRATOR_SHADOW_ISECT_SIZE_CPU
-#else
+#ifdef __KERNEL_GPU__
 #  define INTEGRATOR_SHADOW_ISECT_SIZE INTEGRATOR_SHADOW_ISECT_SIZE_GPU
+#else
+#  define INTEGRATOR_SHADOW_ISECT_SIZE INTEGRATOR_SHADOW_ISECT_SIZE_CPU
 #endif
 
 /* Kernel features */
@@ -83,7 +79,6 @@ CCL_NAMESPACE_BEGIN
 #define __LAMP_MIS__
 #define __CAMERA_MOTION__
 #define __OBJECT_MOTION__
-#define __BAKING__
 #define __PRINCIPLED__
 #define __SUBSURFACE__
 #define __VOLUME__
@@ -92,16 +87,12 @@ CCL_NAMESPACE_BEGIN
 #define __BRANCHED_PATH__
 
 /* Device specific features */
-#ifdef __KERNEL_CPU__
+#ifndef __KERNEL_GPU__
 #  ifdef WITH_OSL
 #    define __OSL__
 #  endif
 #  define __VOLUME_RECORD_ALL__
-#endif /* __KERNEL_CPU__ */
-
-#ifdef __KERNEL_GPU_RAYTRACING__
-#  undef __BAKING__
-#endif /* __KERNEL_GPU_RAYTRACING__ */
+#endif /* !__KERNEL_GPU__ */
 
 /* MNEE currently causes "Compute function exceeds available temporary registers"
  * on Metal, disabled for now. */
@@ -128,9 +119,6 @@ CCL_NAMESPACE_BEGIN
 #  endif
 #  if !(__KERNEL_FEATURES & KERNEL_FEATURE_SUBSURFACE)
 #    undef __SUBSURFACE__
-#  endif
-#  if !(__KERNEL_FEATURES & KERNEL_FEATURE_BAKING)
-#    undef __BAKING__
 #  endif
 #  if !(__KERNEL_FEATURES & KERNEL_FEATURE_PATCH_EVALUATION)
 #    undef __PATCH_EVAL__
@@ -425,9 +413,9 @@ typedef enum CryptomatteType {
 } CryptomatteType;
 
 typedef struct BsdfEval {
-  float3 diffuse;
-  float3 glossy;
-  float3 sum;
+  Spectrum diffuse;
+  Spectrum glossy;
+  Spectrum sum;
 } BsdfEval;
 
 /* Closure Filter */
@@ -721,7 +709,7 @@ typedef struct AttributeMap {
  * padded to be 16 bytes, while it's only 12 bytes on the GPU. */
 
 #define SHADER_CLOSURE_BASE \
-  float3 weight; \
+  Spectrum weight; \
   ClosureType type; \
   float sample_weight; \
   float3 N
@@ -730,10 +718,9 @@ typedef struct ccl_align(16) ShaderClosure
 {
   SHADER_CLOSURE_BASE;
 
-#ifdef __KERNEL_CPU__
-  float pad[2];
-#endif
-  float data[10];
+  /* Extra space for closures to store data, somewhat arbitrary but closures
+   * assert that their size fits. */
+  char pad[sizeof(Spectrum) * 2 + sizeof(float) * 4];
 }
 ShaderClosure;
 
@@ -924,12 +911,12 @@ typedef struct ccl_align(16) ShaderData
   /* Closure data, we store a fixed array of closures */
   int num_closure;
   int num_closure_left;
-  float3 svm_closure_weight;
+  Spectrum svm_closure_weight;
 
   /* Closure weights summed directly, so we can evaluate
    * emission and shadow transparency with MAX_CLOSURE 0. */
-  float3 closure_emission_background;
-  float3 closure_transparent_extinction;
+  Spectrum closure_emission_background;
+  Spectrum closure_transparent_extinction;
 
   /* At the end so we can adjust size in ShaderDataTinyStorage. */
   struct ShaderClosure closure[MAX_CLOSURE];
@@ -960,7 +947,7 @@ ShaderDataCausticsStorage;
  * Used for decoupled direct/indirect light closure storage. */
 
 typedef struct ShaderVolumeClosure {
-  float3 weight;
+  Spectrum weight;
   float sample_weight;
   float g;
 } ShaderVolumeClosure;
@@ -1168,7 +1155,7 @@ typedef struct KernelData {
   uint max_shaders;
   uint volume_stack_size;
 
-  /* Always dynamic data mambers. */
+  /* Always dynamic data members. */
   KernelCamera cam;
   KernelBake bake;
   KernelTables tables;
@@ -1548,15 +1535,15 @@ enum KernelFeatureFlag : uint32_t {
 /* Must be constexpr on the CPU to avoid compile errors because the state types
  * are different depending on the main, shadow or null path. For GPU we don't have
  * C++17 everywhere so can't use it. */
-#ifdef __KERNEL_CPU__
+#ifdef __KERNEL_GPU__
+#  define IF_KERNEL_FEATURE(feature) if ((node_feature_mask & (KERNEL_FEATURE_##feature)) != 0U)
+#  define IF_KERNEL_NODES_FEATURE(feature) \
+    if ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
+#else
 #  define IF_KERNEL_FEATURE(feature) \
     if constexpr ((node_feature_mask & (KERNEL_FEATURE_##feature)) != 0U)
 #  define IF_KERNEL_NODES_FEATURE(feature) \
     if constexpr ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
-#else
-#  define IF_KERNEL_FEATURE(feature) if ((node_feature_mask & (KERNEL_FEATURE_##feature)) != 0U)
-#  define IF_KERNEL_NODES_FEATURE(feature) \
-    if ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
 #endif
 
 CCL_NAMESPACE_END

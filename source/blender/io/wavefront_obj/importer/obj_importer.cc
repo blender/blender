@@ -9,6 +9,7 @@
 #include "BLI_map.hh"
 #include "BLI_math_vec_types.hh"
 #include "BLI_set.hh"
+#include "BLI_sort.hh"
 #include "BLI_string_ref.hh"
 
 #include "BKE_layer.h"
@@ -38,11 +39,19 @@ static void geometry_to_blender_objects(Main *bmain,
                                         Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
                                         Map<std::string, Material *> &created_materials)
 {
-  BKE_view_layer_base_deselect_all(view_layer);
   LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
 
   /* Don't do collection syncs for each object, will do once after the loop. */
   BKE_layer_collection_resync_forbid();
+
+  /* Sort objects by name: creating many objects is much faster if the creation
+   * order is sorted by name. */
+  blender::parallel_sort(
+      all_geometries.begin(), all_geometries.end(), [](const auto &a, const auto &b) {
+        const char *na = a ? a->geometry_name_.c_str() : "";
+        const char *nb = b ? b->geometry_name_.c_str() : "";
+        return BLI_strcasecmp(na, nb) < 0;
+      });
 
   /* Create all the objects. */
   Vector<Object *> objects;
@@ -112,6 +121,9 @@ void importer_main(Main *bmain,
     mtl_parser.parse_and_store(materials);
   }
 
+  if (import_params.clear_selection) {
+    BKE_view_layer_base_deselect_all(view_layer);
+  }
   geometry_to_blender_objects(bmain,
                               scene,
                               view_layer,

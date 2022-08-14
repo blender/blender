@@ -11,8 +11,7 @@
 
 struct Sequence;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct Depsgraph;
 
@@ -32,5 +31,4 @@ class SequenceBackup {
   ListBase anims;
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

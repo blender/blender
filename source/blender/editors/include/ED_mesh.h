@@ -144,6 +144,7 @@ void BM_uv_element_map_free(struct UvElementMap *element_map);
 struct UvElement *BM_uv_element_get(struct UvElementMap *map,
                                     struct BMFace *efa,
                                     struct BMLoop *l);
+struct UvElement *BM_uv_element_get_head(struct UvElementMap *map, struct UvElement *child);
 
 /**
  * Can we edit UV's for this mesh?
@@ -389,7 +390,10 @@ void ED_keymap_mesh(struct wmKeyConfig *keyconf);
  * Copy the face flags, most importantly selection from the mesh to the final derived mesh,
  * use in object mode when selecting faces (while painting).
  */
-void paintface_flush_flags(struct bContext *C, struct Object *ob, short flag);
+void paintface_flush_flags(struct bContext *C,
+                           struct Object *ob,
+                           bool flush_selection,
+                           bool flush_hidden);
 /**
  * \return True when pick finds an element or the selection changed.
  */
@@ -552,16 +556,10 @@ void ED_mesh_uv_loop_reset_ex(struct Mesh *me, int layernum);
 bool ED_mesh_color_ensure(struct Mesh *me, const char *name);
 int ED_mesh_color_add(
     struct Mesh *me, const char *name, bool active_set, bool do_init, struct ReportList *reports);
-bool ED_mesh_color_remove_index(struct Mesh *me, int n);
-bool ED_mesh_color_remove_active(struct Mesh *me);
-bool ED_mesh_color_remove_named(struct Mesh *me, const char *name);
-
-bool ED_mesh_sculpt_color_ensure(struct Mesh *me, const char *name);
-int ED_mesh_sculpt_color_add(
-    struct Mesh *me, const char *name, bool active_set, bool do_init, struct ReportList *reports);
-bool ED_mesh_sculpt_color_remove_index(struct Mesh *me, int n);
-bool ED_mesh_sculpt_color_remove_active(struct Mesh *me);
-bool ED_mesh_sculpt_color_remove_named(struct Mesh *me, const char *name);
+int ED_mesh_sculpt_color_add(struct Mesh *me,
+                             const char *name,
+                             bool do_init,
+                             struct ReportList *reports);
 
 void ED_mesh_report_mirror(struct wmOperator *op, int totmirr, int totfail);
 void ED_mesh_report_mirror_ex(struct wmOperator *op, int totmirr, int totfail, char selectmode);

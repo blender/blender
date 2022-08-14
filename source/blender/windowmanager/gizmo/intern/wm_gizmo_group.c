@@ -1053,7 +1053,7 @@ void WM_gizmomaptype_group_unlink(bContext *C,
     WM_gizmomaptype_group_free(gzgt_ref);
   }
 
-  /* TODO(campbell): Gizmos may share key-maps, for now don't
+  /* TODO(@campbellbarton): Gizmos may share key-maps, for now don't
    * remove however we could flag them as temporary/owned by the gizmo. */
 #if 0
   /* NOTE: we may want to keep this key-map for editing. */

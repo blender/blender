@@ -36,7 +36,7 @@ static void deformVerts(ModifierData *UNUSED(md),
   if (key && key->block.first) {
     int deformedVerts_tot;
     BKE_key_evaluate_object_ex(
-        ctx->object, &deformedVerts_tot, (float *)vertexCos, sizeof(*vertexCos) * verts_num);
+        ctx->object, &deformedVerts_tot, (float *)vertexCos, sizeof(*vertexCos) * verts_num, NULL);
   }
 }
 

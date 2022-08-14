@@ -219,13 +219,13 @@ void OBJMesh::calc_poly_order()
 const Material *OBJMesh::get_object_material(const int16_t mat_nr) const
 {
   /**
-   * The const_cast is safe here because BKE_object_material_get won't change the object
+   * The const_cast is safe here because #BKE_object_material_get_eval won't change the object
    * but it is a big can of worms to fix the declaration of that function right now.
    *
    * The call uses "+ 1" as material getter needs one-based indices.
    */
   Object *obj = const_cast<Object *>(&export_object_eval_);
-  const Material *r_mat = BKE_object_material_get(obj, mat_nr + 1);
+  const Material *r_mat = BKE_object_material_get_eval(obj, mat_nr + 1);
   return r_mat;
 }
 
@@ -296,7 +296,7 @@ void OBJMesh::store_uv_coords_and_indices()
   const float limit[2] = {STD_UV_CONNECT_LIMIT, STD_UV_CONNECT_LIMIT};
 
   UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(
-      mpoly, mloop, mloopuv, totpoly, totvert, limit, false, false);
+      mpoly, nullptr, mloop, mloopuv, totpoly, totvert, limit, false, false);
 
   uv_indices_.resize(totpoly);
   /* At least total vertices of a mesh will be present in its texture map. So

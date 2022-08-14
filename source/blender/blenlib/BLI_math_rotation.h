@@ -176,6 +176,25 @@ void mat3_to_quat_is_ok(float q[4], const float mat[3][3]);
 
 /* Other. */
 
+/**
+ * Utility that performs `sinf` & `cosf` intended for plotting a 2D circle,
+ * where the values of the coordinates with are exactly symmetrical although this
+ * favors even numbers as odd numbers can only be symmetrical on a single axis.
+ *
+ * Besides adjustments to precision, this function is the equivalent of:
+ * \code {.c}
+ * float phi = (2 * M_PI) * (float)i / (float)denominator;
+ * *r_sin = sinf(phi);
+ * *r_cos = cosf(phi);
+ * \endcode
+ *
+ * \param numerator: An integer factor in [0..denominator] (inclusive).
+ * \param denominator: The fraction denominator (typically the number of segments of the circle).
+ * \param r_sin: The resulting sine.
+ * \param r_cos: The resulting cosine.
+ */
+void sin_cos_from_fraction(int numerator, int denominator, float *r_sin, float *r_cos);
+
 void print_qt(const char *str, const float q[4]);
 
 #define print_qt_id(q) print_qt(STRINGIFY(q), q)

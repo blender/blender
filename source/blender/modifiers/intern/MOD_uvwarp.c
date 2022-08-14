@@ -242,7 +242,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   MOD_depsgraph_update_object_bone_relation(
       ctx->node, umd->object_dst, umd->bone_dst, "UVWarp Modifier");
 
-  DEG_add_modifier_to_transform_relation(ctx->node, "UVWarp Modifier");
+  DEG_add_depends_on_transform_relation(ctx->node, "UVWarp Modifier");
 }
 
 static void panel_draw(const bContext *UNUSED(C), Panel *panel)

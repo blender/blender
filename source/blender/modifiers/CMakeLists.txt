@@ -217,7 +217,6 @@ endif()
 
 if(WITH_EXPERIMENTAL_FEATURES)
   add_definitions(-DWITH_SIMULATION_DATABLOCK)
-  add_definitions(-DWITH_NEW_CURVES_TYPE)
 endif()
 
 # So we can have special tricks in modifier system.

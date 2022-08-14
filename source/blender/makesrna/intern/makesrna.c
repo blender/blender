@@ -1117,8 +1117,10 @@ static char *rna_def_property_set_func(
           fprintf(
               f, "    if (data->%s != NULL) { MEM_freeN(data->%s); }\n", dp->dnaname, dp->dnaname);
           fprintf(f, "    const int length = strlen(value);\n");
-          fprintf(f, "    data->%s = MEM_mallocN(length + 1, __func__);\n", dp->dnaname);
-          fprintf(f, "    %s(data->%s, value, length + 1);\n", string_copy_func, dp->dnaname);
+          fprintf(f, "    if (length > 0) {\n");
+          fprintf(f, "        data->%s = MEM_mallocN(length + 1, __func__);\n", dp->dnaname);
+          fprintf(f, "        %s(data->%s, value, length + 1);\n", string_copy_func, dp->dnaname);
+          fprintf(f, "    } else { data->%s = NULL; }\n", dp->dnaname);
         }
         else {
           /* Handle char array properties. */
@@ -4433,9 +4435,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
     {"rna_dynamicpaint.c", NULL, RNA_def_dynamic_paint},
     {"rna_fcurve.c", "rna_fcurve_api.c", RNA_def_fcurve},
     {"rna_gpencil.c", NULL, RNA_def_gpencil},
-#ifdef WITH_NEW_CURVES_TYPE
     {"rna_curves.c", NULL, RNA_def_curves},
-#endif
     {"rna_image.c", "rna_image_api.c", RNA_def_image},
     {"rna_key.c", NULL, RNA_def_key},
     {"rna_light.c", NULL, RNA_def_light},

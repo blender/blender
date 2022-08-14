@@ -39,6 +39,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
+#include "DNA_world_types.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_debug.h"
@@ -1377,12 +1378,12 @@ void BKE_main_collection_sync_remap(const Main *bmain)
       if (view_layer->object_bases_hash) {
         BLI_ghash_free(view_layer->object_bases_hash, NULL, NULL);
         view_layer->object_bases_hash = NULL;
-
-        /* Directly re-create the mapping here, so that we can also deal with duplicates in
-         * `view_layer->object_bases` list of bases properly. This is the only place where such
-         * duplicates should be fixed, and not considered as a critical error. */
-        view_layer_bases_hash_create(view_layer, true);
       }
+
+      /* Directly re-create the mapping here, so that we can also deal with duplicates in
+       * `view_layer->object_bases` list of bases properly. This is the only place where such
+       * duplicates should be fixed, and not considered as a critical error. */
+      view_layer_bases_hash_create(view_layer, true);
     }
 
     BKE_collection_object_cache_free(scene->master_collection);
@@ -2302,7 +2303,7 @@ static void direct_link_layer_collections(BlendDataReader *reader, ListBase *lb,
     BLO_read_data_address(reader, &lc->scene_collection);
 #endif
 
-    /* Master collection is not a real data-lock. */
+    /* Master collection is not a real data-block. */
     if (master) {
       BLO_read_data_address(reader, &lc->collection);
     }
@@ -2342,7 +2343,7 @@ static void lib_link_layer_collection(BlendLibReader *reader,
                                       LayerCollection *layer_collection,
                                       bool master)
 {
-  /* Master collection is not a real data-lock. */
+  /* Master collection is not a real data-block. */
   if (!master) {
     BLO_read_id_address(reader, lib, &layer_collection->collection);
   }
@@ -2383,7 +2384,7 @@ void BKE_view_layer_blend_read_lib(BlendLibReader *reader, Library *lib, ViewLay
 
   BLO_read_id_address(reader, lib, &view_layer->mat_override);
 
-  IDP_BlendReadLib(reader, view_layer->id_properties);
+  IDP_BlendReadLib(reader, lib, view_layer->id_properties);
 }
 
 /** \} */
@@ -2588,12 +2589,36 @@ ViewLayer *BKE_view_layer_find_with_lightgroup(struct Scene *scene,
   return NULL;
 }
 
-void BKE_view_layer_rename_lightgroup(ViewLayer *view_layer,
+void BKE_view_layer_rename_lightgroup(Scene *scene,
+                                      ViewLayer *view_layer,
                                       ViewLayerLightgroup *lightgroup,
                                       const char *name)
 {
+  char old_name[64];
+  BLI_strncpy_utf8(old_name, lightgroup->name, sizeof(old_name));
   BLI_strncpy_utf8(lightgroup->name, name, sizeof(lightgroup->name));
   viewlayer_lightgroup_make_name_unique(view_layer, lightgroup);
+
+  if (scene != NULL) {
+    /* Update objects in the scene to refer to the new name instead. */
+    FOREACH_SCENE_OBJECT_BEGIN (scene, ob) {
+      if (!ID_IS_LINKED(ob) && ob->lightgroup != NULL) {
+        LightgroupMembership *lgm = ob->lightgroup;
+        if (STREQ(lgm->name, old_name)) {
+          BLI_strncpy_utf8(lgm->name, lightgroup->name, sizeof(lgm->name));
+        }
+      }
+    }
+    FOREACH_SCENE_OBJECT_END;
+
+    /* Update the scene's world to refer to the new name instead. */
+    if (scene->world != NULL && !ID_IS_LINKED(scene->world) && scene->world->lightgroup != NULL) {
+      LightgroupMembership *lgm = scene->world->lightgroup;
+      if (STREQ(lgm->name, old_name)) {
+        BLI_strncpy_utf8(lgm->name, lightgroup->name, sizeof(lgm->name));
+      }
+    }
+  }
 }
 
 void BKE_lightgroup_membership_get(struct LightgroupMembership *lgm, char *name)

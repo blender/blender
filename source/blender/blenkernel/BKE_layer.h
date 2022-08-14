@@ -590,7 +590,8 @@ void BKE_view_layer_set_active_lightgroup(struct ViewLayer *view_layer,
                                           struct ViewLayerLightgroup *lightgroup);
 struct ViewLayer *BKE_view_layer_find_with_lightgroup(
     struct Scene *scene, struct ViewLayerLightgroup *view_layer_lightgroup);
-void BKE_view_layer_rename_lightgroup(ViewLayer *view_layer,
+void BKE_view_layer_rename_lightgroup(struct Scene *scene,
+                                      ViewLayer *view_layer,
                                       ViewLayerLightgroup *lightgroup,
                                       const char *name);
 

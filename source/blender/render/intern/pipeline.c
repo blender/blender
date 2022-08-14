@@ -199,14 +199,20 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
   megs_used_memory = (mem_in_use) / (1024.0 * 1024.0);
   megs_peak_memory = (peak_memory) / (1024.0 * 1024.0);
 
+  BLI_timecode_string_from_time_simple(
+      info_time_str, sizeof(info_time_str), PIL_check_seconds_timer() - rs->starttime);
+
+  /* Compositor calls this from multiple threads, mutex lock to ensure we don't
+   * get garbled output. */
+  static ThreadMutex mutex = BLI_MUTEX_INITIALIZER;
+  BLI_mutex_lock(&mutex);
+
   fprintf(stdout,
           TIP_("Fra:%d Mem:%.2fM (Peak %.2fM) "),
           rs->cfra,
           megs_used_memory,
           megs_peak_memory);
 
-  BLI_timecode_string_from_time_simple(
-      info_time_str, sizeof(info_time_str), PIL_check_seconds_timer() - rs->starttime);
   fprintf(stdout, TIP_("| Time:%s | "), info_time_str);
 
   fprintf(stdout, "%s", rs->infostr);
@@ -220,6 +226,8 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
 
   fputc('\n', stdout);
   fflush(stdout);
+
+  BLI_mutex_unlock(&mutex);
 }
 
 void RE_FreeRenderResult(RenderResult *rr)

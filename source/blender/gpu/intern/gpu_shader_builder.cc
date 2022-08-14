@@ -51,7 +51,6 @@ void ShaderBuilder::init()
 
 void ShaderBuilder::exit()
 {
-  GPU_backend_exit();
   GPU_exit();
 
   GPU_context_discard(gpu_context_);

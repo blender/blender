@@ -359,6 +359,11 @@ static void oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void *newaddr,
   oldnewmap_insert_or_replace(onm, entry);
 }
 
+static void oldnewmap_lib_insert(FileData *fd, const void *oldaddr, ID *newaddr, int nr)
+{
+  oldnewmap_insert(fd->libmap, oldaddr, newaddr, nr);
+}
+
 void blo_do_versions_oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void *newaddr, int nr)
 {
   oldnewmap_insert(onm, oldaddr, newaddr, nr);
@@ -517,7 +522,7 @@ void blo_split_main(ListBase *mainlist, Main *main)
   while (i--) {
     ID *id = lbarray[i]->first;
     if (id == NULL || GS(id->name) == ID_LI) {
-      /* No ID_LI data-lock should ever be linked anyway, but just in case, better be explicit. */
+      /* No ID_LI data-block should ever be linked anyway, but just in case, better be explicit. */
       continue;
     }
     split_libdata(lbarray[i], lib_main_array, lib_main_array_len);
@@ -1667,7 +1672,7 @@ void blo_add_library_pointer_map(ListBase *old_mainlist, FileData *fd)
     int i = set_listbasepointers(ptr, lbarray);
     while (i--) {
       LISTBASE_FOREACH (ID *, id, lbarray[i]) {
-        oldnewmap_insert(fd->libmap, id, id, GS(id->name));
+        oldnewmap_lib_insert(fd, id, id, GS(id->name));
       }
     }
   }
@@ -1993,7 +1998,7 @@ static void lib_link_id(BlendLibReader *reader, ID *id)
 {
   /* NOTE: WM IDProperties are never written to file, hence they should always be NULL here. */
   BLI_assert((GS(id->name) != ID_WM) || id->properties == NULL);
-  IDP_BlendReadLib(reader, id->properties);
+  IDP_BlendReadLib(reader, id->lib, id->properties);
 
   AnimData *adt = BKE_animdata_from_id(id);
   if (adt != NULL) {
@@ -3163,7 +3168,7 @@ static bool read_libblock_undo_restore_linked(FileData *fd, Main *main, const ID
     /* Even though we found our linked ID, there is no guarantee its address
      * is still the same. */
     if (id_old != bhead->old) {
-      oldnewmap_insert(fd->libmap, bhead->old, id_old, GS(id_old->name));
+      oldnewmap_lib_insert(fd, bhead->old, id_old, GS(id_old->name));
     }
 
     /* No need to do anything else for ID_LINK_PLACEHOLDER, it's assumed
@@ -3305,7 +3310,7 @@ static bool read_libblock_undo_restore(
     /* Insert into library map for lookup by newly read datablocks (with pointer value bhead->old).
      * Note that existing datablocks in memory (which pointer value would be id_old) are not
      * remapped anymore, so no need to store this info here. */
-    oldnewmap_insert(fd->libmap, bhead->old, id_old, bhead->code);
+    oldnewmap_lib_insert(fd, bhead->old, id_old, bhead->code);
 
     *r_id_old = id_old;
     return true;
@@ -3388,7 +3393,7 @@ static BHead *read_libblock(FileData *fd,
    * Note that existing datablocks in memory (which pointer value would be id_old) are not remapped
    * remapped anymore, so no need to store this info here. */
   ID *id_target = id_old ? id_old : id;
-  oldnewmap_insert(fd->libmap, bhead->old, id_target, bhead->code);
+  oldnewmap_lib_insert(fd, bhead->old, id_target, bhead->code);
 
   if (r_id) {
     *r_id = id_target;
@@ -4175,7 +4180,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
   }
 
   if (bhead->code == ID_LINK_PLACEHOLDER) {
-    /* Placeholder link to data-lock in another library. */
+    /* Placeholder link to data-block in another library. */
     BHead *bheadlib = find_previous_lib(fd, bhead);
     if (bheadlib == NULL) {
       return;
@@ -4201,6 +4206,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
       /* ID has not been read yet, add placeholder to the main of the
        * library it belongs to, so that it will be read later. */
       read_libblock(fd, libmain, bhead, fd->id_tag_extra | LIB_TAG_INDIRECT, false, &id);
+      BLI_assert(id != NULL);
       id_sort_by_name(which_libbase(libmain, GS(id->name)), id, id->prev);
 
       /* commented because this can print way too much */
@@ -4227,9 +4233,9 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
        * (B) forest.blend: contains Forest collection linking in Tree from tree.blend.
        * (C) shot.blend: links in both Tree from tree.blend and Forest from forest.blend.
        */
-      oldnewmap_insert(fd->libmap, bhead->old, id, bhead->code);
+      oldnewmap_lib_insert(fd, bhead->old, id, bhead->code);
 
-      /* If "id" is a real data-lock and not a placeholder, we need to
+      /* If "id" is a real data-block and not a placeholder, we need to
        * update fd->libmap to replace ID_LINK_PLACEHOLDER with the real
        * ID_* code.
        *
@@ -4263,6 +4269,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
                     fd->id_tag_extra | LIB_TAG_NEED_EXPAND | LIB_TAG_INDIRECT,
                     false,
                     &id);
+      BLI_assert(id != NULL);
       id_sort_by_name(which_libbase(mainvar, GS(id->name)), id, id->prev);
     }
     else {
@@ -4275,7 +4282,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
       /* this is actually only needed on UI call? when ID was already read before,
        * and another append happens which invokes same ID...
        * in that case the lookup table needs this entry */
-      oldnewmap_insert(fd->libmap, bhead->old, id, bhead->code);
+      oldnewmap_lib_insert(fd, bhead->old, id, bhead->code);
       /* commented because this can print way too much */
       // if (G.debug & G_DEBUG) printf("expand: already read %s\n", id->name);
     }
@@ -4395,7 +4402,7 @@ static ID *link_named_part(
     else {
       /* already linked */
       CLOG_WARN(&LOG, "Append: ID '%s' is already linked", id->name);
-      oldnewmap_insert(fd->libmap, bhead->old, id, bhead->code);
+      oldnewmap_lib_insert(fd, bhead->old, id, bhead->code);
       if (!force_indirect && (id->tag & LIB_TAG_INDIRECT)) {
         id->tag &= ~LIB_TAG_INDIRECT;
         id->flag &= ~LIB_INDIRECT_WEAK_LINK;
@@ -4890,23 +4897,27 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
           }
         }
 
-        /* Read linked data-locks for each link placeholder, and replace
-         * the placeholder with the real data-lock. */
+        /* Read linked data-blocks for each link placeholder, and replace
+         * the placeholder with the real data-block. */
         read_library_linked_ids(basefd, fd, mainlist, mainptr);
 
-        /* Test if linked data-locks need to read further linked data-locks
+        /* Test if linked data-blocks need to read further linked data-blocks
          * and create link placeholders for them. */
         BLO_expand_main(fd, mainptr);
       }
     }
   }
 
+  for (Main *mainptr = mainl->next; mainptr; mainptr = mainptr->next) {
+    /* Drop weak links for which no data-block was found.
+     * Since this can remap pointers in `libmap` of all libraries, it needs to be performed in its
+     * own loop, before any call to `lib_link_all` (and the freeing of the libraries' filedata). */
+    read_library_clear_weak_links(basefd, mainlist, mainptr);
+  }
+
   Main *main_newid = BKE_main_new();
   for (Main *mainptr = mainl->next; mainptr; mainptr = mainptr->next) {
-    /* Drop weak links for which no data-block was found. */
-    read_library_clear_weak_links(basefd, mainlist, mainptr);
-
-    /* Do versioning for newly added linked data-locks. If no data-locks
+    /* Do versioning for newly added linked data-blocks. If no data-blocks
      * were read from a library versionfile will still be zero and we can
      * skip it. */
     if (mainptr->versionfile) {

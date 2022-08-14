@@ -164,11 +164,10 @@ static CustomData &get_customdata(Mesh &mesh, const eAttrDomain domain)
 
 static MutableSpan<int> get_orig_index_layer(Mesh &mesh, const eAttrDomain domain)
 {
-  MeshComponent component;
-  component.replace(&mesh, GeometryOwnershipType::ReadOnly);
+  const bke::AttributeAccessor attributes = bke::mesh_attributes(mesh);
   CustomData &custom_data = get_customdata(mesh, domain);
   if (int *orig_indices = static_cast<int *>(CustomData_get_layer(&custom_data, CD_ORIGINDEX))) {
-    return {orig_indices, component.attribute_domain_size(domain)};
+    return {orig_indices, attributes.domain_size(domain)};
   }
   return {};
 }
@@ -226,7 +225,7 @@ template<typename T, typename GetMixIndicesFn>
 void copy_with_mixing(MutableSpan<T> dst, Span<T> src, GetMixIndicesFn get_mix_indices_fn)
 {
   threading::parallel_for(dst.index_range(), 512, [&](const IndexRange range) {
-    attribute_math::DefaultPropatationMixer<T> mixer{dst.slice(range)};
+    attribute_math::DefaultPropagationMixer<T> mixer{dst.slice(range)};
     for (const int i_dst : IndexRange(range.size())) {
       for (const int i_src : get_mix_indices_fn(range[i_dst])) {
         mixer.mix_in(i_dst, src[i_src]);
@@ -438,7 +437,7 @@ static void extrude_mesh_edges(MeshComponent &component,
   Array<float3> vert_offsets;
   if (!edge_offsets.is_single()) {
     vert_offsets.reinitialize(orig_vert_size);
-    attribute_math::DefaultPropatationMixer<float3> mixer(vert_offsets);
+    attribute_math::DefaultPropagationMixer<float3> mixer(vert_offsets);
     for (const int i_edge : edge_selection) {
       const MEdge &edge = orig_edges[i_edge];
       const float3 offset = edge_offsets[i_edge];
@@ -584,7 +583,7 @@ static void extrude_mesh_edges(MeshComponent &component,
               /* Both corners on each vertical edge of the side polygon get the same value,
                * so there are only two unique values to mix. */
               Array<T> side_poly_corner_data(2);
-              attribute_math::DefaultPropatationMixer<T> mixer{side_poly_corner_data};
+              attribute_math::DefaultPropagationMixer<T> mixer{side_poly_corner_data};
 
               const MEdge &duplicate_edge = duplicate_edges[i_edge_selection];
               const int new_vert_1 = duplicate_edge.v1;
@@ -706,7 +705,7 @@ static void extrude_mesh_face_regions(MeshComponent &component,
   Array<float3> vert_offsets;
   if (!poly_offsets.is_single()) {
     vert_offsets.reinitialize(orig_vert_size);
-    attribute_math::DefaultPropatationMixer<float3> mixer(vert_offsets);
+    attribute_math::DefaultPropagationMixer<float3> mixer(vert_offsets);
     for (const int i_poly : poly_selection) {
       const MPoly &poly = orig_polys[i_poly];
       const float3 offset = poly_offsets[i_poly];

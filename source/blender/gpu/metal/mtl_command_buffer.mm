@@ -308,6 +308,12 @@ id<MTLRenderCommandEncoder> MTLCommandBufferManager::ensure_begin_render_command
     active_pass_descriptor_ = active_frame_buffer_->bake_render_pass_descriptor(
         is_rebind && (!active_frame_buffer_->get_pending_clear()));
 
+    /* Determine if there is a visibility buffer assigned to the context. */
+    gpu::MTLBuffer *visibility_buffer = context_.get_visibility_buffer();
+    this->active_pass_descriptor_.visibilityResultBuffer =
+        (visibility_buffer) ? visibility_buffer->get_metal_buffer() : nil;
+    context_.clear_visibility_dirty();
+
     /* Ensure we have already cleaned up our previous render command encoder. */
     BLI_assert(active_render_command_encoder_ == nil);
 

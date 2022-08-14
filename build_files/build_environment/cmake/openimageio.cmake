@@ -18,9 +18,15 @@ if(WIN32)
   set(PNG_LIBNAME libpng16_static${LIBEXT})
   set(OIIO_SIMD_FLAGS -DUSE_SIMD=sse2)
   set(OPENJPEG_POSTFIX _msvc)
+  if(BUILD_MODE STREQUAL Debug)
+    set(TIFF_POSTFIX d)
+  else()
+    set(TIFF_POSTFIX)
+  endif()
 else()
   set(PNG_LIBNAME libpng${LIBEXT})
   set(OIIO_SIMD_FLAGS)
+  set(TIFF_POSTFIX)
 endif()
 
 if(MSVC)
@@ -65,7 +71,7 @@ set(OPENIMAGEIO_EXTRA_ARGS
   -DZLIB_INCLUDE_DIR=${LIBDIR}/zlib/include
   -DPNG_LIBRARY=${LIBDIR}/png/lib/${PNG_LIBNAME}
   -DPNG_PNG_INCLUDE_DIR=${LIBDIR}/png/include
-  -DTIFF_LIBRARY=${LIBDIR}/tiff/lib/${LIBPREFIX}tiff${LIBEXT}
+  -DTIFF_LIBRARY=${LIBDIR}/tiff/lib/${LIBPREFIX}tiff${TIFF_POSTFIX}${LIBEXT}
   -DTIFF_INCLUDE_DIR=${LIBDIR}/tiff/include
   -DJPEG_LIBRARY=${LIBDIR}/jpeg/lib/${JPEG_LIBRARY}
   -DJPEG_INCLUDE_DIR=${LIBDIR}/jpeg/include

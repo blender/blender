@@ -447,7 +447,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Array = {
-    /* name */ "Array",
+    /* name */ N_("Array"),
     /* structName */ "ArrayGpencilModifierData",
     /* structSize */ sizeof(ArrayGpencilModifierData),
     /* type */ eGpencilModifierTypeType_Gpencil,

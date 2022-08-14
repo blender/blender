@@ -53,7 +53,13 @@ BLI_INLINE bool edgeref_is_init(const EdgeFaceRef *edge_ref)
  * \param poly_nors: Precalculated face normals.
  * \param r_vert_nors: Return vert normals.
  */
-static void mesh_calc_hq_normal(Mesh *mesh, const float (*poly_nors)[3], float (*r_vert_nors)[3])
+static void mesh_calc_hq_normal(Mesh *mesh,
+                                const float (*poly_nors)[3],
+                                float (*r_vert_nors)[3],
+#ifdef USE_NONMANIFOLD_WORKAROUND
+                                BLI_bitmap *edge_tmp_tag
+#endif
+)
 {
   int i, verts_num, edges_num, polys_num;
   MPoly *mpoly, *mp;
@@ -103,7 +109,7 @@ static void mesh_calc_hq_normal(Mesh *mesh, const float (*poly_nors)[3], float (
           /* 3+ faces using an edge, we can't handle this usefully */
           edge_ref->p1 = edge_ref->p2 = -1;
 #ifdef USE_NONMANIFOLD_WORKAROUND
-          medge[ml->e].flag |= ME_EDGE_TMP_TAG;
+          BLI_BITMAP_ENABLE(edge_tmp_tag, ml->e);
 #endif
         }
         /* --- done --- */
@@ -319,9 +325,20 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     BLI_assert(newEdges == 0);
   }
 
+#ifdef USE_NONMANIFOLD_WORKAROUND
+  BLI_bitmap *edge_tmp_tag = BLI_BITMAP_NEW(mesh->totedge, __func__);
+#endif
+
   if (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) {
     vert_nors = MEM_calloc_arrayN(verts_num, sizeof(float[3]), "mod_solid_vno_hq");
-    mesh_calc_hq_normal(mesh, poly_nors, vert_nors);
+    mesh_calc_hq_normal(mesh,
+                        poly_nors,
+                        vert_nors
+#ifdef USE_NONMANIFOLD_WORKAROUND
+                        ,
+                        edge_tmp_tag
+#endif
+    );
   }
 
   result = BKE_mesh_new_nomain_from_template(mesh,
@@ -740,8 +757,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 #ifdef USE_NONMANIFOLD_WORKAROUND
         /* skip 3+ face user edges */
         if ((check_non_manifold == false) ||
-            LIKELY(((orig_medge[ml[i_curr].e].flag & ME_EDGE_TMP_TAG) == 0) &&
-                   ((orig_medge[ml[i_next].e].flag & ME_EDGE_TMP_TAG) == 0))) {
+            LIKELY(!BLI_BITMAP_TEST(edge_tmp_tag, ml[i_curr].e) &&
+                   !BLI_BITMAP_TEST(edge_tmp_tag, ml[i_next].e))) {
           vert_angles[vidx] += shell_v3v3_normalized_to_dist(vert_nors[vidx], poly_nors[i]) *
                                angle;
         }
@@ -949,6 +966,10 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     MEM_freeN(vert_angles);
   }
 
+#ifdef USE_NONMANIFOLD_WORKAROUND
+  MEM_SAFE_FREE(edge_tmp_tag);
+#endif
+
   if (vert_nors) {
     MEM_freeN(vert_nors);
   }
@@ -999,9 +1020,9 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   if (do_rim) {
     uint i;
 
-    /* NOTE(campbell): Unfortunately re-calculate the normals for the new edge faces is necessary.
-     * This could be done in many ways, but probably the quickest way
-     * is to calculate the average normals for side faces only.
+    /* NOTE(@campbellbarton): Unfortunately re-calculate the normals for the new edge
+     * faces is necessary. This could be done in many ways, but probably the quickest
+     * way is to calculate the average normals for side faces only.
      * Then blend them with the normals of the edge verts.
      *
      * At the moment its easiest to allocate an entire array for every vertex,

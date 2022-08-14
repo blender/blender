@@ -5,6 +5,7 @@ set(INC
   .
   ../clog
   ../glew-mx
+  ../../source/blender/blenlib
   ../../source/blender/imbuf
   ../../source/blender/makesdna
 )
@@ -25,6 +26,7 @@ set(SRC
   intern/GHOST_ISystemPaths.cpp
   intern/GHOST_ModifierKeys.cpp
   intern/GHOST_Path-api.cpp
+  intern/GHOST_PathUtils.cpp
   intern/GHOST_Rect.cpp
   intern/GHOST_System.cpp
   intern/GHOST_TimerManager.cpp
@@ -59,6 +61,7 @@ set(SRC
   intern/GHOST_EventTrackpad.h
   intern/GHOST_EventWheel.h
   intern/GHOST_ModifierKeys.h
+  intern/GHOST_PathUtils.h
   intern/GHOST_System.h
   intern/GHOST_SystemPaths.h
   intern/GHOST_TimerManager.h

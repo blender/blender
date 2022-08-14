@@ -331,6 +331,7 @@ int GPU_texture_orig_width(const GPUTexture *tex);
 int GPU_texture_orig_height(const GPUTexture *tex);
 void GPU_texture_orig_size_set(GPUTexture *tex, int w, int h);
 eGPUTextureFormat GPU_texture_format(const GPUTexture *tex);
+const char *GPU_texture_format_description(eGPUTextureFormat texture_format);
 bool GPU_texture_array(const GPUTexture *tex);
 bool GPU_texture_cube(const GPUTexture *tex);
 bool GPU_texture_depth(const GPUTexture *tex);

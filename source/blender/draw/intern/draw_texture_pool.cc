@@ -160,6 +160,19 @@ void DRW_texture_pool_texture_release(DRWTexturePool *pool, GPUTexture *tmp_tex)
   pool->tmp_tex_released.append(tmp_tex);
 }
 
+void DRW_texture_pool_take_texture_ownership(DRWTexturePool *pool, GPUTexture *tex)
+{
+  pool->tmp_tex_acquired.remove_first_occurrence_and_reorder(tex);
+}
+
+void DRW_texture_pool_give_texture_ownership(DRWTexturePool *pool, GPUTexture *tex)
+{
+  BLI_assert(pool->tmp_tex_acquired.first_index_of_try(tex) == -1 &&
+             pool->tmp_tex_released.first_index_of_try(tex) == -1 &&
+             pool->tmp_tex_pruned.first_index_of_try(tex) == -1);
+  pool->tmp_tex_acquired.append(tex);
+}
+
 void DRW_texture_pool_reset(DRWTexturePool *pool)
 {
   pool->last_user_id = -1;
