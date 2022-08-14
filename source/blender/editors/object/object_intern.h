@@ -259,7 +259,7 @@ void CONSTRAINT_OT_objectsolver_set_inverse(struct wmOperatorType *ot);
 void CONSTRAINT_OT_objectsolver_clear_inverse(struct wmOperatorType *ot);
 void CONSTRAINT_OT_followpath_path_animate(struct wmOperatorType *ot);
 
-/* object_vgroup.c */
+/* object_vgroup.cc */
 
 void OBJECT_OT_vertex_group_add(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_remove(struct wmOperatorType *ot);

@@ -53,7 +53,7 @@ set(SRC
   object_shapekey.c
   object_transform.cc
   object_utils.c
-  object_vgroup.c
+  object_vgroup.cc
   object_volume.c
   object_warp.c
 

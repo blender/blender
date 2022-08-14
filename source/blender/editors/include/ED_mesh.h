@@ -448,7 +448,7 @@ void ED_mesh_mirrtopo_init(struct BMEditMesh *em,
                            bool skip_em_vert_array_init);
 void ED_mesh_mirrtopo_free(MirrTopoStore_t *mesh_topo_store);
 
-/* object_vgroup.c */
+/* object_vgroup.cc */
 
 #define WEIGHT_REPLACE 1
 #define WEIGHT_ADD 2

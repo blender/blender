@@ -2209,7 +2209,7 @@ enum {
   OB_DRAW_GROUPUSER_ALL = 2,
 };
 
-/* object_vgroup.c */
+/* object_vgroup.cc */
 
 /** #ToolSettings.vgroupsubset */
 typedef enum eVGroupSelect {
