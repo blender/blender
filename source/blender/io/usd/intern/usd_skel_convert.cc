@@ -131,6 +131,12 @@ void import_blendshapes(Main *bmain, Object *obj, pxr::UsdPrim prim)
     return;
   }
 
+  if (prim.IsInstanceProxy() || prim.IsInPrototype()) {
+    /* Attempting to create a UsdSkelBindingAPI for
+     * instance proxies and prototypes generates USD errors. */
+    return;
+  }
+
   pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(prim);
 
   if (!skel_api) {
