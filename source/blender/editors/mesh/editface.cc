@@ -530,15 +530,13 @@ bool paintvert_deselect_all_visible(Object *ob, int action, bool flush_flags)
   bke::AttributeAccessor attributes = bke::mesh_attributes(*me);
   const VArray<bool> hide_vert = attributes.lookup_or_default<bool>(
       ".hide_vert", ATTR_DOMAIN_POINT, false);
-  const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
-      ".hide_poly", ATTR_DOMAIN_FACE, false);
 
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
 
     for (int i = 0; i < me->totvert; i++) {
       MVert *mvert = &me->mvert[i];
-      if (!hide_poly[i] && mvert->flag & SELECT) {
+      if (!hide_vert[i] && mvert->flag & SELECT) {
         action = SEL_DESELECT;
         break;
       }
@@ -603,13 +601,13 @@ void paintvert_select_ungrouped(Object *ob, bool extend, bool flush_flags)
   }
 
   bke::AttributeAccessor attributes = bke::mesh_attributes(*me);
-  const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
-      ".hide_poly", ATTR_DOMAIN_FACE, false);
+  const VArray<bool> hide_vert = attributes.lookup_or_default<bool>(
+      ".hide_vert", ATTR_DOMAIN_POINT, false);
 
   for (int i = 0; i < me->totvert; i++) {
     MVert *mv = &me->mvert[i];
     MDeformVert *dv = &me->dvert[i];
-    if (!hide_poly[i]) {
+    if (!hide_vert[i]) {
       if (dv->dw == nullptr) {
         /* if null weight then not grouped */
         mv->flag |= SELECT;
