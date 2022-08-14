@@ -34,6 +34,7 @@ typedef struct MVert {
 #ifdef DNA_DEPRECATED_ALLOW
 enum {
   /*  SELECT = (1 << 0), */
+  /** Deprecated hide status. Now stored in ".hide_vert" attribute. */
   ME_HIDE = (1 << 4),
 };
 #endif
@@ -55,6 +56,7 @@ enum {
   /*  SELECT = (1 << 0), */
   ME_EDGEDRAW = (1 << 1),
   ME_SEAM = (1 << 2),
+  /** Deprecated hide status. Now stored in ".hide_edge" attribute. */
   /*  ME_HIDE = (1 << 4), */
   ME_EDGERENDER = (1 << 5),
   ME_LOOSEEDGE = (1 << 7),
@@ -80,6 +82,7 @@ typedef struct MPoly {
 enum {
   ME_SMOOTH = (1 << 0),
   ME_FACE_SEL = (1 << 1),
+  /** Deprecated hide status. Now stored in ".hide_poly" attribute. */
   /* ME_HIDE = (1 << 4), */
 };
 
