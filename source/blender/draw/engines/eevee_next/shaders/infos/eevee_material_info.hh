@@ -16,6 +16,8 @@ GPU_SHADER_CREATE_INFO(eevee_sampling_data)
     .additional_info("eevee_shared")
     .storage_buf(14, Qualifier::READ, "SamplingData", "sampling_buf");
 
+GPU_SHADER_CREATE_INFO(eevee_utility_texture).sampler(8, ImageType::FLOAT_2D_ARRAY, "utility_tx");
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -116,14 +118,14 @@ GPU_SHADER_CREATE_INFO(eevee_surf_forward)
     .image_out(3, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_specular_light_img")
     .image_out(4, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_specular_color_img")
     .image_out(5, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_emission_img")
-    .additional_info("eevee_aov_out"
-                     //  "eevee_sampling_data",
+    .additional_info("eevee_aov_out",
+                     "eevee_light_data",
+                     "eevee_utility_texture",
+                     "eevee_sampling_data"
                      //  "eevee_lightprobe_data",
                      /* Optionally added depending on the material. */
                      // "eevee_raytrace_data",
                      // "eevee_transmittance_data",
-                     //  "eevee_utility_texture",
-                     //  "eevee_light_data",
                      //  "eevee_shadow_data"
     );
 
