@@ -120,6 +120,7 @@ class GHOST_ISystem {
    * \return An indication of success.
    */
   static GHOST_TSuccess createSystem();
+  static GHOST_TSuccess createSystemBackground();
 
   /**
    * Disposes the one and only system.

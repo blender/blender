@@ -166,7 +166,7 @@ void WM_init_opengl(void)
 
   if (G.background) {
     /* Ghost is still not initialized elsewhere in background mode. */
-    wm_ghost_init(NULL);
+    wm_ghost_init_background();
   }
 
   if (!GPU_backend_supported()) {

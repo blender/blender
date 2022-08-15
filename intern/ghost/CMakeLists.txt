@@ -103,42 +103,39 @@ if(WITH_INPUT_NDOF)
   )
 endif()
 
-if(WITH_HEADLESS OR WITH_GHOST_SDL)
-  if(WITH_HEADLESS)
-    list(APPEND SRC
-      intern/GHOST_DisplayManagerNULL.h
-      intern/GHOST_SystemNULL.h
-      intern/GHOST_WindowNULL.h
+list(APPEND SRC
+  intern/GHOST_DisplayManagerNULL.h
+  intern/GHOST_SystemHeadless.h
+  intern/GHOST_WindowNULL.h
+)
+
+if(WITH_HEADLESS)
+  add_definitions(-DWITH_HEADLESS)
+elseif (WITH_GHOST_SDL)
+  list(APPEND SRC
+    intern/GHOST_ContextSDL.cpp
+    intern/GHOST_DisplayManagerSDL.cpp
+    intern/GHOST_SystemSDL.cpp
+    intern/GHOST_WindowSDL.cpp
+
+    intern/GHOST_ContextSDL.h
+    intern/GHOST_DisplayManagerSDL.h
+    intern/GHOST_SystemSDL.h
+    intern/GHOST_WindowSDL.h
+  )
+  add_definitions(-DWITH_GHOST_SDL)
+
+  list(APPEND INC_SYS
+    ${SDL_INCLUDE_DIR}
+  )
+  if(WITH_SDL_DYNLOAD)
+    list(APPEND LIB
+      extern_sdlew
     )
-    add_definitions(-DWITH_HEADLESS)
   else()
-    list(APPEND SRC
-      intern/GHOST_ContextSDL.cpp
-      intern/GHOST_DisplayManagerSDL.cpp
-      intern/GHOST_SystemSDL.cpp
-      intern/GHOST_WindowSDL.cpp
-
-      intern/GHOST_ContextSDL.h
-      intern/GHOST_DisplayManagerSDL.h
-      intern/GHOST_SystemSDL.h
-      intern/GHOST_WindowSDL.h
+    list(APPEND LIB
+      ${SDL_LIBRARY}
     )
-    add_definitions(-DWITH_GHOST_SDL)
-  endif()
-
-  if(NOT WITH_HEADLESS)
-    list(APPEND INC_SYS
-      ${SDL_INCLUDE_DIR}
-    )
-    if(WITH_SDL_DYNLOAD)
-      list(APPEND LIB
-        extern_sdlew
-      )
-    else()
-      list(APPEND LIB
-        ${SDL_LIBRARY}
-      )
-    endif()
   endif()
 
 elseif(APPLE AND NOT WITH_GHOST_X11)
@@ -449,7 +446,7 @@ elseif(WIN32)
   endif()
 endif()
 
-if(NOT (WITH_HEADLESS OR WITH_GHOST_SDL))
+if(UNIX AND NOT APPLE)
   list(APPEND SRC
     intern/GHOST_ContextEGL.cpp
 

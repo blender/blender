@@ -101,8 +101,7 @@ GHOST_SystemX11::GHOST_SystemX11() : GHOST_System(), m_xkb_descr(nullptr), m_sta
   m_display = XOpenDisplay(nullptr);
 
   if (!m_display) {
-    std::cerr << "Unable to open a display" << std::endl;
-    abort(); /* was return before, but this would just mean it will crash later */
+    throw std::runtime_error("X11: Unable to open a display");
   }
 
 #ifdef USE_X11_ERROR_HANDLERS

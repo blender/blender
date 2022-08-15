@@ -1558,36 +1558,55 @@ void wm_window_process_events(const bContext *C)
 
 void wm_ghost_init(bContext *C)
 {
-  if (!g_system) {
-    GHOST_EventConsumerHandle consumer;
-
-    if (C != NULL) {
-      consumer = GHOST_CreateEventConsumer(ghost_event_proc, C);
-    }
-
-    GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
-
-    g_system = GHOST_CreateSystem();
-
-    GHOST_Debug debug = {0};
-    if (G.debug & G_DEBUG_GHOST) {
-      debug.flags |= GHOST_kDebugDefault;
-    }
-    if (G.debug & G_DEBUG_WINTAB) {
-      debug.flags |= GHOST_kDebugWintab;
-    }
-    GHOST_SystemInitDebug(g_system, debug);
-
-    if (C != NULL) {
-      GHOST_AddEventConsumer(g_system, consumer);
-    }
-
-    if (wm_init_state.native_pixels) {
-      GHOST_UseNativePixels();
-    }
-
-    GHOST_UseWindowFocus(wm_init_state.window_focus);
+  if (g_system) {
+    return;
   }
+
+  BLI_assert(C != NULL);
+  BLI_assert_msg(!G.background, "Use wm_ghost_init_background instead");
+
+  GHOST_EventConsumerHandle consumer;
+
+  consumer = GHOST_CreateEventConsumer(ghost_event_proc, C);
+
+  GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
+
+  g_system = GHOST_CreateSystem();
+
+  GHOST_Debug debug = {0};
+  if (G.debug & G_DEBUG_GHOST) {
+    debug.flags |= GHOST_kDebugDefault;
+  }
+  if (G.debug & G_DEBUG_WINTAB) {
+    debug.flags |= GHOST_kDebugWintab;
+  }
+  GHOST_SystemInitDebug(g_system, debug);
+
+  GHOST_AddEventConsumer(g_system, consumer);
+
+  if (wm_init_state.native_pixels) {
+    GHOST_UseNativePixels();
+  }
+
+  GHOST_UseWindowFocus(wm_init_state.window_focus);
+}
+
+/* TODO move this to wm_init_exit.c. */
+void wm_ghost_init_background(void)
+{
+  if (g_system) {
+    return;
+  }
+
+  GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
+
+  g_system = GHOST_CreateSystemBackground();
+
+  GHOST_Debug debug = {0};
+  if (G.debug & G_DEBUG_GHOST) {
+    debug.flags |= GHOST_kDebugDefault;
+  }
+  GHOST_SystemInitDebug(g_system, debug);
 }
 
 void wm_ghost_exit(void)
