@@ -990,6 +990,8 @@ void render_result_exr_file_cache_write(Render *re)
   char str[FILE_MAXFILE + FILE_MAXFILE + MAX_ID_NAME + 100];
   char *root = U.render_cachedir;
 
+  render_result_passes_allocated_ensure(rr);
+
   render_result_exr_file_cache_path(re->scene, root, str);
   printf("Caching exr file, %dx%d, %s\n", rr->rectx, rr->recty, str);
 
