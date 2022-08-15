@@ -46,7 +46,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-void ED_sculpt_init_transform(struct bContext *C, Object *ob)
+void ED_sculpt_init_transform(struct bContext *C, Object *ob, const char *undo_name)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
@@ -60,7 +60,7 @@ void ED_sculpt_init_transform(struct bContext *C, Object *ob)
   copy_v4_v4(ss->prev_pivot_rot, ss->pivot_rot);
   copy_v3_v3(ss->prev_pivot_scale, ss->pivot_scale);
 
-  SCULPT_undo_push_begin(ob, "Transform");
+  SCULPT_undo_push_begin_ex(ob, undo_name);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 
   ss->pivot_rot[3] = 1.0f;
@@ -351,11 +351,6 @@ void ED_sculpt_end_transform(struct bContext *C, Object *ob)
   if (ss->filter_cache) {
     SCULPT_filter_cache_free(ss);
   }
-  /* Force undo push to happen even inside transform operator, since the sculpt
-   * undo system works separate from regular undo and this is require to properly
-   * finish an undo step also when canceling. */
-  const bool use_nested_undo = true;
-  SCULPT_undo_push_end_ex(ob, use_nested_undo);
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
 }
 

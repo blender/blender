@@ -2124,7 +2124,7 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   sculpt_expand_ensure_sculptsession_data(ob);
 
   /* Initialize undo. */
-  SCULPT_undo_push_begin(ob, "expand");
+  SCULPT_undo_push_begin(ob, op);
   sculpt_expand_undo_push(ob, ss->expand_cache);
 
   /* Set the initial element for expand from the event position. */

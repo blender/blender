@@ -656,6 +656,9 @@ typedef struct TransInfo {
 
   /** Typically for mode settings. */
   TransCustomDataContainer custom;
+
+  /* Needed for sculpt transform. */
+  const char *undo_name;
 } TransInfo;
 
 /** \} */

@@ -351,10 +351,10 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   /* Start undo. */
   switch (action) {
     case PARTIALVIS_HIDE:
-      SCULPT_undo_push_begin(ob, "Hide area");
+      SCULPT_undo_push_begin_ex(ob, "Hide area");
       break;
     case PARTIALVIS_SHOW:
-      SCULPT_undo_push_begin(ob, "Show area");
+      SCULPT_undo_push_begin_ex(ob, "Show area");
       break;
   }
 

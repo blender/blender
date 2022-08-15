@@ -1546,7 +1546,12 @@ static void sculpt_save_active_attribute(Object *ob, SculptAttrRef *attr)
   attr->was_set = true;
 }
 
-void SCULPT_undo_push_begin(Object *ob, const char *name)
+void SCULPT_undo_push_begin(Object *ob, const wmOperator *op)
+{
+  SCULPT_undo_push_begin_ex(ob, op->type->name);
+}
+
+void SCULPT_undo_push_begin_ex(Object *ob, const char *name)
 {
   UndoStack *ustack = ED_undo_stack_get();
 
@@ -1834,9 +1839,15 @@ static void sculpt_undosys_step_free(UndoStep *us_p)
   sculpt_undo_free_list(&us->data.nodes);
 }
 
-void ED_sculpt_undo_geometry_begin(struct Object *ob, const char *name)
+void ED_sculpt_undo_geometry_begin(struct Object *ob, const wmOperator *op)
 {
-  SCULPT_undo_push_begin(ob, name);
+  SCULPT_undo_push_begin(ob, op);
+  SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
+}
+
+void ED_sculpt_undo_geometry_begin_ex(struct Object *ob, const char *name)
+{
+  SCULPT_undo_push_begin_ex(ob, name);
   SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
 }
 
@@ -1949,7 +1960,7 @@ void ED_sculpt_undo_push_multires_mesh_begin(bContext *C, const char *str)
 
   Object *object = CTX_data_active_object(C);
 
-  SCULPT_undo_push_begin(object, str);
+  SCULPT_undo_push_begin_ex(object, str);
 
   SculptUndoNode *geometry_unode = SCULPT_undo_push_node(object, NULL, SCULPT_UNDO_GEOMETRY);
   geometry_unode->geometry_clear_pbvh = false;

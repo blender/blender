@@ -5382,7 +5382,7 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
       ED_image_undo_push_begin(op->type->name, PAINT_MODE_SCULPT);
     }
     else {
-      SCULPT_undo_push_begin(ob, sculpt_tool_name(sd));
+      SCULPT_undo_push_begin_ex(ob, sculpt_tool_name(sd));
     }
 
     return true;

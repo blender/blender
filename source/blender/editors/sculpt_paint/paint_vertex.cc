@@ -3957,7 +3957,7 @@ static int vpaint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     BKE_pbvh_ensure_node_loops(ob->sculpt->pbvh);
   }
 
-  SCULPT_undo_push_begin(ob, "Vertex Paint");
+  SCULPT_undo_push_begin_ex(ob, "Vertex Paint");
 
   if ((retval = op->type->modal(C, op, event)) == OPERATOR_FINISHED) {
     paint_stroke_free(C, op, (PaintStroke *)op->customdata);
