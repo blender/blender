@@ -248,6 +248,13 @@ static void get_tex_mapping(TextureNode *mapping, BL::TexMapping &b_mapping)
   mapping->set_tex_mapping_z_mapping((TextureMapping::Mapping)b_mapping.mapping_z());
 }
 
+static bool is_image_animated(BL::Image::source_enum b_image_source, BL::ImageUser &b_image_user)
+{
+  return (b_image_source == BL::Image::source_MOVIE ||
+          b_image_source == BL::Image::source_SEQUENCE) &&
+         b_image_user.use_auto_refresh();
+}
+
 static ShaderNode *add_node(Scene *scene,
                             BL::RenderEngine &b_engine,
                             BL::BlendData &b_data,
@@ -748,10 +755,11 @@ static ShaderNode *add_node(Scene *scene,
     get_tex_mapping(image, b_texture_mapping);
 
     if (b_image) {
+      BL::Image::source_enum b_image_source = b_image.source();
       PointerRNA colorspace_ptr = b_image.colorspace_settings().ptr;
       image->set_colorspace(ustring(get_enum_identifier(colorspace_ptr, "name")));
 
-      image->set_animated(b_image_node.image_user().use_auto_refresh());
+      image->set_animated(is_image_animated(b_image_source, b_image_user));
       image->set_alpha_type(get_image_alpha_type(b_image));
 
       array<int> tiles;
@@ -763,9 +771,9 @@ static ShaderNode *add_node(Scene *scene,
       /* builtin images will use callback-based reading because
        * they could only be loaded correct from blender side
        */
-      bool is_builtin = b_image.packed_file() || b_image.source() == BL::Image::source_GENERATED ||
-                        b_image.source() == BL::Image::source_MOVIE ||
-                        (b_engine.is_preview() && b_image.source() != BL::Image::source_SEQUENCE);
+      bool is_builtin = b_image.packed_file() || b_image_source == BL::Image::source_GENERATED ||
+                        b_image_source == BL::Image::source_MOVIE ||
+                        (b_engine.is_preview() && b_image_source != BL::Image::source_SEQUENCE);
 
       if (is_builtin) {
         /* for builtin images we're using image datablock name to find an image to
@@ -776,7 +784,7 @@ static ShaderNode *add_node(Scene *scene,
          */
         int scene_frame = b_scene.frame_current();
         int image_frame = image_user_frame_number(b_image_user, b_image, scene_frame);
-        if (b_image.source() != BL::Image::source_TILED) {
+        if (b_image_source != BL::Image::source_TILED) {
           image->handle = scene->image_manager->add_image(
               new BlenderImageLoader(b_image, image_frame, 0, b_engine.is_preview()),
               image->image_params());
@@ -812,15 +820,15 @@ static ShaderNode *add_node(Scene *scene,
     get_tex_mapping(env, b_texture_mapping);
 
     if (b_image) {
+      BL::Image::source_enum b_image_source = b_image.source();
       PointerRNA colorspace_ptr = b_image.colorspace_settings().ptr;
       env->set_colorspace(ustring(get_enum_identifier(colorspace_ptr, "name")));
-
-      env->set_animated(b_env_node.image_user().use_auto_refresh());
+      env->set_animated(is_image_animated(b_image_source, b_image_user));
       env->set_alpha_type(get_image_alpha_type(b_image));
 
-      bool is_builtin = b_image.packed_file() || b_image.source() == BL::Image::source_GENERATED ||
-                        b_image.source() == BL::Image::source_MOVIE ||
-                        (b_engine.is_preview() && b_image.source() != BL::Image::source_SEQUENCE);
+      bool is_builtin = b_image.packed_file() || b_image_source == BL::Image::source_GENERATED ||
+                        b_image_source == BL::Image::source_MOVIE ||
+                        (b_engine.is_preview() && b_image_source != BL::Image::source_SEQUENCE);
 
       if (is_builtin) {
         int scene_frame = b_scene.frame_current();
