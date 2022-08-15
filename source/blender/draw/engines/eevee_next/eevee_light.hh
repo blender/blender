@@ -125,7 +125,7 @@ class LightModule {
 
   /** Debug Culling visualization. */
   DRWPass *debug_draw_ps_ = nullptr;
-  GPUTexture *input_depth_tx_ = nullptr;
+  /* GPUTexture *input_depth_tx_ = nullptr; */
 
  public:
   LightModule(Instance &inst) : inst_(inst){};
