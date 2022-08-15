@@ -486,6 +486,9 @@ bool ED_object_modifier_move_to_index(ReportList *reports,
     }
   }
 
+  /* NOTE: Dependency graph only uses modifier nodes for visibility updates, and exact order of
+   * modifier nodes in the graph does not matter. */
+
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 
@@ -1668,6 +1671,7 @@ static int modifier_copy_exec(bContext *C, wmOperator *op)
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
   return OPERATOR_FINISHED;
