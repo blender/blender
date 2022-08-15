@@ -274,8 +274,6 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
   }
 #endif
 
-  initContextGLEW();
-
   if (m_metalView) {
     if (m_defaultFramebuffer == 0) {
       /* Create a virtual frame-buffer. */

@@ -387,7 +387,6 @@ blender_include_dirs(
   ../../render
   ../../../../intern/cycles/blender
   ../../../../intern/atomic
-  ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
   ../../../../intern/memutil
   ../../../../intern/mantaflow/extern

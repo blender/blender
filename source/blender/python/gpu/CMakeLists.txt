@@ -8,12 +8,11 @@ set(INC
   ../../gpu
   ../../imbuf
   ../../makesdna
-  ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
 )
 
 set(INC_SYS
-  ${GLEW_INCLUDE_PATH}
+  ${Epoxy_INCLUDE_DIRS}
   ${PYTHON_INCLUDE_DIRS}
 )
 
@@ -59,6 +58,7 @@ set(SRC
 )
 
 set(LIB
+  ${Epoxy_LIBRARIES}
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
 )

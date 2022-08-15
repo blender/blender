@@ -25,7 +25,6 @@ set(INC
   ../simulation
   ../../../intern/eigen
   ../../../intern/ghost
-  ../../../intern/glew-mx
   ../../../intern/guardedalloc
   ../../../intern/iksolver/extern
   ../../../intern/atomic

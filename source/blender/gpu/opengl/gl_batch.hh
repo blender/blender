@@ -17,8 +17,6 @@
 #include "gl_index_buffer.hh"
 #include "gl_vertex_buffer.hh"
 
-#include "glew-mx.h"
-
 namespace blender {
 namespace gpu {
 

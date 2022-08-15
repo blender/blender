@@ -546,30 +546,18 @@ if(WITH_GHOST_WAYLAND)
 endif()
 
 if(UNIX AND NOT APPLE)
-  if(WITH_GL_EGL)
-    # GLEW can only be built with either GLX or EGL support. Most binary distributions are
-    # built with GLX support and we have no automated way to detect this. So always build
-    # GLEW from source to be sure it has EGL support.
-    set(WITH_SYSTEM_GLEW OFF)
-  else()
-    option(WITH_SYSTEM_GLEW "Use GLEW OpenGL wrapper library provided by the operating system" OFF)
-  endif()
-
   option(WITH_SYSTEM_GLES "Use OpenGL ES library provided by the operating system" ON)
 else()
-  # System GLEW and GLES not an option on other platforms.
-  set(WITH_SYSTEM_GLEW OFF)
+  # System GLES not an option on other platforms.
   set(WITH_SYSTEM_GLES OFF)
 endif()
 
 option(WITH_OPENGL              "When off limits visibility of the opengl headers to just bf_gpu and gawain (temporary option for development purposes)" ON)
-option(WITH_GLEW_ES             "Switches to experimental copy of GLEW that has support for OpenGL ES. (temporary option for development purposes)" OFF)
 option(WITH_GL_PROFILE_ES20     "Support using OpenGL ES 2.0. (through either EGL or the AGL/WGL/XGL 'es20' profile)"                               OFF)
 option(WITH_GPU_BUILDTIME_SHADER_BUILDER  "Shader builder is a developer option enabling linting on GLSL during compilation"                                  OFF)
 
 mark_as_advanced(
   WITH_OPENGL
-  WITH_GLEW_ES
   WITH_GL_PROFILE_ES20
   WITH_GPU_BUILDTIME_SHADER_BUILDER
 )
@@ -594,11 +582,6 @@ endif()
 if(WIN32)
   option(WITH_GL_ANGLE "Link with the ANGLE library, an OpenGL ES 2.0 implementation based on Direct3D, instead of the system OpenGL library." OFF)
   mark_as_advanced(WITH_GL_ANGLE)
-endif()
-
-if(WITH_GLEW_ES AND WITH_SYSTEM_GLEW)
-  message(WARNING Ignoring WITH_SYSTEM_GLEW and using WITH_GLEW_ES)
-  set(WITH_SYSTEM_GLEW OFF)
 endif()
 
 if(WIN32)
@@ -1295,7 +1278,7 @@ if(WITH_GL_EGL)
   find_package(OpenGL REQUIRED EGL)
   list(APPEND BLENDER_GL_LIBRARIES OpenGL::EGL)
 
-  list(APPEND GL_DEFINITIONS -DWITH_GL_EGL -DGLEW_EGL -DGLEW_INC_EGL)
+  list(APPEND GL_DEFINITIONS -DWITH_GL_EGL)
 
   if(WITH_SYSTEM_GLES)
     if(NOT OPENGLES_EGL_LIBRARY)
@@ -1387,66 +1370,6 @@ if(WITH_OPENMP)
     OpenMP_CXX_FLAGS
   )
 endif()
-
-#-----------------------------------------------------------------------------
-# Configure GLEW
-
-if(WITH_SYSTEM_GLEW)
-  find_package(GLEW)
-
-  # Note: There is an assumption here that the system GLEW is not a static library.
-
-  if(NOT GLEW_FOUND)
-    message(FATAL_ERROR "GLEW is required to build Blender. Install it or disable WITH_SYSTEM_GLEW.")
-  endif()
-
-  set(GLEW_INCLUDE_PATH "${GLEW_INCLUDE_DIR}")
-  set(BLENDER_GLEW_LIBRARIES ${GLEW_LIBRARY})
-else()
-  if(WITH_GLEW_ES)
-    set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extern/glew-es/include")
-
-    list(APPEND GL_DEFINITIONS -DGLEW_STATIC -DWITH_GLEW_ES)
-
-    # These definitions remove APIs from glew.h, making GLEW smaller, and catching unguarded API usage
-    if(WITH_GL_PROFILE_ES20)
-      list(APPEND GL_DEFINITIONS -DGLEW_ES_ONLY)
-    else()
-      # No ES functions are needed
-      list(APPEND GL_DEFINITIONS -DGLEW_NO_ES)
-    endif()
-
-    if(WITH_GL_PROFILE_ES20)
-      if(WITH_GL_EGL)
-        list(APPEND GL_DEFINITIONS -DGLEW_USE_LIB_ES20)
-      endif()
-
-      # ToDo: This is an experiment to eliminate ES 1 symbols,
-      # GLEW doesn't really properly provide this level of control
-      # (for example, without modification it eliminates too many symbols)
-      # so there are lots of modifications to GLEW to make this work,
-      # and no attempt to make it work beyond Blender at this point.
-      list(APPEND GL_DEFINITIONS -DGL_ES_VERSION_1_0=0 -DGL_ES_VERSION_CL_1_1=0 -DGL_ES_VERSION_CM_1_1=0)
-    endif()
-
-    set(BLENDER_GLEW_LIBRARIES extern_glew_es bf_intern_glew_mx)
-
-  else()
-    set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extern/glew/include")
-
-    list(APPEND GL_DEFINITIONS -DGLEW_STATIC)
-
-    # This won't affect the non-experimental glew library,
-    # but is used for conditional compilation elsewhere.
-    list(APPEND GL_DEFINITIONS -DGLEW_NO_ES)
-
-    set(BLENDER_GLEW_LIBRARIES extern_glew)
-
-  endif()
-
-endif()
-
-list(APPEND GL_DEFINITIONS -DGLEW_NO_GLU)
 
 #-----------------------------------------------------------------------------
 # Configure Bullet
@@ -1973,7 +1896,6 @@ if(WITH_BLENDER)
   # internal and external library information first, for test linking
   add_subdirectory(source)
 elseif(WITH_CYCLES_STANDALONE OR WITH_CYCLES_HYDRA_RENDER_DELEGATE)
-  add_subdirectory(intern/glew-mx)
   add_subdirectory(intern/guardedalloc)
   add_subdirectory(intern/libc_compat)
   add_subdirectory(intern/sky)
@@ -1990,9 +1912,6 @@ elseif(WITH_CYCLES_STANDALONE OR WITH_CYCLES_HYDRA_RENDER_DELEGATE)
   endif()
   if(WITH_HIP_DYNLOAD)
     add_subdirectory(extern/hipew)
-  endif()
-  if(NOT WITH_SYSTEM_GLEW)
-    add_subdirectory(extern/glew)
   endif()
 endif()
 
@@ -2086,7 +2005,6 @@ if(FIRST_RUN)
   info_cfg_option(WITH_INSTALL_PORTABLE)
   info_cfg_option(WITH_MEM_JEMALLOC)
   info_cfg_option(WITH_MEM_VALGRIND)
-  info_cfg_option(WITH_SYSTEM_GLEW)
   info_cfg_option(WITH_X11_ALPHA)
   info_cfg_option(WITH_X11_XF86VMODE)
   info_cfg_option(WITH_X11_XFIXES)
@@ -2140,7 +2058,6 @@ if(FIRST_RUN)
   endif()
   info_cfg_option(WITH_GL_EGL)
   info_cfg_option(WITH_GL_PROFILE_ES20)
-  info_cfg_option(WITH_GLEW_ES)
 
   info_cfg_text("")
 

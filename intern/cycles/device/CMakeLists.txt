@@ -3,12 +3,9 @@
 
 set(INC
   ..
-  ../../glew-mx
 )
 
-set(INC_SYS
-  ${GLEW_INCLUDE_DIR}
-)
+set(INC_SYS )
 
 if(WITH_CYCLES_DEVICE_OPTIX OR WITH_CYCLES_DEVICE_CUDA)
   if(WITH_CUDA_DYNLOAD)

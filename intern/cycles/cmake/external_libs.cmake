@@ -505,26 +505,19 @@ if(CYCLES_STANDALONE_REPOSITORY)
 endif()
 
 ###########################################################################
-# GLEW
+# Epoxy
 ###########################################################################
 
 if(CYCLES_STANDALONE_REPOSITORY)
   if((WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI) OR
      WITH_CYCLES_HYDRA_RENDER_DELEGATE)
     if(MSVC AND EXISTS ${_cycles_lib_dir})
-      set(GLEW_LIBRARY "${_cycles_lib_dir}/opengl/lib/glew.lib")
-      set(GLEW_INCLUDE_DIR "${_cycles_lib_dir}/opengl/include")
-      add_definitions(-DGLEW_STATIC)
+      set(Epoxy_LIBRARIES "${_cycles_lib_dir}/epoxy/lib/epoxy.lib")
+      set(Epoxy_INCLUDE_DIRS "${_cycles_lib_dir}/epoxy/include")
     else()
-      find_package(GLEW REQUIRED)
+      find_package(Epoxy REQUIRED)
     endif()
-
-    set(CYCLES_GLEW_LIBRARIES ${GLEW_LIBRARY})
   endif()
-else()
-  # Workaround for unconventional variable name use in Blender.
-  set(GLEW_INCLUDE_DIR "${GLEW_INCLUDE_PATH}")
-  set(CYCLES_GLEW_LIBRARIES bf_intern_glew_mx ${BLENDER_GLEW_LIBRARIES})
 endif()
 
 ###########################################################################

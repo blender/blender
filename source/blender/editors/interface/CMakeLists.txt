@@ -19,7 +19,6 @@ set(INC
   ../../python
   ../../render
   ../../windowmanager
-  ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
   ../../bmesh
   # RNA_prototypes.h

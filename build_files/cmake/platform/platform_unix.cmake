@@ -95,6 +95,7 @@ find_package_wrapper(JPEG REQUIRED)
 find_package_wrapper(PNG REQUIRED)
 find_package_wrapper(ZLIB REQUIRED)
 find_package_wrapper(Zstd REQUIRED)
+find_package_wrapper(Epoxy REQUIRED)
 
 function(check_freetype_for_brotli)
   include(CheckSymbolExists)

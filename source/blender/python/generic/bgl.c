@@ -19,7 +19,7 @@
 
 #include "../generic/py_capi_utils.h"
 
-#include "glew-mx.h"
+#include <epoxy/gl.h>
 
 #include "bgl.h"
 

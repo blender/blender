@@ -1307,16 +1307,6 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
      * - Try 3.3 core profile
      * - No fall-backs. */
 
-#if defined(WITH_GL_PROFILE_CORE)
-    {
-      const char *version_major = (char *)glewGetString(GLEW_VERSION_MAJOR);
-      if (version_major != nullptr && version_major[0] == '1') {
-        fprintf(stderr, "Error: GLEW version 2.0 and above is required.\n");
-        abort();
-      }
-    }
-#endif
-
     const int profile_mask =
 #ifdef WITH_GL_EGL
 #  if defined(WITH_GL_PROFILE_CORE)

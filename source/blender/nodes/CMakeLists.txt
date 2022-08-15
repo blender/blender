@@ -29,7 +29,6 @@ set(INC
   ../makesrna
   ../render
   ../windowmanager
-  ../../../intern/glew-mx
   ../../../intern/guardedalloc
 
   # dna_type_offsets.h

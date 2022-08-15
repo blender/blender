@@ -29,11 +29,9 @@
 #endif
 #ifdef WITH_GHOST_X11
 #  ifdef WITH_GL_EGL
-/* TODO: Why do we have to create this typedef manually? */
-typedef void (*(*PFNEGLGETPROCADDRESSPROC)(const char *procname))(void);
-#    include <GL/eglew.h>
+#    include <epoxy/egl.h>
 #  else
-#    include <GL/glxew.h>
+#    include <epoxy/glx.h>
 #  endif
 #endif
 

@@ -10,8 +10,7 @@
 #include <iostream>
 #include <string>
 
-#include <GL/glew.h>
-#include <GL/wglew.h>
+#include <epoxy/wgl.h>
 
 #include "GHOST_ContextD3D.h"
 #include "GHOST_ContextWGL.h" /* For shared drawing */

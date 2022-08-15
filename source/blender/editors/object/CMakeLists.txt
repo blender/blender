@@ -21,7 +21,6 @@ set(INC
   ../../shader_fx
   ../../windowmanager
   ../../../../intern/clog
-  ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
 
   # dna_type_offsets.h in BLO_read_write.h

@@ -23,7 +23,6 @@ set(INC
   ../sequencer
   ../../../intern/clog
   ../../../intern/ghost
-  ../../../intern/glew-mx
   ../../../intern/guardedalloc
   ../../../intern/memutil
   ../bmesh

@@ -22,9 +22,6 @@ if(BUILD_MODE STREQUAL Release)
         # freeglut-> opengl
         ${CMAKE_COMMAND} -E copy ${LIBDIR}/freeglut/lib/freeglut_static.lib ${HARVEST_TARGET}/opengl/lib/freeglut_static.lib &&
         ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/freeglut/include/ ${HARVEST_TARGET}/opengl/include/ &&
-        # glew-> opengl
-        ${CMAKE_COMMAND} -E copy ${LIBDIR}/glew/lib/libglew32.lib ${HARVEST_TARGET}/opengl/lib/glew.lib &&
-        ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/glew/include/ ${HARVEST_TARGET}/opengl/include/ &&
     DEPENDS
   )
 endif()
@@ -75,8 +72,8 @@ harvest(fftw3/lib fftw3/lib "*.a")
 harvest(flac/lib sndfile/lib "libFLAC.a")
 harvest(freetype/include freetype/include "*.h")
 harvest(freetype/lib/libfreetype2ST.a freetype/lib/libfreetype.a)
-harvest(glew/include glew/include "*.h")
-harvest(glew/lib glew/lib "*.a")
+harvest(epoxy/include epoxy/include "*.h")
+harvest(epoxy/lib epoxy/lib "*.a")
 harvest(gmp/include gmp/include "*.h")
 harvest(gmp/lib gmp/lib "*.a")
 harvest(jemalloc/include jemalloc/include "*.h")

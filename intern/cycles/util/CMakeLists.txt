@@ -3,7 +3,6 @@
 
 set(INC
   ..
-  ../../glew-mx
 )
 
 set(INC_SYS

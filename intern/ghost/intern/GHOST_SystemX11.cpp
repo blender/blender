@@ -394,16 +394,6 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GLSettings glSetti
 
   const bool debug_context = (glSettings.flags & GHOST_glDebugContext) != 0;
 
-#if defined(WITH_GL_PROFILE_CORE)
-  {
-    const char *version_major = (char *)glewGetString(GLEW_VERSION_MAJOR);
-    if (version_major != nullptr && version_major[0] == '1') {
-      fprintf(stderr, "Error: GLEW version 2.0 and above is required.\n");
-      abort();
-    }
-  }
-#endif
-
   const int profile_mask =
 #ifdef WITH_GL_EGL
 #  if defined(WITH_GL_PROFILE_CORE)

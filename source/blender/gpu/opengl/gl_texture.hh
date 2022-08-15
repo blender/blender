@@ -13,8 +13,6 @@
 
 #include "gpu_texture_private.hh"
 
-#include "glew-mx.h"
-
 struct GPUFrameBuffer;
 
 namespace blender {

@@ -34,13 +34,12 @@ set(INC
   ../../../intern/atomic
   ../../../intern/clog
   ../../../intern/ghost
-  ../../../intern/glew-mx
   ../../../intern/guardedalloc
   ../../../intern/mantaflow/extern
 )
 
 set(INC_SYS
-  ${GLEW_INCLUDE_PATH}
+  ${Epoxy_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -93,12 +92,10 @@ set(SRC
   GPU_debug.h
   GPU_drawlist.h
   GPU_framebuffer.h
-  GPU_glew.h
   GPU_immediate.h
   GPU_immediate_util.h
   GPU_index_buffer.h
   GPU_init_exit.h
-  GPU_legacy_stubs.h
   GPU_material.h
   GPU_matrix.h
   GPU_platform.h
@@ -225,13 +222,8 @@ endif()
 
 set(LIB
   ${BLENDER_GL_LIBRARIES}
+  ${Epoxy_LIBRARIES}
 )
-
-if(NOT WITH_SYSTEM_GLEW)
-  list(APPEND LIB
-    ${BLENDER_GLEW_LIBRARIES}
-  )
-endif()
 
 set(MSL_SRC
 

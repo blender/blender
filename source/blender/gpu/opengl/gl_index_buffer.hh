@@ -11,7 +11,7 @@
 
 #include "gpu_index_buffer_private.hh"
 
-#include "glew-mx.h"
+#include <epoxy/gl.h>
 
 namespace blender::gpu {
 

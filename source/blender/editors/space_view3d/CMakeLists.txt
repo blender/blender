@@ -15,7 +15,6 @@ set(INC
   ../../makesrna
   ../../render
   ../../windowmanager
-  ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
   ../../../../intern/mantaflow/extern
 

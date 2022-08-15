@@ -4,14 +4,13 @@
 set(INC
   .
   ../clog
-  ../glew-mx
   ../../source/blender/blenlib
   ../../source/blender/imbuf
   ../../source/blender/makesdna
 )
 
 set(INC_SYS
-  ${GLEW_INCLUDE_PATH}
+  ${Epoxy_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -74,8 +73,7 @@ set(SRC
 )
 
 set(LIB
-  bf_intern_glew_mx
-  ${GLEW_LIBRARY}
+  ${Epoxy_LIBRARIES}
 )
 
 if(WITH_GHOST_DEBUG)

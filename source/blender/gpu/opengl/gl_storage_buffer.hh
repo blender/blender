@@ -11,8 +11,6 @@
 
 #include "gpu_storage_buffer_private.hh"
 
-#include "glew-mx.h"
-
 namespace blender {
 namespace gpu {
 

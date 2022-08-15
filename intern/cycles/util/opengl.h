@@ -7,6 +7,6 @@
 /* OpenGL header includes, used everywhere we use OpenGL, to deal with
  * platform differences in one central place. */
 
-#include <GL/glew.h>
+#include <epoxy/gl.h>
 
 #endif /* __UTIL_OPENGL_H__ */

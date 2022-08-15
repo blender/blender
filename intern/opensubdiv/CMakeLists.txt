@@ -29,7 +29,7 @@ if(WITH_OPENSUBDIV)
 
   list(APPEND INC_SYS
     ${OPENSUBDIV_INCLUDE_DIRS}
-    ${GLEW_INCLUDE_PATH}
+    ${Epoxy_INCLUDE_DIRS}
   )
 
   list(APPEND SRC
@@ -88,7 +88,6 @@ if(WITH_OPENSUBDIV)
   OPENSUBDIV_DEFINE_COMPONENT(OPENSUBDIV_HAS_GLSL_COMPUTE)
 
   add_definitions(${GL_DEFINITIONS})
-  add_definitions(-DOSD_USES_GLEW)
 
   if(WIN32)
     add_definitions(-DNOMINMAX)
