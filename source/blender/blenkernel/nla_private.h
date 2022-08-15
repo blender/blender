@@ -128,7 +128,7 @@ typedef struct NlaEvalData {
   int num_channels;
   NlaEvalSnapshot base_snapshot;
 
-  /* Evaluation result shapshot. */
+  /* Evaluation result snapshot. */
   NlaEvalSnapshot eval_snapshot;
 } NlaEvalData;
 

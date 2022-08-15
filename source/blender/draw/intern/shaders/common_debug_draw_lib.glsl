@@ -11,7 +11,7 @@ bool drw_debug_draw_enable = true;
 const vec4 drw_debug_default_color = vec4(1.0, 0.0, 0.0, 1.0);
 
 /* -------------------------------------------------------------------- */
-/** \name Interals
+/** \name Internals
  * \{ */
 
 uint drw_debug_start_draw(uint v_needed)
