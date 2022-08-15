@@ -25,7 +25,7 @@ void main()
 
   int prefix_sum = 0;
   /* Iterate over the whole key buffer. */
-  uint iter = divide_ceil_u(light_cull_buf.visible_count, gl_WorkGroupSize.x);
+  uint iter = divide_ceil(light_cull_buf.visible_count, gl_WorkGroupSize.x);
   for (uint i = 0u; i < iter; i++) {
     uint index = gl_WorkGroupSize.x * i + gl_LocalInvocationID.x;
     /* NOTE: This will load duplicated values, but they will be discarded. */

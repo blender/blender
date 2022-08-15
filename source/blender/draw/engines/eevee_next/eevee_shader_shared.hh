@@ -42,36 +42,40 @@ enum eDebugMode : uint32_t {
    */
   DEBUG_LIGHT_CULLING = 1u,
   /**
+   * Show incorrectly downsample tiles in red.
+   */
+  DEBUG_HIZ_VALIDATION = 2u,
+  /**
    * Tilemaps to screen. Is also present in other modes.
    * - Black pixels, no pages allocated.
    * - Green pixels, pages cached.
    * - Red pixels, pages allocated.
    */
-  DEBUG_SHADOW_TILEMAPS = 2u,
+  DEBUG_SHADOW_TILEMAPS = 10u,
   /**
    * Random color per pages. Validates page density allocation and sampling.
    */
-  DEBUG_SHADOW_PAGES = 3u,
+  DEBUG_SHADOW_PAGES = 11u,
   /**
    * Outputs random color per tilemap (or tilemap level). Validates tilemaps coverage.
    * Black means not covered by any tilemaps LOD of the shadow.
    */
-  DEBUG_SHADOW_LOD = 4u,
+  DEBUG_SHADOW_LOD = 12u,
   /**
    * Outputs white pixels for pages allocated and black pixels for unused pages.
    * This needs DEBUG_SHADOW_PAGE_ALLOCATION_ENABLED defined in order to work.
    */
-  DEBUG_SHADOW_PAGE_ALLOCATION = 5u,
+  DEBUG_SHADOW_PAGE_ALLOCATION = 13u,
   /**
    * Outputs the tilemap atlas. Default tilemap is too big for the usual screen resolution.
    * Try lowering SHADOW_TILEMAP_PER_ROW and SHADOW_MAX_TILEMAP before using this option.
    */
-  DEBUG_SHADOW_TILE_ALLOCATION = 6u,
+  DEBUG_SHADOW_TILE_ALLOCATION = 14u,
   /**
    * Visualize linear depth stored in the atlas regions of the active light.
    * This way, one can check if the rendering, the copying and the shadow sampling functions works.
    */
-  DEBUG_SHADOW_SHADOW_DEPTH = 7u
+  DEBUG_SHADOW_SHADOW_DEPTH = 15u
 };
 
 /** \} */
@@ -613,6 +617,20 @@ BLI_STATIC_ASSERT_ALIGN(LightData, 16)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Hierarchical-Z Buffer
+ * \{ */
+
+struct HiZData {
+  /** Scale factor to remove HiZBuffer padding. */
+  float2 uv_scale;
+
+  float2 _pad0;
+};
+BLI_STATIC_ASSERT_ALIGN(HiZData, 16)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Ray-Tracing
  * \{ */
 
@@ -699,16 +717,17 @@ float4 utility_tx_sample(sampler2DArray util_tx, float2 uv, float layer)
 
 using AOVsInfoDataBuf = draw::StorageBuffer<AOVsInfoData>;
 using CameraDataBuf = draw::UniformBuffer<CameraData>;
-using LightDataBuf = draw::StorageArrayBuffer<LightData, LIGHT_CHUNK>;
+using DepthOfFieldDataBuf = draw::UniformBuffer<DepthOfFieldData>;
+using DepthOfFieldScatterListBuf = draw::StorageArrayBuffer<ScatterRect, 16, true>;
+using DrawIndirectBuf = draw::StorageBuffer<DrawCommand, true>;
+using FilmDataBuf = draw::UniformBuffer<FilmData>;
+using HiZDataBuf = draw::UniformBuffer<HiZData>;
 using LightCullingDataBuf = draw::StorageBuffer<LightCullingData>;
 using LightCullingKeyBuf = draw::StorageArrayBuffer<uint, LIGHT_CHUNK, true>;
 using LightCullingTileBuf = draw::StorageArrayBuffer<uint, LIGHT_CHUNK, true>;
 using LightCullingZbinBuf = draw::StorageArrayBuffer<uint, CULLING_ZBIN_COUNT, true>;
 using LightCullingZdistBuf = draw::StorageArrayBuffer<float, LIGHT_CHUNK, true>;
-using DepthOfFieldDataBuf = draw::UniformBuffer<DepthOfFieldData>;
-using DepthOfFieldScatterListBuf = draw::StorageArrayBuffer<ScatterRect, 16, true>;
-using DrawIndirectBuf = draw::StorageBuffer<DrawCommand, true>;
-using FilmDataBuf = draw::UniformBuffer<FilmData>;
+using LightDataBuf = draw::StorageArrayBuffer<LightData, LIGHT_CHUNK>;
 using MotionBlurDataBuf = draw::UniformBuffer<MotionBlurData>;
 using MotionBlurTileIndirectionBuf = draw::StorageBuffer<MotionBlurTileIndirection, true>;
 using SamplingDataBuf = draw::StorageBuffer<SamplingData>;

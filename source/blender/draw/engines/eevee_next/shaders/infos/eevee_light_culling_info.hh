@@ -67,10 +67,10 @@ GPU_SHADER_CREATE_INFO(eevee_light_culling_tile)
 
 GPU_SHADER_CREATE_INFO(eevee_light_culling_debug)
     .do_static_compilation(true)
-    .sampler(0, ImageType::DEPTH_2D, "depth_tx")
-    .fragment_out(0, Type::VEC4, "out_debug_color")
-    .additional_info("eevee_shared", "draw_view")
+    .fragment_out(0, Type::VEC4, "out_debug_color_add", DualBlend::SRC_0)
+    .fragment_out(0, Type::VEC4, "out_debug_color_mul", DualBlend::SRC_1)
     .fragment_source("eevee_light_culling_debug_frag.glsl")
-    .additional_info("draw_fullscreen", "eevee_light_data");
+    .additional_info(
+        "eevee_shared", "draw_view", "draw_fullscreen", "eevee_light_data", "eevee_hiz_data");
 
 /** \} */

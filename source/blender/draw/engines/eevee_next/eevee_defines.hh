@@ -11,6 +11,11 @@
 
 #pragma once
 
+/* Hierarchical Z down-sampling. */
+#define HIZ_MIP_COUNT 8
+/* NOTE: The shader is written to update 5 mipmaps using LDS. */
+#define HIZ_GROUP_SIZE 32
+
 /* Avoid too much overhead caused by resizing the light buffers too many time. */
 #define LIGHT_CHUNK 256
 
@@ -35,10 +40,7 @@
 #define SHADOW_MAX_PAGE 4096
 #define SHADOW_PAGE_PER_ROW 64
 
-#define HIZ_MIP_COUNT 6u
-/* Group size is 2x smaller because we simply copy the level 0. */
-#define HIZ_GROUP_SIZE 1u << (HIZ_MIP_COUNT - 2u)
-
+/* Ray-tracing. */
 #define RAYTRACE_GROUP_SIZE 16
 #define RAYTRACE_MAX_TILES (16384 / RAYTRACE_GROUP_SIZE) * (16384 / RAYTRACE_GROUP_SIZE)
 

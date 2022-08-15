@@ -452,9 +452,11 @@ void LightModule::debug_pass_sync()
     return;
   }
 
-  debug_draw_ps_ = DRW_pass_create("LightCulling.Debug", DRW_STATE_WRITE_COLOR);
+  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM;
+  debug_draw_ps_ = DRW_pass_create("LightCulling.Debug", state);
   GPUShader *sh = inst_.shaders.static_shader_get(LIGHT_CULLING_DEBUG);
   DRWShadingGroup *grp = DRW_shgroup_create(sh, debug_draw_ps_);
+  inst_.hiz_buffer.bind_resources(grp);
   DRW_shgroup_storage_block_ref(grp, "light_buf", &culling_light_buf_);
   DRW_shgroup_storage_block_ref(grp, "light_cull_buf", &culling_data_buf_);
   DRW_shgroup_storage_block_ref(grp, "light_zbin_buf", &culling_zbin_buf_);
@@ -490,6 +492,8 @@ void LightModule::debug_draw(GPUFrameBuffer *view_fb)
   if (debug_draw_ps_ == nullptr) {
     return;
   }
+  inst_.info = "Debug Mode: Light Culling Validation";
+  inst_.hiz_buffer.update();
   GPU_framebuffer_bind(view_fb);
   DRW_draw_pass(debug_draw_ps_);
 }

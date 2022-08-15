@@ -102,6 +102,8 @@ void ShadingView::render()
 
   update_view();
 
+  inst_.hiz_buffer.set_dirty();
+
   DRW_stats_group_start(name_);
   DRW_view_set_active(render_view_);
 
@@ -128,10 +130,10 @@ void ShadingView::render()
 
   // inst_.lookdev.render_overlay(view_fb_);
 
-  inst_.pipelines.forward.render(
-      render_view_, prepass_fb_, combined_fb_, rbufs.depth_tx, rbufs.combined_tx);
+  inst_.pipelines.forward.render(render_view_, prepass_fb_, combined_fb_, rbufs.combined_tx);
 
   inst_.lights.debug_draw(combined_fb_);
+  inst_.hiz_buffer.debug_draw(combined_fb_);
 
   GPUTexture *combined_final_tx = render_postfx(rbufs.combined_tx);
 

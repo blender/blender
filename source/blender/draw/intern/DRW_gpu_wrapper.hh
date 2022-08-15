@@ -562,6 +562,11 @@ class Texture : NonCopyable {
     return mip_views_[miplvl];
   }
 
+  int mip_count() const
+  {
+    return GPU_texture_mip_count(tx_);
+  }
+
   /**
    * Ensure the availability of mipmap views.
    * Layer views covers all layers of array textures.

@@ -91,7 +91,6 @@ class ForwardPipeline {
   void render(const DRWView *view,
               Framebuffer &prepass_fb,
               Framebuffer &combined_fb,
-              GPUTexture *depth_tx,
               GPUTexture *combined_tx);
 };
 

@@ -82,6 +82,10 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_film_frag";
     case FILM_COMP:
       return "eevee_film_comp";
+    case HIZ_DEBUG:
+      return "eevee_hiz_debug";
+    case HIZ_UPDATE:
+      return "eevee_hiz_update";
     case MOTION_BLUR_GATHER:
       return "eevee_motion_blur_gather";
     case MOTION_BLUR_TILE_DILATE:

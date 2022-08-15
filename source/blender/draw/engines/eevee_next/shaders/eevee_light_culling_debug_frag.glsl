@@ -14,7 +14,7 @@ void main()
 {
   ivec2 texel = ivec2(gl_FragCoord.xy);
 
-  float depth = texelFetch(depth_tx, texel, 0).r;
+  float depth = texelFetch(hiz_tx, texel, 0).r;
   float vP_z = get_view_z_from_depth(depth);
   vec3 P = get_world_space_from_depth(uvcoordsvar.xy, depth);
 
@@ -42,11 +42,13 @@ void main()
   }
   LIGHT_FOREACH_END
 
+  vec4 color = vec4(heatmap_gradient(light_count / 4.0), 1.0);
+
   if ((light_cull & light_nocull) != light_nocull) {
     /* ERROR. Some lights were culled incorrectly. */
-    out_debug_color = vec4(0.0, 1.0, 0.0, 1.0);
+    color = vec4(0.0, 1.0, 0.0, 1.0);
   }
-  else {
-    out_debug_color = vec4(heatmap_gradient(light_count / 4.0), 1.0);
-  }
+
+  out_debug_color_add = vec4(color.rgb, 0.0) * 0.2;
+  out_debug_color_mul = color;
 }

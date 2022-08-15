@@ -245,22 +245,22 @@ DRWShadingGroup *ForwardPipeline::prepass_transparent_add(::Material *blender_ma
 void ForwardPipeline::render(const DRWView *view,
                              Framebuffer &prepass_fb,
                              Framebuffer &combined_fb,
-                             GPUTexture *depth_tx,
                              GPUTexture *UNUSED(combined_tx))
 {
-  UNUSED_VARS(view, depth_tx, prepass_fb, combined_fb);
-  // HiZBuffer &hiz = inst_.hiz_front;
+  UNUSED_VARS(view);
 
   DRW_stats_group_start("ForwardOpaque");
 
   GPU_framebuffer_bind(prepass_fb);
   DRW_draw_pass(prepass_ps_);
 
-  // hiz.set_dirty();
+  if (!DRW_pass_is_empty(prepass_ps_)) {
+    inst_.hiz_buffer.set_dirty();
+  }
 
   // if (inst_.raytracing.enabled()) {
   //   rt_buffer.radiance_copy(combined_tx);
-  //   hiz.update(depth_tx);
+  //   inst_.hiz_buffer.update();
   // }
 
   // inst_.shadows.set_view(view, depth_tx);

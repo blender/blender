@@ -25,7 +25,7 @@ void main()
   }
   barrier();
 
-  uint light_iter = divide_ceil_u(light_cull_buf.visible_count, gl_WorkGroupSize.x);
+  uint light_iter = divide_ceil(light_cull_buf.visible_count, gl_WorkGroupSize.x);
   for (uint i = 0u; i < light_iter; i++) {
     uint index = i * gl_WorkGroupSize.x + gl_LocalInvocationID.x;
     if (index >= light_cull_buf.visible_count) {
