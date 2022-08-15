@@ -359,8 +359,7 @@ static void oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void *newaddr,
   oldnewmap_insert_or_replace(onm, entry);
 }
 
-static void oldnewmap_lib_insert(
-    FileData *fd, const void *oldaddr, ID *newaddr, int nr)
+static void oldnewmap_lib_insert(FileData *fd, const void *oldaddr, ID *newaddr, int nr)
 {
   oldnewmap_insert(fd->libmap, oldaddr, newaddr, nr);
 }
