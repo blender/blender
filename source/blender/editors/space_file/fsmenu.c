@@ -443,7 +443,7 @@ void fsmenu_insert_entry(struct FSMenu *fsmenu,
         if (STREQ(tfsm->path, fsm_iter->path)) {
           icon = tfsm->icon;
           if (tfsm->name[0] && (!name || !name[0])) {
-            name = tfsm->name;
+            name = DATA_(tfsm->name);
           }
           break;
         }
