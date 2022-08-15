@@ -28,11 +28,8 @@
 #  include <d3d12.h>
 #endif
 #ifdef WITH_GHOST_X11
-#  ifdef WITH_GL_EGL
-#    include <epoxy/egl.h>
-#  else
-#    include <epoxy/glx.h>
-#  endif
+#  include <epoxy/egl.h>
+#  include <epoxy/glx.h>
 #endif
 
 #include <openxr/openxr.h>

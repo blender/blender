@@ -156,13 +156,11 @@ elseif(APPLE AND NOT WITH_GHOST_X11)
     intern/GHOST_WindowViewCocoa.h
   )
 
-  if(NOT WITH_GL_EGL)
-    list(APPEND SRC
-      intern/GHOST_ContextCGL.mm
+  list(APPEND SRC
+    intern/GHOST_ContextCGL.mm
 
-      intern/GHOST_ContextCGL.h
-    )
-  endif()
+    intern/GHOST_ContextCGL.h
+  )
 
   if(WITH_INPUT_NDOF)
     list(APPEND SRC
@@ -196,13 +194,11 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       intern/GHOST_WindowX11.h
     )
 
-    if(NOT WITH_GL_EGL)
-      list(APPEND SRC
-        intern/GHOST_ContextGLX.cpp
+    list(APPEND SRC
+      intern/GHOST_ContextGLX.cpp
 
-        intern/GHOST_ContextGLX.h
-      )
-    endif()
+      intern/GHOST_ContextGLX.h
+    )
 
     if(WITH_GHOST_XDND)
       add_definitions(-DWITH_XDND)
@@ -247,10 +243,6 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       list(APPEND LIB
         ${X11_Xfixes_LIB}
       )
-    endif()
-
-    if(WITH_X11_ALPHA)
-      add_definitions(-DWITH_X11_ALPHA)
     endif()
 
     if(WITH_X11_XINPUT)
@@ -432,13 +424,11 @@ elseif(WIN32)
     intern/GHOST_Wintab.h
   )
 
-  if(NOT WITH_GL_EGL)
-    list(APPEND SRC
-      intern/GHOST_ContextWGL.cpp
+  list(APPEND SRC
+    intern/GHOST_ContextWGL.cpp
 
-      intern/GHOST_ContextWGL.h
-    )
-  endif()
+    intern/GHOST_ContextWGL.h
+  )
 
   if(WITH_INPUT_IME)
     add_definitions(-DWITH_INPUT_IME)
@@ -459,7 +449,7 @@ elseif(WIN32)
   endif()
 endif()
 
-if(WITH_GL_EGL AND NOT (WITH_HEADLESS OR WITH_GHOST_SDL))
+if(NOT (WITH_HEADLESS OR WITH_GHOST_SDL))
   list(APPEND SRC
     intern/GHOST_ContextEGL.cpp
 
@@ -549,11 +539,8 @@ if(WITH_XR_OPENXR)
       list(APPEND XR_PLATFORM_DEFINES -DXR_USE_PLATFORM_WAYLAND)
     endif()
     if(WITH_GHOST_X11)
-      if(WITH_GL_EGL)
-        list(APPEND XR_PLATFORM_DEFINES -DXR_USE_PLATFORM_EGL)
-      else()
-        list(APPEND XR_PLATFORM_DEFINES -DXR_USE_PLATFORM_XLIB)
-      endif()
+      list(APPEND XR_PLATFORM_DEFINES -DXR_USE_PLATFORM_EGL)
+      list(APPEND XR_PLATFORM_DEFINES -DXR_USE_PLATFORM_XLIB)
     endif()
   endif()
 
@@ -561,7 +548,5 @@ if(WITH_XR_OPENXR)
 
   unset(XR_PLATFORM_DEFINES)
 endif()
-
-add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_intern_ghost "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

@@ -151,10 +151,6 @@ static bool egl_chk(bool result,
 #  define EGL_CHK(x) egl_chk(x)
 #endif
 
-#ifdef WITH_GL_ANGLE
-HMODULE GHOST_ContextEGL::s_d3dcompiler = nullptr;
-#endif
-
 EGLContext GHOST_ContextEGL::s_gl_sharedContext = EGL_NO_CONTEXT;
 EGLint GHOST_ContextEGL::s_gl_sharedCount = 0;
 
@@ -332,20 +328,6 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
     fprintf(stderr, "Warning! Stereo OpenGL ES contexts are not supported.\n");
   }
   m_stereoVisual = false; /* It doesn't matter what the Window wants. */
-
-#ifdef WITH_GL_ANGLE
-  /* `d3dcompiler_XX.dll` needs to be loaded before ANGLE will work. */
-  if (s_d3dcompiler == nullptr) {
-    s_d3dcompiler = LoadLibrary(D3DCOMPILER);
-
-    WIN32_CHK(s_d3dcompiler != nullptr);
-
-    if (s_d3dcompiler == nullptr) {
-      fprintf(stderr, "LoadLibrary(\"" D3DCOMPILER "\") failed!\n");
-      return GHOST_kFailure;
-    }
-  }
-#endif
 
   EGLDisplay prev_display = eglGetCurrentDisplay();
   EGLSurface prev_draw = eglGetCurrentSurface(EGL_DRAW);

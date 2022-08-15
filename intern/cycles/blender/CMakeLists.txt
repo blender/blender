@@ -87,8 +87,6 @@ set(ADDON_FILES
   addon/version_update.py
 )
 
-add_definitions(${GL_DEFINITIONS})
-
 if(WITH_CYCLES_DEVICE_HIP)
   add_definitions(-DWITH_HIP)
 endif()

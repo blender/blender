@@ -10,9 +10,7 @@
 #include <X11/Xmd.h>
 #include <X11/Xutil.h>
 #include <X11/cursorfont.h>
-#ifdef WITH_X11_ALPHA
-#  include <X11/extensions/Xrender.h>
-#endif
+
 #include "GHOST_Debug.h"
 #include "GHOST_IconX11.h"
 #include "GHOST_SystemX11.h"
@@ -23,12 +21,8 @@
 #  include "GHOST_DropTargetX11.h"
 #endif
 
-#ifdef WITH_GL_EGL
-#  include "GHOST_ContextEGL.h"
-#  include <EGL/eglext.h>
-#else
-#  include "GHOST_ContextGLX.h"
-#endif
+#include "GHOST_ContextEGL.h"
+#include "GHOST_ContextGLX.h"
 
 /* for XIWarpPointer */
 #ifdef WITH_X11_XINPUT
@@ -88,115 +82,13 @@ enum {
 #define _NET_WM_STATE_ADD 1
 // #define _NET_WM_STATE_TOGGLE 2 // UNUSED
 
-#ifdef WITH_GL_EGL
-
-static XVisualInfo *x11_visualinfo_from_egl(Display *display)
+static XVisualInfo *get_x11_visualinfo(Display *display)
 {
   int num_visuals;
   XVisualInfo vinfo_template;
   vinfo_template.screen = DefaultScreen(display);
   return XGetVisualInfo(display, VisualScreenMask, &vinfo_template, &num_visuals);
 }
-
-#else
-
-static XVisualInfo *x11_visualinfo_from_glx(Display *display,
-                                            bool stereoVisual,
-                                            bool needAlpha,
-                                            GLXFBConfig *fbconfig)
-{
-  int glx_major, glx_minor, glx_version; /* GLX version: major.minor */
-  int glx_attribs[64];
-
-  *fbconfig = nullptr;
-
-  /* Set up the minimum attributes that we require and see if
-   * X can find us a visual matching those requirements. */
-
-  if (!glXQueryVersion(display, &glx_major, &glx_minor)) {
-    fprintf(stderr,
-            "%s:%d: X11 glXQueryVersion() failed, "
-            "verify working openGL system!\n",
-            __FILE__,
-            __LINE__);
-
-    return nullptr;
-  }
-  glx_version = glx_major * 100 + glx_minor;
-#  ifndef WITH_X11_ALPHA
-  (void)glx_version;
-#  endif
-
-#  ifdef WITH_X11_ALPHA
-  if (needAlpha && glx_version >= 103 &&
-      (glXChooseFBConfig || (glXChooseFBConfig = (PFNGLXCHOOSEFBCONFIGPROC)glXGetProcAddressARB(
-                                 (const GLubyte *)"glXChooseFBConfig")) != nullptr) &&
-      (glXGetVisualFromFBConfig ||
-       (glXGetVisualFromFBConfig = (PFNGLXGETVISUALFROMFBCONFIGPROC)glXGetProcAddressARB(
-            (const GLubyte *)"glXGetVisualFromFBConfig")) != nullptr)) {
-
-    GHOST_X11_GL_GetAttributes(glx_attribs, 64, stereoVisual, needAlpha, true);
-
-    int nbfbconfig;
-    GLXFBConfig *fbconfigs = glXChooseFBConfig(
-        display, DefaultScreen(display), glx_attribs, &nbfbconfig);
-
-    /* Any sample level or even zero, which means oversampling disabled, is good
-     * but we need a valid visual to continue */
-    if (nbfbconfig > 0) {
-      /* take a frame buffer config that has alpha cap */
-      for (int i = 0; i < nbfbconfig; i++) {
-        XVisualInfo *visual = (XVisualInfo *)glXGetVisualFromFBConfig(display, fbconfigs[i]);
-        if (!visual) {
-          continue;
-        }
-        /* if we don't need a alpha background, the first config will do, otherwise
-         * test the alphaMask as it won't necessarily be present */
-        if (needAlpha) {
-          XRenderPictFormat *pict_format = XRenderFindVisualFormat(display, visual->visual);
-          if (!pict_format) {
-            continue;
-          }
-          if (pict_format->direct.alphaMask <= 0) {
-            continue;
-          }
-        }
-
-        *fbconfig = fbconfigs[i];
-        XFree(fbconfigs);
-
-        return visual;
-      }
-
-      XFree(fbconfigs);
-    }
-  }
-  else
-#  endif
-  {
-    /* legacy, don't use extension */
-    GHOST_X11_GL_GetAttributes(glx_attribs, 64, stereoVisual, needAlpha, false);
-
-    XVisualInfo *visual = glXChooseVisual(display, DefaultScreen(display), glx_attribs);
-
-    /* Any sample level or even zero, which means oversampling disabled, is good
-     * but we need a valid visual to continue */
-    if (visual != nullptr) {
-      return visual;
-    }
-  }
-
-  /* All options exhausted, cannot continue */
-  fprintf(stderr,
-          "%s:%d: X11 glXChooseVisual() failed, "
-          "verify working openGL system!\n",
-          __FILE__,
-          __LINE__);
-
-  return nullptr;
-}
-
-#endif  // WITH_GL_EGL
 
 GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
                                  Display *display,
@@ -211,7 +103,6 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
                                  const bool is_dialog,
                                  const bool stereoVisual,
                                  const bool exclusive,
-                                 const bool alphaBackground,
                                  const bool is_debug)
     : GHOST_Window(width, height, state, stereoVisual, exclusive),
       m_display(display),
@@ -235,13 +126,7 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
       m_is_debug_context(is_debug)
 {
   if (type == GHOST_kDrawingContextTypeOpenGL) {
-#ifdef WITH_GL_EGL
-    m_visualInfo = x11_visualinfo_from_egl(m_display);
-    (void)alphaBackground;
-#else
-    m_visualInfo = x11_visualinfo_from_glx(
-        m_display, stereoVisual, alphaBackground, (GLXFBConfig *)&m_fbconfig);
-#endif
+    m_visualInfo = get_x11_visualinfo(m_display);
   }
   else {
     XVisualInfo tmp = {nullptr};
@@ -1293,6 +1178,65 @@ GHOST_WindowX11::~GHOST_WindowX11()
   }
 }
 
+#ifdef USE_EGL
+static GHOST_Context *create_egl_context(GHOST_SystemX11 *system,
+                                         Window window,
+                                         Display *display,
+                                         bool want_stereo,
+                                         bool debug_context,
+                                         int ver_major,
+                                         int ver_minor)
+{
+  GHOST_Context *context;
+  context = new GHOST_ContextEGL(system,
+                                 want_stereo,
+                                 EGLNativeWindowType(window),
+                                 EGLNativeDisplayType(display),
+                                 EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+                                 ver_major,
+                                 ver_minor,
+                                 GHOST_OPENGL_EGL_CONTEXT_FLAGS |
+                                     (debug_context ? EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR : 0),
+                                 GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
+                                 EGL_OPENGL_API);
+
+  if (context->initializeDrawingContext()) {
+    return context;
+  }
+  delete context;
+
+  return nullptr;
+}
+#endif
+
+static GHOST_Context *create_glx_context(Window window,
+                                         Display *display,
+                                         GLXFBConfig fbconfig,
+                                         bool want_stereo,
+                                         bool debug_context,
+                                         int ver_major,
+                                         int ver_minor)
+{
+  GHOST_Context *context;
+  context = new GHOST_ContextGLX(want_stereo,
+                                 window,
+                                 display,
+                                 fbconfig,
+                                 GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+                                 ver_major,
+                                 ver_minor,
+                                 GHOST_OPENGL_GLX_CONTEXT_FLAGS |
+                                     (debug_context ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
+                                 GHOST_OPENGL_GLX_RESET_NOTIFICATION_STRATEGY);
+
+  if (context->initializeDrawingContext()) {
+    return context;
+  }
+  delete context;
+
+  return nullptr;
+}
+
 GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type)
 {
   if (type == GHOST_kDrawingContextTypeOpenGL) {
@@ -1307,89 +1251,48 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
      * - Try 3.3 core profile
      * - No fall-backs. */
 
-    const int profile_mask =
-#ifdef WITH_GL_EGL
-#  if defined(WITH_GL_PROFILE_CORE)
-        EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT;
-#  elif defined(WITH_GL_PROFILE_COMPAT)
-        EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT;
-#  else
-#    error  // must specify either core or compat at build time
-#  endif
-#else
-#  if defined(WITH_GL_PROFILE_CORE)
-        GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
-#  elif defined(WITH_GL_PROFILE_COMPAT)
-        GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
-#  else
-#    error  // must specify either core or compat at build time
-#  endif
-#endif
-
     GHOST_Context *context;
 
+#ifdef USE_EGL
+    /* Try to initialize an EGL context. */
     for (int minor = 5; minor >= 0; --minor) {
-#ifdef WITH_GL_EGL
-      context = new GHOST_ContextEGL(
-          this->m_system,
-          m_wantStereoVisual,
-          EGLNativeWindowType(m_window),
-          EGLNativeDisplayType(m_display),
-          profile_mask,
-          4,
-          minor,
-          GHOST_OPENGL_EGL_CONTEXT_FLAGS |
-              (m_is_debug_context ? EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR : 0),
-          GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
-          EGL_OPENGL_API);
-#else
-      context = new GHOST_ContextGLX(m_wantStereoVisual,
-                                     m_window,
-                                     m_display,
-                                     (GLXFBConfig)m_fbconfig,
-                                     profile_mask,
-                                     4,
-                                     minor,
-                                     GHOST_OPENGL_GLX_CONTEXT_FLAGS |
-                                         (m_is_debug_context ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
-                                     GHOST_OPENGL_GLX_RESET_NOTIFICATION_STRATEGY);
-#endif
-
-      if (context->initializeDrawingContext()) {
+      context = create_egl_context(
+          this->m_system, m_window, m_display, m_wantStereoVisual, m_is_debug_context, 4, minor);
+      if (context != nullptr) {
         return context;
       }
-      delete context;
     }
 
-#ifdef WITH_GL_EGL
-    context = new GHOST_ContextEGL(this->m_system,
-                                   m_wantStereoVisual,
-                                   EGLNativeWindowType(m_window),
-                                   EGLNativeDisplayType(m_display),
-                                   profile_mask,
-                                   3,
-                                   3,
-                                   GHOST_OPENGL_EGL_CONTEXT_FLAGS |
-                                       (m_is_debug_context ? EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR : 0),
-                                   GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
-                                   EGL_OPENGL_API);
-#else
-    context = new GHOST_ContextGLX(m_wantStereoVisual,
-                                   m_window,
-                                   m_display,
-                                   (GLXFBConfig)m_fbconfig,
-                                   profile_mask,
-                                   3,
-                                   3,
-                                   GHOST_OPENGL_GLX_CONTEXT_FLAGS |
-                                       (m_is_debug_context ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
-                                   GHOST_OPENGL_GLX_RESET_NOTIFICATION_STRATEGY);
-#endif
-
-    if (context->initializeDrawingContext()) {
+    context = create_egl_context(
+        this->m_system, m_window, m_display, m_wantStereoVisual, m_is_debug_context, 3, 3);
+    if (context != nullptr) {
       return context;
     }
-    delete context;
+
+    /* EGL initialization failed, try to fallback to a GLX context. */
+#endif
+    for (int minor = 5; minor >= 0; --minor) {
+      context = create_glx_context(m_window,
+                                   m_display,
+                                   (GLXFBConfig)m_fbconfig,
+                                   m_wantStereoVisual,
+                                   m_is_debug_context,
+                                   4,
+                                   minor);
+      if (context != nullptr) {
+        return context;
+      }
+    }
+    context = create_glx_context(m_window,
+                                 m_display,
+                                 (GLXFBConfig)m_fbconfig,
+                                 m_wantStereoVisual,
+                                 m_is_debug_context,
+                                 3,
+                                 3);
+    if (context != nullptr) {
+      return context;
+    }
 
     /* Ugly, but we get crashes unless a whole bunch of systems are patched. */
     fprintf(stderr, "Error! Unsupported graphics card or driver.\n");

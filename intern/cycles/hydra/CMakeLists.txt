@@ -64,8 +64,6 @@ set(SRC_HD_CYCLES
   volume.cpp
 )
 
-add_definitions(${GL_DEFINITIONS})
-
 if(WITH_OPENVDB)
   add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
   list(APPEND INC_SYS

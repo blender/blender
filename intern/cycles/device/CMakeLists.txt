@@ -147,7 +147,6 @@ set(SRC
 set(LIB
   cycles_kernel
   cycles_util
-  ${CYCLES_GL_LIBRARIES}
 )
 
 if(WITH_CYCLES_DEVICE_OPTIX OR WITH_CYCLES_DEVICE_CUDA)
@@ -167,8 +166,6 @@ if(WITH_CYCLES_DEVICE_HIP AND WITH_HIP_DYNLOAD)
     extern_hipew
   )
 endif()
-
-add_definitions(${GL_DEFINITIONS})
 
 if(WITH_CYCLES_DEVICE_CUDA)
   add_definitions(-DWITH_CUDA)

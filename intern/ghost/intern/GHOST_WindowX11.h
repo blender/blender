@@ -47,7 +47,6 @@ class GHOST_WindowX11 : public GHOST_Window {
    * \param parentWindow: Parent (embedder) window.
    * \param type: The type of drawing context installed in this window.
    * \param stereoVisual: Stereo visual for quad buffered stereo.
-   * \param alphaBackground: Enable alpha blending of window with display background.
    */
   GHOST_WindowX11(GHOST_SystemX11 *system,
                   Display *display,
@@ -62,7 +61,6 @@ class GHOST_WindowX11 : public GHOST_Window {
                   const bool is_dialog = false,
                   const bool stereoVisual = false,
                   const bool exclusive = false,
-                  const bool alphaBackground = false,
                   const bool is_debug = false);
 
   bool getValid() const;

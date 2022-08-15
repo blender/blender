@@ -130,8 +130,4 @@ class GHOST_ContextEGL : public GHOST_Context {
 
   static EGLContext s_vg_sharedContext;
   static EGLint s_vg_sharedCount;
-
-#ifdef WITH_GL_ANGLE
-  static HMODULE s_d3dcompiler;
-#endif
 };

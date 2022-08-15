@@ -221,7 +221,6 @@ if(WITH_METAL_BACKEND)
 endif()
 
 set(LIB
-  ${BLENDER_GL_LIBRARIES}
   ${Epoxy_LIBRARIES}
 )
 
@@ -584,8 +583,6 @@ file(GENERATE OUTPUT ${shader_create_info_list_file} CONTENT "${SHADER_CREATE_IN
 if(WITH_MOD_FLUID)
   add_definitions(-DWITH_FLUID)
 endif()
-
-add_definitions(${GL_DEFINITIONS})
 
 if(WITH_IMAGE_DDS)
   add_definitions(-DWITH_DDS)

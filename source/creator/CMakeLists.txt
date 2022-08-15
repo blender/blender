@@ -890,18 +890,6 @@ elseif(WIN32)
     unset(_PYTHON_VERSION_NO_DOTS)
   endif()
 
-  # EGL Runtime Components
-  if(WITH_GL_EGL)
-    if(WIN32)
-      install(FILES "${OPENGLES_DLL}"     DESTINATION ".")
-      install(FILES "${OPENGLES_EGL_DLL}" DESTINATION ".")
-
-      if(WITH_GL_ANGLE)
-        install(FILES "${D3DCOMPILER_DLL}" DESTINATION ".")
-      endif()
-    endif()
-  endif()
-
   if(WITH_CODEC_FFMPEG)
     # Filenames change slightly between ffmpeg versions
     # check both 5.0 and fallback to 4.4 to ease the transition

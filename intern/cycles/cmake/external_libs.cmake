@@ -550,25 +550,6 @@ if(EXISTS ${_cycles_lib_dir})
 endif()
 
 ###########################################################################
-# OpenGL
-###########################################################################
-
-if((WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI) OR
-   WITH_CYCLES_HYDRA_RENDER_DELEGATE)
-  if(CYCLES_STANDALONE_REPOSITORY)
-    if(NOT DEFINED OpenGL_GL_PREFERENCE)
-      set(OpenGL_GL_PREFERENCE "LEGACY")
-    endif()
-
-    find_package(OpenGL REQUIRED)
-
-    set(CYCLES_GL_LIBRARIES ${OPENGL_gl_LIBRARY})
-  else()
-    set(CYCLES_GL_LIBRARIES ${BLENDER_GL_LIBRARIES})
-  endif()
-endif()
-
-###########################################################################
 # SDL
 ###########################################################################
 

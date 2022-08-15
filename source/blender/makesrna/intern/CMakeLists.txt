@@ -449,8 +449,6 @@ set(LIB
   bf_editor_undo
 )
 
-add_definitions(${GL_DEFINITIONS})
-
 blender_add_lib(bf_rna "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 # Needed so we can use dna_type_offsets.h for defaults initialization.

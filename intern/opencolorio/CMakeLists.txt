@@ -31,7 +31,6 @@ if(WITH_OPENCOLORIO)
     -DWITH_OCIO
   )
 
-  add_definitions(${GL_DEFINITIONS})
   add_definitions(${OPENCOLORIO_DEFINITIONS})
 
   list(APPEND INC_SYS

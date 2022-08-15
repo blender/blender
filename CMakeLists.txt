@@ -25,13 +25,6 @@ endif()
 
 cmake_minimum_required(VERSION 3.10)
 
-# Prefer LEGACY OpenGL to be compatible with all the existing releases and
-# platforms which don't have GLVND yet. Only do it if preference was not set
-# externally.
-if(NOT DEFINED OpenGL_GL_PREFERENCE)
-  set(OpenGL_GL_PREFERENCE "LEGACY")
-endif()
-
 if(NOT EXECUTABLE_OUTPUT_PATH)
   set(FIRST_RUN TRUE)
 else()
@@ -262,7 +255,6 @@ if(WITH_GHOST_X11)
   option(WITH_X11_XINPUT    "Enable X11 Xinput (tablet support and unicode input)"  ON)
   option(WITH_X11_XF86VMODE "Enable X11 video mode switching"                       ON)
   option(WITH_X11_XFIXES    "Enable X11 XWayland cursor warping workaround"         ON)
-  option(WITH_X11_ALPHA     "Enable X11 transparent background"                     ON)
 endif()
 
 if(UNIX AND NOT APPLE)
@@ -536,29 +528,11 @@ endif()
 
 # OpenGL
 
-# Experimental EGL option.
-option(WITH_GL_EGL "Use the EGL OpenGL system library instead of the platform specific OpenGL system library (CGL, GLX or WGL)" OFF)
-mark_as_advanced(WITH_GL_EGL)
-
-if(WITH_GHOST_WAYLAND)
-  # Wayland can only use EGL to create OpenGL contexts, not GLX.
-  set(WITH_GL_EGL ON)
-endif()
-
-if(UNIX AND NOT APPLE)
-  option(WITH_SYSTEM_GLES "Use OpenGL ES library provided by the operating system" ON)
-else()
-  # System GLES not an option on other platforms.
-  set(WITH_SYSTEM_GLES OFF)
-endif()
-
 option(WITH_OPENGL              "When off limits visibility of the opengl headers to just bf_gpu and gawain (temporary option for development purposes)" ON)
-option(WITH_GL_PROFILE_ES20     "Support using OpenGL ES 2.0. (through either EGL or the AGL/WGL/XGL 'es20' profile)"                               OFF)
 option(WITH_GPU_BUILDTIME_SHADER_BUILDER  "Shader builder is a developer option enabling linting on GLSL during compilation"                                  OFF)
 
 mark_as_advanced(
   WITH_OPENGL
-  WITH_GL_PROFILE_ES20
   WITH_GPU_BUILDTIME_SHADER_BUILDER
 )
 
@@ -577,11 +551,6 @@ endif()
 
 if(WITH_METAL_BACKEND)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version" FORCE)
-endif()
-
-if(WIN32)
-  option(WITH_GL_ANGLE "Link with the ANGLE library, an OpenGL ES 2.0 implementation based on Direct3D, instead of the system OpenGL library." OFF)
-  mark_as_advanced(WITH_GL_ANGLE)
 endif()
 
 if(WIN32)
@@ -880,7 +849,6 @@ if(WITH_GHOST_SDL OR WITH_HEADLESS)
   set(WITH_X11_XINPUT    OFF)
   set(WITH_X11_XF86VMODE OFF)
   set(WITH_X11_XFIXES    OFF)
-  set(WITH_X11_ALPHA     OFF)
   set(WITH_GHOST_XDND    OFF)
   set(WITH_INPUT_IME     OFF)
   set(WITH_XR_OPENXR     OFF)
@@ -1195,137 +1163,8 @@ endif()
 #-----------------------------------------------------------------------------
 # Configure OpenGL.
 
-find_package(OpenGL)
-blender_include_dirs_sys("${OPENGL_INCLUDE_DIR}")
-
 if(WITH_OPENGL)
   add_definitions(-DWITH_OPENGL)
-endif()
-
-if(WITH_SYSTEM_GLES)
-  find_package_wrapper(OpenGLES)
-endif()
-
-if(WITH_GL_PROFILE_ES20)
-  if(WITH_SYSTEM_GLES)
-    if(NOT OPENGLES_LIBRARY)
-      message(FATAL_ERROR
-        "Unable to find OpenGL ES libraries. "
-        "Install them or disable WITH_SYSTEM_GLES."
-      )
-    endif()
-
-    list(APPEND BLENDER_GL_LIBRARIES "${OPENGLES_LIBRARY}")
-
-  else()
-    set(OPENGLES_LIBRARY "" CACHE FILEPATH "OpenGL ES 2.0 library file")
-    mark_as_advanced(OPENGLES_LIBRARY)
-
-    list(APPEND BLENDER_GL_LIBRARIES "${OPENGLES_LIBRARY}")
-
-    if(NOT OPENGLES_LIBRARY)
-      message(FATAL_ERROR
-        "To compile WITH_GL_EGL you need to set OPENGLES_LIBRARY "
-        "to the file path of an OpenGL ES 2.0 library."
-      )
-    endif()
-
-  endif()
-
-  if(WIN32)
-    # Setup paths to files needed to install and redistribute Windows Blender with OpenGL ES
-
-    set(OPENGLES_DLL "" CACHE FILEPATH "OpenGL ES 2.0 redistributable DLL file")
-    mark_as_advanced(OPENGLES_DLL)
-
-    if(NOT OPENGLES_DLL)
-      message(FATAL_ERROR
-        "To compile WITH_GL_PROFILE_ES20 you need to set OPENGLES_DLL to the file "
-        "path of an OpenGL ES 2.0 runtime dynamic link library (DLL)."
-      )
-    endif()
-
-    if(WITH_GL_ANGLE)
-      list(APPEND GL_DEFINITIONS -DWITH_ANGLE)
-
-      set(D3DCOMPILER_DLL "" CACHE FILEPATH "Direct3D Compiler redistributable DLL file (needed by ANGLE)")
-
-      get_filename_component(D3DCOMPILER_FILENAME "${D3DCOMPILER_DLL}" NAME)
-      list(APPEND GL_DEFINITIONS "-DD3DCOMPILER=\"\\\"${D3DCOMPILER_FILENAME}\\\"\"")
-
-      mark_as_advanced(D3DCOMPILER_DLL)
-
-      if(D3DCOMPILER_DLL STREQUAL "")
-        message(FATAL_ERROR
-          "To compile WITH_GL_ANGLE you need to set D3DCOMPILER_DLL to the file "
-          "path of a copy of the DirectX redistributable DLL file: D3DCompiler_46.dll"
-        )
-      endif()
-
-    endif()
-
-  endif()
-
-else()
-  if(OpenGL_GL_PREFERENCE STREQUAL "LEGACY" AND OPENGL_gl_LIBRARY)
-    list(APPEND BLENDER_GL_LIBRARIES ${OPENGL_gl_LIBRARY})
-  else()
-    list(APPEND BLENDER_GL_LIBRARIES ${OPENGL_opengl_LIBRARY} ${OPENGL_glx_LIBRARY})
-  endif()
-endif()
-
-if(WITH_GL_EGL)
-  find_package(OpenGL REQUIRED EGL)
-  list(APPEND BLENDER_GL_LIBRARIES OpenGL::EGL)
-
-  list(APPEND GL_DEFINITIONS -DWITH_GL_EGL)
-
-  if(WITH_SYSTEM_GLES)
-    if(NOT OPENGLES_EGL_LIBRARY)
-      message(FATAL_ERROR
-        "Unable to find OpenGL ES libraries. "
-        "Install them or disable WITH_SYSTEM_GLES."
-      )
-    endif()
-
-    list(APPEND BLENDER_GL_LIBRARIES ${OPENGLES_EGL_LIBRARY})
-
-  else()
-    set(OPENGLES_EGL_LIBRARY "" CACHE FILEPATH "EGL library file")
-    mark_as_advanced(OPENGLES_EGL_LIBRARY)
-
-    list(APPEND BLENDER_GL_LIBRARIES "${OPENGLES_LIBRARY}" "${OPENGLES_EGL_LIBRARY}")
-
-    if(NOT OPENGLES_EGL_LIBRARY)
-      message(FATAL_ERROR
-        "To compile WITH_GL_EGL you need to set OPENGLES_EGL_LIBRARY "
-        "to the file path of an EGL library."
-      )
-    endif()
-
-  endif()
-
-  if(WIN32)
-    # Setup paths to files needed to install and redistribute Windows Blender with OpenGL ES
-
-    set(OPENGLES_EGL_DLL "" CACHE FILEPATH "EGL redistributable DLL file")
-    mark_as_advanced(OPENGLES_EGL_DLL)
-
-    if(NOT OPENGLES_EGL_DLL)
-      message(FATAL_ERROR
-        "To compile WITH_GL_EGL you need to set OPENGLES_EGL_DLL "
-        "to the file path of an EGL runtime dynamic link library (DLL)."
-      )
-    endif()
-
-  endif()
-
-endif()
-
-if(WITH_GL_PROFILE_ES20)
-  list(APPEND GL_DEFINITIONS -DWITH_GL_PROFILE_ES20)
-else()
-  list(APPEND GL_DEFINITIONS -DWITH_GL_PROFILE_CORE)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -2005,7 +1844,6 @@ if(FIRST_RUN)
   info_cfg_option(WITH_INSTALL_PORTABLE)
   info_cfg_option(WITH_MEM_JEMALLOC)
   info_cfg_option(WITH_MEM_VALGRIND)
-  info_cfg_option(WITH_X11_ALPHA)
   info_cfg_option(WITH_X11_XF86VMODE)
   info_cfg_option(WITH_X11_XFIXES)
   info_cfg_option(WITH_X11_XINPUT)
@@ -2051,13 +1889,6 @@ if(FIRST_RUN)
   info_cfg_option(WITH_MOD_FLUID)
   info_cfg_option(WITH_MOD_OCEANSIM)
   info_cfg_option(WITH_MOD_REMESH)
-
-  info_cfg_text("OpenGL:")
-  if(WIN32)
-    info_cfg_option(WITH_GL_ANGLE)
-  endif()
-  info_cfg_option(WITH_GL_EGL)
-  info_cfg_option(WITH_GL_PROFILE_ES20)
 
   info_cfg_text("")
 

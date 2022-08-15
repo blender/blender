@@ -89,8 +89,6 @@ if(UNIX AND NOT APPLE)
   set(WITH_GHOST_X11 ON)
 endif()
 
-# for now... default to this
-add_definitions(-DWITH_GL_PROFILE_COMPAT)
 # BLF needs this to ignore GPU library
 add_definitions(-DBLF_STANDALONE)
 

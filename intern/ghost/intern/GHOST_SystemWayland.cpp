@@ -23,8 +23,6 @@
 #  include <wayland_dynload_API.h> /* For `ghost_wl_dynload_libraries`. */
 #endif
 
-#include <EGL/egl.h>
-
 #ifdef WITH_GHOST_WAYLAND_DYNLOAD
 #  include <wayland_dynload_egl.h>
 #endif
