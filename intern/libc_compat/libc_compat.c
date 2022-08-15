@@ -13,7 +13,8 @@
 #  include <features.h>
 #  include <math.h>
 
-#  if defined(__GLIBC_PREREQ) && __GLIBC_PREREQ(2, 31)
+#  if defined(__GLIBC_PREREQ)
+#    if __GLIBC_PREREQ(2, 31)
 
 double __exp_finite(double x);
 double __exp2_finite(double x);
@@ -112,5 +113,6 @@ float __powf_finite(float x, float y)
   return powf(x, y);
 }
 
-#  endif /* __GLIBC_PREREQ */
-#endif   /* __linux__ */
+#    endif /* __GLIBC_PREREQ(2, 31) */
+#  endif   /* __GLIBC_PREREQ */
+#endif     /* __linux__ */
