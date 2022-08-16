@@ -38,7 +38,7 @@ constexpr eGPUSamplerState with_filter = GPU_SAMPLER_FILTER;
 enum eDebugMode : uint32_t {
   DEBUG_NONE = 0u,
   /**
-   * Gradient showing light evaluation hotspots.
+   * Gradient showing light evaluation hot-spots.
    */
   DEBUG_LIGHT_CULLING = 1u,
   /**
@@ -46,7 +46,7 @@ enum eDebugMode : uint32_t {
    */
   DEBUG_HIZ_VALIDATION = 2u,
   /**
-   * Tilemaps to screen. Is also present in other modes.
+   * Tile-maps to screen. Is also present in other modes.
    * - Black pixels, no pages allocated.
    * - Green pixels, pages cached.
    * - Red pixels, pages allocated.
@@ -57,8 +57,8 @@ enum eDebugMode : uint32_t {
    */
   DEBUG_SHADOW_PAGES = 11u,
   /**
-   * Outputs random color per tilemap (or tilemap level). Validates tilemaps coverage.
-   * Black means not covered by any tilemaps LOD of the shadow.
+   * Outputs random color per tile-map (or tile-map level). Validates tile-maps coverage.
+   * Black means not covered by any tile-maps LOD of the shadow.
    */
   DEBUG_SHADOW_LOD = 12u,
   /**
@@ -67,7 +67,7 @@ enum eDebugMode : uint32_t {
    */
   DEBUG_SHADOW_PAGE_ALLOCATION = 13u,
   /**
-   * Outputs the tilemap atlas. Default tilemap is too big for the usual screen resolution.
+   * Outputs the tile-map atlas. Default tile-map is too big for the usual screen resolution.
    * Try lowering SHADOW_TILEMAP_PER_ROW and SHADOW_MAX_TILEMAP before using this option.
    */
   DEBUG_SHADOW_TILE_ALLOCATION = 14u,

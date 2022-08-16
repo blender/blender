@@ -114,7 +114,7 @@ GHOST_TSuccess GHOST_ISystem::createSystemBackground()
   GHOST_TSuccess success;
   if (!m_system) {
 #if !defined(WITH_HEADLESS)
-    /* Try to create a offscreen render surface with the graphical systems. */
+    /* Try to create a off-screen render surface with the graphical systems. */
     success = createSystem();
     if (success) {
       return success;

@@ -42,9 +42,10 @@ void ED_sculpt_end_transform(struct bContext *C, struct Object *ob);
 /** Export for ED_undo_sys. */
 void ED_sculpt_undosys_type(struct UndoType *ut);
 
-/* Pushes an undo step using the operator name.  This is necassary for
+/**
+ * Pushes an undo step using the operator name. This is necessary for
  * redo panels to work; operators that do not support that may use
- * ED_sculpt_undo_geometry_begin_ex instead if so desired.
+ * #ED_sculpt_undo_geometry_begin_ex instead if so desired.
  */
 void ED_sculpt_undo_geometry_begin(struct Object *ob, const struct wmOperator *op);
 void ED_sculpt_undo_geometry_begin_ex(struct Object *ob, const char *name);

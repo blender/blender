@@ -1493,14 +1493,15 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
 SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node, SculptUndoType type);
 SculptUndoNode *SCULPT_undo_get_first_node(void);
 
-/* Pushes an undo step using the operator name.  This is necassary for
+/**
+ * Pushes an undo step using the operator name. This is necessary for
  * redo panels to work; operators that do not support that may use
- * SCULPT_undo_push_begin_ex instead if so desired.
+ * #SCULPT_undo_push_begin_ex instead if so desired.
  */
 void SCULPT_undo_push_begin(struct Object *ob, const struct wmOperator *op);
 
 /**
- * NOTE: SCULPT_undo_push_begin is preferred since `name`
+ * NOTE: #SCULPT_undo_push_begin is preferred since `name`
  * must match operator name for redo panels to work.
  */
 void SCULPT_undo_push_begin_ex(struct Object *ob, const char *name);
