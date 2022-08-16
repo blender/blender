@@ -2533,7 +2533,7 @@ static bool reset_clear_override_library_poll(bContext *C)
           ID_IS_OVERRIDE_LIBRARY(obact));
 }
 
-static int reset_override_library_exec(bContext *C, wmOperator *op)
+static int reset_override_library_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
 
@@ -2566,7 +2566,7 @@ void OBJECT_OT_reset_override_library(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int clear_override_library_exec(bContext *C, wmOperator *op)
+static int clear_override_library_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
 
