@@ -19,6 +19,10 @@
 
 #include "GHOST_ContextEGL.h"
 
+#ifdef WITH_INPUT_NDOF
+#  include "GHOST_NDOFManagerUnix.h"
+#endif
+
 #ifdef WITH_GHOST_WAYLAND_DYNLOAD
 #  include <wayland_dynload_API.h> /* For `ghost_wl_dynload_libraries`. */
 #endif
@@ -2987,9 +2991,36 @@ GHOST_SystemWayland::~GHOST_SystemWayland()
   display_destroy(d);
 }
 
+GHOST_TSuccess GHOST_SystemWayland::init()
+{
+  GHOST_TSuccess success = GHOST_System::init();
+
+  if (success) {
+#ifdef WITH_INPUT_NDOF
+    m_ndofManager = new GHOST_NDOFManagerUnix(*this);
+#endif
+    return GHOST_kSuccess;
+  }
+
+  return GHOST_kFailure;
+}
+
 bool GHOST_SystemWayland::processEvents(bool waitForEvent)
 {
-  const bool fired = getTimerManager()->fireTimers(getMilliSeconds());
+  bool any_processed = false;
+
+  if (getTimerManager()->fireTimers(getMilliSeconds())) {
+    any_processed = true;
+  }
+
+#ifdef WITH_INPUT_NDOF
+  if (static_cast<GHOST_NDOFManagerUnix *>(m_ndofManager)->processEvents()) {
+    /* As NDOF bypasses WAYLAND event handling,
+     * never wait for an event when an NDOF event was found. */
+    waitForEvent = false;
+    any_processed = true;
+  }
+#endif /* WITH_INPUT_NDOF */
 
   if (waitForEvent) {
     wl_display_dispatch(d->display);
@@ -2998,7 +3029,11 @@ bool GHOST_SystemWayland::processEvents(bool waitForEvent)
     wl_display_roundtrip(d->display);
   }
 
-  return fired || (getEventManager()->getNumEvents() > 0);
+  if ((getEventManager()->getNumEvents() > 0)) {
+    any_processed = true;
+  }
+
+  return any_processed;
 }
 
 int GHOST_SystemWayland::setConsoleWindowState(GHOST_TConsoleWindowState /*action*/)
