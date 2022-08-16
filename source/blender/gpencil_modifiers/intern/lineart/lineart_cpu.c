@@ -1470,7 +1470,6 @@ static LineartTriangle *lineart_triangle_from_index(LineartData *ld,
 typedef struct EdgeFeatData {
   LineartData *ld;
   Mesh *me;
-  Object *ob;
   Object *ob_eval; /* For evaluated materials. */
   const MLoopTri *mlooptri;
   LineartTriangle *tri_array;
@@ -1504,7 +1503,6 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
   EdgeFeatData *e_feat_data = (EdgeFeatData *)userdata;
   EdgeFeatReduceData *reduce_data = (EdgeFeatReduceData *)tls->userdata_chunk;
   Mesh *me = e_feat_data->me;
-  Object *ob = e_feat_data->ob;
   Object *ob_eval = e_feat_data->ob_eval;
   LineartEdgeNeighbor *edge_nabr = e_feat_data->edge_nabr;
   const MLoopTri *mlooptri = e_feat_data->mlooptri;
@@ -2122,7 +2120,6 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   EdgeFeatData edge_feat_data = {0};
   edge_feat_data.ld = la_data;
   edge_feat_data.me = me;
-  edge_feat_data.ob = orig_ob;
   edge_feat_data.ob_eval = ob_info->original_ob_eval;
   edge_feat_data.mlooptri = mlooptri;
   edge_feat_data.edge_nabr = lineart_build_edge_neighbor(me, total_edges);
