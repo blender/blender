@@ -112,7 +112,7 @@ typedef struct Mesh_Runtime {
    * (most #eModifierTypeType_NonGeometrical modifiers). Otherwise the edit-mesh
    * data will be used for drawing, missing changes from modifiers. See T79517.
    */
-  char is_original;
+  char is_original_bmesh;
 
   /** #eMeshWrapperType and others. */
   char wrapper_type;

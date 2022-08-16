@@ -284,7 +284,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     }
   }
 
-  mesh->runtime.is_original = false;
+  mesh->runtime.is_original_bmesh = false;
 
   return mesh;
 }

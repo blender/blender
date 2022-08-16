@@ -61,7 +61,7 @@ Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(BMEditMesh *em,
   }
 
   /* Use edit-mesh directly where possible. */
-  me->runtime.is_original = true;
+  me->runtime.is_original_bmesh = true;
 
   me->edit_mesh = static_cast<BMEditMesh *>(MEM_dupallocN(em));
   me->edit_mesh->is_shallow_copy = true;
@@ -133,7 +133,7 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
         EditMeshData *edit_data = me->runtime.edit_data;
         if (edit_data->vertexCos) {
           BKE_mesh_vert_coords_apply(me, edit_data->vertexCos);
-          me->runtime.is_original = false;
+          me->runtime.is_original_bmesh = false;
         }
         break;
       }

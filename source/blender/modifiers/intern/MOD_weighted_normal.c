@@ -660,7 +660,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   MEM_SAFE_FREE(wn_data.mode_pair);
   MEM_SAFE_FREE(wn_data.items_data);
 
-  result->runtime.is_original = false;
+  result->runtime.is_original_bmesh = false;
 
   return result;
 }

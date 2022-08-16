@@ -444,7 +444,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   MEM_freeN(dw2);
   MEM_SAFE_FREE(indices);
 
-  mesh->runtime.is_original = false;
+  mesh->runtime.is_original_bmesh = false;
 
   /* Return the vgroup-modified mesh. */
   return mesh;
