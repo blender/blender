@@ -483,6 +483,7 @@ typedef struct LineartRenderTaskInfo {
 typedef struct LineartObjectInfo {
   struct LineartObjectInfo *next;
   struct Object *original_ob;
+  struct Object *original_ob_eval; /* For evaluated materials */
   struct Mesh *original_me;
   double model_view_proj[4][4];
   double model_view[4][4];
