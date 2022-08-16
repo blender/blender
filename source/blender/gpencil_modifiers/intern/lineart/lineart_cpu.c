@@ -1471,6 +1471,7 @@ typedef struct EdgeFeatData {
   LineartData *ld;
   Mesh *me;
   Object *ob;
+  Object *ob_eval; /* For evaluated materials. */
   const MLoopTri *mlooptri;
   LineartTriangle *tri_array;
   LineartVert *v_array;
@@ -1504,6 +1505,7 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
   EdgeFeatReduceData *reduce_data = (EdgeFeatReduceData *)tls->userdata_chunk;
   Mesh *me = e_feat_data->me;
   Object *ob = e_feat_data->ob;
+  Object *ob_eval = e_feat_data->ob_eval;
   LineartEdgeNeighbor *edge_nabr = e_feat_data->edge_nabr;
   const MLoopTri *mlooptri = e_feat_data->mlooptri;
 
@@ -1653,8 +1655,8 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
     int mat2 = me->mpoly[mlooptri[f2].poly].mat_nr;
 
     if (mat1 != mat2) {
-      Material *m1 = BKE_object_material_get(ob, mat1 + 1);
-      Material *m2 = BKE_object_material_get(ob, mat2 + 1);
+      Material *m1 = BKE_object_material_get_eval(ob_eval, mat1 + 1);
+      Material *m2 = BKE_object_material_get_eval(ob_eval, mat2 + 1);
       if (m1 && m2 &&
           ((m1->lineart.mat_occlusion == 0 && m2->lineart.mat_occlusion != 0) ||
            (m2->lineart.mat_occlusion == 0 && m1->lineart.mat_occlusion != 0))) {
@@ -1869,8 +1871,8 @@ static void lineart_load_tri_task(void *__restrict userdata,
   tri->v[2] = &vert_arr[v3];
 
   /* Material mask bits and occlusion effectiveness assignment. */
-  Material *mat = BKE_object_material_get(ob_info->original_ob,
-                                          me->mpoly[mlooptri->poly].mat_nr + 1);
+  Material *mat = BKE_object_material_get_eval(ob_info->original_ob_eval,
+                                               me->mpoly[mlooptri->poly].mat_nr + 1);
   tri->material_mask_bits |= ((mat && (mat->lineart.flags & LRT_MATERIAL_MASK_ENABLED)) ?
                                   mat->lineart.material_mask_bits :
                                   0);
@@ -2121,6 +2123,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   edge_feat_data.ld = la_data;
   edge_feat_data.me = me;
   edge_feat_data.ob = orig_ob;
+  edge_feat_data.ob_eval = ob_info->original_ob_eval;
   edge_feat_data.mlooptri = mlooptri;
   edge_feat_data.edge_nabr = lineart_build_edge_neighbor(me, total_edges);
   edge_feat_data.tri_array = la_tri_arr;
@@ -2511,6 +2514,7 @@ static void lineart_object_load_single_instance(LineartData *ld,
 
   obi->original_me = use_mesh;
   obi->original_ob = (ref_ob->id.orig_id ? (Object *)ref_ob->id.orig_id : (Object *)ref_ob);
+  obi->original_ob_eval = DEG_get_evaluated_object(depsgraph, obi->original_ob);
   lineart_geometry_load_assign_thread(olti, obi, thread_count, use_mesh->totpoly);
 }
 
