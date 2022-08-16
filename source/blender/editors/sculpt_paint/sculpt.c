@@ -1406,16 +1406,13 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
   switch (data->brush->sculpt_tool) {
     case SCULPT_TOOL_MASK:
       type = SCULPT_UNDO_MASK;
-      BKE_pbvh_node_mark_update_mask(data->nodes[n]);
       break;
     case SCULPT_TOOL_PAINT:
     case SCULPT_TOOL_SMEAR:
       type = SCULPT_UNDO_COLOR;
-      BKE_pbvh_node_mark_update_color(data->nodes[n]);
       break;
     default:
       type = SCULPT_UNDO_COORDS;
-      BKE_pbvh_node_mark_update(data->nodes[n]);
       break;
   }
 
@@ -1430,6 +1427,19 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
     return;
   }
 
+  switch (type) {
+    case SCULPT_UNDO_MASK:
+      BKE_pbvh_node_mark_update_mask(data->nodes[n]);
+      break;
+    case SCULPT_UNDO_COLOR:
+      BKE_pbvh_node_mark_update_color(data->nodes[n]);
+      break;
+    case SCULPT_UNDO_COORDS:
+      BKE_pbvh_node_mark_update(data->nodes[n]);
+      break;
+    default:
+      break;
+  }
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
 
