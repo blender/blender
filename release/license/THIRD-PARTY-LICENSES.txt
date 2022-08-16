@@ -22,7 +22,9 @@ PERFORMANCE OF THIS SOFTWARE.
 ** Audaspace; version 1.3.0 -- https://audaspace.github.io/
 ** Cuda Wrangler; version cbf465b -- https://github.com/CudaWrangler/cuew
 ** Draco; version 1.3.6 -- https://google.github.io/draco/
-** Embree; version 3.13.3 -- https://github.com/embree/embree
+** Embree; version 3.13.4 -- https://github.com/embree/embree
+** Intel® Open Path Guiding Library; version v0.3.1-beta --
+http://www.openpgl.org/
 ** Mantaflow; version 0.13 -- http://mantaflow.com/
 ** oneAPI Threading Building Block; version 2020_U3 --
 https://software.intel.com/en-us/oneapi/onetbb
@@ -240,6 +242,8 @@ limitations under the License.
     Copyright 2018 The Draco Authors
 * For Embree see also this required NOTICE:
     Copyright 2009-2020 Intel Corporation
+* For Intel® Open Path Guiding Library see also this required NOTICE:
+    Copyright 2020 Intel Corporation.
 * For Mantaflow see also this required NOTICE:
     MantaFlow fluid solver framework
     Copyright 2011 Tobias Pfaff, Nils Thuerey
@@ -265,6 +269,8 @@ limitations under the License.
 
 ------
 
+** libAOM; version 3.4.0 -- https://aomedia.googlesource.com/aom/
+Copyright (c) 2016, Alliance for Open Media. All rights reserved.
 ** NASM; version 2.15.02 -- https://www.nasm.us/
 Contributions since 2008-12-15 are Copyright Intel Corporation.
 ** OpenJPEG; version 2.4.0 -- https://github.com/uclouvain/openjpeg
@@ -316,7 +322,7 @@ All rights reserved.
 ** Google Logging; version 4.4.0 -- https://github.com/google/glog
 Copyright (c) 2006, Google Inc.
 All rights reserved.
-** Imath; version 3.1.3 -- https://github.com/AcademySoftwareFoundation/Imath
+** Imath; version 3.1.5 -- https://github.com/AcademySoftwareFoundation/Imath
 Contributors to the OpenEXR Project.
 ** ISPC; version 1.17.0 -- https://github.com/ispc/ispc
 Copyright Intel Corporation
@@ -330,7 +336,7 @@ Copyright Contributors to the Open Shading Language project.
 ** OpenColorIO; version 2.1.1 --
 https://github.com/AcademySoftwareFoundation/OpenColorIO
 Copyright Contributors to the OpenColorIO Project.
-** OpenEXR; version 3.1.4 --
+** OpenEXR; version 3.1.5 --
 https://github.com/AcademySoftwareFoundation/openexr
 Copyright Contributors to the OpenEXR Project. All rights reserved.
 ** OpenImageIO; version 2.3.13.0 -- http://www.openimageio.org
@@ -2975,15 +2981,26 @@ December 9, 2010
 Copyright (c) 2012 - present, Victor Zverovich
 ** Brotli; version 1.0.9 -- https://github.com/google/brotli
 Copyright (c) 2009, 2010, 2013-2016 by the Brotli Authors.
+** Epoxy; version 1.5.10 -- https://github.com/anholt/libepoxy
+Copyright © 2013-2014 Intel Corporation.
+Copyright © 2013 The Khronos Group Inc.
 ** Expat; version 2.4.4 -- https://github.com/libexpat/libexpat/
 Copyright (c) 1998-2000 Thai Open Source Software Center Ltd and Clark Cooper
 Copyright (c) 2001-2019 Expat maintainers
+** Intel(R) Graphics Memory Management Library; version 22.1.2 --
+https://github.com/intel/gmmlib
+Copyright (c) 2017 Intel Corporation.
+Copyright (c) 2016 Gabi Melman.
+Copyright 2008, Google Inc. All rights reserved.
 ** JSON for Modern C++; version 3.10.2 -- https://github.com/nlohmann/json/
 Copyright (c) 2013-2021 Niels Lohmann
 ** Libxml2; version 2.9.10 -- http://xmlsoft.org/
 Copyright (C) 1998-2012 Daniel Veillard.  All Rights Reserved.
 ** Mesa 3D; version 21.1.5 -- https://www.mesa3d.org/
 Copyright (C) 1999-2007  Brian Paul   All Rights Reserved.
+** oneAPI Level Zero; version v1.7.15 --
+https://github.com/oneapi-src/level-zero
+Copyright (C) 2019-2021 Intel Corporation
 ** OPENCollada; version 1.6.68 -- https://github.com/KhronosGroup/OpenCOLLADA
 Copyright (c) 2008-2009 NetAllied Systems GmbH
 ** PugiXML; version 1.10 -- http://pugixml.org/
@@ -3409,7 +3426,7 @@ the following restrictions:
 
 ------
 
-** LibTIFF; version 4.3.0 -- http://www.libtiff.org/
+** LibTIFF; version 4.4.0 -- http://www.libtiff.org/
 Copyright (c) 1988-1997 Sam Leffler
 Copyright (c) 1991-1997 Silicon Graphics, Inc.
 
