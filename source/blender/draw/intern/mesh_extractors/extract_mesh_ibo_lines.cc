@@ -183,10 +183,10 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
 
   switch (mr->extract_type) {
     case MR_EXTRACT_MESH: {
-      const bool *hide_vert = mr->hide_vert;
-      if (hide_vert) {
+      const bool *hide_edge = mr->hide_edge;
+      if (hide_edge) {
         for (DRWSubdivLooseEdge edge : loose_edges) {
-          *flags_data++ = hide_vert[edge.coarse_edge_index];
+          *flags_data++ = hide_edge[edge.coarse_edge_index];
         }
       }
       else {
@@ -202,13 +202,13 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
         }
       }
       else {
-        const bool *hide_vert = mr->hide_vert;
-        if (hide_vert) {
+        const bool *hide_edge = mr->hide_edge;
+        if (hide_edge) {
           for (DRWSubdivLooseEdge edge : loose_edges) {
             int e = edge.coarse_edge_index;
 
             if (mr->e_origindex && mr->e_origindex[e] != ORIGINDEX_NONE) {
-              *flags_data++ = hide_vert[edge.coarse_edge_index];
+              *flags_data++ = hide_edge[edge.coarse_edge_index];
             }
             else {
               *flags_data++ = false;
