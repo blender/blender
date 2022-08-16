@@ -1188,16 +1188,15 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd, GPU_PBVH_Buffers *buffers
       DRW_shgroup_uniform_vec3(
           shgrp, "materialDiffuseColor", SCULPT_DEBUG_COLOR(scd->debug_node_nr++), 1);
     }
+
     /* DRW_shgroup_call_no_cull reuses matrices calculations for all the drawcalls of this
      * object. */
     DRW_shgroup_call_no_cull(shgrp, geom, scd->ob);
   }
 }
 
-static void sculpt_debug_cb(void *user_data,
-                            const float bmin[3],
-                            const float bmax[3],
-                            PBVHNodeFlags flag)
+static void sculpt_debug_cb(
+    PBVHNode *node, void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag)
 {
   int *debug_node_nr = (int *)user_data;
   BoundBox bb;
@@ -1212,7 +1211,10 @@ static void sculpt_debug_cb(void *user_data,
   }
 #else /* Color coded leaf bounds. */
   if (flag & PBVH_Leaf) {
-    DRW_debug_bbox(&bb, SCULPT_DEBUG_COLOR((*debug_node_nr)++));
+    int color = (*debug_node_nr)++;
+    color += BKE_pbvh_debug_draw_gen_get(node);
+ 
+    DRW_debug_bbox(&bb, SCULPT_DEBUG_COLOR(color));
   }
 #endif
 }
@@ -1305,8 +1307,8 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
     DRW_debug_modelmat(scd->ob->obmat);
     BKE_pbvh_draw_debug_cb(
         pbvh,
-        (void (*)(
-            void *d, const float min[3], const float max[3], PBVHNodeFlags f))sculpt_debug_cb,
+        (void (*)(PBVHNode * n, void *d, const float min[3], const float max[3], PBVHNodeFlags f))
+            sculpt_debug_cb,
         &debug_node_nr);
   }
 }

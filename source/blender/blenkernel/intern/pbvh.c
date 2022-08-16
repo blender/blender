@@ -1330,6 +1330,8 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
   }
 
   if (node->flag & PBVH_UpdateDrawBuffers) {
+    node->debug_draw_gen++;
+
     const int update_flags = pbvh_get_buffers_update_flags(pbvh);
     switch (pbvh->header.type) {
       case PBVH_GRIDS:
@@ -2899,13 +2901,13 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
 
 void BKE_pbvh_draw_debug_cb(
     PBVH *pbvh,
-    void (*draw_fn)(void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag),
+    void (*draw_fn)(PBVHNode *node, void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag),
     void *user_data)
 {
   for (int a = 0; a < pbvh->totnode; a++) {
     PBVHNode *node = &pbvh->nodes[a];
 
-    draw_fn(user_data, node->vb.bmin, node->vb.bmax, node->flag);
+    draw_fn(node, user_data, node->vb.bmin, node->vb.bmax, node->flag);
   }
 }
 
@@ -3329,4 +3331,9 @@ void BKE_pbvh_ensure_node_loops(PBVH *pbvh)
   }
 
   MEM_SAFE_FREE(visit);
+}
+
+int BKE_pbvh_debug_draw_gen_get(PBVHNode *node)
+{
+  return node->debug_draw_gen;
 }
