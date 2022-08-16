@@ -1634,8 +1634,8 @@ static const EnumPropertyItem prop_liboverride_op_types[] = {
     {OUTLINER_LIBOVERRIDE_OP_CREATE_HIERARCHY,
      "OVERRIDE_LIBRARY_CREATE_HIERARCHY",
      0,
-     "Create",
-     "Make a local override of the selected linked data-blocks, and their hierarchy of "
+     "Make",
+     "Create a local override of the selected linked data-blocks, and their hierarchy of "
      "dependencies"},
     {OUTLINER_LIBOVERRIDE_OP_RESET,
      "OVERRIDE_LIBRARY_RESET",
@@ -1665,6 +1665,7 @@ static const EnumPropertyItem prop_liboverride_troubleshoot_op_types[] = {
      "Rebuild the selected local overrides from their linked references, as well as their "
      "hierarchies of dependencies, enforcing these hierarchies to match the linked data (i.e. "
      "ignoring existing overrides on data-blocks pointer properties)"},
+    RNA_ENUM_ITEM_SEPR,
     {OUTLINER_LIBOVERRIDE_OP_DELETE_HIERARCHY,
      "OVERRIDE_LIBRARY_DELETE_HIERARCHY",
      0,
@@ -1812,6 +1813,7 @@ void OUTLINER_OT_liboverride_operation(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Outliner Library Override Operation";
   ot->idname = "OUTLINER_OT_liboverride_operation";
+  ot->description = "Create, reset or clear library override hierarchies";
 
   /* callbacks */
   ot->invoke = WM_menu_invoke;
@@ -1834,6 +1836,7 @@ void OUTLINER_OT_liboverride_troubleshoot_operation(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Outliner Library Override Troubleshoot Operation";
   ot->idname = "OUTLINER_OT_liboverride_troubleshoot_operation";
+  ot->description = "Advanced operations over library override to help fix broken hierarchies";
 
   /* callbacks */
   ot->invoke = WM_menu_invoke;
@@ -1842,18 +1845,18 @@ void OUTLINER_OT_liboverride_troubleshoot_operation(wmOperatorType *ot)
 
   ot->flag = 0;
 
-  RNA_def_enum(ot->srna,
-               "type",
-               prop_liboverride_troubleshoot_op_types,
-               0,
-               "Library Override Troubleshoot Operation",
-               "");
   ot->prop = RNA_def_enum(ot->srna,
-                          "selection_set",
-                          prop_lib_op_selection_set,
+                          "type",
+                          prop_liboverride_troubleshoot_op_types,
                           0,
-                          "Selection Set",
-                          "Over which part of the tree items to apply the operation");
+                          "Library Override Troubleshoot Operation",
+                          "");
+  RNA_def_enum(ot->srna,
+               "selection_set",
+               prop_lib_op_selection_set,
+               0,
+               "Selection Set",
+               "Over which part of the tree items to apply the operation");
 }
 
 /** \} */
@@ -2734,6 +2737,7 @@ void OUTLINER_OT_id_operation(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Outliner ID Data Operation";
   ot->idname = "OUTLINER_OT_id_operation";
+  ot->description = "General data-block management operations";
 
   /* callbacks */
   ot->invoke = WM_menu_invoke;
