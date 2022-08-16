@@ -49,10 +49,14 @@ void OBJECT_OT_vertex_parent_set(struct wmOperatorType *ot);
 void OBJECT_OT_track_set(struct wmOperatorType *ot);
 void OBJECT_OT_track_clear(struct wmOperatorType *ot);
 void OBJECT_OT_make_local(struct wmOperatorType *ot);
-void OBJECT_OT_make_override_library(struct wmOperatorType *ot);
 void OBJECT_OT_make_single_user(struct wmOperatorType *ot);
 void OBJECT_OT_make_links_scene(struct wmOperatorType *ot);
 void OBJECT_OT_make_links_data(struct wmOperatorType *ot);
+
+void OBJECT_OT_make_override_library(struct wmOperatorType *ot);
+void OBJECT_OT_reset_override_library(struct wmOperatorType *ot);
+void OBJECT_OT_clear_override_library(struct wmOperatorType *ot);
+
 /**
  * Used for drop-box.
  * Assigns to object under cursor, only first material slot.

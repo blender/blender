@@ -1641,7 +1641,7 @@ static const EnumPropertyItem prop_liboverride_op_types[] = {
      "OVERRIDE_LIBRARY_RESET",
      0,
      "Reset",
-     "Reset the selected local override to their linked references values"},
+     "Reset the selected local overrides to their linked references values"},
     {OUTLINER_LIBOVERRIDE_OP_CLEAR_SINGLE,
      "OVERRIDE_LIBRARY_CLEAR_SINGLE",
      0,
