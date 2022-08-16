@@ -103,6 +103,7 @@ static GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
   }
   else {
     /* Font does not have a face or does not contain "0" so use CSS fallback of 1/2 of em. */
+    blf_ensure_size(font);
     gc->fixed_width = (int)((font->ft_size->metrics.height / 2) >> 6);
   }
   if (gc->fixed_width < 1) {
@@ -570,6 +571,11 @@ static FT_UInt blf_glyph_index_from_charcode(FontBLF **font, const uint charcode
     return glyph_index;
   }
 
+  /* Only fonts managed by the cache can fallback. */
+  if (!((*font)->flags & BLF_CACHED)) {
+    return 0;
+  }
+
   /* Not found in main font, so look in the others. */
   FontBLF *last_resort = NULL;
   int coverage_bit = blf_charcode_to_coverage_bit(charcode);
@@ -787,8 +793,8 @@ static bool blf_glyph_transform_weight(FT_GlyphSlot glyph, float factor, bool mo
 {
   if (glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
     /* Fake bold if the font does not have this variable axis. */
-    const FT_Pos average_width = FT_MulFix(glyph->face->units_per_EM,
-                                           glyph->face->size->metrics.x_scale);
+    const FontBLF *font = (FontBLF *)glyph->face->generic.data;
+    const FT_Pos average_width = font->ft_size->metrics.height;
     FT_Pos change = (FT_Pos)((float)average_width * factor * 0.1f);
     FT_Outline_EmboldenXY(&glyph->outline, change, change / 2);
     if (monospaced) {
@@ -847,7 +853,8 @@ static bool blf_glyph_transform_width(FT_GlyphSlot glyph, float factor)
 static bool blf_glyph_transform_spacing(FT_GlyphSlot glyph, float factor)
 {
   if (glyph->advance.x > 0) {
-    const long int size = glyph->face->size->metrics.height;
+    const FontBLF *font = (FontBLF *)glyph->face->generic.data;
+    const long int size = font->ft_size->metrics.height;
     glyph->advance.x += (FT_Pos)(factor * (float)size / 6.0f);
     return true;
   }
@@ -898,6 +905,8 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
   if (glyph_font != settings_font) {
     blf_font_size(glyph_font, settings_font->size, settings_font->dpi);
   }
+
+  blf_ensure_size(glyph_font);
 
   /* We need to keep track if changes are still needed. */
   bool weight_done = false;

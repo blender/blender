@@ -22,6 +22,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_threads.h"
 
 #include "BLF_api.h"
@@ -885,12 +886,21 @@ void BLF_draw_buffer(int fontid, const char *str, const size_t str_len)
 
 char *BLF_display_name_from_file(const char *filepath)
 {
-  FontBLF *font = blf_font_new("font_name", filepath);
-  if (!font) {
-    return NULL;
+  /* While listing font directories this function can be called simultaneously from a greater
+   * number of threads than we want the FreeType cache to keep open at a time. Therefore open
+   * with own FT_Library object and use FreeType calls directly to avoid any contention. */
+  char *name = NULL;
+  FT_Library ft_library;
+  if (FT_Init_FreeType(&ft_library) == FT_Err_Ok) {
+    FT_Face face;
+    if (FT_New_Face(ft_library, filepath, 0, &face) == FT_Err_Ok) {
+      if (face->family_name) {
+        name = BLI_sprintfN("%s %s", face->family_name, face->style_name);
+      }
+      FT_Done_Face(face);
+    }
+    FT_Done_FreeType(ft_library);
   }
-  char *name = blf_display_name(font);
-  blf_font_free(font);
   return name;
 }
 
