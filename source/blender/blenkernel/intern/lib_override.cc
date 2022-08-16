@@ -366,6 +366,10 @@ static int foreachid_is_hierarchy_leaf_fn(LibraryIDLinkCallbackData *cb_data)
   ID *id = *cb_data->id_pointer;
   bool *is_leaf = static_cast<bool *>(cb_data->user_data);
 
+  if (cb_data->cb_flag & IDWALK_CB_LOOPBACK) {
+    return IDWALK_RET_NOP;
+  }
+
   if (id != nullptr && ID_IS_OVERRIDE_LIBRARY_REAL(id) &&
       id->override_library->hierarchy_root == id_owner->override_library->hierarchy_root) {
     *is_leaf = false;
