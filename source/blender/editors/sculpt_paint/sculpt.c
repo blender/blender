@@ -1440,6 +1440,7 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
     default:
       break;
   }
+
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
 
