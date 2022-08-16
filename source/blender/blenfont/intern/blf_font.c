@@ -1384,22 +1384,27 @@ static FontBLF *blf_font_new_ex(const char *name,
 
   BLI_mutex_init(&font->glyph_cache_mutex);
 
-  /* If we have static details about this font we don't need to load the Face. */
-  const eFaceDetails *static_details = NULL;
-  char filename[256];
-  for (int i = 0; i < (int)ARRAY_SIZE(static_face_details); i++) {
-    BLI_split_file_part(font->filepath, filename, sizeof(filename));
-    if (STREQ(static_face_details[i].name, filename)) {
-      static_details = &static_face_details[i];
-      font->UnicodeRanges[0] = static_details->coverage1;
-      font->UnicodeRanges[1] = static_details->coverage2;
-      font->UnicodeRanges[2] = static_details->coverage3;
-      font->UnicodeRanges[3] = static_details->coverage4;
-      break;
+  /* If we have static details about this font file, we don't have to load the Face yet. */
+  bool face_needed = true;
+
+  if (font->filepath) {
+    const eFaceDetails *static_details = NULL;
+    char filename[256];
+    for (int i = 0; i < (int)ARRAY_SIZE(static_face_details); i++) {
+      BLI_split_file_part(font->filepath, filename, sizeof(filename));
+      if (STREQ(static_face_details[i].name, filename)) {
+        static_details = &static_face_details[i];
+        font->UnicodeRanges[0] = static_details->coverage1;
+        font->UnicodeRanges[1] = static_details->coverage2;
+        font->UnicodeRanges[2] = static_details->coverage3;
+        font->UnicodeRanges[3] = static_details->coverage4;
+        face_needed = false;
+        break;
+      }
     }
   }
 
-  if (!static_details) {
+  if (face_needed) {
     if (!blf_ensure_face(font)) {
       blf_font_free(font);
       return NULL;
