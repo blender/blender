@@ -43,9 +43,8 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
   DRW_shgroup_storage_block_ref(grp, "aov_buf", &inst_.film.aovs_info);
   /* RenderPasses. Cleared by background (even if bad practice). */
   DRW_shgroup_uniform_image_ref(grp, "rp_normal_img", &rbufs.normal_tx);
-  DRW_shgroup_uniform_image_ref(grp, "rp_diffuse_light_img", &rbufs.diffuse_light_tx);
+  DRW_shgroup_uniform_image_ref(grp, "rp_light_img", &rbufs.light_tx);
   DRW_shgroup_uniform_image_ref(grp, "rp_diffuse_color_img", &rbufs.diffuse_color_tx);
-  DRW_shgroup_uniform_image_ref(grp, "rp_specular_light_img", &rbufs.specular_light_tx);
   DRW_shgroup_uniform_image_ref(grp, "rp_specular_color_img", &rbufs.specular_color_tx);
   DRW_shgroup_uniform_image_ref(grp, "rp_emission_img", &rbufs.emission_tx);
   /* To allow opaque pass rendering over it. */
@@ -122,9 +121,8 @@ DRWShadingGroup *ForwardPipeline::material_opaque_add(::Material *blender_mat, G
   DRW_shgroup_storage_block_ref(grp, "aov_buf", &inst_.film.aovs_info);
   /* RenderPasses. */
   DRW_shgroup_uniform_image_ref(grp, "rp_normal_img", &rbufs.normal_tx);
-  DRW_shgroup_uniform_image_ref(grp, "rp_diffuse_light_img", &rbufs.diffuse_light_tx);
+  DRW_shgroup_uniform_image_ref(grp, "rp_light_img", &rbufs.light_tx);
   DRW_shgroup_uniform_image_ref(grp, "rp_diffuse_color_img", &rbufs.diffuse_color_tx);
-  DRW_shgroup_uniform_image_ref(grp, "rp_specular_light_img", &rbufs.specular_light_tx);
   DRW_shgroup_uniform_image_ref(grp, "rp_specular_color_img", &rbufs.specular_color_tx);
   DRW_shgroup_uniform_image_ref(grp, "rp_emission_img", &rbufs.emission_tx);
 
@@ -206,9 +204,8 @@ DRWShadingGroup *ForwardPipeline::material_transparent_add(::Material *blender_m
     DRW_shgroup_storage_block_ref(grp, "aov_buf", &inst_.film.aovs_info);
     /* RenderPasses. */
     DRW_shgroup_uniform_image_ref(grp, "rp_normal_img", &rbufs.normal_tx);
-    DRW_shgroup_uniform_image_ref(grp, "rp_diffuse_light_img", &rbufs.diffuse_light_tx);
+    DRW_shgroup_uniform_image_ref(grp, "rp_light_img", &rbufs.light_tx);
     DRW_shgroup_uniform_image_ref(grp, "rp_diffuse_color_img", &rbufs.diffuse_color_tx);
-    DRW_shgroup_uniform_image_ref(grp, "rp_specular_light_img", &rbufs.specular_light_tx);
     DRW_shgroup_uniform_image_ref(grp, "rp_specular_color_img", &rbufs.specular_color_tx);
     DRW_shgroup_uniform_image_ref(grp, "rp_emission_img", &rbufs.emission_tx);
   }

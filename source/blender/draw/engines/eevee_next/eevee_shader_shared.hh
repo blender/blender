@@ -292,6 +292,17 @@ static inline float film_filter_weight(float filter_radius, float sample_distanc
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Render passes
+ * \{ */
+
+enum eRenderPassLayerIndex : uint32_t {
+  RENDER_PASS_LAYER_DIFFUSE_LIGHT = 0u,
+  RENDER_PASS_LAYER_SPECULAR_LIGHT = 1u,
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Arbitrary Output Variables
  * \{ */
 

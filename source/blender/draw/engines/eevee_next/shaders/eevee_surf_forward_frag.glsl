@@ -99,9 +99,11 @@ void main()
 
   ivec2 out_texel = ivec2(gl_FragCoord.xy);
   imageStore(rp_normal_img, out_texel, vec4(out_normal, 1.0));
-  imageStore(rp_diffuse_light_img, out_texel, vec4(diffuse_light, 1.0));
+  imageStore(
+      rp_light_img, ivec3(out_texel, RENDER_PASS_LAYER_DIFFUSE_LIGHT), vec4(diffuse_light, 1.0));
+  imageStore(
+      rp_light_img, ivec3(out_texel, RENDER_PASS_LAYER_SPECULAR_LIGHT), vec4(specular_light, 1.0));
   imageStore(rp_diffuse_color_img, out_texel, vec4(g_diffuse_data.color, 1.0));
-  imageStore(rp_specular_light_img, out_texel, vec4(specular_light, 1.0));
   imageStore(rp_specular_color_img, out_texel, vec4(specular_color, 1.0));
   imageStore(rp_emission_img, out_texel, vec4(g_emission, 1.0));
 
