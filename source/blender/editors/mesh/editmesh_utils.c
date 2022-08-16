@@ -593,10 +593,10 @@ UvMapVert *BM_uv_vert_map_at_index(UvVertMap *vmap, uint v)
   return vmap->vert[v];
 }
 
-static void bm_uv_ensure_head_table(UvElementMap *element_map)
+struct UvElement **BM_uv_element_map_ensure_head_table(struct UvElementMap *element_map)
 {
   if (element_map->head_table) {
-    return;
+    return element_map->head_table;
   }
 
   /* For each UvElement, locate the "separate" UvElement that precedes it in the linked list. */
@@ -616,6 +616,7 @@ static void bm_uv_ensure_head_table(UvElementMap *element_map)
       }
     }
   }
+  return element_map->head_table;
 }
 
 #define INVALID_ISLAND ((unsigned int)-1)
@@ -645,7 +646,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
                                            bool uv_selected,
                                            int cd_loop_uv_offset)
 {
-  bm_uv_ensure_head_table(element_map);
+  BM_uv_element_map_ensure_head_table(element_map);
 
   int total_uvs = element_map->total_uvs;
 
@@ -1070,7 +1071,7 @@ void BM_uv_element_map_free(UvElementMap *element_map)
   }
 }
 
-UvElement *BM_uv_element_get(UvElementMap *element_map, BMFace *efa, BMLoop *l)
+UvElement *BM_uv_element_get(const UvElementMap *element_map, const BMFace *efa, const BMLoop *l)
 {
   UvElement *element = element_map->vertex[BM_elem_index_get(l->v)];
   while (element) {

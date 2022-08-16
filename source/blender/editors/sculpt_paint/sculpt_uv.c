@@ -9,7 +9,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_ghash.h"
-#include "BLI_math.h"
+#include "BLI_math_base_safe.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_brush_types.h"
@@ -42,6 +42,11 @@
 #include "uvedit_intern.h"
 
 #include "UI_view2d.h"
+
+/* When set, the UV element is on the boundary of the graph.
+ * i.e. Instead of a 2-dimensional laplace operator, use a 1-dimensional version.
+ * Visually, UV elements on the graph boundary appear as borders of the UV Island. */
+#define MARK_BOUNDARY 1
 
 typedef struct UvAdjacencyElement {
   /* pointer to original uvelement */
@@ -230,6 +235,13 @@ static void HC_relaxation_iteration_uv(BMEditMesh *em,
   MEM_SAFE_FREE(tmp_uvdata);
 }
 
+/* Legacy version which only does laplacian relaxation.
+ * Probably a little faster as it caches UvEdges.
+ * Mostly preserved for comparison with `HC_relaxation_iteration_uv`.
+ * Once the HC method has been merged into `relaxation_iteration_uv`,
+ * all the `HC_*` and `laplacian_*` specific functions can probably be removed.
+ */
+
 static void laplacian_relaxation_iteration_uv(BMEditMesh *em,
                                               UvSculptData *sculptdata,
                                               const float mouse_coord[2],
@@ -304,6 +316,151 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em,
   }
 
   MEM_SAFE_FREE(tmp_uvdata);
+}
+
+static void add_weighted_edge(float (*delta_buf)[3],
+                              const UvElement *storage,
+                              const UvElement *ele_next,
+                              const UvElement *ele_prev,
+                              const MLoopUV *luv_next,
+                              const MLoopUV *luv_prev,
+                              const float weight)
+{
+  float delta[2];
+  sub_v2_v2v2(delta, luv_next->uv, luv_prev->uv);
+
+  bool code1 = (ele_prev->flag & MARK_BOUNDARY);
+  bool code2 = (ele_next->flag & MARK_BOUNDARY);
+  if (code1 || (code1 == code2)) {
+    int index_next = ele_next - storage;
+    delta_buf[index_next][0] -= delta[0] * weight;
+    delta_buf[index_next][1] -= delta[1] * weight;
+    delta_buf[index_next][2] += fabsf(weight);
+  }
+  if (code2 || (code1 == code2)) {
+    int index_prev = ele_prev - storage;
+    delta_buf[index_prev][0] += delta[0] * weight;
+    delta_buf[index_prev][1] += delta[1] * weight;
+    delta_buf[index_prev][2] += fabsf(weight);
+  }
+}
+
+static float tri_weight_v3(int method, const float *v1, const float *v2, const float *v3)
+{
+  switch (method) {
+    case UV_SCULPT_TOOL_RELAX_LAPLACIAN:
+    case UV_SCULPT_TOOL_RELAX_HC:
+      return 1.0f;
+    case UV_SCULPT_TOOL_RELAX_COTAN:
+      return cotangent_tri_weight_v3(v1, v2, v3);
+    default:
+      BLI_assert_unreachable();
+  }
+  return 0.0f;
+}
+
+static void relaxation_iteration_uv(BMEditMesh *em,
+                                    UvSculptData *sculptdata,
+                                    const float mouse_coord[2],
+                                    const float alpha,
+                                    const float radius_squared,
+                                    const float aspect_ratio,
+                                    const int method)
+{
+  if (method == UV_SCULPT_TOOL_RELAX_HC) {
+    HC_relaxation_iteration_uv(em, sculptdata, mouse_coord, alpha, radius_squared, aspect_ratio);
+    return;
+  }
+  if (method == UV_SCULPT_TOOL_RELAX_LAPLACIAN) {
+    laplacian_relaxation_iteration_uv(
+        em, sculptdata, mouse_coord, alpha, radius_squared, aspect_ratio);
+    return;
+  }
+
+  struct UvElement **head_table = BM_uv_element_map_ensure_head_table(sculptdata->elementMap);
+
+  const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+  BLI_assert(cd_loop_uv_offset >= 0);
+
+  const int total_uvs = sculptdata->elementMap->total_uvs;
+  float(*delta_buf)[3] = (float(*)[3])MEM_callocN(total_uvs * sizeof(float[3]), __func__);
+
+  const UvElement *storage = sculptdata->elementMap->storage;
+  for (int j = 0; j < total_uvs; j++) {
+    const UvElement *ele_curr = storage + j;
+    const BMFace *efa = ele_curr->l->f;
+    const UvElement *ele_next = BM_uv_element_get(sculptdata->elementMap, efa, ele_curr->l->next);
+    const UvElement *ele_prev = BM_uv_element_get(sculptdata->elementMap, efa, ele_curr->l->prev);
+
+    const float *v_curr_co = ele_curr->l->v->co;
+    const float *v_prev_co = ele_prev->l->v->co;
+    const float *v_next_co = ele_next->l->v->co;
+
+    const MLoopUV *luv_curr = BM_ELEM_CD_GET_VOID_P(ele_curr->l, cd_loop_uv_offset);
+    const MLoopUV *luv_next = BM_ELEM_CD_GET_VOID_P(ele_next->l, cd_loop_uv_offset);
+    const MLoopUV *luv_prev = BM_ELEM_CD_GET_VOID_P(ele_prev->l, cd_loop_uv_offset);
+
+    const UvElement *head_curr = head_table[ele_curr - sculptdata->elementMap->storage];
+    const UvElement *head_next = head_table[ele_next - sculptdata->elementMap->storage];
+    const UvElement *head_prev = head_table[ele_prev - sculptdata->elementMap->storage];
+
+    /* If the mesh is triangulated with no boundaries, only one edge is required. */
+    const float weight_curr = tri_weight_v3(method, v_curr_co, v_prev_co, v_next_co);
+    add_weighted_edge(delta_buf, storage, head_next, head_prev, luv_next, luv_prev, weight_curr);
+
+    /* Triangulated with a boundary? We need the incoming edges to solve the boundary. */
+    const float weight_prev = tri_weight_v3(method, v_prev_co, v_curr_co, v_next_co);
+    add_weighted_edge(delta_buf, storage, head_next, head_curr, luv_next, luv_curr, weight_prev);
+
+    if (method == UV_SCULPT_TOOL_RELAX_LAPLACIAN) {
+      /* Laplacian method has zero weights on virtual edges. */
+      continue;
+    }
+
+    /* Meshes with quads (or other n-gons) need "virtual" edges too. */
+    const float weight_next = tri_weight_v3(method, v_next_co, v_curr_co, v_prev_co);
+    add_weighted_edge(delta_buf, storage, head_prev, head_curr, luv_prev, luv_curr, weight_next);
+  }
+
+  Brush *brush = BKE_paint_brush(sculptdata->uvsculpt);
+  for (int i = 0; i < sculptdata->totalUniqueUvs; i++) {
+    UvAdjacencyElement *adj_el = &sculptdata->uv[i];
+    if (adj_el->is_locked) {
+      continue; /* Locked UVs can't move. */
+    }
+
+    /* Is UV within brush's influence? */
+    float diff[2];
+    sub_v2_v2v2(diff, adj_el->uv, mouse_coord);
+    diff[1] /= aspect_ratio;
+    const float dist_squared = len_squared_v2(diff);
+    if (dist_squared > radius_squared) {
+      continue;
+    }
+    const float strength = alpha * BKE_brush_curve_strength_clamped(
+                                       brush, sqrtf(dist_squared), sqrtf(radius_squared));
+
+    const float *delta_sum = delta_buf[adj_el->element - storage];
+    MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(adj_el->element->l, cd_loop_uv_offset);
+    BLI_assert(adj_el->uv == luv->uv); /* Only true for head. */
+    adj_el->uv[0] = luv->uv[0] + strength * safe_divide(delta_sum[0], delta_sum[2]);
+    adj_el->uv[1] = luv->uv[1] + strength * safe_divide(delta_sum[1], delta_sum[2]);
+
+    apply_sculpt_data_constraints(sculptdata, adj_el->uv);
+
+    /* Copy UV co-ordinates to all UvElements. */
+    UvElement *tail = adj_el->element;
+    while (tail) {
+      MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(tail->l, cd_loop_uv_offset);
+      copy_v2_v2(luv->uv, adj_el->uv);
+      tail = tail->next;
+      if (tail && tail->separate) {
+        break;
+      }
+    }
+  }
+
+  MEM_SAFE_FREE(delta_buf);
 }
 
 static void uv_sculpt_stroke_apply(bContext *C,
@@ -383,16 +540,11 @@ static void uv_sculpt_stroke_apply(bContext *C,
   }
 
   /*
-   * Smooth Tool
+   * Relax Tool
    */
   else if (tool == UV_SCULPT_TOOL_RELAX) {
-    uint method = toolsettings->uv_relax_method;
-    if (method == UV_SCULPT_TOOL_RELAX_HC) {
-      HC_relaxation_iteration_uv(em, sculptdata, co, alpha, radius, aspectRatio);
-    }
-    else {
-      laplacian_relaxation_iteration_uv(em, sculptdata, co, alpha, radius, aspectRatio);
-    }
+    relaxation_iteration_uv(
+        em, sculptdata, co, alpha, radius, aspectRatio, toolsettings->uv_relax_method);
   }
 
   /*
@@ -474,6 +626,17 @@ static bool uv_edge_compare(const void *a, const void *b)
     return false;
   }
   return true;
+}
+
+static void set_element_flag(UvElement *element, const int flag)
+{
+  while (element) {
+    element->flag |= flag;
+    element = element->next;
+    if (!element || element->separate) {
+      break;
+    }
+  }
 }
 
 static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wmEvent *event)
@@ -666,6 +829,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
           data->uv[data->uvedges[i].uv1].is_locked = true;
           data->uv[data->uvedges[i].uv2].is_locked = true;
         }
+        set_element_flag(data->uv[data->uvedges[i].uv1].element, MARK_BOUNDARY);
+        set_element_flag(data->uv[data->uvedges[i].uv2].element, MARK_BOUNDARY);
       }
     }
 

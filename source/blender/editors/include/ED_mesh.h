@@ -133,6 +133,7 @@ void EDBM_update(struct Mesh *me, const struct EDBMUpdate_Params *params);
 void EDBM_update_extern(struct Mesh *me, bool do_tessellation, bool is_destructive);
 
 /**
+ *
  * A specialized vert map used by stitch operator.
  */
 struct UvElementMap *BM_uv_element_map_create(struct BMesh *bm,
@@ -141,10 +142,12 @@ struct UvElementMap *BM_uv_element_map_create(struct BMesh *bm,
                                               bool use_winding,
                                               bool do_islands);
 void BM_uv_element_map_free(struct UvElementMap *element_map);
-struct UvElement *BM_uv_element_get(struct UvElementMap *map,
-                                    struct BMFace *efa,
-                                    struct BMLoop *l);
+struct UvElement *BM_uv_element_get(const struct UvElementMap *map,
+                                    const struct BMFace *efa,
+                                    const struct BMLoop *l);
 struct UvElement *BM_uv_element_get_head(struct UvElementMap *map, struct UvElement *child);
+
+struct UvElement **BM_uv_element_map_ensure_head_table(struct UvElementMap *element_map);
 
 /**
  * Can we edit UV's for this mesh?

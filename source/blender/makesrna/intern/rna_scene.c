@@ -88,6 +88,11 @@ static const EnumPropertyItem uv_sculpt_relaxation_items[] = {
      "Laplacian",
      "Use Laplacian method for relaxation"},
     {UV_SCULPT_TOOL_RELAX_HC, "HC", 0, "HC", "Use HC method for relaxation"},
+    {UV_SCULPT_TOOL_RELAX_COTAN,
+     "COTAN",
+     0,
+     "Geometry",
+     "Use Geometry (cotangent) relaxation, making UV's follow the underlying 3D geometry"},
     {0, NULL, 0, NULL, NULL},
 };
 #endif
