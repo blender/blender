@@ -22,6 +22,7 @@
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
+#include "BKE_image.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_paint.h"
 
@@ -89,13 +90,13 @@ typedef struct UvSculptData {
    * to their coincident UV's */
   UvAdjacencyElement *uv;
 
-  /* ...Is what it says */
+  /* Total number of unique UVs. */
   int totalUniqueUvs;
 
   /* Edges used for adjacency info, used with laplacian smoothing */
   UvEdge *uvedges;
 
-  /* need I say more? */
+  /* Total number of #UvEdge. */
   int totalUvEdges;
 
   /* data for initial stroke, used by tools like grab */
@@ -115,7 +116,24 @@ typedef struct UvSculptData {
 
   /* store invert flag here */
   char invert;
+
+  /* Is constrain to image bounds active? */
+  bool constrain_to_bounds;
+
+  /* Base for constrain_to_bounds. */
+  float uv_base_offset[2];
 } UvSculptData;
+
+static void apply_sculpt_data_constraints(UvSculptData *sculptdata, float uv[2])
+{
+  if (!sculptdata->constrain_to_bounds) {
+    return;
+  }
+  float u = sculptdata->uv_base_offset[0];
+  float v = sculptdata->uv_base_offset[1];
+  uv[0] = clamp_f(uv[0], u, u + 1.0f);
+  uv[1] = clamp_f(uv[1], v, v + 1.0f);
+}
 
 /*********** Improved Laplacian Relaxation Operator ************************/
 /* original code by Raul Fernandez Hernandez "farsthary"                   *
@@ -192,6 +210,8 @@ static void HC_relaxation_iteration_uv(BMEditMesh *em,
                                      0.5f * (tmp_uvdata[i].b[1] +
                                              tmp_uvdata[i].sum_b[1] / tmp_uvdata[i].ncounter));
 
+      apply_sculpt_data_constraints(sculptdata, sculptdata->uv[i].uv);
+
       for (element = sculptdata->uv[i].element; element; element = element->next) {
         MLoopUV *luv;
         BMLoop *l;
@@ -265,6 +285,8 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em,
                                 strength * tmp_uvdata[i].p[0];
       sculptdata->uv[i].uv[1] = (1.0f - strength) * sculptdata->uv[i].uv[1] +
                                 strength * tmp_uvdata[i].p[1];
+
+      apply_sculpt_data_constraints(sculptdata, sculptdata->uv[i].uv);
 
       for (element = sculptdata->uv[i].element; element; element = element->next) {
         MLoopUV *luv;
@@ -342,6 +364,8 @@ static void uv_sculpt_stroke_apply(bContext *C,
         sculptdata->uv[i].uv[0] -= strength * diff[0] * 0.001f;
         sculptdata->uv[i].uv[1] -= strength * diff[1] * 0.001f;
 
+        apply_sculpt_data_constraints(sculptdata, sculptdata->uv[i].uv);
+
         for (element = sculptdata->uv[i].element; element; element = element->next) {
           MLoopUV *luv;
           BMLoop *l;
@@ -387,6 +411,8 @@ static void uv_sculpt_stroke_apply(bContext *C,
           sculptdata->initial_stroke->initialSelection[i].initial_uv[0] + strength * diff[0];
       sculptdata->uv[uvindex].uv[1] =
           sculptdata->initial_stroke->initialSelection[i].initial_uv[1] + strength * diff[1];
+
+      apply_sculpt_data_constraints(sculptdata, sculptdata->uv[uvindex].uv);
 
       for (element = sculptdata->uv[uvindex].element; element; element = element->next) {
         MLoopUV *luv;
@@ -643,11 +669,14 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
       }
     }
 
+    SpaceImage *sima = CTX_wm_space_image(C);
+    data->constrain_to_bounds = (sima->flag & SI_CLIP_UV);
+    BKE_image_find_nearest_tile_with_offset(sima->image, co, data->uv_base_offset);
+
     /* Allocate initial selection for grab tool */
     if (data->tool == UV_SCULPT_TOOL_GRAB) {
       float radius, radius_root;
       UvSculptData *sculptdata = (UvSculptData *)op->customdata;
-      SpaceImage *sima;
       int width, height;
       float aspectRatio;
       float alpha, zoomx, zoomy;
@@ -656,7 +685,6 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
       alpha = BKE_brush_alpha_get(scene, brush);
 
       radius = BKE_brush_size_get(scene, brush);
-      sima = CTX_wm_space_image(C);
       ED_space_image_get_size(sima, &width, &height);
       ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
 
