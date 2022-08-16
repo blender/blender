@@ -10,12 +10,12 @@
  *
  * The sculpt undo system is a delta-based system. Each undo step stores
  * the difference with the prior one.
- * 
+ *
  * To use the sculpt undo system, you must call SCULPT_undo_push_begin
  * inside an operator exec or invoke callback (ED_sculpt_undo_geometry_begin
  * may be called if you wish to save a non-delta copy of the entire mesh).
  * This will initialize the sculpt undo stack and set up an undo step.
- * 
+ *
  * At the end of the operator you should call SCULPT_undo_push_end.
  *
  * SCULPT_undo_push_end and ED_sculpt_undo_geometry_begin both take a

@@ -1213,7 +1213,7 @@ static void sculpt_debug_cb(
   if (flag & PBVH_Leaf) {
     int color = (*debug_node_nr)++;
     color += BKE_pbvh_debug_draw_gen_get(node);
- 
+
     DRW_debug_bbox(&bb, SCULPT_DEBUG_COLOR(color));
   }
 #endif
