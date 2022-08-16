@@ -5656,7 +5656,7 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, const wmEvent 
   return paint_stroke_modal(C, op, event, (struct PaintStroke **)&op->customdata);
 }
 
-void sculpt_redo_empty_ui(bContext *C, wmOperator *op)
+static void sculpt_redo_empty_ui(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
 }
 
