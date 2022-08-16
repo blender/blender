@@ -701,7 +701,6 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           if (ob->type == OB_MBALL) {
             DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
           }
-          DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
         default:
@@ -732,6 +731,8 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           lib->id.tag &= ~LIB_TAG_MISSING;
         }
       }
+
+      DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
     }
     else {
       switch (tselem->type) {
@@ -740,6 +741,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           bDeformGroup *vg = static_cast<bDeformGroup *>(te->directdata);
           BKE_object_defgroup_unique_name(vg, ob);
           WM_msg_publish_rna_prop(mbus, &ob->id, vg, VertexGroup, name);
+          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
         case TSE_NLA_ACTION: {
@@ -747,6 +749,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           BKE_main_namemap_remove_name(bmain, &act->id, oldname);
           BLI_libblock_ensure_unique_name(bmain, act->id.name);
           WM_msg_publish_rna_prop(mbus, &act->id, &act->id, ID, name);
+          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
         case TSE_EBONE: {
@@ -761,6 +764,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
             ED_armature_bone_rename(bmain, arm, oldname, newname);
             WM_msg_publish_rna_prop(mbus, &arm->id, ebone, EditBone, name);
             WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
+            DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
           }
           break;
         }
@@ -782,6 +786,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           ED_armature_bone_rename(bmain, arm, oldname, newname);
           WM_msg_publish_rna_prop(mbus, &arm->id, bone, Bone, name);
           WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
+          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
         case TSE_POSE_CHANNEL: {
@@ -804,6 +809,8 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           ED_armature_bone_rename(bmain, static_cast<bArmature *>(ob->data), oldname, newname);
           WM_msg_publish_rna_prop(mbus, &arm->id, pchan->bone, Bone, name);
           WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
+          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
+          DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
         case TSE_POSEGRP: {
@@ -818,6 +825,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
                          sizeof(grp->name));
           WM_msg_publish_rna_prop(mbus, &ob->id, grp, ActionGroup, name);
           WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
         case TSE_GP_LAYER: {
@@ -834,6 +842,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           WM_msg_publish_rna_prop(mbus, &gpd->id, gpl, GPencilLayer, info);
           DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
           WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, gpd);
+          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
         case TSE_R_LAYER: {
@@ -849,6 +858,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           BKE_view_layer_rename(bmain, scene, view_layer, newname);
           WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, ViewLayer, name);
           WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
+          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
         case TSE_LAYER_COLLECTION: {
@@ -858,6 +868,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           BLI_libblock_ensure_unique_name(bmain, collection->id.name);
           WM_msg_publish_rna_prop(mbus, &collection->id, &collection->id, ID, name);
           WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
+          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
       }
