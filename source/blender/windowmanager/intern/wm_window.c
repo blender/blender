@@ -1951,6 +1951,9 @@ void WM_window_pixel_sample_read(const wmWindowManager *wm,
 
 uint *WM_window_pixels_read(wmWindowManager *wm, wmWindow *win, int r_size[2])
 {
+  /* WARNING: Reading from the front-buffer immediately after drawing may fail,
+   * for a slower but more reliable version of this function #WM_window_pixels_read_offscreen
+   * should be preferred. See it's comments for details on why it's needed, see also T98462. */
   bool setup_context = wm->windrawable != win;
 
   if (setup_context) {

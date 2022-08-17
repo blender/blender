@@ -1191,6 +1191,39 @@ static void wm_draw_surface(bContext *C, wmSurface *surface)
   wm_surface_clear_drawable();
 }
 
+uint *WM_window_pixels_read_offscreen(bContext *C, wmWindow *win, int r_size[2])
+{
+  /* NOTE(@campbellbarton): There is a problem reading the windows front-buffer after redrawing
+   * the window in some cases (typically to clear UI elements such as menus or search popup).
+   * With EGL `eglSurfaceAttrib(..)` may support setting the `EGL_SWAP_BEHAVIOR` attribute to
+   * `EGL_BUFFER_PRESERVED` however not all implementations support this.
+   * Requesting the ability with `EGL_SWAP_BEHAVIOR_PRESERVED_BIT` can even cause the EGL context
+   * not to initialize at all.
+   * Confusingly there are some cases where this *does* work, depending on the state of the window
+   * and prior calls to swap-buffers, however ensuring the state exactly as needed to satisfy a
+   * particular GPU back-end is fragile, see T98462.
+   *
+   * So provide an alternative to #WM_window_pixels_read that avoids using the front-buffer. */
+
+  /* Draw into an off-screen buffer and read it's contents. */
+  r_size[0] = WM_window_pixels_x(win);
+  r_size[1] = WM_window_pixels_y(win);
+
+  GPUOffScreen *offscreen = GPU_offscreen_create(r_size[0], r_size[1], false, GPU_RGBA8, NULL);
+  if (UNLIKELY(!offscreen)) {
+    return NULL;
+  }
+
+  const uint rect_len = r_size[0] * r_size[1];
+  uint *rect = MEM_mallocN(sizeof(*rect) * rect_len, __func__);
+  GPU_offscreen_bind(offscreen, false);
+  wm_draw_window_onscreen(C, win, -1);
+  GPU_offscreen_unbind(offscreen, false);
+  GPU_offscreen_read_pixels(offscreen, GPU_DATA_UBYTE, rect);
+  GPU_offscreen_free(offscreen);
+  return rect;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
