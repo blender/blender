@@ -762,15 +762,8 @@ ID *ui_template_id_liboverride_hierarchy_create(
         if (object_active != NULL) {
           object_active->id.tag |= LIB_TAG_DOIT;
         }
-        BKE_lib_override_library_create(bmain,
-                                        scene,
-                                        view_layer,
-                                        NULL,
-                                        id,
-                                        &collection_active->id,
-                                        NULL,
-                                        &id_override,
-                                        U.experimental.use_override_new_fully_editable);
+        BKE_lib_override_library_create(
+            bmain, scene, view_layer, NULL, id, &collection_active->id, NULL, &id_override, false);
       }
       else if (object_active != NULL && !ID_IS_LINKED(object_active) &&
                &object_active->instance_collection->id == id) {
@@ -783,7 +776,7 @@ ID *ui_template_id_liboverride_hierarchy_create(
                                         &object_active->id,
                                         &object_active->id,
                                         &id_override,
-                                        U.experimental.use_override_new_fully_editable);
+                                        false);
       }
       break;
     case ID_OB:
@@ -793,15 +786,8 @@ ID *ui_template_id_liboverride_hierarchy_create(
         if (object_active != NULL) {
           object_active->id.tag |= LIB_TAG_DOIT;
         }
-        BKE_lib_override_library_create(bmain,
-                                        scene,
-                                        view_layer,
-                                        NULL,
-                                        id,
-                                        &collection_active->id,
-                                        NULL,
-                                        &id_override,
-                                        U.experimental.use_override_new_fully_editable);
+        BKE_lib_override_library_create(
+            bmain, scene, view_layer, NULL, id, &collection_active->id, NULL, &id_override, false);
       }
       break;
     case ID_ME:
@@ -832,19 +818,12 @@ ID *ui_template_id_liboverride_hierarchy_create(
                                           &collection_active->id,
                                           NULL,
                                           &id_override,
-                                          U.experimental.use_override_new_fully_editable);
+                                          false);
         }
         else {
           object_active->id.tag |= LIB_TAG_DOIT;
-          BKE_lib_override_library_create(bmain,
-                                          scene,
-                                          view_layer,
-                                          NULL,
-                                          id,
-                                          &object_active->id,
-                                          NULL,
-                                          &id_override,
-                                          U.experimental.use_override_new_fully_editable);
+          BKE_lib_override_library_create(
+              bmain, scene, view_layer, NULL, id, &object_active->id, NULL, &id_override, false);
         }
       }
       break;

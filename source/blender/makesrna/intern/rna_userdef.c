@@ -6301,15 +6301,6 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
       "Enable library overrides automatic resync detection and process on file load. Disable when "
       "dealing with older .blend files that need manual Resync (Enforce) handling");
 
-  prop = RNA_def_property(srna, "use_override_new_fully_editable", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_override_new_fully_editable", 1);
-  RNA_def_property_ui_text(
-      prop,
-      "Override New Fully Editable",
-      "Make all override of a hierarchy fully user-editable by default when creating a new "
-      "override (if that option is disabled, most overrides created as part of a hierarchy will "
-      "not be editable by the user by default)");
-
   prop = RNA_def_property(srna, "use_new_point_cloud_type", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_new_point_cloud_type", 1);
   RNA_def_property_ui_text(
