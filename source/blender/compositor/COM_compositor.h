@@ -12,8 +12,8 @@ extern "C" {
 
 /* Keep ascii art. */
 /* clang-format off */
+
 /**
- *
  * \defgroup Model The data model of the compositor
  * \ingroup compositor
  * \defgroup Memory The memory management stuff

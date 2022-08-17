@@ -110,7 +110,6 @@ void BKE_object_eval_constraints(Depsgraph *depsgraph, Scene *scene, Object *ob)
    * - post (i.e. BKE_constraints_clear_evalob)
    *
    * Not sure why, this is from Joshua - sergey
-   *
    */
   cob = BKE_constraints_make_evalob(depsgraph, scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
   BKE_constraints_solve(depsgraph, &ob->constraints, cob, ctime);

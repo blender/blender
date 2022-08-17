@@ -263,7 +263,6 @@ BLI_INLINE float mix(float v0, float v1, float x)
  *  +         +       |
  *  @ + + + + @       @------> x
  * v0          v1
- *
  */
 BLI_INLINE float mix(float v0, float v1, float v2, float v3, float x, float y)
 {

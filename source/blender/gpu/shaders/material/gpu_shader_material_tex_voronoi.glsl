@@ -15,7 +15,6 @@
  *
  * With optimization to change -2..2 scan window to -1..1 for better performance,
  * as explained in https://www.shadertoy.com/view/llG3zy.
- *
  */
 
 /* **** 1D Voronoi **** */

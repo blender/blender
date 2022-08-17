@@ -4092,7 +4092,6 @@ static bool lineart_bounding_area_triangle_intersect(LineartData *fb,
  * (#LineartBoundingArea) for intersection lines. When splitting the tile into 4 children and
  * re-linking triangles into the child tiles, intersections are inhibited so we don't get
  * duplicated intersection lines.
- *
  */
 static void lineart_bounding_area_link_triangle(LineartData *ld,
                                                 LineartBoundingArea *root_ba,

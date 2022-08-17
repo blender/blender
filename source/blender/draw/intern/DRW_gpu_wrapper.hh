@@ -50,7 +50,6 @@
  *
  * `draw::Framebuffer`
  *   Simple wrapper to #GPUFramebuffer that can be moved.
- *
  */
 
 #include "DRW_render.h"

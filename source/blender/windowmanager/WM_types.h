@@ -669,7 +669,6 @@ typedef struct wmTabletData {
  *
  * - Mouse-wheel events are excluded even though they generate #KM_PRESS
  *   as clicking and dragging don't make sense for mouse wheel events.
- *
  */
 typedef struct wmEvent {
   struct wmEvent *next, *prev;

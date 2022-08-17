@@ -897,11 +897,9 @@ static bool bc_has_same_material_configuration(Object *ob1, Object *ob2)
 }
 
 /**
- *
  * Caution here: This code assumes that all materials are assigned to Object
  * and no material is assigned to Data.
  * That is true right after the objects have been imported.
- *
  */
 static void bc_copy_materials_to_data(Object *ob, Mesh *me)
 {
@@ -912,9 +910,7 @@ static void bc_copy_materials_to_data(Object *ob, Mesh *me)
 }
 
 /**
- *
- * Remove all references to materials from the object
- *
+ * Remove all references to materials from the object.
  */
 static void bc_remove_materials_from_object(Object *ob, Mesh *me)
 {

@@ -3658,9 +3658,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
     }
   }
 
-  /* Exit painting mode (and/or end current stroke).
-   *
-   */
+  /* Exit painting mode (and/or end current stroke). */
   if (ELEM(event->type, EVT_RETKEY, EVT_PADENTER, EVT_ESCKEY, EVT_SPACEKEY)) {
 
     p->status = GP_STATUS_DONE;

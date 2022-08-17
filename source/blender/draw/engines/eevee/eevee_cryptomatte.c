@@ -25,7 +25,6 @@
  * they take into account to create the render passes. When accurate mode is off the number of
  * levels is used as the number of cryptomatte samples to take. When accuracy mode is on the number
  * of render samples is used.
- *
  */
 
 #include "DRW_engine.h"

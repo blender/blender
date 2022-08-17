@@ -203,7 +203,6 @@ class MeshImporter : public MeshImporterBase {
    *         if the check is positive:
    *             Add the materials of the first user to the geometry
    *             adjust all other users accordingly.
-   *
    */
   void optimize_material_assignements();
 
