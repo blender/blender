@@ -442,12 +442,14 @@ static void relaxation_iteration_uv(BMEditMesh *em,
                                        brush, sqrtf(dist_squared), sqrtf(radius_squared));
 
     const float *delta_sum = delta_buf[adj_el->element - storage];
-    MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(adj_el->element->l, cd_loop_uv_offset);
-    BLI_assert(adj_el->uv == luv->uv); /* Only true for head. */
-    adj_el->uv[0] = luv->uv[0] + strength * safe_divide(delta_sum[0], delta_sum[2]);
-    adj_el->uv[1] = luv->uv[1] + strength * safe_divide(delta_sum[1], delta_sum[2]);
 
-    apply_sculpt_data_constraints(sculptdata, adj_el->uv);
+    {
+      MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(adj_el->element->l, cd_loop_uv_offset);
+      BLI_assert(adj_el->uv == luv->uv); /* Only true for head. */
+      adj_el->uv[0] = luv->uv[0] + strength * safe_divide(delta_sum[0], delta_sum[2]);
+      adj_el->uv[1] = luv->uv[1] + strength * safe_divide(delta_sum[1], delta_sum[2]);
+      apply_sculpt_data_constraints(sculptdata, adj_el->uv);
+    }
 
     /* Copy UV co-ordinates to all UvElements. */
     UvElement *tail = adj_el->element;
