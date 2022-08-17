@@ -297,7 +297,7 @@ struct LoopsForInterpolation {
    * Is allocated for non-regular faces (triangles and n-gons). */
   CustomData loop_data_storage;
   bool loop_data_storage_allocated;
-  /* Infices within loop_data to interpolate for. The indices are aligned with
+  /* Indices within loop_data to interpolate for. The indices are aligned with
    * uv coordinates in a similar way as indices in loop_data_storage. */
   int loop_indices[4];
 };
@@ -570,7 +570,7 @@ static void evaluate_vertex_and_apply_displacement_copy(const SubdivMeshContext 
   add_v3_v3(subdiv_vert->co, D);
   /* Evaluate undeformed texture coordinate. */
   subdiv_vertex_orco_evaluate(ctx, ptex_face_index, u, v, subdiv_vertex_index);
-  /* Remove facedot flag. This can happen if there is more than one subsurf modifier. */
+  /* Remove face-dot flag. This can happen if there is more than one subsurf modifier. */
   BLI_BITMAP_DISABLE(ctx->subdiv_mesh->runtime.subsurf_face_dot_tags, subdiv_vertex_index);
 }
 

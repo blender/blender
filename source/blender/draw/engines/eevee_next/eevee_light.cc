@@ -337,7 +337,7 @@ void LightModule::end_sync()
     light_map_.remove(key);
   }
 
-  /* Update sampling on deletion or un-hidding (use_scene_lights). */
+  /* Update sampling on deletion or un-hiding (use_scene_lights). */
   if (assign_if_different(light_map_size_, light_map_.size())) {
     inst_.sampling.reset();
   }
