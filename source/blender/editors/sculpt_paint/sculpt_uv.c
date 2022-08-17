@@ -582,7 +582,6 @@ static void uv_sculpt_stroke_apply(bContext *C,
         copy_v2_v2(luv->uv, sculptdata->uv[uvindex].uv);
       }
     }
-    SpaceImage *sima = CTX_wm_space_image(C);
     if (sima->flag & SI_LIVE_UNWRAP) {
       ED_uvedit_live_unwrap_re_solve();
     }
