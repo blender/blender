@@ -769,7 +769,7 @@ static void override_idtemplate_ids_get(
 
   *r_owner_id = owner_ptr.owner_id;
   PointerRNA idptr = RNA_property_pointer_get(&owner_ptr, prop);
-  *r_id = idptr.data;
+  *r_id = static_cast<ID *>(idptr.data);
   if (r_owner_ptr != NULL) {
     *r_owner_ptr = owner_ptr;
   }
@@ -982,7 +982,7 @@ static void override_idtemplate_menu(void)
 {
   MenuType *mt;
 
-  mt = MEM_callocN(sizeof(MenuType), __func__);
+  mt = MEM_cnew<MenuType>(__func__);
   strcpy(mt->idname, "UI_MT_idtemplate_liboverride");
   strcpy(mt->label, N_("Library Override"));
   mt->poll = override_idtemplate_menu_poll;
