@@ -279,41 +279,6 @@ BoundBox *BKE_mball_boundbox_get(Object *ob)
   return ob->runtime.bb;
 }
 
-float *BKE_mball_make_orco(Object *ob, ListBase *dispbase)
-{
-  BoundBox *bb;
-  DispList *dl;
-  float *data, *orco, *orcodata;
-  float loc[3], size[3];
-  int a;
-
-  /* restore size and loc */
-  bb = ob->runtime.bb;
-  loc[0] = (bb->vec[0][0] + bb->vec[4][0]) / 2.0f;
-  size[0] = bb->vec[4][0] - loc[0];
-  loc[1] = (bb->vec[0][1] + bb->vec[2][1]) / 2.0f;
-  size[1] = bb->vec[2][1] - loc[1];
-  loc[2] = (bb->vec[0][2] + bb->vec[1][2]) / 2.0f;
-  size[2] = bb->vec[1][2] - loc[2];
-
-  dl = static_cast<DispList *>(dispbase->first);
-  orcodata = static_cast<float *>(MEM_mallocN(sizeof(float[3]) * dl->nr, __func__));
-
-  data = dl->verts;
-  orco = orcodata;
-  a = dl->nr;
-  while (a--) {
-    orco[0] = (data[0] - loc[0]) / size[0];
-    orco[1] = (data[1] - loc[1]) / size[1];
-    orco[2] = (data[2] - loc[2]) / size[2];
-
-    data += 3;
-    orco += 3;
-  }
-
-  return orcodata;
-}
-
 bool BKE_mball_is_basis(const Object *ob)
 {
   /* Meta-Ball Basis Notes from Blender-2.5x

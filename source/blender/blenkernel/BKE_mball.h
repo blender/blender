@@ -58,7 +58,6 @@ struct Object *BKE_mball_basis_find(struct Scene *scene, struct Object *ob);
  * Return or compute bounding-box for given meta-ball object.
  */
 struct BoundBox *BKE_mball_boundbox_get(struct Object *ob);
-float *BKE_mball_make_orco(struct Object *ob, struct ListBase *dispbase);
 
 /**
  * Copy some properties from a meta-ball obdata to all other meta-ball obdata belonging to the same
