@@ -430,8 +430,6 @@ static float metaball(PROCESS *process, float x, float y, float z)
  */
 static void make_face(PROCESS *process, int i1, int i2, int i3, int i4)
 {
-  int *cur;
-
 #ifdef USE_ACCUM_NORMAL
   float n[3];
 #endif
@@ -441,10 +439,9 @@ static void make_face(PROCESS *process, int i1, int i2, int i3, int i4)
     process->indices = MEM_reallocN(process->indices, sizeof(int[4]) * process->totindex);
   }
 
-  cur = process->indices[process->curindex++];
+  int *cur = process->indices[process->curindex++];
 
-  /* #DispList supports array drawing, treat tri's as fake quad. */
-
+  /* Treat triangles as fake quads. */
   cur[0] = i1;
   cur[1] = i2;
   cur[2] = i3;
