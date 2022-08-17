@@ -21,6 +21,7 @@
 
 #include "BLF_api.h"
 #include "BLT_lang.h"
+#include "BLT_translation.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -28,6 +29,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.h"
+#include "BKE_lib_remap.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
@@ -745,6 +747,247 @@ static void UI_OT_override_remove_button(wmOperatorType *ot)
   /* properties */
   RNA_def_boolean(
       ot->srna, "all", true, "All", "Reset to default values all elements of the array");
+}
+
+static void override_idtemplate_ids_get(
+    bContext *C, ID **r_owner_id, ID **r_id, PointerRNA *r_owner_ptr, PropertyRNA **r_prop)
+{
+  PointerRNA owner_ptr;
+  PropertyRNA *prop;
+  UI_context_active_but_prop_get_templateID(C, &owner_ptr, &prop);
+
+  if (owner_ptr.data == NULL || prop == NULL) {
+    *r_owner_id = *r_id = NULL;
+    if (r_owner_ptr != NULL) {
+      *r_owner_ptr = PointerRNA_NULL;
+    }
+    if (r_prop != NULL) {
+      *r_prop = NULL;
+    }
+    return;
+  }
+
+  *r_owner_id = owner_ptr.owner_id;
+  PointerRNA idptr = RNA_property_pointer_get(&owner_ptr, prop);
+  *r_id = idptr.data;
+  if (r_owner_ptr != NULL) {
+    *r_owner_ptr = owner_ptr;
+  }
+  if (r_prop != NULL) {
+    *r_prop = prop;
+  }
+}
+
+static bool override_idtemplate_poll(bContext *C, const bool is_create_op)
+{
+  ID *owner_id, *id;
+  override_idtemplate_ids_get(C, &owner_id, &id, NULL, NULL);
+
+  if (owner_id == NULL || id == NULL) {
+    return false;
+  }
+
+  if (is_create_op) {
+    if (!ID_IS_LINKED(id) && !ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+      return false;
+    }
+    return true;
+  }
+
+  /* Reset/Clear operations. */
+  if (ID_IS_LINKED(id) || !ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    return false;
+  }
+  return true;
+}
+
+static bool override_idtemplate_create_poll(bContext *C)
+{
+  return override_idtemplate_poll(C, true);
+}
+
+static int override_idtemplate_create_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  ID *owner_id, *id;
+  PointerRNA owner_ptr;
+  PropertyRNA *prop;
+  override_idtemplate_ids_get(C, &owner_id, &id, &owner_ptr, &prop);
+  if (ELEM(NULL, owner_id, id)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  ID *id_override = ui_template_id_liboverride_hierarchy_create(
+      C, CTX_data_main(C), owner_id, id, NULL);
+
+  if (id_override == NULL) {
+    return OPERATOR_CANCELLED;
+  }
+
+  PointerRNA idptr;
+  /* `idptr` is re-assigned to owner property to ensure proper updates etc. Here we also use it to
+   * ensure remapping of the owner property from the linked data to the newly created liboverride
+   * (note that in theory this remapping has already been done by code above). */
+  RNA_id_pointer_create(id_override, &idptr);
+  RNA_property_pointer_set(&owner_ptr, prop, idptr, NULL);
+  RNA_property_update(C, &owner_ptr, prop);
+
+  return OPERATOR_FINISHED;
+}
+
+static void UI_OT_override_idtemplate_create(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Create Library Override";
+  ot->idname = "UI_OT_override_idtemplate_create";
+  ot->description =
+      "Create a local override of the selected linked data-block, and its hierarchy of "
+      "dependencies";
+
+  /* callbacks */
+  ot->poll = override_idtemplate_create_poll;
+  ot->exec = override_idtemplate_create_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_UNDO;
+}
+
+static bool override_idtemplate_reset_poll(bContext *C)
+{
+  return override_idtemplate_poll(C, false);
+}
+
+static int override_idtemplate_reset_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  ID *owner_id, *id;
+  PointerRNA owner_ptr;
+  PropertyRNA *prop;
+  override_idtemplate_ids_get(C, &owner_id, &id, &owner_ptr, &prop);
+  if (ELEM(NULL, owner_id, id)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (ID_IS_LINKED(id) || !ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  BKE_lib_override_library_id_reset(CTX_data_main(C), id, false);
+
+  PointerRNA idptr;
+  /* `idptr` is re-assigned to owner property to ensure proper updates etc. */
+  RNA_id_pointer_create(id, &idptr);
+  RNA_property_pointer_set(&owner_ptr, prop, idptr, NULL);
+  RNA_property_update(C, &owner_ptr, prop);
+
+  return OPERATOR_FINISHED;
+}
+
+static void UI_OT_override_idtemplate_reset(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Reset Library Override";
+  ot->idname = "UI_OT_override_idtemplate_reset";
+  ot->description = "Reset the selected local override to its linked reference values";
+
+  /* callbacks */
+  ot->poll = override_idtemplate_reset_poll;
+  ot->exec = override_idtemplate_reset_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_UNDO;
+}
+
+static bool override_idtemplate_clear_poll(bContext *C)
+{
+  return override_idtemplate_poll(C, false);
+}
+
+static int override_idtemplate_clear_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  ID *owner_id, *id;
+  PointerRNA owner_ptr;
+  PropertyRNA *prop;
+  override_idtemplate_ids_get(C, &owner_id, &id, &owner_ptr, &prop);
+  if (ELEM(NULL, owner_id, id)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (ID_IS_LINKED(id)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  Main *bmain = CTX_data_main(C);
+  ID *id_new = id;
+  if (BKE_lib_override_library_is_hierarchy_leaf(bmain, id)) {
+    id_new = id->override_library->reference;
+    BKE_libblock_remap(bmain, id, id_new, ID_REMAP_SKIP_INDIRECT_USAGE);
+    BKE_id_delete(bmain, id);
+  }
+  else {
+    BKE_lib_override_library_id_reset(bmain, id, true);
+  }
+
+  PointerRNA idptr;
+  /* `idptr` is re-assigned to owner property to ensure proper updates etc. Here we also use it to
+   * ensure remapping of the owner property from the linked data to the newly created liboverride
+   * (note that in theory this remapping has already been done by code above). */
+  RNA_id_pointer_create(id_new, &idptr);
+  RNA_property_pointer_set(&owner_ptr, prop, idptr, NULL);
+  RNA_property_update(C, &owner_ptr, prop);
+
+  return OPERATOR_FINISHED;
+}
+
+static void UI_OT_override_idtemplate_clear(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Clear Library Override";
+  ot->idname = "UI_OT_override_idtemplate_clear";
+  ot->description =
+      "Delete the selected local override and relink its usages to the linked data-block if "
+      "possible, else reset it and mark it as non editable";
+
+  /* callbacks */
+  ot->poll = override_idtemplate_clear_poll;
+  ot->exec = override_idtemplate_clear_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_UNDO;
+}
+
+static bool override_idtemplate_menu_poll(const bContext *C_const, MenuType *UNUSED(mt))
+{
+  bContext *C = (bContext *)C_const;
+  ID *owner_id, *id;
+  override_idtemplate_ids_get(C, &owner_id, &id, NULL, NULL);
+
+  if (owner_id == NULL || id == NULL) {
+    return false;
+  }
+
+  if (!(ID_IS_LINKED(id) || ID_IS_OVERRIDE_LIBRARY_REAL(id))) {
+    return false;
+  }
+  return true;
+}
+
+static void override_idtemplate_menu_draw(const bContext *UNUSED(C), Menu *menu)
+{
+  uiLayout *layout = menu->layout;
+  uiItemO(layout, IFACE_("Make"), ICON_NONE, "UI_OT_override_idtemplate_create");
+  uiItemO(layout, IFACE_("Reset"), ICON_NONE, "UI_OT_override_idtemplate_reset");
+  uiItemO(layout, IFACE_("Clear"), ICON_NONE, "UI_OT_override_idtemplate_clear");
+}
+
+static void override_idtemplate_menu(void)
+{
+  MenuType *mt;
+
+  mt = MEM_callocN(sizeof(MenuType), __func__);
+  strcpy(mt->idname, "UI_MT_idtemplate_liboverride");
+  strcpy(mt->label, N_("Library Override"));
+  mt->poll = override_idtemplate_menu_poll;
+  mt->draw = override_idtemplate_menu_draw;
+  WM_menutype_add(mt);
 }
 
 /** \} */
@@ -2232,8 +2475,6 @@ void ED_operatortypes_ui(void)
   WM_operatortype_append(UI_OT_reset_default_button);
   WM_operatortype_append(UI_OT_assign_default_button);
   WM_operatortype_append(UI_OT_unset_property_button);
-  WM_operatortype_append(UI_OT_override_type_set_button);
-  WM_operatortype_append(UI_OT_override_remove_button);
   WM_operatortype_append(UI_OT_copy_to_selected_button);
   WM_operatortype_append(UI_OT_jump_to_target_button);
   WM_operatortype_append(UI_OT_drop_color);
@@ -2251,6 +2492,13 @@ void ED_operatortypes_ui(void)
 
   WM_operatortype_append(UI_OT_view_drop);
   WM_operatortype_append(UI_OT_view_item_rename);
+
+  WM_operatortype_append(UI_OT_override_type_set_button);
+  WM_operatortype_append(UI_OT_override_remove_button);
+  WM_operatortype_append(UI_OT_override_idtemplate_create);
+  WM_operatortype_append(UI_OT_override_idtemplate_reset);
+  WM_operatortype_append(UI_OT_override_idtemplate_clear);
+  override_idtemplate_menu();
 
   /* external */
   WM_operatortype_append(UI_OT_eyedropper_color);

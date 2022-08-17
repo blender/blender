@@ -650,14 +650,13 @@ static void template_id_liboverride_hierarchy_collections_tag_recursive(
   }
 }
 
-static void template_id_liboverride_hierarchy_create(bContext *C,
-                                                     Main *bmain,
-                                                     TemplateID *template_ui,
-                                                     PointerRNA *idptr,
-                                                     const char **r_undo_push_label)
+ID *ui_template_id_liboverride_hierarchy_create(
+    bContext *C, Main *bmain, ID *owner_id, ID *id, const char **r_undo_push_label)
 {
-  ID *id = idptr->data;
-  ID *owner_id = template_ui->ptr.owner_id;
+  const char *undo_push_label;
+  if (r_undo_push_label == NULL) {
+    r_undo_push_label = &undo_push_label;
+  }
 
   /* If this is called on an already local override, 'toggle' between user-editable state, and
    * system override with reset. */
@@ -677,7 +676,7 @@ static void template_id_liboverride_hierarchy_create(bContext *C,
     WM_event_add_notifier(C, NC_WM | ND_DATACHANGED, NULL);
     WM_event_add_notifier(C, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-    return;
+    return id;
   }
 
   /* Attempt to perform a hierarchy override, based on contextual data available.
@@ -685,7 +684,7 @@ static void template_id_liboverride_hierarchy_create(bContext *C,
    * context, better to abort than create random overrides all over the place. */
   if (!ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY(id)) {
     RNA_warning("The data-block %s is not direclty overridable", id->name);
-    return;
+    return NULL;
   }
 
   Object *object_active = CTX_data_active_object(C);
@@ -867,7 +866,23 @@ static void template_id_liboverride_hierarchy_create(bContext *C,
   if (id_override != NULL) {
     id_override->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
     *r_undo_push_label = "Make Library Override Hierarchy";
+  }
+  return id_override;
+}
 
+static void template_id_liboverride_hierarchy_create(bContext *C,
+                                                     Main *bmain,
+                                                     TemplateID *template_ui,
+                                                     PointerRNA *idptr,
+                                                     const char **r_undo_push_label)
+{
+  ID *id = idptr->data;
+  ID *owner_id = template_ui->ptr.owner_id;
+
+  ID *id_override = ui_template_id_liboverride_hierarchy_create(
+      C, bmain, owner_id, id, r_undo_push_label);
+
+  if (id_override != NULL) {
     /* Given `idptr` is re-assigned to owner property by caller to ensure proper updates etc. Here
      * we also use it to ensure remapping of the owner property from the linked data to the newly
      * created liboverride (note that in theory this remapping has already been done by code
