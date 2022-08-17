@@ -391,8 +391,6 @@ static void outliner_id_remap(ScrArea *area, SpaceLink *slink, const struct IDRe
 {
   SpaceOutliner *space_outliner = (SpaceOutliner *)slink;
 
-  BKE_id_remapper_apply(mappings, (ID **)&space_outliner->search_tse.id, ID_REMAP_APPLY_DEFAULT);
-
   if (!space_outliner->treestore) {
     return;
   }

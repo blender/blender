@@ -278,9 +278,7 @@ typedef struct SpaceOutliner {
    */
   struct BLI_mempool *treestore;
 
-  /* search stuff */
   char search_string[64];
-  struct TreeStoreElem search_tse;
 
   short flag;
   short outlinevis;
