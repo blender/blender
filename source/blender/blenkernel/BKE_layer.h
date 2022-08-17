@@ -354,7 +354,8 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter);
 
 #define FOREACH_BASE_IN_MODE_BEGIN(_view_layer, _v3d, _object_type, _object_mode, _instance) \
   { \
-    struct ObjectsInModeIteratorData data_ = {NULL}; \
+    struct ObjectsInModeIteratorData data_; \
+    memset(&data_, 0, sizeof(data_)); \
     data_.object_mode = _object_mode; \
     data_.object_type = _object_type; \
     data_.view_layer = _view_layer; \
