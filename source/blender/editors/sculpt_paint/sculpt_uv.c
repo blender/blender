@@ -31,6 +31,7 @@
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
+#include "ED_uvedit.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -579,11 +580,19 @@ static void uv_sculpt_stroke_apply(bContext *C,
         copy_v2_v2(luv->uv, sculptdata->uv[uvindex].uv);
       }
     }
+    SpaceImage *sima = CTX_wm_space_image(C);
+    if (sima->flag & SI_LIVE_UNWRAP) {
+      ED_uvedit_live_unwrap_re_solve();
+    }
   }
 }
 
 static void uv_sculpt_stroke_exit(bContext *C, wmOperator *op)
 {
+  SpaceImage *sima = CTX_wm_space_image(C);
+  if (sima->flag & SI_LIVE_UNWRAP) {
+    ED_uvedit_live_unwrap_end(false);
+  }
   UvSculptData *data = op->customdata;
   if (data->timer) {
     WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), data->timer);
@@ -895,6 +904,9 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
       }
 
       data->initial_stroke->totalInitialSelected = counter;
+      if (sima->flag & SI_LIVE_UNWRAP) {
+        ED_uvedit_live_unwrap_begin(scene, obedit);
+      }
     }
   }
 

@@ -133,7 +133,6 @@ void EDBM_update(struct Mesh *me, const struct EDBMUpdate_Params *params);
 void EDBM_update_extern(struct Mesh *me, bool do_tessellation, bool is_destructive);
 
 /**
- *
  * A specialized vert map used by stitch operator.
  */
 struct UvElementMap *BM_uv_element_map_create(struct BMesh *bm,
