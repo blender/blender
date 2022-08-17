@@ -21,7 +21,7 @@ namespace blender::gpu {
 /** \name Vertex Array Bindings
  * \{ */
 
-/* Returns enabled vertex pointers as a bitflag (one bit per attrib). */
+/** Returns enabled vertex pointers as a bit-flag (one bit per attribute). */
 static uint16_t vbo_bind(const ShaderInterface *interface,
                          const GPUVertFormat *format,
                          uint v_first,

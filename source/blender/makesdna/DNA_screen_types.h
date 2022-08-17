@@ -628,7 +628,7 @@ enum {
   /* Bitflags affecting behavior of any kind of sorting. */
   /** Special flag to indicate that order is locked (not user-changeable). */
   UILST_FLT_SORT_LOCK = 1u << 30,
-  /** Special value, bitflag used to reverse order! */
+  /** Special value, bit-flag used to reverse order! */
   UILST_FLT_SORT_REVERSE = 1u << 31,
 };
 

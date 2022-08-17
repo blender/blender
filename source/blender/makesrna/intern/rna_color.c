@@ -1271,7 +1271,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Use Curves", "Use RGB curved for pre-display transformation");
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
-  /* ** Colorspace ** */
+  /* ** Color-space ** */
   srna = RNA_def_struct(brna, "ColorManagedInputColorspaceSettings", NULL);
   RNA_def_struct_path_func(srna, "rna_ColorManagedInputColorspaceSettings_path");
   RNA_def_struct_ui_text(

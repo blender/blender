@@ -23,7 +23,7 @@ void ChannelMatteNode::convert_to_operations(NodeConverter &converter,
   NodeOutput *output_socket_matte = this->get_output_socket(1);
 
   NodeOperation *convert = nullptr, *inv_convert = nullptr;
-  /* colorspace */
+  /* color-space */
   switch (node->custom1) {
     case CMP_NODE_CHANNEL_MATTE_CS_RGB:
       break;
