@@ -652,7 +652,7 @@ class USERPREF_PT_system_video_sequencer(SystemPanel, CenterAlignMixIn, Panel):
 
         layout.separator()
 
-        layout.prop(system, "use_sequencer_disk_cache")
+        layout.prop(system, "use_sequencer_disk_cache", text="Disk Cache")
         col = layout.column()
         col.active = system.use_sequencer_disk_cache
         col.prop(system, "sequencer_disk_cache_dir", text="Directory")
