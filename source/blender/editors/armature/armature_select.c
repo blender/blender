@@ -339,12 +339,7 @@ static void *ed_armature_pick_bone_impl(
     Base **bases;
 
     if (vc.obedit != NULL) {
-      bases = BKE_view_layer_array_from_bases_in_mode(vc.view_layer,
-                                                      vc.v3d,
-                                                      &bases_len,
-                                                      {
-                                                          .object_mode = OB_MODE_EDIT,
-                                                      });
+      bases = BKE_view_layer_array_from_bases_in_edit_mode(vc.view_layer, vc.v3d, &bases_len);
     }
     else {
       bases = BKE_object_pose_base_array_get(vc.view_layer, vc.v3d, &bases_len);

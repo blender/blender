@@ -194,13 +194,13 @@ Object **ED_object_array_in_mode_or_selected(bContext *C,
     /* When in a mode that supports multiple active objects, use "objects in mode"
      * instead of the object's selection. */
     if (use_objects_in_mode) {
-      objects = BKE_view_layer_array_from_objects_in_mode(view_layer,
-                                                          v3d,
-                                                          r_objects_len,
-                                                          {.object_mode = ob_active->mode,
-                                                           .no_dup_data = true,
-                                                           .filter_fn = filter_fn,
-                                                           .filter_userdata = filter_user_data});
+      struct ObjectsInModeParams params = {0};
+      params.object_mode = ob_active->mode;
+      params.no_dup_data = true;
+      params.filter_fn = filter_fn;
+      params.filter_userdata = filter_user_data;
+      objects = BKE_view_layer_array_from_objects_in_mode_params(
+          view_layer, v3d, r_objects_len, &params);
     }
     else {
       objects = BKE_view_layer_array_selected_objects(

@@ -10,6 +10,7 @@
 
 #include "DNA_layer_types.h"
 #include "DNA_listBase.h"
+#include "DNA_object_enums.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -520,46 +521,28 @@ struct Object **BKE_view_layer_array_from_objects_in_mode_params(
     uint *len,
     const struct ObjectsInModeParams *params);
 
-#define BKE_view_layer_array_from_objects_in_mode(view_layer, v3d, r_len, ...) \
-  BKE_view_layer_array_from_objects_in_mode_params( \
-      view_layer, v3d, r_len, &(const struct ObjectsInModeParams)__VA_ARGS__)
-
-#define BKE_view_layer_array_from_bases_in_mode(view_layer, v3d, r_len, ...) \
-  BKE_view_layer_array_from_bases_in_mode_params( \
-      view_layer, v3d, r_len, &(const struct ObjectsInModeParams)__VA_ARGS__)
-
 bool BKE_view_layer_filter_edit_mesh_has_uvs(const struct Object *ob, void *user_data);
 bool BKE_view_layer_filter_edit_mesh_has_edges(const struct Object *ob, void *user_data);
 
-/* Utility macros that wrap common args (add more as needed). */
+/* Utility functions that wrap common arguments (add more as needed). */
 
-#define BKE_view_layer_array_from_objects_in_edit_mode(view_layer, v3d, r_len) \
-  BKE_view_layer_array_from_objects_in_mode(view_layer, v3d, r_len, {.object_mode = OB_MODE_EDIT})
+struct Object **BKE_view_layer_array_from_objects_in_edit_mode(struct ViewLayer *view_layer,
+                                                               const struct View3D *v3d,
+                                                               uint *r_len);
+struct Base **BKE_view_layer_array_from_bases_in_edit_mode(struct ViewLayer *view_layer,
+                                                           const struct View3D *v3d,
+                                                           uint *r_len);
+struct Object **BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+    struct ViewLayer *view_layer, const struct View3D *v3d, uint *r_len);
 
-#define BKE_view_layer_array_from_bases_in_edit_mode(view_layer, v3d, r_len) \
-  BKE_view_layer_array_from_bases_in_mode(view_layer, v3d, r_len, {.object_mode = OB_MODE_EDIT})
-
-#define BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, v3d, r_len) \
-  BKE_view_layer_array_from_objects_in_mode( \
-      view_layer, v3d, r_len, {.object_mode = OB_MODE_EDIT, .no_dup_data = true})
-
-#define BKE_view_layer_array_from_bases_in_edit_mode_unique_data(view_layer, v3d, r_len) \
-  BKE_view_layer_array_from_bases_in_mode( \
-      view_layer, v3d, r_len, {.object_mode = OB_MODE_EDIT, .no_dup_data = true})
-
-#define BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs( \
-    view_layer, v3d, r_len) \
-  BKE_view_layer_array_from_objects_in_mode( \
-      view_layer, \
-      v3d, \
-      r_len, \
-      {.object_mode = OB_MODE_EDIT, \
-       .no_dup_data = true, \
-       .filter_fn = BKE_view_layer_filter_edit_mesh_has_uvs})
-
-#define BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, v3d, r_len, mode) \
-  BKE_view_layer_array_from_objects_in_mode( \
-      view_layer, v3d, r_len, {.object_mode = mode, .no_dup_data = true})
+struct Base **BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
+    struct ViewLayer *view_layer, const struct View3D *v3d, uint *r_len);
+struct Object **BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+    struct ViewLayer *view_layer, const struct View3D *v3d, uint *r_len);
+struct Object **BKE_view_layer_array_from_objects_in_mode_unique_data(struct ViewLayer *view_layer,
+                                                                      const struct View3D *v3d,
+                                                                      uint *r_len,
+                                                                      eObjectMode mode);
 
 struct ViewLayerAOV *BKE_view_layer_add_aov(struct ViewLayer *view_layer);
 void BKE_view_layer_remove_aov(struct ViewLayer *view_layer, struct ViewLayerAOV *aov);
