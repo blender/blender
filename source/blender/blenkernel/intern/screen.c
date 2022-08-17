@@ -1128,8 +1128,6 @@ static void write_space_outliner(BlendWriter *writer, SpaceOutliner *space_outli
   BLI_mempool *ts = space_outliner->treestore;
 
   if (ts) {
-    SpaceOutliner space_outliner_flat = *space_outliner;
-
     int elems = BLI_mempool_len(ts);
     /* linearize mempool to array */
     TreeStoreElem *data = elems ? BLI_mempool_as_arrayN(ts, "TreeStoreElem") : NULL;
@@ -1157,6 +1155,7 @@ static void write_space_outliner(BlendWriter *writer, SpaceOutliner *space_outli
       MEM_freeN(data);
     }
     else {
+      SpaceOutliner space_outliner_flat = *space_outliner;
       space_outliner_flat.treestore = NULL;
       BLO_write_struct_at_address(writer, SpaceOutliner, space_outliner, &space_outliner_flat);
     }
