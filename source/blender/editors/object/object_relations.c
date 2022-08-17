@@ -2280,12 +2280,6 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
   ID *id_root = NULL;
   bool is_override_instancing_object = false;
 
-  const bool do_fully_editable = U.experimental.use_override_new_fully_editable;
-
-  GSet *user_overrides_objects_uids = do_fully_editable ? NULL :
-                                                          BLI_gset_new(BLI_ghashutil_inthash_p,
-                                                                       BLI_ghashutil_intcmp,
-                                                                       __func__);
   bool user_overrides_from_selected_objects = false;
 
   if (!ID_IS_LINKED(obact) && obact->instance_collection != NULL &&
@@ -2324,6 +2318,13 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
     id_root = &obact->id;
     user_overrides_from_selected_objects = true;
   }
+
+  const bool do_fully_editable = !user_overrides_from_selected_objects;
+
+  GSet *user_overrides_objects_uids = do_fully_editable ? NULL :
+                                                          BLI_gset_new(BLI_ghashutil_inthash_p,
+                                                                       BLI_ghashutil_intcmp,
+                                                                       __func__);
 
   /* Make already existing selected liboverrides editable. */
   FOREACH_SELECTED_OBJECT_BEGIN (view_layer, CTX_wm_view3d(C), ob_iter) {
