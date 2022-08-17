@@ -279,7 +279,7 @@ set(SRC
   intern/subdiv_displacement_multires.c
   intern/subdiv_eval.c
   intern/subdiv_foreach.c
-  intern/subdiv_mesh.c
+  intern/subdiv_mesh.cc
   intern/subdiv_modifier.c
   intern/subdiv_stats.c
   intern/subdiv_topology.c
