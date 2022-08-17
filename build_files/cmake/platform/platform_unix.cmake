@@ -100,8 +100,8 @@ find_package_wrapper(Epoxy REQUIRED)
 function(check_freetype_for_brotli)
   include(CheckSymbolExists)
   set(CMAKE_REQUIRED_INCLUDES ${FREETYPE_INCLUDE_DIRS})
-  check_symbol_exists(FT_CONFIG_OPTION_USE_BROTLI
-  "freetype/config/ftconfig.h" HAVE_BROTLI)
+  check_symbol_exists(FT_CONFIG_OPTION_USE_BROTLI "freetype/config/ftconfig.h" HAVE_BROTLI)
+  unset(CMAKE_REQUIRED_INCLUDES)
   if(NOT HAVE_BROTLI)
     unset(HAVE_BROTLI CACHE)
     message(FATAL_ERROR "Freetype needs to be compiled with brotli support!")
@@ -957,6 +957,7 @@ function(CONFIGURE_ATOMIC_LIB_IF_NEEDED)
 
     set(CMAKE_REQUIRED_LIBRARIES atomic)
     check_cxx_source_compiles("${_source}" ATOMIC_OPS_WITH_LIBATOMIC)
+    unset(CMAKE_REQUIRED_LIBRARIES)
 
     if(ATOMIC_OPS_WITH_LIBATOMIC)
       set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -latomic" PARENT_SCOPE)
