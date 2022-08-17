@@ -453,7 +453,7 @@ static void handle_subversion_warning(Main *main, BlendFileReadReport *reports)
       (main->minversionfile == BLENDER_FILE_VERSION &&
        main->minsubversionfile > BLENDER_FILE_SUBVERSION)) {
     BKE_reportf(reports->reports,
-                RPT_ERROR,
+                RPT_WARNING,
                 "File written by newer Blender binary (%d.%d), expect loss of data!",
                 main->minversionfile,
                 main->minsubversionfile);
