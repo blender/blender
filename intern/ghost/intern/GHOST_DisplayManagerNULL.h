@@ -14,7 +14,7 @@ class GHOST_SystemHeadless;
 
 class GHOST_DisplayManagerNULL : public GHOST_DisplayManager {
  public:
-  GHOST_DisplayManagerNULL(GHOST_SystemHeadless *system) : GHOST_DisplayManager(), m_system(system)
+  GHOST_DisplayManagerNULL() : GHOST_DisplayManager()
   { /* nop */
   }
   GHOST_TSuccess getNumDisplays(uint8_t & /*numDisplays*/) const override
@@ -42,7 +42,4 @@ class GHOST_DisplayManagerNULL : public GHOST_DisplayManager {
   {
     return GHOST_kSuccess;
   }
-
- private:
-  GHOST_SystemHeadless *m_system;
 };

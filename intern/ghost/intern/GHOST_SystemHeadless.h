@@ -126,7 +126,7 @@ class GHOST_SystemHeadless : public GHOST_System {
     GHOST_TSuccess success = GHOST_System::init();
 
     if (success) {
-      m_displayManager = new GHOST_DisplayManagerNULL(this);
+      m_displayManager = new GHOST_DisplayManagerNULL();
 
       if (m_displayManager) {
         return GHOST_kSuccess;
@@ -148,8 +148,7 @@ class GHOST_SystemHeadless : public GHOST_System {
                               const bool /*is_dialog*/,
                               const GHOST_IWindow *parentWindow) override
   {
-    return new GHOST_WindowNULL(this,
-                                title,
+    return new GHOST_WindowNULL(title,
                                 left,
                                 top,
                                 width,

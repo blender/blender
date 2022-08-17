@@ -20,8 +20,7 @@ class GHOST_WindowNULL : public GHOST_Window {
     return GHOST_kSuccess;
   }
 
-  GHOST_WindowNULL(GHOST_SystemHeadless *system,
-                   const char *title,
+  GHOST_WindowNULL(const char *title,
                    int32_t /*left*/,
                    int32_t /*top*/,
                    uint32_t width,
@@ -30,7 +29,7 @@ class GHOST_WindowNULL : public GHOST_Window {
                    const GHOST_IWindow * /*parentWindow*/,
                    GHOST_TDrawingContextType /*type*/,
                    const bool stereoVisual)
-      : GHOST_Window(width, height, state, stereoVisual, false), m_system(system)
+      : GHOST_Window(width, height, state, stereoVisual, false)
   {
     setTitle(title);
   }
@@ -144,8 +143,6 @@ class GHOST_WindowNULL : public GHOST_Window {
   }
 
  private:
-  GHOST_SystemHeadless *m_system;
-
   /**
    * \param type: The type of rendering context create.
    * \return Indication of success.
