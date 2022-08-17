@@ -851,7 +851,6 @@ GPUBatch *DRW_cache_object_all_edges_get(Object *ob)
   switch (ob->type) {
     case OB_MESH:
       return DRW_cache_mesh_all_edges_get(ob);
-
     /* TODO: should match #DRW_cache_object_surface_get. */
     default:
       return NULL;
@@ -863,18 +862,6 @@ GPUBatch *DRW_cache_object_edge_detection_get(Object *ob, bool *r_is_manifold)
   switch (ob->type) {
     case OB_MESH:
       return DRW_cache_mesh_edge_detection_get(ob, r_is_manifold);
-    case OB_CURVES_LEGACY:
-      return NULL;
-    case OB_SURF:
-      return NULL;
-    case OB_FONT:
-      return NULL;
-    case OB_CURVES:
-      return NULL;
-    case OB_POINTCLOUD:
-      return NULL;
-    case OB_VOLUME:
-      return NULL;
     default:
       return NULL;
   }
@@ -885,21 +872,12 @@ GPUBatch *DRW_cache_object_face_wireframe_get(Object *ob)
   switch (ob->type) {
     case OB_MESH:
       return DRW_cache_mesh_face_wireframe_get(ob);
-    case OB_CURVES_LEGACY:
-      return NULL;
-    case OB_SURF:
-      return NULL;
-    case OB_FONT:
-      return NULL;
-    case OB_CURVES:
-      return NULL;
     case OB_POINTCLOUD:
       return DRW_pointcloud_batch_cache_get_dots(ob);
     case OB_VOLUME:
       return DRW_cache_volume_face_wireframe_get(ob);
-    case OB_GPENCIL: {
+    case OB_GPENCIL:
       return DRW_cache_gpencil_face_wireframe_get(ob);
-    }
     default:
       return NULL;
   }
@@ -910,18 +888,6 @@ GPUBatch *DRW_cache_object_loose_edges_get(struct Object *ob)
   switch (ob->type) {
     case OB_MESH:
       return DRW_cache_mesh_loose_edges_get(ob);
-    case OB_CURVES_LEGACY:
-      return NULL;
-    case OB_SURF:
-      return NULL;
-    case OB_FONT:
-      return NULL;
-    case OB_CURVES:
-      return NULL;
-    case OB_POINTCLOUD:
-      return NULL;
-    case OB_VOLUME:
-      return NULL;
     default:
       return NULL;
   }
@@ -932,18 +898,8 @@ GPUBatch *DRW_cache_object_surface_get(Object *ob)
   switch (ob->type) {
     case OB_MESH:
       return DRW_cache_mesh_surface_get(ob);
-    case OB_CURVES_LEGACY:
-      return NULL;
-    case OB_SURF:
-      return NULL;
-    case OB_FONT:
-      return NULL;
-    case OB_CURVES:
-      return NULL;
     case OB_POINTCLOUD:
       return DRW_cache_pointcloud_surface_get(ob);
-    case OB_VOLUME:
-      return NULL;
     default:
       return NULL;
   }
@@ -957,16 +913,6 @@ GPUVertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob)
   switch (type) {
     case OB_MESH:
       return DRW_mesh_batch_cache_pos_vertbuf_get((me != NULL) ? me : ob->data);
-    case OB_CURVES_LEGACY:
-    case OB_SURF:
-    case OB_FONT:
-      return NULL;
-    case OB_CURVES:
-      return NULL;
-    case OB_POINTCLOUD:
-      return NULL;
-    case OB_VOLUME:
-      return NULL;
     default:
       return NULL;
   }
@@ -1012,18 +958,8 @@ GPUBatch **DRW_cache_object_surface_material_get(struct Object *ob,
   switch (ob->type) {
     case OB_MESH:
       return DRW_cache_mesh_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
-    case OB_CURVES_LEGACY:
-      return NULL;
-    case OB_SURF:
-      return NULL;
-    case OB_FONT:
-      return NULL;
-    case OB_CURVES:
-      return NULL;
     case OB_POINTCLOUD:
       return DRW_cache_pointcloud_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
-    case OB_VOLUME:
-      return NULL;
     default:
       return NULL;
   }

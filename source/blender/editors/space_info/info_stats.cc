@@ -161,16 +161,6 @@ static void stats_object(Object *ob,
         stats->totlampsel++;
       }
       break;
-    case OB_SURF:
-    case OB_CURVES_LEGACY:
-    case OB_FONT: {
-      const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
-      if ((me_eval != nullptr) && !BLI_gset_add(objects_gset, (void *)me_eval)) {
-        break;
-      }
-      stats_mesheval(me_eval, is_selected, stats);
-      break;
-    }
     case OB_GPENCIL: {
       if (is_selected) {
         bGPdata *gpd = (bGPdata *)ob->data;

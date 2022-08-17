@@ -47,7 +47,7 @@ OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Obj
     /* Since a new mesh been allocated, it needs to be freed in the destructor. */
     mesh_eval_needs_free_ = true;
   }
-  if (export_params.export_triangulated_mesh && ELEM(export_object_eval_.type, OB_MESH, OB_SURF)) {
+  if (export_params.export_triangulated_mesh && export_object_eval_.type == OB_MESH) {
     std::tie(export_mesh_eval_, mesh_eval_needs_free_) = triangulate_mesh_eval();
   }
   set_world_axes_transform(export_params.forward_axis, export_params.up_axis);
