@@ -3237,7 +3237,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         /* No assumption should be made that the resulting objects is a mesh, as conversion can
          * fail. */
         object_data_convert_curve_to_mesh(bmain, depsgraph, newob);
-        /* meshes doesn't use displist */
+        /* Meshes doesn't use the "curve cache". */
         BKE_object_free_curve_cache(newob);
       }
       else if (target == OB_GPENCIL) {
@@ -3272,7 +3272,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         /* No assumption should be made that the resulting objects is a mesh, as conversion can
          * fail. */
         object_data_convert_curve_to_mesh(bmain, depsgraph, newob);
-        /* meshes doesn't use displist */
+        /* Meshes don't use the "curve cache". */
         BKE_object_free_curve_cache(newob);
       }
       else if (target == OB_GPENCIL) {

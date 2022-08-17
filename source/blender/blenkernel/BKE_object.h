@@ -474,8 +474,8 @@ void BKE_object_handle_data_update(struct Depsgraph *depsgraph,
  */
 void BKE_object_handle_update(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
 /**
- * The main object update call, for object matrix, constraints, keys and #DispList (modifiers)
- * requires flags to be set!
+ * The main object update call, for object matrix, constraints, keys and modifiers.
+ * Requires flags to be set!
  *
  * Ideally we shouldn't have to pass the rigid body world,
  * but need bigger restructuring to avoid id.

@@ -4,11 +4,8 @@
 /** \file
  * \ingroup bke
  *
- * MetaBalls are created from a single Object (with a name without number in it),
- * here the DispList and BoundBox also is located.
+ * MetaBalls are created from a single Object (with a name without number in it).
  * All objects with the same name (but with a number in it) are added to this.
- *
- * texture coordinates are patched within the displist
  */
 
 #include <cctype>

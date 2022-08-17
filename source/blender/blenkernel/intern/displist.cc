@@ -114,7 +114,6 @@ bool BKE_displist_surfindex_get(
   return true;
 }
 
-/* ****************** Make #DispList ********************* */
 #ifdef __INTEL_COMPILER
 /* ICC with the optimization -02 causes crashes. */
 #  pragma intel optimization_level 1
@@ -1334,7 +1333,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
 
     if (geometry.has_curves()) {
       /* Create a copy of the original curve and add necessary pointers to evaluated and edit mode
-       * data. This is needed for a few reasons:
+       * data. This is neeOB_SURFded for a few reasons:
        * - Existing code from before curve evaluation was changed to use #GeometrySet expected to
        *   have a copy of the original curve data. (Any evaluated data was placed in
        *   #Object.runtime.curve_cache).
@@ -1364,7 +1363,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
 
 void BKE_displist_minmax(const ListBase *dispbase, float min[3], float max[3])
 {
-  bool doit = false;
+  bool empty = true;
 
   LISTBASE_FOREACH (const DispList *, dl, dispbase) {
     const int tot = dl->type == DL_INDEX3 ? dl->nr : dl->nr * dl->parts;
@@ -1372,12 +1371,11 @@ void BKE_displist_minmax(const ListBase *dispbase, float min[3], float max[3])
       minmax_v3v3_v3(min, max, &dl->verts[i * 3]);
     }
     if (tot != 0) {
-      doit = true;
+      empty = false;
     }
   }
 
-  if (!doit) {
-    /* there's no geometry in displist, use zero-sized boundbox */
+  if (empty) {
     zero_v3(min);
     zero_v3(max);
   }
