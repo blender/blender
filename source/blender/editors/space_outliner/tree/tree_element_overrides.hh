@@ -66,7 +66,7 @@ class TreeElementOverridesProperty : public AbstractTreeElement {
 };
 
 /**
- * Represent a single operation within an overriden property. While usually a single override
+ * Represent a single operation within an overridden property. While usually a single override
  * property represents a single operation (changing the value), a single overridden collection
  * property may have multiple operations, e.g. to insert or remove collection items.
  *

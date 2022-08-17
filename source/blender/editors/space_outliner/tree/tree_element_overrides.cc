@@ -153,7 +153,7 @@ void TreeElementOverridesBase::expand(SpaceOutliner &space_outliner) const
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Overriden Property
+/** \name Overridden Property
  *
  * Represents an RNA property that was overridden.
  *
@@ -187,7 +187,7 @@ StringRefNull TreeElementOverridesProperty::getWarning() const
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Overriden Property Operation
+/** \name Overridden Property Operation
  *
  * See #TreeElementOverridesPropertyOperation.
  * \{ */

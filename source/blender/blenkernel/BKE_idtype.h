@@ -113,7 +113,7 @@ typedef struct IDTypeInfo {
    */
   short id_code;
   /**
-   * Bitflag matching id_code, used for filtering (e.g. in file browser), see DNA_ID.h's
+   * Bit-flag matching id_code, used for filtering (e.g. in file browser), see DNA_ID.h's
    * FILTER_ID_XX enums.
    */
   uint64_t id_filter;

@@ -921,7 +921,7 @@ void uiTemplateImage(uiLayout *layout,
     }
   }
 
-  /* Colorspace and alpha */
+  /* Color-space and alpha. */
   {
     uiItemS(layout);
 
