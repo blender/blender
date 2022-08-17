@@ -14,6 +14,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -24,10 +26,11 @@
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.h"
-
 #include "BKE_displist.h"
+#include "BKE_global.h"
+#include "BKE_lib_id.h"
 #include "BKE_mball_tessellate.h" /* own include */
+#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
@@ -1371,7 +1374,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
   }
 }
 
-void BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob, ListBase *dispbase)
+Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   PROCESS process = {0};
   const bool is_render = DEG_get_mode(depsgraph) == DAG_EVAL_RENDER;
@@ -1394,10 +1397,10 @@ void BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob, ListBa
   }
 
   if (!is_render && (mb->flag == MB_UPDATE_NEVER)) {
-    return;
+    return NULL;
   }
   if ((G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)) && mb->flag == MB_UPDATE_FAST) {
-    return;
+    return NULL;
   }
 
   if (is_render) {
@@ -1418,7 +1421,7 @@ void BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob, ListBa
   init_meta(depsgraph, &process, scene, ob);
   if (process.totelem == 0) {
     freepolygonize(&process);
-    return;
+    return NULL;
   }
 
   build_bvh_spatial(&process, &process.metaball_bvh, 0, process.totelem, &process.allbb);
@@ -1430,40 +1433,63 @@ void BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob, ListBa
       ob->scale[1] < 0.00001f * (process.allbb.max[1] - process.allbb.min[1]) ||
       ob->scale[2] < 0.00001f * (process.allbb.max[2] - process.allbb.min[2])) {
     freepolygonize(&process);
-    return;
+    return NULL;
   }
 
   polygonize(&process);
   if (process.curindex == 0) {
     freepolygonize(&process);
-    return;
+    return NULL;
   }
-
-  /* add resulting surface to displist */
-
-  /* Avoid over-allocation since this is stored in the displist. */
-  if (process.curindex != process.totindex) {
-    process.indices = MEM_reallocN(process.indices, sizeof(int[4]) * process.curindex);
-  }
-  if (process.curvertex != process.totvertex) {
-    process.co = MEM_reallocN(process.co, process.curvertex * sizeof(float[3]));
-    process.no = MEM_reallocN(process.no, process.curvertex * sizeof(float[3]));
-  }
-
-  DispList *dl = MEM_callocN(sizeof(DispList), "mballdisp");
-  BLI_addtail(dispbase, dl);
-  dl->type = DL_INDEX4;
-  dl->nr = (int)process.curvertex;
-  dl->parts = (int)process.curindex;
-
-  dl->index = (int *)process.indices;
-
-  for (uint a = 0; a < process.curvertex; a++) {
-    normalize_v3(process.no[a]);
-  }
-
-  dl->verts = (float *)process.co;
-  dl->nors = (float *)process.no;
 
   freepolygonize(&process);
+
+  Mesh *mesh = (Mesh *)BKE_id_new_nomain(ID_ME, ((ID *)ob->data)->name + 2);
+
+  mesh->totvert = (int)process.curvertex;
+  MVert *mvert = CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_DEFAULT, NULL, mesh->totvert);
+  for (int i = 0; i < mesh->totvert; i++) {
+    copy_v3_v3(mvert[i].co, process.co[i]);
+    mvert->bweight = 0;
+    mvert->flag = 0;
+  }
+  MEM_freeN(process.co);
+
+  mesh->totpoly = (int)process.curindex;
+  MPoly *mpoly = CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_DEFAULT, NULL, mesh->totpoly);
+  MLoop *mloop = CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_DEFAULT, NULL, mesh->totpoly * 4);
+
+  int loop_offset = 0;
+  for (int i = 0; i < mesh->totpoly; i++) {
+    const int *indices = process.indices[i];
+
+    const int count = indices[2] != indices[3] ? 4 : 3;
+    mpoly[i].loopstart = loop_offset;
+    mpoly[i].totloop = count;
+    mpoly[i].flag = ME_SMOOTH;
+
+    mloop[loop_offset].v = (uint32_t)indices[0];
+    mloop[loop_offset + 1].v = (uint32_t)indices[1];
+    mloop[loop_offset + 2].v = (uint32_t)indices[2];
+    if (count == 4) {
+      mloop[loop_offset + 3].v = (uint32_t)indices[3];
+    }
+
+    loop_offset += count;
+  }
+  MEM_freeN(process.indices);
+
+  for (int i = 0; i < mesh->totvert; i++) {
+    normalize_v3(process.no[i]);
+  }
+  mesh->runtime.vert_normals = process.no;
+  BKE_mesh_vertex_normals_clear_dirty(mesh);
+
+  mesh->totloop = loop_offset;
+
+  BKE_mesh_update_customdata_pointers(mesh, false);
+
+  BKE_mesh_calc_edges(mesh, false, false);
+
+  return mesh;
 }

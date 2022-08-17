@@ -72,61 +72,6 @@ using blender::Span;
 
 static CLG_LogRef LOG = {"bke.mesh_convert"};
 
-void BKE_mesh_from_metaball(ListBase *lb, Mesh *me)
-{
-  DispList *dl;
-  MVert *mvert;
-  MLoop *mloop, *allloop;
-  MPoly *mpoly;
-  int a, *index;
-
-  dl = (DispList *)lb->first;
-  if (dl == nullptr) {
-    return;
-  }
-
-  if (dl->type == DL_INDEX4) {
-    mvert = (MVert *)CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, nullptr, dl->nr);
-    allloop = mloop = (MLoop *)CustomData_add_layer(
-        &me->ldata, CD_MLOOP, CD_CALLOC, nullptr, dl->parts * 4);
-    mpoly = (MPoly *)CustomData_add_layer(&me->pdata, CD_MPOLY, CD_CALLOC, nullptr, dl->parts);
-    me->mvert = mvert;
-    me->mloop = mloop;
-    me->mpoly = mpoly;
-    me->totvert = dl->nr;
-    me->totpoly = dl->parts;
-
-    for (const int i : IndexRange(dl->nr)) {
-      copy_v3_v3(me->mvert[i].co, &dl->verts[3 * i]);
-    }
-
-    a = dl->parts;
-    index = dl->index;
-    while (a--) {
-      int count = index[2] != index[3] ? 4 : 3;
-
-      mloop[0].v = index[0];
-      mloop[1].v = index[1];
-      mloop[2].v = index[2];
-      if (count == 4) {
-        mloop[3].v = index[3];
-      }
-
-      mpoly->totloop = count;
-      mpoly->loopstart = (int)(mloop - allloop);
-      mpoly->flag = ME_SMOOTH;
-
-      mpoly++;
-      mloop += count;
-      me->totloop += count;
-      index += 4;
-    }
-
-    BKE_mesh_update_customdata_pointers(me, true);
-    BKE_mesh_calc_edges(me, true, false);
-  }
-}
-
 /**
  * Specialized function to use when we _know_ existing edges don't overlap with poly edges.
  */
@@ -929,32 +874,21 @@ static Mesh *mesh_new_from_curve_type_object(const Object *object)
 
 static Mesh *mesh_new_from_mball_object(Object *object)
 {
-  MetaBall *mball = (MetaBall *)object->data;
-
   /* NOTE: We can only create mesh for a polygonized meta ball. This figures out all original meta
    * balls and all evaluated child meta balls (since polygonization is only stored in the mother
    * ball).
    *
    * Create empty mesh so script-authors don't run into None objects. */
-  if (!DEG_is_evaluated_object(object) || object->runtime.curve_cache == nullptr ||
-      BLI_listbase_is_empty(&object->runtime.curve_cache->disp)) {
+  if (!DEG_is_evaluated_object(object)) {
     return (Mesh *)BKE_id_new_nomain(ID_ME, ((ID *)object->data)->name + 2);
   }
 
-  Mesh *mesh_result = (Mesh *)BKE_id_new_nomain(ID_ME, ((ID *)object->data)->name + 2);
-  BKE_mesh_from_metaball(&object->runtime.curve_cache->disp, mesh_result);
-  BKE_mesh_texspace_copy_from_object(mesh_result, object);
-
-  /* Copy materials. */
-  mesh_result->totcol = mball->totcol;
-  mesh_result->mat = (Material **)MEM_dupallocN(mball->mat);
-  if (mball->mat != nullptr) {
-    for (int i = mball->totcol; i-- > 0;) {
-      mesh_result->mat[i] = BKE_object_material_get(object, i + 1);
-    }
+  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(object);
+  if (mesh_eval == nullptr) {
+    return (Mesh *)BKE_id_new_nomain(ID_ME, ((ID *)object->data)->name + 2);
   }
 
-  return mesh_result;
+  return BKE_mesh_copy_for_eval(mesh_eval, false);
 }
 
 static Mesh *mesh_new_from_mesh(Object *object, Mesh *mesh)

@@ -34,10 +34,8 @@
 #include "BKE_displist.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_key.h"
-#include "BKE_lattice.h"
 #include "BKE_lib_id.h"
 #include "BKE_mball.h"
-#include "BKE_mball_tessellate.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -84,120 +82,6 @@ DispList *BKE_displist_find(ListBase *lb, int type)
   }
 
   return nullptr;
-}
-
-void BKE_displist_normals_add(ListBase *lb)
-{
-  float *vdata, *ndata, nor[3];
-  float *v1, *v2, *v3, *v4;
-  float *n1, *n2, *n3, *n4;
-  int a, b, p1, p2, p3, p4;
-
-  LISTBASE_FOREACH (DispList *, dl, lb) {
-    if (dl->type == DL_INDEX3) {
-      if (dl->nors == nullptr) {
-        dl->nors = (float *)MEM_callocN(sizeof(float[3]), __func__);
-
-        if (dl->flag & DL_BACK_CURVE) {
-          dl->nors[2] = -1.0f;
-        }
-        else {
-          dl->nors[2] = 1.0f;
-        }
-      }
-    }
-    else if (dl->type == DL_SURF) {
-      if (dl->nors == nullptr) {
-        dl->nors = (float *)MEM_callocN(sizeof(float[3]) * dl->nr * dl->parts, __func__);
-
-        vdata = dl->verts;
-        ndata = dl->nors;
-
-        for (a = 0; a < dl->parts; a++) {
-
-          if (BKE_displist_surfindex_get(dl, a, &b, &p1, &p2, &p3, &p4) == 0) {
-            break;
-          }
-
-          v1 = vdata + 3 * p1;
-          n1 = ndata + 3 * p1;
-          v2 = vdata + 3 * p2;
-          n2 = ndata + 3 * p2;
-          v3 = vdata + 3 * p3;
-          n3 = ndata + 3 * p3;
-          v4 = vdata + 3 * p4;
-          n4 = ndata + 3 * p4;
-
-          for (; b < dl->nr; b++) {
-            normal_quad_v3(nor, v1, v3, v4, v2);
-
-            add_v3_v3(n1, nor);
-            add_v3_v3(n2, nor);
-            add_v3_v3(n3, nor);
-            add_v3_v3(n4, nor);
-
-            v2 = v1;
-            v1 += 3;
-            v4 = v3;
-            v3 += 3;
-            n2 = n1;
-            n1 += 3;
-            n4 = n3;
-            n3 += 3;
-          }
-        }
-        a = dl->parts * dl->nr;
-        v1 = ndata;
-        while (a--) {
-          normalize_v3(v1);
-          v1 += 3;
-        }
-      }
-    }
-  }
-}
-
-void BKE_displist_count(const ListBase *lb, int *totvert, int *totface, int *tottri)
-{
-  LISTBASE_FOREACH (const DispList *, dl, lb) {
-    int vert_tot = 0;
-    int face_tot = 0;
-    int tri_tot = 0;
-    bool cyclic_u = dl->flag & DL_CYCL_U;
-    bool cyclic_v = dl->flag & DL_CYCL_V;
-
-    switch (dl->type) {
-      case DL_SURF: {
-        int segments_u = dl->nr - (cyclic_u == false);
-        int segments_v = dl->parts - (cyclic_v == false);
-        vert_tot = dl->nr * dl->parts;
-        face_tot = segments_u * segments_v;
-        tri_tot = face_tot * 2;
-        break;
-      }
-      case DL_INDEX3: {
-        vert_tot = dl->nr;
-        face_tot = dl->parts;
-        tri_tot = face_tot;
-        break;
-      }
-      case DL_INDEX4: {
-        vert_tot = dl->nr;
-        face_tot = dl->parts;
-        tri_tot = face_tot * 2;
-        break;
-      }
-      case DL_POLY:
-      case DL_SEGM: {
-        vert_tot = dl->nr * dl->parts;
-        break;
-      }
-    }
-
-    *totvert += vert_tot;
-    *totface += face_tot;
-    *tottri += tri_tot;
-  }
 }
 
 bool BKE_displist_surfindex_get(
@@ -623,27 +507,6 @@ float BKE_displist_calc_taper(
   const float fac = ((float)cur) / (float)(tot - 1);
 
   return displist_calc_taper(depsgraph, scene, taperobj, fac);
-}
-
-void BKE_displist_make_mball(Depsgraph *depsgraph, Scene *scene, Object *ob)
-{
-  if (!ob || ob->type != OB_MBALL) {
-    return;
-  }
-
-  if (ob == BKE_mball_basis_find(scene, ob)) {
-    if (ob->runtime.curve_cache) {
-      BKE_displist_free(&(ob->runtime.curve_cache->disp));
-    }
-    else {
-      ob->runtime.curve_cache = MEM_cnew<CurveCache>(__func__);
-    }
-
-    BKE_mball_polygonize(depsgraph, scene, ob, &ob->runtime.curve_cache->disp);
-    BKE_mball_texspace_calc(ob);
-
-    object_deform_mball(ob, &ob->runtime.curve_cache->disp);
-  }
 }
 
 static ModifierData *curve_get_tessellate_point(const Scene *scene,
@@ -1504,7 +1367,7 @@ void BKE_displist_minmax(const ListBase *dispbase, float min[3], float max[3])
   bool doit = false;
 
   LISTBASE_FOREACH (const DispList *, dl, dispbase) {
-    const int tot = (ELEM(dl->type, DL_INDEX3, DL_INDEX4)) ? dl->nr : dl->nr * dl->parts;
+    const int tot = dl->type == DL_INDEX3 ? dl->nr : dl->nr * dl->parts;
     for (const int i : IndexRange(tot)) {
       minmax_v3v3_v3(min, max, &dl->verts[i * 3]);
     }

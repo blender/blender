@@ -144,8 +144,7 @@ void Instance::object_sync(Object *ob)
       case OB_MESH:
       case OB_CURVES_LEGACY:
       case OB_SURF:
-      case OB_FONT:
-      case OB_MBALL: {
+      case OB_FONT: {
         sync.sync_mesh(ob, ob_handle);
         break;
       }

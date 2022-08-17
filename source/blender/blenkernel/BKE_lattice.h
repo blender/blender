@@ -27,7 +27,6 @@ void BKE_lattice_resize(struct Lattice *lt, int u, int v, int w, struct Object *
 struct Lattice *BKE_lattice_add(struct Main *bmain, const char *name);
 void calc_lat_fudu(int flag, int res, float *r_fu, float *r_du);
 
-bool object_deform_mball(struct Object *ob, struct ListBase *dispbase);
 void outside_lattice(struct Lattice *lt);
 
 float (*BKE_lattice_vert_coords_alloc(const struct Lattice *lt, int *r_vert_len))[3];

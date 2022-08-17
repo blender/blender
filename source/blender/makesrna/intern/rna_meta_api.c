@@ -28,7 +28,7 @@ static void rna_Meta_transform(struct MetaBall *mb, float mat[16])
 
 static void rna_Mball_update_gpu_tag(MetaBall *mb)
 {
-  BKE_mball_batch_cache_dirty_tag(mb, BKE_MBALL_BATCH_DIRTY_ALL);
+  DEG_id_tag_update(&mb->id, ID_RECALC_SHADING);
 }
 #else
 

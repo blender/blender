@@ -60,7 +60,7 @@ TEST_F(obj_exporter_test, filter_objects_curves_as_mesh)
     return;
   }
   auto [objmeshes, objcurves]{filter_supported_objects(depsgraph, _export.params)};
-  EXPECT_EQ(objmeshes.size(), 20);
+  EXPECT_EQ(objmeshes.size(), 21);
   EXPECT_EQ(objcurves.size(), 0);
 }
 

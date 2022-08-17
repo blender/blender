@@ -25,6 +25,7 @@
 
 #include "DNA_defaults.h"
 #include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -41,11 +42,15 @@
 #include "BKE_anim_data.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_geometry_set.hh"
 #include "BKE_idtype.h"
+#include "BKE_lattice.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
+#include "BKE_mball_tessellate.h"
+#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
@@ -76,14 +81,11 @@ static void metaball_copy_data(Main *UNUSED(bmain),
 
   metaball_dst->editelems = nullptr;
   metaball_dst->lastelem = nullptr;
-  metaball_dst->batch_cache = nullptr;
 }
 
 static void metaball_free_data(ID *id)
 {
   MetaBall *metaball = (MetaBall *)id;
-
-  BKE_mball_batch_cache_free(metaball);
 
   MEM_SAFE_FREE(metaball->mat);
 
@@ -111,7 +113,6 @@ static void metaball_blend_write(BlendWriter *writer, ID *id, const void *id_add
   /* Must always be cleared (meta's don't have their own edit-data). */
   mb->needs_flush_to_id = 0;
   mb->lastelem = nullptr;
-  mb->batch_cache = nullptr;
 
   /* write LibData */
   BLO_write_id_struct(writer, MetaBall, id_address, &mb->id);
@@ -144,7 +145,6 @@ static void metaball_blend_read_data(BlendDataReader *reader, ID *id)
   mb->needs_flush_to_id = 0;
   // mb->edit_elems.first = mb->edit_elems.last = nullptr;
   mb->lastelem = nullptr;
-  mb->batch_cache = nullptr;
 }
 
 static void metaball_blend_read_lib(BlendLibReader *reader, ID *id)
@@ -249,62 +249,35 @@ MetaElem *BKE_mball_element_add(MetaBall *mb, const int type)
 
   return ml;
 }
-void BKE_mball_texspace_calc(Object *ob)
-{
-  DispList *dl;
-  BoundBox *bb;
-  float *data, min[3], max[3] /*, loc[3], size[3] */;
-  int tot;
-  bool do_it = false;
-
-  if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
-  }
-  bb = ob->runtime.bb;
-
-  /* Weird one, this. */
-  // INIT_MINMAX(min, max);
-  (min)[0] = (min)[1] = (min)[2] = 1.0e30f;
-  (max)[0] = (max)[1] = (max)[2] = -1.0e30f;
-
-  dl = static_cast<DispList *>(ob->runtime.curve_cache->disp.first);
-  while (dl) {
-    tot = dl->nr;
-    if (tot) {
-      do_it = true;
-    }
-    data = dl->verts;
-    while (tot--) {
-      /* Also weird... but longer. From utildefines. */
-      minmax_v3v3_v3(min, max, data);
-      data += 3;
-    }
-    dl = dl->next;
-  }
-
-  if (!do_it) {
-    min[0] = min[1] = min[2] = -1.0f;
-    max[0] = max[1] = max[2] = 1.0f;
-  }
-
-  BKE_boundbox_init_from_minmax(bb, min, max);
-
-  bb->flag &= ~BOUNDBOX_DIRTY;
-}
 
 BoundBox *BKE_mball_boundbox_get(Object *ob)
 {
   BLI_assert(ob->type == OB_MBALL);
-
-  if (ob->runtime.bb != nullptr && (ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) {
+  if (ob->runtime.bb != NULL && (ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) {
     return ob->runtime.bb;
   }
-
-  /* This should always only be called with evaluated objects,
-   * but currently RNA is a problem here... */
-  if (ob->runtime.curve_cache != nullptr) {
-    BKE_mball_texspace_calc(ob);
+  if (ob->runtime.bb == NULL) {
+    ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
   }
+
+  /* Expect that this function is only called for evaluated objects. */
+  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+  float min[3];
+  float max[3];
+  if (mesh_eval) {
+    INIT_MINMAX(min, max);
+    if (!BKE_mesh_minmax(mesh_eval, min, max)) {
+      copy_v3_fl(min, -1.0f);
+      copy_v3_fl(max, 1.0f);
+    }
+  }
+  else {
+    copy_v3_fl(min, 0.0f);
+    copy_v3_fl(max, 0.0f);
+  }
+
+  BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
+  ob->runtime.bb->flag &= ~BOUNDBOX_DIRTY;
 
   return ob->runtime.bb;
 }
@@ -735,20 +708,44 @@ bool BKE_mball_select_swap_multi_ex(Base **bases, int bases_len)
 
 /* **** Depsgraph evaluation **** */
 
-/* Draw Engine */
-
-void (*BKE_mball_batch_cache_dirty_tag_cb)(MetaBall *mb, int mode) = nullptr;
-void (*BKE_mball_batch_cache_free_cb)(MetaBall *mb) = nullptr;
-
-void BKE_mball_batch_cache_dirty_tag(MetaBall *mb, int mode)
+void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
-  if (mb->batch_cache) {
-    BKE_mball_batch_cache_dirty_tag_cb(mb, mode);
+  BLI_assert(ob->type == OB_MBALL);
+
+  BKE_object_free_derived_caches(ob);
+
+  const Object *basis_object = BKE_mball_basis_find(scene, ob);
+  if (ob != basis_object) {
+    return;
   }
-}
-void BKE_mball_batch_cache_free(MetaBall *mb)
-{
-  if (mb->batch_cache) {
-    BKE_mball_batch_cache_free_cb(mb);
+
+  Mesh *mesh = BKE_mball_polygonize(depsgraph, scene, ob);
+  if (mesh == NULL) {
+    return;
   }
-}
+
+  const MetaBall *mball = static_cast<MetaBall *>(ob->data);
+  mesh->mat = static_cast<Material **>(MEM_dupallocN(mball->mat));
+  mesh->totcol = mball->totcol;
+
+  if (ob->parent && ob->parent->type == OB_LATTICE && ob->partype == PARSKEL) {
+    int verts_num;
+    float(*positions)[3] = BKE_mesh_vert_coords_alloc(mesh, &verts_num);
+    BKE_lattice_deform_coords(ob->parent, ob, positions, verts_num, 0, NULL, 1.0f);
+    BKE_mesh_vert_coords_apply(mesh, positions);
+    MEM_freeN(positions);
+  }
+
+  ob->runtime.geometry_set_eval = new GeometrySet(GeometrySet::create_with_mesh(mesh));
+
+  if (ob->runtime.bb == NULL) {
+    ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
+  }
+  blender::float3 min(std::numeric_limits<float>::max());
+  blender::float3 max(-std::numeric_limits<float>::max());
+  if (!ob->runtime.geometry_set_eval->compute_boundbox_without_instances(&min, &max)) {
+    min = blender::float3(0);
+    max = blender::float3(0);
+  }
+  BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
+};
