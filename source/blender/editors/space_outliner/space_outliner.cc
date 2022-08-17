@@ -16,7 +16,7 @@
 
 #include "BKE_context.h"
 #include "BKE_lib_remap.h"
-#include "BKE_outliner_treehash.h"
+#include "BKE_outliner_treehash.hh"
 #include "BKE_screen.h"
 
 #include "ED_screen.h"

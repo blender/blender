@@ -237,7 +237,7 @@ set(SRC
   intern/object_update.c
   intern/ocean.c
   intern/ocean_spectrum.c
-  intern/outliner_treehash.c
+  intern/outliner_treehash.cc
   intern/packedFile.c
   intern/paint.c
   intern/paint_canvas.cc
@@ -444,7 +444,7 @@ set(SRC
   BKE_object_deform.h
   BKE_object_facemap.h
   BKE_ocean.h
-  BKE_outliner_treehash.h
+  BKE_outliner_treehash.hh
   BKE_packedFile.h
   BKE_paint.h
   BKE_particle.h
