@@ -582,8 +582,10 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
     goto error;
   }
 
-  initClearGL();
-  ::eglSwapBuffers(m_display, m_surface);
+  if (m_nativeWindow != 0) {
+    initClearGL();
+    ::eglSwapBuffers(m_display, m_surface);
+  }
 
   return GHOST_kSuccess;
 
