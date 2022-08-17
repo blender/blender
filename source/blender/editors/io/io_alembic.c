@@ -651,7 +651,7 @@ static int wm_alembic_import_exec(bContext *C, wmOperator *op)
     ED_object_mode_set(C, OB_MODE_OBJECT);
   }
 
-  struct AlembicImportParams params = {};
+  struct AlembicImportParams params = {0};
   params.global_scale = scale;
   params.sequence_len = sequence_len;
   params.sequence_offset = offset;
