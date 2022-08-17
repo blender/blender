@@ -950,7 +950,7 @@ int view3d_opengl_select_with_id_filter(struct ViewContext *vc,
                                         eV3DSelectObjectFilter select_filter,
                                         uint select_id);
 
-/* view3d_select.c */
+/* view3d_select.cc */
 
 float ED_view3d_select_dist_px(void);
 void ED_view3d_viewcontext_init(struct bContext *C,

@@ -2038,8 +2038,8 @@ extern const char *RE_engine_id_CYCLES;
   (BASE_EDITABLE(v3d, base) && (((base)->flag & BASE_SELECTED) != 0))
 
 /* deprecate this! */
-#define FIRSTBASE(_view_layer) ((_view_layer)->object_bases.first)
-#define LASTBASE(_view_layer) ((_view_layer)->object_bases.last)
+#define FIRSTBASE(_view_layer) ((struct Base *)(_view_layer)->object_bases.first)
+#define LASTBASE(_view_layer) ((struct Base *)(_view_layer)->object_bases.last)
 #define BASACT(_view_layer) ((_view_layer)->basact)
 #define OBACT(_view_layer) (BASACT(_view_layer) ? BASACT(_view_layer)->object : NULL)
 

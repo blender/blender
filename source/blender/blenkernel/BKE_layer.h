@@ -354,13 +354,12 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter);
 
 #define FOREACH_BASE_IN_MODE_BEGIN(_view_layer, _v3d, _object_type, _object_mode, _instance) \
   { \
-    struct ObjectsInModeIteratorData data_ = { \
-        .object_mode = _object_mode, \
-        .object_type = _object_type, \
-        .view_layer = _view_layer, \
-        .v3d = _v3d, \
-        .base_active = _view_layer->basact, \
-    }; \
+    struct ObjectsInModeIteratorData data_ = {NULL}; \
+    data_.object_mode = _object_mode; \
+    data_.object_type = _object_type; \
+    data_.view_layer = _view_layer; \
+    data_.v3d = _v3d; \
+    data_.base_active = _view_layer->basact; \
     ITER_BEGIN (BKE_view_layer_bases_in_mode_iterator_begin, \
                 BKE_view_layer_bases_in_mode_iterator_next, \
                 BKE_view_layer_bases_in_mode_iterator_end, \
