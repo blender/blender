@@ -73,7 +73,9 @@ static ft_pix blf_font_width_max_ft_pix(struct FontBLF *font);
 /** \name FreeType Caching
  * \{ */
 
-/* Called when a face is removed by the cache. FreeType will call FT_Done_Face. */
+/**
+ * Called when a face is removed by the cache. FreeType will call #FT_Done_Face.
+ */
 static void blf_face_finalizer(void *object)
 {
   FT_Face face = object;
@@ -81,11 +83,15 @@ static void blf_face_finalizer(void *object)
   font->face = NULL;
 }
 
-/* Called in response to FTC_Manager_LookupFace. Now add a face to our font. */
-FT_Error blf_cache_face_requester(FTC_FaceID faceID,
-                                  FT_Library lib,
-                                  FT_Pointer reqData,
-                                  FT_Face *face)
+/**
+ * Called in response to #FTC_Manager_LookupFace. Now add a face to our font.
+ *
+ * \note Unused arguments are kept to match #FTC_Face_Requester function signature.
+ */
+static FT_Error blf_cache_face_requester(FTC_FaceID faceID,
+                                         FT_Library lib,
+                                         FT_Pointer UNUSED(reqData),
+                                         FT_Face *face)
 {
   FontBLF *font = (FontBLF *)faceID;
   int err = FT_Err_Cannot_Open_Resource;
@@ -108,7 +114,9 @@ FT_Error blf_cache_face_requester(FTC_FaceID faceID,
   return err;
 }
 
-/* Called when the FreeType cache is removing a font size. */
+/**
+ * Called when the FreeType cache is removing a font size.
+ */
 static void blf_size_finalizer(void *object)
 {
   FT_Size size = object;
@@ -127,10 +135,8 @@ uint blf_get_char_index(struct FontBLF *font, uint charcode)
     /* Use charmap cache for much faster lookup. */
     return FTC_CMapCache_Lookup(ftc_charmap_cache, font, -1, charcode);
   }
-  else {
-    /* Fonts that are not cached need to use the regular lookup function. */
-    return blf_ensure_face(font) ? FT_Get_Char_Index(font->face, charcode) : 0;
-  }
+  /* Fonts that are not cached need to use the regular lookup function. */
+  return blf_ensure_face(font) ? FT_Get_Char_Index(font->face, charcode) : 0;
 }
 
 /* Convert a FreeType 26.6 value representing an unscaled design size to fractional pixels. */
@@ -1523,9 +1529,9 @@ FontBLF *blf_font_new_ex(const char *name,
   return font;
 }
 
-FontBLF *blf_font_new(const char *name, const char *filename)
+FontBLF *blf_font_new(const char *name, const char *filepath)
 {
-  return blf_font_new_ex(name, filename, NULL, 0, NULL);
+  return blf_font_new_ex(name, filepath, NULL, 0, NULL);
 }
 
 FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem, const size_t mem_size)
