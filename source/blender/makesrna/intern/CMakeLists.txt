@@ -6,6 +6,11 @@ if(CMAKE_COMPILER_IS_GNUCC)
   string(APPEND CMAKE_C_FLAGS " -Werror=implicit-function-declaration")
 endif()
 
+# Needed for `mallocn.c`.
+if(HAVE_MALLOC_STATS_H)
+  add_definitions(-DHAVE_MALLOC_STATS_H)
+endif()
+
 # files rna_access.c rna_define.c makesrna.c intentionally excluded.
 set(DEFSRC
   rna_ID.c

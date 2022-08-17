@@ -21,6 +21,10 @@ set(LIB
   bf_windowmanager
 )
 
+if(HAVE_FEENABLEEXCEPT)
+  add_definitions(-DHAVE_FEENABLEEXCEPT)
+endif()
+
 if(WITH_TBB)
   # Force TBB libraries to be in front of MKL (part of OpenImageDenoise), so
   # that it is initialized before MKL and static library initialization order

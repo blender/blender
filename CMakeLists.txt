@@ -106,6 +106,12 @@ blender_project_hack_post()
 enable_testing()
 
 #-----------------------------------------------------------------------------
+# Test compiler/library features.
+
+include(build_files/cmake/have_features.cmake)
+
+
+#-----------------------------------------------------------------------------
 # Redirect output files
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE INTERNAL "" FORCE)
