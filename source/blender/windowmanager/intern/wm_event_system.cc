@@ -667,14 +667,23 @@ static int wm_event_always_pass(const wmEvent *event)
  * Debug only sanity check for the return value of event handlers. Checks that "always pass" events
  * don't cause non-passing handler return values, and thus actually pass.
  *
- * Can't be executed if the handler just loaded a file (typically identified by `CTX_wm_window(C)`
- * returning `nullptr`), because the event will have been freed then.
+ * \param C: Pass in the context to check if it's "window" was cleared.
+ * The event check can't be executed if the handler just loaded a file or closed the window.
+ * (typically identified by `CTX_wm_window(C)` returning null),
+ * because the event will have been freed then.
+ * When null, always check the event (assume the caller knows the event was not freed).
  */
-BLI_INLINE void wm_event_handler_return_value_check(const wmEvent *event, const int action)
+BLI_INLINE void wm_event_handler_return_value_check(const bContext *C,
+                                                    const wmEvent *event,
+                                                    const int action)
 {
-  BLI_assert_msg(!wm_event_always_pass(event) || (action != WM_HANDLER_BREAK),
-                 "Return value for events that should always pass should never be BREAK.");
-  UNUSED_VARS_NDEBUG(event, action);
+#ifndef NDEBUG
+  if (C == nullptr || CTX_wm_window(C)) {
+    BLI_assert_msg(!wm_event_always_pass(event) || (action != WM_HANDLER_BREAK),
+                   "Return value for events that should always pass should never be BREAK.");
+  }
+#endif
+  UNUSED_VARS_NDEBUG(C, event, action);
 }
 
 /** \} */
@@ -3101,7 +3110,7 @@ static int wm_handlers_do_intern(bContext *C, wmWindow *win, wmEvent *event, Lis
   int action = WM_HANDLER_CONTINUE;
 
   if (handlers == nullptr) {
-    wm_event_handler_return_value_check(event, action);
+    wm_event_handler_return_value_check(C, event, action);
     return action;
   }
 
@@ -3267,9 +3276,7 @@ static int wm_handlers_do_intern(bContext *C, wmWindow *win, wmEvent *event, Lis
   }
 
   /* Do some extra sanity checking before returning the action. */
-  if (CTX_wm_window(C) != nullptr) {
-    wm_event_handler_return_value_check(event, action);
-  }
+  wm_event_handler_return_value_check(C, event, action);
   return action;
 }
 
@@ -3440,7 +3447,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
     }
   }
 
-  wm_event_handler_return_value_check(event, action);
+  wm_event_handler_return_value_check(C, event, action);
   return action;
 }
 
@@ -3717,7 +3724,7 @@ static int wm_event_do_handlers_area_regions(bContext *C, wmEvent *event, ScrAre
       action |= wm_event_do_region_handlers(C, event, region);
     }
 
-    wm_event_handler_return_value_check(event, action);
+    wm_event_handler_return_value_check(C, event, action);
     return action;
   }
 
