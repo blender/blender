@@ -2524,6 +2524,12 @@ void OBJECT_OT_make_override_library(wmOperatorType *ot)
   ot->prop = prop;
 }
 
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Reset Library Override Operator
+ * \{ */
+
 static bool reset_clear_override_library_poll(bContext *C)
 {
   Object *obact = CTX_data_active_object(C);
@@ -2565,6 +2571,12 @@ void OBJECT_OT_reset_override_library(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Clear Library Override Operator
+ * \{ */
 
 static int clear_override_library_exec(bContext *C, wmOperator *UNUSED(op))
 {
