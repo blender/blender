@@ -5178,6 +5178,9 @@ class VIEW3D_MT_edit_gpencil_stroke(Menu):
         layout.separator()
         layout.operator("gpencil.reset_transform_fill", text="Reset Fill Transform")
 
+        layout.separator()
+        layout.operator("gpencil.stroke_outline", text="Outline")
+
 
 class VIEW3D_MT_edit_gpencil_point(Menu):
     bl_label = "Point"
