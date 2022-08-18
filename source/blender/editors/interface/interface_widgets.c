@@ -1524,11 +1524,6 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
                              const size_t max_len,
                              const char rpart_sep)
 {
-  /* Add some epsilon to OK width, avoids 'ellipsing' text that nearly fits!
-   * Better to have a small piece of the last char cut out,
-   * than two remaining chars replaced by an ellipsis... */
-  okwidth += 1.0f + UI_DPI_FAC;
-
   BLI_assert(str[0]);
 
   /* need to set this first */
@@ -1627,7 +1622,7 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
     strwidth = BLF_width(fstyle->uifont_id, str, max_len);
   }
 
-  BLI_assert(strwidth <= okwidth);
+  BLI_assert((strwidth <= okwidth) || (okwidth <= 0.0f));
 
   return strwidth;
 }
