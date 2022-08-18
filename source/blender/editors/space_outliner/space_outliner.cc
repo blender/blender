@@ -191,7 +191,7 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
       }
       break;
     case NC_ID:
-      if (ELEM(wmn->action, NA_RENAME, NA_ADDED)) {
+      if (ELEM(wmn->action, NA_RENAME, NA_ADDED, NA_REMOVED)) {
         ED_region_tag_redraw(region);
       }
       break;
