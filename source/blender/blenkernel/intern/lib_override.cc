@@ -1212,6 +1212,7 @@ static void lib_override_library_create_post_process(Main *bmain,
                                                      ID *id_root,
                                                      ID *id_instance_hint,
                                                      Collection *residual_storage,
+                                                     const Object *old_active_object,
                                                      const bool is_resync)
 {
   /* NOTE: We only care about local IDs here, if a linked object is not instantiated in any way we
@@ -1283,6 +1284,14 @@ static void lib_override_library_create_post_process(Main *bmain,
 
     BLI_assert(ob_new->id.override_library != nullptr &&
                ob_new->id.override_library->reference == &ob->id);
+
+    if (old_active_object == ob) {
+      Base *basact = BKE_view_layer_base_find(view_layer, ob_new);
+      if (basact != nullptr) {
+        view_layer->basact = basact;
+      }
+      DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+    }
 
     if (BLI_gset_lookup(all_objects_in_scene, ob_new) == nullptr) {
       if (id_root != nullptr && default_instantiating_collection == nullptr) {
@@ -1374,6 +1383,8 @@ bool BKE_lib_override_library_create(Main *bmain,
     id_hierarchy_root_reference = id_root_reference;
   }
 
+  const Object *old_active_object = OBACT(view_layer);
+
   const bool success = lib_override_library_create_do(bmain,
                                                       scene,
                                                       owner_library,
@@ -1396,6 +1407,7 @@ bool BKE_lib_override_library_create(Main *bmain,
                                            id_root_reference,
                                            id_instance_hint,
                                            nullptr,
+                                           old_active_object,
                                            false);
 
   /* Cleanup. */
@@ -1709,6 +1721,7 @@ static bool lib_override_library_resync(Main *bmain,
 
   ID *id_root_reference = id_root->override_library->reference;
   ID *id;
+  const Object *old_active_object = OBACT(view_layer);
 
   if (id_root_reference->tag & LIB_TAG_MISSING) {
     BKE_reportf(reports != nullptr ? reports->reports : nullptr,
@@ -2133,6 +2146,7 @@ static bool lib_override_library_resync(Main *bmain,
                                              id_root_reference,
                                              id_root,
                                              override_resync_residual_storage,
+                                             old_active_object,
                                              true);
   }
 
@@ -2653,6 +2667,8 @@ void BKE_lib_override_library_main_resync(Main *bmain,
     override_resync_residual_storage->flag |= COLLECTION_HIDE_VIEWPORT | COLLECTION_HIDE_RENDER;
   }
 
+  const Object *old_active_object = OBACT(view_layer);
+
   /* Necessary to improve performances, and prevent layers matching override sub-collections to be
    * lost when re-syncing the parent override collection.
    * Ref. T73411. */
@@ -2673,8 +2689,15 @@ void BKE_lib_override_library_main_resync(Main *bmain,
   BKE_layer_collection_resync_allow();
 
   /* Essentially ensures that potentially new overrides of new objects will be instantiated. */
-  lib_override_library_create_post_process(
-      bmain, scene, view_layer, nullptr, nullptr, nullptr, override_resync_residual_storage, true);
+  lib_override_library_create_post_process(bmain,
+                                           scene,
+                                           view_layer,
+                                           nullptr,
+                                           nullptr,
+                                           nullptr,
+                                           override_resync_residual_storage,
+                                           old_active_object,
+                                           true);
 
   if (BKE_collection_is_empty(override_resync_residual_storage)) {
     BKE_collection_delete(bmain, override_resync_residual_storage, true);
