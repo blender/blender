@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "BLI_ghash.h"
 #include "BLI_mempool.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -21,6 +20,10 @@
 #include "MEM_guardedalloc.h"
 
 namespace blender::bke::outliner::treehash {
+
+/* -------------------------------------------------------------------- */
+/** \name #TseGroup
+ * \{ */
 
 class TseGroup {
  public:
@@ -39,18 +42,6 @@ class TseGroup {
 /* Only allow reset of #TseGroup.lastused counter to 0 once every 1k search. */
 #define TSEGROUP_LASTUSED_RESET_VALUE 10000
 
-/**
-   Allocate structure for TreeStoreElements;
- * Most of elements in treestore have no duplicates,
- * so there is no need to pre-allocate memory for more than one pointer.
- */
-static TseGroup *tse_group_create(void)
-{
-  TseGroup *tse_group = MEM_new<TseGroup>("TseGroup");
-  tse_group->lastused = 0;
-  return tse_group;
-}
-
 void TseGroup::add_element(TreeStoreElem &elem)
 {
   const int64_t idx = elems.append_and_get_index(&elem);
@@ -63,63 +54,50 @@ void TseGroup::remove_element(TreeStoreElem &elem)
   elems.remove(idx);
 }
 
-static void tse_group_free(TseGroup *tse_group)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #TreeStoreElemKey
+ * \{ */
+
+TreeStoreElemKey::TreeStoreElemKey(const TreeStoreElem &elem)
+    : id(elem.id), type(elem.type), nr(elem.nr)
 {
-  MEM_delete(tse_group);
 }
 
-static unsigned int tse_hash(const void *ptr)
+TreeStoreElemKey::TreeStoreElemKey(ID *id, short type, short nr) : id(id), type(type), nr(nr)
 {
-  const TreeStoreElem *tse = static_cast<const TreeStoreElem *>(ptr);
-  union {
-    short h_pair[2];
-    unsigned int u_int;
-  } hash;
-
-  BLI_assert((tse->type != TSE_SOME_ID) || !tse->nr);
-
-  hash.h_pair[0] = tse->type;
-  hash.h_pair[1] = tse->nr;
-
-  hash.u_int ^= BLI_ghashutil_ptrhash(tse->id);
-
-  return hash.u_int;
 }
 
-static bool tse_cmp(const void *a, const void *b)
+uint64_t TreeStoreElemKey::hash() const
 {
-  const TreeStoreElem *tse_a = static_cast<const TreeStoreElem *>(a);
-  const TreeStoreElem *tse_b = static_cast<const TreeStoreElem *>(b);
-  return tse_a->type != tse_b->type || tse_a->nr != tse_b->nr || tse_a->id != tse_b->id;
+  return get_default_hash_3(id, type, nr);
 }
 
-static void free_treehash_group(void *key)
+bool operator==(const TreeStoreElemKey &a, const TreeStoreElemKey &b)
 {
-  tse_group_free(static_cast<TseGroup *>(key));
+  return (a.id == b.id) && (a.type == b.type) && (a.nr == b.nr);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #TreeHash
+ * \{ */
+
+TreeHash::~TreeHash() = default;
 
 std::unique_ptr<TreeHash> TreeHash::create_from_treestore(BLI_mempool &treestore)
 {
   /* Can't use `make_unique()` here because of private constructor. */
   std::unique_ptr<TreeHash> tree_hash{new TreeHash()};
-  tree_hash->treehash_ = BLI_ghash_new_ex(
-      tse_hash, tse_cmp, "treehash", BLI_mempool_len(&treestore));
   tree_hash->fill_treehash(treestore);
 
   return tree_hash;
 }
 
-TreeHash::~TreeHash()
-{
-  if (treehash_) {
-    BLI_ghash_free(treehash_, nullptr, free_treehash_group);
-  }
-}
-
 void TreeHash::fill_treehash(BLI_mempool &treestore)
 {
-  BLI_assert(treehash_);
-
   TreeStoreElem *tselem;
   BLI_mempool_iter iter;
   BLI_mempool_iternew(&treestore, &iter);
@@ -131,10 +109,7 @@ void TreeHash::fill_treehash(BLI_mempool &treestore)
 
 void TreeHash::clear_used()
 {
-  GHashIterator gh_iter;
-
-  GHASH_ITER (gh_iter, treehash_) {
-    TseGroup *group = static_cast<TseGroup *>(BLI_ghashIterator_getValue(&gh_iter));
+  for (auto &group : elem_groups_.values()) {
     group->lastused = 0;
     group->lastused_reset_count = 0;
   }
@@ -142,59 +117,61 @@ void TreeHash::clear_used()
 
 void TreeHash::rebuild_from_treestore(BLI_mempool &treestore)
 {
-  BLI_assert(treehash_);
-
-  BLI_ghash_clear_ex(treehash_, nullptr, free_treehash_group, BLI_mempool_len(&treestore));
+  elem_groups_.clear();
   fill_treehash(treestore);
 }
 
 void TreeHash::add_element(TreeStoreElem &elem)
 {
-  void **val_p;
-
-  if (!BLI_ghash_ensure_p(treehash_, &elem, &val_p)) {
-    *val_p = tse_group_create();
-  }
-  TseGroup &group = *static_cast<TseGroup *>(*val_p);
-  group.add_element(elem);
+  std::unique_ptr<TseGroup> &group = elem_groups_.lookup_or_add_cb(
+      TreeStoreElemKey(elem), []() { return std::make_unique<TseGroup>(); });
+  group->add_element(elem);
 }
 
 void TreeHash::remove_element(TreeStoreElem &elem)
 {
-  TseGroup *group = static_cast<TseGroup *>(BLI_ghash_lookup(treehash_, &elem));
-
+  TseGroup *group = lookup_group(elem);
   BLI_assert(group != nullptr);
+
   if (group->elems.size() <= 1) {
-    /* one element -> remove group completely */
-    BLI_ghash_remove(treehash_, &elem, nullptr, free_treehash_group);
+    /* One element -> remove group completely. */
+    elem_groups_.remove(TreeStoreElemKey(elem));
   }
   else {
     group->remove_element(elem);
   }
 }
 
-static TseGroup *lookup_group(GHash *th, const short type, const short nr, ID *id)
+TseGroup *TreeHash::lookup_group(const TreeStoreElemKey &key) const
 {
-  TreeStoreElem tse_template;
-  tse_template.type = type;
-  tse_template.nr = (type == TSE_SOME_ID) ? 0 : nr; /* we're picky! :) */
-  tse_template.id = id;
+  auto *group = elem_groups_.lookup_ptr(key);
+  if (group) {
+    return group->get();
+  }
+  return nullptr;
+}
 
-  BLI_assert(th);
+TseGroup *TreeHash::lookup_group(const TreeStoreElem &key_elem) const
+{
+  return lookup_group(TreeStoreElemKey(key_elem));
+}
 
-  return static_cast<TseGroup *>(BLI_ghash_lookup(th, &tse_template));
+TseGroup *TreeHash::lookup_group(const short type, const short nr, ID *id) const
+{
+  TreeStoreElemKey key(id, type, nr);
+  if (type == TSE_SOME_ID) {
+    key.nr = 0; /* we're picky! :) */
+  }
+  return lookup_group(key);
 }
 
 TreeStoreElem *TreeHash::lookup_unused(const short type, const short nr, ID *id) const
 {
-  TseGroup *group;
-
-  BLI_assert(treehash_);
-
-  group = lookup_group(treehash_, type, nr, id);
+  TseGroup *group = lookup_group(type, nr, id);
   if (!group) {
     return nullptr;
   }
+
   /* Find unused element, with optimization to start from previously
    * found element assuming we do repeated lookups. */
   const int size = group->elems.size();
@@ -223,11 +200,10 @@ TreeStoreElem *TreeHash::lookup_unused(const short type, const short nr, ID *id)
 
 TreeStoreElem *TreeHash::lookup_any(const short type, const short nr, ID *id) const
 {
-  TseGroup *group;
-
-  BLI_assert(treehash_);
-
-  group = lookup_group(treehash_, type, nr, id);
+  const TseGroup *group = lookup_group(type, nr, id);
   return group ? group->elems[0] : nullptr;
 }
+
+/** \} */
+
 }  // namespace blender::bke::outliner::treehash

@@ -13,15 +13,33 @@
 
 #include <memory>
 
+#include "BLI_map.hh"
+
 struct BLI_mempool;
 struct ID;
-struct GHash;
 struct TreeStoreElem;
 
 namespace blender::bke::outliner::treehash {
 
+/* -------------------------------------------------------------------- */
+
+class TreeStoreElemKey {
+ public:
+  ID *id = nullptr;
+  short type = 0;
+  short nr = 0;
+
+  explicit TreeStoreElemKey(const TreeStoreElem &elem);
+  TreeStoreElemKey(ID *id, short type, short nr);
+
+  uint64_t hash() const;
+  friend bool operator==(const TreeStoreElemKey &a, const TreeStoreElemKey &b);
+};
+
+/* -------------------------------------------------------------------- */
+
 class TreeHash {
-  GHash *treehash_ = nullptr;
+  Map<TreeStoreElemKey, std::unique_ptr<class TseGroup>> elem_groups_;
 
  public:
   ~TreeHash();
@@ -49,6 +67,9 @@ class TreeHash {
  private:
   TreeHash() = default;
 
+  TseGroup *lookup_group(const TreeStoreElemKey &key) const;
+  TseGroup *lookup_group(const TreeStoreElem &elem) const;
+  TseGroup *lookup_group(short type, short nr, ID *id) const;
   void fill_treehash(BLI_mempool &treestore);
 };
 
