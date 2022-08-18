@@ -5,10 +5,16 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_base.h"
+#include "BLI_math_vec_types.hh"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "GPU_shader.h"
+
 #include "COM_node_operation.hh"
+#include "COM_utilities.hh"
 
 #include "node_composite_util.hh"
 
@@ -55,7 +61,50 @@ class BokehImageOperation : public NodeOperation {
 
   void execute() override
   {
-    get_result("Image").allocate_invalid();
+    GPUShader *shader = shader_manager().get("compositor_bokeh_image");
+    GPU_shader_bind(shader);
+
+    GPU_shader_uniform_1f(shader, "exterior_angle", get_exterior_angle());
+    GPU_shader_uniform_1f(shader, "rotation", get_rotation());
+    GPU_shader_uniform_1f(shader, "roundness", get_node_bokeh_image().rounding);
+    GPU_shader_uniform_1f(shader, "catadioptric", get_node_bokeh_image().catadioptric);
+    GPU_shader_uniform_1f(shader, "lens_shift", get_node_bokeh_image().lensshift);
+
+    Result &output = get_result("Image");
+    const Domain domain = compute_domain();
+    output.allocate_texture(domain);
+    output.bind_as_image(shader, "output_img");
+
+    compute_dispatch_threads_at_least(shader, domain.size);
+
+    output.unbind_as_image();
+    GPU_shader_unbind();
+  }
+
+  Domain compute_domain() override
+  {
+    return Domain(int2(512));
+  }
+
+  NodeBokehImage &get_node_bokeh_image()
+  {
+    return *static_cast<NodeBokehImage *>(bnode().storage);
+  }
+
+  /* The exterior angle is the angle between each two consective vertices of the regular polygon
+   * from its center. */
+  float get_exterior_angle()
+  {
+    return (M_PI * 2.0f) / get_node_bokeh_image().flaps;
+  }
+
+  float get_rotation()
+  {
+    /* Offset the rotation such that the second vertex of the regular polygon lies on the positive
+     * y axis, which is 90 degrees minus the angle that it makes with the positive x axis assuming
+     * the first vertex lies on the positive x axis. */
+    const float offset = M_PI_2 - get_exterior_angle();
+    return get_node_bokeh_image().angle - offset;
   }
 };
 
