@@ -488,8 +488,11 @@ set(ZSTD_HASH 5194fbfa781fcf45b98c5e849651aa7b3b0a008c6b72d4a0db760f3002291e94)
 set(ZSTD_HASH_TYPE SHA256)
 set(ZSTD_FILE zstd-${ZSTD_VERSION}.tar.gz)
 
-set(SSE2NEON_GIT https://github.com/DLTcollab/sse2neon.git)
-set(SSE2NEON_GIT_HASH fe5ff00bb8d19b327714a3c290f3e2ce81ba3525)
+set(SSE2NEON_VERSION fe5ff00bb8d19b327714a3c290f3e2ce81ba3525)
+set(SSE2NEON_URI https://github.com/DLTcollab/sse2neon/archive/${SSE2NEON_VERSION}.tar.gz)
+set(SSE2NEON_HASH 0780253525d299c31775ef95853698d03db9c7739942af8570000f4a25a5d605)
+set(SSE2NEON_HASH_TYPE SHA256)
+set(SSE2NEON_FILE sse2neon-${SSE2NEON_VERSION}.tar.gz)
 
 set(BROTLI_VERSION v1.0.9)
 set(BROTLI_URI https://github.com/google/brotli/archive/refs/tags/${BROTLI_VERSION}.tar.gz)
