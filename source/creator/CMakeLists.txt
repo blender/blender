@@ -308,14 +308,17 @@ if(UNIX AND NOT APPLE)
     if(WITH_INSTALL_PORTABLE)
       set(TARGETDIR_BPY .)
       set(TARGETDIR_VER ${BLENDER_VERSION})
+      set(TARGETDIR_LIB lib)
     else()
       set(TARGETDIR_BPY ${PYTHON_SITE_PACKAGES})
       set(TARGETDIR_VER ${PYTHON_SITE_PACKAGES}/${BLENDER_VERSION})
+      set(TARGETDIR_LIB ${PYTHON_SITE_PACKAGES}/lib)
     endif()
   else()
     if(WITH_INSTALL_PORTABLE)
       set(TARGETDIR_VER ${BLENDER_VERSION})
       set(TARGETDIR_TEXT .)
+      set(TARGETDIR_LIB lib)
     else()
       set(TARGETDIR_VER share/blender/${BLENDER_VERSION})
       set(TARGETDIR_TEXT share/doc/blender)
@@ -325,19 +328,23 @@ if(UNIX AND NOT APPLE)
 elseif(WIN32)
   set(TARGETDIR_VER ${BLENDER_VERSION})
   set(TARGETDIR_TEXT .)
+  set(TARGETDIR_LIB .)
 
 elseif(APPLE)
   if(WITH_PYTHON_MODULE)
     if(WITH_INSTALL_PORTABLE)
       set(TARGETDIR_VER $<TARGET_FILE_DIR:blender>/../Resources/${BLENDER_VERSION})
+      set(TARGETDIR_LIB lib)
     else()
       # Paths defined in terms of site-packages since the site-packages
       # directory can be a symlink (brew for example).
       set(TARGETDIR_BPY ${PYTHON_LIBPATH}/site-packages)
       set(TARGETDIR_VER ${TARGETDIR_BPY}/../Resources/${BLENDER_VERSION})
+      set(TARGETDIR_LIB ${TARGETDIR_BPY}/lib)
     endif()
   else()
     set(TARGETDIR_VER Blender.app/Contents/Resources/${BLENDER_VERSION})
+    set(TARGETDIR_LIB Blender.app/Contents/Resources/lib)
     set(TARGETDIR_TEXT Blender.app/Contents/Resources/text)
   endif()
 
@@ -474,6 +481,13 @@ if(UNIX AND NOT APPLE)
     endif()
   endif()
 
+  if(PLATFORM_BUNDLED_LIBRARIES AND TARGETDIR_LIB)
+    install(
+      FILES ${PLATFORM_BUNDLED_LIBRARIES}
+      DESTINATION ${TARGETDIR_LIB}
+    )
+  endif()
+
   # there are a few differences between portable and system install
   if(WITH_PYTHON_MODULE)
     if(WITH_INSTALL_PORTABLE)
@@ -522,6 +536,22 @@ if(UNIX AND NOT APPLE)
         PROGRAMS
         ${CMAKE_SOURCE_DIR}/release/bin/blender-softwaregl
         DESTINATION "."
+      )
+
+      # Remove from old location, so existing builds don't start with software
+      # OpenGL now that the lib/ folder is used for other libraries.
+      install(
+        CODE
+        "file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so)\n
+         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so.1)\n
+         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGL.so.1.5.0)\n
+         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so)\n
+         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so.1)\n
+         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libGLU.so.1.3.1)\n
+         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so)\n
+         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0)\n
+         file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0.0.0)\n
+        "
       )
     endif()
   else()
@@ -718,20 +748,20 @@ if(UNIX AND NOT APPLE)
 elseif(WIN32)
   install(
     FILES ${LIBDIR}/epoxy/bin/epoxy-0.dll
-    DESTINATION "."
+    DESTINATION ${TARGETDIR_LIB}
   )
 
   if(WITH_OPENMP AND MSVC_CLANG)
     install(
       FILES ${CLANG_OPENMP_DLL}
-      DESTINATION "."
+      DESTINATION ${TARGETDIR_LIB}
     )
   endif()
 
   if(WITH_FFTW3)
     install(
       FILES ${LIBDIR}/fftw3/lib/libfftw3-3.dll
-      DESTINATION "."
+      DESTINATION ${TARGETDIR_LIB}
     )
   endif()
   if(MSVC_ASAN)
@@ -743,12 +773,12 @@ elseif(WIN32)
     endif()
     install(
       FILES ${ASAN_DLL}
-      DESTINATION "."
+      DESTINATION ${TARGETDIR_LIB}
       CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
     )
     install(
       FILES ${ASAN_DEBUG_DLL}
-      DESTINATION "."
+      DESTINATION ${TARGETDIR_LIB}
       CONFIGURATIONS Debug
     )
     unset(ASAN_DLL)
@@ -758,16 +788,16 @@ elseif(WIN32)
   if(WITH_GMP)
     install(
       FILES ${LIBDIR}/gmp/lib/libgmp-10.dll
-      DESTINATION "."
+      DESTINATION ${TARGETDIR_LIB}
     )
     install(
       FILES ${LIBDIR}/gmp/lib/libgmpxx.dll
-      DESTINATION "."
+      DESTINATION ${TARGETDIR_LIB}
       CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
     )
     install(
       FILES ${LIBDIR}/gmp/lib/libgmpxx_d.dll
-      DESTINATION "."
+      DESTINATION ${TARGETDIR_LIB}
       CONFIGURATIONS Debug
     )
   endif()
@@ -786,12 +816,12 @@ elseif(WIN32)
   if(WITH_OPENVDB)
     install(
       FILES ${LIBDIR}/openvdb/bin/openvdb.dll
-      DESTINATION "."
+      DESTINATION ${TARGETDIR_LIB}
       CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
     )
     install(
       FILES ${LIBDIR}/openvdb/bin/openvdb_d.dll
-      DESTINATION "."
+      DESTINATION ${TARGETDIR_LIB}
       CONFIGURATIONS Debug
     )
   endif()
@@ -803,14 +833,14 @@ elseif(WIN32)
       install(
         FILES ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python${_PYTHON_VERSION_NO_DOTS}.dll
               ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python3.dll
-        DESTINATION "."
+        DESTINATION ${TARGETDIR_LIB}
         CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
       )
 
       install(
         FILES ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python${_PYTHON_VERSION_NO_DOTS}_d.dll
               ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python3_d.dll
-        DESTINATION "."
+        DESTINATION ${TARGETDIR_LIB}
         CONFIGURATIONS Debug
       )
     endif()
@@ -872,13 +902,13 @@ elseif(WIN32)
       if(WINDOWS_PYTHON_DEBUG)
         install(
           FILES ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/libs/python${_PYTHON_VERSION_NO_DOTS}.pdb
-          DESTINATION "."
+          DESTINATION ${TARGETDIR_LIB}
           CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
         )
 
         install(
           FILES ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/libs/python${_PYTHON_VERSION_NO_DOTS}_d.pdb
-          DESTINATION "."
+          DESTINATION ${TARGETDIR_LIB}
           CONFIGURATIONS Debug
         )
       endif()
@@ -900,7 +930,7 @@ elseif(WIN32)
           ${LIBDIR}/ffmpeg/lib/avutil-57.dll
           ${LIBDIR}/ffmpeg/lib/swscale-6.dll
           ${LIBDIR}/ffmpeg/lib/swresample-4.dll
-        DESTINATION "."
+        DESTINATION ${TARGETDIR_LIB}
       )
     else()
       install(
@@ -911,7 +941,7 @@ elseif(WIN32)
           ${LIBDIR}/ffmpeg/lib/avutil-56.dll
           ${LIBDIR}/ffmpeg/lib/swscale-5.dll
           ${LIBDIR}/ffmpeg/lib/swresample-3.dll
-        DESTINATION "."
+        DESTINATION ${TARGETDIR_LIB}
       )
     endif()
   endif()
@@ -919,13 +949,13 @@ elseif(WIN32)
     install(
       FILES
         ${LIBDIR}/tbb/bin/tbb.dll
-      DESTINATION "."
+      DESTINATION ${TARGETDIR_LIB}
       CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
     )
     install(
       FILES
         ${LIBDIR}/tbb/bin/tbb_debug.dll
-      DESTINATION "."
+      DESTINATION ${TARGETDIR_LIB}
       CONFIGURATIONS Debug
     )
   endif()
@@ -934,14 +964,14 @@ elseif(WIN32)
       FILES
         ${LIBDIR}/tbb/bin/tbbmalloc.dll
         ${LIBDIR}/tbb/bin/tbbmalloc_proxy.dll
-      DESTINATION "."
+      DESTINATION ${TARGETDIR_LIB}
       CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
     )
     install(
       FILES
         ${LIBDIR}/tbb/bin/tbbmalloc_debug.dll
         ${LIBDIR}/tbb/bin/tbbmalloc_proxy_debug.dll
-      DESTINATION "."
+      DESTINATION ${TARGETDIR_LIB}
       CONFIGURATIONS Debug
     )
     list(APPEND LIB ${TBB_MALLOC_LIBRARIES})
@@ -950,7 +980,7 @@ elseif(WIN32)
   if(WITH_CODEC_SNDFILE)
     install(
       FILES ${LIBDIR}/sndfile/lib/libsndfile-1.dll
-      DESTINATION "."
+      DESTINATION ${TARGETDIR_LIB}
     )
   endif()
 
@@ -958,14 +988,14 @@ elseif(WIN32)
     install(
       FILES
         ${LIBDIR}/openal/lib/OpenAL32.dll
-      DESTINATION "."
+      DESTINATION ${TARGETDIR_LIB}
     )
   endif()
 
   if(WITH_SDL)
     install(
       FILES ${LIBDIR}/sdl/lib/SDL2.dll
-      DESTINATION "."
+      DESTINATION ${TARGETDIR_LIB}
     )
   endif()
 
@@ -975,7 +1005,7 @@ elseif(WIN32)
         ${LIBDIR}/audaspace/lib/audaspace.dll
         ${LIBDIR}/audaspace/lib/audaspace-c.dll
         ${LIBDIR}/audaspace/lib/audaspace-py.dll
-      DESTINATION "."
+      DESTINATION ${TARGETDIR_LIB}
     )
   endif()
 
@@ -987,7 +1017,7 @@ elseif(WIN32)
       ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_factory_startup.cmd
       ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_oculus.cmd
       ${CMAKE_SOURCE_DIR}/release/windows/batch/oculus.json
-    DESTINATION "."
+    DESTINATION ${TARGETDIR_LIB}
   )
 
   if(WITH_BLENDER_THUMBNAILER)
@@ -1085,17 +1115,10 @@ elseif(APPLE)
       )
   endif()
 
-  if(WITH_OPENMP AND OPENMP_CUSTOM)
+  if(PLATFORM_BUNDLED_LIBRARIES AND TARGETDIR_LIB)
     install(
-      FILES "${OpenMP_LIBRARY}"
-      DESTINATION "${MAC_BLENDER_TARGET_DYLIBS_DIR}"
-    )
-  endif()
-
-  if(WITH_COMPILER_ASAN)
-    install(
-      FILES "${COMPILER_ASAN_LIBRARY}"
-      DESTINATION "${MAC_BLENDER_TARGET_DYLIBS_DIR}"
+      FILES ${PLATFORM_BUNDLED_LIBRARIES}
+      DESTINATION ${TARGETDIR_LIB}
     )
   endif()
 

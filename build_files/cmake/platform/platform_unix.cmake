@@ -81,6 +81,15 @@ macro(find_package_wrapper)
   endif()
 endmacro()
 
+# Utility to install precompiled shared libraries.
+macro(add_bundled_libraries library)
+  if(EXISTS ${LIBDIR})
+    file(GLOB _all_library_versions ${LIBDIR}/${library}/lib/*\.so*)
+    list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_all_library_versions})
+    unset(_all_library_versions)
+ endif()
+endmacro()
+
 # ----------------------------------------------------------------------------
 # Precompiled Libraries
 #
@@ -971,3 +980,16 @@ function(CONFIGURE_ATOMIC_LIB_IF_NEEDED)
 endfunction()
 
 CONFIGURE_ATOMIC_LIB_IF_NEEDED()
+
+if(PLATFORM_BUNDLED_LIBRARIES)
+  # For the installed Python module and installed Blender executable, we set the
+  # rpath to the relative path where the install step will copy the shared libraries.
+  set(CMAKE_SKIP_INSTALL_RPATH FALSE)
+  list(APPEND CMAKE_INSTALL_RPATH $ORIGIN/lib)
+
+  # For executables that are built but not installed (mainly tests) we set an absolute
+  # rpath to the lib folder. This is needed because these can be in different folders,
+  # and because the build and install folder may be different.
+  set(CMAKE_SKIP_BUILD_RPATH FALSE)
+  list(APPEND CMAKE_BUILD_RPATH $ORIGIN/lib ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/lib)
+endif()
