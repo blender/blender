@@ -204,22 +204,26 @@ void PathTraceWorkGPU::alloc_integrator_sorting()
     integrator_state_gpu_.sort_key_counter[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE] =
         (int *)integrator_shader_sort_counter_.device_pointer;
 
-    if (device_scene_->data.kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) {
+    integrator_shader_sort_prefix_sum_.alloc(sort_buckets);
+    integrator_shader_sort_prefix_sum_.zero_to_device();
+  }
+
+  if (device_scene_->data.kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) {
+    if (integrator_shader_raytrace_sort_counter_.size() < sort_buckets) {
       integrator_shader_raytrace_sort_counter_.alloc(sort_buckets);
       integrator_shader_raytrace_sort_counter_.zero_to_device();
       integrator_state_gpu_.sort_key_counter[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE] =
           (int *)integrator_shader_raytrace_sort_counter_.device_pointer;
     }
+  }
 
-    if (device_scene_->data.kernel_features & KERNEL_FEATURE_MNEE) {
+  if (device_scene_->data.kernel_features & KERNEL_FEATURE_MNEE) {
+    if (integrator_shader_mnee_sort_counter_.size() < sort_buckets) {
       integrator_shader_mnee_sort_counter_.alloc(sort_buckets);
       integrator_shader_mnee_sort_counter_.zero_to_device();
       integrator_state_gpu_.sort_key_counter[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE] =
           (int *)integrator_shader_mnee_sort_counter_.device_pointer;
     }
-
-    integrator_shader_sort_prefix_sum_.alloc(sort_buckets);
-    integrator_shader_sort_prefix_sum_.zero_to_device();
   }
 }
 
