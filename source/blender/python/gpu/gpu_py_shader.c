@@ -600,14 +600,14 @@ static PyObject *pygpu_shader_attr_from_name(BPyGPUShader *self, PyObject *arg)
   return PyLong_FromLong(attr);
 }
 
-PyDoc_STRVAR(pygpu_shader_calc_format_doc,
-             ".. method:: calc_format()\n"
+PyDoc_STRVAR(pygpu_shader_format_calc_doc,
+             ".. method:: format_calc()\n"
              "\n"
              "   Build a new format based on the attributes of the shader.\n"
              "\n"
              "   :return: vertex attribute format for the shader\n"
              "   :rtype: :class:`gpu.types.GPUVertFormat`\n");
-static PyObject *pygpu_shader_calc_format(BPyGPUShader *self, PyObject *UNUSED(arg))
+static PyObject *pygpu_shader_format_calc(BPyGPUShader *self, PyObject *UNUSED(arg))
 {
   BPyGPUVertFormat *ret = (BPyGPUVertFormat *)BPyGPUVertFormat_CreatePyObject(NULL);
   GPU_vertformat_from_shader(&ret->fmt, self->shader);
@@ -657,9 +657,9 @@ static struct PyMethodDef pygpu_shader__tp_methods[] = {
      METH_O,
      pygpu_shader_attr_from_name_doc},
     {"format_calc",
-     (PyCFunction)pygpu_shader_calc_format,
+     (PyCFunction)pygpu_shader_format_calc,
      METH_NOARGS,
-     pygpu_shader_calc_format_doc},
+     pygpu_shader_format_calc_doc},
     {NULL, NULL, 0, NULL},
 };
 
