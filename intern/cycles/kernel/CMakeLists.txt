@@ -274,6 +274,8 @@ set(SRC_KERNEL_SAMPLE_HEADERS
   sample/mapping.h
   sample/mis.h
   sample/pattern.h
+  sample/sobol_burley.h
+  sample/util.h
 )
 
 set(SRC_KERNEL_UTIL_HEADERS

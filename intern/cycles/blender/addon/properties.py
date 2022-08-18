@@ -83,6 +83,7 @@ enum_use_layer_samples = (
 enum_sampling_pattern = (
     ('SOBOL', "Sobol", "Use Sobol random sampling pattern", 0),
     ('PROGRESSIVE_MULTI_JITTER', "Progressive Multi-Jitter", "Use Progressive Multi-Jitter random sampling pattern", 1),
+    ('SOBOL_BURLEY', "Sobol-Burley", "Use Sobol-Burley random sampling pattern", 2),
 )
 
 enum_volume_sampling = (

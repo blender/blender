@@ -89,6 +89,7 @@ NODE_DEFINE(Integrator)
   static NodeEnum sampling_pattern_enum;
   sampling_pattern_enum.insert("sobol", SAMPLING_PATTERN_SOBOL);
   sampling_pattern_enum.insert("pmj", SAMPLING_PATTERN_PMJ);
+  sampling_pattern_enum.insert("sobol_burley", SAMPLING_PATTERN_SOBOL_BURLEY);
   SOCKET_ENUM(sampling_pattern, "Sampling Pattern", sampling_pattern_enum, SAMPLING_PATTERN_SOBOL);
   SOCKET_FLOAT(scrambling_distance, "Scrambling Distance", 1.0f);
 
@@ -260,7 +261,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 
       dscene->sample_pattern_lut.copy_to_device();
     }
-    else {
+    else if (kintegrator->sampling_pattern == SAMPLING_PATTERN_PMJ) {
       constexpr int sequence_size = NUM_PMJ_SAMPLES;
       constexpr int num_sequences = NUM_PMJ_PATTERNS;
       float2 *directions = (float2 *)dscene->sample_pattern_lut.alloc(sequence_size *

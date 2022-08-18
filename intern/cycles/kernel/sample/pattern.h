@@ -4,6 +4,7 @@
 #pragma once
 
 #include "kernel/sample/jitter.h"
+#include "kernel/sample/sobol_burley.h"
 #include "util/hash.h"
 
 CCL_NAMESPACE_BEGIN
@@ -48,6 +49,10 @@ ccl_device_forceinline float path_rng_1D(KernelGlobals kg,
   return (float)drand48();
 #endif
 
+  if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_SOBOL_BURLEY) {
+    return sobol_burley_sample_1D(sample, dimension, rng_hash);
+  }
+
 #ifdef __SOBOL__
   if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_PMJ)
 #endif
@@ -66,7 +71,7 @@ ccl_device_forceinline float path_rng_1D(KernelGlobals kg,
   /* Hash rng with dimension to solve correlation issues.
    * See T38710, T50116.
    */
-  uint tmp_rng = cmj_hash_simple(dimension, rng_hash);
+  uint tmp_rng = hash_wang_seeded_uint(dimension, rng_hash);
   shift = tmp_rng * (kernel_data.integrator.scrambling_distance / (float)0xFFFFFFFF);
 
   return r + shift - floorf(r + shift);
@@ -85,6 +90,11 @@ ccl_device_forceinline void path_rng_2D(KernelGlobals kg,
   *fy = (float)drand48();
   return;
 #endif
+
+  if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_SOBOL_BURLEY) {
+    sobol_burley_sample_2D(sample, dimension, rng_hash, fx, fy);
+    return;
+  }
 
 #ifdef __SOBOL__
   if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_PMJ)

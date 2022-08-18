@@ -1,19 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0
  * Copyright 2011-2022 Blender Foundation */
 
+#include "kernel/sample/util.h"
+#include "util/hash.h"
+
 #pragma once
 CCL_NAMESPACE_BEGIN
-
-ccl_device_inline uint32_t laine_karras_permutation(uint32_t x, uint32_t seed)
-{
-  x += seed;
-  x ^= (x * 0x6c50b47cu);
-  x ^= x * 0xb82f1e52u;
-  x ^= x * 0xc7afe638u;
-  x ^= x * 0x8d22f6e6u;
-
-  return x;
-}
 
 ccl_device_inline uint32_t nested_uniform_scramble(uint32_t x, uint32_t seed)
 {
@@ -24,46 +16,6 @@ ccl_device_inline uint32_t nested_uniform_scramble(uint32_t x, uint32_t seed)
   return x;
 }
 
-ccl_device_inline uint cmj_hash(uint i, uint p)
-{
-  i ^= p;
-  i ^= i >> 17;
-  i ^= i >> 10;
-  i *= 0xb36534e5;
-  i ^= i >> 12;
-  i ^= i >> 21;
-  i *= 0x93fc4795;
-  i ^= 0xdf6e307f;
-  i ^= i >> 17;
-  i *= 1 | p >> 18;
-
-  return i;
-}
-
-ccl_device_inline uint cmj_hash_simple(uint i, uint p)
-{
-  i = (i ^ 61) ^ p;
-  i += i << 3;
-  i ^= i >> 4;
-  i *= 0x27d4eb2d;
-  return i;
-}
-
-ccl_device_inline float cmj_randfloat(uint i, uint p)
-{
-  return cmj_hash(i, p) * (1.0f / 4294967808.0f);
-}
-
-ccl_device_inline float cmj_randfloat_simple(uint i, uint p)
-{
-  return cmj_hash_simple(i, p) * (1.0f / (float)0xFFFFFFFF);
-}
-
-ccl_device_inline float cmj_randfloat_simple_dist(uint i, uint p, float d)
-{
-  return cmj_hash_simple(i, p) * (d / (float)0xFFFFFFFF);
-}
-
 ccl_device float pmj_sample_1D(KernelGlobals kg, uint sample, uint rng_hash, uint dimension)
 {
   uint hash = rng_hash;
@@ -71,16 +23,12 @@ ccl_device float pmj_sample_1D(KernelGlobals kg, uint sample, uint rng_hash, uin
   if (kernel_data.integrator.scrambling_distance < 1.0f) {
     hash = kernel_data.integrator.seed;
 
-    jitter_x = cmj_randfloat_simple_dist(
-        dimension, rng_hash, kernel_data.integrator.scrambling_distance);
+    jitter_x = hash_wang_seeded_float(dimension, rng_hash) *
+               kernel_data.integrator.scrambling_distance;
   }
 
   /* Perform Owen shuffle of the sample number to reorder the samples. */
-#ifdef _SIMPLE_HASH_
-  const uint rv = cmj_hash_simple(dimension, hash);
-#else /* Use a _REGULAR_HASH_. */
-  const uint rv = cmj_hash(dimension, hash);
-#endif
+  const uint rv = hash_cmj_seeded_uint(dimension, hash);
 #ifdef _XOR_SHUFFLE_
 #  warning "Using XOR shuffle."
   const uint s = sample ^ rv;
@@ -101,11 +49,7 @@ ccl_device float pmj_sample_1D(KernelGlobals kg, uint sample, uint rng_hash, uin
 
 #ifndef _NO_CRANLEY_PATTERSON_ROTATION_
   /* Use Cranley-Patterson rotation to displace the sample pattern. */
-#  ifdef _SIMPLE_HASH_
-  float dx = cmj_randfloat_simple(d, hash);
-#  else
-  float dx = cmj_randfloat(d, hash);
-#  endif
+  float dx = hash_cmj_seeded_float(d, hash);
   /* Jitter sample locations and map back into [0 1]. */
   fx = fx + dx + jitter_x;
   fx = fx - floorf(fx);
@@ -129,18 +73,14 @@ ccl_device void pmj_sample_2D(KernelGlobals kg,
   if (kernel_data.integrator.scrambling_distance < 1.0f) {
     hash = kernel_data.integrator.seed;
 
-    jitter_x = cmj_randfloat_simple_dist(
-        dimension, rng_hash, kernel_data.integrator.scrambling_distance);
-    jitter_y = cmj_randfloat_simple_dist(
-        dimension + 1, rng_hash, kernel_data.integrator.scrambling_distance);
+    jitter_x = hash_wang_seeded_float(dimension, rng_hash) *
+               kernel_data.integrator.scrambling_distance;
+    jitter_y = hash_wang_seeded_float(dimension + 1, rng_hash) *
+               kernel_data.integrator.scrambling_distance;
   }
 
   /* Perform a shuffle on the sample number to reorder the samples. */
-#ifdef _SIMPLE_HASH_
-  const uint rv = cmj_hash_simple(dimension, hash);
-#else /* Use a _REGULAR_HASH_. */
-  const uint rv = cmj_hash(dimension, hash);
-#endif
+  const uint rv = hash_cmj_seeded_uint(dimension, hash);
 #ifdef _XOR_SHUFFLE_
 #  warning "Using XOR shuffle."
   const uint s = sample ^ rv;
@@ -159,13 +99,8 @@ ccl_device void pmj_sample_2D(KernelGlobals kg,
 
 #ifndef _NO_CRANLEY_PATTERSON_ROTATION_
   /* Use Cranley-Patterson rotation to displace the sample pattern. */
-#  ifdef _SIMPLE_HASH_
-  float dx = cmj_randfloat_simple(d, hash);
-  float dy = cmj_randfloat_simple(d + 1, hash);
-#  else
-  float dx = cmj_randfloat(d, hash);
-  float dy = cmj_randfloat(d + 1, hash);
-#  endif
+  float dx = hash_cmj_seeded_float(d, hash);
+  float dy = hash_cmj_seeded_float(d + 1, hash);
   /* Jitter sample locations and map back to the unit square [0 1]x[0 1]. */
   float sx = fx + dx + jitter_x;
   float sy = fy + dy + jitter_y;
