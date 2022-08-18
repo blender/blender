@@ -8,7 +8,10 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "GPU_shader.h"
+
 #include "COM_node_operation.hh"
+#include "COM_utilities.hh"
 
 #include "node_composite_util.hh"
 
@@ -46,7 +49,45 @@ class DespeckleOperation : public NodeOperation {
 
   void execute() override
   {
-    get_input("Image").pass_through(get_result("Image"));
+    const Result &input_image = get_input("Image");
+    /* Single value inputs can't be despeckled and are returned as is. */
+    if (input_image.is_single_value()) {
+      get_input("Image").pass_through(get_result("Image"));
+      return;
+    }
+
+    GPUShader *shader = shader_manager().get("compositor_despeckle");
+    GPU_shader_bind(shader);
+
+    GPU_shader_uniform_1f(shader, "threshold", get_threshold());
+    GPU_shader_uniform_1f(shader, "neighbor_threshold", get_neighbor_threshold());
+
+    input_image.bind_as_texture(shader, "input_tx");
+
+    const Result &factor_image = get_input("Fac");
+    factor_image.bind_as_texture(shader, "factor_tx");
+
+    const Domain domain = compute_domain();
+    Result &output_image = get_result("Image");
+    output_image.allocate_texture(domain);
+    output_image.bind_as_image(shader, "output_img");
+
+    compute_dispatch_threads_at_least(shader, domain.size);
+
+    GPU_shader_unbind();
+    output_image.unbind_as_image();
+    input_image.unbind_as_texture();
+    factor_image.unbind_as_texture();
+  }
+
+  float get_threshold()
+  {
+    return bnode().custom3;
+  }
+
+  float get_neighbor_threshold()
+  {
+    return bnode().custom4;
   }
 };
 
