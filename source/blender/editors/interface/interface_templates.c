@@ -683,7 +683,7 @@ ID *ui_template_id_liboverride_hierarchy_create(
    * NOTE: do not attempt to perform such hierarchy override at all cost, if there is not enough
    * context, better to abort than create random overrides all over the place. */
   if (!ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY(id)) {
-    RNA_warning("The data-block %s is not direclty overridable", id->name);
+    RNA_warning("The data-block %s is not overridable", id->name);
     return NULL;
   }
 
@@ -788,6 +788,15 @@ ID *ui_template_id_liboverride_hierarchy_create(
         }
         BKE_lib_override_library_create(
             bmain, scene, view_layer, NULL, id, &collection_active->id, NULL, &id_override, false);
+      }
+      else {
+        if (object_active != NULL) {
+          object_active->id.tag |= LIB_TAG_DOIT;
+        }
+        BKE_lib_override_library_create(
+            bmain, scene, view_layer, NULL, id, NULL, NULL, &id_override, false);
+        BKE_scene_collections_object_remove(bmain, scene, (Object *)id, true);
+        WM_event_add_notifier(C, NC_ID | NA_REMOVED, NULL);
       }
       break;
     case ID_ME:
