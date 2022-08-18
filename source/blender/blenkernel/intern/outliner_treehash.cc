@@ -12,6 +12,7 @@
 #include "BLI_ghash.h"
 #include "BLI_mempool.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "DNA_outliner_types.h"
 
@@ -20,16 +21,12 @@
 #include "MEM_guardedalloc.h"
 
 struct TseGroup {
-  TreeStoreElem **elems;
+  blender::Vector<TreeStoreElem *> elems;
   /* Index of last used #TreeStoreElem item, to speed up search for another one. */
   int lastused;
   /* Counter used to reduce the amount of 'rests' of `lastused` index, otherwise search for unused
    * item is exponential and becomes critically slow when there are a lot of items in the group. */
   int lastused_reset_count;
-  /* Number of items currently in use. */
-  int size;
-  /* Number of items currently allocated. */
-  int allocated;
 };
 
 /* Only allow reset of #TseGroup.lastused counter to 0 once every 1k search. */
@@ -41,54 +38,25 @@ struct TseGroup {
 static TseGroup *tse_group_create(void)
 {
   TseGroup *tse_group = MEM_new<TseGroup>("TseGroup");
-  tse_group->elems = MEM_new<TreeStoreElem *>("TseGroupElems");
-  tse_group->size = 0;
-  tse_group->allocated = 1;
   tse_group->lastused = 0;
   return tse_group;
 }
 
 static void tse_group_add_element(TseGroup *tse_group, TreeStoreElem *elem)
 {
-  if (UNLIKELY(tse_group->size == tse_group->allocated)) {
-    tse_group->allocated *= 2;
-    tse_group->elems = static_cast<TreeStoreElem **>(
-        MEM_reallocN(tse_group->elems, sizeof(TreeStoreElem *) * tse_group->allocated));
-  }
-  tse_group->elems[tse_group->size] = elem;
-  tse_group->lastused = tse_group->size;
-  tse_group->size++;
+  const int64_t idx = tse_group->elems.append_and_get_index(elem);
+  tse_group->lastused = idx;
 }
 
-static void tse_group_remove_element(TseGroup *tse_group, TreeStoreElem *elem)
+static void tse_group_remove_element(TseGroup &group, TreeStoreElem &elem)
 {
-  const int min_allocated = MAX2(1, tse_group->allocated / 2);
-  BLI_assert(tse_group->allocated == 1 || (tse_group->allocated % 2) == 0);
-
-  tse_group->size--;
-  BLI_assert(tse_group->size >= 0);
-  for (int i = 0; i < tse_group->size; i++) {
-    if (tse_group->elems[i] != elem) {
-      continue;
-    }
-
-    memcpy(tse_group->elems[i],
-           tse_group->elems[i + 1],
-           (tse_group->size - (i + 1)) * sizeof(TreeStoreElem *));
-    break;
-  }
-
-  if (UNLIKELY(tse_group->size > 0 && tse_group->size <= min_allocated)) {
-    tse_group->allocated = min_allocated;
-    tse_group->elems = static_cast<TreeStoreElem **>(
-        MEM_reallocN(tse_group->elems, sizeof(TreeStoreElem *) * tse_group->allocated));
-  }
+  const int64_t idx = group.elems.first_index_of(&elem);
+  group.elems.remove(idx);
 }
 
 static void tse_group_free(TseGroup *tse_group)
 {
-  MEM_freeN(tse_group->elems);
-  MEM_freeN(tse_group);
+  MEM_delete(tse_group);
 }
 
 static unsigned int tse_hash(const void *ptr)
@@ -178,12 +146,12 @@ void BKE_outliner_treehash_remove_element(GHash *treehash, TreeStoreElem *elem)
   TseGroup *group = static_cast<TseGroup *>(BLI_ghash_lookup(treehash, elem));
 
   BLI_assert(group != nullptr);
-  if (group->size <= 1) {
+  if (group->elems.size() <= 1) {
     /* one element -> remove group completely */
     BLI_ghash_remove(treehash, elem, nullptr, free_treehash_group);
   }
   else {
-    tse_group_remove_element(group, elem);
+    tse_group_remove_element(*group, *elem);
   }
 }
 
@@ -214,7 +182,7 @@ TreeStoreElem *BKE_outliner_treehash_lookup_unused(GHash *treehash,
   }
   /* Find unused element, with optimization to start from previously
    * found element assuming we do repeated lookups. */
-  const int size = group->size;
+  const int size = group->elems.size();
   int offset = group->lastused;
 
   for (int i = 0; i < size; i++, offset++) {
@@ -223,7 +191,7 @@ TreeStoreElem *BKE_outliner_treehash_lookup_unused(GHash *treehash,
     if (offset >= size) {
       if (LIKELY(group->lastused_reset_count <= TSEGROUP_LASTUSED_RESET_VALUE)) {
         group->lastused_reset_count++;
-        group->lastused = group->size - 1;
+        group->lastused = group->elems.size() - 1;
         break;
       }
       group->lastused_reset_count = 0;
