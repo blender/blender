@@ -175,23 +175,6 @@ TreeElement *outliner_find_parent_element(ListBase *lb,
   return nullptr;
 }
 
-TreeElement *outliner_find_tse(SpaceOutliner *space_outliner, const TreeStoreElem *tse)
-{
-  TreeStoreElem *tselem;
-
-  if (tse->id == nullptr) {
-    return nullptr;
-  }
-
-  /* Check if 'tse' is in tree-store. */
-  tselem = space_outliner->runtime->tree_hash->lookup_any(tse->type, tse->nr, tse->id);
-  if (tselem) {
-    return outliner_find_tree_element(&space_outliner->tree, tselem);
-  }
-
-  return nullptr;
-}
-
 TreeElement *outliner_find_id(SpaceOutliner *space_outliner, ListBase *lb, const ID *id)
 {
   LISTBASE_FOREACH (TreeElement *, te, lb) {

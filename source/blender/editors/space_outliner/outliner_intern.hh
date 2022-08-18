@@ -616,10 +616,6 @@ TreeElement *outliner_find_item_at_x_in_row(const SpaceOutliner *space_outliner,
                                             bool *r_is_merged_icon,
                                             bool *r_is_over_icon);
 /**
- * `tse` is not in the tree-store, we use its contents to find a match.
- */
-TreeElement *outliner_find_tse(struct SpaceOutliner *space_outliner, const TreeStoreElem *tse);
-/**
  * Find specific item from the trees-tore.
  */
 TreeElement *outliner_find_tree_element(ListBase *lb, const TreeStoreElem *store_elem);
