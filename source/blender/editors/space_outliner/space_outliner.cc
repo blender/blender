@@ -38,15 +38,8 @@
 #include "tree/tree_display.hh"
 
 SpaceOutliner_Runtime::SpaceOutliner_Runtime(const SpaceOutliner_Runtime & /*other*/)
-    : tree_display(nullptr), treehash(nullptr)
+    : tree_display(nullptr), tree_hash(nullptr)
 {
-}
-
-SpaceOutliner_Runtime::~SpaceOutliner_Runtime()
-{
-  if (treehash) {
-    BKE_outliner_treehash_free(treehash);
-  }
 }
 
 static void outliner_main_region_init(wmWindowManager *wm, ARegion *region)
@@ -418,7 +411,7 @@ static void outliner_id_remap(ScrArea *area, SpaceLink *slink, const struct IDRe
 
   /* Note that the Outliner may not be the active editor of the area, and hence not initialized.
    * So runtime data might not have been created yet. */
-  if (space_outliner->runtime && space_outliner->runtime->treehash && changed) {
+  if (space_outliner->runtime && space_outliner->runtime->tree_hash && changed) {
     /* rebuild hash table, because it depends on ids too */
     /* postpone a full rebuild because this can be called many times on-free */
     space_outliner->storeflag |= SO_TREESTORE_REBUILD;
