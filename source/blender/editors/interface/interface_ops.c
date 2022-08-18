@@ -820,13 +820,19 @@ static int override_idtemplate_create_exec(bContext *C, wmOperator *UNUSED(op))
     return OPERATOR_CANCELLED;
   }
 
-  PointerRNA idptr;
-  /* `idptr` is re-assigned to owner property to ensure proper updates etc. Here we also use it to
-   * ensure remapping of the owner property from the linked data to the newly created liboverride
-   * (note that in theory this remapping has already been done by code above). */
-  RNA_id_pointer_create(id_override, &idptr);
-  RNA_property_pointer_set(&owner_ptr, prop, idptr, NULL);
-  RNA_property_update(C, &owner_ptr, prop);
+  if (ID_IS_OVERRIDE_LIBRARY_REAL(owner_id)) {
+    PointerRNA idptr;
+    /* `idptr` is re-assigned to owner property to ensure proper updates etc. Here we also use it
+     * to ensure remapping of the owner property from the linked data to the newly created
+     * liboverride (note that in theory this remapping has already been done by code above), but
+     * only in case owner ID was already an existing liboverride.
+     *
+     * Otherwise, owner ID will also have been overridden, and remapped already to use itsoverride
+     * of the data too. */
+    RNA_id_pointer_create(id_override, &idptr);
+    RNA_property_pointer_set(&owner_ptr, prop, idptr, NULL);
+    RNA_property_update(C, &owner_ptr, prop);
+  }
 
   return OPERATOR_FINISHED;
 }

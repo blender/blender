@@ -796,6 +796,7 @@ ID *ui_template_id_liboverride_hierarchy_create(
         BKE_lib_override_library_create(
             bmain, scene, view_layer, NULL, id, NULL, NULL, &id_override, false);
         BKE_scene_collections_object_remove(bmain, scene, (Object *)id, true);
+        WM_event_add_notifier(C, NC_ID | NA_REMOVED, NULL);
       }
       break;
     case ID_ME:
@@ -862,9 +863,8 @@ ID *ui_template_id_liboverride_hierarchy_create(
      * rebuild of outliner trees, leading to crashes.
      *
      * So for now, add some extra notifiers here. */
-    WM_event_add_notifier(C, NC_ID | NA_REMOVED, NULL);
     WM_event_add_notifier(C, NC_ID | NA_ADDED, NULL);
-    WM_event_add_notifier(C, NC_ID | NA_EDITED, NULL);
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_OUTLINER, NULL);
   }
   return id_override;
 }
@@ -885,8 +885,13 @@ static void template_id_liboverride_hierarchy_create(bContext *C,
     /* Given `idptr` is re-assigned to owner property by caller to ensure proper updates etc. Here
      * we also use it to ensure remapping of the owner property from the linked data to the newly
      * created liboverride (note that in theory this remapping has already been done by code
-     * above). */
-    RNA_id_pointer_create(id_override, idptr);
+     * above), but only in case owner ID was already an existing liboverride.
+     *
+     * Otherwise, owner ID will also have been overridden, and remapped already to use itsoverride
+     * of the data too. */
+    if (ID_IS_OVERRIDE_LIBRARY_REAL(owner_id)) {
+      RNA_id_pointer_create(id_override, idptr);
+    }
   }
   else {
     RNA_warning("The data-block %s could not be overridden", id->name);
