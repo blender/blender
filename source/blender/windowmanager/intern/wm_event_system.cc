@@ -27,6 +27,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
+#include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_timer.h"
 #include "BLI_utildefines.h"
@@ -252,36 +253,56 @@ void wm_event_init_from_window(wmWindow *win, wmEvent *event)
 /** \name Notifiers & Listeners
  * \{ */
 
-static bool wm_test_duplicate_notifier(const wmWindowManager *wm, uint type, void *reference)
+/**
+ * Hash for #wmWindowManager.notifier_queue_set, ignores `window`.
+ */
+static uint note_hash_for_queue_fn(const void *ptr)
 {
-  LISTBASE_FOREACH (wmNotifier *, note, &wm->notifier_queue) {
-    if ((note->category | note->data | note->subtype | note->action) == type &&
-        note->reference == reference) {
-      return true;
-    }
-  }
+  const wmNotifier *note = static_cast<const wmNotifier *>(ptr);
+  return (BLI_ghashutil_ptrhash(note->reference) ^
+          (note->category | note->data | note->subtype | note->action));
+}
 
-  return false;
+/**
+ * Comparison for #wmWindowManager.notifier_queue_set
+ *
+ * \note This is not an exact equality function as the `window` is ignored.
+ */
+static bool note_cmp_for_queue_fn(const void *a, const void *b)
+{
+  const wmNotifier *note_a = static_cast<const wmNotifier *>(a);
+  const wmNotifier *note_b = static_cast<const wmNotifier *>(b);
+  return !(((note_a->category | note_a->data | note_a->subtype | note_a->action) ==
+            (note_b->category | note_b->data | note_b->subtype | note_b->action)) &&
+           (note_a->reference == note_b->reference));
 }
 
 void WM_event_add_notifier_ex(wmWindowManager *wm, const wmWindow *win, uint type, void *reference)
 {
-  if (wm_test_duplicate_notifier(wm, type, reference)) {
-    return;
+  wmNotifier note_test = {nullptr};
+
+  note_test.window = win;
+
+  note_test.category = type & NOTE_CATEGORY;
+  note_test.data = type & NOTE_DATA;
+  note_test.subtype = type & NOTE_SUBTYPE;
+  note_test.action = type & NOTE_ACTION;
+
+  note_test.reference = reference;
+
+  if (wm->notifier_queue_set == nullptr) {
+    wm->notifier_queue_set = BLI_gset_new_ex(
+        note_hash_for_queue_fn, note_cmp_for_queue_fn, __func__, 1024);
   }
 
-  wmNotifier *note = MEM_cnew<wmNotifier>(__func__);
-
+  void **note_p;
+  if (BLI_gset_ensure_p_ex(wm->notifier_queue_set, &note_test, &note_p)) {
+    return;
+  }
+  wmNotifier *note = MEM_new<wmNotifier>(__func__);
+  *note = note_test;
+  *note_p = note;
   BLI_addtail(&wm->notifier_queue, note);
-
-  note->window = win;
-
-  note->category = type & NOTE_CATEGORY;
-  note->data = type & NOTE_DATA;
-  note->subtype = type & NOTE_SUBTYPE;
-  note->action = type & NOTE_ACTION;
-
-  note->reference = reference;
 }
 
 /* XXX: in future, which notifiers to send to other windows? */
@@ -306,6 +327,9 @@ void WM_main_remove_notifier_reference(const void *reference)
   if (wm) {
     LISTBASE_FOREACH_MUTABLE (wmNotifier *, note, &wm->notifier_queue) {
       if (note->reference == reference) {
+        const bool removed = BLI_gset_remove(wm->notifier_queue_set, note, nullptr);
+        BLI_assert(removed);
+        UNUSED_VARS_NDEBUG(removed);
         /* Don't remove because this causes problems for #wm_event_do_notifiers
          * which may be looping on the data (deleting screens). */
         wm_notifier_clear(note);
@@ -554,6 +578,9 @@ void wm_event_do_notifiers(bContext *C)
   /* The notifiers are sent without context, to keep it clean. */
   wmNotifier *note;
   while ((note = static_cast<wmNotifier *>(BLI_pophead(&wm->notifier_queue)))) {
+    const bool removed = BLI_gset_remove(wm->notifier_queue_set, note, nullptr);
+    BLI_assert(removed);
+    UNUSED_VARS_NDEBUG(removed);
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       Scene *scene = WM_window_get_active_scene(win);
       bScreen *screen = WM_window_get_active_screen(win);

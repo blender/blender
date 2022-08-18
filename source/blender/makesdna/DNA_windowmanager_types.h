@@ -151,6 +151,11 @@ typedef struct wmWindowManager {
 
   /** Refresh/redraw #wmNotifier structs. */
   ListBase notifier_queue;
+  /**
+   * For duplicate detection.
+   * \note keep in sync with `notifier_queue` adding/removing elements must also update this set.
+   */
+  struct GSet *notifier_queue_set;
 
   /** Information and error reports. */
   struct ReportList reports;
