@@ -42,6 +42,11 @@
 #include "BLI_strict_flags.h"
 #include "BLI_string_utf8.h"
 
+/* Convert glyph converage amounts to lightness values. Uses a LUT that perceptually improves
+ * anti-aliasing and results in text that looks a bit fuller and slightly brighter. This should
+ * be reconsidered in some - or all - cases when we transform the entire UI. */
+#define BLF_GAMMA_CORRECT_GLYPHS
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
  * \{ */
@@ -183,6 +188,42 @@ static GlyphBLF *blf_glyph_cache_find_glyph(GlyphCacheBLF *gc, uint charcode)
   return NULL;
 }
 
+#ifdef BLF_GAMMA_CORRECT_GLYPHS
+
+/* Gamma correction of glyph converage values with widely-recommended gamma of 1.43.
+ * "The reasons are historical. Because so many programmers have neglected gamma blending for so
+ * long, people who have created fonts have tried to work around the problem of fonts looking too
+ * thin by just making the fonts thicker! Obviously it doesn’t help the jaggedness, but it does
+ * make them look the proper weight, as originally intended. The obvious problem with this is
+ * that if we want to gamma blend correctly many older fonts will look wrong. So we compromise,
+ * and use a lower gamma value, so we get a bit better antialiasing, but the fonts don’t look too
+ * heavy."
+ * https://www.puredevsoftware.com/blog/2019/01/22/sub-pixel-gamma-correct-font-rendering/
+ */
+static char blf_glyph_gamma(char c)
+{
+  /* The following is (char)(powf(c / 256.0f, 1.0f / 1.43f) * 256.0f). */
+  static const char gamma[256] = {
+      0,   5,   9,   11,  14,  16,  19,  21,  23,  25,  26,  28,  30,  32,  34,  35,  37,  38,
+      40,  41,  43,  44,  46,  47,  49,  50,  52,  53,  54,  56,  57,  58,  60,  61,  62,  64,
+      65,  66,  67,  69,  70,  71,  72,  73,  75,  76,  77,  78,  79,  80,  82,  83,  84,  85,
+      86,  87,  88,  89,  91,  92,  93,  94,  95,  96,  97,  98,  99,  100, 101, 102, 103, 104,
+      105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122,
+      123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 133, 134, 135, 136, 137, 138, 139,
+      140, 141, 142, 143, 143, 144, 145, 146, 147, 148, 149, 150, 151, 151, 152, 153, 154, 155,
+      156, 157, 157, 158, 159, 160, 161, 162, 163, 163, 164, 165, 166, 167, 168, 168, 169, 170,
+      171, 172, 173, 173, 174, 175, 176, 177, 178, 178, 179, 180, 181, 182, 182, 183, 184, 185,
+      186, 186, 187, 188, 189, 190, 190, 191, 192, 193, 194, 194, 195, 196, 197, 198, 198, 199,
+      200, 201, 201, 202, 203, 204, 205, 205, 206, 207, 208, 208, 209, 210, 211, 211, 212, 213,
+      214, 214, 215, 216, 217, 217, 218, 219, 220, 220, 221, 222, 223, 223, 224, 225, 226, 226,
+      227, 228, 229, 229, 230, 231, 231, 232, 233, 234, 234, 235, 236, 237, 237, 238, 239, 239,
+      240, 241, 242, 242, 243, 244, 244, 245, 246, 247, 247, 248, 249, 249, 250, 251, 251, 252,
+      253, 254, 254, 255};
+  return gamma[c];
+}
+
+#endif /* BLF_GAMMA_CORRECT_GLYPHS */
+
 /**
  * Add a rendered glyph to a cache.
  */
@@ -217,6 +258,14 @@ static GlyphBLF *blf_glyph_cache_add_glyph(
       for (int i = 0; i < buffer_size; i++) {
         glyph->bitmap.buffer[i] = glyph->bitmap.buffer[i] ? 255 : 0;
       }
+    }
+    else {
+#ifdef BLF_GAMMA_CORRECT_GLYPHS
+      /* Convert coverage amounts to perceptually-improved lightness values. */
+      for (int i = 0; i < buffer_size; i++) {
+        glyph->bitmap.buffer[i] = blf_glyph_gamma(glyph->bitmap.buffer[i]);
+      }
+#endif /* BLF_GAMMA_CORRECT_GLYPHS */
     }
     g->bitmap = MEM_mallocN((size_t)buffer_size, "glyph bitmap");
     memcpy(g->bitmap, glyph->bitmap.buffer, (size_t)buffer_size);
