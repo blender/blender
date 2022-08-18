@@ -155,28 +155,30 @@ static void wm_window_check_size(rcti *rect)
 
 static void wm_ghostwindow_destroy(wmWindowManager *wm, wmWindow *win)
 {
-  if (win->ghostwin) {
-    /* Prevents non-drawable state of main windows (bugs T22967,
-     * T25071 and possibly T22477 too). Always clear it even if
-     * this window was not the drawable one, because we mess with
-     * drawing context to discard the GW context. */
-    wm_window_clear_drawable(wm);
-
-    if (win == wm->winactive) {
-      wm->winactive = NULL;
-    }
-
-    /* We need this window's opengl context active to discard it. */
-    GHOST_ActivateWindowDrawingContext(win->ghostwin);
-    GPU_context_active_set(win->gpuctx);
-
-    /* Delete local GPU context. */
-    GPU_context_discard(win->gpuctx);
-
-    GHOST_DisposeWindow(g_system, win->ghostwin);
-    win->ghostwin = NULL;
-    win->gpuctx = NULL;
+  if (UNLIKELY(!win->ghostwin)) {
+    return;
   }
+
+  /* Prevents non-drawable state of main windows (bugs T22967,
+   * T25071 and possibly T22477 too). Always clear it even if
+   * this window was not the drawable one, because we mess with
+   * drawing context to discard the GW context. */
+  wm_window_clear_drawable(wm);
+
+  if (win == wm->winactive) {
+    wm->winactive = NULL;
+  }
+
+  /* We need this window's opengl context active to discard it. */
+  GHOST_ActivateWindowDrawingContext(win->ghostwin);
+  GPU_context_active_set(win->gpuctx);
+
+  /* Delete local GPU context. */
+  GPU_context_discard(win->gpuctx);
+
+  GHOST_DisposeWindow(g_system, win->ghostwin);
+  win->ghostwin = NULL;
+  win->gpuctx = NULL;
 }
 
 void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
@@ -2035,36 +2037,40 @@ void WM_init_native_pixels(bool do_it)
 
 void WM_init_tablet_api(void)
 {
-  if (g_system) {
-    switch (U.tablet_api) {
-      case USER_TABLET_NATIVE:
-        GHOST_SetTabletAPI(g_system, GHOST_kTabletWinPointer);
-        break;
-      case USER_TABLET_WINTAB:
-        GHOST_SetTabletAPI(g_system, GHOST_kTabletWintab);
-        break;
-      case USER_TABLET_AUTOMATIC:
-      default:
-        GHOST_SetTabletAPI(g_system, GHOST_kTabletAutomatic);
-        break;
-    }
+  if (UNLIKELY(!g_system)) {
+    return;
+  }
+
+  switch (U.tablet_api) {
+    case USER_TABLET_NATIVE:
+      GHOST_SetTabletAPI(g_system, GHOST_kTabletWinPointer);
+      break;
+    case USER_TABLET_WINTAB:
+      GHOST_SetTabletAPI(g_system, GHOST_kTabletWintab);
+      break;
+    case USER_TABLET_AUTOMATIC:
+    default:
+      GHOST_SetTabletAPI(g_system, GHOST_kTabletAutomatic);
+      break;
   }
 }
 
 void WM_cursor_warp(wmWindow *win, int x, int y)
 {
-  if (win && win->ghostwin) {
-    int oldx = x, oldy = y;
-
-    wm_cursor_position_to_ghost_client_coords(win, &x, &y);
-    GHOST_SetCursorPosition(g_system, win->ghostwin, x, y);
-
-    win->eventstate->prev_xy[0] = oldx;
-    win->eventstate->prev_xy[1] = oldy;
-
-    win->eventstate->xy[0] = oldx;
-    win->eventstate->xy[1] = oldy;
+  if (!(win && win->ghostwin)) {
+    return;
   }
+
+  int oldx = x, oldy = y;
+
+  wm_cursor_position_to_ghost_client_coords(win, &x, &y);
+  GHOST_SetCursorPosition(g_system, win->ghostwin, x, y);
+
+  win->eventstate->prev_xy[0] = oldx;
+  win->eventstate->prev_xy[1] = oldy;
+
+  win->eventstate->xy[0] = oldx;
+  win->eventstate->xy[1] = oldy;
 }
 
 /** \} */
