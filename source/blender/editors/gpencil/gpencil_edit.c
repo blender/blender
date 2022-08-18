@@ -4118,7 +4118,7 @@ static int gpencil_stroke_outline_exec(bContext *C, wmOperator *op)
               break;
             }
             case GP_STROKE_USE_CURRENT_MATERIAL:
-              gps_perimeter->mat_nr = gps_perimeter->mat_nr;
+              gps_perimeter->mat_nr = gps->mat_nr;
               break;
             case GP_STROKE_USE_NEW_MATERIAL:
               gps_perimeter->mat_nr = mat_idx;
