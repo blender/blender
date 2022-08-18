@@ -318,7 +318,9 @@ set(GLSL_SRC
   shaders/compositor/compositor_bokeh_image.glsl
   shaders/compositor/compositor_box_mask.glsl
   shaders/compositor/compositor_convert.glsl
+  shaders/compositor/compositor_edge_filter.glsl
   shaders/compositor/compositor_ellipse_mask.glsl
+  shaders/compositor/compositor_filter.glsl
   shaders/compositor/compositor_flip.glsl
   shaders/compositor/compositor_image_crop.glsl
   shaders/compositor/compositor_projector_lens_distortion.glsl
@@ -565,7 +567,9 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/compositor/infos/compositor_bokeh_image_info.hh
   shaders/compositor/infos/compositor_box_mask_info.hh
   shaders/compositor/infos/compositor_convert_info.hh
+  shaders/compositor/infos/compositor_edge_filter_info.hh
   shaders/compositor/infos/compositor_ellipse_mask_info.hh
+  shaders/compositor/infos/compositor_filter_info.hh
   shaders/compositor/infos/compositor_flip_info.hh
   shaders/compositor/infos/compositor_image_crop_info.hh
   shaders/compositor/infos/compositor_projector_lens_distortion_info.hh
