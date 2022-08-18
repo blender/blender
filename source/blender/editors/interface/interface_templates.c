@@ -796,7 +796,6 @@ ID *ui_template_id_liboverride_hierarchy_create(
         BKE_lib_override_library_create(
             bmain, scene, view_layer, NULL, id, NULL, NULL, &id_override, false);
         BKE_scene_collections_object_remove(bmain, scene, (Object *)id, true);
-        WM_event_add_notifier(C, NC_ID | NA_REMOVED, NULL);
       }
       break;
     case ID_ME:
@@ -854,6 +853,18 @@ ID *ui_template_id_liboverride_hierarchy_create(
   if (id_override != NULL) {
     id_override->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
     *r_undo_push_label = "Make Library Override Hierarchy";
+
+    /* In theory we could rely on setting/updating the RNA ID pointer property (as done by calling
+     * code) to be enough.
+     *
+     * However, some rare ID pointers properties (like the 'active object in viewlayer' one used
+     * for the Object templateID in the Object properties) use notifiers that do not enforce a
+     * rebuild of outliner trees, leading to crashes.
+     *
+     * So for now, add some extra notifiers here. */
+    WM_event_add_notifier(C, NC_ID | NA_REMOVED, NULL);
+    WM_event_add_notifier(C, NC_ID | NA_ADDED, NULL);
+    WM_event_add_notifier(C, NC_ID | NA_EDITED, NULL);
   }
   return id_override;
 }
