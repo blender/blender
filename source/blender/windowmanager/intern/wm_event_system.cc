@@ -295,20 +295,7 @@ void WM_main_add_notifier(unsigned int type, void *reference)
   Main *bmain = G_MAIN;
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
 
-  if (!wm || wm_test_duplicate_notifier(wm, type, reference)) {
-    return;
-  }
-
-  wmNotifier *note = MEM_cnew<wmNotifier>(__func__);
-
-  BLI_addtail(&wm->notifier_queue, note);
-
-  note->category = type & NOTE_CATEGORY;
-  note->data = type & NOTE_DATA;
-  note->subtype = type & NOTE_SUBTYPE;
-  note->action = type & NOTE_ACTION;
-
-  note->reference = reference;
+  WM_event_add_notifier_ex(wm, nullptr, type, reference);
 }
 
 void WM_main_remove_notifier_reference(const void *reference)
