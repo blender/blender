@@ -41,6 +41,7 @@
 #include "BLI_fnmatch.h"
 #include "BLI_listbase.h"
 #include "BLI_mempool.h"
+#include "BLI_timeit.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -1697,6 +1698,10 @@ void outliner_build_tree(Main *mainvar,
                    "triggered instead");
     return;
   }
+
+  /* Enable for benchmarking. Starts a timer, results will be printed on function exit. */
+  // SCOPED_TIMER("Outliner Rebuild");
+  // SCOPED_TIMER_AVERAGED("Outliner Rebuild");
 
   OutlinerTreeElementFocus focus;
   outliner_store_scrolling_position(space_outliner, region, &focus);
