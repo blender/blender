@@ -705,8 +705,9 @@ bool ED_view3d_camera_lock_undo_test(const View3D *v3d,
  * Create a MEMFILE undo-step for locked camera movement when transforming the view.
  * Edit and texture paint mode don't use MEMFILE undo so undo push is skipped for them.
  * NDOF and track-pad navigation would create an undo step on every gesture and we may end up with
- * unnecessary undo steps so undo push for them is not supported for now. Also operators that uses
- * smooth view for navigation are excluded too, but they can be supported, see: D15345.
+ * unnecessary undo steps so undo push for them is not supported for now.
+ * Operators that use smooth view for navigation are supported via an optional parameter field,
+ * see: #V3D_SmoothParams.undo_str.
  */
 static bool view3d_camera_lock_undo_ex(const char *str,
                                        const View3D *v3d,
