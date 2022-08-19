@@ -84,7 +84,7 @@ template<
 std::unique_ptr<IDProperty, IDPropertyDeleter> create_array(StringRefNull prop_name,
                                                             Span<PrimitiveType> values)
 {
-  static_assert(std::is_same_v<PrimitiveType, int32_t> || std::is_same_v<PrimitiveType, float_t> ||
+  static_assert(std::is_same_v<PrimitiveType, int32_t> || std::is_same_v<PrimitiveType, float> ||
                     std::is_same_v<PrimitiveType, double>,
                 "Allowed values for PrimitiveType are int32_t, float and double.");
   static_assert(!std::is_same_v<PrimitiveType, int32_t> || id_property_subtype == IDP_INT,

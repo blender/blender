@@ -193,7 +193,7 @@ unsigned int GPU_texture_memory_usage_get(void);
  * \note \a data is expected to be float. If the \a format is not compatible with float data or if
  * the data is not in float format, use GPU_texture_update to upload the data with the right data
  * format.
- * \a mips is the number of mip level to allocate. It must be >= 1.
+ * \a mip_len is the number of mip level to allocate. It must be >= 1.
  */
 GPUTexture *GPU_texture_create_1d(
     const char *name, int w, int mip_len, eGPUTextureFormat format, const float *data);
