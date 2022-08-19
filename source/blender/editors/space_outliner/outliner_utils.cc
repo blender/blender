@@ -27,6 +27,7 @@
 #include "UI_view2d.h"
 
 #include "outliner_intern.hh"
+#include "tree/tree_display.hh"
 #include "tree/tree_iterator.hh"
 
 using namespace blender::ed::outliner;
@@ -436,7 +437,7 @@ void outliner_tag_redraw_avoid_rebuild_on_open_change(const SpaceOutliner *space
                                                       ARegion *region)
 {
   /* Avoid rebuild if possible. */
-  if (outliner_requires_rebuild_on_open_change(space_outliner)) {
+  if (space_outliner->runtime->tree_display->is_lazy_built()) {
     ED_region_tag_redraw(region);
   }
   else {

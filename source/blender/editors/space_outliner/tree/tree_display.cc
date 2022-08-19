@@ -50,4 +50,9 @@ bool AbstractTreeDisplay::supportsModeColumn() const
   return false;
 }
 
+bool AbstractTreeDisplay::is_lazy_built() const
+{
+  return false;
+}
+
 }  // namespace blender::ed::outliner

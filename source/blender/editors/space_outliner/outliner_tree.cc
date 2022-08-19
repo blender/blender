@@ -217,11 +217,6 @@ bool outliner_requires_rebuild_on_select_or_active_change(const SpaceOutliner *s
   return exclude_flags & (SO_FILTER_OB_STATE_SELECTED | SO_FILTER_OB_STATE_ACTIVE);
 }
 
-bool outliner_requires_rebuild_on_open_change(const SpaceOutliner *space_outliner)
-{
-  return ELEM(space_outliner->outlinevis, SO_DATA_API);
-}
-
 /* special handling of hierarchical non-lib data */
 static void outliner_add_bone(SpaceOutliner *space_outliner,
                               ListBase *lb,

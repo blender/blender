@@ -157,7 +157,10 @@ enum {
   /* Closed items display their children as icon within the row. TE_ICONROW is for
    * these child-items that are visible but only within the row of the closed parent. */
   TE_ICONROW = (1 << 1),
-  TE_LAZY_CLOSED = (1 << 2),
+  /** Treat the element as if it had children, e.g. draw an icon to un-collapse it, even if it
+   * doesn't. Used where children are lazy-built only if the parent isn't collapsed (see
+   * #AbstractTreeDisplay::is_lazy_built()). */
+  TE_PRETEND_HAS_CHILDREN = (1 << 2),
   TE_FREE_NAME = (1 << 3),
   TE_DRAGGING = (1 << 4),
   TE_CHILD_NOT_IN_COLLECTION = (1 << 6),
@@ -280,11 +283,6 @@ struct TreeElement *outliner_add_collection_recursive(SpaceOutliner *space_outli
 
 bool outliner_requires_rebuild_on_select_or_active_change(
     const struct SpaceOutliner *space_outliner);
-/**
- * Check if a display mode needs a full rebuild if the open/collapsed state changes.
- * Element types in these modes don't actually add children if collapsed, so the rebuild is needed.
- */
-bool outliner_requires_rebuild_on_open_change(const struct SpaceOutliner *space_outliner);
 
 typedef struct IDsSelectedData {
   struct ListBase selected_array;
@@ -465,10 +463,7 @@ void outliner_set_coordinates(const struct ARegion *region,
 /**
  * Open or close a tree element, optionally toggling all children recursively.
  */
-void outliner_item_openclose(struct SpaceOutliner *space_outliner,
-                             TreeElement *te,
-                             bool open,
-                             bool toggle_all);
+void outliner_item_openclose(TreeElement *te, bool open, bool toggle_all);
 
 /* outliner_dragdrop.c */
 
