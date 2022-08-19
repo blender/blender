@@ -338,12 +338,14 @@ class CurvesGeometry : public ::CurvesGeometry {
   /** Calculates the data described by #evaluated_lengths_for_curve if necessary. */
   void ensure_evaluated_lengths() const;
 
+  void ensure_can_interpolate_to_evaluated() const;
+
   /**
    * Evaluate a generic data to the standard evaluated points of a specific curve,
    * defined by the resolution attribute or other factors, depending on the curve type.
    *
    * \warning This function expects offsets to the evaluated points for each curve to be
-   * calculated. That can be ensured with #ensure_evaluated_offsets.
+   * calculated. That can be ensured with #ensure_can_interpolate_to_evaluated.
    */
   void interpolate_to_evaluated(int curve_index, GSpan src, GMutableSpan dst) const;
   /**

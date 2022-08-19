@@ -368,7 +368,7 @@ Curves *resample_to_evaluated(const CurveComponent &src_component,
   dst_curves.fill_curve_types(selection, CURVE_TYPE_POLY);
   MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
 
-  src_curves.ensure_evaluated_offsets();
+  src_curves.ensure_can_interpolate_to_evaluated();
   threading::parallel_for(selection.index_range(), 4096, [&](IndexRange range) {
     for (const int i : selection.slice(range)) {
       dst_offsets[i] = src_curves.evaluated_points_for_curve(i).size();

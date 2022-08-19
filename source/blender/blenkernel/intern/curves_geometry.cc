@@ -939,6 +939,12 @@ void CurvesGeometry::ensure_evaluated_lengths() const
   this->runtime->length_cache_dirty = false;
 }
 
+void CurvesGeometry::ensure_can_interpolate_to_evaluated() const
+{
+  this->ensure_evaluated_offsets();
+  this->ensure_nurbs_basis_cache();
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
