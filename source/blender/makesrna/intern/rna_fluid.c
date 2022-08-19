@@ -227,7 +227,7 @@ static void rna_Fluid_parts_create(Main *bmain,
 static void rna_Fluid_parts_delete(Main *bmain, PointerRNA *ptr, int ptype)
 {
 #  ifndef WITH_FLUID
-  UNUSED_VARS(ptr, ptype);
+  UNUSED_VARS(bmain, ptr, ptype);
 #  else
   Object *ob = (Object *)ptr->owner_id;
   BKE_fluid_particle_system_destroy(ob, ptype);
