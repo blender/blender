@@ -26,23 +26,24 @@ class TreeHash {
  public:
   ~TreeHash();
 
-  /* create and fill hashtable with treestore elements */
+  /** Create and fill hash-table with treestore elements */
   static std::unique_ptr<TreeHash> create_from_treestore(BLI_mempool &treestore);
 
-  /* full rebuild for already allocated hashtable */
+  /** Full rebuild for already allocated hash-table. */
   void rebuild_from_treestore(BLI_mempool &treestore);
 
-  /* clear element usage flags */
+  /** Clear element usage flags. */
   void clear_used();
 
-  /* Add/remove hashtable elements */
+  /** Add hash-table element. */
   void add_element(TreeStoreElem &elem);
+  /** Remove hash-table element. */
   void remove_element(TreeStoreElem &elem);
 
-  /* find first unused element with specific type, nr and id */
+  /** Find first unused element with specific type, nr and id. */
   TreeStoreElem *lookup_unused(short type, short nr, ID *id) const;
 
-  /* find user or unused element with specific type, nr and id */
+  /** Find user or unused element with specific type, nr and id. */
   TreeStoreElem *lookup_any(short type, short nr, ID *id) const;
 
  private:

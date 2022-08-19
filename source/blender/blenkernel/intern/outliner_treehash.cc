@@ -39,9 +39,11 @@ class TseGroup {
 /* Only allow reset of #TseGroup.lastused counter to 0 once every 1k search. */
 #define TSEGROUP_LASTUSED_RESET_VALUE 10000
 
-/* Allocate structure for TreeStoreElements;
+/**
+   Allocate structure for TreeStoreElements;
  * Most of elements in treestore have no duplicates,
- * so there is no need to preallocate memory for more than one pointer */
+ * so there is no need to pre-allocate memory for more than one pointer.
+ */
 static TseGroup *tse_group_create(void)
 {
   TseGroup *tse_group = MEM_new<TseGroup>("TseGroup");

@@ -91,7 +91,7 @@ class BokehImageOperation : public NodeOperation {
     return *static_cast<NodeBokehImage *>(bnode().storage);
   }
 
-  /* The exterior angle is the angle between each two consective vertices of the regular polygon
+  /* The exterior angle is the angle between each two consecutive vertices of the regular polygon
    * from its center. */
   float get_exterior_angle()
   {

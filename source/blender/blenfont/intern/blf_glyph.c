@@ -42,9 +42,11 @@
 #include "BLI_strict_flags.h"
 #include "BLI_string_utf8.h"
 
-/* Convert glyph converage amounts to lightness values. Uses a LUT that perceptually improves
+/**
+ * Convert glyph coverage amounts to lightness values. Uses a LUT that perceptually improves
  * anti-aliasing and results in text that looks a bit fuller and slightly brighter. This should
- * be reconsidered in some - or all - cases when we transform the entire UI. */
+ * be reconsidered in some - or all - cases when we transform the entire UI.
+ */
 #define BLF_GAMMA_CORRECT_GLYPHS
 
 /* -------------------------------------------------------------------- */
@@ -190,19 +192,20 @@ static GlyphBLF *blf_glyph_cache_find_glyph(GlyphCacheBLF *gc, uint charcode)
 
 #ifdef BLF_GAMMA_CORRECT_GLYPHS
 
-/* Gamma correction of glyph converage values with widely-recommended gamma of 1.43.
+/**
+ * Gamma correction of glyph coverage values with widely-recommended gamma of 1.43.
  * "The reasons are historical. Because so many programmers have neglected gamma blending for so
  * long, people who have created fonts have tried to work around the problem of fonts looking too
- * thin by just making the fonts thicker! Obviously it doesn’t help the jaggedness, but it does
+ * thin by just making the fonts thicker! Obviously it doesn't help the jaggedness, but it does
  * make them look the proper weight, as originally intended. The obvious problem with this is
  * that if we want to gamma blend correctly many older fonts will look wrong. So we compromise,
- * and use a lower gamma value, so we get a bit better antialiasing, but the fonts don’t look too
+ * and use a lower gamma value, so we get a bit better anti-aliasing, but the fonts don't look too
  * heavy."
  * https://www.puredevsoftware.com/blog/2019/01/22/sub-pixel-gamma-correct-font-rendering/
  */
 static char blf_glyph_gamma(char c)
 {
-  /* The following is (char)(powf(c / 256.0f, 1.0f / 1.43f) * 256.0f). */
+  /* The following is `(char)(powf(c / 256.0f, 1.0f / 1.43f) * 256.0f)`. */
   static const char gamma[256] = {
       0,   5,   9,   11,  14,  16,  19,  21,  23,  25,  26,  28,  30,  32,  34,  35,  37,  38,
       40,  41,  43,  44,  46,  47,  49,  50,  52,  53,  54,  56,  57,  58,  60,  61,  62,  64,
