@@ -124,7 +124,7 @@ void TreeElementRNAStruct::expand(SpaceOutliner &space_outliner) const
     }
   }
   else if (tot) {
-    legacy_te_.flag |= TE_LAZY_CLOSED;
+    legacy_te_.flag |= TE_PRETEND_HAS_CHILDREN;
   }
 }
 
@@ -172,7 +172,7 @@ void TreeElementRNAProperty::expand(SpaceOutliner &space_outliner) const
             &space_outliner, &legacy_te_.subtree, &pptr, &legacy_te_, TSE_RNA_STRUCT, -1);
       }
       else {
-        legacy_te_.flag |= TE_LAZY_CLOSED;
+        legacy_te_.flag |= TE_PRETEND_HAS_CHILDREN;
       }
     }
   }
@@ -189,7 +189,7 @@ void TreeElementRNAProperty::expand(SpaceOutliner &space_outliner) const
       }
     }
     else if (tot) {
-      legacy_te_.flag |= TE_LAZY_CLOSED;
+      legacy_te_.flag |= TE_PRETEND_HAS_CHILDREN;
     }
   }
   else if (ELEM(proptype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
@@ -207,7 +207,7 @@ void TreeElementRNAProperty::expand(SpaceOutliner &space_outliner) const
       }
     }
     else if (tot) {
-      legacy_te_.flag |= TE_LAZY_CLOSED;
+      legacy_te_.flag |= TE_PRETEND_HAS_CHILDREN;
     }
   }
 }
