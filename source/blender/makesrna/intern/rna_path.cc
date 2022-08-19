@@ -704,12 +704,16 @@ const char *RNA_path_array_index_token_find(const char *rna_path, const Property
 
   /* Valid 'array part' of a rna path can only have '[', ']' and digit characters.
    * It may have more than one of those (e.g. `[12][1]`) in case of multi-dimensional arrays. */
-  int64_t rna_path_len = (int64_t)strlen(rna_path);
+  if (UNLIKELY(rna_path[0] == '\0')) {
+    return NULL;
+  }
+  size_t rna_path_len = (size_t)strlen(rna_path) - 1;
   if (rna_path[rna_path_len] != ']') {
     return NULL;
   }
+
   const char *last_valid_index_token_start = NULL;
-  for (rna_path_len--; rna_path_len >= 0; rna_path_len--) {
+  while (rna_path_len--) {
     switch (rna_path[rna_path_len]) {
       case '[':
         if (rna_path_len <= 0 || rna_path[rna_path_len - 1] != ']') {
