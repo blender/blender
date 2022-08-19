@@ -5909,7 +5909,7 @@ static void rna_def_space_text(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "font_size", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "lheight");
-  RNA_def_property_range(prop, 8, 32);
+  RNA_def_property_range(prop, 1, 256); /* Large range since Hi-DPI scales down size. */
   RNA_def_property_ui_text(prop, "Font Size", "Font size to use for displaying the text");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TEXT, NULL);
 
@@ -6403,7 +6403,7 @@ static void rna_def_space_console(BlenderRNA *brna)
   /* display */
   prop = RNA_def_property(srna, "font_size", PROP_INT, PROP_NONE); /* copied from text editor */
   RNA_def_property_int_sdna(prop, NULL, "lheight");
-  RNA_def_property_range(prop, 8, 32);
+  RNA_def_property_range(prop, 1, 256); /* Large range since Hi-DPI scales down size. */
   RNA_def_property_ui_text(prop, "Font Size", "Font size to use for displaying the text");
   RNA_def_property_update(prop, 0, "rna_SpaceConsole_rect_update");
 
