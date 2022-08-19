@@ -409,7 +409,7 @@ static void blf_font_draw_ex(FontBLF *font,
                              const char *str,
                              const size_t str_len,
                              struct ResultBLF *r_info,
-                             ft_pix pen_y)
+                             const ft_pix pen_y)
 {
   GlyphBLF *g, *g_prev = NULL;
   ft_pix pen_x = 0;
@@ -510,7 +510,7 @@ static void blf_font_draw_buffer_ex(FontBLF *font,
   /* buffer specific vars */
   FontBufInfoBLF *buf_info = &font->buf_info;
   const float *b_col_float = buf_info->col_float;
-  const unsigned char *b_col_char = buf_info->col_char;
+  const uchar *b_col_char = buf_info->col_char;
   int chx, chy;
   int y, x;
 
@@ -599,7 +599,7 @@ static void blf_font_draw_buffer_ex(FontBLF *font,
               const size_t buf_ofs = (((size_t)(chx + x) +
                                        ((size_t)(pen_y_px + y) * (size_t)buf_info->dims[0])) *
                                       (size_t)buf_info->ch);
-              unsigned char *cbuf = buf_info->cbuf + buf_ofs;
+              uchar *cbuf = buf_info->cbuf + buf_ofs;
 
               uchar font_pixel[4];
               font_pixel[0] = b_col_char[0];
@@ -1156,7 +1156,7 @@ int blf_font_count_missing_chars(FontBLF *font,
 
   *r_tot_chars = 0;
   while (i < str_len) {
-    unsigned int c;
+    uint c;
 
     if ((c = str[i]) < GLYPH_ASCII_TABLE_SIZE) {
       i++;
@@ -1399,10 +1399,10 @@ bool blf_ensure_face(FontBLF *font)
   /* Save TrueType table with bits to quickly test most unicode block coverage. */
   TT_OS2 *os2_table = (TT_OS2 *)FT_Get_Sfnt_Table(font->face, FT_SFNT_OS2);
   if (os2_table) {
-    font->UnicodeRanges[0] = (uint)os2_table->ulUnicodeRange1;
-    font->UnicodeRanges[1] = (uint)os2_table->ulUnicodeRange2;
-    font->UnicodeRanges[2] = (uint)os2_table->ulUnicodeRange3;
-    font->UnicodeRanges[3] = (uint)os2_table->ulUnicodeRange4;
+    font->unicode_ranges[0] = (uint)os2_table->ulUnicodeRange1;
+    font->unicode_ranges[1] = (uint)os2_table->ulUnicodeRange2;
+    font->unicode_ranges[2] = (uint)os2_table->ulUnicodeRange3;
+    font->unicode_ranges[3] = (uint)os2_table->ulUnicodeRange4;
   }
 
   if (FT_IS_FIXED_WIDTH(font)) {
@@ -1422,16 +1422,16 @@ bool blf_ensure_face(FontBLF *font)
   return true;
 }
 
-typedef struct eFaceDetails {
+struct FaceDetails {
   char name[50];
-  unsigned int coverage1;
-  unsigned int coverage2;
-  unsigned int coverage3;
-  unsigned int coverage4;
-} eFaceDetails;
+  uint coverage1;
+  uint coverage2;
+  uint coverage3;
+  uint coverage4;
+};
 
 /* Details about the fallback fonts we ship, so that we can load only when needed. */
-static const eFaceDetails static_face_details[] = {
+static const struct FaceDetails static_face_details[] = {
     {"lastresort.woff2", UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX},
     {"Noto Sans CJK Regular.woff2", 0x30000083L, 0x2BDF3C10L, 0x16L, 0},
     {"NotoEmoji-VariableFont_wght.woff2", 0x80000003L, 0x241E4ACL, 0x14000000L, 0x4000000L},
@@ -1467,7 +1467,7 @@ static const eFaceDetails static_face_details[] = {
  */
 FontBLF *blf_font_new_ex(const char *name,
                          const char *filepath,
-                         const unsigned char *mem,
+                         const uchar *mem,
                          const size_t mem_size,
                          void *ft_library)
 {
@@ -1497,16 +1497,16 @@ FontBLF *blf_font_new_ex(const char *name,
   bool face_needed = true;
 
   if (font->filepath) {
-    const eFaceDetails *static_details = NULL;
+    const struct FaceDetails *static_details = NULL;
     char filename[256];
     for (int i = 0; i < (int)ARRAY_SIZE(static_face_details); i++) {
       BLI_split_file_part(font->filepath, filename, sizeof(filename));
       if (STREQ(static_face_details[i].name, filename)) {
         static_details = &static_face_details[i];
-        font->UnicodeRanges[0] = static_details->coverage1;
-        font->UnicodeRanges[1] = static_details->coverage2;
-        font->UnicodeRanges[2] = static_details->coverage3;
-        font->UnicodeRanges[3] = static_details->coverage4;
+        font->unicode_ranges[0] = static_details->coverage1;
+        font->unicode_ranges[1] = static_details->coverage2;
+        font->unicode_ranges[2] = static_details->coverage3;
+        font->unicode_ranges[3] = static_details->coverage4;
         face_needed = false;
         break;
       }
@@ -1521,8 +1521,8 @@ FontBLF *blf_font_new_ex(const char *name,
   }
 
   /* Detect "Last resort" fonts. They have everything. Usually except last 5 bits.  */
-  if (font->UnicodeRanges[0] == 0xffffffffU && font->UnicodeRanges[1] == 0xffffffffU &&
-      font->UnicodeRanges[2] == 0xffffffffU && font->UnicodeRanges[3] >= 0x7FFFFFFU) {
+  if (font->unicode_ranges[0] == 0xffffffffU && font->unicode_ranges[1] == 0xffffffffU &&
+      font->unicode_ranges[2] == 0xffffffffU && font->unicode_ranges[3] >= 0x7FFFFFFU) {
     font->flags |= BLF_LAST_RESORT;
   }
 
@@ -1534,12 +1534,12 @@ FontBLF *blf_font_new(const char *name, const char *filepath)
   return blf_font_new_ex(name, filepath, NULL, 0, NULL);
 }
 
-FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem, const size_t mem_size)
+FontBLF *blf_font_new_from_mem(const char *name, const uchar *mem, const size_t mem_size)
 {
   return blf_font_new_ex(name, NULL, mem, mem_size, NULL);
 }
 
-void blf_font_attach_from_mem(FontBLF *font, const unsigned char *mem, const size_t mem_size)
+void blf_font_attach_from_mem(FontBLF *font, const uchar *mem, const size_t mem_size)
 {
   FT_Open_Args open;
 
@@ -1614,7 +1614,7 @@ void blf_ensure_size(FontBLF *font)
   BLI_assert_unreachable();
 }
 
-bool blf_font_size(FontBLF *font, float size, unsigned int dpi)
+bool blf_font_size(FontBLF *font, float size, uint dpi)
 {
   if (!blf_ensure_face(font)) {
     return false;

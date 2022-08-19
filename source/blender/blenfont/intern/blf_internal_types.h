@@ -12,16 +12,17 @@
 
 #include FT_MULTIPLE_MASTERS_H /* Variable font support. */
 
-#define BLF_VARIATIONS_MAX 16 /* Maximum variation axes per font. */
+/** Maximum variation axes per font. */
+#define BLF_VARIATIONS_MAX 16
 
 #define MAKE_DVAR_TAG(a, b, c, d) \
   (((uint32_t)a << 24u) | ((uint32_t)b << 16u) | ((uint32_t)c << 8u) | ((uint32_t)d))
 
-#define blf_variation_axis_weight MAKE_DVAR_TAG('w', 'g', 'h', 't')  /* 'wght' weight axis. */
-#define blf_variation_axis_slant MAKE_DVAR_TAG('s', 'l', 'n', 't')   /* 'slnt' slant axis. */
-#define blf_variation_axis_width MAKE_DVAR_TAG('w', 'd', 't', 'h')   /* 'wdth' width axis. */
-#define blf_variation_axis_spacing MAKE_DVAR_TAG('s', 'p', 'a', 'c') /* 'spac' spacing axis. */
-#define blf_variation_axis_optsize MAKE_DVAR_TAG('o', 'p', 's', 'z') /* 'opsz' optical size. */
+#define BLF_VARIATION_AXIS_WEIGHT MAKE_DVAR_TAG('w', 'g', 'h', 't')  /* 'wght' weight axis. */
+#define BLF_VARIATION_AXIS_SLANT MAKE_DVAR_TAG('s', 'l', 'n', 't')   /* 'slnt' slant axis. */
+#define BLF_VARIATION_AXIS_WIDTH MAKE_DVAR_TAG('w', 'd', 't', 'h')   /* 'wdth' width axis. */
+#define BLF_VARIATION_AXIS_SPACING MAKE_DVAR_TAG('s', 'p', 'a', 'c') /* 'spac' spacing axis. */
+#define BLF_VARIATION_AXIS_OPTSIZE MAKE_DVAR_TAG('o', 'p', 's', 'z') /* 'opsz' optical size. */
 
 /* -------------------------------------------------------------------- */
 /** \name Sub-Pixel Offset & Utilities
@@ -38,10 +39,12 @@ typedef int32_t ft_pix;
 
 /* Macros copied from `include/freetype/internal/ftobjs.h`. */
 
-/* FIXME(@campbellbarton): Follow rounding from Blender 3.1x and older.
+/**
+ * FIXME(@campbellbarton): Follow rounding from Blender 3.1x and older.
  * This is what users will expect and changing this creates wider spaced text.
  * Use this macro to communicate that rounding should be used, using floor is to avoid
- * user visible changes, which can be reviewed and handled separately. */
+ * user visible changes, which can be reviewed and handled separately.
+ */
 #define USE_LEGACY_SPACING
 
 #define FT_PIX_FLOOR(x) ((x) & ~63)
@@ -85,7 +88,7 @@ BLI_INLINE ft_pix ft_pix_from_float(float v)
 
 BLI_INLINE ft_pix ft_pix_round_advance(ft_pix v, ft_pix step)
 {
-  /* See #USE_LEGACY_SPACING, rounding logic could change here. */
+  /** See #USE_LEGACY_SPACING, rounding logic could change here. */
   return FT_PIX_DEFAULT_ROUNDING(v) + FT_PIX_DEFAULT_ROUNDING(step);
 }
 
@@ -97,24 +100,27 @@ BLI_INLINE ft_pix ft_pix_round_advance(ft_pix v, ft_pix step)
 
 #define BLF_BATCH_DRAW_LEN_MAX 2048 /* in glyph */
 
-/* Number of characters in GlyphCacheBLF.glyph_ascii_table. */
+/** Number of characters in #GlyphCacheBLF.glyph_ascii_table. */
 #define GLYPH_ASCII_TABLE_SIZE 128
 
-/* Number of characters in KerningCacheBLF.table. */
+/** Number of characters in #KerningCacheBLF.table. */
 #define KERNING_CACHE_TABLE_SIZE 128
 
-/* A value in the kerning cache that indicates it is not yet set. */
+/** A value in the kerning cache that indicates it is not yet set. */
 #define KERNING_ENTRY_UNSET INT_MAX
 
 typedef struct BatchBLF {
-  struct FontBLF *font; /* can only batch glyph from the same font */
+  /** Can only batch glyph from the same font. */
+  struct FontBLF *font;
   struct GPUBatch *batch;
   struct GPUVertBuf *verts;
   struct GPUVertBufRaw pos_step, col_step, offset_step, glyph_size_step;
   unsigned int pos_loc, col_loc, offset_loc, glyph_size_loc;
   unsigned int glyph_len;
-  int ofs[2];      /* copy of font->pos */
-  float mat[4][4]; /* previous call modelmatrix. */
+  /** Copy of `font->pos`. */
+  int ofs[2];
+  /* Previous call `modelmatrix`. */
+  float mat[4][4];
   bool enabled, active, simple_shader;
   struct GlyphCacheBLF *glyph_cache;
 } BatchBLF;
@@ -133,11 +139,12 @@ typedef struct GlyphCacheBLF {
   struct GlyphCacheBLF *next;
   struct GlyphCacheBLF *prev;
 
-  /* font size. */
+  /** Font size. */
   float size;
 
-  /* and DPI. */
+  /** DPI. */
   unsigned int dpi;
+
   float char_weight;
   float char_slant;
   float char_width;
@@ -146,16 +153,16 @@ typedef struct GlyphCacheBLF {
   bool bold;
   bool italic;
 
-  /* Column width when printing monospaced. */
+  /** Column width when printing monospaced. */
   int fixed_width;
 
-  /* and the glyphs. */
+  /** The glyphs. */
   ListBase bucket[257];
 
-  /* fast ascii lookup */
+  /** Fast ascii lookup */
   struct GlyphBLF *glyph_ascii_table[GLYPH_ASCII_TABLE_SIZE];
 
-  /* texture array, to draw the glyphs. */
+  /** Texture array, to draw the glyphs. */
   GPUTexture *texture;
   char *bitmap_result;
   int bitmap_len;
@@ -168,13 +175,13 @@ typedef struct GlyphBLF {
   struct GlyphBLF *next;
   struct GlyphBLF *prev;
 
-  /* and the character, as UTF-32 */
+  /** The character, as UTF-32. */
   unsigned int c;
 
-  /* freetype2 index, to speed-up the search. */
+  /** Freetype2 index, to speed-up the search. */
   FT_UInt idx;
 
-  /* glyph box. */
+  /** Glyph bounding-box. */
   ft_pix box_xmin;
   ft_pix box_xmax;
   ft_pix box_ymin;
@@ -182,19 +189,20 @@ typedef struct GlyphBLF {
 
   ft_pix advance_x;
 
-  /* The difference in bearings when hinting is active, zero otherwise. */
+  /** The difference in bearings when hinting is active, zero otherwise. */
   ft_pix lsb_delta;
   ft_pix rsb_delta;
 
-  /* position inside the texture where this glyph is store. */
+  /** Position inside the texture where this glyph is store. */
   int offset;
 
-  /* Bitmap data, from freetype. Take care that this
+  /**
+   * Bitmap data, from freetype. Take care that this
    * can be NULL.
    */
   unsigned char *bitmap;
 
-  /* Glyph width and height. */
+  /** Glyph width and height. */
   int dims[2];
   int pitch;
 
@@ -209,56 +217,57 @@ typedef struct GlyphBLF {
 } GlyphBLF;
 
 typedef struct FontBufInfoBLF {
-  /* for draw to buffer, always set this to NULL after finish! */
+  /** For draw to buffer, always set this to NULL after finish! */
   float *fbuf;
 
-  /* the same but unsigned char */
+  /** The same but unsigned char. */
   unsigned char *cbuf;
 
   /** Buffer size, keep signed so comparisons with negative values work. */
   int dims[2];
 
-  /* number of channels. */
+  /** Number of channels. */
   int ch;
 
-  /* display device used for color management */
+  /** Display device used for color management. */
   struct ColorManagedDisplay *display;
 
-  /* and the color, the alphas is get from the glyph!
-   * color is sRGB space */
+  /** The color, the alphas is get from the glyph! (color is sRGB space). */
   float col_init[4];
-  /* cached conversion from 'col_init' */
+  /** Cached conversion from 'col_init'. */
   unsigned char col_char[4];
   float col_float[4];
 
 } FontBufInfoBLF;
 
 typedef struct FontBLF {
-  /* font name. */
+  /** Font name. */
   char *name;
 
-  /* # of times this font was loaded */
-  unsigned int reference_count;
-
-  /* Full path to font file or NULL if from memory. */
+  /** Full path to font file or NULL if from memory. */
   char *filepath;
 
-  /* Pointer to in-memory font, or NULL if from file. */
+  /** Pointer to in-memory font, or NULL if from file. */
   void *mem;
   size_t mem_size;
 
-  /* Copied from the SFNT OS/2 table. Bit flags for unicode blocks and ranges
+  /**
+   * Copied from the SFNT OS/2 table. Bit flags for unicode blocks and ranges
    * considered "functional". Cached here because face might not always exist.
-   * See: https://docs.microsoft.com/en-us/typography/opentype/spec/os2#ur */
-  uint UnicodeRanges[4];
+   * See: https://docs.microsoft.com/en-us/typography/opentype/spec/os2#ur
+   */
+  uint unicode_ranges[4];
 
-  /* aspect ratio or scale. */
+  /** Number of times this font was loaded. */
+  unsigned int reference_count;
+
+  /** Aspect ratio or scale. */
   float aspect[3];
 
-  /* initial position for draw the text. */
+  /** Initial position for draw the text. */
   int pos[3];
 
-  /* angle in radians. */
+  /** Angle in radians. */
   float angle;
 
 #if 0 /* BLF_BLUR_ENABLE */
@@ -266,49 +275,50 @@ typedef struct FontBLF {
   int blur;
 #endif
 
-  /* shadow level. */
+  /** Shadow level. */
   int shadow;
 
-  /* and shadow offset. */
+  /** And shadow offset. */
   int shadow_x;
   int shadow_y;
 
-  /* shadow color. */
+  /** Shadow color. */
   unsigned char shadow_color[4];
 
-  /* main text color. */
+  /** Main text color. */
   unsigned char color[4];
 
-  /* Multiplied this matrix with the current one before
-   * draw the text! see blf_draw__start.
+  /**
+   * Multiplied this matrix with the current one before draw the text!
+   * see #blf_draw_gl__start.
    */
   float m[16];
 
-  /* clipping rectangle. */
+  /** Clipping rectangle. */
   rcti clip_rec;
 
-  /* the width to wrap the text, see BLF_WORD_WRAP */
+  /** The width to wrap the text, see #BLF_WORD_WRAP. */
   int wrap_width;
 
-  /* Font DPI (default 72). */
+  /** Font DPI (default 72). */
   unsigned int dpi;
 
-  /* font size. */
+  /** Font size. */
   float size;
 
-  /* Axes data for Adobe MM, TrueType GX, or OpenType variation fonts.  */
+  /** Axes data for Adobe MM, TrueType GX, or OpenType variation fonts.  */
   FT_MM_Var *variations;
 
-  /* Character variation; 0=default, -1=min, +1=max. */
+  /** Character variation; 0=default, -1=min, +1=max. */
   float char_weight;
   float char_slant;
   float char_width;
   float char_spacing;
 
-  /* max texture size. */
+  /** Max texture size. */
   int tex_size_max;
 
-  /* font options. */
+  /** Font options. */
   int flags;
 
   /**
@@ -317,25 +327,25 @@ typedef struct FontBLF {
    */
   ListBase cache;
 
-  /* Cache of unscaled kerning values. Will be NULL if font does not have kerning. */
+  /** Cache of unscaled kerning values. Will be NULL if font does not have kerning. */
   KerningCacheBLF *kerning_cache;
 
-  /* freetype2 lib handle. */
+  /** Freetype2 lib handle. */
   FT_Library ft_lib;
 
-  /* freetype2 face. */
+  /** Freetype2 face. */
   FT_Face face;
 
-  /* Point to face->size or to cache's size. */
+  /** Point to face->size or to cache's size. */
   FT_Size ft_size;
 
-  /* Copy of the font->face->face_flags, in case we don't have a face loaded. */
+  /** Copy of the font->face->face_flags, in case we don't have a face loaded. */
   FT_Long face_flags;
 
-  /* data for buffer usage (drawing into a texture buffer) */
+  /** Data for buffer usage (drawing into a texture buffer) */
   FontBufInfoBLF buf_info;
 
-  /* Mutex lock for glyph cache. */
+  /** Mutex lock for glyph cache. */
   ThreadMutex glyph_cache_mutex;
 } FontBLF;
 
@@ -343,6 +353,6 @@ typedef struct DirBLF {
   struct DirBLF *next;
   struct DirBLF *prev;
 
-  /* full path where search fonts. */
+  /** Full path where search fonts. */
   char *path;
 } DirBLF;

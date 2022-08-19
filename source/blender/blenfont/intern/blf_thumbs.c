@@ -32,15 +32,15 @@
 void BLF_thumb_preview(const char *filepath,
                        const char **draw_str,
                        const char **i18n_draw_str,
-                       const unsigned char draw_str_lines,
+                       const uchar draw_str_lines,
                        const float font_color[4],
                        const int font_size,
-                       unsigned char *buf,
-                       int w,
-                       int h,
-                       int channels)
+                       uchar *buf,
+                       const int w,
+                       const int h,
+                       const int channels)
 {
-  const unsigned int dpi = 72;
+  const uint dpi = 72;
   const int font_size_min = 6;
   int font_size_curr;
   /* shrink 1/th each line */
