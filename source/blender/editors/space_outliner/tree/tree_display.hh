@@ -166,6 +166,8 @@ class TreeDisplayOverrideLibraryHierarchies final : public AbstractTreeDisplay {
 
   ListBase buildTree(const TreeSourceData &source_data) override;
 
+  bool is_lazy_built() const override;
+
  private:
   ListBase build_hierarchy_for_lib_or_main(Main *bmain,
                                            TreeElement &parent_te,
