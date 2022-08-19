@@ -20,6 +20,7 @@
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
+#include "BLT_translation.h"
 
 #include "PIL_time.h"
 
@@ -1024,8 +1025,10 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
         gpd->runtime.sbuffer, &gpd->runtime.sbuffer_size, &gpd->runtime.sbuffer_used, false);
 
     /* add small offset to keep stroke over the surface */
-    if ((depth_arr) && (gpd->zdepth_offset > 0.0f) && (depth_arr[i] != DEPTH_INVALID)) {
-      depth_arr[i] *= (1.0f - (gpd->zdepth_offset / 1000.0f));
+    if (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_VIEW) {
+      if ((depth_arr) && (gpd->zdepth_offset > 0.0f) && (depth_arr[i] != DEPTH_INVALID)) {
+        depth_arr[i] *= (1.0f - (gpd->zdepth_offset / 1000.0f));
+      }
     }
 
     /* convert screen-coordinates to 3D coordinates */
