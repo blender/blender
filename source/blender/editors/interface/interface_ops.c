@@ -827,8 +827,8 @@ static int override_idtemplate_create_exec(bContext *C, wmOperator *UNUSED(op))
      * liboverride (note that in theory this remapping has already been done by code above), but
      * only in case owner ID was already an existing liboverride.
      *
-     * Otherwise, owner ID will also have been overridden, and remapped already to use itsoverride
-     * of the data too. */
+     * Otherwise, owner ID will also have been overridden, and remapped already to use it's
+     * override of the data too. */
     RNA_id_pointer_create(id_override, &idptr);
     RNA_property_pointer_set(&owner_ptr, prop, idptr, NULL);
     RNA_property_update(C, &owner_ptr, prop);

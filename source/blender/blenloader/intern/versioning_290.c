@@ -1697,7 +1697,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Add subpanels for FModifiers, which requires a field to store expansion. */
+    /* Add sub-panels for FModifiers, which requires a field to store expansion. */
     if (!DNA_struct_elem_find(fd->filesdna, "FModifier", "short", "ui_expand_flag")) {
       LISTBASE_FOREACH (bAction *, act, &bmain->actions) {
         LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
