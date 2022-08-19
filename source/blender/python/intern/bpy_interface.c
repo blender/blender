@@ -585,6 +585,11 @@ void BPY_python_use_system_env(void)
 void BPY_python_backtrace(FILE *fp)
 {
   fputs("\n# Python backtrace\n", fp);
+
+  /* Can happen in rare cases. */
+  if (!_PyThreadState_UncheckedGet()) {
+    return;
+  }
   PyFrameObject *frame;
   if (!(frame = PyEval_GetFrame())) {
     return;
