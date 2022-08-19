@@ -916,7 +916,7 @@ static void stitch_propagate_uv_final_position(Scene *scene,
       if (final) {
         copy_v2_v2(luv->uv, final_position[index].uv);
 
-        uvedit_uv_select_enable(scene, state->em, l, false, cd_loop_uv_offset);
+        uvedit_uv_select_enable(scene, state->em->bm, l, false, cd_loop_uv_offset);
       }
       else {
         int face_preview_pos =

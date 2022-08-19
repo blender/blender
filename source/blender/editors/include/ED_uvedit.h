@@ -107,64 +107,64 @@ bool uvedit_uv_select_test(const struct Scene *scene, struct BMLoop *l, int cd_l
  * Changes selection state of a single UV Face.
  */
 void uvedit_face_select_set(const struct Scene *scene,
-                            struct BMEditMesh *em,
+                            struct BMesh *em,
                             struct BMFace *efa,
                             bool select,
                             bool do_history,
-                            int cd_loop_uv_offset);
+                            uint cd_loop_uv_offset);
 /**
  * \brief Select UV Edge
  *
  * Changes selection state of a single UV Edge.
  */
 void uvedit_edge_select_set(const struct Scene *scene,
-                            struct BMEditMesh *em,
+                            struct BMesh *em,
                             struct BMLoop *l,
                             bool select,
                             bool do_history,
-                            int cd_loop_uv_offset);
+                            uint cd_loop_uv_offset);
 /**
  * \brief Select UV Vertex
  *
  * Changes selection state of a single UV vertex.
  */
 void uvedit_uv_select_set(const struct Scene *scene,
-                          struct BMEditMesh *em,
+                          struct BMesh *em,
                           struct BMLoop *l,
                           bool select,
                           bool do_history,
-                          int cd_loop_uv_offset);
+                          uint cd_loop_uv_offset);
 
 /* Low level functions for (de)selecting individual UV elements. Ensure UV face visibility before
  * use. */
 
 void uvedit_face_select_enable(const struct Scene *scene,
-                               struct BMEditMesh *em,
+                               struct BMesh *bm,
                                struct BMFace *efa,
                                bool do_history,
-                               int cd_loop_uv_offset);
+                               uint cd_loop_uv_offset);
 void uvedit_face_select_disable(const struct Scene *scene,
-                                struct BMEditMesh *em,
+                                struct BMesh *bm,
                                 struct BMFace *efa,
-                                int cd_loop_uv_offset);
+                                uint cd_loop_uv_offset);
 void uvedit_edge_select_enable(const struct Scene *scene,
-                               struct BMEditMesh *em,
+                               struct BMesh *bm,
                                struct BMLoop *l,
                                bool do_history,
-                               int cd_loop_uv_offset);
+                               uint cd_loop_uv_offset);
 void uvedit_edge_select_disable(const struct Scene *scene,
-                                struct BMEditMesh *em,
+                                struct BMesh *bm,
                                 struct BMLoop *l,
-                                int cd_loop_uv_offset);
+                                uint cd_loop_uv_offset);
 void uvedit_uv_select_enable(const struct Scene *scene,
-                             struct BMEditMesh *em,
+                             struct BMesh *bm,
                              struct BMLoop *l,
                              bool do_history,
-                             int cd_loop_uv_offset);
+                             uint cd_loop_uv_offset);
 void uvedit_uv_select_disable(const struct Scene *scene,
-                              struct BMEditMesh *em,
+                              struct BMesh *bm,
                               struct BMLoop *l,
-                              int cd_loop_uv_offset);
+                              uint cd_loop_uv_offset);
 
 /* Sticky mode UV element selection functions. */
 
