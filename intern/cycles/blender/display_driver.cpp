@@ -7,6 +7,8 @@
 #include "util/log.h"
 #include "util/opengl.h"
 
+#include "GPU_platform.h"
+
 extern "C" {
 struct RenderEngine;
 
@@ -507,6 +509,7 @@ class DrawTileAndPBO {
 
   DrawTile tile;
   GLPixelBufferObject buffer_object;
+  bool need_update_texture_pixels = false;
 };
 
 /* --------------------------------------------------------------------
@@ -585,6 +588,8 @@ void BlenderDisplayDriver::next_tile_begin()
   /* Moving to the next tile without giving render data for the current tile is not an expected
    * situation. */
   DCHECK(!need_clear_);
+  /* Texture should have been updated from the PBO at this point. */
+  DCHECK(!tiles_->current_tile.need_update_texture_pixels);
 
   tiles_->finished_tiles.tiles.emplace_back(std::move(tiles_->current_tile.tile));
 }
@@ -702,8 +707,18 @@ void BlenderDisplayDriver::update_end()
    * One concern with this approach is that if the update happens more often than drawing then
    * doing the unpack here occupies GPU transfer for no good reason. However, the render scheduler
    * takes care of ensuring updates don't happen that often. In regular applications redraw will
-   * happen much more often than this update. */
-  update_tile_texture_pixels(tiles_->current_tile);
+   * happen much more often than this update.
+   *
+   * On some older GPUs on macOS, there is a driver crash when updating the texture for viewport
+   * renders while Blender is drawing. As a workaround update texture during draw, under assumption
+   * that there is no graphics interop on macOS and viewport render has a single tile. */
+  if (use_gl_context_ &&
+      GPU_type_matches_ex(GPU_DEVICE_NVIDIA, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_ANY)) {
+    tiles_->current_tile.need_update_texture_pixels = true;
+  }
+  else {
+    update_tile_texture_pixels(tiles_->current_tile);
+  }
 
   gl_upload_sync_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
   glFlush();
@@ -952,6 +967,11 @@ void BlenderDisplayDriver::draw(const Params &params)
 
   glEnableVertexAttribArray(texcoord_attribute);
   glEnableVertexAttribArray(position_attribute);
+
+  if (tiles_->current_tile.need_update_texture_pixels) {
+    update_tile_texture_pixels(tiles_->current_tile);
+    tiles_->current_tile.need_update_texture_pixels = false;
+  }
 
   draw_tile(zoom_,
             texcoord_attribute,
