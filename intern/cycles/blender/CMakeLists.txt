@@ -8,6 +8,7 @@ set(INC
   ../../../source/blender/makesdna
   ../../../source/blender/makesrna
   ../../../source/blender/blenlib
+  ../../../source/blender/gpu
   ${CMAKE_BINARY_DIR}/source/blender/makesrna/intern
 )
 
