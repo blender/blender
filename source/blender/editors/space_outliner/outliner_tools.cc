@@ -2341,6 +2341,17 @@ static TreeTraversalAction outliner_find_objects_to_delete(TreeElement *te, void
     return TRAVERSE_SKIP_CHILDS;
   }
 
+  /* Do not allow to delete children objects of an override collection. */
+  TreeElement *te_parent = te->parent;
+  if (outliner_is_collection_tree_element(te_parent)) {
+    TreeStoreElem *tselem_parent = TREESTORE(te_parent);
+    ID *id_parent = tselem_parent->id;
+    BLI_assert(GS(id_parent->name) == ID_GR);
+    if (ID_IS_OVERRIDE_LIBRARY_REAL(id_parent)) {
+      return TRAVERSE_SKIP_CHILDS;
+    }
+  }
+
   ID *id = tselem->id;
 
   if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
