@@ -317,7 +317,7 @@ void uvedit_face_select_set(const Scene *scene,
                             BMFace *efa,
                             const bool select,
                             const bool do_history,
-                            const uint cd_loop_uv_offset)
+                            const int cd_loop_uv_offset)
 {
   if (select) {
     uvedit_face_select_enable(scene, bm, efa, do_history, cd_loop_uv_offset);
@@ -327,12 +327,10 @@ void uvedit_face_select_set(const Scene *scene,
   }
 }
 
-void uvedit_face_select_enable(const Scene *scene,
-                               BMesh *bm,
-                               BMFace *efa,
-                               const bool do_history,
-                               const uint cd_loop_uv_offset)
+void uvedit_face_select_enable(
+    const Scene *scene, BMesh *bm, BMFace *efa, const bool do_history, const int cd_loop_uv_offset)
 {
+  BLI_assert(cd_loop_uv_offset >= 0);
   const ToolSettings *ts = scene->toolsettings;
 
   if (ts->uv_flag & UV_SYNC_SELECTION) {
@@ -356,8 +354,9 @@ void uvedit_face_select_enable(const Scene *scene,
 void uvedit_face_select_disable(const Scene *scene,
                                 BMesh *bm,
                                 BMFace *efa,
-                                const uint cd_loop_uv_offset)
+                                const int cd_loop_uv_offset)
 {
+  BLI_assert(cd_loop_uv_offset >= 0);
   const ToolSettings *ts = scene->toolsettings;
 
   if (ts->uv_flag & UV_SYNC_SELECTION) {
@@ -407,7 +406,7 @@ void uvedit_edge_select_set_with_sticky(const Scene *scene,
                                         BMLoop *l,
                                         const bool select,
                                         const bool do_history,
-                                        const uint cd_loop_uv_offset)
+                                        const int cd_loop_uv_offset)
 {
   const ToolSettings *ts = scene->toolsettings;
   if (ts->uv_flag & UV_SYNC_SELECTION) {
@@ -505,7 +504,7 @@ void uvedit_edge_select_set(const Scene *scene,
                             BMLoop *l,
                             const bool select,
                             const bool do_history,
-                            const uint cd_loop_uv_offset)
+                            const int cd_loop_uv_offset)
 
 {
   if (select) {
@@ -517,7 +516,7 @@ void uvedit_edge_select_set(const Scene *scene,
 }
 
 void uvedit_edge_select_enable(
-    const Scene *scene, BMesh *bm, BMLoop *l, const bool do_history, const uint cd_loop_uv_offset)
+    const Scene *scene, BMesh *bm, BMLoop *l, const bool do_history, const int cd_loop_uv_offset)
 
 {
   const ToolSettings *ts = scene->toolsettings;
@@ -551,7 +550,7 @@ void uvedit_edge_select_enable(
 void uvedit_edge_select_disable(const Scene *scene,
                                 BMesh *bm,
                                 BMLoop *l,
-                                const uint cd_loop_uv_offset)
+                                const int cd_loop_uv_offset)
 
 {
   const ToolSettings *ts = scene->toolsettings;
@@ -626,7 +625,7 @@ void uvedit_uv_select_set_with_sticky(const Scene *scene,
                                       BMLoop *l,
                                       const bool select,
                                       const bool do_history,
-                                      const uint cd_loop_uv_offset)
+                                      const int cd_loop_uv_offset)
 {
   const ToolSettings *ts = scene->toolsettings;
   if (ts->uv_flag & UV_SYNC_SELECTION) {
@@ -706,7 +705,7 @@ void uvedit_uv_select_set(const Scene *scene,
                           BMLoop *l,
                           const bool select,
                           const bool do_history,
-                          const uint cd_loop_uv_offset)
+                          const int cd_loop_uv_offset)
 {
   if (select) {
     uvedit_uv_select_enable(scene, bm, l, do_history, cd_loop_uv_offset);
@@ -717,7 +716,7 @@ void uvedit_uv_select_set(const Scene *scene,
 }
 
 void uvedit_uv_select_enable(
-    const Scene *scene, BMesh *bm, BMLoop *l, const bool do_history, const uint cd_loop_uv_offset)
+    const Scene *scene, BMesh *bm, BMLoop *l, const bool do_history, const int cd_loop_uv_offset)
 {
   const ToolSettings *ts = scene->toolsettings;
 
@@ -746,7 +745,7 @@ void uvedit_uv_select_enable(
 void uvedit_uv_select_disable(const Scene *scene,
                               BMesh *bm,
                               BMLoop *l,
-                              const uint cd_loop_uv_offset)
+                              const int cd_loop_uv_offset)
 {
   const ToolSettings *ts = scene->toolsettings;
 
@@ -1135,7 +1134,7 @@ BMLoop *uv_find_nearest_loop_from_vert(struct Scene *scene,
                                        const float co[2])
 {
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
-  const uint cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+  const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
   BMIter liter;
   BMLoop *l;
@@ -1163,7 +1162,8 @@ BMLoop *uv_find_nearest_loop_from_edge(struct Scene *scene,
                                        const float co[2])
 {
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
-  const uint cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+  const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+  BLI_assert(cd_loop_uv_offset >= 0);
 
   BMIter eiter;
   BMLoop *l;

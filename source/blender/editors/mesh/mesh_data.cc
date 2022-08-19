@@ -208,7 +208,7 @@ void ED_mesh_uv_loop_reset_ex(Mesh *me, const int layernum)
     BMFace *efa;
     BMIter iter;
 
-    BLI_assert(cd_loop_uv_offset != -1);
+    BLI_assert(cd_loop_uv_offset >= 0);
 
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
       if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {

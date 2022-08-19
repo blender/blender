@@ -2290,7 +2290,8 @@ static int smart_project_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    const uint cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+    const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+    BLI_assert(cd_loop_uv_offset >= 0);
     ThickFace *thick_faces = MEM_mallocN(sizeof(*thick_faces) * em->bm->totface, __func__);
 
     uint thick_faces_len = 0;
