@@ -1059,8 +1059,8 @@ void BlenderSession::ensure_display_driver_if_needed()
     return;
   }
 
-  unique_ptr<BlenderDisplayDriver> display_driver = make_unique<BlenderDisplayDriver>(b_engine,
-                                                                                      b_scene);
+  unique_ptr<BlenderDisplayDriver> display_driver = make_unique<BlenderDisplayDriver>(
+      b_engine, b_scene, background);
   display_driver_ = display_driver.get();
   session->set_display_driver(move(display_driver));
 }

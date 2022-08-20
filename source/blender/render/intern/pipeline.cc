@@ -80,9 +80,9 @@
 #include "SEQ_relations.h"
 #include "SEQ_render.h"
 
-#include "../../windowmanager/WM_api.h"    /* XXX */
-#include "../../windowmanager/wm_window.h" /* XXX */
 #include "GPU_context.h"
+#include "WM_api.h"
+#include "wm_window.h"
 
 #ifdef WITH_FREESTYLE
 #  include "FRS_freestyle.h"

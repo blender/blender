@@ -47,6 +47,7 @@
 #include "DRW_engine.h"
 
 #include "GPU_context.h"
+#include "WM_api.h"
 
 #include "pipeline.h"
 #include "render_result.h"
@@ -140,6 +141,7 @@ RenderEngine *RE_engine_create(RenderEngineType *type)
   engine->type = type;
 
   BLI_mutex_init(&engine->update_render_passes_mutex);
+  BLI_mutex_init(&engine->gpu_context_mutex);
 
   return engine;
 }
@@ -172,6 +174,7 @@ void RE_engine_free(RenderEngine *engine)
 
   engine_depsgraph_free(engine);
 
+  BLI_mutex_end(&engine->gpu_context_mutex);
   BLI_mutex_end(&engine->update_render_passes_mutex);
 
   MEM_freeN(engine);
@@ -1199,27 +1202,110 @@ void RE_engine_tile_highlight_clear_all(RenderEngine *engine)
 /* -------------------------------------------------------------------- */
 /** \name OpenGL context manipulation.
  *
- * NOTE: Only used for Cycles's BLenderGPUDisplay integration with the draw manager. A subject
- * for re-consideration. Do not use this functionality.
+ * GPU context for engine to create and update GPU resources in its own thread,
+ * without blocking the main thread. Used by Cycles' display driver to create
+ * display textures.
+ *
  * \{ */
 
-bool RE_engine_has_render_context(RenderEngine *engine)
+bool RE_engine_gpu_context_create(RenderEngine *engine)
 {
-  if (engine->re == nullptr) {
-    return false;
+  /* If the there already is a draw manager render context available, reuse it. */
+  engine->use_drw_render_context = (engine->re && RE_gl_context_get(engine->re));
+  if (engine->use_drw_render_context) {
+    return true;
   }
 
-  return RE_gl_context_get(engine->re) != nullptr;
+  /* Viewport render case where no render context is available. We are expected to be on
+   * the main thread here to safely create a context. */
+  BLI_assert(BLI_thread_is_main());
+
+  const bool drw_state = DRW_opengl_context_release();
+  engine->gpu_context = WM_opengl_context_create();
+
+  /* On Windows an old context is restored after creation, and subsequent release of context
+   * generates a Win32 error. Harmless for users, but annoying to have possible misleading
+   * error prints in the console. */
+#ifndef _WIN32
+  if (engine->gpu_context) {
+    WM_opengl_context_release(engine->gpu_context);
+  }
+#endif
+
+  DRW_opengl_context_activate(drw_state);
+
+  return engine->gpu_context != nullptr;
 }
 
-void RE_engine_render_context_enable(RenderEngine *engine)
+void RE_engine_gpu_context_destroy(RenderEngine *engine)
 {
-  DRW_render_context_enable(engine->re);
+  if (!engine->gpu_context) {
+    return;
+  }
+
+  BLI_assert(BLI_thread_is_main());
+
+  const bool drw_state = DRW_opengl_context_release();
+
+  WM_opengl_context_activate(engine->gpu_context);
+  WM_opengl_context_dispose(engine->gpu_context);
+
+  DRW_opengl_context_activate(drw_state);
 }
 
-void RE_engine_render_context_disable(RenderEngine *engine)
+bool RE_engine_gpu_context_enable(RenderEngine *engine)
 {
-  DRW_render_context_disable(engine->re);
+  if (engine->use_drw_render_context) {
+    DRW_render_context_enable(engine->re);
+    return true;
+  }
+  else {
+    if (engine->gpu_context) {
+      BLI_mutex_lock(&engine->gpu_context_mutex);
+      WM_opengl_context_activate(engine->gpu_context);
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+}
+
+void RE_engine_gpu_context_disable(RenderEngine *engine)
+{
+  if (engine->use_drw_render_context) {
+    DRW_render_context_disable(engine->re);
+  }
+  else {
+    if (engine->gpu_context) {
+      WM_opengl_context_release(engine->gpu_context);
+      BLI_mutex_unlock(&engine->gpu_context_mutex);
+    }
+  }
+}
+
+void RE_engine_gpu_context_lock(RenderEngine *engine)
+{
+  if (engine->use_drw_render_context) {
+    /* Locking already handled by the draw manager. */
+  }
+  else {
+    if (engine->gpu_context) {
+      BLI_mutex_lock(&engine->gpu_context_mutex);
+    }
+  }
+}
+
+void RE_engine_gpu_context_unlock(RenderEngine *engine)
+{
+  if (engine->use_drw_render_context) {
+    /* Locking already handled by the draw manager. */
+  }
+  else {
+    if (engine->gpu_context) {
+      BLI_mutex_unlock(&engine->gpu_context_mutex);
+    }
+  }
 }
 
 /** \} */

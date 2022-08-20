@@ -17,6 +17,7 @@ set(INC
   ../nodes
   ../sequencer
   ../simulation
+  ../windowmanager
   ../../../intern/atomic
   ../../../intern/guardedalloc
   ../../../intern/mikktspace
