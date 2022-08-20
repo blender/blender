@@ -154,11 +154,6 @@ typedef struct RenderEngine {
   ThreadMutex update_render_passes_mutex;
   update_render_passes_cb_t update_render_passes_cb;
   void *update_render_passes_data;
-
-  rctf last_viewplane;
-  rcti last_disprect;
-  float last_viewmat[4][4];
-  int last_winx, last_winy;
 } RenderEngine;
 
 RenderEngine *RE_engine_create(RenderEngineType *type);

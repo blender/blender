@@ -32,7 +32,6 @@
 
 #include "RE_texture.h"
 
-#include "render_types.h"
 #include "texture_common.h"
 
 static void boxsample(ImBuf *ibuf,
