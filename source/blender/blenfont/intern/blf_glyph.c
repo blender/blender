@@ -96,6 +96,8 @@ static GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
   memset(gc->glyph_ascii_table, 0, sizeof(gc->glyph_ascii_table));
   memset(gc->bucket, 0, sizeof(gc->bucket));
 
+  blf_ensure_size(font);
+
   /* Determine ideal fixed-width size for monospaced output. */
   FT_UInt gindex = blf_get_char_index(font, U'0');
   if (gindex && font->face) {
@@ -106,7 +108,6 @@ static GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
   }
   else {
     /* Font does not have a face or does not contain "0" so use CSS fallback of 1/2 of em. */
-    blf_ensure_size(font);
     gc->fixed_width = (int)((font->ft_size->metrics.height / 2) >> 6);
   }
   if (gc->fixed_width < 1) {
