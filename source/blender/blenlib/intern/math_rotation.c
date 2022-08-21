@@ -332,29 +332,29 @@ void mat3_normalized_to_quat(float q[4], const float mat[3][3])
 
   normalize_qt(q);
 }
-void mat3_to_quat(float q[4], const float m[3][3])
+void mat3_to_quat(float q[4], const float mat[3][3])
 {
   float unit_mat[3][3];
 
   /* work on a copy */
   /* this is needed AND a 'normalize_qt' in the end */
-  normalize_m3_m3(unit_mat, m);
+  normalize_m3_m3(unit_mat, mat);
   mat3_normalized_to_quat(q, unit_mat);
 }
 
-void mat4_normalized_to_quat(float q[4], const float m[4][4])
+void mat4_normalized_to_quat(float q[4], const float mat[4][4])
 {
   float mat3[3][3];
 
-  copy_m3_m4(mat3, m);
+  copy_m3_m4(mat3, mat);
   mat3_normalized_to_quat(q, mat3);
 }
 
-void mat4_to_quat(float q[4], const float m[4][4])
+void mat4_to_quat(float q[4], const float mat[4][4])
 {
   float mat3[3][3];
 
-  copy_m3_m4(mat3, m);
+  copy_m3_m4(mat3, mat);
   mat3_to_quat(q, mat3);
 }
 
@@ -498,7 +498,10 @@ void rotation_between_quats_to_quat(float q[4], const float q1[4], const float q
   mul_qt_qtqt(q, tquat, q2);
 }
 
-float quat_split_swing_and_twist(const float q_in[4], int axis, float r_swing[4], float r_twist[4])
+float quat_split_swing_and_twist(const float q_in[4],
+                                 const int axis,
+                                 float r_swing[4],
+                                 float r_twist[4])
 {
   BLI_assert(axis >= 0 && axis <= 2);
 
@@ -1381,10 +1384,10 @@ void mat4_normalized_to_eul(float eul[3], const float m[4][4])
   copy_m3_m4(mat3, m);
   mat3_normalized_to_eul(eul, mat3);
 }
-void mat4_to_eul(float eul[3], const float m[4][4])
+void mat4_to_eul(float eul[3], const float mat[4][4])
 {
   float mat3[3][3];
-  copy_m3_m4(mat3, m);
+  copy_m3_m4(mat3, mat);
   mat3_to_eul(eul, mat3);
 }
 
@@ -1419,7 +1422,7 @@ void eul_to_quat(float quat[4], const float eul[3])
   quat[3] = cj * cs - sj * sc;
 }
 
-void rotate_eul(float beul[3], const char axis, const float ang)
+void rotate_eul(float beul[3], const char axis, const float angle)
 {
   float eul[3], mat1[3][3], mat2[3][3], totmat[3][3];
 
@@ -1427,13 +1430,13 @@ void rotate_eul(float beul[3], const char axis, const float ang)
 
   eul[0] = eul[1] = eul[2] = 0.0f;
   if (axis == 'X') {
-    eul[0] = ang;
+    eul[0] = angle;
   }
   else if (axis == 'Y') {
-    eul[1] = ang;
+    eul[1] = angle;
   }
   else {
-    eul[2] = ang;
+    eul[2] = angle;
   }
 
   eul_to_mat3(mat1, eul);
@@ -1789,23 +1792,23 @@ void mat3_to_compatible_eulO(float eul[3],
 void mat4_normalized_to_compatible_eulO(float eul[3],
                                         const float oldrot[3],
                                         const short order,
-                                        const float m[4][4])
+                                        const float mat[4][4])
 {
   float mat3[3][3];
 
   /* for now, we'll just do this the slow way (i.e. copying matrices) */
-  copy_m3_m4(mat3, m);
+  copy_m3_m4(mat3, mat);
   mat3_normalized_to_compatible_eulO(eul, oldrot, order, mat3);
 }
 void mat4_to_compatible_eulO(float eul[3],
                              const float oldrot[3],
                              const short order,
-                             const float m[4][4])
+                             const float mat[4][4])
 {
   float mat3[3][3];
 
   /* for now, we'll just do this the slow way (i.e. copying matrices) */
-  copy_m3_m4(mat3, m);
+  copy_m3_m4(mat3, mat);
   normalize_m3(mat3);
   mat3_normalized_to_compatible_eulO(eul, oldrot, order, mat3);
 }
@@ -1824,7 +1827,7 @@ void quat_to_compatible_eulO(float eul[3],
 /* rotate the given euler by the given angle on the specified axis */
 /* NOTE: is this safe to do with different axis orders? */
 
-void rotate_eulO(float beul[3], const short order, char axis, float ang)
+void rotate_eulO(float beul[3], const short order, const char axis, const float angle)
 {
   float eul[3], mat1[3][3], mat2[3][3], totmat[3][3];
 
@@ -1833,13 +1836,13 @@ void rotate_eulO(float beul[3], const short order, char axis, float ang)
   zero_v3(eul);
 
   if (axis == 'X') {
-    eul[0] = ang;
+    eul[0] = angle;
   }
   else if (axis == 'Y') {
-    eul[1] = ang;
+    eul[1] = angle;
   }
   else {
-    eul[2] = ang;
+    eul[2] = angle;
   }
 
   eulO_to_mat3(mat1, eul, order);

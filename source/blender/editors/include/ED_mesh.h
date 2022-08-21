@@ -183,9 +183,13 @@ void EDBM_project_snap_verts(struct bContext *C,
 
 /* editmesh_automerge.c */
 
-void EDBM_automerge(struct Object *ob, bool update, char hflag, float dist);
-void EDBM_automerge_and_split(
-    struct Object *ob, bool split_edges, bool split_faces, bool update, char hflag, float dist);
+void EDBM_automerge(struct Object *obedit, bool update, char hflag, float dist);
+void EDBM_automerge_and_split(struct Object *obedit,
+                              bool split_edges,
+                              bool split_faces,
+                              bool update,
+                              char hflag,
+                              float dist);
 
 /* editmesh_undo.c */
 

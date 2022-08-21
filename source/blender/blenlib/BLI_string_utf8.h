@@ -157,8 +157,8 @@ size_t BLI_strnlen_utf8(const char *strc, size_t maxlen) ATTR_NONNULL(1) ATTR_WA
 size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst,
                                  const wchar_t *__restrict src,
                                  size_t maxncpy) ATTR_NONNULL(1, 2);
-size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst,
-                                   const char *__restrict src,
+size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
+                                   const char *__restrict src_c,
                                    size_t maxncpy) ATTR_NONNULL(1, 2);
 
 /**
