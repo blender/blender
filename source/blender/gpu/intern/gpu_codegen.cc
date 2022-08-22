@@ -259,6 +259,7 @@ class GPUCodegen {
     MEM_SAFE_FREE(output.volume);
     MEM_SAFE_FREE(output.thickness);
     MEM_SAFE_FREE(output.displacement);
+    MEM_SAFE_FREE(output.composite);
     MEM_SAFE_FREE(output.material_functions);
     delete create_info;
     BLI_freelistN(&ubo_inputs_);
