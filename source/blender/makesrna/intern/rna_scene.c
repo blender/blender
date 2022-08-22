@@ -4256,6 +4256,13 @@ static void rna_def_view_layer_aovs(BlenderRNA *brna, PropertyRNA *cprop)
   func = RNA_def_function(srna, "add", "BKE_view_layer_add_aov");
   parm = RNA_def_pointer(func, "aov", "AOV", "", "Newly created AOV");
   RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "remove", "BKE_view_layer_remove_aov");
+  RNA_def_function_ui_description(func, "Remove a AOV");
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
+  parm = RNA_def_pointer(func, "aov", "AOV", "", "AOVs to remove");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 }
 
 static void rna_def_view_layer_aov(BlenderRNA *brna)
