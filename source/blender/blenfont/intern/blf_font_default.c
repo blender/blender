@@ -53,8 +53,15 @@ void BLF_load_font_stack()
   BLF_load_default(false);
   BLF_load_mono_default(false);
 
-  const char *path = BKE_appdir_folder_id(BLENDER_DATAFILES, BLF_DATAFILES_FONTS_DIR SEP_STR);
-  if (path && BLI_exists(path)) {
+  const char *datafiles_fonts_dir = BLF_DATAFILES_FONTS_DIR SEP_STR;
+  const char *path = BKE_appdir_folder_id(BLENDER_DATAFILES, datafiles_fonts_dir);
+  if (UNLIKELY(!path)) {
+    fprintf(stderr, "Font data directory \"%s\" could not be detected!\n", datafiles_fonts_dir);
+  }
+  else if (UNLIKELY(!BLI_exists(path))) {
+    fprintf(stderr, "Font data directory \"%s\" does not exist!\n", path);
+  }
+  else {
     struct direntry *dir;
     uint num_files = BLI_filelist_dir_contents(path, &dir);
     for (int f = 0; f < num_files; f++) {
@@ -73,8 +80,5 @@ void BLF_load_font_stack()
       }
     }
     BLI_filelist_free(dir, num_files);
-  }
-  else {
-    fprintf(stderr, "Fonts not found at %s\n", path);
   }
 }
