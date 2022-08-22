@@ -353,8 +353,7 @@ bool intersect(IsectFrustum i_frustum, Box box)
 bool intersect(IsectFrustum i_frustum, Sphere sphere)
 {
   bool intersects = true;
-
-  for (int p = 0; p < 8; ++p) {
+  for (int p = 0; p < 6; ++p) {
     float dist_to_plane = dot(i_frustum.planes[p], vec4(sphere.center, 1.0));
     if (dist_to_plane < -sphere.radius) {
       intersects = false;
