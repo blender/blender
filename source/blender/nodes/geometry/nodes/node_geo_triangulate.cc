@@ -47,9 +47,6 @@ static Mesh *triangulate_mesh_selection(const Mesh &mesh,
   BMeshFromMeshParams from_mesh_params{};
   from_mesh_params.calc_face_normal = true;
   from_mesh_params.calc_vert_normal = true;
-  from_mesh_params.add_key_index = true;
-  from_mesh_params.use_shapekey = true;
-  from_mesh_params.active_shapekey = 1;
   from_mesh_params.cd_mask_extra = cd_mask_extra;
   BMesh *bm = BKE_mesh_to_bmesh_ex(&mesh, &create_params, &from_mesh_params);
 
