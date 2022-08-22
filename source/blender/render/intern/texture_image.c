@@ -1620,7 +1620,6 @@ int imagewraposa(Tex *tex,
   /* Choice: */
   if (tex->imaflag & TEX_MIPMAP) {
     ImBuf *previbuf, *curibuf;
-    float bumpscale;
 
     dx = minx;
     dy = miny;
@@ -1630,14 +1629,6 @@ int imagewraposa(Tex *tex,
     }
 
     pixsize = 1.0f / (float)MIN2(ibuf->x, ibuf->y);
-
-    bumpscale = pixsize / maxd;
-    if (bumpscale > 1.0f) {
-      bumpscale = 1.0f;
-    }
-    else {
-      bumpscale *= bumpscale;
-    }
 
     curmap = 0;
     previbuf = curibuf = ibuf;
