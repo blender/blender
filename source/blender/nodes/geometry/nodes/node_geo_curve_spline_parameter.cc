@@ -143,8 +143,8 @@ static VArray<float> construct_curve_parameter_varray(const bke::CurvesGeometry 
     Array<float> lengths = accumulated_lengths_curve_domain(curves);
 
     const int last_index = curves.curves_num() - 1;
-    const int total_length = lengths.last() + curves.evaluated_length_total_for_curve(
-                                                  last_index, cyclic[last_index]);
+    const float total_length = lengths.last() + curves.evaluated_length_total_for_curve(
+                                                    last_index, cyclic[last_index]);
     if (total_length > 0.0f) {
       const float factor = 1.0f / total_length;
       for (float &value : lengths) {
