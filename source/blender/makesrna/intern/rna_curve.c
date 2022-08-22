@@ -67,7 +67,8 @@ const EnumPropertyItem rna_enum_keyframe_handle_type_items[] = {
  */
 const EnumPropertyItem rna_enum_beztriple_interpolation_mode_items[] = {
     /* Interpolation. */
-    RNA_ENUM_ITEM_HEADING(N_("Interpolation"), "Standard transitions between keyframes"),
+    RNA_ENUM_ITEM_HEADING(CTX_N_(BLT_I18NCONTEXT_ID_ACTION, "Interpolation"),
+                          N_("Standard transitions between keyframes")),
     {BEZT_IPO_CONST,
      "CONSTANT",
      ICON_IPO_CONSTANT,
@@ -85,9 +86,9 @@ const EnumPropertyItem rna_enum_beztriple_interpolation_mode_items[] = {
      "Smooth interpolation between A and B, with some control over curve shape"},
 
     /* Easing. */
-    RNA_ENUM_ITEM_HEADING(N_("Easing (by strength)"),
-                          "Predefined inertial transitions, useful for motion graphics "
-                          "(from least to most \"dramatic\")"),
+    RNA_ENUM_ITEM_HEADING(CTX_N_(BLT_I18NCONTEXT_ID_ACTION, "Easing (by strength)"),
+                          N_("Predefined inertial transitions, useful for motion graphics "
+                             "(from least to most \"dramatic\")")),
     {BEZT_IPO_SINE,
      "SINE",
      ICON_IPO_SINE,
@@ -104,7 +105,8 @@ const EnumPropertyItem rna_enum_beztriple_interpolation_mode_items[] = {
      "Circular",
      "Circular easing (strongest and most dynamic)"},
 
-    RNA_ENUM_ITEM_HEADING(N_("Dynamic Effects"), "Simple physics-inspired easing effects"),
+    RNA_ENUM_ITEM_HEADING(CTX_N_(BLT_I18NCONTEXT_ID_ACTION, "Dynamic Effects"),
+                          N_("Simple physics-inspired easing effects")),
     {BEZT_IPO_BACK, "BACK", ICON_IPO_BACK, "Back", "Cubic easing with overshoot and settle"},
     {BEZT_IPO_BOUNCE,
      "BOUNCE",

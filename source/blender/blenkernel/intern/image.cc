@@ -5519,7 +5519,7 @@ RenderSlot *BKE_image_add_renderslot(Image *ima, const char *name)
   }
   else {
     int n = BLI_listbase_count(&ima->renderslots) + 1;
-    BLI_snprintf(slot->name, sizeof(slot->name), "Slot %d", n);
+    BLI_snprintf(slot->name, sizeof(slot->name), DATA_("Slot %d"), n);
   }
   BLI_addtail(&ima->renderslots, slot);
   return slot;

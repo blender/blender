@@ -2212,6 +2212,7 @@ class VIEW3D_MT_armature_add(Menu):
 
 class VIEW3D_MT_light_add(Menu):
     bl_idname = "VIEW3D_MT_light_add"
+    bl_context = i18n_contexts.id_light
     bl_label = "Light"
 
     def draw(self, _context):
@@ -2249,7 +2250,9 @@ class VIEW3D_MT_volume_add(Menu):
     def draw(self, _context):
         layout = self.layout
         layout.operator("object.volume_import", text="Import OpenVDB...", icon='OUTLINER_DATA_VOLUME')
-        layout.operator("object.volume_add", text="Empty", icon='OUTLINER_DATA_VOLUME')
+        layout.operator("object.volume_add", text="Empty",
+                        text_ctxt=i18n_contexts.id_volume,
+                        icon='OUTLINER_DATA_VOLUME')
 
 
 class VIEW3D_MT_add(Menu):
@@ -2290,7 +2293,9 @@ class VIEW3D_MT_add(Menu):
 
         layout.separator()
 
-        layout.operator_menu_enum("object.empty_add", "type", text="Empty", icon='OUTLINER_OB_EMPTY')
+        layout.operator_menu_enum("object.empty_add", "type", text="Empty",
+                                  text_ctxt=i18n_contexts.id_id,
+                                  icon='OUTLINER_OB_EMPTY')
         layout.menu("VIEW3D_MT_image_add", text="Image", icon='OUTLINER_OB_IMAGE')
 
         layout.separator()

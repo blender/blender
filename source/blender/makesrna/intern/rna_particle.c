@@ -2686,6 +2686,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_parent_particles", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_PARENT);
   RNA_def_property_ui_text(prop, "Parents", "Render parent particles");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_PARTICLESETTINGS);
   RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
   prop = RNA_def_property(srna, "show_number", PROP_BOOLEAN, PROP_NONE);
