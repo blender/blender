@@ -1484,7 +1484,7 @@ void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot)
   static const EnumPropertyItem gpencil_interpolation_type_items[] = {
       /* Interpolation. */
       RNA_ENUM_ITEM_HEADING(CTX_N_(BLT_I18NCONTEXT_ID_GPENCIL, "Interpolation"),
-                            "Standard transitions between keyframes"),
+                            N_("Standard transitions between keyframes")),
       {GP_IPO_LINEAR,
        "LINEAR",
        ICON_IPO_LINEAR,
@@ -1497,10 +1497,9 @@ void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot)
        "Custom interpolation defined using a curve map"},
 
       /* Easing. */
-      RNA_ENUM_ITEM_HEADING(CTX_N_(BLT_I18NCONTEXT_ID_GPENCIL,
-                                   "Easing (by strength)"),
-                            "Predefined inertial transitions, useful for motion graphics "
-                            "(from least to most \"dramatic\")"),
+      RNA_ENUM_ITEM_HEADING(CTX_N_(BLT_I18NCONTEXT_ID_GPENCIL, "Easing (by strength)"),
+                            N_("Predefined inertial transitions, useful for motion graphics "
+                               "(from least to most \"dramatic\")")),
       {GP_IPO_SINE,
        "SINE",
        ICON_IPO_SINE,
@@ -1518,7 +1517,7 @@ void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot)
        "Circular easing (strongest and most dynamic)"},
 
       RNA_ENUM_ITEM_HEADING(CTX_N_(BLT_I18NCONTEXT_ID_GPENCIL, "Dynamic Effects"),
-                            "Simple physics-inspired easing effects"),
+                            N_("Simple physics-inspired easing effects")),
       {GP_IPO_BACK, "BACK", ICON_IPO_BACK, "Back", "Cubic easing with overshoot and settle"},
       {GP_IPO_BOUNCE,
        "BOUNCE",

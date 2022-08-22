@@ -170,7 +170,8 @@ class TEXT_PT_find(Panel):
         row = layout.row(align=True)
         if not st.text:
             row.active = False
-        row.prop(st, "use_match_case", text="Case", toggle=True)
+        row.prop(st, "use_match_case", text="Case",
+                 text_ctxt=i18n_contexts.id_text, toggle=True)
         row.prop(st, "use_find_wrap", text="Wrap",
                  text_ctxt=i18n_contexts.id_text, toggle=True)
         row.prop(st, "use_find_all", text="All", toggle=True)
