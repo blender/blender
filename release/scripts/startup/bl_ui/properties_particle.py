@@ -1654,6 +1654,7 @@ class PARTICLE_PT_children_clumping_noise(ParticleButtonsPanel, Panel):
 
 class PARTICLE_PT_children_roughness(ParticleButtonsPanel, Panel):
     bl_label = "Roughness"
+    bl_translation_context = i18n_contexts.id_particlesettings
     bl_parent_id = "PARTICLE_PT_children"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
@@ -1676,7 +1677,7 @@ class PARTICLE_PT_children_roughness(ParticleButtonsPanel, Panel):
         if part.use_roughness_curve:
             sub = col.column()
             sub.template_curve_mapping(part, "roughness_curve")
-            sub.prop(part, "roughness_1", text="Roughness")
+            sub.prop(part, "roughness_1", text=iface_("Roughness", i18n_contexts.id_particlesettings))
             sub.prop(part, "roughness_1_size", text="Size")
         else:
             sub = col.column(align=True)

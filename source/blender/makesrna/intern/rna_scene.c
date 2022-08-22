@@ -3138,6 +3138,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "workspace_tool_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "workspace_tool_type");
   RNA_def_property_enum_items(prop, workspace_tool_items);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_VIEW3D);
   RNA_def_property_ui_text(prop, "Drag", "Action when dragging in the viewport");
 
   /* Transform */

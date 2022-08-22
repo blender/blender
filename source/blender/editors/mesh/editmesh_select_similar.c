@@ -12,6 +12,8 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"

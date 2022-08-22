@@ -29,8 +29,10 @@ from bl_ui.space_toolsystem_common import (
     ToolActivePanelHelper,
 )
 
-from bpy.app.translations import pgettext_iface as iface_
-
+from bpy.app.translations import (
+    contexts as i18n_contexts,
+    pgettext_iface as iface_,
+)
 
 class ImagePaintPanel:
     bl_space_type = 'IMAGE_EDITOR'
@@ -187,7 +189,8 @@ class IMAGE_MT_image(Menu):
         ima = sima.image
         show_render = sima.show_render
 
-        layout.operator("image.new", text="New")
+        layout.operator("image.new", text="New",
+                        text_ctxt=i18n_contexts.id_image)
         layout.operator("image.open", text="Open...", icon='FILE_FOLDER')
 
         layout.operator("image.read_viewlayers")

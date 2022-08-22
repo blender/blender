@@ -4840,6 +4840,7 @@ static void def_math(StructRNA *srna)
   RNA_def_property_enum_sdna(prop, NULL, "custom1");
   RNA_def_property_enum_items(prop, rna_enum_node_math_items);
   RNA_def_property_ui_text(prop, "Operation", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
 
   prop = RNA_def_property(srna, "use_clamp", PROP_BOOLEAN, PROP_NONE);
@@ -6737,7 +6738,7 @@ static void def_cmp_set_alpha(StructRNA *srna)
        "REPLACE_ALPHA",
        0,
        "Replace Alpha",
-       "Replace the input image's alpha channels by the alpha input value"},
+       "Replace the input image's alpha channel by the alpha input value"},
       {0, NULL, 0, NULL, NULL},
   };
 
