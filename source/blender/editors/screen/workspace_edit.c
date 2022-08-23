@@ -359,6 +359,11 @@ static int workspace_append_activate_exec(bContext *C, wmOperator *op)
       BLO_LIBLINK_APPEND_RECURSIVE);
 
   if (appended_workspace) {
+    if (BLT_translate_new_dataname()) {
+      /* Translate workspace name */
+      BKE_libblock_rename(bmain, &appended_workspace->id, CTX_DATA_(BLT_I18NCONTEXT_ID_WORKSPACE, idname));
+    }
+
     /* Set defaults. */
     BLO_update_defaults_workspace(appended_workspace, NULL);
 
@@ -442,7 +447,7 @@ static void workspace_append_button(uiLayout *layout,
 
   PointerRNA opptr;
   uiItemFullO_ptr(
-      layout, ot_append, workspace->id.name + 2, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0, &opptr);
+      layout, ot_append, CTX_DATA_(BLT_I18NCONTEXT_ID_WORKSPACE, workspace->id.name + 2), ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0, &opptr);
   RNA_string_set(&opptr, "idname", id->name + 2);
   RNA_string_set(&opptr, "filepath", filepath);
 }
@@ -495,7 +500,8 @@ static void workspace_add_menu(bContext *UNUSED(C), uiLayout *layout, void *temp
 
 static int workspace_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  uiPopupMenu *pup = UI_popup_menu_begin(C, op->type->name, ICON_ADD);
+  uiPopupMenu *pup = UI_popup_menu_begin(C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT,
+                                                       op->type->name), ICON_ADD);
   uiLayout *layout = UI_popup_menu_layout(pup);
 
   uiItemMenuF(layout, IFACE_("General"), ICON_NONE, workspace_add_menu, NULL);
@@ -507,7 +513,7 @@ static int workspace_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
     char *template = link->data;
     char display_name[FILE_MAX];
 
-    BLI_path_to_display_name(display_name, sizeof(display_name), template);
+    BLI_path_to_display_name(display_name, sizeof(display_name), IFACE_(template));
 
     /* Steals ownership of link data string. */
     uiItemMenuFN(layout, display_name, ICON_NONE, workspace_add_menu, template);

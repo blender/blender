@@ -699,6 +699,13 @@ static void wm_file_read_post(bContext *C, const struct wmFileReadPost_Params *p
     }
   }
 
+  if (is_factory_startup && BLT_translate_new_dataname()) {
+    /* Translate workspace names */
+    LISTBASE_FOREACH_MUTABLE (WorkSpace *, workspace, &bmain->workspaces) {
+      BKE_libblock_rename(bmain, &workspace->id, CTX_DATA_(BLT_I18NCONTEXT_ID_WORKSPACE, workspace->id.name + 2));
+    }
+  }
+
   if (use_data) {
     /* important to do before NULL'ing the context */
     BKE_callback_exec_null(bmain, BKE_CB_EVT_VERSION_UPDATE);

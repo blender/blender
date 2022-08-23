@@ -8,6 +8,7 @@ import datetime
 import os
 import re
 import sys
+import glob
 
 # XXX Relative import does not work here when used from Blender...
 from bl_i18n_utils import settings as settings_i18n, utils
@@ -883,6 +884,29 @@ def dump_preset_messages(msgs, reports, settings):
         process_msg(msgs, settings.DEFAULT_CONTEXT, msgid, msgsrc, reports, None, settings)
 
 
+def dump_template_messages(msgs, reports, settings):
+    bfiles = [""]  #  General template, no name needed
+    bfiles += glob.glob(settings.TEMPLATES_DIR + "/**/*.blend", recursive=True)
+
+    workspace_names = {}
+
+    for bfile in bfiles:
+        template = os.path.dirname(bfile)
+        template = os.path.basename(template)
+        bpy.ops.wm.read_homefile(use_factory_startup=True, app_template=template)
+        for ws in bpy.data.workspaces:
+            names = workspace_names.setdefault(ws.name, [])
+            names.append(template or "General")
+
+    from bpy.app.translations import contexts as i18n_contexts
+    msgctxt = i18n_contexts.id_workspace
+    for workspace_name in sorted(workspace_names):
+        for msgsrc in sorted(workspace_names[workspace_name]):
+            msgsrc = "Workspace from template " + msgsrc
+            process_msg(msgs, msgctxt, workspace_name, msgsrc,
+                        reports, None, settings)
+
+
 ##### Main functions! #####
 def dump_messages(do_messages, do_checks, settings):
     bl_ver = "Blender " + bpy.app.version_string
@@ -917,6 +941,9 @@ def dump_messages(do_messages, do_checks, settings):
 
     # Get strings from presets.
     dump_preset_messages(msgs, reports, settings)
+
+    # Get strings from startup templates.
+    dump_template_messages(msgs, reports, settings)
 
     # Get strings from addons' categories.
     for uid, label, tip in bpy.types.WindowManager.addon_filter.keywords['items'](
