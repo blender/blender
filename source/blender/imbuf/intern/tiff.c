@@ -460,7 +460,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
         scanline_contig_16bit(tmpibuf->rect_float + ib_offset, sbuf, ibuf->x, spp);
       }
     }
-    /* separate channels: RRRGGGBBB */
+    /* Separate channels: RRRGGGBBB. */
   }
   else if (config == PLANARCONFIG_SEPARATE) {
 
@@ -574,7 +574,7 @@ ImBuf *imb_loadtiff(const unsigned char *mem,
   TIFFGetField(image, TIFFTAG_IMAGELENGTH, &height);
   TIFFGetField(image, TIFFTAG_SAMPLESPERPIXEL, &spp);
 
-  ib_depth = (spp == 3) ? 24 : 32;
+  ib_depth = spp * 8;
 
   ibuf = IMB_allocImBuf(width, height, ib_depth, 0);
   if (ibuf) {

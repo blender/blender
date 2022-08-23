@@ -890,14 +890,22 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
                                    bool use_high_bitdepth,
                                    bool use_premult);
 
-eGPUTextureFormat IMB_gpu_get_texture_format(const struct ImBuf *ibuf, bool high_bitdepth);
+eGPUTextureFormat IMB_gpu_get_texture_format(const struct ImBuf *ibuf,
+                                             bool high_bitdepth,
+                                             bool use_grayscale);
 
 /**
  * The `ibuf` is only here to detect the storage type. The produced texture will have undefined
  * content. It will need to be populated by using #IMB_update_gpu_texture_sub().
  */
-GPUTexture *IMB_touch_gpu_texture(
-    const char *name, struct ImBuf *ibuf, int w, int h, int layers, bool use_high_bitdepth);
+GPUTexture *IMB_touch_gpu_texture(const char *name,
+                                  struct ImBuf *ibuf,
+                                  int w,
+                                  int h,
+                                  int layers,
+                                  bool use_high_bitdepth,
+                                  bool use_grayscale);
+
 /**
  * Will update a #GPUTexture using the content of the #ImBuf. Only one layer will be updated.
  * Will resize the ibuf if needed.
@@ -911,6 +919,7 @@ void IMB_update_gpu_texture_sub(GPUTexture *tex,
                                 int w,
                                 int h,
                                 bool use_high_bitdepth,
+                                bool use_grayscale,
                                 bool use_premult);
 
 /**
