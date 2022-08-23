@@ -885,7 +885,7 @@ def dump_preset_messages(msgs, reports, settings):
 
 
 def dump_template_messages(msgs, reports, settings):
-    bfiles = [""]  #  General template, no name needed
+    bfiles = [""]  # General template, no name needed.
     bfiles += glob.glob(settings.TEMPLATES_DIR + "/**/*.blend", recursive=True)
 
     workspace_names = {}
