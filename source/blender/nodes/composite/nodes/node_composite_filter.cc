@@ -64,9 +64,9 @@ class FilterOperation : public NodeOperation {
     GPU_shader_unbind();
   }
 
-  int get_filter_method()
+  CMPNodeFilterMethod get_filter_method()
   {
-    return bnode().custom1;
+    return (CMPNodeFilterMethod)bnode().custom1;
   }
 
   float3x3 get_filter_kernel()
@@ -75,41 +75,41 @@ class FilterOperation : public NodeOperation {
      * return the kernel in the X direction, while the kernel in the Y direction will be computed
      * inside the shader by transposing the kernel in the X direction. */
     switch (get_filter_method()) {
-      case CMP_FILT_SOFT: {
+      case CMP_NODE_FILTER_SOFT: {
         const float kernel[3][3] = {{1.0f / 16.0f, 2.0f / 16.0f, 1.0f / 16.0f},
                                     {2.0f / 16.0f, 4.0f / 16.0f, 2.0f / 16.0f},
                                     {1.0f / 16.0f, 2.0f / 16.0f, 1.0f / 16.0f}};
         return float3x3(kernel);
       }
-      case CMP_FILT_SHARP_BOX: {
+      case CMP_NODE_FILTER_SHARP_BOX: {
         const float kernel[3][3] = {
             {-1.0f, -1.0f, -1.0f}, {-1.0f, 9.0f, -1.0f}, {-1.0f, -1.0f, -1.0f}};
         return float3x3(kernel);
       }
-      case CMP_FILT_LAPLACE: {
+      case CMP_NODE_FILTER_LAPLACE: {
         const float kernel[3][3] = {{-1.0f / 8.0f, -1.0f / 8.0f, -1.0f / 8.0f},
                                     {-1.0f / 8.0f, 1.0f, -1.0f / 8.0f},
                                     {-1.0f / 8.0f, -1.0f / 8.0f, -1.0f / 8.0f}};
         return float3x3(kernel);
       }
-      case CMP_FILT_SOBEL: {
+      case CMP_NODE_FILTER_SOBEL: {
         const float kernel[3][3] = {{1.0f, 0.0f, -1.0f}, {2.0f, 0.0f, -2.0f}, {1.0f, 0.0f, -1.0f}};
         return float3x3(kernel);
       }
-      case CMP_FILT_PREWITT: {
+      case CMP_NODE_FILTER_PREWITT: {
         const float kernel[3][3] = {{1.0f, 0.0f, -1.0f}, {1.0f, 0.0f, -1.0f}, {1.0f, 0.0f, -1.0f}};
         return float3x3(kernel);
       }
-      case CMP_FILT_KIRSCH: {
+      case CMP_NODE_FILTER_KIRSCH: {
         const float kernel[3][3] = {
             {5.0f, -3.0f, -2.0f}, {5.0f, -3.0f, -2.0f}, {5.0f, -3.0f, -2.0f}};
         return float3x3(kernel);
       }
-      case CMP_FILT_SHADOW: {
+      case CMP_NODE_FILTER_SHADOW: {
         const float kernel[3][3] = {{1.0f, 2.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {-1.0f, -2.0f, -1.0f}};
         return float3x3(kernel);
       }
-      case CMP_FILT_SHARP_DIAMOND: {
+      case CMP_NODE_FILTER_SHARP_DIAMOND: {
         const float kernel[3][3] = {
             {0.0f, -1.0f, 0.0f}, {-1.0f, 5.0f, -1.0f}, {0.0f, -1.0f, 0.0f}};
         return float3x3(kernel);
@@ -124,15 +124,15 @@ class FilterOperation : public NodeOperation {
   const char *get_shader_name()
   {
     switch (get_filter_method()) {
-      case CMP_FILT_LAPLACE:
-      case CMP_FILT_SOBEL:
-      case CMP_FILT_PREWITT:
-      case CMP_FILT_KIRSCH:
+      case CMP_NODE_FILTER_LAPLACE:
+      case CMP_NODE_FILTER_SOBEL:
+      case CMP_NODE_FILTER_PREWITT:
+      case CMP_NODE_FILTER_KIRSCH:
         return "compositor_edge_filter";
-      case CMP_FILT_SOFT:
-      case CMP_FILT_SHARP_BOX:
-      case CMP_FILT_SHADOW:
-      case CMP_FILT_SHARP_DIAMOND:
+      case CMP_NODE_FILTER_SOFT:
+      case CMP_NODE_FILTER_SHARP_BOX:
+      case CMP_NODE_FILTER_SHADOW:
+      case CMP_NODE_FILTER_SHARP_DIAMOND:
       default:
         return "compositor_filter";
     }
