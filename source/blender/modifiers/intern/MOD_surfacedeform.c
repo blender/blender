@@ -1603,6 +1603,11 @@ static void deformVertsEM(ModifierData *md,
     mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, NULL, verts_num, false, false);
   }
 
+  /* TODO(@campbellbarton): use edit-mode data only (remove this line). */
+  if (mesh_src != NULL) {
+    BKE_mesh_wrapper_ensure_mdata(mesh_src);
+  }
+
   surfacedeformModifier_do(md, ctx, vertexCos, verts_num, ctx->object, mesh_src);
 
   if (!ELEM(mesh_src, NULL, mesh)) {
