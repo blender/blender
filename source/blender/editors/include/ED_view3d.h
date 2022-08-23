@@ -711,7 +711,7 @@ bool ED_view3d_win_to_segment_clipped(const struct Depsgraph *depsgraph,
                                       float r_ray_start[3],
                                       float r_ray_end[3],
                                       bool do_clip_planes);
-void ED_view3d_ob_project_mat_get(const struct RegionView3D *v3d,
+void ED_view3d_ob_project_mat_get(const struct RegionView3D *rv3d,
                                   const struct Object *ob,
                                   float r_pmat[4][4]);
 void ED_view3d_ob_project_mat_get_from_obmat(const struct RegionView3D *rv3d,

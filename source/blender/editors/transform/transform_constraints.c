@@ -701,12 +701,12 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[])
   }
 }
 
-void setUserConstraint(TransInfo *t, int mode, const char ftext[])
+void setUserConstraint(TransInfo *t, int mode, const char text_[])
 {
   char text[256];
   const short orientation = transform_orientation_or_default(t);
   const char *spacename = transform_orientations_spacename_get(t, orientation);
-  BLI_snprintf(text, sizeof(text), ftext, spacename);
+  BLI_snprintf(text, sizeof(text), text_, spacename);
 
   switch (orientation) {
     case V3D_ORIENT_LOCAL:

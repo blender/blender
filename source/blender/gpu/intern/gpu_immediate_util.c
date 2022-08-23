@@ -239,9 +239,9 @@ void imm_draw_circle_partial_wire_2d(
 }
 
 void imm_draw_circle_partial_wire_3d(
-    uint pos, float x, float y, float z, float rad, int nsegments, float start, float sweep)
+    uint pos, float x, float y, float z, float radius, int nsegments, float start, float sweep)
 {
-  imm_draw_circle_partial_3d(GPU_PRIM_LINE_STRIP, pos, x, y, z, rad, nsegments, start, sweep);
+  imm_draw_circle_partial_3d(GPU_PRIM_LINE_STRIP, pos, x, y, z, radius, nsegments, start, sweep);
 }
 
 static void imm_draw_disk_partial(GPUPrimType prim_type,

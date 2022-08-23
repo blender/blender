@@ -149,7 +149,7 @@ class Domain {
 
   /* Transform the domain by the given transformation. This effectively pre-multiply the given
    * transformation by the current transformation of the domain. */
-  void transform(const float3x3 &transformation);
+  void transform(const float3x3 &input_transformation);
 
   /* Returns a domain of size 1x1 and an identity transformation. */
   static Domain identity();
