@@ -1324,7 +1324,7 @@ bool GPU_pbvh_attribute_names_update(PBVHType pbvh_type,
       eAttrDomain active_color_domain = active_color_layer ?
                                             BKE_id_attribute_domain(&me_query.id,
                                                                     active_color_layer) :
-                                            ATTR_DOMAIN_NUM;
+                                            ATTR_DOMAIN_POINT;
 
       GPUAttrRef vcol_layers[MAX_GPU_ATTR];
       int totlayer = gpu_pbvh_make_attr_offs(ATTR_DOMAIN_MASK_COLOR,

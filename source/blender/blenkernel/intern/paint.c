@@ -1698,7 +1698,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
       ss->mcol = NULL;
 
       ss->vcol_type = -1;
-      ss->vcol_domain = ATTR_DOMAIN_NUM;
+      ss->vcol_domain = ATTR_DOMAIN_POINT;
     }
   }
 

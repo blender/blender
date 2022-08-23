@@ -1669,11 +1669,12 @@ static void sculpt_undo_set_active_layer(struct bContext *C, SculptAttrRef *attr
    */
   if (!layer) {
     layer = BKE_id_attribute_search(&me->id, attr->name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
-    eAttrDomain domain = layer ? BKE_id_attribute_domain(&me->id, layer) : ATTR_DOMAIN_NUM;
-
-    if (layer && ED_geometry_attribute_convert(
-                     me, attr->name, layer->type, domain, attr->type, attr->domain)) {
-      layer = BKE_id_attribute_find(&me->id, attr->name, attr->type, attr->domain);
+    if (layer) {
+      const eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
+      if (ED_geometry_attribute_convert(
+              me, attr->name, layer->type, domain, attr->type, attr->domain)) {
+        layer = BKE_id_attribute_find(&me->id, attr->name, attr->type, attr->domain);
+      }
     }
   }
 
