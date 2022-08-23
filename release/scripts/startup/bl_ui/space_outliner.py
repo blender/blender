@@ -7,6 +7,7 @@ from bpy.app.translations import (
     pgettext_iface as iface_,
 )
 
+
 class OUTLINER_HT_header(Header):
     bl_space_type = 'OUTLINER'
 

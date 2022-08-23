@@ -34,6 +34,7 @@ from bpy.app.translations import (
     pgettext_iface as iface_,
 )
 
+
 class ImagePaintPanel:
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'

@@ -95,9 +95,7 @@ static Image *create_placeholder_image(Main *bmain, const std::string &path)
   return image;
 }
 
-static Image *load_texture_image(Main *bmain,
-                                 const tex_map_XX &tex_map,
-                                 bool relative_paths)
+static Image *load_texture_image(Main *bmain, const tex_map_XX &tex_map, bool relative_paths)
 {
   Image *image = nullptr;
 
