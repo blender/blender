@@ -1267,6 +1267,20 @@ static void rna_NodeTree_active_node_set(PointerRNA *ptr,
 
   if (node && BLI_findindex(&ntree->nodes, node) != -1) {
     nodeSetActive(ntree, node);
+
+    /* Handle NODE_DO_OUTPUT as well. */
+    if (node->typeinfo->nclass == NODE_CLASS_OUTPUT && node->type != CMP_NODE_OUTPUT_FILE) {
+      /* If this node becomes the active output, the others of the same type can't be the active
+       * output anymore. */
+      LISTBASE_FOREACH (bNode *, other_node, &ntree->nodes) {
+        if (other_node->type == node->type) {
+          other_node->flag &= ~NODE_DO_OUTPUT;
+        }
+      }
+      node->flag |= NODE_DO_OUTPUT;
+      ntreeSetOutput(ntree);
+      BKE_ntree_update_tag_active_output_changed(ntree);
+    }
   }
   else {
     nodeClearActive(ntree);
@@ -12400,7 +12414,7 @@ static void rna_def_nodetree_nodes_api(BlenderRNA *brna, PropertyRNA *cprop)
       prop, "rna_NodeTree_active_node_get", "rna_NodeTree_active_node_set", NULL, NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
   RNA_def_property_ui_text(prop, "Active Node", "Active node in this tree");
-  RNA_def_property_update(prop, NC_SCENE | ND_OB_ACTIVE, NULL);
+  RNA_def_property_update(prop, NC_SCENE | ND_OB_ACTIVE, "rna_NodeTree_update");
 }
 
 static void rna_def_nodetree_link_api(BlenderRNA *brna, PropertyRNA *cprop)
