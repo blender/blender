@@ -174,17 +174,17 @@ int BLI_str_utf8_char_width_safe(const char *p) ATTR_WARN_UNUSED_RESULT ATTR_NON
 
 size_t BLI_str_partition_utf8(const char *str,
                               const unsigned int delim[],
-                              const char **sep,
-                              const char **suf) ATTR_NONNULL(1, 2, 3, 4);
+                              const char **r_sep,
+                              const char **r_suf) ATTR_NONNULL(1, 2, 3, 4);
 size_t BLI_str_rpartition_utf8(const char *str,
                                const unsigned int delim[],
-                               const char **sep,
-                               const char **suf) ATTR_NONNULL(1, 2, 3, 4);
+                               const char **r_sep,
+                               const char **r_suf) ATTR_NONNULL(1, 2, 3, 4);
 size_t BLI_str_partition_ex_utf8(const char *str,
                                  const char *end,
                                  const unsigned int delim[],
-                                 const char **sep,
-                                 const char **suf,
+                                 const char **r_sep,
+                                 const char **r_suf,
                                  bool from_right) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 3, 4, 5);
 
 int BLI_str_utf8_offset_to_index(const char *str, int offset) ATTR_WARN_UNUSED_RESULT
