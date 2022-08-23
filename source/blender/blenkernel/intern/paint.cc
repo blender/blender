@@ -30,6 +30,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_brush.h"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
@@ -2094,20 +2095,23 @@ void BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(Mesh *mesh)
 
 void BKE_sculpt_sync_face_sets_visibility_to_base_mesh(Mesh *mesh)
 {
+  using namespace blender::bke;
   const int *face_sets = static_cast<const int *>(
       CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS));
   if (!face_sets) {
     return;
   }
 
-  bool *hide_poly = (bool *)CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, ".hide_poly");
+  MutableAttributeAccessor attributes = mesh_attributes_for_write(*mesh);
+  SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_only_span<bool>(
+      ".hide_poly", ATTR_DOMAIN_FACE);
   if (!hide_poly) {
     return;
   }
-
-  for (int i = 0; i < mesh->totpoly; i++) {
-    hide_poly[i] = face_sets[i] < 0;
+  for (const int i : hide_poly.span.index_range()) {
+    hide_poly.span[i] = face_sets[i] < 0;
   }
+  hide_poly.finish();
 
   BKE_mesh_flush_hidden_from_polys(mesh);
 }
