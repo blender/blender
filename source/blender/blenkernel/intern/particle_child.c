@@ -158,10 +158,8 @@ static void do_kink_spiral(ParticleThreadContext *ctx,
   int start_index = 0, end_index = 0;
   float kink_base[3];
 
-  if (ptex) {
-    kink_amp *= ptex->kink_amp;
-    kink_freq *= ptex->kink_freq;
-  }
+  kink_amp *= ptex->kink_amp;
+  kink_freq *= ptex->kink_freq;
 
   cut_time = (totkeys - 1) * ptex->length;
   zero_v3(spiral_start);
