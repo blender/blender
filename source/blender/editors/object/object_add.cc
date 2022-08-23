@@ -657,8 +657,7 @@ Object *ED_object_add_type_with_obdata(bContext *C,
 
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
-  /* TODO(sergey): Use proper flag for tagging here. */
-  DEG_id_tag_update(&scene->id, 0);
+  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 
   ED_outliner_select_sync_from_object_tag(C);
 
