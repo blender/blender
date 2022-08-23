@@ -94,6 +94,9 @@ static InputSocketFieldType get_interface_input_field_type(const NodeRef &node,
   if (node.is_undefined()) {
     return InputSocketFieldType::None;
   }
+  if (node.bnode()->type == NODE_CUSTOM) {
+    return InputSocketFieldType::None;
+  }
 
   const NodeDeclaration *node_decl = node.declaration();
 
@@ -129,6 +132,9 @@ static OutputFieldDependency get_interface_output_field_dependency(const NodeRef
     return OutputFieldDependency::ForDependentField();
   }
   if (node.is_undefined()) {
+    return OutputFieldDependency::ForDataSource();
+  }
+  if (node.bnode()->type == NODE_CUSTOM) {
     return OutputFieldDependency::ForDataSource();
   }
 
