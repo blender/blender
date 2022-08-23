@@ -239,7 +239,7 @@ set(SRC
   intern/ocean_spectrum.c
   intern/outliner_treehash.cc
   intern/packedFile.c
-  intern/paint.c
+  intern/paint.cc
   intern/paint_canvas.cc
   intern/paint_toolslots.c
   intern/particle.c
