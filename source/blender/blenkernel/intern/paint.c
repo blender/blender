@@ -95,13 +95,10 @@ static void palette_blend_write(BlendWriter *writer, ID *id, const void *id_addr
 {
   Palette *palette = (Palette *)id;
 
-  PaletteColor *color;
   BLO_write_id_struct(writer, Palette, id_address, &palette->id);
   BKE_id_blend_write(writer, &palette->id);
 
-  for (color = palette->colors.first; color; color = color->next) {
-    BLO_write_struct(writer, PaletteColor, color);
-  }
+  BLO_write_struct_list(writer, PaletteColor, &palette->colors);
 }
 
 static void palette_blend_read_data(BlendDataReader *reader, ID *id)
