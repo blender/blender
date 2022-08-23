@@ -682,7 +682,6 @@ static void rna_ColorManagement_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
   }
 
   if (GS(id->name) == ID_SCE) {
-    DEG_id_tag_update(id, 0);
     WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
   }
 }
