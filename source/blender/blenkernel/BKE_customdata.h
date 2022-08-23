@@ -718,7 +718,7 @@ void CustomData_data_transfer(const struct MeshPairRemap *me_remap,
  */
 void CustomData_blend_write_prepare(CustomData &data,
                                     blender::Vector<CustomDataLayer, 16> &layers_to_write,
-                                    const blender::Set<blender::StringRef> &skip_names = {});
+                                    const blender::Set<std::string> &skip_names = {});
 
 /**
  * \param layers_to_write: Layers created by #CustomData_blend_write_prepare.

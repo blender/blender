@@ -4355,7 +4355,7 @@ void CustomData_file_write_info(int type, const char **r_struct_name, int *r_str
 
 void CustomData_blend_write_prepare(CustomData &data,
                                     Vector<CustomDataLayer, 16> &layers_to_write,
-                                    const Set<StringRef> &skip_names)
+                                    const Set<std::string> &skip_names)
 {
   for (const CustomDataLayer &layer : Span(data.layers, data.totlayer)) {
     if (layer.flag & CD_FLAG_NOCOPY) {
