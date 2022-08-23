@@ -14,6 +14,7 @@
 
 #include "BKE_collection.h"
 #include "BKE_curves.hh"
+#include "BKE_deform.h"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
@@ -997,6 +998,9 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   const RealizeMeshTask &first_task = tasks.first();
   const Mesh &first_mesh = *first_task.mesh_info->mesh;
   BKE_mesh_copy_parameters_for_eval(dst_mesh, &first_mesh);
+  /* The above line also copies vertex group names. We don't want that here because the new
+   * attributes are added explicitly below. */
+  BLI_freelistN(&dst_mesh->vertex_group_names);
 
   /* Add materials. */
   for (const int i : IndexRange(ordered_materials.size())) {
