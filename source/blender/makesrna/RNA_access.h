@@ -430,6 +430,10 @@ int RNA_property_collection_lookup_string(PointerRNA *ptr,
                                           PointerRNA *r_ptr);
 int RNA_property_collection_lookup_string_index(
     PointerRNA *ptr, PropertyRNA *prop, const char *key, PointerRNA *r_ptr, int *r_index);
+
+bool RNA_property_collection_lookup_int_has_fn(PropertyRNA *prop);
+bool RNA_property_collection_lookup_string_has_fn(PropertyRNA *prop);
+
 /**
  * Zero return is an assignment error.
  */

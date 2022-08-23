@@ -4080,6 +4080,20 @@ int RNA_property_collection_lookup_index(PointerRNA *ptr,
   return -1;
 }
 
+bool RNA_property_collection_lookup_int_has_fn(PropertyRNA *prop)
+{
+  BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
+  CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)rna_ensure_property(prop);
+  return cprop->lookupint != NULL;
+}
+
+bool RNA_property_collection_lookup_string_has_fn(PropertyRNA *prop)
+{
+  BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
+  CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)rna_ensure_property(prop);
+  return cprop->lookupstring != NULL;
+}
+
 int RNA_property_collection_lookup_int(PointerRNA *ptr,
                                        PropertyRNA *prop,
                                        int key,
