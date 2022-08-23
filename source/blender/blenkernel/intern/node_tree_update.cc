@@ -1267,7 +1267,7 @@ class NodeTreeMainUpdater {
     }
 
     /* Check if a used node group has an animated image. */
-    for (const NodeRef *group_node : tree_ref.nodes_by_type("NodeGroup")) {
+    for (const NodeRef *group_node : tree_ref.nodes_by_type("ShaderNodeGroup")) {
       const bNodeTree *group = reinterpret_cast<bNodeTree *>(group_node->bnode()->id);
       if (group != nullptr) {
         ntree.runtime->runtime_flag |= group->runtime->runtime_flag;
