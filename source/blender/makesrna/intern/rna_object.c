@@ -687,6 +687,11 @@ static void rna_Object_parent_type_set(PointerRNA *ptr, int value)
 {
   Object *ob = (Object *)ptr->data;
 
+  /* Skip if type did not change (otherwise we loose parent inverse in ED_object_parent). */
+  if (ob->partype == value) {
+    return;
+  }
+
   ED_object_parent(ob, ob->parent, value, ob->parsubstr);
 }
 
