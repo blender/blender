@@ -1333,7 +1333,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
 
     if (geometry.has_curves()) {
       /* Create a copy of the original curve and add necessary pointers to evaluated and edit mode
-       * data. This is neeOB_SURFded for a few reasons:
+       * data. This is needed for a few reasons:
        * - Existing code from before curve evaluation was changed to use #GeometrySet expected to
        *   have a copy of the original curve data. (Any evaluated data was placed in
        *   #Object.runtime.curve_cache).
