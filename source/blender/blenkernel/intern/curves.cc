@@ -366,6 +366,8 @@ namespace blender::bke {
 
 Curves *curves_new_nomain(const int points_num, const int curves_num)
 {
+  BLI_assert(points_num >= 0);
+  BLI_assert(curves_num >= 0);
   Curves *curves_id = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, nullptr));
   CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
   curves.resize(points_num, curves_num);
