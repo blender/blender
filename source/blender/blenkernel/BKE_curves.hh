@@ -150,7 +150,13 @@ class CurvesGeometry : public ::CurvesGeometry {
    * Accessors.
    */
 
+  /**
+   * The total number of control points in all curves.
+   */
   int points_num() const;
+  /**
+   * The number of curves in the data-block.
+   */
   int curves_num() const;
   IndexRange points_range() const;
   IndexRange curves_range() const;
@@ -553,7 +559,7 @@ void calculate_evaluated_offsets(Span<int8_t> handle_types_left,
                                  int resolution,
                                  MutableSpan<int> evaluated_offsets);
 
-/** See #insert. */
+/** Knot insertion result, see #insert. */
 struct Insertion {
   float3 handle_prev;
   float3 left_handle;
@@ -563,8 +569,12 @@ struct Insertion {
 };
 
 /**
- * Compute the Bezier segment insertion for the given parameter on the segment, returning
- * the position and handles of the new point and the updated existing handle positions.
+ * Compute the insertion of a control point and handles in a Bezier segment without changing its
+ * shape.
+ * \param parameter: Factor in from 0 to 1 defining the insertion point within the segment.
+ * \return Inserted point paramaters including position, and both new and updated handles for
+ * neighbouring control points.
+ *
  * <pre>
  *           handle_prev         handle_next
  *                x-----------------x
