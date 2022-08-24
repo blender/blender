@@ -1274,22 +1274,68 @@ static void id_override_library_reset_fn(bContext *C,
   OutlinerLibOverrideData *data = static_cast<OutlinerLibOverrideData *>(user_data);
   const bool do_hierarchy = data->do_hierarchy;
 
-  if (ID_IS_OVERRIDE_LIBRARY_REAL(id_root)) {
-    Main *bmain = CTX_data_main(C);
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id_root)) {
+    CLOG_WARN(&LOG, "Could not reset library override of data block '%s'", id_root->name);
+    return;
+  }
 
-    if (do_hierarchy) {
-      BKE_lib_override_library_id_hierarchy_reset(bmain, id_root, false);
-    }
-    else {
-      BKE_lib_override_library_id_reset(bmain, id_root, false);
-    }
+  Main *bmain = CTX_data_main(C);
 
-    WM_event_add_notifier(C, NC_WM | ND_DATACHANGED, nullptr);
-    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
+  if (do_hierarchy) {
+    BKE_lib_override_library_id_hierarchy_reset(bmain, id_root, false);
   }
   else {
-    CLOG_WARN(&LOG, "Could not reset library override of data block '%s'", id_root->name);
+    BKE_lib_override_library_id_reset(bmain, id_root, false);
   }
+}
+
+static void id_override_library_clear_single_fn(bContext *C,
+                                                ReportList *reports,
+                                                Scene *scene,
+                                                TreeElement *UNUSED(te),
+                                                TreeStoreElem *UNUSED(tsep),
+                                                TreeStoreElem *tselem,
+                                                void *UNUSED(user_data))
+{
+  BLI_assert(TSE_IS_REAL_ID(tselem));
+  Main *bmain = CTX_data_main(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  ID *id = tselem->id;
+
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "Cannot clear embedded library override id '%s', only overrides of real "
+                "data-blocks can be directly deleted",
+                id->name);
+    return;
+  }
+
+  /* If given ID is not using any other override (it's a 'leaf' in the override hierarchy),
+   * delete it and remap its usages to its linked reference. Otherwise, keep it as a reset system
+   * override. */
+  if (BKE_lib_override_library_is_hierarchy_leaf(bmain, id)) {
+    bool do_remap_active = false;
+    if (OBACT(view_layer) == reinterpret_cast<Object *>(id)) {
+      BLI_assert(GS(id->name) == ID_OB);
+      do_remap_active = true;
+    }
+    BKE_libblock_remap(bmain, id, id->override_library->reference, ID_REMAP_SKIP_INDIRECT_USAGE);
+    if (do_remap_active) {
+      Object *ref_object = reinterpret_cast<Object *>(id->override_library->reference);
+      Base *basact = BKE_view_layer_base_find(view_layer, ref_object);
+      if (basact != nullptr) {
+        view_layer->basact = basact;
+      }
+      DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+    }
+    BKE_id_delete(bmain, id);
+  }
+  else {
+    BKE_lib_override_library_id_reset(bmain, id, true);
+  }
+
+  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS | ID_RECALC_COPY_ON_WRITE);
 }
 
 static void id_override_library_resync_fn(bContext *UNUSED(C),
@@ -1340,13 +1386,13 @@ static void id_override_library_resync_hierarchy_process(bContext *C,
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
 }
 
-static void id_override_library_clear_hierarchy_fn(bContext *UNUSED(C),
-                                                   ReportList *UNUSED(reports),
-                                                   Scene *UNUSED(scene),
-                                                   TreeElement *UNUSED(te),
-                                                   TreeStoreElem *UNUSED(tsep),
-                                                   TreeStoreElem *tselem,
-                                                   void *user_data)
+static void id_override_library_delete_hierarchy_fn(bContext *UNUSED(C),
+                                                    ReportList *UNUSED(reports),
+                                                    Scene *UNUSED(scene),
+                                                    TreeElement *UNUSED(te),
+                                                    TreeStoreElem *UNUSED(tsep),
+                                                    TreeStoreElem *tselem,
+                                                    void *user_data)
 {
   OutlinerLibOverrideData *data = reinterpret_cast<OutlinerLibOverrideData *>(user_data);
 
@@ -1366,52 +1412,15 @@ static void id_override_library_clear_hierarchy_fn(bContext *UNUSED(C),
 }
 
 /* Clear (delete) a hierarchy of library overrides. */
-static void id_override_library_clear_hierarchy_process(bContext *C,
-                                                        ReportList *UNUSED(reports),
-                                                        OutlinerLibOverrideData &data)
+static void id_override_library_delete_hierarchy_process(bContext *C,
+                                                         ReportList *UNUSED(reports),
+                                                         OutlinerLibOverrideData &data)
 {
   Main *bmain = CTX_data_main(C);
 
   for (auto &&id_hierarchy_root : data.id_hierarchy_roots.keys()) {
     BKE_lib_override_library_delete(bmain, id_hierarchy_root);
   }
-
-  WM_event_add_notifier(C, NC_WINDOW, nullptr);
-}
-
-static void id_override_library_clear_single_fn(bContext *C,
-                                                ReportList *reports,
-                                                Scene *UNUSED(scene),
-                                                TreeElement *UNUSED(te),
-                                                TreeStoreElem *UNUSED(tsep),
-                                                TreeStoreElem *tselem,
-                                                void *UNUSED(user_data))
-{
-  BLI_assert(TSE_IS_REAL_ID(tselem));
-  Main *bmain = CTX_data_main(C);
-  ID *id = tselem->id;
-
-  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
-    BKE_reportf(reports,
-                RPT_WARNING,
-                "Cannot clear embedded library override id '%s', only overrides of real "
-                "data-blocks can be directly deleted",
-                id->name);
-    return;
-  }
-
-  /* If given ID is not using any other override (it's a 'leaf' in the override hierarchy),
-   * delete it and remap its usages to its linked reference. Otherwise, keep it as a reset system
-   * override. */
-  if (BKE_lib_override_library_is_hierarchy_leaf(bmain, id)) {
-    BKE_libblock_remap(bmain, id, id->override_library->reference, ID_REMAP_SKIP_INDIRECT_USAGE);
-    BKE_id_delete(bmain, id);
-  }
-  else {
-    BKE_lib_override_library_id_reset(bmain, id, true);
-  }
-
-  WM_event_add_notifier(C, NC_WINDOW, nullptr);
 }
 
 static void id_fake_user_set_fn(bContext *UNUSED(C),
@@ -1785,11 +1794,11 @@ static int outliner_liboverride_operation_exec(bContext *C, wmOperator *op)
                                                   op->reports,
                                                   scene,
                                                   space_outliner,
-                                                  id_override_library_clear_hierarchy_fn,
+                                                  id_override_library_delete_hierarchy_fn,
                                                   OUTLINER_LIB_SELECTIONSET_SELECTED,
                                                   nullptr);
 
-      id_override_library_clear_hierarchy_process(C, op->reports, override_data);
+      id_override_library_delete_hierarchy_process(C, op->reports, override_data);
 
       ED_undo_push(C, "Delete Overridden Data Hierarchy");
       break;
@@ -1799,11 +1808,9 @@ static int outliner_liboverride_operation_exec(bContext *C, wmOperator *op)
       break;
   }
 
-  /* wrong notifier still... */
-  WM_event_add_notifier(C, NC_ID | NA_EDITED, nullptr);
-
-  /* XXX: this is just so that outliner is always up to date. */
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
+  WM_event_add_notifier(C, NC_WM | ND_LIB_OVERRIDE_CHANGED, nullptr);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
 
   return OPERATOR_FINISHED;
 }

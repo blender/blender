@@ -801,12 +801,12 @@ static bool override_idtemplate_poll(bContext *C, const bool is_create_op)
   return true;
 }
 
-static bool override_idtemplate_create_poll(bContext *C)
+static bool override_idtemplate_make_poll(bContext *C)
 {
   return override_idtemplate_poll(C, true);
 }
 
-static int override_idtemplate_create_exec(bContext *C, wmOperator *UNUSED(op))
+static int override_idtemplate_make_exec(bContext *C, wmOperator *UNUSED(op))
 {
   ID *owner_id, *id;
   PointerRNA owner_ptr;
@@ -816,42 +816,49 @@ static int override_idtemplate_create_exec(bContext *C, wmOperator *UNUSED(op))
     return OPERATOR_CANCELLED;
   }
 
-  ID *id_override = ui_template_id_liboverride_hierarchy_create(
+  ID *id_override = ui_template_id_liboverride_hierarchy_make(
       C, CTX_data_main(C), owner_id, id, NULL);
 
   if (id_override == NULL) {
     return OPERATOR_CANCELLED;
   }
 
-  if (ID_IS_OVERRIDE_LIBRARY_REAL(owner_id)) {
-    PointerRNA idptr;
-    /* `idptr` is re-assigned to owner property to ensure proper updates etc. Here we also use it
-     * to ensure remapping of the owner property from the linked data to the newly created
-     * liboverride (note that in theory this remapping has already been done by code above), but
-     * only in case owner ID was already an existing liboverride.
-     *
-     * Otherwise, owner ID will also have been overridden, and remapped already to use it's
-     * override of the data too. */
+  PointerRNA idptr;
+  /* `idptr` is re-assigned to owner property to ensure proper updates etc. Here we also use it
+   * to ensure remapping of the owner property from the linked data to the newly created
+   * liboverride (note that in theory this remapping has already been done by code above), but
+   * only in case owner ID was already local ID (override or pure local data).
+   *
+   * Otherwise, owner ID will also have been overridden, and remapped already to use it's
+   * override of the data too. */
+  if (!ID_IS_LINKED(owner_id)) {
     RNA_id_pointer_create(id_override, &idptr);
     RNA_property_pointer_set(&owner_ptr, prop, idptr, NULL);
-    RNA_property_update(C, &owner_ptr, prop);
   }
+  RNA_property_update(C, &owner_ptr, prop);
+
+  /* 'Security' extra tagging, since this process may also affect the owner ID and not only the
+   * used ID, relying on the property update code only is not always enough. */
+  DEG_id_tag_update(&CTX_data_scene(C)->id, ID_RECALC_BASE_FLAGS | ID_RECALC_COPY_ON_WRITE);
+  WM_event_add_notifier(C, NC_WINDOW, NULL);
+  WM_event_add_notifier(C, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   return OPERATOR_FINISHED;
 }
 
-static void UI_OT_override_idtemplate_create(wmOperatorType *ot)
+static void UI_OT_override_idtemplate_make(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Create Library Override";
-  ot->idname = "UI_OT_override_idtemplate_create";
+  ot->name = "Make Library Override";
+  ot->idname = "UI_OT_override_idtemplate_make";
   ot->description =
       "Create a local override of the selected linked data-block, and its hierarchy of "
       "dependencies";
 
   /* callbacks */
-  ot->poll = override_idtemplate_create_poll;
-  ot->exec = override_idtemplate_create_exec;
+  ot->poll = override_idtemplate_make_poll;
+  ot->exec = override_idtemplate_make_exec;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;
@@ -883,6 +890,9 @@ static int override_idtemplate_reset_exec(bContext *C, wmOperator *UNUSED(op))
   RNA_id_pointer_create(id, &idptr);
   RNA_property_pointer_set(&owner_ptr, prop, idptr, NULL);
   RNA_property_update(C, &owner_ptr, prop);
+
+  /* No need for 'security' extra tagging here, since this process will never affect the owner ID.
+   */
 
   return OPERATOR_FINISHED;
 }
@@ -922,23 +932,44 @@ static int override_idtemplate_clear_exec(bContext *C, wmOperator *UNUSED(op))
   }
 
   Main *bmain = CTX_data_main(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Scene *scene = CTX_data_scene(C);
   ID *id_new = id;
+
   if (BKE_lib_override_library_is_hierarchy_leaf(bmain, id)) {
     id_new = id->override_library->reference;
+    bool do_remap_active = false;
+    if (OBACT(view_layer) == (Object *)id) {
+      BLI_assert(GS(id->name) == ID_OB);
+      BLI_assert(GS(id_new->name) == ID_OB);
+      do_remap_active = true;
+    }
     BKE_libblock_remap(bmain, id, id_new, ID_REMAP_SKIP_INDIRECT_USAGE);
+    if (do_remap_active) {
+      Object *ref_object = (Object *)id_new;
+      Base *basact = BKE_view_layer_base_find(view_layer, ref_object);
+      if (basact != NULL) {
+        view_layer->basact = basact;
+      }
+      DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+    }
     BKE_id_delete(bmain, id);
   }
   else {
     BKE_lib_override_library_id_reset(bmain, id, true);
   }
 
-  PointerRNA idptr;
-  /* `idptr` is re-assigned to owner property to ensure proper updates etc. Here we also use it to
-   * ensure remapping of the owner property from the linked data to the newly created liboverride
-   * (note that in theory this remapping has already been done by code above). */
-  RNA_id_pointer_create(id_new, &idptr);
-  RNA_property_pointer_set(&owner_ptr, prop, idptr, NULL);
+  /* Here the affected ID may remain the same, or be replaced by its linked reference. In either
+   * case, the owner ID remains unchanged, and remapping is already handled by internal code, so
+   * calling `RNA_property_update` on it is enough to ensure proper notifiers are sent. */
   RNA_property_update(C, &owner_ptr, prop);
+
+  /* 'Security' extra tagging, since this process may also affect the owner ID and not only the
+   * used ID, relying on the property update code only is not always enough. */
+  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS | ID_RECALC_COPY_ON_WRITE);
+  WM_event_add_notifier(C, NC_WINDOW, NULL);
+  WM_event_add_notifier(C, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   return OPERATOR_FINISHED;
 }
@@ -979,7 +1010,7 @@ static bool override_idtemplate_menu_poll(const bContext *C_const, MenuType *UNU
 static void override_idtemplate_menu_draw(const bContext *UNUSED(C), Menu *menu)
 {
   uiLayout *layout = menu->layout;
-  uiItemO(layout, IFACE_("Make"), ICON_NONE, "UI_OT_override_idtemplate_create");
+  uiItemO(layout, IFACE_("Make"), ICON_NONE, "UI_OT_override_idtemplate_make");
   uiItemO(layout, IFACE_("Reset"), ICON_NONE, "UI_OT_override_idtemplate_reset");
   uiItemO(layout, IFACE_("Clear"), ICON_NONE, "UI_OT_override_idtemplate_clear");
 }
@@ -2501,7 +2532,7 @@ void ED_operatortypes_ui(void)
 
   WM_operatortype_append(UI_OT_override_type_set_button);
   WM_operatortype_append(UI_OT_override_remove_button);
-  WM_operatortype_append(UI_OT_override_idtemplate_create);
+  WM_operatortype_append(UI_OT_override_idtemplate_make);
   WM_operatortype_append(UI_OT_override_idtemplate_reset);
   WM_operatortype_append(UI_OT_override_idtemplate_clear);
   override_idtemplate_menu();
