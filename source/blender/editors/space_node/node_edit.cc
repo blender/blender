@@ -745,7 +745,7 @@ void ED_node_set_active(
               if (sima->pin) {
                 continue;
               }
-              if (ELEM(sima->image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+              if (sima->image && ELEM(sima->image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
                 continue;
               }
               ED_space_image_set(bmain, sima, image, true);
