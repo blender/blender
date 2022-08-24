@@ -798,12 +798,12 @@ static bool override_idtemplate_poll(bContext *C, const bool is_create_op)
   return true;
 }
 
-static bool override_idtemplate_create_poll(bContext *C)
+static bool override_idtemplate_make_poll(bContext *C)
 {
   return override_idtemplate_poll(C, true);
 }
 
-static int override_idtemplate_create_exec(bContext *C, wmOperator *UNUSED(op))
+static int override_idtemplate_make_exec(bContext *C, wmOperator *UNUSED(op))
 {
   ID *owner_id, *id;
   PointerRNA owner_ptr;
@@ -813,7 +813,7 @@ static int override_idtemplate_create_exec(bContext *C, wmOperator *UNUSED(op))
     return OPERATOR_CANCELLED;
   }
 
-  ID *id_override = ui_template_id_liboverride_hierarchy_create(
+  ID *id_override = ui_template_id_liboverride_hierarchy_make(
       C, CTX_data_main(C), owner_id, id, NULL);
 
   if (id_override == NULL) {
@@ -837,18 +837,18 @@ static int override_idtemplate_create_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-static void UI_OT_override_idtemplate_create(wmOperatorType *ot)
+static void UI_OT_override_idtemplate_make(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Create Library Override";
-  ot->idname = "UI_OT_override_idtemplate_create";
+  ot->name = "Make Library Override";
+  ot->idname = "UI_OT_override_idtemplate_make";
   ot->description =
       "Create a local override of the selected linked data-block, and its hierarchy of "
       "dependencies";
 
   /* callbacks */
-  ot->poll = override_idtemplate_create_poll;
-  ot->exec = override_idtemplate_create_exec;
+  ot->poll = override_idtemplate_make_poll;
+  ot->exec = override_idtemplate_make_exec;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;
@@ -976,7 +976,7 @@ static bool override_idtemplate_menu_poll(const bContext *C_const, MenuType *UNU
 static void override_idtemplate_menu_draw(const bContext *UNUSED(C), Menu *menu)
 {
   uiLayout *layout = menu->layout;
-  uiItemO(layout, IFACE_("Make"), ICON_NONE, "UI_OT_override_idtemplate_create");
+  uiItemO(layout, IFACE_("Make"), ICON_NONE, "UI_OT_override_idtemplate_make");
   uiItemO(layout, IFACE_("Reset"), ICON_NONE, "UI_OT_override_idtemplate_reset");
   uiItemO(layout, IFACE_("Clear"), ICON_NONE, "UI_OT_override_idtemplate_clear");
 }
@@ -2486,7 +2486,7 @@ void ED_operatortypes_ui(void)
 
   WM_operatortype_append(UI_OT_override_type_set_button);
   WM_operatortype_append(UI_OT_override_remove_button);
-  WM_operatortype_append(UI_OT_override_idtemplate_create);
+  WM_operatortype_append(UI_OT_override_idtemplate_make);
   WM_operatortype_append(UI_OT_override_idtemplate_reset);
   WM_operatortype_append(UI_OT_override_idtemplate_clear);
   override_idtemplate_menu();

@@ -653,7 +653,7 @@ static void template_id_liboverride_hierarchy_collections_tag_recursive(
   }
 }
 
-ID *ui_template_id_liboverride_hierarchy_create(
+ID *ui_template_id_liboverride_hierarchy_make(
     bContext *C, Main *bmain, ID *owner_id, ID *id, const char **r_undo_push_label)
 {
   const char *undo_push_label;
@@ -872,16 +872,16 @@ ID *ui_template_id_liboverride_hierarchy_create(
   return id_override;
 }
 
-static void template_id_liboverride_hierarchy_create(bContext *C,
-                                                     Main *bmain,
-                                                     TemplateID *template_ui,
-                                                     PointerRNA *idptr,
-                                                     const char **r_undo_push_label)
+static void template_id_liboverride_hierarchy_make(bContext *C,
+                                                   Main *bmain,
+                                                   TemplateID *template_ui,
+                                                   PointerRNA *idptr,
+                                                   const char **r_undo_push_label)
 {
   ID *id = idptr->data;
   ID *owner_id = template_ui->ptr.owner_id;
 
-  ID *id_override = ui_template_id_liboverride_hierarchy_create(
+  ID *id_override = ui_template_id_liboverride_hierarchy_make(
       C, bmain, owner_id, id, r_undo_push_label);
 
   if (id_override != NULL) {
@@ -950,8 +950,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
       if (id) {
         Main *bmain = CTX_data_main(C);
         if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
-          template_id_liboverride_hierarchy_create(
-              C, bmain, template_ui, &idptr, &undo_push_label);
+          template_id_liboverride_hierarchy_make(C, bmain, template_ui, &idptr, &undo_push_label);
         }
         else {
           if (BKE_lib_id_make_local(bmain, id, 0)) {
@@ -972,8 +971,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
       if (id && ID_IS_OVERRIDE_LIBRARY(id)) {
         Main *bmain = CTX_data_main(C);
         if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
-          template_id_liboverride_hierarchy_create(
-              C, bmain, template_ui, &idptr, &undo_push_label);
+          template_id_liboverride_hierarchy_make(C, bmain, template_ui, &idptr, &undo_push_label);
         }
         else {
           BKE_lib_override_library_make_local(id);
