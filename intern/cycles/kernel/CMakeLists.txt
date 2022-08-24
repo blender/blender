@@ -786,14 +786,6 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   get_filename_component(sycl_compiler_root ${SYCL_COMPILER} DIRECTORY)
   get_filename_component(sycl_compiler_compiler_name ${SYCL_COMPILER} NAME_WE)
 
-  if(NOT OCLOC_INSTALL_DIR)
-    get_filename_component(OCLOC_INSTALL_DIR "${sycl_compiler_root}/../lib/ocloc" ABSOLUTE)
-  endif()
-  if(WITH_CYCLES_ONEAPI_BINARIES AND NOT EXISTS ${OCLOC_INSTALL_DIR})
-    message(FATAL_ERROR "WITH_CYCLES_ONEAPI_BINARIES requires ocloc but ${OCLOC_INSTALL_DIR} directory doesn't exist."
-                        " A different ocloc directory can be set using OCLOC_INSTALL_DIR cmake variable.")
-  endif()
-
   if(UNIX AND NOT APPLE)
     if(NOT WITH_CXX11_ABI)
       check_library_exists(sycl

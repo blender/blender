@@ -628,15 +628,29 @@ endif()
 # oneAPI
 ###########################################################################
 
-if (WITH_CYCLES_DEVICE_ONEAPI)
+if(WITH_CYCLES_DEVICE_ONEAPI)
   find_package(SYCL)
   find_package(LevelZero)
 
-  if (SYCL_FOUND AND LEVEL_ZERO_FOUND)
+  if(SYCL_FOUND AND LEVEL_ZERO_FOUND)
     message(STATUS "Found oneAPI: ${SYCL_LIBRARY}")
     message(STATUS "Found Level Zero: ${LEVEL_ZERO_LIBRARY}")
+
+    if(WITH_CYCLES_ONEAPI_BINARIES)
+      if(NOT OCLOC_INSTALL_DIR)
+        get_filename_component(_sycl_compiler_root ${SYCL_COMPILER} DIRECTORY)
+        get_filename_component(OCLOC_INSTALL_DIR "${_sycl_compiler_root}/../lib/ocloc" ABSOLUTE)
+        unset(_sycl_compiler_root)
+      endif()
+
+      if(NOT EXISTS ${OCLOC_INSTALL_DIR})
+        message(STATUS "oneAPI ocloc not found in ${OCLOC_INSTALL_DIR}, disabling WITH_CYCLES_ONEAPI_BINARIES."
+                       " A different ocloc directory can be set using OCLOC_INSTALL_DIR cmake variable.")
+        set(WITH_CYCLES_ONEAPI_BINARIES OFF)
+      endif()
+    endif()
   else()
-    message(STATUS "oneAPI or Level Zero not found, disabling oneAPI device from Cycles")
+    message(STATUS "oneAPI or Level Zero not found, disabling WITH_CYCLES_DEVICE_ONEAPI")
     set(WITH_CYCLES_DEVICE_ONEAPI OFF)
   endif()
 endif()
