@@ -2250,7 +2250,7 @@ static PyObject *pyrna_prop_collection_subscript_int(BPy_PropertyRNA *self, Py_s
   }
   else {
     /* No callback defined, just iterate and find the nth item. */
-    const int key = (int)keynum;
+    const int key = (int)keynum_abs;
     PyObject *result = NULL;
     bool found = false;
     CollectionPropertyIterator iter;
