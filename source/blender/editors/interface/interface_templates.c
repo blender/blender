@@ -885,14 +885,14 @@ static void template_id_liboverride_hierarchy_make(bContext *C,
       C, bmain, owner_id, id, r_undo_push_label);
 
   if (id_override != NULL) {
-    /* Given `idptr` is re-assigned to owner property by caller to ensure proper updates etc. Here
-     * we also use it to ensure remapping of the owner property from the linked data to the newly
-     * created liboverride (note that in theory this remapping has already been done by code
-     * above), but only in case owner ID was already an existing liboverride.
+    /* `idptr` is re-assigned to owner property to ensure proper updates etc. Here we also use it
+     * to ensure remapping of the owner property from the linked data to the newly created
+     * liboverride (note that in theory this remapping has already been done by code above), but
+     * only in case owner ID was already local ID (override or pure local data).
      *
-     * Otherwise, owner ID will also have been overridden, and remapped already to use
-     * it's override of the data too. */
-    if (ID_IS_OVERRIDE_LIBRARY_REAL(owner_id)) {
+     * Otherwise, owner ID will also have been overridden, and remapped already to use it's
+     * override of the data too. */
+    if (!ID_IS_LINKED(owner_id)) {
       RNA_id_pointer_create(id_override, idptr);
     }
   }
