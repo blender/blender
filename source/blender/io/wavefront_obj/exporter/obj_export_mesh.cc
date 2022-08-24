@@ -133,7 +133,7 @@ void OBJMesh::set_world_axes_transform(const eIOAxis forward, const eIOAxis up)
   copy_m3_m4(normal_matrix, world_and_axes_transform_);
   invert_m3_m3(world_and_axes_normal_transform_, normal_matrix);
   transpose_m3(world_and_axes_normal_transform_);
-  mirrored_transform_ = determinant_m3_array(world_and_axes_normal_transform_) < 0;
+  mirrored_transform_ = is_negative_m3(world_and_axes_normal_transform_);
 }
 
 int OBJMesh::tot_vertices() const

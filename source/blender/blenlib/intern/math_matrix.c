@@ -2456,11 +2456,11 @@ void interp_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3], con
    * Note that a flip of two axes is just a rotation of 180 degrees around the third axis, and
    * three flipped axes are just an 180 degree rotation + a single axis flip. It is thus sufficient
    * to solve this problem for single axis flips. */
-  if (determinant_m3_array(U_A) < 0) {
+  if (is_negative_m3(U_A)) {
     mul_m3_fl(U_A, -1.0f);
     mul_m3_fl(P_A, -1.0f);
   }
-  if (determinant_m3_array(U_B) < 0) {
+  if (is_negative_m3(U_B)) {
     mul_m3_fl(U_B, -1.0f);
     mul_m3_fl(P_B, -1.0f);
   }
@@ -2501,16 +2501,14 @@ void interp_m4_m4m4(float R[4][4], const float A[4][4], const float B[4][4], con
 
 bool is_negative_m3(const float mat[3][3])
 {
-  float vec[3];
-  cross_v3_v3v3(vec, mat[0], mat[1]);
-  return (dot_v3v3(vec, mat[2]) < 0.0f);
+  return determinant_m3_array(mat) < 0.0f;
 }
 
 bool is_negative_m4(const float mat[4][4])
 {
-  float vec[3];
-  cross_v3_v3v3(vec, mat[0], mat[1]);
-  return (dot_v3v3(vec, mat[2]) < 0.0f);
+  /* Don't use #determinant_m4 as only the 3x3 components are needed
+   * when the matrix is used as a transformation to represent location/scale/rotation. */
+  return determinant_m4_mat3_array(mat) < 0.0f;
 }
 
 bool is_zero_m3(const float mat[3][3])
