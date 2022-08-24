@@ -2611,7 +2611,7 @@ static int clear_override_library_exec(bContext *C, wmOperator *UNUSED(op))
                          ob_iter->id.override_library->reference,
                          ID_REMAP_SKIP_INDIRECT_USAGE);
       if (do_remap_active) {
-        Object *ref_object = ob_iter->id.override_library->reference;
+        Object *ref_object = (Object *)ob_iter->id.override_library->reference;
         Base *basact = BKE_view_layer_base_find(view_layer, ref_object);
         if (basact != NULL) {
           view_layer->basact = basact;
