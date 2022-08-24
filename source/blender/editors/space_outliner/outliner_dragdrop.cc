@@ -45,6 +45,8 @@
 
 #include "outliner_intern.hh"
 
+namespace blender::ed::outliner {
+
 static Collection *collection_parent_from_ID(ID *id);
 
 /* -------------------------------------------------------------------- */
@@ -1592,3 +1594,5 @@ void outliner_dropboxes(void)
 }
 
 /** \} */
+
+}  // namespace blender::ed::outliner

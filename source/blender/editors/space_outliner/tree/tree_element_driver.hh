@@ -8,8 +8,6 @@
 
 #include "tree_element.hh"
 
-struct TreeElement;
-
 namespace blender::ed::outliner {
 
 class TreeElementDriverBase final : public AbstractTreeElement {

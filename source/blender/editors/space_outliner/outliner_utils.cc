@@ -30,7 +30,7 @@
 #include "tree/tree_display.hh"
 #include "tree/tree_iterator.hh"
 
-using namespace blender::ed::outliner;
+namespace blender::ed::outliner {
 
 /* -------------------------------------------------------------------- */
 /** \name Tree View Context
@@ -444,6 +444,10 @@ void outliner_tag_redraw_avoid_rebuild_on_open_change(const SpaceOutliner *space
     ED_region_tag_redraw_no_rebuild(region);
   }
 }
+
+}  // namespace blender::ed::outliner
+
+using namespace blender::ed::outliner;
 
 Base *ED_outliner_give_base_under_cursor(bContext *C, const int mval[2])
 {

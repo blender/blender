@@ -70,7 +70,7 @@
 #  include "BLI_math_base.h" /* M_PI */
 #endif
 
-using namespace blender::ed::outliner;
+namespace blender::ed::outliner {
 
 /* prototypes */
 static int outliner_exclude_filter_get(const SpaceOutliner *space_outliner);
@@ -786,8 +786,6 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
   }
 }
 
-namespace blender::ed::outliner {
-
 TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                                   ListBase *lb,
                                   void *idv,
@@ -923,8 +921,6 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
 
   return te;
 }
-
-}  // namespace blender::ed::outliner
 
 /* ======================================================= */
 
@@ -1727,3 +1723,5 @@ void outliner_build_tree(Main *mainvar,
 }
 
 /** \} */
+
+}  // namespace blender::ed::outliner

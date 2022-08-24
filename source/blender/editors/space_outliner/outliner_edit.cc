@@ -65,6 +65,8 @@
 
 using namespace blender::ed::outliner;
 
+namespace blender::ed::outliner {
+
 static void outliner_show_active(SpaceOutliner *space_outliner,
                                  ARegion *region,
                                  TreeElement *te,
@@ -2230,3 +2232,5 @@ void OUTLINER_OT_orphans_purge(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender::ed::outliner

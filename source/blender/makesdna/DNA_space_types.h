@@ -50,14 +50,19 @@ struct wmTimer;
 /** Defined in `buttons_intern.h`. */
 typedef struct SpaceProperties_Runtime SpaceProperties_Runtime;
 
-/** Defined in `node_intern.hh`. */
 #ifdef __cplusplus
 namespace blender::ed::space_node {
 struct SpaceNode_Runtime;
 }  // namespace blender::ed::space_node
 using SpaceNode_Runtime = blender::ed::space_node::SpaceNode_Runtime;
+
+namespace blender::ed::outliner {
+struct SpaceOutliner_Runtime;
+}  // namespace blender::ed::outliner
+using SpaceOutliner_Runtime = blender::ed::outliner::SpaceOutliner_Runtime;
 #else
 typedef struct SpaceNode_Runtime SpaceNode_Runtime;
+typedef struct SpaceOutliner_Runtime SpaceOutliner_Runtime;
 #endif
 
 /** Defined in `file_intern.h`. */
@@ -251,9 +256,6 @@ typedef enum eSpaceButtons_OutlinerSync {
 /* -------------------------------------------------------------------- */
 /** \name Outliner
  * \{ */
-
-/** Defined in `outliner_intern.hh`. */
-typedef struct SpaceOutliner_Runtime SpaceOutliner_Runtime;
 
 /** Outliner */
 typedef struct SpaceOutliner {

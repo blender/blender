@@ -70,7 +70,7 @@
 #include "tree/tree_element_seq.hh"
 #include "tree/tree_iterator.hh"
 
-using namespace blender::ed::outliner;
+namespace blender::ed::outliner {
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
@@ -2040,3 +2040,5 @@ void OUTLINER_OT_select_walk(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender::ed::outliner

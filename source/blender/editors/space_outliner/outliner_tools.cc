@@ -89,6 +89,8 @@
 #include "tree/tree_element_seq.hh"
 #include "tree/tree_iterator.hh"
 
+namespace blender::ed::outliner {
+
 static CLG_LogRef LOG = {"ed.outliner.tools"};
 
 using namespace blender::ed::outliner;
@@ -3459,3 +3461,5 @@ void OUTLINER_OT_operation(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender::ed::outliner

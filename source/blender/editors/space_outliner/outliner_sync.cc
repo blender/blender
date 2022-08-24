@@ -94,6 +94,8 @@ void ED_outliner_select_sync_flag_outliners(const bContext *C)
   wm->outliner_sync_select_dirty = 0;
 }
 
+namespace blender::ed::outliner {
+
 /**
  * Outliner sync select dirty flags are not enough to determine which types to sync,
  * outliner display mode also needs to be considered. This stores the types of data
@@ -335,8 +337,12 @@ static void outliner_sync_selection_from_outliner(Scene *scene,
   }
 }
 
+}  // namespace blender::ed::outliner
+
 void ED_outliner_select_sync_from_outliner(bContext *C, SpaceOutliner *space_outliner)
 {
+  using namespace blender::ed::outliner;
+
   /* Don't sync if not checked or in certain outliner display modes */
   if (!(space_outliner->flag & SO_SYNC_SELECT) || ELEM(space_outliner->outlinevis,
                                                        SO_LIBRARIES,
@@ -379,6 +385,8 @@ void ED_outliner_select_sync_from_outliner(bContext *C, SpaceOutliner *space_out
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
   }
 }
+
+namespace blender::ed::outliner {
 
 static void outliner_select_sync_from_object(ViewLayer *view_layer,
                                              Object *obact,
@@ -561,3 +569,5 @@ void outliner_sync_selection(const bContext *C, SpaceOutliner *space_outliner)
     }
   }
 }
+
+}  // namespace blender::ed::outliner

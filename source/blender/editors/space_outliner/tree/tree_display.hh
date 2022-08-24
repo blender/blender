@@ -30,11 +30,11 @@ struct Main;
 struct Scene;
 struct Sequence;
 struct SpaceOutliner;
-struct TreeElement;
 struct ViewLayer;
 
 namespace blender::ed::outliner {
 
+struct TreeElement;
 class TreeElementID;
 
 /**
