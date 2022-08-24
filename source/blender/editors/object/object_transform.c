@@ -921,7 +921,9 @@ static int apply_objects_internal(bContext *C,
       zero_v3(ob->rot);
       zero_v3(ob->drot);
       unit_qt(ob->quat);
+      unit_qt(ob->dquat);
       unit_axis_angle(ob->rotAxis, &ob->rotAngle);
+      unit_axis_angle(ob->drotAxis, &ob->drotAngle);
     }
 
     Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
