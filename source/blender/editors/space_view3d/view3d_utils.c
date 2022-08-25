@@ -1485,17 +1485,14 @@ void ED_view3d_from_m4(const float mat[4][4], float ofs[3], float quat[4], const
     negate_v3_v3(ofs, mat[3]);
   }
 
-  if (ofs && dist) {
-    madd_v3_v3fl(ofs, nmat[2], *dist);
-  }
-
   /* Quat */
   if (quat) {
-    if (is_negative_m3(nmat)) {
-      negate_m3(nmat);
-    }
     mat3_normalized_to_quat(quat, nmat);
     invert_qt_normalized(quat);
+  }
+
+  if (ofs && dist) {
+    madd_v3_v3fl(ofs, nmat[2], *dist);
   }
 }
 

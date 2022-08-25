@@ -269,13 +269,11 @@ void quat_to_mat4(float m[4][4], const float q[4])
   m[3][3] = 1.0f;
 }
 
-void mat3_normalized_to_quat(float q[4], const float mat[3][3])
+void mat3_normalized_to_quat_fast(float q[4], const float mat[3][3])
 {
   BLI_ASSERT_UNIT_M3(mat);
-  /* Callers must ensure matrices have a positive determinant for valid results, see: T94231. */
-  BLI_assert_msg(!is_negative_m3(mat),
-                 "Matrix 'mat' must not be negative, the resulting quaternion will be invalid. "
-                 "The caller should call negate_m3(mat) if is_negative_m3(mat) returns true.");
+  /* Caller must ensure matrices aren't negative for valid results, see: T24291, T94231. */
+  BLI_assert(!is_negative_m3(mat));
 
   /* Check the trace of the matrix - bad precision if close to -1. */
   const float trace = mat[0][0] + mat[1][1] + mat[2][2];
@@ -336,30 +334,46 @@ void mat3_normalized_to_quat(float q[4], const float mat[3][3])
 
   normalize_qt(q);
 }
+
+static void mat3_normalized_to_quat_with_checks(float q[4], float mat[3][3])
+{
+  const float det = determinant_m3_array(mat);
+  if (UNLIKELY(!isfinite(det))) {
+    unit_m3(mat);
+  }
+  else if (UNLIKELY(det < 0.0f)) {
+    negate_m3(mat);
+  }
+  mat3_normalized_to_quat_fast(q, mat);
+}
+
+void mat3_normalized_to_quat(float q[4], const float mat[3][3])
+{
+  float unit_mat_abs[3][3];
+  copy_m3_m3(unit_mat_abs, mat);
+  mat3_normalized_to_quat_with_checks(q, unit_mat_abs);
+}
+
 void mat3_to_quat(float q[4], const float mat[3][3])
 {
-  float unit_mat[3][3];
-
-  /* work on a copy */
-  /* this is needed AND a 'normalize_qt' in the end */
-  normalize_m3_m3(unit_mat, mat);
-  mat3_normalized_to_quat(q, unit_mat);
+  float unit_mat_abs[3][3];
+  normalize_m3_m3(unit_mat_abs, mat);
+  mat3_normalized_to_quat_with_checks(q, unit_mat_abs);
 }
 
 void mat4_normalized_to_quat(float q[4], const float mat[4][4])
 {
-  float mat3[3][3];
-
-  copy_m3_m4(mat3, mat);
-  mat3_normalized_to_quat(q, mat3);
+  float unit_mat_abs[3][3];
+  copy_m3_m4(unit_mat_abs, mat);
+  mat3_normalized_to_quat_with_checks(q, unit_mat_abs);
 }
 
 void mat4_to_quat(float q[4], const float mat[4][4])
 {
-  float mat3[3][3];
-
-  copy_m3_m4(mat3, mat);
-  mat3_to_quat(q, mat3);
+  float unit_mat_abs[3][3];
+  copy_m3_m4(unit_mat_abs, mat);
+  normalize_m3(unit_mat_abs);
+  mat3_normalized_to_quat_with_checks(q, unit_mat_abs);
 }
 
 void mat3_to_quat_is_ok(float q[4], const float wmat[3][3])

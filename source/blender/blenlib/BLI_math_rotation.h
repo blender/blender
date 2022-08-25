@@ -118,6 +118,11 @@ void quat_to_mat4(float m[4][4], const float q[4]);
  */
 void quat_to_compatible_quat(float q[4], const float a[4], const float old[4]);
 
+/**
+ * A version of #mat3_normalized_to_quat that skips error checking.
+ */
+void mat3_normalized_to_quat_fast(float q[4], const float mat[3][3]);
+
 void mat3_normalized_to_quat(float q[4], const float mat[3][3]);
 void mat4_normalized_to_quat(float q[4], const float mat[4][4]);
 void mat3_to_quat(float q[4], const float mat[3][3]);

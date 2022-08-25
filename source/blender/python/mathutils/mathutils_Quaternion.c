@@ -543,13 +543,7 @@ static PyObject *Quaternion_rotate(QuaternionObject *self, PyObject *value)
   length = normalize_qt_qt(tquat, self->quat);
   quat_to_mat3(self_rmat, tquat);
   mul_m3_m3m3(rmat, other_rmat, self_rmat);
-  normalize_m3(rmat);
-  /* This check could also be performed on `other_rmat`, use the final result instead to ensure
-   * float imprecision doesn't allow the multiplication to make `rmat` negative. */
-  if (is_negative_m3(rmat)) {
-    negate_m3(rmat);
-  }
-  mat3_normalized_to_quat(self->quat, rmat);
+  mat3_to_quat(self->quat, rmat);
   mul_qt_fl(self->quat, length); /* maintain length after rotating */
 
   (void)BaseMath_WriteCallback(self);

@@ -2239,11 +2239,6 @@ void mat4_to_loc_quat(float loc[3], float quat[4], const float wmat[4][4])
   copy_m3_m4(mat3, wmat);
   normalize_m3_m3(mat3_n, mat3);
 
-  /* So scale doesn't interfere with rotation T24291. */
-  if (is_negative_m3(mat3)) {
-    negate_m3(mat3_n);
-  }
-
   mat3_normalized_to_quat(quat, mat3_n);
   copy_v3_v3(loc, wmat[3]);
 }
@@ -2252,7 +2247,7 @@ void mat4_decompose(float loc[3], float quat[4], float size[3], const float wmat
 {
   float rot[3][3];
   mat4_to_loc_rot_size(loc, rot, size, wmat);
-  mat3_normalized_to_quat(quat, rot);
+  mat3_normalized_to_quat_fast(quat, rot);
 }
 
 /**
@@ -2391,8 +2386,8 @@ void blend_m3_m3m3(float out[3][3],
   mat3_to_rot_size(drot, dscale, dst);
   mat3_to_rot_size(srot, sscale, src);
 
-  mat3_normalized_to_quat(dquat, drot);
-  mat3_normalized_to_quat(squat, srot);
+  mat3_normalized_to_quat_fast(dquat, drot);
+  mat3_normalized_to_quat_fast(squat, srot);
 
   /* do blending */
   interp_qt_qtqt(fquat, dquat, squat, srcweight);
@@ -2417,8 +2412,8 @@ void blend_m4_m4m4(float out[4][4],
   mat4_to_loc_rot_size(dloc, drot, dscale, dst);
   mat4_to_loc_rot_size(sloc, srot, sscale, src);
 
-  mat3_normalized_to_quat(dquat, drot);
-  mat3_normalized_to_quat(squat, srot);
+  mat3_normalized_to_quat_fast(dquat, drot);
+  mat3_normalized_to_quat_fast(squat, srot);
 
   /* do blending */
   interp_v3_v3v3(floc, dloc, sloc, srcweight);

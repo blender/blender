@@ -1243,19 +1243,12 @@ static PyObject *Matrix_to_quaternion(MatrixObject *self)
                     "inappropriate matrix size - expects 3x3 or 4x4 matrix");
     return NULL;
   }
-  float mat3[3][3];
   if (self->row_num == 3) {
-    copy_m3_m3(mat3, (const float(*)[3])self->matrix);
+    mat3_to_quat(quat, (const float(*)[3])self->matrix);
   }
   else {
-    copy_m3_m4(mat3, (const float(*)[4])self->matrix);
+    mat4_to_quat(quat, (const float(*)[4])self->matrix);
   }
-  normalize_m3(mat3);
-  if (is_negative_m3(mat3)) {
-    /* Without this, the results are invalid, see: T94231. */
-    negate_m3(mat3);
-  }
-  mat3_normalized_to_quat(quat, mat3);
   return Quaternion_CreatePyObject(quat, NULL);
 }
 
@@ -1894,7 +1887,7 @@ static PyObject *Matrix_decompose(MatrixObject *self)
   }
 
   mat4_to_loc_rot_size(loc, rot, size, (const float(*)[4])self->matrix);
-  mat3_to_quat(quat, rot);
+  mat3_normalized_to_quat_fast(quat, rot);
 
   ret = PyTuple_New(3);
   PyTuple_SET_ITEMS(ret,
