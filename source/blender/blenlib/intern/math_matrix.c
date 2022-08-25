@@ -113,7 +113,6 @@ void copy_m4_m3(float m1[4][4], const float m2[3][3]) /* no clear */
   m1[2][1] = m2[2][1];
   m1[2][2] = m2[2][2];
 
-  /*  Reevan's Bugfix */
   m1[0][3] = 0.0f;
   m1[1][3] = 0.0f;
   m1[2][3] = 0.0f;
@@ -2241,7 +2240,6 @@ void mat4_to_loc_quat(float loc[3], float quat[4], const float wmat[4][4])
   normalize_m3_m3(mat3_n, mat3);
 
   /* So scale doesn't interfere with rotation T24291. */
-  /* FIXME: this is a workaround for negative matrix not working for rotation conversion. */
   if (is_negative_m3(mat3)) {
     negate_m3(mat3_n);
   }
