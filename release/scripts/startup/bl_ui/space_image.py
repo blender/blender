@@ -292,6 +292,10 @@ class IMAGE_MT_uvs_transform(Menu):
 
         layout.operator("transform.shear")
 
+        layout.separator()
+
+        layout.operator("uv.randomize_uv_transform")
+
 
 class IMAGE_MT_uvs_snap(Menu):
     bl_label = "Snap"
