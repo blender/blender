@@ -16,7 +16,7 @@ def match_uv(face, vert, uv, uv_layer):
 
 def bmesh_linked_uv_islands(bm, uv_layer):
     """
-    Returns lists of face indices connected by UV islands.
+    Returns lists of faces connected by UV islands.
 
     For meshes use :class:`bpy.types.Mesh.mesh_linked_uv_islands` instead.
 
@@ -29,15 +29,12 @@ def bmesh_linked_uv_islands(bm, uv_layer):
     """
 
     result = []
-    bm.faces.ensure_lookup_table()
-
     used = set()
     for seed_face in bm.faces:
-        seed_index = seed_face.index
-        if seed_index in used:
+        if seed_face in used:
             continue  # Face has already been processed.
-        used.add(seed_index)
-        island = [seed_index]
+        used.add(seed_face)
+        island = [seed_face]
         stack = [seed_face]  # Faces still to consider on this island.
         while stack:
             current_face = stack.pop()
@@ -45,14 +42,14 @@ def bmesh_linked_uv_islands(bm, uv_layer):
                 v = loop.vert
                 uv = loop[uv_layer].uv
                 for f in v.link_faces:
-                    if f.index in used:
+                    if f is current_face or f in used:
                         continue
                     if not match_uv(f, v, uv, uv_layer):
                         continue
 
                     # `f` is part of island, add to island and stack
-                    used.add(f.index)
-                    island.append(f.index)
+                    used.add(f)
+                    island.append(f)
                     stack.append(f)
         result.append(island)
 

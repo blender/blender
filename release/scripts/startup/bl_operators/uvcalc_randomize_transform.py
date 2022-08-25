@@ -3,7 +3,6 @@
 from bpy.types import Operator
 from mathutils import Vector
 
-import bpy.ops
 import math
 
 
@@ -52,13 +51,14 @@ def get_random_transform(transform_params, entropy):
 
 
 def randomize_uv_transform_island(bm, uv_layer, faces, transform_params):
-    entropy = min(faces)  # Ensure consistent random values for island, regardless of selection etc.
+    # Ensure consistent random values for island, regardless of selection etc.
+    entropy = min(f.index for f in faces)
+
     transform = get_random_transform(transform_params, entropy)
 
     # Find bounding box.
     minmax = [1e30, 1e30, -1e30, -1e30]
-    for face_index in faces:
-        face = bm.faces[face_index]
+    for face in faces:
         for loop in face.loops:
             u, v = loop[uv_layer].uv
             minmax[0] = min(minmax[0], u)
@@ -73,8 +73,7 @@ def randomize_uv_transform_island(bm, uv_layer, faces, transform_params):
     del_v = transform[1][2] + mid_v - transform[1][0] * mid_u - transform[1][1] * mid_v
 
     # Apply transform.
-    for face_index in faces:
-        face = bm.faces[face_index]
+    for face in faces:
         for loop in face.loops:
             pre_uv = loop[uv_layer].uv
             u = transform[0][0] * pre_uv[0] + transform[0][1] * pre_uv[1] + del_u
@@ -90,8 +89,8 @@ def is_face_uv_selected(face, uv_layer):
 
 
 def is_island_uv_selected(bm, island, uv_layer):
-    for face_index in island:
-        if is_face_uv_selected(bm.faces[face_index], uv_layer):
+    for face in island:
+        if is_face_uv_selected(face, uv_layer):
             return True
     return False
 
@@ -110,9 +109,12 @@ def randomize_uv_transform(context, transform_params):
     ob_list = context.objects_in_mode_unique_data
     for ob in ob_list:
         bm = bmesh.from_edit_mesh(ob.data)
-        bm.faces.ensure_lookup_table()
-        if bm.loops.layers.uv:
-            randomize_uv_transform_bmesh(ob.data, bm, transform_params)
+        if not bm.loops.layers.uv:
+            continue
+
+        # Only needed to access the minimum face index of each island.
+        bm.faces.index_update()
+        randomize_uv_transform_bmesh(ob.data, bm, transform_params)
 
     for ob in ob_list:
         bmesh.update_edit_mesh(ob.data)
