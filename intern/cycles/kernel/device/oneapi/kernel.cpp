@@ -818,7 +818,8 @@ char *oneapi_device_capabilities()
     GET_NUM_ATTR(max_compute_units)
     GET_NUM_ATTR(max_work_item_dimensions)
 
-    sycl::id<3> max_work_item_sizes = device.get_info<sycl::info::device::max_work_item_sizes>();
+    sycl::id<3> max_work_item_sizes =
+        device.get_info<sycl::info::device::max_work_item_sizes<3>>();
     WRITE_ATTR("max_work_item_sizes_dim0", ((size_t)max_work_item_sizes.get(0)))
     WRITE_ATTR("max_work_item_sizes_dim1", ((size_t)max_work_item_sizes.get(1)))
     WRITE_ATTR("max_work_item_sizes_dim2", ((size_t)max_work_item_sizes.get(2)))
