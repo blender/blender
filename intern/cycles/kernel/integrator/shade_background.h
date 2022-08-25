@@ -3,8 +3,10 @@
 
 #pragma once
 
-#include "kernel/film/accumulate.h"
+#include "kernel/film/light_passes.h"
+
 #include "kernel/integrator/shader_eval.h"
+
 #include "kernel/light/light.h"
 #include "kernel/light/sample.h"
 
@@ -31,47 +33,30 @@ ccl_device Spectrum integrator_eval_background_shader(KernelGlobals kg,
 
   /* Use fast constant background color if available. */
   Spectrum L = zero_spectrum();
-  if (!shader_constant_emission_eval(kg, shader, &L)) {
-    /* Evaluate background shader. */
-
-    /* TODO: does aliasing like this break automatic SoA in CUDA?
-     * Should we instead store closures separate from ShaderData? */
-    ShaderDataTinyStorage emission_sd_storage;
-    ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
-
-    PROFILING_INIT_FOR_SHADER(kg, PROFILING_SHADE_LIGHT_SETUP);
-    shader_setup_from_background(kg,
-                                 emission_sd,
-                                 INTEGRATOR_STATE(state, ray, P),
-                                 INTEGRATOR_STATE(state, ray, D),
-                                 INTEGRATOR_STATE(state, ray, time));
-
-    PROFILING_SHADER(emission_sd->object, emission_sd->shader);
-    PROFILING_EVENT(PROFILING_SHADE_LIGHT_EVAL);
-    shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_BACKGROUND>(
-        kg, state, emission_sd, render_buffer, path_flag | PATH_RAY_EMISSION);
-
-    L = shader_background_eval(emission_sd);
+  if (shader_constant_emission_eval(kg, shader, &L)) {
+    return L;
   }
 
-  /* Background MIS weights. */
-#  ifdef __BACKGROUND_MIS__
-  /* Check if background light exists or if we should skip pdf. */
-  if (!(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_MIS_SKIP) &&
-      kernel_data.background.use_mis) {
-    const float3 ray_P = INTEGRATOR_STATE(state, ray, P);
-    const float3 ray_D = INTEGRATOR_STATE(state, ray, D);
-    const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
+  /* Evaluate background shader. */
 
-    /* multiple importance sampling, get background light pdf for ray
-     * direction, and compute weight with respect to BSDF pdf */
-    const float pdf = background_light_pdf(kg, ray_P, ray_D);
-    const float mis_weight = light_sample_mis_weight_forward(kg, mis_ray_pdf, pdf);
-    L *= mis_weight;
-  }
-#  endif
+  /* TODO: does aliasing like this break automatic SoA in CUDA?
+   * Should we instead store closures separate from ShaderData? */
+  ShaderDataTinyStorage emission_sd_storage;
+  ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
 
-  return L;
+  PROFILING_INIT_FOR_SHADER(kg, PROFILING_SHADE_LIGHT_SETUP);
+  shader_setup_from_background(kg,
+                               emission_sd,
+                               INTEGRATOR_STATE(state, ray, P),
+                               INTEGRATOR_STATE(state, ray, D),
+                               INTEGRATOR_STATE(state, ray, time));
+
+  PROFILING_SHADER(emission_sd->object, emission_sd->shader);
+  PROFILING_EVENT(PROFILING_SHADE_LIGHT_EVAL);
+  shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_BACKGROUND>(
+      kg, state, emission_sd, render_buffer, path_flag | PATH_RAY_EMISSION);
+
+  return shader_background_eval(emission_sd);
 #else
   return make_spectrum(0.8f);
 #endif
@@ -117,17 +102,39 @@ ccl_device_inline void integrate_background(KernelGlobals kg,
 #endif /* __MNEE__ */
 
   /* Evaluate background shader. */
-  Spectrum L = (eval_background) ? integrator_eval_background_shader(kg, state, render_buffer) :
-                                   zero_spectrum();
+  Spectrum L = zero_spectrum();
 
-  /* When using the ao bounces approximation, adjust background
-   * shader intensity with ao factor. */
-  if (path_state_ao_bounce(kg, state)) {
-    L *= kernel_data.integrator.ao_bounces_factor;
+  if (eval_background) {
+    L = integrator_eval_background_shader(kg, state, render_buffer);
+
+    /* When using the ao bounces approximation, adjust background
+     * shader intensity with ao factor. */
+    if (path_state_ao_bounce(kg, state)) {
+      L *= kernel_data.integrator.ao_bounces_factor;
+    }
+
+    /* Background MIS weights. */
+    float mis_weight = 1.0f;
+#ifdef __BACKGROUND_MIS__
+    /* Check if background light exists or if we should skip pdf. */
+    if (!(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_MIS_SKIP) &&
+        kernel_data.background.use_mis) {
+      const float3 ray_P = INTEGRATOR_STATE(state, ray, P);
+      const float3 ray_D = INTEGRATOR_STATE(state, ray, D);
+      const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
+
+      /* multiple importance sampling, get background light pdf for ray
+       * direction, and compute weight with respect to BSDF pdf */
+      const float pdf = background_light_pdf(kg, ray_P, ray_D);
+      mis_weight = light_sample_mis_weight_forward(kg, mis_ray_pdf, pdf);
+    }
+#endif
+
+    L *= mis_weight;
   }
 
   /* Write to render buffer. */
-  kernel_accum_background(kg, state, L, transparent, is_transparent_background_ray, render_buffer);
+  film_write_background(kg, state, L, transparent, is_transparent_background_ray, render_buffer);
 }
 
 ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
@@ -175,18 +182,17 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
       }
 
       /* MIS weighting. */
+      float mis_weight = 1.0f;
       if (!(path_flag & PATH_RAY_MIS_SKIP)) {
         /* multiple importance sampling, get regular light pdf,
          * and compute weight with respect to BSDF pdf */
         const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
-        const float mis_weight = light_sample_mis_weight_forward(kg, mis_ray_pdf, ls.pdf);
-        light_eval *= mis_weight;
+        mis_weight = light_sample_mis_weight_forward(kg, mis_ray_pdf, ls.pdf);
       }
 
       /* Write to render buffer. */
-      const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
-      kernel_accum_emission(
-          kg, state, throughput * light_eval, render_buffer, kernel_data.background.lightgroup);
+      film_write_surface_emission(
+          kg, state, light_eval, mis_weight, render_buffer, kernel_data.background.lightgroup);
     }
   }
 }

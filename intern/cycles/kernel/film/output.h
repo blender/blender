@@ -1,6 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0
  * Copyright 2011-2022 Blender Foundation */
 
+/* Functions to retrieving render passes for display or output. Reading from
+ * the raw render buffer and normalizing based on the number of samples,
+ * computing alpha, compositing shadow catchers, etc. */
+
 #pragma once
 
 CCL_NAMESPACE_BEGIN

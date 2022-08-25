@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kernel/film/accumulate.h"
+#include "kernel/film/light_passes.h"
 #include "kernel/integrator/shader_eval.h"
 #include "kernel/light/light.h"
 #include "kernel/light/sample.h"
@@ -57,6 +57,7 @@ ccl_device_inline void integrate_light(KernelGlobals kg,
   }
 
   /* MIS weighting. */
+  float mis_weight = 1.0f;
   if (!(path_flag & PATH_RAY_MIS_SKIP)) {
     /* multiple importance sampling, get regular light pdf,
      * and compute weight with respect to BSDF pdf */
@@ -66,8 +67,7 @@ ccl_device_inline void integrate_light(KernelGlobals kg,
   }
 
   /* Write to render buffer. */
-  const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
-  kernel_accum_emission(kg, state, throughput * light_eval, render_buffer, ls.group);
+  film_write_surface_emission(kg, state, light_eval, mis_weight, render_buffer, ls.group);
 }
 
 ccl_device void integrator_shade_light(KernelGlobals kg,

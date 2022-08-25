@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include "kernel/film/accumulate.h"
-#include "kernel/film/passes.h"
+#include "kernel/film/data_passes.h"
+#include "kernel/film/denoising_passes.h"
+#include "kernel/film/light_passes.h"
 
 #include "kernel/integrator/mnee.h"
 
@@ -91,7 +92,7 @@ ccl_device_forceinline bool integrate_surface_holdout(KernelGlobals kg,
     const Spectrum holdout_weight = shader_holdout_apply(kg, sd);
     const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
     const float transparent = average(holdout_weight * throughput);
-    kernel_accum_holdout(kg, state, path_flag, transparent, render_buffer);
+    film_write_holdout(kg, state, path_flag, transparent, render_buffer);
     if (isequal(holdout_weight, one_spectrum())) {
       return false;
     }
@@ -112,6 +113,7 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
 
   /* Evaluate emissive closure. */
   Spectrum L = shader_emissive_eval(sd);
+  float mis_weight = 1.0f;
 
 #  ifdef __HAIR__
   if (!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_USE_MIS) &&
@@ -126,13 +128,11 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
     /* Multiple importance sampling, get triangle light pdf,
      * and compute weight with respect to BSDF pdf. */
     float pdf = triangle_light_pdf(kg, sd, t);
-    float mis_weight = light_sample_mis_weight_forward(kg, bsdf_pdf, pdf);
-    L *= mis_weight;
+    mis_weight = light_sample_mis_weight_forward(kg, bsdf_pdf, pdf);
   }
 
-  const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
-  kernel_accum_emission(
-      kg, state, throughput * L, render_buffer, object_lightgroup(kg, sd->object));
+  film_write_surface_emission(
+      kg, state, L, mis_weight, render_buffer, object_lightgroup(kg, sd->object));
 }
 #endif /* __EMISSION__ */
 
@@ -599,11 +599,11 @@ ccl_device bool integrate_surface(KernelGlobals kg,
       /* Write render passes. */
 #ifdef __PASSES__
       PROFILING_EVENT(PROFILING_SHADE_SURFACE_PASSES);
-      kernel_write_data_passes(kg, state, &sd, render_buffer);
+      film_write_data_passes(kg, state, &sd, render_buffer);
 #endif
 
 #ifdef __DENOISING_FEATURES__
-      kernel_write_denoising_features_surface(kg, state, &sd, render_buffer);
+      film_write_denoising_features_surface(kg, state, &sd, render_buffer);
 #endif
     }
 

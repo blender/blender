@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include "kernel/film/accumulate.h"
-#include "kernel/film/passes.h"
+#include "kernel/film/data_passes.h"
+#include "kernel/film/denoising_passes.h"
+#include "kernel/film/light_passes.h"
 
 #include "kernel/integrator/intersect_closest.h"
 #include "kernel/integrator/path_state.h"
@@ -663,14 +664,14 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
 
   /* Write accumulated emission. */
   if (!is_zero(accum_emission)) {
-    kernel_accum_emission(
+    film_write_volume_emission(
         kg, state, accum_emission, render_buffer, object_lightgroup(kg, sd->object));
   }
 
 #  ifdef __DENOISING_FEATURES__
   /* Write denoising features. */
   if (write_denoising_features) {
-    kernel_write_denoising_features_volume(
+    film_write_denoising_features_volume(
         kg, state, accum_albedo, result.indirect_scatter, render_buffer);
   }
 #  endif /* __DENOISING_FEATURES__ */

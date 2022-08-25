@@ -5,8 +5,8 @@
 
 #include "kernel/camera/camera.h"
 
-#include "kernel/film/accumulate.h"
 #include "kernel/film/adaptive_sampling.h"
+#include "kernel/film/light_passes.h"
 
 #include "kernel/integrator/path_state.h"
 #include "kernel/integrator/shadow_catcher.h"
@@ -57,7 +57,7 @@ ccl_device bool integrator_init_from_camera(KernelGlobals kg,
   path_state_init(state, tile, x, y);
 
   /* Check whether the pixel has converged and should not be sampled anymore. */
-  if (!kernel_need_sample_pixel(kg, state, render_buffer)) {
+  if (!film_need_sample_pixel(kg, state, render_buffer)) {
     return false;
   }
 
@@ -66,7 +66,7 @@ ccl_device bool integrator_init_from_camera(KernelGlobals kg,
    * This logic allows to both count actual number of samples per pixel, and to add samples to this
    * pixel after it was converged and samples were added somewhere else (in which case the
    * `scheduled_sample` will be different from actual number of samples in this pixel). */
-  const int sample = kernel_accum_sample(
+  const int sample = film_write_sample(
       kg, state, render_buffer, scheduled_sample, tile->sample_offset);
 
   /* Initialize random number seed for path. */

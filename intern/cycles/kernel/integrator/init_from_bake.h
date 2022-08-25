@@ -5,8 +5,8 @@
 
 #include "kernel/camera/camera.h"
 
-#include "kernel/film/accumulate.h"
 #include "kernel/film/adaptive_sampling.h"
+#include "kernel/film/light_passes.h"
 
 #include "kernel/integrator/path_state.h"
 
@@ -92,12 +92,12 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
   path_state_init(state, tile, x, y);
 
   /* Check whether the pixel has converged and should not be sampled anymore. */
-  if (!kernel_need_sample_pixel(kg, state, render_buffer)) {
+  if (!film_need_sample_pixel(kg, state, render_buffer)) {
     return false;
   }
 
   /* Always count the sample, even if the camera sample will reject the ray. */
-  const int sample = kernel_accum_sample(
+  const int sample = film_write_sample(
       kg, state, render_buffer, scheduled_sample, tile->sample_offset);
 
   /* Setup render buffers. */
@@ -112,7 +112,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
   int prim = __float_as_uint(primitive[1]);
   if (prim == -1) {
     /* Accumulate transparency for empty pixels. */
-    kernel_accum_transparent(kg, state, 0, 1.0f, buffer);
+    film_write_transparent(kg, state, 0, 1.0f, buffer);
     return true;
   }
 
@@ -200,11 +200,11 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
 
     /* Fast path for position and normal passes not affected by shaders. */
     if (kernel_data.film.pass_position != PASS_UNUSED) {
-      kernel_write_pass_float3(buffer + kernel_data.film.pass_position, P);
+      film_write_pass_float3(buffer + kernel_data.film.pass_position, P);
       return true;
     }
     else if (kernel_data.film.pass_normal != PASS_UNUSED && !(shader_flags & SD_HAS_BUMP)) {
-      kernel_write_pass_float3(buffer + kernel_data.film.pass_normal, N);
+      film_write_pass_float3(buffer + kernel_data.film.pass_normal, N);
       return true;
     }
 

@@ -10,7 +10,7 @@
 #include "kernel/closure/bsdf_util.h"
 #include "kernel/closure/emissive.h"
 
-#include "kernel/film/accumulate.h"
+#include "kernel/film/light_passes.h"
 
 #include "kernel/svm/svm.h"
 

@@ -11,7 +11,18 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device_inline void kernel_write_pass_float(ccl_global float *ccl_restrict buffer, float value)
+/* Get pointer to pixel in render buffer. */
+ccl_device_forceinline ccl_global float *film_pass_pixel_render_buffer(
+    KernelGlobals kg, ConstIntegratorState state, ccl_global float *ccl_restrict render_buffer)
+{
+  const uint32_t render_pixel_index = INTEGRATOR_STATE(state, path, render_pixel_index);
+  const uint64_t render_buffer_offset = (uint64_t)render_pixel_index *
+                                        kernel_data.film.pass_stride;
+  return render_buffer + render_buffer_offset;
+}
+
+/* Write to pixel. */
+ccl_device_inline void film_write_pass_float(ccl_global float *ccl_restrict buffer, float value)
 {
 #ifdef __ATOMIC_PASS_WRITE__
   atomic_add_and_fetch_float(buffer, value);
@@ -20,8 +31,7 @@ ccl_device_inline void kernel_write_pass_float(ccl_global float *ccl_restrict bu
 #endif
 }
 
-ccl_device_inline void kernel_write_pass_float3(ccl_global float *ccl_restrict buffer,
-                                                float3 value)
+ccl_device_inline void film_write_pass_float3(ccl_global float *ccl_restrict buffer, float3 value)
 {
 #ifdef __ATOMIC_PASS_WRITE__
   ccl_global float *buf_x = buffer + 0;
@@ -38,14 +48,13 @@ ccl_device_inline void kernel_write_pass_float3(ccl_global float *ccl_restrict b
 #endif
 }
 
-ccl_device_inline void kernel_write_pass_spectrum(ccl_global float *ccl_restrict buffer,
-                                                  Spectrum value)
+ccl_device_inline void film_write_pass_spectrum(ccl_global float *ccl_restrict buffer,
+                                                Spectrum value)
 {
-  kernel_write_pass_float3(buffer, spectrum_to_rgb(value));
+  film_write_pass_float3(buffer, spectrum_to_rgb(value));
 }
 
-ccl_device_inline void kernel_write_pass_float4(ccl_global float *ccl_restrict buffer,
-                                                float4 value)
+ccl_device_inline void film_write_pass_float4(ccl_global float *ccl_restrict buffer, float4 value)
 {
 #ifdef __ATOMIC_PASS_WRITE__
   ccl_global float *buf_x = buffer + 0;

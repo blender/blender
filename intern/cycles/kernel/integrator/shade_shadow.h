@@ -165,7 +165,7 @@ ccl_device void integrator_shade_shadow(KernelGlobals kg,
     return;
   }
   else {
-    kernel_accum_light(kg, state, render_buffer);
+    film_write_direct_light(kg, state, render_buffer);
     integrator_shadow_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
     return;
   }

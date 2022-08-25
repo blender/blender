@@ -225,12 +225,14 @@ set(SRC_KERNEL_CAMERA_HEADERS
 )
 
 set(SRC_KERNEL_FILM_HEADERS
-  film/accumulate.h
   film/adaptive_sampling.h
-  film/id_passes.h
-  film/passes.h
+  film/aov_passes.h
+  film/data_passes.h
+  film/denoising_passes.h
+  film/cryptomatte_passes.h
+  film/light_passes.h
   film/read.h
-  film/write_passes.h
+  film/write.h
 )
 
 set(SRC_KERNEL_INTEGRATOR_HEADERS
