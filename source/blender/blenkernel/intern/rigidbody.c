@@ -1176,6 +1176,9 @@ RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw, const int flag)
 
   if (rbw->effector_weights) {
     rbw_copy->effector_weights = MEM_dupallocN(rbw->effector_weights);
+    if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+      id_us_plus((ID *)rbw->effector_weights->group);
+    }
   }
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
     id_us_plus((ID *)rbw_copy->group);
@@ -1205,9 +1208,9 @@ void BKE_rigidbody_world_groups_relink(RigidBodyWorld *rbw)
 
 void BKE_rigidbody_world_id_loop(RigidBodyWorld *rbw, RigidbodyWorldIDFunc func, void *userdata)
 {
-  func(rbw, (ID **)&rbw->group, userdata, IDWALK_CB_NOP);
-  func(rbw, (ID **)&rbw->constraints, userdata, IDWALK_CB_NOP);
-  func(rbw, (ID **)&rbw->effector_weights->group, userdata, IDWALK_CB_NOP);
+  func(rbw, (ID **)&rbw->group, userdata, IDWALK_CB_USER);
+  func(rbw, (ID **)&rbw->constraints, userdata, IDWALK_CB_USER);
+  func(rbw, (ID **)&rbw->effector_weights->group, userdata, IDWALK_CB_USER);
 
   if (rbw->objects) {
     int i;
@@ -1424,7 +1427,7 @@ static bool rigidbody_add_object_to_scene(Main *bmain, Scene *scene, Object *ob)
 
   if (rbw->group == NULL) {
     rbw->group = BKE_collection_add(bmain, NULL, "RigidBodyWorld");
-    id_fake_user_set(&rbw->group->id);
+    id_us_plus(&rbw->group->id);
   }
 
   /* Add object to rigid body group. */
@@ -1453,7 +1456,7 @@ static bool rigidbody_add_constraint_to_scene(Main *bmain, Scene *scene, Object 
 
   if (rbw->constraints == NULL) {
     rbw->constraints = BKE_collection_add(bmain, NULL, "RigidBodyConstraints");
-    id_fake_user_set(&rbw->constraints->id);
+    id_us_plus(&rbw->constraints->id);
   }
 
   /* Add object to rigid body group. */

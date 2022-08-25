@@ -449,7 +449,7 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
 
     if (object->soft->effector_weights) {
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(
-          data, object->soft->effector_weights->group, IDWALK_CB_NOP);
+          data, object->soft->effector_weights->group, IDWALK_CB_USER);
     }
   }
 }
