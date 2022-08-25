@@ -1325,6 +1325,7 @@ static void data_device_handle_selection(void *data,
     wl_data_offer_destroy(data_offer->id);
     delete data_offer;
     data_offer = nullptr;
+    input->data_offer_copy_paste = nullptr;
   }
 
   if (id == nullptr) {
