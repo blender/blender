@@ -176,7 +176,7 @@ void quat_to_compatible_quat(float q[4], const float a[4], const float old[4])
   }
 }
 
-/* skip error check, currently only needed by mat3_to_quat_is_ok */
+/* Skip error check, currently only needed by #mat3_to_quat_legacy. */
 static void quat_to_mat3_no_error(float m[3][3], const float q[4])
 {
   double q0, q1, q2, q3, qda, qdb, qdc, qaa, qab, qac, qbb, qbc, qcc;
@@ -376,8 +376,12 @@ void mat4_to_quat(float q[4], const float mat[4][4])
   mat3_normalized_to_quat_with_checks(q, unit_mat_abs);
 }
 
-void mat3_to_quat_is_ok(float q[4], const float wmat[3][3])
+void mat3_to_quat_legacy(float q[4], const float wmat[3][3])
 {
+  /* Legacy version of #mat3_to_quat which has slightly different behavior.
+   * Keep for particle-system & boids since replacing this will make subtle changes
+   * that impact hair in existing files. See: D15772. */
+
   float mat[3][3], matr[3][3], matn[3][3], q1[4], q2[4], angle, si, co, nor[3];
 
   /* work on a copy */

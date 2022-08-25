@@ -178,9 +178,10 @@ float angle_signed_qt(const float q[4]);
 float angle_signed_qtqt(const float q1[4], const float q2[4]);
 
 /**
- * TODO: don't what this is, but it's not the same as #mat3_to_quat.
+ * Legacy matrix to quaternion conversion, keep to prevent changes to existing
+ * boids & particle-system behavior. Use #mat3_to_quat for new code.
  */
-void mat3_to_quat_is_ok(float q[4], const float wmat[3][3]);
+void mat3_to_quat_legacy(float q[4], const float wmat[3][3]);
 
 /* Other. */
 
