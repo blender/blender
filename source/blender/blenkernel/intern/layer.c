@@ -879,7 +879,10 @@ static LayerCollectionResync *layer_collection_resync_find(LayerCollectionResync
     current_layer_resync = queue_head;
     queue_head = current_layer_resync->queue_next;
 
-    if (current_layer_resync->collection == child_collection &&
+    if ((current_layer_resync->collection == child_collection ||
+         (ID_IS_OVERRIDE_LIBRARY(child_collection) &&
+          (&current_layer_resync->collection->id ==
+           child_collection->id.override_library->reference))) &&
         (current_layer_resync->parent_layer_resync == layer_resync ||
          (!current_layer_resync->is_used && !current_layer_resync->is_valid_as_child))) {
       /* This layer is a valid candidate, because its collection matches the seeked one, AND:
@@ -1048,107 +1051,113 @@ static void layer_collection_sync(ViewLayer *view_layer,
 
   BLI_assert(layer_resync->is_used);
 
-  LISTBASE_FOREACH (CollectionChild *, child, &layer_resync->collection->children) {
-    Collection *child_collection = child->collection;
-    LayerCollectionResync *child_layer_resync = layer_collection_resync_find(layer_resync,
-                                                                             child_collection);
+  for (int i = 1; i >= 0; i--) {
+    LISTBASE_FOREACH (CollectionChild *, child, &layer_resync->collection->children) {
+      Collection *child_collection = child->collection;
+      if (ID_IS_OVERRIDE_LIBRARY(child_collection) != (i == 0)) {
+        continue;
+      }
 
-    if (child_layer_resync != NULL) {
-      BLI_assert(child_layer_resync->collection != NULL);
-      BLI_assert(child_layer_resync->layer != NULL);
-      BLI_assert(child_layer_resync->is_usable);
+      LayerCollectionResync *child_layer_resync = layer_collection_resync_find(layer_resync,
+                                                                               child_collection);
 
-      if (child_layer_resync->is_used) {
-        CLOG_INFO(&LOG,
-                  4,
-                  "Found same existing LayerCollection for %s as child of %s",
-                  child_collection->id.name,
-                  layer_resync->collection->id.name);
+      if (child_layer_resync != NULL) {
+        BLI_assert(child_layer_resync->collection != NULL);
+        BLI_assert(child_layer_resync->layer != NULL);
+        BLI_assert(child_layer_resync->is_usable);
+
+        if (child_layer_resync->is_used) {
+          CLOG_INFO(&LOG,
+                    4,
+                    "Found same existing LayerCollection for %s as child of %s",
+                    child_collection->id.name,
+                    layer_resync->collection->id.name);
+        }
+        else {
+          CLOG_INFO(&LOG,
+                    4,
+                    "Found a valid unused LayerCollection for %s as child of %s, re-using it",
+                    child_collection->id.name,
+                    layer_resync->collection->id.name);
+        }
+
+        child_layer_resync->is_used = true;
+
+        /* NOTE: Do not move the resync wrapper to match the new layer hierarchy, so that the old
+         * parenting info remains available. In case a search for a valid layer in the children of
+         * the current is required again, the old parenting hierarchy is needed as reference, not
+         * the new one.
+         */
+        BLI_remlink(&child_layer_resync->parent_layer_resync->layer->layer_collections,
+                    child_layer_resync->layer);
+        BLI_addtail(&new_lb_layer, child_layer_resync->layer);
       }
       else {
         CLOG_INFO(&LOG,
                   4,
-                  "Found a valid unused LayerCollection for %s as child of %s, re-using it",
+                  "No available LayerCollection for %s as child of %s, creating a new one",
                   child_collection->id.name,
                   layer_resync->collection->id.name);
+
+        LayerCollection *child_layer = layer_collection_add(&new_lb_layer, child_collection);
+        child_layer->flag = parent_layer_flag;
+
+        child_layer_resync = BLI_mempool_calloc(layer_resync_mempool);
+        child_layer_resync->collection = child_collection;
+        child_layer_resync->layer = child_layer;
+        child_layer_resync->is_usable = true;
+        child_layer_resync->is_used = true;
+        child_layer_resync->is_valid_as_child = true;
+        child_layer_resync->is_valid_as_parent = true;
+        /* NOTE: Needs to be added to the layer_resync hierarchy so that the resync wrapper gets
+         * freed at the end. */
+        child_layer_resync->parent_layer_resync = layer_resync;
+        BLI_addtail(&layer_resync->children_layer_resync, child_layer_resync);
       }
 
-      child_layer_resync->is_used = true;
+      LayerCollection *child_layer = child_layer_resync->layer;
 
-      /* NOTE: Do not move the resync wrapper to match the new layer hierarchy, so that the old
-       * parenting info remains available. In case a search for a valid layer in the children of
-       * the current is required again, the old parenting hierarchy is needed as reference, not the
-       * new one.
-       */
-      BLI_remlink(&child_layer_resync->parent_layer_resync->layer->layer_collections,
-                  child_layer_resync->layer);
-      BLI_addtail(&new_lb_layer, child_layer_resync->layer);
-    }
-    else {
-      CLOG_INFO(&LOG,
-                4,
-                "No available LayerCollection for %s as child of %s, creating a new one",
-                child_collection->id.name,
-                layer_resync->collection->id.name);
+      const ushort child_local_collections_bits = parent_local_collections_bits &
+                                                  child_layer->local_collections_bits;
 
-      LayerCollection *child_layer = layer_collection_add(&new_lb_layer, child_collection);
-      child_layer->flag = parent_layer_flag;
+      /* Tag linked collection as a weak reference so we keep the layer
+       * collection pointer on file load and remember exclude state. */
+      id_lib_indirect_weak_link(&child_collection->id);
 
-      child_layer_resync = BLI_mempool_calloc(layer_resync_mempool);
-      child_layer_resync->collection = child_collection;
-      child_layer_resync->layer = child_layer;
-      child_layer_resync->is_usable = true;
-      child_layer_resync->is_used = true;
-      child_layer_resync->is_valid_as_child = true;
-      child_layer_resync->is_valid_as_parent = true;
-      /* NOTE: Needs to be added to the layer_resync hierarchy so that the resync wrapper gets
-       * freed at the end. */
-      child_layer_resync->parent_layer_resync = layer_resync;
-      BLI_addtail(&layer_resync->children_layer_resync, child_layer_resync);
-    }
+      /* Collection restrict is inherited. */
+      short child_collection_restrict = parent_collection_restrict;
+      short child_layer_restrict = parent_layer_restrict;
+      if (!(child_collection->flag & COLLECTION_IS_MASTER)) {
+        child_collection_restrict |= child_collection->flag;
+        child_layer_restrict |= child_layer->flag;
+      }
 
-    LayerCollection *child_layer = child_layer_resync->layer;
+      /* Sync child collections. */
+      layer_collection_sync(view_layer,
+                            child_layer_resync,
+                            layer_resync_mempool,
+                            r_lb_new_object_bases,
+                            child_layer->flag,
+                            child_collection_restrict,
+                            child_layer_restrict,
+                            child_local_collections_bits);
 
-    const ushort child_local_collections_bits = parent_local_collections_bits &
-                                                child_layer->local_collections_bits;
+      /* Layer collection exclude is not inherited. */
+      child_layer->runtime_flag = 0;
+      if (child_layer->flag & LAYER_COLLECTION_EXCLUDE) {
+        continue;
+      }
 
-    /* Tag linked collection as a weak reference so we keep the layer
-     * collection pointer on file load and remember exclude state. */
-    id_lib_indirect_weak_link(&child_collection->id);
+      /* We separate restrict viewport and visible view layer because a layer collection can be
+       * hidden in the view layer yet (locally) visible in a viewport (if it is not restricted). */
+      if (child_collection_restrict & COLLECTION_HIDE_VIEWPORT) {
+        child_layer->runtime_flag |= LAYER_COLLECTION_HIDE_VIEWPORT;
+      }
 
-    /* Collection restrict is inherited. */
-    short child_collection_restrict = parent_collection_restrict;
-    short child_layer_restrict = parent_layer_restrict;
-    if (!(child_collection->flag & COLLECTION_IS_MASTER)) {
-      child_collection_restrict |= child_collection->flag;
-      child_layer_restrict |= child_layer->flag;
-    }
-
-    /* Sync child collections. */
-    layer_collection_sync(view_layer,
-                          child_layer_resync,
-                          layer_resync_mempool,
-                          r_lb_new_object_bases,
-                          child_layer->flag,
-                          child_collection_restrict,
-                          child_layer_restrict,
-                          child_local_collections_bits);
-
-    /* Layer collection exclude is not inherited. */
-    child_layer->runtime_flag = 0;
-    if (child_layer->flag & LAYER_COLLECTION_EXCLUDE) {
-      continue;
-    }
-
-    /* We separate restrict viewport and visible view layer because a layer collection can be
-     * hidden in the view layer yet (locally) visible in a viewport (if it is not restricted). */
-    if (child_collection_restrict & COLLECTION_HIDE_VIEWPORT) {
-      child_layer->runtime_flag |= LAYER_COLLECTION_HIDE_VIEWPORT;
-    }
-
-    if (((child_layer->runtime_flag & LAYER_COLLECTION_HIDE_VIEWPORT) == 0) &&
-        ((child_layer_restrict & LAYER_COLLECTION_HIDE) == 0)) {
-      child_layer->runtime_flag |= LAYER_COLLECTION_VISIBLE_VIEW_LAYER;
+      if (((child_layer->runtime_flag & LAYER_COLLECTION_HIDE_VIEWPORT) == 0) &&
+          ((child_layer_restrict & LAYER_COLLECTION_HIDE) == 0)) {
+        child_layer->runtime_flag |= LAYER_COLLECTION_VISIBLE_VIEW_LAYER;
+      }
     }
   }
 
