@@ -53,7 +53,7 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
 
   BMO_ITER (f, &oiter, op->slots_in, "faces", BM_FACE) {
     BMFace *f_new;
-    float f_center[3], f_center_mean[3];
+    float f_center[3];
     BMVert *v_center = NULL;
     BMLoop *l_iter, *l_first;
     /* only interpolate the central loop from the face once,
@@ -68,15 +68,6 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
     bm_face_calc_center_fn(f, f_center);
     v_center = BM_vert_create(bm, f_center, NULL, BM_CREATE_NOP);
     BMO_vert_flag_enable(bm, v_center, ELE_NEW);
-
-    if (cd_loop_mdisp_offset != -1) {
-      if (center_mode == BMOP_POKE_MEDIAN) {
-        copy_v3_v3(f_center_mean, f_center);
-      }
-      else {
-        BM_face_calc_center_median(f, f_center_mean);
-      }
-    }
 
     /* handled by BM_loop_interp_from_face */
     // BM_vert_interp_from_face(bm, v_center, f);
