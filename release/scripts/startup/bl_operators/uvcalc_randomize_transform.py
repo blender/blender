@@ -52,7 +52,7 @@ def get_random_transform(transform_params, entropy):
 
 
 def randomize_uv_transform_island(bm, uv_layer, faces, transform_params):
-    entropy = min(faces) # Ensure consistent random values for island, regardless of selection etc.
+    entropy = min(faces)  # Ensure consistent random values for island, regardless of selection etc.
     transform = get_random_transform(transform_params, entropy)
 
     # Find bounding box.
