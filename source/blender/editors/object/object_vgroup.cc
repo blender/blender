@@ -1319,14 +1319,15 @@ static void getVerticalAndHorizontalChange(const float norm[3],
   changes[index][1] = len_v3v3(projA, projB);
 }
 
-/* by changing nonzero weights, try to move a vertex in me->mverts with index 'index' to
- * distToBe distance away from the provided plane strength can change distToBe so that it moves
- * towards distToBe by that percentage cp changes how much the weights are adjusted
+/**
+ * By changing nonzero weights, try to move a vertex in `me->mverts` with index 'index' to
+ * `distToBe` distance away from the provided plane strength can change `distToBe` so that it moves
+ * towards `distToBe` by that percentage `cp` changes how much the weights are adjusted
  * to check the distance
  *
- * index is the index of the vertex being moved
- * norm and d are the plane's properties for the equation: ax + by + cz + d = 0
- * coord is a point on the plane
+ * `index` is the index of the vertex being moved.
+ * `norm` and `d` are the plane's properties for the equation: `ax + by + cz + d = 0`.
+ * `coord` is a point on the plane.
  */
 static void moveCloserToDistanceFromPlane(Depsgraph *depsgraph,
                                           Scene *UNUSED(scene),

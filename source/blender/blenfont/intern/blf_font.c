@@ -20,7 +20,7 @@
 #include FT_CACHE_H /* FreeType Cache. */
 #include FT_GLYPH_H
 #include FT_MULTIPLE_MASTERS_H /* Variable font support. */
-#include FT_TRUETYPE_IDS_H     /* Codepoint coverage constants. */
+#include FT_TRUETYPE_IDS_H     /* Code-point coverage constants. */
 #include FT_TRUETYPE_TABLES_H  /* For TT_OS2 */
 
 #include "MEM_guardedalloc.h"

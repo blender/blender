@@ -1545,10 +1545,10 @@ uiButViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
 struct uiListType *UI_UL_cache_file_layers(void);
 
 struct ID *ui_template_id_liboverride_hierarchy_make(struct bContext *C,
-                                                       struct Main *bmain,
-                                                       struct ID *owner_id,
-                                                       struct ID *id,
-                                                       const char **r_undo_push_label);
+                                                     struct Main *bmain,
+                                                     struct ID *owner_id,
+                                                     struct ID *id,
+                                                     const char **r_undo_push_label);
 
 #ifdef __cplusplus
 }

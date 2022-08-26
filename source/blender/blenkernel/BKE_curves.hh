@@ -572,8 +572,8 @@ struct Insertion {
  * Compute the insertion of a control point and handles in a Bezier segment without changing its
  * shape.
  * \param parameter: Factor in from 0 to 1 defining the insertion point within the segment.
- * \return Inserted point paramaters including position, and both new and updated handles for
- * neighbouring control points.
+ * \return Inserted point parameters including position, and both new and updated handles for
+ * neighboring control points.
  *
  * <pre>
  *           handle_prev         handle_next

@@ -249,7 +249,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     Set<std::string> names_to_skip;
     if (!BLO_write_is_undo(writer)) {
       BKE_mesh_legacy_convert_hide_layers_to_flags(mesh);
-      /* When converting to the old mesh format, don't save redunant attributes. */
+      /* When converting to the old mesh format, don't save redundant attributes. */
       names_to_skip.add_multiple_new({".hide_vert", ".hide_edge", ".hide_poly"});
     }
 

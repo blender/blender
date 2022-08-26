@@ -1101,7 +1101,7 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
   if (window->getCursorGrabModeIsWarp()) {
     /* WORKAROUND:
      * Sometimes Windows ignores `SetCursorPos()` or `SendInput()` calls or the mouse event is
-     * outdate. Identify these cases by checking if the cursor is not yet within bounds. */
+     * outdated. Identify these cases by checking if the cursor is not yet within bounds. */
     static bool is_warping_x = false;
     static bool is_warping_y = false;
 

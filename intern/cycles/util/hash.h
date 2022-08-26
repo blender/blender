@@ -378,7 +378,7 @@ ccl_device_inline avxi hash_avxi4(avxi kx, avxi ky, avxi kz, avxi kw)
 
 /* ***** Hash Prospector Hash Functions *****
  *
- * These are based on the high-quality 32-bit hash/mixings functions from
+ * These are based on the high-quality 32-bit hash/mixing functions from
  * https://github.com/skeeto/hash-prospector
  */
 
