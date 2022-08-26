@@ -299,7 +299,7 @@ class GHOST_SystemWin32 : public GHOST_System {
    * \param vk: Pointer to virtual key.
    * \return The GHOST key (GHOST_kKeyUnknown if no match).
    */
-  GHOST_TKey hardKey(RAWINPUT const &raw, bool *r_keyDown, bool *r_is_repeated_modifier);
+  GHOST_TKey hardKey(RAWINPUT const &raw, bool *r_keyDown);
 
   /**
    * Creates mouse button event.
@@ -417,19 +417,6 @@ class GHOST_SystemWin32 : public GHOST_System {
   void processTrackpad();
 
   /**
-   * Returns the local state of the modifier keys (from the message queue).
-   * \param keys: The state of the keys.
-   */
-  inline void retrieveModifierKeys(GHOST_ModifierKeys &keys) const;
-
-  /**
-   * Stores the state of the modifier keys locally.
-   * For internal use only!
-   * param keys The new state of the modifier keys.
-   */
-  inline void storeModifierKeys(const GHOST_ModifierKeys &keys);
-
-  /**
    * Check current key layout for AltGr
    */
   inline void handleKeyboardChange(void);
@@ -446,8 +433,6 @@ class GHOST_SystemWin32 : public GHOST_System {
    */
   int setConsoleWindowState(GHOST_TConsoleWindowState action);
 
-  /** The current state of the modifier keys. */
-  GHOST_ModifierKeys m_modifierKeys;
   /** The virtual-key code (VKey) of the last press event. Used to detect repeat events. */
   unsigned short m_keycode_last_repeat_key;
   /** State variable set at initialization. */
@@ -471,16 +456,6 @@ class GHOST_SystemWin32 : public GHOST_System {
   /** Wheel delta accumulator. */
   int m_wheelDeltaAccum;
 };
-
-inline void GHOST_SystemWin32::retrieveModifierKeys(GHOST_ModifierKeys &keys) const
-{
-  keys = m_modifierKeys;
-}
-
-inline void GHOST_SystemWin32::storeModifierKeys(const GHOST_ModifierKeys &keys)
-{
-  m_modifierKeys = keys;
-}
 
 inline void GHOST_SystemWin32::handleKeyboardChange(void)
 {

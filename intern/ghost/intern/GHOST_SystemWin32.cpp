@@ -534,16 +534,9 @@ GHOST_TSuccess GHOST_SystemWin32::exit()
   return GHOST_System::exit();
 }
 
-GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw,
-                                      bool *r_keyDown,
-                                      bool *r_is_repeated_modifier)
+GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw, bool *r_keyDown)
 {
-  bool is_repeated_modifier = false;
-
-  GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
   GHOST_TKey key = GHOST_kKeyUnknown;
-  GHOST_ModifierKeys modifiers;
-  system->retrieveModifierKeys(modifiers);
 
   // RI_KEY_BREAK doesn't work for sticky keys release, so we also
   // check for the up message
@@ -553,56 +546,6 @@ GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw,
   key = this->convertKey(raw.data.keyboard.VKey,
                          raw.data.keyboard.MakeCode,
                          (raw.data.keyboard.Flags & (RI_KEY_E1 | RI_KEY_E0)));
-
-  // extra handling of modifier keys: don't send repeats out from GHOST
-  if (key >= GHOST_kKeyLeftShift && key <= GHOST_kKeyRightAlt) {
-    bool changed = false;
-    GHOST_TModifierKey modifier;
-    switch (key) {
-      case GHOST_kKeyLeftShift: {
-        changed = (modifiers.get(GHOST_kModifierKeyLeftShift) != *r_keyDown);
-        modifier = GHOST_kModifierKeyLeftShift;
-        break;
-      }
-      case GHOST_kKeyRightShift: {
-        changed = (modifiers.get(GHOST_kModifierKeyRightShift) != *r_keyDown);
-        modifier = GHOST_kModifierKeyRightShift;
-        break;
-      }
-      case GHOST_kKeyLeftControl: {
-        changed = (modifiers.get(GHOST_kModifierKeyLeftControl) != *r_keyDown);
-        modifier = GHOST_kModifierKeyLeftControl;
-        break;
-      }
-      case GHOST_kKeyRightControl: {
-        changed = (modifiers.get(GHOST_kModifierKeyRightControl) != *r_keyDown);
-        modifier = GHOST_kModifierKeyRightControl;
-        break;
-      }
-      case GHOST_kKeyLeftAlt: {
-        changed = (modifiers.get(GHOST_kModifierKeyLeftAlt) != *r_keyDown);
-        modifier = GHOST_kModifierKeyLeftAlt;
-        break;
-      }
-      case GHOST_kKeyRightAlt: {
-        changed = (modifiers.get(GHOST_kModifierKeyRightAlt) != *r_keyDown);
-        modifier = GHOST_kModifierKeyRightAlt;
-        break;
-      }
-      default:
-        break;
-    }
-
-    if (changed) {
-      modifiers.set(modifier, *r_keyDown);
-      system->storeModifierKeys(modifiers);
-    }
-    else {
-      is_repeated_modifier = true;
-    }
-  }
-
-  *r_is_repeated_modifier = is_repeated_modifier;
   return key;
 }
 
@@ -1182,34 +1125,33 @@ void GHOST_SystemWin32::processWheelEvent(GHOST_WindowWin32 *window, WPARAM wPar
 
 GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RAWINPUT const &raw)
 {
+  const char vk = raw.data.keyboard.VKey;
   bool keyDown = false;
-  bool is_repeated_modifier = false;
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
-  GHOST_TKey key = system->hardKey(raw, &keyDown, &is_repeated_modifier);
+  GHOST_TKey key = system->hardKey(raw, &keyDown);
   GHOST_EventKey *event;
+
+  bool is_repeat = false;
+  bool is_repeated_modifier = false;
+  if (keyDown) {
+    if (system->m_keycode_last_repeat_key == vk) {
+      is_repeat = true;
+      is_repeated_modifier = (key >= GHOST_kKeyLeftShift && key <= GHOST_kKeyRightAlt);
+    }
+    system->m_keycode_last_repeat_key = vk;
+  }
+  else {
+    if (system->m_keycode_last_repeat_key == vk) {
+      system->m_keycode_last_repeat_key = 0;
+    }
+  }
 
   /* We used to check `if (key != GHOST_kKeyUnknown)`, but since the message
    * values `WM_SYSKEYUP`, `WM_KEYUP` and `WM_CHAR` are ignored, we capture
    * those events here as well. */
   if (!is_repeated_modifier) {
-    char vk = raw.data.keyboard.VKey;
     char utf8_char[6] = {0};
     char ascii = 0;
-    bool is_repeat = false;
-
-    /* Unlike on Linux, not all keys can send repeat events. E.g. modifier keys don't. */
-    if (keyDown) {
-      if (system->m_keycode_last_repeat_key == vk) {
-        is_repeat = true;
-      }
-      system->m_keycode_last_repeat_key = vk;
-    }
-    else {
-      if (system->m_keycode_last_repeat_key == vk) {
-        system->m_keycode_last_repeat_key = 0;
-      }
-    }
-
     wchar_t utf16[3] = {0};
     BYTE state[256] = {0};
     int r;
@@ -1907,9 +1849,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
            * If the windows use different input queues, the message is sent asynchronously,
            * so the window is activated immediately. */
           {
-            GHOST_ModifierKeys modifiers;
-            modifiers.clear();
-            system->storeModifierKeys(modifiers);
             system->m_wheelDeltaAccum = 0;
             system->m_keycode_last_repeat_key = 0;
             event = processWindowEvent(LOWORD(wParam) ? GHOST_kEventWindowActivate :
