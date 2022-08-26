@@ -36,8 +36,8 @@ def get_random_transform(transform_params, entropy):
         angle = 0
 
     if scale:
-        scale_u *= scale[0]
-        scale_v *= scale[1]
+        scale_u = scale_u * (2 * scale[0] - 2.0) + 2.0 - scale[0]
+        scale_v = scale_v * (2 * scale[1] - 2.0) + 2.0 - scale[1]
     else:
         scale_u = 1
         scale_v = 1
