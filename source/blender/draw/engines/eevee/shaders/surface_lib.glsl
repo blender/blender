@@ -97,7 +97,7 @@ GlobalData init_globals(void)
   GlobalData surf;
 
 #  if defined(WORLD_BACKGROUND) || defined(PROBE_CAPTURE)
-  surf.P = transform_direction(ViewMatrixInverse, viewCameraVec(viewPosition));
+  surf.P = transform_direction(ViewMatrixInverse, -viewCameraVec(viewPosition));
   surf.N = surf.Ng = -surf.P;
   surf.ray_length = 0.0;
 #  else
