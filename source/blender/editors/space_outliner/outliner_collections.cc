@@ -88,7 +88,7 @@ Collection *outliner_collection_from_tree_element(const TreeElement *te)
   return nullptr;
 }
 
-TreeTraversalAction outliner_find_selected_collections(TreeElement *te, void *customdata)
+TreeTraversalAction outliner_collect_selected_collections(TreeElement *te, void *customdata)
 {
   struct IDsSelectedData *data = static_cast<IDsSelectedData *>(customdata);
   TreeStoreElem *tselem = TREESTORE(te);
@@ -105,7 +105,7 @@ TreeTraversalAction outliner_find_selected_collections(TreeElement *te, void *cu
   return TRAVERSE_CONTINUE;
 }
 
-TreeTraversalAction outliner_find_selected_objects(TreeElement *te, void *customdata)
+TreeTraversalAction outliner_collect_selected_objects(TreeElement *te, void *customdata)
 {
   struct IDsSelectedData *data = static_cast<IDsSelectedData *>(customdata);
   TreeStoreElem *tselem = TREESTORE(te);
@@ -136,7 +136,7 @@ void ED_outliner_selected_objects_get(const bContext *C, ListBase *objects)
                          &space_outliner->tree,
                          0,
                          TSE_SELECTED,
-                         outliner_find_selected_objects,
+                         outliner_collect_selected_objects,
                          &data);
   LISTBASE_FOREACH (LinkData *, link, &data.selected_array) {
     TreeElement *ten_selected = (TreeElement *)link->data;
@@ -296,7 +296,7 @@ struct CollectionEditData {
   bool is_liboverride_hierarchy_root_allowed;
 };
 
-static TreeTraversalAction collection_find_data_to_edit(TreeElement *te, void *customdata)
+static TreeTraversalAction collection_collect_data_to_edit(TreeElement *te, void *customdata)
 {
   CollectionEditData *data = static_cast<CollectionEditData *>(customdata);
   Collection *collection = outliner_collection_from_tree_element(te);
@@ -346,7 +346,7 @@ void outliner_collection_delete(
   /* We first walk over and find the Collections we actually want to delete
    * (ignoring duplicates). */
   outliner_tree_traverse(
-      space_outliner, &space_outliner->tree, 0, TSE_SELECTED, collection_find_data_to_edit, &data);
+      space_outliner, &space_outliner->tree, 0, TSE_SELECTED, collection_collect_data_to_edit, &data);
 
   /* Effectively delete the collections. */
   GSetIterator collections_to_edit_iter;
@@ -708,7 +708,7 @@ static int collection_link_exec(bContext *C, wmOperator *op)
 
   /* We first walk over and find the Collections we actually want to link (ignoring duplicates). */
   outliner_tree_traverse(
-      space_outliner, &space_outliner->tree, 0, TSE_SELECTED, collection_find_data_to_edit, &data);
+      space_outliner, &space_outliner->tree, 0, TSE_SELECTED, collection_collect_data_to_edit, &data);
 
   /* Effectively link the collections. */
   GSetIterator collections_to_edit_iter;
@@ -767,7 +767,7 @@ static int collection_instance_exec(bContext *C, wmOperator *UNUSED(op))
   /* We first walk over and find the Collections we actually want to instance
    * (ignoring duplicates). */
   outliner_tree_traverse(
-      space_outliner, &space_outliner->tree, 0, TSE_SELECTED, collection_find_data_to_edit, &data);
+      space_outliner, &space_outliner->tree, 0, TSE_SELECTED, collection_collect_data_to_edit, &data);
 
   /* Find an active collection to add to, that doesn't give dependency cycles. */
   LayerCollection *active_lc = BKE_layer_collection_get_active(view_layer);
@@ -824,7 +824,7 @@ void OUTLINER_OT_collection_instance(wmOperatorType *ot)
 /** \name Exclude Collection
  * \{ */
 
-static TreeTraversalAction layer_collection_find_data_to_edit(TreeElement *te, void *customdata)
+static TreeTraversalAction layer_collection_collect_data_to_edit(TreeElement *te, void *customdata)
 {
   CollectionEditData *data = static_cast<CollectionEditData *>(customdata);
   TreeStoreElem *tselem = TREESTORE(te);
@@ -869,7 +869,7 @@ static bool collections_view_layer_poll(bContext *C, bool clear, int flag)
                          &space_outliner->tree,
                          0,
                          TSE_SELECTED,
-                         layer_collection_find_data_to_edit,
+                         layer_collection_collect_data_to_edit,
                          &data);
 
   GSetIterator collections_to_edit_iter;
@@ -941,7 +941,7 @@ static int collection_view_layer_exec(bContext *C, wmOperator *op)
                          &space_outliner->tree,
                          0,
                          TSE_SELECTED,
-                         layer_collection_find_data_to_edit,
+                         layer_collection_collect_data_to_edit,
                          &data);
 
   GSetIterator collections_to_edit_iter;
@@ -1075,7 +1075,7 @@ static int collection_isolate_exec(bContext *C, wmOperator *op)
                          &space_outliner->tree,
                          0,
                          TSE_SELECTED,
-                         layer_collection_find_data_to_edit,
+                         layer_collection_collect_data_to_edit,
                          &data);
 
   GSetIterator collections_to_edit_iter;
@@ -1175,7 +1175,7 @@ static int collection_visibility_exec(bContext *C, wmOperator *op)
                          &space_outliner->tree,
                          0,
                          TSE_SELECTED,
-                         layer_collection_find_data_to_edit,
+                         layer_collection_collect_data_to_edit,
                          &data);
 
   GSetIterator collections_to_edit_iter;
@@ -1327,7 +1327,7 @@ static int collection_flag_exec(bContext *C, wmOperator *op)
                            &space_outliner->tree,
                            0,
                            TSE_SELECTED,
-                           layer_collection_find_data_to_edit,
+                           layer_collection_collect_data_to_edit,
                            &data);
     GSetIterator collections_to_edit_iter;
     GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
@@ -1356,7 +1356,7 @@ static int collection_flag_exec(bContext *C, wmOperator *op)
                            &space_outliner->tree,
                            0,
                            TSE_SELECTED,
-                           collection_find_data_to_edit,
+                           collection_collect_data_to_edit,
                            &data);
     GSetIterator collections_to_edit_iter;
     GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
@@ -1461,7 +1461,7 @@ struct OutlinerHideEditData {
 /** \name Visibility for Collection & Object Operators
  * \{ */
 
-static TreeTraversalAction outliner_hide_find_data_to_edit(TreeElement *te, void *customdata)
+static TreeTraversalAction outliner_hide_collect_data_to_edit(TreeElement *te, void *customdata)
 {
   OutlinerHideEditData *data = static_cast<OutlinerHideEditData *>(customdata);
   TreeStoreElem *tselem = TREESTORE(te);
@@ -1508,7 +1508,7 @@ static int outliner_hide_exec(bContext *C, wmOperator *UNUSED(op))
                          &space_outliner->tree,
                          0,
                          TSE_SELECTED,
-                         outliner_hide_find_data_to_edit,
+                         outliner_hide_collect_data_to_edit,
                          &data);
 
   GSetIterator collections_to_edit_iter;
@@ -1604,7 +1604,7 @@ static int outliner_color_tag_set_exec(bContext *C, wmOperator *op)
                          &space_outliner->tree,
                          0,
                          TSE_SELECTED,
-                         outliner_find_selected_collections,
+                         outliner_collect_selected_collections,
                          &selected);
 
   LISTBASE_FOREACH (LinkData *, link, &selected.selected_array) {

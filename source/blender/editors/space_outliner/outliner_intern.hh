@@ -284,8 +284,8 @@ typedef struct IDsSelectedData {
   struct ListBase selected_array;
 } IDsSelectedData;
 
-TreeTraversalAction outliner_find_selected_collections(TreeElement *te, void *customdata);
-TreeTraversalAction outliner_find_selected_objects(TreeElement *te, void *customdata);
+TreeTraversalAction outliner_collect_selected_collections(TreeElement *te, void *customdata);
+TreeTraversalAction outliner_collect_selected_objects(TreeElement *te, void *customdata);
 
 /* outliner_draw.c ---------------------------------------------- */
 

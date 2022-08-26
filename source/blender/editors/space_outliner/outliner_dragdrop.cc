@@ -1476,7 +1476,7 @@ static int outliner_item_drag_drop_invoke(bContext *C,
                              &space_outliner->tree,
                              0,
                              TSE_SELECTED,
-                             outliner_find_selected_objects,
+                             outliner_collect_selected_objects,
                              &selected);
     }
     else {
@@ -1484,7 +1484,7 @@ static int outliner_item_drag_drop_invoke(bContext *C,
                              &space_outliner->tree,
                              0,
                              TSE_SELECTED,
-                             outliner_find_selected_collections,
+                             outliner_collect_selected_collections,
                              &selected);
     }
 

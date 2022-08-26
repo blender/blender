@@ -2335,7 +2335,7 @@ static void outliner_do_object_delete(bContext *C,
   }
 }
 
-static TreeTraversalAction outliner_find_objects_to_delete(TreeElement *te, void *customdata)
+static TreeTraversalAction outliner_collect_objects_to_delete(TreeElement *te, void *customdata)
 {
   ObjectEditData *data = static_cast<ObjectEditData *>(customdata);
   GSet *objects_to_delete = data->objects_set;
@@ -2402,7 +2402,7 @@ static int outliner_delete_exec(bContext *C, wmOperator *op)
                          &space_outliner->tree,
                          0,
                          TSE_SELECTED,
-                         outliner_find_objects_to_delete,
+                         outliner_collect_objects_to_delete,
                          &object_delete_data);
 
   if (delete_hierarchy) {
