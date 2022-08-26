@@ -296,6 +296,12 @@ static void wm_window_match_keep_current_wm(const bContext *C,
     }
   }
 
+  /* we'll be using the current wm list directly; make sure
+   * the names are validated and in the name map. */
+  LISTBASE_FOREACH (wmWindowManager *, wm_item, current_wm_list) {
+    BKE_main_namemap_get_name(bmain, &wm_item->id, wm_item->id.name + 2);
+  }
+
   *r_new_wm_list = *current_wm_list;
 }
 
