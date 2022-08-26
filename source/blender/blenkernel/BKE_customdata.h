@@ -417,7 +417,7 @@ void *CustomData_bmesh_get_n(const struct CustomData *data, void *block, int typ
  */
 void *CustomData_bmesh_get_layer_n(const struct CustomData *data, void *block, int n);
 
-bool CustomData_set_layer_name(const struct CustomData *data, int type, int n, const char *name);
+bool CustomData_set_layer_name(struct CustomData *data, int type, int n, const char *name);
 const char *CustomData_get_layer_name(const struct CustomData *data, int type, int n);
 
 /**

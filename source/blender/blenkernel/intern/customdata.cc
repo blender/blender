@@ -3537,10 +3537,7 @@ int CustomData_get_offset_named(const CustomData *data, int type, const char *na
   return data->layers[layer_index].offset;
 }
 
-bool CustomData_set_layer_name(const CustomData *data,
-                               const int type,
-                               const int n,
-                               const char *name)
+bool CustomData_set_layer_name(CustomData *data, const int type, const int n, const char *name)
 {
   /* get the layer index of the first layer of type */
   const int layer_index = CustomData_get_layer_index_n(data, type, n);
