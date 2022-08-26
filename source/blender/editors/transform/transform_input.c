@@ -276,9 +276,9 @@ void initMouseInput(
 
 static void calcSpringFactor(MouseInput *mi)
 {
-  mi->factor = sqrtf(
-      ((float)(mi->center[1] - mi->imval[1])) * ((float)(mi->center[1] - mi->imval[1])) +
-      ((float)(mi->center[0] - mi->imval[0])) * ((float)(mi->center[0] - mi->imval[0])));
+  float mdir[2] = {(float)(mi->center[1] - mi->imval[1]), (float)(mi->center[0] - mi->imval[0])};
+
+  mi->factor = len_v2(mdir);
 
   if (mi->factor == 0.0f) {
     mi->factor = 1.0f; /* prevent Inf */
