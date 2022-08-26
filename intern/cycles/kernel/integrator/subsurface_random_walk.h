@@ -166,7 +166,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
                                               ccl_private LocalIntersection &ss_isect)
 {
   float bssrdf_u, bssrdf_v;
-  path_state_rng_2D(kg, &rng_state, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
+  path_state_rng_2D(kg, &rng_state, PRNG_SUBSURFACE_BSDF, &bssrdf_u, &bssrdf_v);
 
   const float3 P = INTEGRATOR_STATE(state, ray, P);
   const float3 N = INTEGRATOR_STATE(state, ray, D);
@@ -272,11 +272,11 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
 #endif
 
     /* Sample color channel, use MIS with balance heuristic. */
-    float rphase = path_state_rng_1D(kg, &rng_state, PRNG_PHASE_CHANNEL);
+    float rphase = path_state_rng_1D(kg, &rng_state, PRNG_SUBSURFACE_PHASE_CHANNEL);
     Spectrum channel_pdf;
     int channel = volume_sample_channel(alpha, throughput, rphase, &channel_pdf);
     float sample_sigma_t = volume_channel_get(sigma_t, channel);
-    float randt = path_state_rng_1D(kg, &rng_state, PRNG_SCATTER_DISTANCE);
+    float randt = path_state_rng_1D(kg, &rng_state, PRNG_SUBSURFACE_SCATTER_DISTANCE);
 
     /* We need the result of the ray-cast to compute the full guided PDF, so just remember the
      * relevant terms to avoid recomputing them later. */
@@ -289,7 +289,8 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
     /* For the initial ray, we already know the direction, so just do classic distance sampling. */
     if (bounce > 0) {
       /* Decide whether we should use guided or classic sampling. */
-      bool guided = (path_state_rng_1D(kg, &rng_state, PRNG_LIGHT_TERMINATE) < guided_fraction);
+      bool guided = (path_state_rng_1D(kg, &rng_state, PRNG_SUBSURFACE_GUIDE_STRATEGY) <
+                     guided_fraction);
 
       /* Determine if we want to sample away from the incoming interface.
        * This only happens if we found a nearby opposite interface, and the probability for it
@@ -303,12 +304,13 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
         float x = clamp(dot(ray.P - P, -N), 0.0f, opposite_distance);
         backward_fraction = 1.0f /
                             (1.0f + expf((opposite_distance - 2.0f * x) / diffusion_length));
-        guide_backward = path_state_rng_1D(kg, &rng_state, PRNG_TERMINATE) < backward_fraction;
+        guide_backward = path_state_rng_1D(kg, &rng_state, PRNG_SUBSURFACE_GUIDE_DIRECTION) <
+                         backward_fraction;
       }
 
       /* Sample scattering direction. */
       float scatter_u, scatter_v;
-      path_state_rng_2D(kg, &rng_state, PRNG_BSDF_U, &scatter_u, &scatter_v);
+      path_state_rng_2D(kg, &rng_state, PRNG_SUBSURFACE_BSDF, &scatter_u, &scatter_v);
       float cos_theta;
       float hg_pdf;
       if (guided) {

@@ -30,13 +30,13 @@ ccl_device_inline void integrate_camera_sample(KernelGlobals kg,
     filter_v = 0.5f;
   }
   else {
-    path_rng_2D(kg, rng_hash, sample, PRNG_FILTER_U, &filter_u, &filter_v);
+    path_rng_2D(kg, rng_hash, sample, PRNG_FILTER, &filter_u, &filter_v);
   }
 
   /* Depth of field sampling. */
   float lens_u = 0.0f, lens_v = 0.0f;
   if (kernel_data.cam.aperturesize > 0.0f) {
-    path_rng_2D(kg, rng_hash, sample, PRNG_LENS_U, &lens_u, &lens_v);
+    path_rng_2D(kg, rng_hash, sample, PRNG_LENS, &lens_u, &lens_v);
   }
 
   /* Motion blur time sampling. */

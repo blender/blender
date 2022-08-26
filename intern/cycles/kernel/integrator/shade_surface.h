@@ -156,7 +156,7 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
     const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
     const uint bounce = INTEGRATOR_STATE(state, path, bounce);
     float light_u, light_v;
-    path_state_rng_2D(kg, rng_state, PRNG_LIGHT_U, &light_u, &light_v);
+    path_state_rng_2D(kg, rng_state, PRNG_LIGHT, &light_u, &light_v);
 
     if (!light_distribution_sample_from_position(
             kg, light_u, light_v, sd->time, sd->P, bounce, path_flag, &ls)) {
@@ -348,7 +348,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   }
 
   float bsdf_u, bsdf_v;
-  path_state_rng_2D(kg, rng_state, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
+  path_state_rng_2D(kg, rng_state, PRNG_SURFACE_BSDF, &bsdf_u, &bsdf_v);
   ccl_private const ShaderClosure *sc = shader_bsdf_bssrdf_pick(sd, &bsdf_u);
 
 #ifdef __SUBSURFACE__
@@ -457,7 +457,7 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
   }
 
   float bsdf_u, bsdf_v;
-  path_state_rng_2D(kg, rng_state, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
+  path_state_rng_2D(kg, rng_state, PRNG_SURFACE_BSDF, &bsdf_u, &bsdf_v);
 
   float3 ao_N;
   const Spectrum ao_weight = shader_bsdf_ao(

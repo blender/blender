@@ -48,7 +48,7 @@ ccl_device_inline void path_state_init_integrator(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, path, volume_bounce) = 0;
   INTEGRATOR_STATE_WRITE(state, path, volume_bounds_bounce) = 0;
   INTEGRATOR_STATE_WRITE(state, path, rng_hash) = rng_hash;
-  INTEGRATOR_STATE_WRITE(state, path, rng_offset) = PRNG_BASE_NUM;
+  INTEGRATOR_STATE_WRITE(state, path, rng_offset) = PRNG_BOUNCE_NUM;
   INTEGRATOR_STATE_WRITE(state, path, flag) = PATH_RAY_CAMERA | PATH_RAY_MIS_SKIP |
                                               PATH_RAY_TRANSPARENT_BACKGROUND;
   INTEGRATOR_STATE_WRITE(state, path, mis_ray_pdf) = 0.0f;
@@ -312,19 +312,6 @@ ccl_device_inline void path_state_rng_2D(KernelGlobals kg,
 {
   path_rng_2D(
       kg, rng_state->rng_hash, rng_state->sample, rng_state->rng_offset + dimension, fx, fy);
-}
-
-ccl_device_inline float path_state_rng_1D_hash(KernelGlobals kg,
-                                               ccl_private const RNGState *rng_state,
-                                               uint hash)
-{
-  /* Use a hash instead of dimension, this is not great but avoids adding
-   * more dimensions to each bounce which reduces quality of dimensions we
-   * are already using. */
-  return path_rng_1D(kg,
-                     hash_wang_seeded_uint(rng_state->rng_hash, hash),
-                     rng_state->sample,
-                     rng_state->rng_offset);
 }
 
 ccl_device_inline float path_branched_rng_1D(KernelGlobals kg,

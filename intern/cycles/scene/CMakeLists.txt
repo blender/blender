@@ -39,7 +39,6 @@ set(SRC
   shader.cpp
   shader_graph.cpp
   shader_nodes.cpp
-  sobol.cpp
   stats.cpp
   svm.cpp
   tables.cpp
@@ -77,7 +76,6 @@ set(SRC_HEADERS
   shader.h
   shader_graph.h
   shader_nodes.h
-  sobol.h
   stats.h
   svm.h
   tables.h

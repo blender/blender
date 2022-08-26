@@ -129,7 +129,8 @@ ccl_device float3 svm_bevel(
 
   for (int sample = 0; sample < num_samples; sample++) {
     float disk_u, disk_v;
-    path_branched_rng_2D(kg, &rng_state, sample, num_samples, PRNG_BEVEL_U, &disk_u, &disk_v);
+    path_branched_rng_2D(
+        kg, &rng_state, sample, num_samples, PRNG_SURFACE_BEVEL, &disk_u, &disk_v);
 
     /* Pick random axis in local frame and point on disk. */
     float3 disk_N, disk_T, disk_B;

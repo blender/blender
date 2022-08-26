@@ -13,7 +13,6 @@
 #include "scene/object.h"
 #include "scene/scene.h"
 #include "scene/shader.h"
-#include "scene/sobol.h"
 #include "scene/stats.h"
 
 #include "kernel/types.h"
@@ -87,10 +86,9 @@ NODE_DEFINE(Integrator)
   SOCKET_FLOAT(light_sampling_threshold, "Light Sampling Threshold", 0.01f);
 
   static NodeEnum sampling_pattern_enum;
-  sampling_pattern_enum.insert("sobol", SAMPLING_PATTERN_SOBOL);
-  sampling_pattern_enum.insert("pmj", SAMPLING_PATTERN_PMJ);
   sampling_pattern_enum.insert("sobol_burley", SAMPLING_PATTERN_SOBOL_BURLEY);
-  SOCKET_ENUM(sampling_pattern, "Sampling Pattern", sampling_pattern_enum, SAMPLING_PATTERN_SOBOL);
+  sampling_pattern_enum.insert("pmj", SAMPLING_PATTERN_PMJ);
+  SOCKET_ENUM(sampling_pattern, "Sampling Pattern", sampling_pattern_enum, SAMPLING_PATTERN_PMJ);
   SOCKET_FLOAT(scrambling_distance, "Scrambling Distance", 1.0f);
 
   static NodeEnum denoiser_type_enum;
@@ -138,23 +136,6 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   });
 
   KernelIntegrator *kintegrator = &dscene->data.integrator;
-
-  /* Adaptive sampling requires PMJ samples.
-   *
-   * This also makes detection of sampling pattern a bit more involved: can not rely on the changed
-   * state of socket, since its value might be different from the effective value used here. So
-   * instead compare with previous value in the KernelIntegrator. Only do it if the device was
-   * updated once (in which case the `sample_pattern_lut` will be allocated to a non-zero size). */
-  const SamplingPattern new_sampling_pattern = (use_adaptive_sampling) ? SAMPLING_PATTERN_PMJ :
-                                                                         sampling_pattern;
-
-  const bool need_update_lut = max_bounce_is_modified() || max_transmission_bounce_is_modified() ||
-                               dscene->sample_pattern_lut.size() == 0 ||
-                               kintegrator->sampling_pattern != new_sampling_pattern;
-
-  if (need_update_lut) {
-    dscene->sample_pattern_lut.tag_realloc();
-  }
 
   device_free(device, dscene);
 
@@ -236,7 +217,9 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
                                            FLT_MAX :
                                            sample_clamp_indirect * 3.0f;
 
-  kintegrator->sampling_pattern = new_sampling_pattern;
+  /* Adaptive sampling requires PMJ, see sample_is_even. */
+  kintegrator->sampling_pattern = (use_adaptive_sampling) ? SAMPLING_PATTERN_PMJ :
+                                                            sampling_pattern;
   kintegrator->scrambling_distance = scrambling_distance;
 
   if (light_sampling_threshold > 0.0f) {
@@ -246,36 +229,21 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
     kintegrator->light_inv_rr_threshold = 0.0f;
   }
 
-  /* sobol directions table */
-  int max_samples = max_bounce + transparent_max_bounce + 3 + VOLUME_BOUNDS_MAX +
-                    max(BSSRDF_MAX_HITS, BSSRDF_MAX_BOUNCES);
-
-  int dimensions = PRNG_BASE_NUM + max_samples * PRNG_BOUNCE_NUM;
-  dimensions = min(dimensions, SOBOL_MAX_DIMENSIONS);
-
-  if (need_update_lut) {
-    if (kintegrator->sampling_pattern == SAMPLING_PATTERN_SOBOL) {
-      uint *directions = (uint *)dscene->sample_pattern_lut.alloc(SOBOL_BITS * dimensions);
-
-      sobol_generate_direction_vectors((uint(*)[SOBOL_BITS])directions, dimensions);
-
-      dscene->sample_pattern_lut.copy_to_device();
+  if (kintegrator->sampling_pattern == SAMPLING_PATTERN_PMJ &&
+      dscene->sample_pattern_lut.size() == 0) {
+    constexpr int sequence_size = NUM_PMJ_SAMPLES;
+    constexpr int num_sequences = NUM_PMJ_PATTERNS;
+    float2 *directions = (float2 *)dscene->sample_pattern_lut.alloc(sequence_size * num_sequences *
+                                                                    2);
+    TaskPool pool;
+    for (int j = 0; j < num_sequences; ++j) {
+      float2 *sequence = directions + j * sequence_size;
+      pool.push(
+          function_bind(&progressive_multi_jitter_02_generate_2D, sequence, sequence_size, j));
     }
-    else if (kintegrator->sampling_pattern == SAMPLING_PATTERN_PMJ) {
-      constexpr int sequence_size = NUM_PMJ_SAMPLES;
-      constexpr int num_sequences = NUM_PMJ_PATTERNS;
-      float2 *directions = (float2 *)dscene->sample_pattern_lut.alloc(sequence_size *
-                                                                      num_sequences * 2);
-      TaskPool pool;
-      for (int j = 0; j < num_sequences; ++j) {
-        float2 *sequence = directions + j * sequence_size;
-        pool.push(
-            function_bind(&progressive_multi_jitter_02_generate_2D, sequence, sequence_size, j));
-      }
-      pool.wait_work();
+    pool.wait_work();
 
-      dscene->sample_pattern_lut.copy_to_device();
-    }
+    dscene->sample_pattern_lut.copy_to_device();
   }
 
   kintegrator->has_shadow_catcher = scene->has_shadow_catcher();

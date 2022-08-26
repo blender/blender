@@ -126,7 +126,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
     filter_x = filter_y = 0.5f;
   }
   else {
-    path_rng_2D(kg, rng_hash, sample, PRNG_FILTER_U, &filter_x, &filter_y);
+    path_rng_2D(kg, rng_hash, sample, PRNG_FILTER, &filter_x, &filter_y);
   }
 
   /* Initialize path state for path integration. */

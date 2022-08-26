@@ -1034,7 +1034,7 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
           if (microfacet_bsdf->alpha_x > 0.f && microfacet_bsdf->alpha_y > 0.f) {
             /* Sample transmissive microfacet bsdf. */
             float bsdf_u, bsdf_v;
-            path_state_rng_2D(kg, rng_state, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
+            path_state_rng_2D(kg, rng_state, PRNG_SURFACE_BSDF, &bsdf_u, &bsdf_v);
             h = mnee_sample_bsdf_dh(
                 bsdf->type, microfacet_bsdf->alpha_x, microfacet_bsdf->alpha_y, bsdf_u, bsdf_v);
           }

@@ -26,7 +26,7 @@ ccl_device_inline bool subsurface_disk(KernelGlobals kg,
 
 {
   float disk_u, disk_v;
-  path_state_rng_2D(kg, &rng_state, PRNG_BSDF_U, &disk_u, &disk_v);
+  path_state_rng_2D(kg, &rng_state, PRNG_SUBSURFACE_DISK, &disk_u, &disk_v);
 
   /* Read shading point info from integrator state. */
   const float3 P = INTEGRATOR_STATE(state, ray, P);
@@ -163,7 +163,7 @@ ccl_device_inline bool subsurface_disk(KernelGlobals kg,
   }
 
   /* Use importance resampling, sampling one of the hits proportional to weight. */
-  const float r = lcg_step_float(&lcg_state) * sum_weights;
+  const float r = path_state_rng_1D(kg, &rng_state, PRNG_SUBSURFACE_DISK_RESAMPLE) * sum_weights;
   float partial_sum = 0.0f;
 
   for (int hit = 0; hit < num_eval_hits; hit++) {

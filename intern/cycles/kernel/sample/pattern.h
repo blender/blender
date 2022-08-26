@@ -13,33 +13,6 @@ CCL_NAMESPACE_BEGIN
  * this single threaded on a CPU for repeatable results. */
 //#define __DEBUG_CORRELATION__
 
-/* High Dimensional Sobol.
- *
- * Multidimensional sobol with generator matrices. Dimension 0 and 1 are equal
- * to classic Van der Corput and Sobol sequences. */
-
-#ifdef __SOBOL__
-
-/* Skip initial numbers that for some dimensions have clear patterns that
- * don't cover the entire sample space. Ideally we would have a better
- * progressive pattern that doesn't suffer from this problem, because even
- * with this offset some dimensions are quite poor.
- */
-#  define SOBOL_SKIP 64
-
-ccl_device uint sobol_dimension(KernelGlobals kg, int index, int dimension)
-{
-  uint result = 0;
-  uint i = index + SOBOL_SKIP;
-  for (int j = 0, x; (x = find_first_set(i)); i >>= x) {
-    j += x;
-    result ^= __float_as_uint(kernel_data_fetch(sample_pattern_lut, 32 * dimension + j - 1));
-  }
-  return result;
-}
-
-#endif /* __SOBOL__ */
-
 ccl_device_forceinline float path_rng_1D(KernelGlobals kg,
                                          uint rng_hash,
                                          int sample,
@@ -52,30 +25,9 @@ ccl_device_forceinline float path_rng_1D(KernelGlobals kg,
   if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_SOBOL_BURLEY) {
     return sobol_burley_sample_1D(sample, dimension, rng_hash);
   }
-
-#ifdef __SOBOL__
-  if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_PMJ)
-#endif
-  {
+  else {
     return pmj_sample_1D(kg, sample, rng_hash, dimension);
   }
-
-#ifdef __SOBOL__
-  /* Sobol sequence value using direction vectors. */
-  uint result = sobol_dimension(kg, sample, dimension);
-  float r = (float)result * (1.0f / (float)0xFFFFFFFF);
-
-  /* Cranly-Patterson rotation using rng seed */
-  float shift;
-
-  /* Hash rng with dimension to solve correlation issues.
-   * See T38710, T50116.
-   */
-  uint tmp_rng = hash_wang_seeded_uint(dimension, rng_hash);
-  shift = tmp_rng * (kernel_data.integrator.scrambling_distance / (float)0xFFFFFFFF);
-
-  return r + shift - floorf(r + shift);
-#endif
 }
 
 ccl_device_forceinline void path_rng_2D(KernelGlobals kg,
@@ -93,23 +45,10 @@ ccl_device_forceinline void path_rng_2D(KernelGlobals kg,
 
   if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_SOBOL_BURLEY) {
     sobol_burley_sample_2D(sample, dimension, rng_hash, fx, fy);
-    return;
   }
-
-#ifdef __SOBOL__
-  if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_PMJ)
-#endif
-  {
+  else {
     pmj_sample_2D(kg, sample, rng_hash, dimension, fx, fy);
-
-    return;
   }
-
-#ifdef __SOBOL__
-  /* Sobol. */
-  *fx = path_rng_1D(kg, rng_hash, sample, dimension);
-  *fy = path_rng_1D(kg, rng_hash, sample, dimension + 1);
-#endif
 }
 
 /**
@@ -164,7 +103,7 @@ ccl_device_inline bool sample_is_even(int pattern, int sample)
     return popcount(uint(sample) & 0xaaaaaaaa) & 1;
   }
   else {
-    /* TODO(Stefan): Are there reliable ways of dividing CMJ and Sobol into two classes? */
+    /* TODO(Stefan): Are there reliable ways of dividing Sobol-Burley into two classes? */
     return sample & 0x1;
   }
 }

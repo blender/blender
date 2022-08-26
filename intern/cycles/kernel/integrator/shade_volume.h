@@ -144,11 +144,11 @@ ccl_device_forceinline void volume_step_init(KernelGlobals kg,
 
     /* Perform shading at this offset within a step, to integrate over
      * over the entire step segment. */
-    *step_shade_offset = path_state_rng_1D_hash(kg, rng_state, 0x1e31d8a4);
+    *step_shade_offset = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_SHADE_OFFSET);
 
     /* Shift starting point of all segment by this random amount to avoid
      * banding artifacts from the volume bounding shape. */
-    *steps_offset = path_state_rng_1D_hash(kg, rng_state, 0x3d22c7b3);
+    *steps_offset = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_OFFSET);
   }
 }
 
@@ -549,8 +549,8 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
   vstate.tmin = ray->tmin;
   vstate.tmax = ray->tmin;
   vstate.absorption_only = true;
-  vstate.rscatter = path_state_rng_1D(kg, rng_state, PRNG_SCATTER_DISTANCE);
-  vstate.rphase = path_state_rng_1D(kg, rng_state, PRNG_PHASE_CHANNEL);
+  vstate.rscatter = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_SCATTER_DISTANCE);
+  vstate.rphase = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_PHASE_CHANNEL);
 
   /* Multiple importance sampling: pick between equiangular and distance sampling strategy. */
   vstate.direct_sample_method = direct_sample_method;
@@ -695,7 +695,7 @@ ccl_device_forceinline bool integrate_volume_sample_light(
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
   const uint bounce = INTEGRATOR_STATE(state, path, bounce);
   float light_u, light_v;
-  path_state_rng_2D(kg, rng_state, PRNG_LIGHT_U, &light_u, &light_v);
+  path_state_rng_2D(kg, rng_state, PRNG_LIGHT, &light_u, &light_v);
 
   if (!light_distribution_sample_from_volume_segment(
           kg, light_u, light_v, sd->time, sd->P, bounce, path_flag, ls)) {
@@ -736,7 +736,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
     const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
     const uint bounce = INTEGRATOR_STATE(state, path, bounce);
     float light_u, light_v;
-    path_state_rng_2D(kg, rng_state, PRNG_LIGHT_U, &light_u, &light_v);
+    path_state_rng_2D(kg, rng_state, PRNG_LIGHT, &light_u, &light_v);
 
     if (!light_distribution_sample_from_position(
             kg, light_u, light_v, sd->time, P, bounce, path_flag, ls)) {
@@ -865,7 +865,7 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
   PROFILING_INIT(kg, PROFILING_SHADE_VOLUME_INDIRECT_LIGHT);
 
   float phase_u, phase_v;
-  path_state_rng_2D(kg, rng_state, PRNG_BSDF_U, &phase_u, &phase_v);
+  path_state_rng_2D(kg, rng_state, PRNG_VOLUME_PHASE, &phase_u, &phase_v);
 
   /* Phase closure, sample direction. */
   float phase_pdf;
