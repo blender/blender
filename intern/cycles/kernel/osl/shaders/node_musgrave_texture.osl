@@ -114,13 +114,12 @@ float noise_musgrave_hybrid_multi_fractal_1d(
 {
   float p = co;
   float pwHL = pow(lacunarity, -H);
-  float pwr = pwHL;
 
-  float value = safe_snoise(p) + offset;
-  float weight = gain * value;
-  p *= lacunarity;
+  float pwr = 1.0;
+  float value = 0.0;
+  float weight = 1.0;
 
-  for (int i = 1; (weight > 0.001) && (i < (int)octaves); i++) {
+  for (int i = 0; (weight > 0.001) && (i < (int)octaves); i++) {
     if (weight > 1.0) {
       weight = 1.0;
     }
@@ -133,8 +132,12 @@ float noise_musgrave_hybrid_multi_fractal_1d(
   }
 
   float rmd = octaves - floor(octaves);
-  if (rmd != 0.0) {
-    value += rmd * ((safe_snoise(p) + offset) * pwr);
+  if ((rmd != 0.0) && (weight > 0.001)) {
+    if (weight > 1.0) {
+      weight = 1.0;
+    }
+    float signal = (safe_snoise(p) + offset) * pwr;
+    value += rmd * weight * signal;
   }
 
   return value;
@@ -279,13 +282,12 @@ float noise_musgrave_hybrid_multi_fractal_2d(
 {
   vector2 p = co;
   float pwHL = pow(lacunarity, -H);
-  float pwr = pwHL;
 
-  float value = safe_snoise(p) + offset;
-  float weight = gain * value;
-  p *= lacunarity;
+  float pwr = 1.0;
+  float value = 0.0;
+  float weight = 1.0;
 
-  for (int i = 1; (weight > 0.001) && (i < (int)octaves); i++) {
+  for (int i = 0; (weight > 0.001) && (i < (int)octaves); i++) {
     if (weight > 1.0) {
       weight = 1.0;
     }
@@ -298,8 +300,12 @@ float noise_musgrave_hybrid_multi_fractal_2d(
   }
 
   float rmd = octaves - floor(octaves);
-  if (rmd != 0.0) {
-    value += rmd * ((safe_snoise(p) + offset) * pwr);
+  if ((rmd != 0.0) && (weight > 0.001)) {
+    if (weight > 1.0) {
+      weight = 1.0;
+    }
+    float signal = (safe_snoise(p) + offset) * pwr;
+    value += rmd * weight * signal;
   }
 
   return value;
@@ -444,13 +450,12 @@ float noise_musgrave_hybrid_multi_fractal_3d(
 {
   vector3 p = co;
   float pwHL = pow(lacunarity, -H);
-  float pwr = pwHL;
 
-  float value = safe_snoise(p) + offset;
-  float weight = gain * value;
-  p *= lacunarity;
+  float pwr = 1.0;
+  float value = 0.0;
+  float weight = 1.0;
 
-  for (int i = 1; (weight > 0.001) && (i < (int)octaves); i++) {
+  for (int i = 0; (weight > 0.001) && (i < (int)octaves); i++) {
     if (weight > 1.0) {
       weight = 1.0;
     }
@@ -463,8 +468,12 @@ float noise_musgrave_hybrid_multi_fractal_3d(
   }
 
   float rmd = octaves - floor(octaves);
-  if (rmd != 0.0) {
-    value += rmd * ((safe_snoise(p) + offset) * pwr);
+  if ((rmd != 0.0) && (weight > 0.001)) {
+    if (weight > 1.0) {
+      weight = 1.0;
+    }
+    float signal = (safe_snoise(p) + offset) * pwr;
+    value += rmd * weight * signal;
   }
 
   return value;
@@ -609,13 +618,12 @@ float noise_musgrave_hybrid_multi_fractal_4d(
 {
   vector4 p = co;
   float pwHL = pow(lacunarity, -H);
-  float pwr = pwHL;
 
-  float value = safe_snoise(p) + offset;
-  float weight = gain * value;
-  p *= lacunarity;
+  float pwr = 1.0;
+  float value = 0.0;
+  float weight = 1.0;
 
-  for (int i = 1; (weight > 0.001) && (i < (int)octaves); i++) {
+  for (int i = 0; (weight > 0.001) && (i < (int)octaves); i++) {
     if (weight > 1.0) {
       weight = 1.0;
     }
@@ -628,8 +636,12 @@ float noise_musgrave_hybrid_multi_fractal_4d(
   }
 
   float rmd = octaves - floor(octaves);
-  if (rmd != 0.0) {
-    value += rmd * ((safe_snoise(p) + offset) * pwr);
+  if ((rmd != 0.0) && (weight > 0.001)) {
+    if (weight > 1.0) {
+      weight = 1.0;
+    }
+    float signal = (safe_snoise(p) + offset) * pwr;
+    value += rmd * weight * signal;
   }
 
   return value;
