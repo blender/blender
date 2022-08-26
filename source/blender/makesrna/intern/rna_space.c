@@ -1100,7 +1100,7 @@ static bool rna_RegionView3D_is_orthographic_side_view_get(PointerRNA *ptr)
   return RV3D_VIEW_IS_AXIS(rv3d->view);
 }
 
-static void rna_RegionView3D_is_orthographic_side_view_set(PointerRNA *ptr, int value)
+static void rna_RegionView3D_is_orthographic_side_view_set(PointerRNA *ptr, bool value)
 {
   RegionView3D *rv3d = (RegionView3D *)(ptr->data);
   const bool was_axis_view = RV3D_VIEW_IS_AXIS(rv3d->view);
@@ -1609,7 +1609,7 @@ static void rna_SpaceImageEditor_mode_update(Main *bmain, Scene *scene, PointerR
   }
 }
 
-static void rna_SpaceImageEditor_show_stereo_set(PointerRNA *ptr, int value)
+static void rna_SpaceImageEditor_show_stereo_set(PointerRNA *ptr, bool value)
 {
   SpaceImage *sima = (SpaceImage *)(ptr->data);
 

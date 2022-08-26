@@ -193,7 +193,7 @@ static int rna_WorkSpaceTool_index_get(PointerRNA *ptr)
   return (tref->runtime) ? tref->runtime->index : 0;
 }
 
-static int rna_WorkSpaceTool_has_datablock_get(PointerRNA *ptr)
+static bool rna_WorkSpaceTool_has_datablock_get(PointerRNA *ptr)
 {
   bToolRef *tref = ptr->data;
   return (tref->runtime) ? (tref->runtime->data_block[0] != '\0') : false;

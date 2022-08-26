@@ -765,11 +765,11 @@ static void rna_Brush_set_size(PointerRNA *ptr, int value)
   brush->size = value;
 }
 
-static void rna_Brush_use_gradient_set(PointerRNA *ptr, bool value)
+static void rna_Brush_use_gradient_set(PointerRNA *ptr, int value)
 {
   Brush *br = (Brush *)ptr->data;
 
-  if (value) {
+  if (value & BRUSH_USE_GRADIENT) {
     br->flag |= BRUSH_USE_GRADIENT;
   }
   else {

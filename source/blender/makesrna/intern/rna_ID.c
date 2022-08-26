@@ -322,7 +322,7 @@ int rna_ID_name_full_length(PointerRNA *ptr)
   return strlen(name);
 }
 
-static int rna_ID_is_evaluated_get(PointerRNA *ptr)
+static bool rna_ID_is_evaluated_get(PointerRNA *ptr)
 {
   ID *id = (ID *)ptr->data;
 

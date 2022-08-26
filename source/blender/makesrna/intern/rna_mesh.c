@@ -801,7 +801,7 @@ static bool rna_MPoly_freestyle_face_mark_get(PointerRNA *ptr)
   return ffa && (ffa->flag & FREESTYLE_FACE_MARK) != 0;
 }
 
-static void rna_MPoly_freestyle_face_mark_set(PointerRNA *ptr, int value)
+static void rna_MPoly_freestyle_face_mark_set(PointerRNA *ptr, bool value)
 {
   Mesh *me = rna_mesh(ptr);
   const int index = rna_MeshPolygon_index_get(ptr);

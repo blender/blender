@@ -324,7 +324,7 @@ static int rna_Sequence_frame_final_end_get(PointerRNA *ptr)
   return SEQ_time_right_handle_frame_get(scene, (Sequence *)ptr->data);
 }
 
-static void rna_Sequence_start_frame_final_set(PointerRNA *ptr, float value)
+static void rna_Sequence_start_frame_final_set(PointerRNA *ptr, int value)
 {
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;

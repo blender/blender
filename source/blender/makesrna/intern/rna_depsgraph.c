@@ -67,7 +67,7 @@ static PointerRNA rna_DepsgraphObjectInstance_object_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_Object, di->iter.current);
 }
 
-static int rna_DepsgraphObjectInstance_is_instance_get(PointerRNA *ptr)
+static bool rna_DepsgraphObjectInstance_is_instance_get(PointerRNA *ptr)
 {
   RNA_DepsgraphIterator *di = ptr->data;
   DEGObjectIterData *deg_iter = (DEGObjectIterData *)di->iter.data;
@@ -137,12 +137,12 @@ static void rna_DepsgraphObjectInstance_persistent_id_get(PointerRNA *ptr, int *
   }
 }
 
-static unsigned int rna_DepsgraphObjectInstance_random_id_get(PointerRNA *ptr)
+static int rna_DepsgraphObjectInstance_random_id_get(PointerRNA *ptr)
 {
   RNA_DepsgraphIterator *di = ptr->data;
   DEGObjectIterData *deg_iter = (DEGObjectIterData *)di->iter.data;
   if (deg_iter->dupli_object_current != NULL) {
-    return deg_iter->dupli_object_current->random_id;
+    return (int)deg_iter->dupli_object_current->random_id;
   }
   else {
     return 0;

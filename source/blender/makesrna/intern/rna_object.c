@@ -2229,7 +2229,7 @@ bool rna_GPencil_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
   return ((Object *)value.owner_id)->type == OB_GPENCIL;
 }
 
-int rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)
+bool rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)
 {
   SculptSession *ss = ((Object *)ptr->owner_id)->sculpt;
   return (ss && ss->bm);

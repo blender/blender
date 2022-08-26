@@ -1044,7 +1044,7 @@ static float rna_PartSetting_linelenhead_get(struct PointerRNA *ptr)
   return settings->draw_line[1];
 }
 
-static int rna_PartSettings_is_fluid_get(PointerRNA *ptr)
+static bool rna_PartSettings_is_fluid_get(PointerRNA *ptr)
 {
   ParticleSettings *part = ptr->data;
   return (ELEM(part->type,
