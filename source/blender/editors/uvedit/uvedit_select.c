@@ -3712,9 +3712,9 @@ void UV_OT_select_box(wmOperatorType *ot)
 /** \name Circle Select Operator
  * \{ */
 
-static int uv_circle_select_is_point_inside(const float uv[2],
-                                            const float offset[2],
-                                            const float ellipse[2])
+static bool uv_circle_select_is_point_inside(const float uv[2],
+                                             const float offset[2],
+                                             const float ellipse[2])
 {
   /* normalized ellipse: ell[0] = scaleX, ell[1] = scaleY */
   const float co[2] = {
@@ -3724,10 +3724,10 @@ static int uv_circle_select_is_point_inside(const float uv[2],
   return len_squared_v2(co) < 1.0f;
 }
 
-static int uv_circle_select_is_edge_inside(const float uv_a[2],
-                                           const float uv_b[2],
-                                           const float offset[2],
-                                           const float ellipse[2])
+static bool uv_circle_select_is_edge_inside(const float uv_a[2],
+                                            const float uv_b[2],
+                                            const float offset[2],
+                                            const float ellipse[2])
 {
   /* normalized ellipse: ell[0] = scaleX, ell[1] = scaleY */
   const float co_a[2] = {

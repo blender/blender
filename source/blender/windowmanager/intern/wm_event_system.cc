@@ -671,7 +671,7 @@ void wm_event_do_notifiers(bContext *C)
   wm_test_autorun_warning(C);
 }
 
-static int wm_event_always_pass(const wmEvent *event)
+static bool wm_event_always_pass(const wmEvent *event)
 {
   /* Some events we always pass on, to ensure proper communication. */
   return ISTIMER(event->type) || (event->type == WINDEACTIVATE);
@@ -2754,7 +2754,7 @@ static int wm_handler_fileselect_call(bContext *C,
   return wm_handler_fileselect_do(C, handlers, handler, event->val);
 }
 
-static int wm_action_not_handled(int action)
+static bool wm_action_not_handled(int action)
 {
   return action == WM_HANDLER_CONTINUE || action == (WM_HANDLER_BREAK | WM_HANDLER_MODAL);
 }

@@ -970,8 +970,8 @@ typedef enum {
   OS = 'C',
 } modifierKeyType;
 
-/* check if specified modifier key type is pressed */
-static int query_qual(modifierKeyType qual)
+/** Check if specified modifier key type is pressed. */
+static bool query_qual(modifierKeyType qual)
 {
   GHOST_TModifierKey left, right;
   switch (qual) {
