@@ -346,7 +346,7 @@ static void rna_Sequence_end_frame_final_set(PointerRNA *ptr, int value)
   SEQ_relations_invalidate_cache_composite(scene, seq);
 }
 
-static void rna_Sequence_start_frame_set(PointerRNA *ptr, int value)
+static void rna_Sequence_start_frame_set(PointerRNA *ptr, float value)
 {
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
