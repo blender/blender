@@ -52,7 +52,6 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
   }
 
   BMO_ITER (f, &oiter, op->slots_in, "faces", BM_FACE) {
-    BMFace *f_new;
     float f_center[3];
     BMVert *v_center = NULL;
     BMLoop *l_iter, *l_first;
@@ -83,8 +82,7 @@ void bmo_poke_exec(BMesh *bm, BMOperator *op)
     l_iter = l_first = BM_FACE_FIRST_LOOP(f);
     do {
       BMLoop *l_new;
-
-      f_new = BM_face_create_quad_tri(
+      BMFace *f_new = BM_face_create_quad_tri(
           bm, l_iter->v, l_iter->next->v, v_center, NULL, f, BM_CREATE_NOP);
       l_new = BM_FACE_FIRST_LOOP(f_new);
 

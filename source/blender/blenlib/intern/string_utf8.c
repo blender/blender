@@ -786,9 +786,9 @@ int BLI_str_utf8_offset_to_column(const char *str, int offset)
 
 int BLI_str_utf8_offset_from_column(const char *str, int column)
 {
-  int offset = 0, pos = 0, col;
+  int offset = 0, pos = 0;
   while (*(str + offset) && pos < column) {
-    col = BLI_str_utf8_char_width_safe(str + offset);
+    const int col = BLI_str_utf8_char_width_safe(str + offset);
     if (pos + col > column) {
       break;
     }

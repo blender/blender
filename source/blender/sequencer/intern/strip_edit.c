@@ -96,12 +96,11 @@ static void seq_update_muting_recursive(ListBase *channels,
                                         int mute)
 {
   Sequence *seq;
-  int seqmute;
 
   /* For sound we go over full meta tree to update muted state,
    * since sound is played outside of evaluating the imbufs. */
   for (seq = seqbasep->first; seq; seq = seq->next) {
-    seqmute = (mute || SEQ_render_is_muted(channels, seq));
+    int seqmute = (mute || SEQ_render_is_muted(channels, seq));
 
     if (seq->type == SEQ_TYPE_META) {
       /* if this is the current meta sequence, unmute because

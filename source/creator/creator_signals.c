@@ -69,11 +69,10 @@ static void sig_handle_fpe(int UNUSED(sig))
 #  if !defined(WITH_HEADLESS)
 static void sig_handle_blender_esc(int sig)
 {
-  static int count = 0;
-
   G.is_break = true; /* forces render loop to read queue, not sure if its needed */
 
   if (sig == 2) {
+    static int count = 0;
     if (count) {
       printf("\nBlender killed\n");
       exit(2);

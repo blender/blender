@@ -177,7 +177,7 @@ static void axisProjection(const TransInfo *t,
                            const float in[3],
                            float out[3])
 {
-  float norm[3], vec[3], factor, angle;
+  float vec[3], factor, angle;
   float t_con_center[3];
 
   if (is_zero_v3(in)) {
@@ -214,7 +214,7 @@ static void axisProjection(const TransInfo *t,
   }
   else {
     float v[3];
-    float norm_center[3];
+    float norm[3], norm_center[3];
     float plane[3];
 
     view_vector_calc(t, t_con_center, norm_center);

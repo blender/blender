@@ -403,7 +403,7 @@ void do_kink(ParticleKey *state,
              float obmat[4][4],
              int smooth_start)
 {
-  float kink[3] = {1.0f, 0.0f, 0.0f}, par_vec[3], q1[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+  float kink[3] = {1.0f, 0.0f, 0.0f}, par_vec[3];
   float t, dt = 1.0f, result[3];
 
   if (ELEM(type, PART_KINK_NO, PART_KINK_SPIRAL)) {
@@ -453,6 +453,7 @@ void do_kink(ParticleKey *state,
   switch (type) {
     case PART_KINK_CURL: {
       float curl_offset[3];
+      float q1[4] = {1.0f, 0.0f, 0.0f, 0.0f};
 
       /* rotate kink vector around strand tangent */
       mul_v3_v3fl(curl_offset, kink, amplitude);
