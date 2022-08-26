@@ -216,10 +216,10 @@ IDTypeInfo IDType_ID_PC = {
     /* lib_override_apply_post */ nullptr,
 };
 
-const char PAINT_CURSOR_SCULPT[3] = {255, 100, 100};
-const char PAINT_CURSOR_VERTEX_PAINT[3] = {255, 255, 255};
-const char PAINT_CURSOR_WEIGHT_PAINT[3] = {200, 200, 255};
-const char PAINT_CURSOR_TEXTURE_PAINT[3] = {255, 255, 255};
+const uchar PAINT_CURSOR_SCULPT[3] = {255, 100, 100};
+const uchar PAINT_CURSOR_VERTEX_PAINT[3] = {255, 255, 255};
+const uchar PAINT_CURSOR_WEIGHT_PAINT[3] = {200, 200, 255};
+const uchar PAINT_CURSOR_TEXTURE_PAINT[3] = {255, 255, 255};
 
 static ePaintOverlayControlFlags overlay_flags = (ePaintOverlayControlFlags)0;
 
@@ -1128,7 +1128,7 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
   return false;
 }
 
-void BKE_paint_init(Main *bmain, Scene *sce, ePaintMode mode, const char col[3])
+void BKE_paint_init(Main *bmain, Scene *sce, ePaintMode mode, const uchar col[3])
 {
   UnifiedPaintSettings *ups = &sce->toolsettings->unified_paint_settings;
   Paint *paint = BKE_paint_get_active_from_paintmode(sce, mode);
@@ -1149,7 +1149,7 @@ void BKE_paint_init(Main *bmain, Scene *sce, ePaintMode mode, const char col[3])
     }
   }
 
-  memcpy(paint->paint_cursor_col, col, 3);
+  copy_v3_v3_uchar(paint->paint_cursor_col, col);
   paint->paint_cursor_col[3] = 128;
   ups->last_stroke_valid = false;
   zero_v3(ups->average_stroke_accum);

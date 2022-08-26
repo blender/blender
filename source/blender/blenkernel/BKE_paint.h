@@ -60,10 +60,10 @@ struct bContext;
 struct bToolRef;
 struct tPaletteColorHSV;
 
-extern const char PAINT_CURSOR_SCULPT[3];
-extern const char PAINT_CURSOR_VERTEX_PAINT[3];
-extern const char PAINT_CURSOR_WEIGHT_PAINT[3];
-extern const char PAINT_CURSOR_TEXTURE_PAINT[3];
+extern const uchar PAINT_CURSOR_SCULPT[3];
+extern const uchar PAINT_CURSOR_VERTEX_PAINT[3];
+extern const uchar PAINT_CURSOR_WEIGHT_PAINT[3];
+extern const uchar PAINT_CURSOR_TEXTURE_PAINT[3];
 
 typedef enum ePaintMode {
   PAINT_MODE_SCULPT = 0,
@@ -158,7 +158,7 @@ struct PaintCurve *BKE_paint_curve_add(struct Main *bmain, const char *name);
  * Call when entering each respective paint mode.
  */
 bool BKE_paint_ensure(struct ToolSettings *ts, struct Paint **r_paint);
-void BKE_paint_init(struct Main *bmain, struct Scene *sce, ePaintMode mode, const char col[3]);
+void BKE_paint_init(struct Main *bmain, struct Scene *sce, ePaintMode mode, const uchar col[3]);
 void BKE_paint_free(struct Paint *p);
 /**
  * Called when copying scene settings, so even if 'src' and 'tar' are the same still do a
