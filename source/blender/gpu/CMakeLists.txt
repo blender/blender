@@ -225,7 +225,6 @@ set(LIB
 )
 
 set(MSL_SRC
-
   metal/kernels/compute_texture_update.msl
   metal/kernels/compute_texture_read.msl
   metal/kernels/depth_2d_update_float_frag.glsl

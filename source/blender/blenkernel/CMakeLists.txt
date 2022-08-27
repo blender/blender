@@ -398,6 +398,7 @@ set(SRC
   BKE_image_format.h
   BKE_image_partial_update.hh
   BKE_image_save.h
+  BKE_image_wrappers.hh
   BKE_ipo.h
   BKE_kelvinlet.h
   BKE_key.h
@@ -449,6 +450,7 @@ set(SRC
   BKE_paint.h
   BKE_particle.h
   BKE_pbvh.h
+  BKE_pbvh_pixels.hh
   BKE_pointcache.h
   BKE_pointcloud.h
   BKE_preferences.h

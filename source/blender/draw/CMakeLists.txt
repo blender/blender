@@ -237,7 +237,23 @@ set(SRC
   engines/eevee/eevee_lightcache.h
   engines/eevee/eevee_lut.h
   engines/eevee/eevee_private.h
+  engines/eevee_next/eevee_camera.hh
+  engines/eevee_next/eevee_depth_of_field.hh
   engines/eevee_next/eevee_engine.h
+  engines/eevee_next/eevee_film.hh
+  engines/eevee_next/eevee_hizbuffer.hh
+  engines/eevee_next/eevee_instance.hh
+  engines/eevee_next/eevee_light.hh
+  engines/eevee_next/eevee_material.hh
+  engines/eevee_next/eevee_motion_blur.hh
+  engines/eevee_next/eevee_pipeline.hh
+  engines/eevee_next/eevee_renderbuffers.hh
+  engines/eevee_next/eevee_sampling.hh
+  engines/eevee_next/eevee_shader.hh
+  engines/eevee_next/eevee_sync.hh
+  engines/eevee_next/eevee_velocity.hh
+  engines/eevee_next/eevee_view.hh
+  engines/eevee_next/eevee_world.hh
   engines/external/external_engine.h
   engines/image/image_batches.hh
   engines/image/image_buffer_cache.hh
