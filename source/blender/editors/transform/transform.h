@@ -620,6 +620,9 @@ typedef struct TransInfo {
    * value of the input parameter, except when a constrain is entered. */
   float values_final[4];
 
+  /** Cache safe value for constraints that require iteration or are slow to calculate. */
+  float values_inside_constraints[4];
+
   /* Axis members for modes that use an axis separate from the orientation (rotate & shear). */
 
   /** Primary axis, rotate only uses this. */
