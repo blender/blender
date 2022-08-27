@@ -839,8 +839,9 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCursorGrab(GHOST_TGrabCursorMode mode
       m_system->getCursorPosition(m_cursorGrabInitPos[0], m_cursorGrabInitPos[1]);
       setCursorGrabAccum(0, 0);
 
-      if (mode == GHOST_kGrabHide)
+      if (mode == GHOST_kGrabHide) {
         setWindowCursorVisibility(false);
+      }
     }
     updateMouseCapture(OperatorGrab);
   }
@@ -1103,8 +1104,9 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(
   int x, y, cols;
 
   cols = sizeX / 8; /* Number of whole bytes per row (width of bitmap/mask). */
-  if (sizeX % 8)
+  if (sizeX % 8) {
     cols++;
+  }
 
   if (m_customCursor) {
     DestroyCursor(m_customCursor);
@@ -1142,16 +1144,18 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(
 GHOST_TSuccess GHOST_WindowWin32::setProgressBar(float progress)
 {
   /* #SetProgressValue sets state to #TBPF_NORMAL automatically. */
-  if (m_Bar && S_OK == m_Bar->SetProgressValue(m_hWnd, 10000 * progress, 10000))
+  if (m_Bar && S_OK == m_Bar->SetProgressValue(m_hWnd, 10000 * progress, 10000)) {
     return GHOST_kSuccess;
+  }
 
   return GHOST_kFailure;
 }
 
 GHOST_TSuccess GHOST_WindowWin32::endProgressBar()
 {
-  if (m_Bar && S_OK == m_Bar->SetProgressState(m_hWnd, TBPF_NOPROGRESS))
+  if (m_Bar && S_OK == m_Bar->SetProgressState(m_hWnd, TBPF_NOPROGRESS)) {
     return GHOST_kSuccess;
+  }
 
   return GHOST_kFailure;
 }
