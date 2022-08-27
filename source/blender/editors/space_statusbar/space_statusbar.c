@@ -83,7 +83,7 @@ static void statusbar_keymap(struct wmKeyConfig *UNUSED(keyconf))
 static void statusbar_header_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {

@@ -1037,7 +1037,7 @@ static void view3d_main_region_listener(const wmRegionListenerParams *params)
   wmWindow *window = params->window;
   ScrArea *area = params->area;
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
   const Scene *scene = params->scene;
   View3D *v3d = area->spacedata.first;
   RegionView3D *rv3d = region->regiondata;
@@ -1467,7 +1467,7 @@ static void view3d_header_region_draw(const bContext *C, ARegion *region)
 static void view3d_header_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -1684,7 +1684,7 @@ static void view3d_buttons_region_layout(const bContext *C, ARegion *region)
 static void view3d_buttons_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -1807,7 +1807,7 @@ static void view3d_tools_region_draw(const bContext *C, ARegion *region)
 static void space_view3d_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
   View3D *v3d = area->spacedata.first;
 
   /* context changes */

@@ -362,7 +362,7 @@ static void node_area_tag_tree_recalc(SpaceNode *snode, ScrArea *area)
 static void node_area_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* NOTE: #ED_area_tag_refresh will re-execute compositor. */
   SpaceNode *snode = (SpaceNode *)area->spacedata.first;
@@ -753,7 +753,7 @@ static void node_header_region_draw(const bContext *C, ARegion *region)
 static void node_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
   wmGizmoMap *gzmap = region->gizmo_map;
 
   /* context changes */

@@ -109,7 +109,7 @@ static SpaceLink *text_duplicate(SpaceLink *sl)
 static void text_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
   SpaceText *st = area->spacedata.first;
 
   /* context changes */

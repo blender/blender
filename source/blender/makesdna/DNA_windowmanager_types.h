@@ -149,7 +149,12 @@ typedef struct wmWindowManager {
   /** Operator registry. */
   ListBase operators;
 
-  /** Refresh/redraw #wmNotifier structs. */
+  /**
+   * Refresh/redraw #wmNotifier structs.
+   * \note Once in the queue, notifiers should be considered read-only.
+   * With the exception of clearing notifiers for data which has been removed,
+   * see: #NOTE_CATEGORY_TAG_CLEARED.
+   */
   ListBase notifier_queue;
   /**
    * For duplicate detection.

@@ -314,7 +314,7 @@ static SpaceLink *clip_duplicate(SpaceLink *sl)
 static void clip_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
   const Scene *scene = params->scene;
 
   /* context changes */
@@ -919,7 +919,7 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
 static void clip_main_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -1118,7 +1118,7 @@ static void clip_header_region_draw(const bContext *C, ARegion *region)
 static void clip_header_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -1160,7 +1160,7 @@ static void clip_tools_region_draw(const bContext *C, ARegion *region)
 static void clip_props_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -1212,7 +1212,7 @@ static void clip_properties_region_draw(const bContext *C, ARegion *region)
 static void clip_properties_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {

@@ -492,7 +492,7 @@ void wm_event_do_notifiers(bContext *C)
 
     CTX_wm_window_set(C, win);
 
-    LISTBASE_FOREACH_MUTABLE (wmNotifier *, note, &wm->notifier_queue) {
+    LISTBASE_FOREACH_MUTABLE (const wmNotifier *, note, &wm->notifier_queue) {
       if (note->category == NC_WM) {
         if (ELEM(note->data, ND_FILEREAD, ND_FILESAVE)) {
           wm->file_saved = 1;
@@ -584,10 +584,10 @@ void wm_event_do_notifiers(bContext *C)
   }
 
   /* The notifiers are sent without context, to keep it clean. */
-  wmNotifier *note;
-  while ((note = static_cast<wmNotifier *>(BLI_pophead(&wm->notifier_queue)))) {
+  const wmNotifier *note;
+  while ((note = static_cast<const wmNotifier *>(BLI_pophead(&wm->notifier_queue)))) {
     if (wm_notifier_is_clear(note)) {
-      MEM_freeN(note);
+      MEM_freeN((void *)note);
       continue;
     }
     const bool removed = BLI_gset_remove(wm->notifier_queue_set, note, nullptr);
@@ -656,7 +656,7 @@ void wm_event_do_notifiers(bContext *C)
       }
     }
 
-    MEM_freeN(note);
+    MEM_freeN((void *)note);
   }
 #endif /* If 1 (postpone disabling for in favor of message-bus), eventually. */
 

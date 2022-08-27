@@ -95,7 +95,7 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
 {
   ScrArea *area = params->area;
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
   SpaceOutliner *space_outliner = static_cast<SpaceOutliner *>(area->spacedata.first);
 
   /* context changes */
@@ -291,7 +291,7 @@ static void outliner_header_region_free(ARegion *UNUSED(region))
 static void outliner_header_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
