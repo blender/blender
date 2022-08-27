@@ -295,11 +295,10 @@ class GHOST_SystemWin32 : public GHOST_System {
   /**
    * Catches raw WIN32 key codes from WM_INPUT in the wndproc.
    * \param raw: RawInput structure with detailed info about the key event.
-   * \param keyDown: Pointer flag that specify if a key is down.
-   * \param vk: Pointer to virtual key.
+   * \param r_key_down: Set true when the key is pressed, otherwise false.
    * \return The GHOST key (GHOST_kKeyUnknown if no match).
    */
-  GHOST_TKey hardKey(RAWINPUT const &raw, bool *r_keyDown);
+  GHOST_TKey hardKey(RAWINPUT const &raw, bool *r_key_down);
 
   /**
    * Creates mouse button event.

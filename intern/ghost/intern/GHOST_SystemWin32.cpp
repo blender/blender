@@ -539,18 +539,15 @@ GHOST_TSuccess GHOST_SystemWin32::exit()
   return GHOST_System::exit();
 }
 
-GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw, bool *r_keyDown)
+GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw, bool *r_key_down)
 {
-  GHOST_TKey key = GHOST_kKeyUnknown;
-
   /* #RI_KEY_BREAK doesn't work for sticky keys release, so we also check for the up message. */
   unsigned int msg = raw.data.keyboard.Message;
-  *r_keyDown = !(raw.data.keyboard.Flags & RI_KEY_BREAK) && msg != WM_KEYUP && msg != WM_SYSKEYUP;
+  *r_key_down = !(raw.data.keyboard.Flags & RI_KEY_BREAK) && msg != WM_KEYUP && msg != WM_SYSKEYUP;
 
-  key = this->convertKey(raw.data.keyboard.VKey,
-                         raw.data.keyboard.MakeCode,
-                         (raw.data.keyboard.Flags & (RI_KEY_E1 | RI_KEY_E0)));
-  return key;
+  return this->convertKey(raw.data.keyboard.VKey,
+                          raw.data.keyboard.MakeCode,
+                          (raw.data.keyboard.Flags & (RI_KEY_E1 | RI_KEY_E0)));
 }
 
 /**
@@ -1134,14 +1131,14 @@ void GHOST_SystemWin32::processWheelEvent(GHOST_WindowWin32 *window, WPARAM wPar
 GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RAWINPUT const &raw)
 {
   const char vk = raw.data.keyboard.VKey;
-  bool keyDown = false;
+  bool key_down = false;
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
-  GHOST_TKey key = system->hardKey(raw, &keyDown);
+  GHOST_TKey key = system->hardKey(raw, &key_down);
   GHOST_EventKey *event;
 
   bool is_repeat = false;
   bool is_repeated_modifier = false;
-  if (keyDown) {
+  if (key_down) {
     if (system->m_keycode_last_repeat_key == vk) {
       is_repeat = true;
       is_repeated_modifier = (key >= GHOST_kKeyLeftShift && key <= GHOST_kKeyRightAlt);
@@ -1159,21 +1156,23 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
    * those events here as well. */
   if (!is_repeated_modifier) {
     char utf8_char[6] = {0};
-    char ascii = 0;
-    wchar_t utf16[3] = {0};
     BYTE state[256] = {0};
-    int r;
     GetKeyboardState((PBYTE)state);
     bool ctrl_pressed = state[VK_CONTROL] & 0x80;
     bool alt_pressed = state[VK_MENU] & 0x80;
 
+    if (!key_down) {
+      /* Pass. */
+    }
     /* No text with control key pressed (Alt can be used to insert special characters though!). */
-    if (ctrl_pressed && !alt_pressed) {
-      utf8_char[0] = '\0';
+    else if (ctrl_pressed && !alt_pressed) {
+      /* Pass. */
     }
     /* Don't call #ToUnicodeEx on dead keys as it clears the buffer and so won't allow diacritical
      * composition. */
     else if (MapVirtualKeyW(vk, 2) != 0) {
+      wchar_t utf16[3] = {0};
+      int r;
       /* TODO: #ToUnicodeEx can respond with up to 4 utf16 chars (only 2 here).
        * Could be up to 24 utf8 bytes. */
       if ((r = ToUnicodeEx(
@@ -1188,22 +1187,17 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
       }
     }
 
-    if (!keyDown) {
-      utf8_char[0] = '\0';
-      ascii = '\0';
-    }
-    else {
-      ascii = utf8_char[0] & 0x80 ? '?' : utf8_char[0];
-    }
-
 #ifdef WITH_INPUT_IME
-    if (window->getImeInput()->IsImeKeyEvent(ascii, key)) {
-      return NULL;
+    if (key_down && ((utf8_char[0] & 0x80) == 0)) {
+      const char ascii = utf8_char[0];
+      if (window->getImeInput()->IsImeKeyEvent(ascii, key)) {
+        return NULL;
+      }
     }
 #endif /* WITH_INPUT_IME */
 
     event = new GHOST_EventKey(system->getMilliSeconds(),
-                               keyDown ? GHOST_kEventKeyDown : GHOST_kEventKeyUp,
+                               key_down ? GHOST_kEventKeyDown : GHOST_kEventKeyUp,
                                window,
                                key,
                                is_repeat,
