@@ -321,6 +321,7 @@ typedef struct wmNotifier {
 
 /* category */
 #define NOTE_CATEGORY 0xFF000000
+#define NOTE_CATEGORY_TAG_CLEARED NOTE_CATEGORY
 #define NC_WM (1 << 24)
 #define NC_WINDOW (2 << 24)
 #define NC_WORKSPACE (3 << 24)

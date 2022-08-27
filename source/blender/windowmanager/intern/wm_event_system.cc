@@ -91,6 +91,7 @@
 #define USE_GIZMO_MOUSE_PRIORITY_HACK
 
 static void wm_notifier_clear(wmNotifier *note);
+static bool wm_notifier_is_clear(const wmNotifier *note);
 
 static int wm_operator_call_internal(bContext *C,
                                      wmOperatorType *ot,
@@ -287,8 +288,9 @@ void WM_event_add_notifier_ex(wmWindowManager *wm, const wmWindow *win, uint typ
   note_test.data = type & NOTE_DATA;
   note_test.subtype = type & NOTE_SUBTYPE;
   note_test.action = type & NOTE_ACTION;
-
   note_test.reference = reference;
+
+  BLI_assert(!wm_notifier_is_clear(&note_test));
 
   if (wm->notifier_queue_set == nullptr) {
     wm->notifier_queue_set = BLI_gset_new_ex(
@@ -385,6 +387,12 @@ static void wm_notifier_clear(wmNotifier *note)
 {
   /* nullptr the entire notifier, only leaving (`next`, `prev`) members intact. */
   memset(((char *)note) + sizeof(Link), 0, sizeof(*note) - sizeof(Link));
+  note->category = NOTE_CATEGORY_TAG_CLEARED;
+}
+
+static bool wm_notifier_is_clear(const wmNotifier *note)
+{
+  return note->category == NOTE_CATEGORY_TAG_CLEARED;
 }
 
 void wm_event_do_depsgraph(bContext *C, bool is_after_open_file)
@@ -578,6 +586,10 @@ void wm_event_do_notifiers(bContext *C)
   /* The notifiers are sent without context, to keep it clean. */
   wmNotifier *note;
   while ((note = static_cast<wmNotifier *>(BLI_pophead(&wm->notifier_queue)))) {
+    if (wm_notifier_is_clear(note)) {
+      MEM_freeN(note);
+      continue;
+    }
     const bool removed = BLI_gset_remove(wm->notifier_queue_set, note, nullptr);
     BLI_assert(removed);
     UNUSED_VARS_NDEBUG(removed);
