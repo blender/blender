@@ -1105,29 +1105,29 @@ bool BLI_path_program_search(char *fullname, const size_t maxlen, const char *na
 
   path = BLI_getenv("PATH");
   if (path) {
-    char filename[FILE_MAX];
+    char filepath_test[FILE_MAX];
     const char *temp;
 
     do {
       temp = strchr(path, separator);
       if (temp) {
-        memcpy(filename, path, temp - path);
-        filename[temp - path] = 0;
+        memcpy(filepath_test, path, temp - path);
+        filepath_test[temp - path] = 0;
         path = temp + 1;
       }
       else {
-        BLI_strncpy(filename, path, sizeof(filename));
+        BLI_strncpy(filepath_test, path, sizeof(filepath_test));
       }
 
-      BLI_path_append(filename, maxlen, name);
+      BLI_path_append(filepath_test, maxlen, name);
       if (
 #ifdef _WIN32
-          BLI_path_program_extensions_add_win32(filename, maxlen)
+          BLI_path_program_extensions_add_win32(filepath_test, maxlen)
 #else
-          BLI_exists(filename)
+          BLI_exists(filepath_test)
 #endif
       ) {
-        BLI_strncpy(fullname, filename, maxlen);
+        BLI_strncpy(fullname, filepath_test, maxlen);
         retval = true;
         break;
       }
