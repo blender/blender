@@ -42,47 +42,48 @@
 #  include "GHOST_NDOFManagerWin32.h"
 #endif
 
-// Key code values not found in winuser.h
+/* Key code values not found in `winuser.h`. */
 #ifndef VK_MINUS
 #  define VK_MINUS 0xBD
-#endif  // VK_MINUS
+#endif /* VK_MINUS */
 #ifndef VK_SEMICOLON
 #  define VK_SEMICOLON 0xBA
-#endif  // VK_SEMICOLON
+#endif /* VK_SEMICOLON */
 #ifndef VK_PERIOD
 #  define VK_PERIOD 0xBE
-#endif  // VK_PERIOD
+#endif /* VK_PERIOD */
 #ifndef VK_COMMA
 #  define VK_COMMA 0xBC
-#endif  // VK_COMMA
+#endif /* VK_COMMA */
 #ifndef VK_BACK_QUOTE
 #  define VK_BACK_QUOTE 0xC0
-#endif  // VK_BACK_QUOTE
+#endif /* VK_BACK_QUOTE */
 #ifndef VK_SLASH
 #  define VK_SLASH 0xBF
-#endif  // VK_SLASH
+#endif /* VK_SLASH */
 #ifndef VK_BACK_SLASH
 #  define VK_BACK_SLASH 0xDC
-#endif  // VK_BACK_SLASH
+#endif /* VK_BACK_SLASH */
 #ifndef VK_EQUALS
 #  define VK_EQUALS 0xBB
-#endif  // VK_EQUALS
+#endif /* VK_EQUALS */
 #ifndef VK_OPEN_BRACKET
 #  define VK_OPEN_BRACKET 0xDB
-#endif  // VK_OPEN_BRACKET
+#endif /* VK_OPEN_BRACKET */
 #ifndef VK_CLOSE_BRACKET
 #  define VK_CLOSE_BRACKET 0xDD
-#endif  // VK_CLOSE_BRACKET
+#endif /* VK_CLOSE_BRACKET */
 #ifndef VK_GR_LESS
 #  define VK_GR_LESS 0xE2
-#endif  // VK_GR_LESS
+#endif /* VK_GR_LESS */
 
-/* Workaround for some laptop touchpads, some of which seems to
+/**
+   Workaround for some laptop touch-pads, some of which seems to
  * have driver issues which makes it so window function receives
- * the message, but PeekMessage doesn't pick those messages for
+ * the message, but #PeekMessage doesn't pick those messages for
  * some reason.
  *
- * We send a dummy WM_USER message to force PeekMessage to receive
+ * We send a dummy WM_USER message to force #PeekMessage to receive
  * something, making it so blender's window manager sees the new
  * messages coming in.
  */
@@ -101,19 +102,19 @@ static void initRawInput()
   RAWINPUTDEVICE devices[DEVICE_COUNT];
   memset(devices, 0, DEVICE_COUNT * sizeof(RAWINPUTDEVICE));
 
-  // Initiates WM_INPUT messages from keyboard
-  // That way GHOST can retrieve true keys
+  /* Initiates WM_INPUT messages from keyboard
+   * That way GHOST can retrieve true keys. */
   devices[0].usUsagePage = 0x01;
   devices[0].usUsage = 0x06; /* http://msdn.microsoft.com/en-us/windows/hardware/gg487473.aspx */
 
 #ifdef WITH_INPUT_NDOF
-  // multi-axis mouse (SpaceNavigator, etc.)
+  /* multi-axis mouse (SpaceNavigator, etc.). */
   devices[1].usUsagePage = 0x01;
   devices[1].usUsage = 0x08;
 #endif
 
   if (RegisterRawInputDevices(devices, DEVICE_COUNT, sizeof(RAWINPUTDEVICE)))
-    ;  // yay!
+    ; /* yay! */
   else
     GHOST_PRINTF("could not register for RawInput: %d\n", (int)GetLastError());
 
@@ -131,15 +132,15 @@ GHOST_SystemWin32::GHOST_SystemWin32()
 
   m_consoleStatus = 1;
 
-  // Tell Windows we are per monitor DPI aware. This disables the default
-  // blurry scaling and enables WM_DPICHANGED to allow us to draw at proper DPI.
+  /* Tell Windows we are per monitor DPI aware. This disables the default
+   * blurry scaling and enables WM_DPICHANGED to allow us to draw at proper DPI. */
   SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
 
-  // Check if current keyboard layout uses AltGr and save keylayout ID for
-  // specialized handling if keys like VK_OEM_*. I.e. french keylayout
-  // generates VK_OEM_8 for their exclamation key (key left of right shift)
+  /* Check if current keyboard layout uses AltGr and save keylayout ID for
+   * specialized handling if keys like VK_OEM_*. I.e. french keylayout
+   * generates #VK_OEM_8 for their exclamation key (key left of right shift). */
   this->handleKeyboardChange();
-  // Require COM for GHOST_DropTargetWin32 created in GHOST_WindowWin32.
+  /* Require COM for GHOST_DropTargetWin32 created in GHOST_WindowWin32. */
   OleInitialize(0);
 
 #ifdef WITH_INPUT_NDOF
@@ -149,7 +150,7 @@ GHOST_SystemWin32::GHOST_SystemWin32()
 
 GHOST_SystemWin32::~GHOST_SystemWin32()
 {
-  // Shutdown COM
+  /* Shutdown COM. */
   OleUninitialize();
 
   if (isStartedFromCommandPrompt()) {
@@ -159,7 +160,7 @@ GHOST_SystemWin32::~GHOST_SystemWin32()
 
 uint64_t GHOST_SystemWin32::performanceCounterToMillis(__int64 perf_ticks) const
 {
-  // Calculate the time passed since system initialization.
+  /* Calculate the time passed since system initialization. */
   __int64 delta = (perf_ticks - m_start) * 1000;
 
   uint64_t t = (uint64_t)(delta / m_freq);
@@ -173,12 +174,12 @@ uint64_t GHOST_SystemWin32::tickCountToMillis(__int64 ticks) const
 
 uint64_t GHOST_SystemWin32::getMilliSeconds() const
 {
-  // Hardware does not support high resolution timers. We will use GetTickCount instead then.
+  /* Hardware does not support high resolution timers. We will use GetTickCount instead then. */
   if (!m_hasPerformanceCounter) {
     return tickCountToMillis(::GetTickCount());
   }
 
-  // Retrieve current count
+  /* Retrieve current count */
   __int64 count = 0;
   ::QueryPerformanceCounter((LARGE_INTEGER *)&count);
 
@@ -233,7 +234,7 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(const char *title,
       is_dialog);
 
   if (window->getValid()) {
-    // Store the pointer to the window
+    /* Store the pointer to the window */
     m_windowManager->addWindow(window);
     m_windowManager->setActiveWindow(window);
   }
@@ -395,10 +396,10 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
 
     driveTrackpad();
 
-    // Process all the events waiting for us
+    /* Process all the events waiting for us. */
     while (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE) != 0) {
-      // TranslateMessage doesn't alter the message, and doesn't change our raw keyboard data.
-      // Needed for MapVirtualKey or if we ever need to get chars from wm_ime_char or similar.
+      /* #TranslateMessage doesn't alter the message, and doesn't change our raw keyboard data.
+       * Needed for #MapVirtualKey or if we ever need to get chars from wm_ime_char or similar. */
       ::TranslateMessage(&msg);
       ::DispatchMessageW(&msg);
       hasEventHandled = true;
@@ -489,7 +490,7 @@ GHOST_TSuccess GHOST_SystemWin32::init()
   initRawInput();
 
   m_lfstart = ::GetTickCount();
-  // Determine whether this system has a high frequency performance counter. */
+  /* Determine whether this system has a high frequency performance counter. */
   m_hasPerformanceCounter = ::QueryPerformanceFrequency((LARGE_INTEGER *)&m_freq) == TRUE;
   if (m_hasPerformanceCounter) {
     GHOST_PRINT("GHOST_SystemWin32::init: High Frequency Performance Timer available\n");
@@ -520,7 +521,7 @@ GHOST_TSuccess GHOST_SystemWin32::init()
     wc.lpszMenuName = 0;
     wc.lpszClassName = L"GHOST_WindowClass";
 
-    // Use RegisterClassEx for setting small icon
+    /* Use #RegisterClassEx for setting small icon. */
     if (::RegisterClassW(&wc) == 0) {
       success = GHOST_kFailure;
     }
@@ -538,8 +539,7 @@ GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw, bool *r_keyDown)
 {
   GHOST_TKey key = GHOST_kKeyUnknown;
 
-  // RI_KEY_BREAK doesn't work for sticky keys release, so we also
-  // check for the up message
+  /* #RI_KEY_BREAK doesn't work for sticky keys release, so we also check for the up message. */
   unsigned int msg = raw.data.keyboard.Message;
   *r_keyDown = !(raw.data.keyboard.Flags & RI_KEY_BREAK) && msg != WM_KEYUP && msg != WM_SYSKEYUP;
 
@@ -600,11 +600,11 @@ GHOST_TKey GHOST_SystemWin32::convertKey(short vKey, short scanCode, short exten
   GHOST_TKey key;
 
   if ((vKey >= '0') && (vKey <= '9')) {
-    // VK_0 thru VK_9 are the same as ASCII '0' thru '9' (0x30 - 0x39)
+    /* VK_0 thru VK_9 are the same as ASCII '0' thru '9' (0x30 - 0x39). */
     key = (GHOST_TKey)(vKey - '0' + GHOST_kKey0);
   }
   else if ((vKey >= 'A') && (vKey <= 'Z')) {
-    // VK_A thru VK_Z are the same as ASCII 'A' thru 'Z' (0x41 - 0x5A)
+    /* VK_A thru VK_Z are the same as ASCII 'A' thru 'Z' (0x41 - 0x5A). */
     key = (GHOST_TKey)(vKey - 'A' + GHOST_kKeyA);
   }
   else if ((vKey >= VK_F1) && (vKey <= VK_F24)) {
@@ -1109,7 +1109,7 @@ void GHOST_SystemWin32::processWheelEvent(GHOST_WindowWin32 *window, WPARAM wPar
   int delta = GET_WHEEL_DELTA_WPARAM(wParam);
 
   if (acc * delta < 0) {
-    // scroll direction reversed.
+    /* Scroll direction reversed. */
     acc = 0;
   }
   acc += delta;
@@ -1163,8 +1163,8 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
     if (ctrl_pressed && !alt_pressed) {
       utf8_char[0] = '\0';
     }
-    // Don't call ToUnicodeEx on dead keys as it clears the buffer and so won't allow diacritical
-    // composition.
+    /* Don't call #ToUnicodeEx on dead keys as it clears the buffer and so won't allow diacritical
+     * composition. */
     else if (MapVirtualKeyW(vk, 2) != 0) {
       /* TODO: #ToUnicodeEx can respond with up to 4 utf16 chars (only 2 here).
        * Could be up to 24 utf8 bytes. */
@@ -1201,7 +1201,9 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
                                is_repeat,
                                utf8_char);
 
-    // GHOST_PRINTF("%c\n", ascii); // we already get this info via EventPrinter
+#if 0 /* we already get this info via EventPrinter. */
+    GHOST_PRINTF("%c\n", ascii);
+#endif
   }
   else {
     event = NULL;
@@ -1305,7 +1307,7 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const &raw)
   uint64_t now = getMilliSeconds();
 
   static bool firstEvent = true;
-  if (firstEvent) {  // determine exactly which device is plugged in
+  if (firstEvent) { /* Determine exactly which device is plugged in. */
     RID_DEVICE_INFO info;
     unsigned infoSize = sizeof(RID_DEVICE_INFO);
     info.cbSize = infoSize;
@@ -1319,40 +1321,38 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const &raw)
     firstEvent = false;
   }
 
-  // The NDOF manager sends button changes immediately, and *pretends* to
-  // send motion. Mark as 'sent' so motion will always get dispatched.
+  /* The NDOF manager sends button changes immediately, and *pretends* to
+   * send motion. Mark as 'sent' so motion will always get dispatched. */
   eventSent = true;
 
   BYTE const *data = raw.data.hid.bRawData;
 
   BYTE packetType = data[0];
   switch (packetType) {
-    case 1:  // translation
-    {
+    case 1: { /* Translation. */
       const short *axis = (short *)(data + 1);
-      // massage into blender view coords (same goes for rotation)
+      /* Massage into blender view coords (same goes for rotation). */
       const int t[3] = {axis[0], -axis[2], axis[1]};
       m_ndofManager->updateTranslation(t, now);
 
       if (raw.data.hid.dwSizeHid == 13) {
-        // this report also includes rotation
+        /* This report also includes rotation. */
         const int r[3] = {-axis[3], axis[5], -axis[4]};
         m_ndofManager->updateRotation(r, now);
 
-        // I've never gotten one of these, has anyone else?
+        /* I've never gotten one of these, has anyone else? */
         GHOST_PRINT("ndof: combined T + R\n");
       }
       break;
     }
-    case 2:  // rotation
-    {
+    case 2: { /* Rotation. */
+
       const short *axis = (short *)(data + 1);
       const int r[3] = {-axis[0], axis[2], -axis[1]};
       m_ndofManager->updateRotation(r, now);
       break;
     }
-    case 3:  // buttons
-    {
+    case 3: { /* Buttons. */
       int button_bits;
       memcpy(&button_bits, data + 1, sizeof(button_bits));
       m_ndofManager->updateButtons(button_bits, now);
@@ -1361,7 +1361,7 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const &raw)
   }
   return eventSent;
 }
-#endif  // WITH_INPUT_NDOF
+#endif /* WITH_INPUT_NDOF */
 
 void GHOST_SystemWin32::driveTrackpad()
 {
@@ -1424,8 +1424,8 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
   if (hwnd) {
 
     if (msg == WM_NCCREATE) {
-      // Tell Windows to automatically handle scaling of non-client areas
-      // such as the caption bar. EnableNonClientDpiScaling was introduced in Windows 10
+      /* Tell Windows to automatically handle scaling of non-client areas
+       * such as the caption bar. #EnableNonClientDpiScaling was introduced in Windows 10. */
       HMODULE m_user32 = ::LoadLibrary("User32.dll");
       if (m_user32) {
         GHOST_WIN32_EnableNonClientDpiScaling fpEnableNonClientDpiScaling =
@@ -1440,7 +1440,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
     GHOST_WindowWin32 *window = (GHOST_WindowWin32 *)::GetWindowLongPtr(hwnd, GWLP_USERDATA);
     if (window) {
       switch (msg) {
-        // we need to check if new key layout has AltGr
+        /* We need to check if new key layout has AltGr. */
         case WM_INPUTLANGCHANGE: {
           system->handleKeyboardChange();
 #ifdef WITH_INPUT_IME
@@ -1449,9 +1449,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 #endif
           break;
         }
-        ////////////////////////////////////////////////////////////////////////
-        // Keyboard events, processed
-        ////////////////////////////////////////////////////////////////////////
+        /* ==========================
+         * Keyboard events, processed
+         * ========================== */
         case WM_INPUT: {
           RAWINPUT raw;
           RAWINPUT *raw_ptr = &raw;
@@ -1479,9 +1479,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           break;
         }
 #ifdef WITH_INPUT_IME
-        ////////////////////////////////////////////////////////////////////////
-        // IME events, processed, read more in GHOST_IME.h
-        ////////////////////////////////////////////////////////////////////////
+        /* =================================================
+         * IME events, processed, read more in `GHOST_IME.h`
+         * ================================================= */
         case WM_IME_NOTIFY: {
           /* Update conversion status when IME is changed or input mode is changed. */
           if (wParam == IMN_SETOPENSTATUS || wParam == IMN_SETCONVERSIONMODE) {
@@ -1529,52 +1529,47 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           break;
         }
 #endif /* WITH_INPUT_IME */
-        ////////////////////////////////////////////////////////////////////////
-        // Keyboard events, ignored
-        ////////////////////////////////////////////////////////////////////////
+        /* ========================
+         * Keyboard events, ignored
+         * ======================== */
         case WM_KEYDOWN:
         case WM_SYSKEYDOWN:
         case WM_KEYUP:
         case WM_SYSKEYUP:
         /* These functions were replaced by #WM_INPUT. */
         case WM_CHAR:
-        /* The WM_CHAR message is posted to the window with the keyboard focus when
-         * a WM_KEYDOWN message is translated by the TranslateMessage function. WM_CHAR
-         * contains the character code of the key that was pressed.
-         */
+        /* The #WM_CHAR message is posted to the window with the keyboard focus when
+         * a WM_KEYDOWN message is translated by the #TranslateMessage function.
+         * WM_CHAR contains the character code of the key that was pressed. */
         case WM_DEADCHAR:
-          /* The WM_DEADCHAR message is posted to the window with the keyboard focus when a
-           * WM_KEYUP message is translated by the TranslateMessage function. WM_DEADCHAR
+          /* The #WM_DEADCHAR message is posted to the window with the keyboard focus when a
+           * WM_KEYUP message is translated by the #TranslateMessage function. WM_DEADCHAR
            * specifies a character code generated by a dead key. A dead key is a key that
            * generates a character, such as the umlaut (double-dot), that is combined with
            * another character to form a composite character. For example, the umlaut-O
            * character (Ö) is generated by typing the dead key for the umlaut character, and
-           * then typing the O key.
-           */
+           * then typing the O key. */
           break;
         case WM_SYSDEADCHAR:
-        /* The WM_SYSDEADCHAR message is sent to the window with the keyboard focus when
-         * a WM_SYSKEYDOWN message is translated by the TranslateMessage function.
+        /* The #WM_SYSDEADCHAR message is sent to the window with the keyboard focus when
+         * a WM_SYSKEYDOWN message is translated by the #TranslateMessage function.
          * WM_SYSDEADCHAR specifies the character code of a system dead key - that is,
-         * a dead key that is pressed while holding down the alt key.
-         */
+         * a dead key that is pressed while holding down the alt key. */
         case WM_SYSCHAR:
-          /* The WM_SYSCHAR message is sent to the window with the keyboard focus when
-           * a WM_SYSCHAR message is translated by the TranslateMessage function.
+          /* #The WM_SYSCHAR message is sent to the window with the keyboard focus when
+           * a WM_SYSCHAR message is translated by the #TranslateMessage function.
            * WM_SYSCHAR specifies the character code of a dead key - that is,
            * a dead key that is pressed while holding down the alt key.
-           * To prevent the sound, DefWindowProc must be avoided by return
-           */
+           * To prevent the sound, #DefWindowProc must be avoided by return. */
           break;
         case WM_SYSCOMMAND:
-          /* The WM_SYSCOMMAND message is sent to the window when system commands such as
+          /* The #WM_SYSCOMMAND message is sent to the window when system commands such as
            * maximize, minimize  or close the window are triggered. Also it is sent when ALT
-           * button is press for menu. To prevent this we must return preventing DefWindowProc.
+           * button is press for menu. To prevent this we must return preventing #DefWindowProc.
            *
            * Note that the four low-order bits of the wParam parameter are used internally by the
            * OS. To obtain the correct result when testing the value of wParam, an application must
-           * combine the value 0xFFF0 with the wParam value by using the bit-wise AND operator.
-           */
+           * combine the value 0xFFF0 with the wParam value by using the bit-wise AND operator. */
           switch (wParam & 0xFFF0) {
             case SC_KEYMENU:
               eventHandled = true;
@@ -1609,9 +1604,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
             }
           }
           break;
-        ////////////////////////////////////////////////////////////////////////
-        // Wintab events, processed
-        ////////////////////////////////////////////////////////////////////////
+        /* ========================
+         * Wintab events, processed
+         * ======================== */
         case WT_CSRCHANGE: {
           WINTAB_PRINTF("HWND %p HCTX %p WT_CSRCHANGE\n", window->getHWND(), (void *)lParam);
           GHOST_Wintab *wt = window->getWintab();
@@ -1667,9 +1662,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           processWintabEvent(window);
           eventHandled = true;
           break;
-        ////////////////////////////////////////////////////////////////////////
-        // Wintab events, debug
-        ////////////////////////////////////////////////////////////////////////
+        /* ====================
+         * Wintab events, debug
+         * ==================== */
         case WT_CTXOPEN:
           WINTAB_PRINTF("HWND %p HCTX %p WT_CTXOPEN\n", window->getHWND(), (void *)wParam);
           break;
@@ -1693,9 +1688,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
               break;
           }
           break;
-        ////////////////////////////////////////////////////////////////////////
-        // Pointer events, processed
-        ////////////////////////////////////////////////////////////////////////
+        /* =========================
+         * Pointer events, processed
+         * ========================= */
         case WM_POINTERUPDATE:
         case WM_POINTERDOWN:
         case WM_POINTERUP:
@@ -1715,9 +1710,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           }
           break;
         }
-        ////////////////////////////////////////////////////////////////////////
-        // Mouse events, processed
-        ////////////////////////////////////////////////////////////////////////
+        /* =======================
+         * Mouse events, processed
+         * ======================= */
         case WM_LBUTTONDOWN:
           event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskLeft);
           break;
@@ -1792,13 +1787,13 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
            * arrow if it is not in the client area.
            */
           if (LOWORD(lParam) == HTCLIENT) {
-            // Load the current cursor
+            /* Load the current cursor. */
             window->loadCursor(window->getCursorVisibility(), window->getCursorShape());
-            // Bypass call to DefWindowProc
+            /* Bypass call to #DefWindowProc. */
             return 0;
           }
           else {
-            // Outside of client area show standard cursor
+            /* Outside of client area show standard cursor. */
             window->loadCursor(true, GHOST_kStandardCursorDefault);
           }
           break;
@@ -1814,9 +1809,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           }
           break;
         }
-        ////////////////////////////////////////////////////////////////////////
-        // Mouse events, ignored
-        ////////////////////////////////////////////////////////////////////////
+        /* =====================
+         * Mouse events, ignored
+         * ===================== */
         case WM_NCMOUSEMOVE:
         /* The WM_NCMOUSEMOVE message is posted to a window when the cursor is moved
          * within the non-client area of the window. This message is posted to the window that
@@ -1830,9 +1825,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
            */
           break;
 
-        ////////////////////////////////////////////////////////////////////////
-        // Window events, processed
-        ////////////////////////////////////////////////////////////////////////
+        /* ========================
+         * Window events, processed
+         * ======================== */
         case WM_CLOSE:
           /* The WM_CLOSE message is sent as a signal that a window
            * or an application should terminate. Restore if minimized. */
@@ -1942,15 +1937,15 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
            * with a different DPI.
            */
           {
-            // The suggested new size and position of the window.
+            /* The suggested new size and position of the window. */
             RECT *const suggestedWindowRect = (RECT *)lParam;
 
-            // Push DPI change event first
+            /* Push DPI change event first. */
             system->pushEvent(processWindowEvent(GHOST_kEventWindowDPIHintChanged, window));
             system->dispatchEvents();
             eventHandled = true;
 
-            // Then move and resize window
+            /* Then move and resize window. */
             SetWindowPos(hwnd,
                          NULL,
                          suggestedWindowRect->left,
@@ -1983,9 +1978,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
             window->ThemeRefresh();
           }
           break;
-        ////////////////////////////////////////////////////////////////////////
-        // Window events, ignored
-        ////////////////////////////////////////////////////////////////////////
+        /* ======================
+         * Window events, ignored
+         * ====================== */
         case WM_WINDOWPOSCHANGED:
         /* The WM_WINDOWPOSCHANGED message is sent to a window whose size, position, or place
          * in the Z order has changed as a result of a call to the SetWindowPos function or
@@ -2030,9 +2025,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         case WM_SETFOCUS:
           /* The WM_SETFOCUS message is sent to a window after it has gained the keyboard focus. */
           break;
-        ////////////////////////////////////////////////////////////////////////
-        // Other events
-        ////////////////////////////////////////////////////////////////////////
+        /* ============
+         * Other events
+         * ============ */
         case WM_GETTEXT:
         /* An application sends a WM_GETTEXT message to copy the text that
          * corresponds to a window into a buffer provided by the caller.
@@ -2063,7 +2058,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
       }
     }
     else {
-      // Event found for a window before the pointer to the class has been set.
+      /* Event found for a window before the pointer to the class has been set. */
       GHOST_PRINT("GHOST_SystemWin32::wndProc: GHOST window event before creation\n");
       /* These are events we typically miss at this point:
        * WM_GETMINMAXINFO 0x24
@@ -2075,7 +2070,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
     }
   }
   else {
-    // Events without valid hwnd
+    /* Events without valid `hwnd`. */
     GHOST_PRINT("GHOST_SystemWin32::wndProc: event without window\n");
   }
 
@@ -2151,12 +2146,12 @@ void GHOST_SystemWin32::putClipboard(const char *buffer, bool selection) const
 {
   if (selection || !buffer) {
     return;
-  }  // for copying the selection, used on X11
+  } /* For copying the selection, used on X11. */
 
   if (OpenClipboard(NULL)) {
     EmptyClipboard();
 
-    // Get length of buffer including the terminating null
+    /* Get length of buffer including the terminating null. */
     size_t len = count_utf_16_from_8(buffer);
 
     HGLOBAL clipbuffer = GlobalAlloc(GMEM_MOVEABLE, sizeof(wchar_t) * len);
@@ -2213,7 +2208,7 @@ GHOST_TSuccess GHOST_SystemWin32::showMessageBox(const char *title,
     case IDCONTINUE:
       break;
     default:
-      break;  // should never happen
+      break; /* Should never happen. */
   }
 
   free((void *)title_16);

@@ -10,10 +10,10 @@
 
 #ifndef WIN32
 #  error WIN32 only!
-#endif  // WIN32
+#endif /* WIN32 */
 
 #define WIN32_LEAN_AND_MEAN
-#include <ole2.h>  // for drag-n-drop
+#include <ole2.h> /* For drag-n-drop. */
 #include <windows.h>
 
 #include "GHOST_System.h"
@@ -387,7 +387,7 @@ class GHOST_SystemWin32 : public GHOST_System {
   static GHOST_Event *processImeEvent(GHOST_TEventType type,
                                       GHOST_WindowWin32 *window,
                                       GHOST_TEventImeData *data);
-#endif  // WITH_INPUT_IME
+#endif /* WITH_INPUT_IME */
 
   /**
    * Handles minimum window size.
@@ -459,18 +459,18 @@ class GHOST_SystemWin32 : public GHOST_System {
 
 inline void GHOST_SystemWin32::handleKeyboardChange(void)
 {
-  m_keylayout = GetKeyboardLayout(0);  // get keylayout for current thread
+  m_keylayout = GetKeyboardLayout(0); /* Get keylayout for current thread. */
   int i;
   SHORT s;
 
-  // save the language identifier.
+  /* Save the language identifier. */
   m_langId = LOWORD(m_keylayout);
 
   for (m_hasAltGr = false, i = 32; i < 256; ++i) {
     s = VkKeyScanEx((char)i, m_keylayout);
-    // s == -1 means no key that translates passed char code
-    // high byte contains shift state. bit 2 ctrl pressed, bit 4 alt pressed
-    // if both are pressed, we have AltGr keycombo on keylayout
+    /* `s == -1` means no key that translates passed char code
+     * high byte contains shift state. bit 2 ctrl pressed, bit 4 alt pressed
+     * if both are pressed, we have AltGr keycombo on keylayout. */
     if (s != -1 && (s & 0x600) == 0x600) {
       m_hasAltGr = true;
       break;

@@ -26,7 +26,7 @@
 
 #ifndef GET_POINTERID_WPARAM
 #  define GET_POINTERID_WPARAM(wParam) (LOWORD(wParam))
-#endif  // GET_POINTERID_WPARAM
+#endif /* GET_POINTERID_WPARAM */
 
 const wchar_t *GHOST_WindowWin32::s_windowClassName = L"GHOST_WindowClass";
 const int GHOST_WindowWin32::s_maxTitleLength = 128;
@@ -93,18 +93,18 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
   adjustWindowRectForClosestMonitor(&win_rect, style, extended_style);
 
   wchar_t *title_16 = alloc_utf16_from_8((char *)title, 0);
-  m_hWnd = ::CreateWindowExW(extended_style,                  // window extended style
-                             s_windowClassName,               // pointer to registered class name
-                             title_16,                        // pointer to window name
-                             style,                           // window style
-                             win_rect.left,                   // horizontal position of window
-                             win_rect.top,                    // vertical position of window
-                             win_rect.right - win_rect.left,  // window width
-                             win_rect.bottom - win_rect.top,  // window height
-                             m_parentWindowHwnd,              // handle to parent or owner window
-                             0,                     // handle to menu or child-window identifier
-                             ::GetModuleHandle(0),  // handle to application instance
-                             0);                    // pointer to window-creation data
+  m_hWnd = ::CreateWindowExW(extended_style,                 /* window extended style */
+                             s_windowClassName,              /* pointer to registered class name */
+                             title_16,                       /* pointer to window name */
+                             style,                          /* window style */
+                             win_rect.left,                  /* horizontal position of window */
+                             win_rect.top,                   /* vertical position of window */
+                             win_rect.right - win_rect.left, /* window width */
+                             win_rect.bottom - win_rect.top, /* window height */
+                             m_parentWindowHwnd,             /* handle to parent or owner window */
+                             0,                    /* handle to menu or child-window identifier */
+                             ::GetModuleHandle(0), /* handle to application instance */
+                             0);                   /* pointer to window-creation data */
   free(title_16);
 
   if (m_hWnd == NULL) {
@@ -197,7 +197,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
   /* Force an initial paint of the window. */
   ::UpdateWindow(m_hWnd);
 
-  /* Initialize Wintab. */
+  /* Initialize WINTAB. */
   if (system->getTabletAPI() != GHOST_kTabletWinPointer) {
     loadWintab(GHOST_kWindowStateMinimized != state);
   }
@@ -221,7 +221,7 @@ void GHOST_WindowWin32::updateDirectManipulation()
 
 void GHOST_WindowWin32::onPointerHitTest(WPARAM wParam)
 {
-  /* Only DM_POINTERHITTEST can be the first message of input sequence of touchpad input. */
+  /* Only #DM_POINTERHITTEST can be the first message of input sequence of touch-pad input. */
 
   if (!m_directManipulationHelper) {
     return;
@@ -280,9 +280,9 @@ GHOST_WindowWin32::~GHOST_WindowWin32()
     }
 
     if (m_dropTarget) {
-      // Disable DragDrop
+      /* Disable DragDrop. */
       RevokeDragDrop(m_hWnd);
-      // Release our reference of the DropTarget and it will delete itself eventually.
+      /* Release our reference of the DropTarget and it will delete itself eventually. */
       m_dropTarget->Release();
       m_dropTarget = NULL;
     }
@@ -531,7 +531,8 @@ GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
       break;
   }
   ::SetWindowLongPtr(m_hWnd, GWL_STYLE, style);
-  /* SetWindowLongPtr Docs: frame changes not visible until SetWindowPos with SWP_FRAMECHANGED. */
+  /* #SetWindowLongPtr Docs:
+   * Frame changes not visible until #SetWindowPos with #SWP_FRAMECHANGED. */
   ::SetWindowPos(m_hWnd, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
   return ::SetWindowPlacement(m_hWnd, &wp) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
 }
@@ -680,7 +681,7 @@ void GHOST_WindowWin32::updateMouseCapture(GHOST_MouseCaptureEventWin32 event)
 
 HCURSOR GHOST_WindowWin32::getStandardCursor(GHOST_TStandardCursor shape) const
 {
-  // Convert GHOST cursor to Windows OEM cursor
+  /* Convert GHOST cursor to Windows OEM cursor. */
   HANDLE cursor = NULL;
   HMODULE module = ::GetModuleHandle(0);
   uint32_t flags = LR_SHARED | LR_DEFAULTSIZE;
@@ -738,36 +739,36 @@ HCURSOR GHOST_WindowWin32::getStandardCursor(GHOST_TStandardCursor shape) const
       break;
     case GHOST_kStandardCursorHelp:
       cursor = ::LoadImage(NULL, IDC_HELP, IMAGE_CURSOR, cx, cy, flags);
-      break;  // Arrow and question mark
+      break; /* Arrow and question mark */
     case GHOST_kStandardCursorWait:
       cursor = ::LoadImage(NULL, IDC_WAIT, IMAGE_CURSOR, cx, cy, flags);
-      break;  // Hourglass
+      break; /* Hourglass */
     case GHOST_kStandardCursorText:
       cursor = ::LoadImage(NULL, IDC_IBEAM, IMAGE_CURSOR, cx, cy, flags);
-      break;  // I-beam
+      break; /* I-beam */
     case GHOST_kStandardCursorCrosshair:
       cursor = ::LoadImage(module, "cross_cursor", IMAGE_CURSOR, cx, cy, flags);
-      break;  // Standard Cross
+      break; /* Standard Cross */
     case GHOST_kStandardCursorCrosshairA:
       cursor = ::LoadImage(module, "crossA_cursor", IMAGE_CURSOR, cx, cy, flags);
-      break;  // Crosshair A
+      break; /* Crosshair A */
     case GHOST_kStandardCursorCrosshairB:
       cursor = ::LoadImage(module, "crossB_cursor", IMAGE_CURSOR, cx, cy, flags);
-      break;  // Diagonal Crosshair B
+      break; /* Diagonal Crosshair B */
     case GHOST_kStandardCursorCrosshairC:
       cursor = ::LoadImage(module, "crossC_cursor", IMAGE_CURSOR, cx, cy, flags);
-      break;  // Minimal Crosshair C
+      break; /* Minimal Crosshair C */
     case GHOST_kStandardCursorBottomSide:
     case GHOST_kStandardCursorUpDown:
       cursor = ::LoadImage(module, "movens_cursor", IMAGE_CURSOR, cx, cy, flags);
-      break;  // Double-pointed arrow pointing north and south
+      break; /* Double-pointed arrow pointing north and south */
     case GHOST_kStandardCursorLeftSide:
     case GHOST_kStandardCursorLeftRight:
       cursor = ::LoadImage(module, "moveew_cursor", IMAGE_CURSOR, cx, cy, flags);
-      break;  // Double-pointed arrow pointing west and east
+      break; /* Double-pointed arrow pointing west and east */
     case GHOST_kStandardCursorTopSide:
       cursor = ::LoadImage(NULL, IDC_UPARROW, IMAGE_CURSOR, cx, cy, flags);
-      break;  // Vertical arrow
+      break; /* Vertical arrow */
     case GHOST_kStandardCursorTopLeftCorner:
       cursor = ::LoadImage(NULL, IDC_SIZENWSE, IMAGE_CURSOR, cx, cy, flags);
       break;
@@ -789,7 +790,7 @@ HCURSOR GHOST_WindowWin32::getStandardCursor(GHOST_TStandardCursor shape) const
     case GHOST_kStandardCursorDestroy:
     case GHOST_kStandardCursorStop:
       cursor = ::LoadImage(module, "forbidden_cursor", IMAGE_CURSOR, cx, cy, flags);
-      break;  // Slashed circle
+      break; /* Slashed circle */
     case GHOST_kStandardCursorDefault:
       cursor = NULL;
       break;
@@ -849,9 +850,9 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCursorGrab(GHOST_TGrabCursorMode mode
       setWindowCursorVisibility(true);
     }
     if (m_cursorGrab != GHOST_kGrabNormal) {
-      /* use to generate a mouse move event, otherwise the last event
+      /* Use to generate a mouse move event, otherwise the last event
        * blender gets can be outside the screen causing menus not to show
-       * properly unless the user moves the mouse */
+       * properly unless the user moves the mouse. */
       int32_t pos[2];
       m_system->getCursorPosition(pos[0], pos[1]);
       m_system->setCursorPosition(pos[0], pos[1]);
@@ -902,7 +903,7 @@ GHOST_TSuccess GHOST_WindowWin32::getPointerInfo(
 
   for (uint32_t i = 0; i < outCount; i++) {
     POINTER_INFO pointerApiInfo = pointerPenInfo[i].pointerInfo;
-    // Obtain the basic information from the event
+    /* Obtain the basic information from the event. */
     outPointerInfo[i].pointerId = pointerId;
     outPointerInfo[i].isPrimary = isPrimary;
 
@@ -1044,8 +1045,9 @@ void GHOST_WindowWin32::ThemeRefresh()
                    &pcbData) == ERROR_SUCCESS) {
     BOOL DarkMode = !lightMode;
 
-    /* 20 == DWMWA_USE_IMMERSIVE_DARK_MODE in Windows 11 SDK.  This value was undocumented for
-     * Windows 10 versions 2004 and later, supported for Windows 11 Build 22000 and later. */
+    /* `20 == DWMWA_USE_IMMERSIVE_DARK_MODE` in Windows 11 SDK.
+     * This value was undocumented for Windows 10 versions 2004 and later,
+     * supported for Windows 11 Build 22000 and later. */
     DwmSetWindowAttribute(this->m_hWnd, 20, &DarkMode, sizeof(DarkMode));
   }
 }
