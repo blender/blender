@@ -724,7 +724,7 @@ static void draw_subdiv_cache_update_extra_coarse_face_data(DRWSubdivCache *cach
   if (mr->extract_type == MR_EXTRACT_BMESH) {
     draw_subdiv_cache_extra_coarse_face_data_bm(cache->bm, mr->efa_act, flags_data);
   }
-  else if (mr->p_origindex != NULL) {
+  else if (mr->p_origindex != nullptr) {
     draw_subdiv_cache_extra_coarse_face_data_mapped(mesh, cache->bm, mr, flags_data);
   }
   else {

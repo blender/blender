@@ -624,7 +624,7 @@ void paintvert_hide(bContext *C, Object *ob, const bool unselected)
 {
   using namespace blender;
   Mesh *me = BKE_mesh_from_object(ob);
-  if (me == NULL || me->totvert == 0) {
+  if (me == nullptr || me->totvert == 0) {
     return;
   }
 
@@ -657,7 +657,7 @@ void paintvert_reveal(bContext *C, Object *ob, const bool select)
 {
   using namespace blender;
   Mesh *me = BKE_mesh_from_object(ob);
-  if (me == NULL || me->totvert == 0) {
+  if (me == nullptr || me->totvert == 0) {
     return;
   }
 

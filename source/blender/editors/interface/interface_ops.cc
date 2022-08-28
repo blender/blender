@@ -756,13 +756,13 @@ static void override_idtemplate_ids_get(
   PropertyRNA *prop;
   UI_context_active_but_prop_get_templateID(C, &owner_ptr, &prop);
 
-  if (owner_ptr.data == NULL || prop == NULL) {
-    *r_owner_id = *r_id = NULL;
-    if (r_owner_ptr != NULL) {
+  if (owner_ptr.data == nullptr || prop == nullptr) {
+    *r_owner_id = *r_id = nullptr;
+    if (r_owner_ptr != nullptr) {
       *r_owner_ptr = PointerRNA_NULL;
     }
-    if (r_prop != NULL) {
-      *r_prop = NULL;
+    if (r_prop != nullptr) {
+      *r_prop = nullptr;
     }
     return;
   }
@@ -770,10 +770,10 @@ static void override_idtemplate_ids_get(
   *r_owner_id = owner_ptr.owner_id;
   PointerRNA idptr = RNA_property_pointer_get(&owner_ptr, prop);
   *r_id = static_cast<ID *>(idptr.data);
-  if (r_owner_ptr != NULL) {
+  if (r_owner_ptr != nullptr) {
     *r_owner_ptr = owner_ptr;
   }
-  if (r_prop != NULL) {
+  if (r_prop != nullptr) {
     *r_prop = prop;
   }
 }
@@ -781,9 +781,9 @@ static void override_idtemplate_ids_get(
 static bool override_idtemplate_poll(bContext *C, const bool is_create_op)
 {
   ID *owner_id, *id;
-  override_idtemplate_ids_get(C, &owner_id, &id, NULL, NULL);
+  override_idtemplate_ids_get(C, &owner_id, &id, nullptr, nullptr);
 
-  if (owner_id == NULL || id == NULL) {
+  if (owner_id == nullptr || id == nullptr) {
     return false;
   }
 
@@ -812,14 +812,14 @@ static int override_idtemplate_make_exec(bContext *C, wmOperator *UNUSED(op))
   PointerRNA owner_ptr;
   PropertyRNA *prop;
   override_idtemplate_ids_get(C, &owner_id, &id, &owner_ptr, &prop);
-  if (ELEM(NULL, owner_id, id)) {
+  if (ELEM(nullptr, owner_id, id)) {
     return OPERATOR_CANCELLED;
   }
 
   ID *id_override = ui_template_id_liboverride_hierarchy_make(
-      C, CTX_data_main(C), owner_id, id, NULL);
+      C, CTX_data_main(C), owner_id, id, nullptr);
 
-  if (id_override == NULL) {
+  if (id_override == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -833,16 +833,16 @@ static int override_idtemplate_make_exec(bContext *C, wmOperator *UNUSED(op))
    * override of the data too. */
   if (!ID_IS_LINKED(owner_id)) {
     RNA_id_pointer_create(id_override, &idptr);
-    RNA_property_pointer_set(&owner_ptr, prop, idptr, NULL);
+    RNA_property_pointer_set(&owner_ptr, prop, idptr, nullptr);
   }
   RNA_property_update(C, &owner_ptr, prop);
 
   /* 'Security' extra tagging, since this process may also affect the owner ID and not only the
    * used ID, relying on the property update code only is not always enough. */
   DEG_id_tag_update(&CTX_data_scene(C)->id, ID_RECALC_BASE_FLAGS | ID_RECALC_COPY_ON_WRITE);
-  WM_event_add_notifier(C, NC_WINDOW, NULL);
-  WM_event_add_notifier(C, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
+  WM_event_add_notifier(C, NC_WM | ND_LIB_OVERRIDE_CHANGED, nullptr);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -875,7 +875,7 @@ static int override_idtemplate_reset_exec(bContext *C, wmOperator *UNUSED(op))
   PointerRNA owner_ptr;
   PropertyRNA *prop;
   override_idtemplate_ids_get(C, &owner_id, &id, &owner_ptr, &prop);
-  if (ELEM(NULL, owner_id, id)) {
+  if (ELEM(nullptr, owner_id, id)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -888,7 +888,7 @@ static int override_idtemplate_reset_exec(bContext *C, wmOperator *UNUSED(op))
   PointerRNA idptr;
   /* `idptr` is re-assigned to owner property to ensure proper updates etc. */
   RNA_id_pointer_create(id, &idptr);
-  RNA_property_pointer_set(&owner_ptr, prop, idptr, NULL);
+  RNA_property_pointer_set(&owner_ptr, prop, idptr, nullptr);
   RNA_property_update(C, &owner_ptr, prop);
 
   /* No need for 'security' extra tagging here, since this process will never affect the owner ID.
@@ -923,7 +923,7 @@ static int override_idtemplate_clear_exec(bContext *C, wmOperator *UNUSED(op))
   PointerRNA owner_ptr;
   PropertyRNA *prop;
   override_idtemplate_ids_get(C, &owner_id, &id, &owner_ptr, &prop);
-  if (ELEM(NULL, owner_id, id)) {
+  if (ELEM(nullptr, owner_id, id)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -948,7 +948,7 @@ static int override_idtemplate_clear_exec(bContext *C, wmOperator *UNUSED(op))
     if (do_remap_active) {
       Object *ref_object = (Object *)id_new;
       Base *basact = BKE_view_layer_base_find(view_layer, ref_object);
-      if (basact != NULL) {
+      if (basact != nullptr) {
         view_layer->basact = basact;
       }
       DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
@@ -967,9 +967,9 @@ static int override_idtemplate_clear_exec(bContext *C, wmOperator *UNUSED(op))
   /* 'Security' extra tagging, since this process may also affect the owner ID and not only the
    * used ID, relying on the property update code only is not always enough. */
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS | ID_RECALC_COPY_ON_WRITE);
-  WM_event_add_notifier(C, NC_WINDOW, NULL);
-  WM_event_add_notifier(C, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
+  WM_event_add_notifier(C, NC_WM | ND_LIB_OVERRIDE_CHANGED, nullptr);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -995,9 +995,9 @@ static bool override_idtemplate_menu_poll(const bContext *C_const, MenuType *UNU
 {
   bContext *C = (bContext *)C_const;
   ID *owner_id, *id;
-  override_idtemplate_ids_get(C, &owner_id, &id, NULL, NULL);
+  override_idtemplate_ids_get(C, &owner_id, &id, nullptr, nullptr);
 
-  if (owner_id == NULL || id == NULL) {
+  if (owner_id == nullptr || id == nullptr) {
     return false;
   }
 

@@ -3664,7 +3664,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
   Object *ob_new_active = nullptr;
 
   CTX_DATA_BEGIN (C, Base *, base, selected_bases) {
-    Object *ob_new = NULL;
+    Object *ob_new = nullptr;
     object_add_duplicate_internal(bmain,
                                   scene,
                                   view_layer,

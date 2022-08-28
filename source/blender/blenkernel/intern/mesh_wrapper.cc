@@ -343,7 +343,7 @@ static Mesh *mesh_wrapper_ensure_subdivision(Mesh *me)
   if (use_clnors) {
     float(*lnors)[3] = static_cast<float(*)[3]>(
         CustomData_get_layer(&subdiv_mesh->ldata, CD_NORMAL));
-    BLI_assert(lnors != NULL);
+    BLI_assert(lnors != nullptr);
     BKE_mesh_set_custom_normals(subdiv_mesh, lnors);
     CustomData_set_layer_flag(&me->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
     CustomData_set_layer_flag(&subdiv_mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);

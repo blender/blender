@@ -84,11 +84,11 @@ class Task {
         free_taskdata(other.free_taskdata),
         freedata(other.freedata)
   {
-    ((Task &)other).pool = NULL;
-    ((Task &)other).run = NULL;
-    ((Task &)other).taskdata = NULL;
+    ((Task &)other).pool = nullptr;
+    ((Task &)other).run = nullptr;
+    ((Task &)other).taskdata = nullptr;
     ((Task &)other).free_taskdata = false;
-    ((Task &)other).freedata = NULL;
+    ((Task &)other).freedata = nullptr;
   }
 #else
   Task(const Task &other) = delete;

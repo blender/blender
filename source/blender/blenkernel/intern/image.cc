@@ -1248,7 +1248,7 @@ Image *BKE_image_add_generated(Main *bmain,
 
 static void image_colorspace_from_imbuf(Image *image, const ImBuf *ibuf)
 {
-  const char *colorspace_name = NULL;
+  const char *colorspace_name = nullptr;
 
   if (ibuf->rect_float) {
     if (ibuf->float_colorspace) {

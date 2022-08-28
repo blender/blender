@@ -292,7 +292,7 @@ void OverrideRNAPathTreeBuilder::build_path(TreeElement &parent,
   PointerRNA idpoin;
   RNA_id_pointer_create(&override_data.id, &idpoin);
 
-  ListBase path_elems = {NULL};
+  ListBase path_elems = {nullptr};
   if (!RNA_path_resolve_elements(&idpoin, override_data.override_property.rna_path, &path_elems)) {
     return;
   }

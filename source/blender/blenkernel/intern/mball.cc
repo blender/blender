@@ -250,10 +250,10 @@ MetaElem *BKE_mball_element_add(MetaBall *mb, const int type)
 BoundBox *BKE_mball_boundbox_get(Object *ob)
 {
   BLI_assert(ob->type == OB_MBALL);
-  if (ob->runtime.bb != NULL && (ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) {
+  if (ob->runtime.bb != nullptr && (ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) {
     return ob->runtime.bb;
   }
-  if (ob->runtime.bb == NULL) {
+  if (ob->runtime.bb == nullptr) {
     ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
   }
 
@@ -682,7 +682,7 @@ void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
   }
 
   Mesh *mesh = BKE_mball_polygonize(depsgraph, scene, ob);
-  if (mesh == NULL) {
+  if (mesh == nullptr) {
     return;
   }
 
@@ -693,14 +693,14 @@ void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
   if (ob->parent && ob->parent->type == OB_LATTICE && ob->partype == PARSKEL) {
     int verts_num;
     float(*positions)[3] = BKE_mesh_vert_coords_alloc(mesh, &verts_num);
-    BKE_lattice_deform_coords(ob->parent, ob, positions, verts_num, 0, NULL, 1.0f);
+    BKE_lattice_deform_coords(ob->parent, ob, positions, verts_num, 0, nullptr, 1.0f);
     BKE_mesh_vert_coords_apply(mesh, positions);
     MEM_freeN(positions);
   }
 
   ob->runtime.geometry_set_eval = new GeometrySet(GeometrySet::create_with_mesh(mesh));
 
-  if (ob->runtime.bb == NULL) {
+  if (ob->runtime.bb == nullptr) {
     ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
   }
   blender::float3 min(std::numeric_limits<float>::max());

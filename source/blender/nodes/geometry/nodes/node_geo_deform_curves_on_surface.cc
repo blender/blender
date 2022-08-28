@@ -249,7 +249,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   Mesh &surface_object_data = *static_cast<Mesh *>(surface_ob_orig->data);
 
   if (BMEditMesh *em = surface_object_data.edit_mesh) {
-    surface_mesh_orig = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, NULL, &surface_object_data);
+    surface_mesh_orig = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, nullptr, &surface_object_data);
     free_suface_mesh_orig = true;
   }
   else {
