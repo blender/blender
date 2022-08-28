@@ -108,25 +108,7 @@ template<typename T> class VArrayImpl {
    */
   virtual void materialize(IndexMask mask, MutableSpan<T> r_span) const
   {
-    T *dst = r_span.data();
-    /* Optimize for a few different common cases. */
-    const CommonVArrayInfo info = this->common_info();
-    switch (info.type) {
-      case CommonVArrayInfo::Type::Any: {
-        mask.foreach_index([&](const int64_t i) { dst[i] = this->get(i); });
-        break;
-      }
-      case CommonVArrayInfo::Type::Span: {
-        const T *src = static_cast<const T *>(info.data);
-        mask.foreach_index([&](const int64_t i) { dst[i] = src[i]; });
-        break;
-      }
-      case CommonVArrayInfo::Type::Single: {
-        const T single = *static_cast<const T *>(info.data);
-        mask.foreach_index([&](const int64_t i) { dst[i] = single; });
-        break;
-      }
-    }
+    mask.foreach_index([&](const int64_t i) { r_span[i] = this->get(i); });
   }
 
   /**
@@ -135,24 +117,7 @@ template<typename T> class VArrayImpl {
   virtual void materialize_to_uninitialized(IndexMask mask, MutableSpan<T> r_span) const
   {
     T *dst = r_span.data();
-    /* Optimize for a few different common cases. */
-    const CommonVArrayInfo info = this->common_info();
-    switch (info.type) {
-      case CommonVArrayInfo::Type::Any: {
-        mask.foreach_index([&](const int64_t i) { new (dst + i) T(this->get(i)); });
-        break;
-      }
-      case CommonVArrayInfo::Type::Span: {
-        const T *src = static_cast<const T *>(info.data);
-        mask.foreach_index([&](const int64_t i) { new (dst + i) T(src[i]); });
-        break;
-      }
-      case CommonVArrayInfo::Type::Single: {
-        const T single = *static_cast<const T *>(info.data);
-        mask.foreach_index([&](const int64_t i) { new (dst + i) T(single); });
-        break;
-      }
-    }
+    mask.foreach_index([&](const int64_t i) { new (dst + i) T(this->get(i)); });
   }
 
   /**
@@ -288,8 +253,20 @@ template<typename T> class VArrayImpl_For_Span : public VMutableArrayImpl<T> {
     return data_ == static_cast<const T *>(other_info.data);
   }
 
+  void materialize(IndexMask mask, MutableSpan<T> r_span) const override
+  {
+    mask.foreach_index([&](const int64_t i) { r_span[i] = data_[i]; });
+  }
+
+  void materialize_to_uninitialized(IndexMask mask, MutableSpan<T> r_span) const override
+  {
+    T *dst = r_span.data();
+    mask.foreach_index([&](const int64_t i) { new (dst + i) T(data_[i]); });
+  }
+
   void materialize_compressed(IndexMask mask, MutableSpan<T> r_span) const override
   {
+    BLI_assert(mask.size() == r_span.size());
     mask.to_best_mask_type([&](auto best_mask) {
       for (const int64_t i : IndexRange(best_mask.size())) {
         r_span[i] = data_[best_mask[i]];
@@ -300,6 +277,7 @@ template<typename T> class VArrayImpl_For_Span : public VMutableArrayImpl<T> {
   void materialize_compressed_to_uninitialized(IndexMask mask,
                                                MutableSpan<T> r_span) const override
   {
+    BLI_assert(mask.size() == r_span.size());
     T *dst = r_span.data();
     mask.to_best_mask_type([&](auto best_mask) {
       for (const int64_t i : IndexRange(best_mask.size())) {
@@ -376,6 +354,17 @@ template<typename T> class VArrayImpl_For_Single final : public VArrayImpl<T> {
   CommonVArrayInfo common_info() const override
   {
     return CommonVArrayInfo(CommonVArrayInfo::Type::Single, true, &value_);
+  }
+
+  void materialize(IndexMask mask, MutableSpan<T> r_span) const override
+  {
+    r_span.fill_indices(mask, value_);
+  }
+
+  void materialize_to_uninitialized(IndexMask mask, MutableSpan<T> r_span) const override
+  {
+    T *dst = r_span.data();
+    mask.foreach_index([&](const int64_t i) { new (dst + i) T(value_); });
   }
 
   void materialize_compressed(IndexMask mask, MutableSpan<T> r_span) const override
@@ -887,12 +876,9 @@ template<typename T> class VMutableArray;
  * construct the virtual array first and then move it into the vector.
  */
 namespace varray_tag {
-struct span {
-};
-struct single_ref {
-};
-struct single {
-};
+struct span {};
+struct single_ref {};
+struct single {};
 }  // namespace varray_tag
 
 /**
