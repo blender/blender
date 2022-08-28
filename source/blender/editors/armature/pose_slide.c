@@ -286,8 +286,10 @@ static void pose_slide_exit(bContext *C, wmOperator *op)
   ED_slider_destroy(C, pso->slider);
 
   /* Hide Bone Overlay. */
-  View3D *v3d = pso->area->spacedata.first;
-  v3d->overlay.flag = pso->overlay_flag;
+  if (pso->area) {
+    View3D *v3d = pso->area->spacedata.first;
+    v3d->overlay.flag = pso->overlay_flag;
+  }
 
   /* Free the temp pchan links and their data. */
   poseAnim_mapping_free(&pso->pfLinks);
