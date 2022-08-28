@@ -1150,7 +1150,7 @@ static void calculateZfac(TransInfo *t)
     SpaceImage *sima = t->area->spacedata.first;
     t->zfac = 1.0f / sima->zoom;
   }
-  else {
+  else if (t->region) {
     View2D *v2d = &t->region->v2d;
     /* Get zoom fac the same way as in
      * `ui_view2d_curRect_validate_resize` - better keep in sync! */
