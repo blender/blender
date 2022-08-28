@@ -128,11 +128,10 @@ static void blf_size_finalizer(void *object)
 /** \name FreeType Utilities (Internal)
  * \{ */
 
-/* Return glyph id from charcode. */
-uint blf_get_char_index(struct FontBLF *font, uint charcode)
+uint blf_get_char_index(FontBLF *font, uint charcode)
 {
   if (font->flags & BLF_CACHED) {
-    /* Use charmap cache for much faster lookup. */
+    /* Use char-map cache for much faster lookup. */
     return FTC_CMapCache_Lookup(ftc_charmap_cache, font, -1, charcode);
   }
   /* Fonts that are not cached need to use the regular lookup function. */
@@ -149,7 +148,7 @@ static ft_pix blf_unscaled_F26Dot6_to_pixels(FontBLF *font, FT_Pos value)
   FT_Long scaled = FT_MulFix(value, font->ft_size->metrics.x_scale);
 
   /* Copied from FreeType's FT_Get_Kerning (with FT_KERNING_DEFAULT), scaling down */
-  /* kerning distances at small ppem values so that they don't become too big. */
+  /* kerning distances at small PPEM values so that they don't become too big. */
   if (font->ft_size->metrics.x_ppem < 25) {
     scaled = FT_MulDiv(scaled, font->ft_size->metrics.x_ppem, 25);
   }

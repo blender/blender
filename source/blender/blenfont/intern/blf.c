@@ -99,7 +99,7 @@ bool blf_font_id_is_valid(int fontid)
 static int blf_search(const char *name)
 {
   for (int i = 0; i < BLF_MAX_FONT; i++) {
-    FontBLF *font = global_font[i];
+    const FontBLF *font = global_font[i];
     if (font && (STREQ(font->name, name))) {
       return i;
     }
@@ -484,7 +484,7 @@ void BLF_batch_draw_end(void)
   g_batch.enabled = false;
 }
 
-static void blf_draw_gl__start(FontBLF *font)
+static void blf_draw_gl__start(const FontBLF *font)
 {
   /*
    * The pixmap alignment hack is handle
@@ -512,7 +512,7 @@ static void blf_draw_gl__start(FontBLF *font)
   }
 }
 
-static void blf_draw_gl__end(FontBLF *font)
+static void blf_draw_gl__end(const FontBLF *font)
 {
   if ((font->flags & (BLF_ROTATION | BLF_MATRIX | BLF_ASPECT)) != 0) {
     GPU_matrix_pop();

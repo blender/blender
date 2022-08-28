@@ -46,6 +46,9 @@ void blf_font_exit(void);
 
 bool blf_font_id_is_valid(int fontid);
 
+/**
+ * Return glyph id from char-code.
+ */
 uint blf_get_char_index(struct FontBLF *font, uint charcode);
 
 bool blf_ensure_face(struct FontBLF *font);
