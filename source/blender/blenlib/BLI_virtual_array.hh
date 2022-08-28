@@ -23,6 +23,8 @@
  * see of the increased compile time and binary size is worth it.
  */
 
+#include <optional>
+
 #include "BLI_any.hh"
 #include "BLI_array.hh"
 #include "BLI_index_mask.hh"
@@ -799,6 +801,18 @@ template<typename T> class VArrayCommon {
   {
     BLI_assert(this->is_single());
     const CommonVArrayInfo info = impl_->common_info();
+    return *static_cast<const T *>(info.data);
+  }
+
+  /**
+   * Return the value that is returned for every index, if the array is stored as a single value.
+   */
+  std::optional<T> get_if_single() const
+  {
+    const CommonVArrayInfo info = impl_->common_info();
+    if (info.type != CommonVArrayInfo::Type::Single) {
+      return std::nullopt;
+    }
     return *static_cast<const T *>(info.data);
   }
 

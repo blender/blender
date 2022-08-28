@@ -255,6 +255,12 @@ void CurvesGeometry::fill_curve_types(const IndexMask selection, const CurveType
     this->fill_curve_types(type);
     return;
   }
+  if (std::optional<int8_t> single_type = this->curve_types().get_if_single()) {
+    if (single_type == type) {
+      /* No need for an array if the types are already a single with the correct type. */
+      return;
+    }
+  }
   /* A potential performance optimization is only counting the changed indices. */
   this->curve_types_for_write().fill_indices(selection, type);
   this->update_curve_types();
