@@ -481,12 +481,15 @@ static int shaderfx_remove_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Object *ob = ED_object_active_context(C);
   ShaderFxData *fx = edit_shaderfx_property_get(op, ob, 0);
+  if (!fx) {
+    return OPERATOR_CANCELLED;
+  }
 
   /* Store name temporarily for report. */
   char name[MAX_NAME];
   strcpy(name, fx->name);
 
-  if (!fx || !ED_object_shaderfx_remove(op->reports, bmain, ob, fx)) {
+  if (!ED_object_shaderfx_remove(op->reports, bmain, ob, fx)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -671,7 +674,9 @@ static int shaderfx_copy_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_active_context(C);
   ShaderFxData *fx = edit_shaderfx_property_get(op, ob, 0);
-
+  if (!fx) {
+    return OPERATOR_CANCELLED;
+  }
   ShaderFxData *nfx = BKE_shaderfx_new(fx->type);
   if (!nfx) {
     return OPERATOR_CANCELLED;

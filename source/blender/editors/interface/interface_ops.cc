@@ -2353,6 +2353,9 @@ static bool ui_view_drop_poll(bContext *C)
 {
   const wmWindow *win = CTX_wm_window(C);
   const ARegion *region = CTX_wm_region(C);
+  if (region == nullptr) {
+    return false;
+  }
   const uiViewItemHandle *hovered_item = UI_region_views_find_item_at(region, win->eventstate->xy);
 
   return hovered_item != nullptr;
@@ -2401,6 +2404,9 @@ static void UI_OT_view_drop(wmOperatorType *ot)
 static bool ui_view_item_rename_poll(bContext *C)
 {
   const ARegion *region = CTX_wm_region(C);
+  if (region == nullptr) {
+    return false;
+  }
   const uiViewItemHandle *active_item = UI_region_views_find_active_item(region);
   return active_item != nullptr && UI_view_item_can_rename(active_item);
 }

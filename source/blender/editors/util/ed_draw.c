@@ -370,11 +370,13 @@ tSlider *ED_slider_create(struct bContext *C)
   slider->factor = 0.5;
 
   /* Add draw callback. Always in header. */
-  LISTBASE_FOREACH (ARegion *, region, &slider->area->regionbase) {
-    if (region->regiontype == RGN_TYPE_HEADER) {
-      slider->region_header = region;
-      slider->draw_handle = ED_region_draw_cb_activate(
-          region->type, slider_draw, slider, REGION_DRAW_POST_PIXEL);
+  if (slider->area) {
+    LISTBASE_FOREACH (ARegion *, region, &slider->area->regionbase) {
+      if (region->regiontype == RGN_TYPE_HEADER) {
+        slider->region_header = region;
+        slider->draw_handle = ED_region_draw_cb_activate(
+            region->type, slider_draw, slider, REGION_DRAW_POST_PIXEL);
+      }
     }
   }
 
@@ -465,7 +467,9 @@ void ED_slider_status_string_get(const struct tSlider *slider,
 void ED_slider_destroy(struct bContext *C, tSlider *slider)
 {
   /* Remove draw callback. */
-  ED_region_draw_cb_exit(slider->region_header->type, slider->draw_handle);
+  if (slider->draw_handle) {
+    ED_region_draw_cb_exit(slider->region_header->type, slider->draw_handle);
+  }
   ED_area_status_text(slider->area, NULL);
   ED_workspace_status_text(C, NULL);
   MEM_freeN(slider);
