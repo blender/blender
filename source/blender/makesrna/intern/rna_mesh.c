@@ -2301,6 +2301,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "MeshUVLoop", NULL);
   RNA_def_struct_sdna(srna, "MLoopUV");
+  RNA_def_struct_ui_text(srna, "Mesh UV Layer", "Layer of UV coordinates in a Mesh data-block");
   RNA_def_struct_path_func(srna, "rna_MeshUVLoop_path");
 
   prop = RNA_def_property(srna, "uv", PROP_FLOAT, PROP_XYZ);
