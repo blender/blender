@@ -280,6 +280,16 @@ static bool note_cmp_for_queue_fn(const void *a, const void *b)
 
 void WM_event_add_notifier_ex(wmWindowManager *wm, const wmWindow *win, uint type, void *reference)
 {
+  if (wm == nullptr) {
+    /* There may be some cases where e.g. `G_MAIN` is not actually the real current main, but some
+     * other temporary one (e.g. during liboverride processing over linked data), leading to null
+     * window manager.
+     *
+     * This is fairly bad and weak, but unfortunately RNA does not have any way to operate over
+     * another main than G_MAIN currently. */
+    return;
+  }
+
   wmNotifier note_test = {nullptr};
 
   note_test.window = win;
