@@ -1484,7 +1484,7 @@ void BKE_volume_grid_transform_matrix_set(struct VolumeGrid *volume_grid, const 
   grid->setTransform(std::make_shared<openvdb::math::Transform>(
       std::make_shared<openvdb::math::AffineMap>(mat_openvdb)));
 #else
-  UNUSED_VARS(grid, mat);
+  UNUSED_VARS(volume_grid, mat);
 #endif
 }
 
@@ -1590,6 +1590,7 @@ bool BKE_volume_grid_determinant_valid(const double determinant)
   /* Limit taken from openvdb/math/Maps.h. */
   return std::abs(determinant) >= 3.0 * openvdb::math::Tolerance<double>::value();
 #else
+  UNUSED_VARS(determinant);
   return true;
 #endif
 }
