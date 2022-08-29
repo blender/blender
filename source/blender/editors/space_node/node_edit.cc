@@ -29,6 +29,8 @@
 #include "BKE_scene.h"
 #include "BKE_workspace.h"
 
+#include "BLT_translation.h"
+
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
@@ -2442,7 +2444,7 @@ static int ntree_socket_add_exec(bContext *C, wmOperator *op)
   const eNodeSocketInOut in_out = (eNodeSocketInOut)RNA_enum_get(op->ptr, "in_out");
   ListBase *sockets = (in_out == SOCK_IN) ? &ntree->inputs : &ntree->outputs;
 
-  const char *default_name = (in_out == SOCK_IN) ? "Input" : "Output";
+  const char *default_name = (in_out == SOCK_IN) ? DATA_("Input") : DATA_("Output");
   bNodeSocket *active_sock = ntree_get_active_interface_socket(sockets);
 
   bNodeSocket *sock;
