@@ -329,20 +329,20 @@ void GPU_pbvh_mesh_buffers_update(PBVHGPUFormat *vbo_id,
       for (int col_i = 0; col_i < totcol; col_i++) {
         GPU_vertbuf_attr_get_raw_data(buffers->vert_buf, vbo_id->col[col_i], &col_step);
 
-        MPropCol *pcol = NULL;
-        MLoopCol *mcol = NULL;
+        const MPropCol *pcol = NULL;
+        const MLoopCol *mcol = NULL;
 
         GPUAttrRef *ref = vcol_refs + col_i;
         const CustomData *cdata = ref->domain == ATTR_DOMAIN_POINT ? &mesh->vdata : &mesh->ldata;
-        CustomDataLayer *layer = cdata->layers + ref->layer_idx;
+        const CustomDataLayer *layer = cdata->layers + ref->layer_idx;
 
         bool color_loops = ref->domain == ATTR_DOMAIN_CORNER;
 
         if (layer->type == CD_PROP_COLOR) {
-          pcol = (MPropCol *)layer->data;
+          pcol = (const MPropCol *)layer->data;
         }
         else {
-          mcol = (MLoopCol *)layer->data;
+          mcol = (const MLoopCol *)layer->data;
         }
 
         for (uint i = 0; i < buffers->face_indices_len; i++) {
@@ -364,7 +364,7 @@ void GPU_pbvh_mesh_buffers_update(PBVHGPUFormat *vbo_id,
             ushort scol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
 
             if (pcol) {
-              MPropCol *pcol2 = pcol + (color_loops ? loop_index : vtri[j]);
+              const MPropCol *pcol2 = pcol + (color_loops ? loop_index : vtri[j]);
 
               scol[0] = unit_float_to_ushort_clamp(pcol2->color[0]);
               scol[1] = unit_float_to_ushort_clamp(pcol2->color[1]);
@@ -1232,7 +1232,7 @@ static int gpu_pbvh_make_attr_offs(eAttrDomainMask domain_mask,
       continue;
     }
 
-    CustomDataLayer *cl = cdata->layers;
+    const CustomDataLayer *cl = cdata->layers;
 
     for (int i = 0; count < MAX_GPU_ATTR && i < cdata->totlayer; i++, cl++) {
       if ((CD_TYPE_AS_MASK(cl->type) & type_mask) && !(cl->flag & CD_FLAG_TEMPORARY)) {
@@ -1319,8 +1319,8 @@ bool GPU_pbvh_attribute_names_update(PBVHType pbvh_type,
 
       BKE_id_attribute_copy_domains_temp(ID_ME, vdata, NULL, ldata, NULL, NULL, &me_query.id);
 
-      CustomDataLayer *active_color_layer = BKE_id_attributes_active_color_get(&me_query.id);
-      CustomDataLayer *render_color_layer = BKE_id_attributes_render_color_get(&me_query.id);
+      const CustomDataLayer *active_color_layer = BKE_id_attributes_active_color_get(&me_query.id);
+      const CustomDataLayer *render_color_layer = BKE_id_attributes_render_color_get(&me_query.id);
       eAttrDomain active_color_domain = active_color_layer ?
                                             BKE_id_attribute_domain(&me_query.id,
                                                                     active_color_layer) :
@@ -1374,7 +1374,7 @@ bool GPU_pbvh_attribute_names_update(PBVHType pbvh_type,
     vbo_id->totuv = 0;
     if (pbvh_type == PBVH_FACES && ldata && CustomData_has_layer(ldata, CD_MLOOPUV)) {
       GPUAttrRef uv_layers[MAX_GPU_ATTR];
-      CustomDataLayer *active = NULL, *render = NULL;
+      const CustomDataLayer *active = NULL, *render = NULL;
 
       active = get_active_layer(ldata, CD_MLOOPUV);
       render = get_render_layer(ldata, CD_MLOOPUV);
@@ -1400,7 +1400,7 @@ bool GPU_pbvh_attribute_names_update(PBVHType pbvh_type,
         vbo_id->uv[i] = GPU_vertformat_attr_add(
             &vbo_id->format, "uvs", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-        CustomDataLayer *cl = ldata->layers + ref->layer_idx;
+        const CustomDataLayer *cl = ldata->layers + ref->layer_idx;
         bool is_active = ref->layer_idx == CustomData_get_active_layer_index(ldata, CD_MLOOPUV);
 
         DRW_cdlayer_attr_aliases_add(&vbo_id->format, "u", ldata, cl, cl == render, is_active);

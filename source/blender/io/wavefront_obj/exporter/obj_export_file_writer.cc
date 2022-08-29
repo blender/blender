@@ -255,7 +255,7 @@ void OBJWriter::write_vertex_coords(FormatHandler<eFileType::OBJ> &fh,
   const int tot_count = obj_mesh_data.tot_vertices();
 
   Mesh *mesh = obj_mesh_data.get_mesh();
-  CustomDataLayer *colors_layer = nullptr;
+  const CustomDataLayer *colors_layer = nullptr;
   if (write_colors) {
     colors_layer = BKE_id_attributes_active_color_get(&mesh->id);
   }

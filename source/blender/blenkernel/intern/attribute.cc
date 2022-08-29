@@ -187,9 +187,9 @@ static bool unique_name_cb(void *arg, const char *name)
       continue;
     }
 
-    CustomData *cdata = info[domain].customdata;
+    const CustomData *cdata = info[domain].customdata;
     for (int i = 0; i < cdata->totlayer; i++) {
-      CustomDataLayer *layer = cdata->layers + i;
+      const CustomDataLayer *layer = cdata->layers + i;
 
       if (STREQ(layer->name, name)) {
         return true;
@@ -493,10 +493,10 @@ void BKE_id_attributes_active_set(ID *id, CustomDataLayer *active_layer)
   int index = 0;
 
   for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
-    CustomData *customdata = info[domain].customdata;
+    const CustomData *customdata = info[domain].customdata;
     if (customdata) {
       for (int i = 0; i < customdata->totlayer; i++) {
-        CustomDataLayer *layer = &customdata->layers[i];
+        const CustomDataLayer *layer = &customdata->layers[i];
         if (layer == active_layer) {
           *BKE_id_attributes_active_index_p(id) = index;
           return;

@@ -275,7 +275,7 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
   ID *ob_data = static_cast<ID *>(ob->data);
-  CustomDataLayer *layer = BKE_id_attributes_active_get(ob_data);
+  const CustomDataLayer *layer = BKE_id_attributes_active_get(ob_data);
   const std::string name = layer->name;
 
   const ConvertAttributeMode mode = static_cast<ConvertAttributeMode>(
