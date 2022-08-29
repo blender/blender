@@ -128,7 +128,7 @@ static void transform_volume(GeoNodeExecParams &params,
                              TIP_("Volume scale is lower than permitted by OpenVDB"));
   }
 #else
-  UNUSED_VARS(volume, transform, depsgraph);
+  UNUSED_VARS(params, volume, transform, depsgraph);
 #endif
 }
 
