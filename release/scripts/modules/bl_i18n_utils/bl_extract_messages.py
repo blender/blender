@@ -907,6 +907,11 @@ def dump_template_messages(msgs, reports, settings):
                         reports, None, settings)
 
 
+def dump_addon_bl_info(msgs, reports, module, settings):
+    for prop in ('name', 'location', 'description'):
+        process_msg(msgs, settings.DEFAULT_CONTEXT, module.bl_info[prop], "Add-on " + module.bl_info['name'] + " info: " + prop, reports, None, settings)
+
+
 ##### Main functions! #####
 def dump_messages(do_messages, do_checks, settings):
     bl_ver = "Blender " + bpy.app.version_string
@@ -944,6 +949,13 @@ def dump_messages(do_messages, do_checks, settings):
 
     # Get strings from startup templates.
     dump_template_messages(msgs, reports, settings)
+
+    # Get strings from addons' bl_info.
+    import addon_utils
+    for module in addon_utils.modules():
+        if module.bl_info['support'] != 'OFFICIAL':
+            continue
+        dump_addon_bl_info(msgs, reports, module, settings)
 
     # Get strings from addons' categories.
     for uid, label, tip in bpy.types.WindowManager.addon_filter.keywords['items'](
@@ -1040,6 +1052,9 @@ def dump_addon_messages(module_name, do_checks, settings):
     # get strings from UI layout definitions text="..." args
     reports["check_ctxt"] = check_ctxt
     dump_py_messages(msgs, reports, {addon}, settings, addons_only=True)
+
+    # Get strings from the addon's bl_info
+    dump_addon_bl_info(msgs, reports, addon, settings)
 
     pot.unescape()  # Strings gathered in py/C source code may contain escaped chars...
     print_info(reports, pot)

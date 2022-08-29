@@ -1928,10 +1928,12 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
 
             if is_visible:
                 if search and not (
-                        (search in info["name"].lower()) or
+                        (search in info["name"].lower() or
+                         search in iface_(info["name"]).lower()) or
                         (info["author"] and (search in info["author"].lower())) or
-                        ((filter == "All") and (search in info["category"].lower()))
-                ):
+                        ((filter == "All") and (search in info["category"].lower() or
+                                                search in iface_(info["category"]).lower()))
+                        ):
                     continue
 
                 # Addon UI Code
@@ -1954,7 +1956,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
 
                 sub = row.row()
                 sub.active = is_enabled
-                sub.label(text="%s: %s" % (info["category"], info["name"]))
+                sub.label(text=iface_("%s: %s") % (iface_(info["category"]), iface_(info["name"])))
 
                 if info["warning"]:
                     sub.label(icon='ERROR')
@@ -1967,11 +1969,11 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                     if info["description"]:
                         split = colsub.row().split(factor=0.15)
                         split.label(text="Description:")
-                        split.label(text=info["description"])
+                        split.label(text=tip_(info["description"]))
                     if info["location"]:
                         split = colsub.row().split(factor=0.15)
                         split.label(text="Location:")
-                        split.label(text=info["location"])
+                        split.label(text=tip_(info["location"]))
                     if mod:
                         split = colsub.row().split(factor=0.15)
                         split.label(text="File:")
