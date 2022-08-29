@@ -435,10 +435,16 @@ if(NOT APPLE)
   option(WITH_CYCLES_CUBIN_COMPILER    "Build cubins with nvrtc based compiler instead of nvcc" OFF)
   option(WITH_CYCLES_CUDA_BUILD_SERIAL "Build cubins one after another (useful on machines with limited RAM)" OFF)
   option(WITH_CUDA_DYNLOAD             "Dynamically load CUDA libraries at runtime (for developers, makes cuda-gdb work)" ON)
+
+  set(OPTIX_ROOT_DIR                   "" CACHE PATH "Path to the OptiX SDK root directory, for building Cycles OptiX kernels.")
+  set(CYCLES_RUNTIME_OPTIX_ROOT_DIR    "" CACHE PATH "Path to the OptiX SDK root directory. When set, this path will be used at runtime to compile OptiX kernels.")
+
   mark_as_advanced(CYCLES_CUDA_BINARIES_ARCH)
   mark_as_advanced(WITH_CYCLES_CUBIN_COMPILER)
   mark_as_advanced(WITH_CYCLES_CUDA_BUILD_SERIAL)
   mark_as_advanced(WITH_CUDA_DYNLOAD)
+  mark_as_advanced(OPTIX_ROOT_DIR)
+  mark_as_advanced(CYCLES_RUNTIME_OPTIX_ROOT_DIR)
 endif()
 
 # AMD HIP

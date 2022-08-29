@@ -342,15 +342,29 @@ BVHLayoutMask OptiXDevice::get_bvh_layout_mask() const
   return BVH_LAYOUT_OPTIX;
 }
 
+static string get_optix_include_dir()
+{
+  const char *env_dir = getenv("OPTIX_ROOT_DIR");
+  const char *default_dir = CYCLES_RUNTIME_OPTIX_ROOT_DIR;
+
+  if (env_dir && env_dir[0]) {
+    const string env_include_dir = path_join(env_dir, "include");
+    return env_include_dir;
+  }
+  else if (default_dir[0]) {
+    const string default_include_dir = path_join(default_dir, "include");
+    return default_include_dir;
+  }
+
+  return string();
+}
+
 string OptiXDevice::compile_kernel_get_common_cflags(const uint kernel_features)
 {
   string common_cflags = CUDADevice::compile_kernel_get_common_cflags(kernel_features);
 
   /* Add OptiX SDK include directory to include paths. */
-  const char *optix_sdk_path = getenv("OPTIX_ROOT_DIR");
-  if (optix_sdk_path) {
-    common_cflags += string_printf(" -I\"%s/include\"", optix_sdk_path);
-  }
+  common_cflags += string_printf(" -I\"%s/include\"", get_optix_include_dir().c_str());
 
   /* Specialization for shader raytracing. */
   if (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) {
@@ -460,10 +474,19 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
                              "lib/kernel_optix_shader_raytrace.ptx" :
                              "lib/kernel_optix.ptx");
     if (use_adaptive_compilation() || path_file_size(ptx_filename) == -1) {
-      if (!getenv("OPTIX_ROOT_DIR")) {
+      std::string optix_include_dir = get_optix_include_dir();
+      if (optix_include_dir.empty()) {
         set_error(
-            "Missing OPTIX_ROOT_DIR environment variable (which must be set with the path to "
-            "the Optix SDK to be able to compile Optix kernels on demand).");
+            "Unable to compile OptiX kernels at runtime. Set OPTIX_ROOT_DIR environment variable "
+            "to a directory containing the OptiX SDK.");
+        return false;
+      }
+      else if (!path_is_directory(optix_include_dir)) {
+        set_error(string_printf(
+            "OptiX headers not found at %s, unable to compile OptiX kernels at runtime. Install "
+            "OptiX SDK in the specified location, or set OPTIX_ROOT_DIR environment variable to a "
+            "directory containing the OptiX SDK.",
+            optix_include_dir.c_str()));
         return false;
       }
       ptx_filename = compile_kernel(
