@@ -10,7 +10,6 @@
 
 #include "BLI_map.hh"
 #include "BLI_math_vec_types.hh"
-#include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_node_types.h"
@@ -75,9 +74,9 @@ class ShaderNodetreeWrap {
    * \param from_node_pos_x: 0 to 4 value as per nodetree arrangement.
    */
   void link_sockets(bNode *from_node,
-                    StringRef from_node_id,
+                    const char *from_node_id,
                     bNode *to_node,
-                    StringRef to_node_id,
+                    const char *to_node_id,
                     const int from_node_pos_x);
   /**
    * Set values of sockets in p-BSDF node of the nodetree.

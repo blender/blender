@@ -143,7 +143,7 @@ static void write_mesh_objects(Vector<std::unique_ptr<OBJMesh>> exportable_as_me
    * we have to have the output text buffer for each object,
    * and write them all into the file at the end. */
   size_t count = exportable_as_mesh.size();
-  std::vector<FormatHandler<eFileType::OBJ>> buffers(count);
+  std::vector<FormatHandler> buffers(count);
 
   /* Serial: gather material indices, ensure normals & edges. */
   Vector<Vector<int>> mtlindices;
@@ -242,7 +242,7 @@ static void write_mesh_objects(Vector<std::unique_ptr<OBJMesh>> exportable_as_me
 static void write_nurbs_curve_objects(const Vector<std::unique_ptr<OBJCurve>> &exportable_as_nurbs,
                                       const OBJWriter &obj_writer)
 {
-  FormatHandler<eFileType::OBJ> fh;
+  FormatHandler fh;
   /* #OBJCurve doesn't have any dynamically allocated memory, so it's fine
    * to wait for #blender::Vector to clean the objects up. */
   for (const std::unique_ptr<OBJCurve> &obj_curve : exportable_as_nurbs) {

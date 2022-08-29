@@ -592,36 +592,31 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
   add_default_mtl_library();
 }
 
-static eMTLSyntaxElement mtl_line_start_to_enum(const char *&p, const char *end)
+static MTLTexMapType mtl_line_start_to_texture_type(const char *&p, const char *end)
 {
   if (parse_keyword(p, end, "map_Kd")) {
-    return eMTLSyntaxElement::map_Kd;
+    return MTLTexMapType::Kd;
   }
   if (parse_keyword(p, end, "map_Ks")) {
-    return eMTLSyntaxElement::map_Ks;
+    return MTLTexMapType::Ks;
   }
   if (parse_keyword(p, end, "map_Ns")) {
-    return eMTLSyntaxElement::map_Ns;
+    return MTLTexMapType::Ns;
   }
   if (parse_keyword(p, end, "map_d")) {
-    return eMTLSyntaxElement::map_d;
+    return MTLTexMapType::d;
   }
-  if (parse_keyword(p, end, "refl")) {
-    return eMTLSyntaxElement::map_refl;
-  }
-  if (parse_keyword(p, end, "map_refl")) {
-    return eMTLSyntaxElement::map_refl;
+  if (parse_keyword(p, end, "refl") || parse_keyword(p, end, "map_refl")) {
+    return MTLTexMapType::refl;
   }
   if (parse_keyword(p, end, "map_Ke")) {
-    return eMTLSyntaxElement::map_Ke;
+    return MTLTexMapType::Ke;
   }
-  if (parse_keyword(p, end, "bump")) {
-    return eMTLSyntaxElement::map_Bump;
+  if (parse_keyword(p, end, "bump") || parse_keyword(p, end, "map_Bump") ||
+      parse_keyword(p, end, "map_bump")) {
+    return MTLTexMapType::bump;
   }
-  if (parse_keyword(p, end, "map_Bump") || parse_keyword(p, end, "map_bump")) {
-    return eMTLSyntaxElement::map_Bump;
-  }
-  return eMTLSyntaxElement::string;
+  return MTLTexMapType::Count;
 }
 
 static const std::pair<StringRef, int> unsupported_texture_options[] = {
@@ -639,7 +634,7 @@ static const std::pair<StringRef, int> unsupported_texture_options[] = {
 static bool parse_texture_option(const char *&p,
                                  const char *end,
                                  MTLMaterial *material,
-                                 tex_map_XX &tex_map)
+                                 MTLTexMap &tex_map)
 {
   p = drop_whitespace(p, end);
   if (parse_keyword(p, end, "-o")) {
@@ -693,13 +688,13 @@ static void parse_texture_map(const char *p,
   if (!is_map && !is_refl && !is_bump) {
     return;
   }
-  eMTLSyntaxElement key = mtl_line_start_to_enum(p, end);
-  if (key == eMTLSyntaxElement::string || !material->texture_maps.contains(key)) {
+  MTLTexMapType key = mtl_line_start_to_texture_type(p, end);
+  if (key == MTLTexMapType::Count) {
     /* No supported texture map found. */
     std::cerr << "OBJ import: MTL texture map type not supported: '" << line << "'" << std::endl;
     return;
   }
-  tex_map_XX &tex_map = material->texture_maps.lookup(key);
+  MTLTexMap &tex_map = material->tex_map_of_type(key);
   tex_map.mtl_dir_path = mtl_dir_path;
 
   /* Parse texture map options. */

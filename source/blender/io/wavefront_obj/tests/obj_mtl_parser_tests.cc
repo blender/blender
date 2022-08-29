@@ -58,9 +58,9 @@ class obj_mtl_parser_test : public testing::Test {
       EXPECT_NEAR(exp.d, got.d, tol);
       EXPECT_NEAR(exp.map_Bump_strength, got.map_Bump_strength, tol);
       EXPECT_EQ(exp.illum, got.illum);
-      for (const auto &it : exp.texture_maps.items()) {
-        const tex_map_XX &exp_tex = it.value;
-        const tex_map_XX &got_tex = got.texture_maps.lookup(it.key);
+      for (int key = 0; key < (int)MTLTexMapType::Count; key++) {
+        const MTLTexMap &exp_tex = exp.texture_maps[key];
+        const MTLTexMap &got_tex = got.texture_maps[key];
         EXPECT_STREQ(exp_tex.image_path.c_str(), got_tex.image_path.c_str());
         EXPECT_V3_NEAR(exp_tex.translation, got_tex.translation, tol);
         EXPECT_V3_NEAR(exp_tex.scale, got_tex.scale, tol);
@@ -113,8 +113,8 @@ TEST_F(obj_mtl_parser_test, string_newlines_whitespace)
   mat[4].Kd = {0.6f, 0.7f, 0.8f};
   mat[5].name = "crlf_ending";
   mat[5].Ns = 5.0f;
-  mat[5].tex_map_of_type(eMTLSyntaxElement::map_Kd).image_path = "sometex_d.png";
-  mat[5].tex_map_of_type(eMTLSyntaxElement::map_Ks).image_path = "sometex_s_spaces_after_name.png";
+  mat[5].tex_map_of_type(MTLTexMapType::Kd).image_path = "sometex_d.png";
+  mat[5].tex_map_of_type(MTLTexMapType::Ks).image_path = "sometex_s_spaces_after_name.png";
   check_string(text, mat, ARRAY_SIZE(mat));
 }
 
@@ -175,13 +175,13 @@ TEST_F(obj_mtl_parser_test, materials)
   mat[1].illum = 2;
   mat[1].map_Bump_strength = 1;
   {
-    tex_map_XX &kd = mat[1].tex_map_of_type(eMTLSyntaxElement::map_Kd);
+    MTLTexMap &kd = mat[1].tex_map_of_type(MTLTexMapType::Kd);
     kd.image_path = "texture.png";
-    tex_map_XX &ns = mat[1].tex_map_of_type(eMTLSyntaxElement::map_Ns);
+    MTLTexMap &ns = mat[1].tex_map_of_type(MTLTexMapType::Ns);
     ns.image_path = "sometexture_Roughness.png";
-    tex_map_XX &refl = mat[1].tex_map_of_type(eMTLSyntaxElement::map_refl);
+    MTLTexMap &refl = mat[1].tex_map_of_type(MTLTexMapType::refl);
     refl.image_path = "sometexture_Metallic.png";
-    tex_map_XX &bump = mat[1].tex_map_of_type(eMTLSyntaxElement::map_Bump);
+    MTLTexMap &bump = mat[1].tex_map_of_type(MTLTexMapType::bump);
     bump.image_path = "sometexture_Normal.png";
   }
 
@@ -202,13 +202,13 @@ TEST_F(obj_mtl_parser_test, materials)
   mat[3].Ns = 800;
   mat[3].map_Bump_strength = 0.5f;
   {
-    tex_map_XX &kd = mat[3].tex_map_of_type(eMTLSyntaxElement::map_Kd);
+    MTLTexMap &kd = mat[3].tex_map_of_type(MTLTexMapType::Kd);
     kd.image_path = "someHatTexture_BaseColor.jpg";
-    tex_map_XX &ns = mat[3].tex_map_of_type(eMTLSyntaxElement::map_Ns);
+    MTLTexMap &ns = mat[3].tex_map_of_type(MTLTexMapType::Ns);
     ns.image_path = "someHatTexture_Roughness.jpg";
-    tex_map_XX &refl = mat[3].tex_map_of_type(eMTLSyntaxElement::map_refl);
+    MTLTexMap &refl = mat[3].tex_map_of_type(MTLTexMapType::refl);
     refl.image_path = "someHatTexture_Metalness.jpg";
-    tex_map_XX &bump = mat[3].tex_map_of_type(eMTLSyntaxElement::map_Bump);
+    MTLTexMap &bump = mat[3].tex_map_of_type(MTLTexMapType::bump);
     bump.image_path = "someHatTexture_Normal.jpg";
   }
 
@@ -222,30 +222,30 @@ TEST_F(obj_mtl_parser_test, materials)
   mat[4].d = 0.5;
   mat[4].map_Bump_strength = 0.1f;
   {
-    tex_map_XX &kd = mat[4].tex_map_of_type(eMTLSyntaxElement::map_Kd);
+    MTLTexMap &kd = mat[4].tex_map_of_type(MTLTexMapType::Kd);
     kd.image_path = "sometex_d.png";
-    tex_map_XX &ns = mat[4].tex_map_of_type(eMTLSyntaxElement::map_Ns);
+    MTLTexMap &ns = mat[4].tex_map_of_type(MTLTexMapType::Ns);
     ns.image_path = "sometex_ns.psd";
-    tex_map_XX &refl = mat[4].tex_map_of_type(eMTLSyntaxElement::map_refl);
+    MTLTexMap &refl = mat[4].tex_map_of_type(MTLTexMapType::refl);
     refl.image_path = "clouds.tiff";
     refl.scale = {1.5f, 2.5f, 3.5f};
     refl.translation = {4.5f, 5.5f, 6.5f};
     refl.projection_type = SHD_PROJ_SPHERE;
-    tex_map_XX &bump = mat[4].tex_map_of_type(eMTLSyntaxElement::map_Bump);
+    MTLTexMap &bump = mat[4].tex_map_of_type(MTLTexMapType::bump);
     bump.image_path = "somebump.tga";
     bump.scale = {3, 4, 5};
   }
 
   mat[5].name = "Parser_ScaleOffset_Test";
   {
-    tex_map_XX &kd = mat[5].tex_map_of_type(eMTLSyntaxElement::map_Kd);
+    MTLTexMap &kd = mat[5].tex_map_of_type(MTLTexMapType::Kd);
     kd.translation = {2.5f, 0.0f, 0.0f};
     kd.image_path = "OffsetOneValue.png";
-    tex_map_XX &ks = mat[5].tex_map_of_type(eMTLSyntaxElement::map_Ks);
+    MTLTexMap &ks = mat[5].tex_map_of_type(MTLTexMapType::Ks);
     ks.scale = {1.5f, 2.5f, 1.0f};
     ks.translation = {3.5f, 4.5f, 0.0f};
     ks.image_path = "ScaleOffsetBothTwovalues.png";
-    tex_map_XX &ns = mat[5].tex_map_of_type(eMTLSyntaxElement::map_Ns);
+    MTLTexMap &ns = mat[5].tex_map_of_type(MTLTexMapType::Ns);
     ns.scale = {0.5f, 1.0f, 1.0f};
     ns.image_path = "1.Value.png";
   }

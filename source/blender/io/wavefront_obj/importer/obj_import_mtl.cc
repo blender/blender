@@ -17,8 +17,6 @@
 
 #include "NOD_shader.h"
 
-/* TODO: move eMTLSyntaxElement out of following file into a more neutral place */
-#include "obj_export_io.hh"
 #include "obj_import_mtl.hh"
 #include "obj_import_string_utils.hh"
 
@@ -29,12 +27,12 @@ namespace blender::io::obj {
  * Only float value(s) can be set using this method.
  */
 static void set_property_of_socket(eNodeSocketDatatype property_type,
-                                   StringRef socket_id,
+                                   const char *socket_id,
                                    Span<float> value,
                                    bNode *r_node)
 {
   BLI_assert(r_node);
-  bNodeSocket *socket{nodeFindSocket(r_node, SOCK_IN, socket_id.data())};
+  bNodeSocket *socket{nodeFindSocket(r_node, SOCK_IN, socket_id)};
   BLI_assert(socket && socket->type == property_type);
   switch (property_type) {
     case SOCK_FLOAT: {
@@ -95,7 +93,7 @@ static Image *create_placeholder_image(Main *bmain, const std::string &path)
   return image;
 }
 
-static Image *load_texture_image(Main *bmain, const tex_map_XX &tex_map, bool relative_paths)
+static Image *load_texture_image(Main *bmain, const MTLTexMap &tex_map, bool relative_paths)
 {
   Image *image = nullptr;
 
@@ -206,15 +204,15 @@ std::pair<float, float> ShaderNodetreeWrap::set_node_locations(const int pos_x)
 }
 
 void ShaderNodetreeWrap::link_sockets(bNode *from_node,
-                                      StringRef from_node_id,
+                                      const char *from_node_id,
                                       bNode *to_node,
-                                      StringRef to_node_id,
+                                      const char *to_node_id,
                                       const int from_node_pos_x)
 {
   std::tie(from_node->locx, from_node->locy) = set_node_locations(from_node_pos_x);
   std::tie(to_node->locx, to_node->locy) = set_node_locations(from_node_pos_x + 1);
-  bNodeSocket *from_sock{nodeFindSocket(from_node, SOCK_OUT, from_node_id.data())};
-  bNodeSocket *to_sock{nodeFindSocket(to_node, SOCK_IN, to_node_id.data())};
+  bNodeSocket *from_sock{nodeFindSocket(from_node, SOCK_OUT, from_node_id)};
+  bNodeSocket *to_sock{nodeFindSocket(to_node, SOCK_IN, to_node_id)};
   BLI_assert(from_sock && to_sock);
   nodeAddLink(nodetree_.get(), from_node, from_sock, to_node, to_sock);
 }
@@ -338,7 +336,7 @@ void ShaderNodetreeWrap::set_bsdf_socket_values(Material *mat)
   if (emission_color.x >= 0 && emission_color.y >= 0 && emission_color.z >= 0) {
     set_property_of_socket(SOCK_RGBA, "Emission", {emission_color, 3}, bsdf_);
   }
-  if (mtl_mat_.tex_map_of_type(eMTLSyntaxElement::map_Ke).is_valid()) {
+  if (mtl_mat_.tex_map_of_type(MTLTexMapType::Ke).is_valid()) {
     set_property_of_socket(SOCK_FLOAT, "Emission Strength", {1.0f}, bsdf_);
   }
   set_property_of_socket(SOCK_FLOAT, "Specular", {specular}, bsdf_);
@@ -359,38 +357,36 @@ void ShaderNodetreeWrap::set_bsdf_socket_values(Material *mat)
 
 void ShaderNodetreeWrap::add_image_textures(Main *bmain, Material *mat, bool relative_paths)
 {
-  for (const Map<const eMTLSyntaxElement, tex_map_XX>::Item texture_map :
-       mtl_mat_.texture_maps.items()) {
-    if (!texture_map.value.is_valid()) {
+  for (int key = 0; key < (int)MTLTexMapType::Count; ++key) {
+    const MTLTexMap &value = mtl_mat_.texture_maps[key];
+    if (!value.is_valid()) {
       /* No Image texture node of this map type can be added to this material. */
       continue;
     }
 
     bNode *image_texture = add_node_to_tree(SH_NODE_TEX_IMAGE);
     BLI_assert(image_texture);
-    Image *image = load_texture_image(bmain, texture_map.value, relative_paths);
+    Image *image = load_texture_image(bmain, value, relative_paths);
     if (image == nullptr) {
       continue;
     }
     image_texture->id = &image->id;
-    static_cast<NodeTexImage *>(image_texture->storage)->projection =
-        texture_map.value.projection_type;
+    static_cast<NodeTexImage *>(image_texture->storage)->projection = value.projection_type;
 
     /* Add normal map node if needed. */
     bNode *normal_map = nullptr;
-    if (texture_map.key == eMTLSyntaxElement::map_Bump) {
+    if (key == (int)MTLTexMapType::bump) {
       normal_map = add_node_to_tree(SH_NODE_NORMAL_MAP);
       const float bump = std::max(0.0f, mtl_mat_.map_Bump_strength);
       set_property_of_socket(SOCK_FLOAT, "Strength", {bump}, normal_map);
     }
 
     /* Add UV mapping & coordinate nodes only if needed. */
-    if (texture_map.value.translation != float3(0, 0, 0) ||
-        texture_map.value.scale != float3(1, 1, 1)) {
+    if (value.translation != float3(0, 0, 0) || value.scale != float3(1, 1, 1)) {
       bNode *mapping = add_node_to_tree(SH_NODE_MAPPING);
       bNode *texture_coordinate = add_node_to_tree(SH_NODE_TEX_COORD);
-      set_property_of_socket(SOCK_VECTOR, "Location", {texture_map.value.translation, 3}, mapping);
-      set_property_of_socket(SOCK_VECTOR, "Scale", {texture_map.value.scale, 3}, mapping);
+      set_property_of_socket(SOCK_VECTOR, "Location", {value.translation, 3}, mapping);
+      set_property_of_socket(SOCK_VECTOR, "Scale", {value.scale, 3}, mapping);
 
       link_sockets(texture_coordinate, "UV", mapping, "Vector", 0);
       link_sockets(mapping, "Vector", image_texture, "Vector", 1);
@@ -400,12 +396,12 @@ void ShaderNodetreeWrap::add_image_textures(Main *bmain, Material *mat, bool rel
       link_sockets(image_texture, "Color", normal_map, "Color", 2);
       link_sockets(normal_map, "Normal", bsdf_, "Normal", 3);
     }
-    else if (texture_map.key == eMTLSyntaxElement::map_d) {
-      link_sockets(image_texture, "Alpha", bsdf_, texture_map.value.dest_socket_id, 2);
+    else if (key == (int)MTLTexMapType::d) {
+      link_sockets(image_texture, "Alpha", bsdf_, tex_map_type_to_socket_id[key], 2);
       mat->blend_method = MA_BM_BLEND;
     }
     else {
-      link_sockets(image_texture, "Color", bsdf_, texture_map.value.dest_socket_id, 2);
+      link_sockets(image_texture, "Color", bsdf_, tex_map_type_to_socket_id[key], 2);
     }
   }
 }

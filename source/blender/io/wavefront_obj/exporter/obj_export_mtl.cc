@@ -22,6 +22,18 @@
 
 namespace blender::io::obj {
 
+const char *tex_map_type_to_socket_id[] = {
+    "Base Color",
+    "Specular",
+    "Roughness",
+    "Alpha",
+    "Metallic",
+    "Emission",
+    "Normal",
+};
+BLI_STATIC_ASSERT(ARRAY_SIZE(tex_map_type_to_socket_id) == (int)MTLTexMapType::Count,
+                  "array size mismatch");
+
 /**
  * Copy a float property of the given type from the bNode to given buffer.
  */
@@ -73,7 +85,7 @@ static void copy_property_from_node(const eNodeSocketDatatype property_type,
  */
 static void linked_sockets_to_dest_id(const bNode *dest_node,
                                       const nodes::NodeTreeRef &node_tree,
-                                      StringRefNull dest_socket_id,
+                                      const char *dest_socket_id,
                                       Vector<const nodes::OutputSocketRef *> &r_linked_sockets)
 {
   r_linked_sockets.clear();
@@ -84,7 +96,7 @@ static void linked_sockets_to_dest_id(const bNode *dest_node,
   Span<const nodes::InputSocketRef *> dest_inputs = object_dest_nodes.first()->inputs();
   const nodes::InputSocketRef *dest_socket = nullptr;
   for (const nodes::InputSocketRef *curr_socket : dest_inputs) {
-    if (STREQ(curr_socket->bsocket()->identifier, dest_socket_id.c_str())) {
+    if (STREQ(curr_socket->bsocket()->identifier, dest_socket_id)) {
       dest_socket = curr_socket;
       break;
     }
@@ -269,12 +281,12 @@ static void store_image_textures(const nodes::NodeRef *bsdf_node,
    * - finding "Strength" property of the node for `-bm` option.
    */
 
-  for (Map<const eMTLSyntaxElement, tex_map_XX>::MutableItem texture_map :
-       r_mtl_mat.texture_maps.items()) {
+  for (int key = 0; key < (int)MTLTexMapType::Count; ++key) {
+    MTLTexMap &value = r_mtl_mat.texture_maps[key];
     Vector<const nodes::OutputSocketRef *> linked_sockets;
     const bNode *normal_map_node{nullptr};
 
-    if (texture_map.key == eMTLSyntaxElement::map_Bump) {
+    if (key == (int)MTLTexMapType::bump) {
       /* Find sockets linked to destination "Normal" socket in P-BSDF node. */
       linked_sockets_to_dest_id(bnode, *node_tree, "Normal", linked_sockets);
       /* Among the linked sockets, find Normal Map shader node. */
@@ -285,7 +297,7 @@ static void store_image_textures(const nodes::NodeRef *bsdf_node,
     }
     else {
       /* Skip emission map if emission strength is zero. */
-      if (texture_map.key == eMTLSyntaxElement::map_Ke) {
+      if (key == (int)MTLTexMapType::Ke) {
         float emission_strength = 0.0f;
         copy_property_from_node(SOCK_FLOAT, bnode, "Emission Strength", {&emission_strength, 1});
         if (emission_strength == 0.0f) {
@@ -293,8 +305,7 @@ static void store_image_textures(const nodes::NodeRef *bsdf_node,
         }
       }
       /* Find sockets linked to the destination socket of interest, in P-BSDF node. */
-      linked_sockets_to_dest_id(
-          bnode, *node_tree, texture_map.value.dest_socket_id, linked_sockets);
+      linked_sockets_to_dest_id(bnode, *node_tree, tex_map_type_to_socket_id[key], linked_sockets);
     }
 
     /* Among the linked sockets, find Image Texture shader node. */
@@ -317,10 +328,10 @@ static void store_image_textures(const nodes::NodeRef *bsdf_node,
     }
     /* Texture transform options. Only translation (origin offset, "-o") and scale
      * ("-o") are supported. */
-    copy_property_from_node(SOCK_VECTOR, mapping, "Location", {texture_map.value.translation, 3});
-    copy_property_from_node(SOCK_VECTOR, mapping, "Scale", {texture_map.value.scale, 3});
+    copy_property_from_node(SOCK_VECTOR, mapping, "Location", {value.translation, 3});
+    copy_property_from_node(SOCK_VECTOR, mapping, "Scale", {value.scale, 3});
 
-    texture_map.value.image_path = tex_image_filepath;
+    value.image_path = tex_image_filepath;
   }
 }
 
