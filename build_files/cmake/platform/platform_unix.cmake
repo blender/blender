@@ -653,46 +653,92 @@ endif()
 
 if(WITH_GHOST_WAYLAND)
   find_package(PkgConfig)
-  pkg_check_modules(wayland-client REQUIRED wayland-client>=1.12)
-  pkg_check_modules(wayland-egl REQUIRED wayland-egl)
-  pkg_check_modules(wayland-scanner REQUIRED wayland-scanner)
-  pkg_check_modules(xkbcommon REQUIRED xkbcommon)
-  pkg_check_modules(wayland-cursor REQUIRED wayland-cursor)
+  pkg_check_modules(wayland-client wayland-client>=1.12)
+  pkg_check_modules(wayland-egl wayland-egl)
+  pkg_check_modules(wayland-scanner wayland-scanner)
+  pkg_check_modules(xkbcommon xkbcommon)
+  pkg_check_modules(wayland-cursor wayland-cursor)
+  pkg_check_modules(wayland-protocols wayland-protocols>=1.15)
 
-  if(WITH_GHOST_WAYLAND_DBUS)
-    pkg_check_modules(dbus REQUIRED dbus-1)
-  endif()
-
-  if(WITH_GHOST_WAYLAND_LIBDECOR)
-    pkg_check_modules(libdecor REQUIRED libdecor-0>=0.1)
-  endif()
-
-  list(APPEND PLATFORM_LINKLIBS
-    ${xkbcommon_LINK_LIBRARIES}
-  )
-
-  if(NOT WITH_GHOST_WAYLAND_DYNLOAD)
-    list(APPEND PLATFORM_LINKLIBS
-      ${wayland-client_LINK_LIBRARIES}
-      ${wayland-egl_LINK_LIBRARIES}
-      ${wayland-cursor_LINK_LIBRARIES}
+  if(${wayland-protocols_FOUND})
+    pkg_get_variable(WAYLAND_PROTOCOLS_DIR wayland-protocols pkgdatadir)
+  else()
+    # CentOS 7 packages have too old a version, a newer version exist in the
+    # precompiled libraries.
+    find_path(WAYLAND_PROTOCOLS_DIR
+      NAMES unstable/xdg-decoration/xdg-decoration-unstable-v1.xml
+      PATH_SUFFIXES share/wayland-protocols
+      PATHS ${LIBDIR}/wayland-protocols
     )
+
+    if(EXISTS ${WAYLAND_PROTOCOLS_DIR})
+      set(wayland-protocols_FOUND ON)
+    endif()
   endif()
 
-  if(WITH_GHOST_WAYLAND_DBUS)
+  if (NOT ${wayland-client_FOUND})
+    message(STATUS "wayland-client not found, disabling WITH_GHOST_WAYLAND")
+    set(WITH_GHOST_WAYLAND OFF)
+  endif()
+  if (NOT ${wayland-egl_FOUND})
+    message(STATUS "wayland-egl not found, disabling WITH_GHOST_WAYLAND")
+    set(WITH_GHOST_WAYLAND OFF)
+  endif()
+  if (NOT ${wayland-scanner_FOUND})
+    message(STATUS "wayland-scanner not found, disabling WITH_GHOST_WAYLAND")
+    set(WITH_GHOST_WAYLAND OFF)
+  endif()
+  if (NOT ${wayland-cursor_FOUND})
+    message(STATUS "wayland-cursor not found, disabling WITH_GHOST_WAYLAND")
+    set(WITH_GHOST_WAYLAND OFF)
+  endif()
+  if (NOT ${wayland-protocols_FOUND})
+    message(STATUS "wayland-protocols not found, disabling WITH_GHOST_WAYLAND")
+    set(WITH_GHOST_WAYLAND OFF)
+  endif()
+  if (NOT ${xkbcommon_FOUND})
+    message(STATUS "xkbcommon not found, disabling WITH_GHOST_WAYLAND")
+    set(WITH_GHOST_WAYLAND OFF)
+  endif()
+
+  if(WITH_GHOST_WAYLAND)
+    if(WITH_GHOST_WAYLAND_DBUS)
+      pkg_check_modules(dbus REQUIRED dbus-1)
+    endif()
+
+    if(WITH_GHOST_WAYLAND_LIBDECOR)
+      pkg_check_modules(libdecor REQUIRED libdecor-0>=0.1)
+    endif()
+
     list(APPEND PLATFORM_LINKLIBS
-      ${dbus_LINK_LIBRARIES}
+      ${xkbcommon_LINK_LIBRARIES}
     )
-    add_definitions(-DWITH_GHOST_WAYLAND_DBUS)
-  endif()
 
-  if(WITH_GHOST_WAYLAND_LIBDECOR)
     if(NOT WITH_GHOST_WAYLAND_DYNLOAD)
       list(APPEND PLATFORM_LINKLIBS
-        ${libdecor_LIBRARIES}
+        ${wayland-client_LINK_LIBRARIES}
+        ${wayland-egl_LINK_LIBRARIES}
+        ${wayland-cursor_LINK_LIBRARIES}
       )
     endif()
-    add_definitions(-DWITH_GHOST_WAYLAND_LIBDECOR)
+
+    if(WITH_GHOST_WAYLAND_DBUS)
+      list(APPEND PLATFORM_LINKLIBS
+        ${dbus_LINK_LIBRARIES}
+      )
+      add_definitions(-DWITH_GHOST_WAYLAND_DBUS)
+    endif()
+
+    if(WITH_GHOST_WAYLAND_LIBDECOR)
+      if(NOT WITH_GHOST_WAYLAND_DYNLOAD)
+        list(APPEND PLATFORM_LINKLIBS
+          ${libdecor_LIBRARIES}
+        )
+      endif()
+      add_definitions(-DWITH_GHOST_WAYLAND_LIBDECOR)
+    endif()
+
+    pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
   endif()
 endif()
 
