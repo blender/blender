@@ -137,6 +137,14 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
+  const double3 scale_fac = double3(bounds_max - bounds_min) / double3(resolution - 1);
+  if (!BKE_volume_grid_determinant_valid(scale_fac.x * scale_fac.y * scale_fac.z)) {
+    params.error_message_add(NodeWarningType::Warning,
+                             TIP_("Volume scale is lower than permitted by OpenVDB"));
+    params.set_default_remaining_outputs();
+    return;
+  }
+
   Field<float> input_field = params.extract_input<Field<float>>("Density");
 
   /* Evaluate input field on a 3D grid. */
@@ -157,8 +165,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   openvdb::tools::copyFromDense(dense_grid, *grid, 0.0f);
 
   grid->transform().preTranslate(openvdb::math::Vec3<float>(-0.5f));
-  const float3 scale_fac = (bounds_max - bounds_min) / float3(resolution - 1);
-  grid->transform().postScale(openvdb::math::Vec3<float>(scale_fac.x, scale_fac.y, scale_fac.z));
+  grid->transform().postScale(openvdb::math::Vec3<double>(scale_fac.x, scale_fac.y, scale_fac.z));
   grid->transform().postTranslate(
       openvdb::math::Vec3<float>(bounds_min.x, bounds_min.y, bounds_min.z));
 
