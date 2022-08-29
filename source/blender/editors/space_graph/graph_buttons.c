@@ -226,15 +226,15 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
 
   /* color settings */
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, &fcu_ptr, "color_mode", 0, "Display Color", ICON_NONE);
+  uiItemR(col, &fcu_ptr, "color_mode", 0, IFACE_("Display Color"), ICON_NONE);
 
   if (fcu->color_mode == FCURVE_COLOR_CUSTOM) {
-    uiItemR(col, &fcu_ptr, "color", 0, "Color", ICON_NONE);
+    uiItemR(col, &fcu_ptr, "color", 0, IFACE_("Color"), ICON_NONE);
   }
 
   /* smoothing setting */
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, &fcu_ptr, "auto_smoothing", 0, "Handle Smoothing", ICON_NONE);
+  uiItemR(col, &fcu_ptr, "auto_smoothing", 0, IFACE_("Handle Smoothing"), ICON_NONE);
 
   MEM_freeN(ale);
 }

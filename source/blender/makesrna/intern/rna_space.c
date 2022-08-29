@@ -3546,6 +3546,7 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "dt_uvstretch");
   RNA_def_property_enum_items(prop, dt_uvstretch_items);
   RNA_def_property_ui_text(prop, "Display Stretch Type", "Type of stretch to display");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MESH);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
   prop = RNA_def_property(srna, "show_modified_edges", PROP_BOOLEAN, PROP_NONE);

@@ -1418,6 +1418,7 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 
   /* properties */
   prop = ot->prop = RNA_def_enum(ot->srna, "type", prop_similar_types, SIMVERT_NORMAL, "Type", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MESH);
   RNA_def_enum_funcs(prop, select_similar_type_itemf);
 
   RNA_def_enum(ot->srna, "compare", prop_similar_compare_types, SIM_CMP_EQ, "Compare", "");

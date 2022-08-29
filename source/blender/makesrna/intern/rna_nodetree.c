@@ -8065,6 +8065,7 @@ static void def_cmp_lensdist(StructRNA *srna)
   prop = RNA_def_property(srna, "use_jitter", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "jit", 1);
   RNA_def_property_ui_text(prop, "Jitter", "Enable/disable jittering (faster, but also noisier)");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_fit", PROP_BOOLEAN, PROP_NONE);

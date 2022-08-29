@@ -1571,6 +1571,7 @@ void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Interpolate Sequence";
   ot->idname = "GPENCIL_OT_interpolate_sequence";
+  ot->translation_context = BLT_I18NCONTEXT_ID_GPENCIL;
   ot->description = "Generate 'in-betweens' to smoothly interpolate between Grease Pencil frames";
 
   /* api callbacks */

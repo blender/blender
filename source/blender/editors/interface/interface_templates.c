@@ -5204,7 +5204,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, RNAUp
                             0.0,
                             0.0,
                             0.0,
-                            "Reapply and update the preset, removing changes");
+                            TIP_("Reapply and update the preset, removing changes"));
       UI_but_funcN_set(bt, CurveProfile_buttons_reset, MEM_dupallocN(cb), profile);
     }
   }
@@ -6329,7 +6329,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
                   0,
                   width + UI_UNIT_X,
                   UI_UNIT_Y,
-                  "Show in Info Log");
+                  TIP_("Show in Info Log"));
 
   UI_block_emboss_set(block, previous_emboss);
 }

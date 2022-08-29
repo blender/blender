@@ -13,6 +13,8 @@
 #include "RNA_define.h"
 #include "rna_internal.h"
 
+#include "BLT_translation.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -220,6 +222,7 @@ static void rna_def_curveprofile(BlenderRNA *brna)
   prop = RNA_def_property(srna, "preset", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "preset");
   RNA_def_property_enum_items(prop, rna_enum_curveprofile_preset_items);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MESH);
   RNA_def_property_ui_text(prop, "Preset", "");
 
   prop = RNA_def_property(srna, "use_clip", PROP_BOOLEAN, PROP_NONE);

@@ -5817,19 +5817,19 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
   prop = RNA_def_property(srna, "cineon_black", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "cineon_black");
   RNA_def_property_range(prop, 0, 1024);
-  RNA_def_property_ui_text(prop, "B", "Log conversion reference blackpoint");
+  RNA_def_property_ui_text(prop, "Black", "Log conversion reference blackpoint");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   prop = RNA_def_property(srna, "cineon_white", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "cineon_white");
   RNA_def_property_range(prop, 0, 1024);
-  RNA_def_property_ui_text(prop, "W", "Log conversion reference whitepoint");
+  RNA_def_property_ui_text(prop, "White", "Log conversion reference whitepoint");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   prop = RNA_def_property(srna, "cineon_gamma", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "cineon_gamma");
   RNA_def_property_range(prop, 0.0f, 10.0f);
-  RNA_def_property_ui_text(prop, "G", "Log conversion gamma");
+  RNA_def_property_ui_text(prop, "Gamma", "Log conversion gamma");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
   /* multiview */
