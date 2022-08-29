@@ -645,13 +645,9 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
         /* Unsupported kernels */
         case DEVICE_KERNEL_NUM:
         case DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL:
-          assert(0);
-          return false;
+          kernel_assert(0);
+          break;
       }
-
-      /* Unknown kernel. */
-      assert(0);
-      return false;
     });
   }
   catch (sycl::exception const &e) {
