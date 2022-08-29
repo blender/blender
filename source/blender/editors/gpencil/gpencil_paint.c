@@ -918,6 +918,64 @@ static void gpencil_stroke_unselect(bGPdata *gpd, bGPDstroke *gps)
   }
 }
 
+static bGPDstroke *gpencil_stroke_to_outline(tGPsdata *p, bGPDstroke *gps)
+{
+  bGPDlayer *gpl = p->gpl;
+  RegionView3D *rv3d = p->region->regiondata;
+  Brush *brush = p->brush;
+  BrushGpencilSettings *gpencil_settings = brush->gpencil_settings;
+  MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(p->ob, gps->mat_nr + 1);
+  const bool is_stroke = ((gp_style->flag & GP_MATERIAL_STROKE_SHOW) != 0);
+
+  if (!is_stroke) {
+    return gps;
+  }
+
+  /* Duplicate the stroke to apply any layer thickness change. */
+  bGPDstroke *gps_duplicate = BKE_gpencil_stroke_duplicate(gps, true, false);
+
+  /* Apply layer thickness change. */
+  gps_duplicate->thickness += gpl->line_change;
+  /* Apply object scale to thickness. */
+  gps_duplicate->thickness *= mat4_to_scale(p->ob->obmat);
+  CLAMP_MIN(gps_duplicate->thickness, 1.0f);
+
+  /* Stroke. */
+  float diff_mat[4][4];
+  unit_m4(diff_mat);
+  bGPDstroke *gps_perimeter = BKE_gpencil_stroke_perimeter_from_view(
+      rv3d, p->gpd, gpl, gps_duplicate, 3, diff_mat);
+  /* Assign material. */
+  if (gpencil_settings->material_alt == NULL) {
+    gps_perimeter->mat_nr = gps->mat_nr;
+  }
+  else {
+    Material *ma = gpencil_settings->material_alt;
+    int mat_idx = BKE_gpencil_material_find_index_by_name_prefix(p->ob, ma->id.name + 2);
+    if (mat_idx > -1) {
+      gps_perimeter->mat_nr = mat_idx;
+    }
+    else {
+      gps_perimeter->mat_nr = gps->mat_nr;
+    }
+  }
+
+  /* Set pressure constant. */
+  bGPDspoint *pt;
+  for (int i = 0; i < gps_perimeter->totpoints; i++) {
+    pt = &gps_perimeter->points[i];
+    pt->pressure = 1.0f;
+  }
+
+  /* Remove original stroke. */
+  BKE_gpencil_free_stroke(gps);
+
+  /* Free Temp stroke. */
+  BKE_gpencil_free_stroke(gps_duplicate);
+
+  return gps_perimeter;
+}
+
 /* make a new stroke from the buffer data */
 static void gpencil_stroke_newfrombuffer(tGPsdata *p)
 {
@@ -1221,6 +1279,23 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       BKE_gpencil_stroke_simplify_adaptive(gpd, gps, brush->gpencil_settings->simplify_f);
     }
 
+    /* Set material index. */
+    gps->mat_nr = BKE_gpencil_object_material_get_index_from_brush(p->ob, p->brush);
+    if (gps->mat_nr < 0) {
+      if (p->ob->actcol - 1 < 0) {
+        gps->mat_nr = 0;
+      }
+      else {
+        gps->mat_nr = p->ob->actcol - 1;
+      }
+    }
+
+    /* Convert to Outline. */
+    if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_SETTINGS) &&
+        (brush->gpencil_settings->flag & GP_BRUSH_OUTLINE_STROKE)) {
+      gps = gpencil_stroke_to_outline(p, gps);
+    }
+
     /* reproject to plane (only in 3d space) */
     gpencil_reproject_toplane(p, gps);
     /* change position relative to parent object */
@@ -1232,17 +1307,6 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
 
     if (depth_arr) {
       MEM_freeN(depth_arr);
-    }
-  }
-
-  /* Save material index */
-  gps->mat_nr = BKE_gpencil_object_material_get_index_from_brush(p->ob, p->brush);
-  if (gps->mat_nr < 0) {
-    if (p->ob->actcol - 1 < 0) {
-      gps->mat_nr = 0;
-    }
-    else {
-      gps->mat_nr = p->ob->actcol - 1;
     }
   }
 

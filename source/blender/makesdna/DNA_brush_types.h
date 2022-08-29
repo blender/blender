@@ -135,6 +135,8 @@ typedef struct BrushGpencilSettings {
   /* optional link of material to replace default in context */
   /** Material. */
   struct Material *material;
+  /** Material Alternative for secondary operations. */
+  struct Material *material_alt;
 } BrushGpencilSettings;
 
 typedef struct BrushCurvesSculptSettings {

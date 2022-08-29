@@ -1742,6 +1742,12 @@ class VIEW3D_PT_tools_grease_pencil_brush_post_processing(View3DPanel, Panel):
         col1 = col.column(align=True)
         col1.prop(gp_settings, "use_trim")
 
+        row = col.row(heading="Outline", align=True)
+        row.prop(gp_settings, "use_settings_outline", text="")
+        row2 = row.row(align=True)
+        row2.enabled = gp_settings.use_settings_outline
+        row2.prop(gp_settings, "material_alt", text="")
+
 
 class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
