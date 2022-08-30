@@ -1802,6 +1802,10 @@ static bool lib_override_library_resync(Main *bmain,
     lib_override_hierarchy_dependencies_recursive_tag(&data);
 
     FOREACH_MAIN_ID_BEGIN (bmain, id) {
+      if ((id->lib != id_root->lib) || !ID_IS_OVERRIDE_LIBRARY(id)) {
+        continue;
+      }
+
       /* IDs that get fully removed from linked data remain as local overrides (using place-holder
        * linked IDs as reference), but they are often not reachable from any current valid local
        * override hierarchy anymore. This will ensure they get properly deleted at the end of this
@@ -1813,10 +1817,6 @@ static bool lib_override_library_resync(Main *bmain,
            * updated, we ignore those here for now. In practice this should not be a big issue. */
           !OB_DATA_SUPPORT_ID(GS(id->name))) {
         id->tag |= LIB_TAG_MISSING;
-      }
-
-      if ((id->lib != id_root->lib) || !ID_IS_OVERRIDE_LIBRARY(id)) {
-        continue;
       }
 
       /* While this should not happen in typical cases (and won't be properly supported here),
@@ -2401,6 +2401,11 @@ static void lib_override_library_main_resync_on_library_indirect_level(
     if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
       continue;
     }
+
+    if (!lib_override_resync_id_lib_level_is_valid(id, library_indirect_level, true)) {
+      continue;
+    }
+
     if (id->tag & (LIB_TAG_DOIT | LIB_TAG_MISSING)) {
       /* We already processed that ID as part of another ID's hierarchy. */
       continue;
