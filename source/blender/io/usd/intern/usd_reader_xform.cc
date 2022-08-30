@@ -71,16 +71,13 @@ void USDXformReader::apply_cache_file(CacheFile *cache_file)
   id_us_plus(&cache_file->id);
 }
 
-void USDXformReader::read_matrix(float r_mat[4][4] /* local matrix */,
-                                 const float time,
-                                 const float scale,
-                                 bool *r_is_constant)
+bool USDXformReader::get_local_usd_xform(pxr::GfMatrix4d * r_xform,
+                                         bool *r_is_constant,
+                                         const float time) const
 {
-  if (r_is_constant) {
-    *r_is_constant = true;
+  if (!r_xform) {
+    return false;
   }
-
-  unit_m4(r_mat);
 
   pxr::UsdGeomXformable xformable;
 
@@ -93,16 +90,32 @@ void USDXformReader::read_matrix(float r_mat[4][4] /* local matrix */,
 
   if (!xformable) {
     /* This might happen if the prim is a Scope. */
-    return;
+    return false;
   }
 
   if (r_is_constant) {
     *r_is_constant = !xformable.TransformMightBeTimeVarying();
   }
 
-  pxr::GfMatrix4d usd_local_xf;
   bool reset_xform_stack;
-  xformable.GetLocalTransformation(&usd_local_xf, &reset_xform_stack, time);
+  return xformable.GetLocalTransformation(r_xform, &reset_xform_stack, time);
+}
+
+void USDXformReader::read_matrix(float r_mat[4][4] /* local matrix */,
+                                 const float time,
+                                 const float scale,
+                                 bool *r_is_constant)
+{
+  if (r_is_constant) {
+    *r_is_constant = true;
+  }
+
+  unit_m4(r_mat);
+
+  pxr::GfMatrix4d usd_local_xf;
+  if (!get_local_usd_xform(&usd_local_xf, r_is_constant, time)) {
+    return;
+  }
 
   /* Convert the result to a float matrix. */
   pxr::GfMatrix4f mat4f = pxr::GfMatrix4f(usd_local_xf);

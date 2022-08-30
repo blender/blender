@@ -55,6 +55,8 @@ class USDMeshReader : public USDGeomReader {
 
   bool topology_changed(const Mesh *existing_mesh, double motionSampleTime) override;
 
+  std::string get_skeleton_path() const;
+
  private:
   void process_normals_vertex_varying(Mesh *mesh);
   void process_normals_face_varying(Mesh *mesh);
@@ -76,6 +78,14 @@ class USDMeshReader : public USDGeomReader {
                         Mesh *mesh,
                         double motionSampleTime,
                         bool new_mesh);
+
+  bool get_local_usd_xform(pxr::GfMatrix4d *r_xform,
+                           bool *r_is_constant,
+                           const float time) const override;
+
+  bool get_geom_bind_xform_correction(const pxr::GfMatrix4d &bind_xf,
+                                      pxr::GfMatrix4d *r_xform,
+                                      const float time) const;
 };
 
 }  // namespace blender::io::usd

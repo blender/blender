@@ -10,6 +10,8 @@
 
 namespace blender::io::usd {
 
+void get_export_conversion_matrix(const USDExportParams &params, float r_mat[4][4]);
+
 class USDTransformWriter : public USDAbstractWriter {
  private:
   std::vector<pxr::UsdGeomXformOp> xformOps_;

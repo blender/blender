@@ -23,6 +23,27 @@ static const float UNIT_M4[4][4] = {
     {0, 0, 0, 1},
 };
 
+/* Returns in r_mat tha unit scaling and axis rotation transforms
+ * applied to root prims on export. */
+void get_export_conversion_matrix(const USDExportParams &params, float r_mat[4][4])
+{
+  unit_m4(r_mat);
+
+  if (params.convert_orientation) {
+    float mrot[3][3];
+    mat3_from_axis_conversion(
+        USD_GLOBAL_FORWARD_Y, USD_GLOBAL_UP_Z, params.forward_axis, params.up_axis, mrot);
+    transpose_m3(mrot);
+    copy_m4_m3(r_mat, mrot);
+  }
+
+  if (params.convert_to_cm) {
+    float scale_mat[4][4];
+    scale_m4_fl(scale_mat, 100.0f);
+    mul_m4_m4m4(r_mat, scale_mat, r_mat);
+  }
+}
+
 USDTransformWriter::USDTransformWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
 {
 }
@@ -101,7 +122,8 @@ void USDTransformWriter::do_write(HierarchyContext &context)
   if (usd_export_context_.export_params.export_transforms) {
     float parent_relative_matrix[4][4];  // The object matrix relative to the parent.
 
-    // TODO(bjs): This is inefficient checking for every transform. should be moved elsewhere
+    // TODO(makowalski): This is inefficient checking for every transform and should be moved elsewhere.
+    // TODO(makowalski): Use get_export_conversion_matrix() here, to avoid duplicating code.
     if (should_apply_root_xform(context)) {
       float matrix_world[4][4];
       copy_m4_m4(matrix_world, context.matrix_world);

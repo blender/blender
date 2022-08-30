@@ -50,6 +50,8 @@ class USDStageReader {
 
   void collect_readers(struct Main *bmain);
 
+  void process_armature_modifiers() const;
+
   bool valid() const;
 
   pxr::UsdStageRefPtr stage()

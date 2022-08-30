@@ -37,6 +37,7 @@
 #include <pxr/usd/usdGeom/mesh.h>
 #include <pxr/usd/usdGeom/subset.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
+#include <pxr/usd/usdSkel/bindingAPI.h>
 
 #include <iostream>
 
@@ -275,6 +276,10 @@ void USDMeshReader::read_object_data(Main *bmain, const double motionSampleTime)
 
   if (import_params_.import_blendshapes) {
     import_blendshapes(bmain, object_, prim_);
+  }
+
+  if (import_params_.import_skeletons) {
+    import_skel_bindings(bmain, object_, prim_);
   }
 
   USDXformReader::read_object_data(bmain, motionSampleTime);
@@ -953,6 +958,129 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
   }
 
   return active_mesh;
+}
+
+std::string USDMeshReader::get_skeleton_path() const
+{
+  if (!prim_) {
+    return "";
+  }
+
+   pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(prim_);
+
+  if (!skel_api) {
+    return "";
+  }
+
+  if (pxr::UsdSkelSkeleton skel = skel_api.GetInheritedSkeleton()) {
+    return skel.GetPath().GetAsString();
+  }
+
+  return "";
+}
+
+/* Return a local transform to place the mesh in its world bind position.
+ * In some cases, the bind transform and prim world transform might be
+ * be different, in which case we must adjust the local transform
+ * to ensure the mesh is correctly aligned for bininding.  A use
+ * case where this might be needed is if a skel animation is exported
+ * from Blender and both the skeleton and mesh are transformed in Create
+ * or another DCC, without modifying the original mesh bind transform. */
+bool USDMeshReader::get_geom_bind_xform_correction(const pxr::GfMatrix4d &bind_xf,
+                                                   pxr::GfMatrix4d *r_xform,
+                                                   const float time) const
+{
+  if (!r_xform) {
+    return false;
+  }
+
+  pxr::GfMatrix4d world_xf = get_world_matrix(prim_, time);
+
+  if (pxr::GfIsClose(bind_xf, world_xf, .000000001)) {
+    /* The world and bind matrices are equal, so we don't
+     * need to correct the local transfor.  Get the transform
+     * with the standard API.  */
+    pxr::UsdGeomXformable xformable;
+
+    if (use_parent_xform_) {
+      xformable = pxr::UsdGeomXformable(prim_.GetParent());
+    }
+    else {
+      xformable = pxr::UsdGeomXformable(prim_);
+    }
+
+    if (!xformable) {
+      /* This shouldn't happen. */
+      *r_xform = pxr::GfMatrix4d(1.0);
+      return false;
+    }
+
+    bool reset_xform_stack;
+    return xformable.GetLocalTransformation(r_xform, &reset_xform_stack, time);
+  }
+
+  /* If we got here, then the bind transform and prim
+   * world transform differ, so we must adjust the local
+   * transform to ensure the mesh is aligned in the correct
+   * bind position */
+  pxr::GfMatrix4d parent_world_xf(1.0);
+
+  pxr::UsdPrim parent;
+
+  if (use_parent_xform_) {
+    if (prim_.GetParent()) {
+      parent = prim_.GetParent().GetParent();
+    }
+  }
+  else {
+    parent = prim_.GetParent();
+  }
+
+  if (parent) {
+    parent_world_xf = get_world_matrix(parent, time);
+  }
+
+  pxr::GfMatrix4d corrected_local_xf = bind_xf * parent_world_xf.GetInverse();
+  *r_xform = corrected_local_xf;
+
+  return true;
+}
+
+/* Override transform computation to account for the binding
+ * transformation for skinned meshes. */
+bool USDMeshReader::get_local_usd_xform(pxr::GfMatrix4d *r_xform,
+                                        bool *r_is_constant,
+                                        const float time) const
+{
+  if (!r_xform) {
+    return false;
+  }
+
+  if (!import_params_.import_skeletons) {
+    /* Use the standard transform computation, since we are ignoring
+     * skinning data. */
+    return USDXformReader::get_local_usd_xform(r_xform, r_is_constant, time);
+  }
+
+  if (pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(prim_)) {
+    if (skel_api.GetGeomBindTransformAttr().HasAuthoredValue()) {
+      pxr::GfMatrix4d bind_xf;
+      if (skel_api.GetGeomBindTransformAttr().Get(&bind_xf)) {
+        /* Assume that if a bind transform is defined, then the
+         * transform is constant. */
+        if (r_is_constant) {
+          *r_is_constant = true;
+        }
+        return get_geom_bind_xform_correction(bind_xf, r_xform, time);
+      }
+      else {
+        std::cout << "WARNING: couldn't compute geom bind transform for " << prim_.GetPath()
+                  << std::endl;
+      }
+    }
+  }
+
+  return USDXformReader::get_local_usd_xform(r_xform, r_is_constant, time);
 }
 
 }  // namespace blender::io::usd

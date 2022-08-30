@@ -19,6 +19,7 @@
 #include "usd_writer_skinned_mesh.h"
 #include "usd_hierarchy_iterator.h"
 #include "usd_writer_armature.h"
+#include "usd_writer_transform.h"
 
 #include <pxr/base/gf/matrix4d.h>
 #include <pxr/base/gf/matrix4f.h>
@@ -144,7 +145,14 @@ void USDSkinnedMeshWriter::do_write(HierarchyContext &context)
 
   if (pxr::UsdAttribute geom_bind_attr = usd_skel_api.CreateGeomBindTransformAttr()) {
     pxr::GfMatrix4f mat_world(context.matrix_world);
-    geom_bind_attr.Set(pxr::GfMatrix4d(mat_world));
+    /* The context world matrix does not include the unit
+     * conversion scaling or axis rotation that may be applied
+     * to root primitives on export, so we must include those,
+     * if necessary. */
+    float convert_mat[4][4];
+    get_export_conversion_matrix(usd_export_context_.export_params, convert_mat);
+
+    geom_bind_attr.Set(pxr::GfMatrix4d(mat_world) * pxr::GfMatrix4d(convert_mat));
   }
   else {
     printf("WARNING: couldn't create geom bind transform attribute for skinned mesh %s\n",

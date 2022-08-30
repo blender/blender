@@ -18,6 +18,7 @@
  */
 #include "usd_writer_armature.h"
 #include "usd_hierarchy_iterator.h"
+#include "usd_writer_transform.h"
 
 #include "BKE_armature.h"
 #include "DNA_armature_types.h"
@@ -281,7 +282,14 @@ void USDArmatureWriter::do_write(HierarchyContext &context)
   if (!this->frame_has_been_written_) {
 
     pxr::GfMatrix4f world_mat(context.matrix_world);
-    BoneDataBuilder bone_data(world_mat);
+    /* The context world matrix does not include the unit
+     * conversion scaling or axis rotation that may be applied
+     * to root primitives on export, so we must include those,
+     * if necessary. */
+    float convert_mat[4][4];
+    get_export_conversion_matrix(usd_export_context_.export_params, convert_mat);
+
+    BoneDataBuilder bone_data(world_mat * pxr::GfMatrix4f(convert_mat));
 
     visit_bones(context.object, &bone_data);
 

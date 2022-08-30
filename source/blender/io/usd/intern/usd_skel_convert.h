@@ -19,6 +19,8 @@
 #pragma once
 
 #include <pxr/usd/usd/prim.h>
+#include <pxr/usd/usdSkel/skeletonQuery.h>
+#include <map>
 
 struct Main;
 struct Object;
@@ -33,5 +35,18 @@ struct ImportSettings;
 void test_create_shapekeys(Main *bmain, Object *shape_obj);
 
 void import_blendshapes(Main *bmain, Object *shape_obj, pxr::UsdPrim prim);
+
+void create_skeleton_curves(Main *bmain,
+                            Object *obj,
+                            const pxr::UsdSkelSkeletonQuery &skel_query,
+                            const std::map<pxr::TfToken, std::string> &joint_to_bone_map);
+
+void import_skel_bindings(Main *bmain, Object *shape_obj, pxr::UsdPrim prim);
+
+bool compute_skel_space_bind_transforms(const pxr::UsdSkelSkeletonQuery &skel_query,
+                                        pxr::VtMatrix4dArray &out_xforms,
+                                        pxr::UsdTimeCode time);
+
+pxr::GfMatrix4d get_world_matrix(const pxr::UsdPrim &prim, pxr::UsdTimeCode time);
 
 }  // namespace blender::io::usd

@@ -525,6 +525,10 @@ static void import_startjob(void *customdata, short *stop, short *do_update, flo
     }
   }
 
+  if (data->params.import_skeletons) {
+    archive->process_armature_modifiers();
+  }
+
   data->import_ok = !data->was_canceled;
 
   *progress = 1.0f;
