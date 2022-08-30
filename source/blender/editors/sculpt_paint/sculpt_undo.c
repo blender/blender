@@ -1683,7 +1683,7 @@ static void sculpt_undo_set_active_layer(struct bContext *C, SculptAttrRef *attr
     CustomData *cdata = attr->domain == ATTR_DOMAIN_POINT ? &me->vdata : &me->ldata;
     int totelem = attr->domain == ATTR_DOMAIN_POINT ? me->totvert : me->totloop;
 
-    CustomData_add_layer_named(cdata, attr->type, CD_DEFAULT, NULL, totelem, attr->name);
+    CustomData_add_layer_named(cdata, attr->type, CD_SET_DEFAULT, NULL, totelem, attr->name);
     layer = BKE_id_attribute_find(&me->id, attr->name, attr->type, attr->domain);
   }
 

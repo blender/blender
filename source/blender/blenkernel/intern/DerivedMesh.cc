@@ -95,7 +95,7 @@ static MVert *dm_getVertArray(DerivedMesh *dm)
 
   if (!mvert) {
     mvert = (MVert *)CustomData_add_layer(
-        &dm->vertData, CD_MVERT, CD_CALLOC, nullptr, dm->getNumVerts(dm));
+        &dm->vertData, CD_MVERT, CD_SET_DEFAULT, nullptr, dm->getNumVerts(dm));
     CustomData_set_layer_flag(&dm->vertData, CD_MVERT, CD_FLAG_TEMPORARY);
     dm->copyVertArray(dm, mvert);
   }
@@ -109,7 +109,7 @@ static MEdge *dm_getEdgeArray(DerivedMesh *dm)
 
   if (!medge) {
     medge = (MEdge *)CustomData_add_layer(
-        &dm->edgeData, CD_MEDGE, CD_CALLOC, nullptr, dm->getNumEdges(dm));
+        &dm->edgeData, CD_MEDGE, CD_SET_DEFAULT, nullptr, dm->getNumEdges(dm));
     CustomData_set_layer_flag(&dm->edgeData, CD_MEDGE, CD_FLAG_TEMPORARY);
     dm->copyEdgeArray(dm, medge);
   }
@@ -123,7 +123,7 @@ static MLoop *dm_getLoopArray(DerivedMesh *dm)
 
   if (!mloop) {
     mloop = (MLoop *)CustomData_add_layer(
-        &dm->loopData, CD_MLOOP, CD_CALLOC, nullptr, dm->getNumLoops(dm));
+        &dm->loopData, CD_MLOOP, CD_SET_DEFAULT, nullptr, dm->getNumLoops(dm));
     CustomData_set_layer_flag(&dm->loopData, CD_MLOOP, CD_FLAG_TEMPORARY);
     dm->copyLoopArray(dm, mloop);
   }
@@ -137,7 +137,7 @@ static MPoly *dm_getPolyArray(DerivedMesh *dm)
 
   if (!mpoly) {
     mpoly = (MPoly *)CustomData_add_layer(
-        &dm->polyData, CD_MPOLY, CD_CALLOC, nullptr, dm->getNumPolys(dm));
+        &dm->polyData, CD_MPOLY, CD_SET_DEFAULT, nullptr, dm->getNumPolys(dm));
     CustomData_set_layer_flag(&dm->polyData, CD_MPOLY, CD_FLAG_TEMPORARY);
     dm->copyPolyArray(dm, mpoly);
   }
@@ -284,11 +284,11 @@ void DM_from_template(DerivedMesh *dm,
                       int numPolys)
 {
   const CustomData_MeshMasks *mask = &CD_MASK_DERIVEDMESH;
-  CustomData_copy(&source->vertData, &dm->vertData, mask->vmask, CD_CALLOC, numVerts);
-  CustomData_copy(&source->edgeData, &dm->edgeData, mask->emask, CD_CALLOC, numEdges);
-  CustomData_copy(&source->faceData, &dm->faceData, mask->fmask, CD_CALLOC, numTessFaces);
-  CustomData_copy(&source->loopData, &dm->loopData, mask->lmask, CD_CALLOC, numLoops);
-  CustomData_copy(&source->polyData, &dm->polyData, mask->pmask, CD_CALLOC, numPolys);
+  CustomData_copy(&source->vertData, &dm->vertData, mask->vmask, CD_SET_DEFAULT, numVerts);
+  CustomData_copy(&source->edgeData, &dm->edgeData, mask->emask, CD_SET_DEFAULT, numEdges);
+  CustomData_copy(&source->faceData, &dm->faceData, mask->fmask, CD_SET_DEFAULT, numTessFaces);
+  CustomData_copy(&source->loopData, &dm->loopData, mask->lmask, CD_SET_DEFAULT, numLoops);
+  CustomData_copy(&source->polyData, &dm->polyData, mask->pmask, CD_SET_DEFAULT, numPolys);
 
   dm->cd_flag = source->cd_flag;
 
@@ -584,7 +584,7 @@ static void add_orco_mesh(Object *ob, BMEditMesh *em, Mesh *mesh, Mesh *mesh_orc
     }
 
     if (!(layerorco = (float(*)[3])CustomData_get_layer(&mesh->vdata, layer))) {
-      CustomData_add_layer(&mesh->vdata, layer, CD_CALLOC, nullptr, mesh->totvert);
+      CustomData_add_layer(&mesh->vdata, layer, CD_SET_DEFAULT, nullptr, mesh->totvert);
       BKE_mesh_update_customdata_pointers(mesh, false);
 
       layerorco = (float(*)[3])CustomData_get_layer(&mesh->vdata, layer);
@@ -826,7 +826,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
     }
     float3 *rest_positions = static_cast<float3 *>(CustomData_add_layer_named(&mesh_final->vdata,
                                                                               CD_PROP_FLOAT3,
-                                                                              CD_DEFAULT,
+                                                                              CD_SET_DEFAULT,
                                                                               nullptr,
                                                                               mesh_final->totvert,
                                                                               "rest_position"));
@@ -1007,11 +1007,11 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
             ((nextmask.vmask | nextmask.emask | nextmask.pmask) & CD_MASK_ORIGINDEX)) {
           /* calc */
           CustomData_add_layer(
-              &mesh_final->vdata, CD_ORIGINDEX, CD_CALLOC, nullptr, mesh_final->totvert);
+              &mesh_final->vdata, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, mesh_final->totvert);
           CustomData_add_layer(
-              &mesh_final->edata, CD_ORIGINDEX, CD_CALLOC, nullptr, mesh_final->totedge);
+              &mesh_final->edata, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, mesh_final->totedge);
           CustomData_add_layer(
-              &mesh_final->pdata, CD_ORIGINDEX, CD_CALLOC, nullptr, mesh_final->totpoly);
+              &mesh_final->pdata, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, mesh_final->totpoly);
 
           /* Not worth parallelizing this,
            * gives less than 0.1% overall speedup in best of best cases... */
@@ -1047,8 +1047,11 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
       /* add an origspace layer if needed */
       if ((md_datamask->mask.lmask) & CD_MASK_ORIGSPACE_MLOOP) {
         if (!CustomData_has_layer(&mesh_final->ldata, CD_ORIGSPACE_MLOOP)) {
-          CustomData_add_layer(
-              &mesh_final->ldata, CD_ORIGSPACE_MLOOP, CD_CALLOC, nullptr, mesh_final->totloop);
+          CustomData_add_layer(&mesh_final->ldata,
+                               CD_ORIGSPACE_MLOOP,
+                               CD_SET_DEFAULT,
+                               nullptr,
+                               mesh_final->totloop);
           mesh_init_origspace(mesh_final);
         }
       }
@@ -1510,8 +1513,11 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
 
       if (mask.lmask & CD_MASK_ORIGSPACE_MLOOP) {
         if (!CustomData_has_layer(&mesh_final->ldata, CD_ORIGSPACE_MLOOP)) {
-          CustomData_add_layer(
-              &mesh_final->ldata, CD_ORIGSPACE_MLOOP, CD_CALLOC, nullptr, mesh_final->totloop);
+          CustomData_add_layer(&mesh_final->ldata,
+                               CD_ORIGSPACE_MLOOP,
+                               CD_SET_DEFAULT,
+                               nullptr,
+                               mesh_final->totloop);
           mesh_init_origspace(mesh_final);
         }
       }

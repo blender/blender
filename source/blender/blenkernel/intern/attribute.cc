@@ -247,7 +247,7 @@ CustomDataLayer *BKE_id_attribute_new(
     return nullptr;
   }
 
-  attributes->add(uniquename, domain, eCustomDataType(type), AttributeInitDefault());
+  attributes->add(uniquename, domain, eCustomDataType(type), AttributeInitDefaultValue());
 
   const int index = CustomData_get_named_layer_index(customdata, type, uniquename);
   return (index == -1) ? nullptr : &(customdata->layers[index]);

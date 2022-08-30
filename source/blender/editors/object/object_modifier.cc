@@ -586,9 +586,11 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList *UNUSED(reports),
   me->totvert = verts_num;
   me->totedge = edges_num;
 
-  me->mvert = (MVert *)CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, nullptr, verts_num);
-  me->medge = (MEdge *)CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, nullptr, edges_num);
-  me->mface = (MFace *)CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, nullptr, 0);
+  me->mvert = (MVert *)CustomData_add_layer(
+      &me->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, verts_num);
+  me->medge = (MEdge *)CustomData_add_layer(
+      &me->edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, edges_num);
+  me->mface = (MFace *)CustomData_add_layer(&me->fdata, CD_MFACE, CD_SET_DEFAULT, nullptr, 0);
 
   MVert *mvert = me->mvert;
   MEdge *medge = me->medge;
@@ -2642,7 +2644,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
   MVert *mvert = me_eval_deform->mvert;
 
   /* add vertex weights to original mesh */
-  CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, CD_CALLOC, nullptr, me->totvert);
+  CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, nullptr, me->totvert);
 
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
   Object *arm_ob = BKE_object_add(bmain, view_layer, OB_ARMATURE, nullptr);

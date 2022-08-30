@@ -1548,8 +1548,8 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh)
   /* write new edges into a temporary CustomData */
   CustomData edgeData;
   CustomData_reset(&edgeData);
-  CustomData_add_layer(&edgeData, CD_MEDGE, CD_CALLOC, nullptr, numEdges);
-  CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_CALLOC, nullptr, numEdges);
+  CustomData_add_layer(&edgeData, CD_MEDGE, CD_SET_DEFAULT, nullptr, numEdges);
+  CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, numEdges);
 
   MEdge *med = (MEdge *)CustomData_get_layer(&edgeData, CD_MEDGE);
   int *index = (int *)CustomData_get_layer(&edgeData, CD_ORIGINDEX);

@@ -3233,7 +3233,7 @@ bool *BKE_pbvh_get_vert_hide_for_write(PBVH *pbvh)
     return pbvh->hide_vert;
   }
   pbvh->hide_vert = (bool *)CustomData_add_layer_named(
-      &pbvh->mesh->vdata, CD_PROP_BOOL, CD_CALLOC, NULL, pbvh->mesh->totvert, ".hide_vert");
+      &pbvh->mesh->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, pbvh->mesh->totvert, ".hide_vert");
   return pbvh->hide_vert;
 }
 

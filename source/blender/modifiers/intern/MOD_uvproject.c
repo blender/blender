@@ -124,7 +124,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
    * (e.g. if a preceding modifier could not preserve it). */
   if (!CustomData_has_layer(&mesh->ldata, CD_MLOOPUV)) {
     CustomData_add_layer_named(
-        &mesh->ldata, CD_MLOOPUV, CD_DEFAULT, NULL, mesh->totloop, umd->uvlayer_name);
+        &mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, NULL, mesh->totloop, umd->uvlayer_name);
   }
 
   /* make sure we're using an existing layer */

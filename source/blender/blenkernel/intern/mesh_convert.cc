@@ -195,7 +195,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
   MPoly *mpoly = polys.data();
   MLoop *mloop = loops.data();
   MLoopUV *mloopuv = static_cast<MLoopUV *>(CustomData_add_layer_named(
-      &mesh->ldata, CD_MLOOPUV, CD_CALLOC, nullptr, mesh->totloop, "UVMap"));
+      &mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, nullptr, mesh->totloop, "UVMap"));
 
   /* verts and faces */
   vertcount = 0;
@@ -676,7 +676,8 @@ void BKE_mesh_from_pointcloud(const PointCloud *pointcloud, Mesh *me)
       &pointcloud->pdata, &me->vdata, CD_MASK_PROP_ALL, CD_DUPLICATE, pointcloud->totpoint);
 
   /* Convert the Position attribute to a mesh vertex. */
-  me->mvert = (MVert *)CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, nullptr, me->totvert);
+  me->mvert = (MVert *)CustomData_add_layer(
+      &me->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, me->totvert);
   CustomData_update_typemap(&me->vdata);
 
   const int layer_idx = CustomData_get_named_layer_index(

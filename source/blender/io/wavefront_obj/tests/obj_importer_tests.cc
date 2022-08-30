@@ -12,7 +12,7 @@
 #include "BKE_scene.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math_base.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_vec_types.hh"
 
 #include "BLO_readfile.h"

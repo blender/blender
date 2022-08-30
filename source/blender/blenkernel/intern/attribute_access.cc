@@ -160,12 +160,19 @@ static bool add_builtin_type_custom_data_layer_from_init(CustomData &custom_data
                                                          const AttributeInit &initializer)
 {
   switch (initializer.type) {
-    case AttributeInit::Type::Default: {
-      void *data = CustomData_add_layer(&custom_data, data_type, CD_DEFAULT, nullptr, domain_num);
+    case AttributeInit::Type::Construct: {
+      void *data = CustomData_add_layer(
+          &custom_data, data_type, CD_CONSTRUCT, nullptr, domain_num);
+      return data != nullptr;
+    }
+    case AttributeInit::Type::DefaultValue: {
+      void *data = CustomData_add_layer(
+          &custom_data, data_type, CD_SET_DEFAULT, nullptr, domain_num);
       return data != nullptr;
     }
     case AttributeInit::Type::VArray: {
-      void *data = CustomData_add_layer(&custom_data, data_type, CD_DEFAULT, nullptr, domain_num);
+      void *data = CustomData_add_layer(
+          &custom_data, data_type, CD_CONSTRUCT, nullptr, domain_num);
       if (data == nullptr) {
         return false;
       }
@@ -174,7 +181,7 @@ static bool add_builtin_type_custom_data_layer_from_init(CustomData &custom_data
       return true;
     }
     case AttributeInit::Type::MoveArray: {
-      void *source_data = static_cast<const AttributeInitMove &>(initializer).data;
+      void *source_data = static_cast<const AttributeInitMoveArray &>(initializer).data;
       void *data = CustomData_add_layer(
           &custom_data, data_type, CD_ASSIGN, source_data, domain_num);
       if (data == nullptr) {
@@ -215,14 +222,19 @@ static bool add_custom_data_layer_from_attribute_init(const AttributeIDRef &attr
 {
   const int old_layer_num = custom_data.totlayer;
   switch (initializer.type) {
-    case AttributeInit::Type::Default: {
+    case AttributeInit::Type::Construct: {
       add_generic_custom_data_layer(
-          custom_data, data_type, CD_DEFAULT, nullptr, domain_num, attribute_id);
+          custom_data, data_type, CD_CONSTRUCT, nullptr, domain_num, attribute_id);
+      break;
+    }
+    case AttributeInit::Type::DefaultValue: {
+      add_generic_custom_data_layer(
+          custom_data, data_type, CD_SET_DEFAULT, nullptr, domain_num, attribute_id);
       break;
     }
     case AttributeInit::Type::VArray: {
       void *data = add_generic_custom_data_layer(
-          custom_data, data_type, CD_DEFAULT, nullptr, domain_num, attribute_id);
+          custom_data, data_type, CD_CONSTRUCT, nullptr, domain_num, attribute_id);
       if (data != nullptr) {
         const GVArray &varray = static_cast<const AttributeInitVArray &>(initializer).varray;
         varray.materialize_to_uninitialized(varray.index_range(), data);
@@ -230,7 +242,7 @@ static bool add_custom_data_layer_from_attribute_init(const AttributeIDRef &attr
       break;
     }
     case AttributeInit::Type::MoveArray: {
-      void *source_data = static_cast<const AttributeInitMove &>(initializer).data;
+      void *source_data = static_cast<const AttributeInitMoveArray &>(initializer).data;
       void *data = add_generic_custom_data_layer(
           custom_data, data_type, CD_ASSIGN, source_data, domain_num, attribute_id);
       if (source_data != nullptr && data == nullptr) {
@@ -722,7 +734,7 @@ bool CustomDataAttributes::create(const AttributeIDRef &attribute_id,
                                   const eCustomDataType data_type)
 {
   void *result = add_generic_custom_data_layer(
-      data, data_type, CD_DEFAULT, nullptr, size_, attribute_id);
+      data, data_type, CD_SET_DEFAULT, nullptr, size_, attribute_id);
   return result != nullptr;
 }
 

@@ -55,14 +55,17 @@ extern const CustomData_MeshMasks CD_MASK_EVERYTHING;
 typedef enum eCDAllocType {
   /** Use the data pointer. */
   CD_ASSIGN = 0,
-  /** Allocate blank memory. */
-  CD_CALLOC = 1,
-  /** Allocate and set to default. */
-  CD_DEFAULT = 2,
+  /** Allocate and set to default, which is usually just zeroed memory. */
+  CD_SET_DEFAULT = 2,
   /** Use data pointers, set layer flag NOFREE. */
   CD_REFERENCE = 3,
   /** Do a full copy of all layers, only allowed if source has same number of elements. */
   CD_DUPLICATE = 4,
+  /**
+   * Default construct new layer values. Does nothing for trivial types. This should be used
+   * if all layer values will be set by the caller after creating the layer.
+   */
+  CD_CONSTRUCT = 5,
 } eCDAllocType;
 
 #define CD_TYPE_AS_MASK(_type) (eCustomDataMask)((eCustomDataMask)1 << (eCustomDataMask)(_type))

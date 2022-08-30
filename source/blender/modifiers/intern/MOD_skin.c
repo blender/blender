@@ -1888,7 +1888,7 @@ static void skin_set_orig_indices(Mesh *mesh)
   int *orig, totpoly;
 
   totpoly = mesh->totpoly;
-  orig = CustomData_add_layer(&mesh->pdata, CD_ORIGINDEX, CD_CALLOC, NULL, totpoly);
+  orig = CustomData_add_layer(&mesh->pdata, CD_ORIGINDEX, CD_SET_DEFAULT, NULL, totpoly);
   copy_vn_i(orig, totpoly, ORIGINDEX_NONE);
 }
 

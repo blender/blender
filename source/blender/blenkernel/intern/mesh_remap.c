@@ -1352,7 +1352,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
         const bool do_loop_nors_dst = (loop_nors_dst == NULL);
         if (!loop_nors_dst) {
           loop_nors_dst = CustomData_add_layer(
-              ldata_dst, CD_NORMAL, CD_CALLOC, NULL, numloops_dst);
+              ldata_dst, CD_NORMAL, CD_SET_DEFAULT, NULL, numloops_dst);
           CustomData_set_layer_flag(ldata_dst, CD_NORMAL, CD_FLAG_TEMPORARY);
         }
         if (dirty_nors_dst || do_loop_nors_dst) {

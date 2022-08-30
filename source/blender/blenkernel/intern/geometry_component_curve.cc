@@ -547,7 +547,8 @@ static GVArray varray_from_initializer(const AttributeInit &initializer,
                                        const Span<SplinePtr> splines)
 {
   switch (initializer.type) {
-    case AttributeInit::Type::Default:
+    case AttributeInit::Type::Construct:
+    case AttributeInit::Type::DefaultValue:
       /* This function shouldn't be called in this case, since there
        * is no need to copy anything to the new custom data array. */
       BLI_assert_unreachable();
@@ -560,7 +561,7 @@ static GVArray varray_from_initializer(const AttributeInit &initializer,
         total_num += spline->size();
       }
       return GVArray::ForSpan(GSpan(*bke::custom_data_type_to_cpp_type(data_type),
-                                    static_cast<const AttributeInitMove &>(initializer).data,
+                                    static_cast<const AttributeInitMoveArray &>(initializer).data,
                                     total_num));
   }
   BLI_assert_unreachable();
@@ -580,7 +581,7 @@ static bool create_point_attribute(CurveEval *curve,
 
   /* First check the one case that allows us to avoid copying the input data. */
   if (splines.size() == 1 && initializer.type == AttributeInit::Type::MoveArray) {
-    void *source_data = static_cast<const AttributeInitMove &>(initializer).data;
+    void *source_data = static_cast<const AttributeInitMoveArray &>(initializer).data;
     if (!splines.first()->attributes.create_by_move(attribute_id, data_type, source_data)) {
       MEM_freeN(source_data);
       return false;
@@ -600,7 +601,7 @@ static bool create_point_attribute(CurveEval *curve,
   }
 
   /* With a default initializer type, we can keep the values at their initial values. */
-  if (initializer.type == AttributeInit::Type::Default) {
+  if (ELEM(initializer.type, AttributeInit::Type::DefaultValue, AttributeInit::Type::Construct)) {
     return true;
   }
 
@@ -616,7 +617,7 @@ static bool create_point_attribute(CurveEval *curve,
   write_attribute.finish();
 
   if (initializer.type == AttributeInit::Type::MoveArray) {
-    MEM_freeN(static_cast<const AttributeInitMove &>(initializer).data);
+    MEM_freeN(static_cast<const AttributeInitMoveArray &>(initializer).data);
   }
 
   return true;

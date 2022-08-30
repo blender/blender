@@ -1444,7 +1444,7 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   Mesh *mesh = (Mesh *)BKE_id_new_nomain(ID_ME, ((ID *)ob->data)->name + 2);
 
   mesh->totvert = (int)process.curvertex;
-  MVert *mvert = CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_DEFAULT, NULL, mesh->totvert);
+  MVert *mvert = CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_CONSTRUCT, NULL, mesh->totvert);
   for (int i = 0; i < mesh->totvert; i++) {
     copy_v3_v3(mvert[i].co, process.co[i]);
     mvert->bweight = 0;
@@ -1453,8 +1453,9 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   MEM_freeN(process.co);
 
   mesh->totpoly = (int)process.curindex;
-  MPoly *mpoly = CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_DEFAULT, NULL, mesh->totpoly);
-  MLoop *mloop = CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_DEFAULT, NULL, mesh->totpoly * 4);
+  MPoly *mpoly = CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CONSTRUCT, NULL, mesh->totpoly);
+  MLoop *mloop = CustomData_add_layer(
+      &mesh->ldata, CD_MLOOP, CD_CONSTRUCT, NULL, mesh->totpoly * 4);
 
   int loop_offset = 0;
   for (int i = 0; i < mesh->totpoly; i++) {

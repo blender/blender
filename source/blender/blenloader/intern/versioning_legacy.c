@@ -291,8 +291,8 @@ static void customdata_version_242(Mesh *me)
         MEM_freeN(me->mcol);
       }
 
-      me->mcol = CustomData_add_layer(&me->fdata, CD_MCOL, CD_CALLOC, NULL, me->totface);
-      me->mtface = CustomData_add_layer(&me->fdata, CD_MTFACE, CD_CALLOC, NULL, me->totface);
+      me->mcol = CustomData_add_layer(&me->fdata, CD_MCOL, CD_SET_DEFAULT, NULL, me->totface);
+      me->mtface = CustomData_add_layer(&me->fdata, CD_MTFACE, CD_SET_DEFAULT, NULL, me->totface);
 
       mtf = me->mtface;
       mcol = me->mcol;

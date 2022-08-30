@@ -540,7 +540,7 @@ void read_generated_coordinates(const ICompoundProperty &prop,
     cd_data = CustomData_get_layer(&mesh->vdata, CD_ORCO);
   }
   else {
-    cd_data = CustomData_add_layer(&mesh->vdata, CD_ORCO, CD_CALLOC, nullptr, totvert);
+    cd_data = CustomData_add_layer(&mesh->vdata, CD_ORCO, CD_SET_DEFAULT, nullptr, totvert);
   }
 
   float(*orcodata)[3] = static_cast<float(*)[3]>(cd_data);

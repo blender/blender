@@ -822,7 +822,7 @@ void BKE_mesh_ensure_skin_customdata(Mesh *me)
   else {
     if (!CustomData_has_layer(&me->vdata, CD_MVERT_SKIN)) {
       vs = (MVertSkin *)CustomData_add_layer(
-          &me->vdata, CD_MVERT_SKIN, CD_DEFAULT, nullptr, me->totvert);
+          &me->vdata, CD_MVERT_SKIN, CD_SET_DEFAULT, nullptr, me->totvert);
 
       /* Mark an arbitrary vertex as root */
       if (vs) {
@@ -844,7 +844,7 @@ bool BKE_mesh_ensure_facemap_customdata(struct Mesh *me)
   }
   else {
     if (!CustomData_has_layer(&me->pdata, CD_FACEMAP)) {
-      CustomData_add_layer(&me->pdata, CD_FACEMAP, CD_DEFAULT, nullptr, me->totpoly);
+      CustomData_add_layer(&me->pdata, CD_FACEMAP, CD_SET_DEFAULT, nullptr, me->totpoly);
       changed = true;
     }
   }
@@ -987,20 +987,20 @@ Mesh *BKE_mesh_add(Main *bmain, const char *name)
 static void mesh_ensure_cdlayers_primary(Mesh *mesh, bool do_tessface)
 {
   if (!CustomData_get_layer(&mesh->vdata, CD_MVERT)) {
-    CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_CALLOC, nullptr, mesh->totvert);
+    CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, mesh->totvert);
   }
   if (!CustomData_get_layer(&mesh->edata, CD_MEDGE)) {
-    CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_CALLOC, nullptr, mesh->totedge);
+    CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, mesh->totedge);
   }
   if (!CustomData_get_layer(&mesh->ldata, CD_MLOOP)) {
-    CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CALLOC, nullptr, mesh->totloop);
+    CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, mesh->totloop);
   }
   if (!CustomData_get_layer(&mesh->pdata, CD_MPOLY)) {
-    CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CALLOC, nullptr, mesh->totpoly);
+    CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, mesh->totpoly);
   }
 
   if (do_tessface && !CustomData_get_layer(&mesh->fdata, CD_MFACE)) {
-    CustomData_add_layer(&mesh->fdata, CD_MFACE, CD_CALLOC, nullptr, mesh->totface);
+    CustomData_add_layer(&mesh->fdata, CD_MFACE, CD_SET_DEFAULT, nullptr, mesh->totface);
   }
 }
 
@@ -1097,12 +1097,12 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
   me_dst->cd_flag = me_src->cd_flag;
   BKE_mesh_copy_parameters_for_eval(me_dst, me_src);
 
-  CustomData_copy(&me_src->vdata, &me_dst->vdata, mask.vmask, CD_CALLOC, verts_len);
-  CustomData_copy(&me_src->edata, &me_dst->edata, mask.emask, CD_CALLOC, edges_len);
-  CustomData_copy(&me_src->ldata, &me_dst->ldata, mask.lmask, CD_CALLOC, loops_len);
-  CustomData_copy(&me_src->pdata, &me_dst->pdata, mask.pmask, CD_CALLOC, polys_len);
+  CustomData_copy(&me_src->vdata, &me_dst->vdata, mask.vmask, CD_SET_DEFAULT, verts_len);
+  CustomData_copy(&me_src->edata, &me_dst->edata, mask.emask, CD_SET_DEFAULT, edges_len);
+  CustomData_copy(&me_src->ldata, &me_dst->ldata, mask.lmask, CD_SET_DEFAULT, loops_len);
+  CustomData_copy(&me_src->pdata, &me_dst->pdata, mask.pmask, CD_SET_DEFAULT, polys_len);
   if (do_tessface) {
-    CustomData_copy(&me_src->fdata, &me_dst->fdata, mask.fmask, CD_CALLOC, tessface_len);
+    CustomData_copy(&me_src->fdata, &me_dst->fdata, mask.fmask, CD_SET_DEFAULT, tessface_len);
   }
   else {
     mesh_tessface_clear_intern(me_dst, false);
@@ -1203,7 +1203,7 @@ static void ensure_orig_index_layer(CustomData &data, const int size)
   if (CustomData_has_layer(&data, CD_ORIGINDEX)) {
     return;
   }
-  int *indices = (int *)CustomData_add_layer(&data, CD_ORIGINDEX, CD_DEFAULT, nullptr, size);
+  int *indices = (int *)CustomData_add_layer(&data, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, size);
   range_vn_i(indices, size, 0);
 }
 
@@ -1882,7 +1882,7 @@ static float (*ensure_corner_normal_layer(Mesh &mesh))[3]
   }
   else {
     r_loopnors = (float(*)[3])CustomData_add_layer(
-        &mesh.ldata, CD_NORMAL, CD_CALLOC, nullptr, mesh.totloop);
+        &mesh.ldata, CD_NORMAL, CD_SET_DEFAULT, nullptr, mesh.totloop);
     CustomData_set_layer_flag(&mesh.ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
   return r_loopnors;

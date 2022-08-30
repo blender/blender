@@ -73,7 +73,7 @@ static void write_vertex_creases(Mesh &mesh, const VArray<float> &crease_varray)
   }
   else {
     crease = static_cast<float *>(
-        CustomData_add_layer(&mesh.vdata, CD_CREASE, CD_DEFAULT, nullptr, mesh.totvert));
+        CustomData_add_layer(&mesh.vdata, CD_CREASE, CD_SET_DEFAULT, nullptr, mesh.totvert));
   }
   materialize_and_clamp_creases(crease_varray, {crease, mesh.totvert});
 }

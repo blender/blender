@@ -398,7 +398,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   medge_new = result->medge;
 
   if (!CustomData_has_layer(&result->pdata, CD_ORIGINDEX)) {
-    CustomData_add_layer(&result->pdata, CD_ORIGINDEX, CD_CALLOC, NULL, (int)maxPolys);
+    CustomData_add_layer(&result->pdata, CD_ORIGINDEX, CD_SET_DEFAULT, NULL, (int)maxPolys);
   }
 
   int *origindex = CustomData_get_layer(&result->pdata, CD_ORIGINDEX);

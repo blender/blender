@@ -1981,7 +1981,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     if (dvert == NULL) {
       /* Add a valid data layer! */
       dvert = CustomData_add_layer(
-          &result->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, result->totvert);
+          &result->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, NULL, result->totvert);
     }
     result->dvert = dvert;
   }

@@ -73,8 +73,13 @@ struct AttributeKind {
  */
 struct AttributeInit {
   enum class Type {
-    Default,
+    /** #AttributeInitConstruct. */
+    Construct,
+    /** #AttributeInitDefaultValue. */
+    DefaultValue,
+    /** #AttributeInitVArray. */
     VArray,
+    /** #AttributeInitMoveArray. */
     MoveArray,
   };
   Type type;
@@ -84,11 +89,20 @@ struct AttributeInit {
 };
 
 /**
- * Create an attribute using the default value for the data type.
- * The default values may depend on the attribute provider implementation.
+ * Default construct new attribute values. Does nothing for trivial types. This should be used
+ * if all attribute element values will be set by the caller after creating the attribute.
  */
-struct AttributeInitDefault : public AttributeInit {
-  AttributeInitDefault() : AttributeInit(Type::Default)
+struct AttributeInitConstruct : public AttributeInit {
+  AttributeInitConstruct() : AttributeInit(Type::Construct)
+  {
+  }
+};
+
+/**
+ * Create an attribute using the default value for the data type (almost always "zero").
+ */
+struct AttributeInitDefaultValue : public AttributeInit {
+  AttributeInitDefaultValue() : AttributeInit(Type::DefaultValue)
   {
   }
 };
@@ -96,14 +110,11 @@ struct AttributeInitDefault : public AttributeInit {
 /**
  * Create an attribute by copying data from an existing virtual array. The virtual array
  * must have the same type as the newly created attribute.
- *
- * Note that this can be used to fill the new attribute with the default
  */
 struct AttributeInitVArray : public AttributeInit {
-  blender::GVArray varray;
+  GVArray varray;
 
-  AttributeInitVArray(blender::GVArray varray)
-      : AttributeInit(Type::VArray), varray(std::move(varray))
+  AttributeInitVArray(GVArray varray) : AttributeInit(Type::VArray), varray(std::move(varray))
   {
   }
 };
@@ -119,10 +130,10 @@ struct AttributeInitVArray : public AttributeInit {
  * The array must be allocated with MEM_*, since `attribute_try_create` will free the array if it
  * can't be used directly, and that is generally how Blender expects custom data to be allocated.
  */
-struct AttributeInitMove : public AttributeInit {
+struct AttributeInitMoveArray : public AttributeInit {
   void *data = nullptr;
 
-  AttributeInitMove(void *data) : AttributeInit(Type::MoveArray), data(data)
+  AttributeInitMoveArray(void *data) : AttributeInit(Type::MoveArray), data(data)
   {
   }
 };
@@ -579,7 +590,7 @@ class MutableAttributeAccessor : public AttributeAccessor {
       const AttributeIDRef &attribute_id,
       const eAttrDomain domain,
       const eCustomDataType data_type,
-      const AttributeInit &initializer = AttributeInitDefault());
+      const AttributeInit &initializer = AttributeInitDefaultValue());
 
   /**
    * Same as above, but returns a type that makes it easier to work with the attribute as a span.
@@ -590,7 +601,7 @@ class MutableAttributeAccessor : public AttributeAccessor {
       const AttributeIDRef &attribute_id,
       const eAttrDomain domain,
       const eCustomDataType data_type,
-      const AttributeInit &initializer = AttributeInitDefault());
+      const AttributeInit &initializer = AttributeInitDefaultValue());
 
   /**
    * Same as above, but should be used when the type is known at compile time.
@@ -599,7 +610,7 @@ class MutableAttributeAccessor : public AttributeAccessor {
   AttributeWriter<T> lookup_or_add_for_write(
       const AttributeIDRef &attribute_id,
       const eAttrDomain domain,
-      const AttributeInit &initializer = AttributeInitDefault())
+      const AttributeInit &initializer = AttributeInitDefaultValue())
   {
     const CPPType &cpp_type = CPPType::get<T>();
     const eCustomDataType data_type = cpp_type_to_custom_data_type(cpp_type);
@@ -613,7 +624,7 @@ class MutableAttributeAccessor : public AttributeAccessor {
   SpanAttributeWriter<T> lookup_or_add_for_write_span(
       const AttributeIDRef &attribute_id,
       const eAttrDomain domain,
-      const AttributeInit &initializer = AttributeInitDefault())
+      const AttributeInit &initializer = AttributeInitDefaultValue())
   {
     AttributeWriter<T> attribute = this->lookup_or_add_for_write<T>(
         attribute_id, domain, initializer);

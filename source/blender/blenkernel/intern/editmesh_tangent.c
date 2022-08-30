@@ -304,7 +304,7 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
     if ((tangent_mask & DM_TANGENT_MASK_ORCO) &&
         CustomData_get_named_layer_index(loopdata_out, CD_TANGENT, "") == -1) {
       CustomData_add_layer_named(
-          loopdata_out, CD_TANGENT, CD_CALLOC, NULL, (int)loopdata_out_len, "");
+          loopdata_out, CD_TANGENT, CD_SET_DEFAULT, NULL, (int)loopdata_out_len, "");
     }
     if (calc_act && act_uv_name[0]) {
       BKE_mesh_add_loop_tangent_named_layer_for_uv(

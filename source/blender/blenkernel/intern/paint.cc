@@ -1835,8 +1835,8 @@ static void sculpt_face_sets_ensure(Mesh *mesh)
     return;
   }
 
-  int *new_face_sets = static_cast<int *>(
-      CustomData_add_layer(&mesh->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, nullptr, mesh->totpoly));
+  int *new_face_sets = static_cast<int *>(CustomData_add_layer(
+      &mesh->pdata, CD_SCULPT_FACE_SETS, CD_SET_DEFAULT, nullptr, mesh->totpoly));
 
   /* Initialize the new Face Set data-layer with a default valid visible ID and set the default
    * color to render it white. */
@@ -1917,7 +1917,7 @@ void BKE_sculpt_color_layer_create_if_needed(Object *object)
     return;
   }
 
-  CustomData_add_layer(&orig_me->vdata, CD_PROP_COLOR, CD_DEFAULT, nullptr, orig_me->totvert);
+  CustomData_add_layer(&orig_me->vdata, CD_PROP_COLOR, CD_CONSTRUCT, nullptr, orig_me->totvert);
   CustomDataLayer *layer = orig_me->vdata.layers +
                            CustomData_get_layer_index(&orig_me->vdata, CD_PROP_COLOR);
 
@@ -1958,8 +1958,8 @@ int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
     int gridarea = gridsize * gridsize;
     int i, j;
 
-    gmask = static_cast<GridPaintMask *>(
-        CustomData_add_layer(&me->ldata, CD_GRID_PAINT_MASK, CD_CALLOC, nullptr, me->totloop));
+    gmask = static_cast<GridPaintMask *>(CustomData_add_layer(
+        &me->ldata, CD_GRID_PAINT_MASK, CD_SET_DEFAULT, nullptr, me->totloop));
 
     for (i = 0; i < me->totloop; i++) {
       GridPaintMask *gpm = &gmask[i];
@@ -2002,7 +2002,7 @@ int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
 
   /* create vertex paint mask layer if there isn't one already */
   if (!paint_mask) {
-    CustomData_add_layer(&me->vdata, CD_PAINT_MASK, CD_CALLOC, nullptr, me->totvert);
+    CustomData_add_layer(&me->vdata, CD_PAINT_MASK, CD_SET_DEFAULT, nullptr, me->totvert);
     ret |= SCULPT_MASK_LAYER_CALC_VERT;
   }
 
@@ -2078,7 +2078,7 @@ void BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(Mesh *mesh)
   else {
     initialize_new_face_sets = true;
     int *new_face_sets = static_cast<int *>(CustomData_add_layer(
-        &mesh->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, nullptr, mesh->totpoly));
+        &mesh->pdata, CD_SCULPT_FACE_SETS, CD_SET_DEFAULT, nullptr, mesh->totpoly));
 
     /* Initialize the new Face Set data-layer with a default valid visible ID and set the default
      * color to render it white. */

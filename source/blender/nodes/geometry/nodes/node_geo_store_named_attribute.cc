@@ -123,7 +123,7 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
     }
   }
   attributes.remove(name);
-  if (attributes.add(name, domain, data_type, bke::AttributeInitMove{buffer})) {
+  if (attributes.add(name, domain, data_type, bke::AttributeInitMoveArray{buffer})) {
     return;
   }
 
