@@ -65,7 +65,9 @@ void BLF_load_font_stack()
     struct direntry *dir;
     uint num_files = BLI_filelist_dir_contents(path, &dir);
     for (int f = 0; f < num_files; f++) {
-      if (!FILENAME_IS_CURRPAR(dir[f].relname) && !BLI_is_dir(dir[f].path)) {
+      if (!BLI_is_dir(dir[f].path) &&
+          BLI_path_extension_check_n(
+              dir[f].path, ".ttf", ".ttc", ".otf", ".otc", ".woff", ".woff2", NULL)) {
         if (!BLF_is_loaded(dir[f].path)) {
           int font_id = BLF_load(dir[f].path);
           if (font_id == -1) {

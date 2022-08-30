@@ -110,6 +110,10 @@ static FT_Error blf_cache_face_requester(FTC_FaceID faceID,
     font->face->generic.data = font;
     font->face->generic.finalizer = blf_face_finalizer;
   }
+  else {
+    /* Clear this on error to avoid exception in FTC_Manager_LookupFace. */
+    *face = NULL;
+  }
 
   return err;
 }
