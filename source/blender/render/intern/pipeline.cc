@@ -436,7 +436,7 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr, const int view_id)
       rr->rectx = re->result->rectx;
       rr->recty = re->result->recty;
 
-      /* actview view */
+      /* `scene.rd.actview` view. */
       rv = RE_RenderViewGetById(re->result, view_id);
       rr->have_combined = (rv->rectf != nullptr);
 
