@@ -3987,6 +3987,7 @@ static int gpencil_stroke_outline_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = (bGPdata *)ob->data;
   const int subdivisions = RNA_int_get(op->ptr, "subdivisions");
   const float length = RNA_float_get(op->ptr, "length");
+  const int thickness = RNA_int_get(op->ptr, "thickness");
 
   const int view_mode = RNA_enum_get(op->ptr, "view_mode");
   const int mode = RNA_enum_get(op->ptr, "mode");
@@ -4131,6 +4132,8 @@ static int gpencil_stroke_outline_exec(bContext *C, wmOperator *op)
           if (length > 0.0f) {
             BKE_gpencil_stroke_sample(gpd, gps_perimeter, length, false, 0);
           }
+          /* Set stroke thickness. */
+          gps_perimeter->thickness = thickness;
 
           /* Set pressure constant. */
           bGPDspoint *pt;
@@ -4216,6 +4219,15 @@ void GPENCIL_OT_stroke_outline(wmOperatorType *ot)
   RNA_def_enum(
       ot->srna, "mode", material_mode, GP_STROKE_USE_ACTIVE_MATERIAL, "Material Mode", "");
 
+  RNA_def_int(ot->srna,
+              "thickness",
+              1,
+              1,
+              1000,
+              "Thickness",
+              "Thickness of the stroke perimeter",
+              1,
+              1000);
   RNA_def_int(ot->srna, "subdivisions", 3, 0, 10, "Subdivisions", "", 0, 10);
 
   RNA_def_float(ot->srna, "length", 0.0f, 0.0f, 100.0f, "Sample Length", "", 0.0f, 100.0f);
