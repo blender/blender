@@ -488,7 +488,8 @@ struct bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(struct RegionView3D *r
                                                           const struct bGPDlayer *gpl,
                                                           struct bGPDstroke *gps,
                                                           int subdivisions,
-                                                          const float diff_mat[4][4]);
+                                                          const float diff_mat[4][4],
+                                                          const float thickness_chg);
 /**
  * Get average pressure.
  */

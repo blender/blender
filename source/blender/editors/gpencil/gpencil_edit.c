@@ -3987,6 +3987,7 @@ static int gpencil_stroke_outline_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = (bGPdata *)ob->data;
   const int subdivisions = RNA_int_get(op->ptr, "subdivisions");
   const float length = RNA_float_get(op->ptr, "length");
+  const bool keep = RNA_boolean_get(op->ptr, "keep");
   const int thickness = RNA_int_get(op->ptr, "thickness");
 
   const int view_mode = RNA_enum_get(op->ptr, "view_mode");
@@ -4104,8 +4105,9 @@ static int gpencil_stroke_outline_exec(bContext *C, wmOperator *op)
           CLAMP_MIN(gps_duplicate->thickness, 1.0f);
 
           /* Stroke. */
+          const float ovr_thickness = keep ? thickness : 0.0f;
           bGPDstroke *gps_perimeter = BKE_gpencil_stroke_perimeter_from_view(
-              rv3d, gpd, gpl, gps_duplicate, subdivisions, diff_mat);
+              rv3d, gpd, gpl, gps_duplicate, subdivisions, diff_mat, ovr_thickness);
           gps_perimeter->flag &= ~GP_STROKE_SELECT;
           /* Assign material. */
           switch (material_mode) {
@@ -4216,8 +4218,12 @@ void GPENCIL_OT_stroke_outline(wmOperatorType *ot)
 
   /* properties */
   ot->prop = RNA_def_enum(ot->srna, "view_mode", view_mode, GP_PERIMETER_VIEW, "View", "");
-  RNA_def_enum(
-      ot->srna, "material_mode", material_mode, GP_STROKE_USE_ACTIVE_MATERIAL, "Material Mode", "");
+  RNA_def_enum(ot->srna,
+               "material_mode",
+               material_mode,
+               GP_STROKE_USE_ACTIVE_MATERIAL,
+               "Material Mode",
+               "");
 
   RNA_def_int(ot->srna,
               "thickness",
@@ -4228,6 +4234,12 @@ void GPENCIL_OT_stroke_outline(wmOperatorType *ot)
               "Thickness of the stroke perimeter",
               1,
               1000);
+  RNA_def_boolean(ot->srna,
+                  "keep",
+                  true,
+                  "Keep Shape",
+                  "Try to keep global shape when the stroke thickness change");
+
   RNA_def_int(ot->srna, "subdivisions", 3, 0, 10, "Subdivisions", "", 0, 10);
 
   RNA_def_float(ot->srna, "length", 0.0f, 0.0f, 100.0f, "Sample Length", "", 0.0f, 100.0f);

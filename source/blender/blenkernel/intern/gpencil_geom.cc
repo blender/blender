@@ -3960,6 +3960,7 @@ static ListBase *gpencil_stroke_perimeter_ex(const bGPdata *gpd,
                                              const bGPDlayer *gpl,
                                              const bGPDstroke *gps,
                                              int subdivisions,
+                                             const float thickness_chg,
                                              int *r_num_perimeter_points)
 {
   /* sanity check */
@@ -3968,7 +3969,9 @@ static ListBase *gpencil_stroke_perimeter_ex(const bGPdata *gpd,
   }
 
   float defaultpixsize = 1000.0f / gpd->pixfactor;
+  float ovr_radius = thickness_chg / defaultpixsize / 2.0f;
   float stroke_radius = ((gps->thickness + gpl->line_change) / defaultpixsize) / 2.0f;
+  stroke_radius = max_ff(stroke_radius - ovr_radius, 0.0f);
 
   ListBase *perimeter_right_side = MEM_cnew<ListBase>(__func__);
   ListBase *perimeter_left_side = MEM_cnew<ListBase>(__func__);
@@ -4202,7 +4205,8 @@ bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(struct RegionView3D *rv3d,
                                                    const bGPDlayer *gpl,
                                                    bGPDstroke *gps,
                                                    const int subdivisions,
-                                                   const float diff_mat[4][4])
+                                                   const float diff_mat[4][4],
+                                                   const float thickness_chg)
 {
   if (gps->totpoints == 0) {
     return nullptr;
@@ -4234,7 +4238,7 @@ bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(struct RegionView3D *rv3d,
   BKE_gpencil_stroke_to_view_space(rv3d, gps_temp, diff_mat);
   int num_perimeter_points = 0;
   ListBase *perimeter_points = gpencil_stroke_perimeter_ex(
-      gpd, gpl, gps_temp, subdivisions, &num_perimeter_points);
+      gpd, gpl, gps_temp, subdivisions, thickness_chg, &num_perimeter_points);
 
   if (num_perimeter_points == 0) {
     return nullptr;

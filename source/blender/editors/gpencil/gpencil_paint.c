@@ -944,7 +944,7 @@ static bGPDstroke *gpencil_stroke_to_outline(tGPsdata *p, bGPDstroke *gps)
   float diff_mat[4][4];
   unit_m4(diff_mat);
   bGPDstroke *gps_perimeter = BKE_gpencil_stroke_perimeter_from_view(
-      rv3d, p->gpd, gpl, gps_duplicate, 3, diff_mat);
+      rv3d, p->gpd, gpl, gps_duplicate, 3, diff_mat, 0.0f);
   /* Assign material. */
   if (gpencil_settings->material_alt == NULL) {
     gps_perimeter->mat_nr = gps->mat_nr;

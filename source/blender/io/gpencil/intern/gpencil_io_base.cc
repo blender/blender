@@ -257,7 +257,7 @@ float GpencilIO::stroke_point_radius_get(bGPDlayer *gpl, bGPDstroke *gps)
 
   /* Radius. */
   bGPDstroke *gps_perimeter = BKE_gpencil_stroke_perimeter_from_view(
-      rv3d_, gpd_, gpl, gps, 3, diff_mat_.values);
+      rv3d_, gpd_, gpl, gps, 3, diff_mat_.values, 0.0f);
 
   pt = &gps_perimeter->points[0];
   const float2 screen_ex = gpencil_3D_point_to_2D(&pt->x);
