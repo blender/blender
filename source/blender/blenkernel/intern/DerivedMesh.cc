@@ -741,6 +741,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
                                 Mesh **r_final,
                                 GeometrySet **r_geometry_set)
 {
+  using namespace blender::bke;
   /* Input and final mesh. Final mesh is only created the moment the first
    * constructive modifier is executed, or a deform modifier needs normals
    * or certain data layers. */
@@ -824,18 +825,13 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
       mesh_final = BKE_mesh_copy_for_eval(mesh_input, true);
       ASSERT_IS_VALID_MESH(mesh_final);
     }
-    float3 *rest_positions = static_cast<float3 *>(CustomData_add_layer_named(&mesh_final->vdata,
-                                                                              CD_PROP_FLOAT3,
-                                                                              CD_SET_DEFAULT,
-                                                                              nullptr,
-                                                                              mesh_final->totvert,
-                                                                              "rest_position"));
-    blender::threading::parallel_for(
-        IndexRange(mesh_final->totvert), 1024, [&](const IndexRange range) {
-          for (const int i : range) {
-            rest_positions[i] = mesh_final->mvert[i].co;
-          }
-        });
+    MutableAttributeAccessor attributes = mesh_attributes_for_write(*mesh_final);
+    SpanAttributeWriter<float3> rest_positions =
+        attributes.lookup_or_add_for_write_only_span<float3>("rest_position", ATTR_DOMAIN_POINT);
+    if (rest_positions) {
+      attributes.lookup<float3>("position").materialize(rest_positions.span);
+      rest_positions.finish();
+    }
   }
 
   /* Apply all leading deform modifiers. */
