@@ -18,7 +18,7 @@ struct PointCloud;
 
 namespace blender::bke {
 
-struct CurvesGeometry;
+class CurvesGeometry;
 class GeometryFieldInput;
 
 class MeshFieldContext : public fn::FieldContext {
