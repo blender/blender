@@ -2081,9 +2081,13 @@ static bool lib_override_library_resync(Main *bmain,
     }
     /* Also deal with old overrides that went missing in new linked data - only for real local
      * overrides for now, not those who are linked. */
-    else if (id->tag & LIB_TAG_MISSING && !ID_IS_LINKED(id)) {
-      BLI_assert(ID_IS_OVERRIDE_LIBRARY(id));
-      if (!BKE_lib_override_library_is_user_edited(id)) {
+    else if (id->tag & LIB_TAG_MISSING && !ID_IS_LINKED(id) && ID_IS_OVERRIDE_LIBRARY(id)) {
+      if (ID_IS_OVERRIDE_LIBRARY_REAL(id) &&
+          id->override_library->reference->lib->id.tag & LIB_TAG_MISSING) {
+        /* Do not delete overrides which reference is missing because the library itself is missing
+         * (ref. T100586). */
+      }
+      else if (!BKE_lib_override_library_is_user_edited(id)) {
         /* If user never edited them, we can delete them. */
         id->tag |= LIB_TAG_DOIT;
         id->tag &= ~LIB_TAG_MISSING;
@@ -2395,6 +2399,11 @@ static void lib_override_library_main_resync_on_library_indirect_level(
       continue;
     }
 
+    /* Do not attempt to resync from missing data. */
+    if (((id->tag | id->override_library->reference->tag) & LIB_TAG_MISSING) != 0) {
+      continue;
+    }
+
     if (id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY) {
       /* This ID is not part of an override hierarchy. */
       continue;
@@ -2420,6 +2429,11 @@ static void lib_override_library_main_resync_on_library_indirect_level(
     }
 
     if (!lib_override_resync_id_lib_level_is_valid(id, library_indirect_level, true)) {
+      continue;
+    }
+
+    /* Do not attempt to resync from missing data. */
+    if (((id->tag | id->override_library->reference->tag) & LIB_TAG_MISSING) != 0) {
       continue;
     }
 
@@ -2550,6 +2564,15 @@ static void lib_override_library_main_resync_on_library_indirect_level(
   /* Check there are no left-over IDs needing resync from the current (or higher) level of indirect
    * library level. */
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    if (!ID_IS_OVERRIDE_LIBRARY(id)) {
+      continue;
+    }
+    /* Do not attempt to resync to/from missing data. */
+    if (((id->tag | (ID_IS_OVERRIDE_LIBRARY_REAL(id) ? id->override_library->reference->tag : 0)) &
+         LIB_TAG_MISSING) != 0) {
+      continue;
+    }
+
     const bool is_valid_tagged_need_resync = ((id->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) == 0 ||
                                               lib_override_resync_id_lib_level_is_valid(
                                                   id, library_indirect_level - 1, false));
