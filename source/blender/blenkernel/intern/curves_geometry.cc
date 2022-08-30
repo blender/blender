@@ -58,7 +58,7 @@ CurvesGeometry::CurvesGeometry(const int point_num, const int curve_num)
 
   CustomData_add_layer_named(&this->point_data,
                              CD_PROP_FLOAT3,
-                             CD_SET_DEFAULT,
+                             CD_CONSTRUCT,
                              nullptr,
                              this->point_num,
                              ATTR_POSITION.c_str());
