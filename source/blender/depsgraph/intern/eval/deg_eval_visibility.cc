@@ -34,10 +34,14 @@ void deg_evaluate_object_node_visibility(::Depsgraph *depsgraph, IDNode *id_node
 
   DEG_debug_print_eval(depsgraph, __func__, object->id.name, &object->id);
 
-  const int required_flags = (graph->mode == DAG_EVAL_VIEWPORT) ? BASE_ENABLED_VIEWPORT :
-                                                                  BASE_ENABLED_RENDER;
-
-  const bool is_enabled = object->base_flag & required_flags;
+  bool is_enabled;
+  if (graph->mode == DAG_EVAL_VIEWPORT) {
+    is_enabled = (object->base_flag & BASE_ENABLED_VIEWPORT) &&
+                 ((object->base_flag & BASE_HIDDEN) == 0);
+  }
+  else {
+    is_enabled = (object->base_flag & BASE_ENABLED_RENDER);
+  };
 
   if (id_node->is_enabled_on_eval != is_enabled) {
     id_node->is_enabled_on_eval = is_enabled;
