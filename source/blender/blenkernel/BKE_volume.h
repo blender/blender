@@ -135,7 +135,7 @@ struct VolumeGrid *BKE_volume_grid_add(struct Volume *volume,
 void BKE_volume_grid_remove(struct Volume *volume, struct VolumeGrid *grid);
 
 /**
- * Openvdb crashes when the determinant of the transform matrix becomes too small.
+ * OpenVDB crashes when the determinant of the transform matrix becomes too small.
  */
 bool BKE_volume_grid_determinant_valid(double determinant);
 

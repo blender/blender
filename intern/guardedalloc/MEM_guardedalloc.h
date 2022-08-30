@@ -169,7 +169,7 @@ extern unsigned int (*MEM_get_memory_blocks_in_use)(void);
 /** Reset the peak memory statistic to zero. */
 extern void (*MEM_reset_peak_memory)(void);
 
-/** Get the peak memory usage in bytes, including mmap allocations. */
+/** Get the peak memory usage in bytes, including `mmap` allocations. */
 extern size_t (*MEM_get_peak_memory)(void) ATTR_WARN_UNUSED_RESULT;
 
 #ifdef __GNUC__

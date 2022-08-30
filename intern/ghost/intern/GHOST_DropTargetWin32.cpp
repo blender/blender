@@ -212,8 +212,8 @@ void *GHOST_DropTargetWin32::getDropDataAsFilenames(IDataObject *pDataObject)
   STGMEDIUM stgmed;
   HDROP hdrop;
 
-  /* Check if dataobject supplies the format we want.
-   * Double checking here, first in getGhostType. */
+  /* Check if data-object supplies the format we want.
+   * Double checking here, first in #getGhostType. */
   if (pDataObject->QueryGetData(&fmtetc) == S_OK) {
     if (pDataObject->GetData(&fmtetc, &stgmed) == S_OK) {
       hdrop = (HDROP)::GlobalLock(stgmed.hGlobal);
@@ -257,7 +257,7 @@ void *GHOST_DropTargetWin32::getDropDataAsString(IDataObject *pDataObject)
   STGMEDIUM stgmed;
 
   /* Try unicode first.
-   * Check if dataobject supplies the format we want. */
+   * Check if data-object supplies the format we want. */
   if (pDataObject->QueryGetData(&fmtetc) == S_OK) {
     if (pDataObject->GetData(&fmtetc, &stgmed) == S_OK) {
       LPCWSTR wstr = (LPCWSTR)::GlobalLock(stgmed.hGlobal);

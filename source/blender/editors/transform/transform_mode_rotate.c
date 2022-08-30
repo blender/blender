@@ -307,7 +307,7 @@ static bool uv_rotation_in_clip_bounds_test(const TransInfo *t, const float angl
       pr[0] = cos_angle * uv[0] + sin_angle * uv[1];
       pr[1] = -sin_angle * uv[0] + cos_angle * uv[1];
       add_v2_v2(pr, center);
-      /* TODO: udim support. */
+      /* TODO: UDIM support. */
       if (pr[0] < 0.0f || 1.0f < pr[0]) {
         return false;
       }

@@ -467,9 +467,9 @@ inline void GHOST_SystemWin32::handleKeyboardChange(void)
 
   for (m_hasAltGr = false, i = 32; i < 256; ++i) {
     s = VkKeyScanEx((char)i, m_keylayout);
-    /* `s == -1` means no key that translates passed char code
-     * high byte contains shift state. bit 2 ctrl pressed, bit 4 alt pressed
-     * if both are pressed, we have AltGr keycombo on keylayout. */
+    /* `s == -1` means no key that translates passed char code high byte contains shift state.
+     * bit 2 Control pressed, bit 4 `Alt` pressed if both are pressed,
+     * we have `AltGr` key-combination on key-layout. */
     if (s != -1 && (s & 0x600) == 0x600) {
       m_hasAltGr = true;
       break;
