@@ -33,8 +33,6 @@ bool BKE_pointcloud_customdata_required(const struct PointCloud *pointcloud, con
 
 /* Dependency Graph */
 
-struct PointCloud *BKE_pointcloud_new_for_eval(const struct PointCloud *pointcloud_src,
-                                               int totpoint);
 struct PointCloud *BKE_pointcloud_copy_for_eval(struct PointCloud *pointcloud_src, bool reference);
 
 void BKE_pointcloud_data_update(struct Depsgraph *depsgraph,

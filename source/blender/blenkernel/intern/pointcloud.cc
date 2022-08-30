@@ -325,22 +325,6 @@ bool BKE_pointcloud_customdata_required(const PointCloud *UNUSED(pointcloud), co
 
 /* Dependency Graph */
 
-PointCloud *BKE_pointcloud_new_for_eval(const PointCloud *pointcloud_src, int totpoint)
-{
-  PointCloud *pointcloud_dst = static_cast<PointCloud *>(BKE_id_new_nomain(ID_PT, nullptr));
-  CustomData_free(&pointcloud_dst->pdata, pointcloud_dst->totpoint);
-
-  STRNCPY(pointcloud_dst->id.name, pointcloud_src->id.name);
-  pointcloud_dst->mat = static_cast<Material **>(MEM_dupallocN(pointcloud_src->mat));
-  pointcloud_dst->totcol = pointcloud_src->totcol;
-
-  pointcloud_dst->totpoint = totpoint;
-  CustomData_copy(
-      &pointcloud_src->pdata, &pointcloud_dst->pdata, CD_MASK_ALL, CD_SET_DEFAULT, totpoint);
-
-  return pointcloud_dst;
-}
-
 PointCloud *BKE_pointcloud_copy_for_eval(struct PointCloud *pointcloud_src, bool reference)
 {
   int flags = LIB_ID_COPY_LOCALIZE;
