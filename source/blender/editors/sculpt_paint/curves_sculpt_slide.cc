@@ -149,6 +149,12 @@ struct SlideOperationExecutor {
       report_missing_uv_map_on_original_surface(stroke_extension.reports);
       return;
     }
+    if (curves_orig_->surface_uv_coords().is_empty()) {
+      BKE_report(stroke_extension.reports,
+                 RPT_WARNING,
+                 TIP_("Curves do not have surface attachment information"));
+      return;
+    }
     const StringRefNull uv_map_name = curves_id_orig_->surface_uv_map;
 
     curves_sculpt_ = ctx_.scene->toolsettings->curves_sculpt;
