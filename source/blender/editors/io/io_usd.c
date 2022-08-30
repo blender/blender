@@ -658,7 +658,7 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
   RNA_def_boolean(ot->srna,
                   "export_armatures",
                   false,
-                  "Armatures (Experimental)",
+                  "Armatures",
                   "Export armatures and skinned meshes");
 
   RNA_def_boolean(ot->srna,
@@ -675,7 +675,7 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna,
     "fix_skel_root",
-    false,
+    true,
     "Fix Skel Root",
     "If exporting armatures, attempt to automatically "
     "correct invalid USD Skel Root hierarchies");
