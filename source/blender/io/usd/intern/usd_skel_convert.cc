@@ -26,9 +26,18 @@
 #include <pxr/usd/usdSkel/bindingAPI.h>
 #include <pxr/usd/usdSkel/utils.h>
 
+#include "DNA_anim_types.h"
+#include "DNA_armature_types.h"
+#include "DNA_key_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_meta_types.h"
+#include "DNA_scene_types.h"
+
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_deform.h"
+#include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
@@ -39,24 +48,7 @@
 
 #include "BLI_math_vector.h"
 
-#include "DNA_armature_types.h"
-#include "DNA_key_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_scene_types.h"
-
-#include "BKE_main.h"
-#include "BKE_scene.h"
-#include "BLI_listbase.h"
-#include "BLI_math.h"
-#include "BLI_path_util.h"
-#include "BLI_string.h"
-#include "DNA_scene_types.h"
-
-#include "BKE_fcurve.h"
 #include "ED_keyframing.h"
-
 #include "ED_mesh.h"
 
 #include <string>
