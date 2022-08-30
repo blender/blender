@@ -44,6 +44,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_main.h"
 #include "BKE_scene.h"
@@ -341,7 +342,6 @@ void import_blendshapes(Main *bmain, Object *obj, pxr::UsdPrim prim)
     return;
   }
 
-  blendshapes;
   if (!skel_anim.GetBlendShapesAttr().Get(&blendshapes)) {
     return;
   }
@@ -435,7 +435,7 @@ void create_skeleton_curves(Main *bmain,
 
     if (it == joint_to_bone_map.end()) {
       /* This joint doesn't correspond to any bone we created.
-      /* Add null placeholders for the channel curves. */
+       * Add null placeholders for the channel curves. */
       loc_curves.push_back(nullptr);
       loc_curves.push_back(nullptr);
       loc_curves.push_back(nullptr);
@@ -719,7 +719,7 @@ void import_skel_bindings(Main *bmain, Object *mesh_obj, pxr::UsdPrim prim)
 
   for (int i = 0; i < mesh->totvert; ++i) {
     /* Offset into the weights array, which is
-    /* always 0 for constant interpolation. */
+     * always 0 for constant interpolation. */
     int offset = 0;
     if (interp == pxr::UsdGeomTokens->vertex) {
       offset = i * joint_weights_elem_size;
