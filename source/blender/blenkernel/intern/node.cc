@@ -3383,8 +3383,10 @@ struct bNodeSocket *ntreeAddSocketInterfaceFromSocket(bNodeTree *ntree,
                                                       bNode *from_node,
                                                       bNodeSocket *from_sock)
 {
-  bNodeSocket *iosock = ntreeAddSocketInterface(
-      ntree, static_cast<eNodeSocketInOut>(from_sock->in_out), from_sock->idname, DATA_(from_sock->name));
+  bNodeSocket *iosock = ntreeAddSocketInterface(ntree,
+                                                static_cast<eNodeSocketInOut>(from_sock->in_out),
+                                                from_sock->idname,
+                                                DATA_(from_sock->name));
   if (iosock) {
     if (iosock->typeinfo->interface_from_socket) {
       iosock->typeinfo->interface_from_socket(ntree, iosock, from_node, from_sock);

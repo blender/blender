@@ -876,9 +876,12 @@ template<typename T> class VMutableArray;
  * construct the virtual array first and then move it into the vector.
  */
 namespace varray_tag {
-struct span {};
-struct single_ref {};
-struct single {};
+struct span {
+};
+struct single_ref {
+};
+struct single {
+};
 }  // namespace varray_tag
 
 /**

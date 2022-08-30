@@ -1933,7 +1933,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                         (info["author"] and (search in info["author"].lower())) or
                         ((filter == "All") and (search in info["category"].lower() or
                                                 search in iface_(info["category"]).lower()))
-                        ):
+                ):
                     continue
 
                 # Addon UI Code
