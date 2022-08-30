@@ -228,13 +228,6 @@ void *BKE_pointcloud_add_default(Main *bmain, const char *name)
   PointCloud *pointcloud = static_cast<PointCloud *>(BKE_libblock_alloc(bmain, ID_PT, name, 0));
 
   pointcloud_init_data(&pointcloud->id);
-
-  CustomData_add_layer_named(&pointcloud->pdata,
-                             CD_PROP_FLOAT,
-                             CD_SET_DEFAULT,
-                             nullptr,
-                             pointcloud->totpoint,
-                             POINTCLOUD_ATTR_RADIUS);
   pointcloud_random(pointcloud);
 
   return pointcloud;
