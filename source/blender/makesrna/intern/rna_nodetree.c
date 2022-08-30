@@ -4927,6 +4927,54 @@ static void def_compare(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
+static void def_sh_mix(StructRNA *srna)
+{
+  static const EnumPropertyItem rna_enum_mix_data_type_items[] = {
+      {SOCK_FLOAT, "FLOAT", 0, "Float", ""},
+      {SOCK_VECTOR, "VECTOR", 0, "Vector", ""},
+      {SOCK_RGBA, "RGBA", 0, "Color", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem rna_enum_mix_mode_items[] = {
+      {NODE_MIX_MODE_UNIFORM, "UNIFORM", 0, "Uniform", "Use a single factor for all components"},
+      {NODE_MIX_MODE_NON_UNIFORM, "NON_UNIFORM", 0, "Non-Uniform", "Per component factor"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeShaderMix", "storage");
+
+  prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_mix_data_type_items);
+  RNA_def_property_enum_default(prop, SOCK_FLOAT);
+  RNA_def_property_ui_text(prop, "Data Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "factor_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_mix_mode_items);
+  RNA_def_property_enum_default(prop, SOCK_FLOAT);
+  RNA_def_property_ui_text(prop, "Factor Mode", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "blend_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "blend_type");
+  RNA_def_property_enum_items(prop, rna_enum_ramp_blend_items);
+  RNA_def_property_ui_text(prop, "Blending Mode", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "clamp_factor", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "clamp_factor", 1);
+  RNA_def_property_ui_text(prop, "Clamp Factor", "Clamp the factor to [0,1] range");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "clamp_result", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "clamp_result", 1);
+  RNA_def_property_ui_text(prop, "Clamp Result", "Clamp the result to [0,1] range");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_float_to_int(StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -10963,6 +11011,12 @@ static void rna_def_node_socket(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SOCK_IN_USE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Linked", "True if the socket is connected");
+
+  prop = RNA_def_property(srna, "is_unavailable", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", SOCK_UNAVAIL);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop, "Unavailable", "True if the socket is unavailable");
 
   prop = RNA_def_property(srna, "is_multi_input", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SOCK_MULTI_INPUT);

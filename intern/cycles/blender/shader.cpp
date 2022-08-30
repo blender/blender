@@ -350,6 +350,33 @@ static ShaderNode *add_node(Scene *scene,
     mix->set_use_clamp(b_mix_node.use_clamp());
     node = mix;
   }
+  else if (b_node.is_a(&RNA_ShaderNodeMix)) {
+    BL::ShaderNodeMix b_mix_node(b_node);
+    if (b_mix_node.data_type() == BL::ShaderNodeMix::data_type_VECTOR) {
+      if (b_mix_node.factor_mode() == BL::ShaderNodeMix::factor_mode_UNIFORM) {
+        MixVectorNode *mix_node = graph->create_node<MixVectorNode>();
+        mix_node->set_use_clamp(b_mix_node.clamp_factor());
+        node = mix_node;
+      }
+      else {
+        MixVectorNonUniformNode *mix_node = graph->create_node<MixVectorNonUniformNode>();
+        mix_node->set_use_clamp(b_mix_node.clamp_factor());
+        node = mix_node;
+      }
+    }
+    else if (b_mix_node.data_type() == BL::ShaderNodeMix::data_type_RGBA) {
+      MixColorNode *mix_node = graph->create_node<MixColorNode>();
+      mix_node->set_blend_type((NodeMix)b_mix_node.blend_type());
+      mix_node->set_use_clamp(b_mix_node.clamp_factor());
+      mix_node->set_use_clamp_result(b_mix_node.clamp_result());
+      node = mix_node;
+    }
+    else {
+      MixFloatNode *mix_node = graph->create_node<MixFloatNode>();
+      mix_node->set_use_clamp(b_mix_node.clamp_factor());
+      node = mix_node;
+    }
+  }
   else if (b_node.is_a(&RNA_ShaderNodeSeparateRGB)) {
     node = graph->create_node<SeparateRGBNode>();
   }
@@ -1072,7 +1099,9 @@ static bool node_use_modified_socket_name(ShaderNode *node)
   return true;
 }
 
-static ShaderInput *node_find_input_by_name(ShaderNode *node, BL::NodeSocket &b_socket)
+static ShaderInput *node_find_input_by_name(BL::Node b_node,
+                                            ShaderNode *node,
+                                            BL::NodeSocket &b_socket)
 {
   string name = b_socket.identifier();
   ShaderInput *input = node->input(name.c_str());
@@ -1082,6 +1111,35 @@ static ShaderInput *node_find_input_by_name(ShaderNode *node, BL::NodeSocket &b_
     if (string_startswith(name, "Shader")) {
       string_replace(name, "Shader", "Closure");
     }
+
+    /* Map mix node internal name for shader. */
+    if (b_node.is_a(&RNA_ShaderNodeMix)) {
+      if (string_endswith(name, "Factor_Float")) {
+        string_replace(name, "Factor_Float", "Factor");
+      }
+      else if (string_endswith(name, "Factor_Vector")) {
+        string_replace(name, "Factor_Vector", "Factor");
+      }
+      else if (string_endswith(name, "A_Float")) {
+        string_replace(name, "A_Float", "A");
+      }
+      else if (string_endswith(name, "B_Float")) {
+        string_replace(name, "B_Float", "B");
+      }
+      else if (string_endswith(name, "A_Color")) {
+        string_replace(name, "A_Color", "A");
+      }
+      else if (string_endswith(name, "B_Color")) {
+        string_replace(name, "B_Color", "B");
+      }
+      else if (string_endswith(name, "A_Vector")) {
+        string_replace(name, "A_Vector", "A");
+      }
+      else if (string_endswith(name, "B_Vector")) {
+        string_replace(name, "B_Vector", "B");
+      }
+    }
+
     input = node->input(name.c_str());
 
     if (!input) {
@@ -1111,7 +1169,9 @@ static ShaderInput *node_find_input_by_name(ShaderNode *node, BL::NodeSocket &b_
   return input;
 }
 
-static ShaderOutput *node_find_output_by_name(ShaderNode *node, BL::NodeSocket &b_socket)
+static ShaderOutput *node_find_output_by_name(BL::Node b_node,
+                                              ShaderNode *node,
+                                              BL::NodeSocket &b_socket)
 {
   string name = b_socket.identifier();
   ShaderOutput *output = node->output(name.c_str());
@@ -1121,6 +1181,21 @@ static ShaderOutput *node_find_output_by_name(ShaderNode *node, BL::NodeSocket &
     if (name == "Shader") {
       name = "Closure";
       output = node->output(name.c_str());
+    }
+    /* Map internal name for shader. */
+    if (b_node.is_a(&RNA_ShaderNodeMix)) {
+      if (string_endswith(name, "Result_Float")) {
+        string_replace(name, "Result_Float", "Result");
+        output = node->output(name.c_str());
+      }
+      else if (string_endswith(name, "Result_Color")) {
+        string_replace(name, "Result_Color", "Result");
+        output = node->output(name.c_str());
+      }
+      else if (string_endswith(name, "Result_Vector")) {
+        string_replace(name, "Result_Vector", "Result");
+        output = node->output(name.c_str());
+      }
     }
   }
 
@@ -1267,7 +1342,11 @@ static void add_nodes(Scene *scene,
       if (node) {
         /* map node sockets for linking */
         for (BL::NodeSocket &b_input : b_node.inputs) {
-          ShaderInput *input = node_find_input_by_name(node, b_input);
+          if (b_input.is_unavailable()) {
+            /* Skip unavailable sockets. */
+            continue;
+          }
+          ShaderInput *input = node_find_input_by_name(b_node, node, b_input);
           if (!input) {
             /* XXX should not happen, report error? */
             continue;
@@ -1277,7 +1356,11 @@ static void add_nodes(Scene *scene,
           set_default_value(input, b_input, b_data, b_ntree);
         }
         for (BL::NodeSocket &b_output : b_node.outputs) {
-          ShaderOutput *output = node_find_output_by_name(node, b_output);
+          if (b_output.is_unavailable()) {
+            /* Skip unavailable sockets. */
+            continue;
+          }
+          ShaderOutput *output = node_find_output_by_name(b_node, node, b_output);
           if (!output) {
             /* XXX should not happen, report error? */
             continue;

@@ -1697,6 +1697,27 @@ static void versioning_replace_legacy_combined_and_separate_color_nodes(bNodeTre
   }
 }
 
+static void versioning_replace_legacy_mix_rgb_node(bNodeTree *ntree)
+{
+  version_node_input_socket_name(ntree, SH_NODE_MIX_RGB_LEGACY, "Fac", "Factor_Float");
+  version_node_input_socket_name(ntree, SH_NODE_MIX_RGB_LEGACY, "Color1", "A_Color");
+  version_node_input_socket_name(ntree, SH_NODE_MIX_RGB_LEGACY, "Color2", "B_Color");
+  version_node_output_socket_name(ntree, SH_NODE_MIX_RGB_LEGACY, "Color", "Result_Color");
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type == SH_NODE_MIX_RGB_LEGACY) {
+      strcpy(node->idname, "ShaderNodeMix");
+      node->type = SH_NODE_MIX;
+      NodeShaderMix *data = (NodeShaderMix *)MEM_callocN(sizeof(NodeShaderMix), __func__);
+      data->blend_type = node->custom1;
+      data->clamp_result = node->custom2;
+      data->clamp_factor = 1;
+      data->data_type = SOCK_RGBA;
+      data->factor_mode = NODE_MIX_MODE_UNIFORM;
+      node->storage = data;
+    }
+  }
+}
+
 static void version_fix_image_format_copy(Main *bmain, ImageFormatData *format)
 {
   /* Fix bug where curves in image format were not properly copied to file output
@@ -3331,6 +3352,14 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
           copy_v4_v4(tile->gen_color, ima->gen_color);
         }
       }
+    }
+
+    /* Convert mix rgb node to new mix node and add storage. */
+    {
+      FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+        versioning_replace_legacy_mix_rgb_node(ntree);
+      }
+      FOREACH_NODETREE_END;
     }
   }
 }

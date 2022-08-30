@@ -232,7 +232,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
   storage = (NodeShaderAttribute *)input_attr_color->storage;
   BLI_strncpy(storage->name, "Color", sizeof(storage->name));
 
-  bNode *mix_rgb_color = nodeAddStaticNode(nullptr, ntree, SH_NODE_MIX_RGB);
+  bNode *mix_rgb_color = nodeAddStaticNode(nullptr, ntree, SH_NODE_MIX_RGB_LEGACY);
   mix_rgb_color->custom1 = MA_RAMP_BLEND;  // Mix
   mix_rgb_color->locx = 200.0f;
   mix_rgb_color->locy = -200.0f;
@@ -246,7 +246,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
   storage = (NodeShaderAttribute *)input_attr_alpha->storage;
   BLI_strncpy(storage->name, "Alpha", sizeof(storage->name));
 
-  bNode *mix_rgb_alpha = nodeAddStaticNode(nullptr, ntree, SH_NODE_MIX_RGB);
+  bNode *mix_rgb_alpha = nodeAddStaticNode(nullptr, ntree, SH_NODE_MIX_RGB_LEGACY);
   mix_rgb_alpha->custom1 = MA_RAMP_BLEND;  // Mix
   mix_rgb_alpha->locx = 600.0f;
   mix_rgb_alpha->locy = 300.0f;

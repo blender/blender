@@ -424,7 +424,6 @@ shader_node_categories = [
         NodeItem("ShaderNodeTexWhiteNoise"),
     ]),
     ShaderNodeCategory("SH_NEW_OP_COLOR", "Color", items=[
-        NodeItem("ShaderNodeMixRGB"),
         NodeItem("ShaderNodeRGBCurve"),
         NodeItem("ShaderNodeInvert"),
         NodeItem("ShaderNodeLightFalloff"),
@@ -448,6 +447,7 @@ shader_node_categories = [
         NodeItem("ShaderNodeFloatCurve"),
         NodeItem("ShaderNodeClamp"),
         NodeItem("ShaderNodeMath"),
+        NodeItem("ShaderNodeMix"),
         NodeItem("ShaderNodeValToRGB"),
         NodeItem("ShaderNodeRGBToBW"),
         NodeItem("ShaderNodeShaderToRGB", poll=object_eevee_shader_nodes_poll),
@@ -651,7 +651,6 @@ geometry_node_categories = [
         NodeItem("GeometryNodeStoreNamedAttribute"),
     ]),
     GeometryNodeCategory("GEO_COLOR", "Color", items=[
-        NodeItem("ShaderNodeMixRGB"),
         NodeItem("ShaderNodeRGBCurve"),
         NodeItem("ShaderNodeValToRGB"),
         NodeItem("FunctionNodeSeparateColor"),
@@ -719,6 +718,7 @@ geometry_node_categories = [
         NodeItem("FunctionNodeBooleanMath"),
         NodeItem("FunctionNodeRotateEuler"),
         NodeItem("FunctionNodeCompare"),
+        NodeItem("ShaderNodeMix"),
         NodeItem("FunctionNodeFloatToInt"),
         NodeItem("GeometryNodeSwitch"),
         NodeItem("FunctionNodeRandomValue"),

@@ -133,7 +133,7 @@ typedef enum NodeMix {
   NODE_MIX_HUE,
   NODE_MIX_SAT,
   NODE_MIX_VAL,
-  NODE_MIX_COLOR,
+  NODE_MIX_COL,
   NODE_MIX_SOFT,
   NODE_MIX_LINEAR,
   NODE_MIX_CLAMP /* used for the clamp UI option */

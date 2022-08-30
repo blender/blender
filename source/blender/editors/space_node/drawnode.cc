@@ -477,7 +477,7 @@ static void node_shader_set_butfunc(bNodeType *ntype)
     case SH_NODE_RGB:
       ntype->draw_buttons = node_buts_rgb;
       break;
-    case SH_NODE_MIX_RGB:
+    case SH_NODE_MIX_RGB_LEGACY:
       ntype->draw_buttons = node_buts_mix_rgb;
       break;
     case SH_NODE_VALTORGB:

@@ -1102,7 +1102,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 //#define SH_NODE_MATERIAL  100
 #define SH_NODE_RGB 101
 #define SH_NODE_VALUE 102
-#define SH_NODE_MIX_RGB 103
+#define SH_NODE_MIX_RGB_LEGACY 103
 #define SH_NODE_VALTORGB 104
 #define SH_NODE_RGBTOBW 105
 #define SH_NODE_SHADERTORGB 106
@@ -1205,6 +1205,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define SH_NODE_POINT_INFO 710
 #define SH_NODE_COMBINE_COLOR 711
 #define SH_NODE_SEPARATE_COLOR 712
+#define SH_NODE_MIX 713
 
 /** \} */
 

@@ -1475,6 +1475,17 @@ typedef struct NodeCombSepColor {
   int8_t mode;
 } NodeCombSepColor;
 
+typedef struct NodeShaderMix {
+  /* eNodeSocketDatatype */
+  int8_t data_type;
+  /* NodeShaderMixMode */
+  int8_t factor_mode;
+  int8_t clamp_factor;
+  int8_t clamp_result;
+  int8_t blend_type;
+  char _pad[3];
+} NodeShaderMix;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
 #define NODE_SCRIPT_EXTERNAL 1
@@ -1761,6 +1772,11 @@ typedef enum NodeBooleanMathOperation {
   NODE_BOOLEAN_MATH_IMPLY = 7,
   NODE_BOOLEAN_MATH_NIMPLY = 8,
 } NodeBooleanMathOperation;
+
+typedef enum NodeShaderMixMode {
+  NODE_MIX_MODE_UNIFORM = 0,
+  NODE_MIX_MODE_NON_UNIFORM = 1,
+} NodeShaderMixMode;
 
 typedef enum NodeCompareMode {
   NODE_COMPARE_MODE_ELEMENT = 0,

@@ -25,7 +25,7 @@ DefNode(Node,           NODE_REROUTE,            0,                      "REROUT
 
 DefNode(ShaderNode,     SH_NODE_RGB,             0,                      "RGB",            RGB,              "RGB",               "A color picker")
 DefNode(ShaderNode,     SH_NODE_VALUE,           0,                      "VALUE",          Value,            "Value",             "Used to Input numerical values to other nodes in the tree")
-DefNode(ShaderNode,     SH_NODE_MIX_RGB,         def_mix_rgb,            "MIX_RGB",        MixRGB,           "MixRGB",            "Mix two input colors")
+DefNode(ShaderNode,     SH_NODE_MIX_RGB_LEGACY,  def_mix_rgb,            "MIX_RGB",        MixRGB,           "MixRGB",            "Mix two input colors")
 DefNode(ShaderNode,     SH_NODE_VALTORGB,        def_colorramp,          "VALTORGB",       ValToRGB,         "ColorRamp",         "Map values to colors with the use of a gradient")
 DefNode(ShaderNode,     SH_NODE_RGBTOBW,         0,                      "RGBTOBW",        RGBToBW,          "RGB to BW",         "Convert a color's luminance to a grayscale value")
 DefNode(ShaderNode,     SH_NODE_SHADERTORGB,     0,                      "SHADERTORGB",    ShaderToRGB,      "Shader to RGB",     "Convert rendering effect (such as light and shadow) to color. Typically used for non-photorealistic rendering, to apply additional effects on the output of BSDFs.\nNote: only supported for Eevee")
@@ -122,6 +122,7 @@ DefNode(ShaderNode,     SH_NODE_OUTPUT_AOV,         def_sh_output_aov,      "OUT
 DefNode(ShaderNode,     SH_NODE_CURVE_FLOAT,        def_float_curve,        "CURVE_FLOAT",        FloatCurve,       "Float Curve",       "Map an input float to a curve and outputs a float value")
 DefNode(ShaderNode,     SH_NODE_COMBINE_COLOR,      def_sh_combsep_color,   "COMBINE_COLOR",      CombineColor,     "Combine Color",     "Create a color from individual components using multiple models")
 DefNode(ShaderNode,     SH_NODE_SEPARATE_COLOR,     def_sh_combsep_color,   "SEPARATE_COLOR",     SeparateColor,    "Separate Color",    "Split a color into its individual components using multiple models")
+DefNode(ShaderNode,     SH_NODE_MIX,                def_sh_mix,             "MIX",                Mix,              "Mix",               "Mix values by a factor")
 
 DefNode(CompositorNode, CMP_NODE_VIEWER,         def_cmp_viewer,         "VIEWER",         Viewer,           "Viewer",            ""              )
 DefNode(CompositorNode, CMP_NODE_RGB,            0,                      "RGB",            RGB,              "RGB",               ""              )

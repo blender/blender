@@ -1,0 +1,57 @@
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
+
+#include "node_color.h"
+#include "node_color_blend.h"
+#include "stdcycles.h"
+
+shader node_mix_color(string blend_type = "mix",
+                      int use_clamp = 0,
+                      int use_clamp_result = 0,
+                      float Factor = 0.5,
+                      color A = 0.0,
+                      color B = 0.0,
+                      output color Result = 0.0)
+{
+  float t = (use_clamp) ? clamp(Factor, 0.0, 1.0) : Factor;
+
+  if (blend_type == "mix")
+    Result = mix(A, B, t);
+  if (blend_type == "add")
+    Result = node_mix_add(t, A, B);
+  if (blend_type == "multiply")
+    Result = node_mix_mul(t, A, B);
+  if (blend_type == "screen")
+    Result = node_mix_screen(t, A, B);
+  if (blend_type == "overlay")
+    Result = node_mix_overlay(t, A, B);
+  if (blend_type == "subtract")
+    Result = node_mix_sub(t, A, B);
+  if (blend_type == "divide")
+    Result = node_mix_div(t, A, B);
+  if (blend_type == "difference")
+    Result = node_mix_diff(t, A, B);
+  if (blend_type == "darken")
+    Result = node_mix_dark(t, A, B);
+  if (blend_type == "lighten")
+    Result = node_mix_light(t, A, B);
+  if (blend_type == "dodge")
+    Result = node_mix_dodge(t, A, B);
+  if (blend_type == "burn")
+    Result = node_mix_burn(t, A, B);
+  if (blend_type == "hue")
+    Result = node_mix_hue(t, A, B);
+  if (blend_type == "saturation")
+    Result = node_mix_sat(t, A, B);
+  if (blend_type == "value")
+    Result = node_mix_val(t, A, B);
+  if (blend_type == "color")
+    Result = node_mix_color(t, A, B);
+  if (blend_type == "soft_light")
+    Result = node_mix_soft(t, A, B);
+  if (blend_type == "linear_light")
+    Result = node_mix_linear(t, A, B);
+
+  if (use_clamp_result)
+    Result = clamp(Result, 0.0, 1.0);
+}
