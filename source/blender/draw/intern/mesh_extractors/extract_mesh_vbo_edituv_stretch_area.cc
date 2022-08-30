@@ -27,7 +27,7 @@ static void extract_edituv_stretch_area_init(const MeshRenderData *mr,
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
-    GPU_vertformat_attr_add(&format, "ratio", GPU_COMP_I16, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    GPU_vertformat_attr_add(&format, "ratio", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   }
 
   GPU_vertbuf_init_with_format(vbo, &format);
@@ -37,15 +37,14 @@ static void extract_edituv_stretch_area_init(const MeshRenderData *mr,
 BLI_INLINE float area_ratio_get(float area, float uvarea)
 {
   if (area >= FLT_EPSILON && uvarea >= FLT_EPSILON) {
-    /* Tag inversion by using the sign. */
-    return (area > uvarea) ? (uvarea / area) : -(area / uvarea);
+    return uvarea / area;
   }
   return 0.0f;
 }
 
-BLI_INLINE float area_ratio_to_stretch(float ratio, float tot_ratio, float inv_tot_ratio)
+BLI_INLINE float area_ratio_to_stretch(float ratio, float tot_ratio)
 {
-  ratio *= (ratio > 0.0f) ? tot_ratio : -inv_tot_ratio;
+  ratio *= tot_ratio;
   return (ratio > 1.0f) ? (1.0f / ratio) : ratio;
 }
 
@@ -97,14 +96,8 @@ static void extract_edituv_stretch_area_finish(const MeshRenderData *mr,
   float *area_ratio = static_cast<float *>(MEM_mallocN(sizeof(float) * mr->poly_len, __func__));
   compute_area_ratio(mr, area_ratio, cache->tot_area, cache->tot_uv_area);
 
-  /* Convert in place to avoid an extra allocation */
-  uint16_t *poly_stretch = (uint16_t *)area_ratio;
-  for (int mp_index = 0; mp_index < mr->poly_len; mp_index++) {
-    poly_stretch[mp_index] = area_ratio[mp_index] * SHRT_MAX;
-  }
-
   /* Copy face data for each loop. */
-  uint16_t *loop_stretch = (uint16_t *)GPU_vertbuf_get_data(vbo);
+  float *loop_stretch = (float *)GPU_vertbuf_get_data(vbo);
 
   if (mr->extract_type == MR_EXTRACT_BMESH) {
     BMFace *efa;
@@ -112,7 +105,7 @@ static void extract_edituv_stretch_area_finish(const MeshRenderData *mr,
     int f, l_index = 0;
     BM_ITER_MESH_INDEX (efa, &f_iter, mr->bm, BM_FACES_OF_MESH, f) {
       for (int i = 0; i < efa->len; i++, l_index++) {
-        loop_stretch[l_index] = poly_stretch[f];
+        loop_stretch[l_index] = area_ratio[f];
       }
     }
   }
@@ -121,7 +114,7 @@ static void extract_edituv_stretch_area_finish(const MeshRenderData *mr,
     const MPoly *mp = mr->mpoly;
     for (int mp_index = 0, l_index = 0; mp_index < mr->poly_len; mp_index++, mp++) {
       for (int i = 0; i < mp->totloop; i++, l_index++) {
-        loop_stretch[l_index] = poly_stretch[mp_index];
+        loop_stretch[l_index] = area_ratio[mp_index];
       }
     }
   }
