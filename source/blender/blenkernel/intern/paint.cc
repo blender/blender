@@ -1836,7 +1836,7 @@ static void sculpt_face_sets_ensure(Mesh *mesh)
   }
 
   int *new_face_sets = static_cast<int *>(CustomData_add_layer(
-      &mesh->pdata, CD_SCULPT_FACE_SETS, CD_SET_DEFAULT, nullptr, mesh->totpoly));
+      &mesh->pdata, CD_SCULPT_FACE_SETS, CD_CONSTRUCT, nullptr, mesh->totpoly));
 
   /* Initialize the new Face Set data-layer with a default valid visible ID and set the default
    * color to render it white. */
@@ -2078,7 +2078,7 @@ void BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(Mesh *mesh)
   else {
     initialize_new_face_sets = true;
     int *new_face_sets = static_cast<int *>(CustomData_add_layer(
-        &mesh->pdata, CD_SCULPT_FACE_SETS, CD_SET_DEFAULT, nullptr, mesh->totpoly));
+        &mesh->pdata, CD_SCULPT_FACE_SETS, CD_CONSTRUCT, nullptr, mesh->totpoly));
 
     /* Initialize the new Face Set data-layer with a default valid visible ID and set the default
      * color to render it white. */

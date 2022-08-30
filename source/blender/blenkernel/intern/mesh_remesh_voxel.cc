@@ -291,7 +291,7 @@ void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, const Mesh *source)
   }
   else {
     target_mask = (float *)CustomData_add_layer(
-        &target->vdata, CD_PAINT_MASK, CD_SET_DEFAULT, nullptr, target->totvert);
+        &target->vdata, CD_PAINT_MASK, CD_CONSTRUCT, nullptr, target->totvert);
   }
 
   for (int i = 0; i < target->totvert; i++) {
@@ -325,7 +325,7 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source)
   }
   else {
     target_face_sets = (int *)CustomData_add_layer(
-        &target->pdata, CD_SCULPT_FACE_SETS, CD_SET_DEFAULT, nullptr, target->totpoly);
+        &target->pdata, CD_SCULPT_FACE_SETS, CD_CONSTRUCT, nullptr, target->totpoly);
   }
 
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(source);
