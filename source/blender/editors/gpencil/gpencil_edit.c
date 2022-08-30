@@ -3990,7 +3990,7 @@ static int gpencil_stroke_outline_exec(bContext *C, wmOperator *op)
   const int thickness = RNA_int_get(op->ptr, "thickness");
 
   const int view_mode = RNA_enum_get(op->ptr, "view_mode");
-  const int mode = RNA_enum_get(op->ptr, "mode");
+  const int material_mode = RNA_enum_get(op->ptr, "material_mode");
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
   /* sanity checks */
@@ -4051,7 +4051,7 @@ static int gpencil_stroke_outline_exec(bContext *C, wmOperator *op)
   }
   /* Create a new material. */
   int mat_idx = 0;
-  if (mode == GP_STROKE_USE_NEW_MATERIAL) {
+  if (material_mode == GP_STROKE_USE_NEW_MATERIAL) {
     Material *ma = BKE_gpencil_object_material_new(bmain, ob, "Material", NULL);
     MaterialGPencilStyle *gp_style = ma->gp_style;
 
@@ -4108,7 +4108,7 @@ static int gpencil_stroke_outline_exec(bContext *C, wmOperator *op)
               rv3d, gpd, gpl, gps_duplicate, subdivisions, diff_mat);
           gps_perimeter->flag &= ~GP_STROKE_SELECT;
           /* Assign material. */
-          switch (mode) {
+          switch (material_mode) {
             case GP_STROKE_USE_ACTIVE_MATERIAL: {
               if (ob->actcol - 1 < 0) {
                 gps_perimeter->mat_nr = 0;
@@ -4217,7 +4217,7 @@ void GPENCIL_OT_stroke_outline(wmOperatorType *ot)
   /* properties */
   ot->prop = RNA_def_enum(ot->srna, "view_mode", view_mode, GP_PERIMETER_VIEW, "View", "");
   RNA_def_enum(
-      ot->srna, "mode", material_mode, GP_STROKE_USE_ACTIVE_MATERIAL, "Material Mode", "");
+      ot->srna, "material_mode", material_mode, GP_STROKE_USE_ACTIVE_MATERIAL, "Material Mode", "");
 
   RNA_def_int(ot->srna,
               "thickness",
