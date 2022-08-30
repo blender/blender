@@ -96,6 +96,10 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
   const Mesh *mesh_src = (const Mesh *)id_src;
 
   BKE_mesh_runtime_reset_on_copy(mesh_dst, flag);
+  /* Copy face dot tags, since meshes may be duplicated after a subsurf modifier
+   * or node, but we still need to be able to draw face center vertices. */
+  mesh_dst->runtime.subsurf_face_dot_tags = static_cast<uint32_t *>(
+      MEM_dupallocN(mesh_src->runtime.subsurf_face_dot_tags));
   if ((mesh_src->id.tag & LIB_TAG_NO_MAIN) == 0) {
     /* This is a direct copy of a main mesh, so for now it has the same topology. */
     mesh_dst->runtime.deformed_only = true;
