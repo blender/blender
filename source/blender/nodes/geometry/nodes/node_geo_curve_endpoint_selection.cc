@@ -64,12 +64,12 @@ class EndpointFieldInput final : public bke::CurvesFieldInput {
     devirtualize_varray2(start_size, end_size, [&](const auto &start_size, const auto &end_size) {
       threading::parallel_for(curves.curves_range(), 1024, [&](IndexRange curves_range) {
         for (const int i : curves_range) {
-          const IndexRange range = curves.points_for_curve(i);
+          const IndexRange points = curves.points_for_curve(i);
           const int start = std::max(start_size[i], 0);
           const int end = std::max(end_size[i], 0);
 
-          selection_span.slice(range.take_front(start)).fill(true);
-          selection_span.slice(range.take_back(end)).fill(true);
+          selection_span.slice(points.take_front(start)).fill(true);
+          selection_span.slice(points.take_back(end)).fill(true);
         }
       });
     });

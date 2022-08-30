@@ -397,10 +397,10 @@ static void curves_batch_cache_fill_strands_data(const Curves &curves_id,
       curves_id.geometry);
 
   for (const int i : IndexRange(curves.curves_num())) {
-    const IndexRange curve_range = curves.points_for_curve(i);
+    const IndexRange points = curves.points_for_curve(i);
 
-    *(uint *)GPU_vertbuf_raw_step(&data_step) = curve_range.start();
-    *(ushort *)GPU_vertbuf_raw_step(&seg_step) = curve_range.size() - 1;
+    *(uint *)GPU_vertbuf_raw_step(&data_step) = points.start();
+    *(ushort *)GPU_vertbuf_raw_step(&seg_step) = points.size() - 1;
   }
 }
 

@@ -114,9 +114,9 @@ bke::CurvesGeometry primitive_random_sphere(const int curves_size, const int poi
   RandomNumberGenerator rng;
 
   for (const int i : curves.curves_range()) {
-    const IndexRange curve_range = curves.points_for_curve(i);
-    MutableSpan<float3> curve_positions = positions.slice(curve_range);
-    MutableSpan<float> curve_radii = radii.slice(curve_range);
+    const IndexRange points = curves.points_for_curve(i);
+    MutableSpan<float3> curve_positions = positions.slice(points);
+    MutableSpan<float> curve_radii = radius.span.slice(points);
 
     const float theta = 2.0f * M_PI * rng.get_float();
     const float phi = saacosf(2.0f * rng.get_float() - 1.0f);
