@@ -15,6 +15,7 @@
 
 #include "BLI_threads.h"
 
+struct BakeTargets;
 struct BakePixel;
 struct Depsgraph;
 struct Main;
@@ -140,9 +141,10 @@ typedef struct RenderEngine {
   struct ReportList *reports;
 
   struct {
+    const struct BakeTargets *targets;
     const struct BakePixel *pixels;
     float *result;
-    int width, height, depth;
+    int image_id;
     int object_id;
   } bake;
 

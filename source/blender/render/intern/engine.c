@@ -178,8 +178,18 @@ void RE_engine_free(RenderEngine *engine)
 
 /* Bake Render Results */
 
-static RenderResult *render_result_from_bake(RenderEngine *engine, int x, int y, int w, int h)
+static RenderResult *render_result_from_bake(
+    RenderEngine *engine, int x, int y, int w, int h, const char *layername)
 {
+  BakeImage *image = &engine->bake.targets->images[engine->bake.image_id];
+  const BakePixel *pixels = engine->bake.pixels + image->offset;
+  const size_t channels_num = engine->bake.targets->channels_num;
+
+  /* Remember layer name for to match images in render_frame_finish. */
+  if (image->render_layer_name[0] == '\0') {
+    STRNCPY(image->render_layer_name, layername);
+  }
+
   /* Create render result with specified size. */
   RenderResult *rr = MEM_callocN(sizeof(RenderResult), __func__);
 
@@ -192,12 +202,13 @@ static RenderResult *render_result_from_bake(RenderEngine *engine, int x, int y,
 
   /* Add single baking render layer. */
   RenderLayer *rl = MEM_callocN(sizeof(RenderLayer), "bake render layer");
+  STRNCPY(rl->name, layername);
   rl->rectx = w;
   rl->recty = h;
   BLI_addtail(&rr->layers, rl);
 
   /* Add render passes. */
-  render_layer_add_pass(rr, rl, engine->bake.depth, RE_PASSNAME_COMBINED, "", "RGBA", true);
+  render_layer_add_pass(rr, rl, channels_num, RE_PASSNAME_COMBINED, "", "RGBA", true);
 
   RenderPass *primitive_pass = render_layer_add_pass(rr, rl, 4, "BakePrimitive", "", "RGBA", true);
   RenderPass *differential_pass = render_layer_add_pass(
@@ -209,8 +220,8 @@ static RenderResult *render_result_from_bake(RenderEngine *engine, int x, int y,
     float *primitive = primitive_pass->rect + offset;
     float *differential = differential_pass->rect + offset;
 
-    size_t bake_offset = (y + ty) * engine->bake.width + x;
-    const BakePixel *bake_pixel = engine->bake.pixels + bake_offset;
+    size_t bake_offset = (y + ty) * image->width + x;
+    const BakePixel *bake_pixel = pixels + bake_offset;
 
     for (int tx = 0; tx < w; tx++) {
       if (bake_pixel->object_id != engine->bake.object_id) {
@@ -240,11 +251,28 @@ static RenderResult *render_result_from_bake(RenderEngine *engine, int x, int y,
 
 static void render_result_to_bake(RenderEngine *engine, RenderResult *rr)
 {
-  RenderPass *rpass = RE_pass_find_by_name(rr->layers.first, RE_PASSNAME_COMBINED, "");
-
+  RenderLayer *rl = rr->layers.first;
+  RenderPass *rpass = RE_pass_find_by_name(rl, RE_PASSNAME_COMBINED, "");
   if (!rpass) {
     return;
   }
+
+  /* Find bake image corresponding to layer. */
+  int image_id = 0;
+  for (; image_id < engine->bake.targets->images_num; image_id++) {
+    if (STREQ(engine->bake.targets->images[image_id].render_layer_name, rl->name)) {
+      break;
+    }
+  }
+  if (image_id == engine->bake.targets->images_num) {
+    return;
+  }
+
+  const BakeImage *image = &engine->bake.targets->images[image_id];
+  const BakePixel *pixels = engine->bake.pixels + image->offset;
+  const size_t channels_num = engine->bake.targets->channels_num;
+  const size_t channels_size = channels_num * sizeof(float);
+  float *result = engine->bake.result + image->offset * channels_num;
 
   /* Copy from tile render result to full image bake result. Just the pixels for the
    * object currently being baked, to preserve other objects when baking multiple. */
@@ -252,23 +280,21 @@ static void render_result_to_bake(RenderEngine *engine, RenderResult *rr)
   const int y = rr->tilerect.ymin;
   const int w = rr->tilerect.xmax - rr->tilerect.xmin;
   const int h = rr->tilerect.ymax - rr->tilerect.ymin;
-  const size_t pixel_depth = engine->bake.depth;
-  const size_t pixel_size = pixel_depth * sizeof(float);
 
   for (int ty = 0; ty < h; ty++) {
     const size_t offset = ty * w;
-    const size_t bake_offset = (y + ty) * engine->bake.width + x;
+    const size_t bake_offset = (y + ty) * image->width + x;
 
-    const float *pass_rect = rpass->rect + offset * pixel_depth;
-    const BakePixel *bake_pixel = engine->bake.pixels + bake_offset;
-    float *bake_result = engine->bake.result + bake_offset * pixel_depth;
+    const float *pass_rect = rpass->rect + offset * channels_num;
+    const BakePixel *bake_pixel = pixels + bake_offset;
+    float *bake_result = result + bake_offset * channels_num;
 
     for (int tx = 0; tx < w; tx++) {
       if (bake_pixel->object_id == engine->bake.object_id) {
-        memcpy(bake_result, pass_rect, pixel_size);
+        memcpy(bake_result, pass_rect, channels_size);
       }
-      pass_rect += pixel_depth;
-      bake_result += pixel_depth;
+      pass_rect += channels_num;
+      bake_result += channels_num;
       bake_pixel++;
     }
   }
@@ -318,8 +344,8 @@ static void engine_tile_highlight_set(RenderEngine *engine,
 RenderResult *RE_engine_begin_result(
     RenderEngine *engine, int x, int y, int w, int h, const char *layername, const char *viewname)
 {
-  if (engine->bake.pixels) {
-    RenderResult *result = render_result_from_bake(engine, x, y, w, h);
+  if (engine->bake.targets) {
+    RenderResult *result = render_result_from_bake(engine, x, y, w, h, layername);
     BLI_addtail(&engine->fullresult, result);
     return result;
   }
@@ -380,7 +406,7 @@ static void re_ensure_passes_allocated_thread_safe(Render *re)
 
 void RE_engine_update_result(RenderEngine *engine, RenderResult *result)
 {
-  if (engine->bake.pixels) {
+  if (engine->bake.targets) {
     /* No interactive baking updates for now. */
     return;
   }
@@ -419,8 +445,10 @@ void RE_engine_end_result(
     return;
   }
 
-  if (engine->bake.pixels) {
-    render_result_to_bake(engine, result);
+  if (engine->bake.targets) {
+    if (!cancel || merge_results) {
+      render_result_to_bake(engine, result);
+    }
     BLI_remlink(&engine->fullresult, result);
     render_result_free(result);
     return;
@@ -829,21 +857,27 @@ bool RE_bake_engine(Render *re,
       type->update(engine, re->main, engine->depsgraph);
     }
 
-    for (int i = 0; i < targets->images_num; i++) {
-      const BakeImage *image = targets->images + i;
+    /* Bake all images. */
+    engine->bake.targets = targets;
+    engine->bake.pixels = pixel_array;
+    engine->bake.result = result;
+    engine->bake.object_id = object_id;
 
-      engine->bake.pixels = pixel_array + image->offset;
-      engine->bake.result = result + image->offset * targets->channels_num;
-      engine->bake.width = image->width;
-      engine->bake.height = image->height;
-      engine->bake.depth = targets->channels_num;
-      engine->bake.object_id = object_id;
+    for (int i = 0; i < targets->images_num; i++) {
+      const BakeImage *image = &targets->images[i];
+      engine->bake.image_id = i;
 
       type->bake(
           engine, engine->depsgraph, object, pass_type, pass_filter, image->width, image->height);
-
-      memset(&engine->bake, 0, sizeof(engine->bake));
     }
+
+    /* Optionally let render images read bake images from disk delayed. */
+    if (type->render_frame_finish) {
+      engine->bake.image_id = 0;
+      type->render_frame_finish(engine);
+    }
+
+    memset(&engine->bake, 0, sizeof(engine->bake));
 
     engine->depsgraph = NULL;
   }
