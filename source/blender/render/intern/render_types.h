@@ -17,6 +17,7 @@
 
 #include "RE_pipeline.h"
 
+struct Depsgraph;
 struct GSet;
 struct Main;
 struct Object;
@@ -87,7 +88,7 @@ struct Render {
 
   /* NOTE: This is a minimal dependency graph and evaluated scene which is enough to access view
    * layer visibility and use for postprocessing (compositor and sequencer). */
-  Depsgraph *pipeline_depsgraph;
+  struct Depsgraph *pipeline_depsgraph;
   Scene *pipeline_scene_eval;
 
   /* callbacks */

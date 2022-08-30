@@ -659,6 +659,7 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
 
   session->set_display_driver(nullptr);
   session->set_output_driver(make_unique<BlenderOutputDriver>(b_engine));
+  session->full_buffer_written_cb = [&](string_view filename) { full_buffer_written(filename); };
 
   /* Sync scene. */
   BL::Object b_camera_override(b_engine.camera_override());
@@ -700,6 +701,10 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
     BufferParams buffer_params;
     buffer_params.width = bake_width;
     buffer_params.height = bake_height;
+    buffer_params.window_width = bake_width;
+    buffer_params.window_height = bake_height;
+    /* Unique layer name for multi-image baking. */
+    buffer_params.layer = string_printf("bake_%d\n", (int)full_buffer_files_.size());
 
     /* Update session. */
     session->reset(session_params, buffer_params);
@@ -713,8 +718,6 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
     session->start();
     session->wait();
   }
-
-  session->set_output_driver(nullptr);
 }
 
 void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)

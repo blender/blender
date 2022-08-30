@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "DEG_depsgraph.h"
+#include "DNA_ID.h"
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
