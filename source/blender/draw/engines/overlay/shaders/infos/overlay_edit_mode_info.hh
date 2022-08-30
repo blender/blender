@@ -293,7 +293,6 @@ GPU_SHADER_CREATE_INFO(overlay_edit_uv_stretching_area)
     .do_static_compilation(true)
     .vertex_in(1, Type::FLOAT, "ratio")
     .push_constant(Type::FLOAT, "totalAreaRatio")
-    .push_constant(Type::FLOAT, "totalAreaRatioInv")
     .additional_info("overlay_edit_uv_stretching");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_uv_stretching_angle)
