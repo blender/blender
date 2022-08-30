@@ -525,14 +525,14 @@ void DebugDraw::display_lines()
   if (gpu_draw_buf_used) {
     GPU_debug_group_begin("GPU");
     GPU_storagebuf_bind(gpu_draw_buf_, slot);
-    GPU_batch_draw_indirect(batch, gpu_draw_buf_);
+    GPU_batch_draw_indirect(batch, gpu_draw_buf_, 0);
     GPU_storagebuf_unbind(gpu_draw_buf_);
     GPU_debug_group_end();
   }
 
   GPU_debug_group_begin("CPU");
   GPU_storagebuf_bind(cpu_draw_buf_, slot);
-  GPU_batch_draw_indirect(batch, cpu_draw_buf_);
+  GPU_batch_draw_indirect(batch, cpu_draw_buf_, 0);
   GPU_storagebuf_unbind(cpu_draw_buf_);
   GPU_debug_group_end();
 
@@ -557,14 +557,14 @@ void DebugDraw::display_prints()
   if (gpu_print_buf_used) {
     GPU_debug_group_begin("GPU");
     GPU_storagebuf_bind(gpu_print_buf_, slot);
-    GPU_batch_draw_indirect(batch, gpu_print_buf_);
+    GPU_batch_draw_indirect(batch, gpu_print_buf_, 0);
     GPU_storagebuf_unbind(gpu_print_buf_);
     GPU_debug_group_end();
   }
 
   GPU_debug_group_begin("CPU");
   GPU_storagebuf_bind(cpu_print_buf_, slot);
-  GPU_batch_draw_indirect(batch, cpu_print_buf_);
+  GPU_batch_draw_indirect(batch, cpu_print_buf_, 0);
   GPU_storagebuf_unbind(cpu_print_buf_);
   GPU_debug_group_end();
 

@@ -294,13 +294,23 @@ void GPU_batch_draw_advanced(
   batch->draw(v_first, v_count, i_first, i_count);
 }
 
-void GPU_batch_draw_indirect(GPUBatch *gpu_batch, GPUStorageBuf *indirect_buf)
+void GPU_batch_draw_indirect(GPUBatch *gpu_batch, GPUStorageBuf *indirect_buf, intptr_t offset)
 {
   BLI_assert(Context::get()->shader != nullptr);
   BLI_assert(indirect_buf != nullptr);
   Batch *batch = static_cast<Batch *>(gpu_batch);
 
-  batch->draw_indirect(indirect_buf);
+  batch->draw_indirect(indirect_buf, offset);
+}
+
+void GPU_batch_multi_draw_indirect(
+    GPUBatch *gpu_batch, GPUStorageBuf *indirect_buf, int count, intptr_t offset, intptr_t stride)
+{
+  BLI_assert(Context::get()->shader != nullptr);
+  BLI_assert(indirect_buf != nullptr);
+  Batch *batch = static_cast<Batch *>(gpu_batch);
+
+  batch->multi_draw_indirect(indirect_buf, count, offset, stride);
 }
 
 /** \} */

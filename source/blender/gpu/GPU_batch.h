@@ -187,7 +187,9 @@ void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_fi
  * Issue a draw call using GPU computed arguments. The argument are expected to be valid for the
  * type of geometry drawn (index or non-indexed).
  */
-void GPU_batch_draw_indirect(GPUBatch *batch, GPUStorageBuf *indirect_buf);
+void GPU_batch_draw_indirect(GPUBatch *batch, GPUStorageBuf *indirect_buf, intptr_t offset);
+void GPU_batch_multi_draw_indirect(
+    GPUBatch *batch, GPUStorageBuf *indirect_buf, int count, intptr_t offset, intptr_t stride);
 
 #if 0 /* future plans */
 
