@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "DNA_mesh_types.h"
+
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 
@@ -51,19 +53,18 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (!geometry_set.has_mesh()) {
-      return;
+    if (const Mesh *mesh = geometry_set.get_mesh_for_write()) {
+
+      bke::MeshFieldContext field_context{*mesh, ATTR_DOMAIN_EDGE};
+      fn::FieldEvaluator selection_evaluator{field_context, mesh->totedge};
+      selection_evaluator.add(selection_field);
+      selection_evaluator.evaluate();
+      const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
+
+      Mesh *result = mesh_edge_split(*mesh, selection);
+
+      geometry_set.replace_mesh(result);
     }
-
-    const MeshComponent &mesh_component = *geometry_set.get_component_for_read<MeshComponent>();
-    GeometryComponentFieldContext field_context{mesh_component, ATTR_DOMAIN_EDGE};
-    const int domain_size = mesh_component.attribute_domain_size(ATTR_DOMAIN_EDGE);
-    fn::FieldEvaluator selection_evaluator{field_context, domain_size};
-    selection_evaluator.add(selection_field);
-    selection_evaluator.evaluate();
-    const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
-
-    geometry_set.replace_mesh(mesh_edge_split(*mesh_component.get_for_read(), selection));
   });
 
   params.set_output("Mesh", std::move(geometry_set));

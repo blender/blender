@@ -288,13 +288,12 @@ static AxisScaleParams evaluate_axis_scale_fields(FieldEvaluator &evaluator,
   return out;
 }
 
-static void scale_faces_on_axis(MeshComponent &mesh_component, const AxisScaleFields &fields)
+static void scale_faces_on_axis(Mesh &mesh, const AxisScaleFields &fields)
 {
-  Mesh &mesh = *mesh_component.get_for_write();
   mesh.mvert = static_cast<MVert *>(
       CustomData_duplicate_referenced_layer(&mesh.vdata, CD_MVERT, mesh.totvert));
 
-  GeometryComponentFieldContext field_context{mesh_component, ATTR_DOMAIN_FACE};
+  bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
   FieldEvaluator evaluator{field_context, mesh.totpoly};
   AxisScaleParams params = evaluate_axis_scale_fields(evaluator, fields);
 
@@ -314,13 +313,12 @@ static UniformScaleParams evaluate_uniform_scale_fields(FieldEvaluator &evaluato
   return out;
 }
 
-static void scale_faces_uniformly(MeshComponent &mesh_component, const UniformScaleFields &fields)
+static void scale_faces_uniformly(Mesh &mesh, const UniformScaleFields &fields)
 {
-  Mesh &mesh = *mesh_component.get_for_write();
   mesh.mvert = static_cast<MVert *>(
       CustomData_duplicate_referenced_layer(&mesh.vdata, CD_MVERT, mesh.totvert));
 
-  GeometryComponentFieldContext field_context{mesh_component, ATTR_DOMAIN_FACE};
+  bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
   FieldEvaluator evaluator{field_context, mesh.totpoly};
   UniformScaleParams params = evaluate_uniform_scale_fields(evaluator, fields);
 
@@ -364,13 +362,12 @@ static void get_edge_vertices(const Mesh &mesh, int edge_index, VectorSet<int> &
   r_vertex_indices.add(edge.v2);
 }
 
-static void scale_edges_uniformly(MeshComponent &mesh_component, const UniformScaleFields &fields)
+static void scale_edges_uniformly(Mesh &mesh, const UniformScaleFields &fields)
 {
-  Mesh &mesh = *mesh_component.get_for_write();
   mesh.mvert = static_cast<MVert *>(
       CustomData_duplicate_referenced_layer(&mesh.vdata, CD_MVERT, mesh.totvert));
 
-  GeometryComponentFieldContext field_context{mesh_component, ATTR_DOMAIN_EDGE};
+  bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_EDGE};
   FieldEvaluator evaluator{field_context, mesh.totedge};
   UniformScaleParams params = evaluate_uniform_scale_fields(evaluator, fields);
 
@@ -378,13 +375,12 @@ static void scale_edges_uniformly(MeshComponent &mesh_component, const UniformSc
   scale_vertex_islands_uniformly(mesh, island, params, get_edge_vertices);
 }
 
-static void scale_edges_on_axis(MeshComponent &mesh_component, const AxisScaleFields &fields)
+static void scale_edges_on_axis(Mesh &mesh, const AxisScaleFields &fields)
 {
-  Mesh &mesh = *mesh_component.get_for_write();
   mesh.mvert = static_cast<MVert *>(
       CustomData_duplicate_referenced_layer(&mesh.vdata, CD_MVERT, mesh.totvert));
 
-  GeometryComponentFieldContext field_context{mesh_component, ATTR_DOMAIN_EDGE};
+  bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_EDGE};
   FieldEvaluator evaluator{field_context, mesh.totedge};
   AxisScaleParams params = evaluate_axis_scale_fields(evaluator, fields);
 
@@ -410,42 +406,38 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   geometry.modify_geometry_sets([&](GeometrySet &geometry) {
-    if (!geometry.has_mesh()) {
-      return;
-    }
-    MeshComponent &mesh_component = geometry.get_component_for_write<MeshComponent>();
-    switch (domain) {
-      case ATTR_DOMAIN_FACE: {
-        switch (scale_mode) {
-          case GEO_NODE_SCALE_ELEMENTS_UNIFORM: {
-            scale_faces_uniformly(mesh_component, {selection_field, scale_field, center_field});
-            break;
+    if (Mesh *mesh = geometry.get_mesh_for_write()) {
+      switch (domain) {
+        case ATTR_DOMAIN_FACE: {
+          switch (scale_mode) {
+            case GEO_NODE_SCALE_ELEMENTS_UNIFORM: {
+              scale_faces_uniformly(*mesh, {selection_field, scale_field, center_field});
+              break;
+            }
+            case GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS: {
+              scale_faces_on_axis(*mesh, {selection_field, scale_field, center_field, axis_field});
+              break;
+            }
           }
-          case GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS: {
-            scale_faces_on_axis(mesh_component,
-                                {selection_field, scale_field, center_field, axis_field});
-            break;
-          }
+          break;
         }
-        break;
-      }
-      case ATTR_DOMAIN_EDGE: {
-        switch (scale_mode) {
-          case GEO_NODE_SCALE_ELEMENTS_UNIFORM: {
-            scale_edges_uniformly(mesh_component, {selection_field, scale_field, center_field});
-            break;
+        case ATTR_DOMAIN_EDGE: {
+          switch (scale_mode) {
+            case GEO_NODE_SCALE_ELEMENTS_UNIFORM: {
+              scale_edges_uniformly(*mesh, {selection_field, scale_field, center_field});
+              break;
+            }
+            case GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS: {
+              scale_edges_on_axis(*mesh, {selection_field, scale_field, center_field, axis_field});
+              break;
+            }
           }
-          case GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS: {
-            scale_edges_on_axis(mesh_component,
-                                {selection_field, scale_field, center_field, axis_field});
-            break;
-          }
+          break;
         }
-        break;
+        default:
+          BLI_assert_unreachable();
+          break;
       }
-      default:
-        BLI_assert_unreachable();
-        break;
     }
   });
 

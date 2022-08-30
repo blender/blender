@@ -98,7 +98,7 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
     return;
   }
 
-  GeometryComponentFieldContext field_context{component, domain};
+  bke::GeometryFieldContext field_context{component, domain};
   const IndexMask mask{IndexMask(domain_size)};
 
   const CPPType &type = field.cpp_type();

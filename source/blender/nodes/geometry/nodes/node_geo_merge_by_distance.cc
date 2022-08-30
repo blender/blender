@@ -1,5 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "DNA_mesh_types.h"
+#include "DNA_pointcloud_types.h"
+
 #include "GEO_mesh_merge_by_distance.hh"
 #include "GEO_point_merge_by_distance.hh"
 
@@ -35,13 +38,12 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static PointCloud *pointcloud_merge_by_distance(const PointCloudComponent &src_points,
+static PointCloud *pointcloud_merge_by_distance(const PointCloud &src_points,
                                                 const float merge_distance,
                                                 const Field<bool> &selection_field)
 {
-  const int src_num = src_points.attribute_domain_size(ATTR_DOMAIN_POINT);
-  GeometryComponentFieldContext context{src_points, ATTR_DOMAIN_POINT};
-  FieldEvaluator evaluator{context, src_num};
+  bke::PointCloudFieldContext context{src_points};
+  FieldEvaluator evaluator{context, src_points.totpoint};
   evaluator.add(selection_field);
   evaluator.evaluate();
 
@@ -50,31 +52,28 @@ static PointCloud *pointcloud_merge_by_distance(const PointCloudComponent &src_p
     return nullptr;
   }
 
-  return geometry::point_merge_by_distance(*src_points.get_for_read(), merge_distance, selection);
+  return geometry::point_merge_by_distance(src_points, merge_distance, selection);
 }
 
-static std::optional<Mesh *> mesh_merge_by_distance_connected(const MeshComponent &mesh_component,
+static std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
                                                               const float merge_distance,
                                                               const Field<bool> &selection_field)
 {
-  const int src_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_POINT);
-  Array<bool> selection(src_num);
-  GeometryComponentFieldContext context{mesh_component, ATTR_DOMAIN_POINT};
-  FieldEvaluator evaluator{context, src_num};
+  Array<bool> selection(mesh.totvert);
+  bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
+  FieldEvaluator evaluator{context, mesh.totvert};
   evaluator.add_with_destination(selection_field, selection.as_mutable_span());
   evaluator.evaluate();
 
-  const Mesh &mesh = *mesh_component.get_for_read();
   return geometry::mesh_merge_by_distance_connected(mesh, selection, merge_distance, false);
 }
 
-static std::optional<Mesh *> mesh_merge_by_distance_all(const MeshComponent &mesh_component,
+static std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
                                                         const float merge_distance,
                                                         const Field<bool> &selection_field)
 {
-  const int src_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_POINT);
-  GeometryComponentFieldContext context{mesh_component, ATTR_DOMAIN_POINT};
-  FieldEvaluator evaluator{context, src_num};
+  bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
+  FieldEvaluator evaluator{context, mesh.totvert};
   evaluator.add(selection_field);
   evaluator.evaluate();
 
@@ -83,7 +82,6 @@ static std::optional<Mesh *> mesh_merge_by_distance_all(const MeshComponent &mes
     return std::nullopt;
   }
 
-  const Mesh &mesh = *mesh_component.get_for_read();
   return geometry::mesh_merge_by_distance_all(mesh, selection, merge_distance);
 }
 
@@ -98,22 +96,20 @@ static void node_geo_exec(GeoNodeExecParams params)
   const float merge_distance = params.extract_input<float>("Distance");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (geometry_set.has_pointcloud()) {
-      PointCloud *result = pointcloud_merge_by_distance(
-          *geometry_set.get_component_for_read<PointCloudComponent>(), merge_distance, selection);
+    if (const PointCloud *pointcloud = geometry_set.get_pointcloud_for_read()) {
+      PointCloud *result = pointcloud_merge_by_distance(*pointcloud, merge_distance, selection);
       if (result) {
         geometry_set.replace_pointcloud(result);
       }
     }
-    if (geometry_set.has_mesh()) {
-      const MeshComponent &component = *geometry_set.get_component_for_read<MeshComponent>();
+    if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
       std::optional<Mesh *> result;
       switch (mode) {
         case GEO_NODE_MERGE_BY_DISTANCE_MODE_ALL:
-          result = mesh_merge_by_distance_all(component, merge_distance, selection);
+          result = mesh_merge_by_distance_all(*mesh, merge_distance, selection);
           break;
         case GEO_NODE_MERGE_BY_DISTANCE_MODE_CONNECTED:
-          result = mesh_merge_by_distance_connected(component, merge_distance, selection);
+          result = mesh_merge_by_distance_connected(*mesh, merge_distance, selection);
           break;
         default:
           BLI_assert_unreachable();

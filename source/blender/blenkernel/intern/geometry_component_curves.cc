@@ -206,18 +206,11 @@ static Array<float3> curve_normal_point_domain(const bke::CurvesGeometry &curves
   return results;
 }
 
-VArray<float3> curve_normals_varray(const CurveComponent &component, const eAttrDomain domain)
+VArray<float3> curve_normals_varray(const CurvesGeometry &curves, const eAttrDomain domain)
 {
-  if (!component.has_curves()) {
-    return {};
-  }
-
-  const Curves &curves_id = *component.get_for_read();
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
-
   const VArray<int8_t> types = curves.curve_types();
   if (curves.is_single_type(CURVE_TYPE_POLY)) {
-    return component.attributes()->adapt_domain<float3>(
+    return curves.adapt_domain<float3>(
         VArray<float3>::ForSpan(curves.evaluated_normals()), ATTR_DOMAIN_POINT, domain);
   }
 
@@ -228,7 +221,7 @@ VArray<float3> curve_normals_varray(const CurveComponent &component, const eAttr
   }
 
   if (domain == ATTR_DOMAIN_CURVE) {
-    return component.attributes()->adapt_domain<float3>(
+    return curves.adapt_domain<float3>(
         VArray<float3>::ForContainer(std::move(normals)), ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
   }
 
@@ -241,15 +234,9 @@ VArray<float3> curve_normals_varray(const CurveComponent &component, const eAttr
 /** \name Curve Length Field Input
  * \{ */
 
-static VArray<float> construct_curve_length_gvarray(const CurveComponent &component,
+static VArray<float> construct_curve_length_gvarray(const CurvesGeometry &curves,
                                                     const eAttrDomain domain)
 {
-  if (!component.has_curves()) {
-    return {};
-  }
-  const Curves &curves_id = *component.get_for_read();
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
-
   curves.ensure_evaluated_lengths();
 
   VArray<bool> cyclic = curves.cyclic();
@@ -263,28 +250,23 @@ static VArray<float> construct_curve_length_gvarray(const CurveComponent &compon
   }
 
   if (domain == ATTR_DOMAIN_POINT) {
-    return component.attributes()->adapt_domain<float>(
-        std::move(lengths), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
+    return curves.adapt_domain<float>(std::move(lengths), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
   }
 
   return {};
 }
 
 CurveLengthFieldInput::CurveLengthFieldInput()
-    : GeometryFieldInput(CPPType::get<float>(), "Spline Length node")
+    : CurvesFieldInput(CPPType::get<float>(), "Spline Length node")
 {
   category_ = Category::Generated;
 }
 
-GVArray CurveLengthFieldInput::get_varray_for_context(const GeometryComponent &component,
+GVArray CurveLengthFieldInput::get_varray_for_context(const CurvesGeometry &curves,
                                                       const eAttrDomain domain,
                                                       IndexMask UNUSED(mask)) const
 {
-  if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
-    const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-    return construct_curve_length_gvarray(curve_component, domain);
-  }
-  return {};
+  return construct_curve_length_gvarray(curves, domain);
 }
 
 uint64_t CurveLengthFieldInput::hash() const

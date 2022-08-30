@@ -16,39 +16,33 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(N_("The surface area of each of the mesh's faces"));
 }
 
-static VArray<float> construct_face_area_gvarray(const MeshComponent &component,
-                                                 const eAttrDomain domain)
+static VArray<float> construct_face_area_varray(const Mesh &mesh, const eAttrDomain domain)
 {
-  const Mesh *mesh = component.get_for_read();
-  if (mesh == nullptr) {
-    return {};
-  }
+  const Span<MVert> vertices(mesh.mvert, mesh.totvert);
+  const Span<MPoly> polygons(mesh.mpoly, mesh.totpoly);
+  const Span<MLoop> loops(mesh.mloop, mesh.totloop);
 
-  auto area_fn = [mesh](const int i) -> float {
-    const MPoly *mp = &mesh->mpoly[i];
-    return BKE_mesh_calc_poly_area(mp, &mesh->mloop[mp->loopstart], mesh->mvert);
+  auto area_fn = [vertices, polygons, loops](const int i) -> float {
+    const MPoly &poly = polygons[i];
+    return BKE_mesh_calc_poly_area(&poly, &loops[poly.loopstart], vertices.data());
   };
 
-  return component.attributes()->adapt_domain<float>(
-      VArray<float>::ForFunc(mesh->totpoly, area_fn), ATTR_DOMAIN_FACE, domain);
+  return bke::mesh_attributes(mesh).adapt_domain<float>(
+      VArray<float>::ForFunc(polygons.size(), area_fn), ATTR_DOMAIN_FACE, domain);
 }
 
-class FaceAreaFieldInput final : public GeometryFieldInput {
+class FaceAreaFieldInput final : public bke::MeshFieldInput {
  public:
-  FaceAreaFieldInput() : GeometryFieldInput(CPPType::get<float>(), "Face Area Field")
+  FaceAreaFieldInput() : bke::MeshFieldInput(CPPType::get<float>(), "Face Area Field")
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
+  GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
-    if (component.type() == GEO_COMPONENT_TYPE_MESH) {
-      const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-      return construct_face_area_gvarray(mesh_component, domain);
-    }
-    return {};
+    return construct_face_area_varray(mesh, domain);
   }
 
   uint64_t hash() const override

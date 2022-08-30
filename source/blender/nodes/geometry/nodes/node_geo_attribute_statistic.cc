@@ -200,7 +200,7 @@ static void node_geo_exec(GeoNodeExecParams params)
           continue;
         }
         if (attributes->domain_supported(domain)) {
-          GeometryComponentFieldContext field_context{*component, domain};
+          bke::GeometryFieldContext field_context{*component, domain};
           const int domain_num = attributes->domain_size(domain);
 
           fn::FieldEvaluator data_evaluator{field_context, domain_num};
@@ -282,7 +282,7 @@ static void node_geo_exec(GeoNodeExecParams params)
           continue;
         }
         if (attributes->domain_supported(domain)) {
-          GeometryComponentFieldContext field_context{*component, domain};
+          bke::GeometryFieldContext field_context{*component, domain};
           const int domain_num = attributes->domain_size(domain);
 
           fn::FieldEvaluator data_evaluator{field_context, domain_num};

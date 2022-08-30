@@ -28,21 +28,15 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("UV")).field_source();
 }
 
-static VArray<float3> construct_uv_gvarray(const MeshComponent &component,
+static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
                                            const Field<bool> selection_field,
                                            const Field<float3> uv_field,
                                            const bool rotate,
                                            const float margin,
                                            const eAttrDomain domain)
 {
-  const Mesh *mesh = component.get_for_read();
-  if (mesh == nullptr) {
-    return {};
-  }
-
-  const int face_num = component.attribute_domain_size(ATTR_DOMAIN_FACE);
-  GeometryComponentFieldContext face_context{component, ATTR_DOMAIN_FACE};
-  FieldEvaluator face_evaluator{face_context, face_num};
+  bke::MeshFieldContext face_context{mesh, ATTR_DOMAIN_FACE};
+  FieldEvaluator face_evaluator{face_context, mesh.totpoly};
   face_evaluator.add(selection_field);
   face_evaluator.evaluate();
   const IndexMask selection = face_evaluator.get_evaluated_as_mask(0);
@@ -50,25 +44,29 @@ static VArray<float3> construct_uv_gvarray(const MeshComponent &component,
     return {};
   }
 
-  const int corner_num = component.attribute_domain_size(ATTR_DOMAIN_CORNER);
-  GeometryComponentFieldContext corner_context{component, ATTR_DOMAIN_CORNER};
-  FieldEvaluator evaluator{corner_context, corner_num};
-  Array<float3> uv(corner_num);
+  bke::MeshFieldContext corner_context{mesh, ATTR_DOMAIN_CORNER};
+  FieldEvaluator evaluator{corner_context, mesh.totloop};
+  Array<float3> uv(mesh.totloop);
   evaluator.add_with_destination(uv_field, uv.as_mutable_span());
   evaluator.evaluate();
 
+  const Span<MVert> vertices(mesh.mvert, mesh.totvert);
+  const Span<MEdge> edges(mesh.medge, mesh.totedge);
+  const Span<MPoly> polygons(mesh.mpoly, mesh.totpoly);
+  const Span<MLoop> loops(mesh.mloop, mesh.totloop);
+
   ParamHandle *handle = GEO_uv_parametrizer_construct_begin();
   for (const int mp_index : selection) {
-    const MPoly &mp = mesh->mpoly[mp_index];
+    const MPoly &mp = polygons[mp_index];
     Array<ParamKey, 16> mp_vkeys(mp.totloop);
     Array<bool, 16> mp_pin(mp.totloop);
     Array<bool, 16> mp_select(mp.totloop);
     Array<const float *, 16> mp_co(mp.totloop);
     Array<float *, 16> mp_uv(mp.totloop);
     for (const int i : IndexRange(mp.totloop)) {
-      const MLoop &ml = mesh->mloop[mp.loopstart + i];
+      const MLoop &ml = loops[mp.loopstart + i];
       mp_vkeys[i] = ml.v;
-      mp_co[i] = mesh->mvert[ml.v].co;
+      mp_co[i] = vertices[ml.v].co;
       mp_uv[i] = uv[mp.loopstart + i];
       mp_pin[i] = false;
       mp_select[i] = false;
@@ -88,11 +86,11 @@ static VArray<float3> construct_uv_gvarray(const MeshComponent &component,
   GEO_uv_parametrizer_flush(handle);
   GEO_uv_parametrizer_delete(handle);
 
-  return component.attributes()->adapt_domain<float3>(
+  return bke::mesh_attributes(mesh).adapt_domain<float3>(
       VArray<float3>::ForContainer(std::move(uv)), ATTR_DOMAIN_CORNER, domain);
 }
 
-class PackIslandsFieldInput final : public GeometryFieldInput {
+class PackIslandsFieldInput final : public bke::MeshFieldInput {
  private:
   const Field<bool> selection_field;
   const Field<float3> uv_field;
@@ -104,7 +102,7 @@ class PackIslandsFieldInput final : public GeometryFieldInput {
                         const Field<float3> uv_field,
                         const bool rotate,
                         const float margin)
-      : GeometryFieldInput(CPPType::get<float3>(), "Pack UV Islands Field"),
+      : bke::MeshFieldInput(CPPType::get<float3>(), "Pack UV Islands Field"),
         selection_field(selection_field),
         uv_field(uv_field),
         rotate(rotate),
@@ -113,16 +111,11 @@ class PackIslandsFieldInput final : public GeometryFieldInput {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
+  GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
-    if (component.type() == GEO_COMPONENT_TYPE_MESH) {
-      const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-      return construct_uv_gvarray(
-          mesh_component, selection_field, uv_field, rotate, margin, domain);
-    }
-    return {};
+    return construct_uv_gvarray(mesh, selection_field, uv_field, rotate, margin, domain);
   }
 };
 

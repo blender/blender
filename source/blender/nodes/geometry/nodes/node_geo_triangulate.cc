@@ -77,12 +77,10 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (!geometry_set.has_mesh()) {
       return;
     }
-    GeometryComponent &component = geometry_set.get_component_for_write<MeshComponent>();
     const Mesh &mesh_in = *geometry_set.get_mesh_for_read();
 
-    const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_FACE);
-    GeometryComponentFieldContext context{component, ATTR_DOMAIN_FACE};
-    FieldEvaluator evaluator{context, domain_size};
+    bke::MeshFieldContext context{mesh_in, ATTR_DOMAIN_FACE};
+    FieldEvaluator evaluator{context, mesh_in.totpoly};
     evaluator.add(selection_field);
     evaluator.evaluate();
     const IndexMask selection = evaluator.get_evaluated_as_mask(0);

@@ -72,10 +72,9 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
 
-    const CurveComponent &component = *geometry_set.get_component_for_read<CurveComponent>();
-    const Curves &curves_id = *component.get_for_read();
+    const Curves &curves_id = *geometry_set.get_curves_for_read();
     const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
-    GeometryComponentFieldContext context{component, ATTR_DOMAIN_POINT};
+    bke::CurvesFieldContext context{curves, ATTR_DOMAIN_POINT};
     fn::FieldEvaluator evaluator{context, curves.points_num()};
     evaluator.add(radius_field);
 

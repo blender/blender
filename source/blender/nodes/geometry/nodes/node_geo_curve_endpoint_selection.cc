@@ -27,39 +27,31 @@ static void node_declare(NodeDeclarationBuilder &b)
           N_("The selection from the start and end of the splines based on the input sizes"));
 }
 
-class EndpointFieldInput final : public GeometryFieldInput {
+class EndpointFieldInput final : public bke::CurvesFieldInput {
   Field<int> start_size_;
   Field<int> end_size_;
 
  public:
   EndpointFieldInput(Field<int> start_size, Field<int> end_size)
-      : GeometryFieldInput(CPPType::get<bool>(), "Endpoint Selection node"),
+      : bke::CurvesFieldInput(CPPType::get<bool>(), "Endpoint Selection node"),
         start_size_(start_size),
         end_size_(end_size)
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
+  GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
                                  const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
-    if (component.type() != GEO_COMPONENT_TYPE_CURVE || domain != ATTR_DOMAIN_POINT) {
-      return nullptr;
+    if (domain != ATTR_DOMAIN_POINT) {
+      return {};
     }
-
-    const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-    if (!curve_component.has_curves()) {
-      return nullptr;
-    }
-
-    const Curves &curves_id = *curve_component.get_for_read();
-    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
     if (curves.points_num() == 0) {
-      return nullptr;
+      return {};
     }
 
-    GeometryComponentFieldContext size_context{curve_component, ATTR_DOMAIN_CURVE};
+    bke::CurvesFieldContext size_context{curves, ATTR_DOMAIN_CURVE};
     fn::FieldEvaluator evaluator{size_context, curves.curves_num()};
     evaluator.add(start_size_);
     evaluator.add(end_size_);

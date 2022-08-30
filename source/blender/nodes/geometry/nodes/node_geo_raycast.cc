@@ -208,7 +208,7 @@ class RaycastFunction : public fn::MultiFunction {
   GeometryNodeRaycastMapMode mapping_;
 
   /** The field for data evaluated on the target geometry. */
-  std::optional<GeometryComponentFieldContext> target_context_;
+  std::optional<bke::MeshFieldContext> target_context_;
   std::unique_ptr<FieldEvaluator> target_evaluator_;
   const GVArray *target_data_ = nullptr;
 
@@ -310,9 +310,9 @@ class RaycastFunction : public fn::MultiFunction {
     if (!src_field) {
       return;
     }
-    const MeshComponent &mesh_component = *target_.get_component_for_read<MeshComponent>();
-    target_context_.emplace(GeometryComponentFieldContext{mesh_component, domain_});
-    const int domain_size = mesh_component.attribute_domain_size(domain_);
+    const Mesh &mesh = *target_.get_mesh_for_read();
+    target_context_.emplace(bke::MeshFieldContext{mesh, domain_});
+    const int domain_size = bke::mesh_attributes(mesh).domain_size(domain_);
     target_evaluator_ = std::make_unique<FieldEvaluator>(*target_context_, domain_size);
     target_evaluator_->add(std::move(src_field));
     target_evaluator_->evaluate();

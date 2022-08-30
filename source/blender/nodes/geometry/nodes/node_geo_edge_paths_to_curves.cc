@@ -70,14 +70,14 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (!geometry_set.has_mesh()) {
+    const Mesh *mesh = geometry_set.get_mesh_for_read();
+    if (mesh == nullptr) {
       geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
       return;
     }
 
-    const MeshComponent &component = *geometry_set.get_component_for_read<MeshComponent>();
-    GeometryComponentFieldContext context{component, ATTR_DOMAIN_POINT};
-    fn::FieldEvaluator evaluator{context, component.attribute_domain_size(ATTR_DOMAIN_POINT)};
+    bke::MeshFieldContext context{*mesh, ATTR_DOMAIN_POINT};
+    fn::FieldEvaluator evaluator{context, mesh->totvert};
     evaluator.add(params.get_input<Field<int>>("Next Vertex Index"));
     evaluator.add(params.get_input<Field<bool>>("Start Vertices"));
     evaluator.evaluate();
@@ -89,8 +89,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
 
-    const Mesh &mesh = *component.get_for_read();
-    geometry_set.replace_curves(edge_paths_to_curves_convert(mesh, start_verts, next_vert));
+    geometry_set.replace_curves(edge_paths_to_curves_convert(*mesh, start_verts, next_vert));
     geometry_set.keep_only({GEO_COMPONENT_TYPE_CURVE, GEO_COMPONENT_TYPE_INSTANCES});
   });
 

@@ -20,41 +20,33 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(N_("Number of faces that contain the vertex"));
 }
 
-static VArray<int> construct_vertex_count_gvarray(const MeshComponent &component,
-                                                  const eAttrDomain domain)
+static VArray<int> construct_vertex_count_gvarray(const Mesh &mesh, const eAttrDomain domain)
 {
-  const Mesh *mesh = component.get_for_read();
-  if (mesh == nullptr) {
-    return {};
-  }
+  const Span<MEdge> edges(mesh.medge, mesh.totedge);
 
   if (domain == ATTR_DOMAIN_POINT) {
-    Array<int> vertices(mesh->totvert, 0);
-    for (const int i : IndexRange(mesh->totedge)) {
-      vertices[mesh->medge[i].v1]++;
-      vertices[mesh->medge[i].v2]++;
+    Array<int> counts(mesh.totvert, 0);
+    for (const int i : edges.index_range()) {
+      counts[edges[i].v1]++;
+      counts[edges[i].v2]++;
     }
-    return VArray<int>::ForContainer(std::move(vertices));
+    return VArray<int>::ForContainer(std::move(counts));
   }
   return {};
 }
 
-class VertexCountFieldInput final : public GeometryFieldInput {
+class VertexCountFieldInput final : public bke::MeshFieldInput {
  public:
-  VertexCountFieldInput() : GeometryFieldInput(CPPType::get<int>(), "Vertex Count Field")
+  VertexCountFieldInput() : bke::MeshFieldInput(CPPType::get<int>(), "Vertex Count Field")
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
+  GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
-    if (component.type() == GEO_COMPONENT_TYPE_MESH) {
-      const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-      return construct_vertex_count_gvarray(mesh_component, domain);
-    }
-    return {};
+    return construct_vertex_count_gvarray(mesh, domain);
   }
 
   uint64_t hash() const override
@@ -69,18 +61,14 @@ class VertexCountFieldInput final : public GeometryFieldInput {
   }
 };
 
-static VArray<int> construct_face_count_gvarray(const MeshComponent &component,
-                                                const eAttrDomain domain)
+static VArray<int> construct_face_count_gvarray(const Mesh &mesh, const eAttrDomain domain)
 {
-  const Mesh *mesh = component.get_for_read();
-  if (mesh == nullptr) {
-    return {};
-  }
+  const Span<MLoop> loops(mesh.mloop, mesh.totloop);
 
   if (domain == ATTR_DOMAIN_POINT) {
-    Array<int> vertices(mesh->totvert, 0);
-    for (const int i : IndexRange(mesh->totloop)) {
-      int vertex = mesh->mloop[i].v;
+    Array<int> vertices(mesh.totvert, 0);
+    for (const int i : loops.index_range()) {
+      int vertex = loops[i].v;
       vertices[vertex]++;
     }
     return VArray<int>::ForContainer(std::move(vertices));
@@ -88,22 +76,18 @@ static VArray<int> construct_face_count_gvarray(const MeshComponent &component,
   return {};
 }
 
-class VertexFaceCountFieldInput final : public GeometryFieldInput {
+class VertexFaceCountFieldInput final : public bke::MeshFieldInput {
  public:
-  VertexFaceCountFieldInput() : GeometryFieldInput(CPPType::get<int>(), "Vertex Face Count Field")
+  VertexFaceCountFieldInput() : bke::MeshFieldInput(CPPType::get<int>(), "Vertex Face Count Field")
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
+  GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
-    if (component.type() == GEO_COMPONENT_TYPE_MESH) {
-      const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-      return construct_face_count_gvarray(mesh_component, domain);
-    }
-    return {};
+    return construct_face_count_gvarray(mesh, domain);
   }
 
   uint64_t hash() const override

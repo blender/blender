@@ -89,7 +89,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-class FieldAtIndex final : public GeometryFieldInput {
+class FieldAtIndex final : public bke::GeometryFieldInput {
  private:
   Field<int> index_field_;
   GField value_field_;
@@ -97,26 +97,25 @@ class FieldAtIndex final : public GeometryFieldInput {
 
  public:
   FieldAtIndex(Field<int> index_field, GField value_field, eAttrDomain value_field_domain)
-      : GeometryFieldInput(value_field.cpp_type(), "Field at Index"),
+      : bke::GeometryFieldInput(value_field.cpp_type(), "Field at Index"),
         index_field_(std::move(index_field)),
         value_field_(std::move(value_field)),
         value_field_domain_(value_field_domain)
   {
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const eAttrDomain domain,
-                                 IndexMask mask) const final
+  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
+                                 const IndexMask mask) const final
   {
-    const GeometryComponentFieldContext value_field_context{component, value_field_domain_};
+    const bke::GeometryFieldContext value_field_context{
+        context.geometry(), context.type(), value_field_domain_};
     FieldEvaluator value_evaluator{value_field_context,
-                                   component.attribute_domain_size(value_field_domain_)};
+                                   context.attributes()->domain_size(value_field_domain_)};
     value_evaluator.add(value_field_);
     value_evaluator.evaluate();
     const GVArray &values = value_evaluator.get_evaluated(0);
 
-    const GeometryComponentFieldContext index_field_context{component, domain};
-    FieldEvaluator index_evaluator{index_field_context, &mask};
+    FieldEvaluator index_evaluator{context, &mask};
     index_evaluator.add(index_field_);
     index_evaluator.evaluate();
     const VArray<int> indices = index_evaluator.get_evaluated<int>(0);

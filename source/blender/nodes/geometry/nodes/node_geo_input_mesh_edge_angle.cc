@@ -53,45 +53,37 @@ static Array<EdgeMapEntry> create_edge_map(const Span<MPoly> polys,
   return edge_map;
 }
 
-class AngleFieldInput final : public GeometryFieldInput {
+class AngleFieldInput final : public bke::MeshFieldInput {
  public:
-  AngleFieldInput() : GeometryFieldInput(CPPType::get<float>(), "Unsigned Angle Field")
+  AngleFieldInput() : bke::MeshFieldInput(CPPType::get<float>(), "Unsigned Angle Field")
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
+  GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
-    if (component.type() != GEO_COMPONENT_TYPE_MESH) {
-      return {};
-    }
+    Span<MVert> vertices{mesh.mvert, mesh.totvert};
+    Span<MPoly> polys{mesh.mpoly, mesh.totpoly};
+    Span<MLoop> loops{mesh.mloop, mesh.totloop};
+    Array<EdgeMapEntry> edge_map = create_edge_map(polys, loops, mesh.totedge);
 
-    const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-    const Mesh *mesh = mesh_component.get_for_read();
-    if (mesh == nullptr) {
-      return {};
-    }
-
-    Span<MPoly> polys{mesh->mpoly, mesh->totpoly};
-    Span<MLoop> loops{mesh->mloop, mesh->totloop};
-    Array<EdgeMapEntry> edge_map = create_edge_map(polys, loops, mesh->totedge);
-
-    auto angle_fn = [edge_map, polys, loops, mesh](const int i) -> float {
+    auto angle_fn =
+        [edge_map = std::move(edge_map), vertices, polys, loops](const int i) -> float {
       if (edge_map[i].face_count != 2) {
         return 0.0f;
       }
       const MPoly &mpoly_1 = polys[edge_map[i].face_index_1];
       const MPoly &mpoly_2 = polys[edge_map[i].face_index_2];
       float3 normal_1, normal_2;
-      BKE_mesh_calc_poly_normal(&mpoly_1, &loops[mpoly_1.loopstart], mesh->mvert, normal_1);
-      BKE_mesh_calc_poly_normal(&mpoly_2, &loops[mpoly_2.loopstart], mesh->mvert, normal_2);
+      BKE_mesh_calc_poly_normal(&mpoly_1, &loops[mpoly_1.loopstart], vertices.data(), normal_1);
+      BKE_mesh_calc_poly_normal(&mpoly_2, &loops[mpoly_2.loopstart], vertices.data(), normal_2);
       return angle_normalized_v3v3(normal_1, normal_2);
     };
 
-    VArray<float> angles = VArray<float>::ForFunc(mesh->totedge, angle_fn);
-    return component.attributes()->adapt_domain<float>(
+    VArray<float> angles = VArray<float>::ForFunc(mesh.totedge, angle_fn);
+    return bke::mesh_attributes(mesh).adapt_domain<float>(
         std::move(angles), ATTR_DOMAIN_EDGE, domain);
   }
 
@@ -107,32 +99,25 @@ class AngleFieldInput final : public GeometryFieldInput {
   }
 };
 
-class SignedAngleFieldInput final : public GeometryFieldInput {
+class SignedAngleFieldInput final : public bke::MeshFieldInput {
  public:
-  SignedAngleFieldInput() : GeometryFieldInput(CPPType::get<float>(), "Signed Angle Field")
+  SignedAngleFieldInput() : bke::MeshFieldInput(CPPType::get<float>(), "Signed Angle Field")
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
+  GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
-    if (component.type() != GEO_COMPONENT_TYPE_MESH) {
-      return {};
-    }
+    const Span<MVert> vertices(mesh.mvert, mesh.totvert);
+    const Span<MEdge> edges(mesh.medge, mesh.totedge);
+    const Span<MPoly> polys(mesh.mpoly, mesh.totpoly);
+    const Span<MLoop> loops(mesh.mloop, mesh.totloop);
+    Array<EdgeMapEntry> edge_map = create_edge_map(polys, loops, mesh.totedge);
 
-    const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-    const Mesh *mesh = mesh_component.get_for_read();
-    if (mesh == nullptr) {
-      return {};
-    }
-
-    Span<MPoly> polys{mesh->mpoly, mesh->totpoly};
-    Span<MLoop> loops{mesh->mloop, mesh->totloop};
-    Array<EdgeMapEntry> edge_map = create_edge_map(polys, loops, mesh->totedge);
-
-    auto angle_fn = [edge_map, polys, loops, mesh](const int i) -> float {
+    auto angle_fn =
+        [edge_map = std::move(edge_map), vertices, edges, polys, loops](const int i) -> float {
       if (edge_map[i].face_count != 2) {
         return 0.0f;
       }
@@ -141,18 +126,21 @@ class SignedAngleFieldInput final : public GeometryFieldInput {
 
       /* Find the normals of the 2 polys. */
       float3 poly_1_normal, poly_2_normal;
-      BKE_mesh_calc_poly_normal(&mpoly_1, &loops[mpoly_1.loopstart], mesh->mvert, poly_1_normal);
-      BKE_mesh_calc_poly_normal(&mpoly_2, &loops[mpoly_2.loopstart], mesh->mvert, poly_2_normal);
+      BKE_mesh_calc_poly_normal(
+          &mpoly_1, &loops[mpoly_1.loopstart], vertices.data(), poly_1_normal);
+      BKE_mesh_calc_poly_normal(
+          &mpoly_2, &loops[mpoly_2.loopstart], vertices.data(), poly_2_normal);
 
       /* Find the centerpoint of the axis edge */
-      const float3 edge_centerpoint = (float3(mesh->mvert[mesh->medge[i].v1].co) +
-                                       float3(mesh->mvert[mesh->medge[i].v2].co)) *
+      const float3 edge_centerpoint = (float3(vertices[edges[i].v1].co) +
+                                       float3(vertices[edges[i].v2].co)) *
                                       0.5f;
 
       /* Get the centerpoint of poly 2 and subtract the edge centerpoint to get a tangent
        * normal for poly 2. */
       float3 poly_center_2;
-      BKE_mesh_calc_poly_center(&mpoly_2, &loops[mpoly_2.loopstart], mesh->mvert, poly_center_2);
+      BKE_mesh_calc_poly_center(
+          &mpoly_2, &loops[mpoly_2.loopstart], vertices.data(), poly_center_2);
       const float3 poly_2_tangent = math::normalize(poly_center_2 - edge_centerpoint);
       const float concavity = math::dot(poly_1_normal, poly_2_tangent);
 
@@ -165,8 +153,8 @@ class SignedAngleFieldInput final : public GeometryFieldInput {
       return -angle;
     };
 
-    VArray<float> angles = VArray<float>::ForFunc(mesh->totedge, angle_fn);
-    return component.attributes()->adapt_domain<float>(
+    VArray<float> angles = VArray<float>::ForFunc(mesh.totedge, angle_fn);
+    return bke::mesh_attributes(mesh).adapt_domain<float>(
         std::move(angles), ATTR_DOMAIN_EDGE, domain);
   }
 

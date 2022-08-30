@@ -60,18 +60,18 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
                                         Field<bool> &selection_field,
                                         const eAttrDomain domain)
 {
-  const MeshComponent *mesh_component = geometry_set.get_component_for_read<MeshComponent>();
-  if (mesh_component == nullptr) {
+  const Mesh *mesh = geometry_set.get_mesh_for_read();
+  if (mesh == nullptr) {
     geometry_set.remove_geometry_during_modify();
     return;
   }
-  GeometryComponentFieldContext field_context{*mesh_component, domain};
-  const int domain_num = mesh_component->attribute_domain_size(domain);
-  if (domain_num == 0) {
+  const int domain_size = bke::mesh_attributes(*mesh).domain_size(domain);
+  if (domain_size == 0) {
     geometry_set.remove_geometry_during_modify();
     return;
   }
-  fn::FieldEvaluator evaluator{field_context, domain_num};
+  bke::MeshFieldContext field_context{*mesh, domain};
+  fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.set_selection(selection_field);
   /* Evaluating directly into the point cloud doesn't work because we are not using the full
    * "min_array_size" array but compressing the selected elements into the final array with no
@@ -83,16 +83,15 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
   geometry_set.replace_pointcloud(pointcloud);
-  MutableAttributeAccessor pointcloud_attributes = bke::pointcloud_attributes_for_write(
-      *pointcloud);
+  MutableAttributeAccessor dst_attributes = bke::pointcloud_attributes_for_write(*pointcloud);
 
-  GSpanAttributeWriter position = pointcloud_attributes.lookup_or_add_for_write_only_span(
+  GSpanAttributeWriter position = dst_attributes.lookup_or_add_for_write_only_span(
       "position", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
   materialize_compressed_to_uninitialized_threaded(
       evaluator.get_evaluated(0), selection, position.span);
   position.finish();
 
-  GSpanAttributeWriter radius = pointcloud_attributes.lookup_or_add_for_write_only_span(
+  GSpanAttributeWriter radius = dst_attributes.lookup_or_add_for_write_only_span(
       "radius", ATTR_DOMAIN_POINT, CD_PROP_FLOAT);
   materialize_compressed_to_uninitialized_threaded(
       evaluator.get_evaluated(1), selection, radius.span);
@@ -103,11 +102,13 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
       {GEO_COMPONENT_TYPE_MESH}, GEO_COMPONENT_TYPE_POINT_CLOUD, false, attributes);
   attributes.remove("position");
 
+  const AttributeAccessor src_attributes = bke::mesh_attributes(*mesh);
+
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     const eCustomDataType data_type = entry.value.data_type;
-    GVArray src = mesh_component->attributes()->lookup_or_default(attribute_id, domain, data_type);
-    GSpanAttributeWriter dst = pointcloud_attributes.lookup_or_add_for_write_only_span(
+    GVArray src = src_attributes.lookup_or_default(attribute_id, domain, data_type);
+    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         attribute_id, ATTR_DOMAIN_POINT, data_type);
     if (dst && src) {
       materialize_compressed_to_uninitialized_threaded(src, selection, dst.span);

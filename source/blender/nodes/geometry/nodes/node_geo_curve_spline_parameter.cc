@@ -203,26 +203,18 @@ static VArray<int> construct_index_on_spline_varray(const bke::CurvesGeometry &c
   return {};
 }
 
-class CurveParameterFieldInput final : public GeometryFieldInput {
+class CurveParameterFieldInput final : public bke::CurvesFieldInput {
  public:
-  CurveParameterFieldInput() : GeometryFieldInput(CPPType::get<float>(), "Curve Parameter node")
+  CurveParameterFieldInput() : bke::CurvesFieldInput(CPPType::get<float>(), "Curve Parameter node")
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
+  GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
                                  const eAttrDomain domain,
                                  IndexMask mask) const final
   {
-    if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
-      const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-      if (curve_component.has_curves()) {
-        const Curves &curves_id = *curve_component.get_for_read();
-        const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
-        return construct_curve_parameter_varray(curves, mask, domain);
-      }
-    }
-    return {};
+    return construct_curve_parameter_varray(curves, mask, domain);
   }
 
   uint64_t hash() const override
@@ -237,26 +229,19 @@ class CurveParameterFieldInput final : public GeometryFieldInput {
   }
 };
 
-class CurveLengthParameterFieldInput final : public GeometryFieldInput {
+class CurveLengthParameterFieldInput final : public bke::CurvesFieldInput {
  public:
-  CurveLengthParameterFieldInput() : GeometryFieldInput(CPPType::get<float>(), "Curve Length node")
+  CurveLengthParameterFieldInput()
+      : bke::CurvesFieldInput(CPPType::get<float>(), "Curve Length node")
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
+  GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
                                  const eAttrDomain domain,
                                  IndexMask mask) const final
   {
-    if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
-      const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-      if (curve_component.has_curves()) {
-        const Curves &curves_id = *curve_component.get_for_read();
-        const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
-        return construct_curve_length_parameter_varray(curves, mask, domain);
-      }
-    }
-    return {};
+    return construct_curve_length_parameter_varray(curves, mask, domain);
   }
 
   uint64_t hash() const override
@@ -271,26 +256,18 @@ class CurveLengthParameterFieldInput final : public GeometryFieldInput {
   }
 };
 
-class IndexOnSplineFieldInput final : public GeometryFieldInput {
+class IndexOnSplineFieldInput final : public bke::CurvesFieldInput {
  public:
-  IndexOnSplineFieldInput() : GeometryFieldInput(CPPType::get<int>(), "Spline Index")
+  IndexOnSplineFieldInput() : bke::CurvesFieldInput(CPPType::get<int>(), "Spline Index")
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
+  GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
                                  const eAttrDomain domain,
                                  IndexMask mask) const final
   {
-    if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
-      const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-      if (curve_component.has_curves()) {
-        const Curves &curves_id = *curve_component.get_for_read();
-        const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
-        return construct_index_on_spline_varray(curves, mask, domain);
-      }
-    }
-    return {};
+    return construct_index_on_spline_varray(curves, mask, domain);
   }
 
   uint64_t hash() const override

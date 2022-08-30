@@ -1002,7 +1002,7 @@ static Vector<OutputAttributeToStore> compute_attributes_to_store(
         continue;
       }
       const int domain_size = attributes.domain_size(domain);
-      blender::bke::GeometryComponentFieldContext field_context{component, domain};
+      blender::bke::GeometryFieldContext field_context{component, domain};
       blender::fn::FieldEvaluator field_evaluator{field_context, domain_size};
       for (const OutputAttributeInfo &output_info : outputs_info) {
         const CPPType &type = output_info.field.cpp_type();

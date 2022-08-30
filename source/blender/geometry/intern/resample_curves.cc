@@ -88,20 +88,20 @@ static bool interpolate_attribute_to_poly_curve(const bke::AttributeIDRef &attri
  * Retrieve spans from source and result attributes.
  */
 static void retrieve_attribute_spans(const Span<bke::AttributeIDRef> ids,
-                                     const CurveComponent &src_component,
-                                     CurveComponent &dst_component,
+                                     const CurvesGeometry &src_curves,
+                                     CurvesGeometry &dst_curves,
                                      Vector<GSpan> &src,
                                      Vector<GMutableSpan> &dst,
                                      Vector<bke::GSpanAttributeWriter> &dst_attributes)
 {
   for (const int i : ids.index_range()) {
-    GVArray src_attribute = src_component.attributes()->lookup(ids[i], ATTR_DOMAIN_POINT);
+    GVArray src_attribute = src_curves.attributes().lookup(ids[i], ATTR_DOMAIN_POINT);
     BLI_assert(src_attribute);
     src.append(src_attribute.get_internal_span());
 
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(src_attribute.type());
     bke::GSpanAttributeWriter dst_attribute =
-        dst_component.attributes_for_write()->lookup_or_add_for_write_only_span(
+        dst_curves.attributes_for_write().lookup_or_add_for_write_only_span(
             ids[i], ATTR_DOMAIN_POINT, data_type);
     dst.append(dst_attribute.span);
     dst_attributes.append(std::move(dst_attribute));
@@ -121,16 +121,13 @@ struct AttributesForInterpolation : NonCopyable, NonMovable {
 /**
  * Gather a set of all generic attribute IDs to copy to the result curves.
  */
-static void gather_point_attributes_to_interpolate(const CurveComponent &src_component,
-                                                   CurveComponent &dst_component,
+static void gather_point_attributes_to_interpolate(const CurvesGeometry &src_curves,
+                                                   CurvesGeometry &dst_curves,
                                                    AttributesForInterpolation &result)
 {
-  bke::CurvesGeometry &dst_curves = bke::CurvesGeometry::wrap(
-      dst_component.get_for_write()->geometry);
-
   VectorSet<bke::AttributeIDRef> ids;
   VectorSet<bke::AttributeIDRef> ids_no_interpolation;
-  src_component.attributes()->for_all(
+  src_curves.attributes().for_all(
       [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
         if (meta_data.domain != ATTR_DOMAIN_POINT) {
           return true;
@@ -152,29 +149,25 @@ static void gather_point_attributes_to_interpolate(const CurveComponent &src_com
   ids.remove_contained("position");
 
   retrieve_attribute_spans(
-      ids, src_component, dst_component, result.src, result.dst, result.dst_attributes);
+      ids, src_curves, dst_curves, result.src, result.dst, result.dst_attributes);
 
   /* Attributes that aren't interpolated like Bezier handles still have to be copied
    * to the result when there are any unselected curves of the corresponding type. */
   retrieve_attribute_spans(ids_no_interpolation,
-                           src_component,
-                           dst_component,
+                           src_curves,
+                           dst_curves,
                            result.src_no_interpolation,
                            result.dst_no_interpolation,
                            result.dst_attributes);
 }
 
-static Curves *resample_to_uniform(const CurveComponent &src_component,
-                                   const fn::Field<bool> &selection_field,
-                                   const fn::Field<int> &count_field)
+static CurvesGeometry resample_to_uniform(const CurvesGeometry &src_curves,
+                                          const fn::Field<bool> &selection_field,
+                                          const fn::Field<int> &count_field)
 {
-  const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(
-      src_component.get_for_read()->geometry);
-
   /* Create the new curves without any points and evaluate the final count directly
    * into the offsets array, in order to be accumulated into offsets later. */
-  Curves *dst_curves_id = bke::curves_new_nomain(0, src_curves.curves_num());
-  bke::CurvesGeometry &dst_curves = bke::CurvesGeometry::wrap(dst_curves_id->geometry);
+  CurvesGeometry dst_curves = CurvesGeometry(0, src_curves.curves_num());
 
   /* Directly copy curve attributes, since they stay the same (except for curve types). */
   CustomData_copy(&src_curves.curve_data,
@@ -184,7 +177,7 @@ static Curves *resample_to_uniform(const CurveComponent &src_component,
                   src_curves.curves_num());
   MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
 
-  bke::GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_CURVE};
+  bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
   fn::FieldEvaluator evaluator{field_context, src_curves.curves_num()};
   evaluator.set_selection(selection_field);
   evaluator.add_with_destination(count_field, dst_offsets);
@@ -207,9 +200,7 @@ static Curves *resample_to_uniform(const CurveComponent &src_component,
   MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
 
   AttributesForInterpolation attributes;
-  CurveComponent dst_component;
-  dst_component.replace(dst_curves_id, GeometryOwnershipType::Editable);
-  gather_point_attributes_to_interpolate(src_component, dst_component, attributes);
+  gather_point_attributes_to_interpolate(src_curves, dst_curves, attributes);
 
   src_curves.ensure_evaluated_lengths();
 
@@ -322,32 +313,30 @@ static Curves *resample_to_uniform(const CurveComponent &src_component,
     attribute.finish();
   }
 
-  return dst_curves_id;
+  return dst_curves;
 }
 
-Curves *resample_to_count(const CurveComponent &src_component,
-                          const fn::Field<bool> &selection_field,
-                          const fn::Field<int> &count_field)
+CurvesGeometry resample_to_count(const CurvesGeometry &src_curves,
+                                 const fn::Field<bool> &selection_field,
+                                 const fn::Field<int> &count_field)
 {
-  return resample_to_uniform(src_component, selection_field, get_count_input_max_one(count_field));
+  return resample_to_uniform(src_curves, selection_field, get_count_input_max_one(count_field));
 }
 
-Curves *resample_to_length(const CurveComponent &src_component,
-                           const fn::Field<bool> &selection_field,
-                           const fn::Field<float> &segment_length_field)
+CurvesGeometry resample_to_length(const CurvesGeometry &src_curves,
+                                  const fn::Field<bool> &selection_field,
+                                  const fn::Field<float> &segment_length_field)
 {
   return resample_to_uniform(
-      src_component, selection_field, get_count_input_from_length(segment_length_field));
+      src_curves, selection_field, get_count_input_from_length(segment_length_field));
 }
 
-Curves *resample_to_evaluated(const CurveComponent &src_component,
-                              const fn::Field<bool> &selection_field)
+CurvesGeometry resample_to_evaluated(const CurvesGeometry &src_curves,
+                                     const fn::Field<bool> &selection_field)
 {
-  const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(
-      src_component.get_for_read()->geometry);
   src_curves.ensure_evaluated_offsets();
 
-  bke::GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_CURVE};
+  bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
   fn::FieldEvaluator evaluator{field_context, src_curves.curves_num()};
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
@@ -355,8 +344,7 @@ Curves *resample_to_evaluated(const CurveComponent &src_component,
   const Vector<IndexRange> unselected_ranges = selection.extract_ranges_invert(
       src_curves.curves_range(), nullptr);
 
-  Curves *dst_curves_id = bke::curves_new_nomain(0, src_curves.curves_num());
-  bke::CurvesGeometry &dst_curves = bke::CurvesGeometry::wrap(dst_curves_id->geometry);
+  CurvesGeometry dst_curves(0, src_curves.curves_num());
 
   /* Directly copy curve attributes, since they stay the same (except for curve types). */
   CustomData_copy(&src_curves.curve_data,
@@ -384,9 +372,7 @@ Curves *resample_to_evaluated(const CurveComponent &src_component,
   MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
 
   AttributesForInterpolation attributes;
-  CurveComponent dst_component;
-  dst_component.replace(dst_curves_id, GeometryOwnershipType::Editable);
-  gather_point_attributes_to_interpolate(src_component, dst_component, attributes);
+  gather_point_attributes_to_interpolate(src_curves, dst_curves, attributes);
 
   threading::parallel_for(selection.index_range(), 512, [&](IndexRange selection_range) {
     const IndexMask sliced_selection = selection.slice(selection_range);
@@ -445,7 +431,7 @@ Curves *resample_to_evaluated(const CurveComponent &src_component,
     attribute.finish();
   }
 
-  return dst_curves_id;
+  return dst_curves;
 }
 
 }  // namespace blender::geometry

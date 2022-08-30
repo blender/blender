@@ -568,7 +568,7 @@ static void add_fields_as_extra_columns(SpaceSpreadsheet *sspreadsheet,
     GArray<> &evaluated_array = cache.arrays.lookup_or_add_cb({domain, field}, [&]() {
       GArray<> evaluated_array(field.cpp_type(), domain_num);
 
-      bke::GeometryComponentFieldContext field_context{component, domain};
+      bke::GeometryFieldContext field_context{component, domain};
       fn::FieldEvaluator field_evaluator{field_context, domain_num};
       field_evaluator.add_with_destination(field, evaluated_array);
       field_evaluator.evaluate();

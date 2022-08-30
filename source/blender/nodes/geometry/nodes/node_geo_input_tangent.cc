@@ -63,19 +63,12 @@ static Array<float3> curve_tangent_point_domain(const bke::CurvesGeometry &curve
   return results;
 }
 
-static VArray<float3> construct_curve_tangent_gvarray(const CurveComponent &component,
+static VArray<float3> construct_curve_tangent_gvarray(const bke::CurvesGeometry &curves,
                                                       const eAttrDomain domain)
 {
-  if (!component.has_curves()) {
-    return {};
-  }
-
-  const Curves &curves_id = *component.get_for_read();
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
-
   const VArray<int8_t> types = curves.curve_types();
   if (curves.is_single_type(CURVE_TYPE_POLY)) {
-    return component.attributes()->adapt_domain<float3>(
+    return curves.adapt_domain<float3>(
         VArray<float3>::ForSpan(curves.evaluated_tangents()), ATTR_DOMAIN_POINT, domain);
   }
 
@@ -86,29 +79,25 @@ static VArray<float3> construct_curve_tangent_gvarray(const CurveComponent &comp
   }
 
   if (domain == ATTR_DOMAIN_CURVE) {
-    return component.attributes()->adapt_domain<float3>(
+    return curves.adapt_domain<float3>(
         VArray<float3>::ForContainer(std::move(tangents)), ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
   }
 
   return nullptr;
 }
 
-class TangentFieldInput final : public GeometryFieldInput {
+class TangentFieldInput final : public bke::CurvesFieldInput {
  public:
-  TangentFieldInput() : GeometryFieldInput(CPPType::get<float3>(), "Tangent node")
+  TangentFieldInput() : bke::CurvesFieldInput(CPPType::get<float3>(), "Tangent node")
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
+  GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
                                  const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
-    if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
-      const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-      return construct_curve_tangent_gvarray(curve_component, domain);
-    }
-    return {};
+    return construct_curve_tangent_gvarray(curves, domain);
   }
 
   uint64_t hash() const override

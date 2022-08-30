@@ -54,36 +54,26 @@ static void edge_paths_to_selection(const Mesh &src_mesh,
   }
 }
 
-class PathToEdgeSelectionFieldInput final : public GeometryFieldInput {
+class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
  private:
   Field<bool> start_vertices_;
   Field<int> next_vertex_;
 
  public:
   PathToEdgeSelectionFieldInput(Field<bool> start_vertices, Field<int> next_vertex)
-      : GeometryFieldInput(CPPType::get<bool>(), "Edge Selection"),
+      : bke::MeshFieldInput(CPPType::get<bool>(), "Edge Selection"),
         start_vertices_(start_vertices),
         next_vertex_(next_vertex)
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
+  GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 [[maybe_unused]] IndexMask mask) const final
+                                 const IndexMask /*mask*/) const final
   {
-    if (component.type() != GEO_COMPONENT_TYPE_MESH) {
-      return {};
-    }
-
-    const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-    const Mesh *mesh = mesh_component.get_for_read();
-    if (mesh == nullptr) {
-      return {};
-    }
-
-    GeometryComponentFieldContext context{mesh_component, ATTR_DOMAIN_POINT};
-    fn::FieldEvaluator evaluator{context, mesh_component.attribute_domain_size(ATTR_DOMAIN_POINT)};
+    bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
+    fn::FieldEvaluator evaluator{context, mesh.totvert};
     evaluator.add(next_vertex_);
     evaluator.add(start_vertices_);
     evaluator.evaluate();
@@ -94,12 +84,12 @@ class PathToEdgeSelectionFieldInput final : public GeometryFieldInput {
       return {};
     }
 
-    Array<bool> selection(mesh->totedge, false);
+    Array<bool> selection(mesh.totedge, false);
     MutableSpan<bool> selection_span = selection.as_mutable_span();
 
-    edge_paths_to_selection(*mesh, start_verts, next_vert, selection_span);
+    edge_paths_to_selection(mesh, start_verts, next_vert, selection_span);
 
-    return mesh_component.attributes()->adapt_domain<bool>(
+    return bke::mesh_attributes(mesh).adapt_domain<bool>(
         VArray<bool>::ForContainer(std::move(selection)), ATTR_DOMAIN_EDGE, domain);
   }
 

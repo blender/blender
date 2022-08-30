@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "BLI_color.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_generic_span.hh"

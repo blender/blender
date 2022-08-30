@@ -5,7 +5,6 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
-#include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_mesh.h"
 #include "BKE_pointcloud.h"
@@ -794,7 +793,7 @@ void CustomDataAttributes::reorder(Span<AttributeIDRef> new_order)
 }
 
 /* -------------------------------------------------------------------- */
-/** \name Geometry Component
+/** \name Attribute API
  * \{ */
 
 static blender::GVArray try_adapt_data_type(blender::GVArray varray,
@@ -803,123 +802,6 @@ static blender::GVArray try_adapt_data_type(blender::GVArray varray,
   const blender::bke::DataTypeConversions &conversions =
       blender::bke::get_implicit_type_conversions();
   return conversions.try_convert(std::move(varray), to_type);
-}
-
-GVArray GeometryFieldInput::get_varray_for_context(const fn::FieldContext &context,
-                                                   IndexMask mask,
-                                                   ResourceScope &UNUSED(scope)) const
-{
-  if (const GeometryComponentFieldContext *geometry_context =
-          dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
-    const GeometryComponent &component = geometry_context->geometry_component();
-    const eAttrDomain domain = geometry_context->domain();
-    return this->get_varray_for_context(component, domain, mask);
-  }
-  return {};
-}
-
-GVArray AttributeFieldInput::get_varray_for_context(const GeometryComponent &component,
-                                                    const eAttrDomain domain,
-                                                    IndexMask UNUSED(mask)) const
-{
-  const eCustomDataType data_type = cpp_type_to_custom_data_type(*type_);
-  if (auto attributes = component.attributes()) {
-    return attributes->lookup(name_, domain, data_type);
-  }
-  return {};
-}
-
-std::string AttributeFieldInput::socket_inspection_name() const
-{
-  std::stringstream ss;
-  ss << '"' << name_ << '"' << TIP_(" attribute from geometry");
-  return ss.str();
-}
-
-uint64_t AttributeFieldInput::hash() const
-{
-  return get_default_hash_2(name_, type_);
-}
-
-bool AttributeFieldInput::is_equal_to(const fn::FieldNode &other) const
-{
-  if (const AttributeFieldInput *other_typed = dynamic_cast<const AttributeFieldInput *>(&other)) {
-    return name_ == other_typed->name_ && type_ == other_typed->type_;
-  }
-  return false;
-}
-
-static StringRef get_random_id_attribute_name(const eAttrDomain domain)
-{
-  switch (domain) {
-    case ATTR_DOMAIN_POINT:
-    case ATTR_DOMAIN_INSTANCE:
-      return "id";
-    default:
-      return "";
-  }
-}
-
-GVArray IDAttributeFieldInput::get_varray_for_context(const GeometryComponent &component,
-                                                      const eAttrDomain domain,
-                                                      IndexMask mask) const
-{
-
-  const StringRef name = get_random_id_attribute_name(domain);
-  if (auto attributes = component.attributes()) {
-    if (GVArray attribute = attributes->lookup(name, domain, CD_PROP_INT32)) {
-      return attribute;
-    }
-  }
-
-  /* Use the index as the fallback if no random ID attribute exists. */
-  return fn::IndexFieldInput::get_index_varray(mask);
-}
-
-std::string IDAttributeFieldInput::socket_inspection_name() const
-{
-  return TIP_("ID / Index");
-}
-
-uint64_t IDAttributeFieldInput::hash() const
-{
-  /* All random ID attribute inputs are the same within the same evaluation context. */
-  return 92386459827;
-}
-
-bool IDAttributeFieldInput::is_equal_to(const fn::FieldNode &other) const
-{
-  /* All random ID attribute inputs are the same within the same evaluation context. */
-  return dynamic_cast<const IDAttributeFieldInput *>(&other) != nullptr;
-}
-
-GVArray AnonymousAttributeFieldInput::get_varray_for_context(const GeometryComponent &component,
-                                                             const eAttrDomain domain,
-                                                             IndexMask UNUSED(mask)) const
-{
-  const eCustomDataType data_type = cpp_type_to_custom_data_type(*type_);
-  return component.attributes()->lookup(anonymous_id_.get(), domain, data_type);
-}
-
-std::string AnonymousAttributeFieldInput::socket_inspection_name() const
-{
-  std::stringstream ss;
-  ss << '"' << debug_name_ << '"' << TIP_(" from ") << producer_name_;
-  return ss.str();
-}
-
-uint64_t AnonymousAttributeFieldInput::hash() const
-{
-  return get_default_hash_2(anonymous_id_.get(), type_);
-}
-
-bool AnonymousAttributeFieldInput::is_equal_to(const fn::FieldNode &other) const
-{
-  if (const AnonymousAttributeFieldInput *other_typed =
-          dynamic_cast<const AnonymousAttributeFieldInput *>(&other)) {
-    return anonymous_id_.get() == other_typed->anonymous_id_.get() && type_ == other_typed->type_;
-  }
-  return false;
 }
 
 GVArray AttributeAccessor::lookup(const AttributeIDRef &attribute_id,
