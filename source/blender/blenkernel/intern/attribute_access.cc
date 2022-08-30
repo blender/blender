@@ -966,7 +966,8 @@ GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_span(
 GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_only_span(
     const AttributeIDRef &attribute_id, const eAttrDomain domain, const eCustomDataType data_type)
 {
-  GAttributeWriter attribute = this->lookup_or_add_for_write(attribute_id, domain, data_type);
+  GAttributeWriter attribute = this->lookup_or_add_for_write(
+      attribute_id, domain, data_type, AttributeInitConstruct());
   if (attribute) {
     return GSpanAttributeWriter{std::move(attribute), false};
   }
