@@ -86,7 +86,6 @@ void BMO_mesh_delete_oflag_tagged(BMesh *bm, const short oflag, const char htype
 void BMO_mesh_delete_oflag_context(BMesh *bm, const short oflag, const int type)
 {
   BMEdge *e;
-  BMFace *f;
 
   BMIter eiter;
   BMIter fiter;
@@ -128,6 +127,7 @@ void BMO_mesh_delete_oflag_context(BMesh *bm, const short oflag, const int type)
     case DEL_FACES:
     case DEL_FACES_KEEP_BOUNDARY: {
       /* go through and mark all edges and all verts of all faces for delete */
+      BMFace *f;
       BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
         if (BMO_face_flag_test(bm, f, oflag)) {
           BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
@@ -257,8 +257,6 @@ void BM_mesh_delete_hflag_tagged(BMesh *bm, const char hflag, const char htype)
 
 void BM_mesh_delete_hflag_context(BMesh *bm, const char hflag, const int type)
 {
-  BMEdge *e;
-  BMFace *f;
 
   BMIter eiter;
   BMIter fiter;
@@ -271,6 +269,7 @@ void BM_mesh_delete_hflag_context(BMesh *bm, const char hflag, const int type)
     }
     case DEL_EDGES: {
       /* flush down to vert */
+      BMEdge *e;
       BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
         if (BM_elem_flag_test(e, hflag)) {
           BM_elem_flag_enable(e->v1, hflag);
@@ -299,6 +298,8 @@ void BM_mesh_delete_hflag_context(BMesh *bm, const char hflag, const int type)
     }
     case DEL_FACES: {
       /* go through and mark all edges and all verts of all faces for delete */
+      BMFace *f;
+      BMEdge *e;
       BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
         if (BM_elem_flag_test(f, hflag)) {
           BMLoop *l_first = BM_FACE_FIRST_LOOP(f);

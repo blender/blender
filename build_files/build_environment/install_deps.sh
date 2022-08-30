@@ -1193,7 +1193,7 @@ Those libraries should be available as packages in all recent distributions (opt
     * libx11, libxcursor, libxi, libxrandr, libxinerama (and other libx... as needed).
     * libwayland-client0, libwayland-cursor0, libwayland-egl1, libxkbcommon0, libdbus-1-3, libegl1 (Wayland)
     * libsqlite3, libzstd, libbz2, libssl, libfftw3, libxml2, libtinyxml, yasm, libyaml-cpp, flex.
-    * libsdl2, libglew, libpugixml, libpotrace, [libgmp], fontconfig, [libharu/libhpdf].\""
+    * libsdl2, libepoxy, libpugixml, libpotrace, [libgmp], fontconfig, [libharu/libhpdf].\""
 
 DEPS_SPECIFIC_INFO="\"BUILDABLE DEPENDENCIES:
 
@@ -4062,7 +4062,7 @@ install_DEB() {
              libxcursor-dev libxi-dev wget libsqlite3-dev libxrandr-dev libxinerama-dev \
              libwayland-dev wayland-protocols libegl-dev libxkbcommon-dev libdbus-1-dev linux-libc-dev \
              libbz2-dev libncurses5-dev libssl-dev liblzma-dev libreadline-dev \
-             libopenal-dev libglew-dev yasm \
+             libopenal-dev libepoxy-dev yasm \
              libsdl2-dev libfftw3-dev patch bzip2 libxml2-dev libtinyxml-dev libjemalloc-dev \
              libgmp-dev libpugixml-dev libpotrace-dev libhpdf-dev libzstd-dev libpystring-dev"
 
@@ -4772,7 +4772,7 @@ install_RPM() {
              libX11-devel libXi-devel libXcursor-devel libXrandr-devel libXinerama-devel \
              wayland-devel wayland-protocols-devel mesa-libEGL-devel libxkbcommon-devel dbus-devel kernel-headers \
              wget ncurses-devel readline-devel $OPENJPEG_DEV openal-soft-devel \
-             glew-devel yasm patch \
+             libepoxy-devel yasm patch \
              libxml2-devel yaml-cpp-devel tinyxml-devel jemalloc-devel \
              gmp-devel pugixml-devel potrace-devel libharu-devel libzstd-devel pystring-devel"
 
@@ -5412,7 +5412,7 @@ install_ARCH() {
   fi
 
   _packages="$BASE_DEVEL git cmake fontconfig flex \
-             libxi libxcursor libxrandr libxinerama glew libpng libtiff wget openal \
+             libxi libxcursor libxrandr libxinerama libepoxy libpng libtiff wget openal \
              $OPENJPEG_DEV yasm sdl2 fftw \
              libxml2 yaml-cpp tinyxml python-requests jemalloc gmp potrace pugixml libharu \
              zstd pystring"

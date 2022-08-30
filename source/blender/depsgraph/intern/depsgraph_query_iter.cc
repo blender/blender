@@ -153,10 +153,10 @@ bool deg_iterator_duplis_step(DEGObjectIterData *data)
     if (dob->no_draw) {
       continue;
     }
-    if (obd->type == OB_MBALL) {
+    if (dob->ob_data && GS(dob->ob_data->name) == ID_MB) {
       continue;
     }
-    if (deg_object_hide_original(data->eval_mode, dob->ob, dob)) {
+    if (obd->type != OB_MBALL && deg_object_hide_original(data->eval_mode, dob->ob, dob)) {
       continue;
     }
 

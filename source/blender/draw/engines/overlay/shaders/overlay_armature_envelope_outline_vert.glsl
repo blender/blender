@@ -130,7 +130,7 @@ void main()
   gl_Position = p1;
 
   /* compute position from 3 vertex because the change in direction
-   * can happen very quicky and lead to very thin edges. */
+   * can happen very quickly and lead to very thin edges. */
   vec2 ss0 = proj(p0);
   vec2 ss1 = proj(p1);
   vec2 ss2 = proj(p2);

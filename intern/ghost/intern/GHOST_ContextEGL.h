@@ -10,7 +10,8 @@
 #include "GHOST_Context.h"
 #include "GHOST_System.h"
 
-#include <GL/eglew.h>
+#include <epoxy/egl.h>
+#include <epoxy/gl.h>
 
 #ifndef GHOST_OPENGL_EGL_CONTEXT_FLAGS
 #  define GHOST_OPENGL_EGL_CONTEXT_FLAGS 0
@@ -96,7 +97,7 @@ class GHOST_ContextEGL : public GHOST_Context {
   EGLContext getContext() const;
 
  private:
-  bool initContextEGLEW();
+  bool bindAPI(EGLenum api);
 
   const GHOST_System *const m_system;
 
@@ -129,8 +130,4 @@ class GHOST_ContextEGL : public GHOST_Context {
 
   static EGLContext s_vg_sharedContext;
   static EGLint s_vg_sharedCount;
-
-#ifdef WITH_GL_ANGLE
-  static HMODULE s_d3dcompiler;
-#endif
 };

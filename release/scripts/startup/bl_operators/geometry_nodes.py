@@ -8,8 +8,8 @@ from bpy.app.translations import pgettext_data as data_
 
 def geometry_node_group_empty_new():
     group = bpy.data.node_groups.new(data_("Geometry Nodes"), 'GeometryNodeTree')
-    group.inputs.new('NodeSocketGeometry', "Geometry")
-    group.outputs.new('NodeSocketGeometry', "Geometry")
+    group.inputs.new('NodeSocketGeometry', data_("Geometry"))
+    group.outputs.new('NodeSocketGeometry', data_("Geometry"))
     input_node = group.nodes.new('NodeGroupInput')
     output_node = group.nodes.new('NodeGroupOutput')
     output_node.is_active_output = True

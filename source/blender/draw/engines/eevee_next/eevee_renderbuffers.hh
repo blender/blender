@@ -28,9 +28,7 @@ class RenderBuffers {
   // TextureFromPool mist_tx; /* Derived from depth_tx during accumulation. */
   TextureFromPool normal_tx;
   TextureFromPool vector_tx;
-  TextureFromPool diffuse_light_tx;
   TextureFromPool diffuse_color_tx;
-  TextureFromPool specular_light_tx;
   TextureFromPool specular_color_tx;
   TextureFromPool volume_light_tx;
   TextureFromPool emission_tx;
@@ -39,6 +37,7 @@ class RenderBuffers {
   TextureFromPool ambient_occlusion_tx;
   // TextureFromPool cryptomatte_tx; /* TODO */
   /* TODO(fclem): Use texture from pool once they support texture array. */
+  Texture light_tx;
   Texture aov_color_tx;
   Texture aov_value_tx;
 

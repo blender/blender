@@ -8,6 +8,7 @@ import datetime
 import os
 import re
 import sys
+import glob
 
 # XXX Relative import does not work here when used from Blender...
 from bl_i18n_utils import settings as settings_i18n, utils
@@ -96,7 +97,7 @@ def check(check_ctxt, msgs, key, msgsrc, settings):
         if key in py_in_rna[1]:
             py_in_rna[0].add(key)
     if not_capitalized is not None:
-        if(key[1] not in settings.WARN_MSGID_NOT_CAPITALIZED_ALLOWED and
+        if (key[1] not in settings.WARN_MSGID_NOT_CAPITALIZED_ALLOWED and
            key[1][0].isalpha() and not key[1][0].isupper()):
             not_capitalized.add(key)
     if end_point is not None:
@@ -883,6 +884,45 @@ def dump_preset_messages(msgs, reports, settings):
         process_msg(msgs, settings.DEFAULT_CONTEXT, msgid, msgsrc, reports, None, settings)
 
 
+def dump_template_messages(msgs, reports, settings):
+    bfiles = [""]  # General template, no name needed.
+    bfiles += glob.glob(settings.TEMPLATES_DIR + "/**/*.blend", recursive=True)
+
+    workspace_names = {}
+
+    for bfile in bfiles:
+        template = os.path.dirname(bfile)
+        template = os.path.basename(template)
+        bpy.ops.wm.read_homefile(use_factory_startup=True, app_template=template)
+        for ws in bpy.data.workspaces:
+            names = workspace_names.setdefault(ws.name, [])
+            names.append(template or "General")
+
+    from bpy.app.translations import contexts as i18n_contexts
+    msgctxt = i18n_contexts.id_workspace
+    for workspace_name in sorted(workspace_names):
+        for msgsrc in sorted(workspace_names[workspace_name]):
+            msgsrc = "Workspace from template " + msgsrc
+            process_msg(msgs, msgctxt, workspace_name, msgsrc,
+                        reports, None, settings)
+
+
+def dump_addon_bl_info(msgs, reports, module, settings):
+    for prop in ('name', 'location', 'description'):
+        process_msg(
+            msgs,
+            settings.DEFAULT_CONTEXT,
+            module.bl_info[prop],
+            "Add-on " +
+            module.bl_info['name'] +
+            " info: " +
+            prop,
+            reports,
+            None,
+            settings,
+        )
+
+
 ##### Main functions! #####
 def dump_messages(do_messages, do_checks, settings):
     bl_ver = "Blender " + bpy.app.version_string
@@ -917,6 +957,16 @@ def dump_messages(do_messages, do_checks, settings):
 
     # Get strings from presets.
     dump_preset_messages(msgs, reports, settings)
+
+    # Get strings from startup templates.
+    dump_template_messages(msgs, reports, settings)
+
+    # Get strings from addons' bl_info.
+    import addon_utils
+    for module in addon_utils.modules():
+        if module.bl_info['support'] != 'OFFICIAL':
+            continue
+        dump_addon_bl_info(msgs, reports, module, settings)
 
     # Get strings from addons' categories.
     for uid, label, tip in bpy.types.WindowManager.addon_filter.keywords['items'](
@@ -1013,6 +1063,9 @@ def dump_addon_messages(module_name, do_checks, settings):
     # get strings from UI layout definitions text="..." args
     reports["check_ctxt"] = check_ctxt
     dump_py_messages(msgs, reports, {addon}, settings, addons_only=True)
+
+    # Get strings from the addon's bl_info
+    dump_addon_bl_info(msgs, reports, addon, settings)
 
     pot.unescape()  # Strings gathered in py/C source code may contain escaped chars...
     print_info(reports, pot)

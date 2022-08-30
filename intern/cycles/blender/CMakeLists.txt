@@ -3,18 +3,19 @@
 
 set(INC
   ..
-  ../../glew-mx
   ../../guardedalloc
   ../../mikktspace
   ../../../source/blender/makesdna
   ../../../source/blender/makesrna
   ../../../source/blender/blenlib
+  ../../../source/blender/gpu
+  ../../../source/blender/render
   ${CMAKE_BINARY_DIR}/source/blender/makesrna/intern
 )
 
 set(INC_SYS
+  ${Epoxy_INCLUDE_DIRS}
   ${PYTHON_INCLUDE_DIRS}
-  ${GLEW_INCLUDE_DIR}
 )
 
 set(SRC
@@ -64,6 +65,7 @@ set(LIB
   cycles_subd
   cycles_util
 
+  ${Epoxy_LIBRARIES}
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
 )
@@ -86,8 +88,6 @@ set(ADDON_FILES
   addon/ui.py
   addon/version_update.py
 )
-
-add_definitions(${GL_DEFINITIONS})
 
 if(WITH_CYCLES_DEVICE_HIP)
   add_definitions(-DWITH_HIP)

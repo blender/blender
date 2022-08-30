@@ -848,7 +848,7 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
               BMLoop *l_iter = BLI_gsetIterator_getKey(&gs_iter);
               ULData *ul = UL(l_iter);
               if (ul->side == side_from_cursor) {
-                uvedit_uv_select_disable(scene, em, l_iter, cd_loop_uv_offset);
+                uvedit_uv_select_disable(scene, em->bm, l_iter, cd_loop_uv_offset);
                 changed = true;
               }
               /* Ensure we don't operate on these again. */
@@ -866,7 +866,7 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
             BMLoop *l_iter = BLI_gsetIterator_getKey(&gs_iter);
             ULData *ul = UL(l_iter);
             if (ul->side == side_from_cursor) {
-              uvedit_uv_select_disable(scene, em, l_iter, cd_loop_uv_offset);
+              uvedit_uv_select_disable(scene, em->bm, l_iter, cd_loop_uv_offset);
               changed = true;
             }
             /* Ensure we don't operate on these again. */

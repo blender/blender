@@ -70,7 +70,7 @@
 #include "tree/tree_element_seq.hh"
 #include "tree/tree_iterator.hh"
 
-using namespace blender::ed::outliner;
+namespace blender::ed::outliner {
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
@@ -1885,7 +1885,7 @@ static TreeElement *outliner_walk_left(SpaceOutliner *space_outliner,
   TreeStoreElem *tselem = TREESTORE(te);
 
   if (TSELEM_OPEN(tselem, space_outliner)) {
-    outliner_item_openclose(space_outliner, te, false, toggle_all);
+    outliner_item_openclose(te, false, toggle_all);
   }
   /* Only walk up a level if the element is closed and not toggling expand */
   else if (!toggle_all && te->parent) {
@@ -1906,7 +1906,7 @@ static TreeElement *outliner_walk_right(SpaceOutliner *space_outliner,
     te = static_cast<TreeElement *>(te->subtree.first);
   }
   else {
-    outliner_item_openclose(space_outliner, te, true, toggle_all);
+    outliner_item_openclose(te, true, toggle_all);
   }
 
   return te;
@@ -2040,3 +2040,5 @@ void OUTLINER_OT_select_walk(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender::ed::outliner

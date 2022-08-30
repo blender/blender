@@ -436,7 +436,7 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
 static void spreadsheet_main_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   switch (wmn->category) {
     case NC_SCENE: {
@@ -486,7 +486,7 @@ static void spreadsheet_header_region_free(ARegion *UNUSED(region))
 static void spreadsheet_header_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   switch (wmn->category) {
     case NC_SCENE: {
@@ -570,7 +570,7 @@ static void spreadsheet_footer_region_listener(const wmRegionListenerParams *UNU
 static void spreadsheet_dataset_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   switch (wmn->category) {
     case NC_SCENE: {

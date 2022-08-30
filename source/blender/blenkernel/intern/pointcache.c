@@ -1304,7 +1304,7 @@ static int ptcache_frame_from_filename(const char *filename, const char *ext)
 #define MAX_PTCACHE_PATH FILE_MAX
 #define MAX_PTCACHE_FILE (FILE_MAX * 2)
 
-static int ptcache_path(PTCacheID *pid, char *filename)
+static int ptcache_path(PTCacheID *pid, char *dirname)
 {
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
   Library *lib = (pid->owner_id) ? pid->owner_id->lib : NULL;
@@ -1314,13 +1314,13 @@ static int ptcache_path(PTCacheID *pid, char *filename)
   size_t i;
 
   if (pid->cache->flag & PTCACHE_EXTERNAL) {
-    strcpy(filename, pid->cache->path);
+    strcpy(dirname, pid->cache->path);
 
-    if (BLI_path_is_rel(filename)) {
-      BLI_path_abs(filename, blendfilename);
+    if (BLI_path_is_rel(dirname)) {
+      BLI_path_abs(dirname, blendfilename);
     }
 
-    return BLI_path_slash_ensure(filename); /* new strlen() */
+    return BLI_path_slash_ensure(dirname); /* new strlen() */
   }
   if ((blendfile_path[0] != '\0') || lib) {
     char file[MAX_PTCACHE_PATH]; /* we don't want the dir, only the file */
@@ -1334,28 +1334,28 @@ static int ptcache_path(PTCacheID *pid, char *filename)
     }
 
     /* Add blend file name to pointcache dir. */
-    BLI_snprintf(filename, MAX_PTCACHE_PATH, "//" PTCACHE_PATH "%s", file);
+    BLI_snprintf(dirname, MAX_PTCACHE_PATH, "//" PTCACHE_PATH "%s", file);
 
-    BLI_path_abs(filename, blendfilename);
-    return BLI_path_slash_ensure(filename); /* new strlen() */
+    BLI_path_abs(dirname, blendfilename);
+    return BLI_path_slash_ensure(dirname); /* new strlen() */
   }
 
   /* use the temp path. this is weak but better than not using point cache at all */
   /* temporary directory is assumed to exist and ALWAYS has a trailing slash */
-  BLI_snprintf(filename, MAX_PTCACHE_PATH, "%s" PTCACHE_PATH, BKE_tempdir_session());
+  BLI_snprintf(dirname, MAX_PTCACHE_PATH, "%s" PTCACHE_PATH, BKE_tempdir_session());
 
-  return BLI_path_slash_ensure(filename); /* new strlen() */
+  return BLI_path_slash_ensure(dirname); /* new strlen() */
 }
 
-static size_t ptcache_filename_ext_append(PTCacheID *pid,
-                                          char *filename,
-                                          const size_t filename_len,
+static size_t ptcache_filepath_ext_append(PTCacheID *pid,
+                                          char *filepath,
+                                          const size_t filepath_len,
                                           const bool use_frame_number,
                                           const int cfra)
 {
-  size_t len = filename_len;
+  size_t len = filepath_len;
   char *filename_ext;
-  filename_ext = filename + filename_len;
+  filename_ext = filepath + filepath_len;
   *filename_ext = '\0';
 
   /* PointCaches are inserted in object's list on demand, we need a valid index now. */
@@ -1399,14 +1399,14 @@ static size_t ptcache_filename_ext_append(PTCacheID *pid,
   return len;
 }
 
-static int ptcache_filename(
-    PTCacheID *pid, char *filename, int cfra, const bool do_path, const bool do_ext)
+static int ptcache_filepath(
+    PTCacheID *pid, char *filepath, int cfra, const bool do_path, const bool do_ext)
 {
   int len = 0;
   char *idname;
   char *newname;
-  filename[0] = '\0';
-  newname = filename;
+  filepath[0] = '\0';
+  newname = filepath;
 
   if ((pid->cache->flag & PTCACHE_EXTERNAL) == 0) {
     const char *blendfile_path = BKE_main_blendfile_path_from_global();
@@ -1417,7 +1417,7 @@ static int ptcache_filename(
 
   /* start with temp dir */
   if (do_path) {
-    len = ptcache_path(pid, filename);
+    len = ptcache_path(pid, filepath);
     newname += len;
   }
   if (pid->cache->name[0] == '\0' && (pid->cache->flag & PTCACHE_EXTERNAL) == 0) {
@@ -1437,7 +1437,7 @@ static int ptcache_filename(
   }
 
   if (do_ext) {
-    len += ptcache_filename_ext_append(pid, filename, (size_t)len, true, cfra);
+    len += ptcache_filepath_ext_append(pid, filepath, (size_t)len, true, cfra);
   }
 
   return len; /* make sure the above string is always 16 chars */
@@ -1465,7 +1465,7 @@ static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
     }
   }
 
-  ptcache_filename(pid, filepath, cfra, true, true);
+  ptcache_filepath(pid, filepath, cfra, true, true);
 
   if (mode == PTCACHE_FILE_READ) {
     fp = BLI_fopen(filepath, "rb");
@@ -2596,7 +2596,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
   DIR *dir;
   struct dirent *de;
   char path[MAX_PTCACHE_PATH];
-  char filename[MAX_PTCACHE_FILE];
+  char filepath[MAX_PTCACHE_FILE];
   char path_full[MAX_PTCACHE_FILE];
   char ext[MAX_PTCACHE_PATH];
 
@@ -2631,20 +2631,20 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
           return;
         }
 
-        len = ptcache_filename(pid, filename, cfra, false, false); /* no path */
+        len = ptcache_filepath(pid, filepath, cfra, false, false); /* no path */
         /* append underscore terminator to ensure we don't match similar names
          * from objects whose names start with the same prefix
          */
-        if (len < sizeof(filename) - 2) {
-          BLI_strncpy(filename + len, "_", sizeof(filename) - 2 - len);
+        if (len < sizeof(filepath) - 2) {
+          BLI_strncpy(filepath + len, "_", sizeof(filepath) - 2 - len);
           len += 1;
         }
 
-        ptcache_filename_ext_append(pid, ext, 0, false, 0);
+        ptcache_filepath_ext_append(pid, ext, 0, false, 0);
 
         while ((de = readdir(dir)) != NULL) {
           if (strstr(de->d_name, ext)) {               /* Do we have the right extension? */
-            if (STREQLEN(filename, de->d_name, len)) { /* Do we have the right prefix. */
+            if (STREQLEN(filepath, de->d_name, len)) { /* Do we have the right prefix. */
               if (mode == PTCACHE_CLEAR_ALL) {
                 pid->cache->last_exact = MIN2(pid->cache->startframe, 0);
                 BLI_join_dirfile(path_full, sizeof(path_full), path, de->d_name);
@@ -2713,8 +2713,8 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
     case PTCACHE_CLEAR_FRAME:
       if (pid->cache->flag & PTCACHE_DISK_CACHE) {
         if (BKE_ptcache_id_exist(pid, cfra)) {
-          ptcache_filename(pid, filename, cfra, true, true); /* no path */
-          BLI_delete(filename, false, false);
+          ptcache_filepath(pid, filepath, cfra, true, true); /* no path */
+          BLI_delete(filepath, false, false);
         }
       }
       else {
@@ -2752,11 +2752,11 @@ bool BKE_ptcache_id_exist(PTCacheID *pid, int cfra)
   }
 
   if (pid->cache->flag & PTCACHE_DISK_CACHE) {
-    char filename[MAX_PTCACHE_FILE];
+    char filepath[MAX_PTCACHE_FILE];
 
-    ptcache_filename(pid, filename, cfra, true, true);
+    ptcache_filepath(pid, filepath, cfra, true, true);
 
-    return BLI_exists(filename);
+    return BLI_exists(filepath);
   }
 
   PTCacheMem *pm = pid->cache->mem_cache.first;
@@ -2824,24 +2824,24 @@ void BKE_ptcache_id_time(
       DIR *dir;
       struct dirent *de;
       char path[MAX_PTCACHE_PATH];
-      char filename[MAX_PTCACHE_FILE];
+      char filepath[MAX_PTCACHE_FILE];
       char ext[MAX_PTCACHE_PATH];
       unsigned int len; /* store the length of the string */
 
       ptcache_path(pid, path);
 
-      len = ptcache_filename(pid, filename, (int)cfra, 0, 0); /* no path */
+      len = ptcache_filepath(pid, filepath, (int)cfra, 0, 0); /* no path */
 
       dir = opendir(path);
       if (dir == NULL) {
         return;
       }
 
-      ptcache_filename_ext_append(pid, ext, 0, false, 0);
+      ptcache_filepath_ext_append(pid, ext, 0, false, 0);
 
       while ((de = readdir(dir)) != NULL) {
         if (strstr(de->d_name, ext)) {               /* Do we have the right extension? */
-          if (STREQLEN(filename, de->d_name, len)) { /* Do we have the right prefix. */
+          if (STREQLEN(filepath, de->d_name, len)) { /* Do we have the right prefix. */
             /* read the number of the file */
             const int frame = ptcache_frame_from_filename(de->d_name, ext);
 
@@ -3494,7 +3494,7 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, const char *name_src, const c
   DIR *dir;
   struct dirent *de;
   char path[MAX_PTCACHE_PATH];
-  char old_filename[MAX_PTCACHE_FILE];
+  char old_filepath[MAX_PTCACHE_FILE];
   char new_path_full[MAX_PTCACHE_FILE];
   char old_path_full[MAX_PTCACHE_FILE];
   char ext[MAX_PTCACHE_PATH];
@@ -3510,7 +3510,7 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, const char *name_src, const c
   /* get "from" filename */
   BLI_strncpy(pid->cache->name, name_src, sizeof(pid->cache->name));
 
-  len = ptcache_filename(pid, old_filename, 0, false, false); /* no path */
+  len = ptcache_filepath(pid, old_filepath, 0, false, false); /* no path */
 
   ptcache_path(pid, path);
   dir = opendir(path);
@@ -3519,20 +3519,20 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, const char *name_src, const c
     return;
   }
 
-  ptcache_filename_ext_append(pid, ext, 0, false, 0);
+  ptcache_filepath_ext_append(pid, ext, 0, false, 0);
 
   /* put new name into cache */
   BLI_strncpy(pid->cache->name, name_dst, sizeof(pid->cache->name));
 
   while ((de = readdir(dir)) != NULL) {
     if (strstr(de->d_name, ext)) {                   /* Do we have the right extension? */
-      if (STREQLEN(old_filename, de->d_name, len)) { /* Do we have the right prefix. */
+      if (STREQLEN(old_filepath, de->d_name, len)) { /* Do we have the right prefix. */
         /* read the number of the file */
         const int frame = ptcache_frame_from_filename(de->d_name, ext);
 
         if (frame != -1) {
           BLI_join_dirfile(old_path_full, sizeof(old_path_full), path, de->d_name);
-          ptcache_filename(pid, new_path_full, frame, true, true);
+          ptcache_filepath(pid, new_path_full, frame, true, true);
           BLI_rename(old_path_full, new_path_full);
         }
       }
@@ -3556,7 +3556,7 @@ void BKE_ptcache_load_external(PTCacheID *pid)
   DIR *dir;
   struct dirent *de;
   char path[MAX_PTCACHE_PATH];
-  char filename[MAX_PTCACHE_FILE];
+  char filepath[MAX_PTCACHE_FILE];
   char ext[MAX_PTCACHE_PATH];
 
   if (!cache) {
@@ -3565,7 +3565,7 @@ void BKE_ptcache_load_external(PTCacheID *pid)
 
   ptcache_path(pid, path);
 
-  len = ptcache_filename(pid, filename, 1, false, false); /* no path */
+  len = ptcache_filepath(pid, filepath, 1, false, false); /* no path */
 
   dir = opendir(path);
   if (dir == NULL) {
@@ -3583,7 +3583,7 @@ void BKE_ptcache_load_external(PTCacheID *pid)
 
   while ((de = readdir(dir)) != NULL) {
     if (strstr(de->d_name, ext)) {               /* Do we have the right extension? */
-      if (STREQLEN(filename, de->d_name, len)) { /* Do we have the right prefix. */
+      if (STREQLEN(filepath, de->d_name, len)) { /* Do we have the right prefix. */
         /* read the number of the file */
         const int frame = ptcache_frame_from_filename(de->d_name, ext);
 

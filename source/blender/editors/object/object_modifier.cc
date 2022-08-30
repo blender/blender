@@ -50,6 +50,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_mball.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
@@ -111,7 +112,7 @@ static void object_force_modifier_update_for_bind(Depsgraph *depsgraph, Object *
     BKE_lattice_modifiers_calc(depsgraph, scene_eval, ob_eval);
   }
   else if (ob->type == OB_MBALL) {
-    BKE_displist_make_mball(depsgraph, scene_eval, ob_eval);
+    BKE_mball_data_update(depsgraph, scene_eval, ob_eval);
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
     BKE_displist_make_curveTypes(depsgraph, scene_eval, ob_eval, false);
@@ -486,6 +487,9 @@ bool ED_object_modifier_move_to_index(ReportList *reports,
     }
   }
 
+  /* NOTE: Dependency graph only uses modifier nodes for visibility updates, and exact order of
+   * modifier nodes in the graph does not matter. */
+
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 
@@ -582,9 +586,11 @@ bool ED_object_modifier_convert_psys_to_mesh(ReportList *UNUSED(reports),
   me->totvert = verts_num;
   me->totedge = edges_num;
 
-  me->mvert = (MVert *)CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, nullptr, verts_num);
-  me->medge = (MEdge *)CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, nullptr, edges_num);
-  me->mface = (MFace *)CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, nullptr, 0);
+  me->mvert = (MVert *)CustomData_add_layer(
+      &me->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, verts_num);
+  me->medge = (MEdge *)CustomData_add_layer(
+      &me->edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, edges_num);
+  me->mface = (MFace *)CustomData_add_layer(&me->fdata, CD_MFACE, CD_SET_DEFAULT, nullptr, 0);
 
   MVert *mvert = me->mvert;
   MEdge *medge = me->medge;
@@ -1363,7 +1369,7 @@ static int modifier_move_to_index_exec(bContext *C, wmOperator *op)
   ModifierData *md = edit_modifier_property_get(op, ob, 0);
   int index = RNA_int_get(op->ptr, "index");
 
-  if (!ED_object_modifier_move_to_index(op->reports, ob, md, index)) {
+  if (!(md && ED_object_modifier_move_to_index(op->reports, ob, md, index))) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1668,6 +1674,7 @@ static int modifier_copy_exec(bContext *C, wmOperator *op)
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
   return OPERATOR_FINISHED;
@@ -2637,7 +2644,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
   MVert *mvert = me_eval_deform->mvert;
 
   /* add vertex weights to original mesh */
-  CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, CD_CALLOC, nullptr, me->totvert);
+  CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, nullptr, me->totvert);
 
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
   Object *arm_ob = BKE_object_add(bmain, view_layer, OB_ARMATURE, nullptr);
@@ -3344,6 +3351,7 @@ void OBJECT_OT_geometry_nodes_input_attribute_toggle(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_geometry_nodes_input_attribute_toggle";
 
   ot->exec = geometry_nodes_input_attribute_toggle_exec;
+  ot->poll = ED_operator_object_active;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
@@ -3361,9 +3369,8 @@ static int geometry_node_tree_copy_assign_exec(bContext *C, wmOperator *UNUSED(o
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = ED_object_active_context(C);
-
   ModifierData *md = BKE_object_active_modifier(ob);
-  if (md->type != eModifierType_Nodes) {
+  if (!(md && md->type == eModifierType_Nodes)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -3395,6 +3402,7 @@ void OBJECT_OT_geometry_node_tree_copy_assign(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_geometry_node_tree_copy_assign";
 
   ot->exec = geometry_node_tree_copy_assign_exec;
+  ot->poll = ED_operator_object_active;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }

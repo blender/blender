@@ -430,8 +430,7 @@ static void deformVerts(struct ModifierData *md,
                         int verts_num)
 {
   HookModifierData *hmd = (HookModifierData *)md;
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(
-      ctx->object, NULL, mesh, NULL, verts_num, false, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
 
   deformVerts_do(hmd, ctx, ctx->object, mesh_src, NULL, vertexCos, verts_num);
 

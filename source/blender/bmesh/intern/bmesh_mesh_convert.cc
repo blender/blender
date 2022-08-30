@@ -217,10 +217,10 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
 
   if (!me || !me->totvert) {
     if (me && is_new) { /* No verts? still copy custom-data layout. */
-      CustomData_copy_mesh_to_bmesh(&me->vdata, &bm->vdata, mask.vmask, CD_DEFAULT, 0);
-      CustomData_copy_mesh_to_bmesh(&me->edata, &bm->edata, mask.emask, CD_DEFAULT, 0);
-      CustomData_copy_mesh_to_bmesh(&me->ldata, &bm->ldata, mask.lmask, CD_DEFAULT, 0);
-      CustomData_copy_mesh_to_bmesh(&me->pdata, &bm->pdata, mask.pmask, CD_DEFAULT, 0);
+      CustomData_copy_mesh_to_bmesh(&me->vdata, &bm->vdata, mask.vmask, CD_CONSTRUCT, 0);
+      CustomData_copy_mesh_to_bmesh(&me->edata, &bm->edata, mask.emask, CD_CONSTRUCT, 0);
+      CustomData_copy_mesh_to_bmesh(&me->ldata, &bm->ldata, mask.lmask, CD_CONSTRUCT, 0);
+      CustomData_copy_mesh_to_bmesh(&me->pdata, &bm->pdata, mask.pmask, CD_CONSTRUCT, 0);
 
       CustomData_bmesh_init_pool(&bm->vdata, me->totvert, BM_VERT);
       CustomData_bmesh_init_pool(&bm->edata, me->totedge, BM_EDGE);
@@ -236,16 +236,16 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
   }
 
   if (is_new) {
-    CustomData_copy_mesh_to_bmesh(&me->vdata, &bm->vdata, mask.vmask, CD_CALLOC, 0);
-    CustomData_copy_mesh_to_bmesh(&me->edata, &bm->edata, mask.emask, CD_CALLOC, 0);
-    CustomData_copy_mesh_to_bmesh(&me->ldata, &bm->ldata, mask.lmask, CD_CALLOC, 0);
-    CustomData_copy_mesh_to_bmesh(&me->pdata, &bm->pdata, mask.pmask, CD_CALLOC, 0);
+    CustomData_copy_mesh_to_bmesh(&me->vdata, &bm->vdata, mask.vmask, CD_SET_DEFAULT, 0);
+    CustomData_copy_mesh_to_bmesh(&me->edata, &bm->edata, mask.emask, CD_SET_DEFAULT, 0);
+    CustomData_copy_mesh_to_bmesh(&me->ldata, &bm->ldata, mask.lmask, CD_SET_DEFAULT, 0);
+    CustomData_copy_mesh_to_bmesh(&me->pdata, &bm->pdata, mask.pmask, CD_SET_DEFAULT, 0);
   }
   else {
-    CustomData_bmesh_merge(&me->vdata, &bm->vdata, mask.vmask, CD_CALLOC, bm, BM_VERT);
-    CustomData_bmesh_merge(&me->edata, &bm->edata, mask.emask, CD_CALLOC, bm, BM_EDGE);
-    CustomData_bmesh_merge(&me->ldata, &bm->ldata, mask.lmask, CD_CALLOC, bm, BM_LOOP);
-    CustomData_bmesh_merge(&me->pdata, &bm->pdata, mask.pmask, CD_CALLOC, bm, BM_FACE);
+    CustomData_bmesh_merge(&me->vdata, &bm->vdata, mask.vmask, CD_SET_DEFAULT, bm, BM_VERT);
+    CustomData_bmesh_merge(&me->edata, &bm->edata, mask.emask, CD_SET_DEFAULT, bm, BM_EDGE);
+    CustomData_bmesh_merge(&me->ldata, &bm->ldata, mask.lmask, CD_SET_DEFAULT, bm, BM_LOOP);
+    CustomData_bmesh_merge(&me->pdata, &bm->pdata, mask.pmask, CD_SET_DEFAULT, bm, BM_FACE);
   }
 
   /* -------------------------------------------------------------------- */
@@ -1016,10 +1016,10 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   {
     CustomData_MeshMasks mask = CD_MASK_MESH;
     CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
-    CustomData_copy_mesh_to_bmesh(&bm->vdata, &me->vdata, mask.vmask, CD_CALLOC, me->totvert);
-    CustomData_copy_mesh_to_bmesh(&bm->edata, &me->edata, mask.emask, CD_CALLOC, me->totedge);
-    CustomData_copy_mesh_to_bmesh(&bm->ldata, &me->ldata, mask.lmask, CD_CALLOC, me->totloop);
-    CustomData_copy_mesh_to_bmesh(&bm->pdata, &me->pdata, mask.pmask, CD_CALLOC, me->totpoly);
+    CustomData_copy_mesh_to_bmesh(&bm->vdata, &me->vdata, mask.vmask, CD_SET_DEFAULT, me->totvert);
+    CustomData_copy_mesh_to_bmesh(&bm->edata, &me->edata, mask.emask, CD_SET_DEFAULT, me->totedge);
+    CustomData_copy_mesh_to_bmesh(&bm->ldata, &me->ldata, mask.lmask, CD_SET_DEFAULT, me->totloop);
+    CustomData_copy_mesh_to_bmesh(&bm->pdata, &me->pdata, mask.pmask, CD_SET_DEFAULT, me->totpoly);
   }
 
   MVert *mvert = bm->totvert ? (MVert *)MEM_callocN(sizeof(MVert) * bm->totvert, "bm_to_me.vert") :
@@ -1271,10 +1271,10 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   me->totloop = bm->totloop;
   me->totpoly = bm->totface;
 
-  CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, nullptr, bm->totvert);
-  CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, nullptr, bm->totedge);
-  CustomData_add_layer(&me->ldata, CD_MLOOP, CD_CALLOC, nullptr, bm->totloop);
-  CustomData_add_layer(&me->pdata, CD_MPOLY, CD_CALLOC, nullptr, bm->totface);
+  CustomData_add_layer(&me->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, bm->totvert);
+  CustomData_add_layer(&me->edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, bm->totedge);
+  CustomData_add_layer(&me->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, bm->totloop);
+  CustomData_add_layer(&me->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, bm->totface);
 
   /* Don't process shape-keys, we only feed them through the modifier stack as needed,
    * e.g. for applying modifiers or the like. */
@@ -1283,10 +1283,10 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
     CustomData_MeshMasks_update(&mask, cd_mask_extra);
   }
   mask.vmask &= ~CD_MASK_SHAPEKEY;
-  CustomData_merge(&bm->vdata, &me->vdata, mask.vmask, CD_CALLOC, me->totvert);
-  CustomData_merge(&bm->edata, &me->edata, mask.emask, CD_CALLOC, me->totedge);
-  CustomData_merge(&bm->ldata, &me->ldata, mask.lmask, CD_CALLOC, me->totloop);
-  CustomData_merge(&bm->pdata, &me->pdata, mask.pmask, CD_CALLOC, me->totpoly);
+  CustomData_merge(&bm->vdata, &me->vdata, mask.vmask, CD_SET_DEFAULT, me->totvert);
+  CustomData_merge(&bm->edata, &me->edata, mask.emask, CD_SET_DEFAULT, me->totedge);
+  CustomData_merge(&bm->ldata, &me->ldata, mask.lmask, CD_SET_DEFAULT, me->totloop);
+  CustomData_merge(&bm->pdata, &me->pdata, mask.pmask, CD_SET_DEFAULT, me->totpoly);
 
   BKE_mesh_update_customdata_pointers(me, false);
 

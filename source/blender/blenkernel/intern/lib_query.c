@@ -696,8 +696,8 @@ static void lib_query_unused_ids_tag_recurse(Main *bmain,
   bool has_valid_from_users = false;
   /* Preemptively consider this ID as unused. That way if there is a loop of dependency leading
    * back to it, it won't create a fake 'valid user' detection.
-   * NOTE: This can only only be done for a subset of IDs, some types are never 'indirectly
-   * unused', same for IDs with a fake user. */
+   * NOTE: This can only be done for a subset of IDs, some types are never 'indirectly unused',
+   * same for IDs with a fake user. */
   if ((id->flag & LIB_FAKEUSER) == 0 && !ELEM(GS(id->name), ID_SCE, ID_WM, ID_SCR, ID_WS, ID_LI)) {
     id->tag |= tag;
   }
@@ -713,7 +713,7 @@ static void lib_query_unused_ids_tag_recurse(Main *bmain,
       /* Directly 'by-pass' to actual real ID owner. */
       const IDTypeInfo *type_info_from = BKE_idtype_get_info_from_id(id_from);
       BLI_assert(type_info_from->owner_get != NULL);
-      id_from = type_info_from->owner_get(bmain, id_from);
+      id_from = type_info_from->owner_get(bmain, id_from, NULL);
     }
 
     lib_query_unused_ids_tag_recurse(

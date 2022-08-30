@@ -115,8 +115,7 @@ void MeshComponent::ensure_owns_direct_data()
 
 namespace blender::bke {
 
-VArray<float3> mesh_normals_varray(const MeshComponent &mesh_component,
-                                   const Mesh &mesh,
+VArray<float3> mesh_normals_varray(const Mesh &mesh,
                                    const IndexMask mask,
                                    const eAttrDomain domain)
 {
@@ -150,7 +149,7 @@ VArray<float3> mesh_normals_varray(const MeshComponent &mesh_component,
        * array and copy the face normal for each of its corners. In this case using the mesh
        * component's generic domain interpolation is fine, the data will still be normalized,
        * since the face normal is just copied to every corner. */
-      return mesh_component.attributes()->adapt_domain(
+      return mesh_attributes(mesh).adapt_domain(
           VArray<float3>::ForSpan({(float3 *)BKE_mesh_poly_normals_ensure(&mesh), mesh.totpoly}),
           ATTR_DOMAIN_FACE,
           ATTR_DOMAIN_CORNER);

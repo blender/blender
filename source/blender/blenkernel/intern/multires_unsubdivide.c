@@ -901,10 +901,10 @@ static void multires_unsubdivide_add_original_index_datalayers(Mesh *mesh)
   multires_unsubdivide_free_original_datalayers(mesh);
 
   int *l_index = CustomData_add_layer_named(
-      &mesh->ldata, CD_PROP_INT32, CD_CALLOC, NULL, mesh->totloop, lname);
+      &mesh->ldata, CD_PROP_INT32, CD_SET_DEFAULT, NULL, mesh->totloop, lname);
 
   int *v_index = CustomData_add_layer_named(
-      &mesh->vdata, CD_PROP_INT32, CD_CALLOC, NULL, mesh->totvert, vname);
+      &mesh->vdata, CD_PROP_INT32, CD_SET_DEFAULT, NULL, mesh->totvert, vname);
 
   /* Initialize these data-layer with the indices in the current mesh. */
   for (int i = 0; i < mesh->totloop; i++) {
@@ -1174,7 +1174,7 @@ static void multires_create_grids_in_unsubdivided_base_mesh(MultiresUnsubdivideC
     CustomData_free_layers(&base_mesh->ldata, CD_MDISPS, base_mesh->totloop);
   }
   MDisps *mdisps = CustomData_add_layer(
-      &base_mesh->ldata, CD_MDISPS, CD_CALLOC, NULL, base_mesh->totloop);
+      &base_mesh->ldata, CD_MDISPS, CD_SET_DEFAULT, NULL, base_mesh->totloop);
 
   const int totdisp = pow_i(BKE_ccg_gridsize(context->num_total_levels), 2);
   const int totloop = base_mesh->totloop;

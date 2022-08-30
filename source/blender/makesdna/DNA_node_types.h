@@ -1881,6 +1881,18 @@ typedef enum CMPNodeFlipMode {
   CMP_NODE_FLIP_X_Y = 2,
 } CMPNodeFlipMode;
 
+/* Filter Node. Stored in custom1. */
+typedef enum CMPNodeFilterMethod {
+  CMP_NODE_FILTER_SOFT = 0,
+  CMP_NODE_FILTER_SHARP_BOX = 1,
+  CMP_NODE_FILTER_LAPLACE = 2,
+  CMP_NODE_FILTER_SOBEL = 3,
+  CMP_NODE_FILTER_PREWITT = 4,
+  CMP_NODE_FILTER_KIRSCH = 5,
+  CMP_NODE_FILTER_SHADOW = 6,
+  CMP_NODE_FILTER_SHARP_DIAMOND = 7,
+} CMPNodeFilterMethod;
+
 /* Plane track deform node. */
 
 enum {

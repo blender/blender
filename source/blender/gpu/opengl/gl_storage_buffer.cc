@@ -166,6 +166,23 @@ void GLStorageBuf::copy_sub(VertBuf *src_, uint dst_offset, uint src_offset, uin
   }
 }
 
+void GLStorageBuf::read(void *data)
+{
+  if (ssbo_id_ == 0) {
+    this->init();
+  }
+
+  if (GLContext::direct_state_access_support) {
+    glGetNamedBufferSubData(ssbo_id_, 0, size_in_bytes_, data);
+  }
+  else {
+    /* This binds the buffer to GL_ARRAY_BUFFER and upload the data if any. */
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_id_);
+    glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, size_in_bytes_, data);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+  }
+}
+
 /** \} */
 
 }  // namespace blender::gpu

@@ -580,7 +580,7 @@ static void region_cursor_set(wmWindow *win, bool swin_changed)
   }
 }
 
-void ED_screen_do_listen(bContext *C, wmNotifier *note)
+void ED_screen_do_listen(bContext *C, const wmNotifier *note)
 {
   wmWindow *win = CTX_wm_window(C);
   bScreen *screen = CTX_wm_screen(C);

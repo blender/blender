@@ -259,7 +259,6 @@ class WrapRepeatUV : public BaseUVWrapping {
  * \brief Read a sample from an image buffer.
  *
  * A sampler can read from an image buffer.
- *
  */
 template<
     /** \brief Interpolation mode to use when sampling. */

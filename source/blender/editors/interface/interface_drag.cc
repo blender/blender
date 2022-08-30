@@ -130,7 +130,7 @@ void ui_but_drag_start(bContext *C, uiBut *but)
                                      (but->dragflag & UI_BUT_DRAGPOIN_FREE) ? WM_DRAG_FREE_DATA :
                                                                               WM_DRAG_NOP);
   /* wmDrag has ownership over dragpoin now, stop messing with it. */
-  but->dragpoin = NULL;
+  but->dragpoin = nullptr;
 
   if (but->imb) {
     WM_event_drag_image(drag, but->imb, but->imb_scale);
@@ -141,6 +141,6 @@ void ui_but_drag_start(bContext *C, uiBut *but)
   /* Special feature for assets: We add another drag item that supports multiple assets. It
    * gets the assets from context. */
   if (ELEM(but->dragtype, WM_DRAG_ASSET, WM_DRAG_ID)) {
-    WM_event_start_drag(C, ICON_NONE, WM_DRAG_ASSET_LIST, NULL, 0, WM_DRAG_NOP);
+    WM_event_start_drag(C, ICON_NONE, WM_DRAG_ASSET_LIST, nullptr, 0, WM_DRAG_NOP);
   }
 }

@@ -5,12 +5,7 @@
 #
 # Getting the install path of the executable is somewhat involved, as there are
 # no direct CMake generator expressions to get the install paths of executables.
-get_property(GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-if(GENERATOR_IS_MULTI_CONFIG)
-  string(REPLACE "\${BUILD_TYPE}" "$<CONFIG>" TEST_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
-else()
-  string(REPLACE "\${BUILD_TYPE}" "" TEST_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
-endif()
+set(TEST_INSTALL_DIR ${CMAKE_INSTALL_PREFIX_WITH_CONFIG})
 
 # Path to Blender and Python executables for all platforms.
 if(MSVC)

@@ -348,7 +348,7 @@ static void deformVerts(ModifierData *md,
 
   if (wmd->defgrp_name[0] != '\0' || wmd->texture != NULL) {
     /* mesh_src is only needed for vgroups and textures. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
   }
 
   warpModifier_do(wmd, ctx, mesh_src, vertexCos, verts_num);
@@ -370,7 +370,7 @@ static void deformVertsEM(ModifierData *md,
 
   if (wmd->defgrp_name[0] != '\0' || wmd->texture != NULL) {
     /* mesh_src is only needed for vgroups and textures. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, NULL, verts_num, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, NULL, verts_num, false);
   }
 
   /* TODO(@campbellbarton): use edit-mode data only (remove this line). */

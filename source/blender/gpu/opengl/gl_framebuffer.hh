@@ -11,8 +11,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "glew-mx.h"
-
 #include "gpu_framebuffer_private.hh"
 
 namespace blender::gpu {

@@ -215,7 +215,7 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
     }
 
     if (fmd->domain->effector_weights) {
-      walk(userData, ob, (ID **)&fmd->domain->effector_weights->group, IDWALK_CB_NOP);
+      walk(userData, ob, (ID **)&fmd->domain->effector_weights->group, IDWALK_CB_USER);
     }
   }
 

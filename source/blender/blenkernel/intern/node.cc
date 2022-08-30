@@ -404,13 +404,19 @@ static void node_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   }
 }
 
-static ID *node_owner_get(Main *bmain, ID *id)
+static ID *node_owner_get(Main *bmain, ID *id, ID *owner_id_hint)
 {
   if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
     return id;
   }
   /* TODO: Sort this NO_MAIN or not for embedded node trees. See T86119. */
   // BLI_assert((id->tag & LIB_TAG_NO_MAIN) == 0);
+
+  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
+
+  if (owner_id_hint != nullptr && ntreeFromID(owner_id_hint) == ntree) {
+    return owner_id_hint;
+  }
 
   ListBase *lists[] = {&bmain->materials,
                        &bmain->lights,
@@ -421,7 +427,6 @@ static ID *node_owner_get(Main *bmain, ID *id)
                        &bmain->simulations,
                        nullptr};
 
-  bNodeTree *ntree = (bNodeTree *)id;
   for (int i = 0; lists[i] != nullptr; i++) {
     LISTBASE_FOREACH (ID *, id_iter, lists[i]) {
       if (ntreeFromID(id_iter) == ntree) {
@@ -3378,8 +3383,10 @@ struct bNodeSocket *ntreeAddSocketInterfaceFromSocket(bNodeTree *ntree,
                                                       bNode *from_node,
                                                       bNodeSocket *from_sock)
 {
-  bNodeSocket *iosock = ntreeAddSocketInterface(
-      ntree, static_cast<eNodeSocketInOut>(from_sock->in_out), from_sock->idname, from_sock->name);
+  bNodeSocket *iosock = ntreeAddSocketInterface(ntree,
+                                                static_cast<eNodeSocketInOut>(from_sock->in_out),
+                                                from_sock->idname,
+                                                DATA_(from_sock->name));
   if (iosock) {
     if (iosock->typeinfo->interface_from_socket) {
       iosock->typeinfo->interface_from_socket(ntree, iosock, from_node, from_sock);

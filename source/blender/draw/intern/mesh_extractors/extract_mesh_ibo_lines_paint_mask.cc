@@ -48,8 +48,7 @@ static void extract_lines_paint_mask_iter_poly_mesh(const MeshRenderData *mr,
 
     const int e_index = ml->e;
     if (!((mr->use_hide && mr->hide_edge && mr->hide_edge[e_index]) ||
-          ((mr->extract_type == MR_EXTRACT_MAPPED) && (mr->e_origindex) &&
-           (mr->e_origindex[e_index] == ORIGINDEX_NONE)))) {
+          ((mr->e_origindex) && (mr->e_origindex[e_index] == ORIGINDEX_NONE)))) {
 
       const int ml_index_last = mp->totloop + mp->loopstart - 1;
       const int ml_index_other = (ml_index == ml_index_last) ? mp->loopstart : (ml_index + 1);
@@ -122,8 +121,7 @@ static void extract_lines_paint_mask_iter_subdiv_mesh(const DRWSubdivCache *subd
     }
     else {
       if (!((mr->use_hide && mr->hide_edge && mr->hide_edge[coarse_edge_index]) ||
-            ((mr->extract_type == MR_EXTRACT_MAPPED) && (mr->e_origindex) &&
-             (mr->e_origindex[coarse_edge_index] == ORIGINDEX_NONE)))) {
+            ((mr->e_origindex) && (mr->e_origindex[coarse_edge_index] == ORIGINDEX_NONE)))) {
         const uint ml_index_other = (loop_idx == (end_loop_idx - 1)) ? start_loop_idx :
                                                                        loop_idx + 1;
         if (coarse_quad->flag & ME_FACE_SEL) {

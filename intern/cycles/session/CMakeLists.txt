@@ -32,6 +32,4 @@ set(LIB
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
 
-add_definitions(${GL_DEFINITIONS})
-
 cycles_add_library(cycles_session "${LIB}" ${SRC} ${SRC_HEADERS})

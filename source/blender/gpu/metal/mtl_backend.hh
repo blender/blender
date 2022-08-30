@@ -40,7 +40,7 @@ class MTLBackend : public GPUBackend {
     MTLBackend::platform_exit();
   }
 
-  void delete_resources()
+  void delete_resources() override
   {
     /* Delete any resources with context active. */
   }

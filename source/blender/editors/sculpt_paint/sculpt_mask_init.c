@@ -131,7 +131,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  SCULPT_undo_push_begin(ob, "init mask");
+  SCULPT_undo_push_begin(ob, op);
 
   if (mode == SCULPT_MASK_INIT_RANDOM_PER_LOOSE_PART) {
     SCULPT_connected_components_ensure(ob);

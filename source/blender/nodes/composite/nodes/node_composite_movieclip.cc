@@ -247,7 +247,9 @@ class MovieClipOperation : public NodeOperation {
   void free_movie_clip_texture()
   {
     MovieClip *movie_clip = get_movie_clip();
-    return BKE_movieclip_free_gputexture(movie_clip);
+    if (movie_clip) {
+      BKE_movieclip_free_gputexture(movie_clip);
+    }
   }
 
   MovieClip *get_movie_clip()

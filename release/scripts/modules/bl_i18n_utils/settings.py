@@ -519,6 +519,10 @@ REL_POTFILES_SOURCE_DIR = os.path.join("source")
 # Where to search for preset names (relative to SOURCE_DIR).
 REL_PRESETS_DIR = os.path.join("release", "scripts", "presets")
 
+# Where to search for templates (relative to SOURCE_DIR).
+REL_TEMPLATES_DIR = os.path.join("release", "scripts", "startup",
+                                 "bl_app_templates_system")
+
 # The template messages file (relative to I18N_DIR).
 REL_FILE_NAME_POT = os.path.join(REL_BRANCHES_DIR, DOMAIN + ".pot")
 
@@ -678,6 +682,7 @@ class I18nSettings:
     GIT_I18N_PO_DIR = property(*(_gen_get_set_path("GIT_I18N_ROOT", "REL_GIT_I18N_PO_DIR")))
     POTFILES_SOURCE_DIR = property(*(_gen_get_set_path("SOURCE_DIR", "REL_POTFILES_SOURCE_DIR")))
     PRESETS_DIR = property(*(_gen_get_set_path("SOURCE_DIR", "REL_PRESETS_DIR")))
+    TEMPLATES_DIR = property(*(_gen_get_set_path("SOURCE_DIR", "REL_TEMPLATES_DIR")))
     FILE_NAME_POT = property(*(_gen_get_set_path("I18N_DIR", "REL_FILE_NAME_POT")))
     MO_PATH_ROOT = property(*(_gen_get_set_path("I18N_DIR", "REL_MO_PATH_ROOT")))
     MO_PATH_TEMPLATE = property(*(_gen_get_set_path("I18N_DIR", "REL_MO_PATH_TEMPLATE")))

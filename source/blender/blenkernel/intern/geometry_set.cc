@@ -8,7 +8,6 @@
 
 #include "BKE_attribute.h"
 #include "BKE_curves.hh"
-#include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
@@ -630,48 +629,6 @@ void GeometrySet::modify_geometry_sets(ForeachSubGeometryCallback callback)
         geometry_sets, [&](GeometrySet *geometry_set) { callback(*geometry_set); });
   }
 }
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Mesh and Curve Normals Field Input
- * \{ */
-
-namespace blender::bke {
-
-GVArray NormalFieldInput::get_varray_for_context(const GeometryComponent &component,
-                                                 const eAttrDomain domain,
-                                                 IndexMask mask) const
-{
-  if (component.type() == GEO_COMPONENT_TYPE_MESH) {
-    const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-    if (const Mesh *mesh = mesh_component.get_for_read()) {
-      return mesh_normals_varray(mesh_component, *mesh, mask, domain);
-    }
-  }
-  else if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
-    const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-    return curve_normals_varray(curve_component, domain);
-  }
-  return {};
-}
-
-std::string NormalFieldInput::socket_inspection_name() const
-{
-  return TIP_("Normal");
-}
-
-uint64_t NormalFieldInput::hash() const
-{
-  return 213980475983;
-}
-
-bool NormalFieldInput::is_equal_to(const fn::FieldNode &other) const
-{
-  return dynamic_cast<const NormalFieldInput *>(&other) != nullptr;
-}
-
-}  // namespace blender::bke
 
 /** \} */
 

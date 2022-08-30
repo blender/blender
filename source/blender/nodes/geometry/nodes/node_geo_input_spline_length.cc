@@ -16,15 +16,9 @@ static void node_declare(NodeDeclarationBuilder &b)
  * Spline Count
  */
 
-static VArray<int> construct_curve_point_count_gvarray(const CurveComponent &component,
+static VArray<int> construct_curve_point_count_gvarray(const bke::CurvesGeometry &curves,
                                                        const eAttrDomain domain)
 {
-  if (!component.has_curves()) {
-    return {};
-  }
-  const Curves &curves_id = *component.get_for_read();
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
-
   auto count_fn = [curves](int64_t i) { return curves.points_for_curve(i).size(); };
 
   if (domain == ATTR_DOMAIN_CURVE) {
@@ -32,29 +26,24 @@ static VArray<int> construct_curve_point_count_gvarray(const CurveComponent &com
   }
   if (domain == ATTR_DOMAIN_POINT) {
     VArray<int> count = VArray<int>::ForFunc(curves.curves_num(), count_fn);
-    return component.attributes()->adapt_domain<int>(
-        std::move(count), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
+    return curves.adapt_domain<int>(std::move(count), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
   }
 
   return {};
 }
 
-class SplineCountFieldInput final : public GeometryFieldInput {
+class SplineCountFieldInput final : public bke::CurvesFieldInput {
  public:
-  SplineCountFieldInput() : GeometryFieldInput(CPPType::get<int>(), "Spline Point Count")
+  SplineCountFieldInput() : bke::CurvesFieldInput(CPPType::get<int>(), "Spline Point Count")
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
+  GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
                                  const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
-    if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
-      const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-      return construct_curve_point_count_gvarray(curve_component, domain);
-    }
-    return {};
+    return construct_curve_point_count_gvarray(curves, domain);
   }
 
   uint64_t hash() const override

@@ -141,10 +141,12 @@ struct UvElementMap *BM_uv_element_map_create(struct BMesh *bm,
                                               bool use_winding,
                                               bool do_islands);
 void BM_uv_element_map_free(struct UvElementMap *element_map);
-struct UvElement *BM_uv_element_get(struct UvElementMap *map,
-                                    struct BMFace *efa,
-                                    struct BMLoop *l);
+struct UvElement *BM_uv_element_get(const struct UvElementMap *map,
+                                    const struct BMFace *efa,
+                                    const struct BMLoop *l);
 struct UvElement *BM_uv_element_get_head(struct UvElementMap *map, struct UvElement *child);
+
+struct UvElement **BM_uv_element_map_ensure_head_table(struct UvElementMap *element_map);
 
 /**
  * Can we edit UV's for this mesh?
@@ -181,9 +183,13 @@ void EDBM_project_snap_verts(struct bContext *C,
 
 /* editmesh_automerge.c */
 
-void EDBM_automerge(struct Object *ob, bool update, char hflag, float dist);
-void EDBM_automerge_and_split(
-    struct Object *ob, bool split_edges, bool split_faces, bool update, char hflag, float dist);
+void EDBM_automerge(struct Object *obedit, bool update, char hflag, float dist);
+void EDBM_automerge_and_split(struct Object *obedit,
+                              bool split_edges,
+                              bool split_faces,
+                              bool update,
+                              char hflag,
+                              float dist);
 
 /* editmesh_undo.c */
 
@@ -448,7 +454,7 @@ void ED_mesh_mirrtopo_init(struct BMEditMesh *em,
                            bool skip_em_vert_array_init);
 void ED_mesh_mirrtopo_free(MirrTopoStore_t *mesh_topo_store);
 
-/* object_vgroup.c */
+/* object_vgroup.cc */
 
 #define WEIGHT_REPLACE 1
 #define WEIGHT_ADD 2

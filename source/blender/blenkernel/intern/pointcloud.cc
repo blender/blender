@@ -64,7 +64,7 @@ static void pointcloud_init_data(ID *id)
   CustomData_reset(&pointcloud->pdata);
   CustomData_add_layer_named(&pointcloud->pdata,
                              CD_PROP_FLOAT3,
-                             CD_CALLOC,
+                             CD_SET_DEFAULT,
                              nullptr,
                              pointcloud->totpoint,
                              POINTCLOUD_ATTR_POSITION);
@@ -231,7 +231,7 @@ void *BKE_pointcloud_add_default(Main *bmain, const char *name)
 
   CustomData_add_layer_named(&pointcloud->pdata,
                              CD_PROP_FLOAT,
-                             CD_CALLOC,
+                             CD_SET_DEFAULT,
                              nullptr,
                              pointcloud->totpoint,
                              POINTCLOUD_ATTR_RADIUS);
@@ -251,7 +251,7 @@ PointCloud *BKE_pointcloud_new_nomain(const int totpoint)
 
   CustomData_add_layer_named(&pointcloud->pdata,
                              CD_PROP_FLOAT,
-                             CD_CALLOC,
+                             CD_SET_DEFAULT,
                              nullptr,
                              pointcloud->totpoint,
                              POINTCLOUD_ATTR_RADIUS);
@@ -336,7 +336,7 @@ PointCloud *BKE_pointcloud_new_for_eval(const PointCloud *pointcloud_src, int to
 
   pointcloud_dst->totpoint = totpoint;
   CustomData_copy(
-      &pointcloud_src->pdata, &pointcloud_dst->pdata, CD_MASK_ALL, CD_CALLOC, totpoint);
+      &pointcloud_src->pdata, &pointcloud_dst->pdata, CD_MASK_ALL, CD_SET_DEFAULT, totpoint);
 
   return pointcloud_dst;
 }

@@ -710,7 +710,7 @@ bool IMesh::erase_face_positions(int f_index, Span<bool> face_pos_erase, IMeshAr
      * mark with null pointer and caller should call remove_null_faces().
      * the loop is done.
      */
-    this->face_[f_index] = NULL;
+    this->face_[f_index] = nullptr;
     return true;
   }
   Array<const Vert *> new_vert(new_len);

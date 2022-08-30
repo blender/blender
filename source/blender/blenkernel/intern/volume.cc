@@ -1361,6 +1361,26 @@ const char *BKE_volume_grid_name(const VolumeGrid *volume_grid)
 }
 
 #ifdef WITH_OPENVDB
+struct ClearGridOp {
+  openvdb::GridBase &grid;
+
+  template<typename Grid> void operator()()
+  {
+    static_cast<Grid &>(grid).clear();
+  }
+};
+void BKE_volume_grid_clear_tree(openvdb::GridBase &grid)
+{
+  const VolumeGridType grid_type = BKE_volume_grid_type_openvdb(grid);
+  ClearGridOp op{grid};
+  BKE_volume_grid_type_operation(grid_type, op);
+}
+void BKE_volume_grid_clear_tree(Volume &volume, VolumeGrid &volume_grid)
+{
+  openvdb::GridBase::Ptr grid = BKE_volume_grid_openvdb_for_write(&volume, &volume_grid, false);
+  BKE_volume_grid_clear_tree(*grid);
+}
+
 VolumeGridType BKE_volume_grid_type_openvdb(const openvdb::GridBase &grid)
 {
   if (grid.isType<openvdb::FloatGrid>()) {
@@ -1448,6 +1468,23 @@ void BKE_volume_grid_transform_matrix(const VolumeGrid *volume_grid, float mat[4
 #else
   unit_m4(mat);
   UNUSED_VARS(volume_grid);
+#endif
+}
+
+void BKE_volume_grid_transform_matrix_set(struct VolumeGrid *volume_grid, const float mat[4][4])
+{
+#ifdef WITH_OPENVDB
+  openvdb::math::Mat4f mat_openvdb;
+  for (int col = 0; col < 4; col++) {
+    for (int row = 0; row < 4; row++) {
+      mat_openvdb(col, row) = mat[col][row];
+    }
+  }
+  openvdb::GridBase::Ptr grid = volume_grid->grid();
+  grid->setTransform(std::make_shared<openvdb::math::Transform>(
+      std::make_shared<openvdb::math::AffineMap>(mat_openvdb)));
+#else
+  UNUSED_VARS(volume_grid, mat);
 #endif
 }
 
@@ -1544,6 +1581,17 @@ void BKE_volume_grid_remove(Volume *volume, VolumeGrid *grid)
   }
 #else
   UNUSED_VARS(volume, grid);
+#endif
+}
+
+bool BKE_volume_grid_determinant_valid(const double determinant)
+{
+#ifdef WITH_OPENVDB
+  /* Limit taken from openvdb/math/Maps.h. */
+  return std::abs(determinant) >= 3.0 * openvdb::math::Tolerance<double>::value();
+#else
+  UNUSED_VARS(determinant);
+  return true;
 #endif
 }
 

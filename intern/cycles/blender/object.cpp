@@ -66,12 +66,6 @@ bool BlenderSync::object_is_geometry(BObjectInfo &b_ob_info)
     return true;
   }
 
-  /* Other object types that are not meshes but evaluate to meshes are presented to render engines
-   * as separate instance objects. Metaballs have not been affected by that change yet. */
-  if (type == BL::Object::type_META) {
-    return true;
-  }
-
   return b_ob_data.is_a(&RNA_Mesh);
 }
 

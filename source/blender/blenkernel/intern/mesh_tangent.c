@@ -452,7 +452,8 @@ void BKE_mesh_add_loop_tangent_named_layer_for_uv(CustomData *uv_data,
 {
   if (CustomData_get_named_layer_index(tan_data, CD_TANGENT, layer_name) == -1 &&
       CustomData_get_named_layer_index(uv_data, CD_MLOOPUV, layer_name) != -1) {
-    CustomData_add_layer_named(tan_data, CD_TANGENT, CD_CALLOC, NULL, numLoopData, layer_name);
+    CustomData_add_layer_named(
+        tan_data, CD_TANGENT, CD_SET_DEFAULT, NULL, numLoopData, layer_name);
   }
 }
 
@@ -581,7 +582,7 @@ void BKE_mesh_calc_loop_tangent_ex(const MVert *mvert,
     if ((tangent_mask & DM_TANGENT_MASK_ORCO) &&
         CustomData_get_named_layer_index(loopdata, CD_TANGENT, "") == -1) {
       CustomData_add_layer_named(
-          loopdata_out, CD_TANGENT, CD_CALLOC, NULL, (int)loopdata_out_len, "");
+          loopdata_out, CD_TANGENT, CD_SET_DEFAULT, NULL, (int)loopdata_out_len, "");
     }
     if (calc_act && act_uv_name[0]) {
       BKE_mesh_add_loop_tangent_named_layer_for_uv(

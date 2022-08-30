@@ -392,7 +392,7 @@ ccl_device_forceinline bool mnee_compute_constraint_derivatives(
 /* Invert (block) constraint derivative matrix and solve linear system so we can map dh back to dx:
  *  dh / dx = A
  *  dx = inverse(A) x dh
- *  to use for specular specular manifold walk
+ *  to use for specular manifold walk
  * (See for example http://faculty.washington.edu/finlayso/ebook/algebraic/advanced/LUtri.htm
  *  for block tridiagonal matrix based linear system solve) */
 ccl_device_forceinline bool mnee_solve_matrix_h_to_x(int vertex_count,

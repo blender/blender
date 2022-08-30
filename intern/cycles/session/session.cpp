@@ -370,6 +370,14 @@ RenderWork Session::run_update_for_next_iteration()
     if (update_scene(width, height)) {
       profiler.reset(scene->shaders.size(), scene->objects.size());
     }
+
+    /* Unlock scene mutex before loading denoiser kernels, since that may attempt to activate
+     * graphics interop, which can deadlock when the scene mutex is still being held. */
+    scene_lock.unlock();
+
+    path_trace_->load_kernels();
+    path_trace_->alloc_work_memory();
+
     progress.add_skip_time(update_timer, params.background);
   }
 
@@ -621,12 +629,7 @@ bool Session::update_scene(int width, int height)
   Camera *cam = scene->camera;
   cam->set_screen_size(width, height);
 
-  const bool scene_update_result = scene->update(progress);
-
-  path_trace_->load_kernels();
-  path_trace_->alloc_work_memory();
-
-  return scene_update_result;
+  return scene->update(progress);
 }
 
 static string status_append(const string &status, const string &suffix)

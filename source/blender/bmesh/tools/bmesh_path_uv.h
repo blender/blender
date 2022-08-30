@@ -9,7 +9,7 @@
 struct BMCalcPathUVParams {
   uint use_topology_distance : 1;
   uint use_step_face : 1;
-  uint cd_loop_uv_offset;
+  int cd_loop_uv_offset;
   float aspect_y;
 };
 

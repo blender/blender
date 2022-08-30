@@ -220,7 +220,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   settings.use_threading = (polys_num > 1000);
   BLI_task_parallel_range(0, polys_num, &data, uv_warp_compute, &settings);
 
-  mesh->runtime.is_original = false;
+  mesh->runtime.is_original_bmesh = false;
 
   return mesh;
 }

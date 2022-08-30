@@ -77,7 +77,7 @@ Mesh *STLMeshHelper::to_mesh(Main *bmain, char *mesh_name)
 
   mesh->totvert = verts_.size();
   mesh->mvert = static_cast<MVert *>(
-      CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_CALLOC, nullptr, mesh->totvert));
+      CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, mesh->totvert));
   for (int i = 0; i < mesh->totvert; i++) {
     copy_v3_v3(mesh->mvert[i].co, verts_[i]);
   }
@@ -85,9 +85,9 @@ Mesh *STLMeshHelper::to_mesh(Main *bmain, char *mesh_name)
   mesh->totpoly = tris_.size();
   mesh->totloop = tris_.size() * 3;
   mesh->mpoly = static_cast<MPoly *>(
-      CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CALLOC, nullptr, mesh->totpoly));
+      CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, mesh->totpoly));
   mesh->mloop = static_cast<MLoop *>(
-      CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CALLOC, nullptr, mesh->totloop));
+      CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, mesh->totloop));
 
   threading::parallel_for(tris_.index_range(), 2048, [&](IndexRange tris_range) {
     for (const int i : tris_range) {

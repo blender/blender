@@ -845,8 +845,8 @@ static bool unit_distribute_negatives(char *str, const int len_max)
   bool changed = false;
 
   char *remaining_str = str;
-  int remaining_str_len = len_max;
   while ((remaining_str = find_next_negative(str, remaining_str)) != NULL) {
+    int remaining_str_len;
     /* Exit early in the unlikely situation that we've run out of length to add the parentheses. */
     remaining_str_len = len_max - (int)(remaining_str - str);
     if (remaining_str_len <= 2) {
@@ -1025,6 +1025,16 @@ static bool unit_find(const char *str, const bUnitDef *unit)
   return false;
 }
 
+static const bUnitDef *unit_find_in_collection(const bUnitCollection *usys, const char *str)
+{
+  for (const bUnitDef *unit = usys->units; unit->name; unit++) {
+    if (unit_find(str, unit)) {
+      return unit;
+    }
+  }
+  return NULL;
+}
+
 /**
  * Try to find a default unit from current or previous string.
  * This allows us to handle cases like 2 + 2mm, people would expect to get 4mm, not 2.002m!
@@ -1035,25 +1045,15 @@ static const bUnitDef *unit_detect_from_str(const bUnitCollection *usys,
                                             const char *str,
                                             const char *str_prev)
 {
-  const bUnitDef *unit = NULL;
-
   /* See which units the new value has. */
-  for (unit = usys->units; unit->name; unit++) {
-    if (unit_find(str, unit)) {
-      break;
-    }
-  }
+  const bUnitDef *unit = unit_find_in_collection(usys, str);
   /* Else, try to infer the default unit from the previous string. */
-  if (str_prev && (unit == NULL || unit->name == NULL)) {
+  if (str_prev && (unit == NULL)) {
     /* See which units the original value had. */
-    for (unit = usys->units; unit->name; unit++) {
-      if (unit_find(str_prev, unit)) {
-        break;
-      }
-    }
+    unit = unit_find_in_collection(usys, str_prev);
   }
   /* Else, fall back to default unit. */
-  if (unit == NULL || unit->name == NULL) {
+  if (unit == NULL) {
     unit = unit_default(usys);
   }
 
@@ -1067,11 +1067,8 @@ bool BKE_unit_string_contains_unit(const char *str, int type)
     if (!is_valid_unit_collection(usys)) {
       continue;
     }
-
-    for (int i = 0; i < usys->length; i++) {
-      if (unit_find(str, usys->units + i)) {
-        return true;
-      }
+    if (unit_find_in_collection(usys, str)) {
+      return true;
     }
   }
   return false;
@@ -1155,13 +1152,12 @@ bool BKE_unit_replace_string(
    */
   {
     char *str_found = str;
-    const char *ch = str;
 
     while ((str_found = strchr(str_found, SEP_CHR))) {
       bool op_found = false;
 
       /* Any operators after this? */
-      for (ch = str_found + 1; *ch != '\0'; ch++) {
+      for (const char *ch = str_found + 1; *ch != '\0'; ch++) {
         if (ELEM(*ch, ' ', '\t')) {
           continue;
         }

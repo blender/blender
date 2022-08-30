@@ -203,7 +203,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
   else {
     /* Add a valid data layer! */
-    dvert = CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, verts_num);
+    dvert = CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, NULL, verts_num);
   }
   /* Ultimate security check. */
   if (!dvert) {
@@ -287,7 +287,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   MEM_freeN(new_w);
   MEM_freeN(dw);
 
-  mesh->runtime.is_original = false;
+  mesh->runtime.is_original_bmesh = false;
 
   /* Return the vgroup-modified mesh. */
   return mesh;

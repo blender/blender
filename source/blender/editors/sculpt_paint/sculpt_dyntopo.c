@@ -218,7 +218,7 @@ static void SCULPT_dynamic_topology_disable_ex(
 
     /* Reset Face Sets as they are no longer valid. */
     if (!CustomData_has_layer(&me->pdata, CD_SCULPT_FACE_SETS)) {
-      CustomData_add_layer(&me->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, NULL, me->totpoly);
+      CustomData_add_layer(&me->pdata, CD_SCULPT_FACE_SETS, CD_SET_DEFAULT, NULL, me->totpoly);
     }
     ss->face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
     for (int i = 0; i < me->totpoly; i++) {
@@ -274,7 +274,7 @@ void sculpt_dynamic_topology_disable_with_undo(Main *bmain,
     /* May be false in background mode. */
     const bool use_undo = G.background ? (ED_undo_stack_get() != NULL) : true;
     if (use_undo) {
-      SCULPT_undo_push_begin(ob, "Dynamic topology disable");
+      SCULPT_undo_push_begin_ex(ob, "Dynamic topology disable");
       SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_END);
     }
     SCULPT_dynamic_topology_disable_ex(bmain, depsgraph, scene, ob, NULL);
@@ -294,7 +294,7 @@ static void sculpt_dynamic_topology_enable_with_undo(Main *bmain,
     /* May be false in background mode. */
     const bool use_undo = G.background ? (ED_undo_stack_get() != NULL) : true;
     if (use_undo) {
-      SCULPT_undo_push_begin(ob, "Dynamic topology enable");
+      SCULPT_undo_push_begin_ex(ob, "Dynamic topology enable");
     }
     SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, scene, ob);
     if (use_undo) {

@@ -70,6 +70,14 @@ class IndexBuf {
      * They can lead to graphical glitches on some systems. (See T96892) */
     return is_empty_ ? 0 : index_len_;
   }
+  uint32_t index_start_get() const
+  {
+    return index_start_;
+  }
+  uint32_t index_base_get() const
+  {
+    return index_base_;
+  }
   /* Return size in byte of the drawable data buffer range. Actual buffer size might be bigger. */
   size_t size_get() const
   {

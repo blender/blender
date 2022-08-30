@@ -298,7 +298,7 @@ static void image_listener(const wmSpaceTypeListenerParams *params)
 {
   wmWindow *win = params->window;
   ScrArea *area = params->area;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
   SpaceImage *sima = (SpaceImage *)area->spacedata.first;
 
   /* context changes */
@@ -713,7 +713,7 @@ static void image_main_region_listener(const wmRegionListenerParams *params)
 {
   ScrArea *area = params->area;
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -827,7 +827,7 @@ static void image_buttons_region_draw(const bContext *C, ARegion *region)
 static void image_buttons_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -889,7 +889,7 @@ static void image_tools_region_draw(const bContext *C, ARegion *region)
 static void image_tools_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -945,7 +945,7 @@ static void image_header_region_draw(const bContext *C, ARegion *region)
 static void image_header_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {

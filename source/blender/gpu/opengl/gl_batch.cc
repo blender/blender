@@ -327,12 +327,13 @@ void GLBatch::draw(int v_first, int v_count, int i_first, int i_count)
   }
 }
 
-void GLBatch::draw_indirect(GPUStorageBuf *indirect_buf)
+void GLBatch::draw_indirect(GPUStorageBuf *indirect_buf, intptr_t offset)
 {
   GL_CHECK_RESOURCES("Batch");
 
   this->bind(0);
 
+  /* TODO(fclem): Make the barrier and binding optional if consecutive draws are issued. */
   dynamic_cast<GLStorageBuf *>(unwrap(indirect_buf))->bind_as(GL_DRAW_INDIRECT_BUFFER);
   /* This barrier needs to be here as it only work on the currently bound indirect buffer. */
   glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
@@ -341,10 +342,37 @@ void GLBatch::draw_indirect(GPUStorageBuf *indirect_buf)
   if (elem) {
     const GLIndexBuf *el = this->elem_();
     GLenum index_type = to_gl(el->index_type_);
-    glDrawElementsIndirect(gl_type, index_type, (GLvoid *)nullptr);
+    glDrawElementsIndirect(gl_type, index_type, (GLvoid *)offset);
   }
   else {
-    glDrawArraysIndirect(gl_type, (GLvoid *)nullptr);
+    glDrawArraysIndirect(gl_type, (GLvoid *)offset);
+  }
+  /* Unbind. */
+  glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+}
+
+void GLBatch::multi_draw_indirect(GPUStorageBuf *indirect_buf,
+                                  int count,
+                                  intptr_t offset,
+                                  intptr_t stride)
+{
+  GL_CHECK_RESOURCES("Batch");
+
+  this->bind(0);
+
+  /* TODO(fclem): Make the barrier and binding optional if consecutive draws are issued. */
+  dynamic_cast<GLStorageBuf *>(unwrap(indirect_buf))->bind_as(GL_DRAW_INDIRECT_BUFFER);
+  /* This barrier needs to be here as it only work on the currently bound indirect buffer. */
+  glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
+
+  GLenum gl_type = to_gl(prim_type);
+  if (elem) {
+    const GLIndexBuf *el = this->elem_();
+    GLenum index_type = to_gl(el->index_type_);
+    glMultiDrawElementsIndirect(gl_type, index_type, (GLvoid *)offset, count, stride);
+  }
+  else {
+    glMultiDrawArraysIndirect(gl_type, (GLvoid *)offset, count, stride);
   }
   /* Unbind. */
   glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);

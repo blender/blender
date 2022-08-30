@@ -27,45 +27,37 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 enum VertexNumber { VERTEX_ONE, VERTEX_TWO };
 
-static VArray<int> construct_edge_vertices_gvarray(const MeshComponent &component,
+static VArray<int> construct_edge_vertices_gvarray(const Mesh &mesh,
                                                    const VertexNumber vertex,
                                                    const eAttrDomain domain)
 {
-  const Mesh *mesh = component.get_for_read();
-  if (mesh == nullptr) {
-    return {};
-  }
+  const Span<MEdge> edges(mesh.medge, mesh.totedge);
   if (domain == ATTR_DOMAIN_EDGE) {
     if (vertex == VERTEX_ONE) {
-      return VArray<int>::ForFunc(mesh->totedge,
-                                  [mesh](const int i) -> int { return mesh->medge[i].v1; });
+      return VArray<int>::ForFunc(edges.size(),
+                                  [edges](const int i) -> int { return edges[i].v1; });
     }
-    return VArray<int>::ForFunc(mesh->totedge,
-                                [mesh](const int i) -> int { return mesh->medge[i].v2; });
+    return VArray<int>::ForFunc(edges.size(), [edges](const int i) -> int { return edges[i].v2; });
   }
   return {};
 }
 
-class EdgeVerticesFieldInput final : public GeometryFieldInput {
+class EdgeVerticesFieldInput final : public bke::MeshFieldInput {
  private:
   VertexNumber vertex_;
 
  public:
   EdgeVerticesFieldInput(VertexNumber vertex)
-      : GeometryFieldInput(CPPType::get<int>(), "Edge Vertices Field"), vertex_(vertex)
+      : bke::MeshFieldInput(CPPType::get<int>(), "Edge Vertices Field"), vertex_(vertex)
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
+  GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
-    if (component.type() == GEO_COMPONENT_TYPE_MESH) {
-      const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-      return construct_edge_vertices_gvarray(mesh_component, vertex_, domain);
-    }
-    return {};
+    return construct_edge_vertices_gvarray(mesh, vertex_, domain);
   }
 
   uint64_t hash() const override
@@ -83,51 +75,43 @@ class EdgeVerticesFieldInput final : public GeometryFieldInput {
   }
 };
 
-static VArray<float3> construct_edge_positions_gvarray(const MeshComponent &component,
+static VArray<float3> construct_edge_positions_gvarray(const Mesh &mesh,
                                                        const VertexNumber vertex,
                                                        const eAttrDomain domain)
 {
-  const Mesh *mesh = component.get_for_read();
-  if (mesh == nullptr) {
-    return {};
-  }
+  const Span<MVert> vertices(mesh.mvert, mesh.totvert);
+  const Span<MEdge> edges(mesh.medge, mesh.totedge);
 
   if (vertex == VERTEX_ONE) {
-    return component.attributes()->adapt_domain<float3>(
+    return bke::mesh_attributes(mesh).adapt_domain<float3>(
         VArray<float3>::ForFunc(
-            mesh->totedge,
-            [mesh](const int i) { return float3(mesh->mvert[mesh->medge[i].v1].co); }),
+            edges.size(), [vertices, edges](const int i) { return vertices[edges[i].v1].co; }),
         ATTR_DOMAIN_EDGE,
         domain);
   }
-  return component.attributes()->adapt_domain<float3>(
-      VArray<float3>::ForFunc(
-          mesh->totedge,
-          [mesh](const int i) { return float3(mesh->mvert[mesh->medge[i].v2].co); }),
+  return bke::mesh_attributes(mesh).adapt_domain<float3>(
+      VArray<float3>::ForFunc(edges.size(),
+                              [vertices, edges](const int i) { return vertices[edges[i].v2].co; }),
       ATTR_DOMAIN_EDGE,
       domain);
 }
 
-class EdgePositionFieldInput final : public GeometryFieldInput {
+class EdgePositionFieldInput final : public bke::MeshFieldInput {
  private:
   VertexNumber vertex_;
 
  public:
   EdgePositionFieldInput(VertexNumber vertex)
-      : GeometryFieldInput(CPPType::get<float3>(), "Edge Position Field"), vertex_(vertex)
+      : bke::MeshFieldInput(CPPType::get<float3>(), "Edge Position Field"), vertex_(vertex)
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
+  GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
-    if (component.type() == GEO_COMPONENT_TYPE_MESH) {
-      const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-      return construct_edge_positions_gvarray(mesh_component, vertex_, domain);
-    }
-    return {};
+    return construct_edge_positions_gvarray(mesh, vertex_, domain);
   }
 
   uint64_t hash() const override

@@ -1002,7 +1002,7 @@ static Vector<OutputAttributeToStore> compute_attributes_to_store(
         continue;
       }
       const int domain_size = attributes.domain_size(domain);
-      blender::bke::GeometryComponentFieldContext field_context{component, domain};
+      blender::bke::GeometryFieldContext field_context{component, domain};
       blender::fn::FieldEvaluator field_evaluator{field_context, domain_size};
       for (const OutputAttributeInfo &output_info : outputs_info) {
         const CPPType &type = output_info.field.cpp_type();
@@ -1044,7 +1044,7 @@ static void store_computed_output_attributes(
     if (attributes.add(store.name,
                        store.domain,
                        blender::bke::cpp_type_to_custom_data_type(store.data.type()),
-                       blender::bke::AttributeInitMove(store.data.data()))) {
+                       blender::bke::AttributeInitMoveArray(store.data.data()))) {
       continue;
     }
 
@@ -1277,13 +1277,13 @@ static void modifyGeometry(ModifierData *md,
      * assumed that the output mesh does not have a mapping to the original mesh. */
     Mesh &mesh = *geometry_set.get_mesh_for_write();
     if (use_orig_index_verts) {
-      CustomData_add_layer(&mesh.vdata, CD_ORIGINDEX, CD_DEFAULT, nullptr, mesh.totvert);
+      CustomData_add_layer(&mesh.vdata, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, mesh.totvert);
     }
     if (use_orig_index_edges) {
-      CustomData_add_layer(&mesh.edata, CD_ORIGINDEX, CD_DEFAULT, nullptr, mesh.totedge);
+      CustomData_add_layer(&mesh.edata, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, mesh.totedge);
     }
     if (use_orig_index_polys) {
-      CustomData_add_layer(&mesh.pdata, CD_ORIGINDEX, CD_DEFAULT, nullptr, mesh.totpoly);
+      CustomData_add_layer(&mesh.pdata, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, mesh.totpoly);
     }
   }
 }

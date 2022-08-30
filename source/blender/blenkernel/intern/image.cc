@@ -926,7 +926,7 @@ int BKE_image_find_nearest_tile_with_offset(const Image *image,
   zero_v2(r_uv_offset);
   int tile_number_best = -1;
 
-  if (image->source != IMA_SRC_TILED) {
+  if (!image || image->source != IMA_SRC_TILED) {
     return tile_number_best;
   }
 
@@ -1248,7 +1248,7 @@ Image *BKE_image_add_generated(Main *bmain,
 
 static void image_colorspace_from_imbuf(Image *image, const ImBuf *ibuf)
 {
-  const char *colorspace_name = NULL;
+  const char *colorspace_name = nullptr;
 
   if (ibuf->rect_float) {
     if (ibuf->float_colorspace) {
@@ -5519,7 +5519,7 @@ RenderSlot *BKE_image_add_renderslot(Image *ima, const char *name)
   }
   else {
     int n = BLI_listbase_count(&ima->renderslots) + 1;
-    BLI_snprintf(slot->name, sizeof(slot->name), "Slot %d", n);
+    BLI_snprintf(slot->name, sizeof(slot->name), DATA_("Slot %d"), n);
   }
   BLI_addtail(&ima->renderslots, slot);
   return slot;

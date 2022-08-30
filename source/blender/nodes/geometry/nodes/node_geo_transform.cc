@@ -83,44 +83,61 @@ static void transform_instances(InstancesComponent &instances, const float4x4 &t
   }
 }
 
-static void transform_volume(Volume &volume, const float4x4 &transform, const Depsgraph &depsgraph)
+static void transform_volume(GeoNodeExecParams &params,
+                             Volume &volume,
+                             const float4x4 &transform,
+                             const Depsgraph &depsgraph)
 {
 #ifdef WITH_OPENVDB
-  /* Scaling an axis to zero is not supported for volumes. */
-  const float3 translation = transform.translation();
-  const float3 rotation = transform.to_euler();
-  const float3 scale = transform.scale();
-  const float3 limited_scale = {
-      (scale.x == 0.0f) ? FLT_EPSILON : scale.x,
-      (scale.y == 0.0f) ? FLT_EPSILON : scale.y,
-      (scale.z == 0.0f) ? FLT_EPSILON : scale.z,
-  };
-  const float4x4 scale_limited_transform = float4x4::from_loc_eul_scale(
-      translation, rotation, limited_scale);
-
   const Main *bmain = DEG_get_bmain(&depsgraph);
   BKE_volume_load(&volume, bmain);
 
   openvdb::Mat4s vdb_matrix;
-  memcpy(vdb_matrix.asPointer(), &scale_limited_transform, sizeof(float[4][4]));
+  memcpy(vdb_matrix.asPointer(), &transform, sizeof(float[4][4]));
   openvdb::Mat4d vdb_matrix_d{vdb_matrix};
 
+  bool found_too_small_scale = false;
   const int grids_num = BKE_volume_num_grids(&volume);
   for (const int i : IndexRange(grids_num)) {
     VolumeGrid *volume_grid = BKE_volume_grid_get_for_write(&volume, i);
-
-    openvdb::GridBase::Ptr grid = BKE_volume_grid_openvdb_for_write(&volume, volume_grid, false);
-    openvdb::math::Transform &grid_transform = grid->transform();
-    grid_transform.postMult(vdb_matrix_d);
+    float4x4 grid_matrix;
+    BKE_volume_grid_transform_matrix(volume_grid, grid_matrix.values);
+    mul_m4_m4_pre(grid_matrix.values, transform.values);
+    const float determinant = determinant_m4(grid_matrix.values);
+    if (!BKE_volume_grid_determinant_valid(determinant)) {
+      found_too_small_scale = true;
+      /* Clear the tree because it is too small. */
+      BKE_volume_grid_clear_tree(volume, *volume_grid);
+      if (determinant == 0) {
+        /* Reset rotation and scale. */
+        copy_v3_fl3(grid_matrix.values[0], 1, 0, 0);
+        copy_v3_fl3(grid_matrix.values[1], 0, 1, 0);
+        copy_v3_fl3(grid_matrix.values[2], 0, 0, 1);
+      }
+      else {
+        /* Keep rotation but reset scale. */
+        normalize_v3(grid_matrix.values[0]);
+        normalize_v3(grid_matrix.values[1]);
+        normalize_v3(grid_matrix.values[2]);
+      }
+    }
+    BKE_volume_grid_transform_matrix_set(volume_grid, grid_matrix.values);
+  }
+  if (found_too_small_scale) {
+    params.error_message_add(NodeWarningType::Warning,
+                             TIP_("Volume scale is lower than permitted by OpenVDB"));
   }
 #else
-  UNUSED_VARS(volume, transform, depsgraph);
+  UNUSED_VARS(params, volume, transform, depsgraph);
 #endif
 }
 
-static void translate_volume(Volume &volume, const float3 translation, const Depsgraph &depsgraph)
+static void translate_volume(GeoNodeExecParams &params,
+                             Volume &volume,
+                             const float3 translation,
+                             const Depsgraph &depsgraph)
 {
-  transform_volume(volume, float4x4::from_location(translation), depsgraph);
+  transform_volume(params, volume, float4x4::from_location(translation), depsgraph);
 }
 
 static void transform_curve_edit_hints(bke::CurvesEditHints &edit_hints, const float4x4 &transform)
@@ -151,7 +168,8 @@ static void translate_curve_edit_hints(bke::CurvesEditHints &edit_hints, const f
   }
 }
 
-static void translate_geometry_set(GeometrySet &geometry,
+static void translate_geometry_set(GeoNodeExecParams &params,
+                                   GeometrySet &geometry,
                                    const float3 translation,
                                    const Depsgraph &depsgraph)
 {
@@ -165,7 +183,7 @@ static void translate_geometry_set(GeometrySet &geometry,
     translate_pointcloud(*pointcloud, translation);
   }
   if (Volume *volume = geometry.get_volume_for_write()) {
-    translate_volume(*volume, translation, depsgraph);
+    translate_volume(params, *volume, translation, depsgraph);
   }
   if (geometry.has_instances()) {
     translate_instances(geometry.get_component_for_write<InstancesComponent>(), translation);
@@ -175,7 +193,8 @@ static void translate_geometry_set(GeometrySet &geometry,
   }
 }
 
-void transform_geometry_set(GeometrySet &geometry,
+void transform_geometry_set(GeoNodeExecParams &params,
+                            GeometrySet &geometry,
                             const float4x4 &transform,
                             const Depsgraph &depsgraph)
 {
@@ -189,7 +208,7 @@ void transform_geometry_set(GeometrySet &geometry,
     transform_pointcloud(*pointcloud, transform);
   }
   if (Volume *volume = geometry.get_volume_for_write()) {
-    transform_volume(*volume, transform, depsgraph);
+    transform_volume(params, *volume, transform, depsgraph);
   }
   if (geometry.has_instances()) {
     transform_instances(geometry.get_component_for_write<InstancesComponent>(), transform);
@@ -230,10 +249,11 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   /* Use only translation if rotation and scale don't apply. */
   if (use_translate(rotation, scale)) {
-    translate_geometry_set(geometry_set, translation, *params.depsgraph());
+    translate_geometry_set(params, geometry_set, translation, *params.depsgraph());
   }
   else {
-    transform_geometry_set(geometry_set,
+    transform_geometry_set(params,
+                           geometry_set,
                            float4x4::from_loc_eul_scale(translation, rotation, scale),
                            *params.depsgraph());
   }

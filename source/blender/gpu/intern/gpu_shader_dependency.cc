@@ -108,7 +108,7 @@ struct GPUSource {
         string_preprocess();
       }
       if ((source.find("drw_debug_") != StringRef::not_found) &&
-          /* Avoid theses two files where it makes no sense to add the dependency. */
+          /* Avoid these two files where it makes no sense to add the dependency. */
           (filename != "common_debug_draw_lib.glsl" &&
            filename != "draw_debug_draw_display_vert.glsl")) {
         builtins |= shader::BuiltinBits::USE_DEBUG_DRAW;

@@ -105,12 +105,18 @@ void film_sample_accum(FilmSample samp, int pass_id, sampler2D tex, inout float 
   accum += texelFetch(tex, samp.texel, 0).x * samp.weight;
 }
 
-void film_sample_accum(FilmSample samp, int pass_id, sampler2DArray tex, inout vec4 accum)
+void film_sample_accum(
+    FilmSample samp, int pass_id, uint layer, sampler2DArray tex, inout vec4 accum)
 {
   if (pass_id == -1) {
     return;
   }
-  accum += texelFetch(tex, ivec3(samp.texel, pass_id), 0) * samp.weight;
+  accum += texelFetch(tex, ivec3(samp.texel, layer), 0) * samp.weight;
+}
+
+void film_sample_accum(FilmSample samp, int pass_id, sampler2DArray tex, inout vec4 accum)
+{
+  film_sample_accum(samp, pass_id, pass_id, tex, accum);
 }
 
 void film_sample_accum(FilmSample samp, int pass_id, sampler2DArray tex, inout float accum)
@@ -632,8 +638,16 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
 
     for (int i = 0; i < film_buf.samples_len; i++) {
       FilmSample src = film_sample_get(i, texel_film);
-      film_sample_accum(src, film_buf.diffuse_light_id, diffuse_light_tx, diffuse_light_accum);
-      film_sample_accum(src, film_buf.specular_light_id, specular_light_tx, specular_light_accum);
+      film_sample_accum(src,
+                        film_buf.diffuse_light_id,
+                        RENDER_PASS_LAYER_DIFFUSE_LIGHT,
+                        light_tx,
+                        diffuse_light_accum);
+      film_sample_accum(src,
+                        film_buf.specular_light_id,
+                        RENDER_PASS_LAYER_SPECULAR_LIGHT,
+                        light_tx,
+                        specular_light_accum);
       film_sample_accum(src, film_buf.volume_light_id, volume_light_tx, volume_light_accum);
       film_sample_accum(src, film_buf.emission_id, emission_tx, emission_accum);
     }

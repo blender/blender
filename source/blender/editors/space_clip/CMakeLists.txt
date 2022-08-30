@@ -13,7 +13,6 @@ set(INC
   ../../makesdna
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
 
   # dna_type_offsets.h

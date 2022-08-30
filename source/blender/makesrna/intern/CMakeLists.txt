@@ -6,6 +6,11 @@ if(CMAKE_COMPILER_IS_GNUCC)
   string(APPEND CMAKE_C_FLAGS " -Werror=implicit-function-declaration")
 endif()
 
+# Needed for `mallocn.c`.
+if(HAVE_MALLOC_STATS_H)
+  add_definitions(-DHAVE_MALLOC_STATS_H)
+endif()
+
 # files rna_access.c rna_define.c makesrna.c intentionally excluded.
 set(DEFSRC
   rna_ID.c
@@ -387,7 +392,6 @@ blender_include_dirs(
   ../../render
   ../../../../intern/cycles/blender
   ../../../../intern/atomic
-  ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
   ../../../../intern/memutil
   ../../../../intern/mantaflow/extern
@@ -449,8 +453,6 @@ set(LIB
   bf_editor_transform
   bf_editor_undo
 )
-
-add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_rna "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 

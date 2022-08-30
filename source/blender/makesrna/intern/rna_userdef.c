@@ -1898,6 +1898,7 @@ static void rna_def_userdef_theme_spaces_edge(StructRNA *srna)
   prop = RNA_def_property(srna, "edge_crease", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);
   RNA_def_property_ui_text(prop, "Edge Crease", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_WINDOWMANAGER);
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "edge_bevel", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -5565,8 +5566,8 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "VBO Time Out",
-      "Time since last access of a GL Vertex buffer object in seconds after which it is freed "
-      "(set to 0 to keep vbo allocated)");
+      "Time since last access of a GL vertex buffer object in seconds after which it is freed "
+      "(set to 0 to keep VBO allocated)");
 
   prop = RNA_def_property(srna, "vbo_collection_rate", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "vbocollectrate");
@@ -5574,7 +5575,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "VBO Collection Rate",
-      "Number of seconds between each run of the GL Vertex buffer object garbage collector");
+      "Number of seconds between each run of the GL vertex buffer object garbage collector");
 
   /* Select */
 
@@ -6300,15 +6301,6 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
       "Override Auto Resync",
       "Enable library overrides automatic resync detection and process on file load. Disable when "
       "dealing with older .blend files that need manual Resync (Enforce) handling");
-
-  prop = RNA_def_property(srna, "use_override_new_fully_editable", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_override_new_fully_editable", 1);
-  RNA_def_property_ui_text(
-      prop,
-      "Override New Fully Editable",
-      "Make all override of a hierarchy fully user-editable by default when creating a new "
-      "override (if that option is disabled, most overrides created as part of a hierarchy will "
-      "not be editable by the user by default)");
 
   prop = RNA_def_property(srna, "use_new_point_cloud_type", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_new_point_cloud_type", 1);

@@ -30,8 +30,8 @@ void MTLQueryPool::allocate_buffer()
 {
   /* Allocate Metal buffer for visibility results. */
   size_t buffer_size_in_bytes = VISIBILITY_COUNT_PER_BUFFER * VISIBILITY_RESULT_SIZE_IN_BYTES;
-  gpu::MTLBuffer *buffer = MTLContext::get_global_memory_manager().allocate_buffer(
-      buffer_size_in_bytes, true);
+  gpu::MTLBuffer *buffer = MTLContext::get_global_memory_manager().allocate(buffer_size_in_bytes,
+                                                                            true);
   BLI_assert(buffer);
   buffer_.append(buffer);
 }

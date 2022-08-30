@@ -275,11 +275,15 @@ Mesh *BKE_mesh_remesh_voxel(const Mesh *mesh,
 #endif
 }
 
-void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, Mesh *source)
+void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, const Mesh *source)
 {
   BVHTreeFromMesh bvhtree = {nullptr};
   BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_VERTS, 2);
-  MVert *target_verts = (MVert *)CustomData_get_layer(&target->vdata, CD_MVERT);
+  const MVert *target_verts = (const MVert *)CustomData_get_layer(&target->vdata, CD_MVERT);
+  const float *source_mask = (const float *)CustomData_get_layer(&source->vdata, CD_PAINT_MASK);
+  if (source_mask == nullptr) {
+    return;
+  }
 
   float *target_mask;
   if (CustomData_has_layer(&target->vdata, CD_PAINT_MASK)) {
@@ -287,16 +291,7 @@ void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, Mesh *source)
   }
   else {
     target_mask = (float *)CustomData_add_layer(
-        &target->vdata, CD_PAINT_MASK, CD_CALLOC, nullptr, target->totvert);
-  }
-
-  const float *source_mask;
-  if (CustomData_has_layer(&source->vdata, CD_PAINT_MASK)) {
-    source_mask = (float *)CustomData_get_layer(&source->vdata, CD_PAINT_MASK);
-  }
-  else {
-    source_mask = (float *)CustomData_add_layer(
-        &source->vdata, CD_PAINT_MASK, CD_CALLOC, nullptr, source->totvert);
+        &target->vdata, CD_PAINT_MASK, CD_SET_DEFAULT, nullptr, target->totvert);
   }
 
   for (int i = 0; i < target->totvert; i++) {
@@ -313,13 +308,16 @@ void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, Mesh *source)
   free_bvhtree_from_mesh(&bvhtree);
 }
 
-void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, Mesh *source)
+void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source)
 {
-  BVHTreeFromMesh bvhtree = {nullptr};
-
   const MPoly *target_polys = (const MPoly *)CustomData_get_layer(&target->pdata, CD_MPOLY);
   const MVert *target_verts = (const MVert *)CustomData_get_layer(&target->vdata, CD_MVERT);
   const MLoop *target_loops = (const MLoop *)CustomData_get_layer(&target->ldata, CD_MLOOP);
+  const int *source_face_sets = (const int *)CustomData_get_layer(&source->pdata,
+                                                                  CD_SCULPT_FACE_SETS);
+  if (source_face_sets == nullptr) {
+    return;
+  }
 
   int *target_face_sets;
   if (CustomData_has_layer(&target->pdata, CD_SCULPT_FACE_SETS)) {
@@ -327,19 +325,11 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, Mesh *source)
   }
   else {
     target_face_sets = (int *)CustomData_add_layer(
-        &target->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, nullptr, target->totpoly);
-  }
-
-  const int *source_face_sets;
-  if (CustomData_has_layer(&source->pdata, CD_SCULPT_FACE_SETS)) {
-    source_face_sets = (const int *)CustomData_get_layer(&source->pdata, CD_SCULPT_FACE_SETS);
-  }
-  else {
-    source_face_sets = (const int *)CustomData_add_layer(
-        &source->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, nullptr, source->totpoly);
+        &target->pdata, CD_SCULPT_FACE_SETS, CD_SET_DEFAULT, nullptr, target->totpoly);
   }
 
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(source);
+  BVHTreeFromMesh bvhtree = {nullptr};
   BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_LOOPTRI, 2);
 
   for (int i = 0; i < target->totpoly; i++) {
@@ -386,7 +376,7 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
       int elem_num = domain == ATTR_DOMAIN_POINT ? target->totvert : target->totloop;
 
       CustomData_add_layer_named(
-          target_cdata, layer->type, CD_CALLOC, nullptr, elem_num, layer->name);
+          target_cdata, layer->type, CD_SET_DEFAULT, nullptr, elem_num, layer->name);
       layer_i = CustomData_get_named_layer_index(target_cdata, layer->type, layer->name);
     }
 

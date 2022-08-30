@@ -50,7 +50,7 @@
 #include "lineart_intern.h"
 
 typedef struct LineartIsecSingle {
-  float v1[3], v2[3];
+  double v1[3], v2[3];
   LineartTriangle *tri1, *tri2;
 } LineartIsecSingle;
 
@@ -1470,7 +1470,7 @@ static LineartTriangle *lineart_triangle_from_index(LineartData *ld,
 typedef struct EdgeFeatData {
   LineartData *ld;
   Mesh *me;
-  Object *ob;
+  Object *ob_eval; /* For evaluated materials. */
   const MLoopTri *mlooptri;
   LineartTriangle *tri_array;
   LineartVert *v_array;
@@ -1503,7 +1503,7 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
   EdgeFeatData *e_feat_data = (EdgeFeatData *)userdata;
   EdgeFeatReduceData *reduce_data = (EdgeFeatReduceData *)tls->userdata_chunk;
   Mesh *me = e_feat_data->me;
-  Object *ob = e_feat_data->ob;
+  Object *ob_eval = e_feat_data->ob_eval;
   LineartEdgeNeighbor *edge_nabr = e_feat_data->edge_nabr;
   const MLoopTri *mlooptri = e_feat_data->mlooptri;
 
@@ -1653,8 +1653,8 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
     int mat2 = me->mpoly[mlooptri[f2].poly].mat_nr;
 
     if (mat1 != mat2) {
-      Material *m1 = BKE_object_material_get(ob, mat1 + 1);
-      Material *m2 = BKE_object_material_get(ob, mat2 + 1);
+      Material *m1 = BKE_object_material_get_eval(ob_eval, mat1 + 1);
+      Material *m2 = BKE_object_material_get_eval(ob_eval, mat2 + 1);
       if (m1 && m2 &&
           ((m1->lineart.mat_occlusion == 0 && m2->lineart.mat_occlusion != 0) ||
            (m2->lineart.mat_occlusion == 0 && m1->lineart.mat_occlusion != 0))) {
@@ -1799,7 +1799,7 @@ static void lineart_add_edge_to_array_thread(LineartObjectInfo *obi, LineartEdge
  * #pe.  */
 void lineart_finalize_object_edge_array_reserve(LineartPendingEdges *pe, int count)
 {
-  if (pe->max || pe->array) {
+  if (pe->max || pe->array || count == 0) {
     return;
   }
 
@@ -1869,8 +1869,8 @@ static void lineart_load_tri_task(void *__restrict userdata,
   tri->v[2] = &vert_arr[v3];
 
   /* Material mask bits and occlusion effectiveness assignment. */
-  Material *mat = BKE_object_material_get(ob_info->original_ob,
-                                          me->mpoly[mlooptri->poly].mat_nr + 1);
+  Material *mat = BKE_object_material_get_eval(ob_info->original_ob_eval,
+                                               me->mpoly[mlooptri->poly].mat_nr + 1);
   tri->material_mask_bits |= ((mat && (mat->lineart.flags & LRT_MATERIAL_MASK_ENABLED)) ?
                                   mat->lineart.material_mask_bits :
                                   0);
@@ -2120,7 +2120,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   EdgeFeatData edge_feat_data = {0};
   edge_feat_data.ld = la_data;
   edge_feat_data.me = me;
-  edge_feat_data.ob = orig_ob;
+  edge_feat_data.ob_eval = ob_info->original_ob_eval;
   edge_feat_data.mlooptri = mlooptri;
   edge_feat_data.edge_nabr = lineart_build_edge_neighbor(me, total_edges);
   edge_feat_data.tri_array = la_tri_arr;
@@ -2511,6 +2511,7 @@ static void lineart_object_load_single_instance(LineartData *ld,
 
   obi->original_me = use_mesh;
   obi->original_ob = (ref_ob->id.orig_id ? (Object *)ref_ob->id.orig_id : (Object *)ref_ob);
+  obi->original_ob_eval = DEG_get_evaluated_object(depsgraph, obi->original_ob);
   lineart_geometry_load_assign_thread(olti, obi, thread_count, use_mesh->totpoly);
 }
 
@@ -3285,8 +3286,8 @@ static void lineart_add_isec_thread(LineartIsecThread *th,
     th->array = new_array;
   }
   LineartIsecSingle *isec_single = &th->array[th->current];
-  copy_v3fl_v3db(isec_single->v1, v1);
-  copy_v3fl_v3db(isec_single->v2, v2);
+  copy_v3_v3_db(isec_single->v1, v1);
+  copy_v3_v3_db(isec_single->v2, v2);
   isec_single->tri1 = tri1;
   isec_single->tri2 = tri2;
   if (tri1->target_reference > tri2->target_reference) {
@@ -4091,7 +4092,6 @@ static bool lineart_bounding_area_triangle_intersect(LineartData *fb,
  * (#LineartBoundingArea) for intersection lines. When splitting the tile into 4 children and
  * re-linking triangles into the child tiles, intersections are inhibited so we don't get
  * duplicated intersection lines.
- *
  */
 static void lineart_bounding_area_link_triangle(LineartData *ld,
                                                 LineartBoundingArea *root_ba,
@@ -4582,8 +4582,8 @@ static void lineart_create_edges_from_isec_data(LineartIsecData *d)
       LineartIsecSingle *is = &th->array[j];
       LineartVert *v1 = v;
       LineartVert *v2 = v + 1;
-      copy_v3db_v3fl(v1->gloc, is->v1);
-      copy_v3db_v3fl(v2->gloc, is->v2);
+      copy_v3_v3_db(v1->gloc, is->v1);
+      copy_v3_v3_db(v2->gloc, is->v2);
       /* The intersection line has been generated only in geometry space, so we need to transform
        * them as well. */
       mul_v4_m4v3_db(v1->fbcoord, ld->conf.view_projection, v1->gloc);
@@ -5227,7 +5227,7 @@ static void lineart_gpencil_generate(LineartCache *cache,
     }
     if (shaodow_selection) {
       if (ec->shadow_mask_bits != LRT_SHADOW_MASK_UNDEFINED) {
-        /* TODO(Yiming): Give a behavior option for how to display undefined shadow info. */
+        /* TODO(@Yiming): Give a behavior option for how to display undefined shadow info. */
         if ((shaodow_selection == LRT_SHADOW_FILTER_ILLUMINATED &&
              (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_ILLUMINATED)))) {
           continue;

@@ -512,4 +512,4 @@ void GHOST_ImeWin32::UpdateInfo(HWND window_handle)
   }
 }
 
-#endif  // WITH_INPUT_IME
+#endif /* WITH_INPUT_IME */

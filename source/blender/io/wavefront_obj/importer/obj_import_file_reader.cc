@@ -748,7 +748,7 @@ MTLParser::MTLParser(StringRefNull mtl_library, StringRefNull obj_filepath)
 {
   char obj_file_dir[FILE_MAXDIR];
   BLI_split_dir_part(obj_filepath.data(), obj_file_dir, FILE_MAXDIR);
-  BLI_path_join(mtl_file_path_, FILE_MAX, obj_file_dir, mtl_library.data(), NULL);
+  BLI_path_join(mtl_file_path_, FILE_MAX, obj_file_dir, mtl_library.data(), nullptr);
   BLI_split_dir_part(mtl_file_path_, mtl_dir_path_, FILE_MAXDIR);
 }
 

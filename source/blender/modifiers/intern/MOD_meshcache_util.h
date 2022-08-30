@@ -8,12 +8,8 @@
 
 /* MOD_meshcache_mdd.c */
 
-bool MOD_meshcache_read_mdd_index(FILE *fp,
-                                  float (*vertexCos)[3],
-                                  int vertex_tot,
-                                  int index,
-                                  float factor,
-                                  const char **err_str);
+bool MOD_meshcache_read_mdd_index(
+    FILE *fp, float (*vertexCos)[3], int verts_tot, int index, float factor, const char **err_str);
 bool MOD_meshcache_read_mdd_frame(FILE *fp,
                                   float (*vertexCos)[3],
                                   int verts_tot,

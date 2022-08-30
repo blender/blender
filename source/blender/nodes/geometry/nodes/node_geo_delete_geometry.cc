@@ -7,6 +7,7 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_pointcloud_types.h"
 
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
@@ -316,18 +317,19 @@ static void delete_curves_selection(GeometrySet &geometry_set,
                                     const Field<bool> &selection_field,
                                     const eAttrDomain selection_domain)
 {
-  const CurveComponent &src_component = *geometry_set.get_component_for_read<CurveComponent>();
-  GeometryComponentFieldContext field_context{src_component, selection_domain};
+  const Curves &src_curves_id = *geometry_set.get_curves_for_read();
+  const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(src_curves_id.geometry);
 
-  const int domain_num = src_component.attribute_domain_size(selection_domain);
-  fn::FieldEvaluator evaluator{field_context, domain_num};
+  const int domain_size = src_curves.attributes().domain_size(selection_domain);
+  bke::CurvesFieldContext field_context{src_curves, selection_domain};
+  fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
   if (selection.is_empty()) {
     return;
   }
-  if (selection.size() == domain_num) {
+  if (selection.size() == domain_size) {
     geometry_set.remove<CurveComponent>();
     return;
   }
@@ -347,11 +349,10 @@ static void delete_curves_selection(GeometrySet &geometry_set,
 static void separate_point_cloud_selection(GeometrySet &geometry_set,
                                            const Field<bool> &selection_field)
 {
-  const PointCloudComponent &src_points =
-      *geometry_set.get_component_for_read<PointCloudComponent>();
-  GeometryComponentFieldContext field_context{src_points, ATTR_DOMAIN_POINT};
+  const PointCloud &src_pointcloud = *geometry_set.get_pointcloud_for_read();
 
-  fn::FieldEvaluator evaluator{field_context, src_points.attribute_domain_size(ATTR_DOMAIN_POINT)};
+  bke::PointCloudFieldContext field_context{src_pointcloud};
+  fn::FieldEvaluator evaluator{field_context, src_pointcloud.totpoint};
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
@@ -367,7 +368,7 @@ static void separate_point_cloud_selection(GeometrySet &geometry_set,
       {GEO_COMPONENT_TYPE_POINT_CLOUD}, GEO_COMPONENT_TYPE_POINT_CLOUD, false, attributes);
 
   copy_attributes_based_on_mask(attributes,
-                                bke::pointcloud_attributes(*src_points.get_for_read()),
+                                bke::pointcloud_attributes(src_pointcloud),
                                 bke::pointcloud_attributes_for_write(*pointcloud),
                                 ATTR_DOMAIN_POINT,
                                 selection);
@@ -378,7 +379,7 @@ static void delete_selected_instances(GeometrySet &geometry_set,
                                       const Field<bool> &selection_field)
 {
   InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
-  GeometryComponentFieldContext field_context{instances, ATTR_DOMAIN_INSTANCE};
+  bke::GeometryFieldContext field_context{instances, ATTR_DOMAIN_INSTANCE};
 
   fn::FieldEvaluator evaluator{field_context, instances.instances_num()};
   evaluator.set_selection(selection_field);
@@ -1063,11 +1064,10 @@ static void separate_mesh_selection(GeometrySet &geometry_set,
                                     const eAttrDomain selection_domain,
                                     const GeometryNodeDeleteGeometryMode mode)
 {
-  const MeshComponent &src_component = *geometry_set.get_component_for_read<MeshComponent>();
-  GeometryComponentFieldContext field_context{src_component, selection_domain};
-
+  const Mesh &src_mesh = *geometry_set.get_mesh_for_read();
+  bke::MeshFieldContext field_context{src_mesh, selection_domain};
   fn::FieldEvaluator evaluator{field_context,
-                               src_component.attribute_domain_size(selection_domain)};
+                               bke::mesh_attributes(src_mesh).domain_size(selection_domain)};
   evaluator.add(selection_field);
   evaluator.evaluate();
   const VArray<bool> selection = evaluator.get_evaluated<bool>(0);
@@ -1078,8 +1078,7 @@ static void separate_mesh_selection(GeometrySet &geometry_set,
 
   const VArraySpan<bool> selection_span{selection};
 
-  do_mesh_separation(
-      geometry_set, *src_component.get_for_read(), selection_span, selection_domain, mode);
+  do_mesh_separation(geometry_set, src_mesh, selection_span, selection_domain, mode);
 }
 
 }  // namespace blender::nodes::node_geo_delete_geometry_cc

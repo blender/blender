@@ -76,9 +76,10 @@ static void bm_face_uv_translate_and_scale_around_pivot(BMFace *f,
 
 static void bm_face_array_calc_bounds(BMFace **faces,
                                       int faces_len,
-                                      const uint cd_loop_uv_offset,
+                                      const int cd_loop_uv_offset,
                                       rctf *r_bounds_rect)
 {
+  BLI_assert(cd_loop_uv_offset >= 0);
   float bounds_min[2], bounds_max[2];
   INIT_MINMAX2(bounds_min, bounds_max);
   for (int i = 0; i < faces_len; i++) {
@@ -96,8 +97,9 @@ static void bm_face_array_calc_bounds(BMFace **faces,
  * without duplicating coordinates for loops that share a vertex.
  */
 static float (*bm_face_array_calc_unique_uv_coords(
-    BMFace **faces, int faces_len, const uint cd_loop_uv_offset, int *r_coords_len))[2]
+    BMFace **faces, int faces_len, const int cd_loop_uv_offset, int *r_coords_len))[2]
 {
+  BLI_assert(cd_loop_uv_offset >= 0);
   int coords_len_alloc = 0;
   for (int i = 0; i < faces_len; i++) {
     BMFace *f = faces[i];
@@ -164,7 +166,7 @@ static float (*bm_face_array_calc_unique_uv_coords(
 static void bm_face_array_uv_rotate_fit_aabb(BMFace **faces,
                                              int faces_len,
                                              int align_to_axis,
-                                             const uint cd_loop_uv_offset)
+                                             const int cd_loop_uv_offset)
 {
   /* Calculate unique coordinates since calculating a convex hull can be an expensive operation. */
   int coords_len;
@@ -209,7 +211,7 @@ static void bm_face_array_uv_rotate_fit_aabb(BMFace **faces,
 static void bm_face_array_uv_scale_y(BMFace **faces,
                                      int faces_len,
                                      const float scale_y,
-                                     const uint cd_loop_uv_offset)
+                                     const int cd_loop_uv_offset)
 {
   for (int i = 0; i < faces_len; i++) {
     BMFace *f = faces[i];
@@ -311,7 +313,7 @@ static float uv_nearest_grid_tile_distance(const int udim_grid[2],
  * \{ */
 
 struct SharedUVLoopData {
-  uint cd_loop_uv_offset;
+  int cd_loop_uv_offset;
   bool use_seams;
 };
 
@@ -338,8 +340,9 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
                             const bool only_selected_uvs,
                             const bool use_seams,
                             const float aspect_y,
-                            const uint cd_loop_uv_offset)
+                            const int cd_loop_uv_offset)
 {
+  BLI_assert(cd_loop_uv_offset >= 0);
   int island_added = 0;
   BM_mesh_elem_table_ensure(bm, BM_FACE);
 

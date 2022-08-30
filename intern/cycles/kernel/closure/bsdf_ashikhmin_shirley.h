@@ -133,14 +133,10 @@ ccl_device_inline void bsdf_ashikhmin_shirley_sample_first_quadrant(float n_x,
 ccl_device int bsdf_ashikhmin_shirley_sample(ccl_private const ShaderClosure *sc,
                                              float3 Ng,
                                              float3 I,
-                                             float3 dIdx,
-                                             float3 dIdy,
                                              float randu,
                                              float randv,
                                              ccl_private Spectrum *eval,
                                              ccl_private float3 *omega_in,
-                                             ccl_private float3 *domega_in_dx,
-                                             ccl_private float3 *domega_in_dy,
                                              ccl_private float *pdf)
 {
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
@@ -221,12 +217,6 @@ ccl_device int bsdf_ashikhmin_shirley_sample(ccl_private const ShaderClosure *sc
       /* leave the rest to eval_reflect */
       *eval = bsdf_ashikhmin_shirley_eval_reflect(sc, I, *omega_in, pdf);
     }
-
-#ifdef __RAY_DIFFERENTIALS__
-    /* just do the reflection thing for now */
-    *domega_in_dx = (2.0f * dot(N, dIdx)) * N - dIdx;
-    *domega_in_dy = (2.0f * dot(N, dIdy)) * N - dIdy;
-#endif
   }
 
   return label;

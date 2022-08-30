@@ -572,7 +572,7 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
   }
 
   /* Dependency graph uses view layer name based lookups. */
-  DEG_id_tag_update(&scene->id, 0);
+  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 }
 
 /* LayerCollection */

@@ -1267,6 +1267,20 @@ static void rna_NodeTree_active_node_set(PointerRNA *ptr,
 
   if (node && BLI_findindex(&ntree->nodes, node) != -1) {
     nodeSetActive(ntree, node);
+
+    /* Handle NODE_DO_OUTPUT as well. */
+    if (node->typeinfo->nclass == NODE_CLASS_OUTPUT && node->type != CMP_NODE_OUTPUT_FILE) {
+      /* If this node becomes the active output, the others of the same type can't be the active
+       * output anymore. */
+      LISTBASE_FOREACH (bNode *, other_node, &ntree->nodes) {
+        if (other_node->type == node->type) {
+          other_node->flag &= ~NODE_DO_OUTPUT;
+        }
+      }
+      node->flag |= NODE_DO_OUTPUT;
+      ntreeSetOutput(ntree);
+      BKE_ntree_update_tag_active_output_changed(ntree);
+    }
   }
   else {
     nodeClearActive(ntree);
@@ -4840,6 +4854,7 @@ static void def_math(StructRNA *srna)
   RNA_def_property_enum_sdna(prop, NULL, "custom1");
   RNA_def_property_enum_items(prop, rna_enum_node_math_items);
   RNA_def_property_ui_text(prop, "Operation", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
 
   prop = RNA_def_property(srna, "use_clamp", PROP_BOOLEAN, PROP_NONE);
@@ -6477,7 +6492,7 @@ static void def_sh_script(StructRNA *srna)
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "add_socket", "rna_ShaderNodeScript_add_socket");
-  RNA_def_function_ui_description(func, "Add a socket socket");
+  RNA_def_function_ui_description(func, "Add a socket");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID);
   parm = RNA_def_string(func, "name", NULL, 0, "Name", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
@@ -6488,7 +6503,7 @@ static void def_sh_script(StructRNA *srna)
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove_socket", "rna_ShaderNodeScript_remove_socket");
-  RNA_def_function_ui_description(func, "Remove a socket socket");
+  RNA_def_function_ui_description(func, "Remove a socket");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID);
   parm = RNA_def_pointer(func, "sock", "NodeSocket", "Socket", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
@@ -6737,7 +6752,7 @@ static void def_cmp_set_alpha(StructRNA *srna)
        "REPLACE_ALPHA",
        0,
        "Replace Alpha",
-       "Replace the input image's alpha channels by the alpha input value"},
+       "Replace the input image's alpha channel by the alpha input value"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -8050,6 +8065,7 @@ static void def_cmp_lensdist(StructRNA *srna)
   prop = RNA_def_property(srna, "use_jitter", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "jit", 1);
   RNA_def_property_ui_text(prop, "Jitter", "Enable/disable jittering (faster, but also noisier)");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_fit", PROP_BOOLEAN, PROP_NONE);
@@ -12399,7 +12415,7 @@ static void rna_def_nodetree_nodes_api(BlenderRNA *brna, PropertyRNA *cprop)
       prop, "rna_NodeTree_active_node_get", "rna_NodeTree_active_node_set", NULL, NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
   RNA_def_property_ui_text(prop, "Active Node", "Active node in this tree");
-  RNA_def_property_update(prop, NC_SCENE | ND_OB_ACTIVE, NULL);
+  RNA_def_property_update(prop, NC_SCENE | ND_OB_ACTIVE, "rna_NodeTree_update");
 }
 
 static void rna_def_nodetree_link_api(BlenderRNA *brna, PropertyRNA *cprop)

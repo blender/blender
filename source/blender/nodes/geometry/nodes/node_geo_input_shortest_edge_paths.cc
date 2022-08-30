@@ -28,10 +28,10 @@ typedef std::pair<float, int> VertPriority;
 struct EdgeVertMap {
   Array<Vector<int>> edges_by_vertex_map;
 
-  EdgeVertMap(const Mesh *mesh)
+  EdgeVertMap(const Mesh &mesh)
   {
-    const Span<MEdge> edges{mesh->medge, mesh->totedge};
-    edges_by_vertex_map.reinitialize(mesh->totvert);
+    const Span<MEdge> edges{mesh.medge, mesh.totedge};
+    edges_by_vertex_map.reinitialize(mesh.totvert);
     for (const int edge_i : edges.index_range()) {
       const MEdge &edge = edges[edge_i];
       edges_by_vertex_map[edge.v1].append(edge_i);
@@ -40,16 +40,16 @@ struct EdgeVertMap {
   }
 };
 
-static void shortest_paths(const Mesh *mesh,
+static void shortest_paths(const Mesh &mesh,
                            EdgeVertMap &maps,
                            const IndexMask end_selection,
                            const VArray<float> &input_cost,
                            MutableSpan<int> r_next_index,
                            MutableSpan<float> r_cost)
 {
-  const Span<MVert> verts{mesh->mvert, mesh->totvert};
-  const Span<MEdge> edges{mesh->medge, mesh->totedge};
-  Array<bool> visited(mesh->totvert, false);
+  const Span<MVert> verts{mesh.mvert, mesh.totvert};
+  const Span<MEdge> edges{mesh.medge, mesh.totedge};
+  Array<bool> visited(mesh.totvert, false);
 
   std::priority_queue<VertPriority, std::vector<VertPriority>, std::greater<VertPriority>> queue;
 
@@ -84,46 +84,38 @@ static void shortest_paths(const Mesh *mesh,
   }
 }
 
-class ShortestEdgePathsNextVertFieldInput final : public GeometryFieldInput {
+class ShortestEdgePathsNextVertFieldInput final : public bke::MeshFieldInput {
  private:
   Field<bool> end_selection_;
   Field<float> cost_;
 
  public:
   ShortestEdgePathsNextVertFieldInput(Field<bool> end_selection, Field<float> cost)
-      : GeometryFieldInput(CPPType::get<int>(), "Shortest Edge Paths Next Vertex Field"),
+      : bke::MeshFieldInput(CPPType::get<int>(), "Shortest Edge Paths Next Vertex Field"),
         end_selection_(end_selection),
         cost_(cost)
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
+  GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 [[maybe_unused]] IndexMask mask) const final
+                                 const IndexMask /*mask*/) const final
   {
-    if (component.type() != GEO_COMPONENT_TYPE_MESH) {
-      return {};
-    }
-    const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-    const Mesh *mesh = mesh_component.get_for_read();
-    if (mesh == nullptr) {
-      return {};
-    }
-    GeometryComponentFieldContext edge_context{component, ATTR_DOMAIN_EDGE};
-    fn::FieldEvaluator edge_evaluator{edge_context, mesh->totedge};
+    bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
+    fn::FieldEvaluator edge_evaluator{edge_context, mesh.totedge};
     edge_evaluator.add(cost_);
     edge_evaluator.evaluate();
     const VArray<float> input_cost = edge_evaluator.get_evaluated<float>(0);
 
-    GeometryComponentFieldContext point_context{component, ATTR_DOMAIN_POINT};
-    fn::FieldEvaluator point_evaluator{point_context, mesh->totvert};
+    bke::MeshFieldContext point_context{mesh, ATTR_DOMAIN_POINT};
+    fn::FieldEvaluator point_evaluator{point_context, mesh.totvert};
     point_evaluator.add(end_selection_);
     point_evaluator.evaluate();
     const IndexMask end_selection = point_evaluator.get_evaluated_as_mask(0);
 
-    Array<int> next_index(mesh->totvert, -1);
-    Array<float> cost(mesh->totvert, FLT_MAX);
+    Array<int> next_index(mesh.totvert, -1);
+    Array<float> cost(mesh.totvert, FLT_MAX);
 
     if (!end_selection.is_empty()) {
       EdgeVertMap maps(mesh);
@@ -136,7 +128,7 @@ class ShortestEdgePathsNextVertFieldInput final : public GeometryFieldInput {
         }
       }
     });
-    return component.attributes()->adapt_domain<int>(
+    return bke::mesh_attributes(mesh).adapt_domain<int>(
         VArray<int>::ForContainer(std::move(next_index)), ATTR_DOMAIN_POINT, domain);
   }
 
@@ -156,46 +148,38 @@ class ShortestEdgePathsNextVertFieldInput final : public GeometryFieldInput {
   }
 };
 
-class ShortestEdgePathsCostFieldInput final : public GeometryFieldInput {
+class ShortestEdgePathsCostFieldInput final : public bke::MeshFieldInput {
  private:
   Field<bool> end_selection_;
   Field<float> cost_;
 
  public:
   ShortestEdgePathsCostFieldInput(Field<bool> end_selection, Field<float> cost)
-      : GeometryFieldInput(CPPType::get<float>(), "Shortest Edge Paths Cost Field"),
+      : bke::MeshFieldInput(CPPType::get<float>(), "Shortest Edge Paths Cost Field"),
         end_selection_(end_selection),
         cost_(cost)
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
+  GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 [[maybe_unused]] IndexMask mask) const final
+                                 const IndexMask /*mask*/) const final
   {
-    if (component.type() != GEO_COMPONENT_TYPE_MESH) {
-      return {};
-    }
-    const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-    const Mesh *mesh = mesh_component.get_for_read();
-    if (mesh == nullptr) {
-      return {};
-    }
-    GeometryComponentFieldContext edge_context{component, ATTR_DOMAIN_EDGE};
-    fn::FieldEvaluator edge_evaluator{edge_context, mesh->totedge};
+    bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
+    fn::FieldEvaluator edge_evaluator{edge_context, mesh.totedge};
     edge_evaluator.add(cost_);
     edge_evaluator.evaluate();
     const VArray<float> input_cost = edge_evaluator.get_evaluated<float>(0);
 
-    GeometryComponentFieldContext point_context{component, ATTR_DOMAIN_POINT};
-    fn::FieldEvaluator point_evaluator{point_context, mesh->totvert};
+    bke::MeshFieldContext point_context{mesh, ATTR_DOMAIN_POINT};
+    fn::FieldEvaluator point_evaluator{point_context, mesh.totvert};
     point_evaluator.add(end_selection_);
     point_evaluator.evaluate();
     const IndexMask end_selection = point_evaluator.get_evaluated_as_mask(0);
 
-    Array<int> next_index(mesh->totvert, -1);
-    Array<float> cost(mesh->totvert, FLT_MAX);
+    Array<int> next_index(mesh.totvert, -1);
+    Array<float> cost(mesh.totvert, FLT_MAX);
 
     if (!end_selection.is_empty()) {
       EdgeVertMap maps(mesh);
@@ -208,7 +192,7 @@ class ShortestEdgePathsCostFieldInput final : public GeometryFieldInput {
         }
       }
     });
-    return component.attributes()->adapt_domain<float>(
+    return bke::mesh_attributes(mesh).adapt_domain<float>(
         VArray<float>::ForContainer(std::move(cost)), ATTR_DOMAIN_POINT, domain);
   }
 

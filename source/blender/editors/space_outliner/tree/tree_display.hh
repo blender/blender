@@ -30,11 +30,11 @@ struct Main;
 struct Scene;
 struct Sequence;
 struct SpaceOutliner;
-struct TreeElement;
 struct ViewLayer;
 
 namespace blender::ed::outliner {
 
+struct TreeElement;
 class TreeElementID;
 
 /**
@@ -83,6 +83,15 @@ class AbstractTreeDisplay {
    * Returns false by default.
    */
   virtual bool supportsModeColumn() const;
+
+  /**
+   * Some trees may want to skip building children of collapsed parents. This should be done if the
+   * tree type may become very complex, which could cause noticeable slowdowns.
+   * Problem: This doesn't address performance issues while searching, since all elements are
+   * constructed for that. Trees of this type have to be rebuilt for any change to the collapsed
+   * state of any element.
+   */
+  virtual bool is_lazy_built() const;
 
  protected:
   /** All derived classes will need a handle to this, so storing it in the base for convenience. */
@@ -156,6 +165,8 @@ class TreeDisplayOverrideLibraryHierarchies final : public AbstractTreeDisplay {
   TreeDisplayOverrideLibraryHierarchies(SpaceOutliner &space_outliner);
 
   ListBase buildTree(const TreeSourceData &source_data) override;
+
+  bool is_lazy_built() const override;
 
  private:
   ListBase build_hierarchy_for_lib_or_main(Main *bmain,
@@ -232,6 +243,8 @@ class TreeDisplayDataAPI final : public AbstractTreeDisplay {
   TreeDisplayDataAPI(SpaceOutliner &space_outliner);
 
   ListBase buildTree(const TreeSourceData &source_data) override;
+
+  bool is_lazy_built() const override;
 };
 
 }  // namespace blender::ed::outliner

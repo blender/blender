@@ -55,9 +55,9 @@ float angle_normalized_v2v2(vec2 v1, vec2 v2)
   return (q) ? a : M_PI - a;
 }
 
-float area_ratio_to_stretch(float ratio, float tot_ratio, float inv_tot_ratio)
+float area_ratio_to_stretch(float ratio, float tot_ratio)
 {
-  ratio *= (ratio > 0.0f) ? tot_ratio : -inv_tot_ratio;
+  ratio *= tot_ratio;
   return (ratio > 1.0f) ? (1.0f / ratio) : ratio;
 }
 
@@ -74,7 +74,7 @@ void main()
   stretch = stretch;
   stretch = 1.0 - stretch * stretch;
 #else
-  float stretch = 1.0 - area_ratio_to_stretch(ratio, totalAreaRatio, totalAreaRatioInv);
+  float stretch = 1.0 - area_ratio_to_stretch(ratio, totalAreaRatio);
 
 #endif
 

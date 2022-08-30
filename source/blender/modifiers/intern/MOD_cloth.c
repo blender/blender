@@ -94,7 +94,7 @@ static void deformVerts(ModifierData *md,
   }
 
   if (mesh == NULL) {
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, NULL, NULL, verts_num, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, NULL, NULL, verts_num, false);
   }
   else {
     /* Not possible to use get_mesh() in this case as we'll modify its vertices
@@ -115,7 +115,7 @@ static void deformVerts(ModifierData *md,
       float(*layerorco)[3];
       if (!(layerorco = CustomData_get_layer(&mesh_src->vdata, CD_CLOTH_ORCO))) {
         layerorco = CustomData_add_layer(
-            &mesh_src->vdata, CD_CLOTH_ORCO, CD_CALLOC, NULL, mesh_src->totvert);
+            &mesh_src->vdata, CD_CLOTH_ORCO, CD_SET_DEFAULT, NULL, mesh_src->totvert);
       }
 
       memcpy(layerorco, kb->data, sizeof(float[3]) * verts_num);
@@ -254,7 +254,7 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
   }
 
   if (clmd->sim_parms && clmd->sim_parms->effector_weights) {
-    walk(userData, ob, (ID **)&clmd->sim_parms->effector_weights->group, IDWALK_CB_NOP);
+    walk(userData, ob, (ID **)&clmd->sim_parms->effector_weights->group, IDWALK_CB_USER);
   }
 }
 

@@ -93,6 +93,8 @@ class GHOST_SystemWayland : public GHOST_System {
 
   ~GHOST_SystemWayland() override;
 
+  GHOST_TSuccess init();
+
   bool processEvents(bool waitForEvent) override;
 
   int setConsoleWindowState(GHOST_TConsoleWindowState action) override;

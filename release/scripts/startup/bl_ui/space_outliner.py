@@ -2,6 +2,11 @@
 import bpy
 from bpy.types import Header, Menu, Panel
 
+from bpy.app.translations import (
+    contexts as i18n_contexts,
+    pgettext_iface as iface_,
+)
+
 
 class OUTLINER_HT_header(Header):
     bl_space_type = 'OUTLINER'
@@ -94,6 +99,10 @@ class OUTLINER_MT_context_menu(Menu):
     @staticmethod
     def draw_common_operators(layout):
         layout.menu_contents("OUTLINER_MT_asset")
+
+        layout.separator()
+
+        layout.menu("OUTLINER_MT_liboverride")
 
         layout.separator()
 
@@ -207,7 +216,8 @@ class OUTLINER_MT_collection(Menu):
 
         space = context.space_data
 
-        layout.operator("outliner.collection_new", text="New").nested = True
+        layout.operator("outliner.collection_new", text="New",
+                        text_ctxt=i18n_contexts.id_collection).nested = True
         layout.operator("outliner.collection_duplicate", text="Duplicate Collection")
         layout.operator("outliner.collection_duplicate_linked", text="Duplicate Linked")
         layout.operator("outliner.id_copy", text="Copy", icon='COPYDOWN')
@@ -318,6 +328,27 @@ class OUTLINER_MT_asset(Menu):
         layout.operator("asset.mark")
         layout.operator("asset.clear", text="Clear Asset").set_fake_user = False
         layout.operator("asset.clear", text="Clear Asset (Set Fake User)").set_fake_user = True
+
+
+class OUTLINER_MT_liboverride(Menu):
+    bl_label = "Library Override"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator_menu_enum("outliner.liboverride_operation", "selection_set",
+                                  text="Make").type = 'OVERRIDE_LIBRARY_CREATE_HIERARCHY'
+        layout.operator_menu_enum(
+            "outliner.liboverride_operation",
+            "selection_set",
+            text="Reset").type = 'OVERRIDE_LIBRARY_RESET'
+        layout.operator_menu_enum("outliner.liboverride_operation", "selection_set",
+                                  text="Clear").type = 'OVERRIDE_LIBRARY_CLEAR_SINGLE'
+
+        layout.separator()
+
+        layout.operator_menu_enum("outliner.liboverride_troubleshoot_operation", "type",
+                                  text="Troubleshoot").selection_set = 'SELECTED'
 
 
 class OUTLINER_PT_filter(Panel):
@@ -457,6 +488,7 @@ classes = (
     OUTLINER_MT_collection_view_layer,
     OUTLINER_MT_object,
     OUTLINER_MT_asset,
+    OUTLINER_MT_liboverride,
     OUTLINER_MT_context_menu,
     OUTLINER_MT_context_menu_view,
     OUTLINER_MT_view_pie,

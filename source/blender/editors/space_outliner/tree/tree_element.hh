@@ -14,9 +14,10 @@
 
 struct ListBase;
 struct SpaceOutliner;
-struct TreeElement;
 
 namespace blender::ed::outliner {
+
+struct TreeElement;
 
 /* -------------------------------------------------------------------- */
 /* Tree-Display Interface */

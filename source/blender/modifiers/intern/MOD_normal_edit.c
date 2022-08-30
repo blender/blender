@@ -562,7 +562,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   }
 
   if (clnors == NULL) {
-    clnors = CustomData_add_layer(ldata, CD_CUSTOMLOOPNORMAL, CD_CALLOC, NULL, loops_num);
+    clnors = CustomData_add_layer(ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, NULL, loops_num);
   }
 
   MOD_get_vgroup(ob, result, enmd->defgrp_name, &dvert, &defgrp_index);
@@ -616,7 +616,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
 
   MEM_SAFE_FREE(loopnors);
 
-  result->runtime.is_original = false;
+  result->runtime.is_original_bmesh = false;
 
   return result;
 }

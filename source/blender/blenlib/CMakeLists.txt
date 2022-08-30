@@ -1,6 +1,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright 2006 Blender Foundation. All rights reserved.
 
+if(HAVE_EXECINFO_H)
+  add_definitions(-DHAVE_EXECINFO_H)
+endif()
+
 set(INC
   .
   # ../blenkernel  # don't add this back!

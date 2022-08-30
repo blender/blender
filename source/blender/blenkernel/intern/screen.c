@@ -148,7 +148,6 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
       }
       case SPACE_OUTLINER: {
         SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
-        BKE_LIB_FOREACHID_PROCESS_ID(data, space_outliner->search_tse.id, IDWALK_CB_NOP);
         if (space_outliner->treestore != NULL) {
           TreeStoreElem *tselem;
           BLI_mempool_iter iter;
@@ -1124,33 +1123,42 @@ static void write_uilist(BlendWriter *writer, uiList *ui_list)
   }
 }
 
-static void write_space_outliner(BlendWriter *writer, SpaceOutliner *space_outliner)
+static void write_space_outliner(BlendWriter *writer, const SpaceOutliner *space_outliner)
 {
   BLI_mempool *ts = space_outliner->treestore;
 
   if (ts) {
-    SpaceOutliner space_outliner_flat = *space_outliner;
-
-    int elems = BLI_mempool_len(ts);
+    const int elems = BLI_mempool_len(ts);
     /* linearize mempool to array */
     TreeStoreElem *data = elems ? BLI_mempool_as_arrayN(ts, "TreeStoreElem") : NULL;
 
     if (data) {
-      /* In this block we use the memory location of the treestore
-       * but _not_ its data, the addresses in this case are UUID's,
-       * since we can't rely on malloc giving us different values each time.
+      BLO_write_struct(writer, SpaceOutliner, space_outliner);
+
+      /* To store #TreeStore (instead of the mempool), two unique memory addresses are needed,
+       * which can be used to identify the data on read:
+       * 1) One for the #TreeStore data itself.
+       * 2) One for the array of #TreeStoreElem's inside #TreeStore (#TreeStore.data).
+       *
+       * For 1) we just use the mempool's address (#SpaceOutliner::treestore).
+       * For 2) we don't have such a direct choice. We can't just use the array's address from
+       * above, since that may not be unique over all Outliners. So instead use an address relative
+       * to 1).
        */
-      TreeStore ts_flat = {0};
+      /* TODO the mempool could be moved to #SpaceOutliner_Runtime so that #SpaceOutliner could
+       * hold the #TreeStore directly. */
 
-      /* we know the treestore is at least as big as a pointer,
-       * so offsetting works to give us a UUID. */
+      /* Address relative to the tree-store, as noted above.  */
       void *data_addr = (void *)POINTER_OFFSET(ts, sizeof(void *));
+      /* There should be plenty of memory addresses within the mempool data that we can point into,
+       * just double-check we don't potentially end up with a memory address that another DNA
+       * struct might use. Assumes BLI_mempool uses the guarded allocator. */
+      BLI_assert(MEM_allocN_len(ts) >= sizeof(void *) * 2);
 
+      TreeStore ts_flat = {0};
       ts_flat.usedelem = elems;
       ts_flat.totelem = elems;
       ts_flat.data = data_addr;
-
-      BLO_write_struct(writer, SpaceOutliner, space_outliner);
 
       BLO_write_struct_at_address(writer, TreeStore, ts, &ts_flat);
       BLO_write_struct_array_at_address(writer, TreeStoreElem, elems, data_addr, data);
@@ -1158,6 +1166,7 @@ static void write_space_outliner(BlendWriter *writer, SpaceOutliner *space_outli
       MEM_freeN(data);
     }
     else {
+      SpaceOutliner space_outliner_flat = *space_outliner;
       space_outliner_flat.treestore = NULL;
       BLO_write_struct_at_address(writer, SpaceOutliner, space_outliner, &space_outliner_flat);
     }
@@ -1873,7 +1882,6 @@ void BKE_screen_area_blend_read_lib(BlendLibReader *reader, ID *parent_id, ScrAr
       }
       case SPACE_OUTLINER: {
         SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
-        BLO_read_id_address(reader, NULL, &space_outliner->search_tse.id);
 
         if (space_outliner->treestore) {
           TreeStoreElem *tselem;

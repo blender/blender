@@ -4,6 +4,29 @@
 /** \file
  * \ingroup edsculpt
  * Implements the Sculpt Mode tools.
+ *
+ * Usage Guide
+ * ===========
+ *
+ * The sculpt undo system is a delta-based system. Each undo step stores
+ * the difference with the prior one.
+ *
+ * To use the sculpt undo system, you must call SCULPT_undo_push_begin
+ * inside an operator exec or invoke callback (ED_sculpt_undo_geometry_begin
+ * may be called if you wish to save a non-delta copy of the entire mesh).
+ * This will initialize the sculpt undo stack and set up an undo step.
+ *
+ * At the end of the operator you should call SCULPT_undo_push_end.
+ *
+ * SCULPT_undo_push_end and ED_sculpt_undo_geometry_begin both take a
+ * wmOperatorType as an argument. There are _ex versions that allow a custom
+ * name; try to avoid using them. These can break the redo panel since it requires
+ * the undo push have the same name as the calling operator.
+ *
+ * Note: Sculpt undo steps are not appended to the global undo stack until
+ * the operator finishes.  We use BKE_undosys_step_push_init_with_type to build
+ * a tentative undo step with is appended later when the operator ends.
+ * Operators must have the OPTYPE_UNDO flag set for this to work properly.
  */
 
 #include <stddef.h>
@@ -350,10 +373,11 @@ static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode, bool 
 
   if (unode->maxvert) {
     for (int i = 0; i < unode->totvert; i++) {
-      if ((BLI_BITMAP_TEST(unode->vert_hidden, i) != 0) != hide_vert[i]) {
+      const int vert_index = unode->index[i];
+      if ((BLI_BITMAP_TEST(unode->vert_hidden, i) != 0) != hide_vert[vert_index]) {
         BLI_BITMAP_FLIP(unode->vert_hidden, i);
-        hide_vert[unode->index[i]] = !hide_vert[i];
-        modified_vertices[unode->index[i]] = true;
+        hide_vert[vert_index] = !hide_vert[vert_index];
+        modified_vertices[vert_index] = true;
       }
     }
   }
@@ -879,7 +903,6 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
         .modified_hidden_vertices = modified_hidden_vertices,
         .modified_mask_vertices = modified_mask_vertices,
         .modified_color_vertices = modified_color_vertices,
-
     };
     BKE_pbvh_search_callback(ss->pbvh, NULL, NULL, update_cb_partial, &data);
     BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw);
@@ -1142,8 +1165,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
       unode->co = MEM_callocN(alloc_size, "SculptUndoNode.co");
       usculpt->undo_size += alloc_size;
 
-      /* FIXME: Should explain why this is allocated here, to be freed in
-       * `SCULPT_undo_push_end_ex()`? */
+      /* Needed for original data lookup. */
       alloc_size = sizeof(*unode->no) * (size_t)allvert;
       unode->no = MEM_callocN(alloc_size, "SculptUndoNode.no");
       usculpt->undo_size += alloc_size;
@@ -1546,7 +1568,12 @@ static void sculpt_save_active_attribute(Object *ob, SculptAttrRef *attr)
   attr->was_set = true;
 }
 
-void SCULPT_undo_push_begin(Object *ob, const char *name)
+void SCULPT_undo_push_begin(Object *ob, const wmOperator *op)
+{
+  SCULPT_undo_push_begin_ex(ob, op->type->name);
+}
+
+void SCULPT_undo_push_begin_ex(Object *ob, const char *name)
 {
   UndoStack *ustack = ED_undo_stack_get();
 
@@ -1642,11 +1669,12 @@ static void sculpt_undo_set_active_layer(struct bContext *C, SculptAttrRef *attr
    */
   if (!layer) {
     layer = BKE_id_attribute_search(&me->id, attr->name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
-    eAttrDomain domain = layer ? BKE_id_attribute_domain(&me->id, layer) : ATTR_DOMAIN_NUM;
-
-    if (layer && ED_geometry_attribute_convert(
-                     me, attr->name, layer->type, domain, attr->type, attr->domain)) {
-      layer = BKE_id_attribute_find(&me->id, attr->name, attr->type, attr->domain);
+    if (layer) {
+      const eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
+      if (ED_geometry_attribute_convert(
+              me, attr->name, layer->type, domain, attr->type, attr->domain)) {
+        layer = BKE_id_attribute_find(&me->id, attr->name, attr->type, attr->domain);
+      }
     }
   }
 
@@ -1655,7 +1683,7 @@ static void sculpt_undo_set_active_layer(struct bContext *C, SculptAttrRef *attr
     CustomData *cdata = attr->domain == ATTR_DOMAIN_POINT ? &me->vdata : &me->ldata;
     int totelem = attr->domain == ATTR_DOMAIN_POINT ? me->totvert : me->totloop;
 
-    CustomData_add_layer_named(cdata, attr->type, CD_DEFAULT, NULL, totelem, attr->name);
+    CustomData_add_layer_named(cdata, attr->type, CD_SET_DEFAULT, NULL, totelem, attr->name);
     layer = BKE_id_attribute_find(&me->id, attr->name, attr->type, attr->domain);
   }
 
@@ -1834,9 +1862,15 @@ static void sculpt_undosys_step_free(UndoStep *us_p)
   sculpt_undo_free_list(&us->data.nodes);
 }
 
-void ED_sculpt_undo_geometry_begin(struct Object *ob, const char *name)
+void ED_sculpt_undo_geometry_begin(struct Object *ob, const wmOperator *op)
 {
-  SCULPT_undo_push_begin(ob, name);
+  SCULPT_undo_push_begin(ob, op);
+  SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
+}
+
+void ED_sculpt_undo_geometry_begin_ex(struct Object *ob, const char *name)
+{
+  SCULPT_undo_push_begin_ex(ob, name);
   SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
 }
 
@@ -1949,7 +1983,7 @@ void ED_sculpt_undo_push_multires_mesh_begin(bContext *C, const char *str)
 
   Object *object = CTX_data_active_object(C);
 
-  SCULPT_undo_push_begin(object, str);
+  SCULPT_undo_push_begin_ex(object, str);
 
   SculptUndoNode *geometry_unode = SCULPT_undo_push_node(object, NULL, SCULPT_UNDO_GEOMETRY);
   geometry_unode->geometry_clear_pbvh = false;

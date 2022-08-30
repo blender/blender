@@ -5,6 +5,7 @@
  */
 
 #include <cassert>
+#include <stdexcept>
 
 #include "GHOST_ContextSDL.h"
 #include "GHOST_SystemSDL.h"
@@ -20,7 +21,7 @@
 GHOST_SystemSDL::GHOST_SystemSDL() : GHOST_System()
 {
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
-    printf("Error initializing SDL:  %s\n", SDL_GetError());
+    throw std::runtime_error("Error initializing SDL: " + std::string(SDL_GetError()));
   }
 
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);

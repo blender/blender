@@ -151,14 +151,10 @@ ccl_device Spectrum bsdf_hair_transmission_eval_transmit(ccl_private const Shade
 ccl_device int bsdf_hair_reflection_sample(ccl_private const ShaderClosure *sc,
                                            float3 Ng,
                                            float3 I,
-                                           float3 dIdx,
-                                           float3 dIdy,
                                            float randu,
                                            float randv,
                                            ccl_private Spectrum *eval,
                                            ccl_private float3 *omega_in,
-                                           ccl_private float3 *domega_in_dx,
-                                           ccl_private float3 *domega_in_dy,
                                            ccl_private float *pdf)
 {
   ccl_private const HairBsdf *bsdf = (ccl_private const HairBsdf *)sc;
@@ -194,12 +190,6 @@ ccl_device int bsdf_hair_reflection_sample(ccl_private const ShaderClosure *sc,
   fast_sincosf(phi, &sinphi, &cosphi);
   *omega_in = (cosphi * costheta_i) * locy - (sinphi * costheta_i) * locx + (sintheta_i)*Tg;
 
-  // differentials - TODO: find a better approximation for the reflective bounce
-#ifdef __RAY_DIFFERENTIALS__
-  *domega_in_dx = 2 * dot(locy, dIdx) * locy - dIdx;
-  *domega_in_dy = 2 * dot(locy, dIdy) * locy - dIdy;
-#endif
-
   *pdf = fabsf(phi_pdf * theta_pdf);
   if (M_PI_2_F - fabsf(theta_i) < 0.001f)
     *pdf = 0.0f;
@@ -212,14 +202,10 @@ ccl_device int bsdf_hair_reflection_sample(ccl_private const ShaderClosure *sc,
 ccl_device int bsdf_hair_transmission_sample(ccl_private const ShaderClosure *sc,
                                              float3 Ng,
                                              float3 I,
-                                             float3 dIdx,
-                                             float3 dIdy,
                                              float randu,
                                              float randv,
                                              ccl_private Spectrum *eval,
                                              ccl_private float3 *omega_in,
-                                             ccl_private float3 *domega_in_dx,
-                                             ccl_private float3 *domega_in_dy,
                                              ccl_private float *pdf)
 {
   ccl_private const HairBsdf *bsdf = (ccl_private const HairBsdf *)sc;
@@ -254,12 +240,6 @@ ccl_device int bsdf_hair_transmission_sample(ccl_private const ShaderClosure *sc
   float sinphi, cosphi;
   fast_sincosf(phi, &sinphi, &cosphi);
   *omega_in = (cosphi * costheta_i) * locy - (sinphi * costheta_i) * locx + (sintheta_i)*Tg;
-
-  // differentials - TODO: find a better approximation for the transmission bounce
-#ifdef __RAY_DIFFERENTIALS__
-  *domega_in_dx = 2 * dot(locy, dIdx) * locy - dIdx;
-  *domega_in_dy = 2 * dot(locy, dIdy) * locy - dIdy;
-#endif
 
   *pdf = fabsf(phi_pdf * theta_pdf);
   if (M_PI_2_F - fabsf(theta_i) < 0.001f) {

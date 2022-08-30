@@ -71,7 +71,7 @@ struct PathSelectParams {
 struct UserData_UV {
   Scene *scene;
   BMEditMesh *em;
-  uint cd_loop_uv_offset;
+  int cd_loop_uv_offset;
 };
 
 static void path_select_properties(wmOperatorType *ot)
@@ -121,7 +121,7 @@ static bool verttag_test_cb(BMLoop *l, void *user_data_v)
   /* All connected loops are selected or we return false. */
   struct UserData_UV *user_data = user_data_v;
   const Scene *scene = user_data->scene;
-  const uint cd_loop_uv_offset = user_data->cd_loop_uv_offset;
+  const int cd_loop_uv_offset = user_data->cd_loop_uv_offset;
   const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
   BMIter iter;
   BMLoop *l_iter;
@@ -142,7 +142,7 @@ static void verttag_set_cb(BMLoop *l, bool val, void *user_data_v)
   struct UserData_UV *user_data = user_data_v;
   const Scene *scene = user_data->scene;
   BMEditMesh *em = user_data->em;
-  const uint cd_loop_uv_offset = user_data->cd_loop_uv_offset;
+  const int cd_loop_uv_offset = user_data->cd_loop_uv_offset;
   const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
   BMIter iter;
   BMLoop *l_iter;
@@ -150,7 +150,7 @@ static void verttag_set_cb(BMLoop *l, bool val, void *user_data_v)
     if (verttag_filter_cb(l_iter, user_data)) {
       MLoopUV *luv_iter = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset);
       if (equals_v2v2(luv->uv, luv_iter->uv)) {
-        uvedit_uv_select_set(scene, em, l_iter, val, false, cd_loop_uv_offset);
+        uvedit_uv_select_set(scene, em->bm, l_iter, val, false, cd_loop_uv_offset);
       }
     }
   }
@@ -253,7 +253,7 @@ static bool edgetag_test_cb(BMLoop *l, void *user_data_v)
   /* All connected loops (UV) are selected or we return false. */
   struct UserData_UV *user_data = user_data_v;
   const Scene *scene = user_data->scene;
-  const uint cd_loop_uv_offset = user_data->cd_loop_uv_offset;
+  const int cd_loop_uv_offset = user_data->cd_loop_uv_offset;
   BMIter iter;
   BMLoop *l_iter;
   BM_ITER_ELEM (l_iter, &iter, l->e, BM_LOOPS_OF_EDGE) {
@@ -272,7 +272,7 @@ static void edgetag_set_cb(BMLoop *l, bool val, void *user_data_v)
   struct UserData_UV *user_data = user_data_v;
   const Scene *scene = user_data->scene;
   BMEditMesh *em = user_data->em;
-  const uint cd_loop_uv_offset = user_data->cd_loop_uv_offset;
+  const int cd_loop_uv_offset = user_data->cd_loop_uv_offset;
   uvedit_edge_select_set_with_sticky(scene, em, l, val, false, cd_loop_uv_offset);
 }
 
@@ -375,7 +375,7 @@ static bool facetag_test_cb(BMFace *f, void *user_data_v)
   /* All connected loops are selected or we return false. */
   struct UserData_UV *user_data = user_data_v;
   const Scene *scene = user_data->scene;
-  const uint cd_loop_uv_offset = user_data->cd_loop_uv_offset;
+  const int cd_loop_uv_offset = user_data->cd_loop_uv_offset;
   BMIter iter;
   BMLoop *l_iter;
   BM_ITER_ELEM (l_iter, &iter, f, BM_LOOPS_OF_FACE) {
@@ -390,7 +390,7 @@ static void facetag_set_cb(BMFace *f, bool val, void *user_data_v)
   struct UserData_UV *user_data = user_data_v;
   const Scene *scene = user_data->scene;
   BMEditMesh *em = user_data->em;
-  const uint cd_loop_uv_offset = user_data->cd_loop_uv_offset;
+  const int cd_loop_uv_offset = user_data->cd_loop_uv_offset;
   uvedit_face_select_set_with_sticky(scene, em, f, val, false, cd_loop_uv_offset);
 }
 

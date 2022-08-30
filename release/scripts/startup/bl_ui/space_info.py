@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 from bpy.types import Header, Menu
 
+from bpy.app.translations import contexts as i18n_contexts
+
 
 class INFO_HT_header(Header):
     bl_space_type = 'INFO'
@@ -61,6 +63,7 @@ class INFO_MT_info(Menu):
 
 class INFO_MT_area(Menu):
     bl_label = "Area"
+    bl_translation_context = i18n_contexts.id_windowmanager
 
     def draw(self, context):
         layout = self.layout

@@ -76,7 +76,7 @@ static bool sculpt_and_dynamic_topology_poll(bContext *C)
 /** \name Detail Flood Fill
  * \{ */
 
-static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
+static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Object *ob = CTX_data_active_object(C);
@@ -106,7 +106,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
   float object_space_constant_detail = 1.0f / (sd->constant_detail * mat4_to_scale(ob->obmat));
   BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail);
 
-  SCULPT_undo_push_begin(ob, "Dynamic topology flood fill");
+  SCULPT_undo_push_begin(ob, op);
   SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_COORDS);
 
   while (BKE_pbvh_bmesh_update_topology(

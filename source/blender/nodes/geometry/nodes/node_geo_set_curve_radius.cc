@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_curves.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_set_curve_radius_cc {
@@ -16,21 +18,19 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
-static void set_radius_in_component(GeometryComponent &component,
-                                    const Field<bool> &selection_field,
-                                    const Field<float> &radius_field)
+static void set_radius(bke::CurvesGeometry &curves,
+                       const Field<bool> &selection_field,
+                       const Field<float> &radius_field)
 {
-  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_POINT);
-  if (domain_size == 0) {
+  if (curves.points_num() == 0) {
     return;
   }
-  MutableAttributeAccessor attributes = *component.attributes_for_write();
-  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
-
+  MutableAttributeAccessor attributes = curves.attributes_for_write();
   AttributeWriter<float> radii = attributes.lookup_or_add_for_write<float>("radius",
                                                                            ATTR_DOMAIN_POINT);
 
-  fn::FieldEvaluator evaluator{field_context, domain_size};
+  bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_POINT};
+  fn::FieldEvaluator evaluator{field_context, curves.points_num()};
   evaluator.set_selection(selection_field);
   evaluator.add_with_destination(radius_field, radii.varray);
   evaluator.evaluate();
@@ -45,9 +45,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<float> radii_field = params.extract_input<Field<float>>("Radius");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (geometry_set.has_curves()) {
-      set_radius_in_component(
-          geometry_set.get_component_for_write<CurveComponent>(), selection_field, radii_field);
+    if (Curves *curves_id = geometry_set.get_curves_for_write()) {
+      set_radius(bke::CurvesGeometry::wrap(curves_id->geometry), selection_field, radii_field);
     }
   });
 

@@ -29,10 +29,8 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
 {
   const InstancesComponent &instances = *geometry_set.get_component_for_read<InstancesComponent>();
 
-  GeometryComponentFieldContext field_context{instances, ATTR_DOMAIN_INSTANCE};
-  const int domain_size = instances.instances_num();
-
-  fn::FieldEvaluator evaluator{field_context, domain_size};
+  const bke::InstancesFieldContext context{instances};
+  fn::FieldEvaluator evaluator{context, instances.instances_num()};
   evaluator.set_selection(std::move(selection_field));
   evaluator.add(std::move(position_field));
   evaluator.add(std::move(radius_field));

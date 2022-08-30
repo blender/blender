@@ -1944,7 +1944,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
             if (!mloopcol && dynamicPaint_outputLayerExists(surface, ob, 0)) {
               mloopcol = CustomData_add_layer_named(&result->ldata,
                                                     CD_PROP_BYTE_COLOR,
-                                                    CD_CALLOC,
+                                                    CD_SET_DEFAULT,
                                                     NULL,
                                                     totloop,
                                                     surface->output_name);
@@ -1957,7 +1957,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
             if (!mloopcol_wet && dynamicPaint_outputLayerExists(surface, ob, 1)) {
               mloopcol_wet = CustomData_add_layer_named(&result->ldata,
                                                         CD_PROP_BYTE_COLOR,
-                                                        CD_CALLOC,
+                                                        CD_SET_DEFAULT,
                                                         NULL,
                                                         totloop,
                                                         surface->output_name2);
@@ -1988,7 +1988,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
             /* apply weights into a vertex group, if doesn't exists add a new layer */
             if (defgrp_index != -1 && !dvert && (surface->output_name[0] != '\0')) {
               dvert = CustomData_add_layer(
-                  &result->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, sData->total_points);
+                  &result->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, NULL, sData->total_points);
               /* Make the dvert layer easily accessible from the mesh data. */
               result->dvert = dvert;
             }

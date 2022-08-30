@@ -2213,6 +2213,26 @@ static int pyrna_prop_collection_bool(BPy_PropertyRNA *self)
   } \
   (void)0
 
+/**
+ * \param result: The result of calling a subscription operation on a collection (never NULL).
+ */
+static int pyrna_prop_collection_subscript_is_valid_or_error(const PyObject *value)
+{
+  if (value != Py_None) {
+    BLI_assert(BPy_StructRNA_Check(value));
+    const BPy_StructRNA *value_pyrna = (const BPy_StructRNA *)value;
+    if (UNLIKELY(value_pyrna->ptr.type == NULL)) {
+      /* It's important to use a `TypeError` as that is what's returned when `__getitem__` is
+       * called on an object that doesn't support item access. */
+      PyErr_Format(PyExc_TypeError,
+                   "'%.200s' object is not subscriptable (only iteration is supported)",
+                   Py_TYPE(value)->tp_name);
+      return -1;
+    }
+  }
+  return 0;
+}
+
 /* Internal use only. */
 static PyObject *pyrna_prop_collection_subscript_int(BPy_PropertyRNA *self, Py_ssize_t keynum)
 {
@@ -2223,8 +2243,35 @@ static PyObject *pyrna_prop_collection_subscript_int(BPy_PropertyRNA *self, Py_s
 
   PYRNA_PROP_COLLECTION_ABS_INDEX(NULL);
 
-  if (RNA_property_collection_lookup_int(&self->ptr, self->prop, keynum_abs, &newptr)) {
-    return pyrna_struct_CreatePyObject(&newptr);
+  if (RNA_property_collection_lookup_int_has_fn(self->prop)) {
+    if (RNA_property_collection_lookup_int(&self->ptr, self->prop, keynum_abs, &newptr)) {
+      return pyrna_struct_CreatePyObject(&newptr);
+    }
+  }
+  else {
+    /* No callback defined, just iterate and find the nth item. */
+    const int key = (int)keynum_abs;
+    PyObject *result = NULL;
+    bool found = false;
+    CollectionPropertyIterator iter;
+    RNA_property_collection_begin(&self->ptr, self->prop, &iter);
+    for (int i = 0; iter.valid; RNA_property_collection_next(&iter), i++) {
+      if (i == key) {
+        result = pyrna_struct_CreatePyObject(&iter.ptr);
+        found = true;
+        break;
+      }
+    }
+    /* It's important to end the iterator after `result` has been created
+     * so iterators may optionally invalidate items that were iterated over, see: T100286. */
+    RNA_property_collection_end(&iter);
+    if (found) {
+      if (result && (pyrna_prop_collection_subscript_is_valid_or_error(result) == -1)) {
+        Py_DECREF(result);
+        result = NULL; /* The exception has been set. */
+      }
+      return result;
+    }
   }
 
   const int len = RNA_property_collection_length(&self->ptr, self->prop);
@@ -2306,8 +2353,45 @@ static PyObject *pyrna_prop_collection_subscript_str(BPy_PropertyRNA *self, cons
 
   PYRNA_PROP_CHECK_OBJ(self);
 
-  if (RNA_property_collection_lookup_string(&self->ptr, self->prop, keyname, &newptr)) {
-    return pyrna_struct_CreatePyObject(&newptr);
+  if (RNA_property_collection_lookup_string_has_fn(self->prop)) {
+    if (RNA_property_collection_lookup_string(&self->ptr, self->prop, keyname, &newptr)) {
+      return pyrna_struct_CreatePyObject(&newptr);
+    }
+  }
+  else {
+    /* No callback defined, just iterate and find the nth item. */
+    const int keylen = strlen(keyname);
+    char name[256];
+    int namelen;
+    PyObject *result = NULL;
+    bool found = false;
+    CollectionPropertyIterator iter;
+    RNA_property_collection_begin(&self->ptr, self->prop, &iter);
+    for (int i = 0; iter.valid; RNA_property_collection_next(&iter), i++) {
+      PropertyRNA *nameprop = RNA_struct_name_property(iter.ptr.type);
+      char *nameptr = RNA_property_string_get_alloc(
+          &iter.ptr, nameprop, name, sizeof(name), &namelen);
+      if ((keylen == namelen) && STREQ(nameptr, keyname)) {
+        found = true;
+      }
+      if ((char *)&name != nameptr) {
+        MEM_freeN(nameptr);
+      }
+      if (found) {
+        result = pyrna_struct_CreatePyObject(&iter.ptr);
+        break;
+      }
+    }
+    /* It's important to end the iterator after `result` has been created
+     * so iterators may optionally invalidate items that were iterated over, see: T100286. */
+    RNA_property_collection_end(&iter);
+    if (found) {
+      if (result && (pyrna_prop_collection_subscript_is_valid_or_error(result) == -1)) {
+        Py_DECREF(result);
+        result = NULL; /* The exception has been set. */
+      }
+      return result;
+    }
   }
 
   PyErr_Format(PyExc_KeyError, "bpy_prop_collection[key]: key \"%.200s\" not found", keyname);

@@ -115,7 +115,8 @@ MDeformVert *BKE_object_defgroup_data_create(ID *id)
 {
   if (GS(id->name) == ID_ME) {
     Mesh *me = (Mesh *)id;
-    me->dvert = CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, me->totvert);
+    me->dvert = CustomData_add_layer(
+        &me->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, NULL, me->totvert);
     return me->dvert;
   }
   if (GS(id->name) == ID_LT) {

@@ -366,7 +366,7 @@ bool ABCGenericMeshWriter::get_velocities(struct Mesh *mesh, std::vector<Imath::
 {
   /* Export velocity attribute output by fluid sim, sequence cache modifier
    * and geometry nodes. */
-  CustomDataLayer *velocity_layer = BKE_id_attribute_find(
+  const CustomDataLayer *velocity_layer = BKE_id_attribute_find(
       &mesh->id, "velocity", CD_PROP_FLOAT3, ATTR_DOMAIN_POINT);
 
   if (velocity_layer == nullptr) {

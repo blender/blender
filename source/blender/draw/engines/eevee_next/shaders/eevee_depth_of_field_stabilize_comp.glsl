@@ -211,7 +211,7 @@ vec2 dof_pixel_history_motion_vector(ivec2 texel_sample)
   return vector.xy * vec2(textureSize(color_tx, 0));
 }
 
-/* Load color using a special filter to avoid loosing detail.
+/* Load color using a special filter to avoid losing detail.
  * \a texel is sample position with subpixel accuracy. */
 DofSample dof_sample_history(vec2 input_texel)
 {
@@ -285,17 +285,17 @@ float dof_history_blend_factor(
 
   /* 5% of incoming color by default. */
   float blend = 0.05;
-  /* Blend less history if the pixel has substential velocity. */
+  /* Blend less history if the pixel has substantial velocity. */
   /* NOTE(fclem): velocity threshold multiplied by 2 because of half resolution. */
   blend = mix(blend, 0.20, saturate(velocity * 0.02 * 2.0));
   /**
    * "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014 (Slide 43)
-   * Bias towards history if incomming pixel is near clamping. Reduces flicker.
+   * Bias towards history if incoming pixel is near clamping. Reduces flicker.
    */
   float distance_to_luma_clip = min_v2(vec2(luma_history - luma_min, luma_max - luma_history));
   /* Divide by bbox size to get a factor. 2 factor to compensate the line above. */
   distance_to_luma_clip *= 2.0 * safe_rcp(luma_max - luma_min);
-  /* Linearly blend when history gets bellow to 25% of the bbox size. */
+  /* Linearly blend when history gets below to 25% of the bbox size. */
   blend *= saturate(distance_to_luma_clip * 4.0 + 0.1);
   /* Progressively discard history until history CoC is twice as big as the filtered CoC.
    * Note we use absolute diff here because we are not comparing neighbors and thus do not risk to
@@ -335,7 +335,7 @@ void main()
 
   DofSample dst = dof_sample_history(history_texel);
 
-  /* Get local color bounding box of source neighboorhood. */
+  /* Get local color bounding box of source neighborhood. */
   DofNeighborhoodMinMax bbox = dof_neighbor_boundbox();
 
   float blend = dof_history_blend_factor(velocity, history_texel, bbox, src, dst);

@@ -29,7 +29,6 @@ struct DRWSubdivCache;
 
 enum eMRExtractType {
   MR_EXTRACT_BMESH,
-  MR_EXTRACT_MAPPED,
   MR_EXTRACT_MESH,
 };
 

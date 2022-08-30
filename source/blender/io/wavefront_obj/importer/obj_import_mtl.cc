@@ -95,12 +95,8 @@ static Image *create_placeholder_image(Main *bmain, const std::string &path)
   return image;
 }
 
-static Image *load_texture_image(Main *bmain,
-                                 const tex_map_XX &tex_map,
-                                 bNode *r_node,
-                                 bool relative_paths)
+static Image *load_texture_image(Main *bmain, const tex_map_XX &tex_map, bool relative_paths)
 {
-  BLI_assert(r_node && r_node->type == SH_NODE_TEX_IMAGE);
   Image *image = nullptr;
 
   /* First try treating texture path as relative. */
@@ -371,7 +367,8 @@ void ShaderNodetreeWrap::add_image_textures(Main *bmain, Material *mat, bool rel
     }
 
     bNode *image_texture = add_node_to_tree(SH_NODE_TEX_IMAGE);
-    Image *image = load_texture_image(bmain, texture_map.value, image_texture, relative_paths);
+    BLI_assert(image_texture);
+    Image *image = load_texture_image(bmain, texture_map.value, relative_paths);
     if (image == nullptr) {
       continue;
     }

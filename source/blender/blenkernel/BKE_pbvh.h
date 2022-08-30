@@ -350,10 +350,13 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
                       void *user_data,
                       bool full_render);
 
-void BKE_pbvh_draw_debug_cb(
-    PBVH *pbvh,
-    void (*draw_fn)(void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag),
-    void *user_data);
+void BKE_pbvh_draw_debug_cb(PBVH *pbvh,
+                            void (*draw_fn)(PBVHNode *node,
+                                            void *user_data,
+                                            const float bmin[3],
+                                            const float bmax[3],
+                                            PBVHNodeFlags flag),
+                            void *user_data);
 
 /* PBVH Access */
 
@@ -711,6 +714,7 @@ void BKE_pbvh_vertex_color_get(const PBVH *pbvh, PBVHVertRef vertex, float r_col
 
 void BKE_pbvh_ensure_node_loops(PBVH *pbvh);
 bool BKE_pbvh_draw_cache_invalid(const PBVH *pbvh);
+int BKE_pbvh_debug_draw_gen_get(PBVHNode *node);
 
 #ifdef __cplusplus
 }

@@ -158,6 +158,16 @@ void imapaint_image_update(
                                             imapaintpartial.dirty_region.xmax,
                                             imapaintpartial.dirty_region.ymax);
 
+  /* When buffer is partial updated the planes should be set to a larger value than 8. This will
+   * make sure that partial updating is working but uses more GPU memory as the gpu texture will
+   * have 4 channels. When so the whole texture needs to be reuploaded to the GPU using the new
+   * texture format.*/
+  if (ibuf != nullptr && ibuf->planes == 8) {
+    ibuf->planes = 32;
+    BKE_image_partial_update_mark_full_update(image);
+    return;
+  }
+
   /* TODO: should set_tpage create ->rect? */
   if (texpaint || (sima && sima->lock)) {
     const int w = BLI_rcti_size_x(&imapaintpartial.dirty_region);

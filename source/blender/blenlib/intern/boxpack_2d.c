@@ -712,7 +712,6 @@ void BLI_box_pack_2d_fixedarea(ListBase *boxes, int width, int height, ListBase 
          * #  Box  *  Small  #        #  Box  *         #
          * #       *         #        #       *         #
          * ###################        ###################
-         *
          */
         int area_hsplit_large = space->w * (space->h - box->h);
         int area_vsplit_large = (space->w - box->w) * space->h;

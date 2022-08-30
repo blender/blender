@@ -51,14 +51,10 @@ ccl_device Spectrum bsdf_diffuse_eval_transmit(ccl_private const ShaderClosure *
 ccl_device int bsdf_diffuse_sample(ccl_private const ShaderClosure *sc,
                                    float3 Ng,
                                    float3 I,
-                                   float3 dIdx,
-                                   float3 dIdy,
                                    float randu,
                                    float randv,
                                    ccl_private Spectrum *eval,
                                    ccl_private float3 *omega_in,
-                                   ccl_private float3 *domega_in_dx,
-                                   ccl_private float3 *domega_in_dy,
                                    ccl_private float *pdf)
 {
   ccl_private const DiffuseBsdf *bsdf = (ccl_private const DiffuseBsdf *)sc;
@@ -69,11 +65,6 @@ ccl_device int bsdf_diffuse_sample(ccl_private const ShaderClosure *sc,
 
   if (dot(Ng, *omega_in) > 0.0f) {
     *eval = make_spectrum(*pdf);
-#ifdef __RAY_DIFFERENTIALS__
-    // TODO: find a better approximation for the diffuse bounce
-    *domega_in_dx = (2 * dot(N, dIdx)) * N - dIdx;
-    *domega_in_dy = (2 * dot(N, dIdy)) * N - dIdy;
-#endif
   }
   else {
     *pdf = 0.0f;
@@ -115,14 +106,10 @@ ccl_device Spectrum bsdf_translucent_eval_transmit(ccl_private const ShaderClosu
 ccl_device int bsdf_translucent_sample(ccl_private const ShaderClosure *sc,
                                        float3 Ng,
                                        float3 I,
-                                       float3 dIdx,
-                                       float3 dIdy,
                                        float randu,
                                        float randv,
                                        ccl_private Spectrum *eval,
                                        ccl_private float3 *omega_in,
-                                       ccl_private float3 *domega_in_dx,
-                                       ccl_private float3 *domega_in_dy,
                                        ccl_private float *pdf)
 {
   ccl_private const DiffuseBsdf *bsdf = (ccl_private const DiffuseBsdf *)sc;
@@ -133,11 +120,6 @@ ccl_device int bsdf_translucent_sample(ccl_private const ShaderClosure *sc,
   sample_cos_hemisphere(-N, randu, randv, omega_in, pdf);
   if (dot(Ng, *omega_in) < 0) {
     *eval = make_spectrum(*pdf);
-#ifdef __RAY_DIFFERENTIALS__
-    // TODO: find a better approximation for the diffuse bounce
-    *domega_in_dx = -((2 * dot(N, dIdx)) * N - dIdx);
-    *domega_in_dy = -((2 * dot(N, dIdy)) * N - dIdy);
-#endif
   }
   else {
     *pdf = 0;

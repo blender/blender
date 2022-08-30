@@ -14,8 +14,6 @@
 
 #include "gpu_testing.hh"
 
-#include "GPU_glew.h"
-
 namespace blender::gpu::tests {
 
 static void test_gpu_shader_compute_2d()

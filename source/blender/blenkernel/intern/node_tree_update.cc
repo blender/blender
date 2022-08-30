@@ -94,6 +94,9 @@ static InputSocketFieldType get_interface_input_field_type(const NodeRef &node,
   if (node.is_undefined()) {
     return InputSocketFieldType::None;
   }
+  if (node.bnode()->type == NODE_CUSTOM) {
+    return InputSocketFieldType::None;
+  }
 
   const NodeDeclaration *node_decl = node.declaration();
 
@@ -129,6 +132,9 @@ static OutputFieldDependency get_interface_output_field_dependency(const NodeRef
     return OutputFieldDependency::ForDependentField();
   }
   if (node.is_undefined()) {
+    return OutputFieldDependency::ForDataSource();
+  }
+  if (node.bnode()->type == NODE_CUSTOM) {
     return OutputFieldDependency::ForDataSource();
   }
 
@@ -1267,7 +1273,7 @@ class NodeTreeMainUpdater {
     }
 
     /* Check if a used node group has an animated image. */
-    for (const NodeRef *group_node : tree_ref.nodes_by_type("NodeGroup")) {
+    for (const NodeRef *group_node : tree_ref.nodes_by_type("ShaderNodeGroup")) {
       const bNodeTree *group = reinterpret_cast<bNodeTree *>(group_node->bnode()->id);
       if (group != nullptr) {
         ntree.runtime->runtime_flag |= group->runtime->runtime_flag;

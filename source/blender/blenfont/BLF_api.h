@@ -353,6 +353,8 @@ enum {
   BLF_LAST_RESORT = 1 << 15,
   /** Failure to load this font. Don't try again. */
   BLF_BAD_FONT = 1 << 16,
+  /** This font is managed by the FreeType cache subsystem. */
+  BLF_CACHED = 1 << 17,
 };
 
 #define BLF_DRAW_STR_DUMMY_MAX 1024

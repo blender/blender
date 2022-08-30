@@ -2054,7 +2054,7 @@ static void mesh_set_custom_normals(Mesh *mesh, float (*r_custom_nors)[3], const
   }
   else {
     clnors = (short(*)[2])CustomData_add_layer(
-        &mesh->ldata, CD_CUSTOMLOOPNORMAL, CD_CALLOC, nullptr, numloops);
+        &mesh->ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, nullptr, numloops);
   }
 
   mesh_normals_loop_custom_set(mesh->mvert,

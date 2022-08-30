@@ -134,7 +134,24 @@ void WM_window_pixel_sample_read(const wmWindowManager *wm,
                                  const int pos[2],
                                  float r_col[3]);
 
+/**
+ * Read pixels from the front-buffer (fast).
+ *
+ * \note Internally this depends on the front-buffer state,
+ * for a slower but more reliable method of reading pixels, use #WM_window_pixels_read_offscreen.
+ * Fast pixel access may be preferred for file-save thumbnails.
+ *
+ * \warning Drawing (swap-buffers) immediately before calling this function causes
+ * the front-buffer state to be invalid under some EGL configurations.
+ */
 uint *WM_window_pixels_read(struct wmWindowManager *wm, struct wmWindow *win, int r_size[2]);
+/**
+ * Draw the window & read pixels from an off-screen buffer (slower than #WM_window_pixels_read).
+ *
+ * \note This is needed because the state of the front-buffer may be damaged
+ * (see in-line code comments for details).
+ */
+uint *WM_window_pixels_read_offscreen(struct bContext *C, struct wmWindow *win, int r_size[2]);
 
 /**
  * Support for native pixel size

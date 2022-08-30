@@ -229,7 +229,7 @@ bool ED_scene_view_layer_delete(Main *bmain, Scene *scene, ViewLayer *layer, Rep
 
   BKE_view_layer_free(layer);
 
-  DEG_id_tag_update(&scene->id, 0);
+  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   DEG_relations_tag_update(bmain);
   WM_main_add_notifier(NC_SCENE | ND_LAYER | NA_REMOVED, scene);
 

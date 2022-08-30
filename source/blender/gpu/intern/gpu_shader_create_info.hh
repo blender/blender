@@ -745,33 +745,16 @@ struct ShaderCreateInfo {
    * Used to share parts of the infos that are common to many shaders.
    * \{ */
 
-  Self &additional_info(StringRefNull info_name0,
-                        StringRefNull info_name1 = "",
-                        StringRefNull info_name2 = "",
-                        StringRefNull info_name3 = "",
-                        StringRefNull info_name4 = "",
-                        StringRefNull info_name5 = "",
-                        StringRefNull info_name6 = "")
+  Self &additional_info(StringRefNull info_name)
   {
-    additional_infos_.append(info_name0);
-    if (!info_name1.is_empty()) {
-      additional_infos_.append(info_name1);
-    }
-    if (!info_name2.is_empty()) {
-      additional_infos_.append(info_name2);
-    }
-    if (!info_name3.is_empty()) {
-      additional_infos_.append(info_name3);
-    }
-    if (!info_name4.is_empty()) {
-      additional_infos_.append(info_name4);
-    }
-    if (!info_name5.is_empty()) {
-      additional_infos_.append(info_name5);
-    }
-    if (!info_name6.is_empty()) {
-      additional_infos_.append(info_name6);
-    }
+    additional_infos_.append(info_name);
+    return *(Self *)this;
+  }
+
+  template<typename... Args> Self &additional_info(StringRefNull info_name, Args... args)
+  {
+    additional_info(info_name);
+    additional_info(args...);
     return *(Self *)this;
   }
 

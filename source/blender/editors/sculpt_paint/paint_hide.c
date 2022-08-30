@@ -81,7 +81,7 @@ static void partialvis_update_mesh(Object *ob,
   bool *hide_vert = CustomData_get_layer_named(&me->vdata, CD_PROP_BOOL, ".hide_vert");
   if (hide_vert == NULL) {
     hide_vert = CustomData_add_layer_named(
-        &me->vdata, CD_PROP_BOOL, CD_CALLOC, NULL, me->totvert, ".hide_vert");
+        &me->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, me->totvert, ".hide_vert");
   }
 
   SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
@@ -351,10 +351,10 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   /* Start undo. */
   switch (action) {
     case PARTIALVIS_HIDE:
-      SCULPT_undo_push_begin(ob, "Hide area");
+      SCULPT_undo_push_begin_ex(ob, "Hide area");
       break;
     case PARTIALVIS_SHOW:
-      SCULPT_undo_push_begin(ob, "Show area");
+      SCULPT_undo_push_begin_ex(ob, "Show area");
       break;
   }
 

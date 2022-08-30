@@ -72,8 +72,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (geometry_set.has_mesh()) {
       MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
       Mesh &mesh = *mesh_component.get_for_write();
-      GeometryComponentFieldContext field_context{mesh_component, ATTR_DOMAIN_FACE};
 
+      bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
       fn::FieldEvaluator selection_evaluator{field_context, mesh.totpoly};
       selection_evaluator.add(selection_field);
       selection_evaluator.evaluate();

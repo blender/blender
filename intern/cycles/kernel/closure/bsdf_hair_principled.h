@@ -354,8 +354,6 @@ ccl_device int bsdf_principled_hair_sample(KernelGlobals kg,
                                            float randv,
                                            ccl_private Spectrum *eval,
                                            ccl_private float3 *omega_in,
-                                           ccl_private float3 *domega_in_dx,
-                                           ccl_private float3 *domega_in_dy,
                                            ccl_private float *pdf)
 {
   ccl_private PrincipledHairBSDF *bsdf = (ccl_private PrincipledHairBSDF *)sc;
@@ -470,12 +468,6 @@ ccl_device int bsdf_principled_hair_sample(KernelGlobals kg,
   *pdf = F_energy;
 
   *omega_in = X * sin_theta_i + Y * cos_theta_i * cosf(phi_i) + Z * cos_theta_i * sinf(phi_i);
-
-#ifdef __RAY_DIFFERENTIALS__
-  float3 N = safe_normalize(sd->I + *omega_in);
-  *domega_in_dx = (2 * dot(N, sd->dI.dx)) * N - sd->dI.dx;
-  *domega_in_dy = (2 * dot(N, sd->dI.dy)) * N - sd->dI.dy;
-#endif
 
   return LABEL_GLOSSY | ((p == 0) ? LABEL_REFLECT : LABEL_TRANSMIT);
 }

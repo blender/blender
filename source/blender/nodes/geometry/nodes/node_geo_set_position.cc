@@ -136,7 +136,7 @@ static void set_position_in_component(GeometryComponent &component,
 {
   eAttrDomain domain = component.type() == GEO_COMPONENT_TYPE_INSTANCES ? ATTR_DOMAIN_INSTANCE :
                                                                           ATTR_DOMAIN_POINT;
-  GeometryComponentFieldContext field_context{component, domain};
+  bke::GeometryFieldContext field_context{component, domain};
   const int domain_size = component.attribute_domain_size(domain);
   if (domain_size == 0) {
     return;

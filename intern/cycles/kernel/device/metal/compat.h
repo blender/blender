@@ -29,11 +29,12 @@ using namespace metal::raytracing;
 
 /* Qualifiers */
 
-#if defined(__KERNEL_METAL_APPLE__)
+/* Inline everything for Apple GPUs. This gives ~1.1x speedup and 10% spill
+ * reduction for integator_shade_surface. However it comes at the cost of
+ * longer compile times (~4.5 minutes on M1 Max) and is disabled for that
+ * reason, until there is a user option to manually enable it. */
 
-/* Inline everything for Apple GPUs.
- * This gives ~1.1x speedup and 10% spill reduction for integator_shade_surface
- * at the cost of longer compile times (~4.5 minutes on M1 Max). */
+#if 0  // defined(__KERNEL_METAL_APPLE__)
 
 #  define ccl_device __attribute__((always_inline))
 #  define ccl_device_inline __attribute__((always_inline))

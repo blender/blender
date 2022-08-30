@@ -77,9 +77,10 @@ void immDrawPixelsTexScaledFullSize(const IMMDrawPixelsTexState *state,
    * filtering results. Mipmaps can be used to get better results (i.e. #GL_LINEAR_MIPMAP_LINEAR),
    * so always use mipmaps when filtering. */
   const bool use_mipmap = use_filter && ((draw_width < img_w) || (draw_height < img_h));
-  const int mips = use_mipmap ? 9999 : 1;
+  const int mip_len = use_mipmap ? 9999 : 1;
 
-  GPUTexture *tex = GPU_texture_create_2d("immDrawPixels", img_w, img_h, mips, gpu_format, NULL);
+  GPUTexture *tex = GPU_texture_create_2d(
+      "immDrawPixels", img_w, img_h, mip_len, gpu_format, NULL);
 
   const bool use_float_data = ELEM(gpu_format, GPU_RGBA16F, GPU_RGB16F, GPU_R16F);
   eGPUDataFormat gpu_data_format = (use_float_data) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;

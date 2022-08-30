@@ -2,7 +2,6 @@
 /**
  * Dilate motion vector tiles until we covered maximum velocity.
  * Outputs the largest intersecting motion vector in the neighborhood.
- *
  */
 
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)

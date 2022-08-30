@@ -107,7 +107,7 @@ bool uvedit_uv_select_test(const struct Scene *scene, struct BMLoop *l, int cd_l
  * Changes selection state of a single UV Face.
  */
 void uvedit_face_select_set(const struct Scene *scene,
-                            struct BMEditMesh *em,
+                            struct BMesh *em,
                             struct BMFace *efa,
                             bool select,
                             bool do_history,
@@ -118,7 +118,7 @@ void uvedit_face_select_set(const struct Scene *scene,
  * Changes selection state of a single UV Edge.
  */
 void uvedit_edge_select_set(const struct Scene *scene,
-                            struct BMEditMesh *em,
+                            struct BMesh *em,
                             struct BMLoop *l,
                             bool select,
                             bool do_history,
@@ -129,7 +129,7 @@ void uvedit_edge_select_set(const struct Scene *scene,
  * Changes selection state of a single UV vertex.
  */
 void uvedit_uv_select_set(const struct Scene *scene,
-                          struct BMEditMesh *em,
+                          struct BMesh *em,
                           struct BMLoop *l,
                           bool select,
                           bool do_history,
@@ -139,30 +139,30 @@ void uvedit_uv_select_set(const struct Scene *scene,
  * use. */
 
 void uvedit_face_select_enable(const struct Scene *scene,
-                               struct BMEditMesh *em,
+                               struct BMesh *bm,
                                struct BMFace *efa,
                                bool do_history,
                                int cd_loop_uv_offset);
 void uvedit_face_select_disable(const struct Scene *scene,
-                                struct BMEditMesh *em,
+                                struct BMesh *bm,
                                 struct BMFace *efa,
                                 int cd_loop_uv_offset);
 void uvedit_edge_select_enable(const struct Scene *scene,
-                               struct BMEditMesh *em,
+                               struct BMesh *bm,
                                struct BMLoop *l,
                                bool do_history,
                                int cd_loop_uv_offset);
 void uvedit_edge_select_disable(const struct Scene *scene,
-                                struct BMEditMesh *em,
+                                struct BMesh *bm,
                                 struct BMLoop *l,
                                 int cd_loop_uv_offset);
 void uvedit_uv_select_enable(const struct Scene *scene,
-                             struct BMEditMesh *em,
+                             struct BMesh *bm,
                              struct BMLoop *l,
                              bool do_history,
                              int cd_loop_uv_offset);
 void uvedit_uv_select_disable(const struct Scene *scene,
-                              struct BMEditMesh *em,
+                              struct BMesh *bm,
                               struct BMLoop *l,
                               int cd_loop_uv_offset);
 
@@ -179,13 +179,13 @@ void uvedit_edge_select_set_with_sticky(const struct Scene *scene,
                                         struct BMLoop *l,
                                         bool select,
                                         bool do_history,
-                                        uint cd_loop_uv_offset);
+                                        int cd_loop_uv_offset);
 void uvedit_uv_select_set_with_sticky(const struct Scene *scene,
                                       struct BMEditMesh *em,
                                       struct BMLoop *l,
                                       bool select,
                                       bool do_history,
-                                      uint cd_loop_uv_offset);
+                                      int cd_loop_uv_offset);
 
 /* Low level functions for sticky element selection (sticky mode independent). Type of sticky
  * selection is specified explicitly (using sticky_flag, except for face selection). */
@@ -315,7 +315,7 @@ struct FaceIsland {
    * \note While this is duplicate information,
    * it allows islands from multiple meshes to be stored in the same list.
    */
-  uint cd_loop_uv_offset;
+  int cd_loop_uv_offset;
   float aspect_y;
 };
 
@@ -326,7 +326,7 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
                             const bool only_selected_uvs,
                             const bool use_seams,
                             const float aspect_y,
-                            const uint cd_loop_uv_offset);
+                            const int cd_loop_uv_offset);
 
 struct UVMapUDIM_Params {
   const struct Image *image;

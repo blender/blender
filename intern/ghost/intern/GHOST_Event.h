@@ -22,7 +22,7 @@ class GHOST_Event : public GHOST_IEvent {
    * \param window: The generating window (or NULL if system event).
    */
   GHOST_Event(uint64_t msec, GHOST_TEventType type, GHOST_IWindow *window)
-      : m_type(type), m_time(msec), m_window(window), m_data(NULL)
+      : m_type(type), m_time(msec), m_window(window), m_data(nullptr)
   {
   }
 

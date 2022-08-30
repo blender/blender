@@ -19,24 +19,20 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
-static void mesh_flip_faces(MeshComponent &component, const Field<bool> &selection_field)
+static void mesh_flip_faces(Mesh &mesh, const Field<bool> &selection_field)
 {
-  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_FACE};
-  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_FACE);
-  if (domain_size == 0) {
+  if (mesh.totpoly == 0) {
     return;
   }
-  fn::FieldEvaluator evaluator{field_context, domain_size};
+  bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
+  fn::FieldEvaluator evaluator{field_context, mesh.totpoly};
   evaluator.add(selection_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_as_mask(0);
 
-  Mesh *mesh = component.get_for_write();
-
-  mesh->mloop = (MLoop *)CustomData_duplicate_referenced_layer(
-      &mesh->ldata, CD_MLOOP, mesh->totloop);
-  Span<MPoly> polys{mesh->mpoly, mesh->totpoly};
-  MutableSpan<MLoop> loops{mesh->mloop, mesh->totloop};
+  mesh.mloop = (MLoop *)CustomData_duplicate_referenced_layer(&mesh.ldata, CD_MLOOP, mesh.totloop);
+  const Span<MPoly> polys{mesh.mpoly, mesh.totpoly};
+  MutableSpan<MLoop> loops{mesh.mloop, mesh.totloop};
 
   for (const int i : selection.index_range()) {
     const MPoly &poly = polys[selection[i]];
@@ -49,7 +45,7 @@ static void mesh_flip_faces(MeshComponent &component, const Field<bool> &selecti
     }
   }
 
-  MutableAttributeAccessor attributes = *component.attributes_for_write();
+  MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(mesh);
   attributes.for_all(
       [&](const bke::AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
         if (meta_data.domain == ATTR_DOMAIN_CORNER) {
@@ -76,11 +72,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (!geometry_set.has_mesh()) {
-      return;
+    if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
+      mesh_flip_faces(*mesh, selection_field);
     }
-    MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-    mesh_flip_faces(mesh_component, selection_field);
   });
 
   params.set_output("Mesh", std::move(geometry_set));

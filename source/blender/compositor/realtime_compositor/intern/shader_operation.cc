@@ -481,6 +481,10 @@ void ShaderOperation::generate_code_for_inputs(GPUMaterial *material,
   /* The attributes of the GPU material represents the inputs of the operation. */
   ListBase attributes = GPU_material_attributes(material);
 
+  if (BLI_listbase_is_empty(&attributes)) {
+    return;
+  }
+
   /* Add a texture sampler for each of the inputs with the same name as the attribute. */
   LISTBASE_FOREACH (GPUMaterialAttribute *, attribute, &attributes) {
     shader_create_info.sampler(0, ImageType::FLOAT_2D, attribute->name, Frequency::BATCH);

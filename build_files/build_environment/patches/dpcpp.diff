@@ -1,21 +1,3 @@
-diff -Naur external_dpcpp.orig/sycl/source/CMakeLists.txt external_dpcpp/sycl/source/CMakeLists.txt
---- external_dpcpp.orig/sycl/source/CMakeLists.txt      2022-05-20 04:19:45.067771362 +0000
-+++ external_dpcpp/sycl/source/CMakeLists.txt   2022-05-20 04:21:49.708025048 +0000
-@@ -66,10 +66,10 @@
-     target_compile_options(${LIB_OBJ_NAME} PUBLIC
-                            -fvisibility=hidden -fvisibility-inlines-hidden)
-     set(linker_script "${CMAKE_CURRENT_SOURCE_DIR}/ld-version-script.txt")
--    set(abi_linker_script "${CMAKE_CURRENT_SOURCE_DIR}/abi_replacements_linux.txt")
--    target_link_libraries(
--      ${LIB_NAME} PRIVATE "-Wl,${abi_linker_script}")
--    set_target_properties(${LIB_NAME} PROPERTIES LINK_DEPENDS ${abi_linker_script})
-+#    set(abi_linker_script "${CMAKE_CURRENT_SOURCE_DIR}/abi_replacements_linux.txt")
-+#    target_link_libraries(
-+#      ${LIB_NAME} PRIVATE "-Wl,${abi_linker_script}")
-+#    set_target_properties(${LIB_NAME} PROPERTIES LINK_DEPENDS ${abi_linker_script})
-     target_link_libraries(
-         ${LIB_NAME} PRIVATE "-Wl,--version-script=${linker_script}")
-     set_target_properties(${LIB_NAME} PROPERTIES LINK_DEPENDS ${linker_script})
 diff -Naur llvm-sycl-nightly-20220501.orig\opencl/CMakeLists.txt llvm-sycl-nightly-20220501\opencl/CMakeLists.txt
 --- llvm-sycl-nightly-20220501.orig/opencl/CMakeLists.txt       2022-04-29 13:47:11 -0600
 +++ llvm-sycl-nightly-20220501/opencl/CMakeLists.txt    2022-05-21 15:25:06 -0600

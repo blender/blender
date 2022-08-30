@@ -387,7 +387,7 @@ class NearestInterpolatedTransferFunction : public fn::MultiFunction {
 
   fn::MFSignature signature_;
 
-  std::optional<GeometryComponentFieldContext> source_context_;
+  std::optional<bke::MeshFieldContext> source_context_;
   std::unique_ptr<FieldEvaluator> source_evaluator_;
   const GVArray *source_data_;
 
@@ -431,10 +431,10 @@ class NearestInterpolatedTransferFunction : public fn::MultiFunction {
  private:
   void evaluate_source_field()
   {
-    const MeshComponent &mesh_component = *source_.get_component_for_read<MeshComponent>();
-    source_context_.emplace(GeometryComponentFieldContext{mesh_component, domain_});
-    const int domain_num = mesh_component.attribute_domain_size(domain_);
-    source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, domain_num);
+    const Mesh &mesh = *source_.get_mesh_for_read();
+    source_context_.emplace(bke::MeshFieldContext{mesh, domain_});
+    const int domain_size = bke::mesh_attributes(mesh).domain_size(domain_);
+    source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, domain_size);
     source_evaluator_->add(src_field_);
     source_evaluator_->evaluate();
     source_data_ = &source_evaluator_->get_evaluated(0);
@@ -457,11 +457,11 @@ class NearestTransferFunction : public fn::MultiFunction {
   bool use_points_;
 
   /* Store data from the source as a virtual array, since we may only access a few indices. */
-  std::optional<GeometryComponentFieldContext> mesh_context_;
+  std::optional<bke::MeshFieldContext> mesh_context_;
   std::unique_ptr<FieldEvaluator> mesh_evaluator_;
   const GVArray *mesh_data_;
 
-  std::optional<GeometryComponentFieldContext> point_context_;
+  std::optional<bke::PointCloudFieldContext> point_context_;
   std::unique_ptr<FieldEvaluator> point_evaluator_;
   const GVArray *point_data_;
 
@@ -577,20 +577,19 @@ class NearestTransferFunction : public fn::MultiFunction {
   void evaluate_source_field()
   {
     if (use_mesh_) {
-      const MeshComponent &mesh = *source_.get_component_for_read<MeshComponent>();
-      const int domain_num = mesh.attribute_domain_size(domain_);
-      mesh_context_.emplace(GeometryComponentFieldContext(mesh, domain_));
-      mesh_evaluator_ = std::make_unique<FieldEvaluator>(*mesh_context_, domain_num);
+      const Mesh &mesh = *source_.get_mesh_for_read();
+      const int domain_size = bke::mesh_attributes(mesh).domain_size(domain_);
+      mesh_context_.emplace(bke::MeshFieldContext(mesh, domain_));
+      mesh_evaluator_ = std::make_unique<FieldEvaluator>(*mesh_context_, domain_size);
       mesh_evaluator_->add(src_field_);
       mesh_evaluator_->evaluate();
       mesh_data_ = &mesh_evaluator_->get_evaluated(0);
     }
 
     if (use_points_) {
-      const PointCloudComponent &points = *source_.get_component_for_read<PointCloudComponent>();
-      const int domain_num = points.attribute_domain_size(domain_);
-      point_context_.emplace(GeometryComponentFieldContext(points, domain_));
-      point_evaluator_ = std::make_unique<FieldEvaluator>(*point_context_, domain_num);
+      const PointCloud &points = *source_.get_pointcloud_for_read();
+      point_context_.emplace(bke::PointCloudFieldContext(points));
+      point_evaluator_ = std::make_unique<FieldEvaluator>(*point_context_, points.totpoint);
       point_evaluator_->add(src_field_);
       point_evaluator_->evaluate();
       point_data_ = &point_evaluator_->get_evaluated(0);
@@ -628,7 +627,7 @@ class IndexTransferFunction : public fn::MultiFunction {
 
   fn::MFSignature signature_;
 
-  std::optional<GeometryComponentFieldContext> geometry_context_;
+  std::optional<bke::GeometryFieldContext> geometry_context_;
   std::unique_ptr<FieldEvaluator> evaluator_;
   const GVArray *src_data_ = nullptr;
 
@@ -659,7 +658,7 @@ class IndexTransferFunction : public fn::MultiFunction {
       return;
     }
     const int domain_num = component->attribute_domain_size(domain_);
-    geometry_context_.emplace(GeometryComponentFieldContext(*component, domain_));
+    geometry_context_.emplace(bke::GeometryFieldContext(*component, domain_));
     evaluator_ = std::make_unique<FieldEvaluator>(*geometry_context_, domain_num);
     evaluator_->add(src_field_);
     evaluator_->evaluate();

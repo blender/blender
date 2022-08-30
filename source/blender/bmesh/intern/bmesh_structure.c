@@ -182,9 +182,8 @@ void bmesh_disk_edge_remove(BMEdge *e, BMVert *v)
 
 BMEdge *bmesh_disk_edge_exists(const BMVert *v1, const BMVert *v2)
 {
-  BMEdge *e_iter, *e_first;
-
   if (v1->e) {
+    BMEdge *e_iter, *e_first;
     e_first = e_iter = v1->e;
 
     do {

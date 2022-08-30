@@ -11,8 +11,8 @@
 #include "BLI_map.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_vec_types.hh"
+#include "BLI_set.hh"
 #include "BLI_vector.hh"
-#include "BLI_vector_set.hh"
 
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -93,9 +93,11 @@ struct Geometry {
 
   int vertex_index_min_ = INT_MAX;
   int vertex_index_max_ = -1;
-  VectorSet<int> vertices_;
+  /* Global vertex indices used by this geometry. */
+  Set<int> vertices_;
+  /* Mapping from global vertex index to geometry-local vertex index. */
   Map<int, int> global_to_local_vertices_;
-  /** Edges written in the file in addition to (or even without polygon) elements. */
+  /* Loose edges in the file. */
   Vector<MEdge> edges_;
 
   Vector<PolyCorner> face_corners_;
@@ -112,19 +114,15 @@ struct Geometry {
   }
   void track_vertex_index(int index)
   {
-    if (vertices_.add(index)) {
-      global_to_local_vertices_.add_new(index, (int)vertices_.size() - 1);
-    }
+    vertices_.add(index);
     math::min_inplace(vertex_index_min_, index);
     math::max_inplace(vertex_index_max_, index);
   }
   void track_all_vertices(int count)
   {
     vertices_.reserve(count);
-    global_to_local_vertices_.reserve(count);
     for (int i = 0; i < count; ++i) {
       vertices_.add(i);
-      global_to_local_vertices_.add(i, i);
     }
     vertex_index_min_ = 0;
     vertex_index_max_ = count - 1;

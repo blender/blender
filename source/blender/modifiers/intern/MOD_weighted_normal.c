@@ -609,7 +609,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
    * it helps when generating clnor spaces and default normals. */
   const bool has_clnors = clnors != NULL;
   if (!clnors) {
-    clnors = CustomData_add_layer(&result->ldata, CD_CUSTOMLOOPNORMAL, CD_CALLOC, NULL, loops_num);
+    clnors = CustomData_add_layer(
+        &result->ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, NULL, loops_num);
   }
 
   MDeformVert *dvert;
@@ -660,7 +661,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   MEM_SAFE_FREE(wn_data.mode_pair);
   MEM_SAFE_FREE(wn_data.items_data);
 
-  result->runtime.is_original = false;
+  result->runtime.is_original_bmesh = false;
 
   return result;
 }

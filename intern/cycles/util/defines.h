@@ -89,46 +89,6 @@
 #  define UNLIKELY(x) (x)
 #endif
 
-#if defined(__GNUC__) || defined(__clang__)
-#  if defined(__cplusplus)
-/* Some magic to be sure we don't have reference in the type. */
-template<typename T> static inline T decltype_helper(T x)
-{
-  return x;
-}
-#    define TYPEOF(x) decltype(decltype_helper(x))
-#  else
-#    define TYPEOF(x) typeof(x)
-#  endif
-#endif
-
-/* Causes warning:
- * incompatible types when assigning to type 'Foo' from type 'Bar'
- * ... the compiler optimizes away the temp var */
-#ifdef __GNUC__
-#  define CHECK_TYPE(var, type) \
-    { \
-      TYPEOF(var) * __tmp; \
-      __tmp = (type *)NULL; \
-      (void)__tmp; \
-    } \
-    (void)0
-
-#  define CHECK_TYPE_PAIR(var_a, var_b) \
-    { \
-      TYPEOF(var_a) * __tmp; \
-      __tmp = (typeof(var_b) *)NULL; \
-      (void)__tmp; \
-    } \
-    (void)0
-#else
-#  define CHECK_TYPE(var, type)
-#  define CHECK_TYPE_PAIR(var_a, var_b)
-#endif
-
-/* can be used in simple macros */
-#define CHECK_TYPE_INLINE(val, type) ((void)(((type)0) != (val)))
-
 #ifndef __KERNEL_GPU__
 #  include <cassert>
 #  define util_assert(statement) assert(statement)

@@ -34,7 +34,7 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]);
  * `ftext` is a format string passed to #BLI_snprintf. It will add the name of
  * the orientation where %s is (logically).
  */
-void setUserConstraint(TransInfo *t, int mode, const char text[]);
+void setUserConstraint(TransInfo *t, int mode, const char text_[]);
 void drawConstraint(TransInfo *t);
 /**
  * Called from drawview.c, as an extra per-window draw option.

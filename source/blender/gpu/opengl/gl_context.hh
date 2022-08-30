@@ -16,8 +16,6 @@
 
 #include "gl_state.hh"
 
-#include "glew-mx.h"
-
 #include <mutex>
 
 namespace blender {

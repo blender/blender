@@ -8,6 +8,7 @@
 #include <stdlib.h>
 
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 
 #include "BKE_context.h"
 
@@ -18,6 +19,7 @@
 #include "WM_types.h"
 
 #include "transform.h"
+#include "transform_mode.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -251,11 +253,8 @@ void setCustomPointsFromDirection(TransInfo *t, MouseInput *mi, const float dir[
 /** \name Setup & Handle Mouse Input
  * \{ */
 
-void initMouseInput(TransInfo *UNUSED(t),
-                    MouseInput *mi,
-                    const float center[2],
-                    const int mval[2],
-                    const bool precision)
+void initMouseInput(
+    TransInfo *t, MouseInput *mi, const float center[2], const int mval[2], const bool precision)
 {
   mi->factor = 0;
   mi->precision = precision;
@@ -266,14 +265,20 @@ void initMouseInput(TransInfo *UNUSED(t),
   mi->imval[0] = mval[0];
   mi->imval[1] = mval[1];
 
+  if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
+    float delta[3] = {mval[0] - center[0], mval[1] - center[1]};
+    ED_view3d_win_to_delta(t->region, delta, t->zfac, delta);
+    add_v3_v3v3(mi->imval_unproj, t->center_global, delta);
+  }
+
   mi->post = NULL;
 }
 
 static void calcSpringFactor(MouseInput *mi)
 {
-  mi->factor = sqrtf(
-      ((float)(mi->center[1] - mi->imval[1])) * ((float)(mi->center[1] - mi->imval[1])) +
-      ((float)(mi->center[0] - mi->imval[0])) * ((float)(mi->center[0] - mi->imval[0])));
+  float mdir[2] = {(float)(mi->center[1] - mi->imval[1]), (float)(mi->center[0] - mi->imval[0])};
+
+  mi->factor = len_v2(mdir);
 
   if (mi->factor == 0.0f) {
     mi->factor = 1.0f; /* prevent Inf */
@@ -438,6 +443,54 @@ void applyMouseInput(TransInfo *t, MouseInput *mi, const int mval[2], float outp
 
   if (mi->post) {
     mi->post(t, output);
+  }
+}
+
+void transform_input_update(TransInfo *t, const float fac)
+{
+  MouseInput *mi = &t->mouse;
+  t->mouse.factor *= fac;
+  if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
+    projectIntView(t, mi->imval_unproj, mi->imval);
+  }
+  else {
+    int offset[2], center_2d_int[2] = {mi->center[0], mi->center[1]};
+    sub_v2_v2v2_int(offset, mi->imval, center_2d_int);
+    offset[0] *= fac;
+    offset[1] *= fac;
+
+    center_2d_int[0] = t->center2d[0];
+    center_2d_int[1] = t->center2d[1];
+    add_v2_v2v2_int(mi->imval, center_2d_int, offset);
+  }
+
+  float center_old[2];
+  copy_v2_v2(center_old, mi->center);
+  copy_v2_v2(mi->center, t->center2d);
+
+  if (mi->use_virtual_mval) {
+    /* Update accumulator. */
+    double mval_delta[2];
+    sub_v2_v2v2_db(mval_delta, mi->virtual_mval.accum, mi->virtual_mval.prev);
+    mval_delta[0] *= fac;
+    mval_delta[1] *= fac;
+    copy_v2_v2_db(mi->virtual_mval.accum, mi->virtual_mval.prev);
+    add_v2_v2_db(mi->virtual_mval.accum, mval_delta);
+  }
+
+  if (ELEM(mi->apply, InputAngle, InputAngleSpring)) {
+    float offset_center[2];
+    sub_v2_v2v2(offset_center, mi->center, center_old);
+    struct InputAngle_Data *data = mi->data;
+    data->mval_prev[0] += offset_center[0];
+    data->mval_prev[1] += offset_center[1];
+  }
+
+  if (t->mode == TFM_EDGE_SLIDE) {
+    transform_mode_edge_slide_reproject_input(t);
+  }
+  else if (t->mode == TFM_VERT_SLIDE) {
+    transform_mode_vert_slide_reproject_input(t);
   }
 }
 

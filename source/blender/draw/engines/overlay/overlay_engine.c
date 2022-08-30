@@ -320,7 +320,6 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
                                 OB_MESH,
                                 OB_CURVES_LEGACY,
                                 OB_SURF,
-                                OB_MBALL,
                                 OB_FONT,
                                 OB_GPENCIL,
                                 OB_CURVES,

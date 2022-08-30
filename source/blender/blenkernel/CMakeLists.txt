@@ -25,7 +25,6 @@ set(INC
   ../simulation
   ../../../intern/eigen
   ../../../intern/ghost
-  ../../../intern/glew-mx
   ../../../intern/guardedalloc
   ../../../intern/iksolver/extern
   ../../../intern/atomic
@@ -144,6 +143,7 @@ set(SRC
   intern/geometry_component_mesh.cc
   intern/geometry_component_pointcloud.cc
   intern/geometry_component_volume.cc
+  intern/geometry_fields.cc
   intern/geometry_set.cc
   intern/geometry_set_instances.cc
   intern/gpencil.c
@@ -238,9 +238,9 @@ set(SRC
   intern/object_update.c
   intern/ocean.c
   intern/ocean_spectrum.c
-  intern/outliner_treehash.c
+  intern/outliner_treehash.cc
   intern/packedFile.c
-  intern/paint.c
+  intern/paint.cc
   intern/paint_canvas.cc
   intern/paint_toolslots.c
   intern/particle.c
@@ -280,7 +280,7 @@ set(SRC
   intern/subdiv_displacement_multires.c
   intern/subdiv_eval.c
   intern/subdiv_foreach.c
-  intern/subdiv_mesh.c
+  intern/subdiv_mesh.cc
   intern/subdiv_modifier.c
   intern/subdiv_stats.c
   intern/subdiv_topology.c
@@ -399,6 +399,7 @@ set(SRC
   BKE_image_format.h
   BKE_image_partial_update.hh
   BKE_image_save.h
+  BKE_image_wrappers.hh
   BKE_ipo.h
   BKE_kelvinlet.h
   BKE_key.h
@@ -445,11 +446,12 @@ set(SRC
   BKE_object_deform.h
   BKE_object_facemap.h
   BKE_ocean.h
-  BKE_outliner_treehash.h
+  BKE_outliner_treehash.hh
   BKE_packedFile.h
   BKE_paint.h
   BKE_particle.h
   BKE_pbvh.h
+  BKE_pbvh_pixels.hh
   BKE_pointcache.h
   BKE_pointcloud.h
   BKE_preferences.h

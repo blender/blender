@@ -3406,9 +3406,8 @@ static size_t animdata_filter_remove_duplis(ListBase *anim_data)
   GSet *gs;
   size_t items = 0;
 
-  /* build new hashtable to efficiently store and retrieve which entries have been
-   * encountered already while searching
-   */
+  /* Build new hash-table to efficiently store and retrieve which entries have been
+   * encountered already while searching. */
   gs = BLI_gset_ptr_new(__func__);
 
   /* loop through items, removing them from the list if a similar item occurs already */

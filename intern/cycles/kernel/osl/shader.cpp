@@ -17,6 +17,8 @@
 #include "kernel/osl/globals.h"
 #include "kernel/osl/services.h"
 #include "kernel/osl/shader.h"
+
+#include "kernel/util/differential.h"
 // clang-format on
 
 #include "scene/attribute.h"
@@ -79,13 +81,16 @@ static void shaderdata_to_shaderglobals(const KernelGlobalsCPU *kg,
 {
   OSL::ShaderGlobals *globals = &tdata->globals;
 
+  const differential3 dP = differential_from_compact(sd->Ng, sd->dP);
+  const differential3 dI = differential_from_compact(sd->I, sd->dI);
+
   /* copy from shader data to shader globals */
   globals->P = TO_VEC3(sd->P);
-  globals->dPdx = TO_VEC3(sd->dP.dx);
-  globals->dPdy = TO_VEC3(sd->dP.dy);
+  globals->dPdx = TO_VEC3(dP.dx);
+  globals->dPdy = TO_VEC3(dP.dy);
   globals->I = TO_VEC3(sd->I);
-  globals->dIdx = TO_VEC3(sd->dI.dx);
-  globals->dIdy = TO_VEC3(sd->dI.dy);
+  globals->dIdx = TO_VEC3(dI.dx);
+  globals->dIdy = TO_VEC3(dI.dy);
   globals->N = TO_VEC3(sd->N);
   globals->Ng = TO_VEC3(sd->Ng);
   globals->u = sd->u;
@@ -183,9 +188,10 @@ void OSLShader::eval_surface(const KernelGlobalsCPU *kg,
   /* automatic bump shader */
   if (kg->osl->bump_state[shader]) {
     /* save state */
-    float3 P = sd->P;
-    float3 dPdx = sd->dP.dx;
-    float3 dPdy = sd->dP.dy;
+    const float3 P = sd->P;
+    const float dP = sd->dP;
+    const OSL::Vec3 dPdx = globals->dPdx;
+    const OSL::Vec3 dPdy = globals->dPdy;
 
     /* set state as if undisplaced */
     if (sd->flag & SD_HAS_DISPLACEMENT) {
@@ -199,17 +205,20 @@ void OSLShader::eval_surface(const KernelGlobalsCPU *kg,
       (void)found;
       assert(found);
 
+      differential3 tmp_dP;
       memcpy(&sd->P, data, sizeof(float) * 3);
-      memcpy(&sd->dP.dx, data + 3, sizeof(float) * 3);
-      memcpy(&sd->dP.dy, data + 6, sizeof(float) * 3);
+      memcpy(&tmp_dP.dx, data + 3, sizeof(float) * 3);
+      memcpy(&tmp_dP.dy, data + 6, sizeof(float) * 3);
 
       object_position_transform(kg, sd, &sd->P);
-      object_dir_transform(kg, sd, &sd->dP.dx);
-      object_dir_transform(kg, sd, &sd->dP.dy);
+      object_dir_transform(kg, sd, &tmp_dP.dx);
+      object_dir_transform(kg, sd, &tmp_dP.dy);
+
+      sd->dP = differential_make_compact(tmp_dP);
 
       globals->P = TO_VEC3(sd->P);
-      globals->dPdx = TO_VEC3(sd->dP.dx);
-      globals->dPdy = TO_VEC3(sd->dP.dy);
+      globals->dPdx = TO_VEC3(tmp_dP.dx);
+      globals->dPdy = TO_VEC3(tmp_dP.dy);
     }
 
     /* execute bump shader */
@@ -217,8 +226,7 @@ void OSLShader::eval_surface(const KernelGlobalsCPU *kg,
 
     /* reset state */
     sd->P = P;
-    sd->dP.dx = dPdx;
-    sd->dP.dy = dPdy;
+    sd->dP = dP;
 
     globals->P = TO_VEC3(P);
     globals->dPdx = TO_VEC3(dPdx);

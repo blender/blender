@@ -45,6 +45,8 @@
 
 #include "outliner_intern.hh"
 
+namespace blender::ed::outliner {
+
 static Collection *collection_parent_from_ID(ID *id);
 
 /* -------------------------------------------------------------------- */
@@ -1474,7 +1476,7 @@ static int outliner_item_drag_drop_invoke(bContext *C,
                              &space_outliner->tree,
                              0,
                              TSE_SELECTED,
-                             outliner_find_selected_objects,
+                             outliner_collect_selected_objects,
                              &selected);
     }
     else {
@@ -1482,7 +1484,7 @@ static int outliner_item_drag_drop_invoke(bContext *C,
                              &space_outliner->tree,
                              0,
                              TSE_SELECTED,
-                             outliner_find_selected_collections,
+                             outliner_collect_selected_collections,
                              &selected);
     }
 
@@ -1592,3 +1594,5 @@ void outliner_dropboxes(void)
 }
 
 /** \} */
+
+}  // namespace blender::ed::outliner

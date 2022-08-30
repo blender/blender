@@ -823,6 +823,8 @@ static const ColorTemplate gp_monkey_pct_pupils = {
 
 void ED_gpencil_create_monkey(bContext *C, Object *ob, float mat[4][4])
 {
+  /* Original model created by Matias Mendiola. */
+
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   bGPdata *gpd = (bGPdata *)ob->data;

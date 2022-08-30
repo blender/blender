@@ -27,6 +27,7 @@ typedef bool (*GHOST_EventCallbackProcPtr)(GHOST_EventHandle event, GHOST_TUserD
  * \return a handle to the system.
  */
 extern GHOST_SystemHandle GHOST_CreateSystem(void);
+extern GHOST_SystemHandle GHOST_CreateSystemBackground(void);
 
 /**
  * Specifies whether debug messages are to be enabled for the specific system handle.

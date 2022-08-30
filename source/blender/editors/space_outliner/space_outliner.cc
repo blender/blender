@@ -16,7 +16,7 @@
 
 #include "BKE_context.h"
 #include "BKE_lib_remap.h"
-#include "BKE_outliner_treehash.h"
+#include "BKE_outliner_treehash.hh"
 #include "BKE_screen.h"
 
 #include "ED_screen.h"
@@ -37,16 +37,11 @@
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"
 
-SpaceOutliner_Runtime::SpaceOutliner_Runtime(const SpaceOutliner_Runtime & /*other*/)
-    : tree_display(nullptr), treehash(nullptr)
-{
-}
+namespace blender::ed::outliner {
 
-SpaceOutliner_Runtime::~SpaceOutliner_Runtime()
+SpaceOutliner_Runtime::SpaceOutliner_Runtime(const SpaceOutliner_Runtime & /*other*/)
+    : tree_display(nullptr), tree_hash(nullptr)
 {
-  if (treehash) {
-    BKE_outliner_treehash_free(treehash);
-  }
 }
 
 static void outliner_main_region_init(wmWindowManager *wm, ARegion *region)
@@ -100,7 +95,7 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
 {
   ScrArea *area = params->area;
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
   SpaceOutliner *space_outliner = static_cast<SpaceOutliner *>(area->spacedata.first);
 
   /* context changes */
@@ -191,7 +186,7 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
       }
       break;
     case NC_ID:
-      if (ELEM(wmn->action, NA_RENAME, NA_ADDED)) {
+      if (ELEM(wmn->action, NA_RENAME, NA_ADDED, NA_REMOVED)) {
         ED_region_tag_redraw(region);
       }
       break;
@@ -296,7 +291,7 @@ static void outliner_header_region_free(ARegion *UNUSED(region))
 static void outliner_header_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -391,8 +386,6 @@ static void outliner_id_remap(ScrArea *area, SpaceLink *slink, const struct IDRe
 {
   SpaceOutliner *space_outliner = (SpaceOutliner *)slink;
 
-  BKE_id_remapper_apply(mappings, (ID **)&space_outliner->search_tse.id, ID_REMAP_APPLY_DEFAULT);
-
   if (!space_outliner->treestore) {
     return;
   }
@@ -420,7 +413,7 @@ static void outliner_id_remap(ScrArea *area, SpaceLink *slink, const struct IDRe
 
   /* Note that the Outliner may not be the active editor of the area, and hence not initialized.
    * So runtime data might not have been created yet. */
-  if (space_outliner->runtime && space_outliner->runtime->treehash && changed) {
+  if (space_outliner->runtime && space_outliner->runtime->tree_hash && changed) {
     /* rebuild hash table, because it depends on ids too */
     /* postpone a full rebuild because this can be called many times on-free */
     space_outliner->storeflag |= SO_TREESTORE_REBUILD;
@@ -442,8 +435,12 @@ static void outliner_deactivate(struct ScrArea *area)
   ED_region_tag_redraw_no_rebuild(BKE_area_find_region_type(area, RGN_TYPE_WINDOW));
 }
 
+}  // namespace blender::ed::outliner
+
 void ED_spacetype_outliner(void)
 {
+  using namespace blender::ed::outliner;
+
   SpaceType *st = MEM_cnew<SpaceType>("spacetype time");
   ARegionType *art;
 

@@ -148,6 +148,4 @@ endif()
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
 
-add_definitions(${GL_DEFINITIONS})
-
 cycles_add_library(cycles_scene "${LIB}" ${SRC} ${SRC_HEADERS})

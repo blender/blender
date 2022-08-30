@@ -87,7 +87,5 @@ if(NOT APPLE)
   set(WITH_CYCLES_CUBIN_COMPILER  OFF CACHE BOOL "" FORCE)
   set(WITH_CYCLES_HIP_BINARIES    ON  CACHE BOOL "" FORCE)
   set(WITH_CYCLES_DEVICE_ONEAPI   ON  CACHE BOOL "" FORCE)
-
-  # Disable AoT kernels compilations until buildbot can deliver them in a reasonable time.
-  set(WITH_CYCLES_ONEAPI_BINARIES OFF CACHE BOOL "" FORCE)
+  set(WITH_CYCLES_ONEAPI_BINARIES ON  CACHE BOOL "" FORCE)
 endif()

@@ -940,15 +940,12 @@ static void init_TransDataContainers(TransInfo *t,
 
     bool free_objects = false;
     if (objects == NULL) {
-      objects = BKE_view_layer_array_from_objects_in_mode(
-          t->view_layer,
-          (t->spacetype == SPACE_VIEW3D) ? t->view : NULL,
-          &objects_len,
-          {
-              .object_mode = object_mode,
-              /* Pose transform operates on `ob->pose` so don't skip duplicate object-data. */
-              .no_dup_data = (object_mode & OB_MODE_POSE) == 0,
-          });
+      struct ObjectsInModeParams params = {0};
+      params.object_mode = object_mode;
+      /* Pose transform operates on `ob->pose` so don't skip duplicate object-data. */
+      params.no_dup_data = (object_mode & OB_MODE_POSE) == 0;
+      objects = BKE_view_layer_array_from_objects_in_mode_params(
+          t->view_layer, (t->spacetype == SPACE_VIEW3D) ? t->view : NULL, &objects_len, &params);
       free_objects = true;
     }
 

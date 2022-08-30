@@ -15,7 +15,6 @@ set(INC
   ../../makesrna
   ../../render
   ../../windowmanager
-  ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
   ../../../../intern/mantaflow/extern
 
@@ -61,7 +60,7 @@ set(SRC
   view3d_ops.c
   view3d_placement.c
   view3d_project.c
-  view3d_select.c
+  view3d_select.cc
   view3d_snap.c
   view3d_utils.c
   view3d_view.c

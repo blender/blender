@@ -384,7 +384,6 @@ typedef struct OVERLAY_PrivateData {
     eSpaceImage_UVDT_Stretch draw_type;
     ListBase totals;
     float total_area_ratio;
-    float total_area_ratio_inv;
 
     /* stencil overlay */
     struct Image *stencil_image;

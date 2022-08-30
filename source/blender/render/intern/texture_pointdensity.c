@@ -24,6 +24,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
 #include "BKE_colorband.h"
@@ -39,7 +40,6 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "render_types.h"
 #include "texture_common.h"
 
 #include "RE_texture.h"

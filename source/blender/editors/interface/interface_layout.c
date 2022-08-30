@@ -3028,7 +3028,14 @@ void uiItemMContents(uiLayout *layout, const char *menuname)
   if (WM_menutype_poll(C, mt) == false) {
     return;
   }
+
+  bContextStore *previous_ctx = CTX_store_get(C);
   UI_menutype_draw(C, mt, layout);
+
+  /* Restore context that was cleared by `UI_menutype_draw`. */
+  if (layout->context) {
+    CTX_store_set(C, previous_ctx);
+  }
 }
 
 void uiItemDecoratorR_prop(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index)

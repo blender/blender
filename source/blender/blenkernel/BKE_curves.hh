@@ -97,7 +97,7 @@ class CurvesGeometryRuntime {
   mutable Span<float3> evaluated_positions_span;
 
   /**
-   * Cache of lengths along each evaluated curve for for each evaluated point. If a curve is
+   * Cache of lengths along each evaluated curve for each evaluated point. If a curve is
    * cyclic, it needs one more length value to correspond to the last segment, so in order to
    * make slicing this array for a curve fast, an extra float is stored for every curve.
    */
@@ -150,7 +150,13 @@ class CurvesGeometry : public ::CurvesGeometry {
    * Accessors.
    */
 
+  /**
+   * The total number of control points in all curves.
+   */
   int points_num() const;
+  /**
+   * The number of curves in the data-block.
+   */
   int curves_num() const;
   IndexRange points_range() const;
   IndexRange curves_range() const;
@@ -338,12 +344,14 @@ class CurvesGeometry : public ::CurvesGeometry {
   /** Calculates the data described by #evaluated_lengths_for_curve if necessary. */
   void ensure_evaluated_lengths() const;
 
+  void ensure_can_interpolate_to_evaluated() const;
+
   /**
    * Evaluate a generic data to the standard evaluated points of a specific curve,
    * defined by the resolution attribute or other factors, depending on the curve type.
    *
    * \warning This function expects offsets to the evaluated points for each curve to be
-   * calculated. That can be ensured with #ensure_evaluated_offsets.
+   * calculated. That can be ensured with #ensure_can_interpolate_to_evaluated.
    */
   void interpolate_to_evaluated(int curve_index, GSpan src, GMutableSpan dst) const;
   /**
@@ -551,7 +559,7 @@ void calculate_evaluated_offsets(Span<int8_t> handle_types_left,
                                  int resolution,
                                  MutableSpan<int> evaluated_offsets);
 
-/** See #insert. */
+/** Knot insertion result, see #insert. */
 struct Insertion {
   float3 handle_prev;
   float3 left_handle;
@@ -561,8 +569,12 @@ struct Insertion {
 };
 
 /**
- * Compute the Bezier segment insertion for the given parameter on the segment, returning
- * the position and handles of the new point and the updated existing handle positions.
+ * Compute the insertion of a control point and handles in a Bezier segment without changing its
+ * shape.
+ * \param parameter: Factor in from 0 to 1 defining the insertion point within the segment.
+ * \return Inserted point parameters including position, and both new and updated handles for
+ * neighboring control points.
+ *
  * <pre>
  *           handle_prev         handle_next
  *                x-----------------x

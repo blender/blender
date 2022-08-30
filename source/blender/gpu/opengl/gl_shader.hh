@@ -9,7 +9,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "glew-mx.h"
+#include <epoxy/gl.h>
 
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_private.hh"

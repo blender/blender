@@ -83,14 +83,10 @@ ccl_device Spectrum bsdf_diffuse_toon_eval_transmit(ccl_private const ShaderClos
 ccl_device int bsdf_diffuse_toon_sample(ccl_private const ShaderClosure *sc,
                                         float3 Ng,
                                         float3 I,
-                                        float3 dIdx,
-                                        float3 dIdy,
                                         float randu,
                                         float randv,
                                         ccl_private Spectrum *eval,
                                         ccl_private float3 *omega_in,
-                                        ccl_private float3 *domega_in_dx,
-                                        ccl_private float3 *domega_in_dy,
                                         ccl_private float *pdf)
 {
   ccl_private const ToonBsdf *bsdf = (ccl_private const ToonBsdf *)sc;
@@ -104,12 +100,6 @@ ccl_device int bsdf_diffuse_toon_sample(ccl_private const ShaderClosure *sc,
 
     if (dot(Ng, *omega_in) > 0.0f) {
       *eval = make_spectrum(*pdf * bsdf_toon_get_intensity(max_angle, smooth, angle));
-
-#ifdef __RAY_DIFFERENTIALS__
-      // TODO: find a better approximation for the bounce
-      *domega_in_dx = (2.0f * dot(bsdf->N, dIdx)) * bsdf->N - dIdx;
-      *domega_in_dy = (2.0f * dot(bsdf->N, dIdy)) * bsdf->N - dIdy;
-#endif
     }
     else {
       *eval = zero_spectrum();
@@ -175,14 +165,10 @@ ccl_device Spectrum bsdf_glossy_toon_eval_transmit(ccl_private const ShaderClosu
 ccl_device int bsdf_glossy_toon_sample(ccl_private const ShaderClosure *sc,
                                        float3 Ng,
                                        float3 I,
-                                       float3 dIdx,
-                                       float3 dIdy,
                                        float randu,
                                        float randv,
                                        ccl_private Spectrum *eval,
                                        ccl_private float3 *omega_in,
-                                       ccl_private float3 *domega_in_dx,
-                                       ccl_private float3 *domega_in_dy,
                                        ccl_private float *pdf)
 {
   ccl_private const ToonBsdf *bsdf = (ccl_private const ToonBsdf *)sc;
@@ -205,11 +191,6 @@ ccl_device int bsdf_glossy_toon_sample(ccl_private const ShaderClosure *sc,
       /* make sure the direction we chose is still in the right hemisphere */
       if (cosNI > 0) {
         *eval = make_spectrum(*pdf * bsdf_toon_get_intensity(max_angle, smooth, angle));
-
-#ifdef __RAY_DIFFERENTIALS__
-        *domega_in_dx = (2 * dot(bsdf->N, dIdx)) * bsdf->N - dIdx;
-        *domega_in_dy = (2 * dot(bsdf->N, dIdy)) * bsdf->N - dIdy;
-#endif
       }
       else {
         *pdf = 0.0f;

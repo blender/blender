@@ -891,7 +891,7 @@ static void draw_call_indirect(DRWShadingGroup *shgroup,
   }
 
   GPU_batch_set_shader(batch, shgroup->shader);
-  GPU_batch_draw_indirect(batch, indirect_buf);
+  GPU_batch_draw_indirect(batch, indirect_buf, 0);
 }
 
 static void draw_call_batching_start(DRWCommandsState *state)

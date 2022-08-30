@@ -71,7 +71,7 @@ void mul_qt_fl(float q[4], float f);
 /**
  * Raise a unit quaternion to the specified power.
  */
-void pow_qt_fl_normalized(float q[4], float f);
+void pow_qt_fl_normalized(float q[4], float fac);
 
 void sub_qt_qtqt(float q[4], const float a[4], const float b[4]);
 
@@ -109,14 +109,19 @@ void add_qt_qtqt(float q[4], const float a[4], const float b[4], float t);
 
 /* Conversion. */
 
-void quat_to_mat3(float mat[3][3], const float q[4]);
-void quat_to_mat4(float mat[4][4], const float q[4]);
+void quat_to_mat3(float m[3][3], const float q[4]);
+void quat_to_mat4(float m[4][4], const float q[4]);
 
 /**
  * Apply the rotation of \a a to \a q keeping the values compatible with \a old.
  * Avoid axis flipping for animated f-curves for eg.
  */
 void quat_to_compatible_quat(float q[4], const float a[4], const float old[4]);
+
+/**
+ * A version of #mat3_normalized_to_quat that skips error checking.
+ */
+void mat3_normalized_to_quat_fast(float q[4], const float mat[3][3]);
 
 void mat3_normalized_to_quat(float q[4], const float mat[3][3]);
 void mat4_normalized_to_quat(float q[4], const float mat[4][4]);
@@ -157,7 +162,10 @@ void rotation_between_quats_to_quat(float q[4], const float q1[4], const float q
  * \param r_twist: if not NULL, receives the twist quaternion.
  * \returns twist angle.
  */
-float quat_split_swing_and_twist(const float q[4], int axis, float r_swing[4], float r_twist[4]);
+float quat_split_swing_and_twist(const float q_in[4],
+                                 int axis,
+                                 float r_swing[4],
+                                 float r_twist[4]);
 
 float angle_normalized_qt(const float q[4]);
 float angle_normalized_qtqt(const float q1[4], const float q2[4]);
@@ -170,9 +178,10 @@ float angle_signed_qt(const float q[4]);
 float angle_signed_qtqt(const float q1[4], const float q2[4]);
 
 /**
- * TODO: don't what this is, but it's not the same as #mat3_to_quat.
+ * Legacy matrix to quaternion conversion, keep to prevent changes to existing
+ * boids & particle-system behavior. Use #mat3_to_quat for new code.
  */
-void mat3_to_quat_is_ok(float q[4], const float mat[3][3]);
+void mat3_to_quat_legacy(float q[4], const float wmat[3][3]);
 
 /* Other. */
 
@@ -235,16 +244,16 @@ void axis_angle_to_mat4(float R[4][4], const float axis[3], float angle);
 /**
  * 3x3 matrix to axis angle.
  */
-void mat3_normalized_to_axis_angle(float axis[3], float *angle, const float M[3][3]);
+void mat3_normalized_to_axis_angle(float axis[3], float *angle, const float mat[3][3]);
 /**
  * 4x4 matrix to axis angle.
  */
-void mat4_normalized_to_axis_angle(float axis[3], float *angle, const float M[4][4]);
-void mat3_to_axis_angle(float axis[3], float *angle, const float M[3][3]);
+void mat4_normalized_to_axis_angle(float axis[3], float *angle, const float mat[4][4]);
+void mat3_to_axis_angle(float axis[3], float *angle, const float mat[3][3]);
 /**
  * 4x4 matrix to axis angle.
  */
-void mat4_to_axis_angle(float axis[3], float *angle, const float M[4][4]);
+void mat4_to_axis_angle(float axis[3], float *angle, const float mat[4][4]);
 /**
  * Quaternions to Axis Angle.
  */
@@ -283,19 +292,19 @@ void eul_to_mat3(float mat[3][3], const float eul[3]);
 void eul_to_mat4(float mat[4][4], const float eul[3]);
 
 void mat3_normalized_to_eul(float eul[3], const float mat[3][3]);
-void mat4_normalized_to_eul(float eul[3], const float mat[4][4]);
+void mat4_normalized_to_eul(float eul[3], const float m[4][4]);
 void mat3_to_eul(float eul[3], const float mat[3][3]);
 void mat4_to_eul(float eul[3], const float mat[4][4]);
 void quat_to_eul(float eul[3], const float quat[4]);
 
-void mat3_normalized_to_compatible_eul(float eul[3], const float old[3], float mat[3][3]);
-void mat3_to_compatible_eul(float eul[3], const float old[3], float mat[3][3]);
+void mat3_normalized_to_compatible_eul(float eul[3], const float oldrot[3], float mat[3][3]);
+void mat3_to_compatible_eul(float eul[3], const float oldrot[3], float mat[3][3]);
 void quat_to_compatible_eul(float eul[3], const float oldrot[3], const float quat[4]);
-void rotate_eul(float eul[3], char axis, float angle);
+void rotate_eul(float beul[3], char axis, float angle);
 
 /* Order independent. */
 
-void compatible_eul(float eul[3], const float old[3]);
+void compatible_eul(float eul[3], const float oldrot[3]);
 
 void add_eul_euleul(float r_eul[3], float a[3], float b[3], short order);
 void sub_eul_euleul(float r_eul[3], float a[3], float b[3], short order);
@@ -323,15 +332,15 @@ typedef enum eEulerRotationOrders {
 /**
  * Construct quaternion from Euler angles (in radians).
  */
-void eulO_to_quat(float quat[4], const float eul[3], short order);
+void eulO_to_quat(float q[4], const float e[3], short order);
 /**
  * Construct 3x3 matrix from Euler angles (in radians).
  */
-void eulO_to_mat3(float mat[3][3], const float eul[3], short order);
+void eulO_to_mat3(float M[3][3], const float e[3], short order);
 /**
  * Construct 4x4 matrix from Euler angles (in radians).
  */
-void eulO_to_mat4(float mat[4][4], const float eul[3], short order);
+void eulO_to_mat4(float mat[4][4], const float e[3], short order);
 /**
  * Euler Rotation to Axis Angle.
  */
@@ -344,17 +353,17 @@ void eulO_to_gimbal_axis(float gmat[3][3], const float eul[3], short order);
 /**
  * Convert 3x3 matrix to Euler angles (in radians).
  */
-void mat3_normalized_to_eulO(float eul[3], short order, const float mat[3][3]);
+void mat3_normalized_to_eulO(float eul[3], short order, const float m[3][3]);
 /**
  * Convert 4x4 matrix to Euler angles (in radians).
  */
-void mat4_normalized_to_eulO(float eul[3], short order, const float mat[4][4]);
-void mat3_to_eulO(float eul[3], short order, const float mat[3][3]);
-void mat4_to_eulO(float eul[3], short order, const float mat[4][4]);
+void mat4_normalized_to_eulO(float eul[3], short order, const float m[4][4]);
+void mat3_to_eulO(float eul[3], short order, const float m[3][3]);
+void mat4_to_eulO(float eul[3], short order, const float m[4][4]);
 /**
  * Convert quaternion to Euler angles (in radians).
  */
-void quat_to_eulO(float eul[3], short order, const float quat[4]);
+void quat_to_eulO(float e[3], short order, const float q[4]);
 /**
  * Axis Angle to Euler Rotation.
  */
@@ -363,18 +372,27 @@ void axis_angle_to_eulO(float eul[3], short order, const float axis[3], float an
 /* Uses 2 methods to retrieve eulers, and picks the closest. */
 
 void mat3_normalized_to_compatible_eulO(float eul[3],
-                                        const float old[3],
+                                        const float oldrot[3],
                                         short order,
                                         const float mat[3][3]);
 void mat4_normalized_to_compatible_eulO(float eul[3],
-                                        const float old[3],
+                                        const float oldrot[3],
                                         short order,
                                         const float mat[4][4]);
-void mat3_to_compatible_eulO(float eul[3], const float old[3], short order, const float mat[3][3]);
-void mat4_to_compatible_eulO(float eul[3], const float old[3], short order, const float mat[4][4]);
-void quat_to_compatible_eulO(float eul[3], const float old[3], short order, const float quat[4]);
+void mat3_to_compatible_eulO(float eul[3],
+                             const float oldrot[3],
+                             short order,
+                             const float mat[3][3]);
+void mat4_to_compatible_eulO(float eul[3],
+                             const float oldrot[3],
+                             short order,
+                             const float mat[4][4]);
+void quat_to_compatible_eulO(float eul[3],
+                             const float oldrot[3],
+                             short order,
+                             const float quat[4]);
 
-void rotate_eulO(float eul[3], short order, char axis, float angle);
+void rotate_eulO(float beul[3], short order, char axis, float angle);
 
 /** \} */
 
@@ -383,7 +401,7 @@ void rotate_eulO(float eul[3], short order, char axis, float angle);
  * \{ */
 
 void copy_dq_dq(DualQuat *r, const DualQuat *dq);
-void normalize_dq(DualQuat *dq, float totw);
+void normalize_dq(DualQuat *dq, float totweight);
 void add_weighted_dq_dq(DualQuat *dq_sum, const DualQuat *dq, float weight);
 void mul_v3m3_dq(float r[3], float R[3][3], DualQuat *dq);
 
@@ -400,7 +418,7 @@ void vec_apply_track(float vec[3], short axis);
  * Lens/angle conversion (radians).
  */
 float focallength_to_fov(float focal_length, float sensor);
-float fov_to_focallength(float fov, float sensor);
+float fov_to_focallength(float hfov, float sensor);
 
 float angle_wrap_rad(float angle);
 float angle_wrap_deg(float angle);

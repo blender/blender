@@ -143,7 +143,7 @@ class ChannelMatteShaderNode : public ShaderNode {
 
   /* Get the indices of the channels used to compute the limit value. We always assume the limit
    * algorithm is Max, if it is a single limit channel, store it in both limit channels, because
-   * the maximum of two identical values is is the same value. */
+   * the maximum of two identical values is the same value. */
   void get_limit_channels(float limit_channels[2])
   {
     if (get_node_chroma()->algorithm == CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_MAX) {

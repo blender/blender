@@ -55,7 +55,7 @@ static bool pointcloud_batch_cache_valid(PointCloud &pointcloud)
 {
   PointCloudBatchCache *cache = pointcloud_batch_cache_get(pointcloud);
 
-  if (cache == NULL) {
+  if (cache == nullptr) {
     return false;
   }
   if (cache->mat_len != DRW_pointcloud_material_count_get(&pointcloud)) {
@@ -86,7 +86,7 @@ static void pointcloud_batch_cache_init(PointCloud &pointcloud)
 void DRW_pointcloud_batch_cache_dirty_tag(PointCloud *pointcloud, int mode)
 {
   PointCloudBatchCache *cache = pointcloud_batch_cache_get(*pointcloud);
-  if (cache == NULL) {
+  if (cache == nullptr) {
     return;
   }
   switch (mode) {
@@ -137,7 +137,7 @@ static void pointcloud_batch_cache_ensure_pos(const PointCloud &pointcloud,
                                               PointCloudBatchCache &cache)
 {
   using namespace blender;
-  if (cache.pos != NULL) {
+  if (cache.pos != nullptr) {
     return;
   }
 
@@ -198,7 +198,7 @@ static const uint half_octahedron_tris[4][3] = {
 
 static void pointcloud_batch_cache_ensure_geom(PointCloudBatchCache &cache)
 {
-  if (cache.geom != NULL) {
+  if (cache.geom != nullptr) {
     return;
   }
 
@@ -232,9 +232,9 @@ GPUBatch *DRW_pointcloud_batch_cache_get_dots(Object *ob)
   PointCloud &pointcloud = *static_cast<PointCloud *>(ob->data);
   PointCloudBatchCache *cache = pointcloud_batch_cache_get(pointcloud);
 
-  if (cache->dots == NULL) {
+  if (cache->dots == nullptr) {
     pointcloud_batch_cache_ensure_pos(pointcloud, *cache);
-    cache->dots = GPU_batch_create(GPU_PRIM_POINTS, cache->pos, NULL);
+    cache->dots = GPU_batch_create(GPU_PRIM_POINTS, cache->pos, nullptr);
   }
 
   return cache->dots;
@@ -245,7 +245,7 @@ GPUBatch *DRW_pointcloud_batch_cache_get_surface(Object *ob)
   PointCloud &pointcloud = *static_cast<PointCloud *>(ob->data);
   PointCloudBatchCache *cache = pointcloud_batch_cache_get(pointcloud);
 
-  if (cache->surface == NULL) {
+  if (cache->surface == nullptr) {
     pointcloud_batch_cache_ensure_pos(pointcloud, *cache);
     pointcloud_batch_cache_ensure_geom(*cache);
 
@@ -265,7 +265,7 @@ GPUBatch **DRW_cache_pointcloud_surface_shaded_get(Object *ob,
   BLI_assert(cache->mat_len == gpumat_array_len);
   UNUSED_VARS(gpumat_array_len);
 
-  if (cache->surface_per_mat[0] == NULL) {
+  if (cache->surface_per_mat[0] == nullptr) {
     pointcloud_batch_cache_ensure_pos(pointcloud, *cache);
     pointcloud_batch_cache_ensure_geom(*cache);
 

@@ -82,14 +82,10 @@ ccl_device float3 bsdf_phong_ramp_eval_transmit(ccl_private const ShaderClosure 
 ccl_device int bsdf_phong_ramp_sample(ccl_private const ShaderClosure *sc,
                                       float3 Ng,
                                       float3 I,
-                                      float3 dIdx,
-                                      float3 dIdy,
                                       float randu,
                                       float randv,
                                       ccl_private Spectrum *eval,
                                       ccl_private float3 *omega_in,
-                                      ccl_private float3 *domega_in_dx,
-                                      ccl_private float3 *domega_in_dy,
                                       ccl_private float *pdf)
 {
   ccl_private const PhongRampBsdf *bsdf = (ccl_private const PhongRampBsdf *)sc;
@@ -99,12 +95,6 @@ ccl_device int bsdf_phong_ramp_sample(ccl_private const ShaderClosure *sc,
   if (cosNO > 0) {
     // reflect the view vector
     float3 R = (2 * cosNO) * bsdf->N - I;
-
-#  ifdef __RAY_DIFFERENTIALS__
-    *domega_in_dx = (2 * dot(bsdf->N, dIdx)) * bsdf->N - dIdx;
-    *domega_in_dy = (2 * dot(bsdf->N, dIdy)) * bsdf->N - dIdy;
-#  endif
-
     float3 T, B;
     make_orthonormals(R, &T, &B);
     float phi = M_2PI_F * randu;

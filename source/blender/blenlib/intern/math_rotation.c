@@ -176,7 +176,7 @@ void quat_to_compatible_quat(float q[4], const float a[4], const float old[4])
   }
 }
 
-/* skip error check, currently only needed by mat3_to_quat_is_ok */
+/* Skip error check, currently only needed by #mat3_to_quat_legacy. */
 static void quat_to_mat3_no_error(float m[3][3], const float q[4])
 {
   double q0, q1, q2, q3, qda, qdb, qdc, qaa, qab, qac, qbb, qbc, qcc;
@@ -269,9 +269,11 @@ void quat_to_mat4(float m[4][4], const float q[4])
   m[3][3] = 1.0f;
 }
 
-void mat3_normalized_to_quat(float q[4], const float mat[3][3])
+void mat3_normalized_to_quat_fast(float q[4], const float mat[3][3])
 {
   BLI_ASSERT_UNIT_M3(mat);
+  /* Caller must ensure matrices aren't negative for valid results, see: T24291, T94231. */
+  BLI_assert(!is_negative_m3(mat));
 
   /* Check the trace of the matrix - bad precision if close to -1. */
   const float trace = mat[0][0] + mat[1][1] + mat[2][2];
@@ -332,34 +334,54 @@ void mat3_normalized_to_quat(float q[4], const float mat[3][3])
 
   normalize_qt(q);
 }
-void mat3_to_quat(float q[4], const float m[3][3])
-{
-  float unit_mat[3][3];
 
-  /* work on a copy */
-  /* this is needed AND a 'normalize_qt' in the end */
-  normalize_m3_m3(unit_mat, m);
-  mat3_normalized_to_quat(q, unit_mat);
+static void mat3_normalized_to_quat_with_checks(float q[4], float mat[3][3])
+{
+  const float det = determinant_m3_array(mat);
+  if (UNLIKELY(!isfinite(det))) {
+    unit_m3(mat);
+  }
+  else if (UNLIKELY(det < 0.0f)) {
+    negate_m3(mat);
+  }
+  mat3_normalized_to_quat_fast(q, mat);
 }
 
-void mat4_normalized_to_quat(float q[4], const float m[4][4])
+void mat3_normalized_to_quat(float q[4], const float mat[3][3])
 {
-  float mat3[3][3];
-
-  copy_m3_m4(mat3, m);
-  mat3_normalized_to_quat(q, mat3);
+  float unit_mat_abs[3][3];
+  copy_m3_m3(unit_mat_abs, mat);
+  mat3_normalized_to_quat_with_checks(q, unit_mat_abs);
 }
 
-void mat4_to_quat(float q[4], const float m[4][4])
+void mat3_to_quat(float q[4], const float mat[3][3])
 {
-  float mat3[3][3];
-
-  copy_m3_m4(mat3, m);
-  mat3_to_quat(q, mat3);
+  float unit_mat_abs[3][3];
+  normalize_m3_m3(unit_mat_abs, mat);
+  mat3_normalized_to_quat_with_checks(q, unit_mat_abs);
 }
 
-void mat3_to_quat_is_ok(float q[4], const float wmat[3][3])
+void mat4_normalized_to_quat(float q[4], const float mat[4][4])
 {
+  float unit_mat_abs[3][3];
+  copy_m3_m4(unit_mat_abs, mat);
+  mat3_normalized_to_quat_with_checks(q, unit_mat_abs);
+}
+
+void mat4_to_quat(float q[4], const float mat[4][4])
+{
+  float unit_mat_abs[3][3];
+  copy_m3_m4(unit_mat_abs, mat);
+  normalize_m3(unit_mat_abs);
+  mat3_normalized_to_quat_with_checks(q, unit_mat_abs);
+}
+
+void mat3_to_quat_legacy(float q[4], const float wmat[3][3])
+{
+  /* Legacy version of #mat3_to_quat which has slightly different behavior.
+   * Keep for particle-system & boids since replacing this will make subtle changes
+   * that impact hair in existing files. See: D15772. */
+
   float mat[3][3], matr[3][3], matn[3][3], q1[4], q2[4], angle, si, co, nor[3];
 
   /* work on a copy */
@@ -498,7 +520,10 @@ void rotation_between_quats_to_quat(float q[4], const float q1[4], const float q
   mul_qt_qtqt(q, tquat, q2);
 }
 
-float quat_split_swing_and_twist(const float q_in[4], int axis, float r_swing[4], float r_twist[4])
+float quat_split_swing_and_twist(const float q_in[4],
+                                 const int axis,
+                                 float r_swing[4],
+                                 float r_twist[4])
 {
   BLI_assert(axis >= 0 && axis <= 2);
 
@@ -915,107 +940,63 @@ float tri_to_quat(float q[4], const float a[3], const float b[3], const float c[
   return len;
 }
 
-void sin_cos_from_fraction(int numerator, const int denominator, float *r_sin, float *r_cos)
+void sin_cos_from_fraction(int numerator, int denominator, float *r_sin, float *r_cos)
 {
-  /* By default, creating an circle from an integer: calling #sinf & #cosf on the fraction doesn't
-   * create symmetrical values (because of float imprecision).
+  /* By default, creating a circle from an integer: calling #sinf & #cosf on the fraction doesn't
+   * create symmetrical values (because floats can't represent Pi exactly).
    * Resolve this when the rotation is calculated from a fraction by mapping the `numerator`
    * to lower values so X/Y values for points around a circle are exactly symmetrical, see T87779.
    *
-   * - Numbers divisible by 4 are mapped to the lower 8th (8 axis symmetry).
-   * - Even numbers are mapped to the lower quarter (4 axis symmetry).
-   * - Odd numbers are mapped to the lower half (1 axis symmetry).
+   * Multiply both the `numerator` and `denominator` by eight to ensure we can divide the circle
+   * into 8 octants. For each octant, we then use symmetry and negation to bring the `numerator`
+   * closer to the origin where precision is highest.
    *
-   * Once the values are calculated, the are mapped back to their position in the circle
-   * using negation & swapping values. */
+   * Cases 2, 4, 5 and 7, use the trigonometric identity sin(-x) == -sin(x).
+   * Cases 1, 2, 5 and 6, swap the pointers `r_sin` and `r_cos`.
+   */
+  BLI_assert(0 <= numerator);
+  BLI_assert(numerator <= denominator);
+  BLI_assert(denominator > 0);
 
-  BLI_assert((numerator <= denominator) && (denominator > 0));
-  enum { NEGATE_SIN_BIT = 0, NEGATE_COS_BIT = 1, SWAP_SIN_COS_BIT = 2 };
-  enum {
-    NEGATE_SIN = (1 << NEGATE_SIN_BIT),
-    NEGATE_COS = (1 << NEGATE_COS_BIT),
-    SWAP_SIN_COS = (1 << SWAP_SIN_COS_BIT),
-  } xform = 0;
-  if ((denominator & 3) == 0) {
-    /* The denominator divides by 4, determine the quadrant then further refine the upper 8th. */
-    const int denominator_4 = denominator / 4;
-    if (numerator < denominator_4) {
-      /* Fall through. */
-    }
-    else {
-      if (numerator < denominator_4 * 2) {
-        numerator -= denominator_4;
-        xform = NEGATE_SIN | SWAP_SIN_COS;
-      }
-      else if (numerator == denominator_4 * 2) {
-        numerator = 0;
-        xform = NEGATE_COS;
-      }
-      else if (numerator < denominator_4 * 3) {
-        numerator -= denominator_4 * 2;
-        xform = NEGATE_SIN | NEGATE_COS;
-      }
-      else if (numerator == denominator_4 * 3) {
-        numerator = 0;
-        xform = NEGATE_COS | SWAP_SIN_COS;
-      }
-      else {
-        numerator -= denominator_4 * 3;
-        xform = NEGATE_COS | SWAP_SIN_COS;
-      }
-    }
-    /* Further increase accuracy by using the range of the upper 8th. */
-    const int numerator_test = denominator_4 - numerator;
-    if (numerator_test < numerator) {
-      numerator = numerator_test;
-      xform ^= SWAP_SIN_COS;
-      /* Swap #NEGATE_SIN, #NEGATE_COS flags. */
-      xform = (xform & (uint)(~(NEGATE_SIN | NEGATE_COS))) |
-              (((xform & NEGATE_SIN) >> NEGATE_SIN_BIT) << NEGATE_COS_BIT) |
-              (((xform & NEGATE_COS) >> NEGATE_COS_BIT) << NEGATE_SIN_BIT);
-    }
-  }
-  else if ((denominator & 1) == 0) {
-    /* The denominator divides by 2, determine the quadrant then further refine the upper 4th. */
-    const int denominator_2 = denominator / 2;
-    if (numerator < denominator_2) {
-      /* Fall through. */
-    }
-    else if (numerator == denominator_2) {
-      numerator = 0;
-      xform = NEGATE_COS;
-    }
-    else {
-      numerator -= denominator_2;
-      xform = NEGATE_SIN | NEGATE_COS;
-    }
-    /* Further increase accuracy by using the range of the upper 4th. */
-    const int numerator_test = denominator_2 - numerator;
-    if (numerator_test < numerator) {
-      numerator = numerator_test;
-      xform ^= NEGATE_COS;
-    }
-  }
-  else {
-    /* The denominator is an odd number, only refine the upper half. */
-    const int numerator_test = denominator - numerator;
-    if (numerator_test < numerator) {
-      numerator = numerator_test;
-      xform ^= NEGATE_SIN;
-    }
+  numerator *= 8;                             /* Multiply numerator the same as denominator. */
+  const int octant = numerator / denominator; /* Determine the octant. */
+  denominator *= 8;                           /* Ensure denominator is a multiple of eight. */
+  float cos_sign = 1.0f;                      /* Either 1.0f or -1.0f. */
+
+  switch (octant) {
+    case 0:
+      /* Primary octant, nothing to do. */
+      break;
+    case 1:
+    case 2:
+      numerator = (denominator / 4) - numerator;
+      SWAP(float *, r_sin, r_cos);
+      break;
+    case 3:
+    case 4:
+      numerator = (denominator / 2) - numerator;
+      cos_sign = -1.0f;
+      break;
+    case 5:
+    case 6:
+      numerator = numerator - (denominator * 3 / 4);
+      SWAP(float *, r_sin, r_cos);
+      cos_sign = -1.0f;
+      break;
+    case 7:
+      numerator = numerator - denominator;
+      break;
+    default:
+      BLI_assert_unreachable();
   }
 
-  const float phi = (float)(2.0 * M_PI) * ((float)numerator / (float)denominator);
-  const float sin_phi = sinf(phi) * ((xform & NEGATE_SIN) ? -1.0f : 1.0f);
-  const float cos_phi = cosf(phi) * ((xform & NEGATE_COS) ? -1.0f : 1.0f);
-  if ((xform & SWAP_SIN_COS) == 0) {
-    *r_sin = sin_phi;
-    *r_cos = cos_phi;
-  }
-  else {
-    *r_sin = cos_phi;
-    *r_cos = sin_phi;
-  }
+  BLI_assert(-denominator / 4 <= numerator); /* Numerator may be negative. */
+  BLI_assert(numerator <= denominator / 4);
+  BLI_assert(cos_sign == -1.0f || cos_sign == 1.0f);
+
+  const float angle = (float)(2.0 * M_PI) * ((float)numerator / (float)denominator);
+  *r_sin = sinf(angle);
+  *r_cos = cosf(angle) * cos_sign;
 }
 
 void print_qt(const char *str, const float q[4])
@@ -1425,10 +1406,10 @@ void mat4_normalized_to_eul(float eul[3], const float m[4][4])
   copy_m3_m4(mat3, m);
   mat3_normalized_to_eul(eul, mat3);
 }
-void mat4_to_eul(float eul[3], const float m[4][4])
+void mat4_to_eul(float eul[3], const float mat[4][4])
 {
   float mat3[3][3];
-  copy_m3_m4(mat3, m);
+  copy_m3_m4(mat3, mat);
   mat3_to_eul(eul, mat3);
 }
 
@@ -1463,7 +1444,7 @@ void eul_to_quat(float quat[4], const float eul[3])
   quat[3] = cj * cs - sj * sc;
 }
 
-void rotate_eul(float beul[3], const char axis, const float ang)
+void rotate_eul(float beul[3], const char axis, const float angle)
 {
   float eul[3], mat1[3][3], mat2[3][3], totmat[3][3];
 
@@ -1471,13 +1452,13 @@ void rotate_eul(float beul[3], const char axis, const float ang)
 
   eul[0] = eul[1] = eul[2] = 0.0f;
   if (axis == 'X') {
-    eul[0] = ang;
+    eul[0] = angle;
   }
   else if (axis == 'Y') {
-    eul[1] = ang;
+    eul[1] = angle;
   }
   else {
-    eul[2] = ang;
+    eul[2] = angle;
   }
 
   eul_to_mat3(mat1, eul);
@@ -1833,23 +1814,23 @@ void mat3_to_compatible_eulO(float eul[3],
 void mat4_normalized_to_compatible_eulO(float eul[3],
                                         const float oldrot[3],
                                         const short order,
-                                        const float m[4][4])
+                                        const float mat[4][4])
 {
   float mat3[3][3];
 
   /* for now, we'll just do this the slow way (i.e. copying matrices) */
-  copy_m3_m4(mat3, m);
+  copy_m3_m4(mat3, mat);
   mat3_normalized_to_compatible_eulO(eul, oldrot, order, mat3);
 }
 void mat4_to_compatible_eulO(float eul[3],
                              const float oldrot[3],
                              const short order,
-                             const float m[4][4])
+                             const float mat[4][4])
 {
   float mat3[3][3];
 
   /* for now, we'll just do this the slow way (i.e. copying matrices) */
-  copy_m3_m4(mat3, m);
+  copy_m3_m4(mat3, mat);
   normalize_m3(mat3);
   mat3_normalized_to_compatible_eulO(eul, oldrot, order, mat3);
 }
@@ -1868,7 +1849,7 @@ void quat_to_compatible_eulO(float eul[3],
 /* rotate the given euler by the given angle on the specified axis */
 /* NOTE: is this safe to do with different axis orders? */
 
-void rotate_eulO(float beul[3], const short order, char axis, float ang)
+void rotate_eulO(float beul[3], const short order, const char axis, const float angle)
 {
   float eul[3], mat1[3][3], mat2[3][3], totmat[3][3];
 
@@ -1877,13 +1858,13 @@ void rotate_eulO(float beul[3], const short order, char axis, float ang)
   zero_v3(eul);
 
   if (axis == 'X') {
-    eul[0] = ang;
+    eul[0] = angle;
   }
   else if (axis == 'Y') {
-    eul[1] = ang;
+    eul[1] = angle;
   }
   else {
-    eul[2] = ang;
+    eul[2] = angle;
   }
 
   eulO_to_mat3(mat1, eul, order);

@@ -217,7 +217,7 @@ void GpencilExporterSVG::export_gpencil_layers()
           }
           else {
             bGPDstroke *gps_perimeter = BKE_gpencil_stroke_perimeter_from_view(
-                rv3d_, gpd_, gpl, gps_duplicate, 3, diff_mat_.values);
+                rv3d_, gpd_, gpl, gps_duplicate, 3, diff_mat_.values, 0.0f);
 
             /* Sample stroke. */
             if (params_.stroke_sample > 0.0f) {

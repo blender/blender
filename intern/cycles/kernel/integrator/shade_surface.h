@@ -362,11 +362,10 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   float bsdf_pdf;
   BsdfEval bsdf_eval ccl_optional_struct_init;
   float3 bsdf_omega_in ccl_optional_struct_init;
-  differential3 bsdf_domega_in ccl_optional_struct_init;
   int label;
 
   label = shader_bsdf_sample_closure(
-      kg, sd, sc, bsdf_u, bsdf_v, &bsdf_eval, &bsdf_omega_in, &bsdf_domega_in, &bsdf_pdf);
+      kg, sd, sc, bsdf_u, bsdf_v, &bsdf_eval, &bsdf_omega_in, &bsdf_pdf);
 
   if (bsdf_pdf == 0.0f || bsdf_eval_is_zero(&bsdf_eval)) {
     return LABEL_NONE;
@@ -385,7 +384,6 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
     INTEGRATOR_STATE_WRITE(state, ray, tmax) = FLT_MAX;
 #ifdef __RAY_DIFFERENTIALS__
     INTEGRATOR_STATE_WRITE(state, ray, dP) = differential_make_compact(sd->dP);
-    INTEGRATOR_STATE_WRITE(state, ray, dD) = differential_make_compact(bsdf_domega_in);
 #endif
   }
 

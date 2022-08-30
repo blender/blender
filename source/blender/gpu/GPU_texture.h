@@ -49,7 +49,12 @@ typedef enum eGPUSamplerState {
  * #GPU_SAMPLER_MAX is not a valid enum value, but only a limit.
  * It also creates a bad mask for the `NOT` operator in #ENUM_OPERATORS.
  */
+#ifdef __cplusplus
+static constexpr eGPUSamplerState GPU_SAMPLER_MAX = eGPUSamplerState(GPU_SAMPLER_ICON + 1);
+#else
 static const int GPU_SAMPLER_MAX = (GPU_SAMPLER_ICON + 1);
+#endif
+
 ENUM_OPERATORS(eGPUSamplerState, GPU_SAMPLER_ICON)
 
 #ifdef __cplusplus
@@ -193,7 +198,7 @@ unsigned int GPU_texture_memory_usage_get(void);
  * \note \a data is expected to be float. If the \a format is not compatible with float data or if
  * the data is not in float format, use GPU_texture_update to upload the data with the right data
  * format.
- * \a mips is the number of mip level to allocate. It must be >= 1.
+ * \a mip_len is the number of mip level to allocate. It must be >= 1.
  */
 GPUTexture *GPU_texture_create_1d(
     const char *name, int w, int mip_len, eGPUTextureFormat format, const float *data);

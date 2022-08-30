@@ -663,7 +663,9 @@ static void node_draw_mute_line(const bContext &C,
   GPU_blend(GPU_BLEND_ALPHA);
 
   LISTBASE_FOREACH (const bNodeLink *, link, &node.internal_links) {
-    node_draw_link_bezier(C, v2d, snode, *link, TH_WIRE_INNER, TH_WIRE_INNER, TH_WIRE, false);
+    if (!nodeLinkIsHidden(link)) {
+      node_draw_link_bezier(C, v2d, snode, *link, TH_WIRE_INNER, TH_WIRE_INNER, TH_WIRE, false);
+    }
   }
 
   GPU_blend(GPU_BLEND_NONE);

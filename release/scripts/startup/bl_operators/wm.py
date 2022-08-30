@@ -3152,7 +3152,10 @@ class WM_OT_drop_blend_file(Operator):
     bl_label = "Handle dropped .blend file"
     bl_options = {'INTERNAL'}
 
-    filepath: StringProperty()
+    filepath: StringProperty(
+        subtype='FILE_PATH',
+        options={'SKIP_SAVE'},
+    )
 
     def invoke(self, context, _event):
         context.window_manager.popup_menu(self.draw_menu, title=bpy.path.basename(self.filepath), icon='QUESTION')

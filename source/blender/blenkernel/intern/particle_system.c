@@ -837,7 +837,7 @@ void psys_get_birth_coords(
     cross_v3_v3v3(mat[1], mat[2], mat[0]);
 
     /* apply rotation */
-    mat3_to_quat_is_ok(q, mat);
+    mat3_to_quat_legacy(q, mat);
     copy_qt_qt(state->rot, q);
   }
   else {
@@ -3322,7 +3322,7 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
   mesh = *r_mesh;
   if (!mesh) {
     *r_mesh = mesh = BKE_mesh_new_nomain(totpoint, totedge, 0, 0, 0);
-    CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, mesh->totvert);
+    CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, NULL, mesh->totvert);
     BKE_mesh_update_customdata_pointers(mesh, false);
   }
   mvert = mesh->mvert;

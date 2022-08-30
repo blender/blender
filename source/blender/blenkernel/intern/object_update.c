@@ -110,7 +110,6 @@ void BKE_object_eval_constraints(Depsgraph *depsgraph, Scene *scene, Object *ob)
    * - post (i.e. BKE_constraints_clear_evalob)
    *
    * Not sure why, this is from Joshua - sergey
-   *
    */
   cob = BKE_constraints_make_evalob(depsgraph, scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
   BKE_constraints_solve(depsgraph, &ob->constraints, cob, ctime);
@@ -169,7 +168,7 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
       break;
 
     case OB_MBALL:
-      BKE_displist_make_mball(depsgraph, scene, ob);
+      BKE_mball_data_update(depsgraph, scene, ob);
       break;
 
     case OB_CURVES_LEGACY:
@@ -293,9 +292,15 @@ void BKE_object_batch_cache_dirty_tag(Object *ob)
     case OB_CURVES_LEGACY:
       BKE_curve_batch_cache_dirty_tag((struct Curve *)ob->data, BKE_CURVE_BATCH_DIRTY_ALL);
       break;
-    case OB_MBALL:
-      BKE_mball_batch_cache_dirty_tag((struct MetaBall *)ob->data, BKE_MBALL_BATCH_DIRTY_ALL);
+    case OB_MBALL: {
+      /* This function is currently called on original objects, so to properly
+       * clear the actual displayed geometry, we have to tag the evaluated mesh. */
+      Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(ob);
+      if (mesh) {
+        BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
+      }
       break;
+    }
     case OB_GPENCIL:
       BKE_gpencil_batch_cache_dirty_tag((struct bGPdata *)ob->data);
       break;

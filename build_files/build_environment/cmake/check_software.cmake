@@ -12,20 +12,12 @@ if(UNIX)
     automake
     bison
     ${_libtoolize_name}
+    meson
+    ninja
     pkg-config
     tclsh
     yasm
   )
-
-  if(NOT APPLE)
-    set(_required_software
-      ${_required_software}
-
-      # Needed for Mesa.
-      meson
-      ninja
-    )
-  endif()
 
   foreach(_software ${_required_software})
     find_program(_software_find NAMES ${_software})
@@ -57,7 +49,7 @@ if(UNIX)
       "  apt install autoconf automake libtool yasm tcl ninja-build meson python3-mako\n"
       "\n"
       "On macOS (with homebrew):\n"
-      "  brew install autoconf automake bison flex libtool pkg-config yasm\n"
+      "  brew install autoconf automake bison flex libtool meson ninja pkg-config yasm\n"
       "\n"
       "Other platforms:\n"
       "  Install equivalent packages.\n")

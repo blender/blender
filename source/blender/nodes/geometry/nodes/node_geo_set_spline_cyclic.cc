@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_curves.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_set_spline_cyclic_cc {
@@ -12,22 +14,19 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void set_cyclic_in_component(GeometryComponent &component,
-                                    const Field<bool> &selection_field,
-                                    const Field<bool> &cyclic_field)
+static void set_cyclic(bke::CurvesGeometry &curves,
+                       const Field<bool> &selection_field,
+                       const Field<bool> &cyclic_field)
 {
-  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_CURVE);
-  if (domain_size == 0) {
+  if (curves.curves_num() == 0) {
     return;
   }
-  MutableAttributeAccessor attributes = *component.attributes_for_write();
-
-  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_CURVE};
-
+  MutableAttributeAccessor attributes = curves.attributes_for_write();
   AttributeWriter<bool> cyclics = attributes.lookup_or_add_for_write<bool>("cyclic",
                                                                            ATTR_DOMAIN_CURVE);
 
-  fn::FieldEvaluator evaluator{field_context, domain_size};
+  bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
+  fn::FieldEvaluator evaluator{field_context, curves.curves_num()};
   evaluator.set_selection(selection_field);
   evaluator.add_with_destination(cyclic_field, cyclics.varray);
   evaluator.evaluate();
@@ -42,9 +41,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<bool> cyclic_field = params.extract_input<Field<bool>>("Cyclic");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (geometry_set.has_curves()) {
-      set_cyclic_in_component(
-          geometry_set.get_component_for_write<CurveComponent>(), selection_field, cyclic_field);
+    if (Curves *curves_id = geometry_set.get_curves_for_write()) {
+      set_cyclic(bke::CurvesGeometry::wrap(curves_id->geometry), selection_field, cyclic_field);
     }
   });
 

@@ -321,6 +321,7 @@ typedef struct wmNotifier {
 
 /* category */
 #define NOTE_CATEGORY 0xFF000000
+#define NOTE_CATEGORY_TAG_CLEARED NOTE_CATEGORY
 #define NC_WM (1 << 24)
 #define NC_WINDOW (2 << 24)
 #define NC_WORKSPACE (3 << 24)
@@ -669,7 +670,6 @@ typedef struct wmTabletData {
  *
  * - Mouse-wheel events are excluded even though they generate #KM_PRESS
  *   as clicking and dragging don't make sense for mouse wheel events.
- *
  */
 typedef struct wmEvent {
   struct wmEvent *next, *prev;

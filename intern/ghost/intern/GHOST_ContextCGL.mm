@@ -58,12 +58,6 @@ GHOST_ContextCGL::GHOST_ContextCGL(bool stereoVisual,
       m_defaultFramebufferMetalTexture(nil),
       m_debug(false)
 {
-#if defined(WITH_GL_PROFILE_CORE)
-  m_coreProfile = true;
-#else
-  m_coreProfile = false;
-#endif
-
   if (m_metalView) {
     metalInit();
   }
@@ -197,7 +191,6 @@ GHOST_TSuccess GHOST_ContextCGL::updateDrawingContext()
 }
 
 static void makeAttribList(std::vector<NSOpenGLPixelFormatAttribute> &attribs,
-                           bool coreProfile,
                            bool stereoVisual,
                            bool needAlpha,
                            bool softwareGL)
@@ -205,7 +198,7 @@ static void makeAttribList(std::vector<NSOpenGLPixelFormatAttribute> &attribs,
   attribs.clear();
 
   attribs.push_back(NSOpenGLPFAOpenGLProfile);
-  attribs.push_back(coreProfile ? NSOpenGLProfileVersion3_2Core : NSOpenGLProfileVersionLegacy);
+  attribs.push_back(NSOpenGLProfileVersion3_2Core);
 
   /* Pixel Format Attributes for the windowed NSOpenGLContext. */
   attribs.push_back(NSOpenGLPFADoubleBuffer);
@@ -245,7 +238,7 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
 
   std::vector<NSOpenGLPixelFormatAttribute> attribs;
   attribs.reserve(40);
-  makeAttribList(attribs, m_coreProfile, m_stereoVisual, needAlpha, softwareGL);
+  makeAttribList(attribs, m_stereoVisual, needAlpha, softwareGL);
 
   NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&attribs[0]];
   if (pixelFormat == nil) {
@@ -273,8 +266,6 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
     [m_openGLContext setValues:&swapInt forParameter:NSOpenGLCPSwapInterval];
   }
 #endif
-
-  initContextGLEW();
 
   if (m_metalView) {
     if (m_defaultFramebuffer == 0) {

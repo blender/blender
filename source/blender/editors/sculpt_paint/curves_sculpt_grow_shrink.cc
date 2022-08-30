@@ -144,21 +144,20 @@ class ExtrapolateCurvesEffect : public CurvesEffect {
       for (const int influence_i : range) {
         const int curve_i = curve_indices[influence_i];
         const float move_distance_cu = move_distances_cu[influence_i];
-        const IndexRange curve_points = curves.points_for_curve(curve_i);
+        const IndexRange points = curves.points_for_curve(curve_i);
 
-        if (curve_points.size() <= 1) {
+        if (points.size() <= 1) {
           continue;
         }
 
-        const float3 old_last_pos_cu = positions_cu[curve_points.last()];
+        const float3 old_last_pos_cu = positions_cu[points.last()];
         /* Use some point within the curve rather than the end point to smooth out some random
          * variation. */
-        const float3 direction_reference_point =
-            positions_cu[curve_points[curve_points.size() / 2]];
+        const float3 direction_reference_point = positions_cu[points[points.size() / 2]];
         const float3 direction = math::normalize(old_last_pos_cu - direction_reference_point);
 
         const float3 new_last_pos_cu = old_last_pos_cu + direction * move_distance_cu;
-        move_last_point_and_resample(positions_cu.slice(curve_points), new_last_pos_cu);
+        move_last_point_and_resample(positions_cu.slice(points), new_last_pos_cu);
       }
     });
   }

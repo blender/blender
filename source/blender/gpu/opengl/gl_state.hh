@@ -13,7 +13,7 @@
 
 #include "gpu_state_private.hh"
 
-#include "glew-mx.h"
+#include <epoxy/gl.h>
 
 namespace blender {
 namespace gpu {

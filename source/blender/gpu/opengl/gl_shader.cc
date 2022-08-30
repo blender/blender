@@ -545,7 +545,7 @@ std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) con
     if (!GLContext::native_barycentric_support) {
       /* Disabled or unsupported. */
     }
-    else if (GLEW_AMD_shader_explicit_vertex_parameter) {
+    else if (epoxy_has_gl_extension("GL_AMD_shader_explicit_vertex_parameter")) {
       /* Need this for stable barycentric. */
       ss << "flat out vec4 gpu_pos_flat;\n";
       ss << "out vec4 gpu_pos;\n";
@@ -581,7 +581,7 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
       ss << "noperspective in vec3 gpu_BaryCoordNoPersp;\n";
       ss << "#define gpu_position_at_vertex(v) gpu_pos[v]\n";
     }
-    else if (GLEW_AMD_shader_explicit_vertex_parameter) {
+    else if (epoxy_has_gl_extension("GL_AMD_shader_explicit_vertex_parameter")) {
       std::cout << "native" << std::endl;
       /* NOTE(fclem): This won't work with geometry shader. Hopefully, we don't need geometry
        * shader workaround if this extension/feature is detected. */
@@ -612,7 +612,7 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
   if (info.early_fragment_test_) {
     ss << "layout(early_fragment_tests) in;\n";
   }
-  if (GLEW_ARB_conservative_depth) {
+  if (epoxy_has_gl_extension("GL_ARB_conservative_depth")) {
     ss << "layout(" << to_string(info.depth_write_) << ") out float gl_FragDepth;\n";
   }
   ss << "\n/* Outputs. */\n";
@@ -805,7 +805,7 @@ static char *glsl_patch_default_get()
 
   size_t slen = 0;
   /* Version need to go first. */
-  if (GLEW_VERSION_4_3) {
+  if (epoxy_gl_version() >= 43) {
     STR_CONCAT(patch, slen, "#version 430\n");
   }
   else {
@@ -816,8 +816,8 @@ static char *glsl_patch_default_get()
    * don't use an extension for something already available! */
   if (GLContext::texture_gather_support) {
     STR_CONCAT(patch, slen, "#extension GL_ARB_texture_gather: enable\n");
-    /* Some drivers don't agree on GLEW_ARB_texture_gather and the actual support in the
-     * shader so double check the preprocessor define (see T56544). */
+    /* Some drivers don't agree on epoxy_has_gl_extension("GL_ARB_texture_gather") and the actual
+     * support in the shader so double check the preprocessor define (see T56544). */
     STR_CONCAT(patch, slen, "#ifdef GL_ARB_texture_gather\n");
     STR_CONCAT(patch, slen, "#  define GPU_ARB_texture_gather\n");
     STR_CONCAT(patch, slen, "#endif\n");
@@ -835,7 +835,7 @@ static char *glsl_patch_default_get()
     STR_CONCAT(patch, slen, "#extension GL_ARB_texture_cube_map_array : enable\n");
     STR_CONCAT(patch, slen, "#define GPU_ARB_texture_cube_map_array\n");
   }
-  if (GLEW_ARB_conservative_depth) {
+  if (epoxy_has_gl_extension("GL_ARB_conservative_depth")) {
     STR_CONCAT(patch, slen, "#extension GL_ARB_conservative_depth : enable\n");
   }
   if (GPU_shader_image_load_store_support()) {

@@ -657,8 +657,7 @@ Object *ED_object_add_type_with_obdata(bContext *C,
 
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
-  /* TODO(sergey): Use proper flag for tagging here. */
-  DEG_id_tag_update(&scene->id, 0);
+  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 
   ED_outliner_select_sync_from_object_tag(C);
 
@@ -2771,25 +2770,6 @@ static const EnumPropertyItem convert_target_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void object_data_convert_ensure_curve_cache(Depsgraph *depsgraph, Scene *scene, Object *ob)
-{
-  if (ob->runtime.curve_cache == nullptr) {
-    /* Force creation. This is normally not needed but on operator
-     * redo we might end up with an object which isn't evaluated yet.
-     * Also happens in case we are working on a copy of the object
-     * (all its caches have been nuked then).
-     */
-    if (ELEM(ob->type, OB_SURF, OB_CURVES_LEGACY, OB_FONT)) {
-      /* We need 'for render' ON here, to enable computing bevel #DispList if needed.
-       * Also makes sense anyway, we would not want e.g. to lose hidden parts etc. */
-      BKE_displist_make_curveTypes(depsgraph, scene, ob, true);
-    }
-    else if (ob->type == OB_MBALL) {
-      BKE_displist_make_mball(depsgraph, scene, ob);
-    }
-  }
-}
-
 static void object_data_convert_curve_to_mesh(Main *bmain, Depsgraph *depsgraph, Object *ob)
 {
   Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
@@ -2908,7 +2888,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
   const bool use_faces = RNA_boolean_get(op->ptr, "faces");
   const float offset = RNA_float_get(op->ptr, "offset");
 
-  int a, mballConverted = 0;
+  int mballConverted = 0;
   bool gpencilConverted = false;
   bool gpencilCurveConverted = false;
 
@@ -3256,7 +3236,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         /* No assumption should be made that the resulting objects is a mesh, as conversion can
          * fail. */
         object_data_convert_curve_to_mesh(bmain, depsgraph, newob);
-        /* meshes doesn't use displist */
+        /* Meshes doesn't use the "curve cache". */
         BKE_object_free_curve_cache(newob);
       }
       else if (target == OB_GPENCIL) {
@@ -3291,7 +3271,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         /* No assumption should be made that the resulting objects is a mesh, as conversion can
          * fail. */
         object_data_convert_curve_to_mesh(bmain, depsgraph, newob);
-        /* meshes doesn't use displist */
+        /* Meshes don't use the "curve cache". */
         BKE_object_free_curve_cache(newob);
       }
       else if (target == OB_GPENCIL) {
@@ -3332,21 +3312,13 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         MetaBall *mb = static_cast<MetaBall *>(newob->data);
         id_us_min(&mb->id);
 
-        newob->data = BKE_mesh_add(bmain, "Mesh");
+        /* Find the evaluated mesh of the basis metaball object. */
+        Object *object_eval = DEG_get_evaluated_object(depsgraph, baseob);
+        Mesh *mesh = BKE_mesh_new_from_object_to_bmain(bmain, depsgraph, object_eval, true);
+
+        id_us_plus(&mesh->id);
+        newob->data = mesh;
         newob->type = OB_MESH;
-
-        Mesh *me = static_cast<Mesh *>(newob->data);
-        me->totcol = mb->totcol;
-        if (newob->totcol) {
-          me->mat = static_cast<Material **>(MEM_dupallocN(mb->mat));
-          for (a = 0; a < newob->totcol; a++) {
-            id_us_plus((ID *)me->mat[a]);
-          }
-        }
-
-        object_data_convert_ensure_curve_cache(depsgraph, scene, baseob);
-        BKE_mesh_from_metaball(&baseob->runtime.curve_cache->disp,
-                               static_cast<Mesh *>(newob->data));
 
         if (obact->type == OB_MBALL) {
           basact = basen;
@@ -3692,7 +3664,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
   Object *ob_new_active = nullptr;
 
   CTX_DATA_BEGIN (C, Base *, base, selected_bases) {
-    Object *ob_new = NULL;
+    Object *ob_new = nullptr;
     object_add_duplicate_internal(bmain,
                                   scene,
                                   view_layer,

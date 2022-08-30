@@ -351,4 +351,4 @@ class GHOST_ImeWin32 {
   bool is_first, is_enable;
 };
 
-#endif  // WITH_INPUT_IME
+#endif /* WITH_INPUT_IME */

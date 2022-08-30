@@ -58,7 +58,7 @@ CurvesGeometry::CurvesGeometry(const int point_num, const int curve_num)
 
   CustomData_add_layer_named(&this->point_data,
                              CD_PROP_FLOAT3,
-                             CD_DEFAULT,
+                             CD_SET_DEFAULT,
                              nullptr,
                              this->point_num,
                              ATTR_POSITION.c_str());
@@ -222,7 +222,7 @@ static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
     return {data, num};
   }
   data = (T *)CustomData_add_layer_named(
-      &custom_data, type, CD_CALLOC, nullptr, num, name.c_str());
+      &custom_data, type, CD_SET_DEFAULT, nullptr, num, name.c_str());
   MutableSpan<T> span = {data, num};
   if (num > 0 && span.first() != default_value) {
     span.fill(default_value);
@@ -254,6 +254,12 @@ void CurvesGeometry::fill_curve_types(const IndexMask selection, const CurveType
   if (selection.size() == this->curves_num()) {
     this->fill_curve_types(type);
     return;
+  }
+  if (std::optional<int8_t> single_type = this->curve_types().get_if_single()) {
+    if (single_type == type) {
+      /* No need for an array if the types are already a single with the correct type. */
+      return;
+    }
   }
   /* A potential performance optimization is only counting the changed indices. */
   this->curve_types_for_write().fill_indices(selection, type);
@@ -939,6 +945,12 @@ void CurvesGeometry::ensure_evaluated_lengths() const
   this->runtime->length_cache_dirty = false;
 }
 
+void CurvesGeometry::ensure_can_interpolate_to_evaluated() const
+{
+  this->ensure_evaluated_offsets();
+  this->ensure_nurbs_basis_cache();
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1190,7 +1202,7 @@ static CurvesGeometry copy_with_removed_points(const CurvesGeometry &curves,
       },
       [&]() {
         /* Copy over curve attributes.
-         * In some cases points are just dissolved, so the the number of
+         * In some cases points are just dissolved, so the number of
          * curves will be the same. That could be optimized in the future. */
         for (bke::AttributeTransferData &attribute : curve_attributes) {
           if (new_curves.curves_num() == curves.curves_num()) {

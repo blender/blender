@@ -120,6 +120,7 @@ class GHOST_ISystem {
    * \return An indication of success.
    */
   static GHOST_TSuccess createSystem();
+  static GHOST_TSuccess createSystemBackground();
 
   /**
    * Disposes the one and only system.
@@ -277,8 +278,7 @@ class GHOST_ISystem {
    */
   virtual GHOST_TSuccess beginFullScreen(const GHOST_DisplaySetting &setting,
                                          GHOST_IWindow **window,
-                                         const bool stereoVisual,
-                                         const bool alphaBackground = 0) = 0;
+                                         const bool stereoVisual) = 0;
 
   /**
    * Updates the resolution while in fullscreen mode.

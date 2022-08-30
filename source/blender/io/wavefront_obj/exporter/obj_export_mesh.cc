@@ -47,7 +47,7 @@ OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Obj
     /* Since a new mesh been allocated, it needs to be freed in the destructor. */
     mesh_eval_needs_free_ = true;
   }
-  if (export_params.export_triangulated_mesh && ELEM(export_object_eval_.type, OB_MESH, OB_SURF)) {
+  if (export_params.export_triangulated_mesh && export_object_eval_.type == OB_MESH) {
     std::tie(export_mesh_eval_, mesh_eval_needs_free_) = triangulate_mesh_eval();
   }
   set_world_axes_transform(export_params.forward_axis, export_params.up_axis);
@@ -133,7 +133,7 @@ void OBJMesh::set_world_axes_transform(const eIOAxis forward, const eIOAxis up)
   copy_m3_m4(normal_matrix, world_and_axes_transform_);
   invert_m3_m3(world_and_axes_normal_transform_, normal_matrix);
   transpose_m3(world_and_axes_normal_transform_);
-  mirrored_transform_ = determinant_m3_array(world_and_axes_normal_transform_) < 0;
+  mirrored_transform_ = is_negative_m3(world_and_axes_normal_transform_);
 }
 
 int OBJMesh::tot_vertices() const

@@ -28,8 +28,6 @@ using bke::AttributeReader;
 using bke::AttributeWriter;
 using bke::GAttributeReader;
 using bke::GAttributeWriter;
-using bke::GeometryComponentFieldContext;
-using bke::GeometryFieldInput;
 using bke::GSpanAttributeWriter;
 using bke::MutableAttributeAccessor;
 using bke::SpanAttributeWriter;

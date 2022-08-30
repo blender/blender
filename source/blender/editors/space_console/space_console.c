@@ -257,7 +257,7 @@ static void console_main_region_listener(const wmRegionListenerParams *params)
 {
   ScrArea *area = params->area;
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {

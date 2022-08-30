@@ -44,7 +44,7 @@ static const char *rna_Mesh_unit_test_compare(struct Mesh *mesh,
 static void rna_Mesh_create_normals_split(Mesh *mesh)
 {
   if (!CustomData_has_layer(&mesh->ldata, CD_NORMAL)) {
-    CustomData_add_layer(&mesh->ldata, CD_NORMAL, CD_CALLOC, NULL, mesh->totloop);
+    CustomData_add_layer(&mesh->ldata, CD_NORMAL, CD_SET_DEFAULT, NULL, mesh->totloop);
     CustomData_set_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
 }
@@ -64,7 +64,7 @@ static void rna_Mesh_calc_tangents(Mesh *mesh, ReportList *reports, const char *
   }
   else {
     r_looptangents = CustomData_add_layer(
-        &mesh->ldata, CD_MLOOPTANGENT, CD_CALLOC, NULL, mesh->totloop);
+        &mesh->ldata, CD_MLOOPTANGENT, CD_SET_DEFAULT, NULL, mesh->totloop);
     CustomData_set_layer_flag(&mesh->ldata, CD_MLOOPTANGENT, CD_FLAG_TEMPORARY);
   }
 

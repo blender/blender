@@ -9,28 +9,20 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Rotation")).field_source();
 }
 
-class VectorFieldInput final : public GeometryFieldInput {
+class InstanceRotationFieldInput final : public bke::InstancesFieldInput {
  public:
-  VectorFieldInput() : GeometryFieldInput(CPPType::get<float3>(), "Rotation")
+  InstanceRotationFieldInput() : bke::InstancesFieldInput(CPPType::get<float3>(), "Rotation")
   {
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const eAttrDomain UNUSED(domain),
+  GVArray get_varray_for_context(const InstancesComponent &instances,
                                  IndexMask UNUSED(mask)) const final
   {
-    if (component.type() != GEO_COMPONENT_TYPE_INSTANCES) {
-      return {};
-    }
-
-    const InstancesComponent &instance_component = static_cast<const InstancesComponent &>(
-        component);
-
     auto rotation_fn = [&](const int i) -> float3 {
-      return instance_component.instance_transforms()[i].to_euler();
+      return instances.instance_transforms()[i].to_euler();
     };
 
-    return VArray<float3>::ForFunc(instance_component.instances_num(), rotation_fn);
+    return VArray<float3>::ForFunc(instances.instances_num(), rotation_fn);
   }
 
   uint64_t hash() const override
@@ -40,13 +32,13 @@ class VectorFieldInput final : public GeometryFieldInput {
 
   bool is_equal_to(const fn::FieldNode &other) const override
   {
-    return dynamic_cast<const VectorFieldInput *>(&other) != nullptr;
+    return dynamic_cast<const InstanceRotationFieldInput *>(&other) != nullptr;
   }
 };
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Field<float3> rotation{std::make_shared<VectorFieldInput>()};
+  Field<float3> rotation{std::make_shared<InstanceRotationFieldInput>()};
   params.set_output("Rotation", std::move(rotation));
 }
 

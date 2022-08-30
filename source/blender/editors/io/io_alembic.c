@@ -651,16 +651,16 @@ static int wm_alembic_import_exec(bContext *C, wmOperator *op)
     ED_object_mode_set(C, OB_MODE_OBJECT);
   }
 
-  bool ok = ABC_import(C,
-                       filename,
-                       scale,
-                       is_sequence,
-                       set_frame_range,
-                       sequence_len,
-                       offset,
-                       validate_meshes,
-                       always_add_cache_reader,
-                       as_background_job);
+  struct AlembicImportParams params = {0};
+  params.global_scale = scale;
+  params.sequence_len = sequence_len;
+  params.sequence_offset = offset;
+  params.is_sequence = is_sequence;
+  params.set_frame_range = set_frame_range;
+  params.validate_meshes = validate_meshes;
+  params.always_add_cache_reader = always_add_cache_reader;
+
+  bool ok = ABC_import(C, filename, &params, as_background_job);
 
   return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }

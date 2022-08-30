@@ -723,15 +723,16 @@ typedef struct sActionzoneData {
 static bool actionzone_area_poll(bContext *C)
 {
   wmWindow *win = CTX_wm_window(C);
-  bScreen *screen = WM_window_get_active_screen(win);
+  if (win && win->eventstate) {
+    bScreen *screen = WM_window_get_active_screen(win);
+    if (screen) {
+      const int *xy = &win->eventstate->xy[0];
 
-  if (screen && win && win->eventstate) {
-    const int *xy = &win->eventstate->xy[0];
-
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (AZone *, az, &area->actionzones) {
-        if (BLI_rcti_isect_pt_v(&az->rect, xy)) {
-          return true;
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (AZone *, az, &area->actionzones) {
+          if (BLI_rcti_isect_pt_v(&az->rect, xy)) {
+            return true;
+          }
         }
       }
     }

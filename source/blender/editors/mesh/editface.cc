@@ -530,15 +530,13 @@ bool paintvert_deselect_all_visible(Object *ob, int action, bool flush_flags)
   bke::AttributeAccessor attributes = bke::mesh_attributes(*me);
   const VArray<bool> hide_vert = attributes.lookup_or_default<bool>(
       ".hide_vert", ATTR_DOMAIN_POINT, false);
-  const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
-      ".hide_poly", ATTR_DOMAIN_FACE, false);
 
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
 
     for (int i = 0; i < me->totvert; i++) {
       MVert *mvert = &me->mvert[i];
-      if (!hide_poly[i] && mvert->flag & SELECT) {
+      if (!hide_vert[i] && mvert->flag & SELECT) {
         action = SEL_DESELECT;
         break;
       }
@@ -603,13 +601,13 @@ void paintvert_select_ungrouped(Object *ob, bool extend, bool flush_flags)
   }
 
   bke::AttributeAccessor attributes = bke::mesh_attributes(*me);
-  const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
-      ".hide_poly", ATTR_DOMAIN_FACE, false);
+  const VArray<bool> hide_vert = attributes.lookup_or_default<bool>(
+      ".hide_vert", ATTR_DOMAIN_POINT, false);
 
   for (int i = 0; i < me->totvert; i++) {
     MVert *mv = &me->mvert[i];
     MDeformVert *dv = &me->dvert[i];
-    if (!hide_poly[i]) {
+    if (!hide_vert[i]) {
       if (dv->dw == nullptr) {
         /* if null weight then not grouped */
         mv->flag |= SELECT;
@@ -626,17 +624,17 @@ void paintvert_hide(bContext *C, Object *ob, const bool unselected)
 {
   using namespace blender;
   Mesh *me = BKE_mesh_from_object(ob);
-  if (me == NULL || me->totvert == 0) {
+  if (me == nullptr || me->totvert == 0) {
     return;
   }
 
   bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*me);
   bke::SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_span<bool>(
       ".hide_vert", ATTR_DOMAIN_POINT);
-  MutableSpan<MVert> vertices(me->mvert, me->totvert);
+  MutableSpan<MVert> verts(me->mvert, me->totvert);
 
-  for (const int i : vertices.index_range()) {
-    MVert &vert = vertices[i];
+  for (const int i : verts.index_range()) {
+    MVert &vert = verts[i];
     if (!hide_vert.span[i]) {
       if (((vert.flag & SELECT) == 0) == unselected) {
         hide_vert.span[i] = true;
@@ -659,17 +657,17 @@ void paintvert_reveal(bContext *C, Object *ob, const bool select)
 {
   using namespace blender;
   Mesh *me = BKE_mesh_from_object(ob);
-  if (me == NULL || me->totvert == 0) {
+  if (me == nullptr || me->totvert == 0) {
     return;
   }
 
   bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*me);
   const VArray<bool> hide_vert = attributes.lookup_or_default<bool>(
       ".hide_vert", ATTR_DOMAIN_POINT, false);
-  MutableSpan<MVert> vertices(me->mvert, me->totvert);
+  MutableSpan<MVert> verts(me->mvert, me->totvert);
 
-  for (const int i : vertices.index_range()) {
-    MVert &vert = vertices[i];
+  for (const int i : verts.index_range()) {
+    MVert &vert = verts[i];
     if (hide_vert[i]) {
       SET_FLAG_FROM_TEST(vert.flag, select, SELECT);
     }

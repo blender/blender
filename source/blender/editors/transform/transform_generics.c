@@ -1132,6 +1132,33 @@ static void calculateCenter_FromAround(TransInfo *t, int around, float r_center[
   }
 }
 
+static void calculateZfac(TransInfo *t)
+{
+  /* ED_view3d_calc_zfac() defines a factor for perspective depth correction,
+   * used in ED_view3d_win_to_delta() */
+
+  /* zfac is only used convertViewVec only in cases operator was invoked in RGN_TYPE_WINDOW
+   * and never used in other cases.
+   *
+   * We need special case here as well, since ED_view3d_calc_zfac will crash when called
+   * for a region different from RGN_TYPE_WINDOW.
+   */
+  if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
+    t->zfac = ED_view3d_calc_zfac(t->region->regiondata, t->center_global);
+  }
+  else if (t->spacetype == SPACE_IMAGE) {
+    SpaceImage *sima = t->area->spacedata.first;
+    t->zfac = 1.0f / sima->zoom;
+  }
+  else if (t->region) {
+    View2D *v2d = &t->region->v2d;
+    /* Get zoom fac the same way as in
+     * `ui_view2d_curRect_validate_resize` - better keep in sync! */
+    const float zoomx = (float)(BLI_rcti_size_x(&v2d->mask) + 1) / BLI_rctf_size_x(&v2d->cur);
+    t->zfac = 1.0f / zoomx;
+  }
+}
+
 void calculateCenter(TransInfo *t)
 {
   if ((t->flag & T_OVERRIDE_CENTER) == 0) {
@@ -1166,22 +1193,46 @@ void calculateCenter(TransInfo *t)
     }
   }
 
-  if (t->spacetype == SPACE_VIEW3D) {
-    /* #ED_view3d_calc_zfac() defines a factor for perspective depth correction,
-     * used in #ED_view3d_win_to_delta(). */
+  calculateZfac(t);
+}
 
-    /* NOTE: `t->zfac` is only used #convertViewVec only in cases operator was invoked in
-     * #RGN_TYPE_WINDOW and never used in other cases.
-     *
-     * We need special case here as well, since #ED_view3d_calc_zfac will crash when called
-     * for a region different from #RGN_TYPE_WINDOW. */
-    if (t->region->regiontype == RGN_TYPE_WINDOW) {
-      t->zfac = ED_view3d_calc_zfac(t->region->regiondata, t->center_global);
+/* Called every time the view changes due to navigation.
+ * Adjusts the mouse position relative to the object. */
+void tranformViewUpdate(TransInfo *t)
+{
+  float zoom_prev = t->zfac;
+  float zoom_new;
+  if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
+    if (!t->persp) {
+      zoom_prev *= len_v3(t->persinv[0]);
     }
-    else {
-      t->zfac = 0.0f;
+
+    setTransformViewMatrices(t);
+    calculateZfac(t);
+
+    zoom_new = t->zfac;
+    if (!t->persp) {
+      zoom_new *= len_v3(t->persinv[0]);
+    }
+
+    for (int i = 0; i < ARRAY_SIZE(t->orient); i++) {
+      if (t->orient[i].type == V3D_ORIENT_VIEW) {
+        copy_m3_m4(t->orient[i].matrix, t->viewinv);
+        normalize_m3(t->orient[i].matrix);
+        if (t->orient_curr == i) {
+          copy_m3_m3(t->spacemtx, t->orient[i].matrix);
+          invert_m3_m3_safe_ortho(t->spacemtx_inv, t->spacemtx);
+        }
+      }
     }
   }
+  else {
+    calculateZfac(t);
+    zoom_new = t->zfac;
+  }
+
+  calculateCenter2D(t);
+  transform_input_update(t, zoom_prev / zoom_new);
 }
 
 void calculatePropRatio(TransInfo *t)

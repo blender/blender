@@ -5,35 +5,36 @@
  * This is used by alpha blended materials and materials using Shader to RGB nodes.
  **/
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_hair_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_light_eval_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
-
-float spec_light(ClosureReflection ref)
-{
-  float gloss = saturate(1.0 - ref.roughness);
-  float shininess = exp2(10.0 * gloss + 1.0);
-  vec3 N = ref.N;
-  vec3 L = vec3(0.0, 0.0, 1.0);
-  vec3 H = normalize(L + cameraVec(g_data.P));
-  float spec_angle = saturate(dot(N, H));
-  float normalization_factor = shininess * 0.125 + 1.0;
-  float spec_light = pow(spec_angle, shininess) * saturate(dot(N, L)) * normalization_factor;
-  return spec_light;
-}
 
 vec4 closure_to_rgba(Closure cl)
 {
+  vec3 diffuse_light = vec3(0.0);
+  vec3 reflection_light = vec3(0.0);
+  vec3 refraction_light = vec3(0.0);
+
+  float vP_z = dot(cameraForward, g_data.P) - dot(cameraForward, cameraPos);
+
+  light_eval(g_diffuse_data,
+             g_reflection_data,
+             g_data.P,
+             cameraVec(g_data.P),
+             vP_z,
+             0.01 /* TODO(fclem) thickness. */,
+             diffuse_light,
+             reflection_light);
+
   vec4 out_color;
   out_color.rgb = g_emission;
-  out_color.rgb += g_diffuse_data.color * g_diffuse_data.weight *
-                   saturate(g_diffuse_data.N.z * 0.5 + 0.5);
-  out_color.rgb += g_reflection_data.color * g_reflection_data.weight *
-                   spec_light(g_reflection_data);
-  out_color.rgb += g_refraction_data.color * g_refraction_data.weight *
-                   saturate(g_refraction_data.N.z * 0.5 + 0.5);
+  out_color.rgb += g_diffuse_data.color * g_diffuse_data.weight * diffuse_light;
+  out_color.rgb += g_reflection_data.color * g_reflection_data.weight * reflection_light;
+  out_color.rgb += g_refraction_data.color * g_refraction_data.weight * refraction_light;
 
   out_color.a = saturate(1.0 - avg(g_transmittance));
 
@@ -47,15 +48,29 @@ void main()
 {
   init_globals();
 
+  float noise = utility_tx_fetch(utility_tx, gl_FragCoord.xy, UTIL_BLUE_NOISE_LAYER).r;
+  g_closure_rand = fract(noise + sampling_rng_1D_get(SAMPLING_CLOSURE));
+
   fragment_displacement();
 
   nodetree_surface();
 
   g_holdout = saturate(g_holdout);
 
-  vec3 diffuse_light = vec3(saturate(g_diffuse_data.N.z * 0.5 + 0.5));
-  vec3 reflection_light = vec3(spec_light(g_reflection_data));
-  vec3 refraction_light = vec3(saturate(g_refraction_data.N.z * 0.5 + 0.5));
+  vec3 diffuse_light = vec3(0.0);
+  vec3 reflection_light = vec3(0.0);
+  vec3 refraction_light = vec3(0.0);
+
+  float vP_z = dot(cameraForward, g_data.P) - dot(cameraForward, cameraPos);
+
+  light_eval(g_diffuse_data,
+             g_reflection_data,
+             g_data.P,
+             cameraVec(g_data.P),
+             vP_z,
+             0.01 /* TODO(fclem) thickness. */,
+             diffuse_light,
+             reflection_light);
 
   g_diffuse_data.color *= g_diffuse_data.weight;
   g_reflection_data.color *= g_reflection_data.weight;
@@ -84,9 +99,11 @@ void main()
 
   ivec2 out_texel = ivec2(gl_FragCoord.xy);
   imageStore(rp_normal_img, out_texel, vec4(out_normal, 1.0));
-  imageStore(rp_diffuse_light_img, out_texel, vec4(diffuse_light, 1.0));
+  imageStore(
+      rp_light_img, ivec3(out_texel, RENDER_PASS_LAYER_DIFFUSE_LIGHT), vec4(diffuse_light, 1.0));
+  imageStore(
+      rp_light_img, ivec3(out_texel, RENDER_PASS_LAYER_SPECULAR_LIGHT), vec4(specular_light, 1.0));
   imageStore(rp_diffuse_color_img, out_texel, vec4(g_diffuse_data.color, 1.0));
-  imageStore(rp_specular_light_img, out_texel, vec4(specular_light, 1.0));
   imageStore(rp_specular_color_img, out_texel, vec4(specular_color, 1.0));
   imageStore(rp_emission_img, out_texel, vec4(g_emission, 1.0));
 

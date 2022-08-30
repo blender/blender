@@ -88,7 +88,7 @@ bool ED_rigidbody_constraint_add(
   /* create constraint group if it doesn't already exits */
   if (rbw->constraints == NULL) {
     rbw->constraints = BKE_collection_add(bmain, NULL, "RigidBodyConstraints");
-    id_fake_user_set(&rbw->constraints->id);
+    id_us_plus(&rbw->constraints->id);
   }
   /* make rigidbody constraint settings */
   ob->rigidbody_constraint = BKE_rigidbody_create_constraint(scene, ob, type);

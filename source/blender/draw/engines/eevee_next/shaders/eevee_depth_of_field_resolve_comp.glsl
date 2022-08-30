@@ -36,7 +36,7 @@ float dof_slight_focus_coc_tile_get(vec2 frag_coord)
   }
   /* Use atomic reduce operation. */
   atomicMax(shared_max_slight_focus_abs_coc, floatBitsToUint(local_abs_max));
-  /* "Broadcast" result accross all threads. */
+  /* "Broadcast" result across all threads. */
   barrier();
 
   return uintBitsToFloat(shared_max_slight_focus_abs_coc);
@@ -44,7 +44,7 @@ float dof_slight_focus_coc_tile_get(vec2 frag_coord)
 
 vec3 dof_neighborhood_clamp(vec2 frag_coord, vec3 color, float center_coc, float weight)
 {
-  /* Stabilize color by clamping with the stable half res neighboorhood. */
+  /* Stabilize color by clamping with the stable half res neighborhood. */
   vec3 neighbor_min, neighbor_max;
   const vec2 corners[4] = vec2[4](vec2(-1, -1), vec2(1, -1), vec2(-1, 1), vec2(1, 1));
   for (int i = 0; i < 4; i++) {

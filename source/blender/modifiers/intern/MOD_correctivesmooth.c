@@ -729,8 +729,7 @@ static void deformVerts(ModifierData *md,
                         float (*vertexCos)[3],
                         int verts_num)
 {
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(
-      ctx->object, NULL, mesh, NULL, verts_num, false, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
 
   correctivesmooth_modifier_do(
       md, ctx->depsgraph, ctx->object, mesh_src, vertexCos, (uint)verts_num, NULL);
@@ -747,8 +746,7 @@ static void deformVertsEM(ModifierData *md,
                           float (*vertexCos)[3],
                           int verts_num)
 {
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(
-      ctx->object, editData, mesh, NULL, verts_num, false, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, verts_num, false);
 
   /* TODO(@campbellbarton): use edit-mode data only (remove this line). */
   if (mesh_src != NULL) {

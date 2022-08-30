@@ -2008,7 +2008,7 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
       printf("Error: can't process EXR multilayer file\n");
     }
     else {
-      const int is_alpha = exr_has_alpha(*file);
+      const bool is_alpha = exr_has_alpha(*file);
 
       ibuf = IMB_allocImBuf(width, height, is_alpha ? 32 : 24, 0);
       ibuf->flags |= exr_is_half_float(*file) ? IB_halffloat : 0;

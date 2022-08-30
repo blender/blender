@@ -109,7 +109,7 @@ void EEVEE_cache_populate(void *vedata, Object *ob)
   }
 
   if (DRW_object_is_renderable(ob) && (ob_visibility & OB_VISIBLE_SELF)) {
-    if (ELEM(ob->type, OB_MESH, OB_SURF, OB_MBALL)) {
+    if (ob->type == OB_MESH) {
       EEVEE_materials_cache_populate(vedata, sldata, ob, &cast_shadow);
     }
     else if (ob->type == OB_CURVES) {

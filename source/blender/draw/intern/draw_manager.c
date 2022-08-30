@@ -2989,9 +2989,6 @@ void DRW_engines_register(void)
 
   /* setup callbacks */
   {
-    BKE_mball_batch_cache_dirty_tag_cb = DRW_mball_batch_cache_dirty_tag;
-    BKE_mball_batch_cache_free_cb = DRW_mball_batch_cache_free;
-
     BKE_curve_batch_cache_dirty_tag_cb = DRW_curve_batch_cache_dirty_tag;
     BKE_curve_batch_cache_free_cb = DRW_curve_batch_cache_free;
 

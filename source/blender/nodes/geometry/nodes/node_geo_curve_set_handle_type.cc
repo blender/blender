@@ -51,15 +51,12 @@ static HandleType handle_type_from_input_type(GeometryNodeCurveHandleType type)
   return BEZIER_HANDLE_AUTO;
 }
 
-static void set_type_in_component(CurveComponent &component,
-                                  const GeometryNodeCurveHandleMode mode,
-                                  const HandleType new_handle_type,
-                                  const Field<bool> &selection_field)
+static void set_handle_type(bke::CurvesGeometry &curves,
+                            const GeometryNodeCurveHandleMode mode,
+                            const HandleType new_handle_type,
+                            const Field<bool> &selection_field)
 {
-  Curves &curves_id = *component.get_for_write();
-  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
-
-  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
+  bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_POINT};
   fn::FieldEvaluator evaluator{field_context, curves.points_num()};
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
@@ -93,21 +90,17 @@ static void node_geo_exec(GeoNodeExecParams params)
   std::atomic<bool> has_bezier = false;
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (!geometry_set.has_curves()) {
-      return;
-    }
-    has_curves = true;
-    const CurveComponent &component = *geometry_set.get_component_for_read<CurveComponent>();
-    const AttributeAccessor attributes = *component.attributes();
-    if (!attributes.contains("handle_type_left") || !attributes.contains("handle_type_right")) {
-      return;
-    }
-    has_bezier = true;
+    if (Curves *curves_id = geometry_set.get_curves_for_write()) {
+      bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+      has_curves = true;
+      const AttributeAccessor attributes = curves.attributes();
+      if (!attributes.contains("handle_type_left") || !attributes.contains("handle_type_right")) {
+        return;
+      }
+      has_bezier = true;
 
-    set_type_in_component(geometry_set.get_component_for_write<CurveComponent>(),
-                          mode,
-                          new_handle_type,
-                          selection_field);
+      set_handle_type(curves, mode, new_handle_type, selection_field);
+    }
   });
 
   if (has_curves && !has_bezier) {

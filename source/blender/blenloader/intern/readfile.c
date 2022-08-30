@@ -2631,9 +2631,6 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
         else if (sl->spacetype == SPACE_OUTLINER) {
           SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
 
-          space_outliner->search_tse.id = restore_pointer_by_name(
-              id_map, space_outliner->search_tse.id, USER_IGNORE);
-
           if (space_outliner->treestore) {
             TreeStoreElem *tselem;
             BLI_mempool_iter iter;

@@ -449,7 +449,7 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
 
     if (object->soft->effector_weights) {
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(
-          data, object->soft->effector_weights->group, IDWALK_CB_NOP);
+          data, object->soft->effector_weights->group, IDWALK_CB_USER);
     }
   }
 }
@@ -1665,7 +1665,7 @@ static void copy_ccg_data(Mesh *mesh_destination, Mesh *mesh_source, int layer_t
   const int layer_index = CustomData_get_layer_index(data_destination, layer_type);
   CustomData_free_layer(data_destination, layer_type, num_elements, layer_index);
   BLI_assert(!CustomData_has_layer(data_destination, layer_type));
-  CustomData_add_layer(data_destination, layer_type, CD_CALLOC, nullptr, num_elements);
+  CustomData_add_layer(data_destination, layer_type, CD_SET_DEFAULT, nullptr, num_elements);
   BLI_assert(CustomData_has_layer(data_destination, layer_type));
   CustomData_copy_layer_type_data(data_source, data_destination, layer_type, 0, 0, num_elements);
 }

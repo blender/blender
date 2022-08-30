@@ -228,6 +228,7 @@ void GPU_materials_free(struct Main *bmain);
 struct Scene *GPU_material_scene(GPUMaterial *material);
 struct GPUPass *GPU_material_get_pass(GPUMaterial *material);
 struct GPUShader *GPU_material_get_shader(GPUMaterial *material);
+const char *GPU_material_get_name(GPUMaterial *material);
 /**
  * Return can be NULL if it's a world material.
  */

@@ -1,0 +1,19 @@
+--- a/src/dispatch_wgl.c	2022-08-04 17:45:13.144924705 +0200
++++ b/src/dispatch_wgl.c	2022-08-04 17:45:47.657482971 +0200
+@@ -78,6 +78,8 @@
+     if (!first_context_current) {
+         first_context_current = true;
+     } else {
++      /* BLENDER: disable slow dispatch table switching. */
++#if 0
+         if (!already_switched_to_dispatch_table) {
+             already_switched_to_dispatch_table = true;
+             gl_switch_to_dispatch_table();
+@@ -86,6 +88,7 @@
+ 
+         gl_init_dispatch_table();
+         wgl_init_dispatch_table();
++#endif
+     }
+ }
+ 

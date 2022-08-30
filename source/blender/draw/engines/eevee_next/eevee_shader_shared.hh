@@ -31,6 +31,56 @@ constexpr eGPUSamplerState with_filter = GPU_SAMPLER_FILTER;
 #define UBO_MIN_MAX_SUPPORTED_SIZE 1 << 14
 
 /* -------------------------------------------------------------------- */
+/** \name Debug Mode
+ * \{ */
+
+/** These are just to make more sense of G.debug_value's values. Reserved range is 1-30. */
+enum eDebugMode : uint32_t {
+  DEBUG_NONE = 0u,
+  /**
+   * Gradient showing light evaluation hot-spots.
+   */
+  DEBUG_LIGHT_CULLING = 1u,
+  /**
+   * Show incorrectly downsample tiles in red.
+   */
+  DEBUG_HIZ_VALIDATION = 2u,
+  /**
+   * Tile-maps to screen. Is also present in other modes.
+   * - Black pixels, no pages allocated.
+   * - Green pixels, pages cached.
+   * - Red pixels, pages allocated.
+   */
+  DEBUG_SHADOW_TILEMAPS = 10u,
+  /**
+   * Random color per pages. Validates page density allocation and sampling.
+   */
+  DEBUG_SHADOW_PAGES = 11u,
+  /**
+   * Outputs random color per tile-map (or tile-map level). Validates tile-maps coverage.
+   * Black means not covered by any tile-maps LOD of the shadow.
+   */
+  DEBUG_SHADOW_LOD = 12u,
+  /**
+   * Outputs white pixels for pages allocated and black pixels for unused pages.
+   * This needs DEBUG_SHADOW_PAGE_ALLOCATION_ENABLED defined in order to work.
+   */
+  DEBUG_SHADOW_PAGE_ALLOCATION = 13u,
+  /**
+   * Outputs the tile-map atlas. Default tile-map is too big for the usual screen resolution.
+   * Try lowering SHADOW_TILEMAP_PER_ROW and SHADOW_MAX_TILEMAP before using this option.
+   */
+  DEBUG_SHADOW_TILE_ALLOCATION = 14u,
+  /**
+   * Visualize linear depth stored in the atlas regions of the active light.
+   * This way, one can check if the rendering, the copying and the shadow sampling functions works.
+   */
+  DEBUG_SHADOW_SHADOW_DEPTH = 15u
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Sampling
  * \{ */
 
@@ -238,6 +288,17 @@ static inline float film_filter_weight(float filter_radius, float sample_distanc
 #endif
   return weight;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Render passes
+ * \{ */
+
+enum eRenderPassLayerIndex : uint32_t {
+  RENDER_PASS_LAYER_DIFFUSE_LIGHT = 0u,
+  RENDER_PASS_LAYER_SPECULAR_LIGHT = 1u,
+};
 
 /** \} */
 
@@ -460,6 +521,127 @@ static inline float circle_to_polygon_angle(float sides_count, float theta)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Light Culling
+ * \{ */
+
+/* Number of items we can cull. Limited by how we store CullingZBin. */
+#define CULLING_MAX_ITEM 65536
+/* Fine grained subdivision in the Z direction. Limited by the LDS in z-binning compute shader. */
+#define CULLING_ZBIN_COUNT 4096
+/* Max tile map resolution per axes. */
+#define CULLING_TILE_RES 16
+
+struct LightCullingData {
+  /** Scale applied to tile pixel coordinates to get target UV coordinate. */
+  float2 tile_to_uv_fac;
+  /** Scale and bias applied to linear Z to get zbin. */
+  float zbin_scale;
+  float zbin_bias;
+  /** Valid item count in the source data array. */
+  uint items_count;
+  /** Items that are processed by the 2.5D culling. */
+  uint local_lights_len;
+  /** Items that are **NOT** processed by the 2.5D culling (i.e: Sun Lights). */
+  uint sun_lights_len;
+  /** Number of items that passes the first culling test. */
+  uint visible_count;
+  /** Extent of one square tile in pixels. */
+  float tile_size;
+  /** Number of tiles on the X/Y axis. */
+  uint tile_x_len;
+  uint tile_y_len;
+  /** Number of word per tile. Depends on the maximum number of lights. */
+  uint tile_word_len;
+};
+BLI_STATIC_ASSERT_ALIGN(LightCullingData, 16)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Lights
+ * \{ */
+
+#define LIGHT_NO_SHADOW -1
+
+enum eLightType : uint32_t {
+  LIGHT_SUN = 0u,
+  LIGHT_POINT = 1u,
+  LIGHT_SPOT = 2u,
+  LIGHT_RECT = 3u,
+  LIGHT_ELLIPSE = 4u
+};
+
+static inline bool is_area_light(eLightType type)
+{
+  return type >= LIGHT_RECT;
+}
+
+struct LightData {
+  /** Normalized object matrix. Last column contains data accessible using the following macros. */
+  float4x4 object_mat;
+  /** Packed data in the last column of the object_mat. */
+#define _area_size_x object_mat[0][3]
+#define _area_size_y object_mat[1][3]
+#define _radius _area_size_x
+#define _spot_mul object_mat[2][3]
+#define _spot_bias object_mat[3][3]
+  /** Aliases for axes. */
+#ifndef USE_GPU_SHADER_CREATE_INFO
+#  define _right object_mat[0]
+#  define _up object_mat[1]
+#  define _back object_mat[2]
+#  define _position object_mat[3]
+#else
+#  define _right object_mat[0].xyz
+#  define _up object_mat[1].xyz
+#  define _back object_mat[2].xyz
+#  define _position object_mat[3].xyz
+#endif
+  /** Influence radius (inverted and squared) adjusted for Surface / Volume power. */
+  float influence_radius_invsqr_surface;
+  float influence_radius_invsqr_volume;
+  /** Maximum influence radius. Used for culling. */
+  float influence_radius_max;
+  /** Index of the shadow struct on CPU. -1 means no shadow. */
+  int shadow_id;
+  /** NOTE: It is ok to use float3 here. A float is declared right after it.
+   * float3 is also aligned to 16 bytes. */
+  float3 color;
+  /** Power depending on shader type. */
+  float diffuse_power;
+  float specular_power;
+  float volume_power;
+  float transmit_power;
+  /** Special radius factor for point lighting. */
+  float radius_squared;
+  /** Light Type. */
+  eLightType type;
+  /** Spot angle tangent. */
+  float spot_tan;
+  /** Spot size. Aligned to size of float2. */
+  float2 spot_size_inv;
+  /** Associated shadow data. Only valid if shadow_id is not LIGHT_NO_SHADOW. */
+  // ShadowData shadow_data;
+};
+BLI_STATIC_ASSERT_ALIGN(LightData, 16)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Hierarchical-Z Buffer
+ * \{ */
+
+struct HiZData {
+  /** Scale factor to remove HiZBuffer padding. */
+  float2 uv_scale;
+
+  float2 _pad0;
+};
+BLI_STATIC_ASSERT_ALIGN(HiZData, 16)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Ray-Tracing
  * \{ */
 
@@ -476,6 +658,34 @@ enum eClosureBits : uint32_t {
   CLOSURE_VOLUME = (1u << 11u),
   CLOSURE_AMBIENT_OCCLUSION = (1u << 12u),
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Subsurface
+ * \{ */
+
+#define SSS_SAMPLE_MAX 64
+#define SSS_BURLEY_TRUNCATE 16.0
+#define SSS_BURLEY_TRUNCATE_CDF 0.9963790093708328
+#define SSS_TRANSMIT_LUT_SIZE 64.0
+#define SSS_TRANSMIT_LUT_RADIUS 1.218
+#define SSS_TRANSMIT_LUT_SCALE ((SSS_TRANSMIT_LUT_SIZE - 1.0) / float(SSS_TRANSMIT_LUT_SIZE))
+#define SSS_TRANSMIT_LUT_BIAS (0.5 / float(SSS_TRANSMIT_LUT_SIZE))
+#define SSS_TRANSMIT_LUT_STEP_RES 64.0
+
+struct SubsurfaceData {
+  /** xy: 2D sample position [-1..1], zw: sample_bounds. */
+  /* NOTE(fclem) Using float4 for alignment. */
+  float4 samples[SSS_SAMPLE_MAX];
+  /** Sample index after which samples are not randomly rotated anymore. */
+  int jitter_threshold;
+  /** Number of samples precomputed in the set. */
+  int sample_len;
+  int _pad0;
+  int _pad1;
+};
+BLI_STATIC_ASSERT_ALIGN(SubsurfaceData, 16)
 
 /** \} */
 
@@ -522,6 +732,13 @@ using DepthOfFieldDataBuf = draw::UniformBuffer<DepthOfFieldData>;
 using DepthOfFieldScatterListBuf = draw::StorageArrayBuffer<ScatterRect, 16, true>;
 using DrawIndirectBuf = draw::StorageBuffer<DrawCommand, true>;
 using FilmDataBuf = draw::UniformBuffer<FilmData>;
+using HiZDataBuf = draw::UniformBuffer<HiZData>;
+using LightCullingDataBuf = draw::StorageBuffer<LightCullingData>;
+using LightCullingKeyBuf = draw::StorageArrayBuffer<uint, LIGHT_CHUNK, true>;
+using LightCullingTileBuf = draw::StorageArrayBuffer<uint, LIGHT_CHUNK, true>;
+using LightCullingZbinBuf = draw::StorageArrayBuffer<uint, CULLING_ZBIN_COUNT, true>;
+using LightCullingZdistBuf = draw::StorageArrayBuffer<float, LIGHT_CHUNK, true>;
+using LightDataBuf = draw::StorageArrayBuffer<LightData, LIGHT_CHUNK>;
 using MotionBlurDataBuf = draw::UniformBuffer<MotionBlurData>;
 using MotionBlurTileIndirectionBuf = draw::StorageBuffer<MotionBlurTileIndirection, true>;
 using SamplingDataBuf = draw::StorageBuffer<SamplingData>;

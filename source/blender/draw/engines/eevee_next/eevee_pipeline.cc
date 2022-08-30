@@ -43,9 +43,8 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
   DRW_shgroup_storage_block_ref(grp, "aov_buf", &inst_.film.aovs_info);
   /* RenderPasses. Cleared by background (even if bad practice). */
   DRW_shgroup_uniform_image_ref(grp, "rp_normal_img", &rbufs.normal_tx);
-  DRW_shgroup_uniform_image_ref(grp, "rp_diffuse_light_img", &rbufs.diffuse_light_tx);
+  DRW_shgroup_uniform_image_ref(grp, "rp_light_img", &rbufs.light_tx);
   DRW_shgroup_uniform_image_ref(grp, "rp_diffuse_color_img", &rbufs.diffuse_color_tx);
-  DRW_shgroup_uniform_image_ref(grp, "rp_specular_light_img", &rbufs.specular_light_tx);
   DRW_shgroup_uniform_image_ref(grp, "rp_specular_color_img", &rbufs.specular_color_tx);
   DRW_shgroup_uniform_image_ref(grp, "rp_emission_img", &rbufs.emission_tx);
   /* To allow opaque pass rendering over it. */
@@ -101,12 +100,14 @@ DRWShadingGroup *ForwardPipeline::material_opaque_add(::Material *blender_mat, G
 {
   RenderBuffers &rbufs = inst_.render_buffers;
   DRWPass *pass = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) ? opaque_culled_ps_ : opaque_ps_;
-  // LightModule &lights = inst_.lights;
+  LightModule &lights = inst_.lights;
+  Sampling &sampling = inst_.sampling;
   // LightProbeModule &lightprobes = inst_.lightprobes;
   // RaytracingModule &raytracing = inst_.raytracing;
   // eGPUSamplerState no_interp = GPU_SAMPLER_DEFAULT;
   DRWShadingGroup *grp = DRW_shgroup_material_create(gpumat, pass);
-  // lights.shgroup_resources(grp);
+  lights.bind_resources(grp);
+  sampling.bind_resources(grp);
   // DRW_shgroup_uniform_block(grp, "sampling_buf", inst_.sampling.ubo_get());
   // DRW_shgroup_uniform_block(grp, "grids_buf", lightprobes.grid_ubo_get());
   // DRW_shgroup_uniform_block(grp, "cubes_buf", lightprobes.cube_ubo_get());
@@ -120,9 +121,8 @@ DRWShadingGroup *ForwardPipeline::material_opaque_add(::Material *blender_mat, G
   DRW_shgroup_storage_block_ref(grp, "aov_buf", &inst_.film.aovs_info);
   /* RenderPasses. */
   DRW_shgroup_uniform_image_ref(grp, "rp_normal_img", &rbufs.normal_tx);
-  DRW_shgroup_uniform_image_ref(grp, "rp_diffuse_light_img", &rbufs.diffuse_light_tx);
+  DRW_shgroup_uniform_image_ref(grp, "rp_light_img", &rbufs.light_tx);
   DRW_shgroup_uniform_image_ref(grp, "rp_diffuse_color_img", &rbufs.diffuse_color_tx);
-  DRW_shgroup_uniform_image_ref(grp, "rp_specular_light_img", &rbufs.specular_light_tx);
   DRW_shgroup_uniform_image_ref(grp, "rp_specular_color_img", &rbufs.specular_color_tx);
   DRW_shgroup_uniform_image_ref(grp, "rp_emission_img", &rbufs.emission_tx);
 
@@ -163,19 +163,21 @@ DRWShadingGroup *ForwardPipeline::material_transparent_add(::Material *blender_m
                                                            GPUMaterial *gpumat)
 {
   RenderBuffers &rbufs = inst_.render_buffers;
-  // LightModule &lights = inst_.lights;
+  LightModule &lights = inst_.lights;
+  Sampling &sampling = inst_.sampling;
   // LightProbeModule &lightprobes = inst_.lightprobes;
   // RaytracingModule &raytracing = inst_.raytracing;
   // eGPUSamplerState no_interp = GPU_SAMPLER_DEFAULT;
   DRWShadingGroup *grp = DRW_shgroup_material_create(gpumat, transparent_ps_);
-  // lights.shgroup_resources(grp);
+  lights.bind_resources(grp);
+  sampling.bind_resources(grp);
   // DRW_shgroup_uniform_block(grp, "sampling_buf", inst_.sampling.ubo_get());
   // DRW_shgroup_uniform_block(grp, "grids_buf", lightprobes.grid_ubo_get());
   // DRW_shgroup_uniform_block(grp, "cubes_buf", lightprobes.cube_ubo_get());
   // DRW_shgroup_uniform_block(grp, "probes_buf", lightprobes.info_ubo_get());
   // DRW_shgroup_uniform_texture_ref(grp, "lightprobe_grid_tx", lightprobes.grid_tx_ref_get());
   // DRW_shgroup_uniform_texture_ref(grp, "lightprobe_cube_tx", lightprobes.cube_tx_ref_get());
-  // DRW_shgroup_uniform_texture(grp, "utility_tx", inst_.pipelines.utility_tx);
+  DRW_shgroup_uniform_texture(grp, "utility_tx", inst_.pipelines.utility_tx);
   /* TODO(fclem): Make this only needed if material uses it ... somehow. */
   // if (true) {
   // DRW_shgroup_uniform_texture_ref(
@@ -202,9 +204,8 @@ DRWShadingGroup *ForwardPipeline::material_transparent_add(::Material *blender_m
     DRW_shgroup_storage_block_ref(grp, "aov_buf", &inst_.film.aovs_info);
     /* RenderPasses. */
     DRW_shgroup_uniform_image_ref(grp, "rp_normal_img", &rbufs.normal_tx);
-    DRW_shgroup_uniform_image_ref(grp, "rp_diffuse_light_img", &rbufs.diffuse_light_tx);
+    DRW_shgroup_uniform_image_ref(grp, "rp_light_img", &rbufs.light_tx);
     DRW_shgroup_uniform_image_ref(grp, "rp_diffuse_color_img", &rbufs.diffuse_color_tx);
-    DRW_shgroup_uniform_image_ref(grp, "rp_specular_light_img", &rbufs.specular_light_tx);
     DRW_shgroup_uniform_image_ref(grp, "rp_specular_color_img", &rbufs.specular_color_tx);
     DRW_shgroup_uniform_image_ref(grp, "rp_emission_img", &rbufs.emission_tx);
   }
@@ -241,22 +242,22 @@ DRWShadingGroup *ForwardPipeline::prepass_transparent_add(::Material *blender_ma
 void ForwardPipeline::render(const DRWView *view,
                              Framebuffer &prepass_fb,
                              Framebuffer &combined_fb,
-                             GPUTexture *depth_tx,
                              GPUTexture *UNUSED(combined_tx))
 {
-  UNUSED_VARS(view, depth_tx, prepass_fb, combined_fb);
-  // HiZBuffer &hiz = inst_.hiz_front;
+  UNUSED_VARS(view);
 
   DRW_stats_group_start("ForwardOpaque");
 
   GPU_framebuffer_bind(prepass_fb);
   DRW_draw_pass(prepass_ps_);
 
-  // hiz.set_dirty();
+  if (!DRW_pass_is_empty(prepass_ps_)) {
+    inst_.hiz_buffer.set_dirty();
+  }
 
   // if (inst_.raytracing.enabled()) {
   //   rt_buffer.radiance_copy(combined_tx);
-  //   hiz.update(depth_tx);
+  //   inst_.hiz_buffer.update();
   // }
 
   // inst_.shadows.set_view(view, depth_tx);

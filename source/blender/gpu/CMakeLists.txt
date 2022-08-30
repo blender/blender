@@ -34,13 +34,12 @@ set(INC
   ../../../intern/atomic
   ../../../intern/clog
   ../../../intern/ghost
-  ../../../intern/glew-mx
   ../../../intern/guardedalloc
   ../../../intern/mantaflow/extern
 )
 
 set(INC_SYS
-  ${GLEW_INCLUDE_PATH}
+  ${Epoxy_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -93,12 +92,10 @@ set(SRC
   GPU_debug.h
   GPU_drawlist.h
   GPU_framebuffer.h
-  GPU_glew.h
   GPU_immediate.h
   GPU_immediate_util.h
   GPU_index_buffer.h
   GPU_init_exit.h
-  GPU_legacy_stubs.h
   GPU_material.h
   GPU_matrix.h
   GPU_platform.h
@@ -224,17 +221,10 @@ if(WITH_METAL_BACKEND)
 endif()
 
 set(LIB
-  ${BLENDER_GL_LIBRARIES}
+  ${Epoxy_LIBRARIES}
 )
 
-if(NOT WITH_SYSTEM_GLEW)
-  list(APPEND LIB
-    ${BLENDER_GLEW_LIBRARIES}
-  )
-endif()
-
 set(MSL_SRC
-
   metal/kernels/compute_texture_update.msl
   metal/kernels/compute_texture_read.msl
   metal/kernels/depth_2d_update_float_frag.glsl
@@ -324,9 +314,15 @@ set(GLSL_SRC
   shaders/common/gpu_shader_common_mix_rgb.glsl
 
   shaders/compositor/compositor_alpha_crop.glsl
+  shaders/compositor/compositor_bilateral_blur.glsl
+  shaders/compositor/compositor_bokeh_image.glsl
   shaders/compositor/compositor_box_mask.glsl
   shaders/compositor/compositor_convert.glsl
+  shaders/compositor/compositor_despeckle.glsl
+  shaders/compositor/compositor_directional_blur.glsl
+  shaders/compositor/compositor_edge_filter.glsl
   shaders/compositor/compositor_ellipse_mask.glsl
+  shaders/compositor/compositor_filter.glsl
   shaders/compositor/compositor_flip.glsl
   shaders/compositor/compositor_image_crop.glsl
   shaders/compositor/compositor_projector_lens_distortion.glsl
@@ -495,6 +491,8 @@ set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/basic/shaders/infos/basic_depth_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_depth_of_field_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_film_info.hh
+  ../draw/engines/eevee_next/shaders/infos/eevee_hiz_info.hh
+  ../draw/engines/eevee_next/shaders/infos/eevee_light_culling_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_material_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_motion_blur_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_velocity_info.hh
@@ -568,9 +566,15 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_srgb_to_framebuffer_space_info.hh
 
   shaders/compositor/infos/compositor_alpha_crop_info.hh
+  shaders/compositor/infos/compositor_bilateral_blur_info.hh
+  shaders/compositor/infos/compositor_bokeh_image_info.hh
   shaders/compositor/infos/compositor_box_mask_info.hh
   shaders/compositor/infos/compositor_convert_info.hh
+  shaders/compositor/infos/compositor_despeckle_info.hh
+  shaders/compositor/infos/compositor_directional_blur_info.hh
+  shaders/compositor/infos/compositor_edge_filter_info.hh
   shaders/compositor/infos/compositor_ellipse_mask_info.hh
+  shaders/compositor/infos/compositor_filter_info.hh
   shaders/compositor/infos/compositor_flip_info.hh
   shaders/compositor/infos/compositor_image_crop_info.hh
   shaders/compositor/infos/compositor_projector_lens_distortion_info.hh
@@ -591,8 +595,6 @@ file(GENERATE OUTPUT ${shader_create_info_list_file} CONTENT "${SHADER_CREATE_IN
 if(WITH_MOD_FLUID)
   add_definitions(-DWITH_FLUID)
 endif()
-
-add_definitions(${GL_DEFINITIONS})
 
 if(WITH_IMAGE_DDS)
   add_definitions(-DWITH_DDS)
@@ -645,9 +647,9 @@ if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
 
   endif()
   target_link_libraries(shader_builder PUBLIC
-    bf_blenlib
     bf_gpu
     bf_intern_clog
+    bf_blenlib
     bf_intern_ghost
     ${PLATFORM_LINKLIBS}
   )

@@ -5,7 +5,7 @@
 def ensure_active_color_attribute(me):
     if me.attributes.active_color:
         return me.attributes.active_color
-    return me.color_attributes.new("Color", 'BYTE_COLOR', 'FACE_CORNER')
+    return me.color_attributes.new("Color", 'BYTE_COLOR', 'CORNER')
 
 
 def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean, dirt_only, normalize):

@@ -127,7 +127,7 @@ void ED_region_pixelspace(const ARegion *region)
 void ED_region_do_listen(wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *notifier = params->notifier;
+  const wmNotifier *notifier = params->notifier;
 
   /* generic notes first */
   switch (notifier->category) {

@@ -353,7 +353,7 @@ static PointerRNA rna_Gizmo_properties_get(PointerRNA *ptr)
     }
 
 #  define RNA_GIZMO_FLAG_RO_DEF(func_id, member_id, flag_value) \
-    static int rna_Gizmo_##func_id##_get(PointerRNA *ptr) \
+    static bool rna_Gizmo_##func_id##_get(PointerRNA *ptr) \
     { \
       wmGizmo *gz = ptr->data; \
       return (gz->member_id & flag_value) != 0; \

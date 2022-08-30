@@ -3,7 +3,6 @@
 
 set(INC
   ..
-  ../../glew-mx
 )
 
 set(INC_SYS
@@ -148,7 +147,5 @@ endif()
 
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
-
-add_definitions(${GL_DEFINITIONS})
 
 cycles_add_library(cycles_util "${LIB}" ${SRC} ${SRC_HEADERS})

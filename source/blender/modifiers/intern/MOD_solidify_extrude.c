@@ -994,7 +994,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     if (dvert == NULL) {
       /* Add a valid data layer! */
       dvert = CustomData_add_layer(
-          &result->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, result->totvert);
+          &result->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, NULL, result->totvert);
     }
     /* Ultimate security check. */
     if (dvert != NULL) {

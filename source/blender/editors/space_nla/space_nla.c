@@ -303,7 +303,7 @@ static void nla_buttons_region_draw(const bContext *C, ARegion *region)
 static void nla_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -342,7 +342,7 @@ static void nla_region_listener(const wmRegionListenerParams *params)
 static void nla_main_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -436,7 +436,7 @@ static void nla_main_region_message_subscribe(const wmRegionMessageSubscribePara
 static void nla_channel_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -512,7 +512,7 @@ static void nla_channel_region_message_subscribe(const wmRegionMessageSubscribeP
 static void nla_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {

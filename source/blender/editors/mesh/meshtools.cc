@@ -100,7 +100,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
     ((Mesh *)ob_dst->data)->cd_flag |= me->cd_flag;
 
     /* standard data */
-    CustomData_merge(&me->vdata, vdata, CD_MASK_MESH.vmask, CD_DEFAULT, totvert);
+    CustomData_merge(&me->vdata, vdata, CD_MASK_MESH.vmask, CD_SET_DEFAULT, totvert);
     CustomData_copy_data_named(&me->vdata, vdata, 0, *vertofs, me->totvert);
 
     /* vertex groups */
@@ -199,7 +199,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
   }
 
   if (me->totedge) {
-    CustomData_merge(&me->edata, edata, CD_MASK_MESH.emask, CD_DEFAULT, totedge);
+    CustomData_merge(&me->edata, edata, CD_MASK_MESH.emask, CD_SET_DEFAULT, totedge);
     CustomData_copy_data_named(&me->edata, edata, 0, *edgeofs, me->totedge);
 
     for (a = 0; a < me->totedge; a++, medge++) {
@@ -220,7 +220,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
       }
     }
 
-    CustomData_merge(&me->ldata, ldata, CD_MASK_MESH.lmask, CD_DEFAULT, totloop);
+    CustomData_merge(&me->ldata, ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
     CustomData_copy_data_named(&me->ldata, ldata, 0, *loopofs, me->totloop);
 
     for (a = 0; a < me->totloop; a++, mloop++) {
@@ -244,7 +244,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
       }
     }
 
-    CustomData_merge(&me->pdata, pdata, CD_MASK_MESH.pmask, CD_DEFAULT, totpoly);
+    CustomData_merge(&me->pdata, pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, totpoly);
     CustomData_copy_data_named(&me->pdata, pdata, 0, *polyofs, me->totpoly);
 
     for (a = 0; a < me->totpoly; a++, mpoly++) {
@@ -571,10 +571,10 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   CustomData_reset(&ldata);
   CustomData_reset(&pdata);
 
-  mvert = (MVert *)CustomData_add_layer(&vdata, CD_MVERT, CD_CALLOC, nullptr, totvert);
-  medge = (MEdge *)CustomData_add_layer(&edata, CD_MEDGE, CD_CALLOC, nullptr, totedge);
-  mloop = (MLoop *)CustomData_add_layer(&ldata, CD_MLOOP, CD_CALLOC, nullptr, totloop);
-  mpoly = (MPoly *)CustomData_add_layer(&pdata, CD_MPOLY, CD_CALLOC, nullptr, totpoly);
+  mvert = (MVert *)CustomData_add_layer(&vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, totvert);
+  medge = (MEdge *)CustomData_add_layer(&edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, totedge);
+  mloop = (MLoop *)CustomData_add_layer(&ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, totloop);
+  mpoly = (MPoly *)CustomData_add_layer(&pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, totpoly);
 
   vertofs = 0;
   edgeofs = 0;

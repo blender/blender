@@ -935,6 +935,9 @@ GHOST_TSuccess GHOST_WindowWayland::notify_size()
  * Functionality only used for the WAYLAND implementation.
  * \{ */
 
+/**
+ * Return true when the windows scale or DPI changes.
+ */
 bool GHOST_WindowWayland::outputs_changed_update_scale()
 {
   uint32_t dpi_next;
@@ -963,6 +966,12 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
      * use a multiplier for the default DPI as workaround. */
     win->dpi = dpi_next;
     changed = true;
+
+    /* As this is a low-level function, we might want adding this event to be optional,
+     * always add the event unless it causes issues. */
+    GHOST_System *system = (GHOST_System *)GHOST_ISystem::getSystem();
+    system->pushEvent(
+        new GHOST_Event(system->getMilliSeconds(), GHOST_kEventWindowDPIHintChanged, this));
   }
 
   return changed;

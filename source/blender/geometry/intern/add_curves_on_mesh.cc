@@ -276,6 +276,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   /* Grow number of curves first, so that the offsets array can be filled. */
   curves.resize(old_points_num, new_curves_num);
+  const IndexRange new_curves_range = curves.curves_range().drop_front(old_curves_num);
 
   /* Compute new curve offsets. */
   MutableSpan<int> curve_offsets = curves.offsets_for_write();
@@ -290,8 +291,8 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   else {
     new_point_counts_per_curve.fill(inputs.fallback_point_count);
   }
-  for (const int i : IndexRange(added_curves_num)) {
-    curve_offsets[old_curves_num + i + 1] += curve_offsets[old_curves_num + i];
+  for (const int i : new_curves_range) {
+    curve_offsets[i + 1] += curve_offsets[i];
   }
 
   const int new_points_num = curves.offsets().last();
@@ -342,7 +343,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   const VArray<float> curves_selection = curves.selection_curve_float();
   if (curves_selection.is_span()) {
     MutableSpan<float> curves_selection_span = curves.selection_curve_float_for_write();
-    curves_selection_span.drop_front(old_curves_num).fill(1.0f);
+    curves_selection_span.slice(new_curves_range).fill(1.0f);
   }
 
   /* Initialize position attribute. */
@@ -366,10 +367,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
                                                inputs.transforms->surface_to_curves_normal);
   }
 
-  /* Set curve types. */
-  MutableSpan<int8_t> types_span = curves.curve_types_for_write();
-  types_span.drop_front(old_curves_num).fill(CURVE_TYPE_CATMULL_ROM);
-  curves.update_curve_types();
+  curves.fill_curve_types(new_curves_range, CURVE_TYPE_CATMULL_ROM);
 
   return outputs;
 }

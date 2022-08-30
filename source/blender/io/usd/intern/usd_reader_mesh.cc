@@ -86,9 +86,8 @@ static pxr::UsdShadeMaterial compute_bound_material(const pxr::UsdPrim &prim)
   return mtl;
 }
 
-/* Returns an existing Blender material that corresponds to the USD
- * material with with the given path.  Returns null if no such material
- * exists. */
+/* Returns an existing Blender material that corresponds to the USD material with the given path.
+ * Returns null if no such material exists. */
 static Material *find_existing_material(
     const pxr::SdfPath &usd_mat_path,
     const USDImportParams &params,
@@ -212,7 +211,8 @@ static void *add_customdata_cb(Mesh *mesh, const char *name, const int data_type
 
   /* Create a new layer. */
   numloops = mesh->totloop;
-  cd_ptr = CustomData_add_layer_named(loopdata, cd_data_type, CD_DEFAULT, nullptr, numloops, name);
+  cd_ptr = CustomData_add_layer_named(
+      loopdata, cd_data_type, CD_SET_DEFAULT, nullptr, numloops, name);
   return cd_ptr;
 }
 
@@ -617,7 +617,7 @@ void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTim
   }
 
   float *creases = static_cast<float *>(
-      CustomData_add_layer(&mesh->vdata, CD_CREASE, CD_DEFAULT, nullptr, mesh->totvert));
+      CustomData_add_layer(&mesh->vdata, CD_CREASE, CD_SET_DEFAULT, nullptr, mesh->totvert));
 
   for (size_t i = 0; i < corner_indices.size(); i++) {
     creases[corner_indices[i]] = corner_sharpnesses[i];

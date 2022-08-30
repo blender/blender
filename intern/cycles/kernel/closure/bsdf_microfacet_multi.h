@@ -478,14 +478,10 @@ ccl_device int bsdf_microfacet_multi_ggx_sample(KernelGlobals kg,
                                                 ccl_private const ShaderClosure *sc,
                                                 float3 Ng,
                                                 float3 I,
-                                                float3 dIdx,
-                                                float3 dIdy,
                                                 float randu,
                                                 float randv,
                                                 ccl_private Spectrum *eval,
                                                 ccl_private float3 *omega_in,
-                                                ccl_private float3 *domega_in_dx,
-                                                ccl_private float3 *domega_in_dy,
                                                 ccl_private float *pdf,
                                                 ccl_private uint *lcg_state)
 {
@@ -510,10 +506,6 @@ ccl_device int bsdf_microfacet_multi_ggx_sample(KernelGlobals kg,
     }
     *pdf = 1e6f;
     *eval = make_spectrum(1e6f);
-#ifdef __RAY_DIFFERENTIALS__
-    *domega_in_dx = (2 * dot(Z, dIdx)) * Z - dIdx;
-    *domega_in_dy = (2 * dot(Z, dIdy)) * Z - dIdy;
-#endif
     return LABEL_REFLECT | LABEL_SINGULAR;
   }
 
@@ -551,10 +543,6 @@ ccl_device int bsdf_microfacet_multi_ggx_sample(KernelGlobals kg,
     *pdf = mf_ggx_pdf(localI, localO, bsdf->alpha_x);
   *eval *= *pdf;
 
-#ifdef __RAY_DIFFERENTIALS__
-  *domega_in_dx = (2 * dot(Z, dIdx)) * Z - dIdx;
-  *domega_in_dy = (2 * dot(Z, dIdy)) * Z - dIdy;
-#endif
   return LABEL_REFLECT | LABEL_GLOSSY;
 }
 
@@ -662,14 +650,10 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_sample(KernelGlobals kg,
                                                       ccl_private const ShaderClosure *sc,
                                                       float3 Ng,
                                                       float3 I,
-                                                      float3 dIdx,
-                                                      float3 dIdy,
                                                       float randu,
                                                       float randv,
                                                       ccl_private Spectrum *eval,
                                                       ccl_private float3 *omega_in,
-                                                      ccl_private float3 *domega_in_dx,
-                                                      ccl_private float3 *domega_in_dy,
                                                       ccl_private float *pdf,
                                                       ccl_private uint *lcg_state)
 {
@@ -680,41 +664,17 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_sample(KernelGlobals kg,
 
   if (bsdf->alpha_x * bsdf->alpha_y < 1e-7f) {
     float3 R, T;
-#ifdef __RAY_DIFFERENTIALS__
-    float3 dRdx, dRdy, dTdx, dTdy;
-#endif
     bool inside;
-    float fresnel = fresnel_dielectric(bsdf->ior,
-                                       Z,
-                                       I,
-                                       &R,
-                                       &T,
-#ifdef __RAY_DIFFERENTIALS__
-                                       dIdx,
-                                       dIdy,
-                                       &dRdx,
-                                       &dRdy,
-                                       &dTdx,
-                                       &dTdy,
-#endif
-                                       &inside);
+    float fresnel = fresnel_dielectric(bsdf->ior, Z, I, &R, &T, &inside);
 
     *pdf = 1e6f;
     *eval = make_spectrum(1e6f);
     if (randu < fresnel) {
       *omega_in = R;
-#ifdef __RAY_DIFFERENTIALS__
-      *domega_in_dx = dRdx;
-      *domega_in_dy = dRdy;
-#endif
       return LABEL_REFLECT | LABEL_SINGULAR;
     }
     else {
       *omega_in = T;
-#ifdef __RAY_DIFFERENTIALS__
-      *domega_in_dx = dTdx;
-      *domega_in_dy = dTdy;
-#endif
       return LABEL_TRANSMIT | LABEL_SINGULAR;
     }
   }
@@ -740,22 +700,9 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_sample(KernelGlobals kg,
 
   *omega_in = X * localO.x + Y * localO.y + Z * localO.z;
   if (localO.z * localI.z > 0.0f) {
-#ifdef __RAY_DIFFERENTIALS__
-    *domega_in_dx = (2 * dot(Z, dIdx)) * Z - dIdx;
-    *domega_in_dy = (2 * dot(Z, dIdy)) * Z - dIdy;
-#endif
     return LABEL_REFLECT | LABEL_GLOSSY;
   }
   else {
-#ifdef __RAY_DIFFERENTIALS__
-    float cosI = dot(Z, I);
-    float dnp = max(sqrtf(1.0f - (bsdf->ior * bsdf->ior * (1.0f - cosI * cosI))), 1e-7f);
-    *domega_in_dx = -(bsdf->ior * dIdx) +
-                    ((bsdf->ior - bsdf->ior * bsdf->ior * cosI / dnp) * dot(dIdx, Z)) * Z;
-    *domega_in_dy = -(bsdf->ior * dIdy) +
-                    ((bsdf->ior - bsdf->ior * bsdf->ior * cosI / dnp) * dot(dIdy, Z)) * Z;
-#endif
-
     return LABEL_TRANSMIT | LABEL_GLOSSY;
   }
 }

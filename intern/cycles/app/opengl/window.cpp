@@ -11,8 +11,8 @@
 #include "util/time.h"
 #include "util/version.h"
 
-#include <GL/glew.h>
 #include <SDL.h>
+#include <epoxy/gl.h>
 
 CCL_NAMESPACE_BEGIN
 
@@ -294,7 +294,6 @@ void window_main_loop(const char *title,
   SDL_RaiseWindow(V.window);
 
   V.gl_context = SDL_GL_CreateContext(V.window);
-  glewInit();
   SDL_GL_MakeCurrent(V.window, nullptr);
 
   window_reshape(width, height);

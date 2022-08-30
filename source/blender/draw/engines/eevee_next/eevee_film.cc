@@ -389,9 +389,8 @@ void Film::sync()
   DRW_shgroup_uniform_texture_ref(grp, "combined_tx", &combined_final_tx_);
   DRW_shgroup_uniform_texture_ref(grp, "normal_tx", &rbuffers.normal_tx);
   DRW_shgroup_uniform_texture_ref(grp, "vector_tx", &rbuffers.vector_tx);
-  DRW_shgroup_uniform_texture_ref(grp, "diffuse_light_tx", &rbuffers.diffuse_light_tx);
+  DRW_shgroup_uniform_texture_ref(grp, "light_tx", &rbuffers.light_tx);
   DRW_shgroup_uniform_texture_ref(grp, "diffuse_color_tx", &rbuffers.diffuse_color_tx);
-  DRW_shgroup_uniform_texture_ref(grp, "specular_light_tx", &rbuffers.specular_light_tx);
   DRW_shgroup_uniform_texture_ref(grp, "specular_color_tx", &rbuffers.specular_color_tx);
   DRW_shgroup_uniform_texture_ref(grp, "volume_light_tx", &rbuffers.volume_light_tx);
   DRW_shgroup_uniform_texture_ref(grp, "emission_tx", &rbuffers.emission_tx);

@@ -72,7 +72,6 @@
 #include "RE_texture_margin.h"
 
 /* local include */
-#include "render_types.h"
 #include "zbuf.h"
 
 typedef struct BakeDataZSpan {

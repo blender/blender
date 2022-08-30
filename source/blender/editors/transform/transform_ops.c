@@ -379,6 +379,8 @@ static int transformops_data(bContext *C, wmOperator *op, const wmEvent *event)
   if (op->customdata == NULL) {
     TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data2");
 
+    t->undo_name = op->type->name;
+
     int mode = transformops_mode(op);
     retval = initTransform(C, t, op, event, mode);
 

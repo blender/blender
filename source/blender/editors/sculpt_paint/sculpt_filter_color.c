@@ -346,7 +346,7 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
-  SCULPT_undo_push_begin(ob, "color filter");
+  SCULPT_undo_push_begin(ob, op);
   BKE_sculpt_color_layer_create_if_needed(ob);
 
   /* CTX_data_ensure_evaluated_depsgraph should be used at the end to include the updates of

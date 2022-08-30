@@ -637,11 +637,11 @@ typedef struct UserDef_Experimental {
   /* Debug options, always available. */
   char use_undo_legacy;
   char no_override_auto_resync;
-  char use_override_new_fully_editable;
   char use_cycles_debug;
   char show_asset_debug_info;
   char no_asset_indexing;
   char SANITIZE_AFTER_HERE;
+  char _pad0;
   /* The following options are automatically sanitized (set to 0)
    * when the release cycle is not alpha. */
   char use_new_curves_tools;
@@ -1162,7 +1162,7 @@ typedef enum eUserpref_StatusBar_Flag {
  * #UserDef.autokey_mode
  */
 typedef enum eAutokey_Mode {
-  /* AUTOKEY_ON is a bitflag */
+  /* AUTOKEY_ON is a bit-flag. */
   AUTOKEY_ON = 1,
 
   /**

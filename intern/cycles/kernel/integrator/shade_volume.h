@@ -871,17 +871,9 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
   float phase_pdf;
   BsdfEval phase_eval ccl_optional_struct_init;
   float3 phase_omega_in ccl_optional_struct_init;
-  differential3 phase_domega_in ccl_optional_struct_init;
 
-  const int label = shader_volume_phase_sample(kg,
-                                               sd,
-                                               phases,
-                                               phase_u,
-                                               phase_v,
-                                               &phase_eval,
-                                               &phase_omega_in,
-                                               &phase_domega_in,
-                                               &phase_pdf);
+  const int label = shader_volume_phase_sample(
+      kg, sd, phases, phase_u, phase_v, &phase_eval, &phase_omega_in, &phase_pdf);
 
   if (phase_pdf == 0.0f || bsdf_eval_is_zero(&phase_eval)) {
     return false;
@@ -894,7 +886,6 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
   INTEGRATOR_STATE_WRITE(state, ray, tmax) = FLT_MAX;
 #  ifdef __RAY_DIFFERENTIALS__
   INTEGRATOR_STATE_WRITE(state, ray, dP) = differential_make_compact(sd->dP);
-  INTEGRATOR_STATE_WRITE(state, ray, dD) = differential_make_compact(phase_domega_in);
 #  endif
   // Save memory by storing last hit prim and object in isect
   INTEGRATOR_STATE_WRITE(state, isect, prim) = sd->prim;

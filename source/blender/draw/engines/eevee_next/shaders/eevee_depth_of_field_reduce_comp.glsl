@@ -8,7 +8,7 @@
  * Inputs:
  * - Output of setup pass (halfres) and reduce downsample pass (quarter res).
  * Outputs:
- * - Halfres padded to avoid mipmap mis-alignment (so possibly not matching input size).
+ * - Halfres padded to avoid mipmap misalignment (so possibly not matching input size).
  * - Gather input color (whole mip chain), Scatter rect list, Signed CoC (whole mip chain).
  **/
 
@@ -98,7 +98,7 @@ void main()
   do_scatter[LOCAL_INDEX] *= dof_scatter_screen_border_rejection(coc_cache[LOCAL_INDEX], texel);
   /* Only scatter if neighborhood is different enough. */
   do_scatter[LOCAL_INDEX] *= dof_scatter_neighborhood_rejection(color_cache[LOCAL_INDEX].rgb);
-  /* For debuging. */
+  /* For debugging. */
   if (no_scatter_pass) {
     do_scatter[LOCAL_INDEX] = 0.0;
   }

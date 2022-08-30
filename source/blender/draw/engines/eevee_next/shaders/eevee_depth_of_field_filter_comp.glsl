@@ -134,8 +134,8 @@ void main()
 {
   /**
    * NOTE: We can **NOT** optimize by discarding some tiles as the result is sampled using bilinear
-   * filtering in the resolve pass. Not outputing to a tile means that border texels have undefined
-   * value and tile border will be noticeable in the final image.
+   * filtering in the resolve pass. Not outputting to a tile means that border texels have
+   * undefined value and tile border will be noticeable in the final image.
    */
 
   cache_init();

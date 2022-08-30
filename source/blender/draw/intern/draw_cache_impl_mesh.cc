@@ -1509,12 +1509,13 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
   cache->batch_ready |= batch_requested;
 
   bool do_cage = false, do_uvcage = false;
-  if (is_editmode) {
+  if (is_editmode && is_mode_active) {
     Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
     Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob);
 
     do_cage = editmesh_eval_final != editmesh_eval_cage;
-    do_uvcage = !editmesh_eval_final->runtime.is_original;
+    do_uvcage = !(editmesh_eval_final->runtime.is_original_bmesh &&
+                  editmesh_eval_final->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH);
   }
 
   const bool do_subdivision = BKE_subsurf_modifier_has_gpu_subdiv(me);
