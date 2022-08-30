@@ -91,6 +91,8 @@ struct GPUMaterial {
 
 #ifndef NDEBUG
   char name[64];
+#else
+  char name[16];
 #endif
 };
 
@@ -193,6 +195,11 @@ GPUShader *GPU_material_get_shader(GPUMaterial *material)
   return material->pass ? GPU_pass_shader_get(material->pass) : NULL;
 }
 
+const char *GPU_material_get_name(GPUMaterial *material)
+{
+  return material->name;
+}
+
 Material *GPU_material_get_material(GPUMaterial *material)
 {
   return material->ma;
@@ -205,12 +212,7 @@ GPUUniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material)
 
 void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs)
 {
-#ifndef NDEBUG
-  const char *name = material->name;
-#else
-  const char *name = "Material";
-#endif
-  material->ubo = GPU_uniformbuf_create_from_list(inputs, name);
+  material->ubo = GPU_uniformbuf_create_from_list(inputs, material->name);
 }
 
 ListBase GPU_material_attributes(GPUMaterial *material)
@@ -672,11 +674,7 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
   mat->graph.used_libraries = BLI_gset_new(
       BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "GPUNodeGraph.used_libraries");
   mat->refcount = 1;
-#ifndef NDEBUG
   STRNCPY(mat->name, name);
-#else
-  UNUSED_VARS(name);
-#endif
   if (is_lookdev) {
     mat->flag |= GPU_MATFLAG_LOOKDEV_HACK;
   }
