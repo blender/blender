@@ -49,7 +49,12 @@ typedef enum eGPUSamplerState {
  * #GPU_SAMPLER_MAX is not a valid enum value, but only a limit.
  * It also creates a bad mask for the `NOT` operator in #ENUM_OPERATORS.
  */
+#ifdef __cplusplus
+static constexpr eGPUSamplerState GPU_SAMPLER_MAX = eGPUSamplerState(GPU_SAMPLER_ICON + 1);
+#else
 static const int GPU_SAMPLER_MAX = (GPU_SAMPLER_ICON + 1);
+#endif
+
 ENUM_OPERATORS(eGPUSamplerState, GPU_SAMPLER_ICON)
 
 #ifdef __cplusplus
