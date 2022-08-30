@@ -129,7 +129,18 @@ inline void flush_handle_component_node(IDNode *id_node,
    *
    * TODO(sergey): Make this a more generic solution. */
   if (!ELEM(comp_node->type, NodeType::PARTICLE_SETTINGS, NodeType::PARTICLE_SYSTEM)) {
+    const bool is_geometry_component = comp_node->type == NodeType::GEOMETRY;
     for (OperationNode *op : comp_node->operations) {
+      /* Special case for the visibility operation in the geometry component.
+       *
+       * This operation is a part of the geometry component so that manual tag for geometry recalc
+       * ensures that the visibility is re-evaluated. This operation is not to be re-evaluated when
+       * an update is flushed to the geometry component via a time dependency or a driver targeting
+       * a modifier. Skipping update in this case avoids CPU time unnecessarily spent looping over
+       * modifiers and looking up operations by name in the visibility evaluation function. */
+      if (is_geometry_component && op->opcode == OperationCode::VISIBILITY) {
+        continue;
+      }
       op->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
     }
   }
