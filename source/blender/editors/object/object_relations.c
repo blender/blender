@@ -2356,6 +2356,25 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
 
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
+  /* For the time being, replace selected linked objects by their overrides in all collections.
+   * While this may not be the absolute best behavior in all cases, in most common one this should
+   * match the expected result. */
+  if (user_overrides_objects_uids != NULL) {
+    LISTBASE_FOREACH (Collection *, coll_iter, &bmain->collections) {
+      if (ID_IS_LINKED(coll_iter)) {
+        continue;
+      }
+      LISTBASE_FOREACH (CollectionObject *, coll_ob_iter, &coll_iter->gobject) {
+        if (BLI_gset_haskey(user_overrides_objects_uids,
+                            POINTER_FROM_UINT(coll_ob_iter->ob->id.session_uuid))) {
+          /* Tag for remapping when creating overrides. */
+          coll_iter->id.tag |= LIB_TAG_DOIT;
+          break;
+        }
+      }
+    }
+  }
+
   ID *id_root_override;
   const bool success = BKE_lib_override_library_create(bmain,
                                                        scene,
