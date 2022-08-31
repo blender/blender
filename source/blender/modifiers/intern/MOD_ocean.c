@@ -373,68 +373,66 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
   /* add vcols before displacement - allows lookup based on position */
 
   if (omd->flag & MOD_OCEAN_GENERATE_FOAM) {
-    if (CustomData_number_of_layers(&result->ldata, CD_PROP_BYTE_COLOR) < MAX_MCOL) {
-      const int polys_num = result->totpoly;
-      const int loops_num = result->totloop;
-      MLoop *mloops = result->mloop;
-      MLoopCol *mloopcols = CustomData_add_layer_named(
-          &result->ldata, CD_PROP_BYTE_COLOR, CD_CALLOC, NULL, loops_num, omd->foamlayername);
+    const int polys_num = result->totpoly;
+    const int loops_num = result->totloop;
+    MLoop *mloops = result->mloop;
+    MLoopCol *mloopcols = CustomData_add_layer_named(
+        &result->ldata, CD_PROP_BYTE_COLOR, CD_CALLOC, NULL, loops_num, omd->foamlayername);
 
-      MLoopCol *mloopcols_spray = NULL;
-      if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
-        mloopcols_spray = CustomData_add_layer_named(
-            &result->ldata, CD_PROP_BYTE_COLOR, CD_CALLOC, NULL, loops_num, omd->spraylayername);
-      }
+    MLoopCol *mloopcols_spray = NULL;
+    if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
+      mloopcols_spray = CustomData_add_layer_named(
+          &result->ldata, CD_PROP_BYTE_COLOR, CD_CALLOC, NULL, loops_num, omd->spraylayername);
+    }
 
-      if (mloopcols) { /* unlikely to fail */
-        MPoly *mpolys = result->mpoly;
-        MPoly *mp;
+    if (mloopcols) { /* unlikely to fail */
+      MPoly *mpolys = result->mpoly;
+      MPoly *mp;
 
-        for (i = 0, mp = mpolys; i < polys_num; i++, mp++) {
-          MLoop *ml = &mloops[mp->loopstart];
-          MLoopCol *mlcol = &mloopcols[mp->loopstart];
+      for (i = 0, mp = mpolys; i < polys_num; i++, mp++) {
+        MLoop *ml = &mloops[mp->loopstart];
+        MLoopCol *mlcol = &mloopcols[mp->loopstart];
 
-          MLoopCol *mlcolspray = NULL;
-          if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
-            mlcolspray = &mloopcols_spray[mp->loopstart];
+        MLoopCol *mlcolspray = NULL;
+        if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
+          mlcolspray = &mloopcols_spray[mp->loopstart];
+        }
+
+        for (j = mp->totloop; j--; ml++, mlcol++) {
+          const float *vco = mverts[ml->v].co;
+          const float u = OCEAN_CO(size_co_inv, vco[0]);
+          const float v = OCEAN_CO(size_co_inv, vco[1]);
+          float foam;
+
+          if (omd->oceancache && omd->cached == true) {
+            BKE_ocean_cache_eval_uv(omd->oceancache, &ocr, cfra_for_cache, u, v);
+            foam = ocr.foam;
+            CLAMP(foam, 0.0f, 1.0f);
+          }
+          else {
+            BKE_ocean_eval_uv(omd->ocean, &ocr, u, v);
+            foam = BKE_ocean_jminus_to_foam(ocr.Jminus, omd->foam_coverage);
           }
 
-          for (j = mp->totloop; j--; ml++, mlcol++) {
-            const float *vco = mverts[ml->v].co;
-            const float u = OCEAN_CO(size_co_inv, vco[0]);
-            const float v = OCEAN_CO(size_co_inv, vco[1]);
-            float foam;
+          mlcol->r = mlcol->g = mlcol->b = (char)(foam * 255);
+          /* This needs to be set (render engine uses) */
+          mlcol->a = 255;
 
-            if (omd->oceancache && omd->cached == true) {
-              BKE_ocean_cache_eval_uv(omd->oceancache, &ocr, cfra_for_cache, u, v);
-              foam = ocr.foam;
-              CLAMP(foam, 0.0f, 1.0f);
+          if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
+            if (omd->flag & MOD_OCEAN_INVERT_SPRAY) {
+              mlcolspray->r = ocr.Eminus[0] * 255;
             }
             else {
-              BKE_ocean_eval_uv(omd->ocean, &ocr, u, v);
-              foam = BKE_ocean_jminus_to_foam(ocr.Jminus, omd->foam_coverage);
+              mlcolspray->r = ocr.Eplus[0] * 255;
             }
-
-            mlcol->r = mlcol->g = mlcol->b = (char)(foam * 255);
-            /* This needs to be set (render engine uses) */
-            mlcol->a = 255;
-
-            if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
-              if (omd->flag & MOD_OCEAN_INVERT_SPRAY) {
-                mlcolspray->r = ocr.Eminus[0] * 255;
-              }
-              else {
-                mlcolspray->r = ocr.Eplus[0] * 255;
-              }
-              mlcolspray->g = 0;
-              if (omd->flag & MOD_OCEAN_INVERT_SPRAY) {
-                mlcolspray->b = ocr.Eminus[2] * 255;
-              }
-              else {
-                mlcolspray->b = ocr.Eplus[2] * 255;
-              }
-              mlcolspray->a = 255;
+            mlcolspray->g = 0;
+            if (omd->flag & MOD_OCEAN_INVERT_SPRAY) {
+              mlcolspray->b = ocr.Eminus[2] * 255;
             }
+            else {
+              mlcolspray->b = ocr.Eplus[2] * 255;
+            }
+            mlcolspray->a = 255;
           }
         }
       }

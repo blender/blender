@@ -11,6 +11,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_alloca.h"
 #include "BLI_ghash.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
@@ -182,10 +183,11 @@ static void particle_batch_cache_clear_hair(ParticleHairCache *hair_cache)
     GPU_VERTBUF_DISCARD_SAFE(hair_cache->proc_uv_buf[i]);
     DRW_TEXTURE_FREE_SAFE(hair_cache->uv_tex[i]);
   }
-  for (int i = 0; i < MAX_MCOL; i++) {
+  for (int i = 0; i < hair_cache->num_col_layers; i++) {
     GPU_VERTBUF_DISCARD_SAFE(hair_cache->proc_col_buf[i]);
     DRW_TEXTURE_FREE_SAFE(hair_cache->col_tex[i]);
   }
+
   for (int i = 0; i < MAX_HAIR_SUBDIV; i++) {
     GPU_VERTBUF_DISCARD_SAFE(hair_cache->final[i].proc_buf);
     DRW_TEXTURE_FREE_SAFE(hair_cache->final[i].proc_tex);
@@ -218,9 +220,24 @@ static void particle_batch_cache_clear(ParticleSystem *psys)
   GPU_VERTBUF_DISCARD_SAFE(cache->edit_tip_pos);
 }
 
+static void particle_batch_cache_free_hair(ParticleHairCache *hair)
+{
+  MEM_SAFE_FREE(hair->proc_col_buf);
+  MEM_SAFE_FREE(hair->col_tex);
+  MEM_SAFE_FREE(hair->col_layer_names);
+}
+
 void DRW_particle_batch_cache_free(ParticleSystem *psys)
 {
   particle_batch_cache_clear(psys);
+
+  ParticleBatchCache *cache = psys->batch_cache;
+
+  if (cache) {
+    particle_batch_cache_free_hair(&cache->hair);
+    particle_batch_cache_free_hair(&cache->edit_hair);
+  }
+
   MEM_SAFE_FREE(psys->batch_cache);
 }
 
@@ -833,10 +850,10 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
 
   GPUVertBufRaw data_step, seg_step;
   GPUVertBufRaw uv_step[MAX_MTFACE];
-  GPUVertBufRaw col_step[MAX_MCOL];
+  GPUVertBufRaw *col_step = BLI_array_alloca(col_step, cache->num_col_layers);
 
   const MTFace *mtfaces[MAX_MTFACE] = {NULL};
-  const MCol *mcols[MAX_MCOL] = {NULL};
+  const MCol **mcols = BLI_array_alloca(mcols, cache->num_col_layers);
   float(**parent_uvs)[2] = NULL;
   MCol **parent_mcol = NULL;
 
@@ -854,7 +871,6 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
       &format_col, "col", GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
   memset(cache->uv_layer_names, 0, sizeof(cache->uv_layer_names));
-  memset(cache->col_layer_names, 0, sizeof(cache->col_layer_names));
 
   /* Strand Data */
   cache->proc_strand_buf = GPU_vertbuf_create_with_format(&format_data);
@@ -885,6 +901,16 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
       BLI_strncpy(cache->uv_layer_names[i][n++], "a", MAX_LAYER_NAME_LEN);
     }
   }
+
+  MEM_SAFE_FREE(cache->proc_col_buf);
+  MEM_SAFE_FREE(cache->col_tex);
+  MEM_SAFE_FREE(cache->col_layer_names);
+
+  cache->proc_col_buf = MEM_calloc_arrayN(cache->num_col_layers, sizeof(void *), "proc_col_buf");
+  cache->col_tex = MEM_calloc_arrayN(cache->num_col_layers, sizeof(void *), "col_tex");
+  cache->col_layer_names = MEM_calloc_arrayN(
+      cache->num_col_layers, sizeof(*cache->col_layer_names), "col_layer_names");
+
   /* Vertex colors */
   for (int i = 0; i < cache->num_col_layers; i++) {
     cache->proc_col_buf[i] = GPU_vertbuf_create_with_format(&format_col);

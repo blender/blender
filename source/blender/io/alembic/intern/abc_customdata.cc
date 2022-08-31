@@ -583,10 +583,6 @@ void read_custom_data(const std::string &iobject_full_name,
 
     /* Read vertex colors according to convention. */
     if (IC3fGeomParam::matches(prop_header) || IC4fGeomParam::matches(prop_header)) {
-      if (++num_colors > MAX_MCOL) {
-        continue;
-      }
-
       read_custom_data_mcols(iobject_full_name, prop, prop_header, config, iss);
       continue;
     }

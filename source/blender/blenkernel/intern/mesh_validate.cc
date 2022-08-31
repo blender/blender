@@ -1025,13 +1025,6 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata,
         MAX_MTFACE,
         tot_uvloop - MAX_MTFACE);
   }
-  if (tot_vcolloop > MAX_MCOL) {
-    PRINT_ERR(
-        "\tMore VCol layers than %d allowed, %d last ones won't be available for render, shaders, "
-        "etc.\n",
-        MAX_MCOL,
-        tot_vcolloop - MAX_MCOL);
-  }
 
   /* check indices of clone/stencil */
   if (do_fixes && CustomData_get_clone_layer(ldata, CD_MLOOPUV) >= tot_uvloop) {

@@ -978,11 +978,6 @@ static void layerInterp_mloopcol(const void **sources,
   mc->a = round_fl_to_uchar_clamp(col.a);
 }
 
-static int layerMaxNum_mloopcol()
-{
-  return MAX_MCOL;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1484,11 +1479,6 @@ static void layerInterp_propcol(const void **sources,
   copy_v4_v4(mc->color, col);
 }
 
-static int layerMaxNum_propcol()
-{
-  return MAX_MCOL;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1662,7 +1652,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      nullptr,
      nullptr,
      nullptr,
-     layerMaxNum_mloopcol},
+     nullptr},
     /* 7: CD_ORIGINDEX */
     {sizeof(int), "", 0, nullptr, nullptr, nullptr, nullptr, nullptr, layerDefault_origindex},
     /* 8: CD_NORMAL */
@@ -1771,7 +1761,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      nullptr,
      nullptr,
      nullptr,
-     layerMaxNum_mloopcol},
+     nullptr},
     /* 18: CD_TANGENT */
     {sizeof(float[4][4]), "", 0, N_("Tangent"), nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 19: CD_MDISPS */
@@ -1964,7 +1954,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      nullptr,
      nullptr,
      nullptr,
-     layerMaxNum_propcol},
+     nullptr},
     /* 48: CD_PROP_FLOAT3 */
     {sizeof(float[3]),
      "vec3f",
