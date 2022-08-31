@@ -1037,7 +1037,7 @@ class NodeTreeMainUpdater {
     for (bNodeSocket *socket : tree.all_sockets()) {
       socket->flag &= ~SOCK_IN_USE;
       for (const bNodeLink *link : socket->directly_linked_links()) {
-        if ((link->flag & NODE_LINK_MUTED) != 0) {
+        if (!link->is_muted()) {
           socket->flag |= SOCK_IN_USE;
           break;
         }
