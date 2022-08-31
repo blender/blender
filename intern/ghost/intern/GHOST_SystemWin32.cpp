@@ -353,6 +353,7 @@ GHOST_ContextD3D *GHOST_SystemWin32::createOffscreenContextD3D()
   context = new GHOST_ContextD3D(false, wnd);
   if (context->initializeDrawingContext() == GHOST_kFailure) {
     delete context;
+    context = nullptr;
   }
 
   return context;

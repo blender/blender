@@ -624,11 +624,9 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
     GHOST_Context *context;
 
     context = new GHOST_ContextD3D(false, m_hWnd);
-    if (context->initializeDrawingContext()) {
-      return context;
-    }
-    else {
+    if (!context->initializeDrawingContext()) {
       delete context;
+      context = nullptr;
     }
 
     return context;
