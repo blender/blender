@@ -11015,8 +11015,7 @@ static void rna_def_node_socket(BlenderRNA *brna)
   prop = RNA_def_property(srna, "is_unavailable", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SOCK_UNAVAIL);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(
-      prop, "Unavailable", "True if the socket is unavailable");
+  RNA_def_property_ui_text(prop, "Unavailable", "True if the socket is unavailable");
 
   prop = RNA_def_property(srna, "is_multi_input", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SOCK_MULTI_INPUT);

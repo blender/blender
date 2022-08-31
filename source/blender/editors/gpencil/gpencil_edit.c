@@ -4770,7 +4770,8 @@ void GPENCIL_OT_stroke_sample(wmOperatorType *ot)
 
   /* properties */
   prop = RNA_def_float(ot->srna, "length", 0.1f, 0.0f, 100.0f, "Length", "", 0.0f, 100.0f);
-  prop = RNA_def_float(ot->srna, "sharp_threshold", 0.1f, 0.0f, M_PI, "Sharp Threshold", "", 0.0f, M_PI);
+  prop = RNA_def_float(
+      ot->srna, "sharp_threshold", 0.1f, 0.0f, M_PI, "Sharp Threshold", "", 0.0f, M_PI);
   /* avoid re-using last var */
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }

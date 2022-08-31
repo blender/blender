@@ -345,8 +345,12 @@ void outliner_collection_delete(
 
   /* We first walk over and find the Collections we actually want to delete
    * (ignoring duplicates). */
-  outliner_tree_traverse(
-      space_outliner, &space_outliner->tree, 0, TSE_SELECTED, collection_collect_data_to_edit, &data);
+  outliner_tree_traverse(space_outliner,
+                         &space_outliner->tree,
+                         0,
+                         TSE_SELECTED,
+                         collection_collect_data_to_edit,
+                         &data);
 
   /* Effectively delete the collections. */
   GSetIterator collections_to_edit_iter;
@@ -707,8 +711,12 @@ static int collection_link_exec(bContext *C, wmOperator *op)
   data.collections_to_edit = BLI_gset_ptr_new(__func__);
 
   /* We first walk over and find the Collections we actually want to link (ignoring duplicates). */
-  outliner_tree_traverse(
-      space_outliner, &space_outliner->tree, 0, TSE_SELECTED, collection_collect_data_to_edit, &data);
+  outliner_tree_traverse(space_outliner,
+                         &space_outliner->tree,
+                         0,
+                         TSE_SELECTED,
+                         collection_collect_data_to_edit,
+                         &data);
 
   /* Effectively link the collections. */
   GSetIterator collections_to_edit_iter;
@@ -766,8 +774,12 @@ static int collection_instance_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* We first walk over and find the Collections we actually want to instance
    * (ignoring duplicates). */
-  outliner_tree_traverse(
-      space_outliner, &space_outliner->tree, 0, TSE_SELECTED, collection_collect_data_to_edit, &data);
+  outliner_tree_traverse(space_outliner,
+                         &space_outliner->tree,
+                         0,
+                         TSE_SELECTED,
+                         collection_collect_data_to_edit,
+                         &data);
 
   /* Find an active collection to add to, that doesn't give dependency cycles. */
   LayerCollection *active_lc = BKE_layer_collection_get_active(view_layer);
