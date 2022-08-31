@@ -1276,7 +1276,7 @@ static void id_override_library_reset_fn(bContext *C,
   OutlinerLibOverrideData *data = static_cast<OutlinerLibOverrideData *>(user_data);
   const bool do_hierarchy = data->do_hierarchy;
 
-  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id_root)) {
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id_root) || ID_IS_LINKED(id_root)) {
     CLOG_WARN(&LOG, "Could not reset library override of data block '%s'", id_root->name);
     return;
   }
@@ -1304,7 +1304,7 @@ static void id_override_library_clear_single_fn(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   ID *id = tselem->id;
 
-  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id) || ID_IS_LINKED(id)) {
     BKE_reportf(reports,
                 RPT_WARNING,
                 "Cannot clear embedded library override id '%s', only overrides of real "
@@ -1352,8 +1352,9 @@ static void id_override_library_resync_fn(bContext *UNUSED(C),
   ID *id_root = tselem->id;
   OutlinerLibOverrideData *data = static_cast<OutlinerLibOverrideData *>(user_data);
 
-  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id_root)) {
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id_root) || ID_IS_LINKED(id_root)) {
     CLOG_WARN(&LOG, "Could not resync library override of data block '%s'", id_root->name);
+    return;
   }
 
   if (id_root->override_library->hierarchy_root != nullptr) {
@@ -1401,7 +1402,7 @@ static void id_override_library_delete_hierarchy_fn(bContext *UNUSED(C),
   BLI_assert(TSE_IS_REAL_ID(tselem));
   ID *id_root = tselem->id;
 
-  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id_root)) {
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id_root) || ID_IS_LINKED(id_root)) {
     CLOG_WARN(&LOG, "Could not delete library override of data block '%s'", id_root->name);
     return;
   }
