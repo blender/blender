@@ -1156,10 +1156,10 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
    * those events here as well. */
   if (!is_repeated_modifier) {
     char utf8_char[6] = {0};
-    BYTE state[256] = {0};
-    GetKeyboardState((PBYTE)state);
-    bool ctrl_pressed = state[VK_CONTROL] & 0x80;
-    bool alt_pressed = state[VK_MENU] & 0x80;
+    BYTE state[256];
+    const BOOL has_state = GetKeyboardState((PBYTE)state);
+    const bool ctrl_pressed = has_state && state[VK_CONTROL] & 0x80;
+    const bool alt_pressed = has_state && state[VK_MENU] & 0x80;
 
     if (!key_down) {
       /* Pass. */
