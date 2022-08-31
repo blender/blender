@@ -294,11 +294,13 @@ void VolumeMeshBuilder::create_mesh(vector<float3> &vertices,
 #endif
 }
 
+#ifdef WITH_OPENVDB
 static bool is_non_empty_leaf(const openvdb::MaskGrid::TreeType &tree, const openvdb::Coord coord)
 {
   auto *leaf_node = tree.probeLeaf(coord);
   return (leaf_node && !leaf_node->isEmpty());
 }
+#endif
 
 void VolumeMeshBuilder::generate_vertices_and_quads(vector<ccl::int3> &vertices_is,
                                                     vector<QuadData> &quads)
