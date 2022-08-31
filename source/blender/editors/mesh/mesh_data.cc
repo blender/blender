@@ -369,8 +369,11 @@ bool ED_mesh_uv_remove_named(Mesh *me, const char *name)
   return false;
 }
 
-int ED_mesh_color_add(
-    Mesh *me, const char *name, const bool active_set, const bool do_init, ReportList *reports)
+int ED_mesh_color_add(Mesh *me,
+                      const char *name,
+                      const bool active_set,
+                      const bool do_init,
+                      ReportList *UNUSED(reports))
 {
   /* NOTE: keep in sync with #ED_mesh_uv_add. */
 
@@ -449,7 +452,11 @@ static bool layers_poll(bContext *C)
 
 /*********************** Sculpt Vertex colors operators ************************/
 
-int ED_mesh_sculpt_color_add(Mesh *me, const char *name, const bool do_init, ReportList *reports)
+int ED_mesh_sculpt_color_add(Mesh *me,
+                             const char *name,
+                             const bool active_set,
+                             const bool do_init,
+                             ReportList *UNUSED(reports))
 {
   /* NOTE: keep in sync with #ED_mesh_uv_add. */
 
@@ -474,7 +481,7 @@ int ED_mesh_sculpt_color_add(Mesh *me, const char *name, const bool do_init, Rep
   }
   else {
     layernum = CustomData_number_of_layers(&me->vdata, CD_PROP_COLOR);
-    
+
     if (CustomData_has_layer(&me->vdata, CD_PROP_COLOR) && do_init) {
       const MPropCol *color_data = (const MPropCol *)CustomData_get_layer(&me->vdata,
                                                                           CD_PROP_COLOR);
