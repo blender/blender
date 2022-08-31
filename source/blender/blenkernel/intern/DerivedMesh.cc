@@ -1572,11 +1572,9 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
    * then we need to build one. */
   if (mesh_final) {
     if (deformed_verts) {
-      Mesh *mesh_tmp = BKE_mesh_copy_for_eval(mesh_final, false);
-      if (mesh_final != mesh_cage) {
-        BKE_id_free(nullptr, mesh_final);
+      if (mesh_final == mesh_cage) {
+        mesh_final = BKE_mesh_copy_for_eval(mesh_final, false);
       }
-      mesh_final = mesh_tmp;
       BKE_mesh_vert_coords_apply(mesh_final, deformed_verts);
     }
   }
