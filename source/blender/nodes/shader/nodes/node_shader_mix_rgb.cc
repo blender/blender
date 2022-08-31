@@ -136,7 +136,7 @@ class MixRGBFunction : public fn::MultiFunction {
 
 static void sh_node_mix_rgb_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &node = builder.node();
+  const bNode &node = builder.node();
   bool clamp = node.custom2 & SHD_MIXRGB_CLAMP;
   int mix_type = node.custom1;
   builder.construct_and_set_matching_fn<MixRGBFunction>(clamp, mix_type);

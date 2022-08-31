@@ -102,7 +102,7 @@ static int gpu_shader_math(GPUMaterial *mat,
   return 0;
 }
 
-static const fn::MultiFunction *get_base_multi_function(bNode &node)
+static const fn::MultiFunction *get_base_multi_function(const bNode &node)
 {
   const int mode = node.custom1;
   const fn::MultiFunction *base_fn = nullptr;

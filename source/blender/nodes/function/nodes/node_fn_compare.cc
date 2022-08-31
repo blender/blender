@@ -167,7 +167,7 @@ static float component_average(float3 a)
   return (a.x + a.y + a.z) / 3.0f;
 }
 
-static const fn::MultiFunction *get_multi_function(bNode &node)
+static const fn::MultiFunction *get_multi_function(const bNode &node)
 {
   const NodeFunctionCompare *data = (NodeFunctionCompare *)node.storage;
 

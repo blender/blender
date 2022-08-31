@@ -59,7 +59,7 @@ const DNode &ShaderNode::node() const
 
 bNode &ShaderNode::bnode() const
 {
-  return *node_->bnode();
+  return const_cast<bNode &>(*node_);
 }
 
 static eGPUType gpu_type_from_socket_type(eNodeSocketDatatype type)
@@ -77,17 +77,17 @@ static eGPUType gpu_type_from_socket_type(eNodeSocketDatatype type)
   }
 }
 
-static void gpu_stack_vector_from_socket(float *vector, const SocketRef *socket)
+static void gpu_stack_vector_from_socket(float *vector, const bNodeSocket *socket)
 {
-  switch (socket->bsocket()->type) {
+  switch (socket->type) {
     case SOCK_FLOAT:
-      vector[0] = socket->default_value<bNodeSocketValueFloat>()->value;
+      vector[0] = socket->default_value_typed<bNodeSocketValueFloat>()->value;
       return;
     case SOCK_VECTOR:
-      copy_v3_v3(vector, socket->default_value<bNodeSocketValueVector>()->value);
+      copy_v3_v3(vector, socket->default_value_typed<bNodeSocketValueVector>()->value);
       return;
     case SOCK_RGBA:
-      copy_v4_v4(vector, socket->default_value<bNodeSocketValueRGBA>()->value);
+      copy_v4_v4(vector, socket->default_value_typed<bNodeSocketValueRGBA>()->value);
       return;
     default:
       BLI_assert_unreachable();
@@ -101,8 +101,8 @@ static void populate_gpu_node_stack(DSocket socket, GPUNodeStack &stack)
   /* This will be initialized later by the GPU material compiler or the compile method. */
   stack.link = nullptr;
 
-  stack.sockettype = socket->bsocket()->type;
-  stack.type = gpu_type_from_socket_type((eNodeSocketDatatype)socket->bsocket()->type);
+  stack.sockettype = socket->type;
+  stack.type = gpu_type_from_socket_type((eNodeSocketDatatype)socket->type);
 
   if (socket->is_input()) {
     const DInputSocket input(socket);
@@ -117,10 +117,10 @@ static void populate_gpu_node_stack(DSocket socket, GPUNodeStack &stack)
      * unlinked input or an unlinked input of a group input node that the socket is linked to,
      * otherwise, get the value from the socket itself. */
     if (origin->is_input()) {
-      gpu_stack_vector_from_socket(stack.vec, origin.socket_ref());
+      gpu_stack_vector_from_socket(stack.vec, origin.bsocket());
     }
     else {
-      gpu_stack_vector_from_socket(stack.vec, socket.socket_ref());
+      gpu_stack_vector_from_socket(stack.vec, socket.bsocket());
     }
   }
   else {
@@ -132,10 +132,11 @@ void ShaderNode::populate_inputs()
 {
   /* Reserve a stack for each input in addition to an extra stack at the end to mark the end of the
    * array, as this is what the GPU module functions expect. */
-  inputs_.resize(node_->inputs().size() + 1);
+  const int num_input_sockets = node_->input_sockets().size();
+  inputs_.resize(num_input_sockets + 1);
   inputs_.last().end = true;
 
-  for (int i = 0; i < node_->inputs().size(); i++) {
+  for (int i = 0; i < num_input_sockets; i++) {
     populate_gpu_node_stack(node_.input(i), inputs_[i]);
   }
 }
@@ -144,10 +145,11 @@ void ShaderNode::populate_outputs()
 {
   /* Reserve a stack for each output in addition to an extra stack at the end to mark the end of
    * the array, as this is what the GPU module functions expect. */
-  outputs_.resize(node_->outputs().size() + 1);
+  const int num_output_sockets = node_->output_sockets().size();
+  outputs_.resize(num_output_sockets + 1);
   outputs_.last().end = true;
 
-  for (int i = 0; i < node_->outputs().size(); i++) {
+  for (int i = 0; i < num_output_sockets; i++) {
     populate_gpu_node_stack(node_.output(i), outputs_[i]);
   }
 }

@@ -26,7 +26,7 @@ using TargetSocketPathInfo = DOutputSocket::TargetSocketPathInfo;
 DSocket get_input_origin_socket(DInputSocket input)
 {
   /* The input is unlinked. Return the socket itself. */
-  if (input->logically_linked_sockets().is_empty()) {
+  if (!input->is_logically_linked()) {
     return input;
   }
 
@@ -52,9 +52,9 @@ DOutputSocket get_output_linked_to_input(DInputSocket input)
   return DOutputSocket(origin);
 }
 
-ResultType get_node_socket_result_type(const SocketRef *socket)
+ResultType get_node_socket_result_type(const bNodeSocket *socket)
 {
-  switch (socket->bsocket()->type) {
+  switch (socket->type) {
     case SOCK_FLOAT:
       return ResultType::Float;
     case SOCK_VECTOR:
@@ -95,21 +95,20 @@ int number_of_inputs_linked_to_output_conditioned(DOutputSocket output,
 
 bool is_shader_node(DNode node)
 {
-  return node->typeinfo()->get_compositor_shader_node;
+  return node->typeinfo->get_compositor_shader_node;
 }
 
 bool is_node_supported(DNode node)
 {
-  return node->typeinfo()->get_compositor_operation ||
-         node->typeinfo()->get_compositor_shader_node;
+  return node->typeinfo->get_compositor_operation || node->typeinfo->get_compositor_shader_node;
 }
 
-InputDescriptor input_descriptor_from_input_socket(const InputSocketRef *socket)
+InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket)
 {
   using namespace nodes;
   InputDescriptor input_descriptor;
   input_descriptor.type = get_node_socket_result_type(socket);
-  const NodeDeclaration *node_declaration = socket->node().declaration();
+  const NodeDeclaration *node_declaration = socket->owner_node().declaration();
   /* Not every node have a declaration, in which case, we assume the default values for the rest of
    * the properties. */
   if (!node_declaration) {

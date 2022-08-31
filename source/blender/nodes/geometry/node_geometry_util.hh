@@ -20,6 +20,8 @@
 #include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"
 
+#include "RNA_access.h"
+
 #include "node_util.h"
 
 void geo_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);

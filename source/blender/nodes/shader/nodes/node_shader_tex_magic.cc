@@ -161,7 +161,7 @@ class MagicFunction : public fn::MultiFunction {
 
 static void sh_node_magic_tex_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &node = builder.node();
+  const bNode &node = builder.node();
   NodeTexMagic *tex = (NodeTexMagic *)node.storage;
   builder.construct_and_set_matching_fn<MagicFunction>(tex->depth);
 }

@@ -139,7 +139,7 @@ class GradientFunction : public fn::MultiFunction {
 
 static void sh_node_gradient_tex_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &node = builder.node();
+  const bNode &node = builder.node();
   NodeTexGradient *tex = (NodeTexGradient *)node.storage;
   builder.construct_and_set_matching_fn<GradientFunction>(tex->gradient_type);
 }

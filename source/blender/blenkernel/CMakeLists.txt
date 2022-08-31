@@ -230,6 +230,7 @@ set(SRC
   intern/multires_versioning.c
   intern/nla.c
   intern/node.cc
+  intern/node_runtime.cc
   intern/node_tree_update.cc
   intern/object.cc
   intern/object_deform.c

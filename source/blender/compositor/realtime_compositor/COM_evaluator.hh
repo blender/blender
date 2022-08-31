@@ -104,9 +104,6 @@ class Evaluator {
   Context &context_;
   /* A reference to the compositor node tree. */
   bNodeTree &node_tree_;
-  /* The derived and reference node trees representing the compositor node tree. Those are
-   * initialized when the node tree is compiled and freed when the evaluator resets. */
-  NodeTreeRefMap node_tree_reference_map_;
   std::unique_ptr<DerivedNodeTree> derived_node_tree_;
   /* The compiled operations stream. This contains ordered pointers to the operations that were
    * compiled. This is initialized when the node tree is compiled and freed when the evaluator

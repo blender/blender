@@ -27,7 +27,7 @@ DSocket get_input_origin_socket(DInputSocket input);
 DOutputSocket get_output_linked_to_input(DInputSocket input);
 
 /* Get the result type that corresponds to the type of the given socket. */
-ResultType get_node_socket_result_type(const SocketRef *socket);
+ResultType get_node_socket_result_type(const bNodeSocket *socket);
 
 /* Returns true if any of the nodes linked to the given output satisfies the given condition, and
  * false otherwise.  */
@@ -46,7 +46,7 @@ bool is_shader_node(DNode node);
 bool is_node_supported(DNode node);
 
 /* Get the input descriptor of the given input socket. */
-InputDescriptor input_descriptor_from_input_socket(const InputSocketRef *socket);
+InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket);
 
 /* Dispatch the given compute shader in a 2D compute space such that the number of threads in both
  * dimensions is as small as possible but at least covers the entirety of threads_range assuming

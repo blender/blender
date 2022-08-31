@@ -6,6 +6,7 @@
 
 #include "BKE_image.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 
 #include "BLI_map.hh"
 #include "BLI_math_vector.h"
@@ -14,8 +15,6 @@
 
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
-
-#include "NOD_node_tree_ref.hh"
 
 #include "obj_export_mesh.hh"
 #include "obj_export_mtl.hh"
@@ -84,25 +83,25 @@ static void copy_property_from_node(const eNodeSocketDatatype property_type,
  * Collect all the source sockets linked to the destination socket in a destination node.
  */
 static void linked_sockets_to_dest_id(const bNode *dest_node,
-                                      const nodes::NodeTreeRef &node_tree,
+                                      const bNodeTree &node_tree,
                                       const char *dest_socket_id,
-                                      Vector<const nodes::OutputSocketRef *> &r_linked_sockets)
+                                      Vector<const bNodeSocket *> &r_linked_sockets)
 {
   r_linked_sockets.clear();
   if (!dest_node) {
     return;
   }
-  Span<const nodes::NodeRef *> object_dest_nodes = node_tree.nodes_by_type(dest_node->idname);
-  Span<const nodes::InputSocketRef *> dest_inputs = object_dest_nodes.first()->inputs();
-  const nodes::InputSocketRef *dest_socket = nullptr;
-  for (const nodes::InputSocketRef *curr_socket : dest_inputs) {
-    if (STREQ(curr_socket->bsocket()->identifier, dest_socket_id)) {
+  Span<const bNode *> object_dest_nodes = node_tree.nodes_by_type(dest_node->idname);
+  Span<const bNodeSocket *> dest_inputs = object_dest_nodes.first()->input_sockets();
+  const bNodeSocket *dest_socket = nullptr;
+  for (const bNodeSocket *curr_socket : dest_inputs) {
+    if (STREQ(curr_socket->identifier, dest_socket_id)) {
       dest_socket = curr_socket;
       break;
     }
   }
   if (dest_socket) {
-    Span<const nodes::OutputSocketRef *> linked_sockets = dest_socket->directly_linked_sockets();
+    Span<const bNodeSocket *> linked_sockets = dest_socket->directly_linked_sockets();
     r_linked_sockets.resize(linked_sockets.size());
     r_linked_sockets = linked_sockets;
   }
@@ -111,13 +110,12 @@ static void linked_sockets_to_dest_id(const bNode *dest_node,
 /**
  * From a list of sockets, get the parent node which is of the given node type.
  */
-static const bNode *get_node_of_type(Span<const nodes::OutputSocketRef *> sockets_list,
-                                     const int node_type)
+static const bNode *get_node_of_type(Span<const bNodeSocket *> sockets_list, const int node_type)
 {
-  for (const nodes::SocketRef *socket : sockets_list) {
-    const bNode *parent_node = socket->bnode();
-    if (parent_node->typeinfo->type == node_type) {
-      return parent_node;
+  for (const bNodeSocket *socket : sockets_list) {
+    const bNode &parent_node = socket->owner_node();
+    if (parent_node.typeinfo->type == node_type) {
+      return &parent_node;
     }
   }
   return nullptr;
@@ -153,16 +151,16 @@ static const char *get_image_filepath(const bNode *tex_node)
  * We only want one that feeds directly into a Material Output node
  * (that is the behavior of the legacy Python exporter).
  */
-static const nodes::NodeRef *find_bsdf_node(const nodes::NodeTreeRef *nodetree)
+static const bNode *find_bsdf_node(const bNodeTree *nodetree)
 {
   if (!nodetree) {
     return nullptr;
   }
-  for (const nodes::NodeRef *node : nodetree->nodes_by_type("ShaderNodeOutputMaterial")) {
-    const nodes::InputSocketRef *node_input_socket0 = node->inputs()[0];
-    for (const nodes::OutputSocketRef *out_sock : node_input_socket0->directly_linked_sockets()) {
-      const nodes::NodeRef &in_node = out_sock->node();
-      if (in_node.typeinfo()->type == SH_NODE_BSDF_PRINCIPLED) {
+  for (const bNode *node : nodetree->nodes_by_type("ShaderNodeOutputMaterial")) {
+    const bNodeSocket &node_input_socket0 = node->input_socket(0);
+    for (const bNodeSocket *out_sock : node_input_socket0.directly_linked_sockets()) {
+      const bNode &in_node = out_sock->owner_node();
+      if (in_node.typeinfo->type == SH_NODE_BSDF_PRINCIPLED) {
         return &in_node;
       }
     }
@@ -173,55 +171,50 @@ static const nodes::NodeRef *find_bsdf_node(const nodes::NodeTreeRef *nodetree)
 /**
  * Store properties found either in bNode or material into r_mtl_mat.
  */
-static void store_bsdf_properties(const nodes::NodeRef *bsdf_node,
+static void store_bsdf_properties(const bNode *bsdf_node,
                                   const Material *material,
                                   MTLMaterial &r_mtl_mat)
 {
-  const bNode *bnode = nullptr;
-  if (bsdf_node) {
-    bnode = bsdf_node->bnode();
-  }
-
   /* If p-BSDF is not present, fallback to #Object.Material. */
   float roughness = material->roughness;
-  if (bnode) {
-    copy_property_from_node(SOCK_FLOAT, bnode, "Roughness", {&roughness, 1});
+  if (bsdf_node) {
+    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Roughness", {&roughness, 1});
   }
   /* Empirical approximation. Importer should use the inverse of this method. */
   float spec_exponent = (1.0f - roughness);
   spec_exponent *= spec_exponent * 1000.0f;
 
   float specular = material->spec;
-  if (bnode) {
-    copy_property_from_node(SOCK_FLOAT, bnode, "Specular", {&specular, 1});
+  if (bsdf_node) {
+    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Specular", {&specular, 1});
   }
 
   float metallic = material->metallic;
-  if (bnode) {
-    copy_property_from_node(SOCK_FLOAT, bnode, "Metallic", {&metallic, 1});
+  if (bsdf_node) {
+    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Metallic", {&metallic, 1});
   }
 
   float refraction_index = 1.0f;
-  if (bnode) {
-    copy_property_from_node(SOCK_FLOAT, bnode, "IOR", {&refraction_index, 1});
+  if (bsdf_node) {
+    copy_property_from_node(SOCK_FLOAT, bsdf_node, "IOR", {&refraction_index, 1});
   }
 
   float dissolved = material->a;
-  if (bnode) {
-    copy_property_from_node(SOCK_FLOAT, bnode, "Alpha", {&dissolved, 1});
+  if (bsdf_node) {
+    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Alpha", {&dissolved, 1});
   }
   const bool transparent = dissolved != 1.0f;
 
   float3 diffuse_col = {material->r, material->g, material->b};
-  if (bnode) {
-    copy_property_from_node(SOCK_RGBA, bnode, "Base Color", {diffuse_col, 3});
+  if (bsdf_node) {
+    copy_property_from_node(SOCK_RGBA, bsdf_node, "Base Color", {diffuse_col, 3});
   }
 
   float3 emission_col{0.0f};
   float emission_strength = 0.0f;
-  if (bnode) {
-    copy_property_from_node(SOCK_FLOAT, bnode, "Emission Strength", {&emission_strength, 1});
-    copy_property_from_node(SOCK_RGBA, bnode, "Emission", {emission_col, 3});
+  if (bsdf_node) {
+    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Emission Strength", {&emission_strength, 1});
+    copy_property_from_node(SOCK_RGBA, bsdf_node, "Emission", {emission_col, 3});
   }
   mul_v3_fl(emission_col, emission_strength);
 
@@ -265,8 +258,8 @@ static void store_bsdf_properties(const nodes::NodeRef *bsdf_node,
 /**
  * Store image texture options and file-paths in `r_mtl_mat`.
  */
-static void store_image_textures(const nodes::NodeRef *bsdf_node,
-                                 const nodes::NodeTreeRef *node_tree,
+static void store_image_textures(const bNode *bsdf_node,
+                                 const bNodeTree *node_tree,
                                  const Material *material,
                                  MTLMaterial &r_mtl_mat)
 {
@@ -274,7 +267,6 @@ static void store_image_textures(const nodes::NodeRef *bsdf_node,
     /* No nodetree, no images, or no Principled BSDF node. */
     return;
   }
-  const bNode *bnode = bsdf_node->bnode();
 
   /* Normal Map Texture has two extra tasks of:
    * - finding a Normal Map node before finding a texture node.
@@ -283,12 +275,12 @@ static void store_image_textures(const nodes::NodeRef *bsdf_node,
 
   for (int key = 0; key < (int)MTLTexMapType::Count; ++key) {
     MTLTexMap &value = r_mtl_mat.texture_maps[key];
-    Vector<const nodes::OutputSocketRef *> linked_sockets;
+    Vector<const bNodeSocket *> linked_sockets;
     const bNode *normal_map_node{nullptr};
 
     if (key == (int)MTLTexMapType::bump) {
       /* Find sockets linked to destination "Normal" socket in P-BSDF node. */
-      linked_sockets_to_dest_id(bnode, *node_tree, "Normal", linked_sockets);
+      linked_sockets_to_dest_id(bsdf_node, *node_tree, "Normal", linked_sockets);
       /* Among the linked sockets, find Normal Map shader node. */
       normal_map_node = get_node_of_type(linked_sockets, SH_NODE_NORMAL_MAP);
 
@@ -299,13 +291,15 @@ static void store_image_textures(const nodes::NodeRef *bsdf_node,
       /* Skip emission map if emission strength is zero. */
       if (key == (int)MTLTexMapType::Ke) {
         float emission_strength = 0.0f;
-        copy_property_from_node(SOCK_FLOAT, bnode, "Emission Strength", {&emission_strength, 1});
+        copy_property_from_node(
+            SOCK_FLOAT, bsdf_node, "Emission Strength", {&emission_strength, 1});
         if (emission_strength == 0.0f) {
           continue;
         }
       }
       /* Find sockets linked to the destination socket of interest, in P-BSDF node. */
-      linked_sockets_to_dest_id(bnode, *node_tree, tex_map_type_to_socket_id[key], linked_sockets);
+      linked_sockets_to_dest_id(
+          bsdf_node, *node_tree, tex_map_type_to_socket_id[key], linked_sockets);
     }
 
     /* Among the linked sockets, find Image Texture shader node. */
@@ -341,14 +335,14 @@ MTLMaterial mtlmaterial_for_material(const Material *material)
   MTLMaterial mtlmat;
   mtlmat.name = std::string(material->id.name + 2);
   std::replace(mtlmat.name.begin(), mtlmat.name.end(), ' ', '_');
-  const nodes::NodeTreeRef *nodetree = nullptr;
-  if (material->nodetree) {
-    nodetree = new nodes::NodeTreeRef(material->nodetree);
+  const bNodeTree *nodetree = material->nodetree;
+  if (nodetree != nullptr) {
+    nodetree->ensure_topology_cache();
   }
-  const nodes::NodeRef *bsdf_node = find_bsdf_node(nodetree);
+
+  const bNode *bsdf_node = find_bsdf_node(nodetree);
   store_bsdf_properties(bsdf_node, material, mtlmat);
   store_image_textures(bsdf_node, nodetree, material, mtlmat);
-  delete nodetree;
   return mtlmat;
 }
 

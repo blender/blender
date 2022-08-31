@@ -51,9 +51,12 @@ class NormalShaderNode : public ShaderNode {
   }
 
   /* The vector value is stored in the default value of the output socket. */
-  float *get_vector_value()
+  const float *get_vector_value()
   {
-    return node().output_by_identifier("Normal")->default_value<bNodeSocketValueVector>()->value;
+    return node()
+        .output_by_identifier("Normal")
+        ->default_value_typed<bNodeSocketValueVector>()
+        ->value;
   }
 };
 

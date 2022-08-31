@@ -72,7 +72,6 @@
 #include "NOD_function.h"
 #include "NOD_geometry.h"
 #include "NOD_node_declaration.hh"
-#include "NOD_node_tree_ref.hh"
 #include "NOD_shader.h"
 #include "NOD_socket.h"
 #include "NOD_texture.h"
@@ -104,7 +103,6 @@ using blender::nodes::NodeDeclaration;
 using blender::nodes::OutputFieldDependency;
 using blender::nodes::OutputSocketFieldType;
 using blender::nodes::SocketDeclaration;
-using namespace blender::nodes::node_tree_ref_types;
 
 /* Fallback types for undefined tree, nodes, sockets */
 static bNodeTreeType NodeTreeTypeUndefined;

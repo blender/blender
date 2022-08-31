@@ -190,7 +190,7 @@ class MF_AlignEulerToVector : public fn::MultiFunction {
 
 static void fn_node_align_euler_to_vector_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &node = builder.node();
+  const bNode &node = builder.node();
   builder.construct_and_set_matching_fn<MF_AlignEulerToVector>(node.custom1, node.custom2);
 }
 

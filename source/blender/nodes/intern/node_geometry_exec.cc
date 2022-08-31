@@ -38,7 +38,7 @@ void GeoNodeExecParams::check_input_geometry_set(StringRef identifier,
                                                  const GeometrySet &geometry_set) const
 {
   const SocketDeclaration &decl =
-      *provider_->dnode->input_by_identifier(identifier).bsocket()->runtime->declaration;
+      *provider_->dnode->input_by_identifier(identifier).runtime->declaration;
   const decl::Geometry *geo_decl = dynamic_cast<const decl::Geometry *>(&decl);
   if (geo_decl == nullptr) {
     return;
@@ -118,9 +118,9 @@ void GeoNodeExecParams::check_output_geometry_set(const GeometrySet &geometry_se
 
 const bNodeSocket *GeoNodeExecParams::find_available_socket(const StringRef name) const
 {
-  for (const InputSocketRef *socket : provider_->dnode->inputs()) {
-    if (socket->is_available() && socket->name() == name) {
-      return socket->bsocket();
+  for (const bNodeSocket *socket : provider_->dnode->runtime->inputs) {
+    if (socket->is_available() && socket->name == name) {
+      return socket;
     }
   }
 
@@ -140,10 +140,10 @@ void GeoNodeExecParams::set_default_remaining_outputs()
 void GeoNodeExecParams::check_input_access(StringRef identifier,
                                            const CPPType *requested_type) const
 {
-  bNodeSocket *found_socket = nullptr;
-  for (const InputSocketRef *socket : provider_->dnode->inputs()) {
-    if (socket->identifier() == identifier) {
-      found_socket = socket->bsocket();
+  const bNodeSocket *found_socket = nullptr;
+  for (const bNodeSocket *socket : provider_->dnode->input_sockets()) {
+    if (socket->identifier == identifier) {
+      found_socket = socket;
       break;
     }
   }
@@ -151,9 +151,9 @@ void GeoNodeExecParams::check_input_access(StringRef identifier,
   if (found_socket == nullptr) {
     std::cout << "Did not find an input socket with the identifier '" << identifier << "'.\n";
     std::cout << "Possible identifiers are: ";
-    for (const InputSocketRef *socket : provider_->dnode->inputs()) {
+    for (const bNodeSocket *socket : provider_->dnode->input_sockets()) {
       if (socket->is_available()) {
-        std::cout << "'" << socket->identifier() << "', ";
+        std::cout << "'" << socket->identifier << "', ";
       }
     }
     std::cout << "\n";
@@ -182,10 +182,10 @@ void GeoNodeExecParams::check_input_access(StringRef identifier,
 
 void GeoNodeExecParams::check_output_access(StringRef identifier, const CPPType &value_type) const
 {
-  bNodeSocket *found_socket = nullptr;
-  for (const OutputSocketRef *socket : provider_->dnode->outputs()) {
-    if (socket->identifier() == identifier) {
-      found_socket = socket->bsocket();
+  const bNodeSocket *found_socket = nullptr;
+  for (const bNodeSocket *socket : provider_->dnode->output_sockets()) {
+    if (socket->identifier == identifier) {
+      found_socket = socket;
       break;
     }
   }
@@ -193,9 +193,9 @@ void GeoNodeExecParams::check_output_access(StringRef identifier, const CPPType 
   if (found_socket == nullptr) {
     std::cout << "Did not find an output socket with the identifier '" << identifier << "'.\n";
     std::cout << "Possible identifiers are: ";
-    for (const OutputSocketRef *socket : provider_->dnode->outputs()) {
-      if (socket->is_available()) {
-        std::cout << "'" << socket->identifier() << "', ";
+    for (const bNodeSocket *socket : provider_->dnode->output_sockets()) {
+      if (!(socket->flag & SOCK_UNAVAIL)) {
+        std::cout << "'" << socket->identifier << "', ";
       }
     }
     std::cout << "\n";

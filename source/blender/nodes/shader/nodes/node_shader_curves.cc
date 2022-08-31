@@ -95,7 +95,7 @@ class CurveVecFunction : public fn::MultiFunction {
 
 static void sh_node_curve_vec_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &bnode = builder.node();
+  const bNode &bnode = builder.node();
   CurveMapping *cumap = (CurveMapping *)bnode.storage;
   BKE_curvemapping_init(cumap);
   builder.construct_and_set_matching_fn<CurveVecFunction>(*cumap);
@@ -237,7 +237,7 @@ class CurveRGBFunction : public fn::MultiFunction {
 
 static void sh_node_curve_rgb_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &bnode = builder.node();
+  const bNode &bnode = builder.node();
   CurveMapping *cumap = (CurveMapping *)bnode.storage;
   BKE_curvemapping_init(cumap);
   builder.construct_and_set_matching_fn<CurveRGBFunction>(*cumap);
@@ -356,7 +356,7 @@ class CurveFloatFunction : public fn::MultiFunction {
 
 static void sh_node_curve_float_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &bnode = builder.node();
+  const bNode &bnode = builder.node();
   CurveMapping *cumap = (CurveMapping *)bnode.storage;
   BKE_curvemapping_init(cumap);
   builder.construct_and_set_matching_fn<CurveFloatFunction>(*cumap);

@@ -506,6 +506,54 @@ static short *add_struct(int namecode)
   return sp;
 }
 
+/* Copied from `BLI_str_startswith` string.c
+ * to avoid complicating the compilation process of makesdna. */
+static bool str_startswith(const char *__restrict str, const char *__restrict start)
+{
+  for (; *str && *start; str++, start++) {
+    if (*str != *start) {
+      return false;
+    }
+  }
+
+  return (*start == '\0');
+}
+
+/**
+ * Check if `str` is a preprocessor string that starts with `start`.
+ * The `start` doesn't need the `#` prefix.
+ * `ifdef VALUE` will match `#ifdef VALUE` as well as `#  ifdef VALUE`.
+ */
+static bool match_preproc_prefix(const char *__restrict str, const char *__restrict start)
+{
+  if (*str != '#') {
+    return false;
+  }
+  str++;
+  while (*str == ' ') {
+    str++;
+  }
+  return str_startswith(str, start);
+}
+
+/**
+ * \return The point in `str` that starts with `start` or NULL when not found.
+ *
+ */
+static char *match_preproc_strstr(char *__restrict str, const char *__restrict start)
+{
+  while ((str = strchr(str, '#'))) {
+    str++;
+    while (*str == ' ') {
+      str++;
+    }
+    if (str_startswith(str, start)) {
+      return str;
+    }
+  }
+  return NULL;
+}
+
 static int preprocess_include(char *maindata, const int maindata_len)
 {
   /* NOTE: len + 1, last character is a dummy to prevent
@@ -532,6 +580,10 @@ static int preprocess_include(char *maindata, const int maindata_len)
     }
     cp++;
   }
+
+  /* No need for leading '#' character. */
+  const char *cpp_block_start = "ifdef __cplusplus";
+  const char *cpp_block_end = "endif";
 
   /* data from temp copy to maindata, remove comments and double spaces */
   cp = temp;
@@ -575,6 +627,18 @@ static int preprocess_include(char *maindata, const int maindata_len)
     else if (skip_until_closing_brace) {
       if (cp[0] == ')') {
         skip_until_closing_brace = false;
+      }
+    }
+    else if (match_preproc_prefix(cp, cpp_block_start)) {
+      char *end_ptr = match_preproc_strstr(cp, cpp_block_end);
+
+      if (end_ptr == NULL) {
+        fprintf(stderr, "Error: '%s' block must end with '%s'\n", cpp_block_start, cpp_block_end);
+      }
+      else {
+        const int skip_offset = end_ptr - cp + strlen(cpp_block_end);
+        a -= skip_offset;
+        cp += skip_offset;
       }
     }
     else {

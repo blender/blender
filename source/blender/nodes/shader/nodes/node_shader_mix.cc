@@ -344,7 +344,7 @@ class MixColorFunction : public fn::MultiFunction {
   }
 };
 
-static const fn::MultiFunction *get_multi_function(bNode &node)
+static const fn::MultiFunction *get_multi_function(const bNode &node)
 {
   const NodeShaderMix *data = (NodeShaderMix *)node.storage;
   bool uniform_factor = data->factor_mode == NODE_MIX_MODE_UNIFORM;

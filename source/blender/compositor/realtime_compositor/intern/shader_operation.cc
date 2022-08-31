@@ -128,7 +128,7 @@ void ShaderOperation::construct_material(void *thunk, GPUMaterial *material)
 {
   ShaderOperation *operation = static_cast<ShaderOperation *>(thunk);
   for (DNode node : operation->compile_unit_) {
-    ShaderNode *shader_node = node->typeinfo()->get_compositor_shader_node(node);
+    ShaderNode *shader_node = node->typeinfo->get_compositor_shader_node(node);
     operation->shader_nodes_.add_new(node, std::unique_ptr<ShaderNode>(shader_node));
 
     operation->link_node_inputs(node, material);
@@ -141,27 +141,27 @@ void ShaderOperation::construct_material(void *thunk, GPUMaterial *material)
 
 void ShaderOperation::link_node_inputs(DNode node, GPUMaterial *material)
 {
-  for (const InputSocketRef *input_ref : node->inputs()) {
-    const DInputSocket input{node.context(), input_ref};
+  for (const bNodeSocket *input : node->input_sockets()) {
+    const DInputSocket dinput{node.context(), input};
 
     /* Get the output linked to the input. If it is null, that means the input is unlinked.
      * Unlinked inputs are linked by the node compile method, so skip this here. */
-    const DOutputSocket output = get_output_linked_to_input(input);
-    if (!output) {
+    const DOutputSocket doutput = get_output_linked_to_input(dinput);
+    if (!doutput) {
       continue;
     }
 
     /* If the origin node is part of the shader operation, then the link is internal to the GPU
      * material graph and is linked appropriately. */
-    if (compile_unit_.contains(output.node())) {
-      link_node_input_internal(input, output);
+    if (compile_unit_.contains(doutput.node())) {
+      link_node_input_internal(dinput, doutput);
       continue;
     }
 
     /* Otherwise, the origin node is not part of the shader operation, then the link is external to
      * the GPU material graph and an input to the shader operation must be declared and linked to
      * the node input. */
-    link_node_input_external(input, output, material);
+    link_node_input_external(dinput, doutput, material);
   }
 }
 
@@ -169,10 +169,10 @@ void ShaderOperation::link_node_input_internal(DInputSocket input_socket,
                                                DOutputSocket output_socket)
 {
   ShaderNode &output_node = *shader_nodes_.lookup(output_socket.node());
-  GPUNodeStack &output_stack = output_node.get_output(output_socket->identifier());
+  GPUNodeStack &output_stack = output_node.get_output(output_socket->identifier);
 
   ShaderNode &input_node = *shader_nodes_.lookup(input_socket.node());
-  GPUNodeStack &input_stack = input_node.get_input(input_socket->identifier());
+  GPUNodeStack &input_stack = input_node.get_input(input_socket->identifier);
 
   input_stack.link = output_stack.link;
 }
@@ -183,7 +183,7 @@ void ShaderOperation::link_node_input_external(DInputSocket input_socket,
 {
 
   ShaderNode &node = *shader_nodes_.lookup(input_socket.node());
-  GPUNodeStack &stack = node.get_input(input_socket->identifier());
+  GPUNodeStack &stack = node.get_input(input_socket->identifier);
 
   /* An input was already declared for that same output socket, so no need to declare it again. */
   if (!output_to_material_attribute_map_.contains(output_socket)) {
@@ -219,8 +219,8 @@ void ShaderOperation::declare_operation_input(DInputSocket input_socket,
 
   /* Declare the input descriptor for this input and prefer to declare its type to be the same as
    * the type of the output socket because doing type conversion in the shader is much cheaper. */
-  InputDescriptor input_descriptor = input_descriptor_from_input_socket(input_socket.socket_ref());
-  input_descriptor.type = get_node_socket_result_type(output_socket.socket_ref());
+  InputDescriptor input_descriptor = input_descriptor_from_input_socket(input_socket.bsocket());
+  input_descriptor.type = get_node_socket_result_type(output_socket.bsocket());
   declare_input_descriptor(input_identifier, input_descriptor);
 
   /* Add a new GPU attribute representing an input to the GPU material. Instead of using the
@@ -242,16 +242,16 @@ void ShaderOperation::declare_operation_input(DInputSocket input_socket,
 
 void ShaderOperation::populate_results_for_node(DNode node, GPUMaterial *material)
 {
-  for (const OutputSocketRef *output_ref : node->outputs()) {
-    const DOutputSocket output{node.context(), output_ref};
+  for (const bNodeSocket *output : node->output_sockets()) {
+    const DOutputSocket doutput{node.context(), output};
 
     /* If any of the nodes linked to the output are not part of the shader operation, then an
      * output result needs to be populated for it. */
     const bool need_to_populate_result = is_output_linked_to_node_conditioned(
-        output, [&](DNode node) { return !compile_unit_.contains(node); });
+        doutput, [&](DNode node) { return !compile_unit_.contains(node); });
 
     if (need_to_populate_result) {
-      populate_operation_result(output, material);
+      populate_operation_result(doutput, material);
     }
   }
 }
@@ -276,7 +276,7 @@ void ShaderOperation::populate_operation_result(DOutputSocket output_socket, GPU
   const unsigned int output_id = output_sockets_to_output_identifiers_map_.size();
   std::string output_identifier = "output" + std::to_string(output_id);
 
-  const ResultType result_type = get_node_socket_result_type(output_socket.socket_ref());
+  const ResultType result_type = get_node_socket_result_type(output_socket.bsocket());
   const Result result = Result(result_type, texture_pool());
   populate_result(output_identifier, result);
 
@@ -284,7 +284,7 @@ void ShaderOperation::populate_operation_result(DOutputSocket output_socket, GPU
   output_sockets_to_output_identifiers_map_.add_new(output_socket, output_identifier);
 
   ShaderNode &node = *shader_nodes_.lookup(output_socket.node());
-  GPUNodeLink *output_link = node.get_output(output_socket->identifier()).link;
+  GPUNodeLink *output_link = node.get_output(output_socket->identifier).link;
 
   /* Link the output node stack to an output storer storing in the appropriate result. The result
    * is identified by its index in the operation and the index is encoded as a float to be passed

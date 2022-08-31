@@ -12,8 +12,33 @@
 #include "DNA_scene_types.h" /* for #ImageFormatData */
 #include "DNA_vec_types.h"   /* for #rctf */
 
+/** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
-extern "C" {
+namespace blender {
+template<typename T> class Span;
+class StringRef;
+class StringRefNull;
+}  // namespace blender
+namespace blender::nodes {
+class NodeDeclaration;
+class SocketDeclaration;
+}  // namespace blender::nodes
+namespace blender::bke {
+class bNodeTreeRuntime;
+class bNodeRuntime;
+class bNodeSocketRuntime;
+}  // namespace blender::bke
+using NodeDeclarationHandle = blender::nodes::NodeDeclaration;
+using SocketDeclarationHandle = blender::nodes::SocketDeclaration;
+using bNodeTreeRuntimeHandle = blender::bke::bNodeTreeRuntime;
+using bNodeRuntimeHandle = blender::bke::bNodeRuntime;
+using bNodeSocketRuntimeHandle = blender::bke::bNodeSocketRuntime;
+#else
+typedef struct NodeDeclarationHandle NodeDeclarationHandle;
+typedef struct SocketDeclarationHandle SocketDeclarationHandle;
+typedef struct bNodeTreeRuntimeHandle bNodeTreeRuntimeHandle;
+typedef struct bNodeRuntimeHandle bNodeRuntimeHandle;
+typedef struct bNodeSocketRuntimeHandle bNodeSocketRuntimeHandle;
 #endif
 
 struct AnimData;
@@ -30,6 +55,7 @@ struct bNodeLink;
 struct bNodePreview;
 struct bNodeTreeExec;
 struct bNodeType;
+struct bNode;
 struct uiBlock;
 
 #define NODE_MAXSTR 64
@@ -64,30 +90,6 @@ typedef struct bNodeStack {
 #define NS_CR_FIT_HEIGHT 3
 #define NS_CR_FIT 4
 #define NS_CR_STRETCH 5
-
-/** Workaround to forward-declare C++ type in C header. */
-#ifdef __cplusplus
-namespace blender::nodes {
-class NodeDeclaration;
-class SocketDeclaration;
-}  // namespace blender::nodes
-namespace blender::bke {
-class bNodeTreeRuntime;
-class bNodeRuntime;
-class bNodeSocketRuntime;
-}  // namespace blender::bke
-using NodeDeclarationHandle = blender::nodes::NodeDeclaration;
-using SocketDeclarationHandle = blender::nodes::SocketDeclaration;
-using bNodeTreeRuntimeHandle = blender::bke::bNodeTreeRuntime;
-using bNodeRuntimeHandle = blender::bke::bNodeRuntime;
-using bNodeSocketRuntimeHandle = blender::bke::bNodeSocketRuntime;
-#else
-typedef struct NodeDeclarationHandle NodeDeclarationHandle;
-typedef struct SocketDeclarationHandle SocketDeclarationHandle;
-typedef struct bNodeTreeRuntimeHandle bNodeTreeRuntimeHandle;
-typedef struct bNodeRuntimeHandle bNodeRuntimeHandle;
-typedef struct bNodeSocketRuntimeHandle bNodeSocketRuntimeHandle;
-#endif
 
 typedef struct bNodeSocket {
   struct bNodeSocket *next, *prev;
@@ -181,6 +183,49 @@ typedef struct bNodeSocket {
   bNodeStack ns DNA_DEPRECATED;
 
   bNodeSocketRuntimeHandle *runtime;
+
+#ifdef __cplusplus
+  bool is_available() const;
+  bool is_multi_input() const;
+  bool is_input() const;
+  bool is_output() const;
+
+  /** Utility to access the value of the socket. */
+  template<typename T> const T *default_value_typed() const;
+
+  /* The following methods are only available when #bNodeTree.ensure_topology_cache has been
+   * called. */
+
+  /** Zero based index for every input and output socket. */
+  int index() const;
+  /** Socket index in the entire node tree. Inputs and outputs share the same index space. */
+  int index_in_tree() const;
+  /** Node this socket belongs to. */
+  bNode &owner_node();
+  const bNode &owner_node() const;
+  /** Node tree this socket belongs to. */
+  const bNodeTree &owner_tree() const;
+
+  /** Links which are incident to this socket. */
+  blender::Span<bNodeLink *> directly_linked_links();
+  blender::Span<const bNodeLink *> directly_linked_links() const;
+  /** Sockets which are connected to this socket with a link. */
+  blender::Span<const bNodeSocket *> directly_linked_sockets() const;
+  bool is_directly_linked() const;
+  /**
+   * Sockets which are connected to this socket when reroutes and muted nodes are taken into
+   * account.
+   */
+  blender::Span<const bNodeSocket *> logically_linked_sockets() const;
+  bool is_logically_linked() const;
+
+  /**
+   * For output sockets, this is the corresponding input socket the value of which should be
+   * forwarded when the node is muted.
+   */
+  const bNodeSocket *internal_link_input() const;
+
+#endif
 } bNodeSocket;
 
 /** #bNodeSocket.type & #bNodeSocketType.type */
@@ -333,6 +378,38 @@ typedef struct bNode {
   char iter_flag;
 
   bNodeRuntimeHandle *runtime;
+
+#ifdef __cplusplus
+  blender::StringRefNull label_or_name() const;
+  bool is_muted() const;
+  bool is_reroute() const;
+  bool is_frame() const;
+  bool is_group() const;
+  bool is_group_input() const;
+  bool is_group_output() const;
+  const blender::nodes::NodeDeclaration *declaration() const;
+
+  /* The following methods are only available when #bNodeTree.ensure_topology_cache has been
+   * called. */
+
+  /** A span containing all input sockets of the node (including unavailable sockets). */
+  blender::Span<bNodeSocket *> input_sockets();
+  blender::Span<const bNodeSocket *> input_sockets() const;
+  /** A span containing all output sockets of the node (including unavailable sockets). */
+  blender::Span<bNodeSocket *> output_sockets();
+  blender::Span<const bNodeSocket *> output_sockets() const;
+  /** Utility to get an input socket by its index. */
+  bNodeSocket &input_socket(int index);
+  const bNodeSocket &input_socket(int index) const;
+  /** Utility to get an output socket by its index. */
+  bNodeSocket &output_socket(int index);
+  const bNodeSocket &output_socket(int index) const;
+  /** A span containing all internal links when the node is muted. */
+  blender::Span<const bNodeLink *> internal_links_span() const;
+  /** Lookup socket of this node by its identifier. */
+  const bNodeSocket &input_by_identifier(blender::StringRef identifier) const;
+  const bNodeSocket &output_by_identifier(blender::StringRef identifier) const;
+#endif
 } bNode;
 
 /* node->flag */
@@ -422,6 +499,11 @@ typedef struct bNodeLink {
 
   int flag;
   int multi_input_socket_index;
+
+#ifdef __cplusplus
+  bool is_muted() const;
+#endif
+
 } bNodeLink;
 
 /* link->flag */
@@ -535,6 +617,50 @@ typedef struct bNodeTree {
   struct PreviewImage *preview;
 
   bNodeTreeRuntimeHandle *runtime;
+
+#ifdef __cplusplus
+  /**
+   * Update a run-time cache for the node tree based on it's current state. This makes many methods
+   * available which allow efficient lookup for topology information (like neighboring sockets).
+   */
+  void ensure_topology_cache() const;
+
+  /* The following methods are only available when #bNodeTree.ensure_topology_cache has been
+   * called. */
+
+  /** A span containing all nodes in the node tree. */
+  blender::Span<bNode *> all_nodes();
+  blender::Span<const bNode *> all_nodes() const;
+  /** A span containing all input sockets in the node tree. */
+  blender::Span<bNodeSocket *> all_input_sockets();
+  blender::Span<const bNodeSocket *> all_input_sockets() const;
+  /** A span containing all output sockets in the node tree. */
+  blender::Span<bNodeSocket *> all_output_sockets();
+  blender::Span<const bNodeSocket *> all_output_sockets() const;
+  /** A span containing all sockets in the node tree. */
+  blender::Span<bNodeSocket *> all_sockets();
+  blender::Span<const bNodeSocket *> all_sockets() const;
+  /** Efficient lookup of all nodes with a specific type. */
+  blender::Span<bNode *> nodes_by_type(blender::StringRefNull type_idname);
+  blender::Span<const bNode *> nodes_by_type(blender::StringRefNull type_idname) const;
+  /**
+   * Cached toposort of all nodes. If there are cycles, the returned array is not actually a
+   * toposort. However, if a connected component does not contain a cycle, this component is sorted
+   * correctly. Use #has_link_cycle to check for cycles.
+   */
+  blender::Span<const bNode *> toposort_left_to_right() const;
+  blender::Span<const bNode *> toposort_right_to_left() const;
+  /** True when there are any cycles in the node tree. */
+  bool has_link_cycle() const;
+  /**
+   * True when there are nodes or sockets in the node tree that don't use a known type. This can
+   * happen when nodes don't exist in the current Blender version that existed in the version where
+   * this node tree was saved.
+   */
+  bool has_undefined_nodes_or_sockets() const;
+  /** Get the active group output node. */
+  const bNode *group_output_node() const;
+#endif
 } bNodeTree;
 
 /** #NodeTree.type, index */
@@ -2210,7 +2336,3 @@ typedef enum NodeCombSepColorMode {
   NODE_COMBSEP_COLOR_HSV = 1,
   NODE_COMBSEP_COLOR_HSL = 2,
 } NodeCombSepColorMode;
-
-#ifdef __cplusplus
-}
-#endif

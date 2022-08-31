@@ -18,6 +18,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_screen.h"
 
@@ -46,13 +47,10 @@
 #include "BLT_translation.h"
 
 #include "NOD_node_declaration.hh"
-#include "NOD_node_tree_ref.hh"
 #include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"
 
 #include "node_intern.hh" /* own include */
-
-using namespace blender::nodes::node_tree_ref_types;
 
 struct bNodeListItem {
   struct bNodeListItem *next, *prev;
@@ -434,18 +432,18 @@ namespace viewer_linking {
  * \{ */
 
 /* Depending on the node tree type, different socket types are supported by viewer nodes. */
-static bool socket_can_be_viewed(const OutputSocketRef &socket)
+static bool socket_can_be_viewed(const bNodeSocket &socket)
 {
-  if (nodeSocketIsHidden(socket.bsocket())) {
+  if (nodeSocketIsHidden(&socket)) {
     return false;
   }
-  if (socket.idname() == "NodeSocketVirtual") {
+  if (STREQ(socket.idname, "NodeSocketVirtual")) {
     return false;
   }
-  if (socket.tree().btree()->type != NTREE_GEOMETRY) {
+  if (socket.owner_tree().type != NTREE_GEOMETRY) {
     return true;
   }
-  return ELEM(socket.typeinfo()->type,
+  return ELEM(socket.typeinfo->type,
               SOCK_GEOMETRY,
               SOCK_FLOAT,
               SOCK_VECTOR,
@@ -502,15 +500,15 @@ static bNodeSocket *node_link_viewer_get_socket(bNodeTree &ntree,
   return nullptr;
 }
 
-static bool is_viewer_node(const NodeRef &node)
+static bool is_viewer_node(const bNode &node)
 {
-  return ELEM(node.bnode()->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER, GEO_NODE_VIEWER);
+  return ELEM(node.type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER, GEO_NODE_VIEWER);
 }
 
-static Vector<const NodeRef *> find_viewer_nodes(const NodeTreeRef &tree)
+static Vector<const bNode *> find_viewer_nodes(const bNodeTree &tree)
 {
-  Vector<const NodeRef *> viewer_nodes;
-  for (const NodeRef *node : tree.nodes()) {
+  Vector<const bNode *> viewer_nodes;
+  for (const bNode *node : tree.all_nodes()) {
     if (is_viewer_node(*node)) {
       viewer_nodes.append(node);
     }
@@ -518,20 +516,20 @@ static Vector<const NodeRef *> find_viewer_nodes(const NodeTreeRef &tree)
   return viewer_nodes;
 }
 
-static bool is_viewer_socket_in_viewer(const InputSocketRef &socket)
+static bool is_viewer_socket_in_viewer(const bNodeSocket &socket)
 {
-  const NodeRef &node = socket.node();
+  const bNode &node = socket.owner_node();
   BLI_assert(is_viewer_node(node));
-  if (node.typeinfo()->type == GEO_NODE_VIEWER) {
+  if (node.typeinfo->type == GEO_NODE_VIEWER) {
     return true;
   }
   return socket.index() == 0;
 }
 
-static bool is_linked_to_viewer(const OutputSocketRef &socket, const NodeRef &viewer_node)
+static bool is_linked_to_viewer(const bNodeSocket &socket, const bNode &viewer_node)
 {
-  for (const InputSocketRef *target_socket : socket.directly_linked_sockets()) {
-    if (&target_socket->node() != &viewer_node) {
+  for (const bNodeSocket *target_socket : socket.directly_linked_sockets()) {
+    if (&target_socket->owner_node() != &viewer_node) {
       continue;
     }
     if (!target_socket->is_available()) {
@@ -561,39 +559,39 @@ static void remove_links_to_unavailable_viewer_sockets(bNodeTree &btree, bNode &
   }
 }
 
-static const NodeRef *get_existing_viewer(const NodeTreeRef &tree)
+static const bNode *get_existing_viewer(const bNodeTree &tree)
 {
-  Vector<const NodeRef *> viewer_nodes = find_viewer_nodes(tree);
+  Vector<const bNode *> viewer_nodes = find_viewer_nodes(tree);
 
   /* Check if there is already an active viewer node that should be used. */
-  for (const NodeRef *viewer_node : viewer_nodes) {
-    if (viewer_node->bnode()->flag & NODE_DO_OUTPUT) {
+  for (const bNode *viewer_node : viewer_nodes) {
+    if (viewer_node->flag & NODE_DO_OUTPUT) {
       return viewer_node;
     }
   }
 
   /* If no active but non-active viewers exist, make one active. */
   if (!viewer_nodes.is_empty()) {
-    viewer_nodes[0]->bnode()->flag |= NODE_DO_OUTPUT;
+    const_cast<bNode *>(viewer_nodes[0])->flag |= NODE_DO_OUTPUT;
     return viewer_nodes[0];
   }
   return nullptr;
 }
 
-static const OutputSocketRef *find_output_socket_to_be_viewed(const NodeRef *active_viewer_node,
-                                                              const NodeRef &node_to_view)
+static const bNodeSocket *find_output_socket_to_be_viewed(const bNode *active_viewer_node,
+                                                          const bNode &node_to_view)
 {
   /* Check if any of the output sockets is selected, which is the case when the user just clicked
    * on the socket. */
-  for (const OutputSocketRef *output_socket : node_to_view.outputs()) {
-    if (output_socket->bsocket()->flag & SELECT) {
+  for (const bNodeSocket *output_socket : node_to_view.output_sockets()) {
+    if (output_socket->flag & SELECT) {
       return output_socket;
     }
   }
 
-  const OutputSocketRef *last_socket_linked_to_viewer = nullptr;
+  const bNodeSocket *last_socket_linked_to_viewer = nullptr;
   if (active_viewer_node != nullptr) {
-    for (const OutputSocketRef *output_socket : node_to_view.outputs()) {
+    for (const bNodeSocket *output_socket : node_to_view.output_sockets()) {
       if (!socket_can_be_viewed(*output_socket)) {
         continue;
       }
@@ -604,7 +602,7 @@ static const OutputSocketRef *find_output_socket_to_be_viewed(const NodeRef *act
   }
   if (last_socket_linked_to_viewer == nullptr) {
     /* If no output is connected to a viewer, use the first output that can be viewed. */
-    for (const OutputSocketRef *output_socket : node_to_view.outputs()) {
+    for (const bNodeSocket *output_socket : node_to_view.output_sockets()) {
       if (socket_can_be_viewed(*output_socket)) {
         return output_socket;
       }
@@ -612,10 +610,10 @@ static const OutputSocketRef *find_output_socket_to_be_viewed(const NodeRef *act
   }
   else {
     /* Pick the next socket to be linked to the viewer. */
-    const int tot_outputs = node_to_view.outputs().size();
+    const int tot_outputs = node_to_view.output_sockets().size();
     for (const int offset : IndexRange(1, tot_outputs - 1)) {
       const int index = (last_socket_linked_to_viewer->index() + offset) % tot_outputs;
-      const OutputSocketRef &output_socket = node_to_view.output(index);
+      const bNodeSocket &output_socket = node_to_view.output_socket(index);
       if (!socket_can_be_viewed(output_socket)) {
         continue;
       }
@@ -682,20 +680,15 @@ static int node_link_viewer(const bContext &C, bNode &bnode_to_view)
 {
   SpaceNode &snode = *CTX_wm_space_node(&C);
   bNodeTree *btree = snode.edittree;
+  btree->ensure_topology_cache();
 
-  const NodeTreeRef tree{btree};
-  const NodeRef &node_to_view = *tree.find_node(bnode_to_view);
-  const NodeRef *active_viewer_node = get_existing_viewer(tree);
-
-  const OutputSocketRef *socket_to_view = find_output_socket_to_be_viewed(active_viewer_node,
-                                                                          node_to_view);
-  if (socket_to_view == nullptr) {
+  bNode *active_viewer_bnode = const_cast<bNode *>(get_existing_viewer(*btree));
+  bNodeSocket *bsocket_to_view = const_cast<bNodeSocket *>(
+      find_output_socket_to_be_viewed(active_viewer_bnode, bnode_to_view));
+  if (bsocket_to_view == nullptr) {
     return OPERATOR_FINISHED;
   }
-
-  bNodeSocket &bsocket_to_view = *socket_to_view->bsocket();
-  bNode *viewer_bnode = active_viewer_node ? active_viewer_node->bnode() : nullptr;
-  return link_socket_to_viewer(C, viewer_bnode, bnode_to_view, bsocket_to_view);
+  return link_socket_to_viewer(C, active_viewer_bnode, bnode_to_view, *bsocket_to_view);
 }
 
 /** \} */
@@ -2048,7 +2041,7 @@ static bNodeSocket *get_main_socket(bNodeTree &ntree, bNode &node, eNodeSocketIn
 
   /* Try to get the main socket based on the socket declaration. */
   nodeDeclarationEnsure(&ntree, &node);
-  const nodes::NodeDeclaration *node_decl = node.runtime->declaration;
+  const nodes::NodeDeclaration *node_decl = node.declaration();
   if (node_decl != nullptr) {
     Span<nodes::SocketDeclarationPtr> socket_decls = (in_out == SOCK_IN) ? node_decl->inputs() :
                                                                            node_decl->outputs();

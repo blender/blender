@@ -457,8 +457,8 @@ class ImageOperation : public NodeOperation {
 
     update_image_frame_number();
 
-    for (const OutputSocketRef *output : node()->outputs()) {
-      compute_output(output->identifier());
+    for (const bNodeSocket *output : this->node()->output_sockets()) {
+      compute_output(output->identifier);
     }
   }
 
@@ -488,12 +488,12 @@ class ImageOperation : public NodeOperation {
   /* Allocate all needed outputs as invalid. This should be called when is_valid returns false. */
   void allocate_invalid()
   {
-    for (const OutputSocketRef *output : node()->outputs()) {
-      if (!should_compute_output(output->identifier())) {
+    for (const bNodeSocket *output : this->node()->output_sockets()) {
+      if (!should_compute_output(output->identifier)) {
         continue;
       }
 
-      Result &result = get_result(output->identifier());
+      Result &result = get_result(output->identifier);
       result.allocate_invalid();
     }
   }
@@ -594,7 +594,7 @@ class ImageOperation : public NodeOperation {
   const char *get_pass_name(StringRef identifier)
   {
     DOutputSocket output = node().output_by_identifier(identifier);
-    return static_cast<NodeImageLayer *>(output->bsocket()->storage)->pass_name;
+    return static_cast<NodeImageLayer *>(output->storage)->pass_name;
   }
 
   /* Get the index of the pass with the given name in the selected render layer's passes list
@@ -850,9 +850,9 @@ class RenderLayerOperation : public NodeOperation {
     alpha_result.unbind_as_image();
 
     /* Other output passes are not supported for now, so allocate them as invalid. */
-    for (const OutputSocketRef *output : node()->outputs()) {
-      if (output->identifier() != "Image" && output->identifier() != "Alpha") {
-        get_result(output->identifier()).allocate_invalid();
+    for (const bNodeSocket *output : this->node()->output_sockets()) {
+      if (!STREQ(output->identifier, "Image") && !STREQ(output->identifier, "Alpha")) {
+        get_result(output->identifier).allocate_invalid();
       }
     }
   }

@@ -19,15 +19,15 @@ class NodeMultiFunctions;
  */
 class NodeMultiFunctionBuilder : NonCopyable, NonMovable {
  private:
-  bNode &node_;
-  bNodeTree &tree_;
+  const bNode &node_;
+  const bNodeTree &tree_;
   std::shared_ptr<MultiFunction> owned_built_fn_;
   const MultiFunction *built_fn_ = nullptr;
 
   friend NodeMultiFunctions;
 
  public:
-  NodeMultiFunctionBuilder(bNode &node, bNodeTree &tree);
+  NodeMultiFunctionBuilder(const bNode &node, const bNodeTree &tree);
 
   /**
    * Assign a multi-function for the current node. The input and output parameters of the function
@@ -42,8 +42,8 @@ class NodeMultiFunctionBuilder : NonCopyable, NonMovable {
    */
   template<typename T, typename... Args> void construct_and_set_matching_fn(Args &&...args);
 
-  bNode &node();
-  bNodeTree &tree();
+  const bNode &node();
+  const bNodeTree &tree();
 };
 
 /**
@@ -69,17 +69,17 @@ class NodeMultiFunctions {
 /** \name #NodeMultiFunctionBuilder Inline Methods
  * \{ */
 
-inline NodeMultiFunctionBuilder::NodeMultiFunctionBuilder(bNode &node, bNodeTree &tree)
+inline NodeMultiFunctionBuilder::NodeMultiFunctionBuilder(const bNode &node, const bNodeTree &tree)
     : node_(node), tree_(tree)
 {
 }
 
-inline bNode &NodeMultiFunctionBuilder::node()
+inline const bNode &NodeMultiFunctionBuilder::node()
 {
   return node_;
 }
 
-inline bNodeTree &NodeMultiFunctionBuilder::tree()
+inline const bNodeTree &NodeMultiFunctionBuilder::tree()
 {
   return tree_;
 }
@@ -110,7 +110,7 @@ inline void NodeMultiFunctionBuilder::construct_and_set_matching_fn(Args &&...ar
 inline const NodeMultiFunctions::Item &NodeMultiFunctions::try_get(const DNode &node) const
 {
   static Item empty_item;
-  const Item *item = map_.lookup_ptr(node->bnode());
+  const Item *item = map_.lookup_ptr(node.bnode());
   if (item == nullptr) {
     return empty_item;
   }

@@ -8,6 +8,8 @@
 
 #include "NOD_derived_node_tree.hh"
 
+#include "BKE_node_runtime.hh"
+
 #include "COM_scheduler.hh"
 #include "COM_utilities.hh"
 
@@ -21,22 +23,22 @@ using namespace nodes::derived_node_tree_types;
  * node will be returned. */
 static DNode compute_output_node(DerivedNodeTree &tree)
 {
-  const NodeTreeRef &root_tree = tree.root_context().tree();
+  const bNodeTree &root_tree = tree.root_context().btree();
 
-  for (const NodeRef *node : root_tree.nodes_by_type("CompositorNodeComposite")) {
-    if (node->bnode()->flag & NODE_DO_OUTPUT) {
+  for (const bNode *node : root_tree.nodes_by_type("CompositorNodeComposite")) {
+    if (node->flag & NODE_DO_OUTPUT) {
       return DNode(&tree.root_context(), node);
     }
   }
 
-  for (const NodeRef *node : root_tree.nodes_by_type("CompositorNodeViewer")) {
-    if (node->bnode()->flag & NODE_DO_OUTPUT) {
+  for (const bNode *node : root_tree.nodes_by_type("CompositorNodeViewer")) {
+    if (node->flag & NODE_DO_OUTPUT) {
       return DNode(&tree.root_context(), node);
     }
   }
 
-  for (const NodeRef *node : root_tree.nodes_by_type("CompositorNodeSplitViewer")) {
-    if (node->bnode()->flag & NODE_DO_OUTPUT) {
+  for (const bNode *node : root_tree.nodes_by_type("CompositorNodeSplitViewer")) {
+    if (node->flag & NODE_DO_OUTPUT) {
       return DNode(&tree.root_context(), node);
     }
   }
@@ -120,25 +122,25 @@ static NeededBuffers compute_number_of_needed_buffers(DNode output_node)
     /* Go over the node dependencies connected to the inputs of the node and push them to the node
      * stack if they were not computed already. */
     Set<DNode> pushed_nodes;
-    for (const InputSocketRef *input_ref : node->inputs()) {
-      const DInputSocket input{node.context(), input_ref};
+    for (const bNodeSocket *input : node->input_sockets()) {
+      const DInputSocket dinput{node.context(), input};
 
       /* Get the output linked to the input. If it is null, that means the input is unlinked and
        * has no dependency node. */
-      const DOutputSocket output = get_output_linked_to_input(input);
-      if (!output) {
+      const DOutputSocket doutput = get_output_linked_to_input(dinput);
+      if (!doutput) {
         continue;
       }
 
       /* The node dependency was already computed or pushed before, so skip it. */
-      if (needed_buffers.contains(output.node()) || pushed_nodes.contains(output.node())) {
+      if (needed_buffers.contains(doutput.node()) || pushed_nodes.contains(doutput.node())) {
         continue;
       }
 
       /* The output node needs to be computed, push the node dependency to the node stack and
        * indicate that it was pushed. */
-      node_stack.push(output.node());
-      pushed_nodes.add_new(output.node());
+      node_stack.push(doutput.node());
+      pushed_nodes.add_new(doutput.node());
     }
 
     /* If any of the node dependencies were pushed, that means that not all of them were computed
@@ -154,26 +156,26 @@ static NeededBuffers compute_number_of_needed_buffers(DNode output_node)
      * buffers needed to compute the most demanding of the node dependencies. */
     int number_of_input_buffers = 0;
     int buffers_needed_by_dependencies = 0;
-    for (const InputSocketRef *input_ref : node->inputs()) {
-      const DInputSocket input{node.context(), input_ref};
+    for (const bNodeSocket *input : node->input_sockets()) {
+      const DInputSocket dinput{node.context(), input};
 
       /* Get the output linked to the input. If it is null, that means the input is unlinked.
        * Unlinked inputs do not take a buffer, so skip those inputs. */
-      const DOutputSocket output = get_output_linked_to_input(input);
-      if (!output) {
+      const DOutputSocket doutput = get_output_linked_to_input(dinput);
+      if (!doutput) {
         continue;
       }
 
       /* Since this input is linked, if the link is not between two shader nodes, it means that the
        * node takes a buffer through this input and so we increment the number of input buffers. */
-      if (!is_shader_node(node) || !is_shader_node(output.node())) {
+      if (!is_shader_node(node) || !is_shader_node(doutput.node())) {
         number_of_input_buffers++;
       }
 
       /* If the number of buffers needed by the node dependency is more than the total number of
        * buffers needed by the dependencies, then update the latter to be the former. This is
        * computing the "d" in the aforementioned equation "max(n + m, d)". */
-      const int buffers_needed_by_dependency = needed_buffers.lookup(output.node());
+      const int buffers_needed_by_dependency = needed_buffers.lookup(doutput.node());
       if (buffers_needed_by_dependency > buffers_needed_by_dependencies) {
         buffers_needed_by_dependencies = buffers_needed_by_dependency;
       }
@@ -181,17 +183,18 @@ static NeededBuffers compute_number_of_needed_buffers(DNode output_node)
 
     /* Compute the number of buffers that will be computed/output by this node. */
     int number_of_output_buffers = 0;
-    for (const OutputSocketRef *output_ref : node->outputs()) {
-      const DOutputSocket output{node.context(), output_ref};
+    for (const bNodeSocket *output : node->output_sockets()) {
+      const DOutputSocket doutput{node.context(), output};
 
       /* The output is not linked, it outputs no buffer. */
-      if (output->logically_linked_sockets().is_empty()) {
+      if (!output->is_logically_linked()) {
         continue;
       }
 
       /* If any of the links is not between two shader nodes, it means that the node outputs
        * a buffer through this output and so we increment the number of output buffers. */
-      if (!is_output_linked_to_node_conditioned(output, is_shader_node) || !is_shader_node(node)) {
+      if (!is_output_linked_to_node_conditioned(doutput, is_shader_node) ||
+          !is_shader_node(node)) {
         number_of_output_buffers++;
       }
     }
@@ -255,24 +258,24 @@ Schedule compute_schedule(DerivedNodeTree &tree)
      * want the node with the highest number of needed buffers to be schedule first, but since
      * those are pushed to the traversal stack, we need to push them in reverse order. */
     Vector<DNode> sorted_dependency_nodes;
-    for (const InputSocketRef *input_ref : node->inputs()) {
-      const DInputSocket input{node.context(), input_ref};
+    for (const bNodeSocket *input : node->input_sockets()) {
+      const DInputSocket dinput{node.context(), input};
 
       /* Get the output linked to the input. If it is null, that means the input is unlinked and
        * has no dependency node, so skip it. */
-      const DOutputSocket output = get_output_linked_to_input(input);
-      if (!output) {
+      const DOutputSocket doutput = get_output_linked_to_input(dinput);
+      if (!doutput) {
         continue;
       }
 
       /* The dependency node was added before, so skip it. The number of dependency nodes is very
        * small, typically less than 3, so a linear search is okay. */
-      if (sorted_dependency_nodes.contains(output.node())) {
+      if (sorted_dependency_nodes.contains(doutput.node())) {
         continue;
       }
 
       /* The dependency node was already schedule, so skip it. */
-      if (schedule.contains(output.node())) {
+      if (schedule.contains(doutput.node())) {
         continue;
       }
 
@@ -280,7 +283,7 @@ Schedule compute_schedule(DerivedNodeTree &tree)
        * typically less than 3, so insertion sort is okay. */
       int insertion_position = 0;
       for (int i = 0; i < sorted_dependency_nodes.size(); i++) {
-        if (needed_buffers.lookup(output.node()) >
+        if (needed_buffers.lookup(doutput.node()) >
             needed_buffers.lookup(sorted_dependency_nodes[i])) {
           insertion_position++;
         }
@@ -288,7 +291,7 @@ Schedule compute_schedule(DerivedNodeTree &tree)
           break;
         }
       }
-      sorted_dependency_nodes.insert(insertion_position, output.node());
+      sorted_dependency_nodes.insert(insertion_position, doutput.node());
     }
 
     /* Push the sorted dependency nodes to the node stack in order. */
