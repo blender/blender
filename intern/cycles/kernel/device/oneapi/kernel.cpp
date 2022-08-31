@@ -665,7 +665,11 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
   return success;
 }
 
-static const int lowest_supported_driver_version_win = 1013259;
+/* Compute-runtime (ie. NEO) version is what gets returned by sycl/L0 on Windows
+ * since Windows driver 101.3268. */
+/* The same min compute-runtime version is currently required across Windows and Linux.
+ * For Windows driver 101.3268, compute-runtime version is 23570. */
+static const int lowest_supported_driver_version_win = 1013268;
 static const int lowest_supported_driver_version_neo = 23570;
 
 static int parse_driver_build_version(const sycl::device &device)
@@ -769,8 +773,7 @@ static std::vector<sycl::device> oneapi_available_devices()
             int driver_build_version = parse_driver_build_version(device);
             if ((driver_build_version > 100000 &&
                  driver_build_version < lowest_supported_driver_version_win) ||
-                (driver_build_version > 0 &&
-                 driver_build_version < lowest_supported_driver_version_neo)) {
+                driver_build_version < lowest_supported_driver_version_neo) {
               filter_out = true;
             }
           }
