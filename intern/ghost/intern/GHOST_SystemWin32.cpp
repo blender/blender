@@ -131,7 +131,7 @@ GHOST_SystemWin32::GHOST_SystemWin32()
   GHOST_ASSERT(m_displayManager, "GHOST_SystemWin32::GHOST_SystemWin32(): m_displayManager==0\n");
   m_displayManager->initialize();
 
-  m_consoleStatus = 1;
+  m_consoleStatus = true;
 
   /* Tell Windows we are per monitor DPI aware. This disables the default
    * blurry scaling and enables WM_DPICHANGED to allow us to draw at proper DPI. */
@@ -2320,7 +2320,7 @@ static bool isStartedFromCommandPrompt()
   return false;
 }
 
-int GHOST_SystemWin32::setConsoleWindowState(GHOST_TConsoleWindowState action)
+bool GHOST_SystemWin32::setConsoleWindowState(GHOST_TConsoleWindowState action)
 {
   HWND wnd = GetConsoleWindow();
 
@@ -2328,13 +2328,13 @@ int GHOST_SystemWin32::setConsoleWindowState(GHOST_TConsoleWindowState action)
     case GHOST_kConsoleWindowStateHideForNonConsoleLaunch: {
       if (!isStartedFromCommandPrompt()) {
         ShowWindow(wnd, SW_HIDE);
-        m_consoleStatus = 0;
+        m_consoleStatus = false;
       }
       break;
     }
     case GHOST_kConsoleWindowStateHide: {
       ShowWindow(wnd, SW_HIDE);
-      m_consoleStatus = 0;
+      m_consoleStatus = false;
       break;
     }
     case GHOST_kConsoleWindowStateShow: {
@@ -2342,7 +2342,7 @@ int GHOST_SystemWin32::setConsoleWindowState(GHOST_TConsoleWindowState action)
       if (!isStartedFromCommandPrompt()) {
         DeleteMenu(GetSystemMenu(wnd, FALSE), SC_CLOSE, MF_BYCOMMAND);
       }
-      m_consoleStatus = 1;
+      m_consoleStatus = true;
       break;
     }
     case GHOST_kConsoleWindowStateToggle: {

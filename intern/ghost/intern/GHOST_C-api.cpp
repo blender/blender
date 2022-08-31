@@ -869,8 +869,7 @@ void GHOST_putClipboard(const char *buffer, bool selection)
 bool GHOST_setConsoleWindowState(GHOST_TConsoleWindowState action)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
-  /* FIXME: use `bool` instead of int for this value. */
-  return (bool)system->setConsoleWindowState(action);
+  return system->setConsoleWindowState(action);
 }
 
 bool GHOST_UseNativePixels(void)

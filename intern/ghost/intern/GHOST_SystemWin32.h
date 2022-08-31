@@ -430,7 +430,7 @@ class GHOST_SystemWin32 : public GHOST_System {
    * \param action: console state
    * \return current status (1 -visible, 0 - hidden)
    */
-  int setConsoleWindowState(GHOST_TConsoleWindowState action);
+  bool setConsoleWindowState(GHOST_TConsoleWindowState action);
 
   /** The virtual-key code (VKey) of the last press event. Used to detect repeat events. */
   unsigned short m_keycode_last_repeat_key;
@@ -450,7 +450,7 @@ class GHOST_SystemWin32 : public GHOST_System {
   HKL m_keylayout;
 
   /** Console status. */
-  int m_consoleStatus;
+  bool m_consoleStatus;
 
   /** Wheel delta accumulator. */
   int m_wheelDeltaAccum;

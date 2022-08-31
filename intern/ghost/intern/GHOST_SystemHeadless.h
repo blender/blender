@@ -30,7 +30,7 @@ class GHOST_SystemHeadless : public GHOST_System {
   {
     return false;
   }
-  int setConsoleWindowState(GHOST_TConsoleWindowState /*action*/) override
+  bool setConsoleWindowState(GHOST_TConsoleWindowState /*action*/) override
   {
     return 0;
   }

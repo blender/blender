@@ -97,7 +97,7 @@ class GHOST_SystemWayland : public GHOST_System {
 
   bool processEvents(bool waitForEvent) override;
 
-  int setConsoleWindowState(GHOST_TConsoleWindowState action) override;
+  bool setConsoleWindowState(GHOST_TConsoleWindowState action) override;
 
   GHOST_TSuccess getModifierKeys(GHOST_ModifierKeys &keys) const override;
 

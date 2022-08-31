@@ -3035,9 +3035,9 @@ bool GHOST_SystemWayland::processEvents(bool waitForEvent)
   return any_processed;
 }
 
-int GHOST_SystemWayland::setConsoleWindowState(GHOST_TConsoleWindowState /*action*/)
+bool GHOST_SystemWayland::setConsoleWindowState(GHOST_TConsoleWindowState /*action*/)
 {
-  return 0;
+  return false;
 }
 
 GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) const

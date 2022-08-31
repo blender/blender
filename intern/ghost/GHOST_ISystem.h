@@ -437,9 +437,9 @@ class GHOST_ISystem {
   /**
    * Set the Console State
    * \param action: console state
-   * \return current status (1 -visible, 0 - hidden)
+   * \return current status (true: visible, 0: hidden)
    */
-  virtual int setConsoleWindowState(GHOST_TConsoleWindowState action) = 0;
+  virtual bool setConsoleWindowState(GHOST_TConsoleWindowState action) = 0;
 
   /***************************************************************************************
    * Access to clipboard.
