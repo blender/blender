@@ -139,7 +139,7 @@ static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
     }
     else {
       if (ELEM(sock_type, SOCK_VECTOR, SOCK_RGBA)) {
-        params.add_item(IFACE_("Factor (Non-Uniform)"), [type](LinkSearchOpParams &params) {
+        params.add_item(IFACE_("Factor (Non-Uniform)"), [](LinkSearchOpParams &params) {
           bNode &node = params.add_node("ShaderNodeMix");
           node_storage(node).data_type = SOCK_VECTOR;
           node_storage(node).factor_mode = NODE_MIX_MODE_NON_UNIFORM;
