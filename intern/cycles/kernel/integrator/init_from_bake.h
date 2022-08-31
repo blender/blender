@@ -113,7 +113,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
   if (prim == -1) {
     /* Accumulate transparency for empty pixels. */
     kernel_accum_transparent(kg, state, 0, 1.0f, buffer);
-    return false;
+    return true;
   }
 
   prim += kernel_data.bake.tri_offset;
