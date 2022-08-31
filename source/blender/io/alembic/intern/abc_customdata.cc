@@ -564,7 +564,6 @@ void read_custom_data(const std::string &iobject_full_name,
   }
 
   int num_uvs = 0;
-  int num_colors = 0;
 
   const size_t num_props = prop.getNumProperties();
 
