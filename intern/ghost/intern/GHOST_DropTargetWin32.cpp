@@ -219,35 +219,30 @@ void *GHOST_DropTargetWin32::getDropDataAsFilenames(IDataObject *pDataObject)
       hdrop = (HDROP)::GlobalLock(stgmed.hGlobal);
 
       totfiles = ::DragQueryFileW(hdrop, -1, NULL, 0);
-      if (!totfiles) {
-        ::GlobalUnlock(stgmed.hGlobal);
-        return NULL;
-      }
+      if (totfiles) {
+        strArray = (GHOST_TStringArray *)::malloc(sizeof(GHOST_TStringArray));
+        strArray->count = 0;
+        strArray->strings = (uint8_t **)::malloc(totfiles * sizeof(uint8_t *));
 
-      strArray = (GHOST_TStringArray *)::malloc(sizeof(GHOST_TStringArray));
-      strArray->count = 0;
-      strArray->strings = (uint8_t **)::malloc(totfiles * sizeof(uint8_t *));
+        for (UINT nfile = 0; nfile < totfiles; nfile++) {
+          if (::DragQueryFileW(hdrop, nfile, fpath, MAX_PATH) > 0) {
+            if (!(temp_path = alloc_utf_8_from_16(fpath, 0))) {
+              continue;
+            }
+            /* Just ignore paths that could not be converted verbatim. */
 
-      for (UINT nfile = 0; nfile < totfiles; nfile++) {
-        if (::DragQueryFileW(hdrop, nfile, fpath, MAX_PATH) > 0) {
-          if (!(temp_path = alloc_utf_8_from_16(fpath, 0))) {
-            continue;
+            strArray->strings[nvalid] = (uint8_t *)temp_path;
+            strArray->count = nvalid + 1;
+            nvalid++;
           }
-          /* Just ignore paths that could not be converted verbatim. */
-
-          strArray->strings[nvalid] = (uint8_t *)temp_path;
-          strArray->count = nvalid + 1;
-          nvalid++;
         }
       }
       /* Free up memory. */
       ::GlobalUnlock(stgmed.hGlobal);
       ::ReleaseStgMedium(&stgmed);
-
-      return strArray;
     }
   }
-  return NULL;
+  return strArray;
 }
 
 void *GHOST_DropTargetWin32::getDropDataAsString(IDataObject *pDataObject)
@@ -261,16 +256,18 @@ void *GHOST_DropTargetWin32::getDropDataAsString(IDataObject *pDataObject)
   if (pDataObject->QueryGetData(&fmtetc) == S_OK) {
     if (pDataObject->GetData(&fmtetc, &stgmed) == S_OK) {
       LPCWSTR wstr = (LPCWSTR)::GlobalLock(stgmed.hGlobal);
-      if (!(tmp_string = alloc_utf_8_from_16((wchar_t *)wstr, 0))) {
-        ::GlobalUnlock(stgmed.hGlobal);
-        return NULL;
-      }
+
+      tmp_string = alloc_utf_8_from_16((wchar_t *)wstr, 0);
+
       /* Free memory. */
       ::GlobalUnlock(stgmed.hGlobal);
       ::ReleaseStgMedium(&stgmed);
+
 #ifdef WITH_GHOST_DEBUG
-      ::printf("\n<converted droped unicode string>\n%s\n</droped converted unicode string>\n",
-               tmp_string);
+      if (tmp_string) {
+        ::printf("\n<converted droped unicode string>\n%s\n</droped converted unicode string>\n",
+                 tmp_string);
+      }
 #endif /* WITH_GHOST_DEBUG */
       return tmp_string;
     }
@@ -283,13 +280,9 @@ void *GHOST_DropTargetWin32::getDropDataAsString(IDataObject *pDataObject)
       char *str = (char *)::GlobalLock(stgmed.hGlobal);
 
       tmp_string = (char *)::malloc(::strlen(str) + 1);
-      if (!tmp_string) {
-        ::GlobalUnlock(stgmed.hGlobal);
-        return NULL;
+      if (tmp_string) {
+        ::strcpy(tmp_string, str);
       }
-
-      ::strcpy(tmp_string, str);
-
       /* Free memory. */
       ::GlobalUnlock(stgmed.hGlobal);
       ::ReleaseStgMedium(&stgmed);
