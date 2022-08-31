@@ -454,7 +454,6 @@ static bool layers_poll(bContext *C)
 
 int ED_mesh_sculpt_color_add(Mesh *me,
                              const char *name,
-                             const bool active_set,
                              const bool do_init,
                              ReportList *UNUSED(reports))
 {
