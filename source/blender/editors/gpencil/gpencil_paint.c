@@ -943,8 +943,9 @@ static bGPDstroke *gpencil_stroke_to_outline(tGPsdata *p, bGPDstroke *gps)
   /* Stroke. */
   float diff_mat[4][4];
   unit_m4(diff_mat);
+  const float outline_thickness = (float)brush->size * gpencil_settings->outline_fac * 0.5f;
   bGPDstroke *gps_perimeter = BKE_gpencil_stroke_perimeter_from_view(
-      rv3d, p->gpd, gpl, gps_duplicate, 3, diff_mat, 0.0f);
+      rv3d, p->gpd, gpl, gps_duplicate, 3, diff_mat, outline_thickness);
   /* Assign material. */
   if (gpencil_settings->material_alt == NULL) {
     gps_perimeter->mat_nr = gps->mat_nr;
@@ -961,6 +962,8 @@ static bGPDstroke *gpencil_stroke_to_outline(tGPsdata *p, bGPDstroke *gps)
   }
 
   /* Set pressure constant. */
+  gps_perimeter->thickness = max_ii((int)outline_thickness, 1);
+
   bGPDspoint *pt;
   for (int i = 0; i < gps_perimeter->totpoints; i++) {
     pt = &gps_perimeter->points[i];

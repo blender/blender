@@ -132,6 +132,10 @@ typedef struct BrushGpencilSettings {
   struct CurveMapping *curve_rand_saturation;
   struct CurveMapping *curve_rand_value;
 
+  /** Factor for external line thickness conversion to outline. */
+  float outline_fac;
+  char _pad1[4];
+
   /* optional link of material to replace default in context */
   /** Material. */
   struct Material *material;
