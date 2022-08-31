@@ -900,11 +900,11 @@ void GHOST_SystemWin32::processWintabEvent(GHOST_WindowWin32 *window)
               new GHOST_EventButton(info.time, info.type, window, info.button, info.tabletData));
 
           mouseMoveHandled = true;
-          break;
         }
         else {
           WINTAB_PRINTF(" ... but no system button\n");
         }
+        break;
       }
       case GHOST_kEventButtonUp: {
         WINTAB_PRINTF("HWND %p Wintab button up", window->getHWND());
