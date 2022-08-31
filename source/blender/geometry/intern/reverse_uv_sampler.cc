@@ -50,6 +50,11 @@ ReverseUVSampler::Result ReverseUVSampler::sample(const float2 &query_uv) const
   float3 best_bary_weights;
   const MLoopTri *best_looptri;
 
+  /* The distance to an edge that is allowed to be inside or outside the triangle. Without this,
+   * the lookup can fail for floating point accuracy reasons when the uv is almost exact on an
+   * edge. */
+  const float edge_epsilon = 0.00001f;
+
   for (const int looptri_index : looptri_indices) {
     const MLoopTri &looptri = looptris_[looptri_index];
     const float2 &uv_0 = uv_map_[looptri.tri[0]];
@@ -68,8 +73,12 @@ ReverseUVSampler::Result ReverseUVSampler::sample(const float2 &query_uv) const
     const float dist = MAX3(x_dist, y_dist, z_dist);
 
     if (dist <= 0.0f && best_dist <= 0.0f) {
-      /* The uv sample is in multiple triangles. */
-      return Result{ResultType::Multiple};
+      const float worse_dist = std::max(dist, best_dist);
+      /* Allow ignoring multiple triangle intersections if the uv is almost exactly on an edge. */
+      if (worse_dist < -edge_epsilon) {
+        /* The uv sample is in multiple triangles. */
+        return Result{ResultType::Multiple};
+      }
     }
 
     if (dist < best_dist) {
@@ -79,8 +88,9 @@ ReverseUVSampler::Result ReverseUVSampler::sample(const float2 &query_uv) const
     }
   }
 
-  /* Allow for a small epsilon in case the uv is on th edge. */
-  if (best_dist < 0.00001f) {
+  /* Allow using the closest (but not intersecting) triangle if the uv is almost exactly on an
+   * edge. */
+  if (best_dist < edge_epsilon) {
     return Result{ResultType::Ok, best_looptri, math::clamp(best_bary_weights, 0.0f, 1.0f)};
   }
 
