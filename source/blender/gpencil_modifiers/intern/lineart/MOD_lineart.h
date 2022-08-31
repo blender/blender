@@ -84,6 +84,7 @@ typedef struct LineartElementLinkNode {
 
   /* For edge element link nodes, used for shadow edge matching. */
   int obindex;
+  int global_index_offset;
 
   /** Per object value, always set, if not enabled by #ObjectLineArt, then it's set to global. */
   float crease_threshold;
@@ -204,6 +205,10 @@ typedef struct LineartEdgeChain {
   uint8_t material_mask_bits;
   uint8_t intersection_mask;
   uint32_t shadow_mask_bits;
+
+  /* We need local index for correct weight transfer, line art index is global, thus
+   * local_index=lineart_index-index_offset. */
+  uint32_t index_offset;
 
   struct Object *object_ref;
   struct Object *silhouette_backdrop;
@@ -865,6 +870,7 @@ void MOD_lineart_chain_find_silhouette_backdrop_objects(LineartData *ld);
 
 int MOD_lineart_chain_count(const LineartEdgeChain *ec);
 void MOD_lineart_chain_clear_picked_flag(LineartCache *lc);
+void MOD_lineart_finalize_chains(LineartData *ld);
 
 /**
  * This is the entry point of all line art calculations.

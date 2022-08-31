@@ -2651,6 +2651,7 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
       }
       LineartVert *v = (LineartVert *)obi->v_eln->pointer;
       int v_count = obi->v_eln->element_count;
+      obi->v_eln->global_index_offset = global_i;
       for (int vi = 0; vi < v_count; vi++) {
         v[vi].index += global_i;
       }
@@ -5105,6 +5106,8 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
 
     /* At last, we need to clear flags so we don't confuse GPencil generation calls. */
     MOD_lineart_chain_clear_picked_flag(lc);
+
+    MOD_lineart_finalize_chains(ld);
   }
 
   lineart_mem_destroy(&lc->shadow_data_pool);
