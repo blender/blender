@@ -16,6 +16,10 @@
 
 #include "BKE_appdir.h"
 
+#ifdef WIN32
+#  include "BLI_winstuff.h"
+#endif
+
 static int blf_load_font_default(const char *filename, const bool unique)
 {
   const char *dir = BKE_appdir_folder_id(BLENDER_DATAFILES, BLF_DATAFILES_FONTS_DIR);
@@ -65,7 +69,7 @@ void BLF_load_font_stack()
     struct direntry *dir;
     uint num_files = BLI_filelist_dir_contents(path, &dir);
     for (int f = 0; f < num_files; f++) {
-      if (!BLI_is_dir(dir[f].path) &&
+      if (!S_ISDIR(dir[f].s.st_mode) &&
           BLI_path_extension_check_n(
               dir[f].path, ".ttf", ".ttc", ".otf", ".otc", ".woff", ".woff2", NULL)) {
         if (!BLF_is_loaded(dir[f].path)) {
