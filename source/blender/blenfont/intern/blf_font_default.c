@@ -51,38 +51,51 @@ int BLF_load_mono_default(const bool unique)
   return font_id;
 }
 
+static void blf_load_datafiles_dir(void)
+{
+  const char *datafiles_fonts_dir = BLF_DATAFILES_FONTS_DIR SEP_STR;
+  const char *path = BKE_appdir_folder_id(BLENDER_DATAFILES, datafiles_fonts_dir);
+  if (UNLIKELY(!path)) {
+    fprintf(stderr, "Font data directory \"%s\" could not be detected!\n", datafiles_fonts_dir);
+    return;
+  }
+  if (UNLIKELY(!BLI_exists(path))) {
+    fprintf(stderr, "Font data directory \"%s\" does not exist!\n", path);
+    return;
+  }
+
+  struct direntry *file_list;
+  uint file_list_num = BLI_filelist_dir_contents(path, &file_list);
+  for (int i = 0; i < file_list_num; i++) {
+    if (S_ISDIR(file_list[i].s.st_mode)) {
+      continue;
+    }
+
+    const char *filepath = file_list[i].path;
+    if (!BLI_path_extension_check_n(
+            filepath, ".ttf", ".ttc", ".otf", ".otc", ".woff", ".woff2", NULL)) {
+      continue;
+    }
+    if (BLF_is_loaded(filepath)) {
+      continue;
+    }
+
+    /* Attempt to load the font. */
+    int font_id = BLF_load(filepath);
+    if (font_id == -1) {
+      fprintf(stderr, "Unable to load font: %s\n", filepath);
+      continue;
+    }
+
+    BLF_enable(font_id, BLF_DEFAULT);
+  }
+  BLI_filelist_free(file_list, file_list_num);
+}
+
 void BLF_load_font_stack()
 {
   /* Load these if not already, might have been replaced by user custom. */
   BLF_load_default(false);
   BLF_load_mono_default(false);
-
-  const char *datafiles_fonts_dir = BLF_DATAFILES_FONTS_DIR SEP_STR;
-  const char *path = BKE_appdir_folder_id(BLENDER_DATAFILES, datafiles_fonts_dir);
-  if (UNLIKELY(!path)) {
-    fprintf(stderr, "Font data directory \"%s\" could not be detected!\n", datafiles_fonts_dir);
-  }
-  else if (UNLIKELY(!BLI_exists(path))) {
-    fprintf(stderr, "Font data directory \"%s\" does not exist!\n", path);
-  }
-  else {
-    struct direntry *dir;
-    uint num_files = BLI_filelist_dir_contents(path, &dir);
-    for (int f = 0; f < num_files; f++) {
-      if (!S_ISDIR(dir[f].s.st_mode) &&
-          BLI_path_extension_check_n(
-              dir[f].path, ".ttf", ".ttc", ".otf", ".otc", ".woff", ".woff2", NULL)) {
-        if (!BLF_is_loaded(dir[f].path)) {
-          int font_id = BLF_load(dir[f].path);
-          if (font_id == -1) {
-            fprintf(stderr, "Unable to load font: %s\n", dir[f].path);
-          }
-          else {
-            BLF_enable(font_id, BLF_DEFAULT);
-          }
-        }
-      }
-    }
-    BLI_filelist_free(dir, num_files);
-  }
+  blf_load_datafiles_dir();
 }
