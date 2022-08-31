@@ -288,11 +288,8 @@ void *GHOST_DropTargetWin32::getDropDataAsString(IDataObject *pDataObject)
         return NULL;
       }
 
-      if (!::strcpy(tmp_string, str)) {
-        ::free(tmp_string);
-        ::GlobalUnlock(stgmed.hGlobal);
-        return NULL;
-      }
+      ::strcpy(tmp_string, str);
+
       /* Free memory. */
       ::GlobalUnlock(stgmed.hGlobal);
       ::ReleaseStgMedium(&stgmed);
