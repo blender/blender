@@ -361,7 +361,7 @@ DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_LINE, def_geo_mesh_line, "MESH_PRI
 DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_UV_SPHERE, 0, "MESH_PRIMITIVE_UV_SPHERE", MeshUVSphere, "UV Sphere", "Generate a spherical mesh with quads, except for triangles at the top and bottom")
 DefNode(GeometryNode, GEO_NODE_MESH_TO_CURVE, 0, "MESH_TO_CURVE", MeshToCurve, "Mesh to Curve", "Generate a curve from a mesh")
 DefNode(GeometryNode, GEO_NODE_MESH_TO_POINTS, def_geo_mesh_to_points, "MESH_TO_POINTS", MeshToPoints, "Mesh to Points", "Generate a point cloud from a mesh's vertices")
-DefNode(GeometryNode, GEO_NODE_MESH_TO_VOLUME, def_geo_mesh_to_volume, "MESH_TO_VOLUME", MeshToVolume, "Mesh To Volume", "Create a fog volume with the shape of the input mesh's surface")
+DefNode(GeometryNode, GEO_NODE_MESH_TO_VOLUME, def_geo_mesh_to_volume, "MESH_TO_VOLUME", MeshToVolume, "Mesh to Volume", "Create a fog volume with the shape of the input mesh's surface")
 DefNode(GeometryNode, GEO_NODE_OBJECT_INFO, def_geo_object_info, "OBJECT_INFO", ObjectInfo, "Object Info", "Retrieve information from an object")
 DefNode(GeometryNode, GEO_NODE_POINTS_TO_VERTICES, 0, "POINTS_TO_VERTICES", PointsToVertices, "Points to Vertices", "Generate a mesh vertex for each point cloud point")
 DefNode(GeometryNode, GEO_NODE_POINTS_TO_VOLUME, def_geo_points_to_volume, "POINTS_TO_VOLUME", PointsToVolume, "Points to Volume", "Generate a fog volume sphere around every point")
