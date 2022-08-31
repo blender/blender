@@ -195,6 +195,8 @@ static void update_logical_origins(const bNodeTree &ntree)
       bNode &node = *tree_runtime.nodes[i];
       for (bNodeSocket *socket : node.runtime->inputs) {
         Vector<bNodeSocket *, 16> sockets_in_current_chain;
+        socket->runtime->logically_linked_sockets.clear();
+        socket->runtime->logically_linked_skipped_sockets.clear();
         find_logical_origins_for_socket_recursive(
             *socket,
             false,
