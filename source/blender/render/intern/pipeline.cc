@@ -1948,15 +1948,17 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
 
       IMB_colormanagement_imbuf_for_write(ibuf, true, false, &image_format);
 
-      ok &= mh->append_movie(movie_ctx_arr[view_id],
-                             rd,
-                             preview ? scene->r.psfra : scene->r.sfra,
-                             scene->r.cfra,
-                             (int *)ibuf->rect,
-                             ibuf->x,
-                             ibuf->y,
-                             suffix,
-                             reports);
+      if (!mh->append_movie(movie_ctx_arr[view_id],
+                            rd,
+                            preview ? scene->r.psfra : scene->r.sfra,
+                            scene->r.cfra,
+                            (int *)ibuf->rect,
+                            ibuf->x,
+                            ibuf->y,
+                            suffix,
+                            reports)) {
+        ok = false;
+      }
 
       /* imbuf knows which rects are not part of ibuf */
       IMB_freeImBuf(ibuf);
@@ -1979,7 +1981,7 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
 
     ibuf_arr[2] = IMB_stereo3d_ImBuf(&image_format, ibuf_arr[0], ibuf_arr[1]);
 
-    ok = mh->append_movie(movie_ctx_arr[0],
+    if (!mh->append_movie(movie_ctx_arr[0],
                           rd,
                           preview ? scene->r.psfra : scene->r.sfra,
                           scene->r.cfra,
@@ -1987,7 +1989,9 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
                           ibuf_arr[2]->x,
                           ibuf_arr[2]->y,
                           "",
-                          reports);
+                          reports)) {
+      ok = false;
+    }
 
     for (i = 0; i < 3; i++) {
       /* imbuf knows which rects are not part of ibuf */
