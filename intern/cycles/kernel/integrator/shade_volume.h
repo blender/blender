@@ -694,11 +694,10 @@ ccl_device_forceinline bool integrate_volume_sample_light(
   /* Sample position on a light. */
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
   const uint bounce = INTEGRATOR_STATE(state, path, bounce);
-  float light_u, light_v;
-  path_state_rng_2D(kg, rng_state, PRNG_LIGHT, &light_u, &light_v);
+  const float2 rand_light = path_state_rng_2D(kg, rng_state, PRNG_LIGHT);
 
   if (!light_distribution_sample_from_volume_segment(
-          kg, light_u, light_v, sd->time, sd->P, bounce, path_flag, ls)) {
+          kg, rand_light.x, rand_light.y, sd->time, sd->P, bounce, path_flag, ls)) {
     return false;
   }
 
@@ -735,11 +734,10 @@ ccl_device_forceinline void integrate_volume_direct_light(
   {
     const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
     const uint bounce = INTEGRATOR_STATE(state, path, bounce);
-    float light_u, light_v;
-    path_state_rng_2D(kg, rng_state, PRNG_LIGHT, &light_u, &light_v);
+    const float2 rand_light = path_state_rng_2D(kg, rng_state, PRNG_LIGHT);
 
     if (!light_distribution_sample_from_position(
-            kg, light_u, light_v, sd->time, P, bounce, path_flag, ls)) {
+            kg, rand_light.x, rand_light.y, sd->time, P, bounce, path_flag, ls)) {
       return;
     }
   }
@@ -864,8 +862,7 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
 {
   PROFILING_INIT(kg, PROFILING_SHADE_VOLUME_INDIRECT_LIGHT);
 
-  float phase_u, phase_v;
-  path_state_rng_2D(kg, rng_state, PRNG_VOLUME_PHASE, &phase_u, &phase_v);
+  const float2 rand_phase = path_state_rng_2D(kg, rng_state, PRNG_VOLUME_PHASE);
 
   /* Phase closure, sample direction. */
   float phase_pdf;
@@ -873,7 +870,7 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
   float3 phase_omega_in ccl_optional_struct_init;
 
   const int label = shader_volume_phase_sample(
-      kg, sd, phases, phase_u, phase_v, &phase_eval, &phase_omega_in, &phase_pdf);
+      kg, sd, phases, rand_phase, &phase_eval, &phase_omega_in, &phase_pdf);
 
   if (phase_pdf == 0.0f || bsdf_eval_is_zero(&phase_eval)) {
     return false;

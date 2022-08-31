@@ -155,11 +155,10 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   {
     const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
     const uint bounce = INTEGRATOR_STATE(state, path, bounce);
-    float light_u, light_v;
-    path_state_rng_2D(kg, rng_state, PRNG_LIGHT, &light_u, &light_v);
+    const float2 rand_light = path_state_rng_2D(kg, rng_state, PRNG_LIGHT);
 
     if (!light_distribution_sample_from_position(
-            kg, light_u, light_v, sd->time, sd->P, bounce, path_flag, &ls)) {
+            kg, rand_light.x, rand_light.y, sd->time, sd->P, bounce, path_flag, &ls)) {
       return;
     }
   }
@@ -347,9 +346,8 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
     return LABEL_NONE;
   }
 
-  float bsdf_u, bsdf_v;
-  path_state_rng_2D(kg, rng_state, PRNG_SURFACE_BSDF, &bsdf_u, &bsdf_v);
-  ccl_private const ShaderClosure *sc = shader_bsdf_bssrdf_pick(sd, &bsdf_u);
+  float2 rand_bsdf = path_state_rng_2D(kg, rng_state, PRNG_SURFACE_BSDF);
+  ccl_private const ShaderClosure *sc = shader_bsdf_bssrdf_pick(sd, &rand_bsdf);
 
 #ifdef __SUBSURFACE__
   /* BSSRDF closure, we schedule subsurface intersection kernel. */
@@ -364,8 +362,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   float3 bsdf_omega_in ccl_optional_struct_init;
   int label;
 
-  label = shader_bsdf_sample_closure(
-      kg, sd, sc, bsdf_u, bsdf_v, &bsdf_eval, &bsdf_omega_in, &bsdf_pdf);
+  label = shader_bsdf_sample_closure(kg, sd, sc, rand_bsdf, &bsdf_eval, &bsdf_omega_in, &bsdf_pdf);
 
   if (bsdf_pdf == 0.0f || bsdf_eval_is_zero(&bsdf_eval)) {
     return LABEL_NONE;
@@ -456,8 +453,7 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
     return;
   }
 
-  float bsdf_u, bsdf_v;
-  path_state_rng_2D(kg, rng_state, PRNG_SURFACE_BSDF, &bsdf_u, &bsdf_v);
+  const float2 rand_bsdf = path_state_rng_2D(kg, rng_state, PRNG_SURFACE_BSDF);
 
   float3 ao_N;
   const Spectrum ao_weight = shader_bsdf_ao(
@@ -465,7 +461,7 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
 
   float3 ao_D;
   float ao_pdf;
-  sample_cos_hemisphere(ao_N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
+  sample_cos_hemisphere(ao_N, rand_bsdf.x, rand_bsdf.y, &ao_D, &ao_pdf);
 
   bool skip_self = true;
 

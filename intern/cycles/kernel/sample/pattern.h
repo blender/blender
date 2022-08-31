@@ -30,24 +30,20 @@ ccl_device_forceinline float path_rng_1D(KernelGlobals kg,
   }
 }
 
-ccl_device_forceinline void path_rng_2D(KernelGlobals kg,
-                                        uint rng_hash,
-                                        int sample,
-                                        int dimension,
-                                        ccl_private float *fx,
-                                        ccl_private float *fy)
+ccl_device_forceinline float2 path_rng_2D(KernelGlobals kg,
+                                          uint rng_hash,
+                                          int sample,
+                                          int dimension)
 {
 #ifdef __DEBUG_CORRELATION__
-  *fx = (float)drand48();
-  *fy = (float)drand48();
-  return;
+  return make_float2((float)drand48(), (float)drand48());
 #endif
 
   if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_SOBOL_BURLEY) {
-    sobol_burley_sample_2D(sample, dimension, rng_hash, fx, fy);
+    return sobol_burley_sample_2D(sample, dimension, rng_hash);
   }
   else {
-    pmj_sample_2D(kg, sample, rng_hash, dimension, fx, fy);
+    return pmj_sample_2D(kg, sample, rng_hash, dimension);
   }
 }
 

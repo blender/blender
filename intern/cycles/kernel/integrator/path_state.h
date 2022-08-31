@@ -298,27 +298,25 @@ ccl_device_inline void shadow_path_state_rng_load(ConstIntegratorShadowState sta
 
 ccl_device_inline float path_state_rng_1D(KernelGlobals kg,
                                           ccl_private const RNGState *rng_state,
-                                          int dimension)
+                                          const int dimension)
 {
   return path_rng_1D(
       kg, rng_state->rng_hash, rng_state->sample, rng_state->rng_offset + dimension);
 }
 
-ccl_device_inline void path_state_rng_2D(KernelGlobals kg,
-                                         ccl_private const RNGState *rng_state,
-                                         int dimension,
-                                         ccl_private float *fx,
-                                         ccl_private float *fy)
+ccl_device_inline float2 path_state_rng_2D(KernelGlobals kg,
+                                           ccl_private const RNGState *rng_state,
+                                           const int dimension)
 {
-  path_rng_2D(
-      kg, rng_state->rng_hash, rng_state->sample, rng_state->rng_offset + dimension, fx, fy);
+  return path_rng_2D(
+      kg, rng_state->rng_hash, rng_state->sample, rng_state->rng_offset + dimension);
 }
 
 ccl_device_inline float path_branched_rng_1D(KernelGlobals kg,
                                              ccl_private const RNGState *rng_state,
-                                             int branch,
-                                             int num_branches,
-                                             int dimension)
+                                             const int branch,
+                                             const int num_branches,
+                                             const int dimension)
 {
   return path_rng_1D(kg,
                      rng_state->rng_hash,
@@ -326,20 +324,16 @@ ccl_device_inline float path_branched_rng_1D(KernelGlobals kg,
                      rng_state->rng_offset + dimension);
 }
 
-ccl_device_inline void path_branched_rng_2D(KernelGlobals kg,
-                                            ccl_private const RNGState *rng_state,
-                                            int branch,
-                                            int num_branches,
-                                            int dimension,
-                                            ccl_private float *fx,
-                                            ccl_private float *fy)
+ccl_device_inline float2 path_branched_rng_2D(KernelGlobals kg,
+                                              ccl_private const RNGState *rng_state,
+                                              const int branch,
+                                              const int num_branches,
+                                              const int dimension)
 {
-  path_rng_2D(kg,
-              rng_state->rng_hash,
-              rng_state->sample * num_branches + branch,
-              rng_state->rng_offset + dimension,
-              fx,
-              fy);
+  return path_rng_2D(kg,
+                     rng_state->rng_hash,
+                     rng_state->sample * num_branches + branch,
+                     rng_state->rng_offset + dimension);
 }
 
 /* Utility functions to get light termination value,

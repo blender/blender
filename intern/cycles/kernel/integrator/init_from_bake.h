@@ -121,13 +121,8 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
   /* Random number generator. */
   const uint rng_hash = hash_uint(seed) ^ kernel_data.integrator.seed;
 
-  float filter_x, filter_y;
-  if (sample == 0) {
-    filter_x = filter_y = 0.5f;
-  }
-  else {
-    path_rng_2D(kg, rng_hash, sample, PRNG_FILTER, &filter_x, &filter_y);
-  }
+  const float2 rand_filter = (sample == 0) ? make_float2(0.5f, 0.5f) :
+                                             path_rng_2D(kg, rng_hash, sample, PRNG_FILTER);
 
   /* Initialize path state for path integration. */
   path_state_init_integrator(kg, state, sample, rng_hash);
@@ -150,8 +145,9 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
 
   /* Sub-pixel offset. */
   if (sample > 0) {
-    u = bake_clamp_mirror_repeat(u + dudx * (filter_x - 0.5f) + dudy * (filter_y - 0.5f), 1.0f);
-    v = bake_clamp_mirror_repeat(v + dvdx * (filter_x - 0.5f) + dvdy * (filter_y - 0.5f),
+    u = bake_clamp_mirror_repeat(u + dudx * (rand_filter.x - 0.5f) + dudy * (rand_filter.y - 0.5f),
+                                 1.0f);
+    v = bake_clamp_mirror_repeat(v + dvdx * (rand_filter.x - 0.5f) + dvdy * (rand_filter.y - 0.5f),
                                  1.0f - u);
   }
 

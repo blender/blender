@@ -165,8 +165,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
                                               ccl_private Ray &ray,
                                               ccl_private LocalIntersection &ss_isect)
 {
-  float bssrdf_u, bssrdf_v;
-  path_state_rng_2D(kg, &rng_state, PRNG_SUBSURFACE_BSDF, &bssrdf_u, &bssrdf_v);
+  const float2 rand_bsdf = path_state_rng_2D(kg, &rng_state, PRNG_SUBSURFACE_BSDF);
 
   const float3 P = INTEGRATOR_STATE(state, ray, P);
   const float3 N = INTEGRATOR_STATE(state, ray, D);
@@ -179,7 +178,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
   /* Sample diffuse surface scatter into the object. */
   float3 D;
   float pdf;
-  sample_cos_hemisphere(-N, bssrdf_u, bssrdf_v, &D, &pdf);
+  sample_cos_hemisphere(-N, rand_bsdf.x, rand_bsdf.y, &D, &pdf);
   if (dot(-Ng, D) <= 0.0f) {
     return false;
   }
@@ -309,23 +308,23 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
       }
 
       /* Sample scattering direction. */
-      float scatter_u, scatter_v;
-      path_state_rng_2D(kg, &rng_state, PRNG_SUBSURFACE_BSDF, &scatter_u, &scatter_v);
+      const float2 rand_scatter = path_state_rng_2D(kg, &rng_state, PRNG_SUBSURFACE_BSDF);
       float cos_theta;
       float hg_pdf;
       if (guided) {
-        cos_theta = sample_phase_dwivedi(diffusion_length, phase_log, scatter_u);
+        cos_theta = sample_phase_dwivedi(diffusion_length, phase_log, rand_scatter.x);
         /* The backwards guiding distribution is just mirrored along `sd->N`, so swapping the
          * sign here is enough to sample from that instead. */
         if (guide_backward) {
           cos_theta = -cos_theta;
         }
-        float3 newD = direction_from_cosine(N, cos_theta, scatter_v);
+        float3 newD = direction_from_cosine(N, cos_theta, rand_scatter.y);
         hg_pdf = single_peaked_henyey_greenstein(dot(ray.D, newD), anisotropy);
         ray.D = newD;
       }
       else {
-        float3 newD = henyey_greenstrein_sample(ray.D, anisotropy, scatter_u, scatter_v, &hg_pdf);
+        float3 newD = henyey_greenstrein_sample(
+            ray.D, anisotropy, rand_scatter.x, rand_scatter.y, &hg_pdf);
         cos_theta = dot(newD, N);
         ray.D = newD;
       }
