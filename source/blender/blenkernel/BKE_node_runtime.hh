@@ -172,7 +172,10 @@ inline bool topology_cache_is_available(const bNodeTree &tree)
   if (tree.runtime->allow_use_dirty_topology_cache.load() > 0) {
     return true;
   }
-  return !tree.runtime->topology_cache_is_dirty;
+  if (tree.runtime->topology_cache_is_dirty) {
+    return false;
+  }
+  return true;
 }
 
 inline bool topology_cache_is_available(const bNode &node)
