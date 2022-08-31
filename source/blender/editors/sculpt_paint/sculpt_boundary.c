@@ -423,7 +423,7 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
 
     /* Copy the new vertices to the queue to be processed in the next iteration. */
     while (!BLI_gsqueue_is_empty(next_iteration)) {
-      int next_v;
+      PBVHVertRef next_v;
       BLI_gsqueue_pop(next_iteration, &next_v);
       BLI_gsqueue_push(current_iteration, &next_v);
     }
