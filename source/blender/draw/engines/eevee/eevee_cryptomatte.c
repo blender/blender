@@ -421,27 +421,31 @@ void EEVEE_cryptomatte_output_accumulate(EEVEE_ViewLayerData *UNUSED(sldata), EE
 
 void EEVEE_cryptomatte_update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)
 {
+  /* NOTE: Name channels lowercase xyzw so that compression rules check in OpenEXR DWA code uses
+   * loseless compression. It is important to use lowercase since the capital Y uses lossy
+   * compression in DWA. */
+
   char cryptomatte_pass_name[MAX_NAME];
   const short num_passes = eevee_cryptomatte_passes_per_layer(view_layer);
   if ((view_layer->cryptomatte_flag & VIEW_LAYER_CRYPTOMATTE_OBJECT) != 0) {
     for (short pass = 0; pass < num_passes; pass++) {
       BLI_snprintf_rlen(cryptomatte_pass_name, MAX_NAME, "CryptoObject%02d", pass);
       RE_engine_register_pass(
-          engine, scene, view_layer, cryptomatte_pass_name, 4, "RGBA", SOCK_RGBA);
+          engine, scene, view_layer, cryptomatte_pass_name, 4, "xyzw", SOCK_RGBA);
     }
   }
   if ((view_layer->cryptomatte_flag & VIEW_LAYER_CRYPTOMATTE_MATERIAL) != 0) {
     for (short pass = 0; pass < num_passes; pass++) {
       BLI_snprintf_rlen(cryptomatte_pass_name, MAX_NAME, "CryptoMaterial%02d", pass);
       RE_engine_register_pass(
-          engine, scene, view_layer, cryptomatte_pass_name, 4, "RGBA", SOCK_RGBA);
+          engine, scene, view_layer, cryptomatte_pass_name, 4, "xyzw", SOCK_RGBA);
     }
   }
   if ((view_layer->cryptomatte_flag & VIEW_LAYER_CRYPTOMATTE_ASSET) != 0) {
     for (short pass = 0; pass < num_passes; pass++) {
       BLI_snprintf_rlen(cryptomatte_pass_name, MAX_NAME, "CryptoAsset%02d", pass);
       RE_engine_register_pass(
-          engine, scene, view_layer, cryptomatte_pass_name, 4, "RGBA", SOCK_RGBA);
+          engine, scene, view_layer, cryptomatte_pass_name, 4, "xyzw", SOCK_RGBA);
     }
   }
 }
