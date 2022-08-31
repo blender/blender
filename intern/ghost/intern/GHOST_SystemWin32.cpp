@@ -2123,8 +2123,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 
 char *GHOST_SystemWin32::getClipboard(bool selection) const
 {
-  char *temp_buff;
-
   if (IsClipboardFormatAvailable(CF_UNICODETEXT) && OpenClipboard(NULL)) {
     wchar_t *buffer;
     HANDLE hData = GetClipboardData(CF_UNICODETEXT);
@@ -2138,7 +2136,7 @@ char *GHOST_SystemWin32::getClipboard(bool selection) const
       return NULL;
     }
 
-    temp_buff = alloc_utf_8_from_16(buffer, 0);
+    char *temp_buff = alloc_utf_8_from_16(buffer, 0);
 
     /* Buffer mustn't be accessed after CloseClipboard
      * it would like accessing free-d memory */
@@ -2147,7 +2145,7 @@ char *GHOST_SystemWin32::getClipboard(bool selection) const
 
     return temp_buff;
   }
-  else if (IsClipboardFormatAvailable(CF_TEXT) && OpenClipboard(NULL)) {
+  if (IsClipboardFormatAvailable(CF_TEXT) && OpenClipboard(NULL)) {
     char *buffer;
     size_t len = 0;
     HANDLE hData = GetClipboardData(CF_TEXT);
@@ -2162,7 +2160,7 @@ char *GHOST_SystemWin32::getClipboard(bool selection) const
     }
 
     len = strlen(buffer);
-    temp_buff = (char *)malloc(len + 1);
+    char *temp_buff = (char *)malloc(len + 1);
     strncpy(temp_buff, buffer, len);
     temp_buff[len] = '\0';
 
@@ -2173,9 +2171,7 @@ char *GHOST_SystemWin32::getClipboard(bool selection) const
 
     return temp_buff;
   }
-  else {
-    return NULL;
-  }
+  return nullptr;
 }
 
 void GHOST_SystemWin32::putClipboard(const char *buffer, bool selection) const
