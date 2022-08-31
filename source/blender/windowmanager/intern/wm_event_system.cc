@@ -1591,6 +1591,7 @@ static int wm_operator_call_internal(bContext *C,
         case WM_OP_EXEC_AREA:
         case WM_OP_EXEC_SCREEN:
           event = nullptr;
+          break;
         default:
           break;
       }

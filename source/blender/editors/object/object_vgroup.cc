@@ -1773,7 +1773,8 @@ static void vgroup_lock_all(Object *ob, int action, int mask)
             continue;
           }
           break;
-        default:;
+        default:
+          break;
       }
 
       if (dg->flag & DG_LOCK_WEIGHT) {
@@ -1795,7 +1796,8 @@ static void vgroup_lock_all(Object *ob, int action, int mask)
           continue;
         }
         break;
-      default:;
+      default:
+        break;
     }
 
     switch (action) {

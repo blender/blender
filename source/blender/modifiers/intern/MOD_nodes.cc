@@ -297,6 +297,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
       case ID_IM:
       case ID_TE: {
         DEG_add_generic_id_relation(ctx->node, id, "Nodes Modifier");
+        break;
       }
       default: {
         /* Purposefully don't add relations for materials. While there are material sockets,

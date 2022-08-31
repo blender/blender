@@ -6754,10 +6754,11 @@ void UI_but_extra_icon_string_info_get(struct bContext *C, uiButExtraOpIcon *ext
         if (ui_but_extra_icon_event_operator_string(C, extra_icon, buf, sizeof(buf))) {
           tmp = BLI_strdup(buf);
         }
+        break;
       }
+      default:
         /* Other types not supported. The caller should expect that outcome, no need to message or
          * assert here. */
-      default:
         break;
     }
 
