@@ -227,6 +227,7 @@ static void detect_workarounds()
     GLContext::unused_fb_slot_workaround = true;
     /* Turn off extensions. */
     GCaps.shader_image_load_store_support = false;
+    GCaps.shader_draw_parameters_support = false;
     GCaps.shader_storage_buffer_objects_support = false;
     GLContext::base_instance_support = false;
     GLContext::clear_texture_support = false;
@@ -271,6 +272,7 @@ static void detect_workarounds()
     GLContext::unused_fb_slot_workaround = true;
     GCaps.mip_render_workaround = true;
     GCaps.shader_image_load_store_support = false;
+    GCaps.shader_draw_parameters_support = false;
     GCaps.broken_amd_driver = true;
   }
   /* Compute shaders have some issues with those versions (see T94936). */
@@ -284,12 +286,14 @@ static void detect_workarounds()
        strstr(renderer, "AMD TAHITI"))) {
     GLContext::unused_fb_slot_workaround = true;
     GCaps.shader_image_load_store_support = false;
+    GCaps.shader_draw_parameters_support = false;
     GCaps.broken_amd_driver = true;
   }
   /* Fix slowdown on this particular driver. (see T77641) */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE) &&
       strstr(version, "Mesa 19.3.4")) {
     GCaps.shader_image_load_store_support = false;
+    GCaps.shader_draw_parameters_support = false;
     GCaps.broken_amd_driver = true;
   }
   /* See T82856: AMD drivers since 20.11 running on a polaris architecture doesn't support the
@@ -492,6 +496,7 @@ void GLBackend::capabilities_init()
   GCaps.mem_stats_support = epoxy_has_gl_extension("GL_NVX_gpu_memory_info") ||
                             epoxy_has_gl_extension("GL_ATI_meminfo");
   GCaps.shader_image_load_store_support = epoxy_has_gl_extension("GL_ARB_shader_image_load_store");
+  GCaps.shader_draw_parameters_support = epoxy_has_gl_extension("GL_ARB_shader_draw_parameters");
   GCaps.compute_shader_support = epoxy_has_gl_extension("GL_ARB_compute_shader") &&
                                  epoxy_gl_version() >= 43;
   if (GCaps.compute_shader_support) {

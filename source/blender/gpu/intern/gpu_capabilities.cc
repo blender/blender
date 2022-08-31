@@ -161,6 +161,11 @@ bool GPU_shader_image_load_store_support()
   return GCaps.shader_image_load_store_support;
 }
 
+bool GPU_shader_draw_parameters_support()
+{
+  return GCaps.shader_draw_parameters_support;
+}
+
 int GPU_max_shader_storage_buffer_bindings()
 {
   return GCaps.max_shader_storage_buffer_bindings;

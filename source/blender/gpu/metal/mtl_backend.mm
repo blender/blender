@@ -381,6 +381,8 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   GCaps.shader_image_load_store_support = ([device supportsFamily:MTLGPUFamilyApple3] ||
                                            MTLBackend::capabilities.supports_family_mac1 ||
                                            MTLBackend::capabilities.supports_family_mac2);
+  /* TODO(Metal): Add support? */
+  GCaps.shader_draw_parameters_support = false;
   GCaps.compute_shader_support = false; /* TODO(Metal): Add compute support. */
   GCaps.shader_storage_buffer_objects_support =
       false; /* TODO(Metal): implement Storage Buffer support. */
