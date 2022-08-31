@@ -123,8 +123,6 @@ class GHOST_SharedOpenGLResource {
                              ID3D11RenderTargetView *render_target = nullptr)
       : m_device(device), m_device_ctx(device_ctx), m_cur_width(width), m_cur_height(height)
   {
-    ID3D11Resource *backbuffer_res;
-
     if (!render_target) {
       D3D11_TEXTURE2D_DESC texDesc{};
       D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc{};
@@ -157,11 +155,12 @@ class GHOST_SharedOpenGLResource {
 
     m_render_target = render_target;
     if (m_render_target) {
+      ID3D11Resource *backbuffer_res = nullptr;
       m_render_target->GetResource(&backbuffer_res);
-    }
-    if (backbuffer_res) {
-      backbuffer_res->QueryInterface<ID3D11Texture2D>(&m_render_target_tex);
-      backbuffer_res->Release();
+      if (backbuffer_res) {
+        backbuffer_res->QueryInterface<ID3D11Texture2D>(&m_render_target_tex);
+        backbuffer_res->Release();
+      }
     }
 
     if (!m_render_target || !m_render_target_tex) {
