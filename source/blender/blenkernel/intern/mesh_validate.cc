@@ -24,6 +24,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
@@ -237,6 +238,10 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     free_flag.polyloops = do_fixes; \
   } \
   (void)0
+
+  blender::bke::AttributeWriter<int> material_indices =
+      blender::bke::mesh_attributes_for_write(*mesh).lookup_for_write<int>("material_index");
+  blender::MutableVArraySpan<int> material_indices_span(material_indices.varray);
 
   MVert *mv = mverts;
   MEdge *me;
@@ -559,10 +564,10 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       /* Material index, isolated from other tests here. While large indices are clamped,
        * negative indices aren't supported by drawing, exporters etc.
        * To check the indices are in range, use #BKE_mesh_validate_material_indices */
-      if (mp->mat_nr < 0) {
-        PRINT_ERR("\tPoly %u has invalid material (%d)", sp->index, mp->mat_nr);
+      if (material_indices && material_indices_span[i] < 0) {
+        PRINT_ERR("\tPoly %u has invalid material (%d)", sp->index, material_indices_span[i]);
         if (do_fixes) {
-          mp->mat_nr = 0;
+          material_indices_span[i] = 0;
         }
       }
 
@@ -916,6 +921,9 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     }
   }
 
+  material_indices_span.save();
+  material_indices.finish();
+
   PRINT_MSG("%s: finished\n\n", __func__);
 
   *r_changed = (fix_flag.as_flag || free_flag.as_flag || recalc_flag.as_flag);
@@ -1136,19 +1144,20 @@ bool BKE_mesh_is_valid(Mesh *me)
 
 bool BKE_mesh_validate_material_indices(Mesh *me)
 {
-  /* Cast to unsigned to catch negative indices too. */
-  const uint16_t mat_nr_max = max_ii(0, me->totcol - 1);
-  MPoly *mp;
-  const int totpoly = me->totpoly;
-  int i;
+  const int mat_nr_max = max_ii(0, me->totcol - 1);
   bool is_valid = true;
 
-  for (mp = me->mpoly, i = 0; i < totpoly; i++, mp++) {
-    if ((uint16_t)mp->mat_nr > mat_nr_max) {
-      mp->mat_nr = 0;
+  blender::bke::AttributeWriter<int> material_indices =
+      blender::bke::mesh_attributes_for_write(*me).lookup_for_write<int>("material_index");
+  blender::MutableVArraySpan<int> material_indices_span(material_indices.varray);
+  for (const int i : material_indices_span.index_range()) {
+    if (material_indices_span[i] < 0 || material_indices_span[i] > mat_nr_max) {
+      material_indices_span[i] = 0;
       is_valid = false;
     }
   }
+  material_indices_span.save();
+  material_indices.finish();
 
   if (!is_valid) {
     DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY_ALL_MODES);

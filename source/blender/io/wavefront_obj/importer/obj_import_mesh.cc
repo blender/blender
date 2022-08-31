@@ -8,7 +8,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_material.h"
@@ -184,6 +184,10 @@ void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
         CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, nullptr, total_verts));
   }
 
+  bke::SpanAttributeWriter<int> material_indices =
+      bke::mesh_attributes_for_write(*mesh).lookup_or_add_for_write_only_span<int>(
+          "material_index", ATTR_DOMAIN_FACE);
+
   const int64_t tot_face_elems{mesh->totpoly};
   int tot_loop_idx = 0;
 
@@ -201,11 +205,11 @@ void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
     if (curr_face.shaded_smooth) {
       mpoly.flag |= ME_SMOOTH;
     }
-    mpoly.mat_nr = curr_face.material_index;
+    material_indices.span[poly_idx] = curr_face.material_index;
     /* Importing obj files without any materials would result in negative indices, which is not
      * supported. */
-    if (mpoly.mat_nr < 0) {
-      mpoly.mat_nr = 0;
+    if (material_indices.span[poly_idx] < 0) {
+      material_indices.span[poly_idx] = 0;
     }
 
     for (int idx = 0; idx < curr_face.corner_count_; ++idx) {
@@ -223,6 +227,8 @@ void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
       dw->weight = 1.0f;
     }
   }
+
+  material_indices.finish();
 }
 
 void MeshFromGeometry::create_vertex_groups(Object *obj)

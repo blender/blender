@@ -6,6 +6,9 @@
  * \ingroup bke
  */
 
+#include "DNA_mesh_types.h"
+
+#include "BKE_customdata.h"
 #include "BKE_mesh_types.h"
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
@@ -1018,6 +1021,30 @@ char *BKE_mesh_debug_info(const struct Mesh *me)
     ATTR_NONNULL(1) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 void BKE_mesh_debug_print(const struct Mesh *me) ATTR_NONNULL(1);
 #endif
+
+/**
+ * \return The material index for each polygon. May be null.
+ * \note In C++ code, prefer using the attribute API (#MutableAttributeAccessor)/
+ */
+BLI_INLINE const int *BKE_mesh_material_indices(const Mesh *mesh)
+{
+  return (const int *)CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, "material_index");
+}
+
+/**
+ * \return The material index for each polygon. Create the layer if it doesn't exist.
+ * \note In C++ code, prefer using the attribute API (#MutableAttributeAccessor)/
+ */
+BLI_INLINE int *BKE_mesh_material_indices_for_write(Mesh *mesh)
+{
+  int *indices = (int *)CustomData_duplicate_referenced_layer_named(
+      &mesh->pdata, CD_PROP_INT32, "material_index", mesh->totpoly);
+  if (indices) {
+    return indices;
+  }
+  return (int *)CustomData_add_layer_named(
+      &mesh->pdata, CD_PROP_INT32, CD_SET_DEFAULT, NULL, mesh->totpoly, "material_index");
+}
 
 #ifdef __cplusplus
 }

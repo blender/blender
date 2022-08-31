@@ -374,10 +374,14 @@ void OBJWriter::write_poly_elements(FormatHandler &fh,
       }
     }
 
+    const bke::AttributeAccessor attributes = bke::mesh_attributes(*obj_mesh_data.get_mesh());
+    const VArray<int> material_indices = attributes.lookup_or_default<int>(
+        "material_index", ATTR_DOMAIN_FACE, 0);
+
     /* Write material name and material group if different from previous. */
     if (export_params_.export_materials && obj_mesh_data.tot_materials() > 0) {
-      const int16_t prev_mat = idx == 0 ? NEGATIVE_INIT : obj_mesh_data.ith_poly_matnr(prev_i);
-      const int16_t mat = obj_mesh_data.ith_poly_matnr(i);
+      const int16_t prev_mat = idx == 0 ? NEGATIVE_INIT : std::max(0, material_indices[prev_i]);
+      const int16_t mat = std::max(0, material_indices[i]);
       if (mat != prev_mat) {
         if (mat == NOT_FOUND) {
           buf.write_obj_usemtl(MATERIAL_GROUP_DISABLED);

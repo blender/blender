@@ -615,6 +615,9 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
 
   MaterialIdPrimitiveArrayMap mat_prim_map;
 
+  int *material_indices = (int *)CustomData_add_layer_named(
+      &me->pdata, CD_PROP_INT32, CD_SET_DEFAULT, nullptr, me->totpoly, "material_index");
+
   COLLADAFW::MeshPrimitiveArray &prim_arr = collada_mesh->getMeshPrimitives();
   COLLADAFW::MeshVertexData &nor = collada_mesh->getNormals();
 
@@ -633,7 +636,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
     int collada_meshtype = mp->getPrimitiveType();
 
     /* since we cannot set mpoly->mat_nr here, we store a portion of me->mpoly in Primitive */
-    Primitive prim = {mpoly, 0};
+    Primitive prim = {mpoly, material_indices, 0};
 
     /* If MeshPrimitive is TRIANGLE_FANS we split it into triangles
      * The first triangle-fan vertex will be the first vertex in every triangle
@@ -663,6 +666,9 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
           }
 
           mpoly++;
+          if (material_indices) {
+            material_indices++;
+          }
           mloop += 3;
           loop_index += 3;
           prim.totpoly++;
@@ -1007,10 +1013,9 @@ void MeshImporter::assign_material_to_geom(
 
     for (it = prims.begin(); it != prims.end(); it++) {
       Primitive &prim = *it;
-      MPoly *mpoly = prim.mpoly;
 
-      for (int i = 0; i < prim.totpoly; i++, mpoly++) {
-        mpoly->mat_nr = mat_index;
+      for (int i = 0; i < prim.totpoly; i++) {
+        prim.material_indices[i] = mat_index;
       }
     }
   }

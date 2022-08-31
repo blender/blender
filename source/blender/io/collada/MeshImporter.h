@@ -80,6 +80,7 @@ class MeshImporter : public MeshImporterBase {
    * (<triangles>, <polylist>, etc.) */
   struct Primitive {
     MPoly *mpoly;
+    int *material_indices;
     unsigned int totpoly;
   };
   typedef std::map<COLLADAFW::MaterialId, std::vector<Primitive>> MaterialIdPrimitiveArrayMap;

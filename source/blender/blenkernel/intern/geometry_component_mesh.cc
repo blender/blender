@@ -842,16 +842,6 @@ static void tag_component_positions_changed(void *owner)
   }
 }
 
-static int get_material_index(const MPoly &mpoly)
-{
-  return static_cast<int>(mpoly.mat_nr);
-}
-
-static void set_material_index(MPoly &mpoly, int index)
-{
-  mpoly.mat_nr = static_cast<short>(std::clamp(index, 0, SHRT_MAX));
-}
-
 static bool get_shade_smooth(const MPoly &mpoly)
 {
   return mpoly.flag & ME_SMOOTH;
@@ -1201,18 +1191,17 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                            make_array_write_attribute<int>,
                                            nullptr);
 
-  static BuiltinCustomDataLayerProvider material_index(
-      "material_index",
-      ATTR_DOMAIN_FACE,
-      CD_PROP_INT32,
-      CD_MPOLY,
-      BuiltinAttributeProvider::NonCreatable,
-      BuiltinAttributeProvider::Writable,
-      BuiltinAttributeProvider::NonDeletable,
-      face_access,
-      make_derived_read_attribute<MPoly, int, get_material_index>,
-      make_derived_write_attribute<MPoly, int, get_material_index, set_material_index>,
-      nullptr);
+  static BuiltinCustomDataLayerProvider material_index("material_index",
+                                                       ATTR_DOMAIN_FACE,
+                                                       CD_PROP_INT32,
+                                                       CD_PROP_INT32,
+                                                       BuiltinAttributeProvider::Creatable,
+                                                       BuiltinAttributeProvider::Writable,
+                                                       BuiltinAttributeProvider::Deletable,
+                                                       face_access,
+                                                       make_array_read_attribute<int>,
+                                                       make_array_write_attribute<int>,
+                                                       nullptr);
 
   static BuiltinCustomDataLayerProvider shade_smooth(
       "shade_smooth",

@@ -363,6 +363,8 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
       &me->edata, CD_PROP_BOOL, ".hide_edge");
   const bool *hide_poly = (const bool *)CustomData_get_layer_named(
       &me->pdata, CD_PROP_BOOL, ".hide_poly");
+  const int *material_indices = (const int *)CustomData_get_layer_named(
+      &me->pdata, CD_PROP_INT32, "material_index");
 
   Span<MVert> mvert{me->mvert, me->totvert};
   Array<BMVert *> vtable(me->totvert);
@@ -484,7 +486,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
       BM_face_select_set(bm, f, true);
     }
 
-    f->mat_nr = mpoly[i].mat_nr;
+    f->mat_nr = material_indices == NULL ? 0 : material_indices[i];
     if (i == me->act_face) {
       bm->act_face = f;
     }
@@ -923,16 +925,16 @@ BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
   }
 }
 
-template<typename GetFn>
-static void write_elem_flag_to_attribute(blender::bke::MutableAttributeAccessor &attributes,
-                                         const StringRef attribute_name,
-                                         const eAttrDomain domain,
-                                         const bool do_write,
-                                         const GetFn &get_fn)
+template<typename T, typename GetFn>
+static void write_fn_to_attribute(blender::bke::MutableAttributeAccessor attributes,
+                                  const StringRef attribute_name,
+                                  const eAttrDomain domain,
+                                  const bool do_write,
+                                  const GetFn &get_fn)
 {
   using namespace blender;
   if (do_write) {
-    bke::SpanAttributeWriter<bool> attribute = attributes.lookup_or_add_for_write_only_span<bool>(
+    bke::SpanAttributeWriter<T> attribute = attributes.lookup_or_add_for_write_only_span<T>(
         attribute_name, domain);
     threading::parallel_for(attribute.span.index_range(), 4096, [&](IndexRange range) {
       for (const int i : range) {
@@ -966,15 +968,15 @@ static void convert_bmesh_hide_flags_to_mesh_attributes(BMesh &bm,
   bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(mesh);
   BM_mesh_elem_table_ensure(&bm, BM_VERT | BM_EDGE | BM_FACE);
 
-  write_elem_flag_to_attribute(
+  write_fn_to_attribute<bool>(
       attributes, ".hide_vert", ATTR_DOMAIN_POINT, need_hide_vert, [&](const int i) {
         return BM_elem_flag_test(BM_vert_at_index(&bm, i), BM_ELEM_HIDDEN);
       });
-  write_elem_flag_to_attribute(
+  write_fn_to_attribute<bool>(
       attributes, ".hide_edge", ATTR_DOMAIN_EDGE, need_hide_edge, [&](const int i) {
         return BM_elem_flag_test(BM_edge_at_index(&bm, i), BM_ELEM_HIDDEN);
       });
-  write_elem_flag_to_attribute(
+  write_fn_to_attribute<bool>(
       attributes, ".hide_poly", ATTR_DOMAIN_FACE, need_hide_poly, [&](const int i) {
         return BM_elem_flag_test(BM_face_at_index(&bm, i), BM_ELEM_HIDDEN);
       });
@@ -1039,6 +1041,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   bool need_hide_vert = false;
   bool need_hide_edge = false;
   bool need_hide_poly = false;
+  bool need_material_index = false;
 
   /* Clear normals on the mesh completely, since the original vertex and polygon count might be
    * different than the BMesh's. */
@@ -1111,7 +1114,9 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
     BMLoop *l_iter, *l_first;
     mpoly->loopstart = j;
     mpoly->totloop = f->len;
-    mpoly->mat_nr = f->mat_nr;
+    if (f->mat_nr != 0) {
+      need_material_index = true;
+    }
     mpoly->flag = BM_face_flag_to_mflag(f);
     if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
       need_hide_poly = true;
@@ -1142,6 +1147,16 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
     i++;
     mpoly++;
     BM_CHECK_ELEMENT(f);
+  }
+
+  if (need_material_index) {
+    BM_mesh_elem_table_ensure(bm, BM_FACE);
+    write_fn_to_attribute<int>(
+        blender::bke::mesh_attributes_for_write(*me),
+        "material_index",
+        ATTR_DOMAIN_FACE,
+        true,
+        [&](const int i) { return static_cast<int>(BM_face_at_index(bm, i)->mat_nr); });
   }
 
   /* Patch hook indices and vertex parents. */
@@ -1307,6 +1322,7 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   bool need_hide_vert = false;
   bool need_hide_edge = false;
   bool need_hide_poly = false;
+  bool need_material_index = false;
 
   /* Clear normals on the mesh completely, since the original vertex and polygon count might be
    * different than the BMesh's. */
@@ -1385,7 +1401,9 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
     }
 
     mp->loopstart = j;
-    mp->mat_nr = efa->mat_nr;
+    if (efa->mat_nr != 0) {
+      need_material_index = true;
+    }
 
     l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
     do {
@@ -1402,6 +1420,16 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
     CustomData_from_bmesh_block(&bm->pdata, &me->pdata, efa->head.data, i);
   }
   bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP);
+
+  if (need_material_index) {
+    BM_mesh_elem_table_ensure(bm, BM_FACE);
+    write_fn_to_attribute<int>(
+        blender::bke::mesh_attributes_for_write(*me),
+        "material_index",
+        ATTR_DOMAIN_FACE,
+        true,
+        [&](const int i) { return static_cast<int>(BM_face_at_index(bm, i)->mat_nr); });
+  }
 
   convert_bmesh_hide_flags_to_mesh_attributes(
       *bm, need_hide_vert, need_hide_edge, need_hide_poly, *me);

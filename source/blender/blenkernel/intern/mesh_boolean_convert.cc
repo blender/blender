@@ -9,6 +9,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_customdata.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
@@ -23,6 +24,7 @@
 #include "BLI_mesh_intersect.hh"
 #include "BLI_span.hh"
 #include "BLI_task.hh"
+#include "BLI_virtual_array.hh"
 
 namespace blender::meshintersect {
 
@@ -405,13 +407,17 @@ static void copy_poly_attributes(Mesh *dest_mesh,
                                  const Mesh *orig_me,
                                  int mp_index,
                                  int index_in_orig_me,
-                                 Span<short> material_remap)
+                                 Span<short> material_remap,
+                                 MutableSpan<int> dst_material_indices)
 {
-  if (material_remap.size() > 0 && material_remap.index_range().contains(orig_mp->mat_nr)) {
-    mp->mat_nr = material_remap[orig_mp->mat_nr];
+  const VArray<int> src_material_indices = bke::mesh_attributes(*orig_me).lookup_or_default<int>(
+      "material_index", ATTR_DOMAIN_FACE, 0);
+  const int src_index = src_material_indices[index_in_orig_me];
+  if (material_remap.size() > 0 && material_remap.index_range().contains(src_index)) {
+    dst_material_indices[mp_index] = material_remap[src_index];
   }
   else {
-    mp->mat_nr = orig_mp->mat_nr;
+    dst_material_indices[mp_index] = src_index;
   }
 
   mp->flag = orig_mp->flag;
@@ -722,6 +728,9 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
 
   /* Set the loopstart and totloop for each output poly,
    * and set the vertices in the appropriate loops. */
+  bke::SpanAttributeWriter<int> dst_material_indices =
+      bke::mesh_attributes_for_write(*result).lookup_or_add_for_write_only_span<int>(
+          "material_index", ATTR_DOMAIN_FACE);
   int cur_loop_index = 0;
   MLoop *l = result->mloop;
   for (int fi : im->face_index_range()) {
@@ -750,9 +759,11 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
                          index_in_orig_me,
                          (mim.material_remaps.size() > 0) ?
                              mim.material_remaps[orig_me_index].as_span() :
-                             Span<short>());
+                             Span<short>(),
+                         dst_material_indices.span);
     copy_or_interp_loop_attributes(result, f, mp, orig_mp, orig_me, orig_me_index, mim);
   }
+  dst_material_indices.finish();
 
   /* BKE_mesh_calc_edges will calculate and populate all the
    * MEdges from the MPolys. */

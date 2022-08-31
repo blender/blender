@@ -10,6 +10,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_virtual_array.hh"
+
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -21,6 +23,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_workspace_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
@@ -247,9 +250,19 @@ static void join_mesh_single(Depsgraph *depsgraph,
     CustomData_merge(&me->pdata, pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, totpoly);
     CustomData_copy_data_named(&me->pdata, pdata, 0, *polyofs, me->totpoly);
 
+    blender::bke::AttributeWriter<int> material_indices =
+        blender::bke::mesh_attributes_for_write(*me).lookup_for_write<int>("material_index");
+    if (material_indices) {
+      blender::MutableVArraySpan<int> material_indices_span(material_indices.varray);
+      for (const int i : material_indices_span.index_range()) {
+        material_indices_span[i] = matmap ? matmap[material_indices_span[i]] : 0;
+      }
+      material_indices_span.save();
+      material_indices.finish();
+    }
+
     for (a = 0; a < me->totpoly; a++, mpoly++) {
       mpoly->loopstart += *loopofs;
-      mpoly->mat_nr = matmap ? matmap[mpoly->mat_nr] : 0;
     }
 
     /* Face maps. */

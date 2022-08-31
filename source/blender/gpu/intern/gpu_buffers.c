@@ -233,8 +233,10 @@ void GPU_pbvh_mesh_buffers_update(PBVHGPUFormat *vbo_id,
   GPUAttrRef vcol_refs[MAX_GPU_ATTR];
   GPUAttrRef cd_uvs[MAX_GPU_ATTR];
 
-  const bool *hide_vert = (bool *)CustomData_get_layer_named(
+  const bool *hide_vert = (const bool *)CustomData_get_layer_named(
       &mesh->vdata, CD_PROP_BOOL, ".hide_vert");
+  const int *material_indices = (const int *)CustomData_get_layer_named(
+      &mesh->pdata, CD_PROP_INT32, "material_index");
 
   const CustomDataLayer *actcol = BKE_id_attributes_active_color_get(&mesh->id);
   eAttrDomain actcol_domain = actcol ? BKE_id_attribute_domain(&mesh->id, actcol) :
@@ -449,8 +451,7 @@ void GPU_pbvh_mesh_buffers_update(PBVHGPUFormat *vbo_id,
 
   /* Get material index from the first face of this buffer. */
   const MLoopTri *lt = &buffers->looptri[buffers->face_indices[0]];
-  const MPoly *mp = &buffers->mpoly[lt->poly];
-  buffers->material_index = mp->mat_nr;
+  buffers->material_index = material_indices ? material_indices[lt->poly] : 0;
 
   buffers->show_overlay = !empty_mask || !default_face_set;
   buffers->mvert = mvert;

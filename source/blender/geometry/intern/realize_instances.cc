@@ -9,6 +9,7 @@
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 
+#include "BLI_devirtualize_parameters.hh"
 #include "BLI_noise.hh"
 #include "BLI_task.hh"
 
@@ -102,6 +103,7 @@ struct MeshRealizeInfo {
   Array<std::optional<GVArraySpan>> attributes;
   /** Vertex ids stored on the mesh. If there are no ids, this #Span is empty. */
   Span<int> stored_vertex_ids;
+  VArray<int> material_indices;
 };
 
 struct RealizeMeshTask {
@@ -182,6 +184,7 @@ struct AllMeshesInfo {
   /** Ordered materials on the output mesh. */
   VectorSet<Material *> materials;
   bool create_id_attribute = false;
+  bool create_material_index_attribute = false;
 };
 
 struct AllCurvesInfo {
@@ -787,7 +790,10 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
  * \{ */
 
 static OrderedAttributes gather_generic_mesh_attributes_to_propagate(
-    const GeometrySet &in_geometry_set, const RealizeInstancesOptions &options, bool &r_create_id)
+    const GeometrySet &in_geometry_set,
+    const RealizeInstancesOptions &options,
+    bool &r_create_id,
+    bool &r_create_material_index)
 {
   Vector<GeometryComponentType> src_component_types;
   src_component_types.append(GEO_COMPONENT_TYPE_MESH);
@@ -800,10 +806,10 @@ static OrderedAttributes gather_generic_mesh_attributes_to_propagate(
       src_component_types, GEO_COMPONENT_TYPE_MESH, true, attributes_to_propagate);
   attributes_to_propagate.remove("position");
   attributes_to_propagate.remove("normal");
-  attributes_to_propagate.remove("material_index");
   attributes_to_propagate.remove("shade_smooth");
   attributes_to_propagate.remove("crease");
   r_create_id = attributes_to_propagate.pop_try("id").has_value();
+  r_create_material_index = attributes_to_propagate.pop_try("material_index").has_value();
   OrderedAttributes ordered_attributes;
   for (const auto item : attributes_to_propagate.items()) {
     ordered_attributes.ids.add_new(item.key);
@@ -833,13 +839,19 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
 {
   AllMeshesInfo info;
   info.attributes = gather_generic_mesh_attributes_to_propagate(
-      geometry_set, options, info.create_id_attribute);
+      geometry_set, options, info.create_id_attribute, info.create_material_index_attribute);
 
   gather_meshes_to_realize(geometry_set, info.order);
   for (const Mesh *mesh : info.order) {
-    for (const int slot_index : IndexRange(mesh->totcol)) {
-      Material *material = mesh->mat[slot_index];
-      info.materials.add(material);
+    if (mesh->totcol == 0) {
+      /* Add an empty material slot for the default material. */
+      info.materials.add(nullptr);
+    }
+    else {
+      for (const int slot_index : IndexRange(mesh->totcol)) {
+        Material *material = mesh->mat[slot_index];
+        info.materials.add(material);
+      }
     }
   }
   info.realize_info.reinitialize(info.order.size());
@@ -849,11 +861,16 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
     mesh_info.mesh = mesh;
 
     /* Create material index mapping. */
-    mesh_info.material_index_map.reinitialize(mesh->totcol);
-    for (const int old_slot_index : IndexRange(mesh->totcol)) {
-      Material *material = mesh->mat[old_slot_index];
-      const int new_slot_index = info.materials.index_of(material);
-      mesh_info.material_index_map[old_slot_index] = new_slot_index;
+    mesh_info.material_index_map.reinitialize(std::max<int>(mesh->totcol, 1));
+    if (mesh->totcol == 0) {
+      mesh_info.material_index_map.first() = info.materials.index_of(nullptr);
+    }
+    else {
+      for (const int old_slot_index : IndexRange(mesh->totcol)) {
+        Material *material = mesh->mat[old_slot_index];
+        const int new_slot_index = info.materials.index_of(material);
+        mesh_info.material_index_map[old_slot_index] = new_slot_index;
+      }
     }
 
     /* Access attributes. */
@@ -874,6 +891,8 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
         mesh_info.stored_vertex_ids = ids_attribute.varray.get_internal_span().typed<int>();
       }
     }
+    mesh_info.material_indices = attributes.lookup_or_default<int>(
+        "material_index", ATTR_DOMAIN_FACE, 0);
   }
   return info;
 }
@@ -883,7 +902,8 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
                                       const OrderedAttributes &ordered_attributes,
                                       Mesh &dst_mesh,
                                       MutableSpan<GSpanAttributeWriter> dst_attribute_writers,
-                                      MutableSpan<int> all_dst_vertex_ids)
+                                      MutableSpan<int> all_dst_vertex_ids,
+                                      MutableSpan<int> all_dst_material_indices)
 {
   const MeshRealizeInfo &mesh_info = *task.mesh_info;
   const Mesh &mesh = *mesh_info.mesh;
@@ -893,14 +913,19 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
   const Span<MLoop> src_loops{mesh.mloop, mesh.totloop};
   const Span<MPoly> src_polys{mesh.mpoly, mesh.totpoly};
 
-  MutableSpan<MVert> dst_verts{dst_mesh.mvert + task.start_indices.vertex, mesh.totvert};
-  MutableSpan<MEdge> dst_edges{dst_mesh.medge + task.start_indices.edge, mesh.totedge};
-  MutableSpan<MLoop> dst_loops{dst_mesh.mloop + task.start_indices.loop, mesh.totloop};
-  MutableSpan<MPoly> dst_polys{dst_mesh.mpoly + task.start_indices.poly, mesh.totpoly};
+  const IndexRange dst_vert_range(task.start_indices.vertex, src_verts.size());
+  const IndexRange dst_edge_range(task.start_indices.edge, src_edges.size());
+  const IndexRange dst_poly_range(task.start_indices.poly, src_polys.size());
+  const IndexRange dst_loop_range(task.start_indices.loop, src_loops.size());
+
+  MutableSpan dst_verts = MutableSpan(dst_mesh.mvert, dst_mesh.totvert).slice(dst_vert_range);
+  MutableSpan dst_edges = MutableSpan(dst_mesh.medge, dst_mesh.totedge).slice(dst_edge_range);
+  MutableSpan dst_polys = MutableSpan(dst_mesh.mpoly, dst_mesh.totpoly).slice(dst_poly_range);
+  MutableSpan dst_loops = MutableSpan(dst_mesh.mloop, dst_mesh.totloop).slice(dst_loop_range);
 
   const Span<int> material_index_map = mesh_info.material_index_map;
 
-  threading::parallel_for(IndexRange(mesh.totvert), 1024, [&](const IndexRange vert_range) {
+  threading::parallel_for(src_verts.index_range(), 1024, [&](const IndexRange vert_range) {
     for (const int i : vert_range) {
       const MVert &src_vert = src_verts[i];
       MVert &dst_vert = dst_verts[i];
@@ -908,7 +933,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
       copy_v3_v3(dst_vert.co, task.transform * float3(src_vert.co));
     }
   });
-  threading::parallel_for(IndexRange(mesh.totedge), 1024, [&](const IndexRange edge_range) {
+  threading::parallel_for(src_edges.index_range(), 1024, [&](const IndexRange edge_range) {
     for (const int i : edge_range) {
       const MEdge &src_edge = src_edges[i];
       MEdge &dst_edge = dst_edges[i];
@@ -917,7 +942,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
       dst_edge.v2 += task.start_indices.vertex;
     }
   });
-  threading::parallel_for(IndexRange(mesh.totloop), 1024, [&](const IndexRange loop_range) {
+  threading::parallel_for(src_loops.index_range(), 1024, [&](const IndexRange loop_range) {
     for (const int i : loop_range) {
       const MLoop &src_loop = src_loops[i];
       MLoop &dst_loop = dst_loops[i];
@@ -926,21 +951,38 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
       dst_loop.e += task.start_indices.edge;
     }
   });
-  threading::parallel_for(IndexRange(mesh.totpoly), 1024, [&](const IndexRange poly_range) {
+  threading::parallel_for(src_polys.index_range(), 1024, [&](const IndexRange poly_range) {
     for (const int i : poly_range) {
       const MPoly &src_poly = src_polys[i];
       MPoly &dst_poly = dst_polys[i];
       dst_poly = src_poly;
       dst_poly.loopstart += task.start_indices.loop;
-      if (src_poly.mat_nr >= 0 && src_poly.mat_nr < mesh.totcol) {
-        dst_poly.mat_nr = material_index_map[src_poly.mat_nr];
-      }
-      else {
-        /* The material index was invalid before. */
-        dst_poly.mat_nr = 0;
-      }
     }
   });
+  if (!all_dst_material_indices.is_empty()) {
+    MutableSpan<int> dst_material_indices = all_dst_material_indices.slice(dst_poly_range);
+    if (mesh.totcol == 0) {
+      /* The material index map contains the index of the null material in the result. */
+      dst_material_indices.fill(material_index_map.first());
+    }
+    else {
+      if (mesh_info.material_indices.is_single()) {
+        const int src_index = mesh_info.material_indices.get_internal_single();
+        const bool valid = IndexRange(mesh.totcol).contains(src_index);
+        dst_material_indices.fill(valid ? material_index_map[src_index] : 0);
+      }
+      else {
+        VArraySpan<int> indices_span(mesh_info.material_indices);
+        threading::parallel_for(src_polys.index_range(), 1024, [&](const IndexRange poly_range) {
+          for (const int i : poly_range) {
+            const int src_index = indices_span[i];
+            const bool valid = IndexRange(mesh.totcol).contains(src_index);
+            dst_material_indices[i] = valid ? material_index_map[src_index] : 0;
+          }
+        });
+      }
+    }
+  }
 
   if (!all_dst_vertex_ids.is_empty()) {
     create_result_ids(options,
@@ -956,13 +998,13 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
       [&](const eAttrDomain domain) {
         switch (domain) {
           case ATTR_DOMAIN_POINT:
-            return IndexRange(task.start_indices.vertex, mesh.totvert);
+            return dst_vert_range;
           case ATTR_DOMAIN_EDGE:
-            return IndexRange(task.start_indices.edge, mesh.totedge);
-          case ATTR_DOMAIN_CORNER:
-            return IndexRange(task.start_indices.loop, mesh.totloop);
+            return dst_edge_range;
           case ATTR_DOMAIN_FACE:
-            return IndexRange(task.start_indices.poly, mesh.totpoly);
+            return dst_poly_range;
+          case ATTR_DOMAIN_CORNER:
+            return dst_loop_range;
           default:
             BLI_assert_unreachable();
             return IndexRange();
@@ -1013,6 +1055,12 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   if (all_meshes_info.create_id_attribute) {
     vertex_ids = dst_attributes.lookup_or_add_for_write_only_span<int>("id", ATTR_DOMAIN_POINT);
   }
+  /* Prepare material indices. */
+  SpanAttributeWriter<int> material_indices;
+  if (all_meshes_info.create_material_index_attribute) {
+    material_indices = dst_attributes.lookup_or_add_for_write_only_span<int>("material_index",
+                                                                             ATTR_DOMAIN_FACE);
+  }
 
   /* Prepare generic output attributes. */
   Vector<GSpanAttributeWriter> dst_attribute_writers;
@@ -1028,8 +1076,13 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   threading::parallel_for(tasks.index_range(), 100, [&](const IndexRange task_range) {
     for (const int task_index : task_range) {
       const RealizeMeshTask &task = tasks[task_index];
-      execute_realize_mesh_task(
-          options, task, ordered_attributes, *dst_mesh, dst_attribute_writers, vertex_ids.span);
+      execute_realize_mesh_task(options,
+                                task,
+                                ordered_attributes,
+                                *dst_mesh,
+                                dst_attribute_writers,
+                                vertex_ids.span,
+                                material_indices.span);
     }
   });
 
@@ -1039,6 +1092,9 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   }
   if (vertex_ids) {
     vertex_ids.finish();
+  }
+  if (material_indices) {
+    material_indices.finish();
   }
 }
 

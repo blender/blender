@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0
  * Copyright 2011-2022 Blender Foundation */
 
+#include <optional>
+
 #include "blender/session.h"
 #include "blender/sync.h"
 #include "blender/util.h"
@@ -879,6 +881,23 @@ static void attr_create_random_per_island(Scene *scene,
 
 /* Create Mesh */
 
+static std::optional<BL::IntAttribute> find_material_index_attribute(BL::Mesh b_mesh)
+{
+  for (BL::Attribute &b_attribute : b_mesh.attributes) {
+    if (b_attribute.domain() != BL::Attribute::domain_FACE) {
+      continue;
+    }
+    if (b_attribute.data_type() != BL::Attribute::data_type_INT) {
+      continue;
+    }
+    if (b_attribute.name() != "material_index") {
+      continue;
+    }
+    return BL::IntAttribute{b_attribute};
+  }
+  return std::nullopt;
+}
+
 static void create_mesh(Scene *scene,
                         Mesh *mesh,
                         BL::Mesh &b_mesh,
@@ -950,13 +969,22 @@ static void create_mesh(Scene *scene,
     }
   }
 
+  std::optional<BL::IntAttribute> material_indices = find_material_index_attribute(b_mesh);
+  auto get_material_index = [&](const int poly_index) -> int {
+    if (material_indices) {
+      return clamp(material_indices->data[poly_index].value(), 0, used_shaders.size() - 1);
+    }
+    return 0;
+  };
+
   /* create faces */
   if (!subdivision) {
     for (BL::MeshLoopTriangle &t : b_mesh.loop_triangles) {
-      BL::MeshPolygon p = b_mesh.polygons[t.polygon_index()];
+      const int poly_index = t.polygon_index();
+      BL::MeshPolygon p = b_mesh.polygons[poly_index];
       int3 vi = get_int3(t.vertices());
 
-      int shader = clamp(p.material_index(), 0, used_shaders.size() - 1);
+      int shader = get_material_index(poly_index);
       bool smooth = p.use_smooth() || use_loop_normals;
 
       if (use_loop_normals) {
@@ -977,9 +1005,10 @@ static void create_mesh(Scene *scene,
   else {
     vector<int> vi;
 
-    for (BL::MeshPolygon &p : b_mesh.polygons) {
+    for (int poly_index = 0; poly_index < numfaces; poly_index++) {
+      BL::MeshPolygon p = b_mesh.polygons[poly_index];
       int n = p.loop_total();
-      int shader = clamp(p.material_index(), 0, used_shaders.size() - 1);
+      int shader = get_material_index(poly_index);
       bool smooth = p.use_smooth() || use_loop_normals;
 
       vi.resize(n);

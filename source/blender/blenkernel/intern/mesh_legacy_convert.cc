@@ -963,3 +963,42 @@ void BKE_mesh_legacy_convert_flags_to_hide_layers(Mesh *mesh)
 }
 
 /** \} */
+/* -------------------------------------------------------------------- */
+/** \name Material Index Conversion
+ * \{ */
+
+void BKE_mesh_legacy_convert_material_indices_to_mpoly(Mesh *mesh)
+{
+  using namespace blender;
+  using namespace blender::bke;
+  const AttributeAccessor attributes = mesh_attributes(*mesh);
+  MutableSpan<MPoly> polys(mesh->mpoly, mesh->totpoly);
+  const VArray<int> material_indices = attributes.lookup_or_default<int>(
+      "material_index", ATTR_DOMAIN_FACE, 0);
+  threading::parallel_for(polys.index_range(), 4096, [&](IndexRange range) {
+    for (const int i : range) {
+      polys[i].mat_nr = material_indices[i];
+    }
+  });
+}
+
+void BKE_mesh_legacy_convert_mpoly_to_material_indices(Mesh *mesh)
+{
+  using namespace blender;
+  using namespace blender::bke;
+  MutableAttributeAccessor attributes = mesh_attributes_for_write(*mesh);
+  const Span<MPoly> polys(mesh->mpoly, mesh->totpoly);
+  if (std::any_of(
+          polys.begin(), polys.end(), [](const MPoly &poly) { return poly.mat_nr != 0; })) {
+    SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_only_span<int>(
+        "material_index", ATTR_DOMAIN_FACE);
+    threading::parallel_for(polys.index_range(), 4096, [&](IndexRange range) {
+      for (const int i : range) {
+        material_indices.span[i] = polys[i].mat_nr;
+      }
+    });
+    material_indices.finish();
+  }
+}
+
+/** \} */

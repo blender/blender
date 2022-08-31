@@ -562,6 +562,22 @@ static void rna_MeshPolygon_hide_set(PointerRNA *ptr, bool value)
   hide_poly[index] = value;
 }
 
+static int rna_MeshPolygon_material_index_get(PointerRNA *ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  const int *material_indices = BKE_mesh_material_indices(mesh);
+  const int index = rna_MeshPolygon_index_get(ptr);
+  return material_indices == NULL ? 0 : material_indices[index];
+}
+
+static void rna_MeshPolygon_material_index_set(PointerRNA *ptr, int value)
+{
+  Mesh *mesh = rna_mesh(ptr);
+  int *material_indices = BKE_mesh_material_indices_for_write(mesh);
+  const int index = rna_MeshPolygon_index_get(ptr);
+  material_indices[index] = value;
+}
+
 static void rna_MeshPolygon_center_get(PointerRNA *ptr, float *values)
 {
   Mesh *me = rna_mesh(ptr);
@@ -1300,8 +1316,9 @@ static void rna_MeshEdge_hide_set(PointerRNA *ptr, bool value)
 static int rna_MeshLoopTriangle_material_index_get(PointerRNA *ptr)
 {
   const Mesh *me = rna_mesh(ptr);
+  const int *material_indices = BKE_mesh_material_indices(me);
   const MLoopTri *ltri = (MLoopTri *)ptr->data;
-  return me->mpoly[ltri->poly].mat_nr;
+  return material_indices == NULL ? 0 : material_indices[ltri->poly];
 }
 
 static bool rna_MeshLoopTriangle_use_smooth_get(PointerRNA *ptr)
@@ -2195,7 +2212,8 @@ static void rna_def_mpolygon(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Loop Total", "Number of loops used by this polygon");
 
   prop = RNA_def_property(srna, "material_index", PROP_INT, PROP_UNSIGNED);
-  RNA_def_property_int_sdna(prop, NULL, "mat_nr");
+  RNA_def_property_int_funcs(
+      prop, "rna_MeshPolygon_material_index_get", "rna_MeshPolygon_material_index_set", false);
   RNA_def_property_ui_text(prop, "Material Index", "Material slot index of this polygon");
 #  if 0
   RNA_def_property_int_funcs(prop, NULL, NULL, "rna_MeshPoly_material_index_range");

@@ -161,7 +161,8 @@ typedef struct Mesh {
 
   /**
    * An array of materials, with length #totcol. These can be overridden by material slots
-   * on #Object. Indices in #MPoly.mat_nr control which material is used for every face.
+   * on #Object. Indices in the "material_index" attribute control which material is used for every
+   * face.
    */
   struct Material **mat;
 

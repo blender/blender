@@ -25,7 +25,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
@@ -766,7 +766,11 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
     size_t num_polys = new_mesh->totpoly;
     if (num_polys > 0) {
       std::map<std::string, int> mat_map;
-      assign_facesets_to_mpoly(sample_sel, new_mesh->mpoly, num_polys, mat_map);
+      bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*new_mesh);
+      bke::SpanAttributeWriter<int> material_indices =
+          attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
+      assign_facesets_to_material_indices(sample_sel, material_indices.span, mat_map);
+      material_indices.finish();
     }
 
     return new_mesh;
@@ -775,10 +779,9 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
   return existing_mesh;
 }
 
-void AbcMeshReader::assign_facesets_to_mpoly(const ISampleSelector &sample_sel,
-                                             MPoly *mpoly,
-                                             int totpoly,
-                                             std::map<std::string, int> &r_mat_map)
+void AbcMeshReader::assign_facesets_to_material_indices(const ISampleSelector &sample_sel,
+                                                        MutableSpan<int> material_indices,
+                                                        std::map<std::string, int> &r_mat_map)
 {
   std::vector<std::string> face_sets;
   m_schema.getFaceSetNames(face_sets);
@@ -811,13 +814,12 @@ void AbcMeshReader::assign_facesets_to_mpoly(const ISampleSelector &sample_sel,
     for (size_t l = 0; l < num_group_faces; l++) {
       size_t pos = (*group_faces)[l];
 
-      if (pos >= totpoly) {
+      if (pos >= material_indices.size()) {
         std::cerr << "Faceset overflow on " << faceset.getName() << '\n';
         break;
       }
 
-      MPoly &poly = mpoly[pos];
-      poly.mat_nr = assigned_mat - 1;
+      material_indices[pos] = assigned_mat - 1;
     }
   }
 }
@@ -825,7 +827,11 @@ void AbcMeshReader::assign_facesets_to_mpoly(const ISampleSelector &sample_sel,
 void AbcMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const ISampleSelector &sample_sel)
 {
   std::map<std::string, int> mat_map;
-  assign_facesets_to_mpoly(sample_sel, mesh->mpoly, mesh->totpoly, mat_map);
+  bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*mesh);
+  bke::SpanAttributeWriter<int> material_indices =
+      attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
+  assign_facesets_to_material_indices(sample_sel, material_indices.span, mat_map);
+  material_indices.finish();
   utils::assign_materials(bmain, m_object, mat_map);
 }
 

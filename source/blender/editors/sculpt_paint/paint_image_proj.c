@@ -414,6 +414,7 @@ typedef struct ProjPaintState {
   const float (*vert_normals)[3];
   const MEdge *medge_eval;
   const MPoly *mpoly_eval;
+  const int *material_indices;
   const MLoop *mloop_eval;
   const MLoopTri *mlooptri_eval;
 
@@ -542,8 +543,8 @@ static int project_paint_face_paint_tile(Image *ima, const float *uv)
 
 static TexPaintSlot *project_paint_face_paint_slot(const ProjPaintState *ps, int tri_index)
 {
-  const MPoly *mp = ps_tri_index_to_mpoly(ps, tri_index);
-  Material *ma = ps->mat_array[mp->mat_nr];
+  const int poly_i = ps->mlooptri_eval[tri_index].poly;
+  Material *ma = ps->mat_array[ps->material_indices == NULL ? 0 : ps->material_indices[poly_i]];
   return ma ? ma->texpaintslot + ma->paint_active_slot : NULL;
 }
 
@@ -553,23 +554,23 @@ static Image *project_paint_face_paint_image(const ProjPaintState *ps, int tri_i
     return ps->stencil_ima;
   }
 
-  const MPoly *mp = ps_tri_index_to_mpoly(ps, tri_index);
-  Material *ma = ps->mat_array[mp->mat_nr];
+  const int poly_i = ps->mlooptri_eval[tri_index].poly;
+  Material *ma = ps->mat_array[ps->material_indices == NULL ? 0 : ps->material_indices[poly_i]];
   TexPaintSlot *slot = ma ? ma->texpaintslot + ma->paint_active_slot : NULL;
   return slot ? slot->ima : ps->canvas_ima;
 }
 
 static TexPaintSlot *project_paint_face_clone_slot(const ProjPaintState *ps, int tri_index)
 {
-  const MPoly *mp = ps_tri_index_to_mpoly(ps, tri_index);
-  Material *ma = ps->mat_array[mp->mat_nr];
+  const int poly_i = ps->mlooptri_eval[tri_index].poly;
+  Material *ma = ps->mat_array[ps->material_indices == NULL ? 0 : ps->material_indices[poly_i]];
   return ma ? ma->texpaintslot + ma->paint_clone_slot : NULL;
 }
 
 static Image *project_paint_face_clone_image(const ProjPaintState *ps, int tri_index)
 {
-  const MPoly *mp = ps_tri_index_to_mpoly(ps, tri_index);
-  Material *ma = ps->mat_array[mp->mat_nr];
+  const int poly_i = ps->mlooptri_eval[tri_index].poly;
+  Material *ma = ps->mat_array[ps->material_indices == NULL ? 0 : ps->material_indices[poly_i]];
   TexPaintSlot *slot = ma ? ma->texpaintslot + ma->paint_clone_slot : NULL;
   return slot ? slot->ima : ps->clone_ima;
 }
@@ -4060,6 +4061,8 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   }
   ps->mloop_eval = ps->me_eval->mloop;
   ps->mpoly_eval = ps->me_eval->mpoly;
+  ps->material_indices = (const int *)CustomData_get_layer_named(
+      &ps->me_eval->pdata, CD_PROP_INT32, "material_index");
 
   ps->totvert_eval = ps->me_eval->totvert;
   ps->totedge_eval = ps->me_eval->totedge;

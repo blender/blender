@@ -63,6 +63,7 @@ typedef struct {
   MVert *mvert;
   const float (*vert_normals)[3];
   MPoly *mpoly;
+  const int *material_indices;
   MLoop *mloop;
   MLoopUV *mloopuv;
   float uv_offset[2];
@@ -382,8 +383,7 @@ static void *do_multires_bake_thread(void *data_v)
 
   while ((tri_index = multires_bake_queue_next_tri(handle->queue)) >= 0) {
     const MLoopTri *lt = &data->mlooptri[tri_index];
-    const MPoly *mp = &data->mpoly[lt->poly];
-    const short mat_nr = mp->mat_nr;
+    const short mat_nr = data->material_indices == NULL ? 0 : data->material_indices[lt->poly];
     const MLoopUV *mloopuv = data->mloopuv;
 
     if (multiresbake_test_break(bkr)) {
@@ -545,6 +545,8 @@ static void do_multires_bake(MultiresBakeRender *bkr,
     handle->queue = &queue;
 
     handle->data.mpoly = mpoly;
+    handle->data.material_indices = CustomData_get_layer_named(
+        &dm->polyData, CD_PROP_INT32, "material_index");
     handle->data.mvert = mvert;
     handle->data.vert_normals = vert_normals;
     handle->data.mloopuv = mloopuv;

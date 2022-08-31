@@ -7,6 +7,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
@@ -19,8 +20,8 @@
 #include "BKE_subdiv_modifier.h"
 
 #include "BLI_linklist.h"
-
 #include "BLI_string.h"
+#include "BLI_virtual_array.hh"
 
 #include "PIL_time.h"
 
@@ -1962,17 +1963,20 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache *cache,
     return;
   }
 
+  const blender::VArraySpan<int> material_indices = blender::bke::mesh_attributes(*mesh_eval)
+                                                        .lookup_or_default<int>(
+                                                            "material_index", ATTR_DOMAIN_FACE, 0);
+
   /* Count number of subdivided polygons for each material. */
   int *mat_start = static_cast<int *>(MEM_callocN(sizeof(int) * mat_len, "subdiv mat_start"));
   int *subdiv_polygon_offset = cache->subdiv_polygon_offset;
 
   /* TODO: parallel_reduce? */
   for (int i = 0; i < mesh_eval->totpoly; i++) {
-    const MPoly *mpoly = &mesh_eval->mpoly[i];
     const int next_offset = (i == mesh_eval->totpoly - 1) ? number_of_quads :
                                                             subdiv_polygon_offset[i + 1];
     const int quad_count = next_offset - subdiv_polygon_offset[i];
-    const int mat_index = mpoly->mat_nr;
+    const int mat_index = material_indices[i];
     mat_start[mat_index] += quad_count;
   }
 
@@ -1991,8 +1995,7 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache *cache,
       MEM_mallocN(sizeof(int) * mesh_eval->totpoly, "per_polygon_mat_offset"));
 
   for (int i = 0; i < mesh_eval->totpoly; i++) {
-    const MPoly *mpoly = &mesh_eval->mpoly[i];
-    const int mat_index = mpoly->mat_nr;
+    const int mat_index = material_indices[i];
     const int single_material_index = subdiv_polygon_offset[i];
     const int material_offset = mat_end[mat_index];
     const int next_offset = (i == mesh_eval->totpoly - 1) ? number_of_quads :

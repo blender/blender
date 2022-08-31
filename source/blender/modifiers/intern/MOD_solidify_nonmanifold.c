@@ -2108,6 +2108,9 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   }
 #endif
 
+  const int *src_material_index = BKE_mesh_material_indices(mesh);
+  int *dst_material_index = BKE_mesh_material_indices_for_write(result);
+
   /* Make boundary edges/faces. */
   {
     gs_ptr = orig_vert_groups_arr;
@@ -2224,7 +2227,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 
               /* Loop data. */
               int *loops = MEM_malloc_arrayN(j, sizeof(*loops), "loops in solidify");
-              /* The #mat_nr is from consensus. */
+              /* The result material index is from consensus. */
               short most_mat_nr = 0;
               uint most_mat_nr_face = 0;
               uint most_mat_nr_count = 0;
@@ -2235,16 +2238,20 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                 for (EdgeGroup *g3 = g2; g3->valid && k < j; g3++) {
                   if ((do_rim && !g3->is_orig_closed) || (do_shell && g3->split)) {
                     /* Check both far ends in terms of faces of an edge group. */
-                    if (g3->edges[0]->faces[0]->face->mat_nr == l) {
+                    if ((src_material_index ? src_material_index[g3->edges[0]->faces[0]->index] :
+                                              0) == l) {
                       face = g3->edges[0]->faces[0]->index;
                       count++;
                     }
                     NewEdgeRef *le = g3->edges[g3->edges_len - 1];
-                    if (le->faces[1] && le->faces[1]->face->mat_nr == l) {
+                    if (le->faces[1] &&
+                        (src_material_index ? src_material_index[le->faces[1]->index] : 0) == l) {
                       face = le->faces[1]->index;
                       count++;
                     }
-                    else if (!le->faces[1] && le->faces[0]->face->mat_nr == l) {
+                    else if (!le->faces[1] &&
+                             (src_material_index ? src_material_index[le->faces[0]->index] : 0) ==
+                                 l) {
                       face = le->faces[0]->index;
                       count++;
                     }
@@ -2264,9 +2271,9 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               }
               mpoly[poly_index].loopstart = (int)loop_index;
               mpoly[poly_index].totloop = (int)j;
-              mpoly[poly_index].mat_nr = most_mat_nr +
-                                         (g->is_orig_closed || !do_rim ? 0 : mat_ofs_rim);
-              CLAMP(mpoly[poly_index].mat_nr, 0, mat_nr_max);
+              dst_material_index[poly_index] = most_mat_nr +
+                                               (g->is_orig_closed || !do_rim ? 0 : mat_ofs_rim);
+              CLAMP(dst_material_index[poly_index], 0, mat_nr_max);
               mpoly[poly_index].flag = orig_mpoly[most_mat_nr_face].flag;
               poly_index++;
 
@@ -2334,13 +2341,15 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
           continue;
         }
 
-        MPoly *face = (*new_edges)->faces[0]->face;
+        const uint orig_face_index = (*new_edges)->faces[0]->index;
+        MPoly *face = &orig_mpoly[orig_face_index];
         CustomData_copy_data(
             &mesh->pdata, &result->pdata, (int)(*new_edges)->faces[0]->index, (int)poly_index, 1);
         mpoly[poly_index].loopstart = (int)loop_index;
         mpoly[poly_index].totloop = 4 - (int)(v1_singularity || v2_singularity);
-        mpoly[poly_index].mat_nr = face->mat_nr + mat_ofs_rim;
-        CLAMP(mpoly[poly_index].mat_nr, 0, mat_nr_max);
+        dst_material_index[poly_index] =
+            (src_material_index ? src_material_index[orig_face_index] : 0) + mat_ofs_rim;
+        CLAMP(dst_material_index[poly_index], 0, mat_nr_max);
         mpoly[poly_index].flag = face->flag;
         poly_index++;
 
@@ -2530,8 +2539,10 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
           CustomData_copy_data(&mesh->pdata, &result->pdata, (int)(i / 2), (int)poly_index, 1);
           mpoly[poly_index].loopstart = (int)loop_index;
           mpoly[poly_index].totloop = (int)k;
-          mpoly[poly_index].mat_nr = fr->face->mat_nr + (fr->reversed != do_flip ? mat_ofs : 0);
-          CLAMP(mpoly[poly_index].mat_nr, 0, mat_nr_max);
+          dst_material_index[poly_index] = (src_material_index ? src_material_index[fr->index] :
+                                                                 0) +
+                                           (fr->reversed != do_flip ? mat_ofs : 0);
+          CLAMP(dst_material_index[poly_index], 0, mat_nr_max);
           mpoly[poly_index].flag = fr->face->flag;
           if (fr->reversed != do_flip) {
             for (int l = (int)k - 1; l >= 0; l--) {

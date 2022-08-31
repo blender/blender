@@ -17,6 +17,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
@@ -284,15 +285,18 @@ static bool collect_vertex_counts_per_poly(Mesh *me,
                                            int material_index,
                                            std::vector<unsigned long> &vcount_list)
 {
+  const blender::bke::AttributeAccessor attributes = blender::bke::mesh_attributes(*me);
+  const blender::VArray<int> material_indices = attributes.lookup_or_default<int>(
+      "material_index", ATTR_DOMAIN_FACE, 0);
   MPoly *mpolys = me->mpoly;
   int totpolys = me->totpoly;
   bool is_triangulated = true;
 
   int i;
-  /* Expecting that p->mat_nr is always 0 if the mesh has no materials assigned */
+  /* Expecting that the material index is always 0 if the mesh has no materials assigned */
   for (i = 0; i < totpolys; i++) {
-    MPoly *p = &mpolys[i];
-    if (p->mat_nr == material_index) {
+    if (material_indices[i] == material_index) {
+      MPoly *p = &mpolys[i];
       int vertex_count = p->totloop;
       vcount_list.push_back(vertex_count);
       if (vertex_count != 3) {
@@ -397,13 +401,17 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
   /* performs the actual writing */
   prepareToAppendValues(is_triangulated, *primitive_list, vcount_list);
 
+  const blender::bke::AttributeAccessor attributes = blender::bke::mesh_attributes(*me);
+  const blender::VArray<int> material_indices = attributes.lookup_or_default<int>(
+      "material_index", ATTR_DOMAIN_FACE, 0);
+
   /* <p> */
   int texindex = 0;
   for (int i = 0; i < totpolys; i++) {
     MPoly *p = &mpolys[i];
     int loop_count = p->totloop;
 
-    if (p->mat_nr == material_index) {
+    if (material_indices[i] == material_index) {
       MLoop *l = &mloops[p->loopstart];
       BCPolygonNormalsIndices normal_indices = norind[i];
 

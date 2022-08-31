@@ -23,19 +23,30 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void select_mesh_by_material(const Mesh &mesh,
                                     const Material *material,
                                     const IndexMask mask,
-                                    const MutableSpan<bool> r_selection)
+                                    MutableSpan<bool> r_selection)
 {
   BLI_assert(mesh.totpoly >= r_selection.size());
-  Vector<int> material_indices;
+  Vector<int> slots;
   for (const int i : IndexRange(mesh.totcol)) {
     if (mesh.mat[i] == material) {
-      material_indices.append(i);
+      slots.append(i);
     }
   }
+  const AttributeAccessor attributes = bke::mesh_attributes(mesh);
+  const VArray<int> material_indices = attributes.lookup_or_default<int>(
+      "material_index", ATTR_DOMAIN_FACE, 0);
+  if (material != nullptr && material_indices.is_single() &&
+      material_indices.get_internal_single() == 0) {
+    r_selection.fill_indices(mask, false);
+    return;
+  }
+
+  const VArraySpan<int> material_indices_span(material_indices);
+
   threading::parallel_for(mask.index_range(), 1024, [&](IndexRange range) {
     for (const int i : range) {
       const int face_index = mask[i];
-      r_selection[i] = material_indices.contains(mesh.mpoly[face_index].mat_nr);
+      r_selection[i] = slots.contains(material_indices_span[face_index]);
     }
   });
 }

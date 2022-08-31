@@ -11,6 +11,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_customdata.h"
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
@@ -255,7 +256,15 @@ static void get_loops_polys(const Mesh *mesh, USDMeshData &usd_mesh_data)
 {
   /* Only construct face groups (a.k.a. geometry subsets) when we need them for material
    * assignments. */
-  bool construct_face_groups = mesh->totcol > 1;
+  const bke::AttributeAccessor attributes = bke::mesh_attributes(*mesh);
+  const VArray<int> material_indices = attributes.lookup_or_default<int>(
+      "material_index", ATTR_DOMAIN_FACE, 0);
+  if (!material_indices.is_single() && mesh->totcol > 1) {
+    const VArraySpan<int> indices_span(material_indices);
+    for (const int i : indices_span.index_range()) {
+      usd_mesh_data.face_groups[indices_span[i]].push_back(i);
+    }
+  }
 
   usd_mesh_data.face_vertex_counts.reserve(mesh->totpoly);
   usd_mesh_data.face_indices.reserve(mesh->totloop);
@@ -267,10 +276,6 @@ static void get_loops_polys(const Mesh *mesh, USDMeshData &usd_mesh_data)
     usd_mesh_data.face_vertex_counts.push_back(mpoly->totloop);
     for (int j = 0; j < mpoly->totloop; ++j, ++loop) {
       usd_mesh_data.face_indices.push_back(loop->v);
-    }
-
-    if (construct_face_groups) {
-      usd_mesh_data.face_groups[mpoly->mat_nr].push_back(i);
     }
   }
 }

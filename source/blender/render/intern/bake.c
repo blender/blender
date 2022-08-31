@@ -740,14 +740,15 @@ void RE_bake_pixels_populate(Mesh *me,
 
   BKE_mesh_recalc_looptri(me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, looptri);
 
+  const int *material_indices = BKE_mesh_material_indices(me);
+
   for (int i = 0; i < tottri; i++) {
     const MLoopTri *lt = &looptri[i];
-    const MPoly *mp = &me->mpoly[lt->poly];
 
     bd.primitive_id = i;
 
     /* Find images matching this material. */
-    Image *image = targets->material_to_image[mp->mat_nr];
+    Image *image = targets->material_to_image[material_indices ? material_indices[lt->poly] : 0];
     for (int image_id = 0; image_id < targets->images_num; image_id++) {
       BakeImage *bk_image = &targets->images[image_id];
       if (bk_image->image != image) {

@@ -947,6 +947,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   /* more of an offset in this case */
   edge_offset = totedge + (totvert * (step_tot - (close ? 0 : 1)));
 
+  const int *src_material_index = BKE_mesh_material_indices(mesh);
+  int *dst_material_index = BKE_mesh_material_indices_for_write(result);
+
   for (i = 0; i < totedge; i++, med_new_firstloop++) {
     const uint step_last = step_tot - (close ? 1 : 2);
     const uint mpoly_index_orig = totpoly ? edge_poly_map[i] : UINT_MAX;
@@ -959,14 +962,14 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     };
     const bool has_mloop_orig = mloop_index_orig[0] != UINT_MAX;
 
-    short mat_nr;
+    int mat_nr;
 
     /* for each edge, make a cylinder of quads */
     i1 = med_new_firstloop->v1;
     i2 = med_new_firstloop->v2;
 
     if (has_mpoly_orig) {
-      mat_nr = mpoly_orig[mpoly_index_orig].mat_nr;
+      mat_nr = src_material_index == NULL ? 0 : src_material_index[mpoly_index_orig];
     }
     else {
       mat_nr = 0;
@@ -992,8 +995,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       }
       else {
         origindex[mpoly_index] = ORIGINDEX_NONE;
+        dst_material_index[mpoly_index] = mat_nr;
         mp_new->flag = mpoly_flag;
-        mp_new->mat_nr = mat_nr;
       }
       mp_new->loopstart = mpoly_index * 4;
       mp_new->totloop = 4;
