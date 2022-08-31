@@ -131,9 +131,9 @@ class ColorSpillShaderNode : public ShaderNode {
     return (CMPNodeColorSpillLimitAlgorithm)bnode().custom2;
   }
 
-  NodeColorspill *get_node_color_spill()
+  const NodeColorspill *get_node_color_spill()
   {
-    return static_cast<NodeColorspill *>(bnode().storage);
+    return static_cast<const NodeColorspill *>(bnode().storage);
   }
 
   void get_spill_scale(float spill_scale[3])

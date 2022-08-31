@@ -87,9 +87,9 @@ class MapValueShaderNode : public ShaderNode {
                    GPU_uniform(texture_mapping->max));
   }
 
-  TexMapping *get_texture_mapping()
+  const TexMapping *get_texture_mapping()
   {
-    return static_cast<TexMapping *>(bnode().storage);
+    return static_cast<const TexMapping *>(bnode().storage);
   }
 
   bool get_use_min()

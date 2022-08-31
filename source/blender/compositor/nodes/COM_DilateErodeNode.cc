@@ -27,8 +27,7 @@ DilateErodeNode::DilateErodeNode(bNode *editor_node) : Node(editor_node)
 void DilateErodeNode::convert_to_operations(NodeConverter &converter,
                                             const CompositorContext &context) const
 {
-
-  bNode *editor_node = this->get_bnode();
+  const bNode *editor_node = this->get_bnode();
   if (editor_node->custom1 == CMP_NODE_DILATEERODE_DISTANCE_THRESH) {
     DilateErodeThresholdOperation *operation = new DilateErodeThresholdOperation();
     operation->set_distance(editor_node->custom2);

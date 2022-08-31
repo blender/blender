@@ -21,7 +21,7 @@ void MixNode::convert_to_operations(NodeConverter &converter,
   NodeInput *color1Socket = this->get_input_socket(1);
   NodeInput *color2Socket = this->get_input_socket(2);
   NodeOutput *output_socket = this->get_output_socket(0);
-  bNode *editor_node = this->get_bnode();
+  const bNode *editor_node = this->get_bnode();
   bool use_alpha_premultiply = (this->get_bnode()->custom2 & 1) != 0;
   bool use_clamp = (this->get_bnode()->custom2 & 2) != 0;
 

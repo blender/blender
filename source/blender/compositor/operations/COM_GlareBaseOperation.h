@@ -32,7 +32,7 @@ class GlareBaseOperation : public SingleThreadedOperation {
   /**
    * \brief settings of the glare node.
    */
-  NodeGlare *settings_;
+  const NodeGlare *settings_;
 
   bool is_output_rendered_;
 
@@ -47,7 +47,7 @@ class GlareBaseOperation : public SingleThreadedOperation {
    */
   void deinit_execution() override;
 
-  void set_glare_settings(NodeGlare *settings)
+  void set_glare_settings(const NodeGlare *settings)
   {
     settings_ = settings;
   }
@@ -64,7 +64,9 @@ class GlareBaseOperation : public SingleThreadedOperation {
  protected:
   GlareBaseOperation();
 
-  virtual void generate_glare(float *data, MemoryBuffer *input_tile, NodeGlare *settings) = 0;
+  virtual void generate_glare(float *data,
+                              MemoryBuffer *input_tile,
+                              const NodeGlare *settings) = 0;
 
   MemoryBuffer *create_memory_buffer(rcti *rect) override;
 };

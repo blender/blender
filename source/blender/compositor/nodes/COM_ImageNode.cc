@@ -55,7 +55,7 @@ void ImageNode::convert_to_operations(NodeConverter &converter,
 {
   /** Image output */
   NodeOutput *output_image = this->get_output_socket(0);
-  bNode *editor_node = this->get_bnode();
+  const bNode *editor_node = this->get_bnode();
   Image *image = (Image *)editor_node->id;
   ImageUser *imageuser = (ImageUser *)editor_node->storage;
   int framenumber = context.get_framenumber();

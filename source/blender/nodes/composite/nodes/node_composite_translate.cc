@@ -76,9 +76,9 @@ class TranslateOperation : public NodeOperation {
     result.get_realization_options().repeat_y = get_repeat_y();
   }
 
-  NodeTranslateData &get_node_translate()
+  const NodeTranslateData &get_node_translate()
   {
-    return *static_cast<NodeTranslateData *>(bnode().storage);
+    return *static_cast<const NodeTranslateData *>(bnode().storage);
   }
 
   bool get_use_relative()

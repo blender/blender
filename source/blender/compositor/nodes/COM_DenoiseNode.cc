@@ -19,8 +19,8 @@ void DenoiseNode::convert_to_operations(NodeConverter &converter,
     return;
   }
 
-  bNode *node = this->get_bnode();
-  NodeDenoise *denoise = (NodeDenoise *)node->storage;
+  const bNode *node = this->get_bnode();
+  const NodeDenoise *denoise = (const NodeDenoise *)node->storage;
 
   DenoiseOperation *operation = new DenoiseOperation();
   converter.add_operation(operation);

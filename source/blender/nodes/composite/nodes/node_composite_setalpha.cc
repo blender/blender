@@ -62,9 +62,9 @@ class SetAlphaShaderNode : public ShaderNode {
     GPU_stack_link(material, &bnode(), "node_composite_set_alpha_replace", inputs, outputs);
   }
 
-  NodeSetAlpha *get_node_set_alpha()
+  const NodeSetAlpha *get_node_set_alpha()
   {
-    return static_cast<NodeSetAlpha *>(bnode().storage);
+    return static_cast<const NodeSetAlpha *>(bnode().storage);
   }
 };
 

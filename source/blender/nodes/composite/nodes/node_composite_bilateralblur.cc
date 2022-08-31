@@ -103,9 +103,9 @@ class BilateralBlurOperation : public NodeOperation {
     return get_node_bilateral_blur_data().sigma_color;
   }
 
-  NodeBilateralBlurData &get_node_bilateral_blur_data()
+  const NodeBilateralBlurData &get_node_bilateral_blur_data()
   {
-    return *static_cast<NodeBilateralBlurData *>(bnode().storage);
+    return *static_cast<const NodeBilateralBlurData *>(bnode().storage);
   }
 };
 

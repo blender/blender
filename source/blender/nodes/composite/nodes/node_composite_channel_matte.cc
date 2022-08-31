@@ -130,9 +130,9 @@ class ChannelMatteShaderNode : public ShaderNode {
     return bnode().custom2 - 1;
   }
 
-  NodeChroma *get_node_chroma()
+  const NodeChroma *get_node_chroma()
   {
-    return static_cast<NodeChroma *>(bnode().storage);
+    return static_cast<const NodeChroma *>(bnode().storage);
   }
 
   /* Get the index of the channel used to compute the limit value. */

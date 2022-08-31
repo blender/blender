@@ -86,9 +86,9 @@ class BokehImageOperation : public NodeOperation {
     return Domain(int2(512));
   }
 
-  NodeBokehImage &get_node_bokeh_image()
+  const NodeBokehImage &get_node_bokeh_image()
   {
-    return *static_cast<NodeBokehImage *>(bnode().storage);
+    return *static_cast<const NodeBokehImage *>(bnode().storage);
   }
 
   /* The exterior angle is the angle between each two consecutive vertices of the regular polygon

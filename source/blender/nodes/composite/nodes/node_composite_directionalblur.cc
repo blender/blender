@@ -181,9 +181,9 @@ class DirectionalBlurOperation : public NodeOperation {
     return true;
   }
 
-  NodeDBlurData &get_node_directional_blur_data()
+  const NodeDBlurData &get_node_directional_blur_data()
   {
-    return *static_cast<NodeDBlurData *>(bnode().storage);
+    return *static_cast<const NodeDBlurData *>(bnode().storage);
   }
 };
 

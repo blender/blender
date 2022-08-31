@@ -59,7 +59,7 @@ class HueCorrectShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    CurveMapping *curve_mapping = get_curve_mapping();
+    CurveMapping *curve_mapping = const_cast<CurveMapping *>(get_curve_mapping());
 
     BKE_curvemapping_init(curve_mapping);
     float *band_values;
@@ -84,9 +84,9 @@ class HueCorrectShaderNode : public ShaderNode {
                    GPU_uniform(range_dividers));
   }
 
-  CurveMapping *get_curve_mapping()
+  const CurveMapping *get_curve_mapping()
   {
-    return static_cast<CurveMapping *>(bnode().storage);
+    return static_cast<const CurveMapping *>(bnode().storage);
   }
 };
 

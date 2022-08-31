@@ -50,7 +50,7 @@ void OutputFileNode::add_preview_to_first_linked_input(NodeConverter &converter)
 void OutputFileNode::convert_to_operations(NodeConverter &converter,
                                            const CompositorContext &context) const
 {
-  NodeImageMultiFile *storage = (NodeImageMultiFile *)this->get_bnode()->storage;
+  const NodeImageMultiFile *storage = (const NodeImageMultiFile *)this->get_bnode()->storage;
   const bool is_multiview = (context.get_render_data()->scemode & R_MULTIVIEW) != 0;
 
   add_preview_to_first_linked_input(converter);
@@ -99,8 +99,8 @@ void OutputFileNode::convert_to_operations(NodeConverter &converter,
       if (input->is_linked()) {
         NodeImageMultiFileSocket *sockdata =
             (NodeImageMultiFileSocket *)input->get_bnode_socket()->storage;
-        ImageFormatData *format = (sockdata->use_node_format ? &storage->format :
-                                                               &sockdata->format);
+        const ImageFormatData *format = (sockdata->use_node_format ? &storage->format :
+                                                                     &sockdata->format);
         char path[FILE_MAX];
 
         /* combine file path for the input */

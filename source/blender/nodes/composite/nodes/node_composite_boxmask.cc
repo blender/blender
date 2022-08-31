@@ -123,9 +123,9 @@ class BoxMaskOperation : public NodeOperation {
     }
   }
 
-  NodeBoxMask &get_node_box_mask()
+  const NodeBoxMask &get_node_box_mask()
   {
-    return *static_cast<NodeBoxMask *>(bnode().storage);
+    return *static_cast<const NodeBoxMask *>(bnode().storage);
   }
 
   float2 get_location()

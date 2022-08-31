@@ -86,7 +86,7 @@ class AlphaOverShaderNode : public ShaderNode {
 
   float get_premultiply_factor()
   {
-    return ((NodeTwoFloats *)bnode().storage)->x;
+    return ((const NodeTwoFloats *)bnode().storage)->x;
   }
 };
 

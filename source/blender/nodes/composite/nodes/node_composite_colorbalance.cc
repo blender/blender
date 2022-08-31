@@ -191,9 +191,9 @@ class ColorBalanceShaderNode : public ShaderNode {
     return (CMPNodeColorBalanceMethod)bnode().custom1;
   }
 
-  NodeColorBalance *get_node_color_balance()
+  const NodeColorBalance *get_node_color_balance()
   {
-    return static_cast<NodeColorBalance *>(bnode().storage);
+    return static_cast<const NodeColorBalance *>(bnode().storage);
   }
 };
 

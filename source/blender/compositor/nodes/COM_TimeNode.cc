@@ -18,7 +18,7 @@ void TimeNode::convert_to_operations(NodeConverter &converter,
                                      const CompositorContext &context) const
 {
   SetValueOperation *operation = new SetValueOperation();
-  bNode *node = this->get_bnode();
+  const bNode *node = this->get_bnode();
 
   /* stack order output: fac */
   float fac = 0.0f;

@@ -47,15 +47,15 @@ class TimeCurveOperation : public NodeOperation {
     Result &result = get_result("Fac");
     result.allocate_single_value();
 
-    CurveMapping *curve_mapping = get_curve_mapping();
+    CurveMapping *curve_mapping = const_cast<CurveMapping *>(get_curve_mapping());
     BKE_curvemapping_init(curve_mapping);
     const float time = BKE_curvemapping_evaluateF(curve_mapping, 0, compute_normalized_time());
     result.set_float_value(clamp_f(time, 0.0f, 1.0f));
   }
 
-  CurveMapping *get_curve_mapping()
+  const CurveMapping *get_curve_mapping()
   {
-    return static_cast<CurveMapping *>(bnode().storage);
+    return static_cast<const CurveMapping *>(bnode().storage);
   }
 
   int get_start_time()
@@ -143,7 +143,7 @@ class VectorCurvesShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    CurveMapping *curve_mapping = get_curve_mapping();
+    CurveMapping *curve_mapping = const_cast<CurveMapping *>(get_curve_mapping());
 
     BKE_curvemapping_init(curve_mapping);
     float *band_values;
@@ -173,9 +173,9 @@ class VectorCurvesShaderNode : public ShaderNode {
                    GPU_uniform(end_slopes));
   }
 
-  CurveMapping *get_curve_mapping()
+  const CurveMapping *get_curve_mapping()
   {
-    return static_cast<CurveMapping *>(bnode().storage);
+    return static_cast<const CurveMapping *>(bnode().storage);
   }
 };
 
@@ -239,7 +239,7 @@ class RGBCurvesShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    CurveMapping *curve_mapping = get_curve_mapping();
+    CurveMapping *curve_mapping = const_cast<CurveMapping *>(get_curve_mapping());
 
     BKE_curvemapping_init(curve_mapping);
     float *band_values;
@@ -311,9 +311,9 @@ class RGBCurvesShaderNode : public ShaderNode {
                    GPU_uniform(end_slopes));
   }
 
-  CurveMapping *get_curve_mapping()
+  const CurveMapping *get_curve_mapping()
   {
-    return static_cast<CurveMapping *>(bnode().storage);
+    return static_cast<const CurveMapping *>(bnode().storage);
   }
 };
 

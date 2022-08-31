@@ -86,9 +86,9 @@ class ChromaMatteShaderNode : public ShaderNode {
                    GPU_uniform(&falloff));
   }
 
-  NodeChroma *get_node_chroma()
+  const NodeChroma *get_node_chroma()
   {
-    return static_cast<NodeChroma *>(bnode().storage);
+    return static_cast<const NodeChroma *>(bnode().storage);
   }
 
   float get_acceptance()

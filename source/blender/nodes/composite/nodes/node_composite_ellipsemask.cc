@@ -121,9 +121,9 @@ class EllipseMaskOperation : public NodeOperation {
     }
   }
 
-  NodeEllipseMask &get_node_ellipse_mask()
+  const NodeEllipseMask &get_node_ellipse_mask()
   {
-    return *static_cast<NodeEllipseMask *>(bnode().storage);
+    return *static_cast<const NodeEllipseMask *>(bnode().storage);
   }
 
   float2 get_location()

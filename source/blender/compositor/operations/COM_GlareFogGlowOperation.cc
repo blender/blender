@@ -391,7 +391,7 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 
 void GlareFogGlowOperation::generate_glare(float *data,
                                            MemoryBuffer *input_tile,
-                                           NodeGlare *settings)
+                                           const NodeGlare *settings)
 {
   int x, y;
   float scale, u, v, r, w, d;

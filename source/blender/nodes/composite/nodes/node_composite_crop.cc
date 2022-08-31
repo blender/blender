@@ -163,9 +163,9 @@ class CropOperation : public NodeOperation {
     return bnode().custom2;
   }
 
-  NodeTwoXYs &get_node_two_xys()
+  const NodeTwoXYs &get_node_two_xys()
   {
-    return *static_cast<NodeTwoXYs *>(bnode().storage);
+    return *static_cast<const NodeTwoXYs *>(bnode().storage);
   }
 
   /* Returns true if the operation does nothing and the input can be passed through. */

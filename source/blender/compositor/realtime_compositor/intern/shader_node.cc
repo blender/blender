@@ -57,9 +57,9 @@ const DNode &ShaderNode::node() const
   return node_;
 }
 
-bNode &ShaderNode::bnode() const
+const bNode &ShaderNode::bnode() const
 {
-  return const_cast<bNode &>(*node_);
+  return *node_;
 }
 
 static eGPUType gpu_type_from_socket_type(eNodeSocketDatatype type)

@@ -17,8 +17,8 @@ TranslateNode::TranslateNode(bNode *editor_node) : Node(editor_node)
 void TranslateNode::convert_to_operations(NodeConverter &converter,
                                           const CompositorContext &context) const
 {
-  bNode *bnode = this->get_bnode();
-  NodeTranslateData *data = (NodeTranslateData *)bnode->storage;
+  const bNode *bnode = this->get_bnode();
+  const NodeTranslateData *data = (const NodeTranslateData *)bnode->storage;
 
   NodeInput *input_socket = this->get_input_socket(0);
   NodeInput *input_xsocket = this->get_input_socket(1);

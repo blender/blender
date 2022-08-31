@@ -334,9 +334,9 @@ class ColorCorrectionShaderNode : public ShaderNode {
     }
   }
 
-  NodeColorCorrection *get_node_color_correction()
+  const NodeColorCorrection *get_node_color_correction()
   {
-    return static_cast<NodeColorCorrection *>(bnode().storage);
+    return static_cast<const NodeColorCorrection *>(bnode().storage);
   }
 };
 

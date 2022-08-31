@@ -14,7 +14,7 @@ DespeckleNode::DespeckleNode(bNode *editor_node) : Node(editor_node)
 void DespeckleNode::convert_to_operations(NodeConverter &converter,
                                           const CompositorContext & /*context*/) const
 {
-  bNode *editor_node = this->get_bnode();
+  const bNode *editor_node = this->get_bnode();
   NodeInput *input_socket = this->get_input_socket(0);
   NodeInput *input_image_socket = this->get_input_socket(1);
   NodeOutput *output_socket = this->get_output_socket(0);

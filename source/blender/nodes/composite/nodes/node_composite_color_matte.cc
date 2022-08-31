@@ -83,9 +83,9 @@ class ColorMatteShaderNode : public ShaderNode {
                    GPU_uniform(&value_epsilon));
   }
 
-  NodeChroma *get_node_chroma()
+  const NodeChroma *get_node_chroma()
   {
-    return static_cast<NodeChroma *>(bnode().storage);
+    return static_cast<const NodeChroma *>(bnode().storage);
   }
 
   float get_hue_epsilon()
