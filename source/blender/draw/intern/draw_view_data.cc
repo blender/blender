@@ -197,6 +197,16 @@ void DRW_view_data_free_unused(DRWViewData *view_data)
   }
 }
 
+void DRW_view_data_engines_view_update(DRWViewData *view_data)
+{
+  for (ViewportEngineData &engine_data : view_data->engines) {
+    DrawEngineType *draw_engine = engine_data.engine_type->draw_engine;
+    if (draw_engine->view_update) {
+      draw_engine->view_update(&engine_data);
+    }
+  }
+}
+
 double *DRW_view_data_cache_time_get(DRWViewData *view_data)
 {
   return &view_data->cache_time;

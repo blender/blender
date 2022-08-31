@@ -1344,11 +1344,7 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
     drw_engines_enable(view_layer, engine_type, gpencil_engine_needed);
     drw_engines_data_validate();
 
-    DRW_ENABLED_ENGINE_ITER (DST.view_data_active, draw_engine, data) {
-      if (draw_engine->view_update) {
-        draw_engine->view_update(data);
-      }
-    }
+    DRW_view_data_engines_view_update(DST.view_data_active);
 
     drw_engines_disable();
   }
@@ -1400,11 +1396,7 @@ static void drw_notify_view_update_offscreen(struct Depsgraph *depsgraph,
       drw_engines_enable(view_layer, engine_type, gpencil_engine_needed);
       drw_engines_data_validate();
 
-      DRW_ENABLED_ENGINE_ITER (DST.view_data_active, draw_engine, data) {
-        if (draw_engine->view_update) {
-          draw_engine->view_update(data);
-        }
-      }
+      DRW_view_data_engines_view_update(DST.view_data_active);
 
       drw_engines_disable();
     }
