@@ -321,10 +321,18 @@ void gpu_node_graph_finalize_uniform_attrs(GPUNodeGraph *graph)
   LISTBASE_FOREACH (GPUUniformAttr *, attr, &attrs->list) {
     attr->id = next_id++;
 
-    attrs->hash_code ^= BLI_ghashutil_strhash_p(attr->name);
+    attr->hash_code = BLI_ghashutil_strhash_p(attr->name);
 
     if (attr->use_dupli) {
-      attrs->hash_code ^= BLI_ghashutil_uinthash(attr->id);
+      attr->hash_code ^= BLI_ghashutil_uinthash(attr->id);
+    }
+
+    attrs->hash_code ^= attr->hash_code;
+
+    {
+      char attr_name_esc[sizeof(attr->name) * 2];
+      BLI_str_escape(attr_name_esc, attr->name, sizeof(attr_name_esc));
+      SNPRINTF(attr->name_id_prop, "[\"%s\"]", attr_name_esc);
     }
   }
 }

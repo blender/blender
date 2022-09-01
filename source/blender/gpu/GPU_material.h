@@ -300,6 +300,10 @@ typedef struct GPUUniformAttr {
 
   /* Meaningful part of the attribute set key. */
   char name[64]; /* MAX_CUSTOMDATA_LAYER_NAME */
+  /** Escaped name with [""]. */
+  char name_id_prop[64 * 2 + 4];
+  /** Hash of name[64] + use_dupli. */
+  uint32_t hash_code;
   bool use_dupli;
 
   /* Helper fields used by code generation. */
@@ -314,7 +318,7 @@ typedef struct GPUUniformAttrList {
   unsigned int count, hash_code;
 } GPUUniformAttrList;
 
-GPUUniformAttrList *GPU_material_uniform_attributes(GPUMaterial *material);
+GPUUniformAttrList *GPU_material_uniform_attributes(const GPUMaterial *material);
 
 struct GHash *GPU_uniform_attr_list_hash_new(const char *info);
 void GPU_uniform_attr_list_copy(GPUUniformAttrList *dest, GPUUniformAttrList *src);
