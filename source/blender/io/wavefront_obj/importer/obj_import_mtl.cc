@@ -17,6 +17,7 @@
 
 #include "NOD_shader.h"
 
+#include "obj_export_mtl.hh"
 #include "obj_import_mtl.hh"
 #include "obj_import_string_utils.hh"
 
@@ -141,60 +142,17 @@ static Image *load_texture_image(Main *bmain, const MTLTexMap &tex_map, bool rel
   return image;
 }
 
-void UniqueNodetreeDeleter::operator()(bNodeTree *node)
+typedef Vector<std::pair<int, int>> NodeLocations;
+
+static std::pair<float, float> calc_location(int column, NodeLocations &r_locations)
 {
-  ntreeFreeEmbeddedTree(node);
-}
-
-ShaderNodetreeWrap::ShaderNodetreeWrap(Main *bmain,
-                                       const MTLMaterial &mtl_mat,
-                                       Material *mat,
-                                       bool relative_paths)
-    : mtl_mat_(mtl_mat)
-{
-  nodetree_.reset(ntreeAddTree(nullptr, "Shader Nodetree", ntreeType_Shader->idname));
-  bsdf_ = add_node_to_tree(SH_NODE_BSDF_PRINCIPLED);
-  shader_output_ = add_node_to_tree(SH_NODE_OUTPUT_MATERIAL);
-
-  set_bsdf_socket_values(mat);
-  add_image_textures(bmain, mat, relative_paths);
-  link_sockets(bsdf_, "BSDF", shader_output_, "Surface", 4);
-
-  nodeSetActive(nodetree_.get(), shader_output_);
-}
-
-/**
- * Assert if caller hasn't acquired nodetree.
- */
-ShaderNodetreeWrap::~ShaderNodetreeWrap()
-{
-  if (nodetree_) {
-    /* nodetree's ownership must be acquired by the caller. */
-    nodetree_.reset();
-    BLI_assert(0);
-  }
-}
-
-bNodeTree *ShaderNodetreeWrap::get_nodetree()
-{
-  /* If this function has been reached, we know that nodes and the nodetree
-   * can be added to the scene safely. */
-  return nodetree_.release();
-}
-
-bNode *ShaderNodetreeWrap::add_node_to_tree(const int node_type)
-{
-  return nodeAddStaticNode(nullptr, nodetree_.get(), node_type);
-}
-
-std::pair<float, float> ShaderNodetreeWrap::set_node_locations(const int pos_x)
-{
-  int pos_y = 0;
+  const float node_size = 300.f;
+  int row = 0;
   bool found = false;
   while (true) {
-    for (Span<int> location : node_locations) {
-      if (location[0] == pos_x && location[1] == pos_y) {
-        pos_y += 1;
+    for (const auto &location : r_locations) {
+      if (location.first == column && location.second == row) {
+        row += 1;
         found = true;
       }
       else {
@@ -202,29 +160,33 @@ std::pair<float, float> ShaderNodetreeWrap::set_node_locations(const int pos_x)
       }
     }
     if (!found) {
-      node_locations.append({pos_x, pos_y});
-      return {pos_x * node_size_, pos_y * node_size_ * 2.0 / 3.0};
+      r_locations.append({column, row});
+      return {column * node_size, row * node_size * 2.0 / 3.0};
     }
   }
 }
 
-void ShaderNodetreeWrap::link_sockets(bNode *from_node,
-                                      const char *from_node_id,
-                                      bNode *to_node,
-                                      const char *to_node_id,
-                                      const int from_node_pos_x)
+/* Node layout columns:
+ * Texture Coordinates -> Mapping -> Image -> Normal Map -> BSDF -> Output */
+static void link_sockets(bNodeTree *nodetree,
+                         bNode *from_node,
+                         const char *from_node_id,
+                         bNode *to_node,
+                         const char *to_node_id,
+                         const int from_node_column,
+                         NodeLocations &r_locations)
 {
-  std::tie(from_node->locx, from_node->locy) = set_node_locations(from_node_pos_x);
-  std::tie(to_node->locx, to_node->locy) = set_node_locations(from_node_pos_x + 1);
+  std::tie(from_node->locx, from_node->locy) = calc_location(from_node_column, r_locations);
+  std::tie(to_node->locx, to_node->locy) = calc_location(from_node_column + 1, r_locations);
   bNodeSocket *from_sock{nodeFindSocket(from_node, SOCK_OUT, from_node_id)};
   bNodeSocket *to_sock{nodeFindSocket(to_node, SOCK_IN, to_node_id)};
   BLI_assert(from_sock && to_sock);
-  nodeAddLink(nodetree_.get(), from_node, from_sock, to_node, to_sock);
+  nodeAddLink(nodetree, from_node, from_sock, to_node, to_sock);
 }
 
-void ShaderNodetreeWrap::set_bsdf_socket_values(Material *mat)
+static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial &mtl_mat)
 {
-  const int illum = mtl_mat_.illum;
+  const int illum = mtl_mat.illum;
   bool do_highlight = false;
   bool do_tranparency = false;
   bool do_reflection = false;
@@ -290,21 +252,21 @@ void ShaderNodetreeWrap::set_bsdf_socket_values(Material *mat)
   /* Approximations for trying to map obj/mtl material model into
    * Principled BSDF: */
   /* Specular: average of Ks components. */
-  float specular = (mtl_mat_.Ks[0] + mtl_mat_.Ks[1] + mtl_mat_.Ks[2]) / 3;
+  float specular = (mtl_mat.Ks[0] + mtl_mat.Ks[1] + mtl_mat.Ks[2]) / 3;
   if (specular < 0.0f) {
     specular = do_highlight ? 1.0f : 0.0f;
   }
   /* Roughness: map 0..1000 range to 1..0 and apply non-linearity. */
   float roughness;
-  if (mtl_mat_.Ns < 0.0f) {
+  if (mtl_mat.Ns < 0.0f) {
     roughness = do_highlight ? 0.0f : 1.0f;
   }
   else {
-    float clamped_ns = std::max(0.0f, std::min(1000.0f, mtl_mat_.Ns));
+    float clamped_ns = std::max(0.0f, std::min(1000.0f, mtl_mat.Ns));
     roughness = 1.0f - sqrt(clamped_ns / 1000.0f);
   }
   /* Metallic: average of Ka components. */
-  float metallic = (mtl_mat_.Ka[0] + mtl_mat_.Ka[1] + mtl_mat_.Ka[2]) / 3;
+  float metallic = (mtl_mat.Ka[0] + mtl_mat.Ka[1] + mtl_mat.Ka[2]) / 3;
   if (do_reflection) {
     if (metallic < 0.0f) {
       metallic = 1.0f;
@@ -314,7 +276,7 @@ void ShaderNodetreeWrap::set_bsdf_socket_values(Material *mat)
     metallic = 0.0f;
   }
 
-  float ior = mtl_mat_.Ni;
+  float ior = mtl_mat.Ni;
   if (ior < 0) {
     if (do_tranparency) {
       ior = 1.0f;
@@ -323,53 +285,59 @@ void ShaderNodetreeWrap::set_bsdf_socket_values(Material *mat)
       ior = 1.5f;
     }
   }
-  float alpha = mtl_mat_.d;
+  float alpha = mtl_mat.d;
   if (do_tranparency && alpha < 0) {
     alpha = 1.0f;
   }
 
-  float3 base_color = {mtl_mat_.Kd[0], mtl_mat_.Kd[1], mtl_mat_.Kd[2]};
+  float3 base_color = {mtl_mat.Kd[0], mtl_mat.Kd[1], mtl_mat.Kd[2]};
   if (base_color.x >= 0 && base_color.y >= 0 && base_color.z >= 0) {
-    set_property_of_socket(SOCK_RGBA, "Base Color", {base_color, 3}, bsdf_);
+    set_property_of_socket(SOCK_RGBA, "Base Color", {base_color, 3}, bsdf);
     /* Viewport shading uses legacy r,g,b base color. */
     mat->r = base_color.x;
     mat->g = base_color.y;
     mat->b = base_color.z;
   }
 
-  float3 emission_color = {mtl_mat_.Ke[0], mtl_mat_.Ke[1], mtl_mat_.Ke[2]};
+  float3 emission_color = {mtl_mat.Ke[0], mtl_mat.Ke[1], mtl_mat.Ke[2]};
   if (emission_color.x >= 0 && emission_color.y >= 0 && emission_color.z >= 0) {
-    set_property_of_socket(SOCK_RGBA, "Emission", {emission_color, 3}, bsdf_);
+    set_property_of_socket(SOCK_RGBA, "Emission", {emission_color, 3}, bsdf);
   }
-  if (mtl_mat_.tex_map_of_type(MTLTexMapType::Ke).is_valid()) {
-    set_property_of_socket(SOCK_FLOAT, "Emission Strength", {1.0f}, bsdf_);
+  if (mtl_mat.tex_map_of_type(MTLTexMapType::Ke).is_valid()) {
+    set_property_of_socket(SOCK_FLOAT, "Emission Strength", {1.0f}, bsdf);
   }
-  set_property_of_socket(SOCK_FLOAT, "Specular", {specular}, bsdf_);
-  set_property_of_socket(SOCK_FLOAT, "Roughness", {roughness}, bsdf_);
+  set_property_of_socket(SOCK_FLOAT, "Specular", {specular}, bsdf);
+  set_property_of_socket(SOCK_FLOAT, "Roughness", {roughness}, bsdf);
   mat->roughness = roughness;
-  set_property_of_socket(SOCK_FLOAT, "Metallic", {metallic}, bsdf_);
+  set_property_of_socket(SOCK_FLOAT, "Metallic", {metallic}, bsdf);
   mat->metallic = metallic;
   if (ior != -1) {
-    set_property_of_socket(SOCK_FLOAT, "IOR", {ior}, bsdf_);
+    set_property_of_socket(SOCK_FLOAT, "IOR", {ior}, bsdf);
   }
   if (alpha != -1) {
-    set_property_of_socket(SOCK_FLOAT, "Alpha", {alpha}, bsdf_);
+    set_property_of_socket(SOCK_FLOAT, "Alpha", {alpha}, bsdf);
   }
   if (do_tranparency || (alpha >= 0.0f && alpha < 1.0f)) {
     mat->blend_method = MA_BM_BLEND;
   }
 }
 
-void ShaderNodetreeWrap::add_image_textures(Main *bmain, Material *mat, bool relative_paths)
+static void add_image_textures(Main *bmain,
+                               bNodeTree *nodetree,
+                               bNode *bsdf,
+                               Material *mat,
+                               const MTLMaterial &mtl_mat,
+                               bool relative_paths,
+                               NodeLocations &r_locations)
 {
   for (int key = 0; key < (int)MTLTexMapType::Count; ++key) {
-    const MTLTexMap &value = mtl_mat_.texture_maps[key];
+    const MTLTexMap &value = mtl_mat.texture_maps[key];
     if (!value.is_valid()) {
       /* No Image texture node of this map type can be added to this material. */
       continue;
     }
 
-    bNode *image_texture = add_node_to_tree(SH_NODE_TEX_IMAGE);
+    bNode *image_texture = nodeAddStaticNode(nullptr, nodetree, SH_NODE_TEX_IMAGE);
     BLI_assert(image_texture);
     Image *image = load_texture_image(bmain, value, relative_paths);
     if (image == nullptr) {
@@ -381,33 +349,54 @@ void ShaderNodetreeWrap::add_image_textures(Main *bmain, Material *mat, bool rel
     /* Add normal map node if needed. */
     bNode *normal_map = nullptr;
     if (key == (int)MTLTexMapType::bump) {
-      normal_map = add_node_to_tree(SH_NODE_NORMAL_MAP);
-      const float bump = std::max(0.0f, mtl_mat_.map_Bump_strength);
+      normal_map = nodeAddStaticNode(nullptr, nodetree, SH_NODE_NORMAL_MAP);
+      const float bump = std::max(0.0f, mtl_mat.map_Bump_strength);
       set_property_of_socket(SOCK_FLOAT, "Strength", {bump}, normal_map);
     }
 
     /* Add UV mapping & coordinate nodes only if needed. */
     if (value.translation != float3(0, 0, 0) || value.scale != float3(1, 1, 1)) {
-      bNode *mapping = add_node_to_tree(SH_NODE_MAPPING);
-      bNode *texture_coordinate = add_node_to_tree(SH_NODE_TEX_COORD);
+      bNode *mapping = nodeAddStaticNode(nullptr, nodetree, SH_NODE_MAPPING);
+      bNode *texture_coordinate = nodeAddStaticNode(nullptr, nodetree, SH_NODE_TEX_COORD);
       set_property_of_socket(SOCK_VECTOR, "Location", {value.translation, 3}, mapping);
       set_property_of_socket(SOCK_VECTOR, "Scale", {value.scale, 3}, mapping);
 
-      link_sockets(texture_coordinate, "UV", mapping, "Vector", 0);
-      link_sockets(mapping, "Vector", image_texture, "Vector", 1);
+      link_sockets(nodetree, texture_coordinate, "UV", mapping, "Vector", 0, r_locations);
+      link_sockets(nodetree, mapping, "Vector", image_texture, "Vector", 1, r_locations);
     }
 
     if (normal_map) {
-      link_sockets(image_texture, "Color", normal_map, "Color", 2);
-      link_sockets(normal_map, "Normal", bsdf_, "Normal", 3);
+      link_sockets(nodetree, image_texture, "Color", normal_map, "Color", 2, r_locations);
+      link_sockets(nodetree, normal_map, "Normal", bsdf, "Normal", 3, r_locations);
     }
     else if (key == (int)MTLTexMapType::d) {
-      link_sockets(image_texture, "Alpha", bsdf_, tex_map_type_to_socket_id[key], 2);
+      link_sockets(
+          nodetree, image_texture, "Alpha", bsdf, tex_map_type_to_socket_id[key], 2, r_locations);
       mat->blend_method = MA_BM_BLEND;
     }
     else {
-      link_sockets(image_texture, "Color", bsdf_, tex_map_type_to_socket_id[key], 2);
+      link_sockets(
+          nodetree, image_texture, "Color", bsdf, tex_map_type_to_socket_id[key], 2, r_locations);
     }
   }
 }
+
+bNodeTree *create_mtl_node_tree(Main *bmain,
+                                const MTLMaterial &mtl,
+                                Material *mat,
+                                bool relative_paths)
+{
+  bNodeTree *nodetree = ntreeAddTree(nullptr, "Shader Nodetree", ntreeType_Shader->idname);
+  bNode *bsdf = nodeAddStaticNode(nullptr, nodetree, SH_NODE_BSDF_PRINCIPLED);
+  bNode *shader_output = nodeAddStaticNode(nullptr, nodetree, SH_NODE_OUTPUT_MATERIAL);
+
+  NodeLocations node_locations;
+  set_bsdf_socket_values(bsdf, mat, mtl);
+  add_image_textures(bmain, nodetree, bsdf, mat, mtl, relative_paths, node_locations);
+  link_sockets(nodetree, bsdf, "BSDF", shader_output, "Surface", 4, node_locations);
+  nodeSetActive(nodetree, shader_output);
+
+  return nodetree;
+}
+
 }  // namespace blender::io::obj

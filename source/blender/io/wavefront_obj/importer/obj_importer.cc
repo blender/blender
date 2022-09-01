@@ -19,6 +19,7 @@
 
 #include "DNA_collection_types.h"
 
+#include "obj_export_mtl.hh"
 #include "obj_import_file_reader.hh"
 #include "obj_import_mesh.hh"
 #include "obj_import_nurbs.hh"

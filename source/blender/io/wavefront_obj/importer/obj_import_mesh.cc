@@ -22,6 +22,7 @@
 
 #include "IO_wavefront_obj.h"
 #include "importer_mesh_utils.hh"
+#include "obj_export_mtl.hh"
 #include "obj_import_mesh.hh"
 
 namespace blender::io::obj {
@@ -304,9 +305,8 @@ static Material *get_or_create_material(Main *bmain,
   Material *mat = BKE_material_add(bmain, name.c_str());
   id_us_min(&mat->id);
 
-  ShaderNodetreeWrap mat_wrap{bmain, mtl, mat, relative_paths};
   mat->use_nodes = true;
-  mat->nodetree = mat_wrap.get_nodetree();
+  mat->nodetree = create_mtl_node_tree(bmain, mtl, mat, relative_paths);
   BKE_ntree_update_main_tree(bmain, mat->nodetree, nullptr);
 
   created_materials.add_new(name, mat);
