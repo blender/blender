@@ -320,20 +320,7 @@ void gpu_node_graph_finalize_uniform_attrs(GPUNodeGraph *graph)
 
   LISTBASE_FOREACH (GPUUniformAttr *, attr, &attrs->list) {
     attr->id = next_id++;
-
-    attr->hash_code = BLI_ghashutil_strhash_p(attr->name);
-
-    if (attr->use_dupli) {
-      attr->hash_code ^= BLI_ghashutil_uinthash(attr->id);
-    }
-
-    attrs->hash_code ^= attr->hash_code;
-
-    {
-      char attr_name_esc[sizeof(attr->name) * 2];
-      BLI_str_escape(attr_name_esc, attr->name, sizeof(attr_name_esc));
-      SNPRINTF(attr->name_id_prop, "[\"%s\"]", attr_name_esc);
-    }
+    attrs->hash_code ^= BLI_ghashutil_uinthash(attr->hash_code + (1 << (attr->id + 1)));
   }
 }
 
@@ -428,7 +415,13 @@ static GPUUniformAttr *gpu_node_graph_add_uniform_attribute(GPUNodeGraph *graph,
   if (attr == NULL && attrs->count < GPU_MAX_UNIFORM_ATTR) {
     attr = MEM_callocN(sizeof(*attr), __func__);
     STRNCPY(attr->name, name);
+    {
+      char attr_name_esc[sizeof(attr->name) * 2];
+      BLI_str_escape(attr_name_esc, attr->name, sizeof(attr_name_esc));
+      SNPRINTF(attr->name_id_prop, "[\"%s\"]", attr_name_esc);
+    }
     attr->use_dupli = use_dupli;
+    attr->hash_code = BLI_ghashutil_strhash_p(attr->name) << 1 | (attr->use_dupli ? 0 : 1);
     attr->id = -1;
     BLI_addtail(&attrs->list, attr);
     attrs->count++;
@@ -532,16 +525,21 @@ GPUNodeLink *GPU_attribute_with_default(GPUMaterial *mat,
   return link;
 }
 
-GPUNodeLink *GPU_uniform_attribute(GPUMaterial *mat, const char *name, bool use_dupli)
+GPUNodeLink *GPU_uniform_attribute(GPUMaterial *mat,
+                                   const char *name,
+                                   bool use_dupli,
+                                   uint32_t *r_hash)
 {
   GPUNodeGraph *graph = gpu_material_node_graph(mat);
   GPUUniformAttr *attr = gpu_node_graph_add_uniform_attribute(graph, name, use_dupli);
 
   /* Dummy fallback if out of slots. */
   if (attr == NULL) {
+    *r_hash = 0;
     static const float zero_data[GPU_MAX_CONSTANT_DATA] = {0.0f};
     return GPU_constant(zero_data);
   }
+  *r_hash = attr->hash_code;
 
   GPUNodeLink *link = gpu_node_link_create();
   link->link_type = GPU_NODE_LINK_UNIFORM_ATTR;

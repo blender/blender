@@ -59,11 +59,17 @@ ENUM_OPERATORS(eObjectInfoFlag, OBJECT_NEGATIVE_SCALE)
 
 inline void ObjectInfos::sync()
 {
+  object_attrs_len = 0;
+  object_attrs_offset = 0;
+
   flag = eObjectInfoFlag::OBJECT_NO_INFO;
 }
 
 inline void ObjectInfos::sync(const blender::draw::ObjectRef ref, bool is_active_object)
 {
+  object_attrs_len = 0;
+  object_attrs_offset = 0;
+
   color = ref.object->color;
   index = ref.object->index;
   SET_FLAG_FROM_TEST(flag, is_active_object, eObjectInfoFlag::OBJECT_ACTIVE);

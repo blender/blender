@@ -26,3 +26,11 @@ GPU_SHADER_CREATE_INFO(draw_object_infos_new)
     .define("ObjectInfo", "(drw_infos[resource_id].infos)")
     .define("ObjectColor", "(drw_infos[resource_id].color)")
     .storage_buf(DRW_OBJ_INFOS_SLOT, Qualifier::READ, "ObjectInfos", "drw_infos[]");
+
+/** \note Requires draw_object_infos_new. */
+GPU_SHADER_CREATE_INFO(draw_object_attribute_new)
+    .define("OBATTR_LIB")
+    .define("ObjectAttributeStart", "(drw_infos[resource_id].orco_mul_bias[0].w)")
+    .define("ObjectAttributeLen", "(drw_infos[resource_id].orco_mul_bias[1].w)")
+    .storage_buf(DRW_OBJ_ATTR_SLOT, Qualifier::READ, "ObjectAttribute", "drw_attrs[]")
+    .additional_info("draw_object_infos_new");

@@ -13,6 +13,7 @@ typedef struct ObjectInfos ObjectInfos;
 typedef struct ObjectBounds ObjectBounds;
 typedef struct VolumeInfos VolumeInfos;
 typedef struct CurvesInfos CurvesInfos;
+typedef struct ObjectAttribute ObjectAttribute;
 typedef struct DrawCommand DrawCommand;
 typedef struct DispatchCommand DispatchCommand;
 typedef struct DRWDebugPrintBuffer DRWDebugPrintBuffer;
@@ -22,6 +23,8 @@ typedef struct DRWDebugDrawBuffer DRWDebugDrawBuffer;
 #  ifdef __cplusplus
 /* C++ only forward declarations. */
 struct Object;
+struct ID;
+struct GPUUniformAttr;
 
 namespace blender::draw {
 
@@ -130,9 +133,9 @@ struct ObjectInfos {
 #else
   /** Uploaded as center + size. Converted to mul+bias to local coord.  */
   float3 orco_add;
-  float _pad0;
+  uint object_attrs_offset;
   float3 orco_mul;
-  float _pad1;
+  uint object_attrs_len;
 
   float4 color;
   uint index;
@@ -192,6 +195,23 @@ struct CurvesInfos {
   uint4 is_point_attribute[DRW_ATTRIBUTE_PER_CURVES_MAX];
 };
 BLI_STATIC_ASSERT_ALIGN(CurvesInfos, 16)
+
+#pragma pack(push, 4)
+struct ObjectAttribute {
+  /* Workaround the padding cost from alignment requirements.
+   * (see GL spec : 7.6.2.2 Standard Uniform Block Layout) */
+  float data_x, data_y, data_z, data_w;
+  uint hash_code;
+
+#if !defined(GPU_SHADER) && defined(__cplusplus)
+  bool sync(const blender::draw::ObjectRef &ref, const GPUUniformAttr &attr);
+  bool id_property_lookup(ID *id, const char *name);
+#endif
+};
+#pragma pack(pop)
+/** \note we only align to 4 bytes and fetch data manually so make sure
+ * C++ compiler gives us the same size. */
+BLI_STATIC_ASSERT_ALIGN(ObjectAttribute, 20)
 
 /** \} */
 

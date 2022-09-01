@@ -13,7 +13,9 @@
  * \note It is currently work in progress and should replace the old global draw manager.
  */
 
+#include "BLI_listbase_wrapper.hh"
 #include "BLI_sys_types.h"
+#include "GPU_material.h"
 
 #include "draw_resource.hh"
 #include "draw_view.hh"
@@ -41,6 +43,9 @@ class Manager {
   using ObjectMatricesBuf = StorageArrayBuffer<ObjectMatrices, 128>;
   using ObjectBoundsBuf = StorageArrayBuffer<ObjectBounds, 128>;
   using ObjectInfosBuf = StorageArrayBuffer<ObjectInfos, 128>;
+  using ObjectAttributeBuf = StorageArrayBuffer<ObjectAttribute, 128>;
+  /** TODO(fclem): Remove once we get rid of old EEVEE codebase. DRW_RESOURCE_CHUNK_LEN = 512 */
+  using ObjectAttributeLegacyBuf = UniformArrayBuffer<float4, 8 * 512>;
 
  public:
   struct SubmitDebugOutput {
@@ -67,14 +72,25 @@ class Manager {
   ObjectBoundsBuf bounds_buf;
   ObjectInfosBuf infos_buf;
 
+  /**
+   * Object Attributes are reference by indirection data inside ObjectInfos.
+   * This is because attribute list is arbitrary.
+   */
+  ObjectAttributeBuf attributes_buf;
+  /** TODO(fclem): Remove once we get rid of old EEVEE codebase. Only here to satisfy bindings. */
+  ObjectAttributeLegacyBuf attributes_buf_legacy;
+
   /** List of textures coming from Image data-blocks. They need to be refcounted in order to avoid
    * beeing freed in another thread. */
   Vector<GPUTexture *> acquired_textures;
 
  private:
+  /** Number of resource handle recorded. */
   uint resource_len_ = 0;
-  Object *object = nullptr;
+  /** Number of object attribute recorded. */
+  uint attribute_len_ = 0;
 
+  Object *object = nullptr;
   Object *object_active = nullptr;
 
  public:
@@ -104,7 +120,7 @@ class Manager {
    * Populate additional per resource data on demand.
    */
   void extract_object_attributes(ResourceHandle handle,
-                                 Object &object,
+                                 const ObjectRef &ref,
                                  Span<GPUMaterial *> materials);
 
   /**
@@ -145,6 +161,7 @@ class Manager {
   void end_sync();
 
   void debug_bind();
+  void resource_bind();
 };
 
 inline ResourceHandle Manager::resource_handle(const ObjectRef ref)
@@ -175,13 +192,34 @@ inline ResourceHandle Manager::resource_handle(const float4x4 &model_matrix,
 }
 
 inline void Manager::extract_object_attributes(ResourceHandle handle,
-                                               Object &object,
+                                               const ObjectRef &ref,
                                                Span<GPUMaterial *> materials)
 {
-  /* TODO */
-  (void)handle;
-  (void)object;
-  (void)materials;
+  ObjectInfos &infos = infos_buf.get_or_resize(handle.resource_index());
+  infos.object_attrs_offset = attribute_len_;
+
+  /* Simple cache solution to avoid duplicates. */
+  Vector<uint32_t, 4> hash_cache;
+
+  for (const GPUMaterial *mat : materials) {
+    const GPUUniformAttrList *attr_list = GPU_material_uniform_attributes(mat);
+    if (attr_list == nullptr) {
+      continue;
+    }
+
+    LISTBASE_FOREACH (const GPUUniformAttr *, attr, &attr_list->list) {
+      /** WATCH: Linear Search. Avoid duplicate attributes across materials. */
+      if ((mat != materials.first()) && (hash_cache.first_index_of_try(attr->hash_code) != -1)) {
+        /* Attribute has already been added to the attribute buffer by another material. */
+        continue;
+      }
+      hash_cache.append(attr->hash_code);
+      if (attributes_buf.get_or_resize(attribute_len_).sync(ref, *attr)) {
+        infos.object_attrs_len++;
+        attribute_len_++;
+      }
+    }
+  }
 }
 
 }  // namespace blender::draw

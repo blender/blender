@@ -149,7 +149,10 @@ GPUNodeLink *GPU_attribute_with_default(GPUMaterial *mat,
                                         eCustomDataType type,
                                         const char *name,
                                         eGPUDefaultValue default_value);
-GPUNodeLink *GPU_uniform_attribute(GPUMaterial *mat, const char *name, bool use_dupli);
+GPUNodeLink *GPU_uniform_attribute(GPUMaterial *mat,
+                                   const char *name,
+                                   bool use_dupli,
+                                   uint32_t *r_hash);
 GPUNodeLink *GPU_image(GPUMaterial *mat,
                        struct Image *ima,
                        struct ImageUser *iuser,

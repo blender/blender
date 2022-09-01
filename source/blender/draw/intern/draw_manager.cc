@@ -43,6 +43,7 @@ void Manager::begin_sync()
   memset(infos_buf.data(), 0xF0, resource_len_ * sizeof(*infos_buf.data()));
 #endif
   resource_len_ = 0;
+  attribute_len_ = 0;
   /* TODO(fclem): Resize buffers if too big, but with an hysteresis threshold. */
 
   object_active = DST.draw_ctx.obact;
@@ -58,6 +59,8 @@ void Manager::end_sync()
   matrix_buf.push_update();
   bounds_buf.push_update();
   infos_buf.push_update();
+  attributes_buf.push_update();
+  attributes_buf_legacy.push_update();
 
   debug_bind();
 
@@ -90,6 +93,16 @@ void Manager::debug_bind()
 #endif
 }
 
+void Manager::resource_bind()
+{
+  GPU_storagebuf_bind(matrix_buf, DRW_OBJ_MAT_SLOT);
+  GPU_storagebuf_bind(infos_buf, DRW_OBJ_INFOS_SLOT);
+  GPU_storagebuf_bind(attributes_buf, DRW_OBJ_ATTR_SLOT);
+  /* 2 is the hardcoded location of the uniform attr UBO. */
+  /* TODO(@fclem): Remove this workaround. */
+  GPU_uniformbuf_bind(attributes_buf_legacy, 2);
+}
+
 void Manager::submit(PassSimple &pass, View &view)
 {
   view.bind();
@@ -101,9 +114,7 @@ void Manager::submit(PassSimple &pass, View &view)
 
   pass.draw_commands_buf_.bind(state, pass.headers_, pass.commands_);
 
-  GPU_storagebuf_bind(matrix_buf, DRW_OBJ_MAT_SLOT);
-  GPU_storagebuf_bind(infos_buf, DRW_OBJ_INFOS_SLOT);
-  // GPU_storagebuf_bind(attribute_buf, DRW_OBJ_ATTR_SLOT); /* TODO */
+  resource_bind();
 
   pass.submit(state);
 
@@ -126,9 +137,7 @@ void Manager::submit(PassMain &pass, View &view)
 
   pass.draw_commands_buf_.bind(state, pass.headers_, pass.commands_, view.visibility_buf_);
 
-  GPU_storagebuf_bind(matrix_buf, DRW_OBJ_MAT_SLOT);
-  GPU_storagebuf_bind(infos_buf, DRW_OBJ_INFOS_SLOT);
-  // GPU_storagebuf_bind(attribute_buf, DRW_OBJ_ATTR_SLOT); /* TODO */
+  resource_bind();
 
   pass.submit(state);
 
@@ -150,9 +159,7 @@ void Manager::submit(PassSimple &pass)
 
   pass.draw_commands_buf_.bind(state, pass.headers_, pass.commands_);
 
-  GPU_storagebuf_bind(matrix_buf, DRW_OBJ_MAT_SLOT);
-  GPU_storagebuf_bind(infos_buf, DRW_OBJ_INFOS_SLOT);
-  // GPU_storagebuf_bind(attribute_buf, DRW_OBJ_ATTR_SLOT); /* TODO */
+  resource_bind();
 
   pass.submit(state);
 

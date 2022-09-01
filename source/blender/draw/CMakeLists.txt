@@ -227,6 +227,8 @@ set(SRC
   intern/draw_manager.h
   intern/draw_manager.hh
   intern/draw_pass.hh
+  intern/draw_resource.cc
+  intern/draw_resource.hh
   intern/draw_shader_shared.h
   intern/draw_shader.h
   intern/draw_subdivision.h
