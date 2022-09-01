@@ -35,35 +35,37 @@ with offscreen.bind():
 # Drawing the generated texture in 3D space
 #############################################
 
-vertex_shader = '''
-    uniform mat4 modelMatrix;
-    uniform mat4 viewProjectionMatrix;
+vert_out = gpu.types.GPUStageInterfaceInfo("my_interface")
+vert_out.smooth('VEC2', "uvInterp")
 
-    in vec2 position;
-    in vec2 uv;
+shader_info = gpu.types.GPUShaderCreateInfo()
+shader_info.push_constant('MAT4', "viewProjectionMatrix")
+shader_info.push_constant('MAT4', "modelMatrix")
+shader_info.sampler(0, 'FLOAT_2D', "image")
+shader_info.vertex_in(0, 'VEC2', "position")
+shader_info.vertex_in(1, 'VEC2', "uv")
+shader_info.vertex_out(vert_out)
+shader_info.fragment_out(0, 'VEC4', "FragColor")
 
-    out vec2 uvInterp;
+shader_info.vertex_source(
+    "void main()"
+    "{"
+    "  uvInterp = uv;"
+    "  gl_Position = viewProjectionMatrix * modelMatrix * vec4(position, 0.0, 1.0);"
+    "}"
+)
 
-    void main()
-    {
-        uvInterp = uv;
-        gl_Position = viewProjectionMatrix * modelMatrix * vec4(position, 0.0, 1.0);
-    }
-'''
+shader_info.fragment_source(
+    "void main()"
+    "{"
+    "  FragColor = texture(image, uvInterp);"
+    "}"
+)
 
-fragment_shader = '''
-    uniform sampler2D image;
+shader = gpu.shader.create_from_info(shader_info)
+del vert_out
+del shader_info
 
-    in vec2 uvInterp;
-    out vec4 FragColor;
-
-    void main()
-    {
-        FragColor = texture(image, uvInterp);
-    }
-'''
-
-shader = gpu.types.GPUShader(vertex_shader, fragment_shader)
 batch = batch_for_shader(
     shader, 'TRI_FAN',
     {
