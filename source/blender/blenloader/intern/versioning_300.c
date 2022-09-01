@@ -3152,6 +3152,13 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 302, 14)) {
+    /* Compensate for previously wrong squared distance. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      scene->r.bake.max_ray_distance = sasqrt(scene->r.bake.max_ray_distance);
+    }
+  }
+
   if (!MAIN_VERSION_ATLEAST(bmain, 303, 1)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       versioning_replace_legacy_combined_and_separate_color_nodes(ntree);
