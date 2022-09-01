@@ -53,6 +53,10 @@ class GLIndexBuf : public IndexBuf {
 
  private:
   bool is_active() const;
+  void strip_restart_indices() override
+  {
+    /* No-op. */
+  }
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLIndexBuf")
 };

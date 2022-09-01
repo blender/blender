@@ -16,6 +16,8 @@
 
 #include "gpu_index_buffer_private.hh"
 
+#include "GPU_platform.h"
+
 #include <cstring>
 
 #define KEEP_SINGLE_COPY 1
@@ -40,6 +42,28 @@ void GPU_indexbuf_init_ex(GPUIndexBufBuilder *builder,
   builder->index_min = UINT32_MAX;
   builder->index_max = 0;
   builder->prim_type = prim_type;
+
+#ifdef __APPLE__
+  /* Only encode restart indices for restart-compatible primitive types.
+   * Resolves out-of-bounds read error on macOS. Using 0-index will ensure
+   * degenerative primitives when skipping primitives is required and will
+   * incur no additional performance cost for rendering. */
+  if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_METAL)) {
+    /* We will still use restart-indices for point primtives and then
+     * patch these during IndexBuf::init, as we cannot benefit from degenerative
+     * primitives to eliminate these. */
+    builder->restart_index_value = (is_restart_compatible(prim_type) ||
+                                    prim_type == GPU_PRIM_POINTS) ?
+                                       RESTART_INDEX :
+                                       0;
+  }
+  else {
+    builder->restart_index_value = RESTART_INDEX;
+  }
+#else
+  builder->restart_index_value = RESTART_INDEX;
+#endif
+  builder->uses_restart_indices = false;
   builder->data = (uint *)MEM_callocN(builder->max_index_len * sizeof(uint), "GPUIndexBuf data");
 }
 
@@ -94,7 +118,8 @@ void GPU_indexbuf_add_primitive_restart(GPUIndexBufBuilder *builder)
   assert(builder->data != nullptr);
   assert(builder->index_len < builder->max_index_len);
 #endif
-  builder->data[builder->index_len++] = RESTART_INDEX;
+  builder->data[builder->index_len++] = builder->restart_index_value;
+  builder->uses_restart_indices = true;
 }
 
 void GPU_indexbuf_add_point_vert(GPUIndexBufBuilder *builder, uint v)
@@ -186,8 +211,9 @@ void GPU_indexbuf_set_point_restart(GPUIndexBufBuilder *builder, uint elem)
 {
   BLI_assert(builder->prim_type == GPU_PRIM_POINTS);
   BLI_assert(elem < builder->max_index_len);
-  builder->data[elem++] = RESTART_INDEX;
+  builder->data[elem++] = builder->restart_index_value;
   builder->index_len = MAX2(builder->index_len, elem);
+  builder->uses_restart_indices = true;
 }
 
 void GPU_indexbuf_set_line_restart(GPUIndexBufBuilder *builder, uint elem)
@@ -195,9 +221,10 @@ void GPU_indexbuf_set_line_restart(GPUIndexBufBuilder *builder, uint elem)
   BLI_assert(builder->prim_type == GPU_PRIM_LINES);
   BLI_assert((elem + 1) * 2 <= builder->max_index_len);
   uint idx = elem * 2;
-  builder->data[idx++] = RESTART_INDEX;
-  builder->data[idx++] = RESTART_INDEX;
+  builder->data[idx++] = builder->restart_index_value;
+  builder->data[idx++] = builder->restart_index_value;
   builder->index_len = MAX2(builder->index_len, idx);
+  builder->uses_restart_indices = true;
 }
 
 void GPU_indexbuf_set_tri_restart(GPUIndexBufBuilder *builder, uint elem)
@@ -205,10 +232,11 @@ void GPU_indexbuf_set_tri_restart(GPUIndexBufBuilder *builder, uint elem)
   BLI_assert(builder->prim_type == GPU_PRIM_TRIS);
   BLI_assert((elem + 1) * 3 <= builder->max_index_len);
   uint idx = elem * 3;
-  builder->data[idx++] = RESTART_INDEX;
-  builder->data[idx++] = RESTART_INDEX;
-  builder->data[idx++] = RESTART_INDEX;
+  builder->data[idx++] = builder->restart_index_value;
+  builder->data[idx++] = builder->restart_index_value;
+  builder->data[idx++] = builder->restart_index_value;
   builder->index_len = MAX2(builder->index_len, idx);
+  builder->uses_restart_indices = true;
 }
 
 /** \} */
@@ -226,13 +254,33 @@ IndexBuf::~IndexBuf()
   }
 }
 
-void IndexBuf::init(uint indices_len, uint32_t *indices, uint min_index, uint max_index)
+void IndexBuf::init(uint indices_len,
+                    uint32_t *indices,
+                    uint min_index,
+                    uint max_index,
+                    GPUPrimType prim_type,
+                    bool uses_restart_indices)
 {
   is_init_ = true;
   data_ = indices;
   index_start_ = 0;
   index_len_ = indices_len;
   is_empty_ = min_index > max_index;
+
+  /* Patch index buffer to remove restart indices from
+   * non-restart-compatible primitive types. Restart indices
+   * are situationally added to selectively hide vertices.
+   * Metal does not support restart-indices for non-restart-compatible
+   * types, as such we should remove these indices.
+   *
+   * We only need to perform this for point primitives, as
+   * line primitives/triangle primitives can use index 0 for all
+   * vertices to create a degenerative primitive, where all
+   * vertices share the same index and skip rendering via HW
+   * culling. */
+  if (prim_type == GPU_PRIM_POINTS && uses_restart_indices) {
+    this->strip_restart_indices();
+  }
 
 #if GPU_TRACK_INDEX_RANGE
   /* Everything remains 32 bit while building to keep things simple.
@@ -243,7 +291,18 @@ void IndexBuf::init(uint indices_len, uint32_t *indices, uint min_index, uint ma
 
   if (range <= 0xFFFF) {
     index_type_ = GPU_INDEX_U16;
-    this->squeeze_indices_short(min_index, max_index);
+    bool do_clamp_indices = false;
+#  ifdef __APPLE__
+    /* NOTE: For the Metal Backend, we use degenerative primitives to hide vertices
+     * which are not restart compatible. When this is done, we need to ensure
+     * that compressed index ranges clamp all index values within the valid
+     * range, rather than maximally clamping against the USHORT restart index
+     * value of 0xFFFFu, as this will cause an out-of-bounds read during
+     * vertex assembly. */
+    do_clamp_indices = GPU_type_matches_ex(
+        GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_METAL);
+#  endif
+    this->squeeze_indices_short(min_index, max_index, prim_type, do_clamp_indices);
   }
 #endif
 }
@@ -302,7 +361,10 @@ uint IndexBuf::index_range(uint *r_min, uint *r_max)
   return max_value - min_value;
 }
 
-void IndexBuf::squeeze_indices_short(uint min_idx, uint max_idx)
+void IndexBuf::squeeze_indices_short(uint min_idx,
+                                     uint max_idx,
+                                     GPUPrimType prim_type,
+                                     bool clamp_indices_in_range)
 {
   /* data will never be *larger* than builder->data...
    * converting in place to avoid extra allocation */
@@ -311,8 +373,22 @@ void IndexBuf::squeeze_indices_short(uint min_idx, uint max_idx)
 
   if (max_idx >= 0xFFFF) {
     index_base_ = min_idx;
+    /* NOTE: When using restart_index=0 for degenerative primitives indices,
+     * the compressed index will go below zero and wrap around when min_idx > 0.
+     * In order to ensure the resulting index is still within range, we instead
+     * clamp index to the maximum within the index range.
+     *
+     * `clamp_max_idx` represents the maximum possible index to clamp against. If primitive is
+     * restart-compatible, we can just clamp against the primtive-restart value, otherwise, we
+     * must assign to a valid index within the range.
+     *
+     * NOTE: For OpenGL we skip this by disabling clamping, as we still need to use
+     * restart index values for point primitives to disable rendering. */
+    uint16_t clamp_max_idx = (is_restart_compatible(prim_type) || !clamp_indices_in_range) ?
+                                 0xFFFFu :
+                                 (max_idx - min_idx);
     for (uint i = 0; i < index_len_; i++) {
-      ushort_idx[i] = (uint16_t)MIN2(0xFFFF, uint_idx[i] - min_idx);
+      ushort_idx[i] = (uint16_t)MIN2(clamp_max_idx, uint_idx[i] - min_idx);
     }
   }
   else {
@@ -363,7 +439,12 @@ void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *builder, GPUIndexBuf *elem)
   BLI_assert(builder->data != nullptr);
   /* Transfer data ownership to GPUIndexBuf.
    * It will be uploaded upon first use. */
-  unwrap(elem)->init(builder->index_len, builder->data, builder->index_min, builder->index_max);
+  unwrap(elem)->init(builder->index_len,
+                     builder->data,
+                     builder->index_min,
+                     builder->index_max,
+                     builder->prim_type,
+                     builder->uses_restart_indices);
   builder->data = nullptr;
 }
 

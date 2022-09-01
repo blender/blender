@@ -26,6 +26,9 @@ typedef struct GPUIndexBufBuilder {
   uint index_len;
   uint index_min;
   uint index_max;
+  uint restart_index_value;
+  bool uses_restart_indices;
+
   GPUPrimType prim_type;
   uint32_t *data;
 } GPUIndexBufBuilder;

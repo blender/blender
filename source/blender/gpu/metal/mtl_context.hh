@@ -3,7 +3,6 @@
 /** \file
  * \ingroup gpu
  */
-
 #pragma once
 
 #include "MEM_guardedalloc.h"

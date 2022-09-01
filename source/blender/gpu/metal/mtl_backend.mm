@@ -10,6 +10,7 @@
 #include "mtl_backend.hh"
 #include "mtl_context.hh"
 #include "mtl_framebuffer.hh"
+#include "mtl_index_buffer.hh"
 #include "mtl_query.hh"
 #include "mtl_uniform_buffer.hh"
 
@@ -60,8 +61,7 @@ FrameBuffer *MTLBackend::framebuffer_alloc(const char *name)
 
 IndexBuf *MTLBackend::indexbuf_alloc()
 {
-  /* TODO(Metal): Implement MTLIndexBuf. */
-  return nullptr;
+  return new MTLIndexBuf();
 };
 
 QueryPool *MTLBackend::querypool_alloc()

@@ -16,7 +16,6 @@ namespace blender::gpu {
 class Batch;
 class DrawList;
 class FrameBuffer;
-class IndexBuf;
 class QueryPool;
 class Shader;
 class UniformBuf;

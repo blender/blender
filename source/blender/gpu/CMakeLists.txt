@@ -191,6 +191,7 @@ set(METAL_SRC
   metal/mtl_context.mm
   metal/mtl_debug.mm
   metal/mtl_framebuffer.mm
+  metal/mtl_index_buffer.mm
   metal/mtl_memory.mm
   metal/mtl_query.mm
   metal/mtl_state.mm
@@ -204,6 +205,7 @@ set(METAL_SRC
   metal/mtl_context.hh
   metal/mtl_debug.hh
   metal/mtl_framebuffer.hh
+  metal/mtl_index_buffer.hh
   metal/mtl_memory.hh
   metal/mtl_query.hh
   metal/mtl_state.hh

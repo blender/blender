@@ -59,7 +59,12 @@ class IndexBuf {
   IndexBuf(){};
   virtual ~IndexBuf();
 
-  void init(uint indices_len, uint32_t *indices, uint min_index, uint max_index);
+  void init(uint indices_len,
+            uint32_t *indices,
+            uint min_index,
+            uint max_index,
+            GPUPrimType prim_type,
+            bool uses_restart_indices);
   void init_subrange(IndexBuf *elem_src, uint start, uint length);
   void init_build_on_device(uint index_len);
 
@@ -99,8 +104,12 @@ class IndexBuf {
   virtual void update_sub(uint start, uint len, const void *data) = 0;
 
  private:
-  inline void squeeze_indices_short(uint min_idx, uint max_idx);
+  inline void squeeze_indices_short(uint min_idx,
+                                    uint max_idx,
+                                    GPUPrimType prim_type,
+                                    bool clamp_indices_in_range);
   inline uint index_range(uint *r_min, uint *r_max);
+  virtual void strip_restart_indices() = 0;
 };
 
 /* Syntactic sugar. */
