@@ -217,7 +217,7 @@ static void button2d_draw_intern(const bContext *C,
           GPU_batch_uniform_1f(button->shape_batch[i], "lineWidth", gz->line_width * U.pixelsize);
         }
         else {
-          GPU_batch_program_set_builtin(button->shape_batch[i], GPU_SHADER_2D_UNIFORM_COLOR);
+          GPU_batch_program_set_builtin(button->shape_batch[i], GPU_SHADER_3D_UNIFORM_COLOR);
         }
 
         /* Invert line color for wire. */

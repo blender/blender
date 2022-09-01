@@ -283,7 +283,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
     GPU_matrix_push_projection();
     wmOrtho2_region_pixelspace(t->region);
 
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor3ub(255, 255, 255);
     imm_draw_circle_wire_2d(pos, x, y, radius, 8);
     immUnbindProgram();
@@ -301,7 +301,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     for (p = t->tsnap.points.first; p; p = p->next) {
       if (p == t->tsnap.selectedPoint) {
@@ -328,7 +328,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
     const ARegion *region = CTX_wm_region(C);
     GPU_blend(GPU_BLEND_ALPHA);
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor4ubv(col);
     float pixelx = BLI_rctf_size_x(&region->v2d.cur) / BLI_rcti_size_x(&region->v2d.mask);
     immRectf(pos,

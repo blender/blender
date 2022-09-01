@@ -157,7 +157,7 @@ static void acf_generic_dataexpand_backdrop(bAnimContext *ac,
   /* set backdrop drawing color */
   acf->get_backdrop_color(ac, ale, color);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor3fv(color);
 
   /* no rounded corner - just rectangular box */
@@ -246,7 +246,7 @@ static void acf_generic_channel_backdrop(bAnimContext *ac,
   /* set backdrop drawing color */
   acf->get_backdrop_color(ac, ale, color);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor3fv(color);
 
   /* no rounded corners - just rectangular box */
@@ -4449,7 +4449,7 @@ void ANIM_channel_draw(
         uint pos = GPU_vertformat_attr_add(
             immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-        immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+        immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
         /* F-Curve channels need to have a special 'color code' box drawn,
          * which is colored with whatever color the curve has stored.
@@ -4513,7 +4513,7 @@ void ANIM_channel_draw(
       uint pos = GPU_vertformat_attr_add(
           immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
       /* FIXME: replace hardcoded color here, and check on extents! */
       immUniformColor3f(1.0f, 0.0f, 0.0f);
@@ -4549,7 +4549,7 @@ void ANIM_channel_draw(
     float color[3];
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     /* get and set backdrop color */
     acf->get_backdrop_color(ac, ale, color);

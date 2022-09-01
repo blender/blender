@@ -1683,7 +1683,7 @@ void ED_gpencil_brush_draw_eraser(Brush *brush, int x, int y)
 
   GPUVertFormat *format = immVertexFormat();
   const uint shdr_pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   GPU_line_smooth(true);
   GPU_blend(GPU_BLEND_ALPHA);
@@ -1865,7 +1865,7 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
   /* draw icon */
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   GPU_line_smooth(true);
   GPU_blend(GPU_BLEND_ALPHA);

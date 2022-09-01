@@ -253,7 +253,7 @@ static void gradient_draw_line(bContext *UNUSED(C), int x, int y, void *customda
 
     ARegion *region = pop->vc.region;
 
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     GPU_line_width(4.0);
     immUniformColor4ub(0, 0, 0, 255);

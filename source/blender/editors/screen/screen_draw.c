@@ -236,7 +236,7 @@ void screen_draw_join_highlight(ScrArea *sa1, ScrArea *sa2)
 
   uint pos_id = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_blend(GPU_BLEND_ALPHA);
 
   /* Highlight source (sa1) within combined area. */
@@ -302,7 +302,7 @@ void screen_draw_join_highlight(ScrArea *sa1, ScrArea *sa2)
 void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const float fac)
 {
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* Split-point. */
   GPU_blend(GPU_BLEND_ALPHA);
@@ -380,7 +380,7 @@ static void screen_preview_draw_areas(const bScreen *screen,
   const float ofs_h = ofs_between_areas * 0.5f;
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor4fv(col);
 
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
