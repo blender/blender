@@ -302,6 +302,8 @@ static Material *get_or_create_material(Main *bmain,
   const MTLMaterial &mtl = *materials.lookup_or_add(name, std::make_unique<MTLMaterial>());
 
   Material *mat = BKE_material_add(bmain, name.c_str());
+  id_us_min(&mat->id);
+
   ShaderNodetreeWrap mat_wrap{bmain, mtl, mat, relative_paths};
   mat->use_nodes = true;
   mat->nodetree = mat_wrap.get_nodetree();
@@ -324,6 +326,9 @@ void MeshFromGeometry::create_materials(Main *bmain,
       continue;
     }
     BKE_object_material_assign_single_obdata(bmain, obj, mat, obj->totcol + 1);
+  }
+  if (obj->totcol > 0) {
+    obj->actcol = 1;
   }
 }
 

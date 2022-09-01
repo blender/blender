@@ -26,6 +26,7 @@
 #include "BLI_math_geom.h"
 
 #include "BKE_attribute.hh"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
@@ -93,6 +94,7 @@ static void assign_materials(Main *bmain,
     mat_iter = matname_to_material.find(mat_name);
     if (mat_iter == matname_to_material.end()) {
       assigned_mat = BKE_material_add(bmain, mat_name.c_str());
+      id_us_min(&assigned_mat->id);
       matname_to_material[mat_name] = assigned_mat;
     }
     else {
@@ -100,6 +102,9 @@ static void assign_materials(Main *bmain,
     }
 
     BKE_object_material_assign_single_obdata(bmain, ob, assigned_mat, mat_index);
+  }
+  if (ob->totcol > 0) {
+    ob->actcol = 1;
   }
 }
 

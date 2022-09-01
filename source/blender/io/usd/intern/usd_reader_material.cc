@@ -4,6 +4,7 @@
 #include "usd_reader_material.h"
 
 #include "BKE_image.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
@@ -323,6 +324,7 @@ Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_mater
 
   /* Create the material. */
   Material *mtl = BKE_material_add(bmain_, mtl_name.c_str());
+  id_us_min(&mtl->id);
 
   /* Get the UsdPreviewSurface shader source for the material,
    * if there is one. */

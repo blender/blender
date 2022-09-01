@@ -183,6 +183,9 @@ static void assign_materials(Main *bmain,
       std::cout << "WARNING: Couldn't assign material " << it->first << std::endl;
     }
   }
+  if (ob->totcol > 0) {
+    ob->actcol = 1;
+  }
 }
 
 }  // namespace utils
