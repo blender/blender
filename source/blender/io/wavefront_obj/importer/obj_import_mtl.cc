@@ -141,6 +141,11 @@ static Image *load_texture_image(Main *bmain, const MTLTexMap &tex_map, bool rel
   return image;
 }
 
+void UniqueNodetreeDeleter::operator()(bNodeTree *node)
+{
+  ntreeFreeEmbeddedTree(node);
+}
+
 ShaderNodetreeWrap::ShaderNodetreeWrap(Main *bmain,
                                        const MTLMaterial &mtl_mat,
                                        Material *mat,

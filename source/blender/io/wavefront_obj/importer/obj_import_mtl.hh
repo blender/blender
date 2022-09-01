@@ -21,10 +21,7 @@
 namespace blender::io::obj {
 
 struct UniqueNodetreeDeleter {
-  void operator()(bNodeTree *node)
-  {
-    MEM_freeN(node);
-  }
+  void operator()(bNodeTree *node);
 };
 
 using unique_nodetree_ptr = std::unique_ptr<bNodeTree, UniqueNodetreeDeleter>;
