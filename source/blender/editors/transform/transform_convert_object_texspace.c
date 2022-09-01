@@ -11,6 +11,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"
+#include "BKE_layer.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 
@@ -37,7 +38,7 @@ static void createTransTexspace(bContext *UNUSED(C), TransInfo *t)
   ID *id;
   char *texflag;
 
-  ob = OBACT(view_layer);
+  ob = BKE_view_layer_active_object_get(view_layer);
 
   if (ob == NULL) { /* Shouldn't logically happen, but still. */
     return;

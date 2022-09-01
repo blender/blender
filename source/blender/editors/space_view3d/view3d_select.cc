@@ -1457,7 +1457,7 @@ static int object_select_menu_exec(bContext *C, wmOperator *op)
 
   View3D *v3d = CTX_wm_view3d(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  const Base *oldbasact = BASACT(view_layer);
+  const Base *oldbasact = view_layer->basact;
 
   Base *basact = nullptr;
   CTX_DATA_BEGIN (C, Base *, base, selectable_bases) {
@@ -1652,7 +1652,7 @@ static int bone_select_menu_exec(bContext *C, wmOperator *op)
 
   View3D *v3d = CTX_wm_view3d(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  const Base *oldbasact = BASACT(view_layer);
+  const Base *oldbasact = view_layer->basact;
 
   Base *basact = object_mouse_select_menu_data[name_index].base_ptr;
 
@@ -2160,8 +2160,8 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
     /* It's possible there are no hits (all objects contained bones). */
     if (hits > 0) {
       /* Only exclude active object when it is selected. */
-      if (BASACT(view_layer) && (BASACT(view_layer)->flag & BASE_SELECTED)) {
-        const int select_id_active = BASACT(view_layer)->object->runtime.select_id;
+      if (view_layer->basact && (view_layer->basact->flag & BASE_SELECTED)) {
+        const int select_id_active = view_layer->basact->object->runtime.select_id;
         for (int i_next = 0, i_prev = hits - 1; i_next < hits; i_prev = i_next++) {
           if ((select_id_active == (buffer[i_prev].id & 0xFFFF)) &&
               (select_id_active != (buffer[i_next].id & 0xFFFF))) {
@@ -2188,7 +2188,7 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
 
   Base *basact = nullptr;
   if (found) {
-    for (Base *base = FIRSTBASE(view_layer); base; base = base->next) {
+    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
       if (has_bones ? BASE_VISIBLE(v3d, base) : BASE_SELECTABLE(v3d, base)) {
         if (base->object->runtime.select_id == select_id) {
           basact = base;
@@ -2211,7 +2211,7 @@ static Base *mouse_select_object_center(ViewContext *vc, Base *startbase, const 
   ViewLayer *view_layer = vc->view_layer;
   View3D *v3d = vc->v3d;
 
-  Base *oldbasact = BASACT(view_layer);
+  Base *oldbasact = view_layer->basact;
 
   const float mval_fl[2] = {(float)mval[0], (float)mval[1]};
   float dist = ED_view3d_select_dist_px() * 1.3333f;
@@ -2239,7 +2239,7 @@ static Base *mouse_select_object_center(ViewContext *vc, Base *startbase, const 
     base = base->next;
 
     if (base == nullptr) {
-      base = FIRSTBASE(view_layer);
+      base = static_cast<Base *>(view_layer->object_bases.first);
     }
     if (base == startbase) {
       break;
@@ -2526,9 +2526,11 @@ static bool ed_object_select_pick(bContext *C,
 
   ViewLayer *view_layer = vc.view_layer;
   /* Don't set when the context has no active object (hidden), see: T60807. */
-  const Base *oldbasact = vc.obact ? BASACT(view_layer) : nullptr;
+  const Base *oldbasact = vc.obact ? view_layer->basact : nullptr;
   /* Always start list from `basact` when cycling the selection. */
-  Base *startbase = (oldbasact && oldbasact->next) ? oldbasact->next : FIRSTBASE(view_layer);
+  Base *startbase = (oldbasact && oldbasact->next) ?
+                        oldbasact->next :
+                        static_cast<Base *>(view_layer->object_bases.first);
 
   /* The next object's base to make active. */
   Base *basact = nullptr;
@@ -2698,7 +2700,7 @@ static bool ed_object_select_pick(bContext *C,
 
   /* Ensure code above doesn't change the active base. This code is already fairly involved,
    * it's best if changing the active object is localized to a single place. */
-  BLI_assert(oldbasact == (vc.obact ? BASACT(view_layer) : nullptr));
+  BLI_assert(oldbasact == (vc.obact ? view_layer->basact : nullptr));
 
   bool found = (basact != nullptr);
   if ((handled == false) && (vc.obedit == nullptr)) {
@@ -4603,8 +4605,7 @@ static bool object_circle_select(ViewContext *vc,
   const bool select = (sel_op != SEL_OP_SUB);
   const int select_flag = select ? BASE_SELECTED : 0;
 
-  Base *base;
-  for (base = FIRSTBASE(view_layer); base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     if (BASE_SELECTABLE(v3d, base) && ((base->flag & BASE_SELECTED) != select_flag)) {
       float screen_co[2];
       if (ED_view3d_project_float_global(

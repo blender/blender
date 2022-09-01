@@ -679,7 +679,7 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
 
   em_setup_viewcontext(C, &vc);
   copy_v2_v2_int(vc.mval, event->mval);
-  Base *basact = BASACT(vc.view_layer);
+  Base *basact = vc.view_layer->basact;
   BMEditMesh *em = vc.em;
 
   view3d_operator_needs_opengl(C);

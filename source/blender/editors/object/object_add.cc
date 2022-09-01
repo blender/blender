@@ -609,7 +609,7 @@ Object *ED_object_add_type_with_obdata(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   {
-    Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+    Object *obedit = BKE_view_layer_edit_object_get(view_layer);
     if (obedit != nullptr) {
       ED_object_editmode_exit_ex(bmain, scene, obedit, EM_FREEDATA);
     }
@@ -629,7 +629,7 @@ Object *ED_object_add_type_with_obdata(bContext *C,
     ob = BKE_object_add(bmain, view_layer, type, name);
   }
 
-  Base *ob_base_act = BASACT(view_layer);
+  Base *ob_base_act = view_layer->basact;
   /* While not getting a valid base is not a good thing, it can happen in convoluted corner cases,
    * better not crash on it in releases. */
   BLI_assert(ob_base_act != nullptr);
@@ -990,7 +990,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
   }
 
   bool newob = false;
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit == nullptr || obedit->type != OB_MBALL) {
     obedit = ED_object_add_type(C, OB_MBALL, nullptr, loc, rot, true, local_view_bits);
     newob = true;
@@ -1099,7 +1099,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
 
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   bool newob = false;
@@ -3367,7 +3367,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
     /* If the original object is active then make this object active */
     if (basen) {
       if (ob == obact) {
-        /* store new active base to update BASACT */
+        /* Store new active base to update view layer. */
         basact = basen;
       }
 
@@ -3441,11 +3441,11 @@ static int object_convert_exec(bContext *C, wmOperator *op)
   if (basact) {
     /* active base was changed */
     ED_object_base_activate(C, basact);
-    BASACT(view_layer) = basact;
+    view_layer->basact = basact;
   }
-  else if (BASACT(view_layer)->object->flag & OB_DONE) {
-    WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, BASACT(view_layer)->object);
-    WM_event_add_notifier(C, NC_OBJECT | ND_DATA, BASACT(view_layer)->object);
+  else if (view_layer->basact->object->flag & OB_DONE) {
+    WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, view_layer->basact->object);
+    WM_event_add_notifier(C, NC_OBJECT | ND_DATA, view_layer->basact->object);
   }
 
   DEG_relations_tag_update(bmain);
@@ -3682,7 +3682,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
     ED_object_base_select(base, BA_DESELECT);
 
     /* new object will become active */
-    if (BASACT(view_layer) == base) {
+    if (view_layer->basact == base) {
       ob_new_active = ob_new;
     }
   }
@@ -3894,7 +3894,7 @@ static int object_transform_to_mouse_exec(bContext *C, wmOperator *op)
       WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_OB));
 
   if (!ob) {
-    ob = OBACT(view_layer);
+    ob = BKE_view_layer_active_object_get(view_layer);
   }
 
   if (ob == nullptr) {

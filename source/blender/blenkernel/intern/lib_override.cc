@@ -1383,7 +1383,7 @@ bool BKE_lib_override_library_create(Main *bmain,
     id_hierarchy_root_reference = id_root_reference;
   }
 
-  const Object *old_active_object = OBACT(view_layer);
+  const Object *old_active_object = BKE_view_layer_active_object_get(view_layer);
 
   const bool success = lib_override_library_create_do(bmain,
                                                       scene,
@@ -1721,7 +1721,7 @@ static bool lib_override_library_resync(Main *bmain,
 
   ID *id_root_reference = id_root->override_library->reference;
   ID *id;
-  const Object *old_active_object = OBACT(view_layer);
+  const Object *old_active_object = BKE_view_layer_active_object_get(view_layer);
 
   if (id_root_reference->tag & LIB_TAG_MISSING) {
     BKE_reportf(reports != nullptr ? reports->reports : nullptr,
@@ -2702,7 +2702,7 @@ void BKE_lib_override_library_main_resync(Main *bmain,
     override_resync_residual_storage->flag |= COLLECTION_HIDE_VIEWPORT | COLLECTION_HIDE_RENDER;
   }
 
-  const Object *old_active_object = OBACT(view_layer);
+  const Object *old_active_object = BKE_view_layer_active_object_get(view_layer);
 
   /* Necessary to improve performances, and prevent layers matching override sub-collections to be
    * lost when re-syncing the parent override collection.

@@ -2547,7 +2547,7 @@ Object **BKE_object_pose_array_get_ex(ViewLayer *view_layer,
                                       uint *r_objects_len,
                                       bool unique)
 {
-  Object *ob_active = OBACT(view_layer);
+  Object *ob_active = BKE_view_layer_active_object_get(view_layer);
   Object *ob_pose = BKE_object_pose_armature_get(ob_active);
   Object **objects = nullptr;
   if (ob_pose == ob_active) {
@@ -2583,7 +2583,7 @@ Base **BKE_object_pose_base_array_get_ex(ViewLayer *view_layer,
                                          uint *r_bases_len,
                                          bool unique)
 {
-  Base *base_active = BASACT(view_layer);
+  Base *base_active = view_layer->basact;
   Object *ob_pose = base_active ? BKE_object_pose_armature_get(base_active->object) : nullptr;
   Base *base_pose = nullptr;
   Base **bases = nullptr;

@@ -243,7 +243,7 @@ static eContextResult screen_ctx_visible_or_editable_bones_(const bContext *C,
 {
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
 
   bArmature *arm = (obedit && obedit->type == OB_ARMATURE) ? obedit->data : NULL;
   EditBone *flipbone = NULL;
@@ -314,7 +314,7 @@ static eContextResult screen_ctx_selected_bones_(const bContext *C,
 {
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   bArmature *arm = (obedit && obedit->type == OB_ARMATURE) ? obedit->data : NULL;
   EditBone *flipbone = NULL;
 
@@ -524,7 +524,7 @@ static eContextResult screen_ctx_edit_object(const bContext *C, bContextDataResu
 {
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   /* convenience for now, 1 object per scene in editmode */
   if (obedit) {
     CTX_data_id_pointer_set(result, &obedit->id);

@@ -2038,18 +2038,10 @@ extern const char *RE_engine_id_CYCLES;
   (BASE_EDITABLE(v3d, base) && (((base)->flag & BASE_SELECTED) != 0))
 
 /* deprecate this! */
-#define FIRSTBASE(_view_layer) ((struct Base *)(_view_layer)->object_bases.first)
-#define LASTBASE(_view_layer) ((struct Base *)(_view_layer)->object_bases.last)
-#define BASACT(_view_layer) ((_view_layer)->basact)
-#define OBACT(_view_layer) (BASACT(_view_layer) ? BASACT(_view_layer)->object : NULL)
-
-#define OBEDIT_FROM_WORKSPACE(workspace, _view_layer) \
-  (((workspace)->object_mode & OD_MODE_EDIT) ? OBACT(_view_layer) : NULL)
 #define OBEDIT_FROM_OBACT(ob) ((ob) ? (((ob)->mode & OB_MODE_EDIT) ? ob : NULL) : NULL)
 #define OBPOSE_FROM_OBACT(ob) ((ob) ? (((ob)->mode & OB_MODE_POSE) ? ob : NULL) : NULL)
 #define OBWEIGHTPAINT_FROM_OBACT(ob) \
   ((ob) ? (((ob)->mode & OB_MODE_WEIGHT_PAINT) ? ob : NULL) : NULL)
-#define OBEDIT_FROM_VIEW_LAYER(view_layer) OBEDIT_FROM_OBACT(OBACT(view_layer))
 
 #define V3D_CAMERA_LOCAL(v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : NULL)
 #define V3D_CAMERA_SCENE(scene, v3d) \

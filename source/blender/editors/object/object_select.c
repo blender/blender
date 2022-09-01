@@ -120,7 +120,7 @@ void ED_object_base_activate_with_mode_exit_if_needed(bContext *C, Base *base)
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   /* Currently we only need to be concerned with edit-mode. */
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit) {
     Object *ob = base->object;
     if (((ob->mode & OB_MODE_EDIT) == 0) || (obedit->type != ob->type)) {
@@ -626,7 +626,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
     ED_object_base_deselect_all(view_layer, v3d, SEL_DESELECT);
   }
 
-  ob = OBACT(view_layer);
+  ob = BKE_view_layer_active_object_get(view_layer);
   if (ob == NULL) {
     BKE_report(op->reports, RPT_ERROR, "No active object");
     return OPERATOR_CANCELLED;
@@ -777,7 +777,8 @@ static bool select_grouped_children(bContext *C, Object *ob, const bool recursiv
   return changed;
 }
 
-static bool select_grouped_parent(bContext *C) /* Makes parent active and de-selected OBACT */
+/* Makes parent active and de-selected BKE_view_layer_active_object_get. */
+static bool select_grouped_parent(bContext *C)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
@@ -785,7 +786,8 @@ static bool select_grouped_parent(bContext *C) /* Makes parent active and de-sel
   bool changed = false;
 
   if (!basact || !(basact->object->parent)) {
-    return 0; /* we know OBACT is valid */
+    /* We know BKE_view_layer_active_object_get is valid. */
+    return 0;
   }
 
   baspar = BKE_view_layer_base_find(view_layer, basact->object->parent);
@@ -1021,7 +1023,7 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
     changed = ED_object_base_deselect_all(view_layer, v3d, SEL_DESELECT);
   }
 
-  ob = OBACT(view_layer);
+  ob = BKE_view_layer_active_object_get(view_layer);
   if (ob == NULL) {
     BKE_report(op->reports, RPT_ERROR, "No active object");
     return OPERATOR_CANCELLED;

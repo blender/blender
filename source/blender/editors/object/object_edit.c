@@ -141,7 +141,7 @@ Object **ED_object_array_in_mode_or_selected(bContext *C,
 {
   ScrArea *area = CTX_wm_area(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob_active = OBACT(view_layer);
+  Object *ob_active = BKE_view_layer_active_object_get(view_layer);
   ID *id_pin = NULL;
   const bool use_objects_in_mode = (ob_active != NULL) &&
                                    (ob_active->mode & (OB_MODE_EDIT | OB_MODE_POSE));
@@ -701,7 +701,7 @@ bool ED_object_editmode_free_ex(Main *bmain, Object *obedit)
 
 bool ED_object_editmode_exit_multi_ex(Main *bmain, Scene *scene, ViewLayer *view_layer, int flag)
 {
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit == NULL) {
     return false;
   }
@@ -841,7 +841,7 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *obact = OBACT(view_layer);
+  Object *obact = BKE_view_layer_active_object_get(view_layer);
   const int mode_flag = OB_MODE_EDIT;
   const bool is_mode_set = (obact->mode & mode_flag) != 0;
   struct wmMsgBus *mbus = CTX_wm_message_bus(C);
@@ -953,7 +953,7 @@ static int posemode_exec(bContext *C, wmOperator *op)
   }
 
   {
-    Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+    Object *obedit = BKE_view_layer_edit_object_get(view_layer);
     if (obact == obedit) {
       ED_object_editmode_exit_ex(bmain, scene, obedit, EM_FREEDATA);
       is_mode_set = false;
@@ -1478,7 +1478,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
   /* For modes that only use an active object, don't handle the whole selection. */
   {
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    Object *obact = OBACT(view_layer);
+    Object *obact = BKE_view_layer_active_object_get(view_layer);
     if (obact && ((obact->mode & OB_MODE_ALL_PAINT))) {
       ctx_ob_single_active.ptr.data = obact;
       BLI_addtail(&ctx_objects, &ctx_ob_single_active);
@@ -1551,7 +1551,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 static bool shade_poll(bContext *C)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *obact = OBACT(view_layer);
+  Object *obact = BKE_view_layer_active_object_get(view_layer);
   if (obact != NULL) {
     /* Doesn't handle edit-data, sculpt dynamic-topology, or their undo systems. */
     if (obact->mode & (OB_MODE_EDIT | OB_MODE_SCULPT) || obact->data == NULL ||

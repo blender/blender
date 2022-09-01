@@ -61,7 +61,7 @@ void ED_editors_init_for_undo(Main *bmain)
   wmWindowManager *wm = bmain->wm.first;
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-    Base *base = BASACT(view_layer);
+    Base *base = view_layer->basact;
     if (base != NULL) {
       Object *ob = base->object;
       if (ob->mode & OB_MODE_TEXTURE_PAINT) {

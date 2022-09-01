@@ -245,7 +245,7 @@ bool BKE_view_layer_filter_edit_mesh_has_edges(const Object *ob, void *UNUSED(us
 Object *BKE_view_layer_non_active_selected_object(struct ViewLayer *view_layer,
                                                   const struct View3D *v3d)
 {
-  Object *ob_active = OBACT(view_layer);
+  Object *ob_active = BKE_view_layer_active_object_get(view_layer);
   Object *ob_result = NULL;
   FOREACH_SELECTED_OBJECT_BEGIN (view_layer, v3d, ob_iter) {
     if (ob_iter == ob_active) {
@@ -262,6 +262,29 @@ Object *BKE_view_layer_non_active_selected_object(struct ViewLayer *view_layer,
   }
   FOREACH_SELECTED_OBJECT_END;
   return ob_result;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Active object accessors.
+ * \{ */
+
+Object *BKE_view_layer_active_object_get(const ViewLayer *view_layer)
+{
+  return view_layer->basact ? view_layer->basact->object : NULL;
+}
+
+Object *BKE_view_layer_edit_object_get(const ViewLayer *view_layer)
+{
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
+  if (ob == NULL) {
+    return NULL;
+  }
+  if (!(ob->mode & OB_MODE_EDIT)) {
+    return NULL;
+  }
+  return ob;
 }
 
 /** \} */

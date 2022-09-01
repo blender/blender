@@ -2314,7 +2314,7 @@ static bool get_new_constraint_target(
   if ((found == false) && (add)) {
     Main *bmain = CTX_data_main(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    Base *base = BASACT(view_layer);
+    Base *base = view_layer->basact;
     Object *obt;
 
     /* add new target object */
@@ -2336,7 +2336,7 @@ static bool get_new_constraint_target(
     }
 
     /* restore, BKE_object_add sets active */
-    BASACT(view_layer) = base;
+    view_layer->basact = base;
     ED_object_base_select(base, BA_SELECT);
 
     /* make our new target the new object */

@@ -1497,7 +1497,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
     }
 
     if (U.uiflag & USER_DRAWVIEWINFO) {
-      Object *ob = OBACT(view_layer);
+      Object *ob = BKE_view_layer_active_object_get(view_layer);
       draw_selected_name(scene, view_layer, ob, xoffset, &yoffset);
     }
 

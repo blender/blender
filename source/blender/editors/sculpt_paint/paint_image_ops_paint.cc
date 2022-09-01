@@ -13,6 +13,7 @@
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
+#include "BKE_layer.h"
 #include "BKE_paint.h"
 #include "BKE_undo_system.h"
 
@@ -293,7 +294,7 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
   copy_v2_v2(pop->startmouse, mouse);
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = OBACT(view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   /* initialize from context */
   if (CTX_wm_region_view3d(C)) {

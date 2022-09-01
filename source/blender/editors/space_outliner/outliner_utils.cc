@@ -45,7 +45,7 @@ void outliner_viewcontext_init(const bContext *C, TreeViewContext *tvc)
   tvc->view_layer = CTX_data_view_layer(C);
 
   /* Objects. */
-  tvc->obact = OBACT(tvc->view_layer);
+  tvc->obact = BKE_view_layer_active_object_get(tvc->view_layer);
   if (tvc->obact != nullptr) {
     tvc->ob_edit = OBEDIT_FROM_OBACT(tvc->obact);
 

@@ -2514,7 +2514,7 @@ static void prepare_mesh_for_viewport_render(Main *bmain, const ViewLayer *view_
    * call loading of the edit data for the mesh objects.
    */
 
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit) {
     Mesh *mesh = static_cast<Mesh *>(obedit->data);
     if ((obedit->type == OB_MESH) &&

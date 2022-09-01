@@ -435,7 +435,7 @@ bool ED_undo_is_memfile_compatible(const bContext *C)
    * (this matches 2.7x behavior). */
   ViewLayer *view_layer = CTX_data_view_layer(C);
   if (view_layer != NULL) {
-    Object *obact = OBACT(view_layer);
+    Object *obact = BKE_view_layer_active_object_get(view_layer);
     if (obact != NULL) {
       if (obact->mode & OB_MODE_EDIT) {
         return false;
@@ -449,7 +449,7 @@ bool ED_undo_is_legacy_compatible_for_property(struct bContext *C, ID *id)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   if (view_layer != NULL) {
-    Object *obact = OBACT(view_layer);
+    Object *obact = BKE_view_layer_active_object_get(view_layer);
     if (obact != NULL) {
       if (obact->mode & OB_MODE_ALL_PAINT) {
         /* Don't store property changes when painting
@@ -800,7 +800,7 @@ void ED_OT_undo_history(wmOperatorType *ot)
 void ED_undo_object_set_active_or_warn(
     Scene *scene, ViewLayer *view_layer, Object *ob, const char *info, CLG_LogRef *log)
 {
-  Object *ob_prev = OBACT(view_layer);
+  Object *ob_prev = BKE_view_layer_active_object_get(view_layer);
   if (ob_prev != ob) {
     Base *base = BKE_view_layer_base_find(view_layer, ob);
     if (base != NULL) {
@@ -887,7 +887,7 @@ static int undo_editmode_objects_from_view_layer_prepare(ViewLayer *view_layer, 
 
 Object **ED_undo_editmode_objects_from_view_layer(ViewLayer *view_layer, uint *r_len)
 {
-  Base *baseact = BASACT(view_layer);
+  Base *baseact = view_layer->basact;
   if ((baseact == NULL) || (baseact->object->mode & OB_MODE_EDIT) == 0) {
     return MEM_mallocN(0, __func__);
   }
@@ -897,7 +897,7 @@ Object **ED_undo_editmode_objects_from_view_layer(ViewLayer *view_layer, uint *r
   Object **objects = MEM_malloc_arrayN(len, sizeof(*objects), __func__);
   /* Base iteration, starting with the active-base to ensure it's the first item in the array.
    * Looping over the active-base twice is OK as the tag check prevents it being handled twice. */
-  for (Base *base = baseact, *base_next = FIRSTBASE(view_layer); base;
+  for (Base *base = baseact, *base_next = view_layer->object_bases.first; base;
        base = base_next, base_next = base_next ? base_next->next : NULL) {
     Object *ob = base->object;
     if ((ob->type == object_type) && (ob->mode & OB_MODE_EDIT)) {
@@ -916,7 +916,7 @@ Object **ED_undo_editmode_objects_from_view_layer(ViewLayer *view_layer, uint *r
 
 Base **ED_undo_editmode_bases_from_view_layer(ViewLayer *view_layer, uint *r_len)
 {
-  Base *baseact = BASACT(view_layer);
+  Base *baseact = view_layer->basact;
   if ((baseact == NULL) || (baseact->object->mode & OB_MODE_EDIT) == 0) {
     return MEM_mallocN(0, __func__);
   }
@@ -926,7 +926,7 @@ Base **ED_undo_editmode_bases_from_view_layer(ViewLayer *view_layer, uint *r_len
   Base **base_array = MEM_malloc_arrayN(len, sizeof(*base_array), __func__);
   /* Base iteration, starting with the active-base to ensure it's the first item in the array.
    * Looping over the active-base twice is OK as the tag check prevents it being handled twice. */
-  for (Base *base = BASACT(view_layer), *base_next = FIRSTBASE(view_layer); base;
+  for (Base *base = view_layer->basact, *base_next = view_layer->object_bases.first; base;
        base = base_next, base_next = base_next ? base_next->next : NULL) {
     Object *ob = base->object;
     if ((ob->type == object_type) && (ob->mode & OB_MODE_EDIT)) {

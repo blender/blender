@@ -51,9 +51,6 @@
 
 static bool doForceIncrementSnap(const TransInfo *t);
 
-/* this should be passed as an arg for use in snap functions */
-#undef BASACT
-
 /* use half of flt-max so we can scale up without an exception */
 
 /* -------------------------------------------------------------------- */

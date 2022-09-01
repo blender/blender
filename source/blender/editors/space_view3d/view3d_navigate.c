@@ -166,7 +166,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
   View3D *v3d = CTX_wm_view3d(C);
-  Object *ob_act_eval = OBACT(view_layer_eval);
+  Object *ob_act_eval = BKE_view_layer_active_object_get(view_layer_eval);
   Object *ob_act = DEG_get_original_object(ob_act_eval);
 
   if (ob_act && (ob_act->mode & OB_MODE_ALL_PAINT) &&
@@ -203,12 +203,11 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
   }
   else if (ob_act == NULL || ob_act->mode == OB_MODE_OBJECT) {
     /* object mode use boundbox centers */
-    Base *base_eval;
     uint tot = 0;
     float select_center[3];
 
     zero_v3(select_center);
-    for (base_eval = FIRSTBASE(view_layer_eval); base_eval; base_eval = base_eval->next) {
+    LISTBASE_FOREACH (Base *, base_eval, &view_layer_eval->object_bases) {
       if (BASE_SELECTED(v3d, base_eval)) {
         /* use the boundbox if we can */
         Object *ob_eval = base_eval->object;
@@ -863,7 +862,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
-  Object *ob_eval = OBACT(view_layer_eval);
+  Object *ob_eval = BKE_view_layer_active_object_get(view_layer_eval);
   Object *obedit = CTX_data_edit_object(C);
   const bGPdata *gpd_eval = ob_eval && (ob_eval->type == OB_GPENCIL) ? ob_eval->data : NULL;
   const bool is_gp_edit = gpd_eval ? GPENCIL_ANY_MODE(gpd_eval) : false;
@@ -963,8 +962,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
     ok_dist = 0; /* don't zoom */
   }
   else {
-    Base *base_eval;
-    for (base_eval = FIRSTBASE(view_layer_eval); base_eval; base_eval = base_eval->next) {
+    LISTBASE_FOREACH (Base *, base_eval, &view_layer_eval->object_bases) {
       if (BASE_SELECTED(v3d, base_eval)) {
         bool only_center = false;
         Object *ob = DEG_get_original_object(base_eval->object);
@@ -1306,7 +1304,7 @@ static int view_camera_exec(bContext *C, wmOperator *op)
     Scene *scene = CTX_data_scene(C);
 
     if (rv3d->persp != RV3D_CAMOB) {
-      Object *ob = OBACT(view_layer);
+      Object *ob = BKE_view_layer_active_object_get(view_layer);
 
       if (!rv3d->smooth_timer) {
         /* store settings of current view before allowing overwriting with camera view

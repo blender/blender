@@ -28,6 +28,7 @@
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_image.h"
+#include "BKE_layer.h"
 #include "BKE_material.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_paint.h"
@@ -402,7 +403,7 @@ void paint_sample_color(
   if (v3d && texpaint_proj) {
     /* first try getting a color directly from the mesh faces if possible */
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    Object *ob = OBACT(view_layer);
+    Object *ob = BKE_view_layer_active_object_get(view_layer);
     Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
     ImagePaintSettings *imapaint = &scene->toolsettings->imapaint;
     bool use_material = (imapaint->mode == IMAGEPAINT_MODE_MATERIAL);

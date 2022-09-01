@@ -840,7 +840,7 @@ Base *BKE_collection_or_layer_objects(const ViewLayer *view_layer, Collection *c
     return BKE_collection_object_cache_get(collection).first;
   }
 
-  return FIRSTBASE(view_layer);
+  return view_layer->object_bases.first;
 }
 
 /** \} */

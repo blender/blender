@@ -114,7 +114,7 @@ static bool WIDGETGROUP_armature_spline_poll(const bContext *C, wmGizmoGroupType
   }
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Base *base = BASACT(view_layer);
+  Base *base = view_layer->basact;
   if (base && BASE_SELECTABLE(v3d, base)) {
     Object *ob = BKE_object_pose_armature_get(base->object);
     if (ob) {
@@ -133,7 +133,7 @@ static bool WIDGETGROUP_armature_spline_poll(const bContext *C, wmGizmoGroupType
 static void WIDGETGROUP_armature_spline_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = BKE_object_pose_armature_get(OBACT(view_layer));
+  Object *ob = BKE_object_pose_armature_get(BKE_view_layer_active_object_get(view_layer));
   bPoseChannel *pchan = BKE_pose_channel_active_if_layer_visible(ob);
 
   const wmGizmoType *gzt_move = WM_gizmotype_find("GIZMO_GT_move_3d", true);
@@ -166,7 +166,7 @@ static void WIDGETGROUP_armature_spline_setup(const bContext *C, wmGizmoGroup *g
 static void WIDGETGROUP_armature_spline_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = BKE_object_pose_armature_get(OBACT(view_layer));
+  Object *ob = BKE_object_pose_armature_get(BKE_view_layer_active_object_get(view_layer));
 
   if (!gzgroup->customdata) {
     return;

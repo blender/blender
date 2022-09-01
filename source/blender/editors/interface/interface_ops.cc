@@ -939,7 +939,7 @@ static int override_idtemplate_clear_exec(bContext *C, wmOperator *UNUSED(op))
   if (BKE_lib_override_library_is_hierarchy_leaf(bmain, id)) {
     id_new = id->override_library->reference;
     bool do_remap_active = false;
-    if (OBACT(view_layer) == (Object *)id) {
+    if (BKE_view_layer_active_object_get(view_layer) == (Object *)id) {
       BLI_assert(GS(id->name) == ID_OB);
       BLI_assert(GS(id_new->name) == ID_OB);
       do_remap_active = true;

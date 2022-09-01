@@ -158,8 +158,8 @@ bool ED_armature_pose_select_pick_bone(ViewLayer *view_layer,
   }
 
   if (found) {
-    Object *ob_act = OBACT(view_layer);
-    BLI_assert(OBEDIT_FROM_VIEW_LAYER(view_layer) == NULL);
+    Object *ob_act = BKE_view_layer_active_object_get(view_layer);
+    BLI_assert(BKE_view_layer_edit_object_get(view_layer) == NULL);
 
     /* If the bone cannot be affected, don't do anything. */
     bArmature *arm = ob->data;
@@ -269,7 +269,7 @@ bool ED_armature_pose_select_pick_with_buffer(ViewLayer *view_layer,
 void ED_armature_pose_select_in_wpaint_mode(ViewLayer *view_layer, Base *base_select)
 {
   BLI_assert(base_select && (base_select->object->type == OB_ARMATURE));
-  Object *ob_active = OBACT(view_layer);
+  Object *ob_active = BKE_view_layer_active_object_get(view_layer);
   BLI_assert(ob_active && (ob_active->mode & OB_MODE_ALL_WEIGHT_PAINT));
 
   if (ob_active->type == OB_GPENCIL) {

@@ -18,6 +18,7 @@
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
 #include "BKE_key.h"
+#include "BKE_layer.h"
 #include "BKE_mask.h"
 #include "BKE_nla.h"
 
@@ -580,7 +581,7 @@ static void recalcData_actedit(TransInfo *t)
   ac.bmain = CTX_data_main(t->context);
   ac.scene = t->scene;
   ac.view_layer = t->view_layer;
-  ac.obact = OBACT(view_layer);
+  ac.obact = BKE_view_layer_active_object_get(view_layer);
   ac.area = t->area;
   ac.region = t->region;
   ac.sl = (t->area) ? t->area->spacedata.first : NULL;

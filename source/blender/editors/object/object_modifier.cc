@@ -47,6 +47,7 @@
 #include "BKE_gpencil_modifier.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -1229,7 +1230,7 @@ static int modifier_remove_exec(bContext *C, wmOperator *op)
   /* if cloth/softbody was removed, particle mode could be cleared */
   if (mode_orig & OB_MODE_PARTICLE_EDIT) {
     if ((ob->mode & OB_MODE_PARTICLE_EDIT) == 0) {
-      if (ob == OBACT(view_layer)) {
+      if (ob == BKE_view_layer_active_object_get(view_layer)) {
         WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, nullptr);
       }
     }

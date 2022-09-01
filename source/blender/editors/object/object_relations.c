@@ -263,7 +263,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
       else {
         Object workob;
 
-        ob->parent = BASACT(view_layer)->object;
+        ob->parent = view_layer->basact->object;
         if (par3 != INDEX_UNSET) {
           ob->partype = PARVERT3;
           ob->par1 = par1;
@@ -2622,7 +2622,7 @@ static int clear_override_library_exec(bContext *C, wmOperator *UNUSED(op))
     Object *ob_iter = todo_object_iter->link;
     if (BKE_lib_override_library_is_hierarchy_leaf(bmain, &ob_iter->id)) {
       bool do_remap_active = false;
-      if (OBACT(view_layer) == ob_iter) {
+      if (BKE_view_layer_active_object_get(view_layer) == ob_iter) {
         do_remap_active = true;
       }
       BKE_libblock_remap(bmain,

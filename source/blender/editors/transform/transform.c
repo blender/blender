@@ -19,6 +19,7 @@
 
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
+#include "BKE_layer.h"
 #include "BKE_mask.h"
 #include "BKE_scene.h"
 
@@ -484,7 +485,8 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
       /* XXX how to deal with lock? */
       SpaceImage *sima = (SpaceImage *)t->area->spacedata.first;
       if (sima->lock) {
-        WM_event_add_notifier(C, NC_GEOM | ND_DATA, OBEDIT_FROM_VIEW_LAYER(t->view_layer)->data);
+        WM_event_add_notifier(
+            C, NC_GEOM | ND_DATA, BKE_view_layer_edit_object_get(t->view_layer)->data);
       }
       else {
         ED_area_tag_redraw(t->area);
@@ -1476,7 +1478,7 @@ static void drawTransformPixel(const struct bContext *C, ARegion *region, void *
   if (region == t->region) {
     Scene *scene = t->scene;
     ViewLayer *view_layer = t->view_layer;
-    Object *ob = OBACT(view_layer);
+    Object *ob = BKE_view_layer_active_object_get(view_layer);
 
     /* draw auto-key-framing hint in the corner
      * - only draw if enabled (advanced users may be distracted/annoyed),
@@ -1536,7 +1538,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     if (!(t->options & CTX_NO_PET)) {
       if ((prop = RNA_struct_find_property(op->ptr, "use_proportional_edit")) &&
           !RNA_property_is_set(op->ptr, prop)) {
-        const Object *obact = OBACT(t->view_layer);
+        const Object *obact = BKE_view_layer_active_object_get(t->view_layer);
 
         if (t->spacetype == SPACE_GRAPH) {
           ts->proportional_fcurve = use_prop_edit;

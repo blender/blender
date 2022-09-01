@@ -14,6 +14,8 @@
 #include "DNA_texture_types.h"
 #include "DNA_workspace_types.h"
 
+#include "BKE_layer.h"
+
 #include "BLI_math.h"
 
 #include "BLT_translation.h"
@@ -971,7 +973,7 @@ static void rna_BrushGpencilSettings_default_eraser_update(Main *bmain,
 static void rna_BrushGpencilSettings_use_material_pin_update(bContext *C, PointerRNA *ptr)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = OBACT(view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
   Brush *brush = (Brush *)ptr->owner_id;
 
   if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {

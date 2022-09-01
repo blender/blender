@@ -122,7 +122,7 @@ static Key *actedit_get_shapekeys(bAnimContext *ac)
   Object *ob;
   Key *key;
 
-  ob = OBACT(view_layer);
+  ob = BKE_view_layer_active_object_get(view_layer);
   if (ob == NULL) {
     return NULL;
   }
@@ -3272,7 +3272,7 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac,
     /* Filter and add contents of each base (i.e. object) without them sorting first
      * NOTE: This saves performance in cases where order doesn't matter
      */
-    Object *obact = OBACT(view_layer);
+    Object *obact = BKE_view_layer_active_object_get(view_layer);
     const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
     LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
       if (animdata_filter_base_is_ok(ads, base, object_mode, filter_mode)) {

@@ -17,6 +17,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 
+#include "BKE_layer.h"
 #include "BKE_material.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
@@ -420,7 +421,7 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
         Scene *scene = DEG_get_input_scene(depsgraph);
         ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
         RegionView3D *rv3d = ruler_info->region->regiondata;
-        Object *ob = OBACT(view_layer);
+        Object *ob = BKE_view_layer_active_object_get(view_layer);
         Object *obedit = OBEDIT_FROM_OBACT(ob);
 
         short orient_index = BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);

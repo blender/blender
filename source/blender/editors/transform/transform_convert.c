@@ -997,7 +997,7 @@ static void init_TransDataContainers(TransInfo *t,
 static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj_armature)
 {
   ViewLayer *view_layer = t->view_layer;
-  Object *ob = OBACT(view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   /* if tests must match recalcData for correct updates */
   if (t->options & CTX_CURSOR) {
@@ -1141,7 +1141,7 @@ void createTransData(bContext *C, TransInfo *t)
   }
   else {
     ViewLayer *view_layer = t->view_layer;
-    Object *ob = OBACT(view_layer);
+    Object *ob = BKE_view_layer_active_object_get(view_layer);
     init_TransDataContainers(t, ob, NULL, 0);
   }
 

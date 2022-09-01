@@ -20,6 +20,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_image.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_remap.h"
 #include "BKE_screen.h"
@@ -351,7 +352,7 @@ static void image_listener(const wmSpaceTypeListenerParams *params)
       break;
     case NC_MASK: {
       ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-      Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+      Object *obedit = BKE_view_layer_edit_object_get(view_layer);
       if (ED_space_image_check_show_maskedit(sima, obedit)) {
         switch (wmn->data) {
           case ND_SELECT:
@@ -393,7 +394,7 @@ static void image_listener(const wmSpaceTypeListenerParams *params)
         case ND_TRANSFORM:
         case ND_MODIFIER: {
           ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-          Object *ob = OBACT(view_layer);
+          Object *ob = BKE_view_layer_active_object_get(view_layer);
           if (ob && (ob == wmn->reference) && (ob->mode & OB_MODE_EDIT)) {
             if (sima->lock && (sima->flag & SI_DRAWSHADOW)) {
               ED_area_tag_refresh(area);

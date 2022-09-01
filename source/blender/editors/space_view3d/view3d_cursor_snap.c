@@ -16,6 +16,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
@@ -691,7 +692,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
     }
     else {
       ViewLayer *view_layer = CTX_data_view_layer(C);
-      Object *ob = OBACT(view_layer);
+      Object *ob = BKE_view_layer_active_object_get(view_layer);
       const int orient_index = BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
       const int pivot_point = scene->toolsettings->transform_pivot_point;
       ED_transform_calc_orientation_from_type_ex(

@@ -1489,7 +1489,7 @@ static void OVERLAY_object_center(OVERLAY_ExtraCallBuffers *cb,
 {
   const bool is_library = ID_REAL_USERS(&ob->id) > 1 || ID_IS_LINKED(ob);
 
-  if (ob == OBACT(view_layer)) {
+  if (ob == BKE_view_layer_active_object_get(view_layer)) {
     DRW_buffer_add_entry(cb->center_active, ob->obmat[3]);
   }
   else if (ob->base_flag & BASE_SELECTED) {

@@ -250,7 +250,7 @@ static void outliner_select_sync_to_edit_bone(ViewLayer *view_layer,
 
   /* Tag if selection changed */
   if (bone_flag != ebone->flag) {
-    Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+    Object *obedit = BKE_view_layer_edit_object_get(view_layer);
     DEG_id_tag_update(&arm->id, ID_RECALC_SELECT);
     WM_main_add_notifier(NC_OBJECT | ND_BONE_SELECT, obedit);
   }
@@ -531,7 +531,7 @@ static void get_sync_select_active_data(const bContext *C, SyncSelectActiveData 
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  active_data->object = OBACT(view_layer);
+  active_data->object = BKE_view_layer_active_object_get(view_layer);
   active_data->edit_bone = CTX_data_active_bone(C);
   active_data->pose_channel = CTX_data_active_pose_bone(C);
   active_data->sequence = SEQ_select_active_get(scene);

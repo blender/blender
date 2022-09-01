@@ -543,6 +543,8 @@ struct Object **BKE_view_layer_array_from_objects_in_mode_unique_data(struct Vie
                                                                       const struct View3D *v3d,
                                                                       uint *r_len,
                                                                       eObjectMode mode);
+struct Object *BKE_view_layer_active_object_get(const struct ViewLayer *view_layer);
+struct Object *BKE_view_layer_edit_object_get(const struct ViewLayer *view_layer);
 
 struct ViewLayerAOV *BKE_view_layer_add_aov(struct ViewLayer *view_layer);
 void BKE_view_layer_remove_aov(struct ViewLayer *view_layer, struct ViewLayerAOV *aov);

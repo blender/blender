@@ -7,6 +7,7 @@
 #include "NOD_geometry.h"
 
 #include "BKE_context.h"
+#include "BKE_layer.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
 
@@ -32,7 +33,7 @@ static void geometry_node_tree_get_from_context(const bContext *C,
                                                 ID **r_from)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = OBACT(view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   if (ob == nullptr) {
     return;

@@ -357,8 +357,8 @@ static void stats_update(Depsgraph *depsgraph,
                          View3D *v3d_local,
                          SceneStats *stats)
 {
-  const Object *ob = OBACT(view_layer);
-  const Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  const Object *ob = BKE_view_layer_active_object_get(view_layer);
+  const Object *obedit = BKE_view_layer_edit_object_get(view_layer);
 
   memset(stats, 0x0, sizeof(*stats));
 
@@ -492,7 +492,7 @@ static bool format_stats(
 static void get_stats_string(
     char *info, int len, size_t *ofs, ViewLayer *view_layer, SceneStatsFmt *stats_fmt)
 {
-  Object *ob = OBACT(view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);
   eObjectMode object_mode = ob ? (eObjectMode)ob->mode : OB_MODE_OBJECT;
   LayerCollection *layer_collection = view_layer->active_collection;
@@ -684,7 +684,7 @@ void ED_info_draw_stats(
     return;
   }
 
-  Object *ob = OBACT(view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);
   eObjectMode object_mode = ob ? (eObjectMode)ob->mode : OB_MODE_OBJECT;
   const int font_id = BLF_set_default();

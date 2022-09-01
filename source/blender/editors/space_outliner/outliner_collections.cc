@@ -413,7 +413,7 @@ static int collection_hierarchy_delete_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   struct wmMsgBus *mbus = CTX_wm_message_bus(C);
-  const Base *basact_prev = BASACT(view_layer);
+  const Base *basact_prev = view_layer->basact;
 
   outliner_collection_delete(C, bmain, scene, op->reports, true);
 
@@ -422,7 +422,7 @@ static int collection_hierarchy_delete_exec(bContext *C, wmOperator *op)
 
   WM_main_add_notifier(NC_SCENE | ND_LAYER, nullptr);
 
-  if (basact_prev != BASACT(view_layer)) {
+  if (basact_prev != view_layer->basact) {
     WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
   }
 

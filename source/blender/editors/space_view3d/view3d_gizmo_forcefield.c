@@ -43,7 +43,7 @@ static bool WIDGETGROUP_forcefield_poll(const bContext *C, wmGizmoGroupType *UNU
   }
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Base *base = BASACT(view_layer);
+  Base *base = view_layer->basact;
   if (base && BASE_SELECTABLE(v3d, base)) {
     Object *ob = base->object;
     if (ob->pd && ob->pd->forcefield) {
@@ -74,7 +74,7 @@ static void WIDGETGROUP_forcefield_refresh(const bContext *C, wmGizmoGroup *gzgr
   wmGizmoWrapper *wwrapper = gzgroup->customdata;
   wmGizmo *gz = wwrapper->gizmo;
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = OBACT(view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
   PartDeflect *pd = ob->pd;
 
   if (pd->forcefield == PFIELD_WIND) {

@@ -782,7 +782,7 @@ static void autokeyframe_object(
       }
       else if (ELEM(tmode, TFM_ROTATION, TFM_TRACKBALL)) {
         if (scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) {
-          if (ob != OBACT(view_layer)) {
+          if (ob != BKE_view_layer_active_object_get(view_layer)) {
             do_loc = true;
           }
         }
@@ -796,7 +796,7 @@ static void autokeyframe_object(
       }
       else if (tmode == TFM_RESIZE) {
         if (scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) {
-          if (ob != OBACT(view_layer)) {
+          if (ob != BKE_view_layer_active_object_get(view_layer)) {
             do_loc = true;
           }
         }

@@ -554,11 +554,10 @@ static void update_distances(int index,
 
 static int get_light(ViewLayer *view_layer, float *light)
 {
-  Base *base_tmp = NULL;
   int found_light = 0;
 
   /* Try to find a lamp, preferably local. */
-  for (base_tmp = FIRSTBASE(view_layer); base_tmp; base_tmp = base_tmp->next) {
+  LISTBASE_FOREACH (Base *, base_tmp, &view_layer->object_bases) {
     if (base_tmp->object->type == OB_LAMP) {
       Light *la = base_tmp->object->data;
 

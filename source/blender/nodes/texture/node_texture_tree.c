@@ -18,6 +18,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
+#include "BKE_layer.h"
 #include "BKE_linestyle.h"
 #include "BKE_node.h"
 #include "BKE_paint.h"
@@ -46,7 +47,7 @@ static void texture_get_from_context(const bContext *C,
   SpaceNode *snode = CTX_wm_space_node(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = OBACT(view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
   Tex *tx = NULL;
 
   if (snode->texfrom == SNODE_TEX_BRUSH) {

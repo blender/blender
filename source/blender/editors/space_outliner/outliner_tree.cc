@@ -1475,7 +1475,7 @@ static bool outliner_element_visible_get(ViewLayer *view_layer,
       }
       else {
         BLI_assert(exclude_filter & SO_FILTER_OB_STATE_ACTIVE);
-        if (base != BASACT(view_layer)) {
+        if (base != view_layer->basact) {
           is_visible = false;
         }
       }

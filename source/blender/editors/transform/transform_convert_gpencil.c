@@ -19,6 +19,7 @@
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_curve.h"
 #include "BKE_gpencil_geom.h"
+#include "BKE_layer.h"
 
 #include "ED_gpencil.h"
 #include "ED_keyframing.h"
@@ -681,7 +682,7 @@ static void createTransGPencil(bContext *C, TransInfo *t)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   const Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
-  Object *obact = OBACT(t->view_layer);
+  Object *obact = BKE_view_layer_active_object_get(t->view_layer);
   bGPdata *gpd = obact->data;
   BLI_assert(gpd != NULL);
 

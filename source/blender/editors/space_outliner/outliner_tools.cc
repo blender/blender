@@ -1318,7 +1318,7 @@ static void id_override_library_clear_single_fn(bContext *C,
    * override. */
   if (BKE_lib_override_library_is_hierarchy_leaf(bmain, id)) {
     bool do_remap_active = false;
-    if (OBACT(view_layer) == reinterpret_cast<Object *>(id)) {
+    if (BKE_view_layer_active_object_get(view_layer) == reinterpret_cast<Object *>(id)) {
       BLI_assert(GS(id->name) == ID_OB);
       do_remap_active = true;
     }
@@ -2389,7 +2389,7 @@ static int outliner_delete_exec(bContext *C, wmOperator *op)
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   struct wmMsgBus *mbus = CTX_wm_message_bus(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  const Base *basact_prev = BASACT(view_layer);
+  const Base *basact_prev = view_layer->basact;
 
   const bool delete_hierarchy = RNA_boolean_get(op->ptr, "hierarchy");
 
@@ -2433,7 +2433,7 @@ static int outliner_delete_exec(bContext *C, wmOperator *op)
   DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
   DEG_relations_tag_update(bmain);
 
-  if (basact_prev != BASACT(view_layer)) {
+  if (basact_prev != view_layer->basact) {
     WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
     WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
   }

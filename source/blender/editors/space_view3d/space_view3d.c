@@ -1405,7 +1405,7 @@ static void view3d_main_region_message_subscribe(const wmRegionMessageSubscribeP
   WM_msg_subscribe_rna_anon_type(mbus, ObjectDisplay, &msg_sub_value_region_tag_redraw);
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *obact = OBACT(view_layer);
+  Object *obact = BKE_view_layer_active_object_get(view_layer);
   if (obact != NULL) {
     switch (obact->mode) {
       case OB_MODE_PARTICLE_EDIT:
@@ -1440,7 +1440,7 @@ static void view3d_main_region_cursor(wmWindow *win, ScrArea *area, ARegion *reg
   }
 
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit) {
     WM_cursor_set(win, WM_CURSOR_EDIT);
   }

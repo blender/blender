@@ -1326,7 +1326,7 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
       .v3d = v3d,
       .scene = scene,
       .view_layer = view_layer,
-      .obact = OBACT(view_layer),
+      .obact = BKE_view_layer_active_object_get(view_layer),
       .engine_type = engine_type,
       .depsgraph = depsgraph,
       .object_mode = OB_MODE_OBJECT,
@@ -1379,7 +1379,7 @@ static void drw_notify_view_update_offscreen(struct Depsgraph *depsgraph,
         .v3d = v3d,
         .scene = scene,
         .view_layer = view_layer,
-        .obact = OBACT(view_layer),
+        .obact = BKE_view_layer_active_object_get(view_layer),
         .engine_type = engine_type,
         .depsgraph = depsgraph,
     };
@@ -1632,7 +1632,7 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
       .v3d = v3d,
       .scene = scene,
       .view_layer = view_layer,
-      .obact = OBACT(view_layer),
+      .obact = BKE_view_layer_active_object_get(view_layer),
       .engine_type = engine_type,
       .depsgraph = depsgraph,
 
@@ -2144,7 +2144,7 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
       .region = region,
       .scene = scene,
       .view_layer = view_layer,
-      .obact = OBACT(view_layer),
+      .obact = BKE_view_layer_active_object_get(view_layer),
       .depsgraph = depsgraph,
       .space_data = CTX_wm_space_data(evil_C),
 
@@ -2345,7 +2345,7 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
   ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
-  Object *obact = OBACT(view_layer);
+  Object *obact = BKE_view_layer_active_object_get(view_layer);
   Object *obedit = use_obedit_skip ? NULL : OBEDIT_FROM_OBACT(obact);
 #ifndef USE_GPU_SELECT
   UNUSED_VARS(scene, view_layer, v3d, region, rect);
@@ -2582,7 +2582,7 @@ static void drw_draw_depth_loop_impl(struct Depsgraph *depsgraph,
       .v3d = v3d,
       .scene = scene,
       .view_layer = view_layer,
-      .obact = OBACT(view_layer),
+      .obact = BKE_view_layer_active_object_get(view_layer),
       .engine_type = engine_type,
       .depsgraph = depsgraph,
   };
@@ -2715,7 +2715,7 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, cons
       .v3d = v3d,
       .scene = scene,
       .view_layer = view_layer,
-      .obact = OBACT(view_layer),
+      .obact = BKE_view_layer_active_object_get(view_layer),
       .depsgraph = depsgraph,
   };
   drw_task_graph_init();

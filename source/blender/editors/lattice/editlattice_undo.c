@@ -132,7 +132,7 @@ static int validate_undoLatt(void *data, void *edata)
 static Object *editlatt_object_from_context(bContext *C)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit && obedit->type == OB_LATTICE) {
     Lattice *lt = obedit->data;
     if (lt->editlatt != NULL) {
