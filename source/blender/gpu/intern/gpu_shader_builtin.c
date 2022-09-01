@@ -170,11 +170,6 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
             .name = "GPU_SHADER_2D_IMAGE_OVERLAYS_STEREO_MERGE",
             .create_info = "gpu_shader_2D_image_overlays_stereo_merge",
         },
-    [GPU_SHADER_2D_IMAGE] =
-        {
-            .name = "GPU_SHADER_2D_IMAGE",
-            .create_info = "gpu_shader_2D_image",
-        },
     [GPU_SHADER_2D_IMAGE_COLOR] =
         {
             .name = "GPU_SHADER_2D_IMAGE_COLOR",
