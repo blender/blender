@@ -7,7 +7,7 @@
 #pragma once
 
 #ifndef __cplusplus
-#include "../generic/py_capi_utils.h"
+#  include "../generic/py_capi_utils.h"
 #endif
 
 /* Make sure that there is always a reference count for PyObjects of type String as the strings are

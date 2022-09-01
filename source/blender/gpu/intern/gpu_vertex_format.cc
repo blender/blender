@@ -402,7 +402,7 @@ void GPU_vertformat_from_shader(GPUVertFormat *format, const struct GPUShader *g
   GPU_vertformat_clear(format);
 
   uint attr_len = GPU_shader_get_attribute_len(gpushader);
-  int location_test = 0, attrs_added = 0;;
+  int location_test = 0, attrs_added = 0;
   while (attrs_added < attr_len) {
     char name[256];
     Type gpu_type;

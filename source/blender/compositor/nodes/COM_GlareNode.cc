@@ -21,7 +21,7 @@ void GlareNode::convert_to_operations(NodeConverter &converter,
                                       const CompositorContext & /*context*/) const
 {
   const bNode *node = this->get_bnode();
-const  NodeGlare *glare = (const NodeGlare *)node->storage;
+  const NodeGlare *glare = (const NodeGlare *)node->storage;
 
   GlareBaseOperation *glareoperation = nullptr;
   switch (glare->type) {

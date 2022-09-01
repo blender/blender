@@ -1218,8 +1218,12 @@ void DepsgraphNodeBuilder::build_driver_id_property(ID *id, const char *rna_path
   /* Custom properties of bones are placed in their components to improve granularity. */
   if (RNA_struct_is_a(ptr.type, &RNA_PoseBone)) {
     const bPoseChannel *pchan = static_cast<const bPoseChannel *>(ptr.data);
-    ensure_operation_node(
-        ptr.owner_id, NodeType::BONE, pchan->name, OperationCode::ID_PROPERTY, nullptr, prop_identifier);
+    ensure_operation_node(ptr.owner_id,
+                          NodeType::BONE,
+                          pchan->name,
+                          OperationCode::ID_PROPERTY,
+                          nullptr,
+                          prop_identifier);
   }
   else {
     ensure_operation_node(

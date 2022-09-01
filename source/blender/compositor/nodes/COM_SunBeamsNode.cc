@@ -16,7 +16,7 @@ void SunBeamsNode::convert_to_operations(NodeConverter &converter,
 {
   NodeInput *input_socket = this->get_input_socket(0);
   NodeOutput *output_socket = this->get_output_socket(0);
- const NodeSunBeams *data = (const NodeSunBeams *)get_bnode()->storage;
+  const NodeSunBeams *data = (const NodeSunBeams *)get_bnode()->storage;
 
   SunBeamsOperation *operation = new SunBeamsOperation();
   operation->set_data(*data);
