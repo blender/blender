@@ -17,6 +17,8 @@
 #include "mtl_common.hh"
 #include "mtl_framebuffer.hh"
 #include "mtl_memory.hh"
+#include "mtl_shader.hh"
+#include "mtl_shader_interface.hh"
 #include "mtl_texture.hh"
 
 #include <Cocoa/Cocoa.h>
@@ -32,7 +34,6 @@ namespace blender::gpu {
 /* Forward Declarations */
 class MTLContext;
 class MTLCommandBufferManager;
-class MTLShader;
 class MTLUniformBuf;
 
 /* Structs containing information on current binding state for textures and samplers. */
@@ -40,7 +41,7 @@ struct MTLTextureBinding {
   bool used;
 
   /* Same value as index in bindings array. */
-  uint texture_slot_index;
+  uint slot_index;
   gpu::MTLTexture *texture_resource;
 };
 
@@ -56,9 +57,10 @@ struct MTLSamplerBinding {
 
 /* Metal Context Render Pass State -- Used to track active RenderCommandEncoder state based on
  * bound MTLFrameBuffer's.Owned by MTLContext. */
-struct MTLRenderPassState {
+class MTLRenderPassState {
   friend class MTLContext;
 
+ public:
   MTLRenderPassState(MTLContext &context, MTLCommandBufferManager &command_buffer_manager)
       : ctx(context), cmd(command_buffer_manager){};
 
@@ -570,6 +572,11 @@ class MTLContext : public Context {
   friend class MTLBackend;
 
  private:
+  /* Null buffers for empty/unintialized bindings.
+   * Null attribute buffer follows default attribute format of OpenGL Backend. */
+  id<MTLBuffer> null_buffer_;           /* All zero's. */
+  id<MTLBuffer> null_attribute_buffer_; /* Value float4(0.0,0.0,0.0,1.0). */
+
   /* Compute and specialization caches. */
   MTLContextTextureUtils texture_utils_;
 
@@ -713,6 +720,9 @@ class MTLContext : public Context {
   {
     return MTLContext::global_memory_manager;
   }
+  /* Uniform Buffer Bindings to command encoders. */
+  id<MTLBuffer> get_null_buffer();
+  id<MTLBuffer> get_null_attribute_buffer();
 };
 
 }  // namespace blender::gpu

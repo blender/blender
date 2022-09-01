@@ -95,6 +95,9 @@ static void standard_defines(Vector<const char *> &sources)
     case GPU_BACKEND_OPENGL:
       sources.append("#define GPU_OPENGL\n");
       break;
+    case GPU_BACKEND_METAL:
+      sources.append("#define GPU_METAL\n");
+      break;
     default:
       BLI_assert(false && "Invalid GPU Backend Type");
       break;

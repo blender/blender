@@ -363,20 +363,20 @@ class MTLTexture : public Texture {
   };
 
   id<MTLComputePipelineState> texture_update_1d_get_kernel(
-      TextureUpdateRoutineSpecialisation specialisation);
+      TextureUpdateRoutineSpecialisation specialization);
   id<MTLComputePipelineState> texture_update_1d_array_get_kernel(
-      TextureUpdateRoutineSpecialisation specialisation);
+      TextureUpdateRoutineSpecialisation specialization);
   id<MTLComputePipelineState> texture_update_2d_get_kernel(
-      TextureUpdateRoutineSpecialisation specialisation);
+      TextureUpdateRoutineSpecialisation specialization);
   id<MTLComputePipelineState> texture_update_2d_array_get_kernel(
-      TextureUpdateRoutineSpecialisation specialisation);
+      TextureUpdateRoutineSpecialisation specialization);
   id<MTLComputePipelineState> texture_update_3d_get_kernel(
-      TextureUpdateRoutineSpecialisation specialisation);
+      TextureUpdateRoutineSpecialisation specialization);
 
   id<MTLComputePipelineState> mtl_texture_update_impl(
-      TextureUpdateRoutineSpecialisation specialisation_params,
+      TextureUpdateRoutineSpecialisation specialization_params,
       blender::Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
-          &specialisation_cache,
+          &specialization_cache,
       eGPUTextureType texture_type);
 
   /* Depth Update Utilities */
@@ -384,7 +384,7 @@ class MTLTexture : public Texture {
    * use a compute shader to write to depth, so we must instead render to a depth target.
    * These processes use vertex/fragment shaders to render texture data from an intermediate
    * source, in order to prime the depth buffer*/
-  GPUShader *depth_2d_update_sh_get(DepthTextureUpdateRoutineSpecialisation specialisation);
+  GPUShader *depth_2d_update_sh_get(DepthTextureUpdateRoutineSpecialisation specialization);
 
   void update_sub_depth_2d(
       int mip, int offset[3], int extent[3], eGPUDataFormat type, const void *data);
@@ -397,20 +397,20 @@ class MTLTexture : public Texture {
   };
 
   id<MTLComputePipelineState> texture_read_1d_get_kernel(
-      TextureReadRoutineSpecialisation specialisation);
+      TextureReadRoutineSpecialisation specialization);
   id<MTLComputePipelineState> texture_read_1d_array_get_kernel(
-      TextureReadRoutineSpecialisation specialisation);
+      TextureReadRoutineSpecialisation specialization);
   id<MTLComputePipelineState> texture_read_2d_get_kernel(
-      TextureReadRoutineSpecialisation specialisation);
+      TextureReadRoutineSpecialisation specialization);
   id<MTLComputePipelineState> texture_read_2d_array_get_kernel(
-      TextureReadRoutineSpecialisation specialisation);
+      TextureReadRoutineSpecialisation specialization);
   id<MTLComputePipelineState> texture_read_3d_get_kernel(
-      TextureReadRoutineSpecialisation specialisation);
+      TextureReadRoutineSpecialisation specialization);
 
   id<MTLComputePipelineState> mtl_texture_read_impl(
-      TextureReadRoutineSpecialisation specialisation_params,
+      TextureReadRoutineSpecialisation specialization_params,
       blender::Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>>
-          &specialisation_cache,
+          &specialization_cache,
       eGPUTextureType texture_type);
 
   /* fullscreen blit utilities. */

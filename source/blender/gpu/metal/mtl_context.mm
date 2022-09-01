@@ -5,6 +5,8 @@
  */
 #include "mtl_context.hh"
 #include "mtl_debug.hh"
+#include "mtl_shader.hh"
+#include "mtl_shader_interface.hh"
 #include "mtl_state.hh"
 
 #include "DNA_userdef_types.h"
@@ -29,12 +31,25 @@ MTLContext::MTLContext(void *ghost_window) : memory_manager(*this), main_command
   /* Init debug. */
   debug::mtl_debug_init();
 
+  /* Device creation.
+   * TODO(Metal): This is a temporary initialisation path to enable testing of features
+   * and shader compilation tests. Future functionality should fetch the existing device
+   * from GHOST_ContextCGL.mm. Plumbing to be updated in future. */
+  this->device = MTLCreateSystemDefaultDevice();
+
   /* Initialize command buffer state. */
   this->main_command_buffer.prepare();
+
+  /* Initialise imm and pipeline state */
+  this->pipeline_state.initialised = false;
 
   /* Frame management. */
   is_inside_frame_ = false;
   current_frame_index_ = 0;
+
+  /* Prepare null data buffer */
+  null_buffer_ = nil;
+  null_attribute_buffer_ = nil;
 
   /* Create FrameBuffer handles. */
   MTLFrameBuffer *mtl_front_left = new MTLFrameBuffer(this, "front_left");
@@ -42,6 +57,7 @@ MTLContext::MTLContext(void *ghost_window) : memory_manager(*this), main_command
   this->front_left = mtl_front_left;
   this->back_left = mtl_back_left;
   this->active_fb = this->back_left;
+
   /* Prepare platform and capabilities. (NOTE: With METAL, this needs to be done after CTX
    * initialization). */
   MTLBackend::platform_init(this);
@@ -92,6 +108,12 @@ MTLContext::~MTLContext()
       [sampler_state_cache_[i] release];
       sampler_state_cache_[i] = nil;
     }
+  }
+  if (null_buffer_) {
+    [null_buffer_ release];
+  }
+  if (null_attribute_buffer_) {
+    [null_attribute_buffer_ release];
   }
 }
 
@@ -227,6 +249,50 @@ MTLFrameBuffer *MTLContext::get_default_framebuffer()
   return static_cast<MTLFrameBuffer *>(this->back_left);
 }
 
+MTLShader *MTLContext::get_active_shader()
+{
+  return this->pipeline_state.active_shader;
+}
+
+id<MTLBuffer> MTLContext::get_null_buffer()
+{
+  if (null_buffer_ != nil) {
+    return null_buffer_;
+  }
+
+  static const int null_buffer_size = 4096;
+  null_buffer_ = [this->device newBufferWithLength:null_buffer_size
+                                           options:MTLResourceStorageModeManaged];
+  [null_buffer_ retain];
+  uint32_t *null_data = (uint32_t *)calloc(0, null_buffer_size);
+  memcpy([null_buffer_ contents], null_data, null_buffer_size);
+  [null_buffer_ didModifyRange:NSMakeRange(0, null_buffer_size)];
+  free(null_data);
+
+  BLI_assert(null_buffer_ != nil);
+  return null_buffer_;
+}
+
+id<MTLBuffer> MTLContext::get_null_attribute_buffer()
+{
+  if (null_attribute_buffer_ != nil) {
+    return null_attribute_buffer_;
+  }
+
+  /* Allocate Null buffer if it has not yet been created.
+   * Min buffer size is 256 bytes -- though we only need 64 bytes of data. */
+  static const int null_buffer_size = 256;
+  null_attribute_buffer_ = [this->device newBufferWithLength:null_buffer_size
+                                                     options:MTLResourceStorageModeManaged];
+  BLI_assert(null_attribute_buffer_ != nil);
+  [null_attribute_buffer_ retain];
+  float data[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  memcpy([null_attribute_buffer_ contents], data, sizeof(float) * 4);
+  [null_attribute_buffer_ didModifyRange:NSMakeRange(0, null_buffer_size)];
+
+  return null_attribute_buffer_;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -239,20 +305,20 @@ void MTLContext::pipeline_state_init()
   /*** Initialize state only once. ***/
   if (!this->pipeline_state.initialised) {
     this->pipeline_state.initialised = true;
-    this->pipeline_state.active_shader = NULL;
+    this->pipeline_state.active_shader = nullptr;
 
     /* Clear bindings state. */
     for (int t = 0; t < GPU_max_textures(); t++) {
       this->pipeline_state.texture_bindings[t].used = false;
-      this->pipeline_state.texture_bindings[t].texture_slot_index = t;
-      this->pipeline_state.texture_bindings[t].texture_resource = NULL;
+      this->pipeline_state.texture_bindings[t].slot_index = -1;
+      this->pipeline_state.texture_bindings[t].texture_resource = nullptr;
     }
     for (int s = 0; s < MTL_MAX_SAMPLER_SLOTS; s++) {
       this->pipeline_state.sampler_bindings[s].used = false;
     }
     for (int u = 0; u < MTL_MAX_UNIFORM_BUFFER_BINDINGS; u++) {
       this->pipeline_state.ubo_bindings[u].bound = false;
-      this->pipeline_state.ubo_bindings[u].ubo = NULL;
+      this->pipeline_state.ubo_bindings[u].ubo = nullptr;
     }
   }
 
@@ -487,52 +553,46 @@ id<MTLSamplerState> MTLContext::get_sampler_from_state(MTLSamplerState sampler_s
 id<MTLSamplerState> MTLContext::generate_sampler_from_state(MTLSamplerState sampler_state)
 {
   /* Check if sampler already exists for given state. */
-  id<MTLSamplerState> st = sampler_state_cache_[(uint)sampler_state];
-  if (st != nil) {
-    return st;
-  }
-  else {
-    MTLSamplerDescriptor *descriptor = [[MTLSamplerDescriptor alloc] init];
-    descriptor.normalizedCoordinates = true;
+  MTLSamplerDescriptor *descriptor = [[MTLSamplerDescriptor alloc] init];
+  descriptor.normalizedCoordinates = true;
 
-    MTLSamplerAddressMode clamp_type = (sampler_state.state & GPU_SAMPLER_CLAMP_BORDER) ?
-                                           MTLSamplerAddressModeClampToBorderColor :
-                                           MTLSamplerAddressModeClampToEdge;
-    descriptor.rAddressMode = (sampler_state.state & GPU_SAMPLER_REPEAT_R) ?
-                                  MTLSamplerAddressModeRepeat :
-                                  clamp_type;
-    descriptor.sAddressMode = (sampler_state.state & GPU_SAMPLER_REPEAT_S) ?
-                                  MTLSamplerAddressModeRepeat :
-                                  clamp_type;
-    descriptor.tAddressMode = (sampler_state.state & GPU_SAMPLER_REPEAT_T) ?
-                                  MTLSamplerAddressModeRepeat :
-                                  clamp_type;
-    descriptor.borderColor = MTLSamplerBorderColorTransparentBlack;
-    descriptor.minFilter = (sampler_state.state & GPU_SAMPLER_FILTER) ?
-                               MTLSamplerMinMagFilterLinear :
-                               MTLSamplerMinMagFilterNearest;
-    descriptor.magFilter = (sampler_state.state & GPU_SAMPLER_FILTER) ?
-                               MTLSamplerMinMagFilterLinear :
-                               MTLSamplerMinMagFilterNearest;
-    descriptor.mipFilter = (sampler_state.state & GPU_SAMPLER_MIPMAP) ?
-                               MTLSamplerMipFilterLinear :
-                               MTLSamplerMipFilterNotMipmapped;
-    descriptor.lodMinClamp = -1000;
-    descriptor.lodMaxClamp = 1000;
-    float aniso_filter = max_ff(16, U.anisotropic_filter);
-    descriptor.maxAnisotropy = (sampler_state.state & GPU_SAMPLER_MIPMAP) ? aniso_filter : 1;
-    descriptor.compareFunction = (sampler_state.state & GPU_SAMPLER_COMPARE) ?
-                                     MTLCompareFunctionLessEqual :
-                                     MTLCompareFunctionAlways;
-    descriptor.supportArgumentBuffers = true;
+  MTLSamplerAddressMode clamp_type = (sampler_state.state & GPU_SAMPLER_CLAMP_BORDER) ?
+                                         MTLSamplerAddressModeClampToBorderColor :
+                                         MTLSamplerAddressModeClampToEdge;
+  descriptor.rAddressMode = (sampler_state.state & GPU_SAMPLER_REPEAT_R) ?
+                                MTLSamplerAddressModeRepeat :
+                                clamp_type;
+  descriptor.sAddressMode = (sampler_state.state & GPU_SAMPLER_REPEAT_S) ?
+                                MTLSamplerAddressModeRepeat :
+                                clamp_type;
+  descriptor.tAddressMode = (sampler_state.state & GPU_SAMPLER_REPEAT_T) ?
+                                MTLSamplerAddressModeRepeat :
+                                clamp_type;
+  descriptor.borderColor = MTLSamplerBorderColorTransparentBlack;
+  descriptor.minFilter = (sampler_state.state & GPU_SAMPLER_FILTER) ?
+                             MTLSamplerMinMagFilterLinear :
+                             MTLSamplerMinMagFilterNearest;
+  descriptor.magFilter = (sampler_state.state & GPU_SAMPLER_FILTER) ?
+                             MTLSamplerMinMagFilterLinear :
+                             MTLSamplerMinMagFilterNearest;
+  descriptor.mipFilter = (sampler_state.state & GPU_SAMPLER_MIPMAP) ?
+                             MTLSamplerMipFilterLinear :
+                             MTLSamplerMipFilterNotMipmapped;
+  descriptor.lodMinClamp = -1000;
+  descriptor.lodMaxClamp = 1000;
+  float aniso_filter = max_ff(16, U.anisotropic_filter);
+  descriptor.maxAnisotropy = (sampler_state.state & GPU_SAMPLER_MIPMAP) ? aniso_filter : 1;
+  descriptor.compareFunction = (sampler_state.state & GPU_SAMPLER_COMPARE) ?
+                                   MTLCompareFunctionLessEqual :
+                                   MTLCompareFunctionAlways;
+  descriptor.supportArgumentBuffers = true;
 
-    id<MTLSamplerState> state = [this->device newSamplerStateWithDescriptor:descriptor];
-    sampler_state_cache_[(uint)sampler_state] = state;
+  id<MTLSamplerState> state = [this->device newSamplerStateWithDescriptor:descriptor];
+  sampler_state_cache_[(uint)sampler_state] = state;
 
-    BLI_assert(state != nil);
-    [descriptor autorelease];
-    return state;
-  }
+  BLI_assert(state != nil);
+  [descriptor autorelease];
+  return state;
 }
 
 id<MTLSamplerState> MTLContext::get_default_sampler_state()

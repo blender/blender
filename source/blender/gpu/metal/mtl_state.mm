@@ -11,6 +11,7 @@
 
 #include "mtl_context.hh"
 #include "mtl_framebuffer.hh"
+#include "mtl_shader_interface_type.hh"
 #include "mtl_state.hh"
 
 namespace blender::gpu {

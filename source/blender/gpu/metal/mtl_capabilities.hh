@@ -14,6 +14,8 @@ namespace gpu {
 
 #define MTL_MAX_TEXTURE_SLOTS 128
 #define MTL_MAX_SAMPLER_SLOTS MTL_MAX_TEXTURE_SLOTS
+/* Max limit without using bindless for samplers. */
+#define MTL_MAX_DEFAULT_SAMPLERS 16
 #define MTL_MAX_UNIFORM_BUFFER_BINDINGS 31
 #define MTL_MAX_VERTEX_INPUT_ATTRIBUTES 31
 #define MTL_MAX_UNIFORMS_PER_BLOCK 64

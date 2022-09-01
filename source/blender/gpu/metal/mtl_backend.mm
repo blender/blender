@@ -12,6 +12,7 @@
 #include "mtl_framebuffer.hh"
 #include "mtl_index_buffer.hh"
 #include "mtl_query.hh"
+#include "mtl_shader.hh"
 #include "mtl_uniform_buffer.hh"
 
 #include "gpu_capabilities_private.hh"
@@ -71,8 +72,8 @@ QueryPool *MTLBackend::querypool_alloc()
 
 Shader *MTLBackend::shader_alloc(const char *name)
 {
-  /* TODO(Metal): Implement MTLShader. */
-  return nullptr;
+  MTLContext *mtl_context = MTLContext::get();
+  return new MTLShader(mtl_context, name);
 };
 
 Texture *MTLBackend::texture_alloc(const char *name)
@@ -168,7 +169,7 @@ void MTLBackend::platform_init(MTLContext *ctx)
   eGPUSupportLevel support_level = GPU_SUPPORT_LEVEL_SUPPORTED;
 
   BLI_assert(ctx);
-  id<MTLDevice> mtl_device = nil; /*ctx->device; TODO(Metal): Implement MTLContext. */
+  id<MTLDevice> mtl_device = ctx->device;
   BLI_assert(device);
 
   NSString *gpu_name = [mtl_device name];
@@ -187,7 +188,7 @@ void MTLBackend::platform_init(MTLContext *ctx)
   os = GPU_OS_UNIX;
 #endif
 
-  BLI_assert(os == GPU_OS_MAC && "Platform must be macOS");
+  BLI_assert_msg(os == GPU_OS_MAC, "Platform must be macOS");
 
   /* Determine Vendor from name. */
   if (strstr(vendor, "ATI") || strstr(vendor, "AMD")) {
@@ -334,7 +335,7 @@ bool MTLBackend::metal_is_supported()
 void MTLBackend::capabilities_init(MTLContext *ctx)
 {
   BLI_assert(ctx);
-  id<MTLDevice> device = nil; /*ctx->device TODO(Metal): Implement MTLContext. */
+  id<MTLDevice> device = ctx->device;
   BLI_assert(device);
 
   /* Initialize Capabilities. */

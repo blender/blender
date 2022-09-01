@@ -32,6 +32,7 @@ namespace blender::gpu::shader {
 #endif
 
 enum class Type {
+  /* Types supported natively across all GPU backends. */
   FLOAT = 0,
   VEC2,
   VEC3,
@@ -47,6 +48,21 @@ enum class Type {
   IVEC3,
   IVEC4,
   BOOL,
+  /* Additionally supported types to enable data optimisation and native
+   * support in some GPUBackends.
+   * NOTE: These types must be representable in all APIs. E.g. VEC3_101010I2 is aliased as vec3 in
+   * the GL backend, as implicit type conversions from packed normal attribute data to vec3 is
+   * supported. UCHAR/CHAR types are natively supported in Metal and can be used to avoid
+   * additional data conversions for GPU_COMP_U8 vertex attributes. */
+  VEC3_101010I2,
+  UCHAR,
+  UCHAR2,
+  UCHAR3,
+  UCHAR4,
+  CHAR,
+  CHAR2,
+  CHAR3,
+  CHAR4
 };
 
 /* All of these functions is a bit out of place */
@@ -86,6 +102,40 @@ static inline std::ostream &operator<<(std::ostream &stream, const Type type)
       return stream << "mat3";
     case Type::MAT4:
       return stream << "mat4";
+    case Type::VEC3_101010I2:
+      return stream << "vec3_1010102_Inorm";
+    case Type::UCHAR:
+      return stream << "uchar";
+    case Type::UCHAR2:
+      return stream << "uchar2";
+    case Type::UCHAR3:
+      return stream << "uchar3";
+    case Type::UCHAR4:
+      return stream << "uchar4";
+    case Type::CHAR:
+      return stream << "char";
+    case Type::CHAR2:
+      return stream << "char2";
+    case Type::CHAR3:
+      return stream << "char3";
+    case Type::CHAR4:
+      return stream << "char4";
+    case Type::INT:
+      return stream << "int";
+    case Type::IVEC2:
+      return stream << "ivec2";
+    case Type::IVEC3:
+      return stream << "ivec3";
+    case Type::IVEC4:
+      return stream << "ivec4";
+    case Type::UINT:
+      return stream << "uint";
+    case Type::UVEC2:
+      return stream << "uvec2";
+    case Type::UVEC3:
+      return stream << "uvec3";
+    case Type::UVEC4:
+      return stream << "uvec4";
     default:
       BLI_assert(0);
       return stream;
@@ -228,6 +278,8 @@ enum class PrimitiveOut {
   POINTS = 0,
   LINE_STRIP,
   TRIANGLE_STRIP,
+  LINES,
+  TRIANGLES,
 };
 
 struct StageInterfaceInfo {

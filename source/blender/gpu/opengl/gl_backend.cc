@@ -497,6 +497,7 @@ void GLBackend::capabilities_init()
   glGetIntegerv(GL_NUM_EXTENSIONS, &GCaps.extensions_len);
   GCaps.extension_get = gl_extension_get;
 
+  GCaps.max_samplers = GCaps.max_textures;
   GCaps.mem_stats_support = epoxy_has_gl_extension("GL_NVX_gpu_memory_info") ||
                             epoxy_has_gl_extension("GL_ATI_meminfo");
   GCaps.shader_image_load_store_support = epoxy_has_gl_extension("GL_ARB_shader_image_load_store");

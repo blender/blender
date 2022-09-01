@@ -48,6 +48,14 @@ class Context {
 
   DebugStack debug_stack;
 
+  /* GPUContext counter used to assign a unique ID to each GPUContext.
+   * NOTE(Metal): This is required by the Metal Backend, as a bug exists in the global OS shader
+   * cache wherein compilation of identical source from two distinct threads can result in an
+   * invalid cache collision, result in a broken shader object. Appending the unique context ID
+   * onto compiled sources ensures the source hashes are different. */
+  static int context_counter;
+  int context_id = 0;
+
  protected:
   /** Thread on which this context is active. */
   pthread_t thread_;
