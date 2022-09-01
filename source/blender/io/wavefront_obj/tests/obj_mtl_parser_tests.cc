@@ -6,6 +6,7 @@
 
 #include "testing/testing.h"
 
+#include "obj_export_mtl.hh"
 #include "obj_import_file_reader.hh"
 
 namespace blender::io::obj {
