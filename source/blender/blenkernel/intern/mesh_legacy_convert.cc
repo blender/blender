@@ -187,6 +187,12 @@ static void convert_mfaces_to_mpolys(ID *id,
   totpoly = totface_i;
   mpoly = (MPoly *)MEM_calloc_arrayN((size_t)totpoly, sizeof(MPoly), "mpoly converted");
   CustomData_add_layer(pdata, CD_MPOLY, CD_ASSIGN, mpoly, totpoly);
+  int *material_indices = static_cast<int *>(
+      CustomData_get_layer_named(pdata, CD_PROP_INT32, "material_index"));
+  if (material_indices == nullptr) {
+    material_indices = static_cast<int *>(CustomData_add_layer_named(
+        pdata, CD_PROP_INT32, CD_SET_DEFAULT, nullptr, totpoly, "material_index"));
+  }
 
   numTex = CustomData_number_of_layers(fdata, CD_MTFACE);
   numCol = CustomData_number_of_layers(fdata, CD_MCOL);
@@ -232,7 +238,7 @@ static void convert_mfaces_to_mpolys(ID *id,
 
     mp->totloop = mf->v4 ? 4 : 3;
 
-    mp->mat_nr = mf->mat_nr;
+    material_indices[i] = mf->mat_nr;
     mp->flag = mf->flag;
 
 #define ML(v1, v2) \
@@ -564,6 +570,8 @@ static int mesh_tessface_calc(CustomData *fdata,
 
   mpoly = (const MPoly *)CustomData_get_layer(pdata, CD_MPOLY);
   mloop = (const MLoop *)CustomData_get_layer(ldata, CD_MLOOP);
+  const int *material_indices = static_cast<const int *>(
+      CustomData_get_layer_named(pdata, CD_PROP_INT32, "material_index"));
 
   /* Allocate the length of `totfaces`, avoid many small reallocation's,
    * if all faces are triangles it will be correct, `quads == 2x` allocations. */
@@ -602,7 +610,7 @@ static int mesh_tessface_calc(CustomData *fdata,
     lidx[1] = l2; \
     lidx[2] = l3; \
     lidx[3] = 0; \
-    mf->mat_nr = mp->mat_nr; \
+    mf->mat_nr = material_indices ? material_indices[poly_index] : 0; \
     mf->flag = mp->flag; \
     mf->edcode = 0; \
     (void)0
@@ -625,7 +633,7 @@ static int mesh_tessface_calc(CustomData *fdata,
     lidx[1] = l2; \
     lidx[2] = l3; \
     lidx[3] = l4; \
-    mf->mat_nr = mp->mat_nr; \
+    mf->mat_nr = material_indices ? material_indices[poly_index] : 0; \
     mf->flag = mp->flag; \
     mf->edcode = TESSFACE_IS_QUAD; \
     (void)0
@@ -711,7 +719,7 @@ static int mesh_tessface_calc(CustomData *fdata,
         lidx[2] = l3;
         lidx[3] = 0;
 
-        mf->mat_nr = mp->mat_nr;
+        mf->mat_nr = material_indices ? material_indices[poly_index] : 0;
         mf->flag = mp->flag;
         mf->edcode = 0;
 
