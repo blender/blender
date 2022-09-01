@@ -6,6 +6,7 @@
  * \brief lower level node drawing for nodes (boarders, headers etc), also node layout.
  */
 
+#include "BLI_color.hh"
 #include "BLI_system.h"
 #include "BLI_threads.h"
 
@@ -1639,8 +1640,8 @@ bool node_link_bezier_handles(const View2D *v2d,
 
   if (curving == 0) {
     /* Straight line: align all points. */
-    mid_v2_v2v2(vec[1], vec[0], vec[3]);
-    mid_v2_v2v2(vec[2], vec[1], vec[3]);
+    interp_v2_v2v2(vec[1], vec[0], vec[3], 1.0f / 3.0f);
+    interp_v2_v2v2(vec[2], vec[0], vec[3], 2.0f / 3.0f);
     return true;
   }
 
@@ -1938,27 +1939,38 @@ void nodelink_batch_end(SpaceNode &snode)
   g_batch_link.enabled = false;
 }
 
+struct NodeLinkDrawConfig {
+  int th_col1;
+  int th_col2;
+  int th_col3;
+
+  ColorTheme4f start_color;
+  ColorTheme4f end_color;
+  ColorTheme4f outline_color;
+
+  bool drawarrow;
+  bool drawmuted;
+  bool highlighted;
+
+  float dim_factor;
+  float thickness;
+  float dash_factor;
+  float dash_alpha;
+};
+
 static void nodelink_batch_add_link(const SpaceNode &snode,
                                     const float2 &p0,
                                     const float2 &p1,
                                     const float2 &p2,
                                     const float2 &p3,
-                                    int th_col1,
-                                    int th_col2,
-                                    int th_col3,
-                                    const float start_color[4],
-                                    const float end_color[4],
-                                    bool drawarrow,
-                                    bool drawmuted,
-                                    float dim_factor,
-                                    float thickness,
-                                    float dash_factor,
-                                    float dash_alpha)
+                                    const NodeLinkDrawConfig &draw_config)
 {
   /* Only allow these colors. If more is needed, you need to modify the shader accordingly. */
-  BLI_assert(ELEM(th_col1, TH_WIRE_INNER, TH_WIRE, TH_ACTIVE, TH_EDGE_SELECT, TH_REDALERT));
-  BLI_assert(ELEM(th_col2, TH_WIRE_INNER, TH_WIRE, TH_ACTIVE, TH_EDGE_SELECT, TH_REDALERT));
-  BLI_assert(ELEM(th_col3, TH_WIRE, TH_REDALERT, -1));
+  BLI_assert(
+      ELEM(draw_config.th_col1, TH_WIRE_INNER, TH_WIRE, TH_ACTIVE, TH_EDGE_SELECT, TH_REDALERT));
+  BLI_assert(
+      ELEM(draw_config.th_col2, TH_WIRE_INNER, TH_WIRE, TH_ACTIVE, TH_EDGE_SELECT, TH_REDALERT));
+  BLI_assert(ELEM(draw_config.th_col3, TH_WIRE, TH_REDALERT, -1));
 
   g_batch_link.count++;
   copy_v2_v2((float *)GPU_vertbuf_raw_step(&g_batch_link.p0_step), p0);
@@ -1966,21 +1978,196 @@ static void nodelink_batch_add_link(const SpaceNode &snode,
   copy_v2_v2((float *)GPU_vertbuf_raw_step(&g_batch_link.p2_step), p2);
   copy_v2_v2((float *)GPU_vertbuf_raw_step(&g_batch_link.p3_step), p3);
   char *colid = (char *)GPU_vertbuf_raw_step(&g_batch_link.colid_step);
-  colid[0] = nodelink_get_color_id(th_col1);
-  colid[1] = nodelink_get_color_id(th_col2);
-  colid[2] = nodelink_get_color_id(th_col3);
-  colid[3] = drawarrow;
-  copy_v4_v4((float *)GPU_vertbuf_raw_step(&g_batch_link.start_color_step), start_color);
-  copy_v4_v4((float *)GPU_vertbuf_raw_step(&g_batch_link.end_color_step), end_color);
+  colid[0] = nodelink_get_color_id(draw_config.th_col1);
+  colid[1] = nodelink_get_color_id(draw_config.th_col2);
+  colid[2] = nodelink_get_color_id(draw_config.th_col3);
+  colid[3] = draw_config.drawarrow;
+  copy_v4_v4((float *)GPU_vertbuf_raw_step(&g_batch_link.start_color_step),
+             draw_config.start_color);
+  copy_v4_v4((float *)GPU_vertbuf_raw_step(&g_batch_link.end_color_step), draw_config.end_color);
   char *muted = (char *)GPU_vertbuf_raw_step(&g_batch_link.muted_step);
-  muted[0] = drawmuted;
-  *(float *)GPU_vertbuf_raw_step(&g_batch_link.dim_factor_step) = dim_factor;
-  *(float *)GPU_vertbuf_raw_step(&g_batch_link.thickness_step) = thickness;
-  *(float *)GPU_vertbuf_raw_step(&g_batch_link.dash_factor_step) = dash_factor;
-  *(float *)GPU_vertbuf_raw_step(&g_batch_link.dash_alpha_step) = dash_alpha;
+  muted[0] = draw_config.drawmuted;
+  *(float *)GPU_vertbuf_raw_step(&g_batch_link.dim_factor_step) = draw_config.dim_factor;
+  *(float *)GPU_vertbuf_raw_step(&g_batch_link.thickness_step) = draw_config.thickness;
+  *(float *)GPU_vertbuf_raw_step(&g_batch_link.dash_factor_step) = draw_config.dash_factor;
+  *(float *)GPU_vertbuf_raw_step(&g_batch_link.dash_alpha_step) = draw_config.dash_alpha;
 
   if (g_batch_link.count == NODELINK_GROUP_SIZE) {
     nodelink_batch_draw(snode);
+  }
+}
+
+static void node_draw_link_end_marker(const float2 center,
+                                      const float radius,
+                                      const ColorTheme4f &color)
+{
+  rctf rect;
+  BLI_rctf_init(&rect, center.x - radius, center.x + radius, center.y - radius, center.y + radius);
+
+  UI_draw_roundbox_corner_set(UI_CNR_ALL);
+  UI_draw_roundbox_4fv(&rect, true, radius, color);
+  /* Roundbox disables alpha. Reenable it for node links that are drawn after this one. */
+  GPU_blend(GPU_BLEND_ALPHA);
+}
+
+static void node_draw_link_end_markers(const bNodeLink &link,
+                                       const NodeLinkDrawConfig &draw_config,
+                                       const float handles[4][2],
+                                       const bool outline)
+{
+  const float radius = (outline ? 0.65f : 0.45f) * NODE_SOCKSIZE;
+  if (link.fromsock) {
+    const float2 link_start(handles[0]);
+    node_draw_link_end_marker(
+        link_start, radius, outline ? draw_config.outline_color : draw_config.start_color);
+  }
+  if (link.tosock) {
+    const float2 link_end(handles[3]);
+    node_draw_link_end_marker(
+        link_end, radius, outline ? draw_config.outline_color : draw_config.end_color);
+  }
+}
+
+static bool node_link_is_field_link(const SpaceNode &snode, const bNodeLink &link)
+{
+  if (snode.edittree->type != NTREE_GEOMETRY) {
+    return false;
+  }
+  if (link.fromsock && link.fromsock->display_shape == SOCK_DISPLAY_SHAPE_DIAMOND) {
+    return true;
+  }
+  return false;
+}
+
+static NodeLinkDrawConfig nodelink_get_draw_config(const bContext &C,
+                                                   const View2D &v2d,
+                                                   const SpaceNode &snode,
+                                                   const bNodeLink &link,
+                                                   const int th_col1,
+                                                   const int th_col2,
+                                                   const int th_col3,
+                                                   const bool selected)
+{
+  NodeLinkDrawConfig draw_config;
+
+  draw_config.th_col1 = th_col1;
+  draw_config.th_col2 = th_col2;
+  draw_config.th_col3 = th_col3;
+
+  draw_config.dim_factor = selected ? 1.0f : node_link_dim_factor(v2d, link);
+
+  bTheme *btheme = UI_GetTheme();
+  draw_config.dash_alpha = btheme->space_node.dash_alpha;
+
+  const bool field_link = node_link_is_field_link(snode, link);
+
+  draw_config.dash_factor = field_link ? 0.75f : 1.0f;
+
+  const float scale = UI_view2d_scale_get_x(&v2d);
+  /* Clamp the thickness to make the links more readable when zooming out. */
+  draw_config.thickness = max_ff(scale, 1.0f) * (field_link ? 0.7f : 1.0f);
+  draw_config.highlighted = link.flag & NODE_LINK_TEMP_HIGHLIGHT;
+  draw_config.drawarrow = ((link.tonode && (link.tonode->type == NODE_REROUTE)) &&
+                           (link.fromnode && (link.fromnode->type == NODE_REROUTE)));
+  draw_config.drawmuted = (link.flag & NODE_LINK_MUTED);
+
+  UI_GetThemeColor4fv(th_col3, draw_config.outline_color);
+
+  if (snode.overlay.flag & SN_OVERLAY_SHOW_OVERLAYS &&
+      snode.overlay.flag & SN_OVERLAY_SHOW_WIRE_COLORS) {
+    PointerRNA from_node_ptr, to_node_ptr;
+    RNA_pointer_create((ID *)snode.edittree, &RNA_Node, link.fromnode, &from_node_ptr);
+    RNA_pointer_create((ID *)snode.edittree, &RNA_Node, link.tonode, &to_node_ptr);
+
+    if (link.fromsock) {
+      node_socket_color_get(
+          C, *snode.edittree, from_node_ptr, *link.fromsock, draw_config.start_color);
+    }
+    else {
+      node_socket_color_get(
+          C, *snode.edittree, to_node_ptr, *link.tosock, draw_config.start_color);
+    }
+
+    if (link.tosock) {
+      node_socket_color_get(C, *snode.edittree, to_node_ptr, *link.tosock, draw_config.end_color);
+    }
+    else {
+      node_socket_color_get(
+          C, *snode.edittree, from_node_ptr, *link.fromsock, draw_config.end_color);
+    }
+  }
+  else {
+    UI_GetThemeColor4fv(th_col1, draw_config.start_color);
+    UI_GetThemeColor4fv(th_col2, draw_config.end_color);
+  }
+
+  /* Highlight links connected to selected nodes. */
+  if (selected) {
+    ColorTheme4f color_selected;
+    UI_GetThemeColor4fv(TH_EDGE_SELECT, color_selected);
+    const float alpha = color_selected.a;
+
+    /* Interpolate color if highlight color is not fully transparent. */
+    if (alpha != 0.0) {
+      if (link.fromsock) {
+        interp_v3_v3v3(draw_config.start_color, draw_config.start_color, color_selected, alpha);
+      }
+      if (link.tosock) {
+        interp_v3_v3v3(draw_config.end_color, draw_config.end_color, color_selected, alpha);
+      }
+    }
+  }
+
+  if (draw_config.highlighted) {
+    ColorTheme4f link_preselection_highlight_color;
+    UI_GetThemeColor4fv(TH_SELECT, link_preselection_highlight_color);
+    /* Multi sockets can only be inputs. So we only have to highlight the end of the link. */
+    copy_v4_v4(draw_config.end_color, link_preselection_highlight_color);
+  }
+
+  return draw_config;
+}
+
+static void node_draw_link_bezier_ex(const SpaceNode &snode,
+                                     const NodeLinkDrawConfig &draw_config,
+                                     const float handles[4][2])
+{
+  if (g_batch_link.batch == nullptr) {
+    nodelink_batch_init();
+  }
+
+  if (g_batch_link.enabled && !draw_config.highlighted) {
+    /* Add link to batch. */
+    nodelink_batch_add_link(snode, handles[0], handles[1], handles[2], handles[3], draw_config);
+  }
+  else {
+    NodeLinkData node_link_data;
+    for (int i = 0; i < 4; i++) {
+      copy_v2_v2(node_link_data.bezierPts[i], handles[i]);
+    }
+
+    copy_v4_v4(node_link_data.colors[0], draw_config.outline_color);
+    copy_v4_v4(node_link_data.colors[1], draw_config.start_color);
+    copy_v4_v4(node_link_data.colors[2], draw_config.end_color);
+
+    node_link_data.doArrow = draw_config.drawarrow;
+    node_link_data.doMuted = draw_config.drawmuted;
+    node_link_data.dim_factor = draw_config.dim_factor;
+    node_link_data.thickness = draw_config.thickness;
+    node_link_data.dash_factor = draw_config.dash_factor;
+    node_link_data.dash_alpha = draw_config.dash_alpha;
+    node_link_data.expandSize = snode.runtime->aspect * LINK_WIDTH;
+    node_link_data.arrowSize = ARROW_SIZE;
+
+    GPUBatch *batch = g_batch_link.batch_single;
+    GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(sizeof(NodeLinkData), &node_link_data, __func__);
+
+    GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_NODELINK);
+    GPU_batch_uniformbuf_bind(batch, "node_link_data", ubo);
+    GPU_batch_draw(batch);
+
+    GPU_uniformbuf_unbind(ubo);
+    GPU_uniformbuf_free(ubo);
   }
 }
 
@@ -1993,132 +2180,14 @@ void node_draw_link_bezier(const bContext &C,
                            const int th_col3,
                            const bool selected)
 {
-  const float dim_factor = selected ? 1.0f : node_link_dim_factor(v2d, link);
-  float thickness = 1.5f;
-  float dash_factor = 1.0f;
-
-  bTheme *btheme = UI_GetTheme();
-  const float dash_alpha = btheme->space_node.dash_alpha;
-
-  if (snode.edittree->type == NTREE_GEOMETRY) {
-    if (link.fromsock && link.fromsock->display_shape == SOCK_DISPLAY_SHAPE_DIAMOND) {
-      /* Make field links a bit thinner. */
-      thickness = 1.0f;
-      /* Draw field as dashes. */
-      dash_factor = 0.75f;
-    }
+  float handles[4][2];
+  if (!node_link_bezier_handles(&v2d, &snode, link, handles)) {
+    return;
   }
+  const NodeLinkDrawConfig draw_config = nodelink_get_draw_config(
+      C, v2d, snode, link, th_col1, th_col2, th_col3, selected);
 
-  float vec[4][2];
-  const bool highlighted = link.flag & NODE_LINK_TEMP_HIGHLIGHT;
-  if (node_link_bezier_handles(&v2d, &snode, link, vec)) {
-    int drawarrow = ((link.tonode && (link.tonode->type == NODE_REROUTE)) &&
-                     (link.fromnode && (link.fromnode->type == NODE_REROUTE)));
-    int drawmuted = (link.flag & NODE_LINK_MUTED);
-    if (g_batch_link.batch == nullptr) {
-      nodelink_batch_init();
-    }
-    /* Draw single link. */
-    float colors[3][4] = {{0.0f}};
-    if (th_col3 != -1) {
-      UI_GetThemeColor4fv(th_col3, colors[0]);
-    }
-
-    if (snode.overlay.flag & SN_OVERLAY_SHOW_OVERLAYS &&
-        snode.overlay.flag & SN_OVERLAY_SHOW_WIRE_COLORS) {
-      PointerRNA from_node_ptr, to_node_ptr;
-      RNA_pointer_create((ID *)snode.edittree, &RNA_Node, link.fromnode, &from_node_ptr);
-      RNA_pointer_create((ID *)snode.edittree, &RNA_Node, link.tonode, &to_node_ptr);
-      if (link.fromsock) {
-        node_socket_color_get(C, *snode.edittree, from_node_ptr, *link.fromsock, colors[1]);
-      }
-      else {
-        node_socket_color_get(C, *snode.edittree, to_node_ptr, *link.tosock, colors[1]);
-      }
-
-      if (link.tosock) {
-        node_socket_color_get(C, *snode.edittree, to_node_ptr, *link.tosock, colors[2]);
-      }
-      else {
-        node_socket_color_get(C, *snode.edittree, from_node_ptr, *link.fromsock, colors[2]);
-      }
-    }
-    else {
-      UI_GetThemeColor4fv(th_col1, colors[1]);
-      UI_GetThemeColor4fv(th_col2, colors[2]);
-    }
-
-    /* Highlight links connected to selected nodes. */
-    if (selected) {
-      float color_selected[4];
-      UI_GetThemeColor4fv(TH_EDGE_SELECT, color_selected);
-      const float alpha = color_selected[3];
-
-      /* Interpolate color if highlight color is not fully transparent. */
-      if (alpha != 0.0) {
-        if (link.fromsock) {
-          interp_v3_v3v3(colors[1], colors[1], color_selected, alpha);
-        }
-        if (link.tosock) {
-          interp_v3_v3v3(colors[2], colors[2], color_selected, alpha);
-        }
-      }
-    }
-
-    if (g_batch_link.enabled && !highlighted) {
-      /* Add link to batch. */
-      nodelink_batch_add_link(snode,
-                              vec[0],
-                              vec[1],
-                              vec[2],
-                              vec[3],
-                              th_col1,
-                              th_col2,
-                              th_col3,
-                              colors[1],
-                              colors[2],
-                              drawarrow,
-                              drawmuted,
-                              dim_factor,
-                              thickness,
-                              dash_factor,
-                              dash_alpha);
-    }
-    else {
-      if (highlighted) {
-        float link_preselection_highlight_color[4];
-        UI_GetThemeColor4fv(TH_SELECT, link_preselection_highlight_color);
-        copy_v4_v4(colors[2], link_preselection_highlight_color);
-      }
-
-      NodeLinkData node_link_data;
-      for (int i = 0; i < 4; i++) {
-        copy_v2_v2(node_link_data.bezierPts[i], vec[i]);
-      }
-      for (int i = 0; i < 3; i++) {
-        copy_v4_v4(node_link_data.colors[i], colors[i]);
-      }
-      node_link_data.doArrow = drawarrow;
-      node_link_data.doMuted = drawmuted;
-      node_link_data.dim_factor = dim_factor;
-      node_link_data.thickness = thickness;
-      node_link_data.dash_factor = dash_factor;
-      node_link_data.dash_alpha = dash_alpha;
-      node_link_data.expandSize = snode.runtime->aspect * LINK_WIDTH;
-      node_link_data.arrowSize = ARROW_SIZE;
-
-      GPUBatch *batch = g_batch_link.batch_single;
-      GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(
-          sizeof(NodeLinkData), &node_link_data, __func__);
-
-      GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_NODELINK);
-      GPU_batch_uniformbuf_bind(batch, "node_link_data", ubo);
-      GPU_batch_draw(batch);
-
-      GPU_uniformbuf_unbind(ubo);
-      GPU_uniformbuf_free(ubo);
-    }
-  }
+  node_draw_link_bezier_ex(snode, draw_config, handles);
 }
 
 void node_draw_link(const bContext &C,
@@ -2133,34 +2202,29 @@ void node_draw_link(const bContext &C,
     return;
   }
 
-  /* new connection */
-  if (!link.fromsock || !link.tosock) {
-    th_col1 = th_col2 = TH_ACTIVE;
+  /* going to give issues once... */
+  if (link.tosock->flag & SOCK_UNAVAIL) {
+    return;
+  }
+  if (link.fromsock->flag & SOCK_UNAVAIL) {
+    return;
+  }
+
+  if (link.flag & NODE_LINK_VALID) {
+    /* special indicated link, on drop-node */
+    if (link.flag & NODE_LINKFLAG_HILITE) {
+      th_col1 = th_col2 = TH_ACTIVE;
+    }
+    else if (link.flag & NODE_LINK_MUTED) {
+      th_col1 = th_col2 = TH_REDALERT;
+    }
   }
   else {
-    /* going to give issues once... */
-    if (link.tosock->flag & SOCK_UNAVAIL) {
-      return;
-    }
-    if (link.fromsock->flag & SOCK_UNAVAIL) {
-      return;
-    }
-
-    if (link.flag & NODE_LINK_VALID) {
-      /* special indicated link, on drop-node */
-      if (link.flag & NODE_LINKFLAG_HILITE) {
-        th_col1 = th_col2 = TH_ACTIVE;
-      }
-      else if (link.flag & NODE_LINK_MUTED) {
-        th_col1 = th_col2 = TH_REDALERT;
-      }
-    }
-    else {
-      /* Invalid link. */
-      th_col1 = th_col2 = th_col3 = TH_REDALERT;
-      // th_col3 = -1; /* no shadow */
-    }
+    /* Invalid link. */
+    th_col1 = th_col2 = th_col3 = TH_REDALERT;
+    // th_col3 = -1; /* no shadow */
   }
+
   /* Links from field to non-field sockets are not allowed. */
   if (snode.edittree->type == NTREE_GEOMETRY && !(link.flag & NODE_LINK_DRAGGED)) {
     if ((link.fromsock && link.fromsock->display_shape == SOCK_DISPLAY_SHAPE_DIAMOND) &&
@@ -2170,6 +2234,30 @@ void node_draw_link(const bContext &C,
   }
 
   node_draw_link_bezier(C, v2d, snode, link, th_col1, th_col2, th_col3, selected);
+}
+
+void node_draw_link_dragged(const bContext &C,
+                            const View2D &v2d,
+                            const SpaceNode &snode,
+                            const bNodeLink &link)
+{
+  if (link.fromsock == nullptr && link.tosock == nullptr) {
+    return;
+  }
+
+  float handles[4][2];
+  if (!node_link_bezier_handles(&v2d, &snode, link, handles)) {
+    return;
+  }
+
+  const NodeLinkDrawConfig draw_config = nodelink_get_draw_config(
+      C, v2d, snode, link, TH_ACTIVE, TH_ACTIVE, TH_WIRE, true);
+  /* End marker outline. */
+  node_draw_link_end_markers(link, draw_config, handles, true);
+  /* Link. */
+  node_draw_link_bezier_ex(snode, draw_config, handles);
+  /* End marker fill. */
+  node_draw_link_end_markers(link, draw_config, handles, false);
 }
 
 }  // namespace blender::ed::space_node

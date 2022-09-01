@@ -214,6 +214,10 @@ void node_draw_link(const bContext &C,
                     const SpaceNode &snode,
                     const bNodeLink &link,
                     bool selected);
+void node_draw_link_dragged(const bContext &C,
+                            const View2D &v2d,
+                            const SpaceNode &snode,
+                            const bNodeLink &link);
 /**
  * Don't do shadows if th_col3 is -1.
  */

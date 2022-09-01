@@ -758,6 +758,7 @@ static void node_socket_outline_color_get(const bool selected,
   }
   else {
     UI_GetThemeColor4fv(TH_WIRE, r_outline_color);
+    r_outline_color[3] = 1.0f;
   }
 }
 
@@ -2263,6 +2264,7 @@ static void node_draw_basis(const bContext &C,
 
     if (node.flag & NODE_MUTED) {
       UI_GetThemeColor4fv(TH_WIRE, color_underline);
+      color_underline[3] = 1.0f;
     }
     else {
       UI_GetThemeColorBlend4f(TH_BACK, color_id, 0.2f, color_underline);
@@ -3142,7 +3144,7 @@ void node_draw_space(const bContext &C, ARegion &region)
     GPU_line_smooth(true);
     if (snode.runtime->linkdrag) {
       for (const bNodeLink *link : snode.runtime->linkdrag->links) {
-        node_draw_link(C, v2d, snode, *link, true);
+        node_draw_link_dragged(C, v2d, snode, *link);
       }
     }
     GPU_line_smooth(false);
