@@ -205,7 +205,7 @@ void ui_draw_but_TAB_outline(const rcti *rect,
     mul_v2_fl(vec[a], rad);
   }
 
-  immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
   immBeginAtMost(GPU_PRIM_LINE_STRIP, 25);
 
   immAttr3ubv(col, highlight);
@@ -1242,7 +1242,7 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors *UNUSED(wcol), const
   format = immVertexFormat();
   pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   col_id = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 
   /* layer: color ramp */
   GPU_blend(GPU_BLEND_ALPHA);
@@ -2288,7 +2288,7 @@ void UI_draw_box_shadow(const rctf *rect, uchar alpha)
   uint color = GPU_vertformat_attr_add(
       format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 
   immBegin(GPU_PRIM_TRIS, 54);
 

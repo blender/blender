@@ -2930,7 +2930,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   const uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 
   immBegin(GPU_PRIM_TRI_FAN, tot + 2);
   immAttr3fv(color, rgb_center);
@@ -3061,7 +3061,7 @@ void ui_draw_gradient(const rcti *rect,
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   const uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 
   immBegin(GPU_PRIM_TRIS, steps * 3 * 6);
 
@@ -5155,7 +5155,7 @@ static void draw_disk_shaded(float start,
   const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   if (shaded) {
     col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-    immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
   }
   else {
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);

@@ -122,7 +122,7 @@ static void wm_gesture_draw_line_active_side(rcti *rect, const bool flip)
   uint shdr_col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
   GPU_blend(GPU_BLEND_ALPHA);
-  immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 
   const float gradient_length = 150.0f * U.pixelsize;
   float line_dir[2];

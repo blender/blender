@@ -212,7 +212,6 @@ typedef enum eGPUBuiltinShader {
    * \param color: in vec4
    * \param pos: in vec2
    */
-  GPU_SHADER_2D_SMOOTH_COLOR,
   GPU_SHADER_2D_IMAGE_COLOR,
   GPU_SHADER_2D_IMAGE_DESATURATE_COLOR,
   GPU_SHADER_2D_IMAGE_RECT_COLOR,
