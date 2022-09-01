@@ -1651,8 +1651,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      layerFree_mdeformvert,
      layerInterp_mdeformvert,
      nullptr,
-     layerConstruct_mdeformvert,
-     nullptr},
+     nullptr,
+     layerConstruct_mdeformvert},
     /* 3: CD_MEDGE */
     {sizeof(MEdge), "MEdge", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 4: CD_MFACE */
