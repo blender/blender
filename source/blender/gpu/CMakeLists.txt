@@ -272,7 +272,6 @@ set(GLSL_SRC
   shaders/gpu_shader_2D_widget_shadow_frag.glsl
   shaders/gpu_shader_2D_nodelink_frag.glsl
   shaders/gpu_shader_2D_nodelink_vert.glsl
-  shaders/gpu_shader_2D_flat_color_vert.glsl
   shaders/gpu_shader_2D_line_dashed_uniform_color_vert.glsl
   shaders/gpu_shader_2D_line_dashed_frag.glsl
   shaders/gpu_shader_2D_smooth_color_vert.glsl
@@ -577,7 +576,6 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_shader_2D_area_borders_info.hh
   shaders/infos/gpu_shader_2D_checker_info.hh
   shaders/infos/gpu_shader_2D_diag_stripes_info.hh
-  shaders/infos/gpu_shader_2D_flat_color_info.hh
   shaders/infos/gpu_shader_2D_image_color_info.hh
   shaders/infos/gpu_shader_2D_image_desaturate_color_info.hh
   shaders/infos/gpu_shader_2D_image_info.hh

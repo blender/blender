@@ -982,7 +982,7 @@ static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
   immBegin(GPU_PRIM_LINES, 6);
 
   for (int axis_i = 0; axis_i < 3; axis_i++) {

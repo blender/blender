@@ -631,7 +631,7 @@ static void draw_dividers(FileLayout *layout, View2D *v2d)
     uint color = GPU_vertformat_attr_add(
         format, "color", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
-    immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
     immBegin(GPU_PRIM_LINES, vertex_len);
 
     sx = (int)v2d->tot.xmin;

@@ -25,7 +25,6 @@ extern char datatoc_gpu_shader_flat_id_frag_glsl[];
 extern char datatoc_gpu_shader_2D_area_borders_vert_glsl[];
 extern char datatoc_gpu_shader_2D_area_borders_frag_glsl[];
 extern char datatoc_gpu_shader_2D_vert_glsl[];
-extern char datatoc_gpu_shader_2D_flat_color_vert_glsl[];
 extern char datatoc_gpu_shader_2D_smooth_color_uniform_alpha_vert_glsl[];
 extern char datatoc_gpu_shader_2D_smooth_color_vert_glsl[];
 extern char datatoc_gpu_shader_2D_smooth_color_frag_glsl[];
@@ -156,11 +155,6 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
             .create_info = "gpu_shader_2D_diag_stripes",
         },
 
-    [GPU_SHADER_2D_FLAT_COLOR] =
-        {
-            .name = "GPU_SHADER_2D_FLAT_COLOR",
-            .create_info = "gpu_shader_2D_flat_color",
-        },
     [GPU_SHADER_2D_SMOOTH_COLOR] =
         {
             .name = "GPU_SHADER_2D_SMOOTH_COLOR",

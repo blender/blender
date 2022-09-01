@@ -1698,7 +1698,7 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
   format = immVertexFormat();
   pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   const uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
   /* Calculate vertex colors based on text theme. */
   float color_vert[4], color_vert_select[4];
@@ -1948,7 +1948,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   format = immVertexFormat();
   pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   const uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
   /* Calculate vertex colors based on text theme. */
   float color_vert[4], color_vert_select[4], color_sample[4];
@@ -2152,7 +2152,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(region),
       GPUVertFormat *format = immVertexFormat();
       const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
       const uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-      immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+      immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
       UI_GetThemeColor4fv(TH_SEL_MARKER, col_sel);
       UI_GetThemeColor4fv(TH_MARKER_OUTLINE, col_outline);

@@ -388,7 +388,7 @@ static void cage2d_draw_box_interaction(const float color[4],
       .pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT),
       .col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT),
   };
-  immBindBuiltinProgram(is_solid ? GPU_SHADER_2D_FLAT_COLOR : GPU_SHADER_3D_POLYLINE_FLAT_COLOR);
+  immBindBuiltinProgram(is_solid ? GPU_SHADER_3D_FLAT_COLOR : GPU_SHADER_3D_POLYLINE_FLAT_COLOR);
 
   {
     if (is_solid) {

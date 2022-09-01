@@ -311,7 +311,7 @@ static size_t draw_waveform_segment(WaveVizData *waveform_data, bool use_rms)
   GPUPrimType prim_type = waveform_data->draw_line ? GPU_PRIM_LINE_STRIP : GPU_PRIM_TRI_STRIP;
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
   immBegin(prim_type, vertex_count);
 
   while (vertices_done < vertex_count && !waveform_data->final_sample) {

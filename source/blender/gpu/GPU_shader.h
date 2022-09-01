@@ -207,13 +207,6 @@ typedef enum eGPUBuiltinShader {
   GPU_SHADER_KEYFRAME_SHAPE,
   GPU_SHADER_SIMPLE_LIGHTING,
   /**
-   * Take a 2D position and color for each vertex without color interpolation.
-   *
-   * \param color: in vec4
-   * \param pos: in vec2
-   */
-  GPU_SHADER_2D_FLAT_COLOR,
-  /**
    * Take a 2D position and color for each vertex with linear interpolation in window space.
    *
    * \param color: in vec4
