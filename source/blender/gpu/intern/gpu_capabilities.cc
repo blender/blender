@@ -33,6 +33,11 @@ int GPU_max_texture_size()
   return GCaps.max_texture_size;
 }
 
+int GPU_max_texture_3d_size(void)
+{
+  return GCaps.max_texture_3d_size;
+}
+
 int GPU_texture_size_with_limit(int res)
 {
   int size = GPU_max_texture_size();
@@ -115,6 +120,11 @@ const char *GPU_extension_get(int i)
   return GCaps.extension_get ? GCaps.extension_get(i) : "\0";
 }
 
+int GPU_max_samplers()
+{
+  return GCaps.max_samplers;
+}
+
 bool GPU_mip_render_workaround()
 {
   return GCaps.mip_render_workaround;
@@ -174,6 +184,16 @@ int GPU_max_shader_storage_buffer_bindings()
 int GPU_max_compute_shader_storage_blocks()
 {
   return GCaps.max_compute_shader_storage_blocks;
+}
+
+int GPU_minimum_per_vertex_stride(void)
+{
+  return GCaps.minimum_per_vertex_stride;
+}
+
+bool GPU_transform_feedback_support(void)
+{
+  return GCaps.transform_feedback_support;
 }
 
 /** \} */

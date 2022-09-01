@@ -360,6 +360,13 @@ GPUTexture *GPU_texture_create_compressed_2d(
 
 GPUTexture *GPU_texture_create_from_vertbuf(const char *name, GPUVertBuf *vert)
 {
+#ifndef NDEBUG
+  /* Vertex buffers used for texture buffers must be flagged with:
+   * GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY. */
+  BLI_assert_msg(unwrap(vert)->extended_usage_ & GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY,
+                 "Vertex Buffers used for textures should have usage flag "
+                 "GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY.");
+#endif
   eGPUTextureFormat tex_format = to_texture_format(GPU_vertbuf_get_format(vert));
   Texture *tex = GPUBackend::get()->texture_alloc(name);
 

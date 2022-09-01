@@ -30,6 +30,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include "GPU_capabilities.h"
+#include "GPU_context.h"
 #include "GPU_material.h"
 #include "GPU_texture.h"
 #include "eevee_private.h"
@@ -81,6 +82,13 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   tex_size[0] = (int)ceilf(fmaxf(1.0f, viewport_size[0] / (float)tile_size));
   tex_size[1] = (int)ceilf(fmaxf(1.0f, viewport_size[1] / (float)tile_size));
   tex_size[2] = max_ii(scene_eval->eevee.volumetric_samples, 1);
+
+  /* Clamp 3D texture size based on device maximum. */
+  int maxSize = GPU_max_texture_3d_size();
+  BLI_assert(tex_size[0] <= maxSize);
+  tex_size[0] = tex_size[0] > maxSize ? maxSize : tex_size[0];
+  tex_size[1] = tex_size[1] > maxSize ? maxSize : tex_size[1];
+  tex_size[2] = tex_size[2] > maxSize ? maxSize : tex_size[2];
 
   common_data->vol_coord_scale[0] = viewport_size[0] / (float)(tile_size * tex_size[0]);
   common_data->vol_coord_scale[1] = viewport_size[1] / (float)(tile_size * tex_size[1]);

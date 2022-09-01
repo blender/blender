@@ -8,6 +8,8 @@
  */
 
 #include "GPU_vertex_format.h"
+#include "GPU_capabilities.h"
+
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_private.hh"
 #include "gpu_vertex_format_private.h"
@@ -68,7 +70,7 @@ static uint attr_size(const GPUVertAttr *a)
   return a->comp_len * comp_size(static_cast<GPUVertCompType>(a->comp_type));
 }
 
-static uint attr_align(const GPUVertAttr *a)
+static uint attr_align(const GPUVertAttr *a, uint minimum_stride)
 {
   if (a->comp_type == GPU_COMP_I10) {
     return 4; /* always packed as 10_10_10_2 */
@@ -78,7 +80,10 @@ static uint attr_align(const GPUVertAttr *a)
     return 4 * c; /* AMD HW can't fetch these well, so pad it out (other vendors too?) */
   }
 
-  return c; /* most fetches are ok if components are naturally aligned */
+  /* Most fetches are ok if components are naturally aligned.
+   * However, in Metal,the minimum supported per-vertex stride is 4,
+   * so we must query the GPU and pad out the size accordingly. */
+  return max_ii(minimum_stride, c);
 }
 
 uint vertex_buffer_size(const GPUVertFormat *format, uint vertex_len)
@@ -308,7 +313,7 @@ static void show_pack(uint a_idx, uint size, uint pad)
 }
 #endif
 
-void VertexFormat_pack(GPUVertFormat *format)
+static void VertexFormat_pack_impl(GPUVertFormat *format, uint minimum_stride)
 {
   GPUVertAttr *a0 = &format->attrs[0];
   a0->offset = 0;
@@ -320,7 +325,7 @@ void VertexFormat_pack(GPUVertFormat *format)
 
   for (uint a_idx = 1; a_idx < format->attr_len; a_idx++) {
     GPUVertAttr *a = &format->attrs[a_idx];
-    uint mid_padding = padding(offset, attr_align(a));
+    uint mid_padding = padding(offset, attr_align(a, minimum_stride));
     offset += mid_padding;
     a->offset = offset;
     offset += a->size;
@@ -330,7 +335,7 @@ void VertexFormat_pack(GPUVertFormat *format)
 #endif
   }
 
-  uint end_padding = padding(offset, attr_align(a0));
+  uint end_padding = padding(offset, attr_align(a0, minimum_stride));
 
 #if PACK_DEBUG
   show_pack(0, 0, end_padding);
