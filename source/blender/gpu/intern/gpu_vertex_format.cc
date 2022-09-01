@@ -345,6 +345,29 @@ static void VertexFormat_pack_impl(GPUVertFormat *format, uint minimum_stride)
   format->packed = true;
 }
 
+void VertexFormat_pack(GPUVertFormat *format)
+{
+  /* Perform standard vertex packing, ensuring vertex format satisfies
+   * minimum stride requirements for vertex assembly. */
+  VertexFormat_pack_impl(format, GPU_minimum_per_vertex_stride());
+}
+
+void VertexFormat_texture_buffer_pack(GPUVertFormat *format)
+{
+  /* Validates packing for vertex formats used with texture buffers.
+   * In these cases, there must only be a single vertex attribute.
+   * This attribute should be tightly packed without padding, to ensure
+   * it aligns with the backing texture data format, skipping
+   * minimum per-vertex stride, which mandates 4-byte alignment in Metal.
+   * This additional alignment padding caused smaller data types, e.g. U16,
+   * to mis-align. */
+  BLI_assert_msg(format->attr_len == 1,
+                 "Texture buffer mode should only use a single vertex attribute.");
+
+  /* Pack vertex format without minimum stride, as this is not required by texture buffers. */
+  VertexFormat_pack_impl(format, 1);
+}
+
 static uint component_size_get(const Type gpu_type)
 {
   switch (gpu_type) {
