@@ -350,7 +350,7 @@ struct CurvesEffectOperationExecutor {
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
     Vector<float4x4> symmetry_brush_transforms_inv;
-    for (const float4x4 brush_transform : symmetry_brush_transforms) {
+    for (const float4x4 &brush_transform : symmetry_brush_transforms) {
       symmetry_brush_transforms_inv.append(brush_transform.inverted());
     }
 
