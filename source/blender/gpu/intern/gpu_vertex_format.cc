@@ -8,6 +8,7 @@
  */
 
 #include "GPU_vertex_format.h"
+#include "gpu_shader_create_info.hh"
 #include "gpu_shader_private.hh"
 #include "gpu_vertex_format_private.h"
 
@@ -25,6 +26,7 @@
 #endif
 
 using namespace blender::gpu;
+using namespace blender::gpu::shader;
 
 void GPU_vertformat_clear(GPUVertFormat *format)
 {
@@ -338,8 +340,83 @@ void VertexFormat_pack(GPUVertFormat *format)
   format->packed = true;
 }
 
+static uint component_size_get(const Type gpu_type)
+{
+  switch (gpu_type) {
+    case Type::VEC2:
+    case Type::IVEC2:
+    case Type::UVEC2:
+      return 2;
+    case Type::VEC3:
+    case Type::IVEC3:
+    case Type::UVEC3:
+      return 3;
+    case Type::VEC4:
+    case Type::IVEC4:
+    case Type::UVEC4:
+      return 4;
+    case Type::MAT3:
+      return 12;
+    case Type::MAT4:
+      return 16;
+    default:
+      return 1;
+  }
+}
+
+static void recommended_fetch_mode_and_comp_type(Type gpu_type,
+                                                 GPUVertCompType *r_comp_type,
+                                                 GPUVertFetchMode *r_fetch_mode)
+{
+  switch (gpu_type) {
+    case Type::FLOAT:
+    case Type::VEC2:
+    case Type::VEC3:
+    case Type::VEC4:
+    case Type::MAT3:
+    case Type::MAT4:
+      *r_comp_type = GPU_COMP_F32;
+      *r_fetch_mode = GPU_FETCH_FLOAT;
+      break;
+    case Type::INT:
+    case Type::IVEC2:
+    case Type::IVEC3:
+    case Type::IVEC4:
+      *r_comp_type = GPU_COMP_I32;
+      *r_fetch_mode = GPU_FETCH_INT;
+      break;
+    case Type::UINT:
+    case Type::UVEC2:
+    case Type::UVEC3:
+    case Type::UVEC4:
+      *r_comp_type = GPU_COMP_U32;
+      *r_fetch_mode = GPU_FETCH_INT;
+      break;
+    default:
+      BLI_assert(0);
+  }
+}
+
 void GPU_vertformat_from_shader(GPUVertFormat *format, const struct GPUShader *gpushader)
 {
-  const Shader *shader = reinterpret_cast<const Shader *>(gpushader);
-  shader->vertformat_from_shader(format);
+  GPU_vertformat_clear(format);
+
+  uint attr_len = GPU_shader_get_attribute_len(gpushader);
+  int location_test = 0, attrs_added = 0;;
+  while (attrs_added < attr_len) {
+    char name[256];
+    Type gpu_type;
+    if (!GPU_shader_get_attribute_info(gpushader, location_test++, name, (int *)&gpu_type)) {
+      continue;
+    }
+
+    GPUVertCompType comp_type;
+    GPUVertFetchMode fetch_mode;
+    recommended_fetch_mode_and_comp_type(gpu_type, &comp_type, &fetch_mode);
+
+    int comp_len = component_size_get(gpu_type);
+
+    GPU_vertformat_attr_add(format, name, comp_type, comp_len, fetch_mode);
+    attrs_added++;
+  }
 }

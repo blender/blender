@@ -58,7 +58,7 @@ static const struct PyC_FlagSet pygpu_qualifiers[] = {
   "      - ``IVEC3``\n" \
   "      - ``IVEC4``\n" \
   "      - ``BOOL``\n"
-static const struct PyC_StringEnumItems pygpu_attrtype_items[] = {
+const struct PyC_StringEnumItems pygpu_attrtype_items[] = {
     {(int)Type::FLOAT, "FLOAT"},
     {(int)Type::VEC2, "VEC2"},
     {(int)Type::VEC3, "VEC3"},

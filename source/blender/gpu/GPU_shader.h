@@ -191,7 +191,12 @@ void GPU_shader_uniform_mat3_as_mat4(GPUShader *sh, const char *name, const floa
 void GPU_shader_uniform_2fv_array(GPUShader *sh, const char *name, int len, const float (*val)[2]);
 void GPU_shader_uniform_4fv_array(GPUShader *sh, const char *name, int len, const float (*val)[4]);
 
+unsigned int GPU_shader_get_attribute_len(const GPUShader *shader);
 int GPU_shader_get_attribute(GPUShader *shader, const char *name);
+bool GPU_shader_get_attribute_info(const GPUShader *shader,
+                                   int attr_location,
+                                   char r_name[256],
+                                   int *r_type);
 
 void GPU_shader_set_framebuffer_srgb_target(int use_srgb_to_linear);
 

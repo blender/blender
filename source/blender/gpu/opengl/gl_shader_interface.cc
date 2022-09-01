@@ -16,6 +16,7 @@
 
 #include "GPU_capabilities.h"
 
+using namespace blender::gpu::shader;
 namespace blender::gpu {
 
 /* -------------------------------------------------------------------- */
@@ -151,6 +152,52 @@ static inline int ssbo_binding(int32_t program, uint32_t ssbo_index)
 /** \name Creation / Destruction
  * \{ */
 
+static Type gpu_type_from_gl_type(int gl_type)
+{
+  switch (gl_type) {
+    case GL_FLOAT:
+      return Type::FLOAT;
+    case GL_FLOAT_VEC2:
+      return Type::VEC2;
+    case GL_FLOAT_VEC3:
+      return Type::VEC3;
+    case GL_FLOAT_VEC4:
+      return Type::VEC4;
+    case GL_FLOAT_MAT3:
+      return Type::MAT3;
+    case GL_FLOAT_MAT4:
+      return Type::MAT4;
+    case GL_UNSIGNED_INT:
+      return Type::UINT;
+    case GL_UNSIGNED_INT_VEC2:
+      return Type::UVEC2;
+    case GL_UNSIGNED_INT_VEC3:
+      return Type::UVEC3;
+    case GL_UNSIGNED_INT_VEC4:
+      return Type::UVEC4;
+    case GL_INT:
+      return Type::INT;
+    case GL_INT_VEC2:
+      return Type::IVEC2;
+    case GL_INT_VEC3:
+      return Type::IVEC3;
+    case GL_INT_VEC4:
+      return Type::IVEC4;
+    case GL_BOOL:
+      return Type::BOOL;
+    case GL_FLOAT_MAT2:
+    case GL_FLOAT_MAT2x3:
+    case GL_FLOAT_MAT2x4:
+    case GL_FLOAT_MAT3x2:
+    case GL_FLOAT_MAT3x4:
+    case GL_FLOAT_MAT4x2:
+    case GL_FLOAT_MAT4x3:
+    default:
+      BLI_assert(0);
+  }
+  return Type::FLOAT;
+}
+
 GLShaderInterface::GLShaderInterface(GLuint program)
 {
   /* Necessary to make #glUniform works. */
@@ -246,6 +293,9 @@ GLShaderInterface::GLShaderInterface(GLuint program)
 
     name_buffer_offset += set_input_name(input, name, name_len);
     enabled_attr_mask_ |= (1 << input->location);
+
+    /* Used in `GPU_shader_get_attribute_info`. */
+    attr_types_[input->location] = (uint8_t)gpu_type_from_gl_type(type);
   }
 
   /* Uniform Blocks */
@@ -405,7 +455,11 @@ GLShaderInterface::GLShaderInterface(GLuint program, const shader::ShaderCreateI
     }
     if (input->location != -1) {
       enabled_attr_mask_ |= (1 << input->location);
+
+      /* Used in `GPU_shader_get_attribute_info`. */
+      attr_types_[input->location] = (uint8_t)attr.type;
     }
+
     input++;
   }
 

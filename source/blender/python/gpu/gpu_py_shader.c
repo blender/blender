@@ -16,6 +16,7 @@
 #include "GPU_uniform_buffer.h"
 
 #include "../generic/py_capi_utils.h"
+#include "../generic/python_utildefines.h"
 #include "../mathutils/mathutils.h"
 
 #include "gpu_py.h"
@@ -614,6 +615,44 @@ static PyObject *pygpu_shader_format_calc(BPyGPUShader *self, PyObject *UNUSED(a
   return (PyObject *)ret;
 }
 
+PyDoc_STRVAR(
+    pygpu_shader_attrs_info_get_doc,
+    ".. method:: attrs_info_get()\n"
+    "\n"
+    "   Information about the attributes used in the Shader.\n"
+    "\n"
+    "   :return: tuples containing information about the attributes in order (name, type)\n"
+    "   :rtype: tuple\n");
+static PyObject *pygpu_shader_attrs_info_get(BPyGPUShader *self, PyObject *UNUSED(arg))
+{
+  uint attr_len = GPU_shader_get_attribute_len(self->shader);
+  int location_test = 0, attrs_added = 0;
+  ;
+  PyObject *ret = PyTuple_New(attr_len);
+  while (attrs_added < attr_len) {
+    char name[256];
+    int type;
+    if (!GPU_shader_get_attribute_info(self->shader, location_test++, name, &type)) {
+      continue;
+    }
+    PyObject *py_type;
+    if (type != -1) {
+      py_type = PyUnicode_InternFromString(
+          PyC_StringEnum_FindIDFromValue(pygpu_attrtype_items, type));
+    }
+    else {
+      py_type = Py_None;
+      Py_INCREF(py_type);
+    }
+
+    PyObject *attr_info = PyTuple_New(2);
+    PyTuple_SET_ITEMS(attr_info, PyUnicode_FromString(name), py_type);
+    PyTuple_SetItem(ret, attrs_added, attr_info);
+    attrs_added++;
+  }
+  return ret;
+}
+
 static struct PyMethodDef pygpu_shader__tp_methods[] = {
     {"bind", (PyCFunction)pygpu_shader_bind, METH_NOARGS, pygpu_shader_bind_doc},
     {"uniform_from_name",
@@ -660,6 +699,10 @@ static struct PyMethodDef pygpu_shader__tp_methods[] = {
      (PyCFunction)pygpu_shader_format_calc,
      METH_NOARGS,
      pygpu_shader_format_calc_doc},
+    {"attrs_info_get",
+     (PyCFunction)pygpu_shader_attrs_info_get,
+     METH_NOARGS,
+     pygpu_shader_attrs_info_get_doc},
     {NULL, NULL, 0, NULL},
 };
 

@@ -6,6 +6,10 @@
 
 #pragma once
 
+#ifndef __cplusplus
+#include "../generic/py_capi_utils.h"
+#endif
+
 /* Make sure that there is always a reference count for PyObjects of type String as the strings are
  * passed by reference in the #GPUStageInterfaceInfo and #GPUShaderCreateInfo APIs. */
 #define USE_GPU_PY_REFERENCES
@@ -31,6 +35,7 @@ extern "C" {
 
 /* gpu_py_shader_create_info.cc */
 
+extern const struct PyC_StringEnumItems pygpu_attrtype_items[];
 extern PyTypeObject BPyGPUShaderCreateInfo_Type;
 extern PyTypeObject BPyGPUStageInterfaceInfo_Type;
 
