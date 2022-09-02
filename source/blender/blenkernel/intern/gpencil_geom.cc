@@ -3767,7 +3767,7 @@ void BKE_gpencil_stroke_uniform_subdivide(bGPdata *gpd,
   BKE_gpencil_stroke_geometry_update(gpd, gps);
 }
 
-void BKE_gpencil_stroke_to_view_space(RegionView3D *rv3d,
+void BKE_gpencil_stroke_to_view_space(float viewmat[4][4],
                                       bGPDstroke *gps,
                                       const float diff_mat[4][4])
 {
@@ -3776,11 +3776,11 @@ void BKE_gpencil_stroke_to_view_space(RegionView3D *rv3d,
     /* Point to parent space. */
     mul_v3_m4v3(&pt->x, diff_mat, &pt->x);
     /* point to view space */
-    mul_m4_v3(rv3d->viewmat, &pt->x);
+    mul_m4_v3(viewmat, &pt->x);
   }
 }
 
-void BKE_gpencil_stroke_from_view_space(RegionView3D *rv3d,
+void BKE_gpencil_stroke_from_view_space(float viewinv[4][4],
                                         bGPDstroke *gps,
                                         const float diff_mat[4][4])
 {
@@ -3789,7 +3789,7 @@ void BKE_gpencil_stroke_from_view_space(RegionView3D *rv3d,
 
   for (int i = 0; i < gps->totpoints; i++) {
     bGPDspoint *pt = &gps->points[i];
-    mul_v3_m4v3(&pt->x, rv3d->viewinv, &pt->x);
+    mul_v3_m4v3(&pt->x, viewinv, &pt->x);
     mul_m4_v3(inverse_diff_mat, &pt->x);
   }
 }
@@ -4206,7 +4206,7 @@ static ListBase *gpencil_stroke_perimeter_ex(const bGPdata *gpd,
   return perimeter_list;
 }
 
-bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(struct RegionView3D *rv3d,
+bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(float viewmat[4][4],
                                                    bGPdata *gpd,
                                                    const bGPDlayer *gpl,
                                                    bGPDstroke *gps,
@@ -4217,6 +4217,10 @@ bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(struct RegionView3D *rv3d,
   if (gps->totpoints == 0) {
     return nullptr;
   }
+
+  float viewinv[4][4];
+  invert_m4_m4(viewinv, viewmat);
+
   /* Duplicate only points and fill data. Weight and Curve are not needed. */
   bGPDstroke *gps_temp = (bGPDstroke *)MEM_dupallocN(gps);
   gps_temp->prev = gps_temp->next = nullptr;
@@ -4241,7 +4245,7 @@ bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(struct RegionView3D *rv3d,
     pt_dst->uv_rot = 0;
   }
 
-  BKE_gpencil_stroke_to_view_space(rv3d, gps_temp, diff_mat);
+  BKE_gpencil_stroke_to_view_space(viewmat, gps_temp, diff_mat);
   int num_perimeter_points = 0;
   ListBase *perimeter_points = gpencil_stroke_perimeter_ex(
       gpd, gpl, gps_temp, subdivisions, thickness_chg, &num_perimeter_points);
@@ -4264,7 +4268,7 @@ bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(struct RegionView3D *rv3d,
     pt->flag |= GP_SPOINT_SELECT;
   }
 
-  BKE_gpencil_stroke_from_view_space(rv3d, perimeter_stroke, diff_mat);
+  BKE_gpencil_stroke_from_view_space(viewinv, perimeter_stroke, diff_mat);
 
   /* Free temp data. */
   BLI_freelistN(perimeter_points);

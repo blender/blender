@@ -945,7 +945,7 @@ static bGPDstroke *gpencil_stroke_to_outline(tGPsdata *p, bGPDstroke *gps)
   unit_m4(diff_mat);
   const float outline_thickness = (float)brush->size * gpencil_settings->outline_fac * 0.5f;
   bGPDstroke *gps_perimeter = BKE_gpencil_stroke_perimeter_from_view(
-      rv3d, p->gpd, gpl, gps_duplicate, 3, diff_mat, outline_thickness);
+      rv3d->viewmat, p->gpd, gpl, gps_duplicate, 3, diff_mat, outline_thickness);
   /* Assign material. */
   if (gpencil_settings->material_alt == NULL) {
     gps_perimeter->mat_nr = gps->mat_nr;

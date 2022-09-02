@@ -4001,40 +4001,35 @@ static int gpencil_stroke_outline_exec(bContext *C, wmOperator *op)
 
   bool changed = false;
 
-  float viewmat[4][4], viewinv[4][4];
+  float viewmat[4][4];
   copy_m4_m4(viewmat, rv3d->viewmat);
-  copy_m4_m4(viewinv, rv3d->viewinv);
 
   switch (view_mode) {
     case GP_PERIMETER_FRONT:
       unit_m4(rv3d->viewmat);
-      rv3d->viewmat[1][1] = 0.0f;
-      rv3d->viewmat[1][2] = -1.0f;
+      viewmat[1][1] = 0.0f;
+      viewmat[1][2] = -1.0f;
 
-      rv3d->viewmat[2][1] = 1.0f;
-      rv3d->viewmat[2][2] = 0.0f;
+      viewmat[2][1] = 1.0f;
+      viewmat[2][2] = 0.0f;
 
-      rv3d->viewmat[3][2] = -10.0f;
-      invert_m4_m4(rv3d->viewinv, rv3d->viewmat);
+      viewmat[3][2] = -10.0f;
       break;
     case GP_PERIMETER_SIDE:
-      zero_m4(rv3d->viewmat);
-      rv3d->viewmat[0][2] = 1.0f;
-      rv3d->viewmat[1][0] = 1.0f;
-      rv3d->viewmat[2][1] = 1.0f;
-      rv3d->viewmat[3][3] = 1.0f;
-      invert_m4_m4(rv3d->viewinv, rv3d->viewmat);
+      zero_m4(viewmat);
+      viewmat[0][2] = 1.0f;
+      viewmat[1][0] = 1.0f;
+      viewmat[2][1] = 1.0f;
+      viewmat[3][3] = 1.0f;
       break;
     case GP_PERIMETER_TOP:
-      unit_m4(rv3d->viewmat);
-      unit_m4(rv3d->viewinv);
+      unit_m4(viewmat);
       break;
     case GP_PERIMETER_CAMERA: {
       Scene *scene = CTX_data_scene(C);
       Object *cam_ob = scene->camera;
       if (cam_ob != NULL) {
-        invert_m4_m4(rv3d->viewmat, cam_ob->obmat);
-        copy_m4_m4(rv3d->viewinv, cam_ob->obmat);
+        invert_m4_m4(viewmat, cam_ob->obmat);
       }
       break;
     }
@@ -4107,7 +4102,7 @@ static int gpencil_stroke_outline_exec(bContext *C, wmOperator *op)
           /* Stroke. */
           const float ovr_thickness = keep ? thickness : 0.0f;
           bGPDstroke *gps_perimeter = BKE_gpencil_stroke_perimeter_from_view(
-              rv3d, gpd, gpl, gps_duplicate, subdivisions, diff_mat, ovr_thickness);
+              viewmat, gpd, gpl, gps_duplicate, subdivisions, diff_mat, ovr_thickness);
           gps_perimeter->flag &= ~GP_STROKE_SELECT;
           /* Assign material. */
           switch (material_mode) {
@@ -4174,9 +4169,6 @@ static int gpencil_stroke_outline_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* Back to view matrix. */
-  copy_m4_m4(rv3d->viewmat, viewmat);
-  copy_m4_m4(rv3d->viewinv, viewinv);
 
   if (changed) {
     /* notifiers */

@@ -466,7 +466,7 @@ void BKE_gpencil_stroke_uniform_subdivide(struct bGPdata *gpd,
  * This allows for manipulations in 2D but also easy conversion back to 3D.
  * \note also takes care of parent space transform.
  */
-void BKE_gpencil_stroke_to_view_space(struct RegionView3D *rv3d,
+void BKE_gpencil_stroke_to_view_space(float viewmat[4][4],
                                       struct bGPDstroke *gps,
                                       const float diff_mat[4][4]);
 /**
@@ -475,7 +475,7 @@ void BKE_gpencil_stroke_to_view_space(struct RegionView3D *rv3d,
  * Inverse of #BKE_gpencil_stroke_to_view_space
  * \note also takes care of parent space transform.
  */
-void BKE_gpencil_stroke_from_view_space(struct RegionView3D *rv3d,
+void BKE_gpencil_stroke_from_view_space(float viewinv[4][4],
                                         struct bGPDstroke *gps,
                                         const float diff_mat[4][4]);
 /**
@@ -483,7 +483,7 @@ void BKE_gpencil_stroke_from_view_space(struct RegionView3D *rv3d,
  * \param subdivisions: Number of subdivisions for the start and end caps.
  * \return: bGPDstroke pointer to stroke perimeter.
  */
-struct bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(struct RegionView3D *rv3d,
+struct bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(float viewmat[4][4],
                                                           struct bGPdata *gpd,
                                                           const struct bGPDlayer *gpl,
                                                           struct bGPDstroke *gps,
