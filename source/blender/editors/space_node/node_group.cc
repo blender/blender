@@ -653,7 +653,7 @@ static bool node_group_make_use_node(bNode &node, bNode *gnode)
 static bool node_group_make_test_selected(bNodeTree &ntree,
                                           bNode *gnode,
                                           const char *ntree_idname,
-                                           ReportList &reports)
+                                          ReportList &reports)
 {
   int ok = true;
 
@@ -1042,8 +1042,10 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
     nodeSetActive(&ntree, gnode);
     if (ngroup) {
       ED_node_tree_push(&snode, ngroup, gnode);
+
+      ngroup->ensure_topology_cache();
       LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
-        sort_multi_input_socket_links(snode, *node, nullptr, nullptr);
+        sort_multi_input_socket_links(*node, nullptr, nullptr);
       }
     }
   }

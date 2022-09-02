@@ -105,8 +105,8 @@ static void pick_link(
 
   BLI_assert(nldrag.last_node_hovered_while_dragging_a_link != nullptr);
 
-  sort_multi_input_socket_links(
-      snode, *nldrag.last_node_hovered_while_dragging_a_link, nullptr, nullptr);
+  snode.edittree->ensure_topology_cache();
+  sort_multi_input_socket_links(*nldrag.last_node_hovered_while_dragging_a_link, nullptr, nullptr);
 
   /* Send changed event to original link->tonode. */
   if (node) {
@@ -291,34 +291,24 @@ struct LinkAndPosition {
   float2 multi_socket_position;
 };
 
-void sort_multi_input_socket_links(SpaceNode &snode,
-                                   bNode &node,
-                                   bNodeLink *drag_link,
-                                   const float2 *cursor)
+void sort_multi_input_socket_links(bNode &node, bNodeLink *drag_link, const float2 *cursor)
 {
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
-    if (!(socket->flag & SOCK_MULTI_INPUT)) {
+  for (bNodeSocket *socket : node.input_sockets()) {
+    if (!socket->is_multi_input()) {
       continue;
     }
-    Vector<LinkAndPosition, 8> links;
+    const float2 &socket_location = {socket->locx, socket->locy};
 
-    LISTBASE_FOREACH (bNodeLink *, link, &snode.edittree->links) {
-      if (link->tosock == socket) {
-        links.append(
-            {link,
-             node_link_calculate_multi_input_position({link->tosock->locx, link->tosock->locy},
-                                                      link->multi_input_socket_index,
-                                                      link->tosock->total_inputs)});
-      }
-    }
+    Vector<LinkAndPosition, 8> links;
+    for (bNodeLink *link : socket->directly_linked_links()) {
+      const float2 location = node_link_calculate_multi_input_position(
+          socket_location, link->multi_input_socket_index, link->tosock->total_inputs);
+      links.append({link, location});
+    };
 
     if (drag_link) {
-      LinkAndPosition link_and_position{};
-      link_and_position.link = drag_link;
-      if (cursor) {
-        link_and_position.multi_socket_position = *cursor;
-      }
-      links.append(link_and_position);
+      BLI_assert(cursor != nullptr);
+      links.append({drag_link, *cursor});
     }
 
     std::sort(links.begin(), links.end(), [](const LinkAndPosition a, const LinkAndPosition b) {
@@ -926,6 +916,7 @@ static void node_link_find_socket(bContext &C, wmOperator &op, const float2 &cur
   if (nldrag->in_out == SOCK_OUT) {
     bNode *tnode;
     bNodeSocket *tsock = nullptr;
+    snode.edittree->ensure_topology_cache();
     if (node_find_indicated_socket(snode, &tnode, &tsock, cursor, SOCK_IN)) {
       for (bNodeLink *link : nldrag->links) {
         /* skip if socket is on the same node as the fromsock */
@@ -952,7 +943,7 @@ static void node_link_find_socket(bContext &C, wmOperator &op, const float2 &cur
           continue;
         }
         if (link->tosock && link->tosock->flag & SOCK_MULTI_INPUT) {
-          sort_multi_input_socket_links(snode, *tnode, link, &cursor);
+          sort_multi_input_socket_links(*tnode, link, &cursor);
         }
       }
     }
@@ -960,7 +951,7 @@ static void node_link_find_socket(bContext &C, wmOperator &op, const float2 &cur
       for (bNodeLink *link : nldrag->links) {
         if (nldrag->last_node_hovered_while_dragging_a_link) {
           sort_multi_input_socket_links(
-              snode, *nldrag->last_node_hovered_while_dragging_a_link, nullptr, &cursor);
+              *nldrag->last_node_hovered_while_dragging_a_link, nullptr, nullptr);
         }
         link->tonode = nullptr;
         link->tosock = nullptr;
@@ -1355,7 +1346,11 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 
   ED_preview_kill_jobs(CTX_wm_manager(C), &bmain);
 
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &snode.edittree->links) {
+  bNodeTree &node_tree = *snode.edittree;
+
+  Set<bNode *> affected_nodes;
+
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &node_tree.links) {
     if (node_link_is_hidden_or_dimmed(region.v2d, *link)) {
       continue;
     }
@@ -1370,8 +1365,14 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 
       bNode *to_node = link->tonode;
       nodeRemLink(snode.edittree, link);
-      sort_multi_input_socket_links(snode, *to_node, nullptr, nullptr);
+      affected_nodes.add(to_node);
     }
+  }
+
+  node_tree.ensure_topology_cache();
+
+  for (bNode *node : affected_nodes) {
+    sort_multi_input_socket_links(*node, nullptr, nullptr);
   }
 
   ED_node_tree_propagate_change(C, CTX_data_main(C), snode.edittree);

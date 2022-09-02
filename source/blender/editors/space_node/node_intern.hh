@@ -262,10 +262,7 @@ void NODE_OT_group_edit(wmOperatorType *ot);
 
 /* node_relationships.cc */
 
-void sort_multi_input_socket_links(SpaceNode &snode,
-                                   bNode &node,
-                                   bNodeLink *drag_link,
-                                   const float2 *cursor);
+void sort_multi_input_socket_links(bNode &node, bNodeLink *drag_link, const float2 *cursor);
 
 void NODE_OT_link(wmOperatorType *ot);
 void NODE_OT_link_make(wmOperatorType *ot);
