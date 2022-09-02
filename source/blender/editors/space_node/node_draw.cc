@@ -3024,7 +3024,7 @@ static void draw_nodetree(const bContext &C,
 {
   SpaceNode *snode = CTX_wm_space_node(&C);
 
-  Vector<bNode *> nodes = ntree.nodes;
+  Span<bNode *> nodes = ntree.all_nodes();
 
   Array<uiBlock *> blocks = node_uiblocks_init(C, nodes);
 
