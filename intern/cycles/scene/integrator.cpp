@@ -217,9 +217,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
                                            FLT_MAX :
                                            sample_clamp_indirect * 3.0f;
 
-  /* Adaptive sampling requires PMJ, see sample_is_even. */
-  kintegrator->sampling_pattern = (use_adaptive_sampling) ? SAMPLING_PATTERN_PMJ :
-                                                            sampling_pattern;
+  kintegrator->sampling_pattern = sampling_pattern;
   kintegrator->scrambling_distance = scrambling_distance;
 
   if (light_sampling_threshold > 0.0f) {

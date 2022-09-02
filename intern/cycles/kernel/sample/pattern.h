@@ -90,18 +90,31 @@ ccl_device_inline uint path_rng_hash_init(KernelGlobals kg,
   return rng_hash;
 }
 
-ccl_device_inline bool sample_is_even(int pattern, int sample)
+/**
+ * Splits samples into two different classes, A and B, which can be
+ * compared for variance estimation.
+ */
+ccl_device_inline bool sample_is_class_A(int pattern, int sample)
 {
-  if (pattern == SAMPLING_PATTERN_PMJ) {
-    /* See Section 10.2.1, "Progressive Multi-Jittered Sample Sequences", Christensen et al.
-     * We can use this to get divide sample sequence into two classes for easier variance
-     * estimation. */
-    return popcount(uint(sample) & 0xaaaaaaaa) & 1;
+#if 0
+  if (!(pattern == SAMPLING_PATTERN_PMJ || pattern == SAMPLING_PATTERN_SOBOL_BURLEY)) {
+    /* Fallback: assign samples randomly.
+     * This is guaranteed to work "okay" for any sampler, but isn't good.
+     * (Note: the seed constant is just a random number to guard against
+     * possible interactions with other uses of the hash. There's nothing
+     * special about it.)
+     */
+    return hash_hp_seeded_uint(sample, 0xa771f873) & 1;
   }
-  else {
-    /* TODO(Stefan): Are there reliable ways of dividing Sobol-Burley into two classes? */
-    return sample & 0x1;
-  }
-}
+#endif
 
+  /* This follows the approach from section 10.2.1 of "Progressive
+   * Multi-Jittered Sample Sequences" by Christensen et al., but
+   * implemented with efficient bit-fiddling.
+   *
+   * This approach also turns out to work equally well with Sobol-Burley
+   * (see https://developer.blender.org/D15746#429471).
+   */
+  return popcount(uint(sample) & 0xaaaaaaaa) & 1;
+}
 CCL_NAMESPACE_END

@@ -147,16 +147,16 @@ ccl_device void film_write_adaptive_buffer(KernelGlobals kg,
                                            const Spectrum contribution,
                                            ccl_global float *ccl_restrict buffer)
 {
-  /* Adaptive Sampling. Fill the additional buffer with the odd samples and calculate our stopping
-   * criteria. This is the heuristic from "A hierarchical automatic stopping condition for Monte
-   * Carlo global illumination" except that here it is applied per pixel and not in hierarchical
-   * tiles. */
+  /* Adaptive Sampling. Fill the additional buffer with only one half of the samples and
+   * calculate our stopping criteria. This is the heuristic from "A hierarchical automatic
+   * stopping condition for Monte Carlo global illumination" except that here it is applied
+   * per pixel and not in hierarchical tiles. */
 
   if (kernel_data.film.pass_adaptive_aux_buffer == PASS_UNUSED) {
     return;
   }
 
-  if (sample_is_even(kernel_data.integrator.sampling_pattern, sample)) {
+  if (sample_is_class_A(kernel_data.integrator.sampling_pattern, sample)) {
     const float3 contribution_rgb = spectrum_to_rgb(contribution);
 
     film_write_pass_float4(buffer + kernel_data.film.pass_adaptive_aux_buffer,
