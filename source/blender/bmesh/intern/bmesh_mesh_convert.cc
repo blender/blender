@@ -486,7 +486,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
       BM_face_select_set(bm, f, true);
     }
 
-    f->mat_nr = material_indices == NULL ? 0 : material_indices[i];
+    f->mat_nr = material_indices == nullptr ? 0 : material_indices[i];
     if (i == me->act_face) {
       bm->act_face = f;
     }

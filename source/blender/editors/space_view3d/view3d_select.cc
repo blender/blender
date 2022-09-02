@@ -1277,7 +1277,7 @@ static bool view3d_lasso_select(bContext *C,
   Object *ob = CTX_data_active_object(C);
   bool changed_multi = false;
 
-  wmGenericUserData wm_userdata_buf = {0};
+  wmGenericUserData wm_userdata_buf = {nullptr, nullptr, false};
   wmGenericUserData *wm_userdata = &wm_userdata_buf;
 
   if (vc->obedit == nullptr) { /* Object Mode */
@@ -3779,7 +3779,7 @@ static int view3d_box_select_exec(bContext *C, wmOperator *op)
   rcti rect;
   bool changed_multi = false;
 
-  wmGenericUserData wm_userdata_buf = {0};
+  wmGenericUserData wm_userdata_buf = {nullptr, nullptr, false};
   wmGenericUserData *wm_userdata = &wm_userdata_buf;
 
   view3d_operator_needs_opengl(C);
@@ -4678,7 +4678,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 
   /* Allow each selection type to allocate their own data that's used between executions. */
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata); /* nullptr when non-modal. */
-  wmGenericUserData wm_userdata_buf = {0};
+  wmGenericUserData wm_userdata_buf = {nullptr, nullptr, false};
   wmGenericUserData *wm_userdata = gesture ? &gesture->user_data : &wm_userdata_buf;
 
   const eSelectOp sel_op = ED_select_op_modal(
