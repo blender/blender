@@ -3767,8 +3767,8 @@ void BKE_gpencil_stroke_uniform_subdivide(bGPdata *gpd,
   BKE_gpencil_stroke_geometry_update(gpd, gps);
 }
 
-void BKE_gpencil_stroke_to_view_space(float viewmat[4][4],
-                                      bGPDstroke *gps,
+void BKE_gpencil_stroke_to_view_space(bGPDstroke *gps,
+                                      float viewmat[4][4],
                                       const float diff_mat[4][4])
 {
   for (int i = 0; i < gps->totpoints; i++) {
@@ -3780,8 +3780,8 @@ void BKE_gpencil_stroke_to_view_space(float viewmat[4][4],
   }
 }
 
-void BKE_gpencil_stroke_from_view_space(float viewinv[4][4],
-                                        bGPDstroke *gps,
+void BKE_gpencil_stroke_from_view_space(bGPDstroke *gps,
+                                        float viewinv[4][4],
                                         const float diff_mat[4][4])
 {
   float inverse_diff_mat[4][4];
@@ -4245,7 +4245,7 @@ bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(float viewmat[4][4],
     pt_dst->uv_rot = 0;
   }
 
-  BKE_gpencil_stroke_to_view_space(viewmat, gps_temp, diff_mat);
+  BKE_gpencil_stroke_to_view_space(gps_temp, viewmat, diff_mat);
   int num_perimeter_points = 0;
   ListBase *perimeter_points = gpencil_stroke_perimeter_ex(
       gpd, gpl, gps_temp, subdivisions, thickness_chg, &num_perimeter_points);
@@ -4268,7 +4268,7 @@ bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(float viewmat[4][4],
     pt->flag |= GP_SPOINT_SELECT;
   }
 
-  BKE_gpencil_stroke_from_view_space(viewinv, perimeter_stroke, diff_mat);
+  BKE_gpencil_stroke_from_view_space(perimeter_stroke, viewinv, diff_mat);
 
   /* Free temp data. */
   BLI_freelistN(perimeter_points);
