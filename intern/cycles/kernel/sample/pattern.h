@@ -106,6 +106,8 @@ ccl_device_inline bool sample_is_class_A(int pattern, int sample)
      */
     return hash_hp_seeded_uint(sample, 0xa771f873) & 1;
   }
+#else
+  (void)pattern;
 #endif
 
   /* This follows the approach from section 10.2.1 of "Progressive
