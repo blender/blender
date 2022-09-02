@@ -326,10 +326,10 @@ typedef struct GPUUniformAttrList {
   unsigned int count, hash_code;
 } GPUUniformAttrList;
 
-GPUUniformAttrList *GPU_material_uniform_attributes(const GPUMaterial *material);
+const GPUUniformAttrList *GPU_material_uniform_attributes(const GPUMaterial *material);
 
 struct GHash *GPU_uniform_attr_list_hash_new(const char *info);
-void GPU_uniform_attr_list_copy(GPUUniformAttrList *dest, GPUUniformAttrList *src);
+void GPU_uniform_attr_list_copy(GPUUniformAttrList *dest, const GPUUniformAttrList *src);
 void GPU_uniform_attr_list_free(GPUUniformAttrList *set);
 
 /* A callback passed to GPU_material_from_callbacks to construct the material graph by adding and

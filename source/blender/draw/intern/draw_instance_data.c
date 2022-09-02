@@ -564,7 +564,8 @@ typedef struct DRWUniformAttrBuf {
   struct DRWUniformAttrBuf *next_empty;
 } DRWUniformAttrBuf;
 
-static DRWUniformAttrBuf *drw_uniform_attrs_pool_ensure(GHash *table, GPUUniformAttrList *key)
+static DRWUniformAttrBuf *drw_uniform_attrs_pool_ensure(GHash *table,
+                                                        const GPUUniformAttrList *key)
 {
   void **pkey, **pval;
 
@@ -669,7 +670,7 @@ static void drw_uniform_attribute_lookup(GPUUniformAttr *attr,
 }
 
 void drw_uniform_attrs_pool_update(GHash *table,
-                                   GPUUniformAttrList *key,
+                                   const GPUUniformAttrList *key,
                                    DRWResourceHandle *handle,
                                    Object *ob,
                                    Object *dupli_parent,
@@ -690,7 +691,8 @@ void drw_uniform_attrs_pool_update(GHash *table,
   }
 }
 
-DRWSparseUniformBuf *DRW_uniform_attrs_pool_find_ubo(GHash *table, struct GPUUniformAttrList *key)
+DRWSparseUniformBuf *DRW_uniform_attrs_pool_find_ubo(GHash *table,
+                                                     const struct GPUUniformAttrList *key)
 {
   DRWUniformAttrBuf *buffer = BLI_ghash_lookup(table, key);
   return buffer ? &buffer->ubos : NULL;

@@ -377,7 +377,7 @@ struct DRWUniform {
     /* DRW_UNIFORM_INT_COPY */
     int ivalue[4];
     /* DRW_UNIFORM_BLOCK_OBATTRS */
-    struct GPUUniformAttrList *uniform_attrs;
+    const struct GPUUniformAttrList *uniform_attrs;
   };
   int location;      /* Uniform location or binding point for textures and UBO's. */
   uint8_t type;      /* #DRWUniformType */
@@ -403,7 +403,7 @@ struct DRWShadingGroup {
       DRWResourceHandle pass_handle; /* Memblock key to parent pass. */
 
       /* Set of uniform attributes used by this shader. */
-      struct GPUUniformAttrList *uniform_attrs;
+      const struct GPUUniformAttrList *uniform_attrs;
     };
     /* This struct is used after cache populate if using the Z sorting.
      * It will not conflict with the above struct. */
@@ -681,7 +681,7 @@ GPUBatch *drw_cache_procedural_triangles_get(void);
 GPUBatch *drw_cache_procedural_triangle_strips_get(void);
 
 void drw_uniform_attrs_pool_update(struct GHash *table,
-                                   struct GPUUniformAttrList *key,
+                                   const struct GPUUniformAttrList *key,
                                    DRWResourceHandle *handle,
                                    struct Object *ob,
                                    struct Object *dupli_parent,

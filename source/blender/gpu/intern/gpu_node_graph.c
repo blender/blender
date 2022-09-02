@@ -292,7 +292,7 @@ struct GHash *GPU_uniform_attr_list_hash_new(const char *info)
   return BLI_ghash_new(uniform_attr_list_hash, uniform_attr_list_cmp, info);
 }
 
-void GPU_uniform_attr_list_copy(GPUUniformAttrList *dest, GPUUniformAttrList *src)
+void GPU_uniform_attr_list_copy(GPUUniformAttrList *dest, const GPUUniformAttrList *src)
 {
   dest->count = src->count;
   dest->hash_code = src->hash_code;

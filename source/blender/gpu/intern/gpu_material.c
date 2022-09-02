@@ -225,9 +225,9 @@ ListBase GPU_material_textures(GPUMaterial *material)
   return material->graph.textures;
 }
 
-GPUUniformAttrList *GPU_material_uniform_attributes(const GPUMaterial *material)
+const GPUUniformAttrList *GPU_material_uniform_attributes(const GPUMaterial *material)
 {
-  GPUUniformAttrList *attrs = &material->graph.uniform_attrs;
+  const GPUUniformAttrList *attrs = &material->graph.uniform_attrs;
   return attrs->count > 0 ? attrs : NULL;
 }
 

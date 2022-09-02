@@ -1638,7 +1638,7 @@ void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, struct GPUMaterial
     DRW_shgroup_uniform_block(grp, GPU_UBO_BLOCK_NAME, ubo);
   }
 
-  GPUUniformAttrList *uattrs = GPU_material_uniform_attributes(material);
+  const GPUUniformAttrList *uattrs = GPU_material_uniform_attributes(material);
   if (uattrs != NULL) {
     int loc = GPU_shader_get_uniform_block_binding(grp->shader, GPU_ATTRIBUTE_UBO_BLOCK_NAME);
     drw_shgroup_uniform_create_ex(grp, loc, DRW_UNIFORM_BLOCK_OBATTRS, uattrs, 0, 0, 1);
