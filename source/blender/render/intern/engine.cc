@@ -1292,16 +1292,12 @@ bool RE_engine_gpu_context_enable(RenderEngine *engine)
     DRW_render_context_enable(engine->re);
     return true;
   }
-  else {
-    if (engine->gpu_context) {
-      BLI_mutex_lock(&engine->gpu_context_mutex);
-      WM_opengl_context_activate(engine->gpu_context);
-      return true;
-    }
-    else {
-      return false;
-    }
+  if (engine->gpu_context) {
+    BLI_mutex_lock(&engine->gpu_context_mutex);
+    WM_opengl_context_activate(engine->gpu_context);
+    return true;
   }
+  return false;
 }
 
 void RE_engine_gpu_context_disable(RenderEngine *engine)

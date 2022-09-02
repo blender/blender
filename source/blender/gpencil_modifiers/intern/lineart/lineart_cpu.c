@@ -5244,11 +5244,11 @@ static void lineart_gpencil_generate(LineartCache *cache,
              (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_ILLUMINATED)))) {
           continue;
         }
-        else if ((shaodow_selection == LRT_SHADOW_FILTER_SHADED &&
-                  (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_SHADED)))) {
+        if ((shaodow_selection == LRT_SHADOW_FILTER_SHADED &&
+             (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_SHADED)))) {
           continue;
         }
-        else if (shaodow_selection == LRT_SHADOW_FILTER_ILLUMINATED_ENCLOSED_SHAPES) {
+        if (shaodow_selection == LRT_SHADOW_FILTER_ILLUMINATED_ENCLOSED_SHAPES) {
           uint32_t test_bits = ec->shadow_mask_bits & LRT_SHADOW_TEST_SHAPE_BITS;
           if ((test_bits != LRT_SHADOW_MASK_ILLUMINATED) &&
               (test_bits != (LRT_SHADOW_MASK_SHADED | LRT_SHADOW_MASK_ILLUMINATED_SHAPE))) {
