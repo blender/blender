@@ -130,33 +130,16 @@ static void pick_input_link_by_link_intersect(const bContext &C,
   /* Distance to test overlapping of cursor on link. */
   const float cursor_link_touch_distance = 12.5f * UI_DPI_FAC;
 
-  const int resolution = NODE_LINK_RESOL;
-
   bNodeLink *link_to_pick = nullptr;
   clear_picking_highlight(&snode->edittree->links);
   LISTBASE_FOREACH (bNodeLink *, link, &snode->edittree->links) {
     if (link->tosock == socket) {
       /* Test if the cursor is near a link. */
-      const std::array<float2, 4> points = node_link_bezier_points(*link);
+      std::array<float2, NODE_LINK_RESOL + 1> coords;
+      node_link_bezier_points_evaluated(*link, coords);
 
-      std::array<float2, NODE_LINK_RESOL + 1> data;
-      BKE_curve_forward_diff_bezier(points[0].x,
-                                    points[1].x,
-                                    points[2].x,
-                                    points[3].x,
-                                    &data[0].x,
-                                    resolution,
-                                    sizeof(float2));
-      BKE_curve_forward_diff_bezier(points[0].y,
-                                    points[1].y,
-                                    points[2].y,
-                                    points[3].y,
-                                    &data[0].y,
-                                    resolution,
-                                    sizeof(float2));
-
-      for (const int i : IndexRange(data.size() - 1)) {
-        const float distance = dist_squared_to_line_segment_v2(cursor, data[i], data[i + 1]);
+      for (const int i : IndexRange(coords.size() - 1)) {
+        const float distance = dist_squared_to_line_segment_v2(cursor, coords[i], coords[i + 1]);
         if (distance < cursor_link_touch_distance) {
           link_to_pick = link;
           nldrag.last_picked_multi_input_socket_link = link_to_pick;
@@ -1322,17 +1305,17 @@ void NODE_OT_link_make(wmOperatorType *ot)
 
 static bool node_links_intersect(bNodeLink &link, const float mcoords[][2], int tot)
 {
-  float coord_array[NODE_LINK_RESOL + 1][2];
+  std::array<float2, NODE_LINK_RESOL + 1> coords;
+  node_link_bezier_points_evaluated(link, coords);
 
-  if (node_link_bezier_points_evaluated(link, coord_array, NODE_LINK_RESOL)) {
-    for (int i = 0; i < tot - 1; i++) {
-      for (int b = 0; b < NODE_LINK_RESOL; b++) {
-        if (isect_seg_seg_v2(mcoords[i], mcoords[i + 1], coord_array[b], coord_array[b + 1]) > 0) {
-          return true;
-        }
+  for (int i = 0; i < tot - 1; i++) {
+    for (int b = 0; b < NODE_LINK_RESOL; b++) {
+      if (isect_seg_seg_v2(mcoords[i], mcoords[i + 1], coords[b], coords[b + 1]) > 0) {
+        return true;
       }
     }
   }
+
   return false;
 }
 
@@ -1935,6 +1918,7 @@ static bool ed_node_link_conditions(ScrArea *area,
 
 void ED_node_link_intersect_test(ScrArea *area, int test)
 {
+  using namespace blender;
   using namespace blender::ed::space_node;
 
   bNode *select;
@@ -1958,36 +1942,34 @@ void ED_node_link_intersect_test(ScrArea *area, int test)
   bNodeLink *selink = nullptr;
   float dist_best = FLT_MAX;
   LISTBASE_FOREACH (bNodeLink *, link, &snode->edittree->links) {
-    float coord_array[NODE_LINK_RESOL + 1][2];
 
     if (node_link_is_hidden_or_dimmed(region->v2d, *link)) {
       continue;
     }
 
-    if (node_link_bezier_points_evaluated(*link, coord_array, NODE_LINK_RESOL)) {
-      float dist = FLT_MAX;
+    std::array<float2, NODE_LINK_RESOL + 1> coords;
+    node_link_bezier_points_evaluated(*link, coords);
+    float dist = FLT_MAX;
 
-      /* loop over link coords to find shortest dist to
-       * upper left node edge of a intersected line segment */
-      for (int i = 0; i < NODE_LINK_RESOL; i++) {
-        /* Check if the node rectangle intersects the line from this point to next one. */
-        if (BLI_rctf_isect_segment(&select->totr, coord_array[i], coord_array[i + 1])) {
-          /* store the shortest distance to the upper left edge
-           * of all intersections found so far */
-          const float node_xy[] = {select->totr.xmin, select->totr.ymax};
+    /* loop over link coords to find shortest dist to
+     * upper left node edge of a intersected line segment */
+    for (int i = 0; i < NODE_LINK_RESOL; i++) {
+      /* Check if the node rectangle intersects the line from this point to next one. */
+      if (BLI_rctf_isect_segment(&select->totr, coords[i], coords[i + 1])) {
+        /* store the shortest distance to the upper left edge
+         * of all intersections found so far */
+        const float node_xy[] = {select->totr.xmin, select->totr.ymax};
 
-          /* to be precise coord_array should be clipped by select->totr,
-           * but not done since there's no real noticeable difference */
-          dist = min_ff(
-              dist_squared_to_line_segment_v2(node_xy, coord_array[i], coord_array[i + 1]), dist);
-        }
+        /* to be precise coords should be clipped by select->totr,
+         * but not done since there's no real noticeable difference */
+        dist = min_ff(dist_squared_to_line_segment_v2(node_xy, coords[i], coords[i + 1]), dist);
       }
+    }
 
-      /* we want the link with the shortest distance to node center */
-      if (dist < dist_best) {
-        dist_best = dist;
-        selink = link;
-      }
+    /* we want the link with the shortest distance to node center */
+    if (dist < dist_best) {
+      dist_best = dist;
+      selink = link;
     }
   }
 

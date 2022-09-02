@@ -1614,7 +1614,7 @@ static void calculate_inner_link_bezier_points(std::array<float2, 4> &points)
   }
 }
 
-std::array<float2, 4> node_link_bezier_points(const bNodeLink &link)
+static std::array<float2, 4> node_link_bezier_points(const bNodeLink &link)
 {
   std::array<float2, 4> points;
   points[0] = socket_link_connection_location(*link.fromsock, link);
@@ -1634,29 +1634,26 @@ static bool node_link_draw_is_visible(const View2D &v2d, const std::array<float2
   return true;
 }
 
-bool node_link_bezier_points_evaluated(const bNodeLink &link,
-                                       float coord_array[][2],
-                                       const int resol)
+void node_link_bezier_points_evaluated(const bNodeLink &link,
+                                       std::array<float2, NODE_LINK_RESOL + 1> &coords)
 {
   const std::array<float2, 4> points = node_link_bezier_points(link);
 
-  /* always do all three, to prevent data hanging around */
+  /* The extra +1 in size is required by these functions and would be removed ideally. */
   BKE_curve_forward_diff_bezier(points[0].x,
                                 points[1].x,
                                 points[2].x,
                                 points[3].x,
-                                coord_array[0] + 0,
-                                resol,
-                                sizeof(float[2]));
+                                &coords[0].x,
+                                NODE_LINK_RESOL,
+                                sizeof(float2));
   BKE_curve_forward_diff_bezier(points[0].y,
                                 points[1].y,
                                 points[2].y,
                                 points[3].y,
-                                coord_array[0] + 1,
-                                resol,
-                                sizeof(float[2]));
-
-  return true;
+                                &coords[0].y,
+                                NODE_LINK_RESOL,
+                                sizeof(float2));
 }
 
 #define NODELINK_GROUP_SIZE 256

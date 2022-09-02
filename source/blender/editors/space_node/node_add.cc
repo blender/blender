@@ -106,18 +106,18 @@ static bool add_reroute_intersect_check(const bNodeLink &link,
                                         int tot,
                                         float2 &result)
 {
-  float coord_array[NODE_LINK_RESOL + 1][2];
+  std::array<float2, NODE_LINK_RESOL + 1> coords;
+  node_link_bezier_points_evaluated(link, coords);
 
-  if (node_link_bezier_points_evaluated(link, coord_array, NODE_LINK_RESOL)) {
-    for (int i = 0; i < tot - 1; i++) {
-      for (int b = 0; b < NODE_LINK_RESOL; b++) {
-        if (isect_seg_seg_v2_point(
-                mcoords[i], mcoords[i + 1], coord_array[b], coord_array[b + 1], result) > 0) {
-          return true;
-        }
+  for (int i = 0; i < tot - 1; i++) {
+    for (int b = 0; b < NODE_LINK_RESOL; b++) {
+      if (isect_seg_seg_v2_point(mcoords[i], mcoords[i + 1], coords[b], coords[b + 1], result) >
+          0) {
+        return true;
       }
     }
   }
+
   return false;
 }
 
