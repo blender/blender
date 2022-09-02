@@ -273,7 +273,7 @@ void VelocityModule::end_sync()
     inst_.sampling.reset();
   }
 
-  for (auto key : deleted_obj) {
+  for (auto &key : deleted_obj) {
     velocity_map.remove(key);
   }
 

@@ -333,7 +333,7 @@ void LightModule::end_sync()
   /* This scene data buffer is then immutable after this point. */
   light_buf_.push_update();
 
-  for (auto key : deleted_keys) {
+  for (auto &key : deleted_keys) {
     light_map_.remove(key);
   }
 
