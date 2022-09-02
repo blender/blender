@@ -12,6 +12,16 @@ void node_attribute_temperature(vec4 attr, out vec4 out_attr)
   out_attr.w = 1.0;
 }
 
+void node_attribute_density(vec4 attr, out float out_attr)
+{
+  out_attr = attr.x;
+}
+
+void node_attribute_flame(vec4 attr, out float out_attr)
+{
+  out_attr = attr.x;
+}
+
 void node_attribute(
     vec4 attr, out vec4 outcol, out vec3 outvec, out float outf, out float outalpha)
 {
