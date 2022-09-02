@@ -1015,7 +1015,7 @@ static void override_idtemplate_menu_draw(const bContext *UNUSED(C), Menu *menu)
   uiItemO(layout, IFACE_("Clear"), ICON_NONE, "UI_OT_override_idtemplate_clear");
 }
 
-static void override_idtemplate_menu(void)
+static void override_idtemplate_menu()
 {
   MenuType *mt;
 
