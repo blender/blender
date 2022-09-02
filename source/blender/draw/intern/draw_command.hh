@@ -476,6 +476,7 @@ class DrawMultiBuf {
     /* Unsupported for now. Use PassSimple. */
     BLI_assert(vertex_first == 0 || vertex_first == -1);
     BLI_assert(vertex_len == -1);
+    UNUSED_VARS_NDEBUG(vertex_len, vertex_first);
 
     instance_len = instance_len != -1 ? instance_len : 1;
 
