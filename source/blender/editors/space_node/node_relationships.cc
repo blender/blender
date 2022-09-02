@@ -52,11 +52,6 @@
 
 #include "node_intern.hh" /* own include */
 
-struct bNodeListItem {
-  struct bNodeListItem *next, *prev;
-  struct bNode *node;
-};
-
 struct NodeInsertOfsData {
   bNodeTree *ntree;
   bNode *insert;      /* inserted node */
