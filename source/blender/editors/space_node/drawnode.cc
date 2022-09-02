@@ -1665,27 +1665,27 @@ bool node_link_bezier_points(const View2D *v2d,
                              const int resol)
 {
   std::array<float2, 4> points;
-
-  if (node_link_bezier_handles(v2d, snode, link, points)) {
-    /* always do all three, to prevent data hanging around */
-    BKE_curve_forward_diff_bezier(points[0].x,
-                                  points[1].x,
-                                  points[2].x,
-                                  points[3].x,
-                                  coord_array[0] + 0,
-                                  resol,
-                                  sizeof(float[2]));
-    BKE_curve_forward_diff_bezier(points[0].y,
-                                  points[1].y,
-                                  points[2].y,
-                                  points[3].y,
-                                  coord_array[0] + 1,
-                                  resol,
-                                  sizeof(float[2]));
-
-    return true;
+  if (!node_link_bezier_handles(v2d, snode, link, points)) {
+    return false;
   }
-  return false;
+
+  /* always do all three, to prevent data hanging around */
+  BKE_curve_forward_diff_bezier(points[0].x,
+                                points[1].x,
+                                points[2].x,
+                                points[3].x,
+                                coord_array[0] + 0,
+                                resol,
+                                sizeof(float[2]));
+  BKE_curve_forward_diff_bezier(points[0].y,
+                                points[1].y,
+                                points[2].y,
+                                points[3].y,
+                                coord_array[0] + 1,
+                                resol,
+                                sizeof(float[2]));
+
+  return true;
 }
 
 #define NODELINK_GROUP_SIZE 256
