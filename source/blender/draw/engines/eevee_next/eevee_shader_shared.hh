@@ -194,6 +194,11 @@ BLI_STATIC_ASSERT_ALIGN(CameraData, 16)
 
 #define FILM_PRECOMP_SAMPLE_MAX 16
 
+enum eFilmWeightLayerIndex : uint32_t {
+  FILM_WEIGHT_LAYER_ACCUMULATION = 0u,
+  FILM_WEIGHT_LAYER_DISTANCE = 1u,
+};
+
 struct FilmSample {
   int2 texel;
   float weight;
