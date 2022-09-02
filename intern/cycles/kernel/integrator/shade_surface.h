@@ -78,7 +78,6 @@ ccl_device_forceinline float3 integrate_surface_ray_offset(KernelGlobals kg,
   }
 }
 
-#ifdef __HOLDOUT__
 ccl_device_forceinline bool integrate_surface_holdout(KernelGlobals kg,
                                                       ConstIntegratorState state,
                                                       ccl_private ShaderData *sd,
@@ -100,9 +99,7 @@ ccl_device_forceinline bool integrate_surface_holdout(KernelGlobals kg,
 
   return true;
 }
-#endif /* __HOLDOUT__ */
 
-#ifdef __EMISSION__
 ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
                                                        ConstIntegratorState state,
                                                        ccl_private const ShaderData *sd,
@@ -115,12 +112,12 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
   Spectrum L = shader_emissive_eval(sd);
   float mis_weight = 1.0f;
 
-#  ifdef __HAIR__
+#ifdef __HAIR__
   if (!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_USE_MIS) &&
       (sd->type & PRIMITIVE_TRIANGLE))
-#  else
+#else
   if (!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_USE_MIS))
-#  endif
+#endif
   {
     const float bsdf_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
     const float t = sd->ray_length;
@@ -134,9 +131,7 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
   film_write_surface_emission(
       kg, state, L, mis_weight, render_buffer, object_lightgroup(kg, sd->object));
 }
-#endif /* __EMISSION__ */
 
-#ifdef __EMISSION__
 /* Path tracing: sample point on light and evaluate light shader, then
  * queue shadow ray to be traced. */
 template<uint node_feature_mask>
@@ -178,7 +173,7 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   BsdfEval bsdf_eval ccl_optional_struct_init;
   const bool is_transmission = shader_bsdf_is_transmission(sd, ls.D);
 
-#  ifdef __MNEE__
+#ifdef __MNEE__
   int mnee_vertex_count = 0;
   IF_KERNEL_FEATURE(MNEE)
   {
@@ -204,7 +199,7 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
     light_sample_to_surface_shadow_ray(kg, emission_sd, &ls, &ray);
   }
   else
-#  endif /* __MNEE__ */
+#endif /* __MNEE__ */
   {
     const Spectrum light_eval = light_sample_shader_eval(kg, state, emission_sd, &ls, sd->time);
     if (is_zero(light_eval)) {
@@ -240,9 +235,9 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   integrator_state_copy_volume_stack_to_shadow(kg, shadow_state, state);
 
   if (is_transmission) {
-#  ifdef __VOLUME__
+#ifdef __VOLUME__
     shadow_volume_stack_enter_exit(kg, shadow_state, sd);
-#  endif
+#endif
   }
 
   if (ray.self.object != OBJECT_NONE) {
@@ -298,7 +293,7 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, glossy_bounce) = INTEGRATOR_STATE(
       state, path, glossy_bounce);
 
-#  ifdef __MNEE__
+#ifdef __MNEE__
   if (mnee_vertex_count > 0) {
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transmission_bounce) =
         INTEGRATOR_STATE(state, path, transmission_bounce) + mnee_vertex_count - 1;
@@ -310,7 +305,7 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
                            bounce) = INTEGRATOR_STATE(state, path, bounce) + mnee_vertex_count;
   }
   else
-#  endif
+#endif
   {
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transmission_bounce) = INTEGRATOR_STATE(
         state, path, transmission_bounce);
@@ -332,7 +327,6 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
                                                    ls.group + 1 :
                                                    kernel_data.background.lightgroup + 1;
 }
-#endif
 
 /* Path tracing: bounce off or through surface with new direction. */
 ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
@@ -573,19 +567,15 @@ ccl_device bool integrate_surface(KernelGlobals kg,
       /* Filter closures. */
       shader_prepare_surface_closures(kg, state, &sd, path_flag);
 
-#ifdef __HOLDOUT__
       /* Evaluate holdout. */
       if (!integrate_surface_holdout(kg, state, &sd, render_buffer)) {
         return false;
       }
-#endif
 
-#ifdef __EMISSION__
       /* Write emission. */
       if (sd.flag & SD_EMISSION) {
         integrate_surface_emission(kg, state, &sd, render_buffer);
       }
-#endif
 
       /* Perform path termination. Most paths have already been terminated in
        * the intersect_closest kernel, this is just for emission and for dividing

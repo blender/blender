@@ -16,7 +16,6 @@ ccl_device Spectrum integrator_eval_background_shader(KernelGlobals kg,
                                                       IntegratorState state,
                                                       ccl_global float *ccl_restrict render_buffer)
 {
-#ifdef __BACKGROUND__
   const int shader = kernel_data.background.surface_shader;
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
@@ -57,9 +56,6 @@ ccl_device Spectrum integrator_eval_background_shader(KernelGlobals kg,
       kg, state, emission_sd, render_buffer, path_flag | PATH_RAY_EMISSION);
 
   return shader_background_eval(emission_sd);
-#else
-  return make_spectrum(0.8f);
-#endif
 }
 
 ccl_device_inline void integrate_background(KernelGlobals kg,
@@ -115,7 +111,6 @@ ccl_device_inline void integrate_background(KernelGlobals kg,
 
     /* Background MIS weights. */
     float mis_weight = 1.0f;
-#ifdef __BACKGROUND_MIS__
     /* Check if background light exists or if we should skip pdf. */
     if (!(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_MIS_SKIP) &&
         kernel_data.background.use_mis) {
@@ -128,7 +123,6 @@ ccl_device_inline void integrate_background(KernelGlobals kg,
       const float pdf = background_light_pdf(kg, ray_P, ray_D);
       mis_weight = light_sample_mis_weight_forward(kg, mis_ray_pdf, pdf);
     }
-#endif
 
     L *= mis_weight;
   }

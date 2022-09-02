@@ -52,11 +52,9 @@ ccl_device int subsurface_bounce(KernelGlobals kg,
 
   /* Compute weight, optionally including Fresnel from entry point. */
   Spectrum weight = shader_bssrdf_sample_weight(sd, sc);
-#  ifdef __PRINCIPLED__
   if (bssrdf->roughness != FLT_MAX) {
     path_flag |= PATH_RAY_SUBSURFACE_USE_FRESNEL;
   }
-#  endif
 
   if (sd->flag & SD_BACKFACING) {
     path_flag |= PATH_RAY_SUBSURFACE_BACKFACING;
@@ -101,7 +99,6 @@ ccl_device void subsurface_shader_data_setup(KernelGlobals kg,
 
   const Spectrum weight = one_spectrum();
 
-#  ifdef __PRINCIPLED__
   if (path_flag & PATH_RAY_SUBSURFACE_USE_FRESNEL) {
     ccl_private PrincipledDiffuseBsdf *bsdf = (ccl_private PrincipledDiffuseBsdf *)bsdf_alloc(
         sd, sizeof(PrincipledDiffuseBsdf), weight);
@@ -112,9 +109,7 @@ ccl_device void subsurface_shader_data_setup(KernelGlobals kg,
       sd->flag |= bsdf_principled_diffuse_setup(bsdf, PRINCIPLED_DIFFUSE_LAMBERT_EXIT);
     }
   }
-  else
-#  endif /* __PRINCIPLED__ */
-  {
+  else {
     ccl_private DiffuseBsdf *bsdf = (ccl_private DiffuseBsdf *)bsdf_alloc(
         sd, sizeof(DiffuseBsdf), weight);
 

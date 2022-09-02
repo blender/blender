@@ -677,7 +677,6 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
 #  endif /* __DENOISING_FEATURES__ */
 }
 
-#  ifdef __EMISSION__
 /* Path tracing: sample point on light and evaluate light shader, then
  * queue shadow ray to be traced. */
 ccl_device_forceinline bool integrate_volume_sample_light(
@@ -851,7 +850,6 @@ ccl_device_forceinline void integrate_volume_direct_light(
 
   integrator_state_copy_volume_stack_to_shadow(kg, shadow_state, state);
 }
-#  endif
 
 /* Path tracing: scatter in new direction using phase function */
 ccl_device_forceinline bool integrate_volume_phase_scatter(

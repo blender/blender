@@ -54,36 +54,25 @@ CCL_NAMESPACE_BEGIN
 #endif
 
 /* Kernel features */
-#define __DPDU__
-#define __BACKGROUND__
-#define __CAUSTICS_TRICKS__
-#define __VISIBILITY_FLAG__
-#define __RAY_DIFFERENTIALS__
-#define __CAMERA_CLIPPING__
-#define __INTERSECTION_REFINE__
-#define __CLAMP_SAMPLE__
-#define __PATCH_EVAL__
-#define __SHADOW_CATCHER__
-#define __DENOISING_FEATURES__
-#define __SHADER_RAYTRACE__
 #define __AO__
-#define __PASSES__
+#define __CAUSTICS_TRICKS__
+#define __CLAMP_SAMPLE__
+#define __DENOISING_FEATURES__
+#define __DPDU__
 #define __HAIR__
-#define __POINTCLOUD__
-#define __SVM__
-#define __EMISSION__
-#define __HOLDOUT__
-#define __TRANSPARENT_SHADOWS__
-#define __BACKGROUND_MIS__
-#define __LAMP_MIS__
-#define __CAMERA_MOTION__
 #define __OBJECT_MOTION__
-#define __PRINCIPLED__
-#define __SUBSURFACE__
-#define __VOLUME__
-#define __CMJ__
+#define __PASSES__
+#define __PATCH_EVAL__
+#define __POINTCLOUD__
+#define __RAY_DIFFERENTIALS__
+#define __SHADER_RAYTRACE__
+#define __SHADOW_CATCHER__
 #define __SHADOW_RECORD_ALL__
-#define __BRANCHED_PATH__
+#define __SUBSURFACE__
+#define __SVM__
+#define __TRANSPARENT_SHADOWS__
+#define __VISIBILITY_FLAG__
+#define __VOLUME__
 
 /* Device specific features */
 #ifndef __KERNEL_GPU__
@@ -101,9 +90,6 @@ CCL_NAMESPACE_BEGIN
 
 /* Scene-based selective features compilation. */
 #ifdef __KERNEL_FEATURES__
-#  if !(__KERNEL_FEATURES & KERNEL_FEATURE_CAMERA_MOTION)
-#    undef __CAMERA_MOTION__
-#  endif
 #  if !(__KERNEL_FEATURES & KERNEL_FEATURE_OBJECT_MOTION)
 #    undef __OBJECT_MOTION__
 #  endif
@@ -127,9 +113,6 @@ CCL_NAMESPACE_BEGIN
 #  endif
 #  if !(__KERNEL_FEATURES & KERNEL_FEATURE_SHADOW_CATCHER)
 #    undef __SHADOW_CATCHER__
-#  endif
-#  if !(__KERNEL_FEATURES & KERNEL_FEATURE_PRINCIPLED)
-#    undef __PRINCIPLED__
 #  endif
 #  if !(__KERNEL_FEATURES & KERNEL_FEATURE_DENOISING)
 #    undef __DENOISING_FEATURES__
@@ -1488,42 +1471,38 @@ enum KernelFeatureFlag : uint32_t {
   KERNEL_FEATURE_HAIR = (1U << 12U),
   KERNEL_FEATURE_HAIR_THICK = (1U << 13U),
   KERNEL_FEATURE_OBJECT_MOTION = (1U << 14U),
-  KERNEL_FEATURE_CAMERA_MOTION = (1U << 15U),
 
   /* Denotes whether baking functionality is needed. */
-  KERNEL_FEATURE_BAKING = (1U << 16U),
+  KERNEL_FEATURE_BAKING = (1U << 15U),
 
   /* Use subsurface scattering materials. */
-  KERNEL_FEATURE_SUBSURFACE = (1U << 17U),
+  KERNEL_FEATURE_SUBSURFACE = (1U << 16U),
 
   /* Use volume materials. */
-  KERNEL_FEATURE_VOLUME = (1U << 18U),
+  KERNEL_FEATURE_VOLUME = (1U << 17U),
 
   /* Use OpenSubdiv patch evaluation */
-  KERNEL_FEATURE_PATCH_EVALUATION = (1U << 19U),
+  KERNEL_FEATURE_PATCH_EVALUATION = (1U << 18U),
 
   /* Use Transparent shadows */
-  KERNEL_FEATURE_TRANSPARENT = (1U << 20U),
+  KERNEL_FEATURE_TRANSPARENT = (1U << 19U),
 
   /* Use shadow catcher. */
-  KERNEL_FEATURE_SHADOW_CATCHER = (1U << 21U),
-
-  /* Per-uber shader usage flags. */
-  KERNEL_FEATURE_PRINCIPLED = (1U << 22U),
+  KERNEL_FEATURE_SHADOW_CATCHER = (1U << 29U),
 
   /* Light render passes. */
-  KERNEL_FEATURE_LIGHT_PASSES = (1U << 23U),
+  KERNEL_FEATURE_LIGHT_PASSES = (1U << 21U),
 
   /* Shadow render pass. */
-  KERNEL_FEATURE_SHADOW_PASS = (1U << 24U),
+  KERNEL_FEATURE_SHADOW_PASS = (1U << 22U),
 
   /* AO. */
-  KERNEL_FEATURE_AO_PASS = (1U << 25U),
-  KERNEL_FEATURE_AO_ADDITIVE = (1U << 26U),
+  KERNEL_FEATURE_AO_PASS = (1U << 23U),
+  KERNEL_FEATURE_AO_ADDITIVE = (1U << 24U),
   KERNEL_FEATURE_AO = (KERNEL_FEATURE_AO_PASS | KERNEL_FEATURE_AO_ADDITIVE),
 
   /* MNEE. */
-  KERNEL_FEATURE_MNEE = (1U << 27U),
+  KERNEL_FEATURE_MNEE = (1U << 25U),
 };
 
 /* Shader node feature mask, to specialize shader evaluation for kernels. */

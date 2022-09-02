@@ -86,7 +86,6 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
     ls->pdf = invarea / (costheta * costheta * costheta);
     ls->eval_fac = ls->pdf;
   }
-#ifdef __BACKGROUND_MIS__
   else if (type == LIGHT_BACKGROUND) {
     /* infinite area light (e.g. light dome or env light) */
     float3 D = -background_light_sample(kg, P, randu, randv, &ls->pdf);
@@ -97,7 +96,6 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
     ls->t = FLT_MAX;
     ls->eval_fac = 1.0f;
   }
-#endif
   else {
     ls->P = make_float3(klight->co[0], klight->co[1], klight->co[2]);
 

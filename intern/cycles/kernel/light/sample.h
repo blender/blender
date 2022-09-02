@@ -33,13 +33,10 @@ light_sample_shader_eval(KernelGlobals kg,
     /* Setup shader data and call shader_eval_surface once, better
      * for GPU coherence and compile times. */
     PROFILING_INIT_FOR_SHADER(kg, PROFILING_SHADE_LIGHT_SETUP);
-#ifdef __BACKGROUND_MIS__
     if (ls->type == LIGHT_BACKGROUND) {
       shader_setup_from_background(kg, emission_sd, ls->P, ls->D, time);
     }
-    else
-#endif
-    {
+    else {
       shader_setup_from_sample(kg,
                                emission_sd,
                                ls->P,
@@ -67,13 +64,10 @@ light_sample_shader_eval(KernelGlobals kg,
         kg, state, emission_sd, NULL, PATH_RAY_EMISSION);
 
     /* Evaluate closures. */
-#ifdef __BACKGROUND_MIS__
     if (ls->type == LIGHT_BACKGROUND) {
       eval = shader_background_eval(emission_sd);
     }
-    else
-#endif
-    {
+    else {
       eval = shader_emissive_eval(emission_sd);
     }
   }

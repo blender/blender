@@ -312,7 +312,6 @@ ccl_device int bssrdf_setup(ccl_private ShaderData *sd,
 
   if (bssrdf_channels < SPECTRUM_CHANNELS) {
     /* Add diffuse BSDF if any radius too small. */
-#ifdef __PRINCIPLED__
     if (bssrdf->roughness != FLT_MAX) {
       ccl_private PrincipledDiffuseBsdf *bsdf = (ccl_private PrincipledDiffuseBsdf *)bsdf_alloc(
           sd, sizeof(PrincipledDiffuseBsdf), diffuse_weight);
@@ -323,9 +322,7 @@ ccl_device int bssrdf_setup(ccl_private ShaderData *sd,
         flag |= bsdf_principled_diffuse_setup(bsdf, PRINCIPLED_DIFFUSE_LAMBERT);
       }
     }
-    else
-#endif /* __PRINCIPLED__ */
-    {
+    else {
       ccl_private DiffuseBsdf *bsdf = (ccl_private DiffuseBsdf *)bsdf_alloc(
           sd, sizeof(DiffuseBsdf), diffuse_weight);
 
