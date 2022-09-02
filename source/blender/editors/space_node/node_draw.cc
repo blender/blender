@@ -720,8 +720,7 @@ static void node_socket_draw_multi_input(const float color[4],
                                          const float color_outline[4],
                                          const float width,
                                          const float height,
-                                         const int locx,
-                                         const int locy)
+                                         const float2 location)
 {
   /* The other sockets are drawn with the keyframe shader. There, the outline has a base thickness
    * that can be varied but always scales with the size the socket is drawn at. Using `U.dpi_fac`
@@ -731,10 +730,10 @@ static void node_socket_draw_multi_input(const float color[4],
 
   /* UI_draw_roundbox draws the outline on the outer side, so compensate for the outline width. */
   const rctf rect = {
-      locx - width + outline_width * 0.5f,
-      locx + width - outline_width * 0.5f,
-      locy - height + outline_width * 0.5f,
-      locy + height - outline_width * 0.5f,
+      location.x - width + outline_width * 0.5f,
+      location.x + width - outline_width * 0.5f,
+      location.y - height + outline_width * 0.5f,
+      location.y + height - outline_width * 0.5f,
   };
 
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
@@ -1126,9 +1125,10 @@ static void node_socket_draw_nested(const bContext &C,
                                     const float size,
                                     const bool selected)
 {
+  const float2 location(sock.locx, sock.locy);
+
   float color[4];
   float outline_color[4];
-
   node_socket_color_get(C, ntree, node_ptr, sock, color);
   node_socket_outline_color_get(selected, sock.type, outline_color);
 
@@ -1136,8 +1136,8 @@ static void node_socket_draw_nested(const bContext &C,
                    color,
                    outline_color,
                    size,
-                   sock.locx,
-                   sock.locy,
+                   location.x,
+                   location.y,
                    pos_id,
                    col_id,
                    shape_id,
@@ -1156,8 +1156,8 @@ static void node_socket_draw_nested(const bContext &C,
                             UI_BTYPE_BUT,
                             0,
                             ICON_NONE,
-                            sock.locx - size / 2,
-                            sock.locy - size / 2,
+                            location.x - size / 2.0f,
+                            location.y - size / 2.0f,
                             size,
                             size,
                             nullptr,
@@ -1530,7 +1530,8 @@ static void node_draw_sockets(const View2D &v2d,
     node_socket_color_get(C, ntree, node_ptr, *socket, color);
     node_socket_outline_color_get(socket->flag & SELECT, socket->type, outline_color);
 
-    node_socket_draw_multi_input(color, outline_color, width, height, socket->locx, socket->locy);
+    const float2 location(socket->locx, socket->locy);
+    node_socket_draw_multi_input(color, outline_color, width, height, location);
   }
 }
 
