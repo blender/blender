@@ -120,8 +120,6 @@ static void pick_input_link_by_link_intersect(const bContext &C,
                                               const float2 &cursor)
 {
   SpaceNode *snode = CTX_wm_space_node(&C);
-  const ARegion *region = CTX_wm_region(&C);
-  const View2D *v2d = &region->v2d;
 
   float2 drag_start;
   RNA_float_get_array(op.ptr, "drag_start", drag_start);
@@ -140,7 +138,7 @@ static void pick_input_link_by_link_intersect(const bContext &C,
     if (link->tosock == socket) {
       /* Test if the cursor is near a link. */
       std::array<float2, 4> points;
-      node_link_bezier_handles(v2d, snode, *link, points);
+      node_link_bezier_handles(snode, *link, points);
 
       std::array<float2, NODE_LINK_RESOL + 1> data;
       BKE_curve_forward_diff_bezier(points[0].x,
@@ -1327,7 +1325,7 @@ static bool node_links_intersect(bNodeLink &link, const float mcoords[][2], int 
 {
   float coord_array[NODE_LINK_RESOL + 1][2];
 
-  if (node_link_bezier_points(nullptr, nullptr, link, coord_array, NODE_LINK_RESOL)) {
+  if (node_link_bezier_points(nullptr, link, coord_array, NODE_LINK_RESOL)) {
     for (int i = 0; i < tot - 1; i++) {
       for (int b = 0; b < NODE_LINK_RESOL; b++) {
         if (isect_seg_seg_v2(mcoords[i], mcoords[i + 1], coord_array[b], coord_array[b + 1]) > 0) {
@@ -1967,7 +1965,7 @@ void ED_node_link_intersect_test(ScrArea *area, int test)
       continue;
     }
 
-    if (node_link_bezier_points(nullptr, nullptr, *link, coord_array, NODE_LINK_RESOL)) {
+    if (node_link_bezier_points(nullptr, *link, coord_array, NODE_LINK_RESOL)) {
       float dist = FLT_MAX;
 
       /* loop over link coords to find shortest dist to

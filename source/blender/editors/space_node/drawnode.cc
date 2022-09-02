@@ -1585,8 +1585,7 @@ void draw_nodespace_back_pix(const bContext &C,
   GPU_matrix_pop();
 }
 
-bool node_link_bezier_handles(const View2D *v2d,
-                              const SpaceNode *snode,
+bool node_link_bezier_handles(const SpaceNode *snode,
                               const bNodeLink &link,
                               std::array<float2, 4> &points)
 {
@@ -1637,35 +1636,38 @@ bool node_link_bezier_handles(const View2D *v2d,
     /* Straight line: align all points. */
     points[1] = math::interpolate(points[0], points[3], 1.0f / 3.0f);
     points[2] = math::interpolate(points[0], points[3], 2.0f / 3.0f);
-    return true;
   }
+  else {
+    const float dist = curving * 0.1f * math::distance(points[0].x, points[3].x);
 
-  const float dist = curving * 0.10f * fabsf(points[0].x - points[3].x);
+    points[1].x = points[0].x + dist;
+    points[1].y = points[0].y;
 
-  points[1].x = points[0].x + dist;
-  points[1].y = points[0].y;
-
-  points[2].x = points[3].x - dist;
-  points[2].y = points[3].y;
-
-  if (v2d && min_ffff(points[0].x, points[1].x, points[2].x, points[3].x) > v2d->cur.xmax) {
-    return false; /* clipped */
-  }
-  if (v2d && max_ffff(points[0].x, points[1].x, points[2].x, points[3].x) < v2d->cur.xmin) {
-    return false; /* clipped */
+    points[2].x = points[3].x - dist;
+    points[2].y = points[3].y;
   }
 
   return true;
 }
 
-bool node_link_bezier_points(const View2D *v2d,
-                             const SpaceNode *snode,
+static bool node_link_draw_is_visible(const View2D &v2d, const std::array<float2, 4> &points)
+{
+  if (min_ffff(points[0].x, points[1].x, points[2].x, points[3].x) > v2d.cur.xmax) {
+    return false;
+  }
+  if (max_ffff(points[0].x, points[1].x, points[2].x, points[3].x) < v2d.cur.xmin) {
+    return false;
+  }
+  return true;
+}
+
+bool node_link_bezier_points(const SpaceNode *snode,
                              const bNodeLink &link,
                              float coord_array[][2],
                              const int resol)
 {
   std::array<float2, 4> points;
-  if (!node_link_bezier_handles(v2d, snode, link, points)) {
+  if (!node_link_bezier_handles(snode, link, points)) {
     return false;
   }
 
@@ -2181,7 +2183,10 @@ void node_draw_link_bezier(const bContext &C,
                            const bool selected)
 {
   std::array<float2, 4> points;
-  if (!node_link_bezier_handles(&v2d, &snode, link, points)) {
+  if (!node_link_bezier_handles(&snode, link, points)) {
+    return;
+  }
+  if (!node_link_draw_is_visible(v2d, points)) {
     return;
   }
   const NodeLinkDrawConfig draw_config = nodelink_get_draw_config(
@@ -2246,7 +2251,7 @@ void node_draw_link_dragged(const bContext &C,
   }
 
   std::array<float2, 4> points;
-  if (!node_link_bezier_handles(&v2d, &snode, link, points)) {
+  if (!node_link_bezier_handles(&snode, link, points)) {
     return;
   }
 
