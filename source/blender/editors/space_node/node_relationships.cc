@@ -128,7 +128,7 @@ static void pick_input_link_by_link_intersect(const bContext &C,
   const ARegion *region = CTX_wm_region(&C);
   const View2D *v2d = &region->v2d;
 
-  float drag_start[2];
+  float2 drag_start;
   RNA_float_get_array(op.ptr, "drag_start", drag_start);
   bNode *node;
   bNodeSocket *socket;
@@ -144,19 +144,27 @@ static void pick_input_link_by_link_intersect(const bContext &C,
   LISTBASE_FOREACH (bNodeLink *, link, &snode->edittree->links) {
     if (link->tosock == socket) {
       /* Test if the cursor is near a link. */
-      float vec[4][2];
-      node_link_bezier_handles(v2d, snode, *link, vec);
+      std::array<float2, 4> points;
+      node_link_bezier_handles(v2d, snode, *link, points);
 
-      float data[NODE_LINK_RESOL * 2 + 2];
-      BKE_curve_forward_diff_bezier(
-          vec[0][0], vec[1][0], vec[2][0], vec[3][0], data, resolution, sizeof(float[2]));
-      BKE_curve_forward_diff_bezier(
-          vec[0][1], vec[1][1], vec[2][1], vec[3][1], data + 1, resolution, sizeof(float[2]));
+      std::array<float2, NODE_LINK_RESOL + 1> data;
+      BKE_curve_forward_diff_bezier(points[0].x,
+                                    points[1].x,
+                                    points[2].x,
+                                    points[3].x,
+                                    &data[0].x,
+                                    resolution,
+                                    sizeof(float2));
+      BKE_curve_forward_diff_bezier(points[0].y,
+                                    points[1].y,
+                                    points[2].y,
+                                    points[3].y,
+                                    &data[0].y,
+                                    resolution,
+                                    sizeof(float2));
 
-      for (int i = 0; i < resolution * 2; i += 2) {
-        float *l1 = &data[i];
-        float *l2 = &data[i + 2];
-        float distance = dist_squared_to_line_segment_v2(cursor, l1, l2);
+      for (const int i : IndexRange(data.size() - 1)) {
+        const float distance = dist_squared_to_line_segment_v2(cursor, data[i], data[i + 1]);
         if (distance < cursor_link_touch_distance) {
           link_to_pick = link;
           nldrag.last_picked_multi_input_socket_link = link_to_pick;
@@ -1177,7 +1185,7 @@ static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   bool detach = RNA_boolean_get(op->ptr, "detach");
 
-  int mval[2];
+  int2 mval;
   WM_event_drag_start_mval(event, &region, mval);
 
   float2 cursor;
@@ -1707,11 +1715,11 @@ void NODE_OT_join(wmOperatorType *ot)
 
 static bNode *node_find_frame_to_attach(ARegion &region,
                                         const bNodeTree &ntree,
-                                        const int mouse_xy[2])
+                                        const int2 mouse_xy)
 {
   /* convert mouse coordinates to v2d space */
-  float cursor[2];
-  UI_view2d_region_to_view(&region.v2d, UNPACK2(mouse_xy), &cursor[0], &cursor[1]);
+  float2 cursor;
+  UI_view2d_region_to_view(&region.v2d, mouse_xy.x, mouse_xy.y, &cursor.x, &cursor.y);
 
   LISTBASE_FOREACH_BACKWARD (bNode *, frame, &ntree.nodes) {
     /* skip selected, those are the nodes we want to attach */

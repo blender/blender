@@ -3104,8 +3104,8 @@ void node_draw_space(const bContext &C, ARegion &region)
     }
 
     /* Current View2D center, will be set temporarily for parent node trees. */
-    float center[2];
-    UI_view2d_center_get(&v2d, &center[0], &center[1]);
+    float2 center;
+    UI_view2d_center_get(&v2d, &center.x, &center.y);
 
     /* Store new view center in path and current edit tree. */
     copy_v2_v2(path->view_center, center);

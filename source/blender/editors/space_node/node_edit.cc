@@ -956,14 +956,14 @@ struct NodeSizeWidget {
 };
 
 static void node_resize_init(
-    bContext *C, wmOperator *op, const float cursor[2], const bNode *node, NodeResizeDirection dir)
+    bContext *C, wmOperator *op, const float2 &cursor, const bNode *node, NodeResizeDirection dir)
 {
   NodeSizeWidget *nsw = MEM_cnew<NodeSizeWidget>(__func__);
 
   op->customdata = nsw;
 
-  nsw->mxstart = cursor[0];
-  nsw->mystart = cursor[1];
+  nsw->mxstart = cursor.x;
+  nsw->mystart = cursor.y;
 
   /* store old */
   nsw->oldlocx = node->locx;
@@ -1010,12 +1010,12 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   switch (event->type) {
     case MOUSEMOVE: {
-      int mval[2];
+      int2 mval;
       WM_event_drag_start_mval(event, region, mval);
       float mx, my;
-      UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &mx, &my);
-      float dx = (mx - nsw->mxstart) / UI_DPI_FAC;
-      float dy = (my - nsw->mystart) / UI_DPI_FAC;
+      UI_view2d_region_to_view(&region->v2d, mval.x, mval.y, &mx, &my);
+      const float dx = (mx - nsw->mxstart) / UI_DPI_FAC;
+      const float dy = (my - nsw->mystart) / UI_DPI_FAC;
 
       if (node) {
         float *pwidth = &node->width;
@@ -1117,11 +1117,11 @@ static int node_resize_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   /* convert mouse coordinates to v2d space */
-  float cursor[2];
-  int mval[2];
+  float2 cursor;
+  int2 mval;
   WM_event_drag_start_mval(event, region, mval);
-  UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &cursor[0], &cursor[1]);
-  const NodeResizeDirection dir = node_get_resize_direction(node, cursor[0], cursor[1]);
+  UI_view2d_region_to_view(&region->v2d, mval.x, mval.y, &cursor.x, &cursor.y);
+  const NodeResizeDirection dir = node_get_resize_direction(node, cursor.x, cursor.y);
   if (dir == NODE_RESIZE_NONE) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
@@ -1199,7 +1199,7 @@ void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set)
 }
 
 /* checks snode->mouse position, and returns found node/socket */
-static bool cursor_isect_multi_input_socket(const float cursor[2], const bNodeSocket &socket)
+static bool cursor_isect_multi_input_socket(const float2 &cursor, const bNodeSocket &socket)
 {
   const float node_socket_height = node_socket_calculate_height(socket);
   rctf multi_socket_rect;
@@ -1213,7 +1213,7 @@ static bool cursor_isect_multi_input_socket(const float cursor[2], const bNodeSo
                 socket.locx + NODE_SOCKSIZE * 2.0f,
                 socket.locy - node_socket_height,
                 socket.locy + node_socket_height);
-  if (BLI_rctf_isect_pt(&multi_socket_rect, cursor[0], cursor[1])) {
+  if (BLI_rctf_isect_pt(&multi_socket_rect, cursor.x, cursor.y)) {
     return true;
   }
   return false;
@@ -2355,11 +2355,11 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
   node_deselect_all(*snode);
 
   /* calculate "barycenter" for placing on mouse cursor */
-  float center[2] = {0.0f, 0.0f};
+  float2 center = {0.0f, 0.0f};
   int num_nodes = 0;
   LISTBASE_FOREACH_INDEX (bNode *, node, clipboard_nodes_lb, num_nodes) {
-    center[0] += BLI_rctf_cent_x(&node->totr);
-    center[1] += BLI_rctf_cent_y(&node->totr);
+    center.x += BLI_rctf_cent_x(&node->totr);
+    center.y += BLI_rctf_cent_y(&node->totr);
   }
   mul_v2_fl(center, 1.0 / num_nodes);
 

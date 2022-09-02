@@ -104,7 +104,7 @@ bNode *add_static_node(const bContext &C, int type, const float2 &location)
 static bool add_reroute_intersect_check(const bNodeLink &link,
                                         float mcoords[][2],
                                         int tot,
-                                        float result[2])
+                                        float2 &result)
 {
   float coord_array[NODE_LINK_RESOL + 1][2];
 
@@ -126,13 +126,13 @@ struct bNodeSocketLink {
 
   struct bNodeSocket *sock;
   struct bNodeLink *link;
-  float point[2];
+  float2 point;
 };
 
 static bNodeSocketLink *add_reroute_insert_socket_link(ListBase *lb,
                                                        bNodeSocket *sock,
                                                        bNodeLink *link,
-                                                       const float point[2])
+                                                       const float2 &point)
 {
   bNodeSocketLink *socklink, *prev;
 
@@ -158,10 +158,9 @@ static bNodeSocketLink *add_reroute_do_socket_section(bContext *C,
   bNodeTree *ntree = snode->edittree;
   bNode *reroute_node = nullptr;
   bNodeSocket *cursock = socklink->sock;
-  float insert_point[2];
+  float2 insert_point{0.0f, 0.0f};
   int num_links;
 
-  zero_v2(insert_point);
   num_links = 0;
 
   while (socklink && socklink->sock == cursock) {
@@ -199,7 +198,7 @@ static bNodeSocketLink *add_reroute_do_socket_section(bContext *C,
         socklink->link->tosock = (bNodeSocket *)reroute_node->inputs.first;
       }
 
-      add_v2_v2(insert_point, socklink->point);
+      insert_point += socklink->point;
       num_links++;
     }
     socklink = socklink->next;
@@ -233,11 +232,9 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 
   /* Get the cut path */
   RNA_BEGIN (op->ptr, itemptr, "path") {
-    float loc[2];
-
+    float2 loc;
     RNA_float_get_array(&itemptr, "loc", loc);
-    UI_view2d_region_to_view(
-        &region.v2d, (short)loc[0], (short)loc[1], &mcoords[i][0], &mcoords[i][1]);
+    UI_view2d_region_to_view(&region.v2d, loc.x, loc.y, &mcoords[i][0], &mcoords[i][1]);
     i++;
     if (i >= 256) {
       break;
@@ -248,7 +245,6 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
   if (i > 1) {
     ListBase output_links, input_links;
     bNodeSocketLink *socklink;
-    float insert_point[2];
 
     /* always first */
     ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
@@ -263,6 +259,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
       if (node_link_is_hidden_or_dimmed(region.v2d, *link)) {
         continue;
       }
+      float2 insert_point;
       if (add_reroute_intersect_check(*link, mcoords, i, insert_point)) {
         add_reroute_insert_socket_link(&output_links, link->fromsock, link, insert_point);
         add_reroute_insert_socket_link(&input_links, link->tosock, link, insert_point);

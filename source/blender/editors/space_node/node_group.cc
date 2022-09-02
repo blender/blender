@@ -717,13 +717,13 @@ static int node_get_selected_minmax(
   INIT_MINMAX2(min, max);
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
     if (node_group_make_use_node(*node, gnode)) {
-      float loc[2];
-      nodeToView(node, node->offsetx, node->offsety, &loc[0], &loc[1]);
-      minmax_v2v2_v2(min, max, loc);
+      float2 loc;
+      nodeToView(node, node->offsetx, node->offsety, &loc.x, &loc.y);
+      math::min_max(loc, min, max);
       if (use_size) {
-        loc[0] += node->width;
-        loc[1] -= node->height;
-        minmax_v2v2_v2(min, max, loc);
+        loc.x += node->width;
+        loc.y -= node->height;
+        math::min_max(loc, min, max);
       }
       totselect++;
     }

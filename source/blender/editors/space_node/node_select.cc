@@ -193,7 +193,7 @@ static bool is_event_over_node_or_socket(bContext *C, const wmEvent *event)
   ARegion *region = CTX_wm_region(C);
   float2 mouse;
 
-  int mval[2];
+  int2 mval;
   WM_event_drag_start_mval(event, region, mval);
 
   UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &mouse.x, &mouse.y);
@@ -514,7 +514,7 @@ void node_select_single(bContext &C, bNode &node)
 
 static bool node_mouse_select(bContext *C,
                               wmOperator *op,
-                              const int mval[2],
+                              const int2 mval,
                               struct SelectPick_Params *params)
 {
   Main &bmain = *CTX_data_main(C);
@@ -526,7 +526,7 @@ static bool node_mouse_select(bContext *C,
   bNode *node, *tnode;
   bNodeSocket *sock = nullptr;
   bNodeSocket *tsock;
-  float cursor[2];
+  float2 cursor;
 
   /* always do socket_select when extending selection. */
   const bool socket_select = (params->sel_op == SEL_OP_XOR) ||
@@ -536,7 +536,7 @@ static bool node_mouse_select(bContext *C,
   bool node_was_selected = false;
 
   /* get mouse coordinates in view2d space */
-  UI_view2d_region_to_view(&region.v2d, mval[0], mval[1], &cursor[0], &cursor[1]);
+  UI_view2d_region_to_view(&region.v2d, mval.x, mval.y, &cursor.x, &cursor.y);
 
   /* first do socket selection, these generally overlap with nodes. */
   if (socket_select) {
@@ -667,7 +667,7 @@ static bool node_mouse_select(bContext *C,
 static int node_select_exec(bContext *C, wmOperator *op)
 {
   /* get settings from RNA properties for operator */
-  int mval[2];
+  int2 mval;
   RNA_int_get_array(op->ptr, "location", mval);
 
   struct SelectPick_Params params = {};
@@ -836,7 +836,7 @@ static int node_circleselect_exec(bContext *C, wmOperator *op)
   bNode *node;
 
   int x, y, radius;
-  float offset[2];
+  float2 offset;
 
   float zoom = (float)(BLI_rcti_size_x(&region->winrct)) /
                (float)(BLI_rctf_size_x(&region->v2d.cur));
@@ -854,7 +854,7 @@ static int node_circleselect_exec(bContext *C, wmOperator *op)
   y = RNA_int_get(op->ptr, "y");
   radius = RNA_int_get(op->ptr, "radius");
 
-  UI_view2d_region_to_view(&region->v2d, x, y, &offset[0], &offset[1]);
+  UI_view2d_region_to_view(&region->v2d, x, y, &offset.x, &offset.y);
 
   for (node = (bNode *)snode->edittree->nodes.first; node; node = node->next) {
     switch (node->type) {
@@ -968,14 +968,14 @@ static bool do_lasso_select_node(bContext *C,
         break;
       }
       default: {
-        int screen_co[2];
-        const float cent[2] = {BLI_rctf_cent_x(&node->totr), BLI_rctf_cent_y(&node->totr)};
+        int2 screen_co;
+        const float2 center = {BLI_rctf_cent_x(&node->totr), BLI_rctf_cent_y(&node->totr)};
 
         /* marker in screen coords */
         if (UI_view2d_view_to_region_clip(
-                &region->v2d, cent[0], cent[1], &screen_co[0], &screen_co[1]) &&
-            BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
-            BLI_lasso_is_point_inside(mcoords, mcoords_len, screen_co[0], screen_co[1], INT_MAX)) {
+                &region->v2d, center.x, center.y, &screen_co.x, &screen_co.y) &&
+            BLI_rcti_isect_pt(&rect, screen_co.x, screen_co.y) &&
+            BLI_lasso_is_point_inside(mcoords, mcoords_len, screen_co.x, screen_co.y, INT_MAX)) {
           nodeSetSelected(node, select);
           changed = true;
         }

@@ -293,7 +293,7 @@ static uiBlock *create_search_popup_block(bContext *C, ARegion *region, void *ar
            0,
            nullptr);
 
-  const int offset[2] = {0, -UI_UNIT_Y};
+  const int2 offset = {0, -UI_UNIT_Y};
   UI_block_bounds_set_popup(block, 0.3f * U.widget_unit, offset);
   return block;
 }

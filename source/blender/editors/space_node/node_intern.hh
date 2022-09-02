@@ -241,7 +241,7 @@ bool node_link_bezier_points(const View2D *v2d,
 bool node_link_bezier_handles(const View2D *v2d,
                               const SpaceNode *snode,
                               const bNodeLink &ink,
-                              float vec[4][2]);
+                              std::array<float2, 4> &points);
 void draw_nodespace_back_pix(const bContext &C,
                              ARegion &region,
                              SpaceNode &snode,
