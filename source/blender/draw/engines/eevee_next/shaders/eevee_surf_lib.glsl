@@ -40,7 +40,7 @@ void init_globals_curves()
   /* Shade as a cylinder. */
   float cos_theta = interp.curves_time_width / interp.curves_thickness;
   float sin_theta = sqrt(max(0.0, 1.0 - cos_theta * cos_theta));
-  g_data.N = normalize(interp.N * sin_theta + interp.curves_binormal * cos_theta);
+  g_data.N = g_data.Ni = normalize(interp.N * sin_theta + interp.curves_binormal * cos_theta);
 
   /* Costly, but follows cycles per pixel tangent space (not following curve shape). */
   vec3 V = cameraVec(g_data.P);
@@ -67,6 +67,7 @@ void init_globals()
 {
   /* Default values. */
   g_data.P = interp.P;
+  g_data.Ni = interp.N;
   g_data.N = safe_normalize(interp.N);
   g_data.Ng = g_data.N;
   g_data.is_strand = false;
