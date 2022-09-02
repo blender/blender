@@ -31,52 +31,36 @@
  * \{ */
 
 #define PYDOC_BUILTIN_SHADER_DESCRIPTION \
-  "``2D_FLAT_COLOR``\n" \
-  "   :Attributes: vec2 pos, vec4 color\n" \
-  "   :Uniforms: none\n" \
-  "``2D_IMAGE``\n" \
-  "   :Attributes: vec2 pos, vec2 texCoord\n" \
-  "   :Uniforms: sampler2D image\n" \
-  "``2D_SMOOTH_COLOR``\n" \
-  "   :Attributes: vec2 pos, vec4 color\n" \
-  "   :Uniforms: none\n" \
-  "``2D_UNIFORM_COLOR``\n" \
-  "   :Attributes: vec2 pos\n" \
-  "   :Uniforms: vec4 color\n" \
-  "``3D_FLAT_COLOR``\n" \
+  "``FLAT_COLOR``\n" \
   "   :Attributes: vec3 pos, vec4 color\n" \
   "   :Uniforms: none\n" \
-  "``3D_IMAGE``\n" \
+  "``IMAGE``\n" \
   "   :Attributes: vec3 pos, vec2 texCoord\n" \
   "   :Uniforms: sampler2D image\n" \
-  "``3D_SMOOTH_COLOR``\n" \
+  "``SMOOTH_COLOR``\n" \
   "   :Attributes: vec3 pos, vec4 color\n" \
   "   :Uniforms: none\n" \
-  "``3D_UNIFORM_COLOR``\n" \
+  "``UNIFORM_COLOR``\n" \
   "   :Attributes: vec3 pos\n" \
   "   :Uniforms: vec4 color\n" \
-  "``3D_POLYLINE_FLAT_COLOR``\n" \
+  "``POLYLINE_FLAT_COLOR``\n" \
   "   :Attributes: vec3 pos, vec4 color\n" \
   "   :Uniforms: vec2 viewportSize, float lineWidth\n" \
-  "``3D_POLYLINE_SMOOTH_COLOR``\n" \
+  "``POLYLINE_SMOOTH_COLOR``\n" \
   "   :Attributes: vec3 pos, vec4 color\n" \
   "   :Uniforms: vec2 viewportSize, float lineWidth\n" \
-  "``3D_POLYLINE_UNIFORM_COLOR``\n" \
+  "``POLYLINE_UNIFORM_COLOR``\n" \
   "   :Attributes: vec3 pos\n" \
   "   :Uniforms: vec2 viewportSize, float lineWidth\n"
 
 static const struct PyC_StringEnumItems pygpu_shader_builtin_items[] = {
-    {GPU_SHADER_2D_FLAT_COLOR, "2D_FLAT_COLOR"},
-    {GPU_SHADER_2D_IMAGE, "2D_IMAGE"},
-    {GPU_SHADER_2D_SMOOTH_COLOR, "2D_SMOOTH_COLOR"},
-    {GPU_SHADER_2D_UNIFORM_COLOR, "2D_UNIFORM_COLOR"},
-    {GPU_SHADER_3D_FLAT_COLOR, "3D_FLAT_COLOR"},
-    {GPU_SHADER_3D_IMAGE, "3D_IMAGE"},
-    {GPU_SHADER_3D_SMOOTH_COLOR, "3D_SMOOTH_COLOR"},
-    {GPU_SHADER_3D_UNIFORM_COLOR, "3D_UNIFORM_COLOR"},
-    {GPU_SHADER_3D_POLYLINE_FLAT_COLOR, "3D_POLYLINE_FLAT_COLOR"},
-    {GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR, "3D_POLYLINE_SMOOTH_COLOR"},
-    {GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR, "3D_POLYLINE_UNIFORM_COLOR"},
+    {GPU_SHADER_3D_FLAT_COLOR, "FLAT_COLOR"},
+    {GPU_SHADER_3D_IMAGE, "IMAGE"},
+    {GPU_SHADER_3D_SMOOTH_COLOR, "SMOOTH_COLOR"},
+    {GPU_SHADER_3D_UNIFORM_COLOR, "UNIFORM_COLOR"},
+    {GPU_SHADER_3D_POLYLINE_FLAT_COLOR, "POLYLINE_FLAT_COLOR"},
+    {GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR, "POLYLINE_SMOOTH_COLOR"},
+    {GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR, "POLYLINE_UNIFORM_COLOR"},
     {0, NULL},
 };
 
@@ -784,6 +768,24 @@ PyTypeObject BPyGPUShader_Type = {
 /** \name gpu.shader Module API
  * \{ */
 
+static int pyc_parse_buitinshader_w_backward_compatibility(PyObject *o, void *p)
+{
+  struct PyC_StringEnum *e = p;
+  const char *value = PyUnicode_AsUTF8(o);
+  if (value && ELEM(value[0], u'2', u'3')) {
+    /* Deprecated enums that start with "3D_" or "2D_". */
+    value += 3;
+    for (int i = 0; e->items[i].id; i++) {
+      if (STREQ(e->items[i].id, value)) {
+        e->value_found = e->items[i].value;
+        return 1;
+      }
+    }
+  }
+
+  return PyC_ParseStringEnum(o, p);
+}
+
 PyDoc_STRVAR(pygpu_shader_unbind_doc,
              ".. function:: unbind()\n"
              "\n"
@@ -834,7 +836,7 @@ static PyObject *pygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *arg
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kwds,
                                         &_parser,
-                                        PyC_ParseStringEnum,
+                                        pyc_parse_buitinshader_w_backward_compatibility,
                                         &pygpu_bultinshader,
                                         PyC_ParseStringEnum,
                                         &pygpu_config)) {
