@@ -142,46 +142,38 @@ static Image *load_texture_image(Main *bmain, const MTLTexMap &tex_map, bool rel
   return image;
 }
 
-typedef Vector<std::pair<int, int>> NodeLocations;
+/* Nodes are arranged in columns by type, with manually placed x coordinates
+ * based on node widths. */
+const float node_locx_texcoord = -880.0f;
+const float node_locx_mapping = -680.0f;
+const float node_locx_image = -480.0f;
+const float node_locx_normalmap = -200.0f;
+const float node_locx_bsdf = 0.0f;
+const float node_locx_output = 280.0f;
 
-static std::pair<float, float> calc_location(int column, NodeLocations &r_locations)
+/* Nodes are arranged in rows; one row for each image being used. */
+const float node_locy_top = 300.0f;
+const float node_locy_step = 300.0f;
+
+/* Add a node of the given type at the given location. */
+static bNode *add_node(bNodeTree *ntree, int type, float x, float y)
 {
-  const float node_size = 300.f;
-  int row = 0;
-  bool found = false;
-  while (true) {
-    for (const auto &location : r_locations) {
-      if (location.first == column && location.second == row) {
-        row += 1;
-        found = true;
-      }
-      else {
-        found = false;
-      }
-    }
-    if (!found) {
-      r_locations.append({column, row});
-      return {column * node_size, row * node_size * 2.0 / 3.0};
-    }
-  }
+  bNode *node = nodeAddStaticNode(nullptr, ntree, type);
+  node->locx = x;
+  node->locy = y;
+  return node;
 }
 
-/* Node layout columns:
- * Texture Coordinates -> Mapping -> Image -> Normal Map -> BSDF -> Output */
-static void link_sockets(bNodeTree *nodetree,
+static void link_sockets(bNodeTree *ntree,
                          bNode *from_node,
                          const char *from_node_id,
                          bNode *to_node,
-                         const char *to_node_id,
-                         const int from_node_column,
-                         NodeLocations &r_locations)
+                         const char *to_node_id)
 {
-  std::tie(from_node->locx, from_node->locy) = calc_location(from_node_column, r_locations);
-  std::tie(to_node->locx, to_node->locy) = calc_location(from_node_column + 1, r_locations);
   bNodeSocket *from_sock{nodeFindSocket(from_node, SOCK_OUT, from_node_id)};
   bNodeSocket *to_sock{nodeFindSocket(to_node, SOCK_IN, to_node_id)};
   BLI_assert(from_sock && to_sock);
-  nodeAddLink(nodetree, from_node, from_sock, to_node, to_sock);
+  nodeAddLink(ntree, from_node, from_sock, to_node, to_sock);
 }
 
 static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial &mtl_mat)
@@ -323,13 +315,13 @@ static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial
 }
 
 static void add_image_textures(Main *bmain,
-                               bNodeTree *nodetree,
+                               bNodeTree *ntree,
                                bNode *bsdf,
                                Material *mat,
                                const MTLMaterial &mtl_mat,
-                               bool relative_paths,
-                               NodeLocations &r_locations)
+                               bool relative_paths)
 {
+  float node_locy = node_locy_top;
   for (int key = 0; key < (int)MTLTexMapType::Count; ++key) {
     const MTLTexMap &value = mtl_mat.texture_maps[key];
     if (!value.is_valid()) {
@@ -337,47 +329,49 @@ static void add_image_textures(Main *bmain,
       continue;
     }
 
-    bNode *image_texture = nodeAddStaticNode(nullptr, nodetree, SH_NODE_TEX_IMAGE);
-    BLI_assert(image_texture);
     Image *image = load_texture_image(bmain, value, relative_paths);
     if (image == nullptr) {
       continue;
     }
-    image_texture->id = &image->id;
-    static_cast<NodeTexImage *>(image_texture->storage)->projection = value.projection_type;
+
+    bNode *image_node = add_node(ntree, SH_NODE_TEX_IMAGE, node_locx_image, node_locy);
+    BLI_assert(image_node);
+    image_node->id = &image->id;
+    static_cast<NodeTexImage *>(image_node->storage)->projection = value.projection_type;
 
     /* Add normal map node if needed. */
     bNode *normal_map = nullptr;
     if (key == (int)MTLTexMapType::bump) {
-      normal_map = nodeAddStaticNode(nullptr, nodetree, SH_NODE_NORMAL_MAP);
+      normal_map = add_node(ntree, SH_NODE_NORMAL_MAP, node_locx_normalmap, node_locy);
       const float bump = std::max(0.0f, mtl_mat.map_Bump_strength);
       set_property_of_socket(SOCK_FLOAT, "Strength", {bump}, normal_map);
     }
 
     /* Add UV mapping & coordinate nodes only if needed. */
     if (value.translation != float3(0, 0, 0) || value.scale != float3(1, 1, 1)) {
-      bNode *mapping = nodeAddStaticNode(nullptr, nodetree, SH_NODE_MAPPING);
-      bNode *texture_coordinate = nodeAddStaticNode(nullptr, nodetree, SH_NODE_TEX_COORD);
+      bNode *texcoord = add_node(ntree, SH_NODE_TEX_COORD, node_locx_texcoord, node_locy);
+      bNode *mapping = add_node(ntree, SH_NODE_MAPPING, node_locx_mapping, node_locy);
       set_property_of_socket(SOCK_VECTOR, "Location", {value.translation, 3}, mapping);
       set_property_of_socket(SOCK_VECTOR, "Scale", {value.scale, 3}, mapping);
 
-      link_sockets(nodetree, texture_coordinate, "UV", mapping, "Vector", 0, r_locations);
-      link_sockets(nodetree, mapping, "Vector", image_texture, "Vector", 1, r_locations);
+      link_sockets(ntree, texcoord, "UV", mapping, "Vector");
+      link_sockets(ntree, mapping, "Vector", image_node, "Vector");
     }
 
     if (normal_map) {
-      link_sockets(nodetree, image_texture, "Color", normal_map, "Color", 2, r_locations);
-      link_sockets(nodetree, normal_map, "Normal", bsdf, "Normal", 3, r_locations);
+      link_sockets(ntree, image_node, "Color", normal_map, "Color");
+      link_sockets(ntree, normal_map, "Normal", bsdf, "Normal");
     }
     else if (key == (int)MTLTexMapType::d) {
-      link_sockets(
-          nodetree, image_texture, "Alpha", bsdf, tex_map_type_to_socket_id[key], 2, r_locations);
+      link_sockets(ntree, image_node, "Alpha", bsdf, tex_map_type_to_socket_id[key]);
       mat->blend_method = MA_BM_BLEND;
     }
     else {
-      link_sockets(
-          nodetree, image_texture, "Color", bsdf, tex_map_type_to_socket_id[key], 2, r_locations);
+      link_sockets(ntree, image_node, "Color", bsdf, tex_map_type_to_socket_id[key]);
     }
+
+    /* Next layout row: goes downwards on the screen. */
+    node_locy -= node_locy_step;
   }
 }
 
@@ -386,17 +380,17 @@ bNodeTree *create_mtl_node_tree(Main *bmain,
                                 Material *mat,
                                 bool relative_paths)
 {
-  bNodeTree *nodetree = ntreeAddTree(nullptr, "Shader Nodetree", ntreeType_Shader->idname);
-  bNode *bsdf = nodeAddStaticNode(nullptr, nodetree, SH_NODE_BSDF_PRINCIPLED);
-  bNode *shader_output = nodeAddStaticNode(nullptr, nodetree, SH_NODE_OUTPUT_MATERIAL);
+  bNodeTree *ntree = ntreeAddTree(nullptr, "Shader Nodetree", ntreeType_Shader->idname);
 
-  NodeLocations node_locations;
+  bNode *bsdf = add_node(ntree, SH_NODE_BSDF_PRINCIPLED, node_locx_bsdf, node_locy_top);
+  bNode *output = add_node(ntree, SH_NODE_OUTPUT_MATERIAL, node_locx_output, node_locy_top);
+
   set_bsdf_socket_values(bsdf, mat, mtl);
-  add_image_textures(bmain, nodetree, bsdf, mat, mtl, relative_paths, node_locations);
-  link_sockets(nodetree, bsdf, "BSDF", shader_output, "Surface", 4, node_locations);
-  nodeSetActive(nodetree, shader_output);
+  add_image_textures(bmain, ntree, bsdf, mat, mtl, relative_paths);
+  link_sockets(ntree, bsdf, "BSDF", output, "Surface");
+  nodeSetActive(ntree, output);
 
-  return nodetree;
+  return ntree;
 }
 
 }  // namespace blender::io::obj
