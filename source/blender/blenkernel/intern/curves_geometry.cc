@@ -1345,6 +1345,10 @@ static void reverse_swap_curve_point_data(const CurvesGeometry &curves,
         std::swap(a[end_index], b[i]);
         std::swap(b[end_index], a[i]);
       }
+      if (points.size() % 2) {
+        const int64_t middle_index = points.size() / 2;
+        std::swap(a[middle_index], b[middle_index]);
+      }
     }
   });
 }
