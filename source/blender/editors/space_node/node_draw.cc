@@ -372,7 +372,7 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node, 
     const char *socket_label = nodeSocketLabel(nsock);
     nsock->typeinfo->draw((bContext *)&C, row, &sockptr, &nodeptr, IFACE_(socket_label));
 
-    node_socket_add_tooltip(&ntree, &node, nsock, row);
+    node_socket_add_tooltip(ntree, node, *nsock, *row);
 
     UI_block_align_end(&block);
     UI_block_layout_resolve(&block, nullptr, &buty);
@@ -504,7 +504,7 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node, 
     const char *socket_label = nodeSocketLabel(nsock);
     nsock->typeinfo->draw((bContext *)&C, row, &sockptr, &nodeptr, IFACE_(socket_label));
 
-    node_socket_add_tooltip(&ntree, &node, nsock, row);
+    node_socket_add_tooltip(ntree, node, *nsock, *row);
 
     UI_block_align_end(&block);
     UI_block_layout_resolve(&block, nullptr, &buty);
@@ -776,9 +776,9 @@ void node_socket_color_get(const bContext &C,
 }
 
 struct SocketTooltipData {
-  bNodeTree *ntree;
-  bNode *node;
-  bNodeSocket *socket;
+  const bNodeTree *ntree;
+  const bNode *node;
+  const bNodeSocket *socket;
 };
 
 static void create_inspection_string_for_generic_value(const GPointer value, std::stringstream &ss)
@@ -999,11 +999,11 @@ static void create_inspection_string_for_geometry(const geo_log::GeometryValueLo
   }
 }
 
-static std::optional<std::string> create_socket_inspection_string(bContext *C,
-                                                                  bNode &node,
-                                                                  bNodeSocket &socket)
+static std::optional<std::string> create_socket_inspection_string(const bContext &C,
+                                                                  const bNode &node,
+                                                                  const bNodeSocket &socket)
 {
-  SpaceNode *snode = CTX_wm_space_node(C);
+  const SpaceNode *snode = CTX_wm_space_node(&C);
   if (snode == nullptr) {
     return {};
   };
@@ -1038,41 +1038,41 @@ static std::optional<std::string> create_socket_inspection_string(bContext *C,
   return ss.str();
 }
 
-static bool node_socket_has_tooltip(bNodeTree *ntree, bNodeSocket *socket)
+static bool node_socket_has_tooltip(const bNodeTree &ntree, const bNodeSocket &socket)
 {
-  if (ntree->type == NTREE_GEOMETRY) {
+  if (ntree.type == NTREE_GEOMETRY) {
     return true;
   }
 
-  if (socket->runtime->declaration != nullptr) {
-    const blender::nodes::SocketDeclaration &socket_decl = *socket->runtime->declaration;
+  if (socket.runtime->declaration != nullptr) {
+    const blender::nodes::SocketDeclaration &socket_decl = *socket.runtime->declaration;
     return !socket_decl.description().is_empty();
   }
 
   return false;
 }
 
-static char *node_socket_get_tooltip(bContext *C,
-                                     bNodeTree *ntree,
-                                     bNode *node,
-                                     bNodeSocket *socket)
+static char *node_socket_get_tooltip(const bContext &C,
+                                     const bNodeTree &ntree,
+                                     const bNode &node,
+                                     const bNodeSocket &socket)
 {
   std::stringstream output;
-  if (socket->runtime->declaration != nullptr) {
-    const blender::nodes::SocketDeclaration &socket_decl = *socket->runtime->declaration;
+  if (socket.runtime->declaration != nullptr) {
+    const blender::nodes::SocketDeclaration &socket_decl = *socket.runtime->declaration;
     blender::StringRef description = socket_decl.description();
     if (!description.is_empty()) {
       output << TIP_(description.data());
     }
   }
 
-  if (ntree->type == NTREE_GEOMETRY) {
+  if (ntree.type == NTREE_GEOMETRY) {
     if (!output.str().empty()) {
       output << ".\n\n";
     }
 
     std::optional<std::string> socket_inspection_str = create_socket_inspection_string(
-        C, *node, *socket);
+        C, node, socket);
     if (socket_inspection_str.has_value()) {
       output << *socket_inspection_str;
     }
@@ -1082,28 +1082,31 @@ static char *node_socket_get_tooltip(bContext *C,
   }
 
   if (output.str().empty()) {
-    output << nodeSocketLabel(socket);
+    output << nodeSocketLabel(&socket);
   }
 
   return BLI_strdup(output.str().c_str());
 }
 
-void node_socket_add_tooltip(bNodeTree *ntree, bNode *node, bNodeSocket *sock, uiLayout *layout)
+void node_socket_add_tooltip(const bNodeTree &ntree,
+                             const bNode &node,
+                             const bNodeSocket &sock,
+                             uiLayout &layout)
 {
   if (!node_socket_has_tooltip(ntree, sock)) {
     return;
   }
 
-  SocketTooltipData *data = MEM_cnew<SocketTooltipData>(__func__);
-  data->ntree = ntree;
-  data->node = node;
-  data->socket = sock;
+  SocketTooltipData *data = MEM_new<SocketTooltipData>(__func__);
+  data->ntree = &ntree;
+  data->node = &node;
+  data->socket = &sock;
 
   uiLayoutSetTooltipFunc(
-      layout,
+      &layout,
       [](bContext *C, void *argN, const char *UNUSED(tip)) {
-        SocketTooltipData *data = static_cast<SocketTooltipData *>(argN);
-        return node_socket_get_tooltip(C, data->ntree, data->node, data->socket);
+        const SocketTooltipData *data = static_cast<SocketTooltipData *>(argN);
+        return node_socket_get_tooltip(*C, *data->ntree, *data->node, *data->socket);
       },
       data,
       MEM_dupallocN,
@@ -1141,7 +1144,7 @@ static void node_socket_draw_nested(const bContext &C,
                    size_id,
                    outline_col_id);
 
-  if (!node_socket_has_tooltip(&ntree, &sock)) {
+  if (!node_socket_has_tooltip(ntree, sock)) {
     return;
   }
 
@@ -1164,16 +1167,16 @@ static void node_socket_draw_nested(const bContext &C,
                             0,
                             nullptr);
 
-  SocketTooltipData *data = (SocketTooltipData *)MEM_mallocN(sizeof(SocketTooltipData), __func__);
+  SocketTooltipData *data = MEM_new<SocketTooltipData>(__func__);
   data->ntree = &ntree;
-  data->node = (bNode *)node_ptr.data;
+  data->node = static_cast<const bNode *>(node_ptr.data);
   data->socket = &sock;
 
   UI_but_func_tooltip_set(
       but,
       [](bContext *C, void *argN, const char *UNUSED(tip)) {
         SocketTooltipData *data = (SocketTooltipData *)argN;
-        return node_socket_get_tooltip(C, data->ntree, data->node, data->socket);
+        return node_socket_get_tooltip(*C, *data->ntree, *data->node, *data->socket);
       },
       data,
       MEM_freeN);

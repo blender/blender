@@ -144,7 +144,10 @@ void node_socket_color_get(const bContext &C,
 
 void node_draw_space(const bContext &C, ARegion &region);
 
-void node_socket_add_tooltip(bNodeTree *ntree, bNode *node, bNodeSocket *sock, uiLayout *layout);
+void node_socket_add_tooltip(const bNodeTree &ntree,
+                             const bNode &node,
+                             const bNodeSocket &sock,
+                             uiLayout &layout);
 
 /**
  * Sort nodes by selection: unselected nodes first, then selected,
@@ -166,7 +169,7 @@ void node_keymap(wmKeyConfig *keyconf);
 /* node_select.cc */
 
 rctf node_frame_rect_inside(const bNode &node);
-bool node_or_socket_isect_event(bContext *C, const wmEvent *event);
+bool node_or_socket_isect_event(const bContext &C, const wmEvent &event);
 
 void node_deselect_all(SpaceNode &snode);
 void node_socket_select(bNode *node, bNodeSocket &sock);

@@ -48,7 +48,7 @@
 
 namespace blender::ed::space_node {
 
-static bool is_event_over_node_or_socket(bContext *C, const wmEvent *event);
+static bool is_event_over_node_or_socket(const bContext &C, const wmEvent &event);
 
 /**
  * Function to detect if there is a visible view3d that uses workbench in texture mode.
@@ -100,17 +100,17 @@ rctf node_frame_rect_inside(const bNode &node)
   return frame_inside;
 }
 
-bool node_or_socket_isect_event(bContext *C, const wmEvent *event)
+bool node_or_socket_isect_event(const bContext &C, const wmEvent &event)
 {
   return is_event_over_node_or_socket(C, event);
 }
 
-static bool node_frame_select_isect_mouse(bNode *node, const float2 &mouse)
+static bool node_frame_select_isect_mouse(const bNode &node, const float2 &mouse)
 {
   /* Frame nodes are selectable by their borders (including their whole rect - as for other nodes -
    * would prevent e.g. box selection of nodes inside that frame). */
-  const rctf frame_inside = node_frame_rect_inside(*node);
-  if (BLI_rctf_isect_pt(&node->totr, mouse.x, mouse.y) &&
+  const rctf frame_inside = node_frame_rect_inside(node);
+  if (BLI_rctf_isect_pt(&node.totr, mouse.x, mouse.y) &&
       !BLI_rctf_isect_pt(&frame_inside, mouse.x, mouse.y)) {
     return true;
   }
@@ -118,19 +118,18 @@ static bool node_frame_select_isect_mouse(bNode *node, const float2 &mouse)
   return false;
 }
 
-static bNode *node_under_mouse_select(bNodeTree &ntree, int mx, int my)
+static bNode *node_under_mouse_select(bNodeTree &ntree, const float2 mouse)
 {
   LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree.nodes) {
     switch (node->type) {
       case NODE_FRAME: {
-        const float2 mouse{(float)mx, (float)my};
-        if (node_frame_select_isect_mouse(node, mouse)) {
+        if (node_frame_select_isect_mouse(*node, mouse)) {
           return node;
         }
         break;
       }
       default: {
-        if (BLI_rctf_isect_pt(&node->totr, mx, my)) {
+        if (BLI_rctf_isect_pt(&node->totr, int(mouse.x), int(mouse.y))) {
           return node;
         }
         break;
@@ -140,35 +139,35 @@ static bNode *node_under_mouse_select(bNodeTree &ntree, int mx, int my)
   return nullptr;
 }
 
-static bNode *node_under_mouse_tweak(bNodeTree &ntree, const float2 &mouse)
+static bool node_under_mouse_tweak(const bNodeTree &ntree, const float2 &mouse)
 {
   using namespace blender::math;
 
-  LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree.nodes) {
+  LISTBASE_FOREACH_BACKWARD (const bNode *, node, &ntree.nodes) {
     switch (node->type) {
       case NODE_REROUTE: {
         bNodeSocket *socket = (bNodeSocket *)node->inputs.first;
         const float2 location{socket->locx, socket->locy};
         if (distance(mouse, location) < 24.0f) {
-          return node;
+          return true;
         }
         break;
       }
       case NODE_FRAME: {
-        if (node_frame_select_isect_mouse(node, mouse)) {
-          return node;
+        if (node_frame_select_isect_mouse(*node, mouse)) {
+          return true;
         }
         break;
       }
       default: {
         if (BLI_rctf_isect_pt(&node->totr, mouse.x, mouse.y)) {
-          return node;
+          return true;
         }
         break;
       }
     }
   }
-  return nullptr;
+  return false;
 }
 
 static bool is_position_over_node_or_socket(SpaceNode &snode, const float2 &mouse)
@@ -187,17 +186,17 @@ static bool is_position_over_node_or_socket(SpaceNode &snode, const float2 &mous
   return false;
 }
 
-static bool is_event_over_node_or_socket(bContext *C, const wmEvent *event)
+static bool is_event_over_node_or_socket(const bContext &C, const wmEvent &event)
 {
-  SpaceNode *snode = CTX_wm_space_node(C);
-  ARegion *region = CTX_wm_region(C);
-  float2 mouse;
+  SpaceNode &snode = *CTX_wm_space_node(&C);
+  ARegion &region = *CTX_wm_region(&C);
 
   int2 mval;
-  WM_event_drag_start_mval(event, region, mval);
+  WM_event_drag_start_mval(&event, &region, mval);
 
-  UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &mouse.x, &mouse.y);
-  return is_position_over_node_or_socket(*snode, mouse);
+  float2 mouse;
+  UI_view2d_region_to_view(&region.v2d, mval.x, mval.y, &mouse.x, &mouse.y);
+  return is_position_over_node_or_socket(snode, mouse);
 }
 
 void node_socket_select(bNode *node, bNodeSocket &sock)
@@ -526,7 +525,6 @@ static bool node_mouse_select(bContext *C,
   bNode *node, *tnode;
   bNodeSocket *sock = nullptr;
   bNodeSocket *tsock;
-  float2 cursor;
 
   /* always do socket_select when extending selection. */
   const bool socket_select = (params->sel_op == SEL_OP_XOR) ||
@@ -536,6 +534,7 @@ static bool node_mouse_select(bContext *C,
   bool node_was_selected = false;
 
   /* get mouse coordinates in view2d space */
+  float2 cursor;
   UI_view2d_region_to_view(&region.v2d, mval.x, mval.y, &cursor.x, &cursor.y);
 
   /* first do socket selection, these generally overlap with nodes. */
@@ -593,7 +592,7 @@ static bool node_mouse_select(bContext *C,
   if (!sock) {
 
     /* find the closest visible node */
-    node = node_under_mouse_select(*snode.edittree, (int)cursor[0], (int)cursor[1]);
+    node = node_under_mouse_select(*snode.edittree, cursor);
     found = (node != nullptr);
     node_was_selected = node && (node->flag & SELECT);
 
@@ -787,7 +786,7 @@ static int node_box_select_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 {
   const bool tweak = RNA_boolean_get(op->ptr, "tweak");
 
-  if (tweak && is_event_over_node_or_socket(C, event)) {
+  if (tweak && is_event_over_node_or_socket(*C, *event)) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
@@ -916,7 +915,7 @@ static int node_lasso_select_invoke(bContext *C, wmOperator *op, const wmEvent *
 {
   const bool tweak = RNA_boolean_get(op->ptr, "tweak");
 
-  if (tweak && is_event_over_node_or_socket(C, event)) {
+  if (tweak && is_event_over_node_or_socket(*C, *event)) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 

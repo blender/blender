@@ -645,7 +645,7 @@ static int sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   /* Don't handle events intended for nodes (which rely on click/drag distinction).
    * which this operator would use since sampling is normally activated on press, see: T98191. */
-  if (node_or_socket_isect_event(C, event)) {
+  if (node_or_socket_isect_event(*C, *event)) {
     return OPERATOR_PASS_THROUGH;
   }
 
