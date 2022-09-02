@@ -13,6 +13,7 @@
 #pragma once
 
 #include "DRW_render.h"
+#include "draw_shader_shared.h"
 
 /* TODO(fclem): Move it to GPU/DRAW. */
 #include "../eevee/eevee_lut.h"
@@ -31,13 +32,13 @@ class WorldPipeline {
  private:
   Instance &inst_;
 
-  DRWPass *world_ps_ = nullptr;
+  PassSimple world_ps_ = {"World.Background"};
 
  public:
   WorldPipeline(Instance &inst) : inst_(inst){};
 
   void sync(GPUMaterial *gpumat);
-  void render();
+  void render(View &view);
 };
 
 /** \} */
@@ -52,13 +53,18 @@ class ForwardPipeline {
  private:
   Instance &inst_;
 
-  DRWPass *prepass_ps_ = nullptr;
-  DRWPass *prepass_velocity_ps_ = nullptr;
-  DRWPass *prepass_culled_ps_ = nullptr;
-  DRWPass *prepass_culled_velocity_ps_ = nullptr;
-  DRWPass *opaque_ps_ = nullptr;
-  DRWPass *opaque_culled_ps_ = nullptr;
-  DRWPass *transparent_ps_ = nullptr;
+  PassMain prepass_ps_ = {"Prepass"};
+  PassMain::Sub *prepass_single_sided_static_ps_ = nullptr;
+  PassMain::Sub *prepass_single_sided_moving_ps_ = nullptr;
+  PassMain::Sub *prepass_double_sided_static_ps_ = nullptr;
+  PassMain::Sub *prepass_double_sided_moving_ps_ = nullptr;
+
+  PassMain opaque_ps_ = {"Shading"};
+  PassMain::Sub *opaque_single_sided_ps_ = nullptr;
+  PassMain::Sub *opaque_double_sided_ps_ = nullptr;
+
+  PassSortable transparent_ps_ = {"Forward.Transparent"};
+  float3 camera_forward_;
 
   // GPUTexture *input_screen_radiance_tx_ = nullptr;
 
@@ -67,28 +73,17 @@ class ForwardPipeline {
 
   void sync();
 
-  DRWShadingGroup *material_add(::Material *blender_mat, GPUMaterial *gpumat)
-  {
-    return (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT)) ?
-               material_transparent_add(blender_mat, gpumat) :
-               material_opaque_add(blender_mat, gpumat);
-  }
+  PassMain::Sub *prepass_opaque_add(::Material *blender_mat, GPUMaterial *gpumat, bool has_motion);
+  PassMain::Sub *material_opaque_add(::Material *blender_mat, GPUMaterial *gpumat);
 
-  DRWShadingGroup *prepass_add(::Material *blender_mat, GPUMaterial *gpumat, bool has_motion)
-  {
-    return (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT)) ?
-               prepass_transparent_add(blender_mat, gpumat) :
-               prepass_opaque_add(blender_mat, gpumat, has_motion);
-  }
+  PassMain::Sub *prepass_transparent_add(const Object *ob,
+                                         ::Material *blender_mat,
+                                         GPUMaterial *gpumat);
+  PassMain::Sub *material_transparent_add(const Object *ob,
+                                          ::Material *blender_mat,
+                                          GPUMaterial *gpumat);
 
-  DRWShadingGroup *material_opaque_add(::Material *blender_mat, GPUMaterial *gpumat);
-  DRWShadingGroup *prepass_opaque_add(::Material *blender_mat,
-                                      GPUMaterial *gpumat,
-                                      bool has_motion);
-  DRWShadingGroup *material_transparent_add(::Material *blender_mat, GPUMaterial *gpumat);
-  DRWShadingGroup *prepass_transparent_add(::Material *blender_mat, GPUMaterial *gpumat);
-
-  void render(const DRWView *view,
+  void render(View &view,
               Framebuffer &prepass_fb,
               Framebuffer &combined_fb,
               GPUTexture *combined_tx);
@@ -192,26 +187,36 @@ class PipelineModule {
     // velocity.sync();
   }
 
-  DRWShadingGroup *material_add(::Material *blender_mat,
-                                GPUMaterial *gpumat,
-                                eMaterialPipeline pipeline_type)
+  PassMain::Sub *material_add(Object *ob,
+                              ::Material *blender_mat,
+                              GPUMaterial *gpumat,
+                              eMaterialPipeline pipeline_type)
   {
     switch (pipeline_type) {
       case MAT_PIPE_DEFERRED_PREPASS:
         // return deferred.prepass_add(blender_mat, gpumat, false);
-        break;
+      case MAT_PIPE_FORWARD_PREPASS:
+        if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT)) {
+          return forward.prepass_transparent_add(ob, blender_mat, gpumat);
+        }
+        return forward.prepass_opaque_add(blender_mat, gpumat, false);
+
       case MAT_PIPE_DEFERRED_PREPASS_VELOCITY:
         // return deferred.prepass_add(blender_mat, gpumat, true);
-        break;
-      case MAT_PIPE_FORWARD_PREPASS:
-        return forward.prepass_add(blender_mat, gpumat, false);
       case MAT_PIPE_FORWARD_PREPASS_VELOCITY:
-        return forward.prepass_add(blender_mat, gpumat, true);
+        if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT)) {
+          return forward.prepass_transparent_add(ob, blender_mat, gpumat);
+        }
+        return forward.prepass_opaque_add(blender_mat, gpumat, true);
+
       case MAT_PIPE_DEFERRED:
         // return deferred.material_add(blender_mat, gpumat);
-        break;
       case MAT_PIPE_FORWARD:
-        return forward.material_add(blender_mat, gpumat);
+        if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT)) {
+          return forward.material_transparent_add(ob, blender_mat, gpumat);
+        }
+        return forward.material_opaque_add(blender_mat, gpumat);
+
       case MAT_PIPE_VOLUME:
         /* TODO(fclem) volume pass. */
         return nullptr;

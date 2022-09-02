@@ -12,16 +12,16 @@
 #  include "BLI_memory_utils.hh"
 #  include "DRW_gpu_wrapper.hh"
 
+#  include "draw_manager.hh"
+#  include "draw_pass.hh"
+
 #  include "eevee_defines.hh"
 
 #  include "GPU_shader_shared.h"
 
 namespace blender::eevee {
 
-using draw::Framebuffer;
-using draw::SwapChain;
-using draw::Texture;
-using draw::TextureFromPool;
+using namespace draw;
 
 constexpr eGPUSamplerState no_filter = GPU_SAMPLER_DEFAULT;
 constexpr eGPUSamplerState with_filter = GPU_SAMPLER_FILTER;

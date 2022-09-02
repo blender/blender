@@ -55,7 +55,7 @@ class Film {
   /** User setting to disable reprojection. Useful for debugging or have a more precise render. */
   bool force_disable_reprojection_ = false;
 
-  DRWPass *accumulate_ps_ = nullptr;
+  PassSimple accumulate_ps_ = {"Film.Accumulate"};
 
   FilmDataBuf data_;
 

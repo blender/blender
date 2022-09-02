@@ -118,10 +118,10 @@ void ShadingView::render()
   GPU_framebuffer_bind(combined_fb_);
   GPU_framebuffer_clear_color_depth(combined_fb_, clear_color, 1.0f);
 
-  inst_.pipelines.world.render();
+  inst_.pipelines.world.render(render_view_new_);
 
   /* TODO(fclem): Move it after the first prepass (and hiz update) once pipeline is stabilized. */
-  inst_.lights.set_view(render_view_, extent_);
+  inst_.lights.set_view(render_view_new_, extent_);
 
   // inst_.pipelines.deferred.render(
   //     render_view_, rt_buffer_opaque_, rt_buffer_refract_, depth_tx_, combined_tx_);
@@ -130,10 +130,10 @@ void ShadingView::render()
 
   // inst_.lookdev.render_overlay(view_fb_);
 
-  inst_.pipelines.forward.render(render_view_, prepass_fb_, combined_fb_, rbufs.combined_tx);
+  inst_.pipelines.forward.render(render_view_new_, prepass_fb_, combined_fb_, rbufs.combined_tx);
 
-  inst_.lights.debug_draw(combined_fb_);
-  inst_.hiz_buffer.debug_draw(combined_fb_);
+  inst_.lights.debug_draw(render_view_new_, combined_fb_);
+  inst_.hiz_buffer.debug_draw(render_view_new_, combined_fb_);
 
   GPUTexture *combined_final_tx = render_postfx(rbufs.combined_tx);
 
@@ -157,8 +157,8 @@ GPUTexture *ShadingView::render_postfx(GPUTexture *input_tx)
   GPUTexture *output_tx = postfx_tx_;
 
   /* Swapping is done internally. Actual output is set to the next input. */
-  inst_.depth_of_field.render(&input_tx, &output_tx, dof_buffer_);
-  inst_.motion_blur.render(&input_tx, &output_tx);
+  inst_.depth_of_field.render(render_view_new_, &input_tx, &output_tx, dof_buffer_);
+  inst_.motion_blur.render(render_view_new_, &input_tx, &output_tx);
 
   return input_tx;
 }
@@ -186,6 +186,8 @@ void ShadingView::update_view()
    * out of the blurring radius. To fix this, use custom enlarged culling matrix. */
   inst_.depth_of_field.jitter_apply(winmat, viewmat);
   DRW_view_update_sub(render_view_, viewmat.ptr(), winmat.ptr());
+
+  render_view_new_.sync(viewmat, winmat);
 }
 
 /** \} */

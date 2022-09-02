@@ -52,6 +52,7 @@ void Instance::init(const int2 &output_res,
   drw_view = drw_view_;
   v3d = v3d_;
   rv3d = rv3d_;
+  manager = DRW_manager_get();
 
   if (assign_if_different(debug_mode, (eDebugMode)G.debug_value)) {
     sampling.reset();
@@ -126,12 +127,16 @@ void Instance::object_sync(Object *ob)
     return;
   }
 
+  /* TODO cleanup. */
+  ObjectRef ob_ref = DRW_object_ref_get(ob);
+  ResourceHandle res_handle = manager->resource_handle(ob_ref);
+
   ObjectHandle &ob_handle = sync.sync_object(ob);
 
   if (partsys_is_visible && ob != DRW_context_state_get()->object_edit) {
     LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
       if (md->type == eModifierType_ParticleSystem) {
-        sync.sync_curves(ob, ob_handle, md);
+        sync.sync_curves(ob, ob_handle, res_handle, md);
       }
     }
   }
@@ -142,15 +147,15 @@ void Instance::object_sync(Object *ob)
         lights.sync_light(ob, ob_handle);
         break;
       case OB_MESH:
-        sync.sync_mesh(ob, ob_handle);
+        sync.sync_mesh(ob, ob_handle, res_handle, ob_ref);
         break;
       case OB_VOLUME:
         break;
       case OB_CURVES:
-        sync.sync_curves(ob, ob_handle);
+        sync.sync_curves(ob, ob_handle, res_handle);
         break;
       case OB_GPENCIL:
-        sync.sync_gpencil(ob, ob_handle);
+        sync.sync_gpencil(ob, ob_handle, res_handle);
         break;
       default:
         break;

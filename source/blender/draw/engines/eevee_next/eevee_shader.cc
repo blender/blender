@@ -9,6 +9,8 @@
  * and static shader usage.
  */
 
+#include "GPU_capabilities.h"
+
 #include "gpu_shader_create_info.hh"
 
 #include "eevee_shader.hh"
@@ -180,11 +182,41 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   GPUCodegenOutput &codegen = *codegen_;
   ShaderCreateInfo &info = *reinterpret_cast<ShaderCreateInfo *>(codegen.create_info);
 
-  info.auto_resource_location(true);
+  /* WORKAROUND: Replace by new ob info. */
+  int64_t ob_info_index = info.additional_infos_.first_index_of_try("draw_object_infos");
+  if (ob_info_index != -1) {
+    info.additional_infos_[ob_info_index] = "draw_object_infos_new";
+  }
+
+  /* WORKAROUND: Add new ob attr buffer. */
+  if (GPU_material_uniform_attributes(gpumat) != nullptr) {
+    info.additional_info("draw_object_attribute_new");
+  }
+
+  /* WORKAROUND: Avoid utility texture merge error. TODO: find a cleaner fix. */
+  for (auto &resource : info.batch_resources_) {
+    if (resource.bind_type == ShaderCreateInfo::Resource::BindType::SAMPLER) {
+      if (resource.slot == RBUFS_UTILITY_TEX_SLOT) {
+        resource.slot = GPU_max_textures_frag() - 1;
+      }
+    }
+  }
 
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT)) {
     info.define("MAT_TRANSPARENT");
+    /* Transparent material do not have any velocity specific pipeline. */
+    if (pipeline_type == MAT_PIPE_FORWARD_PREPASS_VELOCITY) {
+      pipeline_type = MAT_PIPE_FORWARD_PREPASS;
+    }
   }
+
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT) == false &&
+      pipeline_type == MAT_PIPE_FORWARD) {
+    /* Opaque forward do support AOVs and render pass. */
+    info.additional_info("eevee_aov_out");
+    info.additional_info("eevee_render_pass_out");
+  }
+
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_BARYCENTRIC)) {
     switch (geometry_type) {
       case MAT_GEOM_MESH:

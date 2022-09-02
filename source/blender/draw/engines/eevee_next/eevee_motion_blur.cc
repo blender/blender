@@ -135,53 +135,49 @@ void MotionBlurModule::sync()
   eGPUSamplerState no_filter = GPU_SAMPLER_DEFAULT;
   RenderBuffers &render_buffers = inst_.render_buffers;
 
+  motion_blur_ps_.init();
+  inst_.velocity.bind_resources(&motion_blur_ps_);
+  inst_.sampling.bind_resources(&motion_blur_ps_);
   {
     /* Create max velocity tiles. */
-    DRW_PASS_CREATE(tiles_flatten_ps_, DRW_STATE_NO_DRAW);
+    PassSimple::Sub &sub = motion_blur_ps_.sub("TilesFlatten");
     eShaderType shader = (inst_.is_viewport()) ? MOTION_BLUR_TILE_FLATTEN_VIEWPORT :
                                                  MOTION_BLUR_TILE_FLATTEN_RENDER;
-    GPUShader *sh = inst_.shaders.static_shader_get(shader);
-    DRWShadingGroup *grp = DRW_shgroup_create(sh, tiles_flatten_ps_);
-    inst_.velocity.bind_resources(grp);
-    DRW_shgroup_uniform_block(grp, "motion_blur_buf", data_);
-    DRW_shgroup_uniform_texture_ref(grp, "depth_tx", &render_buffers.depth_tx);
-    DRW_shgroup_uniform_image_ref(grp, "velocity_img", &render_buffers.vector_tx);
-    DRW_shgroup_uniform_image_ref(grp, "out_tiles_img", &tiles_tx_);
-
-    DRW_shgroup_call_compute_ref(grp, dispatch_flatten_size_);
-    DRW_shgroup_barrier(grp, GPU_BARRIER_SHADER_IMAGE_ACCESS | GPU_BARRIER_TEXTURE_FETCH);
+    sub.shader_set(inst_.shaders.static_shader_get(shader));
+    sub.bind_ubo("motion_blur_buf", data_);
+    sub.bind_texture("depth_tx", &render_buffers.depth_tx);
+    sub.bind_image("velocity_img", &render_buffers.vector_tx);
+    sub.bind_image("out_tiles_img", &tiles_tx_);
+    sub.dispatch(&dispatch_flatten_size_);
+    sub.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS | GPU_BARRIER_TEXTURE_FETCH);
   }
   {
     /* Expand max velocity tiles by spreading them in their neighborhood. */
-    DRW_PASS_CREATE(tiles_dilate_ps_, DRW_STATE_NO_DRAW);
-    GPUShader *sh = inst_.shaders.static_shader_get(MOTION_BLUR_TILE_DILATE);
-    DRWShadingGroup *grp = DRW_shgroup_create(sh, tiles_dilate_ps_);
-    DRW_shgroup_storage_block(grp, "tile_indirection_buf", tile_indirection_buf_);
-    DRW_shgroup_uniform_image_ref(grp, "in_tiles_img", &tiles_tx_);
-
-    DRW_shgroup_call_compute_ref(grp, dispatch_dilate_size_);
-    DRW_shgroup_barrier(grp, GPU_BARRIER_SHADER_STORAGE);
+    PassSimple::Sub &sub = motion_blur_ps_.sub("TilesDilate");
+    sub.shader_set(inst_.shaders.static_shader_get(MOTION_BLUR_TILE_DILATE));
+    sub.bind_ssbo("tile_indirection_buf", tile_indirection_buf_);
+    sub.bind_image("in_tiles_img", &tiles_tx_);
+    sub.dispatch(&dispatch_dilate_size_);
+    sub.barrier(GPU_BARRIER_SHADER_STORAGE);
   }
   {
     /* Do the motion blur gather algorithm. */
-    DRW_PASS_CREATE(gather_ps_, DRW_STATE_NO_DRAW);
-    GPUShader *sh = inst_.shaders.static_shader_get(MOTION_BLUR_GATHER);
-    DRWShadingGroup *grp = DRW_shgroup_create(sh, gather_ps_);
-    inst_.sampling.bind_resources(grp);
-    DRW_shgroup_uniform_block(grp, "motion_blur_buf", data_);
-    DRW_shgroup_storage_block(grp, "tile_indirection_buf", tile_indirection_buf_);
-    DRW_shgroup_uniform_texture_ref_ex(grp, "depth_tx", &render_buffers.depth_tx, no_filter);
-    DRW_shgroup_uniform_texture_ref_ex(grp, "velocity_tx", &render_buffers.vector_tx, no_filter);
-    DRW_shgroup_uniform_texture_ref_ex(grp, "in_color_tx", &input_color_tx_, no_filter);
-    DRW_shgroup_uniform_image_ref(grp, "in_tiles_img", &tiles_tx_);
-    DRW_shgroup_uniform_image_ref(grp, "out_color_img", &output_color_tx_);
+    PassSimple::Sub &sub = motion_blur_ps_.sub("ConvolveGather");
+    sub.shader_set(inst_.shaders.static_shader_get(MOTION_BLUR_GATHER));
+    sub.bind_ubo("motion_blur_buf", data_);
+    sub.bind_ssbo("tile_indirection_buf", tile_indirection_buf_);
+    sub.bind_texture("depth_tx", &render_buffers.depth_tx, no_filter);
+    sub.bind_texture("velocity_tx", &render_buffers.vector_tx, no_filter);
+    sub.bind_texture("in_color_tx", &input_color_tx_, no_filter);
+    sub.bind_image("in_tiles_img", &tiles_tx_);
+    sub.bind_image("out_color_img", &output_color_tx_);
 
-    DRW_shgroup_call_compute_ref(grp, dispatch_gather_size_);
-    DRW_shgroup_barrier(grp, GPU_BARRIER_TEXTURE_FETCH);
+    sub.dispatch(&dispatch_gather_size_);
+    sub.barrier(GPU_BARRIER_TEXTURE_FETCH);
   }
 }
 
-void MotionBlurModule::render(GPUTexture **input_tx, GPUTexture **output_tx)
+void MotionBlurModule::render(View &view, GPUTexture **input_tx, GPUTexture **output_tx)
 {
   if (!motion_blur_fx_enabled_) {
     return;
@@ -239,9 +235,7 @@ void MotionBlurModule::render(GPUTexture **input_tx, GPUTexture **output_tx)
 
   GPU_storagebuf_clear_to_zero(tile_indirection_buf_);
 
-  DRW_draw_pass(tiles_flatten_ps_);
-  DRW_draw_pass(tiles_dilate_ps_);
-  DRW_draw_pass(gather_ps_);
+  inst_.manager->submit(motion_blur_ps_, view);
 
   tiles_tx_.release();
 

@@ -116,16 +116,12 @@ class LightModule {
   /** Bitmap of lights touching each tiles. */
   LightCullingTileBuf culling_tile_buf_ = {"LightCull_tile"};
   /** Culling compute passes. */
-  DRWPass *culling_select_ps_ = nullptr;
-  DRWPass *culling_sort_ps_ = nullptr;
-  DRWPass *culling_zbin_ps_ = nullptr;
-  DRWPass *culling_tile_ps_ = nullptr;
+  PassSimple culling_ps_ = {"LightCulling"};
   /** Total number of words the tile buffer needs to contain for the render resolution. */
   uint total_word_count_ = 0;
 
   /** Debug Culling visualization. */
-  DRWPass *debug_draw_ps_ = nullptr;
-  /* GPUTexture *input_depth_tx_ = nullptr; */
+  PassSimple debug_draw_ps_ = {"LightCulling.Debug"};
 
  public:
   LightModule(Instance &inst) : inst_(inst){};
@@ -138,9 +134,9 @@ class LightModule {
   /**
    * Update acceleration structure for the given view.
    */
-  void set_view(const DRWView *view, const int2 extent);
+  void set_view(View &view, const int2 extent);
 
-  void debug_draw(GPUFrameBuffer *view_fb);
+  void debug_draw(View &view, GPUFrameBuffer *view_fb);
 
   void bind_resources(DRWShadingGroup *grp)
   {
@@ -152,6 +148,15 @@ class LightModule {
     DRW_shgroup_uniform_texture(grp, "shadow_atlas_tx", inst_.shadows.atlas_tx_get());
     DRW_shgroup_uniform_texture(grp, "shadow_tilemaps_tx", inst_.shadows.tilemap_tx_get());
 #endif
+  }
+
+  template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
+  {
+    /* Storage Buf. */
+    pass->bind_ssbo(LIGHT_CULL_BUF_SLOT, &culling_data_buf_);
+    pass->bind_ssbo(LIGHT_BUF_SLOT, &culling_light_buf_);
+    pass->bind_ssbo(LIGHT_ZBIN_BUF_SLOT, &culling_zbin_buf_);
+    pass->bind_ssbo(LIGHT_TILE_BUF_SLOT, &culling_tile_buf_);
   }
 
  private:

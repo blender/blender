@@ -237,35 +237,34 @@ void DepthOfField::bokeh_lut_pass_sync()
   const bool has_anisotropy = data_.bokeh_anisotropic_scale != float2(1.0f);
   if (!has_anisotropy && (data_.bokeh_blades == 0.0)) {
     /* No need for LUTs in these cases. */
-    bokeh_lut_ps_ = nullptr;
+    use_bokeh_lut_ = false;
     return;
   }
+  use_bokeh_lut_ = true;
 
   /* Precompute bokeh texture. */
-  bokeh_lut_ps_ = DRW_pass_create("Dof.bokeh_lut_ps_", DRW_STATE_NO_DRAW);
-  GPUShader *sh = inst_.shaders.static_shader_get(DOF_BOKEH_LUT);
-  DRWShadingGroup *grp = DRW_shgroup_create(sh, bokeh_lut_ps_);
-  DRW_shgroup_uniform_block(grp, "dof_buf", data_);
-  DRW_shgroup_uniform_image_ref(grp, "out_gather_lut_img", &bokeh_gather_lut_tx_);
-  DRW_shgroup_uniform_image_ref(grp, "out_scatter_lut_img", &bokeh_scatter_lut_tx_);
-  DRW_shgroup_uniform_image_ref(grp, "out_resolve_lut_img", &bokeh_resolve_lut_tx_);
-  DRW_shgroup_call_compute(grp, 1, 1, 1);
+  bokeh_lut_ps_.init();
+  bokeh_lut_ps_.shader_set(inst_.shaders.static_shader_get(DOF_BOKEH_LUT));
+  bokeh_lut_ps_.bind_ubo("dof_buf", data_);
+  bokeh_lut_ps_.bind_image("out_gather_lut_img", &bokeh_gather_lut_tx_);
+  bokeh_lut_ps_.bind_image("out_scatter_lut_img", &bokeh_scatter_lut_tx_);
+  bokeh_lut_ps_.bind_image("out_resolve_lut_img", &bokeh_resolve_lut_tx_);
+  bokeh_lut_ps_.dispatch(int3(1, 1, 1));
 }
 
 void DepthOfField::setup_pass_sync()
 {
   RenderBuffers &render_buffers = inst_.render_buffers;
 
-  setup_ps_ = DRW_pass_create("Dof.setup_ps_", DRW_STATE_NO_DRAW);
-  GPUShader *sh = inst_.shaders.static_shader_get(DOF_SETUP);
-  DRWShadingGroup *grp = DRW_shgroup_create(sh, setup_ps_);
-  DRW_shgroup_uniform_texture_ref_ex(grp, "color_tx", &input_color_tx_, no_filter);
-  DRW_shgroup_uniform_texture_ref_ex(grp, "depth_tx", &render_buffers.depth_tx, no_filter);
-  DRW_shgroup_uniform_block(grp, "dof_buf", data_);
-  DRW_shgroup_uniform_image_ref(grp, "out_color_img", &setup_color_tx_);
-  DRW_shgroup_uniform_image_ref(grp, "out_coc_img", &setup_coc_tx_);
-  DRW_shgroup_call_compute_ref(grp, dispatch_setup_size_);
-  DRW_shgroup_barrier(grp, GPU_BARRIER_TEXTURE_FETCH);
+  setup_ps_.init();
+  setup_ps_.shader_set(inst_.shaders.static_shader_get(DOF_SETUP));
+  setup_ps_.bind_texture("color_tx", &input_color_tx_, no_filter);
+  setup_ps_.bind_texture("depth_tx", &render_buffers.depth_tx, no_filter);
+  setup_ps_.bind_ubo("dof_buf", data_);
+  setup_ps_.bind_image("out_color_img", &setup_color_tx_);
+  setup_ps_.bind_image("out_coc_img", &setup_coc_tx_);
+  setup_ps_.dispatch(&dispatch_setup_size_);
+  setup_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH);
 }
 
 void DepthOfField::stabilize_pass_sync()
@@ -273,214 +272,203 @@ void DepthOfField::stabilize_pass_sync()
   RenderBuffers &render_buffers = inst_.render_buffers;
   VelocityModule &velocity = inst_.velocity;
 
-  stabilize_ps_ = DRW_pass_create("Dof.stabilize_ps_", DRW_STATE_NO_DRAW);
-  GPUShader *sh = inst_.shaders.static_shader_get(DOF_STABILIZE);
-  DRWShadingGroup *grp = DRW_shgroup_create(sh, stabilize_ps_);
-  DRW_shgroup_uniform_block_ref(grp, "camera_prev", &(*velocity.camera_steps[STEP_PREVIOUS]));
-  DRW_shgroup_uniform_block_ref(grp, "camera_curr", &(*velocity.camera_steps[STEP_CURRENT]));
+  stabilize_ps_.init();
+  stabilize_ps_.shader_set(inst_.shaders.static_shader_get(DOF_STABILIZE));
+  stabilize_ps_.bind_ubo("camera_prev", &(*velocity.camera_steps[STEP_PREVIOUS]));
+  stabilize_ps_.bind_ubo("camera_curr", &(*velocity.camera_steps[STEP_CURRENT]));
   /* This is only for temporal stability. The next step is not needed. */
-  DRW_shgroup_uniform_block_ref(grp, "camera_next", &(*velocity.camera_steps[STEP_PREVIOUS]));
-  DRW_shgroup_uniform_texture_ref_ex(grp, "coc_tx", &setup_coc_tx_, no_filter);
-  DRW_shgroup_uniform_texture_ref_ex(grp, "color_tx", &setup_color_tx_, no_filter);
-  DRW_shgroup_uniform_texture_ref_ex(grp, "velocity_tx", &render_buffers.vector_tx, no_filter);
-  DRW_shgroup_uniform_texture_ref_ex(grp, "in_history_tx", &stabilize_input_, with_filter);
-  DRW_shgroup_uniform_texture_ref_ex(grp, "depth_tx", &render_buffers.depth_tx, no_filter);
-  DRW_shgroup_uniform_bool(grp, "use_history", &stabilize_valid_history_, 1);
-  DRW_shgroup_uniform_block(grp, "dof_buf", data_);
-  DRW_shgroup_uniform_image(grp, "out_coc_img", reduced_coc_tx_.mip_view(0));
-  DRW_shgroup_uniform_image(grp, "out_color_img", reduced_color_tx_.mip_view(0));
-  DRW_shgroup_uniform_image_ref(grp, "out_history_img", &stabilize_output_tx_);
-  DRW_shgroup_call_compute_ref(grp, dispatch_stabilize_size_);
-  DRW_shgroup_barrier(grp, GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
+  stabilize_ps_.bind_ubo("camera_next", &(*velocity.camera_steps[STEP_PREVIOUS]));
+  stabilize_ps_.bind_texture("coc_tx", &setup_coc_tx_, no_filter);
+  stabilize_ps_.bind_texture("color_tx", &setup_color_tx_, no_filter);
+  stabilize_ps_.bind_texture("velocity_tx", &render_buffers.vector_tx, no_filter);
+  stabilize_ps_.bind_texture("in_history_tx", &stabilize_input_, with_filter);
+  stabilize_ps_.bind_texture("depth_tx", &render_buffers.depth_tx, no_filter);
+  stabilize_ps_.bind_ubo("dof_buf", data_);
+  stabilize_ps_.push_constant("use_history", &stabilize_valid_history_, 1);
+  stabilize_ps_.bind_image("out_coc_img", reduced_coc_tx_.mip_view(0));
+  stabilize_ps_.bind_image("out_color_img", reduced_color_tx_.mip_view(0));
+  stabilize_ps_.bind_image("out_history_img", &stabilize_output_tx_);
+  stabilize_ps_.dispatch(&dispatch_stabilize_size_);
+  stabilize_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
 }
 
 void DepthOfField::downsample_pass_sync()
 {
-  downsample_ps_ = DRW_pass_create("Dof.downsample_ps_", DRW_STATE_NO_DRAW);
-  GPUShader *sh = inst_.shaders.static_shader_get(DOF_DOWNSAMPLE);
-  DRWShadingGroup *grp = DRW_shgroup_create(sh, downsample_ps_);
-  DRW_shgroup_uniform_texture_ex(grp, "color_tx", reduced_color_tx_.mip_view(0), no_filter);
-  DRW_shgroup_uniform_texture_ex(grp, "coc_tx", reduced_coc_tx_.mip_view(0), no_filter);
-  DRW_shgroup_uniform_image_ref(grp, "out_color_img", &downsample_tx_);
-  DRW_shgroup_call_compute_ref(grp, dispatch_downsample_size_);
-  DRW_shgroup_barrier(grp, GPU_BARRIER_TEXTURE_FETCH);
+  downsample_ps_.init();
+  downsample_ps_.shader_set(inst_.shaders.static_shader_get(DOF_DOWNSAMPLE));
+  downsample_ps_.bind_texture("color_tx", reduced_color_tx_.mip_view(0), no_filter);
+  downsample_ps_.bind_texture("coc_tx", reduced_coc_tx_.mip_view(0), no_filter);
+  downsample_ps_.bind_image("out_color_img", &downsample_tx_);
+  downsample_ps_.dispatch(&dispatch_downsample_size_);
+  downsample_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH);
 }
 
 void DepthOfField::reduce_pass_sync()
 {
-  reduce_ps_ = DRW_pass_create("Dof.reduce_ps_", DRW_STATE_NO_DRAW);
-  GPUShader *sh = inst_.shaders.static_shader_get(DOF_REDUCE);
-  DRWShadingGroup *grp = DRW_shgroup_create(sh, reduce_ps_);
-  DRW_shgroup_uniform_block(grp, "dof_buf", data_);
-  DRW_shgroup_uniform_texture_ref_ex(grp, "downsample_tx", &downsample_tx_, no_filter);
-  DRW_shgroup_storage_block(grp, "scatter_fg_list_buf", scatter_fg_list_buf_);
-  DRW_shgroup_storage_block(grp, "scatter_bg_list_buf", scatter_bg_list_buf_);
-  DRW_shgroup_storage_block(grp, "scatter_fg_indirect_buf", scatter_fg_indirect_buf_);
-  DRW_shgroup_storage_block(grp, "scatter_bg_indirect_buf", scatter_bg_indirect_buf_);
-  DRW_shgroup_uniform_image(grp, "inout_color_lod0_img", reduced_color_tx_.mip_view(0));
-  DRW_shgroup_uniform_image(grp, "out_color_lod1_img", reduced_color_tx_.mip_view(1));
-  DRW_shgroup_uniform_image(grp, "out_color_lod2_img", reduced_color_tx_.mip_view(2));
-  DRW_shgroup_uniform_image(grp, "out_color_lod3_img", reduced_color_tx_.mip_view(3));
-  DRW_shgroup_uniform_image(grp, "in_coc_lod0_img", reduced_coc_tx_.mip_view(0));
-  DRW_shgroup_uniform_image(grp, "out_coc_lod1_img", reduced_coc_tx_.mip_view(1));
-  DRW_shgroup_uniform_image(grp, "out_coc_lod2_img", reduced_coc_tx_.mip_view(2));
-  DRW_shgroup_uniform_image(grp, "out_coc_lod3_img", reduced_coc_tx_.mip_view(3));
-  DRW_shgroup_call_compute_ref(grp, dispatch_reduce_size_);
+  reduce_ps_.init();
+  reduce_ps_.shader_set(inst_.shaders.static_shader_get(DOF_REDUCE));
+  reduce_ps_.bind_ubo("dof_buf", data_);
+  reduce_ps_.bind_texture("downsample_tx", &downsample_tx_, no_filter);
+  reduce_ps_.bind_ssbo("scatter_fg_list_buf", scatter_fg_list_buf_);
+  reduce_ps_.bind_ssbo("scatter_bg_list_buf", scatter_bg_list_buf_);
+  reduce_ps_.bind_ssbo("scatter_fg_indirect_buf", scatter_fg_indirect_buf_);
+  reduce_ps_.bind_ssbo("scatter_bg_indirect_buf", scatter_bg_indirect_buf_);
+  reduce_ps_.bind_image("inout_color_lod0_img", reduced_color_tx_.mip_view(0));
+  reduce_ps_.bind_image("out_color_lod1_img", reduced_color_tx_.mip_view(1));
+  reduce_ps_.bind_image("out_color_lod2_img", reduced_color_tx_.mip_view(2));
+  reduce_ps_.bind_image("out_color_lod3_img", reduced_color_tx_.mip_view(3));
+  reduce_ps_.bind_image("in_coc_lod0_img", reduced_coc_tx_.mip_view(0));
+  reduce_ps_.bind_image("out_coc_lod1_img", reduced_coc_tx_.mip_view(1));
+  reduce_ps_.bind_image("out_coc_lod2_img", reduced_coc_tx_.mip_view(2));
+  reduce_ps_.bind_image("out_coc_lod3_img", reduced_coc_tx_.mip_view(3));
+  reduce_ps_.dispatch(&dispatch_reduce_size_);
   /* NOTE: Command buffer barrier is done automatically by the GPU backend. */
-  DRW_shgroup_barrier(grp, GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_STORAGE);
+  reduce_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_STORAGE);
 }
 
 void DepthOfField::tiles_flatten_pass_sync()
 {
-  tiles_flatten_ps_ = DRW_pass_create("Dof.tiles_flatten_ps_", DRW_STATE_NO_DRAW);
-  GPUShader *sh = inst_.shaders.static_shader_get(DOF_TILES_FLATTEN);
-  DRWShadingGroup *grp = DRW_shgroup_create(sh, tiles_flatten_ps_);
+  tiles_flatten_ps_.init();
+  tiles_flatten_ps_.shader_set(inst_.shaders.static_shader_get(DOF_TILES_FLATTEN));
   /* NOTE(fclem): We should use the reduced_coc_tx_ as it is stable, but we need the slight focus
    * flag from the setup pass. A better way would be to do the brute-force in focus gather without
    * this. */
-  DRW_shgroup_uniform_texture_ref_ex(grp, "coc_tx", &setup_coc_tx_, no_filter);
-  DRW_shgroup_uniform_image_ref(grp, "out_tiles_fg_img", &tiles_fg_tx_.current());
-  DRW_shgroup_uniform_image_ref(grp, "out_tiles_bg_img", &tiles_bg_tx_.current());
-  DRW_shgroup_call_compute_ref(grp, dispatch_tiles_flatten_size_);
-  DRW_shgroup_barrier(grp, GPU_BARRIER_SHADER_IMAGE_ACCESS);
+  tiles_flatten_ps_.bind_texture("coc_tx", &setup_coc_tx_, no_filter);
+  tiles_flatten_ps_.bind_image("out_tiles_fg_img", &tiles_fg_tx_.current());
+  tiles_flatten_ps_.bind_image("out_tiles_bg_img", &tiles_bg_tx_.current());
+  tiles_flatten_ps_.dispatch(&dispatch_tiles_flatten_size_);
+  tiles_flatten_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
 }
 
 void DepthOfField::tiles_dilate_pass_sync()
 {
-  tiles_dilate_minmax_ps_ = DRW_pass_create("Dof.tiles_dilate_minmax_ps_", DRW_STATE_NO_DRAW);
-  tiles_dilate_minabs_ps_ = DRW_pass_create("Dof.tiles_dilate_minabs_ps_", DRW_STATE_NO_DRAW);
   for (int pass = 0; pass < 2; pass++) {
-    DRWPass *drw_pass = (pass == 0) ? tiles_dilate_minmax_ps_ : tiles_dilate_minabs_ps_;
-    GPUShader *sh = inst_.shaders.static_shader_get((pass == 0) ? DOF_TILES_DILATE_MINMAX :
-                                                                  DOF_TILES_DILATE_MINABS);
-    DRWShadingGroup *grp = DRW_shgroup_create(sh, drw_pass);
-    DRW_shgroup_uniform_image_ref(grp, "in_tiles_fg_img", &tiles_fg_tx_.previous());
-    DRW_shgroup_uniform_image_ref(grp, "in_tiles_bg_img", &tiles_bg_tx_.previous());
-    DRW_shgroup_uniform_image_ref(grp, "out_tiles_fg_img", &tiles_fg_tx_.current());
-    DRW_shgroup_uniform_image_ref(grp, "out_tiles_bg_img", &tiles_bg_tx_.current());
-    DRW_shgroup_uniform_int(grp, "ring_count", &tiles_dilate_ring_count_, 1);
-    DRW_shgroup_uniform_int(grp, "ring_width_multiplier", &tiles_dilate_ring_width_mul_, 1);
-    DRW_shgroup_call_compute_ref(grp, dispatch_tiles_dilate_size_);
-    DRW_shgroup_barrier(grp, GPU_BARRIER_SHADER_IMAGE_ACCESS);
+    PassSimple &drw_pass = (pass == 0) ? tiles_dilate_minmax_ps_ : tiles_dilate_minabs_ps_;
+    eShaderType sh_type = (pass == 0) ? DOF_TILES_DILATE_MINMAX : DOF_TILES_DILATE_MINABS;
+    drw_pass.init();
+    drw_pass.shader_set(inst_.shaders.static_shader_get(sh_type));
+    drw_pass.bind_image("in_tiles_fg_img", &tiles_fg_tx_.previous());
+    drw_pass.bind_image("in_tiles_bg_img", &tiles_bg_tx_.previous());
+    drw_pass.bind_image("out_tiles_fg_img", &tiles_fg_tx_.current());
+    drw_pass.bind_image("out_tiles_bg_img", &tiles_bg_tx_.current());
+    drw_pass.push_constant("ring_count", &tiles_dilate_ring_count_, 1);
+    drw_pass.push_constant("ring_width_multiplier", &tiles_dilate_ring_width_mul_, 1);
+    drw_pass.dispatch(&dispatch_tiles_dilate_size_);
+    drw_pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }
 }
 
 void DepthOfField::gather_pass_sync()
 {
-  gather_fg_ps_ = DRW_pass_create("Dof.gather_fg_ps_", DRW_STATE_NO_DRAW);
-  gather_bg_ps_ = DRW_pass_create("Dof.gather_bg_ps_", DRW_STATE_NO_DRAW);
   for (int pass = 0; pass < 2; pass++) {
+    PassSimple &drw_pass = (pass == 0) ? gather_fg_ps_ : gather_bg_ps_;
     SwapChain<TextureFromPool, 2> &color_chain = (pass == 0) ? color_fg_tx_ : color_bg_tx_;
     SwapChain<TextureFromPool, 2> &weight_chain = (pass == 0) ? weight_fg_tx_ : weight_bg_tx_;
-    bool use_lut = bokeh_lut_ps_ != nullptr;
     eShaderType sh_type = (pass == 0) ?
-                              (use_lut ? DOF_GATHER_FOREGROUND_LUT : DOF_GATHER_FOREGROUND) :
-                              (use_lut ? DOF_GATHER_BACKGROUND_LUT : DOF_GATHER_BACKGROUND);
-    GPUShader *sh = inst_.shaders.static_shader_get(sh_type);
-    DRWShadingGroup *grp = DRW_shgroup_create(sh, (pass == 0) ? gather_fg_ps_ : gather_bg_ps_);
-    inst_.sampling.bind_resources(grp);
-    DRW_shgroup_uniform_block(grp, "dof_buf", data_);
-    DRW_shgroup_uniform_texture_ex(grp, "color_bilinear_tx", reduced_color_tx_, gather_bilinear);
-    DRW_shgroup_uniform_texture_ex(grp, "color_tx", reduced_color_tx_, gather_nearest);
-    DRW_shgroup_uniform_texture_ex(grp, "coc_tx", reduced_coc_tx_, gather_nearest);
-    DRW_shgroup_uniform_image_ref(grp, "in_tiles_fg_img", &tiles_fg_tx_.current());
-    DRW_shgroup_uniform_image_ref(grp, "in_tiles_bg_img", &tiles_bg_tx_.current());
-    DRW_shgroup_uniform_image_ref(grp, "out_color_img", &color_chain.current());
-    DRW_shgroup_uniform_image_ref(grp, "out_weight_img", &weight_chain.current());
-    DRW_shgroup_uniform_image_ref(grp, "out_occlusion_img", &occlusion_tx_);
-    DRW_shgroup_uniform_texture_ref(grp, "bokeh_lut_tx", &bokeh_gather_lut_tx_);
-    DRW_shgroup_call_compute_ref(grp, dispatch_gather_size_);
-    DRW_shgroup_barrier(grp, GPU_BARRIER_TEXTURE_FETCH);
+                              (use_bokeh_lut_ ? DOF_GATHER_FOREGROUND_LUT :
+                                                DOF_GATHER_FOREGROUND) :
+                              (use_bokeh_lut_ ? DOF_GATHER_BACKGROUND_LUT : DOF_GATHER_BACKGROUND);
+    drw_pass.init();
+    inst_.sampling.bind_resources(&drw_pass);
+    drw_pass.shader_set(inst_.shaders.static_shader_get(sh_type));
+    drw_pass.bind_ubo("dof_buf", data_);
+    drw_pass.bind_texture("color_bilinear_tx", reduced_color_tx_, gather_bilinear);
+    drw_pass.bind_texture("color_tx", reduced_color_tx_, gather_nearest);
+    drw_pass.bind_texture("coc_tx", reduced_coc_tx_, gather_nearest);
+    drw_pass.bind_image("in_tiles_fg_img", &tiles_fg_tx_.current());
+    drw_pass.bind_image("in_tiles_bg_img", &tiles_bg_tx_.current());
+    drw_pass.bind_image("out_color_img", &color_chain.current());
+    drw_pass.bind_image("out_weight_img", &weight_chain.current());
+    drw_pass.bind_image("out_occlusion_img", &occlusion_tx_);
+    drw_pass.bind_texture("bokeh_lut_tx", &bokeh_gather_lut_tx_);
+    drw_pass.dispatch(&dispatch_gather_size_);
+    drw_pass.barrier(GPU_BARRIER_TEXTURE_FETCH);
   }
 }
 
 void DepthOfField::filter_pass_sync()
 {
-  filter_fg_ps_ = DRW_pass_create("Dof.filter_fg_ps_", DRW_STATE_NO_DRAW);
-  filter_bg_ps_ = DRW_pass_create("Dof.filter_bg_ps_", DRW_STATE_NO_DRAW);
   for (int pass = 0; pass < 2; pass++) {
+    PassSimple &drw_pass = (pass == 0) ? filter_fg_ps_ : filter_bg_ps_;
     SwapChain<TextureFromPool, 2> &color_chain = (pass == 0) ? color_fg_tx_ : color_bg_tx_;
     SwapChain<TextureFromPool, 2> &weight_chain = (pass == 0) ? weight_fg_tx_ : weight_bg_tx_;
-    GPUShader *sh = inst_.shaders.static_shader_get(DOF_FILTER);
-    DRWShadingGroup *grp = DRW_shgroup_create(sh, (pass == 0) ? filter_fg_ps_ : filter_bg_ps_);
-    DRW_shgroup_uniform_texture_ref(grp, "color_tx", &color_chain.previous());
-    DRW_shgroup_uniform_texture_ref(grp, "weight_tx", &weight_chain.previous());
-    DRW_shgroup_uniform_image_ref(grp, "out_color_img", &color_chain.current());
-    DRW_shgroup_uniform_image_ref(grp, "out_weight_img", &weight_chain.current());
-    DRW_shgroup_call_compute_ref(grp, dispatch_filter_size_);
-    DRW_shgroup_barrier(grp, GPU_BARRIER_TEXTURE_FETCH);
+    drw_pass.init();
+    drw_pass.shader_set(inst_.shaders.static_shader_get(DOF_FILTER));
+    drw_pass.bind_texture("color_tx", &color_chain.previous());
+    drw_pass.bind_texture("weight_tx", &weight_chain.previous());
+    drw_pass.bind_image("out_color_img", &color_chain.current());
+    drw_pass.bind_image("out_weight_img", &weight_chain.current());
+    drw_pass.dispatch(&dispatch_filter_size_);
+    drw_pass.barrier(GPU_BARRIER_TEXTURE_FETCH);
   }
 }
 
 void DepthOfField::scatter_pass_sync()
 {
-  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL;
-  scatter_fg_ps_ = DRW_pass_create("Dof.scatter_fg_ps_", state);
-  scatter_bg_ps_ = DRW_pass_create("Dof.scatter_bg_ps_", state);
   for (int pass = 0; pass < 2; pass++) {
-    GPUStorageBuf *scatter_buf = (pass == 0) ? scatter_fg_indirect_buf_ : scatter_bg_indirect_buf_;
-    GPUStorageBuf *rect_list_buf = (pass == 0) ? scatter_fg_list_buf_ : scatter_bg_list_buf_;
-
-    GPUShader *sh = inst_.shaders.static_shader_get(DOF_SCATTER);
-    DRWShadingGroup *grp = DRW_shgroup_create(sh, (pass == 0) ? scatter_fg_ps_ : scatter_bg_ps_);
-    DRW_shgroup_uniform_bool_copy(grp, "use_bokeh_lut", bokeh_lut_ps_ != nullptr);
-    DRW_shgroup_storage_block(grp, "scatter_list_buf", rect_list_buf);
-    DRW_shgroup_uniform_texture_ref(grp, "bokeh_lut_tx", &bokeh_scatter_lut_tx_);
-    DRW_shgroup_uniform_texture_ref(grp, "occlusion_tx", &occlusion_tx_);
-    DRW_shgroup_call_procedural_indirect(grp, GPU_PRIM_TRI_STRIP, nullptr, scatter_buf);
+    PassSimple &drw_pass = (pass == 0) ? scatter_fg_ps_ : scatter_bg_ps_;
+    drw_pass.init();
+    drw_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL);
+    drw_pass.shader_set(inst_.shaders.static_shader_get(DOF_SCATTER));
+    drw_pass.push_constant("use_bokeh_lut", use_bokeh_lut_);
+    drw_pass.bind_texture("bokeh_lut_tx", &bokeh_scatter_lut_tx_);
+    drw_pass.bind_texture("occlusion_tx", &occlusion_tx_);
     if (pass == 0) {
+      drw_pass.bind_ssbo("scatter_list_buf", scatter_fg_list_buf_);
+      drw_pass.draw_procedural_indirect(GPU_PRIM_TRI_STRIP, scatter_fg_indirect_buf_);
       /* Avoid background gather pass writing to the occlusion_tx mid pass. */
-      DRW_shgroup_barrier(grp, GPU_BARRIER_SHADER_IMAGE_ACCESS);
+      drw_pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+    }
+    else {
+      drw_pass.bind_ssbo("scatter_list_buf", scatter_bg_list_buf_);
+      drw_pass.draw_procedural_indirect(GPU_PRIM_TRI_STRIP, scatter_bg_indirect_buf_);
     }
   }
 }
 
 void DepthOfField::hole_fill_pass_sync()
 {
-  hole_fill_ps_ = DRW_pass_create("Dof.hole_fill_ps_", DRW_STATE_NO_DRAW);
-  GPUShader *sh = inst_.shaders.static_shader_get(DOF_GATHER_HOLE_FILL);
-  DRWShadingGroup *grp = DRW_shgroup_create(sh, hole_fill_ps_);
-  inst_.sampling.bind_resources(grp);
-  DRW_shgroup_uniform_block(grp, "dof_buf", data_);
-  DRW_shgroup_uniform_texture_ex(grp, "color_bilinear_tx", reduced_color_tx_, gather_bilinear);
-  DRW_shgroup_uniform_texture_ex(grp, "color_tx", reduced_color_tx_, gather_nearest);
-  DRW_shgroup_uniform_texture_ex(grp, "coc_tx", reduced_coc_tx_, gather_nearest);
-  DRW_shgroup_uniform_image_ref(grp, "in_tiles_fg_img", &tiles_fg_tx_.current());
-  DRW_shgroup_uniform_image_ref(grp, "in_tiles_bg_img", &tiles_bg_tx_.current());
-  DRW_shgroup_uniform_image_ref(grp, "out_color_img", &hole_fill_color_tx_);
-  DRW_shgroup_uniform_image_ref(grp, "out_weight_img", &hole_fill_weight_tx_);
-  DRW_shgroup_call_compute_ref(grp, dispatch_gather_size_);
-  DRW_shgroup_barrier(grp, GPU_BARRIER_TEXTURE_FETCH);
+  hole_fill_ps_.init();
+  inst_.sampling.bind_resources(&hole_fill_ps_);
+  hole_fill_ps_.shader_set(inst_.shaders.static_shader_get(DOF_GATHER_HOLE_FILL));
+  hole_fill_ps_.bind_ubo("dof_buf", data_);
+  hole_fill_ps_.bind_texture("color_bilinear_tx", reduced_color_tx_, gather_bilinear);
+  hole_fill_ps_.bind_texture("color_tx", reduced_color_tx_, gather_nearest);
+  hole_fill_ps_.bind_texture("coc_tx", reduced_coc_tx_, gather_nearest);
+  hole_fill_ps_.bind_image("in_tiles_fg_img", &tiles_fg_tx_.current());
+  hole_fill_ps_.bind_image("in_tiles_bg_img", &tiles_bg_tx_.current());
+  hole_fill_ps_.bind_image("out_color_img", &hole_fill_color_tx_);
+  hole_fill_ps_.bind_image("out_weight_img", &hole_fill_weight_tx_);
+  hole_fill_ps_.dispatch(&dispatch_gather_size_);
+  hole_fill_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH);
 }
 
 void DepthOfField::resolve_pass_sync()
 {
   eGPUSamplerState with_filter = GPU_SAMPLER_FILTER;
   RenderBuffers &render_buffers = inst_.render_buffers;
+  eShaderType sh_type = use_bokeh_lut_ ? DOF_RESOLVE_LUT : DOF_RESOLVE;
 
-  resolve_ps_ = DRW_pass_create("Dof.resolve_ps_", DRW_STATE_NO_DRAW);
-  bool use_lut = bokeh_lut_ps_ != nullptr;
-  eShaderType sh_type = use_lut ? DOF_RESOLVE_LUT : DOF_RESOLVE;
-  GPUShader *sh = inst_.shaders.static_shader_get(sh_type);
-  DRWShadingGroup *grp = DRW_shgroup_create(sh, resolve_ps_);
-  inst_.sampling.bind_resources(grp);
-  DRW_shgroup_uniform_block(grp, "dof_buf", data_);
-  DRW_shgroup_uniform_texture_ref_ex(grp, "depth_tx", &render_buffers.depth_tx, no_filter);
-  DRW_shgroup_uniform_texture_ref_ex(grp, "color_tx", &input_color_tx_, no_filter);
-  DRW_shgroup_uniform_texture_ref_ex(grp, "stable_color_tx", &resolve_stable_color_tx_, no_filter);
-  DRW_shgroup_uniform_texture_ref_ex(grp, "color_bg_tx", &color_bg_tx_.current(), with_filter);
-  DRW_shgroup_uniform_texture_ref_ex(grp, "color_fg_tx", &color_fg_tx_.current(), with_filter);
-  DRW_shgroup_uniform_image_ref(grp, "in_tiles_fg_img", &tiles_fg_tx_.current());
-  DRW_shgroup_uniform_image_ref(grp, "in_tiles_bg_img", &tiles_bg_tx_.current());
-  DRW_shgroup_uniform_texture_ref(grp, "weight_bg_tx", &weight_bg_tx_.current());
-  DRW_shgroup_uniform_texture_ref(grp, "weight_fg_tx", &weight_fg_tx_.current());
-  DRW_shgroup_uniform_texture_ref(grp, "color_hole_fill_tx", &hole_fill_color_tx_);
-  DRW_shgroup_uniform_texture_ref(grp, "weight_hole_fill_tx", &hole_fill_weight_tx_);
-  DRW_shgroup_uniform_texture_ref(grp, "bokeh_lut_tx", &bokeh_resolve_lut_tx_);
-  DRW_shgroup_uniform_image_ref(grp, "out_color_img", &output_color_tx_);
-  DRW_shgroup_barrier(grp, GPU_BARRIER_TEXTURE_FETCH);
-  DRW_shgroup_call_compute_ref(grp, dispatch_resolve_size_);
-  DRW_shgroup_barrier(grp, GPU_BARRIER_TEXTURE_FETCH);
+  resolve_ps_.init();
+  inst_.sampling.bind_resources(&resolve_ps_);
+  resolve_ps_.shader_set(inst_.shaders.static_shader_get(sh_type));
+  resolve_ps_.bind_ubo("dof_buf", data_);
+  resolve_ps_.bind_texture("depth_tx", &render_buffers.depth_tx, no_filter);
+  resolve_ps_.bind_texture("color_tx", &input_color_tx_, no_filter);
+  resolve_ps_.bind_texture("stable_color_tx", &resolve_stable_color_tx_, no_filter);
+  resolve_ps_.bind_texture("color_bg_tx", &color_bg_tx_.current(), with_filter);
+  resolve_ps_.bind_texture("color_fg_tx", &color_fg_tx_.current(), with_filter);
+  resolve_ps_.bind_image("in_tiles_fg_img", &tiles_fg_tx_.current());
+  resolve_ps_.bind_image("in_tiles_bg_img", &tiles_bg_tx_.current());
+  resolve_ps_.bind_texture("weight_bg_tx", &weight_bg_tx_.current());
+  resolve_ps_.bind_texture("weight_fg_tx", &weight_fg_tx_.current());
+  resolve_ps_.bind_texture("color_hole_fill_tx", &hole_fill_color_tx_);
+  resolve_ps_.bind_texture("weight_hole_fill_tx", &hole_fill_weight_tx_);
+  resolve_ps_.bind_texture("bokeh_lut_tx", &bokeh_resolve_lut_tx_);
+  resolve_ps_.bind_image("out_color_img", &output_color_tx_);
+  resolve_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH);
+  resolve_ps_.dispatch(&dispatch_resolve_size_);
+  resolve_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH);
 }
 
 /** \} */
@@ -509,7 +497,8 @@ void DepthOfField::update_sample_table()
   data_.filter_center_weight = film_filter_weight(radius, math::length_squared(subpixel_offset));
 }
 
-void DepthOfField::render(GPUTexture **input_tx,
+void DepthOfField::render(View &view,
+                          GPUTexture **input_tx,
                           GPUTexture **output_tx,
                           DepthOfFieldBuffer &dof_buffer)
 {
@@ -580,6 +569,8 @@ void DepthOfField::render(GPUTexture **input_tx,
 
   DRW_stats_group_start("Depth of Field");
 
+  Manager &drw = *inst_.manager;
+
   {
     DRW_stats_group_start("Setup");
     {
@@ -587,13 +578,15 @@ void DepthOfField::render(GPUTexture **input_tx,
       bokeh_scatter_lut_tx_.acquire(int2(DOF_BOKEH_LUT_SIZE), GPU_R16F);
       bokeh_resolve_lut_tx_.acquire(int2(DOF_MAX_SLIGHT_FOCUS_RADIUS * 2 + 1), GPU_R16F);
 
-      DRW_draw_pass(bokeh_lut_ps_);
+      if (use_bokeh_lut_) {
+        drw.submit(bokeh_lut_ps_, view);
+      }
     }
     {
       setup_color_tx_.acquire(half_res, GPU_RGBA16F);
       setup_coc_tx_.acquire(half_res, GPU_R16F);
 
-      DRW_draw_pass(setup_ps_);
+      drw.submit(setup_ps_, view);
     }
     {
       stabilize_output_tx_.acquire(half_res, GPU_RGBA16F);
@@ -607,7 +600,7 @@ void DepthOfField::render(GPUTexture **input_tx,
 
       stabilize_input_ = dof_buffer.stabilize_history_tx_;
       /* Outputs to reduced_*_tx_ mip 0. */
-      DRW_draw_pass(stabilize_ps_);
+      drw.submit(stabilize_ps_, view);
 
       /* WATCH(fclem): Swap Texture an TextureFromPool internal GPUTexture in order to reuse
        * the one that we just consumed. */
@@ -626,7 +619,7 @@ void DepthOfField::render(GPUTexture **input_tx,
       tiles_fg_tx_.current().acquire(tile_res, GPU_R11F_G11F_B10F);
       tiles_bg_tx_.current().acquire(tile_res, GPU_R11F_G11F_B10F);
 
-      DRW_draw_pass(tiles_flatten_ps_);
+      drw.submit(tiles_flatten_ps_, view);
 
       /* Used by tile_flatten and stabilize_ps pass. */
       setup_coc_tx_.release();
@@ -655,7 +648,7 @@ void DepthOfField::render(GPUTexture **input_tx,
           tiles_fg_tx_.swap();
           tiles_bg_tx_.swap();
 
-          DRW_draw_pass((pass == 0) ? tiles_dilate_minmax_ps_ : tiles_dilate_minabs_ps_);
+          drw.submit((pass == 0) ? tiles_dilate_minmax_ps_ : tiles_dilate_minabs_ps_, view);
         }
       }
 
@@ -667,12 +660,12 @@ void DepthOfField::render(GPUTexture **input_tx,
 
     downsample_tx_.acquire(quarter_res, GPU_RGBA16F);
 
-    DRW_draw_pass(downsample_ps_);
+    drw.submit(downsample_ps_, view);
 
     scatter_fg_indirect_buf_.clear_to_zero();
     scatter_bg_indirect_buf_.clear_to_zero();
 
-    DRW_draw_pass(reduce_ps_);
+    drw.submit(reduce_ps_, view);
 
     /* Used by reduce pass. */
     downsample_tx_.release();
@@ -686,15 +679,15 @@ void DepthOfField::render(GPUTexture **input_tx,
     SwapChain<TextureFromPool, 2> &color_tx = is_background ? color_bg_tx_ : color_fg_tx_;
     SwapChain<TextureFromPool, 2> &weight_tx = is_background ? weight_bg_tx_ : weight_fg_tx_;
     Framebuffer &scatter_fb = is_background ? scatter_bg_fb_ : scatter_fg_fb_;
-    DRWPass *gather_ps = is_background ? gather_bg_ps_ : gather_fg_ps_;
-    DRWPass *filter_ps = is_background ? filter_bg_ps_ : filter_fg_ps_;
-    DRWPass *scatter_ps = is_background ? scatter_bg_ps_ : scatter_fg_ps_;
+    PassSimple &gather_ps = is_background ? gather_bg_ps_ : gather_fg_ps_;
+    PassSimple &filter_ps = is_background ? filter_bg_ps_ : filter_fg_ps_;
+    PassSimple &scatter_ps = is_background ? scatter_bg_ps_ : scatter_fg_ps_;
 
     color_tx.current().acquire(half_res, GPU_RGBA16F);
     weight_tx.current().acquire(half_res, GPU_R16F);
     occlusion_tx_.acquire(half_res, GPU_RG16F);
 
-    DRW_draw_pass(gather_ps);
+    drw.submit(gather_ps, view);
 
     {
       /* Filtering pass. */
@@ -704,7 +697,7 @@ void DepthOfField::render(GPUTexture **input_tx,
       color_tx.current().acquire(half_res, GPU_RGBA16F);
       weight_tx.current().acquire(half_res, GPU_R16F);
 
-      DRW_draw_pass(filter_ps);
+      drw.submit(filter_ps, view);
 
       color_tx.previous().release();
       weight_tx.previous().release();
@@ -715,7 +708,7 @@ void DepthOfField::render(GPUTexture **input_tx,
     scatter_fb.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(color_tx.current()));
 
     GPU_framebuffer_bind(scatter_fb);
-    DRW_draw_pass(scatter_ps);
+    drw.submit(scatter_ps, view);
 
     /* Used by scatter pass. */
     occlusion_tx_.release();
@@ -731,7 +724,7 @@ void DepthOfField::render(GPUTexture **input_tx,
     hole_fill_color_tx_.acquire(half_res, GPU_RGBA16F);
     hole_fill_weight_tx_.acquire(half_res, GPU_R16F);
 
-    DRW_draw_pass(hole_fill_ps_);
+    drw.submit(hole_fill_ps_, view);
 
     /* NOTE: We do not filter the hole-fill pass as effect is likely to not be noticeable. */
 
@@ -742,7 +735,7 @@ void DepthOfField::render(GPUTexture **input_tx,
 
     resolve_stable_color_tx_ = dof_buffer.stabilize_history_tx_;
 
-    DRW_draw_pass(resolve_ps_);
+    drw.submit(resolve_ps_, view);
 
     color_bg_tx_.current().release();
     color_fg_tx_.current().release();

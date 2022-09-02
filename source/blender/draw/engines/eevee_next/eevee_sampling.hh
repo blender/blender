@@ -87,6 +87,12 @@ class Sampling {
     DRW_shgroup_storage_block_ref(grp, "sampling_buf", &data_);
   }
 
+  template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
+  {
+    /* Storage Buf. */
+    pass->bind_ssbo(SAMPLING_BUF_SLOT, &data_);
+  }
+
   /* Returns a pseudo random number in [0..1] range. Each dimension are de-correlated. */
   float rng_get(eSamplingDimension dimension) const
   {

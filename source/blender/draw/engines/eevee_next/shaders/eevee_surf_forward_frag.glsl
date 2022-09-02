@@ -97,6 +97,7 @@ void main()
   out_normal += g_refraction_data.N * g_refraction_data.weight;
   out_normal = safe_normalize(out_normal);
 
+#ifdef MAT_RENDER_PASS_SUPPORT
   ivec2 out_texel = ivec2(gl_FragCoord.xy);
   imageStore(rp_normal_img, out_texel, vec4(out_normal, 1.0));
   imageStore(
@@ -106,6 +107,7 @@ void main()
   imageStore(rp_diffuse_color_img, out_texel, vec4(g_diffuse_data.color, 1.0));
   imageStore(rp_specular_color_img, out_texel, vec4(specular_color, 1.0));
   imageStore(rp_emission_img, out_texel, vec4(g_emission, 1.0));
+#endif
 
   out_radiance.rgb *= 1.0 - g_holdout;
 

@@ -32,36 +32,31 @@ void HiZBuffer::sync()
   data_.push_update();
 
   {
-    hiz_update_ps_ = DRW_pass_create("HizUpdate", DRW_STATE_NO_DRAW);
-    GPUShader *sh = inst_.shaders.static_shader_get(HIZ_UPDATE);
-    DRWShadingGroup *grp = DRW_shgroup_create(sh, hiz_update_ps_);
-    DRW_shgroup_storage_block(grp, "finished_tile_counter", atomic_tile_counter_);
-    DRW_shgroup_uniform_texture_ref_ex(grp, "depth_tx", &render_buffers.depth_tx, with_filter);
-    DRW_shgroup_uniform_image(grp, "out_mip_0", hiz_tx_.mip_view(0));
-    DRW_shgroup_uniform_image(grp, "out_mip_1", hiz_tx_.mip_view(1));
-    DRW_shgroup_uniform_image(grp, "out_mip_2", hiz_tx_.mip_view(2));
-    DRW_shgroup_uniform_image(grp, "out_mip_3", hiz_tx_.mip_view(3));
-    DRW_shgroup_uniform_image(grp, "out_mip_4", hiz_tx_.mip_view(4));
-    DRW_shgroup_uniform_image(grp, "out_mip_5", hiz_tx_.mip_view(5));
-    DRW_shgroup_uniform_image(grp, "out_mip_6", hiz_tx_.mip_view(6));
-    DRW_shgroup_uniform_image(grp, "out_mip_7", hiz_tx_.mip_view(7));
+    hiz_update_ps_.init();
+    hiz_update_ps_.shader_set(inst_.shaders.static_shader_get(HIZ_UPDATE));
+    hiz_update_ps_.bind_ssbo("finished_tile_counter", atomic_tile_counter_);
+    hiz_update_ps_.bind_texture("depth_tx", &render_buffers.depth_tx, with_filter);
+    hiz_update_ps_.bind_image("out_mip_0", hiz_tx_.mip_view(0));
+    hiz_update_ps_.bind_image("out_mip_1", hiz_tx_.mip_view(1));
+    hiz_update_ps_.bind_image("out_mip_2", hiz_tx_.mip_view(2));
+    hiz_update_ps_.bind_image("out_mip_3", hiz_tx_.mip_view(3));
+    hiz_update_ps_.bind_image("out_mip_4", hiz_tx_.mip_view(4));
+    hiz_update_ps_.bind_image("out_mip_5", hiz_tx_.mip_view(5));
+    hiz_update_ps_.bind_image("out_mip_6", hiz_tx_.mip_view(6));
+    hiz_update_ps_.bind_image("out_mip_7", hiz_tx_.mip_view(7));
     /* TODO(@fclem): There might be occasions where we might not want to
      * copy mip 0 for performance reasons if there is no need for it. */
-    DRW_shgroup_uniform_bool_copy(grp, "update_mip_0", true);
-    DRW_shgroup_call_compute(grp, UNPACK2(dispatch_size), 1);
-    DRW_shgroup_barrier(grp, GPU_BARRIER_TEXTURE_FETCH);
+    hiz_update_ps_.push_constant("update_mip_0", true);
+    hiz_update_ps_.dispatch(int3(dispatch_size, 1));
+    hiz_update_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH);
   }
 
   if (inst_.debug_mode == eDebugMode::DEBUG_HIZ_VALIDATION) {
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM;
-    debug_draw_ps_ = DRW_pass_create("HizUpdate.Debug", state);
-    GPUShader *sh = inst_.shaders.static_shader_get(HIZ_DEBUG);
-    DRWShadingGroup *grp = DRW_shgroup_create(sh, debug_draw_ps_);
-    this->bind_resources(grp);
-    DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
-  }
-  else {
-    debug_draw_ps_ = nullptr;
+    debug_draw_ps_.init();
+    debug_draw_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
+    debug_draw_ps_.shader_set(inst_.shaders.static_shader_get(HIZ_DEBUG));
+    this->bind_resources(&debug_draw_ps_);
+    debug_draw_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 }
 
@@ -79,22 +74,24 @@ void HiZBuffer::update()
     GPU_framebuffer_restore();
   }
 
-  DRW_draw_pass(hiz_update_ps_);
+  inst_.manager->submit(hiz_update_ps_);
 
   if (G.debug & G_DEBUG_GPU) {
     GPU_framebuffer_bind(fb);
   }
 }
 
-void HiZBuffer::debug_draw(GPUFrameBuffer *view_fb)
+void HiZBuffer::debug_draw(View &view, GPUFrameBuffer *view_fb)
 {
-  if (debug_draw_ps_ == nullptr) {
-    return;
+  if (inst_.debug_mode == eDebugMode::DEBUG_HIZ_VALIDATION) {
+    inst_.info =
+        "Debug Mode: HiZ Validation\n"
+        " - Red: pixel in front of HiZ tile value.\n"
+        " - Blue: No error.";
+    inst_.hiz_buffer.update();
+    GPU_framebuffer_bind(view_fb);
+    inst_.manager->submit(debug_draw_ps_, view);
   }
-  inst_.info = "Debug Mode: HiZ Validation";
-  inst_.hiz_buffer.update();
-  GPU_framebuffer_bind(view_fb);
-  DRW_draw_pass(debug_draw_ps_);
 }
 
 /** \} */

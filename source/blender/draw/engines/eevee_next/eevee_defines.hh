@@ -68,3 +68,37 @@
 #define DOF_FILTER_GROUP_SIZE 8
 #define DOF_GATHER_GROUP_SIZE DOF_TILES_SIZE
 #define DOF_RESOLVE_GROUP_SIZE (DOF_TILES_SIZE * 2)
+
+/* Resource bindings. */
+
+/* Texture. */
+#define RBUFS_UTILITY_TEX_SLOT 14
+
+/* Images. */
+#define RBUFS_NORMAL_SLOT 0
+#define RBUFS_LIGHT_SLOT 1
+#define RBUFS_DIFF_COLOR_SLOT 2
+#define RBUFS_SPEC_COLOR_SLOT 3
+#define RBUFS_EMISSION_SLOT 4
+#define RBUFS_AOV_COLOR_SLOT 5
+#define RBUFS_AOV_VALUE_SLOT 6
+
+/* Uniform Bufs. */
+/* Only during prepass. */
+#define VELOCITY_CAMERA_PREV_BUF 3
+#define VELOCITY_CAMERA_CURR_BUF 4
+#define VELOCITY_CAMERA_NEXT_BUF 5
+
+/* Storage Bufs. */
+#define LIGHT_CULL_BUF_SLOT 0
+#define LIGHT_BUF_SLOT 1
+#define LIGHT_ZBIN_BUF_SLOT 2
+#define LIGHT_TILE_BUF_SLOT 3
+#define RBUFS_AOV_BUF_SLOT 5
+#define SAMPLING_BUF_SLOT 6
+/* Only during prepass. */
+#define VELOCITY_OBJ_PREV_BUF_SLOT 0
+#define VELOCITY_OBJ_NEXT_BUF_SLOT 1
+#define VELOCITY_GEO_PREV_BUF_SLOT 2
+#define VELOCITY_GEO_NEXT_BUF_SLOT 3
+#define VELOCITY_INDIRECTION_BUF_SLOT 4
