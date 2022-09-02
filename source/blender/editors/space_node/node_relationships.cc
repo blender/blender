@@ -1347,39 +1347,39 @@ static int cut_links_exec(bContext *C, wmOperator *op)
   }
   RNA_END;
 
-  if (i > 1) {
-    bool found = false;
-
-    ED_preview_kill_jobs(CTX_wm_manager(C), &bmain);
-
-    LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &snode.edittree->links) {
-      if (node_link_is_hidden_or_dimmed(region.v2d, *link)) {
-        continue;
-      }
-
-      if (node_links_intersect(*link, mcoords, i)) {
-
-        if (found == false) {
-          /* TODO(sergey): Why did we kill jobs twice? */
-          ED_preview_kill_jobs(CTX_wm_manager(C), &bmain);
-          found = true;
-        }
-
-        bNode *to_node = link->tonode;
-        nodeRemLink(snode.edittree, link);
-        sort_multi_input_socket_links(snode, *to_node, nullptr, nullptr);
-      }
-    }
-
-    ED_node_tree_propagate_change(C, CTX_data_main(C), snode.edittree);
-    if (found) {
-      return OPERATOR_FINISHED;
-    }
-
-    return OPERATOR_CANCELLED;
+  if (i == 0) {
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
-  return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+  bool found = false;
+
+  ED_preview_kill_jobs(CTX_wm_manager(C), &bmain);
+
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &snode.edittree->links) {
+    if (node_link_is_hidden_or_dimmed(region.v2d, *link)) {
+      continue;
+    }
+
+    if (node_links_intersect(*link, mcoords, i)) {
+
+      if (!found) {
+        /* TODO(sergey): Why did we kill jobs twice? */
+        ED_preview_kill_jobs(CTX_wm_manager(C), &bmain);
+        found = true;
+      }
+
+      bNode *to_node = link->tonode;
+      nodeRemLink(snode.edittree, link);
+      sort_multi_input_socket_links(snode, *to_node, nullptr, nullptr);
+    }
+  }
+
+  ED_node_tree_propagate_change(C, CTX_data_main(C), snode.edittree);
+  if (found) {
+    return OPERATOR_FINISHED;
+  }
+
+  return OPERATOR_CANCELLED;
 }
 
 void NODE_OT_links_cut(wmOperatorType *ot)
