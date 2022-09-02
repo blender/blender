@@ -320,7 +320,7 @@ static void compo_completejob(void *cjv)
 /** \name Composite Job C API
  * \{ */
 
-void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene *scene_owner)
+void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_owner)
 {
   using namespace blender::ed::space_node;
 
@@ -464,22 +464,22 @@ void ED_node_set_tree_type(SpaceNode *snode, bNodeTreeType *typeinfo)
   }
 }
 
-bool ED_node_is_compositor(struct SpaceNode *snode)
+bool ED_node_is_compositor(SpaceNode *snode)
 {
   return STREQ(snode->tree_idname, ntreeType_Composite->idname);
 }
 
-bool ED_node_is_shader(struct SpaceNode *snode)
+bool ED_node_is_shader(SpaceNode *snode)
 {
   return STREQ(snode->tree_idname, ntreeType_Shader->idname);
 }
 
-bool ED_node_is_texture(struct SpaceNode *snode)
+bool ED_node_is_texture(SpaceNode *snode)
 {
   return STREQ(snode->tree_idname, ntreeType_Texture->idname);
 }
 
-bool ED_node_is_geometry(struct SpaceNode *snode)
+bool ED_node_is_geometry(SpaceNode *snode)
 {
   return STREQ(snode->tree_idname, ntreeType_Geometry->idname);
 }
@@ -550,7 +550,7 @@ void ED_node_shader_default(const bContext *C, ID *id)
   }
 }
 
-void ED_node_composit_default(const bContext *C, struct Scene *sce)
+void ED_node_composit_default(const bContext *C, Scene *sce)
 {
   /* but lets check it anyway */
   if (sce->nodetree) {

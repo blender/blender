@@ -302,7 +302,7 @@ static void node_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void node_init(struct wmWindowManager *UNUSED(wm), ScrArea *area)
+static void node_init(wmWindowManager *UNUSED(wm), ScrArea *area)
 {
   SpaceNode *snode = (SpaceNode *)area->spacedata.first;
 
@@ -511,7 +511,7 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
   }
 }
 
-static void node_area_refresh(const struct bContext *C, ScrArea *area)
+static void node_area_refresh(const bContext *C, ScrArea *area)
 {
   /* default now: refresh node is starting preview */
   SpaceNode *snode = (SpaceNode *)area->spacedata.first;
@@ -526,7 +526,7 @@ static void node_area_refresh(const struct bContext *C, ScrArea *area)
         if (snode->runtime->recalc_auto_compositing) {
           snode->runtime->recalc_auto_compositing = false;
           snode->runtime->recalc_regular_compositing = false;
-          node_render_changed_exec((struct bContext *)C, nullptr);
+          node_render_changed_exec((bContext *)C, nullptr);
         }
         else if (snode->runtime->recalc_regular_compositing) {
           snode->runtime->recalc_regular_compositing = false;
@@ -973,9 +973,7 @@ static void node_id_remap_cb(ID *old_id, ID *new_id, void *user_data)
   }
 }
 
-static void node_id_remap(ScrArea *UNUSED(area),
-                          SpaceLink *slink,
-                          const struct IDRemapper *mappings)
+static void node_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, const IDRemapper *mappings)
 {
   /* Although we should be able to perform all the mappings in a single go this lead to issues when
    * running the python test cases. Somehow the nodetree/edittree weren't updated to the new

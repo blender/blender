@@ -1308,7 +1308,7 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 }
 
 /* Common handle function for operator buttons that need to select the node first. */
-static void node_toggle_button_cb(struct bContext *C, void *node_argv, void *op_argv)
+static void node_toggle_button_cb(bContext *C, void *node_argv, void *op_argv)
 {
   bNode *node = (bNode *)node_argv;
   const char *opname = (const char *)op_argv;
@@ -2768,7 +2768,7 @@ static void frame_node_draw_label(const bNodeTree &ntree,
     BLF_wordwrap(fontid, line_width);
 
     LISTBASE_FOREACH (const TextLine *, line, &text->lines) {
-      struct ResultBLF info;
+      ResultBLF info;
       if (line->line[0]) {
         BLF_position(fontid, x, y, 0);
         BLF_draw_ex(fontid, line->line, line->len, &info);

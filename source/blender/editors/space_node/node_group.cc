@@ -653,7 +653,7 @@ static bool node_group_make_use_node(bNode &node, bNode *gnode)
 static bool node_group_make_test_selected(bNodeTree &ntree,
                                           bNode *gnode,
                                           const char *ntree_idname,
-                                          struct ReportList &reports)
+                                           ReportList &reports)
 {
   int ok = true;
 

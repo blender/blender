@@ -124,8 +124,8 @@ static bool add_reroute_intersect_check(const bNodeLink &link,
 struct bNodeSocketLink {
   struct bNodeSocketLink *next, *prev;
 
-  struct bNodeSocket *sock;
-  struct bNodeLink *link;
+  bNodeSocket *sock;
+  bNodeLink *link;
   float2 point;
 };
 

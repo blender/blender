@@ -515,7 +515,7 @@ void node_select_single(bContext &C, bNode &node)
 static bool node_mouse_select(bContext *C,
                               wmOperator *op,
                               const int2 mval,
-                              struct SelectPick_Params *params)
+                              SelectPick_Params *params)
 {
   Main &bmain = *CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -670,7 +670,7 @@ static int node_select_exec(bContext *C, wmOperator *op)
   int2 mval;
   RNA_int_get_array(op->ptr, "location", mval);
 
-  struct SelectPick_Params params = {};
+  SelectPick_Params params = {};
   ED_select_pick_params_from_operator(op->ptr, &params);
 
   /* perform the select */
@@ -1298,7 +1298,7 @@ static void node_find_create_label(const bNode *node, char *str, int maxlen)
 }
 
 /* Generic search invoke. */
-static void node_find_update_fn(const struct bContext *C,
+static void node_find_update_fn(const bContext *C,
                                 void *UNUSED(arg),
                                 const char *str,
                                 uiSearchItems *items,
@@ -1330,7 +1330,7 @@ static void node_find_update_fn(const struct bContext *C,
   BLI_string_search_free(search);
 }
 
-static void node_find_exec_fn(struct bContext *C, void *UNUSED(arg1), void *arg2)
+static void node_find_exec_fn(bContext *C, void *UNUSED(arg1), void *arg2)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNode *active = (bNode *)arg2;

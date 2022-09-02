@@ -252,7 +252,7 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *
     return OPERATOR_CANCELLED;
   }
 
-  nvm = MEM_cnew<NodeViewMove>("NodeViewMove struct");
+  nvm = MEM_cnew<NodeViewMove>(__func__);
   op->customdata = nvm;
   nvm->mvalo.x = event->mval[0];
   nvm->mvalo.y = event->mval[1];
@@ -447,7 +447,7 @@ static void sample_draw(const bContext *C, ARegion *region, void *arg_info)
 }  // namespace blender::ed::space_node
 
 bool ED_space_node_get_position(
-    Main *bmain, SpaceNode *snode, struct ARegion *region, const int mval[2], float fpos[2])
+    Main *bmain, SpaceNode *snode, ARegion *region, const int mval[2], float fpos[2])
 {
   if (!ED_node_is_compositor(snode) || (snode->flag & SNODE_BACKDRAW) == 0) {
     return false;
