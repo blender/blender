@@ -3023,6 +3023,7 @@ static void draw_nodetree(const bContext &C,
                           bNodeInstanceKey parent_key)
 {
   SpaceNode *snode = CTX_wm_space_node(&C);
+  ntree.ensure_topology_cache();
 
   Span<bNode *> nodes = ntree.all_nodes();
 
