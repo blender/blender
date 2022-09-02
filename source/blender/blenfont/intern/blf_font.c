@@ -231,7 +231,7 @@ void blf_batch_draw_begin(FontBLF *font)
     float gpumat[4][4];
     GPU_matrix_model_view_get(gpumat);
 
-    bool mat_changed = (memcmp(gpumat, g_batch.mat, sizeof(g_batch.mat)) != 0);
+    bool mat_changed = equals_m4m4(gpumat, g_batch.mat) == false;
 
     if (mat_changed) {
       /* Modelviewmat is no longer the same.
