@@ -5,12 +5,12 @@
  * \ingroup render
  */
 
-#include <errno.h>
-#include <limits.h>
-#include <math.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cerrno>
+#include <climits>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
 
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
