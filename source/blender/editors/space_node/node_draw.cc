@@ -340,13 +340,13 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node, 
   bool add_output_space = false;
 
   int buty;
-  LISTBASE_FOREACH (bNodeSocket *, nsock, &node.outputs) {
-    if (nodeSocketIsHidden(nsock)) {
+  LISTBASE_FOREACH (bNodeSocket *, socket, &node.outputs) {
+    if (nodeSocketIsHidden(socket)) {
       continue;
     }
 
     PointerRNA sockptr;
-    RNA_pointer_create(&ntree.id, &RNA_NodeSocket, nsock, &sockptr);
+    RNA_pointer_create(&ntree.id, &RNA_NodeSocket, socket, &sockptr);
 
     uiLayout *layout = UI_block_layout(&block,
                                        UI_LAYOUT_VERTICAL,
@@ -369,10 +369,10 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node, 
     /* Align output buttons to the right. */
     uiLayout *row = uiLayoutRow(layout, true);
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
-    const char *socket_label = nodeSocketLabel(nsock);
-    nsock->typeinfo->draw((bContext *)&C, row, &sockptr, &nodeptr, IFACE_(socket_label));
+    const char *socket_label = nodeSocketLabel(socket);
+    socket->typeinfo->draw((bContext *)&C, row, &sockptr, &nodeptr, IFACE_(socket_label));
 
-    node_socket_add_tooltip(ntree, node, *nsock, *row);
+    node_socket_add_tooltip(ntree, node, *socket, *row);
 
     UI_block_align_end(&block);
     UI_block_layout_resolve(&block, nullptr, &buty);
@@ -381,11 +381,11 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node, 
     buty = min_ii(buty, dy - NODE_DY);
 
     /* Round the socket location to stop it from jiggling. */
-    nsock->locx = round(loc.x + NODE_WIDTH(node));
-    nsock->locy = round(dy - NODE_DYS);
+    socket->locx = round(loc.x + NODE_WIDTH(node));
+    socket->locy = round(dy - NODE_DYS);
 
     dy = buty;
-    if (nsock->next) {
+    if (socket->next) {
       dy -= NODE_SOCKDY;
     }
 
@@ -463,20 +463,20 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node, 
   }
 
   /* Input sockets. */
-  LISTBASE_FOREACH (bNodeSocket *, nsock, &node.inputs) {
-    if (nodeSocketIsHidden(nsock)) {
+  LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
+    if (nodeSocketIsHidden(socket)) {
       continue;
     }
 
     PointerRNA sockptr;
-    RNA_pointer_create(&ntree.id, &RNA_NodeSocket, nsock, &sockptr);
+    RNA_pointer_create(&ntree.id, &RNA_NodeSocket, socket, &sockptr);
 
     /* Add the half the height of a multi-input socket to cursor Y
      * to account for the increased height of the taller sockets. */
     float multi_input_socket_offset = 0.0f;
-    if (nsock->flag & SOCK_MULTI_INPUT) {
-      if (nsock->total_inputs > 2) {
-        multi_input_socket_offset = (nsock->total_inputs - 2) * NODE_MULTI_INPUT_LINK_GAP;
+    if (socket->flag & SOCK_MULTI_INPUT) {
+      if (socket->total_inputs > 2) {
+        multi_input_socket_offset = (socket->total_inputs - 2) * NODE_MULTI_INPUT_LINK_GAP;
       }
     }
     dy -= multi_input_socket_offset * 0.5f;
@@ -501,10 +501,10 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node, 
 
     uiLayout *row = uiLayoutRow(layout, true);
 
-    const char *socket_label = nodeSocketLabel(nsock);
-    nsock->typeinfo->draw((bContext *)&C, row, &sockptr, &nodeptr, IFACE_(socket_label));
+    const char *socket_label = nodeSocketLabel(socket);
+    socket->typeinfo->draw((bContext *)&C, row, &sockptr, &nodeptr, IFACE_(socket_label));
 
-    node_socket_add_tooltip(ntree, node, *nsock, *row);
+    node_socket_add_tooltip(ntree, node, *socket, *row);
 
     UI_block_align_end(&block);
     UI_block_layout_resolve(&block, nullptr, &buty);
@@ -512,12 +512,12 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node, 
     /* Ensure minimum socket height in case layout is empty. */
     buty = min_ii(buty, dy - NODE_DY);
 
-    nsock->locx = loc.x;
+    socket->locx = loc.x;
     /* Round the socket vertical position to stop it from jiggling. */
-    nsock->locy = round(dy - NODE_DYS);
+    socket->locy = round(dy - NODE_DYS);
 
     dy = buty - multi_input_socket_offset * 0.5;
-    if (nsock->next) {
+    if (socket->next) {
       dy -= NODE_SOCKDY;
     }
   }
@@ -555,13 +555,13 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   loc.y = round(loc.y);
 
   /* Calculate minimal radius. */
-  LISTBASE_FOREACH (bNodeSocket *, nsock, &node.inputs) {
-    if (!nodeSocketIsHidden(nsock)) {
+  LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
+    if (!nodeSocketIsHidden(socket)) {
       totin++;
     }
   }
-  LISTBASE_FOREACH (bNodeSocket *, nsock, &node.outputs) {
-    if (!nodeSocketIsHidden(nsock)) {
+  LISTBASE_FOREACH (bNodeSocket *, socket, &node.outputs) {
+    if (!nodeSocketIsHidden(socket)) {
       totout++;
     }
   }
@@ -581,11 +581,11 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   float rad = (float)M_PI / (1.0f + (float)totout);
   float drad = rad;
 
-  LISTBASE_FOREACH (bNodeSocket *, nsock, &node.outputs) {
-    if (!nodeSocketIsHidden(nsock)) {
+  LISTBASE_FOREACH (bNodeSocket *, socket, &node.outputs) {
+    if (!nodeSocketIsHidden(socket)) {
       /* Round the socket location to stop it from jiggling. */
-      nsock->locx = round(node.totr.xmax - hiddenrad + sinf(rad) * hiddenrad);
-      nsock->locy = round(node.totr.ymin + hiddenrad + cosf(rad) * hiddenrad);
+      socket->locx = round(node.totr.xmax - hiddenrad + sinf(rad) * hiddenrad);
+      socket->locy = round(node.totr.ymin + hiddenrad + cosf(rad) * hiddenrad);
       rad += drad;
     }
   }
@@ -593,11 +593,11 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   /* Input sockets. */
   rad = drad = -(float)M_PI / (1.0f + (float)totin);
 
-  LISTBASE_FOREACH (bNodeSocket *, nsock, &node.inputs) {
-    if (!nodeSocketIsHidden(nsock)) {
+  LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
+    if (!nodeSocketIsHidden(socket)) {
       /* Round the socket location to stop it from jiggling. */
-      nsock->locx = round(node.totr.xmin + hiddenrad + sinf(rad) * hiddenrad);
-      nsock->locy = round(node.totr.ymin + hiddenrad + cosf(rad) * hiddenrad);
+      socket->locx = round(node.totr.xmin + hiddenrad + sinf(rad) * hiddenrad);
+      socket->locy = round(node.totr.ymin + hiddenrad + cosf(rad) * hiddenrad);
       rad += drad;
     }
   }
@@ -2649,13 +2649,13 @@ static void reroute_node_prepare_for_draw(bNode &node)
   const float2 loc = node_to_view(node, float2(0));
 
   /* reroute node has exactly one input and one output, both in the same place */
-  bNodeSocket *nsock = (bNodeSocket *)node.outputs.first;
-  nsock->locx = loc.x;
-  nsock->locy = loc.y;
+  bNodeSocket *socket = (bNodeSocket *)node.outputs.first;
+  socket->locx = loc.x;
+  socket->locy = loc.y;
 
-  nsock = (bNodeSocket *)node.inputs.first;
-  nsock->locx = loc.x;
-  nsock->locy = loc.y;
+  socket = (bNodeSocket *)node.inputs.first;
+  socket->locx = loc.x;
+  socket->locy = loc.y;
 
   const float size = 8.0f;
   node.width = size * 2;

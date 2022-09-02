@@ -2660,9 +2660,9 @@ void nodePositionRelative(bNode *from_node,
 
 void nodePositionPropagate(bNode *node)
 {
-  LISTBASE_FOREACH (bNodeSocket *, nsock, &node->inputs) {
-    if (nsock->link != nullptr) {
-      bNodeLink *link = nsock->link;
+  LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+    if (socket->link != nullptr) {
+      bNodeLink *link = socket->link;
       nodePositionRelative(link->fromnode, link->tonode, link->fromsock, link->tosock);
       nodePositionPropagate(link->fromnode);
     }
