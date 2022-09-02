@@ -19,6 +19,8 @@
 
 namespace blender::nodes::node_composite_translate_cc {
 
+NODE_STORAGE_FUNCS(NodeTranslateData)
+
 static void cmp_node_translate_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>(N_("Image"))
@@ -76,24 +78,19 @@ class TranslateOperation : public NodeOperation {
     result.get_realization_options().repeat_y = get_repeat_y();
   }
 
-  const NodeTranslateData &get_node_translate()
-  {
-    return *static_cast<const NodeTranslateData *>(bnode().storage);
-  }
-
   bool get_use_relative()
   {
-    return get_node_translate().relative;
+    return node_storage(bnode()).relative;
   }
 
   bool get_repeat_x()
   {
-    return ELEM(get_node_translate().wrap_axis, CMP_NODE_WRAP_X, CMP_NODE_WRAP_XY);
+    return ELEM(node_storage(bnode()).wrap_axis, CMP_NODE_WRAP_X, CMP_NODE_WRAP_XY);
   }
 
   bool get_repeat_y()
   {
-    return ELEM(get_node_translate().wrap_axis, CMP_NODE_WRAP_Y, CMP_NODE_WRAP_XY);
+    return ELEM(node_storage(bnode()).wrap_axis, CMP_NODE_WRAP_Y, CMP_NODE_WRAP_XY);
   }
 };
 

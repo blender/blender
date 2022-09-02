@@ -27,6 +27,8 @@
 
 namespace blender::nodes::node_composite_crop_cc {
 
+NODE_STORAGE_FUNCS(NodeTwoXYs)
+
 static void cmp_node_crop_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>(N_("Image"))
@@ -163,11 +165,6 @@ class CropOperation : public NodeOperation {
     return bnode().custom2;
   }
 
-  const NodeTwoXYs &get_node_two_xys()
-  {
-    return *static_cast<const NodeTwoXYs *>(bnode().storage);
-  }
-
   /* Returns true if the operation does nothing and the input can be passed through. */
   bool is_identity()
   {
@@ -190,7 +187,7 @@ class CropOperation : public NodeOperation {
 
   void compute_cropping_bounds(int2 &lower_bound, int2 &upper_bound)
   {
-    const NodeTwoXYs &node_two_xys = get_node_two_xys();
+    const NodeTwoXYs &node_two_xys = node_storage(bnode());
     const int2 input_size = get_input("Image").domain().size;
 
     if (get_is_relative()) {

@@ -48,6 +48,8 @@ void ntreeCompositColorBalanceSyncFromCDL(bNodeTree *UNUSED(ntree), bNode *node)
 
 namespace blender::nodes::node_composite_colorbalance_cc {
 
+NODE_STORAGE_FUNCS(NodeColorBalance)
+
 static void cmp_node_colorbalance_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Float>(N_("Fac"))
@@ -161,7 +163,7 @@ class ColorBalanceShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    const NodeColorBalance *node_color_balance = get_node_color_balance();
+    const NodeColorBalance &node_color_balance = node_storage(bnode());
 
     if (get_color_balance_method() == CMP_NODE_COLOR_BALANCE_LGG) {
       GPU_stack_link(material,
@@ -169,9 +171,9 @@ class ColorBalanceShaderNode : public ShaderNode {
                      "node_composite_color_balance_lgg",
                      inputs,
                      outputs,
-                     GPU_uniform(node_color_balance->lift),
-                     GPU_uniform(node_color_balance->gamma),
-                     GPU_uniform(node_color_balance->gain));
+                     GPU_uniform(node_color_balance.lift),
+                     GPU_uniform(node_color_balance.gamma),
+                     GPU_uniform(node_color_balance.gain));
       return;
     }
 
@@ -180,20 +182,15 @@ class ColorBalanceShaderNode : public ShaderNode {
                    "node_composite_color_balance_asc_cdl",
                    inputs,
                    outputs,
-                   GPU_uniform(node_color_balance->offset),
-                   GPU_uniform(node_color_balance->power),
-                   GPU_uniform(node_color_balance->slope),
-                   GPU_uniform(&node_color_balance->offset_basis));
+                   GPU_uniform(node_color_balance.offset),
+                   GPU_uniform(node_color_balance.power),
+                   GPU_uniform(node_color_balance.slope),
+                   GPU_uniform(&node_color_balance.offset_basis));
   }
 
   CMPNodeColorBalanceMethod get_color_balance_method()
   {
     return (CMPNodeColorBalanceMethod)bnode().custom1;
-  }
-
-  const NodeColorBalance *get_node_color_balance()
-  {
-    return static_cast<const NodeColorBalance *>(bnode().storage);
   }
 };
 

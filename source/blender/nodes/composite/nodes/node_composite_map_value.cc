@@ -22,6 +22,8 @@
 
 namespace blender::nodes::node_composite_map_value_cc {
 
+NODE_STORAGE_FUNCS(TexMapping)
+
 static void cmp_node_map_value_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Float>(N_("Value"))
@@ -69,7 +71,7 @@ class MapValueShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    const TexMapping *texture_mapping = get_texture_mapping();
+    const TexMapping &texture_mapping = node_storage(bnode());
 
     const float use_min = get_use_min();
     const float use_max = get_use_max();
@@ -79,27 +81,22 @@ class MapValueShaderNode : public ShaderNode {
                    "node_composite_map_value",
                    inputs,
                    outputs,
-                   GPU_uniform(texture_mapping->loc),
-                   GPU_uniform(texture_mapping->size),
+                   GPU_uniform(texture_mapping.loc),
+                   GPU_uniform(texture_mapping.size),
                    GPU_constant(&use_min),
-                   GPU_uniform(texture_mapping->min),
+                   GPU_uniform(texture_mapping.min),
                    GPU_constant(&use_max),
-                   GPU_uniform(texture_mapping->max));
-  }
-
-  const TexMapping *get_texture_mapping()
-  {
-    return static_cast<const TexMapping *>(bnode().storage);
+                   GPU_uniform(texture_mapping.max));
   }
 
   bool get_use_min()
   {
-    return get_texture_mapping()->flag & TEXMAP_CLIP_MIN;
+    return node_storage(bnode()).flag & TEXMAP_CLIP_MIN;
   }
 
   bool get_use_max()
   {
-    return get_texture_mapping()->flag & TEXMAP_CLIP_MAX;
+    return node_storage(bnode()).flag & TEXMAP_CLIP_MAX;
   }
 };
 

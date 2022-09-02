@@ -18,6 +18,8 @@
 
 namespace blender::nodes::node_composite_alpha_over_cc {
 
+NODE_STORAGE_FUNCS(NodeTwoFloats)
+
 static void cmp_node_alphaover_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Float>(N_("Fac"))
@@ -86,7 +88,7 @@ class AlphaOverShaderNode : public ShaderNode {
 
   float get_premultiply_factor()
   {
-    return ((const NodeTwoFloats *)bnode().storage)->x;
+    return node_storage(bnode()).x;
   }
 };
 

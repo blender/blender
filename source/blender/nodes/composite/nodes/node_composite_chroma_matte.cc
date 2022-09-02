@@ -22,6 +22,8 @@
 
 namespace blender::nodes::node_composite_chroma_matte_cc {
 
+NODE_STORAGE_FUNCS(NodeChroma)
+
 static void cmp_node_chroma_matte_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>(N_("Image"))
@@ -86,24 +88,19 @@ class ChromaMatteShaderNode : public ShaderNode {
                    GPU_uniform(&falloff));
   }
 
-  const NodeChroma *get_node_chroma()
-  {
-    return static_cast<const NodeChroma *>(bnode().storage);
-  }
-
   float get_acceptance()
   {
-    return std::tan(get_node_chroma()->t1) / 2.0f;
+    return std::tan(node_storage(bnode()).t1) / 2.0f;
   }
 
   float get_cutoff()
   {
-    return get_node_chroma()->t2;
+    return node_storage(bnode()).t2;
   }
 
   float get_falloff()
   {
-    return get_node_chroma()->fstrength;
+    return node_storage(bnode()).fstrength;
   }
 };
 

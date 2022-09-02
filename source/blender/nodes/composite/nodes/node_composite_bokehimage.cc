@@ -22,6 +22,8 @@
 
 namespace blender::nodes::node_composite_bokehimage_cc {
 
+NODE_STORAGE_FUNCS(NodeBokehImage)
+
 static void cmp_node_bokehimage_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Color>(N_("Image"));
@@ -66,9 +68,9 @@ class BokehImageOperation : public NodeOperation {
 
     GPU_shader_uniform_1f(shader, "exterior_angle", get_exterior_angle());
     GPU_shader_uniform_1f(shader, "rotation", get_rotation());
-    GPU_shader_uniform_1f(shader, "roundness", get_node_bokeh_image().rounding);
-    GPU_shader_uniform_1f(shader, "catadioptric", get_node_bokeh_image().catadioptric);
-    GPU_shader_uniform_1f(shader, "lens_shift", get_node_bokeh_image().lensshift);
+    GPU_shader_uniform_1f(shader, "roundness", node_storage(bnode()).rounding);
+    GPU_shader_uniform_1f(shader, "catadioptric", node_storage(bnode()).catadioptric);
+    GPU_shader_uniform_1f(shader, "lens_shift", node_storage(bnode()).lensshift);
 
     Result &output = get_result("Image");
     const Domain domain = compute_domain();
@@ -86,16 +88,11 @@ class BokehImageOperation : public NodeOperation {
     return Domain(int2(512));
   }
 
-  const NodeBokehImage &get_node_bokeh_image()
-  {
-    return *static_cast<const NodeBokehImage *>(bnode().storage);
-  }
-
   /* The exterior angle is the angle between each two consecutive vertices of the regular polygon
    * from its center. */
   float get_exterior_angle()
   {
-    return (M_PI * 2.0f) / get_node_bokeh_image().flaps;
+    return (M_PI * 2.0f) / node_storage(bnode()).flaps;
   }
 
   float get_rotation()
@@ -104,7 +101,7 @@ class BokehImageOperation : public NodeOperation {
      * y axis, which is 90 degrees minus the angle that it makes with the positive x axis assuming
      * the first vertex lies on the positive x axis. */
     const float offset = M_PI_2 - get_exterior_angle();
-    return get_node_bokeh_image().angle - offset;
+    return node_storage(bnode()).angle - offset;
   }
 };
 

@@ -239,7 +239,7 @@ class MovieClipOperation : public NodeOperation {
   GPUTexture *get_movie_clip_texture()
   {
     MovieClip *movie_clip = get_movie_clip();
-    MovieClipUser *movie_clip_user = static_cast<MovieClipUser *>(bnode().storage);
+    MovieClipUser *movie_clip_user = get_movie_clip_user();
     BKE_movieclip_user_set_frame(movie_clip_user, context().get_frame_number());
     return BKE_movieclip_get_gpu_texture(movie_clip, movie_clip_user);
   }
@@ -255,6 +255,11 @@ class MovieClipOperation : public NodeOperation {
   MovieClip *get_movie_clip()
   {
     return (MovieClip *)bnode().id;
+  }
+
+  MovieClipUser *get_movie_clip_user()
+  {
+    return static_cast<MovieClipUser *>(bnode().storage);
   }
 };
 

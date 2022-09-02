@@ -22,6 +22,8 @@
 
 namespace blender::nodes::node_composite_directionalblur_cc {
 
+NODE_STORAGE_FUNCS(NodeDBlurData)
+
 static void cmp_node_directional_blur_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>(N_("Image"))
@@ -109,28 +111,27 @@ class DirectionalBlurOperation : public NodeOperation {
   float2 get_translation()
   {
     const float diagonal_length = math::length(float2(get_input("Image").domain().size));
-    const float translation_amount = diagonal_length * get_node_directional_blur_data().distance;
-    const float3x3 rotation = float3x3::from_rotation(-get_node_directional_blur_data().angle);
+    const float translation_amount = diagonal_length * node_storage(bnode()).distance;
+    const float3x3 rotation = float3x3::from_rotation(-node_storage(bnode()).angle);
     return rotation * float2(-translation_amount / get_iterations(), 0.0f);
   }
 
   /* Get the amount of rotation that will be applied on each iteration. */
   float get_rotation()
   {
-    return get_node_directional_blur_data().spin / get_iterations();
+    return node_storage(bnode()).spin / get_iterations();
   }
 
   /* Get the amount of scale that will be applied on each iteration. The scale is identity when the
    * user supplies 0, so we add 1. */
   float2 get_scale()
   {
-    return float2(1.0f + get_node_directional_blur_data().zoom / get_iterations());
+    return float2(1.0f + node_storage(bnode()).zoom / get_iterations());
   }
 
   float2 get_origin()
   {
-    const float2 center = float2(get_node_directional_blur_data().center_x,
-                                 get_node_directional_blur_data().center_y);
+    const float2 center = float2(node_storage(bnode()).center_x, node_storage(bnode()).center_y);
     return float2(get_input("Image").domain().size) * center;
   }
 
@@ -151,7 +152,7 @@ class DirectionalBlurOperation : public NodeOperation {
    * is the number of diagonal pixels. */
   int get_iterations()
   {
-    const int iterations = 2 << (get_node_directional_blur_data().iter - 1);
+    const int iterations = 2 << (node_storage(bnode()).iter - 1);
     const int upper_limit = math::ceil(math::length(float2(get_input("Image").domain().size)));
     return math::min(iterations, upper_limit);
   }
@@ -166,24 +167,19 @@ class DirectionalBlurOperation : public NodeOperation {
     }
 
     /* If any of the following options are non-zero, then the operation is not an identity. */
-    if (get_node_directional_blur_data().distance != 0.0f) {
+    if (node_storage(bnode()).distance != 0.0f) {
       return false;
     }
 
-    if (get_node_directional_blur_data().spin != 0.0f) {
+    if (node_storage(bnode()).spin != 0.0f) {
       return false;
     }
 
-    if (get_node_directional_blur_data().zoom != 0.0f) {
+    if (node_storage(bnode()).zoom != 0.0f) {
       return false;
     }
 
     return true;
-  }
-
-  const NodeDBlurData &get_node_directional_blur_data()
-  {
-    return *static_cast<const NodeDBlurData *>(bnode().storage);
   }
 };
 

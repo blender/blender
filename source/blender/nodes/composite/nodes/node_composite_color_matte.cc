@@ -18,6 +18,8 @@
 
 namespace blender::nodes::node_composite_color_matte_cc {
 
+NODE_STORAGE_FUNCS(NodeChroma)
+
 static void cmp_node_color_matte_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>(N_("Image"))
@@ -83,25 +85,20 @@ class ColorMatteShaderNode : public ShaderNode {
                    GPU_uniform(&value_epsilon));
   }
 
-  const NodeChroma *get_node_chroma()
-  {
-    return static_cast<const NodeChroma *>(bnode().storage);
-  }
-
   float get_hue_epsilon()
   {
     /* Divide by 2 because the hue wraps around. */
-    return get_node_chroma()->t1 / 2.0f;
+    return node_storage(bnode()).t1 / 2.0f;
   }
 
   float get_saturation_epsilon()
   {
-    return get_node_chroma()->t2;
+    return node_storage(bnode()).t2;
   }
 
   float get_value_epsilon()
   {
-    return get_node_chroma()->t3;
+    return node_storage(bnode()).t3;
   }
 };
 

@@ -20,6 +20,8 @@
 
 namespace blender::nodes::node_composite_channel_matte_cc {
 
+NODE_STORAGE_FUNCS(NodeChroma)
+
 static void cmp_node_channel_matte_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>(N_("Image"))
@@ -130,15 +132,10 @@ class ChannelMatteShaderNode : public ShaderNode {
     return bnode().custom2 - 1;
   }
 
-  const NodeChroma *get_node_chroma()
-  {
-    return static_cast<const NodeChroma *>(bnode().storage);
-  }
-
   /* Get the index of the channel used to compute the limit value. */
   int get_limit_channel()
   {
-    return get_node_chroma()->channel - 1;
+    return node_storage(bnode()).channel - 1;
   }
 
   /* Get the indices of the channels used to compute the limit value. We always assume the limit
@@ -146,7 +143,7 @@ class ChannelMatteShaderNode : public ShaderNode {
    * the maximum of two identical values is the same value. */
   void get_limit_channels(float limit_channels[2])
   {
-    if (get_node_chroma()->algorithm == CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_MAX) {
+    if (node_storage(bnode()).algorithm == CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_MAX) {
       /* If the algorithm is Max, store the indices of the other two channels other than the matte
        * channel. */
       limit_channels[0] = (get_matte_channel() + 1) % 3;
@@ -161,12 +158,12 @@ class ChannelMatteShaderNode : public ShaderNode {
 
   float get_max_limit()
   {
-    return get_node_chroma()->t1;
+    return node_storage(bnode()).t1;
   }
 
   float get_min_limit()
   {
-    return get_node_chroma()->t2;
+    return node_storage(bnode()).t2;
   }
 };
 

@@ -18,6 +18,8 @@
 
 namespace blender::nodes::node_composite_diff_matte_cc {
 
+NODE_STORAGE_FUNCS(NodeChroma)
+
 static void cmp_node_diff_matte_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>(N_("Image 1"))
@@ -71,19 +73,14 @@ class DifferenceMatteShaderNode : public ShaderNode {
                    GPU_uniform(&falloff));
   }
 
-  const NodeChroma *get_node_chroma()
-  {
-    return static_cast<const NodeChroma *>(bnode().storage);
-  }
-
   float get_tolerance()
   {
-    return get_node_chroma()->t1;
+    return node_storage(bnode()).t1;
   }
 
   float get_falloff()
   {
-    return get_node_chroma()->t2;
+    return node_storage(bnode()).t2;
   }
 };
 

@@ -18,6 +18,8 @@
 
 namespace blender::nodes::node_composite_setalpha_cc {
 
+NODE_STORAGE_FUNCS(NodeSetAlpha)
+
 static void cmp_node_setalpha_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>(N_("Image"))
@@ -54,17 +56,12 @@ class SetAlphaShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    if (get_node_set_alpha()->mode == CMP_NODE_SETALPHA_MODE_APPLY) {
+    if (node_storage(bnode()).mode == CMP_NODE_SETALPHA_MODE_APPLY) {
       GPU_stack_link(material, &bnode(), "node_composite_set_alpha_apply", inputs, outputs);
       return;
     }
 
     GPU_stack_link(material, &bnode(), "node_composite_set_alpha_replace", inputs, outputs);
-  }
-
-  const NodeSetAlpha *get_node_set_alpha()
-  {
-    return static_cast<const NodeSetAlpha *>(bnode().storage);
   }
 };
 
