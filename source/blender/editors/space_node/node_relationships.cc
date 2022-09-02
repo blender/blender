@@ -620,7 +620,8 @@ static int link_socket_to_viewer(const bContext &C,
   if (viewer_bnode == nullptr) {
     /* Create a new viewer node if none exists. */
     const int viewer_type = get_default_viewer_type(&C);
-    const float2 location{bsocket_to_view.locx + 100, bsocket_to_view.locy};
+    const float2 location{bsocket_to_view.locx / UI_DPI_FAC + 100,
+                          bsocket_to_view.locy / UI_DPI_FAC};
     viewer_bnode = add_static_node(C, viewer_type, location);
     if (viewer_bnode == nullptr) {
       return OPERATOR_CANCELLED;
