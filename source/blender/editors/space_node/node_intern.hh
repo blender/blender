@@ -229,16 +229,12 @@ void node_draw_link_bezier(const bContext &C,
                            int th_col2,
                            int th_col3,
                            bool selected);
-bool node_link_bezier_points(const SpaceNode *snode,
-                             const bNodeLink &link,
-                             float coord_array[][2],
-                             int resol);
+bool node_link_bezier_points_evaluated(const bNodeLink &link, float coord_array[][2], int resol);
 /**
  * Return quadratic beziers points for a given nodelink.
  */
-bool node_link_bezier_handles(const SpaceNode *snode,
-                              const bNodeLink &ink,
-                              std::array<float2, 4> &points);
+std::array<float2, 4> node_link_bezier_points(const bNodeLink &link);
+
 void draw_nodespace_back_pix(const bContext &C,
                              ARegion &region,
                              SpaceNode &snode,

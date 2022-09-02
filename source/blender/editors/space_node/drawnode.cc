@@ -1585,53 +1585,19 @@ void draw_nodespace_back_pix(const bContext &C,
   GPU_matrix_pop();
 }
 
-bool node_link_bezier_handles(const SpaceNode *snode,
-                              const bNodeLink &link,
-                              std::array<float2, 4> &points)
+static float2 socket_link_connection_location(const bNodeSocket &socket, const bNodeLink &link)
 {
-  float2 cursor = {0.0f, 0.0f};
+  const float2 socket_location(socket.locx, socket.locy);
+  if (socket.flag & SOCK_MULTI_INPUT && socket.in_out == SOCK_IN) {
+    return node_link_calculate_multi_input_position(
+        socket_location, link.multi_input_socket_index, socket.total_inputs);
+  }
+  return socket_location;
+}
 
-  /* this function can be called with snode null (via cut_links_intersect) */
-  /* XXX map snode->runtime->cursor back to view space */
-  if (snode) {
-    cursor = snode->runtime->cursor * UI_DPI_FAC;
-  }
-
-  /* in v0 and v3 we put begin/end points */
-  if (link.fromsock) {
-    points[0].x = link.fromsock->locx;
-    points[0].y = link.fromsock->locy;
-    if (link.fromsock->flag & SOCK_MULTI_INPUT) {
-      points[0] = node_link_calculate_multi_input_position(
-          {link.fromsock->locx, link.fromsock->locy},
-          link.fromsock->total_inputs - 1,
-          link.fromsock->total_inputs);
-    }
-  }
-  else {
-    if (snode == nullptr) {
-      return false;
-    }
-    points[0] = cursor;
-  }
-  if (link.tosock) {
-    points[3].x = link.tosock->locx;
-    points[3].y = link.tosock->locy;
-    if (!(link.tonode->flag & NODE_HIDDEN) && link.tosock->flag & SOCK_MULTI_INPUT) {
-      points[3] = node_link_calculate_multi_input_position({link.tosock->locx, link.tosock->locy},
-                                                           link.multi_input_socket_index,
-                                                           link.tosock->total_inputs);
-    }
-  }
-  else {
-    if (snode == nullptr) {
-      return false;
-    }
-    points[3] = cursor;
-  }
-
+static void calculate_inner_link_bezier_points(std::array<float2, 4> &points)
+{
   const int curving = UI_GetThemeValueType(TH_NODE_CURVING, SPACE_NODE);
-
   if (curving == 0) {
     /* Straight line: align all points. */
     points[1] = math::interpolate(points[0], points[3], 1.0f / 3.0f);
@@ -1646,8 +1612,15 @@ bool node_link_bezier_handles(const SpaceNode *snode,
     points[2].x = points[3].x - dist;
     points[2].y = points[3].y;
   }
+}
 
-  return true;
+std::array<float2, 4> node_link_bezier_points(const bNodeLink &link)
+{
+  std::array<float2, 4> points;
+  points[0] = socket_link_connection_location(*link.fromsock, link);
+  points[3] = socket_link_connection_location(*link.tosock, link);
+  calculate_inner_link_bezier_points(points);
+  return points;
 }
 
 static bool node_link_draw_is_visible(const View2D &v2d, const std::array<float2, 4> &points)
@@ -1661,15 +1634,11 @@ static bool node_link_draw_is_visible(const View2D &v2d, const std::array<float2
   return true;
 }
 
-bool node_link_bezier_points(const SpaceNode *snode,
-                             const bNodeLink &link,
-                             float coord_array[][2],
-                             const int resol)
+bool node_link_bezier_points_evaluated(const bNodeLink &link,
+                                       float coord_array[][2],
+                                       const int resol)
 {
-  std::array<float2, 4> points;
-  if (!node_link_bezier_handles(snode, link, points)) {
-    return false;
-  }
+  const std::array<float2, 4> points = node_link_bezier_points(link);
 
   /* always do all three, to prevent data hanging around */
   BKE_curve_forward_diff_bezier(points[0].x,
@@ -2182,10 +2151,7 @@ void node_draw_link_bezier(const bContext &C,
                            const int th_col3,
                            const bool selected)
 {
-  std::array<float2, 4> points;
-  if (!node_link_bezier_handles(&snode, link, points)) {
-    return;
-  }
+  const std::array<float2, 4> points = node_link_bezier_points(link);
   if (!node_link_draw_is_visible(v2d, points)) {
     return;
   }
@@ -2241,6 +2207,17 @@ void node_draw_link(const bContext &C,
   node_draw_link_bezier(C, v2d, snode, link, th_col1, th_col2, th_col3, selected);
 }
 
+static std::array<float2, 4> node_link_bezier_points_dragged(const SpaceNode &snode,
+                                                             const bNodeLink &link)
+{
+  const float2 cursor = snode.runtime->cursor * UI_DPI_FAC;
+  std::array<float2, 4> points;
+  points[0] = link.fromsock ? socket_link_connection_location(*link.fromsock, link) : cursor;
+  points[3] = link.tosock ? socket_link_connection_location(*link.tosock, link) : cursor;
+  calculate_inner_link_bezier_points(points);
+  return points;
+}
+
 void node_draw_link_dragged(const bContext &C,
                             const View2D &v2d,
                             const SpaceNode &snode,
@@ -2250,10 +2227,7 @@ void node_draw_link_dragged(const bContext &C,
     return;
   }
 
-  std::array<float2, 4> points;
-  if (!node_link_bezier_handles(&snode, link, points)) {
-    return;
-  }
+  const std::array<float2, 4> points = node_link_bezier_points_dragged(snode, link);
 
   const NodeLinkDrawConfig draw_config = nodelink_get_draw_config(
       C, v2d, snode, link, TH_ACTIVE, TH_ACTIVE, TH_WIRE, true);
