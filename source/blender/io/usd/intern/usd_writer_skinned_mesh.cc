@@ -78,9 +78,11 @@ USDSkinnedMeshWriter::USDSkinnedMeshWriter(const USDExporterContext &ctx)
 
 void USDSkinnedMeshWriter::do_write(HierarchyContext &context)
 {
-  if (this->frame_has_been_written_ && usd_export_context_.export_params.export_blendshapes) {
+  if (this->frame_has_been_written_) {
     /* Only blendshapes may be animated on skinned meshes. */
-    write_blendshape(context);
+    if (usd_export_context_.export_params.export_blendshapes) {
+      write_blendshape(context);
+    }
     return;
   }
 
@@ -212,12 +214,6 @@ void USDSkinnedMeshWriter::write_weights(const Object *ob,
         bone_idx = i;
         break;
       }
-    }
-
-    if (bone_idx == -1) {
-      printf("WARNING: deform group %s in skinned mesh %s doesn't match any bones\n",
-             def->name,
-             this->usd_export_context_.usd_path.GetString().c_str());
     }
 
     group_to_bone_idx.push_back(bone_idx);

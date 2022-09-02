@@ -39,6 +39,9 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 #include <string>
 
 namespace usdtokens {
@@ -144,18 +147,28 @@ void USDBlendShapeMeshWriter::write_blendshape(HierarchyContext &context) const
     return;
   }
 
+  const Key *key = get_shape_key(context.object);
+
+  if (!key || !key->block.first) {
+    WM_reportf(RPT_WARNING,
+               "WARNING: couldn't get shape key for blendshape mesh prim %s",
+               usd_export_context_.usd_path.GetString().c_str());
+    return;
+  }
+
+  /* Validate the offset counts. */
+  Mesh *src_mesh = static_cast<Mesh *>(context.object->data);
+  KeyBlock *basis = reinterpret_cast<KeyBlock *>(src_mesh->key->block.first);
+  if (src_mesh->totvert != basis->totelem) {
+    /* No need for a warning, as we would have warned about
+     * the vert count mismatch when creating the mesh. */
+    return;
+  }
+
   pxr::UsdSkelSkeleton skel = get_skeleton(context);
 
   if (!skel) {
     printf("WARNING: couldn't get skeleton for blendshape mesh prim %s\n",
-           this->usd_export_context_.usd_path.GetString().c_str());
-    return;
-  }
-
-  const Key *key = get_shape_key(context.object);
-
-  if (!key) {
-    printf("WARNING: couldn't get shape key for blendshape mesh prim %s\n",
            this->usd_export_context_.usd_path.GetString().c_str());
     return;
   }
@@ -331,7 +344,10 @@ pxr::UsdSkelSkeleton USDBlendShapeMeshWriter::get_skeleton(const HierarchyContex
 
 Mesh *USDBlendShapeMeshWriter::get_export_mesh(Object *object_eval, bool &r_needsfree)
 {
-  if (!is_blendshape_mesh(object_eval)) {
+  /* We must check if blendshapes are enabled before attempting to create the
+   * blendshape mesh. */
+  if (!(usd_export_context_.export_params.export_blendshapes && is_blendshape_mesh(object_eval))) {
+    /* Get the default mesh.  */
     return USDMeshWriter::get_export_mesh(object_eval, r_needsfree);
   }
 
@@ -348,10 +364,15 @@ Mesh *USDBlendShapeMeshWriter::get_export_mesh(Object *object_eval, bool &r_need
   KeyBlock *basis = reinterpret_cast<KeyBlock *>(src_mesh->key->block.first);
 
   if (src_mesh->totvert != basis->totelem) {
-    printf("WARNING: shape vert count %d doesn't match shape key number of elements %d\n",
-           src_mesh->totvert,
-           basis->totelem);
-    return nullptr;
+    WM_reportf(RPT_WARNING,
+               "USD Export: mesh %s can't be exported as a blendshape because the mesh vertex count %d "
+               "doesn't match shape key number of elements %d'.  This may be because the mesh topology was "
+               "changed by a modifier.  Exporting meshes with modifiers as blendshapes isn't currently supported",
+               object_eval->id.name + 2,
+               src_mesh->totvert,
+               basis->totelem);
+
+    return USDMeshWriter::get_export_mesh(object_eval, r_needsfree);
   }
 
   Mesh *temp_mesh = reinterpret_cast<Mesh *>(
