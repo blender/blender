@@ -78,8 +78,9 @@ typedef struct OVERLAY_PassList {
   DRWPass *edit_mesh_analysis_ps;
   DRWPass *edit_mesh_normals_ps;
   DRWPass *edit_particle_ps;
-  DRWPass *edit_text_overlay_ps;
-  DRWPass *edit_text_darken_ps;
+  DRWPass *edit_text_cursor_ps;
+  DRWPass *edit_text_selection_ps;
+  DRWPass *edit_text_highlight_ps;
   DRWPass *edit_text_wire_ps[2];
   DRWPass *edit_uv_edges_ps;
   DRWPass *edit_uv_verts_ps;
@@ -252,7 +253,8 @@ typedef struct OVERLAY_PrivateData {
   DRWShadingGroup *edit_mesh_analysis_grp;
   DRWShadingGroup *edit_particle_strand_grp;
   DRWShadingGroup *edit_particle_point_grp;
-  DRWShadingGroup *edit_text_overlay_grp;
+  DRWShadingGroup *edit_text_cursor_grp;
+  DRWShadingGroup *edit_text_selection_grp;
   DRWShadingGroup *edit_text_wire_grp[2];
   DRWShadingGroup *edit_uv_verts_grp;
   DRWShadingGroup *edit_uv_edges_grp;
@@ -338,7 +340,8 @@ typedef struct OVERLAY_PrivateData {
     int handle_display;
   } edit_curve;
   struct {
-    float overlay_color[4];
+    float cursor_color[4];
+    float selection_color[4];
   } edit_text;
   struct {
     bool do_zbufclip;
