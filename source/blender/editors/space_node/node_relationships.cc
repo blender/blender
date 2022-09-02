@@ -639,8 +639,13 @@ static int link_socket_to_viewer(const bContext &C,
   if (viewer_bnode == nullptr) {
     /* Create a new viewer node if none exists. */
     const int viewer_type = get_default_viewer_type(&C);
-    viewer_bnode = node_add_node(
-        C, nullptr, viewer_type, bsocket_to_view.locx + 100, bsocket_to_view.locy);
+    /* The socket location is in view space, so dividing by #UI_DPI_FAC
+     * brings it into the coordinate space of the node editor. */
+    viewer_bnode = node_add_node(C,
+                                 nullptr,
+                                 viewer_type,
+                                 bsocket_to_view.locx / UI_DPI_FAC + 100,
+                                 bsocket_to_view.locy / UI_DPI_FAC);
     if (viewer_bnode == nullptr) {
       return OPERATOR_CANCELLED;
     }
