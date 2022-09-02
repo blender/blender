@@ -807,7 +807,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
   float3 wo = normalize_len(vertices[0].p - sd->P, &wo_len);
 
   /* Initialize throughput and evaluate receiver bsdf * |n.wo|. */
-  shader_bsdf_eval(kg, sd, wo, false, throughput, ls->shader);
+  surface_shader_bsdf_eval(kg, sd, wo, false, throughput, ls->shader);
 
   /* Update light sample with new position / direct.ion
    * and keep pdf in vertex area measure */
@@ -913,7 +913,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
     INTEGRATOR_STATE_WRITE(state, path, bounce) = bounce + 1 + vi;
 
     /* Evaluate shader nodes at solution vi. */
-    shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
+    surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
         kg, state, sd_mnee, NULL, PATH_RAY_DIFFUSE, true);
 
     /* Set light looking dir. */
@@ -1006,7 +1006,7 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
         return 0;
 
       /* Last bool argument is the MNEE flag (for TINY_MAX_CLOSURE cap in kernel_shader.h). */
-      shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
+      surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
           kg, state, sd_mnee, NULL, PATH_RAY_DIFFUSE, true);
 
       /* Get and sample refraction bsdf */

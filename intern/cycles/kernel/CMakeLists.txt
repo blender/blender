@@ -236,6 +236,7 @@ set(SRC_KERNEL_FILM_HEADERS
 )
 
 set(SRC_KERNEL_INTEGRATOR_HEADERS
+  integrator/displacement_shader.h
   integrator/init_from_bake.h
   integrator/init_from_camera.h
   integrator/intersect_closest.h
@@ -247,7 +248,6 @@ set(SRC_KERNEL_INTEGRATOR_HEADERS
   integrator/path_state.h
   integrator/shade_background.h
   integrator/shade_light.h
-  integrator/shader_eval.h
   integrator/shade_shadow.h
   integrator/shade_surface.h
   integrator/shade_volume.h
@@ -260,6 +260,8 @@ set(SRC_KERNEL_INTEGRATOR_HEADERS
   integrator/subsurface_disk.h
   integrator/subsurface.h
   integrator/subsurface_random_walk.h
+  integrator/surface_shader.h
+  integrator/volume_shader.h
   integrator/volume_stack.h
 )
 

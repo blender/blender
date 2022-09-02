@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kernel/integrator/shade_volume.h"
-#include "kernel/integrator/shader_eval.h"
+#include "kernel/integrator/surface_shader.h"
 #include "kernel/integrator/volume_stack.h"
 
 CCL_NAMESPACE_BEGIN
@@ -40,7 +40,7 @@ ccl_device_inline Spectrum integrate_transparent_surface_shadow(KernelGlobals kg
 
   /* Evaluate shader. */
   if (!(shadow_sd->flag & SD_HAS_ONLY_VOLUME)) {
-    shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
+    surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
         kg, state, shadow_sd, NULL, PATH_RAY_SHADOW);
   }
 
@@ -50,7 +50,7 @@ ccl_device_inline Spectrum integrate_transparent_surface_shadow(KernelGlobals kg
 #  endif
 
   /* Compute transparency from closures. */
-  return shader_bsdf_transparency(kg, shadow_sd);
+  return surface_shader_transparency(kg, shadow_sd);
 }
 
 #  ifdef __VOLUME__

@@ -27,7 +27,6 @@
 #include "util/log.h"
 #include "util/string.h"
 
-// clang-format off
 #include "kernel/device/cpu/compat.h"
 #include "kernel/device/cpu/globals.h"
 #include "kernel/device/cpu/image.h"
@@ -45,10 +44,10 @@
 #include "kernel/camera/projection.h"
 
 #include "kernel/integrator/path_state.h"
-#include "kernel/integrator/shader_eval.h"
+
+#include "kernel/svm/svm.h"
 
 #include "kernel/util/color.h"
-// clang-format on
 
 CCL_NAMESPACE_BEGIN
 

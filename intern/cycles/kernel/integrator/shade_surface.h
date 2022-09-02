@@ -10,8 +10,8 @@
 #include "kernel/integrator/mnee.h"
 
 #include "kernel/integrator/path_state.h"
-#include "kernel/integrator/shader_eval.h"
 #include "kernel/integrator/subsurface.h"
+#include "kernel/integrator/surface_shader.h"
 #include "kernel/integrator/volume_stack.h"
 
 #include "kernel/light/light.h"
@@ -88,7 +88,7 @@ ccl_device_forceinline bool integrate_surface_holdout(KernelGlobals kg,
 
   if (((sd->flag & SD_HOLDOUT) || (sd->object_flag & SD_OBJECT_HOLDOUT_MASK)) &&
       (path_flag & PATH_RAY_TRANSPARENT_BACKGROUND)) {
-    const Spectrum holdout_weight = shader_holdout_apply(kg, sd);
+    const Spectrum holdout_weight = surface_shader_apply_holdout(kg, sd);
     const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
     const float transparent = average(holdout_weight * throughput);
     film_write_holdout(kg, state, path_flag, transparent, render_buffer);
@@ -109,7 +109,7 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   /* Evaluate emissive closure. */
-  Spectrum L = shader_emissive_eval(sd);
+  Spectrum L = surface_shader_emission(sd);
   float mis_weight = 1.0f;
 
 #ifdef __HAIR__
@@ -171,7 +171,7 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
 
   Ray ray ccl_optional_struct_init;
   BsdfEval bsdf_eval ccl_optional_struct_init;
-  const bool is_transmission = shader_bsdf_is_transmission(sd, ls.D);
+  const bool is_transmission = surface_shader_is_transmission(sd, ls.D);
 
 #ifdef __MNEE__
   int mnee_vertex_count = 0;
@@ -207,7 +207,8 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
     }
 
     /* Evaluate BSDF. */
-    const float bsdf_pdf = shader_bsdf_eval(kg, sd, ls.D, is_transmission, &bsdf_eval, ls.shader);
+    const float bsdf_pdf = surface_shader_bsdf_eval(
+        kg, sd, ls.D, is_transmission, &bsdf_eval, ls.shader);
     bsdf_eval_mul(&bsdf_eval, light_eval / ls.pdf);
 
     if (ls.shader & SHADER_USE_MIS) {
@@ -341,7 +342,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   }
 
   float2 rand_bsdf = path_state_rng_2D(kg, rng_state, PRNG_SURFACE_BSDF);
-  ccl_private const ShaderClosure *sc = shader_bsdf_bssrdf_pick(sd, &rand_bsdf);
+  ccl_private const ShaderClosure *sc = surface_shader_bsdf_bssrdf_pick(sd, &rand_bsdf);
 
 #ifdef __SUBSURFACE__
   /* BSSRDF closure, we schedule subsurface intersection kernel. */
@@ -356,7 +357,8 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   float3 bsdf_omega_in ccl_optional_struct_init;
   int label;
 
-  label = shader_bsdf_sample_closure(kg, sd, sc, rand_bsdf, &bsdf_eval, &bsdf_omega_in, &bsdf_pdf);
+  label = surface_shader_bsdf_sample_closure(
+      kg, sd, sc, rand_bsdf, &bsdf_eval, &bsdf_omega_in, &bsdf_pdf);
 
   if (bsdf_pdf == 0.0f || bsdf_eval_is_zero(&bsdf_eval)) {
     return LABEL_NONE;
@@ -450,7 +452,7 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
   const float2 rand_bsdf = path_state_rng_2D(kg, rng_state, PRNG_SURFACE_BSDF);
 
   float3 ao_N;
-  const Spectrum ao_weight = shader_bsdf_ao(
+  const Spectrum ao_weight = surface_shader_ao(
       kg, sd, kernel_data.integrator.ao_additive_factor, &ao_N);
 
   float3 ao_D;
@@ -494,7 +496,7 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
   const uint16_t transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce);
   uint32_t shadow_flag = INTEGRATOR_STATE(state, path, flag) | PATH_RAY_SHADOW_FOR_AO;
   const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput) *
-                              shader_bsdf_alpha(kg, sd);
+                              surface_shader_alpha(kg, sd);
 
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, render_pixel_index) = INTEGRATOR_STATE(
       state, path, render_pixel_index);
@@ -543,7 +545,7 @@ ccl_device bool integrate_surface(KernelGlobals kg,
     {
       /* Evaluate shader. */
       PROFILING_EVENT(PROFILING_SHADE_SURFACE_EVAL);
-      shader_eval_surface<node_feature_mask>(kg, state, &sd, render_buffer, path_flag);
+      surface_shader_eval<node_feature_mask>(kg, state, &sd, render_buffer, path_flag);
 
       /* Initialize additional RNG for BSDFs. */
       if (sd.flag & SD_BSDF_NEEDS_LCG) {
@@ -565,7 +567,7 @@ ccl_device bool integrate_surface(KernelGlobals kg,
 #endif
     {
       /* Filter closures. */
-      shader_prepare_surface_closures(kg, state, &sd, path_flag);
+      surface_shader_prepare_closures(kg, state, &sd, path_flag);
 
       /* Evaluate holdout. */
       if (!integrate_surface_holdout(kg, state, &sd, render_buffer)) {

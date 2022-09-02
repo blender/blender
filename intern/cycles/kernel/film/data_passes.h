@@ -41,7 +41,7 @@ ccl_device_inline void film_write_data_passes(KernelGlobals kg,
 
   if (!(path_flag & PATH_RAY_SINGLE_PASS_DONE)) {
     if (!(sd->flag & SD_TRANSPARENT) || kernel_data.film.pass_alpha_threshold == 0.0f ||
-        average(shader_bsdf_alpha(kg, sd)) >= kernel_data.film.pass_alpha_threshold) {
+        average(surface_shader_alpha(kg, sd)) >= kernel_data.film.pass_alpha_threshold) {
       if (INTEGRATOR_STATE(state, path, sample) == 0) {
         if (flag & PASSMASK(DEPTH)) {
           const float depth = camera_z_depth(kg, sd->P);
@@ -62,11 +62,11 @@ ccl_device_inline void film_write_data_passes(KernelGlobals kg,
       }
 
       if (flag & PASSMASK(NORMAL)) {
-        const float3 normal = shader_bsdf_average_normal(kg, sd);
+        const float3 normal = surface_shader_average_normal(kg, sd);
         film_write_pass_float3(buffer + kernel_data.film.pass_normal, normal);
       }
       if (flag & PASSMASK(ROUGHNESS)) {
-        const float roughness = shader_bsdf_average_roughness(sd);
+        const float roughness = surface_shader_average_roughness(sd);
         film_write_pass_float(buffer + kernel_data.film.pass_roughness, roughness);
       }
       if (flag & PASSMASK(UV)) {
@@ -86,7 +86,7 @@ ccl_device_inline void film_write_data_passes(KernelGlobals kg,
   if (kernel_data.film.cryptomatte_passes) {
     const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
     const float matte_weight = average(throughput) *
-                               (1.0f - average(shader_bsdf_transparency(kg, sd)));
+                               (1.0f - average(surface_shader_transparency(kg, sd)));
     if (matte_weight > 0.0f) {
       ccl_global float *cryptomatte_buffer = buffer + kernel_data.film.pass_cryptomatte;
       if (kernel_data.film.cryptomatte_passes & CRYPT_OBJECT) {
@@ -95,7 +95,7 @@ ccl_device_inline void film_write_data_passes(KernelGlobals kg,
             cryptomatte_buffer, kernel_data.film.cryptomatte_depth, id, matte_weight);
       }
       if (kernel_data.film.cryptomatte_passes & CRYPT_MATERIAL) {
-        const float id = shader_cryptomatte_id(kg, sd->shader);
+        const float id = kernel_data_fetch(shaders, (sd->shader & SHADER_MASK)).cryptomatte_id;
         cryptomatte_buffer += film_write_cryptomatte_pass(
             cryptomatte_buffer, kernel_data.film.cryptomatte_depth, id, matte_weight);
       }
@@ -110,17 +110,17 @@ ccl_device_inline void film_write_data_passes(KernelGlobals kg,
   if (flag & PASSMASK(DIFFUSE_COLOR)) {
     const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
     film_write_pass_spectrum(buffer + kernel_data.film.pass_diffuse_color,
-                             shader_bsdf_diffuse(kg, sd) * throughput);
+                             surface_shader_diffuse(kg, sd) * throughput);
   }
   if (flag & PASSMASK(GLOSSY_COLOR)) {
     const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
     film_write_pass_spectrum(buffer + kernel_data.film.pass_glossy_color,
-                             shader_bsdf_glossy(kg, sd) * throughput);
+                             surface_shader_glossy(kg, sd) * throughput);
   }
   if (flag & PASSMASK(TRANSMISSION_COLOR)) {
     const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
     film_write_pass_spectrum(buffer + kernel_data.film.pass_transmission_color,
-                             shader_bsdf_transmission(kg, sd) * throughput);
+                             surface_shader_transmission(kg, sd) * throughput);
   }
   if (flag & PASSMASK(MIST)) {
     /* Bring depth into 0..1 range. */
@@ -144,7 +144,7 @@ ccl_device_inline void film_write_data_passes(KernelGlobals kg,
 
     /* Modulate by transparency */
     const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
-    const Spectrum alpha = shader_bsdf_alpha(kg, sd);
+    const Spectrum alpha = surface_shader_alpha(kg, sd);
     const float mist_output = (1.0f - mist) * average(throughput * alpha);
 
     /* Note that the final value in the render buffer we want is 1 - mist_output,

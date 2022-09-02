@@ -5,7 +5,7 @@
 
 #include "kernel/film/light_passes.h"
 
-#include "kernel/integrator/shader_eval.h"
+#include "kernel/integrator/surface_shader.h"
 
 #include "kernel/light/light.h"
 #include "kernel/light/sample.h"
@@ -32,7 +32,7 @@ ccl_device Spectrum integrator_eval_background_shader(KernelGlobals kg,
 
   /* Use fast constant background color if available. */
   Spectrum L = zero_spectrum();
-  if (shader_constant_emission_eval(kg, shader, &L)) {
+  if (surface_shader_constant_emission(kg, shader, &L)) {
     return L;
   }
 
@@ -52,10 +52,10 @@ ccl_device Spectrum integrator_eval_background_shader(KernelGlobals kg,
 
   PROFILING_SHADER(emission_sd->object, emission_sd->shader);
   PROFILING_EVENT(PROFILING_SHADE_LIGHT_EVAL);
-  shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_BACKGROUND>(
+  surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_BACKGROUND>(
       kg, state, emission_sd, render_buffer, path_flag | PATH_RAY_EMISSION);
 
-  return shader_background_eval(emission_sd);
+  return surface_shader_background(emission_sd);
 }
 
 ccl_device_inline void integrate_background(KernelGlobals kg,

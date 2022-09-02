@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kernel/film/light_passes.h"
-#include "kernel/integrator/shader_eval.h"
+#include "kernel/integrator/surface_shader.h"
 #include "kernel/light/light.h"
 #include "kernel/light/sample.h"
 
