@@ -4954,7 +4954,7 @@ static void def_sh_mix(StructRNA *srna)
 
   prop = RNA_def_property(srna, "factor_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_mix_mode_items);
-  RNA_def_property_enum_default(prop, SOCK_FLOAT);
+  RNA_def_property_enum_default(prop, NODE_MIX_MODE_UNIFORM);
   RNA_def_property_ui_text(prop, "Factor Mode", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 
