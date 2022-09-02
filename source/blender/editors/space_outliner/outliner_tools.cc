@@ -455,14 +455,14 @@ static void outliner_do_libdata_operation(bContext *C,
   });
 }
 
-typedef enum eOutlinerLibOpSelectionSet {
+enum eOutlinerLibOpSelectionSet {
   /* Only selected items. */
   OUTLINER_LIB_SELECTIONSET_SELECTED,
   /* Only content 'inside' selected items (their sub-tree). */
   OUTLINER_LIB_LIB_SELECTIONSET_CONTENT,
   /* Combining both options above. */
   OUTLINER_LIB_LIB_SELECTIONSET_SELECTED_AND_CONTENT,
-} eOutlinerLibOpSelectionSet;
+};
 
 static const EnumPropertyItem prop_lib_op_selection_set[] = {
     {OUTLINER_LIB_SELECTIONSET_SELECTED,
