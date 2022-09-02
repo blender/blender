@@ -2327,6 +2327,7 @@ class USERPREF_PT_experimental_debugging(ExperimentalPanel, Panel):
                 ({"property": "use_cycles_debug"}, None),
                 ({"property": "show_asset_debug_info"}, None),
                 ({"property": "use_asset_indexing"}, None),
+                ({"property": "use_viewport_debug"}, None),
             ),
         )
 

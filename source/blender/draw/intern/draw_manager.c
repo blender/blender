@@ -1001,6 +1001,8 @@ static void drw_engines_init(void)
 
 static void drw_engines_cache_init(void)
 {
+  DRW_manager_begin_sync();
+
   DRW_ENABLED_ENGINE_ITER (DST.view_data_active, engine, data) {
     if (data->text_draw_cache) {
       DRW_text_cache_destroy(data->text_draw_cache);
@@ -1072,6 +1074,8 @@ static void drw_engines_cache_finish(void)
       engine->cache_finish(data);
     }
   }
+
+  DRW_manager_end_sync();
 }
 
 static void drw_engines_draw_scene(void)

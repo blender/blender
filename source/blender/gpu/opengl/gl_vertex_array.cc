@@ -11,6 +11,7 @@
 #include "gl_batch.hh"
 #include "gl_context.hh"
 #include "gl_index_buffer.hh"
+#include "gl_storage_buffer.hh"
 #include "gl_vertex_buffer.hh"
 
 #include "gl_vertex_array.hh"
@@ -115,6 +116,18 @@ void GLVertArray::update_bindings(const GLuint vao,
     if (vbo) {
       vbo->bind();
       attr_mask &= ~vbo_bind(interface, &vbo->format, base_instance, vbo->vertex_len, true);
+    }
+  }
+
+  if (batch->resource_id_buf) {
+    const ShaderInput *input = interface->attr_get("drw_ResourceID");
+    if (input) {
+      dynamic_cast<GLStorageBuf *>(unwrap(batch->resource_id_buf))->bind_as(GL_ARRAY_BUFFER);
+      glEnableVertexAttribArray(input->location);
+      glVertexAttribDivisor(input->location, 1);
+      glVertexAttribIPointer(
+          input->location, 1, to_gl(GPU_COMP_I32), sizeof(uint32_t), (GLvoid *)nullptr);
+      attr_mask &= ~(1 << input->location);
     }
   }
 

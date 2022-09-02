@@ -70,6 +70,8 @@ typedef struct GPUBatch {
   GPUVertBuf *inst[GPU_BATCH_INST_VBO_MAX_LEN];
   /** NULL if element list not needed */
   GPUIndexBuf *elem;
+  /** Resource ID attribute workaround. */
+  GPUStorageBuf *resource_id_buf;
   /** Bookkeeping. */
   eGPUBatchFlag flag;
   /** Type of geometry to draw. */
@@ -125,6 +127,11 @@ int GPU_batch_vertbuf_add_ex(GPUBatch *, GPUVertBuf *, bool own_vbo);
 bool GPU_batch_vertbuf_has(GPUBatch *, GPUVertBuf *);
 
 #define GPU_batch_vertbuf_add(batch, verts) GPU_batch_vertbuf_add_ex(batch, verts, false)
+
+/**
+ * Set resource id buffer to bind as instance attribute to workaround the lack of gl_BaseInstance.
+ */
+void GPU_batch_resource_id_buf_set(GPUBatch *batch, GPUStorageBuf *resource_id_buf);
 
 void GPU_batch_set_shader(GPUBatch *batch, GPUShader *shader);
 /**

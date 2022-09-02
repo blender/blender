@@ -7,6 +7,7 @@
 
 #include "BLI_vector.hh"
 
+#include "GPU_capabilities.h"
 #include "GPU_viewport.h"
 
 #include "DRW_render.h"
@@ -16,6 +17,7 @@
 #include "draw_manager_text.h"
 
 #include "draw_manager.h"
+#include "draw_manager.hh"
 #include "draw_view_data.h"
 
 using namespace blender;
@@ -33,6 +35,22 @@ struct DRWViewData {
 
   Vector<ViewportEngineData> engines;
   Vector<ViewportEngineData *> enabled_engines;
+
+  /** New per view/viewport manager. Null if not supported by current hardware. */
+  draw::Manager *manager = nullptr;
+
+  DRWViewData()
+  {
+    /* Only for GL >= 4.3 implementation for now. */
+    if (GPU_shader_storage_buffer_objects_support() && GPU_compute_shader_support()) {
+      manager = new draw::Manager();
+    }
+  };
+
+  ~DRWViewData()
+  {
+    delete manager;
+  };
 };
 
 DRWViewData *DRW_view_data_create(ListBase *engine_types)
@@ -236,4 +254,32 @@ ViewportEngineData *DRW_view_data_enabled_engine_iter_step(DRWEngineIterator *it
   }
   ViewportEngineData *engine = iterator->engines[iterator->id++];
   return engine;
+}
+
+draw::Manager *DRW_manager_get()
+{
+  BLI_assert(DST.view_data_active->manager);
+  return reinterpret_cast<draw::Manager *>(DST.view_data_active->manager);
+}
+
+draw::ObjectRef DRW_object_ref_get(Object *object)
+{
+  BLI_assert(DST.view_data_active->manager);
+  return {object, DST.dupli_source, DST.dupli_parent};
+}
+
+void DRW_manager_begin_sync()
+{
+  if (DST.view_data_active->manager == nullptr) {
+    return;
+  }
+  reinterpret_cast<draw::Manager *>(DST.view_data_active->manager)->begin_sync();
+}
+
+void DRW_manager_end_sync()
+{
+  if (DST.view_data_active->manager == nullptr) {
+    return;
+  }
+  reinterpret_cast<draw::Manager *>(DST.view_data_active->manager)->end_sync();
 }

@@ -71,8 +71,7 @@ void drw_print_char4(uint data)
       break;
     }
     uint cursor = atomicAdd(drw_debug_print_cursor, 1u);
-    /* NOTE: Skip the header manually. */
-    cursor += 4;
+    cursor += drw_debug_print_offset;
     if (cursor < DRW_DEBUG_PRINT_MAX) {
       /* For future usage. (i.e: Color) */
       uint flags = 0u;

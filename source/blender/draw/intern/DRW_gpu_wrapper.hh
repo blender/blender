@@ -238,6 +238,11 @@ class StorageCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
     GPU_storagebuf_clear_to_zero(ssbo_);
   }
 
+  void read()
+  {
+    GPU_storagebuf_read(ssbo_, this->data_);
+  }
+
   operator GPUStorageBuf *() const
   {
     return ssbo_;
@@ -849,6 +854,32 @@ class TextureFromPool : public Texture, NonMovable {
   GPUTexture *layer_view(int) = delete;
   GPUTexture *stencil_view() = delete;
 };
+
+/**
+ * Dummy type to bind texture as image.
+ * It is just a GPUTexture in disguise.
+ */
+class Image {};
+
+static inline Image *as_image(GPUTexture *tex)
+{
+  return reinterpret_cast<Image *>(tex);
+}
+
+static inline Image **as_image(GPUTexture **tex)
+{
+  return reinterpret_cast<Image **>(tex);
+}
+
+static inline GPUTexture *as_texture(Image *img)
+{
+  return reinterpret_cast<GPUTexture *>(img);
+}
+
+static inline GPUTexture **as_texture(Image **img)
+{
+  return reinterpret_cast<GPUTexture **>(img);
+}
 
 /** \} */
 

@@ -200,6 +200,13 @@ bool GPU_batch_vertbuf_has(GPUBatch *batch, GPUVertBuf *verts)
   return false;
 }
 
+void GPU_batch_resource_id_buf_set(GPUBatch *batch, GPUStorageBuf *resource_id_buf)
+{
+  BLI_assert(resource_id_buf);
+  batch->flag |= GPU_BATCH_DIRTY;
+  batch->resource_id_buf = resource_id_buf;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

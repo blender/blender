@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "draw_defines.h"
 #include "gpu_shader_create_info.hh"
 
 /* -------------------------------------------------------------------- */
@@ -10,7 +11,7 @@
 
 GPU_SHADER_CREATE_INFO(draw_debug_print)
     .typedef_source("draw_shader_shared.h")
-    .storage_buf(7, Qualifier::READ_WRITE, "uint", "drw_debug_print_buf[]");
+    .storage_buf(DRW_DEBUG_PRINT_SLOT, Qualifier::READ_WRITE, "uint", "drw_debug_print_buf[]");
 
 GPU_SHADER_INTERFACE_INFO(draw_debug_print_display_iface, "").flat(Type::UINT, "char_index");
 
@@ -34,7 +35,10 @@ GPU_SHADER_CREATE_INFO(draw_debug_print_display)
 
 GPU_SHADER_CREATE_INFO(draw_debug_draw)
     .typedef_source("draw_shader_shared.h")
-    .storage_buf(6, Qualifier::READ_WRITE, "DRWDebugVert", "drw_debug_verts_buf[]");
+    .storage_buf(DRW_DEBUG_DRAW_SLOT,
+                 Qualifier::READ_WRITE,
+                 "DRWDebugVert",
+                 "drw_debug_verts_buf[]");
 
 GPU_SHADER_INTERFACE_INFO(draw_debug_draw_display_iface, "interp").flat(Type::VEC4, "color");
 

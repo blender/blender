@@ -63,26 +63,26 @@ DebugDraw::DebugDraw()
 
 void DebugDraw::init()
 {
-  cpu_print_buf_.command.v_count = 0;
-  cpu_print_buf_.command.v_first = 0;
-  cpu_print_buf_.command.i_count = 1;
-  cpu_print_buf_.command.i_first = 0;
+  cpu_print_buf_.command.vertex_len = 0;
+  cpu_print_buf_.command.vertex_first = 0;
+  cpu_print_buf_.command.instance_len = 1;
+  cpu_print_buf_.command.instance_first_array = 0;
 
-  cpu_draw_buf_.command.v_count = 0;
-  cpu_draw_buf_.command.v_first = 0;
-  cpu_draw_buf_.command.i_count = 1;
-  cpu_draw_buf_.command.i_first = 0;
+  cpu_draw_buf_.command.vertex_len = 0;
+  cpu_draw_buf_.command.vertex_first = 0;
+  cpu_draw_buf_.command.instance_len = 1;
+  cpu_draw_buf_.command.instance_first_array = 0;
 
-  gpu_print_buf_.command.v_count = 0;
-  gpu_print_buf_.command.v_first = 0;
-  gpu_print_buf_.command.i_count = 1;
-  gpu_print_buf_.command.i_first = 0;
+  gpu_print_buf_.command.vertex_len = 0;
+  gpu_print_buf_.command.vertex_first = 0;
+  gpu_print_buf_.command.instance_len = 1;
+  gpu_print_buf_.command.instance_first_array = 0;
   gpu_print_buf_used = false;
 
-  gpu_draw_buf_.command.v_count = 0;
-  gpu_draw_buf_.command.v_first = 0;
-  gpu_draw_buf_.command.i_count = 1;
-  gpu_draw_buf_.command.i_first = 0;
+  gpu_draw_buf_.command.vertex_len = 0;
+  gpu_draw_buf_.command.vertex_first = 0;
+  gpu_draw_buf_.command.instance_len = 1;
+  gpu_draw_buf_.command.instance_first_array = 0;
   gpu_draw_buf_used = false;
 
   modelmat_reset();
@@ -323,11 +323,11 @@ template<> void DebugDraw::print_value<uint4>(const uint4 &value)
 void DebugDraw::draw_line(float3 v1, float3 v2, uint color)
 {
   DebugDrawBuf &buf = cpu_draw_buf_;
-  uint index = buf.command.v_count;
+  uint index = buf.command.vertex_len;
   if (index + 2 < DRW_DEBUG_DRAW_VERT_MAX) {
     buf.verts[index + 0] = vert_pack(model_mat_ * v1, color);
     buf.verts[index + 1] = vert_pack(model_mat_ * v2, color);
-    buf.command.v_count += 2;
+    buf.command.vertex_len += 2;
   }
 }
 
@@ -356,7 +356,7 @@ DRWDebugVert DebugDraw::vert_pack(float3 pos, uint color)
 void DebugDraw::print_newline()
 {
   print_col_ = 0u;
-  print_row_ = ++cpu_print_buf_.command.i_first;
+  print_row_ = ++cpu_print_buf_.command.instance_first_array;
 }
 
 void DebugDraw::print_string_start(uint len)
@@ -406,7 +406,7 @@ void DebugDraw::print_char4(uint data)
       break;
     }
     /* NOTE: Do not skip the header manually like in GPU. */
-    uint cursor = cpu_print_buf_.command.v_count++;
+    uint cursor = cpu_print_buf_.command.vertex_len++;
     if (cursor < DRW_DEBUG_PRINT_MAX) {
       /* For future usage. (i.e: Color) */
       uint flags = 0u;
@@ -504,7 +504,7 @@ void DebugDraw::print_value_uint(uint value,
 
 void DebugDraw::display_lines()
 {
-  if (cpu_draw_buf_.command.v_count == 0 && gpu_draw_buf_used == false) {
+  if (cpu_draw_buf_.command.vertex_len == 0 && gpu_draw_buf_used == false) {
     return;
   }
   GPU_debug_group_begin("Lines");
@@ -541,7 +541,7 @@ void DebugDraw::display_lines()
 
 void DebugDraw::display_prints()
 {
-  if (cpu_print_buf_.command.v_count == 0 && gpu_print_buf_used == false) {
+  if (cpu_print_buf_.command.vertex_len == 0 && gpu_print_buf_used == false) {
     return;
   }
   GPU_debug_group_begin("Prints");

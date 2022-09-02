@@ -300,6 +300,11 @@ void gpu_shader_create_info_init()
     draw_modelmat = draw_modelmat_legacy;
   }
 
+  /* WORKAROUND: Replace the use of gpu_BaseInstance by an instance attribute. */
+  if (GPU_shader_draw_parameters_support() == false) {
+    draw_resource_id_new = draw_resource_id_fallback;
+  }
+
   for (ShaderCreateInfo *info : g_create_infos->values()) {
     if (info->do_static_compilation_) {
       info->builtins_ |= gpu_shader_dependency_get_builtins(info->vertex_source_);

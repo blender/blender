@@ -694,6 +694,9 @@ bool drw_engine_data_engines_data_validate(GPUViewport *viewport, void **engine_
 void drw_engine_data_cache_release(GPUViewport *viewport);
 void drw_engine_data_free(GPUViewport *viewport);
 
+void DRW_manager_begin_sync(void);
+void DRW_manager_end_sync(void);
+
 #ifdef __cplusplus
 }
 #endif

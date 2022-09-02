@@ -8,7 +8,7 @@
 void main()
 {
   /* Skip first 4 chars containing header data. */
-  uint char_data = drw_debug_print_buf[gl_VertexID + 4];
+  uint char_data = drw_debug_print_buf[gl_VertexID + 8];
   char_index = (char_data & 0xFFu) - 0x20u;
 
   /* Discard invalid chars. */

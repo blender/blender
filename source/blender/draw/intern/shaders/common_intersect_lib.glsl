@@ -70,6 +70,30 @@ IsectBox isect_data_setup(Box shape)
   return data;
 }
 
+/* Construct box from 1 corner point + 3 side vectors. */
+IsectBox isect_data_setup(vec3 origin, vec3 side_x, vec3 side_y, vec3 side_z)
+{
+  IsectBox data;
+  data.corners[0] = origin;
+  data.corners[1] = origin + side_x;
+  data.corners[2] = origin + side_y + side_x;
+  data.corners[3] = origin + side_y;
+  data.corners[4] = data.corners[0] + side_z;
+  data.corners[5] = data.corners[1] + side_z;
+  data.corners[6] = data.corners[2] + side_z;
+  data.corners[7] = data.corners[3] + side_z;
+
+  data.planes[0] = isect_plane_setup(data.corners[0], side_y, side_z);
+  data.planes[1] = isect_plane_setup(data.corners[0], side_x, side_y);
+  data.planes[2] = isect_plane_setup(data.corners[0], side_z, side_x);
+  /* Assumes that the box is actually a box! */
+  data.planes[3] = vec4(-data.planes[0].xyz, -dot(-data.planes[0].xyz, data.corners[6]));
+  data.planes[4] = vec4(-data.planes[1].xyz, -dot(-data.planes[1].xyz, data.corners[6]));
+  data.planes[5] = vec4(-data.planes[2].xyz, -dot(-data.planes[2].xyz, data.corners[6]));
+
+  return data;
+}
+
 struct IsectFrustum {
   vec3 corners[8];
   vec4 planes[6];
@@ -175,6 +199,50 @@ bool intersect_view(Box box)
 
   /* Now do Frustum vertices vs Box planes. */
   IsectBox i_box = isect_data_setup(box);
+  for (int p = 0; p < 6; ++p) {
+    bool is_any_vertex_on_positive_side = false;
+    for (int v = 0; v < 8; ++v) {
+      float test = dot(i_box.planes[p], vec4(drw_view.frustum_corners[v].xyz, 1.0));
+      if (test > 0.0) {
+        is_any_vertex_on_positive_side = true;
+        break;
+      }
+    }
+    bool all_vertex_on_negative_side = !is_any_vertex_on_positive_side;
+    if (all_vertex_on_negative_side) {
+      intersects = false;
+      break;
+    }
+  }
+
+  return intersects;
+}
+
+bool intersect_view(IsectBox i_box)
+{
+  bool intersects = true;
+
+  /* Do Box vertices vs Frustum planes. */
+  for (int p = 0; p < 6; ++p) {
+    bool is_any_vertex_on_positive_side = false;
+    for (int v = 0; v < 8; ++v) {
+      float test = dot(drw_view.frustum_planes[p], vec4(i_box.corners[v], 1.0));
+      if (test > 0.0) {
+        is_any_vertex_on_positive_side = true;
+        break;
+      }
+    }
+    bool all_vertex_on_negative_side = !is_any_vertex_on_positive_side;
+    if (all_vertex_on_negative_side) {
+      intersects = false;
+      break;
+    }
+  }
+
+  if (!intersects) {
+    return intersects;
+  }
+
   for (int p = 0; p < 6; ++p) {
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 8; ++v) {

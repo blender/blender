@@ -640,8 +640,8 @@ typedef struct UserDef_Experimental {
   char use_cycles_debug;
   char show_asset_debug_info;
   char no_asset_indexing;
+  char use_viewport_debug;
   char SANITIZE_AFTER_HERE;
-  char _pad0;
   /* The following options are automatically sanitized (set to 0)
    * when the release cycle is not alpha. */
   char use_new_curves_tools;
