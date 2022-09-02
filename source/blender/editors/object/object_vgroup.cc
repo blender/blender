@@ -510,7 +510,7 @@ static void mesh_defvert_mirror_update_internal(Object *ob,
   else {
     /* Single vgroup. */
     MDeformWeight *dw = BKE_defvert_ensure_index(dvert_dst,
-                                                 BKE_object_defgroup_flip_index(ob, def_nr, 1));
+                                                 BKE_object_defgroup_flip_index(ob, def_nr, true));
     if (dw) {
       dw->weight = BKE_defvert_find_weight(dvert_src, def_nr);
     }
@@ -2927,10 +2927,10 @@ void OBJECT_OT_vertex_group_remove(wmOperatorType *ot)
   ot->flag = /*OPTYPE_REGISTER|*/ OPTYPE_UNDO;
 
   /* properties */
-  PropertyRNA *prop = RNA_def_boolean(ot->srna, "all", 0, "All", "Remove all vertex groups");
+  PropertyRNA *prop = RNA_def_boolean(ot->srna, "all", false, "All", "Remove all vertex groups");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
-      ot->srna, "all_unlocked", 0, "All Unlocked", "Remove all unlocked vertex groups");
+      ot->srna, "all_unlocked", false, "All Unlocked", "Remove all unlocked vertex groups");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -3057,9 +3057,11 @@ void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
   ot->flag = /*OPTYPE_REGISTER|*/ OPTYPE_UNDO;
 
   /* properties */
-  prop = RNA_def_boolean(ot->srna, "use_all_groups", 0, "All Groups", "Remove from all groups");
+  prop = RNA_def_boolean(
+      ot->srna, "use_all_groups", false, "All Groups", "Remove from all groups");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "use_all_verts", 0, "All Vertices", "Clear the active group");
+  prop = RNA_def_boolean(
+      ot->srna, "use_all_verts", false, "All Vertices", "Clear the active group");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -3859,7 +3861,7 @@ void OBJECT_OT_vertex_group_mirror(wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna,
       "use_topology",
-      0,
+      false,
       "Topology Mirror",
       "Use topology based mirroring (for when both sides of mesh have matching, unique topology)");
 }

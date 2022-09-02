@@ -1037,7 +1037,7 @@ static void do_render_compositor_scene(Render *re, Scene *sce, int cfra)
   BKE_scene_camera_switch_update(sce);
 
   /* exception: scene uses own size (unfinished code) */
-  if (0) {
+  if (false) {
     BKE_render_resolution(&sce->r, false, &winx, &winy);
   }
 
@@ -1570,7 +1570,7 @@ bool RE_is_rendering_allowed(Scene *scene,
     if (scene->r.border.xmax <= scene->r.border.xmin ||
         scene->r.border.ymax <= scene->r.border.ymin) {
       BKE_report(reports, RPT_ERROR, "No border area selected");
-      return 0;
+      return false;
     }
   }
 
@@ -1585,28 +1585,28 @@ bool RE_is_rendering_allowed(Scene *scene,
     /* Compositor */
     if (!scene->nodetree) {
       BKE_report(reports, RPT_ERROR, "No node tree in scene");
-      return 0;
+      return false;
     }
 
     if (!check_compositor_output(scene)) {
       BKE_report(reports, RPT_ERROR, "No render output node in scene");
-      return 0;
+      return false;
     }
   }
   else {
     /* Regular Render */
     if (!render_scene_has_layers_to_render(scene, single_layer)) {
       BKE_report(reports, RPT_ERROR, "All render layers are disabled");
-      return 0;
+      return false;
     }
   }
 
   /* check valid camera, without camera render is OK (compo, seq) */
   if (!check_valid_camera(scene, camera_override, reports)) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 static void update_physics_cache(Render *re,
@@ -1690,7 +1690,7 @@ static int render_init_from_main(Render *re,
    * can be later set as render profile option
    * and default for background render.
    */
-  if (0) {
+  if (false) {
     /* make sure dynamics are up to date */
     ViewLayer *view_layer = BKE_view_layer_context_active_PLACEHOLDER(scene);
     update_physics_cache(re, scene, view_layer, anim_init);

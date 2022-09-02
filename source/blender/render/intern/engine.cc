@@ -499,7 +499,7 @@ bool RE_engine_test_break(RenderEngine *engine)
     return re->test_break(re->tbh);
   }
 
-  return 0;
+  return false;
 }
 
 /* Statistics */
@@ -642,7 +642,7 @@ void RE_engine_get_camera_model_matrix(RenderEngine *engine,
 bool RE_engine_get_spherical_stereo(RenderEngine *engine, Object *camera)
 {
   Render *re = engine->re;
-  return BKE_camera_multiview_spherical_stereo(re ? &re->r : nullptr, camera) ? 1 : 0;
+  return BKE_camera_multiview_spherical_stereo(re ? &re->r : nullptr, camera) ? true : false;
 }
 
 rcti *RE_engine_get_current_tiles(Render *re, int *r_total_tiles, bool *r_needs_free)
