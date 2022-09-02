@@ -1134,13 +1134,13 @@ void render_result_rect_get_pixels(RenderResult *rr,
 
 /*************************** multiview functions *****************************/
 
-bool RE_HasCombinedLayer(const RenderResult *rr)
+bool RE_HasCombinedLayer(const RenderResult *result)
 {
-  if (rr == nullptr) {
+  if (result == nullptr) {
     return false;
   }
 
-  const RenderView *rv = static_cast<RenderView *>(rr->views.first);
+  const RenderView *rv = static_cast<RenderView *>(result->views.first);
   if (rv == nullptr) {
     return false;
   }
@@ -1148,9 +1148,9 @@ bool RE_HasCombinedLayer(const RenderResult *rr)
   return (rv->rect32 || rv->rectf);
 }
 
-bool RE_HasFloatPixels(const RenderResult *rr)
+bool RE_HasFloatPixels(const RenderResult *result)
 {
-  LISTBASE_FOREACH (const RenderView *, rview, &rr->views) {
+  LISTBASE_FOREACH (const RenderView *, rview, &result->views) {
     if (rview->rect32 && !rview->rectf) {
       return false;
     }
@@ -1159,13 +1159,13 @@ bool RE_HasFloatPixels(const RenderResult *rr)
   return true;
 }
 
-bool RE_RenderResult_is_stereo(const RenderResult *rr)
+bool RE_RenderResult_is_stereo(const RenderResult *result)
 {
-  if (!BLI_findstring(&rr->views, STEREO_LEFT_NAME, offsetof(RenderView, name))) {
+  if (!BLI_findstring(&result->views, STEREO_LEFT_NAME, offsetof(RenderView, name))) {
     return false;
   }
 
-  if (!BLI_findstring(&rr->views, STEREO_RIGHT_NAME, offsetof(RenderView, name))) {
+  if (!BLI_findstring(&result->views, STEREO_RIGHT_NAME, offsetof(RenderView, name))) {
     return false;
   }
 

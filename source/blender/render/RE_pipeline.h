@@ -461,9 +461,9 @@ bool RE_allow_render_generic_object(struct Object *ob);
 
 /******* defined in render_result.c *********/
 
-bool RE_HasCombinedLayer(const RenderResult *res);
-bool RE_HasFloatPixels(const RenderResult *res);
-bool RE_RenderResult_is_stereo(const RenderResult *res);
+bool RE_HasCombinedLayer(const RenderResult *result);
+bool RE_HasFloatPixels(const RenderResult *result);
+bool RE_RenderResult_is_stereo(const RenderResult *result);
 struct RenderView *RE_RenderViewGetById(struct RenderResult *rr, int view_id);
 struct RenderView *RE_RenderViewGetByName(struct RenderResult *rr, const char *viewname);
 

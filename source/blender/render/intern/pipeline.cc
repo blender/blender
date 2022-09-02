@@ -2534,13 +2534,13 @@ void RE_result_load_from_file(RenderResult *result, ReportList *reports, const c
   }
 }
 
-bool RE_layers_have_name(struct RenderResult *rr)
+bool RE_layers_have_name(struct RenderResult *result)
 {
-  switch (BLI_listbase_count_at_most(&rr->layers, 2)) {
+  switch (BLI_listbase_count_at_most(&result->layers, 2)) {
     case 0:
       return false;
     case 1:
-      return (((RenderLayer *)rr->layers.first)->name[0] != '\0');
+      return (((RenderLayer *)result->layers.first)->name[0] != '\0');
     default:
       return true;
   }
