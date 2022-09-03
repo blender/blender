@@ -1292,28 +1292,6 @@ void NODE_OT_link_make(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Node Link Intersect
- * \{ */
-
-static bool node_links_intersect(bNodeLink &link, const float mcoords[][2], int tot)
-{
-  std::array<float2, NODE_LINK_RESOL + 1> coords;
-  node_link_bezier_points_evaluated(link, coords);
-
-  for (int i = 0; i < tot - 1; i++) {
-    for (int b = 0; b < NODE_LINK_RESOL; b++) {
-      if (isect_seg_seg_v2(mcoords[i], mcoords[i + 1], coords[b], coords[b + 1]) > 0) {
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Cut Link Operator
  * \{ */
 
@@ -1321,24 +1299,22 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 {
   Main &bmain = *CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
-  ARegion &region = *CTX_wm_region(C);
+  const ARegion &region = *CTX_wm_region(C);
 
-  int i = 0;
-  float mcoords[256][2];
+  Vector<float2> path;
   RNA_BEGIN (op->ptr, itemptr, "path") {
-    float loc[2];
-
-    RNA_float_get_array(&itemptr, "loc", loc);
-    UI_view2d_region_to_view(
-        &region.v2d, (int)loc[0], (int)loc[1], &mcoords[i][0], &mcoords[i][1]);
-    i++;
-    if (i >= 256) {
+    float2 loc_region;
+    RNA_float_get_array(&itemptr, "loc", loc_region);
+    float2 loc_view;
+    UI_view2d_region_to_view(&region.v2d, loc_region.x, loc_region.y, &loc_view.x, &loc_view.y);
+    path.append(loc_view);
+    if (path.size() >= 256) {
       break;
     }
   }
   RNA_END;
 
-  if (i == 0) {
+  if (path.is_empty()) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
@@ -1355,7 +1331,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    if (node_links_intersect(*link, mcoords, i)) {
+    if (link_path_intersection(*link, path)) {
 
       if (!found) {
         /* TODO(sergey): Why did we kill jobs twice? */
@@ -1418,24 +1394,22 @@ static int mute_links_exec(bContext *C, wmOperator *op)
 {
   Main &bmain = *CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
-  ARegion &region = *CTX_wm_region(C);
+  const ARegion &region = *CTX_wm_region(C);
 
-  int i = 0;
-  float mcoords[256][2];
+  Vector<float2> path;
   RNA_BEGIN (op->ptr, itemptr, "path") {
-    float loc[2];
-
-    RNA_float_get_array(&itemptr, "loc", loc);
-    UI_view2d_region_to_view(
-        &region.v2d, (int)loc[0], (int)loc[1], &mcoords[i][0], &mcoords[i][1]);
-    i++;
-    if (i >= 256) {
+    float2 loc_region;
+    RNA_float_get_array(&itemptr, "loc", loc_region);
+    float2 loc_view;
+    UI_view2d_region_to_view(&region.v2d, loc_region.x, loc_region.y, &loc_view.x, &loc_view.y);
+    path.append(loc_view);
+    if (path.size() >= 256) {
       break;
     }
   }
   RNA_END;
 
-  if (i <= 1) {
+  if (path.is_empty()) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
@@ -1448,7 +1422,7 @@ static int mute_links_exec(bContext *C, wmOperator *op)
       continue;
     }
     link->flag &= ~NODE_LINK_TEST;
-    if (node_links_intersect(*link, mcoords, i)) {
+    if (link_path_intersection(*link, path)) {
       tot++;
     }
   }
@@ -1462,7 +1436,7 @@ static int mute_links_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    if (node_links_intersect(*link, mcoords, i)) {
+    if (link_path_intersection(*link, path)) {
       nodeMuteLinkToggle(snode.edittree, link);
     }
   }

@@ -104,7 +104,7 @@ bNode *add_static_node(const bContext &C, int type, const float2 &location)
 /** \name Add Reroute Operator
  * \{ */
 
-static std::optional<float2> path_link_intersection(const bNodeLink &link, const Span<float2> path)
+std::optional<float2> link_path_intersection(const bNodeLink &link, const Span<float2> path)
 {
   std::array<float2, NODE_LINK_RESOL + 1> coords;
   node_link_bezier_points_evaluated(link, coords);
@@ -166,7 +166,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
     if (node_link_is_hidden_or_dimmed(region.v2d, *link)) {
       continue;
     }
-    const std::optional<float2> intersection = path_link_intersection(*link, path);
+    const std::optional<float2> intersection = link_path_intersection(*link, path);
     if (!intersection) {
       continue;
     }
