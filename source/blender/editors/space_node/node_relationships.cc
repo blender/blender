@@ -11,6 +11,7 @@
 #include "DNA_node_types.h"
 
 #include "BLI_easing.h"
+#include "BLI_stack.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_context.h"
@@ -1390,11 +1391,22 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 /** \name Mute Links Operator
  * \{ */
 
+static bool all_links_muted(const bNodeSocket &socket)
+{
+  for (const bNodeLink *link : socket.directly_linked_links()) {
+    if (!(link->flag & NODE_LINK_MUTED)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 static int mute_links_exec(bContext *C, wmOperator *op)
 {
   Main &bmain = *CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
   const ARegion &region = *CTX_wm_region(C);
+  bNodeTree &ntree = *snode.edittree;
 
   Vector<float2> path;
   RNA_BEGIN (op->ptr, itemptr, "path") {
@@ -1415,41 +1427,62 @@ static int mute_links_exec(bContext *C, wmOperator *op)
 
   ED_preview_kill_jobs(CTX_wm_manager(C), &bmain);
 
-  /* Count intersected links and clear test flag. */
-  int tot = 0;
-  LISTBASE_FOREACH (bNodeLink *, link, &snode.edittree->links) {
+  ntree.ensure_topology_cache();
+
+  Set<bNodeLink *> affected_links;
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
     if (node_link_is_hidden_or_dimmed(region.v2d, *link)) {
       continue;
     }
-    link->flag &= ~NODE_LINK_TEST;
-    if (link_path_intersection(*link, path)) {
-      tot++;
+    if (!link_path_intersection(*link, path)) {
+      continue;
     }
+    affected_links.add(link);
   }
-  if (tot == 0) {
+
+  if (affected_links.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
-  /* Mute links. */
-  LISTBASE_FOREACH (bNodeLink *, link, &snode.edittree->links) {
-    if (node_link_is_hidden_or_dimmed(region.v2d, *link) || (link->flag & NODE_LINK_TEST)) {
-      continue;
-    }
+  bke::node_tree_runtime::AllowUsingOutdatedInfo allow_outdated_info{ntree};
 
-    if (link_path_intersection(*link, path)) {
-      nodeMuteLinkToggle(snode.edittree, link);
+  for (bNodeLink *link : affected_links) {
+    nodeLinkSetMute(&ntree, link, !(link->flag & NODE_LINK_MUTED));
+    const bool muted = link->flag & NODE_LINK_MUTED;
+
+    /* Propagate mute status downsteam past reroute nodes. */
+    if (link->tonode->is_reroute()) {
+      Stack<bNodeLink *> links;
+      links.push_multiple(link->tonode->output_sockets().first()->directly_linked_links());
+      while (!links.is_empty()) {
+        bNodeLink *link = links.pop();
+        nodeLinkSetMute(&ntree, link, muted);
+        if (!link->tonode->is_reroute()) {
+          continue;
+        }
+        links.push_multiple(link->tonode->output_sockets().first()->directly_linked_links());
+      }
+    }
+    /* Propagate mute status upstream past reroutes, but only if all outputs are muted. */
+    if (link->fromnode->is_reroute()) {
+      if (!muted || all_links_muted(*link->fromsock)) {
+        Stack<bNodeLink *> links;
+        links.push_multiple(link->fromnode->input_sockets().first()->directly_linked_links());
+        while (!links.is_empty()) {
+          bNodeLink *link = links.pop();
+          nodeLinkSetMute(&ntree, link, muted);
+          if (!link->fromnode->is_reroute()) {
+            continue;
+          }
+          if (!muted || all_links_muted(*link->fromsock)) {
+            links.push_multiple(link->fromnode->input_sockets().first()->directly_linked_links());
+          }
+        }
+      }
     }
   }
 
-  /* Clear remaining test flags. */
-  LISTBASE_FOREACH (bNodeLink *, link, &snode.edittree->links) {
-    if (node_link_is_hidden_or_dimmed(region.v2d, *link)) {
-      continue;
-    }
-    link->flag &= ~NODE_LINK_TEST;
-  }
-
-  ED_node_tree_propagate_change(C, CTX_data_main(C), snode.edittree);
+  ED_node_tree_propagate_change(C, CTX_data_main(C), &ntree);
   return OPERATOR_FINISHED;
 }
 

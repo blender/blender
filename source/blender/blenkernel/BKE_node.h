@@ -707,7 +707,10 @@ struct bNodeLink *nodeAddLink(struct bNodeTree *ntree,
                               struct bNodeSocket *tosock);
 void nodeRemLink(struct bNodeTree *ntree, struct bNodeLink *link);
 void nodeRemSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
-void nodeMuteLinkToggle(struct bNodeTree *ntree, struct bNodeLink *link);
+/**
+ * Set the mute status of a single link.
+ */
+void nodeLinkSetMute(struct bNodeTree *ntree, struct bNodeLink *link, const bool muted);
 bool nodeLinkIsHidden(const struct bNodeLink *link);
 bool nodeLinkIsSelected(const struct bNodeLink *link);
 void nodeInternalRelink(struct bNodeTree *ntree, struct bNode *node);

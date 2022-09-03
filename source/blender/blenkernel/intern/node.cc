@@ -118,9 +118,6 @@ static void node_free_node(bNodeTree *ntree, bNode *node);
 static void node_socket_interface_free(bNodeTree *UNUSED(ntree),
                                        bNodeSocket *sock,
                                        const bool do_id_user);
-static void nodeMuteRerouteOutputLinks(struct bNodeTree *ntree,
-                                       struct bNode *node,
-                                       const bool mute);
 
 static void ntree_init_data(ID *id)
 {
@@ -2350,102 +2347,11 @@ void nodeRemLink(bNodeTree *ntree, bNodeLink *link)
   }
 }
 
-/* Check if all output links are muted or not. */
-static bool nodeMuteFromSocketLinks(const bNodeTree *ntree, const bNodeSocket *sock)
+void nodeLinkSetMute(bNodeTree *ntree, bNodeLink *link, const bool muted)
 {
-  int tot = 0;
-  int muted = 0;
-  LISTBASE_FOREACH (const bNodeLink *, link, &ntree->links) {
-    if (link->fromsock == sock) {
-      tot++;
-      if (link->flag & NODE_LINK_MUTED) {
-        muted++;
-      }
-    }
-  }
-  return tot == muted;
-}
-
-static void nodeMuteLink(bNodeLink *link)
-{
-  link->flag |= NODE_LINK_MUTED;
-  link->flag |= NODE_LINK_TEST;
-  if (!(link->tosock->flag & SOCK_MULTI_INPUT)) {
-    link->tosock->flag &= ~SOCK_IN_USE;
-  }
-}
-
-static void nodeUnMuteLink(bNodeLink *link)
-{
-  link->flag &= ~NODE_LINK_MUTED;
-  link->flag |= NODE_LINK_TEST;
-  link->tosock->flag |= SOCK_IN_USE;
-}
-
-/* Upstream muting. Always happens when unmuting but checks when muting. O(n^2) algorithm. */
-static void nodeMuteRerouteInputLinks(bNodeTree *ntree, bNode *node, const bool mute)
-{
-  if (node->type != NODE_REROUTE) {
-    return;
-  }
-  if (!mute || nodeMuteFromSocketLinks(ntree, (bNodeSocket *)node->outputs.first)) {
-    bNodeSocket *sock = (bNodeSocket *)node->inputs.first;
-    LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-      if (!(link->flag & NODE_LINK_VALID) || (link->tosock != sock)) {
-        continue;
-      }
-      if (mute) {
-        nodeMuteLink(link);
-      }
-      else {
-        nodeUnMuteLink(link);
-      }
-      nodeMuteRerouteInputLinks(ntree, link->fromnode, mute);
-    }
-  }
-}
-
-/* Downstream muting propagates when reaching reroute nodes. O(n^2) algorithm. */
-static void nodeMuteRerouteOutputLinks(bNodeTree *ntree, bNode *node, const bool mute)
-{
-  if (node->type != NODE_REROUTE) {
-    return;
-  }
-  bNodeSocket *sock;
-  sock = (bNodeSocket *)node->outputs.first;
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    if (!(link->flag & NODE_LINK_VALID) || (link->fromsock != sock)) {
-      continue;
-    }
-    if (mute) {
-      nodeMuteLink(link);
-    }
-    else {
-      nodeUnMuteLink(link);
-    }
-    nodeMuteRerouteOutputLinks(ntree, link->tonode, mute);
-  }
-}
-
-void nodeMuteLinkToggle(bNodeTree *ntree, bNodeLink *link)
-{
-  if (link->tosock) {
-    bool mute = !(link->flag & NODE_LINK_MUTED);
-    if (mute) {
-      nodeMuteLink(link);
-    }
-    else {
-      nodeUnMuteLink(link);
-    }
-    if (link->tonode->type == NODE_REROUTE) {
-      nodeMuteRerouteOutputLinks(ntree, link->tonode, mute);
-    }
-    if (link->fromnode->type == NODE_REROUTE) {
-      nodeMuteRerouteInputLinks(ntree, link->fromnode, mute);
-    }
-  }
-
-  if (ntree) {
+  const bool was_muted = link->flag & NODE_LINK_MUTED;
+  SET_FLAG_FROM_TEST(link->flag, muted, NODE_LINK_MUTED);
+  if (muted != was_muted) {
     BKE_ntree_update_tag_link_mute(ntree, link);
   }
 }
