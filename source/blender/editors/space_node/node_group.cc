@@ -462,8 +462,7 @@ static bool node_group_separate_selected(
     bNode *newnode;
     if (make_copy) {
       /* make a copy */
-      newnode = blender::bke::node_copy_with_mapping(
-          &ngroup, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
+      newnode = bke::node_copy_with_mapping(&ngroup, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
       node_map.add_new(node, newnode);
     }
     else {

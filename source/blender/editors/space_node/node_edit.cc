@@ -1367,7 +1367,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
   bNode *lastnode = (bNode *)ntree->nodes.last;
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->flag & SELECT) {
-      bNode *new_node = blender::bke::node_copy_with_mapping(
+      bNode *new_node = bke::node_copy_with_mapping(
           ntree, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
       node_map.add_new(node, new_node);
       changed = true;
@@ -2234,12 +2234,12 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
     if (node->flag & SELECT) {
       /* No ID refcounting, this node is virtual,
        * detached from any actual Blender data currently. */
-      bNode *new_node = blender::bke::node_copy_with_mapping(nullptr,
-                                                             *node,
-                                                             LIB_ID_CREATE_NO_USER_REFCOUNT |
-                                                                 LIB_ID_CREATE_NO_MAIN,
-                                                             false,
-                                                             socket_map);
+      bNode *new_node = bke::node_copy_with_mapping(nullptr,
+                                                    *node,
+                                                    LIB_ID_CREATE_NO_USER_REFCOUNT |
+                                                        LIB_ID_CREATE_NO_MAIN,
+                                                    false,
+                                                    socket_map);
       node_map.add_new(node, new_node);
     }
   }
@@ -2372,7 +2372,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 
   /* copy nodes from clipboard */
   LISTBASE_FOREACH (bNode *, node, clipboard_nodes_lb) {
-    bNode *new_node = blender::bke::node_copy_with_mapping(
+    bNode *new_node = bke::node_copy_with_mapping(
         ntree, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
     node_map.add_new(node, new_node);
   }
