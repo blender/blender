@@ -20,7 +20,7 @@
 #include "MEM_guardedalloc.h"
 
 /* interface */
-#include "mikktspace.h"
+#include "mikktspace.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Tangent Space Calculation
@@ -30,6 +30,107 @@
 #define USE_LOOPTRI_DETECT_QUADS
 
 struct SGLSLEditMeshToTangent {
+  uint GetNumFaces()
+  {
+#ifdef USE_LOOPTRI_DETECT_QUADS
+    return (uint)num_face_as_quad_map;
+#else
+    return (uint)numTessFaces;
+#endif
+  }
+
+  uint GetNumVerticesOfFace(const uint face_num)
+  {
+#ifdef USE_LOOPTRI_DETECT_QUADS
+    if (face_as_quad_map) {
+      if (looptris[face_as_quad_map[face_num]][0]->f->len == 4) {
+        return 4;
+      }
+    }
+    return 3;
+#else
+    UNUSED_VARS(pContext, face_num);
+    return 3;
+#endif
+  }
+
+  const BMLoop *GetLoop(const uint face_num, uint vert_index)
+  {
+    // BLI_assert(vert_index >= 0 && vert_index < 4);
+    const BMLoop **lt;
+    const BMLoop *l;
+
+#ifdef USE_LOOPTRI_DETECT_QUADS
+    if (face_as_quad_map) {
+      lt = looptris[face_as_quad_map[face_num]];
+      if (lt[0]->f->len == 4) {
+        l = BM_FACE_FIRST_LOOP(lt[0]->f);
+        while (vert_index--) {
+          l = l->next;
+        }
+        return l;
+      }
+      /* fall through to regular triangle */
+    }
+    else {
+      lt = looptris[face_num];
+    }
+#else
+    lt = looptris[face_num];
+#endif
+    return lt[vert_index];
+  }
+
+  mikk::float3 GetPosition(const uint face_num, const uint vert_index)
+  {
+    const BMLoop *l = GetLoop(face_num, vert_index);
+    return mikk::float3(l->v->co);
+  }
+
+  mikk::float3 GetTexCoord(const uint face_num, const uint vert_index)
+  {
+    const BMLoop *l = GetLoop(face_num, vert_index);
+    if (cd_loop_uv_offset != -1) {
+      const float *uv = (const float *)BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+      return mikk::float3(uv[0], uv[1], 1.0f);
+    }
+    else {
+      const float *orco_p = orco[BM_elem_index_get(l->v)];
+      float u, v;
+      map_to_sphere(&u, &v, orco_p[0], orco_p[1], orco_p[2]);
+      return mikk::float3(u, v, 1.0f);
+    }
+  }
+
+  mikk::float3 GetNormal(const uint face_num, const uint vert_index)
+  {
+    const BMLoop *l = GetLoop(face_num, vert_index);
+    if (precomputedLoopNormals) {
+      return mikk::float3(precomputedLoopNormals[BM_elem_index_get(l)]);
+    }
+    else if (BM_elem_flag_test(l->f, BM_ELEM_SMOOTH) == 0) { /* flat */
+      if (precomputedFaceNormals) {
+        return mikk::float3(precomputedFaceNormals[BM_elem_index_get(l->f)]);
+      }
+      else {
+        return mikk::float3(l->f->no);
+      }
+    }
+    else {
+      return mikk::float3(l->v->no);
+    }
+  }
+
+  void SetTangentSpace(const uint face_num,
+                       const uint vert_index,
+                       mikk::float3 T,
+                       bool orientation)
+  {
+    const BMLoop *l = GetLoop(face_num, vert_index);
+    float *p_res = tangent[BM_elem_index_get(l)];
+    copy_v4_fl4(p_res, T.x, T.y, T.z, orientation ? 1.0f : -1.0f);
+  }
+
   const float (*precomputedFaceNormals)[3];
   const float (*precomputedLoopNormals)[3];
   const BMLoop *(*looptris)[3];
@@ -46,217 +147,12 @@ struct SGLSLEditMeshToTangent {
 #endif
 };
 
-#ifdef USE_LOOPTRI_DETECT_QUADS
-/* seems weak but only used on quads */
-static const BMLoop *bm_loop_at_face_index(const BMFace *f, int vert_index)
-{
-  const BMLoop *l = BM_FACE_FIRST_LOOP(f);
-  while (vert_index--) {
-    l = l->next;
-  }
-  return l;
-}
-#endif
-
-static int emdm_ts_GetNumFaces(const SMikkTSpaceContext *pContext)
-{
-  SGLSLEditMeshToTangent *pMesh = static_cast<SGLSLEditMeshToTangent *>(pContext->m_pUserData);
-
-#ifdef USE_LOOPTRI_DETECT_QUADS
-  return pMesh->num_face_as_quad_map;
-#else
-  return pMesh->numTessFaces;
-#endif
-}
-
-static int emdm_ts_GetNumVertsOfFace(const SMikkTSpaceContext *pContext, const int face_num)
-{
-#ifdef USE_LOOPTRI_DETECT_QUADS
-  SGLSLEditMeshToTangent *pMesh = static_cast<SGLSLEditMeshToTangent *>(pContext->m_pUserData);
-  if (pMesh->face_as_quad_map) {
-    const BMLoop **lt = pMesh->looptris[pMesh->face_as_quad_map[face_num]];
-    if (lt[0]->f->len == 4) {
-      return 4;
-    }
-  }
-  return 3;
-#else
-  UNUSED_VARS(pContext, face_num);
-  return 3;
-#endif
-}
-
-static void emdm_ts_GetPosition(const SMikkTSpaceContext *pContext,
-                                float r_co[3],
-                                const int face_num,
-                                const int vert_index)
-{
-  // BLI_assert(vert_index >= 0 && vert_index < 4);
-  SGLSLEditMeshToTangent *pMesh = static_cast<SGLSLEditMeshToTangent *>(pContext->m_pUserData);
-  const BMLoop **lt;
-  const BMLoop *l;
-
-#ifdef USE_LOOPTRI_DETECT_QUADS
-  if (pMesh->face_as_quad_map) {
-    lt = pMesh->looptris[pMesh->face_as_quad_map[face_num]];
-    if (lt[0]->f->len == 4) {
-      l = bm_loop_at_face_index(lt[0]->f, vert_index);
-      goto finally;
-    }
-    /* fall through to regular triangle */
-  }
-  else {
-    lt = pMesh->looptris[face_num];
-  }
-#else
-  lt = pMesh->looptris[face_num];
-#endif
-  l = lt[vert_index];
-
-  const float *co;
-
-finally:
-  co = l->v->co;
-  copy_v3_v3(r_co, co);
-}
-
-static void emdm_ts_GetTextureCoordinate(const SMikkTSpaceContext *pContext,
-                                         float r_uv[2],
-                                         const int face_num,
-                                         const int vert_index)
-{
-  // BLI_assert(vert_index >= 0 && vert_index < 4);
-  SGLSLEditMeshToTangent *pMesh = static_cast<SGLSLEditMeshToTangent *>(pContext->m_pUserData);
-  const BMLoop **lt;
-  const BMLoop *l;
-
-#ifdef USE_LOOPTRI_DETECT_QUADS
-  if (pMesh->face_as_quad_map) {
-    lt = pMesh->looptris[pMesh->face_as_quad_map[face_num]];
-    if (lt[0]->f->len == 4) {
-      l = bm_loop_at_face_index(lt[0]->f, vert_index);
-      goto finally;
-    }
-    /* fall through to regular triangle */
-  }
-  else {
-    lt = pMesh->looptris[face_num];
-  }
-#else
-  lt = pMesh->looptris[face_num];
-#endif
-  l = lt[vert_index];
-
-finally:
-  if (pMesh->cd_loop_uv_offset != -1) {
-    const float *uv = BM_ELEM_CD_GET_FLOAT_P(l, pMesh->cd_loop_uv_offset);
-    copy_v2_v2(r_uv, uv);
-  }
-  else {
-    const float *orco = pMesh->orco[BM_elem_index_get(l->v)];
-    map_to_sphere(&r_uv[0], &r_uv[1], orco[0], orco[1], orco[2]);
-  }
-}
-
-static void emdm_ts_GetNormal(const SMikkTSpaceContext *pContext,
-                              float r_no[3],
-                              const int face_num,
-                              const int vert_index)
-{
-  // BLI_assert(vert_index >= 0 && vert_index < 4);
-  SGLSLEditMeshToTangent *pMesh = static_cast<SGLSLEditMeshToTangent *>(pContext->m_pUserData);
-  const BMLoop **lt;
-  const BMLoop *l;
-
-#ifdef USE_LOOPTRI_DETECT_QUADS
-  if (pMesh->face_as_quad_map) {
-    lt = pMesh->looptris[pMesh->face_as_quad_map[face_num]];
-    if (lt[0]->f->len == 4) {
-      l = bm_loop_at_face_index(lt[0]->f, vert_index);
-      goto finally;
-    }
-    /* fall through to regular triangle */
-  }
-  else {
-    lt = pMesh->looptris[face_num];
-  }
-#else
-  lt = pMesh->looptris[face_num];
-#endif
-  l = lt[vert_index];
-
-finally:
-  if (pMesh->precomputedLoopNormals) {
-    copy_v3_v3(r_no, pMesh->precomputedLoopNormals[BM_elem_index_get(l)]);
-  }
-  else if (BM_elem_flag_test(l->f, BM_ELEM_SMOOTH) == 0) { /* flat */
-    if (pMesh->precomputedFaceNormals) {
-      copy_v3_v3(r_no, pMesh->precomputedFaceNormals[BM_elem_index_get(l->f)]);
-    }
-    else {
-      copy_v3_v3(r_no, l->f->no);
-    }
-  }
-  else {
-    copy_v3_v3(r_no, l->v->no);
-  }
-}
-
-static void emdm_ts_SetTSpace(const SMikkTSpaceContext *pContext,
-                              const float fvTangent[3],
-                              const float fSign,
-                              const int face_num,
-                              const int vert_index)
-{
-  // BLI_assert(vert_index >= 0 && vert_index < 4);
-  SGLSLEditMeshToTangent *pMesh = static_cast<SGLSLEditMeshToTangent *>(pContext->m_pUserData);
-  const BMLoop **lt;
-  const BMLoop *l;
-
-#ifdef USE_LOOPTRI_DETECT_QUADS
-  if (pMesh->face_as_quad_map) {
-    lt = pMesh->looptris[pMesh->face_as_quad_map[face_num]];
-    if (lt[0]->f->len == 4) {
-      l = bm_loop_at_face_index(lt[0]->f, vert_index);
-      goto finally;
-    }
-    /* fall through to regular triangle */
-  }
-  else {
-    lt = pMesh->looptris[face_num];
-  }
-#else
-  lt = pMesh->looptris[face_num];
-#endif
-  l = lt[vert_index];
-
-  float *pRes;
-
-finally:
-  pRes = pMesh->tangent[BM_elem_index_get(l)];
-  copy_v3_v3(pRes, fvTangent);
-  pRes[3] = fSign;
-}
-
 static void emDM_calc_loop_tangents_thread(TaskPool *__restrict UNUSED(pool), void *taskdata)
 {
-  SGLSLEditMeshToTangent *mesh2tangent = static_cast<SGLSLEditMeshToTangent *>(taskdata);
-  /* new computation method */
-  {
-    SMikkTSpaceContext sContext{};
-    SMikkTSpaceInterface sInterface{};
-    sContext.m_pUserData = mesh2tangent;
-    sContext.m_pInterface = &sInterface;
-    sInterface.m_getNumFaces = emdm_ts_GetNumFaces;
-    sInterface.m_getNumVerticesOfFace = emdm_ts_GetNumVertsOfFace;
-    sInterface.m_getPosition = emdm_ts_GetPosition;
-    sInterface.m_getTexCoord = emdm_ts_GetTextureCoordinate;
-    sInterface.m_getNormal = emdm_ts_GetNormal;
-    sInterface.m_setTSpaceBasic = emdm_ts_SetTSpace;
-    sInterface.m_setTSpace = nullptr;
-    /* 0 if failed */
-    genTangSpaceDefault(&sContext);
-  }
+  SGLSLEditMeshToTangent *mesh_data = static_cast<SGLSLEditMeshToTangent *>(taskdata);
+
+  mikk::Mikktspace<SGLSLEditMeshToTangent> mikk(*mesh_data);
+  mikk.genTangSpace();
 }
 
 void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
@@ -392,7 +288,7 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
         }
         BM_mesh_elem_index_ensure(bm, htype_index);
 
-        mesh2tangent->looptris = (const BMLoop *(*)[3])(em->looptris);
+        mesh2tangent->looptris = (const BMLoop *(*)[3])em->looptris;
         mesh2tangent->tangent = static_cast<float(*)[4]>(loopdata_out->layers[index].data);
 
         BLI_task_pool_push(

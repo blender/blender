@@ -886,16 +886,16 @@ ccl_device_inline float2 map_to_tube(const float3 co)
 
 ccl_device_inline float2 map_to_sphere(const float3 co)
 {
-  float l = len(co);
+  float l = dot(co, co);
   float u, v;
   if (l > 0.0f) {
     if (UNLIKELY(co.x == 0.0f && co.y == 0.0f)) {
       u = 0.0f; /* Otherwise domain error. */
     }
     else {
-      u = (1.0f - atan2f(co.x, co.y) / M_PI_F) / 2.0f;
+      u = (0.5f - atan2f(co.x, co.y) * M_1_2PI_F);
     }
-    v = 1.0f - safe_acosf(co.z / l) / M_PI_F;
+    v = 1.0f - safe_acosf(co.z / sqrtf(l)) * M_1_PI_F;
   }
   else {
     u = v = 0.0f;
