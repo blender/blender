@@ -1435,48 +1435,48 @@ static int mute_links_exec(bContext *C, wmOperator *op)
   }
   RNA_END;
 
-  if (i > 1) {
-    ED_preview_kill_jobs(CTX_wm_manager(C), &bmain);
-
-    /* Count intersected links and clear test flag. */
-    int tot = 0;
-    LISTBASE_FOREACH (bNodeLink *, link, &snode.edittree->links) {
-      if (node_link_is_hidden_or_dimmed(region.v2d, *link)) {
-        continue;
-      }
-      link->flag &= ~NODE_LINK_TEST;
-      if (node_links_intersect(*link, mcoords, i)) {
-        tot++;
-      }
-    }
-    if (tot == 0) {
-      return OPERATOR_CANCELLED;
-    }
-
-    /* Mute links. */
-    LISTBASE_FOREACH (bNodeLink *, link, &snode.edittree->links) {
-      if (node_link_is_hidden_or_dimmed(region.v2d, *link) || (link->flag & NODE_LINK_TEST)) {
-        continue;
-      }
-
-      if (node_links_intersect(*link, mcoords, i)) {
-        nodeMuteLinkToggle(snode.edittree, link);
-      }
-    }
-
-    /* Clear remaining test flags. */
-    LISTBASE_FOREACH (bNodeLink *, link, &snode.edittree->links) {
-      if (node_link_is_hidden_or_dimmed(region.v2d, *link)) {
-        continue;
-      }
-      link->flag &= ~NODE_LINK_TEST;
-    }
-
-    ED_node_tree_propagate_change(C, CTX_data_main(C), snode.edittree);
-    return OPERATOR_FINISHED;
+  if (i <= 1) {
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
-  return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+  ED_preview_kill_jobs(CTX_wm_manager(C), &bmain);
+
+  /* Count intersected links and clear test flag. */
+  int tot = 0;
+  LISTBASE_FOREACH (bNodeLink *, link, &snode.edittree->links) {
+    if (node_link_is_hidden_or_dimmed(region.v2d, *link)) {
+      continue;
+    }
+    link->flag &= ~NODE_LINK_TEST;
+    if (node_links_intersect(*link, mcoords, i)) {
+      tot++;
+    }
+  }
+  if (tot == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Mute links. */
+  LISTBASE_FOREACH (bNodeLink *, link, &snode.edittree->links) {
+    if (node_link_is_hidden_or_dimmed(region.v2d, *link) || (link->flag & NODE_LINK_TEST)) {
+      continue;
+    }
+
+    if (node_links_intersect(*link, mcoords, i)) {
+      nodeMuteLinkToggle(snode.edittree, link);
+    }
+  }
+
+  /* Clear remaining test flags. */
+  LISTBASE_FOREACH (bNodeLink *, link, &snode.edittree->links) {
+    if (node_link_is_hidden_or_dimmed(region.v2d, *link)) {
+      continue;
+    }
+    link->flag &= ~NODE_LINK_TEST;
+  }
+
+  ED_node_tree_propagate_change(C, CTX_data_main(C), snode.edittree);
+  return OPERATOR_FINISHED;
 }
 
 void NODE_OT_links_mute(wmOperatorType *ot)
