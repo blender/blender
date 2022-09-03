@@ -128,7 +128,7 @@ set(SRC
   intern/editmesh.c
   intern/editmesh_bvh.c
   intern/editmesh_cache.cc
-  intern/editmesh_tangent.c
+  intern/editmesh_tangent.cc
   intern/effect.c
   intern/fcurve.c
   intern/fcurve_cache.c
@@ -211,7 +211,7 @@ set(SRC
   intern/mesh_remesh_voxel.cc
   intern/mesh_runtime.cc
   intern/mesh_sample.cc
-  intern/mesh_tangent.c
+  intern/mesh_tangent.cc
   intern/mesh_tessellate.cc
   intern/mesh_validate.cc
   intern/mesh_wrapper.cc

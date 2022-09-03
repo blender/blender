@@ -29,7 +29,7 @@
 /* Necessary complexity to handle looptri's as quads for correct tangents */
 #define USE_LOOPTRI_DETECT_QUADS
 
-typedef struct {
+struct SGLSLEditMeshToTangent {
   const float (*precomputedFaceNormals)[3];
   const float (*precomputedLoopNormals)[3];
   const BMLoop *(*looptris)[3];
@@ -44,8 +44,7 @@ typedef struct {
   const int *face_as_quad_map;
   int num_face_as_quad_map;
 #endif
-
-} SGLSLEditMeshToTangent;
+};
 
 #ifdef USE_LOOPTRI_DETECT_QUADS
 /* seems weak but only used on quads */
@@ -61,7 +60,7 @@ static const BMLoop *bm_loop_at_face_index(const BMFace *f, int vert_index)
 
 static int emdm_ts_GetNumFaces(const SMikkTSpaceContext *pContext)
 {
-  SGLSLEditMeshToTangent *pMesh = pContext->m_pUserData;
+  SGLSLEditMeshToTangent *pMesh = static_cast<SGLSLEditMeshToTangent *>(pContext->m_pUserData);
 
 #ifdef USE_LOOPTRI_DETECT_QUADS
   return pMesh->num_face_as_quad_map;
@@ -73,7 +72,7 @@ static int emdm_ts_GetNumFaces(const SMikkTSpaceContext *pContext)
 static int emdm_ts_GetNumVertsOfFace(const SMikkTSpaceContext *pContext, const int face_num)
 {
 #ifdef USE_LOOPTRI_DETECT_QUADS
-  SGLSLEditMeshToTangent *pMesh = pContext->m_pUserData;
+  SGLSLEditMeshToTangent *pMesh = static_cast<SGLSLEditMeshToTangent *>(pContext->m_pUserData);
   if (pMesh->face_as_quad_map) {
     const BMLoop **lt = pMesh->looptris[pMesh->face_as_quad_map[face_num]];
     if (lt[0]->f->len == 4) {
@@ -93,7 +92,7 @@ static void emdm_ts_GetPosition(const SMikkTSpaceContext *pContext,
                                 const int vert_index)
 {
   // BLI_assert(vert_index >= 0 && vert_index < 4);
-  SGLSLEditMeshToTangent *pMesh = pContext->m_pUserData;
+  SGLSLEditMeshToTangent *pMesh = static_cast<SGLSLEditMeshToTangent *>(pContext->m_pUserData);
   const BMLoop **lt;
   const BMLoop *l;
 
@@ -127,7 +126,7 @@ static void emdm_ts_GetTextureCoordinate(const SMikkTSpaceContext *pContext,
                                          const int vert_index)
 {
   // BLI_assert(vert_index >= 0 && vert_index < 4);
-  SGLSLEditMeshToTangent *pMesh = pContext->m_pUserData;
+  SGLSLEditMeshToTangent *pMesh = static_cast<SGLSLEditMeshToTangent *>(pContext->m_pUserData);
   const BMLoop **lt;
   const BMLoop *l;
 
@@ -150,7 +149,7 @@ static void emdm_ts_GetTextureCoordinate(const SMikkTSpaceContext *pContext,
 
 finally:
   if (pMesh->cd_loop_uv_offset != -1) {
-    const float *uv = BM_ELEM_CD_GET_VOID_P(l, pMesh->cd_loop_uv_offset);
+    const float *uv = BM_ELEM_CD_GET_FLOAT_P(l, pMesh->cd_loop_uv_offset);
     copy_v2_v2(r_uv, uv);
   }
   else {
@@ -165,7 +164,7 @@ static void emdm_ts_GetNormal(const SMikkTSpaceContext *pContext,
                               const int vert_index)
 {
   // BLI_assert(vert_index >= 0 && vert_index < 4);
-  SGLSLEditMeshToTangent *pMesh = pContext->m_pUserData;
+  SGLSLEditMeshToTangent *pMesh = static_cast<SGLSLEditMeshToTangent *>(pContext->m_pUserData);
   const BMLoop **lt;
   const BMLoop *l;
 
@@ -210,7 +209,7 @@ static void emdm_ts_SetTSpace(const SMikkTSpaceContext *pContext,
                               const int vert_index)
 {
   // BLI_assert(vert_index >= 0 && vert_index < 4);
-  SGLSLEditMeshToTangent *pMesh = pContext->m_pUserData;
+  SGLSLEditMeshToTangent *pMesh = static_cast<SGLSLEditMeshToTangent *>(pContext->m_pUserData);
   const BMLoop **lt;
   const BMLoop *l;
 
@@ -241,11 +240,11 @@ finally:
 
 static void emDM_calc_loop_tangents_thread(TaskPool *__restrict UNUSED(pool), void *taskdata)
 {
-  struct SGLSLEditMeshToTangent *mesh2tangent = taskdata;
+  SGLSLEditMeshToTangent *mesh2tangent = static_cast<SGLSLEditMeshToTangent *>(taskdata);
   /* new computation method */
   {
-    SMikkTSpaceContext sContext = {NULL};
-    SMikkTSpaceInterface sInterface = {NULL};
+    SMikkTSpaceContext sContext{};
+    SMikkTSpaceInterface sInterface{};
     sContext.m_pUserData = mesh2tangent;
     sContext.m_pInterface = &sInterface;
     sInterface.m_getNumFaces = emdm_ts_GetNumFaces;
@@ -254,6 +253,7 @@ static void emDM_calc_loop_tangents_thread(TaskPool *__restrict UNUSED(pool), vo
     sInterface.m_getTexCoord = emdm_ts_GetTextureCoordinate;
     sInterface.m_getNormal = emdm_ts_GetNormal;
     sInterface.m_setTSpaceBasic = emdm_ts_SetTSpace;
+    sInterface.m_setTSpace = nullptr;
     /* 0 if failed */
     genTangSpaceDefault(&sContext);
   }
@@ -304,7 +304,7 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
     if ((tangent_mask & DM_TANGENT_MASK_ORCO) &&
         CustomData_get_named_layer_index(loopdata_out, CD_TANGENT, "") == -1) {
       CustomData_add_layer_named(
-          loopdata_out, CD_TANGENT, CD_SET_DEFAULT, NULL, (int)loopdata_out_len, "");
+          loopdata_out, CD_TANGENT, CD_SET_DEFAULT, nullptr, (int)loopdata_out_len, "");
     }
     if (calc_act && act_uv_name[0]) {
       BKE_mesh_add_loop_tangent_named_layer_for_uv(
@@ -317,14 +317,14 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
     int totface = em->tottri;
 #ifdef USE_LOOPTRI_DETECT_QUADS
     int num_face_as_quad_map;
-    int *face_as_quad_map = NULL;
+    int *face_as_quad_map = nullptr;
 
     /* map faces to quads */
     if (em->tottri != bm->totface) {
       /* Over allocate, since we don't know how many ngon or quads we have. */
 
       /* map fake face index to looptri */
-      face_as_quad_map = MEM_mallocN(sizeof(int) * totface, __func__);
+      face_as_quad_map = static_cast<int *>(MEM_mallocN(sizeof(int) * totface, __func__));
       int i, j;
       for (i = 0, j = 0; j < totface; i++, j++) {
         face_as_quad_map[i] = j;
@@ -342,7 +342,7 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
     /* Calculation */
     if (em->tottri != 0) {
       TaskPool *task_pool;
-      task_pool = BLI_task_pool_create(NULL, TASK_PRIORITY_HIGH);
+      task_pool = BLI_task_pool_create(nullptr, TASK_PRIORITY_HIGH);
 
       tangent_mask_curr = 0;
       /* Calculate tangent layers */
@@ -392,10 +392,11 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
         }
         BM_mesh_elem_index_ensure(bm, htype_index);
 
-        mesh2tangent->looptris = (const BMLoop *(*)[3])em->looptris;
-        mesh2tangent->tangent = loopdata_out->layers[index].data;
+        mesh2tangent->looptris = (const BMLoop *(*)[3])(em->looptris);
+        mesh2tangent->tangent = static_cast<float(*)[4]>(loopdata_out->layers[index].data);
 
-        BLI_task_pool_push(task_pool, emDM_calc_loop_tangents_thread, mesh2tangent, false, NULL);
+        BLI_task_pool_push(
+            task_pool, emDM_calc_loop_tangents_thread, mesh2tangent, false, nullptr);
       }
 
       BLI_assert(tangent_mask_curr == tangent_mask);
