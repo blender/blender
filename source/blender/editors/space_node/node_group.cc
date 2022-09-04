@@ -25,6 +25,7 @@
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_report.h"
 
@@ -836,8 +837,8 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
 
   /* relink external sockets */
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
-    int fromselect = node_group_make_use_node(*link->fromnode, gnode);
-    int toselect = node_group_make_use_node(*link->tonode, gnode);
+    const bool fromselect = node_group_make_use_node(*link->fromnode, gnode);
+    const bool toselect = node_group_make_use_node(*link->tonode, gnode);
 
     if ((fromselect && link->tonode == gnode) || (toselect && link->fromnode == gnode)) {
       /* remove all links to/from the gnode.
@@ -917,8 +918,8 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
 
   /* move internal links */
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
-    int fromselect = node_group_make_use_node(*link->fromnode, gnode);
-    int toselect = node_group_make_use_node(*link->tonode, gnode);
+    const bool fromselect = node_group_make_use_node(*link->fromnode, gnode);
+    const bool toselect = node_group_make_use_node(*link->tonode, gnode);
 
     if (fromselect && toselect) {
       BLI_remlink(&ntree.links, link);
@@ -1041,11 +1042,6 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
     nodeSetActive(&ntree, gnode);
     if (ngroup) {
       ED_node_tree_push(&snode, ngroup, gnode);
-
-      ngroup->ensure_topology_cache();
-      LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
-        sort_multi_input_socket_links(*node, nullptr, nullptr);
-      }
     }
   }
 

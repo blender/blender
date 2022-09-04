@@ -73,6 +73,8 @@ static void clear_picking_highlight(ListBase *links)
 
 namespace blender::ed::space_node {
 
+void update_multi_input_indices_for_removed_links(bNode &node);
+
 /* -------------------------------------------------------------------- */
 /** \name Add Node
  * \{ */
@@ -103,11 +105,9 @@ static void pick_link(
 
   nldrag.links.append(link);
   nodeRemLink(snode.edittree, &link_to_pick);
-
-  BLI_assert(nldrag.last_node_hovered_while_dragging_a_link != nullptr);
-
   snode.edittree->ensure_topology_cache();
-  sort_multi_input_socket_links(*nldrag.last_node_hovered_while_dragging_a_link, nullptr, nullptr);
+  BLI_assert(nldrag.last_node_hovered_while_dragging_a_link != nullptr);
+  update_multi_input_indices_for_removed_links(*nldrag.last_node_hovered_while_dragging_a_link);
 
   /* Send changed event to original link->tonode. */
   if (node) {
@@ -292,7 +292,9 @@ struct LinkAndPosition {
   float2 multi_socket_position;
 };
 
-void sort_multi_input_socket_links(bNode &node, bNodeLink *drag_link, const float2 *cursor)
+static void sort_multi_input_socket_links_with_drag(bNode &node,
+                                                    bNodeLink &drag_link,
+                                                    const float2 &cursor)
 {
   for (bNodeSocket *socket : node.input_sockets()) {
     if (!socket->is_multi_input()) {
@@ -307,10 +309,7 @@ void sort_multi_input_socket_links(bNode &node, bNodeLink *drag_link, const floa
       links.append({link, location});
     };
 
-    if (drag_link) {
-      BLI_assert(cursor != nullptr);
-      links.append({drag_link, *cursor});
-    }
+    links.append({&drag_link, cursor});
 
     std::sort(links.begin(), links.end(), [](const LinkAndPosition a, const LinkAndPosition b) {
       return a.multi_socket_position.y < b.multi_socket_position.y;
@@ -318,6 +317,23 @@ void sort_multi_input_socket_links(bNode &node, bNodeLink *drag_link, const floa
 
     for (const int i : links.index_range()) {
       links[i].link->multi_input_socket_index = i;
+    }
+  }
+}
+
+void update_multi_input_indices_for_removed_links(bNode &node)
+{
+  for (bNodeSocket *socket : node.input_sockets()) {
+    if (!socket->is_multi_input()) {
+      continue;
+    }
+    Vector<bNodeLink *, 8> links = socket->directly_linked_links();
+    std::sort(links.begin(), links.end(), [](const bNodeLink *a, const bNodeLink *b) {
+      return a->multi_input_socket_index < b->multi_input_socket_index;
+    });
+
+    for (const int i : links.index_range()) {
+      links[i]->multi_input_socket_index = i;
     }
   }
 }
@@ -944,18 +960,18 @@ static void node_link_find_socket(bContext &C, wmOperator &op, const float2 &cur
           continue;
         }
         if (link->tosock && link->tosock->flag & SOCK_MULTI_INPUT) {
-          sort_multi_input_socket_links(*tnode, link, &cursor);
+          sort_multi_input_socket_links_with_drag(*tnode, *link, cursor);
         }
       }
     }
     else {
       for (bNodeLink *link : nldrag->links) {
-        if (nldrag->last_node_hovered_while_dragging_a_link) {
-          sort_multi_input_socket_links(
-              *nldrag->last_node_hovered_while_dragging_a_link, nullptr, nullptr);
-        }
         link->tonode = nullptr;
         link->tosock = nullptr;
+      }
+      if (nldrag->last_node_hovered_while_dragging_a_link) {
+        update_multi_input_indices_for_removed_links(
+            *nldrag->last_node_hovered_while_dragging_a_link);
       }
     }
   }
@@ -1347,9 +1363,8 @@ static int cut_links_exec(bContext *C, wmOperator *op)
   }
 
   node_tree.ensure_topology_cache();
-
   for (bNode *node : affected_nodes) {
-    sort_multi_input_socket_links(*node, nullptr, nullptr);
+    update_multi_input_indices_for_removed_links(*node);
   }
 
   ED_node_tree_propagate_change(C, CTX_data_main(C), snode.edittree);
