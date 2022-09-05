@@ -4169,7 +4169,6 @@ static int gpencil_stroke_outline_exec(bContext *C, wmOperator *op)
     }
   }
 
-
   if (changed) {
     /* notifiers */
     DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
