@@ -3545,7 +3545,7 @@ void BKE_gpencil_stroke_join(bGPDstroke *gps_a,
 
 void BKE_gpencil_stroke_start_set(bGPdata *gpd, bGPDstroke *gps, int start_idx)
 {
-  if ((start_idx < 1) || (start_idx >= gps->totpoints)) {
+  if ((start_idx < 1) || (start_idx >= gps->totpoints) || (gps->totpoints == 0)) {
     return;
   }
 
@@ -3555,7 +3555,7 @@ void BKE_gpencil_stroke_start_set(bGPdata *gpd, bGPDstroke *gps, int start_idx)
   }
 
   bGPDstroke *gps_b = BKE_gpencil_stroke_duplicate(gps, true, false);
-  BKE_gpencil_stroke_trim_points(gps_b, 0, start_idx - 0);
+  BKE_gpencil_stroke_trim_points(gps_b, 0, start_idx);
   BKE_gpencil_stroke_trim_points(gps, start_idx, gps->totpoints - 1);
 
   /* Join both strokes. */
