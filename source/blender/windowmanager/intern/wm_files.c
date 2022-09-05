@@ -3019,7 +3019,9 @@ void WM_OT_recover_auto_save(wmOperatorType *ot)
 static void wm_filepath_default(const Main *bmain, char *filepath)
 {
   if (bmain->filepath[0] == '\0') {
-    BLI_path_filename_ensure(filepath, FILE_MAX, "untitled.blend");
+    char filename_untitled[FILE_MAXFILE];
+    SNPRINTF(filename_untitled, "%s.blend", DATA_("untitled"));
+    BLI_path_filename_ensure(filepath, FILE_MAX, filename_untitled);
   }
 }
 
@@ -3652,7 +3654,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
     BLI_split_file_part(blendfile_path, filename, sizeof(filename));
   }
   else {
-    STRNCPY(filename, "untitled.blend");
+    SNPRINTF(filename, "%s.blend", DATA_("untitled"));
   }
   uiItemL(layout, filename, ICON_NONE);
 

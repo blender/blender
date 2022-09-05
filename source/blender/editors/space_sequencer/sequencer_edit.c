@@ -3093,7 +3093,7 @@ static int sequencer_export_subtitles_invoke(bContext *C,
     char filepath[FILE_MAX];
 
     if (BKE_main_blendfile_path(bmain)[0] == '\0') {
-      BLI_strncpy(filepath, "untitled", sizeof(filepath));
+      BLI_strncpy(filepath, DATA_("untitled"), sizeof(filepath));
     }
     else {
       BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));

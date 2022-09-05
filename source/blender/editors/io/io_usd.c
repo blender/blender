@@ -90,7 +90,7 @@ static int wm_usd_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
     const char *main_blendfile_path = BKE_main_blendfile_path(bmain);
 
     if (main_blendfile_path[0] == '\0') {
-      BLI_strncpy(filepath, "untitled", sizeof(filepath));
+      BLI_strncpy(filepath, DATA_("untitled"), sizeof(filepath));
     }
     else {
       BLI_strncpy(filepath, main_blendfile_path, sizeof(filepath));

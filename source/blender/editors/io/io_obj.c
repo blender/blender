@@ -63,7 +63,7 @@ static int wm_obj_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
     char filepath[FILE_MAX];
 
     if (BKE_main_blendfile_path(bmain)[0] == '\0') {
-      BLI_strncpy(filepath, "untitled", sizeof(filepath));
+      BLI_strncpy(filepath, DATA_("untitled"), sizeof(filepath));
     }
     else {
       BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
