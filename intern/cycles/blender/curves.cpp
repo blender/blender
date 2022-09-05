@@ -843,7 +843,7 @@ static float4 hair_point_as_float4(BL::FloatVectorAttribute b_attr_position,
                                    const int index)
 {
   float4 mP = float3_to_float4(get_float3(b_attr_position.data[index].vector()));
-  mP.w = b_attr_radius ? b_attr_radius->data[index].value() : 0.0f;
+  mP.w = b_attr_radius ? b_attr_radius->data[index].value() : 0.005f;
   return mP;
 }
 
@@ -910,7 +910,7 @@ static void export_hair_curves(Scene *scene,
     for (int j = 0; j < num_points; j++) {
       const int point_offset = first_point_index + j;
       const float3 co = get_float3(b_attr_position.data[point_offset].vector());
-      const float radius = b_attr_radius ? b_attr_radius->data[point_offset].value() : 0.0f;
+      const float radius = b_attr_radius ? b_attr_radius->data[point_offset].value() : 0.005f;
 
       curve_keys[point_offset] = co;
       curve_radius[point_offset] = radius;
