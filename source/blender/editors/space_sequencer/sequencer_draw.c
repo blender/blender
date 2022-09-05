@@ -519,18 +519,6 @@ static void draw_seq_waveform_overlay(
   MEM_freeN(waveform_data);
 }
 
-#if 0
-static size_t *waveform_append(WaveVizData *waveform_data,
-                               vec2f pos,
-                               const float value_min,
-                               const float value_max,
-                               const float y_mid,
-                               const float y_scale,
-                               const float rms,
-                               const bool is_clipping,
-                               const bool is_line_strip)
-#endif
-
 static void drawmeta_contents(Scene *scene,
                               Sequence *seqm,
                               float x1,
