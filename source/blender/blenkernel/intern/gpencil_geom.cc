@@ -3556,7 +3556,7 @@ void BKE_gpencil_stroke_start_set(bGPdata *gpd, bGPDstroke *gps, int start_idx)
 
   bGPDstroke *gps_b = BKE_gpencil_stroke_duplicate(gps, true, false);
   BKE_gpencil_stroke_trim_points(gps_b, 0, start_idx);
-  BKE_gpencil_stroke_trim_points(gps, start_idx, gps->totpoints - 1);
+  BKE_gpencil_stroke_trim_points(gps, start_idx + 1, gps->totpoints - 1);
 
   /* Join both strokes. */
   BKE_gpencil_stroke_join(gps, gps_b, false, false, false, false);
