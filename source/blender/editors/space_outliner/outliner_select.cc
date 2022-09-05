@@ -191,7 +191,8 @@ void outliner_item_mode_toggle(bContext *C,
     Base *base = BKE_view_layer_base_find(tvc->view_layer, ob);
 
     /* Hidden objects can be removed from the mode. */
-    if (!base || (!(base->flag & BASE_VISIBLE_DEPSGRAPH) && (ob->mode != tvc->obact->mode))) {
+    if (!base || (!(base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) &&
+                  (ob->mode != tvc->obact->mode))) {
       return;
     }
 
@@ -239,7 +240,7 @@ static void do_outliner_object_select_recursive(ViewLayer *view_layer,
 {
   LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     Object *ob = base->object;
-    if ((((base->flag & BASE_VISIBLE_DEPSGRAPH) != 0) &&
+    if ((((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) != 0) &&
          BKE_object_is_child_recursive(ob_parent, ob))) {
       ED_object_base_select(base, select ? BA_SELECT : BA_DESELECT);
     }

@@ -1892,7 +1892,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
     if (view_layer->basact) {
       Object *ob = view_layer->basact->object;
       /* if hidden but in edit mode, we still display, can happen with animation */
-      if ((view_layer->basact->flag & BASE_VISIBLE_DEPSGRAPH) != 0 ||
+      if ((view_layer->basact->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) != 0 ||
           (ob->mode != OB_MODE_OBJECT)) {
         CTX_data_id_pointer_set(result, &ob->id);
       }

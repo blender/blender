@@ -130,7 +130,7 @@ static void stats_object(Object *ob,
                          SceneStats *stats,
                          GSet *objects_gset)
 {
-  if ((ob->base_flag & BASE_VISIBLE_VIEWLAYER) == 0) {
+  if ((ob->base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0) {
     return;
   }
 
@@ -365,7 +365,7 @@ static void stats_update(Depsgraph *depsgraph,
   if (obedit) {
     /* Edit Mode. */
     FOREACH_OBJECT_BEGIN (view_layer, ob_iter) {
-      if (ob_iter->base_flag & BASE_VISIBLE_VIEWLAYER) {
+      if (ob_iter->base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) {
         if (ob_iter->mode & OB_MODE_EDIT) {
           stats_object_edit(ob_iter, stats);
           stats->totobjsel++;
@@ -385,7 +385,7 @@ static void stats_update(Depsgraph *depsgraph,
   else if (ob && (ob->mode & OB_MODE_POSE)) {
     /* Pose Mode. */
     FOREACH_OBJECT_BEGIN (view_layer, ob_iter) {
-      if (ob_iter->base_flag & BASE_VISIBLE_VIEWLAYER) {
+      if (ob_iter->base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) {
         if (ob_iter->mode & OB_MODE_POSE) {
           stats_object_pose(ob_iter, stats);
           stats->totobjsel++;

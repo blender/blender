@@ -3216,7 +3216,8 @@ static bool element_should_draw_faded(const TreeViewContext *tvc,
         const Base *base = (te->directdata) ? (const Base *)te->directdata :
                                               BKE_view_layer_base_find(
                                                   (ViewLayer *)tvc->view_layer, (Object *)ob);
-        const bool is_visible = (base != nullptr) && (base->flag & BASE_VISIBLE_VIEWLAYER);
+        const bool is_visible = (base != nullptr) &&
+                                (base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT);
         if (!is_visible) {
           return true;
         }

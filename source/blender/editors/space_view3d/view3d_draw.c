@@ -2152,7 +2152,7 @@ static void validate_object_select_id(struct Depsgraph *depsgraph,
     return;
   }
 
-  if (obact_eval && ((obact_eval->base_flag & BASE_VISIBLE_DEPSGRAPH) != 0)) {
+  if (obact_eval && ((obact_eval->base_flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) != 0)) {
     Base *base = BKE_view_layer_base_find(view_layer, obact);
     DRW_select_buffer_context_create(&base, 1, -1);
   }

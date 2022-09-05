@@ -203,7 +203,7 @@ bool ED_object_base_deselect_all(ViewLayer *view_layer, View3D *v3d, int action)
 
 static int get_base_select_priority(Base *base)
 {
-  if (base->flag & BASE_VISIBLE_DEPSGRAPH) {
+  if (base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) {
     if (base->flag & BASE_SELECTABLE) {
       return 3;
     }

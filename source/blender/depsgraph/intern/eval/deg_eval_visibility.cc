@@ -36,8 +36,7 @@ void deg_evaluate_object_node_visibility(::Depsgraph *depsgraph, IDNode *id_node
 
   bool is_enabled;
   if (graph->mode == DAG_EVAL_VIEWPORT) {
-    is_enabled = (object->base_flag & BASE_ENABLED_VIEWPORT) &&
-                 ((object->base_flag & BASE_HIDDEN) == 0);
+    is_enabled = (object->base_flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT);
   }
   else {
     is_enabled = (object->base_flag & BASE_ENABLED_RENDER);

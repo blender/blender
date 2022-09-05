@@ -182,7 +182,7 @@ bool deg_iterator_duplis_step(DEGObjectIterData *data)
     }
 
     /* Duplicated elements shouldn't care whether their original collection is visible or not. */
-    temp_dupli_object->base_flag |= BASE_VISIBLE_DEPSGRAPH;
+    temp_dupli_object->base_flag |= BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT;
 
     int ob_visibility = BKE_object_visibility(temp_dupli_object, data->eval_mode);
     if ((ob_visibility & (OB_VISIBLE_SELF | OB_VISIBLE_PARTICLES)) == 0) {

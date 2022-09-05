@@ -56,7 +56,8 @@
 static CLG_LogRef LOG = {"bke.layercollection"};
 
 /* Set of flags which are dependent on a collection settings. */
-static const short g_base_collection_flags = (BASE_VISIBLE_DEPSGRAPH | BASE_VISIBLE_VIEWLAYER |
+static const short g_base_collection_flags = (BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT |
+                                              BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT |
                                               BASE_SELECTABLE | BASE_ENABLED_VIEWPORT |
                                               BASE_ENABLED_RENDER | BASE_HOLDOUT |
                                               BASE_INDIRECT_ONLY);
@@ -998,9 +999,10 @@ static void layer_collection_objects_sync(ViewLayer *view_layer,
     }
 
     if ((collection_restrict & COLLECTION_HIDE_VIEWPORT) == 0) {
-      base->flag_from_collection |= (BASE_ENABLED_VIEWPORT | BASE_VISIBLE_DEPSGRAPH);
+      base->flag_from_collection |= (BASE_ENABLED_VIEWPORT |
+                                     BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT);
       if ((layer_restrict & LAYER_COLLECTION_HIDE) == 0) {
-        base->flag_from_collection |= BASE_VISIBLE_VIEWLAYER;
+        base->flag_from_collection |= BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT;
       }
       if (((collection_restrict & COLLECTION_HIDE_SELECT) == 0)) {
         base->flag_from_collection |= BASE_SELECTABLE;
@@ -1452,7 +1454,8 @@ bool BKE_layer_collection_has_selected_objects(ViewLayer *view_layer, LayerColle
     LISTBASE_FOREACH (CollectionObject *, cob, &lc->collection->gobject) {
       Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
 
-      if (base && (base->flag & BASE_SELECTED) && (base->flag & BASE_VISIBLE_DEPSGRAPH)) {
+      if (base && (base->flag & BASE_SELECTED) &&
+          (base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT)) {
         return true;
       }
     }
@@ -1508,12 +1511,12 @@ void BKE_base_set_visible(Scene *scene, ViewLayer *view_layer, Base *base, bool 
 
 bool BKE_base_is_visible(const View3D *v3d, const Base *base)
 {
-  if ((base->flag & BASE_VISIBLE_DEPSGRAPH) == 0) {
+  if ((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) == 0) {
     return false;
   }
 
   if (v3d == NULL) {
-    return base->flag & BASE_VISIBLE_VIEWLAYER;
+    return base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT;
   }
 
   if ((v3d->localvd) && ((v3d->local_view_uuid & base->local_view_bits) == 0)) {
@@ -1528,7 +1531,7 @@ bool BKE_base_is_visible(const View3D *v3d, const Base *base)
     return (v3d->local_collections_uuid & base->local_collections_bits) != 0;
   }
 
-  return base->flag & BASE_VISIBLE_VIEWLAYER;
+  return base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT;
 }
 
 bool BKE_object_is_visible_in_viewport(const View3D *v3d, const struct Object *ob)
@@ -1554,7 +1557,7 @@ bool BKE_object_is_visible_in_viewport(const View3D *v3d, const struct Object *o
 
   /* If not using local collection the object may still be in a hidden collection. */
   if ((v3d->flag & V3D_LOCAL_COLLECTIONS) == 0) {
-    return (ob->base_flag & BASE_VISIBLE_VIEWLAYER) != 0;
+    return (ob->base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) != 0;
   }
 
   return true;
@@ -2011,12 +2014,13 @@ static void objects_iterator_end(BLI_Iterator *iter)
 
 void BKE_view_layer_selected_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
-  objects_iterator_begin(iter, data_in, BASE_VISIBLE_DEPSGRAPH | BASE_SELECTED);
+  objects_iterator_begin(
+      iter, data_in, BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT | BASE_SELECTED);
 }
 
 void BKE_view_layer_selected_objects_iterator_next(BLI_Iterator *iter)
 {
-  objects_iterator_next(iter, BASE_VISIBLE_DEPSGRAPH | BASE_SELECTED);
+  objects_iterator_next(iter, BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT | BASE_SELECTED);
 }
 
 void BKE_view_layer_selected_objects_iterator_end(BLI_Iterator *iter)
@@ -2053,7 +2057,8 @@ void BKE_view_layer_visible_objects_iterator_end(BLI_Iterator *iter)
 
 void BKE_view_layer_selected_editable_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
-  objects_iterator_begin(iter, data_in, BASE_VISIBLE_DEPSGRAPH | BASE_SELECTED);
+  objects_iterator_begin(
+      iter, data_in, BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT | BASE_SELECTED);
   if (iter->valid) {
     if (BKE_object_is_libdata((Object *)iter->current) == false) {
       /* First object is valid (selectable and not libdata) -> all good. */
@@ -2070,7 +2075,7 @@ void BKE_view_layer_selected_editable_objects_iterator_next(BLI_Iterator *iter)
   /* Search while there are objects and the one we have is not editable (editable = not libdata).
    */
   do {
-    objects_iterator_next(iter, BASE_VISIBLE_DEPSGRAPH | BASE_SELECTED);
+    objects_iterator_next(iter, BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT | BASE_SELECTED);
   } while (iter->valid && BKE_object_is_libdata((Object *)iter->current) != false);
 }
 
@@ -2087,12 +2092,13 @@ void BKE_view_layer_selected_editable_objects_iterator_end(BLI_Iterator *iter)
 
 void BKE_view_layer_selected_bases_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
-  objects_iterator_begin(iter, data_in, BASE_VISIBLE_DEPSGRAPH | BASE_SELECTED);
+  objects_iterator_begin(
+      iter, data_in, BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT | BASE_SELECTED);
 }
 
 void BKE_view_layer_selected_bases_iterator_next(BLI_Iterator *iter)
 {
-  object_bases_iterator_next(iter, BASE_VISIBLE_DEPSGRAPH | BASE_SELECTED);
+  object_bases_iterator_next(iter, BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT | BASE_SELECTED);
 }
 
 void BKE_view_layer_selected_bases_iterator_end(BLI_Iterator *iter)
@@ -2219,7 +2225,8 @@ void BKE_base_eval_flags(Base *base)
    * can change these again, but for tools we always want the viewport
    * visibility to be in sync regardless if depsgraph was evaluated. */
   if (!(base->flag & BASE_ENABLED_VIEWPORT) || (base->flag & BASE_HIDDEN)) {
-    base->flag &= ~(BASE_VISIBLE_DEPSGRAPH | BASE_VISIBLE_VIEWLAYER | BASE_SELECTABLE);
+    base->flag &= ~(BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT |
+                    BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT | BASE_SELECTABLE);
   }
 
   /* Deselect unselectable objects. */

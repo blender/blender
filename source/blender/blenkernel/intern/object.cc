@@ -2040,7 +2040,7 @@ bool BKE_object_is_mode_compat(const struct Object *ob, eObjectMode object_mode)
 
 int BKE_object_visibility(const Object *ob, const int dag_eval_mode)
 {
-  if ((ob->base_flag & BASE_VISIBLE_DEPSGRAPH) == 0) {
+  if ((ob->base_flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) == 0) {
     return 0;
   }
 

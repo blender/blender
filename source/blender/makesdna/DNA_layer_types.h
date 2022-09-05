@@ -198,16 +198,44 @@ enum {
   BASE_HIDDEN = (1 << 8),   /* Object is hidden for editing. */
 
   /* Runtime evaluated flags. */
-  BASE_VISIBLE_DEPSGRAPH = (1 << 1), /* Object is enabled and visible for the depsgraph. */
-  BASE_SELECTABLE = (1 << 2),        /* Object can be selected. */
-  BASE_FROM_DUPLI = (1 << 3),        /* Object comes from duplicator. */
-  BASE_VISIBLE_VIEWLAYER = (1 << 4), /* Object is enabled and visible for the viewlayer. */
-  BASE_FROM_SET = (1 << 5),          /* Object comes from set. */
-  BASE_ENABLED_VIEWPORT = (1 << 6),  /* Object is enabled in viewport. */
-  BASE_ENABLED_RENDER = (1 << 7),    /* Object is enabled in final render */
+
+  /* Object is enabled and potentially visible in a viewport. Layer collection
+   * visibility, local collection visibility, and local view are not part of this
+   * and may cause the object to be hidden depending on the 3D viewport settings.
+   *
+   * Objects with this flag will be considered visible by the viewport depsgraph
+   * and be evaluated as a result.
+   *
+   * This implies BASE_ENABLED_VIEWPORT. */
+  BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT = (1 << 1),
+
+  /* Object can be selected. */
+  BASE_SELECTABLE = (1 << 2),
+
+  /* Object comes from a duplicator. */
+  BASE_FROM_DUPLI = (1 << 3),
+
+  /* Object is enabled and visible in a viewport with default viewport settings,
+   * (so without any local view or local collection visibility overrides). Used
+   * when editors other than the 3D viewport need to know if an object is visible. */
+  BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT = (1 << 4),
+
+  /* Object comes from a scene set. */
+  BASE_FROM_SET = (1 << 5),
+
+  /* Object is enabled for viewport or final render respectively. Only enabled
+   * objects can be pulled into the depsgraph for evaluation, either through being
+   * directly visible, as a dependency of another object, or as part of colliders
+   * and effectors for physics. */
+  BASE_ENABLED_VIEWPORT = (1 << 6),
+  BASE_ENABLED_RENDER = (1 << 7),
+
   /* BASE_DEPRECATED          = (1 << 9), */
-  BASE_HOLDOUT = (1 << 10),       /* Object masked out from render */
-  BASE_INDIRECT_ONLY = (1 << 11), /* Object only contributes indirectly to render */
+
+  /* Object masked out from render */
+  BASE_HOLDOUT = (1 << 10),
+  /* Object only contributes indirectly to render */
+  BASE_INDIRECT_ONLY = (1 << 11),
 };
 
 /* LayerCollection->flag */

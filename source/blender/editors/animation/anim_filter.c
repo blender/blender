@@ -1876,8 +1876,8 @@ static size_t animdata_filter_gpencil(bAnimContext *ac,
       if ((filter_mode & ANIMFILTER_DATA_VISIBLE) && !(ads->filterflag & ADS_FILTER_INCL_HIDDEN)) {
         /* Layer visibility - we check both object and base,
          * since these may not be in sync yet. */
-        if ((base->flag & BASE_VISIBLE_DEPSGRAPH) == 0 ||
-            (base->flag & BASE_VISIBLE_VIEWLAYER) == 0) {
+        if ((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) == 0 ||
+            (base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0) {
           continue;
         }
 
@@ -3089,7 +3089,8 @@ static bool animdata_filter_base_is_ok(bDopeSheet *ads,
    */
   if ((filter_mode & ANIMFILTER_DATA_VISIBLE) && !(ads->filterflag & ADS_FILTER_INCL_HIDDEN)) {
     /* layer visibility - we check both object and base, since these may not be in sync yet */
-    if ((base->flag & BASE_VISIBLE_DEPSGRAPH) == 0 || (base->flag & BASE_VISIBLE_VIEWLAYER) == 0) {
+    if ((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) == 0 ||
+        (base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0) {
       return false;
     }
 

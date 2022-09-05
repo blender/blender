@@ -245,8 +245,8 @@ void BKE_layer_collection_set_flag(struct LayerCollection *lc, int flag, bool va
 
 /**
  * Applies object's restrict flags on top of flags coming from the collection
- * and stores those in `base->flag`. #BASE_VISIBLE_DEPSGRAPH ignores viewport flags visibility
- * (i.e., restriction and local collection).
+ * and stores those in `base->flag`. #BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT ignores viewport
+ * flags visibility (i.e., restriction and local collection).
  */
 void BKE_base_eval_flags(struct Base *base);
 
