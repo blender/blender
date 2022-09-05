@@ -253,15 +253,18 @@ static void join_mesh_single(Depsgraph *depsgraph,
     CustomData_merge(&me->pdata, pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, totpoly);
     CustomData_copy_data_named(&me->pdata, pdata, 0, *polyofs, me->totpoly);
 
-    blender::bke::AttributeWriter<int> material_indices =
-        me->attributes_for_write().lookup_for_write<int>("material_index");
+    /* Apply matmap. In case we dont have material indices yet, create them if more than one
+     * material is the result of joining. */
+    int *material_indices = static_cast<int *>(
+        CustomData_get_layer_named(pdata, CD_PROP_INT32, "material_index"));
+    if (!material_indices && totcol > 1) {
+      material_indices = (int *)CustomData_add_layer_named(
+          pdata, CD_PROP_INT32, CD_SET_DEFAULT, NULL, totpoly, "material_index");
+    }
     if (material_indices) {
-      blender::MutableVArraySpan<int> material_indices_span(material_indices.varray);
-      for (const int i : material_indices_span.index_range()) {
-        material_indices_span[i] = matmap ? matmap[material_indices_span[i]] : 0;
+      for (a = 0; a < me->totpoly; a++) {
+        material_indices[a + *polyofs] = matmap ? matmap[material_indices[a + *polyofs]] : 0;
       }
-      material_indices_span.save();
-      material_indices.finish();
     }
 
     for (a = 0; a < me->totpoly; a++, mpoly++) {
