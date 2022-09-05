@@ -200,8 +200,12 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
         inplane = ls->P - inplane;
       }
 
-      ls->u = dot(inplane, axisu) * (1.0f / dot(axisu, axisu)) + 0.5f;
-      ls->v = dot(inplane, axisv) * (1.0f / dot(axisv, axisv)) + 0.5f;
+      const float light_u = dot(inplane, axisu) * (1.0f / dot(axisu, axisu));
+      const float light_v = dot(inplane, axisv) * (1.0f / dot(axisv, axisv));
+
+      /* NOTE: Return barycentric coordinates in the same notation as Embree and OptiX. */
+      ls->u = light_v + 0.5f;
+      ls->v = -light_u - light_v;
 
       ls->Ng = Ng;
       ls->D = normalize_len(ls->P - P, &ls->t);
