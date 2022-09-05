@@ -5153,6 +5153,7 @@ class VIEW3D_MT_edit_gpencil_stroke(Menu):
         layout.operator("gpencil.stroke_subdivide", text="Subdivide").only_selected = False
         layout.menu("VIEW3D_MT_gpencil_simplify")
         layout.operator("gpencil.stroke_trim", text="Trim")
+        layout.operator("gpencil.stroke_outline", text="Outline")
 
         layout.separator()
 
@@ -5182,9 +5183,6 @@ class VIEW3D_MT_edit_gpencil_stroke(Menu):
 
         layout.separator()
         layout.operator("gpencil.reset_transform_fill", text="Reset Fill Transform")
-
-        layout.separator()
-        layout.operator("gpencil.stroke_outline", text="Outline")
 
 
 class VIEW3D_MT_edit_gpencil_point(Menu):
