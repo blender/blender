@@ -3545,7 +3545,7 @@ void BKE_gpencil_stroke_join(bGPDstroke *gps_a,
 
 void BKE_gpencil_stroke_start_set(bGPdata *gpd, bGPDstroke *gps, int start_idx)
 {
-  if ((start_idx < 1) || (start_idx >= gps->totpoints) || (gps->totpoints == 0)) {
+  if ((start_idx < 1) || (start_idx >= gps->totpoints) || (gps->totpoints < 2)) {
     return;
   }
 
