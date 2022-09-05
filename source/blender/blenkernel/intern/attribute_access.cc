@@ -784,26 +784,6 @@ bool CustomDataAttributes::foreach_attribute(const AttributeForeachCallback call
   return true;
 }
 
-void CustomDataAttributes::reorder(Span<AttributeIDRef> new_order)
-{
-  BLI_assert(new_order.size() == data.totlayer);
-
-  Map<AttributeIDRef, int> old_order;
-  old_order.reserve(data.totlayer);
-  Array<CustomDataLayer> old_layers(Span(data.layers, data.totlayer));
-  for (const int i : old_layers.index_range()) {
-    old_order.add_new(attribute_id_from_custom_data_layer(old_layers[i]), i);
-  }
-
-  MutableSpan layers(data.layers, data.totlayer);
-  for (const int i : layers.index_range()) {
-    const int old_index = old_order.lookup(new_order[i]);
-    layers[i] = old_layers[old_index];
-  }
-
-  CustomData_update_typemap(&data);
-}
-
 /* -------------------------------------------------------------------- */
 /** \name Attribute API
  * \{ */
