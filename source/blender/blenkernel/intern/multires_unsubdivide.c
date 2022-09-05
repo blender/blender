@@ -639,9 +639,10 @@ static void store_grid_data(MultiresUnsubdivideContext *context,
                             int grid_x,
                             int grid_y)
 {
-
   Mesh *original_mesh = context->original_mesh;
-  MPoly *poly = &original_mesh->mpoly[BM_elem_index_get(f)];
+  const MPoly *polys = BKE_mesh_polygons(original_mesh);
+  const MLoop *loops = BKE_mesh_loops(original_mesh);
+  const MPoly *poly = &polys[BM_elem_index_get(f)];
 
   const int corner_vertex_index = BM_elem_index_get(v);
 
@@ -650,7 +651,7 @@ static void store_grid_data(MultiresUnsubdivideContext *context,
   int loop_offset = 0;
   for (int i = 0; i < poly->totloop; i++) {
     const int loop_index = poly->loopstart + i;
-    MLoop *l = &original_mesh->mloop[loop_index];
+    const MLoop *l = &loops[loop_index];
     if (l->v == corner_vertex_index) {
       loop_offset = i;
       break;
@@ -918,8 +919,9 @@ static void multires_unsubdivide_add_original_index_datalayers(Mesh *mesh)
 static void multires_unsubdivide_prepare_original_bmesh_for_extract(
     MultiresUnsubdivideContext *context)
 {
-
   Mesh *original_mesh = context->original_mesh;
+  const MPoly *original_polys = BKE_mesh_polygons(original_mesh);
+
   Mesh *base_mesh = context->base_mesh;
 
   BMesh *bm_original_mesh = context->bm_original_mesh = get_bmesh_from_mesh(original_mesh);
@@ -949,7 +951,7 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
   context->loop_to_face_map = MEM_calloc_arrayN(original_mesh->totloop, sizeof(int), "loop map");
 
   for (int i = 0; i < original_mesh->totpoly; i++) {
-    MPoly *poly = &original_mesh->mpoly[i];
+    const MPoly *poly = &original_polys[i];
     for (int l = 0; l < poly->totloop; l++) {
       int original_loop_index = l + poly->loopstart;
       context->loop_to_face_map[original_loop_index] = i;
@@ -963,16 +965,19 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
  */
 static bool multires_unsubdivide_flip_grid_x_axis(Mesh *mesh, int poly, int loop, int v_x)
 {
-  MPoly *p = &mesh->mpoly[poly];
+  const MPoly *polys = BKE_mesh_polygons(mesh);
+  const MLoop *loops = BKE_mesh_loops(mesh);
 
-  MLoop *l_first = &mesh->mloop[p->loopstart];
+  const MPoly *p = &polys[poly];
+
+  const MLoop *l_first = &loops[p->loopstart];
   if ((loop == (p->loopstart + (p->totloop - 1))) && l_first->v == v_x) {
     return true;
   }
 
   int next_l_index = loop + 1;
   if (next_l_index < p->loopstart + p->totloop) {
-    MLoop *l_next = &mesh->mloop[next_l_index];
+    const MLoop *l_next = &loops[next_l_index];
     if (l_next->v == v_x) {
       return true;
     }

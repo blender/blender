@@ -1485,8 +1485,6 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
   mesh->totloop = loop_offset;
 
-  BKE_mesh_update_customdata_pointers(mesh, false);
-
   BKE_mesh_calc_edges(mesh, false, false);
 
   return mesh;

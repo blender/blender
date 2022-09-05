@@ -366,7 +366,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
   const int *material_indices = (const int *)CustomData_get_layer_named(
       &me->pdata, CD_PROP_INT32, "material_index");
 
-  Span<MVert> mvert{me->mvert, me->totvert};
+  Span<MVert> mvert = me->vertices();
   Array<BMVert *> vtable(me->totvert);
   for (const int i : mvert.index_range()) {
     BMVert *v = vtable[i] = BM_vert_create(
@@ -412,7 +412,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     bm->elem_index_dirty &= ~BM_VERT; /* Added in order, clear dirty flag. */
   }
 
-  Span<MEdge> medge{me->medge, me->totedge};
+  const Span<MEdge> medge = me->edges();
   Array<BMEdge *> etable(me->totedge);
   for (const int i : medge.index_range()) {
     BMEdge *e = etable[i] = BM_edge_create(
@@ -444,8 +444,8 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     bm->elem_index_dirty &= ~BM_EDGE; /* Added in order, clear dirty flag. */
   }
 
-  Span<MPoly> mpoly{me->mpoly, me->totpoly};
-  Span<MLoop> mloop{me->mloop, me->totloop};
+  const Span<MPoly> mpoly = me->polygons();
+  const Span<MLoop> mloop = me->loops();
 
   /* Only needed for selection. */
 
@@ -1049,9 +1049,6 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
 
   me->cd_flag = BM_mesh_cd_flag_from_bmesh(bm);
 
-  /* This is called again, 'dotess' arg is used there. */
-  BKE_mesh_update_customdata_pointers(me, false);
-
   i = 0;
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
     copy_v3_v3(mvert->co, v->co);
@@ -1226,8 +1223,6 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   convert_bmesh_hide_flags_to_mesh_attributes(
       *bm, need_hide_vert, need_hide_edge, need_hide_poly, *me);
 
-  BKE_mesh_update_customdata_pointers(me, false);
-
   {
     me->totselect = BLI_listbase_count(&(bm->selected));
 
@@ -1253,7 +1248,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   }
 
   if (me->key) {
-    bm_to_mesh_shape(bm, me->key, me->mvert, params->active_shapekey_to_mvert);
+    bm_to_mesh_shape(bm, me->key, mvert, params->active_shapekey_to_mvert);
   }
 
   /* Run this even when shape keys aren't used since it may be used for hooks or vertex parents. */
@@ -1303,16 +1298,15 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   CustomData_merge(&bm->ldata, &me->ldata, mask.lmask, CD_SET_DEFAULT, me->totloop);
   CustomData_merge(&bm->pdata, &me->pdata, mask.pmask, CD_SET_DEFAULT, me->totpoly);
 
-  BKE_mesh_update_customdata_pointers(me, false);
-
   BMIter iter;
   BMVert *eve;
   BMEdge *eed;
   BMFace *efa;
-  MVert *mvert = me->mvert;
-  MEdge *medge = me->medge;
-  MLoop *mloop = me->mloop;
-  MPoly *mpoly = me->mpoly;
+  MutableSpan<MVert> mvert = me->vertices_for_write();
+  MutableSpan<MEdge> medge = me->edges_for_write();
+  MutableSpan<MPoly> mpoly = me->polygons_for_write();
+  MutableSpan<MLoop> loops = me->loops_for_write();
+  MLoop *mloop = loops.data();
   unsigned int i, j;
 
   const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);

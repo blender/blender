@@ -704,7 +704,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   PTCacheEditKey *ekey;
   BVHTreeFromMesh bvhtree = {NULL};
   MFace *mface = NULL, *mf;
-  MEdge *medge = NULL, *me;
+  const MEdge *medge = NULL, *me;
   MVert *mvert;
   Mesh *mesh, *target_mesh;
   int numverts;
@@ -750,7 +750,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   BKE_mesh_tessface_ensure(mesh);
 
   numverts = mesh->totvert;
-  mvert = mesh->mvert;
+  mvert = BKE_mesh_vertices_for_write(mesh);
 
   /* convert to global coordinates */
   for (int i = 0; i < numverts; i++) {
@@ -758,11 +758,11 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   }
 
   if (mesh->totface != 0) {
-    mface = mesh->mface;
+    mface = CustomData_get_layer(&mesh->fdata, CD_MFACE);
     BKE_bvhtree_from_mesh_get(&bvhtree, mesh, BVHTREE_FROM_FACES, 2);
   }
   else if (mesh->totedge != 0) {
-    medge = mesh->medge;
+    medge = BKE_mesh_edges(mesh);
     BKE_bvhtree_from_mesh_get(&bvhtree, mesh, BVHTREE_FROM_EDGES, 2);
   }
   else {

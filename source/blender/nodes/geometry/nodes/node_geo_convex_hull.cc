@@ -46,6 +46,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
   }
 
   /* Copy vertices. */
+  MutableSpan<MVert> dst_verts = result->vertices_for_write();
   for (const int i : IndexRange(verts_num)) {
     float co[3];
     int original_index;
@@ -59,7 +60,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
       }
 #  endif
       /* Copy the position of the original point. */
-      copy_v3_v3(result->mvert[i].co, co);
+      copy_v3_v3(dst_verts[i].co, co);
     }
     else {
       BLI_assert_msg(0, "Unexpected new vertex in hull output");
@@ -73,6 +74,8 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
    * to a loop and edges need to be created from that. */
   Array<MLoop> mloop_src(loops_num);
   uint edge_index = 0;
+  MutableSpan<MEdge> edges = result->edges_for_write();
+
   for (const int i : IndexRange(loops_num)) {
     int v_from;
     int v_to;
@@ -81,7 +84,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
     mloop_src[i].v = (uint)v_from;
     /* Add edges for ascending order loops only. */
     if (v_from < v_to) {
-      MEdge &edge = result->medge[edge_index];
+      MEdge &edge = edges[edge_index];
       edge.v1 = v_from;
       edge.v2 = v_to;
       edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
@@ -95,7 +98,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
   }
   if (edges_num == 1) {
     /* In this case there are no loops. */
-    MEdge &edge = result->medge[0];
+    MEdge &edge = edges[0];
     edge.v1 = 0;
     edge.v2 = 1;
     edge.flag |= ME_EDGEDRAW | ME_EDGERENDER | ME_LOOSEEDGE;
@@ -106,7 +109,10 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
   /* Copy faces. */
   Array<int> loops;
   int j = 0;
-  MLoop *loop = result->mloop;
+  MutableSpan<MPoly> polys = result->polygons_for_write();
+  MutableSpan<MLoop> mesh_loops = result->loops_for_write();
+  MLoop *loop = mesh_loops.data();
+
   for (const int i : IndexRange(faces_num)) {
     const int len = plConvexHullGetFaceSize(hull, i);
 
@@ -116,7 +122,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
     loops.reinitialize(len);
     plConvexHullGetFaceLoops(hull, i, loops.data());
 
-    MPoly &face = result->mpoly[i];
+    MPoly &face = polys[i];
     face.loopstart = j;
     face.totloop = len;
     for (const int k : IndexRange(len)) {

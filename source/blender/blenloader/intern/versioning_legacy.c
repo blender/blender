@@ -342,8 +342,6 @@ static void customdata_version_242(Mesh *me)
       mcoln++;
     }
   }
-
-  BKE_mesh_update_customdata_pointers(me, true);
 }
 
 /* Only copy render texface layer from active. */

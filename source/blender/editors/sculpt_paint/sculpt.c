@@ -600,10 +600,10 @@ void SCULPT_visibility_sync_all_vertex_to_face_sets(SculptSession *ss)
 {
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
     for (int i = 0; i < ss->totfaces; i++) {
-      MPoly *poly = &ss->mpoly[i];
+      const MPoly *poly = &ss->mpoly[i];
       bool poly_visible = true;
       for (int l = 0; l < poly->totloop; l++) {
-        MLoop *loop = &ss->mloop[poly->loopstart + l];
+        const MLoop *loop = &ss->mloop[poly->loopstart + l];
         if (!SCULPT_vertex_visible_get(ss, BKE_pbvh_make_vref(loop->v))) {
           poly_visible = false;
         }
@@ -644,9 +644,9 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(SculptSession *ss
   MeshElemMap *vert_map = &ss->pmap[v1];
   int p1 = -1, p2 = -1;
   for (int i = 0; i < ss->pmap[v1].count; i++) {
-    MPoly *p = &ss->mpoly[vert_map->indices[i]];
+    const MPoly *p = &ss->mpoly[vert_map->indices[i]];
     for (int l = 0; l < p->totloop; l++) {
-      MLoop *loop = &ss->mloop[p->loopstart + l];
+      const MLoop *loop = &ss->mloop[p->loopstart + l];
       if (loop->v == v2) {
         if (p1 == -1) {
           p1 = vert_map->indices[i];
@@ -3162,10 +3162,10 @@ void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const float (*vertCos)[3])
 
   /* Modifying of basis key should update mesh. */
   if (kb == me->key->refkey) {
-    MVert *mvert = me->mvert;
+    MVert *verts = BKE_mesh_vertices_for_write(me);
 
-    for (a = 0; a < me->totvert; a++, mvert++) {
-      copy_v3_v3(mvert->co, vertCos[a]);
+    for (a = 0; a < me->totvert; a++) {
+      copy_v3_v3(verts[a].co, vertCos[a]);
     }
     BKE_mesh_tag_coords_changed(me);
   }
@@ -3589,8 +3589,9 @@ static void sculpt_flush_pbvhvert_deform(Object *ob, PBVHVertexIter *vd)
   copy_v3_v3(ss->deform_cos[index], vd->co);
   copy_v3_v3(ss->orig_cos[index], newco);
 
+  MVert *verts = BKE_mesh_vertices_for_write(me);
   if (!ss->shapekey_active) {
-    copy_v3_v3(me->mvert[index].co, newco);
+    copy_v3_v3(verts[index].co, newco);
   }
 }
 
@@ -5908,21 +5909,25 @@ void SCULPT_boundary_info_ensure(Object *object)
   }
 
   Mesh *base_mesh = BKE_mesh_from_object(object);
+  const MEdge *edges = BKE_mesh_edges(base_mesh);
+  const MPoly *polys = BKE_mesh_polygons(base_mesh);
+  const MLoop *loops = BKE_mesh_loops(base_mesh);
+
   ss->vertex_info.boundary = BLI_BITMAP_NEW(base_mesh->totvert, "Boundary info");
   int *adjacent_faces_edge_count = MEM_calloc_arrayN(
       base_mesh->totedge, sizeof(int), "Adjacent face edge count");
 
   for (int p = 0; p < base_mesh->totpoly; p++) {
-    MPoly *poly = &base_mesh->mpoly[p];
+    const MPoly *poly = &polys[p];
     for (int l = 0; l < poly->totloop; l++) {
-      MLoop *loop = &base_mesh->mloop[l + poly->loopstart];
+      const MLoop *loop = &loops[l + poly->loopstart];
       adjacent_faces_edge_count[loop->e]++;
     }
   }
 
   for (int e = 0; e < base_mesh->totedge; e++) {
     if (adjacent_faces_edge_count[e] < 2) {
-      MEdge *edge = &base_mesh->medge[e];
+      const MEdge *edge = &edges[e];
       BLI_BITMAP_SET(ss->vertex_info.boundary, edge->v1, true);
       BLI_BITMAP_SET(ss->vertex_info.boundary, edge->v2, true);
     }

@@ -94,9 +94,9 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
   /* UVs need special handling, since they come from faces */
   if (texmapping == MOD_DISP_MAP_UV) {
     if (CustomData_has_layer(&mesh->ldata, CD_MLOOPUV)) {
-      MPoly *mpoly = mesh->mpoly;
-      MPoly *mp;
-      MLoop *mloop = mesh->mloop;
+      const MPoly *mpoly = BKE_mesh_polygons(mesh);
+      const MPoly *mp;
+      const MLoop *mloop = BKE_mesh_loops(mesh);
       BLI_bitmap *done = BLI_BITMAP_NEW(verts_num, __func__);
       const int polys_num = mesh->totpoly;
       char uvname[MAX_CUSTOMDATA_LAYER_NAME];
@@ -130,7 +130,7 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
     texmapping = MOD_DISP_MAP_LOCAL;
   }
 
-  MVert *mv = mesh->mvert;
+  const MVert *mv = BKE_mesh_vertices(mesh);
   for (i = 0; i < verts_num; i++, mv++, r_texco++) {
     switch (texmapping) {
       case MOD_DISP_MAP_LOCAL:
@@ -224,12 +224,12 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
 }
 
 void MOD_get_vgroup(
-    Object *ob, struct Mesh *mesh, const char *name, MDeformVert **dvert, int *defgrp_index)
+    Object *ob, struct Mesh *mesh, const char *name, const MDeformVert **dvert, int *defgrp_index)
 {
   if (mesh) {
     *defgrp_index = BKE_id_defgroup_name_index(&mesh->id, name);
     if (*defgrp_index != -1) {
-      *dvert = mesh->dvert;
+      *dvert = BKE_mesh_deform_verts(mesh);
     }
     else {
       *dvert = NULL;

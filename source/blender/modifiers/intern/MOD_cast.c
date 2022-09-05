@@ -98,7 +98,7 @@ static void sphere_do(CastModifierData *cmd,
                       float (*vertexCos)[3],
                       int verts_num)
 {
-  MDeformVert *dvert = NULL;
+  const MDeformVert *dvert = NULL;
   const bool invert_vgroup = (cmd->flag & MOD_CAST_INVERT_VGROUP) != 0;
 
   Object *ctrl_ob = NULL;
@@ -239,7 +239,7 @@ static void cuboid_do(CastModifierData *cmd,
                       float (*vertexCos)[3],
                       int verts_num)
 {
-  MDeformVert *dvert = NULL;
+  const MDeformVert *dvert = NULL;
   int defgrp_index;
   const bool invert_vgroup = (cmd->flag & MOD_CAST_INVERT_VGROUP) != 0;
 

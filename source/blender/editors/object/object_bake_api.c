@@ -971,7 +971,8 @@ static bool bake_targets_init_vertex_colors(Main *bmain,
   return true;
 }
 
-static int find_original_loop(const Mesh *me_orig,
+static int find_original_loop(const MPoly *orig_polys,
+                              const MLoop *orig_loops,
                               const int *vert_origindex,
                               const int *poly_origindex,
                               const int poly_eval,
@@ -987,8 +988,8 @@ static int find_original_loop(const Mesh *me_orig,
   }
 
   /* Find matching loop with original vertex in original polygon. */
-  MPoly *mpoly_orig = me_orig->mpoly + poly_orig;
-  MLoop *mloop_orig = me_orig->mloop + mpoly_orig->loopstart;
+  const MPoly *mpoly_orig = orig_polys + poly_orig;
+  const MLoop *mloop_orig = orig_loops + mpoly_orig->loopstart;
   for (int j = 0; j < mpoly_orig->totloop; ++j, ++mloop_orig) {
     if (mloop_orig->v == vert_orig) {
       return mpoly_orig->loopstart + j;
@@ -1025,23 +1026,31 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
   const int tottri = poly_to_tri_count(me_eval->totpoly, me_eval->totloop);
   MLoopTri *looptri = MEM_mallocN(sizeof(*looptri) * tottri, __func__);
 
-  BKE_mesh_recalc_looptri(
-      me_eval->mloop, me_eval->mpoly, me_eval->mvert, me_eval->totloop, me_eval->totpoly, looptri);
+  const MLoop *loops = BKE_mesh_loops(me_eval);
+  BKE_mesh_recalc_looptri(loops,
+                          BKE_mesh_polygons(me_eval),
+                          BKE_mesh_vertices(me_eval),
+                          me_eval->totloop,
+                          me_eval->totpoly,
+                          looptri);
 
   /* For mapping back to original mesh in case there are modifiers. */
   const int *vert_origindex = CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX);
   const int *poly_origindex = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
+  const MPoly *orig_polys = BKE_mesh_polygons(me);
+  const MLoop *orig_loops = BKE_mesh_loops(me);
 
   for (int i = 0; i < tottri; i++) {
     const MLoopTri *lt = &looptri[i];
 
     for (int j = 0; j < 3; j++) {
       unsigned int l = lt->tri[j];
-      unsigned int v = me_eval->mloop[l].v;
+      unsigned int v = loops[l].v;
 
       /* Map back to original loop if there are modifiers. */
       if (vert_origindex != NULL && poly_origindex != NULL) {
-        l = find_original_loop(me, vert_origindex, poly_origindex, lt->poly, v);
+        l = find_original_loop(
+            orig_polys, orig_loops, vert_origindex, poly_origindex, lt->poly, v);
         if (l == ORIGINDEX_NONE || l >= me->totloop) {
           continue;
         }
@@ -1135,7 +1144,7 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
     int *num_loops_for_vertex = MEM_callocN(sizeof(int) * me->totvert, "num_loops_for_vertex");
     memset(mcol, 0, sizeof(MPropCol) * me->totvert);
 
-    MLoop *mloop = me->mloop;
+    const MLoop *mloop = BKE_mesh_loops(me);
     for (int i = 0; i < totloop; i++, mloop++) {
       const int v = mloop->v;
       bake_result_add_to_rgba(mcol[v].color, &result[i * channels_num], channels_num);

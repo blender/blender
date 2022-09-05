@@ -157,8 +157,9 @@ static void read_mverts(CDStreamConfig &config, const AbcMeshData &mesh_data)
 
 void read_mverts(Mesh &mesh, const P3fArraySamplePtr positions, const N3fArraySamplePtr normals)
 {
+  MutableSpan<MVert> verts = mesh.vertices_for_write();
   for (int i = 0; i < positions->size(); i++) {
-    MVert &mvert = mesh.mvert[i];
+    MVert &mvert = verts[i];
     Imath::V3f pos_in = (*positions)[i];
 
     copy_zup_from_yup(mvert.co, pos_in.getValue());
@@ -274,7 +275,7 @@ static void process_loop_normals(CDStreamConfig &config, const N3fArraySamplePtr
   float(*lnors)[3] = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(loop_count, sizeof(float[3]), "ABC::FaceNormals"));
 
-  MPoly *mpoly = mesh->mpoly;
+  MPoly *mpoly = mesh->polygons_for_write().data();
   const N3fArraySample &loop_normals = *loop_normals_ptr;
   int abc_index = 0;
   for (int i = 0, e = mesh->totpoly; i < e; i++, mpoly++) {
@@ -519,13 +520,10 @@ static void read_mesh_sample(const std::string &iobject_full_name,
 CDStreamConfig get_config(Mesh *mesh, const bool use_vertex_interpolation)
 {
   CDStreamConfig config;
-
-  BLI_assert(mesh->mvert || mesh->totvert == 0);
-
   config.mesh = mesh;
-  config.mvert = mesh->mvert;
-  config.mloop = mesh->mloop;
-  config.mpoly = mesh->mpoly;
+  config.mvert = mesh->vertices_for_write().data();
+  config.mloop = mesh->loops_for_write().data();
+  config.mpoly = mesh->polygons_for_write().data();
   config.totvert = mesh->totvert;
   config.totloop = mesh->totloop;
   config.totpoly = mesh->totpoly;
@@ -925,12 +923,10 @@ static void read_edge_creases(Mesh *mesh,
     return;
   }
 
-  MEdge *edges = mesh->medge;
-  const int totedge = mesh->totedge;
+  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  EdgeHash *edge_hash = BLI_edgehash_new_ex(__func__, edges.size());
 
-  EdgeHash *edge_hash = BLI_edgehash_new_ex(__func__, mesh->totedge);
-
-  for (int i = 0; i < totedge; i++) {
+  for (const int i : edges.index_range()) {
     MEdge *edge = &edges[i];
     BLI_edgehash_insert(edge_hash, edge->v1, edge->v2, edge);
   }

@@ -37,7 +37,6 @@
 #include "DEG_depsgraph.h"
 
 #include "WM_api.h"
-#include "WM_message.h"
 #include "WM_toolsystem.h"
 #include "WM_types.h"
 
@@ -108,8 +107,10 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
 
   const float limit_radius_sq = limit_radius * limit_radius;
 
-  MEdge *edges = mesh->medge;
   MVert *verts = SCULPT_mesh_deformed_mverts_get(ss);
+  const MEdge *edges = BKE_mesh_edges(mesh);
+  const MPoly *polys = BKE_mesh_polygons(mesh);
+  const MLoop *loops = BKE_mesh_loops(mesh);
 
   float *dists = MEM_malloc_arrayN(totvert, sizeof(float), "distances");
   BLI_bitmap *edge_tag = BLI_BITMAP_NEW(totedge, "edge tag");
@@ -117,16 +118,15 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
   if (!ss->epmap) {
     BKE_mesh_edge_poly_map_create(&ss->epmap,
                                   &ss->epmap_mem,
-                                  mesh->medge,
+                                  edges,
                                   mesh->totedge,
-                                  mesh->mpoly,
+                                  polys,
                                   mesh->totpoly,
-                                  mesh->mloop,
+                                  loops,
                                   mesh->totloop);
   }
   if (!ss->vemap) {
-    BKE_mesh_vert_edge_map_create(
-        &ss->vemap, &ss->vemap_mem, mesh->medge, mesh->totvert, mesh->totedge);
+    BKE_mesh_vert_edge_map_create(&ss->vemap, &ss->vemap_mem, edges, mesh->totvert, mesh->totedge);
   }
 
   /* Both contain edge indices encoded as *void. */
@@ -202,10 +202,10 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
           if (ss->face_sets[poly] <= 0) {
             continue;
           }
-          const MPoly *mpoly = &mesh->mpoly[poly];
+          const MPoly *mpoly = &polys[poly];
 
           for (int loop_index = 0; loop_index < mpoly->totloop; loop_index++) {
-            const MLoop *mloop = &mesh->mloop[loop_index + mpoly->loopstart];
+            const MLoop *mloop = &loops[loop_index + mpoly->loopstart];
             const int v_other = mloop->v;
             if (ELEM(v_other, v1, v2)) {
               continue;

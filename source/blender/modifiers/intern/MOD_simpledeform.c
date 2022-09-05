@@ -294,7 +294,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd,
   float smd_limit[2], smd_factor;
   SpaceTransform *transf = NULL, tmp_transf;
   int vgroup;
-  MDeformVert *dvert;
+  const MDeformVert *dvert;
 
   /* This is historically the lock axis, _not_ the deform axis as the name would imply */
   const int deform_axis = smd->deform_axis;

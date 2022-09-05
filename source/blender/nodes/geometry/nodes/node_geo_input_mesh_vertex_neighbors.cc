@@ -22,8 +22,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static VArray<int> construct_vertex_count_gvarray(const Mesh &mesh, const eAttrDomain domain)
 {
-  const Span<MEdge> edges(mesh.medge, mesh.totedge);
-
+  const Span<MEdge> edges = mesh.edges();
   if (domain == ATTR_DOMAIN_POINT) {
     Array<int> counts(mesh.totvert, 0);
     for (const int i : edges.index_range()) {
@@ -63,8 +62,7 @@ class VertexCountFieldInput final : public bke::MeshFieldInput {
 
 static VArray<int> construct_face_count_gvarray(const Mesh &mesh, const eAttrDomain domain)
 {
-  const Span<MLoop> loops(mesh.mloop, mesh.totloop);
-
+  const Span<MLoop> loops = mesh.loops();
   if (domain == ATTR_DOMAIN_POINT) {
     Array<int> vertices(mesh.totvert, 0);
     for (const int i : loops.index_range()) {

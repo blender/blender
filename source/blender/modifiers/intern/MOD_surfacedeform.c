@@ -1171,10 +1171,10 @@ static bool surfacedeformBind(Object *ob,
                               Mesh *mesh)
 {
   BVHTreeFromMesh treeData = {NULL};
-  const MVert *mvert = target->mvert;
-  const MPoly *mpoly = target->mpoly;
-  const MEdge *medge = target->medge;
-  const MLoop *mloop = target->mloop;
+  const MVert *mvert = BKE_mesh_vertices(target);
+  const MPoly *mpoly = BKE_mesh_polygons(target);
+  const MEdge *medge = BKE_mesh_edges(target);
+  const MLoop *mloop = BKE_mesh_loops(target);
   uint tedges_num = target->totedge;
   int adj_result;
   SDefAdjacencyArray *vert_edges;
@@ -1236,7 +1236,7 @@ static bool surfacedeformBind(Object *ob,
   smd_orig->target_polys_num = target_polys_num;
 
   int defgrp_index;
-  MDeformVert *dvert;
+  const MDeformVert *dvert;
   MOD_get_vgroup(ob, mesh, smd_orig->defgrp_name, &dvert, &defgrp_index);
   const bool invert_vgroup = (smd_orig->flags & MOD_SDEF_INVERT_VGROUP) != 0;
   const bool sparse_bind = (smd_orig->flags & MOD_SDEF_SPARSE_BIND) != 0;
@@ -1538,7 +1538,7 @@ static void surfacedeformModifier_do(ModifierData *md,
   }
 
   int defgrp_index;
-  MDeformVert *dvert;
+  const MDeformVert *dvert;
   MOD_get_vgroup(ob, mesh, smd->defgrp_name, &dvert, &defgrp_index);
   const bool invert_vgroup = (smd->flags & MOD_SDEF_INVERT_VGROUP) != 0;
 

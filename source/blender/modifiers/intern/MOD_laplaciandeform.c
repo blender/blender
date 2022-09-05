@@ -512,7 +512,7 @@ static void laplacianDeformPreview(LaplacianSystem *sys, float (*vertexCos)[3])
 static bool isValidVertexGroup(LaplacianDeformModifierData *lmd, Object *ob, Mesh *mesh)
 {
   int defgrp_index;
-  MDeformVert *dvert = NULL;
+  const MDeformVert *dvert = NULL;
 
   MOD_get_vgroup(ob, mesh, lmd->anchor_grp_name, &dvert, &defgrp_index);
 
@@ -526,8 +526,8 @@ static void initSystem(
   int defgrp_index;
   int anchors_num;
   float wpaint;
-  MDeformVert *dvert = NULL;
-  MDeformVert *dv = NULL;
+  const MDeformVert *dvert = NULL;
+  const MDeformVert *dv = NULL;
   LaplacianSystem *sys;
   const bool invert_vgroup = (lmd->flag & MOD_LAPLACIANDEFORM_INVERT_VGROUP) != 0;
 
@@ -570,14 +570,14 @@ static void initSystem(
     createFaceRingMap(mesh->totvert,
                       BKE_mesh_runtime_looptri_ensure(mesh),
                       BKE_mesh_runtime_looptri_len(mesh),
-                      mesh->mloop,
+                      BKE_mesh_loops(mesh),
                       &sys->ringf_map,
                       &sys->ringf_indices);
     createVertRingMap(
-        mesh->totvert, mesh->medge, mesh->totedge, &sys->ringv_map, &sys->ringv_indices);
+        mesh->totvert, BKE_mesh_edges(mesh), mesh->totedge, &sys->ringv_map, &sys->ringv_indices);
 
     mlooptri = BKE_mesh_runtime_looptri_ensure(mesh);
-    mloop = mesh->mloop;
+    mloop = BKE_mesh_loops(mesh);
 
     for (i = 0; i < sys->tris_num; i++) {
       sys->tris[i][0] = mloop[mlooptri[i].tri[0]].v;
@@ -596,8 +596,8 @@ static int isSystemDifferent(LaplacianDeformModifierData *lmd,
   int defgrp_index;
   int anchors_num = 0;
   float wpaint;
-  MDeformVert *dvert = NULL;
-  MDeformVert *dv = NULL;
+  const MDeformVert *dvert = NULL;
+  const MDeformVert *dv = NULL;
   LaplacianSystem *sys = (LaplacianSystem *)lmd->cache_system;
   const bool invert_vgroup = (lmd->flag & MOD_LAPLACIANDEFORM_INVERT_VGROUP) != 0;
 

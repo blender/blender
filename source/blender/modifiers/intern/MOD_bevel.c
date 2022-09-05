@@ -88,7 +88,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   BMVert *v;
   float weight, weight2;
   int vgroup = -1;
-  MDeformVert *dvert = NULL;
+  const MDeformVert *dvert = NULL;
   BevelModifierData *bmd = (BevelModifierData *)md;
   const float threshold = cosf(bmd->bevel_angle + 0.000000175f);
   const bool do_clamp = !(bmd->flags & MOD_BEVEL_OVERLAP_OK);

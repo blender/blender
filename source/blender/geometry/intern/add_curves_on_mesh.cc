@@ -4,6 +4,7 @@
 #include "BLI_task.hh"
 
 #include "BKE_attribute_math.hh"
+#include "BKE_mesh.h"
 #include "BKE_mesh_sample.hh"
 
 #include "GEO_add_curves_on_mesh.hh"
@@ -244,6 +245,8 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   Vector<float2> used_uvs;
 
   /* Find faces that the passed in uvs belong to. */
+  const Span<MVert> surface_verts = inputs.surface->vertices();
+  const Span<MLoop> surface_loops = inputs.surface->loops();
   for (const int i : inputs.uvs.index_range()) {
     const float2 &uv = inputs.uvs[i];
     const ReverseUVSampler::Result result = inputs.reverse_uv_sampler->sample(uv);
@@ -256,9 +259,9 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
     looptris.append(&looptri);
     const float3 root_position_su = attribute_math::mix3<float3>(
         result.bary_weights,
-        inputs.surface->mvert[inputs.surface->mloop[looptri.tri[0]].v].co,
-        inputs.surface->mvert[inputs.surface->mloop[looptri.tri[1]].v].co,
-        inputs.surface->mvert[inputs.surface->mloop[looptri.tri[2]].v].co);
+        surface_verts[surface_loops[looptri.tri[0]].v].co,
+        surface_verts[surface_loops[looptri.tri[1]].v].co,
+        surface_verts[surface_loops[looptri.tri[2]].v].co);
     root_positions_cu.append(inputs.transforms->surface_to_curves * root_position_su);
     used_uvs.append(uv);
   }

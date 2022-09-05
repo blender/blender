@@ -60,6 +60,8 @@
 #  include "usd.h"
 #endif
 
+using blender::Span;
+
 static void initData(ModifierData *md)
 {
   MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
@@ -176,13 +178,18 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   if (me != nullptr) {
-    MVert *mvert = mesh->mvert;
-    MEdge *medge = mesh->medge;
-    MPoly *mpoly = mesh->mpoly;
+    const Span<MVert> mesh_verts = mesh->vertices();
+    const Span<MEdge> mesh_edges = mesh->edges();
+    const Span<MPoly> mesh_polys = mesh->polygons();
+    const Span<MVert> me_vertices = me->vertices();
+    const Span<MEdge> me_edges = me->edges();
+    const Span<MPoly> me_polygons = me->polygons();
 
     /* TODO(sybren+bastien): possibly check relevant custom data layers (UV/color depending on
-     * flags) and duplicate those too. */
-    if ((me->mvert == mvert) || (me->medge == medge) || (me->mpoly == mpoly)) {
+     * flags) and duplicate those too.
+     * XXX(Hans): This probably isn't true anymore with various CoW improvements, etc. */
+    if ((me_vertices.data() == mesh_verts.data()) || (me_edges.data() == mesh_edges.data()) ||
+        (me_polygons.data() == mesh_polys.data())) {
       /* We need to duplicate data here, otherwise we'll modify org mesh, see T51701. */
       mesh = reinterpret_cast<Mesh *>(
           BKE_id_copy_ex(nullptr,

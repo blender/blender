@@ -66,6 +66,12 @@ static void deform_curves(const CurvesGeometry &curves,
 
   const float4x4 curves_to_surface = surface_to_curves.inverted();
 
+  const Span<MVert> surface_verts_old = surface_mesh_old.vertices();
+  const Span<MLoop> surface_loops_old = surface_mesh_old.loops();
+
+  const Span<MVert> surface_verts_new = surface_mesh_new.vertices();
+  const Span<MLoop> surface_loops_new = surface_mesh_new.loops();
+
   threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
     for (const int curve_i : range) {
       const ReverseUVSampler::Result &surface_sample_old = surface_samples_old[curve_i];
@@ -92,13 +98,13 @@ static void deform_curves(const CurvesGeometry &curves,
       const int corner_1_new = looptri_new.tri[1];
       const int corner_2_new = looptri_new.tri[2];
 
-      const int vert_0_old = surface_mesh_old.mloop[corner_0_old].v;
-      const int vert_1_old = surface_mesh_old.mloop[corner_1_old].v;
-      const int vert_2_old = surface_mesh_old.mloop[corner_2_old].v;
+      const int vert_0_old = surface_loops_old[corner_0_old].v;
+      const int vert_1_old = surface_loops_old[corner_1_old].v;
+      const int vert_2_old = surface_loops_old[corner_2_old].v;
 
-      const int vert_0_new = surface_mesh_new.mloop[corner_0_new].v;
-      const int vert_1_new = surface_mesh_new.mloop[corner_1_new].v;
-      const int vert_2_new = surface_mesh_new.mloop[corner_2_new].v;
+      const int vert_0_new = surface_loops_new[corner_0_new].v;
+      const int vert_1_new = surface_loops_new[corner_1_new].v;
+      const int vert_2_new = surface_loops_new[corner_2_new].v;
 
       const float3 &normal_0_old = corner_normals_old[corner_0_old];
       const float3 &normal_1_old = corner_normals_old[corner_1_old];
@@ -112,14 +118,14 @@ static void deform_curves(const CurvesGeometry &curves,
       const float3 normal_new = math::normalize(
           mix3(bary_weights_new, normal_0_new, normal_1_new, normal_2_new));
 
-      const float3 &pos_0_old = surface_mesh_old.mvert[vert_0_old].co;
-      const float3 &pos_1_old = surface_mesh_old.mvert[vert_1_old].co;
-      const float3 &pos_2_old = surface_mesh_old.mvert[vert_2_old].co;
+      const float3 &pos_0_old = surface_verts_old[vert_0_old].co;
+      const float3 &pos_1_old = surface_verts_old[vert_1_old].co;
+      const float3 &pos_2_old = surface_verts_old[vert_2_old].co;
       const float3 pos_old = mix3(bary_weights_old, pos_0_old, pos_1_old, pos_2_old);
 
-      const float3 &pos_0_new = surface_mesh_new.mvert[vert_0_new].co;
-      const float3 &pos_1_new = surface_mesh_new.mvert[vert_1_new].co;
-      const float3 &pos_2_new = surface_mesh_new.mvert[vert_2_new].co;
+      const float3 &pos_0_new = surface_verts_new[vert_0_new].co;
+      const float3 &pos_1_new = surface_verts_new[vert_1_new].co;
+      const float3 &pos_2_new = surface_verts_new[vert_2_new].co;
       const float3 pos_new = mix3(bary_weights_new, pos_0_new, pos_1_new, pos_2_new);
 
       /* The translation is just the difference between the old and new position on the surface. */

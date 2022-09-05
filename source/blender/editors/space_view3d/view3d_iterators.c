@@ -23,6 +23,7 @@
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
+#include "BKE_mesh.h"
 #include "BKE_mesh_iterators.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_wrapper.h"
@@ -205,6 +206,7 @@ typedef struct foreachScreenObjectVert_userData {
   void (*func)(void *userData, MVert *mv, const float screen_co[2], int index);
   void *userData;
   ViewContext vc;
+  MVert *verts;
   const bool *hide_vert;
   eV3DProjTest clip_flag;
 } foreachScreenObjectVert_userData;
@@ -266,7 +268,7 @@ static void meshobject_foreachScreenVert__mapFunc(void *userData,
   if (data->hide_vert && data->hide_vert[index]) {
     return;
   }
-  struct MVert *mv = &((Mesh *)(data->vc.obact->data))->mvert[index];
+  MVert *mv = &data->verts[index];
 
   float screen_co[2];
 
@@ -299,6 +301,7 @@ void meshobject_foreachScreenVert(
   data.func = func;
   data.userData = userData;
   data.clip_flag = clip_flag;
+  data.verts = BKE_mesh_vertices_for_write((Mesh *)vc->obact->data);
   data.hide_vert = (const bool *)CustomData_get_layer_named(
       &me->vdata, CD_PROP_BOOL, ".hide_vert");
 

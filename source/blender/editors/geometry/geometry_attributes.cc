@@ -471,11 +471,6 @@ static int geometry_color_attribute_remove_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (GS(id->name) == ID_ME) {
-    Mesh *me = static_cast<Mesh *>(ob->data);
-    BKE_mesh_update_customdata_pointers(me, true);
-  }
-
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 

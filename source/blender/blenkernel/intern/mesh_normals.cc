@@ -37,6 +37,7 @@
 
 #include "atomic_ops.h"
 
+using blender::MutableSpan;
 using blender::Span;
 
 // #define DEBUG_TIME
@@ -368,16 +369,19 @@ const float (*BKE_mesh_vertex_normals_ensure(const Mesh *mesh))[3]
   /* Isolate task because a mutex is locked and computing normals is multi-threaded. */
   blender::threading::isolate_task([&]() {
     Mesh &mesh_mutable = *const_cast<Mesh *>(mesh);
+    const Span<MVert> verts = mesh_mutable.vertices();
+    const Span<MPoly> polys = mesh_mutable.polygons();
+    const Span<MLoop> loops = mesh_mutable.loops();
 
     vert_normals = BKE_mesh_vertex_normals_for_write(&mesh_mutable);
     poly_normals = BKE_mesh_poly_normals_for_write(&mesh_mutable);
 
-    BKE_mesh_calc_normals_poly_and_vertex(mesh_mutable.mvert,
-                                          mesh_mutable.totvert,
-                                          mesh_mutable.mloop,
-                                          mesh_mutable.totloop,
-                                          mesh_mutable.mpoly,
-                                          mesh_mutable.totpoly,
+    BKE_mesh_calc_normals_poly_and_vertex(verts.data(),
+                                          verts.size(),
+                                          loops.data(),
+                                          loops.size(),
+                                          polys.data(),
+                                          polys.size(),
                                           poly_normals,
                                           vert_normals);
 
@@ -413,15 +417,18 @@ const float (*BKE_mesh_poly_normals_ensure(const Mesh *mesh))[3]
   /* Isolate task because a mutex is locked and computing normals is multi-threaded. */
   blender::threading::isolate_task([&]() {
     Mesh &mesh_mutable = *const_cast<Mesh *>(mesh);
+    const Span<MVert> verts = mesh_mutable.vertices();
+    const Span<MPoly> polys = mesh_mutable.polygons();
+    const Span<MLoop> loops = mesh_mutable.loops();
 
     poly_normals = BKE_mesh_poly_normals_for_write(&mesh_mutable);
 
-    BKE_mesh_calc_normals_poly(mesh_mutable.mvert,
-                               mesh_mutable.totvert,
-                               mesh_mutable.mloop,
-                               mesh_mutable.totloop,
-                               mesh_mutable.mpoly,
-                               mesh_mutable.totpoly,
+    BKE_mesh_calc_normals_poly(verts.data(),
+                               verts.size(),
+                               loops.data(),
+                               loops.size(),
+                               polys.data(),
+                               polys.size(),
                                poly_normals);
 
     BKE_mesh_poly_normals_clear_dirty(&mesh_mutable);
@@ -940,9 +947,9 @@ void BKE_edges_sharp_from_angle_set(const struct MVert *mverts,
                                     const int UNUSED(numVerts),
                                     struct MEdge *medges,
                                     const int numEdges,
-                                    struct MLoop *mloops,
+                                    const struct MLoop *mloops,
                                     const int numLoops,
-                                    struct MPoly *mpolys,
+                                    const struct MPoly *mpolys,
                                     const float (*polynors)[3],
                                     const int numPolys,
                                     const float split_angle)
@@ -1600,12 +1607,12 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
 void BKE_mesh_normals_loop_split(const MVert *mverts,
                                  const float (*vert_normals)[3],
                                  const int UNUSED(numVerts),
-                                 MEdge *medges,
+                                 const MEdge *medges,
                                  const int numEdges,
-                                 MLoop *mloops,
+                                 const MLoop *mloops,
                                  float (*r_loopnors)[3],
                                  const int numLoops,
-                                 MPoly *mpolys,
+                                 const MPoly *mpolys,
                                  const float (*polynors)[3],
                                  const int numPolys,
                                  const bool use_split_normals,
@@ -1628,7 +1635,7 @@ void BKE_mesh_normals_loop_split(const MVert *mverts,
     int mp_index;
 
     for (mp_index = 0; mp_index < numPolys; mp_index++) {
-      MPoly *mp = &mpolys[mp_index];
+      const MPoly *mp = &mpolys[mp_index];
       int ml_index = mp->loopstart;
       const int ml_index_end = ml_index + mp->totloop;
       const bool is_poly_flat = ((mp->flag & ME_SMOOTH) == 0);
@@ -1755,10 +1762,10 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
                                          const int numVerts,
                                          MEdge *medges,
                                          const int numEdges,
-                                         MLoop *mloops,
+                                         const MLoop *mloops,
                                          float (*r_custom_loopnors)[3],
                                          const int numLoops,
-                                         MPoly *mpolys,
+                                         const MPoly *mpolys,
                                          const float (*polynors)[3],
                                          const int numPolys,
                                          short (*r_clnors_data)[2],
@@ -1852,12 +1859,12 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
         }
 
         LinkNode *loops = lnors_spacearr.lspacearr[i]->loops;
-        MLoop *prev_ml = nullptr;
+        const MLoop *prev_ml = nullptr;
         const float *org_nor = nullptr;
 
         while (loops) {
           const int lidx = POINTER_AS_INT(loops->link);
-          MLoop *ml = &mloops[lidx];
+          const MLoop *ml = &mloops[lidx];
           const int nidx = lidx;
           float *nor = r_custom_loopnors[nidx];
 
@@ -1889,7 +1896,7 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
         loops = lnors_spacearr.lspacearr[i]->loops;
         if (loops && org_nor) {
           const int lidx = POINTER_AS_INT(loops->link);
-          MLoop *ml = &mloops[lidx];
+          const MLoop *ml = &mloops[lidx];
           const int nidx = lidx;
           float *nor = r_custom_loopnors[nidx];
 
@@ -1992,10 +1999,10 @@ void BKE_mesh_normals_loop_custom_set(const MVert *mverts,
                                       const int numVerts,
                                       MEdge *medges,
                                       const int numEdges,
-                                      MLoop *mloops,
+                                      const MLoop *mloops,
                                       float (*r_custom_loopnors)[3],
                                       const int numLoops,
-                                      MPoly *mpolys,
+                                      const MPoly *mpolys,
                                       const float (*polynors)[3],
                                       const int numPolys,
                                       short (*r_clnors_data)[2])
@@ -2021,9 +2028,9 @@ void BKE_mesh_normals_loop_custom_from_vertices_set(const MVert *mverts,
                                                     const int numVerts,
                                                     MEdge *medges,
                                                     const int numEdges,
-                                                    MLoop *mloops,
+                                                    const MLoop *mloops,
                                                     const int numLoops,
-                                                    MPoly *mpolys,
+                                                    const MPoly *mpolys,
                                                     const float (*polynors)[3],
                                                     const int numPolys,
                                                     short (*r_clnors_data)[2])
@@ -2056,18 +2063,22 @@ static void mesh_set_custom_normals(Mesh *mesh, float (*r_custom_nors)[3], const
     clnors = (short(*)[2])CustomData_add_layer(
         &mesh->ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, nullptr, numloops);
   }
+  const Span<MVert> verts = mesh->vertices();
+  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  const Span<MPoly> polys = mesh->polygons();
+  const Span<MLoop> loops = mesh->loops();
 
-  mesh_normals_loop_custom_set(mesh->mvert,
+  mesh_normals_loop_custom_set(verts.data(),
                                BKE_mesh_vertex_normals_ensure(mesh),
-                               mesh->totvert,
-                               mesh->medge,
-                               mesh->totedge,
-                               mesh->mloop,
+                               verts.size(),
+                               edges.data(),
+                               edges.size(),
+                               loops.data(),
                                r_custom_nors,
-                               mesh->totloop,
-                               mesh->mpoly,
+                               loops.size(),
+                               polys.data(),
                                BKE_mesh_poly_normals_ensure(mesh),
-                               mesh->totpoly,
+                               polys.size(),
                                clnors,
                                use_vertices);
 }

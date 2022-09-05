@@ -76,27 +76,26 @@ Mesh *STLMeshHelper::to_mesh(Main *bmain, char *mesh_name)
   id_us_min(&mesh->id);
 
   mesh->totvert = verts_.size();
-  mesh->mvert = static_cast<MVert *>(
-      CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, mesh->totvert));
+  CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, mesh->totvert);
+  MutableSpan<MVert> verts = mesh->vertices_for_write();
   for (int i = 0; i < mesh->totvert; i++) {
-    copy_v3_v3(mesh->mvert[i].co, verts_[i]);
+    copy_v3_v3(verts[i].co, verts_[i]);
   }
 
   mesh->totpoly = tris_.size();
   mesh->totloop = tris_.size() * 3;
-  mesh->mpoly = static_cast<MPoly *>(
-      CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, mesh->totpoly));
-  mesh->mloop = static_cast<MLoop *>(
-      CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CONSTRUCT, nullptr, mesh->totloop));
-
+  CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, mesh->totpoly);
+  CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, mesh->totloop);
+  MutableSpan<MPoly> polys = mesh->polygons_for_write();
+  MutableSpan<MLoop> loops = mesh->loops_for_write();
   threading::parallel_for(tris_.index_range(), 2048, [&](IndexRange tris_range) {
     for (const int i : tris_range) {
-      mesh->mpoly[i].loopstart = 3 * i;
-      mesh->mpoly[i].totloop = 3;
+      polys[i].loopstart = 3 * i;
+      polys[i].totloop = 3;
 
-      mesh->mloop[3 * i].v = tris_[i].v1;
-      mesh->mloop[3 * i + 1].v = tris_[i].v2;
-      mesh->mloop[3 * i + 2].v = tris_[i].v3;
+      loops[3 * i].v = tris_[i].v1;
+      loops[3 * i + 1].v = tris_[i].v2;
+      loops[3 * i + 2].v = tris_[i].v3;
     }
   });
 

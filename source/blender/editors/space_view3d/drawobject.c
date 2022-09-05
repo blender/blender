@@ -16,6 +16,7 @@
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
+#include "BKE_mesh.h"
 #include "BKE_object.h"
 
 #include "DEG_depsgraph.h"
@@ -67,9 +68,9 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
   if (facemap_data) {
     GPU_blend(GPU_BLEND_ALPHA);
 
-    const MVert *mvert = me->mvert;
-    const MPoly *mpoly = me->mpoly;
-    const MLoop *mloop = me->mloop;
+    const MVert *verts = BKE_mesh_vertices(me);
+    const MPoly *polys = BKE_mesh_polygons(me);
+    const MLoop *loops = BKE_mesh_loops(me);
 
     int mpoly_len = me->totpoly;
     int mloop_len = me->totloop;
@@ -95,12 +96,12 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
     int i;
     if (me->runtime.looptris.array) {
       const MLoopTri *mlt = me->runtime.looptris.array;
-      for (mp = mpoly, i = 0; i < mpoly_len; i++, mp++) {
+      for (mp = polys, i = 0; i < mpoly_len; i++, mp++) {
         if (facemap_data[i] == facemap) {
           for (int j = 2; j < mp->totloop; j++) {
-            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), mvert[mloop[mlt->tri[0]].v].co);
-            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), mvert[mloop[mlt->tri[1]].v].co);
-            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), mvert[mloop[mlt->tri[2]].v].co);
+            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), verts[loops[mlt->tri[0]].v].co);
+            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), verts[loops[mlt->tri[1]].v].co);
+            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), verts[loops[mlt->tri[2]].v].co);
             vbo_len_used += 3;
             mlt++;
           }
@@ -112,15 +113,15 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
     }
     else {
       /* No tessellation data, fan-fill. */
-      for (mp = mpoly, i = 0; i < mpoly_len; i++, mp++) {
+      for (mp = polys, i = 0; i < mpoly_len; i++, mp++) {
         if (facemap_data[i] == facemap) {
-          const MLoop *ml_start = &mloop[mp->loopstart];
+          const MLoop *ml_start = &loops[mp->loopstart];
           const MLoop *ml_a = ml_start + 1;
           const MLoop *ml_b = ml_start + 2;
           for (int j = 2; j < mp->totloop; j++) {
-            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), mvert[ml_start->v].co);
-            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), mvert[ml_a->v].co);
-            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), mvert[ml_b->v].co);
+            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), verts[ml_start->v].co);
+            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), verts[ml_a->v].co);
+            copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), verts[ml_b->v].co);
             vbo_len_used += 3;
 
             ml_a++;

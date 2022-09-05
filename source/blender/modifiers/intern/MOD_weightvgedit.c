@@ -27,6 +27,7 @@
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_lib_query.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h" /* Texture masking. */
@@ -158,7 +159,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
 
-  MDeformVert *dvert = NULL;
   MDeformWeight **dw = NULL;
   float *org_w; /* Array original weights. */
   float *new_w; /* Array new weights. */
@@ -198,18 +198,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     }
   }
 
-  if (has_mdef) {
-    dvert = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MDEFORMVERT, verts_num);
-  }
-  else {
-    /* Add a valid data layer! */
-    dvert = CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, NULL, verts_num);
-  }
+  MDeformVert *dvert = BKE_mesh_deform_verts_for_write(mesh);
+
   /* Ultimate security check. */
   if (!dvert) {
     return mesh;
   }
-  mesh->dvert = dvert;
 
   /* Get org weights, assuming 0.0 for vertices not in given vgroup. */
   org_w = MEM_malloc_arrayN(verts_num, sizeof(float), "WeightVGEdit Modifier, org_w");

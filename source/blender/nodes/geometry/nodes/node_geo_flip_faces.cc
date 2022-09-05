@@ -30,9 +30,8 @@ static void mesh_flip_faces(Mesh &mesh, const Field<bool> &selection_field)
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_as_mask(0);
 
-  mesh.mloop = (MLoop *)CustomData_duplicate_referenced_layer(&mesh.ldata, CD_MLOOP, mesh.totloop);
-  const Span<MPoly> polys{mesh.mpoly, mesh.totpoly};
-  MutableSpan<MLoop> loops{mesh.mloop, mesh.totloop};
+  const Span<MPoly> polys = mesh.polygons();
+  MutableSpan<MLoop> loops = mesh.loops_for_write();
 
   for (const int i : selection.index_range()) {
     const MPoly &poly = polys[selection[i]];

@@ -37,31 +37,30 @@ class PlanarFieldInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  IndexMask /*mask*/) const final
   {
-    const Span<MVert> vertices(mesh.mvert, mesh.totvert);
-    const Span<MPoly> polygons(mesh.mpoly, mesh.totpoly);
-    const Span<MLoop> loops(mesh.mloop, mesh.totloop);
+    const Span<MVert> verts = mesh.vertices();
+    const Span<MPoly> polys = mesh.polygons();
+    const Span<MLoop> loops = mesh.loops();
+    const Span<float3> poly_normals{(float3 *)BKE_mesh_poly_normals_ensure(&mesh), mesh.totpoly};
 
     bke::MeshFieldContext context{mesh, ATTR_DOMAIN_FACE};
-    fn::FieldEvaluator evaluator{context, polygons.size()};
+    fn::FieldEvaluator evaluator{context, polys.size()};
     evaluator.add(threshold_);
     evaluator.evaluate();
     const VArray<float> thresholds = evaluator.get_evaluated<float>(0);
 
-    Span<float3> poly_normals{(float3 *)BKE_mesh_poly_normals_ensure(&mesh), polygons.size()};
-
-    auto planar_fn = [vertices, polygons, loops, thresholds, poly_normals](const int i) -> bool {
-      const MPoly &poly = polygons[i];
+    auto planar_fn = [verts, polys, loops, thresholds, poly_normals](const int i) -> bool {
+      const MPoly &poly = polys[i];
       if (poly.totloop <= 3) {
         return true;
       }
       const Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
-      float3 reference_normal = poly_normals[i];
+      const float3 &reference_normal = poly_normals[i];
 
       float min = FLT_MAX;
       float max = -FLT_MAX;
 
       for (const int i_loop : poly_loops.index_range()) {
-        const float3 vert = vertices[poly_loops[i_loop].v].co;
+        const float3 vert = verts[poly_loops[i_loop].v].co;
         float dot = math::dot(reference_normal, vert);
         if (dot > max) {
           max = dot;
@@ -74,7 +73,7 @@ class PlanarFieldInput final : public bke::MeshFieldInput {
     };
 
     return bke::mesh_attributes(mesh).adapt_domain<bool>(
-        VArray<bool>::ForFunc(polygons.size(), planar_fn), ATTR_DOMAIN_FACE, domain);
+        VArray<bool>::ForFunc(polys.size(), planar_fn), ATTR_DOMAIN_FACE, domain);
   }
 
   uint64_t hash() const override

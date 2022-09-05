@@ -59,7 +59,7 @@ bool ED_wpaint_ensure_data(bContext *C,
   }
 
   /* if nothing was added yet, we make dverts and a vertex deform group */
-  if (!me->dvert) {
+  if (BKE_mesh_deform_verts(me) == NULL) {
     BKE_object_defgroup_data_create(&me->id);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
   }

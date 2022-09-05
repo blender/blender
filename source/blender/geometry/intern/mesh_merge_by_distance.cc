@@ -1164,26 +1164,26 @@ static void weld_mesh_context_create(const Mesh &mesh,
                                      const int vert_kill_len,
                                      WeldMesh *r_weld_mesh)
 {
-  Span<MEdge> medge{mesh.medge, mesh.totedge};
-  Span<MPoly> mpoly{mesh.mpoly, mesh.totpoly};
-  Span<MLoop> mloop{mesh.mloop, mesh.totloop};
   const int mvert_len = mesh.totvert;
+  const Span<MEdge> edges = mesh.edges();
+  const Span<MPoly> polys = mesh.polygons();
+  const Span<MLoop> loops = mesh.loops();
 
   Vector<WeldVert> wvert = weld_vert_ctx_alloc_and_setup(vert_dest_map, vert_kill_len);
   r_weld_mesh->vert_kill_len = vert_kill_len;
 
-  Array<int> edge_dest_map(medge.size());
-  Array<int> edge_ctx_map(medge.size());
-  Vector<WeldEdge> wedge = weld_edge_ctx_alloc(medge, vert_dest_map, edge_dest_map, edge_ctx_map);
+  Array<int> edge_dest_map(edges.size());
+  Array<int> edge_ctx_map(edges.size());
+  Vector<WeldEdge> wedge = weld_edge_ctx_alloc(edges, vert_dest_map, edge_dest_map, edge_ctx_map);
 
   Array<WeldGroup> v_links(mvert_len, {0, 0});
   weld_edge_ctx_setup(v_links, edge_dest_map, wedge, &r_weld_mesh->edge_kill_len);
 
-  weld_poly_loop_ctx_alloc(mpoly, mloop, vert_dest_map, edge_dest_map, r_weld_mesh);
+  weld_poly_loop_ctx_alloc(polys, loops, vert_dest_map, edge_dest_map, r_weld_mesh);
 
-  weld_poly_loop_ctx_setup(mloop,
+  weld_poly_loop_ctx_setup(loops,
 #ifdef USE_WELD_DEBUG
-                           mpoly,
+                           polys,
 
 #endif
                            mvert_len,
@@ -1198,7 +1198,7 @@ static void weld_mesh_context_create(const Mesh &mesh,
                          r_weld_mesh->vert_groups_buffer,
                          r_weld_mesh->vert_groups);
 
-  weld_edge_groups_setup(medge.size(),
+  weld_edge_groups_setup(edges.size(),
                          r_weld_mesh->edge_kill_len,
                          wedge,
                          edge_ctx_map,
@@ -1360,23 +1360,24 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
                                 MutableSpan<int> vert_dest_map,
                                 const int removed_vertex_count)
 {
-  Span<MPoly> mpoly{mesh.mpoly, mesh.totpoly};
-  Span<MLoop> mloop{mesh.mloop, mesh.totloop};
+  const Span<MPoly> src_polys = mesh.polygons();
+  const Span<MLoop> src_loops = mesh.loops();
   const int totvert = mesh.totvert;
   const int totedge = mesh.totedge;
-  const int totloop = mesh.totloop;
-  const int totpoly = mesh.totpoly;
 
   WeldMesh weld_mesh;
   weld_mesh_context_create(mesh, vert_dest_map, removed_vertex_count, &weld_mesh);
 
   const int result_nverts = totvert - weld_mesh.vert_kill_len;
   const int result_nedges = totedge - weld_mesh.edge_kill_len;
-  const int result_nloops = totloop - weld_mesh.loop_kill_len;
-  const int result_npolys = totpoly - weld_mesh.poly_kill_len + weld_mesh.wpoly_new_len;
+  const int result_nloops = src_loops.size() - weld_mesh.loop_kill_len;
+  const int result_npolys = src_polys.size() - weld_mesh.poly_kill_len + weld_mesh.wpoly_new_len;
 
   Mesh *result = BKE_mesh_new_nomain_from_template(
       &mesh, result_nverts, result_nedges, 0, result_nloops, result_npolys);
+  MutableSpan<MEdge> dst_edges = result->edges_for_write();
+  MutableSpan<MPoly> dst_polys = result->polygons_for_write();
+  MutableSpan<MLoop> dst_loops = result->loops_for_write();
 
   /* Vertices. */
 
@@ -1431,7 +1432,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     }
     if (count) {
       CustomData_copy_data(&mesh.edata, &result->edata, source_index, dest_index, count);
-      MEdge *me = &result->medge[dest_index];
+      MEdge *me = &dst_edges[dest_index];
       dest_index += count;
       for (; count--; me++) {
         me->v1 = vert_final[me->v1];
@@ -1448,7 +1449,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
                       &weld_mesh.edge_groups_buffer[wegrp->group.ofs],
                       wegrp->group.len,
                       dest_index);
-      MEdge *me = &result->medge[dest_index];
+      MEdge *me = &dst_edges[dest_index];
       me->v1 = vert_final[wegrp->v1];
       me->v2 = vert_final[wegrp->v2];
       /* "For now, assume that all merged edges are loose. This flag will be cleared in the
@@ -1464,13 +1465,13 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
 
   /* Polys/Loops. */
 
-  MPoly *r_mp = &result->mpoly[0];
-  MLoop *r_ml = &result->mloop[0];
+  MPoly *r_mp = dst_polys.data();
+  MLoop *r_ml = dst_loops.data();
   int r_i = 0;
   int loop_cur = 0;
   Array<int, 64> group_buffer(weld_mesh.max_poly_len);
-  for (const int i : mpoly.index_range()) {
-    const MPoly &mp = mpoly[i];
+  for (const int i : src_polys.index_range()) {
+    const MPoly &mp = src_polys[i];
     const int loop_start = loop_cur;
     const int poly_ctx = weld_mesh.poly_map[i];
     if (poly_ctx == OUT_OF_CONTEXT) {
@@ -1486,7 +1487,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
       const WeldPoly &wp = weld_mesh.wpoly[poly_ctx];
       WeldLoopOfPolyIter iter;
       if (!weld_iter_loop_of_poly_begin(
-              iter, wp, weld_mesh.wloop, mloop, weld_mesh.loop_map, group_buffer.data())) {
+              iter, wp, weld_mesh.wloop, src_loops, weld_mesh.loop_map, group_buffer.data())) {
         continue;
       }
 
@@ -1503,9 +1504,9 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
         r_ml++;
         loop_cur++;
         if (iter.type) {
-          result->medge[e].flag &= ~ME_LOOSEEDGE;
+          dst_edges[e].flag &= ~ME_LOOSEEDGE;
         }
-        BLI_assert((result->medge[e].flag & ME_LOOSEEDGE) == 0);
+        BLI_assert((dst_edges[e].flag & ME_LOOSEEDGE) == 0);
       }
     }
 
@@ -1522,7 +1523,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     const int loop_start = loop_cur;
     WeldLoopOfPolyIter iter;
     if (!weld_iter_loop_of_poly_begin(
-            iter, wp, weld_mesh.wloop, mloop, weld_mesh.loop_map, group_buffer.data())) {
+            iter, wp, weld_mesh.wloop, src_loops, weld_mesh.loop_map, group_buffer.data())) {
       continue;
     }
 
@@ -1538,9 +1539,9 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
       r_ml++;
       loop_cur++;
       if (iter.type) {
-        result->medge[e].flag &= ~ME_LOOSEEDGE;
+        dst_edges[e].flag &= ~ME_LOOSEEDGE;
       }
-      BLI_assert((result->medge[e].flag & ME_LOOSEEDGE) == 0);
+      BLI_assert((dst_edges[e].flag & ME_LOOSEEDGE) == 0);
     }
 
     r_mp->loopstart = loop_start;
@@ -1569,8 +1570,9 @@ std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
 
   KDTree_3d *tree = BLI_kdtree_3d_new(selection.size());
 
+  const Span<MVert> verts = mesh.vertices();
   for (const int i : selection) {
-    BLI_kdtree_3d_insert(tree, i, mesh.mvert[i].co);
+    BLI_kdtree_3d_insert(tree, i, verts[i].co);
   }
 
   BLI_kdtree_3d_balance(tree);
@@ -1595,8 +1597,8 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
                                                        const float merge_distance,
                                                        const bool only_loose_edges)
 {
-  Span<MVert> verts{mesh.mvert, mesh.totvert};
-  Span<MEdge> edges{mesh.medge, mesh.totedge};
+  const Span<MVert> verts = mesh.vertices();
+  const Span<MEdge> edges = mesh.edges();
 
   int vert_kill_len = 0;
 

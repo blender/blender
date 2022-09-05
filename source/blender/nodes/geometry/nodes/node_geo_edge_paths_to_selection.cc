@@ -7,9 +7,6 @@
 #include "BLI_set.hh"
 #include "BLI_task.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "node_geometry_util.hh"
 
 #include <set>
@@ -28,6 +25,8 @@ static void edge_paths_to_selection(const Mesh &src_mesh,
                                     const Span<int> next_indices,
                                     MutableSpan<bool> r_selection)
 {
+  const Span<MEdge> edges = src_mesh.edges();
+
   Array<bool> selection(src_mesh.totvert, false);
 
   for (const int start_vert : start_selection) {
@@ -45,8 +44,8 @@ static void edge_paths_to_selection(const Mesh &src_mesh,
     }
   }
 
-  for (const int i : IndexRange(src_mesh.totedge)) {
-    const MEdge &edge = src_mesh.medge[i];
+  for (const int i : edges.index_range()) {
+    const MEdge &edge = edges[i];
     if ((selection[edge.v1] && selection[edge.v2]) &&
         (edge.v1 == next_indices[edge.v2] || edge.v2 == next_indices[edge.v1])) {
       r_selection[i] = true;

@@ -16,6 +16,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
+#include "BKE_mesh.h"
 #include "BKE_subdiv.h"
 
 #include "MEM_guardedalloc.h"
@@ -80,9 +81,9 @@ static void set_coarse_positions(Subdiv *subdiv,
                                  const Mesh *mesh,
                                  const float (*coarse_vertex_cos)[3])
 {
-  const MVert *mvert = mesh->mvert;
-  const MLoop *mloop = mesh->mloop;
-  const MPoly *mpoly = mesh->mpoly;
+  const MVert *mvert = BKE_mesh_vertices(mesh);
+  const MPoly *mpoly = BKE_mesh_polygons(mesh);
+  const MLoop *mloop = BKE_mesh_loops(mesh);
   /* Mark vertices which needs new coordinates. */
   /* TODO(sergey): This is annoying to calculate this on every update,
    * maybe it's better to cache this mapping. Or make it possible to have
@@ -125,6 +126,7 @@ static void set_coarse_positions(Subdiv *subdiv,
 typedef struct FaceVaryingDataFromUVContext {
   OpenSubdiv_TopologyRefiner *topology_refiner;
   const Mesh *mesh;
+  const MPoly *polys;
   const MLoopUV *mloopuv;
   float (*buffer)[2];
   int layer_index;
@@ -137,8 +139,7 @@ static void set_face_varying_data_from_uv_task(void *__restrict userdata,
   FaceVaryingDataFromUVContext *ctx = userdata;
   OpenSubdiv_TopologyRefiner *topology_refiner = ctx->topology_refiner;
   const int layer_index = ctx->layer_index;
-  const Mesh *mesh = ctx->mesh;
-  const MPoly *mpoly = &mesh->mpoly[face_index];
+  const MPoly *mpoly = &ctx->polys[face_index];
   const MLoopUV *mluv = &ctx->mloopuv[mpoly->loopstart];
 
   /* TODO(sergey): OpenSubdiv's C-API converter can change winding of
@@ -171,6 +172,7 @@ static void set_face_varying_data_from_uv(Subdiv *subdiv,
   ctx.layer_index = layer_index;
   ctx.mloopuv = mluv;
   ctx.mesh = mesh;
+  ctx.polys = BKE_mesh_polygons(mesh);
   ctx.buffer = buffer;
 
   TaskParallelSettings parallel_range_settings;

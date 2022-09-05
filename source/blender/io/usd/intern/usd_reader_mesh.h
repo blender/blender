@@ -10,8 +10,6 @@
 
 #include "pxr/usd/usdGeom/mesh.h"
 
-struct MPoly;
-
 namespace blender::io::usd {
 
 class USDMeshReader : public USDGeomReader {

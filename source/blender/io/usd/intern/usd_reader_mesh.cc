@@ -312,15 +312,15 @@ bool USDMeshReader::topology_changed(const Mesh *existing_mesh, const double mot
 
 void USDMeshReader::read_mpolys(Mesh *mesh)
 {
-  MPoly *mpolys = mesh->mpoly;
-  MLoop *mloops = mesh->mloop;
+  MutableSpan<MPoly> polys = mesh->polygons_for_write();
+  MutableSpan<MLoop> loops = mesh->loops_for_write();
 
   int loop_index = 0;
 
   for (int i = 0; i < face_counts_.size(); i++) {
     const int face_size = face_counts_[i];
 
-    MPoly &poly = mpolys[i];
+    MPoly &poly = polys[i];
     poly.loopstart = loop_index;
     poly.totloop = face_size;
 
@@ -331,12 +331,12 @@ void USDMeshReader::read_mpolys(Mesh *mesh)
     if (is_left_handed_) {
       int loop_end_index = loop_index + (face_size - 1);
       for (int f = 0; f < face_size; ++f, ++loop_index) {
-        mloops[loop_index].v = face_indices_[loop_end_index - f];
+        loops[loop_index].v = face_indices_[loop_end_index - f];
       }
     }
     else {
       for (int f = 0; f < face_size; ++f, ++loop_index) {
-        mloops[loop_index].v = face_indices_[loop_index];
+        loops[loop_index].v = face_indices_[loop_index];
       }
     }
   }
@@ -400,6 +400,7 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
     }
   }
 
+  const Span<MLoop> loops = mesh->loops();
   for (int i = 0; i < face_counts_.size(); i++) {
     const int face_size = face_counts_[i];
 
@@ -435,7 +436,7 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
 
         /* For Vertex interpolation, use the vertex index. */
         int usd_uv_index = sample.interpolation == pxr::UsdGeomTokens->vertex ?
-                               mesh->mloop[loop_index].v :
+                               loops[loop_index].v :
                                loop_index;
 
         if (usd_uv_index >= sample.uvs.size()) {
@@ -515,24 +516,23 @@ void USDMeshReader::read_colors(Mesh *mesh, const double motionSampleTime)
 
   MLoopCol *colors = static_cast<MLoopCol *>(cd_ptr);
 
-  mesh->mloopcol = colors;
-
-  MPoly *poly = mesh->mpoly;
-
-  for (int i = 0, e = mesh->totpoly; i < e; ++i, ++poly) {
-    for (int j = 0; j < poly->totloop; ++j) {
-      int loop_index = poly->loopstart + j;
+  const Span<MPoly> polys = mesh->polygons();
+  const Span<MLoop> loops = mesh->loops();
+  for (const int i : polys.index_range()) {
+    const MPoly &poly = polys[i];
+    for (int j = 0; j < poly.totloop; ++j) {
+      int loop_index = poly.loopstart + j;
 
       /* Default for constant varying interpolation. */
       int usd_index = 0;
 
       if (interp == pxr::UsdGeomTokens->vertex) {
-        usd_index = mesh->mloop[loop_index].v;
+        usd_index = loops[loop_index].v;
       }
       else if (interp == pxr::UsdGeomTokens->faceVarying) {
-        usd_index = poly->loopstart;
+        usd_index = poly.loopstart;
         if (is_left_handed_) {
-          usd_index += poly->totloop - 1 - j;
+          usd_index += poly.totloop - 1 - j;
         }
         else {
           usd_index += j;
@@ -630,15 +630,15 @@ void USDMeshReader::process_normals_face_varying(Mesh *mesh)
   float(*lnors)[3] = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(loop_count, sizeof(float[3]), "USD::FaceNormals"));
 
-  MPoly *mpoly = mesh->mpoly;
+  const Span<MPoly> polys = mesh->polygons();
+  for (const int i : polys.index_range()) {
+    const MPoly &poly = polys[i];
+    for (int j = 0; j < poly.totloop; j++) {
+      int blender_index = poly.loopstart + j;
 
-  for (int i = 0, e = mesh->totpoly; i < e; ++i, ++mpoly) {
-    for (int j = 0; j < mpoly->totloop; j++) {
-      int blender_index = mpoly->loopstart + j;
-
-      int usd_index = mpoly->loopstart;
+      int usd_index = poly.loopstart;
       if (is_left_handed_) {
-        usd_index += mpoly->totloop - 1 - j;
+        usd_index += poly.totloop - 1 - j;
       }
       else {
         usd_index += j;
@@ -671,12 +671,11 @@ void USDMeshReader::process_normals_uniform(Mesh *mesh)
   float(*lnors)[3] = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(mesh->totloop, sizeof(float[3]), "USD::FaceNormals"));
 
-  MPoly *mpoly = mesh->mpoly;
-
-  for (int i = 0, e = mesh->totpoly; i < e; ++i, ++mpoly) {
-
-    for (int j = 0; j < mpoly->totloop; j++) {
-      int loop_index = mpoly->loopstart + j;
+  const Span<MPoly> polys = mesh->polygons();
+  for (const int i : polys.index_range()) {
+    const MPoly &poly = polys[i];
+    for (int j = 0; j < poly.totloop; j++) {
+      int loop_index = poly.loopstart + j;
       lnors[loop_index][0] = normals_[i][0];
       lnors[loop_index][1] = normals_[i][1];
       lnors[loop_index][2] = normals_[i][2];
@@ -699,8 +698,9 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
    * in code that expect this data to be there. */
 
   if (new_mesh || (settings->read_flag & MOD_MESHSEQ_READ_VERT) != 0) {
+    MutableSpan<MVert> verts = mesh->vertices_for_write();
     for (int i = 0; i < positions_.size(); i++) {
-      MVert &mvert = mesh->mvert[i];
+      MVert &mvert = verts[i];
       mvert.co[0] = positions_[i][0];
       mvert.co[1] = positions_[i][1];
       mvert.co[2] = positions_[i][2];
@@ -903,8 +903,7 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
         existing_mesh, positions_.size(), 0, 0, face_indices_.size(), face_counts_.size());
 
     for (pxr::TfToken token : uv_tokens) {
-      void *cd_ptr = add_customdata_cb(active_mesh, token.GetText(), CD_MLOOPUV);
-      active_mesh->mloopuv = static_cast<MLoopUV *>(cd_ptr);
+      add_customdata_cb(active_mesh, token.GetText(), CD_MLOOPUV);
     }
   }
 
@@ -914,8 +913,8 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
     /* Here we assume that the number of materials doesn't change, i.e. that
      * the material slots that were created when the object was loaded from
      * USD are still valid now. */
-    size_t num_polys = active_mesh->totpoly;
-    if (num_polys > 0 && import_params_.import_materials) {
+    MutableSpan<MPoly> polys = active_mesh->polygons_for_write();
+    if (!polys.is_empty() && import_params_.import_materials) {
       std::map<pxr::SdfPath, int> mat_map;
       bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*active_mesh);
       bke::SpanAttributeWriter<int> material_indices =

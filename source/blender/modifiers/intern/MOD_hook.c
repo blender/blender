@@ -281,7 +281,7 @@ static void deformVerts_do(HookModifierData *hmd,
   bPoseChannel *pchan = BKE_pose_channel_find_name(ob_target->pose, hmd->subtarget);
   float dmat[4][4];
   int i, *index_pt;
-  MDeformVert *dvert;
+  const MDeformVert *dvert;
   struct HookData_cb hd;
   const bool invert_vgroup = (hmd->flag & MOD_HOOK_INVERT_VGROUP) != 0;
 

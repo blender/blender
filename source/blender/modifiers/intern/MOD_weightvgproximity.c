@@ -423,7 +423,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   BLI_assert(mesh != NULL);
 
   WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
-  MDeformVert *dvert = NULL;
   MDeformWeight **dw, **tdw;
   float(*v_cos)[3] = NULL; /* The vertices coordinates. */
   Object *ob = ctx->object;
@@ -475,12 +474,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     return mesh;
   }
 
-  dvert = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MDEFORMVERT, verts_num);
+  MDeformVert *dvert = BKE_mesh_deform_verts_for_write(mesh);
   /* Ultimate security check. */
   if (!dvert) {
     return mesh;
   }
-  mesh->dvert = dvert;
 
   /* Find out which vertices to work on (all vertices in vgroup), and get their relevant weight. */
   tidx = MEM_malloc_arrayN(verts_num, sizeof(int), "WeightVGProximity Modifier, tidx");

@@ -2464,6 +2464,9 @@ static void gpencil_generate_edgeloops(Object *ob,
   if (me->totedge == 0) {
     return;
   }
+  const Span<MVert> verts = me->vertices();
+  const Span<MEdge> edges = me->edges();
+  const Span<MDeformVert> dverts = me->deform_verts();
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me);
 
   /* Arrays for all edge vertices (forward and backward) that form a edge loop.
@@ -2476,15 +2479,15 @@ static void gpencil_generate_edgeloops(Object *ob,
   GpEdge *gp_edges = (GpEdge *)MEM_callocN(sizeof(GpEdge) * me->totedge, __func__);
   GpEdge *gped = nullptr;
   for (int i = 0; i < me->totedge; i++) {
-    MEdge *ed = &me->medge[i];
+    const MEdge *ed = &edges[i];
     gped = &gp_edges[i];
-    MVert *mv1 = &me->mvert[ed->v1];
+    const MVert *mv1 = &verts[ed->v1];
     copy_v3_v3(gped->n1, vert_normals[ed->v1]);
 
     gped->v1 = ed->v1;
     copy_v3_v3(gped->v1_co, mv1->co);
 
-    MVert *mv2 = &me->mvert[ed->v2];
+    const MVert *mv2 = &verts[ed->v2];
     copy_v3_v3(gped->n2, vert_normals[ed->v2]);
     gped->v2 = ed->v2;
     copy_v3_v3(gped->v2_co, mv2->co);
@@ -2540,8 +2543,7 @@ static void gpencil_generate_edgeloops(Object *ob,
         gpf_stroke, MAX2(stroke_mat_index, 0), array_len + 1, thickness * thickness, false);
 
     /* Create dvert data. */
-    MDeformVert *me_dvert = me->dvert;
-    if (use_vgroups && me_dvert) {
+    if (use_vgroups && !dverts.is_empty()) {
       gps_stroke->dvert = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * (array_len + 1),
                                                      "gp_stroke_dverts");
     }
@@ -2550,7 +2552,7 @@ static void gpencil_generate_edgeloops(Object *ob,
     float fpt[3];
     for (int i = 0; i < array_len + 1; i++) {
       int vertex_index = i == 0 ? gp_edges[stroke[0]].v1 : gp_edges[stroke[i - 1]].v2;
-      MVert *mv = &me->mvert[vertex_index];
+      const MVert *mv = &verts[vertex_index];
 
       /* Add segment. */
       bGPDspoint *pt = &gps_stroke->points[i];
@@ -2563,9 +2565,9 @@ static void gpencil_generate_edgeloops(Object *ob,
       pt->strength = 1.0f;
 
       /* Copy vertex groups from mesh. Assuming they already exist in the same order. */
-      if (use_vgroups && me_dvert) {
+      if (use_vgroups && !dverts.is_empty()) {
         MDeformVert *dv = &gps_stroke->dvert[i];
-        MDeformVert *src_dv = &me_dvert[vertex_index];
+        const MDeformVert *src_dv = &dverts[vertex_index];
         dv->totweight = src_dv->totweight;
         dv->dw = (MDeformWeight *)MEM_callocN(sizeof(MDeformWeight) * dv->totweight,
                                               "gp_stroke_dverts_dw");
@@ -2674,8 +2676,9 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
   /* Use evaluated data to get mesh with all modifiers on top. */
   Object *ob_eval = (Object *)DEG_get_evaluated_object(depsgraph, ob_mesh);
   const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
-  const MPoly *mpoly = me_eval->mpoly;
-  const MLoop *mloop = me_eval->mloop;
+  const Span<MVert> verts = me_eval->vertices();
+  const Span<MPoly> polys = me_eval->polygons();
+  const Span<MLoop> loops = me_eval->loops();
   int mpoly_len = me_eval->totpoly;
   char element_name[200];
 
@@ -2715,7 +2718,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
     const VArray<int> mesh_material_indices = mesh_attributes(*me_eval).lookup_or_default<int>(
         "material_index", ATTR_DOMAIN_FACE, 0);
     for (i = 0; i < mpoly_len; i++) {
-      const MPoly *mp = &mpoly[i];
+      const MPoly *mp = &polys[i];
 
       /* Find material. */
       int mat_idx = 0;
@@ -2739,16 +2742,16 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
       gps_fill->flag |= GP_STROKE_CYCLIC;
 
       /* Create dvert data. */
-      MDeformVert *me_dvert = me_eval->dvert;
-      if (use_vgroups && me_dvert) {
+      const Span<MDeformVert> dverts = me_eval->deform_verts();
+      if (use_vgroups && !dverts.is_empty()) {
         gps_fill->dvert = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * mp->totloop,
                                                      "gp_fill_dverts");
       }
 
       /* Add points to strokes. */
       for (int j = 0; j < mp->totloop; j++) {
-        const MLoop *ml = &mloop[mp->loopstart + j];
-        const MVert *mv = &me_eval->mvert[ml->v];
+        const MLoop *ml = &loops[mp->loopstart + j];
+        const MVert *mv = &verts[ml->v];
 
         bGPDspoint *pt = &gps_fill->points[j];
         copy_v3_v3(&pt->x, mv->co);
@@ -2757,9 +2760,9 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
         pt->strength = 1.0f;
 
         /* Copy vertex groups from mesh. Assuming they already exist in the same order. */
-        if (use_vgroups && me_dvert) {
+        if (use_vgroups && !dverts.is_empty()) {
           MDeformVert *dv = &gps_fill->dvert[j];
-          MDeformVert *src_dv = &me_dvert[ml->v];
+          const MDeformVert *src_dv = &dverts[ml->v];
           dv->totweight = src_dv->totweight;
           dv->dw = (MDeformWeight *)MEM_callocN(sizeof(MDeformWeight) * dv->totweight,
                                                 "gp_fill_dverts_dw");

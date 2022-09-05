@@ -127,7 +127,8 @@ int sample_surface_points_projected(
     Vector<int> &r_looptri_indices,
     Vector<float3> &r_positions);
 
-float3 compute_bary_coord_in_triangle(const Mesh &mesh,
+float3 compute_bary_coord_in_triangle(Span<MVert> verts,
+                                      Span<MLoop> loops,
                                       const MLoopTri &looptri,
                                       const float3 &position);
 

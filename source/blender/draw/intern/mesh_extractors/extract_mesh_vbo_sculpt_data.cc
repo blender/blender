@@ -9,6 +9,7 @@
 
 #include "BLI_string.h"
 
+#include "BKE_mesh.h"
 #include "BKE_paint.h"
 
 #include "draw_subdivision.h"
@@ -128,6 +129,9 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache *subdiv_cache,
   GPUVertBuf *subdiv_mask_vbo = nullptr;
   const float *cd_mask = (const float *)CustomData_get_layer(cd_vdata, CD_PAINT_MASK);
 
+  const Span<MPoly> coarse_polys = coarse_mesh->polygons();
+  const Span<MLoop> coarse_loops = coarse_mesh->loops();
+
   if (cd_mask) {
     GPUVertFormat mask_format = {0};
     GPU_vertformat_attr_add(&mask_format, "msk", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
@@ -138,11 +142,11 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache *subdiv_cache,
     float *v_mask = static_cast<float *>(GPU_vertbuf_get_data(mask_vbo));
 
     for (int i = 0; i < coarse_mesh->totpoly; i++) {
-      const MPoly *mpoly = &coarse_mesh->mpoly[i];
+      const MPoly *mpoly = &coarse_polys[i];
 
       for (int loop_index = mpoly->loopstart; loop_index < mpoly->loopstart + mpoly->totloop;
            loop_index++) {
-        const MLoop *ml = &coarse_mesh->mloop[loop_index];
+        const MLoop *ml = &coarse_loops[loop_index];
         *v_mask++ = cd_mask[ml->v];
       }
     }

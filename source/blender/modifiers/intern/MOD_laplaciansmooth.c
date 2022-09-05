@@ -376,8 +376,8 @@ static void laplaciansmoothModifier_do(
     LaplacianSmoothModifierData *smd, Object *ob, Mesh *mesh, float (*vertexCos)[3], int verts_num)
 {
   LaplacianSystem *sys;
-  MDeformVert *dvert = NULL;
-  MDeformVert *dv = NULL;
+  const MDeformVert *dvert = NULL;
+  const MDeformVert *dv = NULL;
   float w, wpaint;
   int i, iter;
   int defgrp_index;
@@ -388,9 +388,9 @@ static void laplaciansmoothModifier_do(
     return;
   }
 
-  sys->mpoly = mesh->mpoly;
-  sys->mloop = mesh->mloop;
-  sys->medges = mesh->medge;
+  sys->mpoly = BKE_mesh_polygons(mesh);
+  sys->mloop = BKE_mesh_loops(mesh);
+  sys->medges = BKE_mesh_edges(mesh);
   sys->vertexCos = vertexCos;
   sys->min_area = 0.00001f;
   MOD_get_vgroup(ob, mesh, smd->defgrp_name, &dvert, &defgrp_index);

@@ -1096,13 +1096,16 @@ static void sculpt_face_set_grow(Object *ob,
                                  const bool modify_hidden)
 {
   Mesh *mesh = BKE_mesh_from_object(ob);
+  const MPoly *polys = BKE_mesh_polygons(mesh);
+  const MLoop *loops = BKE_mesh_loops(mesh);
+
   for (int p = 0; p < mesh->totpoly; p++) {
     if (!modify_hidden && prev_face_sets[p] <= 0) {
       continue;
     }
-    const MPoly *c_poly = &mesh->mpoly[p];
+    const MPoly *c_poly = &polys[p];
     for (int l = 0; l < c_poly->totloop; l++) {
-      const MLoop *c_loop = &mesh->mloop[c_poly->loopstart + l];
+      const MLoop *c_loop = &loops[c_poly->loopstart + l];
       const MeshElemMap *vert_map = &ss->pmap[c_loop->v];
       for (int i = 0; i < vert_map->count; i++) {
         const int neighbor_face_index = vert_map->indices[i];
@@ -1124,14 +1127,16 @@ static void sculpt_face_set_shrink(Object *ob,
                                    const bool modify_hidden)
 {
   Mesh *mesh = BKE_mesh_from_object(ob);
+  const MPoly *polys = BKE_mesh_polygons(mesh);
+  const MLoop *loops = BKE_mesh_loops(mesh);
   for (int p = 0; p < mesh->totpoly; p++) {
     if (!modify_hidden && prev_face_sets[p] <= 0) {
       continue;
     }
     if (abs(prev_face_sets[p]) == active_face_set_id) {
-      const MPoly *c_poly = &mesh->mpoly[p];
+      const MPoly *c_poly = &polys[p];
       for (int l = 0; l < c_poly->totloop; l++) {
-        const MLoop *c_loop = &mesh->mloop[c_poly->loopstart + l];
+        const MLoop *c_loop = &loops[c_poly->loopstart + l];
         const MeshElemMap *vert_map = &ss->pmap[c_loop->v];
         for (int i = 0; i < vert_map->count; i++) {
           const int neighbor_face_index = vert_map->indices[i];

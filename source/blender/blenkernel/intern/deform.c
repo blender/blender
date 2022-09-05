@@ -1030,7 +1030,7 @@ void BKE_defvert_extract_vgroup_to_vertweights(const MDeformVert *dvert,
 void BKE_defvert_extract_vgroup_to_edgeweights(const MDeformVert *dvert,
                                                const int defgroup,
                                                const int num_verts,
-                                               MEdge *edges,
+                                               const MEdge *edges,
                                                const int num_edges,
                                                const bool invert_vgroup,
                                                float *r_weights)
@@ -1043,7 +1043,7 @@ void BKE_defvert_extract_vgroup_to_edgeweights(const MDeformVert *dvert,
         dvert, defgroup, num_verts, invert_vgroup, tmp_weights);
 
     while (i--) {
-      MEdge *me = &edges[i];
+      const MEdge *me = &edges[i];
 
       r_weights[i] = (tmp_weights[me->v1] + tmp_weights[me->v2]) * 0.5f;
     }
@@ -1058,7 +1058,7 @@ void BKE_defvert_extract_vgroup_to_edgeweights(const MDeformVert *dvert,
 void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
                                                const int defgroup,
                                                const int num_verts,
-                                               MLoop *loops,
+                                               const MLoop *loops,
                                                const int num_loops,
                                                const bool invert_vgroup,
                                                float *r_weights)
@@ -1071,7 +1071,7 @@ void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
         dvert, defgroup, num_verts, invert_vgroup, tmp_weights);
 
     while (i--) {
-      MLoop *ml = &loops[i];
+      const MLoop *ml = &loops[i];
 
       r_weights[i] = tmp_weights[ml->v];
     }
@@ -1086,9 +1086,9 @@ void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
 void BKE_defvert_extract_vgroup_to_polyweights(const MDeformVert *dvert,
                                                const int defgroup,
                                                const int num_verts,
-                                               MLoop *loops,
+                                               const MLoop *loops,
                                                const int UNUSED(num_loops),
-                                               MPoly *polys,
+                                               const MPoly *polys,
                                                const int num_polys,
                                                const bool invert_vgroup,
                                                float *r_weights)
@@ -1101,8 +1101,8 @@ void BKE_defvert_extract_vgroup_to_polyweights(const MDeformVert *dvert,
         dvert, defgroup, num_verts, invert_vgroup, tmp_weights);
 
     while (i--) {
-      MPoly *mp = &polys[i];
-      MLoop *ml = &loops[mp->loopstart];
+      const MPoly *mp = &polys[i];
+      const MLoop *ml = &loops[mp->loopstart];
       int j = mp->totloop;
       float w = 0.0f;
 

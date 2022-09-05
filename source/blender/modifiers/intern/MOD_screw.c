@@ -182,7 +182,7 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
 
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *meshData)
 {
-  Mesh *mesh = meshData;
+  const Mesh *mesh = meshData;
   Mesh *result;
   ScrewModifierData *ltmd = (ScrewModifierData *)md;
   const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER) != 0;
@@ -241,11 +241,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   uint edge_offset;
 
-  MPoly *mpoly_orig, *mpoly_new, *mp_new;
-  MLoop *mloop_orig, *mloop_new, *ml_new;
-  MEdge *medge_orig, *med_orig, *med_new, *med_new_firstloop, *medge_new;
-  MVert *mvert_new, *mvert_orig, *mv_orig, *mv_new, *mv_new_base;
-
+  MPoly *mp_new;
+  MLoop *ml_new;
+  MEdge *med_new, *med_new_firstloop;
+  MVert *mv_new, *mv_new_base;
+  const MVert *mv_orig;
   Object *ob_axis = ltmd->ob_axis;
 
   ScrewVertConnect *vc, *vc_tmp, *vert_connect = NULL;
@@ -388,14 +388,15 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   result = BKE_mesh_new_nomain_from_template(
       mesh, (int)maxVerts, (int)maxEdges, 0, (int)maxPolys * 4, (int)maxPolys);
 
-  /* copy verts from mesh */
-  mvert_orig = mesh->mvert;
-  medge_orig = mesh->medge;
+  const MVert *mvert_orig = BKE_mesh_vertices(mesh);
+  const MEdge *medge_orig = BKE_mesh_edges(mesh);
+  const MPoly *mpoly_orig = BKE_mesh_polygons(mesh);
+  const MLoop *mloop_orig = BKE_mesh_loops(mesh);
 
-  mvert_new = result->mvert;
-  mpoly_new = result->mpoly;
-  mloop_new = result->mloop;
-  medge_new = result->medge;
+  MVert *mvert_new = BKE_mesh_vertices_for_write(result);
+  MEdge *medge_new = BKE_mesh_edges_for_write(result);
+  MPoly *mpoly_new = BKE_mesh_polygons_for_write(result);
+  MLoop *mloop_new = BKE_mesh_loops_for_write(result);
 
   if (!CustomData_has_layer(&result->pdata, CD_ORIGINDEX)) {
     CustomData_add_layer(&result->pdata, CD_ORIGINDEX, CD_SET_DEFAULT, NULL, (int)maxPolys);
@@ -438,7 +439,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   BLI_bitmap *vert_tag = BLI_BITMAP_NEW(totvert, __func__);
 
   /* Copy the first set of edges */
-  med_orig = medge_orig;
+  const MEdge *med_orig = medge_orig;
   med_new = medge_new;
   for (i = 0; i < totedge; i++, med_orig++, med_new++) {
     med_new->v1 = med_orig->v1;
@@ -453,10 +454,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   /* build polygon -> edge map */
   if (totpoly) {
-    MPoly *mp_orig;
+    const MPoly *mp_orig;
 
-    mpoly_orig = mesh->mpoly;
-    mloop_orig = mesh->mloop;
     edge_poly_map = MEM_malloc_arrayN(totedge, sizeof(*edge_poly_map), __func__);
     memset(edge_poly_map, 0xff, sizeof(*edge_poly_map) * totedge);
 
@@ -467,7 +466,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       uint loopstart = (uint)mp_orig->loopstart;
       uint loopend = loopstart + (uint)mp_orig->totloop;
 
-      MLoop *ml_orig = &mloop_orig[loopstart];
+      const MLoop *ml_orig = &mloop_orig[loopstart];
       uint k;
       for (k = loopstart; k < loopend; k++, ml_orig++) {
         edge_poly_map[ml_orig->e] = i;

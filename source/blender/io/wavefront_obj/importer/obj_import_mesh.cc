@@ -158,6 +158,7 @@ void MeshFromGeometry::fixup_invalid_faces()
 
 void MeshFromGeometry::create_vertices(Mesh *mesh)
 {
+  MutableSpan<MVert> verts = mesh->vertices_for_write();
   /* Go through all the global vertex indices from min to max,
    * checking which ones are actually and building a global->local
    * index mapping. Write out the used vertex positions into the Mesh
@@ -171,20 +172,21 @@ void MeshFromGeometry::create_vertices(Mesh *mesh)
     }
     int local_vi = (int)mesh_geometry_.global_to_local_vertices_.size();
     BLI_assert(local_vi >= 0 && local_vi < mesh->totvert);
-    copy_v3_v3(mesh->mvert[local_vi].co, global_vertices_.vertices[vi]);
+    copy_v3_v3(verts[local_vi].co, global_vertices_.vertices[vi]);
     mesh_geometry_.global_to_local_vertices_.add_new(vi, local_vi);
   }
 }
 
 void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
 {
-  mesh->dvert = nullptr;
+  MutableSpan<MDeformVert> dverts;
   const int64_t total_verts = mesh_geometry_.get_vertex_count();
   if (use_vertex_groups && total_verts && mesh_geometry_.has_vertex_groups_) {
-    mesh->dvert = static_cast<MDeformVert *>(
-        CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, nullptr, total_verts));
+    dverts = mesh->deform_verts_for_write();
   }
 
+  MutableSpan<MPoly> polys = mesh->polygons_for_write();
+  MutableSpan<MLoop> loops = mesh->loops_for_write();
   bke::SpanAttributeWriter<int> material_indices =
       bke::mesh_attributes_for_write(*mesh).lookup_or_add_for_write_only_span<int>(
           "material_index", ATTR_DOMAIN_FACE);
@@ -200,7 +202,7 @@ void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
       continue;
     }
 
-    MPoly &mpoly = mesh->mpoly[poly_idx];
+    MPoly &mpoly = polys[poly_idx];
     mpoly.totloop = curr_face.corner_count_;
     mpoly.loopstart = tot_loop_idx;
     if (curr_face.shaded_smooth) {
@@ -215,16 +217,16 @@ void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
 
     for (int idx = 0; idx < curr_face.corner_count_; ++idx) {
       const PolyCorner &curr_corner = mesh_geometry_.face_corners_[curr_face.start_index_ + idx];
-      MLoop &mloop = mesh->mloop[tot_loop_idx];
+      MLoop &mloop = loops[tot_loop_idx];
       tot_loop_idx++;
       mloop.v = mesh_geometry_.global_to_local_vertices_.lookup_default(curr_corner.vert_index, 0);
 
       /* Setup vertex group data, if needed. */
-      if (!mesh->dvert) {
+      if (dverts.is_empty()) {
         continue;
       }
       const int group_index = curr_face.vertex_group_index;
-      MDeformWeight *dw = BKE_defvert_ensure_index(mesh->dvert + mloop.v, group_index);
+      MDeformWeight *dw = BKE_defvert_ensure_index(&dverts[mloop.v], group_index);
       dw->weight = 1.0f;
     }
   }
@@ -235,7 +237,7 @@ void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
 void MeshFromGeometry::create_vertex_groups(Object *obj)
 {
   Mesh *mesh = static_cast<Mesh *>(obj->data);
-  if (mesh->dvert == nullptr) {
+  if (mesh->deform_verts().is_empty()) {
     return;
   }
   for (const std::string &name : mesh_geometry_.group_order_) {
@@ -245,12 +247,14 @@ void MeshFromGeometry::create_vertex_groups(Object *obj)
 
 void MeshFromGeometry::create_edges(Mesh *mesh)
 {
+  MutableSpan<MEdge> edges = mesh->edges_for_write();
+
   const int64_t tot_edges{mesh_geometry_.edges_.size()};
   const int64_t total_verts{mesh_geometry_.get_vertex_count()};
   UNUSED_VARS_NDEBUG(total_verts);
   for (int i = 0; i < tot_edges; ++i) {
     const MEdge &src_edge = mesh_geometry_.edges_[i];
-    MEdge &dst_edge = mesh->medge[i];
+    MEdge &dst_edge = edges[i];
     dst_edge.v1 = mesh_geometry_.global_to_local_vertices_.lookup_default(src_edge.v1, 0);
     dst_edge.v2 = mesh_geometry_.global_to_local_vertices_.lookup_default(src_edge.v2, 0);
     BLI_assert(dst_edge.v1 < total_verts && dst_edge.v2 < total_verts);

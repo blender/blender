@@ -30,11 +30,14 @@
 void multires_reshape_apply_base_update_mesh_coords(MultiresReshapeContext *reshape_context)
 {
   Mesh *base_mesh = reshape_context->base_mesh;
-  const MLoop *mloop = base_mesh->mloop;
-  MVert *mvert = base_mesh->mvert;
+  MVert *base_verts = BKE_mesh_vertices_for_write(base_mesh);
+  /* Update the context in case the vertices were duplicated. */
+  reshape_context->base_verts = base_verts;
+
+  const MLoop *mloop = reshape_context->base_loops;
   for (int loop_index = 0; loop_index < base_mesh->totloop; ++loop_index) {
     const MLoop *loop = &mloop[loop_index];
-    MVert *vert = &mvert[loop->v];
+    MVert *vert = &base_verts[loop->v];
 
     GridCoord grid_coord;
     grid_coord.grid_index = loop_index;
@@ -66,13 +69,15 @@ static float v3_dist_from_plane(const float v[3], const float center[3], const f
 void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape_context)
 {
   Mesh *base_mesh = reshape_context->base_mesh;
-
+  MVert *base_verts = BKE_mesh_vertices_for_write(base_mesh);
+  /* Update the context in case the vertices were duplicated. */
+  reshape_context->base_verts = base_verts;
   MeshElemMap *pmap;
   int *pmap_mem;
   BKE_mesh_vert_poly_map_create(&pmap,
                                 &pmap_mem,
-                                base_mesh->mpoly,
-                                base_mesh->mloop,
+                                reshape_context->base_polys,
+                                reshape_context->base_loops,
                                 base_mesh->totvert,
                                 base_mesh->totpoly,
                                 base_mesh->totloop);
@@ -80,7 +85,7 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
   float(*origco)[3] = MEM_calloc_arrayN(
       base_mesh->totvert, sizeof(float[3]), "multires apply base origco");
   for (int i = 0; i < base_mesh->totvert; i++) {
-    copy_v3_v3(origco[i], base_mesh->mvert[i].co);
+    copy_v3_v3(origco[i], base_verts[i].co);
   }
 
   for (int i = 0; i < base_mesh->totvert; i++) {
@@ -94,11 +99,11 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
     /* Find center. */
     int tot = 0;
     for (int j = 0; j < pmap[i].count; j++) {
-      const MPoly *p = &base_mesh->mpoly[pmap[i].indices[j]];
+      const MPoly *p = &reshape_context->base_polys[pmap[i].indices[j]];
 
       /* This double counts, not sure if that's bad or good. */
       for (int k = 0; k < p->totloop; k++) {
-        const int vndx = base_mesh->mloop[p->loopstart + k].v;
+        const int vndx = reshape_context->base_loops[p->loopstart + k].v;
         if (vndx != i) {
           add_v3_v3(center, origco[vndx]);
           tot++;
@@ -109,7 +114,7 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
 
     /* Find normal. */
     for (int j = 0; j < pmap[i].count; j++) {
-      const MPoly *p = &base_mesh->mpoly[pmap[i].indices[j]];
+      const MPoly *p = &reshape_context->base_polys[pmap[i].indices[j]];
       MPoly fake_poly;
       MLoop *fake_loops;
       float(*fake_co)[3];
@@ -122,7 +127,7 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
       fake_co = MEM_malloc_arrayN(p->totloop, sizeof(float[3]), "fake_co");
 
       for (int k = 0; k < p->totloop; k++) {
-        const int vndx = base_mesh->mloop[p->loopstart + k].v;
+        const int vndx = reshape_context->base_loops[p->loopstart + k].v;
 
         fake_loops[k].v = k;
 
@@ -143,10 +148,10 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
     normalize_v3(avg_no);
 
     /* Push vertex away from the plane. */
-    const float dist = v3_dist_from_plane(base_mesh->mvert[i].co, center, avg_no);
+    const float dist = v3_dist_from_plane(base_verts[i].co, center, avg_no);
     copy_v3_v3(push, avg_no);
     mul_v3_fl(push, dist);
-    add_v3_v3(base_mesh->mvert[i].co, push);
+    add_v3_v3(base_verts[i].co, push);
   }
 
   MEM_freeN(origco);

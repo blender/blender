@@ -22,6 +22,7 @@
 #include "BKE_data_transfer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
+#include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remap.h"
 #include "BKE_modifier.h"
@@ -178,7 +179,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     BLI_SPACE_TRANSFORM_SETUP(space_transform, ctx->object, ob_source);
   }
 
-  if (((result == me) || (me->mvert == result->mvert) || (me->medge == result->medge)) &&
+  const MVert *me_verts = BKE_mesh_vertices(me);
+  const MEdge *me_edges = BKE_mesh_edges(me);
+  const MVert *result_verts = BKE_mesh_vertices(result);
+  const MEdge *result_edges = BKE_mesh_edges(result);
+
+  if (((result == me) || (me_verts == result_verts) || (me_edges == result_edges)) &&
       (dtmd->data_types & DT_TYPES_AFFECT_MESH)) {
     /* We need to duplicate data here, otherwise setting custom normals, edges' sharpness, etc.,
      * could modify org mesh, see T43671. */

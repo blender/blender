@@ -567,7 +567,7 @@ static void ccd_update_deflector_hash(Depsgraph *depsgraph,
 static int count_mesh_quads(Mesh *me)
 {
   int a, result = 0;
-  const MPoly *mp = me->mpoly;
+  const MPoly *mp = BKE_mesh_polygons(me);
 
   if (mp) {
     for (a = me->totpoly; a > 0; a--, mp++) {
@@ -591,8 +591,8 @@ static void add_mesh_quad_diag_springs(Object *ob)
 
     nofquads = count_mesh_quads(me);
     if (nofquads) {
-      const MLoop *mloop = me->mloop;
-      const MPoly *mp = me->mpoly;
+      const MLoop *mloop = BKE_mesh_loops(me);
+      const MPoly *mp = BKE_mesh_polygons(me);
       BodySpring *bs;
 
       /* resize spring-array to hold additional quad springs */
@@ -2632,6 +2632,7 @@ static void springs_from_mesh(Object *ob)
   BodyPoint *bp;
   int a;
   float scale = 1.0f;
+  const MVert *vertices = BKE_mesh_vertices(me);
 
   sb = ob->soft;
   if (me && sb) {
@@ -2642,7 +2643,7 @@ static void springs_from_mesh(Object *ob)
     if (me->totvert) {
       bp = ob->soft->bpoint;
       for (a = 0; a < me->totvert; a++, bp++) {
-        copy_v3_v3(bp->origS, me->mvert[a].co);
+        copy_v3_v3(bp->origS, vertices[a].co);
         mul_m4_v3(ob->obmat, bp->origS);
       }
     }
@@ -2663,7 +2664,7 @@ static void mesh_to_softbody(Object *ob)
 {
   SoftBody *sb;
   Mesh *me = ob->data;
-  MEdge *medge = me->medge;
+  const MEdge *medge = BKE_mesh_edges(me);
   BodyPoint *bp;
   BodySpring *bs;
   int a, totedge;
@@ -2683,10 +2684,11 @@ static void mesh_to_softbody(Object *ob)
   sb = ob->soft;
   bp = sb->bpoint;
 
-  defgroup_index = me->dvert ? (sb->vertgroup - 1) : -1;
-  defgroup_index_mass = me->dvert ? BKE_id_defgroup_name_index(&me->id, sb->namedVG_Mass) : -1;
-  defgroup_index_spring = me->dvert ? BKE_id_defgroup_name_index(&me->id, sb->namedVG_Spring_K) :
-                                      -1;
+  const MDeformVert *dvert = BKE_mesh_deform_verts(me);
+
+  defgroup_index = dvert ? (sb->vertgroup - 1) : -1;
+  defgroup_index_mass = dvert ? BKE_id_defgroup_name_index(&me->id, sb->namedVG_Mass) : -1;
+  defgroup_index_spring = dvert ? BKE_id_defgroup_name_index(&me->id, sb->namedVG_Spring_K) : -1;
 
   for (a = 0; a < me->totvert; a++, bp++) {
     /* get scalar values needed  *per vertex* from vertex group functions,
@@ -2699,7 +2701,7 @@ static void mesh_to_softbody(Object *ob)
       BLI_assert(bp->goal == sb->defgoal);
     }
     if ((ob->softflag & OB_SB_GOAL) && (defgroup_index != -1)) {
-      bp->goal *= BKE_defvert_find_weight(&me->dvert[a], defgroup_index);
+      bp->goal *= BKE_defvert_find_weight(&dvert[a], defgroup_index);
     }
 
     /* to proof the concept
@@ -2707,11 +2709,11 @@ static void mesh_to_softbody(Object *ob)
      */
 
     if (defgroup_index_mass != -1) {
-      bp->mass *= BKE_defvert_find_weight(&me->dvert[a], defgroup_index_mass);
+      bp->mass *= BKE_defvert_find_weight(&dvert[a], defgroup_index_mass);
     }
 
     if (defgroup_index_spring != -1) {
-      bp->springweight *= BKE_defvert_find_weight(&me->dvert[a], defgroup_index_spring);
+      bp->springweight *= BKE_defvert_find_weight(&dvert[a], defgroup_index_spring);
     }
   }
 
@@ -2753,19 +2755,23 @@ static void mesh_faces_to_scratch(Object *ob)
   MLoopTri *looptri, *lt;
   BodyFace *bodyface;
   int a;
+  const MVert *vertices = BKE_mesh_vertices(me);
+  const MPoly *polygons = BKE_mesh_polygons(me);
+  const MLoop *loops = BKE_mesh_loops(me);
+
   /* Allocate and copy faces. */
 
   sb->scratch->totface = poly_to_tri_count(me->totpoly, me->totloop);
   looptri = lt = MEM_mallocN(sizeof(*looptri) * sb->scratch->totface, __func__);
-  BKE_mesh_recalc_looptri(me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, looptri);
+  BKE_mesh_recalc_looptri(loops, polygons, vertices, me->totloop, me->totpoly, looptri);
 
   bodyface = sb->scratch->bodyface = MEM_mallocN(sizeof(BodyFace) * sb->scratch->totface,
                                                  "SB_body_Faces");
 
   for (a = 0; a < sb->scratch->totface; a++, lt++, bodyface++) {
-    bodyface->v1 = me->mloop[lt->tri[0]].v;
-    bodyface->v2 = me->mloop[lt->tri[1]].v;
-    bodyface->v3 = me->mloop[lt->tri[2]].v;
+    bodyface->v1 = loops[lt->tri[0]].v;
+    bodyface->v2 = loops[lt->tri[1]].v;
+    bodyface->v3 = loops[lt->tri[2]].v;
     zero_v3(bodyface->ext_force);
     bodyface->ext_force[0] = bodyface->ext_force[1] = bodyface->ext_force[2] = 0.0f;
     bodyface->flag = 0;

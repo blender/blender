@@ -79,7 +79,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
 {
   const bool use_factor = mcmd->factor < 1.0f;
   int influence_group_index;
-  MDeformVert *dvert;
+  const MDeformVert *dvert;
   MOD_get_vgroup(ob, mesh, mcmd->defgrp_name, &dvert, &influence_group_index);
 
   float(*vertexCos_Store)[3] = (use_factor || influence_group_index != -1 ||
@@ -182,16 +182,16 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
       float(*vertexCos_Source)[3] = MEM_malloc_arrayN(
           verts_num, sizeof(*vertexCos_Source), __func__);
       float(*vertexCos_New)[3] = MEM_malloc_arrayN(verts_num, sizeof(*vertexCos_New), __func__);
-      MVert *mv = me->mvert;
+      const MVert *mv = BKE_mesh_vertices(me);
 
       for (i = 0; i < verts_num; i++, mv++) {
         copy_v3_v3(vertexCos_Source[i], mv->co);
       }
 
       BKE_mesh_calc_relative_deform(
-          me->mpoly,
+          BKE_mesh_polygons(me),
           me->totpoly,
-          me->mloop,
+          BKE_mesh_loops(me),
           me->totvert,
 
           (const float(*)[3])vertexCos_Source, /* From the original Mesh. */
@@ -257,7 +257,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
         const float global_offset = (mcmd->flag & MOD_MESHCACHE_INVERT_VERTEX_GROUP) ?
                                         mcmd->factor :
                                         0.0f;
-        if (mesh->dvert != NULL) {
+        if (BKE_mesh_deform_verts(mesh) != NULL) {
           for (int i = 0; i < verts_num; i++) {
             /* For each vertex, compute its blending factor between the mesh cache (for `fac = 0`)
              * and the former position of the vertex (for `fac = 1`). */

@@ -196,7 +196,7 @@ static void warpModifier_do(WarpModifierData *wmd,
   float fac = 1.0f, weight;
   int i;
   int defgrp_index;
-  MDeformVert *dvert, *dv = NULL;
+  const MDeformVert *dvert, *dv = NULL;
   const bool invert_vgroup = (wmd->flag & MOD_WARP_INVERT_VGROUP) != 0;
   float(*tex_co)[3] = NULL;
 

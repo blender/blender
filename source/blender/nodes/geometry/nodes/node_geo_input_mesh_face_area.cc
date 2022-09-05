@@ -18,17 +18,17 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static VArray<float> construct_face_area_varray(const Mesh &mesh, const eAttrDomain domain)
 {
-  const Span<MVert> vertices(mesh.mvert, mesh.totvert);
-  const Span<MPoly> polygons(mesh.mpoly, mesh.totpoly);
-  const Span<MLoop> loops(mesh.mloop, mesh.totloop);
+  const Span<MVert> verts = mesh.vertices();
+  const Span<MPoly> polys = mesh.polygons();
+  const Span<MLoop> loops = mesh.loops();
 
-  auto area_fn = [vertices, polygons, loops](const int i) -> float {
-    const MPoly &poly = polygons[i];
-    return BKE_mesh_calc_poly_area(&poly, &loops[poly.loopstart], vertices.data());
+  auto area_fn = [verts, polys, loops](const int i) -> float {
+    const MPoly &poly = polys[i];
+    return BKE_mesh_calc_poly_area(&poly, &loops[poly.loopstart], verts.data());
   };
 
   return bke::mesh_attributes(mesh).adapt_domain<float>(
-      VArray<float>::ForFunc(polygons.size(), area_fn), ATTR_DOMAIN_FACE, domain);
+      VArray<float>::ForFunc(polys.size(), area_fn), ATTR_DOMAIN_FACE, domain);
 }
 
 class FaceAreaFieldInput final : public bke::MeshFieldInput {

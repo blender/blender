@@ -50,7 +50,7 @@ static bool vertex_weight_paint_mode_poll(bContext *C)
   Object *ob = CTX_data_active_object(C);
   Mesh *me = BKE_mesh_from_object(ob);
   return (ob && (ELEM(ob->mode, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT))) &&
-         (me && me->totpoly && me->dvert);
+         (me && me->totpoly && !me->deform_verts().is_empty());
 }
 
 static void tag_object_after_update(Object *object)
@@ -159,15 +159,15 @@ static IndexMask get_selected_indices(const Mesh &mesh,
                                       Vector<int64_t> &indices)
 {
   using namespace blender;
-  Span<MVert> verts(mesh.mvert, mesh.totvert);
-  Span<MPoly> faces(mesh.mpoly, mesh.totpoly);
+  Span<MVert> verts = mesh.vertices();
+  Span<MPoly> polys = mesh.polygons();
 
   bke::AttributeAccessor attributes = bke::mesh_attributes(mesh);
 
   if (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) {
     const VArray<bool> selection = attributes.adapt_domain(
-        VArray<bool>::ForFunc(faces.size(),
-                              [&](const int i) { return faces[i].flag & ME_FACE_SEL; }),
+        VArray<bool>::ForFunc(polys.size(),
+                              [&](const int i) { return polys[i].flag & ME_FACE_SEL; }),
         ATTR_DOMAIN_FACE,
         domain);
 

@@ -315,7 +315,8 @@ static void particle_calculate_parent_uvs(ParticleSystem *psys,
     }
   }
   if (!ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
-    MFace *mface = &psmd->mesh_final->mface[num];
+    MFace *mfaces = CustomData_get_layer(&psmd->mesh_final->fdata, CD_MFACE);
+    MFace *mface = &mfaces[num];
     for (int j = 0; j < num_uv_layers; j++) {
       psys_interpolate_uvs(mtfaces[j] + num, mface->v4, particle->fuv, r_uv[j]);
     }
@@ -344,7 +345,8 @@ static void particle_calculate_parent_mcol(ParticleSystem *psys,
     }
   }
   if (!ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
-    MFace *mface = &psmd->mesh_final->mface[num];
+    MFace *mfaces = CustomData_get_layer(&psmd->mesh_final->fdata, CD_MFACE);
+    MFace *mface = &mfaces[num];
     for (int j = 0; j < num_col_layers; j++) {
       /* CustomDataLayer CD_MCOL has 4 structs per face. */
       psys_interpolate_mcol(mcols[j] + num * 4, mface->v4, particle->fuv, &r_mcol[j]);
@@ -370,7 +372,8 @@ static void particle_interpolate_children_uvs(ParticleSystem *psys,
   ChildParticle *particle = &psys->child[child_index];
   int num = particle->num;
   if (num != DMCACHE_NOTFOUND) {
-    MFace *mface = &psmd->mesh_final->mface[num];
+    MFace *mfaces = CustomData_get_layer(&psmd->mesh_final->fdata, CD_MFACE);
+    MFace *mface = &mfaces[num];
     for (int j = 0; j < num_uv_layers; j++) {
       psys_interpolate_uvs(mtfaces[j] + num, mface->v4, particle->fuv, r_uv[j]);
     }
@@ -394,7 +397,8 @@ static void particle_interpolate_children_mcol(ParticleSystem *psys,
   ChildParticle *particle = &psys->child[child_index];
   int num = particle->num;
   if (num != DMCACHE_NOTFOUND) {
-    MFace *mface = &psmd->mesh_final->mface[num];
+    MFace *mfaces = CustomData_get_layer(&psmd->mesh_final->fdata, CD_MFACE);
+    MFace *mface = &mfaces[num];
     for (int j = 0; j < num_col_layers; j++) {
       /* CustomDataLayer CD_MCOL has 4 structs per face. */
       psys_interpolate_mcol(mcols[j] + num * 4, mface->v4, particle->fuv, &r_mcol[j]);

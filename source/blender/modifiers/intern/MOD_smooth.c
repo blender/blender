@@ -99,10 +99,10 @@ static void smoothModifier_do(
   const float fac_orig = 1.0f - fac_new;
   const bool invert_vgroup = (smd->flag & MOD_SMOOTH_INVERT_VGROUP) != 0;
 
-  MEdge *medges = mesh->medge;
+  const MEdge *medges = BKE_mesh_edges(mesh);
   const int edges_num = mesh->totedge;
 
-  MDeformVert *dvert;
+  const MDeformVert *dvert;
   int defgrp_index;
   MOD_get_vgroup(ob, mesh, smd->defgrp_name, &dvert, &defgrp_index);
 
@@ -128,7 +128,7 @@ static void smoothModifier_do(
 
     const short flag = smd->flag;
     if (dvert) {
-      MDeformVert *dv = dvert;
+      const MDeformVert *dv = dvert;
       for (int i = 0; i < verts_num; i++, dv++) {
         float *vco_orig = vertexCos[i];
         if (accumulated_vecs_count[i] > 0) {

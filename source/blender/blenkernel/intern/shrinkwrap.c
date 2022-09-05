@@ -64,9 +64,9 @@ typedef struct ShrinkwrapCalcData {
   float (*vertexCos)[3]; /* vertexs being shrinkwraped */
   int numVerts;
 
-  struct MDeformVert *dvert; /* Pointer to mdeform array */
-  int vgroup;                /* Vertex group num */
-  bool invert_vgroup;        /* invert vertex group influence */
+  const struct MDeformVert *dvert; /* Pointer to mdeform array */
+  int vgroup;                      /* Vertex group num */
+  bool invert_vgroup;              /* invert vertex group influence */
 
   struct Mesh *target;                /* mesh we are shrinking to */
   struct SpaceTransform local2target; /* transform to move between local and target space */
@@ -113,6 +113,7 @@ bool BKE_shrinkwrap_init_tree(
   }
 
   data->mesh = mesh;
+  data->polys = BKE_mesh_polygons(mesh);
 
   if (shrinkType == MOD_SHRINKWRAP_NEAREST_VERTEX) {
     data->bvh = BKE_bvhtree_from_mesh_get(&data->treeData, mesh, BVHTREE_FROM_VERTS, 2);
@@ -191,9 +192,9 @@ static void merge_vert_dir(ShrinkwrapBoundaryVertData *vdata,
 
 static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(struct Mesh *mesh)
 {
-  const MLoop *mloop = mesh->mloop;
-  const MEdge *medge = mesh->medge;
-  const MVert *mvert = mesh->mvert;
+  const MVert *mvert = BKE_mesh_vertices(mesh);
+  const MEdge *medge = BKE_mesh_edges(mesh);
+  const MLoop *mloop = BKE_mesh_loops(mesh);
 
   /* Count faces per edge (up to 2). */
   char *edge_mode = MEM_calloc_arrayN((size_t)mesh->totedge, sizeof(char), __func__);
@@ -937,7 +938,7 @@ static void target_project_edge(const ShrinkwrapTreeData *tree,
                                 int eidx)
 {
   const BVHTreeFromMesh *data = &tree->treeData;
-  const MEdge *edge = &tree->mesh->medge[eidx];
+  const MEdge *edge = &data->edge[eidx];
   const float *vedge_co[2] = {data->vert[edge->v1].co, data->vert[edge->v2].co};
 
 #ifdef TRACE_TARGET_PROJECT
@@ -1179,7 +1180,7 @@ void BKE_shrinkwrap_compute_smooth_normal(const struct ShrinkwrapTreeData *tree,
   const float(*vert_normals)[3] = tree->treeData.vert_normals;
 
   /* Interpolate smooth normals if enabled. */
-  if ((tree->mesh->mpoly[tri->poly].flag & ME_SMOOTH) != 0) {
+  if ((tree->polys[tri->poly].flag & ME_SMOOTH) != 0) {
     const uint32_t vert_indices[3] = {treeData->loop[tri->tri[0]].v,
                                       treeData->loop[tri->tri[1]].v,
                                       treeData->loop[tri->tri[2]].v};
@@ -1369,7 +1370,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd,
                                struct Scene *scene,
                                Object *ob,
                                Mesh *mesh,
-                               MDeformVert *dvert,
+                               const MDeformVert *dvert,
                                const int defgrp_index,
                                float (*vertexCos)[3],
                                int numVerts)
@@ -1411,7 +1412,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd,
 
   if (mesh != NULL && smd->shrinkType == MOD_SHRINKWRAP_PROJECT) {
     /* Setup arrays to get vertexs positions, normals and deform weights */
-    calc.vert = mesh->mvert;
+    calc.vert = BKE_mesh_vertices_for_write(mesh);
     calc.vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
 
     /* Using vertexs positions/normals as if a subsurface was applied */
@@ -1574,7 +1575,7 @@ void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object 
   calc.vgroup = -1;
   calc.target = target_me;
   calc.keepDist = ssmd.keepDist;
-  calc.vert = src_me->mvert;
+  calc.vert = BKE_mesh_vertices_for_write(src_me);
   BLI_SPACE_TRANSFORM_SETUP(&calc.local2target, ob_target, ob_target);
 
   ShrinkwrapTreeData tree;

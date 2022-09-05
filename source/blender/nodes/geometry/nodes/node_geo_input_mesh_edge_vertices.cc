@@ -31,7 +31,7 @@ static VArray<int> construct_edge_vertices_gvarray(const Mesh &mesh,
                                                    const VertexNumber vertex,
                                                    const eAttrDomain domain)
 {
-  const Span<MEdge> edges(mesh.medge, mesh.totedge);
+  const Span<MEdge> edges = mesh.edges();
   if (domain == ATTR_DOMAIN_EDGE) {
     if (vertex == VERTEX_ONE) {
       return VArray<int>::ForFunc(edges.size(),
@@ -79,19 +79,19 @@ static VArray<float3> construct_edge_positions_gvarray(const Mesh &mesh,
                                                        const VertexNumber vertex,
                                                        const eAttrDomain domain)
 {
-  const Span<MVert> vertices(mesh.mvert, mesh.totvert);
-  const Span<MEdge> edges(mesh.medge, mesh.totedge);
+  const Span<MVert> verts = mesh.vertices();
+  const Span<MEdge> edges = mesh.edges();
 
   if (vertex == VERTEX_ONE) {
     return bke::mesh_attributes(mesh).adapt_domain<float3>(
-        VArray<float3>::ForFunc(
-            edges.size(), [vertices, edges](const int i) { return vertices[edges[i].v1].co; }),
+        VArray<float3>::ForFunc(edges.size(),
+                                [verts, edges](const int i) { return verts[edges[i].v1].co; }),
         ATTR_DOMAIN_EDGE,
         domain);
   }
   return bke::mesh_attributes(mesh).adapt_domain<float3>(
       VArray<float3>::ForFunc(edges.size(),
-                              [vertices, edges](const int i) { return vertices[edges[i].v2].co; }),
+                              [verts, edges](const int i) { return verts[edges[i].v2].co; }),
       ATTR_DOMAIN_EDGE,
       domain);
 }

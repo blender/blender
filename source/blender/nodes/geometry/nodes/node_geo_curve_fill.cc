@@ -79,10 +79,10 @@ static Mesh *cdt_to_mesh(const meshintersect::CDT_result<double> &result)
   }
 
   Mesh *mesh = BKE_mesh_new_nomain(vert_len, edge_len, 0, loop_len, poly_len);
-  MutableSpan<MVert> verts{mesh->mvert, mesh->totvert};
-  MutableSpan<MEdge> edges{mesh->medge, mesh->totedge};
-  MutableSpan<MLoop> loops{mesh->mloop, mesh->totloop};
-  MutableSpan<MPoly> polys{mesh->mpoly, mesh->totpoly};
+  MutableSpan<MVert> verts = mesh->vertices_for_write();
+  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  MutableSpan<MPoly> polys = mesh->polygons_for_write();
+  MutableSpan<MLoop> loops = mesh->loops_for_write();
 
   for (const int i : IndexRange(result.vert.size())) {
     copy_v3_v3(verts[i].co, float3((float)result.vert[i].x, (float)result.vert[i].y, 0.0f));

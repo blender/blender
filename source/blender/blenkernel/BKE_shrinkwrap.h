@@ -29,7 +29,8 @@ extern "C" {
 struct BVHTree;
 struct MDeformVert;
 struct Mesh;
-struct ModifierEvalContext;
+ struct ModifierEvalContext;
+struct MPoly;
 struct Object;
 struct ShrinkwrapGpencilModifierData;
 struct ShrinkwrapModifierData;
@@ -72,6 +73,7 @@ typedef struct ShrinkwrapTreeData {
   BVHTree *bvh;
   BVHTreeFromMesh treeData;
 
+  const struct MPoly *polys;
   const float (*pnors)[3];
   const float (*clnors)[3];
   ShrinkwrapBoundaryData *boundary;
@@ -104,7 +106,7 @@ void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd,
                                struct Scene *scene,
                                struct Object *ob,
                                struct Mesh *mesh,
-                               struct MDeformVert *dvert,
+                               const struct MDeformVert *dvert,
                                int defgrp_index,
                                float (*vertexCos)[3],
                                int numVerts);

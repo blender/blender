@@ -361,8 +361,6 @@ static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool 
   if (create) {
     um_arraystore.users += 1;
   }
-
-  BKE_mesh_update_customdata_pointers(me, false);
 }
 
 /**
@@ -465,9 +463,6 @@ static void um_arraystore_expand(UndoMesh *um)
     BLI_assert(me->totselect == (state_len / stride));
     UNUSED_VARS_NDEBUG(stride);
   }
-
-  /* not essential, but prevents accidental dangling pointer access */
-  BKE_mesh_update_customdata_pointers(me, false);
 }
 
 static void um_arraystore_free(UndoMesh *um)

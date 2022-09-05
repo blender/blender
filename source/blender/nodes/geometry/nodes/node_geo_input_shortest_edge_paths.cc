@@ -2,14 +2,12 @@
 
 #include <queue>
 
-#include "BKE_curves.hh"
-
 #include "BLI_map.hh"
 #include "BLI_math_vec_types.hh"
 #include "BLI_set.hh"
+#include "BLI_task.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
+#include "BKE_mesh.h"
 
 #include "node_geometry_util.hh"
 
@@ -30,7 +28,7 @@ struct EdgeVertMap {
 
   EdgeVertMap(const Mesh &mesh)
   {
-    const Span<MEdge> edges{mesh.medge, mesh.totedge};
+    const Span<MEdge> edges = mesh.edges();
     edges_by_vertex_map.reinitialize(mesh.totvert);
     for (const int edge_i : edges.index_range()) {
       const MEdge &edge = edges[edge_i];
@@ -47,8 +45,7 @@ static void shortest_paths(const Mesh &mesh,
                            MutableSpan<int> r_next_index,
                            MutableSpan<float> r_cost)
 {
-  const Span<MVert> verts{mesh.mvert, mesh.totvert};
-  const Span<MEdge> edges{mesh.medge, mesh.totedge};
+  const Span<MEdge> edges = mesh.edges();
   Array<bool> visited(mesh.totvert, false);
 
   std::priority_queue<VertPriority, std::vector<VertPriority>, std::greater<VertPriority>> queue;

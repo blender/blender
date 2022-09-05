@@ -33,7 +33,7 @@ class IslandFieldInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
-    const Span<MEdge> edges(mesh.medge, mesh.totedge);
+    const Span<MEdge> edges = mesh.edges();
 
     DisjointSet islands(mesh.totvert);
     for (const int i : edges.index_range()) {
@@ -74,7 +74,7 @@ class IslandCountFieldInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
-    const Span<MEdge> edges(mesh.medge, mesh.totedge);
+    const Span<MEdge> edges = mesh.edges();
 
     DisjointSet islands(mesh.totvert);
     for (const int i : edges.index_range()) {

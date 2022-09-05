@@ -134,8 +134,7 @@ static void waveModifier_do(WaveModifierData *md,
                             int verts_num)
 {
   WaveModifierData *wmd = (WaveModifierData *)md;
-  MVert *mvert = NULL;
-  MDeformVert *dvert;
+  const MDeformVert *dvert;
   int defgrp_index;
   float ctime = DEG_get_ctime(ctx->depsgraph);
   float minfac = (float)(1.0 / exp(wmd->width * wmd->narrow * wmd->width * wmd->narrow));
@@ -148,7 +147,6 @@ static void waveModifier_do(WaveModifierData *md,
 
   const float(*vert_normals)[3] = NULL;
   if ((wmd->flag & MOD_WAVE_NORM) && (mesh != NULL)) {
-    mvert = mesh->mvert;
     vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
   }
 
@@ -269,7 +267,7 @@ static void waveModifier_do(WaveModifierData *md,
         /* Apply weight & falloff. */
         amplit *= def_weight * falloff_fac;
 
-        if (mvert) {
+        if (vert_normals) {
           /* move along normals */
           if (wmd->flag & MOD_WAVE_NORM_X) {
             co[0] += (lifefac * amplit) * vert_normals[i][0];

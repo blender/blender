@@ -83,31 +83,6 @@ static void save_selection_as_attribute(Mesh &mesh,
   attribute.finish();
 }
 
-static MutableSpan<MVert> mesh_verts(Mesh &mesh)
-{
-  return {mesh.mvert, mesh.totvert};
-}
-static MutableSpan<MEdge> mesh_edges(Mesh &mesh)
-{
-  return {mesh.medge, mesh.totedge};
-}
-static Span<MPoly> mesh_polys(const Mesh &mesh)
-{
-  return {mesh.mpoly, mesh.totpoly};
-}
-static MutableSpan<MPoly> mesh_polys(Mesh &mesh)
-{
-  return {mesh.mpoly, mesh.totpoly};
-}
-static Span<MLoop> mesh_loops(const Mesh &mesh)
-{
-  return {mesh.mloop, mesh.totloop};
-}
-static MutableSpan<MLoop> mesh_loops(Mesh &mesh)
-{
-  return {mesh.mloop, mesh.totloop};
-}
-
 /**
  * \note Some areas in this file rely on the new sections of attributes from #CustomData_realloc
  * to be zeroed.
@@ -142,7 +117,6 @@ static void expand_mesh(Mesh &mesh,
     mesh.totloop += loop_expand;
     CustomData_realloc(&mesh.ldata, mesh.totloop);
   }
-  BKE_mesh_update_customdata_pointers(&mesh, false);
 }
 
 static CustomData &get_customdata(Mesh &mesh, const eAttrDomain domain)
@@ -264,15 +238,15 @@ static void extrude_mesh_vertices(Mesh &mesh,
   const VArray<float3> offsets = evaluator.get_evaluated<float3>(0);
 
   /* This allows parallelizing attribute mixing for new edges. */
-  Array<Vector<int>> vert_to_edge_map = create_vert_to_edge_map(orig_vert_size, mesh_edges(mesh));
+  Array<Vector<int>> vert_to_edge_map = create_vert_to_edge_map(orig_vert_size, mesh.edges());
 
   expand_mesh(mesh, selection.size(), selection.size(), 0, 0);
 
   const IndexRange new_vert_range{orig_vert_size, selection.size()};
   const IndexRange new_edge_range{orig_edge_size, selection.size()};
 
-  MutableSpan<MVert> new_verts = mesh_verts(mesh).slice(new_vert_range);
-  MutableSpan<MEdge> new_edges = mesh_edges(mesh).slice(new_edge_range);
+  MutableSpan<MVert> new_verts = mesh.vertices_for_write().slice(new_vert_range);
+  MutableSpan<MEdge> new_edges = mesh.edges_for_write().slice(new_edge_range);
 
   for (const int i_selection : selection.index_range()) {
     new_edges[i_selection] = new_loose_edge(selection[i_selection], new_vert_range[i_selection]);
@@ -337,8 +311,8 @@ static void extrude_mesh_vertices(Mesh &mesh,
 
 static Array<Vector<int, 2>> mesh_calculate_polys_of_edge(const Mesh &mesh)
 {
-  Span<MPoly> polys = mesh_polys(mesh);
-  Span<MLoop> loops = mesh_loops(mesh);
+  Span<MPoly> polys = mesh.polygons();
+  Span<MLoop> loops = mesh.loops();
   Array<Vector<int, 2>> polys_of_edge(mesh.totedge);
 
   for (const int i_poly : polys.index_range()) {
@@ -396,11 +370,12 @@ template<typename T>
 static VectorSet<int> vert_indices_from_edges(const Mesh &mesh, const Span<T> edge_indices)
 {
   static_assert(is_same_any_v<T, int, int64_t>);
+  const Span<MEdge> edges = mesh.edges();
 
   VectorSet<int> vert_indices;
   vert_indices.reserve(edge_indices.size());
   for (const T i_edge : edge_indices) {
-    const MEdge &edge = mesh.medge[i_edge];
+    const MEdge &edge = edges[i_edge];
     vert_indices.add(edge.v1);
     vert_indices.add(edge.v2);
   }
@@ -413,8 +388,8 @@ static void extrude_mesh_edges(Mesh &mesh,
                                const AttributeOutputs &attribute_outputs)
 {
   const int orig_vert_size = mesh.totvert;
-  Span<MEdge> orig_edges = mesh_edges(mesh);
-  Span<MPoly> orig_polys = mesh_polys(mesh);
+  Span<MEdge> orig_edges = mesh.edges();
+  Span<MPoly> orig_polys = mesh.polygons();
   const int orig_loop_size = mesh.totloop;
 
   bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
@@ -463,12 +438,12 @@ static void extrude_mesh_edges(Mesh &mesh,
               new_poly_range.size(),
               new_loop_range.size());
 
-  MutableSpan<MVert> new_verts = mesh_verts(mesh).slice(new_vert_range);
-  MutableSpan<MEdge> connect_edges = mesh_edges(mesh).slice(connect_edge_range);
-  MutableSpan<MEdge> duplicate_edges = mesh_edges(mesh).slice(duplicate_edge_range);
-  MutableSpan<MPoly> polys = mesh_polys(mesh);
+  MutableSpan<MEdge> edges = mesh.edges_for_write();
+  MutableSpan<MEdge> connect_edges = edges.slice(connect_edge_range);
+  MutableSpan<MEdge> duplicate_edges = edges.slice(duplicate_edge_range);
+  MutableSpan<MPoly> polys = mesh.polygons_for_write();
   MutableSpan<MPoly> new_polys = polys.slice(new_poly_range);
-  MutableSpan<MLoop> loops = mesh_loops(mesh);
+  MutableSpan<MLoop> loops = mesh.loops_for_write();
   MutableSpan<MLoop> new_loops = loops.slice(new_loop_range);
 
   for (const int i : connect_edges.index_range()) {
@@ -476,7 +451,7 @@ static void extrude_mesh_edges(Mesh &mesh,
   }
 
   for (const int i : duplicate_edges.index_range()) {
-    const MEdge &orig_edge = mesh.medge[edge_selection[i]];
+    const MEdge &orig_edge = edges[edge_selection[i]];
     const int i_new_vert_1 = new_vert_indices.index_of(orig_edge.v1);
     const int i_new_vert_2 = new_vert_indices.index_of(orig_edge.v2);
     duplicate_edges[i] = new_edge(new_vert_range[i_new_vert_1], new_vert_range[i_new_vert_2]);
@@ -631,6 +606,7 @@ static void extrude_mesh_edges(Mesh &mesh,
     return true;
   });
 
+  MutableSpan<MVert> new_verts = mesh.vertices_for_write().slice(new_vert_range);
   if (edge_offsets.is_single()) {
     const float3 offset = edge_offsets.get_internal_single();
     threading::parallel_for(new_verts.index_range(), 1024, [&](const IndexRange range) {
@@ -676,9 +652,9 @@ static void extrude_mesh_face_regions(Mesh &mesh,
                                       const AttributeOutputs &attribute_outputs)
 {
   const int orig_vert_size = mesh.totvert;
-  Span<MEdge> orig_edges = mesh_edges(mesh);
-  Span<MPoly> orig_polys = mesh_polys(mesh);
-  Span<MLoop> orig_loops = mesh_loops(mesh);
+  Span<MEdge> orig_edges = mesh.edges();
+  Span<MPoly> orig_polys = mesh.polygons();
+  Span<MLoop> orig_loops = mesh.loops();
 
   bke::MeshFieldContext poly_context{mesh, ATTR_DOMAIN_FACE};
   FieldEvaluator poly_evaluator{poly_context, mesh.totpoly};
@@ -781,7 +757,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
 
   /* The vertices attached to duplicate inner edges also have to be duplicated. */
   for (const int i_edge : new_inner_edge_indices) {
-    const MEdge &edge = mesh.medge[i_edge];
+    const MEdge &edge = orig_edges[i_edge];
     new_vert_indices.add(edge.v1);
     new_vert_indices.add(edge.v2);
   }
@@ -805,13 +781,13 @@ static void extrude_mesh_face_regions(Mesh &mesh,
               side_poly_range.size(),
               side_loop_range.size());
 
-  MutableSpan<MEdge> edges = mesh_edges(mesh);
+  MutableSpan<MEdge> edges = mesh.edges_for_write();
   MutableSpan<MEdge> connect_edges = edges.slice(connect_edge_range);
   MutableSpan<MEdge> boundary_edges = edges.slice(boundary_edge_range);
   MutableSpan<MEdge> new_inner_edges = edges.slice(new_inner_edge_range);
-  MutableSpan<MPoly> polys = mesh_polys(mesh);
+  MutableSpan<MPoly> polys = mesh.polygons_for_write();
   MutableSpan<MPoly> new_polys = polys.slice(side_poly_range);
-  MutableSpan<MLoop> loops = mesh_loops(mesh);
+  MutableSpan<MLoop> loops = mesh.loops_for_write();
   MutableSpan<MLoop> new_loops = loops.slice(side_loop_range);
 
   /* Initialize the edges that form the sides of the extrusion. */
@@ -1000,13 +976,14 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   /* Translate vertices based on the offset. If the vertex is used by a selected edge, it will
    * have been duplicated and only the new vertex should use the offset. Otherwise the vertex might
    * still need an offset, but it was reused on the inside of a region of extruded faces. */
+  MutableSpan<MVert> verts = mesh.vertices_for_write();
   if (poly_offsets.is_single()) {
     const float3 offset = poly_offsets.get_internal_single();
     threading::parallel_for(
         IndexRange(all_selected_verts.size()), 1024, [&](const IndexRange range) {
           for (const int i_orig : all_selected_verts.as_span().slice(range)) {
             const int i_new = new_vert_indices.index_of_try(i_orig);
-            MVert &vert = mesh_verts(mesh)[(i_new == -1) ? i_orig : new_vert_range[i_new]];
+            MVert &vert = verts[(i_new == -1) ? i_orig : new_vert_range[i_new]];
             add_v3_v3(vert.co, offset);
           }
         });
@@ -1017,7 +994,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
           for (const int i_orig : all_selected_verts.as_span().slice(range)) {
             const int i_new = new_vert_indices.index_of_try(i_orig);
             const float3 offset = vert_offsets[i_orig];
-            MVert &vert = mesh_verts(mesh)[(i_new == -1) ? i_orig : new_vert_range[i_new]];
+            MVert &vert = verts[(i_new == -1) ? i_orig : new_vert_range[i_new]];
             add_v3_v3(vert.co, offset);
           }
         });
@@ -1061,8 +1038,8 @@ static void extrude_individual_mesh_faces(Mesh &mesh,
 {
   const int orig_vert_size = mesh.totvert;
   const int orig_edge_size = mesh.totedge;
-  Span<MPoly> orig_polys = mesh_polys(mesh);
-  Span<MLoop> orig_loops = mesh_loops(mesh);
+  Span<MPoly> orig_polys = mesh.polygons();
+  Span<MLoop> orig_loops = mesh.loops();
 
   /* Use a mesh for the result of the evaluation because the mesh is reallocated before
    * the vertices are moved, and the evaluated result might reference an attribute. */
@@ -1101,13 +1078,13 @@ static void extrude_individual_mesh_faces(Mesh &mesh,
               side_poly_range.size(),
               side_loop_range.size());
 
-  MutableSpan<MVert> new_verts = mesh_verts(mesh).slice(new_vert_range);
-  MutableSpan<MEdge> edges{mesh.medge, mesh.totedge};
+  MutableSpan<MVert> new_verts = mesh.vertices_for_write().slice(new_vert_range);
+  MutableSpan<MEdge> edges = mesh.edges_for_write();
   MutableSpan<MEdge> connect_edges = edges.slice(connect_edge_range);
   MutableSpan<MEdge> duplicate_edges = edges.slice(duplicate_edge_range);
-  MutableSpan<MPoly> polys{mesh.mpoly, mesh.totpoly};
+  MutableSpan<MPoly> polys = mesh.polygons_for_write();
   MutableSpan<MPoly> new_polys = polys.slice(side_poly_range);
-  MutableSpan<MLoop> loops{mesh.mloop, mesh.totloop};
+  MutableSpan<MLoop> loops = mesh.loops_for_write();
 
   /* For every selected polygon, build the faces that form the sides of the extrusion. Filling some
    * of this data like the new edges or polygons could be easily split into separate loops, which

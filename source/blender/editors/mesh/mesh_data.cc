@@ -18,6 +18,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
@@ -44,6 +45,8 @@
 #include "mesh_intern.h" /* own include */
 
 using blender::Array;
+using blender::MutableSpan;
+using blender::Span;
 
 static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_tot)
 {
@@ -128,7 +131,6 @@ static void delete_customdata_layer(Mesh *me, CustomDataLayer *layer)
   }
   else {
     CustomData_free_layer(data, type, tot, layer_index + n);
-    BKE_mesh_update_customdata_pointers(me, true);
   }
 }
 
@@ -186,7 +188,7 @@ static void mesh_uv_reset_bmface(BMFace *f, const int cd_loop_uv_offset)
   mesh_uv_reset_array(fuv.data(), f->len);
 }
 
-static void mesh_uv_reset_mface(MPoly *mp, MLoopUV *mloopuv)
+static void mesh_uv_reset_mface(const MPoly *mp, MLoopUV *mloopuv)
 {
   Array<float *, BM_DEFAULT_NGON_STACK_SIZE> fuv(mp->totloop);
 
@@ -223,8 +225,9 @@ void ED_mesh_uv_loop_reset_ex(Mesh *me, const int layernum)
     BLI_assert(CustomData_has_layer(&me->ldata, CD_MLOOPUV));
     MLoopUV *mloopuv = (MLoopUV *)CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, layernum);
 
+    const MPoly *polys = BKE_mesh_polygons(me);
     for (int i = 0; i < me->totpoly; i++) {
-      mesh_uv_reset_mface(&me->mpoly[i], mloopuv);
+      mesh_uv_reset_mface(&polys[i], mloopuv);
     }
   }
 
@@ -280,9 +283,13 @@ int ED_mesh_uv_add(
       return -1;
     }
 
-    if (me->mloopuv && do_init) {
-      CustomData_add_layer_named(
-          &me->ldata, CD_MLOOPUV, CD_DUPLICATE, me->mloopuv, me->totloop, name);
+    if (CustomData_has_layer(&me->ldata, CD_MLOOPUV) && do_init) {
+      CustomData_add_layer_named(&me->ldata,
+                                 CD_MLOOPUV,
+                                 CD_DUPLICATE,
+                                 CustomData_get_layer(&me->ldata, CD_MLOOPUV),
+                                 me->totloop,
+                                 name);
       is_init = true;
     }
     else {
@@ -293,8 +300,6 @@ int ED_mesh_uv_add(
     if (active_set || layernum_dst == 0) {
       CustomData_set_layer_active(&me->ldata, CD_MLOOPUV, layernum_dst);
     }
-
-    BKE_mesh_update_customdata_pointers(me, true);
   }
 
   /* don't overwrite our copied coords */
@@ -399,9 +404,13 @@ int ED_mesh_color_add(Mesh *me,
   else {
     layernum = CustomData_number_of_layers(&me->ldata, CD_PROP_BYTE_COLOR);
 
-    if (me->mloopcol && do_init) {
-      CustomData_add_layer_named(
-          &me->ldata, CD_PROP_BYTE_COLOR, CD_DUPLICATE, me->mloopcol, me->totloop, name);
+    if (CustomData_get_active_layer(&me->ldata, CD_PROP_BYTE_COLOR) != -1 && do_init) {
+      CustomData_add_layer_named(&me->ldata,
+                                 CD_PROP_BYTE_COLOR,
+                                 CD_DUPLICATE,
+                                 CustomData_get_layer(&me->ldata, CD_PROP_BYTE_COLOR),
+                                 me->totloop,
+                                 name);
     }
     else {
       CustomData_add_layer_named(
@@ -412,7 +421,7 @@ int ED_mesh_color_add(Mesh *me,
       CustomData_set_layer_active(&me->ldata, CD_PROP_BYTE_COLOR, layernum);
     }
 
-    BKE_mesh_update_customdata_pointers(me, true);
+    BKE_mesh_tessface_clear(me);
   }
 
   DEG_id_tag_update(&me->id, 0);
@@ -432,7 +441,7 @@ bool ED_mesh_color_ensure(Mesh *me, const char *name)
     layer = me->ldata.layers + CustomData_get_layer_index(&me->ldata, CD_PROP_BYTE_COLOR);
 
     BKE_id_attributes_active_color_set(&me->id, layer);
-    BKE_mesh_update_customdata_pointers(me, true);
+    BKE_mesh_tessface_clear(me);
   }
 
   DEG_id_tag_update(&me->id, 0);
@@ -496,7 +505,7 @@ int ED_mesh_sculpt_color_add(Mesh *me,
       CustomData_set_layer_active(&me->vdata, CD_PROP_COLOR, layernum);
     }
 
-    BKE_mesh_update_customdata_pointers(me, true);
+    BKE_mesh_tessface_clear(me);
   }
 
   DEG_id_tag_update(&me->id, 0);
@@ -767,15 +776,20 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
       /* Tag edges as sharp according to smooth threshold if needed,
        * to preserve autosmooth shading. */
       if (me->flag & ME_AUTOSMOOTH) {
-        BKE_edges_sharp_from_angle_set(me->mvert,
-                                       me->totvert,
-                                       me->medge,
-                                       me->totedge,
-                                       me->mloop,
-                                       me->totloop,
-                                       me->mpoly,
+        const Span<MVert> verts = me->vertices();
+        MutableSpan<MEdge> edges = me->edges_for_write();
+        const Span<MPoly> polys = me->polygons();
+        const Span<MLoop> loops = me->loops();
+
+        BKE_edges_sharp_from_angle_set(verts.data(),
+                                       verts.size(),
+                                       edges.data(),
+                                       edges.size(),
+                                       loops.data(),
+                                       loops.size(),
+                                       polys.data(),
                                        BKE_mesh_poly_normals_ensure(me),
-                                       me->totpoly,
+                                       polys.size(),
                                        me->smoothresh);
       }
 
@@ -873,27 +887,22 @@ static void mesh_add_verts(Mesh *mesh, int len)
 
   CustomData_free(&mesh->vdata, mesh->totvert);
   mesh->vdata = vdata;
-  BKE_mesh_update_customdata_pointers(mesh, false);
 
   BKE_mesh_runtime_clear_cache(mesh);
 
-  /* scan the input list and insert the new vertices */
-
-  /* set default flags */
-  MVert *mvert = &mesh->mvert[mesh->totvert];
-  for (int i = 0; i < len; i++, mvert++) {
-    mvert->flag |= SELECT;
-  }
-
-  /* set final vertex list size */
+  const int old_vertex_num = mesh->totvert;
   mesh->totvert = totvert;
+
+  MutableSpan<MVert> verts = mesh->vertices_for_write();
+  for (MVert &vert : verts.drop_front(old_vertex_num)) {
+    vert.flag = SELECT;
+  }
 }
 
 static void mesh_add_edges(Mesh *mesh, int len)
 {
   CustomData edata;
-  MEdge *medge;
-  int i, totedge;
+  int totedge;
 
   if (len == 0) {
     return;
@@ -911,17 +920,16 @@ static void mesh_add_edges(Mesh *mesh, int len)
 
   CustomData_free(&mesh->edata, mesh->totedge);
   mesh->edata = edata;
-  BKE_mesh_update_customdata_pointers(mesh, false); /* new edges don't change tessellation */
 
   BKE_mesh_runtime_clear_cache(mesh);
 
-  /* set default flags */
-  medge = &mesh->medge[mesh->totedge];
-  for (i = 0; i < len; i++, medge++) {
-    medge->flag = ME_EDGEDRAW | ME_EDGERENDER | SELECT;
-  }
-
+  const int old_edges_num = mesh->totedge;
   mesh->totedge = totedge;
+
+  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  for (MEdge &edge : edges.drop_front(old_edges_num)) {
+    edge.flag = ME_EDGEDRAW | ME_EDGERENDER | SELECT;
+  }
 }
 
 static void mesh_add_loops(Mesh *mesh, int len)
@@ -947,7 +955,6 @@ static void mesh_add_loops(Mesh *mesh, int len)
 
   CustomData_free(&mesh->ldata, mesh->totloop);
   mesh->ldata = ldata;
-  BKE_mesh_update_customdata_pointers(mesh, true);
 
   mesh->totloop = totloop;
 }
@@ -955,8 +962,7 @@ static void mesh_add_loops(Mesh *mesh, int len)
 static void mesh_add_polys(Mesh *mesh, int len)
 {
   CustomData pdata;
-  MPoly *mpoly;
-  int i, totpoly;
+  int totpoly;
 
   if (len == 0) {
     return;
@@ -974,17 +980,16 @@ static void mesh_add_polys(Mesh *mesh, int len)
 
   CustomData_free(&mesh->pdata, mesh->totpoly);
   mesh->pdata = pdata;
-  BKE_mesh_update_customdata_pointers(mesh, true);
 
   BKE_mesh_runtime_clear_cache(mesh);
 
-  /* set default flags */
-  mpoly = &mesh->mpoly[mesh->totpoly];
-  for (i = 0; i < len; i++, mpoly++) {
-    mpoly->flag = ME_FACE_SEL;
-  }
-
+  const int old_polys_num = mesh->totpoly;
   mesh->totpoly = totpoly;
+
+  MutableSpan<MPoly> polys = mesh->polygons_for_write();
+  for (MPoly &poly : polys.drop_front(old_polys_num)) {
+    poly.flag = ME_FACE_SEL;
+  }
 }
 
 /* -------------------------------------------------------------------- */

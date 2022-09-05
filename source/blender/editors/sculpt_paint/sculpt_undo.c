@@ -627,8 +627,6 @@ static void sculpt_undo_geometry_restore_data(SculptUndoNodeGeometry *geometry, 
   CustomData_copy(
       &geometry->pdata, &mesh->pdata, CD_MASK_MESH.pmask, CD_DUPLICATE, geometry->totpoly);
 
-  BKE_mesh_update_customdata_pointers(mesh, false);
-
   BKE_mesh_runtime_clear_cache(mesh);
 }
 

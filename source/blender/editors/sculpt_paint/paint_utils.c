@@ -30,6 +30,7 @@
 #include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_material.h"
+#include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
@@ -287,8 +288,8 @@ static void imapaint_pick_uv(
   const MLoopTri *lt = BKE_mesh_runtime_looptri_ensure(me_eval);
   const int tottri = me_eval->runtime.looptris.len;
 
-  const MVert *mvert = me_eval->mvert;
-  const MLoop *mloop = me_eval->mloop;
+  const MVert *mvert = BKE_mesh_vertices(me_eval);
+  const MLoop *mloop = BKE_mesh_loops(me_eval);
   const int *index_mp_to_orig = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
 
   /* get the needed opengl matrices */
@@ -702,7 +703,7 @@ static int vert_select_ungrouped_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   Mesh *me = ob->data;
 
-  if (BLI_listbase_is_empty(&me->vertex_group_names) || (me->dvert == NULL)) {
+  if (BLI_listbase_is_empty(&me->vertex_group_names) || (BKE_mesh_deform_verts(me) == NULL)) {
     BKE_report(op->reports, RPT_ERROR, "No weights/vertex groups on object");
     return OPERATOR_CANCELLED;
   }

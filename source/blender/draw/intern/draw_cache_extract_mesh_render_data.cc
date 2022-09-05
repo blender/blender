@@ -339,9 +339,9 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
       mr->mlooptri = static_cast<MLoopTri *>(
           MEM_mallocN(sizeof(*mr->mlooptri) * mr->tri_len, "MR_DATATYPE_LOOPTRI"));
       if (mr->poly_normals != nullptr) {
-        BKE_mesh_recalc_looptri_with_normals(me->mloop,
-                                             me->mpoly,
-                                             me->mvert,
+        BKE_mesh_recalc_looptri_with_normals(mr->mloop,
+                                             mr->mpoly,
+                                             mr->mvert,
                                              me->totloop,
                                              me->totpoly,
                                              mr->mlooptri,
@@ -349,7 +349,7 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
       }
       else {
         BKE_mesh_recalc_looptri(
-            me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, mr->mlooptri);
+            mr->mloop, mr->mpoly, mr->mvert, me->totloop, me->totpoly, mr->mlooptri);
       }
     }
   }
@@ -379,15 +379,15 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
           MEM_mallocN(sizeof(*mr->loop_normals) * mr->loop_len, __func__));
       short(*clnors)[2] = static_cast<short(*)[2]>(
           CustomData_get_layer(&mr->me->ldata, CD_CUSTOMLOOPNORMAL));
-      BKE_mesh_normals_loop_split(mr->me->mvert,
+      BKE_mesh_normals_loop_split(mr->mvert,
                                   mr->vert_normals,
                                   mr->vert_len,
-                                  mr->me->medge,
+                                  mr->medge,
                                   mr->edge_len,
-                                  mr->me->mloop,
+                                  mr->mloop,
                                   mr->loop_normals,
                                   mr->loop_len,
-                                  mr->me->mpoly,
+                                  mr->mpoly,
                                   mr->poly_normals,
                                   mr->poly_len,
                                   is_auto_smooth,
@@ -568,10 +568,10 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->poly_len = mr->me->totpoly;
     mr->tri_len = poly_to_tri_count(mr->poly_len, mr->loop_len);
 
-    mr->mvert = static_cast<MVert *>(CustomData_get_layer(&mr->me->vdata, CD_MVERT));
-    mr->medge = static_cast<MEdge *>(CustomData_get_layer(&mr->me->edata, CD_MEDGE));
-    mr->mloop = static_cast<MLoop *>(CustomData_get_layer(&mr->me->ldata, CD_MLOOP));
-    mr->mpoly = static_cast<MPoly *>(CustomData_get_layer(&mr->me->pdata, CD_MPOLY));
+    mr->mvert = BKE_mesh_vertices(mr->me);
+    mr->medge = BKE_mesh_edges(mr->me);
+    mr->mpoly = BKE_mesh_polygons(mr->me);
+    mr->mloop = BKE_mesh_loops(mr->me);
 
     mr->v_origindex = static_cast<const int *>(CustomData_get_layer(&mr->me->vdata, CD_ORIGINDEX));
     mr->e_origindex = static_cast<const int *>(CustomData_get_layer(&mr->me->edata, CD_ORIGINDEX));

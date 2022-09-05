@@ -55,6 +55,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+using blender::MutableSpan;
+using blender::Span;
+
 /* * ********************** no editmode!!! *********** */
 
 /*********************** JOIN ***************************/
@@ -691,9 +694,6 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   me->ldata = ldata;
   me->pdata = pdata;
 
-  /* tessface data removed above, no need to update */
-  BKE_mesh_update_customdata_pointers(me, false);
-
   /* Tag normals dirty because vertex positions could be changed from the original. */
   BKE_mesh_normals_tag_dirty(me);
 
@@ -906,13 +906,13 @@ static bool ed_mesh_mirror_topo_table_update(Object *ob, Mesh *me_eval)
 static int mesh_get_x_mirror_vert_spatial(Object *ob, Mesh *me_eval, int index)
 {
   Mesh *me = static_cast<Mesh *>(ob->data);
-  MVert *mvert = me_eval ? me_eval->mvert : me->mvert;
+  const Span<MVert> verts = me_eval ? me_eval->vertices() : me->vertices();
+
   float vec[3];
 
-  mvert = &mvert[index];
-  vec[0] = -mvert->co[0];
-  vec[1] = mvert->co[1];
-  vec[2] = mvert->co[2];
+  vec[0] = -verts[index].co[0];
+  vec[1] = verts[index].co[1];
+  vec[2] = verts[index].co[2];
 
   return ED_mesh_mirror_spatial_table_lookup(ob, nullptr, me_eval, vec);
 }
@@ -1128,8 +1128,8 @@ static bool mirror_facecmp(const void *a, const void *b)
 int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
 {
   Mesh *me = static_cast<Mesh *>(ob->data);
-  MVert *mv, *mvert;
-  MFace mirrormf, *mf, *hashmf, *mface;
+  const MVert *mv;
+  MFace mirrormf, *mf, *hashmf;
   GHash *fhash;
   int *mirrorverts, *mirrorfaces;
 
@@ -1143,12 +1143,12 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
   mirrorverts = static_cast<int *>(MEM_callocN(sizeof(int) * totvert, "MirrorVerts"));
   mirrorfaces = static_cast<int *>(MEM_callocN(sizeof(int[2]) * totface, "MirrorFaces"));
 
-  mvert = me_eval ? me_eval->mvert : me->mvert;
-  mface = me_eval ? me_eval->mface : me->mface;
+  const Span<MVert> verts = me_eval ? me_eval->vertices() : me->vertices();
+  MFace *mface = (MFace *)CustomData_get_layer(&(me_eval ? me_eval : me)->fdata, CD_MFACE);
 
   ED_mesh_mirror_spatial_table_begin(ob, em, me_eval);
 
-  for (a = 0, mv = mvert; a < totvert; a++, mv++) {
+  for (a = 0, mv = verts.data(); a < totvert; a++, mv++) {
     mirrorverts[a] = mesh_get_x_mirror_vert(ob, me_eval, a, use_topology);
   }
 
@@ -1275,42 +1275,28 @@ bool ED_mesh_pick_face_vert(
     const float mval_f[2] = {(float)mval[0], (float)mval[1]};
     float len_best = FLT_MAX;
 
-    MPoly *me_eval_mpoly;
-    MLoop *me_eval_mloop;
-    MVert *me_eval_mvert;
-    uint me_eval_mpoly_len;
-
-    me_eval_mpoly = me_eval->mpoly;
-    me_eval_mloop = me_eval->mloop;
-    me_eval_mvert = me_eval->mvert;
-
-    me_eval_mpoly_len = me_eval->totpoly;
+    const Span<MVert> verts = me_eval->vertices();
+    const Span<MPoly> polys = me_eval->polygons();
+    const Span<MLoop> loops = me_eval->loops();
 
     const int *index_mp_to_orig = (const int *)CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
 
     /* tag all verts using this face */
     if (index_mp_to_orig) {
-      uint i;
-
-      for (i = 0; i < me_eval_mpoly_len; i++) {
+      for (const int i : polys.index_range()) {
         if (index_mp_to_orig[i] == poly_index) {
-          ed_mesh_pick_face_vert__mpoly_find(region,
-                                             mval_f,
-                                             &me_eval_mpoly[i],
-                                             me_eval_mvert,
-                                             me_eval_mloop,
-                                             &len_best,
-                                             &v_idx_best);
+          ed_mesh_pick_face_vert__mpoly_find(
+              region, mval_f, &polys[i], verts.data(), loops.data(), &len_best, &v_idx_best);
         }
       }
     }
     else {
-      if (poly_index < me_eval_mpoly_len) {
+      if (poly_index < polys.size()) {
         ed_mesh_pick_face_vert__mpoly_find(region,
                                            mval_f,
-                                           &me_eval_mpoly[poly_index],
-                                           me_eval_mvert,
-                                           me_eval_mloop,
+                                           &polys[poly_index],
+                                           verts.data(),
+                                           loops.data(),
                                            &len_best,
                                            &v_idx_best);
       }
@@ -1425,7 +1411,8 @@ bool ED_mesh_pick_vert(
     }
 
     /* setup data */
-    data.mvert = me->mvert;
+    const Span<MVert> verts = me->vertices();
+    data.mvert = verts.data();
     data.region = region;
     data.mval_f = mval_f;
     data.len_best = FLT_MAX;
@@ -1479,10 +1466,11 @@ MDeformVert *ED_mesh_active_dvert_get_ob(Object *ob, int *r_index)
   if (r_index) {
     *r_index = index;
   }
-  if (index == -1 || me->dvert == nullptr) {
+  if (index == -1 || me->deform_verts().is_empty()) {
     return nullptr;
   }
-  return me->dvert + index;
+  MutableSpan<MDeformVert> dverts = me->deform_verts_for_write();
+  return &dverts[index];
 }
 
 MDeformVert *ED_mesh_active_dvert_get_only(Object *ob)

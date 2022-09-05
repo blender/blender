@@ -330,7 +330,7 @@ static void meshdeformModifier_do(ModifierData *md,
   Object *ob = ctx->object;
 
   Mesh *cagemesh;
-  MDeformVert *dvert = NULL;
+  const MDeformVert *dvert = NULL;
   float imat[4][4], cagemat[4][4], iobmat[4][4], icagemat[3][3], cmat[4][4];
   float(*dco)[3] = NULL, (*bindcagecos)[3];
   int a, cage_verts_num, defgrp_index;

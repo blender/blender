@@ -97,7 +97,7 @@ static BVHTree *bvhtree_build_from_cloth(ClothModifierData *clmd, float epsilon)
     }
   }
   else {
-    MEdge *edges = cloth->edges;
+    const MEdge *edges = cloth->edges;
 
     for (int i = 0; i < cloth->primitive_num; i++) {
       float co[2][3];
@@ -177,7 +177,7 @@ void bvhtree_update_from_cloth(ClothModifierData *clmd, bool moving, bool self)
   }
   else {
     if (verts) {
-      MEdge *edges = cloth->edges;
+      const MEdge *edges = cloth->edges;
 
       for (i = 0; i < cloth->primitive_num; i++) {
         float co[2][3];
@@ -258,7 +258,7 @@ static int do_step_cloth(
 
   cloth = clmd->clothObject;
   verts = cloth->verts;
-  mvert = result->mvert;
+  mvert = BKE_mesh_vertices_for_write(result);
   vert_mass_changed = verts->mass != clmd->sim_parms->mass;
 
   /* force any pinned verts to their constrained location. */
@@ -713,7 +713,6 @@ static bool cloth_from_object(
     Object *ob, ClothModifierData *clmd, Mesh *mesh, float UNUSED(framenr), int first)
 {
   int i = 0;
-  MVert *mvert = NULL;
   ClothVertex *verts = NULL;
   const float(*shapekey_rest)[3] = NULL;
   const float tnull[3] = {0, 0, 0};
@@ -755,7 +754,7 @@ static bool cloth_from_object(
     shapekey_rest = CustomData_get_layer(&mesh->vdata, CD_CLOTH_ORCO);
   }
 
-  mvert = mesh->mvert;
+  MVert *mvert = BKE_mesh_vertices_for_write(mesh);
 
   verts = clmd->clothObject->verts;
 
@@ -824,7 +823,7 @@ static bool cloth_from_object(
 
 static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mesh)
 {
-  const MLoop *mloop = mesh->mloop;
+  const MLoop *mloop = BKE_mesh_loops(mesh);
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh);
   const unsigned int mvert_num = mesh->totvert;
   const unsigned int looptri_num = mesh->runtime.looptris.len;
@@ -859,7 +858,7 @@ static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mes
   }
   BKE_mesh_runtime_verttri_from_looptri(clmd->clothObject->tri, mloop, looptri, looptri_num);
 
-  clmd->clothObject->edges = mesh->medge;
+  clmd->clothObject->edges = BKE_mesh_edges(mesh);
 
   /* Free the springs since they can't be correct if the vertices
    * changed.
@@ -1150,7 +1149,7 @@ static void cloth_update_springs(ClothModifierData *clmd)
 static void cloth_update_verts(Object *ob, ClothModifierData *clmd, Mesh *mesh)
 {
   unsigned int i = 0;
-  MVert *mvert = mesh->mvert;
+  const MVert *mvert = BKE_mesh_vertices(mesh);
   ClothVertex *verts = clmd->clothObject->verts;
 
   /* vertex count is already ensured to match */
@@ -1165,7 +1164,7 @@ static Mesh *cloth_make_rest_mesh(ClothModifierData *clmd, Mesh *mesh)
 {
   Mesh *new_mesh = BKE_mesh_copy_for_eval(mesh, false);
   ClothVertex *verts = clmd->clothObject->verts;
-  MVert *mvert = new_mesh->mvert;
+  MVert *mvert = BKE_mesh_vertices_for_write(mesh);
 
   /* vertex count is already ensured to match */
   for (unsigned i = 0; i < mesh->totvert; i++, verts++) {
@@ -1459,9 +1458,9 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
   unsigned int numedges = (unsigned int)mesh->totedge;
   unsigned int numpolys = (unsigned int)mesh->totpoly;
   float shrink_factor;
-  const MEdge *medge = mesh->medge;
-  const MPoly *mpoly = mesh->mpoly;
-  const MLoop *mloop = mesh->mloop;
+  const MEdge *medge = BKE_mesh_edges(mesh);
+  const MPoly *mpoly = BKE_mesh_polygons(mesh);
+  const MLoop *mloop = BKE_mesh_loops(mesh);
   int index2 = 0; /* our second vertex index */
   LinkNodePair *edgelist = NULL;
   EdgeSet *edgeset = NULL;

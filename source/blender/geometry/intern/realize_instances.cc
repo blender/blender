@@ -97,6 +97,11 @@ struct MeshElementStartIndices {
 
 struct MeshRealizeInfo {
   const Mesh *mesh = nullptr;
+  Span<MVert> verts;
+  Span<MEdge> edges;
+  Span<MPoly> polys;
+  Span<MLoop> loops;
+
   /** Maps old material indices to new material indices. */
   Array<int> material_index_map;
   /** Matches the order in #AllMeshesInfo.attributes. */
@@ -859,6 +864,10 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
     MeshRealizeInfo &mesh_info = info.realize_info[mesh_index];
     const Mesh *mesh = info.order[mesh_index];
     mesh_info.mesh = mesh;
+    mesh_info.verts = mesh->vertices();
+    mesh_info.edges = mesh->edges();
+    mesh_info.polys = mesh->polygons();
+    mesh_info.loops = mesh->loops();
 
     /* Create material index mapping. */
     mesh_info.material_index_map.reinitialize(std::max<int>(mesh->totcol, 1));
@@ -900,30 +909,31 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
 static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
                                       const RealizeMeshTask &task,
                                       const OrderedAttributes &ordered_attributes,
-                                      Mesh &dst_mesh,
                                       MutableSpan<GSpanAttributeWriter> dst_attribute_writers,
+                                      MutableSpan<MVert> all_dst_verts,
+                                      MutableSpan<MEdge> all_dst_edges,
+                                      MutableSpan<MPoly> all_dst_polys,
+                                      MutableSpan<MLoop> all_dst_loops,
                                       MutableSpan<int> all_dst_vertex_ids,
                                       MutableSpan<int> all_dst_material_indices)
 {
   const MeshRealizeInfo &mesh_info = *task.mesh_info;
   const Mesh &mesh = *mesh_info.mesh;
 
-  const Span<MVert> src_verts{mesh.mvert, mesh.totvert};
-  const Span<MEdge> src_edges{mesh.medge, mesh.totedge};
-  const Span<MLoop> src_loops{mesh.mloop, mesh.totloop};
-  const Span<MPoly> src_polys{mesh.mpoly, mesh.totpoly};
+  const Span<MVert> src_verts = mesh_info.verts;
+  const Span<MEdge> src_edges = mesh_info.edges;
+  const Span<MPoly> src_polys = mesh_info.polys;
+  const Span<MLoop> src_loops = mesh_info.loops;
 
   const IndexRange dst_vert_range(task.start_indices.vertex, src_verts.size());
   const IndexRange dst_edge_range(task.start_indices.edge, src_edges.size());
   const IndexRange dst_poly_range(task.start_indices.poly, src_polys.size());
   const IndexRange dst_loop_range(task.start_indices.loop, src_loops.size());
 
-  MutableSpan dst_verts = MutableSpan(dst_mesh.mvert, dst_mesh.totvert).slice(dst_vert_range);
-  MutableSpan dst_edges = MutableSpan(dst_mesh.medge, dst_mesh.totedge).slice(dst_edge_range);
-  MutableSpan dst_polys = MutableSpan(dst_mesh.mpoly, dst_mesh.totpoly).slice(dst_poly_range);
-  MutableSpan dst_loops = MutableSpan(dst_mesh.mloop, dst_mesh.totloop).slice(dst_loop_range);
-
-  const Span<int> material_index_map = mesh_info.material_index_map;
+  MutableSpan<MVert> dst_verts = all_dst_verts.slice(dst_vert_range);
+  MutableSpan<MEdge> dst_edges = all_dst_edges.slice(dst_edge_range);
+  MutableSpan<MPoly> dst_polys = all_dst_polys.slice(dst_poly_range);
+  MutableSpan<MLoop> dst_loops = all_dst_loops.slice(dst_loop_range);
 
   threading::parallel_for(src_verts.index_range(), 1024, [&](const IndexRange vert_range) {
     for (const int i : vert_range) {
@@ -960,6 +970,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
     }
   });
   if (!all_dst_material_indices.is_empty()) {
+    const Span<int> material_index_map = mesh_info.material_index_map;
     MutableSpan<int> dst_material_indices = all_dst_material_indices.slice(dst_poly_range);
     if (mesh.totcol == 0) {
       /* The material index map contains the index of the null material in the result. */
@@ -1035,6 +1046,10 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   MeshComponent &dst_component = r_realized_geometry.get_component_for_write<MeshComponent>();
   dst_component.replace(dst_mesh);
   bke::MutableAttributeAccessor dst_attributes = bke::mesh_attributes_for_write(*dst_mesh);
+  MutableSpan<MVert> dst_verts = dst_mesh->vertices_for_write();
+  MutableSpan<MEdge> dst_edges = dst_mesh->edges_for_write();
+  MutableSpan<MPoly> dst_polys = dst_mesh->polygons_for_write();
+  MutableSpan<MLoop> dst_loops = dst_mesh->loops_for_write();
 
   /* Copy settings from the first input geometry set with a mesh. */
   const RealizeMeshTask &first_task = tasks.first();
@@ -1079,8 +1094,11 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
       execute_realize_mesh_task(options,
                                 task,
                                 ordered_attributes,
-                                *dst_mesh,
                                 dst_attribute_writers,
+                                dst_verts,
+                                dst_edges,
+                                dst_polys,
+                                dst_loops,
                                 vertex_ids.span,
                                 material_indices.span);
     }

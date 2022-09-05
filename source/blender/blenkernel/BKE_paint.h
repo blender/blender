@@ -500,8 +500,8 @@ typedef struct SculptSession {
 
   /* These are always assigned to base mesh data when using PBVH_FACES and PBVH_GRIDS. */
   struct MVert *mvert;
-  struct MPoly *mpoly;
-  struct MLoop *mloop;
+  const struct MPoly *mpoly;
+  const struct MLoop *mloop;
 
   /* These contain the vertex and poly counts of the final mesh. */
   int totvert, totpoly;

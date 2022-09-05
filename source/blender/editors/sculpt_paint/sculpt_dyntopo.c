@@ -210,8 +210,6 @@ static void SCULPT_dynamic_topology_disable_ex(
         &geometry->ldata, &me->ldata, CD_MASK_MESH.lmask, CD_DUPLICATE, geometry->totloop);
     CustomData_copy(
         &geometry->pdata, &me->pdata, CD_MASK_MESH.pmask, CD_DUPLICATE, geometry->totpoly);
-
-    BKE_mesh_update_customdata_pointers(me, false);
   }
   else {
     BKE_sculptsession_bm_to_me(ob, true);

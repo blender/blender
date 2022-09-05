@@ -139,7 +139,8 @@ using bke::CurvesGeometry;
 
 namespace convert_to_particle_system {
 
-static int find_mface_for_root_position(const Mesh &mesh,
+static int find_mface_for_root_position(const Span<MVert> verts,
+                                        const MFace *mface,
                                         const Span<int> possible_mface_indices,
                                         const float3 &root_pos)
 {
@@ -151,14 +152,14 @@ static int find_mface_for_root_position(const Mesh &mesh,
   int mface_i;
   float best_distance_sq = FLT_MAX;
   for (const int possible_mface_i : possible_mface_indices) {
-    const MFace &possible_mface = mesh.mface[possible_mface_i];
+    const MFace &possible_mface = mface[possible_mface_i];
     {
       float3 point_in_triangle;
       closest_on_tri_to_point_v3(point_in_triangle,
                                  root_pos,
-                                 mesh.mvert[possible_mface.v1].co,
-                                 mesh.mvert[possible_mface.v2].co,
-                                 mesh.mvert[possible_mface.v3].co);
+                                 verts[possible_mface.v1].co,
+                                 verts[possible_mface.v2].co,
+                                 verts[possible_mface.v3].co);
       const float distance_sq = len_squared_v3v3(root_pos, point_in_triangle);
       if (distance_sq < best_distance_sq) {
         best_distance_sq = distance_sq;
@@ -170,9 +171,9 @@ static int find_mface_for_root_position(const Mesh &mesh,
       float3 point_in_triangle;
       closest_on_tri_to_point_v3(point_in_triangle,
                                  root_pos,
-                                 mesh.mvert[possible_mface.v1].co,
-                                 mesh.mvert[possible_mface.v3].co,
-                                 mesh.mvert[possible_mface.v4].co);
+                                 verts[possible_mface.v1].co,
+                                 verts[possible_mface.v3].co,
+                                 verts[possible_mface.v4].co);
       const float distance_sq = len_squared_v3v3(root_pos, point_in_triangle);
       if (distance_sq < best_distance_sq) {
         best_distance_sq = distance_sq;
@@ -186,25 +187,22 @@ static int find_mface_for_root_position(const Mesh &mesh,
 /**
  * \return Barycentric coordinates in the #MFace.
  */
-static float4 compute_mface_weights_for_position(const Mesh &mesh,
+static float4 compute_mface_weights_for_position(const Span<MVert> verts,
                                                  const MFace &mface,
                                                  const float3 &position)
 {
   float4 mface_weights;
   if (mface.v4) {
     float mface_verts_su[4][3];
-    copy_v3_v3(mface_verts_su[0], mesh.mvert[mface.v1].co);
-    copy_v3_v3(mface_verts_su[1], mesh.mvert[mface.v2].co);
-    copy_v3_v3(mface_verts_su[2], mesh.mvert[mface.v3].co);
-    copy_v3_v3(mface_verts_su[3], mesh.mvert[mface.v4].co);
+    copy_v3_v3(mface_verts_su[0], verts[mface.v1].co);
+    copy_v3_v3(mface_verts_su[1], verts[mface.v2].co);
+    copy_v3_v3(mface_verts_su[2], verts[mface.v3].co);
+    copy_v3_v3(mface_verts_su[3], verts[mface.v4].co);
     interp_weights_poly_v3(mface_weights, mface_verts_su, 4, position);
   }
   else {
-    interp_weights_tri_v3(mface_weights,
-                          mesh.mvert[mface.v1].co,
-                          mesh.mvert[mface.v2].co,
-                          mesh.mvert[mface.v3].co,
-                          position);
+    interp_weights_tri_v3(
+        mface_weights, verts[mface.v1].co, verts[mface.v2].co, verts[mface.v3].co, position);
     mface_weights[3] = 0.0f;
   }
   return mface_weights;
@@ -287,6 +285,9 @@ static void try_convert_single_object(Object &curves_ob,
   /* Prepare transformation matrices. */
   const bke::CurvesSurfaceTransforms transforms{curves_ob, &surface_ob};
 
+  const MFace *mfaces = (const MFace *)CustomData_get_layer(&surface_me.fdata, CD_MFACE);
+  const Span<MVert> verts = surface_me.vertices();
+
   for (const int new_hair_i : IndexRange(hair_num)) {
     const int curve_i = new_hair_i;
     const IndexRange points = curves.points_for_curve(curve_i);
@@ -305,11 +306,10 @@ static void try_convert_single_object(Object &curves_ob,
     const int poly_i = looptri.poly;
 
     const int mface_i = find_mface_for_root_position(
-        surface_me, poly_to_mface_map[poly_i], root_pos_su);
-    const MFace &mface = surface_me.mface[mface_i];
+        verts, mfaces, poly_to_mface_map[poly_i], root_pos_su);
+    const MFace &mface = mfaces[mface_i];
 
-    const float4 mface_weights = compute_mface_weights_for_position(
-        surface_me, mface, root_pos_su);
+    const float4 mface_weights = compute_mface_weights_for_position(verts, mface, root_pos_su);
 
     ParticleData &particle = particles[new_hair_i];
     const int num_keys = points.size();
@@ -541,8 +541,11 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
   Curves &curves_id = *static_cast<Curves *>(curves_ob.data);
   CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
 
-  Mesh &surface_mesh = *static_cast<Mesh *>(surface_ob.data);
-
+  const Mesh &surface_mesh = *static_cast<const Mesh *>(surface_ob.data);
+  const Span<MVert> verts = surface_mesh.vertices();
+  const Span<MLoop> loops = surface_mesh.loops();
+  const Span<MLoopTri> surface_looptris = {BKE_mesh_runtime_looptri_ensure(&surface_mesh),
+                                           BKE_mesh_runtime_looptri_len(&surface_mesh)};
   VArraySpan<float2> surface_uv_map;
   if (curves_id.surface_uv_map != nullptr) {
     const bke::AttributeAccessor surface_attributes = bke::mesh_attributes(surface_mesh);
@@ -553,9 +556,6 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
 
   MutableSpan<float3> positions_cu = curves.positions_for_write();
   MutableSpan<float2> surface_uv_coords = curves.surface_uv_coords_for_write();
-
-  const Span<MLoopTri> surface_looptris = {BKE_mesh_runtime_looptri_ensure(&surface_mesh),
-                                           BKE_mesh_runtime_looptri_len(&surface_mesh)};
 
   const bke::CurvesSurfaceTransforms transforms{curves_ob, &surface_ob};
 
@@ -603,9 +603,9 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
             const float2 &uv0 = surface_uv_map[corner0];
             const float2 &uv1 = surface_uv_map[corner1];
             const float2 &uv2 = surface_uv_map[corner2];
-            const float3 &p0_su = surface_mesh.mvert[surface_mesh.mloop[corner0].v].co;
-            const float3 &p1_su = surface_mesh.mvert[surface_mesh.mloop[corner1].v].co;
-            const float3 &p2_su = surface_mesh.mvert[surface_mesh.mloop[corner2].v].co;
+            const float3 &p0_su = verts[loops[corner0].v].co;
+            const float3 &p1_su = verts[loops[corner1].v].co;
+            const float3 &p2_su = verts[loops[corner2].v].co;
             float3 bary_coords;
             interp_weights_tri_v3(bary_coords, p0_su, p1_su, p2_su, new_first_point_pos_su);
             const float2 uv = attribute_math::mix3(bary_coords, uv0, uv1, uv2);
@@ -639,9 +639,9 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
           const MLoopTri &looptri = *lookup_result.looptri;
           const float3 &bary_coords = lookup_result.bary_weights;
 
-          const float3 &p0_su = surface_mesh.mvert[surface_mesh.mloop[looptri.tri[0]].v].co;
-          const float3 &p1_su = surface_mesh.mvert[surface_mesh.mloop[looptri.tri[1]].v].co;
-          const float3 &p2_su = surface_mesh.mvert[surface_mesh.mloop[looptri.tri[2]].v].co;
+          const float3 &p0_su = verts[loops[looptri.tri[0]].v].co;
+          const float3 &p1_su = verts[loops[looptri.tri[1]].v].co;
+          const float3 &p2_su = verts[loops[looptri.tri[2]].v].co;
 
           float3 new_first_point_pos_su;
           interp_v3_v3v3v3(new_first_point_pos_su, p0_su, p1_su, p2_su, bary_coords);

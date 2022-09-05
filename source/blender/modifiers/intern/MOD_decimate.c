@@ -135,7 +135,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   if (dmd->mode == MOD_DECIM_MODE_COLLAPSE) {
     if (dmd->defgrp_name[0] && (dmd->defgrp_factor > 0.0f)) {
-      MDeformVert *dvert;
+      const MDeformVert *dvert;
       int defgrp_index;
 
       MOD_get_vgroup(ctx->object, mesh, dmd->defgrp_name, &dvert, &defgrp_index);
@@ -203,7 +203,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   /* make sure we never alloc'd these */
   BLI_assert(bm->vtoolflagpool == NULL && bm->etoolflagpool == NULL && bm->ftoolflagpool == NULL);
-  BLI_assert(bm->vtable == NULL && bm->etable == NULL && bm->ftable == NULL);
 
   result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
 

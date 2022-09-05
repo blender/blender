@@ -579,7 +579,7 @@ void psys_get_texture(struct ParticleSimulationData *sim,
  * Interpolate a location on a face based on face coordinates.
  */
 void psys_interpolate_face(struct Mesh *mesh,
-                           struct MVert *mvert,
+                           const struct MVert *mvert,
                            const float (*vert_normals)[3],
                            struct MFace *mface,
                            struct MTFace *tface,

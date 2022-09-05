@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_volume.h"
 
@@ -29,7 +30,7 @@ class OpenVDBMeshAdapter {
 };
 
 OpenVDBMeshAdapter::OpenVDBMeshAdapter(const Mesh &mesh, float4x4 transform)
-    : vertices_(mesh.mvert, mesh.totvert), loops_(mesh.mloop, mesh.totloop), transform_(transform)
+    : vertices_(mesh.vertices()), loops_(mesh.loops()), transform_(transform)
 {
   /* This only updates a cache and can be considered to be logically const. */
   const MLoopTri *looptris = BKE_mesh_runtime_looptri_ensure(&mesh);

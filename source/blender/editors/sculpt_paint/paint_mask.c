@@ -1123,6 +1123,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   const float(*ob_imat)[4] = vc->obact->imat;
 
   /* Write vertices coordinates for the front face. */
+  MVert *verts = BKE_mesh_vertices_for_write(trim_operation->mesh);
   float depth_point[3];
   madd_v3_v3v3fl(depth_point, shape_origin, shape_normal, depth_front);
   for (int i = 0; i < tot_screen_points; i++) {
@@ -1134,7 +1135,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
       ED_view3d_win_to_3d_on_plane(region, shape_plane, screen_points[i], false, new_point);
       madd_v3_v3fl(new_point, shape_normal, depth_front);
     }
-    mul_v3_m4v3(trim_operation->mesh->mvert[i].co, ob_imat, new_point);
+    mul_v3_m4v3(verts[i].co, ob_imat, new_point);
     mul_v3_m4v3(trim_operation->true_mesh_co[i], ob_imat, new_point);
   }
 
@@ -1149,7 +1150,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
       ED_view3d_win_to_3d_on_plane(region, shape_plane, screen_points[i], false, new_point);
       madd_v3_v3fl(new_point, shape_normal, depth_back);
     }
-    mul_v3_m4v3(trim_operation->mesh->mvert[i + tot_screen_points].co, ob_imat, new_point);
+    mul_v3_m4v3(verts[i + tot_screen_points].co, ob_imat, new_point);
     mul_v3_m4v3(trim_operation->true_mesh_co[i + tot_screen_points], ob_imat, new_point);
   }
 
@@ -1159,10 +1160,12 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   BLI_polyfill_calc(screen_points, tot_screen_points, 0, r_tris);
 
   /* Write the front face triangle indices. */
-  MPoly *mp = trim_operation->mesh->mpoly;
-  MLoop *ml = trim_operation->mesh->mloop;
+  MPoly *polys = BKE_mesh_polygons_for_write(trim_operation->mesh);
+  MLoop *loops = BKE_mesh_loops_for_write(trim_operation->mesh);
+  MPoly *mp = polys;
+  MLoop *ml = loops;
   for (int i = 0; i < tot_tris_face; i++, mp++, ml += 3) {
-    mp->loopstart = (int)(ml - trim_operation->mesh->mloop);
+    mp->loopstart = (int)(ml - loops);
     mp->totloop = 3;
     ml[0].v = r_tris[i][0];
     ml[1].v = r_tris[i][1];
@@ -1171,7 +1174,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 
   /* Write the back face triangle indices. */
   for (int i = 0; i < tot_tris_face; i++, mp++, ml += 3) {
-    mp->loopstart = (int)(ml - trim_operation->mesh->mloop);
+    mp->loopstart = (int)(ml - loops);
     mp->totloop = 3;
     ml[0].v = r_tris[i][0] + tot_screen_points;
     ml[1].v = r_tris[i][1] + tot_screen_points;
@@ -1182,7 +1185,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 
   /* Write the indices for the lateral triangles. */
   for (int i = 0; i < tot_screen_points; i++, mp++, ml += 3) {
-    mp->loopstart = (int)(ml - trim_operation->mesh->mloop);
+    mp->loopstart = (int)(ml - loops);
     mp->totloop = 3;
     int current_index = i;
     int next_index = current_index + 1;
@@ -1195,7 +1198,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   }
 
   for (int i = 0; i < tot_screen_points; i++, mp++, ml += 3) {
-    mp->loopstart = (int)(ml - trim_operation->mesh->mloop);
+    mp->loopstart = (int)(ml - loops);
     mp->totloop = 3;
     int current_index = i;
     int next_index = current_index + 1;
@@ -1330,8 +1333,9 @@ static void sculpt_gesture_trim_apply_for_symmetry_pass(bContext *UNUSED(C),
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
   Mesh *trim_mesh = trim_operation->mesh;
+  MVert *verts = BKE_mesh_vertices_for_write(trim_mesh);
   for (int i = 0; i < trim_mesh->totvert; i++) {
-    flip_v3_v3(trim_mesh->mvert[i].co, trim_operation->true_mesh_co[i], sgcontext->symmpass);
+    flip_v3_v3(verts[i].co, trim_operation->true_mesh_co[i], sgcontext->symmpass);
   }
   sculpt_gesture_trim_normals_update(sgcontext);
   sculpt_gesture_apply_trim(sgcontext);

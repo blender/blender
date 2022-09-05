@@ -80,9 +80,10 @@ static void add_existing_edges_to_hash_maps(Mesh *mesh,
                                             uint32_t parallel_mask)
 {
   /* Assume existing edges are valid. */
+  const Span<MEdge> edges = mesh->edges();
   threading::parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
     const int task_index = &edge_map - edge_maps.data();
-    for (const MEdge &edge : Span(mesh->medge, mesh->totedge)) {
+    for (const MEdge &edge : edges) {
       OrderedEdge ordered_edge{edge.v1, edge.v2};
       /* Only add the edge when it belongs into this map. */
       if (task_index == (parallel_mask & ordered_edge.hash2())) {
@@ -96,10 +97,11 @@ static void add_polygon_edges_to_hash_maps(Mesh *mesh,
                                            MutableSpan<EdgeMap> edge_maps,
                                            uint32_t parallel_mask)
 {
-  const Span<MLoop> loops{mesh->mloop, mesh->totloop};
+  const Span<MPoly> polys = mesh->polygons();
+  const Span<MLoop> loops = mesh->loops();
   threading::parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
     const int task_index = &edge_map - edge_maps.data();
-    for (const MPoly &poly : Span(mesh->mpoly, mesh->totpoly)) {
+    for (const MPoly &poly : polys) {
       Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
       const MLoop *prev_loop = &poly_loops.last();
       for (const MLoop &next_loop : poly_loops) {
@@ -157,10 +159,11 @@ static void update_edge_indices_in_poly_loops(Mesh *mesh,
                                               Span<EdgeMap> edge_maps,
                                               uint32_t parallel_mask)
 {
-  const MutableSpan<MLoop> loops{mesh->mloop, mesh->totloop};
+  const Span<MPoly> polys = mesh->polygons();
+  MutableSpan<MLoop> loops = mesh->loops_for_write();
   threading::parallel_for(IndexRange(mesh->totpoly), 100, [&](IndexRange range) {
     for (const int poly_index : range) {
-      MPoly &poly = mesh->mpoly[poly_index];
+      const MPoly &poly = polys[poly_index];
       MutableSpan<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
 
       MLoop *prev_loop = &poly_loops.last();
@@ -242,7 +245,6 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool keep_existing_edges, const bool select
   CustomData_reset(&mesh->edata);
   CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_ASSIGN, new_edges.data(), new_totedge);
   mesh->totedge = new_totedge;
-  mesh->medge = new_edges.data();
 
   /* Explicitly clear edge maps, because that way it can be parallelized. */
   clear_hash_tables(edge_maps);

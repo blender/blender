@@ -176,8 +176,8 @@ void ABCGenericMeshWriter::do_write(HierarchyContext &context)
 
   m_custom_data_config.pack_uvs = args_.export_params->packuv;
   m_custom_data_config.mesh = mesh;
-  m_custom_data_config.mpoly = mesh->mpoly;
-  m_custom_data_config.mloop = mesh->mloop;
+  m_custom_data_config.mpoly = mesh->polygons_for_write().data();
+  m_custom_data_config.mloop = mesh->loops_for_write().data();
   m_custom_data_config.totpoly = mesh->totpoly;
   m_custom_data_config.totloop = mesh->totloop;
   m_custom_data_config.totvert = mesh->totvert;
@@ -436,8 +436,7 @@ static void get_vertices(struct Mesh *mesh, std::vector<Imath::V3f> &points)
   points.clear();
   points.resize(mesh->totvert);
 
-  MVert *verts = mesh->mvert;
-
+  const Span<MVert> verts = mesh->vertices();
   for (int i = 0, e = mesh->totvert; i < e; i++) {
     copy_yup_from_zup(points[i].getValue(), verts[i].co);
   }
@@ -448,25 +447,23 @@ static void get_topology(struct Mesh *mesh,
                          std::vector<int32_t> &loop_counts,
                          bool &r_has_flat_shaded_poly)
 {
-  const int num_poly = mesh->totpoly;
-  const int num_loops = mesh->totloop;
-  MLoop *mloop = mesh->mloop;
-  MPoly *mpoly = mesh->mpoly;
+  const Span<MPoly> polys = mesh->polygons();
+  const Span<MLoop> loops = mesh->loops();
   r_has_flat_shaded_poly = false;
 
   poly_verts.clear();
   loop_counts.clear();
-  poly_verts.reserve(num_loops);
-  loop_counts.reserve(num_poly);
+  poly_verts.reserve(loops.size());
+  loop_counts.reserve(polys.size());
 
   /* NOTE: data needs to be written in the reverse order. */
-  for (int i = 0; i < num_poly; i++) {
-    MPoly &poly = mpoly[i];
+  for (const int i : polys.index_range()) {
+    const MPoly &poly = polys[i];
     loop_counts.push_back(poly.totloop);
 
     r_has_flat_shaded_poly |= (poly.flag & ME_SMOOTH) == 0;
 
-    MLoop *loop = mloop + poly.loopstart + (poly.totloop - 1);
+    const MLoop *loop = &loops[poly.loopstart + (poly.totloop - 1)];
 
     for (int j = 0; j < poly.totloop; j++, loop--) {
       poly_verts.push_back(loop->v);
@@ -485,14 +482,14 @@ static void get_edge_creases(struct Mesh *mesh,
   lengths.clear();
   sharpnesses.clear();
 
-  MEdge *edge = mesh->medge;
+  const Span<MEdge> edges = mesh->edges();
 
-  for (int i = 0, e = mesh->totedge; i < e; i++) {
-    const float sharpness = static_cast<float>(edge[i].crease) * factor;
+  for (const int i : edges.index_range()) {
+    const float sharpness = static_cast<float>(edges[i].crease) * factor;
 
     if (sharpness != 0.0f) {
-      indices.push_back(edge[i].v1);
-      indices.push_back(edge[i].v2);
+      indices.push_back(edges[i].v1);
+      indices.push_back(edges[i].v2);
       sharpnesses.push_back(sharpness);
     }
   }
@@ -544,8 +541,10 @@ static void get_loop_normals(struct Mesh *mesh,
 
   /* NOTE: data needs to be written in the reverse order. */
   int abc_index = 0;
-  MPoly *mp = mesh->mpoly;
-  for (int i = 0, e = mesh->totpoly; i < e; i++, mp++) {
+  const Span<MPoly> polys = mesh->polygons();
+
+  for (const int i : polys.index_range()) {
+    const MPoly *mp = &polys[i];
     for (int j = mp->totloop - 1; j >= 0; j--, abc_index++) {
       int blender_index = mp->loopstart + j;
       copy_yup_from_zup(normals[abc_index].getValue(), lnors[blender_index]);

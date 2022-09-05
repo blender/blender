@@ -46,6 +46,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+using blender::Span;
+
 Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(BMEditMesh *em,
                                                  const CustomData_MeshMasks *cd_mask_extra,
                                                  const float (*vert_coords)[3],
@@ -195,9 +197,9 @@ void BKE_mesh_wrapper_vert_coords_copy(const Mesh *me,
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD: {
       BLI_assert(vert_coords_len <= me->totvert);
-      const MVert *mvert = me->mvert;
+      const Span<MVert> verts = me->vertices();
       for (int i = 0; i < vert_coords_len; i++) {
-        copy_v3_v3(vert_coords[i], mvert[i].co);
+        copy_v3_v3(vert_coords[i], verts[i].co);
       }
       return;
     }
@@ -233,9 +235,9 @@ void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *me,
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD: {
       BLI_assert(vert_coords_len == me->totvert);
-      const MVert *mvert = me->mvert;
+      const Span<MVert> verts = me->vertices();
       for (int i = 0; i < vert_coords_len; i++) {
-        mul_v3_m4v3(vert_coords[i], mat, mvert[i].co);
+        mul_v3_m4v3(vert_coords[i], mat, verts[i].co);
       }
       return;
     }

@@ -645,14 +645,16 @@ void heat_bone_weighting(Object *ob,
 {
   LaplacianSystem *sys;
   MLoopTri *mlooptri;
-  MPoly *mp;
-  MLoop *ml;
+  const MPoly *mp;
+  const MLoop *ml;
   float solution, weight;
   int *vertsflipped = NULL, *mask = NULL;
   int a, tris_num, j, bbone, firstsegment, lastsegment;
   bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
-  MVert *mvert = me->mvert;
+  const MVert *mesh_verts = BKE_mesh_vertices(me);
+  const MPoly *polys = BKE_mesh_polygons(me);
+  const MLoop *loops = BKE_mesh_loops(me);
   bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
   bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
@@ -667,16 +669,16 @@ void heat_bone_weighting(Object *ob,
 
     /*  (added selectedVerts content for vertex mask, they used to just equal 1) */
     if (use_vert_sel) {
-      for (a = 0, mp = me->mpoly; a < me->totpoly; mp++, a++) {
-        for (j = 0, ml = me->mloop + mp->loopstart; j < mp->totloop; j++, ml++) {
-          mask[ml->v] = (mvert[ml->v].flag & SELECT) != 0;
+      for (a = 0, mp = polys; a < me->totpoly; mp++, a++) {
+        for (j = 0, ml = loops + mp->loopstart; j < mp->totloop; j++, ml++) {
+          mask[ml->v] = (mesh_verts[ml->v].flag & SELECT) != 0;
         }
       }
     }
     else if (use_face_sel) {
-      for (a = 0, mp = me->mpoly; a < me->totpoly; mp++, a++) {
+      for (a = 0, mp = polys; a < me->totpoly; mp++, a++) {
         if (mp->flag & ME_FACE_SEL) {
-          for (j = 0, ml = me->mloop + mp->loopstart; j < mp->totloop; j++, ml++) {
+          for (j = 0, ml = loops + mp->loopstart; j < mp->totloop; j++, ml++) {
             mask[ml->v] = 1;
           }
         }
@@ -690,10 +692,10 @@ void heat_bone_weighting(Object *ob,
   sys->heat.tris_num = poly_to_tri_count(me->totpoly, me->totloop);
   mlooptri = MEM_mallocN(sizeof(*sys->heat.mlooptri) * sys->heat.tris_num, __func__);
 
-  BKE_mesh_recalc_looptri(me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, mlooptri);
+  BKE_mesh_recalc_looptri(loops, polys, mesh_verts, me->totloop, me->totpoly, mlooptri);
 
   sys->heat.mlooptri = mlooptri;
-  sys->heat.mloop = me->mloop;
+  sys->heat.mloop = loops;
   sys->heat.verts_num = me->totvert;
   sys->heat.verts = verts;
   sys->heat.root = root;
@@ -1606,8 +1608,8 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
   /* initialize data from 'cagedm' for reuse */
   {
     Mesh *me = mdb->cagemesh;
-    mdb->cagemesh_cache.mpoly = me->mpoly;
-    mdb->cagemesh_cache.mloop = me->mloop;
+    mdb->cagemesh_cache.mpoly = BKE_mesh_polygons(me);
+    mdb->cagemesh_cache.mloop = BKE_mesh_loops(me);
     mdb->cagemesh_cache.looptri = BKE_mesh_runtime_looptri_ensure(me);
     mdb->cagemesh_cache.poly_nors = BKE_mesh_poly_normals_ensure(me);
   }
@@ -1743,7 +1745,7 @@ void ED_mesh_deform_bind_callback(Object *object,
   MeshDeformModifierData *mmd_orig = (MeshDeformModifierData *)BKE_modifier_get_original(
       object, &mmd->modifier);
   MeshDeformBind mdb;
-  MVert *mvert;
+  const MVert *mvert;
   int a;
 
   waitcursor(1);
@@ -1763,7 +1765,7 @@ void ED_mesh_deform_bind_callback(Object *object,
   mdb.cagecos = MEM_callocN(sizeof(*mdb.cagecos) * mdb.cage_verts_num, "MeshDeformBindCos");
   copy_m4_m4(mdb.cagemat, cagemat);
 
-  mvert = mdb.cagemesh->mvert;
+  mvert = BKE_mesh_vertices(mdb.cagemesh);
   for (a = 0; a < mdb.cage_verts_num; a++) {
     copy_v3_v3(mdb.cagecos[a], mvert[a].co);
   }

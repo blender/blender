@@ -269,7 +269,7 @@ static void pointdensity_cache_vertex_color(PointDensity *pd,
                                             Mesh *mesh,
                                             float *data_color)
 {
-  const MLoop *mloop = mesh->mloop;
+  const MLoop *mloop = BKE_mesh_loops(mesh);
   const int totloop = mesh->totloop;
   char layername[MAX_CUSTOMDATA_LAYER_NAME];
   int i;
@@ -364,7 +364,7 @@ static void pointdensity_cache_object(PointDensity *pd, Object *ob)
 {
   float *data_color;
   int i;
-  MVert *mvert = NULL, *mv;
+  const MVert *mvert = NULL, *mv;
   Mesh *mesh = ob->data;
 
 #if 0 /* UNUSED */
@@ -380,7 +380,7 @@ static void pointdensity_cache_object(PointDensity *pd, Object *ob)
   }
 #endif
 
-  mvert = mesh->mvert; /* local object space */
+  mvert = BKE_mesh_vertices(mesh); /* local object space */
   pd->totpoints = mesh->totvert;
   if (pd->totpoints == 0) {
     return;

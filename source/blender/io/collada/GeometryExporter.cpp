@@ -27,6 +27,8 @@
 #include "collada_internal.h"
 #include "collada_utils.h"
 
+using blender::Span;
+
 void GeometryExporter::exportGeom()
 {
   Scene *sce = blender_context.get_scene();
@@ -117,11 +119,12 @@ void GeometryExporter::operator()(Object *ob)
   if (this->export_settings.get_include_shapekeys()) {
     Key *key = BKE_key_from_object(ob);
     if (key) {
+      blender::MutableSpan<MVert> verts = me->vertices_for_write();
       KeyBlock *kb = (KeyBlock *)key->block.first;
       /* skip the basis */
       kb = kb->next;
       for (; kb; kb = kb->next) {
-        BKE_keyblock_convert_to_mesh(kb, me->mvert, me->totvert);
+        BKE_keyblock_convert_to_mesh(kb, verts.data(), me->totvert);
         export_key_mesh(ob, me, kb);
       }
     }
@@ -197,8 +200,7 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
 
 void GeometryExporter::createLooseEdgeList(Object *ob, Mesh *me, std::string &geom_id)
 {
-
-  MEdge *medges = me->medge;
+  const Span<MEdge> edges = me->edges();
   int totedges = me->totedge;
   int edges_in_linelist = 0;
   std::vector<unsigned int> edge_list;
@@ -207,7 +209,7 @@ void GeometryExporter::createLooseEdgeList(Object *ob, Mesh *me, std::string &ge
   /* Find all loose edges in Mesh
    * and save vertex indices in edge_list */
   for (index = 0; index < totedges; index++) {
-    MEdge *edge = &medges[index];
+    const MEdge *edge = &edges[index];
 
     if (edge->flag & ME_LOOSEEDGE) {
       edges_in_linelist += 1;
@@ -285,19 +287,17 @@ static bool collect_vertex_counts_per_poly(Mesh *me,
                                            int material_index,
                                            std::vector<unsigned long> &vcount_list)
 {
+  const Span<MPoly> polys = me->polygons();
   const blender::bke::AttributeAccessor attributes = blender::bke::mesh_attributes(*me);
   const blender::VArray<int> material_indices = attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
-  MPoly *mpolys = me->mpoly;
-  int totpolys = me->totpoly;
   bool is_triangulated = true;
 
-  int i;
   /* Expecting that the material index is always 0 if the mesh has no materials assigned */
-  for (i = 0; i < totpolys; i++) {
+  for (const int i : polys.index_range()) {
     if (material_indices[i] == material_index) {
-      MPoly *p = &mpolys[i];
-      int vertex_count = p->totloop;
+      const MPoly &poly = polys[i];
+      const int vertex_count = poly.totloop;
       vcount_list.push_back(vertex_count);
       if (vertex_count != 3) {
         is_triangulated = false;
@@ -322,10 +322,8 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
                                                   std::string &geom_id,
                                                   std::vector<BCPolygonNormalsIndices> &norind)
 {
-
-  MPoly *mpolys = me->mpoly;
-  MLoop *mloops = me->mloop;
-  int totpolys = me->totpoly;
+  const Span<MPoly> polys = me->polygons();
+  const Span<MLoop> loops = me->loops();
 
   std::vector<unsigned long> vcount_list;
 
@@ -407,12 +405,12 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
 
   /* <p> */
   int texindex = 0;
-  for (int i = 0; i < totpolys; i++) {
-    MPoly *p = &mpolys[i];
+  for (const int i : polys.index_range()) {
+    const MPoly *p = &polys[i];
     int loop_count = p->totloop;
 
     if (material_indices[i] == material_index) {
-      MLoop *l = &mloops[p->loopstart];
+      const MLoop *l = &loops[p->loopstart];
       BCPolygonNormalsIndices normal_indices = norind[i];
 
       for (int j = 0; j < loop_count; j++) {
@@ -436,18 +434,13 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
 
 void GeometryExporter::createVertsSource(std::string geom_id, Mesh *me)
 {
-#if 0
-  int totverts = dm->getNumVerts(dm);
-  MVert *verts = dm->getVertArray(dm);
-#endif
-  int totverts = me->totvert;
-  MVert *verts = me->mvert;
+  const Span<MVert> verts = me->vertices();
 
   COLLADASW::FloatSourceF source(mSW);
   source.setId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::POSITION));
   source.setArrayId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::POSITION) +
                     ARRAY_ID_SUFFIX);
-  source.setAccessorCount(totverts);
+  source.setAccessorCount(verts.size());
   source.setAccessorStride(3);
 
   COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
@@ -458,8 +451,7 @@ void GeometryExporter::createVertsSource(std::string geom_id, Mesh *me)
    * count = ""> */
   source.prepareToAppendValues();
   /* appends data to <float_array> */
-  int i = 0;
-  for (i = 0; i < totverts; i++) {
+  for (const int i : verts.index_range()) {
     Vector co;
     if (export_settings.get_apply_global_orientation()) {
       bc_add_global_transform(co, verts[i].co, export_settings.get_global_transform());
@@ -508,11 +500,11 @@ void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 
     source.prepareToAppendValues();
 
-    MPoly *mpoly;
-    int i;
-    for (i = 0, mpoly = me->mpoly; i < me->totpoly; i++, mpoly++) {
-      const MLoopCol *mlc = mloopcol + mpoly->loopstart;
-      for (int j = 0; j < mpoly->totloop; j++, mlc++) {
+    const Span<MPoly> polys = me->polygons();
+    for (const int i : polys.index_range()) {
+      const MPoly &poly = polys[i];
+      const MLoopCol *mlc = mloopcol + poly.loopstart;
+      for (int j = 0; j < poly.totloop; j++, mlc++) {
         source.appendValues(mlc->r / 255.0f, mlc->g / 255.0f, mlc->b / 255.0f, mlc->a / 255.0f);
       }
     }
@@ -537,10 +529,8 @@ std::string GeometryExporter::makeTexcoordSourceId(std::string &geom_id,
 
 void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
 {
-
-  int totpoly = me->totpoly;
   int totuv = me->totloop;
-  MPoly *mpolys = me->mpoly;
+  const Span<MPoly> polys = me->polygons();
 
   int num_layers = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
 
@@ -566,8 +556,8 @@ void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
 
       source.prepareToAppendValues();
 
-      for (int index = 0; index < totpoly; index++) {
-        MPoly *mpoly = mpolys + index;
+      for (const int i : polys.index_range()) {
+        const MPoly *mpoly = &polys[i];
         MLoopUV *mloop = mloops + mpoly->loopstart;
         for (int j = 0; j < mpoly->totloop; j++) {
           source.appendValues(mloop[j].uv[0], mloop[j].uv[1]);
@@ -625,9 +615,10 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
   std::map<Normal, unsigned int> shared_normal_indices;
   int last_normal_index = -1;
 
-  MVert *verts = me->mvert;
+  const Span<MVert> verts = me->vertices();
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me);
-  MLoop *mloops = me->mloop;
+  const Span<MPoly> polys = me->polygons();
+  const Span<MLoop> loops = me->loops();
   const float(*lnors)[3] = nullptr;
   bool use_custom_normals = false;
 
@@ -637,15 +628,15 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
     use_custom_normals = true;
   }
 
-  for (int poly_index = 0; poly_index < me->totpoly; poly_index++) {
-    MPoly *mpoly = &me->mpoly[poly_index];
+  for (const int poly_index : polys.index_range()) {
+    const MPoly *mpoly = &polys[poly_index];
     bool use_vertex_normals = use_custom_normals || mpoly->flag & ME_SMOOTH;
 
     if (!use_vertex_normals) {
       /* For flat faces use face normal as vertex normal: */
 
       float vector[3];
-      BKE_mesh_calc_poly_normal(mpoly, mloops + mpoly->loopstart, verts, vector);
+      BKE_mesh_calc_poly_normal(mpoly, &loops[mpoly->loopstart], verts.data(), vector);
 
       Normal n = {vector[0], vector[1], vector[2]};
       normals.push_back(n);
@@ -662,7 +653,7 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
           normalize_v3_v3(normalized, lnors[loop_idx]);
         }
         else {
-          copy_v3_v3(normalized, vert_normals[mloops[loop_index].v]);
+          copy_v3_v3(normalized, vert_normals[loops[loop_index].v]);
           normalize_v3(normalized);
         }
         Normal n = {normalized[0], normalized[1], normalized[2]};

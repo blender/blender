@@ -71,20 +71,20 @@ typedef struct WeightedNormalData {
   const int loops_num;
   const int polys_num;
 
-  MVert *mvert;
+  const MVert *mvert;
   const float (*vert_normals)[3];
   MEdge *medge;
 
-  MLoop *mloop;
+  const MLoop *mloop;
   short (*clnors)[2];
   const bool has_clnors; /* True if clnors already existed, false if we had to create them. */
   const float split_angle;
 
-  MPoly *mpoly;
+  const MPoly *mpoly;
   const float (*polynors)[3];
   const int *poly_strength;
 
-  MDeformVert *dvert;
+  const MDeformVert *dvert;
   const int defgrp_index;
   const bool use_invert_vgroup;
 
@@ -133,7 +133,7 @@ static void aggregate_item_normal(WeightedNormalModifierData *wnmd,
 {
   const float(*polynors)[3] = wn_data->polynors;
 
-  MDeformVert *dvert = wn_data->dvert;
+  const MDeformVert *dvert = wn_data->dvert;
   const int defgrp_index = wn_data->defgrp_index;
   const bool use_invert_vgroup = wn_data->use_invert_vgroup;
 
@@ -186,18 +186,18 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
   const int loops_num = wn_data->loops_num;
   const int polys_num = wn_data->polys_num;
 
-  MVert *mvert = wn_data->mvert;
+  const MVert *mvert = wn_data->mvert;
   MEdge *medge = wn_data->medge;
 
-  MLoop *mloop = wn_data->mloop;
+  const MLoop *mloop = wn_data->mloop;
   short(*clnors)[2] = wn_data->clnors;
   int *loop_to_poly = wn_data->loop_to_poly;
 
-  MPoly *mpoly = wn_data->mpoly;
+  const MPoly *mpoly = wn_data->mpoly;
   const float(*polynors)[3] = wn_data->polynors;
   const int *poly_strength = wn_data->poly_strength;
 
-  MDeformVert *dvert = wn_data->dvert;
+  const MDeformVert *dvert = wn_data->dvert;
 
   const short mode = wn_data->mode;
   ModePair *mode_pair = wn_data->mode_pair;
@@ -243,7 +243,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
 
     /* In this first loop, we assign each WeightedNormalDataAggregateItem
      * to its smooth fan of loops (aka lnor space). */
-    MPoly *mp;
+    const MPoly *mp;
     int mp_index;
     int item_index;
     for (mp = mpoly, mp_index = 0, item_index = 0; mp_index < polys_num; mp++, mp_index++) {
@@ -446,11 +446,11 @@ static void wn_face_area(WeightedNormalModifierData *wnmd, WeightedNormalData *w
 {
   const int polys_num = wn_data->polys_num;
 
-  MVert *mvert = wn_data->mvert;
-  MLoop *mloop = wn_data->mloop;
-  MPoly *mpoly = wn_data->mpoly;
+  const MVert *mvert = wn_data->mvert;
+  const MLoop *mloop = wn_data->mloop;
+  const MPoly *mpoly = wn_data->mpoly;
 
-  MPoly *mp;
+  const MPoly *mp;
   int mp_index;
 
   ModePair *face_area = MEM_malloc_arrayN((size_t)polys_num, sizeof(*face_area), __func__);
@@ -472,11 +472,11 @@ static void wn_corner_angle(WeightedNormalModifierData *wnmd, WeightedNormalData
   const int loops_num = wn_data->loops_num;
   const int polys_num = wn_data->polys_num;
 
-  MVert *mvert = wn_data->mvert;
-  MLoop *mloop = wn_data->mloop;
-  MPoly *mpoly = wn_data->mpoly;
+  const MVert *mvert = wn_data->mvert;
+  const MLoop *mloop = wn_data->mloop;
+  const MPoly *mpoly = wn_data->mpoly;
 
-  MPoly *mp;
+  const MPoly *mp;
   int mp_index;
 
   int *loop_to_poly = MEM_malloc_arrayN((size_t)loops_num, sizeof(*loop_to_poly), __func__);
@@ -484,7 +484,7 @@ static void wn_corner_angle(WeightedNormalModifierData *wnmd, WeightedNormalData
   ModePair *corner_angle = MEM_malloc_arrayN((size_t)loops_num, sizeof(*corner_angle), __func__);
 
   for (mp_index = 0, mp = mpoly; mp_index < polys_num; mp_index++, mp++) {
-    MLoop *ml_start = &mloop[mp->loopstart];
+    const MLoop *ml_start = &mloop[mp->loopstart];
 
     float *index_angle = MEM_malloc_arrayN((size_t)mp->totloop, sizeof(*index_angle), __func__);
     BKE_mesh_calc_poly_angles(mp, ml_start, mvert, index_angle);
@@ -513,11 +513,11 @@ static void wn_face_with_angle(WeightedNormalModifierData *wnmd, WeightedNormalD
   const int loops_num = wn_data->loops_num;
   const int polys_num = wn_data->polys_num;
 
-  MVert *mvert = wn_data->mvert;
-  MLoop *mloop = wn_data->mloop;
-  MPoly *mpoly = wn_data->mpoly;
+  const MVert *mvert = wn_data->mvert;
+  const MLoop *mloop = wn_data->mloop;
+  const MPoly *mpoly = wn_data->mpoly;
 
-  MPoly *mp;
+  const MPoly *mp;
   int mp_index;
 
   int *loop_to_poly = MEM_malloc_arrayN((size_t)loops_num, sizeof(*loop_to_poly), __func__);
@@ -525,7 +525,7 @@ static void wn_face_with_angle(WeightedNormalModifierData *wnmd, WeightedNormalD
   ModePair *combined = MEM_malloc_arrayN((size_t)loops_num, sizeof(*combined), __func__);
 
   for (mp_index = 0, mp = mpoly; mp_index < polys_num; mp_index++, mp++) {
-    MLoop *ml_start = &mloop[mp->loopstart];
+    const MLoop *ml_start = &mloop[mp->loopstart];
 
     float face_area = BKE_mesh_calc_poly_area(mp, ml_start, mvert);
     float *index_angle = MEM_malloc_arrayN((size_t)mp->totloop, sizeof(*index_angle), __func__);
@@ -579,11 +579,10 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   const int edges_num = result->totedge;
   const int loops_num = result->totloop;
   const int polys_num = result->totpoly;
-
-  MEdge *medge = result->medge;
-  MPoly *mpoly = result->mpoly;
-  MVert *mvert = result->mvert;
-  MLoop *mloop = result->mloop;
+  const MVert *mvert = BKE_mesh_vertices(result);
+  MEdge *medge = BKE_mesh_edges_for_write(result);
+  const MPoly *mpoly = BKE_mesh_polygons(result);
+  const MLoop *mloop = BKE_mesh_loops(result);
 
   /* Right now:
    * If weight = 50 then all faces are given equal weight.
@@ -613,7 +612,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         &result->ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, NULL, loops_num);
   }
 
-  MDeformVert *dvert;
+  const MDeformVert *dvert;
   int defgrp_index;
   MOD_get_vgroup(ctx->object, mesh, wnmd->defgrp_name, &dvert, &defgrp_index);
 

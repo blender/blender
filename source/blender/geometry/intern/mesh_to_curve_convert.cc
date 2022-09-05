@@ -12,6 +12,7 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
+#include "BKE_mesh.h"
 
 #include "GEO_mesh_to_curve.hh"
 
@@ -213,8 +214,9 @@ static CurveFromEdgesOutput edges_to_curve_point_indices(Span<MVert> verts,
 static Vector<std::pair<int, int>> get_selected_edges(const Mesh &mesh, const IndexMask selection)
 {
   Vector<std::pair<int, int>> selected_edges;
+  const Span<MEdge> edges = mesh.edges();
   for (const int i : selection) {
-    selected_edges.append({mesh.medge[i].v1, mesh.medge[i].v2});
+    selected_edges.append({edges[i].v1, edges[i].v2});
   }
   return selected_edges;
 }
@@ -222,8 +224,8 @@ static Vector<std::pair<int, int>> get_selected_edges(const Mesh &mesh, const In
 bke::CurvesGeometry mesh_to_curve_convert(const Mesh &mesh, const IndexMask selection)
 {
   Vector<std::pair<int, int>> selected_edges = get_selected_edges(mesh, selection);
-  CurveFromEdgesOutput output = edges_to_curve_point_indices({mesh.mvert, mesh.totvert},
-                                                             selected_edges);
+  const Span<MVert> verts = mesh.vertices();
+  CurveFromEdgesOutput output = edges_to_curve_point_indices(verts, selected_edges);
 
   return create_curve_from_vert_indices(
       mesh, output.vert_indices, output.curve_offsets, output.cyclic_curves);

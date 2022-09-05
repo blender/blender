@@ -1258,7 +1258,7 @@ static void do_key(const int start,
 
 static float *get_weights_array(Object *ob, char *vgroup, WeightsArrayCache *cache)
 {
-  MDeformVert *dvert = NULL;
+  const MDeformVert *dvert = NULL;
   BMEditMesh *em = NULL;
   BMIter iter;
   BMVert *eve;
@@ -1272,7 +1272,7 @@ static float *get_weights_array(Object *ob, char *vgroup, WeightsArrayCache *cac
   /* gather dvert and totvert */
   if (ob->type == OB_MESH) {
     Mesh *me = ob->data;
-    dvert = me->dvert;
+    dvert = BKE_mesh_deform_verts(me);
     totvert = me->totvert;
 
     if (me->edit_mesh && me->edit_mesh->bm->totvert == totvert) {
@@ -1602,8 +1602,9 @@ float *BKE_key_evaluate_object_ex(
     switch (GS(obdata->name)) {
       case ID_ME: {
         Mesh *mesh = (Mesh *)obdata;
+        MVert *verts = BKE_mesh_vertices_for_write(mesh);
         const int totvert = min_ii(tot, mesh->totvert);
-        keyblock_data_convert_to_mesh((const float(*)[3])out, mesh->mvert, totvert);
+        keyblock_data_convert_to_mesh((const float(*)[3])out, verts, totvert);
         break;
       }
       case ID_LT: {
@@ -2168,7 +2169,6 @@ void BKE_keyblock_convert_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nu
 
 void BKE_keyblock_update_from_mesh(const Mesh *me, KeyBlock *kb)
 {
-  MVert *mvert;
   float(*fp)[3];
   int a, tot;
 
@@ -2179,7 +2179,7 @@ void BKE_keyblock_update_from_mesh(const Mesh *me, KeyBlock *kb)
     return;
   }
 
-  mvert = me->mvert;
+  const MVert *mvert = BKE_mesh_vertices(me);
   fp = kb->data;
   for (a = 0; a < tot; a++, fp++, mvert++) {
     copy_v3_v3(*fp, mvert->co);
@@ -2227,8 +2227,11 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
     return;
   }
 
-  MVert *mvert = MEM_dupallocN(mesh->mvert);
-  BKE_keyblock_convert_to_mesh(kb, mvert, mesh->totvert);
+  MVert *verts = MEM_dupallocN(BKE_mesh_vertices(mesh));
+  BKE_keyblock_convert_to_mesh(kb, verts, mesh->totvert);
+  const MEdge *edges = BKE_mesh_edges(mesh);
+  const MPoly *polys = BKE_mesh_polygons(mesh);
+  const MLoop *loops = BKE_mesh_loops(mesh);
 
   const bool loop_normals_needed = r_loopnors != NULL;
   const bool vert_normals_needed = r_vertnors != NULL || loop_normals_needed;
@@ -2249,35 +2252,30 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
   }
 
   if (poly_normals_needed) {
-    BKE_mesh_calc_normals_poly(mvert,
-                               mesh->totvert,
-                               mesh->mloop,
-                               mesh->totloop,
-                               mesh->mpoly,
-                               mesh->totpoly,
-                               poly_normals);
+    BKE_mesh_calc_normals_poly(
+        verts, mesh->totvert, loops, mesh->totloop, polys, mesh->totpoly, poly_normals);
   }
   if (vert_normals_needed) {
-    BKE_mesh_calc_normals_poly_and_vertex(mvert,
+    BKE_mesh_calc_normals_poly_and_vertex(verts,
                                           mesh->totvert,
-                                          mesh->mloop,
+                                          loops,
                                           mesh->totloop,
-                                          mesh->mpoly,
+                                          polys,
                                           mesh->totpoly,
                                           poly_normals,
                                           vert_normals);
   }
   if (loop_normals_needed) {
     short(*clnors)[2] = CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL); /* May be NULL. */
-    BKE_mesh_normals_loop_split(mvert,
+    BKE_mesh_normals_loop_split(verts,
                                 vert_normals,
                                 mesh->totvert,
-                                mesh->medge,
+                                edges,
                                 mesh->totedge,
-                                mesh->mloop,
+                                loops,
                                 r_loopnors,
                                 mesh->totloop,
-                                mesh->mpoly,
+                                polys,
                                 poly_normals,
                                 mesh->totpoly,
                                 (mesh->flag & ME_AUTOSMOOTH) != 0,
@@ -2293,7 +2291,7 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
   if (free_poly_normals) {
     MEM_freeN(poly_normals);
   }
-  MEM_freeN(mvert);
+  MEM_freeN(verts);
 }
 
 /************************* raw coords ************************/

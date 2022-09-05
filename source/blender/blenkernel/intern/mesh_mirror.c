@@ -211,14 +211,18 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   /* Subsurf for eg won't have mesh data in the custom-data arrays.
    * now add mvert/medge/mpoly layers. */
   if (!CustomData_has_layer(&mesh->vdata, CD_MVERT)) {
-    memcpy(result->mvert, mesh->mvert, sizeof(*result->mvert) * mesh->totvert);
+    memcpy(BKE_mesh_vertices_for_write(result),
+           BKE_mesh_vertices(mesh),
+           sizeof(MVert) * mesh->totvert);
   }
   if (!CustomData_has_layer(&mesh->edata, CD_MEDGE)) {
-    memcpy(result->medge, mesh->medge, sizeof(*result->medge) * mesh->totedge);
+    memcpy(BKE_mesh_edges_for_write(result), BKE_mesh_edges(mesh), sizeof(MEdge) * mesh->totedge);
   }
   if (!CustomData_has_layer(&mesh->pdata, CD_MPOLY)) {
-    memcpy(result->mloop, mesh->mloop, sizeof(*result->mloop) * mesh->totloop);
-    memcpy(result->mpoly, mesh->mpoly, sizeof(*result->mpoly) * mesh->totpoly);
+    memcpy(BKE_mesh_loops_for_write(result), BKE_mesh_loops(mesh), sizeof(MLoop) * mesh->totloop);
+    memcpy(BKE_mesh_polygons_for_write(result),
+           BKE_mesh_polygons(mesh),
+           sizeof(MPoly) * mesh->totpoly);
   }
 
   /* Copy custom-data to new geometry,
@@ -237,7 +241,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   }
 
   /* mirror vertex coordinates */
-  mv_prev = result->mvert;
+  mv_prev = BKE_mesh_vertices_for_write(result);
   mv = mv_prev + maxVerts;
   for (i = 0; i < maxVerts; i++, mv++, mv_prev++) {
     mul_m4_v3(mtx, mv->co);
@@ -304,15 +308,15 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   }
 
   /* adjust mirrored edge vertex indices */
-  me = result->medge + maxEdges;
+  me = BKE_mesh_edges_for_write(result) + maxEdges;
   for (i = 0; i < maxEdges; i++, me++) {
     me->v1 += maxVerts;
     me->v2 += maxVerts;
   }
 
   /* adjust mirrored poly loopstart indices, and reverse loop order (normals) */
-  mp = result->mpoly + maxPolys;
-  ml = result->mloop;
+  mp = BKE_mesh_polygons_for_write(result) + maxPolys;
+  ml = BKE_mesh_loops_for_write(result);
   for (i = 0; i < maxPolys; i++, mp++) {
     MLoop *ml2;
     int j, e;
@@ -341,7 +345,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   }
 
   /* adjust mirrored loop vertex and edge indices */
-  ml = result->mloop + maxLoops;
+  ml = BKE_mesh_loops_for_write(result) + maxLoops;
   for (i = 0; i < maxLoops; i++, ml++) {
     ml->v += maxVerts;
     ml->e += maxEdges;
@@ -405,15 +409,15 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
     /* calculate custom normals into loop_normals, then mirror first half into second half */
 
-    BKE_mesh_normals_loop_split(result->mvert,
+    BKE_mesh_normals_loop_split(BKE_mesh_vertices(result),
                                 BKE_mesh_vertex_normals_ensure(result),
                                 result->totvert,
-                                result->medge,
+                                BKE_mesh_edges(result),
                                 result->totedge,
-                                result->mloop,
+                                BKE_mesh_loops(result),
                                 loop_normals,
                                 totloop,
-                                result->mpoly,
+                                BKE_mesh_polygons(result),
                                 BKE_mesh_poly_normals_ensure(result),
                                 totpoly,
                                 true,
@@ -423,9 +427,10 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
                                 NULL);
 
     /* mirroring has to account for loops being reversed in polys in second half */
-    mp = result->mpoly;
+    MPoly *result_polys = BKE_mesh_polygons_for_write(result);
+    mp = result_polys;
     for (i = 0; i < maxPolys; i++, mp++) {
-      MPoly *mpmirror = result->mpoly + maxPolys + i;
+      MPoly *mpmirror = result_polys + maxPolys + i;
       int j;
 
       for (j = mp->loopstart; j < mp->loopstart + mp->totloop; j++) {
@@ -446,8 +451,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
   /* handle vgroup stuff */
   if ((mmd->flag & MOD_MIR_VGROUP) && CustomData_has_layer(&result->vdata, CD_MDEFORMVERT)) {
-    MDeformVert *dvert = (MDeformVert *)CustomData_get_layer(&result->vdata, CD_MDEFORMVERT) +
-                         maxVerts;
+    MDeformVert *dvert = BKE_mesh_deform_verts_for_write(result) + maxVerts;
     int *flip_map = NULL, flip_map_len = 0;
 
     flip_map = BKE_object_defgroup_flip_map(ob, &flip_map_len, false);

@@ -109,7 +109,7 @@ static void requiredDataMask(Object *UNUSED(ob),
 }
 
 /* check individual weights for changes and cache values */
-static void mesh_get_weights(MDeformVert *dvert,
+static void mesh_get_weights(const MDeformVert *dvert,
                              const int defgrp_index,
                              const uint verts_num,
                              const bool use_invert_vgroup,
@@ -131,9 +131,9 @@ static void mesh_get_weights(MDeformVert *dvert,
 
 static void mesh_get_boundaries(Mesh *mesh, float *smooth_weights)
 {
-  const MPoly *mpoly = mesh->mpoly;
-  const MLoop *mloop = mesh->mloop;
-  const MEdge *medge = mesh->medge;
+  const MEdge *medge = BKE_mesh_edges(mesh);
+  const MPoly *mpoly = BKE_mesh_polygons(mesh);
+  const MLoop *mloop = BKE_mesh_loops(mesh);
   uint mpoly_num, medge_num, i;
   ushort *boundaries;
 
@@ -178,7 +178,7 @@ static void smooth_iter__simple(CorrectiveSmoothModifierData *csmd,
   uint i;
 
   const uint edges_num = (uint)mesh->totedge;
-  const MEdge *edges = mesh->medge;
+  const MEdge *edges = BKE_mesh_edges(mesh);
   float *vertex_edge_count_div;
 
   struct SmoothingData_Simple {
@@ -255,7 +255,7 @@ static void smooth_iter__length_weight(CorrectiveSmoothModifierData *csmd,
   /* NOTE: the way this smoothing method works, its approx half as strong as the simple-smooth,
    * and 2.0 rarely spikes, double the value for consistent behavior. */
   const float lambda = csmd->lambda * 2.0f;
-  const MEdge *edges = mesh->medge;
+  const MEdge *edges = BKE_mesh_edges(mesh);
   float *vertex_edge_count;
   uint i;
 
@@ -358,7 +358,7 @@ static void smooth_iter(CorrectiveSmoothModifierData *csmd,
 
 static void smooth_verts(CorrectiveSmoothModifierData *csmd,
                          Mesh *mesh,
-                         MDeformVert *dvert,
+                         const MDeformVert *dvert,
                          const int defgrp_index,
                          float (*vertexCos)[3],
                          uint verts_num)
@@ -452,8 +452,8 @@ static void calc_tangent_spaces(Mesh *mesh, float (*vertexCos)[3], float (*r_tan
 #ifndef USE_TANGENT_CALC_INLINE
   const uint mvert_num = (uint)dm->getNumVerts(dm);
 #endif
-  const MPoly *mpoly = mesh->mpoly;
-  const MLoop *mloop = mesh->mloop;
+  const MPoly *mpoly = BKE_mesh_polygons(mesh);
+  const MLoop *mloop = BKE_mesh_loops(mesh);
   uint i;
 
   for (i = 0; i < mpoly_num; i++) {
@@ -519,7 +519,7 @@ static bool cache_settings_equal(CorrectiveSmoothModifierData *csmd)
  */
 static void calc_deltas(CorrectiveSmoothModifierData *csmd,
                         Mesh *mesh,
-                        MDeformVert *dvert,
+                        const MDeformVert *dvert,
                         const int defgrp_index,
                         const float (*rest_coords)[3],
                         uint verts_num)
@@ -579,7 +579,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
        (((ID *)ob->data)->recalc & ID_RECALC_ALL));
 
   bool use_only_smooth = (csmd->flag & MOD_CORRECTIVESMOOTH_ONLY_SMOOTH) != 0;
-  MDeformVert *dvert = NULL;
+  const MDeformVert *dvert = NULL;
   int defgrp_index;
 
   MOD_get_vgroup(ob, mesh, csmd->defgrp_name, &dvert, &defgrp_index);
