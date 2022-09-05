@@ -60,7 +60,7 @@ void init_globals_curves()
 void init_globals_gpencil()
 {
   /* Undo backface flip as the gpencil normal is already pointing towards the camera. */
-  g_data.N = interp.N;
+  g_data.N = g_data.Ni = interp.N;
 }
 
 void init_globals()
@@ -82,6 +82,7 @@ void init_globals()
 
 #ifdef GPU_FRAGMENT_SHADER
   g_data.N = (FrontFacing) ? g_data.N : -g_data.N;
+  g_data.Ni = (FrontFacing) ? g_data.Ni : -g_data.Ni;
   g_data.Ng = safe_normalize(cross(dFdx(g_data.P), dFdy(g_data.P)));
 #endif
 
