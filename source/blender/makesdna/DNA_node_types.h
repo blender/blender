@@ -535,6 +535,9 @@ typedef struct bNodeTree {
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;
 
+  /** The ID owning this node tree, in case it is an embedded one. */
+  ID *owner_id;
+
   /** Runtime type information. */
   struct bNodeTreeType *typeinfo;
   /** Runtime type identifier. */

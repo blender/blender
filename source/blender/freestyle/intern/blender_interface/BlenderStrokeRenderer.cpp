@@ -218,12 +218,12 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
         break;
       }
     }
+    ma->nodetree = ntree;
   }
   else {
-    ntree = ntreeAddTree(nullptr, "stroke_shader", "ShaderNodeTree");
+    ntree = ntreeAddTreeEmbedded(nullptr, &ma->id, "stroke_shader", "ShaderNodeTree");
   }
-  ma->nodetree = ntree;
-  ma->use_nodes = 1;
+  ma->use_nodes = true;
   ma->blend_method = MA_BM_HASHED;
 
   bNode *input_attr_color = nodeAddStaticNode(nullptr, ntree, SH_NODE_ATTRIBUTE);

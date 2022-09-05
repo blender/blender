@@ -1962,8 +1962,8 @@ static void material_default_surface_init(Material *ma)
 {
   strcpy(ma->id.name, "MADefault Surface");
 
-  bNodeTree *ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
-  ma->nodetree = ntree;
+  bNodeTree *ntree = ntreeAddTreeEmbedded(
+      NULL, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
   ma->use_nodes = true;
 
   bNode *principled = nodeAddStaticNode(NULL, ntree, SH_NODE_BSDF_PRINCIPLED);
@@ -1990,8 +1990,8 @@ static void material_default_volume_init(Material *ma)
 {
   strcpy(ma->id.name, "MADefault Volume");
 
-  bNodeTree *ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
-  ma->nodetree = ntree;
+  bNodeTree *ntree = ntreeAddTreeEmbedded(
+      NULL, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
   ma->use_nodes = true;
 
   bNode *principled = nodeAddStaticNode(NULL, ntree, SH_NODE_VOLUME_PRINCIPLED);
@@ -2015,8 +2015,8 @@ static void material_default_holdout_init(Material *ma)
 {
   strcpy(ma->id.name, "MADefault Holdout");
 
-  bNodeTree *ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
-  ma->nodetree = ntree;
+  bNodeTree *ntree = ntreeAddTreeEmbedded(
+      NULL, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
   ma->use_nodes = true;
 
   bNode *holdout = nodeAddStaticNode(NULL, ntree, SH_NODE_HOLDOUT);

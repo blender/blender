@@ -72,10 +72,9 @@ bNodeTree *DefaultSurfaceNodeTree::nodetree_get(::Material *ma)
 MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
 {
   {
-    bNodeTree *ntree = ntreeAddTree(nullptr, "Shader Nodetree", ntreeType_Shader->idname);
-
     diffuse_mat = (::Material *)BKE_id_new_nomain(ID_MA, "EEVEE default diffuse");
-    diffuse_mat->nodetree = ntree;
+    bNodeTree *ntree = ntreeAddTreeEmbedded(
+        nullptr, &diffuse_mat->id, "Shader Nodetree", ntreeType_Shader->idname);
     diffuse_mat->use_nodes = true;
     /* To use the forward pipeline. */
     diffuse_mat->blend_method = MA_BM_BLEND;
@@ -95,10 +94,9 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
     nodeSetActive(ntree, output);
   }
   {
-    bNodeTree *ntree = ntreeAddTree(nullptr, "Shader Nodetree", ntreeType_Shader->idname);
-
     glossy_mat = (::Material *)BKE_id_new_nomain(ID_MA, "EEVEE default metal");
-    glossy_mat->nodetree = ntree;
+    bNodeTree *ntree = ntreeAddTreeEmbedded(
+        nullptr, &glossy_mat->id, "Shader Nodetree", ntreeType_Shader->idname);
     glossy_mat->use_nodes = true;
     /* To use the forward pipeline. */
     glossy_mat->blend_method = MA_BM_BLEND;
@@ -120,10 +118,9 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
     nodeSetActive(ntree, output);
   }
   {
-    bNodeTree *ntree = ntreeAddTree(nullptr, "Shader Nodetree", ntreeType_Shader->idname);
-
     error_mat_ = (::Material *)BKE_id_new_nomain(ID_MA, "EEVEE default error");
-    error_mat_->nodetree = ntree;
+    bNodeTree *ntree = ntreeAddTreeEmbedded(
+        nullptr, &error_mat_->id, "Shader Nodetree", ntreeType_Shader->idname);
     error_mat_->use_nodes = true;
 
     /* Use emission and output material to be compatible with both World and Material. */

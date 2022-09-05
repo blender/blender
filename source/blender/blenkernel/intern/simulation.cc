@@ -51,8 +51,7 @@ static void simulation_init_data(ID *id)
 
   MEMCPY_STRUCT_AFTER(simulation, DNA_struct_default_get(Simulation), id);
 
-  bNodeTree *ntree = ntreeAddTree(nullptr, "Geometry Nodetree", ntreeType_Geometry->idname);
-  simulation->nodetree = ntree;
+  ntreeAddTreeEmbedded(nullptr, id, "Geometry Nodetree", ntreeType_Geometry->idname);
 }
 
 static void simulation_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)

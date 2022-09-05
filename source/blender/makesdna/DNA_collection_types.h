@@ -46,6 +46,9 @@ enum eCollectionLineArt_Flags {
 typedef struct Collection {
   ID id;
 
+  /** The ID owning this node tree, in case it is an embedded one. */
+  ID *owner_id;
+
   /** CollectionObject. */
   ListBase gobject;
   /** CollectionChild. */

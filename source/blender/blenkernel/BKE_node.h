@@ -472,6 +472,11 @@ void ntreeSetTypes(const struct bContext *C, struct bNodeTree *ntree);
 
 struct bNodeTree *ntreeAddTree(struct Main *bmain, const char *name, const char *idname);
 
+struct bNodeTree *ntreeAddTreeEmbedded(struct Main *bmain,
+                                       struct ID *owner_id,
+                                       const char *name,
+                                       const char *idname);
+
 /* copy/free funcs, need to manage ID users */
 
 /**
@@ -540,7 +545,9 @@ void ntreeBlendWrite(struct BlendWriter *writer, struct bNodeTree *ntree);
 /**
  * \note `ntree` itself has been read!
  */
-void ntreeBlendReadData(struct BlendDataReader *reader, struct bNodeTree *ntree);
+void ntreeBlendReadData(struct BlendDataReader *reader,
+                        struct ID *owner_id,
+                        struct bNodeTree *ntree);
 void ntreeBlendReadLib(struct BlendLibReader *reader, struct bNodeTree *ntree);
 void ntreeBlendReadExpand(struct BlendExpander *expander, struct bNodeTree *ntree);
 

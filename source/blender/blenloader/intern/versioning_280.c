@@ -367,7 +367,7 @@ static void do_version_scene_collection_to_collection(Main *bmain, Scene *scene)
   BLI_listbase_clear(&scene->view_layers);
 
   if (!scene->master_collection) {
-    scene->master_collection = BKE_collection_master_add();
+    scene->master_collection = BKE_collection_master_add(scene);
   }
 
   /* Convert scene collections. */
@@ -411,7 +411,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
   /* Since we don't have access to FileData we check the (always valid) first
    * render layer instead. */
   if (!scene->master_collection) {
-    scene->master_collection = BKE_collection_master_add();
+    scene->master_collection = BKE_collection_master_add(scene);
   }
 
   if (scene->view_layers.first) {

@@ -143,6 +143,9 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Collection *collection = (Collection *)id;
 
+  BKE_LIB_FOREACHID_PROCESS_ID(
+      data, collection->owner_id, IDWALK_CB_LOOPBACK | IDWALK_CB_NEVER_SELF);
+
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, cob->ob, IDWALK_CB_USER);
   }
@@ -162,7 +165,7 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
-static ID *collection_owner_get(Main *bmain, ID *id, ID *owner_id_hint)
+static ID *collection_owner_get(Main *bmain, ID *id, ID *UNUSED(owner_id_hint))
 {
   if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
     return id;
@@ -171,20 +174,21 @@ static ID *collection_owner_get(Main *bmain, ID *id, ID *owner_id_hint)
 
   Collection *master_collection = (Collection *)id;
   BLI_assert((master_collection->flag & COLLECTION_IS_MASTER) != 0);
+  BLI_assert(master_collection->owner_id != NULL);
 
-  if (owner_id_hint != NULL && GS(owner_id_hint->name) == ID_SCE &&
-      ((Scene *)owner_id_hint)->master_collection == master_collection) {
-    return owner_id_hint;
-  }
-
+#ifndef NDEBUG
+  bool is_owner_found = false;
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     if (scene->master_collection == master_collection) {
-      return &scene->id;
+      BLI_assert(master_collection->owner_id == &scene->id);
+      BLI_assert(!is_owner_found);
+      is_owner_found = true;
     }
   }
+  BLI_assert(is_owner_found);
+#endif
 
-  BLI_assert_msg(0, "Embedded collection with no owner. Critical Main inconsistency.");
-  return NULL;
+  return master_collection->owner_id;
 }
 
 void BKE_collection_blend_write_nolib(BlendWriter *writer, Collection *collection)
@@ -233,8 +237,13 @@ void BKE_collection_compat_blend_read_data(BlendDataReader *reader, SceneCollect
 }
 #endif
 
-void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collection)
+void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collection, ID *owner_id)
 {
+  /* Special case for this pointer, do not rely on regular `lib_link` process here. Avoids needs
+   * for do_versioning, and ensures coherence of data in any case. */
+  BLI_assert((collection->id.flag & LIB_EMBEDDED_DATA) != 0 || owner_id == NULL);
+  collection->owner_id = owner_id;
+
   BLO_read_list(reader, &collection->gobject);
   BLO_read_list(reader, &collection->children);
 
@@ -265,7 +274,7 @@ void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collect
 static void collection_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Collection *collection = (Collection *)id;
-  BKE_collection_blend_read_data(reader, collection);
+  BKE_collection_blend_read_data(reader, collection, NULL);
 }
 
 static void lib_link_collection_data(BlendLibReader *reader, Library *lib, Collection *collection)
@@ -849,14 +858,18 @@ Base *BKE_collection_or_layer_objects(const ViewLayer *view_layer, Collection *c
 /** \name Scene Master Collection
  * \{ */
 
-Collection *BKE_collection_master_add()
+Collection *BKE_collection_master_add(Scene *scene)
 {
+  BLI_assert(scene != NULL && scene->master_collection == NULL);
+
   /* Not an actual datablock, but owned by scene. */
   Collection *master_collection = BKE_libblock_alloc(
       NULL, ID_GR, BKE_SCENE_COLLECTION_NAME, LIB_ID_CREATE_NO_MAIN);
   master_collection->id.flag |= LIB_EMBEDDED_DATA;
+  master_collection->owner_id = &scene->id;
   master_collection->flag |= COLLECTION_IS_MASTER;
   master_collection->color_tag = COLLECTION_COLOR_NONE;
+
   return master_collection;
 }
 
