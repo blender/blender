@@ -281,7 +281,6 @@ set(GLSL_SRC
   shaders/gpu_shader_image_desaturate_frag.glsl
   shaders/gpu_shader_image_overlays_merge_frag.glsl
   shaders/gpu_shader_image_overlays_stereo_merge_frag.glsl
-  shaders/gpu_shader_image_modulate_alpha_frag.glsl
   shaders/gpu_shader_image_shuffle_color_frag.glsl
   shaders/gpu_shader_image_color_frag.glsl
   shaders/gpu_shader_image_varying_color_frag.glsl
@@ -589,7 +588,6 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_shader_3D_depth_only_info.hh
   shaders/infos/gpu_shader_3D_flat_color_info.hh
   shaders/infos/gpu_shader_3D_image_info.hh
-  shaders/infos/gpu_shader_3D_image_modulate_alpha_info.hh
   shaders/infos/gpu_shader_3D_point_info.hh
   shaders/infos/gpu_shader_3D_polyline_info.hh
   shaders/infos/gpu_shader_3D_smooth_color_info.hh

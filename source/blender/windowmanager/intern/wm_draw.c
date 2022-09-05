@@ -225,10 +225,9 @@ static void wm_software_cursor_draw_bitmap(const int event_xy[2],
       imm_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   /* Use 3D image for correct display of planar tracked images. */
-  immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_MODULATE_ALPHA);
+  immBindBuiltinProgram(GPU_SHADER_3D_IMAGE);
 
   immBindTexture("image", texture);
-  immUniform1f("alpha", 1.0f);
 
   immBegin(GPU_PRIM_TRI_FAN, 4);
 
