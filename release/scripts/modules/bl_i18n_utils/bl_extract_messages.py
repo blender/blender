@@ -258,11 +258,12 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
         bl_rna_base_props = set()
         if bl_rna_base:
             bl_rna_base_props |= set(bl_rna_base.properties.values())
-        for cls_base in cls.__bases__:
-            bl_rna_base = getattr(cls_base, "bl_rna", None)
-            if not bl_rna_base:
-                continue
-            bl_rna_base_props |= set(bl_rna_base.properties.values())
+        if hasattr(cls, "__bases__"):
+            for cls_base in cls.__bases__:
+                bl_rna_base = getattr(cls_base, "bl_rna", None)
+                if not bl_rna_base:
+                    continue
+                bl_rna_base_props |= set(bl_rna_base.properties.values())
 
         props = sorted(bl_rna.properties, key=lambda p: p.identifier)
         for prop in props:
@@ -449,6 +450,19 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
     for cat_str in operator_categories.values():
         process_msg(msgs, bpy.app.translations.contexts.operator_default, cat_str, "Generated operator category",
                     reports, check_ctxt_rna, settings)
+
+    # Parse keymap preset preferences
+    for preset_filename in sorted(
+            os.listdir(os.path.join(settings.PRESETS_DIR, "keyconfig"))):
+        preset_path = os.path.join(settings.PRESETS_DIR, "keyconfig", preset_filename)
+        if not (os.path.isfile(preset_path) and preset_filename.endswith(".py")):
+            continue
+        preset_name, _ = os.path.splitext(preset_filename)
+
+        bpy.utils.keyconfig_set(preset_path)
+        preset = bpy.data.window_managers[0].keyconfigs[preset_name]
+        if preset.preferences is not None:
+            walk_properties(preset.preferences)
 
     # And parse keymaps!
     from bl_keymap_utils import keymap_hierarchy

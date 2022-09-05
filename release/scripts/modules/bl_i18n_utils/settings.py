@@ -544,6 +544,7 @@ CUSTOM_PY_UI_FILES = [
     os.path.join("scripts", "startup", "bl_ui"),
     os.path.join("scripts", "startup", "bl_operators"),
     os.path.join("scripts", "modules", "rna_prop_ui.py"),
+    os.path.join("scripts", "presets", "keyconfig"),
 ]
 
 # An optional text file listing files to force include/exclude from py_xgettext process.
