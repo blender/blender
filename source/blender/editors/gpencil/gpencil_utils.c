@@ -3189,7 +3189,7 @@ bGPDstroke *ED_gpencil_stroke_join_and_trim(
 
   /* Join both strokes. */
   int totpoint = gps_final->totpoints;
-  BKE_gpencil_stroke_join(gps_final, gps, false, true, true);
+  BKE_gpencil_stroke_join(gps_final, gps, false, true, true, true);
 
   /* Select the join points and merge if the distance is very small. */
   pt = &gps_final->points[totpoint - 1];

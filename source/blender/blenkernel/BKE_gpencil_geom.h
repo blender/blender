@@ -406,7 +406,13 @@ void BKE_gpencil_stroke_join(struct bGPDstroke *gps_a,
                              struct bGPDstroke *gps_b,
                              bool leave_gaps,
                              bool fit_thickness,
-                             bool smooth);
+                             bool smooth,
+                             bool auto_flip);
+/**
+ * Set stroke start point in the selected index. Only works for Cyclic strokes.
+ * \param start_idx: Index of the point to be the start point.
+ */
+void BKE_gpencil_stroke_start_set(struct bGPdata *gpd, struct bGPDstroke *gps, int start_idx);
 /**
  * Copy the stroke of the frame to all frames selected (except current).
  */

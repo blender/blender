@@ -3415,7 +3415,8 @@ void BKE_gpencil_stroke_join(bGPDstroke *gps_a,
                              bGPDstroke *gps_b,
                              const bool leave_gaps,
                              const bool fit_thickness,
-                             const bool smooth)
+                             const bool smooth,
+                             bool auto_flip)
 {
   bGPDspoint point;
   bGPDspoint *pt;
@@ -3432,52 +3433,54 @@ void BKE_gpencil_stroke_join(bGPDstroke *gps_a,
     return;
   }
 
-  /* define start and end points of each stroke */
-  float start_a[3], start_b[3], end_a[3], end_b[3];
-  pt = &gps_a->points[0];
-  copy_v3_v3(start_a, &pt->x);
+  if (auto_flip) {
+    /* define start and end points of each stroke */
+    float start_a[3], start_b[3], end_a[3], end_b[3];
+    pt = &gps_a->points[0];
+    copy_v3_v3(start_a, &pt->x);
 
-  pt = &gps_a->points[gps_a->totpoints - 1];
-  copy_v3_v3(end_a, &pt->x);
+    pt = &gps_a->points[gps_a->totpoints - 1];
+    copy_v3_v3(end_a, &pt->x);
 
-  pt = &gps_b->points[0];
-  copy_v3_v3(start_b, &pt->x);
+    pt = &gps_b->points[0];
+    copy_v3_v3(start_b, &pt->x);
 
-  pt = &gps_b->points[gps_b->totpoints - 1];
-  copy_v3_v3(end_b, &pt->x);
+    pt = &gps_b->points[gps_b->totpoints - 1];
+    copy_v3_v3(end_b, &pt->x);
 
-  /* Check if need flip strokes. */
-  float dist = len_squared_v3v3(end_a, start_b);
-  bool flip_a = false;
-  bool flip_b = false;
-  float lowest = dist;
+    /* Check if need flip strokes. */
+    float dist = len_squared_v3v3(end_a, start_b);
+    bool flip_a = false;
+    bool flip_b = false;
+    float lowest = dist;
 
-  dist = len_squared_v3v3(end_a, end_b);
-  if (dist < lowest) {
-    lowest = dist;
-    flip_a = false;
-    flip_b = true;
-  }
+    dist = len_squared_v3v3(end_a, end_b);
+    if (dist < lowest) {
+      lowest = dist;
+      flip_a = false;
+      flip_b = true;
+    }
 
-  dist = len_squared_v3v3(start_a, start_b);
-  if (dist < lowest) {
-    lowest = dist;
-    flip_a = true;
-    flip_b = false;
-  }
+    dist = len_squared_v3v3(start_a, start_b);
+    if (dist < lowest) {
+      lowest = dist;
+      flip_a = true;
+      flip_b = false;
+    }
 
-  dist = len_squared_v3v3(start_a, end_b);
-  if (dist < lowest) {
-    lowest = dist;
-    flip_a = true;
-    flip_b = true;
-  }
+    dist = len_squared_v3v3(start_a, end_b);
+    if (dist < lowest) {
+      lowest = dist;
+      flip_a = true;
+      flip_b = true;
+    }
 
-  if (flip_a) {
-    BKE_gpencil_stroke_flip(gps_a);
-  }
-  if (flip_b) {
-    BKE_gpencil_stroke_flip(gps_b);
+    if (flip_a) {
+      BKE_gpencil_stroke_flip(gps_a);
+    }
+    if (flip_b) {
+      BKE_gpencil_stroke_flip(gps_b);
+    }
   }
 
   /* don't visibly link the first and last points? */
@@ -3538,6 +3541,29 @@ void BKE_gpencil_stroke_join(bGPDstroke *gps_a,
       }
     }
   }
+}
+
+void BKE_gpencil_stroke_start_set(bGPdata *gpd, bGPDstroke *gps, int start_idx)
+{
+  if ((start_idx < 1) || (start_idx >= gps->totpoints)) {
+    return;
+  }
+
+  /* Only cyclic strokes. */
+  if ((gps->flag & GP_STROKE_CYCLIC) == 0) {
+    return;
+  }
+
+  bGPDstroke *gps_b = BKE_gpencil_stroke_duplicate(gps, true, false);
+  BKE_gpencil_stroke_trim_points(gps_b, 0, start_idx - 0);
+  BKE_gpencil_stroke_trim_points(gps, start_idx, gps->totpoints - 1);
+
+  /* Join both strokes. */
+  BKE_gpencil_stroke_join(gps, gps_b, false, false, false, false);
+
+  BKE_gpencil_stroke_geometry_update(gpd, gps);
+
+  BKE_gpencil_free_stroke(gps_b);
 }
 
 void BKE_gpencil_stroke_copy_to_keyframes(
