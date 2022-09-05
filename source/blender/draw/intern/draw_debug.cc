@@ -671,6 +671,8 @@ void DRW_debug_modelmat(const float modelmat[4][4])
     return;
   }
   reinterpret_cast<blender::draw::DebugDraw *>(DST.debug)->modelmat_set(modelmat);
+#else
+  UNUSED_VARS(modelmat);
 #endif
 }
 
@@ -718,6 +720,8 @@ void DRW_debug_bbox(const BoundBox *bbox, const float color[4])
     return;
   }
   reinterpret_cast<blender::draw::DebugDraw *>(DST.debug)->draw_bbox(*bbox, color);
+#else
+  UNUSED_VARS(bbox, color);
 #endif
 }
 
