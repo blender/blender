@@ -725,6 +725,11 @@ static void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
   BKE_animdata_fix_paths_rename_all(NULL, "modifiers", oldname, md->name);
 }
 
+static void rna_Modifier_name_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+{
+  DEG_relations_tag_update(bmain);
+}
+
 static char *rna_Modifier_path(const PointerRNA *ptr)
 {
   const ModifierData *md = ptr->data;
@@ -7249,7 +7254,7 @@ void RNA_def_modifier(BlenderRNA *brna)
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Modifier_name_set");
   RNA_def_property_ui_text(prop, "Name", "Modifier name");
-  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER | NA_RENAME, NULL);
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER | NA_RENAME, "rna_Modifier_name_update");
   RNA_def_struct_name_property(srna, prop);
 
   /* enums */
