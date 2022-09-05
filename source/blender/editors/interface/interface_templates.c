@@ -6358,8 +6358,10 @@ void uiTemplateInputStatus(uiLayout *layout, struct bContext *C)
     uiLayout *row = uiLayoutRow(col, true);
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
 
-    const char *msg = TIP_(WM_window_cursor_keymap_status_get(win, i, 0));
-    const char *msg_drag = TIP_(WM_window_cursor_keymap_status_get(win, i, 1));
+    const char *msg = CTX_TIP_(BLT_I18NCONTEXT_OPERATOR_DEFAULT,
+                               WM_window_cursor_keymap_status_get(win, i, 0));
+    const char *msg_drag = CTX_TIP_(BLT_I18NCONTEXT_OPERATOR_DEFAULT,
+                                    WM_window_cursor_keymap_status_get(win, i, 1));
 
     if (msg || (msg_drag == NULL)) {
       uiItemL(row, msg ? msg : "", (ICON_MOUSE_LMB + i));
