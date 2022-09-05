@@ -26,6 +26,7 @@ struct BlendExpander;
 struct BlendLibReader;
 struct BlendWriter;
 struct Collection;
+struct ID;
 struct Library;
 struct Main;
 struct Object;

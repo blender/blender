@@ -186,6 +186,8 @@ static ID *collection_owner_get(Main *bmain, ID *id, ID *UNUSED(owner_id_hint))
     }
   }
   BLI_assert(is_owner_found);
+#else
+  UNUSED_VARS(bmain);
 #endif
 
   return master_collection->owner_id;
