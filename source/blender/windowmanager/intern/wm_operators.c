@@ -2328,7 +2328,7 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
       GPU_matrix_rotate_2d(RAD2DEGF(rot));
     }
 
-    immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_COLOR);
 
     immUniformColor3fvAlpha(col, alpha);
     immBindTexture("image", rc->texture);

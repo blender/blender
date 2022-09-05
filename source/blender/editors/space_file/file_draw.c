@@ -378,7 +378,7 @@ static void file_draw_preview(const SpaceFile *sfile,
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
   }
 
-  IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+  IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
   immDrawPixelsTexTiled_scaling(&state,
                                 (float)xco,
                                 (float)yco,

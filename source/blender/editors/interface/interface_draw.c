@@ -309,7 +309,7 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(region),
     rgba_uchar_to_float(col, but->col);
   }
 
-  IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+  IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
   immDrawPixelsTexTiled(&state,
                         (float)rect->xmin,
                         (float)rect->ymin,
@@ -2132,7 +2132,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(region),
             color);
       }
 
-      IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+      IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
       immDrawPixelsTexTiled(&state,
                             rect.xmin,
                             rect.ymin + 1,

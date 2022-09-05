@@ -212,7 +212,6 @@ typedef enum eGPUBuiltinShader {
    * \param color: in vec4
    * \param pos: in vec2
    */
-  GPU_SHADER_2D_IMAGE_COLOR,
   GPU_SHADER_2D_IMAGE_DESATURATE_COLOR,
   GPU_SHADER_2D_IMAGE_RECT_COLOR,
   GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR,
@@ -287,6 +286,15 @@ typedef enum eGPUBuiltinShader {
    * \param pos: in vec3
    */
   GPU_SHADER_3D_IMAGE,
+  /**
+   * Take a 3D position and color for each vertex with linear interpolation in window space.
+   *
+   * \param color: uniform vec4
+   * \param image: uniform sampler2D
+   * \param texCoord: in vec2
+   * \param pos: in vec3
+   */
+  GPU_SHADER_3D_IMAGE_COLOR,
   /**
    * Draw texture with alpha. Take a 3D position and a 2D texture coordinate for each vertex.
    *

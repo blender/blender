@@ -482,7 +482,7 @@ static void draw_display_buffer(PlayState *ps, ImBuf *ibuf)
   GPU_texture_bind(texture, 0);
 
   if (!glsl_used) {
-    immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_COLOR);
     immUniformColor3f(1.0f, 1.0f, 1.0f);
   }
 

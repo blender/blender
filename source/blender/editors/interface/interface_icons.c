@@ -1546,7 +1546,7 @@ static void icon_draw_rect(float x,
     shader = GPU_SHADER_2D_IMAGE_DESATURATE_COLOR;
   }
   else {
-    shader = GPU_SHADER_2D_IMAGE_COLOR;
+    shader = GPU_SHADER_3D_IMAGE_COLOR;
   }
   IMMDrawPixelsTexState state = immDrawPixelsTexSetup(shader);
 

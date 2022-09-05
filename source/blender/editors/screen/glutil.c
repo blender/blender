@@ -515,7 +515,7 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
         ibuf, view_settings, display_settings, &cache_handle);
 
     if (display_buffer) {
-      IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+      IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
       immDrawPixelsTexTiled_clipping(&state,
                                      x,
                                      y,

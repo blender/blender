@@ -837,7 +837,7 @@ static void wm_drag_draw_icon(bContext *UNUSED(C),
     y = xy[1] - (wm_drag_imbuf_icon_height_get(drag) / 2);
 
     const float col[4] = {1.0f, 1.0f, 1.0f, 0.65f}; /* this blends texture */
-    IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+    IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
     immDrawPixelsTexTiled_scaling(&state,
                                   x,
                                   y,

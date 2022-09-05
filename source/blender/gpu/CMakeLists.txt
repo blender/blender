@@ -574,7 +574,6 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_shader_2D_area_borders_info.hh
   shaders/infos/gpu_shader_2D_checker_info.hh
   shaders/infos/gpu_shader_2D_diag_stripes_info.hh
-  shaders/infos/gpu_shader_2D_image_color_info.hh
   shaders/infos/gpu_shader_2D_image_desaturate_color_info.hh
   shaders/infos/gpu_shader_2D_image_info.hh
   shaders/infos/gpu_shader_2D_image_multi_rect_color_info.hh

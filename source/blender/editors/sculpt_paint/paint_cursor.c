@@ -628,7 +628,7 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
     /* Premultiplied alpha blending. */
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
 
-    immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_COLOR);
 
     float final_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
     if (!col) {
@@ -720,7 +720,7 @@ static bool paint_draw_cursor_overlay(
 
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
 
-    immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_COLOR);
 
     float final_color[4] = {UNPACK3(U.sculpt_paint_overlay_col), 1.0f};
     mul_v4_fl(final_color, brush->cursor_overlay_alpha * 0.01f);

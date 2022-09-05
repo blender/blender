@@ -1288,7 +1288,7 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
   /* Premul graphics. */
   GPU_blend(GPU_BLEND_ALPHA);
 
-  IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+  IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
   immDrawPixelsTexTiled(&state,
                         draw_rect.xmin,
                         draw_rect.ymin,
