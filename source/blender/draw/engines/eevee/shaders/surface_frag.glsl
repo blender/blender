@@ -153,7 +153,7 @@ void main()
 vec3 attr_load_orco(vec4 orco)
 {
   /* Retain precision better than g_data.P (see T99128). */
-  return transform_direction(ViewMatrixInverse, normalize(viewPosition));
+  return -normal_view_to_world(viewCameraVec(viewPosition));
 }
 /* Unsupported. */
 vec4 attr_load_tangent(vec4 tangent)
