@@ -13,7 +13,8 @@ GPU_SHADER_INTERFACE_INFO(gpu_shader_line_dashed_interface, "")
     .no_perspective(Type::VEC2, "stipple_start") /* In screen space */
     .flat(Type::VEC2, "stipple_pos");            /* In screen space */
 
-GPU_SHADER_CREATE_INFO(gpu_shader_line_dashed)
+GPU_SHADER_CREATE_INFO(gpu_shader_3D_line_dashed_uniform_color)
+    .vertex_in(0, Type::VEC3, "pos")
     .vertex_out(flat_color_iface)
     .push_constant(Type::MAT4, "ModelViewProjectionMatrix")
     .push_constant(Type::VEC2, "viewport_size")
@@ -25,18 +26,8 @@ GPU_SHADER_CREATE_INFO(gpu_shader_line_dashed)
     .push_constant(Type::VEC4, "color2")
     .vertex_out(gpu_shader_line_dashed_interface)
     .fragment_out(0, Type::VEC4, "fragColor")
-    .fragment_source("gpu_shader_2D_line_dashed_frag.glsl");
-
-GPU_SHADER_CREATE_INFO(gpu_shader_2D_line_dashed_uniform_color)
-    .vertex_in(0, Type::VEC2, "pos")
-    .vertex_source("gpu_shader_2D_line_dashed_uniform_color_vert.glsl")
-    .additional_info("gpu_shader_line_dashed")
-    .do_static_compilation(true);
-
-GPU_SHADER_CREATE_INFO(gpu_shader_3D_line_dashed_uniform_color)
-    .vertex_in(0, Type::VEC3, "pos")
     .vertex_source("gpu_shader_3D_line_dashed_uniform_color_vert.glsl")
-    .additional_info("gpu_shader_line_dashed")
+    .fragment_source("gpu_shader_2D_line_dashed_frag.glsl")
     .do_static_compilation(true);
 
 GPU_SHADER_CREATE_INFO(gpu_shader_3D_line_dashed_uniform_color_clipped)

@@ -465,7 +465,7 @@ static void mask_draw_curve_type(const bContext *C,
       mask_color_active_tint(rgb_tmp, rgb_black, is_active);
       rgba_uchar_to_float(colors[1], rgb_tmp);
 
-      immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+      immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
       float viewport_size[4];
       GPU_viewport_size_get_f(viewport_size);
