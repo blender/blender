@@ -169,7 +169,7 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
-static ID *collection_owner_get(Main *bmain, ID *id, ID *UNUSED(owner_id_hint))
+static ID *collection_owner_get(ID *id)
 {
   if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
     return id;

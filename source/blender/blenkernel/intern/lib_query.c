@@ -713,7 +713,7 @@ static void lib_query_unused_ids_tag_recurse(Main *bmain,
       /* Directly 'by-pass' to actual real ID owner. */
       const IDTypeInfo *type_info_from = BKE_idtype_get_info_from_id(id_from);
       BLI_assert(type_info_from->owner_get != NULL);
-      id_from = type_info_from->owner_get(bmain, id_from, NULL);
+      id_from = type_info_from->owner_get(id_from);
     }
 
     lib_query_unused_ids_tag_recurse(

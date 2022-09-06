@@ -944,7 +944,7 @@ ID *RNA_find_real_ID_and_path(Main *bmain, ID *id, const char **r_path)
     BLI_assert_msg(0, "Missing handling of embedded id type.");
     return id;
   }
-  return id_type->owner_get(bmain, id, nullptr);
+  return id_type->owner_get(id);
 }
 
 static char *rna_prepend_real_ID_path(Main *bmain, ID *id, char *path, ID **r_real_id)

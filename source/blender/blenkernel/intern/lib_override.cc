@@ -105,8 +105,7 @@ BLI_INLINE const IDOverrideLibrary *BKE_lib_override_library_get(const Main *bma
     if (id_type->owner_get != nullptr) {
       /* The #IDTypeInfo::owner_get callback should not modify the arguments, so casting away const
        * is okay. */
-      const ID *owner_id = id_type->owner_get(
-          const_cast<Main *>(bmain), const_cast<ID *>(id), const_cast<ID *>(owner_id_hint));
+      const ID *owner_id = id_type->owner_get(const_cast<ID *>(id));
       if (r_owner_id != nullptr) {
         *r_owner_id = owner_id;
       }
@@ -2214,7 +2213,7 @@ static ID *lib_override_library_main_resync_root_get(Main *bmain, ID *id)
   if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
     const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
     if (id_type->owner_get != nullptr) {
-      id = id_type->owner_get(bmain, id, nullptr);
+      id = id_type->owner_get(id);
     }
     BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id));
   }

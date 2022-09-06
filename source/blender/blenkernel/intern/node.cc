@@ -401,7 +401,7 @@ static void node_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   }
 }
 
-static ID *node_owner_get(Main *UNUSED(bmain), ID *id, ID *UNUSED(owner_id_hint))
+static ID *node_owner_get(ID *id)
 {
   if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
     return id;

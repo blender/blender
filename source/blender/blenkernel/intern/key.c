@@ -91,7 +91,7 @@ static void shapekey_foreach_id(ID *id, LibraryForeachIDData *data)
   BKE_LIB_FOREACHID_PROCESS_ID(data, key->from, IDWALK_CB_LOOPBACK);
 }
 
-static ID *shapekey_owner_get(Main *UNUSED(bmain), ID *id, ID *UNUSED(owner_id_hint))
+static ID *shapekey_owner_get(ID *id)
 {
   Key *key = (Key *)id;
 
