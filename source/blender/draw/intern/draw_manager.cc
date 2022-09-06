@@ -62,7 +62,9 @@ void Manager::end_sync()
   attributes_buf.push_update();
   attributes_buf_legacy.push_update();
 
-  debug_bind();
+  /* Useful for debugging the following resource finalize. But will trigger the drawing of the GPU
+   * debug draw/print buffers for every frame. Not nice for performance. */
+  // debug_bind();
 
   /* Dispatch compute to finalize the resources on GPU. Save a bit of CPU time. */
   uint thread_groups = divide_ceil_u(resource_len_, DRW_FINALIZE_GROUP_SIZE);
