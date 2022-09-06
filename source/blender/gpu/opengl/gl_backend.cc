@@ -527,7 +527,18 @@ void GLBackend::capabilities_init()
   glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_BLOCKS, &GLContext::max_ubo_binds);
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &GLContext::max_ubo_size);
   if (GCaps.shader_storage_buffer_objects_support) {
-    glGetIntegerv(GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS, &GLContext::max_ssbo_binds);
+    GLint max_ssbo_binds;
+    GLContext::max_ssbo_binds = 999999;
+    glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);
+    GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
+    glGetIntegerv(GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);
+    GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
+    glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);
+    GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
+    if (GLContext::max_ssbo_binds < 8) {
+      /* Does not meet our minimum requirements. */
+      GCaps.shader_storage_buffer_objects_support = false;
+    }
     glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &GLContext::max_ssbo_size);
   }
   GLContext::base_instance_support = epoxy_has_gl_extension("GL_ARB_base_instance");
