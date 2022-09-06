@@ -408,9 +408,7 @@ static int node_select_grouped_exec(bContext *C, wmOperator *op)
   const int type = RNA_enum_get(op->ptr, "type");
 
   if (!extend) {
-    LISTBASE_FOREACH (bNode *, node, &node_tree.nodes) {
-      nodeSetSelected(node, false);
-    }
+    node_deselect_all(snode);
   }
   nodeSetSelected(node_act, true);
 
@@ -599,9 +597,7 @@ static bool node_mouse_select(bContext *C,
       }
       else if (found || params->deselect_all) {
         /* Deselect everything. */
-        for (tnode = (bNode *)snode.edittree->nodes.first; tnode; tnode = tnode->next) {
-          nodeSetSelected(tnode, false);
-        }
+        node_deselect_all(snode);
         changed = true;
       }
     }
@@ -743,7 +739,7 @@ static int node_box_select_exec(bContext *C, wmOperator *op)
   const eSelectOp sel_op = (eSelectOp)RNA_enum_get(op->ptr, "mode");
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    node_select_all(&node_tree.nodes, SEL_DESELECT);
+    node_deselect_all(snode);
   }
 
   LISTBASE_FOREACH (bNode *, node, &node_tree.nodes) {
@@ -842,7 +838,7 @@ static int node_circleselect_exec(bContext *C, wmOperator *op)
       WM_gesture_is_modal_first((const wmGesture *)op->customdata));
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    node_select_all(&snode->edittree->nodes, SEL_DESELECT);
+    node_deselect_all(*snode);
   }
 
   /* get operator properties */
@@ -934,7 +930,7 @@ static bool do_lasso_select_node(bContext *C,
 
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    node_select_all(&snode->edittree->nodes, SEL_DESELECT);
+    node_deselect_all(*snode);
     changed = true;
   }
 
