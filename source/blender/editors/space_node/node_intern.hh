@@ -288,8 +288,6 @@ float2 node_link_calculate_multi_input_position(const float2 &socket_position,
                                                 int index,
                                                 int total_inputs);
 
-void node_select_all(ListBase *lb, int action);
-
 float node_socket_calculate_height(const bNodeSocket &socket);
 
 void snode_set_context(const bContext &C);

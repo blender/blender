@@ -1473,43 +1473,6 @@ void NODE_OT_duplicate(wmOperatorType *ot)
       ot->srna, "keep_inputs", false, "Keep Inputs", "Keep the input links to duplicated nodes");
 }
 
-static bool node_select_check(const ListBase *lb)
-{
-  LISTBASE_FOREACH (const bNode *, node, lb) {
-    if (node->flag & NODE_SELECT) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-void node_select_all(ListBase *lb, int action)
-{
-  if (action == SEL_TOGGLE) {
-    if (node_select_check(lb)) {
-      action = SEL_DESELECT;
-    }
-    else {
-      action = SEL_SELECT;
-    }
-  }
-
-  LISTBASE_FOREACH (bNode *, node, lb) {
-    switch (action) {
-      case SEL_SELECT:
-        nodeSetSelected(node, true);
-        break;
-      case SEL_DESELECT:
-        nodeSetSelected(node, false);
-        break;
-      case SEL_INVERT:
-        nodeSetSelected(node, !(node->flag & SELECT));
-        break;
-    }
-  }
-}
-
 /* XXX: some code needing updating to operators. */
 
 /* goes over all scenes, reads render layers */

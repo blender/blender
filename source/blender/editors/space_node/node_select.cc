@@ -22,6 +22,7 @@
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_workspace.h"
 
 #include "ED_node.h" /* own include */
@@ -1034,13 +1035,48 @@ void NODE_OT_select_lasso(wmOperatorType *ot)
 /** \name (De)select All Operator
  * \{ */
 
+static bool any_node_selected(const bNodeTree &node_tree)
+{
+  for (const bNode *node : node_tree.all_nodes()) {
+    if (node->flag & NODE_SELECT) {
+      return true;
+    }
+  }
+  return false;
+}
+
 static int node_select_all_exec(bContext *C, wmOperator *op)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
-  ListBase *node_lb = &snode.edittree->nodes;
-  int action = RNA_enum_get(op->ptr, "action");
+  bNodeTree &node_tree = *snode.edittree;
 
-  node_select_all(node_lb, action);
+  node_tree.ensure_topology_cache();
+
+  int action = RNA_enum_get(op->ptr, "action");
+  if (action == SEL_TOGGLE) {
+    if (any_node_selected(node_tree)) {
+      action = SEL_DESELECT;
+    }
+    else {
+      action = SEL_SELECT;
+    }
+  }
+
+  switch (action) {
+    case SEL_SELECT:
+      for (bNode *node : node_tree.all_nodes()) {
+        nodeSetSelected(node, true);
+      }
+      break;
+    case SEL_DESELECT:
+      node_deselect_all(snode);
+      break;
+    case SEL_INVERT:
+      for (bNode *node : node_tree.all_nodes()) {
+        nodeSetSelected(node, !(node->flag & SELECT));
+      }
+      break;
+  }
 
   node_sort(*snode.edittree);
 
