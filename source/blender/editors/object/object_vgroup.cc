@@ -1059,7 +1059,7 @@ static void vgroup_select_verts(Object *ob, int select)
         mv = me->vertices_for_write().data();
 
         for (i = 0; i < me->totvert; i++, mv++) {
-          if (hide_vert != nullptr && !hide_vert[i]) {
+          if (!(hide_vert != nullptr && hide_vert[i])) {
             if (BKE_defvert_find_index(&dverts[i], def_nr)) {
               if (select) {
                 mv->flag |= SELECT;
@@ -1954,7 +1954,7 @@ static void vgroup_smooth_subset(Object *ob,
                                    &me->vdata, CD_PROP_BOOL, ".hide_vert") :
                                nullptr;
 
-#define IS_ME_VERT_READ(v) (use_hide ? (hide_vert && hide_vert[v]) : true)
+#define IS_ME_VERT_READ(v) (use_hide ? !(hide_vert && hide_vert[v]) : true)
 #define IS_ME_VERT_WRITE(v) (use_select ? (((v)->flag & SELECT) != 0) : true)
 
   /* initialize used verts */
