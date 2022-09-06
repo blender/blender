@@ -364,7 +364,7 @@ string OptiXDevice::compile_kernel_get_common_cflags(const uint kernel_features)
   string common_cflags = CUDADevice::compile_kernel_get_common_cflags(kernel_features);
 
   /* Add OptiX SDK include directory to include paths. */
-  common_cflags += string_printf(" -I\"%s/include\"", get_optix_include_dir().c_str());
+  common_cflags += string_printf(" -I\"%s\"", get_optix_include_dir().c_str());
 
   /* Specialization for shader raytracing. */
   if (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) {
