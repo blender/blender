@@ -24,6 +24,7 @@ class OneapiDevice : public Device {
   void *kg_memory_;
   void *kg_memory_device_;
   size_t kg_memory_size_ = (size_t)0;
+  size_t max_memory_on_device_ = (size_t)0;
   OneAPIDLLInterface oneapi_dll_;
   std::string oneapi_error_string_;
 

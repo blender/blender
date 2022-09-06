@@ -65,6 +65,8 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info,
   kg_memory_device_ = oneapi_dll_.oneapi_usm_alloc_device(device_queue_, globals_segment_size);
 
   kg_memory_size_ = globals_segment_size;
+
+  max_memory_on_device_ = oneapi_dll_.oneapi_get_memcapacity(device_queue_);
 }
 
 OneapiDevice::~OneapiDevice()
@@ -134,17 +136,16 @@ void OneapiDevice::generic_alloc(device_memory &mem)
    * because Cycles already uses two different pointer for host activity and device activity, and
    * also has to perform all needed memory transfer operations. So, USM device memory
    * type has been used for oneAPI device in order to better fit in Cycles architecture. */
-  void *device_pointer = oneapi_dll_.oneapi_usm_alloc_device(device_queue_, memory_size);
+  void *device_pointer = nullptr;
+  if (mem.memory_size() + stats.mem_used < max_memory_on_device_)
+    device_pointer = oneapi_dll_.oneapi_usm_alloc_device(device_queue_, memory_size);
   if (device_pointer == nullptr) {
-    size_t max_memory_on_device = oneapi_dll_.oneapi_get_memcapacity(device_queue_);
     set_error("oneAPI kernel - device memory allocation error for " +
               string_human_readable_size(mem.memory_size()) +
               ", possibly caused by lack of available memory space on the device: " +
               string_human_readable_size(stats.mem_used) + " of " +
-              string_human_readable_size(max_memory_on_device) + " is already allocated");
-    return;
+              string_human_readable_size(max_memory_on_device_) + " is already allocated");
   }
-  assert(device_pointer);
 
   mem.device_pointer = reinterpret_cast<ccl::device_ptr>(device_pointer);
   mem.device_size = memory_size;
@@ -154,6 +155,9 @@ void OneapiDevice::generic_alloc(device_memory &mem)
 
 void OneapiDevice::generic_copy_to(device_memory &mem)
 {
+  if (!mem.device_pointer) {
+    return;
+  }
   size_t memory_size = mem.memory_size();
 
   /* Copy operation from host shouldn't be requested if there is no memory allocated on host. */
@@ -186,7 +190,10 @@ void *OneapiDevice::kernel_globals_device_pointer()
 
 void OneapiDevice::generic_free(device_memory &mem)
 {
-  assert(mem.device_pointer);
+  if (!mem.device_pointer) {
+    return;
+  }
+
   stats.mem_free(mem.device_size);
   mem.device_size = 0;
 
@@ -256,14 +263,15 @@ void OneapiDevice::mem_copy_from(device_memory &mem, size_t y, size_t w, size_t 
     assert(device_queue_);
 
     assert(size != 0);
-    assert(mem.device_pointer);
-    char *shifted_host = reinterpret_cast<char *>(mem.host_pointer) + offset;
-    char *shifted_device = reinterpret_cast<char *>(mem.device_pointer) + offset;
-    bool is_finished_ok = oneapi_dll_.oneapi_usm_memcpy(
-        device_queue_, shifted_host, shifted_device, size);
-    if (is_finished_ok == false) {
-      set_error("oneAPI memory operation error: got runtime exception \"" + oneapi_error_string_ +
-                "\"");
+    if (mem.device_pointer) {
+      char *shifted_host = reinterpret_cast<char *>(mem.host_pointer) + offset;
+      char *shifted_device = reinterpret_cast<char *>(mem.device_pointer) + offset;
+      bool is_finished_ok = oneapi_dll_.oneapi_usm_memcpy(
+          device_queue_, shifted_host, shifted_device, size);
+      if (is_finished_ok == false) {
+        set_error("oneAPI memory operation error: got runtime exception \"" +
+                  oneapi_error_string_ + "\"");
+      }
     }
   }
 }
