@@ -232,6 +232,11 @@ void *CustomData_get_layer_named(const struct CustomData *UNUSED(data),
   return nullptr;
 }
 
+void *CustomData_get_layer(const struct CustomData *UNUSED(data), int UNUSED(type))
+{
+  return nullptr;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
