@@ -311,6 +311,17 @@ void node_deselect_all_output_sockets(SpaceNode &snode, const bool deselect_node
   }
 }
 
+Set<bNode *> get_selected_nodes(bNodeTree &node_tree)
+{
+  Set<bNode *> selected_nodes;
+  for (bNode *node : node_tree.all_nodes()) {
+    if (node->flag & NODE_SELECT) {
+      selected_nodes.add(node);
+    }
+  }
+  return selected_nodes;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1112,22 +1123,21 @@ static int node_select_linked_to_exec(bContext *C, wmOperator *UNUSED(op))
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &node_tree = *snode.edittree;
 
-  LISTBASE_FOREACH (bNode *, node, &node_tree.nodes) {
-    node->flag &= ~NODE_TEST;
-  }
+  node_tree.ensure_topology_cache();
 
-  LISTBASE_FOREACH (bNodeLink *, link, &node_tree.links) {
-    if (nodeLinkIsHidden(link)) {
-      continue;
-    }
-    if (link->fromnode && link->tonode && (link->fromnode->flag & NODE_SELECT)) {
-      link->tonode->flag |= NODE_TEST;
-    }
-  }
+  Set<bNode *> initial_selection = get_selected_nodes(node_tree);
 
-  LISTBASE_FOREACH (bNode *, node, &node_tree.nodes) {
-    if (node->flag & NODE_TEST) {
-      nodeSetSelected(node, true);
+  for (bNode *node : initial_selection) {
+    for (bNodeSocket *output_socket : node->output_sockets()) {
+      if (!output_socket->is_available()) {
+        continue;
+      }
+      for (bNodeSocket *input_socket : output_socket->directly_linked_sockets()) {
+        if (!input_socket->is_available()) {
+          continue;
+        }
+        nodeSetSelected(&input_socket->owner_node(), true);
+      }
     }
   }
 
@@ -1163,22 +1173,21 @@ static int node_select_linked_from_exec(bContext *C, wmOperator *UNUSED(op))
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &node_tree = *snode.edittree;
 
-  LISTBASE_FOREACH (bNode *, node, &node_tree.nodes) {
-    node->flag &= ~NODE_TEST;
-  }
+  node_tree.ensure_topology_cache();
 
-  LISTBASE_FOREACH (bNodeLink *, link, &node_tree.links) {
-    if (nodeLinkIsHidden(link)) {
-      continue;
-    }
-    if (link->fromnode && link->tonode && (link->tonode->flag & NODE_SELECT)) {
-      link->fromnode->flag |= NODE_TEST;
-    }
-  }
+  Set<bNode *> initial_selection = get_selected_nodes(node_tree);
 
-  LISTBASE_FOREACH (bNode *, node, &node_tree.nodes) {
-    if (node->flag & NODE_TEST) {
-      nodeSetSelected(node, true);
+  for (bNode *node : initial_selection) {
+    for (bNodeSocket *input_socket : node->input_sockets()) {
+      if (!input_socket->is_available()) {
+        continue;
+      }
+      for (bNodeSocket *output_socket : input_socket->directly_linked_sockets()) {
+        if (!output_socket->is_available()) {
+          continue;
+        }
+        nodeSetSelected(&output_socket->owner_node(), true);
+      }
     }
   }
 

@@ -1619,7 +1619,9 @@ void NODE_OT_parent_set(wmOperatorType *ot)
 #define NODE_JOIN_DONE 1
 #define NODE_JOIN_IS_DESCENDANT 2
 
-static void node_join_attach_recursive(bNode *node, bNode *frame)
+static void node_join_attach_recursive(bNode *node,
+                                       bNode *frame,
+                                       const Set<bNode *> &selected_nodes)
 {
   node->done |= NODE_JOIN_DONE;
 
@@ -1629,21 +1631,21 @@ static void node_join_attach_recursive(bNode *node, bNode *frame)
   else if (node->parent) {
     /* call recursively */
     if (!(node->parent->done & NODE_JOIN_DONE)) {
-      node_join_attach_recursive(node->parent, frame);
+      node_join_attach_recursive(node->parent, frame, selected_nodes);
     }
 
     /* in any case: if the parent is a descendant, so is the child */
     if (node->parent->done & NODE_JOIN_IS_DESCENDANT) {
       node->done |= NODE_JOIN_IS_DESCENDANT;
     }
-    else if (node->flag & NODE_TEST) {
+    else if (selected_nodes.contains(node)) {
       /* if parent is not an descendant of the frame, reattach the node */
       nodeDetachNode(node);
       nodeAttachNode(node, frame);
       node->done |= NODE_JOIN_IS_DESCENDANT;
     }
   }
-  else if (node->flag & NODE_TEST) {
+  else if (selected_nodes.contains(node)) {
     nodeAttachNode(node, frame);
     node->done |= NODE_JOIN_IS_DESCENDANT;
   }
@@ -1651,21 +1653,13 @@ static void node_join_attach_recursive(bNode *node, bNode *frame)
 
 static int node_join_exec(bContext *C, wmOperator *UNUSED(op))
 {
+  Main &bmain = *CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
 
-  /* XXX save selection: add_static_node call below sets the new frame as single
-   * active+selected node */
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    if (node->flag & NODE_SELECT) {
-      node->flag |= NODE_TEST;
-    }
-    else {
-      node->flag &= ~NODE_TEST;
-    }
-  }
+  const Set<bNode *> selected_nodes = get_selected_nodes(ntree);
 
-  bNode *frame = add_static_node(*C, NODE_FRAME, float2(0));
+  bNode *frame_node = nodeAddStaticNode(C, &ntree, NODE_FRAME);
 
   /* reset tags */
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
@@ -1674,18 +1668,12 @@ static int node_join_exec(bContext *C, wmOperator *UNUSED(op))
 
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
     if (!(node->done & NODE_JOIN_DONE)) {
-      node_join_attach_recursive(node, frame);
-    }
-  }
-
-  /* restore selection */
-  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    if (node->flag & NODE_TEST) {
-      node->flag |= NODE_SELECT;
+      node_join_attach_recursive(node, frame_node, selected_nodes);
     }
   }
 
   node_sort(ntree);
+  ED_node_tree_propagate_change(C, &bmain, snode.edittree);
   WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
 
   return OPERATOR_FINISHED;

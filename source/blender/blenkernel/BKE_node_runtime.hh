@@ -481,6 +481,12 @@ inline blender::Span<const bNodeSocket *> bNodeSocket::directly_linked_sockets()
   return this->runtime->directly_linked_sockets;
 }
 
+inline blender::Span<bNodeSocket *> bNodeSocket::directly_linked_sockets()
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  return this->runtime->directly_linked_sockets;
+}
+
 inline bool bNodeSocket::is_directly_linked() const
 {
   return !this->directly_linked_links().is_empty();

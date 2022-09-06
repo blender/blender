@@ -210,6 +210,7 @@ typedef struct bNodeSocket {
   blender::Span<bNodeLink *> directly_linked_links();
   blender::Span<const bNodeLink *> directly_linked_links() const;
   /** Sockets which are connected to this socket with a link. */
+  blender::Span<bNodeSocket *> directly_linked_sockets();
   blender::Span<const bNodeSocket *> directly_linked_sockets() const;
   bool is_directly_linked() const;
   /**
