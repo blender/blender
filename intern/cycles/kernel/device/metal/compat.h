@@ -46,8 +46,11 @@ using namespace metal::raytracing;
 #  define ccl_device
 #  define ccl_device_inline ccl_device
 #  define ccl_device_forceinline ccl_device
-#  define ccl_device_noinline ccl_device __attribute__((noinline))
-
+#  if defined(__KERNEL_METAL_APPLE__)
+#    define ccl_device_noinline ccl_device
+#  else
+#    define ccl_device_noinline ccl_device __attribute__((noinline))
+#  endif
 #endif
 
 #define ccl_device_noinline_cpu ccl_device
