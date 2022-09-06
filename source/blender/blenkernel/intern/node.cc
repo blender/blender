@@ -654,6 +654,20 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
   /* Special case for this pointer, do not rely on regular `lib_link` process here. Avoids needs
    * for do_versioning, and ensures coherence of data in any case. */
   BLI_assert((ntree->id.flag & LIB_EMBEDDED_DATA) != 0 || owner_id == nullptr);
+  if (owner_id != nullptr && (ntree->id.flag & LIB_EMBEDDED_DATA) == 0) {
+    /* This is unfortunate, but currently a lot of existing files (including startup ones) have
+     * missing `LIB_EMBEDDED_DATA` flag.
+     *
+     * NOTE: Using do_version is not a solution here, since this code will be called before any
+     * do_version takes place. Keeping it here also ensures future (or unknown existing) similar
+     * bugs won't go easily unoticed. */
+    CLOG_WARN(&LOG,
+              "Fixing root node tree '%s' owned by '%s' missing EMBEDDED tag, please consider "
+              "re-saving your (startup) file",
+              ntree->id.name,
+              owner_id->name);
+    ntree->id.flag |= LIB_EMBEDDED_DATA;
+  }
   ntree->owner_id = owner_id;
 
   /* NOTE: writing and reading goes in sync, for speed. */
