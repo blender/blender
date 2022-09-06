@@ -30,7 +30,7 @@ static void test_draw_pass_all_commands()
   pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_STENCIL);
   pass.clear_color_depth_stencil(float4(0.25f, 0.5f, 100.0f, -2000.0f), 0.5f, 0xF0);
   pass.state_stencil(0x80, 0x0F, 0x8F);
-  pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_MODULATE_ALPHA));
+  pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_COLOR));
   pass.bind_texture("image", tex);
   pass.bind_texture("image", &tex);
   pass.bind_image("missing_image", tex);  /* Should not crash. */
@@ -46,7 +46,7 @@ static void test_draw_pass_all_commands()
 
   /* Should not crash even if shader is not a compute. This is because we only serialize. */
   /* TODO(fclem): Use real compute shader. */
-  pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_MODULATE_ALPHA));
+  pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_COLOR));
   pass.dispatch(dispatch_size);
   pass.dispatch(&dispatch_size);
   pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
@@ -97,7 +97,7 @@ static void test_draw_pass_sub_ordering()
 {
   PassSimple pass = {"test.sub_ordering"};
   pass.init();
-  pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_MODULATE_ALPHA));
+  pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_COLOR));
   pass.push_constant("test_pass", 1);
 
   PassSimple::Sub &sub1 = pass.sub("Sub1");
@@ -140,7 +140,7 @@ static void test_draw_pass_simple_draw()
 {
   PassSimple pass = {"test.simple_draw"};
   pass.init();
-  pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_MODULATE_ALPHA));
+  pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_COLOR));
   /* Each draw procedural type uses a different batch. Groups are drawn in correct order. */
   pass.draw_procedural(GPU_PRIM_TRIS, 1, 10, 1, {1});
   pass.draw_procedural(GPU_PRIM_POINTS, 4, 20, 2, {2});
@@ -172,7 +172,7 @@ static void test_draw_pass_multi_draw()
 {
   PassMain pass = {"test.multi_draw"};
   pass.init();
-  pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_MODULATE_ALPHA));
+  pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_COLOR));
   /* Each draw procedural type uses a different batch. Groups are drawn in reverse order. */
   pass.draw_procedural(GPU_PRIM_TRIS, 1, -1, -1, {1});
   pass.draw_procedural(GPU_PRIM_POINTS, 4, -1, -1, {2});
@@ -258,7 +258,7 @@ static void test_draw_resource_id_gen()
     /* Computed on CPU. */
     PassSimple pass = {"test.resource_id"};
     pass.init();
-    pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_MODULATE_ALPHA));
+    pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_COLOR));
     pass.draw_procedural(GPU_PRIM_TRIS, 1, -1, -1, handle2);
     pass.draw_procedural(GPU_PRIM_POINTS, 4, -1, -1, handle1);
     pass.draw_procedural(GPU_PRIM_TRIS, 2, -1, -1, handle3);
@@ -280,7 +280,7 @@ static void test_draw_resource_id_gen()
     /* Same thing with PassMain (computed on GPU) */
     PassSimple pass = {"test.resource_id"};
     pass.init();
-    pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_MODULATE_ALPHA));
+    pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_COLOR));
     pass.draw_procedural(GPU_PRIM_TRIS, 1, -1, -1, handle2);
     pass.draw_procedural(GPU_PRIM_POINTS, 4, -1, -1, handle1);
     pass.draw_procedural(GPU_PRIM_TRIS, 2, -1, -1, handle3);
@@ -327,7 +327,7 @@ static void test_draw_visibility()
 
   PassMain pass = {"test.visibility"};
   pass.init();
-  pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_MODULATE_ALPHA));
+  pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_COLOR));
   pass.draw_procedural(GPU_PRIM_TRIS, 1, -1);
 
   Manager::SubmitDebugOutput debug = drw.submit_debug(pass, view);
