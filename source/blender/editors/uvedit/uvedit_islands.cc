@@ -348,11 +348,6 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
   int island_added = 0;
   BM_mesh_elem_table_ensure(bm, BM_FACE);
 
-  struct SharedUVLoopData user_data = {
-      .cd_loop_uv_offset = cd_loop_uv_offset,
-      .use_seams = use_seams,
-  };
-
   int *groups_array = static_cast<int *>(
       MEM_mallocN(sizeof(*groups_array) * (size_t)bm->totface, __func__));
 
@@ -378,6 +373,10 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
       hflag_face_test = BM_ELEM_SELECT;
     }
   }
+
+  struct SharedUVLoopData user_data = {0};
+  user_data.cd_loop_uv_offset = cd_loop_uv_offset;
+  user_data.use_seams = use_seams;
 
   const int group_len = BM_mesh_calc_face_groups(bm,
                                                  groups_array,
