@@ -902,18 +902,18 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
         if (ELEM(t->frame_side, 'L', 'R')) { /* TFM_TIME_EXTEND */
           /* same as below */
           ED_markers_post_apply_transform(
-              ED_context_get_markers(C), t->scene, t->mode, t->values[0], t->frame_side);
+              ED_context_get_markers(C), t->scene, t->mode, t->values_final[0], t->frame_side);
         }
         else /* TFM_TIME_TRANSLATE */
 #endif
       {
         ED_markers_post_apply_transform(
-            ED_context_get_markers(C), t->scene, t->mode, t->values[0], t->frame_side);
+            ED_context_get_markers(C), t->scene, t->mode, t->values_final[0], t->frame_side);
       }
     }
     else if (t->mode == TFM_TIME_SCALE) {
       ED_markers_post_apply_transform(
-          ED_context_get_markers(C), t->scene, t->mode, t->values[0], t->frame_side);
+          ED_context_get_markers(C), t->scene, t->mode, t->values_final[0], t->frame_side);
     }
   }
 
