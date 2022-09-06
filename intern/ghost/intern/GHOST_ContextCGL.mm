@@ -193,7 +193,8 @@ GHOST_TSuccess GHOST_ContextCGL::updateDrawingContext()
 static void makeAttribList(std::vector<NSOpenGLPixelFormatAttribute> &attribs,
                            bool stereoVisual,
                            bool needAlpha,
-                           bool softwareGL)
+                           bool softwareGL,
+                           bool increasedSamplerLimit)
 {
   attribs.clear();
 
@@ -210,6 +211,12 @@ static void makeAttribList(std::vector<NSOpenGLPixelFormatAttribute> &attribs,
   else {
     attribs.push_back(NSOpenGLPFAAccelerated);
     attribs.push_back(NSOpenGLPFANoRecovery);
+
+    /* Attempt to initialise device with extended sampler limit.
+     * Resolves EEVEE purple rendering artifacts on macOS. */
+    if (increasedSamplerLimit) {
+      attribs.push_back((NSOpenGLPixelFormatAttribute)400);
+    }
   }
 
   if (stereoVisual)
@@ -225,80 +232,123 @@ static void makeAttribList(std::vector<NSOpenGLPixelFormatAttribute> &attribs,
 
 GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
 {
-  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+  @autoreleasepool {
 
 #ifdef GHOST_OPENGL_ALPHA
-  static const bool needAlpha = true;
+    static const bool needAlpha = true;
 #else
-  static const bool needAlpha = false;
+    static const bool needAlpha = false;
 #endif
 
-  /* Command-line argument would be better. */
-  static bool softwareGL = getenv("BLENDER_SOFTWAREGL");
+    /* Command-line argument would be better. */
+    static bool softwareGL = getenv("BLENDER_SOFTWAREGL");
 
-  std::vector<NSOpenGLPixelFormatAttribute> attribs;
-  attribs.reserve(40);
-  makeAttribList(attribs, m_stereoVisual, needAlpha, softwareGL);
+    NSOpenGLPixelFormat *pixelFormat = nil;
+    std::vector<NSOpenGLPixelFormatAttribute> attribs;
+    bool increasedSamplerLimit = false;
 
-  NSOpenGLPixelFormat *pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&attribs[0]];
-  if (pixelFormat == nil) {
-    goto error;
-  }
+    /* Attempt to initialize device with increased sampler limit.
+     * If this is unsupported and initialization fails, initialize GL Context as normal.
+     *
+     * NOTE: This is not available when using the SoftwareGL path, or for Intel-based
+     * platforms. */
+    if (!softwareGL) {
+      if (@available(macos 11.0, *)) {
+        increasedSamplerLimit = true;
+      }
+    }
+    const int max_ctx_attempts = increasedSamplerLimit ? 2 : 1;
+    for (int ctx_create_attempt = 0; ctx_create_attempt < max_ctx_attempts; ctx_create_attempt++) {
 
-  m_openGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
-                                               shareContext:s_sharedOpenGLContext];
-  [pixelFormat release];
+      attribs.clear();
+      attribs.reserve(40);
+      makeAttribList(attribs, m_stereoVisual, needAlpha, softwareGL, increasedSamplerLimit);
 
-  [m_openGLContext makeCurrentContext];
+      pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&attribs[0]];
+      if (pixelFormat == nil) {
+        /* If pixel format creation fails when testing increased sampler limit,
+         * attempt intialisation again with feature disabled, otherwise, fail. */
+        if (increasedSamplerLimit) {
+          increasedSamplerLimit = false;
+          continue;
+        }
+        return GHOST_kFailure;
+      }
 
-  if (m_debug) {
-    GLint major = 0, minor = 0;
-    glGetIntegerv(GL_MAJOR_VERSION, &major);
-    glGetIntegerv(GL_MINOR_VERSION, &minor);
-    fprintf(stderr, "OpenGL version %d.%d%s\n", major, minor, softwareGL ? " (software)" : "");
-    fprintf(stderr, "Renderer: %s\n", glGetString(GL_RENDERER));
-  }
+      /* Attempt to create context. */
+      m_openGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
+                                                   shareContext:s_sharedOpenGLContext];
+      [pixelFormat release];
+
+      if (m_openGLContext == nil) {
+        /* If context creation fails when testing increased sampler limit,
+         * attempt re-creation with feature disabled. Otherwise, error. */
+        if (increasedSamplerLimit) {
+          increasedSamplerLimit = false;
+          continue;
+        }
+
+        /* Default context creation attempt failed. */
+        return GHOST_kFailure;
+      }
+
+      /* Created GL context successfully, activate. */
+      [m_openGLContext makeCurrentContext];
+
+      /* When increasing sampler limit, verify created context is a supported configuration. */
+      if (increasedSamplerLimit) {
+        const char *vendor = (const char *)glGetString(GL_VENDOR);
+        const char *renderer = (const char *)glGetString(GL_RENDERER);
+
+        /* If generated context type is unsupported, release existing context and
+         * fallback to creating a normal context below. */
+        if (strstr(vendor, "Intel") || strstr(renderer, "Software")) {
+          [m_openGLContext release];
+          m_openGLContext = nil;
+          increasedSamplerLimit = false;
+          continue;
+        }
+      }
+    }
+
+    if (m_debug) {
+      GLint major = 0, minor = 0;
+      glGetIntegerv(GL_MAJOR_VERSION, &major);
+      glGetIntegerv(GL_MINOR_VERSION, &minor);
+      fprintf(stderr, "OpenGL version %d.%d%s\n", major, minor, softwareGL ? " (software)" : "");
+      fprintf(stderr, "Renderer: %s\n", glGetString(GL_RENDERER));
+    }
 
 #ifdef GHOST_WAIT_FOR_VSYNC
-  {
-    GLint swapInt = 1;
-    /* Wait for vertical-sync, to avoid tearing artifacts. */
-    [m_openGLContext setValues:&swapInt forParameter:NSOpenGLCPSwapInterval];
-  }
+    {
+      GLint swapInt = 1;
+      /* Wait for vertical-sync, to avoid tearing artifacts. */
+      [m_openGLContext setValues:&swapInt forParameter:NSOpenGLCPSwapInterval];
+    }
 #endif
 
-  if (m_metalView) {
-    if (m_defaultFramebuffer == 0) {
-      /* Create a virtual frame-buffer. */
-      [m_openGLContext makeCurrentContext];
-      metalInitFramebuffer();
+    if (m_metalView) {
+      if (m_defaultFramebuffer == 0) {
+        /* Create a virtual frame-buffer. */
+        [m_openGLContext makeCurrentContext];
+        metalInitFramebuffer();
+        initClearGL();
+      }
+    }
+    else if (m_openGLView) {
+      [m_openGLView setOpenGLContext:m_openGLContext];
+      [m_openGLContext setView:m_openGLView];
       initClearGL();
     }
+
+    [m_openGLContext flushBuffer];
+
+    if (s_sharedCount == 0)
+      s_sharedOpenGLContext = m_openGLContext;
+
+    s_sharedCount++;
   }
-  else if (m_openGLView) {
-    [m_openGLView setOpenGLContext:m_openGLContext];
-    [m_openGLContext setView:m_openGLView];
-    initClearGL();
-  }
-
-  [m_openGLContext flushBuffer];
-
-  if (s_sharedCount == 0)
-    s_sharedOpenGLContext = m_openGLContext;
-
-  s_sharedCount++;
-
-  [pool drain];
-
   return GHOST_kSuccess;
-
-error:
-
-  [pixelFormat release];
-
-  [pool drain];
-
-  return GHOST_kFailure;
 }
 
 GHOST_TSuccess GHOST_ContextCGL::releaseNativeHandles()
