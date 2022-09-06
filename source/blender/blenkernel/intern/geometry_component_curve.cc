@@ -1351,8 +1351,7 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
       [](const void *owner) -> int {
         const CurveEval *curve = static_cast<const CurveEval *>(owner);
         return curve->splines().size();
-      },
-      nullptr};
+      }};
 
   static CustomDataAttributeProvider spline_custom_data(ATTR_DOMAIN_CURVE,
                                                         spline_custom_data_access);

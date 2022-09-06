@@ -339,8 +339,7 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
       [](const void *owner) -> int {
         const CurvesGeometry &curves = *static_cast<const CurvesGeometry *>(owner);
         return curves.curves_num();
-      },
-      [](void * /*owner*/) {}};
+      }};
   static CustomDataAccessInfo point_access = {
       [](void *owner) -> CustomData * {
         CurvesGeometry &curves = *static_cast<CurvesGeometry *>(owner);
@@ -353,8 +352,7 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
       [](const void *owner) -> int {
         const CurvesGeometry &curves = *static_cast<const CurvesGeometry *>(owner);
         return curves.points_num();
-      },
-      [](void * /*owner*/) {}};
+      }};
 
   static BuiltinCustomDataLayerProvider position("position",
                                                  ATTR_DOMAIN_POINT,

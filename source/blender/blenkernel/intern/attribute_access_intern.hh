@@ -23,7 +23,6 @@ struct CustomDataAccessInfo {
   CustomDataGetter get_custom_data;
   ConstCustomDataGetter get_const_custom_data;
   GetElementNum get_element_num;
-  UpdateCustomDataPointers update_custom_data_pointers;
 };
 
 /**

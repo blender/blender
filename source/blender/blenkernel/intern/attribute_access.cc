@@ -308,41 +308,15 @@ GAttributeWriter BuiltinCustomDataLayerProvider::try_get_for_write(void *owner) 
   const int element_num = custom_data_access_.get_element_num(owner);
 
   void *data = nullptr;
-  bool found_attribute = false;
-  for (const CustomDataLayer &layer : Span(custom_data->layers, custom_data->totlayer)) {
-    if (stored_as_named_attribute_) {
-      if (layer.name == name_) {
-        data = layer.data;
-        found_attribute = true;
-        break;
-      }
-    }
-    else if (layer.type == stored_type_) {
-      data = layer.data;
-      found_attribute = true;
-      break;
-    }
+  if (stored_as_named_attribute_) {
+    data = CustomData_duplicate_referenced_layer_named(
+        custom_data, stored_type_, name_.c_str(), element_num);
   }
-  if (!found_attribute) {
+  else {
+    data = CustomData_duplicate_referenced_layer(custom_data, stored_type_, element_num);
+  }
+  if (data == nullptr) {
     return {};
-  }
-
-  if (data != nullptr) {
-    void *new_data;
-    if (stored_as_named_attribute_) {
-      new_data = CustomData_duplicate_referenced_layer_named(
-          custom_data, stored_type_, name_.c_str(), element_num);
-    }
-    else {
-      new_data = CustomData_duplicate_referenced_layer(custom_data, stored_type_, element_num);
-    }
-
-    if (data != new_data) {
-      if (custom_data_access_.update_custom_data_pointers) {
-        custom_data_access_.update_custom_data_pointers(owner);
-      }
-      data = new_data;
-    }
   }
 
   std::function<void()> tag_modified_fn;
@@ -372,9 +346,6 @@ bool BuiltinCustomDataLayerProvider::try_delete(void *owner) const
   const int element_num = custom_data_access_.get_element_num(owner);
   if (stored_as_named_attribute_) {
     if (CustomData_free_layer_named(custom_data, name_.c_str(), element_num)) {
-      if (custom_data_access_.update_custom_data_pointers) {
-        custom_data_access_.update_custom_data_pointers(owner);
-      }
       update();
       return true;
     }
@@ -383,9 +354,6 @@ bool BuiltinCustomDataLayerProvider::try_delete(void *owner) const
 
   const int layer_index = CustomData_get_layer_index(custom_data, stored_type_);
   if (CustomData_free_layer(custom_data, stored_type_, element_num, layer_index)) {
-    if (custom_data_access_.update_custom_data_pointers) {
-      custom_data_access_.update_custom_data_pointers(owner);
-    }
     update();
     return true;
   }
@@ -405,29 +373,21 @@ bool BuiltinCustomDataLayerProvider::try_create(void *owner,
   }
 
   const int element_num = custom_data_access_.get_element_num(owner);
-  bool success;
   if (stored_as_named_attribute_) {
     if (CustomData_get_layer_named(custom_data, data_type_, name_.c_str())) {
       /* Exists already. */
       return false;
     }
-    success = add_custom_data_layer_from_attribute_init(
+    return add_custom_data_layer_from_attribute_init(
         name_, *custom_data, stored_type_, element_num, initializer);
   }
-  else {
-    if (CustomData_get_layer(custom_data, stored_type_) != nullptr) {
-      /* Exists already. */
-      return false;
-    }
-    success = add_builtin_type_custom_data_layer_from_init(
-        *custom_data, stored_type_, element_num, initializer);
+
+  if (CustomData_get_layer(custom_data, stored_type_) != nullptr) {
+    /* Exists already. */
+    return false;
   }
-  if (success) {
-    if (custom_data_access_.update_custom_data_pointers) {
-      custom_data_access_.update_custom_data_pointers(owner);
-    }
-  }
-  return success;
+  return add_builtin_type_custom_data_layer_from_init(
+      *custom_data, stored_type_, element_num, initializer);
 }
 
 bool BuiltinCustomDataLayerProvider::exists(const void *owner) const
@@ -589,15 +549,9 @@ GAttributeWriter NamedLegacyCustomDataProvider::try_get_for_write(
     if (layer.type == stored_type_) {
       if (custom_data_layer_matches_attribute_id(layer, attribute_id)) {
         const int element_num = custom_data_access_.get_element_num(owner);
-        void *data_old = layer.data;
-        void *data_new = CustomData_duplicate_referenced_layer_named(
+        void *data = CustomData_duplicate_referenced_layer_named(
             custom_data, stored_type_, layer.name, element_num);
-        if (data_old != data_new) {
-          if (custom_data_access_.update_custom_data_pointers) {
-            custom_data_access_.update_custom_data_pointers(owner);
-          }
-        }
-        return {as_write_attribute_(layer.data, element_num), domain_};
+        return {as_write_attribute_(data, element_num), domain_};
       }
     }
   }
@@ -617,9 +571,6 @@ bool NamedLegacyCustomDataProvider::try_delete(void *owner,
       if (custom_data_layer_matches_attribute_id(layer, attribute_id)) {
         const int element_num = custom_data_access_.get_element_num(owner);
         CustomData_free_layer(custom_data, stored_type_, element_num, i);
-        if (custom_data_access_.update_custom_data_pointers) {
-          custom_data_access_.update_custom_data_pointers(owner);
-        }
         return true;
       }
     }

@@ -1158,8 +1158,6 @@ class NormalAttributeProvider final : public BuiltinAttributeProvider {
  */
 static ComponentAttributeProviders create_attribute_providers_for_mesh()
 {
-  static auto update_custom_data_pointers = [](void * /*owner*/) {};
-
 #define MAKE_MUTABLE_CUSTOM_DATA_GETTER(NAME) \
   [](void *owner) -> CustomData * { \
     Mesh *mesh = static_cast<Mesh *>(owner); \
@@ -1178,20 +1176,16 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
 
   static CustomDataAccessInfo corner_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(ldata),
                                                MAKE_CONST_CUSTOM_DATA_GETTER(ldata),
-                                               MAKE_GET_ELEMENT_NUM_GETTER(totloop),
-                                               update_custom_data_pointers};
+                                               MAKE_GET_ELEMENT_NUM_GETTER(totloop)};
   static CustomDataAccessInfo point_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(vdata),
                                               MAKE_CONST_CUSTOM_DATA_GETTER(vdata),
-                                              MAKE_GET_ELEMENT_NUM_GETTER(totvert),
-                                              update_custom_data_pointers};
+                                              MAKE_GET_ELEMENT_NUM_GETTER(totvert)};
   static CustomDataAccessInfo edge_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(edata),
                                              MAKE_CONST_CUSTOM_DATA_GETTER(edata),
-                                             MAKE_GET_ELEMENT_NUM_GETTER(totedge),
-                                             update_custom_data_pointers};
+                                             MAKE_GET_ELEMENT_NUM_GETTER(totedge)};
   static CustomDataAccessInfo face_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(pdata),
                                              MAKE_CONST_CUSTOM_DATA_GETTER(pdata),
-                                             MAKE_GET_ELEMENT_NUM_GETTER(totpoly),
-                                             update_custom_data_pointers};
+                                             MAKE_GET_ELEMENT_NUM_GETTER(totpoly)};
 
 #undef MAKE_CONST_CUSTOM_DATA_GETTER
 #undef MAKE_MUTABLE_CUSTOM_DATA_GETTER

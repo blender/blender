@@ -111,7 +111,6 @@ namespace blender::bke {
  */
 static ComponentAttributeProviders create_attribute_providers_for_point_cloud()
 {
-  static auto update_custom_data_pointers = [](void * /*owner*/) {};
   static CustomDataAccessInfo point_access = {
       [](void *owner) -> CustomData * {
         PointCloud *pointcloud = static_cast<PointCloud *>(owner);
@@ -124,8 +123,7 @@ static ComponentAttributeProviders create_attribute_providers_for_point_cloud()
       [](const void *owner) -> int {
         const PointCloud *pointcloud = static_cast<const PointCloud *>(owner);
         return pointcloud->totpoint;
-      },
-      update_custom_data_pointers};
+      }};
 
   static BuiltinCustomDataLayerProvider position("position",
                                                  ATTR_DOMAIN_POINT,
