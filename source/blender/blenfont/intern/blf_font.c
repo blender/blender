@@ -1361,6 +1361,11 @@ bool blf_ensure_face(FontBLF *font)
     return false;
   }
 
+  if (font->face && !(font->face->face_flags & FT_FACE_FLAG_SCALABLE)) {
+    printf("Font is not scalable\n");
+    return false;
+  }
+
   err = FT_Select_Charmap(font->face, FT_ENCODING_UNICODE);
   if (err) {
     err = FT_Select_Charmap(font->face, FT_ENCODING_APPLE_ROMAN);
