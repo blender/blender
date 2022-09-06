@@ -102,6 +102,7 @@ static void material_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const 
                      (ID **)&material_dst->nodetree,
                      flag_private_id_data);
     }
+    material_dst->nodetree->owner_id = &material_dst->id;
   }
 
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {

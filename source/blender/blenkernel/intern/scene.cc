@@ -250,6 +250,7 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
                    (ID *)scene_src->master_collection,
                    (ID **)&scene_dst->master_collection,
                    flag_private_id_data);
+    scene_dst->master_collection->owner_id = &scene_dst->id;
   }
 
   /* View Layers */
@@ -275,6 +276,7 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
                            (void *)(&scene_src->id),
                            &scene_dst->id,
                            ID_REMAP_SKIP_NEVER_NULL_USAGE | ID_REMAP_SKIP_USER_CLEAR);
+    scene_dst->nodetree->owner_id = &scene_dst->id;
   }
 
   if (scene_src->rigidbody_world) {

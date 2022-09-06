@@ -72,6 +72,7 @@ static void linestyle_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const
                    (ID *)linestyle_src->nodetree,
                    (ID **)&linestyle_dst->nodetree,
                    flag_private_id_data);
+    linestyle_dst->nodetree->owner_id = &linestyle_dst->id;
   }
 
   LineStyleModifier *linestyle_modifier;

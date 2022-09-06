@@ -67,6 +67,7 @@ static void simulation_copy_data(Main *bmain, ID *id_dst, const ID *id_src, cons
                    (ID *)simulation_src->nodetree,
                    (ID **)&simulation_dst->nodetree,
                    flag_private_id_data);
+    simulation_dst->nodetree->owner_id = &simulation_dst->id;
   }
 }
 
