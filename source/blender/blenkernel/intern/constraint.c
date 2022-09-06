@@ -528,7 +528,24 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
   float vec[3] = {0.0f, 0.0f, 0.0f};
   float normal[3] = {0.0f, 0.0f, 0.0f};
   float weightsum = 0.0f;
-  if (me_eval) {
+  if (em) {
+    if (CustomData_has_layer(&em->bm->vdata, CD_MDEFORMVERT)) {
+      BMVert *v;
+      BMIter iter;
+
+      BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
+        MDeformVert *dv = CustomData_bmesh_get(&em->bm->vdata, v->head.data, CD_MDEFORMVERT);
+        MDeformWeight *dw = BKE_defvert_find_index(dv, defgroup);
+
+        if (dw && dw->weight > 0.0f) {
+          madd_v3_v3fl(vec, v->co, dw->weight);
+          madd_v3_v3fl(normal, v->no, dw->weight);
+          weightsum += dw->weight;
+        }
+      }
+    }
+  }
+  else if (me_eval) {
     const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me_eval);
     const MDeformVert *dvert = CustomData_get_layer(&me_eval->vdata, CD_MDEFORMVERT);
     const MVert *verts = BKE_mesh_vertices(me_eval);
@@ -546,23 +563,6 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
         if (dw && dw->weight > 0.0f) {
           madd_v3_v3fl(vec, mv->co, dw->weight);
           madd_v3_v3fl(normal, vert_normals[i], dw->weight);
-          weightsum += dw->weight;
-        }
-      }
-    }
-  }
-  else if (em) {
-    if (CustomData_has_layer(&em->bm->vdata, CD_MDEFORMVERT)) {
-      BMVert *v;
-      BMIter iter;
-
-      BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
-        MDeformVert *dv = CustomData_bmesh_get(&em->bm->vdata, v->head.data, CD_MDEFORMVERT);
-        MDeformWeight *dw = BKE_defvert_find_index(dv, defgroup);
-
-        if (dw && dw->weight > 0.0f) {
-          madd_v3_v3fl(vec, v->co, dw->weight);
-          madd_v3_v3fl(normal, v->no, dw->weight);
           weightsum += dw->weight;
         }
       }
