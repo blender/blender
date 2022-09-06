@@ -693,7 +693,7 @@ static int snap_curves_to_surface_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_INFO, "Could not snap some curves to the surface");
   }
 
-  /* Refresh the entire window to also clear eventual modifier and nodes editor warnings.*/
+  /* Refresh the entire window to also clear eventual modifier and nodes editor warnings. */
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
 
   return OPERATOR_FINISHED;

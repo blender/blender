@@ -44,7 +44,10 @@ class Manager {
   using ObjectBoundsBuf = StorageArrayBuffer<ObjectBounds, 128>;
   using ObjectInfosBuf = StorageArrayBuffer<ObjectInfos, 128>;
   using ObjectAttributeBuf = StorageArrayBuffer<ObjectAttribute, 128>;
-  /** TODO(fclem): Remove once we get rid of old EEVEE codebase. DRW_RESOURCE_CHUNK_LEN = 512 */
+  /**
+   * TODO(@fclem): Remove once we get rid of old EEVEE code-base.
+   * `DRW_RESOURCE_CHUNK_LEN = 512`.
+   */
   using ObjectAttributeLegacyBuf = UniformArrayBuffer<float4, 8 * 512>;
 
  public:
@@ -77,11 +80,16 @@ class Manager {
    * This is because attribute list is arbitrary.
    */
   ObjectAttributeBuf attributes_buf;
-  /** TODO(fclem): Remove once we get rid of old EEVEE codebase. Only here to satisfy bindings. */
+  /**
+   * TODO(@fclem): Remove once we get rid of old EEVEE code-base.
+   * Only here to satisfy bindings.
+   */
   ObjectAttributeLegacyBuf attributes_buf_legacy;
 
-  /** List of textures coming from Image data-blocks. They need to be refcounted in order to avoid
-   * beeing freed in another thread. */
+  /**
+   * List of textures coming from Image data-blocks.
+   * They need to be reference-counted in order to avoid being freed in another thread.
+   */
   Vector<GPUTexture *> acquired_textures;
 
  private:

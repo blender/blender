@@ -1303,7 +1303,7 @@ static void lineart_shadow_finalize_shadow_edges_task(
       int v2i = (e[i].edge_identifier & LRT_OBINDEX_LOWER);
       LineartVert *v = (LineartVert *)eln->pointer;
       /* If the global position is close enough, use the original vertex to prevent flickering
-       * caused by very slim boundary condition in point_triangle_relation().*/
+       * caused by very slim boundary condition in point_triangle_relation(). */
       if (LRT_CLOSE_LOOSER_v3(e[i].v1->gloc, v[v1i].gloc)) {
         e[i].v1 = &v[v1i];
       }

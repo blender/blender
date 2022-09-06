@@ -150,7 +150,7 @@ static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
   }
 
   /* Do not use mapped scroll here because we want to update scroller rects
-   * even if they are not displayed.  For init purposes.  See T75003.*/
+   * even if they are not displayed. For initialization purposes. See T75003. */
   scroll = v2d->scroll;
 
   /* Scrollers are based off region-size:

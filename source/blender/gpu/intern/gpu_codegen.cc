@@ -355,7 +355,7 @@ void GPUCodegen::generate_resources()
   GPUCodegenCreateInfo &info = *create_info;
 
   /* Ref. T98190: Defines are optimizations for old compilers.
-   * Might become unecessary with EEVEE-Next. */
+   * Might become unnecessary with EEVEE-Next. */
   if (GPU_material_flag_get(&mat, GPU_MATFLAG_PRINCIPLED_CLEARCOAT)) {
     info.define("PRINCIPLED_CLEARCOAT");
   }

@@ -16,7 +16,7 @@ namespace blender::draw {
 
 class Manager;
 
-/* TODO deduplicate. */
+/* TODO: de-duplicate. */
 using ObjectBoundsBuf = StorageArrayBuffer<ObjectBounds, 128>;
 /** \note Using uint4 for declaration but bound as uint. */
 using VisibilityBuf = StorageArrayBuffer<uint4, 1, true>;
@@ -26,7 +26,7 @@ class View {
 
  private:
   UniformBuffer<ViewInfos> data_;
-  /** Freezed version of data_ used for debugging culling. */
+  /** Frozen version of data_ used for debugging culling. */
   UniformBuffer<ViewInfos> data_freeze_;
   /** Result of the visibility computation. 1 bit per resource ID. */
   VisibilityBuf visibility_buf_;

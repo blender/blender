@@ -682,9 +682,9 @@ void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_v
   /* Cryptomatte stores two ID/weight pairs per RGBA layer.
    * User facing parameter is the number of pairs.
    *
-   * NOTE: Name channels lowercase rgba so that compression rules check in OpenEXR DWA code uses
-   * loseless compression. Reportedly this naming is the only one which works good from the
-   * interoperability point of view. Using xyzw naming is not portable. */
+   * NOTE: Name channels lowercase RGBA so that compression rules check in OpenEXR DWA code uses
+   * lossless compression. Reportedly this naming is the only one which works good from the
+   * interoperability point of view. Using XYZW naming is not portable. */
   int crypto_depth = divide_up(min(16, b_view_layer.pass_cryptomatte_depth()), 2);
   scene->film->set_cryptomatte_depth(crypto_depth);
   CryptomatteType cryptomatte_passes = CRYPT_NONE;

@@ -13,7 +13,7 @@
  * submission is optimized for large number of draw calls. But has a significant overhead per
  * #Pass. Use many #PassSub along with a main #Pass to reduce the overhead and allow groupings of
  * commands. \note The draw call order inside a batch of multiple draw with the exact same state is
- * not guaranteed and is not even deterministic. Use a PassSimple or PassSortable if ordering is
+ * not guaranteed and is not even deterministic. Use a #PassSimple or #PassSortable if ordering is
  * needed. \note As of now, it is also quite limited in the type of draw command it can record
  * (no custom vertex count, no custom first vertex).
  *
@@ -25,7 +25,7 @@
  * A lightweight #Pass that lives inside a main #Pass. It can only be created from #Pass.sub()
  * and is auto managed. This mean it can be created, filled and thrown away. A #PassSub reference
  * is valid until the next #Pass.init() of the parent pass. Commands recorded inside a #PassSub are
- * inserted inside the parent #Pass where the sub have been created durring submission.
+ * inserted inside the parent #Pass where the sub have been created during submission.
  *
  * `PassSortable`:
  * This is a sort of `PassMain` augmented with a per sub-pass sorting value. They can't directly
@@ -35,8 +35,9 @@
  * \note A pass can be recorded once and resubmitted any number of time. This can be a good
  * optimization for passes that are always the same for each frame. The only thing to be aware of
  * is the life time of external resources. If a pass contains draw-calls with non default
- * ResourceHandle (not 0) or a reference to any non static resources (GPUBatch, PushConstant ref,
- * ResourceBind ref) it will have to be re-recorded if any of these reference becomes invalid.
+ * #ResourceHandle (not 0) or a reference to any non static resources
+ * (#GPUBatch, #PushConstant ref, #ResourceBind ref) it will have to be re-recorded
+ * if any of these reference becomes invalid.
  */
 
 #include "BKE_image.h"
@@ -362,7 +363,7 @@ template<typename DrawCommandBufType> class Pass : public detail::PassBase<DrawC
  * \{ */
 
 /**
- * Normal pass type. No visibility or draw-call optimisation.
+ * Normal pass type. No visibility or draw-call optimization.
  */
 // using PassSimple = detail::Pass<DrawCommandBuf>;
 

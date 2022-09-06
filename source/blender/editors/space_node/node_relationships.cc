@@ -1465,7 +1465,7 @@ static int mute_links_exec(bContext *C, wmOperator *op)
     nodeLinkSetMute(&ntree, link, !(link->flag & NODE_LINK_MUTED));
     const bool muted = link->flag & NODE_LINK_MUTED;
 
-    /* Propagate mute status downsteam past reroute nodes. */
+    /* Propagate mute status downstream past reroute nodes. */
     if (link->tonode->is_reroute()) {
       Stack<bNodeLink *> links;
       links.push_multiple(link->tonode->output_sockets().first()->directly_linked_links());

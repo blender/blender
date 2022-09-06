@@ -25,13 +25,13 @@ class MTLIndexBuf : public IndexBuf {
 
 #ifndef NDEBUG
   /* Flags whether point index buffer has been compacted
-   * to remove false retart indices. */
+   * to remove false restart indices. */
   bool point_restarts_stripped_ = false;
 #endif
 
-  /* Optimised index buffers.
+  /* Optimized index buffers.
    * NOTE(Metal): This optimization encodes a new index buffer following
-   * TriangleList topology. Parsing of Index buffers is more optimal
+   * #TriangleList topology. Parsing of Index buffers is more optimal
    * when not using restart-compatible primitive topology types. */
   GPUPrimType optimized_primitive_type_;
   gpu::MTLBuffer *optimized_ibo_ = nullptr;
@@ -52,13 +52,13 @@ class MTLIndexBuf : public IndexBuf {
   void upload_data() override;
   void update_sub(uint32_t start, uint32_t len, const void *data) override;
 
-  /* get_index_buffer can conditionally return an optimized index buffer of a
+  /* #get_index_buffer can conditionally return an optimized index buffer of a
    * differing format, if it is concluded that optimization is preferred
    * for the given inputs.
-   * Index buffer optimization is used to replace restart-compatbiele
-   * primitive types with non-restart-compatible ones such as TriangleList and
-   * LineList. This improves GPU execution for these types significantly, while
-   * only incuring a small performance penalty.
+   * Index buffer optimization is used to replace restart-compatible
+   * primitive types with non-restart-compatible ones such as #TriangleList and
+   * #LineList. This improves GPU execution for these types significantly, while
+   * only incurring a small performance penalty.
    *
    * This is also used to emulate unsupported topology types
    * such as triangle fan. */

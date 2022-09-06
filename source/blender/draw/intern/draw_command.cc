@@ -437,7 +437,7 @@ std::string DispatchIndirect::serialize() const
 
 std::string Barrier::serialize() const
 {
-  /* TOOD(fclem): Better serialization... */
+  /* TODO(@fclem): Better serialization... */
   return std::string(".barrier(") + std::to_string(type) + ")";
 }
 
@@ -464,7 +464,7 @@ std::string Clear::serialize() const
 
 std::string StateSet::serialize() const
 {
-  /* TOOD(fclem): Better serialization... */
+  /* TODO(@fclem): Better serialization... */
   return std::string(".state_set(") + std::to_string(new_state) + ")";
 }
 
@@ -562,7 +562,7 @@ void DrawMultiBuf::bind(RecordingState &state,
     BLI_assert(batch_inst_len == 1);
     UNUSED_VARS_NDEBUG(batch_inst_len);
 
-    /* Now that we got the batch infos, we can set the counters to 0. */
+    /* Now that we got the batch information, we can set the counters to 0. */
     group.total_counter = group.front_facing_counter = group.back_facing_counter = 0;
   }
 

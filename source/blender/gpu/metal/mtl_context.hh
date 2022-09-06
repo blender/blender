@@ -175,9 +175,9 @@ struct MTLContextDepthStencilState {
   bool has_depth_target;
   bool has_stencil_target;
 
-  /* TODO(Metal): Consider optimizing this function using memcmp.
+  /* TODO(Metal): Consider optimizing this function using `memcmp`.
    * Un-used, but differing, stencil state leads to over-generation
-   * of state objects when doing trivial compare.  */
+   * of state objects when doing trivial compare. */
   bool operator==(const MTLContextDepthStencilState &other) const
   {
     bool depth_state_equality = (has_depth_target == other.has_depth_target &&
@@ -358,7 +358,7 @@ typedef enum MTLPipelineStateDirtyFlag {
   MTL_PIPELINE_STATE_NULL_FLAG = 0,
   /* Whether we need to call setViewport. */
   MTL_PIPELINE_STATE_VIEWPORT_FLAG = (1 << 0),
-  /* Whether we need to call setScissor.*/
+  /* Whether we need to call setScissor. */
   MTL_PIPELINE_STATE_SCISSOR_FLAG = (1 << 1),
   /* Whether we need to update/rebind active depth stencil state. */
   MTL_PIPELINE_STATE_DEPTHSTENCIL_FLAG = (1 << 2),
@@ -565,15 +565,15 @@ class MTLCommandBufferManager {
 };
 
 /** MTLContext -- Core render loop and state management. **/
-/* NOTE(Metal): Partial MTLContext stub to provide wrapper functionality
- * for work-in-progress MTL* classes. */
+/* NOTE(Metal): Partial #MTLContext stub to provide wrapper functionality
+ * for work-in-progress `MTL*` classes. */
 
 class MTLContext : public Context {
   friend class MTLBackend;
 
  private:
-  /* Null buffers for empty/unintialized bindings.
-   * Null attribute buffer follows default attribute format of OpenGL Backend. */
+  /* Null buffers for empty/uninitialized bindings.
+   * Null attribute buffer follows default attribute format of OpenGL Back-end. */
   id<MTLBuffer> null_buffer_;           /* All zero's. */
   id<MTLBuffer> null_attribute_buffer_; /* Value float4(0.0,0.0,0.0,1.0). */
 
@@ -581,7 +581,7 @@ class MTLContext : public Context {
   MTLContextTextureUtils texture_utils_;
 
   /* Texture Samplers. */
-  /* Cache of generated MTLSamplerState objects based on permutations of `eGPUSamplerState`. */
+  /* Cache of generated #MTLSamplerState objects based on permutations of `eGPUSamplerState`. */
   id<MTLSamplerState> sampler_state_cache_[GPU_SAMPLER_MAX];
   id<MTLSamplerState> default_sampler_state_ = nil;
 
@@ -684,7 +684,7 @@ class MTLContext : public Context {
 
   /* Flag whether the visibility buffer for query results
    * has changed. This requires a new RenderPass in order
-   * to update.*/
+   * to update. */
   bool is_visibility_dirty() const;
 
   /* Reset dirty flag state for visibility buffer. */

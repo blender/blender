@@ -5560,7 +5560,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
    * to avoid falling through to the translate operator in the
    * global view3d keymap.
    *
-   * Note: BKE_object_is_visible_in_viewport is not working here (it returns false
+   * NOTE: #BKE_object_is_visible_in_viewport is not working here (it returns false
    * if the object is in local view); instead, test for OB_HIDE_VIEWPORT directly.
    */
 

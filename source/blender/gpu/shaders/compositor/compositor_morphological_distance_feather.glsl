@@ -59,7 +59,7 @@ void main()
 
   /* Start with the center value as the maximum/minimum distance and reassign to the true maximum
    * or minimum in the search loop below. Additionally, the center falloff is always 1.0, so start
-   * with that.  */
+   * with that. */
   float limit_distance = center_value;
   float limit_distance_falloff = 1.0;
 

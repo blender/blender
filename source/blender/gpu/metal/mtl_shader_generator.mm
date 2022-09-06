@@ -178,10 +178,12 @@ static bool is_program_word(const char *chr, int *len)
   return true;
 }
 
-/* Replace function parameter patterns containing:
+/**
+ * Replace function parameter patterns containing:
  * `out vec3 somevar` with `THD vec3&somevar`.
- *  which enables pass by reference via resolved macro:
- *  thread vec3& somevar. */
+ * which enables pass by reference via resolved macro:
+ * `thread vec3& somevar`.
+ */
 static void replace_outvars(std::string &str)
 {
   char *current_str_begin = &*str.begin();
@@ -205,7 +207,7 @@ static void replace_outvars(std::string &str)
           /* Match found. */
           bool is_array = (*(word_base2 + len2) == '[');
 
-          /* Generate outvar pattern of form 'THD type&var' from original 'out vec4 var'. */
+          /* Generate out-variable pattern of form `THD type&var` from original `out vec4 var`. */
           *start = 'T';
           *(start + 1) = 'H';
           *(start + 2) = 'D';
@@ -277,13 +279,15 @@ static bool balanced_braces(char *current_str_begin, char *current_str_end)
   return (nested_bracket_depth == 0);
 }
 
-/* Certain Constants (such as arrays, or pointer types) declared in Global-scope
- * end up being initialised per shader thread, resulting in high
+/**
+ * Certain Constants (such as arrays, or pointer types) declared in Global-scope
+ * end up being initialized per shader thread, resulting in high
  * register pressure within the shader.
- * Here we flag occurences of these constants such that
+ * Here we flag occurrences of these constants such that
  * they can be moved to a place where this is not a problem.
  *
- * Constants declared within function-scope do not exhibit this problem. */
+ * Constants declared within function-scope do not exhibit this problem.
+ */
 static void extract_global_scope_constants(std::string &str, std::stringstream &global_scope_out)
 {
   char *current_str_begin = &*str.begin();
@@ -395,8 +399,8 @@ static void print_resource(std::ostream &os, const ShaderCreateInfo::Resource &r
       if (array_offset == -1) {
         /* Create local class member as constant pointer reference to bound UBO buffer.
          * Given usage within a shader follows ubo_name.ubo_element syntax, we can
-         * dereference the pointer as the compiler will optimise this data fetch.
-         * To do this, we also give the ubo name a postfix of `_local` to avoid
+         * dereference the pointer as the compiler will optimize this data fetch.
+         * To do this, we also give the UBO name a post-fix of `_local` to avoid
          * macro accessor collisions. */
         os << "constant " << res.uniformbuf.type_name << " *" << res.uniformbuf.name
            << "_local;\n";
@@ -434,7 +438,7 @@ std::string MTLShader::resources_declare(const ShaderCreateInfo &info) const
   for (const ShaderCreateInfo::Resource &res : info.batch_resources_) {
     print_resource(ss, res);
   }
-  /* Note: Push constant uniform data is generated during `generate_msl_from_glsl`
+  /* NOTE: Push constant uniform data is generated during `generate_msl_from_glsl`
    * as the generated output is needed for all paths. This includes generation
    * of the push constant data structure (struct PushConstantBlock).
    * As all shader generation paths require creation of this. */
@@ -533,14 +537,14 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
     return false;
   }
 
-  /* MSLGeneratorInterface is a class populated to describe all parameters, resources, bindings
+  /* #MSLGeneratorInterface is a class populated to describe all parameters, resources, bindings
    * and features used by the source GLSL shader. This information is then used to generate the
    * appropriate Metal entry points and perform any required source translation. */
   MSLGeneratorInterface msl_iface(*this);
   BLI_assert(shd_builder_ != nullptr);
 
-  /* Populate MSLGeneratorInterface from Create-Info.
-   * Note this is a seperate path as MSLGeneratorInterface can also be manually populated
+  /* Populate #MSLGeneratorInterface from Create-Info.
+   * NOTE: this is a separate path as #MSLGeneratorInterface can also be manually populated
    * from parsing, if support for shaders without create-info is required. */
   msl_iface.prepare_from_createinfo(info);
 
@@ -553,13 +557,13 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   /** Determine use of Transform Feedback. **/
   msl_iface.uses_transform_feedback = false;
   if (transform_feedback_type_ != GPU_SHADER_TFB_NONE) {
-    /* Ensure TransformFeedback is configured correctly. */
+    /* Ensure #TransformFeedback is configured correctly. */
     BLI_assert(tf_output_name_list_.size() > 0);
     msl_iface.uses_transform_feedback = true;
   }
 
   /* Concatenate msl_shader_defines to provide functionality mapping
-   * from GLSL to MSL. Also include additioanl GPU defines for
+   * from GLSL to MSL. Also include additional GPU defines for
    * optional high-level feature support. */
   const std::string msl_defines_string =
       "#define GPU_ARB_texture_cube_map_array 1\n\
@@ -576,7 +580,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
    * #pragma USE_SSBO_VERTEX_FETCH(Output Prim Type, num output vertices per input primitive)
    *
    * This will determine whether SSBO-vertex-fetch
-   * mode is ued for this shader. Returns true if used, and populates output reference
+   * mode is used for this shader. Returns true if used, and populates output reference
    * values with the output prim type and output number of vertices. */
   MTLPrimitiveType vertex_fetch_ssbo_output_prim_type = MTLPrimitiveTypeTriangle;
   uint32_t vertex_fetch_ssbo_num_output_verts = 0;
@@ -622,8 +626,8 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   /* NOTE(METAL): Currently still performing fallback string scan, as info->builtins_ does
    * not always contain the usage flag. This can be removed once all appropriate create-info's
    * have been updated. In some cases, this may incur a false positive if access is guarded
-   * behind a macro. Though in these cases, unused code paths and paramters will be
-   * optimised out by the Metal shader compiler. */
+   * behind a macro. Though in these cases, unused code paths and parameters will be
+   * optimized out by the Metal shader compiler. */
 
   /** Identify usage of vertex-shader builtins. */
   msl_iface.uses_gl_VertexID = bool(info->builtins_ & BuiltinBits::VERTEX_ID) ||
@@ -636,9 +640,10 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
                                      std::string::npos ||
                                  msl_iface.uses_ssbo_vertex_fetch_mode;
 
-  /* instance ID in GL is [0, instancecount] in metal it is [base_instance,
-   * base_instance+instance_count], so we need to offset instanceID by base instance in Metal --
-   * Thus we expose the [[base_instance]] attribute if instance ID is used at all. */
+  /* instance ID in GL is `[0, instance_count]` in metal it is
+   * `[base_instance, base_instance + instance_count]`,
+   * so we need to offset instance_ID by base instance in Metal --
+   * Thus we expose the `[[base_instance]]` attribute if instance ID is used at all. */
   msl_iface.uses_gl_BaseInstanceARB = msl_iface.uses_gl_InstanceID ||
                                       shd_builder_->glsl_vertex_source_.find(
                                           "gl_BaseInstanceARB") != std::string::npos ||
@@ -706,7 +711,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   }
 
   /**** METAL Shader source generation. ****/
-  /* Setup stringstream for populaing generated MSL shader vertex/frag shaders. */
+  /* Setup `stringstream` for populating generated MSL shader vertex/frag shaders. */
   std::stringstream ss_vertex;
   std::stringstream ss_fragment;
 
@@ -753,7 +758,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
 
 #ifndef NDEBUG
   /* Performance warning: Extract global-scope expressions.
-   * Note: This is dependent on stripping out comments
+   * NOTE: This is dependent on stripping out comments
    * to remove false positives. */
   remove_multiline_comments_func(shd_builder_->glsl_vertex_source_);
   remove_singleline_comments_func(shd_builder_->glsl_vertex_source_);
@@ -786,7 +791,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
     bool is_inside_struct = false;
     if (!iface->instance_name.is_empty()) {
       /* If shader stage interface has an instance name, then it
-       * is using a struct foramt and as such we only need a local
+       * is using a struct format and as such we only need a local
        * class member for the struct, not each element. */
       ss_vertex << iface->name << " " << iface->instance_name << ";" << std::endl;
       is_inside_struct = true;
@@ -822,7 +827,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
            is_array,
            array_len});
 
-      /* Add to fragment-input interface.*/
+      /* Add to fragment-input interface. */
       msl_iface.fragment_input_varyings.append(
           {to_string(inout.type),
            out_name.c_str(),
@@ -838,7 +843,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   if (!msl_iface.uses_ssbo_vertex_fetch_mode) {
     ss_vertex << msl_iface.generate_msl_vertex_in_struct();
   }
-  /* Genrate Uniform data structs. */
+  /* Generate Uniform data structs. */
   ss_vertex << msl_iface.generate_msl_uniform_structs(ShaderStage::VERTEX);
 
   /* Conditionally use global GL variables. */
@@ -900,7 +905,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   /* Class Closing Bracket to end shader global scope. */
   ss_vertex << "};" << std::endl;
 
-  /* Generate Vertex shader entrypoint function containing resource bindings. */
+  /* Generate Vertex shader entry-point function containing resource bindings. */
   ss_vertex << msl_iface.generate_msl_vertex_entry_stub();
 
   /*** Generate FRAGMENT Stage. ***/
@@ -918,10 +923,8 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
 
 #ifndef NDEBUG
     /* Performance warning: Identify global-scope expressions.
-     * These cause excessive register pressure due to global
-     * arrays being instanciated per-thread.
-     * Note: This is dependent on stripping out comments
-     * to remove false positives. */
+     * These cause excessive register pressure due to global arrays being instantiated per-thread.
+     * NOTE: This is dependent on stripping out comments to remove false positives. */
     remove_multiline_comments_func(shd_builder_->glsl_fragment_source_);
     remove_singleline_comments_func(shd_builder_->glsl_fragment_source_);
     extract_global_scope_constants(shd_builder_->glsl_fragment_source_, ss_fragment);
@@ -1000,7 +1003,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
     /* Class Closing Bracket to end shader global scope. */
     ss_fragment << "};" << std::endl;
 
-    /* Generate Fragment entrypoint function. */
+    /* Generate Fragment entry-point function. */
     ss_fragment << msl_iface.generate_msl_fragment_entry_stub();
   }
 
@@ -1050,7 +1053,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   shader_debug_printf("[METAL] BSL Converted into MSL\n");
 
 #ifndef NDEBUG
-  /* In debug mode, we inject the name of the shader into the entrypoint function
+  /* In debug mode, we inject the name of the shader into the entry-point function
    * name, as these are what show up in the Xcode GPU debugger. */
   this->set_vertex_function_name(
       [[NSString stringWithFormat:@"vertex_function_entry_%s", this->name] retain]);
@@ -1316,8 +1319,8 @@ bool MSLGeneratorInterface::use_argument_buffer_for_samplers() const
 
 uint32_t MSLGeneratorInterface::num_samplers_for_stage(ShaderStage stage) const
 {
-  /* Note: Sampler bindings and argument buffer shared across stages,
-  in case stages share texture/sampler bindings. */
+  /* NOTE: Sampler bindings and argument buffer shared across stages,
+   * in case stages share texture/sampler bindings. */
   return texture_samplers.size();
 }
 
@@ -1357,14 +1360,14 @@ std::string MSLGeneratorInterface::generate_msl_vertex_entry_stub()
   std::stringstream out;
   out << std::endl << "/*** AUTO-GENERATED MSL VERETX SHADER STUB. ***/" << std::endl;
 
-  /* Undef texture defines from main source - avoid conflict with MSL texture. */
+  /* Un-define texture defines from main source - avoid conflict with MSL texture. */
   out << "#undef texture" << std::endl;
   out << "#undef textureLod" << std::endl;
 
   /* Disable special case for booleans being treated as ints in GLSL. */
   out << "#undef bool" << std::endl;
 
-  /* Undef uniform mappings to avoid name collisions. */
+  /* Un-define uniform mappings to avoid name collisions. */
   out << generate_msl_uniform_undefs(ShaderStage::VERTEX);
 
   /* Generate function entry point signature w/ resource bindings and inputs. */
@@ -1414,8 +1417,8 @@ std::string MSLGeneratorInterface::generate_msl_vertex_entry_stub()
   out << this->generate_msl_vertex_output_population();
 
   /* Final point size,
-   * This is only compiled if the MTL_global_pointsize is specified
-   * as a function specialisation in the PSO. This is restricted to
+   * This is only compiled if the `MTL_global_pointsize` is specified
+   * as a function specialization in the PSO. This is restricted to
    * point primitive types. */
   out << "if(is_function_constant_defined(MTL_global_pointsize)){ output.pointsize = "
          "(MTL_global_pointsize > 0.0)?MTL_global_pointsize:output.pointsize; }"
@@ -1437,14 +1440,14 @@ std::string MSLGeneratorInterface::generate_msl_fragment_entry_stub()
   std::stringstream out;
   out << std::endl << "/*** AUTO-GENERATED MSL FRAGMENT SHADER STUB. ***/" << std::endl;
 
-  /* Undef texture defines from main source - avoid conflict with MSL texture*/
+  /* Undefine texture defines from main source - avoid conflict with MSL texture. */
   out << "#undef texture" << std::endl;
   out << "#undef textureLod" << std::endl;
 
-  /* Disable special case for booleans being treated as ints in GLSL. */
+  /* Disable special case for booleans being treated as integers in GLSL. */
   out << "#undef bool" << std::endl;
 
-  /* Undef uniform mappings to avoid name collisions. */
+  /* Undefine uniform mappings to avoid name collisions. */
   out << generate_msl_uniform_undefs(ShaderStage::FRAGMENT);
 
   /* Generate function entry point signature w/ resource bindings and inputs. */
@@ -1529,9 +1532,9 @@ void MSLGeneratorInterface::generate_msl_textures_input_string(std::stringstream
   }
 
   /* Generate sampler signatures. */
-  /* Note: Currently textures and samplers share indices across shading stages, so the limit is
+  /* NOTE: Currently textures and samplers share indices across shading stages, so the limit is
    * shared.
-   * If we exceed the hardware-supported limit, then follow a bindless model using argument
+   * If we exceed the hardware-supported limit, then follow a bind-less model using argument
    * buffers. */
   if (this->use_argument_buffer_for_samplers()) {
     out << ",\n\tconstant SStruct& samplers [[buffer(MTL_uniform_buffer_base_index+"
@@ -1539,7 +1542,7 @@ void MSLGeneratorInterface::generate_msl_textures_input_string(std::stringstream
   }
   else {
     /* Maximum Limit of samplers defined in the function argument table is
-     * MTL_MAX_DEFAULT_SAMPLERS=16. */
+     * `MTL_MAX_DEFAULT_SAMPLERS=16`. */
     BLI_assert(this->texture_samplers.size() <= MTL_MAX_DEFAULT_SAMPLERS);
     for (const MSLTextureSampler &tex : this->texture_samplers) {
       if (bool(tex.stage & stage)) {
@@ -1562,15 +1565,15 @@ void MSLGeneratorInterface::generate_msl_uniforms_input_string(std::stringstream
   int ubo_index = 0;
   for (const MSLUniformBlock &ubo : this->uniform_blocks) {
     if (bool(ubo.stage & stage)) {
-      /* For literal/existing global types, we do not need the class namespace accessor. */
+      /* For literal/existing global types, we do not need the class name-space accessor. */
       out << ",\n\tconstant ";
       if (!is_builtin_type(ubo.type_name)) {
         out << get_stage_class_name(stage) << "::";
       }
-      /* UniformBuffer bind indices start at MTL_uniform_buffer_base_index+1, as
-       * MTL_uniform_buffer_base_index is reserved for the PushConstantBlock (push constants).
+      /* #UniformBuffer bind indices start at `MTL_uniform_buffer_base_index + 1`, as
+       * MTL_uniform_buffer_base_index is reserved for the #PushConstantBlock (push constants).
        * MTL_uniform_buffer_base_index is an offset depending on the number of unique VBOs
-       * bound for the current PSO specialisation. */
+       * bound for the current PSO specialization. */
       out << ubo.type_name << "* " << ubo.name << "[[buffer(MTL_uniform_buffer_base_index+"
           << (ubo_index + 1) << ")]]";
     }
@@ -1682,7 +1685,7 @@ std::string MSLGeneratorInterface::generate_msl_uniform_structs(ShaderStage shad
   return out.str();
 }
 
-/* Note: Uniform macro definition vars can conflict with other parameters. */
+/* NOTE: Uniform macro definition vars can conflict with other parameters. */
 std::string MSLGeneratorInterface::generate_msl_uniform_undefs(ShaderStage shader_stage)
 {
   std::stringstream out;
@@ -1787,7 +1790,7 @@ std::string MSLGeneratorInterface::generate_msl_vertex_out_struct(ShaderStage sh
       }
     }
     else {
-      /* Matrix types need to be expressed as their vector subcomponents. */
+      /* Matrix types need to be expressed as their vector sub-components. */
       if (is_matrix_type(v_out.type)) {
         BLI_assert(v_out.get_mtl_interpolation_qualifier() == " [[flat]]" &&
                    "Matrix varying types must have [[flat]] interpolation");
@@ -1807,18 +1810,17 @@ std::string MSLGeneratorInterface::generate_msl_vertex_out_struct(ShaderStage sh
   /* Add gl_PointSize if written to. */
   if (shader_stage == ShaderStage::VERTEX) {
     if (this->uses_gl_PointSize) {
-      /* If gl_PointSize is explicitly written to,
+      /* If `gl_PointSize` is explicitly written to,
        * we will output the written value directly.
-       * This value can still be overriden by the
-       * global pointsize value. */
+       * This value can still be overridden by the
+       * global point-size value. */
       out << "\tfloat pointsize [[point_size]];" << std::endl;
     }
     else {
-      /* Otherwise, if pointsize is not written to inside the shader,
-       * then its usage is controlled by whether the MTL_global_pointsize
+      /* Otherwise, if point-size is not written to inside the shader,
+       * then its usage is controlled by whether the `MTL_global_pointsize`
        * function constant has been specified.
-       * This function constant is enabled for all point primitives beign
-       * rendered. */
+       * This function constant is enabled for all point primitives being rendered. */
       out << "\tfloat pointsize [[point_size, function_constant(MTL_global_pointsize)]];"
           << std::endl;
     }
@@ -1904,7 +1906,7 @@ std::string MSLGeneratorInterface::generate_msl_vertex_transform_feedback_out_st
       }
     }
     else {
-      /* Matrix types need to be expressed as their vector subcomponents. */
+      /* Matrix types need to be expressed as their vector sub-components. */
       if (is_matrix_type(v_out.type)) {
         BLI_assert(v_out.get_mtl_interpolation_qualifier() == " [[flat]]" &&
                    "Matrix varying types must have [[flat]] interpolation");
@@ -1980,10 +1982,10 @@ std::string MSLGeneratorInterface::generate_msl_uniform_block_population(ShaderS
     /* Only include blocks which are used within this stage. */
     if (bool(ubo.stage & stage)) {
       /* Generate UBO reference assignment.
-       * NOTE(Metal): We append `_local` postfix onto the class member name
+       * NOTE(Metal): We append `_local` post-fix onto the class member name
        * for the ubo to avoid name collision with the UBO accessor macro.
-       * We only need to add this postfix for the non-array access variant,
-       * as the array is indexed directly, rather than requiring a dereference.  */
+       * We only need to add this post-fix for the non-array access variant,
+       * as the array is indexed directly, rather than requiring a dereference. */
       out << "\t"
           << ((stage == ShaderStage::VERTEX) ? "vertex_shader_instance." :
                                                "fragment_shader_instance.")
@@ -2045,7 +2047,7 @@ std::string MSLGeneratorInterface::generate_msl_vertex_attribute_input_populatio
       out << ");";
     }
     else {
-      /* OpenGL uses the GPU_FETCH_* functions which can alter how an attribute value is
+      /* OpenGL uses the `GPU_FETCH_*` functions which can alter how an attribute value is
        * interpreted. In Metal, we cannot support all implicit conversions within the vertex
        * descriptor/vertex stage-in, so we need to perform value transformation on-read.
        *
@@ -2055,10 +2057,10 @@ std::string MSLGeneratorInterface::generate_msl_vertex_attribute_input_populatio
        * vertex data, depending on the specified GPU_FETCH_* mode for the current
        * vertex format.
        *
-       * The fetch_mode is specified per-attribute using specialisation constants
+       * The fetch_mode is specified per-attribute using specialization constants
        * on the PSO, wherein a unique set of constants is passed in per vertex
        * buffer/format configuration. Efficiently enabling pass-through reads
-       * if no special fetch is required.  */
+       * if no special fetch is required. */
       bool do_attribute_conversion_on_read = false;
       std::string attribute_conversion_func_name = get_attribute_conversion_function(
           &do_attribute_conversion_on_read, this->vertex_input_attributes[attribute].type);
@@ -2098,7 +2100,7 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_population()
         << std::endl;
   }
 
-  /* Output Pointsize. */
+  /* Output Point-size. */
   if (this->uses_gl_PointSize) {
     out << "\toutput.pointsize = vertex_shader_instance.gl_PointSize;" << std::endl;
   }
@@ -2110,7 +2112,7 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_population()
         << std::endl;
   }
 
-  /* Output clipdistances. */
+  /* Output clip-distances. */
   out << "#if defined(USE_CLIP_PLANES) || defined(USE_WORLD_CLIP_PLANES)" << std::endl;
   if (this->clip_distances.size() > 1) {
     for (int cd = 0; cd < this->clip_distances.size(); cd++) {
@@ -2384,7 +2386,7 @@ void MSLGeneratorInterface::resolve_input_attribute_locations()
 
       /* Determine free location.
        * Starting from 1 is slightly less efficient, however,
-       * given mutli-sized attributes, an earlier slot may remain free.
+       * given multi-sized attributes, an earlier slot may remain free.
        * given GPU_VERT_ATTR_MAX_LEN is small, this wont matter. */
       for (int loc = 0; loc < GPU_VERT_ATTR_MAX_LEN - (required_attr_slot_count - 1); loc++) {
 
@@ -2429,8 +2431,10 @@ void MSLGeneratorInterface::resolve_fragment_output_locations()
   }
 }
 
-/* Add string to name buffer. Utility function to be used in bake_shader_interface.
- * Returns the offset of the inserted name.*/
+/**
+ * Add string to name buffer. Utility function to be used in bake_shader_interface.
+ * Returns the offset of the inserted name.
+ */
 static uint32_t name_buffer_copystr(char **name_buffer_ptr,
                                     const char *str_to_copy,
                                     uint32_t &name_buffer_size,
@@ -2443,7 +2447,7 @@ static uint32_t name_buffer_copystr(char **name_buffer_ptr,
   uint32_t ret_len = strlen(str_to_copy);
   BLI_assert(ret_len > 0);
 
-  /* If required name buffer size is larger, increase by atleast 128 bytes. */
+  /* If required name buffer size is larger, increase by at least 128 bytes. */
   if (name_buffer_size + ret_len > name_buffer_size) {
     name_buffer_size = name_buffer_size + max_ii(128, ret_len);
     *name_buffer_ptr = (char *)MEM_reallocN(*name_buffer_ptr, name_buffer_size);
@@ -2467,7 +2471,7 @@ MTLShaderInterface *MSLGeneratorInterface::bake_shader_interface(const char *nam
   interface->init();
 
   /* Name buffer. */
-  /* Initialise name buffer. */
+  /* Initialize name buffer. */
   uint32_t name_buffer_size = 256;
   uint32_t name_buffer_offset = 0;
   interface->name_buffer_ = (char *)MEM_mallocN(name_buffer_size, "name_buffer");
@@ -2487,7 +2491,7 @@ MTLShaderInterface *MSLGeneratorInterface::bake_shader_interface(const char *nam
            elem < get_matrix_location_count(this->vertex_input_attributes[attribute].type);
            elem++) {
         /* First attribute matches the core name -- subsequent attributes tagged with
-         * __internal_<name><index>. */
+         * `__internal_<name><index>`. */
         std::string _internal_name = (elem == 0) ?
                                          this->vertex_input_attributes[attribute].name :
                                          "__internal_" +
@@ -2582,7 +2586,7 @@ MTLShaderInterface *MSLGeneratorInterface::bake_shader_interface(const char *nam
       this->get_sampler_argument_buffer_bind_index(ShaderStage::VERTEX),
       this->get_sampler_argument_buffer_bind_index(ShaderStage::FRAGMENT));
 
-  /* Map Metal bindings to standardised ShaderInput struct name/binding index. */
+  /* Map Metal bindings to standardized ShaderInput struct name/binding index. */
   interface->prepare_common_shader_inputs();
 
   /* Resize name buffer to save some memory. */
@@ -2694,7 +2698,7 @@ std::string MSLTextureSampler::get_msl_texture_type_str() const
       return "texture_buffer";
     }
     default: {
-      /* Unrecognised type. */
+      /* Unrecognized type. */
       BLI_assert_unreachable();
       return "ERROR";
     }
@@ -2802,7 +2806,7 @@ std::string MSLTextureSampler::get_msl_wrapper_type_str() const
       return "_mtl_combined_image_sampler_buffer";
     }
     default: {
-      /* Unrecognised type. */
+      /* Unrecognized type. */
       BLI_assert_unreachable();
       return "ERROR";
     }
@@ -2857,7 +2861,7 @@ std::string MSLTextureSampler::get_msl_return_type_str() const
     }
 
     default: {
-      /* Unrecognised type. */
+      /* Unrecognized type. */
       BLI_assert_unreachable();
       return "ERROR";
     }

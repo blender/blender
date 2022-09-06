@@ -32,7 +32,7 @@ MTLShaderInterface::MTLShaderInterface(const char *name)
     strcpy(this->name, name);
   }
 
-  /* Ensure ShaderInterface parameters are cleared. */
+  /* Ensure #ShaderInterface parameters are cleared. */
   this->init();
 }
 
@@ -64,7 +64,7 @@ void MTLShaderInterface::init()
   sampler_argument_buffer_bind_index_vert_ = -1;
   sampler_argument_buffer_bind_index_frag_ = -1;
 
-  /* NULL initialise uniform location markers for builtins. */
+  /* NULL initialize uniform location markers for builtins. */
   for (const int u : IndexRange(GPU_NUM_UNIFORMS)) {
     builtins_[u] = -1;
   }
@@ -76,7 +76,7 @@ void MTLShaderInterface::init()
     textures_[tex].slot_index = -1;
   }
 
-  /* Null initialisation for argument encoders. */
+  /* Null initialization for argument encoders. */
   for (const int i : IndexRange(ARGUMENT_ENCODERS_CACHE_SIZE)) {
     arg_encoders_[i].encoder = nil;
     arg_encoders_[i].buffer_index = -1;
@@ -117,7 +117,7 @@ uint32_t MTLShaderInterface::add_uniform_block(uint32_t name_offset,
 
   MTLShaderUniformBlock &uni_block = ubos_[total_uniform_blocks_];
   uni_block.name_offset = name_offset;
-  /* We offset the buffer bidning index by one, as the first slot is reserved for push constant
+  /* We offset the buffer binding index by one, as the first slot is reserved for push constant
    * data. */
   uni_block.buffer_index = buffer_index + 1;
   uni_block.size = size;
@@ -224,7 +224,7 @@ void MTLShaderInterface::map_builtins()
     builtin_blocks_[ubo] = -1;
   }
 
-  /* Resolve and cache uniform locations for bultin uniforms. */
+  /* Resolve and cache uniform locations for builtin uniforms. */
   for (const int u : IndexRange(GPU_NUM_UNIFORMS)) {
     const ShaderInput *uni = this->uniform_get(builtin_uniform_name((GPUUniformBuiltin)u));
     if (uni != nullptr) {
@@ -239,7 +239,7 @@ void MTLShaderInterface::map_builtins()
     }
   }
 
-  /* Resolve and cache uniform locations for bultin uniform blocks. */
+  /* Resolve and cache uniform locations for builtin uniform blocks. */
   for (const int u : IndexRange(GPU_NUM_UNIFORM_BLOCKS)) {
     const ShaderInput *uni = this->ubo_get(builtin_uniform_block_name((GPUUniformBlockBuiltin)u));
 
@@ -255,16 +255,16 @@ void MTLShaderInterface::map_builtins()
   }
 }
 
-/* Populate ShaderInput struct based on interface. */
+/* Populate #ShaderInput struct based on interface. */
 void MTLShaderInterface::prepare_common_shader_inputs()
 {
-  /* ShaderInput inputs_ maps a uniform name to an external
+  /* `ShaderInput inputs_` maps a uniform name to an external
    * uniform location, which is used as an array index to look-up
-   * information in the local MTLShaderInterface input structs.
+   * information in the local #MTLShaderInterface input structs.
    *
-   * ShaderInput population follows the ordering rules in gpu_shader_interface. */
+   * #ShaderInput population follows the ordering rules in #gpu_shader_interface. */
 
-  /* Populate ShaderInterface counts. */
+  /* Populate #ShaderInterface counts. */
   attr_len_ = this->get_total_attributes();
   ubo_len_ = this->get_total_uniform_blocks();
   uniform_len_ = this->get_total_uniforms() + this->get_total_textures();
@@ -272,8 +272,8 @@ void MTLShaderInterface::prepare_common_shader_inputs()
   /* TODO(Metal): Support storage buffer bindings. Pending compute shader support. */
   ssbo_len_ = 0;
 
-  /* Calculate total inputs and allocate ShaderInput array. */
-  /* NOTE: We use the existing name_buffer_ allocated for internal input structs. */
+  /* Calculate total inputs and allocate #ShaderInput array. */
+  /* NOTE: We use the existing `name_buffer_` allocated for internal input structs. */
   int input_tot_len = attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_;
   inputs_ = (ShaderInput *)MEM_callocN(sizeof(ShaderInput) * input_tot_len, __func__);
   ShaderInput *current_input = inputs_;
@@ -316,9 +316,9 @@ void MTLShaderInterface::prepare_common_shader_inputs()
   }
 
   /* Textures.
-   * NOTE(Metal): Textures are externally treated as uniforms in gpu_shader_interface.
+   * NOTE(Metal): Textures are externally treated as uniforms in #gpu_shader_interface.
    * Location for textures resolved as `binding` value. This
-   * is the index into the local MTLShaderTexture textures[] array.
+   * is the index into the local `MTLShaderTexture textures[]` array.
    *
    * In MSL, we cannot trivially remap which texture slot a given texture
    * handle points to, unlike in GLSL, where a uniform sampler/image can be updated
@@ -341,7 +341,7 @@ void MTLShaderInterface::prepare_common_shader_inputs()
        * to ensure texture handles are not treated as standard uniforms in Metal. */
       current_input->location = texture_index + total_uniforms_;
 
-      /* Binding represents texture slot [[texture(n)]]. */
+      /* Binding represents texture slot `[[texture(n)]]`. */
       current_input->binding = shd_tex.slot_index;
       current_input++;
     }

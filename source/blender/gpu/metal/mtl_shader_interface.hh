@@ -23,33 +23,33 @@
 
 namespace blender::gpu {
 
-/* MTLShaderInterface describes the layout and properties of a given shader,
+/* #MTLShaderInterface describes the layout and properties of a given shader,
  * including input and output bindings, and any special properties or modes
  * that the shader may require.
  *
  * -- Shader input/output bindings --
  *
- * We require custom datastructures for the binding information in Metal.
+ * We require custom data-structures for the binding information in Metal.
  * This is because certain bindings contain and require more information to
  * be stored than can be tracked solely within the `ShaderInput` struct.
  * e.g. data sizes and offsets.
  *
  * Upon interface completion, `prepare_common_shader_inputs` is used to
- * populate the global ShaderInput* array to enable correct functionality
+ * populate the global `ShaderInput*` array to enable correct functionality
  * of shader binding location lookups. These returned locations act as indices
- * into the arrays stored here in the MTLShaderInterace, such that extraction
- * of required information can be performed within the backend.
+ * into the arrays stored here in the #MTLShaderInterface, such that extraction
+ * of required information can be performed within the back-end.
  *
  * e.g. `int loc = GPU_shader_get_uniform(...)`
- * `loc` will match the index into the MTLShaderUniform uniforms_[] array
+ * `loc` will match the index into the `MTLShaderUniform uniforms_[]` array
  * to fetch the required Metal specific information.
  *
  *
  *
  * -- Argument Buffers and Argument Encoders --
  *
- * We can use ArgumentBuffers (AB's) in Metal to extend the resource bind limitations
- * by providing bindless support.
+ * We can use #ArgumentBuffers (AB's) in Metal to extend the resource bind limitations
+ * by providing bind-less support.
  *
  * Argument Buffers are used for sampler bindings when the builtin
  * sampler limit of 16 is exceeded, as in all cases for Blender,
@@ -60,8 +60,8 @@ namespace blender::gpu {
  * In future, argument buffers may be extended to support other resource
  * types, if overall bind limits are ever increased within Blender.
  *
- * The ArgumentEncoder cache used to store the generated ArgumentEncoders for a given
- * shader permutation. The ArgumentEncoder is the resource used to write resource binding
+ * The #ArgumentEncoder cache used to store the generated #ArgumentEncoders for a given
+ * shader permutation. The #ArgumentEncoder is the resource used to write resource binding
  * information to a specified buffer, and is unique to the shader's resource interface.
  */
 
@@ -107,7 +107,7 @@ struct MTLShaderInputAttribute {
 struct MTLShaderUniformBlock {
   uint32_t name_offset;
   uint32_t size = 0;
-  /* Buffer resouce bind index in shader [[buffer(index)]]. */
+  /* Buffer resource bind index in shader `[[buffer(index)]]`. */
   uint32_t buffer_index;
 
   /* Tracking for manual uniform addition. */
@@ -127,7 +127,7 @@ struct MTLShaderUniform {
 struct MTLShaderTexture {
   bool used;
   uint32_t name_offset;
-  /* Texture resource bind slot in shader [[texture(n)]]. */
+  /* Texture resource bind slot in shader `[[texture(n)]]`. */
   int slot_index;
   eGPUTextureType type;
   ShaderStage stage_mask;
@@ -135,7 +135,7 @@ struct MTLShaderTexture {
 
 struct MTLShaderSampler {
   uint32_t name_offset;
-  /* Sampler resource bind slot in shader [[sampler(n)]]. */
+  /* Sampler resource bind slot in shader `[[sampler(n)]]`. */
   uint32_t slot_index = 0;
 };
 
@@ -143,7 +143,7 @@ struct MTLShaderSampler {
 MTLVertexFormat mtl_datatype_to_vertex_type(eMTLDataType type);
 
 /**
- * Implementation of Shader interface for Metal Backend.
+ * Implementation of Shader interface for Metal Back-end.
  **/
 class MTLShaderInterface : public ShaderInterface {
 
@@ -157,7 +157,7 @@ class MTLShaderInterface : public ShaderInterface {
   };
   ArgumentEncoderCacheEntry arg_encoders_[ARGUMENT_ENCODERS_CACHE_SIZE] = {};
 
-  /* Vertex input Attribues. */
+  /* Vertex input Attributes. */
   uint32_t total_attributes_;
   uint32_t total_vert_stride_;
   MTLShaderInputAttribute attributes_[MTL_MAX_VERTEX_INPUT_ATTRIBUTES];
@@ -218,7 +218,7 @@ class MTLShaderInterface : public ShaderInterface {
                               uint32_t argument_buffer_bind_index_vert,
                               uint32_t argument_buffer_bind_index_frag);
 
-  /* Prepare ShaderInput interface for binding resolution. */
+  /* Prepare #ShaderInput interface for binding resolution. */
   void prepare_common_shader_inputs();
 
   /* Fetch Uniforms. */

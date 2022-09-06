@@ -59,7 +59,7 @@ static int g_tf_target_height;
 
 static GPUVertBuf *g_dummy_vbo = nullptr;
 static GPUTexture *g_dummy_texture = nullptr;
-static DRWPass *g_tf_pass; /* XXX can be a problem with multiple DRWManager in the future */
+static DRWPass *g_tf_pass; /* XXX can be a problem with multiple #DRWManager in the future */
 static blender::draw::UniformBuffer<CurvesInfos> *g_dummy_curves_info = nullptr;
 
 static GPUShader *hair_refine_shader_get(ParticleRefineShader refinement)
@@ -87,7 +87,7 @@ void DRW_hair_init(void)
     const float vert[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     GPU_vertbuf_data_alloc(g_dummy_vbo, 1);
     GPU_vertbuf_attr_fill(g_dummy_vbo, dummy_id, vert);
-    /* Create vbo immediately to bind to texture buffer. */
+    /* Create VBO immediately to bind to texture buffer. */
     GPU_vertbuf_use(g_dummy_vbo);
 
     g_dummy_texture = GPU_texture_create_from_vertbuf("hair_dummy_attr", g_dummy_vbo);
@@ -247,7 +247,7 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
 
   DRWShadingGroup *shgrp = DRW_shgroup_create_sub(shgrp_parent);
 
-  /* TODO: optimize this. Only bind the ones GPUMaterial needs. */
+  /* TODO: optimize this. Only bind the ones #GPUMaterial needs. */
   for (int i = 0; i < hair_cache->num_uv_layers; i++) {
     for (int n = 0; n < MAX_LAYER_NAME_CT && hair_cache->uv_layer_names[i][n][0] != '\0'; n++) {
       DRW_shgroup_uniform_texture(shgrp, hair_cache->uv_layer_names[i][n], hair_cache->uv_tex[i]);
@@ -373,17 +373,17 @@ void DRW_hair_update()
     GPU_framebuffer_free(fb);
   }
   else {
-    /* Note(Metal): If compute is not supported, bind a temporary framebuffer to avoid
+    /* NOTE(Metal): If compute is not supported, bind a temporary frame-buffer to avoid
      * side-effects from rendering in the active buffer.
-     * We also need to guarantee that a Framebuffer is active to perform any rendering work,
-     * even if there is no output */
+     * We also need to guarantee that a frame-buffer is active to perform any rendering work,
+     * even if there is no output. */
     GPUFrameBuffer *temp_fb = nullptr;
     GPUFrameBuffer *prev_fb = nullptr;
     if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_METAL)) {
       if (!GPU_compute_shader_support()) {
         prev_fb = GPU_framebuffer_active_get();
         char errorOut[256];
-        /* if the framebuffer is invalid we need a dummy framebuffer to be bound. */
+        /* if the frame-buffer is invalid we need a dummy frame-buffer to be bound. */
         if (!GPU_framebuffer_check_valid(prev_fb, errorOut)) {
           int width = 64;
           int height = 64;
@@ -405,11 +405,11 @@ void DRW_hair_update()
       GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
     }
 
-    /* Release temporary framebuffer. */
+    /* Release temporary frame-buffer. */
     if (temp_fb != nullptr) {
       GPU_framebuffer_free(temp_fb);
     }
-    /* Rebind existing framebuffer */
+    /* Rebind existing frame-buffer */
     if (prev_fb != nullptr) {
       GPU_framebuffer_bind(prev_fb);
     }

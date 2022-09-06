@@ -3624,16 +3624,6 @@ void nlasnapshot_blend_get_inverted_upper_snapshot(NlaEvalData *eval_data,
   }
 }
 
-/** Using \a blended_snapshot and \a upper_snapshot, we can solve for the \a r_lower_snapshot.
- *
- * Only channels that exist within \a blended_snapshot are processed.
- * Only blended values within the \a remap_domain are processed.
- *
- * Writes to \a r_upper_snapshot NlaEvalChannelSnapshot->remap_domain to match remapping success.
- *
- * Assumes caller marked upper values that are in the \a blend_domain. This determines whether the
- * blended value came directly from the lower snapshot or a result of blending.
- **/
 void nlasnapshot_blend_get_inverted_lower_snapshot(NlaEvalData *eval_data,
                                                    NlaEvalSnapshot *blended_snapshot,
                                                    NlaEvalSnapshot *upper_snapshot,

@@ -1214,7 +1214,7 @@ void transform_mode_init(TransInfo *t, wmOperator *op, const int mode)
     transform_convert_mesh_customdatacorrect_init(t);
   }
 
-  /* TODO(germano): Some of these operations change the `t->mode`.
+  /* TODO(@germano): Some of these operations change the `t->mode`.
    * This can be bad for Redo. */
   // BLI_assert(t->mode == mode);
 }

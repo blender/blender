@@ -41,7 +41,7 @@
  *    Each frame, the next scratch buffer is reset, then later flushed upon
  *    command buffer submission.
  *
- *    Note: This is allocated per-context due to allocations being tied
+ *    NOTE: This is allocated per-context due to allocations being tied
  *    to workload submissions and context-specific submissions.
  *
  *    Examples of scratch buffer usage are:
@@ -73,7 +73,7 @@
  *    to ensure they are not prematurely re-used before they have finished being
  *    used by the GPU.
  *
- *    Note: The MTLBufferPool is a global construct which can be fetched from anywhere.
+ *    NOTE: The MTLBufferPool is a global construct which can be fetched from anywhere.
  *
  *  Usage:
  *    MTLContext::get_global_memory_manager();  - static routine to fetch global memory manager.
@@ -273,7 +273,7 @@ struct CompareMTLBuffer {
  *  when the next MTLSafeFreeList is created, to allow the existing pool to be released once
  *  the reference count hits zero after submitted command buffers complete.
  *
- * Note: the Metal API independently tracks resources used by command buffers for the purpose of
+ * NOTE: the Metal API independently tracks resources used by command buffers for the purpose of
  * keeping resources alive while in-use by the driver and CPU, however, this differs from the
  * MTLSafeFreeList mechanism in the Metal backend, which exists for the purpose of allowing
  * previously allocated MTLBuffer resources to be re-used. This allows us to save on the expensive

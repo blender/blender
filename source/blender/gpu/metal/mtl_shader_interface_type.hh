@@ -245,7 +245,7 @@ inline uint mtl_get_data_type_alignment(eMTLDataType type)
       return 32;
 
     default:
-      BLI_assert_msg(false, "Unrecognised MTL datatype.");
+      BLI_assert_msg(false, "Unrecognized MTL datatype.");
       return 0;
   };
 }

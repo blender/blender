@@ -27,8 +27,8 @@ Manager::~Manager()
 
 void Manager::begin_sync()
 {
-  /* TODO: This means the reference is kept until further redraw or manager teardown. Instead, they
-   * should be released after each draw loop. But for now, mimics old DRW behavior. */
+  /* TODO: This means the reference is kept until further redraw or manager tear-down. Instead,
+   * they should be released after each draw loop. But for now, mimics old DRW behavior. */
   for (GPUTexture *texture : acquired_textures) {
     /* Decrease refcount and free if 0. */
     GPU_texture_free(texture);
@@ -37,7 +37,7 @@ void Manager::begin_sync()
   acquired_textures.clear();
 
 #ifdef DEBUG
-  /* Detect non-init data. */
+  /* Detect uninitialized data. */
   memset(matrix_buf.data(), 0xF0, resource_len_ * sizeof(*matrix_buf.data()));
   memset(bounds_buf.data(), 0xF0, resource_len_ * sizeof(*bounds_buf.data()));
   memset(infos_buf.data(), 0xF0, resource_len_ * sizeof(*infos_buf.data()));

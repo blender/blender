@@ -83,7 +83,7 @@ void dof_cache_init()
   barrier();
 }
 
-/* Note: Sample color space is already in YCoCg space. */
+/* NOTE: Sample color space is already in YCoCg space. */
 DofSample dof_fetch_input_sample(ivec2 offset)
 {
   ivec2 coord = offset + 1 + ivec2(gl_LocalInvocationID.xy);

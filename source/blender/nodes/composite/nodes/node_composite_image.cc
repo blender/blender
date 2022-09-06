@@ -535,7 +535,7 @@ class ImageOperation : public NodeOperation {
 
   /* Get a copy of the image user that is appropriate to retrieve the image buffer for the output
    * with the given identifier. This essentially sets the appropriate pass and view indices that
-   * corresponds to the output.  */
+   * corresponds to the output. */
   ImageUser compute_image_user_for_output(StringRef identifier)
   {
     ImageUser image_user = *get_image_user();

@@ -124,7 +124,7 @@ MTLPixelFormat gpu_texture_format_to_metal(eGPUTextureFormat tex_format)
       return MTLPixelFormatDepth16Unorm;
 
     default:
-      BLI_assert(!"Unrecognised GPU pixel format!\n");
+      BLI_assert(!"Unrecognized GPU pixel format!\n");
       return MTLPixelFormatRGBA8Unorm;
   }
 }
@@ -183,7 +183,7 @@ int get_mtl_format_bytesize(MTLPixelFormat tex_format)
       return 2;
 
     default:
-      BLI_assert(!"Unrecognised GPU pixel format!\n");
+      BLI_assert(!"Unrecognized GPU pixel format!\n");
       return 1;
   }
 }
@@ -238,7 +238,7 @@ int get_mtl_format_num_components(MTLPixelFormat tex_format)
       return 1;
 
     default:
-      BLI_assert(!"Unrecognised GPU pixel format!\n");
+      BLI_assert(!"Unrecognized GPU pixel format!\n");
       return 1;
   }
 }
@@ -632,7 +632,7 @@ id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_read_impl(
           depth_scale_factor = 0xFFFFFFFFu;
           break;
         default:
-          BLI_assert_msg(0, "Unrecognised mode");
+          BLI_assert_msg(0, "Unrecognized mode");
           break;
       }
     }

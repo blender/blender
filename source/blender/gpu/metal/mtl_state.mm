@@ -202,7 +202,7 @@ static MTLCompareFunction gpu_stencil_func_to_metal(eGPUStencilTest stencil_func
     case GPU_STENCIL_ALWAYS:
       return MTLCompareFunctionAlways;
     default:
-      BLI_assert(false && "Unrecognised eGPUStencilTest function");
+      BLI_assert(false && "Unrecognized eGPUStencilTest function");
       break;
   }
   return MTLCompareFunctionAlways;

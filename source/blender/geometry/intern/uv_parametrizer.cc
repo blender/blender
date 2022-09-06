@@ -4260,7 +4260,7 @@ void GEO_uv_parametrizer_average(ParamHandle *phandle,
       for (int j = 0; j < max_iter; j++) {
         /* An island could contain millions of polygons. When summing many small values, we need to
          * use double precision in the accumulator to maintain accuracy. Note that the individual
-         * calculations only need to be at single precision.*/
+         * calculations only need to be at single precision. */
         double scale_cou = 0;
         double scale_cov = 0;
         double scale_cross = 0;
@@ -4275,11 +4275,11 @@ void GEO_uv_parametrizer_average(ParamHandle *phandle,
           s[1][0] = vb->uv[0] - vc->uv[0];
           s[1][1] = vb->uv[1] - vc->uv[1];
           /* Find the "U" axis and "V" axis in triangle co-ordinates. Normally this would require
-           * SVD, but in 2D we can use a cheaper matrix inversion instead.*/
+           * SVD, but in 2D we can use a cheaper matrix inversion instead. */
           if (!invert_m2_m2(m, s)) {
             continue;
           }
-          float cou[3], cov[3]; /* i.e. Texture "U" and texture "V" in 3D co-ordinates.*/
+          float cou[3], cov[3]; /* i.e. Texture "U" and texture "V" in 3D co-ordinates. */
           for (int k = 0; k < 3; k++) {
             cou[k] = m[0][0] * (va->co[k] - vc->co[k]) + m[0][1] * (vb->co[k] - vc->co[k]);
             cov[k] = m[1][0] * (va->co[k] - vc->co[k]) + m[1][1] * (vb->co[k] - vc->co[k]);
@@ -4320,7 +4320,7 @@ void GEO_uv_parametrizer_average(ParamHandle *phandle,
 
         const float tolerance = 1e-6f; /* Trade accuracy for performance. */
         if (err < tolerance) {
-          /* Too slow? Use Richardson Extrapolation to accelerate the convergence.*/
+          /* Too slow? Use Richardson Extrapolation to accelerate the convergence. */
           break;
         }
       }

@@ -159,7 +159,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 
   /* All link "cuts" that start at a particular output socket. Deduplicating new reroutes per
    * output socket is useful because it allows reusing reroutes for connected intersections.
-   * Further deduplication using the second map means we only have one cut per link.*/
+   * Further deduplication using the second map means we only have one cut per link. */
   Map<bNodeSocket *, RerouteCutsForSocket> cuts_per_socket;
 
   LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {

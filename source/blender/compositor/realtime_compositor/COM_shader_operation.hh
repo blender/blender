@@ -224,7 +224,7 @@ class ShaderOperation : public Operation {
    *
    * This method first generates the necessary code to load the inputs and store the outputs. Then,
    * it creates a compute shader from the generated sources. Finally, it adds the necessary GPU
-   * resources to the shader.  */
+   * resources to the shader. */
   static void generate_code(void *thunk, GPUMaterial *material, GPUCodegenOutput *code_generator);
 
   /* Add an image in the shader for each of the declared outputs. Additionally, emit code to define

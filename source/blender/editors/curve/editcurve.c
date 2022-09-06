@@ -1989,7 +1989,7 @@ static int sel_to_copy_ints(const BPoint *bp,
   }
   if (selected_leg_count &&
       /* Prevents leading and trailing unselected legs if all selected.
-       * Unless it is extrusion from point or curve.*/
+       * Unless it is extrusion from point or curve. */
       (selected_leg_count < max_j || max_j == 1)) {
     /* Prepend unselected leg if more than one leg selected at the starting edge.
      * max_j == 1 handles extrusion from point to curve and from curve to surface cases. */

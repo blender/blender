@@ -199,33 +199,33 @@ static void curves_blend_read_expand(BlendExpander *expander, ID *id)
 }
 
 IDTypeInfo IDType_ID_CV = {
-    /*id_code */ ID_CV,
-    /*id_filter */ FILTER_ID_CV,
-    /*main_listbase_index */ INDEX_ID_CV,
-    /*struct_size */ sizeof(Curves),
-    /*name */ "Curves",
-    /*name_plural */ "hair_curves",
-    /*translation_context */ BLT_I18NCONTEXT_ID_CURVES,
-    /*flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
-    /*asset_type_info */ nullptr,
+    /* id_code */ ID_CV,
+    /* id_filter */ FILTER_ID_CV,
+    /* main_listbase_index */ INDEX_ID_CV,
+    /* struct_size */ sizeof(Curves),
+    /* name*/ "Curves",
+    /* name_plural */ "hair_curves",
+    /* translation_context */ BLT_I18NCONTEXT_ID_CURVES,
+    /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /* asset_type_info */ nullptr,
 
-    /*init_data */ curves_init_data,
-    /*copy_data */ curves_copy_data,
-    /*free_data */ curves_free_data,
-    /*make_local */ nullptr,
-    /*foreach_id */ curves_foreach_id,
-    /*foreach_cache */ nullptr,
-    /*foreach_path */ nullptr,
-    /*owner_get */ nullptr,
+    /* init_data */ curves_init_data,
+    /* copy_data */ curves_copy_data,
+    /* free_data */ curves_free_data,
+    /* make_local */ nullptr,
+    /* foreach_id */ curves_foreach_id,
+    /* foreach_cache */ nullptr,
+    /* foreach_path */ nullptr,
+    /* owner_get */ nullptr,
 
-    /*blend_write */ curves_blend_write,
-    /*blend_read_data */ curves_blend_read_data,
-    /*blend_read_lib */ curves_blend_read_lib,
-    /*blend_read_expand */ curves_blend_read_expand,
+    /* blend_write */ curves_blend_write,
+    /* blend_read_data */ curves_blend_read_data,
+    /* blend_read_lib */ curves_blend_read_lib,
+    /* blend_read_expand */ curves_blend_read_expand,
 
-    /*blend_read_undo_preserve */ nullptr,
+    /* blend_read_undo_preserve */ nullptr,
 
-    /*lib_override_apply_post */ nullptr,
+    /* lib_override_apply_post */ nullptr,
 };
 
 void *BKE_curves_add(Main *bmain, const char *name)

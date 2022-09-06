@@ -147,7 +147,7 @@ struct MTLRenderPipelineStateDescriptor {
    * new PSO for the current shader.
    *
    * Unlike the 'MTLContextGlobalShaderPipelineState', this struct contains a subset of
-   * parameters used to distinguish between unique PSOs. This struct is hashable and only contains
+   * parameters used to distinguish between unique PSOs. This struct is hash-able and only contains
    * those parameters which are required by PSO generation. Non-unique state such as bound
    * resources is not tracked here, as it does not require a unique PSO permutation if changed. */
 
@@ -155,7 +155,7 @@ struct MTLRenderPipelineStateDescriptor {
   MTLVertexDescriptor vertex_descriptor;
 
   /* Render Target attachment state.
-   * Assign to MTLPixelFormatInvalid if not used. */
+   * Assign to #MTLPixelFormatInvalid if not used. */
   int num_color_attachments;
   MTLPixelFormat color_attachment_format[GPU_FB_MAX_COLOR_ATTACHMENT];
   MTLPixelFormat depth_attachment_format;
@@ -170,7 +170,7 @@ struct MTLRenderPipelineStateDescriptor {
   MTLBlendFactor src_alpha_blend_factor;
   MTLBlendFactor src_rgb_blend_factor;
 
-  /* Global colour write mask as this cannot be specified per attachment. */
+  /* Global color write mask as this cannot be specified per attachment. */
   MTLColorWriteMask color_write_mask;
 
   /* Point size required by point primitives. */
@@ -210,7 +210,7 @@ struct MTLRenderPipelineStateDescriptor {
 
   uint64_t hash() const
   {
-    /* NOTE(Metal): Current setup aims to minimise overlap of parameters
+    /* NOTE(Metal): Current setup aims to minimize overlap of parameters
      * which are more likely to be different, to ensure earlier hash
      * differences without having to fallback to comparisons.
      * Though this could likely be further improved to remove
@@ -226,7 +226,7 @@ struct MTLRenderPipelineStateDescriptor {
     /* Only include elements in Hash if they are needed - avoids variable null assignments
      * influencing hash. */
     if (this->num_color_attachments > 0) {
-      hash ^= (uint64_t)this->color_write_mask << 22;        /* 4 bit bitmask. */
+      hash ^= (uint64_t)this->color_write_mask << 22;        /* 4 bit bit-mask. */
       hash ^= (uint64_t)this->alpha_blend_op << 26;          /* Up to 4 (3 bits). */
       hash ^= (uint64_t)this->rgb_blend_op << 29;            /* Up to 4 (3 bits). */
       hash ^= (uint64_t)this->dest_alpha_blend_factor << 32; /* Up to 18 (5 bits). */

@@ -242,7 +242,7 @@ bool MTLCommandBufferManager::end_active_command_encoder()
         active_render_command_encoder_ = nil;
         active_command_encoder_type_ = MTL_NO_COMMAND_ENCODER;
 
-        /* Reset associated framebuffer flag. */
+        /* Reset associated frame-buffer flag. */
         active_frame_buffer_ = nullptr;
         active_pass_descriptor_ = nullptr;
         return true;
@@ -286,7 +286,7 @@ bool MTLCommandBufferManager::end_active_command_encoder()
 id<MTLRenderCommandEncoder> MTLCommandBufferManager::ensure_begin_render_command_encoder(
     MTLFrameBuffer *ctx_framebuffer, bool force_begin, bool *new_pass)
 {
-  /* Ensure valid framebuffer. */
+  /* Ensure valid frame-buffer. */
   BLI_assert(ctx_framebuffer != nullptr);
 
   /* Ensure active command buffer. */
@@ -299,10 +299,10 @@ id<MTLRenderCommandEncoder> MTLCommandBufferManager::ensure_begin_render_command
       active_frame_buffer_ != ctx_framebuffer || force_begin) {
     this->end_active_command_encoder();
 
-    /* Determine if this is a re-bind of the same framebuffer. */
+    /* Determine if this is a re-bind of the same frame-buffer. */
     bool is_rebind = (active_frame_buffer_ == ctx_framebuffer);
 
-    /* Generate RenderPassDescriptor from bound framebuffer.  */
+    /* Generate RenderPassDescriptor from bound frame-buffer. */
     BLI_assert(ctx_framebuffer);
     active_frame_buffer_ = ctx_framebuffer;
     active_pass_descriptor_ = active_frame_buffer_->bake_render_pass_descriptor(

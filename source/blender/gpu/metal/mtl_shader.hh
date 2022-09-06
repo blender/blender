@@ -56,7 +56,7 @@ struct MTLBufferArgumentData {
 
 /* Metal Render Pipeline State Instance. */
 struct MTLRenderPipelineStateInstance {
-  /* Function instances with specialisation.
+  /* Function instances with specialization.
    * Required for argument encoder construction. */
   id<MTLFunction> vert;
   id<MTLFunction> frag;
@@ -78,7 +78,7 @@ struct MTLRenderPipelineStateInstance {
   /** Reflection Data.
    * Currently used to verify whether uniform buffers of incorrect sizes being bound, due to left
    * over bindings being used for slots that did not need updating for a particular draw. Metal
-   * Backend over-generates bindings due to detecting their presence, though in many cases, the
+   * Back-end over-generates bindings due to detecting their presence, though in many cases, the
    * bindings in the source are not all used for a given shader.
    * This information can also be used to eliminate redundant/unused bindings. */
   bool reflection_data_available;
@@ -86,7 +86,7 @@ struct MTLRenderPipelineStateInstance {
   blender::Vector<MTLBufferArgumentData> buffer_bindings_reflection_data_frag;
 };
 
-/* MTLShaderBuilder source wrapper used during initial compilation. */
+/* #MTLShaderBuilder source wrapper used during initial compilation. */
 struct MTLShaderBuilder {
   NSString *msl_source_vert_ = @"";
   NSString *msl_source_frag_ = @"";
@@ -100,17 +100,17 @@ struct MTLShaderBuilder {
 };
 
 /**
- * MTLShader implements shader compilation, Pipeline State Object (PSO)
+ * #MTLShader implements shader compilation, Pipeline State Object (PSO)
  * creation for rendering and uniform data binding.
  * Shaders can either be created from native MSL, or generated
- * from a GLSL source shader using GPUShaderCreateInfo.
+ * from a GLSL source shader using #GPUShaderCreateInfo.
  *
  * Shader creation process:
- *  - Create MTLShader:
- *     - Convert GLSL to MSL source if required.
- *  - set MSL source.
- *  - set Vertex/Fragment function names.
- *  - Create and populate MTLShaderInterface.
+ * - Create #MTLShader:
+ *    - Convert GLSL to MSL source if required.
+ * - set MSL source.
+ * - set Vertex/Fragment function names.
+ * - Create and populate #MTLShaderInterface.
  **/
 class MTLShader : public Shader {
   friend shader::ShaderCreateInfo;
@@ -164,7 +164,7 @@ class MTLShader : public Shader {
    * and perform vertex assembly manually, rather than using Stage-in.
    * This is used to give a vertex shader full access to all of the
    * vertex data.
-   * This is primarily used for optimisation techniques and
+   * This is primarily used for optimization techniques and
    * alternative solutions for Geometry-shaders which are unsupported
    * by Metal. */
   bool use_ssbo_vertex_fetch_mode_ = false;
@@ -315,7 +315,7 @@ class MTLShader : public Shader {
  * and the type specified in the shader source.
  *
  * e.g. vec3 to vec4 expansion, or vec4 to vec2 truncation.
- * Note: Vector expansion will replace empty elements with the values
+ * NOTE: Vector expansion will replace empty elements with the values
  * (0,0,0,1).
  *
  * If implicit format resize is not possible, this function
@@ -591,18 +591,19 @@ inline bool mtl_vertex_format_resize(MTLVertexFormat mtl_format,
   return out_vert_format != MTLVertexFormatInvalid;
 }
 
-/* Returns whether the METAL API can internally convert between the input type of data in the
+/**
+ * Returns whether the METAL API can internally convert between the input type of data in the
  * incoming vertex buffer and the format used by the vertex attribute inside the shader.
  *
  * - Returns TRUE if the type can be converted internally, along with returning the appropriate
- * type to be passed into the MTLVertexAttributeDescriptorPSO.
+ *   type to be passed into the #MTLVertexAttributeDescriptorPSO.
  *
  * - Returns FALSE if the type cannot be converted internally e.g. casting Int4 to Float4.
  *
  * If implicit conversion is not possible, then we can fallback to performing manual attribute
- * conversion using the special attribute read function specialisations in the shader.
+ * conversion using the special attribute read function specializations in the shader.
  * These functions selectively convert between types based on the specified vertex
- * attribute 'GPUVertFetchMode fetch_mode' e.g. GPU_FETCH_INT.
+ * attribute `GPUVertFetchMode fetch_mode` e.g. `GPU_FETCH_INT`.
  */
 inline bool mtl_convert_vertex_format(MTLVertexFormat shader_attrib_format,
                                       GPUVertCompType component_type,
@@ -1026,7 +1027,7 @@ inline uint comp_count_from_vert_format(MTLVertexFormat vert_format)
     case MTLVertexFormatInt1010102Normalized:
 
     default:
-      BLI_assert_msg(false, "Unrecognised attribute type. Add types to switch as needed.");
+      BLI_assert_msg(false, "Unrecognized attribute type. Add types to switch as needed.");
       return 0;
   }
 }
@@ -1086,7 +1087,7 @@ inline GPUVertFetchMode fetchmode_from_vert_format(MTLVertexFormat vert_format)
       return GPU_FETCH_INT_TO_FLOAT_UNIT;
 
     default:
-      BLI_assert_msg(false, "Unrecognised attribute type. Add types to switch as needed.");
+      BLI_assert_msg(false, "Unrecognized attribute type. Add types to switch as needed.");
       return GPU_FETCH_FLOAT;
   }
 }
@@ -1156,7 +1157,7 @@ inline GPUVertCompType comp_type_from_vert_format(MTLVertexFormat vert_format)
       return GPU_COMP_I10;
 
     default:
-      BLI_assert_msg(false, "Unrecognised attribute type. Add types to switch as needed.");
+      BLI_assert_msg(false, "Unrecognized attribute type. Add types to switch as needed.");
       return GPU_COMP_F32;
   }
 }

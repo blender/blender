@@ -131,7 +131,7 @@ struct ObjectInfos {
   float4 color;
   float4 infos;
 #else
-  /** Uploaded as center + size. Converted to mul+bias to local coord.  */
+  /** Uploaded as center + size. Converted to mul+bias to local coord. */
   float3 orco_add;
   uint object_attrs_offset;
   float3 orco_mul;
@@ -275,7 +275,7 @@ BLI_STATIC_ASSERT_ALIGN(DRWDebugPrintBuffer, 16)
 /* Reuse first instance as row index as we don't use instancing. Equivalent to
  * `DRWDebugPrintBuffer.command.i_first`. */
 #define drw_debug_print_row_shared drw_debug_print_buf[3]
-/** Offset to the first data. Equal to: sizeof(DrawCommand) / sizeof(uint).
+/** Offset to the first data. Equal to: `sizeof(DrawCommand) / sizeof(uint)`.
  * This is needed because we bind the whole buffer as a `uint` array. */
 #define drw_debug_print_offset 8
 
@@ -308,7 +308,7 @@ BLI_STATIC_ASSERT_ALIGN(DRWDebugPrintBuffer, 16)
 
 /* Equivalent to `DRWDebugDrawBuffer.command.v_count`. */
 #define drw_debug_draw_v_count drw_debug_verts_buf[0].pos0
-/** Offset to the first data. Equal to: sizeof(DrawCommand) / sizeof(DRWDebugVert).
+/** Offset to the first data. Equal to: `sizeof(DrawCommand) / sizeof(DRWDebugVert)`.
  * This is needed because we bind the whole buffer as a `DRWDebugVert` array. */
 #define drw_debug_draw_offset 2
 

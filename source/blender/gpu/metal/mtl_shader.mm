@@ -51,7 +51,7 @@ MTLShader::MTLShader(MTLContext *ctx, const char *name) : Shader(name)
   shd_builder_ = new MTLShaderBuilder();
 
 #ifndef NDEBUG
-  /* Remove invalid symbols from shader name to ensure debug entrypoint function name is valid. */
+  /* Remove invalid symbols from shader name to ensure debug entry-point function name is valid. */
   for (uint i : IndexRange(strlen(this->name))) {
     char c = this->name[i];
     if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) {
@@ -123,7 +123,7 @@ MTLShader::~MTLShader()
     }
     pso_cache_.clear();
 
-    /* NOTE(Metal): ShaderInterface deletion is handled in the super destructor ~Shader(). */
+    /* NOTE(Metal): #ShaderInterface deletion is handled in the super destructor `~Shader()`. */
   }
   valid_ = false;
 
@@ -247,7 +247,7 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
         break;
       }
 
-      /* Concatenate common src. */
+      /* Concatenate common source. */
       NSString *str = [NSString stringWithUTF8String:datatoc_mtl_shader_common_msl];
       NSString *source_with_header_a = [str stringByAppendingString:source_to_compile];
 
@@ -343,9 +343,9 @@ bool MTLShader::transform_feedback_enable(GPUVertBuf *buf)
   BLI_assert(buf);
   transform_feedback_active_ = true;
   transform_feedback_vertbuf_ = buf;
-  /* TODO(Metal): Enable this assertion once MTLVertBuf lands. */
-  /*BLI_assert(static_cast<MTLVertBuf *>(unwrap(transform_feedback_vertbuf_))->get_usage_type() ==
-             GPU_USAGE_DEVICE_ONLY);*/
+  /* TODO(Metal): Enable this assertion once #MTLVertBuf lands. */
+  // BLI_assert(static_cast<MTLVertBuf *>(unwrap(transform_feedback_vertbuf_))->get_usage_type() ==
+  //            GPU_USAGE_DEVICE_ONLY);
   return true;
 }
 
@@ -560,7 +560,7 @@ void MTLShader::vertformat_from_shader(GPUVertFormat *format) const
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name METAL Custom behaviour
+/** \name METAL Custom Behavior
  * \{ */
 
 void MTLShader::set_vertex_function_name(NSString *vert_function_name)
@@ -584,7 +584,7 @@ void MTLShader::shader_source_from_msl(NSString *input_vertex_source,
 
 void MTLShader::set_interface(MTLShaderInterface *interface)
 {
-  /* Assign gpu::Shader superclass interface. */
+  /* Assign gpu::Shader super-class interface. */
   Shader::interface = interface;
 }
 
@@ -593,22 +593,24 @@ void MTLShader::set_interface(MTLShaderInterface *interface)
 /* -------------------------------------------------------------------- */
 /** \name Bake Pipeline State Objects
  * \{ */
-/* Bakes or fetches a pipeline state using the current
- * MTLRenderPipelineStateDescriptor state.
+
+/**
+ * Bakes or fetches a pipeline state using the current
+ * #MTLRenderPipelineStateDescriptor state.
  *
  * This state contains information on shader inputs/outputs, such
  * as the vertex descriptor, used to control vertex assembly for
  * current vertex data, and active render target information,
- * decsribing the output attachment pixel formats.
+ * describing the output attachment pixel formats.
  *
- * Other rendering parameters such as global pointsize, blend state, color mask
- * etc; are also used. See mtl_shader.h for full MLRenderPipelineStateDescriptor.
+ * Other rendering parameters such as global point-size, blend state, color mask
+ * etc; are also used. See mtl_shader.h for full #MLRenderPipelineStateDescriptor.
  */
 MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
     MTLContext *ctx, MTLPrimitiveTopologyClass prim_type)
 {
   /* NOTE(Metal): PSO cache can be accessed from multiple threads, though these operations should
-   * be thread-safe due to organisation of high-level renderer. If there are any issues, then
+   * be thread-safe due to organization of high-level renderer. If there are any issues, then
    * access can be guarded as appropriate. */
   BLI_assert(this);
   MTLShaderInterface *mtl_interface = this->get_interface();
@@ -616,9 +618,9 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
   BLI_assert(this->is_valid());
 
   /* NOTE(Metal): Vertex input assembly description will have been populated externally
-   * via MTLBatch or MTLImmediate during binding or draw. */
+   * via #MTLBatch or #MTLImmediate during binding or draw. */
 
-  /* Resolve Context Framebuffer state. */
+  /* Resolve Context Frame-buffer state. */
   MTLFrameBuffer *framebuffer = ctx->get_current_framebuffer();
 
   /* Update global pipeline descriptor. */
@@ -631,7 +633,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
     MTLAttachment color_attachment = framebuffer->get_color_attachment(attachment);
 
     if (color_attachment.used) {
-      /* If SRGB is disabled and format is SRGB, use colour data directly with no conversions
+      /* If SRGB is disabled and format is SRGB, use color data directly with no conversions
        * between linear and SRGB. */
       MTLPixelFormat mtl_format = gpu_texture_format_to_metal(
           color_attachment.texture->format_get());
@@ -687,7 +689,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
   @autoreleasepool {
     /* Prepare Render Pipeline Descriptor. */
 
-    /* Setup function specialisation constants, used to modify and optimise
+    /* Setup function specialization constants, used to modify and optimize
      * generated code based on current render pipeline configuration. */
     MTLFunctionConstantValues *values = [[MTLFunctionConstantValues new] autorelease];
 
@@ -698,18 +700,18 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
     pso_descriptor_.label = [NSString stringWithUTF8String:this->name];
 
     /* Offset the bind index for Uniform buffers such that they begin after the VBO
-     * buffer bind slots. MTL_uniform_buffer_base_index is passed as a function
-     * specialisation constant, customised per unique pipeline state permutation.
+     * buffer bind slots. `MTL_uniform_buffer_base_index` is passed as a function
+     * specialization constant, customized per unique pipeline state permutation.
      *
-     * Note: For binding point compaction, we could use the number of VBOs present
-     * in the current PSO configuration current_state.vertex_descriptor.num_vert_buffers).
+     * NOTE: For binding point compaction, we could use the number of VBOs present
+     * in the current PSO configuration `current_state.vertex_descriptor.num_vert_buffers`).
      * However, it is more efficient to simply offset the uniform buffer base index to the
-     * maximal number of VBO bind-points, as then UBO bindpoints for similar draw calls
+     * maximal number of VBO bind-points, as then UBO bind-points for similar draw calls
      * will align and avoid the requirement for additional binding. */
     int MTL_uniform_buffer_base_index = GPU_BATCH_VBO_MAX_LEN;
 
     /* Null buffer index is used if an attribute is not found in the
-     * bound VBOs VertexFormat. */
+     * bound VBOs #VertexFormat. */
     int null_buffer_index = current_state.vertex_descriptor.num_vert_buffers;
     bool using_null_buffer = false;
 
@@ -726,20 +728,21 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
     else {
       for (const uint i : IndexRange(current_state.vertex_descriptor.num_attributes)) {
 
-        /* Metal backend attribute descriptor state. */
+        /* Metal back-end attribute descriptor state. */
         MTLVertexAttributeDescriptorPSO &attribute_desc =
             current_state.vertex_descriptor.attributes[i];
 
         /* Flag format conversion */
-        /* In some cases, Metal cannot implicity convert between data types.
-         * In these instances, the fetch mode 'GPUVertFetchMode' as provided in the vertex format
+        /* In some cases, Metal cannot implicitly convert between data types.
+         * In these instances, the fetch mode #GPUVertFetchMode as provided in the vertex format
          * is passed in, and used to populate function constants named: MTL_AttributeConvert0..15.
-
+         *
          * It is then the responsibility of the vertex shader to perform any necessary type
          * casting.
          *
-         * See mtl_shader.hh for more information. Relevant Metal API documentation:
-         * https://developer.apple.com/documentation/metal/mtlvertexattributedescriptor/1516081-format?language=objc */
+         * See `mtl_shader.hh` for more information. Relevant Metal API documentation:
+         * https://developer.apple.com/documentation/metal/mtlvertexattributedescriptor/1516081-format?language=objc
+         */
         if (attribute_desc.format == MTLVertexFormatInvalid) {
           MTL_LOG_WARNING(
               "MTLShader: baking pipeline state for '%s'- expected input attribute at "
@@ -766,7 +769,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
               mtl_interface->name);
         }
 
-        /* Copy metal backend attribute descriptor state into PSO descriptor.
+        /* Copy metal back-end attribute descriptor state into PSO descriptor.
          * NOTE: need to copy each element due to direct assignment restrictions.
          * Also note */
         MTLVertexAttributeDescriptor *mtl_attribute = desc.vertexDescriptor.attributes[i];
@@ -777,12 +780,12 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
       }
 
       for (const uint i : IndexRange(current_state.vertex_descriptor.num_vert_buffers)) {
-        /* Metal backend state buffer layout. */
+        /* Metal back-end state buffer layout. */
         const MTLVertexBufferLayoutDescriptorPSO &buf_layout =
             current_state.vertex_descriptor.buffer_layouts[i];
-        /* Copy metal backend buffer layout state into PSO descriptor.
+        /* Copy metal back-end buffer layout state into PSO descriptor.
          * NOTE: need to copy each element due to copying from internal
-         * backend descriptor to Metal API descriptor.*/
+         * back-end descriptor to Metal API descriptor. */
         MTLVertexBufferLayoutDescriptor *mtl_buf_layout = desc.vertexDescriptor.layouts[i];
 
         mtl_buf_layout.stepFunction = buf_layout.step_function;
@@ -801,7 +804,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
 
       /* DEBUG: Missing/empty attributes. */
       /* Attributes are normally mapped as part of the state setting based on the used
-       * GPUVertFormat, however, if attribues have not been set, we can sort them out here. */
+       * #GPUVertFormat, however, if attributes have not been set, we can sort them out here. */
       for (const uint i : IndexRange(mtl_interface->get_total_attributes())) {
         const MTLShaderInputAttribute &attribute = mtl_interface->get_attribute(i);
         MTLVertexAttributeDescriptor *current_attribute = desc.vertexDescriptor.attributes[i];
@@ -868,8 +871,8 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
     float MTL_pointsize = pipeline_descriptor.point_size;
     if (pipeline_descriptor.vertex_descriptor.prim_topology_class ==
         MTLPrimitiveTopologyClassPoint) {
-      /* IF pointsize is > 0.0, PROGRAM_POINT_SIZE is enabled, and gl_PointSize shader keyword
-         overrides the value. Otherwise, if < 0.0, use global constant point size. */
+      /* `if pointsize is > 0.0`, PROGRAM_POINT_SIZE is enabled, and `gl_PointSize` shader keyword
+       * overrides the value. Otherwise, if < 0.0, use global constant point size. */
       if (MTL_pointsize < 0.0) {
         MTL_pointsize = fabsf(MTL_pointsize);
         [values setConstantValue:&MTL_pointsize
@@ -926,7 +929,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
     /* Setup pixel format state */
     for (int color_attachment = 0; color_attachment < GPU_FB_MAX_COLOR_ATTACHMENT;
          color_attachment++) {
-      /* Fetch colour attachment pixel format in backend pipeline state. */
+      /* Fetch color attachment pixel format in back-end pipeline state. */
       MTLPixelFormat pixel_format = current_state.color_attachment_format[color_attachment];
       /* Populate MTL API PSO attachment descriptor. */
       MTLRenderPipelineColorAttachmentDescriptor *col_attachment =
@@ -999,8 +1002,8 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
        * This reflection data is used to contrast the binding information
        * we know about in the interface against the bindings in the finalized
        * PSO. This accounts for bindings which have been stripped out during
-       * optimisation, and allows us to both avoid over-binding and also
-       * allows us to veriy size-correctness for bindings, to ensure
+       * optimization, and allows us to both avoid over-binding and also
+       * allows us to verify size-correctness for bindings, to ensure
        * that buffers bound are not smaller than the size of expected data. */
       NSArray<MTLArgument *> *vert_args = [reflection_data vertexArguments];
 
@@ -1152,7 +1155,7 @@ void MTLShader::ssbo_vertex_fetch_bind_attributes_begin()
   ssbo_vertex_attribute_bind_active_ = true;
   ssbo_vertex_attribute_bind_mask_ = (1 << mtl_interface->get_total_attributes()) - 1;
 
-  /* Reset tracking of actively used vbo bind slots for ssbo vertex fetch mode. */
+  /* Reset tracking of actively used VBO bind slots for SSBO vertex fetch mode. */
   for (int i = 0; i < MTL_SSBO_VERTEX_FETCH_MAX_VBOS; i++) {
     ssbo_vbo_slot_used_[i] = false;
   }

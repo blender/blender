@@ -32,7 +32,7 @@ MTLContext::MTLContext(void *ghost_window) : memory_manager(*this), main_command
   debug::mtl_debug_init();
 
   /* Device creation.
-   * TODO(Metal): This is a temporary initialisation path to enable testing of features
+   * TODO(Metal): This is a temporary initialization path to enable testing of features
    * and shader compilation tests. Future functionality should fetch the existing device
    * from GHOST_ContextCGL.mm. Plumbing to be updated in future. */
   this->device = MTLCreateSystemDefaultDevice();
@@ -40,7 +40,7 @@ MTLContext::MTLContext(void *ghost_window) : memory_manager(*this), main_command
   /* Initialize command buffer state. */
   this->main_command_buffer.prepare();
 
-  /* Initialise imm and pipeline state */
+  /* Initialize IMM and pipeline state */
   this->pipeline_state.initialised = false;
 
   /* Frame management. */
@@ -199,7 +199,7 @@ id<MTLRenderCommandEncoder> MTLContext::ensure_begin_render_pass()
   }
 
   /* Ensure command buffer workload submissions are optimal --
-   * Though do not split a batch mid-IMM recording */
+   * Though do not split a batch mid-IMM recording. */
   /* TODO(Metal): Add IMM Check once MTLImmediate has been implemented. */
   if (this->main_command_buffer.do_break_submission()/*&&
       !((MTLImmediate *)(this->imm))->imm_is_recording()*/) {

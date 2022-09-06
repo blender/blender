@@ -3408,8 +3408,8 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
 
   bool use_occlusion_test = params->use_occlusion_test && !XRAY_ENABLED(v3d);
 
-  /* Note: if both face raycast and face nearest are enabled, first find result of nearest, then
-   * override with raycast. */
+  /* NOTE: if both face ray-cast and face nearest are enabled, first find result of nearest, then
+   * override with ray-cast. */
   if ((snap_to_flag & SCE_SNAP_MODE_FACE_NEAREST) && !has_hit) {
     has_hit = nearestWorldObjects(
         sctx, params, init_co, prev_co, loc, no, &index, &ob_eval, obmat);

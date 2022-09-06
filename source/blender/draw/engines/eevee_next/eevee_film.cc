@@ -270,7 +270,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     data_.any_render_pass_2 = (enabled_passes_ & color_passes_2) != 0;
   }
   {
-    /* Set pass offsets.  */
+    /* Set pass offsets. */
 
     data_.display_id = aovs_info.display_id;
     data_.display_is_value = aovs_info.display_is_value;

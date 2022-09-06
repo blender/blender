@@ -223,7 +223,7 @@ void blf_batch_draw_begin(FontBLF *font)
     g_batch.ofs[1] = font->pos[1];
   }
   else {
-    /* Offset is baked in modelview mat. */
+    /* Offset is baked in model-view matrix. */
     zero_v2_int(g_batch.ofs);
   }
 
@@ -234,13 +234,13 @@ void blf_batch_draw_begin(FontBLF *font)
     bool mat_changed = equals_m4m4(gpumat, g_batch.mat) == false;
 
     if (mat_changed) {
-      /* Modelviewmat is no longer the same.
-       * Flush cache but with the previous mat. */
+      /* Model view matrix is no longer the same.
+       * Flush cache but with the previous matrix. */
       GPU_matrix_push();
       GPU_matrix_set(g_batch.mat);
     }
 
-    /* flush cache if config is not the same. */
+    /* Flush cache if configuration is not the same. */
     if (mat_changed || font_changed || shader_changed) {
       blf_batch_draw();
       g_batch.simple_shader = simple_shader;
@@ -253,7 +253,7 @@ void blf_batch_draw_begin(FontBLF *font)
 
     if (mat_changed) {
       GPU_matrix_pop();
-      /* Save for next memcmp. */
+      /* Save for next `memcmp`. */
       memcpy(g_batch.mat, gpumat, sizeof(g_batch.mat));
     }
   }
@@ -279,7 +279,7 @@ static GPUTexture *blf_batch_cache_texture_load(void)
     int offset_x = bitmap_len_landed % tex_width;
     int offset_y = bitmap_len_landed / tex_width;
 
-    /* TODO(germano): Update more than one row in a single call. */
+    /* TODO(@germano): Update more than one row in a single call. */
     while (remain) {
       int remain_row = tex_width - offset_x;
       int width = remain > remain_row ? remain_row : remain;

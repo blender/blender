@@ -21,9 +21,9 @@
  *
  * 3) Generate MSL shader.
  *
- * 4) Populate MTLShaderInterface, describing input/output structure, bindpoints, buffer size and
- *    alignment, shader feature usage etc; Everything required by the Metal backend to successfully
- *    enable use of shaders and GPU backend features.
+ * 4) Populate #MTLShaderInterface, describing input/output structure, bind-points, buffer size and
+ *    alignment, shader feature usage etc; Everything required by the Metal back-end to
+ *    successfully enable use of shaders and GPU back-end features.
  *
  *
  *
@@ -33,27 +33,27 @@
  *    sampler bindings or argument buffers; at the top of the shader.
  *
  * 2) Inject common Metal headers.
- *    - mtl_shader_defines.msl is used to map GLSL functions to MSL.
- *    - mtl_shader_common.msl is added to ALL MSL shaders to provide
- *      common functionality required by the backend. This primarily
+ *    - `mtl_shader_defines.msl` is used to map GLSL functions to MSL.
+ *    - `mtl_shader_common.msl` is added to ALL MSL shaders to provide
+ *      common functionality required by the back-end. This primarily
  *      contains function-constant hooks, used in PSO generation.
  *
  * 3) Create a class Scope which wraps the GLSL shader. This is used to
  *    create a global per-thread scope around the shader source, to allow
- *    access to common shader members (GLSL globals, shader inputs/outptus etc)
+ *    access to common shader members (GLSL globals, shader inputs/outputs etc)
  *
  * 4) Generate shader interface structs and populate local members where required for:
- *    - VertexInputs
- *    - VertexOutputs
- *    - Uniforms
- *    - Uniform Blocks
- *    - textures;
+ *    - `VertexInputs`
+ *    - `VertexOutputs`
+ *    - `Uniforms`
+ *    - `Uniform Blocks`
+ *    - `textures` ;
  *    etc;
  *
  * 5) Inject GLSL source.
  *
  * 6) Generate MSL shader entry point function. Every Metal shader must have a
- *    vertex/fragment/kernel entrypoint, which contains the function binding table.
+ *    vertex/fragment/kernel entry-point, which contains the function binding table.
  *    This is where bindings are specified and passed into the shader.
  *
  *    For converted shaders, the MSL entry-point will also instantiate a shader
@@ -61,47 +61,49 @@
  *
  *    Finally, the shaders "main()" method will be called, and outputs are copied.
  *
- *    Note: For position outputs, the default output position will be converted to
+ *    NOTE: For position outputs, the default output position will be converted to
  *    the Metal coordinate space, which involves flipping the Y coordinate and
  *    re-mapping the depth range between 0 and 1, as with Vulkan.
  *
  *
  * The final shader structure looks as follows:
  *
- *    -- Shader defines --
- *    #define USE_ARGUMENT_BUFFER_FOR_SAMPLERS 0
- *    ... etc ...;
+ * \code{.cc}
+ * -- Shader defines --
+ * #define USE_ARGUMENT_BUFFER_FOR_SAMPLERS 0
+ * ... etc ...;
  *
- *    class MetalShaderVertexImp {
+ * class MetalShaderVertexImp {
  *
- *     -- Common shader interface structs --
- *     struct VertexIn {
- *       vec4 pos [[attribute(0)]]
- *     }
- *     struct VertexOut {...}
- *     struct PushConstantBlock {...}
- *     struct drw_Globals {...}
- *     ...
+ *  -- Common shader interface structs --
+ *  struct VertexIn {
+ *    vec4 pos [[attribute(0)]]
+ *  }
+ *  struct VertexOut {...}
+ *  struct PushConstantBlock {...}
+ *  struct drw_Globals {...}
+ *  ...
  *
- *      -- GLSL source code --
- *      ...
- *    };
+ *   -- GLSL source code --
+ *   ...
+ * };
  *
- *    vertex MetalShaderVertexImp::VertexOut vertex_function_entry(
- *      MetalShaderVertexImp::VertexIn v_in [[stage_in]],
- *      constant PushConstantBlock& globals [[buffer(MTL_uniform_buffer_base_index)]]) {
+ * vertex MetalShaderVertexImp::VertexOut vertex_function_entry(
+ *   MetalShaderVertexImp::VertexIn v_in [[stage_in]],
+ *   constant PushConstantBlock& globals [[buffer(MTL_uniform_buffer_base_index)]]) {
  *
- *      MetalShaderVertexImp impl;
- *      -- Copy input members into impl instance --
- *      -- Execute GLSL main function --
- *      impl.main();
+ *   MetalShaderVertexImp impl;
+ *   -- Copy input members into impl instance --
+ *   -- Execute GLSL main function --
+ *   impl.main();
  *
- *      -- Copy outputs and return --
- *      MetalShaderVertexImp::VertexOut out;
- *      out.pos = impl.pos;
- *      -- transform position to Metal coordinate system --
- *      return v_out;
- *    }
+ *   -- Copy outputs and return --
+ *   MetalShaderVertexImp::VertexOut out;
+ *   out.pos = impl.pos;
+ *   -- transform position to Metal coordinate system --
+ *   return v_out;
+ * }
+ * \endcode
  *
  * -- SSBO-vertex-fetchmode --
  *
@@ -125,13 +127,14 @@
  * significant performance loss from manual vertex assembly vs under-the-hood assembly.
  *
  * This mode works by passing the required vertex descriptor information into the shader
- * as uniform data, describing the type, stride, offset, stepmode and buffer index of each
- * attribute, such that the shader ssbo-vertex-fetch utility functions know how to extract data.
+ * as uniform data, describing the type, stride, offset, step-mode and buffer index of each
+ * attribute, such that the shader SSBO-vertex-fetch utility functions know how to extract data.
  *
- * This also works with indexed rendering, by similarly binding the index buffer as a manul buffer.
+ * This also works with indexed rendering,
+ * by similarly binding the index buffer as a manual buffer.
  *
- * When this mode is used, the code generation and shader interface generation varies to accomodate
- * the required features.
+ * When this mode is used, the code generation and shader interface generation varies to
+ * accommodate the required features.
  *
  * This mode can be enabled in a shader with:
  *
@@ -363,7 +366,7 @@ class MSLGeneratorInterface {
   blender::Vector<MSLVertexInputAttribute> vertex_input_attributes;
   blender::Vector<MSLVertexOutputAttribute> vertex_output_varyings;
   /* Should match vertex outputs, but defined separately as
-   * some shader permutations will not utilise all inputs/outputs.
+   * some shader permutations will not utilize all inputs/outputs.
    * Final shader uses the intersection between the two sets. */
   blender::Vector<MSLVertexOutputAttribute> fragment_input_varyings;
   blender::Vector<MSLFragmentOutputAttribute> fragment_outputs;

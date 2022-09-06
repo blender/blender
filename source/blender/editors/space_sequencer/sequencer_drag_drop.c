@@ -293,7 +293,7 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
     SeqCollection *strips = SEQ_query_rendered_strips(
         scene, channels, seqbase, scene->r.cfra, sseq->chanshown);
 
-    /* Get the top most strip channel that is in view.*/
+    /* Get the top most strip channel that is in view. */
     Sequence *seq;
     int max_channel = -1;
     SEQ_ITERATOR_FOREACH (seq, strips) {

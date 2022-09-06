@@ -187,7 +187,7 @@ struct ClosureTransparency {
 struct GlobalData {
   /** World position. */
   vec3 P;
-  /** Surface Normal. Normalized, overriden by bump displacement. */
+  /** Surface Normal. Normalized, overridden by bump displacement. */
   vec3 N;
   /** Raw interpolated normal (non-normalized) data. */
   vec3 Ni;

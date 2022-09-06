@@ -50,7 +50,7 @@ extern GHOST_TSuccess GHOST_DisposeSystem(GHOST_SystemHandle systemhandle);
  * \param message: Message of the message box.
  * \param help_label: Text to show on the help button that opens a link.
  * \param continue_label: Text to show on the ok button that continues.
- * \param link: Optional (hyper)link to a webpage to show when pressing help.
+ * \param link: Optional (hyper)link to a web-page to show when pressing help.
  * \param dialog_options: Options to configure the message box.
  */
 extern void GHOST_ShowMessageBox(GHOST_SystemHandle systemhandle,

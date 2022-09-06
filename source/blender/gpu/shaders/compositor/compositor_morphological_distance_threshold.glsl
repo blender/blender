@@ -58,7 +58,7 @@ void main()
    * a texture loader with a fallback value. And since we don't want those values to affect the
    * result, the fallback value is chosen such that the inner condition fails, which is when the
    * sampled pixel and the center pixel are the same, so choose a fallback that will be considered
-   * masked if the center pixel is masked and unmasked otherwise.  */
+   * masked if the center pixel is masked and unmasked otherwise. */
   vec4 fallback = vec4(is_center_masked ? 1.0 : 0.0);
 
   /* Since the distance search window is limited to the given radius, the maximum possible squared

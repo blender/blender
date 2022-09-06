@@ -186,7 +186,7 @@ class FormatHandler : NonCopyable, NonMovable {
   {
     write_impl("illum {}\n", mode);
   }
-  /* Note: options, if present, will have its own leading space. */
+  /* NOTE: options, if present, will have its own leading space. */
   void write_mtl_map(const char *type, StringRef options, StringRef value)
   {
     write_impl("{}{} {}\n", type, options, value);

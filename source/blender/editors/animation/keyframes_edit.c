@@ -1303,7 +1303,8 @@ void ANIM_fcurve_equalize_keyframes_loop(FCurve *fcu,
 
     /* Perform handle equalization if mode is 'Both' or 'Left'. */
     if (mode & EQUALIZE_HANDLES_LEFT) {
-      /*If left handle type is 'Auto', 'Auto Clamped', or 'Vector', convert handles to 'Aligned'.*/
+      /* If left handle type is 'Auto', 'Auto Clamped', or 'Vector', convert handles to 'Aligned'.
+       */
       if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM, HD_VECT)) {
         bezt->h1 = HD_ALIGN;
         bezt->h2 = HD_ALIGN;
@@ -1319,8 +1320,8 @@ void ANIM_fcurve_equalize_keyframes_loop(FCurve *fcu,
 
     /* Perform handle equalization if mode is 'Both' or 'Right'. */
     if (mode & EQUALIZE_HANDLES_RIGHT) {
-      /*If right handle type is 'Auto', 'Auto Clamped', or 'Vector', convert handles to
-       * 'Aligned'.*/
+      /* If right handle type is 'Auto', 'Auto Clamped', or 'Vector', convert handles to
+       * 'Aligned'. */
       if (ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM, HD_VECT)) {
         bezt->h1 = HD_ALIGN;
         bezt->h2 = HD_ALIGN;

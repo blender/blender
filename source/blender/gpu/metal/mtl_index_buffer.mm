@@ -40,7 +40,7 @@ void MTLIndexBuf::bind_as_ssbo(uint32_t binding)
   /* Ensure we have a valid IBO. */
   BLI_assert(this->ibo_);
 
-  /* TODO(Metal): Support index buffer SSBOs. Dependent on compute impl. */
+  /* TODO(Metal): Support index buffer SSBO's. Dependent on compute implementation. */
   MTL_LOG_WARNING("MTLIndexBuf::bind_as_ssbo not yet implemented!\n");
 }
 
@@ -58,17 +58,17 @@ const uint32_t *MTLIndexBuf::read() const
 
 void MTLIndexBuf::upload_data()
 {
-  /* Handle subrange upload. */
+  /* Handle sub-range upload. */
   if (is_subrange_) {
     MTLIndexBuf *mtlsrc = static_cast<MTLIndexBuf *>(src_);
     mtlsrc->upload_data();
 
 #ifndef NDEBUG
     BLI_assert_msg(!mtlsrc->point_restarts_stripped_,
-                   "Cannot use subrange on stripped point buffer.");
+                   "Cannot use sub-range on stripped point buffer.");
 #endif
 
-    /* If parent subrange allocation has changed,
+    /* If parent sub-range allocation has changed,
      * update our index buffer. */
     if (alloc_size_ != mtlsrc->alloc_size_ || ibo_ != mtlsrc->ibo_) {
 
@@ -154,7 +154,7 @@ void MTLIndexBuf::update_sub(uint32_t start, uint32_t len, const void *data)
       destinationOffset:start
                    size:len];
 
-  /* Synchronise changes back to host to ensure CPU-side data is up-to-date for non
+  /* Synchronize changes back to host to ensure CPU-side data is up-to-date for non
    * Shared buffers. */
   if (dest_buffer.storageMode == MTLStorageModeManaged) {
     [enc synchronizeResource:dest_buffer];
@@ -177,8 +177,9 @@ void MTLIndexBuf::flag_can_optimize(bool can_optimize)
 
 /** \} */
 
-/** \name Index buffer optimization and topology emulation.
- * Index buffer optimization and emulation. Optimise index buffers by
+/** \name Index buffer optimization and topology emulation
+ *
+ * Index buffer optimization and emulation. Optimize index buffers by
  * eliminating restart-indices.
  * Emulate unsupported index types e.g. Triangle Fan and Line Loop.
  * \{ */
@@ -189,7 +190,7 @@ static uint32_t populate_optimized_tri_strip_buf(Span<T> original_data,
                                                  MutableSpan<T> output_data,
                                                  uint32_t input_index_len)
 {
-  /* Generate TriangleList from TriangleStrip. */
+  /* Generate #TriangleList from #TriangleStrip. */
   uint32_t current_vert_len = 0;
   uint32_t current_output_ind = 0;
   T indices[3];
@@ -202,13 +203,12 @@ static uint32_t populate_optimized_tri_strip_buf(Span<T> original_data,
     }
     else {
       if (current_vert_len < 3) {
-        /* prepare first triangle.
-         * Cache indices before genrating a triangle,
-         * in case we have bad primitive-restarts. */
+        /* Prepare first triangle.
+         * Cache indices before generating a triangle, in case we have bad primitive-restarts. */
         indices[current_vert_len] = current_index;
       }
 
-      /* emit triangle once we reach 3 input verts in current strip. */
+      /* Emit triangle once we reach 3 input verts in current strip. */
       if (current_vert_len == 3) {
         /* First triangle in strip. */
         output_data[current_output_ind++] = indices[0];
@@ -247,7 +247,7 @@ static uint32_t populate_emulated_tri_fan_buf(Span<T> original_data,
                                               MutableSpan<T> output_data,
                                               uint32_t input_index_len)
 {
-  /* Generate TriangleList from TriangleFan. */
+  /* Generate #TriangleList from #TriangleFan. */
   T base_prim_ind_val = 0;
   uint32_t current_vert_len = 0;
   uint32_t current_output_ind = 0;
@@ -261,9 +261,8 @@ static uint32_t populate_emulated_tri_fan_buf(Span<T> original_data,
     }
     else {
       if (current_vert_len < 3) {
-        /* prepare first triangle.
-         * Cache indices before genrating a triangle,
-         * in case we have bad primitive-restarts. */
+        /* Prepare first triangle.
+         * Cache indices before generating a triangle, in case we have bad primitive-restarts. */
         indices[current_vert_len] = current_index;
       }
 
@@ -298,7 +297,7 @@ id<MTLBuffer> MTLIndexBuf::get_index_buffer(GPUPrimType &in_out_primitive_type,
                                             uint32_t &in_out_v_count)
 {
   /* Determine whether to return the original index buffer, or whether we
-   * should emulate an unsupported primitive type, or optimisze a restart-
+   * should emulate an unsupported primitive type, or optimize a restart-
    * compatible type for faster performance. */
   bool should_optimize_or_emulate = (in_out_primitive_type == GPU_PRIM_TRI_FAN) ||
                                     (in_out_primitive_type == GPU_PRIM_TRI_STRIP);
@@ -411,16 +410,16 @@ id<MTLBuffer> MTLIndexBuf::get_index_buffer(GPUPrimType &in_out_primitive_type,
       } break;
 
       case GPU_PRIM_LINE_STRIP: {
-        /* TOOD(Metal): Line strip topology types would benefit from optimization to remove
+        /* TODO(Metal): Line strip topology types would benefit from optimization to remove
          * primitive restarts, however, these do not occur frequently, nor with
          * significant geometry counts. */
-        MTL_LOG_INFO("TODO: Primitive topology: Optimise line strip topology types\n");
+        MTL_LOG_INFO("TODO: Primitive topology: Optimize line strip topology types\n");
       } break;
 
       case GPU_PRIM_LINE_LOOP: {
-        /* TOOD(Metal): Line Loop primitive type requires use of optimized index buffer for
-         * emulation, if used with indexed rendering. This path is currently not hit as LineLoop
-         * does not currently appear to be used alongisde an index buffer. */
+        /* TODO(Metal): Line Loop primitive type requires use of optimized index buffer for
+         * emulation, if used with indexed rendering. This path is currently not hit as #LineLoop
+         * does not currently appear to be used alongside an index buffer. */
         MTL_LOG_WARNING(
             "TODO: Primitive topology: Line Loop Index buffer optimization required for "
             "emulation.\n");
@@ -465,9 +464,9 @@ void MTLIndexBuf::strip_restart_indices()
    * length. Primitive restarts are invalid in Metal for non-restart-compatible
    * primitive types. We also cannot just use zero unlike for Lines and Triangles,
    * as we cannot create de-generative point primitives to hide geometry, as each
-   * point is indepednent.
+   * point is independent.
    * Instead, we must remove these hidden indices from the index buffer.
-   * Note: This happens prior to index squeezing so operate on 32-bit indices. */
+   * NOTE: This happens prior to index squeezing so operate on 32-bit indices. */
   MutableSpan<uint32_t> uint_idx(static_cast<uint32_t *>(data_), index_len_);
   for (uint i = 0; i < index_len_; i++) {
     if (uint_idx[i] == 0xFFFFFFFFu) {

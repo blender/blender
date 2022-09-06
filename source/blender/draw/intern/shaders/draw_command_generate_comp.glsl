@@ -28,7 +28,7 @@ void write_draw_call(DrawGroup group, uint group_id)
   command_buf[group_id * 2 + 1] = cmd;
 
   /* Reset the counters for a next command gen dispatch. Avoids resending the whole data just
-   * for this purpose. Only the last thread will execute this so it is threadsafe.  */
+   * for this purpose. Only the last thread will execute this so it is thread-safe. */
   group_buf[group_id].front_facing_counter = 0u;
   group_buf[group_id].back_facing_counter = 0u;
   group_buf[group_id].total_counter = 0u;

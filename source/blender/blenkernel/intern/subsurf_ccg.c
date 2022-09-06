@@ -1598,7 +1598,7 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
   gridSize = ccgSubSurf_getGridSize(ss);
   gridFaces = gridSize - 1;
   gridCuts = gridSize - 2;
-  /*gridInternalVerts = gridSideVerts * gridSideVerts; - as yet, unused */
+  // gridInternalVerts = gridSideVerts * gridSideVerts; /* As yet, unused. */
   gridSideEdges = gridSize - 1;
   gridInternalEdges = (gridSideEdges - 1) * gridSideEdges * 2;
 

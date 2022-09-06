@@ -165,7 +165,7 @@ void main()
     out_color = out_color * (1.0 - layer_weight) + layer_color;
   }
 
-  /* Fix float precision issue in alpha compositing.  */
+  /* Fix float precision issue in alpha compositing. */
   if (out_color.a > 0.99) {
     out_color.a = 1.0;
   }

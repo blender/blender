@@ -40,7 +40,7 @@ struct MTLAttachment {
 
 /**
  * Implementation of FrameBuffer object using Metal.
- **/
+ */
 class MTLFrameBuffer : public FrameBuffer {
  private:
   /* Context Handle. */
@@ -54,24 +54,32 @@ class MTLFrameBuffer : public FrameBuffer {
   bool use_multilayered_rendering_ = false;
 
   /* State. */
-  /* Whether global framebuffer properties have changed and require
-   * re-generation of MTLRenderPassDescriptor/RenderCommandEncoders. */
+
+  /**
+   * Whether global frame-buffer properties have changed and require
+   * re-generation of #MTLRenderPassDescriptor / #RenderCommandEncoders.
+   */
   bool is_dirty_;
 
-  /* Whether loadstore properties have changed (only affects certain cached configs). */
+  /** Whether `loadstore` properties have changed (only affects certain cached configurations). */
   bool is_loadstore_dirty_;
 
-  /* Context that the latest modified state was last applied to.
-   * If this does not match current ctx, re-apply state. */
+  /**
+   * Context that the latest modified state was last applied to.
+   * If this does not match current ctx, re-apply state.
+   */
   MTLContext *dirty_state_ctx_;
 
-  /* Whether a clear is pending -- Used to toggle between clear and load FB configurations
+  /**
+   * Whether a clear is pending -- Used to toggle between clear and load FB configurations
    * (without dirtying the state) - Frame-buffer load config is used if no `GPU_clear_*` command
-   * was issued after binding the FrameBuffer. */
+   * was issued after binding the #FrameBuffer.
+   */
   bool has_pending_clear_;
 
-  /* Render Pass Descriptors:
-   * There are 3 MTLRenderPassDescriptors for different ways in which a frame-buffer
+  /**
+   * Render Pass Descriptors:
+   * There are 3 #MTLRenderPassDescriptors for different ways in which a frame-buffer
    * can be configured:
    * [0] = CLEAR CONFIG -- Used when a GPU_framebuffer_clear_* command has been issued.
    * [1] = LOAD CONFIG -- Used if bound, but no clear is required.
@@ -89,17 +97,17 @@ class MTLFrameBuffer : public FrameBuffer {
   MTLRenderPassDescriptor *framebuffer_descriptor_[MTL_FB_CONFIG_MAX];
   MTLRenderPassColorAttachmentDescriptor
       *colour_attachment_descriptors_[GPU_FB_MAX_COLOR_ATTACHMENT];
-  /* Whether MTLRenderPassDescriptor[N] requires updating with latest state. */
+  /** Whether `MTLRenderPassDescriptor[N]` requires updating with latest state. */
   bool descriptor_dirty_[MTL_FB_CONFIG_MAX];
-  /* Whether SRGB is enabled for this framebuffer configuration. */
+  /** Whether SRGB is enabled for this frame-buffer configuration. */
   bool srgb_enabled_;
-  /* Whether the primary Frame-buffer attachment is an SRGB target or not. */
+  /** Whether the primary Frame-buffer attachment is an SRGB target or not. */
   bool is_srgb_;
 
  public:
   /**
    * Create a conventional framebuffer to attach texture to.
-   **/
+   */
   MTLFrameBuffer(MTLContext *ctx, const char *name);
 
   ~MTLFrameBuffer();

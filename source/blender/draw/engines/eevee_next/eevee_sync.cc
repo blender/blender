@@ -162,7 +162,7 @@ struct gpIterData {
 
 static void gpencil_drawcall_flush(gpIterData &iter)
 {
-#if 0 /* Incompatible with new darw manager. */
+#if 0 /* Incompatible with new draw manager. */
   if (iter.geom != nullptr) {
     geometry_call(iter.material->shading.sub_pass,
                           iter.ob,

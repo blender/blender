@@ -164,7 +164,7 @@ enum PathTraceDimension {
   PRNG_SUBSURFACE_DISK = 0,
   PRNG_SUBSURFACE_DISK_RESAMPLE = 1,
 
-  /* High enough number so we don't need to change it when adding new dimenions,
+  /* High enough number so we don't need to change it when adding new dimensions,
    * low enough so there is no uint16_t overflow with many bounces. */
   PRNG_BOUNCE_NUM = 16,
 };
@@ -1359,7 +1359,7 @@ static_assert_align(KernelShaderEvalInput, 16);
 
 /* Pre-computed sample table sizes for PMJ02 sampler.
  *
- * Note: divisions *must* be a power of two, and patterns
+ * NOTE: divisions *must* be a power of two, and patterns
  * ideally should be as well.
  */
 #define NUM_PMJ_DIVISIONS 32

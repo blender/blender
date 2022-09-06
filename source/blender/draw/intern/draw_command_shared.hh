@@ -24,7 +24,7 @@ struct RecordingState;
  * the same render state.
  */
 struct DrawGroup {
-  /** Index of next DrawGroup from the same header. */
+  /** Index of next #DrawGroup from the same header. */
   uint next;
 
   /** Index of the first instances after sorting. */
@@ -34,7 +34,7 @@ struct DrawGroup {
   /** Number of non inverted scaling instances in this Group. */
   uint front_facing_len;
 
-  /** GPUBatch values to be copied to DrawCommand after sorting (if not overriden). */
+  /** #GPUBatch values to be copied to #DrawCommand after sorting (if not overridden). */
   int vertex_len;
   int vertex_first;
   int base_index;

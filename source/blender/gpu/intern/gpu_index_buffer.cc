@@ -49,7 +49,7 @@ void GPU_indexbuf_init_ex(GPUIndexBufBuilder *builder,
    * degenerative primitives when skipping primitives is required and will
    * incur no additional performance cost for rendering. */
   if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_METAL)) {
-    /* We will still use restart-indices for point primtives and then
+    /* We will still use restart-indices for point primitives and then
      * patch these during IndexBuf::init, as we cannot benefit from degenerative
      * primitives to eliminate these. */
     builder->restart_index_value = (is_restart_compatible(prim_type) ||
@@ -379,7 +379,7 @@ void IndexBuf::squeeze_indices_short(uint min_idx,
      * clamp index to the maximum within the index range.
      *
      * `clamp_max_idx` represents the maximum possible index to clamp against. If primitive is
-     * restart-compatible, we can just clamp against the primtive-restart value, otherwise, we
+     * restart-compatible, we can just clamp against the primitive-restart value, otherwise, we
      * must assign to a valid index within the range.
      *
      * NOTE: For OpenGL we skip this by disabling clamping, as we still need to use

@@ -478,9 +478,9 @@ void DRW_curves_update()
     GPU_framebuffer_free(fb);
   }
   else {
-    /* Note(Metal): If compute is not supported, bind a temporary framebuffer to avoid
+    /* NOTE(Metal): If compute is not supported, bind a temporary frame-buffer to avoid
      * side-effects from rendering in the active buffer.
-     * We also need to guarantee that a Framebuffer is active to perform any rendering work,
+     * We also need to guarantee that a Frame-buffer is active to perform any rendering work,
      * even if there is no output */
     GPUFrameBuffer *temp_fb = nullptr;
     GPUFrameBuffer *prev_fb = nullptr;
@@ -488,7 +488,7 @@ void DRW_curves_update()
       if (!GPU_compute_shader_support()) {
         prev_fb = GPU_framebuffer_active_get();
         char errorOut[256];
-        /* if the framebuffer is invalid we need a dummy framebuffer to be bound. */
+        /* if the frame-buffer is invalid we need a dummy frame-buffer to be bound. */
         if (!GPU_framebuffer_check_valid(prev_fb, errorOut)) {
           int width = 64;
           int height = 64;
@@ -510,11 +510,11 @@ void DRW_curves_update()
       GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
     }
 
-    /* Release temporary framebuffer. */
+    /* Release temporary frame-buffer. */
     if (temp_fb != nullptr) {
       GPU_framebuffer_free(temp_fb);
     }
-    /* Rebind existing framebuffer */
+    /* Rebind existing frame-buffer */
     if (prev_fb != nullptr) {
       GPU_framebuffer_bind(prev_fb);
     }

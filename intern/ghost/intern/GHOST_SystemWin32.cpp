@@ -78,7 +78,7 @@
 #endif /* VK_GR_LESS */
 
 /**
-   Workaround for some laptop touch-pads, some of which seems to
+ * Workaround for some laptop touch-pads, some of which seems to
  * have driver issues which makes it so window function receives
  * the message, but #PeekMessage doesn't pick those messages for
  * some reason.

@@ -44,7 +44,7 @@
 #  define expf exp
 
 #  define bool1 bool
-/* Type name collision with Metal shading language - These typenames are already defined. */
+/* Type name collision with Metal shading language - These type-names are already defined. */
 #  ifndef GPU_METAL
 #    define float2 vec2
 #    define float3 vec3

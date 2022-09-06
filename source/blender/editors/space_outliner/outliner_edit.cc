@@ -149,7 +149,7 @@ void OUTLINER_OT_highlight_update(wmOperatorType *ot)
 
 void outliner_item_openclose(TreeElement *te, bool open, bool toggle_all)
 {
-  /* Only allow opening elements with children.  */
+  /* Only allow opening elements with children. */
   if (!(te->flag & TE_PRETEND_HAS_CHILDREN) && BLI_listbase_is_empty(&te->subtree)) {
     return;
   }

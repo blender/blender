@@ -15,7 +15,7 @@ namespace blender::realtime_compositor {
  * A simple operation is an operation that takes exactly one input and computes exactly one output.
  * Moreover, the output is guaranteed to only have a single user, that is, its reference count will
  * be one. Such operations can be attached to the inputs of operations to pre-process the inputs to
- * prepare them before the operation is executed.*/
+ * prepare them before the operation is executed. */
 class SimpleOperation : public Operation {
  private:
   /* The identifier of the output. This is constant for all operations. */

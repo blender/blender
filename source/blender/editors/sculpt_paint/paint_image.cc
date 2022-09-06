@@ -161,7 +161,7 @@ void imapaint_image_update(
   /* When buffer is partial updated the planes should be set to a larger value than 8. This will
    * make sure that partial updating is working but uses more GPU memory as the gpu texture will
    * have 4 channels. When so the whole texture needs to be reuploaded to the GPU using the new
-   * texture format.*/
+   * texture format. */
   if (ibuf != nullptr && ibuf->planes == 8) {
     ibuf->planes = 32;
     BKE_image_partial_update_mark_full_update(image);
@@ -172,7 +172,7 @@ void imapaint_image_update(
   if (texpaint || (sima && sima->lock)) {
     const int w = BLI_rcti_size_x(&imapaintpartial.dirty_region);
     const int h = BLI_rcti_size_y(&imapaintpartial.dirty_region);
-    /* Testing with partial update in uv editor too */
+    /* Testing with partial update in uv editor too. */
     BKE_image_update_gputexture(
         image, iuser, imapaintpartial.dirty_region.xmin, imapaintpartial.dirty_region.ymin, w, h);
   }

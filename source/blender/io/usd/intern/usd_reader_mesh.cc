@@ -103,7 +103,7 @@ static Material *find_existing_material(
         return mat_iter->second;
       }
       /* We can't find the Blender material which was previously created for this USD
-       * material, which should never happen.  */
+       * material, which should never happen. */
       BLI_assert_unreachable();
     }
   }

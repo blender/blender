@@ -32,7 +32,7 @@ namespace blender::gpu::shader {
 #endif
 
 enum class Type {
-  /* Types supported natively across all GPU backends. */
+  /* Types supported natively across all GPU back-ends. */
   FLOAT = 0,
   VEC2,
   VEC3,
@@ -48,12 +48,12 @@ enum class Type {
   IVEC3,
   IVEC4,
   BOOL,
-  /* Additionally supported types to enable data optimisation and native
-   * support in some GPUBackends.
-   * NOTE: These types must be representable in all APIs. E.g. VEC3_101010I2 is aliased as vec3 in
-   * the GL backend, as implicit type conversions from packed normal attribute data to vec3 is
+  /* Additionally supported types to enable data optimization and native
+   * support in some GPU back-ends.
+   * NOTE: These types must be representable in all APIs. E.g. `VEC3_101010I2` is aliased as vec3
+   * in the GL back-end, as implicit type conversions from packed normal attribute data to vec3 is
    * supported. UCHAR/CHAR types are natively supported in Metal and can be used to avoid
-   * additional data conversions for GPU_COMP_U8 vertex attributes. */
+   * additional data conversions for `GPU_COMP_U8` vertex attributes. */
   VEC3_101010I2,
   UCHAR,
   UCHAR2,
@@ -324,10 +324,10 @@ struct StageInterfaceInfo {
 /**
  * \brief Describe inputs & outputs, stage interfaces, resources and sources of a shader.
  *        If all data is correctly provided, this is all that is needed to create and compile
- *        a GPUShader.
+ *        a #GPUShader.
  *
  * IMPORTANT: All strings are references only. Make sure all the strings used by a
- *            ShaderCreateInfo are not freed until it is consumed or deleted.
+ *            #ShaderCreateInfo are not freed until it is consumed or deleted.
  */
 struct ShaderCreateInfo {
   /** Shader name for debugging. */
@@ -346,7 +346,7 @@ struct ShaderCreateInfo {
   DepthWrite depth_write_ = DepthWrite::ANY;
   /**
    * Maximum length of all the resource names including each null terminator.
-   * Only for names used by gpu::ShaderInterface.
+   * Only for names used by #gpu::ShaderInterface.
    */
   size_t interface_names_size_ = 0;
   /** Manually set builtins. */

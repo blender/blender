@@ -5259,7 +5259,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
   event.prev_val = event.val;
 
   /* Always use modifiers from the active window since
-     changes to modifiers aren't sent to inactive windows, see: T66088. */
+   * changes to modifiers aren't sent to inactive windows, see: T66088. */
   if ((wm->winactive != win) && (wm->winactive && wm->winactive->eventstate)) {
     event.modifier = wm->winactive->eventstate->modifier;
     event.keymodifier = wm->winactive->eventstate->keymodifier;

@@ -4141,7 +4141,7 @@ static bool paint_object_attributes_active_color_fill_ex(Object *ob,
   if (!layer) {
     return false;
   }
-  /* Store original #Mesh.editflag.*/
+  /* Store original #Mesh.editflag. */
   const decltype(me->editflag) editflag = me->editflag;
   if (!only_selected) {
     me->editflag &= ~ME_EDIT_PAINT_FACE_SEL;

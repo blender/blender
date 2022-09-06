@@ -69,7 +69,7 @@ typedef struct LineartIsecThread {
   int max;
   int count_test;
 
-  /* For individual thread reference.*/
+  /* For individual thread reference. */
   LineartData *ld;
 } LineartIsecThread;
 
@@ -1800,7 +1800,7 @@ static void lineart_add_edge_to_array_thread(LineartObjectInfo *obi, LineartEdge
 }
 
 /* NOTE: For simplicity, this function doesn't actually do anything if you already have data in
- * #pe.  */
+ * #pe. */
 void lineart_finalize_object_edge_array_reserve(LineartPendingEdges *pe, int count)
 {
   if (pe->max || pe->array || count == 0) {
@@ -4671,7 +4671,7 @@ void lineart_main_add_triangles(LineartData *ld)
   }
 
   /* Initialize per-thread data for thread task scheduling information and storing intersection
-   * results.  */
+   * results. */
   LineartIsecData d = {0};
   lineart_init_isec_thread(&d, ld, ld->thread_count);
 
