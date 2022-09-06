@@ -383,9 +383,12 @@ int BKE_id_attributes_length(const ID *id, eAttrDomainMask domain_mask, eCustomD
   int length = 0;
 
   for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
-    CustomData *customdata = info[domain].customdata;
+    const CustomData *customdata = info[domain].customdata;
+    if (customdata == nullptr) {
+      continue;
+    }
 
-    if (customdata && ((1 << (int)domain) & domain_mask)) {
+    if ((1 << (int)domain) & domain_mask) {
       length += CustomData_number_of_layers_typemask(customdata, mask);
     }
   }
@@ -399,9 +402,11 @@ eAttrDomain BKE_id_attribute_domain(const ID *id, const CustomDataLayer *layer)
   get_domains(id, info);
 
   for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
-    CustomData *customdata = info[domain].customdata;
-    if (customdata &&
-        ARRAY_HAS_ITEM((CustomDataLayer *)layer, customdata->layers, customdata->totlayer)) {
+    const CustomData *customdata = info[domain].customdata;
+    if (customdata == nullptr) {
+      continue;
+    }
+    if (ARRAY_HAS_ITEM((CustomDataLayer *)layer, customdata->layers, customdata->totlayer)) {
       return static_cast<eAttrDomain>(domain);
     }
   }
@@ -431,9 +436,11 @@ int BKE_id_attribute_data_length(ID *id, CustomDataLayer *layer)
   get_domains(id, info);
 
   for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
-    CustomData *customdata = info[domain].customdata;
-    if (customdata &&
-        ARRAY_HAS_ITEM((CustomDataLayer *)layer, customdata->layers, customdata->totlayer)) {
+    const CustomData *customdata = info[domain].customdata;
+    if (customdata == nullptr) {
+      continue;
+    }
+    if (ARRAY_HAS_ITEM((CustomDataLayer *)layer, customdata->layers, customdata->totlayer)) {
       return info[domain].length;
     }
   }
@@ -470,18 +477,19 @@ CustomDataLayer *BKE_id_attributes_active_get(ID *id)
 
   for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
     CustomData *customdata = info[domain].customdata;
-    if (customdata) {
-      for (int i = 0; i < customdata->totlayer; i++) {
-        CustomDataLayer *layer = &customdata->layers[i];
-        if (CD_MASK_PROP_ALL & CD_TYPE_AS_MASK(layer->type)) {
-          if (index == active_index) {
-            if (BKE_attribute_allow_procedural_access(layer->name)) {
-              return layer;
-            }
-            return nullptr;
+    if (customdata == nullptr) {
+      continue;
+    }
+    for (int i = 0; i < customdata->totlayer; i++) {
+      CustomDataLayer *layer = &customdata->layers[i];
+      if (CD_MASK_PROP_ALL & CD_TYPE_AS_MASK(layer->type)) {
+        if (index == active_index) {
+          if (BKE_attribute_allow_procedural_access(layer->name)) {
+            return layer;
           }
-          index++;
+          return nullptr;
         }
+        index++;
       }
     }
   }
@@ -498,16 +506,17 @@ void BKE_id_attributes_active_set(ID *id, CustomDataLayer *active_layer)
 
   for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
     const CustomData *customdata = info[domain].customdata;
-    if (customdata) {
-      for (int i = 0; i < customdata->totlayer; i++) {
-        const CustomDataLayer *layer = &customdata->layers[i];
-        if (layer == active_layer) {
-          *BKE_id_attributes_active_index_p(id) = index;
-          return;
-        }
-        if (CD_MASK_PROP_ALL & CD_TYPE_AS_MASK(layer->type)) {
-          index++;
-        }
+    if (customdata == nullptr) {
+      continue;
+    }
+    for (int i = 0; i < customdata->totlayer; i++) {
+      const CustomDataLayer *layer = &customdata->layers[i];
+      if (layer == active_layer) {
+        *BKE_id_attributes_active_index_p(id) = index;
+        return;
+      }
+      if (CD_MASK_PROP_ALL & CD_TYPE_AS_MASK(layer->type)) {
+        index++;
       }
     }
   }
@@ -539,7 +548,10 @@ CustomData *BKE_id_attributes_iterator_next_domain(ID *id, CustomDataLayer *laye
 
   for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
     CustomData *customdata = info[domain].customdata;
-    if (customdata && customdata->layers && customdata->totlayer) {
+    if (customdata == nullptr) {
+      continue;
+    }
+    if (customdata->layers && customdata->totlayer) {
       if (customdata->layers == layers) {
         use_next = true;
       }
