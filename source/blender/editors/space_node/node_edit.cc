@@ -2171,24 +2171,23 @@ static int node_copy_color_exec(bContext *C, wmOperator *UNUSED(op))
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
 
-  bNode *node = nodeGetActive(&ntree);
-  if (!node) {
+  bNode *active_node = nodeGetActive(&ntree);
+  if (!active_node) {
     return OPERATOR_CANCELLED;
   }
 
-  LISTBASE_FOREACH (bNode *, node_iter, &ntree.nodes) {
-    if (node_iter->flag & NODE_SELECT && node_iter != node) {
-      if (node->flag & NODE_CUSTOM_COLOR) {
-        node_iter->flag |= NODE_CUSTOM_COLOR;
-        copy_v3_v3(node_iter->color, node->color);
+  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+    if (node->flag & NODE_SELECT && node != active_node) {
+      if (active_node->flag & NODE_CUSTOM_COLOR) {
+        node->flag |= NODE_CUSTOM_COLOR;
+        copy_v3_v3(node->color, active_node->color);
       }
       else {
-        node_iter->flag &= ~NODE_CUSTOM_COLOR;
+        node->flag &= ~NODE_CUSTOM_COLOR;
       }
     }
   }
 
-  node_sort(ntree);
   WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
 
   return OPERATOR_FINISHED;
