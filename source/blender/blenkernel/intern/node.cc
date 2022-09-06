@@ -2569,7 +2569,7 @@ static bNodeTree *ntreeAddTree_do(
    * node groups and other tree types are created as library data.
    */
   int flag = 0;
-  if (is_embedded) {
+  if (is_embedded || bmain == nullptr) {
     flag |= LIB_ID_CREATE_NO_MAIN;
   }
   bNodeTree *ntree = (bNodeTree *)BKE_libblock_alloc(bmain, ID_NT, name, flag);
