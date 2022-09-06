@@ -22,7 +22,7 @@ set(INC
 set(SRC
   uvedit_buttons.c
   uvedit_draw.c
-  uvedit_islands.c
+  uvedit_islands.cc
   uvedit_ops.c
   uvedit_path.c
   uvedit_rip.c
