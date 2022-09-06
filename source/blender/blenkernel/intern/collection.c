@@ -175,20 +175,8 @@ static ID *collection_owner_get(Main *bmain, ID *id, ID *UNUSED(owner_id_hint))
   Collection *master_collection = (Collection *)id;
   BLI_assert((master_collection->flag & COLLECTION_IS_MASTER) != 0);
   BLI_assert(master_collection->owner_id != NULL);
-
-#ifndef NDEBUG
-  bool is_owner_found = false;
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    if (scene->master_collection == master_collection) {
-      BLI_assert(master_collection->owner_id == &scene->id);
-      BLI_assert(!is_owner_found);
-      is_owner_found = true;
-    }
-  }
-  BLI_assert(is_owner_found);
-#else
-  UNUSED_VARS(bmain);
-#endif
+  BLI_assert(GS(master_collection->owner_id->name) == ID_SCE);
+  BLI_assert(((Scene *)master_collection->owner_id)->master_collection == master_collection);
 
   return master_collection->owner_id;
 }

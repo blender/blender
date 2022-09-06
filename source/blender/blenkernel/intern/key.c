@@ -93,7 +93,12 @@ static void shapekey_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static ID *shapekey_owner_get(Main *UNUSED(bmain), ID *id, ID *UNUSED(owner_id_hint))
 {
-  return ((Key *)id)->from;
+  Key *key = (Key *)id;
+
+  BLI_assert(key->from != NULL);
+  BLI_assert(BKE_key_from_id(key->from) == key);
+
+  return key->from;
 }
 
 static void shapekey_blend_write(BlendWriter *writer, ID *id, const void *id_address)
