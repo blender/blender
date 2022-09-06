@@ -266,6 +266,14 @@ static bool custom_data_layer_matches_attribute_id(const CustomDataLayer &layer,
   return layer.name == attribute_id.name();
 }
 
+bool BuiltinCustomDataLayerProvider::layer_exists(const CustomData &custom_data) const
+{
+  if (stored_as_named_attribute_) {
+    return CustomData_get_named_layer_index(&custom_data, stored_type_, name_.c_str()) != -1;
+  }
+  return CustomData_has_layer(&custom_data, stored_type_);
+}
+
 GVArray BuiltinCustomDataLayerProvider::try_get_for_read(const void *owner) const
 {
   const CustomData *custom_data = custom_data_access_.get_const_custom_data(owner);
@@ -273,26 +281,25 @@ GVArray BuiltinCustomDataLayerProvider::try_get_for_read(const void *owner) cons
     return {};
   }
 
-  const void *data = nullptr;
-  bool found_attribute = false;
-  for (const CustomDataLayer &layer : Span(custom_data->layers, custom_data->totlayer)) {
-    if (stored_as_named_attribute_) {
-      if (layer.name == name_) {
-        data = layer.data;
-        found_attribute = true;
-        break;
-      }
+  /* When the number of elements is zero, layers might have null data but still exist. */
+  const int element_num = custom_data_access_.get_element_num(owner);
+  if (element_num == 0) {
+    if (this->layer_exists(*custom_data)) {
+      return as_read_attribute_(nullptr, 0);
     }
-    else if (layer.type == stored_type_) {
-      data = layer.data;
-      found_attribute = true;
-      break;
-    }
-  }
-  if (!found_attribute) {
     return {};
   }
-  const int element_num = custom_data_access_.get_element_num(owner);
+
+  const void *data = nullptr;
+  if (stored_as_named_attribute_) {
+    data = CustomData_get_layer_named(custom_data, stored_type_, name_.c_str());
+  }
+  else {
+    data = CustomData_get_layer(custom_data, stored_type_);
+  }
+  if (data == nullptr) {
+    return {};
+  }
   return as_read_attribute_(data, element_num);
 }
 
@@ -305,7 +312,20 @@ GAttributeWriter BuiltinCustomDataLayerProvider::try_get_for_write(void *owner) 
   if (custom_data == nullptr) {
     return {};
   }
+
+  std::function<void()> tag_modified_fn;
+  if (update_on_change_ != nullptr) {
+    tag_modified_fn = [owner, update = update_on_change_]() { update(owner); };
+  }
+
+  /* When the number of elements is zero, layers might have null data but still exist. */
   const int element_num = custom_data_access_.get_element_num(owner);
+  if (element_num == 0) {
+    if (this->layer_exists(*custom_data)) {
+      return {as_write_attribute_(nullptr, 0), domain_, std::move(tag_modified_fn)};
+    }
+    return {};
+  }
 
   void *data = nullptr;
   if (stored_as_named_attribute_) {
@@ -318,12 +338,6 @@ GAttributeWriter BuiltinCustomDataLayerProvider::try_get_for_write(void *owner) 
   if (data == nullptr) {
     return {};
   }
-
-  std::function<void()> tag_modified_fn;
-  if (update_on_change_ != nullptr) {
-    tag_modified_fn = [owner, update = update_on_change_]() { update(owner); };
-  }
-
   return {as_write_attribute_(data, element_num), domain_, std::move(tag_modified_fn)};
 }
 

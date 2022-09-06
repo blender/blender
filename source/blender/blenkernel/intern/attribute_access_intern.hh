@@ -258,6 +258,9 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
   bool try_delete(void *owner) const final;
   bool try_create(void *owner, const AttributeInit &initializer) const final;
   bool exists(const void *owner) const final;
+
+ private:
+  bool layer_exists(const CustomData &custom_data) const;
 };
 
 /**
