@@ -32,22 +32,21 @@ GHOST_DropTargetWin32::~GHOST_DropTargetWin32()
 /*
  * IUnknown::QueryInterface
  */
-HRESULT __stdcall GHOST_DropTargetWin32::QueryInterface(REFIID riid, void **ppvObj)
+HRESULT __stdcall GHOST_DropTargetWin32::QueryInterface(REFIID riid, void **ppv_obj)
 {
 
-  if (!ppvObj)
+  if (!ppv_obj) {
     return E_INVALIDARG;
-  *ppvObj = NULL;
+  }
+  *ppv_obj = NULL;
 
   if (riid == IID_IUnknown || riid == IID_IDropTarget) {
     AddRef();
-    *ppvObj = (void *)this;
+    *ppv_obj = (void *)this;
     return S_OK;
   }
-  else {
-    *ppvObj = NULL;
-    return E_NOINTERFACE;
-  }
+  *ppv_obj = NULL;
+  return E_NOINTERFACE;
 }
 
 /*
@@ -78,16 +77,16 @@ ULONG __stdcall GHOST_DropTargetWin32::Release(void)
 /*
  * Implementation of IDropTarget::DragEnter
  */
-HRESULT __stdcall GHOST_DropTargetWin32::DragEnter(IDataObject *pDataObject,
-                                                   DWORD grfKeyState,
+HRESULT __stdcall GHOST_DropTargetWin32::DragEnter(IDataObject *p_data_object,
+                                                   DWORD grf_key_state,
                                                    POINTL pt,
-                                                   DWORD *pdwEffect)
+                                                   DWORD *pdw_effect)
 {
   /* We accept all drop by default. */
   m_window->setAcceptDragOperation(true);
-  *pdwEffect = DROPEFFECT_NONE;
+  *pdw_effect = DROPEFFECT_NONE;
 
-  m_draggedObjectType = getGhostType(pDataObject);
+  m_draggedObjectType = getGhostType(p_data_object);
   m_system->pushDragDropEvent(
       GHOST_kEventDraggingEntered, m_draggedObjectType, m_window, pt.x, pt.y, NULL);
   return S_OK;
@@ -96,15 +95,17 @@ HRESULT __stdcall GHOST_DropTargetWin32::DragEnter(IDataObject *pDataObject,
 /*
  * Implementation of IDropTarget::DragOver
  */
-HRESULT __stdcall GHOST_DropTargetWin32::DragOver(DWORD grfKeyState, POINTL pt, DWORD *pdwEffect)
+HRESULT __stdcall GHOST_DropTargetWin32::DragOver(DWORD grf_key_state,
+                                                  POINTL pt,
+                                                  DWORD *pdw_effect)
 {
   if (m_window->canAcceptDragOperation()) {
-    *pdwEffect = allowedDropEffect(*pdwEffect);
+    *pdw_effect = allowedDropEffect(*pdw_effect);
   }
   else {
-    *pdwEffect = DROPEFFECT_NONE;
-    /* XXX Uncomment to test drop. Drop will not be called if `pdwEffect == DROPEFFECT_NONE`. */
-    // *pdwEffect = DROPEFFECT_COPY;
+    *pdw_effect = DROPEFFECT_NONE;
+    /* XXX Uncomment to test drop. Drop will not be called if `pdw_effect == DROPEFFECT_NONE`. */
+    // *pdw_effect = DROPEFFECT_COPY;
   }
   m_system->pushDragDropEvent(
       GHOST_kEventDraggingUpdated, m_draggedObjectType, m_window, pt.x, pt.y, NULL);
@@ -123,25 +124,25 @@ HRESULT __stdcall GHOST_DropTargetWin32::DragLeave(void)
 }
 
 /* Implementation of IDropTarget::Drop
- * This function will not be called if pdwEffect is set to DROPEFFECT_NONE in
+ * This function will not be called if pdw_effect is set to DROPEFFECT_NONE in
  * the implementation of IDropTarget::DragOver
  */
-HRESULT __stdcall GHOST_DropTargetWin32::Drop(IDataObject *pDataObject,
-                                              DWORD grfKeyState,
+HRESULT __stdcall GHOST_DropTargetWin32::Drop(IDataObject *p_data_object,
+                                              DWORD grf_key_state,
                                               POINTL pt,
-                                              DWORD *pdwEffect)
+                                              DWORD *pdw_effect)
 {
-  void *data = getGhostData(pDataObject);
+  void *data = getGhostData(p_data_object);
   if (m_window->canAcceptDragOperation()) {
-    *pdwEffect = allowedDropEffect(*pdwEffect);
+    *pdw_effect = allowedDropEffect(*pdw_effect);
   }
   else {
-    *pdwEffect = DROPEFFECT_NONE;
+    *pdw_effect = DROPEFFECT_NONE;
   }
-  if (data)
+  if (data) {
     m_system->pushDragDropEvent(
         GHOST_kEventDraggingDropDone, m_draggedObjectType, m_window, pt.x, pt.y, data);
-
+  }
   m_draggedObjectType = GHOST_kDragnDropTypeUnknown;
   return S_OK;
 }
@@ -150,90 +151,82 @@ HRESULT __stdcall GHOST_DropTargetWin32::Drop(IDataObject *pDataObject,
  * Helpers
  */
 
-DWORD GHOST_DropTargetWin32::allowedDropEffect(DWORD dwAllowed)
+DWORD GHOST_DropTargetWin32::allowedDropEffect(DWORD dw_allowed)
 {
-  DWORD dwEffect = DROPEFFECT_NONE;
-  if (dwAllowed & DROPEFFECT_COPY)
-    dwEffect = DROPEFFECT_COPY;
-
-  return dwEffect;
+  DWORD dw_effect = DROPEFFECT_NONE;
+  if (dw_allowed & DROPEFFECT_COPY) {
+    dw_effect = DROPEFFECT_COPY;
+  }
+  return dw_effect;
 }
 
-GHOST_TDragnDropTypes GHOST_DropTargetWin32::getGhostType(IDataObject *pDataObject)
+GHOST_TDragnDropTypes GHOST_DropTargetWin32::getGhostType(IDataObject *p_data_object)
 {
   /* Text
    * NOTE: Unicode text is available as CF_TEXT too, the system can do the
    * conversion, but we do the conversion our self with #WC_NO_BEST_FIT_CHARS.
    */
   FORMATETC fmtetc = {CF_TEXT, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL};
-  if (pDataObject->QueryGetData(&fmtetc) == S_OK) {
+  if (p_data_object->QueryGetData(&fmtetc) == S_OK) {
     return GHOST_kDragnDropTypeString;
   }
 
   /* Files-names. */
   fmtetc.cfFormat = CF_HDROP;
-  if (pDataObject->QueryGetData(&fmtetc) == S_OK) {
+  if (p_data_object->QueryGetData(&fmtetc) == S_OK) {
     return GHOST_kDragnDropTypeFilenames;
   }
 
   return GHOST_kDragnDropTypeUnknown;
 }
 
-void *GHOST_DropTargetWin32::getGhostData(IDataObject *pDataObject)
+void *GHOST_DropTargetWin32::getGhostData(IDataObject *p_data_object)
 {
-  GHOST_TDragnDropTypes type = getGhostType(pDataObject);
+  GHOST_TDragnDropTypes type = getGhostType(p_data_object);
   switch (type) {
     case GHOST_kDragnDropTypeFilenames:
-      return getDropDataAsFilenames(pDataObject);
-      break;
+      return getDropDataAsFilenames(p_data_object);
     case GHOST_kDragnDropTypeString:
-      return getDropDataAsString(pDataObject);
-      break;
+      return getDropDataAsString(p_data_object);
     case GHOST_kDragnDropTypeBitmap:
-      // return getDropDataAsBitmap(pDataObject);
+      // return getDropDataAsBitmap(p_data_object);
       break;
     default:
 #ifdef WITH_GHOST_DEBUG
       ::printf("\nGHOST_kDragnDropTypeUnknown");
 #endif /* WITH_GHOST_DEBUG */
       return NULL;
-      break;
   }
   return NULL;
 }
 
-void *GHOST_DropTargetWin32::getDropDataAsFilenames(IDataObject *pDataObject)
+void *GHOST_DropTargetWin32::getDropDataAsFilenames(IDataObject *p_data_object)
 {
-  UINT totfiles, nvalid = 0;
-  WCHAR fpath[MAX_PATH];
-  char *temp_path;
-  GHOST_TStringArray *strArray = NULL;
+  GHOST_TStringArray *str_array = NULL;
   FORMATETC fmtetc = {CF_HDROP, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL};
-  STGMEDIUM stgmed;
-  HDROP hdrop;
 
   /* Check if data-object supplies the format we want.
    * Double checking here, first in #getGhostType. */
-  if (pDataObject->QueryGetData(&fmtetc) == S_OK) {
-    if (pDataObject->GetData(&fmtetc, &stgmed) == S_OK) {
-      hdrop = (HDROP)::GlobalLock(stgmed.hGlobal);
+  if (p_data_object->QueryGetData(&fmtetc) == S_OK) {
+    STGMEDIUM stgmed;
+    if (p_data_object->GetData(&fmtetc, &stgmed) == S_OK) {
+      const HDROP hdrop = (HDROP)::GlobalLock(stgmed.hGlobal);
 
-      totfiles = ::DragQueryFileW(hdrop, -1, NULL, 0);
+      const UINT totfiles = ::DragQueryFileW(hdrop, -1, NULL, 0);
       if (totfiles) {
-        strArray = (GHOST_TStringArray *)::malloc(sizeof(GHOST_TStringArray));
-        strArray->count = 0;
-        strArray->strings = (uint8_t **)::malloc(totfiles * sizeof(uint8_t *));
+        str_array = (GHOST_TStringArray *)::malloc(sizeof(GHOST_TStringArray));
+        str_array->count = 0;
+        str_array->strings = (uint8_t **)::malloc(totfiles * sizeof(uint8_t *));
 
         for (UINT nfile = 0; nfile < totfiles; nfile++) {
+          WCHAR fpath[MAX_PATH];
           if (::DragQueryFileW(hdrop, nfile, fpath, MAX_PATH) > 0) {
+            char *temp_path;
             if (!(temp_path = alloc_utf_8_from_16(fpath, 0))) {
+              /* Just ignore paths that could not be converted verbatim. */
               continue;
             }
-            /* Just ignore paths that could not be converted verbatim. */
-
-            strArray->strings[nvalid] = (uint8_t *)temp_path;
-            strArray->count = nvalid + 1;
-            nvalid++;
+            str_array->strings[str_array->count++] = (uint8_t *)temp_path;
           }
         }
       }
@@ -242,10 +235,10 @@ void *GHOST_DropTargetWin32::getDropDataAsFilenames(IDataObject *pDataObject)
       ::ReleaseStgMedium(&stgmed);
     }
   }
-  return strArray;
+  return str_array;
 }
 
-void *GHOST_DropTargetWin32::getDropDataAsString(IDataObject *pDataObject)
+void *GHOST_DropTargetWin32::getDropDataAsString(IDataObject *p_data_object)
 {
   char *tmp_string;
   FORMATETC fmtetc = {CF_UNICODETEXT, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL};
@@ -253,8 +246,8 @@ void *GHOST_DropTargetWin32::getDropDataAsString(IDataObject *pDataObject)
 
   /* Try unicode first.
    * Check if data-object supplies the format we want. */
-  if (pDataObject->QueryGetData(&fmtetc) == S_OK) {
-    if (pDataObject->GetData(&fmtetc, &stgmed) == S_OK) {
+  if (p_data_object->QueryGetData(&fmtetc) == S_OK) {
+    if (p_data_object->GetData(&fmtetc, &stgmed) == S_OK) {
       LPCWSTR wstr = (LPCWSTR)::GlobalLock(stgmed.hGlobal);
 
       tmp_string = alloc_utf_8_from_16((wchar_t *)wstr, 0);
@@ -275,8 +268,8 @@ void *GHOST_DropTargetWin32::getDropDataAsString(IDataObject *pDataObject)
 
   fmtetc.cfFormat = CF_TEXT;
 
-  if (pDataObject->QueryGetData(&fmtetc) == S_OK) {
-    if (pDataObject->GetData(&fmtetc, &stgmed) == S_OK) {
+  if (p_data_object->QueryGetData(&fmtetc) == S_OK) {
+    if (p_data_object->GetData(&fmtetc, &stgmed) == S_OK) {
       char *str = (char *)::GlobalLock(stgmed.hGlobal);
 
       tmp_string = (char *)::malloc(::strlen(str) + 1);
