@@ -236,6 +236,7 @@ void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collect
   /* Special case for this pointer, do not rely on regular `lib_link` process here. Avoids needs
    * for do_versioning, and ensures coherence of data in any case. */
   BLI_assert((collection->id.flag & LIB_EMBEDDED_DATA) != 0 || owner_id == NULL);
+  BLI_assert(owner_id == NULL || owner_id->lib == collection->id.lib);
   if (owner_id != NULL && (collection->id.flag & LIB_EMBEDDED_DATA) == 0) {
     /* This is unfortunate, but currently a lot of existing files (including startup ones) have
      * missing `LIB_EMBEDDED_DATA` flag.
