@@ -58,7 +58,7 @@ static const EnumPropertyItem io_obj_path_mode[] = {
 
 static int wm_obj_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     Main *bmain = CTX_data_main(C);
     char filepath[FILE_MAX];
 
@@ -79,7 +79,7 @@ static int wm_obj_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 
 static int wm_obj_export_exec(bContext *C, wmOperator *op)
 {
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }
@@ -410,7 +410,7 @@ static int wm_obj_import_exec(bContext *C, wmOperator *op)
       OBJ_import(C, &import_params);
     }
   }
-  else if (RNA_struct_property_is_set(op->ptr, "filepath")) {
+  else if (RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     /* Importing one file. */
     RNA_string_get(op->ptr, "filepath", import_params.filepath);
     OBJ_import(C, &import_params);

@@ -75,7 +75,7 @@ static int wm_alembic_export_invoke(bContext *C, wmOperator *op, const wmEvent *
 
   RNA_boolean_set(op->ptr, "init_scene_frame_range", true);
 
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     Main *bmain = CTX_data_main(C);
     char filepath[FILE_MAX];
 
@@ -99,7 +99,7 @@ static int wm_alembic_export_invoke(bContext *C, wmOperator *op, const wmEvent *
 
 static int wm_alembic_export_exec(bContext *C, wmOperator *op)
 {
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }
@@ -619,7 +619,7 @@ static int wm_alembic_import_invoke(bContext *C, wmOperator *op, const wmEvent *
 
 static int wm_alembic_import_exec(bContext *C, wmOperator *op)
 {
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }
