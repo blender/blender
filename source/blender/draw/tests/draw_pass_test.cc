@@ -22,7 +22,7 @@ static void test_draw_pass_all_commands()
   StorageBuffer<uint4> ssbo;
   ssbo.push_update();
 
-  float color[] = {1.0f, 1.0f, 1.0f, 0.0f};
+  float4 color(1.0f, 1.0f, 1.0f, 0.0f);
   int3 dispatch_size(1);
 
   PassSimple pass = {"test.all_commands"};
@@ -72,8 +72,8 @@ static void test_draw_pass_all_commands()
   expected << "  .bind_uniform_buf_ref(-1)" << std::endl;
   expected << "  .bind_storage_buf(-1)" << std::endl;
   expected << "  .bind_storage_buf_ref(-1)" << std::endl;
-  expected << "  .push_constant(2, data=0)" << std::endl;
-  expected << "  .push_constant(2, data=1)" << std::endl;
+  expected << "  .push_constant(1, data=(1, 1, 1, 0))" << std::endl;
+  expected << "  .push_constant(1, data=(1, 1, 1, 1))" << std::endl;
   expected << "  .push_constant(0, data=(" << std::endl;
   expected << "(   1.000000,    0.000000,    0.000000,    0.000000)" << std::endl;
   expected << "(   0.000000,    1.000000,    0.000000,    0.000000)" << std::endl;
