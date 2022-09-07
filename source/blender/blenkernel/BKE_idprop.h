@@ -98,7 +98,7 @@ void IDP_AssignID(struct IDProperty *prop, struct ID *id, int flag);
  * Sync values from one group to another when values name and types match,
  * copy the values, else ignore.
  *
- * \note Use for syncing proxies.
+ * \note Was used for syncing proxies.
  */
 void IDP_SyncGroupValues(struct IDProperty *dest, const struct IDProperty *src) ATTR_NONNULL();
 void IDP_SyncGroupTypes(struct IDProperty *dest, const struct IDProperty *src, bool do_arraylen)

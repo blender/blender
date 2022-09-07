@@ -889,13 +889,13 @@ static bool editmode_toggle_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
 
-  /* covers proxies too */
+  /* Covers liboverrides too. */
   if (ELEM(NULL, ob, ob->data) || ID_IS_LINKED(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob) ||
       ID_IS_OVERRIDE_LIBRARY(ob->data)) {
     return false;
   }
 
-  /* if hidden but in edit mode, we still display */
+  /* If hidden but in edit mode, we still display. */
   if ((ob->visibility_flag & OB_HIDE_VIEWPORT) && !(ob->mode & OB_MODE_EDIT)) {
     return false;
   }
