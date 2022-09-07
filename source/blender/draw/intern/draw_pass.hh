@@ -806,7 +806,7 @@ inline void PassBase<T>::bind_texture(const char *name,
 
 template<class T> inline void PassBase<T>::bind_image(const char *name, GPUTexture *image)
 {
-  this->bind_texture(GPU_shader_get_texture_binding(shader_, name), image);
+  this->bind_image(GPU_shader_get_texture_binding(shader_, name), image);
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(int slot, GPUStorageBuf *buffer)
