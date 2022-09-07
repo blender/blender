@@ -1125,14 +1125,6 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
       case GHOST_kEventWindowDeactivate:
         wm_event_add_ghostevent(wm, win, type, data);
         win->active = 0; /* XXX */
-
-        /* When window activation is enabled, these modifiers are set with window activation.
-         * Otherwise leave them set so re-activation doesn't loose keys which are held. */
-#ifdef USE_WIN_ACTIVATE
-        win->eventstate->modifier = 0;
-        win->eventstate->keymodifier = 0;
-#endif
-
         break;
       case GHOST_kEventWindowActivate: {
         const int keymodifier = ((query_qual(SHIFT) ? KM_SHIFT : 0) |
