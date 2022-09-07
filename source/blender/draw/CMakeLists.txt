@@ -220,6 +220,7 @@ set(SRC
   intern/draw_debug.h
   intern/draw_debug.hh
   intern/draw_hair_private.h
+  intern/draw_handle.hh
   intern/draw_instance_data.h
   intern/draw_manager.h
   intern/draw_manager.hh
@@ -231,10 +232,12 @@ set(SRC
   intern/draw_resource.hh
   intern/draw_shader.h
   intern/draw_shader_shared.h
+  intern/draw_state.h
   intern/draw_subdivision.h
   intern/draw_texture_pool.h
   intern/draw_view.cc
   intern/draw_view.h
+  intern/draw_view.hh
   intern/draw_view_data.h
   intern/mesh_extractors/extract_mesh.hh
   intern/smaa_textures.h
