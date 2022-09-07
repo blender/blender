@@ -38,7 +38,7 @@ static constexpr size_t base_dpi = 96;
 
 static GHOST_WindowManager *window_manager = nullptr;
 
-struct window_t {
+struct GWL_Window {
   GHOST_WindowWayland *w = nullptr;
   struct wl_surface *wl_surface = nullptr;
   /**
@@ -47,7 +47,7 @@ struct window_t {
    * This is an ordered set (whoever adds to this is responsible for keeping members unique).
    * In practice this is rarely manipulated and is limited by the number of physical displays.
    */
-  std::vector<output_t *> outputs;
+  std::vector<GWL_Output *> outputs;
 
   /** The scale value written to #wl_surface_set_buffer_scale. */
   int scale = 0;
@@ -87,7 +87,7 @@ struct window_t {
 /**
  * Return -1 if `output_a` has a scale smaller than `output_b`, 0 when there equal, otherwise 1.
  */
-static int output_scale_cmp(const output_t *output_a, const output_t *output_b)
+static int output_scale_cmp(const GWL_Output *output_a, const GWL_Output *output_b)
 {
   if (output_a->scale < output_b->scale) {
     return -1;
@@ -112,12 +112,12 @@ static int output_scale_cmp(const output_t *output_a, const output_t *output_b)
   return 0;
 }
 
-static int outputs_max_scale_or_default(const std::vector<output_t *> &outputs,
+static int outputs_max_scale_or_default(const std::vector<GWL_Output *> &outputs,
                                         const int32_t scale_default,
                                         uint32_t *r_dpi)
 {
-  const output_t *output_max = nullptr;
-  for (const output_t *reg_output : outputs) {
+  const GWL_Output *output_max = nullptr;
+  for (const GWL_Output *reg_output : outputs) {
     if (!output_max || (output_scale_cmp(output_max, reg_output) == -1)) {
       output_max = reg_output;
     }
@@ -160,7 +160,7 @@ static void xdg_toplevel_handle_configure(void *data,
   /* TODO: log `states`, not urgent. */
   CLOG_INFO(LOG, 2, "configure (size=[%d, %d])", width, height);
 
-  window_t *win = static_cast<window_t *>(data);
+  GWL_Window *win = static_cast<GWL_Window *>(data);
   win->size_pending[0] = win->scale * width;
   win->size_pending[1] = win->scale * height;
 
@@ -189,7 +189,7 @@ static void xdg_toplevel_handle_configure(void *data,
 static void xdg_toplevel_handle_close(void *data, xdg_toplevel * /*xdg_toplevel*/)
 {
   CLOG_INFO(LOG, 2, "close");
-  static_cast<window_t *>(data)->w->close();
+  static_cast<GWL_Window *>(data)->w->close();
 }
 
 static const xdg_toplevel_listener toplevel_listener = {
@@ -218,7 +218,7 @@ static void frame_handle_configure(struct libdecor_frame *frame,
 {
   CLOG_INFO(LOG, 2, "configure");
 
-  window_t *win = static_cast<window_t *>(data);
+  GWL_Window *win = static_cast<GWL_Window *>(data);
 
   int size_next[2];
   enum libdecor_window_state window_state;
@@ -257,7 +257,7 @@ static void frame_handle_close(struct libdecor_frame * /*frame*/, void *data)
 {
   CLOG_INFO(LOG, 2, "close");
 
-  static_cast<window_t *>(data)->w->close();
+  static_cast<GWL_Window *>(data)->w->close();
 }
 
 static void frame_handle_commit(struct libdecor_frame * /*frame*/, void *data)
@@ -265,8 +265,8 @@ static void frame_handle_commit(struct libdecor_frame * /*frame*/, void *data)
   CLOG_INFO(LOG, 2, "commit");
 
   /* We have to swap twice to keep any pop-up menus alive. */
-  static_cast<window_t *>(data)->w->swapBuffers();
-  static_cast<window_t *>(data)->w->swapBuffers();
+  static_cast<GWL_Window *>(data)->w->swapBuffers();
+  static_cast<GWL_Window *>(data)->w->swapBuffers();
 }
 
 static struct libdecor_frame_interface libdecor_frame_iface = {
@@ -296,7 +296,7 @@ static void xdg_toplevel_decoration_handle_configure(
     const uint32_t mode)
 {
   CLOG_INFO(LOG, 2, "configure (mode=%u)", mode);
-  static_cast<window_t *>(data)->decoration_mode = (zxdg_toplevel_decoration_v1_mode)mode;
+  static_cast<GWL_Window *>(data)->decoration_mode = (zxdg_toplevel_decoration_v1_mode)mode;
 }
 
 static const zxdg_toplevel_decoration_v1_listener toplevel_decoration_v1_listener = {
@@ -322,7 +322,7 @@ static void xdg_surface_handle_configure(void *data,
                                          xdg_surface *xdg_surface,
                                          const uint32_t serial)
 {
-  window_t *win = static_cast<window_t *>(data);
+  GWL_Window *win = static_cast<GWL_Window *>(data);
 
   if (win->xdg_surface != xdg_surface) {
     CLOG_INFO(LOG, 2, "configure (skipped)");
@@ -369,15 +369,15 @@ static CLG_LogRef LOG_WL_SURFACE = {"ghost.wl.handle.surface"};
 
 static void surface_handle_enter(void *data,
                                  struct wl_surface * /*wl_surface*/,
-                                 struct wl_output *output)
+                                 struct wl_output *wl_output)
 {
-  if (!ghost_wl_output_own(output)) {
+  if (!ghost_wl_output_own(wl_output)) {
     CLOG_INFO(LOG, 2, "enter (skipped)");
     return;
   }
   CLOG_INFO(LOG, 2, "enter");
 
-  output_t *reg_output = ghost_wl_output_user_data(output);
+  GWL_Output *reg_output = ghost_wl_output_user_data(wl_output);
   GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(data);
   if (win->outputs_enter(reg_output)) {
     win->outputs_changed_update_scale();
@@ -386,15 +386,15 @@ static void surface_handle_enter(void *data,
 
 static void surface_handle_leave(void *data,
                                  struct wl_surface * /*wl_surface*/,
-                                 struct wl_output *output)
+                                 struct wl_output *wl_output)
 {
-  if (!ghost_wl_output_own(output)) {
+  if (!ghost_wl_output_own(wl_output)) {
     CLOG_INFO(LOG, 2, "leave (skipped)");
     return;
   }
   CLOG_INFO(LOG, 2, "leave");
 
-  output_t *reg_output = ghost_wl_output_user_data(output);
+  GWL_Output *reg_output = ghost_wl_output_user_data(wl_output);
   GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(data);
   if (win->outputs_leave(reg_output)) {
     win->outputs_changed_update_scale();
@@ -435,7 +435,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
                                          const bool exclusive)
     : GHOST_Window(width, height, state, stereoVisual, exclusive),
       m_system(system),
-      w(new window_t)
+      w(new GWL_Window)
 {
   /* Globally store pointer to window manager. */
   if (!window_manager) {
@@ -877,12 +877,12 @@ int GHOST_WindowWayland::scale() const
   return w->scale;
 }
 
-wl_surface *GHOST_WindowWayland::surface() const
+wl_surface *GHOST_WindowWayland::wl_surface() const
 {
   return w->wl_surface;
 }
 
-const std::vector<output_t *> &GHOST_WindowWayland::outputs()
+const std::vector<GWL_Output *> &GHOST_WindowWayland::outputs()
 {
   return w->outputs;
 }
@@ -946,7 +946,7 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
     return false;
   }
 
-  window_t *win = this->w;
+  GWL_Window *win = this->w;
   const uint32_t dpi_curr = win->dpi;
   const int scale_curr = win->scale;
   bool changed = false;
@@ -977,21 +977,21 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
   return changed;
 }
 
-bool GHOST_WindowWayland::outputs_enter(output_t *reg_output)
+bool GHOST_WindowWayland::outputs_enter(GWL_Output *output)
 {
-  std::vector<output_t *> &outputs = w->outputs;
-  auto it = std::find(outputs.begin(), outputs.end(), reg_output);
+  std::vector<GWL_Output *> &outputs = w->outputs;
+  auto it = std::find(outputs.begin(), outputs.end(), output);
   if (it != outputs.end()) {
     return false;
   }
-  outputs.push_back(reg_output);
+  outputs.push_back(output);
   return true;
 }
 
-bool GHOST_WindowWayland::outputs_leave(output_t *reg_output)
+bool GHOST_WindowWayland::outputs_leave(GWL_Output *output)
 {
-  std::vector<output_t *> &outputs = w->outputs;
-  auto it = std::find(outputs.begin(), outputs.end(), reg_output);
+  std::vector<GWL_Output *> &outputs = w->outputs;
+  auto it = std::find(outputs.begin(), outputs.end(), output);
   if (it == outputs.end()) {
     return false;
   }
