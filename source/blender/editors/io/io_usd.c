@@ -84,7 +84,7 @@ static int wm_usd_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
   options->as_background_job = true;
   op->customdata = options;
 
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     Main *bmain = CTX_data_main(C);
     char filepath[FILE_MAX];
     const char *main_blendfile_path = BKE_main_blendfile_path(bmain);
@@ -107,7 +107,7 @@ static int wm_usd_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 
 static int wm_usd_export_exec(bContext *C, wmOperator *op)
 {
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }
@@ -331,7 +331,7 @@ static int wm_usd_import_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
 static int wm_usd_import_exec(bContext *C, wmOperator *op)
 {
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }

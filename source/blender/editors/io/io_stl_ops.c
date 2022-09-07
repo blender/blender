@@ -53,7 +53,7 @@ static int wm_stl_import_execute(bContext *C, wmOperator *op)
       STL_import(C, &params);
     }
   }
-  else if (RNA_struct_property_is_set(op->ptr, "filepath")) {
+  else if (RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     RNA_string_get(op->ptr, "filepath", params.filepath);
     STL_import(C, &params);
   }
