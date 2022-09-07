@@ -361,6 +361,12 @@ inline const bNodeSocket &bNode::output_by_identifier(blender::StringRef identif
   return *this->runtime->outputs_by_identifier.lookup_as(identifier);
 }
 
+inline const bNodeTree &bNode::owner_tree() const
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  return *this->runtime->owner_tree;
+}
+
 inline blender::StringRefNull bNode::label_or_name() const
 {
   if (this->label[0] == '\0') {

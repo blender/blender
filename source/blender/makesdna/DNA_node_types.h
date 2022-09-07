@@ -410,6 +410,8 @@ typedef struct bNode {
   /** Lookup socket of this node by its identifier. */
   const bNodeSocket &input_by_identifier(blender::StringRef identifier) const;
   const bNodeSocket &output_by_identifier(blender::StringRef identifier) const;
+  /** Node tree this node belongs to. */
+  const bNodeTree &owner_tree() const;
 #endif
 } bNode;
 
