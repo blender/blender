@@ -2748,7 +2748,7 @@ static const struct wl_output_listener output_listener = {
 
 #ifndef WITH_GHOST_WAYLAND_LIBDECOR
 
-static CLG_LogRef LOG_WL_XDG_WM_BASE = {"ghost.wl.handle.output"};
+static CLG_LogRef LOG_WL_XDG_WM_BASE = {"ghost.wl.handle.xdg_wm_base"};
 #  define LOG (&LOG_WL_XDG_WM_BASE)
 
 static void shell_handle_ping(void * /*data*/,
