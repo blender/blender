@@ -83,6 +83,12 @@
 #  include "BLI_threads.h"
 #endif
 
+/**
+ * When windows are activated, simulate modifier press/release to match the current state of
+ * held modifier keys, see T40317.
+ */
+#define USE_WIN_ACTIVATE
+
 /* the global to talk to ghost */
 static GHOST_SystemHandle g_system = NULL;
 
@@ -1114,11 +1120,6 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
       return true;
     }
     wmWindow *win = GHOST_GetWindowUserData(ghostwin);
-
-    /* Win23/GHOST modifier bug, see T40317 */
-#ifndef WIN32
-//#  define USE_WIN_ACTIVATE
-#endif
 
     switch (type) {
       case GHOST_kEventWindowDeactivate:
