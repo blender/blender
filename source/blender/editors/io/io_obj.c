@@ -18,6 +18,7 @@
 
 #  include "BLT_translation.h"
 
+#  include "ED_fileselect.h"
 #  include "ED_outliner.h"
 
 #  include "MEM_guardedalloc.h"
@@ -58,20 +59,7 @@ static const EnumPropertyItem io_obj_path_mode[] = {
 
 static int wm_obj_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
-    Main *bmain = CTX_data_main(C);
-    char filepath[FILE_MAX];
-
-    if (BKE_main_blendfile_path(bmain)[0] == '\0') {
-      BLI_strncpy(filepath, DATA_("untitled"), sizeof(filepath));
-    }
-    else {
-      BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
-    }
-
-    BLI_path_extension_replace(filepath, sizeof(filepath), ".obj");
-    RNA_string_set(op->ptr, "filepath", filepath);
-  }
+  ED_fileselect_ensure_default_filepath(C, op, ".obj");
 
   WM_event_add_fileselect(C, op);
   return OPERATOR_RUNNING_MODAL;

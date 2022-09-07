@@ -54,6 +54,7 @@
 #include "RNA_prototypes.h"
 
 /* For menu, popup, icons, etc. */
+#include "ED_fileselect.h"
 #include "ED_keyframing.h"
 #include "ED_numinput.h"
 #include "ED_outliner.h"
@@ -3088,20 +3089,7 @@ static int sequencer_export_subtitles_invoke(bContext *C,
                                              wmOperator *op,
                                              const wmEvent *UNUSED(event))
 {
-  Main *bmain = CTX_data_main(C);
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
-    char filepath[FILE_MAX];
-
-    if (BKE_main_blendfile_path(bmain)[0] == '\0') {
-      BLI_strncpy(filepath, DATA_("untitled"), sizeof(filepath));
-    }
-    else {
-      BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
-    }
-
-    BLI_path_extension_replace(filepath, sizeof(filepath), ".srt");
-    RNA_string_set(op->ptr, "filepath", filepath);
-  }
+  ED_fileselect_ensure_default_filepath(C, op, ".srt");
 
   WM_event_add_fileselect(C, op);
 
@@ -3136,7 +3124,7 @@ static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
   FILE *file;
   char filepath[FILE_MAX];
 
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }

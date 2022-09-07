@@ -39,6 +39,7 @@
 #  include "RNA_define.h"
 #  include "RNA_enum_types.h"
 
+#  include "ED_fileselect.h"
 #  include "ED_object.h"
 
 #  include "UI_interface.h"
@@ -75,20 +76,7 @@ static int wm_alembic_export_invoke(bContext *C, wmOperator *op, const wmEvent *
 
   RNA_boolean_set(op->ptr, "init_scene_frame_range", true);
 
-  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
-    Main *bmain = CTX_data_main(C);
-    char filepath[FILE_MAX];
-
-    if (BKE_main_blendfile_path(bmain)[0] == '\0') {
-      BLI_strncpy(filepath, DATA_("untitled"), sizeof(filepath));
-    }
-    else {
-      BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
-    }
-
-    BLI_path_extension_replace(filepath, sizeof(filepath), ".abc");
-    RNA_string_set(op->ptr, "filepath", filepath);
-  }
+  ED_fileselect_ensure_default_filepath(C, op, ".abc");
 
   WM_event_add_fileselect(C, op);
 

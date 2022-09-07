@@ -19,6 +19,7 @@
 
 #  include "DEG_depsgraph.h"
 
+#  include "ED_fileselect.h"
 #  include "ED_object.h"
 
 #  include "RNA_access.h"
@@ -36,22 +37,7 @@
 
 static int wm_collada_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  Main *bmain = CTX_data_main(C);
-
-  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
-    char filepath[FILE_MAX];
-    const char *blendfile_path = BKE_main_blendfile_path(bmain);
-
-    if (blendfile_path[0] == '\0') {
-      BLI_strncpy(filepath, DATA_("untitled"), sizeof(filepath));
-    }
-    else {
-      BLI_strncpy(filepath, blendfile_path, sizeof(filepath));
-    }
-
-    BLI_path_extension_replace(filepath, sizeof(filepath), ".dae");
-    RNA_string_set(op->ptr, "filepath", filepath);
-  }
+  ED_fileselect_ensure_default_filepath(C, op, ".dae");
 
   WM_event_add_fileselect(C, op);
 
