@@ -18,6 +18,7 @@
 
 #include "DNA_collection_types.h"
 #include "DNA_object_types.h"
+#include "DNA_pointcloud_types.h"
 
 #include "BLI_rand.hh"
 
@@ -237,8 +238,40 @@ bool GeometrySet::compute_boundbox_without_instances(float3 *r_min, float3 *r_ma
 
 std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set)
 {
-  stream << "<GeometrySet at " << &geometry_set << ", " << geometry_set.components_.size()
-         << " components>";
+  Vector<std::string> parts;
+  if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
+    parts.append(std::to_string(mesh->totvert) + " verts");
+    parts.append(std::to_string(mesh->totedge) + " edges");
+    parts.append(std::to_string(mesh->totpoly) + " polys");
+    parts.append(std::to_string(mesh->totloop) + " corners");
+  }
+  if (const Curves *curves = geometry_set.get_curves_for_read()) {
+    parts.append(std::to_string(curves->geometry.point_num) + " control points");
+    parts.append(std::to_string(curves->geometry.curve_num) + " curves");
+  }
+  if (const PointCloud *point_cloud = geometry_set.get_pointcloud_for_read()) {
+    parts.append(std::to_string(point_cloud->totpoint) + " points");
+  }
+  if (const Volume *volume = geometry_set.get_volume_for_read()) {
+    parts.append(std::to_string(BKE_volume_num_grids(volume)) + " volume grids");
+  }
+  if (geometry_set.has_instances()) {
+    parts.append(std::to_string(
+                     geometry_set.get_component_for_read<InstancesComponent>()->instances_num()) +
+                 " instances");
+  }
+  if (geometry_set.get_curve_edit_hints_for_read()) {
+    parts.append("curve edit hints");
+  }
+
+  stream << "<GeometrySet: ";
+  for (const int i : parts.index_range()) {
+    stream << parts[i];
+    if (i < parts.size() - 1) {
+      stream << ", ";
+    }
+  }
+  stream << ">";
   return stream;
 }
 
