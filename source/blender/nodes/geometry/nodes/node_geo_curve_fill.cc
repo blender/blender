@@ -79,9 +79,9 @@ static Mesh *cdt_to_mesh(const meshintersect::CDT_result<double> &result)
   }
 
   Mesh *mesh = BKE_mesh_new_nomain(vert_len, edge_len, 0, loop_len, poly_len);
-  MutableSpan<MVert> verts = mesh->vertices_for_write();
+  MutableSpan<MVert> verts = mesh->verts_for_write();
   MutableSpan<MEdge> edges = mesh->edges_for_write();
-  MutableSpan<MPoly> polys = mesh->polygons_for_write();
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
 
   for (const int i : IndexRange(result.vert.size())) {

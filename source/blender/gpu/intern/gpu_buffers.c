@@ -467,7 +467,7 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const Mesh *mesh,
   int i, tottri;
   int tot_real_edges = 0;
 
-  const MPoly *polys = BKE_mesh_polygons(mesh);
+  const MPoly *polys = BKE_mesh_polys(mesh);
   const MLoop *loops = BKE_mesh_loops(mesh);
 
   buffers = MEM_callocN(sizeof(GPU_PBVH_Buffers), "GPU_Buffers");

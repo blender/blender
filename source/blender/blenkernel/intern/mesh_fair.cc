@@ -195,9 +195,9 @@ class MeshFairingContext : public FairingContext {
     totvert_ = mesh->totvert;
     totloop_ = mesh->totloop;
 
-    MutableSpan<MVert> verts = mesh->vertices_for_write();
+    MutableSpan<MVert> verts = mesh->verts_for_write();
     medge_ = mesh->edges();
-    mpoly_ = mesh->polygons();
+    mpoly_ = mesh->polys();
     mloop_ = mesh->loops();
     BKE_mesh_vert_loop_map_create(&vlmap_,
                                   &vlmap_mem_,

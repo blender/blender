@@ -145,7 +145,7 @@ static void deformVerts(ModifierData *md,
 
     if (collmd->time_xnew == -1000) { /* first time */
 
-      collmd->x = MEM_dupallocN(BKE_mesh_vertices(mesh_src)); /* frame start position */
+      collmd->x = MEM_dupallocN(BKE_mesh_verts(mesh_src)); /* frame start position */
 
       for (uint i = 0; i < mvert_num; i++) {
         /* we save global positions */
@@ -182,7 +182,7 @@ static void deformVerts(ModifierData *md,
       collmd->xnew = tempVert;
       collmd->time_x = collmd->time_xnew;
 
-      memcpy(collmd->xnew, BKE_mesh_vertices(mesh_src), mvert_num * sizeof(MVert));
+      memcpy(collmd->xnew, BKE_mesh_verts(mesh_src), mvert_num * sizeof(MVert));
 
       bool is_static = true;
 

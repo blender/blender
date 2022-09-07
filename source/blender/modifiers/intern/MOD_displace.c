@@ -286,7 +286,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
     return;
   }
 
-  mvert = BKE_mesh_vertices_for_write(mesh);
+  mvert = BKE_mesh_verts_for_write(mesh);
   MOD_get_vgroup(ob, mesh, dmd->defgrp_name, &dvert, &defgrp_index);
 
   if (defgrp_index >= 0 && dvert == NULL) {

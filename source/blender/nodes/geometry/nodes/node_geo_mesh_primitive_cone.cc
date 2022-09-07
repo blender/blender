@@ -657,7 +657,7 @@ static Mesh *create_vertex_mesh()
 {
   /* Returns a mesh with a single vertex at the origin. */
   Mesh *mesh = BKE_mesh_new_nomain(1, 0, 0, 0, 0);
-  copy_v3_fl3(mesh->vertices_for_write().first().co, 0.0f, 0.0f, 0.0f);
+  copy_v3_fl3(mesh->verts_for_write().first().co, 0.0f, 0.0f, 0.0f);
   return mesh;
 }
 
@@ -689,9 +689,9 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
       config.tot_verts, config.tot_edges, 0, config.tot_corners, config.tot_faces);
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
 
-  MutableSpan<MVert> verts = mesh->vertices_for_write();
+  MutableSpan<MVert> verts = mesh->verts_for_write();
   MutableSpan<MEdge> edges = mesh->edges_for_write();
-  MutableSpan<MPoly> polys = mesh->polygons_for_write();
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
 
   calculate_cone_vertices(verts, config);

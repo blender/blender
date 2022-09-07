@@ -2003,7 +2003,7 @@ void mesh_get_mapped_verts_coords(Mesh *me_eval, float (*r_cos)[3], const int to
     MEM_freeN(userData.vertex_visit);
   }
   else {
-    const Span<MVert> verts = me_eval->vertices();
+    const Span<MVert> verts = me_eval->verts();
     for (int i = 0; i < totcos; i++) {
       copy_v3_v3(r_cos[i], verts[i].co);
     }
@@ -2018,8 +2018,8 @@ static void mesh_init_origspace(Mesh *mesh)
                                                                    CD_ORIGSPACE_MLOOP);
   const int numpoly = mesh->totpoly;
   // const int numloop = mesh->totloop;
-  const Span<MVert> verts = mesh->vertices();
-  const Span<MPoly> polys = mesh->polygons();
+  const Span<MVert> verts = mesh->verts();
+  const Span<MPoly> polys = mesh->polys();
   const Span<MLoop> loops = mesh->loops();
 
   const MPoly *mp = polys.data();

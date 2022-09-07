@@ -1607,7 +1607,7 @@ float *BKE_key_evaluate_object_ex(
     switch (GS(obdata->name)) {
       case ID_ME: {
         Mesh *mesh = (Mesh *)obdata;
-        MVert *verts = BKE_mesh_vertices_for_write(mesh);
+        MVert *verts = BKE_mesh_verts_for_write(mesh);
         const int totvert = min_ii(tot, mesh->totvert);
         keyblock_data_convert_to_mesh((const float(*)[3])out, verts, totvert);
         break;
@@ -2184,7 +2184,7 @@ void BKE_keyblock_update_from_mesh(const Mesh *me, KeyBlock *kb)
     return;
   }
 
-  const MVert *mvert = BKE_mesh_vertices(me);
+  const MVert *mvert = BKE_mesh_verts(me);
   fp = kb->data;
   for (a = 0; a < tot; a++, fp++, mvert++) {
     copy_v3_v3(*fp, mvert->co);
@@ -2232,10 +2232,10 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
     return;
   }
 
-  MVert *verts = MEM_dupallocN(BKE_mesh_vertices(mesh));
+  MVert *verts = MEM_dupallocN(BKE_mesh_verts(mesh));
   BKE_keyblock_convert_to_mesh(kb, verts, mesh->totvert);
   const MEdge *edges = BKE_mesh_edges(mesh);
-  const MPoly *polys = BKE_mesh_polygons(mesh);
+  const MPoly *polys = BKE_mesh_polys(mesh);
   const MLoop *loops = BKE_mesh_loops(mesh);
 
   const bool loop_normals_needed = r_loopnors != NULL;

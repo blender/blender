@@ -1403,7 +1403,7 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, const b
     int numOfEdges = mesh->totedge;
     int numOfPolys = mesh->totpoly;
     const MEdge *edges = BKE_mesh_edges(mesh);
-    const MPoly *polys = BKE_mesh_polygons(mesh);
+    const MPoly *polys = BKE_mesh_polys(mesh);
     const MLoop *loops = BKE_mesh_loops(mesh);
 
     /* count number of edges per vertex */
@@ -1811,7 +1811,7 @@ static void dynamicPaint_applySurfaceDisplace(DynamicPaintSurface *surface, Mesh
 
   /* displace paint */
   if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE) {
-    MVert *mvert = BKE_mesh_vertices_for_write(result);
+    MVert *mvert = BKE_mesh_verts_for_write(result);
 
     DynamicPaintModifierApplyData data = {
         .surface = surface,
@@ -1915,7 +1915,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
           if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
             const MLoop *mloop = BKE_mesh_loops(result);
             const int totloop = result->totloop;
-            const MPoly *mpoly = BKE_mesh_polygons(result);
+            const MPoly *mpoly = BKE_mesh_polys(result);
             const int totpoly = result->totpoly;
 
             /* paint is stored on dry and wet layers, so mix final color first */
@@ -2010,7 +2010,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
           }
           /* wave simulation */
           else if (surface->type == MOD_DPAINT_SURFACE_T_WAVE) {
-            MVert *mvert = BKE_mesh_vertices_for_write(result);
+            MVert *mvert = BKE_mesh_verts_for_write(result);
 
             DynamicPaintModifierApplyData data = {
                 .surface = surface,
@@ -2961,7 +2961,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
 
         BKE_mesh_vert_looptri_map_create(&vert_to_looptri_map,
                                          &vert_to_looptri_map_mem,
-                                         BKE_mesh_vertices_for_write(mesh),
+                                         BKE_mesh_verts_for_write(mesh),
                                          mesh->totvert,
                                          mlooptri,
                                          tottri,
@@ -3782,7 +3782,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Depsgraph *depsgraph,
   mesh_p = BKE_mesh_copy_for_eval(dynamicPaint_brush_mesh_get(brush), false);
   numOfVerts_p = mesh_p->totvert;
 
-  mvert_p = BKE_mesh_vertices_for_write(mesh_p);
+  mvert_p = BKE_mesh_verts_for_write(mesh_p);
   copy_m4_m4(prev_obmat, ob->obmat);
 
   /* current frame mesh */
@@ -3798,7 +3798,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Depsgraph *depsgraph,
                                       eModifierType_DynamicPaint);
   mesh_c = dynamicPaint_brush_mesh_get(brush);
   numOfVerts_c = mesh_c->totvert;
-  mvert_c = BKE_mesh_vertices_for_write(mesh_c);
+  mvert_c = BKE_mesh_verts_for_write(mesh_c);
 
   (*brushVel) = (struct Vec3f *)MEM_mallocN(numOfVerts_c * sizeof(Vec3f),
                                             "Dynamic Paint brush velocity");
@@ -4269,7 +4269,7 @@ static bool dynamicPaint_paintMesh(Depsgraph *depsgraph,
     VolumeGrid *grid = bData->grid;
 
     mesh = BKE_mesh_copy_for_eval(brush_mesh, false);
-    mvert = BKE_mesh_vertices_for_write(mesh);
+    mvert = BKE_mesh_verts_for_write(mesh);
     const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
     mlooptri = BKE_mesh_runtime_looptri_ensure(mesh);
     mloop = BKE_mesh_loops(mesh);
@@ -4758,7 +4758,7 @@ static bool dynamicPaint_paintSinglePoint(
   }
 
   const Mesh *brush_mesh = dynamicPaint_brush_mesh_get(brush);
-  const MVert *mvert = BKE_mesh_vertices(brush_mesh);
+  const MVert *mvert = BKE_mesh_verts(brush_mesh);
 
   /*
    * Loop through every surface point
@@ -5861,7 +5861,7 @@ static bool dynamicPaint_surfaceHasMoved(DynamicPaintSurface *surface, Object *o
   PaintSurfaceData *sData = surface->data;
   PaintBakeData *bData = sData->bData;
   Mesh *mesh = dynamicPaint_canvas_mesh_get(surface->canvas);
-  const MVert *mvert = BKE_mesh_vertices(mesh);
+  const MVert *mvert = BKE_mesh_verts(mesh);
 
   int numOfVerts = mesh->totvert;
 
@@ -6021,7 +6021,7 @@ static bool dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
   const bool do_accel_data = (surface->effect & MOD_DPAINT_EFFECT_DO_DRIP) != 0;
 
   int canvasNumOfVerts = mesh->totvert;
-  const MVert *mvert = BKE_mesh_vertices(mesh);
+  const MVert *mvert = BKE_mesh_verts(mesh);
   Vec3f *canvas_verts;
 
   if (bData) {

@@ -288,7 +288,7 @@ static void imapaint_pick_uv(
   const MLoopTri *lt = BKE_mesh_runtime_looptri_ensure(me_eval);
   const int tottri = me_eval->runtime.looptris.len;
 
-  const MVert *mvert = BKE_mesh_vertices(me_eval);
+  const MVert *mvert = BKE_mesh_verts(me_eval);
   const MLoop *mloop = BKE_mesh_loops(me_eval);
   const int *index_mp_to_orig = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
 

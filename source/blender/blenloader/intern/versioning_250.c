@@ -996,7 +996,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       if ((key = blo_do_versions_newlibadr(fd, lib, me->key)) && key->refkey) {
         data = key->refkey->data;
         tot = MIN2(me->totvert, key->refkey->totelem);
-        MVert *vertices = BKE_mesh_vertices_for_write(me);
+        MVert *vertices = BKE_mesh_verts_for_write(me);
         for (a = 0; a < tot; a++, data += 3) {
           copy_v3_v3(vertices[a].co, data);
         }

@@ -81,7 +81,7 @@ static void make_edges_mdata_extend(Mesh &mesh)
   const MPoly *mp;
   int i;
 
-  const Span<MPoly> polys = mesh.polygons();
+  const Span<MPoly> polys = mesh.polys();
   MutableSpan<MLoop> loops = mesh.loops_for_write();
 
   const int eh_reserve = max_ii(totedge, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(mesh.totpoly));
@@ -184,9 +184,9 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
   }
 
   Mesh *mesh = BKE_mesh_new_nomain(totvert, totedge, 0, totloop, totpoly);
-  MutableSpan<MVert> verts = mesh->vertices_for_write();
+  MutableSpan<MVert> verts = mesh->verts_for_write();
   MutableSpan<MEdge> edges = mesh->edges_for_write();
-  MutableSpan<MPoly> polys = mesh->polygons_for_write();
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
 
   MVert *mvert = verts.data();
@@ -456,9 +456,9 @@ static void appendPolyLineVert(ListBase *lb, uint index)
 
 void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int edge_users_test)
 {
-  const Span<MVert> verts = me->vertices();
+  const Span<MVert> verts = me->verts();
   const Span<MEdge> mesh_edges = me->edges();
-  const Span<MPoly> polys = me->polygons();
+  const Span<MPoly> polys = me->polys();
   const Span<MLoop> loops = me->loops();
 
   const MEdge *med;
@@ -690,7 +690,7 @@ void BKE_mesh_from_pointcloud(const PointCloud *pointcloud, Mesh *me)
   CustomDataLayer *pos_layer = &me->vdata.layers[layer_idx];
   float(*positions)[3] = (float(*)[3])pos_layer->data;
 
-  MutableSpan<MVert> verts = me->vertices_for_write();
+  MutableSpan<MVert> verts = me->verts_for_write();
   for (int i = 0; i < me->totvert; i++) {
     copy_v3_v3(verts[i].co, positions[i]);
   }
@@ -1169,7 +1169,7 @@ Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
 
   if (build_shapekey_layers && me->key &&
       (kb = (KeyBlock *)BLI_findlink(&me->key->block, ob_eval->shapenr - 1))) {
-    MutableSpan<MVert> verts = me->vertices_for_write();
+    MutableSpan<MVert> verts = me->verts_for_write();
     BKE_keyblock_convert_to_mesh(kb, verts.data(), me->totvert);
   }
 
@@ -1273,7 +1273,7 @@ static void shapekey_layers_to_keyblocks(Mesh *mesh_src, Mesh *mesh_dst, int act
 
     kb->data = kbcos = (float(*)[3])MEM_malloc_arrayN(kb->totelem, sizeof(float[3]), __func__);
     if (kb->uid == actshape_uid) {
-      const Span<MVert> verts = mesh_src->vertices();
+      const Span<MVert> verts = mesh_src->verts();
       for (j = 0; j < mesh_src->totvert; j++, kbcos++) {
         copy_v3_v3(*kbcos, verts[j].co);
       }
@@ -1384,8 +1384,8 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
     CustomData_add_layer(&tmp.vdata,
                          CD_MVERT,
                          CD_ASSIGN,
-                         (alloctype == CD_ASSIGN) ? mesh_src->vertices_for_write().data() :
-                                                    MEM_dupallocN(mesh_src->vertices().data()),
+                         (alloctype == CD_ASSIGN) ? mesh_src->verts_for_write().data() :
+                                                    MEM_dupallocN(mesh_src->verts().data()),
                          totvert);
   }
   if (!CustomData_has_layer(&tmp.edata, CD_MEDGE)) {
@@ -1406,8 +1406,8 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
     CustomData_add_layer(&tmp.pdata,
                          CD_MPOLY,
                          CD_ASSIGN,
-                         (alloctype == CD_ASSIGN) ? mesh_src->polygons_for_write().data() :
-                                                    MEM_dupallocN(mesh_src->polygons().data()),
+                         (alloctype == CD_ASSIGN) ? mesh_src->polys_for_write().data() :
+                                                    MEM_dupallocN(mesh_src->polys().data()),
                          tmp.totpoly);
   }
 
@@ -1489,7 +1489,7 @@ void BKE_mesh_nomain_to_meshkey(Mesh *mesh_src, Mesh *mesh_dst, KeyBlock *kb)
   kb->totelem = totvert;
 
   fp = (float *)kb->data;
-  const Span<MVert> verts = mesh_src->vertices();
+  const Span<MVert> verts = mesh_src->verts();
   for (a = 0; a < kb->totelem; a++, fp += 3) {
     copy_v3_v3(fp, verts[a].co);
   }

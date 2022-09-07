@@ -404,7 +404,7 @@ static void manta_set_domain_from_mesh(FluidDomainSettings *fds,
   float min[3] = {FLT_MAX, FLT_MAX, FLT_MAX}, max[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
   float size[3];
 
-  MVert *verts = BKE_mesh_vertices_for_write(me);
+  MVert *verts = BKE_mesh_verts_for_write(me);
   float scale = 0.0;
   int res;
 
@@ -1007,7 +1007,7 @@ static void obstacles_from_mesh(Object *coll_ob,
     int min[3], max[3], res[3];
 
     /* Duplicate vertices to modify. */
-    MVert *verts = MEM_dupallocN(BKE_mesh_vertices(me));
+    MVert *verts = MEM_dupallocN(BKE_mesh_verts(me));
 
     const MLoop *mloop = BKE_mesh_loops(me);
     looptri = BKE_mesh_runtime_looptri_ensure(me);
@@ -2073,7 +2073,7 @@ static void emit_from_mesh(
     Mesh *me = BKE_mesh_copy_for_eval(ffs->mesh, true);
 
     /* Duplicate vertices to modify. */
-    MVert *verts = MEM_dupallocN(BKE_mesh_vertices(me));
+    MVert *verts = MEM_dupallocN(BKE_mesh_verts(me));
 
     const MLoop *mloop = BKE_mesh_loops(me);
     const MLoopTri *mlooptri = BKE_mesh_runtime_looptri_ensure(me);
@@ -3228,7 +3228,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
    * If there are no faces in original mesh, keep materials and flags unchanged. */
   MPoly *mpoly;
   MPoly mp_example = {0};
-  mpoly = BKE_mesh_polygons_for_write(orgmesh);
+  mpoly = BKE_mesh_polys_for_write(orgmesh);
   if (mpoly) {
     mp_example = *mpoly;
   }
@@ -3260,8 +3260,8 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   if (!me) {
     return NULL;
   }
-  mverts = BKE_mesh_vertices_for_write(me);
-  mpolys = BKE_mesh_polygons_for_write(me);
+  mverts = BKE_mesh_verts_for_write(me);
+  mpolys = BKE_mesh_polys_for_write(me);
   mloops = BKE_mesh_loops_for_write(me);
 
   /* Get size (dimension) but considering scaling. */
@@ -3396,8 +3396,8 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
   }
 
   result = BKE_mesh_new_nomain(num_verts, 0, 0, num_faces * 4, num_faces);
-  mverts = BKE_mesh_vertices_for_write(result);
-  mpolys = BKE_mesh_polygons_for_write(result);
+  mverts = BKE_mesh_verts_for_write(result);
+  mpolys = BKE_mesh_polys_for_write(result);
   mloops = BKE_mesh_loops_for_write(result);
 
   if (num_verts) {

@@ -344,7 +344,7 @@ void MeshImporter::read_vertices(COLLADAFW::Mesh *mesh, Mesh *me)
 
   me->totvert = pos.getFloatValues()->getCount() / stride;
   CustomData_add_layer(&me->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, me->totvert);
-  MutableSpan<MVert> verts = me->vertices_for_write();
+  MutableSpan<MVert> verts = me->verts_for_write();
   for (const int i : verts.index_range()) {
     get_vector(verts[i].co, pos, i, stride);
   }
@@ -607,7 +607,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
   UVDataWrapper uvs(collada_mesh->getUVCoords());
   VCOLDataWrapper vcol(collada_mesh->getColors());
 
-  MutableSpan<MPoly> polys = me->polygons_for_write();
+  MutableSpan<MPoly> polys = me->polys_for_write();
   MutableSpan<MLoop> loops = me->loops_for_write();
   MPoly *mpoly = polys.data();
   MLoop *mloop = loops.data();

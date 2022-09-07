@@ -200,7 +200,7 @@ bool ED_vgroup_parray_alloc(ID *id,
           return true;
         }
         if (!me->deform_verts().is_empty()) {
-          const Span<MVert> verts = me->vertices();
+          const Span<MVert> verts = me->verts();
           MutableSpan<MDeformVert> dverts = me->deform_verts_for_write();
 
           *dvert_tot = me->totvert;
@@ -663,7 +663,7 @@ static void vgroup_copy_active_to_sel(Object *ob, eVGroupSelect subset_type)
     }
   }
   else {
-    const Span<MVert> verts = me->vertices();
+    const Span<MVert> verts = me->verts();
     int v_act;
 
     dvert_act = ED_mesh_active_dvert_get_ob(ob, &v_act);
@@ -1056,7 +1056,7 @@ static void vgroup_select_verts(Object *ob, int select)
         MVert *mv;
         int i;
 
-        mv = me->vertices_for_write().data();
+        mv = me->verts_for_write().data();
 
         for (i = 0; i < me->totvert; i++, mv++) {
           if (!(hide_vert != nullptr && hide_vert[i])) {
@@ -1218,7 +1218,7 @@ static bool vgroup_normalize(Object *ob)
  * count is an int passed by reference so it can be assigned the value of the length here. */
 static blender::Vector<int> getSurroundingVerts(Mesh *me, int vert)
 {
-  const MPoly *mp = me->polygons().data();
+  const MPoly *mp = me->polys().data();
   const MLoop *loops = me->loops().data();
   int i = me->totpoly;
 
@@ -1377,7 +1377,7 @@ static void moveCloserToDistanceFromPlane(Depsgraph *depsgraph,
   do {
     wasChange = false;
     me_deform = mesh_get_eval_deform(depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
-    const Span<MVert> verts = me_deform->vertices();
+    const Span<MVert> verts = me_deform->verts();
     m = verts[index];
     copy_v3_v3(oldPos, m.co);
     distToStart = dot_v3v3(norm, oldPos) + d;
@@ -1525,7 +1525,7 @@ static void vgroup_fix(
   int i;
 
   Mesh *me = static_cast<Mesh *>(ob->data);
-  MVert *mvert = me->vertices_for_write().data();
+  MVert *mvert = me->verts_for_write().data();
   if (!(me->editflag & ME_EDIT_PAINT_VERT_SEL)) {
     return;
   }
@@ -1540,7 +1540,7 @@ static void vgroup_fix(
 
         Mesh *me_deform = mesh_get_eval_deform(
             depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
-        const Span<MVert> verts_deform = me_deform->vertices();
+        const Span<MVert> verts_deform = me_deform->verts();
         k = count;
         while (k--) {
           p[k] = verts_deform[verts[k]];
@@ -1975,7 +1975,7 @@ static void vgroup_smooth_subset(Object *ob,
     }
   }
   else {
-    const Span<MVert> verts = me->vertices();
+    const Span<MVert> verts = me->verts();
     const blender::Span<MEdge> edges = me->edges();
     for (int i = 0; i < dvert_tot; i++) {
       const MVert *v = &verts[i];
@@ -2053,7 +2053,7 @@ static void vgroup_smooth_subset(Object *ob,
           const blender::Span<MEdge> edges = me->edges();
 
           /* checked already */
-          BLI_assert(IS_ME_VERT_WRITE(&me->vertices()[i]));
+          BLI_assert(IS_ME_VERT_WRITE(&me->verts()[i]));
 
           for (j = 0; j < emap[i].count; j++) {
             const MEdge *e = &edges[emap[i].indices[j]];
@@ -2471,7 +2471,7 @@ void ED_vgroup_mirror(Object *ob,
       }
 
       BLI_bitmap *vert_tag = BLI_BITMAP_NEW(me->totvert, __func__);
-      const MVert *verts = me->vertices().data();
+      const MVert *verts = me->verts().data();
       MutableSpan<MDeformVert> dverts = me->deform_verts_for_write();
 
       for (vidx = 0, mv = verts; vidx < me->totvert; vidx++, mv++) {
@@ -2625,7 +2625,7 @@ static void vgroup_assign_verts(Object *ob, const float weight)
       }
     }
     else {
-      const Span<MVert> verts = me->vertices();
+      const Span<MVert> verts = me->verts();
       MutableSpan<MDeformVert> dverts = me->deform_verts_for_write();
       MDeformVert *dv = dverts.data();
 
@@ -4356,7 +4356,7 @@ static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
       return;
     }
 
-    const Span<MVert> verts = me->vertices();
+    const Span<MVert> verts = me->verts();
     MutableSpan<MDeformVert> dverts = me->deform_verts_for_write();
 
     dv = dverts.data();

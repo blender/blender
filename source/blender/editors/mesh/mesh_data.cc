@@ -225,7 +225,7 @@ void ED_mesh_uv_loop_reset_ex(Mesh *me, const int layernum)
     BLI_assert(CustomData_has_layer(&me->ldata, CD_MLOOPUV));
     MLoopUV *mloopuv = (MLoopUV *)CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, layernum);
 
-    const MPoly *polys = BKE_mesh_polygons(me);
+    const MPoly *polys = BKE_mesh_polys(me);
     for (int i = 0; i < me->totpoly; i++) {
       mesh_uv_reset_mface(&polys[i], mloopuv);
     }
@@ -776,9 +776,9 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
       /* Tag edges as sharp according to smooth threshold if needed,
        * to preserve autosmooth shading. */
       if (me->flag & ME_AUTOSMOOTH) {
-        const Span<MVert> verts = me->vertices();
+        const Span<MVert> verts = me->verts();
         MutableSpan<MEdge> edges = me->edges_for_write();
-        const Span<MPoly> polys = me->polygons();
+        const Span<MPoly> polys = me->polys();
         const Span<MLoop> loops = me->loops();
 
         BKE_edges_sharp_from_angle_set(verts.data(),
@@ -893,7 +893,7 @@ static void mesh_add_verts(Mesh *mesh, int len)
   const int old_vertex_num = mesh->totvert;
   mesh->totvert = totvert;
 
-  MutableSpan<MVert> verts = mesh->vertices_for_write();
+  MutableSpan<MVert> verts = mesh->verts_for_write();
   for (MVert &vert : verts.drop_front(old_vertex_num)) {
     vert.flag = SELECT;
   }
@@ -986,7 +986,7 @@ static void mesh_add_polys(Mesh *mesh, int len)
   const int old_polys_num = mesh->totpoly;
   mesh->totpoly = totpoly;
 
-  MutableSpan<MPoly> polys = mesh->polygons_for_write();
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
   for (MPoly &poly : polys.drop_front(old_polys_num)) {
     poly.flag = ME_FACE_SEL;
   }

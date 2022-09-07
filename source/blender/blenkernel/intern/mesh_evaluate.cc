@@ -205,8 +205,8 @@ float BKE_mesh_calc_poly_area(const MPoly *mpoly, const MLoop *loopstart, const 
 
 float BKE_mesh_calc_area(const Mesh *me)
 {
-  const Span<MVert> verts = me->vertices();
-  const Span<MPoly> polys = me->polygons();
+  const Span<MVert> verts = me->verts();
+  const Span<MPoly> polys = me->polys();
   const Span<MLoop> loops = me->loops();
 
   float total_area = 0.0f;
@@ -400,7 +400,7 @@ void BKE_mesh_poly_edgebitmap_insert(uint *edge_bitmap, const MPoly *mp, const M
 
 bool BKE_mesh_center_median(const Mesh *me, float r_cent[3])
 {
-  const Span<MVert> verts = me->vertices();
+  const Span<MVert> verts = me->verts();
   zero_v3(r_cent);
   for (const MVert &vert : verts) {
     add_v3_v3(r_cent, vert.co);
@@ -415,8 +415,8 @@ bool BKE_mesh_center_median(const Mesh *me, float r_cent[3])
 bool BKE_mesh_center_median_from_polys(const Mesh *me, float r_cent[3])
 {
   int tot = 0;
-  const Span<MVert> verts = me->vertices();
-  const Span<MPoly> polys = me->polygons();
+  const Span<MVert> verts = me->verts();
+  const Span<MPoly> polys = me->polys();
   const Span<MLoop> loops = me->loops();
   zero_v3(r_cent);
   for (const MPoly &poly : polys) {
@@ -452,8 +452,8 @@ bool BKE_mesh_center_of_surface(const Mesh *me, float r_cent[3])
   float poly_area;
   float total_area = 0.0f;
   float poly_cent[3];
-  const MVert *verts = BKE_mesh_vertices(me);
-  const MPoly *polys = BKE_mesh_polygons(me);
+  const MVert *verts = BKE_mesh_verts(me);
+  const MPoly *polys = BKE_mesh_polys(me);
   const MLoop *loops = BKE_mesh_loops(me);
 
   zero_v3(r_cent);
@@ -485,8 +485,8 @@ bool BKE_mesh_center_of_volume(const Mesh *me, float r_cent[3])
   float poly_volume;
   float total_volume = 0.0f;
   float poly_cent[3];
-  const MVert *verts = BKE_mesh_vertices(me);
-  const MPoly *polys = BKE_mesh_polygons(me);
+  const MVert *verts = BKE_mesh_verts(me);
+  const MPoly *polys = BKE_mesh_polys(me);
   const MLoop *loops = BKE_mesh_loops(me);
 
   /* Use an initial center to avoid numeric instability of geometry far away from the center. */
@@ -747,7 +747,7 @@ void BKE_mesh_flush_hidden_from_verts(Mesh *me)
   }
   const VArraySpan<bool> hide_vert_span{hide_vert};
   const Span<MEdge> edges = me->edges();
-  const Span<MPoly> polys = me->polygons();
+  const Span<MPoly> polys = me->polys();
   const Span<MLoop> loops = me->loops();
 
   /* Hide edges when either of their vertices are hidden. */
@@ -786,7 +786,7 @@ void BKE_mesh_flush_hidden_from_polys(Mesh *me)
     return;
   }
   const VArraySpan<bool> hide_poly_span{hide_poly};
-  const Span<MPoly> polys = me->polygons();
+  const Span<MPoly> polys = me->polys();
   const Span<MLoop> loops = me->loops();
   SpanAttributeWriter<bool> hide_vert = attributes.lookup_or_add_for_write_only_span<bool>(
       ".hide_vert", ATTR_DOMAIN_POINT);
@@ -857,12 +857,12 @@ void BKE_mesh_flush_select_from_polys_ex(MVert *mvert,
 }
 void BKE_mesh_flush_select_from_polys(Mesh *me)
 {
-  BKE_mesh_flush_select_from_polys_ex(me->vertices_for_write().data(),
+  BKE_mesh_flush_select_from_polys_ex(me->verts_for_write().data(),
                                       me->totvert,
                                       me->loops().data(),
                                       me->edges_for_write().data(),
                                       me->totedge,
-                                      me->polygons().data(),
+                                      me->polys().data(),
                                       me->totpoly);
 }
 
@@ -909,12 +909,12 @@ void BKE_mesh_flush_select_from_verts(Mesh *me)
 {
   const blender::bke::AttributeAccessor attributes = blender::bke::mesh_attributes(*me);
   mesh_flush_select_from_verts(
-      me->vertices(),
+      me->verts(),
       me->loops(),
       attributes.lookup_or_default<bool>(".hide_edge", ATTR_DOMAIN_EDGE, false),
       attributes.lookup_or_default<bool>(".hide_poly", ATTR_DOMAIN_FACE, false),
       me->edges_for_write(),
-      me->polygons_for_write());
+      me->polys_for_write());
 }
 
 /** \} */

@@ -169,7 +169,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     const MeshComponent &component = static_cast<const MeshComponent &>(*component_);
     if (const Mesh *mesh = component.get_for_read()) {
       const Span<MEdge> edges = mesh->edges();
-      const Span<MPoly> polys = mesh->polygons();
+      const Span<MPoly> polys = mesh->polys();
       const Span<MLoop> loops = mesh->loops();
 
       if (domain_ == ATTR_DOMAIN_EDGE) {

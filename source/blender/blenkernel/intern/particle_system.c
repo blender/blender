@@ -3323,7 +3323,7 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
   if (!mesh) {
     *r_mesh = mesh = BKE_mesh_new_nomain(totpoint, totedge, 0, 0, 0);
   }
-  mvert = BKE_mesh_vertices_for_write(mesh);
+  mvert = BKE_mesh_verts_for_write(mesh);
   medge = BKE_mesh_edges_for_write(mesh);
   dvert = BKE_mesh_deform_verts_for_write(mesh);
 

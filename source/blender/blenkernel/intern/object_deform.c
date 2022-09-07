@@ -166,7 +166,7 @@ bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_sele
         const MVert *mv;
         int i;
 
-        mv = BKE_mesh_vertices(me);
+        mv = BKE_mesh_verts(me);
         dv = BKE_mesh_deform_verts_for_write(me);
 
         for (i = 0; i < me->totvert; i++, mv++, dv++) {

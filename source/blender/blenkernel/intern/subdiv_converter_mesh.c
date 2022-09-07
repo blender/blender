@@ -393,9 +393,9 @@ static void init_user_data(OpenSubdiv_Converter *converter,
   ConverterStorage *user_data = MEM_mallocN(sizeof(ConverterStorage), __func__);
   user_data->settings = *settings;
   user_data->mesh = mesh;
-  user_data->verts = BKE_mesh_vertices(mesh);
+  user_data->verts = BKE_mesh_verts(mesh);
   user_data->edges = BKE_mesh_edges(mesh);
-  user_data->polys = BKE_mesh_polygons(mesh);
+  user_data->polys = BKE_mesh_polys(mesh);
   user_data->loops = BKE_mesh_loops(mesh);
   user_data->cd_vertex_crease = CustomData_get_layer(&mesh->vdata, CD_CREASE);
   user_data->loop_uv_indices = NULL;

@@ -158,7 +158,7 @@ void MeshFromGeometry::fixup_invalid_faces()
 
 void MeshFromGeometry::create_vertices(Mesh *mesh)
 {
-  MutableSpan<MVert> verts = mesh->vertices_for_write();
+  MutableSpan<MVert> verts = mesh->verts_for_write();
   /* Go through all the global vertex indices from min to max,
    * checking which ones are actually and building a global->local
    * index mapping. Write out the used vertex positions into the Mesh
@@ -185,7 +185,7 @@ void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
     dverts = mesh->deform_verts_for_write();
   }
 
-  MutableSpan<MPoly> polys = mesh->polygons_for_write();
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
   bke::SpanAttributeWriter<int> material_indices =
       bke::mesh_attributes_for_write(*mesh).lookup_or_add_for_write_only_span<int>(

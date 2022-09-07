@@ -105,7 +105,7 @@ static void sample_mesh_surface(const Mesh &mesh,
                                 Vector<float3> &r_bary_coords,
                                 Vector<int> &r_looptri_indices)
 {
-  const Span<MVert> verts = mesh.vertices();
+  const Span<MVert> verts = mesh.verts();
   const Span<MLoop> loops = mesh.loops();
   const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
                                 BKE_mesh_runtime_looptri_len(&mesh)};
@@ -350,7 +350,7 @@ BLI_NOINLINE static void compute_attribute_outputs(const Mesh &mesh,
         attribute_outputs.rotation_id.get(), ATTR_DOMAIN_POINT);
   }
 
-  const Span<MVert> verts = mesh.vertices();
+  const Span<MVert> verts = mesh.verts();
   const Span<MLoop> loops = mesh.loops();
   const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
                                 BKE_mesh_runtime_looptri_len(&mesh)};

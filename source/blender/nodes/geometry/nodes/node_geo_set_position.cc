@@ -36,7 +36,7 @@ static void set_computed_position_and_offset(GeometryComponent &component,
   switch (component.type()) {
     case GEO_COMPONENT_TYPE_MESH: {
       Mesh *mesh = static_cast<MeshComponent &>(component).get_for_write();
-      MutableSpan<MVert> verts = mesh->vertices_for_write();
+      MutableSpan<MVert> verts = mesh->verts_for_write();
       if (in_positions.is_same(positions.varray)) {
         devirtualize_varray(in_offsets, [&](const auto in_offsets) {
           threading::parallel_for(

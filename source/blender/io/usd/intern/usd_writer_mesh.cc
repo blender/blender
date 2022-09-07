@@ -246,7 +246,7 @@ static void get_vertices(const Mesh *mesh, USDMeshData &usd_mesh_data)
 {
   usd_mesh_data.points.reserve(mesh->totvert);
 
-  const Span<MVert> verts = mesh->vertices();
+  const Span<MVert> verts = mesh->verts();
   for (const int i : verts.index_range()) {
     usd_mesh_data.points.push_back(pxr::GfVec3f(verts[i].co));
   }
@@ -269,7 +269,7 @@ static void get_loops_polys(const Mesh *mesh, USDMeshData &usd_mesh_data)
   usd_mesh_data.face_vertex_counts.reserve(mesh->totpoly);
   usd_mesh_data.face_indices.reserve(mesh->totloop);
 
-  const Span<MPoly> polys = mesh->polygons();
+  const Span<MPoly> polys = mesh->polys();
   const Span<MLoop> loops = mesh->loops();
 
   for (const int i : polys.index_range()) {
@@ -399,7 +399,7 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_
 {
   pxr::UsdTimeCode timecode = get_export_time_code();
   const float(*lnors)[3] = static_cast<float(*)[3]>(CustomData_get_layer(&mesh->ldata, CD_NORMAL));
-  const Span<MPoly> polys = mesh->polygons();
+  const Span<MPoly> polys = mesh->polys();
   const Span<MLoop> loops = mesh->loops();
 
   pxr::VtVec3fArray loop_normals;

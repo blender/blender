@@ -18,8 +18,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static VArray<float> construct_face_area_varray(const Mesh &mesh, const eAttrDomain domain)
 {
-  const Span<MVert> verts = mesh.vertices();
-  const Span<MPoly> polys = mesh.polygons();
+  const Span<MVert> verts = mesh.verts();
+  const Span<MPoly> polys = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
 
   auto area_fn = [verts, polys, loops](const int i) -> float {

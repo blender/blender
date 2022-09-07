@@ -184,9 +184,9 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 
   const bool do_flat_faces = dvert && (smd->flag & MOD_SOLIDIFY_NONMANIFOLD_FLAT_FACES);
 
-  const MVert *orig_mvert = BKE_mesh_vertices(mesh);
+  const MVert *orig_mvert = BKE_mesh_verts(mesh);
   const MEdge *orig_medge = BKE_mesh_edges(mesh);
-  const MPoly *orig_mpoly = BKE_mesh_polygons(mesh);
+  const MPoly *orig_mpoly = BKE_mesh_polys(mesh);
   const MLoop *orig_mloop = BKE_mesh_loops(mesh);
 
   uint new_verts_num = 0;
@@ -1957,9 +1957,9 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                                              (int)(new_loops_num),
                                              (int)(new_polys_num));
 
-  MVert *mvert = BKE_mesh_vertices_for_write(result);
+  MVert *mvert = BKE_mesh_verts_for_write(result);
   MEdge *medge = BKE_mesh_edges_for_write(result);
-  MPoly *mpoly = BKE_mesh_polygons_for_write(result);
+  MPoly *mpoly = BKE_mesh_polys_for_write(result);
   MLoop *mloop = BKE_mesh_loops_for_write(result);
 
   int *origindex_edge = CustomData_get_layer(&result->edata, CD_ORIGINDEX);

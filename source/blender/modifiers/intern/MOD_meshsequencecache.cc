@@ -178,12 +178,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   if (me != nullptr) {
-    const Span<MVert> mesh_verts = mesh->vertices();
+    const Span<MVert> mesh_verts = mesh->verts();
     const Span<MEdge> mesh_edges = mesh->edges();
-    const Span<MPoly> mesh_polys = mesh->polygons();
-    const Span<MVert> me_vertices = me->vertices();
+    const Span<MPoly> mesh_polys = mesh->polys();
+    const Span<MVert> me_vertices = me->verts();
     const Span<MEdge> me_edges = me->edges();
-    const Span<MPoly> me_polygons = me->polygons();
+    const Span<MPoly> me_polygons = me->polys();
 
     /* TODO(sybren+bastien): possibly check relevant custom data layers (UV/color depending on
      * flags) and duplicate those too.

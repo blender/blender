@@ -4055,13 +4055,13 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   }
   ps->mat_array[totmat - 1] = NULL;
 
-  ps->mvert_eval = BKE_mesh_vertices(ps->me_eval);
+  ps->mvert_eval = BKE_mesh_verts(ps->me_eval);
   ps->vert_normals = BKE_mesh_vertex_normals_ensure(ps->me_eval);
   if (ps->do_mask_cavity) {
     ps->medge_eval = BKE_mesh_edges(ps->me_eval);
   }
   ps->mloop_eval = BKE_mesh_loops(ps->me_eval);
-  ps->mpoly_eval = BKE_mesh_polygons(ps->me_eval);
+  ps->mpoly_eval = BKE_mesh_polys(ps->me_eval);
   ps->material_indices = (const int *)CustomData_get_layer_named(
       &ps->me_eval->pdata, CD_PROP_INT32, "material_index");
 
@@ -4155,7 +4155,7 @@ static void proj_paint_face_lookup_init(const ProjPaintState *ps, ProjPaintFaceL
   memset(face_lookup, 0, sizeof(*face_lookup));
   if (ps->do_face_sel) {
     face_lookup->index_mp_to_orig = CustomData_get_layer(&ps->me_eval->pdata, CD_ORIGINDEX);
-    face_lookup->mpoly_orig = BKE_mesh_polygons((Mesh *)ps->ob->data);
+    face_lookup->mpoly_orig = BKE_mesh_polys((Mesh *)ps->ob->data);
   }
 }
 

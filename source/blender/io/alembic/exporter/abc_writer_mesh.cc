@@ -176,7 +176,7 @@ void ABCGenericMeshWriter::do_write(HierarchyContext &context)
 
   m_custom_data_config.pack_uvs = args_.export_params->packuv;
   m_custom_data_config.mesh = mesh;
-  m_custom_data_config.mpoly = mesh->polygons_for_write().data();
+  m_custom_data_config.mpoly = mesh->polys_for_write().data();
   m_custom_data_config.mloop = mesh->loops_for_write().data();
   m_custom_data_config.totpoly = mesh->totpoly;
   m_custom_data_config.totloop = mesh->totloop;
@@ -436,7 +436,7 @@ static void get_vertices(struct Mesh *mesh, std::vector<Imath::V3f> &points)
   points.clear();
   points.resize(mesh->totvert);
 
-  const Span<MVert> verts = mesh->vertices();
+  const Span<MVert> verts = mesh->verts();
   for (int i = 0, e = mesh->totvert; i < e; i++) {
     copy_yup_from_zup(points[i].getValue(), verts[i].co);
   }
@@ -447,7 +447,7 @@ static void get_topology(struct Mesh *mesh,
                          std::vector<int32_t> &loop_counts,
                          bool &r_has_flat_shaded_poly)
 {
-  const Span<MPoly> polys = mesh->polygons();
+  const Span<MPoly> polys = mesh->polys();
   const Span<MLoop> loops = mesh->loops();
   r_has_flat_shaded_poly = false;
 
@@ -541,7 +541,7 @@ static void get_loop_normals(struct Mesh *mesh,
 
   /* NOTE: data needs to be written in the reverse order. */
   int abc_index = 0;
-  const Span<MPoly> polys = mesh->polygons();
+  const Span<MPoly> polys = mesh->polys();
 
   for (const int i : polys.index_range()) {
     const MPoly *mp = &polys[i];

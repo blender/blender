@@ -1054,11 +1054,11 @@ BLI_INLINE int *BKE_mesh_material_indices_for_write(Mesh *mesh)
       &mesh->pdata, CD_PROP_INT32, CD_SET_DEFAULT, NULL, mesh->totpoly, "material_index");
 }
 
-BLI_INLINE const MVert *BKE_mesh_vertices(const Mesh *mesh)
+BLI_INLINE const MVert *BKE_mesh_verts(const Mesh *mesh)
 {
   return (const MVert *)CustomData_get_layer(&mesh->vdata, CD_MVERT);
 }
-BLI_INLINE MVert *BKE_mesh_vertices_for_write(Mesh *mesh)
+BLI_INLINE MVert *BKE_mesh_verts_for_write(Mesh *mesh)
 {
   return (MVert *)CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MVERT, mesh->totvert);
 }
@@ -1072,11 +1072,11 @@ BLI_INLINE MEdge *BKE_mesh_edges_for_write(Mesh *mesh)
   return (MEdge *)CustomData_duplicate_referenced_layer(&mesh->edata, CD_MEDGE, mesh->totedge);
 }
 
-BLI_INLINE const MPoly *BKE_mesh_polygons(const Mesh *mesh)
+BLI_INLINE const MPoly *BKE_mesh_polys(const Mesh *mesh)
 {
   return (const MPoly *)CustomData_get_layer(&mesh->pdata, CD_MPOLY);
 }
-BLI_INLINE MPoly *BKE_mesh_polygons_for_write(Mesh *mesh)
+BLI_INLINE MPoly *BKE_mesh_polys_for_write(Mesh *mesh)
 {
   return (MPoly *)CustomData_duplicate_referenced_layer(&mesh->pdata, CD_MPOLY, mesh->totpoly);
 }
@@ -1113,13 +1113,13 @@ BLI_INLINE MDeformVert *BKE_mesh_deform_verts_for_write(Mesh *mesh)
 
 #  include "BLI_span.hh"
 
-inline blender::Span<MVert> Mesh::vertices() const
+inline blender::Span<MVert> Mesh::verts() const
 {
-  return {BKE_mesh_vertices(this), this->totvert};
+  return {BKE_mesh_verts(this), this->totvert};
 }
-inline blender::MutableSpan<MVert> Mesh::vertices_for_write()
+inline blender::MutableSpan<MVert> Mesh::verts_for_write()
 {
-  return {BKE_mesh_vertices_for_write(this), this->totvert};
+  return {BKE_mesh_verts_for_write(this), this->totvert};
 }
 
 inline blender::Span<MEdge> Mesh::edges() const
@@ -1131,13 +1131,13 @@ inline blender::MutableSpan<MEdge> Mesh::edges_for_write()
   return {BKE_mesh_edges_for_write(this), this->totedge};
 }
 
-inline blender::Span<MPoly> Mesh::polygons() const
+inline blender::Span<MPoly> Mesh::polys() const
 {
-  return {BKE_mesh_polygons(this), this->totpoly};
+  return {BKE_mesh_polys(this), this->totpoly};
 }
-inline blender::MutableSpan<MPoly> Mesh::polygons_for_write()
+inline blender::MutableSpan<MPoly> Mesh::polys_for_write()
 {
-  return {BKE_mesh_polygons_for_write(this), this->totpoly};
+  return {BKE_mesh_polys_for_write(this), this->totpoly};
 }
 
 inline blender::Span<MLoop> Mesh::loops() const

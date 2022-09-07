@@ -81,8 +81,8 @@ static void set_coarse_positions(Subdiv *subdiv,
                                  const Mesh *mesh,
                                  const float (*coarse_vertex_cos)[3])
 {
-  const MVert *mvert = BKE_mesh_vertices(mesh);
-  const MPoly *mpoly = BKE_mesh_polygons(mesh);
+  const MVert *mvert = BKE_mesh_verts(mesh);
+  const MPoly *mpoly = BKE_mesh_polys(mesh);
   const MLoop *mloop = BKE_mesh_loops(mesh);
   /* Mark vertices which needs new coordinates. */
   /* TODO(sergey): This is annoying to calculate this on every update,
@@ -172,7 +172,7 @@ static void set_face_varying_data_from_uv(Subdiv *subdiv,
   ctx.layer_index = layer_index;
   ctx.mloopuv = mluv;
   ctx.mesh = mesh;
-  ctx.polys = BKE_mesh_polygons(mesh);
+  ctx.polys = BKE_mesh_polys(mesh);
   ctx.buffer = buffer;
 
   TaskParallelSettings parallel_range_settings;

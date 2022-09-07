@@ -203,9 +203,9 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
   const int totedge = mesh->totedge;
   const int totloop = mesh->totloop;
   const int totpoly = mesh->totpoly;
-  const MVert *src_verts = BKE_mesh_vertices(mesh);
+  const MVert *src_verts = BKE_mesh_verts(mesh);
   const MEdge *src_edges = BKE_mesh_edges(mesh);
-  const MPoly *src_polys = BKE_mesh_polygons(mesh);
+  const MPoly *src_polys = BKE_mesh_polys(mesh);
   const MLoop *src_loops = BKE_mesh_loops(mesh);
 
   const int totvert_final = totvert - tot_vtargetmap;
@@ -611,7 +611,7 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
 
   /* Copy over data. #CustomData_add_layer can do this, need to look it up. */
   if (STACK_SIZE(mvert)) {
-    memcpy(BKE_mesh_vertices_for_write(result), mvert, sizeof(MVert) * STACK_SIZE(mvert));
+    memcpy(BKE_mesh_verts_for_write(result), mvert, sizeof(MVert) * STACK_SIZE(mvert));
   }
   if (STACK_SIZE(medge)) {
     memcpy(BKE_mesh_edges_for_write(result), medge, sizeof(MEdge) * STACK_SIZE(medge));
@@ -620,7 +620,7 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
     memcpy(BKE_mesh_loops_for_write(result), mloop, sizeof(MLoop) * STACK_SIZE(mloop));
   }
   if (STACK_SIZE(mpoly)) {
-    memcpy(BKE_mesh_polygons_for_write(result), mpoly, sizeof(MPoly) * STACK_SIZE(mpoly));
+    memcpy(BKE_mesh_polys_for_write(result), mpoly, sizeof(MPoly) * STACK_SIZE(mpoly));
   }
 
   MEM_freeN(mvert);

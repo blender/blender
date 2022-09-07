@@ -197,7 +197,7 @@ void BKE_mesh_wrapper_vert_coords_copy(const Mesh *me,
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD: {
       BLI_assert(vert_coords_len <= me->totvert);
-      const Span<MVert> verts = me->vertices();
+      const Span<MVert> verts = me->verts();
       for (int i = 0; i < vert_coords_len; i++) {
         copy_v3_v3(vert_coords[i], verts[i].co);
       }
@@ -235,7 +235,7 @@ void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *me,
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD: {
       BLI_assert(vert_coords_len == me->totvert);
-      const Span<MVert> verts = me->vertices();
+      const Span<MVert> verts = me->verts();
       for (int i = 0; i < vert_coords_len; i++) {
         mul_v3_m4v3(vert_coords[i], mat, verts[i].co);
       }

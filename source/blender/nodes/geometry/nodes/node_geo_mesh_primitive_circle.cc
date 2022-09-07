@@ -109,9 +109,9 @@ static Mesh *create_circle_mesh(const float radius,
                                    circle_corner_total(fill_type, verts_num),
                                    circle_face_total(fill_type, verts_num));
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
-  MutableSpan<MVert> verts = mesh->vertices_for_write();
+  MutableSpan<MVert> verts = mesh->verts_for_write();
   MutableSpan<MEdge> edges = mesh->edges_for_write();
-  MutableSpan<MPoly> polys = mesh->polygons_for_write();
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
 
   /* Assign vertex coordinates. */

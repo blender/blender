@@ -132,7 +132,7 @@ static void mesh_get_weights(const MDeformVert *dvert,
 static void mesh_get_boundaries(Mesh *mesh, float *smooth_weights)
 {
   const MEdge *medge = BKE_mesh_edges(mesh);
-  const MPoly *mpoly = BKE_mesh_polygons(mesh);
+  const MPoly *mpoly = BKE_mesh_polys(mesh);
   const MLoop *mloop = BKE_mesh_loops(mesh);
   uint mpoly_num, medge_num, i;
   ushort *boundaries;
@@ -452,7 +452,7 @@ static void calc_tangent_spaces(Mesh *mesh, float (*vertexCos)[3], float (*r_tan
 #ifndef USE_TANGENT_CALC_INLINE
   const uint mvert_num = (uint)dm->getNumVerts(dm);
 #endif
-  const MPoly *mpoly = BKE_mesh_polygons(mesh);
+  const MPoly *mpoly = BKE_mesh_polys(mesh);
   const MLoop *mloop = BKE_mesh_loops(mesh);
   uint i;
 

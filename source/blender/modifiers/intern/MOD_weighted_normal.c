@@ -579,9 +579,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   const int edges_num = result->totedge;
   const int loops_num = result->totloop;
   const int polys_num = result->totpoly;
-  const MVert *mvert = BKE_mesh_vertices(result);
+  const MVert *mvert = BKE_mesh_verts(result);
   MEdge *medge = BKE_mesh_edges_for_write(result);
-  const MPoly *mpoly = BKE_mesh_polygons(result);
+  const MPoly *mpoly = BKE_mesh_polys(result);
   const MLoop *mloop = BKE_mesh_loops(result);
 
   /* Right now:

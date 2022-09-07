@@ -244,9 +244,9 @@ static SnapData_Mesh *snap_object_data_mesh_get(SnapObjectContext *sctx,
   SnapData_Mesh *sod;
   bool init = false;
 
-  const Span<MVert> verts = me_eval->vertices();
+  const Span<MVert> verts = me_eval->verts();
   const Span<MEdge> edges = me_eval->edges();
-  const Span<MPoly> polys = me_eval->polygons();
+  const Span<MPoly> polys = me_eval->polys();
   const Span<MLoop> loops = me_eval->loops();
 
   if (std::unique_ptr<SnapData_Mesh> *sod_p = sctx->mesh_caches.lookup_ptr(ob_eval)) {

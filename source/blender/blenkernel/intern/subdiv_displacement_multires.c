@@ -361,7 +361,7 @@ static void free_displacement(SubdivDisplacement *displacement)
 static int count_num_ptex_faces(const Mesh *mesh)
 {
   int num_ptex_faces = 0;
-  const MPoly *mpoly = BKE_mesh_polygons(mesh);
+  const MPoly *mpoly = BKE_mesh_polys(mesh);
   for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
     const MPoly *poly = &mpoly[poly_index];
     num_ptex_faces += (poly->totloop == 4) ? 1 : poly->totloop;
@@ -372,7 +372,7 @@ static int count_num_ptex_faces(const Mesh *mesh)
 static void displacement_data_init_mapping(SubdivDisplacement *displacement, const Mesh *mesh)
 {
   MultiresDisplacementData *data = displacement->user_data;
-  const MPoly *mpoly = BKE_mesh_polygons(mesh);
+  const MPoly *mpoly = BKE_mesh_polys(mesh);
   const int num_ptex_faces = count_num_ptex_faces(mesh);
   /* Allocate memory. */
   data->ptex_poly_corner = MEM_malloc_arrayN(
@@ -407,7 +407,7 @@ static void displacement_init_data(SubdivDisplacement *displacement,
   data->grid_size = BKE_subdiv_grid_size_from_level(mmd->totlvl);
   data->mesh = mesh;
   data->mmd = mmd;
-  data->mpoly = BKE_mesh_polygons(mesh);
+  data->mpoly = BKE_mesh_polys(mesh);
   data->mdisps = CustomData_get_layer(&mesh->ldata, CD_MDISPS);
   data->face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv);
   data->is_initialized = false;

@@ -204,7 +204,7 @@ static void envelope_bone_weighting(Object *ob,
   }
 
   /* for each vertex in the mesh */
-  const MVert *mesh_verts = BKE_mesh_vertices(mesh);
+  const MVert *mesh_verts = BKE_mesh_verts(mesh);
   for (int i = 0; i < mesh->totvert; i++) {
     if (use_mask && !(mesh_verts[i].flag & SELECT)) {
       continue;
@@ -406,7 +406,7 @@ static void add_verts_to_dgroups(ReportList *reports,
   }
 
   /* transform verts to global space */
-  const MVert *mesh_verts = BKE_mesh_vertices(mesh);
+  const MVert *mesh_verts = BKE_mesh_verts(mesh);
   for (int i = 0; i < mesh->totvert; i++) {
     if (!vertsfilled) {
       copy_v3_v3(verts[i], mesh_verts[i].co);

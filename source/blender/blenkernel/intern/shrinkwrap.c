@@ -113,7 +113,7 @@ bool BKE_shrinkwrap_init_tree(
   }
 
   data->mesh = mesh;
-  data->polys = BKE_mesh_polygons(mesh);
+  data->polys = BKE_mesh_polys(mesh);
 
   if (shrinkType == MOD_SHRINKWRAP_NEAREST_VERTEX) {
     data->bvh = BKE_bvhtree_from_mesh_get(&data->treeData, mesh, BVHTREE_FROM_VERTS, 2);
@@ -192,7 +192,7 @@ static void merge_vert_dir(ShrinkwrapBoundaryVertData *vdata,
 
 static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(struct Mesh *mesh)
 {
-  const MVert *mvert = BKE_mesh_vertices(mesh);
+  const MVert *mvert = BKE_mesh_verts(mesh);
   const MEdge *medge = BKE_mesh_edges(mesh);
   const MLoop *mloop = BKE_mesh_loops(mesh);
 
@@ -1412,7 +1412,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd,
 
   if (mesh != NULL && smd->shrinkType == MOD_SHRINKWRAP_PROJECT) {
     /* Setup arrays to get vertexs positions, normals and deform weights */
-    calc.vert = BKE_mesh_vertices_for_write(mesh);
+    calc.vert = BKE_mesh_verts_for_write(mesh);
     calc.vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
 
     /* Using vertexs positions/normals as if a subsurface was applied */
@@ -1575,7 +1575,7 @@ void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object 
   calc.vgroup = -1;
   calc.target = target_me;
   calc.keepDist = ssmd.keepDist;
-  calc.vert = BKE_mesh_vertices_for_write(src_me);
+  calc.vert = BKE_mesh_verts_for_write(src_me);
   BLI_SPACE_TRANSFORM_SETUP(&calc.local2target, ob_target, ob_target);
 
   ShrinkwrapTreeData tree;

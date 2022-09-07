@@ -321,9 +321,9 @@ typedef struct Mesh {
    * Array of vertex positions (and various other data). Edges and faces are defined by indices
    * into this array.
    */
-  blender::Span<MVert> vertices() const;
+  blender::Span<MVert> verts() const;
   /** Write access to vertex data. */
-  blender::MutableSpan<MVert> vertices_for_write();
+  blender::MutableSpan<MVert> verts_for_write();
   /**
    * Array of edges, containing vertex indices. For simple triangle or quad meshes, edges could be
    * calculated from the #MPoly and #MLoop arrays, however, edges need to be stored explicitly to
@@ -335,9 +335,9 @@ typedef struct Mesh {
   /**
    * Face topology storage of the size and offset of each face's section of the face corners.
    */
-  blender::Span<MPoly> polygons() const;
+  blender::Span<MPoly> polys() const;
   /** Write access to polygon data. */
-  blender::MutableSpan<MPoly> polygons_for_write();
+  blender::MutableSpan<MPoly> polys_for_write();
   /**
    * Mesh face corners that "loop" around each face, storing the vertex index and the index of the
    * subsequent edge.

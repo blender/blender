@@ -652,8 +652,8 @@ void heat_bone_weighting(Object *ob,
   int a, tris_num, j, bbone, firstsegment, lastsegment;
   bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
-  const MVert *mesh_verts = BKE_mesh_vertices(me);
-  const MPoly *polys = BKE_mesh_polygons(me);
+  const MVert *mesh_verts = BKE_mesh_verts(me);
+  const MPoly *polys = BKE_mesh_polys(me);
   const MLoop *loops = BKE_mesh_loops(me);
   bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
   bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
@@ -1608,7 +1608,7 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
   /* initialize data from 'cagedm' for reuse */
   {
     Mesh *me = mdb->cagemesh;
-    mdb->cagemesh_cache.mpoly = BKE_mesh_polygons(me);
+    mdb->cagemesh_cache.mpoly = BKE_mesh_polys(me);
     mdb->cagemesh_cache.mloop = BKE_mesh_loops(me);
     mdb->cagemesh_cache.looptri = BKE_mesh_runtime_looptri_ensure(me);
     mdb->cagemesh_cache.poly_nors = BKE_mesh_poly_normals_ensure(me);
@@ -1765,7 +1765,7 @@ void ED_mesh_deform_bind_callback(Object *object,
   mdb.cagecos = MEM_callocN(sizeof(*mdb.cagecos) * mdb.cage_verts_num, "MeshDeformBindCos");
   copy_m4_m4(mdb.cagemat, cagemat);
 
-  mvert = BKE_mesh_vertices(mdb.cagemesh);
+  mvert = BKE_mesh_verts(mdb.cagemesh);
   for (a = 0; a < mdb.cage_verts_num; a++) {
     copy_v3_v3(mdb.cagecos[a], mvert[a].co);
   }

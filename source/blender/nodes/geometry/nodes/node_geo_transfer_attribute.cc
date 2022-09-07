@@ -264,8 +264,8 @@ static void get_closest_mesh_corners(const Mesh &mesh,
                                      const MutableSpan<float> r_distances_sq,
                                      const MutableSpan<float3> r_positions)
 {
-  const Span<MVert> verts = mesh.vertices();
-  const Span<MPoly> polys = mesh.polygons();
+  const Span<MVert> verts = mesh.verts();
+  const Span<MPoly> polys = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
 
   BLI_assert(mesh.totloop > 0);

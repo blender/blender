@@ -1028,8 +1028,8 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
 
   const MLoop *loops = BKE_mesh_loops(me_eval);
   BKE_mesh_recalc_looptri(loops,
-                          BKE_mesh_polygons(me_eval),
-                          BKE_mesh_vertices(me_eval),
+                          BKE_mesh_polys(me_eval),
+                          BKE_mesh_verts(me_eval),
                           me_eval->totloop,
                           me_eval->totpoly,
                           looptri);
@@ -1037,7 +1037,7 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
   /* For mapping back to original mesh in case there are modifiers. */
   const int *vert_origindex = CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX);
   const int *poly_origindex = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
-  const MPoly *orig_polys = BKE_mesh_polygons(me);
+  const MPoly *orig_polys = BKE_mesh_polys(me);
   const MLoop *orig_loops = BKE_mesh_loops(me);
 
   for (int i = 0; i < tottri; i++) {

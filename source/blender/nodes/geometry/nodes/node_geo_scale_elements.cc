@@ -158,9 +158,9 @@ static void scale_vertex_islands_uniformly(Mesh &mesh,
                                            const UniformScaleParams &params,
                                            const GetVertexIndicesFn get_vertex_indices)
 {
-  MutableSpan<MVert> verts = mesh.vertices_for_write();
+  MutableSpan<MVert> verts = mesh.verts_for_write();
   const Span<MEdge> edges = mesh.edges();
-  const Span<MPoly> polys = mesh.polygons();
+  const Span<MPoly> polys = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
 
   threading::parallel_for(islands.index_range(), 256, [&](const IndexRange range) {
@@ -199,9 +199,9 @@ static void scale_vertex_islands_on_axis(Mesh &mesh,
                                          const AxisScaleParams &params,
                                          const GetVertexIndicesFn get_vertex_indices)
 {
-  MutableSpan<MVert> verts = mesh.vertices_for_write();
+  MutableSpan<MVert> verts = mesh.verts_for_write();
   const Span<MEdge> edges = mesh.edges();
-  const Span<MPoly> polys = mesh.polygons();
+  const Span<MPoly> polys = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
 
   threading::parallel_for(islands.index_range(), 256, [&](const IndexRange range) {
@@ -245,7 +245,7 @@ static void scale_vertex_islands_on_axis(Mesh &mesh,
 
 static Vector<ElementIsland> prepare_face_islands(const Mesh &mesh, const IndexMask face_selection)
 {
-  const Span<MPoly> polys = mesh.polygons();
+  const Span<MPoly> polys = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
 
   /* Use the disjoint set data structure to determine which vertices have to be scaled together. */

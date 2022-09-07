@@ -573,7 +573,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
                   MREMAP_MODE_VERT_POLY_NEAREST,
                   MREMAP_MODE_VERT_POLYINTERP_NEAREST,
                   MREMAP_MODE_VERT_POLYINTERP_VNORPROJ)) {
-      const MPoly *polys_src = BKE_mesh_polygons(me_src);
+      const MPoly *polys_src = BKE_mesh_polys(me_src);
       const MLoop *loops_src = BKE_mesh_loops(me_src);
       float(*vcos_src)[3] = BKE_mesh_vert_coords_alloc(me_src, NULL);
       const float(*vert_normals_dst)[3] = BKE_mesh_vertex_normals_ensure(me_dst);
@@ -874,7 +874,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
     }
     else if (mode == MREMAP_MODE_EDGE_POLY_NEAREST) {
       const MEdge *edges_src = BKE_mesh_edges(me_src);
-      const MPoly *polys_src = BKE_mesh_polygons(me_src);
+      const MPoly *polys_src = BKE_mesh_polys(me_src);
       const MLoop *loops_src = BKE_mesh_loops(me_src);
       float(*vcos_src)[3] = BKE_mesh_vert_coords_alloc(me_src, NULL);
 
@@ -1302,14 +1302,14 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     /* Unlike above, those are one-to-one mappings, simpler! */
     int *loop_to_poly_map_src = NULL;
 
-    const MVert *verts_src = BKE_mesh_vertices(me_src);
+    const MVert *verts_src = BKE_mesh_verts(me_src);
     const int num_verts_src = me_src->totvert;
     float(*vcos_src)[3] = NULL;
     const MEdge *edges_src = BKE_mesh_edges(me_src);
     const int num_edges_src = me_src->totedge;
     const MLoop *loops_src = BKE_mesh_loops(me_src);
     const int num_loops_src = me_src->totloop;
-    const MPoly *polys_src = BKE_mesh_polygons(me_src);
+    const MPoly *polys_src = BKE_mesh_polys(me_src);
     const int num_polys_src = me_src->totpoly;
     const MLoopTri *looptri_src = NULL;
     int num_looptri_src = 0;

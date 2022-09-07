@@ -94,7 +94,7 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
   /* UVs need special handling, since they come from faces */
   if (texmapping == MOD_DISP_MAP_UV) {
     if (CustomData_has_layer(&mesh->ldata, CD_MLOOPUV)) {
-      const MPoly *mpoly = BKE_mesh_polygons(mesh);
+      const MPoly *mpoly = BKE_mesh_polys(mesh);
       const MPoly *mp;
       const MLoop *mloop = BKE_mesh_loops(mesh);
       BLI_bitmap *done = BLI_BITMAP_NEW(verts_num, __func__);
@@ -130,7 +130,7 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
     texmapping = MOD_DISP_MAP_LOCAL;
   }
 
-  const MVert *mv = BKE_mesh_vertices(mesh);
+  const MVert *mv = BKE_mesh_verts(mesh);
   for (i = 0; i < verts_num; i++, mv++, r_texco++) {
     switch (texmapping) {
       case MOD_DISP_MAP_LOCAL:

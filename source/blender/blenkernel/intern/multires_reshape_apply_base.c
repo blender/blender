@@ -30,7 +30,7 @@
 void multires_reshape_apply_base_update_mesh_coords(MultiresReshapeContext *reshape_context)
 {
   Mesh *base_mesh = reshape_context->base_mesh;
-  MVert *base_verts = BKE_mesh_vertices_for_write(base_mesh);
+  MVert *base_verts = BKE_mesh_verts_for_write(base_mesh);
   /* Update the context in case the vertices were duplicated. */
   reshape_context->base_verts = base_verts;
 
@@ -69,7 +69,7 @@ static float v3_dist_from_plane(const float v[3], const float center[3], const f
 void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape_context)
 {
   Mesh *base_mesh = reshape_context->base_mesh;
-  MVert *base_verts = BKE_mesh_vertices_for_write(base_mesh);
+  MVert *base_verts = BKE_mesh_verts_for_write(base_mesh);
   /* Update the context in case the vertices were duplicated. */
   reshape_context->base_verts = base_verts;
   MeshElemMap *pmap;

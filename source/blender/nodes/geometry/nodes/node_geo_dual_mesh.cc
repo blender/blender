@@ -210,7 +210,7 @@ static void calc_boundaries(const Mesh &mesh,
   BLI_assert(r_vertex_types.size() == mesh.totvert);
   BLI_assert(r_edge_types.size() == mesh.totedge);
   const Span<MEdge> edges = mesh.edges();
-  const Span<MPoly> polys = mesh.polygons();
+  const Span<MPoly> polys = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
 
   r_vertex_types.fill(VertexType::Loose);
@@ -263,7 +263,7 @@ static void calc_boundaries(const Mesh &mesh,
 static void create_vertex_poly_map(const Mesh &mesh,
                                    MutableSpan<Vector<int>> r_vertex_poly_indices)
 {
-  const Span<MPoly> polygons = mesh.polygons();
+  const Span<MPoly> polygons = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
   for (const int i : polygons.index_range()) {
     const MPoly &poly = polygons[i];
@@ -635,9 +635,9 @@ static void calc_dual_mesh(GeometrySet &geometry_set,
                            const bool keep_boundaries)
 {
   const Mesh &mesh_in = *in_component.get_for_read();
-  const Span<MVert> src_verts = mesh_in.vertices();
+  const Span<MVert> src_verts = mesh_in.verts();
   const Span<MEdge> src_edges = mesh_in.edges();
-  const Span<MPoly> src_polys = mesh_in.polygons();
+  const Span<MPoly> src_polys = mesh_in.polys();
   const Span<MLoop> src_loops = mesh_in.loops();
 
   Map<AttributeIDRef, AttributeKind> attributes;
@@ -921,9 +921,9 @@ static void calc_dual_mesh(GeometrySet &geometry_set,
                       bke::mesh_attributes(mesh_in),
                       bke::mesh_attributes_for_write(*mesh_out));
 
-  MutableSpan<MVert> dst_verts = mesh_out->vertices_for_write();
+  MutableSpan<MVert> dst_verts = mesh_out->verts_for_write();
   MutableSpan<MEdge> dst_edges = mesh_out->edges_for_write();
-  MutableSpan<MPoly> dst_polys = mesh_out->polygons_for_write();
+  MutableSpan<MPoly> dst_polys = mesh_out->polys_for_write();
   MutableSpan<MLoop> dst_loops = mesh_out->loops_for_write();
 
   int loop_start = 0;

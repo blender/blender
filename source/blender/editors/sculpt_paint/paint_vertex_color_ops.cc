@@ -159,8 +159,8 @@ static IndexMask get_selected_indices(const Mesh &mesh,
                                       Vector<int64_t> &indices)
 {
   using namespace blender;
-  Span<MVert> verts = mesh.vertices();
-  Span<MPoly> polys = mesh.polygons();
+  const Span<MVert> verts = mesh.verts();
+  const Span<MPoly> polys = mesh.polys();
 
   bke::AttributeAccessor attributes = bke::mesh_attributes(mesh);
 

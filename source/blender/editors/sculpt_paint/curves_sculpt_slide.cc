@@ -177,8 +177,8 @@ struct SlideOperationExecutor {
     if (surface_orig_->totpoly == 0) {
       report_empty_original_surface(stroke_extension.reports);
       return;
-    }   
-     surface_looptris_orig_ = {BKE_mesh_runtime_looptri_ensure(surface_orig_),
+    }
+    surface_looptris_orig_ = {BKE_mesh_runtime_looptri_ensure(surface_orig_),
                               BKE_mesh_runtime_looptri_len(surface_orig_)};
     surface_uv_map_orig_ =
         bke::mesh_attributes(*surface_orig_).lookup<float2>(uv_map_name, ATTR_DOMAIN_CORNER);
@@ -207,7 +207,7 @@ struct SlideOperationExecutor {
     }
     surface_looptris_eval_ = {BKE_mesh_runtime_looptri_ensure(surface_eval_),
                               BKE_mesh_runtime_looptri_len(surface_eval_)};
-    surface_verts_eval_ = surface_eval_->vertices();
+    surface_verts_eval_ = surface_eval_->verts();
     surface_loops_eval_ = surface_eval_->loops();
     surface_uv_map_eval_ =
         bke::mesh_attributes(*surface_eval_).lookup<float2>(uv_map_name, ATTR_DOMAIN_CORNER);
@@ -323,7 +323,7 @@ struct SlideOperationExecutor {
   {
     const float4x4 brush_transform_inv = brush_transform.inverted();
 
-    const Span<MVert> verts_orig_su = surface_orig_->vertices();
+    const Span<MVert> verts_orig_su = surface_orig_->verts();
     const Span<MLoop> loops_orig = surface_orig_->loops();
 
     MutableSpan<float3> positions_orig_cu = curves_orig_->positions_for_write();

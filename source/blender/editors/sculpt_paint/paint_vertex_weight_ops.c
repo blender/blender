@@ -317,7 +317,7 @@ static const EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C,
 
       ED_view3d_viewcontext_init(C, &vc, depsgraph);
       me = BKE_mesh_from_object(vc.obact);
-      const MPoly *polys = BKE_mesh_polygons(me);
+      const MPoly *polys = BKE_mesh_polys(me);
       const MLoop *loops = BKE_mesh_loops(me);
       const MDeformVert *dverts = BKE_mesh_deform_verts(me);
 
@@ -445,8 +445,8 @@ static bool weight_paint_set(Object *ob, float paintweight)
   /* mutually exclusive, could be made into a */
   const short paint_selmode = ME_EDIT_PAINT_SEL_MODE(me);
 
-  const MVert *verts = BKE_mesh_vertices(me);
-  const MPoly *polys = BKE_mesh_polygons(me);
+  const MVert *verts = BKE_mesh_verts(me);
+  const MPoly *polys = BKE_mesh_polys(me);
   const MLoop *loops = BKE_mesh_loops(me);
   MDeformVert *dvert = BKE_mesh_deform_verts_for_write(me);
 

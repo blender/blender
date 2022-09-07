@@ -1667,16 +1667,16 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
     /* These are assigned to the base mesh in Multires. This is needed because Face Sets operators
      * and tools use the Face Sets data from the base mesh when Multires is active. */
-    ss->mvert = BKE_mesh_vertices_for_write(me);
-    ss->mpoly = BKE_mesh_polygons(me);
+    ss->mvert = BKE_mesh_verts_for_write(me);
+    ss->mpoly = BKE_mesh_polys(me);
     ss->mloop = BKE_mesh_loops(me);
   }
   else {
     ss->totvert = me->totvert;
     ss->totpoly = me->totpoly;
     ss->totfaces = me->totpoly;
-    ss->mvert = BKE_mesh_vertices_for_write(me);
-    ss->mpoly = BKE_mesh_polygons(me);
+    ss->mvert = BKE_mesh_verts_for_write(me);
+    ss->mpoly = BKE_mesh_polys(me);
     ss->mloop = BKE_mesh_loops(me);
     ss->multires.active = false;
     ss->multires.modifier = nullptr;
@@ -1729,7 +1729,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   if (need_pmap && ob->type == OB_MESH && !ss->pmap) {
     BKE_mesh_vert_poly_map_create(&ss->pmap,
                                   &ss->pmap_mem,
-                                  BKE_mesh_polygons(me),
+                                  BKE_mesh_polys(me),
                                   BKE_mesh_loops(me),
                                   me->totvert,
                                   me->totpoly,
@@ -1751,7 +1751,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
       /* If the fully evaluated mesh has the same topology as the deform-only version, use it.
        * This matters because 'deform eval' is very restrictive and excludes even modifiers that
        * simply recompute vertex weights. */
-      if (me_eval_deform->polygons().data() == me_eval->polygons().data() &&
+      if (me_eval_deform->polys().data() == me_eval->polys().data() &&
           me_eval_deform->loops().data() == me_eval->loops().data() &&
           me_eval_deform->totvert == me_eval->totvert) {
         me_eval_deform = me_eval;
@@ -1953,7 +1953,7 @@ void BKE_sculpt_update_object_for_edit(
 int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
 {
   Mesh *me = static_cast<Mesh *>(ob->data);
-  const Span<MPoly> polys = me->polygons();
+  const Span<MPoly> polys = me->polys();
   const Span<MLoop> loops = me->loops();
   int ret = 0;
 
@@ -2245,8 +2245,8 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
   PBVH *pbvh = BKE_pbvh_new();
   BKE_pbvh_respect_hide_set(pbvh, respect_hide);
 
-  MutableSpan<MVert> verts = me->vertices_for_write();
-  const Span<MPoly> polys = me->polygons();
+  MutableSpan<MVert> verts = me->verts_for_write();
+  const Span<MPoly> polys = me->polys();
   const Span<MLoop> loops = me->loops();
 
   MLoopTri *looptri = static_cast<MLoopTri *>(

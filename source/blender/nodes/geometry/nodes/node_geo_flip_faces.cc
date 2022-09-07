@@ -30,7 +30,7 @@ static void mesh_flip_faces(Mesh &mesh, const Field<bool> &selection_field)
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_as_mask(0);
 
-  const Span<MPoly> polys = mesh.polygons();
+  const Span<MPoly> polys = mesh.polys();
   MutableSpan<MLoop> loops = mesh.loops_for_write();
 
   for (const int i : selection.index_range()) {

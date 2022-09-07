@@ -864,9 +864,9 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
     MeshRealizeInfo &mesh_info = info.realize_info[mesh_index];
     const Mesh *mesh = info.order[mesh_index];
     mesh_info.mesh = mesh;
-    mesh_info.verts = mesh->vertices();
+    mesh_info.verts = mesh->verts();
     mesh_info.edges = mesh->edges();
-    mesh_info.polys = mesh->polygons();
+    mesh_info.polys = mesh->polys();
     mesh_info.loops = mesh->loops();
 
     /* Create material index mapping. */
@@ -1046,9 +1046,9 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   MeshComponent &dst_component = r_realized_geometry.get_component_for_write<MeshComponent>();
   dst_component.replace(dst_mesh);
   bke::MutableAttributeAccessor dst_attributes = bke::mesh_attributes_for_write(*dst_mesh);
-  MutableSpan<MVert> dst_verts = dst_mesh->vertices_for_write();
+  MutableSpan<MVert> dst_verts = dst_mesh->verts_for_write();
   MutableSpan<MEdge> dst_edges = dst_mesh->edges_for_write();
-  MutableSpan<MPoly> dst_polys = dst_mesh->polygons_for_write();
+  MutableSpan<MPoly> dst_polys = dst_mesh->polys_for_write();
   MutableSpan<MLoop> dst_loops = dst_mesh->loops_for_write();
 
   /* Copy settings from the first input geometry set with a mesh. */

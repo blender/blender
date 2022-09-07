@@ -100,7 +100,7 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   int i, p, v1, v2, v3, v4 = 0;
   const bool invert_vgroup = (emd->flag & eExplodeFlag_INVERT_VGROUP) != 0;
 
-  mvert = BKE_mesh_vertices_for_write(mesh);
+  mvert = BKE_mesh_verts_for_write(mesh);
   mface = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
   totvert = mesh->totvert;
   totface = mesh->totface;
@@ -730,8 +730,8 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
 
   layers_num = CustomData_number_of_layers(&split_m->fdata, CD_MTFACE);
 
-  const MVert *mesh_verts = BKE_mesh_vertices(mesh);
-  MVert *split_m_verts = BKE_mesh_vertices_for_write(split_m);
+  const MVert *mesh_verts = BKE_mesh_verts(mesh);
+  MVert *split_m_verts = BKE_mesh_verts_for_write(split_m);
 
   /* copy new faces & verts (is it really this painful with custom data??) */
   for (i = 0; i < totvert; i++) {
@@ -989,8 +989,8 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 
   psmd->psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
 
-  const MVert *mesh_verts = BKE_mesh_vertices(mesh);
-  MVert *explode_verts = BKE_mesh_vertices_for_write(explode);
+  const MVert *mesh_verts = BKE_mesh_verts(mesh);
+  MVert *explode_verts = BKE_mesh_verts_for_write(explode);
 
   /* duplicate & displace vertices */
   ehi = BLI_edgehashIterator_new(vertpahash);

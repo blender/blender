@@ -1096,7 +1096,7 @@ static void sculpt_face_set_grow(Object *ob,
                                  const bool modify_hidden)
 {
   Mesh *mesh = BKE_mesh_from_object(ob);
-  const MPoly *polys = BKE_mesh_polygons(mesh);
+  const MPoly *polys = BKE_mesh_polys(mesh);
   const MLoop *loops = BKE_mesh_loops(mesh);
 
   for (int p = 0; p < mesh->totpoly; p++) {
@@ -1127,7 +1127,7 @@ static void sculpt_face_set_shrink(Object *ob,
                                    const bool modify_hidden)
 {
   Mesh *mesh = BKE_mesh_from_object(ob);
-  const MPoly *polys = BKE_mesh_polygons(mesh);
+  const MPoly *polys = BKE_mesh_polys(mesh);
   const MLoop *loops = BKE_mesh_loops(mesh);
   for (int p = 0; p < mesh->totpoly; p++) {
     if (!modify_hidden && prev_face_sets[p] <= 0) {

@@ -889,7 +889,7 @@ static Mesh *subdivide_base(const Mesh *orig)
   float radrat;
 
   const MVertSkin *orignode = CustomData_get_layer(&orig->vdata, CD_MVERT_SKIN);
-  const MVert *origvert = BKE_mesh_vertices(orig);
+  const MVert *origvert = BKE_mesh_verts(orig);
   const MEdge *origedge = BKE_mesh_edges(orig);
   const MDeformVert *origdvert = BKE_mesh_deform_verts(orig);
   int orig_vert_num = orig->totvert;
@@ -916,7 +916,7 @@ static Mesh *subdivide_base(const Mesh *orig)
   Mesh *result = BKE_mesh_new_nomain_from_template(
       orig, orig_vert_num + subd_num, orig_edge_num + subd_num, 0, 0, 0);
 
-  MVert *outvert = BKE_mesh_vertices_for_write(result);
+  MVert *outvert = BKE_mesh_verts_for_write(result);
   MEdge *outedge = BKE_mesh_edges_for_write(result);
   MVertSkin *outnode = CustomData_get_layer(&result->vdata, CD_MVERT_SKIN);
   MDeformVert *outdvert = NULL;
@@ -1918,7 +1918,7 @@ static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd, eSkinErrorFlag *r_
 
   nodes = CustomData_get_layer(&origmesh->vdata, CD_MVERT_SKIN);
 
-  mvert = BKE_mesh_vertices(origmesh);
+  mvert = BKE_mesh_verts(origmesh);
   dvert = BKE_mesh_deform_verts(origmesh);
   medge = BKE_mesh_edges(origmesh);
   verts_num = origmesh->totvert;

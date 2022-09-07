@@ -109,7 +109,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
 
   MVert *verts = SCULPT_mesh_deformed_mverts_get(ss);
   const MEdge *edges = BKE_mesh_edges(mesh);
-  const MPoly *polys = BKE_mesh_polygons(mesh);
+  const MPoly *polys = BKE_mesh_polys(mesh);
   const MLoop *loops = BKE_mesh_loops(mesh);
 
   float *dists = MEM_malloc_arrayN(totvert, sizeof(float), "distances");

@@ -255,9 +255,9 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
       names_to_skip.add_multiple_new({".hide_vert", ".hide_edge", ".hide_poly"});
 
       /* Set deprecated mesh data pointers for forward compatibility. */
-      mesh->mvert = const_cast<MVert *>(mesh->vertices().data());
+      mesh->mvert = const_cast<MVert *>(mesh->verts().data());
       mesh->medge = const_cast<MEdge *>(mesh->edges().data());
-      mesh->mpoly = const_cast<MPoly *>(mesh->polygons().data());
+      mesh->mpoly = const_cast<MPoly *>(mesh->polys().data());
       mesh->mloop = const_cast<MLoop *>(mesh->loops().data());
     }
 
@@ -1255,7 +1255,7 @@ float (*BKE_mesh_orco_verts_get(Object *ob))[3]
 
   /* Get appropriate vertex coordinates */
   float(*vcos)[3] = (float(*)[3])MEM_calloc_arrayN(me->totvert, sizeof(*vcos), "orco mesh");
-  const Span<MVert> verts = tme->vertices();
+  const Span<MVert> verts = tme->verts();
 
   int totvert = min_ii(tme->totvert, me->totvert);
 
@@ -1430,7 +1430,7 @@ void BKE_mesh_material_remap(Mesh *me, const uint *remap, uint remap_len)
 
 void BKE_mesh_smooth_flag_set(Mesh *me, const bool use_smooth)
 {
-  MutableSpan<MPoly> polys = me->polygons_for_write();
+  MutableSpan<MPoly> polys = me->polys_for_write();
   if (use_smooth) {
     for (MPoly &poly : polys) {
       poly.flag |= ME_SMOOTH;
@@ -1518,7 +1518,7 @@ bool BKE_mesh_minmax(const Mesh *me, float r_min[3], float r_max[3])
     float3 min;
     float3 max;
   };
-  const Span<MVert> verts = me->vertices();
+  const Span<MVert> verts = me->verts();
 
   const Result minmax = threading::parallel_reduce(
       verts.index_range(),
@@ -1543,7 +1543,7 @@ bool BKE_mesh_minmax(const Mesh *me, float r_min[3], float r_max[3])
 
 void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
 {
-  MutableSpan<MVert> verts = me->vertices_for_write();
+  MutableSpan<MVert> verts = me->verts_for_write();
 
   for (MVert &vert : verts) {
     mul_m4_v3(mat, vert.co);
@@ -1577,7 +1577,7 @@ void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
 
 void BKE_mesh_translate(Mesh *me, const float offset[3], const bool do_keys)
 {
-  MutableSpan<MVert> verts = me->vertices_for_write();
+  MutableSpan<MVert> verts = me->verts_for_write();
   for (MVert &vert : verts) {
     add_v3_v3(vert.co, offset);
   }
@@ -1605,7 +1605,7 @@ void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh)
     return;
   }
 
-  const Span<MVert> verts = mesh->vertices();
+  const Span<MVert> verts = mesh->verts();
   const Span<MEdge> edges = mesh->edges();
 
   for (const MVert &vert : verts) {
@@ -1648,9 +1648,9 @@ void BKE_mesh_mselect_validate(Mesh *me)
   if (me->totselect == 0) {
     return;
   }
-  const Span<MVert> verts = me->vertices();
+  const Span<MVert> verts = me->verts();
   const Span<MEdge> edges = me->edges();
-  const Span<MPoly> polys = me->polygons();
+  const Span<MPoly> polys = me->polys();
 
   mselect_src = me->mselect;
   mselect_dst = (MSelect *)MEM_malloc_arrayN(
@@ -1778,7 +1778,7 @@ float (*BKE_mesh_vert_coords_alloc(const Mesh *mesh, int *r_vert_len))[3]
 
 void BKE_mesh_vert_coords_apply(Mesh *mesh, const float (*vert_coords)[3])
 {
-  MutableSpan<MVert> verts = mesh->vertices_for_write();
+  MutableSpan<MVert> verts = mesh->verts_for_write();
   for (const int i : verts.index_range()) {
     copy_v3_v3(verts[i].co, vert_coords[i]);
   }
@@ -1789,7 +1789,7 @@ void BKE_mesh_vert_coords_apply_with_mat4(Mesh *mesh,
                                           const float (*vert_coords)[3],
                                           const float mat[4][4])
 {
-  MutableSpan<MVert> verts = mesh->vertices_for_write();
+  MutableSpan<MVert> verts = mesh->verts_for_write();
   for (const int i : verts.index_range()) {
     mul_v3_m4v3(verts[i].co, mat, vert_coords[i]);
   }
@@ -1827,9 +1827,9 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh,
   /* may be nullptr */
   clnors = (short(*)[2])CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);
 
-  const Span<MVert> verts = mesh->vertices();
+  const Span<MVert> verts = mesh->verts();
   const Span<MEdge> edges = mesh->edges();
-  const Span<MPoly> polys = mesh->polygons();
+  const Span<MPoly> polys = mesh->polys();
   const Span<MLoop> loops = mesh->loops();
 
   BKE_mesh_normals_loop_split(verts.data(),
@@ -1965,7 +1965,7 @@ static int split_faces_prepare_new_edges(Mesh *mesh,
   int num_edges = mesh->totedge;
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
-  const Span<MPoly> polys = mesh->polygons();
+  const Span<MPoly> polys = mesh->polys();
 
   BLI_bitmap *edges_used = BLI_BITMAP_NEW(num_edges, __func__);
   EdgeHash *edges_hash = BLI_edgehash_new_ex(__func__, num_edges);

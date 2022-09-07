@@ -567,7 +567,7 @@ static void ccd_update_deflector_hash(Depsgraph *depsgraph,
 static int count_mesh_quads(Mesh *me)
 {
   int a, result = 0;
-  const MPoly *mp = BKE_mesh_polygons(me);
+  const MPoly *mp = BKE_mesh_polys(me);
 
   if (mp) {
     for (a = me->totpoly; a > 0; a--, mp++) {
@@ -592,7 +592,7 @@ static void add_mesh_quad_diag_springs(Object *ob)
     nofquads = count_mesh_quads(me);
     if (nofquads) {
       const MLoop *mloop = BKE_mesh_loops(me);
-      const MPoly *mp = BKE_mesh_polygons(me);
+      const MPoly *mp = BKE_mesh_polys(me);
       BodySpring *bs;
 
       /* resize spring-array to hold additional quad springs */
@@ -2632,7 +2632,7 @@ static void springs_from_mesh(Object *ob)
   BodyPoint *bp;
   int a;
   float scale = 1.0f;
-  const MVert *vertices = BKE_mesh_vertices(me);
+  const MVert *vertices = BKE_mesh_verts(me);
 
   sb = ob->soft;
   if (me && sb) {
@@ -2755,8 +2755,8 @@ static void mesh_faces_to_scratch(Object *ob)
   MLoopTri *looptri, *lt;
   BodyFace *bodyface;
   int a;
-  const MVert *vertices = BKE_mesh_vertices(me);
-  const MPoly *polygons = BKE_mesh_polygons(me);
+  const MVert *vertices = BKE_mesh_verts(me);
+  const MPoly *polygons = BKE_mesh_polys(me);
   const MLoop *loops = BKE_mesh_loops(me);
 
   /* Allocate and copy faces. */

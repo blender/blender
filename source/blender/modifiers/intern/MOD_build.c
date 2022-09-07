@@ -75,9 +75,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, struct
   const int vert_src_num = mesh->totvert;
   const int edge_src_num = mesh->totedge;
   const int poly_src_num = mesh->totpoly;
-  const MVert *mvert_src = BKE_mesh_vertices(mesh);
+  const MVert *mvert_src = BKE_mesh_verts(mesh);
   const MEdge *medge_src = BKE_mesh_edges(mesh);
-  const MPoly *mpoly_src = BKE_mesh_polygons(mesh);
+  const MPoly *mpoly_src = BKE_mesh_polys(mesh);
   const MLoop *mloop_src = BKE_mesh_loops(mesh);
 
   vertMap = MEM_malloc_arrayN(vert_src_num, sizeof(*vertMap), "build modifier vertMap");
@@ -202,9 +202,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, struct
   /* now we know the number of verts, edges and faces, we can create the mesh. */
   result = BKE_mesh_new_nomain_from_template(
       mesh, BLI_ghash_len(vertHash), BLI_ghash_len(edgeHash), 0, loops_dst_num, faces_dst_num);
-  MVert *result_verts = BKE_mesh_vertices_for_write(result);
+  MVert *result_verts = BKE_mesh_verts_for_write(result);
   MEdge *result_edges = BKE_mesh_edges_for_write(result);
-  MPoly *result_polys = BKE_mesh_polygons_for_write(result);
+  MPoly *result_polys = BKE_mesh_polys_for_write(result);
   MLoop *result_loops = BKE_mesh_loops_for_write(result);
 
   /* copy the vertices across */

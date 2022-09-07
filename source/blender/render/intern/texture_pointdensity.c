@@ -380,7 +380,7 @@ static void pointdensity_cache_object(PointDensity *pd, Object *ob)
   }
 #endif
 
-  mvert = BKE_mesh_vertices(mesh); /* local object space */
+  mvert = BKE_mesh_verts(mesh); /* local object space */
   pd->totpoints = mesh->totvert;
   if (pd->totpoints == 0) {
     return;

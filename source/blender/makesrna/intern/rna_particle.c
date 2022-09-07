@@ -212,7 +212,7 @@ static void rna_ParticleHairKey_location_object_get(PointerRNA *ptr, float *valu
 
   if (pa) {
     Mesh *hair_mesh = (psmd->psys->flag & PSYS_HAIR_DYNAMICS) ? psmd->psys->hair_out_mesh : NULL;
-    const MVert *vertices = BKE_mesh_vertices(hair_mesh);
+    const MVert *vertices = BKE_mesh_verts(hair_mesh);
     if (hair_mesh) {
       const MVert *mvert = &vertices[pa->hair_index + (hkey - pa->hair)];
       copy_v3_v3(values, mvert->co);
@@ -279,7 +279,7 @@ static void hair_key_location_object_set(HairKey *hair_key,
     if (hair_key_index == -1) {
       return;
     }
-    MVert *vertices = BKE_mesh_vertices_for_write(hair_mesh);
+    MVert *vertices = BKE_mesh_verts_for_write(hair_mesh);
     MVert *mvert = &vertices[particle->hair_index + (hair_key_index)];
     copy_v3_v3(mvert->co, src_co);
     return;
@@ -324,7 +324,7 @@ static void rna_ParticleHairKey_co_object(HairKey *hairkey,
                                                                   NULL;
   if (particle) {
     if (hair_mesh) {
-      const MVert *vertices = BKE_mesh_vertices(hair_mesh);
+      const MVert *vertices = BKE_mesh_verts(hair_mesh);
       const MVert *mvert = &vertices[particle->hair_index + (hairkey - particle->hair)];
       copy_v3_v3(n_co, mvert->co);
     }

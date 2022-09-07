@@ -77,7 +77,7 @@ Mesh *STLMeshHelper::to_mesh(Main *bmain, char *mesh_name)
 
   mesh->totvert = verts_.size();
   CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, mesh->totvert);
-  MutableSpan<MVert> verts = mesh->vertices_for_write();
+  MutableSpan<MVert> verts = mesh->verts_for_write();
   for (int i = 0; i < mesh->totvert; i++) {
     copy_v3_v3(verts[i].co, verts_[i]);
   }
@@ -86,7 +86,7 @@ Mesh *STLMeshHelper::to_mesh(Main *bmain, char *mesh_name)
   mesh->totloop = tris_.size() * 3;
   CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, mesh->totpoly);
   CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, mesh->totloop);
-  MutableSpan<MPoly> polys = mesh->polygons_for_write();
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
   threading::parallel_for(tris_.index_range(), 2048, [&](IndexRange tris_range) {
     for (const int i : tris_range) {

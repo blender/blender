@@ -388,7 +388,7 @@ static void laplaciansmoothModifier_do(
     return;
   }
 
-  sys->mpoly = BKE_mesh_polygons(mesh);
+  sys->mpoly = BKE_mesh_polys(mesh);
   sys->mloop = BKE_mesh_loops(mesh);
   sys->medges = BKE_mesh_edges(mesh);
   sys->vertexCos = vertexCos;

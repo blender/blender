@@ -257,11 +257,11 @@ static void data_transfer_dtdata_type_preprocess(Mesh *me_src,
   if (dtdata_type == DT_TYPE_LNOR) {
     /* Compute custom normals into regular loop normals, which will be used for the transfer. */
 
-    const MVert *verts_dst = BKE_mesh_vertices(me_dst);
+    const MVert *verts_dst = BKE_mesh_verts(me_dst);
     const int num_verts_dst = me_dst->totvert;
     const MEdge *edges_dst = BKE_mesh_edges(me_dst);
     const int num_edges_dst = me_dst->totedge;
-    const MPoly *polys_dst = BKE_mesh_polygons(me_dst);
+    const MPoly *polys_dst = BKE_mesh_polys(me_dst);
     const int num_polys_dst = me_dst->totpoly;
     const MLoop *loops_dst = BKE_mesh_loops(me_dst);
     const int num_loops_dst = me_dst->totloop;
@@ -319,11 +319,11 @@ static void data_transfer_dtdata_type_postprocess(Object *UNUSED(ob_src),
     }
 
     /* Bake edited destination loop normals into custom normals again. */
-    const MVert *verts_dst = BKE_mesh_vertices(me_dst);
+    const MVert *verts_dst = BKE_mesh_verts(me_dst);
     const int num_verts_dst = me_dst->totvert;
     MEdge *edges_dst = BKE_mesh_edges_for_write(me_dst);
     const int num_edges_dst = me_dst->totedge;
-    MPoly *polys_dst = BKE_mesh_polygons_for_write(me_dst);
+    MPoly *polys_dst = BKE_mesh_polys_for_write(me_dst);
     const int num_polys_dst = me_dst->totpoly;
     MLoop *loops_dst = BKE_mesh_loops_for_write(me_dst);
     const int num_loops_dst = me_dst->totloop;
@@ -947,8 +947,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                              mix_mode,
                                              mix_factor,
                                              mix_weights,
-                                             BKE_mesh_vertices(me_src),
-                                             BKE_mesh_vertices_for_write(me_dst),
+                                             BKE_mesh_verts(me_src),
+                                             BKE_mesh_verts_for_write(me_dst),
                                              me_src->totvert,
                                              me_dst->totvert,
                                              elem_size,
@@ -1182,8 +1182,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                            mix_mode,
                                            mix_factor,
                                            mix_weights,
-                                           BKE_mesh_polygons(me_src),
-                                           BKE_mesh_polygons_for_write(me_dst),
+                                           BKE_mesh_polys(me_src),
+                                           BKE_mesh_polys_for_write(me_dst),
                                            me_src->totpoly,
                                            me_dst->totpoly,
                                            elem_size,
@@ -1430,7 +1430,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
     }
 
     BKE_mesh_remap_find_best_match_from_mesh(
-        BKE_mesh_vertices(me_dst), me_dst->totvert, me_src, space_transform);
+        BKE_mesh_verts(me_dst), me_dst->totvert, me_src, space_transform);
   }
 
   /* Check all possible data types.
@@ -1458,7 +1458,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
     }
 
     if (DT_DATATYPE_IS_VERT(dtdata_type)) {
-      MVert *verts_dst = BKE_mesh_vertices_for_write(me_dst);
+      MVert *verts_dst = BKE_mesh_verts_for_write(me_dst);
       const int num_verts_dst = me_dst->totvert;
 
       if (!geom_map_init[VDATA]) {
@@ -1540,7 +1540,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
       }
     }
     if (DT_DATATYPE_IS_EDGE(dtdata_type)) {
-      const MVert *verts_dst = BKE_mesh_vertices_for_write(me_dst);
+      const MVert *verts_dst = BKE_mesh_verts_for_write(me_dst);
       const int num_verts_dst = me_dst->totvert;
       const MEdge *edges_dst = BKE_mesh_edges(me_dst);
       const int num_edges_dst = me_dst->totedge;
@@ -1619,11 +1619,11 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
       }
     }
     if (DT_DATATYPE_IS_LOOP(dtdata_type)) {
-      const MVert *verts_dst = BKE_mesh_vertices(me_dst);
+      const MVert *verts_dst = BKE_mesh_verts(me_dst);
       const int num_verts_dst = me_dst->totvert;
       const MEdge *edges_dst = BKE_mesh_edges(me_dst);
       const int num_edges_dst = me_dst->totedge;
-      const MPoly *polys_dst = BKE_mesh_polygons(me_dst);
+      const MPoly *polys_dst = BKE_mesh_polys(me_dst);
       const int num_polys_dst = me_dst->totpoly;
       const MLoop *loops_dst = BKE_mesh_loops(me_dst);
       const int num_loops_dst = me_dst->totloop;
@@ -1714,9 +1714,9 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
       }
     }
     if (DT_DATATYPE_IS_POLY(dtdata_type)) {
-      const MVert *verts_dst = BKE_mesh_vertices(me_dst);
+      const MVert *verts_dst = BKE_mesh_verts(me_dst);
       const int num_verts_dst = me_dst->totvert;
-      const MPoly *polys_dst = BKE_mesh_polygons(me_dst);
+      const MPoly *polys_dst = BKE_mesh_polys(me_dst);
       const int num_polys_dst = me_dst->totpoly;
       const MLoop *loops_dst = BKE_mesh_loops(me_dst);
       const int num_loops_dst = me_dst->totloop;

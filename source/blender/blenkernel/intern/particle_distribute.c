@@ -97,7 +97,7 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
 {
   ParticleData *pa = NULL;
   float min[3], max[3], delta[3], d;
-  MVert *mv, *mvert = BKE_mesh_vertices_for_write(mesh);
+  MVert *mv, *mvert = BKE_mesh_verts_for_write(mesh);
   int totvert = mesh->totvert, from = psys->part->from;
   int i, j, k, p, res = psys->part->grid_res, size[3], axis;
 
@@ -576,7 +576,7 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
   int rng_skip_tot = PSYS_RND_DIST_SKIP; /* count how many rng_* calls won't need skipping */
 
   MFace *mface;
-  MVert *mvert = BKE_mesh_vertices_for_write(mesh);
+  MVert *mvert = BKE_mesh_verts_for_write(mesh);
 
   pa->num = i = ctx->index[p];
   MFace *mfaces = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
@@ -992,7 +992,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     BKE_mesh_orco_ensure(ob, mesh);
 
     if (from == PART_FROM_VERT) {
-      MVert *mv = BKE_mesh_vertices_for_write(mesh);
+      MVert *mv = BKE_mesh_verts_for_write(mesh);
       const float(*orcodata)[3] = CustomData_get_layer(&mesh->vdata, CD_ORCO);
       int totvert = mesh->totvert;
 
@@ -1063,7 +1063,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
         }
       }
       else {
-        MVert *verts = BKE_mesh_vertices_for_write(mesh);
+        MVert *verts = BKE_mesh_verts_for_write(mesh);
         v1 = &verts[mf->v1];
         v2 = &verts[mf->v2];
         v3 = &verts[mf->v3];

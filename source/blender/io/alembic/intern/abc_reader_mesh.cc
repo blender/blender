@@ -157,7 +157,7 @@ static void read_mverts(CDStreamConfig &config, const AbcMeshData &mesh_data)
 
 void read_mverts(Mesh &mesh, const P3fArraySamplePtr positions, const N3fArraySamplePtr normals)
 {
-  MutableSpan<MVert> verts = mesh.vertices_for_write();
+  MutableSpan<MVert> verts = mesh.verts_for_write();
   for (int i = 0; i < positions->size(); i++) {
     MVert &mvert = verts[i];
     Imath::V3f pos_in = (*positions)[i];
@@ -275,7 +275,7 @@ static void process_loop_normals(CDStreamConfig &config, const N3fArraySamplePtr
   float(*lnors)[3] = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(loop_count, sizeof(float[3]), "ABC::FaceNormals"));
 
-  MPoly *mpoly = mesh->polygons_for_write().data();
+  MPoly *mpoly = mesh->polys_for_write().data();
   const N3fArraySample &loop_normals = *loop_normals_ptr;
   int abc_index = 0;
   for (int i = 0, e = mesh->totpoly; i < e; i++, mpoly++) {
@@ -521,9 +521,9 @@ CDStreamConfig get_config(Mesh *mesh, const bool use_vertex_interpolation)
 {
   CDStreamConfig config;
   config.mesh = mesh;
-  config.mvert = mesh->vertices_for_write().data();
+  config.mvert = mesh->verts_for_write().data();
   config.mloop = mesh->loops_for_write().data();
-  config.mpoly = mesh->polygons_for_write().data();
+  config.mpoly = mesh->polys_for_write().data();
   config.totvert = mesh->totvert;
   config.totloop = mesh->totloop;
   config.totpoly = mesh->totpoly;

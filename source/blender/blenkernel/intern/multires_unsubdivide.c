@@ -640,7 +640,7 @@ static void store_grid_data(MultiresUnsubdivideContext *context,
                             int grid_y)
 {
   Mesh *original_mesh = context->original_mesh;
-  const MPoly *polys = BKE_mesh_polygons(original_mesh);
+  const MPoly *polys = BKE_mesh_polys(original_mesh);
   const MLoop *loops = BKE_mesh_loops(original_mesh);
   const MPoly *poly = &polys[BM_elem_index_get(f)];
 
@@ -920,7 +920,7 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
     MultiresUnsubdivideContext *context)
 {
   Mesh *original_mesh = context->original_mesh;
-  const MPoly *original_polys = BKE_mesh_polygons(original_mesh);
+  const MPoly *original_polys = BKE_mesh_polys(original_mesh);
 
   Mesh *base_mesh = context->base_mesh;
 
@@ -965,7 +965,7 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
  */
 static bool multires_unsubdivide_flip_grid_x_axis(Mesh *mesh, int poly, int loop, int v_x)
 {
-  const MPoly *polys = BKE_mesh_polygons(mesh);
+  const MPoly *polys = BKE_mesh_polys(mesh);
   const MLoop *loops = BKE_mesh_loops(mesh);
 
   const MPoly *p = &polys[poly];

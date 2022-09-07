@@ -3191,7 +3191,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
                            BKE_object_get_evaluated_mesh(par);
 
     if (me_eval) {
-      const MVert *verts = BKE_mesh_vertices(me_eval);
+      const MVert *verts = BKE_mesh_verts(me_eval);
       int count = 0;
       int numVerts = me_eval->totvert;
 
@@ -4130,7 +4130,7 @@ void BKE_object_foreach_display_point(Object *ob,
   float3 co;
 
   if (mesh_eval != nullptr) {
-    const MVert *verts = BKE_mesh_vertices(mesh_eval);
+    const MVert *verts = BKE_mesh_verts(mesh_eval);
     const int totvert = mesh_eval->totvert;
     for (int i = 0; i < totvert; i++) {
       mul_v3_m4v3(co, obmat, verts[i].co);
@@ -4757,7 +4757,7 @@ bool BKE_object_shapekey_remove(Main *bmain, Object *ob, KeyBlock *kb)
       switch (ob->type) {
         case OB_MESH: {
           Mesh *mesh = (Mesh *)ob->data;
-          MutableSpan<MVert> verts = mesh->vertices_for_write();
+          MutableSpan<MVert> verts = mesh->verts_for_write();
           BKE_keyblock_convert_to_mesh(key->refkey, verts.data(), mesh->totvert);
           break;
         }
@@ -5254,7 +5254,7 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
       const int *index;
 
       if (me_eval && (index = (const int *)CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX))) {
-        const Span<MVert> verts = me->vertices();
+        const Span<MVert> verts = me->verts();
 
         /* Tree over-allocates in case where some verts have #ORIGINDEX_NONE. */
         tot = 0;
@@ -5271,7 +5271,7 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
         }
       }
       else {
-        const Span<MVert> verts = me->vertices();
+        const Span<MVert> verts = me->verts();
 
         tot = verts.size();
         tree = BLI_kdtree_3d_new(tot);

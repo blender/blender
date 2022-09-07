@@ -675,7 +675,7 @@ static void draw_subdiv_cache_extra_coarse_face_data_mesh(const MeshRenderData *
                                                           Mesh *mesh,
                                                           uint32_t *flags_data)
 {
-  const Span<MPoly> polys = mesh->polygons();
+  const Span<MPoly> polys = mesh->polys();
   for (const int i : polys.index_range()) {
     uint32_t flag = 0;
     if ((polys[i].flag & ME_SMOOTH) != 0) {
@@ -1095,7 +1095,7 @@ static bool draw_subdiv_build_cache(DRWSubdivCache *cache,
   }
 
   /* Only build polygon related data if we have polygons. */
-  const Span<MPoly> polys = mesh_eval->polygons();
+  const Span<MPoly> polys = mesh_eval->polys();
   if (cache->num_subdiv_loops != 0) {
     /* Build buffers for the PatchMap. */
     draw_patch_map_build(&cache->gpu_patch_map, subdiv);
@@ -2187,7 +2187,7 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
   }
 
   /* Copy the remaining loose_verts. */
-  const Span<MVert> coarse_verts = coarse_mesh->vertices();
+  const Span<MVert> coarse_verts = coarse_mesh->verts();
   for (int i = 0; i < coarse_loose_vert_len; i++) {
     const int coarse_vertex_index = cache->loose_geom.verts[i];
     const MVert &coarse_vertex = coarse_verts[coarse_vertex_index];

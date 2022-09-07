@@ -129,7 +129,7 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache *subdiv_cache,
   GPUVertBuf *subdiv_mask_vbo = nullptr;
   const float *cd_mask = (const float *)CustomData_get_layer(cd_vdata, CD_PAINT_MASK);
 
-  const Span<MPoly> coarse_polys = coarse_mesh->polygons();
+  const Span<MPoly> coarse_polys = coarse_mesh->polys();
   const Span<MLoop> coarse_loops = coarse_mesh->loops();
 
   if (cd_mask) {

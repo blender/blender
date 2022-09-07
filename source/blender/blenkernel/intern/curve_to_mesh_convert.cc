@@ -640,9 +640,9 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
       offsets.vert.last(), offsets.edge.last(), 0, offsets.loop.last(), offsets.poly.last());
   mesh->flag |= ME_AUTOSMOOTH;
   mesh->smoothresh = DEG2RADF(180.0f);
-  MutableSpan<MVert> verts = mesh->vertices_for_write();
+  MutableSpan<MVert> verts = mesh->verts_for_write();
   MutableSpan<MEdge> edges = mesh->edges_for_write();
-  MutableSpan<MPoly> polys = mesh->polygons_for_write();
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
 
   foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {

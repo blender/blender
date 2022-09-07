@@ -159,7 +159,7 @@ static void subdiv_foreach_ctx_count(SubdivForeachTaskContext *ctx)
                                                   (no_quad_patch_resolution - 2);
   const Mesh *coarse_mesh = ctx->coarse_mesh;
   const MLoop *coarse_mloop = BKE_mesh_loops(coarse_mesh);
-  const MPoly *coarse_mpoly = BKE_mesh_polygons(coarse_mesh);
+  const MPoly *coarse_mpoly = BKE_mesh_polys(coarse_mesh);
   ctx->num_subdiv_vertices = coarse_mesh->totvert;
   ctx->num_subdiv_edges = coarse_mesh->totedge * (num_subdiv_vertices_per_coarse_edge + 1);
   /* Calculate extra vertices and edges created by non-loose geometry. */
@@ -225,7 +225,7 @@ static void subdiv_foreach_ctx_init_offsets(SubdivForeachTaskContext *ctx)
   ctx->edge_inner_offset = ctx->edge_boundary_offset +
                            coarse_mesh->totedge * num_subdiv_edges_per_coarse_edge;
   /* "Indexed" offsets. */
-  const MPoly *coarse_mpoly = BKE_mesh_polygons(coarse_mesh);
+  const MPoly *coarse_mpoly = BKE_mesh_polys(coarse_mesh);
   int vertex_offset = 0;
   int edge_offset = 0;
   int polygon_offset = 0;
@@ -302,7 +302,7 @@ static void subdiv_foreach_corner_vertices_regular_do(
   const float weights[4][2] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}};
   const Mesh *coarse_mesh = ctx->coarse_mesh;
   const MLoop *coarse_mloop = BKE_mesh_loops(coarse_mesh);
-  const MPoly *coarse_mpoly = BKE_mesh_polygons(coarse_mesh);
+  const MPoly *coarse_mpoly = BKE_mesh_polys(coarse_mesh);
   const int coarse_poly_index = coarse_poly - coarse_mpoly;
   const int ptex_face_index = ctx->face_ptex_offset[coarse_poly_index];
   for (int corner = 0; corner < coarse_poly->totloop; corner++) {
@@ -344,7 +344,7 @@ static void subdiv_foreach_corner_vertices_special_do(
 {
   const Mesh *coarse_mesh = ctx->coarse_mesh;
   const MLoop *coarse_mloop = BKE_mesh_loops(coarse_mesh);
-  const MPoly *coarse_mpoly = BKE_mesh_polygons(coarse_mesh);
+  const MPoly *coarse_mpoly = BKE_mesh_polys(coarse_mesh);
   const int coarse_poly_index = coarse_poly - coarse_mpoly;
   int ptex_face_index = ctx->face_ptex_offset[coarse_poly_index];
   for (int corner = 0; corner < coarse_poly->totloop; corner++, ptex_face_index++) {
@@ -409,7 +409,7 @@ static void subdiv_foreach_every_corner_vertices(SubdivForeachTaskContext *ctx, 
     return;
   }
   const Mesh *coarse_mesh = ctx->coarse_mesh;
-  const MPoly *coarse_mpoly = BKE_mesh_polygons(coarse_mesh);
+  const MPoly *coarse_mpoly = BKE_mesh_polys(coarse_mesh);
   for (int poly_index = 0; poly_index < coarse_mesh->totpoly; poly_index++) {
     const MPoly *coarse_poly = &coarse_mpoly[poly_index];
     if (coarse_poly->totloop == 4) {
@@ -435,7 +435,7 @@ static void subdiv_foreach_edge_vertices_regular_do(SubdivForeachTaskContext *ct
   const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
   const Mesh *coarse_mesh = ctx->coarse_mesh;
   const MEdge *coarse_medge = BKE_mesh_edges(coarse_mesh);
-  const MPoly *coarse_mpoly = BKE_mesh_polygons(coarse_mesh);
+  const MPoly *coarse_mpoly = BKE_mesh_polys(coarse_mesh);
   const MLoop *coarse_mloop = BKE_mesh_loops(coarse_mesh);
   const int coarse_poly_index = coarse_poly - coarse_mpoly;
   const int poly_index = coarse_poly - coarse_mpoly;
@@ -502,7 +502,7 @@ static void subdiv_foreach_edge_vertices_special_do(SubdivForeachTaskContext *ct
   const float inv_ptex_resolution_1 = 1.0f / (float)(num_vertices_per_ptex_edge - 1);
   const Mesh *coarse_mesh = ctx->coarse_mesh;
   const MEdge *coarse_medge = BKE_mesh_edges(coarse_mesh);
-  const MPoly *coarse_mpoly = BKE_mesh_polygons(coarse_mesh);
+  const MPoly *coarse_mpoly = BKE_mesh_polys(coarse_mesh);
   const MLoop *coarse_mloop = BKE_mesh_loops(coarse_mesh);
   const int coarse_poly_index = coarse_poly - coarse_mpoly;
   const int poly_index = coarse_poly - coarse_mpoly;
@@ -597,7 +597,7 @@ static void subdiv_foreach_every_edge_vertices(SubdivForeachTaskContext *ctx, vo
     return;
   }
   const Mesh *coarse_mesh = ctx->coarse_mesh;
-  const MPoly *coarse_mpoly = BKE_mesh_polygons(coarse_mesh);
+  const MPoly *coarse_mpoly = BKE_mesh_polys(coarse_mesh);
   for (int poly_index = 0; poly_index < coarse_mesh->totpoly; poly_index++) {
     const MPoly *coarse_poly = &coarse_mpoly[poly_index];
     if (coarse_poly->totloop == 4) {
@@ -618,7 +618,7 @@ static void subdiv_foreach_inner_vertices_regular(SubdivForeachTaskContext *ctx,
   const int resolution = ctx->settings->resolution;
   const float inv_resolution_1 = 1.0f / (float)(resolution - 1);
   const Mesh *coarse_mesh = ctx->coarse_mesh;
-  const MPoly *coarse_mpoly = BKE_mesh_polygons(coarse_mesh);
+  const MPoly *coarse_mpoly = BKE_mesh_polys(coarse_mesh);
   const int coarse_poly_index = coarse_poly - coarse_mpoly;
   const int ptex_face_index = ctx->face_ptex_offset[coarse_poly_index];
   const int start_vertex_index = ctx->subdiv_vertex_offset[coarse_poly_index];
@@ -647,7 +647,7 @@ static void subdiv_foreach_inner_vertices_special(SubdivForeachTaskContext *ctx,
   const int ptex_face_resolution = ptex_face_resolution_get(coarse_poly, resolution);
   const float inv_ptex_face_resolution_1 = 1.0f / (float)(ptex_face_resolution - 1);
   const Mesh *coarse_mesh = ctx->coarse_mesh;
-  const MPoly *coarse_mpoly = BKE_mesh_polygons(coarse_mesh);
+  const MPoly *coarse_mpoly = BKE_mesh_polys(coarse_mesh);
   const int coarse_poly_index = coarse_poly - coarse_mpoly;
   int ptex_face_index = ctx->face_ptex_offset[coarse_poly_index];
   const int start_vertex_index = ctx->subdiv_vertex_offset[coarse_poly_index];
@@ -695,7 +695,7 @@ static void subdiv_foreach_inner_vertices(SubdivForeachTaskContext *ctx,
 static void subdiv_foreach_vertices(SubdivForeachTaskContext *ctx, void *tls, const int poly_index)
 {
   const Mesh *coarse_mesh = ctx->coarse_mesh;
-  const MPoly *coarse_mpoly = BKE_mesh_polygons(coarse_mesh);
+  const MPoly *coarse_mpoly = BKE_mesh_polys(coarse_mesh);
   const MPoly *coarse_poly = &coarse_mpoly[poly_index];
   if (ctx->foreach_context->vertex_inner != NULL) {
     subdiv_foreach_inner_vertices(ctx, tls, coarse_poly);
@@ -780,7 +780,7 @@ static void subdiv_foreach_edges_all_patches_regular(SubdivForeachTaskContext *c
 {
   const Mesh *coarse_mesh = ctx->coarse_mesh;
   const MEdge *coarse_medge = BKE_mesh_edges(coarse_mesh);
-  const MPoly *coarse_mpoly = BKE_mesh_polygons(coarse_mesh);
+  const MPoly *coarse_mpoly = BKE_mesh_polys(coarse_mesh);
   const MLoop *coarse_mloop = BKE_mesh_loops(coarse_mesh);
   const int poly_index = coarse_poly - coarse_mpoly;
   const int resolution = ctx->settings->resolution;
@@ -861,7 +861,7 @@ static void subdiv_foreach_edges_all_patches_special(SubdivForeachTaskContext *c
 {
   const Mesh *coarse_mesh = ctx->coarse_mesh;
   const MEdge *coarse_medge = BKE_mesh_edges(coarse_mesh);
-  const MPoly *coarse_mpoly = BKE_mesh_polygons(coarse_mesh);
+  const MPoly *coarse_mpoly = BKE_mesh_polys(coarse_mesh);
   const MLoop *coarse_mloop = BKE_mesh_loops(coarse_mesh);
   const int poly_index = coarse_poly - coarse_mpoly;
   const int resolution = ctx->settings->resolution;
@@ -988,7 +988,7 @@ static void subdiv_foreach_edges_all_patches(SubdivForeachTaskContext *ctx,
 static void subdiv_foreach_edges(SubdivForeachTaskContext *ctx, void *tls, int poly_index)
 {
   const Mesh *coarse_mesh = ctx->coarse_mesh;
-  const MPoly *coarse_mpoly = BKE_mesh_polygons(coarse_mesh);
+  const MPoly *coarse_mpoly = BKE_mesh_polys(coarse_mesh);
   const MPoly *coarse_poly = &coarse_mpoly[poly_index];
   subdiv_foreach_edges_all_patches(ctx, tls, coarse_poly);
 }
@@ -1130,7 +1130,7 @@ static void subdiv_foreach_loops_regular(SubdivForeachTaskContext *ctx,
   /* Base/coarse mesh information. */
   const Mesh *coarse_mesh = ctx->coarse_mesh;
   const MEdge *coarse_medge = BKE_mesh_edges(coarse_mesh);
-  const MPoly *coarse_mpoly = BKE_mesh_polygons(coarse_mesh);
+  const MPoly *coarse_mpoly = BKE_mesh_polys(coarse_mesh);
   const MLoop *coarse_mloop = BKE_mesh_loops(coarse_mesh);
   const int coarse_poly_index = coarse_poly - coarse_mpoly;
   const int ptex_resolution = ptex_face_resolution_get(coarse_poly, resolution);
@@ -1324,7 +1324,7 @@ static void subdiv_foreach_loops_special(SubdivForeachTaskContext *ctx,
   /* Base/coarse mesh information. */
   const Mesh *coarse_mesh = ctx->coarse_mesh;
   const MEdge *coarse_medge = BKE_mesh_edges(coarse_mesh);
-  const MPoly *coarse_mpoly = BKE_mesh_polygons(coarse_mesh);
+  const MPoly *coarse_mpoly = BKE_mesh_polys(coarse_mesh);
   const MLoop *coarse_mloop = BKE_mesh_loops(coarse_mesh);
   const int coarse_poly_index = coarse_poly - coarse_mpoly;
   const int ptex_face_resolution = ptex_face_resolution_get(coarse_poly, resolution);
@@ -1658,7 +1658,7 @@ static void subdiv_foreach_loops_special(SubdivForeachTaskContext *ctx,
 static void subdiv_foreach_loops(SubdivForeachTaskContext *ctx, void *tls, int poly_index)
 {
   const Mesh *coarse_mesh = ctx->coarse_mesh;
-  const MPoly *coarse_mpoly = BKE_mesh_polygons(coarse_mesh);
+  const MPoly *coarse_mpoly = BKE_mesh_polys(coarse_mesh);
   const MPoly *coarse_poly = &coarse_mpoly[poly_index];
   if (coarse_poly->totloop == 4) {
     subdiv_foreach_loops_regular(ctx, tls, coarse_poly);
@@ -1680,7 +1680,7 @@ static void subdiv_foreach_polys(SubdivForeachTaskContext *ctx, void *tls, int p
   const int start_poly_index = ctx->subdiv_polygon_offset[poly_index];
   /* Base/coarse mesh information. */
   const Mesh *coarse_mesh = ctx->coarse_mesh;
-  const MPoly *coarse_mpoly = BKE_mesh_polygons(coarse_mesh);
+  const MPoly *coarse_mpoly = BKE_mesh_polys(coarse_mesh);
   const MPoly *coarse_poly = &coarse_mpoly[poly_index];
   const int num_ptex_faces_per_poly = num_ptex_faces_per_poly_get(coarse_poly);
   const int ptex_resolution = ptex_face_resolution_get(coarse_poly, resolution);
@@ -1773,7 +1773,7 @@ static void subdiv_foreach_single_geometry_vertices(SubdivForeachTaskContext *ct
     return;
   }
   const Mesh *coarse_mesh = ctx->coarse_mesh;
-  const MPoly *coarse_mpoly = BKE_mesh_polygons(coarse_mesh);
+  const MPoly *coarse_mpoly = BKE_mesh_polys(coarse_mesh);
   for (int poly_index = 0; poly_index < coarse_mesh->totpoly; poly_index++) {
     const MPoly *coarse_poly = &coarse_mpoly[poly_index];
     subdiv_foreach_corner_vertices(ctx, tls, coarse_poly);
@@ -1784,7 +1784,7 @@ static void subdiv_foreach_single_geometry_vertices(SubdivForeachTaskContext *ct
 static void subdiv_foreach_mark_non_loose_geometry(SubdivForeachTaskContext *ctx)
 {
   const Mesh *coarse_mesh = ctx->coarse_mesh;
-  const MPoly *coarse_mpoly = BKE_mesh_polygons(coarse_mesh);
+  const MPoly *coarse_mpoly = BKE_mesh_polys(coarse_mesh);
   const MLoop *coarse_mloop = BKE_mesh_loops(coarse_mesh);
   for (int poly_index = 0; poly_index < coarse_mesh->totpoly; poly_index++) {
     const MPoly *coarse_poly = &coarse_mpoly[poly_index];

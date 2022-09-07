@@ -28,8 +28,8 @@
 
 static void multires_subdivide_create_object_space_linear_grids(Mesh *mesh)
 {
-  const MVert *verts = BKE_mesh_vertices(mesh);
-  const MPoly *polys = BKE_mesh_polygons(mesh);
+  const MVert *verts = BKE_mesh_verts(mesh);
+  const MPoly *polys = BKE_mesh_polys(mesh);
   const MLoop *loops = BKE_mesh_loops(mesh);
 
   MDisps *mdisps = CustomData_get_layer(&mesh->ldata, CD_MDISPS);

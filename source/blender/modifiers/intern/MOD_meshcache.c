@@ -182,14 +182,14 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
       float(*vertexCos_Source)[3] = MEM_malloc_arrayN(
           verts_num, sizeof(*vertexCos_Source), __func__);
       float(*vertexCos_New)[3] = MEM_malloc_arrayN(verts_num, sizeof(*vertexCos_New), __func__);
-      const MVert *mv = BKE_mesh_vertices(me);
+      const MVert *mv = BKE_mesh_verts(me);
 
       for (i = 0; i < verts_num; i++, mv++) {
         copy_v3_v3(vertexCos_Source[i], mv->co);
       }
 
       BKE_mesh_calc_relative_deform(
-          BKE_mesh_polygons(me),
+          BKE_mesh_polys(me),
           me->totpoly,
           BKE_mesh_loops(me),
           me->totvert,

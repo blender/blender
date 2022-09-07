@@ -103,7 +103,7 @@ static void free_mask_data(SubdivCCGMaskEvaluator *mask_evaluator)
 static int count_num_ptex_faces(const Mesh *mesh)
 {
   int num_ptex_faces = 0;
-  const MPoly *mpoly = BKE_mesh_polygons(mesh);
+  const MPoly *mpoly = BKE_mesh_polys(mesh);
   for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
     const MPoly *poly = &mpoly[poly_index];
     num_ptex_faces += (poly->totloop == 4) ? 1 : poly->totloop;
@@ -114,7 +114,7 @@ static int count_num_ptex_faces(const Mesh *mesh)
 static void mask_data_init_mapping(SubdivCCGMaskEvaluator *mask_evaluator, const Mesh *mesh)
 {
   GridPaintMaskData *data = mask_evaluator->user_data;
-  const MPoly *mpoly = BKE_mesh_polygons(mesh);
+  const MPoly *mpoly = BKE_mesh_polys(mesh);
   const int num_ptex_faces = count_num_ptex_faces(mesh);
   /* Allocate memory. */
   data->ptex_poly_corner = MEM_malloc_arrayN(
@@ -142,7 +142,7 @@ static void mask_data_init_mapping(SubdivCCGMaskEvaluator *mask_evaluator, const
 static void mask_init_data(SubdivCCGMaskEvaluator *mask_evaluator, const Mesh *mesh)
 {
   GridPaintMaskData *data = mask_evaluator->user_data;
-  data->mpoly = BKE_mesh_polygons(mesh);
+  data->mpoly = BKE_mesh_polys(mesh);
   data->grid_paint_mask = CustomData_get_layer(&mesh->ldata, CD_GRID_PAINT_MASK);
   mask_data_init_mapping(mask_evaluator, mesh);
 }

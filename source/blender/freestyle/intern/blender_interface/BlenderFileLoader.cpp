@@ -399,8 +399,8 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
 {
   char *name = ob->id.name + 2;
 
-  const Span<MVert> mesh_verts = me->vertices();
-  const Span<MPoly> mesh_polys = me->polygons();
+  const Span<MVert> mesh_verts = me->verts();
+  const Span<MPoly> mesh_polys = me->polys();
   const Span<MLoop> mesh_loops = me->loops();
 
   // Compute loop triangles

@@ -142,7 +142,7 @@ struct AddOperationExecutor {
       report_empty_evaluated_surface(stroke_extension.reports);
       return;
     }
-    surface_verts_eval_ = surface_eval_->vertices();
+    surface_verts_eval_ = surface_eval_->verts();
     surface_loops_eval_ = surface_eval_->loops();
     surface_looptris_eval_ = {BKE_mesh_runtime_looptri_ensure(surface_eval_),
                               BKE_mesh_runtime_looptri_len(surface_eval_)};

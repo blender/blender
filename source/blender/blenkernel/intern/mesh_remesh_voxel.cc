@@ -61,7 +61,7 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
                                void (*update_cb)(void *, float progress, int *cancel),
                                void *update_cb_data)
 {
-  const Span<MVert> input_verts = input_mesh->vertices();
+  const Span<MVert> input_verts = input_mesh->verts();
   const Span<MLoop> input_loops = input_mesh->loops();
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(input_mesh);
 
@@ -124,8 +124,8 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
 
   /* Construct the new output mesh */
   Mesh *mesh = BKE_mesh_new_nomain(qrd.out_totverts, 0, 0, qrd.out_totfaces * 4, qrd.out_totfaces);
-  MutableSpan<MVert> mesh_verts = mesh->vertices_for_write();
-  MutableSpan<MPoly> polys = mesh->polygons_for_write();
+  MutableSpan<MVert> mesh_verts = mesh->verts_for_write();
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
 
   for (const int i : IndexRange(qrd.out_totverts)) {
@@ -190,7 +190,7 @@ Mesh *BKE_mesh_remesh_quadriflow(const Mesh *mesh,
 static openvdb::FloatGrid::Ptr remesh_voxel_level_set_create(const Mesh *mesh,
                                                              const float voxel_size)
 {
-  const Span<MVert> verts = mesh->vertices();
+  const Span<MVert> verts = mesh->verts();
   const Span<MLoop> loops = mesh->loops();
   Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(mesh),
                           BKE_mesh_runtime_looptri_len(mesh)};
@@ -230,8 +230,8 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
 
   Mesh *mesh = BKE_mesh_new_nomain(
       vertices.size(), 0, 0, quads.size() * 4 + tris.size() * 3, quads.size() + tris.size());
-  MutableSpan<MVert> mesh_verts = mesh->vertices_for_write();
-  MutableSpan<MPoly> mesh_polys = mesh->polygons_for_write();
+  MutableSpan<MVert> mesh_verts = mesh->verts_for_write();
+  MutableSpan<MPoly> mesh_polys = mesh->polys_for_write();
   MutableSpan<MLoop> mesh_loops = mesh->loops_for_write();
 
   for (const int i : mesh_verts.index_range()) {

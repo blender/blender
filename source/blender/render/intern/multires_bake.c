@@ -485,13 +485,13 @@ static void do_multires_bake(MultiresBakeRender *bkr,
 
   Mesh *temp_mesh = BKE_mesh_new_nomain(
       dm->getNumVerts(dm), dm->getNumEdges(dm), 0, dm->getNumLoops(dm), dm->getNumPolys(dm));
-  memcpy(BKE_mesh_vertices_for_write(temp_mesh),
+  memcpy(BKE_mesh_verts_for_write(temp_mesh),
          dm->getVertArray(dm),
          temp_mesh->totvert * sizeof(MVert));
   memcpy(BKE_mesh_edges_for_write(temp_mesh),
          dm->getEdgeArray(dm),
          temp_mesh->totedge * sizeof(MEdge));
-  memcpy(BKE_mesh_polygons_for_write(temp_mesh),
+  memcpy(BKE_mesh_polys_for_write(temp_mesh),
          dm->getPolyArray(dm),
          temp_mesh->totpoly * sizeof(MPoly));
   memcpy(BKE_mesh_loops_for_write(temp_mesh),

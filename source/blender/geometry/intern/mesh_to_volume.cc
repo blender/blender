@@ -30,7 +30,7 @@ class OpenVDBMeshAdapter {
 };
 
 OpenVDBMeshAdapter::OpenVDBMeshAdapter(const Mesh &mesh, float4x4 transform)
-    : vertices_(mesh.vertices()), loops_(mesh.loops()), transform_(transform)
+    : vertices_(mesh.verts()), loops_(mesh.loops()), transform_(transform)
 {
   /* This only updates a cache and can be considered to be logically const. */
   const MLoopTri *looptris = BKE_mesh_runtime_looptri_ensure(&mesh);

@@ -3162,7 +3162,7 @@ void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const float (*vertCos)[3])
 
   /* Modifying of basis key should update mesh. */
   if (kb == me->key->refkey) {
-    MVert *verts = BKE_mesh_vertices_for_write(me);
+    MVert *verts = BKE_mesh_verts_for_write(me);
 
     for (a = 0; a < me->totvert; a++) {
       copy_v3_v3(verts[a].co, vertCos[a]);
@@ -3589,7 +3589,7 @@ static void sculpt_flush_pbvhvert_deform(Object *ob, PBVHVertexIter *vd)
   copy_v3_v3(ss->deform_cos[index], vd->co);
   copy_v3_v3(ss->orig_cos[index], newco);
 
-  MVert *verts = BKE_mesh_vertices_for_write(me);
+  MVert *verts = BKE_mesh_verts_for_write(me);
   if (!ss->shapekey_active) {
     copy_v3_v3(verts[index].co, newco);
   }
@@ -5910,7 +5910,7 @@ void SCULPT_boundary_info_ensure(Object *object)
 
   Mesh *base_mesh = BKE_mesh_from_object(object);
   const MEdge *edges = BKE_mesh_edges(base_mesh);
-  const MPoly *polys = BKE_mesh_polygons(base_mesh);
+  const MPoly *polys = BKE_mesh_polys(base_mesh);
   const MLoop *loops = BKE_mesh_loops(base_mesh);
 
   ss->vertex_info.boundary = BLI_BITMAP_NEW(base_mesh->totvert, "Boundary info");

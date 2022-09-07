@@ -204,7 +204,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     }
   }
 
-  const MPoly *polys = BKE_mesh_polygons(mesh);
+  const MPoly *polys = BKE_mesh_polys(mesh);
   const MLoop *loops = BKE_mesh_loops(mesh);
 
   /* apply coords as UVs */

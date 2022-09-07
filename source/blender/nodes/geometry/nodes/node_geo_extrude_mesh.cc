@@ -245,7 +245,7 @@ static void extrude_mesh_vertices(Mesh &mesh,
   const IndexRange new_vert_range{orig_vert_size, selection.size()};
   const IndexRange new_edge_range{orig_edge_size, selection.size()};
 
-  MutableSpan<MVert> new_verts = mesh.vertices_for_write().slice(new_vert_range);
+  MutableSpan<MVert> new_verts = mesh.verts_for_write().slice(new_vert_range);
   MutableSpan<MEdge> new_edges = mesh.edges_for_write().slice(new_edge_range);
 
   for (const int i_selection : selection.index_range()) {
@@ -311,7 +311,7 @@ static void extrude_mesh_vertices(Mesh &mesh,
 
 static Array<Vector<int, 2>> mesh_calculate_polys_of_edge(const Mesh &mesh)
 {
-  Span<MPoly> polys = mesh.polygons();
+  Span<MPoly> polys = mesh.polys();
   Span<MLoop> loops = mesh.loops();
   Array<Vector<int, 2>> polys_of_edge(mesh.totedge);
 
@@ -389,7 +389,7 @@ static void extrude_mesh_edges(Mesh &mesh,
 {
   const int orig_vert_size = mesh.totvert;
   Span<MEdge> orig_edges = mesh.edges();
-  Span<MPoly> orig_polys = mesh.polygons();
+  Span<MPoly> orig_polys = mesh.polys();
   const int orig_loop_size = mesh.totloop;
 
   bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
@@ -441,7 +441,7 @@ static void extrude_mesh_edges(Mesh &mesh,
   MutableSpan<MEdge> edges = mesh.edges_for_write();
   MutableSpan<MEdge> connect_edges = edges.slice(connect_edge_range);
   MutableSpan<MEdge> duplicate_edges = edges.slice(duplicate_edge_range);
-  MutableSpan<MPoly> polys = mesh.polygons_for_write();
+  MutableSpan<MPoly> polys = mesh.polys_for_write();
   MutableSpan<MPoly> new_polys = polys.slice(new_poly_range);
   MutableSpan<MLoop> loops = mesh.loops_for_write();
   MutableSpan<MLoop> new_loops = loops.slice(new_loop_range);
@@ -606,7 +606,7 @@ static void extrude_mesh_edges(Mesh &mesh,
     return true;
   });
 
-  MutableSpan<MVert> new_verts = mesh.vertices_for_write().slice(new_vert_range);
+  MutableSpan<MVert> new_verts = mesh.verts_for_write().slice(new_vert_range);
   if (edge_offsets.is_single()) {
     const float3 offset = edge_offsets.get_internal_single();
     threading::parallel_for(new_verts.index_range(), 1024, [&](const IndexRange range) {
@@ -653,7 +653,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
 {
   const int orig_vert_size = mesh.totvert;
   Span<MEdge> orig_edges = mesh.edges();
-  Span<MPoly> orig_polys = mesh.polygons();
+  Span<MPoly> orig_polys = mesh.polys();
   Span<MLoop> orig_loops = mesh.loops();
 
   bke::MeshFieldContext poly_context{mesh, ATTR_DOMAIN_FACE};
@@ -785,7 +785,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   MutableSpan<MEdge> connect_edges = edges.slice(connect_edge_range);
   MutableSpan<MEdge> boundary_edges = edges.slice(boundary_edge_range);
   MutableSpan<MEdge> new_inner_edges = edges.slice(new_inner_edge_range);
-  MutableSpan<MPoly> polys = mesh.polygons_for_write();
+  MutableSpan<MPoly> polys = mesh.polys_for_write();
   MutableSpan<MPoly> new_polys = polys.slice(side_poly_range);
   MutableSpan<MLoop> loops = mesh.loops_for_write();
   MutableSpan<MLoop> new_loops = loops.slice(side_loop_range);
@@ -976,7 +976,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   /* Translate vertices based on the offset. If the vertex is used by a selected edge, it will
    * have been duplicated and only the new vertex should use the offset. Otherwise the vertex might
    * still need an offset, but it was reused on the inside of a region of extruded faces. */
-  MutableSpan<MVert> verts = mesh.vertices_for_write();
+  MutableSpan<MVert> verts = mesh.verts_for_write();
   if (poly_offsets.is_single()) {
     const float3 offset = poly_offsets.get_internal_single();
     threading::parallel_for(
@@ -1038,7 +1038,7 @@ static void extrude_individual_mesh_faces(Mesh &mesh,
 {
   const int orig_vert_size = mesh.totvert;
   const int orig_edge_size = mesh.totedge;
-  Span<MPoly> orig_polys = mesh.polygons();
+  Span<MPoly> orig_polys = mesh.polys();
   Span<MLoop> orig_loops = mesh.loops();
 
   /* Use a mesh for the result of the evaluation because the mesh is reallocated before
@@ -1078,11 +1078,11 @@ static void extrude_individual_mesh_faces(Mesh &mesh,
               side_poly_range.size(),
               side_loop_range.size());
 
-  MutableSpan<MVert> new_verts = mesh.vertices_for_write().slice(new_vert_range);
+  MutableSpan<MVert> new_verts = mesh.verts_for_write().slice(new_vert_range);
   MutableSpan<MEdge> edges = mesh.edges_for_write();
   MutableSpan<MEdge> connect_edges = edges.slice(connect_edge_range);
   MutableSpan<MEdge> duplicate_edges = edges.slice(duplicate_edge_range);
-  MutableSpan<MPoly> polys = mesh.polygons_for_write();
+  MutableSpan<MPoly> polys = mesh.polys_for_write();
   MutableSpan<MPoly> new_polys = polys.slice(side_poly_range);
   MutableSpan<MLoop> loops = mesh.loops_for_write();
 

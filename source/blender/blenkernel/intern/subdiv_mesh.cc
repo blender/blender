@@ -73,9 +73,9 @@ static void subdiv_mesh_ctx_cache_uv_layers(SubdivMeshContext *ctx)
 static void subdiv_mesh_ctx_cache_custom_data_layers(SubdivMeshContext *ctx)
 {
   Mesh *subdiv_mesh = ctx->subdiv_mesh;
-  ctx->subdiv_verts = BKE_mesh_vertices_for_write(subdiv_mesh);
+  ctx->subdiv_verts = BKE_mesh_verts_for_write(subdiv_mesh);
   ctx->subdiv_edges = BKE_mesh_edges_for_write(subdiv_mesh);
-  ctx->subdiv_polys = BKE_mesh_polygons_for_write(subdiv_mesh);
+  ctx->subdiv_polys = BKE_mesh_polys_for_write(subdiv_mesh);
   ctx->subdiv_loops = BKE_mesh_loops_for_write(subdiv_mesh);
   /* Pointers to original indices layers. */
   ctx->vert_origindex = static_cast<int *>(
@@ -999,7 +999,7 @@ static void points_for_loose_edges_interpolation_get(const Mesh *coarse_mesh,
                                                      const MEdge *neighbors[2],
                                                      float points_r[4][3])
 {
-  const MVert *coarse_mvert = BKE_mesh_vertices(coarse_mesh);
+  const MVert *coarse_mvert = BKE_mesh_verts(coarse_mesh);
   /* Middle points corresponds to the edge. */
   copy_v3_v3(points_r[1], coarse_mvert[coarse_edge->v1].co);
   copy_v3_v3(points_r[2], coarse_mvert[coarse_edge->v2].co);
@@ -1038,7 +1038,7 @@ void BKE_subdiv_mesh_interpolate_position_on_edge(const Mesh *coarse_mesh,
                                                   float pos_r[3])
 {
   if (is_simple) {
-    const MVert *coarse_mvert = BKE_mesh_vertices(coarse_mesh);
+    const MVert *coarse_mvert = BKE_mesh_verts(coarse_mesh);
     const MVert *vert_1 = &coarse_mvert[coarse_edge->v1];
     const MVert *vert_2 = &coarse_mvert[coarse_edge->v2];
     interp_v3_v3v3(pos_r, vert_1->co, vert_2->co, u);
@@ -1164,9 +1164,9 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
   subdiv_context.settings = settings;
 
   subdiv_context.coarse_mesh = coarse_mesh;
-  subdiv_context.coarse_verts = BKE_mesh_vertices(coarse_mesh);
+  subdiv_context.coarse_verts = BKE_mesh_verts(coarse_mesh);
   subdiv_context.coarse_edges = BKE_mesh_edges(coarse_mesh);
-  subdiv_context.coarse_polys = BKE_mesh_polygons(coarse_mesh);
+  subdiv_context.coarse_polys = BKE_mesh_polys(coarse_mesh);
   subdiv_context.coarse_loops = BKE_mesh_loops(coarse_mesh);
 
   subdiv_context.subdiv = subdiv;

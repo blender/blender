@@ -161,7 +161,7 @@ static void copy_face_corner_attributes(const Map<AttributeIDRef, AttributeKind>
                                         const Span<int> selected_poly_indices,
                                         const Mesh &mesh_in)
 {
-  const Span<MPoly> polys = mesh_in.polygons();
+  const Span<MPoly> polys = mesh_in.polys();
   Vector<int64_t> indices;
   indices.reserve(selected_loops_num);
   for (const int src_poly_index : selected_poly_indices) {
@@ -181,8 +181,8 @@ static void copy_masked_vertices_to_new_mesh(const Mesh &src_mesh,
                                              Span<int> vertex_map)
 {
   BLI_assert(src_mesh.totvert == vertex_map.size());
-  const Span<MVert> src_verts = src_mesh.vertices();
-  MutableSpan<MVert> dst_verts = dst_mesh.vertices_for_write();
+  const Span<MVert> src_verts = src_mesh.verts();
+  MutableSpan<MVert> dst_verts = dst_mesh.verts_for_write();
 
   for (const int i_src : vertex_map.index_range()) {
     const int i_dst = vertex_map[i_src];
@@ -239,9 +239,9 @@ static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
                                           Span<int> masked_poly_indices,
                                           Span<int> new_loop_starts)
 {
-  const Span<MPoly> src_polygons = src_mesh.polygons();
+  const Span<MPoly> src_polygons = src_mesh.polys();
   const Span<MLoop> src_loops = src_mesh.loops();
-  MutableSpan<MPoly> dst_polygons = dst_mesh.polygons_for_write();
+  MutableSpan<MPoly> dst_polygons = dst_mesh.polys_for_write();
   MutableSpan<MLoop> dst_loops = dst_mesh.loops_for_write();
 
   for (const int i_dst : masked_poly_indices.index_range()) {
@@ -270,9 +270,9 @@ static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
                                           Span<int> masked_poly_indices,
                                           Span<int> new_loop_starts)
 {
-  const Span<MPoly> src_polygons = src_mesh.polygons();
+  const Span<MPoly> src_polygons = src_mesh.polys();
   const Span<MLoop> src_loops = src_mesh.loops();
-  MutableSpan<MPoly> dst_polygons = dst_mesh.polygons_for_write();
+  MutableSpan<MPoly> dst_polygons = dst_mesh.polys_for_write();
   MutableSpan<MLoop> dst_loops = dst_mesh.loops_for_write();
 
   for (const int i_dst : masked_poly_indices.index_range()) {
@@ -302,9 +302,9 @@ static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
                                           Span<int> masked_poly_indices,
                                           Span<int> new_loop_starts)
 {
-  const Span<MPoly> src_polygons = src_mesh.polygons();
+  const Span<MPoly> src_polygons = src_mesh.polys();
   const Span<MLoop> src_loops = src_mesh.loops();
-  MutableSpan<MPoly> dst_polygons = dst_mesh.polygons_for_write();
+  MutableSpan<MPoly> dst_polygons = dst_mesh.polys_for_write();
   MutableSpan<MLoop> dst_loops = dst_mesh.loops_for_write();
 
   for (const int i_dst : masked_poly_indices.index_range()) {
@@ -460,7 +460,7 @@ static void compute_selected_polygons_from_vertex_selection(const Mesh &mesh,
                                                             int *r_selected_loops_num)
 {
   BLI_assert(mesh.totvert == vertex_selection.size());
-  const Span<MPoly> polys = mesh.polygons();
+  const Span<MPoly> polys = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
 
   r_selected_poly_indices.reserve(mesh.totpoly);
@@ -565,7 +565,7 @@ static void compute_selected_polygons_from_edge_selection(const Mesh &mesh,
                                                           int *r_selected_polys_num,
                                                           int *r_selected_loops_num)
 {
-  const Span<MPoly> polys = mesh.polygons();
+  const Span<MPoly> polys = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
 
   r_selected_poly_indices.reserve(mesh.totpoly);
@@ -714,7 +714,7 @@ static void compute_selected_polygons_from_poly_selection(const Mesh &mesh,
                                                           int *r_selected_loops_num)
 {
   BLI_assert(mesh.totpoly == poly_selection.size());
-  const Span<MPoly> polys = mesh.polygons();
+  const Span<MPoly> polys = mesh.polys();
 
   r_selected_poly_indices.reserve(mesh.totpoly);
   r_loop_starts.reserve(mesh.totloop);
@@ -748,7 +748,7 @@ static void compute_selected_mesh_data_from_poly_selection_edge_face(
 {
   BLI_assert(mesh.totpoly == poly_selection.size());
   BLI_assert(mesh.totedge == r_edge_map.size());
-  const Span<MPoly> polys = mesh.polygons();
+  const Span<MPoly> polys = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
 
   r_edge_map.fill(-1);
@@ -799,7 +799,7 @@ static void compute_selected_mesh_data_from_poly_selection(const Mesh &mesh,
 {
   BLI_assert(mesh.totpoly == poly_selection.size());
   BLI_assert(mesh.totedge == r_edge_map.size());
-  const Span<MPoly> polys = mesh.polygons();
+  const Span<MPoly> polys = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
 
   r_vertex_map.fill(-1);
@@ -996,7 +996,7 @@ static void do_mesh_separation(GeometrySet &geometry_set,
                                                    selected_polys_num);
 
       /* Copy the selected parts of the mesh over to the new mesh. */
-      mesh_out->vertices_for_write().copy_from(mesh_in.vertices());
+      mesh_out->verts_for_write().copy_from(mesh_in.verts());
       copy_masked_edges_to_new_mesh(mesh_in, *mesh_out, edge_map);
       copy_masked_polys_to_new_mesh(
           mesh_in, *mesh_out, edge_map, selected_poly_indices, new_loop_starts);
@@ -1059,7 +1059,7 @@ static void do_mesh_separation(GeometrySet &geometry_set,
           &mesh_in, mesh_in.totvert, mesh_in.totedge, 0, selected_loops_num, selected_polys_num);
 
       /* Copy the selected parts of the mesh over to the new mesh. */
-      mesh_out->vertices_for_write().copy_from(mesh_in.vertices());
+      mesh_out->verts_for_write().copy_from(mesh_in.verts());
       mesh_out->edges_for_write().copy_from(mesh_in.edges());
       copy_masked_polys_to_new_mesh(mesh_in, *mesh_out, selected_poly_indices, new_loop_starts);
 

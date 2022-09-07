@@ -68,8 +68,8 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
   if (facemap_data) {
     GPU_blend(GPU_BLEND_ALPHA);
 
-    const MVert *verts = BKE_mesh_vertices(me);
-    const MPoly *polys = BKE_mesh_polygons(me);
+    const MVert *verts = BKE_mesh_verts(me);
+    const MPoly *polys = BKE_mesh_polys(me);
     const MLoop *loops = BKE_mesh_loops(me);
 
     int mpoly_len = me->totpoly;

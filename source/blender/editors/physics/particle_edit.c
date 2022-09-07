@@ -1451,7 +1451,7 @@ void recalc_emitter_field(Depsgraph *UNUSED(depsgraph), Object *UNUSED(ob), Part
   vec = edit->emitter_cosnos;
   nor = vec + 3;
 
-  const MVert *verts = BKE_mesh_vertices(mesh);
+  const MVert *verts = BKE_mesh_verts(mesh);
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
   MFace *mfaces = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
   for (i = 0; i < totface; i++, vec += 6, nor += 6) {
@@ -4180,7 +4180,7 @@ static int particle_intersect_mesh(Depsgraph *depsgraph,
 
   totface = mesh->totface;
   mface = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
-  mvert = BKE_mesh_vertices_for_write(mesh);
+  mvert = BKE_mesh_verts_for_write(mesh);
 
   /* lets intersect the faces */
   for (i = 0; i < totface; i++, mface++) {

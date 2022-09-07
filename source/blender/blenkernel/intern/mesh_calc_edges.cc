@@ -97,7 +97,7 @@ static void add_polygon_edges_to_hash_maps(Mesh *mesh,
                                            MutableSpan<EdgeMap> edge_maps,
                                            uint32_t parallel_mask)
 {
-  const Span<MPoly> polys = mesh->polygons();
+  const Span<MPoly> polys = mesh->polys();
   const Span<MLoop> loops = mesh->loops();
   threading::parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
     const int task_index = &edge_map - edge_maps.data();
@@ -159,7 +159,7 @@ static void update_edge_indices_in_poly_loops(Mesh *mesh,
                                               Span<EdgeMap> edge_maps,
                                               uint32_t parallel_mask)
 {
-  const Span<MPoly> polys = mesh->polygons();
+  const Span<MPoly> polys = mesh->polys();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
   threading::parallel_for(IndexRange(mesh->totpoly), 100, [&](IndexRange range) {
     for (const int poly_index : range) {

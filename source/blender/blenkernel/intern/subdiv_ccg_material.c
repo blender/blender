@@ -45,7 +45,7 @@ void BKE_subdiv_ccg_material_flags_init_from_mesh(
   data->mesh = mesh;
   data->material_indices = (const int *)CustomData_get_layer_named(
       &mesh->pdata, CD_PROP_INT32, "material_index");
-  data->polys = BKE_mesh_polygons(mesh);
+  data->polys = BKE_mesh_polys(mesh);
   material_flags_evaluator->eval_material_flags = subdiv_ccg_material_flags_eval;
   material_flags_evaluator->free = subdiv_ccg_material_flags_free;
   material_flags_evaluator->user_data = data;

@@ -172,7 +172,7 @@ static void extract_weights_init_subdiv(const DRWSubdivCache *subdiv_cache,
   extract_weights_init(mr, cache, coarse_weights, _data);
 
   if (mr->extract_type != MR_EXTRACT_BMESH) {
-    const Span<MPoly> coarse_polys = coarse_mesh->polygons();
+    const Span<MPoly> coarse_polys = coarse_mesh->polys();
     for (const int i : coarse_polys.index_range()) {
       const MPoly *mpoly = &coarse_polys[i];
       extract_weights_iter_poly_mesh(mr, mpoly, i, _data);

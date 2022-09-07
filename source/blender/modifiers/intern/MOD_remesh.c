@@ -60,7 +60,7 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
 {
   memset(input, 0, sizeof(DualConInput));
 
-  input->co = (void *)BKE_mesh_vertices(mesh);
+  input->co = (void *)BKE_mesh_verts(mesh);
   input->co_stride = sizeof(MVert);
   input->totco = mesh->totvert;
 
@@ -96,8 +96,8 @@ static void *dualcon_alloc_output(int totvert, int totquad)
   }
 
   output->mesh = BKE_mesh_new_nomain(totvert, 0, 0, 4 * totquad, totquad);
-  output->verts = BKE_mesh_vertices_for_write(output->mesh);
-  output->polys = BKE_mesh_polygons_for_write(output->mesh);
+  output->verts = BKE_mesh_verts_for_write(output->mesh);
+  output->polys = BKE_mesh_polys_for_write(output->mesh);
   output->loops = BKE_mesh_loops_for_write(output->mesh);
 
   return output;
@@ -200,7 +200,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
   }
 
   if (rmd->flag & MOD_REMESH_SMOOTH_SHADING) {
-    MPoly *mpoly = BKE_mesh_polygons_for_write(result);
+    MPoly *mpoly = BKE_mesh_polys_for_write(result);
     int i, totpoly = result->totpoly;
 
     /* Apply smooth shading to output faces */
