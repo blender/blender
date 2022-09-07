@@ -121,28 +121,41 @@ static const bNode *get_node_of_type(Span<const bNodeSocket *> sockets_list, con
   return nullptr;
 }
 
-/**
+/*
  * From a texture image shader node, get the image's filepath.
  * If packed image is found, only the file "name" is returned.
  */
-static const char *get_image_filepath(const bNode *tex_node)
+static std::string get_image_filepath(const bNode *tex_node)
 {
   if (!tex_node) {
-    return nullptr;
+    return "";
   }
   Image *tex_image = reinterpret_cast<Image *>(tex_node->id);
   if (!tex_image || !BKE_image_has_filepath(tex_image)) {
-    return nullptr;
+    return "";
   }
-  const char *path = tex_image->filepath;
+
   if (BKE_image_has_packedfile(tex_image)) {
     /* Put image in the same directory as the .MTL file. */
-    path = BLI_path_slash_rfind(path) + 1;
+    const char *filename = BLI_path_slash_rfind(tex_image->filepath) + 1;
     fprintf(stderr,
             "Packed image found:'%s'. Unpack and place the image in the same "
             "directory as the .MTL file.\n",
-            path);
+            filename);
+    return filename;
   }
+
+  char path[FILE_MAX];
+  BLI_strncpy(path, tex_image->filepath, FILE_MAX);
+
+  if (tex_image->source == IMA_SRC_SEQUENCE) {
+    char head[FILE_MAX], tail[FILE_MAX];
+    unsigned short numlen;
+    int framenr = static_cast<NodeTexImage *>(tex_node->storage)->iuser.framenr;
+    BLI_path_sequence_decode(path, head, tail, &numlen);
+    BLI_path_sequence_encode(path, head, tail, numlen, framenr);
+  }
+
   return path;
 }
 
@@ -307,8 +320,8 @@ static void store_image_textures(const bNode *bsdf_node,
     if (!tex_node) {
       continue;
     }
-    const char *tex_image_filepath = get_image_filepath(tex_node);
-    if (!tex_image_filepath) {
+    const std::string tex_image_filepath = get_image_filepath(tex_node);
+    if (tex_image_filepath.empty()) {
       continue;
     }
 

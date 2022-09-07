@@ -268,7 +268,7 @@ void export_frame(Depsgraph *depsgraph, const OBJExportParams &export_params, co
   std::unique_ptr<MTLWriter> mtl_writer = nullptr;
   if (export_params.export_materials) {
     try {
-      mtl_writer = std::make_unique<MTLWriter>(export_params.filepath);
+      mtl_writer = std::make_unique<MTLWriter>(filepath);
     }
     catch (const std::system_error &ex) {
       print_exception_error(ex);
