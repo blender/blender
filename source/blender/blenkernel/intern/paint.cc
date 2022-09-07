@@ -1744,27 +1744,30 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   pbvh_show_face_sets_set(ss->pbvh, ss->show_face_sets);
 
   if (ss->deform_modifiers_active) {
-    /* Painting doesn't need crazyspace, use already evaluated mesh coordinates. */
+    /* Painting doesn't need crazyspace, use already evaluated mesh coordinates if possible. */
+    bool used_me_eval = false;
+
     if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
       Mesh *me_eval_deform = ob_eval->runtime.mesh_deform_eval;
 
       /* If the fully evaluated mesh has the same topology as the deform-only version, use it.
-       * This matters because 'deform eval' is very restrictive and excludes even modifiers that
-       * simply recompute vertex weights. */
+       * This matters because crazyspace evaluation is very restrictive and excludes even modifiers
+       * that simply recompute vertex weights (which can even include Geometry Nodes). */
       if (me_eval_deform->polys().data() == me_eval->polys().data() &&
           me_eval_deform->loops().data() == me_eval->loops().data() &&
           me_eval_deform->totvert == me_eval->totvert) {
-        me_eval_deform = me_eval;
+        BKE_sculptsession_free_deformMats(ss);
+
+        BLI_assert(me_eval_deform->totvert == me->totvert);
+
+        ss->deform_cos = BKE_mesh_vert_coords_alloc(me_eval, NULL);
+        BKE_pbvh_vert_coords_apply(ss->pbvh, ss->deform_cos, me->totvert);
+
+        used_me_eval = true;
       }
-
-      BKE_sculptsession_free_deformMats(ss);
-
-      BLI_assert(me_eval_deform->totvert == me->totvert);
-
-      ss->deform_cos = BKE_mesh_vert_coords_alloc(me_eval_deform, NULL);
-      BKE_pbvh_vert_coords_apply(ss->pbvh, ss->deform_cos, me->totvert);
     }
-    else if (!ss->orig_cos) {
+
+    if (!ss->orig_cos && !used_me_eval) {
       int a;
 
       BKE_sculptsession_free_deformMats(ss);
