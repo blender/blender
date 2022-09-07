@@ -17,7 +17,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_bitmap.h"
+#include "BLI_bit_vector.hh"
 #include "BLI_edgehash.h"
 #include "BLI_endian_switch.h"
 #include "BLI_ghash.h"
@@ -64,6 +64,7 @@
 
 #include "BLO_read_write.h"
 
+using blender::BitVector;
 using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
@@ -1892,8 +1893,8 @@ static int split_faces_prepare_new_verts(Mesh *mesh,
   BKE_mesh_vertex_normals_ensure(mesh);
   float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(mesh);
 
-  BLI_bitmap *verts_used = BLI_BITMAP_NEW(verts_len, __func__);
-  BLI_bitmap *done_loops = BLI_BITMAP_NEW(loops_len, __func__);
+  BitVector<> verts_used(verts_len, false);
+  BitVector<> done_loops(loops_len, false);
 
   MLoop *ml = loops.data();
   MLoopNorSpace **lnor_space = lnors_spacearr->lspacearr;
@@ -1901,9 +1902,9 @@ static int split_faces_prepare_new_verts(Mesh *mesh,
   BLI_assert(lnors_spacearr->data_type == MLNOR_SPACEARR_LOOP_INDEX);
 
   for (int loop_idx = 0; loop_idx < loops_len; loop_idx++, ml++, lnor_space++) {
-    if (!BLI_BITMAP_TEST(done_loops, loop_idx)) {
+    if (!done_loops[loop_idx]) {
       const int vert_idx = ml->v;
-      const bool vert_used = BLI_BITMAP_TEST_BOOL(verts_used, vert_idx);
+      const bool vert_used = verts_used[vert_idx];
       /* If vert is already used by another smooth fan, we need a new vert for this one. */
       const int new_vert_idx = vert_used ? verts_len++ : vert_idx;
 
@@ -1912,7 +1913,7 @@ static int split_faces_prepare_new_verts(Mesh *mesh,
       if ((*lnor_space)->flags & MLNOR_SPACE_IS_SINGLE) {
         /* Single loop in this fan... */
         BLI_assert(POINTER_AS_INT((*lnor_space)->loops) == loop_idx);
-        BLI_BITMAP_ENABLE(done_loops, loop_idx);
+        done_loops[loop_idx].set();
         if (vert_used) {
           ml->v = new_vert_idx;
         }
@@ -1920,7 +1921,7 @@ static int split_faces_prepare_new_verts(Mesh *mesh,
       else {
         for (LinkNode *lnode = (*lnor_space)->loops; lnode; lnode = lnode->next) {
           const int ml_fan_idx = POINTER_AS_INT(lnode->link);
-          BLI_BITMAP_ENABLE(done_loops, ml_fan_idx);
+          done_loops[ml_fan_idx].set();
           if (vert_used) {
             loops[ml_fan_idx].v = new_vert_idx;
           }
@@ -1928,7 +1929,7 @@ static int split_faces_prepare_new_verts(Mesh *mesh,
       }
 
       if (!vert_used) {
-        BLI_BITMAP_ENABLE(verts_used, vert_idx);
+        verts_used[vert_idx].set();
         /* We need to update that vertex's normal here, we won't go over it again. */
         /* This is important! *DO NOT* set vnor to final computed lnor,
          * vnor should always be defined to 'automatic normal' value computed from its polys,
@@ -1949,9 +1950,6 @@ static int split_faces_prepare_new_verts(Mesh *mesh,
     }
   }
 
-  MEM_freeN(done_loops);
-  MEM_freeN(verts_used);
-
   return verts_len - mesh->totvert;
 }
 
@@ -1967,7 +1965,7 @@ static int split_faces_prepare_new_edges(Mesh *mesh,
   MutableSpan<MLoop> loops = mesh->loops_for_write();
   const Span<MPoly> polys = mesh->polys();
 
-  BLI_bitmap *edges_used = BLI_BITMAP_NEW(num_edges, __func__);
+  BitVector<> edges_used(num_edges, false);
   EdgeHash *edges_hash = BLI_edgehash_new_ex(__func__, num_edges);
 
   const MPoly *mp = polys.data();
@@ -1980,7 +1978,7 @@ static int split_faces_prepare_new_edges(Mesh *mesh,
         const int edge_idx = ml_prev->e;
 
         /* That edge has not been encountered yet, define it. */
-        if (BLI_BITMAP_TEST(edges_used, edge_idx)) {
+        if (edges_used[edge_idx]) {
           /* Original edge has already been used, we need to define a new one. */
           const int new_edge_idx = num_edges++;
           *eval = POINTER_FROM_INT(new_edge_idx);
@@ -2000,7 +1998,7 @@ static int split_faces_prepare_new_edges(Mesh *mesh,
           edges[edge_idx].v1 = ml_prev->v;
           edges[edge_idx].v2 = ml->v;
           *eval = POINTER_FROM_INT(edge_idx);
-          BLI_BITMAP_ENABLE(edges_used, edge_idx);
+          edges_used[edge_idx].set();
         }
       }
       else {
@@ -2012,7 +2010,6 @@ static int split_faces_prepare_new_edges(Mesh *mesh,
     }
   }
 
-  MEM_freeN(edges_used);
   BLI_edgehash_free(edges_hash, nullptr);
 
   return num_edges - mesh->totedge;
