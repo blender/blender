@@ -952,11 +952,10 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
       /* never fails */
       /* Move ownership (no need for re-allocation). */
       if (rnaprop) {
-        field->text = RNA_path_full_property_py_ex(
-            CTX_data_main(C), &but->rnapoin, rnaprop, but->rnaindex, true);
+        field->text = RNA_path_full_property_py_ex(&but->rnapoin, rnaprop, but->rnaindex, true);
       }
       else {
-        field->text = RNA_path_full_struct_py(CTX_data_main(C), &but->rnapoin);
+        field->text = RNA_path_full_struct_py(&but->rnapoin);
       }
     }
   }

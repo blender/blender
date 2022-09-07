@@ -189,7 +189,7 @@ char *RNA_path_from_struct_to_idproperty(PointerRNA *ptr, struct IDProperty *nee
  * \param[out] r_path: Path from the real ID to the initial ID.
  * \return The ID pointer, or NULL in case of failure.
  */
-struct ID *RNA_find_real_ID_and_path(struct Main *bmain, struct ID *id, const char **r_path);
+struct ID *RNA_find_real_ID_and_path(struct ID *id, const char **r_path);
 
 char *RNA_path_from_ID_to_struct(const PointerRNA *ptr);
 
@@ -227,22 +227,21 @@ char *RNA_path_resolve_from_type_to_property(const PointerRNA *ptr,
  * Get the ID as a python representation, eg:
  *   bpy.data.foo["bar"]
  */
-char *RNA_path_full_ID_py(struct Main *bmain, struct ID *id);
+char *RNA_path_full_ID_py(struct ID *id);
 /**
  * Get the ID.struct as a python representation, eg:
  *   bpy.data.foo["bar"].some_struct
  */
-char *RNA_path_full_struct_py(struct Main *bmain, const PointerRNA *ptr);
+char *RNA_path_full_struct_py(const PointerRNA *ptr);
 /**
  * Get the ID.struct.property as a python representation, eg:
  *   bpy.data.foo["bar"].some_struct.some_prop[10]
  */
-char *RNA_path_full_property_py_ex(
-    struct Main *bmain, const PointerRNA *ptr, PropertyRNA *prop, int index, bool use_fallback);
-char *RNA_path_full_property_py(struct Main *bmain,
-                                const PointerRNA *ptr,
-                                PropertyRNA *prop,
-                                int index);
+char *RNA_path_full_property_py_ex(const PointerRNA *ptr,
+                                   PropertyRNA *prop,
+                                   int index,
+                                   bool use_fallback);
+char *RNA_path_full_property_py(const PointerRNA *ptr, PropertyRNA *prop, int index);
 /**
  * Get the struct.property as a python representation, eg:
  *   some_struct.some_prop[10]

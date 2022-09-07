@@ -916,7 +916,7 @@ static char *rna_path_from_ID_to_idpgroup(const PointerRNA *ptr)
   return RNA_path_from_struct_to_idproperty(&id_ptr, static_cast<IDProperty *>(ptr->data));
 }
 
-ID *RNA_find_real_ID_and_path(Main *bmain, ID *id, const char **r_path)
+ID *RNA_find_real_ID_and_path(ID *id, const char **r_path)
 {
   if (r_path) {
     *r_path = "";
@@ -947,14 +947,14 @@ ID *RNA_find_real_ID_and_path(Main *bmain, ID *id, const char **r_path)
   return id_type->owner_get(id);
 }
 
-static char *rna_prepend_real_ID_path(Main *bmain, ID *id, char *path, ID **r_real_id)
+static char *rna_prepend_real_ID_path(Main * /*bmain*/, ID *id, char *path, ID **r_real_id)
 {
   if (r_real_id != nullptr) {
     *r_real_id = nullptr;
   }
 
   const char *prefix;
-  ID *real_id = RNA_find_real_ID_and_path(bmain, id, &prefix);
+  ID *real_id = RNA_find_real_ID_and_path(id, &prefix);
 
   if (r_real_id != nullptr) {
     *r_real_id = real_id;
@@ -1180,10 +1180,10 @@ char *RNA_path_resolve_from_type_to_property(const PointerRNA *ptr,
   return path;
 }
 
-char *RNA_path_full_ID_py(Main *bmain, ID *id)
+char *RNA_path_full_ID_py(ID *id)
 {
   const char *path;
-  ID *id_real = RNA_find_real_ID_and_path(bmain, id, &path);
+  ID *id_real = RNA_find_real_ID_and_path(id, &path);
 
   if (id_real) {
     id = id_real;
@@ -1215,7 +1215,7 @@ char *RNA_path_full_ID_py(Main *bmain, ID *id)
                       path);
 }
 
-char *RNA_path_full_struct_py(Main *bmain, const PointerRNA *ptr)
+char *RNA_path_full_struct_py(const PointerRNA *ptr)
 {
   char *id_path;
   char *data_path;
@@ -1227,7 +1227,7 @@ char *RNA_path_full_struct_py(Main *bmain, const PointerRNA *ptr)
   }
 
   /* never fails */
-  id_path = RNA_path_full_ID_py(bmain, ptr->owner_id);
+  id_path = RNA_path_full_ID_py(ptr->owner_id);
 
   data_path = RNA_path_from_ID_to_struct(ptr);
 
@@ -1243,8 +1243,10 @@ char *RNA_path_full_struct_py(Main *bmain, const PointerRNA *ptr)
   return ret;
 }
 
-char *RNA_path_full_property_py_ex(
-    Main *bmain, const PointerRNA *ptr, PropertyRNA *prop, int index, bool use_fallback)
+char *RNA_path_full_property_py_ex(const PointerRNA *ptr,
+                                   PropertyRNA *prop,
+                                   int index,
+                                   bool use_fallback)
 {
   char *id_path;
   const char *data_delim;
@@ -1258,7 +1260,7 @@ char *RNA_path_full_property_py_ex(
   }
 
   /* never fails */
-  id_path = RNA_path_full_ID_py(bmain, ptr->owner_id);
+  id_path = RNA_path_full_ID_py(ptr->owner_id);
 
   data_path = RNA_path_from_ID_to_property(ptr, prop);
   if (data_path) {
@@ -1291,9 +1293,9 @@ char *RNA_path_full_property_py_ex(
   return ret;
 }
 
-char *RNA_path_full_property_py(Main *bmain, const PointerRNA *ptr, PropertyRNA *prop, int index)
+char *RNA_path_full_property_py(const PointerRNA *ptr, PropertyRNA *prop, int index)
 {
-  return RNA_path_full_property_py_ex(bmain, ptr, prop, index, false);
+  return RNA_path_full_property_py_ex(ptr, prop, index, false);
 }
 
 char *RNA_path_struct_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)

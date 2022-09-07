@@ -92,9 +92,9 @@ BLI_INLINE void lib_override_object_posemode_transfer(ID *id_dst, ID *id_src)
 }
 
 /** Get override data for a given ID. Needed because of our beloved shape keys snowflake. */
-BLI_INLINE const IDOverrideLibrary *BKE_lib_override_library_get(const Main *bmain,
+BLI_INLINE const IDOverrideLibrary *BKE_lib_override_library_get(const Main * /*bmain*/,
                                                                  const ID *id,
-                                                                 const ID *owner_id_hint,
+                                                                 const ID * /*owner_id_hint*/,
                                                                  const ID **r_owner_id)
 {
   if (r_owner_id != nullptr) {
@@ -2208,7 +2208,7 @@ static bool lib_override_resync_id_lib_level_is_valid(ID *id,
 }
 
 /* Find the root of the override hierarchy the given `id` belongs to. */
-static ID *lib_override_library_main_resync_root_get(Main *bmain, ID *id)
+static ID *lib_override_library_main_resync_root_get(Main * /*bmain*/, ID *id)
 {
   if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
     const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
