@@ -401,7 +401,7 @@ void BKE_gpencil_stroke_set_random_color(struct bGPDstroke *gps);
 
 /**
  * Join two strokes using the shortest distance (reorder stroke if necessary).
- *  \param auto_flip: Flip the stroke if the join between two strokes is not end->start points.
+ * \param auto_flip: Flip the stroke if the join between two strokes is not end->start points.
  */
 void BKE_gpencil_stroke_join(struct bGPDstroke *gps_a,
                              struct bGPDstroke *gps_b,

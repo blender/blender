@@ -660,7 +660,7 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
      *
      * NOTE: Using do_version is not a solution here, since this code will be called before any
      * do_version takes place. Keeping it here also ensures future (or unknown existing) similar
-     * bugs won't go easily unoticed. */
+     * bugs won't go easily unnoticed. */
     CLOG_WARN(&LOG,
               "Fixing root node tree '%s' owned by '%s' missing EMBEDDED tag, please consider "
               "re-saving your (startup) file",
@@ -913,9 +913,9 @@ void ntreeBlendReadLib(struct BlendLibReader *reader, struct bNodeTree *ntree)
   lib_link_node_sockets(reader, lib, &ntree->inputs);
   lib_link_node_sockets(reader, lib, &ntree->outputs);
 
-  /* Set node->typeinfo pointers. This is done in lib linking, after the
+  /* Set `node->typeinfo` pointers. This is done in lib linking, after the
    * first versioning that can change types still without functions that
-   * update the typeinfo pointers. Versioning after lib linking needs
+   * update the `typeinfo` pointers. Versioning after lib linking needs
    * these top be valid. */
   ntreeSetTypes(nullptr, ntree);
 
@@ -1072,7 +1072,7 @@ static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType 
 }
 
 /* NOTE: This function is called to initialize node data based on the type.
- * The bNodeType may not be registered at creation time of the node,
+ * The #bNodeType may not be registered at creation time of the node,
  * so this can be delayed until the node type gets registered.
  */
 static void node_init(const struct bContext *C, bNodeTree *ntree, bNode *node)

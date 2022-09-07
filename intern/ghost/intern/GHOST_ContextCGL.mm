@@ -201,7 +201,7 @@ static void makeAttribList(std::vector<NSOpenGLPixelFormatAttribute> &attribs,
   attribs.push_back(NSOpenGLPFAOpenGLProfile);
   attribs.push_back(NSOpenGLProfileVersion3_2Core);
 
-  /* Pixel Format Attributes for the windowed NSOpenGLContext. */
+  /* Pixel Format Attributes for the windowed #NSOpenGLContext. */
   attribs.push_back(NSOpenGLPFADoubleBuffer);
 
   if (softwareGL) {
@@ -212,7 +212,7 @@ static void makeAttribList(std::vector<NSOpenGLPixelFormatAttribute> &attribs,
     attribs.push_back(NSOpenGLPFAAccelerated);
     attribs.push_back(NSOpenGLPFANoRecovery);
 
-    /* Attempt to initialise device with extended sampler limit.
+    /* Attempt to initialize device with extended sampler limit.
      * Resolves EEVEE purple rendering artifacts on macOS. */
     if (increasedSamplerLimit) {
       attribs.push_back((NSOpenGLPixelFormatAttribute)400);
@@ -267,7 +267,7 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
       pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&attribs[0]];
       if (pixelFormat == nil) {
         /* If pixel format creation fails when testing increased sampler limit,
-         * attempt intialisation again with feature disabled, otherwise, fail. */
+         * attempt initialization again with feature disabled, otherwise, fail. */
         if (increasedSamplerLimit) {
           increasedSamplerLimit = false;
           continue;

@@ -1577,7 +1577,7 @@ static int rna_property_override_diff_propptr(Main *bmain,
                 RNA_property_##_typename##_set((_ptr), (_prop), (_value)))
 
 /**
- * /return `0` is matching, `-1` if `prop_a < prop_b`, `1` if `prop_a > prop_b`. Note that for
+ * \return `0` is matching, `-1` if `prop_a < prop_b`, `1` if `prop_a > prop_b`. Note that for
  * unquantifiable properties (e.g. pointers or collections), return value should be interpreted as
  * a boolean (false == matching, true == not matching).
  */

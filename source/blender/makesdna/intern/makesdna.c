@@ -393,10 +393,10 @@ static int add_name(const char *str)
     if (!isfuncptr) {
       /* multidimensional array pointer case */
       if (str[j] == 0) {
-        DEBUG_PRINTF(3, "offsetting for multidim array pointer\n");
+        DEBUG_PRINTF(3, "offsetting for multi-dimensional array pointer\n");
       }
       else {
-        printf("Error during tokening multidim array pointer\n");
+        printf("Error during tokenizing multi-dimensional array pointer\n");
       }
     }
     else if (str[j] == 0) {

@@ -416,8 +416,8 @@ typedef struct wmNotifier {
 #define ND_POINTCACHE (28 << 16)
 #define ND_PARENT (29 << 16)
 #define ND_LOD (30 << 16)
-#define ND_DRAW_RENDER_VIEWPORT \
-  (31 << 16) /* for camera & sequencer viewport update, also /w NC_SCENE */
+/** For camera & sequencer viewport update, also with #NC_SCENE. */
+#define ND_DRAW_RENDER_VIEWPORT (31 << 16)
 #define ND_SHADERFX (32 << 16)
 /* For updating motion paths in 3dview. */
 #define ND_DRAW_ANIMVIZ (33 << 16)

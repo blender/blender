@@ -5,7 +5,7 @@
  *
  * A `blender::Pool` allows fast allocation and deallocation of many elements of the same type.
  *
- * It is compatible with types that are not moveable.
+ * It is compatible with types that are not movable.
  *
  * Freed elements memory will be reused by next allocations.
  * Elements are allocated in chunks to reduce memory fragmentation and avoid reallocation.

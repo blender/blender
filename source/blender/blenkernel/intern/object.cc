@@ -2416,7 +2416,7 @@ ParticleSystem *BKE_object_copy_particlesystem(ParticleSystem *psys, const int f
   }
 
   /* XXX(@campbellbarton): from reading existing code this seems correct but intended usage of
-   * point-cache should /w cloth should be added in 'ParticleSystem'. */
+   * point-cache should with cloth should be added in 'ParticleSystem'. */
   if (psysn->clmd) {
     psysn->clmd->point_cache = psysn->pointcache;
   }

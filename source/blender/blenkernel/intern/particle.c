@@ -5418,7 +5418,7 @@ void BKE_particle_system_blend_read_lib(BlendLibReader *reader,
 
       if (psys->clmd) {
         /* XXX(@campbellbarton): from reading existing code this seems correct but intended usage
-         * of pointcache /w cloth should be added in 'ParticleSystem'. */
+         * of point-cache with cloth should be added in #ParticleSystem. */
         psys->clmd->point_cache = psys->pointcache;
         psys->clmd->ptcaches.first = psys->clmd->ptcaches.last = NULL;
         BLO_read_id_address(reader, id->lib, &psys->clmd->coll_parms->group);
@@ -5426,7 +5426,7 @@ void BKE_particle_system_blend_read_lib(BlendLibReader *reader,
       }
     }
     else {
-      /* particle modifier must be removed before particle system */
+      /* Particle modifier must be removed before particle system. */
       ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
       BKE_modifier_remove_from_list(ob, (ModifierData *)psmd);
       BKE_modifier_free((ModifierData *)psmd);

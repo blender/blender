@@ -242,7 +242,7 @@ void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collect
      *
      * NOTE: Using do_version is not a solution here, since this code will be called before any
      * do_version takes place. Keeping it here also ensures future (or unknown existing) similar
-     * bugs won't go easily unoticed. */
+     * bugs won't go easily unnoticed. */
     CLOG_WARN(&LOG,
               "Fixing root node tree '%s' owned by '%s' missing EMBEDDED tag, please consider "
               "re-saving your (startup) file",
@@ -483,8 +483,8 @@ void BKE_collection_add_from_collection(Main *bmain,
       is_instantiated = true;
     }
     else if (!is_instantiated && collection_find_child(collection, collection_dst)) {
-      /* If given collection_dst is already instantiated in scene, even if its 'model' src one is
-       * not, do not add it to master scene collection. */
+      /* If given collection_dst is already instantiated in scene, even if its 'model'
+       * collection_src one is not, do not add it to master scene collection. */
       is_instantiated = true;
     }
   }

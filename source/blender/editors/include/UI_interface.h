@@ -354,7 +354,7 @@ typedef enum {
   UI_BTYPE_LABEL = 20 << 9,
   UI_BTYPE_KEY_EVENT = 24 << 9,
   UI_BTYPE_HSVCUBE = 26 << 9,
-  /** menu (often used in headers), **_MENU /w different draw-type */
+  /** Menu (often used in headers), `*_MENU` with different draw-type. */
   UI_BTYPE_PULLDOWN = 27 << 9,
   UI_BTYPE_ROUNDBOX = 28 << 9,
   UI_BTYPE_COLORBAND = 30 << 9,
