@@ -22,7 +22,7 @@ def is_face_uv_selected(face, uv_layer, any_edge):
     Returns True if the face is UV selected.
 
     :arg face: the face to query.
-    :type bmesh: :class:`BMFace`
+    :type face: :class:`BMFace`
     :arg uv_layer: the UV layer to source UVs from.
     :type bmesh: :class:`BMLayerItem`
     :arg any_edge: use edge selection instead of vertex selection.
@@ -56,6 +56,7 @@ def is_island_uv_selected(island, uv_layer, any_edge):
     Returns True if the island is UV selected.
 
     :arg island: list of faces to query.
+    :type island: sequence of :class:`BMFace`.
     :arg uv_layer: the UV layer to source UVs from.
     :type bmesh: :class:`BMLayerItem`
     :arg any_edge: use edge selection instead of vertex selection.
@@ -67,6 +68,44 @@ def is_island_uv_selected(island, uv_layer, any_edge):
         if is_face_uv_selected(face, uv_layer, any_edge):
             return True
     return False
+
+
+def island_uv_bounds(island, uv_layer):
+    """
+    The UV bounds of UV island.
+
+    :arg island: list of faces to query.
+    :type island: sequence of :class:`BMFace`.
+    :arg uv_layer: the UV layer to source UVs from.
+    :return: U-min, V-min, U-max, V-max.
+    :rtype: list
+    """
+    minmax = [1e30, 1e30, -1e30, -1e30]
+    for face in island:
+        for loop in face.loops:
+            u, v = loop[uv_layer].uv
+            minmax[0] = min(minmax[0], u)
+            minmax[1] = min(minmax[1], v)
+            minmax[2] = max(minmax[2], u)
+            minmax[3] = max(minmax[3], v)
+    return minmax
+
+
+def island_uv_bounds_center(island, uv_layer):
+    """
+    The UV bounds center of UV island.
+
+    :arg island: list of faces to query.
+    :type island: sequence of :class:`BMFace`.
+    :arg uv_layer: the UV layer to source UVs from.
+    :return: U, V center.
+    :rtype: tuple
+    """
+    minmax = island_uv_bounds(island, uv_layer)
+    return (
+        (minmax[0] + minmax[2]) / 2.0,
+        (minmax[1] + minmax[3]) / 2.0,
+    )
 
 
 # ------------------------------------------------------------------------------
@@ -161,18 +200,8 @@ def align_uv_rotation_island(bm, uv_layer, faces, method, axis):
     if angle == 0.0:
         return False  # No change.
 
-    # Find bounding box.
-    minmax = [1e30, 1e30, -1e30, -1e30]
-    for face in faces:
-        for loop in face.loops:
-            u, v = loop[uv_layer].uv
-            minmax[0] = min(minmax[0], u)
-            minmax[1] = min(minmax[1], v)
-            minmax[2] = max(minmax[2], u)
-            minmax[3] = max(minmax[3], v)
-
-    mid_u = (minmax[0] + minmax[2]) / 2.0
-    mid_v = (minmax[1] + minmax[3]) / 2.0
+    # Find bounding box center.
+    mid_u, mid_v = island_uv_bounds_center(faces, uv_layer)
 
     cos_angle = math.cos(angle)
     sin_angle = math.sin(angle)
@@ -310,18 +339,8 @@ def randomize_uv_transform_island(bm, uv_layer, faces, transform_params):
 
     transform = get_random_transform(transform_params, entropy)
 
-    # Find bounding box.
-    minmax = [1e30, 1e30, -1e30, -1e30]
-    for face in faces:
-        for loop in face.loops:
-            u, v = loop[uv_layer].uv
-            minmax[0] = min(minmax[0], u)
-            minmax[1] = min(minmax[1], v)
-            minmax[2] = max(minmax[2], u)
-            minmax[3] = max(minmax[3], v)
-
-    mid_u = (minmax[0] + minmax[2]) / 2.0
-    mid_v = (minmax[1] + minmax[3]) / 2.0
+    # Find bounding box center.
+    mid_u, mid_v = island_uv_bounds_center(faces, uv_layer)
 
     del_u = transform[0][2] + mid_u - transform[0][0] * mid_u - transform[0][1] * mid_v
     del_v = transform[1][2] + mid_v - transform[1][0] * mid_u - transform[1][1] * mid_v
