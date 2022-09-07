@@ -249,7 +249,6 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   else {
     Set<std::string> names_to_skip;
     if (!BLO_write_is_undo(writer)) {
-
       BKE_mesh_legacy_convert_hide_layers_to_flags(mesh);
       BKE_mesh_legacy_convert_material_indices_to_mpoly(mesh);
       /* When converting to the old mesh format, don't save redundant attributes. */
@@ -260,6 +259,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
       mesh->medge = const_cast<MEdge *>(mesh->edges().data());
       mesh->mpoly = const_cast<MPoly *>(mesh->polys().data());
       mesh->mloop = const_cast<MLoop *>(mesh->loops().data());
+      mesh->dvert = const_cast<MDeformVert *>(mesh->deform_verts().data());
     }
 
     CustomData_blend_write_prepare(mesh->vdata, vert_layers, names_to_skip);
@@ -314,9 +314,6 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_data_address(reader, &mesh->adt);
   BKE_animdata_blend_read_data(reader, mesh->adt);
 
-  /* Normally BKE_defvert_blend_read should be called in CustomData_blend_read,
-   * but for backwards compatibility in do_versions to work we do it here. */
-  BKE_defvert_blend_read(reader, mesh->totvert, mesh->dvert);
   BLO_read_list(reader, &mesh->vertex_group_names);
 
   CustomData_blend_read(reader, &mesh->vdata, mesh->totvert);
@@ -324,6 +321,11 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   CustomData_blend_read(reader, &mesh->fdata, mesh->totface);
   CustomData_blend_read(reader, &mesh->ldata, mesh->totloop);
   CustomData_blend_read(reader, &mesh->pdata, mesh->totpoly);
+  if (mesh->deform_verts().is_empty()) {
+    /* Vertex group data was also an owning pointer in old Blender versions.
+     * Don't read them again if they were read as part of #CustomData. */
+    BKE_defvert_blend_read(reader, mesh->totvert, mesh->dvert);
+  }
 
   mesh->texflag &= ~ME_AUTOSPACE_EVALUATED;
   mesh->edit_mesh = nullptr;

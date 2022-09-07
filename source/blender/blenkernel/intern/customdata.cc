@@ -5404,6 +5404,9 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, const int 
       else if (layer->type == CD_GRID_PAINT_MASK) {
         blend_read_paint_mask(reader, count, static_cast<GridPaintMask *>(layer->data));
       }
+      else if (layer->type == CD_MDEFORMVERT) {
+        BKE_defvert_blend_read(reader, count, static_cast<MDeformVert *>(layer->data));
+      }
       i++;
     }
   }
