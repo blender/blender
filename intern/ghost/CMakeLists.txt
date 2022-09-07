@@ -299,8 +299,8 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
 
       intern/GHOST_SystemWayland.h
       intern/GHOST_WaylandCursorSettings.h
-      intern/GHOST_WindowWayland.h
       intern/GHOST_WaylandUtils.h
+      intern/GHOST_WindowWayland.h
     )
 
     set(INC_DST ${CMAKE_CURRENT_BINARY_DIR}/libwayland)

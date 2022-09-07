@@ -211,13 +211,13 @@ set(METAL_SRC
   metal/mtl_framebuffer.hh
   metal/mtl_index_buffer.hh
   metal/mtl_memory.hh
-  metal/mtl_pso_descriptor_state.hh
   metal/mtl_primitive.hh
+  metal/mtl_pso_descriptor_state.hh
   metal/mtl_query.hh
   metal/mtl_shader.hh
   metal/mtl_shader_generator.hh
-  metal/mtl_shader_interface_type.hh
   metal/mtl_shader_interface.hh
+  metal/mtl_shader_interface_type.hh
   metal/mtl_shader_shared.h
   metal/mtl_state.hh
   metal/mtl_texture.hh

@@ -67,8 +67,8 @@ set(SRC
   nodes/node_shader_map_range.cc
   nodes/node_shader_mapping.cc
   nodes/node_shader_math.cc
-  nodes/node_shader_mix_rgb.cc
   nodes/node_shader_mix.cc
+  nodes/node_shader_mix_rgb.cc
   nodes/node_shader_mix_shader.cc
   nodes/node_shader_normal.cc
   nodes/node_shader_normal_map.cc

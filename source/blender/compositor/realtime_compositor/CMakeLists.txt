@@ -2,13 +2,13 @@
 
 set(INC
   .
-  ../../gpu
-  ../../nodes
-  ../../imbuf
+  ../../blenkernel
   ../../blenlib
+  ../../gpu
+  ../../imbuf
   ../../makesdna
   ../../makesrna
-  ../../blenkernel
+  ../../nodes
   ../../gpu/intern
   ../../../../intern/guardedalloc
 )

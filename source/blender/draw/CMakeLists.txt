@@ -86,14 +86,14 @@ set(SRC
   intern/draw_fluid.c
   intern/draw_hair.cc
   intern/draw_instance_data.c
+  intern/draw_manager.c
+  intern/draw_manager.cc
   intern/draw_manager_data.c
   intern/draw_manager_exec.c
   intern/draw_manager_profiling.c
   intern/draw_manager_shader.c
   intern/draw_manager_text.c
   intern/draw_manager_texture.c
-  intern/draw_manager.c
-  intern/draw_manager.cc
   intern/draw_select_buffer.c
   intern/draw_shader.cc
   intern/draw_texture_pool.cc
@@ -138,10 +138,10 @@ set(SRC
   engines/eevee_next/eevee_depth_of_field.cc
   engines/eevee_next/eevee_engine.cc
   engines/eevee_next/eevee_film.cc
+  engines/eevee_next/eevee_hizbuffer.cc
   engines/eevee_next/eevee_instance.cc
   engines/eevee_next/eevee_light.cc
   engines/eevee_next/eevee_material.cc
-  engines/eevee_next/eevee_hizbuffer.cc
   engines/eevee_next/eevee_motion_blur.cc
   engines/eevee_next/eevee_pipeline.cc
   engines/eevee_next/eevee_renderbuffers.cc
@@ -208,34 +208,34 @@ set(SRC
   intern/DRW_gpu_wrapper.hh
   intern/DRW_render.h
   intern/draw_attributes.h
+  intern/draw_cache.h
   intern/draw_cache_extract.hh
   intern/draw_cache_impl.h
   intern/draw_cache_inline.h
-  intern/draw_cache.h
   intern/draw_color_management.h
   intern/draw_command.hh
-  intern/draw_common_shader_shared.h
   intern/draw_common.h
+  intern/draw_common_shader_shared.h
   intern/draw_curves_private.h
   intern/draw_debug.h
   intern/draw_debug.hh
   intern/draw_hair_private.h
   intern/draw_instance_data.h
+  intern/draw_manager.h
+  intern/draw_manager.hh
   intern/draw_manager_profiling.h
   intern/draw_manager_testing.h
   intern/draw_manager_text.h
-  intern/draw_manager.h
-  intern/draw_manager.hh
   intern/draw_pass.hh
   intern/draw_resource.cc
   intern/draw_resource.hh
-  intern/draw_shader_shared.h
   intern/draw_shader.h
+  intern/draw_shader_shared.h
   intern/draw_subdivision.h
   intern/draw_texture_pool.h
-  intern/draw_view_data.h
   intern/draw_view.cc
   intern/draw_view.h
+  intern/draw_view_data.h
   intern/mesh_extractors/extract_mesh.hh
   intern/smaa_textures.h
   engines/basic/basic_engine.h
@@ -513,10 +513,10 @@ set(GLSL_SRC
   intern/shaders/draw_resource_finalize_comp.glsl
   intern/shaders/draw_visibility_comp.glsl
 
-  intern/draw_common_shader_shared.h
   intern/draw_command_shared.hh
-  intern/draw_shader_shared.h
+  intern/draw_common_shader_shared.h
   intern/draw_defines.h
+  intern/draw_shader_shared.h
 
   engines/gpencil/shaders/gpencil_frag.glsl
   engines/gpencil/shaders/gpencil_vert.glsl
@@ -720,8 +720,8 @@ add_dependencies(bf_draw bf_dna)
 if(WITH_GTESTS)
   if(WITH_OPENGL_DRAW_TESTS)
     set(TEST_SRC
-      tests/draw_testing.cc
       tests/draw_pass_test.cc
+      tests/draw_testing.cc
       tests/shaders_test.cc
 
       tests/draw_testing.hh
