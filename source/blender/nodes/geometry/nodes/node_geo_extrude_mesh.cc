@@ -98,10 +98,6 @@ static void expand_mesh(Mesh &mesh,
     mesh.totvert += vert_expand;
     CustomData_realloc(&mesh.vdata, mesh.totvert);
   }
-  else {
-    /* Even when the number of vertices is not changed, the mesh can still be deformed. */
-    CustomData_duplicate_referenced_layer(&mesh.vdata, CD_MVERT, mesh.totvert);
-  }
   if (edge_expand != 0) {
     CustomData_duplicate_referenced_layers(&mesh.edata, mesh.totedge);
     mesh.totedge += edge_expand;
