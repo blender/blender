@@ -652,8 +652,13 @@ static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
 void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
 {
   /* Special case for this pointer, do not rely on regular `lib_link` process here. Avoids needs
-   * for do_versioning, and ensures coherence of data in any case. */
-  BLI_assert((ntree->id.flag & LIB_EMBEDDED_DATA) != 0 || owner_id == nullptr);
+   * for do_versioning, and ensures coherence of data in any case.
+   *
+   * NOTE: Old versions are very often 'broken' here, just fix it silently in these cases.
+   */
+  if (BLO_read_fileversion_get(reader) > 300) {
+    BLI_assert((ntree->id.flag & LIB_EMBEDDED_DATA) != 0 || owner_id == nullptr);
+  }
   BLI_assert(owner_id == NULL || owner_id->lib == ntree->id.lib);
   if (owner_id != nullptr && (ntree->id.flag & LIB_EMBEDDED_DATA) == 0) {
     /* This is unfortunate, but currently a lot of existing files (including startup ones) have
@@ -662,11 +667,13 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
      * NOTE: Using do_version is not a solution here, since this code will be called before any
      * do_version takes place. Keeping it here also ensures future (or unknown existing) similar
      * bugs won't go easily unnoticed. */
-    CLOG_WARN(&LOG,
-              "Fixing root node tree '%s' owned by '%s' missing EMBEDDED tag, please consider "
-              "re-saving your (startup) file",
-              ntree->id.name,
-              owner_id->name);
+    if (BLO_read_fileversion_get(reader) > 300) {
+      CLOG_WARN(&LOG,
+                "Fixing root node tree '%s' owned by '%s' missing EMBEDDED tag, please consider "
+                "re-saving your (startup) file",
+                ntree->id.name,
+                owner_id->name);
+    }
     ntree->id.flag |= LIB_EMBEDDED_DATA;
   }
   ntree->owner_id = owner_id;

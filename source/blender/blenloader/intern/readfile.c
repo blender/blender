@@ -4972,6 +4972,11 @@ ID *BLO_read_get_new_id_address(BlendLibReader *reader, Library *lib, ID *id)
   return newlibadr(reader->fd, lib, id);
 }
 
+int BLO_read_fileversion_get(BlendDataReader *reader)
+{
+  return reader->fd->fileversion;
+}
+
 bool BLO_read_requires_endian_switch(BlendDataReader *reader)
 {
   return (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0;
