@@ -53,11 +53,8 @@ class OUTLINER_HT_header(Header):
                 text="",
                 icon='FILTER',
             )
-        if display_mode == 'LIBRARY_OVERRIDES' and space.lib_override_view_mode == 'HIERARCHIES':
-            # Don't add ID type filter for library overrides hierarchies mode. Point of it is to see a hierarchy that is
-            # usually constructed out of different ID types.
-            pass
-        elif display_mode in {'LIBRARIES', 'LIBRARY_OVERRIDES', 'ORPHAN_DATA'}:
+
+        if display_mode in {'LIBRARIES' 'ORPHAN_DATA'}:
             row.prop(space, "use_filter_id_type", text="", icon='FILTER')
             sub = row.row(align=True)
             sub.active = space.use_filter_id_type
