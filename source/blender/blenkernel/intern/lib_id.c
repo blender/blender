@@ -1965,6 +1965,15 @@ bool BKE_id_can_be_asset(const ID *id)
          BKE_idtype_idcode_is_linkable(GS(id->name));
 }
 
+ID *BKE_id_owner_get(ID *id)
+{
+  const IDTypeInfo *idtype = BKE_idtype_get_info_from_id(id);
+  if (idtype->owner_get != NULL) {
+    return idtype->owner_get(id);
+  }
+  return NULL;
+}
+
 bool BKE_id_is_editable(const Main *bmain, const ID *id)
 {
   return !(ID_IS_LINKED(id) || BKE_lib_override_library_is_system_defined(bmain, id));

@@ -16,6 +16,7 @@
 
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
+#include "BKE_lib_id.h"
 
 #include "DNA_ID.h" /* For ID properties. */
 
@@ -940,11 +941,9 @@ ID *RNA_find_real_ID_and_path(ID *id, const char **r_path)
     }
   }
 
-  if (id_type->owner_get == nullptr) {
-    BLI_assert_msg(0, "Missing handling of embedded id type.");
-    return id;
-  }
-  return id_type->owner_get(id);
+  ID *owner_id = BKE_id_owner_get(id);
+  BLI_assert_msg(owner_id != nullptr, "Missing handling of embedded id type.");
+  return (owner_id != nullptr) ? owner_id : id;
 }
 
 static char *rna_prepend_real_ID_path(Main * /*bmain*/, ID *id, char *path, ID **r_real_id)

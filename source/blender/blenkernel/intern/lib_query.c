@@ -711,9 +711,8 @@ static void lib_query_unused_ids_tag_recurse(Main *bmain,
     ID *id_from = id_from_item->id_pointer.from;
     if ((id_from->flag & LIB_EMBEDDED_DATA) != 0) {
       /* Directly 'by-pass' to actual real ID owner. */
-      const IDTypeInfo *type_info_from = BKE_idtype_get_info_from_id(id_from);
-      BLI_assert(type_info_from->owner_get != NULL);
-      id_from = type_info_from->owner_get(id_from);
+      id_from = BKE_id_owner_get(id_from);
+      BLI_assert(id_from != NULL);
     }
 
     lib_query_unused_ids_tag_recurse(
