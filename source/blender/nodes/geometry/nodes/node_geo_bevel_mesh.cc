@@ -119,17 +119,17 @@ class MeshTopology {
 
   float3 vert_co(int v) const
   {
-    return float3(mesh_.mvert[v].co);
+    return float3(mesh_.verts()[v].co);
   }
 
   int edge_v1(int e) const
   {
-    return mesh_.medge[e].v1;
+    return mesh_.edges()[e].v1;
   }
 
   int edge_v2(int e) const
   {
-    return mesh_.medge[e].v2;
+    return mesh_.edges()[e].v2;
   }
 
   float3 edge_dir_from_vert(int e, int v) const;
@@ -140,14 +140,14 @@ MeshTopology::MeshTopology(const Mesh &mesh) : mesh_(mesh)
 {
   // timeit::ScopedTimer t("MeshTopology construction");
   BKE_mesh_vert_edge_map_create(
-      &vert_edge_map_, &vert_edge_map_mem_, mesh.medge, mesh.totvert, mesh.totedge);
+      &vert_edge_map_, &vert_edge_map_mem_, BKE_mesh_edges(&mesh), mesh.totvert, mesh.totedge);
   BKE_mesh_edge_poly_map_create(&edge_poly_map_,
                                 &edge_poly_map_mem_,
-                                mesh.medge,
+                                BKE_mesh_edges(&mesh),
                                 mesh.totedge,
-                                mesh.mpoly,
+                                BKE_mesh_polys(&mesh),
                                 mesh.totpoly,
-                                mesh.mloop,
+                                BKE_mesh_loops(&mesh),
                                 mesh.totloop);
 }
 
@@ -172,20 +172,21 @@ int MeshTopology::edge_other_manifold_face(int e, int f) const
 
 int MeshTopology::face_other_edge_at_vert(int f, int v, int e) const
 {
-  const MPoly &mpoly = mesh_.mpoly[f];
+  const MPoly &mpoly = mesh_.polys()[f];
+  Span<MLoop> loops = mesh_.loops();
   const int loopstart = mpoly.loopstart;
   const int loopend = mpoly.loopstart + mpoly.totloop - 1;
   for (int l = loopstart; l <= loopend; l++) {
-    const MLoop &mloop = mesh_.mloop[l];
+    const MLoop &mloop = loops[l];
     if (mloop.e == e) {
       if (mloop.v == v) {
         /* The other edge with vertex v is the preceding (incoming) edge. */
-        MLoop &mloop_prev = l == loopstart ? mesh_.mloop[loopend] : mesh_.mloop[l - 1];
+        const MLoop &mloop_prev = l == loopstart ? loops[loopend] : loops[l - 1];
         return mloop_prev.e;
       }
       else {
         /* The other edge with vertex v is the next (outgoing) edge, which should have vertex v. */
-        MLoop &mloop_next = l == loopend ? mesh_.mloop[loopstart] : mesh_.mloop[l + 1];
+        const MLoop &mloop_next = l == loopend ? loops[loopstart] : loops[l + 1];
         BLI_assert(mloop_next.v == v);
         return mloop_next.e;
       }
@@ -198,13 +199,14 @@ int MeshTopology::face_other_edge_at_vert(int f, int v, int e) const
 
 bool MeshTopology::edge_is_successor_in_face(const int e0, const int e1, const int f) const
 {
-  const MPoly &mpoly = mesh_.mpoly[f];
+  const MPoly &mpoly = mesh_.polys()[f];
   const int loopstart = mpoly.loopstart;
   const int loopend = mpoly.loopstart + mpoly.totloop - 1;
+  Span<MLoop> loops = mesh_.loops();
   for (int l = loopstart; l <= loopend; l++) {
-    const MLoop &mloop = mesh_.mloop[l];
+    const MLoop &mloop = loops[l];
     if (mloop.e == e0) {
-      const MLoop &mloop_next = l == loopend ? mesh_.mloop[loopstart] : mesh_.mloop[l + 1];
+      const MLoop &mloop_next = l == loopend ? loops[loopstart] : loops[l + 1];
       return mloop_next.e == e1;
     }
   }
@@ -213,7 +215,7 @@ bool MeshTopology::edge_is_successor_in_face(const int e0, const int e1, const i
 
 float3 MeshTopology::edge_dir_from_vert(int e, int v) const
 {
-  const MEdge &medge = mesh_.medge[e];
+  const MEdge &medge = mesh_.edges()[e];
   if (medge.v1 == v) {
     return vert_co(medge.v2) - vert_co(medge.v1);
   }
@@ -880,7 +882,6 @@ int MeshDelta::new_face(int loopstart, int totloop, int rep)
   MPoly mpoly;
   mpoly.loopstart = loopstart;
   mpoly.totloop = totloop;
-  mpoly.mat_nr = 0;
   mpoly.flag = 0;
   new_polys_.append(mpoly);
   new_poly_rep_.append(rep);
@@ -894,7 +895,7 @@ void MeshDelta::delete_face(int f)
 {
   poly_deletes_.add(f);
   BLI_assert(f >= 0 && f < mesh_.totpoly);
-  const MPoly &mpoly = mesh_.mpoly[f];
+  const MPoly &mpoly = mesh_.polys()[f];
   for (int l = mpoly.loopstart; l < mpoly.loopstart + mpoly.totloop; l++) {
     loop_deletes_.add(l);
   }
@@ -907,18 +908,18 @@ static std::ostream &operator<<(std::ostream &os, const Mesh *mesh)
   os << "Mesh, totvert=" << mesh->totvert << " totedge=" << mesh->totedge
      << " totpoly=" << mesh->totpoly << " totloop=" << mesh->totloop << "\n";
   for (int v : IndexRange(mesh->totvert)) {
-    os << "v" << v << " at (" << mesh->mvert[v].co[0] << "," << mesh->mvert[v].co[1] << ","
-       << mesh->mvert[v].co[2] << ")\n";
+    os << "v" << v << " at (" << mesh->verts()[v].co[0] << "," << mesh->verts()[v].co[1] << ","
+       << mesh->verts()[v].co[2] << ")\n";
   }
   for (int e : IndexRange(mesh->totedge)) {
-    os << "e" << e << " = (v" << mesh->medge[e].v1 << ", v" << mesh->medge[e].v2 << ")\n";
+    os << "e" << e << " = (v" << mesh->edges()[e].v1 << ", v" << mesh->edges()[e].v2 << ")\n";
   }
   for (int p : IndexRange(mesh->totpoly)) {
-    os << "p" << p << " at loopstart l" << mesh->mpoly[p].loopstart << " with "
-       << mesh->mpoly[p].totloop << " loops\n";
+    os << "p" << p << " at loopstart l" << mesh->polys()[p].loopstart << " with "
+       << mesh->polys()[p].totloop << " loops\n";
   }
   for (int l : IndexRange(mesh->totloop)) {
-    os << "l" << l << " = (v" << mesh->mloop[l].v << ", e" << mesh->mloop[l].e << ")\n";
+    os << "l" << l << " = (v" << mesh->loops()[l].v << ", e" << mesh->loops()[l].e << ")\n";
   }
   return os;
 }
@@ -1191,10 +1192,10 @@ Mesh *MeshDelta::apply_delta_to_mesh(GeometrySet &geometry_set, const MeshCompon
   int out_totpoly = keep_polys.size() + new_polys_.size();
   int out_totloop = keep_loops.size() + new_loops_.size();
 
-  Span<MVert> mesh_verts(mesh_.mvert, mesh_.totvert);
-  Span<MEdge> mesh_edges(mesh_.medge, mesh_.totedge);
-  Span<MLoop> mesh_loops(mesh_.mloop, mesh_.totloop);
-  Span<MPoly> mesh_polys(mesh_.mpoly, mesh_.totpoly);
+  Span<MVert> mesh_verts = mesh_.verts();
+  Span<MEdge> mesh_edges = mesh_.edges();
+  Span<MLoop> mesh_loops = mesh_.loops();
+  Span<MPoly> mesh_polys = mesh_.polys();
 
   Mesh *mesh_out = BKE_mesh_new_nomain_from_template(
       &mesh_, out_totvert, out_totedge, 0, out_totloop, out_totpoly);
@@ -1202,10 +1203,10 @@ Mesh *MeshDelta::apply_delta_to_mesh(GeometrySet &geometry_set, const MeshCompon
   MeshComponent out_component;
   out_component.replace(mesh_out, GeometryOwnershipType::Editable);
 
-  MutableSpan<MVert> mesh_out_verts(mesh_out->mvert, out_totvert);
-  MutableSpan<MEdge> mesh_out_edges(mesh_out->medge, out_totedge);
-  MutableSpan<MLoop> mesh_out_loops(mesh_out->mloop, out_totloop);
-  MutableSpan<MPoly> mesh_out_polys(mesh_out->mpoly, out_totpoly);
+  MutableSpan<MVert> mesh_out_verts = mesh_out->verts_for_write();
+  MutableSpan<MEdge> mesh_out_edges = mesh_out->edges_for_write();
+  MutableSpan<MLoop> mesh_out_loops = mesh_out->loops_for_write();
+  MutableSpan<MPoly> mesh_out_polys = mesh_out->polys_for_write();
 
   /* Copy the kept elements to the new mesh, mapping the internal vertex, edge, and loop
    * indices in each of those elements to their new positions.
@@ -1300,7 +1301,7 @@ Mesh *MeshDelta::apply_delta_to_mesh(GeometrySet &geometry_set, const MeshCompon
 
   /* Fix coordinates of new vertices. */
   for (const int v : new_verts_.index_range()) {
-    copy_v3_v3(mesh_out->mvert[v + keep_vertices.size()].co, new_verts_[v].co);
+    copy_v3_v3(mesh_out->verts_for_write()[v + keep_vertices.size()].co, new_verts_[v].co);
   }
 
   BKE_mesh_calc_edges_loose(mesh_out);
@@ -1447,13 +1448,15 @@ static Mesh *finish_vertex_bevel(BevelData &bd,
    * For now, go through all faces to see which ones are affected.
    * TODO: gather affected faces via connections to beveled vertices.
    */
+  Span<MPoly> polys = mesh.polys();
+  Span<MLoop> loops = mesh.loops();
   for (int f : IndexRange(mesh.totpoly)) {
-    const MPoly &mpoly = mesh.mpoly[f];
+    const MPoly &mpoly = polys[f];
 
     /* Are there any beveled vertices in f? */
     int any_affected_vert = false;
     for (int l = mpoly.loopstart; l < mpoly.loopstart + mpoly.totloop; l++) {
-      const int v = mesh.mloop[l].v;
+      const int v = loops[l].v;
       const BevelVertexData *bvd = bd.bevel_vertex_data(v);
       if (bvd != nullptr) {
         any_affected_vert = true;
@@ -1467,9 +1470,9 @@ static Mesh *finish_vertex_bevel(BevelData &bd,
       int lfirst = -1;
       int totloop = 0;
       for (int l = mpoly.loopstart; l < mpoly.loopstart + mpoly.totloop; l++) {
-        const MLoop &mloop = mesh.mloop[l];
+        const MLoop &mloop = loops[l];
         const MLoop &mloop_next =
-            mesh.mloop[l == mpoly.loopstart + mpoly.totloop - 1 ? mpoly.loopstart : l + 1];
+            loops[l == mpoly.loopstart + mpoly.totloop - 1 ? mpoly.loopstart : l + 1];
         int v1 = mloop.v;
         int v2 = mloop_next.v;
         int e = mloop.e;
