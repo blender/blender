@@ -235,12 +235,12 @@ static void get_closest_mesh_looptris(const Mesh &mesh,
   free_bvhtree_from_mesh(&tree_data);
 }
 
-static void get_closest_mesh_polygons(const Mesh &mesh,
-                                      const VArray<float3> &positions,
-                                      const IndexMask mask,
-                                      const MutableSpan<int> r_poly_indices,
-                                      const MutableSpan<float> r_distances_sq,
-                                      const MutableSpan<float3> r_positions)
+static void get_closest_mesh_polys(const Mesh &mesh,
+                                   const VArray<float3> &positions,
+                                   const IndexMask mask,
+                                   const MutableSpan<int> r_poly_indices,
+                                   const MutableSpan<float> r_distances_sq,
+                                   const MutableSpan<float3> r_positions)
 {
   BLI_assert(mesh.totpoly > 0);
 
@@ -270,7 +270,7 @@ static void get_closest_mesh_corners(const Mesh &mesh,
 
   BLI_assert(mesh.totloop > 0);
   Array<int> poly_indices(positions.size());
-  get_closest_mesh_polygons(mesh, positions, mask, poly_indices, {}, {});
+  get_closest_mesh_polys(mesh, positions, mask, poly_indices, {}, {});
 
   for (const int i : mask) {
     const float3 position = positions[i];
@@ -540,7 +540,7 @@ class NearestTransferFunction : public fn::MultiFunction {
           break;
         }
         case ATTR_DOMAIN_FACE: {
-          get_closest_mesh_polygons(*mesh, positions, mask, mesh_indices, mesh_distances, {});
+          get_closest_mesh_polys(*mesh, positions, mask, mesh_indices, mesh_distances, {});
           break;
         }
         case ATTR_DOMAIN_CORNER: {

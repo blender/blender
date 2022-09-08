@@ -310,7 +310,7 @@ static void process_vertex_normals(CDStreamConfig &config,
   }
 
   config.mesh->flag |= ME_AUTOSMOOTH;
-  BKE_mesh_set_custom_normals_from_vertices(config.mesh, vnors);
+  BKE_mesh_set_custom_normals_from_verts(config.mesh, vnors);
   MEM_freeN(vnors);
 }
 

@@ -161,7 +161,7 @@ static bool is_vertex_diagonal(BMVert *from_v, BMVert *to_v)
  */
 static void unsubdivide_face_center_vertex_tag(BMesh *bm, BMVert *initial_vertex)
 {
-  bool *visited_vertices = MEM_calloc_arrayN(bm->totvert, sizeof(bool), "visited vertices");
+  bool *visited_verts = MEM_calloc_arrayN(bm->totvert, sizeof(bool), "visited vertices");
   GSQueue *queue;
   queue = BLI_gsqueue_new(sizeof(BMVert *));
 
@@ -177,7 +177,7 @@ static void unsubdivide_face_center_vertex_tag(BMesh *bm, BMVert *initial_vertex
       int neighbor_vertex_index = BM_elem_index_get(neighbor_v);
       if (neighbor_v != initial_vertex && is_vertex_diagonal(neighbor_v, initial_vertex)) {
         BLI_gsqueue_push(queue, &neighbor_v);
-        visited_vertices[neighbor_vertex_index] = true;
+        visited_verts[neighbor_vertex_index] = true;
         BM_elem_flag_set(neighbor_v, BM_ELEM_TAG, true);
       }
     }
@@ -211,10 +211,10 @@ static void unsubdivide_face_center_vertex_tag(BMesh *bm, BMVert *initial_vertex
       BM_ITER_ELEM (f, &iter, diagonal_v, BM_FACES_OF_VERT) {
         BM_ITER_ELEM (neighbor_v, &iter_a, f, BM_VERTS_OF_FACE) {
           int neighbor_vertex_index = BM_elem_index_get(neighbor_v);
-          if (!visited_vertices[neighbor_vertex_index] && neighbor_v != diagonal_v &&
+          if (!visited_verts[neighbor_vertex_index] && neighbor_v != diagonal_v &&
               is_vertex_diagonal(neighbor_v, diagonal_v)) {
             BLI_gsqueue_push(queue, &neighbor_v);
-            visited_vertices[neighbor_vertex_index] = true;
+            visited_verts[neighbor_vertex_index] = true;
             BM_elem_flag_set(neighbor_v, BM_ELEM_TAG, true);
           }
         }
@@ -224,7 +224,7 @@ static void unsubdivide_face_center_vertex_tag(BMesh *bm, BMVert *initial_vertex
   }
 
   BLI_gsqueue_free(queue);
-  MEM_freeN(visited_vertices);
+  MEM_freeN(visited_verts);
 }
 
 /**
@@ -352,14 +352,14 @@ static bool unsubdivide_tag_disconnected_mesh_element(BMesh *bm, int *elem_id, i
  */
 static int unsubdivide_init_elem_ids(BMesh *bm, int *elem_id)
 {
-  bool *visited_vertices = MEM_calloc_arrayN(bm->totvert, sizeof(bool), "visited vertices");
+  bool *visited_verts = MEM_calloc_arrayN(bm->totvert, sizeof(bool), "visited vertices");
   int current_id = 0;
   for (int i = 0; i < bm->totvert; i++) {
-    if (!visited_vertices[i]) {
+    if (!visited_verts[i]) {
       GSQueue *queue;
       queue = BLI_gsqueue_new(sizeof(BMVert *));
 
-      visited_vertices[i] = true;
+      visited_verts[i] = true;
       elem_id[i] = current_id;
       BMVert *iv = BM_vert_at_index(bm, i);
       BLI_gsqueue_push(queue, &iv);
@@ -372,8 +372,8 @@ static int unsubdivide_init_elem_ids(BMesh *bm, int *elem_id)
         BM_ITER_ELEM (ed, &iter, current_v, BM_EDGES_OF_VERT) {
           neighbor_v = BM_edge_other_vert(ed, current_v);
           const int neighbor_index = BM_elem_index_get(neighbor_v);
-          if (!visited_vertices[neighbor_index]) {
-            visited_vertices[neighbor_index] = true;
+          if (!visited_verts[neighbor_index]) {
+            visited_verts[neighbor_index] = true;
             elem_id[neighbor_index] = current_id;
             BLI_gsqueue_push(queue, &neighbor_v);
           }
@@ -383,7 +383,7 @@ static int unsubdivide_init_elem_ids(BMesh *bm, int *elem_id)
       BLI_gsqueue_free(queue);
     }
   }
-  MEM_freeN(visited_vertices);
+  MEM_freeN(visited_verts);
   return current_id;
 }
 

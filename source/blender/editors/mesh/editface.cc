@@ -494,21 +494,21 @@ void paintvert_flush_flags(Object *ob)
 
   index_array = (const int *)CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX);
 
-  const Span<MVert> vertices = me->verts_for_write();
-  MutableSpan<MVert> vertices_eval = me_eval->verts_for_write();
+  const Span<MVert> verts = me->verts_for_write();
+  MutableSpan<MVert> verts_eval = me_eval->verts_for_write();
 
   if (index_array) {
     int orig_index;
-    for (const int i : vertices_eval.index_range()) {
+    for (const int i : verts_eval.index_range()) {
       orig_index = index_array[i];
       if (orig_index != ORIGINDEX_NONE) {
-        vertices_eval[i].flag = vertices[index_array[i]].flag;
+        verts_eval[i].flag = verts[index_array[i]].flag;
       }
     }
   }
   else {
-    for (const int i : vertices_eval.index_range()) {
-      vertices_eval[i].flag = vertices[i].flag;
+    for (const int i : verts_eval.index_range()) {
+      verts_eval[i].flag = verts[i].flag;
     }
   }
 

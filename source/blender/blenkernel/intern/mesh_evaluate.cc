@@ -717,7 +717,7 @@ void BKE_mesh_polygon_flip(const MPoly *mpoly, MLoop *mloop, CustomData *ldata)
   BKE_mesh_polygon_flip_ex(mpoly, mloop, ldata, nullptr, mdisp, true);
 }
 
-void BKE_mesh_polygons_flip(const MPoly *mpoly, MLoop *mloop, CustomData *ldata, int totpoly)
+void BKE_mesh_polys_flip(const MPoly *mpoly, MLoop *mloop, CustomData *ldata, int totpoly)
 {
   MDisps *mdisp = (MDisps *)CustomData_get_layer(ldata, CD_MDISPS);
   const MPoly *mp;

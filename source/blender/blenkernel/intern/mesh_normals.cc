@@ -2021,18 +2021,18 @@ void BKE_mesh_normals_loop_custom_set(const MVert *mverts,
                                false);
 }
 
-void BKE_mesh_normals_loop_custom_from_vertices_set(const MVert *mverts,
-                                                    const float (*vert_normals)[3],
-                                                    float (*r_custom_vertnors)[3],
-                                                    const int numVerts,
-                                                    MEdge *medges,
-                                                    const int numEdges,
-                                                    const MLoop *mloops,
-                                                    const int numLoops,
-                                                    const MPoly *mpolys,
-                                                    const float (*polynors)[3],
-                                                    const int numPolys,
-                                                    short (*r_clnors_data)[2])
+void BKE_mesh_normals_loop_custom_from_verts_set(const MVert *mverts,
+                                                 const float (*vert_normals)[3],
+                                                 float (*r_custom_vertnors)[3],
+                                                 const int numVerts,
+                                                 MEdge *medges,
+                                                 const int numEdges,
+                                                 const MLoop *mloops,
+                                                 const int numLoops,
+                                                 const MPoly *mpolys,
+                                                 const float (*polynors)[3],
+                                                 const int numPolys,
+                                                 short (*r_clnors_data)[2])
 {
   mesh_normals_loop_custom_set(mverts,
                                vert_normals,
@@ -2087,7 +2087,7 @@ void BKE_mesh_set_custom_normals(Mesh *mesh, float (*r_custom_loopnors)[3])
   mesh_set_custom_normals(mesh, r_custom_loopnors, false);
 }
 
-void BKE_mesh_set_custom_normals_from_vertices(Mesh *mesh, float (*r_custom_vertnors)[3])
+void BKE_mesh_set_custom_normals_from_verts(Mesh *mesh, float (*r_custom_vertnors)[3])
 {
   mesh_set_custom_normals(mesh, r_custom_vertnors, true);
 }

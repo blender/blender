@@ -807,15 +807,15 @@ struct DRWCacheBuildingContext {
 };
 
 static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_context,
-                                         const int num_vertices,
+                                         const int num_verts,
                                          const int num_edges,
                                          const int num_loops,
-                                         const int num_polygons,
+                                         const int num_polys,
                                          const int *subdiv_polygon_offset)
 {
   /* num_loops does not take into account meshes with only loose geometry, which might be meshes
-   * used as custom bone shapes, so let's check the num_vertices also. */
-  if (num_vertices == 0 && num_loops == 0) {
+   * used as custom bone shapes, so let's check the num_verts also. */
+  if (num_verts == 0 && num_loops == 0) {
     return false;
   }
 
@@ -826,12 +826,12 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
   if (num_loops != 0) {
     cache->num_subdiv_edges = (uint)num_edges;
     cache->num_subdiv_loops = (uint)num_loops;
-    cache->num_subdiv_verts = (uint)num_vertices;
-    cache->num_subdiv_quads = (uint)num_polygons;
+    cache->num_subdiv_verts = (uint)num_verts;
+    cache->num_subdiv_quads = (uint)num_polys;
     cache->subdiv_polygon_offset = static_cast<int *>(MEM_dupallocN(subdiv_polygon_offset));
   }
 
-  cache->may_have_loose_geom = num_vertices != 0 || num_edges != 0;
+  cache->may_have_loose_geom = num_verts != 0 || num_edges != 0;
 
   /* Initialize cache buffers, prefer dynamic usage so we can reuse memory on the host even after
    * it was sent to the device, since we may use the data while building other buffers on the CPU
@@ -882,7 +882,7 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
   if (cache->num_subdiv_verts) {
     ctx->vert_origindex_map = static_cast<int *>(
         MEM_mallocN(cache->num_subdiv_verts * sizeof(int), "subdiv_vert_origindex_map"));
-    for (int i = 0; i < num_vertices; i++) {
+    for (int i = 0; i < num_verts; i++) {
       ctx->vert_origindex_map[i] = -1;
     }
   }

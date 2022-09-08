@@ -389,7 +389,7 @@ const struct CCGKey *BKE_pbvh_get_grid_key(const PBVH *pbvh);
 
 struct CCGElem **BKE_pbvh_get_grids(const PBVH *pbvh);
 BLI_bitmap **BKE_pbvh_get_grid_visibility(const PBVH *pbvh);
-int BKE_pbvh_get_grid_num_vertices(const PBVH *pbvh);
+int BKE_pbvh_get_grid_num_verts(const PBVH *pbvh);
 int BKE_pbvh_get_grid_num_faces(const PBVH *pbvh);
 
 /**

@@ -169,9 +169,9 @@ typedef struct GenerateOceanGeometryData {
   float ix, iy;
 } GenerateOceanGeometryData;
 
-static void generate_ocean_geometry_vertices(void *__restrict userdata,
-                                             const int y,
-                                             const TaskParallelTLS *__restrict UNUSED(tls))
+static void generate_ocean_geometry_verts(void *__restrict userdata,
+                                          const int y,
+                                          const TaskParallelTLS *__restrict UNUSED(tls))
 {
   GenerateOceanGeometryData *gogd = userdata;
   int x;
@@ -185,9 +185,9 @@ static void generate_ocean_geometry_vertices(void *__restrict userdata,
   }
 }
 
-static void generate_ocean_geometry_polygons(void *__restrict userdata,
-                                             const int y,
-                                             const TaskParallelTLS *__restrict UNUSED(tls))
+static void generate_ocean_geometry_polys(void *__restrict userdata,
+                                          const int y,
+                                          const TaskParallelTLS *__restrict UNUSED(tls))
 {
   GenerateOceanGeometryData *gogd = userdata;
   int x;
@@ -282,10 +282,10 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
   settings.use_threading = use_threading;
 
   /* create vertices */
-  BLI_task_parallel_range(0, gogd.res_y + 1, &gogd, generate_ocean_geometry_vertices, &settings);
+  BLI_task_parallel_range(0, gogd.res_y + 1, &gogd, generate_ocean_geometry_verts, &settings);
 
   /* create faces */
-  BLI_task_parallel_range(0, gogd.res_y, &gogd, generate_ocean_geometry_polygons, &settings);
+  BLI_task_parallel_range(0, gogd.res_y, &gogd, generate_ocean_geometry_polys, &settings);
 
   BKE_mesh_calc_edges(result, false, false);
 

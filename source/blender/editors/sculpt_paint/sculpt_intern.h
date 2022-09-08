@@ -97,7 +97,7 @@ typedef struct {
 /* Flood Fill. */
 typedef struct {
   GSQueue *queue;
-  BLI_bitmap *visited_vertices;
+  BLI_bitmap *visited_verts;
 } SculptFloodFill;
 
 typedef enum eBoundaryAutomaskMode {
@@ -1005,7 +1005,7 @@ void SCULPT_connected_components_ensure(Object *ob);
 void SCULPT_vertex_visible_set(SculptSession *ss, PBVHVertRef vertex, bool visible);
 bool SCULPT_vertex_visible_get(SculptSession *ss, PBVHVertRef vertex);
 
-void SCULPT_visibility_sync_all_face_sets_to_vertices(struct Object *ob);
+void SCULPT_visibility_sync_all_face_sets_to_verts(struct Object *ob);
 void SCULPT_visibility_sync_all_vertex_to_face_sets(struct SculptSession *ss);
 
 /** \} */

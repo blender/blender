@@ -2120,8 +2120,8 @@ void psys_particle_on_dm(Mesh *mesh_final,
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh_final);
 
   if (from == PART_FROM_VERT) {
-    const MVert *vertices = BKE_mesh_verts(mesh_final);
-    copy_v3_v3(vec, vertices[mapindex].co);
+    const MVert *verts = BKE_mesh_verts(mesh_final);
+    copy_v3_v3(vec, verts[mapindex].co);
 
     if (nor) {
       copy_v3_v3(nor, vert_normals[mapindex]);

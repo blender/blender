@@ -1831,7 +1831,7 @@ BLI_bitmap **BKE_pbvh_get_grid_visibility(const PBVH *pbvh)
   return pbvh->grid_hidden;
 }
 
-int BKE_pbvh_get_grid_num_vertices(const PBVH *pbvh)
+int BKE_pbvh_get_grid_num_verts(const PBVH *pbvh)
 {
   BLI_assert(pbvh->header.type == PBVH_GRIDS);
   return pbvh->totgrid * pbvh->gridkey.grid_area;

@@ -242,8 +242,8 @@ const Material *OBJMesh::get_object_material(const int16_t mat_nr) const
 
 bool OBJMesh::is_ith_poly_smooth(const int poly_index) const
 {
-  const Span<MPoly> polygons = export_mesh_eval_->polys();
-  return polygons[poly_index].flag & ME_SMOOTH;
+  const Span<MPoly> polys = export_mesh_eval_->polys();
+  return polys[poly_index].flag & ME_SMOOTH;
 }
 
 const char *OBJMesh::get_object_name() const
@@ -317,7 +317,7 @@ void OBJMesh::store_uv_coords_and_indices()
       if (uv_vert->separate) {
         tot_uv_vertices_ += 1;
       }
-      const int vertices_in_poly = polys[uv_vert->poly_index].totloop;
+      const int verts_in_poly = polys[uv_vert->poly_index].totloop;
 
       /* Store UV vertex coordinates. */
       uv_coords_.resize(tot_uv_vertices_);
@@ -326,7 +326,7 @@ void OBJMesh::store_uv_coords_and_indices()
       uv_coords_[tot_uv_vertices_ - 1] = float2(vert_uv_coords[0], vert_uv_coords[1]);
 
       /* Store UV vertex indices. */
-      uv_indices_[uv_vert->poly_index].resize(vertices_in_poly);
+      uv_indices_[uv_vert->poly_index].resize(verts_in_poly);
       /* Keep indices zero-based and let the writer handle the "+ 1" as per OBJ spec. */
       uv_indices_[uv_vert->poly_index][uv_vert->loop_of_poly_index] = tot_uv_vertices_ - 1;
     }

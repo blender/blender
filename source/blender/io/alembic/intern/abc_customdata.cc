@@ -57,7 +57,7 @@ static void get_uvs(const CDStreamConfig &config,
   }
 
   const int num_poly = config.totpoly;
-  MPoly *polygons = config.mpoly;
+  MPoly *mpoly = config.mpoly;
   MLoop *mloop = config.mloop;
 
   if (!config.pack_uvs) {
@@ -67,7 +67,7 @@ static void get_uvs(const CDStreamConfig &config,
 
     /* Iterate in reverse order to match exported polygons. */
     for (int i = 0; i < num_poly; i++) {
-      MPoly &current_poly = polygons[i];
+      MPoly &current_poly = mpoly[i];
       const MLoopUV *loopuv = mloopuv_array + current_poly.loopstart + current_poly.totloop;
 
       for (int j = 0; j < current_poly.totloop; j++, count++) {
@@ -85,7 +85,7 @@ static void get_uvs(const CDStreamConfig &config,
     int idx_count = 0;
 
     for (int i = 0; i < num_poly; i++) {
-      MPoly &current_poly = polygons[i];
+      MPoly &current_poly = mpoly[i];
       MLoop *looppoly = mloop + current_poly.loopstart + current_poly.totloop;
       const MLoopUV *loopuv = mloopuv_array + current_poly.loopstart + current_poly.totloop;
 

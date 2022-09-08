@@ -482,7 +482,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   }
 
   /* About 67 million vertices max seems a decent limit for now. */
-  const size_t max_vertices_num = 1 << 26;
+  const size_t max_verts_num = 1 << 26;
 
   /* calculate the maximum number of copies which will fit within the
    * prescribed length */
@@ -500,7 +500,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
        * vertices.
        */
       if (((size_t)count * (size_t)chunk_nverts + (size_t)start_cap_nverts +
-           (size_t)end_cap_nverts) > max_vertices_num) {
+           (size_t)end_cap_nverts) > max_verts_num) {
         count = 1;
         offset_is_too_small = true;
       }
@@ -522,7 +522,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
    * vertices.
    */
   else if (((size_t)count * (size_t)chunk_nverts + (size_t)start_cap_nverts +
-            (size_t)end_cap_nverts) > max_vertices_num) {
+            (size_t)end_cap_nverts) > max_verts_num) {
     count = 1;
     BKE_modifier_set_error(ctx->object,
                            &amd->modifier,

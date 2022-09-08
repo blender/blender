@@ -61,9 +61,9 @@
 
 /* Propagate distance from v1 and v2 to v0. */
 static bool sculpt_geodesic_mesh_test_dist_add(
-    MVert *mvert, const int v0, const int v1, const int v2, float *dists, GSet *initial_vertices)
+    MVert *mvert, const int v0, const int v1, const int v2, float *dists, GSet *initial_verts)
 {
-  if (BLI_gset_haskey(initial_vertices, POINTER_FROM_INT(v0))) {
+  if (BLI_gset_haskey(initial_verts, POINTER_FROM_INT(v0))) {
     return false;
   }
 
@@ -96,7 +96,7 @@ static bool sculpt_geodesic_mesh_test_dist_add(
 }
 
 static float *SCULPT_geodesic_mesh_create(Object *ob,
-                                          GSet *initial_vertices,
+                                          GSet *initial_verts,
                                           const float limit_radius)
 {
   SculptSession *ss = ob->sculpt;
@@ -137,7 +137,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
   BLI_LINKSTACK_INIT(queue_next);
 
   for (int i = 0; i < totvert; i++) {
-    if (BLI_gset_haskey(initial_vertices, POINTER_FROM_INT(i))) {
+    if (BLI_gset_haskey(initial_verts, POINTER_FROM_INT(i))) {
       dists[i] = 0.0f;
     }
     else {
@@ -159,7 +159,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
     /* This is an O(n^2) loop used to limit the geodesic distance calculation to a radius. When
      * this optimization is needed, it is expected for the tool to request the distance to a low
      * number of vertices (usually just 1 or 2). */
-    GSET_ITER (gs_iter, initial_vertices) {
+    GSET_ITER (gs_iter, initial_verts) {
       const int v = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
       float *v_co = verts[v].co;
       for (int i = 0; i < totvert; i++) {
@@ -193,7 +193,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
           SWAP(int, v1, v2);
         }
         sculpt_geodesic_mesh_test_dist_add(
-            verts, v2, v1, SCULPT_GEODESIC_VERTEX_NONE, dists, initial_vertices);
+            verts, v2, v1, SCULPT_GEODESIC_VERTEX_NONE, dists, initial_verts);
       }
 
       if (ss->epmap[e].count != 0) {
@@ -210,8 +210,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
             if (ELEM(v_other, v1, v2)) {
               continue;
             }
-            if (sculpt_geodesic_mesh_test_dist_add(
-                    verts, v_other, v1, v2, dists, initial_vertices)) {
+            if (sculpt_geodesic_mesh_test_dist_add(verts, v_other, v1, v2, dists, initial_verts)) {
               for (int edge_map_index = 0; edge_map_index < ss->vemap[v_other].count;
                    edge_map_index++) {
                 const int e_other = ss->vemap[v_other].indices[edge_map_index];
@@ -258,7 +257,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
 /* For sculpt mesh data that does not support a geodesic distances algorithm, fallback to the
  * distance to each vertex. In this case, only one of the initial vertices will be used to
  * calculate the distance. */
-static float *SCULPT_geodesic_fallback_create(Object *ob, GSet *initial_vertices)
+static float *SCULPT_geodesic_fallback_create(Object *ob, GSet *initial_verts)
 {
 
   SculptSession *ss = ob->sculpt;
@@ -267,7 +266,7 @@ static float *SCULPT_geodesic_fallback_create(Object *ob, GSet *initial_vertices
   float *dists = MEM_malloc_arrayN(totvert, sizeof(float), "distances");
   int first_affected = SCULPT_GEODESIC_VERTEX_NONE;
   GSetIterator gs_iter;
-  GSET_ITER (gs_iter, initial_vertices) {
+  GSET_ITER (gs_iter, initial_verts) {
     first_affected = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
     break;
   }
@@ -290,17 +289,15 @@ static float *SCULPT_geodesic_fallback_create(Object *ob, GSet *initial_vertices
   return dists;
 }
 
-float *SCULPT_geodesic_distances_create(Object *ob,
-                                        GSet *initial_vertices,
-                                        const float limit_radius)
+float *SCULPT_geodesic_distances_create(Object *ob, GSet *initial_verts, const float limit_radius)
 {
   SculptSession *ss = ob->sculpt;
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      return SCULPT_geodesic_mesh_create(ob, initial_vertices, limit_radius);
+      return SCULPT_geodesic_mesh_create(ob, initial_verts, limit_radius);
     case PBVH_BMESH:
     case PBVH_GRIDS:
-      return SCULPT_geodesic_fallback_create(ob, initial_vertices);
+      return SCULPT_geodesic_fallback_create(ob, initial_verts);
   }
   BLI_assert(false);
   return NULL;
@@ -312,7 +309,7 @@ float *SCULPT_geodesic_from_vertex_and_symm(Sculpt *sd,
                                             const float limit_radius)
 {
   SculptSession *ss = ob->sculpt;
-  GSet *initial_vertices = BLI_gset_int_new("initial_vertices");
+  GSet *initial_verts = BLI_gset_int_new("initial_verts");
 
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
   for (char i = 0; i <= symm; ++i) {
@@ -328,22 +325,22 @@ float *SCULPT_geodesic_from_vertex_and_symm(Sculpt *sd,
         v = SCULPT_nearest_vertex_get(sd, ob, location, FLT_MAX, false);
       }
       if (v.i != PBVH_REF_NONE) {
-        BLI_gset_add(initial_vertices, POINTER_FROM_INT(BKE_pbvh_vertex_to_index(ss->pbvh, v)));
+        BLI_gset_add(initial_verts, POINTER_FROM_INT(BKE_pbvh_vertex_to_index(ss->pbvh, v)));
       }
     }
   }
 
-  float *dists = SCULPT_geodesic_distances_create(ob, initial_vertices, limit_radius);
-  BLI_gset_free(initial_vertices, NULL);
+  float *dists = SCULPT_geodesic_distances_create(ob, initial_verts, limit_radius);
+  BLI_gset_free(initial_verts, NULL);
   return dists;
 }
 
 float *SCULPT_geodesic_from_vertex(Object *ob, const PBVHVertRef vertex, const float limit_radius)
 {
-  GSet *initial_vertices = BLI_gset_int_new("initial_vertices");
-  BLI_gset_add(initial_vertices,
+  GSet *initial_verts = BLI_gset_int_new("initial_verts");
+  BLI_gset_add(initial_verts,
                POINTER_FROM_INT(BKE_pbvh_vertex_to_index(ob->sculpt->pbvh, vertex)));
-  float *dists = SCULPT_geodesic_distances_create(ob, initial_vertices, limit_radius);
-  BLI_gset_free(initial_vertices, NULL);
+  float *dists = SCULPT_geodesic_distances_create(ob, initial_verts, limit_radius);
+  BLI_gset_free(initial_verts, NULL);
   return dists;
 }

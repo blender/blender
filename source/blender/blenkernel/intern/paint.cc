@@ -1511,7 +1511,7 @@ void BKE_sculptsession_free(Object *ob)
     }
 
     if (ss->boundary_preview) {
-      MEM_SAFE_FREE(ss->boundary_preview->vertices);
+      MEM_SAFE_FREE(ss->boundary_preview->verts);
       MEM_SAFE_FREE(ss->boundary_preview->edges);
       MEM_SAFE_FREE(ss->boundary_preview->distance);
       MEM_SAFE_FREE(ss->boundary_preview->edit_info);

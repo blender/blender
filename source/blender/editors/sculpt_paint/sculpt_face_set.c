@@ -746,7 +746,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
   SCULPT_undo_push_end(ob);
 
   /* Sync face sets visibility and vertex visibility as now all Face Sets are visible. */
-  SCULPT_visibility_sync_all_face_sets_to_vertices(ob);
+  SCULPT_visibility_sync_all_face_sets_to_verts(ob);
 
   for (int i = 0; i < totnode; i++) {
     BKE_pbvh_node_mark_update_visibility(nodes[i]);
@@ -933,7 +933,7 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
   }
 
   /* Sync face sets visibility and vertex visibility. */
-  SCULPT_visibility_sync_all_face_sets_to_vertices(ob);
+  SCULPT_visibility_sync_all_face_sets_to_verts(ob);
 
   SCULPT_undo_push_end(ob);
 
@@ -1233,21 +1233,21 @@ static void sculpt_face_set_edit_fair_face_set(Object *ob,
   const int totvert = SCULPT_vertex_count_get(ss);
 
   Mesh *mesh = ob->data;
-  bool *fair_vertices = MEM_malloc_arrayN(totvert, sizeof(bool), "fair vertices");
+  bool *fair_verts = MEM_malloc_arrayN(totvert, sizeof(bool), "fair vertices");
 
   SCULPT_boundary_info_ensure(ob);
 
   for (int i = 0; i < totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
-    fair_vertices[i] = !SCULPT_vertex_is_boundary(ss, vertex) &&
-                       SCULPT_vertex_has_face_set(ss, vertex, active_face_set_id) &&
-                       SCULPT_vertex_has_unique_face_set(ss, vertex);
+    fair_verts[i] = !SCULPT_vertex_is_boundary(ss, vertex) &&
+                    SCULPT_vertex_has_face_set(ss, vertex, active_face_set_id) &&
+                    SCULPT_vertex_has_unique_face_set(ss, vertex);
   }
 
   MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
-  BKE_mesh_prefair_and_fair_vertices(mesh, mvert, fair_vertices, fair_order);
-  MEM_freeN(fair_vertices);
+  BKE_mesh_prefair_and_fair_verts(mesh, mvert, fair_verts, fair_order);
+  MEM_freeN(fair_verts);
 }
 
 static void sculpt_face_set_apply_edit(Object *ob,
@@ -1339,7 +1339,7 @@ static void face_set_edit_do_post_visibility_updates(Object *ob, PBVHNode **node
   PBVH *pbvh = ss->pbvh;
 
   /* Sync face sets visibility and vertex visibility as now all Face Sets are visible. */
-  SCULPT_visibility_sync_all_face_sets_to_vertices(ob);
+  SCULPT_visibility_sync_all_face_sets_to_verts(ob);
 
   for (int i = 0; i < totnode; i++) {
     BKE_pbvh_node_mark_update_visibility(nodes[i]);

@@ -116,7 +116,7 @@ int SCULPT_vertex_count_get(SculptSession *ss)
     case PBVH_BMESH:
       return BM_mesh_elem_count(BKE_pbvh_get_bmesh(ss->pbvh), BM_VERT);
     case PBVH_GRIDS:
-      return BKE_pbvh_get_grid_num_vertices(ss->pbvh);
+      return BKE_pbvh_get_grid_num_verts(ss->pbvh);
   }
 
   return 0;
@@ -562,7 +562,7 @@ bool SCULPT_vertex_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_
   return true;
 }
 
-void SCULPT_visibility_sync_all_face_sets_to_vertices(Object *ob)
+void SCULPT_visibility_sync_all_face_sets_to_verts(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
@@ -1102,7 +1102,7 @@ void SCULPT_floodfill_init(SculptSession *ss, SculptFloodFill *flood)
   SCULPT_vertex_random_access_ensure(ss);
 
   flood->queue = BLI_gsqueue_new(sizeof(intptr_t));
-  flood->visited_vertices = BLI_BITMAP_NEW(vertex_count, "visited vertices");
+  flood->visited_verts = BLI_BITMAP_NEW(vertex_count, "visited verts");
 }
 
 void SCULPT_floodfill_add_initial(SculptFloodFill *flood, PBVHVertRef vertex)
@@ -1113,7 +1113,7 @@ void SCULPT_floodfill_add_initial(SculptFloodFill *flood, PBVHVertRef vertex)
 void SCULPT_floodfill_add_and_skip_initial(SculptFloodFill *flood, PBVHVertRef vertex)
 {
   BLI_gsqueue_push(flood->queue, &vertex);
-  BLI_BITMAP_ENABLE(flood->visited_vertices, vertex.i);
+  BLI_BITMAP_ENABLE(flood->visited_verts, vertex.i);
 }
 
 void SCULPT_floodfill_add_initial_with_symmetry(Sculpt *sd,
@@ -1192,7 +1192,7 @@ void SCULPT_floodfill_execute(SculptSession *ss,
       const PBVHVertRef to_v = ni.vertex;
       int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
 
-      if (BLI_BITMAP_TEST(flood->visited_vertices, to_v_i)) {
+      if (BLI_BITMAP_TEST(flood->visited_verts, to_v_i)) {
         continue;
       }
 
@@ -1200,7 +1200,7 @@ void SCULPT_floodfill_execute(SculptSession *ss,
         continue;
       }
 
-      BLI_BITMAP_ENABLE(flood->visited_vertices, BKE_pbvh_vertex_to_index(ss->pbvh, to_v));
+      BLI_BITMAP_ENABLE(flood->visited_verts, BKE_pbvh_vertex_to_index(ss->pbvh, to_v));
 
       if (func(ss, from_v, to_v, ni.is_duplicate, userdata)) {
         BLI_gsqueue_push(flood->queue, &to_v);
@@ -1212,7 +1212,7 @@ void SCULPT_floodfill_execute(SculptSession *ss,
 
 void SCULPT_floodfill_free(SculptFloodFill *flood)
 {
-  MEM_SAFE_FREE(flood->visited_vertices);
+  MEM_SAFE_FREE(flood->visited_verts);
   BLI_gsqueue_free(flood->queue);
   flood->queue = NULL;
 }

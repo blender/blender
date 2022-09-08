@@ -186,7 +186,7 @@ static IndexMask get_selected_indices(const Mesh &mesh,
   return IndexMask(attributes.domain_size(domain));
 }
 
-static void face_corner_color_equalize_vertices(Mesh &mesh, const IndexMask selection)
+static void face_corner_color_equalize_verts(Mesh &mesh, const IndexMask selection)
 {
   using namespace blender;
 
@@ -221,7 +221,7 @@ static bool vertex_color_smooth(Object *ob)
   Vector<int64_t> indices;
   const IndexMask selection = get_selected_indices(*me, ATTR_DOMAIN_CORNER, indices);
 
-  face_corner_color_equalize_vertices(*me, selection);
+  face_corner_color_equalize_verts(*me, selection);
 
   tag_object_after_update(ob);
 

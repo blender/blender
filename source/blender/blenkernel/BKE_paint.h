@@ -402,7 +402,7 @@ typedef struct SculptBoundaryEditInfo {
   int original_vertex_i;
 
   /* How many steps were needed to reach this vertex from the boundary. */
-  int num_propagation_steps;
+  int propagation_steps_num;
 
   /* Strength that is used to deform this vertex. */
   float strength_factor;
@@ -416,10 +416,10 @@ typedef struct SculptBoundaryPreviewEdge {
 
 typedef struct SculptBoundary {
   /* Vertex indices of the active boundary. */
-  PBVHVertRef *vertices;
-  int *vertices_i;
-  int vertices_capacity;
-  int num_vertices;
+  PBVHVertRef *verts;
+  int *verts_i;
+  int verts_capacity;
+  int verts_num;
 
   /* Distance from a vertex in the boundary to initial vertex indexed by vertex index, taking into
    * account the length of all edges between them. Any vertex that is not in the boundary will have
@@ -429,7 +429,7 @@ typedef struct SculptBoundary {
   /* Data for drawing the preview. */
   SculptBoundaryPreviewEdge *edges;
   int edges_capacity;
-  int num_edges;
+  int edges_num;
 
   /* True if the boundary loops into itself. */
   bool forms_loop;

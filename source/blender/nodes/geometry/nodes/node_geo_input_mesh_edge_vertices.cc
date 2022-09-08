@@ -27,9 +27,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 enum VertexNumber { VERTEX_ONE, VERTEX_TWO };
 
-static VArray<int> construct_edge_vertices_gvarray(const Mesh &mesh,
-                                                   const VertexNumber vertex,
-                                                   const eAttrDomain domain)
+static VArray<int> construct_edge_verts_gvarray(const Mesh &mesh,
+                                                const VertexNumber vertex,
+                                                const eAttrDomain domain)
 {
   const Span<MEdge> edges = mesh.edges();
   if (domain == ATTR_DOMAIN_EDGE) {
@@ -57,7 +57,7 @@ class EdgeVerticesFieldInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
-    return construct_edge_vertices_gvarray(mesh, vertex_, domain);
+    return construct_edge_verts_gvarray(mesh, vertex_, domain);
   }
 
   uint64_t hash() const override

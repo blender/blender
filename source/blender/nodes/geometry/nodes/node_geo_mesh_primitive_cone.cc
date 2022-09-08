@@ -255,7 +255,7 @@ int ConeConfig::calculate_total_corners()
   return corner_total;
 }
 
-static void calculate_cone_vertices(const MutableSpan<MVert> &verts, const ConeConfig &config)
+static void calculate_cone_verts(const MutableSpan<MVert> &verts, const ConeConfig &config)
 {
   Array<float2> circle(config.circle_segments);
   const float angle_delta = 2.0f * (M_PI / static_cast<float>(config.circle_segments));
@@ -694,7 +694,7 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
   MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
 
-  calculate_cone_vertices(verts, config);
+  calculate_cone_verts(verts, config);
   calculate_cone_edges(edges, config);
   calculate_cone_faces(loops, polys, config);
   calculate_cone_uvs(mesh, config);
