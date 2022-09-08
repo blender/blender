@@ -61,8 +61,8 @@ struct BMeshToMeshParams {
   bool active_shapekey_to_mvert;
   struct CustomData_MeshMasks cd_mask_extra;
 };
+
 /**
- *
  * \param bmain: May be NULL in case \a calc_object_remap parameter option is not set.
  */
 void BM_mesh_bm_to_me(struct Main *bmain,

@@ -112,10 +112,10 @@ ccl_device_noinline int svm_node_vector_map_range(KernelGlobals kg,
   switch (range_type_stack_offset) {
     default:
     case NODE_MAP_RANGE_LINEAR:
-      factor = safe_divide_float3_float3((value - from_min), (from_max - from_min));
+      factor = safe_divide((value - from_min), (from_max - from_min));
       break;
     case NODE_MAP_RANGE_STEPPED: {
-      factor = safe_divide_float3_float3((value - from_min), (from_max - from_min));
+      factor = safe_divide((value - from_min), (from_max - from_min));
       factor = make_float3((steps.x > 0.0f) ? floorf(factor.x * (steps.x + 1.0f)) / steps.x : 0.0f,
                            (steps.y > 0.0f) ? floorf(factor.y * (steps.y + 1.0f)) / steps.y : 0.0f,
                            (steps.z > 0.0f) ? floorf(factor.z * (steps.z + 1.0f)) / steps.z :
@@ -123,13 +123,13 @@ ccl_device_noinline int svm_node_vector_map_range(KernelGlobals kg,
       break;
     }
     case NODE_MAP_RANGE_SMOOTHSTEP: {
-      factor = safe_divide_float3_float3((value - from_min), (from_max - from_min));
+      factor = safe_divide((value - from_min), (from_max - from_min));
       factor = clamp(factor, zero_float3(), one_float3());
       factor = (make_float3(3.0f, 3.0f, 3.0f) - 2.0f * factor) * (factor * factor);
       break;
     }
     case NODE_MAP_RANGE_SMOOTHERSTEP: {
-      factor = safe_divide_float3_float3((value - from_min), (from_max - from_min));
+      factor = safe_divide((value - from_min), (from_max - from_min));
       factor = clamp(factor, zero_float3(), one_float3());
       factor = factor * factor * factor * (factor * (factor * 6.0f - 15.0f) + 10.0f);
       break;

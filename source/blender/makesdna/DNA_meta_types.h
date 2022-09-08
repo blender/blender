@@ -92,8 +92,6 @@ typedef struct MetaBall {
   /* used in editmode */
   // ListBase edit_elems;
   MetaElem *lastelem;
-
-  void *batch_cache;
 } MetaBall;
 
 /* **************** METABALL ********************* */

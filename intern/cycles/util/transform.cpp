@@ -11,7 +11,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Transform Inverse */
 
-static bool transform_matrix4_gj_inverse(float R[][4], float M[][4])
+static bool projection_matrix4_inverse(float R[][4], float M[][4])
 {
   /* SPDX-License-Identifier: BSD-3-Clause
    * Adapted from code:
@@ -98,16 +98,8 @@ ProjectionTransform projection_inverse(const ProjectionTransform &tfm)
   memcpy(R, &tfmR, sizeof(R));
   memcpy(M, &tfm, sizeof(M));
 
-  if (UNLIKELY(!transform_matrix4_gj_inverse(R, M))) {
-    /* matrix is degenerate (e.g. 0 scale on some axis), ideally we should
-     * never be in this situation, but try to invert it anyway with tweak */
-    M[0][0] += 1e-8f;
-    M[1][1] += 1e-8f;
-    M[2][2] += 1e-8f;
-
-    if (UNLIKELY(!transform_matrix4_gj_inverse(R, M))) {
-      return projection_identity();
-    }
+  if (UNLIKELY(!projection_matrix4_inverse(R, M))) {
+    return projection_identity();
   }
 
   memcpy(&tfmR, R, sizeof(R));
@@ -115,16 +107,9 @@ ProjectionTransform projection_inverse(const ProjectionTransform &tfm)
   return tfmR;
 }
 
-Transform transform_inverse(const Transform &tfm)
-{
-  ProjectionTransform projection(tfm);
-  return projection_to_transform(projection_inverse(projection));
-}
-
 Transform transform_transposed_inverse(const Transform &tfm)
 {
-  ProjectionTransform projection(tfm);
-  ProjectionTransform iprojection = projection_inverse(projection);
+  ProjectionTransform iprojection(transform_inverse(tfm));
   return projection_to_transform(projection_transpose(iprojection));
 }
 
@@ -229,17 +214,17 @@ static void transform_decompose(DecomposedTransform *decomp, const Transform *tf
   /* extract scale and shear first */
   float3 scale, shear;
   scale.x = len(colx);
-  colx = safe_divide_float3_float(colx, scale.x);
+  colx = safe_divide(colx, scale.x);
   shear.z = dot(colx, coly);
   coly -= shear.z * colx;
   scale.y = len(coly);
-  coly = safe_divide_float3_float(coly, scale.y);
+  coly = safe_divide(coly, scale.y);
   shear.y = dot(colx, colz);
   colz -= shear.y * colx;
   shear.x = dot(coly, colz);
   colz -= shear.x * coly;
   scale.z = len(colz);
-  colz = safe_divide_float3_float(colz, scale.z);
+  colz = safe_divide(colz, scale.z);
 
   transform_set_column(&M, 0, colx);
   transform_set_column(&M, 1, coly);

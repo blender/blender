@@ -41,19 +41,13 @@ class ShadingView {
   /** Matrix to apply to the viewmat. */
   const float (*face_matrix_)[4];
 
-  /** Post-FX modules. */
-  // DepthOfField dof_;
-  // MotionBlur mb_;
-  VelocityView velocity_;
-
   /** Raytracing persistent buffers. Only opaque and refraction can have surface tracing. */
   // RaytraceBuffer rt_buffer_opaque_;
   // RaytraceBuffer rt_buffer_refract_;
+  DepthOfFieldBuffer dof_buffer_;
 
   Framebuffer prepass_fb_;
   Framebuffer combined_fb_;
-  Texture depth_tx_;
-  TextureFromPool combined_tx_;
   TextureFromPool postfx_tx_;
 
   /** Main views is created from the camera (or is from the viewport). It is not jittered. */
@@ -63,6 +57,7 @@ class ShadingView {
   DRWView *sub_view_ = nullptr;
   /** Same as sub_view_ but has Depth Of Field jitter applied. */
   DRWView *render_view_ = nullptr;
+  View render_view_new_;
 
   /** Render size of the view. Can change between scene sample eval. */
   int2 extent_ = {-1, -1};
@@ -71,17 +66,17 @@ class ShadingView {
 
  public:
   ShadingView(Instance &inst, const char *name, const float (*face_matrix)[4])
-      : inst_(inst), name_(name), face_matrix_(face_matrix), velocity_(inst, name){};
+      : inst_(inst), name_(name), face_matrix_(face_matrix), render_view_new_(name){};
 
   ~ShadingView(){};
 
   void init();
 
-  void sync(int2 render_extent_);
+  void sync();
 
   void render();
 
-  GPUTexture *render_post(GPUTexture *input_tx);
+  GPUTexture *render_postfx(GPUTexture *input_tx);
 
  private:
   void update_view();
@@ -94,7 +89,7 @@ class ShadingView {
  *
  * Container for all views needed to render the final image.
  * We might need up to 6 views for panoramic cameras.
- * All views are always available but only enabled for if need.
+ * All views are always available but only enabled for if needed.
  * \{ */
 
 class MainView {
@@ -109,8 +104,6 @@ class MainView {
   ShadingView shading_views_4;
   ShadingView shading_views_5;
 #define shading_views_ (&shading_views_0)
-  /** Internal render size. */
-  int render_extent_[2];
 
  public:
   MainView(Instance &inst)
@@ -123,15 +116,8 @@ class MainView {
   {
   }
 
-  void init(const int2 full_extent_)
+  void init()
   {
-    /* TODO(fclem) parameter hidden in experimental. We need to figure out mipmap bias to preserve
-     * texture crispiness. */
-    float resolution_scale = 1.0f;
-    for (int i = 0; i < 2; i++) {
-      render_extent_[i] = max_ii(1, roundf(full_extent_[i] * resolution_scale));
-    }
-
     for (auto i : IndexRange(6)) {
       shading_views_[i].init();
     }
@@ -140,7 +126,7 @@ class MainView {
   void sync()
   {
     for (auto i : IndexRange(6)) {
-      shading_views_[i].sync(render_extent_);
+      shading_views_[i].sync();
     }
   }
 

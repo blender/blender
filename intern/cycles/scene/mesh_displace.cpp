@@ -73,16 +73,16 @@ static int fill_shader_input(const Scene *scene,
 
       switch (j) {
         case 0:
-          u = 1.0f;
+          u = 0.0f;
           v = 0.0f;
           break;
         case 1:
-          u = 0.0f;
-          v = 1.0f;
+          u = 1.0f;
+          v = 0.0f;
           break;
         default:
           u = 0.0f;
-          v = 0.0f;
+          v = 1.0f;
           break;
       }
 
@@ -137,7 +137,7 @@ static void read_shader_output(const Scene *scene,
         d_output_index += 3;
 
         /* Avoid illegal vertex coordinates. */
-        off = ensure_finite3(off);
+        off = ensure_finite(off);
         mesh_verts[t.v[j]] += off;
         if (attr_mP != NULL) {
           for (int step = 0; step < num_motion_steps - 1; step++) {

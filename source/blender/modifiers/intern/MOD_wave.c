@@ -98,7 +98,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 
   if (need_transform_relation) {
-    DEG_add_modifier_to_transform_relation(ctx->node, "Wave Modifier");
+    DEG_add_depends_on_transform_relation(ctx->node, "Wave Modifier");
   }
 }
 
@@ -134,8 +134,7 @@ static void waveModifier_do(WaveModifierData *md,
                             int verts_num)
 {
   WaveModifierData *wmd = (WaveModifierData *)md;
-  MVert *mvert = NULL;
-  MDeformVert *dvert;
+  const MDeformVert *dvert;
   int defgrp_index;
   float ctime = DEG_get_ctime(ctx->depsgraph);
   float minfac = (float)(1.0 / exp(wmd->width * wmd->narrow * wmd->width * wmd->narrow));
@@ -148,7 +147,6 @@ static void waveModifier_do(WaveModifierData *md,
 
   const float(*vert_normals)[3] = NULL;
   if ((wmd->flag & MOD_WAVE_NORM) && (mesh != NULL)) {
-    mvert = mesh->mvert;
     vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
   }
 
@@ -262,7 +260,6 @@ static void waveModifier_do(WaveModifierData *md,
         if (tex_co) {
           Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
           TexResult texres;
-          texres.nor = NULL;
           BKE_texture_get_value(scene, tex_target, tex_co[i], &texres, false);
           amplit *= texres.tin;
         }
@@ -270,7 +267,7 @@ static void waveModifier_do(WaveModifierData *md,
         /* Apply weight & falloff. */
         amplit *= def_weight * falloff_fac;
 
-        if (mvert) {
+        if (vert_normals) {
           /* move along normals */
           if (wmd->flag & MOD_WAVE_NORM_X) {
             co[0] += (lifefac * amplit) * vert_normals[i][0];
@@ -303,11 +300,10 @@ static void deformVerts(ModifierData *md,
   Mesh *mesh_src = NULL;
 
   if (wmd->flag & MOD_WAVE_NORM) {
-    mesh_src = MOD_deform_mesh_eval_get(
-        ctx->object, NULL, mesh, vertexCos, verts_num, true, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, vertexCos, verts_num, false);
   }
   else if (wmd->texture != NULL || wmd->defgrp_name[0] != '\0') {
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
   }
 
   waveModifier_do(wmd, ctx, ctx->object, mesh_src, vertexCos, verts_num);
@@ -328,15 +324,13 @@ static void deformVertsEM(ModifierData *md,
   Mesh *mesh_src = NULL;
 
   if (wmd->flag & MOD_WAVE_NORM) {
-    mesh_src = MOD_deform_mesh_eval_get(
-        ctx->object, editData, mesh, vertexCos, verts_num, true, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, vertexCos, verts_num, false);
   }
   else if (wmd->texture != NULL || wmd->defgrp_name[0] != '\0') {
-    mesh_src = MOD_deform_mesh_eval_get(
-        ctx->object, editData, mesh, NULL, verts_num, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, verts_num, false);
   }
 
-  /* TODO(Campbell): use edit-mode data only (remove this line). */
+  /* TODO(@campbellbarton): use edit-mode data only (remove this line). */
   if (mesh_src != NULL) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }
@@ -344,6 +338,12 @@ static void deformVertsEM(ModifierData *md,
   waveModifier_do(wmd, ctx, ctx->object, mesh_src, vertexCos, verts_num);
 
   if (!ELEM(mesh_src, NULL, mesh)) {
+    /* Important not to free `vertexCos` owned by the caller. */
+    EditMeshData *edit_data = mesh_src->runtime.edit_data;
+    if (edit_data->vertexCos == vertexCos) {
+      edit_data->vertexCos = NULL;
+    }
+
     BKE_id_free(NULL, mesh_src);
   }
 }
@@ -373,7 +373,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(sub, ptr, "use_normal_z", UI_ITEM_R_TOGGLE, "Z", ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "falloff_radius", 0, "Falloff", ICON_NONE);
+  uiItemR(col, ptr, "falloff_radius", 0, IFACE_("Falloff"), ICON_NONE);
   uiItemR(col, ptr, "height", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
   uiItemR(col, ptr, "width", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
   uiItemR(col, ptr, "narrowness", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
@@ -395,7 +395,7 @@ static void position_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "start_position_object", 0, IFACE_("Object"), ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "start_position_x", 0, "Start Position X", ICON_NONE);
+  uiItemR(col, ptr, "start_position_x", 0, IFACE_("Start Position X"), ICON_NONE);
   uiItemR(col, ptr, "start_position_y", 0, "Y", ICON_NONE);
 }
 
@@ -409,9 +409,9 @@ static void time_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "time_offset", 0, "Offset", ICON_NONE);
-  uiItemR(col, ptr, "lifetime", 0, "Life", ICON_NONE);
-  uiItemR(col, ptr, "damping_time", 0, "Damping", ICON_NONE);
+  uiItemR(col, ptr, "time_offset", 0, IFACE_("Offset"), ICON_NONE);
+  uiItemR(col, ptr, "lifetime", 0, IFACE_("Life"), ICON_NONE);
+  uiItemR(col, ptr, "damping_time", 0, IFACE_("Damping"), ICON_NONE);
   uiItemR(col, ptr, "speed", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }
 
@@ -463,7 +463,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Wave = {
-    /* name */ "Wave",
+    /* name */ N_("Wave"),
     /* structName */ "WaveModifierData",
     /* structSize */ sizeof(WaveModifierData),
     /* srna */ &RNA_WaveModifier,

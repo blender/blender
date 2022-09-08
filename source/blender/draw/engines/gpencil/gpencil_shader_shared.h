@@ -7,7 +7,9 @@
 typedef struct gpMaterial gpMaterial;
 typedef struct gpLight gpLight;
 typedef enum gpMaterialFlag gpMaterialFlag;
+#    ifdef GP_LIGHT
 typedef enum gpLightType gpLightType;
+#    endif
 #  endif
 #endif
 
@@ -75,8 +77,9 @@ struct gpMaterial {
 };
 BLI_STATIC_ASSERT_ALIGN(gpMaterial, 16)
 
+#ifdef GP_LIGHT
 struct gpLight {
-#ifndef GPU_SHADER
+#  ifndef GPU_SHADER
   float3 color;
   gpLightType type;
   float3 right;
@@ -87,7 +90,7 @@ struct gpLight {
   float _pad0;
   float3 position;
   float _pad1;
-#else
+#  else
   /* Some drivers are completely messing the alignment or the fetches here.
    * We are forced to pack these into vec4 otherwise we only get 0.0 as value. */
   /* NOTE(@fclem): This was the case on MacOS OpenGL implementation.
@@ -97,17 +100,18 @@ struct gpLight {
   float4 packed2;
   float4 packed3;
   float4 packed4;
-#  define _color packed0.xyz
-#  define _type packed0.w
-#  define _right packed1.xyz
-#  define _spot_size packed1.w
-#  define _up packed2.xyz
-#  define _spot_blend packed2.w
-#  define _forward packed3.xyz
-#  define _position packed4.xyz
-#endif
+#    define _color packed0.xyz
+#    define _type packed0.w
+#    define _right packed1.xyz
+#    define _spot_size packed1.w
+#    define _up packed2.xyz
+#    define _spot_blend packed2.w
+#    define _forward packed3.xyz
+#    define _position packed4.xyz
+#  endif
 };
 BLI_STATIC_ASSERT_ALIGN(gpLight, 16)
+#endif
 
 #ifndef GPU_SHADER
 #  undef gpMaterialFlag

@@ -77,11 +77,19 @@ typedef enum eGPUMaterialFlag {
   GPU_MATFLAG_HOLDOUT = (1 << 6),
   GPU_MATFLAG_SHADER_TO_RGBA = (1 << 7),
   GPU_MATFLAG_AO = (1 << 8),
+  GPU_MATFLAG_CLEARCOAT = (1 << 9),
 
   GPU_MATFLAG_OBJECT_INFO = (1 << 10),
   GPU_MATFLAG_AOV = (1 << 11),
 
   GPU_MATFLAG_BARYCENTRIC = (1 << 20),
+
+  /* Optimization to only add the branches of the principled shader that are necessary. */
+  GPU_MATFLAG_PRINCIPLED_CLEARCOAT = (1 << 21),
+  GPU_MATFLAG_PRINCIPLED_METALLIC = (1 << 22),
+  GPU_MATFLAG_PRINCIPLED_DIELECTRIC = (1 << 23),
+  GPU_MATFLAG_PRINCIPLED_GLASS = (1 << 24),
+  GPU_MATFLAG_PRINCIPLED_ANY = (1 << 25),
 
   /* Tells the render engine the material was just compiled or updated. */
   GPU_MATFLAG_UPDATED = (1 << 29),
@@ -121,6 +129,7 @@ typedef struct GPUCodegenOutput {
   char *surface;
   char *volume;
   char *thickness;
+  char *composite;
   char *material_functions;
 
   GPUShaderCreateInfo *create_info;
@@ -131,11 +140,19 @@ typedef void (*GPUCodegenCallbackFn)(void *thunk, GPUMaterial *mat, GPUCodegenOu
 GPUNodeLink *GPU_constant(const float *num);
 GPUNodeLink *GPU_uniform(const float *num);
 GPUNodeLink *GPU_attribute(GPUMaterial *mat, eCustomDataType type, const char *name);
+/**
+ * Add a GPU attribute that refers to the default color attribute on a geometry.
+ * The name, type, and domain are unknown and do not depend on the material.
+ */
+GPUNodeLink *GPU_attribute_default_color(GPUMaterial *mat);
 GPUNodeLink *GPU_attribute_with_default(GPUMaterial *mat,
                                         eCustomDataType type,
                                         const char *name,
                                         eGPUDefaultValue default_value);
-GPUNodeLink *GPU_uniform_attribute(GPUMaterial *mat, const char *name, bool use_dupli);
+GPUNodeLink *GPU_uniform_attribute(GPUMaterial *mat,
+                                   const char *name,
+                                   bool use_dupli,
+                                   uint32_t *r_hash);
 GPUNodeLink *GPU_image(GPUMaterial *mat,
                        struct Image *ima,
                        struct ImageUser *iuser,
@@ -156,15 +173,11 @@ GPUNodeLink *GPU_differentiate_float_function(const char *function_name);
 
 bool GPU_link(GPUMaterial *mat, const char *name, ...);
 bool GPU_stack_link(GPUMaterial *mat,
-                    struct bNode *node,
+                    const struct bNode *node,
                     const char *name,
                     GPUNodeStack *in,
                     GPUNodeStack *out,
                     ...);
-GPUNodeLink *GPU_uniformbuf_link_out(struct GPUMaterial *mat,
-                                     struct bNode *node,
-                                     struct GPUNodeStack *stack,
-                                     int index);
 
 void GPU_material_output_surface(GPUMaterial *material, GPUNodeLink *link);
 void GPU_material_output_volume(GPUMaterial *material, GPUNodeLink *link);
@@ -172,6 +185,8 @@ void GPU_material_output_displacement(GPUMaterial *material, GPUNodeLink *link);
 void GPU_material_output_thickness(GPUMaterial *material, GPUNodeLink *link);
 
 void GPU_material_add_output_link_aov(GPUMaterial *material, GPUNodeLink *link, int hash);
+
+void GPU_material_add_output_link_composite(GPUMaterial *material, GPUNodeLink *link);
 
 /**
  * Wrap a part of the material graph into a function. You need then need to call the function by
@@ -213,6 +228,7 @@ GPUMaterial *GPU_material_from_nodetree(struct Scene *scene,
                                         void *thunk);
 
 void GPU_material_compile(GPUMaterial *mat);
+void GPU_material_free_single(GPUMaterial *material);
 void GPU_material_free(struct ListBase *gpumaterial);
 
 void GPU_material_acquire(GPUMaterial *mat);
@@ -223,6 +239,7 @@ void GPU_materials_free(struct Main *bmain);
 struct Scene *GPU_material_scene(GPUMaterial *material);
 struct GPUPass *GPU_material_get_pass(GPUMaterial *material);
 struct GPUShader *GPU_material_get_shader(GPUMaterial *material);
+const char *GPU_material_get_name(GPUMaterial *material);
 /**
  * Return can be NULL if it's a world material.
  */
@@ -266,6 +283,12 @@ typedef struct GPUMaterialAttribute {
   eGPUDefaultValue default_value; /* Only for volumes attributes. */
   int id;
   int users;
+  /**
+   * If true, the corresponding attribute is the specified default color attribute on the mesh,
+   * if it exists. In that case the type and name data can vary per geometry, so it will not be
+   * valid here.
+   */
+  bool is_default_color;
 } GPUMaterialAttribute;
 
 typedef struct GPUMaterialTexture {
@@ -288,6 +311,10 @@ typedef struct GPUUniformAttr {
 
   /* Meaningful part of the attribute set key. */
   char name[64]; /* MAX_CUSTOMDATA_LAYER_NAME */
+  /** Escaped name with [""]. */
+  char name_id_prop[64 * 2 + 4];
+  /** Hash of name[64] + use_dupli. */
+  uint32_t hash_code;
   bool use_dupli;
 
   /* Helper fields used by code generation. */
@@ -302,11 +329,21 @@ typedef struct GPUUniformAttrList {
   unsigned int count, hash_code;
 } GPUUniformAttrList;
 
-GPUUniformAttrList *GPU_material_uniform_attributes(GPUMaterial *material);
+const GPUUniformAttrList *GPU_material_uniform_attributes(const GPUMaterial *material);
 
 struct GHash *GPU_uniform_attr_list_hash_new(const char *info);
-void GPU_uniform_attr_list_copy(GPUUniformAttrList *dest, GPUUniformAttrList *src);
+void GPU_uniform_attr_list_copy(GPUUniformAttrList *dest, const GPUUniformAttrList *src);
 void GPU_uniform_attr_list_free(GPUUniformAttrList *set);
+
+/* A callback passed to GPU_material_from_callbacks to construct the material graph by adding and
+ * linking the necessary GPU material nodes. */
+typedef void (*ConstructGPUMaterialFn)(void *thunk, GPUMaterial *material);
+
+/* Construct a GPU material from a set of callbacks. See the callback types for more information.
+ * The given thunk will be passed as the first parameter of each callback. */
+GPUMaterial *GPU_material_from_callbacks(ConstructGPUMaterialFn construct_function_cb,
+                                         GPUCodegenCallbackFn generate_code_function_cb,
+                                         void *thunk);
 
 #ifdef __cplusplus
 }

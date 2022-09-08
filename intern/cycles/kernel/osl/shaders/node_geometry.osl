@@ -20,7 +20,7 @@ shader node_geometry(normal NormalIn = N,
   Normal = NormalIn;
   TrueNormal = Ng;
   Incoming = I;
-  Parametric = point(u, v, 0.0);
+  Parametric = point(1.0 - u - v, u, 0.0);
   Backfacing = backfacing();
 
   if (bump_offset == "dx") {

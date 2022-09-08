@@ -9,11 +9,13 @@
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 
+#include "BLI_devirtualize_parameters.hh"
 #include "BLI_noise.hh"
 #include "BLI_task.hh"
 
 #include "BKE_collection.h"
 #include "BKE_curves.hh"
+#include "BKE_deform.h"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
@@ -23,12 +25,13 @@
 namespace blender::geometry {
 
 using blender::bke::AttributeIDRef;
+using blender::bke::AttributeKind;
+using blender::bke::AttributeMetaData;
 using blender::bke::custom_data_type_to_cpp_type;
 using blender::bke::CustomDataAttributes;
+using blender::bke::GSpanAttributeWriter;
 using blender::bke::object_get_evaluated_geometry_set;
-using blender::bke::OutputAttribute;
-using blender::bke::OutputAttribute_Typed;
-using blender::bke::ReadAttributeLookup;
+using blender::bke::SpanAttributeWriter;
 
 /**
  * An ordered set of attribute ids. Attributes are ordered to avoid name lookups in many places.
@@ -66,8 +69,9 @@ struct AttributeFallbacksArray {
 struct PointCloudRealizeInfo {
   const PointCloud *pointcloud = nullptr;
   /** Matches the order stored in #AllPointCloudsInfo.attributes. */
-  Array<std::optional<GVArray_GSpan>> attributes;
+  Array<std::optional<GVArraySpan>> attributes;
   /** Id attribute on the point cloud. If there are no ids, this #Span is empty. */
+  Span<float3> positions;
   Span<int> stored_ids;
 };
 
@@ -93,12 +97,18 @@ struct MeshElementStartIndices {
 
 struct MeshRealizeInfo {
   const Mesh *mesh = nullptr;
+  Span<MVert> verts;
+  Span<MEdge> edges;
+  Span<MPoly> polys;
+  Span<MLoop> loops;
+
   /** Maps old material indices to new material indices. */
   Array<int> material_index_map;
   /** Matches the order in #AllMeshesInfo.attributes. */
-  Array<std::optional<GVArray_GSpan>> attributes;
+  Array<std::optional<GVArraySpan>> attributes;
   /** Vertex ids stored on the mesh. If there are no ids, this #Span is empty. */
   Span<int> stored_vertex_ids;
+  VArray<int> material_indices;
 };
 
 struct RealizeMeshTask {
@@ -116,7 +126,7 @@ struct RealizeCurveInfo {
   /**
    * Matches the order in #AllCurvesInfo.attributes.
    */
-  Array<std::optional<GVArray_GSpan>> attributes;
+  Array<std::optional<GVArraySpan>> attributes;
 
   /** ID attribute on the curves. If there are no ids, this #Span is empty. */
   Span<int> stored_ids;
@@ -134,6 +144,12 @@ struct RealizeCurveInfo {
    * doesn't exist on some (but not all) of the input curves data-blocks.
    */
   Span<float> radius;
+
+  /**
+   * The resolution attribute must be filled with the default value if it does not exist on some
+   * curves.
+   */
+  VArray<int> resolution;
 };
 
 /** Start indices in the final output curves data-block. */
@@ -173,6 +189,7 @@ struct AllMeshesInfo {
   /** Ordered materials on the output mesh. */
   VectorSet<Material *> materials;
   bool create_id_attribute = false;
+  bool create_material_index_attribute = false;
 };
 
 struct AllCurvesInfo {
@@ -185,6 +202,7 @@ struct AllCurvesInfo {
   bool create_id_attribute = false;
   bool create_handle_postion_attributes = false;
   bool create_radius_attribute = false;
+  bool create_resolution_attribute = false;
 };
 
 /** Collects all tasks that need to be executed to realize all instances. */
@@ -195,7 +213,8 @@ struct GatherTasks {
 
   /* Volumes only have very simple support currently. Only the first found volume is put into the
    * output. */
-  UserCounter<VolumeComponent> first_volume;
+  UserCounter<const VolumeComponent> first_volume;
+  UserCounter<const GeometryComponentEditData> first_edit_data;
 };
 
 /** Current offsets while during the gather operation. */
@@ -276,30 +295,31 @@ static void threaded_fill(const GPointer value, GMutableSpan dst)
 }
 
 static void copy_generic_attributes_to_result(
-    const Span<std::optional<GVArray_GSpan>> src_attributes,
+    const Span<std::optional<GVArraySpan>> src_attributes,
     const AttributeFallbacksArray &attribute_fallbacks,
     const OrderedAttributes &ordered_attributes,
     const FunctionRef<IndexRange(eAttrDomain)> &range_fn,
-    MutableSpan<GMutableSpan> dst_attributes)
+    MutableSpan<GSpanAttributeWriter> dst_attribute_writers)
 {
-  threading::parallel_for(dst_attributes.index_range(), 10, [&](const IndexRange attribute_range) {
-    for (const int attribute_index : attribute_range) {
-      const eAttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
-      const IndexRange element_slice = range_fn(domain);
+  threading::parallel_for(
+      dst_attribute_writers.index_range(), 10, [&](const IndexRange attribute_range) {
+        for (const int attribute_index : attribute_range) {
+          const eAttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
+          const IndexRange element_slice = range_fn(domain);
 
-      GMutableSpan dst_span = dst_attributes[attribute_index].slice(element_slice);
-      if (src_attributes[attribute_index].has_value()) {
-        threaded_copy(*src_attributes[attribute_index], dst_span);
-      }
-      else {
-        const CPPType &cpp_type = dst_span.type();
-        const void *fallback = attribute_fallbacks.array[attribute_index] == nullptr ?
-                                   cpp_type.default_value() :
-                                   attribute_fallbacks.array[attribute_index];
-        threaded_fill({cpp_type, fallback}, dst_span);
-      }
-    }
-  });
+          GMutableSpan dst_span = dst_attribute_writers[attribute_index].span.slice(element_slice);
+          if (src_attributes[attribute_index].has_value()) {
+            threaded_copy(*src_attributes[attribute_index], dst_span);
+          }
+          else {
+            const CPPType &cpp_type = dst_span.type();
+            const void *fallback = attribute_fallbacks.array[attribute_index] == nullptr ?
+                                       cpp_type.default_value() :
+                                       attribute_fallbacks.array[attribute_index];
+            threaded_fill({cpp_type, fallback}, dst_span);
+          }
+        }
+      });
 }
 
 static void create_result_ids(const RealizeInstancesOptions &options,
@@ -354,7 +374,7 @@ static Vector<std::pair<int, GSpan>> prepare_attribute_fallbacks(
     const OrderedAttributes &ordered_attributes)
 {
   Vector<std::pair<int, GSpan>> attributes_to_override;
-  const CustomDataAttributes &attributes = instances_component.attributes();
+  const CustomDataAttributes &attributes = instances_component.instance_attributes();
   attributes.foreach_attribute(
       [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
         const int attribute_index = ordered_attributes.ids.index_of_try(attribute_id);
@@ -440,7 +460,7 @@ static void gather_realize_tasks_for_instances(GatherTasksInfo &gather_info,
 
   Span<int> stored_instance_ids;
   if (gather_info.create_id_attribute_on_any_component) {
-    std::optional<GSpan> ids = instances_component.attributes().get_for_read("id");
+    std::optional<GSpan> ids = instances_component.instance_attributes().get_for_read("id");
     if (ids.has_value()) {
       stored_instance_ids = ids->typed<int>();
     }
@@ -572,7 +592,16 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
         const VolumeComponent *volume_component = static_cast<const VolumeComponent *>(component);
         if (!gather_info.r_tasks.first_volume) {
           volume_component->user_add();
-          gather_info.r_tasks.first_volume = const_cast<VolumeComponent *>(volume_component);
+          gather_info.r_tasks.first_volume = volume_component;
+        }
+        break;
+      }
+      case GEO_COMPONENT_TYPE_EDIT: {
+        const GeometryComponentEditData *edit_component =
+            static_cast<const GeometryComponentEditData *>(component);
+        if (!gather_info.r_tasks.first_edit_data) {
+          edit_component->user_add();
+          gather_info.r_tasks.first_edit_data = edit_component;
         }
         break;
       }
@@ -639,43 +668,44 @@ static AllPointCloudsInfo preprocess_pointclouds(const GeometrySet &geometry_set
     pointcloud_info.pointcloud = pointcloud;
 
     /* Access attributes. */
-    PointCloudComponent component;
-    component.replace(const_cast<PointCloud *>(pointcloud), GeometryOwnershipType::ReadOnly);
+    bke::AttributeAccessor attributes = pointcloud->attributes();
     pointcloud_info.attributes.reinitialize(info.attributes.size());
     for (const int attribute_index : info.attributes.index_range()) {
       const AttributeIDRef &attribute_id = info.attributes.ids[attribute_index];
       const eCustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
       const eAttrDomain domain = info.attributes.kinds[attribute_index].domain;
-      if (component.attribute_exists(attribute_id)) {
-        GVArray attribute = component.attribute_get_for_read(attribute_id, domain, data_type);
+      if (attributes.contains(attribute_id)) {
+        GVArray attribute = attributes.lookup_or_default(attribute_id, domain, data_type);
         pointcloud_info.attributes[attribute_index].emplace(std::move(attribute));
       }
     }
     if (info.create_id_attribute) {
-      ReadAttributeLookup ids_lookup = component.attribute_try_get_for_read("id");
-      if (ids_lookup) {
-        pointcloud_info.stored_ids = ids_lookup.varray.get_internal_span().typed<int>();
+      bke::GAttributeReader ids_attribute = attributes.lookup("id");
+      if (ids_attribute) {
+        pointcloud_info.stored_ids = ids_attribute.varray.get_internal_span().typed<int>();
       }
     }
+    const VArray<float3> position_attribute = attributes.lookup_or_default<float3>(
+        "position", ATTR_DOMAIN_POINT, float3(0));
+    pointcloud_info.positions = position_attribute.get_internal_span();
   }
   return info;
 }
 
-static void execute_realize_pointcloud_task(const RealizeInstancesOptions &options,
-                                            const RealizePointCloudTask &task,
-                                            const OrderedAttributes &ordered_attributes,
-                                            PointCloud &dst_pointcloud,
-                                            MutableSpan<GMutableSpan> dst_attribute_spans,
-                                            MutableSpan<int> all_dst_ids)
+static void execute_realize_pointcloud_task(
+    const RealizeInstancesOptions &options,
+    const RealizePointCloudTask &task,
+    const OrderedAttributes &ordered_attributes,
+    MutableSpan<GSpanAttributeWriter> dst_attribute_writers,
+    MutableSpan<int> all_dst_ids,
+    MutableSpan<float3> all_dst_positions)
 {
   const PointCloudRealizeInfo &pointcloud_info = *task.pointcloud_info;
   const PointCloud &pointcloud = *pointcloud_info.pointcloud;
-  const Span<float3> src_positions{(float3 *)pointcloud.co, pointcloud.totpoint};
   const IndexRange point_slice{task.start_index, pointcloud.totpoint};
-  MutableSpan<float3> dst_positions{(float3 *)dst_pointcloud.co + task.start_index,
-                                    pointcloud.totpoint};
 
-  copy_transformed_positions(src_positions, task.transform, dst_positions);
+  copy_transformed_positions(
+      pointcloud_info.positions, task.transform, all_dst_positions.slice(point_slice));
 
   /* Create point ids. */
   if (!all_dst_ids.is_empty()) {
@@ -692,7 +722,7 @@ static void execute_realize_pointcloud_task(const RealizeInstancesOptions &optio
         UNUSED_VARS_NDEBUG(domain);
         return point_slice;
       },
-      dst_attribute_spans);
+      dst_attribute_writers);
 }
 
 static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &options,
@@ -714,42 +744,46 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
   PointCloudComponent &dst_component =
       r_realized_geometry.get_component_for_write<PointCloudComponent>();
   dst_component.replace(dst_pointcloud);
+  bke::MutableAttributeAccessor dst_attributes = dst_pointcloud->attributes_for_write();
+
+  SpanAttributeWriter<float3> positions = dst_attributes.lookup_or_add_for_write_only_span<float3>(
+      "position", ATTR_DOMAIN_POINT);
 
   /* Prepare id attribute. */
-  OutputAttribute_Typed<int> point_ids;
-  MutableSpan<int> point_ids_span;
+  SpanAttributeWriter<int> point_ids;
   if (all_pointclouds_info.create_id_attribute) {
-    point_ids = dst_component.attribute_try_get_for_output_only<int>("id", ATTR_DOMAIN_POINT);
-    point_ids_span = point_ids.as_span();
+    point_ids = dst_attributes.lookup_or_add_for_write_only_span<int>("id", ATTR_DOMAIN_POINT);
   }
 
   /* Prepare generic output attributes. */
-  Vector<OutputAttribute> dst_attributes;
-  Vector<GMutableSpan> dst_attribute_spans;
+  Vector<GSpanAttributeWriter> dst_attribute_writers;
   for (const int attribute_index : ordered_attributes.index_range()) {
     const AttributeIDRef &attribute_id = ordered_attributes.ids[attribute_index];
     const eCustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
-    OutputAttribute dst_attribute = dst_component.attribute_try_get_for_output_only(
-        attribute_id, ATTR_DOMAIN_POINT, data_type);
-    dst_attribute_spans.append(dst_attribute.as_span());
-    dst_attributes.append(std::move(dst_attribute));
+    dst_attribute_writers.append(dst_attributes.lookup_or_add_for_write_only_span(
+        attribute_id, ATTR_DOMAIN_POINT, data_type));
   }
 
   /* Actually execute all tasks. */
   threading::parallel_for(tasks.index_range(), 100, [&](const IndexRange task_range) {
     for (const int task_index : task_range) {
       const RealizePointCloudTask &task = tasks[task_index];
-      execute_realize_pointcloud_task(
-          options, task, ordered_attributes, *dst_pointcloud, dst_attribute_spans, point_ids_span);
+      execute_realize_pointcloud_task(options,
+                                      task,
+                                      ordered_attributes,
+                                      dst_attribute_writers,
+                                      point_ids.span,
+                                      positions.span);
     }
   });
 
-  /* Save modified attributes. */
-  for (OutputAttribute &dst_attribute : dst_attributes) {
-    dst_attribute.save();
+  /* Tag modified attributes. */
+  for (GSpanAttributeWriter &dst_attribute : dst_attribute_writers) {
+    dst_attribute.finish();
   }
+  positions.finish();
   if (point_ids) {
-    point_ids.save();
+    point_ids.finish();
   }
 }
 
@@ -760,7 +794,10 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
  * \{ */
 
 static OrderedAttributes gather_generic_mesh_attributes_to_propagate(
-    const GeometrySet &in_geometry_set, const RealizeInstancesOptions &options, bool &r_create_id)
+    const GeometrySet &in_geometry_set,
+    const RealizeInstancesOptions &options,
+    bool &r_create_id,
+    bool &r_create_material_index)
 {
   Vector<GeometryComponentType> src_component_types;
   src_component_types.append(GEO_COMPONENT_TYPE_MESH);
@@ -773,10 +810,10 @@ static OrderedAttributes gather_generic_mesh_attributes_to_propagate(
       src_component_types, GEO_COMPONENT_TYPE_MESH, true, attributes_to_propagate);
   attributes_to_propagate.remove("position");
   attributes_to_propagate.remove("normal");
-  attributes_to_propagate.remove("material_index");
   attributes_to_propagate.remove("shade_smooth");
   attributes_to_propagate.remove("crease");
   r_create_id = attributes_to_propagate.pop_try("id").has_value();
+  r_create_material_index = attributes_to_propagate.pop_try("material_index").has_value();
   OrderedAttributes ordered_attributes;
   for (const auto item : attributes_to_propagate.items()) {
     ordered_attributes.ids.add_new(item.key);
@@ -806,13 +843,19 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
 {
   AllMeshesInfo info;
   info.attributes = gather_generic_mesh_attributes_to_propagate(
-      geometry_set, options, info.create_id_attribute);
+      geometry_set, options, info.create_id_attribute, info.create_material_index_attribute);
 
   gather_meshes_to_realize(geometry_set, info.order);
   for (const Mesh *mesh : info.order) {
-    for (const int slot_index : IndexRange(mesh->totcol)) {
-      Material *material = mesh->mat[slot_index];
-      info.materials.add(material);
+    if (mesh->totcol == 0) {
+      /* Add an empty material slot for the default material. */
+      info.materials.add(nullptr);
+    }
+    else {
+      for (const int slot_index : IndexRange(mesh->totcol)) {
+        Material *material = mesh->mat[slot_index];
+        info.materials.add(material);
+      }
     }
   }
   info.realize_info.reinitialize(info.order.size());
@@ -820,34 +863,44 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
     MeshRealizeInfo &mesh_info = info.realize_info[mesh_index];
     const Mesh *mesh = info.order[mesh_index];
     mesh_info.mesh = mesh;
+    mesh_info.verts = mesh->verts();
+    mesh_info.edges = mesh->edges();
+    mesh_info.polys = mesh->polys();
+    mesh_info.loops = mesh->loops();
 
     /* Create material index mapping. */
-    mesh_info.material_index_map.reinitialize(mesh->totcol);
-    for (const int old_slot_index : IndexRange(mesh->totcol)) {
-      Material *material = mesh->mat[old_slot_index];
-      const int new_slot_index = info.materials.index_of(material);
-      mesh_info.material_index_map[old_slot_index] = new_slot_index;
+    mesh_info.material_index_map.reinitialize(std::max<int>(mesh->totcol, 1));
+    if (mesh->totcol == 0) {
+      mesh_info.material_index_map.first() = info.materials.index_of(nullptr);
+    }
+    else {
+      for (const int old_slot_index : IndexRange(mesh->totcol)) {
+        Material *material = mesh->mat[old_slot_index];
+        const int new_slot_index = info.materials.index_of(material);
+        mesh_info.material_index_map[old_slot_index] = new_slot_index;
+      }
     }
 
     /* Access attributes. */
-    MeshComponent component;
-    component.replace(const_cast<Mesh *>(mesh), GeometryOwnershipType::ReadOnly);
+    bke::AttributeAccessor attributes = mesh->attributes();
     mesh_info.attributes.reinitialize(info.attributes.size());
     for (const int attribute_index : info.attributes.index_range()) {
       const AttributeIDRef &attribute_id = info.attributes.ids[attribute_index];
       const eCustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
       const eAttrDomain domain = info.attributes.kinds[attribute_index].domain;
-      if (component.attribute_exists(attribute_id)) {
-        GVArray attribute = component.attribute_get_for_read(attribute_id, domain, data_type);
+      if (attributes.contains(attribute_id)) {
+        GVArray attribute = attributes.lookup_or_default(attribute_id, domain, data_type);
         mesh_info.attributes[attribute_index].emplace(std::move(attribute));
       }
     }
     if (info.create_id_attribute) {
-      ReadAttributeLookup ids_lookup = component.attribute_try_get_for_read("id");
-      if (ids_lookup) {
-        mesh_info.stored_vertex_ids = ids_lookup.varray.get_internal_span().typed<int>();
+      bke::GAttributeReader ids_attribute = attributes.lookup("id");
+      if (ids_attribute) {
+        mesh_info.stored_vertex_ids = ids_attribute.varray.get_internal_span().typed<int>();
       }
     }
+    mesh_info.material_indices = attributes.lookup_or_default<int>(
+        "material_index", ATTR_DOMAIN_FACE, 0);
   }
   return info;
 }
@@ -855,26 +908,33 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
 static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
                                       const RealizeMeshTask &task,
                                       const OrderedAttributes &ordered_attributes,
-                                      Mesh &dst_mesh,
-                                      MutableSpan<GMutableSpan> dst_attribute_spans,
-                                      MutableSpan<int> all_dst_vertex_ids)
+                                      MutableSpan<GSpanAttributeWriter> dst_attribute_writers,
+                                      MutableSpan<MVert> all_dst_verts,
+                                      MutableSpan<MEdge> all_dst_edges,
+                                      MutableSpan<MPoly> all_dst_polys,
+                                      MutableSpan<MLoop> all_dst_loops,
+                                      MutableSpan<int> all_dst_vertex_ids,
+                                      MutableSpan<int> all_dst_material_indices)
 {
   const MeshRealizeInfo &mesh_info = *task.mesh_info;
   const Mesh &mesh = *mesh_info.mesh;
 
-  const Span<MVert> src_verts{mesh.mvert, mesh.totvert};
-  const Span<MEdge> src_edges{mesh.medge, mesh.totedge};
-  const Span<MLoop> src_loops{mesh.mloop, mesh.totloop};
-  const Span<MPoly> src_polys{mesh.mpoly, mesh.totpoly};
+  const Span<MVert> src_verts = mesh_info.verts;
+  const Span<MEdge> src_edges = mesh_info.edges;
+  const Span<MPoly> src_polys = mesh_info.polys;
+  const Span<MLoop> src_loops = mesh_info.loops;
 
-  MutableSpan<MVert> dst_verts{dst_mesh.mvert + task.start_indices.vertex, mesh.totvert};
-  MutableSpan<MEdge> dst_edges{dst_mesh.medge + task.start_indices.edge, mesh.totedge};
-  MutableSpan<MLoop> dst_loops{dst_mesh.mloop + task.start_indices.loop, mesh.totloop};
-  MutableSpan<MPoly> dst_polys{dst_mesh.mpoly + task.start_indices.poly, mesh.totpoly};
+  const IndexRange dst_vert_range(task.start_indices.vertex, src_verts.size());
+  const IndexRange dst_edge_range(task.start_indices.edge, src_edges.size());
+  const IndexRange dst_poly_range(task.start_indices.poly, src_polys.size());
+  const IndexRange dst_loop_range(task.start_indices.loop, src_loops.size());
 
-  const Span<int> material_index_map = mesh_info.material_index_map;
+  MutableSpan<MVert> dst_verts = all_dst_verts.slice(dst_vert_range);
+  MutableSpan<MEdge> dst_edges = all_dst_edges.slice(dst_edge_range);
+  MutableSpan<MPoly> dst_polys = all_dst_polys.slice(dst_poly_range);
+  MutableSpan<MLoop> dst_loops = all_dst_loops.slice(dst_loop_range);
 
-  threading::parallel_for(IndexRange(mesh.totvert), 1024, [&](const IndexRange vert_range) {
+  threading::parallel_for(src_verts.index_range(), 1024, [&](const IndexRange vert_range) {
     for (const int i : vert_range) {
       const MVert &src_vert = src_verts[i];
       MVert &dst_vert = dst_verts[i];
@@ -882,7 +942,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
       copy_v3_v3(dst_vert.co, task.transform * float3(src_vert.co));
     }
   });
-  threading::parallel_for(IndexRange(mesh.totedge), 1024, [&](const IndexRange edge_range) {
+  threading::parallel_for(src_edges.index_range(), 1024, [&](const IndexRange edge_range) {
     for (const int i : edge_range) {
       const MEdge &src_edge = src_edges[i];
       MEdge &dst_edge = dst_edges[i];
@@ -891,7 +951,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
       dst_edge.v2 += task.start_indices.vertex;
     }
   });
-  threading::parallel_for(IndexRange(mesh.totloop), 1024, [&](const IndexRange loop_range) {
+  threading::parallel_for(src_loops.index_range(), 1024, [&](const IndexRange loop_range) {
     for (const int i : loop_range) {
       const MLoop &src_loop = src_loops[i];
       MLoop &dst_loop = dst_loops[i];
@@ -900,21 +960,39 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
       dst_loop.e += task.start_indices.edge;
     }
   });
-  threading::parallel_for(IndexRange(mesh.totpoly), 1024, [&](const IndexRange poly_range) {
+  threading::parallel_for(src_polys.index_range(), 1024, [&](const IndexRange poly_range) {
     for (const int i : poly_range) {
       const MPoly &src_poly = src_polys[i];
       MPoly &dst_poly = dst_polys[i];
       dst_poly = src_poly;
       dst_poly.loopstart += task.start_indices.loop;
-      if (src_poly.mat_nr >= 0 && src_poly.mat_nr < mesh.totcol) {
-        dst_poly.mat_nr = material_index_map[src_poly.mat_nr];
-      }
-      else {
-        /* The material index was invalid before. */
-        dst_poly.mat_nr = 0;
-      }
     }
   });
+  if (!all_dst_material_indices.is_empty()) {
+    const Span<int> material_index_map = mesh_info.material_index_map;
+    MutableSpan<int> dst_material_indices = all_dst_material_indices.slice(dst_poly_range);
+    if (mesh.totcol == 0) {
+      /* The material index map contains the index of the null material in the result. */
+      dst_material_indices.fill(material_index_map.first());
+    }
+    else {
+      if (mesh_info.material_indices.is_single()) {
+        const int src_index = mesh_info.material_indices.get_internal_single();
+        const bool valid = IndexRange(mesh.totcol).contains(src_index);
+        dst_material_indices.fill(valid ? material_index_map[src_index] : 0);
+      }
+      else {
+        VArraySpan<int> indices_span(mesh_info.material_indices);
+        threading::parallel_for(src_polys.index_range(), 1024, [&](const IndexRange poly_range) {
+          for (const int i : poly_range) {
+            const int src_index = indices_span[i];
+            const bool valid = IndexRange(mesh.totcol).contains(src_index);
+            dst_material_indices[i] = valid ? material_index_map[src_index] : 0;
+          }
+        });
+      }
+    }
+  }
 
   if (!all_dst_vertex_ids.is_empty()) {
     create_result_ids(options,
@@ -930,19 +1008,19 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
       [&](const eAttrDomain domain) {
         switch (domain) {
           case ATTR_DOMAIN_POINT:
-            return IndexRange(task.start_indices.vertex, mesh.totvert);
+            return dst_vert_range;
           case ATTR_DOMAIN_EDGE:
-            return IndexRange(task.start_indices.edge, mesh.totedge);
-          case ATTR_DOMAIN_CORNER:
-            return IndexRange(task.start_indices.loop, mesh.totloop);
+            return dst_edge_range;
           case ATTR_DOMAIN_FACE:
-            return IndexRange(task.start_indices.poly, mesh.totpoly);
+            return dst_poly_range;
+          case ATTR_DOMAIN_CORNER:
+            return dst_loop_range;
           default:
             BLI_assert_unreachable();
             return IndexRange();
         }
       },
-      dst_attribute_spans);
+      dst_attribute_writers);
 }
 
 static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
@@ -966,11 +1044,19 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   Mesh *dst_mesh = BKE_mesh_new_nomain(tot_vertices, tot_edges, 0, tot_loops, tot_poly);
   MeshComponent &dst_component = r_realized_geometry.get_component_for_write<MeshComponent>();
   dst_component.replace(dst_mesh);
+  bke::MutableAttributeAccessor dst_attributes = dst_mesh->attributes_for_write();
+  MutableSpan<MVert> dst_verts = dst_mesh->verts_for_write();
+  MutableSpan<MEdge> dst_edges = dst_mesh->edges_for_write();
+  MutableSpan<MPoly> dst_polys = dst_mesh->polys_for_write();
+  MutableSpan<MLoop> dst_loops = dst_mesh->loops_for_write();
 
   /* Copy settings from the first input geometry set with a mesh. */
   const RealizeMeshTask &first_task = tasks.first();
   const Mesh &first_mesh = *first_task.mesh_info->mesh;
   BKE_mesh_copy_parameters_for_eval(dst_mesh, &first_mesh);
+  /* The above line also copies vertex group names. We don't want that here because the new
+   * attributes are added explicitly below. */
+  BLI_freelistN(&dst_mesh->vertex_group_names);
 
   /* Add materials. */
   for (const int i : IndexRange(ordered_materials.size())) {
@@ -979,41 +1065,53 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   }
 
   /* Prepare id attribute. */
-  OutputAttribute_Typed<int> vertex_ids;
-  MutableSpan<int> vertex_ids_span;
+  SpanAttributeWriter<int> vertex_ids;
   if (all_meshes_info.create_id_attribute) {
-    vertex_ids = dst_component.attribute_try_get_for_output_only<int>("id", ATTR_DOMAIN_POINT);
-    vertex_ids_span = vertex_ids.as_span();
+    vertex_ids = dst_attributes.lookup_or_add_for_write_only_span<int>("id", ATTR_DOMAIN_POINT);
+  }
+  /* Prepare material indices. */
+  SpanAttributeWriter<int> material_indices;
+  if (all_meshes_info.create_material_index_attribute) {
+    material_indices = dst_attributes.lookup_or_add_for_write_only_span<int>("material_index",
+                                                                             ATTR_DOMAIN_FACE);
   }
 
   /* Prepare generic output attributes. */
-  Vector<OutputAttribute> dst_attributes;
-  Vector<GMutableSpan> dst_attribute_spans;
+  Vector<GSpanAttributeWriter> dst_attribute_writers;
   for (const int attribute_index : ordered_attributes.index_range()) {
     const AttributeIDRef &attribute_id = ordered_attributes.ids[attribute_index];
     const eAttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
     const eCustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
-    OutputAttribute dst_attribute = dst_component.attribute_try_get_for_output_only(
-        attribute_id, domain, data_type);
-    dst_attribute_spans.append(dst_attribute.as_span());
-    dst_attributes.append(std::move(dst_attribute));
+    dst_attribute_writers.append(
+        dst_attributes.lookup_or_add_for_write_only_span(attribute_id, domain, data_type));
   }
 
   /* Actually execute all tasks. */
   threading::parallel_for(tasks.index_range(), 100, [&](const IndexRange task_range) {
     for (const int task_index : task_range) {
       const RealizeMeshTask &task = tasks[task_index];
-      execute_realize_mesh_task(
-          options, task, ordered_attributes, *dst_mesh, dst_attribute_spans, vertex_ids_span);
+      execute_realize_mesh_task(options,
+                                task,
+                                ordered_attributes,
+                                dst_attribute_writers,
+                                dst_verts,
+                                dst_edges,
+                                dst_polys,
+                                dst_loops,
+                                vertex_ids.span,
+                                material_indices.span);
     }
   });
 
-  /* Save modified attributes. */
-  for (OutputAttribute &dst_attribute : dst_attributes) {
-    dst_attribute.save();
+  /* Tag modified attributes. */
+  for (GSpanAttributeWriter &dst_attribute : dst_attribute_writers) {
+    dst_attribute.finish();
   }
   if (vertex_ids) {
-    vertex_ids.save();
+    vertex_ids.finish();
+  }
+  if (material_indices) {
+    material_indices.finish();
   }
 }
 
@@ -1037,6 +1135,7 @@ static OrderedAttributes gather_generic_curve_attributes_to_propagate(
       src_component_types, GEO_COMPONENT_TYPE_CURVE, true, attributes_to_propagate);
   attributes_to_propagate.remove("position");
   attributes_to_propagate.remove("radius");
+  attributes_to_propagate.remove("resolution");
   attributes_to_propagate.remove("handle_right");
   attributes_to_propagate.remove("handle_left");
   r_create_id = attributes_to_propagate.pop_try("id").has_value();
@@ -1075,47 +1174,48 @@ static AllCurvesInfo preprocess_curves(const GeometrySet &geometry_set,
   info.realize_info.reinitialize(info.order.size());
   for (const int curve_index : info.realize_info.index_range()) {
     RealizeCurveInfo &curve_info = info.realize_info[curve_index];
-    const Curves *curves = info.order[curve_index];
-    curve_info.curves = curves;
+    const Curves *curves_id = info.order[curve_index];
+    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+    curve_info.curves = curves_id;
 
     /* Access attributes. */
-    CurveComponent component;
-    component.replace(const_cast<Curves *>(curves), GeometryOwnershipType::ReadOnly);
+    bke::AttributeAccessor attributes = curves.attributes();
     curve_info.attributes.reinitialize(info.attributes.size());
     for (const int attribute_index : info.attributes.index_range()) {
       const eAttrDomain domain = info.attributes.kinds[attribute_index].domain;
       const AttributeIDRef &attribute_id = info.attributes.ids[attribute_index];
       const eCustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
-      if (component.attribute_exists(attribute_id)) {
-        GVArray attribute = component.attribute_get_for_read(attribute_id, domain, data_type);
+      if (attributes.contains(attribute_id)) {
+        GVArray attribute = attributes.lookup_or_default(attribute_id, domain, data_type);
         curve_info.attributes[attribute_index].emplace(std::move(attribute));
       }
     }
     if (info.create_id_attribute) {
-      ReadAttributeLookup ids_lookup = component.attribute_try_get_for_read("id");
-      if (ids_lookup) {
-        curve_info.stored_ids = ids_lookup.varray.get_internal_span().typed<int>();
+      bke::GAttributeReader id_attribute = attributes.lookup("id");
+      if (id_attribute) {
+        curve_info.stored_ids = id_attribute.varray.get_internal_span().typed<int>();
       }
     }
 
     /* Retrieve the radius attribute, if it exists. */
-    if (component.attribute_exists("radius")) {
-      curve_info.radius = component
-                              .attribute_get_for_read<float>("radius", ATTR_DOMAIN_POINT, 0.0f)
-                              .get_internal_span();
+    if (attributes.contains("radius")) {
+      curve_info.radius =
+          attributes.lookup<float>("radius", ATTR_DOMAIN_POINT).get_internal_span();
       info.create_radius_attribute = true;
     }
 
+    /* Retrieve the resolution attribute, if it exists. */
+    curve_info.resolution = curves.resolution();
+    if (attributes.contains("resolution")) {
+      info.create_resolution_attribute = true;
+    }
+
     /* Retrieve handle position attributes, if they exist. */
-    if (component.attribute_exists("handle_right")) {
-      curve_info.handle_left = component
-                                   .attribute_get_for_read<float3>(
-                                       "handle_left", ATTR_DOMAIN_POINT, float3(0))
-                                   .get_internal_span();
-      curve_info.handle_right = component
-                                    .attribute_get_for_read<float3>(
-                                        "handle_right", ATTR_DOMAIN_POINT, float3(0))
-                                    .get_internal_span();
+    if (attributes.contains("handle_right")) {
+      curve_info.handle_left =
+          attributes.lookup<float3>("handle_left", ATTR_DOMAIN_POINT).get_internal_span();
+      curve_info.handle_right =
+          attributes.lookup<float3>("handle_right", ATTR_DOMAIN_POINT).get_internal_span();
       info.create_handle_postion_attributes = true;
     }
   }
@@ -1127,11 +1227,12 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
                                        const RealizeCurveTask &task,
                                        const OrderedAttributes &ordered_attributes,
                                        bke::CurvesGeometry &dst_curves,
-                                       MutableSpan<GMutableSpan> dst_attribute_spans,
+                                       MutableSpan<GSpanAttributeWriter> dst_attribute_writers,
                                        MutableSpan<int> all_dst_ids,
                                        MutableSpan<float3> all_handle_left,
                                        MutableSpan<float3> all_handle_right,
-                                       MutableSpan<float> all_radii)
+                                       MutableSpan<float> all_radii,
+                                       MutableSpan<int> all_resolutions)
 {
   const RealizeCurveInfo &curves_info = *task.curve_info;
   const Curves &curves_id = *curves_info.curves;
@@ -1171,6 +1272,10 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
     }
   }
 
+  if (all_curves_info.create_resolution_attribute) {
+    curves_info.resolution.materialize(all_resolutions.slice(dst_curve_range));
+  }
+
   /* Copy curve offsets. */
   const Span<int> src_offsets = curves.offsets();
   const MutableSpan<int> dst_offsets = dst_curves.offsets_for_write().slice(dst_curve_range);
@@ -1200,7 +1305,7 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
             return IndexRange();
         }
       },
-      dst_attribute_spans);
+      dst_attribute_writers);
 }
 
 static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
@@ -1224,48 +1329,50 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
   dst_curves.offsets_for_write().last() = points_num;
   CurveComponent &dst_component = r_realized_geometry.get_component_for_write<CurveComponent>();
   dst_component.replace(dst_curves_id);
+  bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
+
+  /* Copy settings from the first input geometry set with curves. */
+  const RealizeCurveTask &first_task = tasks.first();
+  const Curves &first_curves_id = *first_task.curve_info->curves;
+  bke::curves_copy_parameters(first_curves_id, *dst_curves_id);
 
   /* Prepare id attribute. */
-  OutputAttribute_Typed<int> point_ids;
-  MutableSpan<int> point_ids_span;
+  SpanAttributeWriter<int> point_ids;
   if (all_curves_info.create_id_attribute) {
-    point_ids = dst_component.attribute_try_get_for_output_only<int>("id", ATTR_DOMAIN_POINT);
-    point_ids_span = point_ids.as_span();
+    point_ids = dst_attributes.lookup_or_add_for_write_only_span<int>("id", ATTR_DOMAIN_POINT);
   }
 
   /* Prepare generic output attributes. */
-  Vector<OutputAttribute> dst_attributes;
-  Vector<GMutableSpan> dst_attribute_spans;
+  Vector<GSpanAttributeWriter> dst_attribute_writers;
   for (const int attribute_index : ordered_attributes.index_range()) {
     const AttributeIDRef &attribute_id = ordered_attributes.ids[attribute_index];
     const eAttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
     const eCustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
-    OutputAttribute dst_attribute = dst_component.attribute_try_get_for_output_only(
-        attribute_id, domain, data_type);
-    dst_attribute_spans.append(dst_attribute.as_span());
-    dst_attributes.append(std::move(dst_attribute));
+    dst_attribute_writers.append(
+        dst_attributes.lookup_or_add_for_write_only_span(attribute_id, domain, data_type));
   }
 
   /* Prepare handle position attributes if necessary. */
-  OutputAttribute_Typed<float3> handle_left;
-  OutputAttribute_Typed<float3> handle_right;
-  MutableSpan<float3> handle_left_span;
-  MutableSpan<float3> handle_right_span;
+  SpanAttributeWriter<float3> handle_left;
+  SpanAttributeWriter<float3> handle_right;
   if (all_curves_info.create_handle_postion_attributes) {
-    handle_left = dst_component.attribute_try_get_for_output_only<float3>("handle_left",
-                                                                          ATTR_DOMAIN_POINT);
-    handle_right = dst_component.attribute_try_get_for_output_only<float3>("handle_right",
+    handle_left = dst_attributes.lookup_or_add_for_write_only_span<float3>("handle_left",
                                                                            ATTR_DOMAIN_POINT);
-    handle_left_span = handle_left.as_span();
-    handle_right_span = handle_right.as_span();
+    handle_right = dst_attributes.lookup_or_add_for_write_only_span<float3>("handle_right",
+                                                                            ATTR_DOMAIN_POINT);
   }
 
   /* Prepare radius attribute if necessary. */
-  OutputAttribute_Typed<float> radius;
-  MutableSpan<float> radius_span;
+  SpanAttributeWriter<float> radius;
   if (all_curves_info.create_radius_attribute) {
-    radius = dst_component.attribute_try_get_for_output_only<float>("radius", ATTR_DOMAIN_POINT);
-    radius_span = radius.as_span();
+    radius = dst_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
+  }
+
+  /* Prepare resolution attribute if necessary. */
+  SpanAttributeWriter<int> resolution;
+  if (all_curves_info.create_resolution_attribute) {
+    resolution = dst_attributes.lookup_or_add_for_write_only_span<int>("resolution",
+                                                                       ATTR_DOMAIN_CURVE);
   }
 
   /* Actually execute all tasks. */
@@ -1277,27 +1384,40 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
                                  task,
                                  ordered_attributes,
                                  dst_curves,
-                                 dst_attribute_spans,
-                                 point_ids_span,
-                                 handle_left_span,
-                                 handle_right_span,
-                                 radius_span);
+                                 dst_attribute_writers,
+                                 point_ids.span,
+                                 handle_left.span,
+                                 handle_right.span,
+                                 radius.span,
+                                 resolution.span);
     }
   });
 
-  /* Save modified attributes. */
-  for (OutputAttribute &dst_attribute : dst_attributes) {
-    dst_attribute.save();
+  /* Type counts have to be updated eagerly. */
+  dst_curves.runtime->type_counts.fill(0);
+  for (const RealizeCurveTask &task : tasks) {
+    for (const int i : IndexRange(CURVE_TYPES_NUM)) {
+      dst_curves.runtime->type_counts[i] +=
+          task.curve_info->curves->geometry.runtime->type_counts[i];
+    }
+  }
+
+  /* Tag modified attributes. */
+  for (GSpanAttributeWriter &dst_attribute : dst_attribute_writers) {
+    dst_attribute.finish();
   }
   if (point_ids) {
-    point_ids.save();
+    point_ids.finish();
   }
   if (radius) {
-    radius.save();
+    radius.finish();
+  }
+  if (resolution) {
+    resolution.finish();
   }
   if (all_curves_info.create_handle_postion_attributes) {
-    handle_left.save();
-    handle_right.save();
+    handle_left.finish();
+    handle_right.finish();
   }
 }
 
@@ -1312,7 +1432,7 @@ static void remove_id_attribute_from_instances(GeometrySet &geometry_set)
   geometry_set.modify_geometry_sets([&](GeometrySet &sub_geometry) {
     if (sub_geometry.has<InstancesComponent>()) {
       InstancesComponent &component = sub_geometry.get_component_for_write<InstancesComponent>();
-      component.attributes().remove("id");
+      component.instance_attributes().remove("id");
     }
   });
 }
@@ -1371,6 +1491,9 @@ GeometrySet realize_instances(GeometrySet geometry_set, const RealizeInstancesOp
 
   if (gather_info.r_tasks.first_volume) {
     new_geometry_set.add(*gather_info.r_tasks.first_volume);
+  }
+  if (gather_info.r_tasks.first_edit_data) {
+    new_geometry_set.add(*gather_info.r_tasks.first_edit_data);
   }
 
   return new_geometry_set;

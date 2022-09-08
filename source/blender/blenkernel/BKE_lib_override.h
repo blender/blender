@@ -60,6 +60,21 @@ void BKE_lib_override_library_clear(struct IDOverrideLibrary *override, bool do_
 void BKE_lib_override_library_free(struct IDOverrideLibrary **override, bool do_id_user);
 
 /**
+ * Return the actual #IDOverrideLibrary data 'controlling' the given `id`, and the actual ID owning
+ * it.
+ *
+ * \note This is especially useful when `id` is a non-real override (e.g. embedded ID like a master
+ * collection or root node tree, or a shape key).
+ *
+ * \param owner_id_hint: If not NULL, a potential owner for the given override-embedded `id`.
+ * \param r_owner_id: If given, will be set with the actual ID owning the return liboverride data.
+ */
+IDOverrideLibrary *BKE_lib_override_library_get(struct Main *bmain,
+                                                struct ID *id,
+                                                struct ID *owner_id_hint,
+                                                struct ID **r_owner_id);
+
+/**
  * Check if given ID has some override rules that actually indicate the user edited it.
  */
 bool BKE_lib_override_library_is_user_edited(const struct ID *id);
@@ -73,9 +88,9 @@ bool BKE_lib_override_library_is_system_defined(const struct Main *bmain, const 
  * Check if given Override Property for given ID is animated (through a F-Curve in an Action, or
  * from a driver).
  *
- * \param override_rna_prop if not NULL, the RNA property matching the given path in the
+ * \param override_rna_prop: if not NULL, the RNA property matching the given path in the
  * `override_prop`.
- * \param rnaprop_index Array in the RNA property, 0 if unknown or irrelevant.
+ * \param rnaprop_index: Array in the RNA property, 0 if unknown or irrelevant.
  */
 bool BKE_lib_override_library_property_is_animated(const ID *id,
                                                    const IDOverrideLibraryProperty *override_prop,

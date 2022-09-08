@@ -254,6 +254,8 @@ enum {
   LIB_ID_FREE_NO_DEG_TAG = 1 << 8,
   /** Do not attempt to remove freed ID from UI data/notifiers/... */
   LIB_ID_FREE_NO_UI_USER = 1 << 9,
+  /** Do not remove freed ID's name from a potential runtime namemap. */
+  LIB_ID_FREE_NO_NAMEMAP_REMOVE = 1 << 10,
 };
 
 void BKE_libblock_free_datablock(struct ID *id, int flag) ATTR_NONNULL();
@@ -398,12 +400,9 @@ bool id_single_user(struct bContext *C,
                     struct ID *id,
                     struct PointerRNA *ptr,
                     struct PropertyRNA *prop);
+
+/** Test whether given `id` can be copied or not. */
 bool BKE_id_copy_is_allowed(const struct ID *id);
-/**
- * Invokes the appropriate copy method for the block and returns the result in
- * #ID.newid, unless test. Returns true if the block can be copied.
- */
-struct ID *BKE_id_copy(struct Main *bmain, const struct ID *id);
 /**
  * Generic entry point for copying a data-block (new API).
  *
@@ -428,13 +427,38 @@ struct ID *BKE_id_copy(struct Main *bmain, const struct ID *id);
  */
 struct ID *BKE_id_copy_ex(struct Main *bmain, const struct ID *id, struct ID **r_newid, int flag);
 /**
- * Invokes the appropriate copy method for the block and returns the result in
- * newid, unless test. Returns true if the block can be copied.
+ * Invoke the appropriate copy method for the block and return the new id as result.
+ *
+ * See #BKE_id_copy_ex for details.
+ */
+struct ID *BKE_id_copy(struct Main *bmain, const struct ID *id);
+
+/**
+ * Invoke the appropriate copy method for the block and return the new id as result.
+ *
+ * Unlike #BKE_id_copy, it does set the #ID.newid pointer of the given `id` to the copied one.
+ *
+ * It is designed as a basic common helper for the higher-level 'duplicate' operations (aka 'deep
+ * copy' of data-blocks and some of their dependency ones), see e.g. #BKE_object_duplicate.
+ *
+ * Currently, it only handles the given ID, and their shape keys and actions if any, according to
+ * the given `duplicate_flags`.
+ *
+ * \param duplicate_flags: is of type #eDupli_ID_Flags, see #UserDef.dupflag. Currently only
+ * `USER_DUP_LINKED_ID` and `USER_DUP_ACT` have an effect here.
+ * \param copy_flags: flags passed to #BKE_id_copy_ex.
  */
 struct ID *BKE_id_copy_for_duplicate(struct Main *bmain,
                                      struct ID *id,
                                      uint duplicate_flags,
                                      int copy_flags);
+
+/**
+ * Special version of #BKE_id_copy which is safe from using evaluated id as source with a copy
+ * result appearing in the main database.
+ * Takes care of the referenced data-blocks consistency.
+ */
+struct ID *BKE_id_copy_for_use_in_bmain(struct Main *bmain, const struct ID *id);
 
 /**
  * Does a mere memory swap over the whole IDs data (including type-specific memory).
@@ -478,10 +502,12 @@ void BKE_lib_id_expand_local(struct Main *bmain, struct ID *id, int flags);
  *
  * \return true if a new name had to be created.
  */
-bool BKE_id_new_name_validate(struct ListBase *lb,
+bool BKE_id_new_name_validate(struct Main *bmain,
+                              struct ListBase *lb,
                               struct ID *id,
                               const char *name,
-                              bool do_linked_data) ATTR_NONNULL(1, 2);
+                              bool do_linked_data) ATTR_NONNULL(1, 2, 3);
+
 /**
  * Pull an ID out of a library (make it local). Only call this for IDs that
  * don't have other library users.
@@ -526,7 +552,7 @@ void BKE_main_lib_objects_recalc_all(struct Main *bmain);
 /**
  * Only for repairing files via versioning, avoid for general use.
  */
-void BKE_main_id_repair_duplicate_names_listbase(struct ListBase *lb);
+void BKE_main_id_repair_duplicate_names_listbase(struct Main *bmain, struct ListBase *lb);
 
 #define MAX_ID_FULL_NAME (64 + 64 + 3 + 1)         /* 64 is MAX_ID_NAME - 2 */
 #define MAX_ID_FULL_NAME_UI (MAX_ID_FULL_NAME + 3) /* Adds 'keycode' two letters at beginning. */

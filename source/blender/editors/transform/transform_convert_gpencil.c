@@ -19,6 +19,7 @@
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_curve.h"
 #include "BKE_gpencil_geom.h"
+#include "BKE_layer.h"
 
 #include "ED_gpencil.h"
 #include "ED_keyframing.h"
@@ -672,7 +673,7 @@ static void createTransGPencil_strokes(bContext *C,
   }
 }
 
-void createTransGPencil(bContext *C, TransInfo *t)
+static void createTransGPencil(bContext *C, TransInfo *t)
 {
   if (t->data_container_len == 0) {
     return;
@@ -681,11 +682,11 @@ void createTransGPencil(bContext *C, TransInfo *t)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   const Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
-  Object *obact = OBACT(t->view_layer);
+  Object *obact = BKE_view_layer_active_object_get(t->view_layer);
   bGPdata *gpd = obact->data;
   BLI_assert(gpd != NULL);
 
-  const int cfra_scene = CFRA;
+  const int cfra_scene = scene->r.cfra;
 
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
   const bool use_multiframe_falloff = (ts->gp_sculpt.flag & GP_SCULPT_SETT_FLAG_FRAME_FALLOFF) !=
@@ -737,7 +738,7 @@ void createTransGPencil(bContext *C, TransInfo *t)
   }
 }
 
-void recalcData_gpencil_strokes(TransInfo *t)
+static void recalcData_gpencil_strokes(TransInfo *t)
 {
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
   GHash *strokes = BLI_ghash_ptr_new(__func__);
@@ -762,3 +763,10 @@ void recalcData_gpencil_strokes(TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_GPencil = {
+    /* flags */ (T_EDIT | T_POINTS),
+    /* createTransData */ createTransGPencil,
+    /* recalcData */ recalcData_gpencil_strokes,
+    /* special_aftertrans_update */ NULL,
+};

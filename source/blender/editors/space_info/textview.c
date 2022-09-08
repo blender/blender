@@ -74,7 +74,7 @@ static void textview_draw_sel(const char *str,
 
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     immUniformColor4ubv(bg_sel);
     immRecti(pos, xy[0] + (cwidth * sta), xy[1] + lheight, xy[0] + (cwidth * end), xy[1]);
@@ -197,7 +197,7 @@ static bool textview_draw_string(TextViewDrawState *tds,
   if (bg) {
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor4ubv(bg);
     immRecti(pos, tds->draw_rect_outer->xmin, line_bottom, tds->draw_rect_outer->xmax, line_top);
     immUnbindProgram();
@@ -245,15 +245,16 @@ static bool textview_draw_string(TextViewDrawState *tds,
   const int final_offset = offsets[tot_lines - 1];
   len = str_len - final_offset;
   s = str + final_offset;
-  BLF_position(tds->font_id, tds->xy[0], tds->lofs + line_bottom + tds->row_vpadding, 0);
-  BLF_color4ubv(tds->font_id, fg);
-  BLF_draw_mono(tds->font_id, s, len, tds->cwidth);
 
   if (tds->sel[0] != tds->sel[1]) {
     textview_step_sel(tds, -final_offset);
     const int pos[2] = {tds->xy[0], line_bottom};
     textview_draw_sel(s, pos, len, tds, bg_sel);
   }
+
+  BLF_position(tds->font_id, tds->xy[0], tds->lofs + line_bottom + tds->row_vpadding, 0);
+  BLF_color4ubv(tds->font_id, fg);
+  BLF_draw_mono(tds->font_id, s, len, tds->cwidth);
 
   tds->xy[1] += tds->lheight;
 
@@ -263,13 +264,13 @@ static bool textview_draw_string(TextViewDrawState *tds,
     len = offsets[i] - offsets[i - 1];
     s = str + offsets[i - 1];
 
-    BLF_position(tds->font_id, tds->xy[0], tds->lofs + tds->xy[1], 0);
-    BLF_draw_mono(tds->font_id, s, len, tds->cwidth);
-
     if (tds->sel[0] != tds->sel[1]) {
       textview_step_sel(tds, len);
       textview_draw_sel(s, tds->xy, len, tds, bg_sel);
     }
+
+    BLF_position(tds->font_id, tds->xy[0], tds->lofs + tds->xy[1], 0);
+    BLF_draw_mono(tds->font_id, s, len, tds->cwidth);
 
     tds->xy[1] += tds->lheight;
 

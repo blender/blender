@@ -32,6 +32,7 @@ namespace blender::gpu::shader {
 #endif
 
 enum class Type {
+  /* Types supported natively across all GPU back-ends. */
   FLOAT = 0,
   VEC2,
   VEC3,
@@ -47,6 +48,21 @@ enum class Type {
   IVEC3,
   IVEC4,
   BOOL,
+  /* Additionally supported types to enable data optimization and native
+   * support in some GPU back-ends.
+   * NOTE: These types must be representable in all APIs. E.g. `VEC3_101010I2` is aliased as vec3
+   * in the GL back-end, as implicit type conversions from packed normal attribute data to vec3 is
+   * supported. UCHAR/CHAR types are natively supported in Metal and can be used to avoid
+   * additional data conversions for `GPU_COMP_U8` vertex attributes. */
+  VEC3_101010I2,
+  UCHAR,
+  UCHAR2,
+  UCHAR3,
+  UCHAR4,
+  CHAR,
+  CHAR2,
+  CHAR3,
+  CHAR4
 };
 
 /* All of these functions is a bit out of place */
@@ -86,6 +102,40 @@ static inline std::ostream &operator<<(std::ostream &stream, const Type type)
       return stream << "mat3";
     case Type::MAT4:
       return stream << "mat4";
+    case Type::VEC3_101010I2:
+      return stream << "vec3_1010102_Inorm";
+    case Type::UCHAR:
+      return stream << "uchar";
+    case Type::UCHAR2:
+      return stream << "uchar2";
+    case Type::UCHAR3:
+      return stream << "uchar3";
+    case Type::UCHAR4:
+      return stream << "uchar4";
+    case Type::CHAR:
+      return stream << "char";
+    case Type::CHAR2:
+      return stream << "char2";
+    case Type::CHAR3:
+      return stream << "char3";
+    case Type::CHAR4:
+      return stream << "char4";
+    case Type::INT:
+      return stream << "int";
+    case Type::IVEC2:
+      return stream << "ivec2";
+    case Type::IVEC3:
+      return stream << "ivec3";
+    case Type::IVEC4:
+      return stream << "ivec4";
+    case Type::UINT:
+      return stream << "uint";
+    case Type::UVEC2:
+      return stream << "uvec2";
+    case Type::UVEC3:
+      return stream << "uvec3";
+    case Type::UVEC4:
+      return stream << "uvec4";
     default:
       BLI_assert(0);
       return stream;
@@ -127,8 +177,12 @@ enum class BuiltinBits {
   VERTEX_ID = (1 << 14),
   WORK_GROUP_ID = (1 << 15),
   WORK_GROUP_SIZE = (1 << 16),
+
+  /* Not a builtin but a flag we use to tag shaders that use the debug features. */
+  USE_DEBUG_DRAW = (1 << 29),
+  USE_DEBUG_PRINT = (1 << 30),
 };
-ENUM_OPERATORS(BuiltinBits, BuiltinBits::WORK_GROUP_SIZE);
+ENUM_OPERATORS(BuiltinBits, BuiltinBits::USE_DEBUG_PRINT);
 
 /**
  * Follow convention described in:
@@ -224,6 +278,8 @@ enum class PrimitiveOut {
   POINTS = 0,
   LINE_STRIP,
   TRIANGLE_STRIP,
+  LINES,
+  TRIANGLES,
 };
 
 struct StageInterfaceInfo {
@@ -268,10 +324,10 @@ struct StageInterfaceInfo {
 /**
  * \brief Describe inputs & outputs, stage interfaces, resources and sources of a shader.
  *        If all data is correctly provided, this is all that is needed to create and compile
- *        a GPUShader.
+ *        a #GPUShader.
  *
  * IMPORTANT: All strings are references only. Make sure all the strings used by a
- *            ShaderCreateInfo are not freed until it is consumed or deleted.
+ *            #ShaderCreateInfo are not freed until it is consumed or deleted.
  */
 struct ShaderCreateInfo {
   /** Shader name for debugging. */
@@ -290,7 +346,7 @@ struct ShaderCreateInfo {
   DepthWrite depth_write_ = DepthWrite::ANY;
   /**
    * Maximum length of all the resource names including each null terminator.
-   * Only for names used by gpu::ShaderInterface.
+   * Only for names used by #gpu::ShaderInterface.
    */
   size_t interface_names_size_ = 0;
   /** Manually set builtins. */
@@ -298,6 +354,7 @@ struct ShaderCreateInfo {
   /** Manually set generated code. */
   std::string vertex_source_generated = "";
   std::string fragment_source_generated = "";
+  std::string compute_source_generated = "";
   std::string geometry_source_generated = "";
   std::string typedef_source_generated = "";
   /** Manually set generated dependencies. */
@@ -740,33 +797,16 @@ struct ShaderCreateInfo {
    * Used to share parts of the infos that are common to many shaders.
    * \{ */
 
-  Self &additional_info(StringRefNull info_name0,
-                        StringRefNull info_name1 = "",
-                        StringRefNull info_name2 = "",
-                        StringRefNull info_name3 = "",
-                        StringRefNull info_name4 = "",
-                        StringRefNull info_name5 = "",
-                        StringRefNull info_name6 = "")
+  Self &additional_info(StringRefNull info_name)
   {
-    additional_infos_.append(info_name0);
-    if (!info_name1.is_empty()) {
-      additional_infos_.append(info_name1);
-    }
-    if (!info_name2.is_empty()) {
-      additional_infos_.append(info_name2);
-    }
-    if (!info_name3.is_empty()) {
-      additional_infos_.append(info_name3);
-    }
-    if (!info_name4.is_empty()) {
-      additional_infos_.append(info_name4);
-    }
-    if (!info_name5.is_empty()) {
-      additional_infos_.append(info_name5);
-    }
-    if (!info_name6.is_empty()) {
-      additional_infos_.append(info_name6);
-    }
+    additional_infos_.append(info_name);
+    return *(Self *)this;
+  }
+
+  template<typename... Args> Self &additional_info(StringRefNull info_name, Args... args)
+  {
+    additional_info(info_name);
+    additional_info(args...);
     return *(Self *)this;
   }
 
@@ -818,6 +858,7 @@ struct ShaderCreateInfo {
     TEST_EQUAL(*this, b, builtins_);
     TEST_EQUAL(*this, b, vertex_source_generated);
     TEST_EQUAL(*this, b, fragment_source_generated);
+    TEST_EQUAL(*this, b, compute_source_generated);
     TEST_EQUAL(*this, b, typedef_source_generated);
     TEST_VECTOR_EQUAL(*this, b, vertex_inputs_);
     TEST_EQUAL(*this, b, geometry_layout_);
@@ -870,6 +911,31 @@ struct ShaderCreateInfo {
       print_resource(res);
     }
     return stream;
+  }
+
+  bool has_resource_type(Resource::BindType bind_type) const
+  {
+    for (auto &res : batch_resources_) {
+      if (res.bind_type == bind_type) {
+        return true;
+      }
+    }
+    for (auto &res : pass_resources_) {
+      if (res.bind_type == bind_type) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool has_resource_image() const
+  {
+    return has_resource_type(Resource::BindType::IMAGE);
+  }
+
+  bool has_resource_storage() const
+  {
+    return has_resource_type(Resource::BindType::STORAGE_BUFFER);
   }
 
   /** \} */

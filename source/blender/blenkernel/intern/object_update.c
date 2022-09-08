@@ -110,7 +110,6 @@ void BKE_object_eval_constraints(Depsgraph *depsgraph, Scene *scene, Object *ob)
    * - post (i.e. BKE_constraints_clear_evalob)
    *
    * Not sure why, this is from Joshua - sergey
-   *
    */
   cob = BKE_constraints_make_evalob(depsgraph, scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
   BKE_constraints_solve(depsgraph, &ob->constraints, cob, ctime);
@@ -149,10 +148,6 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
       cddata_masks.pmask |= CD_MASK_PROP_ALL;
       cddata_masks.lmask |= CD_MASK_PROP_ALL;
 
-      /* Also copy over normal layers to avoid recomputation. */
-      cddata_masks.pmask |= CD_MASK_NORMAL;
-      cddata_masks.vmask |= CD_MASK_NORMAL;
-
       /* Make sure Freestyle edge/face marks appear in DM for render (see T40315).
        * Due to Line Art implementation, edge marks should also be shown in viewport. */
 #ifdef WITH_FREESTYLE
@@ -173,7 +168,7 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
       break;
 
     case OB_MBALL:
-      BKE_displist_make_mball(depsgraph, scene, ob);
+      BKE_mball_data_update(depsgraph, scene, ob);
       break;
 
     case OB_CURVES_LEGACY:
@@ -285,43 +280,43 @@ void BKE_object_eval_uber_transform(Depsgraph *UNUSED(depsgraph), Object *UNUSED
 {
 }
 
-void BKE_object_data_batch_cache_dirty_tag(ID *object_data)
+void BKE_object_batch_cache_dirty_tag(Object *ob)
 {
-  switch (GS(object_data->name)) {
-    case ID_ME:
-      BKE_mesh_batch_cache_dirty_tag((struct Mesh *)object_data, BKE_MESH_BATCH_DIRTY_ALL);
+  switch (ob->type) {
+    case OB_MESH:
+      BKE_mesh_batch_cache_dirty_tag((struct Mesh *)ob->data, BKE_MESH_BATCH_DIRTY_ALL);
       break;
-    case ID_LT:
-      BKE_lattice_batch_cache_dirty_tag((struct Lattice *)object_data,
-                                        BKE_LATTICE_BATCH_DIRTY_ALL);
+    case OB_LATTICE:
+      BKE_lattice_batch_cache_dirty_tag((struct Lattice *)ob->data, BKE_LATTICE_BATCH_DIRTY_ALL);
       break;
-    case ID_CU_LEGACY:
-      BKE_curve_batch_cache_dirty_tag((struct Curve *)object_data, BKE_CURVE_BATCH_DIRTY_ALL);
+    case OB_CURVES_LEGACY:
+      BKE_curve_batch_cache_dirty_tag((struct Curve *)ob->data, BKE_CURVE_BATCH_DIRTY_ALL);
       break;
-    case ID_MB:
-      BKE_mball_batch_cache_dirty_tag((struct MetaBall *)object_data, BKE_MBALL_BATCH_DIRTY_ALL);
+    case OB_MBALL: {
+      /* This function is currently called on original objects, so to properly
+       * clear the actual displayed geometry, we have to tag the evaluated mesh. */
+      Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(ob);
+      if (mesh) {
+        BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
+      }
       break;
-    case ID_GD:
-      BKE_gpencil_batch_cache_dirty_tag((struct bGPdata *)object_data);
+    }
+    case OB_GPENCIL:
+      BKE_gpencil_batch_cache_dirty_tag((struct bGPdata *)ob->data);
       break;
-    case ID_CV:
-      BKE_curves_batch_cache_dirty_tag((struct Curves *)object_data, BKE_CURVES_BATCH_DIRTY_ALL);
+    case OB_CURVES:
+      BKE_curves_batch_cache_dirty_tag((struct Curves *)ob->data, BKE_CURVES_BATCH_DIRTY_ALL);
       break;
-    case ID_PT:
-      BKE_pointcloud_batch_cache_dirty_tag((struct PointCloud *)object_data,
+    case OB_POINTCLOUD:
+      BKE_pointcloud_batch_cache_dirty_tag((struct PointCloud *)ob->data,
                                            BKE_POINTCLOUD_BATCH_DIRTY_ALL);
       break;
-    case ID_VO:
-      BKE_volume_batch_cache_dirty_tag((struct Volume *)object_data, BKE_VOLUME_BATCH_DIRTY_ALL);
+    case OB_VOLUME:
+      BKE_volume_batch_cache_dirty_tag((struct Volume *)ob->data, BKE_VOLUME_BATCH_DIRTY_ALL);
       break;
     default:
       break;
   }
-}
-
-void BKE_object_batch_cache_dirty_tag(Object *ob)
-{
-  BKE_object_data_batch_cache_dirty_tag(ob->data);
 }
 
 void BKE_object_eval_uber_data(Depsgraph *depsgraph, Scene *scene, Object *ob)

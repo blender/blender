@@ -35,6 +35,7 @@
 #include "ED_keyframes_keylist.h"
 
 #include "RNA_access.h"
+#include "RNA_path.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -59,7 +60,7 @@ void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag)
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* Draw a light green line to indicate current frame */
   immUniformThemeColor(TH_CFRAME);
@@ -86,7 +87,7 @@ void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformThemeColorShadeAlpha(TH_ANIM_PREVIEW_RANGE, -25, -30);
     /* XXX: Fix this hardcoded color (anim_active) */
     // immUniformColor4f(0.8f, 0.44f, 0.1f, 0.2f);
@@ -117,12 +118,12 @@ void ANIM_draw_framerange(Scene *scene, View2D *v2d)
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColorShadeAlpha(TH_BACK, -25, -100);
 
-  if (SFRA < EFRA) {
-    immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, (float)SFRA, v2d->cur.ymax);
-    immRectf(pos, (float)EFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+  if (scene->r.sfra < scene->r.efra) {
+    immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, (float)scene->r.sfra, v2d->cur.ymax);
+    immRectf(pos, (float)scene->r.efra, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
   }
   else {
     immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
@@ -135,11 +136,11 @@ void ANIM_draw_framerange(Scene *scene, View2D *v2d)
 
   immBegin(GPU_PRIM_LINES, 4);
 
-  immVertex2f(pos, (float)SFRA, v2d->cur.ymin);
-  immVertex2f(pos, (float)SFRA, v2d->cur.ymax);
+  immVertex2f(pos, (float)scene->r.sfra, v2d->cur.ymin);
+  immVertex2f(pos, (float)scene->r.sfra, v2d->cur.ymax);
 
-  immVertex2f(pos, (float)EFRA, v2d->cur.ymin);
-  immVertex2f(pos, (float)EFRA, v2d->cur.ymax);
+  immVertex2f(pos, (float)scene->r.efra, v2d->cur.ymin);
+  immVertex2f(pos, (float)scene->r.efra, v2d->cur.ymax);
 
   immEnd();
   immUnbindProgram();
@@ -192,7 +193,7 @@ void ANIM_draw_action_framerange(
   GPU_blend(GPU_BLEND_NONE);
 
   /* Thin lines where the actual frames are. */
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColorShade(TH_BACK, -60);
 
   GPU_line_width(1.0f);
@@ -530,7 +531,7 @@ static bool find_prev_next_keyframes(struct bContext *C, int *r_nextfra, int *r_
   bool donenext = false, doneprev = false;
   int nextcount = 0, prevcount = 0;
 
-  cfranext = cfraprev = (float)(CFRA);
+  cfranext = cfraprev = (float)(scene->r.cfra);
 
   /* seed up dummy dopesheet context with flags to perform necessary filtering */
   if ((scene->flag & SCE_KEYS_NO_SELONLY) == 0) {
@@ -559,7 +560,7 @@ static bool find_prev_next_keyframes(struct bContext *C, int *r_nextfra, int *r_
     aknext = ED_keylist_find_next(keylist, cfranext);
 
     if (aknext) {
-      if (CFRA == (int)aknext->cfra) {
+      if (scene->r.cfra == (int)aknext->cfra) {
         /* make this the new starting point for the search and ignore */
         cfranext = aknext->cfra;
       }
@@ -577,7 +578,7 @@ static bool find_prev_next_keyframes(struct bContext *C, int *r_nextfra, int *r_
     akprev = ED_keylist_find_prev(keylist, cfraprev);
 
     if (akprev) {
-      if (CFRA == (int)akprev->cfra) {
+      if (scene->r.cfra == (int)akprev->cfra) {
         /* make this the new starting point for the search */
       }
       else {
@@ -599,14 +600,14 @@ static bool find_prev_next_keyframes(struct bContext *C, int *r_nextfra, int *r_
       *r_prevfra = cfraprev;
     }
     else {
-      *r_prevfra = CFRA - (cfranext - CFRA);
+      *r_prevfra = scene->r.cfra - (cfranext - scene->r.cfra);
     }
 
     if (donenext) {
       *r_nextfra = cfranext;
     }
     else {
-      *r_nextfra = CFRA + (CFRA - cfraprev);
+      *r_nextfra = scene->r.cfra + (scene->r.cfra - cfraprev);
     }
 
     return true;

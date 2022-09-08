@@ -9,6 +9,7 @@
 
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
+#include "BLI_set.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_node.h"
@@ -144,7 +145,10 @@ void node_socket_color_get(const bContext &C,
 
 void node_draw_space(const bContext &C, ARegion &region);
 
-void node_socket_add_tooltip(bNodeTree *ntree, bNode *node, bNodeSocket *sock, uiLayout *layout);
+void node_socket_add_tooltip(const bNodeTree &ntree,
+                             const bNode &node,
+                             const bNodeSocket &sock,
+                             uiLayout &layout);
 
 /**
  * Sort nodes by selection: unselected nodes first, then selected,
@@ -166,8 +170,9 @@ void node_keymap(wmKeyConfig *keyconf);
 /* node_select.cc */
 
 rctf node_frame_rect_inside(const bNode &node);
-bool node_or_socket_isect_event(bContext *C, const wmEvent *event);
+bool node_or_socket_isect_event(const bContext &C, const wmEvent &event);
 
+Set<bNode *> get_selected_nodes(bNodeTree &node_tree);
 void node_deselect_all(SpaceNode &snode);
 void node_socket_select(bNode *node, bNodeSocket &sock);
 void node_socket_deselect(bNode *node, bNodeSocket &sock, bool deselect_node);
@@ -214,6 +219,10 @@ void node_draw_link(const bContext &C,
                     const SpaceNode &snode,
                     const bNodeLink &link,
                     bool selected);
+void node_draw_link_dragged(const bContext &C,
+                            const View2D &v2d,
+                            const SpaceNode &snode,
+                            const bNodeLink &link);
 /**
  * Don't do shadows if th_col3 is -1.
  */
@@ -225,19 +234,12 @@ void node_draw_link_bezier(const bContext &C,
                            int th_col2,
                            int th_col3,
                            bool selected);
-/** If v2d not nullptr, it clips and returns 0 if not visible. */
-bool node_link_bezier_points(const View2D *v2d,
-                             const SpaceNode *snode,
-                             const bNodeLink &link,
-                             float coord_array[][2],
-                             int resol);
-/**
- * Return quadratic beziers points for a given nodelink and clip if v2d is not nullptr.
- */
-bool node_link_bezier_handles(const View2D *v2d,
-                              const SpaceNode *snode,
-                              const bNodeLink &ink,
-                              float vec[4][2]);
+
+void node_link_bezier_points_evaluated(const bNodeLink &link,
+                                       std::array<float2, NODE_LINK_RESOL + 1> &coords);
+
+std::optional<float2> link_path_intersection(const bNodeLink &link, Span<float2> path);
+
 void draw_nodespace_back_pix(const bContext &C,
                              ARegion &region,
                              SpaceNode &snode,
@@ -245,12 +247,9 @@ void draw_nodespace_back_pix(const bContext &C,
 
 /* node_add.cc */
 
-/**
- * XXX Does some additional initialization on top of #nodeAddNode
- * Can be used with both custom and static nodes,
- * if `idname == nullptr` the static int type will be used instead.
- */
-bNode *node_add_node(const bContext &C, const char *idname, int type, float locx, float locy);
+bNode *add_node(const bContext &C, StringRef idname, const float2 &location);
+bNode *add_static_node(const bContext &C, int type, const float2 &location);
+
 void NODE_OT_add_reroute(wmOperatorType *ot);
 void NODE_OT_add_group(wmOperatorType *ot);
 void NODE_OT_add_object(wmOperatorType *ot);
@@ -269,11 +268,6 @@ void NODE_OT_group_separate(wmOperatorType *ot);
 void NODE_OT_group_edit(wmOperatorType *ot);
 
 /* node_relationships.cc */
-
-void sort_multi_input_socket_links(SpaceNode &snode,
-                                   bNode &node,
-                                   bNodeLink *drag_link,
-                                   const float2 *cursor);
 
 void NODE_OT_link(wmOperatorType *ot);
 void NODE_OT_link_make(wmOperatorType *ot);
@@ -295,8 +289,6 @@ void NODE_OT_insert_offset(wmOperatorType *ot);
 float2 node_link_calculate_multi_input_position(const float2 &socket_position,
                                                 int index,
                                                 int total_inputs);
-
-void node_select_all(ListBase *lb, int action);
 
 float node_socket_calculate_height(const bNodeSocket &socket);
 

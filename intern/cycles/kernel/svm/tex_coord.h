@@ -106,7 +106,7 @@ ccl_device_noinline int svm_node_tex_coord_bump_dx(KernelGlobals kg,
 
   switch (type) {
     case NODE_TEXCO_OBJECT: {
-      data = sd->P + sd->dP.dx;
+      data = svm_node_bump_P_dx(sd);
       if (node.w == 0) {
         if (sd->object != OBJECT_NONE) {
           object_inverse_position_transform(kg, sd, &data);
@@ -130,17 +130,17 @@ ccl_device_noinline int svm_node_tex_coord_bump_dx(KernelGlobals kg,
       Transform tfm = kernel_data.cam.worldtocamera;
 
       if (sd->object != OBJECT_NONE)
-        data = transform_point(&tfm, sd->P + sd->dP.dx);
+        data = transform_point(&tfm, svm_node_bump_P_dx(sd));
       else
-        data = transform_point(&tfm, sd->P + sd->dP.dx + camera_position(kg));
+        data = transform_point(&tfm, svm_node_bump_P_dx(sd) + camera_position(kg));
       break;
     }
     case NODE_TEXCO_WINDOW: {
       if ((path_flag & PATH_RAY_CAMERA) && sd->object == OBJECT_NONE &&
           kernel_data.cam.type == CAMERA_ORTHOGRAPHIC)
-        data = camera_world_to_ndc(kg, sd, sd->ray_P + make_float3(sd->ray_dP, 0.0f, 0.0f));
+        data = camera_world_to_ndc(kg, sd, sd->ray_P);
       else
-        data = camera_world_to_ndc(kg, sd, sd->P + sd->dP.dx);
+        data = camera_world_to_ndc(kg, sd, svm_node_bump_P_dx(sd));
       data.z = 0.0f;
       break;
     }
@@ -160,7 +160,7 @@ ccl_device_noinline int svm_node_tex_coord_bump_dx(KernelGlobals kg,
       break;
     }
     case NODE_TEXCO_VOLUME_GENERATED: {
-      data = sd->P + sd->dP.dx;
+      data = svm_node_bump_P_dx(sd);
 
 #  ifdef __VOLUME__
       if (sd->object != OBJECT_NONE)
@@ -191,7 +191,7 @@ ccl_device_noinline int svm_node_tex_coord_bump_dy(KernelGlobals kg,
 
   switch (type) {
     case NODE_TEXCO_OBJECT: {
-      data = sd->P + sd->dP.dy;
+      data = svm_node_bump_P_dy(sd);
       if (node.w == 0) {
         if (sd->object != OBJECT_NONE) {
           object_inverse_position_transform(kg, sd, &data);
@@ -215,17 +215,17 @@ ccl_device_noinline int svm_node_tex_coord_bump_dy(KernelGlobals kg,
       Transform tfm = kernel_data.cam.worldtocamera;
 
       if (sd->object != OBJECT_NONE)
-        data = transform_point(&tfm, sd->P + sd->dP.dy);
+        data = transform_point(&tfm, svm_node_bump_P_dy(sd));
       else
-        data = transform_point(&tfm, sd->P + sd->dP.dy + camera_position(kg));
+        data = transform_point(&tfm, svm_node_bump_P_dy(sd) + camera_position(kg));
       break;
     }
     case NODE_TEXCO_WINDOW: {
       if ((path_flag & PATH_RAY_CAMERA) && sd->object == OBJECT_NONE &&
           kernel_data.cam.type == CAMERA_ORTHOGRAPHIC)
-        data = camera_world_to_ndc(kg, sd, sd->ray_P + make_float3(0.0f, sd->ray_dP, 0.0f));
+        data = camera_world_to_ndc(kg, sd, sd->ray_P);
       else
-        data = camera_world_to_ndc(kg, sd, sd->P + sd->dP.dy);
+        data = camera_world_to_ndc(kg, sd, svm_node_bump_P_dy(sd));
       data.z = 0.0f;
       break;
     }
@@ -245,7 +245,7 @@ ccl_device_noinline int svm_node_tex_coord_bump_dy(KernelGlobals kg,
       break;
     }
     case NODE_TEXCO_VOLUME_GENERATED: {
-      data = sd->P + sd->dP.dy;
+      data = svm_node_bump_P_dy(sd);
 
 #  ifdef __VOLUME__
       if (sd->object != OBJECT_NONE)

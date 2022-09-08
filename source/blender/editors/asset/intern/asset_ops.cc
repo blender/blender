@@ -295,7 +295,7 @@ void AssetClearHelper::reportResults(const bContext *C, ReportList &reports) con
   else if (stats.tot_cleared == 1) {
     /* If only one data-block: Give more useful message by printing asset name. */
     BKE_reportf(
-        &reports, RPT_INFO, "Data-block '%s' is no asset anymore", stats.last_id->name + 2);
+        &reports, RPT_INFO, "Data-block '%s' is not an asset anymore", stats.last_id->name + 2);
   }
   else {
     BKE_reportf(&reports, RPT_INFO, "%i data-blocks are no assets anymore", stats.tot_cleared);

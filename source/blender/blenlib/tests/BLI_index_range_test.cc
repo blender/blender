@@ -105,6 +105,12 @@ TEST(index_range, OneAfterEnd)
   EXPECT_EQ(range.one_after_last(), 8);
 }
 
+TEST(index_range, OneBeforeStart)
+{
+  IndexRange range = IndexRange(5, 3);
+  EXPECT_EQ(range.one_before_start(), 4);
+}
+
 TEST(index_range, Start)
 {
   IndexRange range = IndexRange(6, 2);
@@ -227,6 +233,52 @@ TEST(index_range, GenericAlgorithms)
   EXPECT_TRUE(std::any_of(range.begin(), range.end(), [](int v) { return v == 6; }));
   EXPECT_FALSE(std::any_of(range.begin(), range.end(), [](int v) { return v == 20; }));
   EXPECT_EQ(std::count_if(range.begin(), range.end(), [](int v) { return v < 7; }), 3);
+}
+
+TEST(index_range, SplitByAlignment)
+{
+  {
+    AlignedIndexRanges ranges = split_index_range_by_alignment(IndexRange(0, 0), 16);
+    EXPECT_EQ(ranges.prefix, IndexRange());
+    EXPECT_EQ(ranges.aligned, IndexRange());
+    EXPECT_EQ(ranges.suffix, IndexRange());
+  }
+  {
+    AlignedIndexRanges ranges = split_index_range_by_alignment(IndexRange(0, 24), 8);
+    EXPECT_EQ(ranges.prefix, IndexRange());
+    EXPECT_EQ(ranges.aligned, IndexRange(0, 24));
+    EXPECT_EQ(ranges.suffix, IndexRange());
+  }
+  {
+    AlignedIndexRanges ranges = split_index_range_by_alignment(IndexRange(1, 2), 4);
+    EXPECT_EQ(ranges.prefix, IndexRange(1, 2));
+    EXPECT_EQ(ranges.aligned, IndexRange());
+    EXPECT_EQ(ranges.suffix, IndexRange());
+  }
+  {
+    AlignedIndexRanges ranges = split_index_range_by_alignment(IndexRange(3, 50), 8);
+    EXPECT_EQ(ranges.prefix, IndexRange(3, 5));
+    EXPECT_EQ(ranges.aligned, IndexRange(8, 40));
+    EXPECT_EQ(ranges.suffix, IndexRange(48, 5));
+  }
+  {
+    AlignedIndexRanges ranges = split_index_range_by_alignment(IndexRange(3, 50), 1);
+    EXPECT_EQ(ranges.prefix, IndexRange());
+    EXPECT_EQ(ranges.aligned, IndexRange(3, 50));
+    EXPECT_EQ(ranges.suffix, IndexRange());
+  }
+  {
+    AlignedIndexRanges ranges = split_index_range_by_alignment(IndexRange(64, 16), 16);
+    EXPECT_EQ(ranges.prefix, IndexRange());
+    EXPECT_EQ(ranges.aligned, IndexRange(64, 16));
+    EXPECT_EQ(ranges.suffix, IndexRange());
+  }
+  {
+    AlignedIndexRanges ranges = split_index_range_by_alignment(IndexRange(3, 5), 8);
+    EXPECT_EQ(ranges.prefix, IndexRange(3, 5));
+    EXPECT_EQ(ranges.aligned, IndexRange());
+    EXPECT_EQ(ranges.suffix, IndexRange());
+  }
 }
 
 }  // namespace blender::tests

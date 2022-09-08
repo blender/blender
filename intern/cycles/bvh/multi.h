@@ -19,6 +19,9 @@ class BVHMulti : public BVH {
            const vector<Geometry *> &geometry,
            const vector<Object *> &objects);
   virtual ~BVHMulti();
+
+  virtual void replace_geometry(const vector<Geometry *> &geometry,
+                                const vector<Object *> &objects);
 };
 
 CCL_NAMESPACE_END

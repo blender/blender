@@ -12,10 +12,7 @@
 
 #include "GPU_capabilities.h"
 
-#include "glew-mx.h"
-
 #include "gl_context.hh"
-#include "gl_debug.hh"
 #include "gl_framebuffer.hh"
 #include "gl_texture.hh"
 
@@ -566,14 +563,14 @@ void GLStateManager::image_bind(Texture *tex_, int unit)
   }
   images_[unit] = tex->tex_id_;
   formats_[unit] = to_gl_internal_format(tex->format_);
-  tex->is_bound_ = true;
+  tex->is_bound_image_ = true;
   dirty_image_binds_ |= 1ULL << unit;
 }
 
 void GLStateManager::image_unbind(Texture *tex_)
 {
   GLTexture *tex = static_cast<GLTexture *>(tex_);
-  if (!tex->is_bound_) {
+  if (!tex->is_bound_image_) {
     return;
   }
 
@@ -584,7 +581,7 @@ void GLStateManager::image_unbind(Texture *tex_)
       dirty_image_binds_ |= 1ULL << i;
     }
   }
-  tex->is_bound_ = false;
+  tex->is_bound_image_ = false;
 }
 
 void GLStateManager::image_unbind_all()

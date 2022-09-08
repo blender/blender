@@ -122,7 +122,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
     DEG_add_object_relation(ctx->node, hmd->object, DEG_OB_COMP_TRANSFORM, "Hook Modifier");
   }
   /* We need own transformation as well. */
-  DEG_add_modifier_to_transform_relation(ctx->node, "Hook Modifier");
+  DEG_add_depends_on_transform_relation(ctx->node, "Hook Modifier");
 }
 
 struct HookData_cb {
@@ -281,7 +281,7 @@ static void deformVerts_do(HookModifierData *hmd,
   bPoseChannel *pchan = BKE_pose_channel_find_name(ob_target->pose, hmd->subtarget);
   float dmat[4][4];
   int i, *index_pt;
-  MDeformVert *dvert;
+  const MDeformVert *dvert;
   struct HookData_cb hd;
   const bool invert_vgroup = (hmd->flag & MOD_HOOK_INVERT_VGROUP) != 0;
 
@@ -430,8 +430,7 @@ static void deformVerts(struct ModifierData *md,
                         int verts_num)
 {
   HookModifierData *hmd = (HookModifierData *)md;
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(
-      ctx->object, NULL, mesh, NULL, verts_num, false, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
 
   deformVerts_do(hmd, ctx, ctx->object, mesh_src, NULL, vertexCos, verts_num);
 
@@ -545,7 +544,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_Hook = {
-    /* name */ "Hook",
+    /* name */ N_("Hook"),
     /* structName */ "HookModifierData",
     /* structSize */ sizeof(HookModifierData),
     /* srna */ &RNA_HookModifier,

@@ -14,6 +14,19 @@ struct ResultBLF;
 struct rctf;
 struct rcti;
 
+/* Max number of FontBLFs in memory. Take care that every font has a glyph cache per size/dpi,
+ * so we don't need load the same font with different size, just load one and call BLF_size. */
+#define BLF_MAX_FONT 64
+
+/* Maximum number of opened FT_Face objects managed by cache. 0 is default of 2. */
+#define BLF_CACHE_MAX_FACES 4
+/* Maximum number of opened FT_Size objects managed by cache. 0 is default of 4 */
+#define BLF_CACHE_MAX_SIZES 8
+/* Maximum number of bytes to use for cached data nodes. 0 is default of 200,000. */
+#define BLF_CACHE_BYTES 400000
+
+extern struct FontBLF *global_font[BLF_MAX_FONT];
+
 void blf_batch_draw_begin(struct FontBLF *font);
 void blf_batch_draw(void);
 
@@ -33,12 +46,26 @@ void blf_font_exit(void);
 
 bool blf_font_id_is_valid(int fontid);
 
+/**
+ * Return glyph id from char-code.
+ */
+uint blf_get_char_index(struct FontBLF *font, uint charcode);
+
+bool blf_ensure_face(struct FontBLF *font);
+void blf_ensure_size(struct FontBLF *font);
+
 void blf_draw_buffer__start(struct FontBLF *font);
 void blf_draw_buffer__end(void);
 
+struct FontBLF *blf_font_new_ex(const char *name,
+                                const char *filepath,
+                                const unsigned char *mem,
+                                size_t mem_size,
+                                void *ft_library);
+
 struct FontBLF *blf_font_new(const char *name, const char *filepath);
-struct FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem, int mem_size);
-void blf_font_attach_from_mem(struct FontBLF *font, const unsigned char *mem, int mem_size);
+struct FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem, size_t mem_size);
+void blf_font_attach_from_mem(struct FontBLF *font, const unsigned char *mem, size_t mem_size);
 
 /**
  * Change font's output size. Returns true if successful in changing the size.

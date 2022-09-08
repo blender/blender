@@ -14,6 +14,10 @@
 
 #include "UI_resources.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define RNA_MAGIC ((int)~0)
 
 struct AssetLibraryReference;
@@ -351,7 +355,7 @@ void rna_FreestyleSettings_module_remove(struct ID *id,
 void rna_Scene_use_view_map_cache_update(struct Main *bmain,
                                          struct Scene *scene,
                                          struct PointerRNA *ptr);
-void rna_Scene_glsl_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
+void rna_Scene_render_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
 void rna_Scene_freestyle_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
 void rna_ViewLayer_name_set(struct PointerRNA *ptr, const char *value);
 void rna_ViewLayer_material_override_update(struct Main *bmain,
@@ -504,9 +508,7 @@ void RNA_def_main_cachefiles(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_paintcurves(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_workspaces(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_lightprobes(BlenderRNA *brna, PropertyRNA *cprop);
-#ifdef WITH_NEW_CURVES_TYPE
 void RNA_def_main_hair_curves(BlenderRNA *brna, PropertyRNA *cprop);
-#endif
 void RNA_def_main_pointclouds(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_volumes(BlenderRNA *brna, PropertyRNA *cprop);
 #ifdef WITH_SIMULATION_DATABLOCK
@@ -635,6 +637,7 @@ PointerRNA rna_pointer_inherit_refine(struct PointerRNA *ptr, struct StructRNA *
 /* Functions */
 
 int rna_parameter_size(struct PropertyRNA *parm);
+int rna_parameter_size_pad(const int size);
 
 /* XXX, these should not need to be defined here~! */
 struct MTex *rna_mtex_texture_slots_add(struct ID *self,
@@ -691,4 +694,8 @@ void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values);
              : INT_MIN, unsigned int : 0, float \
              : -FLT_MAX, double \
              : -DBL_MAX)
+#endif
+
+#ifdef __cplusplus
+}
 #endif

@@ -48,16 +48,36 @@ class MF_SeparateXYZ : public fn::MultiFunction {
   void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
     const VArray<float3> &vectors = params.readonly_single_input<float3>(0, "XYZ");
-    MutableSpan<float> xs = params.uninitialized_single_output<float>(1, "X");
-    MutableSpan<float> ys = params.uninitialized_single_output<float>(2, "Y");
-    MutableSpan<float> zs = params.uninitialized_single_output<float>(3, "Z");
+    MutableSpan<float> xs = params.uninitialized_single_output_if_required<float>(1, "X");
+    MutableSpan<float> ys = params.uninitialized_single_output_if_required<float>(2, "Y");
+    MutableSpan<float> zs = params.uninitialized_single_output_if_required<float>(3, "Z");
 
-    for (int64_t i : mask) {
-      float3 xyz = vectors[i];
-      xs[i] = xyz.x;
-      ys[i] = xyz.y;
-      zs[i] = xyz.z;
+    std::array<MutableSpan<float>, 3> outputs = {xs, ys, zs};
+    Vector<int> used_outputs;
+    if (!xs.is_empty()) {
+      used_outputs.append(0);
     }
+    if (!ys.is_empty()) {
+      used_outputs.append(1);
+    }
+    if (!zs.is_empty()) {
+      used_outputs.append(2);
+    }
+
+    devirtualize_varray(vectors, [&](auto vectors) {
+      mask.to_best_mask_type([&](auto mask) {
+        const int used_outputs_num = used_outputs.size();
+        const int *used_outputs_data = used_outputs.data();
+
+        for (const int64_t i : mask) {
+          const float3 &vector = vectors[i];
+          for (const int out_i : IndexRange(used_outputs_num)) {
+            const int coordinate = used_outputs_data[out_i];
+            outputs[coordinate][i] = vector[coordinate];
+          }
+        }
+      });
+    });
   }
 };
 

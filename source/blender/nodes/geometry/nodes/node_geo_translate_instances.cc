@@ -17,17 +17,16 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void translate_instances(GeoNodeExecParams &params, InstancesComponent &instances_component)
 {
-  GeometryComponentFieldContext field_context{instances_component, ATTR_DOMAIN_INSTANCE};
-
-  fn::FieldEvaluator evaluator{field_context, instances_component.instances_num()};
+  const bke::InstancesFieldContext context{instances_component};
+  fn::FieldEvaluator evaluator{context, instances_component.instances_num()};
   evaluator.set_selection(params.extract_input<Field<bool>>("Selection"));
   evaluator.add(params.extract_input<Field<float3>>("Translation"));
   evaluator.add(params.extract_input<Field<bool>>("Local Space"));
   evaluator.evaluate();
 
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
-  const VArray<float3> &translations = evaluator.get_evaluated<float3>(0);
-  const VArray<bool> &local_spaces = evaluator.get_evaluated<bool>(1);
+  const VArray<float3> translations = evaluator.get_evaluated<float3>(0);
+  const VArray<bool> local_spaces = evaluator.get_evaluated<bool>(1);
 
   MutableSpan<float4x4> instance_transforms = instances_component.instance_transforms();
 

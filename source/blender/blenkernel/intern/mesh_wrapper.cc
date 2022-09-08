@@ -46,6 +46,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+using blender::Span;
+
 Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(BMEditMesh *em,
                                                  const CustomData_MeshMasks *cd_mask_extra,
                                                  const float (*vert_coords)[3],
@@ -61,7 +63,7 @@ Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(BMEditMesh *em,
   }
 
   /* Use edit-mesh directly where possible. */
-  me->runtime.is_original = true;
+  me->runtime.is_original_bmesh = true;
 
   me->edit_mesh = static_cast<BMEditMesh *>(MEM_dupallocN(em));
   me->edit_mesh->is_shallow_copy = true;
@@ -103,11 +105,7 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
 
   /* Must isolate multithreaded tasks while holding a mutex lock. */
   blender::threading::isolate_task([&]() {
-    const eMeshWrapperType geom_type_orig = static_cast<eMeshWrapperType>(
-        me->runtime.wrapper_type);
-    me->runtime.wrapper_type = ME_WRAPPER_TYPE_MDATA;
-
-    switch (geom_type_orig) {
+    switch (static_cast<eMeshWrapperType>(me->runtime.wrapper_type)) {
       case ME_WRAPPER_TYPE_MDATA:
       case ME_WRAPPER_TYPE_SUBD: {
         break; /* Quiet warning. */
@@ -132,20 +130,24 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
          * There is also a performance aspect, where this also assumes that original indices are
          * always needed when converting an edit mesh to a mesh. That might be wrong, but it's not
          * harmful. */
-        BKE_mesh_ensure_default_orig_index_customdata(me);
+        BKE_mesh_ensure_default_orig_index_customdata_no_check(me);
 
         EditMeshData *edit_data = me->runtime.edit_data;
         if (edit_data->vertexCos) {
           BKE_mesh_vert_coords_apply(me, edit_data->vertexCos);
-          me->runtime.is_original = false;
+          me->runtime.is_original_bmesh = false;
         }
         break;
       }
     }
 
     if (me->runtime.wrapper_type_finalize) {
-      BKE_mesh_wrapper_deferred_finalize(me, &me->runtime.cd_mask_extra);
+      BKE_mesh_wrapper_deferred_finalize_mdata(me, &me->runtime.cd_mask_extra);
     }
+
+    /* Keep type assignment last, so that read-only access only uses the mdata code paths after all
+     * the underlying data has been initialized. */
+    me->runtime.wrapper_type = ME_WRAPPER_TYPE_MDATA;
   });
 
   BLI_mutex_unlock(mesh_eval_mutex);
@@ -195,9 +197,9 @@ void BKE_mesh_wrapper_vert_coords_copy(const Mesh *me,
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD: {
       BLI_assert(vert_coords_len <= me->totvert);
-      const MVert *mvert = me->mvert;
+      const Span<MVert> verts = me->verts();
       for (int i = 0; i < vert_coords_len; i++) {
-        copy_v3_v3(vert_coords[i], mvert[i].co);
+        copy_v3_v3(vert_coords[i], verts[i].co);
       }
       return;
     }
@@ -233,9 +235,9 @@ void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *me,
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD: {
       BLI_assert(vert_coords_len == me->totvert);
-      const MVert *mvert = me->mvert;
+      const Span<MVert> verts = me->verts();
       for (int i = 0; i < vert_coords_len; i++) {
-        mul_v3_m4v3(vert_coords[i], mat, mvert[i].co);
+        mul_v3_m4v3(vert_coords[i], mat, verts[i].co);
       }
       return;
     }
@@ -307,14 +309,9 @@ int BKE_mesh_wrapper_poly_len(const Mesh *me)
 /** \name CPU Subdivision Evaluation
  * \{ */
 
-static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
+static Mesh *mesh_wrapper_ensure_subdivision(Mesh *me)
 {
-  SubsurfModifierData *smd = BKE_object_get_last_subsurf_modifier(ob);
-  if (!smd) {
-    return me;
-  }
-
-  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)smd->modifier.runtime;
+  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)me->runtime.subsurf_runtime_data;
   if (runtime_data == nullptr || runtime_data->settings.level == 0) {
     return me;
   }
@@ -335,7 +332,7 @@ static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
     /* Happens on bad topology, but also on empty input mesh. */
     return me;
   }
-  const bool use_clnors = BKE_subsurf_modifier_use_custom_loop_normals(smd, me);
+  const bool use_clnors = runtime_data->use_loop_normals;
   if (use_clnors) {
     /* If custom normals are present and the option is turned on calculate the split
      * normals and clear flag so the normals get interpolated to the result mesh. */
@@ -348,7 +345,7 @@ static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   if (use_clnors) {
     float(*lnors)[3] = static_cast<float(*)[3]>(
         CustomData_get_layer(&subdiv_mesh->ldata, CD_NORMAL));
-    BLI_assert(lnors != NULL);
+    BLI_assert(lnors != nullptr);
     BKE_mesh_set_custom_normals(subdiv_mesh, lnors);
     CustomData_set_layer_flag(&me->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
     CustomData_set_layer_flag(&subdiv_mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
@@ -372,7 +369,7 @@ static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   return me->runtime.mesh_eval;
 }
 
-Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
+Mesh *BKE_mesh_wrapper_ensure_subdivision(Mesh *me)
 {
   ThreadMutex *mesh_eval_mutex = (ThreadMutex *)me->runtime.eval_mutex;
   BLI_mutex_lock(mesh_eval_mutex);
@@ -385,7 +382,7 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   Mesh *result;
 
   /* Must isolate multithreaded tasks while holding a mutex lock. */
-  blender::threading::isolate_task([&]() { result = mesh_wrapper_ensure_subdivision(ob, me); });
+  blender::threading::isolate_task([&]() { result = mesh_wrapper_ensure_subdivision(me); });
 
   BLI_mutex_unlock(mesh_eval_mutex);
   return result;

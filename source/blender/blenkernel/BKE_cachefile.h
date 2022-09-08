@@ -33,7 +33,7 @@ void BKE_cachefile_eval(struct Main *bmain,
 bool BKE_cachefile_filepath_get(const struct Main *bmain,
                                 const struct Depsgraph *depsgrah,
                                 const struct CacheFile *cache_file,
-                                char r_filename[1024]);
+                                char r_filepath[1024]);
 
 double BKE_cachefile_time_offset(const struct CacheFile *cache_file, double time, double fps);
 
@@ -53,10 +53,12 @@ void BKE_cachefile_reader_free(struct CacheFile *cache_file, struct CacheReader 
 bool BKE_cache_file_uses_render_procedural(const struct CacheFile *cache_file,
                                            struct Scene *scene);
 
-/* Add a layer to the cache_file. Return NULL if the filename is already that of an existing layer
- * or if the number of layers exceeds the maximum allowed layer count. */
+/**
+ * Add a layer to the cache_file. Return NULL if the `filepath` is already that of an existing
+ * layer or if the number of layers exceeds the maximum allowed layer count.
+ */
 struct CacheFileLayer *BKE_cachefile_add_layer(struct CacheFile *cache_file,
-                                               const char filename[1024]);
+                                               const char filepath[1024]);
 
 struct CacheFileLayer *BKE_cachefile_get_active_layer(struct CacheFile *cache_file);
 

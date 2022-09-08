@@ -1276,7 +1276,7 @@ static void rna_def_effector_weight(BlenderRNA *brna)
   prop = RNA_def_property(srna, "collection", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "Collection");
   RNA_def_property_pointer_sdna(prop, NULL, "group");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
   RNA_def_property_ui_text(prop, "Effector Collection", "Limit effectors to this collection");
   RNA_def_property_update(prop, 0, "rna_EffectorWeight_dependency_update");
 

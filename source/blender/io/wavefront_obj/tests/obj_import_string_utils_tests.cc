@@ -10,15 +10,32 @@ namespace blender::io::obj {
 
 TEST(obj_import_string_utils, read_next_line)
 {
-  std::string str = "abc\n  \n\nline with \\\ncontinuation\nCRLF ending:\r\na";
+  std::string str = "abc\n  \n\nline with \t spaces\nCRLF ending:\r\na";
   StringRef s = str;
   EXPECT_STRREF_EQ("abc", read_next_line(s));
   EXPECT_STRREF_EQ("  ", read_next_line(s));
   EXPECT_STRREF_EQ("", read_next_line(s));
-  EXPECT_STRREF_EQ("line with \\\ncontinuation", read_next_line(s));
+  EXPECT_STRREF_EQ("line with \t spaces", read_next_line(s));
   EXPECT_STRREF_EQ("CRLF ending:\r", read_next_line(s));
   EXPECT_STRREF_EQ("a", read_next_line(s));
   EXPECT_TRUE(s.is_empty());
+}
+
+TEST(obj_import_string_utils, fixup_line_continuations)
+{
+  const char *str =
+      "backslash \\\n eol\n"
+      "backslash spaces \\   \n eol\n"
+      "without eol \\ is \\\\ \\ left intact\n"
+      "\\";
+  const char *exp =
+      "backslash    eol\n"
+      "backslash spaces       eol\n"
+      "without eol \\ is \\\\ \\ left intact\n"
+      "\\";
+  std::string buf(str);
+  fixup_line_continuations(buf.data(), buf.data() + buf.size());
+  EXPECT_STRREF_EQ(exp, buf);
 }
 
 static StringRef drop_whitespace(StringRef s)
@@ -29,9 +46,14 @@ static StringRef parse_int(StringRef s, int fallback, int &dst, bool skip_space 
 {
   return StringRef(parse_int(s.begin(), s.end(), fallback, dst, skip_space), s.end());
 }
-static StringRef parse_float(StringRef s, float fallback, float &dst, bool skip_space = true)
+static StringRef parse_float(StringRef s,
+                             float fallback,
+                             float &dst,
+                             bool skip_space = true,
+                             bool require_trailing_space = false)
 {
-  return StringRef(parse_float(s.begin(), s.end(), fallback, dst, skip_space), s.end());
+  return StringRef(
+      parse_float(s.begin(), s.end(), fallback, dst, skip_space, require_trailing_space), s.end());
 }
 
 TEST(obj_import_string_utils, drop_whitespace)
@@ -49,7 +71,7 @@ TEST(obj_import_string_utils, drop_whitespace)
   /* No leading whitespace */
   EXPECT_STRREF_EQ("c", drop_whitespace("c"));
   /* Case with backslash, should be treated as whitespace */
-  EXPECT_STRREF_EQ("d", drop_whitespace(" \\ d"));
+  EXPECT_STRREF_EQ("d", drop_whitespace(" \t d"));
 }
 
 TEST(obj_import_string_utils, parse_int_valid)
@@ -126,6 +148,9 @@ TEST(obj_import_string_utils, parse_float_invalid)
   /* Has leading white-space when we don't expect it */
   EXPECT_STRREF_EQ(" 1", parse_float(" 1", -4.0f, val, false));
   EXPECT_EQ(val, -4.0f);
+  /* Has trailing non-number characters when we don't want them */
+  EXPECT_STRREF_EQ("123.5.png", parse_float("  123.5.png", -5.0f, val, true, true));
+  EXPECT_EQ(val, -5.0f);
 }
 
 }  // namespace blender::io::obj

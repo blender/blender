@@ -14,9 +14,6 @@ struct Scene;
 struct SpaceImage;
 struct wmOperatorType;
 
-/* geometric utilities */
-void uv_poly_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy, int len);
-
 /* find nearest */
 
 typedef struct UvNearestHit {
@@ -182,5 +179,6 @@ void UV_OT_select_circle(struct wmOperatorType *ot);
 void UV_OT_select_more(struct wmOperatorType *ot);
 void UV_OT_select_less(struct wmOperatorType *ot);
 void UV_OT_select_overlap(struct wmOperatorType *ot);
+void UV_OT_select_similar(struct wmOperatorType *ot);
 /* Used only when UV sync select is disabled. */
 void UV_OT_select_mode(struct wmOperatorType *ot);

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_utildefines.h"
+
 #include "DNA_asset_types.h"
 #include "DNA_color_types.h" /* for Histogram */
 #include "DNA_defs.h"
@@ -48,14 +50,19 @@ struct wmTimer;
 /** Defined in `buttons_intern.h`. */
 typedef struct SpaceProperties_Runtime SpaceProperties_Runtime;
 
-/** Defined in `node_intern.hh`. */
 #ifdef __cplusplus
 namespace blender::ed::space_node {
 struct SpaceNode_Runtime;
 }  // namespace blender::ed::space_node
 using SpaceNode_Runtime = blender::ed::space_node::SpaceNode_Runtime;
+
+namespace blender::ed::outliner {
+struct SpaceOutliner_Runtime;
+}  // namespace blender::ed::outliner
+using SpaceOutliner_Runtime = blender::ed::outliner::SpaceOutliner_Runtime;
 #else
 typedef struct SpaceNode_Runtime SpaceNode_Runtime;
+typedef struct SpaceOutliner_Runtime SpaceOutliner_Runtime;
 #endif
 
 /** Defined in `file_intern.h`. */
@@ -250,9 +257,6 @@ typedef enum eSpaceButtons_OutlinerSync {
 /** \name Outliner
  * \{ */
 
-/** Defined in `outliner_intern.hh`. */
-typedef struct SpaceOutliner_Runtime SpaceOutliner_Runtime;
-
 /** Outliner */
 typedef struct SpaceOutliner {
   SpaceLink *next, *prev;
@@ -276,9 +280,7 @@ typedef struct SpaceOutliner {
    */
   struct BLI_mempool *treestore;
 
-  /* search stuff */
   char search_string[64];
-  struct TreeStoreElem search_tse;
 
   short flag;
   short outlinevis;
@@ -405,8 +407,8 @@ typedef enum eSpaceOutliner_StoreFlag {
   /* cleanup tree */
   SO_TREESTORE_CLEANUP = (1 << 0),
   SO_TREESTORE_UNUSED_1 = (1 << 1), /* cleared */
-  /* rebuild the tree, similar to cleanup,
-   * but defer a call to BKE_outliner_treehash_rebuild_from_treestore instead */
+  /** Rebuild the tree, similar to cleanup, but defer a call to
+   * bke::outliner::treehash::rebuild_from_treestore instead. */
   SO_TREESTORE_REBUILD = (1 << 2),
 } eSpaceOutliner_StoreFlag;
 
@@ -732,7 +734,8 @@ typedef struct MaskSpaceInfo {
   char draw_flag;
   char draw_type;
   char overlay_mode;
-  char _pad3[5];
+  char _pad3[1];
+  float blend_factor;
 } MaskSpaceInfo;
 
 /** #SpaceSeq.gizmo_flag */
@@ -1027,6 +1030,7 @@ typedef enum eFileSel_Params_Flag {
   /** Enables filtering by asset catalog. */
   FILE_FILTER_ASSET_CATALOG = (1 << 15),
 } eFileSel_Params_Flag;
+ENUM_OPERATORS(eFileSel_Params_Flag, FILE_FILTER_ASSET_CATALOG);
 
 typedef enum eFileSel_Params_AssetCatalogVisibility {
   FILE_SHOW_ASSETS_ALL_CATALOGS,
@@ -1938,7 +1942,7 @@ typedef struct SpaceSpreadsheet {
   uint8_t geometry_component_type;
   /* #eAttrDomain. */
   uint8_t attribute_domain;
-  /* eSpaceSpreadsheet_ObjectContext. */
+  /* eSpaceSpreadsheet_ObjectEvalState. */
   uint8_t object_eval_state;
 
   /* eSpaceSpreadsheet_Flag. */
@@ -1976,7 +1980,7 @@ typedef struct SpreadsheetRowFilter {
   float value_float2[2];
   float value_float3[3];
   float value_color[4];
-  uint8_t value_byte_color[4];
+  char _pad1[4];
 } SpreadsheetRowFilter;
 
 typedef enum eSpaceSpreadsheet_RowFilterFlag {

@@ -22,13 +22,13 @@ class GHOST_EventKey : public GHOST_Event {
    * \param msec: The time this event was generated.
    * \param type: The type of key event.
    * \param key: The key code of the key.
+   * \param is_repeat: Enabled for key repeat events (only for press events).
    */
   GHOST_EventKey(
       uint64_t msec, GHOST_TEventType type, GHOST_IWindow *window, GHOST_TKey key, bool is_repeat)
       : GHOST_Event(msec, type, window)
   {
     m_keyEventData.key = key;
-    m_keyEventData.ascii = '\0';
     m_keyEventData.utf8_buf[0] = '\0';
     m_keyEventData.is_repeat = is_repeat;
     m_data = &m_keyEventData;
@@ -39,23 +39,24 @@ class GHOST_EventKey : public GHOST_Event {
    * \param msec: The time this event was generated.
    * \param type: The type of key event.
    * \param key: The key code of the key.
-   * \param ascii: The ascii code for the key event.
+   * \param is_repeat: Enabled for key repeat events (only for press events).
+   * \param utf8_buf: The text associated with this key event (only for press events).
    */
   GHOST_EventKey(uint64_t msec,
                  GHOST_TEventType type,
                  GHOST_IWindow *window,
                  GHOST_TKey key,
-                 char ascii,
-                 const char utf8_buf[6],
-                 bool is_repeat)
+                 bool is_repeat,
+                 const char utf8_buf[6])
       : GHOST_Event(msec, type, window)
   {
     m_keyEventData.key = key;
-    m_keyEventData.ascii = ascii;
-    if (utf8_buf)
+    if (utf8_buf) {
       memcpy(m_keyEventData.utf8_buf, utf8_buf, sizeof(m_keyEventData.utf8_buf));
-    else
+    }
+    else {
       m_keyEventData.utf8_buf[0] = '\0';
+    }
     m_keyEventData.is_repeat = is_repeat;
     m_data = &m_keyEventData;
   }

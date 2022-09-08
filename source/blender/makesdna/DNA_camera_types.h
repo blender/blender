@@ -54,6 +54,7 @@ typedef struct CameraBGImage {
 typedef struct CameraDOFSettings {
   /** Focal distance for depth of field. */
   struct Object *focus_object;
+  char focus_subtarget[64];
   float focus_distance;
   float aperture_fstop;
   float aperture_rotation;

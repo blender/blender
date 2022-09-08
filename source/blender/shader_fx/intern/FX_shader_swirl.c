@@ -15,6 +15,8 @@
 #include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_lib_query.h"
 #include "BKE_modifier.h"
@@ -88,7 +90,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ShaderFxTypeInfo shaderfx_Type_Swirl = {
-    /* name */ "Swirl",
+    /* name */ N_("Swirl"),
     /* structName */ "SwirlShaderFxData",
     /* structSize */ sizeof(SwirlShaderFxData),
     /* type */ eShaderFxType_GpencilType,

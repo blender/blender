@@ -187,7 +187,7 @@ ListBase *SEQ_get_seqbase_from_sequence(Sequence *seq, ListBase **r_channels, in
     case SEQ_TYPE_META: {
       seqbase = &seq->seqbase;
       *r_channels = &seq->channels;
-      *r_offset = seq->start;
+      *r_offset = SEQ_time_start_frame_get(seq);
       break;
     }
     case SEQ_TYPE_SCENE: {
@@ -338,16 +338,18 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
 const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
 {
   Editing *ed = scene->ed;
-  ListBase *channels = SEQ_channels_displayed_get(ed);
-  const Sequence *seq, *best_seq = NULL;
-  int best_machine = -1;
 
   if (!ed) {
     return NULL;
   }
 
+  ListBase *channels = SEQ_channels_displayed_get(ed);
+  const Sequence *seq, *best_seq = NULL;
+  int best_machine = -1;
+
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if (SEQ_render_is_muted(channels, seq) || !SEQ_time_strip_intersects_frame(seq, frame)) {
+    if (SEQ_render_is_muted(channels, seq) ||
+        !SEQ_time_strip_intersects_frame(scene, seq, frame)) {
       continue;
     }
     /* Only use strips that generate an image, not ones that combine

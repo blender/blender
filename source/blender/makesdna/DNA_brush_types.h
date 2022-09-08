@@ -132,9 +132,15 @@ typedef struct BrushGpencilSettings {
   struct CurveMapping *curve_rand_saturation;
   struct CurveMapping *curve_rand_value;
 
+  /** Factor for external line thickness conversion to outline. */
+  float outline_fac;
+  char _pad1[4];
+
   /* optional link of material to replace default in context */
   /** Material. */
   struct Material *material;
+  /** Material Alternative for secondary operations. */
+  struct Material *material_alt;
 } BrushGpencilSettings;
 
 typedef struct BrushCurvesSculptSettings {
@@ -148,6 +154,13 @@ typedef struct BrushCurvesSculptSettings {
   float minimum_length;
   /** Length of newly added curves when it is not interpolated from other curves. */
   float curve_length;
+  /** Minimum distance between curve root points used by the Density brush. */
+  float minimum_distance;
+  /** How often the Density brush tries to add a new curve. */
+  int density_add_attempts;
+  /** #eBrushCurvesSculptDensityMode. */
+  uint8_t density_mode;
+  char _pad[7];
 } BrushCurvesSculptSettings;
 
 typedef struct Brush {

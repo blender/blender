@@ -87,7 +87,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   CastModifierData *cmd = (CastModifierData *)md;
   if (cmd->object != NULL) {
     DEG_add_object_relation(ctx->node, cmd->object, DEG_OB_COMP_TRANSFORM, "Cast Modifier");
-    DEG_add_modifier_to_transform_relation(ctx->node, "Cast Modifier");
+    DEG_add_depends_on_transform_relation(ctx->node, "Cast Modifier");
   }
 }
 
@@ -98,7 +98,7 @@ static void sphere_do(CastModifierData *cmd,
                       float (*vertexCos)[3],
                       int verts_num)
 {
-  MDeformVert *dvert = NULL;
+  const MDeformVert *dvert = NULL;
   const bool invert_vgroup = (cmd->flag & MOD_CAST_INVERT_VGROUP) != 0;
 
   Object *ctrl_ob = NULL;
@@ -239,7 +239,7 @@ static void cuboid_do(CastModifierData *cmd,
                       float (*vertexCos)[3],
                       int verts_num)
 {
-  MDeformVert *dvert = NULL;
+  const MDeformVert *dvert = NULL;
   int defgrp_index;
   const bool invert_vgroup = (cmd->flag & MOD_CAST_INVERT_VGROUP) != 0;
 
@@ -467,7 +467,7 @@ static void deformVerts(ModifierData *md,
 
   if (ctx->object->type == OB_MESH && cmd->defgrp_name[0] != '\0') {
     /* mesh_src is only needed for vgroups. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
   }
 
   if (cmd->type == MOD_CAST_TYPE_CUBOID) {
@@ -493,15 +493,14 @@ static void deformVertsEM(ModifierData *md,
   Mesh *mesh_src = NULL;
 
   if (cmd->defgrp_name[0] != '\0') {
-    mesh_src = MOD_deform_mesh_eval_get(
-        ctx->object, editData, mesh, NULL, verts_num, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, verts_num, false);
   }
 
   if (mesh && mesh->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA) {
     BLI_assert(mesh->totvert == verts_num);
   }
 
-  /* TODO(Campbell): use edit-mode data only (remove this line). */
+  /* TODO(@campbellbarton): use edit-mode data only (remove this line). */
   if (mesh_src != NULL) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }
@@ -559,7 +558,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Cast = {
-    /* name */ "Cast",
+    /* name */ N_("Cast"),
     /* structName */ "CastModifierData",
     /* structSize */ sizeof(CastModifierData),
     /* srna */ &RNA_CastModifier,

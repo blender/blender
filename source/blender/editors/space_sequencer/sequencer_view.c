@@ -12,6 +12,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
+#include "BKE_scene.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -84,7 +85,7 @@ static int sequencer_view_all_exec(bContext *C, wmOperator *op)
     box.xmin = ms->disp_range[0] - 1;
     box.xmax = ms->disp_range[1] + 1;
   }
-  SEQ_timeline_expand_boundbox(SEQ_active_seqbase_get(ed), &box);
+  SEQ_timeline_expand_boundbox(scene, SEQ_active_seqbase_get(ed), &box);
 
   View2D *v2d = &region->v2d;
   rcti scrub_rect;
@@ -174,8 +175,7 @@ static int sequencer_view_all_preview_exec(bContext *C, wmOperator *UNUSED(op))
 
   seq_reset_imageofs(sseq);
 
-  imgwidth = (scene->r.size * scene->r.xsch) / 100;
-  imgheight = (scene->r.size * scene->r.ysch) / 100;
+  BKE_render_resolution(&scene->r, false, &imgwidth, &imgheight);
 
   /* Apply aspect, doesn't need to be that accurate. */
   imgwidth = (int)(imgwidth * (scene->r.xasp / scene->r.yasp));
@@ -227,11 +227,11 @@ static int sequencer_view_zoom_ratio_exec(bContext *C, wmOperator *op)
 
   float ratio = RNA_float_get(op->ptr, "ratio");
 
-  float winx = (int)(rd->size * rd->xsch) / 100;
-  float winy = (int)(rd->size * rd->ysch) / 100;
+  int winx, winy;
+  BKE_render_resolution(rd, false, &winx, &winy);
 
-  float facx = BLI_rcti_size_x(&v2d->mask) / winx;
-  float facy = BLI_rcti_size_y(&v2d->mask) / winy;
+  float facx = BLI_rcti_size_x(&v2d->mask) / (float)winx;
+  float facy = BLI_rcti_size_y(&v2d->mask) / (float)winy;
 
   BLI_rctf_resize(&v2d->cur, ceilf(winx * facx / ratio + 0.5f), ceilf(winy * facy / ratio + 0.5f));
 
@@ -306,8 +306,8 @@ static void seq_view_collection_rect_timeline(Scene *scene, SeqCollection *strip
   int xmargin = FPS;
 
   SEQ_ITERATOR_FOREACH (seq, strips) {
-    xmin = min_ii(xmin, SEQ_time_left_handle_frame_get(seq));
-    xmax = max_ii(xmax, SEQ_time_right_handle_frame_get(seq));
+    xmin = min_ii(xmin, SEQ_time_left_handle_frame_get(scene, seq));
+    xmax = max_ii(xmax, SEQ_time_right_handle_frame_get(scene, seq));
 
     ymin = min_ii(ymin, seq->machine);
     ymax = max_ii(ymax, seq->machine);
@@ -373,7 +373,7 @@ void SEQUENCER_OT_view_selected(wmOperatorType *ot)
 
   /* Api callbacks. */
   ot->exec = sequencer_view_selected_exec;
-  ot->poll = ED_operator_sequencer_active;
+  ot->poll = sequencer_editing_initialized_and_active;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER;

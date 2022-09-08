@@ -314,6 +314,8 @@ PyDoc_STRVAR(
     "\n"
     "   Assigns callbacks to a gizmos property.\n"
     "\n"
+    "   :arg target: Target property name.\n"
+    "   :type target: string\n"
     "   :arg get: Function that returns the value for this property (single value or sequence).\n"
     "   :type get: callable\n"
     "   :arg set: Function that takes a single value argument and applies it.\n"

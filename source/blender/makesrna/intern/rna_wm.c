@@ -138,6 +138,7 @@ const EnumPropertyItem rna_enum_wm_job_type_items[] = {
     {WM_JOB_TYPE_RENDER_PREVIEW, "RENDER_PREVIEW", 0, "Rendering previews", ""},
     {WM_JOB_TYPE_OBJECT_BAKE, "OBJECT_BAKE", 0, "Object Baking", ""},
     {WM_JOB_TYPE_COMPOSITE, "COMPOSITE", 0, "Compositing", ""},
+    {WM_JOB_TYPE_SHADER_COMPILATION, "SHADER_COMPILATION", 0, "Shader compilation", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -606,14 +607,14 @@ static PointerRNA rna_OperatorMacro_properties_get(PointerRNA *ptr)
 static void rna_Event_ascii_get(PointerRNA *ptr, char *value)
 {
   const wmEvent *event = ptr->data;
-  value[0] = event->ascii;
+  value[0] = WM_event_utf8_to_ascii(event);
   value[1] = '\0';
 }
 
 static int rna_Event_ascii_length(PointerRNA *ptr)
 {
   const wmEvent *event = ptr->data;
-  return (event->ascii) ? 1 : 0;
+  return WM_event_utf8_to_ascii(event) ? 1 : 0;
 }
 
 static void rna_Event_unicode_get(PointerRNA *ptr, char *value)
@@ -861,6 +862,21 @@ static void rna_Window_view_layer_set(PointerRNA *ptr,
   ViewLayer *view_layer = value.data;
 
   WM_window_set_active_view_layer(win, view_layer);
+}
+
+static void rna_KeyMap_modal_event_values_items_begin(CollectionPropertyIterator *iter,
+                                                      PointerRNA *ptr)
+{
+  wmKeyMap *km = ptr->data;
+
+  const EnumPropertyItem *items = rna_enum_keymap_propvalue_items;
+  if ((km->flag & KEYMAP_MODAL) != 0 && km->modal_items != NULL) {
+    items = km->modal_items;
+  }
+
+  const int totitem = RNA_enum_items_count(items);
+
+  rna_iterator_array_begin(iter, (void *)items, sizeof(EnumPropertyItem), totitem, false, NULL);
 }
 
 static PointerRNA rna_KeyMapItem_properties_get(PointerRNA *ptr)
@@ -2065,12 +2081,25 @@ static void rna_def_event(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Value", "The type of event, only applies to some");
 
+  prop = RNA_def_property(srna, "value_prev", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "prev_val");
+  RNA_def_property_enum_items(prop, rna_enum_event_value_items);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Previous Value", "The type of event, only applies to some");
+
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "type");
   RNA_def_property_enum_items(prop, rna_enum_event_type_items);
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UI_EVENTS);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Type", "");
+
+  prop = RNA_def_property(srna, "type_prev", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "prev_type");
+  RNA_def_property_enum_items(prop, rna_enum_event_type_items);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UI_EVENTS);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Previous Type", "");
 
   prop = RNA_def_property(srna, "direction", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "direction");
@@ -2602,6 +2631,23 @@ static void rna_def_keyconfig(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_CHILDREN_EXPANDED);
   RNA_def_property_ui_text(prop, "Children Expanded", "Children expanded in the user interface");
   RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
+
+  prop = RNA_def_property(srna, "modal_event_values", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_struct_type(prop, "EnumPropertyItem");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_KeyMap_modal_event_values_items_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    NULL);
+  RNA_def_property_ui_text(prop,
+                           "Modal Events",
+                           "Give access to the possible event values of this modal keymap's items "
+                           "(#KeyMapItem.propvalue), for API introspection");
 
   RNA_api_keymap(srna);
 

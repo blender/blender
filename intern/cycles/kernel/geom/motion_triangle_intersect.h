@@ -27,8 +27,8 @@ ccl_device_inline float3 motion_triangle_point_from_uv(KernelGlobals kg,
                                                        const float v,
                                                        float3 verts[3])
 {
-  float w = 1.0f - u - v;
-  float3 P = u * verts[0] + v * verts[1] + w * verts[2];
+  /* This appears to give slightly better precision than interpolating with w = (1 - u - v). */
+  float3 P = verts[0] + u * (verts[1] - verts[0]) + v * (verts[2] - verts[0]);
 
   if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     const Transform tfm = object_get_transform(kg, sd);
@@ -46,6 +46,7 @@ ccl_device_inline bool motion_triangle_intersect(KernelGlobals kg,
                                                  ccl_private Intersection *isect,
                                                  float3 P,
                                                  float3 dir,
+                                                 float tmin,
                                                  float tmax,
                                                  float time,
                                                  uint visibility,
@@ -58,12 +59,12 @@ ccl_device_inline bool motion_triangle_intersect(KernelGlobals kg,
   motion_triangle_vertices(kg, object, prim, time, verts);
   /* Ray-triangle intersection, unoptimized. */
   float t, u, v;
-  if (ray_triangle_intersect(P, dir, tmax, verts[0], verts[1], verts[2], &u, &v, &t)) {
+  if (ray_triangle_intersect(P, dir, tmin, tmax, verts[0], verts[1], verts[2], &u, &v, &t)) {
 #ifdef __VISIBILITY_FLAG__
     /* Visibility flag test. we do it here under the assumption
      * that most triangles are culled by node flags.
      */
-    if (kernel_tex_fetch(__prim_visibility, prim_addr) & visibility)
+    if (kernel_data_fetch(prim_visibility, prim_addr) & visibility)
 #endif
     {
       isect->t = t;
@@ -92,6 +93,7 @@ ccl_device_inline bool motion_triangle_intersect_local(KernelGlobals kg,
                                                        int object,
                                                        int prim,
                                                        int prim_addr,
+                                                       float tmin,
                                                        float tmax,
                                                        ccl_private uint *lcg_state,
                                                        int max_hits)
@@ -101,7 +103,7 @@ ccl_device_inline bool motion_triangle_intersect_local(KernelGlobals kg,
   motion_triangle_vertices(kg, object, prim, time, verts);
   /* Ray-triangle intersection, unoptimized. */
   float t, u, v;
-  if (!ray_triangle_intersect(P, dir, tmax, verts[0], verts[1], verts[2], &u, &v, &t)) {
+  if (!ray_triangle_intersect(P, dir, tmin, tmax, verts[0], verts[1], verts[2], &u, &v, &t)) {
     return false;
   }
 

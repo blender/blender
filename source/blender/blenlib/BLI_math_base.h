@@ -221,6 +221,19 @@ MINLINE unsigned int power_of_2_min_u(unsigned int x);
  * with integers, to avoid gradual darkening when rounding down.
  */
 MINLINE int divide_round_i(int a, int b);
+
+/**
+ * Integer division that returns the ceiling, instead of flooring like normal C division.
+ */
+MINLINE uint divide_ceil_u(uint a, uint b);
+MINLINE uint64_t divide_ceil_ul(uint64_t a, uint64_t b);
+
+/**
+ * Returns \a a if it is a multiple of \a b or the next multiple or \a b after \b a .
+ */
+MINLINE uint ceil_to_multiple_u(uint a, uint b);
+MINLINE uint64_t ceil_to_multiple_ul(uint64_t a, uint64_t b);
+
 /**
  * modulo that handles negative numbers, works the same as Python's.
  */

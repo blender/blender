@@ -5,6 +5,7 @@
 
 #  include "device/metal/kernel.h"
 #  include "device/metal/device_impl.h"
+#  include "kernel/device/metal/function_constants.h"
 #  include "util/md5.h"
 #  include "util/path.h"
 #  include "util/tbb.h"
@@ -16,13 +17,15 @@ CCL_NAMESPACE_BEGIN
 /* limit to 2 MTLCompiler instances */
 int max_mtlcompiler_threads = 2;
 
-const char *kernel_type_as_string(int kernel_type)
+const char *kernel_type_as_string(MetalPipelineType pso_type)
 {
-  switch (kernel_type) {
+  switch (pso_type) {
     case PSO_GENERIC:
       return "PSO_GENERIC";
-    case PSO_SPECIALISED:
-      return "PSO_SPECIALISED";
+    case PSO_SPECIALIZED_INTERSECT:
+      return "PSO_SPECIALIZED_INTERSECT";
+    case PSO_SPECIALIZED_SHADE:
+      return "PSO_SPECIALIZED_SHADE";
     default:
       assert(0);
   }
@@ -50,7 +53,11 @@ struct ShaderCache {
 
   /* Non-blocking request for a kernel, optionally specialized to the scene being rendered by
    * device. */
-  void load_kernel(DeviceKernel kernel, MetalDevice *device, bool scene_specialized);
+  void load_kernel(DeviceKernel kernel, MetalDevice *device, MetalPipelineType pso_type);
+
+  bool should_load_kernel(DeviceKernel device_kernel,
+                          MetalDevice *device,
+                          MetalPipelineType pso_type);
 
   void wait_for_all();
 
@@ -139,9 +146,53 @@ void ShaderCache::compile_thread_func(int thread_index)
   }
 }
 
+bool ShaderCache::should_load_kernel(DeviceKernel device_kernel,
+                                     MetalDevice *device,
+                                     MetalPipelineType pso_type)
+{
+  if (device_kernel == DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL) {
+    /* Skip megakernel. */
+    return false;
+  }
+
+  if (device_kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE) {
+    if ((device->kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) == 0) {
+      /* Skip shade_surface_raytrace kernel if the scene doesn't require it. */
+      return false;
+    }
+  }
+
+  if (pso_type != PSO_GENERIC) {
+    /* Only specialize kernels where it can make an impact. */
+    if (device_kernel < DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST ||
+        device_kernel > DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL) {
+      return false;
+    }
+
+    /* Only specialize shading / intersection kernels as requested. */
+    bool is_shade_kernel = (device_kernel >= DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND);
+    bool is_shade_pso = (pso_type == PSO_SPECIALIZED_SHADE);
+    if (is_shade_pso != is_shade_kernel) {
+      return false;
+    }
+  }
+
+  {
+    /* check whether the kernel has already been requested / cached */
+    thread_scoped_lock lock(cache_mutex);
+    for (auto &pipeline : pipelines[device_kernel]) {
+      if (pipeline->source_md5 == device->source_md5[pso_type]) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 void ShaderCache::load_kernel(DeviceKernel device_kernel,
                               MetalDevice *device,
-                              bool scene_specialized)
+                              MetalPipelineType pso_type)
 {
   {
     /* create compiler threads on first run */
@@ -154,52 +205,21 @@ void ShaderCache::load_kernel(DeviceKernel device_kernel,
     }
   }
 
-  if (device_kernel == DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL) {
-    /* skip megakernel */
+  if (!should_load_kernel(device_kernel, device, pso_type)) {
     return;
-  }
-
-  if (scene_specialized) {
-    /* Only specialize kernels where it can make an impact. */
-    if (device_kernel < DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST ||
-        device_kernel > DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL) {
-      return;
-    }
-  }
-
-  {
-    /* check whether the kernel has already been requested / cached */
-    thread_scoped_lock lock(cache_mutex);
-    for (auto &pipeline : pipelines[device_kernel]) {
-      if (scene_specialized) {
-        if (pipeline->source_md5 == device->source_md5[PSO_SPECIALISED]) {
-          /* we already requested a pipeline that is specialized for this kernel data */
-          metal_printf("Specialized kernel already requested (%s)\n",
-                       device_kernel_as_string(device_kernel));
-          return;
-        }
-      }
-      else {
-        if (pipeline->source_md5 == device->source_md5[PSO_GENERIC]) {
-          /* we already requested a generic pipeline for this kernel */
-          metal_printf("Generic kernel already requested (%s)\n",
-                       device_kernel_as_string(device_kernel));
-          return;
-        }
-      }
-    }
   }
 
   incomplete_requests++;
 
   PipelineRequest request;
   request.pipeline = new MetalKernelPipeline;
-  request.pipeline->scene_specialized = scene_specialized;
+  memcpy(&request.pipeline->kernel_data_,
+         &device->launch_params.data,
+         sizeof(request.pipeline->kernel_data_));
+  request.pipeline->pso_type = pso_type;
   request.pipeline->mtlDevice = mtlDevice;
-  request.pipeline->source_md5 =
-      device->source_md5[scene_specialized ? PSO_SPECIALISED : PSO_GENERIC];
-  request.pipeline->mtlLibrary =
-      device->mtlLibrary[scene_specialized ? PSO_SPECIALISED : PSO_GENERIC];
+  request.pipeline->source_md5 = device->source_md5[pso_type];
+  request.pipeline->mtlLibrary = device->mtlLibrary[pso_type];
   request.pipeline->device_kernel = device_kernel;
   request.pipeline->threads_per_threadgroup = device->max_threads_per_threadgroup;
 
@@ -214,7 +234,24 @@ void ShaderCache::load_kernel(DeviceKernel device_kernel,
 
   {
     thread_scoped_lock lock(cache_mutex);
-    pipelines[device_kernel].push_back(unique_ptr<MetalKernelPipeline>(request.pipeline));
+    auto &collection = pipelines[device_kernel];
+
+    /* Cache up to 3 kernel variants with the same pso_type, purging oldest first. */
+    int max_entries_of_same_pso_type = 3;
+    for (int i = (int)collection.size() - 1; i >= 0; i--) {
+      if (collection[i]->pso_type == pso_type) {
+        max_entries_of_same_pso_type -= 1;
+        if (max_entries_of_same_pso_type == 0) {
+          metal_printf("Purging oldest %s:%s kernel from ShaderCache\n",
+                       kernel_type_as_string(pso_type),
+                       device_kernel_as_string(device_kernel));
+          collection.erase(collection.begin() + i);
+          break;
+        }
+      }
+    }
+
+    collection.push_back(unique_ptr<MetalKernelPipeline>(request.pipeline));
     request_queue.push_back(request);
   }
   cond_var.notify_one();
@@ -248,8 +285,9 @@ MetalKernelPipeline *ShaderCache::get_best_pipeline(DeviceKernel kernel, const M
       continue;
     }
 
-    if (pipeline->scene_specialized) {
-      if (pipeline->source_md5 == device->source_md5[PSO_SPECIALISED]) {
+    if (pipeline->pso_type != PSO_GENERIC) {
+      if (pipeline->source_md5 == device->source_md5[PSO_SPECIALIZED_INTERSECT] ||
+          pipeline->source_md5 == device->source_md5[PSO_SPECIALIZED_SHADE]) {
         best_pipeline = pipeline.get();
       }
     }
@@ -258,13 +296,65 @@ MetalKernelPipeline *ShaderCache::get_best_pipeline(DeviceKernel kernel, const M
     }
   }
 
+  if (best_pipeline->usage_count == 0 && best_pipeline->pso_type != PSO_GENERIC) {
+    metal_printf("Swapping in %s version of %s\n",
+                 kernel_type_as_string(best_pipeline->pso_type),
+                 device_kernel_as_string(kernel));
+  }
+  best_pipeline->usage_count += 1;
+
   return best_pipeline;
+}
+
+bool MetalKernelPipeline::should_use_binary_archive() const
+{
+  if (auto str = getenv("CYCLES_METAL_DISABLE_BINARY_ARCHIVES")) {
+    if (atoi(str) != 0) {
+      /* Don't archive if we have opted out by env var. */
+      return false;
+    }
+  }
+
+  if (pso_type == PSO_GENERIC) {
+    /* Archive the generic kernels. */
+    return true;
+  }
+
+  if (device_kernel >= DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND &&
+      device_kernel <= DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW) {
+    /* Archive all shade kernels - they take a long time to compile. */
+    return true;
+  }
+
+  /* The remaining kernels are all fast to compile. They may get cached by the system shader cache,
+   * but will be quick to regenerate if not. */
+  return false;
+}
+
+static MTLFunctionConstantValues *GetConstantValues(KernelData const *data = nullptr)
+{
+  MTLFunctionConstantValues *constant_values = [MTLFunctionConstantValues new];
+
+  MTLDataType MTLDataType_int = MTLDataTypeInt;
+  MTLDataType MTLDataType_float = MTLDataTypeFloat;
+  MTLDataType MTLDataType_float4 = MTLDataTypeFloat4;
+  KernelData zero_data = {0};
+  if (!data) {
+    data = &zero_data;
+  }
+
+#  define KERNEL_STRUCT_MEMBER(parent, _type, name) \
+    [constant_values setConstantValue:&data->parent.name \
+                                 type:MTLDataType_##_type \
+                              atIndex:KernelData_##parent##_##name];
+
+#  include "kernel/data_template.h"
+
+  return constant_values;
 }
 
 void MetalKernelPipeline::compile()
 {
-  int pso_type = scene_specialized ? PSO_SPECIALISED : PSO_GENERIC;
-
   const std::string function_name = std::string("cycles_metal_") +
                                     device_kernel_as_string(device_kernel);
 
@@ -281,6 +371,17 @@ void MetalKernelPipeline::compile()
   if (@available(macOS 11.0, *)) {
     MTLFunctionDescriptor *func_desc = [MTLIntersectionFunctionDescriptor functionDescriptor];
     func_desc.name = entryPoint;
+
+    if (pso_type == PSO_SPECIALIZED_SHADE) {
+      func_desc.constantValues = GetConstantValues(&kernel_data_);
+    }
+    else if (pso_type == PSO_SPECIALIZED_INTERSECT) {
+      func_desc.constantValues = GetConstantValues(&kernel_data_);
+    }
+    else {
+      func_desc.constantValues = GetConstantValues();
+    }
+
     function = [mtlLibrary newFunctionWithDescriptor:func_desc error:&error];
   }
 
@@ -427,10 +528,7 @@ void MetalKernelPipeline::compile()
 
   MTLPipelineOption pipelineOptions = MTLPipelineOptionNone;
 
-  bool use_binary_archive = true;
-  if (auto str = getenv("CYCLES_METAL_DISABLE_BINARY_ARCHIVES")) {
-    use_binary_archive = (atoi(str) == 0);
-  }
+  bool use_binary_archive = should_use_binary_archive();
 
   id<MTLBinaryArchive> archive = nil;
   string metalbin_path;
@@ -608,17 +706,30 @@ void MetalKernelPipeline::compile()
   }
 }
 
-bool MetalDeviceKernels::load(MetalDevice *device, bool scene_specialized)
+bool MetalDeviceKernels::load(MetalDevice *device, MetalPipelineType pso_type)
+{
+  const double starttime = time_dt();
+  auto shader_cache = get_shader_cache(device->mtlDevice);
+  for (int i = 0; i < DEVICE_KERNEL_NUM; i++) {
+    shader_cache->load_kernel((DeviceKernel)i, device, pso_type);
+  }
+
+  shader_cache->wait_for_all();
+  metal_printf("Back-end compilation finished in %.1f seconds (%s)\n",
+               time_dt() - starttime,
+               kernel_type_as_string(pso_type));
+  return true;
+}
+
+bool MetalDeviceKernels::should_load_kernels(MetalDevice *device, MetalPipelineType pso_type)
 {
   auto shader_cache = get_shader_cache(device->mtlDevice);
   for (int i = 0; i < DEVICE_KERNEL_NUM; i++) {
-    shader_cache->load_kernel((DeviceKernel)i, device, scene_specialized);
+    if (shader_cache->should_load_kernel((DeviceKernel)i, device, pso_type)) {
+      return true;
+    }
   }
-
-  if (!scene_specialized || getenv("CYCLES_METAL_PROFILING")) {
-    shader_cache->wait_for_all();
-  }
-  return true;
+  return false;
 }
 
 const MetalKernelPipeline *MetalDeviceKernels::get_best_pipeline(const MetalDevice *device,

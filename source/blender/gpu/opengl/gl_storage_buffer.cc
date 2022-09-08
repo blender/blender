@@ -5,8 +5,6 @@
  * \ingroup gpu
  */
 
-#include "BKE_global.h"
-
 #include "BLI_string.h"
 
 #include "gpu_backend.hh"
@@ -74,7 +72,7 @@ void GLStorageBuf::bind(int slot)
   if (slot >= GLContext::max_ssbo_binds) {
     fprintf(
         stderr,
-        "Error: Trying to bind \"%s\" ssbo to slot %d which is above the reported limit of %d.",
+        "Error: Trying to bind \"%s\" ssbo to slot %d which is above the reported limit of %d.\n",
         name_,
         slot,
         GLContext::max_ssbo_binds);
@@ -165,6 +163,23 @@ void GLStorageBuf::copy_sub(VertBuf *src_, uint dst_offset, uint src_offset, uin
     glBindBuffer(GL_COPY_WRITE_BUFFER, dst->ssbo_id_);
     glCopyBufferSubData(GL_ARRAY_BUFFER, GL_COPY_WRITE_BUFFER, src_offset, dst_offset, copy_size);
     glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+  }
+}
+
+void GLStorageBuf::read(void *data)
+{
+  if (ssbo_id_ == 0) {
+    this->init();
+  }
+
+  if (GLContext::direct_state_access_support) {
+    glGetNamedBufferSubData(ssbo_id_, 0, size_in_bytes_, data);
+  }
+  else {
+    /* This binds the buffer to GL_ARRAY_BUFFER and upload the data if any. */
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_id_);
+    glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, size_in_bytes_, data);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
   }
 }
 

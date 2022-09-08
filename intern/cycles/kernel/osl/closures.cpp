@@ -38,6 +38,8 @@
 #include "kernel/closure/bsdf_principled_diffuse.h"
 #include "kernel/closure/bsdf_principled_sheen.h"
 #include "kernel/closure/volume.h"
+
+#include "kernel/util/color.h"
 // clang-format on
 
 CCL_NAMESPACE_BEGIN
@@ -183,7 +185,7 @@ class PrincipledSheenClosure : public CBSDFClosure {
       params.N = ensure_valid_reflection(sd->Ng, sd->I, params.N);
 
       PrincipledSheenBsdf *bsdf = (PrincipledSheenBsdf *)bsdf_alloc_osl(
-          sd, sizeof(PrincipledSheenBsdf), weight, &params);
+          sd, sizeof(PrincipledSheenBsdf), rgb_to_spectrum(weight), &params);
       sd->flag |= (bsdf) ? bsdf_principled_sheen_setup(sd, bsdf) : 0;
     }
   }
@@ -207,7 +209,7 @@ class PrincipledHairClosure : public CBSDFClosure {
   PrincipledHairBSDF *alloc(ShaderData *sd, uint32_t path_flag, float3 weight)
   {
     PrincipledHairBSDF *bsdf = (PrincipledHairBSDF *)bsdf_alloc_osl(
-        sd, sizeof(PrincipledHairBSDF), weight, &params);
+        sd, sizeof(PrincipledHairBSDF), rgb_to_spectrum(weight), &params);
     if (!bsdf) {
       return NULL;
     }
@@ -263,7 +265,7 @@ class PrincipledClearcoatClosure : public CBSDFClosure {
   MicrofacetBsdf *alloc(ShaderData *sd, uint32_t path_flag, float3 weight)
   {
     MicrofacetBsdf *bsdf = (MicrofacetBsdf *)bsdf_alloc_osl(
-        sd, sizeof(MicrofacetBsdf), weight, &params);
+        sd, sizeof(MicrofacetBsdf), rgb_to_spectrum(weight), &params);
     if (!bsdf) {
       return NULL;
     }
@@ -273,13 +275,13 @@ class PrincipledClearcoatClosure : public CBSDFClosure {
       return NULL;
     }
 
-    bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
+    bsdf->T = zero_float3();
     bsdf->extra = extra;
     bsdf->ior = 1.5f;
     bsdf->alpha_x = clearcoat_roughness;
     bsdf->alpha_y = clearcoat_roughness;
-    bsdf->extra->color = make_float3(0.0f, 0.0f, 0.0f);
-    bsdf->extra->cspec0 = make_float3(0.04f, 0.04f, 0.04f);
+    bsdf->extra->color = zero_spectrum();
+    bsdf->extra->cspec0 = make_spectrum(0.04f);
     bsdf->extra->clearcoat = clearcoat;
     return bsdf;
   }
@@ -511,7 +513,7 @@ class MicrofacetClosure : public CBSDFClosure {
     params.N = ensure_valid_reflection(sd->Ng, sd->I, params.N);
 
     MicrofacetBsdf *bsdf = (MicrofacetBsdf *)bsdf_alloc_osl(
-        sd, sizeof(MicrofacetBsdf), weight, &params);
+        sd, sizeof(MicrofacetBsdf), rgb_to_spectrum(weight), &params);
 
     if (!bsdf) {
       return;
@@ -586,7 +588,7 @@ class MicrofacetFresnelClosure : public CBSDFClosure {
     }
 
     MicrofacetBsdf *bsdf = (MicrofacetBsdf *)bsdf_alloc_osl(
-        sd, sizeof(MicrofacetBsdf), weight, &params);
+        sd, sizeof(MicrofacetBsdf), rgb_to_spectrum(weight), &params);
     if (!bsdf) {
       return NULL;
     }
@@ -597,8 +599,8 @@ class MicrofacetFresnelClosure : public CBSDFClosure {
     }
 
     bsdf->extra = extra;
-    bsdf->extra->color = color;
-    bsdf->extra->cspec0 = cspec0;
+    bsdf->extra->color = rgb_to_spectrum(color);
+    bsdf->extra->cspec0 = rgb_to_spectrum(cspec0);
     bsdf->extra->clearcoat = 0.0f;
     return bsdf;
   }
@@ -615,7 +617,7 @@ class MicrofacetGGXFresnelClosure : public MicrofacetFresnelClosure {
       return;
     }
 
-    bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
+    bsdf->T = zero_float3();
     bsdf->alpha_y = bsdf->alpha_x;
     sd->flag |= bsdf_microfacet_ggx_fresnel_setup(bsdf, sd);
   }
@@ -684,7 +686,7 @@ class MicrofacetMultiClosure : public CBSDFClosure {
     }
 
     MicrofacetBsdf *bsdf = (MicrofacetBsdf *)bsdf_alloc_osl(
-        sd, sizeof(MicrofacetBsdf), weight, &params);
+        sd, sizeof(MicrofacetBsdf), rgb_to_spectrum(weight), &params);
     if (!bsdf) {
       return NULL;
     }
@@ -695,8 +697,8 @@ class MicrofacetMultiClosure : public CBSDFClosure {
     }
 
     bsdf->extra = extra;
-    bsdf->extra->color = color;
-    bsdf->extra->cspec0 = make_float3(0.0f, 0.0f, 0.0f);
+    bsdf->extra->color = rgb_to_spectrum(color);
+    bsdf->extra->cspec0 = zero_spectrum();
     bsdf->extra->clearcoat = 0.0f;
     return bsdf;
   }
@@ -714,7 +716,7 @@ class MicrofacetMultiGGXClosure : public MicrofacetMultiClosure {
     }
 
     bsdf->ior = 0.0f;
-    bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
+    bsdf->T = zero_float3();
     bsdf->alpha_y = bsdf->alpha_x;
     sd->flag |= bsdf_microfacet_multi_ggx_setup(bsdf);
   }
@@ -777,7 +779,7 @@ class MicrofacetMultiGGXGlassClosure : public MicrofacetMultiClosure {
       return;
     }
 
-    bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
+    bsdf->T = zero_float3();
     bsdf->alpha_y = bsdf->alpha_x;
     sd->flag |= bsdf_microfacet_multi_ggx_glass_setup(bsdf);
   }
@@ -814,7 +816,7 @@ class MicrofacetMultiFresnelClosure : public CBSDFClosure {
     }
 
     MicrofacetBsdf *bsdf = (MicrofacetBsdf *)bsdf_alloc_osl(
-        sd, sizeof(MicrofacetBsdf), weight, &params);
+        sd, sizeof(MicrofacetBsdf), rgb_to_spectrum(weight), &params);
     if (!bsdf) {
       return NULL;
     }
@@ -825,8 +827,8 @@ class MicrofacetMultiFresnelClosure : public CBSDFClosure {
     }
 
     bsdf->extra = extra;
-    bsdf->extra->color = color;
-    bsdf->extra->cspec0 = cspec0;
+    bsdf->extra->color = rgb_to_spectrum(color);
+    bsdf->extra->cspec0 = rgb_to_spectrum(cspec0);
     bsdf->extra->clearcoat = 0.0f;
     return bsdf;
   }
@@ -843,7 +845,7 @@ class MicrofacetMultiGGXFresnelClosure : public MicrofacetMultiFresnelClosure {
       return;
     }
 
-    bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
+    bsdf->T = zero_float3();
     bsdf->alpha_y = bsdf->alpha_x;
     sd->flag |= bsdf_microfacet_multi_ggx_fresnel_setup(bsdf, sd);
   }
@@ -911,7 +913,7 @@ class MicrofacetMultiGGXGlassFresnelClosure : public MicrofacetMultiFresnelClosu
       return;
     }
 
-    bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
+    bsdf->T = zero_float3();
     bsdf->alpha_y = bsdf->alpha_x;
     sd->flag |= bsdf_microfacet_multi_ggx_glass_fresnel_setup(bsdf, sd);
   }
@@ -941,7 +943,7 @@ class TransparentClosure : public CBSDFClosure {
 
   void setup(ShaderData *sd, uint32_t path_flag, float3 weight)
   {
-    bsdf_transparent_setup(sd, weight, path_flag);
+    bsdf_transparent_setup(sd, rgb_to_spectrum(weight), path_flag);
   }
 };
 
@@ -960,7 +962,7 @@ class VolumeAbsorptionClosure : public CBSDFClosure {
  public:
   void setup(ShaderData *sd, uint32_t path_flag, float3 weight)
   {
-    volume_extinction_setup(sd, weight);
+    volume_extinction_setup(sd, rgb_to_spectrum(weight));
   }
 };
 
@@ -979,10 +981,10 @@ class VolumeHenyeyGreensteinClosure : public CBSDFClosure {
 
   void setup(ShaderData *sd, uint32_t path_flag, float3 weight)
   {
-    volume_extinction_setup(sd, weight);
+    volume_extinction_setup(sd, rgb_to_spectrum(weight));
 
     HenyeyGreensteinVolume *volume = (HenyeyGreensteinVolume *)bsdf_alloc_osl(
-        sd, sizeof(HenyeyGreensteinVolume), weight, &params);
+        sd, sizeof(HenyeyGreensteinVolume), rgb_to_spectrum(weight), &params);
     if (!volume) {
       return;
     }

@@ -241,327 +241,282 @@ typedef struct WaveVizData {
   float pos[2];
   float rms_pos;
   bool clip;
-  bool end;
+  bool draw_line;    /* Draw triangle otherwise. */
+  bool final_sample; /* There are no more samples. */
 } WaveVizData;
 
-static int get_section_len(WaveVizData *start, WaveVizData *end)
+static bool seq_draw_waveforms_poll(const bContext *UNUSED(C), SpaceSeq *sseq, Sequence *seq)
 {
-  int len = 0;
-  while (start != end) {
-    len++;
-    if (start->end) {
-      return len;
-    }
-    start++;
+  const bool strip_is_valid = seq->type == SEQ_TYPE_SOUND_RAM && seq->sound != NULL;
+  const bool overlays_enabled = (sseq->flag & SEQ_SHOW_OVERLAY) != 0;
+  const bool ovelay_option = ((sseq->timeline_overlay.flag & SEQ_TIMELINE_ALL_WAVEFORMS) != 0 ||
+                              (seq->flag & SEQ_AUDIO_DRAW_WAVEFORM));
+
+  if ((sseq->timeline_overlay.flag & SEQ_TIMELINE_NO_WAVEFORMS) != 0) {
+    return false;
   }
-  return len;
+
+  if (strip_is_valid && overlays_enabled && ovelay_option) {
+    return true;
+  }
+
+  return false;
 }
 
-static void draw_waveform(WaveVizData *iter, WaveVizData *end, GPUPrimType prim_type, bool use_rms)
+static void waveform_job_start_if_needed(const bContext *C, Sequence *seq)
 {
-  int strip_len = get_section_len(iter, end);
-  if (strip_len > 1) {
-    GPU_blend(GPU_BLEND_ALPHA);
-    GPUVertFormat *format = immVertexFormat();
-    uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  bSound *sound = seq->sound;
 
-    immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-    immBegin(prim_type, strip_len);
-
-    while (iter != end) {
-      if (iter->clip) {
-        immAttr4f(col, 1.0f, 0.0f, 0.0f, 0.5f);
-      }
-      else if (use_rms) {
-        immAttr4f(col, 1.0f, 1.0f, 1.0f, 0.8f);
-      }
-      else {
-        immAttr4f(col, 1.0f, 1.0f, 1.0f, 0.5f);
-      }
-
-      if (use_rms) {
-        immVertex2f(pos, iter->pos[0], iter->rms_pos);
-      }
-      else {
-        immVertex2f(pos, iter->pos[0], iter->pos[1]);
-      }
-
-      if (iter->end) {
-        /* End of line. */
-        iter++;
-        strip_len = get_section_len(iter, end);
-        if (strip_len != 0) {
-          immEnd();
-          immUnbindProgram();
-          immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-          immBegin(prim_type, strip_len);
-        }
-      }
-      else {
-        iter++;
-      }
+  BLI_spin_lock(sound->spinlock);
+  if (!sound->waveform) {
+    /* Load the waveform data if it hasn't been loaded and cached already. */
+    if (!(sound->tags & SOUND_TAGS_WAVEFORM_LOADING)) {
+      /* Prevent sounds from reloading. */
+      sound->tags |= SOUND_TAGS_WAVEFORM_LOADING;
+      BLI_spin_unlock(sound->spinlock);
+      sequencer_preview_add_sound(C, seq);
     }
-    immEnd();
-    immUnbindProgram();
+    else {
+      BLI_spin_unlock(sound->spinlock);
+    }
+  }
+  BLI_spin_unlock(sound->spinlock);
+}
 
-    GPU_blend(GPU_BLEND_NONE);
+static size_t get_vertex_count(WaveVizData *waveform_data)
+{
+  bool draw_line = waveform_data->draw_line;
+  size_t length = 0;
+
+  while (waveform_data->draw_line == draw_line && !waveform_data->final_sample) {
+    waveform_data++;
+    length++;
+  }
+
+  return length;
+}
+
+static size_t draw_waveform_segment(WaveVizData *waveform_data, bool use_rms)
+{
+  size_t vertices_done = 0;
+  size_t vertex_count = get_vertex_count(waveform_data);
+
+  /* Not enough data to draw. */
+  if (vertex_count <= 2) {
+    return vertex_count;
+  }
+
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPUVertFormat *format = immVertexFormat();
+  GPUPrimType prim_type = waveform_data->draw_line ? GPU_PRIM_LINE_STRIP : GPU_PRIM_TRI_STRIP;
+  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+  immBegin(prim_type, vertex_count);
+
+  while (vertices_done < vertex_count && !waveform_data->final_sample) {
+    /* Color. */
+    if (waveform_data->clip) {
+      immAttr4f(col, 1.0f, 0.0f, 0.0f, 0.5f);
+    }
+    else if (use_rms) {
+      immAttr4f(col, 1.0f, 1.0f, 1.0f, 0.8f);
+    }
+    else {
+      immAttr4f(col, 1.0f, 1.0f, 1.0f, 0.5f);
+    }
+
+    /* Vertices. */
+    if (use_rms) {
+      immVertex2f(pos, waveform_data->pos[0], waveform_data->rms_pos);
+    }
+    else {
+      immVertex2f(pos, waveform_data->pos[0], waveform_data->pos[1]);
+    }
+
+    vertices_done++;
+    waveform_data++;
+  }
+
+  immEnd();
+  immUnbindProgram();
+
+  GPU_blend(GPU_BLEND_NONE);
+
+  return vertices_done;
+}
+
+static void draw_waveform(WaveVizData *waveform_data, size_t wave_data_len)
+{
+  size_t items_done = 0;
+  while (items_done < wave_data_len) {
+    if (!waveform_data[items_done].draw_line) { /* Draw RMS. */
+      draw_waveform_segment(&waveform_data[items_done], true);
+    }
+    items_done += draw_waveform_segment(&waveform_data[items_done], false);
   }
 }
 
-static float clamp_frame_coord_to_pixel(float frame_coord,
-                                        float pixel_frac,
-                                        float frames_per_pixel)
+static float align_frame_with_pixel(float frame_coord, float frames_per_pixel)
 {
-  float cur_pixel = (frame_coord / frames_per_pixel);
-  float new_pixel = (int)(frame_coord / frames_per_pixel) + pixel_frac;
-  if (cur_pixel > new_pixel) {
-    new_pixel += 1.0f;
+  return round_fl_to_int(frame_coord / frames_per_pixel) * frames_per_pixel;
+}
+
+static void write_waveform_data(WaveVizData *waveform_data,
+                                const vec2f pos,
+                                const float rms,
+                                const bool is_clipping,
+                                const bool draw_line)
+{
+  waveform_data->pos[0] = pos.x;
+  waveform_data->pos[1] = pos.y;
+  waveform_data->clip = is_clipping;
+  waveform_data->rms_pos = rms;
+  waveform_data->draw_line = draw_line;
+}
+
+static size_t waveform_append_sample(WaveVizData *waveform_data,
+                                     vec2f pos,
+                                     const float value_min,
+                                     const float value_max,
+                                     const float y_mid,
+                                     const float y_scale,
+                                     const float rms,
+                                     const bool is_clipping,
+                                     const bool is_line_strip)
+{
+  size_t data_written = 0;
+  pos.y = y_mid + value_min * y_scale;
+  float rms_value = y_mid + max_ff(-rms, value_min) * y_scale;
+  write_waveform_data(&waveform_data[0], pos, rms_value, is_clipping, is_line_strip);
+  data_written++;
+
+  /* Use `value_max` as second vertex for triangle drawing. */
+  if (!is_line_strip) {
+    pos.y = y_mid + value_max * y_scale;
+    rms_value = y_mid + min_ff(rms, value_max) * y_scale;
+    write_waveform_data(&waveform_data[1], pos, rms_value, is_clipping, is_line_strip);
+    data_written++;
   }
-  return new_pixel * frames_per_pixel;
+  return data_written;
 }
 
 /**
  * \param x1, x2, y1, y2: The starting and end X value to draw the wave, same for y1 and y2.
  * \param frames_per_pixel: The amount of pixels a whole frame takes up (x-axis direction).
  */
-static void draw_seq_waveform_overlay(View2D *v2d,
-                                      const bContext *C,
-                                      SpaceSeq *sseq,
-                                      Scene *scene,
-                                      Sequence *seq,
-                                      float x1,
-                                      float y1,
-                                      float x2,
-                                      float y2,
-                                      float frames_per_pixel)
+static void draw_seq_waveform_overlay(
+    const bContext *C, ARegion *region, Sequence *seq, float x1, float y1, float x2, float y2)
 {
-  if (seq->sound && ((sseq->timeline_overlay.flag & SEQ_TIMELINE_ALL_WAVEFORMS) ||
-                     (seq->flag & SEQ_AUDIO_DRAW_WAVEFORM))) {
-    /* Make sure that the start drawing position is aligned to the pixels on the screen to avoid
-     * flickering when moving around the strip.
-     * To do this we figure out the fractional offset in pixel space by checking where the
-     * window starts.
-     * We then append this pixel offset to our strip start coordinate to ensure we are aligned to
-     * the screen pixel grid. */
-    float pixel_frac = v2d->cur.xmin / frames_per_pixel - floor(v2d->cur.xmin / frames_per_pixel);
-    float x1_adj = clamp_frame_coord_to_pixel(x1, pixel_frac, frames_per_pixel);
+  const View2D *v2d = &region->v2d;
+  Scene *scene = CTX_data_scene(C);
 
-    /* Offset x1 and x2 values, to match view min/max, if strip is out of bounds. */
-    float x1_offset = max_ff(v2d->cur.xmin, x1_adj);
-    float x2_offset = min_ff(v2d->cur.xmax, x2);
+  const float frames_per_pixel = BLI_rctf_size_x(&region->v2d.cur) / region->winx;
+  const float samples_per_frame = SOUND_WAVE_SAMPLES_PER_SECOND / FPS;
+  float samples_per_pixel = samples_per_frame * frames_per_pixel;
 
-    /* Calculate how long the strip that is in view is in pixels. */
-    int pix_strip_len = round((x2_offset - x1_offset) / frames_per_pixel);
+  /* Align strip start with nearest pixel to prevent waveform flickering. */
+  const float x1_aligned = align_frame_with_pixel(x1, frames_per_pixel);
+  /* Offset x1 and x2 values, to match view min/max, if strip is out of bounds. */
+  const float frame_start = max_ff(v2d->cur.xmin, x1_aligned);
+  const float frame_end = min_ff(v2d->cur.xmax, x2);
+  const int pixels_to_draw = round_fl_to_int((frame_end - frame_start) / frames_per_pixel);
 
-    if (pix_strip_len < 2) {
-      return;
+  if (pixels_to_draw < 2) {
+    return; /* Not much to draw, exit before running job. */
+  }
+
+  waveform_job_start_if_needed(C, seq);
+
+  SoundWaveform *waveform = seq->sound->waveform;
+  if (waveform == NULL || waveform->length == 0) {
+    return; /* Waveform was not built. */
+  }
+
+  /* F-Curve lookup is quite expensive, so do this after precondition. */
+  FCurve *fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, NULL);
+  WaveVizData *waveform_data = MEM_callocN(sizeof(WaveVizData) * pixels_to_draw * 3, __func__);
+  size_t wave_data_len = 0;
+
+  /* Offset must be also aligned, otherwise waveform flickers when moving left handle. */
+  const float strip_offset = align_frame_with_pixel(seq->startofs + seq->anim_startofs,
+                                                    frames_per_pixel);
+  float start_sample = strip_offset * samples_per_frame;
+  start_sample += seq->sound->offset_time * SOUND_WAVE_SAMPLES_PER_SECOND;
+  /* Add off-screen part of strip to offset. */
+  start_sample += (frame_start - x1_aligned) * samples_per_frame;
+
+  for (int i = 0; i < pixels_to_draw; i++) {
+    float sample = start_sample + i * samples_per_pixel;
+    int sample_index = round_fl_to_int(sample);
+
+    if (sample_index < 0) {
+      continue;
     }
 
-    bSound *sound = seq->sound;
+    if (sample_index >= waveform->length) {
+      break;
+    }
 
-    BLI_spin_lock(sound->spinlock);
-    if (!sound->waveform) {
-      /* Load the waveform data if it hasn't been loaded and cached already. */
-      if (!(sound->tags & SOUND_TAGS_WAVEFORM_LOADING)) {
-        /* Prevent sounds from reloading. */
-        sound->tags |= SOUND_TAGS_WAVEFORM_LOADING;
-        BLI_spin_unlock(sound->spinlock);
-        sequencer_preview_add_sound(C, seq);
+    float value_min = waveform->data[sample_index * 3];
+    float value_max = waveform->data[sample_index * 3 + 1];
+    float rms = waveform->data[sample_index * 3 + 2];
+
+    if (sample_index + 1 < waveform->length) {
+      /* Use simple linear interpolation. */
+      float f = sample - sample_index;
+      value_min = (1.0f - f) * value_min + f * waveform->data[sample_index * 3 + 3];
+      value_max = (1.0f - f) * value_max + f * waveform->data[sample_index * 3 + 4];
+      rms = (1.0f - f) * rms + f * waveform->data[sample_index * 3 + 5];
+      if (samples_per_pixel > 1.0f) {
+        /* We need to sum up the values we skip over until the next step. */
+        float next_pos = sample + samples_per_pixel;
+        int end_idx = next_pos;
+
+        for (int j = sample_index + 1; (j < waveform->length) && (j < end_idx); j++) {
+          value_min = min_ff(value_min, waveform->data[j * 3]);
+          value_max = max_ff(value_max, waveform->data[j * 3 + 1]);
+          rms = max_ff(rms, waveform->data[j * 3 + 2]);
+        }
       }
-      else {
-        BLI_spin_unlock(sound->spinlock);
-      }
-      return; /* Nothing to draw. */
-    }
-    BLI_spin_unlock(sound->spinlock);
-
-    SoundWaveform *waveform = sound->waveform;
-
-    /* Waveform could not be built. */
-    if (waveform->length == 0) {
-      return;
     }
 
-    /* F-Curve lookup is quite expensive, so do this after precondition. */
-    FCurve *fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, NULL);
+    float volume = seq->volume;
+    if (fcu && !BKE_fcurve_is_empty(fcu)) {
+      float evaltime = frame_start + (i * frames_per_pixel);
+      volume = evaluate_fcurve(fcu, evaltime);
+      CLAMP_MIN(volume, 0.0f);
+    }
 
-    WaveVizData *tri_strip_arr = MEM_callocN(sizeof(*tri_strip_arr) * pix_strip_len * 2,
-                                             "tri_strip");
-    WaveVizData *line_strip_arr = MEM_callocN(sizeof(*line_strip_arr) * pix_strip_len,
-                                              "line_strip");
+    value_min *= volume;
+    value_max *= volume;
+    rms *= volume;
 
-    WaveVizData *tri_strip_iter = tri_strip_arr;
-    WaveVizData *line_strip_iter = line_strip_arr;
+    bool is_clipping = false;
 
+    if (value_max > 1 || value_min < -1) {
+      is_clipping = true;
+
+      CLAMP_MAX(value_max, 1.0f);
+      CLAMP_MIN(value_min, -1.0f);
+    }
+
+    bool is_line_strip = (value_max - value_min < 0.05f);
     /* The y coordinate for the middle of the strip. */
     float y_mid = (y1 + y2) / 2.0f;
     /* The length from the middle of the strip to the top/bottom. */
     float y_scale = (y2 - y1) / 2.0f;
-    float volume = seq->volume;
 
-    /* Value to keep track if the previous item to be drawn was a line strip. */
-    int8_t was_line_strip = -1; /* -1 == no previous value. */
-
-    float samples_per_frame = SOUND_WAVE_SAMPLES_PER_SECOND / FPS;
-
-    /* How many samples do we have for each pixel? */
-    float samples_per_pix = samples_per_frame * frames_per_pixel;
-
-    float strip_start_offset = seq->startofs + seq->anim_startofs;
-    float start_sample = 0;
-
-    if (strip_start_offset != 0) {
-      /* If start offset is not zero, we need to make sure that we pick the same start sample as if
-       * we simply scrolled the start of the strip off-screen. Otherwise we will get flickering
-       * when changing start offset as the pixel alignment will not be the same for the drawn
-       * samples. */
-      strip_start_offset = clamp_frame_coord_to_pixel(
-          x1 - strip_start_offset, pixel_frac, frames_per_pixel);
-      start_sample = fabsf(strip_start_offset - x1_adj) * samples_per_frame;
-    }
-
-    start_sample += seq->sound->offset_time * SOUND_WAVE_SAMPLES_PER_SECOND;
-    /* If we scrolled the start off-screen, then the start sample should be at the first visible
-     * sample. */
-    start_sample += (x1_offset - x1_adj) * samples_per_frame;
-
-    for (int i = 0; i < pix_strip_len; i++) {
-      float sample_offset = start_sample + i * samples_per_pix;
-      int p = sample_offset;
-
-      if (p < 0) {
-        continue;
-      }
-
-      if (p >= waveform->length) {
-        break;
-      }
-
-      float value_min = waveform->data[p * 3];
-      float value_max = waveform->data[p * 3 + 1];
-      float rms = waveform->data[p * 3 + 2];
-
-      if (p + 1 < waveform->length) {
-        /* Use simple linear interpolation. */
-        float f = sample_offset - p;
-        value_min = (1.0f - f) * value_min + f * waveform->data[p * 3 + 3];
-        value_max = (1.0f - f) * value_max + f * waveform->data[p * 3 + 4];
-        rms = (1.0f - f) * rms + f * waveform->data[p * 3 + 5];
-        if (samples_per_pix > 1.0f) {
-          /* We need to sum up the values we skip over until the next step. */
-          float next_pos = sample_offset + samples_per_pix;
-          int end_idx = next_pos;
-
-          for (int j = p + 1; (j < waveform->length) && (j < end_idx); j++) {
-            value_min = min_ff(value_min, waveform->data[j * 3]);
-            value_max = max_ff(value_max, waveform->data[j * 3 + 1]);
-            rms = max_ff(rms, waveform->data[j * 3 + 2]);
-          }
-        }
-      }
-
-      if (fcu && !BKE_fcurve_is_empty(fcu)) {
-        float evaltime = x1_offset + (i * frames_per_pixel);
-        volume = evaluate_fcurve(fcu, evaltime);
-        CLAMP_MIN(volume, 0.0f);
-      }
-
-      value_min *= volume;
-      value_max *= volume;
-      rms *= volume;
-
-      bool clipping = false;
-
-      if (value_max > 1 || value_min < -1) {
-        clipping = true;
-
-        CLAMP_MAX(value_max, 1.0f);
-        CLAMP_MIN(value_min, -1.0f);
-      }
-
-      bool is_line_strip = (value_max - value_min < 0.05f);
-
-      if (!ELEM(was_line_strip, -1, is_line_strip)) {
-        /* If the previously added strip type isn't the same as the current one,
-         * add transition areas so they transition smoothly between each other. */
-        if (is_line_strip) {
-          /* This will be a line strip, end the tri strip. */
-          tri_strip_iter->pos[0] = x1_offset + i * frames_per_pixel;
-          tri_strip_iter->pos[1] = y_mid + value_min * y_scale;
-          tri_strip_iter->clip = clipping;
-          tri_strip_iter->rms_pos = tri_strip_iter->pos[1];
-          tri_strip_iter->end = true;
-
-          /* End of section. */
-          tri_strip_iter++;
-
-          /* Check if we are at the end.
-           * If so, skip one point line. */
-          if (i + 1 == pix_strip_len) {
-            continue;
-          }
-        }
-        else {
-          /* This will be a tri strip. */
-          line_strip_iter--;
-          tri_strip_iter->pos[0] = line_strip_iter->pos[0];
-          tri_strip_iter->pos[1] = line_strip_iter->pos[1];
-          tri_strip_iter->clip = line_strip_iter->clip;
-          tri_strip_iter->rms_pos = line_strip_iter->pos[1];
-          tri_strip_iter++;
-
-          /* Check if line had only one point. */
-          line_strip_iter--;
-          if (line_strip_iter < line_strip_arr || line_strip_iter->end) {
-            /* Only one point, skip it. */
-            line_strip_iter++;
-          }
-          else {
-            /* End of section. */
-            line_strip_iter++;
-            line_strip_iter->end = true;
-            line_strip_iter++;
-          }
-        }
-      }
-
-      was_line_strip = is_line_strip;
-
-      if (is_line_strip) {
-        line_strip_iter->pos[0] = x1_offset + i * frames_per_pixel;
-        line_strip_iter->pos[1] = y_mid + value_min * y_scale;
-        line_strip_iter->clip = clipping;
-        line_strip_iter++;
-      }
-      else {
-        tri_strip_iter->pos[0] = x1_offset + i * frames_per_pixel;
-        tri_strip_iter->pos[1] = y_mid + value_min * y_scale;
-        tri_strip_iter->clip = clipping;
-        tri_strip_iter->rms_pos = y_mid + max_ff(-rms, value_min) * y_scale;
-        tri_strip_iter++;
-
-        tri_strip_iter->pos[0] = x1_offset + i * frames_per_pixel;
-        tri_strip_iter->pos[1] = y_mid + value_max * y_scale;
-        tri_strip_iter->clip = clipping;
-        tri_strip_iter->rms_pos = y_mid + min_ff(rms, value_max) * y_scale;
-        tri_strip_iter++;
-      }
-    }
-
-    WaveVizData *tri_strip_end = tri_strip_iter;
-    WaveVizData *line_strip_end = line_strip_iter;
-
-    tri_strip_iter = tri_strip_arr;
-    line_strip_iter = line_strip_arr;
-
-    draw_waveform(line_strip_iter, line_strip_end, GPU_PRIM_LINE_STRIP, false);
-    draw_waveform(tri_strip_iter, tri_strip_end, GPU_PRIM_TRI_STRIP, false);
-    draw_waveform(tri_strip_iter, tri_strip_end, GPU_PRIM_TRI_STRIP, true);
-
-    MEM_freeN(tri_strip_arr);
-    MEM_freeN(line_strip_arr);
+    vec2f pos = {frame_start + i * frames_per_pixel, y_mid + value_min * y_scale};
+    WaveVizData *new_data = &waveform_data[wave_data_len];
+    wave_data_len += waveform_append_sample(
+        new_data, pos, value_min, value_max, y_mid, y_scale, rms, is_clipping, is_line_strip);
   }
+
+  /* Terminate array, so `get_segment_length()` can know when to stop. */
+  waveform_data[wave_data_len].final_sample = true;
+  draw_waveform(waveform_data, wave_data_len);
+  MEM_freeN(waveform_data);
 }
 
 static void drawmeta_contents(Scene *scene,
@@ -613,12 +568,12 @@ static void drawmeta_contents(Scene *scene,
   col[3] = 196; /* Alpha, used for all meta children. */
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* Draw only immediate children (1 level depth). */
   for (seq = meta_seqbase->first; seq; seq = seq->next) {
-    const int startdisp = SEQ_time_left_handle_frame_get(seq) + offset;
-    const int enddisp = SEQ_time_right_handle_frame_get(seq) + offset;
+    const int startdisp = SEQ_time_left_handle_frame_get(scene, seq) + offset;
+    const int enddisp = SEQ_time_right_handle_frame_get(scene, seq) + offset;
 
     if ((startdisp > x2 || enddisp < x1) == 0) {
       float y_chan = (seq->machine - chan_min) / (float)(chan_range)*draw_range;
@@ -663,19 +618,20 @@ static void drawmeta_contents(Scene *scene,
   GPU_blend(GPU_BLEND_NONE);
 }
 
-float sequence_handle_size_get_clamped(Sequence *seq, const float pixelx)
+float sequence_handle_size_get_clamped(const Scene *scene, Sequence *seq, const float pixelx)
 {
   const float maxhandle = (pixelx * SEQ_HANDLE_SIZE) * U.pixelsize;
 
   /* Ensure that handle is not wider, than quarter of strip. */
-  return min_ff(
-      maxhandle,
-      ((float)(SEQ_time_right_handle_frame_get(seq) - SEQ_time_left_handle_frame_get(seq)) /
-       4.0f));
+  return min_ff(maxhandle,
+                ((float)(SEQ_time_right_handle_frame_get(scene, seq) -
+                         SEQ_time_left_handle_frame_get(scene, seq)) /
+                 4.0f));
 }
 
 /* Draw a handle, on left or right side of strip. */
-static void draw_seq_handle(View2D *v2d,
+static void draw_seq_handle(const Scene *scene,
+                            View2D *v2d,
                             Sequence *seq,
                             const float handsize_clamped,
                             const short direction,
@@ -689,8 +645,8 @@ static void draw_seq_handle(View2D *v2d,
   uint whichsel = 0;
   uchar col[4];
 
-  x1 = SEQ_time_left_handle_frame_get(seq);
-  x2 = SEQ_time_right_handle_frame_get(seq);
+  x1 = SEQ_time_left_handle_frame_get(scene, seq);
+  x2 = SEQ_time_right_handle_frame_get(scene, seq);
 
   y1 = seq->machine + SEQ_STRIP_OFSBOTTOM;
   y2 = seq->machine + SEQ_STRIP_OFSTOP;
@@ -745,8 +701,8 @@ static void draw_seq_handle(View2D *v2d,
     numstr_len = BLI_snprintf_rlen(numstr,
                                    sizeof(numstr),
                                    "%d%d",
-                                   SEQ_time_left_handle_frame_get(seq),
-                                   SEQ_time_right_handle_frame_get(seq));
+                                   SEQ_time_left_handle_frame_get(scene, seq),
+                                   SEQ_time_right_handle_frame_get(scene, seq));
     float tot_width = BLF_width(fontid, numstr, numstr_len);
 
     if ((x2 - x1) / pixelx > 20 + tot_width) {
@@ -755,13 +711,13 @@ static void draw_seq_handle(View2D *v2d,
 
       if (direction == SEQ_LEFTHANDLE) {
         numstr_len = BLI_snprintf_rlen(
-            numstr, sizeof(numstr), "%d", SEQ_time_left_handle_frame_get(seq));
+            numstr, sizeof(numstr), "%d", SEQ_time_left_handle_frame_get(scene, seq));
         x1 += text_margin;
         y1 += 0.09f;
       }
       else {
         numstr_len = BLI_snprintf_rlen(
-            numstr, sizeof(numstr), "%d", SEQ_time_right_handle_frame_get(seq) - 1);
+            numstr, sizeof(numstr), "%d", SEQ_time_right_handle_frame_get(scene, seq) - 1);
         x1 = x2 - (text_margin + pixelx * BLF_width(fontid, numstr, numstr_len));
         y1 += 0.09f;
       }
@@ -896,7 +852,8 @@ static void draw_seq_text_get_source(Sequence *seq, char *r_source, size_t sourc
   }
 }
 
-static size_t draw_seq_text_get_overlay_string(SpaceSeq *sseq,
+static size_t draw_seq_text_get_overlay_string(const Scene *scene,
+                                               SpaceSeq *sseq,
                                                Sequence *seq,
                                                char *r_overlay_string,
                                                size_t overlay_string_len)
@@ -922,8 +879,8 @@ static size_t draw_seq_text_get_overlay_string(SpaceSeq *sseq,
 
   char strip_duration_text[16];
   if (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_DURATION) {
-    const int strip_duration = SEQ_time_right_handle_frame_get(seq) -
-                               SEQ_time_left_handle_frame_get(seq);
+    const int strip_duration = SEQ_time_right_handle_frame_get(scene, seq) -
+                               SEQ_time_left_handle_frame_get(scene, seq);
     SNPRINTF(strip_duration_text, "%d", strip_duration);
     if (i != 0) {
       text_array[i++] = text_sep;
@@ -952,7 +909,7 @@ static void draw_seq_text_overlay(Scene *scene,
   ListBase *channels = SEQ_channels_displayed_get(ed);
   char overlay_string[FILE_MAX];
   size_t overlay_string_len = draw_seq_text_get_overlay_string(
-      sseq, seq, overlay_string, sizeof(overlay_string));
+      scene, sseq, seq, overlay_string, sizeof(overlay_string));
 
   if (overlay_string_len == 0) {
     return;
@@ -990,8 +947,8 @@ static void draw_sequence_extensions_overlay(
   float x1, x2, y1, y2;
   uchar col[4], blend_col[3];
 
-  x1 = SEQ_time_left_handle_frame_get(seq);
-  x2 = SEQ_time_right_handle_frame_get(seq);
+  x1 = SEQ_time_left_handle_frame_get(scene, seq);
+  x2 = SEQ_time_right_handle_frame_get(scene, seq);
 
   y1 = seq->machine + SEQ_STRIP_OFSBOTTOM;
   y2 = seq->machine + SEQ_STRIP_OFSTOP;
@@ -1005,28 +962,32 @@ static void draw_sequence_extensions_overlay(
   col[3] = SEQ_render_is_muted(channels, seq) ? MUTE_ALPHA : 200;
   UI_GetColorPtrShade3ubv(col, blend_col, 10);
 
-  if (seq->startofs) {
+  const float strip_content_start = SEQ_time_start_frame_get(seq);
+  const float strip_content_end = SEQ_time_start_frame_get(seq) +
+                                  SEQ_time_strip_length_get(scene, seq);
+  float right_handle_frame = SEQ_time_right_handle_frame_get(scene, seq);
+  float left_handle_frame = SEQ_time_left_handle_frame_get(scene, seq);
+
+  if (left_handle_frame > strip_content_start) {
     immUniformColor4ubv(col);
-    immRectf(pos, (float)(seq->start), y1 - pixely, x1, y1 - SEQ_STRIP_OFSBOTTOM);
+    immRectf(pos, strip_content_start, y1 - pixely, x1, y1 - SEQ_STRIP_OFSBOTTOM);
 
     /* Outline. */
     immUniformColor3ubv(blend_col);
-    imm_draw_box_wire_2d(pos, x1, y1 - pixely, (float)(seq->start), y1 - SEQ_STRIP_OFSBOTTOM);
+    imm_draw_box_wire_2d(pos, x1, y1 - pixely, strip_content_start, y1 - SEQ_STRIP_OFSBOTTOM);
   }
-  if (seq->endofs) {
+  if (right_handle_frame < strip_content_end) {
     immUniformColor4ubv(col);
-    immRectf(pos, x2, y2 + pixely, (float)(seq->start + seq->len), y2 + SEQ_STRIP_OFSBOTTOM);
+    immRectf(pos, x2, y2 + pixely, strip_content_end, y2 + SEQ_STRIP_OFSBOTTOM);
 
-    /* Outline. */
-    immUniformColor3ubv(blend_col);
-    imm_draw_box_wire_2d(
-        pos, x2, y2 + pixely, (float)(seq->start + seq->len), y2 + SEQ_STRIP_OFSBOTTOM);
+    /* Outline. */ immUniformColor3ubv(blend_col);
+    imm_draw_box_wire_2d(pos, x2, y2 + pixely, strip_content_end, y2 + SEQ_STRIP_OFSBOTTOM);
   }
   GPU_blend(GPU_BLEND_NONE);
 }
 
 static void draw_color_strip_band(
-    ListBase *channels, Sequence *seq, uint pos, float text_margin_y, float y1)
+    const Scene *scene, ListBase *channels, Sequence *seq, uint pos, float text_margin_y, float y1)
 {
   uchar col[4];
   SolidColorVars *colvars = (SolidColorVars *)seq->effectdata;
@@ -1049,9 +1010,9 @@ static void draw_color_strip_band(
   immUniformColor4ubv(col);
 
   immRectf(pos,
-           SEQ_time_left_handle_frame_get(seq),
+           SEQ_time_left_handle_frame_get(scene, seq),
            y1,
-           SEQ_time_right_handle_frame_get(seq),
+           SEQ_time_right_handle_frame_get(scene, seq),
            text_margin_y);
 
   /* 1px line to better separate the color band. */
@@ -1059,8 +1020,8 @@ static void draw_color_strip_band(
   immUniformColor4ubv(col);
 
   immBegin(GPU_PRIM_LINES, 2);
-  immVertex2f(pos, SEQ_time_left_handle_frame_get(seq), text_margin_y);
-  immVertex2f(pos, SEQ_time_right_handle_frame_get(seq), text_margin_y);
+  immVertex2f(pos, SEQ_time_left_handle_frame_get(scene, seq), text_margin_y);
+  immVertex2f(pos, SEQ_time_right_handle_frame_get(scene, seq), text_margin_y);
   immEnd();
 
   GPU_blend(GPU_BLEND_NONE);
@@ -1112,25 +1073,31 @@ static void draw_seq_background(Scene *scene,
 
   /* Draw the main strip body. */
   if (is_single_image) {
-    immRectf(
-        pos, SEQ_time_left_handle_frame_get(seq), y1, SEQ_time_right_handle_frame_get(seq), y2);
+    immRectf(pos,
+             SEQ_time_left_handle_frame_get(scene, seq),
+             y1,
+             SEQ_time_right_handle_frame_get(scene, seq),
+             y2);
   }
   else {
     immRectf(pos, x1, y1, x2, y2);
   }
 
   /* Draw background for hold still regions. */
-  if (!is_single_image && SEQ_time_has_still_frames(seq)) {
+  if (!is_single_image) {
     UI_GetColorPtrShade3ubv(col, col, -35);
     immUniformColor4ubv(col);
 
-    if (SEQ_time_has_left_still_frames(seq)) {
-      const float content_start = min_ff(SEQ_time_right_handle_frame_get(seq), seq->start);
-      immRectf(pos, SEQ_time_left_handle_frame_get(seq), y1, content_start, y2);
+    if (SEQ_time_has_left_still_frames(scene, seq)) {
+      float left_handle_frame = SEQ_time_left_handle_frame_get(scene, seq);
+      const float content_start = SEQ_time_start_frame_get(seq);
+      immRectf(pos, left_handle_frame, y1, content_start, y2);
     }
-    if (SEQ_time_has_right_still_frames(seq)) {
-      const float content_end = max_ff(SEQ_time_left_handle_frame_get(seq), seq->start + seq->len);
-      immRectf(pos, content_end, y1, SEQ_time_right_handle_frame_get(seq), y2);
+    if (SEQ_time_has_right_still_frames(scene, seq)) {
+      float right_handle_frame = SEQ_time_right_handle_frame_get(scene, seq);
+      const float content_end = SEQ_time_start_frame_get(seq) +
+                                SEQ_time_strip_length_get(scene, seq);
+      immRectf(pos, content_end, y1, right_handle_frame, y2);
     }
   }
 
@@ -1191,7 +1158,7 @@ static void draw_seq_invalid(float x1, float x2, float y2, float text_margin_y)
   GPU_blend(GPU_BLEND_ALPHA);
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor4f(1.0f, 0.0f, 0.0f, 0.9f);
   immRectf(pos, x1, y2, x2, text_margin_y);
 
@@ -1200,9 +1167,9 @@ static void draw_seq_invalid(float x1, float x2, float y2, float text_margin_y)
 }
 
 static void calculate_seq_text_offsets(
-    View2D *v2d, Sequence *seq, float *x1, float *x2, float pixelx)
+    const Scene *scene, View2D *v2d, Sequence *seq, float *x1, float *x2, float pixelx)
 {
-  const float handsize_clamped = sequence_handle_size_get_clamped(seq, pixelx);
+  const float handsize_clamped = sequence_handle_size_get_clamped(scene, seq, pixelx);
   float text_margin = 2.0f * handsize_clamped;
 
   *x1 += text_margin;
@@ -1309,7 +1276,7 @@ static void draw_seq_fcurve_overlay(
 
     GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_TRI_STRIP, vbo, NULL, GPU_BATCH_OWNS_VBO);
     GPU_vertbuf_data_len_set(vbo, vert_count);
-    GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_UNIFORM_COLOR);
+    GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
     GPU_batch_uniform_4f(batch, "color", 0.0f, 0.0f, 0.0f, 0.15f);
     GPU_blend(GPU_BLEND_ALPHA);
 
@@ -1336,7 +1303,7 @@ static void draw_seq_strip(const bContext *C,
 
   View2D *v2d = &region->v2d;
   float x1, x2, y1, y2;
-  const float handsize_clamped = sequence_handle_size_get_clamped(seq, pixelx);
+  const float handsize_clamped = sequence_handle_size_get_clamped(scene, seq, pixelx);
   float pixely = BLI_rctf_size_y(&v2d->cur) / BLI_rcti_size_y(&v2d->mask);
 
   /* Check if we are doing "solo preview". */
@@ -1347,15 +1314,17 @@ static void draw_seq_strip(const bContext *C,
                                      SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG);
 
   /* Draw strip body. */
-  x1 = SEQ_time_has_left_still_frames(seq) ? seq->start : SEQ_time_left_handle_frame_get(seq);
+  x1 = SEQ_time_has_left_still_frames(scene, seq) ? SEQ_time_start_frame_get(seq) :
+                                                    SEQ_time_left_handle_frame_get(scene, seq);
   y1 = seq->machine + SEQ_STRIP_OFSBOTTOM;
-  x2 = SEQ_time_has_right_still_frames(seq) ? (seq->start + seq->len) :
-                                              SEQ_time_right_handle_frame_get(seq);
+  x2 = SEQ_time_has_right_still_frames(scene, seq) ?
+           SEQ_time_start_frame_get(seq) + SEQ_time_strip_length_get(scene, seq) :
+           SEQ_time_right_handle_frame_get(scene, seq);
   y2 = seq->machine + SEQ_STRIP_OFSTOP;
 
   /* Limit body to strip bounds. Meta strip can end up with content outside of strip range. */
-  x1 = min_ff(x1, SEQ_time_right_handle_frame_get(seq));
-  x2 = max_ff(x2, SEQ_time_left_handle_frame_get(seq));
+  x1 = min_ff(x1, SEQ_time_right_handle_frame_get(scene, seq));
+  x2 = max_ff(x2, SEQ_time_left_handle_frame_get(scene, seq));
 
   float text_margin_y;
   bool y_threshold;
@@ -1375,18 +1344,18 @@ static void draw_seq_strip(const bContext *C,
   }
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   draw_seq_background(scene, seq, pos, x1, x2, y1, y2, is_single_image, show_strip_color_tag);
 
   /* Draw a color band inside color strip. */
   if (seq->type == SEQ_TYPE_COLOR && y_threshold) {
-    draw_color_strip_band(channels, seq, pos, text_margin_y, y1);
+    draw_color_strip_band(scene, channels, seq, pos, text_margin_y, y1);
   }
 
   /* Draw strip offsets when flag is enabled or during "solo preview". */
   if (sseq->flag & SEQ_SHOW_OVERLAY) {
-    if (!is_single_image && (seq->startofs || seq->endofs) && pixely > 0) {
+    if (!is_single_image && pixely > 0) {
       if ((sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_OFFSETS) ||
           (seq == special_seq_update)) {
         draw_sequence_extensions_overlay(scene, seq, pos, pixely, show_strip_color_tag);
@@ -1395,8 +1364,8 @@ static void draw_seq_strip(const bContext *C,
   }
   immUnbindProgram();
 
-  x1 = SEQ_time_left_handle_frame_get(seq);
-  x2 = SEQ_time_right_handle_frame_get(seq);
+  x1 = SEQ_time_left_handle_frame_get(scene, seq);
+  x2 = SEQ_time_right_handle_frame_get(scene, seq);
 
   if ((seq->type == SEQ_TYPE_META) ||
       ((seq->type == SEQ_TYPE_SCENE) && (seq->flag & SEQ_SCENE_STRIPS))) {
@@ -1416,18 +1385,9 @@ static void draw_seq_strip(const bContext *C,
   }
 
   /* Draw sound strip waveform. */
-  if ((seq->type == SEQ_TYPE_SOUND_RAM) && ((sseq->flag & SEQ_SHOW_OVERLAY)) &&
-      (sseq->timeline_overlay.flag & SEQ_TIMELINE_NO_WAVEFORMS) == 0) {
-    draw_seq_waveform_overlay(v2d,
-                              C,
-                              sseq,
-                              scene,
-                              seq,
-                              x1,
-                              y_threshold ? y1 + 0.05f : y1,
-                              x2,
-                              y_threshold ? text_margin_y : y2,
-                              BLI_rctf_size_x(&region->v2d.cur) / region->winx);
+  if (seq_draw_waveforms_poll(C, sseq, seq)) {
+    draw_seq_waveform_overlay(
+        C, region, seq, x1, y_threshold ? y1 + 0.05f : y1, x2, y_threshold ? text_margin_y : y2);
   }
   /* Draw locked state. */
   if (SEQ_transform_is_locked(channels, seq)) {
@@ -1440,20 +1400,20 @@ static void draw_seq_strip(const bContext *C,
   }
 
   pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   if (!SEQ_transform_is_locked(channels, seq)) {
     draw_seq_handle(
-        v2d, seq, handsize_clamped, SEQ_LEFTHANDLE, pos, seq_active, pixelx, y_threshold);
+        scene, v2d, seq, handsize_clamped, SEQ_LEFTHANDLE, pos, seq_active, pixelx, y_threshold);
     draw_seq_handle(
-        v2d, seq, handsize_clamped, SEQ_RIGHTHANDLE, pos, seq_active, pixelx, y_threshold);
+        scene, v2d, seq, handsize_clamped, SEQ_RIGHTHANDLE, pos, seq_active, pixelx, y_threshold);
   }
 
   draw_seq_outline(scene, seq, pos, x1, x2, y1, y2, pixelx, pixely, seq_active);
 
   immUnbindProgram();
 
-  calculate_seq_text_offsets(v2d, seq, &x1, &x2, pixelx);
+  calculate_seq_text_offsets(scene, v2d, seq, &x1, &x2, pixelx);
 
   /* If a waveform is drawn, avoid drawing text when there is not enough vertical space. */
   if (seq->type == SEQ_TYPE_SOUND_RAM) {
@@ -1474,7 +1434,7 @@ static void draw_seq_strip(const bContext *C,
   }
 }
 
-static void draw_effect_inputs_highlight(Sequence *seq)
+static void draw_effect_inputs_highlight(const Scene *scene, Sequence *seq)
 {
   Sequence *seq1 = seq->seq1;
   Sequence *seq2 = seq->seq2;
@@ -1482,27 +1442,27 @@ static void draw_effect_inputs_highlight(Sequence *seq)
   GPU_blend(GPU_BLEND_ALPHA);
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   immUniformColor4ub(255, 255, 255, 48);
   immRectf(pos,
-           SEQ_time_left_handle_frame_get(seq1),
+           SEQ_time_left_handle_frame_get(scene, seq1),
            seq1->machine + SEQ_STRIP_OFSBOTTOM,
-           SEQ_time_right_handle_frame_get(seq1),
+           SEQ_time_right_handle_frame_get(scene, seq1),
            seq1->machine + SEQ_STRIP_OFSTOP);
 
   if (seq2 && seq2 != seq1) {
     immRectf(pos,
-             SEQ_time_left_handle_frame_get(seq2),
+             SEQ_time_left_handle_frame_get(scene, seq2),
              seq2->machine + SEQ_STRIP_OFSBOTTOM,
-             SEQ_time_right_handle_frame_get(seq2),
+             SEQ_time_right_handle_frame_get(scene, seq2),
              seq2->machine + SEQ_STRIP_OFSTOP);
   }
   if (seq3 && !ELEM(seq3, seq1, seq2)) {
     immRectf(pos,
-             SEQ_time_left_handle_frame_get(seq3),
+             SEQ_time_left_handle_frame_get(scene, seq3),
              seq3->machine + SEQ_STRIP_OFSBOTTOM,
-             SEQ_time_right_handle_frame_get(seq3),
+             SEQ_time_right_handle_frame_get(scene, seq3),
              seq3->machine + SEQ_STRIP_OFSTOP);
   }
   immUnbindProgram();
@@ -1591,7 +1551,8 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain,
   }
 
   if (viewport) {
-    /* Follows same logic as wm_draw_window_offscreen to make sure to restore the same viewport. */
+    /* Follows same logic as wm_draw_window_offscreen to make sure to restore the same
+     * viewport. */
     int view = (sseq->multiview_eye == STEREO_RIGHT_ID) ? 1 : 0;
     GPU_viewport_bind(viewport, view, &region->winrct);
   }
@@ -1688,7 +1649,7 @@ static void sequencer_draw_borders_overlay(const SpaceSeq *sseq,
   const uint shdr_pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);
@@ -1747,8 +1708,7 @@ void sequencer_draw_maskedit(const bContext *C, Scene *scene, ARegion *region, S
       // ED_mask_get_size(C, &width, &height);
 
       //Scene *scene = CTX_data_scene(C);
-      width = (scene->r.size * scene->r.xsch) / 100;
-      height = (scene->r.size * scene->r.ysch) / 100;
+      BKE_render_resolution(&scene->r, false, &width, &height);
 
       ED_mask_draw_region(mask,
                           region,
@@ -1960,7 +1920,7 @@ static void sequencer_draw_display_buffer(const bContext *C,
   GPU_texture_bind(texture, 0);
 
   if (!glsl_used) {
-    immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_COLOR);
     immUniformColor3f(1.0f, 1.0f, 1.0f);
   }
 
@@ -2096,10 +2056,10 @@ static int sequencer_draw_get_transform_preview_frame(Scene *scene)
   int preview_frame;
 
   if (last_seq->flag & SEQ_RIGHTSEL) {
-    preview_frame = SEQ_time_right_handle_frame_get(last_seq) - 1;
+    preview_frame = SEQ_time_right_handle_frame_get(scene, last_seq) - 1;
   }
   else {
-    preview_frame = SEQ_time_left_handle_frame_get(last_seq);
+    preview_frame = SEQ_time_left_handle_frame_get(scene, last_seq);
   }
 
   return preview_frame;
@@ -2149,7 +2109,7 @@ static void seq_draw_image_origin_and_outline(const bContext *C, Sequence *seq, 
   GPU_line_smooth(true);
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_line_width(2);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   float col[3];
   if (is_active_seq) {
@@ -2253,7 +2213,7 @@ void sequencer_draw_preview(const bContext *C,
     Editing *ed = SEQ_editing_get(scene);
     ListBase *channels = SEQ_channels_displayed_get(ed);
     SeqCollection *collection = SEQ_query_rendered_strips(
-        channels, ed->seqbasep, timeline_frame, 0);
+        scene, channels, ed->seqbasep, timeline_frame, 0);
     Sequence *seq;
     Sequence *active_seq = SEQ_select_active_get(scene);
     SEQ_ITERATOR_FOREACH (seq, collection) {
@@ -2287,7 +2247,7 @@ void sequencer_draw_preview(const bContext *C,
 static void draw_seq_timeline_channels(View2D *v2d)
 {
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_blend(GPU_BLEND_ALPHA);
   immUniformThemeColor(TH_ROW_ALTERNATE);
 
@@ -2325,10 +2285,13 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
       if (seq == last_seq && (last_seq->flag & SELECT)) {
         continue;
       }
-      if (min_ii(SEQ_time_left_handle_frame_get(seq), seq->start) > v2d->cur.xmax) {
+      if (min_ii(SEQ_time_left_handle_frame_get(scene, seq), SEQ_time_start_frame_get(seq)) >
+          v2d->cur.xmax) {
         continue;
       }
-      if (max_ii(SEQ_time_right_handle_frame_get(seq), seq->start + seq->len) < v2d->cur.xmin) {
+      if (max_ii(SEQ_time_right_handle_frame_get(scene, seq),
+                 SEQ_time_start_frame_get(seq) + SEQ_time_strip_length_get(scene, seq)) <
+          v2d->cur.xmin) {
         continue;
       }
       if (seq->machine + 1.0f < v2d->cur.ymin) {
@@ -2353,7 +2316,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
 
     /* When active strip is an effect, highlight its inputs. */
     if (SEQ_effect_get_num_inputs(last_seq->type) > 0) {
-      draw_effect_inputs_highlight(last_seq);
+      draw_effect_inputs_highlight(scene, last_seq);
     }
     /* When active is a Multi-cam strip, highlight its source channel. */
     else if (last_seq->type == SEQ_TYPE_MULTICAM) {
@@ -2362,7 +2325,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
         GPU_blend(GPU_BLEND_ALPHA);
         uint pos = GPU_vertformat_attr_add(
             immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-        immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+        immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
         immUniformColor4ub(255, 255, 255, 48);
         immRectf(pos, v2d->cur.xmin, channel, v2d->cur.xmax, channel + 1);
@@ -2379,13 +2342,13 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
     GPU_blend(GPU_BLEND_ALPHA);
 
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     immUniformColor4ub(255, 255, 255, 48);
     immRectf(pos,
-             SEQ_time_left_handle_frame_get(seq),
+             SEQ_time_left_handle_frame_get(scene, seq),
              seq->machine + SEQ_STRIP_OFSBOTTOM,
-             SEQ_time_right_handle_frame_get(seq),
+             SEQ_time_right_handle_frame_get(scene, seq),
              seq->machine + SEQ_STRIP_OFSTOP);
 
     immUnbindProgram();
@@ -2403,7 +2366,7 @@ static void seq_draw_sfra_efra(const Scene *scene, View2D *v2d)
   GPU_blend(GPU_BLEND_ALPHA);
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* Draw overlay outside of frame range. */
   immUniformThemeColorShadeAlpha(TH_BACK, -10, -100);
@@ -2445,7 +2408,7 @@ static void seq_draw_sfra_efra(const Scene *scene, View2D *v2d)
 
     immUnbindProgram();
 
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformThemeColorShade(TH_BACK, -40);
 
     immBegin(GPU_PRIM_LINES, 4);
@@ -2569,7 +2532,7 @@ static void draw_cache_view_batch(
   GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, NULL, GPU_BATCH_OWNS_VBO);
   if (vert_count > 0) {
     GPU_vertbuf_data_len_set(vbo, vert_count);
-    GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_UNIFORM_COLOR);
+    GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
     GPU_batch_uniform_4f(batch, "color", col_r, col_g, col_b, col_a);
     GPU_batch_draw(batch);
   }
@@ -2588,7 +2551,7 @@ static void draw_cache_view(const bContext *C)
 
   GPU_blend(GPU_BLEND_ALPHA);
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   float stripe_bot, stripe_top;
   float stripe_ofs_y = UI_view2d_region_to_view_y(v2d, 1.0f) - v2d->cur.ymin;
@@ -2612,8 +2575,8 @@ static void draw_cache_view(const bContext *C)
       continue;
     }
 
-    if (SEQ_time_left_handle_frame_get(seq) > v2d->cur.xmax ||
-        SEQ_time_right_handle_frame_get(seq) < v2d->cur.xmin) {
+    if (SEQ_time_left_handle_frame_get(scene, seq) > v2d->cur.xmax ||
+        SEQ_time_right_handle_frame_get(scene, seq) < v2d->cur.xmin) {
       continue;
     }
 
@@ -2624,9 +2587,9 @@ static void draw_cache_view(const bContext *C)
       const float bg_color[4] = {1.0f, 0.1f, 0.02f, 0.1f};
       immUniformColor4f(bg_color[0], bg_color[1], bg_color[2], bg_color[3]);
       immRectf(pos,
-               SEQ_time_left_handle_frame_get(seq),
+               SEQ_time_left_handle_frame_get(scene, seq),
                stripe_bot,
-               SEQ_time_right_handle_frame_get(seq),
+               SEQ_time_right_handle_frame_get(scene, seq),
                stripe_top);
     }
 
@@ -2637,9 +2600,9 @@ static void draw_cache_view(const bContext *C)
       const float bg_color[4] = {0.1f, 0.1f, 0.75f, 0.1f};
       immUniformColor4f(bg_color[0], bg_color[1], bg_color[2], bg_color[3]);
       immRectf(pos,
-               SEQ_time_left_handle_frame_get(seq),
+               SEQ_time_left_handle_frame_get(scene, seq),
                stripe_bot,
-               SEQ_time_right_handle_frame_get(seq),
+               SEQ_time_right_handle_frame_get(scene, seq),
                stripe_top);
     }
 
@@ -2650,9 +2613,9 @@ static void draw_cache_view(const bContext *C)
       const float bg_color[4] = {1.0f, 0.6f, 0.0f, 0.1f};
       immUniformColor4f(bg_color[0], bg_color[1], bg_color[2], bg_color[3]);
       immRectf(pos,
-               SEQ_time_left_handle_frame_get(seq),
+               SEQ_time_left_handle_frame_get(scene, seq),
                stripe_bot,
-               SEQ_time_right_handle_frame_get(seq),
+               SEQ_time_right_handle_frame_get(scene, seq),
                stripe_top);
     }
   }
@@ -2697,7 +2660,7 @@ static void draw_overlap_frame_indicator(const struct Scene *scene, const View2D
                           scene->r.cfra + scene->ed->overlay_frame_ofs;
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);
   immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);

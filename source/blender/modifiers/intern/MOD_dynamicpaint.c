@@ -158,7 +158,7 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
       walk(userData, ob, (ID **)&surface->brush_group, IDWALK_CB_NOP);
       walk(userData, ob, (ID **)&surface->init_texture, IDWALK_CB_USER);
       if (surface->effector_weights) {
-        walk(userData, ob, (ID **)&surface->effector_weights->group, IDWALK_CB_NOP);
+        walk(userData, ob, (ID **)&surface->effector_weights->group, IDWALK_CB_USER);
       }
     }
   }
@@ -189,7 +189,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_DynamicPaint = {
-    /* name */ "Dynamic Paint",
+    /* name */ N_("Dynamic Paint"),
     /* structName */ "DynamicPaintModifierData",
     /* structSize */ sizeof(DynamicPaintModifierData),
     /* srna */ &RNA_DynamicPaintModifier,

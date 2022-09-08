@@ -113,7 +113,7 @@ static bGPDstroke *gpencil_prepare_stroke(bContext *C, wmOperator *op, int totpo
   else {
     add_frame_mode = GP_GETFRAME_ADD_NEW;
   }
-  bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, CFRA, add_frame_mode);
+  bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, add_frame_mode);
 
   /* stroke */
   bGPDstroke *gps = BKE_gpencil_stroke_new(MAX2(ob->actcol - 1, 0), totpoints, brush->size);

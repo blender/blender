@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 
 #include "BLI_array.hh"
+#include "BLI_generic_virtual_array.hh"
 #include "BLI_strict_flags.h"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
@@ -109,7 +110,7 @@ TEST(virtual_array, AsSpan)
 {
   auto func = [](int64_t index) { return (int)(10 * index); };
   VArray<int> func_varray = VArray<int>::ForFunc(10, func);
-  VArray_Span span_varray{func_varray};
+  VArraySpan span_varray{func_varray};
   EXPECT_EQ(span_varray.size(), 10);
   Span<int> span = span_varray;
   EXPECT_EQ(span.size(), 10);
@@ -219,6 +220,38 @@ TEST(virtual_array, MaterializeCompressed)
     EXPECT_EQ(compressed_array[0], 1);
     EXPECT_EQ(compressed_array[1], 4);
     EXPECT_EQ(compressed_array[2], 9);
+  }
+}
+
+TEST(virtual_array, EmptySpanWrapper)
+{
+  {
+    VArray<int> varray;
+    VArraySpan<int> span1 = varray;
+    EXPECT_TRUE(span1.is_empty());
+    VArraySpan<int> span2 = std::move(span1);
+    EXPECT_TRUE(span2.is_empty());
+  }
+  {
+    VMutableArray<int> varray;
+    MutableVArraySpan<int> span1 = varray;
+    EXPECT_TRUE(span1.is_empty());
+    MutableVArraySpan<int> span2 = std::move(span1);
+    EXPECT_TRUE(span2.is_empty());
+  }
+  {
+    GVArray varray;
+    GVArraySpan span1 = varray;
+    EXPECT_TRUE(span1.is_empty());
+    GVArraySpan span2 = std::move(span1);
+    EXPECT_TRUE(span2.is_empty());
+  }
+  {
+    GVMutableArray varray;
+    GMutableVArraySpan span1 = varray;
+    EXPECT_TRUE(span1.is_empty());
+    GMutableVArraySpan span2 = std::move(span1);
+    EXPECT_TRUE(span2.is_empty());
   }
 }
 

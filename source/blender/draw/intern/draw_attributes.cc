@@ -65,9 +65,10 @@ bool drw_attributes_overlap(const DRW_Attributes *a, const DRW_Attributes *b)
 }
 
 DRW_AttributeRequest *drw_attributes_add_request(DRW_Attributes *attrs,
-                                                 eCustomDataType type,
-                                                 int layer,
-                                                 eAttrDomain domain)
+                                                 const char *name,
+                                                 const eCustomDataType type,
+                                                 const int layer_index,
+                                                 const eAttrDomain domain)
 {
   if (attrs->num_requests >= GPU_MAX_ATTR) {
     return nullptr;
@@ -75,7 +76,8 @@ DRW_AttributeRequest *drw_attributes_add_request(DRW_Attributes *attrs,
 
   DRW_AttributeRequest *req = &attrs->requests[attrs->num_requests];
   req->cd_type = type;
-  req->layer_index = layer;
+  BLI_strncpy(req->attribute_name, name, sizeof(req->attribute_name));
+  req->layer_index = layer_index;
   req->domain = domain;
   attrs->num_requests += 1;
   return req;
@@ -86,7 +88,7 @@ bool drw_custom_data_match_attribute(const CustomData *custom_data,
                                      int *r_layer_index,
                                      eCustomDataType *r_type)
 {
-  const eCustomDataType possible_attribute_types[7] = {
+  const eCustomDataType possible_attribute_types[8] = {
       CD_PROP_BOOL,
       CD_PROP_INT8,
       CD_PROP_INT32,
@@ -94,6 +96,7 @@ bool drw_custom_data_match_attribute(const CustomData *custom_data,
       CD_PROP_FLOAT2,
       CD_PROP_FLOAT3,
       CD_PROP_COLOR,
+      CD_PROP_BYTE_COLOR,
   };
 
   for (int i = 0; i < ARRAY_SIZE(possible_attribute_types); i++) {

@@ -143,7 +143,7 @@ static void write_mesh_objects(Vector<std::unique_ptr<OBJMesh>> exportable_as_me
    * we have to have the output text buffer for each object,
    * and write them all into the file at the end. */
   size_t count = exportable_as_mesh.size();
-  std::vector<FormatHandler<eFileType::OBJ>> buffers(count);
+  std::vector<FormatHandler> buffers(count);
 
   /* Serial: gather material indices, ensure normals & edges. */
   Vector<Vector<int>> mtlindices;
@@ -242,7 +242,7 @@ static void write_mesh_objects(Vector<std::unique_ptr<OBJMesh>> exportable_as_me
 static void write_nurbs_curve_objects(const Vector<std::unique_ptr<OBJCurve>> &exportable_as_nurbs,
                                       const OBJWriter &obj_writer)
 {
-  FormatHandler<eFileType::OBJ> fh;
+  FormatHandler fh;
   /* #OBJCurve doesn't have any dynamically allocated memory, so it's fine
    * to wait for #blender::Vector to clean the objects up. */
   for (const std::unique_ptr<OBJCurve> &obj_curve : exportable_as_nurbs) {
@@ -268,7 +268,7 @@ void export_frame(Depsgraph *depsgraph, const OBJExportParams &export_params, co
   std::unique_ptr<MTLWriter> mtl_writer = nullptr;
   if (export_params.export_materials) {
     try {
-      mtl_writer = std::make_unique<MTLWriter>(export_params.filepath);
+      mtl_writer = std::make_unique<MTLWriter>(filepath);
     }
     catch (const std::system_error &ex) {
       print_exception_error(ex);
@@ -323,7 +323,7 @@ void exporter_main(bContext *C, const OBJExportParams &export_params)
 
   char filepath_with_frames[FILE_MAX];
   /* Used to reset the Scene to its original state. */
-  const int original_frame = CFRA;
+  const int original_frame = scene->r.cfra;
 
   for (int frame = export_params.start_frame; frame <= export_params.end_frame; frame++) {
     const bool filepath_ok = append_frame_to_filename(filepath, frame, filepath_with_frames);
@@ -332,11 +332,11 @@ void exporter_main(bContext *C, const OBJExportParams &export_params)
       return;
     }
 
-    CFRA = frame;
+    scene->r.cfra = frame;
     obj_depsgraph.update_for_newframe();
     fprintf(stderr, "Writing to %s\n", filepath_with_frames);
     export_frame(obj_depsgraph.get(), export_params, filepath_with_frames);
   }
-  CFRA = original_frame;
+  scene->r.cfra = original_frame;
 }
 }  // namespace blender::io::obj

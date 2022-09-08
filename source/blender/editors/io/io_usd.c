@@ -21,6 +21,7 @@
 
 #  include "BLT_translation.h"
 
+#  include "ED_fileselect.h"
 #  include "ED_object.h"
 
 #  include "MEM_guardedalloc.h"
@@ -84,21 +85,7 @@ static int wm_usd_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
   options->as_background_job = true;
   op->customdata = options;
 
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
-    Main *bmain = CTX_data_main(C);
-    char filepath[FILE_MAX];
-    const char *main_blendfile_path = BKE_main_blendfile_path(bmain);
-
-    if (main_blendfile_path[0] == '\0') {
-      BLI_strncpy(filepath, "untitled", sizeof(filepath));
-    }
-    else {
-      BLI_strncpy(filepath, main_blendfile_path, sizeof(filepath));
-    }
-
-    BLI_path_extension_replace(filepath, sizeof(filepath), ".usdc");
-    RNA_string_set(op->ptr, "filepath", filepath);
-  }
+  ED_fileselect_ensure_default_filepath(C, op, ".usdc");
 
   WM_event_add_fileselect(C, op);
 
@@ -107,7 +94,7 @@ static int wm_usd_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 
 static int wm_usd_export_exec(bContext *C, wmOperator *op)
 {
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }
@@ -331,7 +318,7 @@ static int wm_usd_import_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
 static int wm_usd_import_exec(bContext *C, wmOperator *op)
 {
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }

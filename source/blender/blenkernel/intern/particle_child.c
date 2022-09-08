@@ -158,10 +158,8 @@ static void do_kink_spiral(ParticleThreadContext *ctx,
   int start_index = 0, end_index = 0;
   float kink_base[3];
 
-  if (ptex) {
-    kink_amp *= ptex->kink_amp;
-    kink_freq *= ptex->kink_freq;
-  }
+  kink_amp *= ptex->kink_amp;
+  kink_freq *= ptex->kink_freq;
 
   cut_time = (totkeys - 1) * ptex->length;
   zero_v3(spiral_start);
@@ -405,7 +403,7 @@ void do_kink(ParticleKey *state,
              float obmat[4][4],
              int smooth_start)
 {
-  float kink[3] = {1.0f, 0.0f, 0.0f}, par_vec[3], q1[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+  float kink[3] = {1.0f, 0.0f, 0.0f}, par_vec[3];
   float t, dt = 1.0f, result[3];
 
   if (ELEM(type, PART_KINK_NO, PART_KINK_SPIRAL)) {
@@ -455,6 +453,7 @@ void do_kink(ParticleKey *state,
   switch (type) {
     case PART_KINK_CURL: {
       float curl_offset[3];
+      float q1[4] = {1.0f, 0.0f, 0.0f, 0.0f};
 
       /* rotate kink vector around strand tangent */
       mul_v3_v3fl(curl_offset, kink, amplitude);

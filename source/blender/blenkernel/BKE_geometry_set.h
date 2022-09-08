@@ -23,9 +23,10 @@ typedef enum GeometryComponentType {
   GEO_COMPONENT_TYPE_INSTANCES = 2,
   GEO_COMPONENT_TYPE_VOLUME = 3,
   GEO_COMPONENT_TYPE_CURVE = 4,
+  GEO_COMPONENT_TYPE_EDIT = 5,
 } GeometryComponentType;
 
-#define GEO_COMPONENT_TYPE_ENUM_SIZE 5
+#define GEO_COMPONENT_TYPE_ENUM_SIZE 6
 
 void BKE_geometry_set_free(struct GeometrySet *geometry_set);
 

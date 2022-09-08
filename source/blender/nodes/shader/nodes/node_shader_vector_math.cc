@@ -225,7 +225,7 @@ static void node_shader_update_vector_math(bNodeTree *ntree, bNode *node)
   }
 }
 
-static const fn::MultiFunction *get_multi_function(bNode &node)
+static const fn::MultiFunction *get_multi_function(const bNode &node)
 {
   NodeVectorMathOperation operation = NodeVectorMathOperation(node.custom1);
 

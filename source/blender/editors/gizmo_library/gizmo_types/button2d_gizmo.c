@@ -177,6 +177,7 @@ static void button2d_draw_intern(const bContext *C,
   GPU_matrix_push();
   GPU_matrix_mul(matrix_final);
 
+  float screen_scale = 200.0f;
   if (is_3d) {
     RegionView3D *rv3d = CTX_wm_region_view3d(C);
     float matrix_align[4][4];
@@ -187,8 +188,9 @@ static void button2d_draw_intern(const bContext *C,
     transpose_m4(matrix_align);
     GPU_matrix_mul(matrix_align);
   }
-
-  const float screen_scale = mat4_to_scale(matrix_final);
+  else {
+    screen_scale = mat4_to_scale(matrix_final);
+  }
 
   if (select) {
     BLI_assert(is_3d);
@@ -215,7 +217,7 @@ static void button2d_draw_intern(const bContext *C,
           GPU_batch_uniform_1f(button->shape_batch[i], "lineWidth", gz->line_width * U.pixelsize);
         }
         else {
-          GPU_batch_program_set_builtin(button->shape_batch[i], GPU_SHADER_2D_UNIFORM_COLOR);
+          GPU_batch_program_set_builtin(button->shape_batch[i], GPU_SHADER_3D_UNIFORM_COLOR);
         }
 
         /* Invert line color for wire. */

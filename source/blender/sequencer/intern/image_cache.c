@@ -133,21 +133,24 @@ static bool seq_cache_hashcmp(const void *a_, const void *b_)
           seq_cmp_render_data(&a->context, &b->context));
 }
 
-static float seq_cache_timeline_frame_to_frame_index(Sequence *seq, float timeline_frame, int type)
+static float seq_cache_timeline_frame_to_frame_index(Scene *scene,
+                                                     Sequence *seq,
+                                                     float timeline_frame,
+                                                     int type)
 {
   /* With raw images, map timeline_frame to strip input media frame range. This means that static
    * images or extended frame range of movies will only generate one cache entry. No special
    * treatment in converting frame index to timeline_frame is needed. */
   if (ELEM(type, SEQ_CACHE_STORE_RAW, SEQ_CACHE_STORE_THUMBNAIL)) {
-    return seq_give_frame_index(seq, timeline_frame);
+    return seq_give_frame_index(scene, seq, timeline_frame);
   }
 
-  return timeline_frame - seq->start;
+  return timeline_frame - SEQ_time_start_frame_get(seq);
 }
 
 float seq_cache_frame_index_to_timeline_frame(Sequence *seq, float frame_index)
 {
-  return frame_index + seq->start;
+  return frame_index + SEQ_time_start_frame_get(seq);
 }
 
 static SeqCache *seq_cache_get_from_scene(Scene *scene)
@@ -518,7 +521,8 @@ static void seq_cache_populate_key(SeqCacheKey *key,
   key->cache_owner = seq_cache_get_from_scene(context->scene);
   key->seq = seq;
   key->context = *context;
-  key->frame_index = seq_cache_timeline_frame_to_frame_index(seq, timeline_frame, type);
+  key->frame_index = seq_cache_timeline_frame_to_frame_index(
+      context->scene, seq, timeline_frame, type);
   key->timeline_frame = timeline_frame;
   key->type = type;
   key->link_prev = NULL;
@@ -558,10 +562,10 @@ void seq_cache_free_temp_cache(Scene *scene, short id, int timeline_frame)
     if (key->is_temp_cache && key->task_id == id && key->type != SEQ_CACHE_STORE_THUMBNAIL) {
       /* Use frame_index here to avoid freeing raw images if they are used for multiple frames. */
       float frame_index = seq_cache_timeline_frame_to_frame_index(
-          key->seq, timeline_frame, key->type);
+          scene, key->seq, timeline_frame, key->type);
       if (frame_index != key->frame_index ||
-          timeline_frame > SEQ_time_right_handle_frame_get(key->seq) ||
-          timeline_frame < SEQ_time_left_handle_frame_get(key->seq)) {
+          timeline_frame > SEQ_time_right_handle_frame_get(scene, key->seq) ||
+          timeline_frame < SEQ_time_left_handle_frame_get(scene, key->seq)) {
         BLI_ghash_remove(cache->hash, key, seq_cache_keyfree, seq_cache_valfree);
       }
     }
@@ -636,12 +640,12 @@ void seq_cache_cleanup_sequence(Scene *scene,
 
   seq_cache_lock(scene);
 
-  int range_start = SEQ_time_left_handle_frame_get(seq_changed);
-  int range_end = SEQ_time_right_handle_frame_get(seq_changed);
+  int range_start = SEQ_time_left_handle_frame_get(scene, seq_changed);
+  int range_end = SEQ_time_right_handle_frame_get(scene, seq_changed);
 
   if (!force_seq_changed_range) {
-    range_start = max_ii(range_start, SEQ_time_left_handle_frame_get(seq));
-    range_end = min_ii(range_end, SEQ_time_right_handle_frame_get(seq));
+    range_start = max_ii(range_start, SEQ_time_left_handle_frame_get(scene, seq));
+    range_end = min_ii(range_end, SEQ_time_right_handle_frame_get(scene, seq));
   }
 
   int invalidate_composite = invalidate_types & SEQ_CACHE_STORE_FINAL_OUT;
@@ -665,8 +669,8 @@ void seq_cache_cleanup_sequence(Scene *scene,
     }
 
     if (key->type & invalidate_source && key->seq == seq &&
-        key->timeline_frame >= SEQ_time_left_handle_frame_get(seq_changed) &&
-        key->timeline_frame <= SEQ_time_right_handle_frame_get(seq_changed)) {
+        key->timeline_frame >= SEQ_time_left_handle_frame_get(scene, seq_changed) &&
+        key->timeline_frame <= SEQ_time_right_handle_frame_get(scene, seq_changed)) {
       if (key->link_next || key->link_prev) {
         seq_cache_relink_keys(key->link_next, key->link_prev);
       }
@@ -697,12 +701,12 @@ void seq_cache_thumbnail_cleanup(Scene *scene, rctf *view_area_safe)
     SeqCacheKey *key = BLI_ghashIterator_getKey(&gh_iter);
     BLI_ghashIterator_step(&gh_iter);
 
-    const int frame_index = key->timeline_frame - SEQ_time_left_handle_frame_get(key->seq);
-    const int frame_step = SEQ_render_thumbnails_guaranteed_set_frame_step_get(key->seq);
+    const int frame_index = key->timeline_frame - SEQ_time_left_handle_frame_get(scene, key->seq);
+    const int frame_step = SEQ_render_thumbnails_guaranteed_set_frame_step_get(scene, key->seq);
     const int relative_base_frame = round_fl_to_int((frame_index / (float)frame_step)) *
                                     frame_step;
     const int nearest_guaranted_absolute_frame = relative_base_frame +
-                                                 SEQ_time_left_handle_frame_get(key->seq);
+                                                 SEQ_time_left_handle_frame_get(scene, key->seq);
 
     if (nearest_guaranted_absolute_frame == key->timeline_frame) {
       continue;

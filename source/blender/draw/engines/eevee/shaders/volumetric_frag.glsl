@@ -86,6 +86,8 @@ void main()
     discard;
     return;
   }
+#else /* WORLD_SHADER */
+  volumeOrco = worldPosition;
 #endif
 
 #ifdef CLEAR
@@ -174,5 +176,9 @@ vec4 attr_load_color_post(vec4 attr)
   attr.rgb *= drw_volume.color_mul.rgb;
   attr.a = 1.0;
 #endif
+  return attr;
+}
+vec4 attr_load_uniform(vec4 attr, const uint attr_hash)
+{
   return attr;
 }

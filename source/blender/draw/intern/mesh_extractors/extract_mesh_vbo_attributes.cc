@@ -9,6 +9,7 @@
 
 #include <functional>
 
+#include "BLI_color.hh"
 #include "BLI_math_vec_types.hh"
 #include "BLI_string.h"
 
@@ -57,7 +58,6 @@ template<typename AttributeType, typename VBOType> struct AttributeTypeConverter
   }
 };
 
-/* Similar to the one in #extract_mesh_vcol_vbo.cc */
 struct gpuMeshCol {
   ushort r, g, b, a;
 };
@@ -70,6 +70,18 @@ template<> struct AttributeTypeConverter<MPropCol, gpuMeshCol> {
     result.g = unit_float_to_ushort_clamp(value.color[1]);
     result.b = unit_float_to_ushort_clamp(value.color[2]);
     result.a = unit_float_to_ushort_clamp(value.color[3]);
+    return result;
+  }
+};
+
+template<> struct AttributeTypeConverter<ColorGeometry4b, gpuMeshCol> {
+  static gpuMeshCol convert_value(ColorGeometry4b value)
+  {
+    gpuMeshCol result;
+    result.r = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[value.r]);
+    result.g = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[value.g]);
+    result.b = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[value.b]);
+    result.a = unit_float_to_ushort_clamp(value.a * (1.0f / 255.0f));
     return result;
   }
 };
@@ -90,6 +102,7 @@ static uint gpu_component_size_for_attribute_type(eCustomDataType type)
     case CD_PROP_FLOAT3:
       return 3;
     case CD_PROP_COLOR:
+    case CD_PROP_BYTE_COLOR:
       return 4;
     default:
       return 0;
@@ -102,6 +115,7 @@ static GPUVertFetchMode get_fetch_mode_for_type(eCustomDataType type)
     case CD_PROP_INT32:
       return GPU_FETCH_INT_TO_FLOAT;
     case CD_PROP_COLOR:
+    case CD_PROP_BYTE_COLOR:
       return GPU_FETCH_INT_TO_FLOAT_UNIT;
     default:
       return GPU_FETCH_FLOAT;
@@ -114,13 +128,14 @@ static GPUVertCompType get_comp_type_for_type(eCustomDataType type)
     case CD_PROP_INT32:
       return GPU_COMP_I32;
     case CD_PROP_COLOR:
+    case CD_PROP_BYTE_COLOR:
       return GPU_COMP_U16;
     default:
       return GPU_COMP_F32;
   }
 }
 
-static void init_vbo_for_attribute(const MeshRenderData *mr,
+static void init_vbo_for_attribute(const MeshRenderData &mr,
                                    GPUVertBuf *vbo,
                                    const DRW_AttributeRequest &request,
                                    bool build_on_device,
@@ -132,17 +147,21 @@ static void init_vbo_for_attribute(const MeshRenderData *mr,
   /* We should not be here if the attribute type is not supported. */
   BLI_assert(comp_size != 0);
 
-  const CustomData *custom_data = get_custom_data_for_domain(mr, request.domain);
   char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-  const char *layer_name = CustomData_get_layer_name(
-      custom_data, request.cd_type, request.layer_index);
-  GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
+  GPU_vertformat_safe_attr_name(request.attribute_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
   /* Attributes use auto-name. */
   BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
 
   GPUVertFormat format = {0};
   GPU_vertformat_deinterleave(&format);
   GPU_vertformat_attr_add(&format, attr_name, comp_type, comp_size, fetch_mode);
+
+  if (mr.active_color_name && STREQ(request.attribute_name, mr.active_color_name)) {
+    GPU_vertformat_alias_add(&format, "ac");
+  }
+  if (mr.default_color_name && STREQ(request.attribute_name, mr.default_color_name)) {
+    GPU_vertformat_alias_add(&format, "c");
+  }
 
   if (build_on_device) {
     GPU_vertbuf_init_build_on_device(vbo, &format, len);
@@ -258,18 +277,15 @@ static void extract_attr_generic(const MeshRenderData *mr,
   }
 }
 
-static void extract_attr_init(const MeshRenderData *mr,
-                              struct MeshBatchCache *cache,
-                              void *buf,
-                              void *UNUSED(tls_data),
-                              int index)
+static void extract_attr_init(
+    const MeshRenderData *mr, MeshBatchCache *cache, void *buf, void *UNUSED(tls_data), int index)
 {
   const DRW_Attributes *attrs_used = &cache->attr_used;
   const DRW_AttributeRequest &request = attrs_used->requests[index];
 
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
 
-  init_vbo_for_attribute(mr, vbo, request, false, static_cast<uint32_t>(mr->loop_len));
+  init_vbo_for_attribute(*mr, vbo, request, false, static_cast<uint32_t>(mr->loop_len));
 
   /* TODO(@kevindietrich): float3 is used for scalar attributes as the implicit conversion done by
    * OpenGL to vec4 for a scalar `s` will produce a `vec4(s, 0, 0, 1)`. However, following the
@@ -296,6 +312,9 @@ static void extract_attr_init(const MeshRenderData *mr,
       break;
     case CD_PROP_COLOR:
       extract_attr_generic<MPropCol, gpuMeshCol>(mr, vbo, request);
+      break;
+    case CD_PROP_BYTE_COLOR:
+      extract_attr_generic<ColorGeometry4b, gpuMeshCol>(mr, vbo, request);
       break;
     default:
       BLI_assert_unreachable();
@@ -345,17 +364,24 @@ static void extract_attr_init_subdiv(const DRWSubdivCache *subdiv_cache,
     case CD_PROP_COLOR:
       extract_attr_generic<MPropCol, gpuMeshCol>(mr, src_data, request);
       break;
+    case CD_PROP_BYTE_COLOR:
+      extract_attr_generic<ColorGeometry4b, gpuMeshCol>(mr, src_data, request);
+      break;
     default:
       BLI_assert_unreachable();
   }
 
   GPUVertBuf *dst_buffer = static_cast<GPUVertBuf *>(buffer);
-  init_vbo_for_attribute(mr, dst_buffer, request, true, subdiv_cache->num_subdiv_loops);
+  init_vbo_for_attribute(*mr, dst_buffer, request, true, subdiv_cache->num_subdiv_loops);
 
   /* Ensure data is uploaded properly. */
   GPU_vertbuf_tag_dirty(src_data);
-  draw_subdiv_interp_custom_data(
-      subdiv_cache, src_data, dst_buffer, static_cast<int>(dimensions), 0, false);
+  draw_subdiv_interp_custom_data(subdiv_cache,
+                                 src_data,
+                                 dst_buffer,
+                                 static_cast<int>(dimensions),
+                                 0,
+                                 ELEM(request.cd_type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR));
 
   GPU_vertbuf_discard(src_data);
 }
@@ -364,13 +390,13 @@ static void extract_attr_init_subdiv(const DRWSubdivCache *subdiv_cache,
  * extract. The overall API does not allow us to pass this in a convenient way. */
 #define EXTRACT_INIT_WRAPPER(index) \
   static void extract_attr_init##index( \
-      const MeshRenderData *mr, struct MeshBatchCache *cache, void *buf, void *tls_data) \
+      const MeshRenderData *mr, MeshBatchCache *cache, void *buf, void *tls_data) \
   { \
     extract_attr_init(mr, cache, buf, tls_data, index); \
   } \
   static void extract_attr_init_subdiv##index(const DRWSubdivCache *subdiv_cache, \
                                               const MeshRenderData *mr, \
-                                              struct MeshBatchCache *cache, \
+                                              MeshBatchCache *cache, \
                                               void *buf, \
                                               void *tls_data) \
   { \

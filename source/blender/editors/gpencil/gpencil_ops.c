@@ -635,6 +635,7 @@ void ED_operatortypes_gpencil(void)
   WM_operatortype_append(GPENCIL_OT_stroke_merge_material);
   WM_operatortype_append(GPENCIL_OT_stroke_reset_vertex_color);
   WM_operatortype_append(GPENCIL_OT_stroke_normalize);
+  WM_operatortype_append(GPENCIL_OT_stroke_outline);
 
   WM_operatortype_append(GPENCIL_OT_material_to_vertex_color);
   WM_operatortype_append(GPENCIL_OT_extract_palette_vertex);

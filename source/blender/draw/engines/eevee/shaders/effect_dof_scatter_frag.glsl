@@ -67,7 +67,7 @@ void main(void)
     /* Occlude the sprite with geometry from the same field
      * using a VSM like chebychev test (slide 85). */
     float mean = occlusion_data.x;
-    float variance = occlusion_data.x;
+    float variance = occlusion_data.y;
     shapes *= variance * safe_rcp(variance + sqr(max(cocs * correction_fac - mean, 0.0)));
   }
 

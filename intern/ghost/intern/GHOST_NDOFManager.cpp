@@ -5,6 +5,7 @@
 #include "GHOST_EventKey.h"
 #include "GHOST_EventNDOF.h"
 #include "GHOST_WindowManager.h"
+#include "GHOST_utildefines.h"
 
 #include <climits>
 #include <cmath>
@@ -128,7 +129,7 @@ static const NDOF_ButtonT Generic_HID_map[] = {
     NDOF_BUTTON_C,
 };
 
-static const int genericButtonCount = sizeof(Generic_HID_map) / sizeof(NDOF_ButtonT);
+static const int genericButtonCount = ARRAY_SIZE(Generic_HID_map);
 
 GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System &sys)
     : m_system(sys),
@@ -410,8 +411,9 @@ static bool nearHomePosition(GHOST_TEventNDOFMotionData *ndof, float threshold)
 
 bool GHOST_NDOFManager::sendMotionEvent()
 {
-  if (!m_motionEventPending)
+  if (!m_motionEventPending) {
     return false;
+  }
 
   m_motionEventPending = false; /* Any pending motion is handled right now. */
 

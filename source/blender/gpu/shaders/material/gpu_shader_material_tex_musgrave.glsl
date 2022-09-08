@@ -153,13 +153,12 @@ void node_tex_musgrave_hybrid_multi_fractal_1d(vec3 co,
   float lacunarity = max(lac, 1e-5);
 
   float pwHL = pow(lacunarity, -H);
-  float pwr = pwHL;
 
-  float value = snoise(p) + offset;
-  float weight = gain * value;
-  p *= lacunarity;
+  float pwr = 1.0;
+  float value = 0.0;
+  float weight = 1.0;
 
-  for (int i = 1; (weight > 0.001f) && (i < int(octaves)); i++) {
+  for (int i = 0; (weight > 0.001f) && (i < int(octaves)); i++) {
     if (weight > 1.0) {
       weight = 1.0;
     }
@@ -172,8 +171,12 @@ void node_tex_musgrave_hybrid_multi_fractal_1d(vec3 co,
   }
 
   float rmd = octaves - floor(octaves);
-  if (rmd != 0.0) {
-    value += rmd * ((snoise(p) + offset) * pwr);
+  if ((rmd != 0.0) && (weight > 0.001f)) {
+    if (weight > 1.0) {
+      weight = 1.0;
+    }
+    float signal = (snoise(p) + offset) * pwr;
+    value += rmd * weight * signal;
   }
 
   fac = value;
@@ -375,13 +378,12 @@ void node_tex_musgrave_hybrid_multi_fractal_2d(vec3 co,
   float lacunarity = max(lac, 1e-5);
 
   float pwHL = pow(lacunarity, -H);
-  float pwr = pwHL;
 
-  float value = snoise(p) + offset;
-  float weight = gain * value;
-  p *= lacunarity;
+  float pwr = 1.0;
+  float value = 0.0;
+  float weight = 1.0;
 
-  for (int i = 1; (weight > 0.001f) && (i < int(octaves)); i++) {
+  for (int i = 0; (weight > 0.001f) && (i < int(octaves)); i++) {
     if (weight > 1.0) {
       weight = 1.0;
     }
@@ -394,8 +396,12 @@ void node_tex_musgrave_hybrid_multi_fractal_2d(vec3 co,
   }
 
   float rmd = octaves - floor(octaves);
-  if (rmd != 0.0) {
-    value += rmd * ((snoise(p) + offset) * pwr);
+  if ((rmd != 0.0) && (weight > 0.001f)) {
+    if (weight > 1.0) {
+      weight = 1.0;
+    }
+    float signal = (snoise(p) + offset) * pwr;
+    value += rmd * weight * signal;
   }
 
   fac = value;
@@ -597,13 +603,12 @@ void node_tex_musgrave_hybrid_multi_fractal_3d(vec3 co,
   float lacunarity = max(lac, 1e-5);
 
   float pwHL = pow(lacunarity, -H);
-  float pwr = pwHL;
 
-  float value = snoise(p) + offset;
-  float weight = gain * value;
-  p *= lacunarity;
+  float pwr = 1.0;
+  float value = 0.0;
+  float weight = 1.0;
 
-  for (int i = 1; (weight > 0.001f) && (i < int(octaves)); i++) {
+  for (int i = 0; (weight > 0.001f) && (i < int(octaves)); i++) {
     if (weight > 1.0) {
       weight = 1.0;
     }
@@ -616,8 +621,12 @@ void node_tex_musgrave_hybrid_multi_fractal_3d(vec3 co,
   }
 
   float rmd = octaves - floor(octaves);
-  if (rmd != 0.0) {
-    value += rmd * ((snoise(p) + offset) * pwr);
+  if ((rmd != 0.0) && (weight > 0.001f)) {
+    if (weight > 1.0) {
+      weight = 1.0;
+    }
+    float signal = (snoise(p) + offset) * pwr;
+    value += rmd * weight * signal;
   }
 
   fac = value;
@@ -819,13 +828,12 @@ void node_tex_musgrave_hybrid_multi_fractal_4d(vec3 co,
   float lacunarity = max(lac, 1e-5);
 
   float pwHL = pow(lacunarity, -H);
-  float pwr = pwHL;
 
-  float value = snoise(p) + offset;
-  float weight = gain * value;
-  p *= lacunarity;
+  float pwr = 1.0;
+  float value = 0.0;
+  float weight = 1.0;
 
-  for (int i = 1; (weight > 0.001f) && (i < int(octaves)); i++) {
+  for (int i = 0; (weight > 0.001f) && (i < int(octaves)); i++) {
     if (weight > 1.0) {
       weight = 1.0;
     }
@@ -838,8 +846,12 @@ void node_tex_musgrave_hybrid_multi_fractal_4d(vec3 co,
   }
 
   float rmd = octaves - floor(octaves);
-  if (rmd != 0.0) {
-    value += rmd * ((snoise(p) + offset) * pwr);
+  if ((rmd != 0.0) && (weight > 0.001f)) {
+    if (weight > 1.0) {
+      weight = 1.0;
+    }
+    float signal = (snoise(p) + offset) * pwr;
+    value += rmd * weight * signal;
   }
 
   fac = value;

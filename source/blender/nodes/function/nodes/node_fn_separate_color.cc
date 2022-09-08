@@ -60,22 +60,41 @@ class SeparateRGBAFunction : public fn::MultiFunction {
   {
     const VArray<ColorGeometry4f> &colors = params.readonly_single_input<ColorGeometry4f>(0,
                                                                                           "Color");
-    MutableSpan<float> red = params.uninitialized_single_output<float>(1, "Red");
-    MutableSpan<float> green = params.uninitialized_single_output<float>(2, "Green");
-    MutableSpan<float> blue = params.uninitialized_single_output<float>(3, "Blue");
+
+    MutableSpan<float> red = params.uninitialized_single_output_if_required<float>(1, "Red");
+    MutableSpan<float> green = params.uninitialized_single_output_if_required<float>(2, "Green");
+    MutableSpan<float> blue = params.uninitialized_single_output_if_required<float>(3, "Blue");
     MutableSpan<float> alpha = params.uninitialized_single_output_if_required<float>(4, "Alpha");
 
-    for (int64_t i : mask) {
-      red[i] = colors[i].r;
-      green[i] = colors[i].g;
-      blue[i] = colors[i].b;
+    std::array<MutableSpan<float>, 4> outputs = {red, green, blue, alpha};
+    Vector<int> used_outputs;
+    if (!red.is_empty()) {
+      used_outputs.append(0);
+    }
+    if (!green.is_empty()) {
+      used_outputs.append(1);
+    }
+    if (!blue.is_empty()) {
+      used_outputs.append(2);
+    }
+    if (!alpha.is_empty()) {
+      used_outputs.append(3);
     }
 
-    if (!alpha.is_empty()) {
-      for (int64_t i : mask) {
-        alpha[i] = colors[i].a;
-      }
-    }
+    devirtualize_varray(colors, [&](auto colors) {
+      mask.to_best_mask_type([&](auto mask) {
+        const int used_outputs_num = used_outputs.size();
+        const int *used_outputs_data = used_outputs.data();
+
+        for (const int64_t i : mask) {
+          const ColorGeometry4f &color = colors[i];
+          for (const int out_i : IndexRange(used_outputs_num)) {
+            const int channel = used_outputs_data[out_i];
+            outputs[channel][i] = color[channel];
+          }
+        }
+      });
+    });
   }
 };
 

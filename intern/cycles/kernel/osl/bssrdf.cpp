@@ -12,6 +12,9 @@
 #include "kernel/osl/closures.h"
 
 // clang-format off
+#include "kernel/device/cpu/compat.h"
+#include "kernel/device/cpu/globals.h"
+
 #include "kernel/types.h"
 
 #include "kernel/closure/alloc.h"
@@ -19,6 +22,8 @@
 #include "kernel/closure/bsdf_diffuse.h"
 #include "kernel/closure/bsdf_principled_diffuse.h"
 #include "kernel/closure/bssrdf.h"
+
+#include "kernel/util/color.h"
 // clang-format on
 
 CCL_NAMESPACE_BEGIN
@@ -59,14 +64,14 @@ class CBSSRDFClosure : public CClosurePrimitive {
 
   void alloc(ShaderData *sd, uint32_t path_flag, float3 weight, ClosureType type)
   {
-    Bssrdf *bssrdf = bssrdf_alloc(sd, weight);
+    Bssrdf *bssrdf = bssrdf_alloc(sd, rgb_to_spectrum(weight));
 
     if (bssrdf) {
       /* disable in case of diffuse ancestor, can't see it well then and
        * adds considerably noise due to probabilities of continuing path
        * getting lower and lower */
       if (path_flag & PATH_RAY_DIFFUSE_ANCESTOR) {
-        params.radius = make_float3(0.0f, 0.0f, 0.0f);
+        params.radius = zero_spectrum();
       }
 
       /* create one closure per color channel */

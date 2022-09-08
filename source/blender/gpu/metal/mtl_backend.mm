@@ -9,6 +9,11 @@
 #include "gpu_backend.hh"
 #include "mtl_backend.hh"
 #include "mtl_context.hh"
+#include "mtl_framebuffer.hh"
+#include "mtl_index_buffer.hh"
+#include "mtl_query.hh"
+#include "mtl_shader.hh"
+#include "mtl_uniform_buffer.hh"
 
 #include "gpu_capabilities_private.hh"
 #include "gpu_platform_private.hh"
@@ -50,26 +55,25 @@ DrawList *MTLBackend::drawlist_alloc(int list_length)
 
 FrameBuffer *MTLBackend::framebuffer_alloc(const char *name)
 {
-  /* TODO(Metal): Implement MTLFrameBuffer. */
-  return nullptr;
+  MTLContext *mtl_context = static_cast<MTLContext *>(
+      reinterpret_cast<Context *>(GPU_context_active_get()));
+  return new MTLFrameBuffer(mtl_context, name);
 };
 
 IndexBuf *MTLBackend::indexbuf_alloc()
 {
-  /* TODO(Metal): Implement MTLIndexBuf. */
-  return nullptr;
+  return new MTLIndexBuf();
 };
 
 QueryPool *MTLBackend::querypool_alloc()
 {
-  /* TODO(Metal): Implement MTLQueryPool. */
-  return nullptr;
+  return new MTLQueryPool();
 };
 
 Shader *MTLBackend::shader_alloc(const char *name)
 {
-  /* TODO(Metal): Implement MTLShader. */
-  return nullptr;
+  MTLContext *mtl_context = MTLContext::get();
+  return new MTLShader(mtl_context, name);
 };
 
 Texture *MTLBackend::texture_alloc(const char *name)
@@ -79,8 +83,7 @@ Texture *MTLBackend::texture_alloc(const char *name)
 
 UniformBuf *MTLBackend::uniformbuf_alloc(int size, const char *name)
 {
-  /* TODO(Metal): Implement MTLUniformBuf. */
-  return nullptr;
+  return new MTLUniformBuf(size, name);
 };
 
 StorageBuf *MTLBackend::storagebuf_alloc(int size, GPUUsageType usage, const char *name)
@@ -125,7 +128,21 @@ void MTLBackend::render_end()
 
 void MTLBackend::render_step()
 {
-  /* Placeholder */
+  /* NOTE(Metal): Primarily called from main thread, but below data-structures
+   * and operations are thread-safe, and GPUContext rendering coordination
+   * is also thread-safe. */
+
+  /* Flush any MTLSafeFreeLists which have previously been released by any MTLContext. */
+  MTLContext::get_global_memory_manager().update_memory_pools();
+
+  /* End existing MTLSafeFreeList and begin new list --
+   * Buffers wont `free` until all associated in-flight command buffers have completed.
+   * Decrement final reference count for ensuring the previous list is certainly
+   * released. */
+  MTLSafeFreeList *cmd_free_buffer_list =
+      MTLContext::get_global_memory_manager().get_current_safe_list();
+  MTLContext::get_global_memory_manager().begin_new_safe_list();
+  cmd_free_buffer_list->decrement_reference();
 }
 
 bool MTLBackend::is_inside_render_boundary()
@@ -152,7 +169,7 @@ void MTLBackend::platform_init(MTLContext *ctx)
   eGPUSupportLevel support_level = GPU_SUPPORT_LEVEL_SUPPORTED;
 
   BLI_assert(ctx);
-  id<MTLDevice> mtl_device = nil; /*ctx->device; TODO(Metal): Implement MTLContext. */
+  id<MTLDevice> mtl_device = ctx->device;
   BLI_assert(device);
 
   NSString *gpu_name = [mtl_device name];
@@ -171,7 +188,7 @@ void MTLBackend::platform_init(MTLContext *ctx)
   os = GPU_OS_UNIX;
 #endif
 
-  BLI_assert(os == GPU_OS_MAC && "Platform must be macOS");
+  BLI_assert_msg(os == GPU_OS_MAC, "Platform must be macOS");
 
   /* Determine Vendor from name. */
   if (strstr(vendor, "ATI") || strstr(vendor, "AMD")) {
@@ -318,7 +335,7 @@ bool MTLBackend::metal_is_supported()
 void MTLBackend::capabilities_init(MTLContext *ctx)
 {
   BLI_assert(ctx);
-  id<MTLDevice> device = nil; /*ctx->device TODO(Metal): Implement MTLContext. */
+  id<MTLDevice> device = ctx->device;
   BLI_assert(device);
 
   /* Initialize Capabilities. */
@@ -365,6 +382,8 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   GCaps.shader_image_load_store_support = ([device supportsFamily:MTLGPUFamilyApple3] ||
                                            MTLBackend::capabilities.supports_family_mac1 ||
                                            MTLBackend::capabilities.supports_family_mac2);
+  /* TODO(Metal): Add support? */
+  GCaps.shader_draw_parameters_support = false;
   GCaps.compute_shader_support = false; /* TODO(Metal): Add compute support. */
   GCaps.shader_storage_buffer_objects_support =
       false; /* TODO(Metal): implement Storage Buffer support. */
@@ -380,11 +399,10 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
 
     /* In Metal, total_thread_count is 512 or 1024, such that
      * threadgroup `width*height*depth <= total_thread_count` */
-    unsigned int max_threads_per_threadgroup_per_dim =
-        ([device supportsFamily:MTLGPUFamilyApple4] ||
-         MTLBackend::capabilities.supports_family_mac1) ?
-            1024 :
-            512;
+    uint max_threads_per_threadgroup_per_dim = ([device supportsFamily:MTLGPUFamilyApple4] ||
+                                                MTLBackend::capabilities.supports_family_mac1) ?
+                                                   1024 :
+                                                   512;
     GCaps.max_work_group_size[0] = max_threads_per_threadgroup_per_dim;
     GCaps.max_work_group_size[1] = max_threads_per_threadgroup_per_dim;
     GCaps.max_work_group_size[2] = max_threads_per_threadgroup_per_dim;

@@ -9,17 +9,21 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __POINTCLOUD__
 
-ccl_device_forceinline bool point_intersect_test(
-    const float4 point, const float3 P, const float3 dir, const float tmax, ccl_private float *t)
+ccl_device_forceinline bool point_intersect_test(const float4 point,
+                                                 const float3 ray_P,
+                                                 const float3 ray_D,
+                                                 const float ray_tmin,
+                                                 const float ray_tmax,
+                                                 ccl_private float *t)
 {
   const float3 center = float4_to_float3(point);
   const float radius = point.w;
 
-  const float rd2 = 1.0f / dot(dir, dir);
+  const float rd2 = 1.0f / dot(ray_D, ray_D);
 
-  const float3 c0 = center - P;
-  const float projC0 = dot(c0, dir) * rd2;
-  const float3 perp = c0 - projC0 * dir;
+  const float3 c0 = center - ray_P;
+  const float projC0 = dot(c0, ray_D) * rd2;
+  const float3 perp = c0 - projC0 * ray_D;
   const float l2 = dot(perp, perp);
   const float r2 = radius * radius;
   if (!(l2 <= r2)) {
@@ -28,12 +32,12 @@ ccl_device_forceinline bool point_intersect_test(
 
   const float td = sqrt((r2 - l2) * rd2);
   const float t_front = projC0 - td;
-  const bool valid_front = (0.0f <= t_front) & (t_front <= tmax);
+  const bool valid_front = (ray_tmin <= t_front) & (t_front <= ray_tmax);
 
   /* Always back-face culling for now. */
 #  if 0
   const float t_back = projC0 + td;
-  const bool valid_back = (0.0f <= t_back) & (t_back <= tmax);
+  const bool valid_back = (ray_tmin <= t_back) & (t_back <= ray_tmax);
 
   /* check if there is a first hit */
   const bool valid_first = valid_front | valid_back;
@@ -54,18 +58,19 @@ ccl_device_forceinline bool point_intersect_test(
 
 ccl_device_forceinline bool point_intersect(KernelGlobals kg,
                                             ccl_private Intersection *isect,
-                                            const float3 P,
-                                            const float3 dir,
-                                            const float tmax,
+                                            const float3 ray_P,
+                                            const float3 ray_D,
+                                            const float ray_tmin,
+                                            const float ray_tmax,
                                             const int object,
                                             const int prim,
                                             const float time,
                                             const int type)
 {
   const float4 point = (type & PRIMITIVE_MOTION) ? motion_point(kg, object, prim, time) :
-                                                   kernel_tex_fetch(__points, prim);
+                                                   kernel_data_fetch(points, prim);
 
-  if (!point_intersect_test(point, P, dir, tmax, &isect->t)) {
+  if (!point_intersect_test(point, ray_P, ray_D, ray_tmin, ray_tmax, &isect->t)) {
     return false;
   }
 
@@ -82,7 +87,7 @@ ccl_device_inline void point_shader_setup(KernelGlobals kg,
                                           ccl_private const Intersection *isect,
                                           ccl_private const Ray *ray)
 {
-  sd->shader = kernel_tex_fetch(__points_shader, isect->prim);
+  sd->shader = kernel_data_fetch(points_shader, isect->prim);
   sd->P = ray->P + ray->D * isect->t;
 
   /* Texture coordinates, zero for now. */
@@ -94,7 +99,7 @@ ccl_device_inline void point_shader_setup(KernelGlobals kg,
   /* Compute point center for normal. */
   float3 center = float4_to_float3((isect->type & PRIMITIVE_MOTION) ?
                                        motion_point(kg, sd->object, sd->prim, sd->time) :
-                                       kernel_tex_fetch(__points, sd->prim));
+                                       kernel_data_fetch(points, sd->prim));
   if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     object_position_transform_auto(kg, sd, &center);
   }

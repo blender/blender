@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef DRACO_CORE_ANS_H_
-#define DRACO_CORE_ANS_H_
+#ifndef DRACO_COMPRESSION_ENTROPY_ANS_H_
+#define DRACO_COMPRESSION_ENTROPY_ANS_H_
 // An implementation of Asymmetric Numeral Systems (rANS).
 // See http://arxiv.org/abs/1311.2540v2 for more information on rANS.
 // This file is based off libvpx's ans.h.
@@ -391,7 +391,6 @@ class RAnsEncoder {
       ans_.buf[ans_.buf_offset++] = ans_.state % DRACO_ANS_IO_BASE;
       ans_.state /= DRACO_ANS_IO_BASE;
     }
-    // TODO(ostava): The division and multiplication should be optimized.
     ans_.state =
         (ans_.state / p) * rans_precision + ans_.state % p + sym->cum_prob;
   }
@@ -524,4 +523,4 @@ class RAnsDecoder {
 
 }  // namespace draco
 
-#endif  // DRACO_CORE_ANS_H_
+#endif  // DRACO_COMPRESSION_ENTROPY_ANS_H_

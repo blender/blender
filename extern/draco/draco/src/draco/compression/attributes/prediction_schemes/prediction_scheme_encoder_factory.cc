@@ -18,34 +18,51 @@ namespace draco {
 
 PredictionSchemeMethod SelectPredictionMethod(
     int att_id, const PointCloudEncoder *encoder) {
-  if (encoder->options()->GetSpeed() >= 10) {
+  return SelectPredictionMethod(att_id, *encoder->options(), encoder);
+}
+
+PredictionSchemeMethod SelectPredictionMethod(
+    int att_id, const EncoderOptions &options,
+    const PointCloudEncoder *encoder) {
+  if (options.GetSpeed() >= 10) {
     // Selected fastest, though still doing some compression.
     return PREDICTION_DIFFERENCE;
   }
   if (encoder->GetGeometryType() == TRIANGULAR_MESH) {
     // Use speed setting to select the best encoding method.
     const PointAttribute *const att = encoder->point_cloud()->attribute(att_id);
-    if (att->attribute_type() == GeometryAttribute::TEX_COORD) {
-      if (encoder->options()->GetSpeed() < 4) {
+    if (att->attribute_type() == GeometryAttribute::TEX_COORD &&
+        att->num_components() == 2) {
+      if (options.GetSpeed() < 4) {
         // Use texture coordinate prediction for speeds 0, 1, 2, 3.
         return MESH_PREDICTION_TEX_COORDS_PORTABLE;
       }
     }
     if (att->attribute_type() == GeometryAttribute::NORMAL) {
 #ifdef DRACO_NORMAL_ENCODING_SUPPORTED
-      if (encoder->options()->GetSpeed() < 4) {
+      if (options.GetSpeed() < 4) {
         // Use geometric normal prediction for speeds 0, 1, 2, 3.
-        return MESH_PREDICTION_GEOMETRIC_NORMAL;
+        // For this prediction, the position attribute needs to be either
+        // integer or quantized as well.
+        const int pos_att_id = encoder->point_cloud()->GetNamedAttributeId(
+            GeometryAttribute::POSITION);
+        const PointAttribute *const pos_att =
+            encoder->point_cloud()->GetNamedAttribute(
+                GeometryAttribute::POSITION);
+        if (pos_att && (IsDataTypeIntegral(pos_att->data_type()) ||
+                        options.GetAttributeInt(pos_att_id, "quantization_bits",
+                                                -1) > 0)) {
+          return MESH_PREDICTION_GEOMETRIC_NORMAL;
+        }
       }
 #endif
       return PREDICTION_DIFFERENCE;  // default
     }
     // Handle other attribute types.
-    if (encoder->options()->GetSpeed() >= 8) {
+    if (options.GetSpeed() >= 8) {
       return PREDICTION_DIFFERENCE;
     }
-    if (encoder->options()->GetSpeed() >= 2 ||
-        encoder->point_cloud()->num_points() < 40) {
+    if (options.GetSpeed() >= 2 || encoder->point_cloud()->num_points() < 40) {
       // Parallelogram prediction is used for speeds 2 - 7 or when the overhead
       // of using constrained multi-parallelogram would be too high.
       return MESH_PREDICTION_PARALLELOGRAM;

@@ -5,7 +5,59 @@
 
 CCL_NAMESPACE_BEGIN
 
-#if defined(__KERNEL_CPU__)
+ccl_device_inline bool intersection_ray_valid(ccl_private const Ray *ray)
+{
+  /* NOTE: Due to some vectorization code  non-finite origin point might
+   * cause lots of false-positive intersections which will overflow traversal
+   * stack.
+   * This code is a quick way to perform early output, to avoid crashes in
+   * such cases.
+   * From production scenes so far it seems it's enough to test first element
+   * only.
+   * Scene intersection may also called with empty rays for conditional trace
+   * calls that evaluate to false, so filter those out.
+   */
+  return isfinite_safe(ray->P.x) && isfinite_safe(ray->D.x) && len_squared(ray->D) != 0.0f;
+}
+
+/* Offset intersection distance by the smallest possible amount, to skip
+ * intersections at this distance. This works in cases where the ray start
+ * position is unchanged and only tmin is updated, since for self
+ * intersection we'll be comparing against the exact same distances. */
+ccl_device_forceinline float intersection_t_offset(const float t)
+{
+  /* This is a simplified version of `nextafterf(t, FLT_MAX)`, only dealing with
+   * non-negative and finite t. */
+  kernel_assert(t >= 0.0f && isfinite_safe(t));
+  const uint32_t bits = (t == 0.0f) ? 1 : __float_as_uint(t) + 1;
+  return __uint_as_float(bits);
+}
+
+/* Ray offset to avoid self intersection.
+ *
+ * This function can be used to compute a modified ray start position for rays
+ * leaving from a surface. This is from:
+ * "A Fast and Robust Method for Avoiding Self-Intersection"
+ * Ray Tracing Gems, chapter 6.
+ */
+ccl_device_inline float3 ray_offset(const float3 P, const float3 Ng)
+{
+  const float int_scale = 256.0f;
+  const int3 of_i = make_int3(
+      (int)(int_scale * Ng.x), (int)(int_scale * Ng.y), (int)(int_scale * Ng.z));
+
+  const float3 p_i = make_float3(
+      __int_as_float(__float_as_int(P.x) + ((P.x < 0) ? -of_i.x : of_i.x)),
+      __int_as_float(__float_as_int(P.y) + ((P.y < 0) ? -of_i.y : of_i.y)),
+      __int_as_float(__float_as_int(P.z) + ((P.z < 0) ? -of_i.z : of_i.z)));
+  const float origin = 1.0f / 32.0f;
+  const float float_scale = 1.0f / 65536.0f;
+  return make_float3(fabsf(P.x) < origin ? P.x + float_scale * Ng.x : p_i.x,
+                     fabsf(P.y) < origin ? P.y + float_scale * Ng.y : p_i.y,
+                     fabsf(P.z) < origin ? P.z + float_scale * Ng.z : p_i.z);
+}
+
+#ifndef __KERNEL_GPU__
 ccl_device int intersections_compare(const void *a, const void *b)
 {
   const Intersection *isect_a = (const Intersection *)a;
@@ -53,20 +105,20 @@ ccl_device_forceinline int intersection_get_shader_flags(KernelGlobals kg,
   int shader = 0;
 
   if (type & PRIMITIVE_TRIANGLE) {
-    shader = kernel_tex_fetch(__tri_shader, prim);
+    shader = kernel_data_fetch(tri_shader, prim);
   }
 #ifdef __POINTCLOUD__
   else if (type & PRIMITIVE_POINT) {
-    shader = kernel_tex_fetch(__points_shader, prim);
+    shader = kernel_data_fetch(points_shader, prim);
   }
 #endif
 #ifdef __HAIR__
   else if (type & PRIMITIVE_CURVE) {
-    shader = kernel_tex_fetch(__curves, prim).shader_id;
+    shader = kernel_data_fetch(curves, prim).shader_id;
   }
 #endif
 
-  return kernel_tex_fetch(__shaders, (shader & SHADER_MASK)).flags;
+  return kernel_data_fetch(shaders, (shader & SHADER_MASK)).flags;
 }
 
 ccl_device_forceinline int intersection_get_shader_from_isect_prim(KernelGlobals kg,
@@ -76,16 +128,16 @@ ccl_device_forceinline int intersection_get_shader_from_isect_prim(KernelGlobals
   int shader = 0;
 
   if (isect_type & PRIMITIVE_TRIANGLE) {
-    shader = kernel_tex_fetch(__tri_shader, prim);
+    shader = kernel_data_fetch(tri_shader, prim);
   }
 #ifdef __POINTCLOUD__
   else if (isect_type & PRIMITIVE_POINT) {
-    shader = kernel_tex_fetch(__points_shader, prim);
+    shader = kernel_data_fetch(points_shader, prim);
   }
 #endif
 #ifdef __HAIR__
   else if (isect_type & PRIMITIVE_CURVE) {
-    shader = kernel_tex_fetch(__curves, prim).shader_id;
+    shader = kernel_data_fetch(curves, prim).shader_id;
   }
 #endif
 
@@ -101,7 +153,7 @@ ccl_device_forceinline int intersection_get_shader(
 ccl_device_forceinline int intersection_get_object_flags(
     KernelGlobals kg, ccl_private const Intersection *ccl_restrict isect)
 {
-  return kernel_tex_fetch(__object_flag, isect->object);
+  return kernel_data_fetch(object_flag, isect->object);
 }
 
 /* TODO: find a better (faster) solution for this. Maybe store offset per object for
@@ -110,27 +162,27 @@ ccl_device_inline int intersection_find_attribute(KernelGlobals kg,
                                                   const int object,
                                                   const uint id)
 {
-  uint attr_offset = kernel_tex_fetch(__objects, object).attribute_map_offset;
-  uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
+  uint attr_offset = kernel_data_fetch(objects, object).attribute_map_offset;
+  AttributeMap attr_map = kernel_data_fetch(attributes_map, attr_offset);
 
-  while (attr_map.x != id) {
-    if (UNLIKELY(attr_map.x == ATTR_STD_NONE)) {
-      if (UNLIKELY(attr_map.y == 0)) {
+  while (attr_map.id != id) {
+    if (UNLIKELY(attr_map.id == ATTR_STD_NONE)) {
+      if (UNLIKELY(attr_map.element == 0)) {
         return (int)ATTR_STD_NOT_FOUND;
       }
       else {
         /* Chain jump to a different part of the table. */
-        attr_offset = attr_map.z;
+        attr_offset = attr_map.offset;
       }
     }
     else {
       attr_offset += ATTR_PRIM_TYPES;
     }
-    attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
+    attr_map = kernel_data_fetch(attributes_map, attr_offset);
   }
 
   /* return result */
-  return (attr_map.y == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : (int)attr_map.z;
+  return (attr_map.element == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : (int)attr_map.offset;
 }
 
 /* Transparent Shadows */
@@ -151,12 +203,12 @@ ccl_device_inline float intersection_curve_shadow_transparency(KernelGlobals kg,
   }
 
   /* Interpolate transparency between curve keys. */
-  const KernelCurve kcurve = kernel_tex_fetch(__curves, prim);
+  const KernelCurve kcurve = kernel_data_fetch(curves, prim);
   const int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(kcurve.type);
   const int k1 = k0 + 1;
 
-  const float f0 = kernel_tex_fetch(__attributes_float, offset + k0);
-  const float f1 = kernel_tex_fetch(__attributes_float, offset + k1);
+  const float f0 = kernel_data_fetch(attributes_float, offset + k0);
+  const float f1 = kernel_data_fetch(attributes_float, offset + k1);
 
   return (1.0f - u) * f0 + u * f1;
 }

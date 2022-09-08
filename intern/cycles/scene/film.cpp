@@ -152,7 +152,7 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 
   KernelFilm *kfilm = &dscene->data.film;
 
-  /* update __data */
+  /* update data */
   kfilm->exposure = exposure;
   kfilm->pass_alpha_threshold = pass_alpha_threshold;
   kfilm->pass_flag = 0;
@@ -394,7 +394,7 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
   vector<float> table = filter_table(filter_type, filter_width);
   scene->lookup_tables->remove_table(&filter_table_offset_);
   filter_table_offset_ = scene->lookup_tables->add_table(dscene, table);
-  kfilm->filter_table_offset = (int)filter_table_offset_;
+  dscene->data.tables.filter_table_offset = (int)filter_table_offset_;
 
   /* mist pass parameters */
   kfilm->mist_start = mist_start;
@@ -580,10 +580,10 @@ void Film::update_passes(Scene *scene, bool add_sample_count_pass)
   tag_modified();
 
   /* Debug logging. */
-  if (VLOG_IS_ON(2)) {
-    VLOG(2) << "Effective scene passes:";
+  if (VLOG_INFO_IS_ON) {
+    VLOG_INFO << "Effective scene passes:";
     for (const Pass *pass : scene->passes) {
-      VLOG(2) << "- " << *pass;
+      VLOG_INFO << "- " << *pass;
     }
   }
 }

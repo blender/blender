@@ -61,13 +61,13 @@ static Curves *create_star_curve(const float inner_radius,
 static void create_selection_output(CurveComponent &component,
                                     StrongAnonymousAttributeID &r_attribute)
 {
-  OutputAttribute_Typed<bool> attribute = component.attribute_try_get_for_output_only<bool>(
-      r_attribute.get(), ATTR_DOMAIN_POINT);
-  MutableSpan<bool> selection = attribute.as_span();
-  for (int i : selection.index_range()) {
-    selection[i] = i % 2 == 0;
+  SpanAttributeWriter<bool> selection =
+      component.attributes_for_write()->lookup_or_add_for_write_only_span<bool>(r_attribute.get(),
+                                                                                ATTR_DOMAIN_POINT);
+  for (int i : selection.span.index_range()) {
+    selection.span[i] = i % 2 == 0;
   }
-  attribute.save();
+  selection.finish();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

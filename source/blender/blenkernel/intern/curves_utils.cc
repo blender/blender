@@ -84,6 +84,18 @@ void fill_points(const CurvesGeometry &curves,
   });
 }
 
+bke::CurvesGeometry copy_only_curve_domain(const bke::CurvesGeometry &src_curves)
+{
+  bke::CurvesGeometry dst_curves(0, src_curves.curves_num());
+  CustomData_copy(&src_curves.curve_data,
+                  &dst_curves.curve_data,
+                  CD_MASK_ALL,
+                  CD_DUPLICATE,
+                  src_curves.curves_num());
+  dst_curves.runtime->type_counts = src_curves.runtime->type_counts;
+  return dst_curves;
+}
+
 IndexMask indices_for_type(const VArray<int8_t> &types,
                            const std::array<int, CURVE_TYPES_NUM> &type_counts,
                            const CurveType type,
@@ -109,14 +121,18 @@ void foreach_curve_by_type(const VArray<int8_t> &types,
                            FunctionRef<void(IndexMask)> bezier_fn,
                            FunctionRef<void(IndexMask)> nurbs_fn)
 {
-  Vector<int64_t> catmull_rom;
-  Vector<int64_t> poly;
-  Vector<int64_t> bezier;
-  Vector<int64_t> nurbs;
-  catmull_rom_fn(indices_for_type(types, counts, CURVE_TYPE_CATMULL_ROM, selection, catmull_rom));
-  poly_fn(indices_for_type(types, counts, CURVE_TYPE_POLY, selection, poly));
-  bezier_fn(indices_for_type(types, counts, CURVE_TYPE_BEZIER, selection, bezier));
-  nurbs_fn(indices_for_type(types, counts, CURVE_TYPE_NURBS, selection, nurbs));
+  Vector<int64_t> indices;
+  auto call_if_not_empty = [&](const CurveType type, FunctionRef<void(IndexMask)> fn) {
+    indices.clear();
+    const IndexMask mask = indices_for_type(types, counts, type, selection, indices);
+    if (!mask.is_empty()) {
+      fn(mask);
+    }
+  };
+  call_if_not_empty(CURVE_TYPE_CATMULL_ROM, catmull_rom_fn);
+  call_if_not_empty(CURVE_TYPE_POLY, poly_fn);
+  call_if_not_empty(CURVE_TYPE_BEZIER, bezier_fn);
+  call_if_not_empty(CURVE_TYPE_NURBS, nurbs_fn);
 }
 
 }  // namespace blender::bke::curves

@@ -171,7 +171,7 @@ struct NodeType {
 #define SOCKET_DEFINE(name, ui_name, default_value, datatype, TYPE, flags, ...) \
   { \
     static datatype defval = default_value; \
-    CHECK_TYPE(T::name, datatype); \
+    static_assert(std::is_same_v<decltype(T::name), datatype>); \
     type->register_input(ustring(#name), \
                          ustring(ui_name), \
                          TYPE, \

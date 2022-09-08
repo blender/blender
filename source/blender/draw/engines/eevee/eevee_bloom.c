@@ -125,7 +125,8 @@ static DRWShadingGroup *eevee_create_bloom_pass(const char *name,
                                                 struct GPUShader *sh,
                                                 DRWPass **pass,
                                                 bool upsample,
-                                                bool resolve)
+                                                bool resolve,
+                                                bool resolve_add_base)
 {
   struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 
@@ -141,7 +142,7 @@ static DRWShadingGroup *eevee_create_bloom_pass(const char *name,
   }
   if (resolve) {
     DRW_shgroup_uniform_vec3(grp, "bloomColor", effects->bloom_color, 1);
-    DRW_shgroup_uniform_bool_copy(grp, "bloomAddBase", true);
+    DRW_shgroup_uniform_bool_copy(grp, "bloomAddBase", resolve_add_base);
   }
 
   return grp;
@@ -193,11 +194,13 @@ void EEVEE_bloom_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *ved
                             EEVEE_shaders_bloom_downsample_get(use_antiflicker),
                             &psl->bloom_downsample_first,
                             false,
+                            false,
                             false);
     eevee_create_bloom_pass("Bloom Downsample",
                             effects,
                             EEVEE_shaders_bloom_downsample_get(false),
                             &psl->bloom_downsample,
+                            false,
                             false,
                             false);
     eevee_create_bloom_pass("Bloom Upsample",
@@ -205,12 +208,14 @@ void EEVEE_bloom_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *ved
                             EEVEE_shaders_bloom_upsample_get(use_highres),
                             &psl->bloom_upsample,
                             true,
+                            false,
                             false);
 
     grp = eevee_create_bloom_pass("Bloom Blit",
                                   effects,
                                   EEVEE_shaders_bloom_blit_get(use_antiflicker),
                                   &psl->bloom_blit,
+                                  false,
                                   false,
                                   false);
     DRW_shgroup_uniform_vec4(grp, "curveThreshold", effects->bloom_curve_threshold, 1);
@@ -220,6 +225,7 @@ void EEVEE_bloom_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *ved
                                   effects,
                                   EEVEE_shaders_bloom_resolve_get(use_highres),
                                   &psl->bloom_resolve,
+                                  true,
                                   true,
                                   true);
   }
@@ -304,13 +310,13 @@ void EEVEE_bloom_output_init(EEVEE_ViewLayerData *UNUSED(sldata),
                                 {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(txl->bloom_accum)});
 
   /* Create Pass and shgroup. */
-  DRWShadingGroup *grp = eevee_create_bloom_pass("Bloom Accumulate",
-                                                 effects,
-                                                 EEVEE_shaders_bloom_resolve_get(use_highres),
-                                                 &psl->bloom_accum_ps,
-                                                 true,
-                                                 true);
-  DRW_shgroup_uniform_bool_copy(grp, "bloomAddBase", false);
+  eevee_create_bloom_pass("Bloom Accumulate",
+                          effects,
+                          EEVEE_shaders_bloom_resolve_get(use_highres),
+                          &psl->bloom_accum_ps,
+                          true,
+                          true,
+                          false);
 }
 
 void EEVEE_bloom_output_accumulate(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)

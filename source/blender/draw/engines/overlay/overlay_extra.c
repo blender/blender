@@ -1315,9 +1315,14 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
         if ((curcon->ui_expand_flag & (1 << 0)) && BKE_constraint_targets_get(curcon, &targets)) {
           bConstraintTarget *ct;
 
+          BKE_constraint_custom_object_space_init(cob, curcon);
+
           for (ct = targets.first; ct; ct = ct->next) {
             /* calculate target's matrix */
-            if (cti->get_target_matrix) {
+            if (ct->flag & CONSTRAINT_TAR_CUSTOM_SPACE) {
+              copy_m4_m4(ct->matrix, cob->space_obj_world_matrix);
+            }
+            else if (cti->get_target_matrix) {
               cti->get_target_matrix(depsgraph, curcon, cob, ct, DEG_get_ctime(depsgraph));
             }
             else {
@@ -1353,7 +1358,7 @@ static void OVERLAY_volume_extra(OVERLAY_ExtraCallBuffers *cb,
 
   /* Don't show smoke before simulation starts, this could be made an option in the future. */
   const bool draw_velocity = (fds->draw_velocity && fds->fluid &&
-                              CFRA >= fds->point_cache[0]->startframe);
+                              scene->r.cfra >= fds->point_cache[0]->startframe);
 
   /* Show gridlines only for slices with no interpolation. */
   const bool show_gridlines = (fds->show_gridlines && fds->fluid &&
@@ -1484,7 +1489,7 @@ static void OVERLAY_object_center(OVERLAY_ExtraCallBuffers *cb,
 {
   const bool is_library = ID_REAL_USERS(&ob->id) > 1 || ID_IS_LINKED(ob);
 
-  if (ob == OBACT(view_layer)) {
+  if (ob == BKE_view_layer_active_object_get(view_layer)) {
     DRW_buffer_add_entry(cb->center_active, ob->obmat[3]);
   }
   else if (ob->base_flag & BASE_SELECTED) {
@@ -1546,8 +1551,9 @@ void OVERLAY_extra_cache_populate(OVERLAY_Data *vedata, Object *ob)
                            (md = BKE_modifiers_findby_type(ob, eModifierType_Fluid)) &&
                            (BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) &&
                            (((FluidModifierData *)md)->domain != NULL) &&
-                           (CFRA >= (((FluidModifierData *)md)->domain->cache_frame_start)) &&
-                           (CFRA <= (((FluidModifierData *)md)->domain->cache_frame_end));
+                           (scene->r.cfra >=
+                            (((FluidModifierData *)md)->domain->cache_frame_start)) &&
+                           (scene->r.cfra <= (((FluidModifierData *)md)->domain->cache_frame_end));
 
   float *color;
   int theme_id = DRW_object_wire_theme_get(ob, view_layer, &color);

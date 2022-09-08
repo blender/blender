@@ -137,6 +137,11 @@ template<typename Key, typename Value> class MultiValueMap {
   {
     return map_.values();
   }
+
+  void clear()
+  {
+    map_.clear();
+  }
 };
 
 }  // namespace blender

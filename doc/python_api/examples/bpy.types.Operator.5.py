@@ -1,4 +1,6 @@
 """
+.. _modal_operator:
+
 Modal Execution
 +++++++++++++++
 

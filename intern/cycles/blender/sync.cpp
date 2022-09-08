@@ -285,7 +285,7 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
 
   free_data_after_sync(b_depsgraph);
 
-  VLOG(1) << "Total time spent synchronizing data: " << timer.get_time();
+  VLOG_INFO << "Total time spent synchronizing data: " << timer.get_time();
 
   has_updates_ = false;
 }
@@ -343,7 +343,7 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
   integrator->set_light_sampling_threshold(get_float(cscene, "light_sampling_threshold"));
 
   SamplingPattern sampling_pattern = (SamplingPattern)get_enum(
-      cscene, "sampling_pattern", SAMPLING_NUM_PATTERNS, SAMPLING_PATTERN_SOBOL);
+      cscene, "sampling_pattern", SAMPLING_NUM_PATTERNS, SAMPLING_PATTERN_PMJ);
   integrator->set_sampling_pattern(sampling_pattern);
 
   int samples = 1;
@@ -385,12 +385,13 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
 
   /* Only use scrambling distance in the viewport if user wants to. */
   bool preview_scrambling_distance = get_boolean(cscene, "preview_scrambling_distance");
-  if (preview && !preview_scrambling_distance) {
+  if ((preview && !preview_scrambling_distance) ||
+      sampling_pattern == SAMPLING_PATTERN_SOBOL_BURLEY) {
     scrambling_distance = 1.0f;
   }
 
   if (scrambling_distance != 1.0f) {
-    VLOG(3) << "Using scrambling distance: " << scrambling_distance;
+    VLOG_INFO << "Using scrambling distance: " << scrambling_distance;
   }
   integrator->set_scrambling_distance(scrambling_distance);
 
@@ -412,7 +413,15 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
   integrator->set_direct_light_sampling_type(direct_light_sampling_type);
 #endif
 
-  const DenoiseParams denoise_params = get_denoise_params(b_scene, b_view_layer, background);
+  DenoiseParams denoise_params = get_denoise_params(b_scene, b_view_layer, background);
+
+  /* No denoising support for vertex color baking, vertices packed into image
+   * buffer have no relation to neighbors. */
+  if (scene->bake_manager->get_baking() &&
+      b_scene.render().bake().target() != BL::BakeSettings::target_IMAGE_TEXTURES) {
+    denoise_params.use = false;
+  }
+
   integrator->set_use_denoise(denoise_params.use);
 
   /* Only update denoiser parameters if the denoiser is actually used. This allows to tweak
@@ -671,14 +680,18 @@ void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_v
   }
 
   /* Cryptomatte stores two ID/weight pairs per RGBA layer.
-   * User facing parameter is the number of pairs. */
+   * User facing parameter is the number of pairs.
+   *
+   * NOTE: Name channels lowercase RGBA so that compression rules check in OpenEXR DWA code uses
+   * lossless compression. Reportedly this naming is the only one which works good from the
+   * interoperability point of view. Using XYZW naming is not portable. */
   int crypto_depth = divide_up(min(16, b_view_layer.pass_cryptomatte_depth()), 2);
   scene->film->set_cryptomatte_depth(crypto_depth);
   CryptomatteType cryptomatte_passes = CRYPT_NONE;
   if (b_view_layer.use_pass_cryptomatte_object()) {
     for (int i = 0; i < crypto_depth; i++) {
       string passname = cryptomatte_prefix + string_printf("Object%02d", i);
-      b_engine.add_pass(passname.c_str(), 4, "RGBA", b_view_layer.name().c_str());
+      b_engine.add_pass(passname.c_str(), 4, "rgba", b_view_layer.name().c_str());
       pass_add(scene, PASS_CRYPTOMATTE, passname.c_str());
     }
     cryptomatte_passes = (CryptomatteType)(cryptomatte_passes | CRYPT_OBJECT);
@@ -686,7 +699,7 @@ void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_v
   if (b_view_layer.use_pass_cryptomatte_material()) {
     for (int i = 0; i < crypto_depth; i++) {
       string passname = cryptomatte_prefix + string_printf("Material%02d", i);
-      b_engine.add_pass(passname.c_str(), 4, "RGBA", b_view_layer.name().c_str());
+      b_engine.add_pass(passname.c_str(), 4, "rgba", b_view_layer.name().c_str());
       pass_add(scene, PASS_CRYPTOMATTE, passname.c_str());
     }
     cryptomatte_passes = (CryptomatteType)(cryptomatte_passes | CRYPT_MATERIAL);
@@ -694,7 +707,7 @@ void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_v
   if (b_view_layer.use_pass_cryptomatte_asset()) {
     for (int i = 0; i < crypto_depth; i++) {
       string passname = cryptomatte_prefix + string_printf("Asset%02d", i);
-      b_engine.add_pass(passname.c_str(), 4, "RGBA", b_view_layer.name().c_str());
+      b_engine.add_pass(passname.c_str(), 4, "rgba", b_view_layer.name().c_str());
       pass_add(scene, PASS_CRYPTOMATTE, passname.c_str());
     }
     cryptomatte_passes = (CryptomatteType)(cryptomatte_passes | CRYPT_ASSET);
@@ -793,7 +806,9 @@ void BlenderSync::free_data_after_sync(BL::Depsgraph &b_depsgraph)
 
 /* Scene Parameters */
 
-SceneParams BlenderSync::get_scene_params(BL::Scene &b_scene, bool background)
+SceneParams BlenderSync::get_scene_params(BL::Scene &b_scene,
+                                          const bool background,
+                                          const bool use_developer_ui)
 {
   SceneParams params;
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
@@ -804,7 +819,7 @@ SceneParams BlenderSync::get_scene_params(BL::Scene &b_scene, bool background)
   else if (shadingsystem == 1)
     params.shadingsystem = SHADINGSYSTEM_OSL;
 
-  if (background || DebugFlags().viewport_static_bvh)
+  if (background || (use_developer_ui && get_enum(cscene, "debug_bvh_type")))
     params.bvh_type = BVH_TYPE_STATIC;
   else
     params.bvh_type = BVH_TYPE_DYNAMIC;

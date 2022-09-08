@@ -256,7 +256,6 @@ enum {
 
 /* Limits */
 #define MAX_MTFACE 8
-#define MAX_MCOL 8
 
 #define DYNTOPO_NODE_NONE -1
 

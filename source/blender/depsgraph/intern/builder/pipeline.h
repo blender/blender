@@ -16,8 +16,7 @@ struct Main;
 struct Scene;
 struct ViewLayer;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct Depsgraph;
 class DepsgraphNodeBuilder;
@@ -57,5 +56,4 @@ class AbstractBuilderPipeline {
   virtual void build_relations(DepsgraphRelationBuilder &relation_builder) = 0;
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

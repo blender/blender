@@ -15,7 +15,7 @@ void main(void)
   vec2 edge_dir = compute_dir(interp_in[0].ss_pos, interp_in[1].ss_pos) *
                   drw_view.viewport_size_inverse;
 
-  bool is_persp = (ProjectionMatrix[3][3] == 0.0);
+  bool is_persp = (drw_view.winmat[3][3] == 0.0);
   float line_size = float(lineThickness) * sizePixel;
 
   view_clipping_distances_set(gl_in[0]);

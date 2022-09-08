@@ -52,7 +52,7 @@ class HashGrid : public Grid {
   }
 
   /** clears the grid
-   *  Deletes all the cells, clears the hashtable, resets size, size of cell, number of cells.
+   *  Deletes all the cells, clears the hash-table, resets size, size of cell, number of cells.
    */
   virtual void clear();
 

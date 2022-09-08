@@ -27,6 +27,7 @@
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_lib_query.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h" /* Texture masking. */
@@ -139,7 +140,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 
   if (need_transform_relation) {
-    DEG_add_modifier_to_transform_relation(ctx->node, "WeightVGEdit Modifier");
+    DEG_add_depends_on_transform_relation(ctx->node, "WeightVGEdit Modifier");
   }
 }
 
@@ -158,7 +159,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
 
-  MDeformVert *dvert = NULL;
   MDeformWeight **dw = NULL;
   float *org_w; /* Array original weights. */
   float *new_w; /* Array new weights. */
@@ -198,18 +198,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     }
   }
 
-  if (has_mdef) {
-    dvert = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MDEFORMVERT, verts_num);
-  }
-  else {
-    /* Add a valid data layer! */
-    dvert = CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, verts_num);
-  }
+  MDeformVert *dvert = BKE_mesh_deform_verts_for_write(mesh);
+
   /* Ultimate security check. */
   if (!dvert) {
     return mesh;
   }
-  mesh->dvert = dvert;
 
   /* Get org weights, assuming 0.0 for vertices not in given vgroup. */
   org_w = MEM_malloc_arrayN(verts_num, sizeof(float), "WeightVGEdit Modifier, org_w");
@@ -287,7 +281,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   MEM_freeN(new_w);
   MEM_freeN(dw);
 
-  mesh->runtime.is_original = false;
+  mesh->runtime.is_original_bmesh = false;
 
   /* Return the vgroup-modified mesh. */
   return mesh;
@@ -316,7 +310,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   sub = uiLayoutRow(sub, true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_add"));
   uiLayoutSetPropSep(sub, false);
-  uiItemR(sub, ptr, "add_threshold", UI_ITEM_R_SLIDER, "Threshold", ICON_NONE);
+  uiItemR(sub, ptr, "add_threshold", UI_ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
   uiItemDecoratorR(row, ptr, "add_threshold", 0);
 
   col = uiLayoutColumnWithHeading(layout, false, IFACE_("Group Remove"));
@@ -327,7 +321,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   sub = uiLayoutRow(sub, true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_remove"));
   uiLayoutSetPropSep(sub, false);
-  uiItemR(sub, ptr, "remove_threshold", UI_ITEM_R_SLIDER, "Threshold", ICON_NONE);
+  uiItemR(sub, ptr, "remove_threshold", UI_ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
   uiItemDecoratorR(row, ptr, "remove_threshold", 0);
 
   uiItemR(layout, ptr, "normalize", 0, NULL, ICON_NONE);
@@ -397,7 +391,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_WeightVGEdit = {
-    /* name */ "VertexWeightEdit",
+    /* name */ N_("VertexWeightEdit"),
     /* structName */ "WeightVGEditModifierData",
     /* structSize */ sizeof(WeightVGEditModifierData),
     /* srna */ &RNA_VertexWeightEditModifier,

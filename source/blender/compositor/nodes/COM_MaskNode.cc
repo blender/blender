@@ -19,8 +19,8 @@ void MaskNode::convert_to_operations(NodeConverter &converter,
 
   NodeOutput *output_mask = this->get_output_socket(0);
 
-  bNode *editor_node = this->get_bnode();
-  NodeMask *data = (NodeMask *)editor_node->storage;
+  const bNode *editor_node = this->get_bnode();
+  const NodeMask *data = (const NodeMask *)editor_node->storage;
   Mask *mask = (Mask *)editor_node->id;
 
   /* Always connect the output image. */

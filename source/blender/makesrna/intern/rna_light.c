@@ -212,6 +212,7 @@ static void rna_def_light_energy(StructRNA *srna, const short light_type)
                                "Power",
                                "The energy this light would emit over its entire area "
                                "if it wasn't limited by the spot angle");
+      RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_LIGHT);
       RNA_def_property_update(prop, 0, "rna_Light_draw_update");
       break;
     }
@@ -224,6 +225,7 @@ static void rna_def_light_energy(StructRNA *srna, const short light_type)
           prop,
           "Power",
           "Light energy emitted over the entire area of the light in all directions");
+      RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_LIGHT);
       RNA_def_property_update(prop, 0, "rna_Light_draw_update");
       break;
     }

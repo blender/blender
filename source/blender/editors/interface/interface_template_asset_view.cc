@@ -66,7 +66,7 @@ static void asset_view_item_but_drag_set(uiBut *but,
 }
 
 static void asset_view_draw_item(uiList *ui_list,
-                                 bContext *UNUSED(C),
+                                 const bContext *UNUSED(C),
                                  uiLayout *layout,
                                  PointerRNA *UNUSED(dataptr),
                                  PointerRNA *itemptr,
@@ -183,7 +183,7 @@ static void asset_view_template_refresh_asset_collection(
 }
 
 void uiTemplateAssetView(uiLayout *layout,
-                         bContext *C,
+                         const bContext *C,
                          const char *list_id,
                          PointerRNA *asset_library_dataptr,
                          const char *asset_library_propname,

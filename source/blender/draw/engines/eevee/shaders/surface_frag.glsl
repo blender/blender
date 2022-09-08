@@ -152,7 +152,8 @@ void main()
 /* Only supported attrib for world/background shaders. */
 vec3 attr_load_orco(vec4 orco)
 {
-  return g_data.P;
+  /* Retain precision better than g_data.P (see T99128). */
+  return -normal_view_to_world(viewCameraVec(viewPosition));
 }
 /* Unsupported. */
 vec4 attr_load_tangent(vec4 tangent)
@@ -178,6 +179,10 @@ float attr_load_temperature_post(float attr)
   return attr;
 }
 vec4 attr_load_color_post(vec4 attr)
+{
+  return attr;
+}
+vec4 attr_load_uniform(vec4 attr, const uint attr_hash)
 {
   return attr;
 }

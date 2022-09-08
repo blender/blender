@@ -9,8 +9,7 @@
 
 #include "MEM_guardedalloc.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct Node;
 
@@ -29,6 +28,8 @@ enum RelationFlag {
   RELATION_FLAG_GODMODE = (1 << 4),
   /* Relation will check existence before being added. */
   RELATION_CHECK_BEFORE_ADD = (1 << 5),
+  /* The relation does not participate in visibility checks. */
+  RELATION_NO_VISIBILITY_CHANGE = (1 << 6),
 };
 
 /* B depends on A (A -> B) */
@@ -49,5 +50,4 @@ struct Relation {
   MEM_CXX_CLASS_ALLOC_FUNCS("Relation");
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

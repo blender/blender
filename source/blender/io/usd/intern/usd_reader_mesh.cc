@@ -6,6 +6,7 @@
 #include "usd_reader_mesh.h"
 #include "usd_reader_material.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_customdata.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -64,12 +65,26 @@ static void build_mat_map(const Main *bmain, std::map<std::string, Material *> *
 
 static pxr::UsdShadeMaterial compute_bound_material(const pxr::UsdPrim &prim)
 {
-  return pxr::UsdShadeMaterialBindingAPI(prim).ComputeBoundMaterial();
+  pxr::UsdShadeMaterialBindingAPI api = pxr::UsdShadeMaterialBindingAPI(prim);
+
+  /* Compute generically bound ('allPurpose') materials. */
+  pxr::UsdShadeMaterial mtl = api.ComputeBoundMaterial();
+
+  /* If no generic material could be resolved, also check for 'preview' and
+   * 'full' purpose materials as fallbacks. */
+  if (!mtl) {
+    mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->preview);
+  }
+
+  if (!mtl) {
+    mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->full);
+  }
+
+  return mtl;
 }
 
-/* Returns an existing Blender material that corresponds to the USD
- * material with with the given path.  Returns null if no such material
- * exists. */
+/* Returns an existing Blender material that corresponds to the USD material with the given path.
+ * Returns null if no such material exists. */
 static Material *find_existing_material(
     const pxr::SdfPath &usd_mat_path,
     const USDImportParams &params,
@@ -87,11 +102,9 @@ static Material *find_existing_material(
       if (mat_iter != mat_map.end()) {
         return mat_iter->second;
       }
-      else {
-        /* We can't find the Blender material which was previously created for this USD
-         * material, which should never happen.  */
-        BLI_assert_unreachable();
-      }
+      /* We can't find the Blender material which was previously created for this USD
+       * material, which should never happen. */
+      BLI_assert_unreachable();
     }
   }
   else {
@@ -111,37 +124,25 @@ static void assign_materials(Main *bmain,
                              const std::map<pxr::SdfPath, int> &mat_index_map,
                              const USDImportParams &params,
                              pxr::UsdStageRefPtr stage,
+                             std::map<std::string, Material *> &mat_name_to_mat,
                              std::map<std::string, std::string> &usd_path_to_mat_name)
 {
   if (!(stage && bmain && ob)) {
     return;
   }
 
-  bool can_assign = true;
-  std::map<pxr::SdfPath, int>::const_iterator it = mat_index_map.begin();
-
-  int matcount = 0;
-  for (; it != mat_index_map.end(); ++it, matcount++) {
-    if (!BKE_object_material_slot_add(bmain, ob)) {
-      can_assign = false;
-      break;
-    }
-  }
-
-  if (!can_assign) {
+  if (mat_index_map.size() > MAXMAT) {
     return;
   }
 
-  /* TODO(kevin): use global map? */
-  std::map<std::string, Material *> mat_map;
-  build_mat_map(bmain, &mat_map);
-
   blender::io::usd::USDMaterialReader mat_reader(params, bmain);
 
-  for (it = mat_index_map.begin(); it != mat_index_map.end(); ++it) {
+  for (std::map<pxr::SdfPath, int>::const_iterator it = mat_index_map.begin();
+       it != mat_index_map.end();
+       ++it) {
 
     Material *assigned_mat = find_existing_material(
-        it->first, params, mat_map, usd_path_to_mat_name);
+        it->first, params, mat_name_to_mat, usd_path_to_mat_name);
     if (!assigned_mat) {
       /* Blender material doesn't exist, so create it now. */
 
@@ -165,7 +166,7 @@ static void assign_materials(Main *bmain,
       }
 
       const std::string mat_name = pxr::TfMakeValidIdentifier(assigned_mat->id.name + 2);
-      mat_map[mat_name] = assigned_mat;
+      mat_name_to_mat[mat_name] = assigned_mat;
 
       if (params.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
         /* Record the name of the Blender material we created for the USD material
@@ -175,12 +176,15 @@ static void assign_materials(Main *bmain,
     }
 
     if (assigned_mat) {
-      BKE_object_material_assign(bmain, ob, assigned_mat, it->second, BKE_MAT_ASSIGN_OBDATA);
+      BKE_object_material_assign_single_obdata(bmain, ob, assigned_mat, it->second);
     }
     else {
       /* This shouldn't happen. */
       std::cout << "WARNING: Couldn't assign material " << it->first << std::endl;
     }
+  }
+  if (ob->totcol > 0) {
+    ob->actcol = 1;
   }
 }
 
@@ -207,7 +211,8 @@ static void *add_customdata_cb(Mesh *mesh, const char *name, const int data_type
 
   /* Create a new layer. */
   numloops = mesh->totloop;
-  cd_ptr = CustomData_add_layer_named(loopdata, cd_data_type, CD_DEFAULT, nullptr, numloops, name);
+  cd_ptr = CustomData_add_layer_named(
+      loopdata, cd_data_type, CD_SET_DEFAULT, nullptr, numloops, name);
   return cd_ptr;
 }
 
@@ -307,18 +312,17 @@ bool USDMeshReader::topology_changed(const Mesh *existing_mesh, const double mot
 
 void USDMeshReader::read_mpolys(Mesh *mesh)
 {
-  MPoly *mpolys = mesh->mpoly;
-  MLoop *mloops = mesh->mloop;
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
+  MutableSpan<MLoop> loops = mesh->loops_for_write();
 
   int loop_index = 0;
 
   for (int i = 0; i < face_counts_.size(); i++) {
     const int face_size = face_counts_[i];
 
-    MPoly &poly = mpolys[i];
+    MPoly &poly = polys[i];
     poly.loopstart = loop_index;
     poly.totloop = face_size;
-    poly.mat_nr = 0;
 
     /* Polygons are always assumed to be smooth-shaded. If the mesh should be flat-shaded,
      * this is encoded in custom loop normals. */
@@ -327,12 +331,12 @@ void USDMeshReader::read_mpolys(Mesh *mesh)
     if (is_left_handed_) {
       int loop_end_index = loop_index + (face_size - 1);
       for (int f = 0; f < face_size; ++f, ++loop_index) {
-        mloops[loop_index].v = face_indices_[loop_end_index - f];
+        loops[loop_index].v = face_indices_[loop_end_index - f];
       }
     }
     else {
       for (int f = 0; f < face_size; ++f, ++loop_index) {
-        mloops[loop_index].v = face_indices_[loop_index];
+        loops[loop_index].v = face_indices_[loop_index];
       }
     }
   }
@@ -396,6 +400,7 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
     }
   }
 
+  const Span<MLoop> loops = mesh->loops();
   for (int i = 0; i < face_counts_.size(); i++) {
     const int face_size = face_counts_[i];
 
@@ -431,7 +436,7 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
 
         /* For Vertex interpolation, use the vertex index. */
         int usd_uv_index = sample.interpolation == pxr::UsdGeomTokens->vertex ?
-                               mesh->mloop[loop_index].v :
+                               loops[loop_index].v :
                                loop_index;
 
         if (usd_uv_index >= sample.uvs.size()) {
@@ -511,24 +516,23 @@ void USDMeshReader::read_colors(Mesh *mesh, const double motionSampleTime)
 
   MLoopCol *colors = static_cast<MLoopCol *>(cd_ptr);
 
-  mesh->mloopcol = colors;
-
-  MPoly *poly = mesh->mpoly;
-
-  for (int i = 0, e = mesh->totpoly; i < e; ++i, ++poly) {
-    for (int j = 0; j < poly->totloop; ++j) {
-      int loop_index = poly->loopstart + j;
+  const Span<MPoly> polys = mesh->polys();
+  const Span<MLoop> loops = mesh->loops();
+  for (const int i : polys.index_range()) {
+    const MPoly &poly = polys[i];
+    for (int j = 0; j < poly.totloop; ++j) {
+      int loop_index = poly.loopstart + j;
 
       /* Default for constant varying interpolation. */
       int usd_index = 0;
 
       if (interp == pxr::UsdGeomTokens->vertex) {
-        usd_index = mesh->mloop[loop_index].v;
+        usd_index = loops[loop_index].v;
       }
       else if (interp == pxr::UsdGeomTokens->faceVarying) {
-        usd_index = poly->loopstart;
+        usd_index = poly.loopstart;
         if (is_left_handed_) {
-          usd_index += poly->totloop - 1 - j;
+          usd_index += poly.totloop - 1 - j;
         }
         else {
           usd_index += j;
@@ -576,7 +580,7 @@ void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTim
   }
 
   float *creases = static_cast<float *>(
-      CustomData_add_layer(&mesh->vdata, CD_CREASE, CD_DEFAULT, nullptr, mesh->totvert));
+      CustomData_add_layer(&mesh->vdata, CD_CREASE, CD_SET_DEFAULT, nullptr, mesh->totvert));
 
   for (size_t i = 0; i < corner_indices.size(); i++) {
     creases[corner_indices[i]] = corner_sharpnesses[i];
@@ -626,15 +630,15 @@ void USDMeshReader::process_normals_face_varying(Mesh *mesh)
   float(*lnors)[3] = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(loop_count, sizeof(float[3]), "USD::FaceNormals"));
 
-  MPoly *mpoly = mesh->mpoly;
+  const Span<MPoly> polys = mesh->polys();
+  for (const int i : polys.index_range()) {
+    const MPoly &poly = polys[i];
+    for (int j = 0; j < poly.totloop; j++) {
+      int blender_index = poly.loopstart + j;
 
-  for (int i = 0, e = mesh->totpoly; i < e; ++i, ++mpoly) {
-    for (int j = 0; j < mpoly->totloop; j++) {
-      int blender_index = mpoly->loopstart + j;
-
-      int usd_index = mpoly->loopstart;
+      int usd_index = poly.loopstart;
       if (is_left_handed_) {
-        usd_index += mpoly->totloop - 1 - j;
+        usd_index += poly.totloop - 1 - j;
       }
       else {
         usd_index += j;
@@ -667,12 +671,11 @@ void USDMeshReader::process_normals_uniform(Mesh *mesh)
   float(*lnors)[3] = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(mesh->totloop, sizeof(float[3]), "USD::FaceNormals"));
 
-  MPoly *mpoly = mesh->mpoly;
-
-  for (int i = 0, e = mesh->totpoly; i < e; ++i, ++mpoly) {
-
-    for (int j = 0; j < mpoly->totloop; j++) {
-      int loop_index = mpoly->loopstart + j;
+  const Span<MPoly> polys = mesh->polys();
+  for (const int i : polys.index_range()) {
+    const MPoly &poly = polys[i];
+    for (int j = 0; j < poly.totloop; j++) {
+      int loop_index = poly.loopstart + j;
       lnors[loop_index][0] = normals_[i][0];
       lnors[loop_index][1] = normals_[i][1];
       lnors[loop_index][2] = normals_[i][2];
@@ -695,8 +698,9 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
    * in code that expect this data to be there. */
 
   if (new_mesh || (settings->read_flag & MOD_MESHSEQ_READ_VERT) != 0) {
+    MutableSpan<MVert> verts = mesh->verts_for_write();
     for (int i = 0; i < positions_.size(); i++) {
-      MVert &mvert = mesh->mvert[i];
+      MVert &mvert = verts[i];
       mvert.co[0] = positions_[i][0];
       mvert.co[1] = positions_[i][1];
       mvert.co[2] = positions_[i][2];
@@ -734,10 +738,9 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
   }
 }
 
-void USDMeshReader::assign_facesets_to_mpoly(double motionSampleTime,
-                                             MPoly *mpoly,
-                                             const int /* totpoly */,
-                                             std::map<pxr::SdfPath, int> *r_mat_map)
+void USDMeshReader::assign_facesets_to_material_indices(double motionSampleTime,
+                                                        MutableSpan<int> material_indices,
+                                                        std::map<pxr::SdfPath, int> *r_mat_map)
 {
   if (r_mat_map == nullptr) {
     return;
@@ -777,9 +780,8 @@ void USDMeshReader::assign_facesets_to_mpoly(double motionSampleTime,
       pxr::VtIntArray indices;
       indicesAttribute.Get(&indices, motionSampleTime);
 
-      for (int i = 0; i < indices.size(); i++) {
-        MPoly &poly = mpoly[indices[i]];
-        poly.mat_nr = mat_idx;
+      for (const int i : indices) {
+        material_indices[i] = mat_idx;
       }
     }
   }
@@ -804,12 +806,22 @@ void USDMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const double mot
   }
 
   std::map<pxr::SdfPath, int> mat_map;
-  assign_facesets_to_mpoly(motionSampleTime, mesh->mpoly, mesh->totpoly, &mat_map);
+
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter<int> material_indices =
+      attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
+  this->assign_facesets_to_material_indices(motionSampleTime, material_indices.span, &mat_map);
+  material_indices.finish();
+  /* Build material name map if it's not built yet. */
+  if (this->settings_->mat_name_to_mat.empty()) {
+    utils::build_mat_map(bmain, &this->settings_->mat_name_to_mat);
+  }
   utils::assign_materials(bmain,
                           object_,
                           mat_map,
                           this->import_params_,
                           this->prim_.GetStage(),
+                          this->settings_->mat_name_to_mat,
                           this->settings_->usd_path_to_mat_name);
 }
 
@@ -891,8 +903,7 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
         existing_mesh, positions_.size(), 0, 0, face_indices_.size(), face_counts_.size());
 
     for (pxr::TfToken token : uv_tokens) {
-      void *cd_ptr = add_customdata_cb(active_mesh, token.GetText(), CD_MLOOPUV);
-      active_mesh->mloopuv = static_cast<MLoopUV *>(cd_ptr);
+      add_customdata_cb(active_mesh, token.GetText(), CD_MLOOPUV);
     }
   }
 
@@ -902,10 +913,14 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
     /* Here we assume that the number of materials doesn't change, i.e. that
      * the material slots that were created when the object was loaded from
      * USD are still valid now. */
-    size_t num_polys = active_mesh->totpoly;
-    if (num_polys > 0 && import_params_.import_materials) {
+    MutableSpan<MPoly> polys = active_mesh->polys_for_write();
+    if (!polys.is_empty() && import_params_.import_materials) {
       std::map<pxr::SdfPath, int> mat_map;
-      assign_facesets_to_mpoly(motionSampleTime, active_mesh->mpoly, num_polys, &mat_map);
+      bke::MutableAttributeAccessor attributes = active_mesh->attributes_for_write();
+      bke::SpanAttributeWriter<int> material_indices =
+          attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
+      assign_facesets_to_material_indices(motionSampleTime, material_indices.span, &mat_map);
+      material_indices.finish();
     }
   }
 

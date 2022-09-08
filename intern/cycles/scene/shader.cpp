@@ -685,9 +685,6 @@ uint ShaderManager::get_graph_kernel_features(ShaderGraph *graph)
       if (CLOSURE_IS_VOLUME(bsdf_node->get_closure_type())) {
         kernel_features |= KERNEL_FEATURE_NODE_VOLUME;
       }
-      else if (CLOSURE_IS_PRINCIPLED(bsdf_node->get_closure_type())) {
-        kernel_features |= KERNEL_FEATURE_PRINCIPLED;
-      }
     }
     if (node->has_surface_bssrdf()) {
       kernel_features |= KERNEL_FEATURE_SUBSURFACE;

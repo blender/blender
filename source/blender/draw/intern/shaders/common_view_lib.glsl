@@ -37,6 +37,9 @@ layout(std140) uniform viewBlock
 #  endif
 #endif
 
+#define IS_DEBUG_MOUSE_FRAGMENT (ivec2(gl_FragCoord) == drw_view.mouse_pixel)
+#define IS_FIRST_INVOCATION (gl_GlobalInvocationID == uvec3(0))
+
 #define ViewNear (ViewVecs[0].w)
 #define ViewFar (ViewVecs[1].w)
 
@@ -152,7 +155,11 @@ uniform int drw_ResourceID;
 #    define PASS_RESOURCE_ID
 
 #  elif defined(GPU_VERTEX_SHADER)
-#    define resource_id gpu_InstanceIndex
+#    if defined(UNIFORM_RESOURCE_ID_NEW)
+#      define resource_id drw_ResourceID
+#    else
+#      define resource_id gpu_InstanceIndex
+#    endif
 #    define PASS_RESOURCE_ID drw_ResourceID_iface.resource_index = resource_id;
 
 #  elif defined(GPU_GEOMETRY_SHADER)
@@ -200,8 +207,8 @@ flat in int resourceIDFrag;
 #  ifndef DRW_SHADER_SHARED_H
 
 struct ObjectMatrices {
-  mat4 drw_modelMatrix;
-  mat4 drw_modelMatrixInverse;
+  mat4 model;
+  mat4 model_inverse;
 };
 #  endif /* DRW_SHADER_SHARED_H */
 
@@ -211,8 +218,8 @@ layout(std140) uniform modelBlock
   ObjectMatrices drw_matrices[DRW_RESOURCE_CHUNK_LEN];
 };
 
-#    define ModelMatrix (drw_matrices[resource_id].drw_modelMatrix)
-#    define ModelMatrixInverse (drw_matrices[resource_id].drw_modelMatrixInverse)
+#    define ModelMatrix (drw_matrices[resource_id].model)
+#    define ModelMatrixInverse (drw_matrices[resource_id].model_inverse)
 #  endif /* USE_GPU_SHADER_CREATE_INFO */
 
 #else /* GPU_INTEL */

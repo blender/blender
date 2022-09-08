@@ -13,7 +13,7 @@
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"
 
-using namespace blender::ed::outliner;
+namespace blender::ed::outliner {
 
 bool outliner_shows_mode_column(const SpaceOutliner &space_outliner)
 {
@@ -46,3 +46,5 @@ bool outliner_has_element_warnings(const SpaceOutliner &space_outliner)
 
   return recursive_fn(space_outliner.tree);
 }
+
+}  // namespace blender::ed::outliner

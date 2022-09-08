@@ -10,7 +10,7 @@
 
 #ifndef WIN32
 #  error WIN32 only!
-#endif  // WIN32
+#endif /* WIN32 */
 
 #include "GHOST_TaskbarWin32.h"
 #include "GHOST_TrackpadWin32.h"
@@ -25,7 +25,7 @@
 class GHOST_SystemWin32;
 class GHOST_DropTargetWin32;
 
-// typedefs for user32 functions to allow dynamic loading of Windows 10 DPI scaling functions
+/* typedefs for user32 functions to allow dynamic loading of Windows 10 DPI scaling functions. */
 typedef UINT(API *GHOST_WIN32_GetDpiForWindow)(HWND);
 
 typedef BOOL(API *GHOST_WIN32_AdjustWindowRectExForDpi)(
@@ -34,7 +34,7 @@ typedef BOOL(API *GHOST_WIN32_AdjustWindowRectExForDpi)(
 struct GHOST_PointerInfoWin32 {
   int32_t pointerId;
   int32_t isPrimary;
-  GHOST_TButtonMask buttonMask;
+  GHOST_TButton buttonMask;
   POINT pixelLocation;
   uint64_t time;
   GHOST_TabletData tabletData;

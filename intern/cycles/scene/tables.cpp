@@ -34,7 +34,7 @@ void LookupTables::device_update(Device *, DeviceScene *dscene, Scene *scene)
     }
   });
 
-  VLOG(1) << "Total " << lookup_tables.size() << " lookup tables.";
+  VLOG_INFO << "Total " << lookup_tables.size() << " lookup tables.";
 
   if (lookup_tables.size() > 0)
     dscene->lookup_table.copy_to_device();

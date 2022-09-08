@@ -30,7 +30,7 @@ void main()
   sp = bone_mat * sp.xzy + headSphere.xyz;
   nor = bone_mat * nor.xzy;
 
-  normalView = mat3(ViewMatrix) * nor;
+  normalView = mat3(drw_view.viewmat) * nor;
 
   finalStateColor = stateColor;
   finalBoneColor = boneColor;
@@ -38,5 +38,5 @@ void main()
   view_clipping_distances(sp);
 
   vec4 pos_4d = vec4(sp, 1.0);
-  gl_Position = ViewProjectionMatrix * pos_4d;
+  gl_Position = drw_view.persmat * pos_4d;
 }

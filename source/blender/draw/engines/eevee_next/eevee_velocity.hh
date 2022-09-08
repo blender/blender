@@ -27,8 +27,6 @@ namespace blender::eevee {
 
 /** Container for scene velocity data. */
 class VelocityModule {
-  friend class VelocityView;
-
  public:
   struct VelocityObjectData : public VelocityIndex {
     /** ID to retrieve the corresponding #VelocityGeometryData after copy. */
@@ -58,6 +56,8 @@ class VelocityModule {
   int3 object_steps_usage = int3(0);
   /** Buffer of all #VelocityIndex used in this frame. Indexed by draw manager resource id. */
   VelocityIndexBuf indirection_buf;
+  /** Frame time at which each steps were evaluated. */
+  float3 step_time;
 
   /**
    * Copies of camera data. One for previous and one for next time step.
@@ -67,16 +67,10 @@ class VelocityModule {
  private:
   Instance &inst_;
 
+  /** Step being synced. */
   eVelocityStep step_ = STEP_CURRENT;
-
-  DRWPass *resolve_ps_ = nullptr;
-
-  /** Reference only. Not owned. */
-  GPUTexture *input_depth_tx_;
-  GPUTexture *velocity_view_tx_;
-  GPUTexture *velocity_camera_tx_;
-
-  int3 resolve_dispatch_size_ = int3(1, 1, 1);
+  /** Step referenced as next step. */
+  eVelocityStep next_step_ = STEP_NEXT;
 
  public:
   VelocityModule(Instance &inst) : inst_(inst)
@@ -111,7 +105,10 @@ class VelocityModule {
   void step_sync(eVelocityStep step, float time);
 
   /* Gather motion data. Returns true if the object **can** have motion. */
-  bool step_object_sync(Object *ob, ObjectKey &object_key, int recalc = 0);
+  bool step_object_sync(Object *ob,
+                        ObjectKey &object_key,
+                        ResourceHandle resource_handle,
+                        int recalc = 0);
 
   /* Moves next frame data to previous frame data. Nullify next frame data. */
   void step_swap();
@@ -121,56 +118,29 @@ class VelocityModule {
 
   void bind_resources(DRWShadingGroup *grp);
 
+  template<typename T> void bind_resources(draw::detail::Pass<T> *pass)
+  {
+    /* Storage Buf. */
+    pass->bind_ssbo(VELOCITY_OBJ_PREV_BUF_SLOT, &(*object_steps[STEP_PREVIOUS]));
+    pass->bind_ssbo(VELOCITY_OBJ_NEXT_BUF_SLOT, &(*object_steps[next_step_]));
+    pass->bind_ssbo(VELOCITY_GEO_PREV_BUF_SLOT, &(*geometry_steps[STEP_PREVIOUS]));
+    pass->bind_ssbo(VELOCITY_GEO_NEXT_BUF_SLOT, &(*geometry_steps[next_step_]));
+    pass->bind_ssbo(VELOCITY_INDIRECTION_BUF_SLOT, &indirection_buf);
+    /* Uniform Buf. */
+    pass->bind_ubo(VELOCITY_CAMERA_PREV_BUF, &(*camera_steps[STEP_PREVIOUS]));
+    pass->bind_ubo(VELOCITY_CAMERA_CURR_BUF, &(*camera_steps[STEP_CURRENT]));
+    pass->bind_ubo(VELOCITY_CAMERA_NEXT_BUF, &(*camera_steps[next_step_]));
+  }
+
+  bool camera_has_motion() const;
+  bool camera_changed_projection() const;
+
+  /* Returns frame time difference between two steps. */
+  float step_time_delta_get(eVelocityStep start, eVelocityStep end) const;
+
  private:
   bool object_has_velocity(const Object *ob);
   bool object_is_deform(const Object *ob);
-
-  void resolve_camera_motion(GPUTexture *depth_tx,
-                             GPUTexture *velocity_view_tx,
-                             GPUTexture *velocity_camera_tx);
-};
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Velocity
- *
- * \{ */
-
-/**
- * Per view module.
- */
-class VelocityView {
- private:
-  Instance &inst_;
-
-  StringRefNull view_name_;
-
-  TextureFromPool velocity_camera_tx_ = {"velocity_camera_tx_"};
-  TextureFromPool velocity_view_tx_ = {"velocity_view_tx_"};
-
- public:
-  VelocityView(Instance &inst, const char *name) : inst_(inst), view_name_(name){};
-  ~VelocityView(){};
-
-  void sync();
-
-  void acquire(int2 extent);
-  void release();
-
-  void resolve(GPUTexture *depth_tx);
-
-  /**
-   * Getters
-   **/
-  GPUTexture *view_vectors_get() const
-  {
-    return velocity_view_tx_;
-  }
-  GPUTexture *camera_vectors_get() const
-  {
-    return (velocity_camera_tx_.is_valid()) ? velocity_camera_tx_ : velocity_view_tx_;
-  }
 };
 
 /** \} */

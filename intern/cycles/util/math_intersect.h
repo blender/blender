@@ -10,7 +10,8 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device bool ray_sphere_intersect(float3 ray_P,
                                      float3 ray_D,
-                                     float ray_t,
+                                     float ray_tmin,
+                                     float ray_tmax,
                                      float3 sphere_P,
                                      float sphere_radius,
                                      ccl_private float3 *isect_P,
@@ -33,7 +34,7 @@ ccl_device bool ray_sphere_intersect(float3 ray_P,
       return false;
     }
     const float t = tp - sqrtf(radiussq - dsq); /* pythagoras */
-    if (t < ray_t) {
+    if (t > ray_tmin && t < ray_tmax) {
       *isect_t = t;
       *isect_P = ray_P + ray_D * t;
       return true;
@@ -44,7 +45,8 @@ ccl_device bool ray_sphere_intersect(float3 ray_P,
 
 ccl_device bool ray_aligned_disk_intersect(float3 ray_P,
                                            float3 ray_D,
-                                           float ray_t,
+                                           float ray_tmin,
+                                           float ray_tmax,
                                            float3 disk_P,
                                            float disk_radius,
                                            ccl_private float3 *isect_P,
@@ -59,7 +61,7 @@ ccl_device bool ray_aligned_disk_intersect(float3 ray_P,
   }
   /* Compute t to intersection point. */
   const float t = -disk_t / div;
-  if (t < 0.0f || t > ray_t) {
+  if (!(t > ray_tmin && t < ray_tmax)) {
     return false;
   }
   /* Test if within radius. */
@@ -74,7 +76,8 @@ ccl_device bool ray_aligned_disk_intersect(float3 ray_P,
 
 ccl_device bool ray_disk_intersect(float3 ray_P,
                                    float3 ray_D,
-                                   float ray_t,
+                                   float ray_tmin,
+                                   float ray_tmax,
                                    float3 disk_P,
                                    float3 disk_N,
                                    float disk_radius,
@@ -92,7 +95,8 @@ ccl_device bool ray_disk_intersect(float3 ray_P,
     }
     float3 P = ray_P + t * ray_D;
     float3 T = P - disk_P;
-    if (dot(T, T) < sqr(disk_radius) /*&& t > 0.f*/ && t <= ray_t) {
+
+    if (dot(T, T) < sqr(disk_radius) && (t > ray_tmin && t < ray_tmax)) {
       *isect_P = ray_P + t * ray_D;
       *isect_t = t;
       return true;
@@ -101,9 +105,55 @@ ccl_device bool ray_disk_intersect(float3 ray_P,
   return false;
 }
 
-ccl_device_forceinline bool ray_triangle_intersect(float3 ray_P,
-                                                   float3 ray_dir,
-                                                   float ray_t,
+/* Custom rcp, cross and dot implementations that match Embree bit for bit. */
+ccl_device_forceinline float ray_triangle_rcp(const float x)
+{
+#ifdef __KERNEL_NEON__
+  /* Move scalar to vector register and do rcp. */
+  __m128 a;
+  a[0] = x;
+  float32x4_t reciprocal = vrecpeq_f32(a);
+  reciprocal = vmulq_f32(vrecpsq_f32(a, reciprocal), reciprocal);
+  reciprocal = vmulq_f32(vrecpsq_f32(a, reciprocal), reciprocal);
+  return reciprocal[0];
+#elif defined(__KERNEL_SSE__)
+  const __m128 a = _mm_set_ss(x);
+  const __m128 r = _mm_rcp_ss(a);
+
+#  ifdef __KERNEL_AVX2_
+  return _mm_cvtss_f32(_mm_mul_ss(r, _mm_fnmadd_ss(r, a, _mm_set_ss(2.0f))));
+#  else
+  return _mm_cvtss_f32(_mm_mul_ss(r, _mm_sub_ss(_mm_set_ss(2.0f), _mm_mul_ss(r, a))));
+#  endif
+#else
+  return 1.0f / x;
+#endif
+}
+
+ccl_device_inline float ray_triangle_dot(const float3 a, const float3 b)
+{
+#if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
+  return madd(ssef(a.x), ssef(b.x), madd(ssef(a.y), ssef(b.y), ssef(a.z) * ssef(b.z)))[0];
+#else
+  return a.x * b.x + a.y * b.y + a.z * b.z;
+#endif
+}
+
+ccl_device_inline float3 ray_triangle_cross(const float3 a, const float3 b)
+{
+#if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
+  return make_float3(msub(ssef(a.y), ssef(b.z), ssef(a.z) * ssef(b.y))[0],
+                     msub(ssef(a.z), ssef(b.x), ssef(a.x) * ssef(b.z))[0],
+                     msub(ssef(a.x), ssef(b.y), ssef(a.y) * ssef(b.x))[0]);
+#else
+  return make_float3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
+#endif
+}
+
+ccl_device_forceinline bool ray_triangle_intersect(const float3 ray_P,
+                                                   const float3 ray_D,
+                                                   const float ray_tmin,
+                                                   const float ray_tmax,
                                                    const float3 tri_a,
                                                    const float3 tri_b,
                                                    const float3 tri_c,
@@ -111,14 +161,13 @@ ccl_device_forceinline bool ray_triangle_intersect(float3 ray_P,
                                                    ccl_private float *isect_v,
                                                    ccl_private float *isect_t)
 {
-#define dot3(a, b) dot(a, b)
-  const float3 P = ray_P;
-  const float3 dir = ray_dir;
+  /* This implementation matches the Plücker coordinates triangle intersection
+   * in Embree. */
 
   /* Calculate vertices relative to ray origin. */
-  const float3 v0 = tri_c - P;
-  const float3 v1 = tri_a - P;
-  const float3 v2 = tri_b - P;
+  const float3 v0 = tri_a - ray_P;
+  const float3 v1 = tri_b - ray_P;
+  const float3 v2 = tri_c - ray_P;
 
   /* Calculate triangle edges. */
   const float3 e0 = v2 - v0;
@@ -126,42 +175,73 @@ ccl_device_forceinline bool ray_triangle_intersect(float3 ray_P,
   const float3 e2 = v1 - v2;
 
   /* Perform edge tests. */
-  const float U = dot(cross(v2 + v0, e0), ray_dir);
-  const float V = dot(cross(v0 + v1, e1), ray_dir);
-  const float W = dot(cross(v1 + v2, e2), ray_dir);
+  const float U = ray_triangle_dot(ray_triangle_cross(e0, v2 + v0), ray_D);
+  const float V = ray_triangle_dot(ray_triangle_cross(e1, v0 + v1), ray_D);
+  const float W = ray_triangle_dot(ray_triangle_cross(e2, v1 + v2), ray_D);
 
+  const float UVW = U + V + W;
+  const float eps = FLT_EPSILON * fabsf(UVW);
   const float minUVW = min(U, min(V, W));
   const float maxUVW = max(U, max(V, W));
 
-  if (minUVW < 0.0f && maxUVW > 0.0f) {
+  if (!(minUVW >= -eps || maxUVW <= eps)) {
     return false;
   }
 
   /* Calculate geometry normal and denominator. */
-  const float3 Ng1 = cross(e1, e0);
-  // const Vec3vfM Ng1 = stable_triangle_normal(e2,e1,e0);
+  const float3 Ng1 = ray_triangle_cross(e1, e0);
   const float3 Ng = Ng1 + Ng1;
-  const float den = dot3(Ng, dir);
+  const float den = dot(Ng, ray_D);
   /* Avoid division by 0. */
   if (UNLIKELY(den == 0.0f)) {
     return false;
   }
 
   /* Perform depth test. */
-  const float T = dot3(v0, Ng);
-  const int sign_den = (__float_as_int(den) & 0x80000000);
-  const float sign_T = xor_signmask(T, sign_den);
-  if ((sign_T < 0.0f) || (sign_T > ray_t * xor_signmask(den, sign_den))) {
+  const float T = dot(v0, Ng);
+  const float t = T / den;
+  if (!(t >= ray_tmin && t <= ray_tmax)) {
     return false;
   }
 
-  const float inv_den = 1.0f / den;
-  *isect_u = U * inv_den;
-  *isect_v = V * inv_den;
-  *isect_t = T * inv_den;
+  const float rcp_uvw = (fabsf(UVW) < 1e-18f) ? 0.0f : ray_triangle_rcp(UVW);
+  *isect_u = min(U * rcp_uvw, 1.0f);
+  *isect_v = min(V * rcp_uvw, 1.0f);
+  *isect_t = t;
   return true;
+}
 
-#undef dot3
+ccl_device_forceinline bool ray_triangle_intersect_self(const float3 ray_P,
+                                                        const float3 ray_D,
+                                                        const float3 tri_a,
+                                                        const float3 tri_b,
+                                                        const float3 tri_c)
+{
+  /* Matches logic in ray_triangle_intersect, self intersection test to validate
+   * if a ray is going to hit self or might incorrectly hit a neighboring triangle. */
+
+  /* Calculate vertices relative to ray origin. */
+  const float3 v0 = tri_a - ray_P;
+  const float3 v1 = tri_b - ray_P;
+  const float3 v2 = tri_c - ray_P;
+
+  /* Calculate triangle edges. */
+  const float3 e0 = v2 - v0;
+  const float3 e1 = v0 - v1;
+  const float3 e2 = v1 - v2;
+
+  /* Perform edge tests. */
+  const float U = ray_triangle_dot(ray_triangle_cross(v2 + v0, e0), ray_D);
+  const float V = ray_triangle_dot(ray_triangle_cross(v0 + v1, e1), ray_D);
+  const float W = ray_triangle_dot(ray_triangle_cross(v1 + v2, e2), ray_D);
+
+  const float eps = FLT_EPSILON * fabsf(U + V + W);
+  const float minUVW = min(U, min(V, W));
+  const float maxUVW = max(U, max(V, W));
+
+  /* Note the extended epsilon compared to ray_triangle_intersect, to account
+   * for intersections with neighboring triangles that have an epsilon. */
+  return (minUVW >= eps || maxUVW <= -eps);
 }
 
 /* Tests for an intersection between a ray and a quad defined by
@@ -171,8 +251,8 @@ ccl_device_forceinline bool ray_triangle_intersect(float3 ray_P,
  */
 ccl_device bool ray_quad_intersect(float3 ray_P,
                                    float3 ray_D,
-                                   float ray_mint,
-                                   float ray_maxt,
+                                   float ray_tmin,
+                                   float ray_tmax,
                                    float3 quad_P,
                                    float3 quad_u,
                                    float3 quad_v,
@@ -185,7 +265,7 @@ ccl_device bool ray_quad_intersect(float3 ray_P,
 {
   /* Perform intersection test. */
   float t = -(dot(ray_P, quad_n) - dot(quad_P, quad_n)) / dot(ray_D, quad_n);
-  if (t < ray_mint || t > ray_maxt) {
+  if (!(t > ray_tmin && t < ray_tmax)) {
     return false;
   }
   const float3 hit = ray_P + t * ray_D;
@@ -207,10 +287,13 @@ ccl_device bool ray_quad_intersect(float3 ray_P,
     *isect_P = hit;
   if (isect_t != NULL)
     *isect_t = t;
+
+  /* NOTE: Return barycentric coordinates in the same notation as Embree and OptiX. */
   if (isect_u != NULL)
-    *isect_u = u + 0.5f;
+    *isect_u = v + 0.5f;
   if (isect_v != NULL)
-    *isect_v = v + 0.5f;
+    *isect_v = -u - v;
+
   return true;
 }
 

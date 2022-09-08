@@ -64,7 +64,7 @@ void AnimationImporter::add_bezt(FCurve *fcu,
   bez.f1 = bez.f2 = bez.f3 = SELECT;
   bez.h1 = bez.h2 = HD_AUTO;
   insert_bezt_fcurve(fcu, &bez, INSERTKEY_NOFLAGS);
-  calchandles_fcurve(fcu);
+  BKE_fcurve_handles_recalc(fcu);
 }
 
 void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
@@ -132,7 +132,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
           insert_bezt_fcurve(fcu, &bez, INSERTKEY_NOFLAGS);
         }
 
-        calchandles_fcurve(fcu);
+        BKE_fcurve_handles_recalc(fcu);
 
         fcurves.push_back(fcu);
         unused_curves.push_back(fcu);

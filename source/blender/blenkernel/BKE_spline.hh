@@ -15,7 +15,7 @@
 #include "BLI_math_vec_types.hh"
 #include "BLI_vector.hh"
 
-#include "BKE_attribute_access.hh"
+#include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 
 struct Curve;
@@ -360,7 +360,7 @@ class BezierSpline final : public Spline {
    * Returns non-owning access to an array of values containing the information necessary to
    * interpolate values from the original control points to evaluated points. The control point
    * index is the integer part of each value, and the factor used for interpolating to the next
-   * control point is the remaining factional part.
+   * control point is the remaining fractional part.
    */
   blender::Span<float> evaluated_mappings() const;
   blender::Span<blender::float3> evaluated_positions() const final;
@@ -645,6 +645,8 @@ struct CurveEval {
   void translate(const blender::float3 &translation);
   void transform(const blender::float4x4 &matrix);
   bool bounds_min_max(blender::float3 &min, blender::float3 &max, bool use_evaluated) const;
+
+  blender::bke::MutableAttributeAccessor attributes_for_write();
 
   /**
    * Return the start indices for each of the curve spline's control points, if they were part

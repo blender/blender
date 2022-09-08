@@ -15,7 +15,6 @@
 #include "intern/gpu_shader_create_info.hh"
 
 #include "../generic/py_capi_utils.h"
-#include "../generic/python_utildefines.h"
 
 #include "gpu_py_shader.h" /* own include */
 
@@ -59,7 +58,7 @@ static const struct PyC_FlagSet pygpu_qualifiers[] = {
   "      - ``IVEC3``\n" \
   "      - ``IVEC4``\n" \
   "      - ``BOOL``\n"
-static const struct PyC_StringEnumItems pygpu_attrtype_items[] = {
+const struct PyC_StringEnumItems pygpu_attrtype_items[] = {
     {(int)Type::FLOAT, "FLOAT"},
     {(int)Type::VEC2, "VEC2"},
     {(int)Type::VEC3, "VEC3"},
@@ -674,6 +673,9 @@ static int constant_type_size(Type type)
     case Type::FLOAT:
     case Type::INT:
     case Type::UINT:
+    case Type::UCHAR4:
+    case Type::CHAR4:
+    case blender::gpu::shader::Type::VEC3_101010I2:
       return 4;
       break;
     case Type::VEC2:
@@ -695,6 +697,18 @@ static int constant_type_size(Type type)
       return 36 + 3 * 4;
     case Type::MAT4:
       return 64;
+      break;
+    case blender::gpu::shader::Type::UCHAR:
+    case blender::gpu::shader::Type::CHAR:
+      return 1;
+      break;
+    case blender::gpu::shader::Type::UCHAR2:
+    case blender::gpu::shader::Type::CHAR2:
+      return 2;
+      break;
+    case blender::gpu::shader::Type::UCHAR3:
+    case blender::gpu::shader::Type::CHAR3:
+      return 3;
       break;
   }
   BLI_assert(false);

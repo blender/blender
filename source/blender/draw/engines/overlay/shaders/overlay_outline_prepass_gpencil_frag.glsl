@@ -22,14 +22,14 @@ void main()
 
   if (!gpStrokeOrder3d) {
     /* Stroke order 2D. Project to gpDepthPlane. */
-    bool is_persp = ProjectionMatrix[3][3] == 0.0;
+    bool is_persp = drw_view.winmat[3][3] == 0.0;
     vec2 uvs = vec2(gl_FragCoord.xy) * drw_view.viewport_size_inverse;
     vec3 pos_ndc = vec3(uvs, gl_FragCoord.z) * 2.0 - 1.0;
-    vec4 pos_world = ViewProjectionMatrixInverse * vec4(pos_ndc, 1.0);
+    vec4 pos_world = drw_view.persinv * vec4(pos_ndc, 1.0);
     vec3 pos = pos_world.xyz / pos_world.w;
 
     vec3 ray_ori = pos;
-    vec3 ray_dir = (is_persp) ? (ViewMatrixInverse[3].xyz - pos) : ViewMatrixInverse[2].xyz;
+    vec3 ray_dir = (is_persp) ? (drw_view.viewinv[3].xyz - pos) : drw_view.viewinv[2].xyz;
     vec3 isect = ray_plane_intersection(ray_ori, ray_dir, gpDepthPlane);
     vec4 ndc = point_world_to_ndc(isect);
     gl_FragDepth = (ndc.z / ndc.w) * 0.5 + 0.5;

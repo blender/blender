@@ -305,5 +305,3 @@ void *HEAP_node_ptr(HeapNode *node)
 {
 	return node->ptr;
 }
-
-/** \} */

@@ -31,7 +31,7 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg,
                                                       bool is_local)
 {
   /* Get shader. */
-  sd->shader = kernel_tex_fetch(__tri_shader, sd->prim);
+  sd->shader = kernel_data_fetch(tri_shader, sd->prim);
   /* Get motion info. */
   /* TODO(sergey): This logic is really similar to motion_triangle_vertices(),
    * can we de-duplicate something here?
@@ -47,7 +47,7 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg,
   kernel_assert(offset != ATTR_STD_NOT_FOUND);
   /* Fetch vertex coordinates. */
   float3 verts[3], next_verts[3];
-  uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, sd->prim);
+  uint4 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
   motion_triangle_verts_for_step(kg, tri_vindex, offset, numverts, numsteps, step, verts);
   motion_triangle_verts_for_step(kg, tri_vindex, offset, numverts, numsteps, step + 1, next_verts);
   /* Interpolate between steps. */
@@ -68,8 +68,8 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg,
   sd->N = Ng;
   /* Compute derivatives of P w.r.t. uv. */
 #ifdef __DPDU__
-  sd->dPdu = (verts[0] - verts[2]);
-  sd->dPdv = (verts[1] - verts[2]);
+  sd->dPdu = (verts[1] - verts[0]);
+  sd->dPdv = (verts[2] - verts[0]);
 #endif
   /* Compute smooth normal. */
   if (sd->shader & SHADER_SMOOTH_NORMAL) {
@@ -89,7 +89,7 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg,
     float u = sd->u;
     float v = sd->v;
     float w = 1.0f - u - v;
-    sd->N = (u * normals[0] + v * normals[1] + w * normals[2]);
+    sd->N = (w * normals[0] + u * normals[1] + v * normals[2]);
   }
 }
 

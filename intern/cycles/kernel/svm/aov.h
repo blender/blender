@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "kernel/film/write_passes.h"
+#include "kernel/film/aov_passes.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -27,12 +27,7 @@ ccl_device void svm_node_aov_color(KernelGlobals kg,
   IF_KERNEL_NODES_FEATURE(AOV)
   {
     const float3 val = stack_load_float3(stack, node.y);
-    const uint32_t render_pixel_index = INTEGRATOR_STATE(state, path, render_pixel_index);
-    const uint64_t render_buffer_offset = (uint64_t)render_pixel_index *
-                                          kernel_data.film.pass_stride;
-    ccl_global float *buffer = render_buffer + render_buffer_offset +
-                               (kernel_data.film.pass_aov_color + node.z);
-    kernel_write_pass_float4(buffer, make_float4(val.x, val.y, val.z, 1.0f));
+    film_write_aov_pass_color(kg, state, render_buffer, node.z, val);
   }
 }
 
@@ -47,12 +42,7 @@ ccl_device void svm_node_aov_value(KernelGlobals kg,
   IF_KERNEL_NODES_FEATURE(AOV)
   {
     const float val = stack_load_float(stack, node.y);
-    const uint32_t render_pixel_index = INTEGRATOR_STATE(state, path, render_pixel_index);
-    const uint64_t render_buffer_offset = (uint64_t)render_pixel_index *
-                                          kernel_data.film.pass_stride;
-    ccl_global float *buffer = render_buffer + render_buffer_offset +
-                               (kernel_data.film.pass_aov_value + node.z);
-    kernel_write_pass_float(buffer, val);
+    film_write_aov_pass_value(kg, state, render_buffer, node.z, val);
   }
 }
 CCL_NAMESPACE_END

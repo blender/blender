@@ -645,7 +645,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Envelope = {
-    /* name */ "Envelope",
+    /* name */ N_("Envelope"),
     /* structName */ "EnvelopeGpencilModifierData",
     /* structSize */ sizeof(EnvelopeGpencilModifierData),
     /* type */ eGpencilModifierTypeType_Gpencil,

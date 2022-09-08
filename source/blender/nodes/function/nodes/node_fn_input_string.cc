@@ -20,7 +20,7 @@ static void fn_node_input_string_layout(uiLayout *layout, bContext *UNUSED(C), P
 
 static void fn_node_input_string_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &bnode = builder.node();
+  const bNode &bnode = builder.node();
   NodeInputString *node_storage = static_cast<NodeInputString *>(bnode.storage);
   std::string string = std::string((node_storage->string) ? node_storage->string : "");
   builder.construct_and_set_matching_fn<fn::CustomMF_Constant<std::string>>(std::move(string));

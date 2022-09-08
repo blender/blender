@@ -1675,7 +1675,7 @@ static Edge find_good_sorting_edge(const Vert *testp,
  * The algorithm is similar to the one for find_ambient_cell, except that
  * instead of an arbitrary point known to be outside the whole mesh, we
  * have a particular point (v) and we just want to determine the patches
- * that that point is between in sorting-around-an-edge order.
+ * that point is between in sorting-around-an-edge order.
  */
 static int find_containing_cell(const Vert *v,
                                 int t,
@@ -2966,6 +2966,11 @@ static std::ostream &operator<<(std::ostream &os, const FaceMergeState &fms)
  * \a tris all have the same original face.
  * Find the 2d edge/triangle topology for these triangles, but only the ones facing in the
  * norm direction, and whether each edge is dissolvable or not.
+ * If we did the initial triangulation properly, and any Delaunay triangulations of intersections
+ * properly, then each triangle edge should have at most one neighbor.
+ * However, there can be anomalies. For example, if an input face is self-intersecting, we fall
+ * back on the floating point poly-fill triangulation, which, after which all bets are off.
+ * Hence, try to be tolerant of such unexpected topology.
  */
 static void init_face_merge_state(FaceMergeState *fms,
                                   const Vector<int> &tris,
@@ -3053,16 +3058,35 @@ static void init_face_merge_state(FaceMergeState *fms,
           std::cout << "me.v1 == mf.vert[i] so set edge[" << me_index << "].left_face = " << f
                     << "\n";
         }
-        BLI_assert(me.left_face == -1);
-        fms->edge[me_index].left_face = f;
+        if (me.left_face != -1) {
+          /* Unexpected in the normal case: this means more than one triangle shares this
+           * edge in the same orientation. But be tolerant of this case. By making this
+           * edge not dissolvable, we'll avoid future problems due to this non-manifold topology.
+           */
+          if (dbg_level > 1) {
+            std::cout << "me.left_face was already occupied, so triangulation wasn't good\n";
+          }
+          me.dissolvable = false;
+        }
+        else {
+          fms->edge[me_index].left_face = f;
+        }
       }
       else {
         if (dbg_level > 1) {
           std::cout << "me.v1 != mf.vert[i] so set edge[" << me_index << "].right_face = " << f
                     << "\n";
         }
-        BLI_assert(me.right_face == -1);
-        fms->edge[me_index].right_face = f;
+        if (me.right_face != -1) {
+          /* Unexpected, analogous to the me.left_face != -1 case above. */
+          if (dbg_level > 1) {
+            std::cout << "me.right_face was already occupied, so triangulation wasn't good\n";
+          }
+          me.dissolvable = false;
+        }
+        else {
+          fms->edge[me_index].right_face = f;
+        }
       }
       fms->face[f].edge.append(me_index);
     }

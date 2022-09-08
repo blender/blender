@@ -60,6 +60,28 @@ struct AlembicExportParams {
   float global_scale;
 };
 
+struct AlembicImportParams {
+  /* Multiplier for the cached data scale. Mostly useful if the data is stored in a different unit
+   * as what Blender expects (e.g. centimeters instead of meters). */
+  float global_scale;
+
+  /* Number of consecutive files to expect if the cached animation is split in a sequence. */
+  int sequence_len;
+  /* Start frame of the sequence, offset from 0. */
+  int sequence_offset;
+  /* True if the cache is split in multiple files. */
+  bool is_sequence;
+
+  /* True if the importer should set the current scene's start and end frame based on the start and
+   * end frames of the cached animation. */
+  bool set_frame_range;
+  /* True if imported meshes should be validated. Error messages are sent to the console. */
+  bool validate_meshes;
+  /* True if a cache reader should be added regardless of whether there is animated data in the
+   * cached file. */
+  bool always_add_cache_reader;
+};
+
 /* The ABC_export and ABC_import functions both take a as_background_job
  * parameter, and return a boolean.
  *
@@ -78,13 +100,7 @@ bool ABC_export(struct Scene *scene,
 
 bool ABC_import(struct bContext *C,
                 const char *filepath,
-                float scale,
-                bool is_sequence,
-                bool set_frame_range,
-                int sequence_len,
-                int offset,
-                bool validate_meshes,
-                bool always_add_cache_reader,
+                const struct AlembicImportParams *params,
                 bool as_background_job);
 
 struct CacheArchiveHandle *ABC_create_handle(struct Main *bmain,

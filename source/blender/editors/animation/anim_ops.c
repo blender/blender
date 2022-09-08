@@ -111,9 +111,9 @@ static int seq_frame_apply_snap(bContext *C, Scene *scene, const int timeline_fr
   Sequence *seq;
   SEQ_ITERATOR_FOREACH (seq, strips) {
     seq_frame_snap_update_best(
-        SEQ_time_left_handle_frame_get(seq), timeline_frame, &best_frame, &best_distance);
+        SEQ_time_left_handle_frame_get(scene, seq), timeline_frame, &best_frame, &best_distance);
     seq_frame_snap_update_best(
-        SEQ_time_right_handle_frame_get(seq), timeline_frame, &best_frame, &best_distance);
+        SEQ_time_right_handle_frame_get(scene, seq), timeline_frame, &best_frame, &best_distance);
   }
   SEQ_collection_free(strips);
 
@@ -142,14 +142,14 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 
   /* set the new frame number */
   if (scene->r.flag & SCER_SHOW_SUBFRAME) {
-    CFRA = (int)frame;
-    SUBFRA = frame - (int)frame;
+    scene->r.cfra = (int)frame;
+    scene->r.subframe = frame - (int)frame;
   }
   else {
-    CFRA = round_fl_to_int(frame);
-    SUBFRA = 0.0f;
+    scene->r.cfra = round_fl_to_int(frame);
+    scene->r.subframe = 0.0f;
   }
-  FRAMENUMBER_MIN_CLAMP(CFRA);
+  FRAMENUMBER_MIN_CLAMP(scene->r.cfra);
 
   /* do updates */
   DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
@@ -382,7 +382,7 @@ static int anim_set_sfra_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  frame = CFRA;
+  frame = scene->r.cfra;
 
   /* if Preview Range is defined, set the 'start' frame for that */
   if (PRVRANGEON) {
@@ -437,7 +437,7 @@ static int anim_set_efra_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  frame = CFRA;
+  frame = scene->r.cfra;
 
   /* if Preview Range is defined, set the 'end' frame for that */
   if (PRVRANGEON) {

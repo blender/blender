@@ -388,6 +388,17 @@ const EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(bContext *C,
 
   /* Create new layer */
   /* TODO: have some way of specifying that we don't want this? */
+  {
+    /* "New Layer" entry */
+    item_tmp.identifier = "__CREATE__";
+    item_tmp.name = "New Layer";
+    item_tmp.value = -1;
+    item_tmp.icon = ICON_ADD;
+    RNA_enum_item_add(&item, &totitem, &item_tmp);
+
+    /* separator */
+    RNA_enum_item_add_separator(&item, &totitem);
+  }
 
   const int tot = BLI_listbase_count(&gpd->layers);
   /* Existing layers */
@@ -403,17 +414,6 @@ const EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(bContext *C,
       item_tmp.icon = ICON_NONE;
     }
 
-    RNA_enum_item_add(&item, &totitem, &item_tmp);
-  }
-  {
-    /* separator */
-    RNA_enum_item_add_separator(&item, &totitem);
-
-    /* "New Layer" entry */
-    item_tmp.identifier = "__CREATE__";
-    item_tmp.name = "New Layer";
-    item_tmp.value = -1;
-    item_tmp.icon = ICON_ADD;
     RNA_enum_item_add(&item, &totitem, &item_tmp);
   }
 
@@ -1683,7 +1683,7 @@ void ED_gpencil_brush_draw_eraser(Brush *brush, int x, int y)
 
   GPUVertFormat *format = immVertexFormat();
   const uint shdr_pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   GPU_line_smooth(true);
   GPU_blend(GPU_BLEND_ALPHA);
@@ -1693,7 +1693,7 @@ void ED_gpencil_brush_draw_eraser(Brush *brush, int x, int y)
 
   immUnbindProgram();
 
-  immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);
@@ -1865,7 +1865,7 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
   /* draw icon */
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   GPU_line_smooth(true);
   GPU_blend(GPU_BLEND_ALPHA);
@@ -3189,7 +3189,7 @@ bGPDstroke *ED_gpencil_stroke_join_and_trim(
 
   /* Join both strokes. */
   int totpoint = gps_final->totpoints;
-  BKE_gpencil_stroke_join(gps_final, gps, false, true, true);
+  BKE_gpencil_stroke_join(gps_final, gps, false, true, true, true);
 
   /* Select the join points and merge if the distance is very small. */
   pt = &gps_final->points[totpoint - 1];

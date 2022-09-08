@@ -37,7 +37,7 @@ class DenoiseOperation : public DenoiseBaseOperation {
   /**
    * \brief settings of the denoise node.
    */
-  NodeDenoise *settings_;
+  const NodeDenoise *settings_;
 
  public:
   DenoiseOperation();
@@ -51,7 +51,7 @@ class DenoiseOperation : public DenoiseBaseOperation {
    */
   void deinit_execution() override;
 
-  void set_denoise_settings(NodeDenoise *settings)
+  void set_denoise_settings(const NodeDenoise *settings)
   {
     settings_ = settings;
   }
@@ -66,7 +66,7 @@ class DenoiseOperation : public DenoiseBaseOperation {
                         MemoryBuffer *input_color,
                         MemoryBuffer *input_normal,
                         MemoryBuffer *input_albedo,
-                        NodeDenoise *settings);
+                        const NodeDenoise *settings);
 
   MemoryBuffer *create_memory_buffer(rcti *rect) override;
 };

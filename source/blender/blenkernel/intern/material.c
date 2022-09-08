@@ -102,6 +102,7 @@ static void material_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const 
                      (ID **)&material_dst->nodetree,
                      flag_private_id_data);
     }
+    material_dst->nodetree->owner_id = &material_dst->id;
   }
 
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
@@ -852,7 +853,7 @@ void BKE_object_material_resize(Main *bmain, Object *ob, const short totcol, boo
     ob->mat = newmatar;
     ob->matbits = newmatbits;
   }
-  /* XXX(campbell): why not realloc on shrink? */
+  /* XXX(@campbellbarton): why not realloc on shrink? */
 
   ob->totcol = totcol;
   if (ob->totcol && ob->actcol == 0) {
@@ -954,7 +955,8 @@ void BKE_id_material_assign(Main *bmain, ID *id, Material *ma, short act)
   BKE_objects_materials_test_all(bmain, id);
 }
 
-void BKE_object_material_assign(Main *bmain, Object *ob, Material *ma, short act, int assign_type)
+static void object_material_assign(
+    Main *bmain, Object *ob, Material *ma, short act, int assign_type, bool do_test_all)
 {
   Material *mao, **matar, ***matarar;
   short *totcolp;
@@ -1037,12 +1039,28 @@ void BKE_object_material_assign(Main *bmain, Object *ob, Material *ma, short act
       id_us_min(&mao->id);
     }
     (*matarar)[act - 1] = ma;
-    BKE_objects_materials_test_all(bmain, ob->data); /* Data may be used by several objects... */
+    /* Data may be used by several objects. */
+    if (do_test_all) {
+      BKE_objects_materials_test_all(bmain, ob->data);
+    }
   }
 
   if (ma) {
     id_us_plus(&ma->id);
   }
+}
+
+void BKE_object_material_assign(Main *bmain, Object *ob, Material *ma, short act, int assign_type)
+{
+  object_material_assign(bmain, ob, ma, act, assign_type, true);
+}
+
+void BKE_object_material_assign_single_obdata(struct Main *bmain,
+                                              struct Object *ob,
+                                              struct Material *ma,
+                                              short act)
+{
+  object_material_assign(bmain, ob, ma, act, BKE_MAT_ASSIGN_OBDATA, false);
 }
 
 void BKE_object_material_remap(Object *ob, const unsigned int *remap)
@@ -1945,8 +1963,8 @@ static void material_default_surface_init(Material *ma)
 {
   strcpy(ma->id.name, "MADefault Surface");
 
-  bNodeTree *ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
-  ma->nodetree = ntree;
+  bNodeTree *ntree = ntreeAddTreeEmbedded(
+      NULL, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
   ma->use_nodes = true;
 
   bNode *principled = nodeAddStaticNode(NULL, ntree, SH_NODE_BSDF_PRINCIPLED);
@@ -1973,8 +1991,8 @@ static void material_default_volume_init(Material *ma)
 {
   strcpy(ma->id.name, "MADefault Volume");
 
-  bNodeTree *ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
-  ma->nodetree = ntree;
+  bNodeTree *ntree = ntreeAddTreeEmbedded(
+      NULL, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
   ma->use_nodes = true;
 
   bNode *principled = nodeAddStaticNode(NULL, ntree, SH_NODE_VOLUME_PRINCIPLED);
@@ -1998,8 +2016,8 @@ static void material_default_holdout_init(Material *ma)
 {
   strcpy(ma->id.name, "MADefault Holdout");
 
-  bNodeTree *ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
-  ma->nodetree = ntree;
+  bNodeTree *ntree = ntreeAddTreeEmbedded(
+      NULL, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
   ma->use_nodes = true;
 
   bNode *holdout = nodeAddStaticNode(NULL, ntree, SH_NODE_HOLDOUT);

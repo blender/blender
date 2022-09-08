@@ -14,6 +14,7 @@
 const std::string manta_import =
     "\
 from manta import *\n\
+from math import inf\n\
 import os.path, shutil, math, sys, gc, multiprocessing, platform, time\n\
 \n\
 withMPBake = False # Bake files asynchronously\n\

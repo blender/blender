@@ -3,8 +3,8 @@ Extending the Button Context Menu
 +++++++++++++++++++++++++++++++++
 
 This example enables you to insert your own menu entry into the common
-right click menu that you get while hovering over a value field,
-color, string, etc.
+right click menu that you get while hovering over a UI button (e.g. operator,
+value field, color, string, etc.)
 
 To make the example work, you have to first select an object
 then right click on an user interface element (maybe a color in the
@@ -14,7 +14,6 @@ Executing the operator will then print all values.
 """
 
 import bpy
-from bpy.types import Menu
 
 
 def dump(obj, text):
@@ -47,36 +46,20 @@ class WM_OT_button_context_test(bpy.types.Operator):
         return {'FINISHED'}
 
 
-# This class has to be exactly named like that to insert an entry in the right click menu
-class WM_MT_button_context(Menu):
-    bl_label = "Unused"
-
-    def draw(self, context):
-        pass
-
-
-def menu_func(self, context):
+def draw_menu(self, context):
     layout = self.layout
     layout.separator()
     layout.operator(WM_OT_button_context_test.bl_idname)
 
 
-classes = (
-    WM_OT_button_context_test,
-    WM_MT_button_context,
-)
-
-
 def register():
-    for cls in classes:
-        bpy.utils.register_class(cls)
-    bpy.types.WM_MT_button_context.append(menu_func)
+    bpy.utils.register_class(WM_OT_button_context_test)
+    bpy.types.UI_MT_button_context_menu.append(draw_menu)
 
 
 def unregister():
-    for cls in classes:
-        bpy.utils.unregister_class(cls)
-    bpy.types.WM_MT_button_context.remove(menu_func)
+    bpy.types.UI_MT_button_context_menu.remove(draw_menu)
+    bpy.utils.unregister_class(WM_OT_button_context_test)
 
 
 if __name__ == "__main__":

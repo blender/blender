@@ -6,33 +6,37 @@ import bpy
 import gpu
 from gpu_extras.batch import batch_for_shader
 
-vertex_shader = '''
-    uniform mat4 viewProjectionMatrix;
 
-    in vec3 position;
-    out vec3 pos;
+vert_out = gpu.types.GPUStageInterfaceInfo("my_interface")
+vert_out.smooth('VEC3', "pos")
 
-    void main()
-    {
-        pos = position;
-        gl_Position = viewProjectionMatrix * vec4(position, 1.0f);
-    }
-'''
+shader_info = gpu.types.GPUShaderCreateInfo()
+shader_info.push_constant('MAT4', "viewProjectionMatrix")
+shader_info.push_constant('FLOAT', "brightness")
+shader_info.vertex_in(0, 'VEC3', "position")
+shader_info.vertex_out(vert_out)
+shader_info.fragment_out(0, 'VEC4', "FragColor")
 
-fragment_shader = '''
-    uniform float brightness;
+shader_info.vertex_source(
+    "void main()"
+    "{"
+    "  pos = position;"
+    "  gl_Position = viewProjectionMatrix * vec4(position, 1.0f);"
+    "}"
+)
 
-    in vec3 pos;
-    out vec4 FragColor;
+shader_info.fragment_source(
+    "void main()"
+    "{"
+    "  FragColor = vec4(pos * brightness, 1.0);"
+    "}"
+)
 
-    void main()
-    {
-        FragColor = vec4(pos * brightness, 1.0);
-    }
-'''
+shader = gpu.shader.create_from_info(shader_info)
+del vert_out
+del shader_info
 
 coords = [(1, 1, 1), (2, 0, 0), (-2, -1, 3)]
-shader = gpu.types.GPUShader(vertex_shader, fragment_shader)
 batch = batch_for_shader(shader, 'TRIS', {"position": coords})
 
 

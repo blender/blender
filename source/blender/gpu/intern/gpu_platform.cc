@@ -79,11 +79,15 @@ void GPUPlatformGlobal::init(eGPUDeviceType gpu_device,
   this->driver = driver_type;
   this->support_level = gpu_support_level;
 
-  this->vendor = BLI_strdup(vendor_str);
-  this->renderer = BLI_strdup(renderer_str);
-  this->version = BLI_strdup(version_str);
-  this->support_key = create_key(gpu_support_level, vendor_str, renderer_str, version_str);
-  this->gpu_name = create_gpu_name(vendor_str, renderer_str, version_str);
+  const char *vendor = vendor_str ? vendor_str : "UNKNOWN";
+  const char *renderer = renderer_str ? renderer_str : "UNKNOWN";
+  const char *version = version_str ? version_str : "UNKNOWN";
+
+  this->vendor = BLI_strdup(vendor);
+  this->renderer = BLI_strdup(renderer);
+  this->version = BLI_strdup(version);
+  this->support_key = create_key(gpu_support_level, vendor, renderer, version);
+  this->gpu_name = create_gpu_name(vendor, renderer, version);
   this->backend = backend;
 }
 

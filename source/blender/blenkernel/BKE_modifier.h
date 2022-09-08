@@ -446,10 +446,22 @@ bool BKE_modifier_is_enabled(const struct Scene *scene,
  */
 bool BKE_modifier_is_nonlocal_in_liboverride(const struct Object *ob,
                                              const struct ModifierData *md);
+
+/* Set modifier execution error.
+ * The message will be shown in the interface and will be logged as an error to the console. */
 void BKE_modifier_set_error(const struct Object *ob,
                             struct ModifierData *md,
                             const char *format,
                             ...) ATTR_PRINTF_FORMAT(3, 4);
+
+/* Set modifier execution warning, which does not prevent the modifier from being applied but which
+ * might need an attention. The message will only be shown in the interface, but will not appear in
+ * the logs. */
+void BKE_modifier_set_warning(const struct Object *ob,
+                              struct ModifierData *md,
+                              const char *format,
+                              ...) ATTR_PRINTF_FORMAT(3, 4);
+
 bool BKE_modifier_is_preview(struct ModifierData *md);
 
 void BKE_modifiers_foreach_ID_link(struct Object *ob, IDWalkFunc walk, void *userData);
@@ -586,12 +598,8 @@ void BKE_modifier_deform_vertsEM(ModifierData *md,
  * e.g. second operand for boolean modifier.
  * Note that modifiers in stack always get fully evaluated COW ID pointers,
  * never original ones. Makes things simpler.
- *
- * \param get_cage_mesh: Return evaluated mesh with only deforming modifiers applied
- * (i.e. mesh topology remains the same as original one, a.k.a. 'cage' mesh).
  */
-struct Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(struct Object *ob_eval,
-                                                                   bool get_cage_mesh);
+struct Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(struct Object *ob_eval);
 
 void BKE_modifier_check_uuids_unique_and_report(const struct Object *object);
 

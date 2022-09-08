@@ -21,7 +21,7 @@ struct MeshExtract_EditUVFdotData_Data {
 };
 
 static void extract_fdots_edituv_data_init(const MeshRenderData *mr,
-                                           struct MeshBatchCache *UNUSED(cache),
+                                           MeshBatchCache *UNUSED(cache),
                                            void *buf,
                                            void *tls_data)
 {

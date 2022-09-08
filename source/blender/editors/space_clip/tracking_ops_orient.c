@@ -72,7 +72,7 @@ static Object *get_orientation_object(bContext *C)
     object = get_camera_with_movieclip(scene, clip);
   }
   else {
-    object = OBACT(view_layer);
+    object = BKE_view_layer_active_object_get(view_layer);
   }
 
   if (object != NULL && object->parent != NULL) {
@@ -94,7 +94,7 @@ static bool set_orientation_poll(bContext *C)
       if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
         return true;
       }
-      return OBACT(view_layer) != NULL;
+      return BKE_view_layer_active_object_get(view_layer) != NULL;
     }
   }
   return false;

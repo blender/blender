@@ -46,20 +46,14 @@ namespace blender::gpu {
 void MTLContext::debug_group_begin(const char *name, int index)
 {
   if (G.debug & G_DEBUG_GPU) {
-    id<MTLCommandBuffer> cmd = this->get_active_command_buffer();
-    if (cmd != nil) {
-      [cmd pushDebugGroup:[NSString stringWithFormat:@"%s_%d", name, index]];
-    }
+    this->main_command_buffer.push_debug_group(name, index);
   }
 }
 
 void MTLContext::debug_group_end()
 {
   if (G.debug & G_DEBUG_GPU) {
-    id<MTLCommandBuffer> cmd = this->get_active_command_buffer();
-    if (cmd != nil) {
-      [cmd popDebugGroup];
-    }
+    this->main_command_buffer.pop_debug_group();
   }
 }
 

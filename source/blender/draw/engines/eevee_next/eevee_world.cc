@@ -42,10 +42,10 @@ DefaultWorldNodeTree::~DefaultWorldNodeTree()
   MEM_SAFE_FREE(ntree_);
 }
 
-/* Configure a default nodetree with the given world.  */
+/* Configure a default node-tree with the given world. */
 bNodeTree *DefaultWorldNodeTree::nodetree_get(::World *wo)
 {
-  /* WARNING: This function is not threadsafe. Which is not a problem for the moment. */
+  /* WARNING: This function is not thread-safe. Which is not a problem for the moment. */
   copy_v3_fl3(color_socket_->value, wo->horr, wo->horg, wo->horb);
   return ntree_;
 }
@@ -79,7 +79,7 @@ void World::sync()
   /* TODO(fclem) This should be detected to scene level. */
   ::World *orig_world = (::World *)DEG_get_original_id(&bl_world->id);
   if (assign_if_different(prev_original_world, orig_world)) {
-    // inst_.sampling.reset();
+    inst_.sampling.reset();
   }
 
   bNodeTree *ntree = (bl_world->nodetree && bl_world->use_nodes) ?

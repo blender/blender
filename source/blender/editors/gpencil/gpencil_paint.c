@@ -918,6 +918,67 @@ static void gpencil_stroke_unselect(bGPdata *gpd, bGPDstroke *gps)
   }
 }
 
+static bGPDstroke *gpencil_stroke_to_outline(tGPsdata *p, bGPDstroke *gps)
+{
+  bGPDlayer *gpl = p->gpl;
+  RegionView3D *rv3d = p->region->regiondata;
+  Brush *brush = p->brush;
+  BrushGpencilSettings *gpencil_settings = brush->gpencil_settings;
+  MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(p->ob, gps->mat_nr + 1);
+  const bool is_stroke = ((gp_style->flag & GP_MATERIAL_STROKE_SHOW) != 0);
+
+  if (!is_stroke) {
+    return gps;
+  }
+
+  /* Duplicate the stroke to apply any layer thickness change. */
+  bGPDstroke *gps_duplicate = BKE_gpencil_stroke_duplicate(gps, true, false);
+
+  /* Apply layer thickness change. */
+  gps_duplicate->thickness += gpl->line_change;
+  /* Apply object scale to thickness. */
+  gps_duplicate->thickness *= mat4_to_scale(p->ob->obmat);
+  CLAMP_MIN(gps_duplicate->thickness, 1.0f);
+
+  /* Stroke. */
+  float diff_mat[4][4];
+  unit_m4(diff_mat);
+  const float outline_thickness = (float)brush->size * gpencil_settings->outline_fac * 0.5f;
+  bGPDstroke *gps_perimeter = BKE_gpencil_stroke_perimeter_from_view(
+      rv3d->viewmat, p->gpd, gpl, gps_duplicate, 3, diff_mat, outline_thickness);
+  /* Assign material. */
+  if (gpencil_settings->material_alt == NULL) {
+    gps_perimeter->mat_nr = gps->mat_nr;
+  }
+  else {
+    Material *ma = gpencil_settings->material_alt;
+    int mat_idx = BKE_gpencil_material_find_index_by_name_prefix(p->ob, ma->id.name + 2);
+    if (mat_idx > -1) {
+      gps_perimeter->mat_nr = mat_idx;
+    }
+    else {
+      gps_perimeter->mat_nr = gps->mat_nr;
+    }
+  }
+
+  /* Set pressure constant. */
+  gps_perimeter->thickness = max_ii((int)outline_thickness, 1);
+
+  bGPDspoint *pt;
+  for (int i = 0; i < gps_perimeter->totpoints; i++) {
+    pt = &gps_perimeter->points[i];
+    pt->pressure = 1.0f;
+  }
+
+  /* Remove original stroke. */
+  BKE_gpencil_free_stroke(gps);
+
+  /* Free Temp stroke. */
+  BKE_gpencil_free_stroke(gps_duplicate);
+
+  return gps_perimeter;
+}
+
 /* make a new stroke from the buffer data */
 static void gpencil_stroke_newfrombuffer(tGPsdata *p)
 {
@@ -1221,6 +1282,23 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       BKE_gpencil_stroke_simplify_adaptive(gpd, gps, brush->gpencil_settings->simplify_f);
     }
 
+    /* Set material index. */
+    gps->mat_nr = BKE_gpencil_object_material_get_index_from_brush(p->ob, p->brush);
+    if (gps->mat_nr < 0) {
+      if (p->ob->actcol - 1 < 0) {
+        gps->mat_nr = 0;
+      }
+      else {
+        gps->mat_nr = p->ob->actcol - 1;
+      }
+    }
+
+    /* Convert to Outline. */
+    if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_SETTINGS) &&
+        (brush->gpencil_settings->flag & GP_BRUSH_OUTLINE_STROKE)) {
+      gps = gpencil_stroke_to_outline(p, gps);
+    }
+
     /* reproject to plane (only in 3d space) */
     gpencil_reproject_toplane(p, gps);
     /* change position relative to parent object */
@@ -1232,17 +1310,6 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
 
     if (depth_arr) {
       MEM_freeN(depth_arr);
-    }
-  }
-
-  /* Save material index */
-  gps->mat_nr = BKE_gpencil_object_material_get_index_from_brush(p->ob, p->brush);
-  if (gps->mat_nr < 0) {
-    if (p->ob->actcol - 1 < 0) {
-      gps->mat_nr = 0;
-    }
-    else {
-      gps->mat_nr = p->ob->actcol - 1;
     }
   }
 
@@ -2166,7 +2233,7 @@ static void gpencil_paint_initstroke(tGPsdata *p,
       if (gpl->actframe && gpl->actframe->strokes.first) {
         if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) {
           short frame_mode = IS_AUTOKEY_ON(scene) ? GP_GETFRAME_ADD_COPY : GP_GETFRAME_USE_PREV;
-          gpl->actframe = BKE_gpencil_layer_frame_get(gpl, CFRA, frame_mode);
+          gpl->actframe = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, frame_mode);
         }
         has_layer_to_erase = true;
         break;
@@ -2204,7 +2271,7 @@ static void gpencil_paint_initstroke(tGPsdata *p,
     bool need_tag = p->gpl->actframe == NULL;
     bGPDframe *actframe = p->gpl->actframe;
 
-    p->gpf = BKE_gpencil_layer_frame_get(p->gpl, CFRA, add_frame_mode);
+    p->gpf = BKE_gpencil_layer_frame_get(p->gpl, scene->r.cfra, add_frame_mode);
     /* Only if there wasn't an active frame, need update. */
     if (need_tag) {
       DEG_id_tag_update(&p->gpd->id, ID_RECALC_GEOMETRY);
@@ -2343,7 +2410,7 @@ static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
   if (p->paintmode == GP_PAINTMODE_ERASER) {
     GPUVertFormat *format = immVertexFormat();
     const uint shdr_pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     GPU_line_smooth(true);
     GPU_blend(GPU_BLEND_ALPHA);
@@ -2353,7 +2420,7 @@ static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
 
     immUnbindProgram();
 
-    immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
     float viewport_size[4];
     GPU_viewport_size_get_f(viewport_size);
@@ -3658,9 +3725,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
     }
   }
 
-  /* Exit painting mode (and/or end current stroke).
-   *
-   */
+  /* Exit painting mode (and/or end current stroke). */
   if (ELEM(event->type, EVT_RETKEY, EVT_PADENTER, EVT_ESCKEY, EVT_SPACEKEY)) {
 
     p->status = GP_STATUS_DONE;
@@ -3755,7 +3820,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
   /* handle mode-specific events */
   if (p->status == GP_STATUS_PAINTING) {
     /* handle painting mouse-movements? */
-    if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) || (p->flags & GP_PAINTFLAG_FIRSTRUN)) {
+    if (ISMOUSE_MOTION(event->type) || (p->flags & GP_PAINTFLAG_FIRSTRUN)) {
       /* handle drawing event */
       bool is_speed_guide = ((guide->use_guide) &&
                              (p->brush && (p->brush->gpencil_tool == GPAINT_TOOL_DRAW)));

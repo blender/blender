@@ -305,12 +305,6 @@ typedef struct uiList { /* some list UI data need to be saved in file */
   int filter_flag;
   int filter_sort_flag;
 
-  /** Operator executed when activating an item. */
-  const char *custom_activate_opname;
-  /** Operator executed when dragging an item (item gets activated too, without running
-   * custom_activate_opname above). */
-  const char *custom_drag_opname;
-
   /* Custom sub-classes properties. */
   IDProperty *properties;
 
@@ -545,7 +539,7 @@ enum {
 };
 
 #define AREAGRID 4
-#define AREAMINX 32
+#define AREAMINX 29
 #define HEADER_PADDING_Y 6
 #define HEADERY (20 + HEADER_PADDING_Y)
 
@@ -634,7 +628,7 @@ enum {
   /* Bitflags affecting behavior of any kind of sorting. */
   /** Special flag to indicate that order is locked (not user-changeable). */
   UILST_FLT_SORT_LOCK = 1u << 30,
-  /** Special value, bitflag used to reverse order! */
+  /** Special value, bit-flag used to reverse order! */
   UILST_FLT_SORT_REVERSE = 1u << 31,
 };
 

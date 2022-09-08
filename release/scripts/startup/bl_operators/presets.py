@@ -11,11 +11,13 @@ from bpy.props import (
     StringProperty,
 )
 
+from bpy.app.translations import pgettext_data as data_
+
 # For preset popover menu
 WindowManager.preset_name = StringProperty(
     name="Preset Name",
     description="Name for new preset",
-    default="New Preset"
+    default=data_("New Preset")
 )
 
 

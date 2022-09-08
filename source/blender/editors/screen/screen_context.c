@@ -100,6 +100,7 @@ const char *screen_context_dir[] = {
     "active_gpencil_frame",
     "active_annotation_layer",
     "active_operator",
+    "active_action",
     "selected_visible_actions",
     "selected_editable_actions",
     "visible_fcurves",
@@ -242,7 +243,7 @@ static eContextResult screen_ctx_visible_or_editable_bones_(const bContext *C,
 {
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
 
   bArmature *arm = (obedit && obedit->type == OB_ARMATURE) ? obedit->data : NULL;
   EditBone *flipbone = NULL;
@@ -313,7 +314,7 @@ static eContextResult screen_ctx_selected_bones_(const bContext *C,
 {
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   bArmature *arm = (obedit && obedit->type == OB_ARMATURE) ? obedit->data : NULL;
   EditBone *flipbone = NULL;
 
@@ -523,7 +524,7 @@ static eContextResult screen_ctx_edit_object(const bContext *C, bContextDataResu
 {
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   /* convenience for now, 1 object per scene in editmode */
   if (obedit) {
     CTX_data_id_pointer_set(result, &obedit->id);
@@ -969,6 +970,7 @@ static eContextResult screen_ctx_active_operator(const bContext *C, bContextData
 }
 static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
                                                   bContextDataResult *result,
+                                                  bool active_only,
                                                   bool editable)
 {
   bAnimContext ac;
@@ -978,11 +980,17 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
       SpaceAction *saction = (SpaceAction *)ac.sl;
 
       if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY)) {
-        if (saction->action && !(editable && ID_IS_LINKED(saction->action))) {
-          CTX_data_id_list_add(result, &saction->action->id);
+        if (active_only) {
+          CTX_data_id_pointer_set(result, (ID *)saction->action);
+        }
+        else {
+          if (saction->action && !(editable && ID_IS_LINKED(saction->action))) {
+            CTX_data_id_list_add(result, &saction->action->id);
+          }
+
+          CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
         }
 
-        CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
         return CTX_RESULT_OK;
       }
     }
@@ -995,7 +1003,8 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
 
     switch (ac.spacetype) {
       case SPACE_GRAPH:
-        filter |= ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_SEL;
+        filter |= ANIMFILTER_FCURVESONLY | ANIMFILTER_CURVE_VISIBLE |
+                  (active_only ? ANIMFILTER_ACTIVE : ANIMFILTER_SEL);
         break;
 
       case SPACE_ACTION:
@@ -1006,7 +1015,7 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
 
     ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
-    GSet *seen_set = BLI_gset_ptr_new("seen actions");
+    GSet *seen_set = active_only ? NULL : BLI_gset_ptr_new("seen actions");
 
     LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
       /* In dopesheet check selection status of individual items, skipping
@@ -1019,37 +1028,46 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
       bAction *action = ANIM_channel_action_get(ale);
 
       if (action) {
+        if (active_only) {
+          CTX_data_id_pointer_set(result, (ID *)action);
+          break;
+        }
         if (editable && ID_IS_LINKED(action)) {
           continue;
         }
 
         /* Add the action to the output list if not already added. */
-        if (!BLI_gset_haskey(seen_set, action)) {
+        if (BLI_gset_add(seen_set, action)) {
           CTX_data_id_list_add(result, &action->id);
-          BLI_gset_add(seen_set, action);
         }
       }
     }
 
-    BLI_gset_free(seen_set, NULL);
-
     ANIM_animdata_freelist(&anim_data);
 
-    CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+    if (!active_only) {
+      BLI_gset_free(seen_set, NULL);
+
+      CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+    }
+
     return CTX_RESULT_OK;
   }
   return CTX_RESULT_NO_DATA;
 }
-
+static eContextResult screen_ctx_active_action(const bContext *C, bContextDataResult *result)
+{
+  return screen_ctx_sel_actions_impl(C, result, true, false);
+}
 static eContextResult screen_ctx_selected_visible_actions(const bContext *C,
                                                           bContextDataResult *result)
 {
-  return screen_ctx_sel_actions_impl(C, result, false);
+  return screen_ctx_sel_actions_impl(C, result, false, false);
 }
 static eContextResult screen_ctx_selected_editable_actions(const bContext *C,
                                                            bContextDataResult *result)
 {
-  return screen_ctx_sel_actions_impl(C, result, true);
+  return screen_ctx_sel_actions_impl(C, result, false, true);
 }
 static eContextResult screen_ctx_sel_edit_fcurves_(const bContext *C,
                                                    bContextDataResult *result,
@@ -1060,8 +1078,9 @@ static eContextResult screen_ctx_sel_edit_fcurves_(const bContext *C,
     ListBase anim_data = {NULL, NULL};
 
     int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS) |
-                 (ac.spacetype == SPACE_GRAPH ? ANIMFILTER_CURVE_VISIBLE :
-                                                ANIMFILTER_LIST_VISIBLE) |
+                 (ac.spacetype == SPACE_GRAPH ?
+                      (ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FCURVESONLY) :
+                      ANIMFILTER_LIST_VISIBLE) |
                  extra_filter;
 
     ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
@@ -1105,7 +1124,7 @@ static eContextResult screen_ctx_active_editable_fcurve(const bContext *C,
     ListBase anim_data = {NULL, NULL};
 
     int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ACTIVE | ANIMFILTER_FOREDIT |
-                  ANIMFILTER_CURVE_VISIBLE);
+                  ANIMFILTER_FCURVESONLY | ANIMFILTER_CURVE_VISIBLE);
 
     ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
@@ -1131,8 +1150,9 @@ static eContextResult screen_ctx_selected_editable_keyframes(const bContext *C,
     /* Use keyframes from editable selected FCurves. */
     int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS | ANIMFILTER_FOREDIT |
                   ANIMFILTER_SEL) |
-                 (ac.spacetype == SPACE_GRAPH ? ANIMFILTER_CURVE_VISIBLE :
-                                                ANIMFILTER_LIST_VISIBLE);
+                 (ac.spacetype == SPACE_GRAPH ?
+                      (ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FCURVESONLY) :
+                      ANIMFILTER_LIST_VISIBLE);
 
     ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
@@ -1261,6 +1281,7 @@ static void ensure_ed_screen_context_functions(void)
   register_context_function("editable_gpencil_layers", screen_ctx_editable_gpencil_layers);
   register_context_function("editable_gpencil_strokes", screen_ctx_editable_gpencil_strokes);
   register_context_function("active_operator", screen_ctx_active_operator);
+  register_context_function("active_action", screen_ctx_active_action);
   register_context_function("selected_visible_actions", screen_ctx_selected_visible_actions);
   register_context_function("selected_editable_actions", screen_ctx_selected_editable_actions);
   register_context_function("editable_fcurves", screen_ctx_editable_fcurves);

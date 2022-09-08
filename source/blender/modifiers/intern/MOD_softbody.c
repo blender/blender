@@ -66,7 +66,7 @@ static void updateDepsgraph(ModifierData *UNUSED(md), const ModifierUpdateDepsgr
         ctx->node, ctx->object, ctx->object->soft->effector_weights, true, 0, "Softbody Field");
   }
   /* We need own transformation as well. */
-  DEG_add_modifier_to_transform_relation(ctx->node, "SoftBody Modifier");
+  DEG_add_depends_on_transform_relation(ctx->node, "SoftBody Modifier");
 }
 
 static void panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -86,7 +86,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Softbody = {
-    /* name */ "Softbody",
+    /* name */ N_("Softbody"),
     /* structName */ "SoftbodyModifierData",
     /* structSize */ sizeof(SoftbodyModifierData),
     /* srna */ &RNA_SoftBodyModifier,

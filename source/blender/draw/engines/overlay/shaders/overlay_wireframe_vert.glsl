@@ -72,7 +72,7 @@ void wire_object_color_get(out vec3 rim_col, out vec3 wire_col)
 void main()
 {
   bool no_attr = all(equal(nor, vec3(0)));
-  vec3 wnor = no_attr ? ViewMatrixInverse[2].xyz : normalize(normal_object_to_world(nor));
+  vec3 wnor = no_attr ? drw_view.viewinv[2].xyz : normalize(normal_object_to_world(nor));
   vec3 wpos = point_object_to_world(pos);
 
   if (isHair) {
@@ -81,8 +81,8 @@ void main()
     wnor = -normalize(mat3(obmat) * nor);
   }
 
-  bool is_persp = (ProjectionMatrix[3][3] == 0.0);
-  vec3 V = (is_persp) ? normalize(ViewMatrixInverse[3].xyz - wpos) : ViewMatrixInverse[2].xyz;
+  bool is_persp = (drw_view.winmat[3][3] == 0.0);
+  vec3 V = (is_persp) ? normalize(drw_view.viewinv[3].xyz - wpos) : drw_view.viewinv[2].xyz;
 
   float facing = dot(wnor, V);
 

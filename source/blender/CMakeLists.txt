@@ -151,14 +151,12 @@ add_subdirectory(io)
 add_subdirectory(functions)
 add_subdirectory(makesdna)
 add_subdirectory(makesrna)
+add_subdirectory(compositor)
 
 if(WITH_BLENDER_THUMBNAILER)
   add_subdirectory(blendthumb)
 endif()
 
-if(WITH_COMPOSITOR)
-  add_subdirectory(compositor)
-endif()
 
 if(WITH_IMAGE_OPENEXR)
   add_subdirectory(imbuf/intern/openexr)

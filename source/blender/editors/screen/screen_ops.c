@@ -659,32 +659,6 @@ bool ED_operator_editmball(bContext *C)
   return false;
 }
 
-bool ED_operator_mask(bContext *C)
-{
-  ScrArea *area = CTX_wm_area(C);
-  if (area && area->spacedata.first) {
-    switch (area->spacetype) {
-      case SPACE_CLIP: {
-        SpaceClip *space_clip = area->spacedata.first;
-        return ED_space_clip_check_show_maskedit(space_clip);
-      }
-      case SPACE_SEQ: {
-        SpaceSeq *sseq = area->spacedata.first;
-        Scene *scene = CTX_data_scene(C);
-        return ED_space_sequencer_check_show_maskedit(sseq, scene);
-      }
-      case SPACE_IMAGE: {
-        SpaceImage *sima = area->spacedata.first;
-        ViewLayer *view_layer = CTX_data_view_layer(C);
-        Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
-        return ED_space_image_check_show_maskedit(sima, obedit);
-      }
-    }
-  }
-
-  return false;
-}
-
 bool ED_operator_camera_poll(bContext *C)
 {
   struct Camera *cam = CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data;
@@ -749,15 +723,16 @@ typedef struct sActionzoneData {
 static bool actionzone_area_poll(bContext *C)
 {
   wmWindow *win = CTX_wm_window(C);
-  bScreen *screen = WM_window_get_active_screen(win);
+  if (win && win->eventstate) {
+    bScreen *screen = WM_window_get_active_screen(win);
+    if (screen) {
+      const int *xy = &win->eventstate->xy[0];
 
-  if (screen && win && win->eventstate) {
-    const int *xy = &win->eventstate->xy[0];
-
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (AZone *, az, &area->actionzones) {
-        if (BLI_rcti_isect_pt_v(&az->rect, xy)) {
-          return true;
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (AZone *, az, &area->actionzones) {
+          if (BLI_rcti_isect_pt_v(&az->rect, xy)) {
+            return true;
+          }
         }
       }
     }
@@ -913,14 +888,16 @@ static AZone *area_actionzone_refresh_xy(ScrArea *area, const int xy[2], const b
             float dist_fac = 0.0f, alpha = 0.0f;
 
             if (az->direction == AZ_SCROLL_HOR) {
-              dist_fac = BLI_rcti_length_y(&v2d->hor, local_xy[1]) / AZONEFADEIN;
+              float hide_width = (az->y2 - az->y1) / 2.0f;
+              dist_fac = BLI_rcti_length_y(&v2d->hor, local_xy[1]) / hide_width;
               CLAMP(dist_fac, 0.0f, 1.0f);
               alpha = 1.0f - dist_fac;
 
               v2d->alpha_hor = alpha * 255;
             }
             else if (az->direction == AZ_SCROLL_VERT) {
-              dist_fac = BLI_rcti_length_x(&v2d->vert, local_xy[0]) / AZONEFADEIN;
+              float hide_width = (az->x2 - az->x1) / 2.0f;
+              dist_fac = BLI_rcti_length_x(&v2d->vert, local_xy[0]) / hide_width;
               CLAMP(dist_fac, 0.0f, 1.0f);
               alpha = 1.0f - dist_fac;
 
@@ -1662,7 +1639,7 @@ static void area_move_set_limits(wmWindow *win,
       }
     }
     else {
-      int areamin = AREAMINX;
+      int areamin = AREAMINX * U.dpi_fac;
 
       if (area->v1->vec.x > window_rect.xmin) {
         areamin += U.pixelsize;
@@ -2085,7 +2062,7 @@ static bool area_split_allowed(const ScrArea *area, const eScreenAxis dir_axis)
     return false;
   }
 
-  if ((dir_axis == SCREEN_AXIS_V && area->winx <= 2 * AREAMINX) ||
+  if ((dir_axis == SCREEN_AXIS_V && area->winx <= 2 * AREAMINX * U.dpi_fac) ||
       (dir_axis == SCREEN_AXIS_H && area->winy <= 2 * ED_area_headersize())) {
     /* Must be at least double minimum sizes to split into two. */
     return false;
@@ -2975,9 +2952,9 @@ static int frame_offset_exec(bContext *C, wmOperator *op)
 
   int delta = RNA_int_get(op->ptr, "delta");
 
-  CFRA += delta;
-  FRAMENUMBER_MIN_CLAMP(CFRA);
-  SUBFRA = 0.0f;
+  scene->r.cfra += delta;
+  FRAMENUMBER_MIN_CLAMP(scene->r.cfra);
+  scene->r.subframe = 0.0f;
 
   areas_do_frame_follow(C, false);
 
@@ -3016,7 +2993,7 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   wmTimer *animtimer = CTX_wm_screen(C)->animtimer;
 
-  /* Don't change CFRA directly if animtimer is running as this can cause
+  /* Don't change scene->r.cfra directly if animtimer is running as this can cause
    * first/last frame not to be actually shown (bad since for example physics
    * simulations aren't reset properly).
    */
@@ -3034,10 +3011,10 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
   }
   else {
     if (RNA_boolean_get(op->ptr, "end")) {
-      CFRA = PEFRA;
+      scene->r.cfra = PEFRA;
     }
     else {
-      CFRA = PSFRA;
+      scene->r.cfra = PSFRA;
     }
 
     areas_do_frame_follow(C, true);
@@ -3086,7 +3063,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  float cfra = (float)(CFRA);
+  float cfra = (float)(scene->r.cfra);
 
   /* Initialize binary-tree-list for getting keyframes. */
   struct AnimKeylist *keylist = ED_keylist_create();
@@ -3128,9 +3105,9 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
   }
 
   while ((ak != NULL) && (done == false)) {
-    if (CFRA != (int)ak->cfra) {
+    if (scene->r.cfra != (int)ak->cfra) {
       /* this changes the frame, so set the frame and we're done */
-      CFRA = (int)ak->cfra;
+      scene->r.cfra = (int)ak->cfra;
       done = true;
     }
     else {
@@ -3189,20 +3166,20 @@ static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
 static int marker_jump_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  int closest = CFRA;
+  int closest = scene->r.cfra;
   const bool next = RNA_boolean_get(op->ptr, "next");
   bool found = false;
 
   /* find matching marker in the right direction */
   LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
     if (next) {
-      if ((marker->frame > CFRA) && (!found || closest > marker->frame)) {
+      if ((marker->frame > scene->r.cfra) && (!found || closest > marker->frame)) {
         closest = marker->frame;
         found = true;
       }
     }
     else {
-      if ((marker->frame < CFRA) && (!found || closest < marker->frame)) {
+      if ((marker->frame < scene->r.cfra) && (!found || closest < marker->frame)) {
         closest = marker->frame;
         found = true;
       }
@@ -3216,7 +3193,7 @@ static int marker_jump_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  CFRA = closest;
+  scene->r.cfra = closest;
 
   areas_do_frame_follow(C, true);
 
@@ -4738,11 +4715,11 @@ static int screen_animation_step_invoke(bContext *C, wmOperator *UNUSED(op), con
   if (sad->flag & ANIMPLAY_FLAG_JUMPED) {
     DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
 #ifdef PROFILE_AUDIO_SYNCH
-    old_frame = CFRA;
+    old_frame = scene->r.cfra;
 #endif
   }
 
-  /* since we follow drawflags, we can't send notifier but tag regions ourselves */
+  /* Since we follow draw-flags, we can't send notifier but tag regions ourselves. */
   if (depsgraph != NULL) {
     ED_update_for_newframe(bmain, depsgraph);
   }

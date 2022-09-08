@@ -17,6 +17,7 @@
 
 #include "ED_view3d.h"
 
+#include "GPU_context.h"
 #include "GPU_shader.h"
 
 #include "DEG_depsgraph.h"
@@ -187,6 +188,10 @@ void workbench_render(void *ved, RenderEngine *engine, RenderLayer *render_layer
   }
 
   workbench_draw_finish(data);
+
+  /* Perform render step between samples to allow
+   * flushing of freed GPUBackend resources. */
+  GPU_render_step();
 
   /* Write render output. */
   const char *viewname = RE_GetActiveRenderView(engine->re);

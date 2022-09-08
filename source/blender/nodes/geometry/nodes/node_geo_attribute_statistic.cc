@@ -195,15 +195,19 @@ static void node_geo_exec(GeoNodeExecParams params)
       const Field<float> input_field = params.get_input<Field<float>>("Attribute");
       Vector<float> data;
       for (const GeometryComponent *component : components) {
-        if (component->attribute_domain_supported(domain)) {
-          GeometryComponentFieldContext field_context{*component, domain};
-          const int domain_num = component->attribute_domain_num(domain);
+        const std::optional<AttributeAccessor> attributes = component->attributes();
+        if (!attributes.has_value()) {
+          continue;
+        }
+        if (attributes->domain_supported(domain)) {
+          bke::GeometryFieldContext field_context{*component, domain};
+          const int domain_num = attributes->domain_size(domain);
 
           fn::FieldEvaluator data_evaluator{field_context, domain_num};
           data_evaluator.add(input_field);
           data_evaluator.set_selection(selection_field);
           data_evaluator.evaluate();
-          const VArray<float> &component_data = data_evaluator.get_evaluated<float>(0);
+          const VArray<float> component_data = data_evaluator.get_evaluated<float>(0);
           const IndexMask selection = data_evaluator.get_evaluated_selection_as_mask();
 
           const int next_data_index = data.size();
@@ -273,15 +277,19 @@ static void node_geo_exec(GeoNodeExecParams params)
       const Field<float3> input_field = params.get_input<Field<float3>>("Attribute_001");
       Vector<float3> data;
       for (const GeometryComponent *component : components) {
-        if (component->attribute_domain_supported(domain)) {
-          GeometryComponentFieldContext field_context{*component, domain};
-          const int domain_num = component->attribute_domain_num(domain);
+        const std::optional<AttributeAccessor> attributes = component->attributes();
+        if (!attributes.has_value()) {
+          continue;
+        }
+        if (attributes->domain_supported(domain)) {
+          bke::GeometryFieldContext field_context{*component, domain};
+          const int domain_num = attributes->domain_size(domain);
 
           fn::FieldEvaluator data_evaluator{field_context, domain_num};
           data_evaluator.add(input_field);
           data_evaluator.set_selection(selection_field);
           data_evaluator.evaluate();
-          const VArray<float3> &component_data = data_evaluator.get_evaluated<float3>(0);
+          const VArray<float3> component_data = data_evaluator.get_evaluated<float3>(0);
           const IndexMask selection = data_evaluator.get_evaluated_selection_as_mask();
 
           const int next_data_index = data.size();

@@ -15,6 +15,7 @@
 #include <stddef.h>
 #include <string.h>
 
+#include "BLI_ghash.h"
 #include "BLI_sys_types.h"
 
 #include "DNA_windowmanager_types.h"
@@ -81,6 +82,8 @@ static void window_manager_foreach_id(ID *id, LibraryForeachIDData *data)
       if (BKE_lib_query_foreachid_iter_stop(data)) {
         return;
       }
+
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, win->unpinned_scene, IDWALK_CB_NOP);
     }
 
     if (BKE_lib_query_foreachid_process_flags_get(data) & IDWALK_INCLUDE_UI) {
@@ -248,6 +251,7 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
   BLI_listbase_clear(&wm->operators);
   BLI_listbase_clear(&wm->paintcursors);
   BLI_listbase_clear(&wm->notifier_queue);
+  wm->notifier_queue_set = NULL;
   BKE_reports_init(&wm->reports, RPT_STORE);
 
   BLI_listbase_clear(&wm->keyconfigs);
@@ -285,6 +289,7 @@ static void lib_link_workspace_instance_hook(BlendLibReader *reader,
 {
   WorkSpace *workspace = BKE_workspace_active_get(hook);
   BLO_read_id_address(reader, id->lib, &workspace);
+
   BKE_workspace_active_set(hook, workspace);
 }
 
@@ -300,6 +305,11 @@ static void window_manager_blend_read_lib(BlendLibReader *reader, ID *id)
     /* deprecated, but needed for versioning (will be NULL'ed then) */
     BLO_read_id_address(reader, NULL, &win->screen);
 
+    /* The unpinned scene is a UI->Scene-data pointer, and should be NULL'ed on linking (like
+     * WorkSpace.pin_scene). But the WindowManager ID (owning the window) is never linked. */
+    BLI_assert(!ID_IS_LINKED(id));
+    BLO_read_id_address(reader, id->lib, &win->unpinned_scene);
+
     LISTBASE_FOREACH (ScrArea *, area, &win->global_areas.areabase) {
       BKE_screen_area_blend_read_lib(reader, &wm->id, area);
     }
@@ -310,7 +320,7 @@ static void window_manager_blend_read_lib(BlendLibReader *reader, ID *id)
 
 IDTypeInfo IDType_ID_WM = {
     .id_code = ID_WM,
-    .id_filter = 0,
+    .id_filter = FILTER_ID_WM,
     .main_listbase_index = INDEX_ID_WM,
     .struct_size = sizeof(wmWindowManager),
     .name = "WindowManager",
@@ -633,6 +643,10 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
   }
 
   BLI_freelistN(&wm->notifier_queue);
+  if (wm->notifier_queue_set) {
+    BLI_gset_free(wm->notifier_queue_set, NULL);
+    wm->notifier_queue_set = NULL;
+  }
 
   if (wm->message_bus != NULL) {
     WM_msgbus_destroy(wm->message_bus);
@@ -663,7 +677,10 @@ void wm_close_and_free_all(bContext *C, ListBase *wmlist)
   while ((wm = wmlist->first)) {
     wm_close_and_free(C, wm);
     BLI_remlink(wmlist, wm);
-    BKE_libblock_free_data(&wm->id, true);
+    /* Don't handle user counts as this is only ever called once #G_MAIN has already been freed via
+     * #BKE_main_free so any ID's referenced by the window-manager (from ID properties) will crash.
+     * See: T100703. */
+    BKE_libblock_free_data(&wm->id, false);
     BKE_libblock_free_data_py(&wm->id);
     MEM_freeN(wm);
   }

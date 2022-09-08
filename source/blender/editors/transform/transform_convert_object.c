@@ -480,7 +480,7 @@ static void clear_trans_object_base_flags(TransInfo *t)
   }
 }
 
-void createTransObject(bContext *C, TransInfo *t)
+static void createTransObject(bContext *C, TransInfo *t)
 {
   Main *bmain = CTX_data_main(C);
   TransData *td = NULL;
@@ -732,8 +732,8 @@ void ED_transform_autokeyframe_object(
     KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
     ListBase dsources = {NULL, NULL};
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-    const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
-                                                                                      (float)CFRA);
+    const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
+        depsgraph, (float)scene->r.cfra);
     eInsertKeyFlags flag = 0;
 
     /* Get flags used for inserting keyframes. */
@@ -782,7 +782,7 @@ void ED_transform_autokeyframe_object(
       }
       else if (ELEM(tmode, TFM_ROTATION, TFM_TRACKBALL)) {
         if (scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) {
-          if (ob != OBACT(view_layer)) {
+          if (ob != BKE_view_layer_active_object_get(view_layer)) {
             do_loc = true;
           }
         }
@@ -796,7 +796,7 @@ void ED_transform_autokeyframe_object(
       }
       else if (tmode == TFM_RESIZE) {
         if (scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) {
-          if (ob != OBACT(view_layer)) {
+          if (ob != BKE_view_layer_active_object_get(view_layer)) {
             do_loc = true;
           }
         }
@@ -860,12 +860,12 @@ bool ED_transform_motionpath_need_update_object(Scene *scene, Object *ob)
 /** \name Recalc Data object
  * \{ */
 
-void recalcData_objects(TransInfo *t)
+static void recalcData_objects(TransInfo *t)
 {
   bool motionpath_update = false;
 
   if (t->state != TRANS_CANCEL) {
-    applyProject(t);
+    applySnappingIndividual(t);
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
@@ -918,7 +918,7 @@ void recalcData_objects(TransInfo *t)
 /** \name Special After Transform Object
  * \{ */
 
-void special_aftertrans_update__object(bContext *C, TransInfo *t)
+static void special_aftertrans_update__object(bContext *C, TransInfo *t)
 {
   BLI_assert(t->options & CTX_OBJECT);
 
@@ -991,3 +991,10 @@ void special_aftertrans_update__object(bContext *C, TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_Object = {
+    /* flags */ 0,
+    /* createTransData */ createTransObject,
+    /* recalcData */ recalcData_objects,
+    /* special_aftertrans_update */ special_aftertrans_update__object,
+};

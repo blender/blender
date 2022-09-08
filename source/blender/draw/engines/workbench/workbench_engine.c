@@ -409,7 +409,7 @@ void workbench_cache_populate(void *ved, Object *ob)
     return;
   }
 
-  if (ELEM(ob->type, OB_MESH, OB_SURF, OB_MBALL, OB_POINTCLOUD)) {
+  if (ELEM(ob->type, OB_MESH, OB_POINTCLOUD)) {
     bool use_sculpt_pbvh, use_texpaint_mode, draw_shadow, has_transp_mat = false;
     eV3DShadingColorType color_type = workbench_color_type_get(
         wpd, ob, &use_sculpt_pbvh, &use_texpaint_mode, &draw_shadow);

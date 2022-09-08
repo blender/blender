@@ -2798,6 +2798,96 @@ ImBuf *BKE_tracking_get_search_imbuf(ImBuf *ibuf,
   return searchibuf;
 }
 
+BLI_INLINE int plane_marker_size_len_in_pixels(const float a[2],
+                                               const float b[2],
+                                               const int frame_width,
+                                               const int frame_height)
+{
+  const float a_px[2] = {a[0] * frame_width, a[1] * frame_height};
+  const float b_px[2] = {b[0] * frame_width, b[1] * frame_height};
+
+  return ceilf(len_v2v2(a_px, b_px));
+}
+
+ImBuf *BKE_tracking_get_plane_imbuf(const ImBuf *frame_ibuf,
+                                    const MovieTrackingPlaneMarker *plane_marker)
+{
+  /* Alias for corners, allowing shorter access to coordinates. */
+  const float(*corners)[2] = plane_marker->corners;
+
+  /* Dimensions of the frame image in pixels. */
+  const int frame_width = frame_ibuf->x;
+  const int frame_height = frame_ibuf->y;
+
+  /* Lengths of left and right edges of the plane marker, in pixels. */
+  const int left_side_len_px = plane_marker_size_len_in_pixels(
+      corners[0], corners[3], frame_width, frame_height);
+  const int right_side_len_px = plane_marker_size_len_in_pixels(
+      corners[1], corners[2], frame_width, frame_height);
+
+  /* Lengths of top and bottom edges of the plane marker, in pixels. */
+  const int top_side_len_px = plane_marker_size_len_in_pixels(
+      corners[3], corners[2], frame_width, frame_height);
+  const int bottom_side_len_px = plane_marker_size_len_in_pixels(
+      corners[0], corners[1], frame_width, frame_height);
+
+  /* Choose the number of samples as a maximum of the corresponding sides in pixels. */
+  const int num_samples_x = max_ii(top_side_len_px, bottom_side_len_px);
+  const int num_samples_y = max_ii(left_side_len_px, right_side_len_px);
+
+  /* Create new result image with the same type of content as the original. */
+  ImBuf *plane_ibuf = IMB_allocImBuf(
+      num_samples_x, num_samples_y, 32, frame_ibuf->rect_float ? IB_rectfloat : IB_rect);
+
+  /* Calculate corner coordinates in pixel space, as separate X/Y arrays. */
+  const double src_pixel_x[4] = {corners[0][0] * frame_width,
+                                 corners[1][0] * frame_width,
+                                 corners[2][0] * frame_width,
+                                 corners[3][0] * frame_width};
+  const double src_pixel_y[4] = {corners[0][1] * frame_height,
+                                 corners[1][1] * frame_height,
+                                 corners[2][1] * frame_height,
+                                 corners[3][1] * frame_height};
+
+  /* Warped Position is unused but is expected to be provided by the API. */
+  double warped_position_x, warped_position_y;
+
+  /* Actual sampling. */
+  if (frame_ibuf->rect_float != NULL) {
+    libmv_samplePlanarPatchFloat(frame_ibuf->rect_float,
+                                 frame_ibuf->x,
+                                 frame_ibuf->y,
+                                 4,
+                                 src_pixel_x,
+                                 src_pixel_y,
+                                 num_samples_x,
+                                 num_samples_y,
+                                 NULL,
+                                 plane_ibuf->rect_float,
+                                 &warped_position_x,
+                                 &warped_position_y);
+  }
+  else {
+    libmv_samplePlanarPatchByte((unsigned char *)frame_ibuf->rect,
+                                frame_ibuf->x,
+                                frame_ibuf->y,
+                                4,
+                                src_pixel_x,
+                                src_pixel_y,
+                                num_samples_x,
+                                num_samples_y,
+                                NULL,
+                                (unsigned char *)plane_ibuf->rect,
+                                &warped_position_x,
+                                &warped_position_y);
+  }
+
+  plane_ibuf->rect_colorspace = frame_ibuf->rect_colorspace;
+  plane_ibuf->float_colorspace = frame_ibuf->float_colorspace;
+
+  return plane_ibuf;
+}
+
 void BKE_tracking_disable_channels(
     ImBuf *ibuf, bool disable_red, bool disable_green, bool disable_blue, bool grayscale)
 {

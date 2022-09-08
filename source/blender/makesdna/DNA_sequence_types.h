@@ -151,17 +151,17 @@ typedef struct Sequence {
    * Start frame of contents of strip in absolute frame coordinates.
    * For metastrips start of first strip startdisp.
    */
-  int start;
+  float start;
   /**
    * Frames after the first frame where display starts,
    * frames before the last frame where display ends.
    */
-  int startofs, endofs;
+  float startofs, endofs;
   /**
    * Frames that use the first frame before data begins,
    * frames that use the last frame after data ends.
    */
-  int startstill, endstill;
+  float startstill, endstill;
   /** Machine: the strip channel */
   int machine;
   int _pad3;
@@ -213,7 +213,7 @@ typedef struct Sequence {
   float volume;
 
   /** Pitch (-0.1..10), pan -2..2. */
-  float pitch, pan;
+  float pitch DNA_DEPRECATED, pan;
   float strobe;
 
   /** Struct pointer for effect settings. */
@@ -248,6 +248,11 @@ typedef struct Sequence {
 
   /* modifiers */
   ListBase modifiers;
+
+  /* Playback rate of strip content in frames per second. */
+  float media_playback_rate;
+  /* Multiply strip playback speed. */
+  float speed_factor;
 
   SequenceRuntime runtime;
 } Sequence;
@@ -517,8 +522,6 @@ typedef struct SequencerScopes {
 
 #define MAXSEQ 128
 
-#define SELECT 1
-
 /** #Editor.overlay_frame_flag */
 #define SEQ_EDIT_OVERLAY_FRAME_SHOW 1
 #define SEQ_EDIT_OVERLAY_FRAME_ABS 2
@@ -544,9 +547,12 @@ typedef struct SequencerScopes {
 
 #define SEQ_NAME_MAXSTR 64
 
+/* From: `DNA_object_types.h`, see it's doc-string there. */
+#define SELECT 1
+
 /** #Sequence.flag */
 enum {
-  /* SELECT */
+  /* `SELECT = (1 << 0)` */
   SEQ_LEFTSEL = (1 << 1),
   SEQ_RIGHTSEL = (1 << 2),
   SEQ_OVERLAP = (1 << 3),
@@ -563,7 +569,7 @@ enum {
   SEQ_LOCK = (1 << 14),
   SEQ_USE_PROXY = (1 << 15),
   SEQ_IGNORE_CHANNEL_LOCK = (1 << 16),
-  SEQ_FLAG_UNUSED_22 = (1 << 17), /* cleared */
+  SEQ_AUTO_PLAYBACK_RATE = (1 << 17),
   SEQ_FLAG_UNUSED_18 = (1 << 18), /* cleared */
   SEQ_FLAG_UNUSED_19 = (1 << 19), /* cleared */
   SEQ_FLAG_UNUSED_21 = (1 << 21), /* cleared */

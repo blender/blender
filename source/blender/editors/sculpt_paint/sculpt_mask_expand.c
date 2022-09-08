@@ -97,11 +97,14 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
   PBVHVertexIter vd;
   int update_it = data->mask_expand_update_it;
 
+  PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
+  int active_vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, active_vertex);
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
     int vi = vd.index;
     float final_mask = *vd.mask;
     if (data->mask_expand_use_normals) {
-      if (ss->filter_cache->normal_factor[SCULPT_active_vertex_get(ss)] <
+      if (ss->filter_cache->normal_factor[active_vertex_i] <
           ss->filter_cache->normal_factor[vd.index]) {
         final_mask = 1.0f;
       }
@@ -121,7 +124,7 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
 
     if (data->mask_expand_create_face_set) {
       if (final_mask == 1.0f) {
-        SCULPT_vertex_face_set_set(ss, vd.index, ss->filter_cache->new_face_set);
+        SCULPT_vertex_face_set_set(ss, vd.vertex, ss->filter_cache->new_face_set);
       }
       BKE_pbvh_node_mark_redraw(node);
     }
@@ -136,9 +139,6 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
       }
 
       if (*vd.mask != final_mask) {
-        if (vd.mvert) {
-          BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
-        }
         *vd.mask = final_mask;
         BKE_pbvh_node_mark_update_mask(node);
       }
@@ -167,10 +167,13 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
 
   if (RNA_boolean_get(op->ptr, "use_cursor")) {
     SculptCursorGeometryInfo sgi;
+
     const float mval_fl[2] = {UNPACK2(event->mval)};
     if (SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false)) {
+      int active_vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, SCULPT_active_vertex_get(ss));
+
       /* The cursor is over the mesh, get the update iteration from the updated active vertex. */
-      mask_expand_update_it = ss->filter_cache->mask_update_it[(int)SCULPT_active_vertex_get(ss)];
+      mask_expand_update_it = ss->filter_cache->mask_update_it[active_vertex_i];
     }
     else {
       /* When the cursor is outside the mesh, affect the entire connected component. */
@@ -291,13 +294,16 @@ typedef struct MaskExpandFloodFillData {
 } MaskExpandFloodFillData;
 
 static bool mask_expand_floodfill_cb(
-    SculptSession *ss, int from_v, int to_v, bool is_duplicate, void *userdata)
+    SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate, void *userdata)
 {
   MaskExpandFloodFillData *data = userdata;
 
+  int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_v);
+  int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
+
   if (!is_duplicate) {
-    int to_it = ss->filter_cache->mask_update_it[from_v] + 1;
-    ss->filter_cache->mask_update_it[to_v] = to_it;
+    int to_it = ss->filter_cache->mask_update_it[from_v_i] + 1;
+    ss->filter_cache->mask_update_it[to_v_i] = to_it;
     if (to_it > ss->filter_cache->mask_update_last_it) {
       ss->filter_cache->mask_update_last_it = to_it;
     }
@@ -306,20 +312,20 @@ static bool mask_expand_floodfill_cb(
       float current_normal[3], prev_normal[3];
       SCULPT_vertex_normal_get(ss, to_v, current_normal);
       SCULPT_vertex_normal_get(ss, from_v, prev_normal);
-      const float from_edge_factor = ss->filter_cache->edge_factor[from_v];
-      ss->filter_cache->edge_factor[to_v] = dot_v3v3(current_normal, prev_normal) *
-                                            from_edge_factor;
-      ss->filter_cache->normal_factor[to_v] = dot_v3v3(data->original_normal, current_normal) *
-                                              powf(from_edge_factor, data->edge_sensitivity);
-      CLAMP(ss->filter_cache->normal_factor[to_v], 0.0f, 1.0f);
+      const float from_edge_factor = ss->filter_cache->edge_factor[from_v_i];
+      ss->filter_cache->edge_factor[to_v_i] = dot_v3v3(current_normal, prev_normal) *
+                                              from_edge_factor;
+      ss->filter_cache->normal_factor[to_v_i] = dot_v3v3(data->original_normal, current_normal) *
+                                                powf(from_edge_factor, data->edge_sensitivity);
+      CLAMP(ss->filter_cache->normal_factor[to_v_i], 0.0f, 1.0f);
     }
   }
   else {
     /* PBVH_GRIDS duplicate handling. */
-    ss->filter_cache->mask_update_it[to_v] = ss->filter_cache->mask_update_it[from_v];
+    ss->filter_cache->mask_update_it[to_v_i] = ss->filter_cache->mask_update_it[from_v_i];
     if (data->use_normals) {
-      ss->filter_cache->edge_factor[to_v] = ss->filter_cache->edge_factor[from_v];
-      ss->filter_cache->normal_factor[to_v] = ss->filter_cache->normal_factor[from_v];
+      ss->filter_cache->edge_factor[to_v_i] = ss->filter_cache->edge_factor[from_v_i];
+      ss->filter_cache->normal_factor[to_v_i] = ss->filter_cache->normal_factor[from_v_i];
     }
   }
 
@@ -355,7 +361,7 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   BKE_pbvh_search_gather(pbvh, NULL, NULL, &ss->filter_cache->nodes, &ss->filter_cache->totnode);
 
-  SCULPT_undo_push_begin(ob, "Mask Expand");
+  SCULPT_undo_push_begin(ob, op);
 
   if (create_face_set) {
     SCULPT_undo_push_node(ob, ss->filter_cache->nodes[0], SCULPT_UNDO_FACE_SETS);
@@ -392,13 +398,17 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
   else {
     ss->filter_cache->prev_mask = MEM_callocN(sizeof(float) * vertex_count, "prev mask");
     for (int i = 0; i < vertex_count; i++) {
-      ss->filter_cache->prev_mask[i] = SCULPT_vertex_mask_get(ss, i);
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+
+      ss->filter_cache->prev_mask[i] = SCULPT_vertex_mask_get(ss, vertex);
     }
   }
 
+  int active_vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, SCULPT_active_vertex_get(ss));
+
   ss->filter_cache->mask_update_last_it = 1;
   ss->filter_cache->mask_update_current_it = 1;
-  ss->filter_cache->mask_update_it[SCULPT_active_vertex_get(ss)] = 0;
+  ss->filter_cache->mask_update_it[active_vertex_i] = 0;
 
   copy_v3_v3(ss->filter_cache->mask_expand_initial_co, SCULPT_active_vertex_co_get(ss));
 
@@ -417,9 +427,11 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
   if (use_normals) {
     for (int repeat = 0; repeat < 2; repeat++) {
       for (int i = 0; i < vertex_count; i++) {
+        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+
         float avg = 0.0f;
         SculptVertexNeighborIter ni;
-        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
+        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
           avg += ss->filter_cache->normal_factor[ni.index];
         }
         SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);

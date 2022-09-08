@@ -1162,7 +1162,7 @@ static int curve_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
       curve_draw_event_add_first(op, event);
     }
   }
-  else if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+  else if (ISMOUSE_MOTION(event->type)) {
     if (cdd->state == CURVE_DRAW_PAINTING) {
       const float mval_fl[2] = {UNPACK2(event->mval)};
       if (len_squared_v2v2(mval_fl, cdd->prev.mval) > square_f(STROKE_SAMPLE_DIST_MIN_PX)) {

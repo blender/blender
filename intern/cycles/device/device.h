@@ -29,6 +29,7 @@ class DeviceQueue;
 class Progress;
 class CPUKernels;
 class CPUKernelThreadGlobals;
+class Scene;
 
 /* Device Types */
 
@@ -40,6 +41,7 @@ enum DeviceType {
   DEVICE_OPTIX,
   DEVICE_HIP,
   DEVICE_METAL,
+  DEVICE_ONEAPI,
   DEVICE_DUMMY,
 };
 
@@ -49,6 +51,7 @@ enum DeviceTypeMask {
   DEVICE_MASK_OPTIX = (1 << DEVICE_OPTIX),
   DEVICE_MASK_HIP = (1 << DEVICE_HIP),
   DEVICE_MASK_METAL = (1 << DEVICE_METAL),
+  DEVICE_MASK_ONEAPI = (1 << DEVICE_ONEAPI),
   DEVICE_MASK_ALL = ~0
 };
 
@@ -184,6 +187,11 @@ class Device {
     return 0;
   }
 
+  /* Called after kernel texture setup, and prior to integrator state setup. */
+  virtual void optimize_for_scene(Scene * /*scene*/)
+  {
+  }
+
   virtual bool is_resident(device_ptr /*key*/, Device *sub_device)
   {
     /* Memory is always resident if this is not a multi device, regardless of whether the pointer
@@ -273,6 +281,7 @@ class Device {
   static vector<DeviceInfo> cpu_devices;
   static vector<DeviceInfo> hip_devices;
   static vector<DeviceInfo> metal_devices;
+  static vector<DeviceInfo> oneapi_devices;
   static uint devices_initialized_mask;
 };
 

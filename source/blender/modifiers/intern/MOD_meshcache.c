@@ -79,7 +79,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
 {
   const bool use_factor = mcmd->factor < 1.0f;
   int influence_group_index;
-  MDeformVert *dvert;
+  const MDeformVert *dvert;
   MOD_get_vgroup(ob, mesh, mcmd->defgrp_name, &dvert, &influence_group_index);
 
   float(*vertexCos_Store)[3] = (use_factor || influence_group_index != -1 ||
@@ -182,16 +182,16 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
       float(*vertexCos_Source)[3] = MEM_malloc_arrayN(
           verts_num, sizeof(*vertexCos_Source), __func__);
       float(*vertexCos_New)[3] = MEM_malloc_arrayN(verts_num, sizeof(*vertexCos_New), __func__);
-      MVert *mv = me->mvert;
+      const MVert *mv = BKE_mesh_verts(me);
 
       for (i = 0; i < verts_num; i++, mv++) {
         copy_v3_v3(vertexCos_Source[i], mv->co);
       }
 
       BKE_mesh_calc_relative_deform(
-          me->mpoly,
+          BKE_mesh_polys(me),
           me->totpoly,
-          me->mloop,
+          BKE_mesh_loops(me),
           me->totvert,
 
           (const float(*)[3])vertexCos_Source, /* From the original Mesh. */
@@ -257,7 +257,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
         const float global_offset = (mcmd->flag & MOD_MESHCACHE_INVERT_VERTEX_GROUP) ?
                                         mcmd->factor :
                                         0.0f;
-        if (mesh->dvert != NULL) {
+        if (BKE_mesh_deform_verts(mesh) != NULL) {
           for (int i = 0; i < verts_num; i++) {
             /* For each vertex, compute its blending factor between the mesh cache (for `fac = 0`)
              * and the former position of the vertex (for `fac = 1`). */
@@ -297,7 +297,7 @@ static void deformVerts(ModifierData *md,
 
   if (ctx->object->type == OB_MESH && mcmd->defgrp_name[0] != '\0') {
     /* `mesh_src` is only needed for vertex groups. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
   }
   meshcache_do(mcmd, scene, ctx->object, mesh_src, vertexCos, verts_num);
 
@@ -320,8 +320,7 @@ static void deformVertsEM(ModifierData *md,
 
   if (ctx->object->type == OB_MESH && mcmd->defgrp_name[0] != '\0') {
     /* `mesh_src` is only needed for vertex groups. */
-    mesh_src = MOD_deform_mesh_eval_get(
-        ctx->object, editData, mesh, NULL, verts_num, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, verts_num, false);
   }
   if (mesh_src != NULL) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
@@ -416,7 +415,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_MeshCache = {
-    /* name */ "MeshCache",
+    /* name */ N_("MeshCache"),
     /* structName */ "MeshCacheModifierData",
     /* structSize */ sizeof(MeshCacheModifierData),
     /* srna */ &RNA_MeshCacheModifier,

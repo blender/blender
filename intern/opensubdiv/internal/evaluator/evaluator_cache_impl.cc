@@ -30,7 +30,7 @@ OpenSubdiv_EvaluatorCacheImpl::~OpenSubdiv_EvaluatorCacheImpl()
 OpenSubdiv_EvaluatorCacheImpl *openSubdiv_createEvaluatorCacheInternal(
     eOpenSubdivEvaluator evaluator_type)
 {
-  if (evaluator_type != eOpenSubdivEvaluator::OPENSUBDIV_EVALUATOR_GLSL_COMPUTE) {
+  if (evaluator_type != eOpenSubdivEvaluator::OPENSUBDIV_EVALUATOR_GPU) {
     return nullptr;
   }
   OpenSubdiv_EvaluatorCacheImpl *evaluator_cache;

@@ -178,9 +178,9 @@ Mesh *volume_to_mesh(const openvdb::GridBase &grid,
                               0,
                               0,
                               0,
-                              {mesh->mvert, mesh->totvert},
-                              {mesh->mpoly, mesh->totpoly},
-                              {mesh->mloop, mesh->totloop});
+                              mesh->verts_for_write(),
+                              mesh->polys_for_write(),
+                              mesh->loops_for_write());
 
   BKE_mesh_calc_edges(mesh, false, false);
 

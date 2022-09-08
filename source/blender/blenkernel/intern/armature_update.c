@@ -288,7 +288,7 @@ static int position_tail_on_spline(bSplineIKConstraint *ik_data,
   int max_seg_idx = BKE_anim_path_get_array_size(cache) - 1;
 
   /* Make an initial guess of where our intersection point will be.
-   * If the curve was a straight line, then the faction passed in r_new_curve_pos
+   * If the curve was a straight line, then the fraction passed in r_new_curve_pos
    * would be the correct location.
    * So make it our first initial guess.
    */

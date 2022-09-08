@@ -25,7 +25,7 @@ void main()
   finalColor.a = 1.0;
 
   vec4 world_pos = model_mat * vec4(pos, 1.0);
-  gl_Position = ViewProjectionMatrix * world_pos;
+  gl_Position = drw_view.persmat * world_pos;
 
   view_clipping_distances(world_pos.xyz);
 }

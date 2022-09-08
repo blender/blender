@@ -105,7 +105,7 @@ static void freeSeqData(TransInfo *UNUSED(t),
   MEM_freeN(td->extra);
 }
 
-void createTransSeqImageData(TransInfo *t)
+static void createTransSeqImageData(bContext *UNUSED(C), TransInfo *t)
 {
   Editing *ed = SEQ_editing_get(t->scene);
   const SpaceSeq *sseq = t->area->spacedata.first;
@@ -123,7 +123,8 @@ void createTransSeqImageData(TransInfo *t)
 
   ListBase *seqbase = SEQ_active_seqbase_get(ed);
   ListBase *channels = SEQ_channels_displayed_get(ed);
-  SeqCollection *strips = SEQ_query_rendered_strips(channels, seqbase, t->scene->r.cfra, 0);
+  SeqCollection *strips = SEQ_query_rendered_strips(
+      t->scene, channels, seqbase, t->scene->r.cfra, 0);
   SEQ_filter_selected_strips(strips);
 
   const int count = SEQ_collection_len(strips);
@@ -172,25 +173,25 @@ static bool autokeyframe_sequencer_image(bContext *C,
   bool changed = false;
   if (do_rot) {
     prop = RNA_struct_find_property(&ptr, "rotation");
-    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, CFRA, false);
+    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, scene->r.cfra, false);
   }
   if (do_loc) {
     prop = RNA_struct_find_property(&ptr, "offset_x");
-    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, CFRA, false);
+    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, scene->r.cfra, false);
     prop = RNA_struct_find_property(&ptr, "offset_y");
-    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, CFRA, false);
+    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, scene->r.cfra, false);
   }
   if (do_scale) {
     prop = RNA_struct_find_property(&ptr, "scale_x");
-    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, CFRA, false);
+    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, scene->r.cfra, false);
     prop = RNA_struct_find_property(&ptr, "scale_y");
-    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, CFRA, false);
+    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, scene->r.cfra, false);
   }
 
   return changed;
 }
 
-void recalcData_sequencer_image(TransInfo *t)
+static void recalcData_sequencer_image(TransInfo *t)
 {
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
   TransData *td = NULL;
@@ -246,7 +247,7 @@ void recalcData_sequencer_image(TransInfo *t)
   }
 }
 
-void special_aftertrans_update__sequencer_image(bContext *UNUSED(C), TransInfo *t)
+static void special_aftertrans_update__sequencer_image(bContext *UNUSED(C), TransInfo *t)
 {
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
@@ -270,3 +271,10 @@ void special_aftertrans_update__sequencer_image(bContext *UNUSED(C), TransInfo *
     }
   }
 }
+
+TransConvertTypeInfo TransConvertType_SequencerImage = {
+    /* flags */ (T_POINTS | T_2D_EDIT),
+    /* createTransData */ createTransSeqImageData,
+    /* recalcData */ recalcData_sequencer_image,
+    /* special_aftertrans_update */ special_aftertrans_update__sequencer_image,
+};

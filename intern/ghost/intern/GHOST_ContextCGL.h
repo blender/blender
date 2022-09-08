@@ -105,8 +105,6 @@ class GHOST_ContextCGL : public GHOST_Context {
   /** The virtualized default frame-buffer's texture. */
   MTLTexture *m_defaultFramebufferMetalTexture;
 
-  bool m_coreProfile;
-
   const bool m_debug;
 
   /** The first created OpenGL context (for sharing display lists) */

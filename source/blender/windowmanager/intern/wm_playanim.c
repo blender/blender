@@ -482,7 +482,7 @@ static void draw_display_buffer(PlayState *ps, ImBuf *ibuf)
   GPU_texture_bind(texture, 0);
 
   if (!glsl_used) {
-    immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_COLOR);
     immUniformColor3f(1.0f, 1.0f, 1.0f);
   }
 
@@ -601,7 +601,7 @@ static void playanim_toscreen(
 
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor3ub(0, 255, 0);
 
     immBegin(GPU_PRIM_LINES, 2);
@@ -1217,8 +1217,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
       GHOST_TEventButtonData *bd = GHOST_GetEventData(evt);
       int cx, cy, sizex, sizey, inside_window;
 
-      GHOST_GetCursorPosition(g_WS.ghost_system, &cx, &cy);
-      GHOST_ScreenToClient(g_WS.ghost_window, cx, cy, &cx, &cy);
+      GHOST_GetCursorPosition(g_WS.ghost_system, g_WS.ghost_window, &cx, &cy);
       playanim_window_get_size(&sizex, &sizey);
 
       inside_window = (cx >= 0 && cx < sizex && cy >= 0 && cy <= sizey);
@@ -1267,14 +1266,14 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
          * however the API currently doesn't support this. */
         {
           int x_test, y_test;
-          GHOST_GetCursorPosition(g_WS.ghost_system, &x_test, &y_test);
-          if (x_test != cd->x || y_test != cd->y) {
+          GHOST_GetCursorPosition(g_WS.ghost_system, g_WS.ghost_window, &cx, &cy);
+          GHOST_ScreenToClient(g_WS.ghost_window, cd->x, cd->y, &x_test, &y_test);
+
+          if (cx != x_test || cy != y_test) {
             /* we're not the last event... skipping */
             break;
           }
         }
-
-        GHOST_ScreenToClient(g_WS.ghost_window, cd->x, cd->y, &cx, &cy);
 
         tag_change_frame(ps, cx);
       }
@@ -1555,6 +1554,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
   /* initialize the font */
   BLF_init();
+  BLF_load_font_stack();
   ps.fontid = BLF_load_mono_default(false);
   BLF_size(ps.fontid, 11.0f, 72);
 
@@ -1807,20 +1807,21 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   AUD_Sound_free(source);
   source = NULL;
 #endif
+
   /* we still miss freeing a lot!,
    * but many areas could skip initialization too for anim play */
 
-  GPU_shader_free_builtin_shaders();
-
-  if (g_WS.gpu_context) {
-    GPU_context_active_set(g_WS.gpu_context);
-    GPU_context_discard(g_WS.gpu_context);
-    g_WS.gpu_context = NULL;
-  }
+  IMB_exit();
+  DEG_free_node_types();
 
   BLF_exit();
 
-  GPU_exit();
+  if (g_WS.gpu_context) {
+    GPU_context_active_set(g_WS.gpu_context);
+    GPU_exit();
+    GPU_context_discard(g_WS.gpu_context);
+    g_WS.gpu_context = NULL;
+  }
 
   GHOST_DisposeWindow(g_WS.ghost_system, g_WS.ghost_window);
 
@@ -1829,9 +1830,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
     BLI_strncpy(filepath, ps.dropped_file, sizeof(filepath));
     return filepath;
   }
-
-  IMB_exit();
-  DEG_free_node_types();
 
   totblock = MEM_get_memory_blocks_in_use();
   if (totblock != 0) {
@@ -1855,7 +1853,7 @@ void WM_main_playanim(int argc, const char **argv)
     AUD_DeviceSpecs specs;
 
     specs.rate = AUD_RATE_48000;
-    specs.format = AUD_FORMAT_S16;
+    specs.format = AUD_FORMAT_FLOAT32;
     specs.channels = AUD_CHANNELS_STEREO;
 
     AUD_initOnce();

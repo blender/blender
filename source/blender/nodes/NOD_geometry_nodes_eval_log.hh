@@ -115,11 +115,16 @@ class GeometryValueLog : public ValueLog {
   struct InstancesInfo {
     int instances_num;
   };
+  struct EditDataInfo {
+    bool has_deformed_positions;
+    bool has_deform_matrices;
+  };
 
   std::optional<MeshInfo> mesh_info;
   std::optional<CurveInfo> curve_info;
   std::optional<PointCloudInfo> pointcloud_info;
   std::optional<InstancesInfo> instances_info;
+  std::optional<EditDataInfo> edit_data_info;
 
   GeometryValueLog(const GeometrySet &geometry_set, bool log_full_geometry = false);
 

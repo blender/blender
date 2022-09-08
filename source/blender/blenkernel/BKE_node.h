@@ -101,6 +101,7 @@ typedef struct bNodeSocketTemplate {
 namespace blender {
 class CPPType;
 namespace nodes {
+class DNode;
 class NodeMultiFunctionBuilder;
 class GeoNodeExecParams;
 class NodeDeclarationBuilder;
@@ -109,6 +110,11 @@ class GatherLinkSearchOpParams;
 namespace fn {
 class MFDataType;
 }  // namespace fn
+namespace realtime_compositor {
+class Context;
+class NodeOperation;
+class ShaderNode;
+}  // namespace realtime_compositor
 }  // namespace blender
 
 using CPPTypeHandle = blender::CPPType;
@@ -123,7 +129,14 @@ using SocketGetGeometryNodesCPPValueFunction = void (*)(const struct bNodeSocket
 using NodeGatherSocketLinkOperationsFunction =
     void (*)(blender::nodes::GatherLinkSearchOpParams &params);
 
+using NodeGetCompositorOperationFunction = blender::realtime_compositor::NodeOperation
+    *(*)(blender::realtime_compositor::Context &context, blender::nodes::DNode node);
+using NodeGetCompositorShaderNodeFunction =
+    blender::realtime_compositor::ShaderNode *(*)(blender::nodes::DNode node);
+
 #else
+typedef void *NodeGetCompositorOperationFunction;
+typedef void *NodeGetCompositorShaderNodeFunction;
 typedef void *NodeMultiFunctionBuildFunction;
 typedef void *NodeGeometryExecFunction;
 typedef void *NodeDeclareFunction;
@@ -309,11 +322,23 @@ typedef struct bNodeType {
   /* gpu */
   NodeGPUExecFunction gpu_fn;
 
+  /* Get an instance of this node's compositor operation. Freeing the instance is the
+   * responsibility of the caller. */
+  NodeGetCompositorOperationFunction get_compositor_operation;
+
+  /* Get an instance of this node's compositor shader node. Freeing the instance is the
+   * responsibility of the caller. */
+  NodeGetCompositorShaderNodeFunction get_compositor_shader_node;
+
   /* Build a multi-function for this node. */
   NodeMultiFunctionBuildFunction build_multi_function;
 
   /* Execute a geometry node. */
   NodeGeometryExecFunction geometry_node_execute;
+  /**
+   * If true, the geometry nodes evaluator can call the execute function multiple times to improve
+   * performance by specifying required data in one call and using it for calculations in another.
+   */
   bool geometry_node_execute_supports_laziness;
 
   /* Declares which sockets the node has. */
@@ -369,6 +394,9 @@ typedef void (*bNodeClassCallback)(void *calldata, int nclass, const char *name)
 typedef struct bNodeTreeType {
   int type;        /* type identifier */
   char idname[64]; /* identifier name */
+
+  /* The ID name of group nodes for this type. */
+  char group_idname[64];
 
   char ui_name[64];
   char ui_description[256];
@@ -444,6 +472,11 @@ void ntreeSetTypes(const struct bContext *C, struct bNodeTree *ntree);
 
 struct bNodeTree *ntreeAddTree(struct Main *bmain, const char *name, const char *idname);
 
+struct bNodeTree *ntreeAddTreeEmbedded(struct Main *bmain,
+                                       struct ID *owner_id,
+                                       const char *name,
+                                       const char *idname);
+
 /* copy/free funcs, need to manage ID users */
 
 /**
@@ -512,7 +545,9 @@ void ntreeBlendWrite(struct BlendWriter *writer, struct bNodeTree *ntree);
 /**
  * \note `ntree` itself has been read!
  */
-void ntreeBlendReadData(struct BlendDataReader *reader, struct bNodeTree *ntree);
+void ntreeBlendReadData(struct BlendDataReader *reader,
+                        struct ID *owner_id,
+                        struct bNodeTree *ntree);
 void ntreeBlendReadLib(struct BlendLibReader *reader, struct bNodeTree *ntree);
 void ntreeBlendReadExpand(struct BlendExpander *expander, struct bNodeTree *ntree);
 
@@ -679,7 +714,10 @@ struct bNodeLink *nodeAddLink(struct bNodeTree *ntree,
                               struct bNodeSocket *tosock);
 void nodeRemLink(struct bNodeTree *ntree, struct bNodeLink *link);
 void nodeRemSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
-void nodeMuteLinkToggle(struct bNodeTree *ntree, struct bNodeLink *link);
+/**
+ * Set the mute status of a single link.
+ */
+void nodeLinkSetMute(struct bNodeTree *ntree, struct bNodeLink *link, const bool muted);
 bool nodeLinkIsHidden(const struct bNodeLink *link);
 bool nodeLinkIsSelected(const struct bNodeLink *link);
 void nodeInternalRelink(struct bNodeTree *ntree, struct bNode *node);
@@ -1074,7 +1112,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 //#define SH_NODE_MATERIAL  100
 #define SH_NODE_RGB 101
 #define SH_NODE_VALUE 102
-#define SH_NODE_MIX_RGB 103
+#define SH_NODE_MIX_RGB_LEGACY 103
 #define SH_NODE_VALTORGB 104
 #define SH_NODE_RGBTOBW 105
 #define SH_NODE_SHADERTORGB 106
@@ -1177,6 +1215,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define SH_NODE_POINT_INFO 710
 #define SH_NODE_COMBINE_COLOR 711
 #define SH_NODE_SEPARATE_COLOR 712
+#define SH_NODE_MIX 713
 
 /** \} */
 
@@ -1297,16 +1336,6 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 /* channel toggles */
 #define CMP_CHAN_RGB 1
 #define CMP_CHAN_A 2
-
-/* filter types */
-#define CMP_FILT_SOFT 0
-#define CMP_FILT_SHARP_BOX 1
-#define CMP_FILT_LAPLACE 2
-#define CMP_FILT_SOBEL 3
-#define CMP_FILT_PREWITT 4
-#define CMP_FILT_KIRSCH 5
-#define CMP_FILT_SHADOW 6
-#define CMP_FILT_SHARP_DIAMOND 7
 
 /* scale node type, in custom1 */
 #define CMP_SCALE_RELATIVE 0
@@ -1495,6 +1524,16 @@ struct TexResult;
 #define GEO_NODE_REMOVE_ATTRIBUTE 1158
 #define GEO_NODE_INPUT_INSTANCE_ROTATION 1159
 #define GEO_NODE_INPUT_INSTANCE_SCALE 1160
+#define GEO_NODE_VOLUME_CUBE 1161
+#define GEO_NODE_POINTS 1162
+#define GEO_NODE_INTERPOLATE_DOMAIN 1163
+#define GEO_NODE_MESH_TO_VOLUME 1164
+#define GEO_NODE_UV_UNWRAP 1165
+#define GEO_NODE_UV_PACK_ISLANDS 1166
+#define GEO_NODE_DEFORM_CURVES_ON_SURFACE 1167
+#define GEO_NODE_INPUT_SHORTEST_EDGE_PATHS 1168
+#define GEO_NODE_EDGE_PATHS_TO_CURVES 1169
+#define GEO_NODE_EDGE_PATHS_TO_SELECTION 1170
 
 /** \} */
 

@@ -20,7 +20,8 @@
 
 static const char *traceback_filepath(PyTracebackObject *tb, PyObject **coerce)
 {
-  *coerce = PyUnicode_EncodeFSDefault(tb->tb_frame->f_code->co_filename);
+  PyCodeObject *code = PyFrame_GetCode(tb->tb_frame);
+  *coerce = PyUnicode_EncodeFSDefault(code->co_filename);
   return PyBytes_AS_STRING(*coerce);
 }
 

@@ -1020,7 +1020,7 @@ bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace, FCurve *c
 
   /* adding or removing the Cycles modifier requires an update to handles */
   if (curve && BKE_fcurve_is_cyclic(curve) != was_cyclic) {
-    calchandles_fcurve(curve);
+    BKE_fcurve_handles_recalc(curve);
   }
 
   /* did we succeed? */

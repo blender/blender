@@ -12,7 +12,10 @@
 #include "BLI_virtual_array.hh"
 
 #include "BKE_attribute.h"
+#include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
+
+#include "ED_curves_sculpt.h"
 
 struct ARegion;
 struct RegionView3D;
@@ -21,15 +24,19 @@ struct View3D;
 struct Object;
 struct Brush;
 struct Scene;
+struct BVHTreeFromMesh;
+struct ReportList;
 
 namespace blender::ed::sculpt_paint {
 
 using bke::CurvesGeometry;
+using bke::CurvesSurfaceTransforms;
 
 struct StrokeExtension {
   bool is_first;
   float2 mouse_position;
   float pressure;
+  ReportList *reports = nullptr;
 };
 
 float brush_radius_factor(const Brush &brush, const StrokeExtension &stroke_extension);
@@ -51,8 +58,7 @@ class CurvesSculptStrokeOperation {
   virtual void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) = 0;
 };
 
-std::unique_ptr<CurvesSculptStrokeOperation> new_add_operation(const bContext &C,
-                                                               ReportList *reports);
+std::unique_ptr<CurvesSculptStrokeOperation> new_add_operation();
 std::unique_ptr<CurvesSculptStrokeOperation> new_comb_operation();
 std::unique_ptr<CurvesSculptStrokeOperation> new_delete_operation();
 std::unique_ptr<CurvesSculptStrokeOperation> new_snake_hook_operation();
@@ -60,6 +66,13 @@ std::unique_ptr<CurvesSculptStrokeOperation> new_grow_shrink_operation(
     const BrushStrokeMode brush_mode, const bContext &C);
 std::unique_ptr<CurvesSculptStrokeOperation> new_selection_paint_operation(
     const BrushStrokeMode brush_mode, const bContext &C);
+std::unique_ptr<CurvesSculptStrokeOperation> new_pinch_operation(const BrushStrokeMode brush_mode,
+                                                                 const bContext &C);
+std::unique_ptr<CurvesSculptStrokeOperation> new_smooth_operation();
+std::unique_ptr<CurvesSculptStrokeOperation> new_puff_operation();
+std::unique_ptr<CurvesSculptStrokeOperation> new_density_operation(
+    const BrushStrokeMode brush_mode, const bContext &C, const StrokeExtension &stroke_start);
+std::unique_ptr<CurvesSculptStrokeOperation> new_slide_operation();
 
 struct CurvesBrush3D {
   float3 position_cu;
@@ -89,21 +102,7 @@ VArray<float> get_curves_selection(const Curves &curves_id);
  */
 VArray<float> get_point_selection(const Curves &curves_id);
 
-/**
- * Find curves that have any point selected (a selection factor greater than zero),
- * or curves that have their own selection factor greater than zero.
- */
-IndexMask retrieve_selected_curves(const Curves &curves_id, Vector<int64_t> &r_indices);
-
 void move_last_point_and_resample(MutableSpan<float3> positions, const float3 &new_last_position);
-
-float3 compute_surface_point_normal(const MLoopTri &looptri,
-                                    const float3 &bary_coord,
-                                    const Span<float3> corner_normals);
-
-float3 compute_bary_coord_in_triangle(const Mesh &mesh,
-                                      const MLoopTri &looptri,
-                                      const float3 &position);
 
 class CurvesSculptCommonContext {
  public:
@@ -111,9 +110,29 @@ class CurvesSculptCommonContext {
   const Scene *scene = nullptr;
   ARegion *region = nullptr;
   const View3D *v3d = nullptr;
-  const RegionView3D *rv3d = nullptr;
+  RegionView3D *rv3d = nullptr;
 
   CurvesSculptCommonContext(const bContext &C);
 };
+
+std::optional<CurvesBrush3D> sample_curves_surface_3d_brush(
+    const Depsgraph &depsgraph,
+    const ARegion &region,
+    const View3D &v3d,
+    const CurvesSurfaceTransforms &transforms,
+    const BVHTreeFromMesh &surface_bvh,
+    const float2 &brush_pos_re,
+    const float brush_radius_re);
+
+float transform_brush_radius(const float4x4 &transform,
+                             const float3 &brush_position,
+                             const float old_radius);
+
+void report_empty_original_surface(ReportList *reports);
+void report_empty_evaluated_surface(ReportList *reports);
+void report_missing_surface(ReportList *reports);
+void report_missing_uv_map_on_original_surface(ReportList *reports);
+void report_missing_uv_map_on_evaluated_surface(ReportList *reports);
+void report_invalid_uv_map(ReportList *reports);
 
 }  // namespace blender::ed::sculpt_paint

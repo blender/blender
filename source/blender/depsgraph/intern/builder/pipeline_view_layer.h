@@ -9,8 +9,7 @@
 
 #include "pipeline.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 class ViewLayerBuilderPipeline : public AbstractBuilderPipeline {
  public:
@@ -21,5 +20,4 @@ class ViewLayerBuilderPipeline : public AbstractBuilderPipeline {
   virtual void build_relations(DepsgraphRelationBuilder &relation_builder) override;
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

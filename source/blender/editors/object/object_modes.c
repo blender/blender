@@ -191,7 +191,7 @@ bool ED_object_mode_set_ex(bContext *C, eObjectMode mode, bool use_undo, ReportL
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = OBACT(view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
   if (ob == NULL) {
     return (mode == OB_MODE_OBJECT);
   }

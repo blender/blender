@@ -2102,7 +2102,7 @@ static void pchan_culling_calc_bsphere(const Object *ob,
 {
   float min[3], max[3];
   INIT_MINMAX(min, max);
-  BKE_pchan_minmax(ob, pchan, min, max);
+  BKE_pchan_minmax(ob, pchan, true, min, max);
   mid_v3_v3v3(r_bsphere->center, min, max);
   r_bsphere->radius = len_v3v3(min, r_bsphere->center);
 }
@@ -2220,7 +2220,7 @@ static void draw_armature_edit(ArmatureDrawContext *ctx)
   const bool show_text = DRW_state_show_text();
 
   const Object *ob_orig = DEG_get_original_object(ob);
-  /* FIXME(campbell): We should be able to use the CoW object,
+  /* FIXME(@campbellbarton): We should be able to use the CoW object,
    * however the active bone isn't updated. Long term solution is an 'EditArmature' struct.
    * for now we can draw from the original armature. See: T66773. */
   // bArmature *arm = ob->data;

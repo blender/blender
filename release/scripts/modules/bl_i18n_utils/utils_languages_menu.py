@@ -9,12 +9,12 @@ import os
 OK = 0
 MISSING = 1
 TOOLOW = 2
-FORBIDDEN = 3
+SKIPPED = 3
 FLAG_MESSAGES = {
     OK: "",
-    MISSING: "No translation yet!",
-    TOOLOW: "Not enough advanced to be included...",
-    FORBIDDEN: "Explicitly forbidden!",
+    MISSING: "No translation yet.",
+    TOOLOW: "Not complete enough to be included.",
+    SKIPPED: "Skipped (see IMPORT_LANGUAGES_SKIP in settings.py).",
 }
 
 
@@ -25,7 +25,7 @@ def gen_menu_file(stats, settings):
     for uid_num, label, uid in settings.LANGUAGES:
         if uid in stats:
             if uid in settings.IMPORT_LANGUAGES_SKIP:
-                tmp.append((stats[uid], uid_num, label, uid, FORBIDDEN))
+                tmp.append((stats[uid], uid_num, label, uid, SKIPPED))
             else:
                 tmp.append((stats[uid], uid_num, label, uid, OK))
         else:

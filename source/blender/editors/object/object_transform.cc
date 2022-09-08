@@ -855,7 +855,7 @@ static int apply_objects_internal(bContext *C,
 
     /* calculate translation */
     if (apply_loc) {
-      copy_v3_v3(mat[3], ob->loc);
+      add_v3_v3v3(mat[3], ob->loc, ob->dloc);
 
       if (!(apply_scale && apply_rot)) {
         float tmat[3][3];
@@ -1023,14 +1023,19 @@ static int apply_objects_internal(bContext *C,
     else {
       if (apply_loc) {
         zero_v3(ob->loc);
+        zero_v3(ob->dloc);
       }
       if (apply_scale) {
-        ob->scale[0] = ob->scale[1] = ob->scale[2] = 1.0f;
+        copy_v3_fl(ob->scale, 1.0f);
+        copy_v3_fl(ob->dscale, 1.0f);
       }
       if (apply_rot) {
         zero_v3(ob->rot);
+        zero_v3(ob->drot);
         unit_qt(ob->quat);
+        unit_qt(ob->dquat);
         unit_axis_angle(ob->rotAxis, &ob->rotAngle);
+        unit_axis_angle(ob->drotAxis, &ob->drotAngle);
       }
     }
 
@@ -1598,6 +1603,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
                     }
                   }
                 }
+                BKE_gpencil_stroke_geometry_update(gpd, gps);
               }
             }
           }
@@ -2219,7 +2225,7 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
 
   bool is_finished = false;
 
-  if (ISMOUSE(xfd->init_event)) {
+  if (ISMOUSE_BUTTON(xfd->init_event)) {
     if ((event->type == xfd->init_event) && (event->val == KM_RELEASE)) {
       is_finished = true;
     }

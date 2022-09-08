@@ -169,7 +169,7 @@ void ntreeCompositClearTags(struct bNodeTree *ntree);
 struct bNodeSocket *ntreeCompositOutputFileAddSocket(struct bNodeTree *ntree,
                                                      struct bNode *node,
                                                      const char *name,
-                                                     struct ImageFormatData *im_format);
+                                                     const struct ImageFormatData *im_format);
 
 int ntreeCompositOutputFileRemoveActiveSocket(struct bNodeTree *ntree, struct bNode *node);
 void ntreeCompositOutputFileSetPath(struct bNode *node,

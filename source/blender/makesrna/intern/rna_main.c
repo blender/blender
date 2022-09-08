@@ -96,9 +96,7 @@ RNA_MAIN_LISTBASE_FUNCS_DEF(collections)
 RNA_MAIN_LISTBASE_FUNCS_DEF(curves)
 RNA_MAIN_LISTBASE_FUNCS_DEF(fonts)
 RNA_MAIN_LISTBASE_FUNCS_DEF(gpencils)
-#  ifdef WITH_NEW_CURVES_TYPE
 RNA_MAIN_LISTBASE_FUNCS_DEF(hair_curves)
-#  endif
 RNA_MAIN_LISTBASE_FUNCS_DEF(images)
 RNA_MAIN_LISTBASE_FUNCS_DEF(lattices)
 RNA_MAIN_LISTBASE_FUNCS_DEF(libraries)
@@ -171,7 +169,6 @@ void RNA_def_main(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
-  CollectionDefFunc *func;
 
   /* plural must match idtypes in readblenentry.c */
   MainCollectionDef lists[] = {
@@ -375,7 +372,6 @@ void RNA_def_main(BlenderRNA *brna)
        "Light Probes",
        "Light Probe data-blocks",
        RNA_def_main_lightprobes},
-#  ifdef WITH_NEW_CURVES_TYPE
       /**
        * \note The name `hair_curves` is chosen to be different than `curves`,
        * but they are generic curve data-blocks, not just for hair.
@@ -386,7 +382,6 @@ void RNA_def_main(BlenderRNA *brna)
        "Hair Curves",
        "Hair curve data-blocks",
        RNA_def_main_hair_curves},
-#  endif
       {"pointclouds",
        "PointCloud",
        "rna_Main_pointclouds_begin",
@@ -471,7 +466,7 @@ void RNA_def_main(BlenderRNA *brna)
     RNA_def_property_ui_text(prop, lists[i].name, lists[i].description);
 
     /* collection functions */
-    func = lists[i].func;
+    CollectionDefFunc *func = lists[i].func;
     if (func) {
       func(brna, prop);
     }

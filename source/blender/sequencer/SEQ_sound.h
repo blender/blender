@@ -20,6 +20,7 @@ void SEQ_sound_update_bounds_all(struct Scene *scene);
 void SEQ_sound_update_bounds(struct Scene *scene, struct Sequence *seq);
 void SEQ_sound_update(struct Scene *scene, struct bSound *sound);
 void SEQ_sound_update_length(struct Main *bmain, struct Scene *scene);
+float SEQ_sound_pitch_get(const struct Scene *scene, const struct Sequence *seq);
 
 #ifdef __cplusplus
 }

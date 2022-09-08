@@ -228,7 +228,7 @@ class AbstractHierarchyIterator {
    * writer is created it will also write the current iteration, to ensure the hierarchy is
    * complete. The `export_subset` option is only in effect when the writer already existed from a
    * previous iteration. */
-  void set_export_subset(ExportSubset export_subset_);
+  void set_export_subset(ExportSubset export_subset);
 
   /* Convert the given name to something that is valid for the exported file format.
    * This base implementation is a no-op; override in a concrete subclass. */
@@ -267,7 +267,7 @@ class AbstractHierarchyIterator {
   /* These three functions create writers and call their write() method. */
   void make_writers(const HierarchyContext *parent_context);
   void make_writer_object_data(const HierarchyContext *context);
-  void make_writers_particle_systems(const HierarchyContext *context);
+  void make_writers_particle_systems(const HierarchyContext *transform_context);
 
   /* Return the appropriate HierarchyContext for the data of the object represented by
    * object_context. */
@@ -332,7 +332,7 @@ class AbstractHierarchyIterator {
   virtual void release_writer(AbstractHierarchyWriter *writer) = 0;
 
   AbstractHierarchyWriter *get_writer(const std::string &export_path) const;
-  ExportChildren &graph_children(const HierarchyContext *parent_context);
+  ExportChildren &graph_children(const HierarchyContext *context);
 };
 
 }  // namespace blender::io

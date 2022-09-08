@@ -1232,8 +1232,9 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
 
     mainl = BLO_library_link_begin(&blo_handle, libname, lapp_context->params);
     lib = mainl->curlib;
-    BLI_assert(lib);
-    UNUSED_VARS_NDEBUG(lib);
+    BLI_assert(lib != NULL);
+    /* In case lib was already existing but not found originally, see T99820. */
+    lib->id.tag &= ~LIB_TAG_MISSING;
 
     if (mainl->versionfile < 250) {
       BKE_reportf(reports,

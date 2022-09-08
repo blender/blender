@@ -30,6 +30,14 @@ GHOST_SystemHandle GHOST_CreateSystem(void)
   return (GHOST_SystemHandle)system;
 }
 
+GHOST_SystemHandle GHOST_CreateSystemBackground(void)
+{
+  GHOST_ISystem::createSystemBackground();
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+
+  return (GHOST_SystemHandle)system;
+}
+
 void GHOST_SystemInitDebug(GHOST_SystemHandle systemhandle, GHOST_Debug debug)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
@@ -326,6 +334,14 @@ GHOST_TSuccess GHOST_SetCustomCursorShape(GHOST_WindowHandle windowhandle,
   return window->setCustomCursorShape(bitmap, mask, sizex, sizey, hotX, hotY, canInvertColor);
 }
 
+GHOST_TSuccess GHOST_GetCursorBitmap(GHOST_WindowHandle windowhandle,
+                                     GHOST_CursorBitmapRef *bitmap)
+{
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+
+  return window->getCursorBitmap(bitmap);
+}
+
 bool GHOST_GetCursorVisibility(GHOST_WindowHandle windowhandle)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
@@ -340,18 +356,48 @@ GHOST_TSuccess GHOST_SetCursorVisibility(GHOST_WindowHandle windowhandle, bool v
   return window->setCursorVisibility(visible);
 }
 
-GHOST_TSuccess GHOST_GetCursorPosition(GHOST_SystemHandle systemhandle, int32_t *x, int32_t *y)
+/* Unused, can expose again if needed although WAYLAND
+ * can only properly use client relative coordinates, so leave disabled if possible. */
+#if 0
+GHOST_TSuccess GHOST_GetCursorPositionScreenCoords(GHOST_SystemHandle systemhandle,
+                                                   int32_t *x,
+                                                   int32_t *y)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
   return system->getCursorPosition(*x, *y);
 }
 
-GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle, int32_t x, int32_t y)
+GHOST_TSuccess GHOST_SetCursorPositionScreenCoords(GHOST_SystemHandle systemhandle,
+                                                   int32_t x,
+                                                   int32_t y)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
   return system->setCursorPosition(x, y);
+}
+#endif
+
+GHOST_TSuccess GHOST_GetCursorPosition(const GHOST_SystemHandle systemhandle,
+                                       const GHOST_WindowHandle windowhandle,
+                                       int32_t *x,
+                                       int32_t *y)
+{
+  const GHOST_ISystem *system = (const GHOST_ISystem *)systemhandle;
+  const GHOST_IWindow *window = (const GHOST_IWindow *)windowhandle;
+
+  return system->getCursorPositionClientRelative(window, *x, *y);
+}
+
+GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
+                                       GHOST_WindowHandle windowhandle,
+                                       int32_t x,
+                                       int32_t y)
+{
+  GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+
+  return system->setCursorPositionClientRelative(window, x, y);
 }
 
 GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
@@ -379,19 +425,22 @@ GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
 void GHOST_GetCursorGrabState(GHOST_WindowHandle windowhandle,
                               GHOST_TGrabCursorMode *r_mode,
                               GHOST_TAxisFlag *r_axis_flag,
-                              int r_bounds[4])
+                              int r_bounds[4],
+                              bool *r_use_software_cursor)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
   GHOST_Rect bounds_rect;
-  window->getCursorGrabState(*r_mode, *r_axis_flag, bounds_rect);
+  bool use_software_cursor;
+  window->getCursorGrabState(*r_mode, *r_axis_flag, bounds_rect, use_software_cursor);
   r_bounds[0] = bounds_rect.m_l;
   r_bounds[1] = bounds_rect.m_t;
   r_bounds[2] = bounds_rect.m_r;
   r_bounds[3] = bounds_rect.m_b;
+  *r_use_software_cursor = use_software_cursor;
 }
 
 GHOST_TSuccess GHOST_GetModifierKeyState(GHOST_SystemHandle systemhandle,
-                                         GHOST_TModifierKeyMask mask,
+                                         GHOST_TModifierKey mask,
                                          bool *r_is_down)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
@@ -405,7 +454,7 @@ GHOST_TSuccess GHOST_GetModifierKeyState(GHOST_SystemHandle systemhandle,
 }
 
 GHOST_TSuccess GHOST_GetButtonState(GHOST_SystemHandle systemhandle,
-                                    GHOST_TButtonMask mask,
+                                    GHOST_TButton mask,
                                     bool *r_is_down)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
@@ -820,8 +869,7 @@ void GHOST_putClipboard(const char *buffer, bool selection)
 bool GHOST_setConsoleWindowState(GHOST_TConsoleWindowState action)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
-  /* FIXME: use `bool` instead of int for this value. */
-  return (bool)system->setConsoleWindowState(action);
+  return system->setConsoleWindowState(action);
 }
 
 bool GHOST_UseNativePixels(void)

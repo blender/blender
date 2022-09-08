@@ -14,6 +14,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
 #include "BLT_translation.h"
 
@@ -62,7 +63,11 @@
 
 using blender::Array;
 using blender::float4x4;
+using blender::IndexRange;
+using blender::MutableSpan;
+using blender::Span;
 using blender::Vector;
+using blender::VectorSet;
 
 static void initData(ModifierData *md)
 {
@@ -112,7 +117,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
     DEG_add_collection_geometry_relation(ctx->node, col, "Boolean Modifier");
   }
   /* We need own transformation as well. */
-  DEG_add_modifier_to_transform_relation(ctx->node, "Boolean Modifier");
+  DEG_add_depends_on_transform_relation(ctx->node, "Boolean Modifier");
 }
 
 static Mesh *get_quick_mesh(
@@ -139,14 +144,12 @@ static Mesh *get_quick_mesh(
           invert_m4_m4(imat, ob_self->obmat);
           mul_m4_m4m4(omat, imat, ob_operand_ob->obmat);
 
-          const int mverts_len = result->totvert;
-          MVert *mv = result->mvert;
-
-          for (int i = 0; i < mverts_len; i++, mv++) {
-            mul_m4_v3(omat, mv->co);
+          MutableSpan<MVert> verts = result->verts_for_write();
+          for (const int i : verts.index_range()) {
+            mul_m4_v3(omat, verts[i].co);
           }
 
-          BKE_mesh_normals_tag_dirty(result);
+          BKE_mesh_tag_coords_changed(result);
         }
 
         break;
@@ -375,19 +378,23 @@ static void BMD_mesh_intersection(BMesh *bm,
 
 #ifdef WITH_GMP
 
-/* Get a mapping from material slot numbers in the src_ob to slot numbers in the dst_ob.
- * If a material doesn't exist in the dst_ob, the mapping just goes to the same slot
- * or to zero if there aren't enough slots in the destination.
- * Caller owns the returned array. */
-static Array<short> get_material_remap(Object *dest_ob, Object *src_ob)
+/* Get a mapping from material slot numbers in the source geometry to slot numbers in the result
+ * geometry. The material is added to the result geometry if it doesn't already use it. */
+static Array<short> get_material_remap(Object &object,
+                                       const Mesh &mesh,
+                                       VectorSet<Material *> &materials)
 {
-  int n = src_ob->totcol;
-  if (n <= 0) {
-    n = 1;
+  const int material_num = mesh.totcol;
+  if (material_num == 0) {
+    /* Necessary for faces using the default material when there are no material slots. */
+    return Array<short>({materials.index_of_or_add(nullptr)});
   }
-  Array<short> remap(n);
-  BKE_object_material_remap_calc(dest_ob, src_ob, remap.data());
-  return remap;
+  Array<short> map(material_num);
+  for (const int i : IndexRange(material_num)) {
+    Material *material = BKE_object_material_get_eval(&object, i + 1);
+    map[i] = materials.index_of_or_add(material);
+  }
+  return map;
 }
 
 static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
@@ -396,6 +403,8 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
 {
   Vector<const Mesh *> meshes;
   Vector<float4x4 *> obmats;
+
+  VectorSet<Material *> materials;
   Vector<Array<short>> material_remaps;
 
 #  ifdef DEBUG_TIME
@@ -409,15 +418,23 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
   meshes.append(mesh);
   obmats.append((float4x4 *)&ctx->object->obmat);
   material_remaps.append({});
+  if (mesh->totcol == 0) {
+    /* Necessary for faces using the default material when there are no material slots. */
+    materials.add(nullptr);
+  }
+  else {
+    materials.add_multiple({mesh->mat, mesh->totcol});
+  }
+
   if (bmd->flag & eBooleanModifierFlag_Object) {
-    Mesh *mesh_operand = BKE_modifier_get_evaluated_mesh_from_evaluated_object(bmd->object, false);
+    Mesh *mesh_operand = BKE_modifier_get_evaluated_mesh_from_evaluated_object(bmd->object);
     if (!mesh_operand) {
       return mesh;
     }
     BKE_mesh_wrapper_ensure_mdata(mesh_operand);
     meshes.append(mesh_operand);
     obmats.append((float4x4 *)&bmd->object->obmat);
-    material_remaps.append(get_material_remap(ctx->object, bmd->object));
+    material_remaps.append(get_material_remap(*bmd->object, *mesh_operand, materials));
   }
   else if (bmd->flag & eBooleanModifierFlag_Collection) {
     Collection *collection = bmd->collection;
@@ -425,14 +442,14 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
     if (collection) {
       FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (collection, ob) {
         if (ob->type == OB_MESH && ob != ctx->object) {
-          Mesh *collection_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob, false);
+          Mesh *collection_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob);
           if (!collection_mesh) {
             continue;
           }
           BKE_mesh_wrapper_ensure_mdata(collection_mesh);
           meshes.append(collection_mesh);
           obmats.append((float4x4 *)&ob->obmat);
-          material_remaps.append(get_material_remap(ctx->object, ob));
+          material_remaps.append(get_material_remap(*ob, *collection_mesh, materials));
         }
       }
       FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
@@ -441,14 +458,19 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
 
   const bool use_self = (bmd->flag & eBooleanModifierFlag_Self) != 0;
   const bool hole_tolerant = (bmd->flag & eBooleanModifierFlag_HoleTolerant) != 0;
-  return blender::meshintersect::direct_mesh_boolean(meshes,
-                                                     obmats,
-                                                     *(float4x4 *)&ctx->object->obmat,
-                                                     material_remaps,
-                                                     use_self,
-                                                     hole_tolerant,
-                                                     bmd->operation,
-                                                     nullptr);
+  Mesh *result = blender::meshintersect::direct_mesh_boolean(meshes,
+                                                             obmats,
+                                                             *(float4x4 *)&ctx->object->obmat,
+                                                             material_remaps,
+                                                             use_self,
+                                                             hole_tolerant,
+                                                             bmd->operation,
+                                                             nullptr);
+  MEM_SAFE_FREE(result->mat);
+  result->mat = (Material **)MEM_malloc_arrayN(materials.size(), sizeof(Material *), __func__);
+  result->totcol = materials.size();
+  MutableSpan(result->mat, result->totcol).copy_from(materials);
+  return result;
 }
 #endif
 
@@ -481,8 +503,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
     Object *operand_ob = bmd->object;
 
-    Mesh *mesh_operand_ob = BKE_modifier_get_evaluated_mesh_from_evaluated_object(operand_ob,
-                                                                                  false);
+    Mesh *mesh_operand_ob = BKE_modifier_get_evaluated_mesh_from_evaluated_object(operand_ob);
 
     if (mesh_operand_ob) {
       /* XXX This is utterly non-optimal, we may go from a bmesh to a mesh back to a bmesh!
@@ -516,8 +537,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
     FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (collection, operand_ob) {
       if (operand_ob->type == OB_MESH && operand_ob != ctx->object) {
-        Mesh *mesh_operand_ob = BKE_modifier_get_evaluated_mesh_from_evaluated_object(operand_ob,
-                                                                                      false);
+        Mesh *mesh_operand_ob = BKE_modifier_get_evaluated_mesh_from_evaluated_object(operand_ob);
 
         if (mesh_operand_ob == nullptr) {
           continue;
@@ -615,7 +635,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Boolean = {
-    /* name */ "Boolean",
+    /* name */ N_("Boolean"),
     /* structName */ "BooleanModifierData",
     /* structSize */ sizeof(BooleanModifierData),
     /* srna */ &RNA_BooleanModifier,

@@ -298,7 +298,6 @@ static float get_default_column_width(const ColumnValues &values)
     return values.default_width;
   }
   static const float float_width = 3;
-  static const float int_width = 2;
   switch (values.type()) {
     case SPREADSHEET_VALUE_TYPE_BOOL:
       return 2.0f;
@@ -312,13 +311,12 @@ static float get_default_column_width(const ColumnValues &values)
     case SPREADSHEET_VALUE_TYPE_FLOAT3:
       return 3.0f * float_width;
     case SPREADSHEET_VALUE_TYPE_COLOR:
+    case SPREADSHEET_VALUE_TYPE_BYTE_COLOR:
       return 4.0f * float_width;
     case SPREADSHEET_VALUE_TYPE_INSTANCES:
       return 8.0f;
     case SPREADSHEET_VALUE_TYPE_STRING:
       return 5.0f;
-    case SPREADSHEET_VALUE_TYPE_BYTE_COLOR:
-      return 4.0f * int_width;
     case SPREADSHEET_VALUE_TYPE_UNKNOWN:
       return 2.0f;
   }
@@ -438,7 +436,7 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
 static void spreadsheet_main_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   switch (wmn->category) {
     case NC_SCENE: {
@@ -488,7 +486,7 @@ static void spreadsheet_header_region_free(ARegion *UNUSED(region))
 static void spreadsheet_header_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   switch (wmn->category) {
     case NC_SCENE: {
@@ -572,7 +570,7 @@ static void spreadsheet_footer_region_listener(const wmRegionListenerParams *UNU
 static void spreadsheet_dataset_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   switch (wmn->category) {
     case NC_SCENE: {

@@ -16,6 +16,7 @@
 
 #include "BKE_collection.h"
 #include "BKE_context.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
@@ -88,7 +89,7 @@ bool ED_rigidbody_constraint_add(
   /* create constraint group if it doesn't already exits */
   if (rbw->constraints == NULL) {
     rbw->constraints = BKE_collection_add(bmain, NULL, "RigidBodyConstraints");
-    id_fake_user_set(&rbw->constraints->id);
+    id_us_plus(&rbw->constraints->id);
   }
   /* make rigidbody constraint settings */
   ob->rigidbody_constraint = BKE_rigidbody_create_constraint(scene, ob, type);
@@ -122,7 +123,7 @@ static int rigidbody_con_add_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   RigidBodyWorld *rbw = BKE_rigidbody_get_world(scene);
-  Object *ob = OBACT(view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
   int type = RNA_enum_get(op->ptr, "type");
   bool changed;
 
@@ -174,7 +175,7 @@ static int rigidbody_con_remove_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = OBACT(view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   /* apply to active object */
   if (ELEM(NULL, ob, ob->rigidbody_constraint)) {

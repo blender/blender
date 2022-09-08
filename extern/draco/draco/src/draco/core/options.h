@@ -71,8 +71,6 @@ class Options {
  private:
   // All entries are internally stored as strings and converted to the desired
   // return type based on the used Get* method.
-  // TODO(ostava): Consider adding type safety mechanism that would prevent
-  // unsafe operations such as a conversion from vector to int.
   std::map<std::string, std::string> options_;
 };
 

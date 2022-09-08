@@ -117,7 +117,7 @@ static void MaskPointToTransData(Scene *scene,
   const bool is_sel_any = MASKPOINT_ISSEL_ANY(point);
   float parent_matrix[3][3], parent_inverse_matrix[3][3];
 
-  BKE_mask_point_parent_matrix_get(point, CFRA, parent_matrix);
+  BKE_mask_point_parent_matrix_get(point, scene->r.cfra, parent_matrix);
   invert_m3_m3(parent_inverse_matrix, parent_matrix);
 
   if (is_prop_edit || is_sel_point) {
@@ -245,7 +245,7 @@ static void MaskPointToTransData(Scene *scene,
   }
 }
 
-void createTransMaskingData(bContext *C, TransInfo *t)
+static void createTransMaskingData(bContext *C, TransInfo *t)
 {
   Scene *scene = CTX_data_scene(C);
   Mask *mask = CTX_data_edit_mask(C);
@@ -261,16 +261,8 @@ void createTransMaskingData(bContext *C, TransInfo *t)
 
   tc->data_len = 0;
 
-  if (!mask) {
+  if (!ED_maskedit_mask_visible_splines_poll(C)) {
     return;
-  }
-
-  if (t->spacetype == SPACE_CLIP) {
-    SpaceClip *sc = t->area->spacedata.first;
-    MovieClip *clip = ED_space_clip_get_clip(sc);
-    if (!clip) {
-      return;
-    }
   }
 
   /* count */
@@ -424,7 +416,7 @@ static void flushTransMasking(TransInfo *t)
   }
 }
 
-void recalcData_mask_common(TransInfo *t)
+static void recalcData_mask_common(TransInfo *t)
 {
   Mask *mask = CTX_data_edit_mask(t->context);
 
@@ -439,7 +431,7 @@ void recalcData_mask_common(TransInfo *t)
 /** \name Special After Transform Mask
  * \{ */
 
-void special_aftertrans_update__mask(bContext *C, TransInfo *t)
+static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
 {
   Mask *mask = NULL;
 
@@ -463,7 +455,7 @@ void special_aftertrans_update__mask(bContext *C, TransInfo *t)
   if (IS_AUTOKEY_ON(t->scene)) {
     Scene *scene = t->scene;
 
-    if (ED_mask_layer_shape_auto_key_select(mask, CFRA)) {
+    if (ED_mask_layer_shape_auto_key_select(mask, scene->r.cfra)) {
       WM_event_add_notifier(C, NC_MASK | ND_DATA, &mask->id);
       DEG_id_tag_update(&mask->id, 0);
     }
@@ -471,3 +463,10 @@ void special_aftertrans_update__mask(bContext *C, TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_Mask = {
+    /* flags */ (T_POINTS | T_2D_EDIT),
+    /* createTransData */ createTransMaskingData,
+    /* recalcData */ recalcData_mask_common,
+    /* special_aftertrans_update */ special_aftertrans_update__mask,
+};

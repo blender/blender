@@ -14,7 +14,7 @@ ColorCorrectionNode::ColorCorrectionNode(bNode *editor_node) : Node(editor_node)
 void ColorCorrectionNode::convert_to_operations(NodeConverter &converter,
                                                 const CompositorContext & /*context*/) const
 {
-  bNode *editor_node = get_bnode();
+  const bNode *editor_node = get_bnode();
 
   ColorCorrectionOperation *operation = new ColorCorrectionOperation();
   operation->set_data((NodeColorCorrection *)editor_node->storage);

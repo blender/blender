@@ -5,11 +5,20 @@
  * \ingroup cmpnodes
  */
 
+#include "DNA_movieclip_types.h"
+#include "DNA_tracking_types.h"
+
+#include "BKE_context.h"
+#include "BKE_lib_id.h"
+#include "BKE_tracking.h"
+
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "COM_node_operation.hh"
 
 #include "node_composite_util.hh"
 
@@ -22,11 +31,29 @@ static void cmp_node_trackpos_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Speed")).subtype(PROP_VELOCITY);
 }
 
-static void init(bNodeTree *UNUSED(ntree), bNode *node)
+static void init(const bContext *C, PointerRNA *ptr)
 {
-  NodeTrackPosData *data = MEM_cnew<NodeTrackPosData>(__func__);
+  bNode *node = (bNode *)ptr->data;
 
+  NodeTrackPosData *data = MEM_cnew<NodeTrackPosData>(__func__);
   node->storage = data;
+
+  const Scene *scene = CTX_data_scene(C);
+  if (scene->clip) {
+    MovieClip *clip = scene->clip;
+    MovieTracking *tracking = &clip->tracking;
+
+    node->id = &clip->id;
+    id_us_plus(&clip->id);
+
+    const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
+    BLI_strncpy(data->tracking_object, tracking_object->name, sizeof(data->tracking_object));
+
+    const MovieTrackingTrack *active_track = BKE_tracking_track_get_active(tracking);
+    if (active_track) {
+      BLI_strncpy(data->track_name, active_track->name, sizeof(data->track_name));
+    }
+  }
 }
 
 static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -77,6 +104,25 @@ static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRN
   }
 }
 
+using namespace blender::realtime_compositor;
+
+class TrackPositionOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    get_result("X").allocate_invalid();
+    get_result("Y").allocate_invalid();
+    get_result("Speed").allocate_invalid();
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, DNode node)
+{
+  return new TrackPositionOperation(context, node);
+}
+
 }  // namespace blender::nodes::node_composite_trackpos_cc
 
 void register_node_type_cmp_trackpos()
@@ -88,9 +134,10 @@ void register_node_type_cmp_trackpos()
   cmp_node_type_base(&ntype, CMP_NODE_TRACKPOS, "Track Position", NODE_CLASS_INPUT);
   ntype.declare = file_ns::cmp_node_trackpos_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_trackpos;
-  node_type_init(&ntype, file_ns::init);
+  ntype.initfunc_api = file_ns::init;
   node_type_storage(
       &ntype, "NodeTrackPosData", node_free_standard_storage, node_copy_standard_storage);
+  ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);
 }

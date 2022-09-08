@@ -39,5 +39,5 @@ void main()
     local_pos.z = clamp(local_pos.z, -1.0, 0.0);
   }
 
-  gl_Position = ViewProjectionMatrix * vec4(real_pos, 1.0);
+  gl_Position = drw_view.persmat * vec4(real_pos, 1.0);
 }

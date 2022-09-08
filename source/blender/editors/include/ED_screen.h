@@ -294,7 +294,7 @@ void ED_screen_refresh(struct wmWindowManager *wm, struct wmWindow *win);
 void ED_screen_ensure_updated(struct wmWindowManager *wm,
                               struct wmWindow *win,
                               struct bScreen *screen);
-void ED_screen_do_listen(struct bContext *C, struct wmNotifier *note);
+void ED_screen_do_listen(struct bContext *C, const struct wmNotifier *note);
 /**
  * \brief Change the active screen.
  *
@@ -595,7 +595,6 @@ bool ED_operator_object_active_local_editable_posemode_exclusive(struct bContext
 bool ED_operator_posemode_context(struct bContext *C);
 bool ED_operator_posemode(struct bContext *C);
 bool ED_operator_posemode_local(struct bContext *C);
-bool ED_operator_mask(struct bContext *C);
 bool ED_operator_camera_poll(struct bContext *C);
 
 /* screen_user_menu.c */

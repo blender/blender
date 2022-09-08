@@ -398,21 +398,6 @@ Lattice *BKE_lattice_add(Main *bmain, const char *name)
   return lt;
 }
 
-bool object_deform_mball(Object *ob, ListBase *dispbase)
-{
-  if (ob->parent && ob->parent->type == OB_LATTICE && ob->partype == PARSKEL) {
-    DispList *dl;
-
-    for (dl = dispbase->first; dl; dl = dl->next) {
-      BKE_lattice_deform_coords(ob->parent, ob, (float(*)[3])dl->verts, dl->nr, 0, NULL, 1.0f);
-    }
-
-    return true;
-  }
-
-  return false;
-}
-
 static BPoint *latt_bp(Lattice *lt, int u, int v, int w)
 {
   return &lt->def[BKE_lattice_index_from_uvw(lt, u, v, w)];

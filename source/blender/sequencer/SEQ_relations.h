@@ -31,7 +31,7 @@ bool SEQ_relations_check_scene_recursion(struct Scene *scene, struct ReportList 
  * Check if "seq_main" (indirectly) uses strip "seq".
  */
 bool SEQ_relations_render_loop_check(struct Sequence *seq_main, struct Sequence *seq);
-void SEQ_relations_free_imbuf(struct Scene *scene, struct ListBase *seqbasep, bool for_render);
+void SEQ_relations_free_imbuf(struct Scene *scene, struct ListBase *seqbase, bool for_render);
 void SEQ_relations_invalidate_cache_raw(struct Scene *scene, struct Sequence *seq);
 void SEQ_relations_invalidate_cache_preprocessed(struct Scene *scene, struct Sequence *seq);
 void SEQ_relations_invalidate_cache_composite(struct Scene *scene, struct Sequence *seq);
@@ -68,6 +68,7 @@ void SEQ_cache_iterate(
 struct Sequence *SEQ_find_metastrip_by_sequence(ListBase *seqbase /* = ed->seqbase */,
                                                 struct Sequence *meta /* = NULL */,
                                                 struct Sequence *seq);
+bool SEQ_exists_in_seqbase(const struct Sequence *seq, const struct ListBase *seqbase);
 
 #ifdef __cplusplus
 }

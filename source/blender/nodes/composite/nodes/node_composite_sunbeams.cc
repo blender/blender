@@ -8,6 +8,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "COM_node_operation.hh"
+
 #include "node_composite_util.hh"
 
 namespace blender::nodes::node_composite_sunbeams_cc {
@@ -38,6 +40,23 @@ static void node_composit_buts_sunbeams(uiLayout *layout, bContext *UNUSED(C), P
           ICON_NONE);
 }
 
+using namespace blender::realtime_compositor;
+
+class SunBeamsOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    get_input("Image").pass_through(get_result("Image"));
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, DNode node)
+{
+  return new SunBeamsOperation(context, node);
+}
+
 }  // namespace blender::nodes::node_composite_sunbeams_cc
 
 void register_node_type_cmp_sunbeams()
@@ -52,6 +71,7 @@ void register_node_type_cmp_sunbeams()
   node_type_init(&ntype, file_ns::init);
   node_type_storage(
       &ntype, "NodeSunBeams", node_free_standard_storage, node_copy_standard_storage);
+  ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);
 }

@@ -316,6 +316,27 @@ MINLINE void swap_v4_v4(float a[4], float b[4])
   SWAP(float, a[3], b[3]);
 }
 
+MINLINE void swap_v2_v2_db(double a[2], double b[2])
+{
+  SWAP(double, a[0], b[0]);
+  SWAP(double, a[1], b[1]);
+}
+
+MINLINE void swap_v3_v3_db(double a[3], double b[3])
+{
+  SWAP(double, a[0], b[0]);
+  SWAP(double, a[1], b[1]);
+  SWAP(double, a[2], b[2]);
+}
+
+MINLINE void swap_v4_v4_db(double a[4], double b[4])
+{
+  SWAP(double, a[0], b[0]);
+  SWAP(double, a[1], b[1]);
+  SWAP(double, a[2], b[2]);
+  SWAP(double, a[3], b[3]);
+}
+
 /* float args -> vec */
 
 MINLINE void copy_v2_fl2(float v[2], float x, float y)
@@ -613,10 +634,10 @@ MINLINE void mul_v2_v2_cw(float r[2], const float mat[2], const float vec[2])
 
 MINLINE void mul_v2_v2_ccw(float r[2], const float mat[2], const float vec[2])
 {
-  BLI_assert(r != vec);
-
-  r[0] = mat[0] * vec[0] + (-mat[1]) * vec[1];
-  r[1] = mat[1] * vec[0] + (+mat[0]) * vec[1];
+  float r0 = mat[0] * vec[0] + (-mat[1]) * vec[1];
+  float r1 = mat[1] * vec[0] + (+mat[0]) * vec[1];
+  r[0] = r0;
+  r[1] = r1;
 }
 
 MINLINE float mul_project_m4_v3_zfac(const float mat[4][4], const float co[3])

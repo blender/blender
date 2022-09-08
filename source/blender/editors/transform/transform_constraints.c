@@ -177,7 +177,7 @@ static void axisProjection(const TransInfo *t,
                            const float in[3],
                            float out[3])
 {
-  float norm[3], vec[3], factor, angle;
+  float vec[3], factor, angle;
   float t_con_center[3];
 
   if (is_zero_v3(in)) {
@@ -214,7 +214,7 @@ static void axisProjection(const TransInfo *t,
   }
   else {
     float v[3];
-    float norm_center[3];
+    float norm[3], norm_center[3];
     float plane[3];
 
     view_vector_calc(t, t_con_center, norm_center);
@@ -402,7 +402,7 @@ static void applyAxisConstraintVec(const TransInfo *t,
     if (activeSnap(t)) {
       if (validSnap(t)) {
         is_snap_to_edge = (t->tsnap.snapElem & SCE_SNAP_MODE_EDGE) != 0;
-        is_snap_to_face = (t->tsnap.snapElem & SCE_SNAP_MODE_FACE) != 0;
+        is_snap_to_face = (t->tsnap.snapElem & SCE_SNAP_MODE_FACE_RAYCAST) != 0;
         is_snap_to_point = !is_snap_to_edge && !is_snap_to_face;
       }
       else if (t->tsnap.snapElem & SCE_SNAP_MODE_GRID) {
@@ -701,12 +701,12 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[])
   }
 }
 
-void setUserConstraint(TransInfo *t, int mode, const char ftext[])
+void setUserConstraint(TransInfo *t, int mode, const char text_[])
 {
   char text[256];
   const short orientation = transform_orientation_or_default(t);
   const char *spacename = transform_orientations_spacename_get(t, orientation);
-  BLI_snprintf(text, sizeof(text), ftext, spacename);
+  BLI_snprintf(text, sizeof(text), text_, spacename);
 
   switch (orientation) {
     case V3D_ORIENT_LOCAL:

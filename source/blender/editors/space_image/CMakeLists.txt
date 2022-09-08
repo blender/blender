@@ -16,7 +16,6 @@ set(INC
   ../../render
   ../../windowmanager
   ../../../../intern/clog
-  ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -28,7 +27,7 @@ set(SRC
   image_edit.c
   image_ops.c
   image_sequence.c
-  image_undo.c
+  image_undo.cc
   space_image.c
 
   image_intern.h

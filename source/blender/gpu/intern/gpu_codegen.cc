@@ -12,8 +12,6 @@
 #include "DNA_customdata_types.h"
 #include "DNA_image_types.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 #include "BLI_hash_mm2a.h"
 #include "BLI_link_utils.h"
@@ -23,7 +21,6 @@
 #include "PIL_time.h"
 
 #include "BKE_material.h"
-#include "BKE_world.h"
 
 #include "GPU_capabilities.h"
 #include "GPU_material.h"
@@ -35,7 +32,6 @@
 #include "BLI_vector.hh"
 
 #include "gpu_codegen.h"
-#include "gpu_material_library.h"
 #include "gpu_node_graph.h"
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_dependency_private.h"
@@ -56,16 +52,19 @@ using namespace blender::gpu::shader;
  */
 struct GPUCodegenCreateInfo : ShaderCreateInfo {
   struct NameBuffer {
+    using NameEntry = std::array<char, 32>;
+
     /** Duplicate attribute names to avoid reference the GPUNodeGraph directly. */
     char attr_names[16][GPU_MAX_SAFE_ATTR_NAME + 1];
     char var_names[16][8];
-    blender::Vector<std::array<char, 32>, 16> sampler_names;
+    blender::Vector<std::unique_ptr<NameEntry>, 16> sampler_names;
 
     /* Returns the appended name memory location */
     const char *append_sampler_name(const char name[32])
     {
-      auto index = sampler_names.append_and_get_index(std::array<char, 32>());
-      char *name_buffer = sampler_names[index].data();
+      auto index = sampler_names.size();
+      sampler_names.append(std::make_unique<NameEntry>());
+      char *name_buffer = sampler_names[index]->data();
       memcpy(name_buffer, name, 32);
       return name_buffer;
     }
@@ -209,9 +208,10 @@ static std::ostream &operator<<(std::ostream &stream, const GPUConstant *input)
   stream << input->type << "(";
   for (int i = 0; i < input->type; i++) {
     char formated_float[32];
-    /* Print with the maximum precision for single precision float using scientific notation.
-     * See https://stackoverflow.com/questions/16839658/#answer-21162120 */
-    SNPRINTF(formated_float, "%.9g", input->vec[i]);
+    /* Use uint representation to allow exact same bit pattern even if NaN. This is because we can
+     * pass UINTs as floats for constants. */
+    const uint32_t *uint_vec = reinterpret_cast<const uint32_t *>(input->vec);
+    SNPRINTF(formated_float, "uintBitsToFloat(%uu)", uint_vec[i]);
     stream << formated_float;
     if (i < input->type - 1) {
       stream << ", ";
@@ -260,6 +260,7 @@ class GPUCodegen {
     MEM_SAFE_FREE(output.volume);
     MEM_SAFE_FREE(output.thickness);
     MEM_SAFE_FREE(output.displacement);
+    MEM_SAFE_FREE(output.composite);
     MEM_SAFE_FREE(output.material_functions);
     delete create_info;
     BLI_freelistN(&ubo_inputs_);
@@ -281,6 +282,7 @@ class GPUCodegen {
 
   void node_serialize(std::stringstream &eval_ss, const GPUNode *node);
   char *graph_serialize(eGPUNodeTag tree_tag, GPUNodeLink *output_link);
+  char *graph_serialize(eGPUNodeTag tree_tag);
 
   static char *extract_c_str(std::stringstream &stream)
   {
@@ -303,7 +305,7 @@ void GPUCodegen::generate_attribs()
   info.vertex_out(iface);
 
   /* Input declaration, loading / assignment to interface and geometry shader passthrough. */
-  std::stringstream decl_ss, iface_ss, load_ss;
+  std::stringstream load_ss;
 
   int slot = 15;
   LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph.attributes) {
@@ -352,24 +354,43 @@ void GPUCodegen::generate_resources()
 {
   GPUCodegenCreateInfo &info = *create_info;
 
+  /* Ref. T98190: Defines are optimizations for old compilers.
+   * Might become unnecessary with EEVEE-Next. */
+  if (GPU_material_flag_get(&mat, GPU_MATFLAG_PRINCIPLED_CLEARCOAT)) {
+    info.define("PRINCIPLED_CLEARCOAT");
+  }
+  if (GPU_material_flag_get(&mat, GPU_MATFLAG_PRINCIPLED_METALLIC)) {
+    info.define("PRINCIPLED_METALLIC");
+  }
+  if (GPU_material_flag_get(&mat, GPU_MATFLAG_PRINCIPLED_DIELECTRIC)) {
+    info.define("PRINCIPLED_DIELECTRIC");
+  }
+  if (GPU_material_flag_get(&mat, GPU_MATFLAG_PRINCIPLED_GLASS)) {
+    info.define("PRINCIPLED_GLASS");
+  }
+  if (GPU_material_flag_get(&mat, GPU_MATFLAG_PRINCIPLED_ANY)) {
+    info.define("PRINCIPLED_ANY");
+  }
+
   std::stringstream ss;
 
   /* Textures. */
+  int slot = 0;
   LISTBASE_FOREACH (GPUMaterialTexture *, tex, &graph.textures) {
     if (tex->colorband) {
       const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
-      info.sampler(0, ImageType::FLOAT_1D_ARRAY, name, Frequency::BATCH);
+      info.sampler(slot++, ImageType::FLOAT_1D_ARRAY, name, Frequency::BATCH);
     }
     else if (tex->tiled_mapping_name[0] != '\0') {
       const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
-      info.sampler(0, ImageType::FLOAT_2D_ARRAY, name, Frequency::BATCH);
+      info.sampler(slot++, ImageType::FLOAT_2D_ARRAY, name, Frequency::BATCH);
 
       const char *name_mapping = info.name_buffer.append_sampler_name(tex->tiled_mapping_name);
-      info.sampler(0, ImageType::FLOAT_1D_ARRAY, name_mapping, Frequency::BATCH);
+      info.sampler(slot++, ImageType::FLOAT_1D_ARRAY, name_mapping, Frequency::BATCH);
     }
     else {
       const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
-      info.sampler(0, ImageType::FLOAT_2D, name, Frequency::BATCH);
+      info.sampler(slot++, ImageType::FLOAT_2D, name, Frequency::BATCH);
     }
   }
 
@@ -382,7 +403,7 @@ void GPUCodegen::generate_resources()
     }
     ss << "};\n\n";
 
-    info.uniform_buf(0, "NodeTree", GPU_UBO_BLOCK_NAME, Frequency::BATCH);
+    info.uniform_buf(1, "NodeTree", GPU_UBO_BLOCK_NAME, Frequency::BATCH);
   }
 
   if (!BLI_listbase_is_empty(&graph.uniform_attrs.list)) {
@@ -394,7 +415,7 @@ void GPUCodegen::generate_resources()
 
     /* TODO(fclem): Use the macro for length. Currently not working for EEVEE. */
     /* DRW_RESOURCE_CHUNK_LEN = 512 */
-    info.uniform_buf(0, "UniformAttrs", GPU_ATTRIBUTE_UBO_BLOCK_NAME "[512]", Frequency::BATCH);
+    info.uniform_buf(2, "UniformAttrs", GPU_ATTRIBUTE_UBO_BLOCK_NAME "[512]", Frequency::BATCH);
   }
 
   info.typedef_source_generated = ss.str();
@@ -501,6 +522,19 @@ char *GPUCodegen::graph_serialize(eGPUNodeTag tree_tag, GPUNodeLink *output_link
   return eval_c_str;
 }
 
+char *GPUCodegen::graph_serialize(eGPUNodeTag tree_tag)
+{
+  std::stringstream eval_ss;
+  LISTBASE_FOREACH (GPUNode *, node, &graph.nodes) {
+    if (node->tag & tree_tag) {
+      node_serialize(eval_ss, node);
+    }
+  }
+  char *eval_c_str = extract_c_str(eval_ss);
+  BLI_hash_mm2a_add(&hm2a_, (uchar *)eval_c_str, eval_ss.str().size());
+  return eval_c_str;
+}
+
 void GPUCodegen::generate_uniform_buffer()
 {
   /* Extract uniform inputs. */
@@ -540,6 +574,9 @@ void GPUCodegen::generate_graphs()
   output.volume = graph_serialize(GPU_NODE_TAG_VOLUME, graph.outlink_volume);
   output.displacement = graph_serialize(GPU_NODE_TAG_DISPLACEMENT, graph.outlink_displacement);
   output.thickness = graph_serialize(GPU_NODE_TAG_THICKNESS, graph.outlink_thickness);
+  if (!BLI_listbase_is_empty(&graph.outlink_compositor)) {
+    output.composite = graph_serialize(GPU_NODE_TAG_COMPOSITOR);
+  }
 
   if (!BLI_listbase_is_empty(&graph.material_functions)) {
     std::stringstream eval_ss;
@@ -570,9 +607,10 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
                            GPUCodegenCallbackFn finalize_source_cb,
                            void *thunk)
 {
-  /* Prune the unused nodes and extract attributes before compiling so the
-   * generated VBOs are ready to accept the future shader. */
   gpu_node_graph_prune_unused(graph);
+
+  /* Extract attributes before compiling so the generated VBOs are ready to accept the future
+   * shader. */
   gpu_node_graph_finalize_uniform_attrs(graph);
 
   GPUCodegen codegen(material, graph);

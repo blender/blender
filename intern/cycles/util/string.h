@@ -38,12 +38,14 @@ void string_split(vector<string> &tokens,
                   const string &separators = "\t ",
                   bool skip_empty_tokens = true);
 void string_replace(string &haystack, const string &needle, const string &other);
+void string_replace_same_length(string &haystack, const string &needle, const string &other);
 bool string_startswith(string_view s, string_view start);
 bool string_endswith(string_view s, string_view end);
 string string_strip(const string &s);
 string string_remove_trademark(const string &s);
 string string_from_bool(const bool var);
 string to_string(const char *str);
+string to_string(const float4 &v);
 string string_to_lower(const string &s);
 
 /* Wide char strings are only used on Windows to deal with non-ASCII

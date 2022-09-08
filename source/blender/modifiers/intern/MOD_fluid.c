@@ -215,7 +215,7 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
     }
 
     if (fmd->domain->effector_weights) {
-      walk(userData, ob, (ID **)&fmd->domain->effector_weights->group, IDWALK_CB_NOP);
+      walk(userData, ob, (ID **)&fmd->domain->effector_weights->group, IDWALK_CB_USER);
     }
   }
 
@@ -241,7 +241,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Fluid = {
-    /* name */ "Fluid",
+    /* name */ N_("Fluid"),
     /* structName */ "FluidModifierData",
     /* structSize */ sizeof(FluidModifierData),
     /* srna */ &RNA_FluidModifier,

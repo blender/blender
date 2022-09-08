@@ -41,7 +41,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       .make_available([](bNode &node) {
         node_storage(node).resolution_mode = VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT;
       });
-  b.add_input<decl::Float>(N_("Threshold")).default_value(0.1f).min(0.0f);
+  b.add_input<decl::Float>(N_("Threshold"))
+      .default_value(0.1f)
+      .description(N_("Values larger than the threshold are inside the generated mesh"));
   b.add_input<decl::Float>(N_("Adaptivity")).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
   b.add_output<decl::Geometry>(N_("Mesh"));
 }
@@ -121,9 +123,9 @@ static Mesh *create_mesh_from_volume_grids(Span<openvdb::GridBase::ConstPtr> gri
 
   Mesh *mesh = BKE_mesh_new_nomain(vert_offset, 0, 0, loop_offset, poly_offset);
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
-  MutableSpan<MVert> verts{mesh->mvert, mesh->totvert};
-  MutableSpan<MLoop> loops{mesh->mloop, mesh->totloop};
-  MutableSpan<MPoly> polys{mesh->mpoly, mesh->totpoly};
+  MutableSpan<MVert> verts = mesh->verts_for_write();
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
+  MutableSpan<MLoop> loops = mesh->loops_for_write();
 
   for (const int i : grids.index_range()) {
     const bke::OpenVDBMeshData &data = mesh_data[i];
@@ -151,6 +153,16 @@ static Mesh *create_mesh_from_volume(GeometrySet &geometry_set, GeoNodeExecParam
   }
 
   const bke::VolumeToMeshResolution resolution = get_resolution_param(params);
+
+  if (resolution.mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE &&
+      resolution.settings.voxel_size <= 0.0f) {
+    return nullptr;
+  }
+  if (resolution.mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT &&
+      resolution.settings.voxel_amount <= 0) {
+    return nullptr;
+  }
+
   const Main *bmain = DEG_get_bmain(params.depsgraph());
   BKE_volume_load(volume, bmain);
 
@@ -181,7 +193,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     Mesh *mesh = create_mesh_from_volume(geometry_set, params);
     geometry_set.replace_mesh(mesh);
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_INSTANCES});
+    geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH});
   });
 #else
   params.error_message_add(NodeWarningType::Error,

@@ -18,7 +18,7 @@ ccl_device void shader_setup_object_transforms(KernelGlobals kg,
 {
   if (sd->object_flag & SD_OBJECT_MOTION) {
     sd->ob_tfm_motion = object_fetch_transform_motion(kg, sd->object, time);
-    sd->ob_itfm_motion = transform_quick_inverse(sd->ob_tfm_motion);
+    sd->ob_itfm_motion = transform_inverse(sd->ob_tfm_motion);
   }
 }
 #endif
@@ -40,7 +40,7 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
   sd->ray_length = isect->t;
   sd->type = isect->type;
   sd->object = isect->object;
-  sd->object_flag = kernel_tex_fetch(__object_flag, sd->object);
+  sd->object_flag = kernel_data_fetch(object_flag, sd->object);
   sd->prim = isect->prim;
   sd->lamp = LAMP_NONE;
   sd->flag = 0;
@@ -73,7 +73,7 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
     if (sd->type == PRIMITIVE_TRIANGLE) {
       /* static triangle */
       float3 Ng = triangle_normal(kg, sd);
-      sd->shader = kernel_tex_fetch(__tri_shader, sd->prim);
+      sd->shader = kernel_data_fetch(tri_shader, sd->prim);
 
       /* vectors */
       sd->P = triangle_point_from_uv(kg, sd, isect->object, isect->prim, isect->u, isect->v);
@@ -106,7 +106,7 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
     }
   }
 
-  sd->flag = kernel_tex_fetch(__shaders, (sd->shader & SHADER_MASK)).flags;
+  sd->flag = kernel_data_fetch(shaders, (sd->shader & SHADER_MASK)).flags;
 
   /* backfacing test */
   bool backfacing = (dot(sd->Ng, sd->I) < 0.0f);
@@ -123,9 +123,9 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
 
 #ifdef __RAY_DIFFERENTIALS__
   /* differentials */
-  differential_transfer_compact(&sd->dP, ray->dP, ray->D, ray->dD, sd->Ng, sd->ray_length);
-  differential_incoming_compact(&sd->dI, ray->D, ray->dD);
-  differential_dudv(&sd->du, &sd->dv, sd->dPdu, sd->dPdv, sd->dP, sd->Ng);
+  sd->dP = differential_transfer_compact(ray->dP, ray->D, ray->dD, sd->ray_length);
+  sd->dI = differential_incoming_compact(ray->dD);
+  differential_dudv_compact(&sd->du, &sd->dv, sd->dPdu, sd->dPdv, sd->dP, sd->Ng);
 #endif
 }
 
@@ -169,10 +169,10 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
   sd->time = time;
   sd->ray_length = t;
 
-  sd->flag = kernel_tex_fetch(__shaders, (sd->shader & SHADER_MASK)).flags;
+  sd->flag = kernel_data_fetch(shaders, (sd->shader & SHADER_MASK)).flags;
   sd->object_flag = 0;
   if (sd->object != OBJECT_NONE) {
-    sd->object_flag |= kernel_tex_fetch(__object_flag, sd->object);
+    sd->object_flag |= kernel_data_fetch(object_flag, sd->object);
 
 #ifdef __OBJECT_MOTION__
     shader_setup_object_transforms(kg, sd, time);
@@ -240,8 +240,8 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
 
 #ifdef __RAY_DIFFERENTIALS__
   /* no ray differentials here yet */
-  sd->dP = differential3_zero();
-  sd->dI = differential3_zero();
+  sd->dP = differential_zero_compact();
+  sd->dI = differential_zero_compact();
   sd->du = differential_zero();
   sd->dv = differential_zero();
 #endif
@@ -264,21 +264,20 @@ ccl_device void shader_setup_from_displace(KernelGlobals kg,
   /* force smooth shading for displacement */
   shader |= SHADER_SMOOTH_NORMAL;
 
-  shader_setup_from_sample(
-      kg,
-      sd,
-      P,
-      Ng,
-      I,
-      shader,
-      object,
-      prim,
-      u,
-      v,
-      0.0f,
-      0.5f,
-      !(kernel_tex_fetch(__object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED),
-      LAMP_NONE);
+  shader_setup_from_sample(kg,
+                           sd,
+                           P,
+                           Ng,
+                           I,
+                           shader,
+                           object,
+                           prim,
+                           u,
+                           v,
+                           0.0f,
+                           0.5f,
+                           !(kernel_data_fetch(object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED),
+                           LAMP_NONE);
 }
 
 /* ShaderData setup for point on curve. */
@@ -300,18 +299,18 @@ ccl_device void shader_setup_from_curve(KernelGlobals kg,
   sd->ray_length = 0.0f;
 
   /* Shader */
-  sd->shader = kernel_tex_fetch(__curves, prim).shader_id;
-  sd->flag = kernel_tex_fetch(__shaders, (sd->shader & SHADER_MASK)).flags;
+  sd->shader = kernel_data_fetch(curves, prim).shader_id;
+  sd->flag = kernel_data_fetch(shaders, (sd->shader & SHADER_MASK)).flags;
 
   /* Object */
   sd->object = object;
-  sd->object_flag = kernel_tex_fetch(__object_flag, sd->object);
+  sd->object_flag = kernel_data_fetch(object_flag, sd->object);
 #ifdef __OBJECT_MOTION__
   shader_setup_object_transforms(kg, sd, sd->time);
 #endif
 
   /* Get control points. */
-  KernelCurve kcurve = kernel_tex_fetch(__curves, prim);
+  KernelCurve kcurve = kernel_data_fetch(curves, prim);
 
   int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
   int k1 = k0 + 1;
@@ -320,10 +319,10 @@ ccl_device void shader_setup_from_curve(KernelGlobals kg,
 
   float4 P_curve[4];
 
-  P_curve[0] = kernel_tex_fetch(__curve_keys, ka);
-  P_curve[1] = kernel_tex_fetch(__curve_keys, k0);
-  P_curve[2] = kernel_tex_fetch(__curve_keys, k1);
-  P_curve[3] = kernel_tex_fetch(__curve_keys, kb);
+  P_curve[0] = kernel_data_fetch(curve_keys, ka);
+  P_curve[1] = kernel_data_fetch(curve_keys, k0);
+  P_curve[2] = kernel_data_fetch(curve_keys, k1);
+  P_curve[3] = kernel_data_fetch(curve_keys, kb);
 
   /* Interpolate position and tangent. */
   sd->P = float4_to_float3(catmull_rom_basis_derivative(P_curve, sd->u));
@@ -349,8 +348,8 @@ ccl_device void shader_setup_from_curve(KernelGlobals kg,
 
   /* No ray differentials currently. */
 #ifdef __RAY_DIFFERENTIALS__
-  sd->dP = differential3_zero();
-  sd->dI = differential3_zero();
+  sd->dP = differential_zero_compact();
+  sd->dI = differential_zero_compact();
   sd->du = differential_zero();
   sd->dv = differential_zero();
 #endif
@@ -373,7 +372,7 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals kg,
   sd->Ng = -ray_D;
   sd->I = -ray_D;
   sd->shader = kernel_data.background.surface_shader;
-  sd->flag = kernel_tex_fetch(__shaders, (sd->shader & SHADER_MASK)).flags;
+  sd->flag = kernel_data_fetch(shaders, (sd->shader & SHADER_MASK)).flags;
   sd->object_flag = 0;
   sd->time = ray_time;
   sd->ray_length = 0.0f;
@@ -392,8 +391,8 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals kg,
 
 #ifdef __RAY_DIFFERENTIALS__
   /* differentials */
-  sd->dP = differential3_zero(); /* TODO: ray->dP */
-  differential_incoming(&sd->dI, sd->dP);
+  sd->dP = differential_zero_compact(); /* TODO: ray->dP */
+  sd->dI = differential_zero_compact();
   sd->du = differential_zero();
   sd->dv = differential_zero();
 #endif
@@ -408,7 +407,7 @@ ccl_device_inline void shader_setup_from_volume(KernelGlobals kg,
 {
 
   /* vectors */
-  sd->P = ray->P;
+  sd->P = ray->P + ray->D * ray->tmin;
   sd->N = -ray->D;
   sd->Ng = -ray->D;
   sd->I = -ray->D;
@@ -434,15 +433,14 @@ ccl_device_inline void shader_setup_from_volume(KernelGlobals kg,
 
 #  ifdef __RAY_DIFFERENTIALS__
   /* differentials */
-  sd->dP = differential3_zero(); /* TODO ray->dD */
-  differential_incoming(&sd->dI, sd->dP);
+  sd->dP = differential_zero_compact(); /* TODO ray->dD */
+  sd->dI = differential_zero_compact();
   sd->du = differential_zero();
   sd->dv = differential_zero();
 #  endif
 
   /* for NDC coordinates */
   sd->ray_P = ray->P;
-  sd->ray_dP = ray->dP;
 }
 #endif /* __VOLUME__ */
 

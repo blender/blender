@@ -27,6 +27,7 @@
 #include "WM_types.h"
 
 #include "RNA_access.h"
+#include "RNA_path.h"
 #include "RNA_prototypes.h"
 
 #include "UI_interface.h"
@@ -36,7 +37,7 @@
 #include "ED_screen.h"
 
 #include "interface_intern.h"
-#include "interface_regions_intern.h"
+#include "interface_regions_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Pie Menu
@@ -371,7 +372,7 @@ void ui_pie_menu_level_create(uiBlock *block,
   EnumPropertyItem *remaining = static_cast<EnumPropertyItem *>(
       MEM_mallocN(array_size + sizeof(EnumPropertyItem), "pie_level_item_array"));
   memcpy(remaining, items + totitem_parent, array_size);
-  /* A nullptr terminating sentinel element is required. */
+  /* A null terminating sentinel element is required. */
   memset(&remaining[totitem_remain], 0, sizeof(EnumPropertyItem));
 
   /* yuk, static... issue is we can't reliably free this without doing dangerous changes */

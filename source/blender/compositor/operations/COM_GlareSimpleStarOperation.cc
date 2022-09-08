@@ -7,7 +7,7 @@ namespace blender::compositor {
 
 void GlareSimpleStarOperation::generate_glare(float *data,
                                               MemoryBuffer *input_tile,
-                                              NodeGlare *settings)
+                                              const NodeGlare *settings)
 {
   int i, x, y, ym, yp, xm, xp;
   float c[4] = {0, 0, 0, 0}, tc[4] = {0, 0, 0, 0};

@@ -181,7 +181,7 @@ static void testbuffer_list_state_from_data__stride_expand(ListBase *lb,
 #define TESTBUFFER_STRINGS_CREATE(lb, ...) \
   { \
     BLI_listbase_clear(lb); \
-    const char *data_array[] = {__VA_ARGS__ NULL}; \
+    const char *data_array[] = {__VA_ARGS__ nullptr}; \
     testbuffer_list_state_from_string_array((lb), data_array); \
   } \
   ((void)0)
@@ -795,10 +795,10 @@ TEST(array_store, TestChunk_Rand31_Stride11_Chunk21)
 
 /* Test From Files (disabled, keep for local tests.) */
 
-void *file_read_binary_as_mem(const char *filepath, size_t pad_bytes, size_t *r_size)
+static void *file_read_binary_as_mem(const char *filepath, size_t pad_bytes, size_t *r_size)
 {
   FILE *fp = fopen(filepath, "rb");
-  void *mem = NULL;
+  void *mem = nullptr;
 
   if (fp) {
     long int filelen_read;
@@ -810,14 +810,14 @@ void *file_read_binary_as_mem(const char *filepath, size_t pad_bytes, size_t *r_
     fseek(fp, 0L, SEEK_SET);
 
     mem = MEM_mallocN(filelen + pad_bytes, __func__);
-    if (mem == NULL) {
+    if (mem == nullptr) {
       goto finally;
     }
 
     filelen_read = fread(mem, 1, filelen, fp);
     if ((filelen_read != filelen) || ferror(fp)) {
       MEM_freeN(mem);
-      mem = NULL;
+      mem = nullptr;
       goto finally;
     }
 

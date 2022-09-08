@@ -159,11 +159,15 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
   /* clamp after because we may have been zooming out */
   CLAMP(new_dist, dist_range[0], dist_range[1]);
 
-  /* TODO(campbell): 'is_camera_lock' not currently working well. */
   const bool is_camera_lock = ED_view3d_camera_lock_check(v3d, rv3d);
-  if ((rv3d->persp == RV3D_CAMOB) && (is_camera_lock == false)) {
+  if (rv3d->persp == RV3D_CAMOB) {
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-    ED_view3d_persp_switch_from_camera(depsgraph, v3d, rv3d, RV3D_PERSP);
+    if (is_camera_lock) {
+      ED_view3d_camera_lock_init(depsgraph, v3d, rv3d);
+    }
+    else {
+      ED_view3d_persp_switch_from_camera(depsgraph, v3d, rv3d, RV3D_PERSP);
+    }
   }
 
   ED_view3d_smooth_view(C,
@@ -173,6 +177,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
                         &(const V3D_SmoothParams){
                             .ofs = new_ofs,
                             .dist = &new_dist,
+                            .undo_str = op->type->name,
                         });
 
   if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXVIEW) {

@@ -53,6 +53,7 @@
 #include "BIK_api.h"
 
 #include "RNA_access.h"
+#include "RNA_path.h"
 #include "RNA_prototypes.h"
 
 #include "BLO_read_write.h"
@@ -1950,7 +1951,7 @@ void BKE_pose_blend_read_lib(BlendLibReader *reader, Object *ob, bPose *pose)
 
     pchan->bone = BKE_armature_find_bone_name(arm, pchan->name);
 
-    IDP_BlendReadLib(reader, pchan->prop);
+    IDP_BlendReadLib(reader, ob->id.lib, pchan->prop);
 
     BLO_read_id_address(reader, ob->id.lib, &pchan->custom);
     if (UNLIKELY(pchan->bone == NULL)) {
@@ -1982,4 +1983,17 @@ void BKE_pose_blend_read_expand(BlendExpander *expander, bPose *pose)
     IDP_BlendReadExpand(expander, chan->prop);
     BLO_expand(expander, chan->custom);
   }
+}
+
+void BKE_action_fcurves_clear(bAction *act)
+{
+  if (!act) {
+    return;
+  }
+  while (act->curves.first) {
+    FCurve *fcu = act->curves.first;
+    action_groups_remove_channel(act, fcu);
+    BKE_fcurve_free(fcu);
+  }
+  DEG_id_tag_update(&act->id, ID_RECALC_ANIMATION_NO_FLUSH);
 }

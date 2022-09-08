@@ -66,8 +66,7 @@ struct SelectionPaintOperationExecutor {
 
   float2 brush_pos_re_;
 
-  float4x4 curves_to_world_mat_;
-  float4x4 world_to_curves_mat_;
+  CurvesSurfaceTransforms transforms_;
 
   SelectionPaintOperationExecutor(const bContext &C) : ctx_(C)
   {
@@ -105,8 +104,7 @@ struct SelectionPaintOperationExecutor {
       }
     }
 
-    curves_to_world_mat_ = object_->obmat;
-    world_to_curves_mat_ = curves_to_world_mat_.inverted();
+    transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
 
     const eBrushFalloffShape falloff_shape = static_cast<eBrushFalloffShape>(
         brush_->falloff_shape);
@@ -142,6 +140,7 @@ struct SelectionPaintOperationExecutor {
      * selection is handled as a generic attribute for now. */
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id_->id);
+    ctx_.rv3d->rflag &= ~RV3D_PAINTING;
     ED_region_tag_redraw(ctx_.region);
   }
 
@@ -162,14 +161,15 @@ struct SelectionPaintOperationExecutor {
     float4x4 projection;
     ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
 
-    Span<float3> positions_cu = curves_->positions();
+    const bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
 
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
 
     threading::parallel_for(curves_->points_range(), 1024, [&](const IndexRange point_range) {
       for (const int point_i : point_range) {
-        const float3 pos_cu = brush_transform_inv * positions_cu[point_i];
+        const float3 pos_cu = brush_transform_inv * deformation.positions[point_i];
 
         /* Find the position of the point in screen space. */
         float2 pos_re;
@@ -201,10 +201,10 @@ struct SelectionPaintOperationExecutor {
     float3 brush_wo;
     ED_view3d_win_to_3d(ctx_.v3d,
                         ctx_.region,
-                        curves_to_world_mat_ * self_->brush_3d_.position_cu,
+                        transforms_.curves_to_world * self_->brush_3d_.position_cu,
                         brush_pos_re_,
                         brush_wo);
-    const float3 brush_cu = world_to_curves_mat_ * brush_wo;
+    const float3 brush_cu = transforms_.world_to_curves * brush_wo;
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
@@ -216,14 +216,15 @@ struct SelectionPaintOperationExecutor {
 
   void paint_point_selection_spherical(MutableSpan<float> selection, const float3 &brush_cu)
   {
-    Span<float3> positions_cu = curves_->positions();
+    const bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
 
     const float brush_radius_cu = self_->brush_3d_.radius_cu;
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
 
     threading::parallel_for(curves_->points_range(), 1024, [&](const IndexRange point_range) {
       for (const int i : point_range) {
-        const float3 pos_old_cu = positions_cu[i];
+        const float3 pos_old_cu = deformation.positions[i];
 
         /* Compute distance to the brush. */
         const float distance_to_brush_sq_cu = math::distance_squared(pos_old_cu, brush_cu);
@@ -257,8 +258,10 @@ struct SelectionPaintOperationExecutor {
   void paint_curve_selection_projected(const float4x4 &brush_transform,
                                        MutableSpan<float> selection)
   {
-    const Span<float3> positions_cu = curves_->positions();
     const float4x4 brush_transform_inv = brush_transform.inverted();
+
+    const bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
 
     float4x4 projection;
     ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
@@ -275,8 +278,8 @@ struct SelectionPaintOperationExecutor {
             [&](const IndexRange segment_range, const float init) {
               float max_weight = init;
               for (const int segment_i : segment_range) {
-                const float3 pos1_cu = brush_transform_inv * positions_cu[segment_i];
-                const float3 pos2_cu = brush_transform_inv * positions_cu[segment_i + 1];
+                const float3 pos1_cu = brush_transform_inv * deformation.positions[segment_i];
+                const float3 pos2_cu = brush_transform_inv * deformation.positions[segment_i + 1];
 
                 float2 pos1_re;
                 float2 pos2_re;
@@ -309,10 +312,10 @@ struct SelectionPaintOperationExecutor {
     float3 brush_wo;
     ED_view3d_win_to_3d(ctx_.v3d,
                         ctx_.region,
-                        curves_to_world_mat_ * self_->brush_3d_.position_cu,
+                        transforms_.curves_to_world * self_->brush_3d_.position_cu,
                         brush_pos_re_,
                         brush_wo);
-    const float3 brush_cu = world_to_curves_mat_ * brush_wo;
+    const float3 brush_cu = transforms_.world_to_curves * brush_wo;
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
@@ -324,7 +327,8 @@ struct SelectionPaintOperationExecutor {
 
   void paint_curve_selection_spherical(MutableSpan<float> selection, const float3 &brush_cu)
   {
-    const Span<float3> positions_cu = curves_->positions();
+    const bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
 
     const float brush_radius_cu = self_->brush_3d_.radius_cu;
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
@@ -338,8 +342,8 @@ struct SelectionPaintOperationExecutor {
             [&](const IndexRange segment_range, const float init) {
               float max_weight = init;
               for (const int segment_i : segment_range) {
-                const float3 &pos1_cu = positions_cu[segment_i];
-                const float3 &pos2_cu = positions_cu[segment_i + 1];
+                const float3 &pos1_cu = deformation.positions[segment_i];
+                const float3 &pos2_cu = deformation.positions[segment_i + 1];
 
                 const float distance_sq_cu = dist_squared_to_line_segment_v3(
                     brush_cu, pos1_cu, pos2_cu);

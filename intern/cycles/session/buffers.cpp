@@ -209,7 +209,7 @@ const BufferPass *BufferParams::get_actual_display_pass(const BufferPass *pass) 
     return nullptr;
   }
 
-  if (pass->type == PASS_COMBINED) {
+  if (pass->type == PASS_COMBINED && pass->lightgroup.empty()) {
     const BufferPass *shadow_catcher_matte_pass = find_pass(PASS_SHADOW_CATCHER_MATTE, pass->mode);
     if (shadow_catcher_matte_pass) {
       pass = shadow_catcher_matte_pass;

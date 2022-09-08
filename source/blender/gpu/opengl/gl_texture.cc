@@ -5,8 +5,6 @@
  * \ingroup gpu
  */
 
-#include "BKE_global.h"
-
 #include "DNA_userdef_types.h"
 
 #include "GPU_capabilities.h"
@@ -42,6 +40,7 @@ GLTexture::~GLTexture()
   if (ctx != nullptr && is_bound_) {
     /* This avoid errors when the texture is still inside the bound texture array. */
     ctx->state_manager->texture_unbind(this);
+    ctx->state_manager->image_unbind(this);
   }
   GLContext::tex_free(tex_id_);
 }
@@ -312,6 +311,12 @@ void GLTexture::update_sub(
  */
 void GLTexture::generate_mipmap()
 {
+  /* Allow users to provide mipmaps stored in compressed textures.
+   * Skip generating mipmaps to avoid overriding the existing ones. */
+  if (format_flag_ & GPU_FORMAT_COMPRESSED) {
+    return;
+  }
+
   /* Some drivers have bugs when using #glGenerateMipmap with depth textures (see T56789).
    * In this case we just create a complete texture with mipmaps manually without
    * down-sampling. You must initialize the texture levels using other methods like
@@ -598,7 +603,7 @@ bool GLTexture::proxy_check(int mip)
 {
   /* Manual validation first, since some implementation have issues with proxy creation. */
   int max_size = GPU_max_texture_size();
-  int max_3d_size = GLContext::max_texture_3d_size;
+  int max_3d_size = GPU_max_texture_3d_size();
   int max_cube_size = GLContext::max_cubemap_size;
   int size[3] = {1, 1, 1};
   this->mip_size_get(mip, size);

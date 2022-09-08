@@ -154,7 +154,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_EdgeSplit = {
-    /* name */ "EdgeSplit",
+    /* name */ N_("EdgeSplit"),
     /* structName */ "EdgeSplitModifierData",
     /* structSize */ sizeof(EdgeSplitModifierData),
     /* srna */ &RNA_EdgeSplitModifier,

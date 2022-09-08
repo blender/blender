@@ -7,7 +7,6 @@
 #include "BKE_fcurve.h"
 
 #include "ED_keyframing.h"
-#include "ED_types.h" /* For SELECT. */
 
 #include "DNA_anim_types.h"
 

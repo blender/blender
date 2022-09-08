@@ -265,7 +265,7 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
     }
 
     /* Move scene to new frame. */
-    CFRA = i;
+    scene->r.cfra = i;
     BKE_scene_graph_update_for_newframe(depsgraph);
 
     /* Loop all objects in the list. */
@@ -285,7 +285,7 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
 
         /* Apply time modifier. */
         int remap_cfra = BKE_gpencil_time_modifier_cfra(
-            depsgraph, scene, elem->ob, gpl_src, CFRA, false);
+            depsgraph, scene, elem->ob, gpl_src, scene->r.cfra, false);
         /* Duplicate frame. */
         bGPDframe *gpf_src = BKE_gpencil_layer_frame_get(
             gpl_src, remap_cfra, GP_GETFRAME_USE_PREV);
@@ -293,7 +293,7 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
           continue;
         }
         bGPDframe *gpf_dst = BKE_gpencil_frame_duplicate(gpf_src, true);
-        gpf_dst->framenum = CFRA + frame_offset;
+        gpf_dst->framenum = scene->r.cfra + frame_offset;
         gpf_dst->flag &= ~GP_FRAME_SELECT;
         BLI_addtail(&gpl_dst->frames, gpf_dst);
 
@@ -337,7 +337,7 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
     }
   }
   /* Return scene frame state and DB to original state. */
-  CFRA = oldframe;
+  scene->r.cfra = oldframe;
   BKE_scene_graph_update_for_newframe(depsgraph);
 
   /* Free memory. */

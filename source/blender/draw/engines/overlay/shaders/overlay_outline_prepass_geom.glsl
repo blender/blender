@@ -11,7 +11,7 @@ void vert_from_gl_in(int v)
 
 void main()
 {
-  bool is_persp = (ProjectionMatrix[3][3] == 0.0);
+  bool is_persp = (drw_view.winmat[3][3] == 0.0);
 
   vec3 view_vec = (is_persp) ? normalize(vert[1].pos) : vec3(0.0, 0.0, -1.0);
 

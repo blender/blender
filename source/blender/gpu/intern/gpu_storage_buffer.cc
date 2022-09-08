@@ -12,7 +12,6 @@
 #include "BLI_math_base.h"
 
 #include "gpu_backend.hh"
-#include "gpu_node_graph.h"
 
 #include "GPU_material.h"
 #include "GPU_vertex_buffer.h" /* For GPUUsageType. */
@@ -108,6 +107,11 @@ void GPU_storagebuf_copy_sub_from_vertbuf(
     GPUStorageBuf *ssbo, GPUVertBuf *src, uint dst_offset, uint src_offset, uint copy_size)
 {
   unwrap(ssbo)->copy_sub(unwrap(src), dst_offset, src_offset, copy_size);
+}
+
+void GPU_storagebuf_read(GPUStorageBuf *ssbo, void *data)
+{
+  unwrap(ssbo)->read(data);
 }
 
 /** \} */

@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 [tool.autopep8]
-# Configuratuion for `autopep8`, allowing the command: autopep8 .
+# Configuration for `autopep8`, allowing the command: autopep8 .
 # to reformat all source files.
 #
-# NOTE: the settings defined here map directly to commmand line arguments
+# NOTE: the settings defined here map directly to command line arguments
 # which will override these settings when passed in to autopep8.
 
 max_line_length = 120

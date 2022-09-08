@@ -10,11 +10,11 @@
 struct Base;
 struct ID;
 struct Main;
+struct ModifierData;
 struct Object;
 struct bPoseChannel;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct Depsgraph;
 class DepsgraphBuilderCache;
@@ -23,11 +23,14 @@ class DepsgraphBuilder {
  public:
   virtual ~DepsgraphBuilder() = default;
 
-  virtual bool need_pull_base_into_graph(Base *base);
+  virtual bool need_pull_base_into_graph(const Base *base);
 
-  virtual bool check_pchan_has_bbone(Object *object, const bPoseChannel *pchan);
-  virtual bool check_pchan_has_bbone_segments(Object *object, const bPoseChannel *pchan);
-  virtual bool check_pchan_has_bbone_segments(Object *object, const char *bone_name);
+  virtual bool is_object_visibility_animated(const Object *object);
+  virtual bool is_modifier_visibility_animated(const Object *object, const ModifierData *modifier);
+
+  virtual bool check_pchan_has_bbone(const Object *object, const bPoseChannel *pchan);
+  virtual bool check_pchan_has_bbone_segments(const Object *object, const bPoseChannel *pchan);
+  virtual bool check_pchan_has_bbone_segments(const Object *object, const char *bone_name);
 
  protected:
   /* NOTE: The builder does NOT take ownership over any of those resources. */
@@ -43,5 +46,4 @@ bool deg_check_id_in_depsgraph(const Depsgraph *graph, ID *id_orig);
 bool deg_check_base_in_depsgraph(const Depsgraph *graph, Base *base);
 void deg_graph_build_finalize(Main *bmain, Depsgraph *graph);
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

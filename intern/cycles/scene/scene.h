@@ -82,7 +82,7 @@ class DeviceScene {
 
   device_vector<uint> patches;
 
-  /* pointcloud */
+  /* point-cloud */
   device_vector<float4> points;
   device_vector<uint> points_shader;
 
@@ -98,7 +98,7 @@ class DeviceScene {
   device_vector<DecomposedTransform> camera_motion;
 
   /* attributes */
-  device_vector<uint4> attributes_map;
+  device_vector<AttributeMap> attributes_map;
   device_vector<float> attributes_float;
   device_vector<float2> attributes_float2;
   device_vector<packed_float3> attributes_float3;
@@ -124,7 +124,7 @@ class DeviceScene {
   /* integrator */
   device_vector<float> sample_pattern_lut;
 
-  /* ies lights */
+  /* IES lights */
   device_vector<float> ies_lights;
 
   KernelData data;

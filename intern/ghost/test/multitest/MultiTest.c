@@ -179,37 +179,44 @@ static void mainwindow_do_key(MainWindow *mw, GHOST_TKey key, int press)
 {
   switch (key) {
     case GHOST_kKeyC:
-      if (press)
+      if (press) {
         GHOST_SetCursorShape(mw->win,
                              (GHOST_TStandardCursor)(rand() % (GHOST_kStandardCursorNumCursors)));
+      }
       break;
     case GHOST_kKeyLeftBracket:
-      if (press)
+      if (press) {
         GHOST_SetCursorVisibility(mw->win, 0);
+      }
       break;
     case GHOST_kKeyRightBracket:
-      if (press)
+      if (press) {
         GHOST_SetCursorVisibility(mw->win, 1);
+      }
       break;
     case GHOST_kKeyE:
-      if (press)
+      if (press) {
         multitestapp_toggle_extra_window(mw->app);
+      }
       break;
     case GHOST_kKeyQ:
-      if (press)
+      if (press) {
         multitestapp_exit(mw->app);
+      }
       break;
     case GHOST_kKeyT:
-      if (press)
+      if (press) {
         mainwindow_log(mw, "TextTest~|`hello`\"world\",<>/");
+      }
       break;
     case GHOST_kKeyR:
       if (press) {
         int i;
 
         mainwindow_log(mw, "Invalidating window 10 times");
-        for (i = 0; i < 10; i++)
+        for (i = 0; i < 10; i++) {
           GHOST_InvalidateWindow(mw->win);
+        }
       }
       break;
     case GHOST_kKeyF11:
@@ -328,9 +335,7 @@ MainWindow *mainwindow_new(MultiTestApp *app)
 
     return mw;
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 void mainwindow_free(MainWindow *mw)

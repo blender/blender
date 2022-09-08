@@ -50,7 +50,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       }
 
       if (sub_min == float3(FLT_MAX)) {
-        sub_geometry.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
+        sub_geometry.remove_geometry_during_modify();
       }
       else {
         const float3 scale = sub_max - sub_min;
@@ -58,7 +58,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         Mesh *mesh = geometry::create_cuboid_mesh(scale, 2, 2, 2, "uv_map");
         transform_mesh(*mesh, center, float3(0), float3(1));
         sub_geometry.replace_mesh(mesh);
-        sub_geometry.keep_only({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_INSTANCES});
+        sub_geometry.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH});
       }
     });
 

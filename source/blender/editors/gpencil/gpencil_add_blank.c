@@ -19,6 +19,8 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 
+#include "BLT_translation.h"
+
 #include "DEG_depsgraph.h"
 
 #include "ED_gpencil.h"
@@ -34,7 +36,7 @@ typedef struct ColorTemplate {
 static int gpencil_stroke_material(Main *bmain, Object *ob, const ColorTemplate *pct)
 {
   int index;
-  Material *ma = BKE_gpencil_object_material_ensure_by_name(bmain, ob, pct->name, &index);
+  Material *ma = BKE_gpencil_object_material_ensure_by_name(bmain, ob, DATA_(pct->name), &index);
 
   copy_v4_v4(ma->gp_style->stroke_rgba, pct->line);
   srgb_to_linearrgb_v4(ma->gp_style->stroke_rgba, ma->gp_style->stroke_rgba);
@@ -52,7 +54,7 @@ static int gpencil_stroke_material(Main *bmain, Object *ob, const ColorTemplate 
 /* Color Data */
 
 static const ColorTemplate gp_stroke_material_black = {
-    "Black",
+    N_("Black"),
     {0.0f, 0.0f, 0.0f, 1.0f},
     {0.0f, 0.0f, 0.0f, 0.0f},
 };
@@ -76,7 +78,7 @@ void ED_gpencil_create_blank(bContext *C, Object *ob, float UNUSED(mat[4][4]))
   bGPDlayer *layer = BKE_gpencil_layer_addnew(gpd, "GP_Layer", true, false);
 
   /* frames */
-  BKE_gpencil_frame_addnew(layer, CFRA);
+  BKE_gpencil_frame_addnew(layer, scene->r.cfra);
 
   /* update depsgraph */
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);

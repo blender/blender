@@ -83,6 +83,12 @@
 #  include "BLI_threads.h"
 #endif
 
+/**
+ * When windows are activated, simulate modifier press/release to match the current state of
+ * held modifier keys, see T40317.
+ */
+#define USE_WIN_ACTIVATE
+
 /* the global to talk to ghost */
 static GHOST_SystemHandle g_system = NULL;
 
@@ -155,28 +161,30 @@ static void wm_window_check_size(rcti *rect)
 
 static void wm_ghostwindow_destroy(wmWindowManager *wm, wmWindow *win)
 {
-  if (win->ghostwin) {
-    /* Prevents non-drawable state of main windows (bugs T22967,
-     * T25071 and possibly T22477 too). Always clear it even if
-     * this window was not the drawable one, because we mess with
-     * drawing context to discard the GW context. */
-    wm_window_clear_drawable(wm);
-
-    if (win == wm->winactive) {
-      wm->winactive = NULL;
-    }
-
-    /* We need this window's opengl context active to discard it. */
-    GHOST_ActivateWindowDrawingContext(win->ghostwin);
-    GPU_context_active_set(win->gpuctx);
-
-    /* Delete local GPU context. */
-    GPU_context_discard(win->gpuctx);
-
-    GHOST_DisposeWindow(g_system, win->ghostwin);
-    win->ghostwin = NULL;
-    win->gpuctx = NULL;
+  if (UNLIKELY(!win->ghostwin)) {
+    return;
   }
+
+  /* Prevents non-drawable state of main windows (bugs T22967,
+   * T25071 and possibly T22477 too). Always clear it even if
+   * this window was not the drawable one, because we mess with
+   * drawing context to discard the GW context. */
+  wm_window_clear_drawable(wm);
+
+  if (win == wm->winactive) {
+    wm->winactive = NULL;
+  }
+
+  /* We need this window's opengl context active to discard it. */
+  GHOST_ActivateWindowDrawingContext(win->ghostwin);
+  GPU_context_active_set(win->gpuctx);
+
+  /* Delete local GPU context. */
+  GPU_context_discard(win->gpuctx);
+
+  GHOST_DisposeWindow(g_system, win->ghostwin);
+  win->ghostwin = NULL;
+  win->gpuctx = NULL;
 }
 
 void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
@@ -510,7 +518,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
                                       wmWindow *win,
                                       bool is_dialog)
 {
-  /* a new window is created when pageflip mode is required for a window */
+  /* A new window is created when page-flip mode is required for a window. */
   GHOST_GLSettings glSettings = {0};
   if (win->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
     glSettings.flags |= GHOST_glStereoVisual;
@@ -920,25 +928,33 @@ int wm_window_fullscreen_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 /* ************ events *************** */
 
-void wm_cursor_position_from_ghost(wmWindow *win, int *x, int *y)
+void wm_cursor_position_from_ghost_client_coords(wmWindow *win, int *x, int *y)
 {
   float fac = GHOST_GetNativePixelSize(win->ghostwin);
-
-  GHOST_ScreenToClient(win->ghostwin, *x, *y, x, y);
   *x *= fac;
 
   *y = (win->sizey - 1) - *y;
   *y *= fac;
 }
 
-void wm_cursor_position_to_ghost(wmWindow *win, int *x, int *y)
+void wm_cursor_position_to_ghost_client_coords(wmWindow *win, int *x, int *y)
 {
   float fac = GHOST_GetNativePixelSize(win->ghostwin);
 
   *x /= fac;
   *y /= fac;
   *y = win->sizey - *y - 1;
+}
 
+void wm_cursor_position_from_ghost_screen_coords(wmWindow *win, int *x, int *y)
+{
+  GHOST_ScreenToClient(win->ghostwin, *x, *y, x, y);
+  wm_cursor_position_from_ghost_client_coords(win, x, y);
+}
+
+void wm_cursor_position_to_ghost_screen_coords(wmWindow *win, int *x, int *y)
+{
+  wm_cursor_position_to_ghost_client_coords(win, x, y);
   GHOST_ClientToScreen(win->ghostwin, *x, *y, x, y);
 }
 
@@ -949,8 +965,8 @@ void wm_cursor_position_get(wmWindow *win, int *r_x, int *r_y)
     *r_y = win->eventstate->xy[1];
     return;
   }
-  GHOST_GetCursorPosition(g_system, r_x, r_y);
-  wm_cursor_position_from_ghost(win, r_x, r_y);
+  GHOST_GetCursorPosition(g_system, win->ghostwin, r_x, r_y);
+  wm_cursor_position_from_ghost_client_coords(win, r_x, r_y);
 }
 
 typedef enum {
@@ -960,10 +976,10 @@ typedef enum {
   OS = 'C',
 } modifierKeyType;
 
-/* check if specified modifier key type is pressed */
-static int query_qual(modifierKeyType qual)
+/** Check if specified modifier key type is pressed. */
+static bool query_qual(modifierKeyType qual)
 {
-  GHOST_TModifierKeyMask left, right;
+  GHOST_TModifierKey left, right;
   switch (qual) {
     case SHIFT:
       left = GHOST_kModifierKeyLeftShift;
@@ -1109,29 +1125,16 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
       case GHOST_kEventWindowDeactivate:
         wm_event_add_ghostevent(wm, win, type, data);
         win->active = 0; /* XXX */
-
-        /* clear modifiers for inactive windows */
-        win->eventstate->modifier = 0;
-        win->eventstate->keymodifier = 0;
-
         break;
       case GHOST_kEventWindowActivate: {
-        GHOST_TEventKeyData kdata;
         const int keymodifier = ((query_qual(SHIFT) ? KM_SHIFT : 0) |
                                  (query_qual(CONTROL) ? KM_CTRL : 0) |
                                  (query_qual(ALT) ? KM_ALT : 0) | (query_qual(OS) ? KM_OSKEY : 0));
-
-        /* Win23/GHOST modifier bug, see T40317 */
-#ifndef WIN32
-//#  define USE_WIN_ACTIVATE
-#endif
 
         /* No context change! C->wm->windrawable is drawable, or for area queues. */
         wm->winactive = win;
 
         win->active = 1;
-        //              window_handle(win, INPUTCHANGE, win->active);
-
         /* bad ghost support for modifier keys... so on activate we set the modifiers again */
 
         /* TODO: This is not correct since a modifier may be held when a window is activated...
@@ -1139,9 +1142,11 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
          *
          * For now don't send GHOST_kEventKeyDown events, just set the 'eventstate'.
          */
-        kdata.ascii = '\0';
-        kdata.utf8_buf[0] = '\0';
-
+        GHOST_TEventKeyData kdata = {
+            .key = GHOST_kKeyUnknown,
+            .utf8_buf = {'\0'},
+            .is_repeat = false,
+        };
         if (win->eventstate->modifier & KM_SHIFT) {
           if ((keymodifier & KM_SHIFT) == 0) {
             kdata.key = GHOST_kKeyLeftShift;
@@ -1353,6 +1358,15 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
         event.type = MOUSEMOVE;
         event.val = KM_NOTHING;
         copy_v2_v2_int(event.prev_xy, event.xy);
+
+        wm_cursor_position_from_ghost_screen_coords(win, &ddd->x, &ddd->y);
+        event.xy[0] = ddd->x;
+        event.xy[1] = ddd->y;
+
+        /* The values from #wm_window_update_eventstate may not match (under WAYLAND they don't)
+         * Write this into the event state. */
+        copy_v2_v2_int(win->eventstate->xy, event.xy);
+
         event.flag = 0;
 
         /* No context change! C->wm->windrawable is drawable, or for area queues. */
@@ -1416,14 +1430,14 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
       case GHOST_kEventTrackpad: {
         GHOST_TEventTrackpadData *pd = data;
 
-        wm_cursor_position_from_ghost(win, &pd->x, &pd->y);
+        wm_cursor_position_from_ghost_screen_coords(win, &pd->x, &pd->y);
         wm_event_add_ghostevent(wm, win, type, data);
         break;
       }
       case GHOST_kEventCursorMove: {
         GHOST_TEventCursorData *cd = data;
 
-        wm_cursor_position_from_ghost(win, &cd->x, &cd->y);
+        wm_cursor_position_from_ghost_screen_coords(win, &cd->x, &cd->y);
         wm_event_add_ghostevent(wm, win, type, data);
         break;
       }
@@ -1537,36 +1551,55 @@ void wm_window_process_events(const bContext *C)
 
 void wm_ghost_init(bContext *C)
 {
-  if (!g_system) {
-    GHOST_EventConsumerHandle consumer;
-
-    if (C != NULL) {
-      consumer = GHOST_CreateEventConsumer(ghost_event_proc, C);
-    }
-
-    GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
-
-    g_system = GHOST_CreateSystem();
-
-    GHOST_Debug debug = {0};
-    if (G.debug & G_DEBUG_GHOST) {
-      debug.flags |= GHOST_kDebugDefault;
-    }
-    if (G.debug & G_DEBUG_WINTAB) {
-      debug.flags |= GHOST_kDebugWintab;
-    }
-    GHOST_SystemInitDebug(g_system, debug);
-
-    if (C != NULL) {
-      GHOST_AddEventConsumer(g_system, consumer);
-    }
-
-    if (wm_init_state.native_pixels) {
-      GHOST_UseNativePixels();
-    }
-
-    GHOST_UseWindowFocus(wm_init_state.window_focus);
+  if (g_system) {
+    return;
   }
+
+  BLI_assert(C != NULL);
+  BLI_assert_msg(!G.background, "Use wm_ghost_init_background instead");
+
+  GHOST_EventConsumerHandle consumer;
+
+  consumer = GHOST_CreateEventConsumer(ghost_event_proc, C);
+
+  GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
+
+  g_system = GHOST_CreateSystem();
+
+  GHOST_Debug debug = {0};
+  if (G.debug & G_DEBUG_GHOST) {
+    debug.flags |= GHOST_kDebugDefault;
+  }
+  if (G.debug & G_DEBUG_WINTAB) {
+    debug.flags |= GHOST_kDebugWintab;
+  }
+  GHOST_SystemInitDebug(g_system, debug);
+
+  GHOST_AddEventConsumer(g_system, consumer);
+
+  if (wm_init_state.native_pixels) {
+    GHOST_UseNativePixels();
+  }
+
+  GHOST_UseWindowFocus(wm_init_state.window_focus);
+}
+
+/* TODO move this to wm_init_exit.c. */
+void wm_ghost_init_background(void)
+{
+  if (g_system) {
+    return;
+  }
+
+  GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
+
+  g_system = GHOST_CreateSystemBackground();
+
+  GHOST_Debug debug = {0};
+  if (G.debug & G_DEBUG_GHOST) {
+    debug.flags |= GHOST_kDebugDefault;
+  }
+  GHOST_SystemInitDebug(g_system, debug);
 }
 
 void wm_ghost_exit(void)
@@ -1864,7 +1897,7 @@ wmWindow *WM_window_find_under_cursor(wmWindow *win, const int mval[2], int r_mv
 {
   int tmp[2];
   copy_v2_v2_int(tmp, mval);
-  wm_cursor_position_to_ghost(win, &tmp[0], &tmp[1]);
+  wm_cursor_position_to_ghost_screen_coords(win, &tmp[0], &tmp[1]);
 
   GHOST_WindowHandle ghostwin = GHOST_GetWindowUnderCursor(g_system, tmp[0], tmp[1]);
 
@@ -1873,7 +1906,7 @@ wmWindow *WM_window_find_under_cursor(wmWindow *win, const int mval[2], int r_mv
   }
 
   wmWindow *win_other = GHOST_GetWindowUserData(ghostwin);
-  wm_cursor_position_from_ghost(win_other, &tmp[0], &tmp[1]);
+  wm_cursor_position_from_ghost_screen_coords(win_other, &tmp[0], &tmp[1]);
   copy_v2_v2_int(r_mval, tmp);
   return win_other;
 }
@@ -1911,6 +1944,9 @@ void WM_window_pixel_sample_read(const wmWindowManager *wm,
 
 uint *WM_window_pixels_read(wmWindowManager *wm, wmWindow *win, int r_size[2])
 {
+  /* WARNING: Reading from the front-buffer immediately after drawing may fail,
+   * for a slower but more reliable version of this function #WM_window_pixels_read_offscreen
+   * should be preferred. See it's comments for details on why it's needed, see also T98462. */
   bool setup_context = wm->windrawable != win;
 
   if (setup_context) {
@@ -1992,45 +2028,40 @@ void WM_init_native_pixels(bool do_it)
 
 void WM_init_tablet_api(void)
 {
-  if (g_system) {
-    switch (U.tablet_api) {
-      case USER_TABLET_NATIVE:
-        GHOST_SetTabletAPI(g_system, GHOST_kTabletWinPointer);
-        break;
-      case USER_TABLET_WINTAB:
-        GHOST_SetTabletAPI(g_system, GHOST_kTabletWintab);
-        break;
-      case USER_TABLET_AUTOMATIC:
-      default:
-        GHOST_SetTabletAPI(g_system, GHOST_kTabletAutomatic);
-        break;
-    }
+  if (UNLIKELY(!g_system)) {
+    return;
+  }
+
+  switch (U.tablet_api) {
+    case USER_TABLET_NATIVE:
+      GHOST_SetTabletAPI(g_system, GHOST_kTabletWinPointer);
+      break;
+    case USER_TABLET_WINTAB:
+      GHOST_SetTabletAPI(g_system, GHOST_kTabletWintab);
+      break;
+    case USER_TABLET_AUTOMATIC:
+    default:
+      GHOST_SetTabletAPI(g_system, GHOST_kTabletAutomatic);
+      break;
   }
 }
 
 void WM_cursor_warp(wmWindow *win, int x, int y)
 {
-  if (win && win->ghostwin) {
-    int oldx = x, oldy = y;
-
-    wm_cursor_position_to_ghost(win, &x, &y);
-    GHOST_SetCursorPosition(g_system, x, y);
-
-    win->eventstate->prev_xy[0] = oldx;
-    win->eventstate->prev_xy[1] = oldy;
-
-    win->eventstate->xy[0] = oldx;
-    win->eventstate->xy[1] = oldy;
+  if (!(win && win->ghostwin)) {
+    return;
   }
-}
 
-void WM_cursor_compatible_xy(wmWindow *win, int *x, int *y)
-{
-  float f = GHOST_GetNativePixelSize(win->ghostwin);
-  if (f != 1.0f) {
-    *x = (int)(*x / f) * f;
-    *y = (int)(*y / f) * f;
-  }
+  int oldx = x, oldy = y;
+
+  wm_cursor_position_to_ghost_client_coords(win, &x, &y);
+  GHOST_SetCursorPosition(g_system, win->ghostwin, x, y);
+
+  win->eventstate->prev_xy[0] = oldx;
+  win->eventstate->prev_xy[1] = oldy;
+
+  win->eventstate->xy[0] = oldx;
+  win->eventstate->xy[1] = oldy;
 }
 
 /** \} */

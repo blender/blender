@@ -39,6 +39,8 @@ bool closure_select(float weight, inout float total_weight, inout float r)
     destination = candidate; \
   }
 
+float g_closure_rand;
+
 void closure_weights_reset()
 {
   g_diffuse_data.weight = 0.0;
@@ -58,18 +60,8 @@ void closure_weights_reset()
   g_refraction_data.roughness = 0.0;
   g_refraction_data.ior = 0.0;
 
-  /* TEMP */
-#define P(x) ((x + 0.5) / 16.0)
-  const vec4 dither_mat4x4[4] = vec4[4](vec4(P(0.0), P(8.0), P(2.0), P(10.0)),
-                                        vec4(P(12.0), P(4.0), P(14.0), P(6.0)),
-                                        vec4(P(3.0), P(11.0), P(1.0), P(9.0)),
-                                        vec4(P(15.0), P(7.0), P(13.0), P(5.0)));
-#undef P
 #if defined(GPU_FRAGMENT_SHADER)
-  ivec2 pix = ivec2(gl_FragCoord.xy) % ivec2(4);
-  g_diffuse_rand = dither_mat4x4[pix.x][pix.y];
-  g_reflection_rand = dither_mat4x4[pix.x][pix.y];
-  g_refraction_rand = dither_mat4x4[pix.x][pix.y];
+  g_diffuse_rand = g_reflection_rand = g_refraction_rand = g_closure_rand;
 #else
   g_diffuse_rand = 0.0;
   g_reflection_rand = 0.0;
@@ -245,6 +237,20 @@ float F_eta(float a, float b)
 }
 void output_aov(vec4 color, float value, uint hash)
 {
+#if defined(MAT_AOV_SUPPORT) && defined(GPU_FRAGMENT_SHADER)
+  for (int i = 0; i < AOV_MAX && i < aov_buf.color_len; i++) {
+    if (aov_buf.hash_color[i] == hash) {
+      imageStore(aov_color_img, ivec3(gl_FragCoord.xy, i), color);
+      return;
+    }
+  }
+  for (int i = 0; i < AOV_MAX && i < aov_buf.value_len; i++) {
+    if (aov_buf.hash_value[i] == hash) {
+      imageStore(aov_value_img, ivec3(gl_FragCoord.xy, i), vec4(value));
+      return;
+    }
+  }
+#endif
 }
 
 #ifdef EEVEE_MATERIAL_STUBS
@@ -253,6 +259,10 @@ void output_aov(vec4 color, float value, uint hash)
 #  define nodetree_surface() Closure(0)
 #  define nodetree_volume() Closure(0)
 #  define nodetree_thickness() 0.1
+#endif
+
+#ifdef GPU_VERTEX_SHADER
+#  define closure_to_rgba(a) vec4(0.0)
 #endif
 
 /* -------------------------------------------------------------------- */
@@ -355,6 +365,74 @@ vec3 coordinate_incoming(vec3 P)
   return -P;
 #else
   return cameraVec(P);
+#endif
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Volume Attribute post
+ *
+ * TODO(@fclem): These implementation details should concern the DRWManager and not be a fix on
+ * the engine side. But as of now, the engines are responsible for loading the attributes.
+ *
+ * \{ */
+
+#if defined(MAT_GEOM_VOLUME)
+
+float attr_load_temperature_post(float attr)
+{
+  /* Bring the into standard range without having to modify the grid values */
+  attr = (attr > 0.01) ? (attr * drw_volume.temperature_mul + drw_volume.temperature_bias) : 0.0;
+  return attr;
+}
+vec4 attr_load_color_post(vec4 attr)
+{
+  /* Density is premultiplied for interpolation, divide it out here. */
+  attr.rgb *= safe_rcp(attr.a);
+  attr.rgb *= drw_volume.color_mul.rgb;
+  attr.a = 1.0;
+  return attr;
+}
+
+#else /* Noop for any other surface. */
+
+float attr_load_temperature_post(float attr)
+{
+  return attr;
+}
+vec4 attr_load_color_post(vec4 attr)
+{
+  return attr;
+}
+
+#endif
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Uniform Attributes
+ *
+ * TODO(@fclem): These implementation details should concern the DRWManager and not be a fix on
+ * the engine side. But as of now, the engines are responsible for loading the attributes.
+ *
+ * \{ */
+
+vec4 attr_load_uniform(vec4 attr, const uint attr_hash)
+{
+#if defined(OBATTR_LIB)
+  uint index = floatBitsToUint(ObjectAttributeStart);
+  for (uint i = 0; i < floatBitsToUint(ObjectAttributeLen); i++, index++) {
+    if (drw_attrs[index].hash_code == attr_hash) {
+      return vec4(drw_attrs[index].data_x,
+                  drw_attrs[index].data_y,
+                  drw_attrs[index].data_z,
+                  drw_attrs[index].data_w);
+    }
+  }
+  return vec4(0.0);
+#else
+  return attr;
 #endif
 }
 

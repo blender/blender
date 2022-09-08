@@ -5,7 +5,7 @@ void main(void)
 {
   finalColor = vec4(geom_in[0].vColSize.rgb, 1.0);
 
-  bool is_persp = (ProjectionMatrix[3][3] == 0.0);
+  bool is_persp = (drw_view.winmat[3][3] == 0.0);
 
   vec3 view_vec = (is_persp) ? normalize(geom_in[1].vPos) : vec3(0.0, 0.0, -1.0);
   vec3 v10 = geom_in[0].vPos - geom_in[1].vPos;

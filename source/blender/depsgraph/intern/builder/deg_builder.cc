@@ -13,6 +13,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_layer_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_stack.h"
@@ -29,6 +30,7 @@
 #include "intern/depsgraph_tag.h"
 #include "intern/depsgraph_type.h"
 #include "intern/eval/deg_eval_copy_on_write.h"
+#include "intern/eval/deg_eval_visibility.h"
 #include "intern/node/deg_node.h"
 #include "intern/node/deg_node_component.h"
 #include "intern/node/deg_node_id.h"
@@ -63,7 +65,7 @@ DepsgraphBuilder::DepsgraphBuilder(Main *bmain, Depsgraph *graph, DepsgraphBuild
 {
 }
 
-bool DepsgraphBuilder::need_pull_base_into_graph(Base *base)
+bool DepsgraphBuilder::need_pull_base_into_graph(const Base *base)
 {
   /* Simple check: enabled bases are always part of dependency graph. */
   const int base_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ? BASE_ENABLED_VIEWPORT :
@@ -71,10 +73,15 @@ bool DepsgraphBuilder::need_pull_base_into_graph(Base *base)
   if (base->flag & base_flag) {
     return true;
   }
+
   /* More involved check: since we don't support dynamic changes in dependency graph topology and
    * all visible objects are to be part of dependency graph, we pull all objects which has animated
    * visibility. */
-  Object *object = base->object;
+  return is_object_visibility_animated(base->object);
+}
+
+bool DepsgraphBuilder::is_object_visibility_animated(const Object *object)
+{
   AnimatedPropertyID property_id;
   if (graph_->mode == DAG_EVAL_VIEWPORT) {
     property_id = AnimatedPropertyID(&object->id, &RNA_Object, "hide_viewport");
@@ -89,7 +96,25 @@ bool DepsgraphBuilder::need_pull_base_into_graph(Base *base)
   return cache_->isPropertyAnimated(&object->id, property_id);
 }
 
-bool DepsgraphBuilder::check_pchan_has_bbone(Object *object, const bPoseChannel *pchan)
+bool DepsgraphBuilder::is_modifier_visibility_animated(const Object *object,
+                                                       const ModifierData *modifier)
+{
+  AnimatedPropertyID property_id;
+  if (graph_->mode == DAG_EVAL_VIEWPORT) {
+    property_id = AnimatedPropertyID(
+        &object->id, &RNA_Modifier, (void *)modifier, "show_viewport");
+  }
+  else if (graph_->mode == DAG_EVAL_RENDER) {
+    property_id = AnimatedPropertyID(&object->id, &RNA_Modifier, (void *)modifier, "show_render");
+  }
+  else {
+    BLI_assert_msg(0, "Unknown evaluation mode.");
+    return false;
+  }
+  return cache_->isPropertyAnimated(&object->id, property_id);
+}
+
+bool DepsgraphBuilder::check_pchan_has_bbone(const Object *object, const bPoseChannel *pchan)
 {
   BLI_assert(object->type == OB_ARMATURE);
   if (pchan == nullptr || pchan->bone == nullptr) {
@@ -109,12 +134,13 @@ bool DepsgraphBuilder::check_pchan_has_bbone(Object *object, const bPoseChannel 
          cache_->isPropertyAnimated(&armature->id, property_id);
 }
 
-bool DepsgraphBuilder::check_pchan_has_bbone_segments(Object *object, const bPoseChannel *pchan)
+bool DepsgraphBuilder::check_pchan_has_bbone_segments(const Object *object,
+                                                      const bPoseChannel *pchan)
 {
   return check_pchan_has_bbone(object, pchan);
 }
 
-bool DepsgraphBuilder::check_pchan_has_bbone_segments(Object *object, const char *bone_name)
+bool DepsgraphBuilder::check_pchan_has_bbone_segments(const Object *object, const char *bone_name)
 {
   const bPoseChannel *pchan = BKE_pose_channel_find_name(object->pose, bone_name);
   return check_pchan_has_bbone_segments(object, pchan);
@@ -126,97 +152,9 @@ bool DepsgraphBuilder::check_pchan_has_bbone_segments(Object *object, const char
 /** \name Builder Finalizer.
  * \{ */
 
-namespace {
-
-void deg_graph_build_flush_visibility(Depsgraph *graph)
-{
-  enum {
-    DEG_NODE_VISITED = (1 << 0),
-  };
-
-  BLI_Stack *stack = BLI_stack_new(sizeof(OperationNode *), "DEG flush layers stack");
-  for (IDNode *id_node : graph->id_nodes) {
-    for (ComponentNode *comp_node : id_node->components.values()) {
-      comp_node->affects_directly_visible |= id_node->is_directly_visible;
-
-      /* Enforce "visibility" of the synchronization component.
-       *
-       * This component is never connected to other ID nodes, and hence can not be handled in the
-       * same way as other components needed for evaluation. It is only needed for proper
-       * evaluation of the ID node it belongs to.
-       *
-       * The design is such that the synchronization is supposed to happen whenever any part of the
-       * ID changed/evaluated. Here we mark the component as "visible" so that genetic recalc flag
-       * flushing and scheduling will handle the component in a generic manner. */
-      if (comp_node->type == NodeType::SYNCHRONIZATION) {
-        comp_node->affects_directly_visible = true;
-      }
-    }
-  }
-
-  for (OperationNode *op_node : graph->operations) {
-    op_node->custom_flags = 0;
-    op_node->num_links_pending = 0;
-    for (Relation *rel : op_node->outlinks) {
-      if ((rel->from->type == NodeType::OPERATION) && (rel->flag & RELATION_FLAG_CYCLIC) == 0) {
-        ++op_node->num_links_pending;
-      }
-    }
-    if (op_node->num_links_pending == 0) {
-      BLI_stack_push(stack, &op_node);
-      op_node->custom_flags |= DEG_NODE_VISITED;
-    }
-  }
-
-  while (!BLI_stack_is_empty(stack)) {
-    OperationNode *op_node;
-    BLI_stack_pop(stack, &op_node);
-    /* Flush layers to parents. */
-    for (Relation *rel : op_node->inlinks) {
-      if (rel->from->type == NodeType::OPERATION) {
-        OperationNode *op_from = (OperationNode *)rel->from;
-        ComponentNode *comp_from = op_from->owner;
-        const bool target_directly_visible = op_node->owner->affects_directly_visible;
-
-        /* Visibility component forces all components of the current ID to be considered as
-         * affecting directly visible. */
-        if (comp_from->type == NodeType::VISIBILITY) {
-          if (target_directly_visible) {
-            IDNode *id_node_from = comp_from->owner;
-            for (ComponentNode *comp_node : id_node_from->components.values()) {
-              comp_node->affects_directly_visible |= target_directly_visible;
-            }
-          }
-        }
-        else {
-          comp_from->affects_directly_visible |= target_directly_visible;
-        }
-      }
-    }
-    /* Schedule parent nodes. */
-    for (Relation *rel : op_node->inlinks) {
-      if (rel->from->type == NodeType::OPERATION) {
-        OperationNode *op_from = (OperationNode *)rel->from;
-        if ((rel->flag & RELATION_FLAG_CYCLIC) == 0) {
-          BLI_assert(op_from->num_links_pending > 0);
-          --op_from->num_links_pending;
-        }
-        if ((op_from->num_links_pending == 0) && (op_from->custom_flags & DEG_NODE_VISITED) == 0) {
-          BLI_stack_push(stack, &op_from);
-          op_from->custom_flags |= DEG_NODE_VISITED;
-        }
-      }
-    }
-  }
-  BLI_stack_free(stack);
-}
-
-}  // namespace
-
 void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 {
-  /* Make sure dependencies of visible ID data-blocks are visible. */
-  deg_graph_build_flush_visibility(graph);
+  deg_graph_flush_visibility_flags(graph);
   deg_graph_remove_unused_noops(graph);
 
   /* Re-tag IDs for update if it was tagged before the relations

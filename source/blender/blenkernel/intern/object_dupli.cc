@@ -29,6 +29,7 @@
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
+#include "DNA_volume_types.h"
 
 #include "BKE_collection.h"
 #include "BKE_duplilist.h"
@@ -164,10 +165,8 @@ static bool copy_dupli_context(
  *
  * \param mat: is transform of the object relative to current context (including #Object.obmat).
  */
-static DupliObject *make_dupli(const DupliContext *ctx,
-                               Object *ob,
-                               const float mat[4][4],
-                               int index)
+static DupliObject *make_dupli(
+    const DupliContext *ctx, Object *ob, const ID *object_data, const float mat[4][4], int index)
 {
   DupliObject *dob;
   int i;
@@ -182,7 +181,7 @@ static DupliObject *make_dupli(const DupliContext *ctx,
   }
 
   dob->ob = ob;
-  dob->ob_data = (ID *)ob->data;
+  dob->ob_data = const_cast<ID *>(object_data);
   mul_m4_m4m4(dob->mat, (float(*)[4])ctx->space_mat, mat);
   dob->type = ctx->gen->type;
 
@@ -202,7 +201,7 @@ static DupliObject *make_dupli(const DupliContext *ctx,
   /* Meta-balls never draw in duplis, they are instead merged into one by the basis
    * meta-ball outside of the group. this does mean that if that meta-ball is not in the
    * scene, they will not show up at all, limitation that should be solved once. */
-  if (ob->type == OB_MBALL) {
+  if (object_data && GS(object_data->name) == ID_MB) {
     dob->no_draw = true;
   }
 
@@ -224,6 +223,14 @@ static DupliObject *make_dupli(const DupliContext *ctx,
   }
 
   return dob;
+}
+
+static DupliObject *make_dupli(const DupliContext *ctx,
+                               Object *ob,
+                               const float mat[4][4],
+                               int index)
+{
+  return make_dupli(ctx, ob, static_cast<ID *>(ob->data), mat, index);
 }
 
 /**
@@ -621,7 +628,7 @@ static void make_duplis_verts(const DupliContext *ctx)
     VertexDupliData_Mesh vdd{};
     vdd.params = vdd_params;
     vdd.totvert = me_eval->totvert;
-    vdd.mvert = me_eval->mvert;
+    vdd.mvert = me_eval->verts().data();
     vdd.vert_normals = BKE_mesh_vertex_normals_ensure(me_eval);
     vdd.orco = (const float(*)[3])CustomData_get_layer(&me_eval->vdata, CD_ORCO);
 
@@ -777,28 +784,24 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
   int component_index = 0;
   if (ctx->object->type != OB_MESH || geometry_set_is_instance) {
     if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
-      DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);
-      dupli->ob_data = (ID *)mesh;
+      make_dupli(ctx, ctx->object, &mesh->id, parent_transform, component_index++);
     }
   }
   if (ctx->object->type != OB_VOLUME || geometry_set_is_instance) {
     if (const Volume *volume = geometry_set.get_volume_for_read()) {
-      DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);
-      dupli->ob_data = (ID *)volume;
+      make_dupli(ctx, ctx->object, &volume->id, parent_transform, component_index++);
     }
   }
   if (!ELEM(ctx->object->type, OB_CURVES_LEGACY, OB_FONT, OB_CURVES) || geometry_set_is_instance) {
     if (const CurveComponent *component = geometry_set.get_component_for_read<CurveComponent>()) {
       if (const Curve *curve = component->get_curve_for_render()) {
-        DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);
-        dupli->ob_data = (ID *)curve;
+        make_dupli(ctx, ctx->object, &curve->id, parent_transform, component_index++);
       }
     }
   }
   if (ctx->object->type != OB_POINTCLOUD || geometry_set_is_instance) {
     if (const PointCloud *pointcloud = geometry_set.get_pointcloud_for_read()) {
-      DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);
-      dupli->ob_data = (ID *)pointcloud;
+      make_dupli(ctx, ctx->object, &pointcloud->id, parent_transform, component_index++);
     }
   }
   const bool creates_duplis_for_components = component_index >= 1;
@@ -1175,9 +1178,9 @@ static void make_duplis_faces(const DupliContext *ctx)
     FaceDupliData_Mesh fdd{};
     fdd.params = fdd_params;
     fdd.totface = me_eval->totpoly;
-    fdd.mpoly = me_eval->mpoly;
-    fdd.mloop = me_eval->mloop;
-    fdd.mvert = me_eval->mvert;
+    fdd.mpoly = me_eval->polys().data();
+    fdd.mloop = me_eval->loops().data();
+    fdd.mvert = me_eval->verts().data();
     fdd.mloopuv = (uv_idx != -1) ? (const MLoopUV *)CustomData_get_layer_n(
                                        &me_eval->ldata, CD_MLOOPUV, uv_idx) :
                                    nullptr;
@@ -1557,6 +1560,13 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
   int visibility_flag = ctx->object->visibility_flag;
 
   if ((transflag & OB_DUPLI) == 0 && ctx->object->runtime.geometry_set_eval == nullptr) {
+    return nullptr;
+  }
+
+  /* Metaball objects can't create instances, but the dupli system is used to "instance" their
+   * evaluated mesh to render engines. We need to exit early to avoid recursively instancing the
+   * evaluated metaball mesh on metaball instances that already contribute to the basis. */
+  if (ctx->object->type == OB_MBALL && ctx->level > 0) {
     return nullptr;
   }
 

@@ -27,7 +27,7 @@ class PhysicButtonsPanel:
 
 class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
     bl_label = "Force Fields"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
 
     @classmethod
     def poll(cls, context):
@@ -49,7 +49,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_field_settings(PhysicButtonsPanel, Panel):
     bl_label = "Settings"
     bl_parent_id = 'PHYSICS_PT_field'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
 
     @classmethod
     def poll(cls, context):
@@ -136,7 +136,7 @@ class PHYSICS_PT_field_settings(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_field_settings_kink(PhysicButtonsPanel, Panel):
     bl_label = "Kink"
     bl_parent_id = 'PHYSICS_PT_field_settings'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
 
     @classmethod
     def poll(cls, context):
@@ -170,7 +170,7 @@ class PHYSICS_PT_field_settings_kink(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_field_settings_texture_select(PhysicButtonsPanel, Panel):
     bl_label = "Texture"
     bl_parent_id = 'PHYSICS_PT_field_settings'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
 
     @classmethod
     def poll(cls, context):
@@ -192,7 +192,7 @@ class PHYSICS_PT_field_settings_texture_select(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_field_falloff(PhysicButtonsPanel, Panel):
     bl_label = "Falloff"
     bl_parent_id = "PHYSICS_PT_field"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
 
     @classmethod
     def poll(cls, context):
@@ -217,7 +217,7 @@ class PHYSICS_PT_field_falloff(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_field_falloff_angular(PhysicButtonsPanel, Panel):
     bl_label = "Angular"
     bl_parent_id = "PHYSICS_PT_field_falloff"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
 
     @classmethod
     def poll(cls, context):
@@ -256,7 +256,7 @@ class PHYSICS_PT_field_falloff_angular(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_field_falloff_radial(PhysicButtonsPanel, Panel):
     bl_label = "Radial"
     bl_parent_id = "PHYSICS_PT_field_falloff"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
 
     @classmethod
     def poll(cls, context):
@@ -300,7 +300,7 @@ def collision_warning(layout):
 
 class PHYSICS_PT_collision(PhysicButtonsPanel, Panel):
     bl_label = "Collision"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
 
     @classmethod
     def poll(cls, context):
@@ -331,7 +331,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_collision_particle(PhysicButtonsPanel, Panel):
     bl_label = "Particle"
     bl_parent_id = "PHYSICS_PT_collision"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
 
     @classmethod
     def poll(cls, context):
@@ -377,7 +377,7 @@ class PHYSICS_PT_collision_particle(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_collision_softbody(PhysicButtonsPanel, Panel):
     bl_label = "Softbody & Cloth"
     bl_parent_id = "PHYSICS_PT_collision"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
 
     @classmethod
     def poll(cls, context):

@@ -24,6 +24,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include "GPU_capabilities.h"
+#include "GPU_context.h"
 #include "GPU_framebuffer.h"
 #include "GPU_state.h"
 
@@ -223,7 +224,7 @@ void EEVEE_render_cache(void *vedata,
   }
 
   if (ob_visibility & OB_VISIBLE_SELF) {
-    if (ELEM(ob->type, OB_MESH, OB_SURF, OB_MBALL)) {
+    if (ob->type == OB_MESH) {
       EEVEE_materials_cache_populate(vedata, sldata, ob, &cast_shadow);
       if (do_cryptomatte) {
         EEVEE_cryptomatte_cache_populate(data, sldata, ob);
@@ -645,6 +646,10 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 
     /* XXX Seems to fix TDR issue with NVidia drivers on linux. */
     GPU_finish();
+
+    /* Perform render step between samples to allow
+     * flushing of freed GPUBackend resources. */
+    GPU_render_step();
 
     RE_engine_update_progress(engine, (float)(render_samples++) / (float)tot_sample);
   }

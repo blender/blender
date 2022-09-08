@@ -5,17 +5,13 @@
 #include "FN_field.hh"
 #include "FN_multi_function_builder.hh"
 
-#include "BKE_attribute_access.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_geometry_set_instances.hh"
 
 #include "DNA_node_types.h"
 
 #include "NOD_derived_node_tree.hh"
 #include "NOD_geometry_nodes_eval_log.hh"
-
-#include "GEO_realize_instances.hh"
 
 struct Depsgraph;
 struct ModifierData;
@@ -23,16 +19,20 @@ struct ModifierData;
 namespace blender::nodes {
 
 using bke::AnonymousAttributeFieldInput;
+using bke::AttributeAccessor;
 using bke::AttributeFieldInput;
 using bke::AttributeIDRef;
-using bke::GeometryComponentFieldContext;
-using bke::GeometryFieldInput;
-using bke::OutputAttribute;
-using bke::OutputAttribute_Typed;
-using bke::ReadAttributeLookup;
+using bke::AttributeKind;
+using bke::AttributeMetaData;
+using bke::AttributeReader;
+using bke::AttributeWriter;
+using bke::GAttributeReader;
+using bke::GAttributeWriter;
+using bke::GSpanAttributeWriter;
+using bke::MutableAttributeAccessor;
+using bke::SpanAttributeWriter;
 using bke::StrongAnonymousAttributeID;
 using bke::WeakAnonymousAttributeID;
-using bke::WriteAttributeLookup;
 using fn::Field;
 using fn::FieldContext;
 using fn::FieldEvaluator;
@@ -161,6 +161,7 @@ class GeoNodeExecParams {
   }
 
   void check_input_geometry_set(StringRef identifier, const GeometrySet &geometry_set) const;
+  void check_output_geometry_set(const GeometrySet &geometry_set) const;
 
   /**
    * Get input as vector for multi input socket with the given identifier.
@@ -229,6 +230,9 @@ class GeoNodeExecParams {
 #ifdef DEBUG
       this->check_output_access(identifier, type);
 #endif
+      if constexpr (std::is_same_v<StoredT, GeometrySet>) {
+        this->check_output_geometry_set(value);
+      }
       GMutablePointer gvalue = provider_->alloc_output_value(type);
       new (gvalue.get()) StoredT(std::forward<T>(value));
       provider_->set_output(identifier, gvalue);
@@ -279,7 +283,7 @@ class GeoNodeExecParams {
    */
   const bNode &node() const
   {
-    return *provider_->dnode->bnode();
+    return *provider_->dnode;
   }
 
   const Object *self_object() const

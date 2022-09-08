@@ -57,10 +57,13 @@ set(SRC
   nodes/node_geo_curve_to_mesh.cc
   nodes/node_geo_curve_to_points.cc
   nodes/node_geo_curve_trim.cc
+  nodes/node_geo_deform_curves_on_surface.cc
   nodes/node_geo_delete_geometry.cc
   nodes/node_geo_distribute_points_on_faces.cc
   nodes/node_geo_dual_mesh.cc
   nodes/node_geo_duplicate_elements.cc
+  nodes/node_geo_edge_paths_to_curves.cc
+  nodes/node_geo_edge_paths_to_selection.cc
   nodes/node_geo_edge_split.cc
   nodes/node_geo_extrude_mesh.cc
   nodes/node_geo_field_at_index.cc
@@ -89,12 +92,14 @@ set(SRC
   nodes/node_geo_input_radius.cc
   nodes/node_geo_input_scene_time.cc
   nodes/node_geo_input_shade_smooth.cc
+  nodes/node_geo_input_shortest_edge_paths.cc
   nodes/node_geo_input_spline_cyclic.cc
   nodes/node_geo_input_spline_length.cc
   nodes/node_geo_input_spline_resolution.cc
   nodes/node_geo_input_tangent.cc
   nodes/node_geo_instance_on_points.cc
   nodes/node_geo_instances_to_points.cc
+  nodes/node_geo_interpolate_domain.cc
   nodes/node_geo_is_viewport.cc
   nodes/node_geo_join_geometry.cc
   nodes/node_geo_material_replace.cc
@@ -111,7 +116,9 @@ set(SRC
   nodes/node_geo_mesh_subdivide.cc
   nodes/node_geo_mesh_to_curve.cc
   nodes/node_geo_mesh_to_points.cc
+  nodes/node_geo_mesh_to_volume.cc
   nodes/node_geo_object_info.cc
+  nodes/node_geo_points.cc
   nodes/node_geo_points_to_vertices.cc
   nodes/node_geo_points_to_volume.cc
   nodes/node_geo_proximity.cc
@@ -143,7 +150,10 @@ set(SRC
   nodes/node_geo_transform.cc
   nodes/node_geo_translate_instances.cc
   nodes/node_geo_triangulate.cc
+  nodes/node_geo_uv_pack_islands.cc
+  nodes/node_geo_uv_unwrap.cc
   nodes/node_geo_viewer.cc
+  nodes/node_geo_volume_cube.cc
   nodes/node_geo_volume_to_mesh.cc
 
   node_geometry_exec.cc

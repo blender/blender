@@ -62,7 +62,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ShaderFxTypeInfo shaderfx_Type_Pixel = {
-    /* name */ "Pixelate",
+    /* name */ N_("Pixelate"),
     /* structName */ "PixelShaderFxData",
     /* structSize */ sizeof(PixelShaderFxData),
     /* type */ eShaderFxType_GpencilType,

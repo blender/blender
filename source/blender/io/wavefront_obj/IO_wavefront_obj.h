@@ -72,7 +72,10 @@ struct OBJImportParams {
   float clamp_size;
   eIOAxis forward_axis;
   eIOAxis up_axis;
+  bool import_vertex_groups;
   bool validate_meshes;
+  bool relative_paths;
+  bool clear_selection;
 };
 
 /**

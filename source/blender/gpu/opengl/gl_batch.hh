@@ -17,8 +17,6 @@
 #include "gl_index_buffer.hh"
 #include "gl_vertex_buffer.hh"
 
-#include "glew-mx.h"
-
 namespace blender {
 namespace gpu {
 
@@ -35,9 +33,9 @@ class GLShaderInterface;
 class GLVaoCache {
  private:
   /** Context for which the vao_cache_ was generated. */
-  GLContext *context_ = NULL;
+  GLContext *context_ = nullptr;
   /** Last interface this batch was drawn with. */
-  GLShaderInterface *interface_ = NULL;
+  GLShaderInterface *interface_ = nullptr;
   /** Cached VAO for the last interface. */
   GLuint vao_id_ = 0;
   /** Used when arb_base_instance is not supported. */
@@ -93,6 +91,11 @@ class GLBatch : public Batch {
 
  public:
   void draw(int v_first, int v_count, int i_first, int i_count) override;
+  void draw_indirect(GPUStorageBuf *indirect_buf, intptr_t offset) override;
+  void multi_draw_indirect(GPUStorageBuf *indirect_buf,
+                           int count,
+                           intptr_t offset,
+                           intptr_t stride) override;
   void bind(int i_first);
 
   /* Convenience getters. */

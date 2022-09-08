@@ -6,7 +6,6 @@
  */
 
 /**
- *
  * FILE FORMAT
  * ===========
  *
@@ -970,9 +969,14 @@ static void write_libraries(WriteData *wd, Main *main)
     if (found_one) {
       /* Not overridable. */
 
+      void *runtime_name_data = main->curlib->runtime.name_map;
+      main->curlib->runtime.name_map = NULL;
+
       BlendWriter writer = {wd};
       writestruct(wd, ID_LI, Library, 1, main->curlib);
       BKE_id_blend_write(&writer, &main->curlib->id);
+
+      main->curlib->runtime.name_map = runtime_name_data;
 
       if (main->curlib->packedfile) {
         BKE_packedfile_blend_write(&writer, main->curlib->packedfile);

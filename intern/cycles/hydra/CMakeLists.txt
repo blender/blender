@@ -10,18 +10,18 @@ set(INC
 )
 set(INC_SYS
   ${USD_INCLUDE_DIRS}
-  ${GLEW_INCLUDE_DIR}
+  ${Epoxy_INCLUDE_DIRS}
 )
 
 set(LIB
   cycles_scene
   cycles_session
   cycles_graph
-  ${CYCLES_GLEW_LIBRARIES}
+  ${Epoxy_LIBRARIES}
 )
 cycles_external_libraries_append(LIB)
 
-set(INC_HD_CYCLES
+set(SRC_HD_CYCLES_HEADERS
   attribute.h
   camera.h
   config.h
@@ -64,8 +64,6 @@ set(SRC_HD_CYCLES
   volume.cpp
 )
 
-add_definitions(${GL_DEFINITIONS})
-
 if(WITH_OPENVDB)
   add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
   list(APPEND INC_SYS
@@ -77,7 +75,7 @@ endif()
 if(EXISTS ${USD_INCLUDE_DIR}/pxr/imaging/hgiGL)
   add_definitions(-DWITH_HYDRA_DISPLAY_DRIVER)
   list(APPEND SRC_HD_CYCLES display_driver.cpp)
-  list(APPEND INC_HD_CYCLES display_driver.h)
+  list(APPEND SRC_HD_CYCLES_HEADERS display_driver.h)
 endif()
 
 include_directories(${INC})
@@ -85,7 +83,7 @@ include_directories(SYSTEM ${INC_SYS})
 
 add_library(cycles_hydra STATIC
   ${SRC_HD_CYCLES}
-  ${INC_HD_CYCLES}
+  ${SRC_HD_CYCLES_HEADERS}
 )
 
 target_compile_options(cycles_hydra

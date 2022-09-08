@@ -787,7 +787,7 @@ int UI_calc_float_precision(int prec, double value)
    */
   value = fabs(value);
   if ((value < pow10_neg[prec]) && (value > (1.0 / max_pow))) {
-    int value_i = (int)((value * max_pow) + 0.5);
+    int value_i = (int)lround(value * max_pow);
     if (value_i != 0) {
       const int prec_span = 3; /* show: 0.01001, 5 would allow 0.0100001 for eg. */
       int test_prec;

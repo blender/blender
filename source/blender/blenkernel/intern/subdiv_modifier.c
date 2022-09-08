@@ -44,15 +44,14 @@ bool BKE_subsurf_modifier_runtime_init(SubsurfModifierData *smd, const bool use_
 
     return false;
   }
-  else {
-    /* Allocate runtime data if it did not exist yet. */
-    if (runtime_data == NULL) {
-      runtime_data = MEM_callocN(sizeof(*runtime_data), "subsurf runtime");
-      smd->modifier.runtime = runtime_data;
-    }
-    runtime_data->settings = settings;
-    return true;
+
+  /* Allocate runtime data if it did not exist yet. */
+  if (runtime_data == NULL) {
+    runtime_data = MEM_callocN(sizeof(*runtime_data), "subsurf runtime");
+    smd->modifier.runtime = runtime_data;
   }
+  runtime_data->settings = settings;
+  return true;
 }
 
 static ModifierData *modifier_get_last_enabled_for_mode(const Scene *scene,
@@ -96,11 +95,6 @@ static bool is_subdivision_evaluation_possible_on_gpu(void)
   }
 
   if (GPU_max_compute_shader_storage_blocks() < MAX_GPU_SUBDIV_SSBOS) {
-    return false;
-  }
-
-  const int available_evaluators = openSubdiv_getAvailableEvaluators();
-  if ((available_evaluators & OPENSUBDIV_EVALUATOR_GLSL_COMPUTE) == 0) {
     return false;
   }
 

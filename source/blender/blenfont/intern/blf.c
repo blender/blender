@@ -22,6 +22,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_threads.h"
 
 #include "BLF_api.h"
@@ -34,13 +35,6 @@
 #include "blf_internal.h"
 #include "blf_internal_types.h"
 
-/* Max number of font in memory.
- * Take care that now every font have a glyph cache per size/dpi,
- * so we don't need load the same font with different size, just
- * load one and call BLF_size.
- */
-#define BLF_MAX_FONT 16
-
 #define BLF_RESULT_CHECK_INIT(r_info) \
   if (r_info) { \
     memset(r_info, 0, sizeof(*(r_info))); \
@@ -48,7 +42,7 @@
   ((void)0)
 
 /* Font array. */
-static FontBLF *global_font[BLF_MAX_FONT] = {NULL};
+FontBLF *global_font[BLF_MAX_FONT] = {NULL};
 
 /* XXX: should these be made into global_font_'s too? */
 
@@ -105,7 +99,7 @@ bool blf_font_id_is_valid(int fontid)
 static int blf_search(const char *name)
 {
   for (int i = 0; i < BLF_MAX_FONT; i++) {
-    FontBLF *font = global_font[i];
+    const FontBLF *font = global_font[i];
     if (font && (STREQ(font->name, name))) {
       return i;
     }
@@ -129,9 +123,14 @@ bool BLF_has_glyph(int fontid, unsigned int unicode)
 {
   FontBLF *font = blf_get(fontid);
   if (font) {
-    return FT_Get_Char_Index(font->face, unicode) != FT_Err_Ok;
+    return blf_get_char_index(font, unicode) != FT_Err_Ok;
   }
   return false;
+}
+
+bool BLF_is_loaded(const char *name)
+{
+  return blf_search(name) >= 0;
 }
 
 int BLF_load(const char *name)
@@ -253,6 +252,20 @@ void BLF_unload_id(int fontid)
       global_font[fontid] = NULL;
     }
   }
+}
+
+void BLF_unload_all(void)
+{
+  for (int i = 0; i < BLF_MAX_FONT; i++) {
+    FontBLF *font = global_font[i];
+    if (font) {
+      blf_font_free(font);
+      global_font[i] = NULL;
+    }
+  }
+  blf_mono_font = -1;
+  blf_mono_font_render = -1;
+  BLF_default_set(-1);
 }
 
 void BLF_enable(int fontid, int option)
@@ -471,7 +484,7 @@ void BLF_batch_draw_end(void)
   g_batch.enabled = false;
 }
 
-static void blf_draw_gl__start(FontBLF *font)
+static void blf_draw_gl__start(const FontBLF *font)
 {
   /*
    * The pixmap alignment hack is handle
@@ -499,7 +512,7 @@ static void blf_draw_gl__start(FontBLF *font)
   }
 }
 
-static void blf_draw_gl__end(FontBLF *font)
+static void blf_draw_gl__end(const FontBLF *font)
 {
   if ((font->flags & (BLF_ROTATION | BLF_MATRIX | BLF_ASPECT)) != 0) {
     GPU_matrix_pop();
@@ -873,12 +886,21 @@ void BLF_draw_buffer(int fontid, const char *str, const size_t str_len)
 
 char *BLF_display_name_from_file(const char *filepath)
 {
-  FontBLF *font = blf_font_new("font_name", filepath);
-  if (!font) {
-    return NULL;
+  /* While listing font directories this function can be called simultaneously from a greater
+   * number of threads than we want the FreeType cache to keep open at a time. Therefore open
+   * with own FT_Library object and use FreeType calls directly to avoid any contention. */
+  char *name = NULL;
+  FT_Library ft_library;
+  if (FT_Init_FreeType(&ft_library) == FT_Err_Ok) {
+    FT_Face face;
+    if (FT_New_Face(ft_library, filepath, 0, &face) == FT_Err_Ok) {
+      if (face->family_name) {
+        name = BLI_sprintfN("%s %s", face->family_name, face->style_name);
+      }
+      FT_Done_Face(face);
+    }
+    FT_Done_FreeType(ft_library);
   }
-  char *name = blf_display_name(font);
-  blf_font_free(font);
   return name;
 }
 

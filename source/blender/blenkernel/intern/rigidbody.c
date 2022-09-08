@@ -364,7 +364,7 @@ static rbCollisionShape *rigidbody_get_shape_convexhull_from_mesh(Object *ob,
 
   if (ob->type == OB_MESH && ob->data) {
     mesh = rigidbody_get_mesh(ob);
-    mvert = (mesh) ? mesh->mvert : NULL;
+    mvert = (mesh) ? BKE_mesh_verts_for_write(mesh) : NULL;
     totvert = (mesh) ? mesh->totvert : 0;
   }
   else {
@@ -390,11 +390,9 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 
   if (ob->type == OB_MESH) {
     Mesh *mesh = NULL;
-    MVert *mvert;
     const MLoopTri *looptri;
     int totvert;
     int tottri;
-    const MLoop *mloop;
 
     mesh = rigidbody_get_mesh(ob);
 
@@ -403,11 +401,11 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
       return NULL;
     }
 
-    mvert = mesh->mvert;
+    const MVert *mvert = BKE_mesh_verts(mesh);
     totvert = mesh->totvert;
     looptri = BKE_mesh_runtime_looptri_ensure(mesh);
     tottri = mesh->runtime.looptris.len;
-    mloop = mesh->mloop;
+    const MLoop *mloop = BKE_mesh_loops(mesh);
 
     /* sanity checking - potential case when no data will be present */
     if ((totvert == 0) || (tottri == 0)) {
@@ -670,21 +668,19 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
     case RB_SHAPE_TRIMESH: {
       if (ob->type == OB_MESH) {
         Mesh *mesh = rigidbody_get_mesh(ob);
-        MVert *mvert;
         const MLoopTri *lt = NULL;
         int totvert, tottri = 0;
-        const MLoop *mloop = NULL;
 
         /* ensure mesh validity, then grab data */
         if (mesh == NULL) {
           return;
         }
 
-        mvert = mesh->mvert;
+        const MVert *mvert = BKE_mesh_verts(mesh);
         totvert = mesh->totvert;
         lt = BKE_mesh_runtime_looptri_ensure(mesh);
         tottri = mesh->runtime.looptris.len;
-        mloop = mesh->mloop;
+        const MLoop *mloop = BKE_mesh_loops(mesh);
 
         if (totvert > 0 && tottri > 0) {
           BKE_mesh_calc_volume(mvert, totvert, lt, tottri, mloop, &volume, NULL);
@@ -746,21 +742,19 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
     case RB_SHAPE_TRIMESH: {
       if (ob->type == OB_MESH) {
         Mesh *mesh = rigidbody_get_mesh(ob);
-        MVert *mvert;
         const MLoopTri *looptri;
         int totvert, tottri;
-        const MLoop *mloop;
 
         /* ensure mesh validity, then grab data */
         if (mesh == NULL) {
           return;
         }
 
-        mvert = mesh->mvert;
+        const MVert *mvert = BKE_mesh_verts(mesh);
         totvert = mesh->totvert;
         looptri = BKE_mesh_runtime_looptri_ensure(mesh);
         tottri = mesh->runtime.looptris.len;
-        mloop = mesh->mloop;
+        const MLoop *mloop = BKE_mesh_loops(mesh);
 
         if (totvert > 0 && tottri > 0) {
           BKE_mesh_calc_volume(mvert, totvert, looptri, tottri, mloop, NULL, r_center);
@@ -1176,6 +1170,9 @@ RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw, const int flag)
 
   if (rbw->effector_weights) {
     rbw_copy->effector_weights = MEM_dupallocN(rbw->effector_weights);
+    if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+      id_us_plus((ID *)rbw->effector_weights->group);
+    }
   }
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
     id_us_plus((ID *)rbw_copy->group);
@@ -1205,9 +1202,9 @@ void BKE_rigidbody_world_groups_relink(RigidBodyWorld *rbw)
 
 void BKE_rigidbody_world_id_loop(RigidBodyWorld *rbw, RigidbodyWorldIDFunc func, void *userdata)
 {
-  func(rbw, (ID **)&rbw->group, userdata, IDWALK_CB_NOP);
-  func(rbw, (ID **)&rbw->constraints, userdata, IDWALK_CB_NOP);
-  func(rbw, (ID **)&rbw->effector_weights->group, userdata, IDWALK_CB_NOP);
+  func(rbw, (ID **)&rbw->group, userdata, IDWALK_CB_USER);
+  func(rbw, (ID **)&rbw->constraints, userdata, IDWALK_CB_USER);
+  func(rbw, (ID **)&rbw->effector_weights->group, userdata, IDWALK_CB_USER);
 
   if (rbw->objects) {
     int i;
@@ -1424,7 +1421,7 @@ static bool rigidbody_add_object_to_scene(Main *bmain, Scene *scene, Object *ob)
 
   if (rbw->group == NULL) {
     rbw->group = BKE_collection_add(bmain, NULL, "RigidBodyWorld");
-    id_fake_user_set(&rbw->group->id);
+    id_us_plus(&rbw->group->id);
   }
 
   /* Add object to rigid body group. */
@@ -1453,7 +1450,7 @@ static bool rigidbody_add_constraint_to_scene(Main *bmain, Scene *scene, Object 
 
   if (rbw->constraints == NULL) {
     rbw->constraints = BKE_collection_add(bmain, NULL, "RigidBodyConstraints");
-    id_fake_user_set(&rbw->constraints->id);
+    id_us_plus(&rbw->constraints->id);
   }
 
   /* Add object to rigid body group. */
@@ -1660,8 +1657,7 @@ static void rigidbody_update_sim_world(Scene *scene, RigidBodyWorld *rbw)
   rigidbody_update_ob_array(rbw);
 }
 
-static void rigidbody_update_sim_ob(
-    Depsgraph *depsgraph, Scene *scene, RigidBodyWorld *rbw, Object *ob, RigidBodyOb *rbo)
+static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Object *ob, RigidBodyOb *rbo)
 {
   /* only update if rigid body exists */
   if (rbo->shared->physics_object == NULL) {
@@ -1675,7 +1671,7 @@ static void rigidbody_update_sim_ob(
   if (rbo->shape == RB_SHAPE_TRIMESH && rbo->flag & RBO_FLAG_USE_DEFORM) {
     Mesh *mesh = ob->runtime.mesh_deform_eval;
     if (mesh) {
-      MVert *mvert = mesh->mvert;
+      MVert *mvert = BKE_mesh_verts_for_write(mesh);
       int totvert = mesh->totvert;
       const BoundBox *bb = BKE_object_boundbox_get(ob);
 
@@ -1711,54 +1707,6 @@ static void rigidbody_update_sim_ob(
     RB_body_set_kinematic_state(rbo->shared->physics_object, true);
     RB_body_set_mass(rbo->shared->physics_object, 0.0f);
   }
-
-  /* update influence of effectors - but don't do it on an effector */
-  /* only dynamic bodies need effector update */
-  else if (rbo->type == RBO_TYPE_ACTIVE &&
-           ((ob->pd == NULL) || (ob->pd->forcefield == PFIELD_NULL))) {
-    EffectorWeights *effector_weights = rbw->effector_weights;
-    EffectedPoint epoint;
-    ListBase *effectors;
-
-    /* get effectors present in the group specified by effector_weights */
-    effectors = BKE_effectors_create(depsgraph, ob, NULL, effector_weights, false);
-    if (effectors) {
-      float eff_force[3] = {0.0f, 0.0f, 0.0f};
-      float eff_loc[3], eff_vel[3];
-
-      /* create dummy 'point' which represents last known position of object as result of sim */
-      /* XXX: this can create some inaccuracies with sim position,
-       * but is probably better than using un-simulated values? */
-      RB_body_get_position(rbo->shared->physics_object, eff_loc);
-      RB_body_get_linear_velocity(rbo->shared->physics_object, eff_vel);
-
-      pd_point_from_loc(scene, eff_loc, eff_vel, 0, &epoint);
-
-      /* Calculate net force of effectors, and apply to sim object:
-       * - we use 'central force' since apply force requires a "relative position"
-       *   which we don't have... */
-      BKE_effectors_apply(effectors, NULL, effector_weights, &epoint, eff_force, NULL, NULL);
-      if (G.f & G_DEBUG) {
-        printf("\tapplying force (%f,%f,%f) to '%s'\n",
-               eff_force[0],
-               eff_force[1],
-               eff_force[2],
-               ob->id.name + 2);
-      }
-      /* activate object in case it is deactivated */
-      if (!is_zero_v3(eff_force)) {
-        RB_body_activate(rbo->shared->physics_object);
-      }
-      RB_body_apply_central_force(rbo->shared->physics_object, eff_force);
-    }
-    else if (G.f & G_DEBUG) {
-      printf("\tno forces to apply to '%s'\n", ob->id.name + 2);
-    }
-
-    /* cleanup */
-    BKE_effectors_free(effectors);
-  }
-  /* NOTE: passive objects don't need to be updated since they don't move */
 
   /* NOTE: no other settings need to be explicitly updated here,
    * since RNA setters take care of the rest :)
@@ -1854,7 +1802,7 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph,
       rbo->flag &= ~(RBO_FLAG_NEEDS_VALIDATE | RBO_FLAG_NEEDS_RESHAPE);
 
       /* update simulation object... */
-      rigidbody_update_sim_ob(depsgraph, scene, rbw, ob, rbo);
+      rigidbody_update_sim_ob(depsgraph, ob, rbo);
     }
   }
   FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
@@ -1984,6 +1932,69 @@ static void rigidbody_update_kinematic_obj_substep(ListBase *substep_targets, fl
                           RBO_GET_MARGIN(rbo) * MIN3(scale[0], scale[1], scale[2]));
     }
   }
+}
+
+static void rigidbody_update_external_forces(Depsgraph *depsgraph,
+                                             Scene *scene,
+                                             RigidBodyWorld *rbw)
+{
+  FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (rbw->group, ob) {
+    /* only update if rigid body exists */
+    RigidBodyOb *rbo = ob->rigidbody_object;
+    if (ob->type != OB_MESH || rbo->shared->physics_object == NULL) {
+      continue;
+    }
+
+    /* update influence of effectors - but don't do it on an effector */
+    /* only dynamic bodies need effector update */
+    if (rbo->type == RBO_TYPE_ACTIVE &&
+        ((ob->pd == NULL) || (ob->pd->forcefield == PFIELD_NULL))) {
+      EffectorWeights *effector_weights = rbw->effector_weights;
+      EffectedPoint epoint;
+      ListBase *effectors;
+
+      /* get effectors present in the group specified by effector_weights */
+      effectors = BKE_effectors_create(depsgraph, ob, NULL, effector_weights, false);
+      if (effectors) {
+        float eff_force[3] = {0.0f, 0.0f, 0.0f};
+        float eff_loc[3], eff_vel[3];
+
+        /* create dummy 'point' which represents last known position of object as result of sim
+         */
+        /* XXX: this can create some inaccuracies with sim position,
+         * but is probably better than using un-simulated values? */
+        RB_body_get_position(rbo->shared->physics_object, eff_loc);
+        RB_body_get_linear_velocity(rbo->shared->physics_object, eff_vel);
+
+        pd_point_from_loc(scene, eff_loc, eff_vel, 0, &epoint);
+
+        /* Calculate net force of effectors, and apply to sim object:
+         * - we use 'central force' since apply force requires a "relative position"
+         *   which we don't have... */
+        BKE_effectors_apply(effectors, NULL, effector_weights, &epoint, eff_force, NULL, NULL);
+        if (G.f & G_DEBUG) {
+          printf("\tapplying force (%f,%f,%f) to '%s'\n",
+                 eff_force[0],
+                 eff_force[1],
+                 eff_force[2],
+                 ob->id.name + 2);
+        }
+        /* activate object in case it is deactivated */
+        if (!is_zero_v3(eff_force)) {
+          RB_body_activate(rbo->shared->physics_object);
+        }
+        RB_body_apply_central_force(rbo->shared->physics_object, eff_force);
+      }
+      else if (G.f & G_DEBUG) {
+        printf("\tno forces to apply to '%s'\n", ob->id.name + 2);
+      }
+
+      /* cleanup */
+      BKE_effectors_free(effectors);
+    }
+    /* NOTE: passive objects don't need to be updated since they don't move */
+  }
+  FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 }
 
 static void rigidbody_free_substep_data(ListBase *substep_targets)
@@ -2220,26 +2231,27 @@ void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime
       BKE_ptcache_write(&pid, startframe);
     }
 
-    /* update and validate simulation */
-    rigidbody_update_simulation(depsgraph, scene, rbw, false);
-
     const float frame_diff = ctime - rbw->ltime;
     /* calculate how much time elapsed since last step in seconds */
     const float timestep = 1.0f / (float)FPS * frame_diff * rbw->time_scale;
 
     const float substep = timestep / rbw->substeps_per_frame;
 
-    ListBase substep_targets = rigidbody_create_substep_data(rbw);
+    ListBase kinematic_substep_targets = rigidbody_create_substep_data(rbw);
 
     const float interp_step = 1.0f / rbw->substeps_per_frame;
     float cur_interp_val = interp_step;
 
+    /* update and validate simulation */
+    rigidbody_update_simulation(depsgraph, scene, rbw, false);
+
     for (int i = 0; i < rbw->substeps_per_frame; i++) {
-      rigidbody_update_kinematic_obj_substep(&substep_targets, cur_interp_val);
+      rigidbody_update_external_forces(depsgraph, scene, rbw);
+      rigidbody_update_kinematic_obj_substep(&kinematic_substep_targets, cur_interp_val);
       RB_dworld_step_simulation(rbw->shared->physics_world, substep, 0, substep);
       cur_interp_val += interp_step;
     }
-    rigidbody_free_substep_data(&substep_targets);
+    rigidbody_free_substep_data(&kinematic_substep_targets);
 
     rigidbody_update_simulation_post_step(depsgraph, rbw);
 

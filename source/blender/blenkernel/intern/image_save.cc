@@ -13,6 +13,8 @@
 #include "BLI_string.h"
 #include "BLI_vector.hh"
 
+#include "BLT_translation.h"
+
 #include "DNA_image_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -144,13 +146,9 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
 
     opts->im_format.color_management = R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE;
 
-    if (ibuf->name[0] == '\0' || ima->source == IMA_SRC_TILED) {
-      BLI_strncpy(opts->filepath, ima->filepath, sizeof(opts->filepath));
-      BLI_path_abs(opts->filepath, ID_BLEND_PATH_FROM_GLOBAL(&ima->id));
-    }
-    else {
-      BLI_strncpy(opts->filepath, ibuf->name, sizeof(opts->filepath));
-    }
+    /* Compute filepath, but don't resolve multiview and UDIM which are handled
+     * by the image saving code itself. */
+    BKE_image_user_file_path_ex(bmain, iuser, ima, opts->filepath, false, false);
 
     /* sanitize all settings */
 
@@ -177,7 +175,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
           BLI_strncpy(opts->filepath, G.ima, sizeof(opts->filepath));
         }
         else {
-          BLI_strncpy(opts->filepath, "//untitled", sizeof(opts->filepath));
+          BLI_snprintf(opts->filepath, sizeof(opts->filepath), "//%s", DATA_("untitled"));
           BLI_path_abs(opts->filepath, BKE_main_blendfile_path(bmain));
         }
       }
@@ -204,7 +202,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
   return (ibuf != nullptr);
 }
 
-void BKE_image_save_options_update(ImageSaveOptions *opts, Image *image)
+void BKE_image_save_options_update(ImageSaveOptions *opts, const Image *image)
 {
   /* Auto update color space when changing save as render and file type. */
   if (opts->save_as_render) {
@@ -253,11 +251,26 @@ void BKE_image_save_options_free(ImageSaveOptions *opts)
   BKE_image_format_free(&opts->im_format);
 }
 
+static void image_save_update_filepath(Image *ima,
+                                       const char *filepath,
+                                       const ImageSaveOptions *opts)
+{
+  if (opts->do_newpath) {
+    BLI_strncpy(ima->filepath, filepath, sizeof(ima->filepath));
+
+    /* only image path, never ibuf */
+    if (opts->relative) {
+      const char *relbase = ID_BLEND_PATH(opts->bmain, &ima->id);
+      BLI_path_rel(ima->filepath, relbase); /* only after saving */
+    }
+  }
+}
+
 static void image_save_post(ReportList *reports,
                             Image *ima,
                             ImBuf *ibuf,
                             int ok,
-                            ImageSaveOptions *opts,
+                            const ImageSaveOptions *opts,
                             int save_copy,
                             const char *filepath,
                             bool *r_colorspace_changed)
@@ -273,13 +286,11 @@ static void image_save_post(ReportList *reports,
 
   if (opts->do_newpath) {
     BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
-    BLI_strncpy(ima->filepath, filepath, sizeof(ima->filepath));
+  }
 
-    /* only image path, never ibuf */
-    if (opts->relative) {
-      const char *relbase = ID_BLEND_PATH(opts->bmain, &ima->id);
-      BLI_path_rel(ima->filepath, relbase); /* only after saving */
-    }
+  /* The tiled image code-path must call this on its own. */
+  if (ima->source != IMA_SRC_TILED) {
+    image_save_update_filepath(ima, filepath, opts);
   }
 
   ibuf->userflags &= ~IB_BITMAPDIRTY;
@@ -307,6 +318,8 @@ static void image_save_post(ReportList *reports,
   if (ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER)) {
     ima->source = IMA_SRC_FILE;
     ima->type = IMA_TYPE_IMAGE;
+    ImageTile *base_tile = BKE_image_get_tile(ima, 0);
+    base_tile->gen_flag &= ~IMA_GEN_TILE;
   }
 
   /* Update image file color space when saving to another color space. */
@@ -346,7 +359,7 @@ static void imbuf_save_post(ImBuf *ibuf, ImBuf *colormanaged_ibuf)
 static bool image_save_single(ReportList *reports,
                               Image *ima,
                               ImageUser *iuser,
-                              ImageSaveOptions *opts,
+                              const ImageSaveOptions *opts,
                               bool *r_colorspace_changed)
 {
   void *lock;
@@ -362,7 +375,7 @@ static bool image_save_single(ReportList *reports,
   ImBuf *colormanaged_ibuf = nullptr;
   const bool save_copy = opts->save_copy;
   const bool save_as_render = opts->save_as_render;
-  ImageFormatData *imf = &opts->im_format;
+  const ImageFormatData *imf = &opts->im_format;
 
   if (ima->type == IMA_TYPE_R_RESULT) {
     /* enforce user setting for RGB or RGBA, but skip BW */
@@ -607,7 +620,7 @@ static bool image_save_single(ReportList *reports,
 }
 
 bool BKE_image_save(
-    ReportList *reports, Main *bmain, Image *ima, ImageUser *iuser, ImageSaveOptions *opts)
+    ReportList *reports, Main *bmain, Image *ima, ImageUser *iuser, const ImageSaveOptions *opts)
 {
   /* For saving a tiled image we need an iuser, so use a local one if there isn't already one. */
   ImageUser save_iuser;
@@ -640,22 +653,26 @@ bool BKE_image_save(
     ok = image_save_single(reports, ima, iuser, opts, &colorspace_changed);
   }
   else {
-    char filepath[FILE_MAX];
-    BLI_strncpy(filepath, opts->filepath, sizeof(filepath));
-
     /* Save all the tiles. */
     LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+      ImageSaveOptions tile_opts = *opts;
       BKE_image_set_filepath_from_tile_number(
-          opts->filepath, udim_pattern, tile_format, tile->tile_number);
+          tile_opts.filepath, udim_pattern, tile_format, tile->tile_number);
 
       iuser->tile = tile->tile_number;
-      ok = image_save_single(reports, ima, iuser, opts, &colorspace_changed);
+      ok = image_save_single(reports, ima, iuser, &tile_opts, &colorspace_changed);
       if (!ok) {
         break;
       }
     }
-    BLI_strncpy(ima->filepath, filepath, sizeof(ima->filepath));
-    BLI_strncpy(opts->filepath, filepath, sizeof(opts->filepath));
+
+    /* Set the image path and clear the per-tile generated flag only if all tiles were ok. */
+    if (ok) {
+      LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+        tile->gen_flag &= ~IMA_GEN_TILE;
+      }
+      image_save_update_filepath(ima, opts->filepath, opts);
+    }
     MEM_freeN(udim_pattern);
   }
 
@@ -806,7 +823,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
       const bool pass_RGBA = (STR_ELEM(rp->chan_id, "RGB", "RGBA", "R", "G", "B", "A"));
       const bool pass_half_float = half_float && pass_RGBA;
 
-      /* Colorspace conversion only happens on RGBA passes. */
+      /* Color-space conversion only happens on RGBA passes. */
       float *output_rect =
           (save_as_render && pass_RGBA) ?
               image_exr_from_scene_linear_to_output(

@@ -25,7 +25,7 @@ Version history:
 
 1.4a  February 22nd, 2013
       Removed unnecessary and counter-intuitive solar radius parameters
-      from the interface of the colourspace sky dome initialisation functions.
+      from the interface of the color-space sky dome initialization functions.
 
 1.4   February 11th, 2013
       Fixed a bug which caused the relative brightness of the solar disc

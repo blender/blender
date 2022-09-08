@@ -1030,7 +1030,7 @@ void BKE_defvert_extract_vgroup_to_vertweights(const MDeformVert *dvert,
 void BKE_defvert_extract_vgroup_to_edgeweights(const MDeformVert *dvert,
                                                const int defgroup,
                                                const int num_verts,
-                                               MEdge *edges,
+                                               const MEdge *edges,
                                                const int num_edges,
                                                const bool invert_vgroup,
                                                float *r_weights)
@@ -1043,7 +1043,7 @@ void BKE_defvert_extract_vgroup_to_edgeweights(const MDeformVert *dvert,
         dvert, defgroup, num_verts, invert_vgroup, tmp_weights);
 
     while (i--) {
-      MEdge *me = &edges[i];
+      const MEdge *me = &edges[i];
 
       r_weights[i] = (tmp_weights[me->v1] + tmp_weights[me->v2]) * 0.5f;
     }
@@ -1058,7 +1058,7 @@ void BKE_defvert_extract_vgroup_to_edgeweights(const MDeformVert *dvert,
 void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
                                                const int defgroup,
                                                const int num_verts,
-                                               MLoop *loops,
+                                               const MLoop *loops,
                                                const int num_loops,
                                                const bool invert_vgroup,
                                                float *r_weights)
@@ -1071,7 +1071,7 @@ void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
         dvert, defgroup, num_verts, invert_vgroup, tmp_weights);
 
     while (i--) {
-      MLoop *ml = &loops[i];
+      const MLoop *ml = &loops[i];
 
       r_weights[i] = tmp_weights[ml->v];
     }
@@ -1086,9 +1086,9 @@ void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
 void BKE_defvert_extract_vgroup_to_polyweights(const MDeformVert *dvert,
                                                const int defgroup,
                                                const int num_verts,
-                                               MLoop *loops,
+                                               const MLoop *loops,
                                                const int UNUSED(num_loops),
-                                               MPoly *polys,
+                                               const MPoly *polys,
                                                const int num_polys,
                                                const bool invert_vgroup,
                                                float *r_weights)
@@ -1101,8 +1101,8 @@ void BKE_defvert_extract_vgroup_to_polyweights(const MDeformVert *dvert,
         dvert, defgroup, num_verts, invert_vgroup, tmp_weights);
 
     while (i--) {
-      MPoly *mp = &polys[i];
-      MLoop *ml = &loops[mp->loopstart];
+      const MPoly *mp = &polys[i];
+      const MLoop *ml = &loops[mp->loopstart];
       int j = mp->totloop;
       float w = 0.0f;
 
@@ -1243,7 +1243,8 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
         /* At this stage, we **need** a valid CD_MDEFORMVERT layer on dest!
          * Again, use_create is not relevant in this case */
         if (!data_dst) {
-          data_dst = CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_CALLOC, NULL, num_elem_dst);
+          data_dst = CustomData_add_layer(
+              cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, NULL, num_elem_dst);
         }
 
         while (idx_src--) {
@@ -1303,7 +1304,8 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
           /* At this stage, we **need** a valid CD_MDEFORMVERT layer on dest!
            * use_create is not relevant in this case */
           if (!data_dst) {
-            data_dst = CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_CALLOC, NULL, num_elem_dst);
+            data_dst = CustomData_add_layer(
+                cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, NULL, num_elem_dst);
           }
 
           data_transfer_layersmapping_add_item(r_map,
@@ -1442,7 +1444,8 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
       /* At this stage, we **need** a valid CD_MDEFORMVERT layer on dest!
        * use_create is not relevant in this case */
       if (!data_dst) {
-        data_dst = CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_CALLOC, NULL, num_elem_dst);
+        data_dst = CustomData_add_layer(
+            cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, NULL, num_elem_dst);
       }
 
       data_transfer_layersmapping_add_item(r_map,

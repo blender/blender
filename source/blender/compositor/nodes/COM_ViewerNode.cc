@@ -15,7 +15,7 @@ ViewerNode::ViewerNode(bNode *editor_node) : Node(editor_node)
 void ViewerNode::convert_to_operations(NodeConverter &converter,
                                        const CompositorContext &context) const
 {
-  bNode *editor_node = this->get_bnode();
+  const bNode *editor_node = this->get_bnode();
   bool do_output = (editor_node->flag & NODE_DO_OUTPUT_RECALC || context.is_rendering()) &&
                    (editor_node->flag & NODE_DO_OUTPUT);
   bool ignore_alpha = (editor_node->custom2 & CMP_NODE_OUTPUT_IGNORE_ALPHA) != 0;

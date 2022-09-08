@@ -700,9 +700,10 @@ bool get_effector_data(EffectorCache *eff,
   else if (eff->pd && eff->pd->shape == PFIELD_SHAPE_POINTS) {
     /* TODO: hair and points object support */
     const Mesh *me_eval = BKE_object_get_evaluated_mesh(eff->ob);
+    const MVert *verts = BKE_mesh_verts(me_eval);
     const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me_eval);
     if (me_eval != NULL) {
-      copy_v3_v3(efd->loc, me_eval->mvert[*efd->index].co);
+      copy_v3_v3(efd->loc, verts[*efd->index].co);
       copy_v3_v3(efd->nor, vert_normals[*efd->index]);
 
       mul_m4_v3(eff->ob->obmat, efd->loc);
@@ -867,8 +868,6 @@ static void do_texture_effector(EffectorCache *eff,
   if (!eff->pd->tex) {
     return;
   }
-
-  result[0].nor = result[1].nor = result[2].nor = result[3].nor = NULL;
 
   strength = eff->pd->f_strength * efd->falloff;
 

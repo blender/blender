@@ -14,10 +14,10 @@ void main()
   mat4 model_mat = extract_matrix_packed_data(inst_obmat, state_color, bone_color);
 
   vec4 world_pos = model_mat * vec4(pos, 1.0);
-  vec4 view_pos = ViewMatrix * world_pos;
+  vec4 view_pos = drw_view.viewmat * world_pos;
 
   geom_in.vPos = view_pos.xyz;
-  geom_in.pPos = ProjectionMatrix * view_pos;
+  geom_in.pPos = drw_view.winmat * view_pos;
 
   geom_in.inverted = int(dot(cross(model_mat[0].xyz, model_mat[1].xyz), model_mat[2].xyz) < 0.0);
 

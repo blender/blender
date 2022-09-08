@@ -24,6 +24,7 @@
 #include "BKE_action.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
+#include "BKE_fcurve.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -448,7 +449,7 @@ static int poselib_add_menu_invoke(bContext *C, wmOperator *op, const wmEvent *U
                ICON_NONE,
                "POSELIB_OT_pose_add",
                "frame",
-               CFRA);
+               scene->r.cfra);
 
     /* Replace existing - sub-menu. */
     uiItemMenuF(
@@ -615,7 +616,8 @@ static int poselib_remove_exec(bContext *C, wmOperator *op)
       for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
         /* check if remove */
         if (IS_EQF(bezt->vec[1][0], (float)marker->frame)) {
-          delete_fcurve_key(fcu, i, 1);
+          BKE_fcurve_delete_key(fcu, i);
+          BKE_fcurve_handles_recalc(fcu);
           break;
         }
       }
@@ -1113,7 +1115,7 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, tPoseLib_PreviewData 
   /* perform actual auto-keying now */
   if (autokey) {
     /* insert keyframes for all relevant bones in one go */
-    ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+    ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)scene->r.cfra);
     BLI_freelistN(&dsources);
   }
 
@@ -1578,7 +1580,7 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, con
     case EVT_PADMINUS:
       if (pld->searchstr[0]) {
         /* searching... */
-        poselib_preview_handle_search(pld, event->type, event->ascii);
+        poselib_preview_handle_search(pld, event->type, WM_event_utf8_to_ascii(event));
       }
       else {
         /* view manipulation (see above) */
@@ -1589,7 +1591,7 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, con
 
     /* otherwise, assume that searching might be able to handle it */
     default:
-      poselib_preview_handle_search(pld, event->type, event->ascii);
+      poselib_preview_handle_search(pld, event->type, WM_event_utf8_to_ascii(event));
       break;
   }
 

@@ -59,7 +59,7 @@ static int kill_selection(Object *obedit, int ins);
 /** \name Internal Utilities
  * \{ */
 
-static char32_t findaccent(char32_t char1, uint code)
+static char32_t findaccent(char32_t char1, const char code)
 {
   char32_t new = 0;
 
@@ -1638,12 +1638,11 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   Object *obedit = CTX_data_edit_object(C);
   Curve *cu = obedit->data;
   EditFont *ef = cu->editfont;
-  static int accentcode = 0;
-  uintptr_t ascii = event->ascii;
+  static bool accentcode = false;
   const bool alt = event->modifier & KM_ALT;
   const bool shift = event->modifier & KM_SHIFT;
   const bool ctrl = event->modifier & KM_CTRL;
-  int event_type = event->type, event_val = event->val;
+  char32_t insert_char_override = 0;
   char32_t inserted_text[2] = {0};
 
   if (RNA_struct_property_is_set(op->ptr, "text")) {
@@ -1652,59 +1651,53 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   if (RNA_struct_property_is_set(op->ptr, "accent")) {
     if (ef->len != 0 && ef->pos > 0) {
-      accentcode = 1;
+      accentcode = true;
     }
     return OPERATOR_FINISHED;
   }
 
-  /* tab should exit editmode, but we allow it to be typed using modifier keys */
-  if (event_type == EVT_TABKEY) {
-    if ((alt || ctrl || shift) == 0) {
-      return OPERATOR_PASS_THROUGH;
-    }
-
-    ascii = 9;
-  }
-
-  if (event_type == EVT_BACKSPACEKEY) {
+  if (event->type == EVT_BACKSPACEKEY) {
     if (alt && ef->len != 0 && ef->pos > 0) {
-      accentcode = 1;
+      accentcode = true;
     }
     return OPERATOR_PASS_THROUGH;
   }
 
-  if (event_val && (ascii || event->utf8_buf[0])) {
-    /* handle case like TAB (== 9) */
-    if ((ascii > 31 && ascii < 254 && ascii != 127) || (ELEM(ascii, 13, 10)) || (ascii == 8) ||
-        (event->utf8_buf[0])) {
+  /* Tab typically exit edit-mode, but we allow it to be typed using modifier keys. */
+  if (event->type == EVT_TABKEY) {
+    if ((alt || ctrl || shift) == 0) {
+      return OPERATOR_PASS_THROUGH;
+    }
+    insert_char_override = '\t';
+  }
 
+  if (insert_char_override || event->utf8_buf[0]) {
+    if (insert_char_override) {
+      /* Handle case like TAB ('\t'). */
+      inserted_text[0] = insert_char_override;
+      insert_into_textbuf(obedit, insert_char_override);
+      text_update_edited(C, obedit, FO_EDIT);
+    }
+    else {
+      BLI_assert(event->utf8_buf[0]);
       if (accentcode) {
         if (ef->pos > 0) {
-          inserted_text[0] = findaccent(ef->textbuf[ef->pos - 1], ascii);
+          inserted_text[0] = findaccent(ef->textbuf[ef->pos - 1],
+                                        BLI_str_utf8_as_unicode(event->utf8_buf));
           ef->textbuf[ef->pos - 1] = inserted_text[0];
         }
-        accentcode = 0;
+        accentcode = false;
       }
       else if (event->utf8_buf[0]) {
         inserted_text[0] = BLI_str_utf8_as_unicode(event->utf8_buf);
-        ascii = inserted_text[0];
-        insert_into_textbuf(obedit, ascii);
-        accentcode = 0;
-      }
-      else if (ascii) {
-        insert_into_textbuf(obedit, ascii);
-        accentcode = 0;
+        insert_into_textbuf(obedit, inserted_text[0]);
+        accentcode = false;
       }
       else {
         BLI_assert(0);
       }
 
       kill_selection(obedit, 1);
-      text_update_edited(C, obedit, FO_EDIT);
-    }
-    else {
-      inserted_text[0] = ascii;
-      insert_into_textbuf(obedit, ascii);
       text_update_edited(C, obedit, FO_EDIT);
     }
   }
@@ -1718,11 +1711,6 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
     BLI_str_utf32_as_utf8(inserted_utf8, inserted_text, sizeof(inserted_utf8));
     RNA_string_set(op->ptr, "text", inserted_utf8);
-  }
-
-  /* reset property? */
-  if (event_val == 0) {
-    accentcode = 0;
   }
 
   return OPERATOR_FINISHED;

@@ -26,6 +26,7 @@
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_idprop.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_paint.h"
@@ -367,7 +368,7 @@ void WM_toolsystem_ref_sync_from_context(Main *bmain, WorkSpace *workspace, bToo
     Scene *scene = WM_window_get_active_scene(win);
     ToolSettings *ts = scene->toolsettings;
     const ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-    const Object *ob = OBACT(view_layer);
+    const Object *ob = BKE_view_layer_active_object_get(view_layer);
     if (ob == NULL) {
       /* pass */
     }
@@ -443,7 +444,7 @@ int WM_toolsystem_mode_from_spacetype(ViewLayer *view_layer, ScrArea *area, int 
   switch (space_type) {
     case SPACE_VIEW3D: {
       /* 'area' may be NULL in this case. */
-      Object *obact = OBACT(view_layer);
+      Object *obact = BKE_view_layer_active_object_get(view_layer);
       if (obact != NULL) {
         Object *obedit = OBEDIT_FROM_OBACT(obact);
         mode = CTX_data_mode_enum_ex(obedit, obact, obact->mode);
@@ -705,7 +706,7 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
         case CTX_MODE_VERTEX_GPENCIL:
           return "builtin_brush.Draw";
         case CTX_MODE_SCULPT_CURVES:
-          return "builtin_brush.Comb";
+          return "builtin_brush.density";
           /* end temporary hack. */
 
         case CTX_MODE_PARTICLE:

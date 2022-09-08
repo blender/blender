@@ -530,7 +530,7 @@ void Camera::device_update_volume(Device * /*device*/, DeviceScene *dscene, Scen
                      if (object->get_geometry()->has_volume &&
                          viewplane_boundbox.intersects(object->bounds)) {
                        /* TODO(sergey): Consider adding more grained check. */
-                       VLOG(1) << "Detected camera inside volume.";
+                       VLOG_INFO << "Detected camera inside volume.";
                        kcam->is_inside_volume = 1;
                        parallel_for_cancel();
                        break;
@@ -539,7 +539,7 @@ void Camera::device_update_volume(Device * /*device*/, DeviceScene *dscene, Scen
                  });
 
     if (!kcam->is_inside_volume) {
-      VLOG(1) << "Camera is outside of the volume.";
+      VLOG_INFO << "Camera is outside of the volume.";
     }
   }
 
@@ -761,9 +761,7 @@ float Camera::world_to_raster_size(float3 P)
     }
 #else
     camera_sample_panorama(&kernel_camera,
-#  ifdef __CAMERA_MOTION__
                            kernel_camera_motion.data(),
-#  endif
                            0.5f * full_width,
                            0.5f * full_height,
                            0.0f,
@@ -772,10 +770,7 @@ float Camera::world_to_raster_size(float3 P)
 #endif
 
     /* TODO: would it help to use more accurate differentials here? */
-    differential3 dP;
-    differential_transfer_compact(&dP, ray.dP, ray.D, ray.dD, ray.D, dist);
-
-    return max(len(dP.dx), len(dP.dy));
+    return differential_transfer_compact(ray.dP, ray.D, ray.dD, dist);
   }
 
   return res;

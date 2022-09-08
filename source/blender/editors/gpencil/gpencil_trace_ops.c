@@ -295,7 +295,7 @@ static int gpencil_trace_image_exec(bContext *C, wmOperator *op)
   job->base_active = CTX_data_active_base(C);
   job->ob_active = job->base_active->object;
   job->image = (Image *)job->ob_active->data;
-  job->frame_target = CFRA;
+  job->frame_target = scene->r.cfra;
   job->use_current_frame = RNA_boolean_get(op->ptr, "use_current_frame");
 
   /* Create a new grease pencil object or reuse selected. */

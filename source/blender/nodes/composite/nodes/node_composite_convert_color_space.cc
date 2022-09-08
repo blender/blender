@@ -14,6 +14,8 @@
 
 #include "IMB_colormanagement.h"
 
+#include "COM_node_operation.hh"
+
 namespace blender::nodes::node_composite_convert_color_space_cc {
 
 static void CMP_NODE_CONVERT_COLOR_SPACE_declare(NodeDeclarationBuilder &b)
@@ -47,6 +49,23 @@ static void node_composit_buts_convert_colorspace(uiLayout *layout,
   uiItemR(layout, ptr, "to_color_space", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
+using namespace blender::realtime_compositor;
+
+class ConvertColorSpaceOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    get_input("Image").pass_through(get_result("Image"));
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, DNode node)
+{
+  return new ConvertColorSpaceOperation(context, node);
+}
+
 }  // namespace blender::nodes::node_composite_convert_color_space_cc
 
 void register_node_type_cmp_convert_color_space(void)
@@ -62,6 +81,7 @@ void register_node_type_cmp_convert_color_space(void)
   node_type_init(&ntype, file_ns::node_composit_init_convert_colorspace);
   node_type_storage(
       &ntype, "NodeConvertColorSpace", node_free_standard_storage, node_copy_standard_storage);
+  ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);
 }

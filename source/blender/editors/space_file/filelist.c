@@ -485,6 +485,7 @@ static int groupname_to_code(const char *group);
 static uint64_t groupname_to_filter_id(const char *group);
 
 static void filelist_cache_clear(FileListEntryCache *cache, size_t new_size);
+static bool filelist_intern_entry_is_main_file(const FileListInternEntry *intern_entry);
 
 /* ********** Sort helpers ********** */
 
@@ -1025,13 +1026,6 @@ static bool is_filtered_lib(FileListInternEntry *file, const char *root, FileLis
   return is_filtered_lib_type(file, root, filter) && is_filtered_file_relpath(file, filter);
 }
 
-static bool is_filtered_asset_library(FileListInternEntry *file,
-                                      const char *root,
-                                      FileListFilter *filter)
-{
-  return is_filtered_lib_type(file, root, filter) && is_filtered_asset(file, filter);
-}
-
 static bool is_filtered_main(FileListInternEntry *file,
                              const char *UNUSED(dir),
                              FileListFilter *filter)
@@ -1046,6 +1040,17 @@ static bool is_filtered_main_assets(FileListInternEntry *file,
   /* "Filtered" means *not* being filtered out... So return true if the file should be visible. */
   return is_filtered_id_file_type(file, file->relpath, file->name, filter) &&
          is_filtered_asset(file, filter);
+}
+
+static bool is_filtered_asset_library(FileListInternEntry *file,
+                                      const char *root,
+                                      FileListFilter *filter)
+{
+  if (filelist_intern_entry_is_main_file(file)) {
+    return is_filtered_main_assets(file, root, filter);
+  }
+
+  return is_filtered_lib_type(file, root, filter) && is_filtered_asset(file, filter);
 }
 
 void filelist_tag_needs_filtering(FileList *filelist)

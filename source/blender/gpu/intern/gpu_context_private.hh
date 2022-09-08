@@ -28,11 +28,11 @@ namespace blender::gpu {
 class Context {
  public:
   /** State management */
-  Shader *shader = NULL;
-  FrameBuffer *active_fb = NULL;
-  GPUMatrixState *matrix_state = NULL;
-  StateManager *state_manager = NULL;
-  Immediate *imm = NULL;
+  Shader *shader = nullptr;
+  FrameBuffer *active_fb = nullptr;
+  GPUMatrixState *matrix_state = nullptr;
+  StateManager *state_manager = nullptr;
+  Immediate *imm = nullptr;
 
   /**
    * All 4 window frame-buffers.
@@ -41,18 +41,26 @@ class Context {
    * Front frame-buffers contains (in principle, but not always) the last frame color.
    * Default frame-buffer is back_left.
    */
-  FrameBuffer *back_left = NULL;
-  FrameBuffer *front_left = NULL;
-  FrameBuffer *back_right = NULL;
-  FrameBuffer *front_right = NULL;
+  FrameBuffer *back_left = nullptr;
+  FrameBuffer *front_left = nullptr;
+  FrameBuffer *back_right = nullptr;
+  FrameBuffer *front_right = nullptr;
 
   DebugStack debug_stack;
+
+  /* GPUContext counter used to assign a unique ID to each GPUContext.
+   * NOTE(Metal): This is required by the Metal Backend, as a bug exists in the global OS shader
+   * cache wherein compilation of identical source from two distinct threads can result in an
+   * invalid cache collision, result in a broken shader object. Appending the unique context ID
+   * onto compiled sources ensures the source hashes are different. */
+  static int context_counter;
+  int context_id = 0;
 
  protected:
   /** Thread on which this context is active. */
   pthread_t thread_;
   bool is_active_;
-  /** Avoid including GHOST headers. Can be NULL for off-screen contexts. */
+  /** Avoid including GHOST headers. Can be nullptr for off-screen contexts. */
   void *ghost_window_;
 
  public:
@@ -63,6 +71,8 @@ class Context {
 
   virtual void activate() = 0;
   virtual void deactivate() = 0;
+  virtual void begin_frame() = 0;
+  virtual void end_frame() = 0;
 
   /* Will push all pending commands to the GPU. */
   virtual void flush() = 0;

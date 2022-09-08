@@ -87,6 +87,8 @@ typedef enum eGPDbrush_Flag {
   GP_BRUSH_OCCLUDE_ERASER = (1 << 15),
   /* Post process trim stroke */
   GP_BRUSH_TRIM_STROKE = (1 << 16),
+  /* Post process convert to outline stroke */
+  GP_BRUSH_OUTLINE_STROKE = (1 << 17),
 } eGPDbrush_Flag;
 
 typedef enum eGPDbrush_Flag2 {
@@ -469,6 +471,11 @@ typedef enum eBrushCurvesSculptTool {
   CURVES_SCULPT_TOOL_ADD = 3,
   CURVES_SCULPT_TOOL_GROW_SHRINK = 4,
   CURVES_SCULPT_TOOL_SELECTION_PAINT = 5,
+  CURVES_SCULPT_TOOL_PINCH = 6,
+  CURVES_SCULPT_TOOL_SMOOTH = 7,
+  CURVES_SCULPT_TOOL_PUFF = 8,
+  CURVES_SCULPT_TOOL_DENSITY = 9,
+  CURVES_SCULPT_TOOL_SLIDE = 10,
 } eBrushCurvesSculptTool;
 
 /** When #BRUSH_ACCUMULATE is used */
@@ -621,6 +628,12 @@ typedef enum eBrushCurvesSculptFlag {
   BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_SHAPE = (1 << 3),
   BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_POINT_COUNT = (1 << 4),
 } eBrushCurvesSculptFlag;
+
+typedef enum eBrushCurvesSculptDensityMode {
+  BRUSH_CURVES_SCULPT_DENSITY_MODE_AUTO = 0,
+  BRUSH_CURVES_SCULPT_DENSITY_MODE_ADD = 1,
+  BRUSH_CURVES_SCULPT_DENSITY_MODE_REMOVE = 2,
+} eBrushCurvesSculptDensityMode;
 
 #define MAX_BRUSH_PIXEL_RADIUS 500
 #define GP_MAX_BRUSH_PIXEL_RADIUS 1000

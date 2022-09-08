@@ -20,7 +20,7 @@ static float smooth_mask(float x, float y)
 
 void GlareGhostOperation::generate_glare(float *data,
                                          MemoryBuffer *input_tile,
-                                         NodeGlare *settings)
+                                         const NodeGlare *settings)
 {
   const int qt = 1 << settings->quality;
   const float s1 = 4.0f / (float)qt, s2 = 2.0f * s1;

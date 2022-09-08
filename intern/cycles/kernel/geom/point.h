@@ -26,7 +26,7 @@ ccl_device float point_attribute_float(KernelGlobals kg,
 #  endif
 
   if (desc.element == ATTR_ELEMENT_VERTEX) {
-    return kernel_tex_fetch(__attributes_float, desc.offset + sd->prim);
+    return kernel_data_fetch(attributes_float, desc.offset + sd->prim);
   }
   else {
     return 0.0f;
@@ -47,7 +47,7 @@ ccl_device float2 point_attribute_float2(KernelGlobals kg,
 #  endif
 
   if (desc.element == ATTR_ELEMENT_VERTEX) {
-    return kernel_tex_fetch(__attributes_float2, desc.offset + sd->prim);
+    return kernel_data_fetch(attributes_float2, desc.offset + sd->prim);
   }
   else {
     return make_float2(0.0f, 0.0f);
@@ -68,7 +68,7 @@ ccl_device float3 point_attribute_float3(KernelGlobals kg,
 #  endif
 
   if (desc.element == ATTR_ELEMENT_VERTEX) {
-    return kernel_tex_fetch(__attributes_float3, desc.offset + sd->prim);
+    return kernel_data_fetch(attributes_float3, desc.offset + sd->prim);
   }
   else {
     return make_float3(0.0f, 0.0f, 0.0f);
@@ -89,7 +89,7 @@ ccl_device float4 point_attribute_float4(KernelGlobals kg,
 #  endif
 
   if (desc.element == ATTR_ELEMENT_VERTEX) {
-    return kernel_tex_fetch(__attributes_float4, desc.offset + sd->prim);
+    return kernel_data_fetch(attributes_float4, desc.offset + sd->prim);
   }
   else {
     return zero_float4();
@@ -104,7 +104,7 @@ ccl_device float3 point_position(KernelGlobals kg, ccl_private const ShaderData 
     /* World space center. */
     float3 P = (sd->type & PRIMITIVE_MOTION) ?
                    float4_to_float3(motion_point(kg, sd->object, sd->prim, sd->time)) :
-                   float4_to_float3(kernel_tex_fetch(__points, sd->prim));
+                   float4_to_float3(kernel_data_fetch(points, sd->prim));
 
     if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
       object_position_transform(kg, sd, &P);
@@ -122,7 +122,7 @@ ccl_device float point_radius(KernelGlobals kg, ccl_private const ShaderData *sd
 {
   if (sd->type & PRIMITIVE_POINT) {
     /* World space radius. */
-    const float r = kernel_tex_fetch(__points, sd->prim).w;
+    const float r = kernel_data_fetch(points, sd->prim).w;
 
     if (sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED) {
       return r;
@@ -155,7 +155,7 @@ ccl_device float point_random(KernelGlobals kg, ccl_private const ShaderData *sd
 
 ccl_device float3 point_motion_center_location(KernelGlobals kg, ccl_private const ShaderData *sd)
 {
-  return float4_to_float3(kernel_tex_fetch(__points, sd->prim));
+  return float4_to_float3(kernel_data_fetch(points, sd->prim));
 }
 
 #endif /* __POINTCLOUD__ */

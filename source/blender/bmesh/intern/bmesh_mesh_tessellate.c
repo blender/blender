@@ -6,7 +6,7 @@
  * This file contains code for polygon tessellation
  * (creating triangles from polygons).
  *
- * \see mesh_tessellate.c for the #Mesh equivalent of this file.
+ * \see mesh_tessellate.cc for the #Mesh equivalent of this file.
  */
 
 #include "DNA_meshdata_types.h"

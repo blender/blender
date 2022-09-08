@@ -232,6 +232,7 @@ static void link_drag_search_exec_fn(bContext *C, void *arg1, void *arg2)
   PointerRNA ptr;
   WM_operator_properties_create_ptr(&ptr, ot);
   RNA_boolean_set(&ptr, "view2d_edge_pan", true);
+  RNA_boolean_set(&ptr, "remove_on_cancel", true);
   WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, nullptr);
   WM_operator_properties_free(&ptr);
 }
@@ -292,7 +293,7 @@ static uiBlock *create_search_popup_block(bContext *C, ARegion *region, void *ar
            0,
            nullptr);
 
-  const int offset[2] = {0, -UI_UNIT_Y};
+  const int2 offset = {0, -UI_UNIT_Y};
   UI_block_bounds_set_popup(block, 0.3f * U.widget_unit, offset);
   return block;
 }

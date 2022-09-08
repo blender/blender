@@ -19,7 +19,7 @@ struct SkinRootData {
 };
 
 static void extract_skin_roots_init(const MeshRenderData *mr,
-                                    struct MeshBatchCache *UNUSED(cache),
+                                    MeshBatchCache *UNUSED(cache),
                                     void *buf,
                                     void *UNUSED(tls_data))
 {

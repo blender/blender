@@ -39,7 +39,7 @@ class BokehImageOperation : public MultiThreadedOperation {
   /**
    * \brief Settings of the bokeh image
    */
-  NodeBokehImage *data_;
+  const NodeBokehImage *data_;
 
   /**
    * \brief precalculate center of the image
@@ -119,7 +119,7 @@ class BokehImageOperation : public MultiThreadedOperation {
    * \brief set the node data
    * \param data:
    */
-  void set_data(NodeBokehImage *data)
+  void set_data(const NodeBokehImage *data)
   {
     data_ = data;
   }

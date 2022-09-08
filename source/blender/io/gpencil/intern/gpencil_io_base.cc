@@ -91,8 +91,7 @@ void GpencilIO::prepare_camera_params(Scene *scene, const GpencilIOParams *ipara
 
   /* Camera rectangle. */
   if ((rv3d_->persp == RV3D_CAMOB) || (force_camera_view)) {
-    render_x_ = (scene_->r.xsch * scene_->r.size) / 100;
-    render_y_ = (scene_->r.ysch * scene_->r.size) / 100;
+    BKE_render_resolution(&scene->r, false, &render_x_, &render_y_);
 
     ED_view3d_calc_camera_border(CTX_data_scene(params_.C),
                                  depsgraph_,
@@ -258,7 +257,7 @@ float GpencilIO::stroke_point_radius_get(bGPDlayer *gpl, bGPDstroke *gps)
 
   /* Radius. */
   bGPDstroke *gps_perimeter = BKE_gpencil_stroke_perimeter_from_view(
-      rv3d_, gpd_, gpl, gps, 3, diff_mat_.values);
+      rv3d_->viewmat, gpd_, gpl, gps, 3, diff_mat_.values, 0.0f);
 
   pt = &gps_perimeter->points[0];
   const float2 screen_ex = gpencil_3D_point_to_2D(&pt->x);

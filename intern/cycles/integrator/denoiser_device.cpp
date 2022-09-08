@@ -48,7 +48,7 @@ bool DeviceDenoiser::denoise_buffer(const BufferParams &buffer_params,
     task.render_buffers = render_buffers;
   }
   else {
-    VLOG(3) << "Creating temporary buffer on denoiser device.";
+    VLOG_WORK << "Creating temporary buffer on denoiser device.";
 
     DeviceQueue *queue = denoiser_device->get_denoise_queue();
 

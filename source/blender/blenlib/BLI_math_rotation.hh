@@ -15,4 +15,13 @@ namespace blender::math {
  */
 float3 rotate_direction_around_axis(const float3 &direction, const float3 &axis, float angle);
 
+/**
+ * Rotate any arbitrary \a vector around the \a center position, with a unit-length \a axis
+ * and the specified \a angle.
+ */
+float3 rotate_around_axis(const float3 &vector,
+                          const float3 &center,
+                          const float3 &axis,
+                          float angle);
+
 }  // namespace blender::math

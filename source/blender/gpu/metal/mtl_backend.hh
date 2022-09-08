@@ -16,7 +16,6 @@ namespace blender::gpu {
 class Batch;
 class DrawList;
 class FrameBuffer;
-class IndexBuf;
 class QueryPool;
 class Shader;
 class UniformBuf;
@@ -35,19 +34,24 @@ class MTLBackend : public GPUBackend {
     return MTLBackend::capabilities;
   }
 
-  inline ~MTLBackend()
+  ~MTLBackend()
   {
     MTLBackend::platform_exit();
   }
 
+  void delete_resources() override
+  {
+    /* Delete any resources with context active. */
+  }
+
   static bool metal_is_supported();
-  inline static MTLBackend *get()
+  static MTLBackend *get()
   {
     return static_cast<MTLBackend *>(GPUBackend::get());
   }
 
   void samplers_update() override;
-  inline void compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len) override
+  void compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len) override
   {
     /* Placeholder */
   }

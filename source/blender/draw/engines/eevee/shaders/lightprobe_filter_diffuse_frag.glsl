@@ -100,7 +100,7 @@ void main()
           coef = 0.315392 * (3.0 * cubevec.y * cubevec.y - 1.0) * 1.0 / 4.0;
         }
         else if (comp == 7) {
-          coef = 1.092548 * cubevec.x * cubevec.y * 1.0 / 4.0;
+          coef = -1.092548 * cubevec.x * cubevec.y * 1.0 / 4.0;
         }
         else { /* (comp == 8) */
           coef = 0.546274 * (cubevec.x * cubevec.x - cubevec.z * cubevec.z) * 1.0 / 4.0;

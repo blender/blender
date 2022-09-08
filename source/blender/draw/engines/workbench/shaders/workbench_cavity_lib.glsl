@@ -31,9 +31,9 @@ void cavity_compute(vec2 screenco,
   /* find the offset in screen space by multiplying a point
    * in camera space at the depth of the point by the projection matrix. */
   vec2 offset;
-  float homcoord = ProjectionMatrix[2][3] * position.z + ProjectionMatrix[3][3];
-  offset.x = ProjectionMatrix[0][0] * world_data.cavity_distance / homcoord;
-  offset.y = ProjectionMatrix[1][1] * world_data.cavity_distance / homcoord;
+  float homcoord = drw_view.winmat[2][3] * position.z + drw_view.winmat[3][3];
+  offset.x = drw_view.winmat[0][0] * world_data.cavity_distance / homcoord;
+  offset.y = drw_view.winmat[1][1] * world_data.cavity_distance / homcoord;
   /* convert from -1.0...1.0 range to 0.0..1.0 for easy use with texture coordinates */
   offset *= 0.5;
 

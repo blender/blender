@@ -19,7 +19,7 @@ motion_point_for_step(KernelGlobals kg, int offset, int numkeys, int numsteps, i
 {
   if (step == numsteps) {
     /* center step: regular key location */
-    return kernel_tex_fetch(__points, prim);
+    return kernel_data_fetch(points, prim);
   }
   else {
     /* center step is not stored in this array */
@@ -28,7 +28,7 @@ motion_point_for_step(KernelGlobals kg, int offset, int numkeys, int numsteps, i
 
     offset += step * numkeys;
 
-    return kernel_tex_fetch(__attributes_float4, offset + prim);
+    return kernel_data_fetch(attributes_float4, offset + prim);
   }
 }
 

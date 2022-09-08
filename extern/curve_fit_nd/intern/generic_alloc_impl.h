@@ -37,7 +37,7 @@
  * - #TPOOL_STRUCT: Name for pool struct name.
  * - #TPOOL_CHUNK_SIZE: Chunk size (optional), use 64kb when not defined.
  *
- * \note #TPOOL_ALLOC_TYPE must be at least ``sizeof(void *)``.
+ * \note #TPOOL_ALLOC_TYPE must be at least `sizeof(void *)`.
  *
  * Defines the API, uses #TPOOL_IMPL_PREFIX to prefix each function.
  *

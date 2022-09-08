@@ -202,7 +202,7 @@ static void draw_parallel_lines(const ParallelLinesSet *lines,
     immUniform1f("lineWidth", U.pixelsize - 1.0f);
   }
   else {
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   }
   immUniformColor3ubv(color);
   immBegin(GPU_PRIM_LINES, steps * 2);

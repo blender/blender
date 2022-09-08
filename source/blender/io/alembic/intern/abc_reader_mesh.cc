@@ -20,11 +20,13 @@
 #include "DNA_object_types.h"
 
 #include "BLI_compiler_compat.h"
+#include "BLI_edgehash.h"
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
@@ -77,10 +79,8 @@ static void assign_materials(Main *bmain,
                              const std::map<std::string, int> &mat_index_map)
 {
   std::map<std::string, int>::const_iterator it;
-  for (it = mat_index_map.begin(); it != mat_index_map.end(); ++it) {
-    if (!BKE_object_material_slot_add(bmain, ob)) {
-      return;
-    }
+  if (mat_index_map.size() > MAXMAT) {
+    return;
   }
 
   std::map<std::string, Material *> matname_to_material = build_material_map(bmain);
@@ -94,13 +94,17 @@ static void assign_materials(Main *bmain,
     mat_iter = matname_to_material.find(mat_name);
     if (mat_iter == matname_to_material.end()) {
       assigned_mat = BKE_material_add(bmain, mat_name.c_str());
+      id_us_min(&assigned_mat->id);
       matname_to_material[mat_name] = assigned_mat;
     }
     else {
       assigned_mat = mat_iter->second;
     }
 
-    BKE_object_material_assign(bmain, ob, assigned_mat, mat_index, BKE_MAT_ASSIGN_OBDATA);
+    BKE_object_material_assign_single_obdata(bmain, ob, assigned_mat, mat_index);
+  }
+  if (ob->totcol > 0) {
+    ob->actcol = 1;
   }
 }
 
@@ -153,8 +157,9 @@ static void read_mverts(CDStreamConfig &config, const AbcMeshData &mesh_data)
 
 void read_mverts(Mesh &mesh, const P3fArraySamplePtr positions, const N3fArraySamplePtr normals)
 {
+  MutableSpan<MVert> verts = mesh.verts_for_write();
   for (int i = 0; i < positions->size(); i++) {
-    MVert &mvert = mesh.mvert[i];
+    MVert &mvert = verts[i];
     Imath::V3f pos_in = (*positions)[i];
 
     copy_zup_from_yup(mvert.co, pos_in.getValue());
@@ -270,7 +275,7 @@ static void process_loop_normals(CDStreamConfig &config, const N3fArraySamplePtr
   float(*lnors)[3] = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(loop_count, sizeof(float[3]), "ABC::FaceNormals"));
 
-  MPoly *mpoly = mesh->mpoly;
+  MPoly *mpoly = mesh->polys_for_write().data();
   const N3fArraySample &loop_normals = *loop_normals_ptr;
   int abc_index = 0;
   for (int i = 0, e = mesh->totpoly; i < e; i++, mpoly++) {
@@ -305,7 +310,7 @@ static void process_vertex_normals(CDStreamConfig &config,
   }
 
   config.mesh->flag |= ME_AUTOSMOOTH;
-  BKE_mesh_set_custom_normals_from_vertices(config.mesh, vnors);
+  BKE_mesh_set_custom_normals_from_verts(config.mesh, vnors);
   MEM_freeN(vnors);
 }
 
@@ -392,7 +397,7 @@ static void *add_customdata_cb(Mesh *mesh, const char *name, int data_type)
   /* Create a new layer. */
   int numloops = mesh->totloop;
   cd_ptr = CustomData_add_layer_named(
-      &mesh->ldata, cd_data_type, CD_DEFAULT, nullptr, numloops, name);
+      &mesh->ldata, cd_data_type, CD_SET_DEFAULT, nullptr, numloops, name);
   return cd_ptr;
 }
 
@@ -515,13 +520,10 @@ static void read_mesh_sample(const std::string &iobject_full_name,
 CDStreamConfig get_config(Mesh *mesh, const bool use_vertex_interpolation)
 {
   CDStreamConfig config;
-
-  BLI_assert(mesh->mvert || mesh->totvert == 0);
-
   config.mesh = mesh;
-  config.mvert = mesh->mvert;
-  config.mloop = mesh->mloop;
-  config.mpoly = mesh->mpoly;
+  config.mvert = mesh->verts_for_write().data();
+  config.mloop = mesh->loops_for_write().data();
+  config.mpoly = mesh->polys_for_write().data();
   config.totvert = mesh->totvert;
   config.totloop = mesh->totloop;
   config.totpoly = mesh->totpoly;
@@ -767,7 +769,11 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
     size_t num_polys = new_mesh->totpoly;
     if (num_polys > 0) {
       std::map<std::string, int> mat_map;
-      assign_facesets_to_mpoly(sample_sel, new_mesh->mpoly, num_polys, mat_map);
+      bke::MutableAttributeAccessor attributes = new_mesh->attributes_for_write();
+      bke::SpanAttributeWriter<int> material_indices =
+          attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
+      assign_facesets_to_material_indices(sample_sel, material_indices.span, mat_map);
+      material_indices.finish();
     }
 
     return new_mesh;
@@ -776,10 +782,9 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
   return existing_mesh;
 }
 
-void AbcMeshReader::assign_facesets_to_mpoly(const ISampleSelector &sample_sel,
-                                             MPoly *mpoly,
-                                             int totpoly,
-                                             std::map<std::string, int> &r_mat_map)
+void AbcMeshReader::assign_facesets_to_material_indices(const ISampleSelector &sample_sel,
+                                                        MutableSpan<int> material_indices,
+                                                        std::map<std::string, int> &r_mat_map)
 {
   std::vector<std::string> face_sets;
   m_schema.getFaceSetNames(face_sets);
@@ -812,13 +817,12 @@ void AbcMeshReader::assign_facesets_to_mpoly(const ISampleSelector &sample_sel,
     for (size_t l = 0; l < num_group_faces; l++) {
       size_t pos = (*group_faces)[l];
 
-      if (pos >= totpoly) {
+      if (pos >= material_indices.size()) {
         std::cerr << "Faceset overflow on " << faceset.getName() << '\n';
         break;
       }
 
-      MPoly &poly = mpoly[pos];
-      poly.mat_nr = assigned_mat - 1;
+      material_indices[pos] = assigned_mat - 1;
     }
   }
 }
@@ -826,24 +830,15 @@ void AbcMeshReader::assign_facesets_to_mpoly(const ISampleSelector &sample_sel,
 void AbcMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const ISampleSelector &sample_sel)
 {
   std::map<std::string, int> mat_map;
-  assign_facesets_to_mpoly(sample_sel, mesh->mpoly, mesh->totpoly, mat_map);
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter<int> material_indices =
+      attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
+  assign_facesets_to_material_indices(sample_sel, material_indices.span, mat_map);
+  material_indices.finish();
   utils::assign_materials(bmain, m_object, mat_map);
 }
 
 /* ************************************************************************** */
-
-BLI_INLINE MEdge *find_edge(MEdge *edges, int totedge, int v1, int v2)
-{
-  for (int i = 0, e = totedge; i < e; i++) {
-    MEdge &edge = edges[i];
-
-    if (edge.v1 == v1 && edge.v2 == v2) {
-      return &edge;
-    }
-  }
-
-  return nullptr;
-}
 
 static void read_subd_sample(const std::string &iobject_full_name,
                              ImportSettings *settings,
@@ -904,7 +899,7 @@ static void read_vertex_creases(Mesh *mesh,
   }
 
   float *vertex_crease_data = (float *)CustomData_add_layer(
-      &mesh->vdata, CD_CREASE, CD_DEFAULT, nullptr, mesh->totvert);
+      &mesh->vdata, CD_CREASE, CD_SET_DEFAULT, nullptr, mesh->totvert);
   const int totvert = mesh->totvert;
 
   for (int i = 0, v = indices->size(); i < v; ++i) {
@@ -928,8 +923,13 @@ static void read_edge_creases(Mesh *mesh,
     return;
   }
 
-  MEdge *edges = mesh->medge;
-  int totedge = mesh->totedge;
+  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  EdgeHash *edge_hash = BLI_edgehash_new_ex(__func__, edges.size());
+
+  for (const int i : edges.index_range()) {
+    MEdge *edge = &edges[i];
+    BLI_edgehash_insert(edge_hash, edge->v1, edge->v2, edge);
+  }
 
   for (int i = 0, s = 0, e = indices->size(); i < e; i += 2, s++) {
     int v1 = (*indices)[i];
@@ -941,15 +941,17 @@ static void read_edge_creases(Mesh *mesh,
       std::swap(v1, v2);
     }
 
-    MEdge *edge = find_edge(edges, totedge, v1, v2);
+    MEdge *edge = static_cast<MEdge *>(BLI_edgehash_lookup(edge_hash, v1, v2));
     if (edge == nullptr) {
-      edge = find_edge(edges, totedge, v2, v1);
+      edge = static_cast<MEdge *>(BLI_edgehash_lookup(edge_hash, v2, v1));
     }
 
     if (edge) {
       edge->crease = unit_float_to_uchar_clamp((*sharpnesses)[s]);
     }
   }
+
+  BLI_edgehash_free(edge_hash, nullptr);
 
   mesh->cd_flag |= ME_CDFLAG_EDGE_CREASE;
 }

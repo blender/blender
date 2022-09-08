@@ -1485,7 +1485,7 @@ void BKE_ffmpeg_preset_set(RenderData *rd, int preset)
   }
 }
 
-void BKE_ffmpeg_image_type_verify(RenderData *rd, ImageFormatData *imf)
+void BKE_ffmpeg_image_type_verify(RenderData *rd, const ImageFormatData *imf)
 {
   int audio = 0;
 

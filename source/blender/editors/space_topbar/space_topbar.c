@@ -116,7 +116,7 @@ static void topbar_header_region_init(wmWindowManager *UNUSED(wm), ARegion *regi
 static void topbar_main_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -146,7 +146,7 @@ static void topbar_main_region_listener(const wmRegionListenerParams *params)
 static void topbar_header_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -154,6 +154,9 @@ static void topbar_header_listener(const wmRegionListenerParams *params)
       if (wmn->data == ND_JOB) {
         ED_region_tag_redraw(region);
       }
+      break;
+    case NC_WORKSPACE:
+      ED_region_tag_redraw(region);
       break;
     case NC_SPACE:
       if (wmn->data == ND_SPACE_INFO) {

@@ -294,7 +294,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd,
   float smd_limit[2], smd_factor;
   SpaceTransform *transf = NULL, tmp_transf;
   int vgroup;
-  MDeformVert *dvert;
+  const MDeformVert *dvert;
 
   /* This is historically the lock axis, _not_ the deform axis as the name would imply */
   const int deform_axis = smd->deform_axis;
@@ -438,7 +438,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   if (smd->origin != NULL) {
     DEG_add_object_relation(
         ctx->node, smd->origin, DEG_OB_COMP_TRANSFORM, "SimpleDeform Modifier");
-    DEG_add_modifier_to_transform_relation(ctx->node, "SimpleDeform Modifier");
+    DEG_add_depends_on_transform_relation(ctx->node, "SimpleDeform Modifier");
   }
 }
 
@@ -453,7 +453,7 @@ static void deformVerts(ModifierData *md,
 
   if (ctx->object->type == OB_MESH && sdmd->vgroup_name[0] != '\0') {
     /* mesh_src is only needed for vgroups. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
   }
 
   SimpleDeformModifier_do(sdmd, ctx, ctx->object, mesh_src, vertexCos, verts_num);
@@ -475,11 +475,10 @@ static void deformVertsEM(ModifierData *md,
 
   if (ctx->object->type == OB_MESH && sdmd->vgroup_name[0] != '\0') {
     /* mesh_src is only needed for vgroups. */
-    mesh_src = MOD_deform_mesh_eval_get(
-        ctx->object, editData, mesh, NULL, verts_num, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, verts_num, false);
   }
 
-  /* TODO(Campbell): use edit-mode data only (remove this line). */
+  /* TODO(@campbellbarton): use edit-mode data only (remove this line). */
   if (mesh_src != NULL) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }
@@ -564,7 +563,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_SimpleDeform = {
-    /* name */ "SimpleDeform",
+    /* name */ N_("SimpleDeform"),
     /* structName */ "SimpleDeformModifierData",
     /* structSize */ sizeof(SimpleDeformModifierData),
     /* srna */ &RNA_SimpleDeformModifier,

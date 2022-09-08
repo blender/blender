@@ -19,6 +19,7 @@ set(INC
   ../windowmanager
   ../../../intern/clog
   ../../../intern/guardedalloc
+  ../bmesh
 
   # for writefile.c: dna_type_offsets.h
   ${CMAKE_BINARY_DIR}/source/blender/makesdna/intern

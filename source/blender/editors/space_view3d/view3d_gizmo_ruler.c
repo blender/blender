@@ -17,6 +17,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 
+#include "BKE_layer.h"
 #include "BKE_material.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
@@ -357,11 +358,12 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
                                                   depsgraph,
                                                   ruler_info->region,
                                                   v3d,
-                                                  SCE_SNAP_MODE_FACE,
+                                                  SCE_SNAP_MODE_FACE_RAYCAST,
                                                   &(const struct SnapObjectParams){
                                                       .snap_target_select = SCE_SNAP_TARGET_ALL,
                                                       .edit_mode_type = SNAP_GEOM_CAGE,
                                                   },
+                                                  NULL,
                                                   mval_fl,
                                                   NULL,
                                                   &dist_px,
@@ -419,7 +421,7 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
         Scene *scene = DEG_get_input_scene(depsgraph);
         ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
         RegionView3D *rv3d = ruler_info->region->regiondata;
-        Object *ob = OBACT(view_layer);
+        Object *ob = BKE_view_layer_active_object_get(view_layer);
         Object *obedit = OBEDIT_FROM_OBACT(ob);
 
         short orient_index = BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
@@ -522,7 +524,7 @@ static bool view3d_ruler_to_gpencil(bContext *C, wmGizmoGroup *gzgroup)
     gpl->flag |= GP_LAYER_HIDE | GP_LAYER_IS_RULER;
   }
 
-  gpf = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_ADD_NEW);
+  gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_ADD_NEW);
   BKE_gpencil_free_strokes(gpf);
 
   for (ruler_item = gzgroup_ruler_item_first_get(gzgroup); ruler_item;
@@ -576,7 +578,7 @@ static bool view3d_ruler_from_gpencil(const bContext *C, wmGizmoGroup *gzgroup)
     gpl = view3d_ruler_layer_get(scene->gpd);
     if (gpl) {
       bGPDframe *gpf;
-      gpf = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_USE_PREV);
+      gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_USE_PREV);
       if (gpf) {
         bGPDstroke *gps;
         for (gps = gpf->strokes.first; gps; gps = gps->next) {
@@ -782,7 +784,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   if (ruler_item->flag & RULERITEM_USE_ANGLE) {
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     /* capping */
     {
       float rot_90_vec_a[2];
@@ -884,7 +886,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     }
   }
   else {
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     sub_v2_v2v2(dir_ruler, co_ss[0], co_ss[2]);
 

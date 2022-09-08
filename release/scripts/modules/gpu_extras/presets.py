@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-def draw_circle_2d(position, color, radius, *, segments=32):
+def draw_circle_2d(position, color, radius, *, segments=None):
     """
     Draw a circle.
 
@@ -11,16 +11,23 @@ def draw_circle_2d(position, color, radius, *, segments=32):
     :arg radius: Radius of the circle.
     :type radius: float
     :arg segments: How many segments will be used to draw the circle.
-        Higher values give besser results but the drawing will take longer.
-    :type segments: int
+        Higher values give better results but the drawing will take longer.
+        If None or not specified, an automatic value will be calculated.
+    :type segments: int or None
     """
-    from math import sin, cos, pi
+    from math import sin, cos, pi, ceil, acos
     import gpu
     from gpu.types import (
         GPUBatch,
         GPUVertBuf,
         GPUVertFormat,
     )
+
+    if segments is None:
+        max_pixel_error = 0.25  # TODO: multiply 0.5 by display dpi
+        segments = int(ceil(pi / acos(1.0 - max_pixel_error / radius)))
+        segments = max(segments, 8)
+        segments = min(segments, 1000)
 
     if segments <= 0:
         raise ValueError("Amount of segments must be greater than 0.")
@@ -35,7 +42,7 @@ def draw_circle_2d(position, color, radius, *, segments=32):
         vbo = GPUVertBuf(len=len(verts), format=fmt)
         vbo.attr_fill(id=pos_id, data=verts)
         batch = GPUBatch(type='LINE_STRIP', buf=vbo)
-        shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+        shader = gpu.shader.from_builtin('UNIFORM_COLOR')
         batch.program_set(shader)
         shader.uniform_float("color", color)
         batch.draw()
@@ -60,7 +67,7 @@ def draw_texture_2d(texture, position, width, height):
 
     coords = ((0, 0), (1, 0), (1, 1), (0, 1))
 
-    shader = gpu.shader.from_builtin('2D_IMAGE')
+    shader = gpu.shader.from_builtin('IMAGE')
     batch = batch_for_shader(
         shader, 'TRI_FAN',
         {"pos": coords, "texCoord": coords},
@@ -70,7 +77,7 @@ def draw_texture_2d(texture, position, width, height):
         gpu.matrix.translate(position)
         gpu.matrix.scale((width, height))
 
-        shader = gpu.shader.from_builtin('2D_IMAGE')
+        shader = gpu.shader.from_builtin('IMAGE')
         shader.bind()
 
         if isinstance(texture, int):

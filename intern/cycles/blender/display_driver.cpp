@@ -7,21 +7,9 @@
 #include "util/log.h"
 #include "util/opengl.h"
 
-extern "C" {
-struct RenderEngine;
+#include "GPU_platform.h"
 
-bool RE_engine_has_render_context(struct RenderEngine *engine);
-void RE_engine_render_context_enable(struct RenderEngine *engine);
-void RE_engine_render_context_disable(struct RenderEngine *engine);
-
-bool DRW_opengl_context_release();
-void DRW_opengl_context_activate(bool drw_state);
-
-void *WM_opengl_context_create();
-void WM_opengl_context_activate(void *gl_context);
-void WM_opengl_context_dispose(void *gl_context);
-void WM_opengl_context_release(void *context);
-}
+#include "RE_engine.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -507,6 +495,7 @@ class DrawTileAndPBO {
 
   DrawTile tile;
   GLPixelBufferObject buffer_object;
+  bool need_update_texture_pixels = false;
 };
 
 /* --------------------------------------------------------------------
@@ -556,18 +545,21 @@ struct BlenderDisplayDriver::Tiles {
   }
 };
 
-BlenderDisplayDriver::BlenderDisplayDriver(BL::RenderEngine &b_engine, BL::Scene &b_scene)
+BlenderDisplayDriver::BlenderDisplayDriver(BL::RenderEngine &b_engine,
+                                           BL::Scene &b_scene,
+                                           const bool background)
     : b_engine_(b_engine),
+      background_(background),
       display_shader_(BlenderDisplayShader::create(b_engine, b_scene)),
       tiles_(make_unique<Tiles>())
 {
   /* Create context while on the main thread. */
-  gl_context_create();
+  gpu_context_create();
 }
 
 BlenderDisplayDriver::~BlenderDisplayDriver()
 {
-  gl_resources_destroy();
+  gpu_resources_destroy();
 }
 
 /* --------------------------------------------------------------------
@@ -585,6 +577,8 @@ void BlenderDisplayDriver::next_tile_begin()
   /* Moving to the next tile without giving render data for the current tile is not an expected
    * situation. */
   DCHECK(!need_clear_);
+  /* Texture should have been updated from the PBO at this point. */
+  DCHECK(!tiles_->current_tile.need_update_texture_pixels);
 
   tiles_->finished_tiles.tiles.emplace_back(std::move(tiles_->current_tile.tile));
 }
@@ -596,12 +590,12 @@ bool BlenderDisplayDriver::update_begin(const Params &params,
   /* Note that it's the responsibility of BlenderDisplayDriver to ensure updating and drawing
    * the texture does not happen at the same time. This is achieved indirectly.
    *
-   * When enabling the OpenGL context, it uses an internal mutex lock DST.gl_context_lock.
+   * When enabling the OpenGL context, it uses an internal mutex lock DST.gpu_context_lock.
    * This same lock is also held when do_draw() is called, which together ensure mutual
    * exclusion.
    *
    * This locking is not performed on the Cycles side, because that would cause lock inversion. */
-  if (!gl_context_enable()) {
+  if (!gpu_context_enable()) {
     return false;
   }
 
@@ -622,13 +616,13 @@ bool BlenderDisplayDriver::update_begin(const Params &params,
 
   if (!tiles_->gl_resources_ensure()) {
     tiles_->gl_resources_destroy();
-    gl_context_disable();
+    gpu_context_disable();
     return false;
   }
 
   if (!tiles_->current_tile.gl_resources_ensure()) {
     tiles_->current_tile.gl_resources_destroy();
-    gl_context_disable();
+    gpu_context_disable();
     return false;
   }
 
@@ -702,13 +696,23 @@ void BlenderDisplayDriver::update_end()
    * One concern with this approach is that if the update happens more often than drawing then
    * doing the unpack here occupies GPU transfer for no good reason. However, the render scheduler
    * takes care of ensuring updates don't happen that often. In regular applications redraw will
-   * happen much more often than this update. */
-  update_tile_texture_pixels(tiles_->current_tile);
+   * happen much more often than this update.
+   *
+   * On some older GPUs on macOS, there is a driver crash when updating the texture for viewport
+   * renders while Blender is drawing. As a workaround update texture during draw, under assumption
+   * that there is no graphics interop on macOS and viewport render has a single tile. */
+  if (!background_ &&
+      GPU_type_matches_ex(GPU_DEVICE_NVIDIA, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_ANY)) {
+    tiles_->current_tile.need_update_texture_pixels = true;
+  }
+  else {
+    update_tile_texture_pixels(tiles_->current_tile);
+  }
 
   gl_upload_sync_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
   glFlush();
 
-  gl_context_disable();
+  gpu_context_disable();
 }
 
 /* --------------------------------------------------------------------
@@ -756,12 +760,12 @@ BlenderDisplayDriver::GraphicsInterop BlenderDisplayDriver::graphics_interop_get
 
 void BlenderDisplayDriver::graphics_interop_activate()
 {
-  gl_context_enable();
+  gpu_context_enable();
 }
 
 void BlenderDisplayDriver::graphics_interop_deactivate()
 {
-  gl_context_disable();
+  gpu_context_disable();
 }
 
 /* --------------------------------------------------------------------
@@ -895,7 +899,7 @@ void BlenderDisplayDriver::flush()
    * If we don't do this, the NVIDIA driver hangs for a few seconds for when ending 3D viewport
    * rendering, for unknown reasons. This was found with NVIDIA driver version 470.73 and a Quadro
    * RTX 6000 on Linux. */
-  if (!gl_context_enable()) {
+  if (!gpu_context_enable()) {
     return;
   }
 
@@ -907,17 +911,12 @@ void BlenderDisplayDriver::flush()
     glWaitSync((GLsync)gl_render_sync_, 0, GL_TIMEOUT_IGNORED);
   }
 
-  gl_context_disable();
+  gpu_context_disable();
 }
 
 void BlenderDisplayDriver::draw(const Params &params)
 {
-  /* See do_update_begin() for why no locking is required here. */
-  const bool transparent = true;  // TODO(sergey): Derive this from Film.
-
-  if (use_gl_context_) {
-    gl_context_mutex_.lock();
-  }
+  gpu_context_lock();
 
   if (need_clear_) {
     /* Texture is requested to be cleared and was not yet cleared.
@@ -925,9 +924,7 @@ void BlenderDisplayDriver::draw(const Params &params)
      * Do early return which should be equivalent of drawing all-zero texture.
      * Watch out for the lock though so that the clear happening during update is properly
      * synchronized here. */
-    if (use_gl_context_) {
-      gl_context_mutex_.unlock();
-    }
+    gpu_context_unlock();
     return;
   }
 
@@ -935,10 +932,8 @@ void BlenderDisplayDriver::draw(const Params &params)
     glWaitSync((GLsync)gl_upload_sync_, 0, GL_TIMEOUT_IGNORED);
   }
 
-  if (transparent) {
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-  }
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
   glActiveTexture(GL_TEXTURE0);
 
@@ -956,6 +951,11 @@ void BlenderDisplayDriver::draw(const Params &params)
 
   glEnableVertexAttribArray(texcoord_attribute);
   glEnableVertexAttribArray(position_attribute);
+
+  if (tiles_->current_tile.need_update_texture_pixels) {
+    update_tile_texture_pixels(tiles_->current_tile);
+    tiles_->current_tile.need_update_texture_pixels = false;
+  }
 
   draw_tile(zoom_,
             texcoord_attribute,
@@ -975,103 +975,60 @@ void BlenderDisplayDriver::draw(const Params &params)
 
   glDeleteVertexArrays(1, &vertex_array_object);
 
-  if (transparent) {
-    glDisable(GL_BLEND);
-  }
+  glDisable(GL_BLEND);
 
   gl_render_sync_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
   glFlush();
 
-  if (VLOG_IS_ON(5)) {
-    VLOG(5) << "Number of textures: " << GLTexture::num_used;
-    VLOG(5) << "Number of PBOs: " << GLPixelBufferObject::num_used;
-  }
+  gpu_context_unlock();
 
-  if (use_gl_context_) {
-    gl_context_mutex_.unlock();
+  VLOG_DEVICE_STATS << "Display driver number of textures: " << GLTexture::num_used;
+  VLOG_DEVICE_STATS << "Display driver number of PBOs: " << GLPixelBufferObject::num_used;
+}
+
+void BlenderDisplayDriver::gpu_context_create()
+{
+  if (!RE_engine_gpu_context_create(reinterpret_cast<RenderEngine *>(b_engine_.ptr.data))) {
+    LOG(ERROR) << "Error creating OpenGL context.";
   }
 }
 
-void BlenderDisplayDriver::gl_context_create()
+bool BlenderDisplayDriver::gpu_context_enable()
 {
-  /* When rendering in viewport there is no render context available via engine.
-   * Check whether own context is to be created here.
-   *
-   * NOTE: If the `b_engine_`'s context is not available, we are expected to be on a main thread
-   * here. */
-  use_gl_context_ = !RE_engine_has_render_context(
-      reinterpret_cast<RenderEngine *>(b_engine_.ptr.data));
-
-  if (use_gl_context_) {
-    const bool drw_state = DRW_opengl_context_release();
-    gl_context_ = WM_opengl_context_create();
-    if (gl_context_) {
-      /* On Windows an old context is restored after creation, and subsequent release of context
-       * generates a Win32 error. Harmless for users, but annoying to have possible misleading
-       * error prints in the console. */
-#ifndef _WIN32
-      WM_opengl_context_release(gl_context_);
-#endif
-    }
-    else {
-      LOG(ERROR) << "Error creating OpenGL context.";
-    }
-
-    DRW_opengl_context_activate(drw_state);
-  }
+  return RE_engine_gpu_context_enable(reinterpret_cast<RenderEngine *>(b_engine_.ptr.data));
 }
 
-bool BlenderDisplayDriver::gl_context_enable()
+void BlenderDisplayDriver::gpu_context_disable()
 {
-  if (use_gl_context_) {
-    if (!gl_context_) {
-      return false;
-    }
-    gl_context_mutex_.lock();
-    WM_opengl_context_activate(gl_context_);
-    return true;
-  }
-
-  RE_engine_render_context_enable(reinterpret_cast<RenderEngine *>(b_engine_.ptr.data));
-  return true;
+  RE_engine_gpu_context_disable(reinterpret_cast<RenderEngine *>(b_engine_.ptr.data));
 }
 
-void BlenderDisplayDriver::gl_context_disable()
+void BlenderDisplayDriver::gpu_context_destroy()
 {
-  if (use_gl_context_) {
-    if (gl_context_) {
-      WM_opengl_context_release(gl_context_);
-      gl_context_mutex_.unlock();
-    }
-    return;
-  }
-
-  RE_engine_render_context_disable(reinterpret_cast<RenderEngine *>(b_engine_.ptr.data));
+  RE_engine_gpu_context_destroy(reinterpret_cast<RenderEngine *>(b_engine_.ptr.data));
 }
 
-void BlenderDisplayDriver::gl_context_dispose()
+void BlenderDisplayDriver::gpu_context_lock()
 {
-  if (gl_context_) {
-    const bool drw_state = DRW_opengl_context_release();
-
-    WM_opengl_context_activate(gl_context_);
-    WM_opengl_context_dispose(gl_context_);
-
-    DRW_opengl_context_activate(drw_state);
-  }
+  RE_engine_gpu_context_lock(reinterpret_cast<RenderEngine *>(b_engine_.ptr.data));
 }
 
-void BlenderDisplayDriver::gl_resources_destroy()
+void BlenderDisplayDriver::gpu_context_unlock()
 {
-  gl_context_enable();
+  RE_engine_gpu_context_unlock(reinterpret_cast<RenderEngine *>(b_engine_.ptr.data));
+}
+
+void BlenderDisplayDriver::gpu_resources_destroy()
+{
+  gpu_context_enable();
 
   tiles_->current_tile.gl_resources_destroy();
   tiles_->finished_tiles.gl_resources_destroy_and_clear();
   tiles_->gl_resources_destroy();
 
-  gl_context_disable();
+  gpu_context_disable();
 
-  gl_context_dispose();
+  gpu_context_destroy();
 }
 
 CCL_NAMESPACE_END

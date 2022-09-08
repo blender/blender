@@ -9,7 +9,7 @@
 
 #include "DNA_defs.h"
 
-/* XXX(campbell): temp feature. */
+/* XXX(@campbellbarton): temp feature. */
 #define DURIAN_CAMERA_SWITCH
 
 /* check for cyclic set-scene,
@@ -820,6 +820,7 @@ typedef struct RenderProfile {
 /** #ToolSettings.uv_relax_method */
 #define UV_SCULPT_TOOL_RELAX_LAPLACIAN 1
 #define UV_SCULPT_TOOL_RELAX_HC 2
+#define UV_SCULPT_TOOL_RELAX_COTAN 3
 
 /* Stereo Flags */
 #define STEREO_RIGHT_NAME "right"
@@ -1496,19 +1497,24 @@ typedef struct ToolSettings {
   char transform_pivot_point;
   char transform_flag;
   /** Snap elements (per spacetype), #eSnapMode. */
-  char snap_mode;
+  char _pad1[1];
+  short snap_mode;
   char snap_node_mode;
   char snap_uv_mode;
   /** Generic flags (per spacetype), #eSnapFlag. */
-  char snap_flag;
-  char snap_flag_node;
-  char snap_flag_seq;
-  char snap_uv_flag;
+  short snap_flag;
+  short snap_flag_node;
+  short snap_flag_seq;
+  short snap_uv_flag;
   /** Default snap source, #eSnapSourceSelect. */
-  /* TODO(@gfxcoder): Rename `snap_target` to `snap_source_point`, because target is incorrect. */
+  /* TODO(@gfxcoder): Rename `snap_target` to `snap_source` to avoid previous ambiguity of
+   * "target" (now, "source" is geometry to be moved and "target" is geometry to which moved
+   * geometry is snapped). */
   char snap_target;
   /** Snap mask for transform modes, #eSnapTransformMode. */
   char snap_transform_mode_flag;
+  /** Steps to break transformation into with face nearest snapping */
+  short snap_face_nearest_steps;
 
   char proportional_edit, prop_mode;
   /** Proportional edit, object mode. */
@@ -2032,27 +2038,15 @@ extern const char *RE_engine_id_CYCLES;
   (BASE_EDITABLE(v3d, base) && (((base)->flag & BASE_SELECTED) != 0))
 
 /* deprecate this! */
-#define FIRSTBASE(_view_layer) ((_view_layer)->object_bases.first)
-#define LASTBASE(_view_layer) ((_view_layer)->object_bases.last)
-#define BASACT(_view_layer) ((_view_layer)->basact)
-#define OBACT(_view_layer) (BASACT(_view_layer) ? BASACT(_view_layer)->object : NULL)
-
-#define OBEDIT_FROM_WORKSPACE(workspace, _view_layer) \
-  (((workspace)->object_mode & OD_MODE_EDIT) ? OBACT(_view_layer) : NULL)
 #define OBEDIT_FROM_OBACT(ob) ((ob) ? (((ob)->mode & OB_MODE_EDIT) ? ob : NULL) : NULL)
 #define OBPOSE_FROM_OBACT(ob) ((ob) ? (((ob)->mode & OB_MODE_POSE) ? ob : NULL) : NULL)
 #define OBWEIGHTPAINT_FROM_OBACT(ob) \
   ((ob) ? (((ob)->mode & OB_MODE_WEIGHT_PAINT) ? ob : NULL) : NULL)
-#define OBEDIT_FROM_VIEW_LAYER(view_layer) OBEDIT_FROM_OBACT(OBACT(view_layer))
 
 #define V3D_CAMERA_LOCAL(v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : NULL)
 #define V3D_CAMERA_SCENE(scene, v3d) \
   ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : (scene)->camera)
 
-#define CFRA (scene->r.cfra)
-#define SUBFRA (scene->r.subframe)
-#define SFRA (scene->r.sfra)
-#define EFRA (scene->r.efra)
 #define PRVRANGEON (scene->r.flag & SCER_PRV_RANGE)
 #define PSFRA ((PRVRANGEON) ? (scene->r.psfra) : (scene->r.sfra))
 #define PEFRA ((PRVRANGEON) ? (scene->r.pefra) : (scene->r.efra))
@@ -2085,10 +2079,15 @@ typedef enum eSnapFlag {
   SCE_SNAP = (1 << 0),
   SCE_SNAP_ROTATE = (1 << 1),
   SCE_SNAP_PEEL_OBJECT = (1 << 2),
-  SCE_SNAP_PROJECT = (1 << 3),
-  SCE_SNAP_NO_SELF = (1 << 4),
+  SCE_SNAP_PROJECT = (1 << 3),       /* Project individual elements instead of whole object. */
+  SCE_SNAP_NOT_TO_ACTIVE = (1 << 4), /* Was `SCE_SNAP_NO_SELF`, but self should be active. */
   SCE_SNAP_ABS_GRID = (1 << 5),
   SCE_SNAP_BACKFACE_CULLING = (1 << 6),
+  SCE_SNAP_KEEP_ON_SAME_OBJECT = (1 << 7),
+  /* see #eSnapTargetSelect */
+  SCE_SNAP_TO_INCLUDE_EDITED = (1 << 8),
+  SCE_SNAP_TO_INCLUDE_NONEDITED = (1 << 9),
+  SCE_SNAP_TO_ONLY_SELECTABLE = (1 << 10),
 } eSnapFlag;
 /* Due to dependency conflicts with Cycles, header cannot directly include `BLI_utildefines.h`. */
 /* TODO: move this macro to a more general place. */
@@ -2096,7 +2095,7 @@ typedef enum eSnapFlag {
 ENUM_OPERATORS(eSnapFlag, SCE_SNAP_BACKFACE_CULLING)
 #endif
 
-/** #ToolSettings.snap_target and #TransSnap.source_select */
+/** See #ToolSettings.snap_target (to be renamed `snap_source`) and #TransSnap.source_select */
 typedef enum eSnapSourceSelect {
   SCE_SNAP_SOURCE_CLOSEST = 0,
   SCE_SNAP_SOURCE_CENTER = 1,
@@ -2104,13 +2103,15 @@ typedef enum eSnapSourceSelect {
   SCE_SNAP_SOURCE_ACTIVE = 3,
 } eSnapSourceSelect;
 
-/** #TransSnap.target_select and #ToolSettings.snap_flag (SCE_SNAP_NO_SELF) */
+/** #TransSnap.target_select and #ToolSettings.snap_flag (#SCE_SNAP_NOT_TO_ACTIVE,
+ * #SCE_SNAP_TO_INCLUDE_EDITED, #SCE_SNAP_TO_INCLUDE_NONEDITED, #SCE_SNAP_TO_ONLY_SELECTABLE) */
 typedef enum eSnapTargetSelect {
   SCE_SNAP_TARGET_ALL = 0,
-  SCE_SNAP_TARGET_NOT_SELECTED = 1,
-  SCE_SNAP_TARGET_NOT_ACTIVE = 2,
-  SCE_SNAP_TARGET_NOT_EDITED = 3,
-  SCE_SNAP_TARGET_ONLY_SELECTABLE = 4,
+  SCE_SNAP_TARGET_NOT_SELECTED = (1 << 0),
+  SCE_SNAP_TARGET_NOT_ACTIVE = (1 << 1),
+  SCE_SNAP_TARGET_NOT_EDITED = (1 << 2),
+  SCE_SNAP_TARGET_ONLY_SELECTABLE = (1 << 3),
+  SCE_SNAP_TARGET_NOT_NONEDITED = (1 << 4),
 } eSnapTargetSelect;
 
 /** #ToolSettings.snap_mode */
@@ -2118,19 +2119,21 @@ typedef enum eSnapMode {
   SCE_SNAP_MODE_NONE = 0,
   SCE_SNAP_MODE_VERTEX = (1 << 0),
   SCE_SNAP_MODE_EDGE = (1 << 1),
-  SCE_SNAP_MODE_FACE = (1 << 2), /* TODO(@gfxcoder): Rename to `SCE_SNAP_MODE_FACE_RAYCAST`
-                                            when other face snapping methods are added. */
+  SCE_SNAP_MODE_FACE_RAYCAST = (1 << 2),
   SCE_SNAP_MODE_VOLUME = (1 << 3),
   SCE_SNAP_MODE_EDGE_MIDPOINT = (1 << 4),
   SCE_SNAP_MODE_EDGE_PERPENDICULAR = (1 << 5),
-  SCE_SNAP_MODE_GEOM = (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
-                        SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_EDGE_MIDPOINT),
+  SCE_SNAP_MODE_FACE_NEAREST = (1 << 8),
+
+  SCE_SNAP_MODE_GEOM = (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE_RAYCAST |
+                        SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_EDGE_MIDPOINT |
+                        SCE_SNAP_MODE_FACE_NEAREST),
 
   /** #ToolSettings.snap_node_mode */
   SCE_SNAP_MODE_NODE_X = (1 << 0),
   SCE_SNAP_MODE_NODE_Y = (1 << 1),
 
-  /* #ToolSettings.snap_mode and #ToolSettings.snap_node_mode and #ToolSettings.snap_uv_mode */
+  /** #ToolSettings.snap_mode and #ToolSettings.snap_node_mode and #ToolSettings.snap_uv_mode */
   SCE_SNAP_MODE_INCREMENT = (1 << 6),
   SCE_SNAP_MODE_GRID = (1 << 7),
 } eSnapMode;
@@ -2199,7 +2202,7 @@ enum {
   OB_DRAW_GROUPUSER_ALL = 2,
 };
 
-/* object_vgroup.c */
+/* object_vgroup.cc */
 
 /** #ToolSettings.vgroupsubset */
 typedef enum eVGroupSelect {

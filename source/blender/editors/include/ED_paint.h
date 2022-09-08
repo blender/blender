@@ -22,6 +22,7 @@ struct UndoType;
 struct bContext;
 struct wmKeyConfig;
 struct wmOperator;
+typedef struct PaintTileMap PaintTileMap;
 
 /* paint_ops.c */
 
@@ -76,7 +77,7 @@ void ED_image_undo_restore(struct UndoStep *us);
 /** Export for ED_undo_sys. */
 void ED_image_undosys_type(struct UndoType *ut);
 
-void *ED_image_paint_tile_find(struct ListBase *paint_tiles,
+void *ED_image_paint_tile_find(PaintTileMap *paint_tile_map,
                                struct Image *image,
                                struct ImBuf *ibuf,
                                struct ImageUser *iuser,
@@ -84,7 +85,7 @@ void *ED_image_paint_tile_find(struct ListBase *paint_tiles,
                                int y_tile,
                                unsigned short **r_mask,
                                bool validate);
-void *ED_image_paint_tile_push(struct ListBase *paint_tiles,
+void *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
                                struct Image *image,
                                struct ImBuf *ibuf,
                                struct ImBuf **tmpibuf,
@@ -98,7 +99,7 @@ void *ED_image_paint_tile_push(struct ListBase *paint_tiles,
 void ED_image_paint_tile_lock_init(void);
 void ED_image_paint_tile_lock_end(void);
 
-struct ListBase *ED_image_paint_tile_list_get(void);
+struct PaintTileMap *ED_image_paint_tile_map_get(void);
 
 #define ED_IMAGE_UNDO_TILE_BITS 6
 #define ED_IMAGE_UNDO_TILE_SIZE (1 << ED_IMAGE_UNDO_TILE_BITS)

@@ -73,7 +73,7 @@ int g_curves_attr_id = 0;
 int curves_attribute_element_id()
 {
   int id = hairStrandID;
-  if (drw_curves.is_point_attribute[g_curves_attr_id] != 0) {
+  if (drw_curves.is_point_attribute[g_curves_attr_id][0] != 0) {
     id = hair_get_base_id();
   }
 
@@ -149,6 +149,10 @@ float attr_load_temperature_post(float attr)
   return attr;
 }
 vec4 attr_load_color_post(vec4 attr)
+{
+  return attr;
+}
+vec4 attr_load_uniform(vec4 attr, const uint attr_hash)
 {
   return attr;
 }

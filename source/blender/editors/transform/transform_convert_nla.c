@@ -59,7 +59,7 @@ typedef struct TransDataNla {
 /** \name NLA Transform Creation
  * \{ */
 
-void createTransNlaData(bContext *C, TransInfo *t)
+static void createTransNlaData(bContext *C, TransInfo *t)
 {
   Scene *scene = t->scene;
   SpaceNla *snla = NULL;
@@ -82,12 +82,13 @@ void createTransNlaData(bContext *C, TransInfo *t)
   snla = (SpaceNla *)ac.sl;
 
   /* filter data */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT |
+            ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* which side of the current frame should be allowed */
   if (t->mode == TFM_TIME_EXTEND) {
-    t->frame_side = transform_convert_frame_side_dir_get(t, (float)CFRA);
+    t->frame_side = transform_convert_frame_side_dir_get(t, (float)scene->r.cfra);
   }
   else {
     /* normal transform - both sides of current frame are considered */
@@ -108,10 +109,10 @@ void createTransNlaData(bContext *C, TransInfo *t)
       /* transition strips can't get directly transformed */
       if (strip->type != NLASTRIP_TYPE_TRANSITION) {
         if (strip->flag & NLASTRIP_FLAG_SELECT) {
-          if (FrameOnMouseSide(t->frame_side, strip->start, (float)CFRA)) {
+          if (FrameOnMouseSide(t->frame_side, strip->start, (float)scene->r.cfra)) {
             count++;
           }
-          if (FrameOnMouseSide(t->frame_side, strip->end, (float)CFRA)) {
+          if (FrameOnMouseSide(t->frame_side, strip->end, (float)scene->r.cfra)) {
             count++;
           }
         }
@@ -122,7 +123,7 @@ void createTransNlaData(bContext *C, TransInfo *t)
   /* stop if trying to build list if nothing selected */
   if (count == 0) {
     /* clear temp metas that may have been created but aren't needed now
-     * because they fell on the wrong side of CFRA
+     * because they fell on the wrong side of scene->r.cfra
      */
     for (ale = anim_data.first; ale; ale = ale->next) {
       NlaTrack *nlt = (NlaTrack *)ale->data;
@@ -181,12 +182,12 @@ void createTransNlaData(bContext *C, TransInfo *t)
             tdn->h2[0] = strip->end;
             tdn->h2[1] = yval;
 
-            center[0] = (float)CFRA;
+            center[0] = (float)scene->r.cfra;
             center[1] = yval;
             center[2] = 0.0f;
 
             /* set td's based on which handles are applicable */
-            if (FrameOnMouseSide(t->frame_side, strip->start, (float)CFRA)) {
+            if (FrameOnMouseSide(t->frame_side, strip->start, (float)scene->r.cfra)) {
               /* just set tdn to assume that it only has one handle for now */
               tdn->handle = -1;
 
@@ -206,7 +207,7 @@ void createTransNlaData(bContext *C, TransInfo *t)
               td->extra = tdn;
               td++;
             }
-            if (FrameOnMouseSide(t->frame_side, strip->end, (float)CFRA)) {
+            if (FrameOnMouseSide(t->frame_side, strip->end, (float)scene->r.cfra)) {
               /* if tdn is already holding the start handle,
                * then we're doing both, otherwise, only end */
               tdn->handle = (tdn->handle) ? 2 : 1;
@@ -248,7 +249,7 @@ void createTransNlaData(bContext *C, TransInfo *t)
   ANIM_animdata_freelist(&anim_data);
 }
 
-void recalcData_nla(TransInfo *t)
+static void recalcData_nla(TransInfo *t)
 {
   SpaceNla *snla = (SpaceNla *)t->area->spacedata.first;
 
@@ -463,7 +464,7 @@ void recalcData_nla(TransInfo *t)
 /** \name Special After Transform NLA
  * \{ */
 
-void special_aftertrans_update__nla(bContext *C, TransInfo *UNUSED(t))
+static void special_aftertrans_update__nla(bContext *C, TransInfo *UNUSED(t))
 {
   bAnimContext ac;
 
@@ -475,7 +476,7 @@ void special_aftertrans_update__nla(bContext *C, TransInfo *UNUSED(t))
   if (ac.datatype) {
     ListBase anim_data = {NULL, NULL};
     bAnimListElem *ale;
-    short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT);
+    short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_FCURVESONLY);
 
     /* get channels to work on */
     ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
@@ -505,3 +506,10 @@ void special_aftertrans_update__nla(bContext *C, TransInfo *UNUSED(t))
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_NLA = {
+    /* flags */ (T_POINTS | T_2D_EDIT),
+    /* createTransData */ createTransNlaData,
+    /* recalcData */ recalcData_nla,
+    /* special_aftertrans_update */ special_aftertrans_update__nla,
+};

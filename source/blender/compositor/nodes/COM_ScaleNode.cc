@@ -17,7 +17,7 @@ ScaleNode::ScaleNode(bNode *editor_node) : Node(editor_node)
 void ScaleNode::convert_to_operations(NodeConverter &converter,
                                       const CompositorContext &context) const
 {
-  bNode *bnode = this->get_bnode();
+  const bNode *bnode = this->get_bnode();
 
   NodeInput *input_socket = this->get_input_socket(0);
   NodeInput *input_xsocket = this->get_input_socket(1);

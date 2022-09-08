@@ -68,7 +68,7 @@ typedef struct VertSlideParams {
   bool flipped;
 } VertSlideParams;
 
-static void calcVertSlideCustomPoints(struct TransInfo *t)
+static void vert_slide_update_input(TransInfo *t)
 {
   VertSlideParams *slp = t->custom.mode.data;
   VertSlideData *sld = TRANS_DATA_CONTAINER_FIRST_OK(t)->custom.mode.data;
@@ -94,6 +94,11 @@ static void calcVertSlideCustomPoints(struct TransInfo *t)
   else {
     setCustomPoints(t, &t->mouse, mval_end, mval_start);
   }
+}
+
+static void calcVertSlideCustomPoints(struct TransInfo *t)
+{
+  vert_slide_update_input(t);
 
   /* setCustomPoints isn't normally changing as the mouse moves,
    * in this case apply mouse input immediately so we don't refresh
@@ -539,7 +544,7 @@ static void vert_slide_snap_apply(TransInfo *t, float *value)
 
   getSnapPoint(t, dvec);
   sub_v3_v3(dvec, t->tsnap.snapTarget);
-  if (t->tsnap.snapElem & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE)) {
+  if (t->tsnap.snapElem & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE_RAYCAST)) {
     float co_dir[3];
     sub_v3_v3v3(co_dir, co_curr_3d, co_orig_3d);
     normalize_v3(co_dir);
@@ -568,7 +573,7 @@ static void applyVertSlide(TransInfo *t, const int UNUSED(mval[2]))
 
   final = t->values[0] + t->values_modal_offset[0];
 
-  applySnapping(t, &final);
+  applySnappingAsGroup(t, &final);
   if (!validSnap(t)) {
     transform_snap_increment(t, &final);
   }
@@ -670,6 +675,25 @@ void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped, bool use_clamp)
 void initVertSlide(TransInfo *t)
 {
   initVertSlide_ex(t, false, false, true);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Mouse Input Utilities
+ * \{ */
+
+void transform_mode_vert_slide_reproject_input(TransInfo *t)
+{
+  if (t->spacetype == SPACE_VIEW3D) {
+    RegionView3D *rv3d = t->region->regiondata;
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+      VertSlideData *sld = tc->custom.mode.data;
+      ED_view3d_ob_project_mat_get(rv3d, tc->obedit, sld->proj_mat);
+    }
+  }
+
+  vert_slide_update_input(t);
 }
 
 /** \} */

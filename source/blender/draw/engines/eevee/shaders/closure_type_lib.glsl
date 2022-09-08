@@ -6,8 +6,8 @@
 
 #ifndef VOLUMETRICS
 
-uniform int outputSsrId; /*Default = 1;*/
-uniform int outputSssId; /*Default = 1;*/
+uniform int outputSsrId; /* Default = 1; */
+uniform int outputSssId; /* Default = 1; */
 
 #endif
 

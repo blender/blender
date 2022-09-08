@@ -15,9 +15,9 @@
 
 #include "kernel/integrator/intersect_volume_stack.h"
 #include "kernel/integrator/path_state.h"
-#include "kernel/integrator/shader_eval.h"
 #include "kernel/integrator/subsurface_disk.h"
 #include "kernel/integrator/subsurface_random_walk.h"
+#include "kernel/integrator/surface_shader.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -38,7 +38,8 @@ ccl_device int subsurface_bounce(KernelGlobals kg,
   /* Setup ray into surface. */
   INTEGRATOR_STATE_WRITE(state, ray, P) = sd->P;
   INTEGRATOR_STATE_WRITE(state, ray, D) = bssrdf->N;
-  INTEGRATOR_STATE_WRITE(state, ray, t) = FLT_MAX;
+  INTEGRATOR_STATE_WRITE(state, ray, tmin) = 0.0f;
+  INTEGRATOR_STATE_WRITE(state, ray, tmax) = FLT_MAX;
   INTEGRATOR_STATE_WRITE(state, ray, dP) = differential_make_compact(sd->dP);
   INTEGRATOR_STATE_WRITE(state, ray, dD) = differential_zero_compact();
 
@@ -50,12 +51,10 @@ ccl_device int subsurface_bounce(KernelGlobals kg,
                                                                  PATH_RAY_SUBSURFACE_RANDOM_WALK);
 
   /* Compute weight, optionally including Fresnel from entry point. */
-  float3 weight = shader_bssrdf_sample_weight(sd, sc);
-#  ifdef __PRINCIPLED__
+  Spectrum weight = surface_shader_bssrdf_sample_weight(sd, sc);
   if (bssrdf->roughness != FLT_MAX) {
     path_flag |= PATH_RAY_SUBSURFACE_USE_FRESNEL;
   }
-#  endif
 
   if (sd->flag & SD_BACKFACING) {
     path_flag |= PATH_RAY_SUBSURFACE_BACKFACING;
@@ -69,8 +68,8 @@ ccl_device int subsurface_bounce(KernelGlobals kg,
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
     if (INTEGRATOR_STATE(state, path, bounce) == 0) {
-      INTEGRATOR_STATE_WRITE(state, path, pass_diffuse_weight) = one_float3();
-      INTEGRATOR_STATE_WRITE(state, path, pass_glossy_weight) = zero_float3();
+      INTEGRATOR_STATE_WRITE(state, path, pass_diffuse_weight) = one_spectrum();
+      INTEGRATOR_STATE_WRITE(state, path, pass_glossy_weight) = zero_spectrum();
     }
   }
 
@@ -90,7 +89,7 @@ ccl_device void subsurface_shader_data_setup(KernelGlobals kg,
   /* Get bump mapped normal from shader evaluation at exit point. */
   float3 N = sd->N;
   if (sd->flag & SD_HAS_BSSRDF_BUMP) {
-    N = shader_bssrdf_normal(sd);
+    N = surface_shader_bssrdf_normal(sd);
   }
 
   /* Setup diffuse BSDF at the exit point. This replaces shader_eval_surface. */
@@ -98,9 +97,8 @@ ccl_device void subsurface_shader_data_setup(KernelGlobals kg,
   sd->num_closure = 0;
   sd->num_closure_left = kernel_data.max_closures;
 
-  const float3 weight = one_float3();
+  const Spectrum weight = one_spectrum();
 
-#  ifdef __PRINCIPLED__
   if (path_flag & PATH_RAY_SUBSURFACE_USE_FRESNEL) {
     ccl_private PrincipledDiffuseBsdf *bsdf = (ccl_private PrincipledDiffuseBsdf *)bsdf_alloc(
         sd, sizeof(PrincipledDiffuseBsdf), weight);
@@ -111,9 +109,7 @@ ccl_device void subsurface_shader_data_setup(KernelGlobals kg,
       sd->flag |= bsdf_principled_diffuse_setup(bsdf, PRINCIPLED_DIFFUSE_LAMBERT_EXIT);
     }
   }
-  else
-#  endif /* __PRINCIPLED__ */
-  {
+  else {
     ccl_private DiffuseBsdf *bsdf = (ccl_private DiffuseBsdf *)bsdf_alloc(
         sd, sizeof(DiffuseBsdf), weight);
 
@@ -147,7 +143,7 @@ ccl_device_inline bool subsurface_scatter(KernelGlobals kg, IntegratorState stat
   /* Update volume stack if needed. */
   if (kernel_data.integrator.use_volumes) {
     const int object = ss_isect.hits[0].object;
-    const int object_flag = kernel_tex_fetch(__object_flag, object);
+    const int object_flag = kernel_data_fetch(object_flag, object);
 
     if (object_flag & SD_OBJECT_INTERSECTS_VOLUME) {
       float3 P = INTEGRATOR_STATE(state, ray, P);
@@ -160,7 +156,7 @@ ccl_device_inline bool subsurface_scatter(KernelGlobals kg, IntegratorState stat
   /* Pretend ray is coming from the outside towards the exit point. This ensures
    * correct front/back facing normals.
    * TODO: find a more elegant solution? */
-  ray.P += ray.D * ray.t * 2.0f;
+  ray.P += ray.D * ray.tmax * 2.0f;
   ray.D = -ray.D;
 
   integrator_state_write_isect(kg, state, &ss_isect.hits[0]);
@@ -170,24 +166,30 @@ ccl_device_inline bool subsurface_scatter(KernelGlobals kg, IntegratorState stat
   INTEGRATOR_STATE_WRITE(state, path, rng_offset) += PRNG_BOUNCE_NUM;
 
   const int shader = intersection_get_shader(kg, &ss_isect.hits[0]);
-  const int shader_flags = kernel_tex_fetch(__shaders, shader).flags;
+  const int shader_flags = kernel_data_fetch(shaders, shader).flags;
   const int object_flags = intersection_get_object_flags(kg, &ss_isect.hits[0]);
   const bool use_caustics = kernel_data.integrator.use_caustics &&
                             (object_flags & SD_OBJECT_CAUSTICS);
   const bool use_raytrace_kernel = (shader_flags & SD_HAS_RAYTRACE);
 
   if (use_caustics) {
-    INTEGRATOR_PATH_NEXT_SORTED(DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
+    integrator_path_next_sorted(kg,
+                                state,
+                                DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
                                 DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE,
                                 shader);
   }
   else if (use_raytrace_kernel) {
-    INTEGRATOR_PATH_NEXT_SORTED(DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
+    integrator_path_next_sorted(kg,
+                                state,
+                                DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
                                 DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE,
                                 shader);
   }
   else {
-    INTEGRATOR_PATH_NEXT_SORTED(DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
+    integrator_path_next_sorted(kg,
+                                state,
+                                DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
                                 DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE,
                                 shader);
   }

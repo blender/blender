@@ -34,7 +34,7 @@ void BPY_pyconstraint_exec(struct bPythonConstraint *con,
 //  void BPY_pyconstraint_settings(void *arg1, void *arg2);
 void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTarget *ct);
 void BPY_pyconstraint_update(struct Object *owner, struct bConstraint *con);
-int BPY_is_pyconstraint(struct Text *text);
+bool BPY_is_pyconstraint(struct Text *text);
 //  void BPY_free_pyconstraint_links(struct Text *text);
 
 /* global interpreter lock */
@@ -68,6 +68,11 @@ void BPY_modules_update(void);
 void BPY_modules_load_user(struct bContext *C);
 
 void BPY_app_handlers_reset(bool do_all);
+
+/**
+ * Run on exit to free any cached data.
+ */
+void BPY_driver_exit(void);
 
 /**
  * Update function, it gets rid of python-drivers global dictionary: `bpy.app.driver_namespace`,

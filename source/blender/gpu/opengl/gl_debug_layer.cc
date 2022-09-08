@@ -10,8 +10,6 @@
 
 #include "BLI_utildefines.h"
 
-#include "glew-mx.h"
-
 #include "gl_debug.hh"
 
 using GPUvoidptr = void *;

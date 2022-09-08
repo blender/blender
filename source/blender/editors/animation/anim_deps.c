@@ -32,6 +32,7 @@
 #include "DEG_depsgraph.h"
 
 #include "RNA_access.h"
+#include "RNA_path.h"
 
 #include "SEQ_sequencer.h"
 #include "SEQ_utils.h"
@@ -356,7 +357,7 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
       if (ale->update & ANIM_UPDATE_HANDLES) {
         ale->update &= ~ANIM_UPDATE_HANDLES;
         if (fcu) {
-          calchandles_fcurve(fcu);
+          BKE_fcurve_handles_recalc(fcu);
         }
       }
 

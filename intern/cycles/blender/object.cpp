@@ -66,12 +66,6 @@ bool BlenderSync::object_is_geometry(BObjectInfo &b_ob_info)
     return true;
   }
 
-  /* Other object types that are not meshes but evaluate to meshes are presented to render engines
-   * as separate instance objects. Metaballs have not been affected by that change yet. */
-  if (type == BL::Object::type_META) {
-    return true;
-  }
-
   return b_ob_data.is_a(&RNA_Mesh);
 }
 
@@ -762,7 +756,7 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
       continue;
     }
 
-    VLOG(1) << "Synchronizing motion for the relative time " << relative_time << ".";
+    VLOG_WORK << "Synchronizing motion for the relative time " << relative_time << ".";
 
     /* fixed shutter time to get previous and next frame for motion pass */
     float shuttertime = scene->motion_shutter_time();

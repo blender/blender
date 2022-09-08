@@ -55,7 +55,6 @@
  *
  * To add a new formatter a new sub-class of `Formatter` must be created and the
  * `serialize`/`deserialize` methods should be implemented.
- *
  */
 
 #include <ostream>
@@ -110,7 +109,6 @@ using ArrayValue = ContainerValue<Vector<std::shared_ptr<Value>>, eValueType::Ar
  * - `DoubleValue`: contains a double precision floating point number.
  * - `DictionaryValue`: represents an object (key value pairs where keys are strings and values can
  *   be of different types.
- *
  */
 class Value {
  private:

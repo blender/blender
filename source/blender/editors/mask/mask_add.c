@@ -258,7 +258,7 @@ static bool add_vertex_subdivide(const bContext *C, Mask *mask, const float co[2
                                       &u,
                                       NULL)) {
     Scene *scene = CTX_data_scene(C);
-    const float ctime = CFRA;
+    const float ctime = scene->r.cfra;
 
     MaskSplinePoint *new_point;
     int point_index = point - spline->points;
@@ -295,7 +295,7 @@ static bool add_vertex_extrude(const bContext *C,
                                const float co[2])
 {
   Scene *scene = CTX_data_scene(C);
-  const float ctime = CFRA;
+  const float ctime = scene->r.cfra;
 
   MaskSpline *spline;
   MaskSplinePoint *point;
@@ -394,7 +394,7 @@ static bool add_vertex_extrude(const bContext *C,
 static bool add_vertex_new(const bContext *C, Mask *mask, MaskLayer *mask_layer, const float co[2])
 {
   Scene *scene = CTX_data_scene(C);
-  const float ctime = CFRA;
+  const float ctime = scene->r.cfra;
 
   MaskSpline *spline;
   MaskSplinePoint *new_point = NULL, *ref_point = NULL;
@@ -583,7 +583,7 @@ void MASK_OT_add_vertex(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = add_vertex_exec;
   ot->invoke = add_vertex_invoke;
-  ot->poll = ED_operator_mask;
+  ot->poll = ED_maskedit_visible_splines_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -862,7 +862,7 @@ void MASK_OT_primitive_circle_add(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = primitive_circle_add_exec;
   ot->invoke = primitive_add_invoke;
-  ot->poll = ED_operator_mask;
+  ot->poll = ED_maskedit_visible_splines_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -874,7 +874,7 @@ void MASK_OT_primitive_circle_add(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Primitive Add Suqare Operator
+/** \name Primitive Add Square Operator
  * \{ */
 
 static int primitive_square_add_exec(bContext *C, wmOperator *op)
@@ -897,7 +897,7 @@ void MASK_OT_primitive_square_add(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = primitive_square_add_exec;
   ot->invoke = primitive_add_invoke;
-  ot->poll = ED_operator_mask;
+  ot->poll = ED_maskedit_visible_splines_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

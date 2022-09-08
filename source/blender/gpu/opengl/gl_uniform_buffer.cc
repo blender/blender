@@ -5,14 +5,10 @@
  * \ingroup gpu
  */
 
-#include "BKE_global.h"
-
 #include "BLI_string.h"
 
-#include "gpu_backend.hh"
 #include "gpu_context_private.hh"
 
-#include "gl_backend.hh"
 #include "gl_debug.hh"
 #include "gl_uniform_buffer.hh"
 
@@ -69,11 +65,12 @@ void GLUniformBuf::update(const void *data)
 void GLUniformBuf::bind(int slot)
 {
   if (slot >= GLContext::max_ubo_binds) {
-    fprintf(stderr,
-            "Error: Trying to bind \"%s\" ubo to slot %d which is above the reported limit of %d.",
-            name_,
-            slot,
-            GLContext::max_ubo_binds);
+    fprintf(
+        stderr,
+        "Error: Trying to bind \"%s\" ubo to slot %d which is above the reported limit of %d.\n",
+        name_,
+        slot,
+        GLContext::max_ubo_binds);
     return;
   }
 

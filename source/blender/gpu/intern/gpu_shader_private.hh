@@ -55,8 +55,6 @@ class Shader {
   virtual void uniform_float(int location, int comp_len, int array_size, const float *data) = 0;
   virtual void uniform_int(int location, int comp_len, int array_size, const int *data) = 0;
 
-  virtual void vertformat_from_shader(GPUVertFormat *) const = 0;
-
   std::string defines_declare(const shader::ShaderCreateInfo &info) const;
   virtual std::string resources_declare(const shader::ShaderCreateInfo &info) const = 0;
   virtual std::string vertex_interface_declare(const shader::ShaderCreateInfo &info) const = 0;

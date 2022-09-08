@@ -62,7 +62,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   MirrorModifierData *mmd = (MirrorModifierData *)md;
   if (mmd->mirror_ob != NULL) {
     DEG_add_object_relation(ctx->node, mmd->mirror_ob, DEG_OB_COMP_TRANSFORM, "Mirror Modifier");
-    DEG_add_modifier_to_transform_relation(ctx->node, "Mirror Modifier");
+    DEG_add_depends_on_transform_relation(ctx->node, "Mirror Modifier");
   }
 }
 
@@ -204,7 +204,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Mirror = {
-    /* name */ "Mirror",
+    /* name */ N_("Mirror"),
     /* structName */ "MirrorModifierData",
     /* structSize */ sizeof(MirrorModifierData),
     /* srna */ &RNA_MirrorModifier,

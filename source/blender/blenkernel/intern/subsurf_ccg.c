@@ -284,7 +284,8 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
    * UV map in really simple cases with mirror + subsurf, see second part of T44530.
    * Also, initially intention is to treat merged vertices from mirror modifier as seams.
    * This fixes a very old regression (2.49 was correct here) */
-  vmap = BKE_mesh_uv_vert_map_create(mpoly, mloop, mloopuv, totface, totvert, limit, false, true);
+  vmap = BKE_mesh_uv_vert_map_create(
+      mpoly, NULL, mloop, mloopuv, totface, totvert, limit, false, true);
   if (!vmap) {
     return 0;
   }
@@ -1133,14 +1134,12 @@ static void ccgDM_copyFinalPolyArray(DerivedMesh *dm, MPoly *mpoly)
     CCGFace *f = ccgdm->faceMap[index].face;
     int x, y, S, numVerts = ccgSubSurf_getFaceNumVerts(f);
     int flag = (faceFlags) ? faceFlags[index].flag : ME_SMOOTH;
-    int mat_nr = (faceFlags) ? faceFlags[index].mat_nr : 0;
 
     for (S = 0; S < numVerts; S++) {
       for (y = 0; y < gridSize - 1; y++) {
         for (x = 0; x < gridSize - 1; x++) {
           MPoly *mp = &mpoly[i];
 
-          mp->mat_nr = mat_nr;
           mp->flag = flag;
           mp->loopstart = k;
           mp->totloop = 4;
@@ -1247,7 +1246,7 @@ static void *ccgDM_get_vert_data_layer(DerivedMesh *dm, int type)
     BLI_rw_mutex_lock(&ccgdm->origindex_cache_rwlock, THREAD_LOCK_WRITE);
 
     origindex = CustomData_add_layer(
-        &dm->vertData, CD_ORIGINDEX, CD_CALLOC, NULL, dm->numVertData);
+        &dm->vertData, CD_ORIGINDEX, CD_SET_DEFAULT, NULL, dm->numVertData);
 
     totorig = ccgSubSurf_getNumVerts(ss);
     totnone = dm->numVertData - totorig;
@@ -1286,7 +1285,7 @@ static void *ccgDM_get_edge_data_layer(DerivedMesh *dm, int type)
     }
 
     origindex = CustomData_add_layer(
-        &dm->edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, dm->numEdgeData);
+        &dm->edgeData, CD_ORIGINDEX, CD_SET_DEFAULT, NULL, dm->numEdgeData);
 
     totedge = ccgSubSurf_getNumEdges(ss);
     totorig = totedge * (edgeSize - 1);
@@ -1329,7 +1328,7 @@ static void *ccgDM_get_poly_data_layer(DerivedMesh *dm, int type)
     }
 
     origindex = CustomData_add_layer(
-        &dm->polyData, CD_ORIGINDEX, CD_CALLOC, NULL, dm->numPolyData);
+        &dm->polyData, CD_ORIGINDEX, CD_SET_DEFAULT, NULL, dm->numPolyData);
 
     totface = ccgSubSurf_getNumFaces(ss);
 
@@ -1599,13 +1598,15 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
   gridSize = ccgSubSurf_getGridSize(ss);
   gridFaces = gridSize - 1;
   gridCuts = gridSize - 2;
-  /*gridInternalVerts = gridSideVerts * gridSideVerts; - as yet, unused */
+  // gridInternalVerts = gridSideVerts * gridSideVerts; /* As yet, unused. */
   gridSideEdges = gridSize - 1;
   gridInternalEdges = (gridSideEdges - 1) * gridSideEdges * 2;
 
   medge = dm->getEdgeArray(dm);
 
   const MPoly *mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
+  const int *material_indices = CustomData_get_layer_named(
+      &dm->polyData, CD_MPOLY, "material_index");
   const int *base_polyOrigIndex = CustomData_get_layer(&dm->polyData, CD_ORIGINDEX);
 
   int *vertOrigIndex = DM_get_vert_data_layer(&ccgdm->dm, CD_ORIGINDEX);
@@ -1634,7 +1635,7 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
     ccgdm->faceMap[index].startFace = faceNum;
 
     faceFlags->flag = mpoly ? mpoly[origIndex].flag : 0;
-    faceFlags->mat_nr = mpoly ? mpoly[origIndex].mat_nr : 0;
+    faceFlags->mat_nr = material_indices ? material_indices[origIndex] : 0;
     faceFlags++;
 
     /* set the face base vert */

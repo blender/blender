@@ -89,6 +89,10 @@ void DRW_volume_free(void)
 
 static GPUTexture *grid_default_texture(eGPUDefaultValue default_value)
 {
+  if (g_data.dummy_one == nullptr) {
+    drw_volume_globals_init();
+  }
+
   switch (default_value) {
     case GPU_DEFAULT_0:
       return g_data.dummy_zero;

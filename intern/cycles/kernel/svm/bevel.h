@@ -103,7 +103,7 @@ ccl_device float3 svm_bevel(
     return sd->N;
   }
 
-  /* Can't raytrace from shaders like displacement, before BVH exists. */
+  /* Can't ray-trace from shaders like displacement, before BVH exists. */
   if (kernel_data.bvh.bvh_layout == BVH_LAYOUT_NONE) {
     return sd->N;
   }
@@ -128,8 +128,8 @@ ccl_device float3 svm_bevel(
   path_state_rng_load(state, &rng_state);
 
   for (int sample = 0; sample < num_samples; sample++) {
-    float disk_u, disk_v;
-    path_branched_rng_2D(kg, &rng_state, sample, num_samples, PRNG_BEVEL_U, &disk_u, &disk_v);
+    float2 rand_disk = path_branched_rng_2D(
+        kg, &rng_state, sample, num_samples, PRNG_SURFACE_BEVEL);
 
     /* Pick random axis in local frame and point on disk. */
     float3 disk_N, disk_T, disk_B;
@@ -138,13 +138,13 @@ ccl_device float3 svm_bevel(
     disk_N = sd->Ng;
     make_orthonormals(disk_N, &disk_T, &disk_B);
 
-    float axisu = disk_u;
+    float axisu = rand_disk.x;
 
     if (axisu < 0.5f) {
       pick_pdf_N = 0.5f;
       pick_pdf_T = 0.25f;
       pick_pdf_B = 0.25f;
-      disk_u *= 2.0f;
+      rand_disk.x *= 2.0f;
     }
     else if (axisu < 0.75f) {
       float3 tmp = disk_N;
@@ -153,7 +153,7 @@ ccl_device float3 svm_bevel(
       pick_pdf_N = 0.25f;
       pick_pdf_T = 0.5f;
       pick_pdf_B = 0.25f;
-      disk_u = (disk_u - 0.5f) * 4.0f;
+      rand_disk.x = (rand_disk.x - 0.5f) * 4.0f;
     }
     else {
       float3 tmp = disk_N;
@@ -162,12 +162,12 @@ ccl_device float3 svm_bevel(
       pick_pdf_N = 0.25f;
       pick_pdf_T = 0.25f;
       pick_pdf_B = 0.5f;
-      disk_u = (disk_u - 0.75f) * 4.0f;
+      rand_disk.x = (rand_disk.x - 0.75f) * 4.0f;
     }
 
     /* Sample point on disk. */
-    float phi = M_2PI_F * disk_u;
-    float disk_r = disk_v;
+    float phi = M_2PI_F * rand_disk.x;
+    float disk_r = rand_disk.y;
     float disk_height;
 
     /* Perhaps find something better than Cubic BSSRDF, but happens to work well. */
@@ -179,7 +179,8 @@ ccl_device float3 svm_bevel(
     Ray ray ccl_optional_struct_init;
     ray.P = sd->P + disk_N * disk_height + disk_P;
     ray.D = -disk_N;
-    ray.t = 2.0f * disk_height;
+    ray.tmin = 0.0f;
+    ray.tmax = 2.0f * disk_height;
     ray.dP = differential_zero_compact();
     ray.dD = differential_zero_compact();
     ray.time = sd->time;
@@ -222,7 +223,7 @@ ccl_device float3 svm_bevel(
       /* Get geometric normal. */
       float3 hit_Ng = isect.Ng[hit];
       int object = isect.hits[hit].object;
-      int object_flag = kernel_tex_fetch(__object_flag, object);
+      int object_flag = kernel_data_fetch(object_flag, object);
       if (object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED) {
         hit_Ng = -hit_Ng;
       }
@@ -230,7 +231,7 @@ ccl_device float3 svm_bevel(
       /* Compute smooth normal. */
       float3 N = hit_Ng;
       int prim = isect.hits[hit].prim;
-      int shader = kernel_tex_fetch(__tri_shader, prim);
+      int shader = kernel_data_fetch(tri_shader, prim);
 
       if (shader & SHADER_SMOOTH_NORMAL) {
         float u = isect.hits[hit].u;

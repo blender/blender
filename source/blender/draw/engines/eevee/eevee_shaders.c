@@ -181,6 +181,7 @@ extern char datatoc_closure_type_lib_glsl[];
 extern char datatoc_closure_eval_volume_lib_glsl[];
 extern char datatoc_common_uniforms_lib_glsl[];
 extern char datatoc_common_utiltex_lib_glsl[];
+extern char datatoc_cryptomatte_lib_glsl[];
 extern char datatoc_cryptomatte_frag_glsl[];
 extern char datatoc_cryptomatte_vert_glsl[];
 extern char datatoc_cubemap_lib_glsl[];
@@ -304,6 +305,7 @@ static void eevee_shader_library_ensure(void)
     DRW_SHADER_LIB_ADD(e_data.lib, closure_eval_refraction_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, closure_eval_surface_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, closure_eval_volume_lib);
+    DRW_SHADER_LIB_ADD(e_data.lib, cryptomatte_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, surface_vert);
 
     e_data.surface_lit_frag = DRW_shader_library_create_shader_string(e_data.lib,
@@ -1190,8 +1192,8 @@ Material *EEVEE_material_default_diffuse_get(void)
   if (!e_data.diffuse_mat) {
     Material *ma = BKE_id_new_nomain(ID_MA, "EEVEEE default diffuse");
 
-    bNodeTree *ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
-    ma->nodetree = ntree;
+    bNodeTree *ntree = ntreeAddTreeEmbedded(
+        NULL, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
     ma->use_nodes = true;
 
     bNode *bsdf = nodeAddStaticNode(NULL, ntree, SH_NODE_BSDF_DIFFUSE);
@@ -1217,8 +1219,8 @@ Material *EEVEE_material_default_glossy_get(void)
   if (!e_data.glossy_mat) {
     Material *ma = BKE_id_new_nomain(ID_MA, "EEVEEE default metal");
 
-    bNodeTree *ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
-    ma->nodetree = ntree;
+    bNodeTree *ntree = ntreeAddTreeEmbedded(
+        NULL, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
     ma->use_nodes = true;
 
     bNode *bsdf = nodeAddStaticNode(NULL, ntree, SH_NODE_BSDF_GLOSSY);
@@ -1246,8 +1248,8 @@ Material *EEVEE_material_default_error_get(void)
   if (!e_data.error_mat) {
     Material *ma = BKE_id_new_nomain(ID_MA, "EEVEEE default error");
 
-    bNodeTree *ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
-    ma->nodetree = ntree;
+    bNodeTree *ntree = ntreeAddTreeEmbedded(
+        NULL, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
     ma->use_nodes = true;
 
     /* Use emission and output material to be compatible with both World and Material. */

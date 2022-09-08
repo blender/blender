@@ -290,6 +290,18 @@ static PyObject *matrix__apply_to_copy(PyObject *(*matrix_func)(MatrixObject *),
   return NULL;
 }
 
+static bool matrix_is_identity(MatrixObject *self)
+{
+  for (int row = 0; row < self->row_num; row++) {
+    for (int col = 0; col < self->col_num; col++) {
+      if (MATRIX_ITEM(self, row, col) != ((row != col) ? 0.0f : 1.0f)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1232,12 +1244,11 @@ static PyObject *Matrix_to_quaternion(MatrixObject *self)
     return NULL;
   }
   if (self->row_num == 3) {
-    mat3_to_quat(quat, (float(*)[3])self->matrix);
+    mat3_to_quat(quat, (const float(*)[3])self->matrix);
   }
   else {
     mat4_to_quat(quat, (const float(*)[4])self->matrix);
   }
-
   return Quaternion_CreatePyObject(quat, NULL);
 }
 
@@ -1876,7 +1887,7 @@ static PyObject *Matrix_decompose(MatrixObject *self)
   }
 
   mat4_to_loc_rot_size(loc, rot, size, (const float(*)[4])self->matrix);
-  mat3_to_quat(quat, rot);
+  mat3_normalized_to_quat_fast(quat, rot);
 
   ret = PyTuple_New(3);
   PyTuple_SET_ITEMS(ret,
@@ -3104,6 +3115,16 @@ static PyObject *Matrix_median_scale_get(MatrixObject *self, void *UNUSED(closur
   return PyFloat_FromDouble(mat3_to_scale(mat));
 }
 
+PyDoc_STRVAR(Matrix_is_identity_doc,
+             "True if this is an identity matrix (read-only).\n\n:type: bool");
+static PyObject *Matrix_is_identity_get(MatrixObject *self, void *UNUSED(closure))
+{
+  if (BaseMath_ReadCallback(self) == -1) {
+    return NULL;
+  }
+  return PyBool_FromLong(matrix_is_identity(self));
+}
+
 PyDoc_STRVAR(Matrix_is_negative_doc,
              "True if this matrix results in a negative scale, 3x3 and 4x4 only, "
              "(read-only).\n\n:type: bool");
@@ -3187,6 +3208,7 @@ static PyGetSetDef Matrix_getseters[] = {
      NULL},
     {"row", (getter)Matrix_row_get, (setter)NULL, Matrix_row_doc, NULL},
     {"col", (getter)Matrix_col_get, (setter)NULL, Matrix_col_doc, NULL},
+    {"is_identity", (getter)Matrix_is_identity_get, (setter)NULL, Matrix_is_identity_doc, NULL},
     {"is_negative", (getter)Matrix_is_negative_get, (setter)NULL, Matrix_is_negative_doc, NULL},
     {"is_orthogonal",
      (getter)Matrix_is_orthogonal_get,

@@ -292,7 +292,7 @@ static void gpencil_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
   Brush *brush = tgpi->brush;
-  int cfra = CFRA;
+  int cfra = scene->r.cfra;
 
   bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
 
@@ -1024,8 +1024,10 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
         gpd->runtime.sbuffer, &gpd->runtime.sbuffer_size, &gpd->runtime.sbuffer_used, false);
 
     /* add small offset to keep stroke over the surface */
-    if ((depth_arr) && (gpd->zdepth_offset > 0.0f) && (depth_arr[i] != DEPTH_INVALID)) {
-      depth_arr[i] *= (1.0f - (gpd->zdepth_offset / 1000.0f));
+    if (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_VIEW) {
+      if ((depth_arr) && (gpd->zdepth_offset > 0.0f) && (depth_arr[i] != DEPTH_INVALID)) {
+        depth_arr[i] *= (1.0f - (gpd->zdepth_offset / 1000.0f));
+      }
     }
 
     /* convert screen-coordinates to 3D coordinates */
@@ -1107,7 +1109,7 @@ static void gpencil_primitive_update(bContext *C, wmOperator *op, tGPDprimitive 
 /* Initialize mouse points. */
 static void gpencil_primitive_interaction_begin(tGPDprimitive *tgpi, const wmEvent *event)
 {
-  copy_v2fl_v2i(tgpi->mval, event->mval);
+  WM_event_drag_start_mval_fl(event, tgpi->region, tgpi->mval);
   copy_v2_v2(tgpi->origin, tgpi->mval);
   copy_v2_v2(tgpi->start, tgpi->mval);
   copy_v2_v2(tgpi->end, tgpi->mval);
@@ -1195,7 +1197,7 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
   tgpi->orign_type = RNA_enum_get(op->ptr, "type");
 
   /* set current frame number */
-  tgpi->cframe = CFRA;
+  tgpi->cframe = scene->r.cfra;
 
   /* set GP datablock */
   tgpi->gpd = gpd;

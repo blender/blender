@@ -491,8 +491,8 @@ static void generate_margin(ImBuf *ibuf,
                             const float uv_offset[2])
 {
 
-  MPoly *mpoly;
-  MLoop *mloop;
+  const MPoly *mpoly;
+  const MLoop *mloop;
   const MLoopUV *mloopuv;
   int totpoly, totloop, totedge;
 
@@ -505,8 +505,8 @@ static void generate_margin(ImBuf *ibuf,
     totpoly = me->totpoly;
     totloop = me->totloop;
     totedge = me->totedge;
-    mpoly = me->mpoly;
-    mloop = me->mloop;
+    mpoly = me->polys().data();
+    mloop = me->loops().data();
 
     if ((uv_layer == nullptr) || (uv_layer[0] == '\0')) {
       mloopuv = static_cast<const MLoopUV *>(CustomData_get_layer(&me->ldata, CD_MLOOPUV));
@@ -520,7 +520,7 @@ static void generate_margin(ImBuf *ibuf,
     tottri = poly_to_tri_count(me->totpoly, me->totloop);
     looptri_mem = static_cast<MLoopTri *>(MEM_mallocN(sizeof(*looptri) * tottri, __func__));
     BKE_mesh_recalc_looptri(
-        me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, looptri_mem);
+        mloop, mpoly, me->verts().data(), me->totloop, me->totpoly, looptri_mem);
     looptri = looptri_mem;
   }
   else {
@@ -558,8 +558,8 @@ static void generate_margin(ImBuf *ibuf,
     for (int a = 0; a < 3; a++) {
       const float *uv = mloopuv[lt->tri[a]].uv;
 
-      /* NOTE(campbell): workaround for pixel aligned UVs which are common and can screw up our
-       * intersection tests where a pixel gets in between 2 faces or the middle of a quad,
+      /* NOTE(@campbellbarton): workaround for pixel aligned UVs which are common and can screw up
+       * our intersection tests where a pixel gets in between 2 faces or the middle of a quad,
        * camera aligned quads also have this problem but they are less common.
        * Add a small offset to the UVs, fixes bug T18685. */
       vec[a][0] = (uv[0] - uv_offset[0]) * (float)ibuf->x - (0.5f + 0.001f);

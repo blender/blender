@@ -186,7 +186,7 @@ static void info_header_region_draw(const bContext *C, ARegion *region)
 static void info_main_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -202,7 +202,7 @@ static void info_main_region_listener(const wmRegionListenerParams *params)
 static void info_header_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {

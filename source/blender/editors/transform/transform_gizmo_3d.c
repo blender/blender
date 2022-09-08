@@ -639,7 +639,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
                                  (params->orientation_index - 1) :
                                  BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
 
-  Object *ob = OBACT(view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);
   if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
     Object *obpose = BKE_object_pose_armature_get(ob);
@@ -1014,8 +1014,8 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
   else {
 
     /* we need the one selected object, if its not active */
-    base = BASACT(view_layer);
-    ob = OBACT(view_layer);
+    base = view_layer->basact;
+    ob = BKE_view_layer_active_object_get(view_layer);
     if (base && ((base->flag & BASE_SELECTED) == 0)) {
       ob = NULL;
     }
@@ -1103,7 +1103,7 @@ static void gizmo_prepare_mat(const bContext *C,
           /* pass */
         }
         else {
-          Object *ob = OBACT(view_layer);
+          Object *ob = BKE_view_layer_active_object_get(view_layer);
           if (ob != NULL) {
             if ((ob->mode & OB_MODE_ALL_SCULPT) && ob->sculpt) {
               SculptSession *ss = ob->sculpt;

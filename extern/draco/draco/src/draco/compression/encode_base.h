@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef DRACO_SRC_DRACO_COMPRESSION_ENCODE_BASE_H_
-#define DRACO_SRC_DRACO_COMPRESSION_ENCODE_BASE_H_
+#ifndef DRACO_COMPRESSION_ENCODE_BASE_H_
+#define DRACO_COMPRESSION_ENCODE_BASE_H_
 
 #include "draco/attributes/geometry_attribute.h"
 #include "draco/compression/config/compression_shared.h"
@@ -98,7 +98,7 @@ class EncoderBase {
                       "Invalid prediction scheme for attribute type.");
       }
     }
-    // TODO(hemmer): Try to enable more prediction schemes for normals.
+    // TODO(b/199760123): Try to enable more prediction schemes for normals.
     if (att_type == GeometryAttribute::NORMAL) {
       if (!(prediction_scheme == PREDICTION_DIFFERENCE ||
             prediction_scheme == MESH_PREDICTION_GEOMETRIC_NORMAL)) {
@@ -128,4 +128,4 @@ void EncoderBase<EncoderOptionsT>::SetTrackEncodedProperties(bool flag) {
 
 }  // namespace draco
 
-#endif  // DRACO_SRC_DRACO_COMPRESSION_ENCODE_BASE_H_
+#endif  // DRACO_COMPRESSION_ENCODE_BASE_H_

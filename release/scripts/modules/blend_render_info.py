@@ -93,6 +93,11 @@ def _read_blend_rend_chunk_from_file(blendfile, filepath):
             break
 
         sizeof_data_left = struct.unpack('>i' if is_big_endian else '<i', blendfile.read(4))[0]
+        if sizeof_data_left < 0:
+            # Very unlikely, but prevent other errors.
+            sys.stderr.write("Negative block size found (corrupt file): %s\n" % filepath)
+            break
+
         # 4 from the `head_id`, another 4 for the size of the BHEAD.
         sizeof_bhead_left = sizeof_bhead - 8
 

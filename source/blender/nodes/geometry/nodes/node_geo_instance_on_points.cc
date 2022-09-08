@@ -50,14 +50,14 @@ static void add_instances_from_component(
     const Map<AttributeIDRef, AttributeKind> &attributes_to_propagate)
 {
   const eAttrDomain domain = ATTR_DOMAIN_POINT;
-  const int domain_num = src_component.attribute_domain_num(domain);
+  const int domain_num = src_component.attribute_domain_size(domain);
 
   VArray<bool> pick_instance;
   VArray<int> indices;
   VArray<float3> rotations;
   VArray<float3> scales;
 
-  GeometryComponentFieldContext field_context{src_component, domain};
+  bke::GeometryFieldContext field_context{src_component, domain};
   const Field<bool> selection_field = params.get_input<Field<bool>>("Selection");
   fn::FieldEvaluator evaluator{field_context, domain_num};
   evaluator.set_selection(selection_field);
@@ -70,6 +70,9 @@ static void add_instances_from_component(
   evaluator.evaluate();
 
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+  if (selection.is_empty()) {
+    return;
+  }
 
   /* The initial size of the component might be non-zero when this function is called for multiple
    * component types. */
@@ -82,7 +85,7 @@ static void add_instances_from_component(
   MutableSpan<float4x4> dst_transforms = dst_component.instance_transforms().slice(start_len,
                                                                                    select_len);
 
-  VArray<float3> positions = src_component.attribute_get_for_read<float3>(
+  VArray<float3> positions = src_component.attributes()->lookup_or_default<float3>(
       "position", domain, {0, 0, 0});
 
   const InstancesComponent *src_instances = instance.get_component_for_read<InstancesComponent>();
@@ -154,12 +157,12 @@ static void add_instances_from_component(
     }
   }
 
-  bke::CustomDataAttributes &instance_attributes = dst_component.attributes();
+  bke::CustomDataAttributes &instance_attributes = dst_component.instance_attributes();
   for (const auto item : attributes_to_propagate.items()) {
     const AttributeIDRef &attribute_id = item.key;
     const AttributeKind attribute_kind = item.value;
 
-    const GVArray src_attribute = src_component.attribute_get_for_read(
+    const GVArray src_attribute = src_component.attributes()->lookup_or_default(
         attribute_id, ATTR_DOMAIN_POINT, attribute_kind.data_type);
     BLI_assert(src_attribute);
     std::optional<GMutableSpan> dst_attribute_opt = instance_attributes.get_for_write(
@@ -213,7 +216,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       }
     }
 
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
+    geometry_set.remove_geometry_during_modify();
   });
 
   /* Unused references may have been added above. Remove those now so that other nodes don't

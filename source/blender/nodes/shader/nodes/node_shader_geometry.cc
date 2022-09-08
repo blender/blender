@@ -29,10 +29,9 @@ static int node_shader_gpu_geometry(GPUMaterial *mat,
   if (out[5].hasoutput) {
     GPU_material_flag_set(mat, GPU_MATFLAG_BARYCENTRIC);
   }
-  /* Opti: don't request orco if not needed. */
+  /* Optimization: don't request orco if not needed. */
   const float val[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  GPUNodeLink *orco_link = (!out[2].hasoutput) ? GPU_constant(val) :
-                                                 GPU_attribute(mat, CD_ORCO, "");
+  GPUNodeLink *orco_link = out[2].hasoutput ? GPU_attribute(mat, CD_ORCO, "") : GPU_constant(val);
 
   const bool success = GPU_stack_link(mat, node, "node_geometry", in, out, orco_link);
 

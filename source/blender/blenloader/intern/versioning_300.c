@@ -30,6 +30,7 @@
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_lineart_types.h"
 #include "DNA_listBase.h"
+#include "DNA_mask_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
@@ -45,6 +46,7 @@
 #include "BKE_asset.h"
 #include "BKE_attribute.h"
 #include "BKE_collection.h"
+#include "BKE_colortools.h"
 #include "BKE_curve.h"
 #include "BKE_data_transfer.h"
 #include "BKE_deform.h"
@@ -55,6 +57,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_screen.h"
@@ -406,7 +409,7 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
           v->speed_control_type = SEQ_SPEED_MULTIPLY;
           v->speed_fader = globalSpeed *
                            ((float)seq->seq1->len /
-                            max_ff((float)(SEQ_time_right_handle_frame_get(seq->seq1) -
+                            max_ff((float)(SEQ_time_right_handle_frame_get(scene, seq->seq1) -
                                            seq->seq1->start),
                                    1.0f));
         }
@@ -591,6 +594,39 @@ static bNodeTree *add_realize_node_tree(Main *bmain)
 
   version_socket_update_is_used(node_tree);
   return node_tree;
+}
+
+static void seq_speed_factor_fix_rna_path(Sequence *seq, ListBase *fcurves)
+{
+  char name_esc[(sizeof(seq->name) - 2) * 2];
+  BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
+  char *path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].pitch", name_esc);
+  FCurve *fcu = BKE_fcurve_find(fcurves, path, 0);
+  if (fcu != NULL) {
+    MEM_freeN(fcu->rna_path);
+    fcu->rna_path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].speed_factor", name_esc);
+  }
+  MEM_freeN(path);
+}
+
+static bool seq_speed_factor_set(Sequence *seq, void *user_data)
+{
+  const Scene *scene = user_data;
+  if (seq->type == SEQ_TYPE_SOUND_RAM) {
+    /* Move `pitch` animation to `speed_factor` */
+    if (scene->adt && scene->adt->action) {
+      seq_speed_factor_fix_rna_path(seq, &scene->adt->action->curves);
+    }
+    if (scene->adt && !BLI_listbase_is_empty(&scene->adt->drivers)) {
+      seq_speed_factor_fix_rna_path(seq, &scene->adt->drivers);
+    }
+
+    seq->speed_factor = seq->pitch;
+  }
+  else {
+    seq->speed_factor = 1.0f;
+  }
+  return true;
 }
 
 void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
@@ -796,13 +832,16 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
             continue;
           }
           SpaceSeq *sseq = (SpaceSeq *)sl;
+          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
           sseq->flag |= SEQ_CLAMP_VIEW;
 
           if (ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW)) {
             continue;
           }
 
-          ARegion *timeline_region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+          ARegion *timeline_region = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                         RGN_TYPE_WINDOW);
 
           if (timeline_region == NULL) {
             continue;
@@ -814,6 +853,45 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
       }
     }
   }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 303, 5)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      if (ed == NULL) {
+        continue;
+      }
+      SEQ_for_each_callback(&ed->seqbase, seq_speed_factor_set, scene);
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 303, 6)) {
+    /* In the Dope Sheet, for every mode other than Timeline, open the Properties panel. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype != SPACE_ACTION) {
+            continue;
+          }
+
+          /* Skip the timeline, it shouldn't get its Properties panel opened. */
+          SpaceAction *saction = (SpaceAction *)sl;
+          if (saction->mode == SACTCONT_TIMELINE) {
+            continue;
+          }
+
+          const bool is_first_space = sl == area->spacedata.first;
+          ListBase *regionbase = is_first_space ? &area->regionbase : &sl->regionbase;
+          ARegion *region = BKE_region_find_in_listbase_by_type(regionbase, RGN_TYPE_UI);
+          if (region == NULL) {
+            continue;
+          }
+
+          region->flag &= ~RGN_FLAG_HIDDEN;
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -1619,6 +1697,52 @@ static void versioning_replace_legacy_combined_and_separate_color_nodes(bNodeTre
   }
 }
 
+static void versioning_replace_legacy_mix_rgb_node(bNodeTree *ntree)
+{
+  version_node_input_socket_name(ntree, SH_NODE_MIX_RGB_LEGACY, "Fac", "Factor_Float");
+  version_node_input_socket_name(ntree, SH_NODE_MIX_RGB_LEGACY, "Color1", "A_Color");
+  version_node_input_socket_name(ntree, SH_NODE_MIX_RGB_LEGACY, "Color2", "B_Color");
+  version_node_output_socket_name(ntree, SH_NODE_MIX_RGB_LEGACY, "Color", "Result_Color");
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type == SH_NODE_MIX_RGB_LEGACY) {
+      strcpy(node->idname, "ShaderNodeMix");
+      node->type = SH_NODE_MIX;
+      NodeShaderMix *data = (NodeShaderMix *)MEM_callocN(sizeof(NodeShaderMix), __func__);
+      data->blend_type = node->custom1;
+      data->clamp_result = node->custom2;
+      data->clamp_factor = 1;
+      data->data_type = SOCK_RGBA;
+      data->factor_mode = NODE_MIX_MODE_UNIFORM;
+      node->storage = data;
+    }
+  }
+}
+
+static void version_fix_image_format_copy(Main *bmain, ImageFormatData *format)
+{
+  /* Fix bug where curves in image format were not properly copied to file output
+   * node, incorrectly sharing a pointer with the scene settings. Copy the data
+   * structure now as it should have been done in the first place. */
+  if (format->view_settings.curve_mapping) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (format != &scene->r.im_format && ELEM(format->view_settings.curve_mapping,
+                                                scene->view_settings.curve_mapping,
+                                                scene->r.im_format.view_settings.curve_mapping)) {
+        format->view_settings.curve_mapping = BKE_curvemapping_copy(
+            format->view_settings.curve_mapping);
+        break;
+      }
+    }
+
+    /* Remove any invalid curves with missing data. */
+    if (format->view_settings.curve_mapping->cm[0].curve == NULL) {
+      BKE_curvemapping_free(format->view_settings.curve_mapping);
+      format->view_settings.curve_mapping = NULL;
+      format->view_settings.flag &= ~COLORMANAGE_VIEW_USE_CURVES;
+    }
+  }
+}
+
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
@@ -1943,7 +2067,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
   /* Font names were copied directly into ID names, see: T90417. */
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 16)) {
     ListBase *lb = which_libbase(bmain, ID_VF);
-    BKE_main_id_repair_duplicate_names_listbase(lb);
+    BKE_main_id_repair_duplicate_names_listbase(bmain, lb);
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 17)) {
@@ -2842,16 +2966,19 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
           ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
                                                                  &sl->regionbase;
-          ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_CHANNELS);
+          ARegion *region = BKE_region_find_in_listbase_by_type(regionbase, RGN_TYPE_CHANNELS);
           if (!region) {
-            ARegion *tools_region = BKE_area_find_region_type(area, RGN_TYPE_TOOLS);
+            /* Find sequencer tools region. */
+            ARegion *tools_region = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                        RGN_TYPE_TOOLS);
             region = do_versions_add_region(RGN_TYPE_CHANNELS, "channels region");
             BLI_insertlinkafter(regionbase, tools_region, region);
             region->alignment = RGN_ALIGN_LEFT;
             region->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
           }
 
-          ARegion *timeline_region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+          ARegion *timeline_region = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                         RGN_TYPE_WINDOW);
           if (timeline_region != NULL) {
             timeline_region->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
           }
@@ -3025,6 +3152,13 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 302, 14)) {
+    /* Compensate for previously wrong squared distance. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      scene->r.bake.max_ray_distance = sasqrt(scene->r.bake.max_ray_distance);
+    }
+  }
+
   if (!MAIN_VERSION_ATLEAST(bmain, 303, 1)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       versioning_replace_legacy_combined_and_separate_color_nodes(ntree);
@@ -3082,6 +3216,123 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (GpencilModifierData *, gpd, &ob->greasepencil_modifiers) {
+        if (gpd->type == eGpencilModifierType_Lineart) {
+          LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)gpd;
+          lmd->shadow_camera_near = 0.1f;
+          lmd->shadow_camera_far = 200.0f;
+          lmd->shadow_camera_size = 200.0f;
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 303, 2)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_CLIP) {
+            ((SpaceClip *)sl)->mask_info.blend_factor = 1.0;
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 303, 3)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_CLIP) {
+            ((SpaceClip *)sl)->mask_info.draw_flag |= MASK_DRAWFLAG_SPLINE;
+          }
+          else if (sl->spacetype == SPACE_IMAGE) {
+            ((SpaceImage *)sl)->mask_info.draw_flag |= MASK_DRAWFLAG_SPLINE;
+          }
+        }
+      }
+    }
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *tool_settings = scene->toolsettings;
+      /* Zero isn't a valid value, use for versioning. */
+      if (tool_settings->snap_face_nearest_steps == 0) {
+        /* Minimum of snap steps for face nearest is 1. */
+        tool_settings->snap_face_nearest_steps = 1;
+        /* Set snap to edited and non-edited as default. */
+        tool_settings->snap_flag |= SCE_SNAP_TO_INCLUDE_EDITED | SCE_SNAP_TO_INCLUDE_NONEDITED;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 303, 4)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == CMP_NODE_OUTPUT_FILE) {
+            LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+              if (sock->storage) {
+                NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
+                version_fix_image_format_copy(bmain, &sockdata->format);
+              }
+            }
+
+            if (node->storage) {
+              NodeImageMultiFile *nimf = (NodeImageMultiFile *)node->storage;
+              version_fix_image_format_copy(bmain, &nimf->format);
+            }
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      version_fix_image_format_copy(bmain, &scene->r.im_format);
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 303, 5)) {
+    /* Fix for T98925 - remove channels region, that was initialized in incorrect editor types. */
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (ELEM(sl->spacetype, SPACE_ACTION, SPACE_CLIP, SPACE_GRAPH, SPACE_NLA, SPACE_SEQ)) {
+            continue;
+          }
+
+          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
+          ARegion *channels_region = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                         RGN_TYPE_CHANNELS);
+          if (channels_region) {
+            BLI_freelinkN(regionbase, channels_region);
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 303, 6)) {
+    /* Initialize brush curves sculpt settings. */
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->ob_mode != OB_MODE_SCULPT_CURVES) {
+        continue;
+      }
+      brush->curves_sculpt_settings->density_add_attempts = 100;
+    }
+
+    /* Disable 'show_bounds' option of curve objects. Option was set as there was no object mode
+     * outline implementation. See T95933. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      if (ob->type == OB_CURVES) {
+        ob->dtx &= ~OB_DRAWBOUNDOX;
+      }
+    }
+
+    BKE_main_namemap_validate_and_fix(bmain);
   }
 
   /**
@@ -3095,5 +3346,27 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Image generation information transferred to tiles. */
+    if (!DNA_struct_elem_find(fd->filesdna, "ImageTile", "int", "gen_x")) {
+      for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
+        for (ImageTile *tile = ima->tiles.first; tile; tile = tile->next) {
+          tile->gen_x = ima->gen_x;
+          tile->gen_y = ima->gen_y;
+          tile->gen_type = ima->gen_type;
+          tile->gen_flag = ima->gen_flag;
+          tile->gen_depth = ima->gen_depth;
+          copy_v4_v4(tile->gen_color, ima->gen_color);
+        }
+      }
+    }
+
+    /* Convert mix rgb node to new mix node and add storage. */
+    {
+      FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+        versioning_replace_legacy_mix_rgb_node(ntree);
+      }
+      FOREACH_NODETREE_END;
+    }
   }
 }

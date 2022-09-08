@@ -26,6 +26,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_linestyle.h"
 #include "BKE_node.h"
@@ -71,7 +72,7 @@ static void shader_get_from_context(const bContext *C,
   SpaceNode *snode = CTX_wm_space_node(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = OBACT(view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   if (snode->shaderfrom == SNODE_SHADER_OBJECT) {
     if (ob) {
@@ -166,6 +167,7 @@ void register_node_tree_type_sh()
 
   tt->type = NTREE_SHADER;
   strcpy(tt->idname, "ShaderNodeTree");
+  strcpy(tt->group_idname, "ShaderNodeGroup");
   strcpy(tt->ui_name, N_("Shader Editor"));
   tt->ui_icon = ICON_NODE_MATERIAL;
   strcpy(tt->ui_description, N_("Shader nodes"));
@@ -616,7 +618,7 @@ static bool ntree_shader_implicit_closure_cast(bNodeTree *ntree)
   bool modified = false;
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
     if ((link->fromsock->type != SOCK_SHADER) && (link->tosock->type == SOCK_SHADER)) {
-      bNode *emission_node = nodeAddStaticNode(NULL, ntree, SH_NODE_EMISSION);
+      bNode *emission_node = nodeAddStaticNode(nullptr, ntree, SH_NODE_EMISSION);
       bNodeSocket *in_sock = ntree_shader_node_find_input(emission_node, "Color");
       bNodeSocket *out_sock = ntree_shader_node_find_output(emission_node, "Emission");
       nodeAddLink(ntree, link->fromnode, link->fromsock, emission_node, in_sock);
@@ -644,7 +646,7 @@ static void ntree_weight_tree_merge_weight(bNodeTree *ntree,
                                            bNode **tonode,
                                            bNodeSocket **tosock)
 {
-  bNode *addnode = nodeAddStaticNode(NULL, ntree, SH_NODE_MATH);
+  bNode *addnode = nodeAddStaticNode(nullptr, ntree, SH_NODE_MATH);
   addnode->custom1 = NODE_MATH_ADD;
   addnode->tmp_flag = -2; /* Copy */
   bNodeSocket *addsock_out = ntree_shader_node_output_get(addnode, 0);
@@ -682,19 +684,19 @@ static bool ntree_weight_tree_tag_nodes(bNode *fromnode, bNode *tonode, void *us
  * with their respective weights. */
 static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node)
 {
-  bNodeLink *displace_link = NULL;
+  bNodeLink *displace_link = nullptr;
   bNodeSocket *displace_output = ntree_shader_node_find_input(output_node, "Displacement");
   if (displace_output && displace_output->link) {
     /* Remove any displacement link to avoid tagging it later on. */
     displace_link = displace_output->link;
-    displace_output->link = NULL;
+    displace_output->link = nullptr;
   }
-  bNodeLink *thickness_link = NULL;
+  bNodeLink *thickness_link = nullptr;
   bNodeSocket *thickness_output = ntree_shader_node_find_input(output_node, "Thickness");
   if (thickness_output && thickness_output->link) {
     /* Remove any thickness link to avoid tagging it later on. */
     thickness_link = thickness_output->link;
-    thickness_output->link = NULL;
+    thickness_output->link = nullptr;
   }
   /* Init tmp flag. */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -712,10 +714,11 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
 
       switch (node->type) {
         case SH_NODE_SHADERTORGB:
+        case SH_NODE_OUTPUT_LIGHT:
         case SH_NODE_OUTPUT_WORLD:
         case SH_NODE_OUTPUT_MATERIAL: {
           /* Start the tree with full weight. */
-          nodes_copy[id] = nodeAddStaticNode(NULL, ntree, SH_NODE_VALUE);
+          nodes_copy[id] = nodeAddStaticNode(nullptr, ntree, SH_NODE_VALUE);
           nodes_copy[id]->tmp_flag = -2; /* Copy */
           ((bNodeSocketValueFloat *)ntree_shader_node_output_get(nodes_copy[id], 0)->default_value)
               ->value = 1.0f;
@@ -724,7 +727,7 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
         case SH_NODE_ADD_SHADER: {
           /* Simple passthrough node. Each original inputs will get the same weight. */
           /* TODO(fclem): Better use some kind of reroute node? */
-          nodes_copy[id] = nodeAddStaticNode(NULL, ntree, SH_NODE_MATH);
+          nodes_copy[id] = nodeAddStaticNode(nullptr, ntree, SH_NODE_MATH);
           nodes_copy[id]->custom1 = NODE_MATH_ADD;
           nodes_copy[id]->tmp_flag = -2; /* Copy */
           ((bNodeSocketValueFloat *)ntree_shader_node_input_get(nodes_copy[id], 0)->default_value)
@@ -737,17 +740,17 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
           bNodeSocket *fromsock, *tosock;
           int id_start = id;
           /* output = (factor * input_weight) */
-          nodes_copy[id] = nodeAddStaticNode(NULL, ntree, SH_NODE_MATH);
+          nodes_copy[id] = nodeAddStaticNode(nullptr, ntree, SH_NODE_MATH);
           nodes_copy[id]->custom1 = NODE_MATH_MULTIPLY;
           nodes_copy[id]->tmp_flag = -2; /* Copy */
           id++;
           /* output = ((1.0 - factor) * input_weight) <=> (input_weight - factor * input_weight) */
-          nodes_copy[id] = nodeAddStaticNode(NULL, ntree, SH_NODE_MATH);
+          nodes_copy[id] = nodeAddStaticNode(nullptr, ntree, SH_NODE_MATH);
           nodes_copy[id]->custom1 = NODE_MATH_SUBTRACT;
           nodes_copy[id]->tmp_flag = -2; /* Copy */
           id++;
           /* Node sanitizes the input mix factor by clamping it. */
-          nodes_copy[id] = nodeAddStaticNode(NULL, ntree, SH_NODE_MATH);
+          nodes_copy[id] = nodeAddStaticNode(nullptr, ntree, SH_NODE_MATH);
           nodes_copy[id]->custom1 = NODE_MATH_ADD;
           nodes_copy[id]->custom2 = SHD_MATH_CLAMP;
           nodes_copy[id]->tmp_flag = -2; /* Copy */
@@ -763,7 +766,7 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
           id++;
           /* Reroute the weight input to the 3 processing nodes. Simplify linking later-on. */
           /* TODO(fclem): Better use some kind of reroute node? */
-          nodes_copy[id] = nodeAddStaticNode(NULL, ntree, SH_NODE_MATH);
+          nodes_copy[id] = nodeAddStaticNode(nullptr, ntree, SH_NODE_MATH);
           nodes_copy[id]->custom1 = NODE_MATH_ADD;
           nodes_copy[id]->tmp_flag = -2; /* Copy */
           ((bNodeSocketValueFloat *)ntree_shader_node_input_get(nodes_copy[id], 0)->default_value)
@@ -810,6 +813,7 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
 
         switch (node->type) {
           case SH_NODE_SHADERTORGB:
+          case SH_NODE_OUTPUT_LIGHT:
           case SH_NODE_OUTPUT_WORLD:
           case SH_NODE_OUTPUT_MATERIAL:
           case SH_NODE_ADD_SHADER: {
@@ -1007,6 +1011,7 @@ static void ntree_shader_pruned_unused(bNodeTree *ntree, bNode *output_node)
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_OUTPUT_AOV) {
+      node->tmp_flag = 1;
       nodeChainIterBackwards(ntree, node, ntree_branch_node_tag, nullptr, 0);
     }
   }
@@ -1036,7 +1041,7 @@ void ntreeGPUMaterialNodes(bNodeTree *localtree, GPUMaterial *mat)
   /* Tree is valid if it contains no undefined implicit socket type cast. */
   bool valid_tree = ntree_shader_implicit_closure_cast(localtree);
 
-  if (valid_tree && output != NULL) {
+  if (valid_tree && output != nullptr) {
     ntree_shader_pruned_unused(localtree, output);
     ntree_shader_shader_to_rgba_branch(localtree, output);
     ntree_shader_weight_tree_invert(localtree, output);

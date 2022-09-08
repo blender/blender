@@ -465,7 +465,7 @@ TBB_VERSION="2020"
 TBB_VERSION_SHORT="2020"
 TBB_VERSION_UPDATE="_U3"  # Used for source packages...
 TBB_VERSION_MIN="2018"
-TBB_VERSION_MEX="2022"
+TBB_VERSION_MEX="2021"  # 2021 introduces 'oneTBB', which has lots of compatibility breakage with previous versions
 TBB_FORCE_BUILD=false
 TBB_FORCE_REBUILD=false
 TBB_SKIP=false
@@ -478,7 +478,7 @@ OCIO_FORCE_BUILD=false
 OCIO_FORCE_REBUILD=false
 OCIO_SKIP=false
 
-IMATH_VERSION="3.1.4"
+IMATH_VERSION="3.1.5"
 IMATH_VERSION_SHORT="3.1"
 IMATH_VERSION_MIN="3.0"
 IMATH_VERSION_MEX="4.0"
@@ -487,7 +487,7 @@ IMATH_FORCE_REBUILD=false
 IMATH_SKIP=false
 _with_built_imath=false
 
-OPENEXR_VERSION="3.1.4"
+OPENEXR_VERSION="3.1.5"
 OPENEXR_VERSION_SHORT="3.1"
 OPENEXR_VERSION_MIN="3.0"
 OPENEXR_VERSION_MEX="4.0"
@@ -567,7 +567,7 @@ OPENCOLLADA_FORCE_BUILD=false
 OPENCOLLADA_FORCE_REBUILD=false
 OPENCOLLADA_SKIP=false
 
-EMBREE_VERSION="3.13.3"
+EMBREE_VERSION="3.13.4"
 EMBREE_VERSION_SHORT="3.13"
 EMBREE_VERSION_MIN="3.13"
 EMBREE_VERSION_MEX="4.0"
@@ -627,6 +627,9 @@ WEBP_DEV=""
 VPX_USE=false
 VPX_VERSION_MIN=0.9.7
 VPX_DEV=""
+AOM_USE=false
+AOM_VERSION_MIN=3.3.0
+AOM_DEV=""
 OPUS_USE=false
 OPUS_VERSION_MIN=1.1.1
 OPUS_DEV=""
@@ -634,9 +637,6 @@ MP3LAME_USE=false
 MP3LAME_DEV=""
 OPENJPEG_USE=false
 OPENJPEG_DEV=""
-
-# Whether to use system GLEW or not (OpenSubDiv needs recent glew to work).
-NO_SYSTEM_GLEW=false
 
 # Switch to english language, else some things (like check_package_DEB()) won't work!
 LANG_BACK=$LANG
@@ -1193,7 +1193,7 @@ Those libraries should be available as packages in all recent distributions (opt
     * libx11, libxcursor, libxi, libxrandr, libxinerama (and other libx... as needed).
     * libwayland-client0, libwayland-cursor0, libwayland-egl1, libxkbcommon0, libdbus-1-3, libegl1 (Wayland)
     * libsqlite3, libzstd, libbz2, libssl, libfftw3, libxml2, libtinyxml, yasm, libyaml-cpp, flex.
-    * libsdl2, libglew, libpugixml, libpotrace, [libgmp], [libglewmx], fontconfig, [libharu/libhpdf].\""
+    * libsdl2, libepoxy, libpugixml, libpotrace, [libgmp], fontconfig, [libharu/libhpdf].\""
 
 DEPS_SPECIFIC_INFO="\"BUILDABLE DEPENDENCIES:
 
@@ -1212,7 +1212,7 @@ You may also want to build them yourself (optional ones are [between brackets]):
     ** [NumPy $PYTHON_NUMPY_VERSION] (use pip).
     * Boost $BOOST_VERSION (from $BOOST_SOURCE, modules: $BOOST_BUILD_MODULES).
     * TBB $TBB_VERSION (from $TBB_SOURCE).
-    * [FFMpeg $FFMPEG_VERSION (needs libvorbis, libogg, libtheora, libx264, libmp3lame, libxvidcore, libvpx, libwebp, ...)] (from $FFMPEG_SOURCE).
+    * [FFMpeg $FFMPEG_VERSION (needs libvorbis, libogg, libtheora, libx264, libmp3lame, libxvidcore, libvpx, libaom, libwebp, ...)] (from $FFMPEG_SOURCE).
     * [OpenColorIO $OCIO_VERSION] (from $OCIO_SOURCE).
     * Imath $IMATH_VERSION (from $IMATH_SOURCE).
     * OpenEXR $OPENEXR_VERSION (from $OPENEXR_SOURCE).
@@ -1687,7 +1687,7 @@ compile_TBB() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  tbb_magic=0
+  tbb_magic=1
   _init_tbb
 
   # Force having own builds for the dependencies.
@@ -2696,14 +2696,13 @@ compile_OSD() {
     mkdir build
     cd build
 
-    if [ -d $INST/tbb ]; then
-      cmake_d="$cmake_d $cmake_d -D TBB_LOCATION=$INST/tbb"
-    fi
     cmake_d="-D CMAKE_BUILD_TYPE=Release"
+    if [ -d $INST/tbb ]; then
+      cmake_d="$cmake_d -D TBB_LOCATION=$INST/tbb"
+    fi
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
-    # ptex is only needed when nicholas bishop is ready
     cmake_d="$cmake_d -D NO_PTEX=1"
-    cmake_d="$cmake_d -D NO_CLEW=1 -D NO_CUDA=1 -D NO_OPENCL=1"
+    cmake_d="$cmake_d -D NO_CLEW=1 -D NO_CUDA=1 -D NO_OPENCL=1 -D NO_GLEW=1"
     # maya plugin, docs, tutorials, regression tests and examples are not needed
     cmake_d="$cmake_d -D NO_MAYA=1 -D NO_DOC=1 -D NO_TUTORIALS=1 -D NO_REGRESSION=1 -DNO_EXAMPLES=1"
 
@@ -3004,7 +3003,7 @@ compile_ALEMBIC() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  alembic_magic=2
+  alembic_magic=3
   _init_alembic
 
   # Force having own builds for the dependencies.
@@ -3052,7 +3051,7 @@ compile_ALEMBIC() {
     fi
     if [ "$_with_built_openexr" = true ]; then
       cmake_d="$cmake_d -D USE_ARNOLD=OFF"
-      cmake_d="$cmake_d -D USE_BINARIES=OFF"
+      cmake_d="$cmake_d -D USE_BINARIES=ON"  # Tests use some Alembic binaries...
       cmake_d="$cmake_d -D USE_EXAMPLES=OFF"
       cmake_d="$cmake_d -D USE_HDF5=OFF"
       cmake_d="$cmake_d -D USE_MAYA=OFF"
@@ -3326,7 +3325,7 @@ compile_Embree() {
   fi
 
   # To be changed each time we make edits that would modify the compiled results!
-  embree_magic=10
+  embree_magic=11
   _init_embree
 
   # Force having own builds for the dependencies.
@@ -3386,7 +3385,7 @@ compile_Embree() {
 
     cmake_d="$cmake_d -D EMBREE_TASKING_SYSTEM=TBB"
     if [ -d $INST/tbb ]; then
-      make_d="$make_d EMBREE_TBB_ROOT=$INST/tbb"
+      cmake_d="$cmake_d -D EMBREE_TBB_ROOT=$INST/tbb"
     fi
 
     cmake $cmake_d ../
@@ -3525,7 +3524,7 @@ compile_OIDN() {
   install_ISPC
 
   # To be changed each time we make edits that would modify the compiled results!
-  oidn_magic=9
+  oidn_magic=10
   _init_oidn
 
   # Force having own builds for the dependencies.
@@ -3581,7 +3580,7 @@ compile_OIDN() {
     cmake_d="$cmake_d -D ISPC_DIR_HINT=$_ispc_path_bin"
 
     if [ -d $INST/tbb ]; then
-      make_d="$make_d TBB_ROOT=$INST/tbb"
+      cmake_d="$cmake_d -D TBB_ROOT=$INST/tbb"
     fi
 
     cmake $cmake_d ../
@@ -3638,7 +3637,7 @@ compile_FFmpeg() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  ffmpeg_magic=5
+  ffmpeg_magic=6
   _init_ffmpeg
 
   # Force having own builds for the dependencies.
@@ -3689,6 +3688,10 @@ compile_FFmpeg() {
 
     if [ "$VPX_USE" = true ]; then
       extra="$extra --enable-libvpx"
+    fi
+
+    if [ "$AOM_USE" = true ]; then
+      extra="$extra --enable-libaom"
     fi
 
     if [ "$WEBP_USE" = true ]; then
@@ -4059,10 +4062,9 @@ install_DEB() {
              libxcursor-dev libxi-dev wget libsqlite3-dev libxrandr-dev libxinerama-dev \
              libwayland-dev wayland-protocols libegl-dev libxkbcommon-dev libdbus-1-dev linux-libc-dev \
              libbz2-dev libncurses5-dev libssl-dev liblzma-dev libreadline-dev \
-             libopenal-dev libglew-dev yasm \
+             libopenal-dev libepoxy-dev yasm \
              libsdl2-dev libfftw3-dev patch bzip2 libxml2-dev libtinyxml-dev libjemalloc-dev \
              libgmp-dev libpugixml-dev libpotrace-dev libhpdf-dev libzstd-dev libpystring-dev"
-             # libglewmx-dev  (broken in deb testing currently...)
 
   VORBIS_USE=true
   OGG_USE=true
@@ -4145,33 +4147,37 @@ install_DEB() {
     WEBP_USE=true
   fi
 
-  if [ "$WITH_ALL" = true ]; then
-    XVID_DEV="libxvidcore-dev"
-    check_package_DEB $XVID_DEV
-    if [ $? -eq 0 ]; then
-      XVID_USE=true
-    fi
-
-    MP3LAME_DEV="libmp3lame-dev"
-    check_package_DEB $MP3LAME_DEV
-    if [ $? -eq 0 ]; then
-      MP3LAME_USE=true
-    fi
-
-    VPX_DEV="libvpx-dev"
-    check_package_version_ge_DEB $VPX_DEV $VPX_VERSION_MIN
-    if [ $? -eq 0 ]; then
-      VPX_USE=true
-    fi
-
-    OPUS_DEV="libopus-dev"
-    check_package_version_ge_DEB $OPUS_DEV $OPUS_VERSION_MIN
-    if [ $? -eq 0 ]; then
-      OPUS_USE=true
-    fi
+  XVID_DEV="libxvidcore-dev"
+  check_package_DEB $XVID_DEV
+  if [ $? -eq 0 ]; then
+    XVID_USE=true
   fi
 
-  # Check cmake/glew versions and disable features for older distros.
+  MP3LAME_DEV="libmp3lame-dev"
+  check_package_DEB $MP3LAME_DEV
+  if [ $? -eq 0 ]; then
+    MP3LAME_USE=true
+  fi
+
+  VPX_DEV="libvpx-dev"
+  check_package_version_ge_DEB $VPX_DEV $VPX_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    VPX_USE=true
+  fi
+
+  AOM_DEV="libaom-dev"
+  check_package_version_ge_DEB $AOM_DEV $AOM_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    AOM_USE=true
+  fi
+
+  OPUS_DEV="libopus-dev"
+  check_package_version_ge_DEB $OPUS_DEV $OPUS_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    OPUS_USE=true
+  fi
+
+  # Check cmake version and disable features for older distros.
   # This is so Blender can at least compile.
   PRINT ""
   _cmake=`get_package_version_DEB cmake`
@@ -4187,28 +4193,6 @@ install_DEB() {
       OPENVDB_SKIP=true
     fi
   fi
-
-  PRINT ""
-  _glew=`get_package_version_DEB libglew-dev`
-  if [ -z $_glew ]; then
-    # Stupid virtual package in Ubuntu 12.04 doesn't show version number...
-    _glew=`apt-cache showpkg libglew-dev|tail -n1|awk '{print $2}'|sed 's/-.*//'`
-  fi
-  version_ge $_glew "1.9.0"
-  if [ $? -eq 1 ]; then
-    version_ge $_glew "1.7.0"
-    if [ $? -eq 1 ]; then
-      WARNING "OpenSubdiv disabled because GLEW-$_glew is not enough"
-      WARNING "Blender will not use system GLEW library"
-      OSD_SKIP=true
-      NO_SYSTEM_GLEW=true
-    else
-      WARNING "OpenSubdiv will compile with GLEW-$_glew but with limited capability"
-      WARNING "Blender will not use system GLEW library"
-      NO_SYSTEM_GLEW=true
-    fi
-  fi
-
 
   PRINT ""
   _do_compile_python=false
@@ -4573,6 +4557,9 @@ install_DEB() {
     if [ "$VPX_USE" = true ]; then
       _packages="$_packages $VPX_DEV"
     fi
+    if [ "$AOM_USE" = true ]; then
+      _packages="$_packages $AOM_DEV"
+    fi
     if [ "$OPUS_USE" = true ]; then
       _packages="$_packages $OPUS_DEV"
     fi
@@ -4785,7 +4772,7 @@ install_RPM() {
              libX11-devel libXi-devel libXcursor-devel libXrandr-devel libXinerama-devel \
              wayland-devel wayland-protocols-devel mesa-libEGL-devel libxkbcommon-devel dbus-devel kernel-headers \
              wget ncurses-devel readline-devel $OPENJPEG_DEV openal-soft-devel \
-             glew-devel yasm patch \
+             libepoxy-devel yasm patch \
              libxml2-devel yaml-cpp-devel tinyxml-devel jemalloc-devel \
              gmp-devel pugixml-devel potrace-devel libharu-devel libzstd-devel pystring-devel"
 
@@ -4873,21 +4860,27 @@ install_RPM() {
     WEBP_USE=true
   fi
 
-  if [ "$WITH_ALL" = true ]; then
-    VPX_DEV="libvpx-devel"
-    check_package_version_ge_RPM $VPX_DEV $VPX_VERSION_MIN
-    if [ $? -eq 0 ]; then
-      VPX_USE=true
-    fi
+  VPX_DEV="libvpx-devel"
+  check_package_version_ge_RPM $VPX_DEV $VPX_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    VPX_USE=true
+  fi
 
+  AOM_DEV="libaom-devel"
+  check_package_version_ge_RPM $AOM_DEV $AOM_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    AOM_USE=true
+  fi
+
+  OPUS_DEV="libopus-devel"
+  check_package_version_ge_RPM $OPUS_DEV $OPUS_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    OPUS_USE=true
+  fi
+
+  if [ "$WITH_ALL" = true ]; then
     PRINT ""
     install_packages_RPM libspnav-devel
-
-    OPUS_DEV="libopus-devel"
-    check_package_version_ge_RPM $OPUS_DEV $OPUS_VERSION_MIN
-    if [ $? -eq 0 ]; then
-      OPUS_USE=true
-    fi
   fi
 
   PRINT ""
@@ -5272,6 +5265,9 @@ install_RPM() {
     if [ "$VPX_USE" = true ]; then
       _packages="$_packages $VPX_DEV"
     fi
+    if [ "$AOM_USE" = true ]; then
+      _packages="$_packages $AOM_DEV"
+    fi
     if [ "$OPUS_USE" = true ]; then
       _packages="$_packages $OPUS_DEV"
     fi
@@ -5416,7 +5412,7 @@ install_ARCH() {
   fi
 
   _packages="$BASE_DEVEL git cmake fontconfig flex \
-             libxi libxcursor libxrandr libxinerama glew libpng libtiff wget openal \
+             libxi libxcursor libxrandr libxinerama libepoxy libpng libtiff wget openal \
              $OPENJPEG_DEV yasm sdl2 fftw \
              libxml2 yaml-cpp tinyxml python-requests jemalloc gmp potrace pugixml libharu \
              zstd pystring"
@@ -5461,30 +5457,34 @@ install_ARCH() {
     WEBP_USE=true
   fi
 
-  if [ "$WITH_ALL" = true ]; then
-    XVID_DEV="xvidcore"
-    check_package_ARCH $XVID_DEV
-    if [ $? -eq 0 ]; then
-      XVID_USE=true
-    fi
+  XVID_DEV="xvidcore"
+  check_package_ARCH $XVID_DEV
+  if [ $? -eq 0 ]; then
+    XVID_USE=true
+  fi
 
-    MP3LAME_DEV="lame"
-    check_package_ARCH $MP3LAME_DEV
-    if [ $? -eq 0 ]; then
-      MP3LAME_USE=true
-    fi
+  MP3LAME_DEV="lame"
+  check_package_ARCH $MP3LAME_DEV
+  if [ $? -eq 0 ]; then
+    MP3LAME_USE=true
+  fi
 
-    VPX_DEV="libvpx"
-    check_package_version_ge_ARCH $VPX_DEV $VPX_VERSION_MIN
-    if [ $? -eq 0 ]; then
-      VPX_USE=true
-    fi
+  VPX_DEV="libvpx"
+  check_package_version_ge_ARCH $VPX_DEV $VPX_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    VPX_USE=true
+  fi
 
-    OPUS_DEV="opus"
-    check_package_version_ge_ARCH $OPUS_DEV $OPUS_VERSION_MIN
-    if [ $? -eq 0 ]; then
-      OPUS_USE=true
-    fi
+  AOM_DEV="libaom"
+  check_package_version_ge_ARCH $AOM_DEV $AOM_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    AOM_USE=true
+  fi
+
+  OPUS_DEV="opus"
+  check_package_version_ge_ARCH $OPUS_DEV $OPUS_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    OPUS_USE=true
   fi
 
 
@@ -5861,6 +5861,9 @@ install_ARCH() {
     fi
     if [ "$VPX_USE" = true ]; then
       _packages="$_packages $VPX_DEV"
+    fi
+    if [ "$AOM_USE" = true ]; then
+      _packages="$_packages $AOM_DEV"
     fi
     if [ "$OPUS_USE" = true ]; then
       _packages="$_packages $OPUS_DEV"
@@ -6288,12 +6291,6 @@ print_info() {
       PRINT "  $_1"
       _buildargs="$_buildargs $_1"
     fi
-  fi
-
-  if [ "$NO_SYSTEM_GLEW" = true ]; then
-    _1="-D WITH_SYSTEM_GLEW=OFF"
-    PRINT "  $_1"
-    _buildargs="$_buildargs $_1"
   fi
 
   if [ "$FFMPEG_SKIP" = false ]; then

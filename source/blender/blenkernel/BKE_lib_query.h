@@ -36,7 +36,6 @@ enum {
 
   /**
    * Indicates whether this is direct (i.e. by local data) or indirect (i.e. by linked data) usage.
-   * \note Object proxies are half-local, half-linked...
    */
   IDWALK_CB_INDIRECT_USAGE = (1 << 2),
 

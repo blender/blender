@@ -104,8 +104,7 @@ typedef enum {
   UI_WTYPE_LISTITEM,
   UI_WTYPE_PROGRESSBAR,
   UI_WTYPE_NODESOCKET,
-  UI_WTYPE_TREEROW,
-  UI_WTYPE_GRID_TILE,
+  UI_WTYPE_VIEW_ITEM,
 } uiWidgetTypeEnum;
 
 /**
@@ -534,7 +533,7 @@ static void draw_anti_tria(
 
   const uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   immUniformColor4fv(draw_color);
   immBegin(GPU_PRIM_TRIS, 3 * WIDGET_AA_JITTER);
@@ -1525,11 +1524,6 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
                              const size_t max_len,
                              const char rpart_sep)
 {
-  /* Add some epsilon to OK width, avoids 'ellipsing' text that nearly fits!
-   * Better to have a small piece of the last char cut out,
-   * than two remaining chars replaced by an ellipsis... */
-  okwidth += 1.0f + UI_DPI_FAC;
-
   BLI_assert(str[0]);
 
   /* need to set this first */
@@ -1628,7 +1622,7 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
     strwidth = BLF_width(fstyle->uifont_id, str, max_len);
   }
 
-  BLI_assert(strwidth <= okwidth);
+  BLI_assert((strwidth <= okwidth) || (okwidth <= 0.0f));
 
   return strwidth;
 }
@@ -1985,7 +1979,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
 
         uint pos = GPU_vertformat_attr_add(
             immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-        immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+        immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
         rcti selection_shape;
         selection_shape.xmin = rect->xmin + selsta_draw;
@@ -2037,7 +2031,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
 
       uint pos = GPU_vertformat_attr_add(
           immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
       immUniformThemeColor(TH_WIDGET_TEXT_CURSOR);
 
@@ -2780,7 +2774,7 @@ static void widget_softshadow(const rcti *rect, int roundboxalign, const float r
   const uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   for (int step = 1; step <= (int)radout; step++) {
     const float expfac = sqrtf(step / radout);
@@ -2836,7 +2830,7 @@ static void ui_hsv_cursor(const float x, const float y, const float zoom)
   const uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   immUniformColor3f(1.0f, 1.0f, 1.0f);
   imm_draw_circle_fill_2d(pos, x, y, radius, 8);
@@ -2936,7 +2930,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   const uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 
   immBegin(GPU_PRIM_TRI_FAN, tot + 2);
   immAttr3fv(color, rgb_center);
@@ -2970,7 +2964,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
   format = immVertexFormat();
   pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_line_smooth(true);
@@ -3067,7 +3061,7 @@ void ui_draw_gradient(const rcti *rect,
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   const uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 
   immBegin(GPU_PRIM_TRIS, steps * 3 * 6);
 
@@ -3232,7 +3226,7 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
   /* outline */
   const uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor3ub(0, 0, 0);
   imm_draw_box_wire_2d(pos, (rect->xmin), (rect->ymin), (rect->xmax), (rect->ymax));
   immUnbindProgram();
@@ -3308,7 +3302,7 @@ static void ui_draw_separator(const rcti *rect, const uiWidgetColors *wcol)
 
   const uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   GPU_blend(GPU_BLEND_ALPHA);
   immUniformColor4ubv(col);
@@ -3672,12 +3666,11 @@ static void widget_progressbar(uiBut *but,
   widgetbase_draw(&wtb_bar, wcol);
 }
 
-static void widget_treerow_exec(uiWidgetColors *wcol,
-                                rcti *rect,
-                                const uiWidgetStateInfo *state,
-                                int UNUSED(roundboxalign),
-                                int indentation,
-                                const float zoom)
+static void widget_view_item(uiWidgetColors *wcol,
+                             rcti *rect,
+                             const uiWidgetStateInfo *state,
+                             int UNUSED(roundboxalign),
+                             const float zoom)
 {
   uiWidgetBase wtb;
   widget_init(&wtb);
@@ -3690,31 +3683,6 @@ static void widget_treerow_exec(uiWidgetColors *wcol,
   if ((state->but_flag & UI_ACTIVE) || (state->but_flag & UI_SELECT)) {
     widgetbase_draw(&wtb, wcol);
   }
-
-  BLI_rcti_resize(rect, BLI_rcti_size_x(rect) - UI_UNIT_X * indentation, BLI_rcti_size_y(rect));
-  BLI_rcti_translate(rect, 0.5f * UI_UNIT_X * indentation, 0);
-}
-
-static void widget_treerow(uiBut *but,
-                           uiWidgetColors *wcol,
-                           rcti *rect,
-                           const uiWidgetStateInfo *state,
-                           int roundboxalign,
-                           const float zoom)
-{
-  uiButTreeRow *tree_row = (uiButTreeRow *)but;
-  BLI_assert(but->type == UI_BTYPE_TREEROW);
-  widget_treerow_exec(wcol, rect, state, roundboxalign, tree_row->indentation, zoom);
-}
-
-static void widget_gridtile(uiWidgetColors *wcol,
-                            rcti *rect,
-                            const uiWidgetStateInfo *state,
-                            int roundboxalign,
-                            const float zoom)
-{
-  /* TODO Reuse tree-row drawing. */
-  widget_treerow_exec(wcol, rect, state, roundboxalign, 0, zoom);
 }
 
 static void widget_nodesocket(uiBut *but,
@@ -3949,7 +3917,7 @@ static void widget_swatch(uiBut *but,
 
     const uint pos = GPU_vertformat_attr_add(
         immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     immUniformColor3f(bw, bw, bw);
     immBegin(GPU_PRIM_TRIS, 3);
@@ -4415,7 +4383,7 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
 
     const uint pos = GPU_vertformat_attr_add(
         immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     /* make mask to draw over image */
     uchar col[4];
@@ -4608,14 +4576,9 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       wt.custom = widget_progressbar;
       break;
 
-    case UI_WTYPE_TREEROW:
+    case UI_WTYPE_VIEW_ITEM:
       wt.wcol_theme = &btheme->tui.wcol_view_item;
-      wt.custom = widget_treerow;
-      break;
-
-    case UI_WTYPE_GRID_TILE:
-      wt.wcol_theme = &btheme->tui.wcol_view_item;
-      wt.draw = widget_gridtile;
+      wt.draw = widget_view_item;
       break;
 
     case UI_WTYPE_NODESOCKET:
@@ -4949,13 +4912,8 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
         fstyle = &style->widgetlabel;
         break;
 
-      case UI_BTYPE_TREEROW:
-        wt = widget_type(UI_WTYPE_TREEROW);
-        fstyle = &style->widgetlabel;
-        break;
-
-      case UI_BTYPE_GRID_TILE:
-        wt = widget_type(UI_WTYPE_GRID_TILE);
+      case UI_BTYPE_VIEW_ITEM:
+        wt = widget_type(UI_WTYPE_VIEW_ITEM);
         fstyle = &style->widgetlabel;
         break;
 
@@ -5121,7 +5079,7 @@ static void ui_draw_popover_back_impl(const uiWidgetColors *wcol,
   if (ELEM(direction, UI_DIR_UP, UI_DIR_DOWN)) {
     const uint pos = GPU_vertformat_attr_add(
         immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     const bool is_down = (direction == UI_DIR_DOWN);
     const int sign = is_down ? 1 : -1;
@@ -5197,10 +5155,10 @@ static void draw_disk_shaded(float start,
   const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   if (shaded) {
     col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-    immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
   }
   else {
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor4ubv(col1);
   }
 
@@ -5311,7 +5269,7 @@ void ui_draw_pie_center(uiBlock *block)
 
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor4ubv(btheme->tui.wcol_pie_menu.outline);
 
   imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, pie_radius_internal, subd);

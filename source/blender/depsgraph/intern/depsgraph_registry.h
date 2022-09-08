@@ -11,8 +11,7 @@
 
 struct Main;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct Depsgraph;
 
@@ -20,5 +19,4 @@ void register_graph(Depsgraph *depsgraph);
 void unregister_graph(Depsgraph *depsgraph);
 Span<Depsgraph *> get_all_registered_graphs(Main *bmain);
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

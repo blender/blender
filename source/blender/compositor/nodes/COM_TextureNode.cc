@@ -14,7 +14,7 @@ TextureNode::TextureNode(bNode *editor_node) : Node(editor_node)
 void TextureNode::convert_to_operations(NodeConverter &converter,
                                         const CompositorContext &context) const
 {
-  bNode *editor_node = this->get_bnode();
+  const bNode *editor_node = this->get_bnode();
   Tex *texture = (Tex *)editor_node->id;
   TextureOperation *operation = new TextureOperation();
   bool scene_color_manage = !STREQ(context.get_scene()->display_settings.display_device, "None");

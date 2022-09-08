@@ -11,7 +11,7 @@
 #include "GHOST_IContext.h"
 #include "GHOST_Types.h"
 
-#include "glew-mx.h"
+#include <epoxy/gl.h>
 
 #include <cstdlib>  // for NULL
 
@@ -93,6 +93,22 @@ class GHOST_Context : public GHOST_IContext {
   }
 
   /**
+   * Get user data.
+   */
+  void *getUserData()
+  {
+    return m_user_data;
+  }
+
+  /**
+   * Set user data (intended for the caller to use as needed).
+   */
+  void setUserData(void *user_data)
+  {
+    m_user_data = user_data;
+  }
+
+  /**
    * Stereo visual created. Only necessary for 'real' stereo support,
    * ie quad buffered stereo. This is not always possible, depends on
    * the graphics h/w
@@ -120,9 +136,10 @@ class GHOST_Context : public GHOST_IContext {
   }
 
  protected:
-  void initContextGLEW();
-
   bool m_stereoVisual;
+
+  /** Caller specified, not for internal use. */
+  void *m_user_data = nullptr;
 
   static void initClearGL();
 

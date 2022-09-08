@@ -1145,7 +1145,7 @@ static bool rna_Function_no_self_get(PointerRNA *ptr)
   return !(func->flag & FUNC_NO_SELF);
 }
 
-static int rna_Function_use_self_type_get(PointerRNA *ptr)
+static bool rna_Function_use_self_type_get(PointerRNA *ptr)
 {
   FunctionRNA *func = (FunctionRNA *)ptr->data;
   return 0 != (func->flag & FUNC_USE_SELF_TYPE);
@@ -1577,7 +1577,7 @@ static int rna_property_override_diff_propptr(Main *bmain,
                 RNA_property_##_typename##_set((_ptr), (_prop), (_value)))
 
 /**
- * /return `0` is matching, `-1` if `prop_a < prop_b`, `1` if `prop_a > prop_b`. Note that for
+ * \return `0` is matching, `-1` if `prop_a < prop_b`, `1` if `prop_a > prop_b`. Note that for
  * unquantifiable properties (e.g. pointers or collections), return value should be interpreted as
  * a boolean (false == matching, true == not matching).
  */

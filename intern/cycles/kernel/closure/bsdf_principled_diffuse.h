@@ -42,7 +42,7 @@ ccl_device int bsdf_principled_diffuse_setup(ccl_private PrincipledDiffuseBsdf *
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device float3
+ccl_device Spectrum
 bsdf_principled_diffuse_compute_brdf(ccl_private const PrincipledDiffuseBsdf *bsdf,
                                      float3 N,
                                      float3 V,
@@ -52,7 +52,7 @@ bsdf_principled_diffuse_compute_brdf(ccl_private const PrincipledDiffuseBsdf *bs
   const float NdotL = dot(N, L);
 
   if (NdotL <= 0) {
-    return make_float3(0.0f, 0.0f, 0.0f);
+    return zero_spectrum();
   }
 
   const float NdotV = dot(N, V);
@@ -82,7 +82,7 @@ bsdf_principled_diffuse_compute_brdf(ccl_private const PrincipledDiffuseBsdf *bs
 
   float value = M_1_PI_F * NdotL * f;
 
-  return make_float3(value, value, value);
+  return make_spectrum(value);
 }
 
 /* Compute Fresnel at entry point, to be combined with #PRINCIPLED_DIFFUSE_LAMBERT_EXIT
@@ -109,10 +109,10 @@ ccl_device int bsdf_principled_diffuse_setup(ccl_private PrincipledDiffuseBsdf *
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device float3 bsdf_principled_diffuse_eval_reflect(ccl_private const ShaderClosure *sc,
-                                                       const float3 I,
-                                                       const float3 omega_in,
-                                                       ccl_private float *pdf)
+ccl_device Spectrum bsdf_principled_diffuse_eval_reflect(ccl_private const ShaderClosure *sc,
+                                                         const float3 I,
+                                                         const float3 omega_in,
+                                                         ccl_private float *pdf)
 {
   ccl_private const PrincipledDiffuseBsdf *bsdf = (ccl_private const PrincipledDiffuseBsdf *)sc;
 
@@ -126,30 +126,26 @@ ccl_device float3 bsdf_principled_diffuse_eval_reflect(ccl_private const ShaderC
   }
   else {
     *pdf = 0.0f;
-    return make_float3(0.0f, 0.0f, 0.0f);
+    return zero_spectrum();
   }
 }
 
-ccl_device float3 bsdf_principled_diffuse_eval_transmit(ccl_private const ShaderClosure *sc,
-                                                        const float3 I,
-                                                        const float3 omega_in,
-                                                        ccl_private float *pdf)
+ccl_device Spectrum bsdf_principled_diffuse_eval_transmit(ccl_private const ShaderClosure *sc,
+                                                          const float3 I,
+                                                          const float3 omega_in,
+                                                          ccl_private float *pdf)
 {
   *pdf = 0.0f;
-  return make_float3(0.0f, 0.0f, 0.0f);
+  return zero_spectrum();
 }
 
 ccl_device int bsdf_principled_diffuse_sample(ccl_private const ShaderClosure *sc,
                                               float3 Ng,
                                               float3 I,
-                                              float3 dIdx,
-                                              float3 dIdy,
                                               float randu,
                                               float randv,
-                                              ccl_private float3 *eval,
+                                              ccl_private Spectrum *eval,
                                               ccl_private float3 *omega_in,
-                                              ccl_private float3 *domega_in_dx,
-                                              ccl_private float3 *domega_in_dy,
                                               ccl_private float *pdf)
 {
   ccl_private const PrincipledDiffuseBsdf *bsdf = (ccl_private const PrincipledDiffuseBsdf *)sc;
@@ -160,16 +156,10 @@ ccl_device int bsdf_principled_diffuse_sample(ccl_private const ShaderClosure *s
 
   if (dot(Ng, *omega_in) > 0) {
     *eval = bsdf_principled_diffuse_compute_brdf(bsdf, N, I, *omega_in, pdf);
-
-#ifdef __RAY_DIFFERENTIALS__
-    // TODO: find a better approximation for the diffuse bounce
-    *domega_in_dx = -((2 * dot(N, dIdx)) * N - dIdx);
-    *domega_in_dy = -((2 * dot(N, dIdy)) * N - dIdy);
-#endif
   }
   else {
     *pdf = 0.0f;
-    *eval = make_float3(0.0f, 0.0f, 0.0f);
+    *eval = zero_spectrum();
   }
   return LABEL_REFLECT | LABEL_DIFFUSE;
 }

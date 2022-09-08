@@ -33,11 +33,11 @@ static int compare_v2_classify(const float uv_a[2], const float uv_b[2])
   if (uv_a[0] == uv_b[0] && uv_a[1] == uv_b[1]) {
     return CMP_EQUAL;
   }
-  /* Note that the ULP value is the primary value used to compare relative values
-   * as the absolute value doesn't account for float precision at difference scales.
+  /* NOTE(@campbellbarton): that the ULP value is the primary value used to compare relative
+   * values as the absolute value doesn't account for float precision at difference scales.
    * - For subdivision-surface ULP of 3 is sufficient,
    *   although this value is extremely small.
-   * - For bevel the URL of 12 is sufficient to merge UV's that appear to be connected
+   * - For bevel the ULP of 12 is sufficient to merge UV's that appear to be connected
    *   with bevel on Suzanne beveled 15% with 6 segments.
    *
    * These values could be tweaked but should be kept on the small side to prevent
@@ -113,8 +113,13 @@ void BKE_mesh_merge_customdata_for_apply_modifier(Mesh *me)
 
   int *vert_map_mem;
   struct MeshElemMap *vert_to_loop;
-  BKE_mesh_vert_loop_map_create(
-      &vert_to_loop, &vert_map_mem, me->mpoly, me->mloop, me->totvert, me->totpoly, me->totloop);
+  BKE_mesh_vert_loop_map_create(&vert_to_loop,
+                                &vert_map_mem,
+                                BKE_mesh_polys(me),
+                                BKE_mesh_loops(me),
+                                me->totvert,
+                                me->totpoly,
+                                me->totloop);
 
   Vector<MLoopUV *> mloopuv_layers;
   mloopuv_layers.reserve(mloopuv_layers_num);

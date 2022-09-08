@@ -80,7 +80,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
     }
   }
   if (do_add_own_transform) {
-    DEG_add_modifier_to_transform_relation(ctx->node, "UV Project Modifier");
+    DEG_add_depends_on_transform_relation(ctx->node, "UV Project Modifier");
   }
 }
 
@@ -99,8 +99,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
   float(*coords)[3], (*co)[3];
   MLoopUV *mloop_uv;
   int i, verts_num, polys_num, loops_num;
-  MPoly *mpoly, *mp;
-  MLoop *mloop;
+  const MPoly *mp;
   Projector projectors[MOD_UVPROJECT_MAXPROJECTORS];
   int projectors_num = 0;
   char uvname[MAX_CUSTOMDATA_LAYER_NAME];
@@ -124,7 +123,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
    * (e.g. if a preceding modifier could not preserve it). */
   if (!CustomData_has_layer(&mesh->ldata, CD_MLOOPUV)) {
     CustomData_add_layer_named(
-        &mesh->ldata, CD_MLOOPUV, CD_DEFAULT, NULL, mesh->totloop, umd->uvlayer_name);
+        &mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, NULL, mesh->totloop, umd->uvlayer_name);
   }
 
   /* make sure we're using an existing layer */
@@ -205,17 +204,17 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     }
   }
 
-  mpoly = mesh->mpoly;
-  mloop = mesh->mloop;
+  const MPoly *polys = BKE_mesh_polys(mesh);
+  const MLoop *loops = BKE_mesh_loops(mesh);
 
   /* apply coords as UVs */
-  for (i = 0, mp = mpoly; i < polys_num; i++, mp++) {
+  for (i = 0, mp = polys; i < polys_num; i++, mp++) {
     if (projectors_num == 1) {
       if (projectors[0].uci) {
         uint fidx = mp->totloop - 1;
         do {
           uint lidx = mp->loopstart + fidx;
-          uint vidx = mloop[lidx].v;
+          uint vidx = loops[lidx].v;
           BLI_uvproject_from_camera(mloop_uv[lidx].uv, coords[vidx], projectors[0].uci);
         } while (fidx--);
       }
@@ -224,7 +223,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
         uint fidx = mp->totloop - 1;
         do {
           uint lidx = mp->loopstart + fidx;
-          uint vidx = mloop[lidx].v;
+          uint vidx = loops[lidx].v;
           copy_v2_v2(mloop_uv[lidx].uv, coords[vidx]);
         } while (fidx--);
       }
@@ -238,7 +237,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
 
       /* get the untransformed face normal */
       BKE_mesh_calc_poly_normal_coords(
-          mp, mloop + mp->loopstart, (const float(*)[3])coords, face_no);
+          mp, loops + mp->loopstart, (const float(*)[3])coords, face_no);
 
       /* find the projector which the face points at most directly
        * (projector normal with largest dot product is best)
@@ -258,7 +257,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
         uint fidx = mp->totloop - 1;
         do {
           uint lidx = mp->loopstart + fidx;
-          uint vidx = mloop[lidx].v;
+          uint vidx = loops[lidx].v;
           BLI_uvproject_from_camera(mloop_uv[lidx].uv, coords[vidx], best_projector->uci);
         } while (fidx--);
       }
@@ -266,7 +265,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
         uint fidx = mp->totloop - 1;
         do {
           uint lidx = mp->loopstart + fidx;
-          uint vidx = mloop[lidx].v;
+          uint vidx = loops[lidx].v;
           mul_v2_project_m4_v3(mloop_uv[lidx].uv, best_projector->projmat, coords[vidx]);
         } while (fidx--);
       }
@@ -284,7 +283,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     }
   }
 
-  mesh->runtime.is_original = false;
+  mesh->runtime.is_original_bmesh = false;
 
   return mesh;
 }
@@ -349,7 +348,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_UVProject = {
-    /* name */ "UVProject",
+    /* name */ N_("UVProject"),
     /* structName */ "UVProjectModifierData",
     /* structSize */ sizeof(UVProjectModifierData),
     /* srna */ &RNA_UVProjectModifier,

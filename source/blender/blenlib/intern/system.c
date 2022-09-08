@@ -21,7 +21,9 @@
 
 #  include "BLI_winstuff.h"
 #else
-#  include <execinfo.h>
+#  if defined(HAVE_EXECINFO_H)
+#    include <execinfo.h>
+#  endif
 #  include <unistd.h>
 #endif
 
@@ -61,9 +63,9 @@ int BLI_cpu_support_sse2(void)
 #if !defined(_MSC_VER)
 void BLI_system_backtrace(FILE *fp)
 {
-  /* ------------- */
-  /* Linux / Apple */
-#  if defined(__linux__) || defined(__APPLE__)
+  /* ----------------------- */
+  /* If system as execinfo.h */
+#  if defined(HAVE_EXECINFO_H)
 
 #    define SIZE 100
   void *buffer[SIZE];

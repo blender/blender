@@ -10,6 +10,13 @@
 #include "DNA_customdata_types.h"
 
 #ifdef __cplusplus
+namespace blender::bke {
+class AttributeAccessor;
+class MutableAttributeAccessor;
+}  // namespace blender::bke
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -18,13 +25,9 @@ typedef struct PointCloud {
   struct AnimData *adt; /* animation data (must be immediately after id) */
 
   int flag;
-  int _pad1[1];
 
   /* Geometry */
-  float (*co)[3];
-  float *radius;
   int totpoint;
-  int _pad2[1];
 
   /* Custom Data */
   struct CustomData pdata;
@@ -35,6 +38,11 @@ typedef struct PointCloud {
   struct Material **mat;
   short totcol;
   short _pad3[3];
+
+#ifdef __cplusplus
+  blender::bke::AttributeAccessor attributes() const;
+  blender::bke::MutableAttributeAccessor attributes_for_write();
+#endif
 
   /* Draw Cache */
   void *batch_cache;

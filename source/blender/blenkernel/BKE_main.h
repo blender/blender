@@ -36,6 +36,7 @@ struct IDNameLib_Map;
 struct ImBuf;
 struct Library;
 struct MainLock;
+struct UniqueName_Map;
 
 /* Blender thumbnail, as written on file (width, height, and data as char RGBA). */
 /* We pack pixel data after that struct. */
@@ -77,8 +78,16 @@ typedef struct MainIDRelationsEntry {
 typedef enum eMainIDRelationsEntryTags {
   /* Generic tag marking the entry as to be processed. */
   MAINIDRELATIONS_ENTRY_TAGS_DOIT = 1 << 0,
+
+  /* Generic tag marking the entry as processed in the `to` direction (i.e. we processed the IDs
+   * used by this item). */
+  MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_TO = 1 << 1,
+  /* Generic tag marking the entry as processed in the `from` direction (i.e. we processed the IDs
+   * using by this item). */
+  MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_FROM = 1 << 2,
   /* Generic tag marking the entry as processed. */
-  MAINIDRELATIONS_ENTRY_TAGS_PROCESSED = 1 << 1,
+  MAINIDRELATIONS_ENTRY_TAGS_PROCESSED = MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_TO |
+                                         MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_FROM,
 } eMainIDRelationsEntryTags;
 
 typedef struct MainIDRelations {
@@ -184,6 +193,9 @@ typedef struct Main {
 
   /* IDMap of IDs. Currently used when reading (expanding) libraries. */
   struct IDNameLib_Map *id_map;
+
+  /* Used for efficient calculations of unique names. */
+  struct UniqueName_Map *name_map;
 
   struct MainLock *lock;
 } Main;

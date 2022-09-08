@@ -20,7 +20,7 @@
  *     cost of longer compile time, a larger binary and the complexity that comes from using
  *     templates).
  *   - If the code is not performance sensitive, it usually makes sense to use #CPPType instead.
- * - Sometimes a combination can make sense. Optimized code can be be generated at compile-time for
+ * - Sometimes a combination can make sense. Optimized code can be generated at compile-time for
  *   some types, while there is a fallback code path using #CPPType for all other types.
  *   #CPPType::to_static_type allows dispatching between both versions based on the type.
  *
@@ -624,6 +624,11 @@ class CPPType : NonCopyable, NonMovable {
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(dst));
 
     fill_construct_indices_(value, dst, mask);
+  }
+
+  bool can_exist_in_buffer(const int64_t buffer_size, const int64_t buffer_alignment) const
+  {
+    return size_ <= buffer_size && alignment_ <= buffer_alignment;
   }
 
   void print(const void *value, std::stringstream &ss) const

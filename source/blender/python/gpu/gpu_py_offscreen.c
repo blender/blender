@@ -13,8 +13,6 @@
 
 #include <Python.h>
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -31,7 +29,6 @@
 #include "GPU_texture.h"
 #include "GPU_viewport.h"
 
-#include "ED_view3d.h"
 #include "ED_view3d_offscreen.h"
 
 #include "../mathutils/mathutils.h"

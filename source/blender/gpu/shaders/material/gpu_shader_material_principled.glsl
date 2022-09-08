@@ -149,25 +149,37 @@ void node_bsdf_principled(vec4 base_color,
                                                        max(roughness, transmission_roughness);
   refraction_data.ior = ior;
 
+  /* Ref. T98190: Defines are optimizations for old compilers.
+   * Might become unecessary with EEVEE-Next. */
   if (do_diffuse == 0.0 && do_refraction == 0.0 && do_clearcoat != 0.0) {
+#ifdef PRINCIPLED_CLEARCOAT
     /* Metallic & Clearcoat case. */
     result = closure_eval(reflection_data, clearcoat_data);
+#endif
   }
   else if (do_diffuse == 0.0 && do_refraction == 0.0 && do_clearcoat == 0.0) {
+#ifdef PRINCIPLED_METALLIC
     /* Metallic case. */
     result = closure_eval(reflection_data);
+#endif
   }
   else if (do_diffuse != 0.0 && do_refraction == 0.0 && do_clearcoat == 0.0) {
+#ifdef PRINCIPLED_DIELECTRIC
     /* Dielectric case. */
     result = closure_eval(diffuse_data, reflection_data);
+#endif
   }
   else if (do_diffuse == 0.0 && do_refraction != 0.0 && do_clearcoat == 0.0) {
+#ifdef PRINCIPLED_GLASS
     /* Glass case. */
     result = closure_eval(reflection_data, refraction_data);
+#endif
   }
   else {
+#ifdef PRINCIPLED_ANY
     /* Un-optimized case. */
     result = closure_eval(diffuse_data, reflection_data, clearcoat_data, refraction_data);
+#endif
   }
   Closure emission_cl = closure_eval(emission_data);
   Closure transparency_cl = closure_eval(transparency_data);

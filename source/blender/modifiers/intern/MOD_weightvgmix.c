@@ -23,6 +23,7 @@
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_lib_query.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h" /* Texture masking. */
@@ -187,7 +188,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 
   if (need_transform_relation) {
-    DEG_add_modifier_to_transform_relation(ctx->node, "WeightVGMix Modifier");
+    DEG_add_depends_on_transform_relation(ctx->node, "WeightVGMix Modifier");
   }
 }
 
@@ -206,7 +207,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   WeightVGMixModifierData *wmd = (WeightVGMixModifierData *)md;
 
-  MDeformVert *dvert = NULL;
   MDeformWeight **dw1, **tdw1, **dw2, **tdw2;
   float *org_w;
   float *new_w;
@@ -263,18 +263,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     }
   }
 
-  if (has_mdef) {
-    dvert = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MDEFORMVERT, verts_num);
-  }
-  else {
-    /* Add a valid data layer! */
-    dvert = CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, verts_num);
-  }
+  MDeformVert *dvert = BKE_mesh_deform_verts_for_write(mesh);
+
   /* Ultimate security check. */
   if (!dvert) {
     return mesh;
   }
-  mesh->dvert = dvert;
 
   /* Find out which vertices to work on. */
   tidx = MEM_malloc_arrayN(verts_num, sizeof(int), "WeightVGMix Modifier, tidx");
@@ -444,7 +438,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   MEM_freeN(dw2);
   MEM_SAFE_FREE(indices);
 
-  mesh->runtime.is_original = false;
+  mesh->runtime.is_original_bmesh = false;
 
   /* Return the vgroup-modified mesh. */
   return mesh;
@@ -496,7 +490,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_WeightVGMix = {
-    /* name */ "VertexWeightMix",
+    /* name */ N_("VertexWeightMix"),
     /* structName */ "WeightVGMixModifierData",
     /* structSize */ sizeof(WeightVGMixModifierData),
     /* srna */ &RNA_VertexWeightMixModifier,

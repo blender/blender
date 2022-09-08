@@ -281,7 +281,10 @@ static void zstd_close(FileReader *reader)
   if (zstd->reader.seek) {
     MEM_freeN(zstd->seek.uncompressed_ofs);
     MEM_freeN(zstd->seek.compressed_ofs);
-    MEM_freeN(zstd->seek.cached_content);
+    /* When an error has occurred this may be NULL, see: T99744. */
+    if (zstd->seek.cached_content) {
+      MEM_freeN(zstd->seek.cached_content);
+    }
   }
   else {
     MEM_freeN((void *)zstd->in_buf.src);

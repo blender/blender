@@ -21,6 +21,8 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 
+#include "BLT_translation.h"
+
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
@@ -40,7 +42,7 @@ static int gpencil_lineart_material(Main *bmain,
                                     const bool fill)
 {
   int index;
-  Material *ma = BKE_gpencil_object_material_ensure_by_name(bmain, ob, pct->name, &index);
+  Material *ma = BKE_gpencil_object_material_ensure_by_name(bmain, ob, DATA_(pct->name), &index);
 
   copy_v4_v4(ma->gp_style->stroke_rgba, pct->line);
   srgb_to_linearrgb_v4(ma->gp_style->stroke_rgba, ma->gp_style->stroke_rgba);
@@ -59,7 +61,7 @@ static int gpencil_lineart_material(Main *bmain,
 /* Color Data */
 
 static const ColorTemplate gp_stroke_material_black = {
-    "Black",
+    N_("Black"),
     {0.0f, 0.0f, 0.0f, 1.0f},
     {0.0f, 0.0f, 0.0f, 0.0f},
 };

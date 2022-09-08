@@ -177,6 +177,10 @@ typedef struct DRWSubdivCache {
 
   /* UBO to store settings for the various compute shaders. */
   struct GPUUniformBuf *ubo;
+
+  /* Extra flags, passed to the UBO. */
+  bool is_edit_mode;
+  bool use_hide;
 } DRWSubdivCache;
 
 /* Only frees the data of the cache, caller is responsible to free the cache itself if necessary.
@@ -195,6 +199,7 @@ void DRW_create_subdivision(struct Object *ob,
                             const float obmat[4][4],
                             const bool do_final,
                             const bool do_uvedit,
+                            const bool do_cage,
                             const ToolSettings *ts,
                             const bool use_hide);
 

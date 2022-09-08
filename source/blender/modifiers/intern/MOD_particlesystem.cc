@@ -21,6 +21,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_legacy_convert.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_screen.h"
@@ -118,8 +119,7 @@ static void deformVerts(ModifierData *md,
   }
 
   if (mesh_src == nullptr) {
-    mesh_src = MOD_deform_mesh_eval_get(
-        ctx->object, nullptr, nullptr, vertexCos, verts_num, false, true);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, nullptr, vertexCos, verts_num, true);
     if (mesh_src == nullptr) {
       return;
     }
@@ -300,7 +300,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_ParticleSystem = {
-    /* name */ "ParticleSystem",
+    /* name */ N_("ParticleSystem"),
     /* structName */ "ParticleSystemModifierData",
     /* structSize */ sizeof(ParticleSystemModifierData),
     /* srna */ &RNA_ParticleSystemModifier,

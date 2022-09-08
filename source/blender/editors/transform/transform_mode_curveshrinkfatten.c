@@ -64,10 +64,8 @@ static void applyCurveShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
       if (td->val) {
         *td->val = td->ival * ratio;
         /* apply PET */
-        *td->val = (*td->val * td->factor) + ((1.0f - td->factor) * td->ival);
-        if (*td->val <= 0.0f) {
-          *td->val = 0.001f;
-        }
+        *td->val = interpf(*td->val, td->ival, td->factor);
+        CLAMP_MIN(*td->val, 0.0f);
       }
     }
   }
@@ -92,10 +90,6 @@ void initCurveShrinkFatten(TransInfo *t)
   copy_v3_fl(t->num.val_inc, t->snap[0]);
   t->num.unit_sys = t->scene->unit.system;
   t->num.unit_type[0] = B_UNIT_NONE;
-
-#ifdef USE_NUM_NO_ZERO
-  t->num.val_flag[0] |= NUM_NO_ZERO;
-#endif
 
   t->flag |= T_NO_CONSTRAINT;
 }

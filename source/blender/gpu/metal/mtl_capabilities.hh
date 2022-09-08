@@ -14,12 +14,14 @@ namespace gpu {
 
 #define MTL_MAX_TEXTURE_SLOTS 128
 #define MTL_MAX_SAMPLER_SLOTS MTL_MAX_TEXTURE_SLOTS
+/* Max limit without using bind-less for samplers. */
+#define MTL_MAX_DEFAULT_SAMPLERS 16
 #define MTL_MAX_UNIFORM_BUFFER_BINDINGS 31
 #define MTL_MAX_VERTEX_INPUT_ATTRIBUTES 31
 #define MTL_MAX_UNIFORMS_PER_BLOCK 64
 
 /* Context-specific limits -- populated in 'MTLBackend::platform_init' */
-typedef struct MTLCapabilities {
+struct MTLCapabilities {
 
   /* Variable Limits & feature sets. */
   int max_color_render_targets = 4;          /* Minimum = 4 */
@@ -40,8 +42,7 @@ typedef struct MTLCapabilities {
   bool supports_family_mac2 = false;
   bool supports_family_mac_catalyst1 = false;
   bool supports_family_mac_catalyst2 = false;
-
-} MTLCapabilities;
+};
 
 }  // namespace gpu
 }  // namespace blender

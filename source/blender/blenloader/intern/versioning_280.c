@@ -73,6 +73,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_legacy_convert.h"
 #include "BKE_node.h"
 #include "BKE_node_tree_update.h"
 #include "BKE_paint.h"
@@ -366,7 +367,7 @@ static void do_version_scene_collection_to_collection(Main *bmain, Scene *scene)
   BLI_listbase_clear(&scene->view_layers);
 
   if (!scene->master_collection) {
-    scene->master_collection = BKE_collection_master_add();
+    scene->master_collection = BKE_collection_master_add(scene);
   }
 
   /* Convert scene collections. */
@@ -410,7 +411,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
   /* Since we don't have access to FileData we check the (always valid) first
    * render layer instead. */
   if (!scene->master_collection) {
-    scene->master_collection = BKE_collection_master_add();
+    scene->master_collection = BKE_collection_master_add(scene);
   }
 
   if (scene->view_layers.first) {
@@ -1793,10 +1794,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     if (DNA_struct_find(fd->filesdna, "MTexPoly")) {
       for (Mesh *me = bmain->meshes.first; me; me = me->id.next) {
         /* If we have UV's, so this file will have MTexPoly layers too! */
-        if (me->mloopuv != NULL) {
+        if (CustomData_has_layer(&me->ldata, CD_MLOOPUV)) {
           CustomData_update_typemap(&me->pdata);
           CustomData_free_layers(&me->pdata, CD_MTEXPOLY, me->totpoly);
-          BKE_mesh_update_customdata_pointers(me, false);
         }
       }
     }
@@ -2408,7 +2408,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
             scene->toolsettings->snap_mode = (1 << 1); /* SCE_SNAP_MODE_EDGE */
             break;
           case 3:
-            scene->toolsettings->snap_mode = (1 << 2); /* SCE_SNAP_MODE_FACE */
+            scene->toolsettings->snap_mode = (1 << 2); /* SCE_SNAP_MODE_FACE_RAYCAST */
             break;
           case 4:
             scene->toolsettings->snap_mode = (1 << 3); /* SCE_SNAP_MODE_VOLUME */
@@ -3548,7 +3548,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 43)) {
     ListBase *lb = which_libbase(bmain, ID_BR);
-    BKE_main_id_repair_duplicate_names_listbase(lb);
+    BKE_main_id_repair_duplicate_names_listbase(bmain, lb);
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 44)) {

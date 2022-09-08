@@ -317,6 +317,12 @@ class OBJECT_PT_lineart(ObjectButtonsPanel, Panel):
         subrow.active = lineart.use_crease_override
         subrow.prop(lineart, "crease_threshold", slider=True, text="")
 
+        row = layout.row(heading="Intersection Priority")
+        row.prop(lineart, "use_intersection_priority_override", text="")
+        subrow = row.row()
+        subrow.active = lineart.use_intersection_priority_override
+        subrow.prop(lineart, "intersection_priority", text="")
+
 
 class OBJECT_PT_motion_paths(MotionPathButtonsPanel, Panel):
     #bl_label = "Object Motion Paths"

@@ -491,15 +491,15 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
       return false;
     }
 
-    /* finally pointer_size: use struct ListBase to test it, never change the size of it! */
+    /* finally pointer_size: use struct #ListBase to test it, never change the size of it! */
     SDNA_Struct *struct_info = sdna->structs[nr];
-    /* weird; i have no memory of that... I think I used sizeof(void *) before... (ton) */
+    /* Weird; I have no memory of that... I think I used `sizeof(void *)` before... (ton). */
 
     sdna->pointer_size = sdna->types_size[struct_info->type] / 2;
 
     if (struct_info->members_len != 2 || (!ELEM(sdna->pointer_size, 4, 8))) {
-      *r_error_message = "ListBase struct error! Needs it to calculate pointerize.";
-      /* well, at least sizeof(ListBase) is error proof! (ton) */
+      *r_error_message = "ListBase struct error! Needs it to calculate pointer-size.";
+      /* Well, at least `sizeof(ListBase)` is error proof! (ton). */
       return false;
     }
   }
@@ -676,9 +676,8 @@ const char *DNA_struct_get_compareflags(const SDNA *oldsdna, const SDNA *newsdna
     BLI_assert(compare_flags[a] != SDNA_CMP_UNKNOWN);
   }
 
-  /* first struct in util.h is struct Link, this is skipped in compare_flags (als # 0).
-   * was a bug, and this way dirty patched! Solve this later....
-   */
+  /* First struct in `util.h` is struct Link, this is skipped in compare_flags (als # 0).
+   * was a bug, and this way dirty patched! Solve this later. */
   compare_flags[0] = SDNA_CMP_EQUAL;
 
 /* This code can be enabled to see which structs have changed. */
@@ -852,7 +851,7 @@ static void cast_pointer_64_to_32(const int array_len,
 }
 
 /**
- * Equality test on name and oname excluding any array-size suffix.
+ * Equality test on name and `oname` excluding any array-size suffix.
  */
 static bool elem_streq(const char *name, const char *oname)
 {
@@ -879,7 +878,7 @@ static bool elem_streq(const char *name, const char *oname)
  *
  * \param type: Current field type name.
  * \param name: Current field name.
- * \param old: Pointer to struct information in sdna.
+ * \param old: Pointer to struct information in `sdna`.
  * \return true when existing, false otherwise..
  */
 static bool elem_exists_impl(
@@ -1042,7 +1041,7 @@ void DNA_struct_switch_endian(const SDNA *sdna, int struct_nr, char *data)
           }
           case SDNA_TYPE_INT:
           case SDNA_TYPE_FLOAT: {
-            /* NOTE: intentionally ignore long/ulong, because these could be 4 or 8 bytes.
+            /* NOTE: intentionally ignore `long/ulong`, because these could be 4 or 8 bytes.
              * Fortunately, we only use these types for runtime variables and only once for a
              * struct type that is no longer used. */
             BLI_endian_switch_int32_array((int32_t *)member_data, member_array_length);
@@ -1061,7 +1060,7 @@ void DNA_struct_switch_endian(const SDNA *sdna, int struct_nr, char *data)
         break;
       }
       case STRUCT_MEMBER_CATEGORY_POINTER: {
-        /* See readfile.c (#bh4_from_bh8 swap endian argument),
+        /* See `readfile.c` (#bh4_from_bh8 swap endian argument),
          * this is only done when reducing the size of a pointer from 4 to 8. */
         if (sizeof(void *) < 8) {
           if (sdna->pointer_size == 8) {
@@ -1304,7 +1303,7 @@ static void init_reconstruct_step_for_member(const SDNA *oldsdna,
         enum eSDNA_StructCompare compare_flag = compare_flags[old_struct_nr];
         BLI_assert(compare_flag != SDNA_CMP_REMOVED);
         if (compare_flag == SDNA_CMP_EQUAL) {
-          /* The old and new members are identical, just do a memcpy. */
+          /* The old and new members are identical, just do a #memcpy. */
           r_step->type = RECONSTRUCT_STEP_MEMCPY;
           r_step->data.memcpy.new_offset = new_member_offset;
           r_step->data.memcpy.old_offset = old_member_offset;
@@ -1333,7 +1332,7 @@ static void init_reconstruct_step_for_member(const SDNA *oldsdna,
     }
     case STRUCT_MEMBER_CATEGORY_PRIMITIVE: {
       if (STREQ(new_type_name, old_type_name)) {
-        /* Primitives with the same name cannot be different, so just do a memcpy. */
+        /* Primitives with the same name cannot be different, so just do a #memcpy. */
         r_step->type = RECONSTRUCT_STEP_MEMCPY;
         r_step->data.memcpy.new_offset = new_member_offset;
         r_step->data.memcpy.old_offset = old_member_offset;
@@ -1352,7 +1351,7 @@ static void init_reconstruct_step_for_member(const SDNA *oldsdna,
     }
     case STRUCT_MEMBER_CATEGORY_POINTER: {
       if (newsdna->pointer_size == oldsdna->pointer_size) {
-        /* The pointer size is the same, so just do a memcpy. */
+        /* The pointer size is the same, so just do a #memcpy. */
         r_step->type = RECONSTRUCT_STEP_MEMCPY;
         r_step->data.memcpy.new_offset = new_member_offset;
         r_step->data.memcpy.old_offset = old_member_offset;
@@ -1386,7 +1385,7 @@ static void print_reconstruct_step(ReconstructStep *step, const SDNA *oldsdna, c
 {
   switch (step->type) {
     case RECONSTRUCT_STEP_INIT_ZERO: {
-      printf("init zero");
+      printf("initialize zero");
       break;
     }
     case RECONSTRUCT_STEP_MEMCPY: {

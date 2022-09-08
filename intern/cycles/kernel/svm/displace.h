@@ -24,18 +24,17 @@ ccl_device_noinline void svm_node_set_bump(KernelGlobals kg,
     float3 normal_in = stack_valid(normal_offset) ? stack_load_float3(stack, normal_offset) :
                                                     sd->N;
 
-    float3 dPdx = sd->dP.dx;
-    float3 dPdy = sd->dP.dy;
+    differential3 dP = differential_from_compact(sd->Ng, sd->dP);
 
     if (use_object_space) {
       object_inverse_normal_transform(kg, sd, &normal_in);
-      object_inverse_dir_transform(kg, sd, &dPdx);
-      object_inverse_dir_transform(kg, sd, &dPdy);
+      object_inverse_dir_transform(kg, sd, &dP.dx);
+      object_inverse_dir_transform(kg, sd, &dP.dy);
     }
 
     /* get surface tangents from normal */
-    float3 Rx = cross(dPdy, normal_in);
-    float3 Ry = cross(normal_in, dPdx);
+    float3 Rx = cross(dP.dy, normal_in);
+    float3 Ry = cross(normal_in, dP.dx);
 
     /* get bump values */
     uint c_offset, x_offset, y_offset, strength_offset;
@@ -46,7 +45,7 @@ ccl_device_noinline void svm_node_set_bump(KernelGlobals kg,
     float h_y = stack_load_float(stack, y_offset);
 
     /* compute surface gradient and determinant */
-    float det = dot(dPdx, Rx);
+    float det = dot(dP.dx, Rx);
     float3 surfgrad = (h_x - h_c) * Rx + (h_y - h_c) * Ry;
 
     float absdet = fabsf(det);

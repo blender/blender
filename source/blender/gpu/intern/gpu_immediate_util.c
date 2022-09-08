@@ -13,7 +13,6 @@
 #include "BLI_utildefines.h"
 
 #include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
 
 #include "UI_resources.h"
 
@@ -122,7 +121,7 @@ void immRecti_complete(int x1, int y1, int x2, int y2, const float color[4])
 {
   GPUVertFormat *format = immVertexFormat();
   uint pos = add_attr(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor4fv(color);
   immRecti(pos, x1, y1, x2, y2);
   immUnbindProgram();
@@ -143,7 +142,7 @@ static void imm_draw_circle(GPUPrimType prim_type,
                             int nsegments)
 {
   if (prim_type == GPU_PRIM_LINE_LOOP) {
-    /* Note(Metal/AMD): For small primitives, line list more efficient than line strip.. */
+    /* NOTE(Metal/AMD): For small primitives, line list more efficient than line strip.. */
     immBegin(GPU_PRIM_LINES, nsegments * 2);
 
     immVertex2f(shdr_pos, x + (radius_x * cosf(0.0f)), y + (radius_y * sinf(0.0f)));
@@ -240,9 +239,9 @@ void imm_draw_circle_partial_wire_2d(
 }
 
 void imm_draw_circle_partial_wire_3d(
-    uint pos, float x, float y, float z, float rad, int nsegments, float start, float sweep)
+    uint pos, float x, float y, float z, float radius, int nsegments, float start, float sweep)
 {
-  imm_draw_circle_partial_3d(GPU_PRIM_LINE_STRIP, pos, x, y, z, rad, nsegments, start, sweep);
+  imm_draw_circle_partial_3d(GPU_PRIM_LINE_STRIP, pos, x, y, z, radius, nsegments, start, sweep);
 }
 
 static void imm_draw_disk_partial(GPUPrimType prim_type,
@@ -334,7 +333,7 @@ static void imm_draw_circle_3D(
     GPUPrimType prim_type, uint pos, float x, float y, float radius, int nsegments)
 {
   if (prim_type == GPU_PRIM_LINE_LOOP) {
-    /* Note(Metal/AMD): For small primitives, line list more efficient than line strip. */
+    /* NOTE(Metal/AMD): For small primitives, line list more efficient than line strip. */
     immBegin(GPU_PRIM_LINES, nsegments * 2);
 
     const float angle = (float)(2 * M_PI) / (float)nsegments;
@@ -387,7 +386,7 @@ void imm_draw_circle_fill_3d(uint pos, float x, float y, float radius, int nsegm
 
 void imm_draw_box_wire_2d(uint pos, float x1, float y1, float x2, float y2)
 {
-  /* Note(Metal/AMD): For small primitives, line list more efficient than line-strip. */
+  /* NOTE(Metal/AMD): For small primitives, line list more efficient than line-strip. */
   immBegin(GPU_PRIM_LINES, 8);
   immVertex2f(pos, x1, y1);
   immVertex2f(pos, x1, y2);
@@ -406,7 +405,7 @@ void imm_draw_box_wire_2d(uint pos, float x1, float y1, float x2, float y2)
 void imm_draw_box_wire_3d(uint pos, float x1, float y1, float x2, float y2)
 {
   /* use this version when GPUVertFormat has a vec3 position */
-  /* Note(Metal/AMD): For small primitives, line list more efficient than line-strip. */
+  /* NOTE(Metal/AMD): For small primitives, line list more efficient than line-strip. */
   immBegin(GPU_PRIM_LINES, 8);
   immVertex3f(pos, x1, y1, 0.0f);
   immVertex3f(pos, x1, y2, 0.0f);

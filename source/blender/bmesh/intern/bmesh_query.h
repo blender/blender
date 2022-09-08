@@ -138,7 +138,6 @@ BMLoop *BM_face_other_vert_loop(BMFace *f, BMVert *v_prev, BMVert *v) ATTR_WARN_
  *     +----------+ <-- This loop defines the face and vertex..
  *                l
  * </pre>
- *
  */
 BMLoop *BM_loop_other_vert_loop_by_edge(BMLoop *l, BMEdge *e) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();

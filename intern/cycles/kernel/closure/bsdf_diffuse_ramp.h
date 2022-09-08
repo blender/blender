@@ -9,6 +9,7 @@
 #pragma once
 
 #include "kernel/sample/mapping.h"
+#include "kernel/util/color.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -46,38 +47,34 @@ ccl_device void bsdf_diffuse_ramp_blur(ccl_private ShaderClosure *sc, float roug
 {
 }
 
-ccl_device float3 bsdf_diffuse_ramp_eval_reflect(ccl_private const ShaderClosure *sc,
-                                                 const float3 I,
-                                                 const float3 omega_in,
-                                                 ccl_private float *pdf)
+ccl_device Spectrum bsdf_diffuse_ramp_eval_reflect(ccl_private const ShaderClosure *sc,
+                                                   const float3 I,
+                                                   const float3 omega_in,
+                                                   ccl_private float *pdf)
 {
   const DiffuseRampBsdf *bsdf = (const DiffuseRampBsdf *)sc;
   float3 N = bsdf->N;
 
   float cos_pi = fmaxf(dot(N, omega_in), 0.0f);
   *pdf = cos_pi * M_1_PI_F;
-  return bsdf_diffuse_ramp_get_color(bsdf->colors, cos_pi) * M_1_PI_F;
+  return rgb_to_spectrum(bsdf_diffuse_ramp_get_color(bsdf->colors, cos_pi) * M_1_PI_F);
 }
 
-ccl_device float3 bsdf_diffuse_ramp_eval_transmit(ccl_private const ShaderClosure *sc,
-                                                  const float3 I,
-                                                  const float3 omega_in,
-                                                  ccl_private float *pdf)
+ccl_device Spectrum bsdf_diffuse_ramp_eval_transmit(ccl_private const ShaderClosure *sc,
+                                                    const float3 I,
+                                                    const float3 omega_in,
+                                                    ccl_private float *pdf)
 {
-  return make_float3(0.0f, 0.0f, 0.0f);
+  return zero_spectrum();
 }
 
 ccl_device int bsdf_diffuse_ramp_sample(ccl_private const ShaderClosure *sc,
                                         float3 Ng,
                                         float3 I,
-                                        float3 dIdx,
-                                        float3 dIdy,
                                         float randu,
                                         float randv,
-                                        ccl_private float3 *eval,
+                                        ccl_private Spectrum *eval,
                                         ccl_private float3 *omega_in,
-                                        ccl_private float3 *domega_in_dx,
-                                        ccl_private float3 *domega_in_dy,
                                         ccl_private float *pdf)
 {
   const DiffuseRampBsdf *bsdf = (const DiffuseRampBsdf *)sc;
@@ -87,15 +84,11 @@ ccl_device int bsdf_diffuse_ramp_sample(ccl_private const ShaderClosure *sc,
   sample_cos_hemisphere(N, randu, randv, omega_in, pdf);
 
   if (dot(Ng, *omega_in) > 0.0f) {
-    *eval = bsdf_diffuse_ramp_get_color(bsdf->colors, *pdf * M_PI_F) * M_1_PI_F;
-#  ifdef __RAY_DIFFERENTIALS__
-    *domega_in_dx = (2 * dot(N, dIdx)) * N - dIdx;
-    *domega_in_dy = (2 * dot(N, dIdy)) * N - dIdy;
-#  endif
+    *eval = rgb_to_spectrum(bsdf_diffuse_ramp_get_color(bsdf->colors, *pdf * M_PI_F) * M_1_PI_F);
   }
   else {
     *pdf = 0.0f;
-    *eval = make_float3(0.0f, 0.0f, 0.0f);
+    *eval = zero_spectrum();
   }
   return LABEL_REFLECT | LABEL_DIFFUSE;
 }

@@ -6,15 +6,22 @@
  */
 
 #include "DNA_movieclip_types.h"
+#include "DNA_tracking_types.h"
 
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
+
+#include "BKE_context.h"
+#include "BKE_lib_id.h"
+#include "BKE_tracking.h"
 
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "COM_node_operation.hh"
 
 #include "node_composite_util.hh"
 
@@ -27,10 +34,23 @@ static void cmp_node_keyingscreen_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Screen"));
 }
 
-static void node_composit_init_keyingscreen(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_composit_init_keyingscreen(const bContext *C, PointerRNA *ptr)
 {
+  bNode *node = (bNode *)ptr->data;
+
   NodeKeyingScreenData *data = MEM_cnew<NodeKeyingScreenData>(__func__);
   node->storage = data;
+
+  const Scene *scene = CTX_data_scene(C);
+  if (scene->clip) {
+    MovieClip *clip = scene->clip;
+
+    node->id = &clip->id;
+    id_us_plus(&clip->id);
+
+    const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+    BLI_strncpy(data->tracking_object, tracking_object->name, sizeof(data->tracking_object));
+  }
 }
 
 static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -60,6 +80,23 @@ static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, Point
   }
 }
 
+using namespace blender::realtime_compositor;
+
+class KeyingScreenOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    get_result("Screen").allocate_invalid();
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, DNode node)
+{
+  return new KeyingScreenOperation(context, node);
+}
+
 }  // namespace blender::nodes::node_composite_keyingscreen_cc
 
 void register_node_type_cmp_keyingscreen()
@@ -71,9 +108,10 @@ void register_node_type_cmp_keyingscreen()
   cmp_node_type_base(&ntype, CMP_NODE_KEYINGSCREEN, "Keying Screen", NODE_CLASS_MATTE);
   ntype.declare = file_ns::cmp_node_keyingscreen_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_keyingscreen;
-  node_type_init(&ntype, file_ns::node_composit_init_keyingscreen);
+  ntype.initfunc_api = file_ns::node_composit_init_keyingscreen;
   node_type_storage(
       &ntype, "NodeKeyingScreenData", node_free_standard_storage, node_copy_standard_storage);
+  ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);
 }

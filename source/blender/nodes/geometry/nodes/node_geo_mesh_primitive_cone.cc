@@ -255,7 +255,7 @@ int ConeConfig::calculate_total_corners()
   return corner_total;
 }
 
-static void calculate_cone_vertices(const MutableSpan<MVert> &verts, const ConeConfig &config)
+static void calculate_cone_verts(const MutableSpan<MVert> &verts, const ConeConfig &config)
 {
   Array<float2> circle(config.circle_segments);
   const float angle_delta = 2.0f * (M_PI / static_cast<float>(config.circle_segments));
@@ -480,53 +480,49 @@ static void calculate_selection_outputs(Mesh *mesh,
                                         const ConeConfig &config,
                                         ConeAttributeOutputs &attribute_outputs)
 {
-  MeshComponent mesh_component;
-  mesh_component.replace(mesh, GeometryOwnershipType::Editable);
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
   /* Populate "Top" selection output. */
   if (attribute_outputs.top_id) {
     const bool face = !config.top_is_point && config.fill_type != GEO_NODE_MESH_CIRCLE_FILL_NONE;
-    OutputAttribute_Typed<bool> attribute = mesh_component.attribute_try_get_for_output_only<bool>(
+    SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_only_span<bool>(
         attribute_outputs.top_id.get(), face ? ATTR_DOMAIN_FACE : ATTR_DOMAIN_POINT);
-    MutableSpan<bool> selection = attribute.as_span();
 
     if (config.top_is_point) {
-      selection[config.first_vert] = true;
+      selection.span[config.first_vert] = true;
     }
     else {
-      selection.slice(0, face ? config.top_faces_len : config.circle_segments).fill(true);
+      selection.span.slice(0, face ? config.top_faces_len : config.circle_segments).fill(true);
     }
-    attribute.save();
+    selection.finish();
   }
 
   /* Populate "Bottom" selection output. */
   if (attribute_outputs.bottom_id) {
     const bool face = !config.bottom_is_point &&
                       config.fill_type != GEO_NODE_MESH_CIRCLE_FILL_NONE;
-    OutputAttribute_Typed<bool> attribute = mesh_component.attribute_try_get_for_output_only<bool>(
+    SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_only_span<bool>(
         attribute_outputs.bottom_id.get(), face ? ATTR_DOMAIN_FACE : ATTR_DOMAIN_POINT);
-    MutableSpan<bool> selection = attribute.as_span();
 
     if (config.bottom_is_point) {
-      selection[config.last_vert] = true;
+      selection.span[config.last_vert] = true;
     }
     else if (face) {
-      selection.slice(config.bottom_faces_start, config.bottom_faces_len).fill(true);
+      selection.span.slice(config.bottom_faces_start, config.bottom_faces_len).fill(true);
     }
     else {
-      selection.slice(config.last_ring_verts_start + 1, config.circle_segments).fill(true);
+      selection.span.slice(config.last_ring_verts_start + 1, config.circle_segments).fill(true);
     }
-    attribute.save();
+    selection.finish();
   }
 
   /* Populate "Side" selection output. */
   if (attribute_outputs.side_id) {
-    OutputAttribute_Typed<bool> attribute = mesh_component.attribute_try_get_for_output_only<bool>(
+    SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_only_span<bool>(
         attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE);
-    MutableSpan<bool> selection = attribute.as_span();
 
-    selection.slice(config.side_faces_start, config.side_faces_len).fill(true);
-    attribute.save();
+    selection.span.slice(config.side_faces_start, config.side_faces_len).fill(true);
+    selection.finish();
   }
 }
 
@@ -540,11 +536,11 @@ static void calculate_selection_outputs(Mesh *mesh,
  */
 static void calculate_cone_uvs(Mesh *mesh, const ConeConfig &config)
 {
-  MeshComponent mesh_component;
-  mesh_component.replace(mesh, GeometryOwnershipType::Editable);
-  OutputAttribute_Typed<float2> uv_attribute =
-      mesh_component.attribute_try_get_for_output_only<float2>("uv_map", ATTR_DOMAIN_CORNER);
-  MutableSpan<float2> uvs = uv_attribute.as_span();
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
+
+  SpanAttributeWriter<float2> uv_attribute = attributes.lookup_or_add_for_write_only_span<float2>(
+      "uv_map", ATTR_DOMAIN_CORNER);
+  MutableSpan<float2> uvs = uv_attribute.span;
 
   Array<float2> circle(config.circle_segments);
   float angle = 0.0f;
@@ -654,14 +650,14 @@ static void calculate_cone_uvs(Mesh *mesh, const ConeConfig &config)
     }
   }
 
-  uv_attribute.save();
+  uv_attribute.finish();
 }
 
 static Mesh *create_vertex_mesh()
 {
   /* Returns a mesh with a single vertex at the origin. */
   Mesh *mesh = BKE_mesh_new_nomain(1, 0, 0, 0, 0);
-  copy_v3_fl3(mesh->mvert[0].co, 0.0f, 0.0f, 0.0f);
+  copy_v3_fl3(mesh->verts_for_write().first().co, 0.0f, 0.0f, 0.0f);
   return mesh;
 }
 
@@ -693,12 +689,12 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
       config.tot_verts, config.tot_edges, 0, config.tot_corners, config.tot_faces);
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
 
-  MutableSpan<MVert> verts{mesh->mvert, mesh->totvert};
-  MutableSpan<MLoop> loops{mesh->mloop, mesh->totloop};
-  MutableSpan<MEdge> edges{mesh->medge, mesh->totedge};
-  MutableSpan<MPoly> polys{mesh->mpoly, mesh->totpoly};
+  MutableSpan<MVert> verts = mesh->verts_for_write();
+  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
+  MutableSpan<MLoop> loops = mesh->loops_for_write();
 
-  calculate_cone_vertices(verts, config);
+  calculate_cone_verts(verts, config);
   calculate_cone_edges(edges, config);
   calculate_cone_faces(loops, polys, config);
   calculate_cone_uvs(mesh, config);

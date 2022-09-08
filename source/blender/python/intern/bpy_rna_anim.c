@@ -32,6 +32,7 @@
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
+#include "RNA_path.h"
 #include "RNA_prototypes.h"
 
 #include "WM_api.h"
@@ -487,7 +488,8 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
         i = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, cfra, fcu->totvert, &found);
         if (found) {
           /* delete the key at the index (will sanity check + do recalc afterwards) */
-          delete_fcurve_key(fcu, i, 1);
+          BKE_fcurve_delete_key(fcu, i);
+          BKE_fcurve_handles_recalc(fcu);
           result = true;
         }
       }

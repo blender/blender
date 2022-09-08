@@ -339,7 +339,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Noise = {
-    /* name */ "Noise",
+    /* name */ N_("Noise"),
     /* structName */ "NoiseGpencilModifierData",
     /* structSize */ sizeof(NoiseGpencilModifierData),
     /* type */ eGpencilModifierTypeType_Gpencil,

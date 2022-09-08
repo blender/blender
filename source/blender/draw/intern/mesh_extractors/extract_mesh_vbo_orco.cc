@@ -19,7 +19,7 @@ struct MeshExtract_Orco_Data {
 };
 
 static void extract_orco_init(const MeshRenderData *mr,
-                              struct MeshBatchCache *UNUSED(cache),
+                              MeshBatchCache *UNUSED(cache),
                               void *buf,
                               void *tls_data)
 {

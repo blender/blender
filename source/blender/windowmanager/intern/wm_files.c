@@ -71,6 +71,7 @@
 #include "BKE_lib_override.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -299,6 +300,12 @@ static void wm_window_match_keep_current_wm(const bContext *C,
       bScreen *win_screen = WM_window_get_active_screen(win);
       win_screen->winid = win->winid;
     }
+  }
+
+  /* we'll be using the current wm list directly; make sure
+   * the names are validated and in the name map. */
+  LISTBASE_FOREACH (wmWindowManager *, wm_item, current_wm_list) {
+    BKE_main_namemap_get_name(bmain, &wm_item->id, wm_item->id.name + 2);
   }
 
   *r_new_wm_list = *current_wm_list;
@@ -704,6 +711,14 @@ static void wm_file_read_post(bContext *C, const struct wmFileReadPost_Params *p
     }
   }
 
+  if (is_factory_startup && BLT_translate_new_dataname()) {
+    /* Translate workspace names */
+    LISTBASE_FOREACH_MUTABLE (WorkSpace *, workspace, &bmain->workspaces) {
+      BKE_libblock_rename(
+          bmain, &workspace->id, CTX_DATA_(BLT_I18NCONTEXT_ID_WORKSPACE, workspace->id.name + 2));
+    }
+  }
+
   if (use_data) {
     /* important to do before NULL'ing the context */
     BKE_callback_exec_null(bmain, BKE_CB_EVT_VERSION_UPDATE);
@@ -1009,6 +1024,8 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
   }
 
   WM_cursor_wait(false);
+
+  BLI_assert(BKE_main_namemap_validate(CTX_data_main(C)));
 
   return success;
 }
@@ -1771,9 +1788,11 @@ static bool wm_file_write(bContext *C,
   /* Enforce full override check/generation on file save. */
   BKE_lib_override_library_main_operations_create(bmain, true);
 
-  /* NOTE: Ideally we would call `WM_redraw_windows` here to remove any open menus. But we
-   * can crash if saving from a script, see T92704 & T97627. Just checking `!G.background
-   * && BLI_thread_is_main()` is not sufficient to fix this. */
+  /* NOTE: Ideally we would call `WM_redraw_windows` here to remove any open menus.
+   * But we can crash if saving from a script, see T92704 & T97627.
+   * Just checking `!G.background && BLI_thread_is_main()` is not sufficient to fix this.
+   * Additionally some some EGL configurations don't support reading the front-buffer
+   * immediately after drawing, see: T98462. In that case off-screen drawing is necessary. */
 
   /* don't forget not to return without! */
   WM_cursor_wait(true);
@@ -1890,9 +1909,6 @@ static void wm_autosave_location(char *filepath)
 {
   const int pid = abs(getpid());
   char path[1024];
-#ifdef WIN32
-  const char *savedir;
-#endif
 
   /* Normally there is no need to check for this to be NULL,
    * however this runs on exit when it may be cleared. */
@@ -1918,7 +1934,7 @@ static void wm_autosave_location(char *filepath)
    * through BLI_windows_get_default_root_dir().
    * If there is no C:\tmp autosave fails. */
   if (!BLI_exists(BKE_tempdir_base())) {
-    savedir = BKE_appdir_folder_id_create(BLENDER_USER_AUTOSAVE, NULL);
+    const char *savedir = BKE_appdir_folder_id_create(BLENDER_USER_AUTOSAVE, NULL);
     BLI_make_file_string("/", filepath, savedir, path);
     return;
   }
@@ -3009,7 +3025,9 @@ void WM_OT_recover_auto_save(wmOperatorType *ot)
 static void wm_filepath_default(const Main *bmain, char *filepath)
 {
   if (bmain->filepath[0] == '\0') {
-    BLI_path_filename_ensure(filepath, FILE_MAX, "untitled.blend");
+    char filename_untitled[FILE_MAXFILE];
+    SNPRINTF(filename_untitled, "%s.blend", DATA_("untitled"));
+    BLI_path_filename_ensure(filepath, FILE_MAX, filename_untitled);
   }
 }
 
@@ -3069,8 +3087,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   char path[FILE_MAX];
   const bool is_save_as = (op->type->invoke == wm_save_as_mainfile_invoke);
-  const bool use_save_as_copy = (RNA_struct_property_is_set(op->ptr, "copy") &&
-                                 RNA_boolean_get(op->ptr, "copy"));
+  const bool use_save_as_copy = is_save_as && RNA_boolean_get(op->ptr, "copy");
 
   /* We could expose all options to the users however in most cases remapping
    * existing relative paths is a good default.
@@ -3643,7 +3660,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
     BLI_split_file_part(blendfile_path, filename, sizeof(filename));
   }
   else {
-    STRNCPY(filename, "untitled.blend");
+    SNPRINTF(filename, "%s.blend", DATA_("untitled"));
   }
   uiItemL(layout, filename, ICON_NONE);
 

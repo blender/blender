@@ -17,11 +17,12 @@ static void node_declare(NodeDeclarationBuilder &b)
 static int gpu_shader_rgb(GPUMaterial *mat,
                           bNode *node,
                           bNodeExecData *UNUSED(execdata),
-                          GPUNodeStack *in,
+                          GPUNodeStack * /*in*/,
                           GPUNodeStack *out)
 {
-  GPUNodeLink *link = GPU_uniformbuf_link_out(mat, node, out, 0);
-  return GPU_stack_link(mat, node, "set_rgba", in, out, link);
+  const bNodeSocket *socket = static_cast<bNodeSocket *>(node->outputs.first);
+  float *value = static_cast<bNodeSocketValueRGBA *>(socket->default_value)->value;
+  return GPU_link(mat, "set_rgba", GPU_uniform(value), &out->link);
 }
 
 }  // namespace blender::nodes::node_shader_rgb_cc

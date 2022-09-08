@@ -292,7 +292,7 @@ static PyObject *pygpu_vertbuf_attr_fill(BPyGPUVertBuf *self, PyObject *args, Py
     const char *name = PyUnicode_AsUTF8(identifier);
     id = GPU_vertformat_attr_id_get(format, name);
     if (id == -1) {
-      PyErr_SetString(PyExc_ValueError, "Unknown attribute name");
+      PyErr_Format(PyExc_ValueError, "Unknown attribute '%s'", name);
       return NULL;
     }
   }
@@ -323,14 +323,14 @@ static void pygpu_vertbuf__tp_dealloc(BPyGPUVertBuf *self)
 }
 
 PyDoc_STRVAR(pygpu_vertbuf__tp_doc,
-             ".. class:: GPUVertBuf(len, format)\n"
+             ".. class:: GPUVertBuf(format, len)\n"
              "\n"
              "   Contains a VBO.\n"
              "\n"
-             "   :param len: Amount of vertices that will fit into this buffer.\n"
-             "   :type type: `int`\n"
              "   :param format: Vertex format.\n"
-             "   :type buf: :class:`gpu.types.GPUVertFormat`\n");
+             "   :type buf: :class:`gpu.types.GPUVertFormat`\n"
+             "   :param len: Amount of vertices that will fit into this buffer.\n"
+             "   :type type: `int`\n");
 PyTypeObject BPyGPUVertBuf_Type = {
     PyVarObject_HEAD_INIT(NULL, 0).tp_name = "GPUVertBuf",
     .tp_basicsize = sizeof(BPyGPUVertBuf),

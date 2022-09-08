@@ -120,8 +120,7 @@ class GHOST_System : public GHOST_ISystem {
    */
   GHOST_TSuccess beginFullScreen(const GHOST_DisplaySetting &setting,
                                  GHOST_IWindow **window,
-                                 const bool stereoVisual,
-                                 const bool alphaBackground);
+                                 const bool stereoVisual);
 
   /**
    * Updates the resolution while in fullscreen mode.
@@ -203,6 +202,15 @@ class GHOST_System : public GHOST_ISystem {
    * Cursor management functionality
    ***************************************************************************************/
 
+  /* Client relative functions use a default implementation
+   * that converts from screen-coordinates to client coordinates.
+   * Implementations may override. */
+
+  GHOST_TSuccess getCursorPositionClientRelative(const GHOST_IWindow *window,
+                                                 int32_t &x,
+                                                 int32_t &y) const;
+  GHOST_TSuccess setCursorPositionClientRelative(GHOST_IWindow *window, int32_t x, int32_t y);
+
   /**
    * Inherited from GHOST_ISystem but left pure virtual
    * <pre>
@@ -221,7 +229,7 @@ class GHOST_System : public GHOST_ISystem {
    * \param isDown: The state of a modifier key (true == pressed).
    * \return Indication of success.
    */
-  GHOST_TSuccess getModifierKeyState(GHOST_TModifierKeyMask mask, bool &isDown) const;
+  GHOST_TSuccess getModifierKeyState(GHOST_TModifierKey mask, bool &isDown) const;
 
   /**
    * Returns the state of a mouse button (outside the message queue).
@@ -229,7 +237,7 @@ class GHOST_System : public GHOST_ISystem {
    * \param isDown: Button state.
    * \return Indication of success.
    */
-  GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool &isDown) const;
+  GHOST_TSuccess getButtonState(GHOST_TButton mask, bool &isDown) const;
 
   /**
    * Set which tablet API to use. Only affects Windows, other platforms have a single API.
@@ -367,8 +375,7 @@ class GHOST_System : public GHOST_ISystem {
    */
   GHOST_TSuccess createFullScreenWindow(GHOST_Window **window,
                                         const GHOST_DisplaySetting &settings,
-                                        const bool stereoVisual,
-                                        const bool alphaBackground = 0);
+                                        const bool stereoVisual);
 
   /** The display manager (platform dependent). */
   GHOST_DisplayManager *m_displayManager;

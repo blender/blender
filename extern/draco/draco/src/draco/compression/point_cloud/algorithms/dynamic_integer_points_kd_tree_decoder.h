@@ -227,7 +227,7 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
   std::stack<Status> status_stack;
   status_stack.push(init_status);
 
-  // TODO(hemmer): use preallocated vector instead of stack.
+  // TODO(b/199760123): Use preallocated vector instead of stack.
   while (!status_stack.empty()) {
     const DecodingStatus status = status_stack.top();
     status_stack.pop();
@@ -263,7 +263,8 @@ bool DynamicIntegerPointsKdTreeDecoder<compression_level_t>::DecodeInternal(
 
     // Fast decoding of remaining bits if number of points is 1 or 2.
     if (num_remaining_points <= 2) {
-      // TODO(hemmer): axes_ not necessary, remove would change bitstream!
+      // TODO(b/199760123): |axes_| not necessary, remove would change
+      // bitstream!
       axes_[0] = axis;
       for (uint32_t i = 1; i < dimension_; i++) {
         axes_[i] = DRACO_INCREMENT_MOD(axes_[i - 1], dimension_);

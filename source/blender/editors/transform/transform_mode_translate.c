@@ -16,6 +16,7 @@
 #include "BLI_task.h"
 
 #include "BKE_context.h"
+#include "BKE_image.h"
 #include "BKE_report.h"
 #include "BKE_unit.h"
 
@@ -434,6 +435,48 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
   custom_data->prev.rotate_mode = rotate_mode;
 }
 
+static bool clip_uv_transform_translation(TransInfo *t, float vec[2])
+{
+  /* Stores the coordinates of the closest UDIM tile.
+   * Also acts as an offset to the tile from the origin of UV space. */
+  float base_offset[2] = {0.0f, 0.0f};
+
+  /* If tiled image then constrain to correct/closest UDIM tile, else 0-1 UV space. */
+  const SpaceImage *sima = t->area->spacedata.first;
+  BKE_image_find_nearest_tile_with_offset(sima->image, t->center_global, base_offset);
+
+  float min[2], max[2];
+  min[0] = min[1] = FLT_MAX;
+  max[0] = max[1] = -FLT_MAX;
+
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    for (TransData *td = tc->data; td < tc->data + tc->data_len; td++) {
+      minmax_v2v2_v2(min, max, td->loc);
+    }
+  }
+
+  bool result = false;
+  if (min[0] < base_offset[0]) {
+    vec[0] += base_offset[0] - min[0];
+    result = true;
+  }
+  else if (max[0] > base_offset[0] + t->aspect[0]) {
+    vec[0] -= max[0] - base_offset[0] - t->aspect[0];
+    result = true;
+  }
+
+  if (min[1] < base_offset[1]) {
+    vec[1] += base_offset[1] - min[1];
+    result = true;
+  }
+  else if (max[1] > base_offset[1] + t->aspect[1]) {
+    vec[1] -= max[1] - base_offset[1] - t->aspect[1];
+    result = true;
+  }
+
+  return result;
+}
+
 static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
 {
   char str[UI_MAX_DRAW_STR];
@@ -470,7 +513,7 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
     }
 
     t->tsnap.snapElem = SCE_SNAP_MODE_NONE;
-    applySnapping(t, global_dir);
+    applySnappingAsGroup(t, global_dir);
     transform_snap_grid(t, global_dir);
 
     if (t->con.mode & CON_APPLY) {
@@ -498,7 +541,7 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
   applyTranslationValue(t, global_dir);
 
   /* evil hack - redo translation if clipping needed */
-  if (t->flag & T_CLIP_UV && clipUVTransform(t, global_dir, 0)) {
+  if (t->flag & T_CLIP_UV && clip_uv_transform_translation(t, global_dir)) {
     applyTranslationValue(t, global_dir);
 
     /* In proportional edit it can happen that */

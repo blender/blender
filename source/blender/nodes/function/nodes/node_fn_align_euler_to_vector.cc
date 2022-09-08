@@ -150,7 +150,7 @@ class MF_AlignEulerToVector : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    fn::MFSignatureBuilder signature{"Align Euler To Vector"};
+    fn::MFSignatureBuilder signature{"Align Euler to Vector"};
     signature.single_input<float3>("Rotation");
     signature.single_input<float>("Factor");
     signature.single_input<float3>("Vector");
@@ -190,7 +190,7 @@ class MF_AlignEulerToVector : public fn::MultiFunction {
 
 static void fn_node_align_euler_to_vector_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &node = builder.node();
+  const bNode &node = builder.node();
   builder.construct_and_set_matching_fn<MF_AlignEulerToVector>(node.custom1, node.custom2);
 }
 
