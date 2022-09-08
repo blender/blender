@@ -93,7 +93,7 @@ IDTypeInfo IDType_ID_LINK_PLACEHOLDER = {
     .foreach_id = NULL,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = NULL,
     .blend_read_data = NULL,
@@ -1968,8 +1968,11 @@ bool BKE_id_can_be_asset(const ID *id)
 ID *BKE_id_owner_get(ID *id)
 {
   const IDTypeInfo *idtype = BKE_idtype_get_info_from_id(id);
-  if (idtype->owner_get != NULL) {
-    return idtype->owner_get(id);
+  if (idtype->owner_pointer_get != NULL) {
+    ID **owner_id_pointer = idtype->owner_pointer_get(id);
+    if (owner_id_pointer != NULL) {
+      return *owner_id_pointer;
+    }
   }
   return NULL;
 }

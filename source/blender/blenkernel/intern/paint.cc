@@ -139,7 +139,7 @@ IDTypeInfo IDType_ID_PAL = {
     /* foreach_id */ nullptr,
     /* foreach_cache */ nullptr,
     /* foreach_path */ nullptr,
-    /* owner_get */ nullptr,
+    /* owner_pointer_get */ nullptr,
 
     /* blend_write */ palette_blend_write,
     /* blend_read_data */ palette_blend_read_data,
@@ -207,7 +207,7 @@ IDTypeInfo IDType_ID_PC = {
     /* foreach_id */ nullptr,
     /* foreach_cache */ nullptr,
     /* foreach_path */ nullptr,
-    /* owner_get */ nullptr,
+    /* owner_pointer_get */ nullptr,
 
     /* blend_write */ paint_curve_blend_write,
     /* blend_read_data */ paint_curve_blend_read_data,

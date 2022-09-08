@@ -171,7 +171,7 @@ IDTypeInfo IDType_ID_VF = {
     .foreach_id = NULL,
     .foreach_cache = NULL,
     .foreach_path = vfont_foreach_path,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = vfont_blend_write,
     .blend_read_data = vfont_blend_read_data,

@@ -315,7 +315,7 @@ IDTypeInfo IDType_ID_AC = {
     .foreach_id = action_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = action_blend_write,
     .blend_read_data = action_blend_read_data,

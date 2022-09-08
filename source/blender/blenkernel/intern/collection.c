@@ -169,10 +169,10 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
-static ID *collection_owner_get(ID *id)
+static ID **collection_owner_pointer_get(ID *id)
 {
   if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
-    return id;
+    return NULL;
   }
   BLI_assert((id->tag & LIB_TAG_NO_MAIN) == 0);
 
@@ -182,7 +182,7 @@ static ID *collection_owner_get(ID *id)
   BLI_assert(GS(master_collection->owner_id->name) == ID_SCE);
   BLI_assert(((Scene *)master_collection->owner_id)->master_collection == master_collection);
 
-  return master_collection->owner_id;
+  return &master_collection->owner_id;
 }
 
 void BKE_collection_blend_write_nolib(BlendWriter *writer, Collection *collection)
@@ -393,7 +393,7 @@ IDTypeInfo IDType_ID_GR = {
     .foreach_id = collection_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = collection_owner_get,
+    .owner_pointer_get = collection_owner_pointer_get,
 
     .blend_write = collection_blend_write,
     .blend_read_data = collection_blend_read_data,

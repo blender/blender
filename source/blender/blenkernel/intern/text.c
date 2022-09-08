@@ -245,7 +245,7 @@ IDTypeInfo IDType_ID_TXT = {
     .foreach_id = NULL,
     .foreach_cache = NULL,
     .foreach_path = text_foreach_path,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = text_blend_write,
     .blend_read_data = text_blend_read_data,

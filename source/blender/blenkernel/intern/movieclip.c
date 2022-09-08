@@ -343,7 +343,7 @@ IDTypeInfo IDType_ID_MC = {
     .foreach_id = movie_clip_foreach_id,
     .foreach_cache = movie_clip_foreach_cache,
     .foreach_path = movie_clip_foreach_path,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = movieclip_blend_write,
     .blend_read_data = movieclip_blend_read_data,

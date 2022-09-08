@@ -401,10 +401,10 @@ static void node_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   }
 }
 
-static ID *node_owner_get(ID *id)
+static ID **node_owner_pointer_get(ID *id)
 {
   if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
-    return id;
+    return NULL;
   }
   /* TODO: Sort this NO_MAIN or not for embedded node trees. See T86119. */
   // BLI_assert((id->tag & LIB_TAG_NO_MAIN) == 0);
@@ -413,7 +413,7 @@ static ID *node_owner_get(ID *id)
   BLI_assert(ntree->owner_id != NULL);
   BLI_assert(ntreeFromID(ntree->owner_id) == ntree);
 
-  return ntree->owner_id;
+  return &ntree->owner_id;
 }
 
 static void write_node_socket_default_value(BlendWriter *writer, bNodeSocket *sock)
@@ -1036,7 +1036,7 @@ IDTypeInfo IDType_ID_NT = {
     /* foreach_id */ node_foreach_id,
     /* foreach_cache */ node_foreach_cache,
     /* foreach_path */ node_foreach_path,
-    /* owner_get */ node_owner_get,
+    /* owner_pointer_get */ node_owner_pointer_get,
 
     /* blend_write */ ntree_blend_write,
     /* blend_read_data */ ntree_blend_read_data,

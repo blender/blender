@@ -494,7 +494,7 @@ IDTypeInfo IDType_ID_PA = {
     .foreach_id = particle_settings_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = particle_settings_blend_write,
     .blend_read_data = particle_settings_blend_read_data,

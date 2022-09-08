@@ -1239,7 +1239,7 @@ IDTypeInfo IDType_ID_OB = {
     /* foreach_id */ object_foreach_id,
     /* foreach_cache */ nullptr,
     /* foreach_path */ object_foreach_path,
-    /* owner_get */ nullptr,
+    /* owner_pointer_get */ nullptr,
 
     /* blend_write */ object_blend_write,
     /* blend_read_data */ object_blend_read_data,

@@ -193,7 +193,7 @@ IDTypeInfo IDType_ID_WS = {
     .foreach_id = workspace_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = workspace_blend_write,
     .blend_read_data = workspace_blend_read_data,

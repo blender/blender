@@ -402,7 +402,7 @@ IDTypeInfo IDType_ID_ME = {
     /* foreach_id */ mesh_foreach_id,
     /* foreach_cache */ nullptr,
     /* foreach_path */ mesh_foreach_path,
-    /* owner_get */ nullptr,
+    /* owner_pointer_get */ nullptr,
 
     /* blend_write */ mesh_blend_write,
     /* blend_read_data */ mesh_blend_read_data,

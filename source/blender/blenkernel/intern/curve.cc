@@ -321,7 +321,7 @@ IDTypeInfo IDType_ID_CU_LEGACY = {
     /* foreach_id */ curve_foreach_id,
     /* foreach_cache */ nullptr,
     /* foreach_path */ nullptr,
-    /* owner_get */ nullptr,
+    /* owner_pointer_get */ nullptr,
 
     /* blend_write */ curve_blend_write,
     /* blend_read_data */ curve_blend_read_data,
