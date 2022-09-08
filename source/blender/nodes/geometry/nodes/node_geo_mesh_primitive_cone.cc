@@ -480,7 +480,7 @@ static void calculate_selection_outputs(Mesh *mesh,
                                         const ConeConfig &config,
                                         ConeAttributeOutputs &attribute_outputs)
 {
-  MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*mesh);
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
   /* Populate "Top" selection output. */
   if (attribute_outputs.top_id) {
@@ -536,7 +536,7 @@ static void calculate_selection_outputs(Mesh *mesh,
  */
 static void calculate_cone_uvs(Mesh *mesh, const ConeConfig &config)
 {
-  MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*mesh);
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
   SpanAttributeWriter<float2> uv_attribute = attributes.lookup_or_add_for_write_only_span<float2>(
       "uv_map", ATTR_DOMAIN_CORNER);

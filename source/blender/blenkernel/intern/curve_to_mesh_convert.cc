@@ -711,7 +711,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
 
   Set<AttributeIDRef> main_attributes_set;
 
-  MutableAttributeAccessor mesh_attributes = bke::mesh_attributes_for_write(*mesh);
+  MutableAttributeAccessor mesh_attributes = mesh->attributes_for_write();
 
   main_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
     if (!should_add_attribute_to_mesh(main_attributes, mesh_attributes, id)) {

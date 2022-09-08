@@ -32,7 +32,7 @@ static void select_mesh_by_material(const Mesh &mesh,
       slots.append(i);
     }
   }
-  const AttributeAccessor attributes = bke::mesh_attributes(mesh);
+  const AttributeAccessor attributes = mesh.attributes();
   const VArray<int> material_indices = attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   if (material != nullptr && material_indices.is_single() &&
@@ -81,7 +81,7 @@ class MaterialSelectionFieldInput final : public bke::GeometryFieldInput {
 
     Array<bool> selection(mesh->totpoly);
     select_mesh_by_material(*mesh, material_, IndexMask(mesh->totpoly), selection);
-    return bke::mesh_attributes(*mesh).adapt_domain<bool>(
+    return mesh->attributes().adapt_domain<bool>(
         VArray<bool>::ForContainer(std::move(selection)), ATTR_DOMAIN_FACE, domain);
 
     return nullptr;

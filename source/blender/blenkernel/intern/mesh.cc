@@ -1343,7 +1343,7 @@ void BKE_mesh_material_index_remove(Mesh *me, short index)
 {
   using namespace blender;
   using namespace blender::bke;
-  MutableAttributeAccessor attributes = mesh_attributes_for_write(*me);
+  MutableAttributeAccessor attributes = me->attributes_for_write();
   AttributeWriter<int> material_indices = attributes.lookup_for_write<int>("material_index");
   if (!material_indices) {
     return;
@@ -1368,7 +1368,7 @@ bool BKE_mesh_material_index_used(Mesh *me, short index)
 {
   using namespace blender;
   using namespace blender::bke;
-  const AttributeAccessor attributes = mesh_attributes(*me);
+  const AttributeAccessor attributes = me->attributes();
   const VArray<int> material_indices = attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   if (material_indices.is_single()) {
@@ -1382,7 +1382,7 @@ void BKE_mesh_material_index_clear(Mesh *me)
 {
   using namespace blender;
   using namespace blender::bke;
-  MutableAttributeAccessor attributes = mesh_attributes_for_write(*me);
+  MutableAttributeAccessor attributes = me->attributes_for_write();
   attributes.remove("material_index");
 
   BKE_mesh_tessface_clear(me);
@@ -1411,7 +1411,7 @@ void BKE_mesh_material_remap(Mesh *me, const uint *remap, uint remap_len)
     }
   }
   else {
-    MutableAttributeAccessor attributes = mesh_attributes_for_write(*me);
+    MutableAttributeAccessor attributes = me->attributes_for_write();
     AttributeWriter<int> material_indices = attributes.lookup_for_write<int>("material_index");
     if (!material_indices) {
       return;
@@ -1763,7 +1763,7 @@ void BKE_mesh_count_selected_items(const Mesh *mesh, int r_count[3])
 
 void BKE_mesh_vert_coords_get(const Mesh *mesh, float (*vert_coords)[3])
 {
-  blender::bke::AttributeAccessor attributes = blender::bke::mesh_attributes(*mesh);
+  blender::bke::AttributeAccessor attributes = mesh->attributes();
   VArray<float3> positions = attributes.lookup_or_default(
       "position", ATTR_DOMAIN_POINT, float3(0));
   positions.materialize({(float3 *)vert_coords, mesh->totvert});

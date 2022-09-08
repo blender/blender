@@ -918,8 +918,8 @@ static void calc_dual_mesh(GeometrySet &geometry_set,
                       new_to_old_edges_map,
                       new_to_old_face_corners_map,
                       boundary_vertex_to_relevant_face_map,
-                      bke::mesh_attributes(mesh_in),
-                      bke::mesh_attributes_for_write(*mesh_out));
+                      mesh_in.attributes(),
+                      mesh_out->attributes_for_write());
 
   MutableSpan<MVert> dst_verts = mesh_out->verts_for_write();
   MutableSpan<MEdge> dst_edges = mesh_out->edges_for_write();

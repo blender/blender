@@ -34,7 +34,7 @@ class EdgeNeighborCountFieldInput final : public bke::MeshFieldInput {
       face_count[loop.e]++;
     }
 
-    return bke::mesh_attributes(mesh).adapt_domain<int>(
+    return mesh.attributes().adapt_domain<int>(
         VArray<int>::ForContainer(std::move(face_count)), ATTR_DOMAIN_EDGE, domain);
   }
 

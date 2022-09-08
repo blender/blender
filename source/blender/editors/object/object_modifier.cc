@@ -766,7 +766,7 @@ static bool modifier_apply_obdata(
       BKE_mesh_nomain_to_mesh(mesh_applied, me, ob, &CD_MASK_MESH, true);
 
       /* Anonymous attributes shouldn't be available on the applied geometry. */
-      blender::bke::mesh_attributes_for_write(*me).remove_anonymous();
+      me->attributes_for_write().remove_anonymous();
 
       if (md_eval->type == eModifierType_Multires) {
         multires_customdata_delete(me);

@@ -103,11 +103,11 @@ static std::optional<blender::bke::MutableAttributeAccessor> get_attribute_acces
       Mesh &mesh = reinterpret_cast<Mesh &>(id);
       /* The attribute API isn't implemented for BMesh, so edit mode meshes are not supported. */
       BLI_assert(mesh.edit_mesh == nullptr);
-      return mesh_attributes_for_write(mesh);
+      return mesh.attributes_for_write();
     }
     case ID_PT: {
       PointCloud &pointcloud = reinterpret_cast<PointCloud &>(id);
-      return pointcloud_attributes_for_write(pointcloud);
+      return pointcloud.attributes_for_write();
     }
     case ID_CV: {
       Curves &curves_id = reinterpret_cast<Curves &>(id);

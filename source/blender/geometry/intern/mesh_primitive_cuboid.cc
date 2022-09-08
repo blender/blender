@@ -321,7 +321,7 @@ static void calculate_polys(const CuboidConfig &config,
 
 static void calculate_uvs(const CuboidConfig &config, Mesh *mesh, const bke::AttributeIDRef &uv_id)
 {
-  bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*mesh);
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<float2> uv_attribute =
       attributes.lookup_or_add_for_write_only_span<float2>(uv_id, ATTR_DOMAIN_CORNER);
   MutableSpan<float2> uvs = uv_attribute.span;

@@ -1294,7 +1294,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
       break;
 
     case BVHTREE_FROM_LOOPTRI_NO_HIDDEN: {
-      blender::bke::AttributeAccessor attributes = blender::bke::mesh_attributes(*mesh);
+      blender::bke::AttributeAccessor attributes = mesh->attributes();
       mask = looptri_no_hidden_map_get(
           mesh->polys().data(),
           attributes.lookup_or_default(".hide_poly", ATTR_DOMAIN_FACE, false),
@@ -1454,7 +1454,7 @@ BVHTree *BKE_bvhtree_from_pointcloud_get(BVHTreeFromPointCloud *data,
     return nullptr;
   }
 
-  blender::bke::AttributeAccessor attributes = blender::bke::pointcloud_attributes(*pointcloud);
+  blender::bke::AttributeAccessor attributes = pointcloud->attributes();
   blender::VArraySpan<blender::float3> positions = attributes.lookup_or_default<blender::float3>(
       "position", ATTR_DOMAIN_POINT, blender::float3(0));
 

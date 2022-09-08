@@ -291,8 +291,8 @@ BLI_NOINLINE static void propagate_existing_attributes(
     const Span<float3> bary_coords,
     const Span<int> looptri_indices)
 {
-  const AttributeAccessor mesh_attributes = bke::mesh_attributes(mesh);
-  MutableAttributeAccessor point_attributes = bke::pointcloud_attributes_for_write(points);
+  const AttributeAccessor mesh_attributes = mesh.attributes();
+  MutableAttributeAccessor point_attributes = points.attributes_for_write();
 
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
@@ -333,7 +333,7 @@ BLI_NOINLINE static void compute_attribute_outputs(const Mesh &mesh,
                                                    const Span<int> looptri_indices,
                                                    const AttributeOutputs &attribute_outputs)
 {
-  MutableAttributeAccessor point_attributes = bke::pointcloud_attributes_for_write(points);
+  MutableAttributeAccessor point_attributes = points.attributes_for_write();
 
   SpanAttributeWriter<int> ids = point_attributes.lookup_or_add_for_write_only_span<int>(
       "id", ATTR_DOMAIN_POINT);
@@ -396,7 +396,7 @@ static Array<float> calc_full_density_factors_with_selection(const Mesh &mesh,
                                                              const Field<bool> &selection_field)
 {
   const eAttrDomain domain = ATTR_DOMAIN_CORNER;
-  const int domain_size = bke::mesh_attributes(mesh).domain_size(domain);
+  const int domain_size = mesh.attributes().domain_size(domain);
   Array<float> densities(domain_size, 0.0f);
 
   bke::MeshFieldContext field_context{mesh, domain};
@@ -491,8 +491,7 @@ static void point_distribution_calculate(GeometrySet &geometry_set,
   }
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(positions.size());
-  bke::MutableAttributeAccessor point_attributes = bke::pointcloud_attributes_for_write(
-      *pointcloud);
+  bke::MutableAttributeAccessor point_attributes = pointcloud->attributes_for_write();
   bke::SpanAttributeWriter<float3> point_positions =
       point_attributes.lookup_or_add_for_write_only_span<float3>("position", ATTR_DOMAIN_POINT);
   bke::SpanAttributeWriter<float> point_radii =

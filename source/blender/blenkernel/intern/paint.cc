@@ -2134,7 +2134,7 @@ void BKE_sculpt_sync_face_sets_visibility_to_base_mesh(Mesh *mesh)
     return;
   }
 
-  MutableAttributeAccessor attributes = mesh_attributes_for_write(*mesh);
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
   SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_only_span<bool>(
       ".hide_poly", ATTR_DOMAIN_FACE);
   if (!hide_poly) {

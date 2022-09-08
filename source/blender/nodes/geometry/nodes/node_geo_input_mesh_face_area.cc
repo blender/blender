@@ -27,7 +27,7 @@ static VArray<float> construct_face_area_varray(const Mesh &mesh, const eAttrDom
     return BKE_mesh_calc_poly_area(&poly, &loops[poly.loopstart], verts.data());
   };
 
-  return bke::mesh_attributes(mesh).adapt_domain<float>(
+  return mesh.attributes().adapt_domain<float>(
       VArray<float>::ForFunc(polys.size(), area_fn), ATTR_DOMAIN_FACE, domain);
 }
 

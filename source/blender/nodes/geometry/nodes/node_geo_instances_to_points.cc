@@ -45,8 +45,7 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
   geometry_set.replace_pointcloud(pointcloud);
 
-  bke::MutableAttributeAccessor point_attributes = bke::pointcloud_attributes_for_write(
-      *pointcloud);
+  bke::MutableAttributeAccessor point_attributes = pointcloud->attributes_for_write();
 
   bke::SpanAttributeWriter<float3> point_positions =
       point_attributes.lookup_or_add_for_write_only_span<float3>("position", ATTR_DOMAIN_POINT);

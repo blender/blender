@@ -254,7 +254,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
     CustomData_copy_data_named(&me->pdata, pdata, 0, *polyofs, me->totpoly);
 
     blender::bke::AttributeWriter<int> material_indices =
-        blender::bke::mesh_attributes_for_write(*me).lookup_for_write<int>("material_index");
+        me->attributes_for_write().lookup_for_write<int>("material_index");
     if (material_indices) {
       blender::MutableVArraySpan<int> material_indices_span(material_indices.varray);
       for (const int i : material_indices_span.index_range()) {

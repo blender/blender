@@ -50,7 +50,7 @@ static void assign_material_to_faces(Mesh &mesh, const IndexMask selection, Mate
     BKE_id_material_eval_assign(&mesh.id, new_material_index + 1, material);
   }
 
-  MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(mesh);
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
   SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
       "material_index", ATTR_DOMAIN_FACE);
   material_indices.span.fill_indices(selection, new_material_index);

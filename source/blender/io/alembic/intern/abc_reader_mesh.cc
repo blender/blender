@@ -769,7 +769,7 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
     size_t num_polys = new_mesh->totpoly;
     if (num_polys > 0) {
       std::map<std::string, int> mat_map;
-      bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*new_mesh);
+      bke::MutableAttributeAccessor attributes = new_mesh->attributes_for_write();
       bke::SpanAttributeWriter<int> material_indices =
           attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
       assign_facesets_to_material_indices(sample_sel, material_indices.span, mat_map);
@@ -830,7 +830,7 @@ void AbcMeshReader::assign_facesets_to_material_indices(const ISampleSelector &s
 void AbcMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const ISampleSelector &sample_sel)
 {
   std::map<std::string, int> mat_map;
-  bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*mesh);
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<int> material_indices =
       attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
   assign_facesets_to_material_indices(sample_sel, material_indices.span, mat_map);

@@ -415,7 +415,7 @@ static void copy_poly_attributes(Mesh *dest_mesh,
                                  Span<short> material_remap,
                                  MutableSpan<int> dst_material_indices)
 {
-  const VArray<int> src_material_indices = bke::mesh_attributes(*orig_me).lookup_or_default<int>(
+  const VArray<int> src_material_indices = orig_me->attributes().lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   const int src_index = src_material_indices[index_in_orig_me];
   if (material_remap.size() > 0 && material_remap.index_range().contains(src_index)) {
@@ -739,8 +739,8 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
   /* Set the loopstart and totloop for each output poly,
    * and set the vertices in the appropriate loops. */
   bke::SpanAttributeWriter<int> dst_material_indices =
-      bke::mesh_attributes_for_write(*result).lookup_or_add_for_write_only_span<int>(
-          "material_index", ATTR_DOMAIN_FACE);
+      result->attributes_for_write().lookup_or_add_for_write_only_span<int>("material_index",
+                                                                            ATTR_DOMAIN_FACE);
   int cur_loop_index = 0;
   MutableSpan<MLoop> dst_loops = result->loops_for_write();
   MutableSpan<MPoly> dst_polys = result->polys_for_write();

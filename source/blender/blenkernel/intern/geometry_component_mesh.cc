@@ -149,7 +149,7 @@ VArray<float3> mesh_normals_varray(const Mesh &mesh,
        * array and copy the face normal for each of its corners. In this case using the mesh
        * component's generic domain interpolation is fine, the data will still be normalized,
        * since the face normal is just copied to every corner. */
-      return mesh_attributes(mesh).adapt_domain(
+      return mesh.attributes().adapt_domain(
           VArray<float3>::ForSpan({(float3 *)BKE_mesh_poly_normals_ensure(&mesh), mesh.totpoly}),
           ATTR_DOMAIN_FACE,
           ATTR_DOMAIN_CORNER);
@@ -1324,17 +1324,18 @@ static const AttributeAccessorFunctions &get_mesh_accessor_functions_ref()
   return fn;
 }
 
-AttributeAccessor mesh_attributes(const Mesh &mesh)
-{
-  return AttributeAccessor(&mesh, get_mesh_accessor_functions_ref());
-}
-
-MutableAttributeAccessor mesh_attributes_for_write(Mesh &mesh)
-{
-  return MutableAttributeAccessor(&mesh, get_mesh_accessor_functions_ref());
-}
-
 }  // namespace blender::bke
+
+blender::bke::AttributeAccessor Mesh::attributes() const
+{
+  return blender::bke::AttributeAccessor(this, blender::bke::get_mesh_accessor_functions_ref());
+}
+
+blender::bke::MutableAttributeAccessor Mesh::attributes_for_write()
+{
+  return blender::bke::MutableAttributeAccessor(this,
+                                                blender::bke::get_mesh_accessor_functions_ref());
+}
 
 std::optional<blender::bke::AttributeAccessor> MeshComponent::attributes() const
 {

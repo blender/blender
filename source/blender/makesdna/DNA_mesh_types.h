@@ -18,6 +18,10 @@
 namespace blender {
 template<typename T> class Span;
 template<typename T> class MutableSpan;
+namespace bke {
+class AttributeAccessor;
+class MutableAttributeAccessor;
+}  // namespace bke
 }  // namespace blender
 #endif
 
@@ -345,6 +349,9 @@ typedef struct Mesh {
   blender::Span<MLoop> loops() const;
   /** Write access to loop data. */
   blender::MutableSpan<MLoop> loops_for_write();
+
+  blender::bke::AttributeAccessor attributes() const;
+  blender::bke::MutableAttributeAccessor attributes_for_write();
 
   /**
    * Vertex group data, encoded as an array of indices and weights for every vertex.

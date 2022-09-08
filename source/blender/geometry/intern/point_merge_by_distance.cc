@@ -17,7 +17,7 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
                                     const float merge_distance,
                                     const IndexMask selection)
 {
-  const bke::AttributeAccessor src_attributes = bke::pointcloud_attributes(src_points);
+  const bke::AttributeAccessor src_attributes = src_points.attributes();
   VArraySpan<float3> positions = src_attributes.lookup_or_default<float3>(
       "position", ATTR_DOMAIN_POINT, float3(0));
   const int src_size = positions.size();
@@ -41,8 +41,7 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
   /* Create the new point cloud and add it to a temporary component for the attribute API. */
   const int dst_size = src_size - duplicate_count;
   PointCloud *dst_pointcloud = BKE_pointcloud_new_nomain(dst_size);
-  bke::MutableAttributeAccessor dst_attributes = bke::pointcloud_attributes_for_write(
-      *dst_pointcloud);
+  bke::MutableAttributeAccessor dst_attributes = dst_pointcloud->attributes_for_write();
 
   /* By default, every point is just "merged" with itself. Then fill in the results of the merge
    * finding, converting from indices into the selection to indices into the full input point

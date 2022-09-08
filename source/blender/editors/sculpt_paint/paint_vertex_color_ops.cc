@@ -92,7 +92,7 @@ static bool vertex_paint_from_weight(Object *ob)
     return false;
   }
 
-  bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*me);
+  bke::MutableAttributeAccessor attributes = me->attributes_for_write();
 
   bke::GAttributeWriter color_attribute = attributes.lookup_for_write(active_color_layer->name);
   if (!color_attribute) {
@@ -162,7 +162,7 @@ static IndexMask get_selected_indices(const Mesh &mesh,
   const Span<MVert> verts = mesh.verts();
   const Span<MPoly> polys = mesh.polys();
 
-  bke::AttributeAccessor attributes = bke::mesh_attributes(mesh);
+  bke::AttributeAccessor attributes = mesh.attributes();
 
   if (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) {
     const VArray<bool> selection = attributes.adapt_domain(
@@ -196,7 +196,7 @@ static void face_corner_color_equalize_verts(Mesh &mesh, const IndexMask selecti
     return;
   }
 
-  bke::AttributeAccessor attributes = bke::mesh_attributes(mesh);
+  bke::AttributeAccessor attributes = mesh.attributes();
 
   if (attributes.lookup_meta_data(active_color_layer->name)->domain == ATTR_DOMAIN_POINT) {
     return;
@@ -270,7 +270,7 @@ static bool transform_active_color(Mesh &mesh, const TransformFn &transform_fn)
     return false;
   }
 
-  bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(mesh);
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
 
   bke::GAttributeWriter color_attribute = attributes.lookup_for_write(active_color_layer->name);
   if (!color_attribute) {

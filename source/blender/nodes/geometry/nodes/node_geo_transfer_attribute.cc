@@ -438,7 +438,7 @@ class NearestInterpolatedTransferFunction : public fn::MultiFunction {
   {
     const Mesh &mesh = *source_.get_mesh_for_read();
     source_context_.emplace(bke::MeshFieldContext{mesh, domain_});
-    const int domain_size = bke::mesh_attributes(mesh).domain_size(domain_);
+    const int domain_size = mesh.attributes().domain_size(domain_);
     source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, domain_size);
     source_evaluator_->add(src_field_);
     source_evaluator_->evaluate();
@@ -583,7 +583,7 @@ class NearestTransferFunction : public fn::MultiFunction {
   {
     if (use_mesh_) {
       const Mesh &mesh = *source_.get_mesh_for_read();
-      const int domain_size = bke::mesh_attributes(mesh).domain_size(domain_);
+      const int domain_size = mesh.attributes().domain_size(domain_);
       mesh_context_.emplace(bke::MeshFieldContext(mesh, domain_));
       mesh_evaluator_ = std::make_unique<FieldEvaluator>(*mesh_context_, domain_size);
       mesh_evaluator_->add(src_field_);

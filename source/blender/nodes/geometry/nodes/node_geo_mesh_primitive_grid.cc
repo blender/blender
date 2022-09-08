@@ -18,7 +18,7 @@ namespace blender::nodes {
 static void calculate_uvs(
     Mesh *mesh, Span<MVert> verts, Span<MLoop> loops, const float size_x, const float size_y)
 {
-  MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*mesh);
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
   SpanAttributeWriter<float2> uv_attribute = attributes.lookup_or_add_for_write_only_span<float2>(
       "uv_map", ATTR_DOMAIN_CORNER);

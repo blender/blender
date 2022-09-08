@@ -382,8 +382,8 @@ static void separate_point_cloud_selection(GeometrySet &geometry_set,
       {GEO_COMPONENT_TYPE_POINT_CLOUD}, GEO_COMPONENT_TYPE_POINT_CLOUD, false, attributes);
 
   copy_attributes_based_on_mask(attributes,
-                                bke::pointcloud_attributes(src_pointcloud),
-                                bke::pointcloud_attributes_for_write(*pointcloud),
+                                src_pointcloud.attributes(),
+                                pointcloud->attributes_for_write(),
                                 ATTR_DOMAIN_POINT,
                                 selection);
   geometry_set.replace_pointcloud(pointcloud);
@@ -921,23 +921,23 @@ static void do_mesh_separation(GeometrySet &geometry_set,
 
       /* Copy attributes. */
       copy_attributes_based_on_map(attributes,
-                                   bke::mesh_attributes(mesh_in),
-                                   bke::mesh_attributes_for_write(*mesh_out),
+                                   mesh_in.attributes(),
+                                   mesh_out->attributes_for_write(),
                                    ATTR_DOMAIN_POINT,
                                    vertex_map);
       copy_attributes_based_on_map(attributes,
-                                   bke::mesh_attributes(mesh_in),
-                                   bke::mesh_attributes_for_write(*mesh_out),
+                                   mesh_in.attributes(),
+                                   mesh_out->attributes_for_write(),
                                    ATTR_DOMAIN_EDGE,
                                    edge_map);
       copy_attributes_based_on_mask(attributes,
-                                    bke::mesh_attributes(mesh_in),
-                                    bke::mesh_attributes_for_write(*mesh_out),
+                                    mesh_in.attributes(),
+                                    mesh_out->attributes_for_write(),
                                     ATTR_DOMAIN_FACE,
                                     IndexMask(Vector<int64_t>(selected_poly_indices.as_span())));
       copy_face_corner_attributes(attributes,
-                                  bke::mesh_attributes(mesh_in),
-                                  bke::mesh_attributes_for_write(*mesh_out),
+                                  mesh_in.attributes(),
+                                  mesh_out->attributes_for_write(),
                                   selected_loops_num,
                                   selected_poly_indices,
                                   mesh_in);
@@ -997,23 +997,21 @@ static void do_mesh_separation(GeometrySet &geometry_set,
           mesh_in, *mesh_out, edge_map, selected_poly_indices, new_loop_starts);
 
       /* Copy attributes. */
-      copy_attributes(attributes,
-                      bke::mesh_attributes(mesh_in),
-                      bke::mesh_attributes_for_write(*mesh_out),
-                      {ATTR_DOMAIN_POINT});
+      copy_attributes(
+          attributes, mesh_in.attributes(), mesh_out->attributes_for_write(), {ATTR_DOMAIN_POINT});
       copy_attributes_based_on_map(attributes,
-                                   bke::mesh_attributes(mesh_in),
-                                   bke::mesh_attributes_for_write(*mesh_out),
+                                   mesh_in.attributes(),
+                                   mesh_out->attributes_for_write(),
                                    ATTR_DOMAIN_EDGE,
                                    edge_map);
       copy_attributes_based_on_mask(attributes,
-                                    bke::mesh_attributes(mesh_in),
-                                    bke::mesh_attributes_for_write(*mesh_out),
+                                    mesh_in.attributes(),
+                                    mesh_out->attributes_for_write(),
                                     ATTR_DOMAIN_FACE,
                                     IndexMask(Vector<int64_t>(selected_poly_indices.as_span())));
       copy_face_corner_attributes(attributes,
-                                  bke::mesh_attributes(mesh_in),
-                                  bke::mesh_attributes_for_write(*mesh_out),
+                                  mesh_in.attributes(),
+                                  mesh_out->attributes_for_write(),
                                   selected_loops_num,
                                   selected_poly_indices,
                                   mesh_in);
@@ -1060,17 +1058,17 @@ static void do_mesh_separation(GeometrySet &geometry_set,
 
       /* Copy attributes. */
       copy_attributes(attributes,
-                      bke::mesh_attributes(mesh_in),
-                      bke::mesh_attributes_for_write(*mesh_out),
+                      mesh_in.attributes(),
+                      mesh_out->attributes_for_write(),
                       {ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE});
       copy_attributes_based_on_mask(attributes,
-                                    bke::mesh_attributes(mesh_in),
-                                    bke::mesh_attributes_for_write(*mesh_out),
+                                    mesh_in.attributes(),
+                                    mesh_out->attributes_for_write(),
                                     ATTR_DOMAIN_FACE,
                                     IndexMask(Vector<int64_t>(selected_poly_indices.as_span())));
       copy_face_corner_attributes(attributes,
-                                  bke::mesh_attributes(mesh_in),
-                                  bke::mesh_attributes_for_write(*mesh_out),
+                                  mesh_in.attributes(),
+                                  mesh_out->attributes_for_write(),
                                   selected_loops_num,
                                   selected_poly_indices,
                                   mesh_in);
@@ -1089,8 +1087,7 @@ static void separate_mesh_selection(GeometrySet &geometry_set,
 {
   const Mesh &src_mesh = *geometry_set.get_mesh_for_read();
   bke::MeshFieldContext field_context{src_mesh, selection_domain};
-  fn::FieldEvaluator evaluator{field_context,
-                               bke::mesh_attributes(src_mesh).domain_size(selection_domain)};
+  fn::FieldEvaluator evaluator{field_context, src_mesh.attributes().domain_size(selection_domain)};
   evaluator.add(selection_field);
   evaluator.evaluate();
   const VArray<bool> selection = evaluator.get_evaluated<bool>(0);

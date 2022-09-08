@@ -3158,7 +3158,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       }
 
       /* Anonymous attributes shouldn't be available on the applied geometry. */
-      blender::bke::mesh_attributes_for_write(*new_mesh).remove_anonymous();
+      new_mesh->attributes_for_write().remove_anonymous();
 
       BKE_object_free_modifiers(newob, 0); /* after derivedmesh calls! */
     }

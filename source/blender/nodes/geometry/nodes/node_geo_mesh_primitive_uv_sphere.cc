@@ -254,7 +254,7 @@ BLI_NOINLINE static void calculate_sphere_corners(MutableSpan<MLoop> loops,
 
 BLI_NOINLINE static void calculate_sphere_uvs(Mesh *mesh, const float segments, const float rings)
 {
-  MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*mesh);
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
   SpanAttributeWriter<float2> uv_attribute = attributes.lookup_or_add_for_write_only_span<float2>(
       "uv_map", ATTR_DOMAIN_CORNER);

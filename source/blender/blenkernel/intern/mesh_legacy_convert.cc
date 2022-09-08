@@ -925,7 +925,7 @@ void BKE_mesh_legacy_convert_hide_layers_to_flags(Mesh *mesh)
 {
   using namespace blender;
   using namespace blender::bke;
-  const AttributeAccessor attributes = mesh_attributes(*mesh);
+  const AttributeAccessor attributes = mesh->attributes();
 
   MutableSpan<MVert> verts = mesh->verts_for_write();
   const VArray<bool> hide_vert = attributes.lookup_or_default<bool>(
@@ -959,7 +959,7 @@ void BKE_mesh_legacy_convert_flags_to_hide_layers(Mesh *mesh)
 {
   using namespace blender;
   using namespace blender::bke;
-  MutableAttributeAccessor attributes = mesh_attributes_for_write(*mesh);
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
   const Span<MVert> verts = mesh->verts();
   if (std::any_of(
@@ -1010,7 +1010,7 @@ void BKE_mesh_legacy_convert_material_indices_to_mpoly(Mesh *mesh)
 {
   using namespace blender;
   using namespace blender::bke;
-  const AttributeAccessor attributes = mesh_attributes(*mesh);
+  const AttributeAccessor attributes = mesh->attributes();
   MutableSpan<MPoly> polys = mesh->polys_for_write();
   const VArray<int> material_indices = attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
@@ -1025,7 +1025,7 @@ void BKE_mesh_legacy_convert_mpoly_to_material_indices(Mesh *mesh)
 {
   using namespace blender;
   using namespace blender::bke;
-  MutableAttributeAccessor attributes = mesh_attributes_for_write(*mesh);
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
   const Span<MPoly> polys = mesh->polys();
   if (std::any_of(
           polys.begin(), polys.end(), [](const MPoly &poly) { return poly.mat_nr != 0; })) {

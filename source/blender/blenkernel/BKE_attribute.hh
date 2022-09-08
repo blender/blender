@@ -755,12 +755,6 @@ class CustomDataAttributes {
   bool foreach_attribute(const AttributeForeachCallback callback, eAttrDomain domain) const;
 };
 
-AttributeAccessor mesh_attributes(const Mesh &mesh);
-MutableAttributeAccessor mesh_attributes_for_write(Mesh &mesh);
-
-AttributeAccessor pointcloud_attributes(const PointCloud &pointcloud);
-MutableAttributeAccessor pointcloud_attributes_for_write(PointCloud &pointcloud);
-
 /* -------------------------------------------------------------------- */
 /** \name #AttributeIDRef Inline Methods
  * \{ */

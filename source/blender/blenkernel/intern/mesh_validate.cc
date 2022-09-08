@@ -243,7 +243,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
   (void)0
 
   blender::bke::AttributeWriter<int> material_indices =
-      blender::bke::mesh_attributes_for_write(*mesh).lookup_for_write<int>("material_index");
+      mesh->attributes_for_write().lookup_for_write<int>("material_index");
   blender::MutableVArraySpan<int> material_indices_span(material_indices.varray);
 
   MVert *mv = mverts;
@@ -1152,7 +1152,7 @@ bool BKE_mesh_validate_material_indices(Mesh *me)
   bool is_valid = true;
 
   blender::bke::AttributeWriter<int> material_indices =
-      blender::bke::mesh_attributes_for_write(*me).lookup_for_write<int>("material_index");
+      me->attributes_for_write().lookup_for_write<int>("material_index");
   blender::MutableVArraySpan<int> material_indices_span(material_indices.varray);
   for (const int i : material_indices_span.index_range()) {
     if (material_indices_span[i] < 0 || material_indices_span[i] > mat_nr_max) {

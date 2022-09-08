@@ -88,7 +88,7 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
 
     edge_paths_to_selection(mesh, start_verts, next_vert, selection_span);
 
-    return bke::mesh_attributes(mesh).adapt_domain<bool>(
+    return mesh.attributes().adapt_domain<bool>(
         VArray<bool>::ForContainer(std::move(selection)), ATTR_DOMAIN_EDGE, domain);
   }
 

@@ -203,7 +203,7 @@ void OBJMesh::calc_smooth_groups(const bool use_bitflags)
 
 void OBJMesh::calc_poly_order()
 {
-  const bke::AttributeAccessor attributes = bke::mesh_attributes(*export_mesh_eval_);
+  const bke::AttributeAccessor attributes = export_mesh_eval_->attributes();
   const VArray<int> material_indices = attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   if (material_indices.is_single() && material_indices.get_internal_single() == 0) {

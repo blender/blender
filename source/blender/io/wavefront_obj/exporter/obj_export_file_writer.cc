@@ -255,7 +255,7 @@ void OBJWriter::write_vertex_coords(FormatHandler &fh,
     colors_layer = BKE_id_attributes_active_color_get(&mesh->id);
   }
   if (write_colors && (colors_layer != nullptr)) {
-    const bke::AttributeAccessor attributes = bke::mesh_attributes(*mesh);
+    const bke::AttributeAccessor attributes = mesh->attributes();
     const VArray<ColorGeometry4f> attribute = attributes.lookup_or_default<ColorGeometry4f>(
         colors_layer->name, ATTR_DOMAIN_POINT, {0.0f, 0.0f, 0.0f, 0.0f});
 
@@ -374,7 +374,7 @@ void OBJWriter::write_poly_elements(FormatHandler &fh,
       }
     }
 
-    const bke::AttributeAccessor attributes = bke::mesh_attributes(*obj_mesh_data.get_mesh());
+    const bke::AttributeAccessor attributes = obj_mesh_data.get_mesh()->attributes();
     const VArray<int> material_indices = attributes.lookup_or_default<int>(
         "material_index", ATTR_DOMAIN_FACE, 0);
 

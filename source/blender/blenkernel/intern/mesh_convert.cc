@@ -193,7 +193,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
   MEdge *medge = edges.data();
   MPoly *mpoly = polys.data();
   MLoop *mloop = loops.data();
-  MutableAttributeAccessor attributes = mesh_attributes_for_write(*mesh);
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
   SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_only_span<int>(
       "material_index", ATTR_DOMAIN_FACE);
   MLoopUV *mloopuv = static_cast<MLoopUV *>(CustomData_add_layer_named(
@@ -639,9 +639,8 @@ void BKE_pointcloud_from_mesh(Mesh *me, PointCloud *pointcloud)
   /* Copy over all attributes. */
   CustomData_merge(&me->vdata, &pointcloud->pdata, CD_MASK_PROP_ALL, CD_DUPLICATE, me->totvert);
 
-  bke::AttributeAccessor mesh_attributes = bke::mesh_attributes(*me);
-  bke::MutableAttributeAccessor point_attributes = bke::pointcloud_attributes_for_write(
-      *pointcloud);
+  bke::AttributeAccessor mesh_attributes = me->attributes();
+  bke::MutableAttributeAccessor point_attributes = pointcloud->attributes_for_write();
 
   const VArray<float3> mesh_positions = mesh_attributes.lookup_or_default<float3>(
       "position", ATTR_DOMAIN_POINT, float3(0));
@@ -1085,7 +1084,7 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
   BKE_mesh_nomain_to_mesh(mesh, mesh_in_bmain, nullptr, &CD_MASK_MESH, true);
 
   /* Anonymous attributes shouldn't exist on original data. */
-  blender::bke::mesh_attributes_for_write(*mesh_in_bmain).remove_anonymous();
+  mesh_in_bmain->attributes_for_write().remove_anonymous();
 
   /* User-count is required because so far mesh was in a limbo, where library management does
    * not perform any user management (i.e. copy of a mesh will not increase users of materials). */

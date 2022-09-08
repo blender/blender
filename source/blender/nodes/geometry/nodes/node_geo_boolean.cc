@@ -154,7 +154,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   /* Store intersecting edges in attribute. */
   if (attribute_outputs.intersecting_edges_id) {
-    MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*result);
+    MutableAttributeAccessor attributes = result->attributes_for_write();
     SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_only_span<bool>(
         attribute_outputs.intersecting_edges_id.get(), ATTR_DOMAIN_EDGE);
 

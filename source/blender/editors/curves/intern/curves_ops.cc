@@ -548,7 +548,7 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
                                            BKE_mesh_runtime_looptri_len(&surface_mesh)};
   VArraySpan<float2> surface_uv_map;
   if (curves_id.surface_uv_map != nullptr) {
-    const bke::AttributeAccessor surface_attributes = bke::mesh_attributes(surface_mesh);
+    const bke::AttributeAccessor surface_attributes = surface_mesh.attributes();
     surface_uv_map = surface_attributes
                          .lookup(curves_id.surface_uv_map, ATTR_DOMAIN_CORNER, CD_PROP_FLOAT2)
                          .typed<float2>();

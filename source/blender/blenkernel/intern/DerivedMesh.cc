@@ -826,7 +826,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
       mesh_final = BKE_mesh_copy_for_eval(mesh_input, true);
       ASSERT_IS_VALID_MESH(mesh_final);
     }
-    MutableAttributeAccessor attributes = mesh_attributes_for_write(*mesh_final);
+    MutableAttributeAccessor attributes = mesh_final->attributes_for_write();
     SpanAttributeWriter<float3> rest_positions =
         attributes.lookup_or_add_for_write_only_span<float3>("rest_position", ATTR_DOMAIN_POINT);
     if (rest_positions) {

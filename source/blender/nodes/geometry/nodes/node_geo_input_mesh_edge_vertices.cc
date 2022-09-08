@@ -83,13 +83,13 @@ static VArray<float3> construct_edge_positions_gvarray(const Mesh &mesh,
   const Span<MEdge> edges = mesh.edges();
 
   if (vertex == VERTEX_ONE) {
-    return bke::mesh_attributes(mesh).adapt_domain<float3>(
+    return mesh.attributes().adapt_domain<float3>(
         VArray<float3>::ForFunc(edges.size(),
                                 [verts, edges](const int i) { return verts[edges[i].v1].co; }),
         ATTR_DOMAIN_EDGE,
         domain);
   }
-  return bke::mesh_attributes(mesh).adapt_domain<float3>(
+  return mesh.attributes().adapt_domain<float3>(
       VArray<float3>::ForFunc(edges.size(),
                               [verts, edges](const int i) { return verts[edges[i].v2].co; }),
       ATTR_DOMAIN_EDGE,

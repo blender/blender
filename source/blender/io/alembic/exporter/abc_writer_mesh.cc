@@ -391,7 +391,7 @@ void ABCGenericMeshWriter::get_geo_groups(Object *object,
                                           struct Mesh *mesh,
                                           std::map<std::string, std::vector<int32_t>> &geo_groups)
 {
-  const bke::AttributeAccessor attributes = bke::mesh_attributes(*mesh);
+  const bke::AttributeAccessor attributes = mesh->attributes();
   const VArraySpan<int> material_indices = attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
 

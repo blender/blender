@@ -188,8 +188,8 @@ void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
   MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
   bke::SpanAttributeWriter<int> material_indices =
-      bke::mesh_attributes_for_write(*mesh).lookup_or_add_for_write_only_span<int>(
-          "material_index", ATTR_DOMAIN_FACE);
+      mesh->attributes_for_write().lookup_or_add_for_write_only_span<int>("material_index",
+                                                                          ATTR_DOMAIN_FACE);
 
   const int64_t tot_face_elems{mesh->totpoly};
   int tot_loop_idx = 0;

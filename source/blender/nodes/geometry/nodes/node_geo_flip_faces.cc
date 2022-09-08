@@ -44,7 +44,7 @@ static void mesh_flip_faces(Mesh &mesh, const Field<bool> &selection_field)
     }
   }
 
-  MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(mesh);
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
   attributes.for_all(
       [&](const bke::AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
         if (meta_data.domain == ATTR_DOMAIN_CORNER) {

@@ -82,8 +82,7 @@ class AngleFieldInput final : public bke::MeshFieldInput {
     };
 
     VArray<float> angles = VArray<float>::ForFunc(mesh.totedge, angle_fn);
-    return bke::mesh_attributes(mesh).adapt_domain<float>(
-        std::move(angles), ATTR_DOMAIN_EDGE, domain);
+    return mesh.attributes().adapt_domain<float>(std::move(angles), ATTR_DOMAIN_EDGE, domain);
   }
 
   uint64_t hash() const override
@@ -150,8 +149,7 @@ class SignedAngleFieldInput final : public bke::MeshFieldInput {
     };
 
     VArray<float> angles = VArray<float>::ForFunc(mesh.totedge, angle_fn);
-    return bke::mesh_attributes(mesh).adapt_domain<float>(
-        std::move(angles), ATTR_DOMAIN_EDGE, domain);
+    return mesh.attributes().adapt_domain<float>(std::move(angles), ATTR_DOMAIN_EDGE, domain);
   }
 
   uint64_t hash() const override

@@ -2,6 +2,7 @@
 
 #include "BLI_task.hh"
 
+#include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_attribute_math.hh"
@@ -65,7 +66,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
     geometry_set.remove_geometry_during_modify();
     return;
   }
-  const int domain_size = bke::mesh_attributes(*mesh).domain_size(domain);
+  const int domain_size = mesh->attributes().domain_size(domain);
   if (domain_size == 0) {
     geometry_set.remove_geometry_during_modify();
     return;
@@ -83,7 +84,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
   geometry_set.replace_pointcloud(pointcloud);
-  MutableAttributeAccessor dst_attributes = bke::pointcloud_attributes_for_write(*pointcloud);
+  MutableAttributeAccessor dst_attributes = pointcloud->attributes_for_write();
 
   GSpanAttributeWriter position = dst_attributes.lookup_or_add_for_write_only_span(
       "position", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
@@ -102,7 +103,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
       {GEO_COMPONENT_TYPE_MESH}, GEO_COMPONENT_TYPE_POINT_CLOUD, false, attributes);
   attributes.remove("position");
 
-  const AttributeAccessor src_attributes = bke::mesh_attributes(*mesh);
+  const AttributeAccessor src_attributes = mesh->attributes();
 
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;

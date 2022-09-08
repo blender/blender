@@ -312,7 +312,7 @@ class RaycastFunction : public fn::MultiFunction {
     }
     const Mesh &mesh = *target_.get_mesh_for_read();
     target_context_.emplace(bke::MeshFieldContext{mesh, domain_});
-    const int domain_size = bke::mesh_attributes(mesh).domain_size(domain_);
+    const int domain_size = mesh.attributes().domain_size(domain_);
     target_evaluator_ = std::make_unique<FieldEvaluator>(*target_context_, domain_size);
     target_evaluator_->add(std::move(src_field));
     target_evaluator_->evaluate();
