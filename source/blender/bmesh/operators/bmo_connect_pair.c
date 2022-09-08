@@ -83,7 +83,7 @@ typedef struct PathContext {
   /* only to access BMO flags */
   BMesh *bm_bmoflag;
 
-  BMVert *v_a, *v_b;
+  BMVert *v_pair[2];
 
   BLI_mempool *link_pool;
 } PathContext;
@@ -593,17 +593,17 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
   }
 
   pc.bm_bmoflag = bm;
-  pc.v_a = ((BMVert **)op_verts_slot->data.p)[0];
-  pc.v_b = ((BMVert **)op_verts_slot->data.p)[1];
+  pc.v_pair[0] = ((BMVert **)op_verts_slot->data.p)[0];
+  pc.v_pair[1] = ((BMVert **)op_verts_slot->data.p)[1];
 
   /* fail! */
-  if (!(pc.v_a && pc.v_b)) {
+  if (!(pc.v_pair[0] && pc.v_pair[1])) {
     return;
   }
 
 #ifdef DEBUG_PRINT
-  printf("%s: v_a: %d\n", __func__, BM_elem_index_get(pc.v_a));
-  printf("%s: v_b: %d\n", __func__, BM_elem_index_get(pc.v_b));
+  printf("%s: v_pair[0]: %d\n", __func__, BM_elem_index_get(pc.v_pair[0]));
+  printf("%s: v_pair[1]: %d\n", __func__, BM_elem_index_get(pc.v_pair[1]));
 #endif
 
   /* tag so we won't touch ever (typically hidden faces) */
@@ -618,15 +618,15 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 
   /* calculate matrix */
   {
-    bm_vert_pair_to_matrix(&pc.v_a, pc.matrix);
-    pc.axis_sep = dot_m3_v3_row_x(pc.matrix, pc.v_a->co);
+    bm_vert_pair_to_matrix(pc.v_pair, pc.matrix);
+    pc.axis_sep = dot_m3_v3_row_x(pc.matrix, pc.v_pair[0]->co);
   }
 
   /* add first vertex */
   {
     PathLinkState *state;
     state = MEM_callocN(sizeof(*state), __func__);
-    state_link_add(&pc, state, (BMElem *)pc.v_a, NULL);
+    state_link_add(&pc, state, (BMElem *)pc.v_pair[0], NULL);
     BLI_heapsimple_insert(pc.states, state->dist, state);
   }
 
@@ -642,7 +642,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
       /* either we insert this into 'pc.states' or its freed */
       bool continue_search;
 
-      if (state->link_last->ele == (BMElem *)pc.v_b) {
+      if (state->link_last->ele == (BMElem *)pc.v_pair[1]) {
         /* pass, wait until all are found */
 #ifdef DEBUG_PRINT
         printf("%s: state %p loop found %.4f\n", __func__, state, state->dist);
@@ -698,8 +698,8 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
     } while ((link = link->next));
   }
 
-  BMO_vert_flag_enable(bm, pc.v_a, VERT_OUT);
-  BMO_vert_flag_enable(bm, pc.v_b, VERT_OUT);
+  BMO_vert_flag_enable(bm, pc.v_pair[0], VERT_OUT);
+  BMO_vert_flag_enable(bm, pc.v_pair[1], VERT_OUT);
 
   BLI_mempool_destroy(pc.link_pool);
 

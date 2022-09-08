@@ -174,7 +174,6 @@ const UserDef U_default = {
     .pie_menu_confirm = 0,
     .pie_menu_radius = 100,
     .pie_menu_threshold = 12,
-    .opensubdiv_compute_type = 0,
     .factor_display_type = USER_FACTOR_AS_FACTOR,
     .render_display_type = USER_RENDER_DISPLAY_WINDOW,
     .filebrowser_display_type = USER_TEMP_SPACE_DISPLAY_WINDOW,

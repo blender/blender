@@ -382,7 +382,7 @@ std::unique_ptr<CurveEval> curves_to_curve_eval(const Curves &curves_id)
   VArray<int8_t> normal_mode = curves.normal_mode();
 
   VArraySpan<float> nurbs_weights{
-      src_attributes.lookup_or_default<float>("nurbs_weight", ATTR_DOMAIN_POINT, 0.0f)};
+      src_attributes.lookup_or_default<float>("nurbs_weight", ATTR_DOMAIN_POINT, 1.0f)};
   VArraySpan<int8_t> nurbs_orders{
       src_attributes.lookup_or_default<int8_t>("nurbs_order", ATTR_DOMAIN_CURVE, 4)};
   VArraySpan<int8_t> nurbs_knots_modes{
@@ -475,13 +475,13 @@ Curves *curve_eval_to_curves(const CurveEval &curve_eval)
   blender::bke::SpanAttributeWriter<int8_t> normal_mode =
       dst_attributes.lookup_or_add_for_write_only_span<int8_t>("normal_mode", ATTR_DOMAIN_CURVE);
   blender::bke::SpanAttributeWriter<float> nurbs_weight;
-  blender::bke::SpanAttributeWriter<int> nurbs_order;
+  blender::bke::SpanAttributeWriter<int8_t> nurbs_order;
   blender::bke::SpanAttributeWriter<int8_t> nurbs_knots_mode;
   if (curve_eval.has_spline_with_type(CURVE_TYPE_NURBS)) {
     nurbs_weight = dst_attributes.lookup_or_add_for_write_only_span<float>("nurbs_weight",
                                                                            ATTR_DOMAIN_POINT);
-    nurbs_order = dst_attributes.lookup_or_add_for_write_only_span<int>("nurbs_order",
-                                                                        ATTR_DOMAIN_CURVE);
+    nurbs_order = dst_attributes.lookup_or_add_for_write_only_span<int8_t>("nurbs_order",
+                                                                           ATTR_DOMAIN_CURVE);
     nurbs_knots_mode = dst_attributes.lookup_or_add_for_write_only_span<int8_t>("knots_mode",
                                                                                 ATTR_DOMAIN_CURVE);
   }

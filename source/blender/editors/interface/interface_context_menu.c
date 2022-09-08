@@ -927,11 +927,11 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
 
   {
     const ARegion *region = CTX_wm_menu(C) ? CTX_wm_menu(C) : CTX_wm_region(C);
-    uiButTreeRow *treerow_but = (uiButTreeRow *)ui_tree_row_find_mouse_over(region, event->xy);
-    if (treerow_but) {
-      BLI_assert(treerow_but->but.type == UI_BTYPE_TREEROW);
-      UI_tree_view_item_context_menu_build(
-          C, treerow_but->tree_item, uiLayoutColumn(layout, false));
+    uiButViewItem *view_item_but = (uiButViewItem *)ui_view_item_find_mouse_over(region,
+                                                                                 event->xy);
+    if (view_item_but) {
+      BLI_assert(view_item_but->but.type == UI_BTYPE_VIEW_ITEM);
+      UI_view_item_context_menu_build(C, view_item_but->view_item, uiLayoutColumn(layout, false));
       uiItemS(layout);
     }
   }
@@ -949,6 +949,12 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     sub = uiLayoutColumn(layout, true);
     uiLayoutSetEnabled(sub, id->asset_data);
     uiItemO(sub, NULL, ICON_NONE, "ASSET_OT_clear");
+    uiItemS(layout);
+  }
+
+  MenuType *mt_idtemplate_liboverride = WM_menutype_find("UI_MT_idtemplate_liboverride", true);
+  if (mt_idtemplate_liboverride && mt_idtemplate_liboverride->poll(C, mt_idtemplate_liboverride)) {
+    uiItemM_ptr(layout, mt_idtemplate_liboverride, IFACE_("Library Override"), ICON_NONE);
     uiItemS(layout);
   }
 
@@ -1224,7 +1230,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     }
   }
 
-  MenuType *mt = WM_menutype_find("WM_MT_button_context", true);
+  MenuType *mt = WM_menutype_find("UI_MT_button_context_menu", true);
   if (mt) {
     UI_menutype_draw(C, mt, uiLayoutColumn(layout, false));
   }

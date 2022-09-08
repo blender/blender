@@ -5,6 +5,11 @@
 
 add_definitions(-DWITH_DNA_GHASH)
 
+# Needed for `mallocn.c`.
+if(HAVE_MALLOC_STATS_H)
+  add_definitions(-DHAVE_MALLOC_STATS_H)
+endif()
+
 blender_include_dirs(
   ../../../../intern/atomic
   ../../../../intern/guardedalloc

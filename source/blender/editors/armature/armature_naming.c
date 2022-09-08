@@ -285,7 +285,7 @@ void ED_armature_bone_rename(Main *bmain,
       /* fix camera focus */
       if (ob->type == OB_CAMERA) {
         Camera *cam = (Camera *)ob->data;
-        if (cam->dof.focus_object->data == arm){
+        if ((cam->dof.focus_object != NULL) && (cam->dof.focus_object->data == arm)) {
           if (STREQ(cam->dof.focus_subtarget, oldname)) {
             BLI_strncpy(cam->dof.focus_subtarget, newname, MAXBONENAME);
             DEG_id_tag_update(&cam->id, ID_RECALC_COPY_ON_WRITE);

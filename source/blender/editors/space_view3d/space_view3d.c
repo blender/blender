@@ -960,7 +960,7 @@ static void view3d_widgets(void)
   WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_camera);
   WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_camera_view);
   WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_empty_image);
-  /* TODO(campbell): Not working well enough, disable for now. */
+  /* TODO(@campbellbarton): Not working well enough, disable for now. */
 #if 0
   WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_armature_spline);
 #endif
@@ -1037,7 +1037,7 @@ static void view3d_main_region_listener(const wmRegionListenerParams *params)
   wmWindow *window = params->window;
   ScrArea *area = params->area;
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
   const Scene *scene = params->scene;
   View3D *v3d = area->spacedata.first;
   RegionView3D *rv3d = region->regiondata;
@@ -1209,6 +1209,9 @@ static void view3d_main_region_listener(const wmRegionListenerParams *params)
           ED_region_tag_redraw(region);
           break;
       }
+      break;
+    case NC_NODE:
+      ED_region_tag_redraw(region);
       break;
     case NC_WORLD:
       switch (wmn->data) {
@@ -1402,7 +1405,7 @@ static void view3d_main_region_message_subscribe(const wmRegionMessageSubscribeP
   WM_msg_subscribe_rna_anon_type(mbus, ObjectDisplay, &msg_sub_value_region_tag_redraw);
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *obact = OBACT(view_layer);
+  Object *obact = BKE_view_layer_active_object_get(view_layer);
   if (obact != NULL) {
     switch (obact->mode) {
       case OB_MODE_PARTICLE_EDIT:
@@ -1437,7 +1440,7 @@ static void view3d_main_region_cursor(wmWindow *win, ScrArea *area, ARegion *reg
   }
 
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit) {
     WM_cursor_set(win, WM_CURSOR_EDIT);
   }
@@ -1464,7 +1467,7 @@ static void view3d_header_region_draw(const bContext *C, ARegion *region)
 static void view3d_header_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -1681,7 +1684,7 @@ static void view3d_buttons_region_layout(const bContext *C, ARegion *region)
 static void view3d_buttons_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -1804,7 +1807,7 @@ static void view3d_tools_region_draw(const bContext *C, ARegion *region)
 static void space_view3d_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
   View3D *v3d = area->spacedata.first;
 
   /* context changes */

@@ -442,11 +442,6 @@ OpenSubdiv_EvaluatorImpl *openSubdiv_createEvaluatorInternal(
     eOpenSubdivEvaluator evaluator_type,
     OpenSubdiv_EvaluatorCacheImpl *evaluator_cache_descr)
 {
-  // Only CPU and GLCompute are implemented at the moment.
-  if (evaluator_type != OPENSUBDIV_EVALUATOR_CPU &&
-      evaluator_type != OPENSUBDIV_EVALUATOR_GLSL_COMPUTE) {
-    return NULL;
-  }
   using blender::opensubdiv::vector;
   TopologyRefiner *refiner = topology_refiner->impl->topology_refiner;
   if (refiner == NULL) {
@@ -551,8 +546,8 @@ OpenSubdiv_EvaluatorImpl *openSubdiv_createEvaluatorInternal(
   // Create OpenSubdiv's CPU side evaluator.
   blender::opensubdiv::EvalOutputAPI::EvalOutput *eval_output = nullptr;
 
-  const bool use_gl_evaluator = evaluator_type == OPENSUBDIV_EVALUATOR_GLSL_COMPUTE;
-  if (use_gl_evaluator) {
+  const bool use_gpu_evaluator = evaluator_type == OPENSUBDIV_EVALUATOR_GPU;
+  if (use_gpu_evaluator) {
     blender::opensubdiv::GpuEvalOutput::EvaluatorCache *evaluator_cache = nullptr;
     if (evaluator_cache_descr) {
       evaluator_cache = static_cast<blender::opensubdiv::GpuEvalOutput::EvaluatorCache *>(

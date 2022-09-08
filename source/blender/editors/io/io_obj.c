@@ -18,6 +18,7 @@
 
 #  include "BLT_translation.h"
 
+#  include "ED_fileselect.h"
 #  include "ED_outliner.h"
 
 #  include "MEM_guardedalloc.h"
@@ -58,20 +59,7 @@ static const EnumPropertyItem io_obj_path_mode[] = {
 
 static int wm_obj_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
-    Main *bmain = CTX_data_main(C);
-    char filepath[FILE_MAX];
-
-    if (BKE_main_blendfile_path(bmain)[0] == '\0') {
-      BLI_strncpy(filepath, "untitled", sizeof(filepath));
-    }
-    else {
-      BLI_strncpy(filepath, BKE_main_blendfile_path(bmain), sizeof(filepath));
-    }
-
-    BLI_path_extension_replace(filepath, sizeof(filepath), ".obj");
-    RNA_string_set(op->ptr, "filepath", filepath);
-  }
+  ED_fileselect_ensure_default_filepath(C, op, ".obj");
 
   WM_event_add_fileselect(C, op);
   return OPERATOR_RUNNING_MODAL;
@@ -79,7 +67,7 @@ static int wm_obj_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 
 static int wm_obj_export_exec(bContext *C, wmOperator *op)
 {
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }
@@ -382,11 +370,6 @@ static int wm_obj_import_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 
 static int wm_obj_import_exec(bContext *C, wmOperator *op)
 {
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
-    BKE_report(op->reports, RPT_ERROR, "No filename given");
-    return OPERATOR_CANCELLED;
-  }
-
   struct OBJImportParams import_params;
   RNA_string_get(op->ptr, "filepath", import_params.filepath);
   import_params.clamp_size = RNA_float_get(op->ptr, "clamp_size");
@@ -394,8 +377,36 @@ static int wm_obj_import_exec(bContext *C, wmOperator *op)
   import_params.up_axis = RNA_enum_get(op->ptr, "up_axis");
   import_params.import_vertex_groups = RNA_boolean_get(op->ptr, "import_vertex_groups");
   import_params.validate_meshes = RNA_boolean_get(op->ptr, "validate_meshes");
+  import_params.relative_paths = ((U.flag & USER_RELPATHS) != 0);
+  import_params.clear_selection = true;
 
-  OBJ_import(C, &import_params);
+  int files_len = RNA_collection_length(op->ptr, "files");
+  if (files_len) {
+    /* Importing multiple files: loop over them and import one by one. */
+    PointerRNA fileptr;
+    PropertyRNA *prop;
+    char dir_only[FILE_MAX], file_only[FILE_MAX];
+
+    RNA_string_get(op->ptr, "directory", dir_only);
+    prop = RNA_struct_find_property(op->ptr, "files");
+    for (int i = 0; i < files_len; i++) {
+      RNA_property_collection_lookup_int(op->ptr, prop, i, &fileptr);
+      RNA_string_get(&fileptr, "name", file_only);
+      BLI_join_dirfile(
+          import_params.filepath, sizeof(import_params.filepath), dir_only, file_only);
+      import_params.clear_selection = (i == 0);
+      OBJ_import(C, &import_params);
+    }
+  }
+  else if (RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
+    /* Importing one file. */
+    RNA_string_get(op->ptr, "filepath", import_params.filepath);
+    OBJ_import(C, &import_params);
+  }
+  else {
+    BKE_report(op->reports, RPT_ERROR, "No filename given");
+    return OPERATOR_CANCELLED;
+  }
 
   Scene *scene = CTX_data_scene(C);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
@@ -453,7 +464,8 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
                                  FILE_TYPE_FOLDER,
                                  FILE_BLENDER,
                                  FILE_OPENFILE,
-                                 WM_FILESEL_FILEPATH | WM_FILESEL_SHOW_PROPS,
+                                 WM_FILESEL_FILEPATH | WM_FILESEL_SHOW_PROPS |
+                                     WM_FILESEL_DIRECTORY | WM_FILESEL_FILES,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_ALPHA);
   RNA_def_float(

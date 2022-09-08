@@ -60,7 +60,7 @@ static void initData(ModifierData *md)
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   MeshToVolumeModifierData *mvmd = reinterpret_cast<MeshToVolumeModifierData *>(md);
-  DEG_add_modifier_to_transform_relation(ctx->node, "Mesh to Volume Modifier");
+  DEG_add_depends_on_transform_relation(ctx->node, "Mesh to Volume Modifier");
   if (mvmd->object) {
     DEG_add_object_relation(
         ctx->node, mvmd->object, DEG_OB_COMP_GEOMETRY, "Mesh to Volume Modifier");
@@ -128,7 +128,7 @@ static Volume *mesh_to_volume(ModifierData *md,
   if (object_to_convert == nullptr) {
     return input_volume;
   }
-  Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_to_convert, false);
+  Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_to_convert);
   if (mesh == nullptr) {
     return input_volume;
   }

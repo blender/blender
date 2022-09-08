@@ -111,7 +111,7 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_cryptomatte_layer_remove);
 }
 
-void node_keymap(struct wmKeyConfig *keyconf)
+void node_keymap(wmKeyConfig *keyconf)
 {
   /* Entire Editor only ----------------- */
   WM_keymap_ensure(keyconf, "Node Generic", SPACE_NODE, 0);

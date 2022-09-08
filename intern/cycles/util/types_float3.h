@@ -1,8 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0
  * Copyright 2011-2022 Blender Foundation */
 
-#ifndef __UTIL_TYPES_FLOAT3_H__
-#define __UTIL_TYPES_FLOAT3_H__
+#pragma once
 
 #ifndef __UTIL_TYPES_H__
 #  error "Do not include this file directly, include util/types.h instead."
@@ -10,17 +9,28 @@
 
 CCL_NAMESPACE_BEGIN
 
-#if !defined(__KERNEL_GPU__)
+#ifndef __KERNEL_NATIVE_VECTOR_TYPES__
 struct ccl_try_align(16) float3
 {
-#  ifdef __KERNEL_SSE__
+#  ifdef __KERNEL_GPU__
+  /* Compact structure for GPU. */
+  float x, y, z;
+#  else
+  /* SIMD aligned structure for CPU. */
+#    ifdef __KERNEL_SSE__
   union {
     __m128 m128;
     struct {
       float x, y, z, w;
     };
   };
+#    else
+  float x, y, z, w;
+#    endif
+#  endif
 
+#  ifdef __KERNEL_SSE__
+  /* Convenient constructors and operators for SIMD, otherwise default is enough. */
   __forceinline float3();
   __forceinline float3(const float3 &a);
   __forceinline explicit float3(const __m128 &a);
@@ -29,18 +39,19 @@ struct ccl_try_align(16) float3
   __forceinline operator __m128 &();
 
   __forceinline float3 &operator=(const float3 &a);
-#  else  /* __KERNEL_SSE__ */
-  float x, y, z, w;
-#  endif /* __KERNEL_SSE__ */
+#  endif
 
+#  ifndef __KERNEL_GPU__
   __forceinline float operator[](int i) const;
   __forceinline float &operator[](int i);
+#  endif
 };
 
-ccl_device_inline float3 make_float3(float f);
 ccl_device_inline float3 make_float3(float x, float y, float z);
-ccl_device_inline void print_float3(const char *label, const float3 &a);
-#endif /* !defined(__KERNEL_GPU__) */
+#endif /* __KERNEL_NATIVE_VECTOR_TYPES__ */
+
+ccl_device_inline float3 make_float3(float f);
+ccl_device_inline void print_float3(ccl_private const char *label, const float3 a);
 
 /* Smaller float3 for storage. For math operations this must be converted to float3, so that on the
  * CPU SIMD instructions can be used. */
@@ -78,5 +89,3 @@ struct packed_float3 {
 static_assert(sizeof(packed_float3) == 12, "packed_float3 expected to be exactly 12 bytes");
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_TYPES_FLOAT3_H__ */

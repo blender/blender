@@ -1,0 +1,24 @@
+diff -Naur orig/PCbuild/get_externals.bat Python-3.10.2/PCbuild/get_externals.bat
+--- orig/PCbuild/get_externals.bat      2022-01-13 11:52:14 -0700
++++ Python-3.10.2/PCbuild/get_externals.bat     2022-08-17 11:24:42 -0600
+@@ -51,7 +51,7 @@
+ echo.Fetching external libraries...
+
+ set libraries=
+-set libraries=%libraries%                                       bzip2-1.0.6
++set libraries=%libraries%                                       bzip2-1.0.8
+ if NOT "%IncludeLibffiSrc%"=="false" set libraries=%libraries%  libffi-3.3.0
+ if NOT "%IncludeSSLSrc%"=="false" set libraries=%libraries%     openssl-1.1.1m
+ set libraries=%libraries%                                       sqlite-3.35.5.0
+ diff -Naur orig/PCbuild/python.props external_python/PCbuild/python.props
+--- orig/PCbuild/python.props   2022-01-13 11:52:14 -0700
++++ external_python/PCbuild/python.props        2022-08-17 11:38:38 -0600
+@@ -58,7 +58,7 @@
+     <ExternalsDir Condition="$(ExternalsDir) == ''">$([System.IO.Path]::GetFullPath(`$(PySourcePath)externals`))</ExternalsDir>
+     <ExternalsDir Condition="!HasTrailingSlash($(ExternalsDir))">$(ExternalsDir)\</ExternalsDir>
+     <sqlite3Dir>$(ExternalsDir)sqlite-3.35.5.0\</sqlite3Dir>
+-    <bz2Dir>$(ExternalsDir)bzip2-1.0.6\</bz2Dir>
++    <bz2Dir>$(ExternalsDir)bzip2-1.0.8\</bz2Dir>
+     <lzmaDir>$(ExternalsDir)xz-5.2.2\</lzmaDir>
+     <libffiDir>$(ExternalsDir)libffi-3.3.0\</libffiDir>
+     <libffiOutDir>$(ExternalsDir)libffi-3.3.0\$(ArchName)\</libffiOutDir>

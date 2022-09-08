@@ -6,9 +6,15 @@
  * \ingroup bke
  */
 
-#include "BKE_mesh_types.h"
 #include "BLI_compiler_attrs.h"
+#include "BLI_compiler_compat.h"
 #include "BLI_utildefines.h"
+
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+
+#include "BKE_customdata.h"
+#include "BKE_mesh_types.h"
 
 struct BLI_Stack;
 struct BMesh;
@@ -145,7 +151,6 @@ void BKE_mesh_copy_parameters_for_eval(struct Mesh *me_dst, const struct Mesh *m
  * when a new mesh is based on an existing mesh.
  */
 void BKE_mesh_copy_parameters(struct Mesh *me_dst, const struct Mesh *me_src);
-void BKE_mesh_update_customdata_pointers(struct Mesh *me, bool do_ensure_tess_cd);
 void BKE_mesh_ensure_skin_customdata(struct Mesh *me);
 
 struct Mesh *BKE_mesh_new_nomain(
@@ -193,7 +198,6 @@ void BKE_mesh_orco_ensure(struct Object *ob, struct Mesh *mesh);
 
 struct Mesh *BKE_mesh_from_object(struct Object *ob);
 void BKE_mesh_assign_object(struct Main *bmain, struct Object *ob, struct Mesh *me);
-void BKE_mesh_from_metaball(struct ListBase *lb, struct Mesh *me);
 void BKE_mesh_to_curve_nurblist(const struct Mesh *me,
                                 struct ListBase *nurblist,
                                 int edge_users_test);
@@ -330,7 +334,7 @@ void BKE_mesh_vert_coords_apply_with_mat4(struct Mesh *mesh,
                                           const float mat[4][4]);
 void BKE_mesh_vert_coords_apply(struct Mesh *mesh, const float (*vert_coords)[3]);
 
-/* *** mesh_tessellate.c *** */
+/* *** mesh_tessellate.cc *** */
 
 /**
  * Calculate tessellation into #MLoopTri which exist only for this purpose.
@@ -515,9 +519,9 @@ void BKE_edges_sharp_from_angle_set(const struct MVert *mverts,
                                     int numVerts,
                                     struct MEdge *medges,
                                     int numEdges,
-                                    struct MLoop *mloops,
+                                    const struct MLoop *mloops,
                                     int numLoops,
-                                    struct MPoly *mpolys,
+                                    const struct MPoly *mpolys,
                                     const float (*polynors)[3],
                                     int numPolys,
                                     float split_angle);
@@ -635,12 +639,12 @@ void BKE_lnor_space_custom_normal_to_data(MLoopNorSpace *lnor_space,
 void BKE_mesh_normals_loop_split(const struct MVert *mverts,
                                  const float (*vert_normals)[3],
                                  int numVerts,
-                                 struct MEdge *medges,
+                                 const struct MEdge *medges,
                                  int numEdges,
-                                 struct MLoop *mloops,
+                                 const struct MLoop *mloops,
                                  float (*r_loopnors)[3],
                                  int numLoops,
-                                 struct MPoly *mpolys,
+                                 const struct MPoly *mpolys,
                                  const float (*polynors)[3],
                                  int numPolys,
                                  bool use_split_normals,
@@ -654,10 +658,10 @@ void BKE_mesh_normals_loop_custom_set(const struct MVert *mverts,
                                       int numVerts,
                                       struct MEdge *medges,
                                       int numEdges,
-                                      struct MLoop *mloops,
+                                      const struct MLoop *mloops,
                                       float (*r_custom_loopnors)[3],
                                       int numLoops,
-                                      struct MPoly *mpolys,
+                                      const struct MPoly *mpolys,
                                       const float (*polynors)[3],
                                       int numPolys,
                                       short (*r_clnors_data)[2]);
@@ -667,9 +671,9 @@ void BKE_mesh_normals_loop_custom_from_vertices_set(const struct MVert *mverts,
                                                     int numVerts,
                                                     struct MEdge *medges,
                                                     int numEdges,
-                                                    struct MLoop *mloops,
+                                                    const struct MLoop *mloops,
                                                     int numLoops,
-                                                    struct MPoly *mpolys,
+                                                    const struct MPoly *mpolys,
                                                     const float (*polynors)[3],
                                                     int numPolys,
                                                     short (*r_clnors_data)[2]);
@@ -794,19 +798,21 @@ void BKE_mesh_mdisp_flip(struct MDisps *md, bool use_loop_mdisp_flip);
  * \param mloop: the full loops array.
  * \param ldata: the loops custom data.
  */
-void BKE_mesh_polygon_flip_ex(struct MPoly *mpoly,
+void BKE_mesh_polygon_flip_ex(const struct MPoly *mpoly,
                               struct MLoop *mloop,
                               struct CustomData *ldata,
                               float (*lnors)[3],
                               struct MDisps *mdisp,
                               bool use_loop_mdisp_flip);
-void BKE_mesh_polygon_flip(struct MPoly *mpoly, struct MLoop *mloop, struct CustomData *ldata);
+void BKE_mesh_polygon_flip(const struct MPoly *mpoly,
+                           struct MLoop *mloop,
+                           struct CustomData *ldata);
 /**
  * Flip (invert winding of) all polygons (used to inverse their normals).
  *
  * \note Invalidates tessellation, caller must handle that.
  */
-void BKE_mesh_polygons_flip(struct MPoly *mpoly,
+void BKE_mesh_polygons_flip(const struct MPoly *mpoly,
                             struct MLoop *mloop,
                             struct CustomData *ldata,
                             int totpoly);
@@ -853,7 +859,7 @@ struct Mesh *BKE_mesh_merge_verts(struct Mesh *mesh,
                                   int merge_mode);
 
 /**
- * Account for custom-data such as UV's becoming detached because of of imprecision
+ * Account for custom-data such as UV's becoming detached because of imprecision
  * in custom-data interpolation.
  * Without running this operation subdivision surface can cause UV's to be disconnected,
  * see: T81065.
@@ -865,19 +871,7 @@ void BKE_mesh_merge_customdata_for_apply_modifier(struct Mesh *me);
 /**
  * Update the hide flag for edges and faces from the corresponding flag in verts.
  */
-void BKE_mesh_flush_hidden_from_verts_ex(const struct MVert *mvert,
-                                         const struct MLoop *mloop,
-                                         struct MEdge *medge,
-                                         int totedge,
-                                         struct MPoly *mpoly,
-                                         int totpoly);
 void BKE_mesh_flush_hidden_from_verts(struct Mesh *me);
-void BKE_mesh_flush_hidden_from_polys_ex(struct MVert *mvert,
-                                         const struct MLoop *mloop,
-                                         struct MEdge *medge,
-                                         int totedge,
-                                         const struct MPoly *mpoly,
-                                         int totpoly);
 void BKE_mesh_flush_hidden_from_polys(struct Mesh *me);
 /**
  * simple poly -> vert/edge selection.
@@ -1032,6 +1026,138 @@ char *BKE_mesh_debug_info(const struct Mesh *me)
 void BKE_mesh_debug_print(const struct Mesh *me) ATTR_NONNULL(1);
 #endif
 
+/* -------------------------------------------------------------------- */
+/** \name Inline Mesh Data Access
+ * \{ */
+
+/**
+ * \return The material index for each polygon. May be null.
+ * \note In C++ code, prefer using the attribute API (#MutableAttributeAccessor)/
+ */
+BLI_INLINE const int *BKE_mesh_material_indices(const Mesh *mesh)
+{
+  return (const int *)CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, "material_index");
+}
+
+/**
+ * \return The material index for each polygon. Create the layer if it doesn't exist.
+ * \note In C++ code, prefer using the attribute API (#MutableAttributeAccessor)/
+ */
+BLI_INLINE int *BKE_mesh_material_indices_for_write(Mesh *mesh)
+{
+  int *indices = (int *)CustomData_duplicate_referenced_layer_named(
+      &mesh->pdata, CD_PROP_INT32, "material_index", mesh->totpoly);
+  if (indices) {
+    return indices;
+  }
+  return (int *)CustomData_add_layer_named(
+      &mesh->pdata, CD_PROP_INT32, CD_SET_DEFAULT, NULL, mesh->totpoly, "material_index");
+}
+
+BLI_INLINE const MVert *BKE_mesh_verts(const Mesh *mesh)
+{
+  return (const MVert *)CustomData_get_layer(&mesh->vdata, CD_MVERT);
+}
+BLI_INLINE MVert *BKE_mesh_verts_for_write(Mesh *mesh)
+{
+  return (MVert *)CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MVERT, mesh->totvert);
+}
+
+BLI_INLINE const MEdge *BKE_mesh_edges(const Mesh *mesh)
+{
+  return (const MEdge *)CustomData_get_layer(&mesh->edata, CD_MEDGE);
+}
+BLI_INLINE MEdge *BKE_mesh_edges_for_write(Mesh *mesh)
+{
+  return (MEdge *)CustomData_duplicate_referenced_layer(&mesh->edata, CD_MEDGE, mesh->totedge);
+}
+
+BLI_INLINE const MPoly *BKE_mesh_polys(const Mesh *mesh)
+{
+  return (const MPoly *)CustomData_get_layer(&mesh->pdata, CD_MPOLY);
+}
+BLI_INLINE MPoly *BKE_mesh_polys_for_write(Mesh *mesh)
+{
+  return (MPoly *)CustomData_duplicate_referenced_layer(&mesh->pdata, CD_MPOLY, mesh->totpoly);
+}
+
+BLI_INLINE const MLoop *BKE_mesh_loops(const Mesh *mesh)
+{
+  return (const MLoop *)CustomData_get_layer(&mesh->ldata, CD_MLOOP);
+}
+BLI_INLINE MLoop *BKE_mesh_loops_for_write(Mesh *mesh)
+{
+  return (MLoop *)CustomData_duplicate_referenced_layer(&mesh->ldata, CD_MLOOP, mesh->totloop);
+}
+
+BLI_INLINE const MDeformVert *BKE_mesh_deform_verts(const Mesh *mesh)
+{
+  return (const MDeformVert *)CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
+}
+BLI_INLINE MDeformVert *BKE_mesh_deform_verts_for_write(Mesh *mesh)
+{
+  MDeformVert *dvert = (MDeformVert *)CustomData_duplicate_referenced_layer(
+      &mesh->vdata, CD_MDEFORMVERT, mesh->totvert);
+  if (dvert) {
+    return dvert;
+  }
+  return (MDeformVert *)CustomData_add_layer(
+      &mesh->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, NULL, mesh->totvert);
+}
+
 #ifdef __cplusplus
 }
 #endif
+
+#ifdef __cplusplus
+
+#  include "BLI_span.hh"
+
+inline blender::Span<MVert> Mesh::verts() const
+{
+  return {BKE_mesh_verts(this), this->totvert};
+}
+inline blender::MutableSpan<MVert> Mesh::verts_for_write()
+{
+  return {BKE_mesh_verts_for_write(this), this->totvert};
+}
+
+inline blender::Span<MEdge> Mesh::edges() const
+{
+  return {BKE_mesh_edges(this), this->totedge};
+}
+inline blender::MutableSpan<MEdge> Mesh::edges_for_write()
+{
+  return {BKE_mesh_edges_for_write(this), this->totedge};
+}
+
+inline blender::Span<MPoly> Mesh::polys() const
+{
+  return {BKE_mesh_polys(this), this->totpoly};
+}
+inline blender::MutableSpan<MPoly> Mesh::polys_for_write()
+{
+  return {BKE_mesh_polys_for_write(this), this->totpoly};
+}
+
+inline blender::Span<MLoop> Mesh::loops() const
+{
+  return {BKE_mesh_loops(this), this->totloop};
+}
+inline blender::MutableSpan<MLoop> Mesh::loops_for_write()
+{
+  return {BKE_mesh_loops_for_write(this), this->totloop};
+}
+
+inline blender::Span<MDeformVert> Mesh::deform_verts() const
+{
+  return {BKE_mesh_deform_verts(this), this->totvert};
+}
+inline blender::MutableSpan<MDeformVert> Mesh::deform_verts_for_write()
+{
+  return {BKE_mesh_deform_verts_for_write(this), this->totvert};
+}
+
+#endif
+
+/** \} */

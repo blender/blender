@@ -48,7 +48,7 @@ static int get_centered_text_y(const rcti *rect)
 static void draw_background(const rcti *rect)
 {
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   immUniformThemeColor(TH_TIME_SCRUB_BACKGROUND);
 
@@ -97,7 +97,7 @@ static void draw_current_frame(const Scene *scene,
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   GPU_blend(GPU_BLEND_ALPHA);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* Outline. */
   immUniformThemeColorShadeAlpha(TH_BACK, -25, -100);
@@ -208,7 +208,7 @@ void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *region, bDope
   rect.ymax = region->winy;
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColor(TH_BACK);
   immRectf(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
   immUnbindProgram();

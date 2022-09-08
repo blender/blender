@@ -502,6 +502,7 @@ static void fluid_free_startjob(void *customdata, short *stop, short *do_update,
   BKE_fluid_cache_free(fds, job->ob, cache_map);
 #else
   UNUSED_VARS(fds);
+  UNUSED_VARS(cache_map);
 #endif
 
   *do_update = true;

@@ -131,15 +131,12 @@ static void wide_line_workaround_start(GPUPrimType prim_type)
     case GPU_SHADER_3D_CLIPPED_UNIFORM_COLOR:
       polyline_sh = GPU_SHADER_3D_POLYLINE_CLIPPED_UNIFORM_COLOR;
       break;
-    case GPU_SHADER_2D_UNIFORM_COLOR:
     case GPU_SHADER_3D_UNIFORM_COLOR:
       polyline_sh = GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR;
       break;
-    case GPU_SHADER_2D_FLAT_COLOR:
     case GPU_SHADER_3D_FLAT_COLOR:
       polyline_sh = GPU_SHADER_3D_POLYLINE_FLAT_COLOR;
       break;
-    case GPU_SHADER_2D_SMOOTH_COLOR:
     case GPU_SHADER_3D_SMOOTH_COLOR:
       polyline_sh = GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR;
       break;

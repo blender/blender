@@ -41,7 +41,7 @@
 
 #include "GPU_state.h"
 #include "interface_intern.h"
-#include "interface_regions_intern.h"
+#include "interface_regions_intern.hh"
 
 #define MENU_BORDER (int)(0.3f * U.widget_unit)
 
@@ -710,18 +710,18 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
   type.regionid = RGN_TYPE_TEMPORARY;
   region->type = &type;
 
-  /* create searchbox data */
+  /* Create search-box data. */
   uiSearchboxData *data = MEM_cnew<uiSearchboxData>(__func__);
 
-  /* set font, get bb */
+  /* Set font, get the bounding-box. */
   data->fstyle = style->widget; /* copy struct */
   ui_fontscale(&data->fstyle.points, aspect);
   UI_fontstyle_set(&data->fstyle);
 
   region->regiondata = data;
 
-  /* special case, hardcoded feature, not draw backdrop when called from menus,
-   * assume for design that popup already added it */
+  /* Special case, hard-coded feature, not draw backdrop when called from menus,
+   * assume for design that popup already added it. */
   if (but->block->flag & UI_BLOCK_SEARCH_MENU) {
     data->noback = true;
   }

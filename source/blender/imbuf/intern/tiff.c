@@ -460,7 +460,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
         scanline_contig_16bit(tmpibuf->rect_float + ib_offset, sbuf, ibuf->x, spp);
       }
     }
-    /* separate channels: RRRGGGBBB */
+    /* Separate channels: RRRGGGBBB. */
   }
   else if (config == PLANARCONFIG_SEPARATE) {
 
@@ -549,10 +549,8 @@ ImBuf *imb_loadtiff(const unsigned char *mem,
   ImbTIFFMemFile memFile;
   uint32_t width, height;
   char *format = NULL;
-  int level;
   short spp;
   int ib_depth;
-  int found;
 
   /* Check whether or not we have a TIFF file. */
   if (imb_is_a_tiff(mem, size) == 0) {
@@ -574,7 +572,7 @@ ImBuf *imb_loadtiff(const unsigned char *mem,
   TIFFGetField(image, TIFFTAG_IMAGELENGTH, &height);
   TIFFGetField(image, TIFFTAG_SAMPLESPERPIXEL, &spp);
 
-  ib_depth = (spp == 3) ? 24 : 32;
+  ib_depth = spp * 8;
 
   ibuf = IMB_allocImBuf(width, height, ib_depth, 0);
   if (ibuf) {
@@ -592,8 +590,7 @@ ImBuf *imb_loadtiff(const unsigned char *mem,
   if (flags & IB_alphamode_detect) {
     if (spp == 4) {
       unsigned short extra, *extraSampleTypes;
-
-      found = TIFFGetField(image, TIFFTAG_EXTRASAMPLES, &extra, &extraSampleTypes);
+      const int found = TIFFGetField(image, TIFFTAG_EXTRASAMPLES, &extra, &extraSampleTypes);
 
       if (found && (extraSampleTypes[0] == EXTRASAMPLE_ASSOCALPHA)) {
         ibuf->flags |= IB_alphamode_premul;
@@ -617,7 +614,7 @@ ImBuf *imb_loadtiff(const unsigned char *mem,
       int numlevel = TIFFNumberOfDirectories(image);
 
       /* create empty mipmap levels in advance */
-      for (level = 0; level < numlevel; level++) {
+      for (int level = 0; level < numlevel; level++) {
         if (!TIFFSetDirectory(image, level)) {
           break;
         }

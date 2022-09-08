@@ -10,7 +10,7 @@
 #include "GHOST_Context.h"
 
 #ifdef _WIN32
-#  include <GL/wglew.h>  // only for symbolic constants, do not use API functions
+#  include <epoxy/wgl.h>
 #  include <tchar.h>
 #
 #  ifndef ERROR_PROFILE_DOES_NOT_MATCH_DEVICE
@@ -35,7 +35,7 @@ bool win32_silent_chk(bool result)
 bool win32_chk(bool result, const char *file, int line, const char *text)
 {
   if (!result) {
-    LPTSTR formattedMsg = NULL;
+    LPTSTR formattedMsg = nullptr;
 
     DWORD error = GetLastError();
 
@@ -87,12 +87,12 @@ bool win32_chk(bool result, const char *file, int line, const char *text)
       default: {
         count = FormatMessage((FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
                                FORMAT_MESSAGE_IGNORE_INSERTS),
-                              NULL,
+                              nullptr,
                               error,
                               MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                               (LPTSTR)(&formattedMsg),
                               0,
-                              NULL);
+                              nullptr);
 
         msg = count > 0 ? formattedMsg : "<no system message>\n";
         break;
@@ -113,19 +113,15 @@ bool win32_chk(bool result, const char *file, int line, const char *text)
 
     SetLastError(NO_ERROR);
 
-    if (count != 0)
+    if (count != 0) {
       LocalFree(formattedMsg);
+    }
   }
 
   return result;
 }
 
 #endif  // _WIN32
-
-void GHOST_Context::initContextGLEW()
-{
-  GLEW_CHK(glewInit());
-}
 
 void GHOST_Context::initClearGL()
 {

@@ -2,6 +2,7 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.h"
+#include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_sample.hh"
 
@@ -16,10 +17,11 @@ template<typename T>
 BLI_NOINLINE static void sample_point_attribute(const Mesh &mesh,
                                                 const Span<int> looptri_indices,
                                                 const Span<float3> bary_coords,
-                                                const VArray<T> &data_in,
+                                                const VArray<T> &src,
                                                 const IndexMask mask,
-                                                const MutableSpan<T> data_out)
+                                                const MutableSpan<T> dst)
 {
+  const Span<MLoop> loops = mesh.loops();
   const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
                                 BKE_mesh_runtime_looptri_len(&mesh)};
 
@@ -28,34 +30,34 @@ BLI_NOINLINE static void sample_point_attribute(const Mesh &mesh,
     const MLoopTri &looptri = looptris[looptri_index];
     const float3 &bary_coord = bary_coords[i];
 
-    const int v0_index = mesh.mloop[looptri.tri[0]].v;
-    const int v1_index = mesh.mloop[looptri.tri[1]].v;
-    const int v2_index = mesh.mloop[looptri.tri[2]].v;
+    const int v0_index = loops[looptri.tri[0]].v;
+    const int v1_index = loops[looptri.tri[1]].v;
+    const int v2_index = loops[looptri.tri[2]].v;
 
-    const T v0 = data_in[v0_index];
-    const T v1 = data_in[v1_index];
-    const T v2 = data_in[v2_index];
+    const T v0 = src[v0_index];
+    const T v1 = src[v1_index];
+    const T v2 = src[v2_index];
 
     const T interpolated_value = attribute_math::mix3(bary_coord, v0, v1, v2);
-    data_out[i] = interpolated_value;
+    dst[i] = interpolated_value;
   }
 }
 
 void sample_point_attribute(const Mesh &mesh,
                             const Span<int> looptri_indices,
                             const Span<float3> bary_coords,
-                            const GVArray &data_in,
+                            const GVArray &src,
                             const IndexMask mask,
-                            const GMutableSpan data_out)
+                            const GMutableSpan dst)
 {
-  BLI_assert(data_in.size() == mesh.totvert);
-  BLI_assert(data_in.type() == data_out.type());
+  BLI_assert(src.size() == mesh.totvert);
+  BLI_assert(src.type() == dst.type());
 
-  const CPPType &type = data_in.type();
+  const CPPType &type = src.type();
   attribute_math::convert_to_static_type(type, [&](auto dummy) {
     using T = decltype(dummy);
     sample_point_attribute<T>(
-        mesh, looptri_indices, bary_coords, data_in.typed<T>(), mask, data_out.typed<T>());
+        mesh, looptri_indices, bary_coords, src.typed<T>(), mask, dst.typed<T>());
   });
 }
 
@@ -63,9 +65,9 @@ template<typename T>
 BLI_NOINLINE static void sample_corner_attribute(const Mesh &mesh,
                                                  const Span<int> looptri_indices,
                                                  const Span<float3> bary_coords,
-                                                 const VArray<T> &data_in,
+                                                 const VArray<T> &src,
                                                  const IndexMask mask,
-                                                 const MutableSpan<T> data_out)
+                                                 const MutableSpan<T> dst)
 {
   const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
                                 BKE_mesh_runtime_looptri_len(&mesh)};
@@ -79,39 +81,39 @@ BLI_NOINLINE static void sample_corner_attribute(const Mesh &mesh,
     const int loop_index_1 = looptri.tri[1];
     const int loop_index_2 = looptri.tri[2];
 
-    const T v0 = data_in[loop_index_0];
-    const T v1 = data_in[loop_index_1];
-    const T v2 = data_in[loop_index_2];
+    const T v0 = src[loop_index_0];
+    const T v1 = src[loop_index_1];
+    const T v2 = src[loop_index_2];
 
     const T interpolated_value = attribute_math::mix3(bary_coord, v0, v1, v2);
-    data_out[i] = interpolated_value;
+    dst[i] = interpolated_value;
   }
 }
 
 void sample_corner_attribute(const Mesh &mesh,
                              const Span<int> looptri_indices,
                              const Span<float3> bary_coords,
-                             const GVArray &data_in,
+                             const GVArray &src,
                              const IndexMask mask,
-                             const GMutableSpan data_out)
+                             const GMutableSpan dst)
 {
-  BLI_assert(data_in.size() == mesh.totloop);
-  BLI_assert(data_in.type() == data_out.type());
+  BLI_assert(src.size() == mesh.totloop);
+  BLI_assert(src.type() == dst.type());
 
-  const CPPType &type = data_in.type();
+  const CPPType &type = src.type();
   attribute_math::convert_to_static_type(type, [&](auto dummy) {
     using T = decltype(dummy);
     sample_corner_attribute<T>(
-        mesh, looptri_indices, bary_coords, data_in.typed<T>(), mask, data_out.typed<T>());
+        mesh, looptri_indices, bary_coords, src.typed<T>(), mask, dst.typed<T>());
   });
 }
 
 template<typename T>
 void sample_face_attribute(const Mesh &mesh,
                            const Span<int> looptri_indices,
-                           const VArray<T> &data_in,
+                           const VArray<T> &src,
                            const IndexMask mask,
-                           const MutableSpan<T> data_out)
+                           const MutableSpan<T> dst)
 {
   const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
                                 BKE_mesh_runtime_looptri_len(&mesh)};
@@ -120,23 +122,23 @@ void sample_face_attribute(const Mesh &mesh,
     const int looptri_index = looptri_indices[i];
     const MLoopTri &looptri = looptris[looptri_index];
     const int poly_index = looptri.poly;
-    data_out[i] = data_in[poly_index];
+    dst[i] = src[poly_index];
   }
 }
 
 void sample_face_attribute(const Mesh &mesh,
                            const Span<int> looptri_indices,
-                           const GVArray &data_in,
+                           const GVArray &src,
                            const IndexMask mask,
-                           const GMutableSpan data_out)
+                           const GMutableSpan dst)
 {
-  BLI_assert(data_in.size() == mesh.totpoly);
-  BLI_assert(data_in.type() == data_out.type());
+  BLI_assert(src.size() == mesh.totpoly);
+  BLI_assert(src.type() == dst.type());
 
-  const CPPType &type = data_in.type();
+  const CPPType &type = src.type();
   attribute_math::convert_to_static_type(type, [&](auto dummy) {
     using T = decltype(dummy);
-    sample_face_attribute<T>(mesh, looptri_indices, data_in.typed<T>(), mask, data_out.typed<T>());
+    sample_face_attribute<T>(mesh, looptri_indices, src.typed<T>(), mask, dst.typed<T>());
   });
 }
 
@@ -157,6 +159,8 @@ Span<float3> MeshAttributeInterpolator::ensure_barycentric_coords()
   }
   bary_coords_.reinitialize(mask_.min_array_size());
 
+  const Span<MVert> verts = mesh_->verts();
+  const Span<MLoop> loops = mesh_->loops();
   const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(mesh_),
                                 BKE_mesh_runtime_looptri_len(mesh_)};
 
@@ -164,14 +168,14 @@ Span<float3> MeshAttributeInterpolator::ensure_barycentric_coords()
     const int looptri_index = looptri_indices_[i];
     const MLoopTri &looptri = looptris[looptri_index];
 
-    const int v0_index = mesh_->mloop[looptri.tri[0]].v;
-    const int v1_index = mesh_->mloop[looptri.tri[1]].v;
-    const int v2_index = mesh_->mloop[looptri.tri[2]].v;
+    const int v0_index = loops[looptri.tri[0]].v;
+    const int v1_index = loops[looptri.tri[1]].v;
+    const int v2_index = loops[looptri.tri[2]].v;
 
     interp_weights_tri_v3(bary_coords_[i],
-                          mesh_->mvert[v0_index].co,
-                          mesh_->mvert[v1_index].co,
-                          mesh_->mvert[v2_index].co,
+                          verts[v0_index].co,
+                          verts[v1_index].co,
+                          verts[v2_index].co,
                           positions_[i]);
   }
   return bary_coords_;
@@ -185,6 +189,8 @@ Span<float3> MeshAttributeInterpolator::ensure_nearest_weights()
   }
   nearest_weights_.reinitialize(mask_.min_array_size());
 
+  const Span<MVert> verts = mesh_->verts();
+  const Span<MLoop> loops = mesh_->loops();
   const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(mesh_),
                                 BKE_mesh_runtime_looptri_len(mesh_)};
 
@@ -192,13 +198,13 @@ Span<float3> MeshAttributeInterpolator::ensure_nearest_weights()
     const int looptri_index = looptri_indices_[i];
     const MLoopTri &looptri = looptris[looptri_index];
 
-    const int v0_index = mesh_->mloop[looptri.tri[0]].v;
-    const int v1_index = mesh_->mloop[looptri.tri[1]].v;
-    const int v2_index = mesh_->mloop[looptri.tri[2]].v;
+    const int v0_index = loops[looptri.tri[0]].v;
+    const int v1_index = loops[looptri.tri[1]].v;
+    const int v2_index = loops[looptri.tri[2]].v;
 
-    const float d0 = len_squared_v3v3(positions_[i], mesh_->mvert[v0_index].co);
-    const float d1 = len_squared_v3v3(positions_[i], mesh_->mvert[v1_index].co);
-    const float d2 = len_squared_v3v3(positions_[i], mesh_->mvert[v2_index].co);
+    const float d0 = len_squared_v3v3(positions_[i], verts[v0_index].co);
+    const float d1 = len_squared_v3v3(positions_[i], verts[v1_index].co);
+    const float d2 = len_squared_v3v3(positions_[i], verts[v2_index].co);
 
     nearest_weights_[i] = MIN3_PAIR(d0, d1, d2, float3(1, 0, 0), float3(0, 1, 0), float3(0, 0, 1));
   }
@@ -219,45 +225,31 @@ void MeshAttributeInterpolator::sample_data(const GVArray &src,
   if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
     switch (mode) {
       case eAttributeMapMode::INTERPOLATED:
-        weights = ensure_barycentric_coords();
+        weights = this->ensure_barycentric_coords();
         break;
       case eAttributeMapMode::NEAREST:
-        weights = ensure_nearest_weights();
+        weights = this->ensure_nearest_weights();
         break;
     }
   }
 
   /* Interpolate the source attributes on the surface. */
   switch (domain) {
-    case ATTR_DOMAIN_POINT: {
+    case ATTR_DOMAIN_POINT:
       sample_point_attribute(*mesh_, looptri_indices_, weights, src, mask_, dst);
       break;
-    }
-    case ATTR_DOMAIN_FACE: {
+    case ATTR_DOMAIN_FACE:
       sample_face_attribute(*mesh_, looptri_indices_, src, mask_, dst);
       break;
-    }
-    case ATTR_DOMAIN_CORNER: {
+    case ATTR_DOMAIN_CORNER:
       sample_corner_attribute(*mesh_, looptri_indices_, weights, src, mask_, dst);
       break;
-    }
-    case ATTR_DOMAIN_EDGE: {
+    case ATTR_DOMAIN_EDGE:
       /* Not yet supported. */
       break;
-    }
-    default: {
+    default:
       BLI_assert_unreachable();
       break;
-    }
-  }
-}
-
-void MeshAttributeInterpolator::sample_attribute(const GAttributeReader &src_attribute,
-                                                 GSpanAttributeWriter &dst_attribute,
-                                                 eAttributeMapMode mode)
-{
-  if (src_attribute && dst_attribute) {
-    this->sample_data(src_attribute.varray, src_attribute.domain, mode, dst_attribute.span);
   }
 }
 
@@ -271,6 +263,8 @@ int sample_surface_points_spherical(RandomNumberGenerator &rng,
                                     Vector<int> &r_looptri_indices,
                                     Vector<float3> &r_positions)
 {
+  const Span<MVert> verts = mesh.verts();
+  const Span<MLoop> loops = mesh.loops();
   const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
                                 BKE_mesh_runtime_looptri_len(&mesh)};
 
@@ -284,9 +278,9 @@ int sample_surface_points_spherical(RandomNumberGenerator &rng,
   for (const int looptri_index : looptri_indices_to_sample) {
     const MLoopTri &looptri = looptris[looptri_index];
 
-    const float3 &v0 = mesh.mvert[mesh.mloop[looptri.tri[0]].v].co;
-    const float3 &v1 = mesh.mvert[mesh.mloop[looptri.tri[1]].v].co;
-    const float3 &v2 = mesh.mvert[mesh.mloop[looptri.tri[2]].v].co;
+    const float3 &v0 = verts[loops[looptri.tri[0]].v].co;
+    const float3 &v1 = verts[loops[looptri.tri[1]].v].co;
+    const float3 &v2 = verts[loops[looptri.tri[2]].v].co;
 
     const float looptri_area = area_tri_v3(v0, v1, v2);
 
@@ -367,6 +361,8 @@ int sample_surface_points_projected(
     Vector<int> &r_looptri_indices,
     Vector<float3> &r_positions)
 {
+  const Span<MVert> verts = mesh.verts();
+  const Span<MLoop> loops = mesh.loops();
   const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
                                 BKE_mesh_runtime_looptri_len(&mesh)};
 
@@ -408,7 +404,8 @@ int sample_surface_points_projected(
     const int looptri_index = ray_hit.index;
     const float3 pos = ray_hit.co;
 
-    const float3 bary_coords = compute_bary_coord_in_triangle(mesh, looptris[looptri_index], pos);
+    const float3 bary_coords = compute_bary_coord_in_triangle(
+        verts, loops, looptris[looptri_index], pos);
 
     r_positions.append(pos);
     r_bary_coords.append(bary_coords);
@@ -418,13 +415,14 @@ int sample_surface_points_projected(
   return point_count;
 }
 
-float3 compute_bary_coord_in_triangle(const Mesh &mesh,
+float3 compute_bary_coord_in_triangle(const Span<MVert> verts,
+                                      const Span<MLoop> loops,
                                       const MLoopTri &looptri,
                                       const float3 &position)
 {
-  const float3 &v0 = mesh.mvert[mesh.mloop[looptri.tri[0]].v].co;
-  const float3 &v1 = mesh.mvert[mesh.mloop[looptri.tri[1]].v].co;
-  const float3 &v2 = mesh.mvert[mesh.mloop[looptri.tri[2]].v].co;
+  const float3 &v0 = verts[loops[looptri.tri[0]].v].co;
+  const float3 &v1 = verts[loops[looptri.tri[1]].v].co;
+  const float3 &v2 = verts[loops[looptri.tri[2]].v].co;
   float3 bary_coords;
   interp_weights_tri_v3(bary_coords, v0, v1, v2, position);
   return bary_coords;

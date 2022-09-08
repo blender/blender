@@ -18,7 +18,7 @@ class MapValueOperation : public MultiThreadedOperation {
    * Cached reference to the input_program
    */
   SocketReader *input_operation_;
-  TexMapping *settings_;
+  const TexMapping *settings_;
 
  public:
   /**
@@ -44,7 +44,7 @@ class MapValueOperation : public MultiThreadedOperation {
   /**
    * \brief set the TexMapping settings
    */
-  void set_settings(TexMapping *settings)
+  void set_settings(const TexMapping *settings)
   {
     settings_ = settings;
   }

@@ -165,3 +165,7 @@ vec4 attr_load_color_post(vec4 attr)
 {
   return attr;
 }
+vec4 attr_load_uniform(vec4 attr, const uint attr_hash)
+{
+  return attr;
+}

@@ -110,7 +110,8 @@ void BlenderSession::create_session()
 {
   const SessionParams session_params = BlenderSync::get_session_params(
       b_engine, b_userpref, b_scene, background);
-  const SceneParams scene_params = BlenderSync::get_scene_params(b_scene, background);
+  const SceneParams scene_params = BlenderSync::get_scene_params(
+      b_scene, background, use_developer_ui);
   const bool session_pause = BlenderSync::get_session_pause(b_scene, background);
 
   /* reset status/progress */
@@ -196,7 +197,8 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
 
   const SessionParams session_params = BlenderSync::get_session_params(
       b_engine, b_userpref, b_scene, background);
-  const SceneParams scene_params = BlenderSync::get_scene_params(b_scene, background);
+  const SceneParams scene_params = BlenderSync::get_scene_params(
+      b_scene, background, use_developer_ui);
 
   if (scene->params.modified(scene_params) || session->params.modified(session_params) ||
       !this->b_render.use_persistent_data()) {
@@ -657,6 +659,7 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
 
   session->set_display_driver(nullptr);
   session->set_output_driver(make_unique<BlenderOutputDriver>(b_engine));
+  session->full_buffer_written_cb = [&](string_view filename) { full_buffer_written(filename); };
 
   /* Sync scene. */
   BL::Object b_camera_override(b_engine.camera_override());
@@ -698,6 +701,10 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
     BufferParams buffer_params;
     buffer_params.width = bake_width;
     buffer_params.height = bake_height;
+    buffer_params.window_width = bake_width;
+    buffer_params.window_height = bake_height;
+    /* Unique layer name for multi-image baking. */
+    buffer_params.layer = string_printf("bake_%d\n", (int)full_buffer_files_.size());
 
     /* Update session. */
     session->reset(session_params, buffer_params);
@@ -711,8 +718,6 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
     session->start();
     session->wait();
   }
-
-  session->set_output_driver(nullptr);
 }
 
 void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
@@ -724,7 +729,8 @@ void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
   /* on session/scene parameter changes, we recreate session entirely */
   const SessionParams session_params = BlenderSync::get_session_params(
       b_engine, b_userpref, b_scene, background);
-  const SceneParams scene_params = BlenderSync::get_scene_params(b_scene, background);
+  const SceneParams scene_params = BlenderSync::get_scene_params(
+      b_scene, background, use_developer_ui);
   const bool session_pause = BlenderSync::get_session_pause(b_scene, background);
 
   if (session->params.modified(session_params) || scene->params.modified(scene_params)) {
@@ -1056,8 +1062,8 @@ void BlenderSession::ensure_display_driver_if_needed()
     return;
   }
 
-  unique_ptr<BlenderDisplayDriver> display_driver = make_unique<BlenderDisplayDriver>(b_engine,
-                                                                                      b_scene);
+  unique_ptr<BlenderDisplayDriver> display_driver = make_unique<BlenderDisplayDriver>(
+      b_engine, b_scene, background);
   display_driver_ = display_driver.get();
   session->set_display_driver(move(display_driver));
 }

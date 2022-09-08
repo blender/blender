@@ -81,9 +81,14 @@ ccl_device_inline float4 svm_image_texture_read_2d(int id, int x, int y)
     x = svm_image_texture_wrap_periodic(x, info.width);
     y = svm_image_texture_wrap_periodic(y, info.height);
   }
-  else {
+  else if (info.extension == EXTENSION_EXTEND) {
     x = svm_image_texture_wrap_clamp(x, info.width);
     y = svm_image_texture_wrap_clamp(y, info.height);
+  }
+  else {
+    if (x < 0 || x >= info.width || y < 0 || y >= info.height) {
+      return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    }
   }
 
   return svm_image_texture_read(info, x, y, 0);
@@ -99,10 +104,15 @@ ccl_device_inline float4 svm_image_texture_read_3d(int id, int x, int y, int z)
     y = svm_image_texture_wrap_periodic(y, info.height);
     z = svm_image_texture_wrap_periodic(z, info.depth);
   }
-  else {
+  else if (info.extension == EXTENSION_EXTEND) {
     x = svm_image_texture_wrap_clamp(x, info.width);
     y = svm_image_texture_wrap_clamp(y, info.height);
     z = svm_image_texture_wrap_clamp(z, info.depth);
+  }
+  else {
+    if (x < 0 || x >= info.width || y < 0 || y >= info.height || z < 0 || z >= info.depth) {
+      return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    }
   }
 
   return svm_image_texture_read(info, x, y, z);
@@ -127,12 +137,6 @@ static float svm_image_texture_frac(float x, int *ix)
 ccl_device float4 kernel_tex_image_interp(KernelGlobals, int id, float x, float y)
 {
   const TextureInfo &info = kernel_data_fetch(texture_info, id);
-
-  if (info.extension == EXTENSION_CLIP) {
-    if (x < 0.0f || y < 0.0f || x > 1.0f || y > 1.0f) {
-      return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-    }
-  }
 
   if (info.interpolation == INTERPOLATION_CLOSEST) {
     /* Closest interpolation. */
@@ -315,12 +319,6 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals, int id, float3 P, in
   }
 #endif
   else {
-    if (info.extension == EXTENSION_CLIP) {
-      if (x < 0.0f || y < 0.0f || z < 0.0f || x > 1.0f || y > 1.0f || z > 1.0f) {
-        return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-      }
-    }
-
     x *= info.width;
     y *= info.height;
     z *= info.depth;

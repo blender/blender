@@ -46,7 +46,10 @@ typedef struct CoNo {
 
 /* paint_stroke.c */
 
-typedef bool (*StrokeGetLocation)(struct bContext *C, float location[3], const float mouse[2]);
+typedef bool (*StrokeGetLocation)(struct bContext *C,
+                                  float location[3],
+                                  const float mouse[2],
+                                  bool force_original);
 typedef bool (*StrokeTestStart)(struct bContext *C, struct wmOperator *op, const float mouse[2]);
 typedef void (*StrokeUpdateStep)(struct bContext *C,
                                  struct wmOperator *op,

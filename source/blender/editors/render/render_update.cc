@@ -95,20 +95,20 @@ void ED_render_view3d_update(Depsgraph *depsgraph,
 
       CTX_free(C);
     }
-    else {
-      RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
-      if (updated) {
-        DRWUpdateContext drw_context = {nullptr};
-        drw_context.bmain = bmain;
-        drw_context.depsgraph = depsgraph;
-        drw_context.scene = scene;
-        drw_context.view_layer = view_layer;
-        drw_context.region = region;
-        drw_context.v3d = v3d;
-        drw_context.engine_type = engine_type;
-        DRW_notify_view_update(&drw_context);
-      }
+
+    if (!updated) {
+      continue;
     }
+
+    DRWUpdateContext drw_context = {nullptr};
+    drw_context.bmain = bmain;
+    drw_context.depsgraph = depsgraph;
+    drw_context.scene = scene;
+    drw_context.view_layer = view_layer;
+    drw_context.region = region;
+    drw_context.v3d = v3d;
+    drw_context.engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
+    DRW_notify_view_update(&drw_context);
   }
 }
 

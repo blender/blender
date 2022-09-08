@@ -23,7 +23,7 @@ static void fn_node_input_color_layout(uiLayout *layout, bContext *UNUSED(C), Po
 static void fn_node_input_color_build_multi_function(
     blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  bNode &bnode = builder.node();
+  const bNode &bnode = builder.node();
   NodeInputColor *node_storage = static_cast<NodeInputColor *>(bnode.storage);
   blender::ColorGeometry4f color = (ColorGeometry4f)node_storage->color;
   builder.construct_and_set_matching_fn<blender::fn::CustomMF_Constant<ColorGeometry4f>>(color);

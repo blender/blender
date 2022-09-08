@@ -69,7 +69,7 @@ char BKE_imtype_valid_depths(char imtype);
  * String is from command line `--render-format` argument,
  * keep in sync with `creator_args.c` help info.
  */
-char BKE_imtype_from_arg(const char *arg);
+char BKE_imtype_from_arg(const char *imtype_arg);
 
 /* Conversion between ImBuf settings. */
 

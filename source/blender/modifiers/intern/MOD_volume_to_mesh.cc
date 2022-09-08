@@ -62,7 +62,7 @@ static void initData(ModifierData *md)
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   VolumeToMeshModifierData *vmmd = reinterpret_cast<VolumeToMeshModifierData *>(md);
-  DEG_add_modifier_to_transform_relation(ctx->node, "Volume to Mesh Modifier");
+  DEG_add_depends_on_transform_relation(ctx->node, "Volume to Mesh Modifier");
   if (vmmd->object) {
     DEG_add_object_relation(
         ctx->node, vmmd->object, DEG_OB_COMP_GEOMETRY, "Volume to Mesh Modifier");

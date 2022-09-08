@@ -355,7 +355,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Length = {
-    /* name */ "Length",
+    /* name */ N_("Length"),
     /* structName */ "LengthGpencilModifierData",
     /* structSize */ sizeof(LengthGpencilModifierData),
     /* type */ eGpencilModifierTypeType_Gpencil,

@@ -16,8 +16,6 @@
 
 #include "gl_state.hh"
 
-#include "glew-mx.h"
-
 #include <mutex>
 
 namespace blender {
@@ -42,7 +40,6 @@ class GLContext : public Context {
   /** Capabilities. */
 
   static GLint max_cubemap_size;
-  static GLint max_texture_3d_size;
   static GLint max_ubo_size;
   static GLint max_ubo_binds;
   static GLint max_ssbo_size;

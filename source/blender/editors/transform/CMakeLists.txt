@@ -15,7 +15,6 @@ set(INC
   ../../render
   ../../sequencer
   ../../windowmanager
-  ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -39,6 +38,7 @@ set(SRC
   transform_convert_mesh_edge.c
   transform_convert_mesh_skin.c
   transform_convert_mesh_uv.c
+  transform_convert_mesh_vert_cdata.c
   transform_convert_nla.c
   transform_convert_node.c
   transform_convert_object.c

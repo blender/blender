@@ -17,8 +17,7 @@
 #undef HAVE_MALLOC_STATS
 #define USE_MALLOC_USABLE_SIZE /* internal, when we have malloc_usable_size() */
 
-#if defined(__linux__) || (defined(__FreeBSD_kernel__) && !defined(__FreeBSD__)) || \
-    defined(__GLIBC__)
+#if defined(HAVE_MALLOC_STATS_H)
 #  include <malloc.h>
 #  define HAVE_MALLOC_STATS
 #elif defined(__FreeBSD__)
@@ -131,6 +130,7 @@ void MEM_lockfree_reset_peak_memory(void);
 size_t MEM_lockfree_get_peak_memory(void) ATTR_WARN_UNUSED_RESULT;
 #ifndef NDEBUG
 const char *MEM_lockfree_name_ptr(void *vmemh);
+void MEM_lockfree_name_ptr_set(void *vmemh, const char *str);
 #endif
 
 /* Prototypes for fully guarded allocator functions */
@@ -174,6 +174,7 @@ void MEM_guarded_reset_peak_memory(void);
 size_t MEM_guarded_get_peak_memory(void) ATTR_WARN_UNUSED_RESULT;
 #ifndef NDEBUG
 const char *MEM_guarded_name_ptr(void *vmemh);
+void MEM_guarded_name_ptr_set(void *vmemh, const char *str);
 #endif
 
 #ifdef __cplusplus

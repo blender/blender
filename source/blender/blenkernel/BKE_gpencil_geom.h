@@ -401,12 +401,19 @@ void BKE_gpencil_stroke_set_random_color(struct bGPDstroke *gps);
 
 /**
  * Join two strokes using the shortest distance (reorder stroke if necessary).
+ * \param auto_flip: Flip the stroke if the join between two strokes is not end->start points.
  */
 void BKE_gpencil_stroke_join(struct bGPDstroke *gps_a,
                              struct bGPDstroke *gps_b,
                              bool leave_gaps,
                              bool fit_thickness,
-                             bool smooth);
+                             bool smooth,
+                             bool auto_flip);
+/**
+ * Set stroke start point in the selected index. Only works for Cyclic strokes.
+ * \param start_idx: Index of the point to be the start point.
+ */
+void BKE_gpencil_stroke_start_set(struct bGPDstroke *gps, int start_idx);
 /**
  * Copy the stroke of the frame to all frames selected (except current).
  */
@@ -466,8 +473,8 @@ void BKE_gpencil_stroke_uniform_subdivide(struct bGPdata *gpd,
  * This allows for manipulations in 2D but also easy conversion back to 3D.
  * \note also takes care of parent space transform.
  */
-void BKE_gpencil_stroke_to_view_space(struct RegionView3D *rv3d,
-                                      struct bGPDstroke *gps,
+void BKE_gpencil_stroke_to_view_space(struct bGPDstroke *gps,
+                                      float viewmat[4][4],
                                       const float diff_mat[4][4]);
 /**
  * Stroke from view space
@@ -475,20 +482,21 @@ void BKE_gpencil_stroke_to_view_space(struct RegionView3D *rv3d,
  * Inverse of #BKE_gpencil_stroke_to_view_space
  * \note also takes care of parent space transform.
  */
-void BKE_gpencil_stroke_from_view_space(struct RegionView3D *rv3d,
-                                        struct bGPDstroke *gps,
+void BKE_gpencil_stroke_from_view_space(struct bGPDstroke *gps,
+                                        float viewinv[4][4],
                                         const float diff_mat[4][4]);
 /**
  * Calculates the perimeter of a stroke projected from the view and returns it as a new stroke.
  * \param subdivisions: Number of subdivisions for the start and end caps.
  * \return: bGPDstroke pointer to stroke perimeter.
  */
-struct bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(struct RegionView3D *rv3d,
+struct bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(float viewmat[4][4],
                                                           struct bGPdata *gpd,
                                                           const struct bGPDlayer *gpl,
                                                           struct bGPDstroke *gps,
                                                           int subdivisions,
-                                                          const float diff_mat[4][4]);
+                                                          const float diff_mat[4][4],
+                                                          const float thickness_chg);
 /**
  * Get average pressure.
  */

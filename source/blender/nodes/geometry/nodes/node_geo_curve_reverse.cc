@@ -23,14 +23,12 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (!geometry_set.has_curves()) {
       return;
     }
+    const Curves &src_curves_id = *geometry_set.get_curves_for_read();
+    const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(src_curves_id.geometry);
 
-    Field<bool> selection_field = params.get_input<Field<bool>>("Selection");
-    const CurveComponent &component = *geometry_set.get_component_for_read<CurveComponent>();
-    GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_CURVE};
-    const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_CURVE);
-
-    fn::FieldEvaluator selection_evaluator{field_context, domain_size};
-    selection_evaluator.add(selection_field);
+    bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
+    fn::FieldEvaluator selection_evaluator{field_context, src_curves.curves_num()};
+    selection_evaluator.add(params.get_input<Field<bool>>("Selection"));
     selection_evaluator.evaluate();
     const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
     if (selection.is_empty()) {

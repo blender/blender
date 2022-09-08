@@ -144,7 +144,7 @@ static void bakeModifier(Main *UNUSED(bmain),
         MEM_SAFE_FREE(mmd->cache_data);
       }
       Object *ob_target = DEG_get_evaluated_object(depsgraph, mmd->target);
-      Mesh *target = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target, false);
+      Mesh *target = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target);
       mmd->cache_data = MEM_callocN(sizeof(ShrinkwrapTreeData), __func__);
       if (BKE_shrinkwrap_init_tree(
               mmd->cache_data, target, mmd->shrink_type, mmd->shrink_mode, false)) {
@@ -202,7 +202,6 @@ static void updateDepsgraph(GpencilModifierData *md,
   CustomData_MeshMasks mask = {0};
 
   if (BKE_shrinkwrap_needs_normals(mmd->shrink_type, mmd->shrink_mode)) {
-    mask.vmask |= CD_MASK_NORMAL;
     mask.lmask |= CD_MASK_NORMAL | CD_MASK_CUSTOMLOOPNORMAL;
   }
 
@@ -225,7 +224,7 @@ static void updateDepsgraph(GpencilModifierData *md,
           ctx->node, &mmd->aux_target->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);
     }
   }
-  DEG_add_modifier_to_transform_relation(ctx->node, "Shrinkwrap Modifier");
+  DEG_add_depends_on_transform_relation(ctx->node, "Shrinkwrap Modifier");
 }
 
 static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
@@ -307,7 +306,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Shrinkwrap = {
-    /* name */ "Shrinkwrap",
+    /* name */ N_("Shrinkwrap"),
     /* structName */ "ShrinkwrapGpencilModifierData",
     /* structSize */ sizeof(ShrinkwrapGpencilModifierData),
     /* type */ eGpencilModifierTypeType_Gpencil,

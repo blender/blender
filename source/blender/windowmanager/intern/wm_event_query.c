@@ -346,8 +346,8 @@ bool WM_cursor_test_motion_and_update(const int mval[2])
 int WM_event_drag_threshold(const struct wmEvent *event)
 {
   int drag_threshold;
-  if (ISMOUSE(event->prev_press_type)) {
-    BLI_assert(event->prev_press_type != MOUSEMOVE);
+  BLI_assert(event->prev_press_type != MOUSEMOVE);
+  if (ISMOUSE_BUTTON(event->prev_press_type)) {
     /* Using the previous type is important is we want to check the last pressed/released button,
      * The `event->type` would include #MOUSEMOVE which is always the case when dragging
      * and does not help us know which threshold to use. */

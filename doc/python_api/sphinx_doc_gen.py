@@ -1131,6 +1131,7 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
 # Changes In Blender will force errors here.
 context_type_map = {
     # context_member: (RNA type, is_collection)
+    "active_action": ("Action", False),
     "active_annotation_layer": ("GPencilLayer", False),
     "active_bone": ("EditBone", False),
     "active_file": ("FileSelectEntry", False),
@@ -1529,7 +1530,8 @@ def pyrna2sphinx(basepath):
         else:
             fw(".. class:: %s\n\n" % struct_id)
 
-        fw("   %s\n\n" % struct.description)
+        write_indented_lines("   ", fw, struct.description, False)
+        fw("\n")
 
         # Properties sorted in alphabetical order.
         sorted_struct_properties = struct.properties[:]

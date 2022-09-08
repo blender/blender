@@ -21,7 +21,7 @@
 
 #include "ED_screen.h"
 
-#include "interface_regions_intern.h"
+#include "interface_regions_intern.hh"
 
 ARegion *ui_region_temp_add(bScreen *screen)
 {

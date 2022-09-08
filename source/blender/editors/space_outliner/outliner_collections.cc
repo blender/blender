@@ -38,6 +38,8 @@
 
 #include "outliner_intern.hh" /* own include */
 
+namespace blender::ed::outliner {
+
 /* -------------------------------------------------------------------- */
 /** \name Utility API
  * \{ */
@@ -72,7 +74,7 @@ Collection *outliner_collection_from_tree_element(const TreeElement *te)
   }
 
   if (tselem->type == TSE_LAYER_COLLECTION) {
-    LayerCollection *lc = reinterpret_cast<LayerCollection *>(te->directdata);
+    LayerCollection *lc = static_cast<LayerCollection *>(te->directdata);
     return lc->collection;
   }
   if (ELEM(tselem->type, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE)) {
@@ -86,9 +88,9 @@ Collection *outliner_collection_from_tree_element(const TreeElement *te)
   return nullptr;
 }
 
-TreeTraversalAction outliner_find_selected_collections(TreeElement *te, void *customdata)
+TreeTraversalAction outliner_collect_selected_collections(TreeElement *te, void *customdata)
 {
-  struct IDsSelectedData *data = reinterpret_cast<IDsSelectedData *>(customdata);
+  struct IDsSelectedData *data = static_cast<IDsSelectedData *>(customdata);
   TreeStoreElem *tselem = TREESTORE(te);
 
   if (outliner_is_collection_tree_element(te)) {
@@ -103,9 +105,9 @@ TreeTraversalAction outliner_find_selected_collections(TreeElement *te, void *cu
   return TRAVERSE_CONTINUE;
 }
 
-TreeTraversalAction outliner_find_selected_objects(TreeElement *te, void *customdata)
+TreeTraversalAction outliner_collect_selected_objects(TreeElement *te, void *customdata)
 {
-  struct IDsSelectedData *data = reinterpret_cast<IDsSelectedData *>(customdata);
+  struct IDsSelectedData *data = static_cast<IDsSelectedData *>(customdata);
   TreeStoreElem *tselem = TREESTORE(te);
 
   if (outliner_is_collection_tree_element(te)) {
@@ -122,15 +124,19 @@ TreeTraversalAction outliner_find_selected_objects(TreeElement *te, void *custom
   return TRAVERSE_CONTINUE;
 }
 
+}  // namespace blender::ed::outliner
+
 void ED_outliner_selected_objects_get(const bContext *C, ListBase *objects)
 {
+  using namespace blender::ed::outliner;
+
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   struct IDsSelectedData data = {{nullptr}};
   outliner_tree_traverse(space_outliner,
                          &space_outliner->tree,
                          0,
                          TSE_SELECTED,
-                         outliner_find_selected_objects,
+                         outliner_collect_selected_objects,
                          &data);
   LISTBASE_FOREACH (LinkData *, link, &data.selected_array) {
     TreeElement *ten_selected = (TreeElement *)link->data;
@@ -140,11 +146,15 @@ void ED_outliner_selected_objects_get(const bContext *C, ListBase *objects)
   BLI_freelistN(&data.selected_array);
 }
 
+namespace blender::ed::outliner {
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Poll Functions
  * \{ */
+
+}  // namespace blender::ed::outliner
 
 bool ED_outliner_collections_editor_poll(bContext *C)
 {
@@ -152,6 +162,8 @@ bool ED_outliner_collections_editor_poll(bContext *C)
   return (space_outliner != nullptr) &&
          ELEM(space_outliner->outlinevis, SO_VIEW_LAYER, SO_SCENES, SO_LIBRARIES);
 }
+
+namespace blender::ed::outliner {
 
 static bool outliner_view_layer_collections_editor_poll(bContext *C)
 {
@@ -184,7 +196,7 @@ struct CollectionNewData {
 
 static TreeTraversalAction collection_find_selected_to_add(TreeElement *te, void *customdata)
 {
-  struct CollectionNewData *data = reinterpret_cast<CollectionNewData *>(customdata);
+  struct CollectionNewData *data = static_cast<CollectionNewData *>(customdata);
   Collection *collection = outliner_collection_from_tree_element(te);
 
   if (!collection) {
@@ -284,9 +296,9 @@ struct CollectionEditData {
   bool is_liboverride_hierarchy_root_allowed;
 };
 
-static TreeTraversalAction collection_find_data_to_edit(TreeElement *te, void *customdata)
+static TreeTraversalAction collection_collect_data_to_edit(TreeElement *te, void *customdata)
 {
-  CollectionEditData *data = reinterpret_cast<CollectionEditData *>(customdata);
+  CollectionEditData *data = static_cast<CollectionEditData *>(customdata);
   Collection *collection = outliner_collection_from_tree_element(te);
 
   if (!collection) {
@@ -333,13 +345,17 @@ void outliner_collection_delete(
 
   /* We first walk over and find the Collections we actually want to delete
    * (ignoring duplicates). */
-  outliner_tree_traverse(
-      space_outliner, &space_outliner->tree, 0, TSE_SELECTED, collection_find_data_to_edit, &data);
+  outliner_tree_traverse(space_outliner,
+                         &space_outliner->tree,
+                         0,
+                         TSE_SELECTED,
+                         collection_collect_data_to_edit,
+                         &data);
 
   /* Effectively delete the collections. */
   GSetIterator collections_to_edit_iter;
   GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
-    Collection *collection = reinterpret_cast<Collection *>(
+    Collection *collection = static_cast<Collection *>(
         BLI_gsetIterator_getKey(&collections_to_edit_iter));
 
     /* Test in case collection got deleted as part of another one. */
@@ -364,7 +380,7 @@ void outliner_collection_delete(
               const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(&parent->id);
               BLI_assert(id_type->owner_get != nullptr);
 
-              ID *scene_owner = id_type->owner_get(bmain, &parent->id);
+              ID *scene_owner = id_type->owner_get(&parent->id);
               BLI_assert(GS(scene_owner->name) == ID_SCE);
               if (ID_IS_LINKED(scene_owner) || ID_IS_OVERRIDE_LIBRARY(scene_owner)) {
                 skip = true;
@@ -397,7 +413,7 @@ static int collection_hierarchy_delete_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   struct wmMsgBus *mbus = CTX_wm_message_bus(C);
-  const Base *basact_prev = BASACT(view_layer);
+  const Base *basact_prev = view_layer->basact;
 
   outliner_collection_delete(C, bmain, scene, op->reports, true);
 
@@ -406,7 +422,7 @@ static int collection_hierarchy_delete_exec(bContext *C, wmOperator *op)
 
   WM_main_add_notifier(NC_SCENE | ND_LAYER, nullptr);
 
-  if (basact_prev != BASACT(view_layer)) {
+  if (basact_prev != view_layer->basact) {
     WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
   }
 
@@ -444,12 +460,12 @@ struct CollectionObjectsSelectData {
 static TreeTraversalAction outliner_find_first_selected_layer_collection(TreeElement *te,
                                                                          void *customdata)
 {
-  CollectionObjectsSelectData *data = reinterpret_cast<CollectionObjectsSelectData *>(customdata);
+  CollectionObjectsSelectData *data = static_cast<CollectionObjectsSelectData *>(customdata);
   TreeStoreElem *tselem = TREESTORE(te);
 
   switch (tselem->type) {
     case TSE_LAYER_COLLECTION:
-      data->layer_collection = reinterpret_cast<LayerCollection *>(te->directdata);
+      data->layer_collection = static_cast<LayerCollection *>(te->directdata);
       return TRAVERSE_BREAK;
     case TSE_R_LAYER:
     case TSE_SCENE_COLLECTION_BASE:
@@ -538,7 +554,7 @@ struct CollectionDuplicateData {
 static TreeTraversalAction outliner_find_first_selected_collection(TreeElement *te,
                                                                    void *customdata)
 {
-  CollectionDuplicateData *data = reinterpret_cast<CollectionDuplicateData *>(customdata);
+  CollectionDuplicateData *data = static_cast<CollectionDuplicateData *>(customdata);
   TreeStoreElem *tselem = TREESTORE(te);
 
   switch (tselem->type) {
@@ -597,7 +613,7 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
     const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(&parent->id);
     BLI_assert(id_type->owner_get != nullptr);
 
-    Scene *scene_owner = (Scene *)id_type->owner_get(bmain, &parent->id);
+    Scene *scene_owner = (Scene *)id_type->owner_get(&parent->id);
     BLI_assert(scene_owner != nullptr);
     BLI_assert(GS(scene_owner->id.name) == ID_SCE);
 
@@ -695,13 +711,17 @@ static int collection_link_exec(bContext *C, wmOperator *op)
   data.collections_to_edit = BLI_gset_ptr_new(__func__);
 
   /* We first walk over and find the Collections we actually want to link (ignoring duplicates). */
-  outliner_tree_traverse(
-      space_outliner, &space_outliner->tree, 0, TSE_SELECTED, collection_find_data_to_edit, &data);
+  outliner_tree_traverse(space_outliner,
+                         &space_outliner->tree,
+                         0,
+                         TSE_SELECTED,
+                         collection_collect_data_to_edit,
+                         &data);
 
   /* Effectively link the collections. */
   GSetIterator collections_to_edit_iter;
   GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
-    Collection *collection = reinterpret_cast<Collection *>(
+    Collection *collection = static_cast<Collection *>(
         BLI_gsetIterator_getKey(&collections_to_edit_iter));
     BKE_collection_child_add(bmain, active_collection, collection);
     id_fake_user_clear(&collection->id);
@@ -754,15 +774,19 @@ static int collection_instance_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* We first walk over and find the Collections we actually want to instance
    * (ignoring duplicates). */
-  outliner_tree_traverse(
-      space_outliner, &space_outliner->tree, 0, TSE_SELECTED, collection_find_data_to_edit, &data);
+  outliner_tree_traverse(space_outliner,
+                         &space_outliner->tree,
+                         0,
+                         TSE_SELECTED,
+                         collection_collect_data_to_edit,
+                         &data);
 
   /* Find an active collection to add to, that doesn't give dependency cycles. */
   LayerCollection *active_lc = BKE_layer_collection_get_active(view_layer);
 
   GSetIterator collections_to_edit_iter;
   GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
-    Collection *collection = reinterpret_cast<Collection *>(
+    Collection *collection = static_cast<Collection *>(
         BLI_gsetIterator_getKey(&collections_to_edit_iter));
 
     while (BKE_collection_cycle_find(active_lc->collection, collection)) {
@@ -772,7 +796,7 @@ static int collection_instance_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* Effectively instance the collections. */
   GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
-    Collection *collection = reinterpret_cast<Collection *>(
+    Collection *collection = static_cast<Collection *>(
         BLI_gsetIterator_getKey(&collections_to_edit_iter));
     Object *ob = ED_object_add_type(
         C, OB_EMPTY, collection->id.name + 2, scene->cursor.location, nullptr, false, 0);
@@ -812,16 +836,16 @@ void OUTLINER_OT_collection_instance(wmOperatorType *ot)
 /** \name Exclude Collection
  * \{ */
 
-static TreeTraversalAction layer_collection_find_data_to_edit(TreeElement *te, void *customdata)
+static TreeTraversalAction layer_collection_collect_data_to_edit(TreeElement *te, void *customdata)
 {
-  CollectionEditData *data = reinterpret_cast<CollectionEditData *>(customdata);
+  CollectionEditData *data = static_cast<CollectionEditData *>(customdata);
   TreeStoreElem *tselem = TREESTORE(te);
 
   if (!(tselem && tselem->type == TSE_LAYER_COLLECTION)) {
     return TRAVERSE_CONTINUE;
   }
 
-  LayerCollection *lc = reinterpret_cast<LayerCollection *>(te->directdata);
+  LayerCollection *lc = static_cast<LayerCollection *>(te->directdata);
 
   if (lc->collection->flag & COLLECTION_IS_MASTER) {
     /* skip - showing warning/error message might be misleading
@@ -857,12 +881,12 @@ static bool collections_view_layer_poll(bContext *C, bool clear, int flag)
                          &space_outliner->tree,
                          0,
                          TSE_SELECTED,
-                         layer_collection_find_data_to_edit,
+                         layer_collection_collect_data_to_edit,
                          &data);
 
   GSetIterator collections_to_edit_iter;
   GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
-    LayerCollection *lc = reinterpret_cast<LayerCollection *>(
+    LayerCollection *lc = static_cast<LayerCollection *>(
         BLI_gsetIterator_getKey(&collections_to_edit_iter));
 
     if (clear && (lc->flag & flag)) {
@@ -929,12 +953,12 @@ static int collection_view_layer_exec(bContext *C, wmOperator *op)
                          &space_outliner->tree,
                          0,
                          TSE_SELECTED,
-                         layer_collection_find_data_to_edit,
+                         layer_collection_collect_data_to_edit,
                          &data);
 
   GSetIterator collections_to_edit_iter;
   GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
-    LayerCollection *lc = reinterpret_cast<LayerCollection *>(
+    LayerCollection *lc = static_cast<LayerCollection *>(
         BLI_gsetIterator_getKey(&collections_to_edit_iter));
     BKE_layer_collection_set_flag(lc, flag, !clear);
   }
@@ -1063,12 +1087,12 @@ static int collection_isolate_exec(bContext *C, wmOperator *op)
                          &space_outliner->tree,
                          0,
                          TSE_SELECTED,
-                         layer_collection_find_data_to_edit,
+                         layer_collection_collect_data_to_edit,
                          &data);
 
   GSetIterator collections_to_edit_iter;
   GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
-    LayerCollection *layer_collection = reinterpret_cast<LayerCollection *>(
+    LayerCollection *layer_collection = static_cast<LayerCollection *>(
         BLI_gsetIterator_getKey(&collections_to_edit_iter));
 
     if (extend) {
@@ -1163,12 +1187,12 @@ static int collection_visibility_exec(bContext *C, wmOperator *op)
                          &space_outliner->tree,
                          0,
                          TSE_SELECTED,
-                         layer_collection_find_data_to_edit,
+                         layer_collection_collect_data_to_edit,
                          &data);
 
   GSetIterator collections_to_edit_iter;
   GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
-    LayerCollection *layer_collection = reinterpret_cast<LayerCollection *>(
+    LayerCollection *layer_collection = static_cast<LayerCollection *>(
         BLI_gsetIterator_getKey(&collections_to_edit_iter));
     BKE_layer_collection_set_visible(view_layer, layer_collection, show, is_inside);
   }
@@ -1315,11 +1339,11 @@ static int collection_flag_exec(bContext *C, wmOperator *op)
                            &space_outliner->tree,
                            0,
                            TSE_SELECTED,
-                           layer_collection_find_data_to_edit,
+                           layer_collection_collect_data_to_edit,
                            &data);
     GSetIterator collections_to_edit_iter;
     GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
-      LayerCollection *layer_collection = reinterpret_cast<LayerCollection *>(
+      LayerCollection *layer_collection = static_cast<LayerCollection *>(
           BLI_gsetIterator_getKey(&collections_to_edit_iter));
       Collection *collection = layer_collection->collection;
       if (!BKE_id_is_editable(bmain, &collection->id)) {
@@ -1344,11 +1368,11 @@ static int collection_flag_exec(bContext *C, wmOperator *op)
                            &space_outliner->tree,
                            0,
                            TSE_SELECTED,
-                           collection_find_data_to_edit,
+                           collection_collect_data_to_edit,
                            &data);
     GSetIterator collections_to_edit_iter;
     GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
-      Collection *collection = reinterpret_cast<Collection *>(
+      Collection *collection = static_cast<Collection *>(
           BLI_gsetIterator_getKey(&collections_to_edit_iter));
       if (!BKE_id_is_editable(bmain, &collection->id)) {
         continue;
@@ -1449,9 +1473,9 @@ struct OutlinerHideEditData {
 /** \name Visibility for Collection & Object Operators
  * \{ */
 
-static TreeTraversalAction outliner_hide_find_data_to_edit(TreeElement *te, void *customdata)
+static TreeTraversalAction outliner_hide_collect_data_to_edit(TreeElement *te, void *customdata)
 {
-  OutlinerHideEditData *data = reinterpret_cast<OutlinerHideEditData *>(customdata);
+  OutlinerHideEditData *data = static_cast<OutlinerHideEditData *>(customdata);
   TreeStoreElem *tselem = TREESTORE(te);
 
   if (tselem == nullptr) {
@@ -1459,7 +1483,7 @@ static TreeTraversalAction outliner_hide_find_data_to_edit(TreeElement *te, void
   }
 
   if (tselem->type == TSE_LAYER_COLLECTION) {
-    LayerCollection *lc = reinterpret_cast<LayerCollection *>(te->directdata);
+    LayerCollection *lc = static_cast<LayerCollection *>(te->directdata);
 
     if (lc->collection->flag & COLLECTION_IS_MASTER) {
       /* Skip - showing warning/error message might be misleading
@@ -1496,12 +1520,12 @@ static int outliner_hide_exec(bContext *C, wmOperator *UNUSED(op))
                          &space_outliner->tree,
                          0,
                          TSE_SELECTED,
-                         outliner_hide_find_data_to_edit,
+                         outliner_hide_collect_data_to_edit,
                          &data);
 
   GSetIterator collections_to_edit_iter;
   GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
-    LayerCollection *layer_collection = reinterpret_cast<LayerCollection *>(
+    LayerCollection *layer_collection = static_cast<LayerCollection *>(
         BLI_gsetIterator_getKey(&collections_to_edit_iter));
     BKE_layer_collection_set_visible(view_layer, layer_collection, false, false);
   }
@@ -1509,7 +1533,7 @@ static int outliner_hide_exec(bContext *C, wmOperator *UNUSED(op))
 
   GSetIterator bases_to_edit_iter;
   GSET_ITER (bases_to_edit_iter, data.bases_to_edit) {
-    Base *base = reinterpret_cast<Base *>(BLI_gsetIterator_getKey(&bases_to_edit_iter));
+    Base *base = static_cast<Base *>(BLI_gsetIterator_getKey(&bases_to_edit_iter));
     base->flag |= BASE_HIDDEN;
   }
   BLI_gset_free(data.bases_to_edit, nullptr);
@@ -1542,8 +1566,7 @@ static int outliner_unhide_all_exec(bContext *C, wmOperator *UNUSED(op))
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   /* Unhide all the collections. */
-  LayerCollection *lc_master = reinterpret_cast<LayerCollection *>(
-      view_layer->layer_collections.first);
+  LayerCollection *lc_master = static_cast<LayerCollection *>(view_layer->layer_collections.first);
   LISTBASE_FOREACH (LayerCollection *, lc_iter, &lc_master->layer_collections) {
     BKE_layer_collection_set_flag(lc_iter, LAYER_COLLECTION_HIDE, false);
   }
@@ -1593,7 +1616,7 @@ static int outliner_color_tag_set_exec(bContext *C, wmOperator *op)
                          &space_outliner->tree,
                          0,
                          TSE_SELECTED,
-                         outliner_find_selected_collections,
+                         outliner_collect_selected_collections,
                          &selected);
 
   LISTBASE_FOREACH (LinkData *, link, &selected.selected_array) {
@@ -1637,3 +1660,5 @@ void OUTLINER_OT_collection_color_tag_set(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender::ed::outliner

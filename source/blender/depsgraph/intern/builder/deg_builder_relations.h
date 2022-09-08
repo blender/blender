@@ -15,6 +15,7 @@
 #include "DNA_ID.h"
 
 #include "RNA_access.h"
+#include "RNA_path.h"
 #include "RNA_types.h"
 
 #include "BLI_string.h"
@@ -70,8 +71,7 @@ struct bSound;
 
 struct PropertyRNA;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct ComponentNode;
 struct DepsNodeHandle;
@@ -85,51 +85,113 @@ struct RootPChanMap;
 struct TimeSourceNode;
 
 struct TimeSourceKey {
-  TimeSourceKey();
-  TimeSourceKey(ID *id);
+  TimeSourceKey() = default;
 
   string identifier() const;
-
-  ID *id;
 };
 
 struct ComponentKey {
-  ComponentKey();
-  ComponentKey(ID *id, NodeType type, const char *name = "");
+  ComponentKey() = default;
+
+  inline ComponentKey(const ID *id, NodeType type, const char *name = "")
+      : id(id), type(type), name(name)
+  {
+  }
 
   string identifier() const;
 
-  ID *id;
-  NodeType type;
-  const char *name;
+  const ID *id = nullptr;
+  NodeType type = NodeType::UNDEFINED;
+  const char *name = "";
 };
 
 struct OperationKey {
-  OperationKey();
-  OperationKey(ID *id, NodeType component_type, const char *name, int name_tag = -1);
-  OperationKey(
-      ID *id, NodeType component_type, const char *component_name, const char *name, int name_tag);
+  OperationKey() = default;
 
-  OperationKey(ID *id, NodeType component_type, OperationCode opcode);
-  OperationKey(ID *id, NodeType component_type, const char *component_name, OperationCode opcode);
+  inline OperationKey(const ID *id, NodeType component_type, const char *name, int name_tag = -1)
+      : id(id),
+        component_type(component_type),
+        component_name(""),
+        opcode(OperationCode::OPERATION),
+        name(name),
+        name_tag(name_tag)
+  {
+  }
 
-  OperationKey(
-      ID *id, NodeType component_type, OperationCode opcode, const char *name, int name_tag = -1);
-  OperationKey(ID *id,
+  OperationKey(const ID *id,
+               NodeType component_type,
+               const char *component_name,
+               const char *name,
+               int name_tag)
+      : id(id),
+        component_type(component_type),
+        component_name(component_name),
+        opcode(OperationCode::OPERATION),
+        name(name),
+        name_tag(name_tag)
+  {
+  }
+
+  OperationKey(const ID *id, NodeType component_type, OperationCode opcode)
+      : id(id),
+        component_type(component_type),
+        component_name(""),
+        opcode(opcode),
+        name(""),
+        name_tag(-1)
+  {
+  }
+
+  OperationKey(const ID *id,
+               NodeType component_type,
+               const char *component_name,
+               OperationCode opcode)
+      : id(id),
+        component_type(component_type),
+        component_name(component_name),
+        opcode(opcode),
+        name(""),
+        name_tag(-1)
+  {
+  }
+
+  OperationKey(const ID *id,
+               NodeType component_type,
+               OperationCode opcode,
+               const char *name,
+               int name_tag = -1)
+      : id(id),
+        component_type(component_type),
+        component_name(""),
+        opcode(opcode),
+        name(name),
+        name_tag(name_tag)
+  {
+  }
+
+  OperationKey(const ID *id,
                NodeType component_type,
                const char *component_name,
                OperationCode opcode,
                const char *name,
-               int name_tag = -1);
+               int name_tag = -1)
+      : id(id),
+        component_type(component_type),
+        component_name(component_name),
+        opcode(opcode),
+        name(name),
+        name_tag(name_tag)
+  {
+  }
 
   string identifier() const;
 
-  ID *id;
-  NodeType component_type;
-  const char *component_name;
-  OperationCode opcode;
-  const char *name;
-  int name_tag;
+  const ID *id = nullptr;
+  NodeType component_type = NodeType::UNDEFINED;
+  const char *component_name = "";
+  OperationCode opcode = OperationCode::OPERATION;
+  const char *name = "";
+  int name_tag = -1;
 };
 
 struct RNAPathKey {
@@ -177,7 +239,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   /* Adds relation from proper transformation operation to the modifier.
    * Takes care of checking for possible physics solvers modifying position
    * of this object. */
-  void add_modifier_to_transform_relation(const DepsNodeHandle *handle, const char *description);
+  void add_depends_on_transform_relation(const DepsNodeHandle *handle, const char *description);
 
   void add_customdata_mask(Object *object, const DEGCustomDataMeshMasks &customdata_masks);
   void add_special_eval_flag(ID *id, uint32_t flag);
@@ -203,6 +265,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_object(Object *object);
   virtual void build_object_from_view_layer_base(Object *object);
   virtual void build_object_layer_component_relations(Object *object);
+  virtual void build_object_modifiers(Object *object);
   virtual void build_object_data(Object *object);
   virtual void build_object_data_camera(Object *object);
   virtual void build_object_data_geometry(Object *object);
@@ -381,7 +444,6 @@ struct DepsNodeHandle {
   const char *default_name;
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg
 
 #include "intern/builder/deg_builder_relations_impl.h"

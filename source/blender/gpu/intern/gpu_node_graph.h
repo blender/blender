@@ -59,6 +59,7 @@ typedef enum {
   GPU_NODE_TAG_THICKNESS = (1 << 3),
   GPU_NODE_TAG_AOV = (1 << 4),
   GPU_NODE_TAG_FUNCTION = (1 << 5),
+  GPU_NODE_TAG_COMPOSITOR = (1 << 6),
 } eGPUNodeTag;
 
 ENUM_OPERATORS(eGPUNodeTag, GPU_NODE_TAG_FUNCTION)
@@ -158,6 +159,8 @@ typedef struct GPUNodeGraph {
   ListBase outlink_aovs;
   /* List of GPUNodeGraphFunctionLink */
   ListBase material_functions;
+  /* List of GPUNodeGraphOutputLink */
+  ListBase outlink_compositor;
 
   /* Requested attributes and textures. */
   ListBase attributes;

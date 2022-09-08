@@ -1,0 +1,44 @@
+/* Hide all symbols except a few required ones.
+ *
+ * Otherwise LLVM symbols conflict with Mesa llvm pipe, boost symbols conflict
+ * with Luxrender, etc. */
+{
+global:
+  /* Essential symbols for the program to start and exit. */
+  _bss_start;
+  __end;
+  _fini;
+  _init;
+  /* Needed for Python modules to work. */
+  Py*;
+  _Py*;
+  /* Needed for sanitizers. Based on:
+   * llvm/compiler-rt/lib/sanitizer_common/scripts/gen_dynamic_list.py. */
+  __asan*;
+  __lsan*;
+  __tsan*;
+  __ubsan*;
+  __sanitizer*;
+  __Znw*;
+  __Zna*;
+  __Zdl*;
+  __Zda*;
+  aligned_alloc;
+  aligned_free;
+  calloc*;
+  free;
+  mallinfo;
+  malloc*;
+  mallopt;
+  memalign;
+  memcpy;
+  posix_memalign;
+  pthread_*;
+  pvalloc;
+  realloc*;
+  realpath;
+  sched_*;
+  valloc;
+local:
+  *;
+};

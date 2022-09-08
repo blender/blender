@@ -18,6 +18,7 @@
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_layer.h"
 
 #include "DEG_depsgraph.h"
 
@@ -495,7 +496,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
   struct Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   ListBase *editnurb;
   Nurb *nu;
   bool newob = false;

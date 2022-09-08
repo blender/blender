@@ -17,7 +17,7 @@ void BM_mesh_elem_toolflags_ensure(BMesh *bm);
 void BM_mesh_elem_toolflags_clear(BMesh *bm);
 
 struct BMeshCreateParams {
-  bool use_toolflags : true;
+  bool use_toolflags : 1;
 };
 
 /**

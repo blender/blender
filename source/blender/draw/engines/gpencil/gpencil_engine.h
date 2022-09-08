@@ -19,6 +19,8 @@
 extern "C" {
 #endif
 
+#define GP_LIGHT
+
 #include "gpencil_defines.h"
 #include "gpencil_shader_shared.h"
 

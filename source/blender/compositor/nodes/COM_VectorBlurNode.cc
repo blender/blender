@@ -14,8 +14,8 @@ VectorBlurNode::VectorBlurNode(bNode *editor_node) : Node(editor_node)
 void VectorBlurNode::convert_to_operations(NodeConverter &converter,
                                            const CompositorContext &context) const
 {
-  bNode *node = this->get_bnode();
-  NodeBlurData *vector_blur_settings = (NodeBlurData *)node->storage;
+  const bNode *node = this->get_bnode();
+  const NodeBlurData *vector_blur_settings = (const NodeBlurData *)node->storage;
 
   VectorBlurOperation *operation = new VectorBlurOperation();
   operation->set_vector_blur_settings(vector_blur_settings);

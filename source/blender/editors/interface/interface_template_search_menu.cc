@@ -918,6 +918,7 @@ static void menu_search_arg_free_fn(void *data_v)
           WM_operator_properties_free(item->op.opptr);
           MEM_freeN(item->op.opptr);
         }
+        break;
       }
       case MenuSearch_Item::Type::RNA: {
         break;

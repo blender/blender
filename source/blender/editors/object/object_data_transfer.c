@@ -45,7 +45,7 @@
  * Note some are 'fake' ones, i.e. they are not hold by real CDLayers. */
 /* Not shared with modifier, since we use a usual enum here, not a multi-choice one. */
 static const EnumPropertyItem DT_layer_items[] = {
-    RNA_ENUM_ITEM_HEADING("Vertex Data", NULL),
+    RNA_ENUM_ITEM_HEADING(N_("Vertex Data"), NULL),
     {DT_TYPE_MDEFORMVERT,
      "VGROUP_WEIGHTS",
      0,
@@ -61,7 +61,7 @@ static const EnumPropertyItem DT_layer_items[] = {
 #endif
     {DT_TYPE_BWEIGHT_VERT, "BEVEL_WEIGHT_VERT", 0, "Bevel Weight", "Transfer bevel weights"},
 
-    RNA_ENUM_ITEM_HEADING("Edge Data", NULL),
+    RNA_ENUM_ITEM_HEADING(N_("Edge Data"), NULL),
     {DT_TYPE_SHARP_EDGE, "SHARP_EDGE", 0, "Sharp", "Transfer sharp mark"},
     {DT_TYPE_SEAM, "SEAM", 0, "UV Seam", "Transfer UV seam mark"},
     {DT_TYPE_CREASE, "CREASE", 0, "Subdivision Crease", "Transfer crease values"},
@@ -72,12 +72,12 @@ static const EnumPropertyItem DT_layer_items[] = {
      "Freestyle Mark",
      "Transfer Freestyle edge mark"},
 
-    RNA_ENUM_ITEM_HEADING("Face Corner Data", NULL),
+    RNA_ENUM_ITEM_HEADING(N_("Face Corner Data"), NULL),
     {DT_TYPE_LNOR, "CUSTOM_NORMAL", 0, "Custom Normals", "Transfer custom normals"},
     {DT_TYPE_MPROPCOL_LOOP | DT_TYPE_MLOOPCOL_LOOP, "VCOL", 0, "Colors", "Color Attributes"},
     {DT_TYPE_UV, "UV", 0, "UVs", "Transfer UV layers"},
 
-    RNA_ENUM_ITEM_HEADING("Face Data", NULL),
+    RNA_ENUM_ITEM_HEADING(N_("Face Data"), NULL),
     {DT_TYPE_SHARP_FACE, "SMOOTH", 0, "Smooth", "Transfer flat/smooth mark"},
     {DT_TYPE_FREESTYLE_FACE,
      "FREESTYLE_FACE",

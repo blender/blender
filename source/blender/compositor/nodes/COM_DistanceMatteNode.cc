@@ -16,8 +16,8 @@ DistanceMatteNode::DistanceMatteNode(bNode *editor_node) : Node(editor_node)
 void DistanceMatteNode::convert_to_operations(NodeConverter &converter,
                                               const CompositorContext & /*context*/) const
 {
-  bNode *editorsnode = get_bnode();
-  NodeChroma *storage = (NodeChroma *)editorsnode->storage;
+  const bNode *editorsnode = this->get_bnode();
+  const NodeChroma *storage = (const NodeChroma *)editorsnode->storage;
 
   NodeInput *input_socket_image = this->get_input_socket(0);
   NodeInput *input_socket_key = this->get_input_socket(1);

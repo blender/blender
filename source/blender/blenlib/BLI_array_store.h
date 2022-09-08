@@ -57,7 +57,6 @@ size_t BLI_array_store_calc_size_expanded_get(const BArrayStore *bs);
 size_t BLI_array_store_calc_size_compacted_get(const BArrayStore *bs);
 
 /**
- *
  * \param data: Data used to create
  * \param state_reference: The state to use as a reference when adding the new state,
  * typically this is the previous state,

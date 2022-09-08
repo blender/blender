@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0
  * Copyright 2011-2022 Blender Foundation */
 
+#include <optional>
+
 #include "blender/session.h"
 #include "blender/sync.h"
 #include "blender/util.h"
@@ -22,22 +24,23 @@
 #include "util/log.h"
 #include "util/math.h"
 
-#include "mikktspace.h"
+#include "mikktspace.hh"
+
+#include "DNA_meshdata_types.h"
 
 CCL_NAMESPACE_BEGIN
 
 /* Tangent Space */
 
-struct MikkUserData {
-  MikkUserData(const BL::Mesh &b_mesh,
-               const char *layer_name,
-               const Mesh *mesh,
-               float3 *tangent,
-               float *tangent_sign)
+template<bool is_subd> struct MikkMeshWrapper {
+  MikkMeshWrapper(const BL::Mesh &b_mesh,
+                  const char *layer_name,
+                  const Mesh *mesh,
+                  float3 *tangent,
+                  float *tangent_sign)
       : mesh(mesh), texface(NULL), orco(NULL), tangent(tangent), tangent_sign(tangent_sign)
   {
-    const AttributeSet &attributes = (mesh->get_num_subd_faces()) ? mesh->subd_attributes :
-                                                                    mesh->attributes;
+    const AttributeSet &attributes = is_subd ? mesh->subd_attributes : mesh->attributes;
 
     Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
     vertex_normal = attr_vN->data_float3();
@@ -47,7 +50,9 @@ struct MikkUserData {
 
       if (attr_orco) {
         orco = attr_orco->data_float3();
+        float3 orco_size;
         mesh_texture_space(*(BL::Mesh *)&b_mesh, orco_loc, orco_size);
+        inv_orco_size = 1.0f / orco_size;
       }
     }
     else {
@@ -58,160 +63,126 @@ struct MikkUserData {
     }
   }
 
+  int GetNumFaces()
+  {
+    if constexpr (is_subd) {
+      return mesh->get_num_subd_faces();
+    }
+    else {
+      return mesh->num_triangles();
+    }
+  }
+
+  int GetNumVerticesOfFace(const int face_num)
+  {
+    if constexpr (is_subd) {
+      return mesh->get_subd_num_corners()[face_num];
+    }
+    else {
+      return 3;
+    }
+  }
+
+  int CornerIndex(const int face_num, const int vert_num)
+  {
+    if constexpr (is_subd) {
+      const Mesh::SubdFace &face = mesh->get_subd_face(face_num);
+      return face.start_corner + vert_num;
+    }
+    else {
+      return face_num * 3 + vert_num;
+    }
+  }
+
+  int VertexIndex(const int face_num, const int vert_num)
+  {
+    int corner = CornerIndex(face_num, vert_num);
+    if constexpr (is_subd) {
+      return mesh->get_subd_face_corners()[corner];
+    }
+    else {
+      return mesh->get_triangles()[corner];
+    }
+  }
+
+  mikk::float3 GetPosition(const int face_num, const int vert_num)
+  {
+    const float3 vP = mesh->get_verts()[VertexIndex(face_num, vert_num)];
+    return mikk::float3(vP.x, vP.y, vP.z);
+  }
+
+  mikk::float3 GetTexCoord(const int face_num, const int vert_num)
+  {
+    /* TODO: Check whether introducing a template boolean in order to
+     * turn this into a constexpr is worth it. */
+    if (texface != NULL) {
+      const int corner_index = CornerIndex(face_num, vert_num);
+      float2 tfuv = texface[corner_index];
+      return mikk::float3(tfuv.x, tfuv.y, 1.0f);
+    }
+    else if (orco != NULL) {
+      const int vertex_index = VertexIndex(face_num, vert_num);
+      const float2 uv = map_to_sphere((orco[vertex_index] + orco_loc) * inv_orco_size);
+      return mikk::float3(uv.x, uv.y, 1.0f);
+    }
+    else {
+      return mikk::float3(0.0f, 0.0f, 1.0f);
+    }
+  }
+
+  mikk::float3 GetNormal(const int face_num, const int vert_num)
+  {
+    float3 vN;
+    if (is_subd) {
+      const Mesh::SubdFace &face = mesh->get_subd_face(face_num);
+      if (face.smooth) {
+        const int vertex_index = VertexIndex(face_num, vert_num);
+        vN = vertex_normal[vertex_index];
+      }
+      else {
+        vN = face.normal(mesh);
+      }
+    }
+    else {
+      if (mesh->get_smooth()[face_num]) {
+        const int vertex_index = VertexIndex(face_num, vert_num);
+        vN = vertex_normal[vertex_index];
+      }
+      else {
+        const Mesh::Triangle tri = mesh->get_triangle(face_num);
+        vN = tri.compute_normal(&mesh->get_verts()[0]);
+      }
+    }
+    return mikk::float3(vN.x, vN.y, vN.z);
+  }
+
+  void SetTangentSpace(const int face_num, const int vert_num, mikk::float3 T, bool orientation)
+  {
+    const int corner_index = CornerIndex(face_num, vert_num);
+    tangent[corner_index] = make_float3(T.x, T.y, T.z);
+    if (tangent_sign != NULL) {
+      tangent_sign[corner_index] = orientation ? 1.0f : -1.0f;
+    }
+  }
+
   const Mesh *mesh;
   int num_faces;
 
   float3 *vertex_normal;
   float2 *texface;
   float3 *orco;
-  float3 orco_loc, orco_size;
+  float3 orco_loc, inv_orco_size;
 
   float3 *tangent;
   float *tangent_sign;
 };
 
-static int mikk_get_num_faces(const SMikkTSpaceContext *context)
-{
-  const MikkUserData *userdata = (const MikkUserData *)context->m_pUserData;
-  if (userdata->mesh->get_num_subd_faces()) {
-    return userdata->mesh->get_num_subd_faces();
-  }
-  else {
-    return userdata->mesh->num_triangles();
-  }
-}
-
-static int mikk_get_num_verts_of_face(const SMikkTSpaceContext *context, const int face_num)
-{
-  const MikkUserData *userdata = (const MikkUserData *)context->m_pUserData;
-  if (userdata->mesh->get_num_subd_faces()) {
-    const Mesh *mesh = userdata->mesh;
-    return mesh->get_subd_num_corners()[face_num];
-  }
-  else {
-    return 3;
-  }
-}
-
-static int mikk_vertex_index(const Mesh *mesh, const int face_num, const int vert_num)
-{
-  if (mesh->get_num_subd_faces()) {
-    const Mesh::SubdFace &face = mesh->get_subd_face(face_num);
-    return mesh->get_subd_face_corners()[face.start_corner + vert_num];
-  }
-  else {
-    return mesh->get_triangles()[face_num * 3 + vert_num];
-  }
-}
-
-static int mikk_corner_index(const Mesh *mesh, const int face_num, const int vert_num)
-{
-  if (mesh->get_num_subd_faces()) {
-    const Mesh::SubdFace &face = mesh->get_subd_face(face_num);
-    return face.start_corner + vert_num;
-  }
-  else {
-    return face_num * 3 + vert_num;
-  }
-}
-
-static void mikk_get_position(const SMikkTSpaceContext *context,
-                              float P[3],
-                              const int face_num,
-                              const int vert_num)
-{
-  const MikkUserData *userdata = (const MikkUserData *)context->m_pUserData;
-  const Mesh *mesh = userdata->mesh;
-  const int vertex_index = mikk_vertex_index(mesh, face_num, vert_num);
-  const float3 vP = mesh->get_verts()[vertex_index];
-  P[0] = vP.x;
-  P[1] = vP.y;
-  P[2] = vP.z;
-}
-
-static void mikk_get_texture_coordinate(const SMikkTSpaceContext *context,
-                                        float uv[2],
-                                        const int face_num,
-                                        const int vert_num)
-{
-  const MikkUserData *userdata = (const MikkUserData *)context->m_pUserData;
-  const Mesh *mesh = userdata->mesh;
-  if (userdata->texface != NULL) {
-    const int corner_index = mikk_corner_index(mesh, face_num, vert_num);
-    float2 tfuv = userdata->texface[corner_index];
-    uv[0] = tfuv.x;
-    uv[1] = tfuv.y;
-  }
-  else if (userdata->orco != NULL) {
-    const int vertex_index = mikk_vertex_index(mesh, face_num, vert_num);
-    const float3 orco_loc = userdata->orco_loc;
-    const float3 orco_size = userdata->orco_size;
-    const float3 orco = (userdata->orco[vertex_index] + orco_loc) / orco_size;
-
-    const float2 tmp = map_to_sphere(orco);
-    uv[0] = tmp.x;
-    uv[1] = tmp.y;
-  }
-  else {
-    uv[0] = 0.0f;
-    uv[1] = 0.0f;
-  }
-}
-
-static void mikk_get_normal(const SMikkTSpaceContext *context,
-                            float N[3],
-                            const int face_num,
-                            const int vert_num)
-{
-  const MikkUserData *userdata = (const MikkUserData *)context->m_pUserData;
-  const Mesh *mesh = userdata->mesh;
-  float3 vN;
-  if (mesh->get_num_subd_faces()) {
-    const Mesh::SubdFace &face = mesh->get_subd_face(face_num);
-    if (face.smooth) {
-      const int vertex_index = mikk_vertex_index(mesh, face_num, vert_num);
-      vN = userdata->vertex_normal[vertex_index];
-    }
-    else {
-      vN = face.normal(mesh);
-    }
-  }
-  else {
-    if (mesh->get_smooth()[face_num]) {
-      const int vertex_index = mikk_vertex_index(mesh, face_num, vert_num);
-      vN = userdata->vertex_normal[vertex_index];
-    }
-    else {
-      const Mesh::Triangle tri = mesh->get_triangle(face_num);
-      vN = tri.compute_normal(&mesh->get_verts()[0]);
-    }
-  }
-  N[0] = vN.x;
-  N[1] = vN.y;
-  N[2] = vN.z;
-}
-
-static void mikk_set_tangent_space(const SMikkTSpaceContext *context,
-                                   const float T[],
-                                   const float sign,
-                                   const int face_num,
-                                   const int vert_num)
-{
-  MikkUserData *userdata = (MikkUserData *)context->m_pUserData;
-  const Mesh *mesh = userdata->mesh;
-  const int corner_index = mikk_corner_index(mesh, face_num, vert_num);
-  userdata->tangent[corner_index] = make_float3(T[0], T[1], T[2]);
-  if (userdata->tangent_sign != NULL) {
-    userdata->tangent_sign[corner_index] = sign;
-  }
-}
-
 static void mikk_compute_tangents(
     const BL::Mesh &b_mesh, const char *layer_name, Mesh *mesh, bool need_sign, bool active_render)
 {
   /* Create tangent attributes. */
-  AttributeSet &attributes = (mesh->get_num_subd_faces()) ? mesh->subd_attributes :
-                                                            mesh->attributes;
+  const bool is_subd = mesh->get_num_subd_faces();
+  AttributeSet &attributes = is_subd ? mesh->subd_attributes : mesh->attributes;
   Attribute *attr;
   ustring name;
   if (layer_name != NULL) {
@@ -247,24 +218,18 @@ static void mikk_compute_tangents(
     }
     tangent_sign = attr_sign->data_float();
   }
+
   /* Setup userdata. */
-  MikkUserData userdata(b_mesh, layer_name, mesh, tangent, tangent_sign);
-  /* Setup interface. */
-  SMikkTSpaceInterface sm_interface;
-  memset(&sm_interface, 0, sizeof(sm_interface));
-  sm_interface.m_getNumFaces = mikk_get_num_faces;
-  sm_interface.m_getNumVerticesOfFace = mikk_get_num_verts_of_face;
-  sm_interface.m_getPosition = mikk_get_position;
-  sm_interface.m_getTexCoord = mikk_get_texture_coordinate;
-  sm_interface.m_getNormal = mikk_get_normal;
-  sm_interface.m_setTSpaceBasic = mikk_set_tangent_space;
-  /* Setup context. */
-  SMikkTSpaceContext context;
-  memset(&context, 0, sizeof(context));
-  context.m_pUserData = &userdata;
-  context.m_pInterface = &sm_interface;
-  /* Compute tangents. */
-  genTangSpaceDefault(&context);
+  if (is_subd) {
+    MikkMeshWrapper<true> userdata(b_mesh, layer_name, mesh, tangent, tangent_sign);
+    /* Compute tangents. */
+    mikk::Mikktspace(userdata).genTangSpace();
+  }
+  else {
+    MikkMeshWrapper<false> userdata(b_mesh, layer_name, mesh, tangent, tangent_sign);
+    /* Compute tangents. */
+    mikk::Mikktspace(userdata).genTangSpace();
+  }
 }
 
 template<typename TypeInCycles, typename GetValueAtIndex>
@@ -277,10 +242,15 @@ static void fill_generic_attribute(BL::Mesh &b_mesh,
   switch (b_domain) {
     case BL::Attribute::domain_CORNER: {
       if (subdivision) {
-        for (BL::MeshPolygon &p : b_mesh.polygons) {
-          int n = p.loop_total();
-          for (int i = 0; i < n; i++) {
-            *data = get_value_at_index(p.loop_start() + i);
+        const int polys_num = b_mesh.polygons.length();
+        if (polys_num == 0) {
+          return;
+        }
+        const MPoly *polys = static_cast<const MPoly *>(b_mesh.polygons[0].ptr.data);
+        for (int i = 0; i < polys_num; i++) {
+          const MPoly &b_poly = polys[i];
+          for (int j = 0; j < b_poly.totloop; j++) {
+            *data = get_value_at_index(b_poly.loopstart + j);
             data++;
           }
         }
@@ -297,27 +267,32 @@ static void fill_generic_attribute(BL::Mesh &b_mesh,
       break;
     }
     case BL::Attribute::domain_EDGE: {
+      const size_t edges_num = b_mesh.edges.length();
+      if (edges_num == 0) {
+        return;
+      }
       if constexpr (std::is_same_v<TypeInCycles, uchar4>) {
         /* uchar4 edge attributes do not exist, and averaging in place
          * would not work. */
         assert(0);
       }
       else {
+        const MEdge *edges = static_cast<const MEdge *>(b_mesh.edges[0].ptr.data);
+        const size_t verts_num = b_mesh.vertices.length();
+        vector<int> count(verts_num, 0);
+
         /* Average edge attributes at vertices. */
-        const size_t num_verts = b_mesh.vertices.length();
-        vector<int> count(num_verts, 0);
+        for (int i = 0; i < edges_num; i++) {
+          TypeInCycles value = get_value_at_index(i);
 
-        for (BL::MeshEdge &e : b_mesh.edges) {
-          BL::Array<int, 2> vertices = e.vertices();
-          TypeInCycles value = get_value_at_index(e.index());
-
-          data[vertices[0]] += value;
-          data[vertices[1]] += value;
-          count[vertices[0]]++;
-          count[vertices[1]]++;
+          const MEdge &b_edge = edges[i];
+          data[b_edge.v1] += value;
+          data[b_edge.v2] += value;
+          count[b_edge.v1]++;
+          count[b_edge.v2]++;
         }
 
-        for (size_t i = 0; i < num_verts; i++) {
+        for (size_t i = 0; i < verts_num; i++) {
           if (count[i] > 1) {
             data[i] /= (float)count[i];
           }
@@ -601,6 +576,12 @@ static void attr_create_uv_map(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh)
 
 static void attr_create_subd_uv_map(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, bool subdivide_uvs)
 {
+  const int polys_num = b_mesh.polygons.length();
+  if (polys_num == 0) {
+    return;
+  }
+  const MPoly *polys = static_cast<const MPoly *>(b_mesh.polygons[0].ptr.data);
+
   if (!b_mesh.uv_layers.empty()) {
     BL::Mesh::uv_layers_iterator l;
     int i = 0;
@@ -634,10 +615,10 @@ static void attr_create_subd_uv_map(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, 
 
         float2 *fdata = uv_attr->data_float2();
 
-        for (BL::MeshPolygon &p : b_mesh.polygons) {
-          int n = p.loop_total();
-          for (int j = 0; j < n; j++) {
-            *(fdata++) = get_float2(l->data[p.loop_start() + j].uv());
+        for (int i = 0; i < polys_num; i++) {
+          const MPoly &b_poly = polys[i];
+          for (int j = 0; j < b_poly.totloop; j++) {
+            *(fdata++) = get_float2(l->data[b_poly.loopstart + j].uv());
           }
         }
       }
@@ -700,6 +681,8 @@ static void attr_create_pointiness(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, b
   if (num_verts == 0) {
     return;
   }
+  const MVert *verts = static_cast<const MVert *>(b_mesh.vertices[0].ptr.data);
+
   /* STEP 1: Find out duplicated vertices and point duplicates to a single
    *         original vertex.
    */
@@ -752,10 +735,12 @@ static void attr_create_pointiness(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, b
    */
   vector<float3> vert_normal(num_verts, zero_float3());
   /* First we accumulate all vertex normals in the original index. */
+  const float(*b_vert_normals)[3] = static_cast<const float(*)[3]>(
+      b_mesh.vertex_normals[0].ptr.data);
   for (int vert_index = 0; vert_index < num_verts; ++vert_index) {
-    const float3 normal = get_float3(b_mesh.vertices[vert_index].normal());
+    const float *b_vert_normal = b_vert_normals[vert_index];
     const int orig_index = vert_orig_index[vert_index];
-    vert_normal[orig_index] += normal;
+    vert_normal[orig_index] += make_float3(b_vert_normal[0], b_vert_normal[1], b_vert_normal[2]);
   }
   /* Then we normalize the accumulated result and flush it to all duplicates
    * as well.
@@ -768,18 +753,24 @@ static void attr_create_pointiness(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, b
   vector<int> counter(num_verts, 0);
   vector<float> raw_data(num_verts, 0.0f);
   vector<float3> edge_accum(num_verts, zero_float3());
-  BL::Mesh::edges_iterator e;
   EdgeMap visited_edges;
-  int edge_index = 0;
   memset(&counter[0], 0, sizeof(int) * counter.size());
-  for (b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++edge_index) {
-    const int v0 = vert_orig_index[b_mesh.edges[edge_index].vertices()[0]],
-              v1 = vert_orig_index[b_mesh.edges[edge_index].vertices()[1]];
+
+  const MEdge *edges = static_cast<MEdge *>(b_mesh.edges[0].ptr.data);
+  const int edges_num = b_mesh.edges.length();
+
+  for (int i = 0; i < edges_num; i++) {
+    const MEdge &b_edge = edges[i];
+    const int v0 = vert_orig_index[b_edge.v1];
+    const int v1 = vert_orig_index[b_edge.v2];
     if (visited_edges.exists(v0, v1)) {
       continue;
     }
     visited_edges.insert(v0, v1);
-    float3 co0 = get_float3(b_mesh.vertices[v0].co()), co1 = get_float3(b_mesh.vertices[v1].co());
+    const MVert &b_vert_0 = verts[v0];
+    const MVert &b_vert_1 = verts[v1];
+    float3 co0 = make_float3(b_vert_0.co[0], b_vert_0.co[1], b_vert_0.co[2]);
+    float3 co1 = make_float3(b_vert_1.co[0], b_vert_1.co[1], b_vert_1.co[2]);
     float3 edge = normalize(co1 - co0);
     edge_accum[v0] += edge;
     edge_accum[v1] += -edge;
@@ -807,11 +798,11 @@ static void attr_create_pointiness(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, b
   float *data = attr->data_float();
   memcpy(data, &raw_data[0], sizeof(float) * raw_data.size());
   memset(&counter[0], 0, sizeof(int) * counter.size());
-  edge_index = 0;
   visited_edges.clear();
-  for (b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e, ++edge_index) {
-    const int v0 = vert_orig_index[b_mesh.edges[edge_index].vertices()[0]],
-              v1 = vert_orig_index[b_mesh.edges[edge_index].vertices()[1]];
+  for (int i = 0; i < edges_num; i++) {
+    const MEdge &b_edge = edges[i];
+    const int v0 = vert_orig_index[b_edge.v1];
+    const int v1 = vert_orig_index[b_edge.v2];
     if (visited_edges.exists(v0, v1)) {
       continue;
     }
@@ -850,6 +841,7 @@ static void attr_create_random_per_island(Scene *scene,
     return;
   }
 
+  const int polys_num = b_mesh.polygons.length();
   int number_of_vertices = b_mesh.vertices.length();
   if (number_of_vertices == 0) {
     return;
@@ -857,8 +849,11 @@ static void attr_create_random_per_island(Scene *scene,
 
   DisjointSet vertices_sets(number_of_vertices);
 
-  for (BL::MeshEdge &e : b_mesh.edges) {
-    vertices_sets.join(e.vertices()[0], e.vertices()[1]);
+  const MEdge *edges = static_cast<MEdge *>(b_mesh.edges[0].ptr.data);
+  const int edges_num = b_mesh.edges.length();
+
+  for (int i = 0; i < edges_num; i++) {
+    vertices_sets.join(edges[i].v1, edges[i].v2);
   }
 
   AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
@@ -871,13 +866,36 @@ static void attr_create_random_per_island(Scene *scene,
     }
   }
   else {
-    for (BL::MeshPolygon &p : b_mesh.polygons) {
-      data[p.index()] = hash_uint_to_float(vertices_sets.find(p.vertices()[0]));
+    if (polys_num != 0) {
+      const MPoly *polys = static_cast<const MPoly *>(b_mesh.polygons[0].ptr.data);
+      const MLoop *loops = static_cast<const MLoop *>(b_mesh.loops[0].ptr.data);
+      for (int i = 0; i < polys_num; i++) {
+        const MPoly &b_poly = polys[i];
+        const MLoop &b_loop = loops[b_poly.loopstart];
+        data[i] = hash_uint_to_float(vertices_sets.find(b_loop.v));
+      }
     }
   }
 }
 
 /* Create Mesh */
+
+static std::optional<BL::IntAttribute> find_material_index_attribute(BL::Mesh b_mesh)
+{
+  for (BL::Attribute &b_attribute : b_mesh.attributes) {
+    if (b_attribute.domain() != BL::Attribute::domain_FACE) {
+      continue;
+    }
+    if (b_attribute.data_type() != BL::Attribute::data_type_INT) {
+      continue;
+    }
+    if (b_attribute.name() != "material_index") {
+      continue;
+    }
+    return BL::IntAttribute{b_attribute};
+  }
+  return std::nullopt;
+}
 
 static void create_mesh(Scene *scene,
                         Mesh *mesh,
@@ -890,6 +908,7 @@ static void create_mesh(Scene *scene,
 {
   /* count vertices and faces */
   int numverts = b_mesh.vertices.length();
+  const int polys_num = b_mesh.polygons.length();
   int numfaces = (!subdivision) ? b_mesh.loop_triangles.length() : b_mesh.polygons.length();
   int numtris = 0;
   int numcorners = 0;
@@ -902,13 +921,17 @@ static void create_mesh(Scene *scene,
     return;
   }
 
+  const MVert *verts = static_cast<const MVert *>(b_mesh.vertices[0].ptr.data);
+
   if (!subdivision) {
     numtris = numfaces;
   }
   else {
-    for (BL::MeshPolygon &p : b_mesh.polygons) {
-      numngons += (p.loop_total() == 4) ? 0 : 1;
-      numcorners += p.loop_total();
+    const MPoly *polys = static_cast<const MPoly *>(b_mesh.polygons[0].ptr.data);
+    for (int i = 0; i < polys_num; i++) {
+      const MPoly &b_poly = polys[i];
+      numngons += (b_poly.totloop == 4) ? 0 : 1;
+      numcorners += b_poly.totloop;
     }
   }
 
@@ -920,17 +943,23 @@ static void create_mesh(Scene *scene,
   mesh->reserve_mesh(numverts, numtris);
 
   /* create vertex coordinates and normals */
-  BL::Mesh::vertices_iterator v;
-  for (b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v)
-    mesh->add_vertex(get_float3(v->co()));
+  for (int i = 0; i < numverts; i++) {
+    const MVert &b_vert = verts[i];
+    mesh->add_vertex(make_float3(b_vert.co[0], b_vert.co[1], b_vert.co[2]));
+  }
 
   AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
   Attribute *attr_N = attributes.add(ATTR_STD_VERTEX_NORMAL);
   float3 *N = attr_N->data_float3();
 
-  for (b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v, ++N)
-    *N = get_float3(v->normal());
-  N = attr_N->data_float3();
+  if (subdivision || !use_loop_normals) {
+    const float(*b_vert_normals)[3] = static_cast<const float(*)[3]>(
+        b_mesh.vertex_normals[0].ptr.data);
+    for (int i = 0; i < numverts; i++) {
+      const float *b_vert_normal = b_vert_normals[i];
+      N[i] = make_float3(b_vert_normal[0], b_vert_normal[1], b_vert_normal[2]);
+    }
+  }
 
   /* create generated coordinates from undeformed coordinates */
   const bool need_default_tangent = (subdivision == false) && (b_mesh.uv_layers.empty()) &&
@@ -945,19 +974,30 @@ static void create_mesh(Scene *scene,
     float3 *generated = attr->data_float3();
     size_t i = 0;
 
+    BL::Mesh::vertices_iterator v;
     for (b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v) {
       generated[i++] = get_float3(v->undeformed_co()) * size - loc;
     }
   }
 
+  std::optional<BL::IntAttribute> material_indices = find_material_index_attribute(b_mesh);
+  auto get_material_index = [&](const int poly_index) -> int {
+    if (material_indices) {
+      return clamp(material_indices->data[poly_index].value(), 0, used_shaders.size() - 1);
+    }
+    return 0;
+  };
+
   /* create faces */
+  const MPoly *polys = static_cast<const MPoly *>(b_mesh.polygons[0].ptr.data);
   if (!subdivision) {
     for (BL::MeshLoopTriangle &t : b_mesh.loop_triangles) {
-      BL::MeshPolygon p = b_mesh.polygons[t.polygon_index()];
+      const int poly_index = t.polygon_index();
+      const MPoly &b_poly = polys[poly_index];
       int3 vi = get_int3(t.vertices());
 
-      int shader = clamp(p.material_index(), 0, used_shaders.size() - 1);
-      bool smooth = p.use_smooth() || use_loop_normals;
+      int shader = get_material_index(poly_index);
+      bool smooth = (b_poly.flag & ME_SMOOTH) || use_loop_normals;
 
       if (use_loop_normals) {
         BL::Array<float, 9> loop_normals = t.split_normals();
@@ -977,15 +1017,19 @@ static void create_mesh(Scene *scene,
   else {
     vector<int> vi;
 
-    for (BL::MeshPolygon &p : b_mesh.polygons) {
-      int n = p.loop_total();
-      int shader = clamp(p.material_index(), 0, used_shaders.size() - 1);
-      bool smooth = p.use_smooth() || use_loop_normals;
+    const MLoop *loops = static_cast<const MLoop *>(b_mesh.loops[0].ptr.data);
+
+    for (int i = 0; i < numfaces; i++) {
+      const MPoly &b_poly = polys[i];
+      int n = b_poly.totloop;
+      int shader = get_material_index(i);
+      bool smooth = (b_poly.flag & ME_SMOOTH) || use_loop_normals;
 
       vi.resize(n);
       for (int i = 0; i < n; i++) {
         /* NOTE: Autosmooth is already taken care about. */
-        vi[i] = b_mesh.loops[p.loop_start() + i].vertex_index();
+
+        vi[i] = loops[b_poly.loopstart + i].v;
       }
 
       /* create subd faces */
@@ -1038,27 +1082,33 @@ static void create_subd_mesh(Scene *scene,
 
   create_mesh(scene, mesh, b_mesh, used_shaders, need_motion, motion_scale, true, subdivide_uvs);
 
-  /* export creases */
-  size_t num_creases = 0;
+  const int edges_num = b_mesh.edges.length();
 
-  for (BL::MeshEdge &e : b_mesh.edges) {
-    if (e.crease() != 0.0f) {
-      num_creases++;
+  if (edges_num != 0) {
+    size_t num_creases = 0;
+    const MEdge *edges = static_cast<MEdge *>(b_mesh.edges[0].ptr.data);
+
+    for (int i = 0; i < edges_num; i++) {
+      const MEdge &b_edge = edges[i];
+      if (b_edge.crease != 0) {
+        num_creases++;
+      }
     }
-  }
 
-  mesh->reserve_subd_creases(num_creases);
+    mesh->reserve_subd_creases(num_creases);
 
-  for (BL::MeshEdge &e : b_mesh.edges) {
-    if (e.crease() != 0.0f) {
-      mesh->add_edge_crease(e.vertices()[0], e.vertices()[1], e.crease());
+    for (int i = 0; i < edges_num; i++) {
+      const MEdge &b_edge = edges[i];
+      if (b_edge.crease != 0) {
+        mesh->add_edge_crease(b_edge.v1, b_edge.v2, float(b_edge.crease) / 255.0f);
+      }
     }
-  }
 
-  for (BL::MeshVertexCreaseLayer &c : b_mesh.vertex_creases) {
-    for (int i = 0; i < c.data.length(); ++i) {
-      if (c.data[i].value() != 0.0f) {
-        mesh->add_vertex_crease(i, c.data[i].value());
+    for (BL::MeshVertexCreaseLayer &c : b_mesh.vertex_creases) {
+      for (int i = 0; i < c.data.length(); ++i) {
+        if (c.data[i].value() != 0.0f) {
+          mesh->add_vertex_crease(i, c.data[i].value());
+        }
       }
     }
   }
@@ -1179,6 +1229,12 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
 
   /* TODO(sergey): Perform preliminary check for number of vertices. */
   if (b_mesh) {
+    const int b_verts_num = b_mesh.vertices.length();
+    if (b_verts_num == 0) {
+      free_object_to_mesh(b_data, b_ob_info, b_mesh);
+      return;
+    }
+
     /* Export deformed coordinates. */
     /* Find attributes. */
     Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -1196,22 +1252,30 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
     /* Load vertex data from mesh. */
     float3 *mP = attr_mP->data_float3() + motion_step * numverts;
     float3 *mN = (attr_mN) ? attr_mN->data_float3() + motion_step * numverts : NULL;
+
+    const MVert *verts = static_cast<const MVert *>(b_mesh.vertices[0].ptr.data);
+
     /* NOTE: We don't copy more that existing amount of vertices to prevent
      * possible memory corruption.
      */
-    BL::Mesh::vertices_iterator v;
-    int i = 0;
-    for (b_mesh.vertices.begin(v); v != b_mesh.vertices.end() && i < numverts; ++v, ++i) {
-      mP[i] = get_float3(v->co());
-      if (mN)
-        mN[i] = get_float3(v->normal());
+    for (int i = 0; i < std::min<size_t>(b_verts_num, numverts); i++) {
+      const MVert &b_vert = verts[i];
+      mP[i] = make_float3(b_vert.co[0], b_vert.co[1], b_vert.co[2]);
+    }
+    if (mN) {
+      const float(*b_vert_normals)[3] = static_cast<const float(*)[3]>(
+          b_mesh.vertex_normals[0].ptr.data);
+      for (int i = 0; i < std::min<size_t>(b_verts_num, numverts); i++) {
+        const float *b_vert_normal = b_vert_normals[i];
+        mN[i] = make_float3(b_vert_normal[0], b_vert_normal[1], b_vert_normal[2]);
+      }
     }
     if (new_attribute) {
       /* In case of new attribute, we verify if there really was any motion. */
-      if (b_mesh.vertices.length() != numverts ||
+      if (b_verts_num != numverts ||
           memcmp(mP, &mesh->get_verts()[0], sizeof(float3) * numverts) == 0) {
         /* no motion, remove attributes again */
-        if (b_mesh.vertices.length() != numverts) {
+        if (b_verts_num != numverts) {
           VLOG_WARNING << "Topology differs, disabling motion blur for object " << ob_name;
         }
         else {
@@ -1235,7 +1299,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
       }
     }
     else {
-      if (b_mesh.vertices.length() != numverts) {
+      if (b_verts_num != numverts) {
         VLOG_WARNING << "Topology differs, discarding motion blur for object " << ob_name
                      << " at time " << motion_step;
         memcpy(mP, &mesh->get_verts()[0], sizeof(float3) * numverts);

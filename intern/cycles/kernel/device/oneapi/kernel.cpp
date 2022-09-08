@@ -645,13 +645,9 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
         /* Unsupported kernels */
         case DEVICE_KERNEL_NUM:
         case DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL:
-          assert(0);
-          return false;
+          kernel_assert(0);
+          break;
       }
-
-      /* Unknown kernel. */
-      assert(0);
-      return false;
     });
   }
   catch (sycl::exception const &e) {
@@ -669,7 +665,11 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
   return success;
 }
 
-static const int lowest_supported_driver_version_win = 1011660;
+/* Compute-runtime (ie. NEO) version is what gets returned by sycl/L0 on Windows
+ * since Windows driver 101.3268. */
+/* The same min compute-runtime version is currently required across Windows and Linux.
+ * For Windows driver 101.3268, compute-runtime version is 23570. */
+static const int lowest_supported_driver_version_win = 1013268;
 static const int lowest_supported_driver_version_neo = 23570;
 
 static int parse_driver_build_version(const sycl::device &device)
@@ -773,8 +773,7 @@ static std::vector<sycl::device> oneapi_available_devices()
             int driver_build_version = parse_driver_build_version(device);
             if ((driver_build_version > 100000 &&
                  driver_build_version < lowest_supported_driver_version_win) ||
-                (driver_build_version > 0 &&
-                 driver_build_version < lowest_supported_driver_version_neo)) {
+                driver_build_version < lowest_supported_driver_version_neo) {
               filter_out = true;
             }
           }
@@ -818,7 +817,8 @@ char *oneapi_device_capabilities()
     GET_NUM_ATTR(max_compute_units)
     GET_NUM_ATTR(max_work_item_dimensions)
 
-    sycl::id<3> max_work_item_sizes = device.get_info<sycl::info::device::max_work_item_sizes>();
+    sycl::id<3> max_work_item_sizes =
+        device.get_info<sycl::info::device::max_work_item_sizes<3>>();
     WRITE_ATTR("max_work_item_sizes_dim0", ((size_t)max_work_item_sizes.get(0)))
     WRITE_ATTR("max_work_item_sizes_dim1", ((size_t)max_work_item_sizes.get(1)))
     WRITE_ATTR("max_work_item_sizes_dim2", ((size_t)max_work_item_sizes.get(2)))
@@ -904,11 +904,26 @@ size_t oneapi_get_memcapacity(SyclQueue *queue)
       .get_info<sycl::info::device::global_mem_size>();
 }
 
-size_t oneapi_get_compute_units_amount(SyclQueue *queue)
+int oneapi_get_num_multiprocessors(SyclQueue *queue)
 {
-  return reinterpret_cast<sycl::queue *>(queue)
-      ->get_device()
-      .get_info<sycl::info::device::max_compute_units>();
+  const sycl::device &device = reinterpret_cast<sycl::queue *>(queue)->get_device();
+  if (device.has(sycl::aspect::ext_intel_gpu_eu_count)) {
+    return device.get_info<sycl::info::device::ext_intel_gpu_eu_count>();
+  }
+  else
+    return 0;
+}
+
+int oneapi_get_max_num_threads_per_multiprocessor(SyclQueue *queue)
+{
+  const sycl::device &device = reinterpret_cast<sycl::queue *>(queue)->get_device();
+  if (device.has(sycl::aspect::ext_intel_gpu_eu_simd_width) &&
+      device.has(sycl::aspect::ext_intel_gpu_hw_threads_per_eu)) {
+    return device.get_info<sycl::info::device::ext_intel_gpu_eu_simd_width>() *
+           device.get_info<sycl::info::device::ext_intel_gpu_hw_threads_per_eu>();
+  }
+  else
+    return 0;
 }
 
 #endif /* WITH_ONEAPI */

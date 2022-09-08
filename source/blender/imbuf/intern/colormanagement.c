@@ -2213,10 +2213,11 @@ void IMB_colormanagement_imbuf_to_byte_texture(unsigned char *out_buffer,
                                                const struct ImBuf *ibuf,
                                                const bool store_premultiplied)
 {
-  /* Byte buffer storage, only for sRGB and data texture since other
+  /* Byte buffer storage, only for sRGB, scene linear and data texture since other
    * color space conversions can't be done on the GPU. */
   BLI_assert(ibuf->rect && ibuf->rect_float == NULL);
   BLI_assert(IMB_colormanagement_space_is_srgb(ibuf->rect_colorspace) ||
+             IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace) ||
              IMB_colormanagement_space_is_data(ibuf->rect_colorspace));
 
   const unsigned char *in_buffer = (unsigned char *)ibuf->rect;

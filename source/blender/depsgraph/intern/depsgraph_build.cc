@@ -199,11 +199,11 @@ void DEG_add_generic_id_relation(struct DepsNodeHandle *node_handle,
   deg_node_handle->builder->add_node_handle_relation(operation_key, deg_node_handle, description);
 }
 
-void DEG_add_modifier_to_transform_relation(struct DepsNodeHandle *node_handle,
-                                            const char *description)
+void DEG_add_depends_on_transform_relation(struct DepsNodeHandle *node_handle,
+                                           const char *description)
 {
   deg::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
-  deg_node_handle->builder->add_modifier_to_transform_relation(deg_node_handle, description);
+  deg_node_handle->builder->add_depends_on_transform_relation(deg_node_handle, description);
 }
 
 void DEG_add_special_eval_flag(struct DepsNodeHandle *node_handle, ID *id, uint32_t flag)
@@ -270,7 +270,7 @@ void DEG_graph_tag_relations_update(Depsgraph *graph)
 {
   DEG_DEBUG_PRINTF(graph, TAG, "%s: Tagging relations for update.\n", __func__);
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(graph);
-  deg_graph->need_update = true;
+  deg_graph->need_update_relations = true;
   /* NOTE: When relations are updated, it's quite possible that
    * we've got new bases in the scene. This means, we need to
    * re-create flat array of bases in view layer.
@@ -286,7 +286,7 @@ void DEG_graph_tag_relations_update(Depsgraph *graph)
 void DEG_graph_relations_update(Depsgraph *graph)
 {
   deg::Depsgraph *deg_graph = (deg::Depsgraph *)graph;
-  if (!deg_graph->need_update) {
+  if (!deg_graph->need_update_relations) {
     /* Graph is up to date, nothing to do. */
     return;
   }

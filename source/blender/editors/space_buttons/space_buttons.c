@@ -507,7 +507,7 @@ static void buttons_main_region_layout(const bContext *C, ARegion *region)
 static void buttons_main_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -645,7 +645,7 @@ static void buttons_area_redraw(ScrArea *area, short buttons)
 static void buttons_area_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
   SpaceProperties *sbuts = area->spacedata.first;
 
   /* context changes */
@@ -978,8 +978,7 @@ void ED_spacetype_buttons(void)
   /* regions: navigation bar */
   art = MEM_callocN(sizeof(ARegionType), "spacetype nav buttons region");
   art->regionid = RGN_TYPE_NAV_BAR;
-  art->prefsizex = AREAMINX - 3; /* XXX Works and looks best,
-                                  * should we update AREAMINX accordingly? */
+  art->prefsizex = AREAMINX;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES | ED_KEYMAP_NAVBAR;
   art->init = buttons_navigation_bar_region_init;
   art->draw = buttons_navigation_bar_region_draw;

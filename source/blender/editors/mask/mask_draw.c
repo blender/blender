@@ -110,7 +110,7 @@ static void draw_single_handle(const MaskLayer *mask_layer,
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   const uchar rgb_gray[4] = {0x60, 0x60, 0x60, 0xff};
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor3ubv(rgb_gray);
 
   /* this could be split into its own loop */
@@ -408,7 +408,7 @@ static void mask_draw_curve_type(const bContext *C,
       /* TODO(merwin): use fancy line shader here
        * probably better with geometry shader (after core profile switch)
        */
-      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
       GPU_line_width(3.0f);
 
@@ -427,7 +427,7 @@ static void mask_draw_curve_type(const bContext *C,
 
     case MASK_DT_BLACK:
     case MASK_DT_WHITE:
-      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       GPU_line_width(1.0f);
 
       if (draw_type == MASK_DT_BLACK) {
@@ -465,7 +465,7 @@ static void mask_draw_curve_type(const bContext *C,
       mask_color_active_tint(rgb_tmp, rgb_black, is_active);
       rgba_uchar_to_float(colors[1], rgb_tmp);
 
-      immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+      immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
       float viewport_size[4];
       GPU_viewport_size_get_f(viewport_size);
@@ -792,7 +792,7 @@ void ED_mask_draw_frames(
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor4ub(255, 175, 0, 255);
 
   immBegin(GPU_PRIM_LINES, 2 * num_lines);

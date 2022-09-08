@@ -2220,7 +2220,7 @@ static void draw_armature_edit(ArmatureDrawContext *ctx)
   const bool show_text = DRW_state_show_text();
 
   const Object *ob_orig = DEG_get_original_object(ob);
-  /* FIXME(campbell): We should be able to use the CoW object,
+  /* FIXME(@campbellbarton): We should be able to use the CoW object,
    * however the active bone isn't updated. Long term solution is an 'EditArmature' struct.
    * for now we can draw from the original armature. See: T66773. */
   // bArmature *arm = ob->data;

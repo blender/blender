@@ -41,6 +41,7 @@
 
 #include "draw_debug.h"
 #include "draw_manager_profiling.h"
+#include "draw_state.h"
 #include "draw_view_data.h"
 
 #include "MEM_guardedalloc.h"
@@ -288,83 +289,6 @@ void DRW_shader_library_free(DRWShaderLibrary *lib);
 
 /* Batches */
 
-/**
- * DRWState is a bit-mask that stores the current render state and the desired render state. Based
- * on the differences the minimum state changes can be invoked to setup the desired render state.
- *
- * The Write Stencil, Stencil test, Depth test and Blend state options are mutual exclusive
- * therefore they aren't ordered as a bit mask.
- */
-typedef enum {
-  /** To be used for compute passes. */
-  DRW_STATE_NO_DRAW = 0,
-  /** Write mask */
-  DRW_STATE_WRITE_DEPTH = (1 << 0),
-  DRW_STATE_WRITE_COLOR = (1 << 1),
-  /* Write Stencil. These options are mutual exclusive and packed into 2 bits */
-  DRW_STATE_WRITE_STENCIL = (1 << 2),
-  DRW_STATE_WRITE_STENCIL_SHADOW_PASS = (2 << 2),
-  DRW_STATE_WRITE_STENCIL_SHADOW_FAIL = (3 << 2),
-  /** Depth test. These options are mutual exclusive and packed into 3 bits */
-  DRW_STATE_DEPTH_ALWAYS = (1 << 4),
-  DRW_STATE_DEPTH_LESS = (2 << 4),
-  DRW_STATE_DEPTH_LESS_EQUAL = (3 << 4),
-  DRW_STATE_DEPTH_EQUAL = (4 << 4),
-  DRW_STATE_DEPTH_GREATER = (5 << 4),
-  DRW_STATE_DEPTH_GREATER_EQUAL = (6 << 4),
-  /** Culling test */
-  DRW_STATE_CULL_BACK = (1 << 7),
-  DRW_STATE_CULL_FRONT = (1 << 8),
-  /** Stencil test. These options are mutually exclusive and packed into 2 bits. */
-  DRW_STATE_STENCIL_ALWAYS = (1 << 9),
-  DRW_STATE_STENCIL_EQUAL = (2 << 9),
-  DRW_STATE_STENCIL_NEQUAL = (3 << 9),
-
-  /** Blend state. These options are mutual exclusive and packed into 4 bits */
-  DRW_STATE_BLEND_ADD = (1 << 11),
-  /** Same as additive but let alpha accumulate without pre-multiply. */
-  DRW_STATE_BLEND_ADD_FULL = (2 << 11),
-  /** Standard alpha blending. */
-  DRW_STATE_BLEND_ALPHA = (3 << 11),
-  /** Use that if color is already pre-multiply by alpha. */
-  DRW_STATE_BLEND_ALPHA_PREMUL = (4 << 11),
-  DRW_STATE_BLEND_BACKGROUND = (5 << 11),
-  DRW_STATE_BLEND_OIT = (6 << 11),
-  DRW_STATE_BLEND_MUL = (7 << 11),
-  DRW_STATE_BLEND_SUB = (8 << 11),
-  /** Use dual source blending. WARNING: Only one color buffer allowed. */
-  DRW_STATE_BLEND_CUSTOM = (9 << 11),
-  DRW_STATE_LOGIC_INVERT = (10 << 11),
-  DRW_STATE_BLEND_ALPHA_UNDER_PREMUL = (11 << 11),
-
-  DRW_STATE_IN_FRONT_SELECT = (1 << 27),
-  DRW_STATE_SHADOW_OFFSET = (1 << 28),
-  DRW_STATE_CLIP_PLANES = (1 << 29),
-  DRW_STATE_FIRST_VERTEX_CONVENTION = (1 << 30),
-  /** DO NOT USE. Assumed always enabled. Only used internally. */
-  DRW_STATE_PROGRAM_POINT_SIZE = (1u << 31),
-} DRWState;
-
-ENUM_OPERATORS(DRWState, DRW_STATE_PROGRAM_POINT_SIZE);
-
-#define DRW_STATE_DEFAULT \
-  (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL)
-#define DRW_STATE_BLEND_ENABLED \
-  (DRW_STATE_BLEND_ADD | DRW_STATE_BLEND_ADD_FULL | DRW_STATE_BLEND_ALPHA | \
-   DRW_STATE_BLEND_ALPHA_PREMUL | DRW_STATE_BLEND_BACKGROUND | DRW_STATE_BLEND_OIT | \
-   DRW_STATE_BLEND_MUL | DRW_STATE_BLEND_SUB | DRW_STATE_BLEND_CUSTOM | DRW_STATE_LOGIC_INVERT)
-#define DRW_STATE_RASTERIZER_ENABLED \
-  (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_STENCIL | \
-   DRW_STATE_WRITE_STENCIL_SHADOW_PASS | DRW_STATE_WRITE_STENCIL_SHADOW_FAIL)
-#define DRW_STATE_DEPTH_TEST_ENABLED \
-  (DRW_STATE_DEPTH_ALWAYS | DRW_STATE_DEPTH_LESS | DRW_STATE_DEPTH_LESS_EQUAL | \
-   DRW_STATE_DEPTH_EQUAL | DRW_STATE_DEPTH_GREATER | DRW_STATE_DEPTH_GREATER_EQUAL)
-#define DRW_STATE_STENCIL_TEST_ENABLED \
-  (DRW_STATE_STENCIL_ALWAYS | DRW_STATE_STENCIL_EQUAL | DRW_STATE_STENCIL_NEQUAL)
-#define DRW_STATE_WRITE_STENCIL_ENABLED \
-  (DRW_STATE_WRITE_STENCIL | DRW_STATE_WRITE_STENCIL_SHADOW_PASS | \
-   DRW_STATE_WRITE_STENCIL_SHADOW_FAIL)
-
 typedef enum {
   DRW_ATTR_INT,
   DRW_ATTR_FLOAT,
@@ -409,7 +333,7 @@ void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
                          void *user_data);
 
 /**
- * If ob is NULL, unit modelmatrix is assumed and culling is bypassed.
+ * If ob is NULL, unit model-matrix is assumed and culling is bypassed.
  */
 #define DRW_shgroup_call(shgroup, geom, ob) \
   DRW_shgroup_call_ex(shgroup, ob, NULL, geom, false, NULL)
@@ -420,8 +344,8 @@ void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
 #define DRW_shgroup_call_obmat(shgroup, geom, obmat) \
   DRW_shgroup_call_ex(shgroup, NULL, obmat, geom, false, NULL)
 
-/* TODO(fclem): remove this when we have DRWView */
-/* user_data is used by DRWCallVisibilityFn defined in DRWView. */
+/* TODO(fclem): remove this when we have #DRWView */
+/* user_data is used by #DRWCallVisibilityFn defined in #DRWView. */
 #define DRW_shgroup_call_with_callback(shgroup, geom, ob, user_data) \
   DRW_shgroup_call_ex(shgroup, ob, NULL, geom, false, user_data)
 
@@ -454,6 +378,10 @@ void DRW_shgroup_call_compute_indirect(DRWShadingGroup *shgroup, GPUStorageBuf *
 void DRW_shgroup_call_procedural_points(DRWShadingGroup *sh, Object *ob, uint point_count);
 void DRW_shgroup_call_procedural_lines(DRWShadingGroup *sh, Object *ob, uint line_count);
 void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *sh, Object *ob, uint tri_count);
+void DRW_shgroup_call_procedural_indirect(DRWShadingGroup *shgroup,
+                                          GPUPrimType primitive_type,
+                                          Object *ob,
+                                          GPUStorageBuf *indirect_buf);
 /**
  * \warning Only use with Shaders that have `IN_PLACE_INSTANCES` defined.
  * TODO: Should be removed.
@@ -791,7 +719,7 @@ bool DRW_culling_box_test(const DRWView *view, const BoundBox *bbox);
 bool DRW_culling_plane_test(const DRWView *view, const float plane[4]);
 /**
  * Return True if the given box intersect the current view frustum.
- * This function will have to be replaced when world space bb per objects is implemented.
+ * This function will have to be replaced when world space bounding-box per objects is implemented.
  */
 bool DRW_culling_min_max_test(const DRWView *view, float obmat[4][4], float min[3], float max[3]);
 
@@ -887,7 +815,6 @@ bool DRW_object_is_in_edit_mode(const struct Object *ob);
  * we are rendering or drawing in the viewport.
  */
 int DRW_object_visibility_in_active_context(const struct Object *ob);
-bool DRW_object_is_flat_normal(const struct Object *ob);
 bool DRW_object_use_hide_faces(const struct Object *ob);
 
 bool DRW_object_is_visible_psys_in_active_context(const struct Object *object,
@@ -981,7 +908,7 @@ typedef struct DRWContextState {
   struct ViewLayer *view_layer; /* 'CTX_data_view_layer(C)' */
 
   /* Use 'object_edit' for edit-mode */
-  struct Object *obact; /* 'OBACT' */
+  struct Object *obact;
 
   struct RenderEngineType *engine_type;
 

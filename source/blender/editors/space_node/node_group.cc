@@ -25,6 +25,7 @@
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_report.h"
 
@@ -36,6 +37,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_path.h"
 #include "RNA_prototypes.h"
 
 #include "WM_api.h"
@@ -44,7 +46,12 @@
 #include "UI_resources.h"
 
 #include "NOD_common.h"
+#include "NOD_composite.h"
+#include "NOD_geometry.h"
+#include "NOD_shader.h"
 #include "NOD_socket.h"
+#include "NOD_texture.h"
+
 #include "node_intern.hh" /* own include */
 
 namespace blender::ed::space_node {
@@ -99,16 +106,16 @@ const char *node_group_idname(bContext *C)
   SpaceNode *snode = CTX_wm_space_node(C);
 
   if (ED_node_is_shader(snode)) {
-    return "ShaderNodeGroup";
+    return ntreeType_Shader->group_idname;
   }
   if (ED_node_is_compositor(snode)) {
-    return "CompositorNodeGroup";
+    return ntreeType_Composite->group_idname;
   }
   if (ED_node_is_texture(snode)) {
-    return "TextureNodeGroup";
+    return ntreeType_Texture->group_idname;
   }
   if (ED_node_is_geometry(snode)) {
-    return "GeometryNodeGroup";
+    return ntreeType_Geometry->group_idname;
   }
 
   return "";
@@ -456,8 +463,7 @@ static bool node_group_separate_selected(
     bNode *newnode;
     if (make_copy) {
       /* make a copy */
-      newnode = blender::bke::node_copy_with_mapping(
-          &ngroup, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
+      newnode = bke::node_copy_with_mapping(&ngroup, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
       node_map.add_new(node, newnode);
     }
     else {
@@ -647,7 +653,7 @@ static bool node_group_make_use_node(bNode &node, bNode *gnode)
 static bool node_group_make_test_selected(bNodeTree &ntree,
                                           bNode *gnode,
                                           const char *ntree_idname,
-                                          struct ReportList &reports)
+                                          ReportList &reports)
 {
   int ok = true;
 
@@ -711,13 +717,13 @@ static int node_get_selected_minmax(
   INIT_MINMAX2(min, max);
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
     if (node_group_make_use_node(*node, gnode)) {
-      float loc[2];
-      nodeToView(node, node->offsetx, node->offsety, &loc[0], &loc[1]);
-      minmax_v2v2_v2(min, max, loc);
+      float2 loc;
+      nodeToView(node, node->offsetx, node->offsety, &loc.x, &loc.y);
+      math::min_max(loc, min, max);
       if (use_size) {
-        loc[0] += node->width;
-        loc[1] -= node->height;
-        minmax_v2v2_v2(min, max, loc);
+        loc.x += node->width;
+        loc.y -= node->height;
+        math::min_max(loc, min, max);
       }
       totselect++;
     }
@@ -831,8 +837,8 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
 
   /* relink external sockets */
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
-    int fromselect = node_group_make_use_node(*link->fromnode, gnode);
-    int toselect = node_group_make_use_node(*link->tonode, gnode);
+    const bool fromselect = node_group_make_use_node(*link->fromnode, gnode);
+    const bool toselect = node_group_make_use_node(*link->tonode, gnode);
 
     if ((fromselect && link->tonode == gnode) || (toselect && link->fromnode == gnode)) {
       /* remove all links to/from the gnode.
@@ -912,8 +918,8 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
 
   /* move internal links */
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree.links) {
-    int fromselect = node_group_make_use_node(*link->fromnode, gnode);
-    int toselect = node_group_make_use_node(*link->tonode, gnode);
+    const bool fromselect = node_group_make_use_node(*link->fromnode, gnode);
+    const bool toselect = node_group_make_use_node(*link->tonode, gnode);
 
     if (fromselect && toselect) {
       BLI_remlink(&ntree.links, link);
@@ -1036,9 +1042,6 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
     nodeSetActive(&ntree, gnode);
     if (ngroup) {
       ED_node_tree_push(&snode, ngroup, gnode);
-      LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
-        sort_multi_input_socket_links(snode, *node, nullptr, nullptr);
-      }
     }
   }
 

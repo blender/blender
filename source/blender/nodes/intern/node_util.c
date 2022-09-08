@@ -200,7 +200,7 @@ void node_math_label(const bNodeTree *UNUSED(ntree), const bNode *node, char *la
   if (!enum_label) {
     name = "Unknown";
   }
-  BLI_strncpy(label, IFACE_(name), maxlen);
+  BLI_strncpy(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, name), maxlen);
 }
 
 void node_vector_math_label(const bNodeTree *UNUSED(ntree),

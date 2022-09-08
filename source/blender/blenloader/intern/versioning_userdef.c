@@ -83,6 +83,10 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_sequencer.list_text_hi);
   }
 
+  if (!USER_VERSION_ATLEAST(303, 6)) {
+    btheme->tui.wcol_view_item = U_theme_default.tui.wcol_view_item;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -94,7 +98,6 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
    */
   {
     /* Keep this block, even when empty. */
-    btheme->tui.wcol_view_item = U_theme_default.tui.wcol_view_item;
   }
 
 #undef FROM_DEFAULT_V4_UCHAR

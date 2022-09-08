@@ -251,11 +251,11 @@ typedef struct ImBuf {
   int refcounter;
 
   /* some parameters to pass along for packing images */
-  /** Compressed image only used with png and exr currently */
+  /** Compressed image only used with PNG and EXR currently. */
   unsigned char *encodedbuffer;
-  /** Size of data written to encodedbuffer */
+  /** Size of data written to `encodedbuffer`. */
   unsigned int encodedsize;
-  /** Size of encodedbuffer */
+  /** Size of `encodedbuffer` */
   unsigned int encodedbuffersize;
 
   /* color management */

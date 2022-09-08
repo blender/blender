@@ -49,10 +49,10 @@ ccl_device float svm_ao(
 
   int unoccluded = 0;
   for (int sample = 0; sample < num_samples; sample++) {
-    float disk_u, disk_v;
-    path_branched_rng_2D(kg, &rng_state, sample, num_samples, PRNG_BEVEL_U, &disk_u, &disk_v);
+    const float2 rand_disk = path_branched_rng_2D(
+        kg, &rng_state, sample, num_samples, PRNG_SURFACE_AO);
 
-    float2 d = concentric_sample_disk(disk_u, disk_v);
+    float2 d = concentric_sample_disk(rand_disk.x, rand_disk.y);
     float3 D = make_float3(d.x, d.y, safe_sqrtf(1.0f - dot(d, d)));
 
     /* Create ray. */

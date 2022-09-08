@@ -25,7 +25,7 @@
 /** \name Curve/Surfaces Transform Creation
  * \{ */
 
-void createTransLatticeVerts(TransInfo *t)
+static void createTransLatticeVerts(bContext *UNUSED(C), TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
@@ -98,7 +98,7 @@ void createTransLatticeVerts(TransInfo *t)
   }
 }
 
-void recalcData_lattice(TransInfo *t)
+static void recalcData_lattice(TransInfo *t)
 {
   if (t->state != TRANS_CANCEL) {
     applySnappingIndividual(t);
@@ -114,3 +114,10 @@ void recalcData_lattice(TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_Lattice = {
+    /* flags */ (T_EDIT | T_POINTS),
+    /* createTransData */ createTransLatticeVerts,
+    /* recalcData */ recalcData_lattice,
+    /* special_aftertrans_update */ NULL,
+};

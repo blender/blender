@@ -133,6 +133,7 @@ void lineart_main_transform_and_add_shadow(struct LineartData *ld,
                                            struct LineartElementLinkNode *eeln);
 
 LineartElementLinkNode *lineart_find_matching_eln(struct ListBase *shadow_elns, int obindex);
+LineartElementLinkNode *lineart_find_matching_eln_obj(struct ListBase *elns, struct Object *ob);
 LineartEdge *lineart_find_matching_edge(struct LineartElementLinkNode *shadow_eln,
                                         uint64_t edge_identifier);
 void lineart_register_shadow_cuts(struct LineartData *ld,

@@ -16,8 +16,7 @@
 
 struct Scene;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct Depsgraph;
 
@@ -34,5 +33,4 @@ class SequencerBackup {
   Map<SessionUUID, SequenceBackup> sequences_backup;
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

@@ -518,7 +518,7 @@ static void createTransTrackingCurvesData(bContext *C, TransInfo *t)
   }
 }
 
-void createTransTrackingData(bContext *C, TransInfo *t)
+static void createTransTrackingData(bContext *C, TransInfo *t)
 {
   ARegion *region = CTX_wm_region(C);
   SpaceClip *sc = CTX_wm_space_clip(C);
@@ -694,7 +694,7 @@ static void flushTransTracking(TransInfo *t)
   }
 }
 
-void recalcData_tracking(TransInfo *t)
+static void recalcData_tracking(TransInfo *t)
 {
   SpaceClip *sc = t->area->spacedata.first;
 
@@ -747,7 +747,7 @@ void recalcData_tracking(TransInfo *t)
 /** \name Special After Transform Tracking
  * \{ */
 
-void special_aftertrans_update__movieclip(bContext *C, TransInfo *t)
+static void special_aftertrans_update__movieclip(bContext *C, TransInfo *t)
 {
   SpaceClip *sc = t->area->spacedata.first;
   MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -790,3 +790,10 @@ void special_aftertrans_update__movieclip(bContext *C, TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_Tracking = {
+    /* flags */ (T_POINTS | T_2D_EDIT),
+    /* createTransData */ createTransTrackingData,
+    /* recalcData */ recalcData_tracking,
+    /* special_aftertrans_update */ special_aftertrans_update__movieclip,
+};

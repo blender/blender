@@ -275,7 +275,7 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
   ID *ob_data = static_cast<ID *>(ob->data);
-  CustomDataLayer *layer = BKE_id_attributes_active_get(ob_data);
+  const CustomDataLayer *layer = BKE_id_attributes_active_get(ob_data);
   const std::string name = layer->name;
 
   const ConvertAttributeMode mode = static_cast<ConvertAttributeMode>(
@@ -305,7 +305,7 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
       void *new_data = MEM_malloc_arrayN(src_varray.size(), cpp_type.size(), __func__);
       src_varray.materialize_to_uninitialized(new_data);
       attributes.remove(name);
-      attributes.add(name, dst_domain, dst_type, blender::bke::AttributeInitMove(new_data));
+      attributes.add(name, dst_domain, dst_type, blender::bke::AttributeInitMoveArray(new_data));
       break;
     }
     case ConvertAttributeMode::UVMap: {
@@ -405,7 +405,7 @@ void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
 
   prop = RNA_def_float_color(
       ot->srna, "color", 4, nullptr, 0.0f, FLT_MAX, "Color", "Default fill color", 0.0f, 1.0f);
-  RNA_def_property_subtype(prop, PROP_COLOR_GAMMA);
+  RNA_def_property_subtype(prop, PROP_COLOR);
   RNA_def_property_float_array_default(prop, default_color);
 }
 
@@ -469,11 +469,6 @@ static int geometry_color_attribute_remove_exec(bContext *C, wmOperator *op)
 
   if (!BKE_id_attribute_remove(id, layer->name, op->reports)) {
     return OPERATOR_CANCELLED;
-  }
-
-  if (GS(id->name) == ID_ME) {
-    Mesh *me = static_cast<Mesh *>(ob->data);
-    BKE_mesh_update_customdata_pointers(me, true);
   }
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
@@ -660,7 +655,7 @@ bool ED_geometry_attribute_convert(Mesh *mesh,
   void *new_data = MEM_malloc_arrayN(src_varray.size(), cpp_type.size(), __func__);
   src_varray.materialize_to_uninitialized(new_data);
   attributes.remove(name);
-  attributes.add(name, new_domain, new_type, blender::bke::AttributeInitMove(new_data));
+  attributes.add(name, new_domain, new_type, blender::bke::AttributeInitMoveArray(new_data));
 
   int *active_index = BKE_id_attributes_active_index_p(&mesh->id);
   if (*active_index > 0) {

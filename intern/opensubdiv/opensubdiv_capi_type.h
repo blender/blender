@@ -23,15 +23,9 @@
 extern "C" {
 #endif
 
-// Keep this a bitmask so it's possible to pass available
-// evaluators to Blender.
 typedef enum eOpenSubdivEvaluator {
-  OPENSUBDIV_EVALUATOR_CPU = (1 << 0),
-  OPENSUBDIV_EVALUATOR_OPENMP = (1 << 1),
-  OPENSUBDIV_EVALUATOR_OPENCL = (1 << 2),
-  OPENSUBDIV_EVALUATOR_CUDA = (1 << 3),
-  OPENSUBDIV_EVALUATOR_GLSL_TRANSFORM_FEEDBACK = (1 << 4),
-  OPENSUBDIV_EVALUATOR_GLSL_COMPUTE = (1 << 5),
+  OPENSUBDIV_EVALUATOR_CPU = 0,
+  OPENSUBDIV_EVALUATOR_GPU = 1,
 } eOpenSubdivEvaluator;
 
 typedef enum OpenSubdiv_SchemeType {

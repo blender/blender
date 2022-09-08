@@ -158,15 +158,15 @@ bool ED_armature_pose_select_pick_bone(ViewLayer *view_layer,
   }
 
   if (found) {
-    Object *ob_act = OBACT(view_layer);
-    BLI_assert(OBEDIT_FROM_VIEW_LAYER(view_layer) == NULL);
+    Object *ob_act = BKE_view_layer_active_object_get(view_layer);
+    BLI_assert(BKE_view_layer_edit_object_get(view_layer) == NULL);
 
     /* If the bone cannot be affected, don't do anything. */
     bArmature *arm = ob->data;
 
     /* Since we do unified select, we don't shift+select a bone if the
      * armature object was not active yet.
-     * NOTE(campbell): special exception for armature mode so we can do multi-select
+     * NOTE(@campbellbarton): special exception for armature mode so we can do multi-select
      * we could check for multi-select explicitly but think its fine to
      * always give predictable behavior in weight paint mode. */
     if ((ob_act == NULL) || ((ob_act != ob) && (ob_act->mode & OB_MODE_ALL_WEIGHT_PAINT) == 0)) {
@@ -269,7 +269,7 @@ bool ED_armature_pose_select_pick_with_buffer(ViewLayer *view_layer,
 void ED_armature_pose_select_in_wpaint_mode(ViewLayer *view_layer, Base *base_select)
 {
   BLI_assert(base_select && (base_select->object->type == OB_ARMATURE));
-  Object *ob_active = OBACT(view_layer);
+  Object *ob_active = BKE_view_layer_active_object_get(view_layer);
   BLI_assert(ob_active && (ob_active->mode & OB_MODE_ALL_WEIGHT_PAINT));
 
   if (ob_active->type == OB_GPENCIL) {

@@ -1151,7 +1151,10 @@ static void ui_apply_but_ROW(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
   data->applied = true;
 }
 
-static void ui_apply_but_TREEROW(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data)
+static void ui_apply_but_VIEW_ITEM(bContext *C,
+                                   uiBlock *block,
+                                   uiBut *but,
+                                   uiHandleButtonData *data)
 {
   if (data->apply_through_extra_icon) {
     /* Don't apply this, it would cause unintended tree-row toggling when clicking on extra icons.
@@ -2128,10 +2131,10 @@ static bool ui_but_drag_init(bContext *C,
         return false;
       }
     }
-    else if (but->type == UI_BTYPE_TREEROW) {
-      uiButTreeRow *tree_row_but = (uiButTreeRow *)but;
-      if (tree_row_but->tree_item) {
-        UI_tree_view_item_drag_start(C, tree_row_but->tree_item);
+    else if (but->type == UI_BTYPE_VIEW_ITEM) {
+      const uiButViewItem *view_item_but = (uiButViewItem *)but;
+      if (view_item_but->view_item) {
+        UI_view_item_drag_start(C, view_item_but->view_item);
       }
     }
     else {
@@ -2289,11 +2292,8 @@ static void ui_apply_but(
     case UI_BTYPE_ROW:
       ui_apply_but_ROW(C, block, but, data);
       break;
-    case UI_BTYPE_GRID_TILE:
-      ui_apply_but_ROW(C, block, but, data);
-      break;
-    case UI_BTYPE_TREEROW:
-      ui_apply_but_TREEROW(C, block, but, data);
+    case UI_BTYPE_VIEW_ITEM:
+      ui_apply_but_VIEW_ITEM(C, block, but, data);
       break;
     case UI_BTYPE_LISTROW:
       ui_apply_but_LISTROW(C, block, but, data);
@@ -4344,15 +4344,18 @@ static uiButExtraOpIcon *ui_but_extra_operator_icon_mouse_over_get(uiBut *but,
                                                                    ARegion *region,
                                                                    const wmEvent *event)
 {
-  float xmax = but->rect.xmax;
-  const float icon_size = 0.8f * BLI_rctf_size_y(&but->rect); /* ICON_SIZE_FROM_BUTRECT */
-  int x = event->xy[0], y = event->xy[1];
+  if (BLI_listbase_is_empty(&but->extra_op_icons)) {
+    return NULL;
+  }
 
+  int x = event->xy[0], y = event->xy[1];
   ui_window_to_block(region, but->block, &x, &y);
   if (!BLI_rctf_isect_pt(&but->rect, x, y)) {
     return NULL;
   }
 
+  const float icon_size = 0.8f * BLI_rctf_size_y(&but->rect); /* ICON_SIZE_FROM_BUTRECT */
+  float xmax = but->rect.xmax;
   /* Same as in 'widget_draw_extra_icons', icon padding from the right edge. */
   xmax -= 0.2 * icon_size;
 
@@ -4509,7 +4512,7 @@ static int ui_do_but_HOTKEYEVT(bContext *C,
     }
   }
   else if (data->state == BUTTON_STATE_WAIT_KEY_EVENT) {
-    if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+    if (ISMOUSE_MOTION(event->type)) {
       return WM_UI_HANDLER_CONTINUE;
     }
     if (event->type == EVT_UNKNOWNKEY) {
@@ -4575,7 +4578,7 @@ static int ui_do_but_KEYEVT(bContext *C,
     }
   }
   else if (data->state == BUTTON_STATE_WAIT_KEY_EVENT) {
-    if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+    if (ISMOUSE_MOTION(event->type)) {
       return WM_UI_HANDLER_CONTINUE;
     }
 
@@ -4764,13 +4767,13 @@ static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, cons
   return WM_UI_HANDLER_CONTINUE;
 }
 
-static int ui_do_but_TREEROW(bContext *C,
-                             uiBut *but,
-                             uiHandleButtonData *data,
-                             const wmEvent *event)
+static int ui_do_but_VIEW_ITEM(bContext *C,
+                               uiBut *but,
+                               uiHandleButtonData *data,
+                               const wmEvent *event)
 {
-  uiButTreeRow *tree_row_but = (uiButTreeRow *)but;
-  BLI_assert(tree_row_but->but.type == UI_BTYPE_TREEROW);
+  uiButViewItem *view_item_but = (uiButViewItem *)but;
+  BLI_assert(view_item_but->but.type == UI_BTYPE_VIEW_ITEM);
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
     if (event->type == LEFTMOUSE) {
@@ -4791,48 +4794,7 @@ static int ui_do_but_TREEROW(bContext *C,
 
         case KM_DBL_CLICK:
           data->cancel = true;
-          UI_tree_view_item_begin_rename(tree_row_but->tree_item);
-          ED_region_tag_redraw(CTX_wm_region(C));
-          return WM_UI_HANDLER_BREAK;
-      }
-    }
-  }
-  else if (data->state == BUTTON_STATE_WAIT_DRAG) {
-    /* Let "default" button handling take care of the drag logic. */
-    return ui_do_but_EXIT(C, but, data, event);
-  }
-
-  return WM_UI_HANDLER_CONTINUE;
-}
-
-static int ui_do_but_GRIDTILE(bContext *C,
-                              uiBut *but,
-                              uiHandleButtonData *data,
-                              const wmEvent *event)
-{
-  BLI_assert(but->type == UI_BTYPE_GRID_TILE);
-
-  if (data->state == BUTTON_STATE_HIGHLIGHT) {
-    if (event->type == LEFTMOUSE) {
-      switch (event->val) {
-        case KM_PRESS:
-          /* Extra icons have priority, don't mess with them. */
-          if (ui_but_extra_operator_icon_mouse_over_get(but, data->region, event)) {
-            return WM_UI_HANDLER_BREAK;
-          }
-          button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
-          data->dragstartx = event->xy[0];
-          data->dragstarty = event->xy[1];
-          return WM_UI_HANDLER_CONTINUE;
-
-        case KM_CLICK:
-          button_activate_state(C, but, BUTTON_STATE_EXIT);
-          return WM_UI_HANDLER_BREAK;
-
-        case KM_DBL_CLICK:
-          data->cancel = true;
-          // uiButGridTile *grid_tile_but = (uiButGridTile *)but;
-          // UI_tree_view_item_begin_rename(grid_tile_but->tree_item);
+          UI_view_item_begin_rename(view_item_but->view_item);
           ED_region_tag_redraw(CTX_wm_region(C));
           return WM_UI_HANDLER_BREAK;
       }
@@ -7980,7 +7942,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
        * to spawn the context menu should also activate the item. This makes it clear which item
        * will be operated on.
        * Apply the button immediately, so context menu polls get the right active item. */
-      if (ELEM(but->type, UI_BTYPE_TREEROW)) {
+      if (ELEM(but->type, UI_BTYPE_VIEW_ITEM)) {
         ui_apply_but(C, but->block, but, but->active, true);
       }
 
@@ -8045,11 +8007,8 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
     case UI_BTYPE_ROW:
       retval = ui_do_but_TOG(C, but, data, event);
       break;
-    case UI_BTYPE_GRID_TILE:
-      retval = ui_do_but_GRIDTILE(C, but, data, event);
-      break;
-    case UI_BTYPE_TREEROW:
-      retval = ui_do_but_TREEROW(C, but, data, event);
+    case UI_BTYPE_VIEW_ITEM:
+      retval = ui_do_but_VIEW_ITEM(C, but, data, event);
       break;
     case UI_BTYPE_SCROLL:
       retval = ui_do_but_SCROLL(C, block, but, data, event);
@@ -8141,7 +8100,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 #ifdef USE_DRAG_MULTINUM
   data = but->active;
   if (data) {
-    if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) ||
+    if (ISMOUSE_MOTION(event->type) ||
         /* if we started dragging, progress on any event */
         (data->multi_data.init == BUTTON_MULTI_INIT_SETUP)) {
       if (ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER) &&
@@ -8854,7 +8813,7 @@ void UI_context_active_but_prop_handle(bContext *C, const bool handle_undo)
 {
   uiBut *activebut = ui_context_rna_button_active(C);
   if (activebut) {
-    /* TODO(campbell): look into a better way to handle the button change
+    /* TODO(@campbellbarton): look into a better way to handle the button change
      * currently this is mainly so reset defaults works for the
      * operator redo panel. */
     uiBlock *block = activebut->block;
@@ -9725,7 +9684,7 @@ static int ui_handle_view_items_hover(const wmEvent *event, const ARegion *regio
     }
 
     LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-      if (ui_but_is_view_item(but)) {
+      if (but->type == UI_BTYPE_VIEW_ITEM) {
         but->flag &= ~UI_ACTIVE;
         has_view_item = true;
       }
@@ -9752,7 +9711,7 @@ static int ui_handle_view_item_event(bContext *C,
                                      ARegion *region,
                                      uiBut *view_but)
 {
-  BLI_assert(ui_but_is_view_item(view_but));
+  BLI_assert(view_but->type == UI_BTYPE_VIEW_ITEM);
   if (event->type == LEFTMOUSE) {
     /* Will free active button if there already is one. */
     ui_handle_button_activate(C, region, view_but, BUTTON_ACTIVATE_OVER);
@@ -10140,8 +10099,7 @@ static int ui_handle_menu_button(bContext *C, const wmEvent *event, uiPopupBlock
       /* Pass, needed to click-exit outside of non-floating menus. */
       ui_region_auto_open_clear(but->active->region);
     }
-    else if ((!ELEM(event->type, MOUSEMOVE, WHEELUPMOUSE, WHEELDOWNMOUSE, MOUSEPAN)) &&
-             ISMOUSE(event->type)) {
+    else if (ISMOUSE_BUTTON(event->type)) {
       if (!ui_but_contains_point_px(but, but->active->region, event->xy)) {
         but = NULL;
       }

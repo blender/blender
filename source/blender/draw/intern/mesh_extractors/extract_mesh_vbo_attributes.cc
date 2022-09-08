@@ -9,6 +9,7 @@
 
 #include <functional>
 
+#include "BLI_color.hh"
 #include "BLI_math_vec_types.hh"
 #include "BLI_string.h"
 
@@ -57,7 +58,6 @@ template<typename AttributeType, typename VBOType> struct AttributeTypeConverter
   }
 };
 
-/* Similar to the one in #extract_mesh_vcol_vbo.cc */
 struct gpuMeshCol {
   ushort r, g, b, a;
 };
@@ -70,6 +70,18 @@ template<> struct AttributeTypeConverter<MPropCol, gpuMeshCol> {
     result.g = unit_float_to_ushort_clamp(value.color[1]);
     result.b = unit_float_to_ushort_clamp(value.color[2]);
     result.a = unit_float_to_ushort_clamp(value.color[3]);
+    return result;
+  }
+};
+
+template<> struct AttributeTypeConverter<ColorGeometry4b, gpuMeshCol> {
+  static gpuMeshCol convert_value(ColorGeometry4b value)
+  {
+    gpuMeshCol result;
+    result.r = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[value.r]);
+    result.g = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[value.g]);
+    result.b = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[value.b]);
+    result.a = unit_float_to_ushort_clamp(value.a * (1.0f / 255.0f));
     return result;
   }
 };
@@ -90,6 +102,7 @@ static uint gpu_component_size_for_attribute_type(eCustomDataType type)
     case CD_PROP_FLOAT3:
       return 3;
     case CD_PROP_COLOR:
+    case CD_PROP_BYTE_COLOR:
       return 4;
     default:
       return 0;
@@ -102,6 +115,7 @@ static GPUVertFetchMode get_fetch_mode_for_type(eCustomDataType type)
     case CD_PROP_INT32:
       return GPU_FETCH_INT_TO_FLOAT;
     case CD_PROP_COLOR:
+    case CD_PROP_BYTE_COLOR:
       return GPU_FETCH_INT_TO_FLOAT_UNIT;
     default:
       return GPU_FETCH_FLOAT;
@@ -114,13 +128,15 @@ static GPUVertCompType get_comp_type_for_type(eCustomDataType type)
     case CD_PROP_INT32:
       return GPU_COMP_I32;
     case CD_PROP_COLOR:
+    case CD_PROP_BYTE_COLOR:
       return GPU_COMP_U16;
     default:
       return GPU_COMP_F32;
   }
 }
 
-static void init_vbo_for_attribute(GPUVertBuf *vbo,
+static void init_vbo_for_attribute(const MeshRenderData &mr,
+                                   GPUVertBuf *vbo,
                                    const DRW_AttributeRequest &request,
                                    bool build_on_device,
                                    uint32_t len)
@@ -139,6 +155,13 @@ static void init_vbo_for_attribute(GPUVertBuf *vbo,
   GPUVertFormat format = {0};
   GPU_vertformat_deinterleave(&format);
   GPU_vertformat_attr_add(&format, attr_name, comp_type, comp_size, fetch_mode);
+
+  if (mr.active_color_name && STREQ(request.attribute_name, mr.active_color_name)) {
+    GPU_vertformat_alias_add(&format, "ac");
+  }
+  if (mr.default_color_name && STREQ(request.attribute_name, mr.default_color_name)) {
+    GPU_vertformat_alias_add(&format, "c");
+  }
 
   if (build_on_device) {
     GPU_vertbuf_init_build_on_device(vbo, &format, len);
@@ -262,7 +285,7 @@ static void extract_attr_init(
 
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
 
-  init_vbo_for_attribute(vbo, request, false, static_cast<uint32_t>(mr->loop_len));
+  init_vbo_for_attribute(*mr, vbo, request, false, static_cast<uint32_t>(mr->loop_len));
 
   /* TODO(@kevindietrich): float3 is used for scalar attributes as the implicit conversion done by
    * OpenGL to vec4 for a scalar `s` will produce a `vec4(s, 0, 0, 1)`. However, following the
@@ -289,6 +312,9 @@ static void extract_attr_init(
       break;
     case CD_PROP_COLOR:
       extract_attr_generic<MPropCol, gpuMeshCol>(mr, vbo, request);
+      break;
+    case CD_PROP_BYTE_COLOR:
+      extract_attr_generic<ColorGeometry4b, gpuMeshCol>(mr, vbo, request);
       break;
     default:
       BLI_assert_unreachable();
@@ -338,12 +364,15 @@ static void extract_attr_init_subdiv(const DRWSubdivCache *subdiv_cache,
     case CD_PROP_COLOR:
       extract_attr_generic<MPropCol, gpuMeshCol>(mr, src_data, request);
       break;
+    case CD_PROP_BYTE_COLOR:
+      extract_attr_generic<ColorGeometry4b, gpuMeshCol>(mr, src_data, request);
+      break;
     default:
       BLI_assert_unreachable();
   }
 
   GPUVertBuf *dst_buffer = static_cast<GPUVertBuf *>(buffer);
-  init_vbo_for_attribute(dst_buffer, request, true, subdiv_cache->num_subdiv_loops);
+  init_vbo_for_attribute(*mr, dst_buffer, request, true, subdiv_cache->num_subdiv_loops);
 
   /* Ensure data is uploaded properly. */
   GPU_vertbuf_tag_dirty(src_data);
@@ -352,7 +381,7 @@ static void extract_attr_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                  dst_buffer,
                                  static_cast<int>(dimensions),
                                  0,
-                                 request.cd_type == CD_PROP_COLOR);
+                                 ELEM(request.cd_type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR));
 
   GPU_vertbuf_discard(src_data);
 }

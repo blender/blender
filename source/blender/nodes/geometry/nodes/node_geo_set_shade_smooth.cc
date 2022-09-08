@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "DNA_mesh_types.h"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_set_shade_smooth_cc {
@@ -12,27 +14,25 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void set_smooth_in_component(GeometryComponent &component,
-                                    const Field<bool> &selection_field,
-                                    const Field<bool> &shade_field)
+static void set_smooth(Mesh &mesh,
+                       const Field<bool> &selection_field,
+                       const Field<bool> &shade_field)
 {
-  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_FACE);
-  if (domain_size == 0) {
+  if (mesh.totpoly == 0) {
     return;
   }
-  MutableAttributeAccessor attributes = *component.attributes_for_write();
 
-  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_FACE};
-
-  AttributeWriter<bool> shades = attributes.lookup_or_add_for_write<bool>("shade_smooth",
+  MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(mesh);
+  AttributeWriter<bool> smooth = attributes.lookup_or_add_for_write<bool>("shade_smooth",
                                                                           ATTR_DOMAIN_FACE);
 
-  fn::FieldEvaluator evaluator{field_context, domain_size};
+  bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
+  fn::FieldEvaluator evaluator{field_context, mesh.totpoly};
   evaluator.set_selection(selection_field);
-  evaluator.add_with_destination(shade_field, shades.varray);
+  evaluator.add_with_destination(shade_field, smooth.varray);
   evaluator.evaluate();
 
-  shades.finish();
+  smooth.finish();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -42,9 +42,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<bool> shade_field = params.extract_input<Field<bool>>("Shade Smooth");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (geometry_set.has_mesh()) {
-      set_smooth_in_component(
-          geometry_set.get_component_for_write<MeshComponent>(), selection_field, shade_field);
+    if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
+      set_smooth(*mesh, selection_field, shade_field);
     }
   });
   params.set_output("Geometry", std::move(geometry_set));

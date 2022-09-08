@@ -12,6 +12,7 @@ GPU_SHADER_INTERFACE_INFO(nodelink_iface, "")
     .smooth(Type::FLOAT, "colorGradient")
     .smooth(Type::FLOAT, "lineU")
     .flat(Type::FLOAT, "lineLength")
+    .flat(Type::FLOAT, "lineThickness")
     .flat(Type::FLOAT, "dashFactor")
     .flat(Type::FLOAT, "dashAlpha")
     .flat(Type::INT, "isMainLine");

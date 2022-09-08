@@ -6,6 +6,7 @@
 /* Silence warnings from copying deprecated fields. Needed for an Object copy constructor use. */
 #define DNA_DEPRECATED_ALLOW
 
+#include "BKE_attribute.hh"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_lib_id.h"
@@ -47,7 +48,7 @@ OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Obj
     /* Since a new mesh been allocated, it needs to be freed in the destructor. */
     mesh_eval_needs_free_ = true;
   }
-  if (export_params.export_triangulated_mesh && ELEM(export_object_eval_.type, OB_MESH, OB_SURF)) {
+  if (export_params.export_triangulated_mesh && export_object_eval_.type == OB_MESH) {
     std::tie(export_mesh_eval_, mesh_eval_needs_free_) = triangulate_mesh_eval();
   }
   set_world_axes_transform(export_params.forward_axis, export_params.up_axis);
@@ -133,7 +134,7 @@ void OBJMesh::set_world_axes_transform(const eIOAxis forward, const eIOAxis up)
   copy_m3_m4(normal_matrix, world_and_axes_transform_);
   invert_m3_m3(world_and_axes_normal_transform_, normal_matrix);
   transpose_m3(world_and_axes_normal_transform_);
-  mirrored_transform_ = determinant_m3_array(world_and_axes_normal_transform_) < 0;
+  mirrored_transform_ = is_negative_m3(world_and_axes_normal_transform_);
 }
 
 int OBJMesh::tot_vertices() const
@@ -187,28 +188,38 @@ void OBJMesh::ensure_mesh_edges() const
 
 void OBJMesh::calc_smooth_groups(const bool use_bitflags)
 {
-  poly_smooth_groups_ = BKE_mesh_calc_smoothgroups(export_mesh_eval_->medge,
-                                                   export_mesh_eval_->totedge,
-                                                   export_mesh_eval_->mpoly,
-                                                   export_mesh_eval_->totpoly,
-                                                   export_mesh_eval_->mloop,
-                                                   export_mesh_eval_->totloop,
+  const Span<MEdge> edges = export_mesh_eval_->edges();
+  const Span<MPoly> polys = export_mesh_eval_->polys();
+  const Span<MLoop> loops = export_mesh_eval_->loops();
+  poly_smooth_groups_ = BKE_mesh_calc_smoothgroups(edges.data(),
+                                                   edges.size(),
+                                                   polys.data(),
+                                                   polys.size(),
+                                                   loops.data(),
+                                                   loops.size(),
                                                    &tot_smooth_groups_,
                                                    use_bitflags);
 }
 
 void OBJMesh::calc_poly_order()
 {
-  const int tot_polys = tot_polygons();
-  poly_order_.resize(tot_polys);
-  for (int i = 0; i < tot_polys; ++i) {
+  const bke::AttributeAccessor attributes = bke::mesh_attributes(*export_mesh_eval_);
+  const VArray<int> material_indices = attributes.lookup_or_default<int>(
+      "material_index", ATTR_DOMAIN_FACE, 0);
+  if (material_indices.is_single() && material_indices.get_internal_single() == 0) {
+    return;
+  }
+  const VArraySpan<int> material_indices_span(material_indices);
+
+  poly_order_.resize(material_indices_span.size());
+  for (const int i : material_indices_span.index_range()) {
     poly_order_[i] = i;
   }
-  const MPoly *mpolys = export_mesh_eval_->mpoly;
+
   /* Sort polygons by their material index. */
   blender::parallel_sort(poly_order_.begin(), poly_order_.end(), [&](int a, int b) {
-    int mat_a = mpolys[a].mat_nr;
-    int mat_b = mpolys[b].mat_nr;
+    int mat_a = material_indices_span[a];
+    int mat_b = material_indices_span[b];
     if (mat_a != mat_b) {
       return mat_a < mat_b;
     }
@@ -219,26 +230,20 @@ void OBJMesh::calc_poly_order()
 const Material *OBJMesh::get_object_material(const int16_t mat_nr) const
 {
   /**
-   * The const_cast is safe here because BKE_object_material_get won't change the object
+   * The const_cast is safe here because #BKE_object_material_get_eval won't change the object
    * but it is a big can of worms to fix the declaration of that function right now.
    *
    * The call uses "+ 1" as material getter needs one-based indices.
    */
   Object *obj = const_cast<Object *>(&export_object_eval_);
-  const Material *r_mat = BKE_object_material_get(obj, mat_nr + 1);
+  const Material *r_mat = BKE_object_material_get_eval(obj, mat_nr + 1);
   return r_mat;
 }
 
 bool OBJMesh::is_ith_poly_smooth(const int poly_index) const
 {
-  return export_mesh_eval_->mpoly[poly_index].flag & ME_SMOOTH;
-}
-
-int16_t OBJMesh::ith_poly_matnr(const int poly_index) const
-{
-  BLI_assert(poly_index < export_mesh_eval_->totpoly);
-  const int16_t r_mat_nr = export_mesh_eval_->mpoly[poly_index].mat_nr;
-  return r_mat_nr >= 0 ? r_mat_nr : NOT_FOUND;
+  const Span<MPoly> polygons = export_mesh_eval_->polys();
+  return polygons[poly_index].flag & ME_SMOOTH;
 }
 
 const char *OBJMesh::get_object_name() const
@@ -263,7 +268,8 @@ const char *OBJMesh::get_object_material_name(const int16_t mat_nr) const
 float3 OBJMesh::calc_vertex_coords(const int vert_index, const float scaling_factor) const
 {
   float3 r_coords;
-  copy_v3_v3(r_coords, export_mesh_eval_->mvert[vert_index].co);
+  const Span<MVert> verts = export_mesh_eval_->verts();
+  copy_v3_v3(r_coords, verts[vert_index].co);
   mul_m4_v3(world_and_axes_transform_, r_coords);
   mul_v3_fl(r_coords, scaling_factor);
   return r_coords;
@@ -271,8 +277,10 @@ float3 OBJMesh::calc_vertex_coords(const int vert_index, const float scaling_fac
 
 Vector<int> OBJMesh::calc_poly_vertex_indices(const int poly_index) const
 {
-  const MPoly &mpoly = export_mesh_eval_->mpoly[poly_index];
-  const MLoop *mloop = &export_mesh_eval_->mloop[mpoly.loopstart];
+  const Span<MPoly> polys = export_mesh_eval_->polys();
+  const Span<MLoop> loops = export_mesh_eval_->loops();
+  const MPoly &mpoly = polys[poly_index];
+  const MLoop *mloop = &loops[mpoly.loopstart];
   const int totloop = mpoly.totloop;
   Vector<int> r_poly_vertex_indices(totloop);
   for (int loop_index = 0; loop_index < totloop; loop_index++) {
@@ -283,9 +291,8 @@ Vector<int> OBJMesh::calc_poly_vertex_indices(const int poly_index) const
 
 void OBJMesh::store_uv_coords_and_indices()
 {
-  const MPoly *mpoly = export_mesh_eval_->mpoly;
-  const MLoop *mloop = export_mesh_eval_->mloop;
-  const int totpoly = export_mesh_eval_->totpoly;
+  const Span<MPoly> polys = export_mesh_eval_->polys();
+  const Span<MLoop> loops = export_mesh_eval_->loops();
   const int totvert = export_mesh_eval_->totvert;
   const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
       CustomData_get_layer(&export_mesh_eval_->ldata, CD_MLOOPUV));
@@ -296,9 +303,9 @@ void OBJMesh::store_uv_coords_and_indices()
   const float limit[2] = {STD_UV_CONNECT_LIMIT, STD_UV_CONNECT_LIMIT};
 
   UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(
-      mpoly, mloop, mloopuv, totpoly, totvert, limit, false, false);
+      polys.data(), nullptr, loops.data(), mloopuv, polys.size(), totvert, limit, false, false);
 
-  uv_indices_.resize(totpoly);
+  uv_indices_.resize(polys.size());
   /* At least total vertices of a mesh will be present in its texture map. So
    * reserve minimum space early. */
   uv_coords_.reserve(totvert);
@@ -310,11 +317,11 @@ void OBJMesh::store_uv_coords_and_indices()
       if (uv_vert->separate) {
         tot_uv_vertices_ += 1;
       }
-      const int vertices_in_poly = mpoly[uv_vert->poly_index].totloop;
+      const int vertices_in_poly = polys[uv_vert->poly_index].totloop;
 
       /* Store UV vertex coordinates. */
       uv_coords_.resize(tot_uv_vertices_);
-      const int loopstart = mpoly[uv_vert->poly_index].loopstart;
+      const int loopstart = polys[uv_vert->poly_index].loopstart;
       Span<float> vert_uv_coords(mloopuv[loopstart + uv_vert->loop_of_poly_index].uv, 2);
       uv_coords_[tot_uv_vertices_ - 1] = float2(vert_uv_coords[0], vert_uv_coords[1]);
 
@@ -340,10 +347,11 @@ Span<int> OBJMesh::calc_poly_uv_indices(const int poly_index) const
 float3 OBJMesh::calc_poly_normal(const int poly_index) const
 {
   float3 r_poly_normal;
-  const MPoly &poly = export_mesh_eval_->mpoly[poly_index];
-  const MLoop &mloop = export_mesh_eval_->mloop[poly.loopstart];
-  const MVert &mvert = *(export_mesh_eval_->mvert);
-  BKE_mesh_calc_poly_normal(&poly, &mloop, &mvert, r_poly_normal);
+  const Span<MVert> verts = export_mesh_eval_->verts();
+  const Span<MPoly> polys = export_mesh_eval_->polys();
+  const Span<MLoop> loops = export_mesh_eval_->loops();
+  const MPoly &poly = polys[poly_index];
+  BKE_mesh_calc_poly_normal(&poly, &loops[poly.loopstart], verts.data(), r_poly_normal);
   mul_m3_v3(world_and_axes_normal_transform_, r_poly_normal);
   normalize_v3(r_poly_normal);
   return r_poly_normal;
@@ -367,6 +375,8 @@ static float3 round_float3_to_n_digits(const float3 &v, int round_digits)
 
 void OBJMesh::store_normal_coords_and_indices()
 {
+  const Span<MPoly> polys = export_mesh_eval_->polys();
+
   /* We'll round normal components to 4 digits.
    * This will cover up some minor differences
    * between floating point calculations on different platforms.
@@ -382,7 +392,7 @@ void OBJMesh::store_normal_coords_and_indices()
   const float(*lnors)[3] = static_cast<const float(*)[3]>(
       CustomData_get_layer(&export_mesh_eval_->ldata, CD_NORMAL));
   for (int poly_index = 0; poly_index < export_mesh_eval_->totpoly; ++poly_index) {
-    const MPoly &mpoly = export_mesh_eval_->mpoly[poly_index];
+    const MPoly &mpoly = polys[poly_index];
     bool need_per_loop_normals = lnors != nullptr || (mpoly.flag & ME_SMOOTH);
     if (need_per_loop_normals) {
       for (int loop_of_poly = 0; loop_of_poly < mpoly.totloop; ++loop_of_poly) {
@@ -426,7 +436,8 @@ Vector<int> OBJMesh::calc_poly_normal_indices(const int poly_index) const
   if (loop_to_normal_index_.is_empty()) {
     return {};
   }
-  const MPoly &mpoly = export_mesh_eval_->mpoly[poly_index];
+  const Span<MPoly> polys = export_mesh_eval_->polys();
+  const MPoly &mpoly = polys[poly_index];
   const int totloop = mpoly.totloop;
   Vector<int> r_poly_normal_indices(totloop);
   for (int poly_loop_index = 0; poly_loop_index < totloop; poly_loop_index++) {
@@ -449,23 +460,23 @@ int16_t OBJMesh::get_poly_deform_group_index(const int poly_index,
 {
   BLI_assert(poly_index < export_mesh_eval_->totpoly);
   BLI_assert(group_weights.size() == BKE_object_defgroup_count(&export_object_eval_));
-
-  const MDeformVert *dvert_layer = static_cast<const MDeformVert *>(
-      CustomData_get_layer(&export_mesh_eval_->vdata, CD_MDEFORMVERT));
-  if (!dvert_layer) {
+  const Span<MPoly> polys = export_mesh_eval_->polys();
+  const Span<MLoop> loops = export_mesh_eval_->loops();
+  const Span<MDeformVert> dverts = export_mesh_eval_->deform_verts();
+  if (dverts.is_empty()) {
     return NOT_FOUND;
   }
 
   group_weights.fill(0);
   bool found_any_group = false;
-  const MPoly &mpoly = export_mesh_eval_->mpoly[poly_index];
-  const MLoop *mloop = &export_mesh_eval_->mloop[mpoly.loopstart];
+  const MPoly &mpoly = polys[poly_index];
+  const MLoop *mloop = &loops[mpoly.loopstart];
   for (int loop_i = 0; loop_i < mpoly.totloop; ++loop_i, ++mloop) {
-    const MDeformVert &dvert = dvert_layer[mloop->v];
-    for (int weight_i = 0; weight_i < dvert.totweight; ++weight_i) {
-      const auto group = dvert.dw[weight_i].def_nr;
+    const MDeformVert &dv = dverts[mloop->v];
+    for (int weight_i = 0; weight_i < dv.totweight; ++weight_i) {
+      const auto group = dv.dw[weight_i].def_nr;
       if (group < group_weights.size()) {
-        group_weights[group] += dvert.dw[weight_i].weight;
+        group_weights[group] += dv.dw[weight_i].weight;
         found_any_group = true;
       }
     }
@@ -489,7 +500,8 @@ const char *OBJMesh::get_poly_deform_group_name(const int16_t def_group_index) c
 
 std::optional<std::array<int, 2>> OBJMesh::calc_loose_edge_vert_indices(const int edge_index) const
 {
-  const MEdge &edge = export_mesh_eval_->medge[edge_index];
+  const Span<MEdge> edges = export_mesh_eval_->edges();
+  const MEdge &edge = edges[edge_index];
   if (edge.flag & ME_LOOSEEDGE) {
     return std::array<int, 2>{static_cast<int>(edge.v1), static_cast<int>(edge.v2)};
   }

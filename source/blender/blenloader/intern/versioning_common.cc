@@ -18,6 +18,7 @@
 #include "BKE_animsys.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 #include "BKE_node.h"
 
 #include "MEM_guardedalloc.h"
@@ -66,6 +67,7 @@ ID *do_versions_rename_id(Main *bmain,
     }
   }
   if (id != nullptr) {
+    BKE_main_namemap_remove_name(bmain, id, id->name + 2);
     BLI_strncpy(id->name + 2, name_dst, sizeof(id->name) - 2);
     /* We know it's unique, this just sorts. */
     BLI_libblock_ensure_unique_name(bmain, id->name);

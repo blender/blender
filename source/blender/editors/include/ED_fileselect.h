@@ -175,6 +175,14 @@ struct ScrArea *ED_fileselect_handler_area_find(const struct wmWindow *win,
  */
 struct ScrArea *ED_fileselect_handler_area_find_any_with_op(const struct wmWindow *win);
 
+/**
+ * If filepath property is not set on the operator, sets it to
+ * the blend file path (or untitled if file is not saved yet) with the given extension.
+ */
+void ED_fileselect_ensure_default_filepath(struct bContext *C,
+                                           struct wmOperator *op,
+                                           const char *extension);
+
 /* TODO: Maybe we should move this to BLI?
  * On the other hand, it's using defines from space-file area, so not sure... */
 int ED_path_extension_type(const char *path);

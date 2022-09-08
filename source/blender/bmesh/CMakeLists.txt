@@ -80,7 +80,7 @@ set(SRC
   intern/bmesh_log.h
   intern/bmesh_marking.c
   intern/bmesh_marking.h
-  intern/bmesh_mesh.c
+  intern/bmesh_mesh.cc
   intern/bmesh_mesh.h
   intern/bmesh_mesh_convert.cc
   intern/bmesh_mesh_convert.h
@@ -111,7 +111,7 @@ set(SRC
   intern/bmesh_query.c
   intern/bmesh_query.h
   intern/bmesh_query_inline.h
-  intern/bmesh_query_uv.c
+  intern/bmesh_query_uv.cc
   intern/bmesh_query_uv.h
   intern/bmesh_structure.c
   intern/bmesh_structure.h

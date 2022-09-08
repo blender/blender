@@ -1498,7 +1498,8 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
     int filter;
 
     /* get animdata blocks */
-    filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ANIMDATA);
+    filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ANIMDATA |
+              ANIMFILTER_FCURVESONLY);
     ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
     for (ale = anim_data.first; ale; ale = ale->next) {
@@ -1639,7 +1640,8 @@ static void animchannels_group_channels(bAnimContext *ac,
     int filter;
 
     /* find selected F-Curves to re-group */
-    filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL);
+    filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL |
+              ANIMFILTER_FCURVESONLY);
     ANIM_animdata_filter(ac, &anim_data, filter, adt_ref, ANIMCONT_CHANNEL);
 
     if (anim_data.first) {
@@ -1693,7 +1695,7 @@ static int animchannels_group_exec(bContext *C, wmOperator *op)
 
     /* Handle each animdata block separately, so that the regrouping doesn't flow into blocks. */
     filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ANIMDATA |
-              ANIMFILTER_NODUPLIS);
+              ANIMFILTER_NODUPLIS | ANIMFILTER_FCURVESONLY);
     ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
     for (ale = anim_data.first; ale; ale = ale->next) {
@@ -1753,7 +1755,7 @@ static int animchannels_ungroup_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* just selected F-Curves... */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL |
-            ANIMFILTER_NODUPLIS);
+            ANIMFILTER_NODUPLIS | ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   for (ale = anim_data.first; ale; ale = ale->next) {
@@ -2453,7 +2455,7 @@ static int animchannels_enable_exec(bContext *C, wmOperator *UNUSED(op))
   }
 
   /* filter data */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS | ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* loop through filtered data and clean curves */
@@ -3258,10 +3260,14 @@ static int mouse_anim_channels(bContext *C,
   bAnimListElem *ale;
   int filter;
   int notifierFlags = 0;
+  ScrArea *area = CTX_wm_area(C);
 
   /* get the channel that was clicked on */
   /* filter channels */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+  if (ELEM(area->spacetype, SPACE_NLA, SPACE_GRAPH)) {
+    filter |= ANIMFILTER_FCURVESONLY;
+  }
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   /* get channel from index */
@@ -3453,7 +3459,8 @@ static bool select_anim_channel_keys(bAnimContext *ac, int channel_index, bool e
 
   /* get the channel that was clicked on */
   /* filter channels */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS |
+            ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   /* get channel from index */

@@ -480,7 +480,7 @@ static void clear_trans_object_base_flags(TransInfo *t)
   }
 }
 
-void createTransObject(bContext *C, TransInfo *t)
+static void createTransObject(bContext *C, TransInfo *t)
 {
   Main *bmain = CTX_data_main(C);
   TransData *td = NULL;
@@ -782,7 +782,7 @@ static void autokeyframe_object(
       }
       else if (ELEM(tmode, TFM_ROTATION, TFM_TRACKBALL)) {
         if (scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) {
-          if (ob != OBACT(view_layer)) {
+          if (ob != BKE_view_layer_active_object_get(view_layer)) {
             do_loc = true;
           }
         }
@@ -796,7 +796,7 @@ static void autokeyframe_object(
       }
       else if (tmode == TFM_RESIZE) {
         if (scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) {
-          if (ob != OBACT(view_layer)) {
+          if (ob != BKE_view_layer_active_object_get(view_layer)) {
             do_loc = true;
           }
         }
@@ -860,7 +860,7 @@ static bool motionpath_need_update_object(Scene *scene, Object *ob)
 /** \name Recalc Data object
  * \{ */
 
-void recalcData_objects(TransInfo *t)
+static void recalcData_objects(TransInfo *t)
 {
   bool motionpath_update = false;
 
@@ -918,7 +918,7 @@ void recalcData_objects(TransInfo *t)
 /** \name Special After Transform Object
  * \{ */
 
-void special_aftertrans_update__object(bContext *C, TransInfo *t)
+static void special_aftertrans_update__object(bContext *C, TransInfo *t)
 {
   BLI_assert(t->options & CTX_OBJECT);
 
@@ -991,3 +991,10 @@ void special_aftertrans_update__object(bContext *C, TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_Object = {
+    /* flags */ 0,
+    /* createTransData */ createTransObject,
+    /* recalcData */ recalcData_objects,
+    /* special_aftertrans_update */ special_aftertrans_update__object,
+};

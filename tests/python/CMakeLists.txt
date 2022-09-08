@@ -635,8 +635,8 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
     MESSAGE(WARNING "Disabling render tests because OIIO idiff does not exist")
   elseif(NOT EXISTS "${TEST_SRC_DIR}/render/shader")
     MESSAGE(WARNING "Disabling render tests because tests folder does not exist at ${TEST_SRC_DIR}")
-  elseif(NOT WITH_COMPOSITOR)
-    MESSAGE(WARNING "Disabling render tests because WITH_COMPOSITOR is disabled")
+  elseif(NOT WITH_COMPOSITOR_CPU)
+    MESSAGE(WARNING "Disabling render tests because WITH_COMPOSITOR_CPU is disabled")
   elseif(NOT WITH_OPENCOLORIO)
     MESSAGE(WARNING "Disabling render tests because WITH_OPENCOLORIO is disabled")
   else()
@@ -735,7 +735,7 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
   endif()
 endif()
 
-if(WITH_COMPOSITOR)
+if(WITH_COMPOSITOR_CPU)
   set(compositor_tests
     color
     converter

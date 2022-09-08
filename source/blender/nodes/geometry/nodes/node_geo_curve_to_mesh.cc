@@ -28,8 +28,9 @@ static void geometry_set_curve_to_mesh(GeometrySet &geometry_set,
                                        const bool fill_caps)
 {
   const Curves &curves = *geometry_set.get_curves_for_read();
-
   const Curves *profile_curves = profile_set.get_curves_for_read();
+
+  GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
 
   if (profile_curves == nullptr) {
     Mesh *mesh = bke::curve_to_wire_mesh(bke::CurvesGeometry::wrap(curves.geometry));
@@ -55,7 +56,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       has_curves = true;
       geometry_set_curve_to_mesh(geometry_set, profile_set, fill_caps);
     }
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_INSTANCES});
+    geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH});
   });
 
   params.set_output("Mesh", std::move(curve_set));

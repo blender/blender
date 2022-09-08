@@ -9,8 +9,7 @@
 
 #include "intern/node/deg_node.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 /* Time Source Node. */
 struct TimeSourceNode : public Node {
@@ -25,5 +24,4 @@ struct TimeSourceNode : public Node {
   DEG_DEPSNODE_DECLARE;
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

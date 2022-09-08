@@ -10,9 +10,11 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
+#include "obj_export_mtl.hh"
 #include "obj_import_file_reader.hh"
 #include "obj_import_string_utils.hh"
 
+#include <algorithm>
 #include <charconv>
 
 namespace blender::io::obj {
@@ -394,6 +396,22 @@ static bool parse_keyword(const char *&p, const char *end, StringRef keyword)
   return true;
 }
 
+/* Special case: if there were no faces/edges in any geometries,
+ * treat all the vertices as a point cloud. */
+static void use_all_vertices_if_no_faces(Geometry *geom,
+                                         const Vector<std::unique_ptr<Geometry>> &all_geometries,
+                                         const GlobalVertices &global_vertices)
+{
+  if (!global_vertices.vertices.is_empty() && geom && geom->geom_type_ == GEOM_MESH) {
+    if (std::all_of(
+            all_geometries.begin(), all_geometries.end(), [](const std::unique_ptr<Geometry> &g) {
+              return g->get_vertex_count() == 0;
+            })) {
+      geom->track_all_vertices(global_vertices.vertices.size());
+    }
+  }
+}
+
 void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
                       GlobalVertices &r_global_vertices)
 {
@@ -571,39 +589,35 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
     buffer_offset = left_size;
   }
 
+  use_all_vertices_if_no_faces(curr_geom, r_all_geometries, r_global_vertices);
   add_default_mtl_library();
 }
 
-static eMTLSyntaxElement mtl_line_start_to_enum(const char *&p, const char *end)
+static MTLTexMapType mtl_line_start_to_texture_type(const char *&p, const char *end)
 {
   if (parse_keyword(p, end, "map_Kd")) {
-    return eMTLSyntaxElement::map_Kd;
+    return MTLTexMapType::Kd;
   }
   if (parse_keyword(p, end, "map_Ks")) {
-    return eMTLSyntaxElement::map_Ks;
+    return MTLTexMapType::Ks;
   }
   if (parse_keyword(p, end, "map_Ns")) {
-    return eMTLSyntaxElement::map_Ns;
+    return MTLTexMapType::Ns;
   }
   if (parse_keyword(p, end, "map_d")) {
-    return eMTLSyntaxElement::map_d;
+    return MTLTexMapType::d;
   }
-  if (parse_keyword(p, end, "refl")) {
-    return eMTLSyntaxElement::map_refl;
-  }
-  if (parse_keyword(p, end, "map_refl")) {
-    return eMTLSyntaxElement::map_refl;
+  if (parse_keyword(p, end, "refl") || parse_keyword(p, end, "map_refl")) {
+    return MTLTexMapType::refl;
   }
   if (parse_keyword(p, end, "map_Ke")) {
-    return eMTLSyntaxElement::map_Ke;
+    return MTLTexMapType::Ke;
   }
-  if (parse_keyword(p, end, "bump")) {
-    return eMTLSyntaxElement::map_Bump;
+  if (parse_keyword(p, end, "bump") || parse_keyword(p, end, "map_Bump") ||
+      parse_keyword(p, end, "map_bump")) {
+    return MTLTexMapType::bump;
   }
-  if (parse_keyword(p, end, "map_Bump") || parse_keyword(p, end, "map_bump")) {
-    return eMTLSyntaxElement::map_Bump;
-  }
-  return eMTLSyntaxElement::string;
+  return MTLTexMapType::Count;
 }
 
 static const std::pair<StringRef, int> unsupported_texture_options[] = {
@@ -621,7 +635,7 @@ static const std::pair<StringRef, int> unsupported_texture_options[] = {
 static bool parse_texture_option(const char *&p,
                                  const char *end,
                                  MTLMaterial *material,
-                                 tex_map_XX &tex_map)
+                                 MTLTexMap &tex_map)
 {
   p = drop_whitespace(p, end);
   if (parse_keyword(p, end, "-o")) {
@@ -675,13 +689,13 @@ static void parse_texture_map(const char *p,
   if (!is_map && !is_refl && !is_bump) {
     return;
   }
-  eMTLSyntaxElement key = mtl_line_start_to_enum(p, end);
-  if (key == eMTLSyntaxElement::string || !material->texture_maps.contains(key)) {
+  MTLTexMapType key = mtl_line_start_to_texture_type(p, end);
+  if (key == MTLTexMapType::Count) {
     /* No supported texture map found. */
     std::cerr << "OBJ import: MTL texture map type not supported: '" << line << "'" << std::endl;
     return;
   }
-  tex_map_XX &tex_map = material->texture_maps.lookup(key);
+  MTLTexMap &tex_map = material->tex_map_of_type(key);
   tex_map.mtl_dir_path = mtl_dir_path;
 
   /* Parse texture map options. */
@@ -730,7 +744,7 @@ MTLParser::MTLParser(StringRefNull mtl_library, StringRefNull obj_filepath)
 {
   char obj_file_dir[FILE_MAXDIR];
   BLI_split_dir_part(obj_filepath.data(), obj_file_dir, FILE_MAXDIR);
-  BLI_path_join(mtl_file_path_, FILE_MAX, obj_file_dir, mtl_library.data(), NULL);
+  BLI_path_join(mtl_file_path_, FILE_MAX, obj_file_dir, mtl_library.data(), nullptr);
   BLI_split_dir_part(mtl_file_path_, mtl_dir_path_, FILE_MAXDIR);
 }
 

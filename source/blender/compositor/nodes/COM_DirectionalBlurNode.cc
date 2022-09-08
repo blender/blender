@@ -14,7 +14,7 @@ DirectionalBlurNode::DirectionalBlurNode(bNode *editor_node) : Node(editor_node)
 void DirectionalBlurNode::convert_to_operations(NodeConverter &converter,
                                                 const CompositorContext &context) const
 {
-  NodeDBlurData *data = (NodeDBlurData *)this->get_bnode()->storage;
+  const NodeDBlurData *data = (const NodeDBlurData *)this->get_bnode()->storage;
   DirectionalBlurOperation *operation = new DirectionalBlurOperation();
   operation->set_quality(context.get_quality());
   operation->set_data(data);

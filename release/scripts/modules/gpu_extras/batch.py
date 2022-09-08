@@ -22,7 +22,32 @@ def batch_for_shader(shader, type, content, *, indices=None):
         GPUBatch,
         GPUIndexBuf,
         GPUVertBuf,
+        GPUVertFormat,
     )
+
+    def recommended_comp_type(attr_type):
+        if attr_type in {'FLOAT', 'VEC2', 'VEC3', 'VEC4', 'MAT3', 'MAT4'}:
+            return 'F32'
+        if attr_type in {'UINT', 'UVEC2', 'UVEC3', 'UVEC4'}:
+            return 'U32'
+        # `attr_type` in {'INT', 'IVEC2', 'IVEC3', 'IVEC4', 'BOOL'}.
+        return 'I32'
+
+    def recommended_attr_len(attr_name):
+        item = content[attr_name][0]
+        attr_len = 1
+        try:
+            while True:
+                attr_len *= len(item)
+                item = item[0]
+        except TypeError:
+            pass
+        return attr_len
+
+    def recommended_fetch_mode(comp_type):
+        if comp_type == 'F32':
+            return 'FLOAT'
+        return 'INT'
 
     for data in content.values():
         vbo_len = len(data)
@@ -30,7 +55,13 @@ def batch_for_shader(shader, type, content, *, indices=None):
     else:
         raise ValueError("Empty 'content'")
 
-    vbo_format = shader.format_calc()
+    vbo_format = GPUVertFormat()
+    attrs_info = shader.attrs_info_get()
+    for name, attr_type in attrs_info:
+        comp_type = recommended_comp_type(attr_type)
+        attr_len = recommended_attr_len(name)
+        vbo_format.attr_add(id=name, comp_type=comp_type, len=attr_len, fetch_mode=recommended_fetch_mode(comp_type))
+
     vbo = GPUVertBuf(vbo_format, vbo_len)
 
     for id, data in content.items():

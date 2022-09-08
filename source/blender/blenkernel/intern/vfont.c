@@ -1422,7 +1422,8 @@ static bool vfont_to_curve(Object *ob,
     for (i = 0; i <= selend; i++, ct++) {
       if (i >= selstart) {
         selboxes[i - selstart].x = ct->xof * font_size;
-        selboxes[i - selstart].y = ct->yof * font_size;
+        selboxes[i - selstart].y = (ct->yof - 0.25f) * font_size;
+        selboxes[i - selstart].h = font_size;
       }
     }
   }
@@ -1481,17 +1482,17 @@ static bool vfont_to_curve(Object *ob,
 
     f = ef->textcurs[0];
 
-    f[0] = font_size * (-0.1f * co + ct->xof);
-    f[1] = font_size * (0.1f * si + ct->yof);
+    f[0] = font_size * (-0.02f * co + ct->xof);
+    f[1] = font_size * (0.1f * si - (0.25f * co) + ct->yof);
 
-    f[2] = font_size * (0.1f * co + ct->xof);
-    f[3] = font_size * (-0.1f * si + ct->yof);
+    f[2] = font_size * (0.02f * co + ct->xof);
+    f[3] = font_size * (-0.1f * si - (0.25f * co) + ct->yof);
 
-    f[4] = font_size * (0.1f * co + 0.8f * si + ct->xof);
-    f[5] = font_size * (-0.1f * si + 0.8f * co + ct->yof);
+    f[4] = font_size * (0.02f * co + 0.8f * si + ct->xof);
+    f[5] = font_size * (-0.1f * si + 0.75f * co + ct->yof);
 
-    f[6] = font_size * (-0.1f * co + 0.8f * si + ct->xof);
-    f[7] = font_size * (0.1f * si + 0.8f * co + ct->yof);
+    f[6] = font_size * (-0.02f * co + 0.8f * si + ct->xof);
+    f[7] = font_size * (0.1f * si + 0.75f * co + ct->yof);
   }
 
   if (mode == FO_SELCHANGE) {

@@ -2,6 +2,7 @@
 
 #include "NOD_geometry_nodes_eval_log.hh"
 
+#include "BKE_curves.hh"
 #include "BKE_geometry_set_instances.hh"
 
 #include "DNA_modifier_types.h"
@@ -88,17 +89,17 @@ TreeLog &ModifierLog::lookup_or_add_tree_log(LogByTreeContext &log_by_tree_conte
   destruct_ptr<TreeLog> owned_tree_log = allocator_.construct<TreeLog>();
   tree_log = owned_tree_log.get();
   log_by_tree_context.add_new(&tree_context, tree_log);
-  parent_log.child_logs_.add_new(tree_context.parent_node()->name(), std::move(owned_tree_log));
+  parent_log.child_logs_.add_new(tree_context.parent_node()->name, std::move(owned_tree_log));
   return *tree_log;
 }
 
 NodeLog &ModifierLog::lookup_or_add_node_log(LogByTreeContext &log_by_tree_context, DNode node)
 {
   TreeLog &tree_log = this->lookup_or_add_tree_log(log_by_tree_context, *node.context());
-  NodeLog &node_log = *tree_log.node_logs_.lookup_or_add_cb(node->name(), [&]() {
+  NodeLog &node_log = *tree_log.node_logs_.lookup_or_add_cb(node->name, [&]() {
     destruct_ptr<NodeLog> node_log = allocator_.construct<NodeLog>();
-    node_log->input_logs_.resize(node->inputs().size());
-    node_log->output_logs_.resize(node->outputs().size());
+    node_log->input_logs_.resize(node->input_sockets().size());
+    node_log->output_logs_.resize(node->output_sockets().size());
     return node_log;
   });
   return node_log;
@@ -262,6 +263,17 @@ GeometryValueLog::GeometryValueLog(const GeometrySet &geometry_set, bool log_ful
         const InstancesComponent &instances_component = *(const InstancesComponent *)component;
         InstancesInfo &info = this->instances_info.emplace();
         info.instances_num = instances_component.instances_num();
+        break;
+      }
+      case GEO_COMPONENT_TYPE_EDIT: {
+        const GeometryComponentEditData &edit_component = *(
+            const GeometryComponentEditData *)component;
+        if (const bke::CurvesEditHints *curve_edit_hints =
+                edit_component.curves_edit_hints_.get()) {
+          EditDataInfo &info = this->edit_data_info.emplace();
+          info.has_deform_matrices = curve_edit_hints->deform_mats.has_value();
+          info.has_deformed_positions = curve_edit_hints->positions.has_value();
+        }
         break;
       }
       case GEO_COMPONENT_TYPE_VOLUME: {

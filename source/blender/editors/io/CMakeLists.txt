@@ -11,9 +11,9 @@ set(INC
   ../../io/collada
   ../../io/common
   ../../io/gpencil
+  ../../io/stl
   ../../io/usd
   ../../io/wavefront_obj
-  ../../io/stl
   ../../makesdna
   ../../makesrna
   ../../windowmanager
@@ -33,8 +33,8 @@ set(SRC
   io_gpencil_utils.c
   io_obj.c
   io_ops.c
-  io_usd.c
   io_stl_ops.c
+  io_usd.c
 
   io_alembic.h
   io_cache.h
@@ -42,8 +42,8 @@ set(SRC
   io_gpencil.h
   io_obj.h
   io_ops.h
-  io_usd.h
   io_stl_ops.h
+  io_usd.h
 )
 
 set(LIB

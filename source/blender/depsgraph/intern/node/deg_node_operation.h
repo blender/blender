@@ -13,8 +13,7 @@
 
 struct Depsgraph;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct ComponentNode;
 
@@ -34,6 +33,7 @@ enum class OperationCode {
   PARAMETERS_ENTRY,
   PARAMETERS_EVAL,
   PARAMETERS_EXIT,
+  VISIBILITY,
 
   /* Animation, Drivers, etc. --------------------------------------------- */
   /* NLA + Action */
@@ -84,6 +84,8 @@ enum class OperationCode {
   /* Initialize evaluation of the geometry. Is an entry operation of geometry
    * component. */
   GEOMETRY_EVAL_INIT,
+  /* Modifier. */
+  MODIFIER,
   /* Evaluate the whole geometry, including modifiers. */
   GEOMETRY_EVAL,
   /* Evaluation of geometry is completely done. */
@@ -202,14 +204,23 @@ const char *operationCodeAsString(OperationCode opcode);
 enum OperationFlag {
   /* Node needs to be updated. */
   DEPSOP_FLAG_NEEDS_UPDATE = (1 << 0),
+
   /* Node was directly modified, causing need for update. */
   DEPSOP_FLAG_DIRECTLY_MODIFIED = (1 << 1),
+
   /* Node was updated due to user input. */
   DEPSOP_FLAG_USER_MODIFIED = (1 << 2),
-  /* Node may not be removed, even when it has no evaluation callback and no
-   * outgoing relations. This is for NO-OP nodes that are purely used to indicate a
-   * relation between components/IDs, and not for connecting to an operation. */
+
+  /* Node may not be removed, even when it has no evaluation callback and no outgoing relations.
+   * This is for NO-OP nodes that are purely used to indicate a relation between components/IDs,
+   * and not for connecting to an operation. */
   DEPSOP_FLAG_PINNED = (1 << 3),
+
+  /* The operation directly or indirectly affects ID node visibility. */
+  DEPSOP_FLAG_AFFECTS_VISIBILITY = (1 << 4),
+
+  /* Evaluation of the node is temporarily disabled. */
+  DEPSOP_FLAG_MUTE = (1 << 5),
 
   /* Set of flags which gets flushed along the relations. */
   DEPSOP_FLAG_FLUSH = (DEPSOP_FLAG_USER_MODIFIED),
@@ -268,5 +279,4 @@ struct OperationNode : public Node {
 
 void deg_register_operation_depsnodes();
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

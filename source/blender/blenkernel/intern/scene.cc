@@ -216,7 +216,7 @@ static void scene_init_data(ID *id)
   }
 
   /* Master Collection */
-  scene->master_collection = BKE_collection_master_add();
+  scene->master_collection = BKE_collection_master_add(scene);
 
   BKE_view_layer_add(scene, "ViewLayer", nullptr, VIEWLAYER_ADD_NEW);
 }
@@ -250,6 +250,7 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
                    (ID *)scene_src->master_collection,
                    (ID **)&scene_dst->master_collection,
                    flag_private_id_data);
+    scene_dst->master_collection->owner_id = &scene_dst->id;
   }
 
   /* View Layers */
@@ -275,6 +276,7 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
                            (void *)(&scene_src->id),
                            &scene_dst->id,
                            ID_REMAP_SKIP_NEVER_NULL_USAGE | ID_REMAP_SKIP_USER_CLEAR);
+    scene_dst->nodetree->owner_id = &scene_dst->id;
   }
 
   if (scene_src->rigidbody_world) {
@@ -1481,7 +1483,7 @@ static void scene_blend_read_lib(BlendLibReader *reader, ID *id)
   }
 
   LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
-    IDP_BlendReadLib(reader, marker->prop);
+    IDP_BlendReadLib(reader, sce->id.lib, marker->prop);
 
     if (marker->camera) {
       BLO_read_id_address(reader, sce->id.lib, &marker->camera);
@@ -2501,7 +2503,7 @@ static bool check_rendered_viewport_visible(Main *bmain)
   return false;
 }
 
-/* TODO(campbell): shouldn't we be able to use 'DEG_get_view_layer' here?
+/* TODO(@campbellbarton): shouldn't we be able to use 'DEG_get_view_layer' here?
  * Currently this is nullptr on load, so don't. */
 static void prepare_mesh_for_viewport_render(Main *bmain, const ViewLayer *view_layer)
 {
@@ -2514,7 +2516,7 @@ static void prepare_mesh_for_viewport_render(Main *bmain, const ViewLayer *view_
    * call loading of the edit data for the mesh objects.
    */
 
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit) {
     Mesh *mesh = static_cast<Mesh *>(obedit->data);
     if ((obedit->type == OB_MESH) &&
@@ -2591,7 +2593,7 @@ static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool on
     // DEG_debug_graph_relations_validate(depsgraph, bmain, scene);
     /* Flush editing data if needed. */
     prepare_mesh_for_viewport_render(bmain, view_layer);
-    /* Update all objects: drivers, matrices, #DispList, etc. flags set
+    /* Update all objects: drivers, matrices, etc. flags set
      * by depsgraph or manual, no layer check here, gets correct flushed. */
     DEG_evaluate_on_refresh(depsgraph);
     /* Update sound system. */
@@ -2666,7 +2668,7 @@ void BKE_scene_graph_update_for_newframe_ex(Depsgraph *depsgraph, const bool cle
     BKE_image_editors_update_frame(bmain, scene->r.cfra);
     BKE_sound_set_cfra(scene->r.cfra);
     DEG_graph_relations_update(depsgraph);
-    /* Update all objects: drivers, matrices, #DispList, etc. flags set
+    /* Update all objects: drivers, matrices, etc. flags set
      * by depsgraph or manual, no layer check here, gets correct flushed.
      *
      * NOTE: Only update for new frame on first iteration. Second iteration is for ensuring user

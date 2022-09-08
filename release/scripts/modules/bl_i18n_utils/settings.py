@@ -366,7 +366,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "all and invert unselected",
     "and AMD driver version 22.10 or newer",
     "and AMD Radeon Pro 21.Q4 driver or newer",
-    "and Linux driver version xx.xx.28000 or newer",
+    "and Linux driver version xx.xx.23570 or newer",
     "and NVIDIA driver version 470 or newer",
     "and Windows driver version 101.1660 or newer",
     "available with",
@@ -396,11 +396,13 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "jumps over",
     "left",
     "local",
+    "matrices", "no matrices",
     "multi-res modifier",
     "non-triangle face",
     "normal",
     "or AMD with macOS 12.3 or newer",
     "performance impact!",
+    "positions", "no positions",
     "read",
     "remove",
     "right",
@@ -514,6 +516,13 @@ REL_GIT_I18N_PO_DIR = os.path.join("po")
 # The Blender source path to check for i18n macros (relative to SOURCE_DIR).
 REL_POTFILES_SOURCE_DIR = os.path.join("source")
 
+# Where to search for preset names (relative to SOURCE_DIR).
+REL_PRESETS_DIR = os.path.join("release", "scripts", "presets")
+
+# Where to search for templates (relative to SOURCE_DIR).
+REL_TEMPLATES_DIR = os.path.join("release", "scripts", "startup",
+                                 "bl_app_templates_system")
+
 # The template messages file (relative to I18N_DIR).
 REL_FILE_NAME_POT = os.path.join(REL_BRANCHES_DIR, DOMAIN + ".pot")
 
@@ -535,6 +544,7 @@ CUSTOM_PY_UI_FILES = [
     os.path.join("scripts", "startup", "bl_ui"),
     os.path.join("scripts", "startup", "bl_operators"),
     os.path.join("scripts", "modules", "rna_prop_ui.py"),
+    os.path.join("scripts", "presets", "keyconfig"),
 ]
 
 # An optional text file listing files to force include/exclude from py_xgettext process.
@@ -672,6 +682,8 @@ class I18nSettings:
     GIT_I18N_ROOT = property(*(_gen_get_set_path("SOURCE_DIR", "REL_GIT_I18N_DIR")))
     GIT_I18N_PO_DIR = property(*(_gen_get_set_path("GIT_I18N_ROOT", "REL_GIT_I18N_PO_DIR")))
     POTFILES_SOURCE_DIR = property(*(_gen_get_set_path("SOURCE_DIR", "REL_POTFILES_SOURCE_DIR")))
+    PRESETS_DIR = property(*(_gen_get_set_path("SOURCE_DIR", "REL_PRESETS_DIR")))
+    TEMPLATES_DIR = property(*(_gen_get_set_path("SOURCE_DIR", "REL_TEMPLATES_DIR")))
     FILE_NAME_POT = property(*(_gen_get_set_path("I18N_DIR", "REL_FILE_NAME_POT")))
     MO_PATH_ROOT = property(*(_gen_get_set_path("I18N_DIR", "REL_MO_PATH_ROOT")))
     MO_PATH_TEMPLATE = property(*(_gen_get_set_path("I18N_DIR", "REL_MO_PATH_TEMPLATE")))

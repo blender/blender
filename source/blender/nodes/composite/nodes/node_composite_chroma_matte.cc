@@ -5,10 +5,16 @@
  * \ingroup cmpnodes
  */
 
+#include <cmath>
+
 #include "BLI_math_rotation.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "GPU_material.h"
+
+#include "COM_shader_node.hh"
 
 #include "node_composite_util.hh"
 
@@ -16,10 +22,16 @@
 
 namespace blender::nodes::node_composite_chroma_matte_cc {
 
+NODE_STORAGE_FUNCS(NodeChroma)
+
 static void cmp_node_chroma_matte_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Color>(N_("Key Color")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Color>(N_("Image"))
+      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .compositor_domain_priority(0);
+  b.add_input<decl::Color>(N_("Key Color"))
+      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .compositor_domain_priority(1);
   b.add_output<decl::Color>(N_("Image"));
   b.add_output<decl::Float>(N_("Matte"));
 }
@@ -51,6 +63,52 @@ static void node_composit_buts_chroma_matte(uiLayout *layout, bContext *UNUSED(C
   // uiItemR(col, ptr, "shadow_adjust", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
 }
 
+using namespace blender::realtime_compositor;
+
+class ChromaMatteShaderNode : public ShaderNode {
+ public:
+  using ShaderNode::ShaderNode;
+
+  void compile(GPUMaterial *material) override
+  {
+    GPUNodeStack *inputs = get_inputs_array();
+    GPUNodeStack *outputs = get_outputs_array();
+
+    const float acceptance = get_acceptance();
+    const float cutoff = get_cutoff();
+    const float falloff = get_falloff();
+
+    GPU_stack_link(material,
+                   &bnode(),
+                   "node_composite_chroma_matte",
+                   inputs,
+                   outputs,
+                   GPU_uniform(&acceptance),
+                   GPU_uniform(&cutoff),
+                   GPU_uniform(&falloff));
+  }
+
+  float get_acceptance()
+  {
+    return std::tan(node_storage(bnode()).t1) / 2.0f;
+  }
+
+  float get_cutoff()
+  {
+    return node_storage(bnode()).t2;
+  }
+
+  float get_falloff()
+  {
+    return node_storage(bnode()).fstrength;
+  }
+};
+
+static ShaderNode *get_compositor_shader_node(DNode node)
+{
+  return new ChromaMatteShaderNode(node);
+}
+
 }  // namespace blender::nodes::node_composite_chroma_matte_cc
 
 void register_node_type_cmp_chroma_matte()
@@ -65,6 +123,7 @@ void register_node_type_cmp_chroma_matte()
   ntype.flag |= NODE_PREVIEW;
   node_type_init(&ntype, file_ns::node_composit_init_chroma_matte);
   node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
+  ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
   nodeRegisterType(&ntype);
 }

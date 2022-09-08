@@ -18,10 +18,10 @@ extern "C" {
 #define BLF_DATAFILES_FONTS_DIR "fonts"
 
 /* File name of the default variable-width font. */
-#define BLF_DEFAULT_PROPORTIONAL_FONT "droidsans.ttf"
+#define BLF_DEFAULT_PROPORTIONAL_FONT "DejaVuSans.woff2"
 
 /* File name of the default fixed-pitch font. */
-#define BLF_DEFAULT_MONOSPACED_FONT "bmonofont-i18n.ttf"
+#define BLF_DEFAULT_MONOSPACED_FONT "DejaVuSansMono.woff2"
 
 /* enable this only if needed (unused circa 2016) */
 #define BLF_BLUR_ENABLE 0
@@ -351,6 +351,10 @@ enum {
   BLF_DEFAULT = 1 << 14,
   /** Must only be used as last font in the stack. */
   BLF_LAST_RESORT = 1 << 15,
+  /** Failure to load this font. Don't try again. */
+  BLF_BAD_FONT = 1 << 16,
+  /** This font is managed by the FreeType cache subsystem. */
+  BLF_CACHED = 1 << 17,
 };
 
 #define BLF_DRAW_STR_DUMMY_MAX 1024

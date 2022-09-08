@@ -45,14 +45,13 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (!geometry_set.has_curves()) {
       return;
     }
-    const CurveComponent &src_component = *geometry_set.get_component_for_read<CurveComponent>();
-    const Curves &src_curves_id = *src_component.get_for_read();
+    const Curves &src_curves_id = *geometry_set.get_curves_for_read();
     const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(src_curves_id.geometry);
     if (src_curves.is_single_type(dst_type)) {
       return;
     }
 
-    GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_CURVE};
+    bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
     fn::FieldEvaluator evaluator{field_context, src_curves.curves_num()};
     evaluator.set_selection(selection_field);
     evaluator.evaluate();
@@ -61,15 +60,18 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
 
-    if (geometry::try_curves_conversion_in_place(selection, dst_type, [&]() -> Curves & {
-          return *geometry_set.get_curves_for_write();
-        })) {
+    if (geometry::try_curves_conversion_in_place(
+            selection, dst_type, [&]() -> bke::CurvesGeometry & {
+              return bke::CurvesGeometry::wrap(geometry_set.get_curves_for_write()->geometry);
+            })) {
       return;
     }
 
-    Curves *dst_curves = geometry::convert_curves(src_component, src_curves, selection, dst_type);
+    bke::CurvesGeometry dst_curves = geometry::convert_curves(src_curves, selection, dst_type);
 
-    geometry_set.replace_curves(dst_curves);
+    Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
+    bke::curves_copy_parameters(src_curves_id, *dst_curves_id);
+    geometry_set.replace_curves(dst_curves_id);
   });
 
   params.set_output("Curve", std::move(geometry_set));

@@ -82,10 +82,7 @@ class Camera {
  private:
   Instance &inst_;
 
-  /** Double buffered to detect changes and have history for re-projection. */
-  SwapChain<CameraDataBuf, 2> data_;
-  /** Detects wrong usage. */
-  bool synced_ = false;
+  CameraDataBuf data_;
 
  public:
   Camera(Instance &inst) : inst_(inst){};
@@ -99,28 +96,32 @@ class Camera {
    **/
   const CameraData &data_get() const
   {
-    BLI_assert(synced_);
-    return data_.current();
+    BLI_assert(data_.initialized);
+    return data_;
   }
   const GPUUniformBuf *ubo_get() const
   {
-    return data_.current();
+    return data_;
   }
   bool is_panoramic() const
   {
-    return eevee::is_panoramic(data_.current().type);
+    return eevee::is_panoramic(data_.type);
   }
   bool is_orthographic() const
   {
-    return data_.current().type == CAMERA_ORTHO;
+    return data_.type == CAMERA_ORTHO;
+  }
+  bool is_perspective() const
+  {
+    return data_.type == CAMERA_PERSP;
   }
   const float3 &position() const
   {
-    return *reinterpret_cast<const float3 *>(data_.current().viewinv[3]);
+    return *reinterpret_cast<const float3 *>(data_.viewinv[3]);
   }
   const float3 &forward() const
   {
-    return *reinterpret_cast<const float3 *>(data_.current().viewinv[2]);
+    return *reinterpret_cast<const float3 *>(data_.viewinv[2]);
   }
 };
 

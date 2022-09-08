@@ -115,7 +115,7 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
   MutableSpan<float> tilts = curves.tilt_for_write();
 
   auto create_poly = [&](IndexMask selection) {
-    threading::parallel_for(selection.index_range(), 246, [&](IndexRange range) {
+    threading::parallel_for(selection.index_range(), 256, [&](IndexRange range) {
       for (const int curve_i : selection.slice(range)) {
         const Nurb &src_curve = *src_curves[curve_i];
         const Span<BPoint> src_points(src_curve.bp, src_curve.pntsu);
@@ -142,7 +142,7 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
     MutableSpan<int8_t> handle_types_l = curves.handle_types_left_for_write();
     MutableSpan<int8_t> handle_types_r = curves.handle_types_right_for_write();
 
-    threading::parallel_for(selection.index_range(), 246, [&](IndexRange range) {
+    threading::parallel_for(selection.index_range(), 256, [&](IndexRange range) {
       for (const int curve_i : selection.slice(range)) {
         const Nurb &src_curve = *src_curves[curve_i];
         const Span<BezTriple> src_points(src_curve.bezt, src_curve.pntsu);
@@ -165,12 +165,12 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
   };
 
   auto create_nurbs = [&](IndexMask selection) {
-    threading::parallel_for(selection.index_range(), 246, [&](IndexRange range) {
-      MutableSpan<int> resolutions = curves.resolution_for_write();
-      MutableSpan<float> nurbs_weights = curves.nurbs_weights_for_write();
-      MutableSpan<int8_t> nurbs_orders = curves.nurbs_orders_for_write();
-      MutableSpan<int8_t> nurbs_knots_modes = curves.nurbs_knots_modes_for_write();
+    MutableSpan<int> resolutions = curves.resolution_for_write();
+    MutableSpan<float> nurbs_weights = curves.nurbs_weights_for_write();
+    MutableSpan<int8_t> nurbs_orders = curves.nurbs_orders_for_write();
+    MutableSpan<int8_t> nurbs_knots_modes = curves.nurbs_knots_modes_for_write();
 
+    threading::parallel_for(selection.index_range(), 256, [&](IndexRange range) {
       for (const int curve_i : selection.slice(range)) {
         const Nurb &src_curve = *src_curves[curve_i];
         const Span src_points(src_curve.bp, src_curve.pntsu);

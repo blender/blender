@@ -1,0 +1,11 @@
+diff -Naur orig/configure external_vpx/configure
+--- orig/configure	2022-07-06 09:22:04 -0600
++++ external_vpx/configure	2022-07-06 09:24:12 -0600
+@@ -270,7 +270,6 @@
+ HAVE_LIST="
+     ${ARCH_EXT_LIST}
+     vpx_ports
+-    pthread_h
+     unistd_h
+ "
+ EXPERIMENT_LIST="

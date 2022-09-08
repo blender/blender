@@ -169,7 +169,7 @@ extern unsigned int (*MEM_get_memory_blocks_in_use)(void);
 /** Reset the peak memory statistic to zero. */
 extern void (*MEM_reset_peak_memory)(void);
 
-/** Get the peak memory usage in bytes, including mmap allocations. */
+/** Get the peak memory usage in bytes, including `mmap` allocations. */
 extern size_t (*MEM_get_peak_memory)(void) ATTR_WARN_UNUSED_RESULT;
 
 #ifdef __GNUC__
@@ -199,6 +199,15 @@ extern size_t (*MEM_get_peak_memory)(void) ATTR_WARN_UNUSED_RESULT;
 
 #ifndef NDEBUG
 extern const char *(*MEM_name_ptr)(void *vmemh);
+/**
+ * Change the debugging name/string assigned to the memory allocated at \a vmemh. Only affects the
+ * guarded allocator. The name must be a static string, because only a pointer to it is stored!
+ *
+ * Handy when debugging leaking memory allocated by some often called, generic function with a
+ * unspecific name. A caller with more info can set a more specific name, and see which call to the
+ * generic function allocates the leaking memory.
+ */
+extern void (*MEM_name_ptr_set)(void *vmemh, const char *str) ATTR_NONNULL();
 #endif
 
 /**
@@ -267,6 +276,21 @@ inline T *MEM_new(const char *allocation_name, Args &&...args)
 }
 
 /**
+ * Destructs and deallocates an object previously allocated with any `MEM_*` function.
+ * Passing in null does nothing.
+ */
+template<typename T> inline void MEM_delete(const T *ptr)
+{
+  if (ptr == nullptr) {
+    /* Support #ptr being null, because C++ `delete` supports that as well. */
+    return;
+  }
+  /* C++ allows destruction of const objects, so the pointer is allowed to be const. */
+  ptr->~T();
+  MEM_freeN(const_cast<T *>(ptr));
+}
+
+/**
  * Allocates zero-initialized memory for an object of type #T. The constructor of #T is not called,
  * therefor this should only used with trivial types (like all C types).
  * It's valid to call #MEM_freeN on a pointer returned by this, because a destructor call is not
@@ -276,6 +300,15 @@ template<typename T> inline T *MEM_cnew(const char *allocation_name)
 {
   static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new should be used.");
   return static_cast<T *>(MEM_callocN(sizeof(T), allocation_name));
+}
+
+/**
+ * Same as MEM_cnew but for arrays, better alternative to #MEM_calloc_arrayN.
+ */
+template<typename T> inline T *MEM_cnew_array(const size_t length, const char *allocation_name)
+{
+  static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new should be used.");
+  return static_cast<T *>(MEM_calloc_arrayN(length, sizeof(T), allocation_name));
 }
 
 /**
@@ -292,23 +325,10 @@ template<typename T> inline T *MEM_cnew(const char *allocation_name, const T &ot
 {
   static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new should be used.");
   T *new_object = static_cast<T *>(MEM_mallocN(sizeof(T), allocation_name));
-  memcpy(new_object, &other, sizeof(T));
-  return new_object;
-}
-
-/**
- * Destructs and deallocates an object previously allocated with any `MEM_*` function.
- * Passing in null does nothing.
- */
-template<typename T> inline void MEM_delete(const T *ptr)
-{
-  if (ptr == nullptr) {
-    /* Support #ptr being null, because C++ `delete` supports that as well. */
-    return;
+  if (new_object) {
+    memcpy(new_object, &other, sizeof(T));
   }
-  /* C++ allows destruction of const objects, so the pointer is allowed to be const. */
-  ptr->~T();
-  MEM_freeN(const_cast<T *>(ptr));
+  return new_object;
 }
 
 /* Allocation functions (for C++ only). */

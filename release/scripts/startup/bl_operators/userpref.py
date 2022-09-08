@@ -1116,6 +1116,10 @@ class PREFERENCES_OT_studiolight_show(Operator):
     bl_label = ""
     bl_options = {'INTERNAL'}
 
+    @classmethod
+    def poll(cls, _context):
+        return bpy.ops.screen.userpref_show.poll()
+
     def execute(self, context):
         context.preferences.active_section = 'LIGHTS'
         bpy.ops.screen.userpref_show('INVOKE_DEFAULT')

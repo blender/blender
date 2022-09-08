@@ -324,7 +324,7 @@ static int rna_Sequence_frame_final_end_get(PointerRNA *ptr)
   return SEQ_time_right_handle_frame_get(scene, (Sequence *)ptr->data);
 }
 
-static void rna_Sequence_start_frame_final_set(PointerRNA *ptr, float value)
+static void rna_Sequence_start_frame_final_set(PointerRNA *ptr, int value)
 {
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
@@ -346,7 +346,7 @@ static void rna_Sequence_end_frame_final_set(PointerRNA *ptr, int value)
   SEQ_relations_invalidate_cache_composite(scene, seq);
 }
 
-static void rna_Sequence_start_frame_set(PointerRNA *ptr, int value)
+static void rna_Sequence_start_frame_set(PointerRNA *ptr, float value)
 {
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
@@ -1754,12 +1754,12 @@ static void rna_def_color_balance(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "invert_gain", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_COLOR_BALANCE_INVERSE_GAIN);
-  RNA_def_property_ui_text(prop, "Inverse Gain", "Invert the gain color`");
+  RNA_def_property_ui_text(prop, "Inverse Gain", "Invert the gain color");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceColorBalance_update");
 
   prop = RNA_def_property(srna, "invert_slope", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_COLOR_BALANCE_INVERSE_SLOPE);
-  RNA_def_property_ui_text(prop, "Inverse Slope", "Invert the slope color`");
+  RNA_def_property_ui_text(prop, "Inverse Slope", "Invert the slope color");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceColorBalance_update");
 
   prop = RNA_def_property(srna, "invert_offset", PROP_BOOLEAN, PROP_NONE);

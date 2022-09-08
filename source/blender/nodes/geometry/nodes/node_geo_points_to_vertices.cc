@@ -2,6 +2,8 @@
 
 #include "BLI_task.hh"
 
+#include "DNA_pointcloud_types.h"
+
 #include "BKE_attribute_math.hh"
 #include "BKE_mesh.h"
 
@@ -18,33 +20,22 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
-template<typename T>
-static void copy_attribute_to_vertices(const Span<T> src, const IndexMask mask, MutableSpan<T> dst)
-{
-  for (const int i : mask.index_range()) {
-    dst[i] = src[mask[i]];
-  }
-}
-
 /* One improvement would be to move the attribute arrays directly to the mesh when possible. */
 static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
                                             Field<bool> &selection_field)
 {
-  const PointCloudComponent *point_component =
-      geometry_set.get_component_for_read<PointCloudComponent>();
-  if (point_component == nullptr) {
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
+  const PointCloud *points = geometry_set.get_pointcloud_for_read();
+  if (points == nullptr) {
+    geometry_set.remove_geometry_during_modify();
+    return;
+  }
+  if (points->totpoint == 0) {
+    geometry_set.remove_geometry_during_modify();
     return;
   }
 
-  GeometryComponentFieldContext field_context{*point_component, ATTR_DOMAIN_POINT};
-  const int domain_num = point_component->attribute_domain_size(ATTR_DOMAIN_POINT);
-  if (domain_num == 0) {
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
-    return;
-  }
-
-  fn::FieldEvaluator selection_evaluator{field_context, domain_num};
+  bke::PointCloudFieldContext field_context{*points};
+  fn::FieldEvaluator selection_evaluator{field_context, points->totpoint};
   selection_evaluator.add(selection_field);
   selection_evaluator.evaluate();
   const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
@@ -55,28 +46,23 @@ static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
 
   Mesh *mesh = BKE_mesh_new_nomain(selection.size(), 0, 0, 0, 0);
   geometry_set.replace_mesh(mesh);
-  MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
+
+  const AttributeAccessor src_attributes = bke::pointcloud_attributes(*points);
+  MutableAttributeAccessor dst_attributes = bke::mesh_attributes_for_write(*mesh);
 
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     const eCustomDataType data_type = entry.value.data_type;
-    GVArray src = point_component->attributes()->lookup_or_default(
+    GVArray src = src_attributes.lookup_or_default(attribute_id, ATTR_DOMAIN_POINT, data_type);
+    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         attribute_id, ATTR_DOMAIN_POINT, data_type);
-    GSpanAttributeWriter dst =
-        mesh_component.attributes_for_write()->lookup_or_add_for_write_only_span(
-            attribute_id, ATTR_DOMAIN_POINT, data_type);
     if (dst && src) {
-      attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
-        using T = decltype(dummy);
-        VArray<T> src_typed = src.typed<T>();
-        VArraySpan<T> src_typed_span{src_typed};
-        copy_attribute_to_vertices(src_typed_span, selection, dst.span.typed<T>());
-      });
+      src.materialize_compressed_to_uninitialized(selection, dst.span.data());
       dst.finish();
     }
   }
 
-  geometry_set.keep_only({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_INSTANCES});
+  geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH});
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

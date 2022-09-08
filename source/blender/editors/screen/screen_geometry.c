@@ -284,7 +284,7 @@ short screen_geom_find_area_split_point(const ScrArea *area,
 {
   const int cur_area_width = screen_geom_area_width(area);
   const int cur_area_height = screen_geom_area_height(area);
-  const short area_min_x = AREAMINX;
+  const short area_min_x = AREAMINX * U.dpi_fac;
   const short area_min_y = ED_area_headersize();
 
   /* area big enough? */

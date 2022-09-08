@@ -66,7 +66,7 @@ typedef struct wmMsg {
 } wmMsg;
 
 typedef struct wmMsgSubscribeKey {
-  /** Linked list for predicable ordering, otherwise we would depend on #GHash bucketing. */
+  /** Linked list for predictable ordering, otherwise we would depend on #GHash bucketing. */
   struct wmMsgSubscribeKey *next, *prev;
   ListBase values;
   /* over-alloc, eg: wmMsgSubscribeKey_RNA */

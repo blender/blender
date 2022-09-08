@@ -186,6 +186,7 @@ static void brush_foreach_id(ID *id, LibraryForeachIDData *data)
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, brush->paint_curve, IDWALK_CB_USER);
   if (brush->gpencil_settings) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, brush->gpencil_settings->material, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, brush->gpencil_settings->material_alt, IDWALK_CB_USER);
   }
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_texture_mtex_foreach_id(data, &brush->mtex));
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
@@ -346,6 +347,7 @@ static void brush_blend_read_lib(BlendLibReader *reader, ID *id)
     else {
       brush->gpencil_settings->material = nullptr;
     }
+    BLO_read_id_address(reader, brush->id.lib, &brush->gpencil_settings->material_alt);
   }
 }
 
@@ -358,6 +360,7 @@ static void brush_blend_read_expand(BlendExpander *expander, ID *id)
   BLO_expand(expander, brush->paint_curve);
   if (brush->gpencil_settings != nullptr) {
     BLO_expand(expander, brush->gpencil_settings->material);
+    BLO_expand(expander, brush->gpencil_settings->material_alt);
   }
 }
 
@@ -597,7 +600,7 @@ using eGPCurveMappingPreset = enum eGPCurveMappingPreset {
   GPCURVE_PRESET_CHISEL_STRENGTH = 5,
 };
 
-static void brush_gpencil_curvemap_reset(CurveMap *cuma, int tot, int preset)
+static void brush_gpencil_curvemap_reset(CurveMap *cuma, int tot, eGPCurveMappingPreset preset)
 {
   if (cuma->curve) {
     MEM_freeN(cuma->curve);
@@ -704,6 +707,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
   /* Set vertex mix factor. */
   brush->gpencil_settings->vertex_mode = GPPAINT_MODE_BOTH;
   brush->gpencil_settings->vertex_factor = 1.0f;
+  brush->gpencil_settings->material_alt = nullptr;
 
   switch (type) {
     case GP_BRUSH_PRESET_AIRBRUSH: {
@@ -2512,8 +2516,10 @@ struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool
   if (display_gradient || have_texture) {
     for (int i = 0; i < side; i++) {
       for (int j = 0; j < side; j++) {
-        float magn = sqrtf(pow2f(i - half) + pow2f(j - half));
-        im->rect_float[i * side + j] *= BKE_brush_curve_strength_clamped(br, magn, half);
+        const float magn = sqrtf(pow2f(i - half) + pow2f(j - half));
+        const float strength = BKE_brush_curve_strength_clamped(br, magn, half);
+        im->rect_float[i * side + j] = (have_texture) ? im->rect_float[i * side + j] * strength :
+                                                        strength;
       }
     }
   }

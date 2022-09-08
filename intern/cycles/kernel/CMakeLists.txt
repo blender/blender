@@ -42,6 +42,7 @@ set(SRC_KERNEL_DEVICE_ONEAPI
 )
 
 set(SRC_KERNEL_DEVICE_CPU_HEADERS
+  device/cpu/bvh.h
   device/cpu/compat.h
   device/cpu/image.h
   device/cpu/globals.h
@@ -71,11 +72,13 @@ set(SRC_KERNEL_DEVICE_HIP_HEADERS
 )
 
 set(SRC_KERNEL_DEVICE_OPTIX_HEADERS
+  device/optix/bvh.h
   device/optix/compat.h
   device/optix/globals.h
 )
 
 set(SRC_KERNEL_DEVICE_METAL_HEADERS
+  device/metal/bvh.h
   device/metal/compat.h
   device/metal/context_begin.h
   device/metal/context_end.h
@@ -214,8 +217,6 @@ set(SRC_KERNEL_BVH_HEADERS
   bvh/util.h
   bvh/volume.h
   bvh/volume_all.h
-  bvh/embree.h
-  bvh/metal.h
 )
 
 set(SRC_KERNEL_CAMERA_HEADERS
@@ -224,15 +225,18 @@ set(SRC_KERNEL_CAMERA_HEADERS
 )
 
 set(SRC_KERNEL_FILM_HEADERS
-  film/accumulate.h
   film/adaptive_sampling.h
-  film/id_passes.h
-  film/passes.h
+  film/aov_passes.h
+  film/data_passes.h
+  film/denoising_passes.h
+  film/cryptomatte_passes.h
+  film/light_passes.h
   film/read.h
-  film/write_passes.h
+  film/write.h
 )
 
 set(SRC_KERNEL_INTEGRATOR_HEADERS
+  integrator/displacement_shader.h
   integrator/init_from_bake.h
   integrator/init_from_camera.h
   integrator/intersect_closest.h
@@ -244,7 +248,6 @@ set(SRC_KERNEL_INTEGRATOR_HEADERS
   integrator/path_state.h
   integrator/shade_background.h
   integrator/shade_light.h
-  integrator/shader_eval.h
   integrator/shade_shadow.h
   integrator/shade_surface.h
   integrator/shade_volume.h
@@ -257,6 +260,8 @@ set(SRC_KERNEL_INTEGRATOR_HEADERS
   integrator/subsurface_disk.h
   integrator/subsurface.h
   integrator/subsurface_random_walk.h
+  integrator/surface_shader.h
+  integrator/volume_shader.h
   integrator/volume_stack.h
 )
 
@@ -273,6 +278,8 @@ set(SRC_KERNEL_SAMPLE_HEADERS
   sample/mapping.h
   sample/mis.h
   sample/pattern.h
+  sample/sobol_burley.h
+  sample/util.h
 )
 
 set(SRC_KERNEL_UTIL_HEADERS
@@ -316,6 +323,7 @@ set(SRC_UTIL_HEADERS
   ../util/math_float2.h
   ../util/math_float3.h
   ../util/math_float4.h
+  ../util/math_float8.h
   ../util/math_int2.h
   ../util/math_int3.h
   ../util/math_int4.h
@@ -324,6 +332,7 @@ set(SRC_UTIL_HEADERS
   ../util/rect.h
   ../util/static_assert.h
   ../util/transform.h
+  ../util/transform_inverse.h
   ../util/texture.h
   ../util/types.h
   ../util/types_float2.h
@@ -340,6 +349,7 @@ set(SRC_UTIL_HEADERS
   ../util/types_int3_impl.h
   ../util/types_int4.h
   ../util/types_int4_impl.h
+  ../util/types_spectrum.h
   ../util/types_uchar2.h
   ../util/types_uchar2_impl.h
   ../util/types_uchar3.h
@@ -353,8 +363,6 @@ set(SRC_UTIL_HEADERS
   ../util/types_uint4.h
   ../util/types_uint4_impl.h
   ../util/types_ushort4.h
-  ../util/types_vector3.h
-  ../util/types_vector3_impl.h
 )
 
 set(LIB
@@ -749,10 +757,8 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   if (NOT DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen)
     SET (CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "${CYCLES_ONEAPI_SYCL_OPTIONS_spir64}" CACHE STRING "Extra build options for spir64_gen target")
   endif()
-  # enabling zebin (graphics binary format with improved compatibility) on Windows only while support on Linux isn't available yet
-  if(WIN32)
-    string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "--format zebin ")
-  endif()
+  # Enable zebin, a graphics binary format with improved compatibility.
+  string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "--format zebin ")
   string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "-device ${CYCLES_ONEAPI_SPIR64_GEN_DEVICES} ")
 
   if (WITH_CYCLES_ONEAPI_BINARIES)
@@ -783,14 +789,6 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
 
   get_filename_component(sycl_compiler_root ${SYCL_COMPILER} DIRECTORY)
   get_filename_component(sycl_compiler_compiler_name ${SYCL_COMPILER} NAME_WE)
-
-  if(NOT OCLOC_INSTALL_DIR)
-    get_filename_component(OCLOC_INSTALL_DIR "${sycl_compiler_root}/../lib/ocloc" ABSOLUTE)
-  endif()
-  if(WITH_CYCLES_ONEAPI_BINARIES AND NOT EXISTS ${OCLOC_INSTALL_DIR})
-    message(FATAL_ERROR "WITH_CYCLES_ONEAPI_BINARIES requires ocloc but ${OCLOC_INSTALL_DIR} directory doesn't exist."
-                        " A different ocloc directory can be set using OCLOC_INSTALL_DIR cmake variable.")
-  endif()
 
   if(UNIX AND NOT APPLE)
     if(NOT WITH_CXX11_ABI)

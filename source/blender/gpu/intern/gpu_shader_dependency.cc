@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
+#include <regex>
 #include <sstream>
 
 #include "BLI_ghash.h"
@@ -42,7 +43,7 @@ struct GPUSource {
   StringRefNull source;
   Vector<GPUSource *> dependencies;
   bool dependencies_init = false;
-  shader::BuiltinBits builtins = (shader::BuiltinBits)0;
+  shader::BuiltinBits builtins = shader::BuiltinBits::NONE;
   std::string processed_source;
 
   GPUSource(const char *path,
@@ -54,46 +55,45 @@ struct GPUSource {
     /* Scan for builtins. */
     /* FIXME: This can trigger false positive caused by disabled #if blocks. */
     /* TODO(fclem): Could be made faster by scanning once. */
-    if (source.find("gl_FragCoord", 0)) {
+    if (source.find("gl_FragCoord", 0) != StringRef::not_found) {
       builtins |= shader::BuiltinBits::FRAG_COORD;
     }
-    if (source.find("gl_FrontFacing", 0)) {
+    if (source.find("gl_FrontFacing", 0) != StringRef::not_found) {
       builtins |= shader::BuiltinBits::FRONT_FACING;
     }
-    if (source.find("gl_GlobalInvocationID", 0)) {
+    if (source.find("gl_GlobalInvocationID", 0) != StringRef::not_found) {
       builtins |= shader::BuiltinBits::GLOBAL_INVOCATION_ID;
     }
-    if (source.find("gl_InstanceID", 0)) {
+    if (source.find("gl_InstanceID", 0) != StringRef::not_found) {
       builtins |= shader::BuiltinBits::INSTANCE_ID;
     }
-    if (source.find("gl_LocalInvocationID", 0)) {
+    if (source.find("gl_LocalInvocationID", 0) != StringRef::not_found) {
       builtins |= shader::BuiltinBits::LOCAL_INVOCATION_ID;
     }
-    if (source.find("gl_LocalInvocationIndex", 0)) {
+    if (source.find("gl_LocalInvocationIndex", 0) != StringRef::not_found) {
       builtins |= shader::BuiltinBits::LOCAL_INVOCATION_INDEX;
     }
-    if (source.find("gl_NumWorkGroup", 0)) {
+    if (source.find("gl_NumWorkGroup", 0) != StringRef::not_found) {
       builtins |= shader::BuiltinBits::NUM_WORK_GROUP;
     }
-    if (source.find("gl_PointCoord", 0)) {
+    if (source.find("gl_PointCoord", 0) != StringRef::not_found) {
       builtins |= shader::BuiltinBits::POINT_COORD;
     }
-    if (source.find("gl_PointSize", 0)) {
+    if (source.find("gl_PointSize", 0) != StringRef::not_found) {
       builtins |= shader::BuiltinBits::POINT_SIZE;
     }
-    if (source.find("gl_PrimitiveID", 0)) {
+    if (source.find("gl_PrimitiveID", 0) != StringRef::not_found) {
       builtins |= shader::BuiltinBits::PRIMITIVE_ID;
     }
-    if (source.find("gl_VertexID", 0)) {
+    if (source.find("gl_VertexID", 0) != StringRef::not_found) {
       builtins |= shader::BuiltinBits::VERTEX_ID;
     }
-    if (source.find("gl_WorkGroupID", 0)) {
+    if (source.find("gl_WorkGroupID", 0) != StringRef::not_found) {
       builtins |= shader::BuiltinBits::WORK_GROUP_ID;
     }
-    if (source.find("gl_WorkGroupSize", 0)) {
+    if (source.find("gl_WorkGroupSize", 0) != StringRef::not_found) {
       builtins |= shader::BuiltinBits::WORK_GROUP_SIZE;
     }
-
     /* TODO(fclem): We could do that at compile time. */
     /* Limit to shared header files to avoid the temptation to use C++ syntax in .glsl files. */
     if (filename.endswith(".h") || filename.endswith(".hh")) {
@@ -101,6 +101,18 @@ struct GPUSource {
       quote_preprocess();
     }
     else {
+      if (source.find("'") != StringRef::not_found) {
+        char_literals_preprocess();
+      }
+      if (source.find("drw_print") != StringRef::not_found) {
+        string_preprocess();
+      }
+      if ((source.find("drw_debug_") != StringRef::not_found) &&
+          /* Avoid these two files where it makes no sense to add the dependency. */
+          (filename != "common_debug_draw_lib.glsl" &&
+           filename != "draw_debug_draw_display_vert.glsl")) {
+        builtins |= shader::BuiltinBits::USE_DEBUG_DRAW;
+      }
       check_no_quotes();
     }
 
@@ -522,6 +534,217 @@ struct GPUSource {
     }
   }
 
+  void char_literals_preprocess()
+  {
+    const StringRefNull input = source;
+    std::stringstream output;
+    int64_t cursor = -1;
+    int64_t last_pos = 0;
+
+    while (true) {
+      cursor = find_token(input, '\'', cursor + 1);
+      if (cursor == -1) {
+        break;
+      }
+      /* Output anything between 2 print statement. */
+      output << input.substr(last_pos, cursor - last_pos);
+
+      /* Extract string. */
+      int64_t char_start = cursor + 1;
+      int64_t char_end = find_token(input, '\'', char_start);
+      CHECK(char_end, input, cursor, "Malformed char literal. Missing ending `'`.");
+
+      StringRef input_char = input.substr(char_start, char_end - char_start);
+      if (input_char.size() == 0) {
+        CHECK(-1, input, cursor, "Malformed char literal. Empty character constant");
+      }
+
+      uint8_t char_value = input_char[0];
+
+      if (input_char[0] == '\\') {
+        if (input_char[1] == 'n') {
+          char_value = '\n';
+        }
+        else {
+          CHECK(-1, input, cursor, "Unsupported escaped character");
+        }
+      }
+      else {
+        if (input_char.size() > 1) {
+          CHECK(-1, input, cursor, "Malformed char literal. Multi-character character constant");
+        }
+      }
+
+      char hex[8];
+      SNPRINTF(hex, "0x%.2Xu", char_value);
+      output << hex;
+
+      cursor = last_pos = char_end + 1;
+    }
+    /* If nothing has been changed, do not allocate processed_source. */
+    if (last_pos == 0) {
+      return;
+    }
+
+    if (last_pos != 0) {
+      output << input.substr(last_pos);
+    }
+    processed_source = output.str();
+    source = processed_source.c_str();
+  }
+
+  /* Replace print(string) by equivalent drw_print_char4() sequence. */
+  void string_preprocess()
+  {
+    const StringRefNull input = source;
+    std::stringstream output;
+    int64_t cursor = -1;
+    int64_t last_pos = 0;
+
+    while (true) {
+      cursor = find_keyword(input, "drw_print", cursor + 1);
+      if (cursor == -1) {
+        break;
+      }
+
+      bool do_endl = false;
+      StringRef func = input.substr(cursor);
+      if (func.startswith("drw_print(")) {
+        do_endl = true;
+      }
+      else if (func.startswith("drw_print_no_endl(")) {
+        do_endl = false;
+      }
+      else {
+        continue;
+      }
+
+      /* Output anything between 2 print statement. */
+      output << input.substr(last_pos, cursor - last_pos);
+
+      /* Extract string. */
+      int64_t str_start = input.find('(', cursor) + 1;
+      int64_t semicolon = find_token(input, ';', str_start + 1);
+      CHECK(semicolon, input, cursor, "Malformed print(). Missing `;` .");
+      int64_t str_end = rfind_token(input, ')', semicolon);
+      if (str_end < str_start) {
+        CHECK(-1, input, cursor, "Malformed print(). Missing closing `)` .");
+      }
+
+      std::stringstream sub_output;
+      StringRef input_args = input.substr(str_start, str_end - str_start);
+
+      auto print_string = [&](std::string str) -> int {
+        size_t len_before_pad = str.length();
+        /* Pad string to uint size. */
+        while (str.length() % 4 != 0) {
+          str += " ";
+        }
+        /* Keep everything in one line to not mess with the shader logs. */
+        sub_output << "/* " << str << "*/";
+        sub_output << "drw_print_string_start(" << len_before_pad << ");";
+        for (size_t i = 0; i < len_before_pad; i += 4) {
+          uint8_t chars[4] = {*(reinterpret_cast<const uint8_t *>(str.c_str()) + i + 0),
+                              *(reinterpret_cast<const uint8_t *>(str.c_str()) + i + 1),
+                              *(reinterpret_cast<const uint8_t *>(str.c_str()) + i + 2),
+                              *(reinterpret_cast<const uint8_t *>(str.c_str()) + i + 3)};
+          if (i + 4 > len_before_pad) {
+            chars[len_before_pad - i] = '\0';
+          }
+          char uint_hex[12];
+          SNPRINTF(uint_hex, "0x%.2X%.2X%.2X%.2Xu", chars[3], chars[2], chars[1], chars[0]);
+          sub_output << "drw_print_char4(" << StringRefNull(uint_hex) << ");";
+        }
+        return 0;
+      };
+
+      std::string func_args = input_args;
+      /* Workaround to support function call inside prints. We replace commas by a non control
+       * character `$` in order to use simpler regex later. */
+      bool string_scope = false;
+      int func_scope = 0;
+      for (char &c : func_args) {
+        if (c == '"') {
+          string_scope = !string_scope;
+        }
+        else if (!string_scope) {
+          if (c == '(') {
+            func_scope++;
+          }
+          else if (c == ')') {
+            func_scope--;
+          }
+          else if (c == ',' && func_scope != 0) {
+            c = '$';
+          }
+        }
+      }
+
+      const bool print_as_variable = (input_args[0] != '"') && find_token(input_args, ',') == -1;
+      if (print_as_variable) {
+        /* Variable or expression debugging. */
+        std::string arg = input_args;
+        /* Pad align most values. */
+        while (arg.length() % 4 != 0) {
+          arg += " ";
+        }
+        print_string(arg);
+        print_string("= ");
+        sub_output << "drw_print_value(" << input_args << ");";
+      }
+      else {
+        const std::regex arg_regex(
+            /* String args. */
+            "[\\s]*\"([^\r\n\t\f\v\"]*)\""
+            /* OR. */
+            "|"
+            /* value args. */
+            "([^,]+)");
+        std::smatch args_match;
+        std::string::const_iterator args_search_start(func_args.cbegin());
+        while (std::regex_search(args_search_start, func_args.cend(), args_match, arg_regex)) {
+          args_search_start = args_match.suffix().first;
+          std::string arg_string = args_match[1].str();
+          std::string arg_val = args_match[2].str();
+
+          if (arg_string.empty()) {
+            for (char &c : arg_val) {
+              if (c == '$') {
+                c = ',';
+              }
+            }
+            sub_output << "drw_print_value(" << arg_val << ");";
+          }
+          else {
+            print_string(arg_string);
+          }
+        }
+      }
+
+      if (do_endl) {
+        sub_output << "drw_print_newline();";
+      }
+
+      output << sub_output.str();
+
+      cursor = last_pos = str_end + 1;
+    }
+    /* If nothing has been changed, do not allocate processed_source. */
+    if (last_pos == 0) {
+      return;
+    }
+
+    if (filename != "common_debug_print_lib.glsl") {
+      builtins |= shader::BuiltinBits::USE_DEBUG_PRINT;
+    }
+
+    if (last_pos != 0) {
+      output << input.substr(last_pos);
+    }
+    processed_source = output.str();
+    source = processed_source.c_str();
+  }
+
 #undef find_keyword
 #undef rfind_keyword
 #undef find_token
@@ -536,6 +759,15 @@ struct GPUSource {
     }
     this->dependencies_init = true;
     int64_t pos = -1;
+
+    using namespace shader;
+    /* Auto dependency injection for debug capabilities. */
+    if ((builtins & BuiltinBits::USE_DEBUG_DRAW) == BuiltinBits::USE_DEBUG_DRAW) {
+      dependencies.append_non_duplicates(dict.lookup("common_debug_draw_lib.glsl"));
+    }
+    if ((builtins & BuiltinBits::USE_DEBUG_PRINT) == BuiltinBits::USE_DEBUG_PRINT) {
+      dependencies.append_non_duplicates(dict.lookup("common_debug_print_lib.glsl"));
+    }
 
     while (true) {
       GPUSource *dependency_source = nullptr;
@@ -558,6 +790,7 @@ struct GPUSource {
           return 1;
         }
       }
+
       /* Recursive. */
       int result = dependency_source->init_dependencies(dict, g_functions);
       if (result != 0) {
@@ -583,7 +816,7 @@ struct GPUSource {
 
   shader::BuiltinBits builtins_get() const
   {
-    shader::BuiltinBits out_builtins = shader::BuiltinBits::NONE;
+    shader::BuiltinBits out_builtins = builtins;
     for (auto *dep : dependencies) {
       out_builtins |= dep->builtins;
     }
@@ -593,7 +826,8 @@ struct GPUSource {
   bool is_from_material_library() const
   {
     return (filename.startswith("gpu_shader_material_") ||
-            filename.startswith("gpu_shader_common_")) &&
+            filename.startswith("gpu_shader_common_") ||
+            filename.startswith("gpu_shader_compositor_")) &&
            filename.endswith(".glsl");
   }
 };

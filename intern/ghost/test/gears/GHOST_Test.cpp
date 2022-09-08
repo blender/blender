@@ -559,10 +559,12 @@ bool Application::processEvent(GHOST_IEvent *event)
           break;
 
         case GHOST_kKeyS:  // toggle mono and stereo
-          if (stereo)
+          if (stereo) {
             stereo = false;
-          else
+          }
+          else {
             stereo = true;
+          }
           break;
 
         case GHOST_kKeyT:
@@ -680,8 +682,9 @@ int main(int /*argc*/, char ** /*argv*/)
     if (lresult == ERROR_SUCCESS)
       printf("Successfully set value for key\n");
     regkey.Close();
-    if (lresult == ERROR_SUCCESS)
+    if (lresult == ERROR_SUCCESS) {
       printf("Successfully closed key\n");
+    }
     //      regkey.Write("2");
   }
 #endif  // WIN32

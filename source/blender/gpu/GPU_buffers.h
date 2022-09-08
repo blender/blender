@@ -22,6 +22,7 @@ struct CCGKey;
 struct DMFlagMat;
 struct GSet;
 struct TableGSet;
+struct Mesh;
 struct MLoop;
 struct MLoopCol;
 struct MLoopTri;
@@ -46,14 +47,11 @@ typedef struct GPU_PBVH_Buffers GPU_PBVH_Buffers;
  *
  * Threaded: do not call any functions that use OpenGL calls!
  */
-GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const struct MPoly *mpoly,
-                                              const struct MLoop *mloop,
+GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const struct Mesh *mesh,
                                               const struct MLoopTri *looptri,
-                                              const struct MVert *mvert,
-                                              const int *face_indices,
                                               const int *sculpt_face_sets,
-                                              int face_indices_len,
-                                              const struct Mesh *mesh);
+                                              const int *face_indices,
+                                              int face_indices_len);
 
 /**
  * Threaded: do not call any functions that use OpenGL calls!
@@ -91,9 +89,8 @@ enum {
  */
 void GPU_pbvh_mesh_buffers_update(PBVHGPUFormat *vbo_id,
                                   GPU_PBVH_Buffers *buffers,
+                                  const struct Mesh *mesh,
                                   const struct MVert *mvert,
-                                  const CustomData *vdata,
-                                  const CustomData *ldata,
                                   const float *vmask,
                                   const int *sculpt_face_sets,
                                   const int face_sets_color_seed,

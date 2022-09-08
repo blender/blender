@@ -895,6 +895,12 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_WIDGET_TEXT_CURSOR:
           cp = btheme->tui.widget_text_cursor;
           break;
+        case TH_WIDGET_TEXT_SELECTION:
+          cp = btheme->tui.wcol_text.item;
+          break;
+        case TH_WIDGET_TEXT_HIGHLIGHT:
+          cp = btheme->tui.wcol_text.text_sel;
+          break;
 
         case TH_TRANSPARENT_CHECKER_PRIMARY:
           cp = btheme->tui.transparent_checker_primary;

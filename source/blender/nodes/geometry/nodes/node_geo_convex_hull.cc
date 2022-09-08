@@ -46,6 +46,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
   }
 
   /* Copy vertices. */
+  MutableSpan<MVert> dst_verts = result->verts_for_write();
   for (const int i : IndexRange(verts_num)) {
     float co[3];
     int original_index;
@@ -59,7 +60,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
       }
 #  endif
       /* Copy the position of the original point. */
-      copy_v3_v3(result->mvert[i].co, co);
+      copy_v3_v3(dst_verts[i].co, co);
     }
     else {
       BLI_assert_msg(0, "Unexpected new vertex in hull output");
@@ -73,6 +74,8 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
    * to a loop and edges need to be created from that. */
   Array<MLoop> mloop_src(loops_num);
   uint edge_index = 0;
+  MutableSpan<MEdge> edges = result->edges_for_write();
+
   for (const int i : IndexRange(loops_num)) {
     int v_from;
     int v_to;
@@ -81,7 +84,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
     mloop_src[i].v = (uint)v_from;
     /* Add edges for ascending order loops only. */
     if (v_from < v_to) {
-      MEdge &edge = result->medge[edge_index];
+      MEdge &edge = edges[edge_index];
       edge.v1 = v_from;
       edge.v2 = v_to;
       edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
@@ -95,7 +98,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
   }
   if (edges_num == 1) {
     /* In this case there are no loops. */
-    MEdge &edge = result->medge[0];
+    MEdge &edge = edges[0];
     edge.v1 = 0;
     edge.v2 = 1;
     edge.flag |= ME_EDGEDRAW | ME_EDGERENDER | ME_LOOSEEDGE;
@@ -106,7 +109,10 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
   /* Copy faces. */
   Array<int> loops;
   int j = 0;
-  MLoop *loop = result->mloop;
+  MutableSpan<MPoly> polys = result->polys_for_write();
+  MutableSpan<MLoop> mesh_loops = result->loops_for_write();
+  MLoop *loop = mesh_loops.data();
+
   for (const int i : IndexRange(faces_num)) {
     const int len = plConvexHullGetFaceSize(hull, i);
 
@@ -116,7 +122,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
     loops.reinitialize(len);
     plConvexHullGetFaceLoops(hull, i, loops.data());
 
-    MPoly &face = result->mpoly[i];
+    MPoly &face = polys[i];
     face.loopstart = j;
     face.totloop = len;
     for (const int k : IndexRange(len)) {
@@ -140,28 +146,35 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
 
   Span<float3> positions_span;
 
-  if (geometry_set.has_mesh()) {
+  if (const MeshComponent *component = geometry_set.get_component_for_read<MeshComponent>()) {
     count++;
-    const MeshComponent *component = geometry_set.get_component_for_read<MeshComponent>();
-    const Mesh *mesh = component->get_for_read();
-    total_num += mesh->totvert;
+    if (const VArray<float3> positions = component->attributes()->lookup<float3>(
+            "position", ATTR_DOMAIN_POINT)) {
+      if (positions.is_span()) {
+        span_count++;
+        positions_span = positions.get_internal_span();
+      }
+      total_num += positions.size();
+    }
   }
 
-  if (geometry_set.has_pointcloud()) {
+  if (const PointCloudComponent *component =
+          geometry_set.get_component_for_read<PointCloudComponent>()) {
     count++;
-    span_count++;
-    const PointCloudComponent *component =
-        geometry_set.get_component_for_read<PointCloudComponent>();
-    const PointCloud *pointcloud = component->get_for_read();
-    positions_span = {reinterpret_cast<const float3 *>(pointcloud->co), pointcloud->totpoint};
-    total_num += pointcloud->totpoint;
+    if (const VArray<float3> positions = component->attributes()->lookup<float3>(
+            "position", ATTR_DOMAIN_POINT)) {
+      if (positions.is_span()) {
+        span_count++;
+        positions_span = positions.get_internal_span();
+      }
+      total_num += positions.size();
+    }
   }
 
-  if (geometry_set.has_curves()) {
+  if (const Curves *curves_id = geometry_set.get_curves_for_read()) {
     count++;
     span_count++;
-    const Curves &curves_id = *geometry_set.get_curves_for_read();
-    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
     positions_span = curves.evaluated_positions();
     total_num += positions_span.size();
   }
@@ -179,30 +192,25 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
   Array<float3> positions(total_num);
   int offset = 0;
 
-  if (geometry_set.has_mesh()) {
-    const MeshComponent *component = geometry_set.get_component_for_read<MeshComponent>();
-    const VArray<float3> varray = component->attributes()->lookup<float3>("position",
-                                                                          ATTR_DOMAIN_POINT);
-    if (varray) {
+  if (const MeshComponent *component = geometry_set.get_component_for_read<MeshComponent>()) {
+    if (const VArray<float3> varray = component->attributes()->lookup<float3>("position",
+                                                                              ATTR_DOMAIN_POINT)) {
       varray.materialize(positions.as_mutable_span().slice(offset, varray.size()));
       offset += varray.size();
     }
   }
 
-  if (geometry_set.has_pointcloud()) {
-    const PointCloudComponent *component =
-        geometry_set.get_component_for_read<PointCloudComponent>();
-    const VArray<float3> varray = component->attributes()->lookup<float3>("position",
-                                                                          ATTR_DOMAIN_POINT);
-    if (varray) {
+  if (const PointCloudComponent *component =
+          geometry_set.get_component_for_read<PointCloudComponent>()) {
+    if (const VArray<float3> varray = component->attributes()->lookup<float3>("position",
+                                                                              ATTR_DOMAIN_POINT)) {
       varray.materialize(positions.as_mutable_span().slice(offset, varray.size()));
       offset += varray.size();
     }
   }
 
-  if (geometry_set.has_curves()) {
-    const Curves &curves_id = *geometry_set.get_curves_for_read();
-    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  if (const Curves *curves_id = geometry_set.get_curves_for_read()) {
+    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
     Span<float3> array = curves.evaluated_positions();
     positions.as_mutable_span().slice(offset, array.size()).copy_from(array);
     offset += array.size();
@@ -222,7 +230,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     Mesh *mesh = compute_hull(geometry_set);
     geometry_set.replace_mesh(mesh);
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_INSTANCES});
+    geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH});
   });
 
   params.set_output("Convex Hull", std::move(geometry_set));

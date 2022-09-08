@@ -29,10 +29,8 @@ namespace blender::eevee {
 void Camera::init()
 {
   const Object *camera_eval = inst_.camera_eval_object;
-  synced_ = false;
-  data_.swap();
 
-  CameraData &data = data_.current();
+  CameraData &data = data_;
 
   if (camera_eval) {
     const ::Camera *cam = reinterpret_cast<const ::Camera *>(camera_eval->data);
@@ -78,9 +76,7 @@ void Camera::sync()
 {
   const Object *camera_eval = inst_.camera_eval_object;
 
-  data_.swap();
-
-  CameraData &data = data_.current();
+  CameraData &data = data_;
 
   if (inst_.drw_view) {
     DRW_view_viewmat_get(inst_.drw_view, data.viewmat.ptr(), false);
@@ -142,14 +138,8 @@ void Camera::sync()
     data.equirect_scale = float2(0.0f);
   }
 
-  data_.current().push_update();
-
-  synced_ = true;
-
-  /* Detect changes in parameters. */
-  if (data_.current() != data_.previous()) {
-    inst_.sampling.reset();
-  }
+  data_.initialized = true;
+  data_.push_update();
 }
 
 /** \} */

@@ -57,17 +57,25 @@ void MTLBufferPool::free()
   buffer_pools_.clear();
 }
 
-gpu::MTLBuffer *MTLBufferPool::allocate_buffer(uint64_t size, bool cpu_visible, const void *bytes)
+gpu::MTLBuffer *MTLBufferPool::allocate(uint64_t size, bool cpu_visible)
 {
   /* Allocate buffer with default HW-compatible alignment of 256 bytes.
    * See https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf for more. */
-  return this->allocate_buffer_aligned(size, 256, cpu_visible, bytes);
+  return this->allocate_aligned(size, 256, cpu_visible);
 }
 
-gpu::MTLBuffer *MTLBufferPool::allocate_buffer_aligned(uint64_t size,
-                                                       uint alignment,
-                                                       bool cpu_visible,
-                                                       const void *bytes)
+gpu::MTLBuffer *MTLBufferPool::allocate_with_data(uint64_t size,
+                                                  bool cpu_visible,
+                                                  const void *data)
+{
+  /* Allocate buffer with default HW-compatible alignment of 256 bytes.
+   * See https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf for more. */
+  return this->allocate_aligned_with_data(size, 256, cpu_visible, data);
+}
+
+gpu::MTLBuffer *MTLBufferPool::allocate_aligned(uint64_t size,
+                                                uint32_t alignment,
+                                                bool cpu_visible)
 {
   /* Check not required. Main GPU module usage considered thread-safe. */
   // BLI_assert(BLI_thread_is_main());
@@ -153,20 +161,28 @@ gpu::MTLBuffer *MTLBufferPool::allocate_buffer_aligned(uint64_t size,
   /* Flag buffer as actively in-use. */
   new_buffer->flag_in_use(true);
 
-  /* Upload initial data if provided -- Size based on original size param, not aligned size*/
-  if (bytes) {
-    BLI_assert(!(options & MTLResourceStorageModePrivate));
-    BLI_assert(size <= aligned_alloc_size);
-    BLI_assert(size <= [new_buffer->get_metal_buffer() length]);
-    memcpy(new_buffer->get_host_ptr(), bytes, size);
-    new_buffer->flush_range(0, size);
-  }
-
 #if MTL_DEBUG_MEMORY_STATISTICS == 1
   this->per_frame_allocation_count++;
 #endif
 
   return new_buffer;
+}
+
+gpu::MTLBuffer *MTLBufferPool::allocate_aligned_with_data(uint64_t size,
+                                                          uint32_t alignment,
+                                                          bool cpu_visible,
+                                                          const void *data)
+{
+  gpu::MTLBuffer *buf = this->allocate_aligned(size, 256, cpu_visible);
+
+  /* Upload initial data. */
+  BLI_assert(data != nullptr);
+  BLI_assert(!(buf->get_resource_options() & MTLResourceStorageModePrivate));
+  BLI_assert(size <= buf->get_size());
+  BLI_assert(size <= [buf->get_metal_buffer() length]);
+  memcpy(buf->get_host_ptr(), data, size);
+  buf->flush_range(0, size);
+  return buf;
 }
 
 bool MTLBufferPool::free_buffer(gpu::MTLBuffer *buffer)
@@ -356,7 +372,7 @@ void MTLBufferPool::insert_buffer_into_pool(MTLResourceOptions options, gpu::MTL
 
 #if MTL_DEBUG_MEMORY_STATISTICS == 1
   /* Debug statistics. */
-  allocations_in_pool_ += buffer->size;
+  allocations_in_pool_ += buffer->get_size();
   buffers_in_pool_++;
 #endif
 }
@@ -413,7 +429,7 @@ void MTLSafeFreeList::decrement_reference()
 {
   lock_.lock();
   BLI_assert(in_free_queue_ == false);
-  int ref_count = reference_count_--;
+  int ref_count = --reference_count_;
 
   if (ref_count == 0) {
     MTLContext::get_global_memory_manager().push_completed_safe_list(this);
@@ -534,9 +550,10 @@ void gpu::MTLBuffer::set_label(NSString *str)
 void gpu::MTLBuffer::debug_ensure_used()
 {
   /* Debug: If buffer is not flagged as in-use, this is a problem. */
-  BLI_assert(in_use_ &&
-             "Buffer should be marked as 'in-use' if being actively used by an instance. Buffer "
-             "has likely already been freed.");
+  BLI_assert_msg(
+      in_use_,
+      "Buffer should be marked as 'in-use' if being actively used by an instance. Buffer "
+      "has likely already been freed.");
 }
 
 void gpu::MTLBuffer::flush()
@@ -651,9 +668,9 @@ MTLTemporaryBuffer MTLScratchBufferManager::scratch_buffer_allocate_range_aligne
   /* Ensure scratch buffer allocation alignment adheres to offset alignment requirements. */
   alignment = max_uu(alignment, 256);
 
-  BLI_assert(current_scratch_buffer_ >= 0 && "Scratch Buffer index not set");
+  BLI_assert_msg(current_scratch_buffer_ >= 0, "Scratch Buffer index not set");
   MTLCircularBuffer *current_scratch_buff = this->scratch_buffers_[current_scratch_buffer_];
-  BLI_assert(current_scratch_buff != nullptr && "Scratch Buffer does not exist");
+  BLI_assert_msg(current_scratch_buff != nullptr, "Scratch Buffer does not exist");
   MTLTemporaryBuffer allocated_range = current_scratch_buff->allocate_range_aligned(alloc_size,
                                                                                     alignment);
   BLI_assert(allocated_range.size >= alloc_size && allocated_range.size <= alloc_size + alignment);

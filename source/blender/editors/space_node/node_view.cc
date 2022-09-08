@@ -177,7 +177,7 @@ void NODE_OT_view_selected(wmOperatorType *ot)
  * \{ */
 
 struct NodeViewMove {
-  int mvalo[2];
+  int2 mvalo;
   int xmin, ymin, xmax, ymax;
   /** Original Offset for cancel. */
   float xof_orig, yof_orig;
@@ -192,10 +192,10 @@ static int snode_bg_viewmove_modal(bContext *C, wmOperator *op, const wmEvent *e
   switch (event->type) {
     case MOUSEMOVE:
 
-      snode->xof -= (nvm->mvalo[0] - event->mval[0]);
-      snode->yof -= (nvm->mvalo[1] - event->mval[1]);
-      nvm->mvalo[0] = event->mval[0];
-      nvm->mvalo[1] = event->mval[1];
+      snode->xof -= (nvm->mvalo.x - event->mval[0]);
+      snode->yof -= (nvm->mvalo.y - event->mval[1]);
+      nvm->mvalo.x = event->mval[0];
+      nvm->mvalo.y = event->mval[1];
 
       /* prevent dragging image outside of the window and losing it! */
       CLAMP(snode->xof, nvm->xmin, nvm->xmax);
@@ -252,10 +252,10 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *
     return OPERATOR_CANCELLED;
   }
 
-  nvm = MEM_cnew<NodeViewMove>("NodeViewMove struct");
+  nvm = MEM_cnew<NodeViewMove>(__func__);
   op->customdata = nvm;
-  nvm->mvalo[0] = event->mval[0];
-  nvm->mvalo[1] = event->mval[1];
+  nvm->mvalo.x = event->mval[0];
+  nvm->mvalo.y = event->mval[1];
 
   nvm->xmin = -(region->winx / 2) - (ibuf->x * (0.5f * snode->zoom)) + pad;
   nvm->xmax = (region->winx / 2) + (ibuf->x * (0.5f * snode->zoom)) - pad;
@@ -447,7 +447,7 @@ static void sample_draw(const bContext *C, ARegion *region, void *arg_info)
 }  // namespace blender::ed::space_node
 
 bool ED_space_node_get_position(
-    Main *bmain, SpaceNode *snode, struct ARegion *region, const int mval[2], float fpos[2])
+    Main *bmain, SpaceNode *snode, ARegion *region, const int mval[2], float fpos[2])
 {
   if (!ED_node_is_compositor(snode) || (snode->flag & SNODE_BACKDRAW) == 0) {
     return false;
@@ -645,7 +645,7 @@ static int sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   /* Don't handle events intended for nodes (which rely on click/drag distinction).
    * which this operator would use since sampling is normally activated on press, see: T98191. */
-  if (node_or_socket_isect_event(C, event)) {
+  if (node_or_socket_isect_event(*C, *event)) {
     return OPERATOR_PASS_THROUGH;
   }
 

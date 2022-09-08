@@ -627,6 +627,16 @@ void BKE_image_free_data(Image *ima)
   image_free_data(&ima->id);
 }
 
+static ImageTile *imagetile_alloc(int tile_number)
+{
+  ImageTile *tile = MEM_cnew<ImageTile>("Image Tile");
+  tile->tile_number = tile_number;
+  tile->gen_x = 1024;
+  tile->gen_y = 1024;
+  tile->gen_type = IMA_GENTYPE_GRID;
+  return tile;
+}
+
 /* only image block itself */
 static void image_init(Image *ima, short source, short type)
 {
@@ -641,8 +651,7 @@ static void image_init(Image *ima, short source, short type)
     ima->flag |= IMA_VIEW_AS_RENDER;
   }
 
-  ImageTile *tile = MEM_cnew<ImageTile>("Image Tiles");
-  tile->tile_number = 1001;
+  ImageTile *tile = imagetile_alloc(1001);
   BLI_addtail(&ima->tiles, tile);
 
   if (type == IMA_TYPE_R_RESULT) {
@@ -785,7 +794,7 @@ bool BKE_image_has_opengl_texture(Image *ima)
   return false;
 }
 
-static int image_get_tile_number_from_iuser(Image *ima, const ImageUser *iuser)
+static int image_get_tile_number_from_iuser(const Image *ima, const ImageUser *iuser)
 {
   BLI_assert(ima != nullptr && ima->tiles.first);
   ImageTile *tile = static_cast<ImageTile *>(ima->tiles.first);
@@ -863,31 +872,96 @@ void BKE_image_get_tile_uv(const Image *ima, const int tile_number, float r_uv[2
   }
 }
 
-int BKE_image_find_nearest_tile(const Image *image, const float co[2])
+/** Linear distance between #x and the unit interval. */
+static float distance_to_unit_interval(float x)
 {
-  const float co_floor[2] = {floorf(co[0]), floorf(co[1])};
-  /* Distance to the closest UDIM tile. */
-  float dist_best_sq = FLT_MAX;
+  /* The unit interval is between 0 and 1.
+   * Within the interval, return 0.
+   * Outside the interval, return the distance to the nearest boundary.
+   * Intuitively, the function looks like:
+   *  \ |   | /
+   * __\|___|/__
+   *    0   1
+   */
+
+  if (x <= 0.0f) {
+    return -x; /* Distance to left border. */
+  }
+  if (x <= 1.0f) {
+    return 0.0f; /* Inside unit interval. */
+  }
+  return x - 1.0f; /* Distance to right border. */
+}
+
+/** Distance squared between #co and the unit square with lower-left starting at #udim. */
+static float distance_squared_to_udim(const float co[2], const float udim[2])
+{
+  float delta[2];
+  sub_v2_v2v2(delta, co, udim);
+  delta[0] = distance_to_unit_interval(delta[0]);
+  delta[1] = distance_to_unit_interval(delta[1]);
+  return len_squared_v2(delta);
+}
+
+static bool nearest_udim_tile_tie_break(const float best_dist_sq,
+                                        const float best_uv[2],
+                                        const float dist_sq,
+                                        const float uv[2])
+{
+  if (best_dist_sq == dist_sq) {   /* Exact same distance? Tie-break. */
+    if (best_uv[0] == uv[0]) {     /* Exact same U? Tie-break. */
+      return (uv[1] > best_uv[1]); /* Higher than previous candidate? */
+    }
+    return (uv[0] > best_uv[0]); /* Further right than previous candidate? */
+  }
+  return (dist_sq < best_dist_sq); /* Closer than previous candidate? */
+}
+
+int BKE_image_find_nearest_tile_with_offset(const Image *image,
+                                            const float co[2],
+                                            float r_uv_offset[2])
+{
+  /* NOTE: If the co-ordinates are integers, take special care to break ties. */
+
+  zero_v2(r_uv_offset);
   int tile_number_best = -1;
+
+  if (!image || image->source != IMA_SRC_TILED) {
+    return tile_number_best;
+  }
+
+  /* Distance squared to the closest UDIM tile. */
+  float dist_best_sq = FLT_MAX;
 
   LISTBASE_FOREACH (const ImageTile *, tile, &image->tiles) {
     float uv_offset[2];
     BKE_image_get_tile_uv(image, tile->tile_number, uv_offset);
 
-    if (equals_v2v2(co_floor, uv_offset)) {
-      return tile->tile_number;
+    /* Distance squared between #co and closest point on UDIM tile. */
+    const float dist_sq = distance_squared_to_udim(co, uv_offset);
+
+    if (dist_sq == 0) { /* Either inside in the UDIM, or on its boundary. */
+      if (floorf(co[0]) == uv_offset[0] && floorf(co[1]) == uv_offset[1]) {
+        /* Within the half-open interval of the UDIM. */
+        copy_v2_v2(r_uv_offset, uv_offset);
+        return tile_number_best;
+      }
     }
 
-    /* Distance between co[2] and UDIM tile. */
-    const float dist_sq = len_squared_v2v2(uv_offset, co);
-
-    if (dist_sq < dist_best_sq) {
+    if (nearest_udim_tile_tie_break(dist_best_sq, r_uv_offset, dist_sq, uv_offset)) {
+      /* Tile is better than previous best, update. */
       dist_best_sq = dist_sq;
+      copy_v2_v2(r_uv_offset, uv_offset);
       tile_number_best = tile->tile_number;
     }
   }
-
   return tile_number_best;
+}
+
+int BKE_image_find_nearest_tile(const struct Image *image, const float co[2])
+{
+  float uv_offset_dummy[2];
+  return BKE_image_find_nearest_tile_with_offset(image, co, uv_offset_dummy);
 }
 
 static void image_init_color_management(Image *ima)
@@ -897,7 +971,7 @@ static void image_init_color_management(Image *ima)
 
   BKE_image_user_file_path(nullptr, ima, name);
 
-  /* will set input color space to image format default's */
+  /* Will set input color space to image format default's. */
   ibuf = IMB_loadiffname(name, IB_test | IB_alphamode_detect, ima->colorspace_settings.name);
 
   if (ibuf) {
@@ -1035,73 +1109,70 @@ static void image_buf_fill_isolated(void *usersata_v)
   }
 }
 
-static ImBuf *add_ibuf_size(unsigned int width,
-                            unsigned int height,
-                            const char *name,
-                            int depth,
-                            int floatbuf,
-                            short gen_type,
-                            const float color[4],
-                            ColorManagedColorspaceSettings *colorspace_settings)
+static ImBuf *add_ibuf_for_tile(Image *ima, ImageTile *tile)
 {
   ImBuf *ibuf;
   unsigned char *rect = nullptr;
   float *rect_float = nullptr;
   float fill_color[4];
 
+  const bool floatbuf = (tile->gen_flag & IMA_GEN_FLOAT) != 0;
   if (floatbuf) {
-    ibuf = IMB_allocImBuf(width, height, depth, IB_rectfloat);
+    ibuf = IMB_allocImBuf(tile->gen_x, tile->gen_y, tile->gen_depth, IB_rectfloat);
 
-    if (colorspace_settings->name[0] == '\0') {
+    if (ima->colorspace_settings.name[0] == '\0') {
       const char *colorspace = IMB_colormanagement_role_colorspace_name_get(
           COLOR_ROLE_DEFAULT_FLOAT);
 
-      STRNCPY(colorspace_settings->name, colorspace);
+      STRNCPY(ima->colorspace_settings.name, colorspace);
     }
 
     if (ibuf != nullptr) {
       rect_float = ibuf->rect_float;
-      IMB_colormanagement_check_is_data(ibuf, colorspace_settings->name);
+      IMB_colormanagement_check_is_data(ibuf, ima->colorspace_settings.name);
     }
 
-    if (IMB_colormanagement_space_name_is_data(colorspace_settings->name)) {
-      copy_v4_v4(fill_color, color);
+    if (IMB_colormanagement_space_name_is_data(ima->colorspace_settings.name)) {
+      copy_v4_v4(fill_color, tile->gen_color);
     }
     else {
       /* The input color here should ideally be linear already, but for now
        * we just convert and postpone breaking the API for later. */
-      srgb_to_linearrgb_v4(fill_color, color);
+      srgb_to_linearrgb_v4(fill_color, tile->gen_color);
     }
   }
   else {
-    ibuf = IMB_allocImBuf(width, height, depth, IB_rect);
+    ibuf = IMB_allocImBuf(tile->gen_x, tile->gen_y, tile->gen_depth, IB_rect);
 
-    if (colorspace_settings->name[0] == '\0') {
+    if (ima->colorspace_settings.name[0] == '\0') {
       const char *colorspace = IMB_colormanagement_role_colorspace_name_get(
           COLOR_ROLE_DEFAULT_BYTE);
 
-      STRNCPY(colorspace_settings->name, colorspace);
+      STRNCPY(ima->colorspace_settings.name, colorspace);
     }
 
     if (ibuf != nullptr) {
       rect = (unsigned char *)ibuf->rect;
-      IMB_colormanagement_assign_rect_colorspace(ibuf, colorspace_settings->name);
+      IMB_colormanagement_assign_rect_colorspace(ibuf, ima->colorspace_settings.name);
     }
 
-    copy_v4_v4(fill_color, color);
+    copy_v4_v4(fill_color, tile->gen_color);
   }
 
   if (!ibuf) {
     return nullptr;
   }
 
-  STRNCPY(ibuf->name, name);
+  STRNCPY(ibuf->name, ima->filepath);
+
+  /* Mark the tile itself as having been generated. */
+  tile->gen_flag |= IMA_GEN_TILE;
 
   ImageFillData data;
 
-  data.gen_type = gen_type;
-  data.width = width;
-  data.height = height;
+  data.gen_type = tile->gen_type;
+  data.width = tile->gen_x;
+  data.height = tile->gen_y;
   data.rect = rect;
   data.rect_float = rect_float;
   copy_v4_v4(data.fill_color, fill_color);
@@ -1140,12 +1211,16 @@ Image *BKE_image_add_generated(Main *bmain,
 
   /* NOTE: leave `ima->filepath` unset,
    * setting it to a dummy value may write to an invalid file-path. */
-  ima->gen_x = width;
-  ima->gen_y = height;
-  ima->gen_type = gen_type;
-  ima->gen_flag |= (floatbuf ? IMA_GEN_FLOAT : 0);
-  ima->gen_depth = depth;
-  copy_v4_v4(ima->gen_color, color);
+
+  /* The generation info is always stored in the tiles. The first tile
+   * will be used for non-tiled images. */
+  ImageTile *tile = static_cast<ImageTile *>(ima->tiles.first);
+  tile->gen_x = width;
+  tile->gen_y = height;
+  tile->gen_type = gen_type;
+  tile->gen_flag |= (floatbuf ? IMA_GEN_FLOAT : 0);
+  tile->gen_depth = depth;
+  copy_v4_v4(tile->gen_color, color);
 
   if (is_data) {
     STRNCPY(ima->colorspace_settings.name,
@@ -1154,8 +1229,7 @@ Image *BKE_image_add_generated(Main *bmain,
 
   for (view_id = 0; view_id < 2; view_id++) {
     ImBuf *ibuf;
-    ibuf = add_ibuf_size(
-        width, height, ima->filepath, depth, floatbuf, gen_type, color, &ima->colorspace_settings);
+    ibuf = add_ibuf_for_tile(ima, tile);
     int index = tiled ? 0 : IMA_NO_INDEX;
     int entry = tiled ? 1001 : 0;
     image_assign_ibuf(ima, ibuf, stereo3d ? view_id : index, entry);
@@ -1174,7 +1248,7 @@ Image *BKE_image_add_generated(Main *bmain,
 
 static void image_colorspace_from_imbuf(Image *image, const ImBuf *ibuf)
 {
-  const char *colorspace_name = NULL;
+  const char *colorspace_name = nullptr;
 
   if (ibuf->rect_float) {
     if (ibuf->float_colorspace) {
@@ -2936,6 +3010,28 @@ static void image_free_tile(Image *ima, ImageTile *tile)
   }
 }
 
+static bool image_remove_tile(Image *ima, ImageTile *tile)
+{
+  if (BLI_listbase_is_single(&ima->tiles)) {
+    /* Can't remove the last remaining tile. */
+    return false;
+  }
+
+  image_free_tile(ima, tile);
+  BLI_remlink(&ima->tiles, tile);
+  MEM_freeN(tile);
+
+  return true;
+}
+
+static void image_remove_all_tiles(Image *ima)
+{
+  /* Remove all but the final tile. */
+  while (image_remove_tile(ima, static_cast<ImageTile *>(ima->tiles.last))) {
+    ;
+  }
+}
+
 void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
 {
   if (ima == nullptr) {
@@ -2962,11 +3058,12 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
       }
 
       if (ima->source == IMA_SRC_GENERATED) {
-        if (ima->gen_x == 0 || ima->gen_y == 0) {
+        ImageTile *base_tile = BKE_image_get_tile(ima, 0);
+        if (base_tile->gen_x == 0 || base_tile->gen_y == 0) {
           ImBuf *ibuf = image_get_cached_ibuf_for_index_entry(ima, IMA_NO_INDEX, 0, nullptr);
           if (ibuf) {
-            ima->gen_x = ibuf->x;
-            ima->gen_y = ibuf->y;
+            base_tile->gen_x = ibuf->x;
+            base_tile->gen_y = ibuf->y;
             IMB_freeImBuf(ibuf);
           }
         }
@@ -2983,16 +3080,40 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
 
       if (ima->source != IMA_SRC_TILED) {
         /* Free all but the first tile. */
+        image_remove_all_tiles(ima);
+
+        /* If the remaining tile is generated, we need to again ensure that we
+         * wouldn't continue to use the old filepath.
+         *
+         * Otherwise, if this used to be a UDIM image, get the concrete filepath associated
+         * with the remaining tile and use that as the new filepath. */
         ImageTile *base_tile = BKE_image_get_tile(ima, 0);
-        BLI_assert(base_tile == ima->tiles.first);
-        for (ImageTile *tile = base_tile->next, *tile_next; tile; tile = tile_next) {
-          tile_next = tile->next;
-          image_free_tile(ima, tile);
-          MEM_freeN(tile);
+        if ((base_tile->gen_flag & IMA_GEN_TILE) != 0) {
+          ima->filepath[0] = '\0';
         }
-        base_tile->next = nullptr;
+        else if (BKE_image_is_filename_tokenized(ima->filepath)) {
+          const bool was_relative = BLI_path_is_rel(ima->filepath);
+
+          eUDIM_TILE_FORMAT tile_format;
+          char *udim_pattern = BKE_image_get_tile_strformat(ima->filepath, &tile_format);
+          BKE_image_set_filepath_from_tile_number(
+              ima->filepath, udim_pattern, tile_format, base_tile->tile_number);
+          MEM_freeN(udim_pattern);
+
+          if (was_relative) {
+            const char *relbase = ID_BLEND_PATH(bmain, &ima->id);
+            BLI_path_rel(ima->filepath, relbase);
+          }
+        }
+
+        /* If the remaining tile was not number 1001, we need to reassign it so that
+         * ibuf lookups from the cache still succeed. */
         base_tile->tile_number = 1001;
-        ima->tiles.last = base_tile;
+      }
+      else {
+        /* When changing to UDIM, attempt to tokenize the filepath. */
+        char *filename = (char *)BLI_path_basename(ima->filepath);
+        BKE_image_ensure_tile_token(filename);
       }
 
       /* image buffers for non-sequence multilayer will share buffers with RenderResult,
@@ -3008,6 +3129,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
         image_tag_frame_recalc(ima, nullptr, iuser, ima);
       }
       BKE_image_walk_all_users(bmain, ima, image_tag_frame_recalc);
+      BKE_image_partial_update_mark_full_update(ima);
 
       break;
 
@@ -3059,9 +3181,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
            * to account for how the two sets might or might not overlap. To be complete, we start
            * the refresh process by clearing all existing tiles, stopping when there's only 1 tile
            * left. */
-          while (BKE_image_remove_tile(ima, static_cast<ImageTile *>(ima->tiles.last))) {
-            ;
-          }
+          image_remove_all_tiles(ima);
 
           int remaining_tile_number = ((ImageTile *)ima->tiles.first)->tile_number;
           bool needs_final_cleanup = true;
@@ -3244,8 +3364,7 @@ ImageTile *BKE_image_add_tile(struct Image *ima, int tile_number, const char *la
     }
   }
 
-  ImageTile *tile = MEM_cnew<ImageTile>("image new tile");
-  tile->tile_number = tile_number;
+  ImageTile *tile = imagetile_alloc(tile_number);
 
   if (next_tile) {
     BLI_insertlinkbefore(&ima->tiles, next_tile, tile);
@@ -3280,16 +3399,7 @@ bool BKE_image_remove_tile(struct Image *ima, ImageTile *tile)
     return false;
   }
 
-  if (BLI_listbase_is_single(&ima->tiles)) {
-    /* Can't remove the last remaining tile. */
-    return false;
-  }
-
-  image_free_tile(ima, tile);
-  BLI_remlink(&ima->tiles, tile);
-  MEM_freeN(tile);
-
-  return true;
+  return image_remove_tile(ima, tile);
 }
 
 void BKE_image_reassign_tile(struct Image *ima, ImageTile *tile, int new_tile_number)
@@ -3351,14 +3461,7 @@ void BKE_image_sort_tiles(struct Image *ima)
   BLI_listbase_sort(&ima->tiles, tile_sort_cb);
 }
 
-bool BKE_image_fill_tile(struct Image *ima,
-                         ImageTile *tile,
-                         int width,
-                         int height,
-                         const float color[4],
-                         int gen_type,
-                         int planes,
-                         bool is_float)
+bool BKE_image_fill_tile(struct Image *ima, ImageTile *tile)
 {
   if (ima == nullptr || tile == nullptr || ima->source != IMA_SRC_TILED) {
     return false;
@@ -3366,8 +3469,7 @@ bool BKE_image_fill_tile(struct Image *ima,
 
   image_free_tile(ima, tile);
 
-  ImBuf *tile_ibuf = add_ibuf_size(
-      width, height, ima->filepath, planes, is_float, gen_type, color, &ima->colorspace_settings);
+  ImBuf *tile_ibuf = add_ibuf_for_tile(ima, tile);
 
   if (tile_ibuf != nullptr) {
     image_assign_ibuf(ima, tile_ibuf, 0, tile->tile_number);
@@ -3397,9 +3499,8 @@ void BKE_image_ensure_tile_token(char *filename)
 
   /* General 4-digit "udim" pattern. As this format is susceptible to ambiguity
    * with other digit sequences, we can leverage the supported range of roughly
-   * 1000 through 2000 to provide better detection.
-   */
-  std::regex pattern(R"((^|.*?\D)([12]\d{3})(\D.*))");
+   * 1000 through 2000 to provide better detection. */
+  std::regex pattern(R"((.*[._-])([12]\d{3})([._-].*))");
   if (std::regex_search(path, match, pattern)) {
     BLI_strncpy(filename, match.format("$1<UDIM>$3").c_str(), FILE_MAX);
     return;
@@ -3550,7 +3651,7 @@ RenderPass *BKE_image_multilayer_index(RenderResult *rr, ImageUser *iuser)
   return rpass;
 }
 
-void BKE_image_multiview_index(Image *ima, ImageUser *iuser)
+void BKE_image_multiview_index(const Image *ima, ImageUser *iuser)
 {
   if (iuser) {
     bool is_stereo = BKE_image_is_stereo(ima) && (iuser->flag & IMA_SHOW_STEREO);
@@ -3571,7 +3672,7 @@ void BKE_image_multiview_index(Image *ima, ImageUser *iuser)
 
 /* if layer or pass changes, we need an index for the imbufs list */
 /* note it is called for rendered results, but it doesn't use the index! */
-bool BKE_image_is_multilayer(Image *ima)
+bool BKE_image_is_multilayer(const Image *ima)
 {
   if (ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_SEQUENCE, IMA_SRC_TILED)) {
     if (ima->type == IMA_TYPE_MULTILAYER) {
@@ -3586,13 +3687,13 @@ bool BKE_image_is_multilayer(Image *ima)
   return false;
 }
 
-bool BKE_image_is_multiview(Image *ima)
+bool BKE_image_is_multiview(const Image *ima)
 {
   ImageView *view = static_cast<ImageView *>(ima->views.first);
   return (view && (view->next || view->name[0]));
 }
 
-bool BKE_image_is_stereo(Image *ima)
+bool BKE_image_is_stereo(const Image *ima)
 {
   return BKE_image_is_multiview(ima) &&
          (BLI_findstring(&ima->views, STEREO_LEFT_NAME, offsetof(ImageView, name)) &&
@@ -4541,14 +4642,22 @@ static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock)
       }
     }
     else if (ima->source == IMA_SRC_TILED) {
-      if (ima->type == IMA_TYPE_IMAGE) {
-        /* Regular files, ibufs in flip-book, allows saving */
-        ibuf = image_load_image_file(ima, iuser, entry, 0, false);
+      /* Nothing was cached. Check to see if the tile should be generated. */
+      ImageTile *tile = BKE_image_get_tile(ima, entry);
+      if ((tile->gen_flag & IMA_GEN_TILE) != 0) {
+        ibuf = add_ibuf_for_tile(ima, tile);
+        image_assign_ibuf(ima, ibuf, 0, entry);
       }
-      /* no else; on load the ima type can change */
-      if (ima->type == IMA_TYPE_MULTILAYER) {
-        /* Only 1 layer/pass stored in imbufs, no EXR-handle anim storage, no saving. */
-        ibuf = image_load_sequence_multilayer(ima, iuser, entry, 0);
+      else {
+        if (ima->type == IMA_TYPE_IMAGE) {
+          /* Regular files, ibufs in flip-book, allows saving */
+          ibuf = image_load_image_file(ima, iuser, entry, 0, false);
+        }
+        /* no else; on load the ima type can change */
+        if (ima->type == IMA_TYPE_MULTILAYER) {
+          /* Only 1 layer/pass stored in imbufs, no EXR-handle anim storage, no saving. */
+          ibuf = image_load_sequence_multilayer(ima, iuser, entry, 0);
+        }
       }
     }
     else if (ima->source == IMA_SRC_FILE) {
@@ -4566,23 +4675,17 @@ static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock)
     else if (ima->source == IMA_SRC_GENERATED) {
       /* Generated is: `ibuf` is allocated dynamically. */
       /* UV test-grid or black or solid etc. */
-      if (ima->gen_x == 0) {
-        ima->gen_x = 1024;
+      ImageTile *base_tile = BKE_image_get_tile(ima, 0);
+      if (base_tile->gen_x == 0) {
+        base_tile->gen_x = 1024;
       }
-      if (ima->gen_y == 0) {
-        ima->gen_y = 1024;
+      if (base_tile->gen_y == 0) {
+        base_tile->gen_y = 1024;
       }
-      if (ima->gen_depth == 0) {
-        ima->gen_depth = 24;
+      if (base_tile->gen_depth == 0) {
+        base_tile->gen_depth = 24;
       }
-      ibuf = add_ibuf_size(ima->gen_x,
-                           ima->gen_y,
-                           ima->filepath,
-                           ima->gen_depth,
-                           (ima->gen_flag & IMA_GEN_FLOAT) != 0,
-                           ima->gen_type,
-                           ima->gen_color,
-                           &ima->colorspace_settings);
+      ibuf = add_ibuf_for_tile(ima, base_tile);
       image_assign_ibuf(ima, ibuf, index, 0);
     }
     else if (ima->source == IMA_SRC_VIEWER) {
@@ -4925,10 +5028,12 @@ static void image_editors_update_frame(Image *ima,
                                        ImageUser *iuser,
                                        void *customdata)
 {
-  int cfra = *(int *)customdata;
+  if (ima && BKE_image_is_animated(ima)) {
+    if ((iuser->flag & IMA_ANIM_ALWAYS) || (iuser->flag & IMA_NEED_FRAME_RECALC)) {
+      int cfra = *(int *)customdata;
 
-  if ((iuser->flag & IMA_ANIM_ALWAYS) || (iuser->flag & IMA_NEED_FRAME_RECALC)) {
-    BKE_image_user_frame_calc(ima, iuser, cfra);
+      BKE_image_user_frame_calc(ima, iuser, cfra);
+    }
   }
 }
 
@@ -4988,14 +5093,19 @@ void BKE_image_user_id_eval_animation(Depsgraph *depsgraph, ID *id)
   image_walk_id_all_users(id, skip_nested_nodes, depsgraph, image_user_id_eval_animation);
 }
 
-void BKE_image_user_file_path(ImageUser *iuser, Image *ima, char *filepath)
+void BKE_image_user_file_path(const ImageUser *iuser, const Image *ima, char *filepath)
 {
-  BKE_image_user_file_path_ex(iuser, ima, filepath, true);
+  BKE_image_user_file_path_ex(G_MAIN, iuser, ima, filepath, true, true);
 }
 
-void BKE_image_user_file_path_ex(ImageUser *iuser, Image *ima, char *filepath, bool resolve_udim)
+void BKE_image_user_file_path_ex(const Main *bmain,
+                                 const ImageUser *iuser,
+                                 const Image *ima,
+                                 char *filepath,
+                                 const bool resolve_udim,
+                                 const bool resolve_multiview)
 {
-  if (BKE_image_is_multiview(ima)) {
+  if (resolve_multiview && BKE_image_is_multiview(ima)) {
     ImageView *iv = static_cast<ImageView *>(BLI_findlink(&ima->views, iuser->view));
     if (iv->filepath[0]) {
       BLI_strncpy(filepath, iv->filepath, FILE_MAX);
@@ -5028,7 +5138,7 @@ void BKE_image_user_file_path_ex(ImageUser *iuser, Image *ima, char *filepath, b
     }
   }
 
-  BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&ima->id));
+  BLI_path_abs(filepath, ID_BLEND_PATH(bmain, &ima->id));
 }
 
 bool BKE_image_has_alpha(Image *image)
@@ -5409,7 +5519,7 @@ RenderSlot *BKE_image_add_renderslot(Image *ima, const char *name)
   }
   else {
     int n = BLI_listbase_count(&ima->renderslots) + 1;
-    BLI_snprintf(slot->name, sizeof(slot->name), "Slot %d", n);
+    BLI_snprintf(slot->name, sizeof(slot->name), DATA_("Slot %d"), n);
   }
   BLI_addtail(&ima->renderslots, slot);
   return slot;
@@ -5502,7 +5612,7 @@ bool BKE_image_clear_renderslot(Image *ima, ImageUser *iuser, int slot)
   }
 
   RenderSlot *render_slot = static_cast<RenderSlot *>(BLI_findlink(&ima->renderslots, slot));
-  if (!slot) {
+  if (!render_slot) {
     return false;
   }
   if (render_slot->render) {

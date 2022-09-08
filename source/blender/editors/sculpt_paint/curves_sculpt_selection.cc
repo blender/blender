@@ -6,6 +6,8 @@
 
 #include "curves_sculpt_intern.hh"
 
+#include "ED_curves_sculpt.h"
+
 namespace blender::ed::sculpt_paint {
 
 static VArray<float> get_curves_selection(const CurvesGeometry &curves, const eAttrDomain domain)
@@ -62,13 +64,14 @@ static IndexMask retrieve_selected_curves(const CurvesGeometry &curves,
     case ATTR_DOMAIN_POINT: {
       const VArray<float> selection = curves.selection_point_float();
       if (selection.is_single()) {
-        return selection.get_internal_single() == 0.0f ? IndexMask(0) :
+        return selection.get_internal_single() <= 0.0f ? IndexMask(0) :
                                                          IndexMask(curves.curves_num());
       }
+      const Span<float> point_selection_span = selection.get_internal_span();
       return index_mask_ops::find_indices_based_on_predicate(
           curves.curves_range(), 512, r_indices, [&](const int curve_i) {
             for (const int i : curves.points_for_curve(curve_i)) {
-              if (selection[i] > 0.0f) {
+              if (point_selection_span[i] > 0.0f) {
                 return true;
               }
             }
@@ -78,7 +81,7 @@ static IndexMask retrieve_selected_curves(const CurvesGeometry &curves,
     case ATTR_DOMAIN_CURVE: {
       const VArray<float> selection = curves.selection_curve_float();
       if (selection.is_single()) {
-        return selection.get_internal_single() == 0.0f ? IndexMask(0) :
+        return selection.get_internal_single() <= 0.0f ? IndexMask(0) :
                                                          IndexMask(curves.curves_num());
       }
       return index_mask_ops::find_indices_based_on_predicate(
@@ -98,6 +101,51 @@ IndexMask retrieve_selected_curves(const Curves &curves_id, Vector<int64_t> &r_i
     return CurvesGeometry::wrap(curves_id.geometry).curves_range();
   }
   return retrieve_selected_curves(CurvesGeometry::wrap(curves_id.geometry),
+                                  eAttrDomain(curves_id.selection_domain),
+                                  r_indices);
+}
+
+static IndexMask retrieve_selected_points(const CurvesGeometry &curves,
+                                          const eAttrDomain domain,
+                                          Vector<int64_t> &r_indices)
+{
+  switch (domain) {
+    case ATTR_DOMAIN_POINT: {
+      const VArray<float> selection = curves.selection_point_float();
+      if (selection.is_single()) {
+        return selection.get_internal_single() <= 0.0f ? IndexMask(0) :
+                                                         IndexMask(curves.points_num());
+      }
+      return index_mask_ops::find_indices_based_on_predicate(
+          curves.points_range(), 2048, r_indices, [&](const int i) {
+            return selection[i] > 0.0f;
+          });
+    }
+    case ATTR_DOMAIN_CURVE: {
+      const VArray<float> selection = curves.selection_curve_float();
+      if (selection.is_single()) {
+        return selection.get_internal_single() <= 0.0f ? IndexMask(0) :
+                                                         IndexMask(curves.points_num());
+      }
+      const VArray<float> point_selection = curves.adapt_domain(
+          selection, ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
+      return index_mask_ops::find_indices_based_on_predicate(
+          curves.points_range(), 2048, r_indices, [&](const int i) {
+            return point_selection[i] > 0.0f;
+          });
+    }
+    default:
+      BLI_assert_unreachable();
+      return {};
+  }
+}
+
+IndexMask retrieve_selected_points(const Curves &curves_id, Vector<int64_t> &r_indices)
+{
+  if (!(curves_id.flag & CV_SCULPT_SELECTION_ENABLED)) {
+    return CurvesGeometry::wrap(curves_id.geometry).points_range();
+  }
+  return retrieve_selected_points(CurvesGeometry::wrap(curves_id.geometry),
                                   eAttrDomain(curves_id.selection_domain),
                                   r_indices);
 }

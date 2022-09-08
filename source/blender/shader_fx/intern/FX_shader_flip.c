@@ -61,7 +61,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ShaderFxTypeInfo shaderfx_Type_Flip = {
-    /* name */ "Flip",
+    /* name */ N_("Flip"),
     /* structName */ "FlipShaderFxData",
     /* structSize */ sizeof(FlipShaderFxData),
     /* type */ eShaderFxType_GpencilType,

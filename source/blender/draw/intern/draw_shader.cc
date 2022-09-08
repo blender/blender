@@ -17,13 +17,15 @@
 #include "draw_shader.h"
 
 extern "C" char datatoc_common_hair_lib_glsl[];
-
 extern "C" char datatoc_common_hair_refine_vert_glsl[];
-extern "C" char datatoc_common_hair_refine_comp_glsl[];
-extern "C" char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
 
 static struct {
   struct GPUShader *hair_refine_sh[PART_REFINE_MAX_SHADER];
+  struct GPUShader *debug_print_display_sh;
+  struct GPUShader *debug_draw_display_sh;
+  struct GPUShader *draw_visibility_compute_sh;
+  struct GPUShader *draw_resource_finalize_sh;
+  struct GPUShader *draw_command_generate_sh;
 } e_data = {{nullptr}};
 
 /* -------------------------------------------------------------------- */
@@ -109,6 +111,47 @@ GPUShader *DRW_shader_curves_refine_get(CurvesEvalShader type, eParticleRefineSh
   return e_data.hair_refine_sh[type];
 }
 
+GPUShader *DRW_shader_debug_print_display_get()
+{
+  if (e_data.debug_print_display_sh == nullptr) {
+    e_data.debug_print_display_sh = GPU_shader_create_from_info_name("draw_debug_print_display");
+  }
+  return e_data.debug_print_display_sh;
+}
+
+GPUShader *DRW_shader_debug_draw_display_get()
+{
+  if (e_data.debug_draw_display_sh == nullptr) {
+    e_data.debug_draw_display_sh = GPU_shader_create_from_info_name("draw_debug_draw_display");
+  }
+  return e_data.debug_draw_display_sh;
+}
+
+GPUShader *DRW_shader_draw_visibility_compute_get()
+{
+  if (e_data.draw_visibility_compute_sh == nullptr) {
+    e_data.draw_visibility_compute_sh = GPU_shader_create_from_info_name(
+        "draw_visibility_compute");
+  }
+  return e_data.draw_visibility_compute_sh;
+}
+
+GPUShader *DRW_shader_draw_resource_finalize_get()
+{
+  if (e_data.draw_resource_finalize_sh == nullptr) {
+    e_data.draw_resource_finalize_sh = GPU_shader_create_from_info_name("draw_resource_finalize");
+  }
+  return e_data.draw_resource_finalize_sh;
+}
+
+GPUShader *DRW_shader_draw_command_generate_get()
+{
+  if (e_data.draw_command_generate_sh == nullptr) {
+    e_data.draw_command_generate_sh = GPU_shader_create_from_info_name("draw_command_generate");
+  }
+  return e_data.draw_command_generate_sh;
+}
+
 /** \} */
 
 void DRW_shaders_free()
@@ -116,4 +159,9 @@ void DRW_shaders_free()
   for (int i = 0; i < PART_REFINE_MAX_SHADER; i++) {
     DRW_SHADER_FREE_SAFE(e_data.hair_refine_sh[i]);
   }
+  DRW_SHADER_FREE_SAFE(e_data.debug_print_display_sh);
+  DRW_SHADER_FREE_SAFE(e_data.debug_draw_display_sh);
+  DRW_SHADER_FREE_SAFE(e_data.draw_visibility_compute_sh);
+  DRW_SHADER_FREE_SAFE(e_data.draw_resource_finalize_sh);
+  DRW_SHADER_FREE_SAFE(e_data.draw_command_generate_sh);
 }

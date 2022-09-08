@@ -21,6 +21,25 @@ struct TransDataCurveHandleFlags;
 struct TransInfo;
 struct bContext;
 
+typedef struct TransConvertTypeInfo {
+  int flags; /* eTFlag */
+
+  /**
+   * Allocate and initialize `t->data`.
+   */
+  void (*createTransData)(bContext *C, TransInfo *t);
+
+  /**
+   * Force recalculation of data during transformation.
+   */
+  void (*recalcData)(TransInfo *t);
+
+  /**
+   * Called when the operation is finished.
+   */
+  void (*special_aftertrans_update)(bContext *C, TransInfo *t);
+} TransConvertTypeInfo;
+
 /* transform_convert.c */
 
 /**
@@ -98,12 +117,12 @@ void animrecord_check_state(TransInfo *t, struct ID *id);
 
 /* transform_convert_action.c */
 
-void createTransActionData(bContext *C, TransInfo *t);
-/* helper for recalcData() - for Action Editor transforms */
-void recalcData_actedit(TransInfo *t);
-void special_aftertrans_update__actedit(bContext *C, TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_Action;
 
 /* transform_convert_armature.c */
+
+extern TransConvertTypeInfo TransConvertType_EditArmature;
+extern TransConvertTypeInfo TransConvertType_Pose;
 
 /**
  * Sets transform flags in the bones.
@@ -111,68 +130,39 @@ void special_aftertrans_update__actedit(bContext *C, TransInfo *t);
  */
 void transform_convert_pose_transflags_update(Object *ob, int mode, short around);
 
-/**
- * When objects array is NULL, use 't->data_container' as is.
- */
-void createTransPose(TransInfo *t);
-void createTransArmatureVerts(TransInfo *t);
-void recalcData_edit_armature(TransInfo *t);
-void recalcData_pose(TransInfo *t);
-void special_aftertrans_update__pose(bContext *C, TransInfo *t);
-
 /* transform_convert_cursor.c */
 
-void createTransCursor_image(TransInfo *t);
-void createTransCursor_sequencer(TransInfo *t);
-void createTransCursor_view3d(TransInfo *t);
-void recalcData_cursor_image(TransInfo *t);
-void recalcData_cursor_sequencer(TransInfo *t);
-void recalcData_cursor_view3d(TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_CursorImage;
+extern TransConvertTypeInfo TransConvertType_CursorSequencer;
+extern TransConvertTypeInfo TransConvertType_Cursor3D;
 
 /* transform_convert_curve.c */
 
-void createTransCurveVerts(TransInfo *t);
-void recalcData_curve(TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_Curve;
 
 /* transform_convert_graph.c */
 
-/**
- * It is important to note that this doesn't always act on the selection (like it's usually done),
- * it acts on a subset of it. E.g. the selection code may leave a hint that we just dragged on a
- * left or right handle (SIPO_RUNTIME_FLAG_TWEAK_HANDLES_LEFT/RIGHT) and then we only transform the
- * selected left or right handles accordingly.
- * The points to be transformed are tagged with BEZT_FLAG_TEMP_TAG; some lower level curve
- * functions may need to be made aware of this. It's ugly that these act based on selection state
- * anyway.
- */
-void createTransGraphEditData(bContext *C, TransInfo *t);
-/* helper for recalcData() - for Graph Editor transforms */
-void recalcData_graphedit(TransInfo *t);
-void special_aftertrans_update__graph(bContext *C, TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_Graph;
 
 /* transform_convert_gpencil.c */
 
-void createTransGPencil(bContext *C, TransInfo *t);
-/* force recalculation of triangles during transformation */
-void recalcData_gpencil_strokes(TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_GPencil;
 
 /* transform_convert_lattice.c */
 
-void createTransLatticeVerts(TransInfo *t);
-void recalcData_lattice(TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_Lattice;
 
 /* transform_convert_mask.c */
 
-void createTransMaskingData(bContext *C, TransInfo *t);
-void recalcData_mask_common(TransInfo *t);
-void special_aftertrans_update__mask(bContext *C, TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_Mask;
 
 /* transform_convert_mball.c */
 
-void createTransMBallVerts(TransInfo *t);
-void recalcData_mball(TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_MBall;
 
 /* transform_convert_mesh.c */
+
+extern TransConvertTypeInfo TransConvertType_Mesh;
 
 struct TransIslandData {
   float (*center)[3];
@@ -232,84 +222,60 @@ void transform_convert_mesh_crazyspace_transdata_set(const float mtx[3][3],
                                                      struct TransData *r_td);
 void transform_convert_mesh_crazyspace_free(struct TransMeshDataCrazySpace *r_crazyspace_data);
 
-void createTransEditVerts(TransInfo *t);
-void recalcData_mesh(TransInfo *t);
 void special_aftertrans_update__mesh(bContext *C, TransInfo *t);
 
 /* transform_convert_mesh_edge.c */
 
-void createTransEdge(TransInfo *t);
-void recalcData_mesh_edge(TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_MeshEdge;
 
 /* transform_convert_mesh_skin.c */
 
-void createTransMeshSkin(TransInfo *t);
-void recalcData_mesh_skin(TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_MeshSkin;
 
 /* transform_convert_mesh_uv.c */
 
-void createTransUVs(bContext *C, TransInfo *t);
-/* helper for recalcData() - for Image Editor transforms */
-void recalcData_uv(TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_MeshUV;
+
+/* transform_convert_mesh_vert_cdata.c */
+
+extern TransConvertTypeInfo TransConvertType_MeshVertCData;
 
 /* transform_convert_nla.c */
 
-void createTransNlaData(bContext *C, TransInfo *t);
-/* helper for recalcData() - for NLA Editor transforms */
-void recalcData_nla(TransInfo *t);
-void special_aftertrans_update__nla(bContext *C, TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_NLA;
 
 /* transform_convert_node.c */
 
-void createTransNodeData(TransInfo *t);
-void flushTransNodes(TransInfo *t);
-void special_aftertrans_update__node(bContext *C, TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_Node;
 
 /* transform_convert_object.c */
 
-void createTransObject(bContext *C, TransInfo *t);
-/* helper for recalcData() - for object transforms, typically in the 3D view */
-void recalcData_objects(TransInfo *t);
-void special_aftertrans_update__object(bContext *C, TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_Object;
 
 /* transform_convert_object_texspace.c */
 
-void createTransTexspace(TransInfo *t);
-/* helper for recalcData() - for object transforms, typically in the 3D view */
-void recalcData_texspace(TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_ObjectTexSpace;
 
 /* transform_convert_paintcurve.c */
 
-void createTransPaintCurveVerts(bContext *C, TransInfo *t);
-void flushTransPaintCurve(TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_PaintCurve;
 
 /* transform_convert_particle.c */
 
-void createTransParticleVerts(TransInfo *t);
-void recalcData_particles(TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_Particle;
 
 /* transform_convert_sculpt.c */
 
-void createTransSculpt(bContext *C, TransInfo *t);
-void recalcData_sculpt(TransInfo *t);
-void special_aftertrans_update__sculpt(bContext *C, TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_Sculpt;
 
 /* transform_convert_sequencer.c */
 
-void createTransSeqData(TransInfo *t);
-/* helper for recalcData() - for sequencer transforms */
-void recalcData_sequencer(TransInfo *t);
-void special_aftertrans_update__sequencer(bContext *C, TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_Sequencer;
 
 /* transform_convert_sequencer_image.c */
 
-void createTransSeqImageData(TransInfo *t);
-void recalcData_sequencer_image(TransInfo *t);
-void special_aftertrans_update__sequencer_image(bContext *C, TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_SequencerImage;
 
 /* transform_convert_tracking.c */
 
-void createTransTrackingData(bContext *C, TransInfo *t);
-/* helper for recalcData() - for Movie Clip transforms */
-void recalcData_tracking(TransInfo *t);
-void special_aftertrans_update__movieclip(bContext *C, TransInfo *t);
+extern TransConvertTypeInfo TransConvertType_Tracking;

@@ -266,7 +266,7 @@ struct float4x4 {
       for (int j = 0; j < 4; j++) {
         snprintf(fchar, sizeof(fchar), "%11.6f", mat[j][i]);
         stream << fchar;
-        if (i != 3) {
+        if (j != 3) {
           stream << ", ";
         }
       }

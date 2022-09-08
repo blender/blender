@@ -9,14 +9,14 @@
  * Copyright (C) 2001 NaN Technologies B.V.
  */
 
-#include "GHOST_ISystem.h"
+#include <stdexcept>
 
-#if defined(WITH_HEADLESS)
-#  include "GHOST_SystemNULL.h"
-#elif defined(WITH_GHOST_X11) && defined(WITH_GHOST_WAYLAND)
+#include "GHOST_ISystem.h"
+#include "GHOST_SystemHeadless.h"
+
+#if defined(WITH_GHOST_X11) && defined(WITH_GHOST_WAYLAND)
 #  include "GHOST_SystemWayland.h"
 #  include "GHOST_SystemX11.h"
-#  include <stdexcept>
 #elif defined(WITH_GHOST_X11)
 #  include "GHOST_SystemX11.h"
 #elif defined(WITH_GHOST_WAYLAND)
@@ -49,31 +49,79 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
 #endif
 
 #if defined(WITH_HEADLESS)
-    m_system = new GHOST_SystemNULL();
+    /* Pass. */
 #elif defined(WITH_GHOST_X11) && defined(WITH_GHOST_WAYLAND)
     /* Special case, try Wayland, fall back to X11. */
     try {
       m_system = has_wayland_libraries ? new GHOST_SystemWayland() : nullptr;
     }
     catch (const std::runtime_error &) {
-      /* fallback to X11. */
       delete m_system;
       m_system = nullptr;
     }
     if (!m_system) {
-      m_system = new GHOST_SystemX11();
+      /* Try to fallback to X11. */
+      try {
+        m_system = new GHOST_SystemX11();
+      }
+      catch (const std::runtime_error &) {
+        delete m_system;
+        m_system = nullptr;
+      }
     }
 #elif defined(WITH_GHOST_X11)
-    m_system = new GHOST_SystemX11();
+    try {
+      m_system = new GHOST_SystemX11();
+    }
+    catch (const std::runtime_error &) {
+      delete m_system;
+      m_system = nullptr;
+    }
 #elif defined(WITH_GHOST_WAYLAND)
-    m_system = has_wayland_libraries ? new GHOST_SystemWayland() : nullptr;
+    try {
+      m_system = has_wayland_libraries ? new GHOST_SystemWayland() : nullptr;
+    }
+    catch (const std::runtime_error &) {
+      delete m_system;
+      m_system = nullptr;
+    }
 #elif defined(WITH_GHOST_SDL)
-    m_system = new GHOST_SystemSDL();
+    try {
+      m_system = new GHOST_SystemSDL();
+    }
+    catch (const std::runtime_error &) {
+      delete m_system;
+      m_system = nullptr;
+    }
 #elif defined(WIN32)
     m_system = new GHOST_SystemWin32();
 #elif defined(__APPLE__)
     m_system = new GHOST_SystemCocoa();
 #endif
+    success = m_system != nullptr ? GHOST_kSuccess : GHOST_kFailure;
+  }
+  else {
+    success = GHOST_kFailure;
+  }
+  if (success) {
+    success = m_system->init();
+  }
+  return success;
+}
+
+GHOST_TSuccess GHOST_ISystem::createSystemBackground()
+{
+  GHOST_TSuccess success;
+  if (!m_system) {
+#if !defined(WITH_HEADLESS)
+    /* Try to create a off-screen render surface with the graphical systems. */
+    success = createSystem();
+    if (success) {
+      return success;
+    }
+    /* Try to fallback to headless mode if all else fails. */
+#endif
+    m_system = new GHOST_SystemHeadless();
     success = m_system != nullptr ? GHOST_kSuccess : GHOST_kFailure;
   }
   else {

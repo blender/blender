@@ -294,7 +294,7 @@ void ED_screen_refresh(struct wmWindowManager *wm, struct wmWindow *win);
 void ED_screen_ensure_updated(struct wmWindowManager *wm,
                               struct wmWindow *win,
                               struct bScreen *screen);
-void ED_screen_do_listen(struct bContext *C, struct wmNotifier *note);
+void ED_screen_do_listen(struct bContext *C, const struct wmNotifier *note);
 /**
  * \brief Change the active screen.
  *

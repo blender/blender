@@ -39,7 +39,7 @@ void ED_image_draw_cursor(ARegion *region, const float cursor[2])
   const uint shdr_pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);

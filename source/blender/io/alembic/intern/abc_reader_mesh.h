@@ -5,6 +5,8 @@
  * \ingroup balembic
  */
 
+#include "BLI_span.hh"
+
 #include "abc_customdata.h"
 #include "abc_reader_object.h"
 
@@ -38,10 +40,9 @@ class AbcMeshReader final : public AbcObjectReader {
                           Mesh *mesh,
                           const Alembic::AbcGeom::ISampleSelector &sample_sel);
 
-  void assign_facesets_to_mpoly(const Alembic::Abc::ISampleSelector &sample_sel,
-                                MPoly *mpoly,
-                                int totpoly,
-                                std::map<std::string, int> &r_mat_map);
+  void assign_facesets_to_material_indices(const Alembic::Abc::ISampleSelector &sample_sel,
+                                           MutableSpan<int> material_indices,
+                                           std::map<std::string, int> &r_mat_map);
 };
 
 class AbcSubDReader final : public AbcObjectReader {

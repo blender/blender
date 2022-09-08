@@ -111,7 +111,7 @@ void BKE_id_attribute_copy_domains_temp(short UNUSED(id_type),
                                         const struct CustomData *UNUSED(ldata),
                                         const struct CustomData *UNUSED(pdata),
                                         const struct CustomData *UNUSED(cdata),
-                                        struct ID *UNUSED(i_id))
+                                        struct ID *UNUSED(r_id))
 {
 }
 
@@ -137,7 +137,7 @@ eAttrDomain BKE_id_attribute_domain(const struct ID *UNUSED(id),
 /** \name Stubs of BKE_paint.h
  * \{ */
 bool paint_is_face_hidden(const struct MLoopTri *UNUSED(lt),
-                          const struct MVert *UNUSED(mvert),
+                          const bool *UNUSED(hide_vert),
                           const struct MLoop *UNUSED(mloop))
 {
   BLI_assert_unreachable();
@@ -223,6 +223,18 @@ int CustomData_get_render_layer_index(const struct CustomData *UNUSED(data), int
 bool CustomData_has_layer(const struct CustomData *UNUSED(data), int UNUSED(type))
 {
   return false;
+}
+
+void *CustomData_get_layer_named(const struct CustomData *UNUSED(data),
+                                 int UNUSED(type),
+                                 const char *UNUSED(name))
+{
+  return nullptr;
+}
+
+void *CustomData_get_layer(const struct CustomData *UNUSED(data), int UNUSED(type))
+{
+  return nullptr;
 }
 
 /** \} */

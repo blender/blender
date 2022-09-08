@@ -30,6 +30,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 
@@ -348,7 +349,8 @@ static void lattice_deform_coords_impl(const Object *ob_lattice,
    * We want either a Mesh/Lattice with no derived data, or derived data with deformverts.
    */
   if (defgrp_name && defgrp_name[0] && ob_target && ELEM(ob_target->type, OB_MESH, OB_LATTICE)) {
-    defgrp_index = BKE_id_defgroup_name_index((ID *)ob_target->data, defgrp_name);
+    defgrp_index = BKE_id_defgroup_name_index(me_target ? &me_target->id : (ID *)ob_target->data,
+                                              defgrp_name);
 
     if (defgrp_index != -1) {
       /* if there's derived data without deformverts, don't use vgroups */
@@ -362,7 +364,7 @@ static void lattice_deform_coords_impl(const Object *ob_lattice,
         dvert = ((Lattice *)ob_target->data)->dvert;
       }
       else {
-        dvert = ((Mesh *)ob_target->data)->dvert;
+        dvert = BKE_mesh_deform_verts((Mesh *)ob_target->data);
       }
     }
   }

@@ -27,8 +27,8 @@ static void geometry_set_collect_recursive_collection(const Collection &collecti
 
 static void add_final_mesh_as_geometry_component(const Object &object, GeometrySet &geometry_set)
 {
-  Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(&const_cast<Object &>(object),
-                                                                     false);
+  Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(
+      &const_cast<Object &>(object));
 
   if (mesh != nullptr) {
     BKE_mesh_wrapper_ensure_mdata(mesh);

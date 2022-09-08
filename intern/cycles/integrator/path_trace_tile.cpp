@@ -33,7 +33,7 @@ bool PathTraceTile::get_pass_pixels(const string_view pass_name,
   if (!copied_from_device_) {
     /* Copy from device on demand. */
     path_trace_.copy_render_tile_from_device();
-    const_cast<PathTraceTile *>(this)->copied_from_device_ = true;
+    copied_from_device_ = true;
   }
 
   const BufferParams &buffer_params = path_trace_.get_render_tile_params();

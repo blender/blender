@@ -1,10 +1,4 @@
 
-uniform vec2 extent;
-uniform vec2 offset;
-uniform vec2 size;
-out vec2 texCoord_interp;
-in vec2 pos;
-
 void main()
 {
   vec4 rect = vec4(offset.x, offset.y, offset.x + extent.x, offset.y + extent.y);

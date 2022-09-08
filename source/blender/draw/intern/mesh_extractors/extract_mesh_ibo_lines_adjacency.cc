@@ -119,16 +119,17 @@ static void extract_lines_adjacency_iter_looptri_mesh(const MeshRenderData *mr,
                                                       void *_data)
 {
   MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(_data);
-  const MPoly *mp = &mr->mpoly[mlt->poly];
-  if (!(mr->use_hide && (mp->flag & ME_HIDE))) {
-    lines_adjacency_triangle(mr->mloop[mlt->tri[0]].v,
-                             mr->mloop[mlt->tri[1]].v,
-                             mr->mloop[mlt->tri[2]].v,
-                             mlt->tri[0],
-                             mlt->tri[1],
-                             mlt->tri[2],
-                             data);
+  const bool hidden = mr->use_hide && mr->hide_poly && mr->hide_poly[mlt->poly];
+  if (hidden) {
+    return;
   }
+  lines_adjacency_triangle(mr->mloop[mlt->tri[0]].v,
+                           mr->mloop[mlt->tri[1]].v,
+                           mr->mloop[mlt->tri[2]].v,
+                           mlt->tri[0],
+                           mlt->tri[1],
+                           mlt->tri[2],
+                           data);
 }
 
 static void extract_lines_adjacency_finish(const MeshRenderData *UNUSED(mr),

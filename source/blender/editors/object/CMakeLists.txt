@@ -21,7 +21,6 @@ set(INC
   ../../shader_fx
   ../../windowmanager
   ../../../../intern/clog
-  ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
 
   # dna_type_offsets.h in BLO_read_write.h
@@ -53,7 +52,7 @@ set(SRC
   object_shapekey.c
   object_transform.cc
   object_utils.c
-  object_vgroup.c
+  object_vgroup.cc
   object_volume.c
   object_warp.c
 
@@ -76,7 +75,6 @@ endif()
 if(WITH_EXPERIMENTAL_FEATURES)
   add_definitions(-DWITH_SIMULATION_DATABLOCK)
   add_definitions(-DWITH_POINT_CLOUD)
-  add_definitions(-DWITH_NEW_CURVES_TYPE)
 endif()
 
 blender_add_lib(bf_editor_object "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

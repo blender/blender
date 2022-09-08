@@ -40,6 +40,47 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="3.3" date="2022-09-07">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>New hair system</li>
+                    <li>Cycles Rendering on Intel Arc GPUs</li>
+                    <li>Grease Pencil Light and Shadow calculations</li>
+                    <li>Motion Tracker Image Plane Marker</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Faster Line Art loading time</li>
+                    <li>Library Overrides improvements</li>
+                    <li>Massive performance gains importing large amounts of objects in USD, Alembic, and OBJ</li>
+                    <li>UV improvements</li>
+                    <li>Improved sculpting performance in EEVEE</li>
+                    <li>Cycles GPU rendering improvements for AMD GPUs and Apple Silicon</li>
+                </ul>
+            </description>
+        </release>
+        <release version="3.2" date="2022-06-08">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Cycles Light Groups</li>
+                    <li>Cycles Shadow Caustics using Manifold Next Event Estimation</li>
+                    <li>New Tools and usability improvements for Polygon Painting</li>
+                    <li>More Geometry Nodes, including Duplicate Elements</li>
+                    <li>Asset Browser: Support for Asset Collections</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Enhanced channels in the video sequencer</li>
+                    <li>Support for WebP format</li>
+                    <li>New experimental OBJ importer</li>
+                    <li>Motion Paths improvements</li>
+                    <li>Grease Pencil Envelope Modifier</li>
+                    <li>New Curve Pen Tool</li>
+                </ul>
+            </description>
+        </release>
         <release version="3.1" date="2022-03-09">
             <description>
                 <p>New features:</p>

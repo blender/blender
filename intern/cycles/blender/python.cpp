@@ -59,8 +59,6 @@ static void debug_flags_sync_from_scene(BL::Scene b_scene)
 {
   DebugFlagsRef flags = DebugFlags();
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
-  /* Synchronize shared flags. */
-  flags.viewport_static_bvh = get_enum(cscene, "debug_bvh_type");
   /* Synchronize CPU flags. */
   flags.cpu.avx2 = get_boolean(cscene, "debug_use_cpu_avx2");
   flags.cpu.avx = get_boolean(cscene, "debug_use_cpu_avx");
@@ -139,8 +137,6 @@ static PyObject *init_func(PyObject * /*self*/, PyObject *args)
   Py_XDECREF(user_path_coerce);
 
   BlenderSession::headless = headless;
-
-  DebugFlags().running_inside_blender = true;
 
   Py_RETURN_NONE;
 }

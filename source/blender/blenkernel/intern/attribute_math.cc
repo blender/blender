@@ -4,13 +4,31 @@
 
 namespace blender::attribute_math {
 
-ColorGeometry4fMixer::ColorGeometry4fMixer(MutableSpan<ColorGeometry4f> output_buffer,
+ColorGeometry4fMixer::ColorGeometry4fMixer(MutableSpan<ColorGeometry4f> buffer,
                                            ColorGeometry4f default_color)
-    : buffer_(output_buffer),
-      default_color_(default_color),
-      total_weights_(output_buffer.size(), 0.0f)
+    : ColorGeometry4fMixer(buffer, buffer.index_range(), default_color)
 {
-  buffer_.fill(ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
+}
+
+ColorGeometry4fMixer::ColorGeometry4fMixer(MutableSpan<ColorGeometry4f> buffer,
+                                           const IndexMask mask,
+                                           const ColorGeometry4f default_color)
+    : buffer_(buffer), default_color_(default_color), total_weights_(buffer.size(), 0.0f)
+{
+  const ColorGeometry4f zero{0.0f, 0.0f, 0.0f, 0.0f};
+  mask.foreach_index([&](const int64_t i) { buffer_[i] = zero; });
+}
+
+void ColorGeometry4fMixer::set(const int64_t index,
+                               const ColorGeometry4f &color,
+                               const float weight)
+{
+  BLI_assert(weight >= 0.0f);
+  buffer_[index].r = color.r * weight;
+  buffer_[index].g = color.g * weight;
+  buffer_[index].b = color.b * weight;
+  buffer_[index].a = color.a * weight;
+  total_weights_[index] = weight;
 }
 
 void ColorGeometry4fMixer::mix_in(const int64_t index,
@@ -28,7 +46,12 @@ void ColorGeometry4fMixer::mix_in(const int64_t index,
 
 void ColorGeometry4fMixer::finalize()
 {
-  for (const int64_t i : buffer_.index_range()) {
+  this->finalize(buffer_.index_range());
+}
+
+void ColorGeometry4fMixer::finalize(const IndexMask mask)
+{
+  mask.foreach_index([&](const int64_t i) {
     const float weight = total_weights_[i];
     ColorGeometry4f &output_color = buffer_[i];
     if (weight > 0.0f) {
@@ -41,16 +64,37 @@ void ColorGeometry4fMixer::finalize()
     else {
       output_color = default_color_;
     }
-  }
+  });
 }
 
 ColorGeometry4bMixer::ColorGeometry4bMixer(MutableSpan<ColorGeometry4b> buffer,
-                                           ColorGeometry4b default_color)
+                                           const ColorGeometry4b default_color)
+    : ColorGeometry4bMixer(buffer, buffer.index_range(), default_color)
+{
+}
+
+ColorGeometry4bMixer::ColorGeometry4bMixer(MutableSpan<ColorGeometry4b> buffer,
+                                           const IndexMask mask,
+                                           const ColorGeometry4b default_color)
     : buffer_(buffer),
       default_color_(default_color),
       total_weights_(buffer.size(), 0.0f),
       accumulation_buffer_(buffer.size(), float4(0, 0, 0, 0))
 {
+  const ColorGeometry4b zero{0, 0, 0, 0};
+  mask.foreach_index([&](const int64_t i) { buffer_[i] = zero; });
+}
+
+void ColorGeometry4bMixer::ColorGeometry4bMixer::set(int64_t index,
+                                                     const ColorGeometry4b &color,
+                                                     const float weight)
+{
+  BLI_assert(weight >= 0.0f);
+  accumulation_buffer_[index][0] = color.r * weight;
+  accumulation_buffer_[index][1] = color.g * weight;
+  accumulation_buffer_[index][2] = color.b * weight;
+  accumulation_buffer_[index][3] = color.a * weight;
+  total_weights_[index] = weight;
 }
 
 void ColorGeometry4bMixer::mix_in(int64_t index, const ColorGeometry4b &color, float weight)
@@ -66,7 +110,12 @@ void ColorGeometry4bMixer::mix_in(int64_t index, const ColorGeometry4b &color, f
 
 void ColorGeometry4bMixer::finalize()
 {
-  for (const int64_t i : buffer_.index_range()) {
+  this->finalize(buffer_.index_range());
+}
+
+void ColorGeometry4bMixer::finalize(const IndexMask mask)
+{
+  mask.foreach_index([&](const int64_t i) {
     const float weight = total_weights_[i];
     const float4 &accum_value = accumulation_buffer_[i];
     ColorGeometry4b &output_color = buffer_[i];
@@ -80,7 +129,7 @@ void ColorGeometry4bMixer::finalize()
     else {
       output_color = default_color_;
     }
-  }
+  });
 }
 
 }  // namespace blender::attribute_math

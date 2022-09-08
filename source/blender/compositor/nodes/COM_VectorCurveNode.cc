@@ -15,7 +15,7 @@ void VectorCurveNode::convert_to_operations(NodeConverter &converter,
                                             const CompositorContext & /*context*/) const
 {
   VectorCurveOperation *operation = new VectorCurveOperation();
-  operation->set_curve_mapping((CurveMapping *)this->get_bnode()->storage);
+  operation->set_curve_mapping((const CurveMapping *)this->get_bnode()->storage);
   converter.add_operation(operation);
 
   converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));

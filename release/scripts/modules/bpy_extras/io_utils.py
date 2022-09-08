@@ -21,6 +21,7 @@ from bpy.props import (
     EnumProperty,
     StringProperty,
 )
+from bpy.app.translations import pgettext_data as data_
 
 
 def _check_axis_conversion(op):
@@ -56,7 +57,7 @@ class ExportHelper:
         if not self.filepath:
             blend_filepath = context.blend_data.filepath
             if not blend_filepath:
-                blend_filepath = "untitled"
+                blend_filepath = data_("untitled")
             else:
                 blend_filepath = os.path.splitext(blend_filepath)[0]
 

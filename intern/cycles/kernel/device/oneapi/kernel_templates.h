@@ -80,7 +80,7 @@ void oneapi_call(
   (x, ##__VA_ARGS__)
 
 /* This template automatically casts entries in the void **args array to the types requested by the kernel func.
-   Since kernel parameters are passed as void ** to the device, this is the closest that we have to type safety. */
+ * Since kernel parameters are passed as void ** to the device, this is the closest that we have to type safety. */
 #define oneapi_template(...) \
   template<ONEAPI_CALL_FOR(ONEAPI_TYP, __VA_ARGS__)> \
   void oneapi_call( \

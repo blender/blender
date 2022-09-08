@@ -138,8 +138,6 @@ GHOST_TSuccess GHOST_ContextSDL::initializeDrawingContext()
 
     success = (SDL_GL_MakeCurrent(m_window, m_context) < 0) ? GHOST_kFailure : GHOST_kSuccess;
 
-    initContextGLEW();
-
     initClearGL();
     SDL_GL_SwapWindow(m_window);
 

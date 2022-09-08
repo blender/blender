@@ -334,6 +334,7 @@ typedef enum eAnimFilter_Flags {
   ANIMFILTER_TMP_IGNORE_ONLYSEL = (1u << 31),
 
 } eAnimFilter_Flags;
+ENUM_OPERATORS(eAnimFilter_Flags, ANIMFILTER_TMP_IGNORE_ONLYSEL);
 
 /** \} */
 
@@ -1046,6 +1047,8 @@ void ED_keymap_anim(struct wmKeyConfig *keyconf);
 void ED_operatormacros_graph(void);
 /* space_action */
 void ED_operatormacros_action(void);
+/* space_nla*/
+void ED_operatormacros_nla(void);
 
 /** \} */
 

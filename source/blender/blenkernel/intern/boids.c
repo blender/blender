@@ -1567,7 +1567,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
   cross_v3_v3v3(mat[1], mat[2], mat[0]);
 
   /* apply rotation */
-  mat3_to_quat_is_ok(q, mat);
+  mat3_to_quat_legacy(q, mat);
   copy_qt_qt(pa->state.rot, q);
 }
 

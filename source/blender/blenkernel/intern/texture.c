@@ -96,6 +96,7 @@ static void texture_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const i
       BKE_id_copy_ex(
           bmain, (ID *)texture_src->nodetree, (ID **)&texture_dst->nodetree, flag_private_id_data);
     }
+    texture_dst->nodetree->owner_id = &texture_dst->id;
   }
 
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {

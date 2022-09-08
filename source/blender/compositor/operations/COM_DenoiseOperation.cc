@@ -163,7 +163,7 @@ void DenoiseOperation::deinit_execution()
   SingleThreadedOperation::deinit_execution();
 }
 
-static bool are_guiding_passes_noise_free(NodeDenoise *settings)
+static bool are_guiding_passes_noise_free(const NodeDenoise *settings)
 {
   switch (settings->prefilter) {
     case CMP_NODE_DENOISE_PREFILTER_NONE:
@@ -201,7 +201,7 @@ void DenoiseOperation::generate_denoise(MemoryBuffer *output,
                                         MemoryBuffer *input_color,
                                         MemoryBuffer *input_normal,
                                         MemoryBuffer *input_albedo,
-                                        NodeDenoise *settings)
+                                        const NodeDenoise *settings)
 {
   BLI_assert(input_color->get_buffer());
   if (!input_color->get_buffer()) {

@@ -151,19 +151,6 @@ static bool egl_chk(bool result,
 #  define EGL_CHK(x) egl_chk(x)
 #endif
 
-static inline bool bindAPI(EGLenum api)
-{
-  if (EGLEW_VERSION_1_2) {
-    return (EGL_CHK(eglBindAPI(api)) == EGL_TRUE);
-  }
-
-  return false;
-}
-
-#ifdef WITH_GL_ANGLE
-HMODULE GHOST_ContextEGL::s_d3dcompiler = nullptr;
-#endif
-
 EGLContext GHOST_ContextEGL::s_gl_sharedContext = EGL_NO_CONTEXT;
 EGLint GHOST_ContextEGL::s_gl_sharedCount = 0;
 
@@ -256,7 +243,7 @@ GHOST_TSuccess GHOST_ContextEGL::swapBuffers()
 
 GHOST_TSuccess GHOST_ContextEGL::setSwapInterval(int interval)
 {
-  if (EGLEW_VERSION_1_1) {
+  if (epoxy_egl_version(m_display) >= 11) {
     if (EGL_CHK(::eglSwapInterval(m_display, interval))) {
       m_swap_interval = interval;
 
@@ -313,26 +300,13 @@ GHOST_TSuccess GHOST_ContextEGL::releaseDrawingContext()
   return GHOST_kFailure;
 }
 
-bool GHOST_ContextEGL::initContextEGLEW()
+inline bool GHOST_ContextEGL::bindAPI(EGLenum api)
 {
-  /* We have to manually get this function before we can call eglewInit, since
-   * it requires a display argument. glewInit() does the same, but we only want
-   * to initialize EGLEW here. */
-  eglGetDisplay = (PFNEGLGETDISPLAYPROC)eglGetProcAddress("eglGetDisplay");
-  if (eglGetDisplay == nullptr) {
-    return false;
+  if (epoxy_egl_version(m_display) >= 12) {
+    return (EGL_CHK(eglBindAPI(api)) == EGL_TRUE);
   }
 
-  if (!EGL_CHK((m_display = ::eglGetDisplay(m_nativeDisplay)) != EGL_NO_DISPLAY)) {
-    return false;
-  }
-
-  if (GLEW_CHK(eglewInit(m_display)) != GLEW_OK) {
-    fprintf(stderr, "Warning! EGLEW failed to initialize properly.\n");
-    return false;
-  }
-
-  return true;
+  return false;
 }
 
 static const std::string &api_string(EGLenum api)
@@ -355,33 +329,40 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
   }
   m_stereoVisual = false; /* It doesn't matter what the Window wants. */
 
-  if (!initContextEGLEW()) {
-    return GHOST_kFailure;
-  }
-
-#ifdef WITH_GL_ANGLE
-  /* `d3dcompiler_XX.dll` needs to be loaded before ANGLE will work. */
-  if (s_d3dcompiler == nullptr) {
-    s_d3dcompiler = LoadLibrary(D3DCOMPILER);
-
-    WIN32_CHK(s_d3dcompiler != nullptr);
-
-    if (s_d3dcompiler == nullptr) {
-      fprintf(stderr, "LoadLibrary(\"" D3DCOMPILER "\") failed!\n");
-      return GHOST_kFailure;
-    }
-  }
-#endif
-
   EGLDisplay prev_display = eglGetCurrentDisplay();
   EGLSurface prev_draw = eglGetCurrentSurface(EGL_DRAW);
   EGLSurface prev_read = eglGetCurrentSurface(EGL_READ);
   EGLContext prev_context = eglGetCurrentContext();
 
-  EGLint egl_major, egl_minor;
+  EGLint egl_major = 0, egl_minor = 0;
 
-  if (!EGL_CHK(::eglInitialize(m_display, &egl_major, &egl_minor))) {
+  if (!EGL_CHK((m_display = ::eglGetDisplay(m_nativeDisplay)) != EGL_NO_DISPLAY)) {
     goto error;
+  }
+
+  if (!EGL_CHK(::eglInitialize(m_display, &egl_major, &egl_minor)) ||
+      (egl_major == 0 && egl_minor == 0)) {
+    /* We failed to create a regular render window, retry and see if we can create a headless
+     * render context. */
+    ::eglTerminate(m_display);
+
+    const char *egl_extension_st = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
+    assert(egl_extension_st != nullptr);
+    assert(strstr(egl_extension_st, "EGL_MESA_platform_surfaceless") != nullptr);
+    if (egl_extension_st == nullptr ||
+        strstr(egl_extension_st, "EGL_MESA_platform_surfaceless") == nullptr) {
+      goto error;
+    }
+
+    m_display = eglGetPlatformDisplayEXT(
+        EGL_PLATFORM_SURFACELESS_MESA, EGL_DEFAULT_DISPLAY, nullptr);
+
+    if (!EGL_CHK(::eglInitialize(m_display, &egl_major, &egl_minor))) {
+      goto error;
+    }
+    /* Because the first eglInitialize will print an error to the terminal, print a "success"
+     * message here to let the user know that we successfully recovered from the error. */
+    fprintf(stderr, "\nManaged to successfully fallback to surfaceless EGL rendering!\n\n");
   }
 #ifdef WITH_GHOST_DEBUG
   fprintf(stderr, "EGL Version %d.%d\n", egl_major, egl_minor);
@@ -398,7 +379,7 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
 
   attrib_list.reserve(20);
 
-  if (m_api == EGL_OPENGL_ES_API && EGLEW_VERSION_1_2) {
+  if (m_api == EGL_OPENGL_ES_API && epoxy_egl_version(m_display) >= 12) {
     /* According to the spec it seems that you are required to set EGL_RENDERABLE_TYPE,
      * but some implementations (ANGLE) do not seem to care. */
 
@@ -421,9 +402,11 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
               m_contextMinorVersion);
     }
 
-    if (!((m_contextMajorVersion == 1) || (m_contextMajorVersion == 2 && EGLEW_VERSION_1_3) ||
-          (m_contextMajorVersion == 3 && /*EGLEW_VERSION_1_4 &&*/ EGLEW_KHR_create_context) ||
-          (m_contextMajorVersion == 3 && EGLEW_VERSION_1_5))) {
+    if (!((m_contextMajorVersion == 1) ||
+          (m_contextMajorVersion == 2 && epoxy_egl_version(m_display) >= 13) ||
+          (m_contextMajorVersion == 3 &&
+           epoxy_has_egl_extension(m_display, "KHR_create_context")) ||
+          (m_contextMajorVersion == 3 && epoxy_egl_version(m_display) >= 15))) {
       fprintf(stderr,
               "Warning! May not be able to create a version %d.%d ES context with version %d.%d "
               "of EGL\n",
@@ -488,7 +471,8 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
   }
   attrib_list.clear();
 
-  if (EGLEW_VERSION_1_5 || EGLEW_KHR_create_context) {
+  if (epoxy_egl_version(m_display) >= 15 ||
+      epoxy_has_egl_extension(m_display, "KHR_create_context")) {
     if (m_api == EGL_OPENGL_API || m_api == EGL_OPENGL_ES_API) {
       if (m_contextMajorVersion != 0) {
         attrib_list.push_back(EGL_CONTEXT_MAJOR_VERSION_KHR);
@@ -530,7 +514,7 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
       }
     }
 
-    if (m_api == EGL_OPENGL_API || EGLEW_VERSION_1_5) {
+    if (m_api == EGL_OPENGL_API || epoxy_egl_version(m_display) >= 15) {
       if (m_contextResetNotificationStrategy != 0) {
         attrib_list.push_back(EGL_CONTEXT_OPENGL_RESET_NOTIFICATION_STRATEGY_KHR);
         attrib_list.push_back(m_contextResetNotificationStrategy);
@@ -598,10 +582,10 @@ GHOST_TSuccess GHOST_ContextEGL::initializeDrawingContext()
     goto error;
   }
 
-  initContextGLEW();
-
-  initClearGL();
-  ::eglSwapBuffers(m_display, m_surface);
+  if (m_nativeWindow != 0) {
+    initClearGL();
+    ::eglSwapBuffers(m_display, m_surface);
+  }
 
   return GHOST_kSuccess;
 

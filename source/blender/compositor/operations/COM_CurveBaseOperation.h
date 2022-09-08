@@ -26,7 +26,7 @@ class CurveBaseOperation : public MultiThreadedOperation {
   void init_execution() override;
   void deinit_execution() override;
 
-  void set_curve_mapping(CurveMapping *mapping);
+  void set_curve_mapping(const CurveMapping *mapping);
 };
 
 }  // namespace blender::compositor

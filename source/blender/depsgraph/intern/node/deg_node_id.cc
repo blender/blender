@@ -69,7 +69,8 @@ void IDNode::init(const ID *id, const char *UNUSED(subdata))
   customdata_masks = DEGCustomDataMeshMasks();
   previous_customdata_masks = DEGCustomDataMeshMasks();
   linked_state = DEG_ID_LINKED_INDIRECTLY;
-  is_directly_visible = true;
+  is_visible_on_build = true;
+  is_enabled_on_eval = true;
   is_collection_fully_expanded = false;
   has_base = false;
   is_user_modified = false;
@@ -138,8 +139,8 @@ string IDNode::identifier() const
   BLI_snprintf(orig_ptr, sizeof(orig_ptr), "%p", id_orig);
   BLI_snprintf(cow_ptr, sizeof(cow_ptr), "%p", id_cow);
   return string(nodeTypeAsString(type)) + " : " + name + " (orig: " + orig_ptr +
-         ", eval: " + cow_ptr + ", is_directly_visible " +
-         (is_directly_visible ? "true" : "false") + ")";
+         ", eval: " + cow_ptr + ", is_visible_on_build " +
+         (is_visible_on_build ? "true" : "false") + ")";
 }
 
 ComponentNode *IDNode::find_component(NodeType type, const char *name) const
@@ -188,7 +189,7 @@ IDComponentsMask IDNode::get_visible_components_mask() const
 {
   IDComponentsMask result = 0;
   for (ComponentNode *comp_node : components.values()) {
-    if (comp_node->affects_directly_visible) {
+    if (comp_node->possibly_affects_visible_id) {
       const int component_type_as_int = static_cast<int>(comp_node->type);
       BLI_assert(component_type_as_int < 64);
       result |= (1ULL << component_type_as_int);

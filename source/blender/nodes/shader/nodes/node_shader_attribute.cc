@@ -36,6 +36,7 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
 {
   NodeShaderAttribute *attr = static_cast<NodeShaderAttribute *>(node->storage);
   bool is_varying = attr->type == SHD_ATTRIBUTE_GEOMETRY;
+  float attr_hash = 0.0f;
 
   GPUNodeLink *cd_attr;
 
@@ -43,7 +44,12 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
     cd_attr = GPU_attribute(mat, CD_AUTO_FROM_NAME, attr->name);
   }
   else {
-    cd_attr = GPU_uniform_attribute(mat, attr->name, attr->type == SHD_ATTRIBUTE_INSTANCER);
+    cd_attr = GPU_uniform_attribute(mat,
+                                    attr->name,
+                                    attr->type == SHD_ATTRIBUTE_INSTANCER,
+                                    reinterpret_cast<uint32_t *>(&attr_hash));
+
+    GPU_link(mat, "node_attribute_uniform", cd_attr, GPU_constant(&attr_hash), &cd_attr);
   }
 
   if (STREQ(attr->name, "color")) {
@@ -55,9 +61,11 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
 
   GPU_stack_link(mat, node, "node_attribute", in, out, cd_attr);
 
-  int i;
-  LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->outputs, i) {
-    node_shader_gpu_bump_tex_coord(mat, node, &out[i].link);
+  if (is_varying) {
+    int i;
+    LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->outputs, i) {
+      node_shader_gpu_bump_tex_coord(mat, node, &out[i].link);
+    }
   }
 
   return 1;

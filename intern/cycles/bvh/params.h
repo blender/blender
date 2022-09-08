@@ -39,10 +39,10 @@ enum BVHType {
   BVH_NUM_TYPES,
 };
 
-/* Names bitflag type to denote which BVH layouts are supported by
+/* Names bit-flag type to denote which BVH layouts are supported by
  * particular area.
  *
- * Bitflags are the BVH_LAYOUT_* values.
+ * Bit-flags are the BVH_LAYOUT_* values.
  */
 typedef int BVHLayoutMask;
 
@@ -129,7 +129,7 @@ class BVHParams {
 
     top_level = false;
     bvh_layout = BVH_LAYOUT_BVH2;
-    use_compact_structure = true;
+    use_compact_structure = false;
     use_unaligned_nodes = false;
 
     num_motion_curve_steps = 0;

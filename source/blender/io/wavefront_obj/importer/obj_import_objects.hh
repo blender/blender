@@ -9,9 +9,10 @@
 #include "BKE_lib_id.h"
 
 #include "BLI_map.hh"
+#include "BLI_math_base.hh"
 #include "BLI_math_vec_types.hh"
+#include "BLI_set.hh"
 #include "BLI_vector.hh"
-#include "BLI_vector_set.hh"
 
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -92,7 +93,11 @@ struct Geometry {
 
   int vertex_index_min_ = INT_MAX;
   int vertex_index_max_ = -1;
-  /** Edges written in the file in addition to (or even without polygon) elements. */
+  /* Global vertex indices used by this geometry. */
+  Set<int> vertices_;
+  /* Mapping from global vertex index to geometry-local vertex index. */
+  Map<int, int> global_to_local_vertices_;
+  /* Loose edges in the file. */
   Vector<MEdge> edges_;
 
   Vector<PolyCorner> face_corners_;
@@ -105,14 +110,22 @@ struct Geometry {
 
   int get_vertex_count() const
   {
-    if (vertex_index_max_ < vertex_index_min_)
-      return 0;
-    return vertex_index_max_ - vertex_index_min_ + 1;
+    return (int)vertices_.size();
   }
   void track_vertex_index(int index)
   {
-    vertex_index_min_ = std::min(vertex_index_min_, index);
-    vertex_index_max_ = std::max(vertex_index_max_, index);
+    vertices_.add(index);
+    math::min_inplace(vertex_index_min_, index);
+    math::max_inplace(vertex_index_max_, index);
+  }
+  void track_all_vertices(int count)
+  {
+    vertices_.reserve(count);
+    for (int i = 0; i < count; ++i) {
+      vertices_.add(i);
+    }
+    vertex_index_min_ = 0;
+    vertex_index_max_ = count - 1;
   }
 };
 

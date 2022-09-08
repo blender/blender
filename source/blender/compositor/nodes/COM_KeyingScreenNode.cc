@@ -14,7 +14,7 @@ KeyingScreenNode::KeyingScreenNode(bNode *editor_node) : Node(editor_node)
 void KeyingScreenNode::convert_to_operations(NodeConverter &converter,
                                              const CompositorContext &context) const
 {
-  bNode *editor_node = this->get_bnode();
+  const bNode *editor_node = this->get_bnode();
   MovieClip *clip = (MovieClip *)editor_node->id;
   NodeKeyingScreenData *keyingscreen_data = (NodeKeyingScreenData *)editor_node->storage;
 

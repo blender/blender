@@ -18,6 +18,26 @@ struct Mesh;
 struct MFace;
 
 /**
+ * Convert the hidden element attributes to the old flag format for writing.
+ */
+void BKE_mesh_legacy_convert_hide_layers_to_flags(struct Mesh *mesh);
+/**
+ * Convert the old hide flags (#ME_HIDE) to the hidden element attribute for reading.
+ * Only add the attributes when there are any elements in each domain hidden.
+ */
+void BKE_mesh_legacy_convert_flags_to_hide_layers(struct Mesh *mesh);
+
+/**
+ * Move material indices from a generic attribute to #MPoly.
+ */
+void BKE_mesh_legacy_convert_material_indices_to_mpoly(struct Mesh *mesh);
+/**
+ * Move material indices from the #MPoly struct to a generic attributes.
+ * Only add the attribute when the indices are not all zero.
+ */
+void BKE_mesh_legacy_convert_mpoly_to_material_indices(struct Mesh *mesh);
+
+/**
  * Recreate #MFace Tessellation.
  *
  * \note This doesn't use multi-threading like #BKE_mesh_recalc_looptri since

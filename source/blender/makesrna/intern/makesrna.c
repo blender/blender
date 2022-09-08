@@ -826,7 +826,23 @@ static char *rna_def_property_get_func(
         fprintf(f, "{\n");
 
         if (manualfunc) {
-          fprintf(f, "    %s(ptr, values);\n", manualfunc);
+          /* Assign `fn` to ensure function signatures match. */
+          if (prop->type == PROP_BOOLEAN) {
+            fprintf(f, "    PropBooleanArrayGetFunc fn = %s;\n", manualfunc);
+            fprintf(f, "    fn(ptr, values);\n");
+          }
+          else if (prop->type == PROP_INT) {
+            fprintf(f, "    PropIntArrayGetFunc fn = %s;\n", manualfunc);
+            fprintf(f, "    fn(ptr, values);\n");
+          }
+          else if (prop->type == PROP_FLOAT) {
+            fprintf(f, "    PropFloatArrayGetFunc fn = %s;\n", manualfunc);
+            fprintf(f, "    fn(ptr, values);\n");
+          }
+          else {
+            BLI_assert_unreachable(); /* Valid but should be handled by type checks. */
+            fprintf(f, "    %s(ptr, values);\n", manualfunc);
+          }
         }
         else {
           rna_print_data_get(f, dp);
@@ -902,7 +918,27 @@ static char *rna_def_property_get_func(
         fprintf(f, "{\n");
 
         if (manualfunc) {
-          fprintf(f, "    return %s(ptr);\n", manualfunc);
+          /* Assign `fn` to ensure function signatures match. */
+          if (prop->type == PROP_BOOLEAN) {
+            fprintf(f, "    PropBooleanGetFunc fn = %s;\n", manualfunc);
+            fprintf(f, "    return fn(ptr);\n");
+          }
+          else if (prop->type == PROP_INT) {
+            fprintf(f, "    PropIntGetFunc fn = %s;\n", manualfunc);
+            fprintf(f, "    return fn(ptr);\n");
+          }
+          else if (prop->type == PROP_FLOAT) {
+            fprintf(f, "    PropFloatGetFunc fn = %s;\n", manualfunc);
+            fprintf(f, "    return fn(ptr);\n");
+          }
+          else if (prop->type == PROP_ENUM) {
+            fprintf(f, "    PropEnumGetFunc fn = %s;\n", manualfunc);
+            fprintf(f, "    return fn(ptr);\n");
+          }
+          else {
+            BLI_assert_unreachable(); /* Valid but should be handled by type checks. */
+            fprintf(f, "    return %s(ptr);\n", manualfunc);
+          }
         }
         else {
           rna_print_data_get(f, dp);
@@ -1117,8 +1153,10 @@ static char *rna_def_property_set_func(
           fprintf(
               f, "    if (data->%s != NULL) { MEM_freeN(data->%s); }\n", dp->dnaname, dp->dnaname);
           fprintf(f, "    const int length = strlen(value);\n");
-          fprintf(f, "    data->%s = MEM_mallocN(length + 1, __func__);\n", dp->dnaname);
-          fprintf(f, "    %s(data->%s, value, length + 1);\n", string_copy_func, dp->dnaname);
+          fprintf(f, "    if (length > 0) {\n");
+          fprintf(f, "        data->%s = MEM_mallocN(length + 1, __func__);\n", dp->dnaname);
+          fprintf(f, "        %s(data->%s, value, length + 1);\n", string_copy_func, dp->dnaname);
+          fprintf(f, "    } else { data->%s = NULL; }\n", dp->dnaname);
         }
         else {
           /* Handle char array properties. */
@@ -1195,7 +1233,23 @@ static char *rna_def_property_set_func(
         fprintf(f, "{\n");
 
         if (manualfunc) {
-          fprintf(f, "    %s(ptr, values);\n", manualfunc);
+          /* Assign `fn` to ensure function signatures match. */
+          if (prop->type == PROP_BOOLEAN) {
+            fprintf(f, "    PropBooleanArraySetFunc fn = %s;\n", manualfunc);
+            fprintf(f, "    fn(ptr, values);\n");
+          }
+          else if (prop->type == PROP_INT) {
+            fprintf(f, "    PropIntArraySetFunc fn = %s;\n", manualfunc);
+            fprintf(f, "    fn(ptr, values);\n");
+          }
+          else if (prop->type == PROP_FLOAT) {
+            fprintf(f, "    PropFloatArraySetFunc fn = %s;\n", manualfunc);
+            fprintf(f, "    fn(ptr, values);\n");
+          }
+          else {
+            BLI_assert_unreachable(); /* Valid but should be handled by type checks. */
+            fprintf(f, "    %s(ptr, values);\n", manualfunc);
+          }
         }
         else {
           rna_print_data_get(f, dp);
@@ -1287,7 +1341,27 @@ static char *rna_def_property_set_func(
         fprintf(f, "{\n");
 
         if (manualfunc) {
-          fprintf(f, "    %s(ptr, value);\n", manualfunc);
+          /* Assign `fn` to ensure function signatures match. */
+          if (prop->type == PROP_BOOLEAN) {
+            fprintf(f, "    PropBooleanSetFunc fn = %s;\n", manualfunc);
+            fprintf(f, "    fn(ptr, value);\n");
+          }
+          else if (prop->type == PROP_INT) {
+            fprintf(f, "    PropIntSetFunc fn = %s;\n", manualfunc);
+            fprintf(f, "    fn(ptr, value);\n");
+          }
+          else if (prop->type == PROP_FLOAT) {
+            fprintf(f, "    PropFloatSetFunc fn = %s;\n", manualfunc);
+            fprintf(f, "    fn(ptr, value);\n");
+          }
+          else if (prop->type == PROP_ENUM) {
+            fprintf(f, "    PropEnumSetFunc fn = %s;\n", manualfunc);
+            fprintf(f, "    fn(ptr, value);\n");
+          }
+          else {
+            BLI_assert_unreachable(); /* Valid but should be handled by type checks. */
+            fprintf(f, "    %s(ptr, value);\n", manualfunc);
+          }
         }
         else {
           rna_print_data_get(f, dp);
@@ -4433,9 +4507,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
     {"rna_dynamicpaint.c", NULL, RNA_def_dynamic_paint},
     {"rna_fcurve.c", "rna_fcurve_api.c", RNA_def_fcurve},
     {"rna_gpencil.c", NULL, RNA_def_gpencil},
-#ifdef WITH_NEW_CURVES_TYPE
     {"rna_curves.c", NULL, RNA_def_curves},
-#endif
     {"rna_image.c", "rna_image_api.c", RNA_def_image},
     {"rna_key.c", NULL, RNA_def_key},
     {"rna_light.c", NULL, RNA_def_light},

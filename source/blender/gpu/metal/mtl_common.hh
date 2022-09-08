@@ -13,4 +13,6 @@
  * Set as number of GPU frames in flight, plus an additional value for extra possible CPU frame. */
 #define MTL_NUM_SAFE_FRAMES (MTL_MAX_DRAWABLES + 1)
 
+/* Display debug information about missing attributes and incorrect vertex formats. */
+#define MTL_DEBUG_SHADER_ATTRIBUTES 0
 #endif

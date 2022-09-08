@@ -5,20 +5,59 @@
 
 CCL_NAMESPACE_BEGIN
 
+ccl_device_inline bool intersection_ray_valid(ccl_private const Ray *ray)
+{
+  /* NOTE: Due to some vectorization code  non-finite origin point might
+   * cause lots of false-positive intersections which will overflow traversal
+   * stack.
+   * This code is a quick way to perform early output, to avoid crashes in
+   * such cases.
+   * From production scenes so far it seems it's enough to test first element
+   * only.
+   * Scene intersection may also called with empty rays for conditional trace
+   * calls that evaluate to false, so filter those out.
+   */
+  return isfinite_safe(ray->P.x) && isfinite_safe(ray->D.x) && len_squared(ray->D) != 0.0f;
+}
+
 /* Offset intersection distance by the smallest possible amount, to skip
  * intersections at this distance. This works in cases where the ray start
  * position is unchanged and only tmin is updated, since for self
  * intersection we'll be comparing against the exact same distances. */
 ccl_device_forceinline float intersection_t_offset(const float t)
 {
-  /* This is a simplified version of nextafterf(t, FLT_MAX), only dealing with
+  /* This is a simplified version of `nextafterf(t, FLT_MAX)`, only dealing with
    * non-negative and finite t. */
   kernel_assert(t >= 0.0f && isfinite_safe(t));
   const uint32_t bits = (t == 0.0f) ? 1 : __float_as_uint(t) + 1;
   return __uint_as_float(bits);
 }
 
-#if defined(__KERNEL_CPU__)
+/* Ray offset to avoid self intersection.
+ *
+ * This function can be used to compute a modified ray start position for rays
+ * leaving from a surface. This is from:
+ * "A Fast and Robust Method for Avoiding Self-Intersection"
+ * Ray Tracing Gems, chapter 6.
+ */
+ccl_device_inline float3 ray_offset(const float3 P, const float3 Ng)
+{
+  const float int_scale = 256.0f;
+  const int3 of_i = make_int3(
+      (int)(int_scale * Ng.x), (int)(int_scale * Ng.y), (int)(int_scale * Ng.z));
+
+  const float3 p_i = make_float3(
+      __int_as_float(__float_as_int(P.x) + ((P.x < 0) ? -of_i.x : of_i.x)),
+      __int_as_float(__float_as_int(P.y) + ((P.y < 0) ? -of_i.y : of_i.y)),
+      __int_as_float(__float_as_int(P.z) + ((P.z < 0) ? -of_i.z : of_i.z)));
+  const float origin = 1.0f / 32.0f;
+  const float float_scale = 1.0f / 65536.0f;
+  return make_float3(fabsf(P.x) < origin ? P.x + float_scale * Ng.x : p_i.x,
+                     fabsf(P.y) < origin ? P.y + float_scale * Ng.y : p_i.y,
+                     fabsf(P.z) < origin ? P.z + float_scale * Ng.z : p_i.z);
+}
+
+#ifndef __KERNEL_GPU__
 ccl_device int intersections_compare(const void *a, const void *b)
 {
   const Intersection *isect_a = (const Intersection *)a;

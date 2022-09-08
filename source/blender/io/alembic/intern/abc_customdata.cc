@@ -540,7 +540,7 @@ void read_generated_coordinates(const ICompoundProperty &prop,
     cd_data = CustomData_get_layer(&mesh->vdata, CD_ORCO);
   }
   else {
-    cd_data = CustomData_add_layer(&mesh->vdata, CD_ORCO, CD_CALLOC, nullptr, totvert);
+    cd_data = CustomData_add_layer(&mesh->vdata, CD_ORCO, CD_CONSTRUCT, nullptr, totvert);
   }
 
   float(*orcodata)[3] = static_cast<float(*)[3]>(cd_data);
@@ -564,7 +564,6 @@ void read_custom_data(const std::string &iobject_full_name,
   }
 
   int num_uvs = 0;
-  int num_colors = 0;
 
   const size_t num_props = prop.getNumProperties();
 
@@ -583,10 +582,6 @@ void read_custom_data(const std::string &iobject_full_name,
 
     /* Read vertex colors according to convention. */
     if (IC3fGeomParam::matches(prop_header) || IC4fGeomParam::matches(prop_header)) {
-      if (++num_colors > MAX_MCOL) {
-        continue;
-      }
-
       read_custom_data_mcols(iobject_full_name, prop, prop_header, config, iss);
       continue;
     }

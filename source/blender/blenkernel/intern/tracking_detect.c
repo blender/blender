@@ -81,7 +81,6 @@ static void detect_retrieve_libmv_features(MovieTracking *tracking,
 
   a = libmv_countFeatures(features);
   while (a--) {
-    MovieTrackingTrack *track;
     double x, y, size, score;
     bool ok = true;
     float xu, yu;
@@ -99,7 +98,8 @@ static void detect_retrieve_libmv_features(MovieTracking *tracking,
     }
 
     if (ok) {
-      track = BKE_tracking_track_add(tracking, tracksbase, xu, yu, framenr, width, height);
+      MovieTrackingTrack *track = BKE_tracking_track_add(
+          tracking, tracksbase, xu, yu, framenr, width, height);
       track->flag |= SELECT;
       track->pat_flag |= SELECT;
       track->search_flag |= SELECT;

@@ -63,7 +63,7 @@ bool ControllerExporter::add_instance_controller(Object *ob)
   ins.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, controller_id));
 
   Mesh *me = (Mesh *)ob->data;
-  if (!me->dvert) {
+  if (BKE_mesh_deform_verts(me) == nullptr) {
     return false;
   }
 
@@ -160,7 +160,7 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
   bool use_instantiation = this->export_settings.get_use_object_instantiation();
   Mesh *me;
 
-  if (((Mesh *)ob->data)->dvert == nullptr) {
+  if (BKE_mesh_deform_verts((Mesh *)ob->data) == nullptr) {
     return;
   }
 
@@ -203,9 +203,10 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
       }
     }
 
+    const MDeformVert *dvert = BKE_mesh_deform_verts(me);
     int oob_counter = 0;
     for (i = 0; i < me->totvert; i++) {
-      MDeformVert *vert = &me->dvert[i];
+      const MDeformVert *vert = &dvert[i];
       std::map<int, float> jw;
 
       /* We're normalizing the weights later */

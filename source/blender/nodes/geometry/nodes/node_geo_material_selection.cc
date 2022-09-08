@@ -23,46 +23,56 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void select_mesh_by_material(const Mesh &mesh,
                                     const Material *material,
                                     const IndexMask mask,
-                                    const MutableSpan<bool> r_selection)
+                                    MutableSpan<bool> r_selection)
 {
   BLI_assert(mesh.totpoly >= r_selection.size());
-  Vector<int> material_indices;
+  Vector<int> slots;
   for (const int i : IndexRange(mesh.totcol)) {
     if (mesh.mat[i] == material) {
-      material_indices.append(i);
+      slots.append(i);
     }
   }
+  const AttributeAccessor attributes = bke::mesh_attributes(mesh);
+  const VArray<int> material_indices = attributes.lookup_or_default<int>(
+      "material_index", ATTR_DOMAIN_FACE, 0);
+  if (material != nullptr && material_indices.is_single() &&
+      material_indices.get_internal_single() == 0) {
+    r_selection.fill_indices(mask, false);
+    return;
+  }
+
+  const VArraySpan<int> material_indices_span(material_indices);
+
   threading::parallel_for(mask.index_range(), 1024, [&](IndexRange range) {
     for (const int i : range) {
       const int face_index = mask[i];
-      r_selection[i] = material_indices.contains(mesh.mpoly[face_index].mat_nr);
+      r_selection[i] = slots.contains(material_indices_span[face_index]);
     }
   });
 }
 
-class MaterialSelectionFieldInput final : public GeometryFieldInput {
+class MaterialSelectionFieldInput final : public bke::GeometryFieldInput {
   Material *material_;
 
  public:
   MaterialSelectionFieldInput(Material *material)
-      : GeometryFieldInput(CPPType::get<bool>(), "Material Selection node"), material_(material)
+      : bke::GeometryFieldInput(CPPType::get<bool>(), "Material Selection node"),
+        material_(material)
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const eAttrDomain domain,
-                                 IndexMask mask) const final
+  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
+                                 const IndexMask mask) const final
   {
-    if (component.type() != GEO_COMPONENT_TYPE_MESH) {
+    if (context.type() != GEO_COMPONENT_TYPE_MESH) {
       return {};
     }
-    const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-    const Mesh *mesh = mesh_component.get_for_read();
+    const Mesh *mesh = context.mesh();
     if (mesh == nullptr) {
       return {};
     }
-
+    const eAttrDomain domain = context.domain();
     if (domain == ATTR_DOMAIN_FACE) {
       Array<bool> selection(mask.min_array_size());
       select_mesh_by_material(*mesh, material_, mask, selection);
@@ -71,7 +81,7 @@ class MaterialSelectionFieldInput final : public GeometryFieldInput {
 
     Array<bool> selection(mesh->totpoly);
     select_mesh_by_material(*mesh, material_, IndexMask(mesh->totpoly), selection);
-    return mesh_component.attributes()->adapt_domain<bool>(
+    return bke::mesh_attributes(*mesh).adapt_domain<bool>(
         VArray<bool>::ForContainer(std::move(selection)), ATTR_DOMAIN_FACE, domain);
 
     return nullptr;

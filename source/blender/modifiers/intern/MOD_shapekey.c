@@ -36,7 +36,7 @@ static void deformVerts(ModifierData *UNUSED(md),
   if (key && key->block.first) {
     int deformedVerts_tot;
     BKE_key_evaluate_object_ex(
-        ctx->object, &deformedVerts_tot, (float *)vertexCos, sizeof(*vertexCos) * verts_num);
+        ctx->object, &deformedVerts_tot, (float *)vertexCos, sizeof(*vertexCos) * verts_num, NULL);
   }
 }
 
@@ -49,11 +49,11 @@ static void deformMatrices(ModifierData *md,
 {
   Key *key = BKE_key_from_object(ctx->object);
   KeyBlock *kb = BKE_keyblock_from_object(ctx->object);
-  float scale[3][3];
 
   (void)vertexCos; /* unused */
 
   if (kb && kb->totelem == verts_num && kb != key->refkey) {
+    float scale[3][3];
     int a;
 
     if (ctx->object->shapeflag & OB_SHAPE_LOCK) {
@@ -95,15 +95,14 @@ static void deformMatricesEM(ModifierData *UNUSED(md),
 {
   Key *key = BKE_key_from_object(ctx->object);
   KeyBlock *kb = BKE_keyblock_from_object(ctx->object);
-  float scale[3][3];
 
   (void)vertexCos; /* unused */
 
   if (kb && kb->totelem == verts_num && kb != key->refkey) {
-    int a;
+    float scale[3][3];
     scale_m3_fl(scale, kb->curval);
 
-    for (a = 0; a < verts_num; a++) {
+    for (int a = 0; a < verts_num; a++) {
       copy_m3_m3(defMats[a], scale);
     }
   }

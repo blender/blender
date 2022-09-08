@@ -10,6 +10,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_virtual_array.hh"
+
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -21,6 +23,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_workspace_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
@@ -51,6 +54,9 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+using blender::MutableSpan;
+using blender::Span;
 
 /* * ********************** no editmode!!! *********** */
 
@@ -100,7 +106,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
     ((Mesh *)ob_dst->data)->cd_flag |= me->cd_flag;
 
     /* standard data */
-    CustomData_merge(&me->vdata, vdata, CD_MASK_MESH.vmask, CD_DEFAULT, totvert);
+    CustomData_merge(&me->vdata, vdata, CD_MASK_MESH.vmask, CD_SET_DEFAULT, totvert);
     CustomData_copy_data_named(&me->vdata, vdata, 0, *vertofs, me->totvert);
 
     /* vertex groups */
@@ -199,7 +205,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
   }
 
   if (me->totedge) {
-    CustomData_merge(&me->edata, edata, CD_MASK_MESH.emask, CD_DEFAULT, totedge);
+    CustomData_merge(&me->edata, edata, CD_MASK_MESH.emask, CD_SET_DEFAULT, totedge);
     CustomData_copy_data_named(&me->edata, edata, 0, *edgeofs, me->totedge);
 
     for (a = 0; a < me->totedge; a++, medge++) {
@@ -220,7 +226,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
       }
     }
 
-    CustomData_merge(&me->ldata, ldata, CD_MASK_MESH.lmask, CD_DEFAULT, totloop);
+    CustomData_merge(&me->ldata, ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, totloop);
     CustomData_copy_data_named(&me->ldata, ldata, 0, *loopofs, me->totloop);
 
     for (a = 0; a < me->totloop; a++, mloop++) {
@@ -244,12 +250,22 @@ static void join_mesh_single(Depsgraph *depsgraph,
       }
     }
 
-    CustomData_merge(&me->pdata, pdata, CD_MASK_MESH.pmask, CD_DEFAULT, totpoly);
+    CustomData_merge(&me->pdata, pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, totpoly);
     CustomData_copy_data_named(&me->pdata, pdata, 0, *polyofs, me->totpoly);
+
+    blender::bke::AttributeWriter<int> material_indices =
+        blender::bke::mesh_attributes_for_write(*me).lookup_for_write<int>("material_index");
+    if (material_indices) {
+      blender::MutableVArraySpan<int> material_indices_span(material_indices.varray);
+      for (const int i : material_indices_span.index_range()) {
+        material_indices_span[i] = matmap ? matmap[material_indices_span[i]] : 0;
+      }
+      material_indices_span.save();
+      material_indices.finish();
+    }
 
     for (a = 0; a < me->totpoly; a++, mpoly++) {
       mpoly->loopstart += *loopofs;
-      mpoly->mat_nr = matmap ? matmap[mpoly->mat_nr] : 0;
     }
 
     /* Face maps. */
@@ -571,10 +587,10 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   CustomData_reset(&ldata);
   CustomData_reset(&pdata);
 
-  mvert = (MVert *)CustomData_add_layer(&vdata, CD_MVERT, CD_CALLOC, nullptr, totvert);
-  medge = (MEdge *)CustomData_add_layer(&edata, CD_MEDGE, CD_CALLOC, nullptr, totedge);
-  mloop = (MLoop *)CustomData_add_layer(&ldata, CD_MLOOP, CD_CALLOC, nullptr, totloop);
-  mpoly = (MPoly *)CustomData_add_layer(&pdata, CD_MPOLY, CD_CALLOC, nullptr, totpoly);
+  mvert = (MVert *)CustomData_add_layer(&vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, totvert);
+  medge = (MEdge *)CustomData_add_layer(&edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, totedge);
+  mloop = (MLoop *)CustomData_add_layer(&ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, totloop);
+  mpoly = (MPoly *)CustomData_add_layer(&pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, totpoly);
 
   vertofs = 0;
   edgeofs = 0;
@@ -677,9 +693,6 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   me->edata = edata;
   me->ldata = ldata;
   me->pdata = pdata;
-
-  /* tessface data removed above, no need to update */
-  BKE_mesh_update_customdata_pointers(me, false);
 
   /* Tag normals dirty because vertex positions could be changed from the original. */
   BKE_mesh_normals_tag_dirty(me);
@@ -893,13 +906,13 @@ static bool ed_mesh_mirror_topo_table_update(Object *ob, Mesh *me_eval)
 static int mesh_get_x_mirror_vert_spatial(Object *ob, Mesh *me_eval, int index)
 {
   Mesh *me = static_cast<Mesh *>(ob->data);
-  MVert *mvert = me_eval ? me_eval->mvert : me->mvert;
+  const Span<MVert> verts = me_eval ? me_eval->verts() : me->verts();
+
   float vec[3];
 
-  mvert = &mvert[index];
-  vec[0] = -mvert->co[0];
-  vec[1] = mvert->co[1];
-  vec[2] = mvert->co[2];
+  vec[0] = -verts[index].co[0];
+  vec[1] = verts[index].co[1];
+  vec[2] = verts[index].co[2];
 
   return ED_mesh_mirror_spatial_table_lookup(ob, nullptr, me_eval, vec);
 }
@@ -1115,8 +1128,8 @@ static bool mirror_facecmp(const void *a, const void *b)
 int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
 {
   Mesh *me = static_cast<Mesh *>(ob->data);
-  MVert *mv, *mvert;
-  MFace mirrormf, *mf, *hashmf, *mface;
+  const MVert *mv;
+  MFace mirrormf, *mf, *hashmf;
   GHash *fhash;
   int *mirrorverts, *mirrorfaces;
 
@@ -1130,12 +1143,12 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
   mirrorverts = static_cast<int *>(MEM_callocN(sizeof(int) * totvert, "MirrorVerts"));
   mirrorfaces = static_cast<int *>(MEM_callocN(sizeof(int[2]) * totface, "MirrorFaces"));
 
-  mvert = me_eval ? me_eval->mvert : me->mvert;
-  mface = me_eval ? me_eval->mface : me->mface;
+  const Span<MVert> verts = me_eval ? me_eval->verts() : me->verts();
+  MFace *mface = (MFace *)CustomData_get_layer(&(me_eval ? me_eval : me)->fdata, CD_MFACE);
 
   ED_mesh_mirror_spatial_table_begin(ob, em, me_eval);
 
-  for (a = 0, mv = mvert; a < totvert; a++, mv++) {
+  for (a = 0, mv = verts.data(); a < totvert; a++, mv++) {
     mirrorverts[a] = mesh_get_x_mirror_vert(ob, me_eval, a, use_topology);
   }
 
@@ -1262,42 +1275,28 @@ bool ED_mesh_pick_face_vert(
     const float mval_f[2] = {(float)mval[0], (float)mval[1]};
     float len_best = FLT_MAX;
 
-    MPoly *me_eval_mpoly;
-    MLoop *me_eval_mloop;
-    MVert *me_eval_mvert;
-    uint me_eval_mpoly_len;
-
-    me_eval_mpoly = me_eval->mpoly;
-    me_eval_mloop = me_eval->mloop;
-    me_eval_mvert = me_eval->mvert;
-
-    me_eval_mpoly_len = me_eval->totpoly;
+    const Span<MVert> verts = me_eval->verts();
+    const Span<MPoly> polys = me_eval->polys();
+    const Span<MLoop> loops = me_eval->loops();
 
     const int *index_mp_to_orig = (const int *)CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
 
     /* tag all verts using this face */
     if (index_mp_to_orig) {
-      uint i;
-
-      for (i = 0; i < me_eval_mpoly_len; i++) {
+      for (const int i : polys.index_range()) {
         if (index_mp_to_orig[i] == poly_index) {
-          ed_mesh_pick_face_vert__mpoly_find(region,
-                                             mval_f,
-                                             &me_eval_mpoly[i],
-                                             me_eval_mvert,
-                                             me_eval_mloop,
-                                             &len_best,
-                                             &v_idx_best);
+          ed_mesh_pick_face_vert__mpoly_find(
+              region, mval_f, &polys[i], verts.data(), loops.data(), &len_best, &v_idx_best);
         }
       }
     }
     else {
-      if (poly_index < me_eval_mpoly_len) {
+      if (poly_index < polys.size()) {
         ed_mesh_pick_face_vert__mpoly_find(region,
                                            mval_f,
-                                           &me_eval_mpoly[poly_index],
-                                           me_eval_mvert,
-                                           me_eval_mloop,
+                                           &polys[poly_index],
+                                           verts.data(),
+                                           loops.data(),
                                            &len_best,
                                            &v_idx_best);
       }
@@ -1329,6 +1328,7 @@ bool ED_mesh_pick_face_vert(
  */
 struct VertPickData {
   const MVert *mvert;
+  const bool *hide_vert;
   const float *mval_f; /* [2] */
   ARegion *region;
 
@@ -1343,16 +1343,16 @@ static void ed_mesh_pick_vert__mapFunc(void *userData,
                                        const float UNUSED(no[3]))
 {
   VertPickData *data = static_cast<VertPickData *>(userData);
-  if ((data->mvert[index].flag & ME_HIDE) == 0) {
-    float sco[2];
-
-    if (ED_view3d_project_float_object(data->region, co, sco, V3D_PROJ_TEST_CLIP_DEFAULT) ==
-        V3D_PROJ_RET_OK) {
-      const float len = len_manhattan_v2v2(data->mval_f, sco);
-      if (len < data->len_best) {
-        data->len_best = len;
-        data->v_idx_best = index;
-      }
+  if (data->hide_vert && data->hide_vert[index]) {
+    return;
+  }
+  float sco[2];
+  if (ED_view3d_project_float_object(data->region, co, sco, V3D_PROJ_TEST_CLIP_DEFAULT) ==
+      V3D_PROJ_RET_OK) {
+    const float len = len_manhattan_v2v2(data->mval_f, sco);
+    if (len < data->len_best) {
+      data->len_best = len;
+      data->v_idx_best = index;
     }
   }
 }
@@ -1411,11 +1411,14 @@ bool ED_mesh_pick_vert(
     }
 
     /* setup data */
-    data.mvert = me->mvert;
+    const Span<MVert> verts = me->verts();
+    data.mvert = verts.data();
     data.region = region;
     data.mval_f = mval_f;
     data.len_best = FLT_MAX;
     data.v_idx_best = -1;
+    data.hide_vert = (const bool *)CustomData_get_layer_named(
+        &me_eval->vdata, CD_PROP_BOOL, ".hide_vert");
 
     BKE_mesh_foreach_mapped_vert(me_eval, ed_mesh_pick_vert__mapFunc, &data, MESH_FOREACH_NOP);
 
@@ -1463,10 +1466,11 @@ MDeformVert *ED_mesh_active_dvert_get_ob(Object *ob, int *r_index)
   if (r_index) {
     *r_index = index;
   }
-  if (index == -1 || me->dvert == nullptr) {
+  if (index == -1 || me->deform_verts().is_empty()) {
     return nullptr;
   }
-  return me->dvert + index;
+  MutableSpan<MDeformVert> dverts = me->deform_verts_for_write();
+  return &dverts[index];
 }
 
 MDeformVert *ED_mesh_active_dvert_get_only(Object *ob)

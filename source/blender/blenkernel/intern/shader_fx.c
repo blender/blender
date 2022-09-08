@@ -70,7 +70,8 @@ ShaderFxData *BKE_shaderfx_new(int type)
   fx->type = type;
   fx->mode = eShaderFxMode_Realtime | eShaderFxMode_Render;
   fx->flag = eShaderFxFlag_OverrideLibrary_Local;
-  fx->ui_expand_flag = 1; /* Expand only the parent panel by default. */
+  /* Expand only the parent panel by default. */
+  fx->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT;
 
   if (fxi->flags & eShaderFxTypeFlag_EnableInEditmode) {
     fx->mode |= eShaderFxMode_Editmode;

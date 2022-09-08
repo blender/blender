@@ -144,7 +144,7 @@ static float color_sample_remove_cost(const struct ColorResampleElem *c)
   return area;
 }
 
-/* TODO(campbell): create BLI_math_filter? */
+/* TODO(@campbellbarton): create `BLI_math_filter` ? */
 static float filter_gauss(float x)
 {
   const float gaussfac = 1.6f;

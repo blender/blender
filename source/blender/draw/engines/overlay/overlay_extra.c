@@ -1315,9 +1315,14 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
         if ((curcon->ui_expand_flag & (1 << 0)) && BKE_constraint_targets_get(curcon, &targets)) {
           bConstraintTarget *ct;
 
+          BKE_constraint_custom_object_space_init(cob, curcon);
+
           for (ct = targets.first; ct; ct = ct->next) {
             /* calculate target's matrix */
-            if (cti->get_target_matrix) {
+            if (ct->flag & CONSTRAINT_TAR_CUSTOM_SPACE) {
+              copy_m4_m4(ct->matrix, cob->space_obj_world_matrix);
+            }
+            else if (cti->get_target_matrix) {
               cti->get_target_matrix(depsgraph, curcon, cob, ct, DEG_get_ctime(depsgraph));
             }
             else {
@@ -1484,7 +1489,7 @@ static void OVERLAY_object_center(OVERLAY_ExtraCallBuffers *cb,
 {
   const bool is_library = ID_REAL_USERS(&ob->id) > 1 || ID_IS_LINKED(ob);
 
-  if (ob == OBACT(view_layer)) {
+  if (ob == BKE_view_layer_active_object_get(view_layer)) {
     DRW_buffer_add_entry(cb->center_active, ob->obmat[3]);
   }
   else if (ob->base_flag & BASE_SELECTED) {

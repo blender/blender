@@ -10,7 +10,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-#if !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__)
+#ifndef __KERNEL_NATIVE_VECTOR_TYPES__
 
 struct ushort4 {
   uint16_t x, y, z, w;

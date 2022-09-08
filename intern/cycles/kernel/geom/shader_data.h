@@ -18,7 +18,7 @@ ccl_device void shader_setup_object_transforms(KernelGlobals kg,
 {
   if (sd->object_flag & SD_OBJECT_MOTION) {
     sd->ob_tfm_motion = object_fetch_transform_motion(kg, sd->object, time);
-    sd->ob_itfm_motion = transform_quick_inverse(sd->ob_tfm_motion);
+    sd->ob_itfm_motion = transform_inverse(sd->ob_tfm_motion);
   }
 }
 #endif
@@ -123,9 +123,9 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
 
 #ifdef __RAY_DIFFERENTIALS__
   /* differentials */
-  differential_transfer_compact(&sd->dP, ray->dP, ray->D, ray->dD, sd->Ng, sd->ray_length);
-  differential_incoming_compact(&sd->dI, ray->D, ray->dD);
-  differential_dudv(&sd->du, &sd->dv, sd->dPdu, sd->dPdv, sd->dP, sd->Ng);
+  sd->dP = differential_transfer_compact(ray->dP, ray->D, ray->dD, sd->ray_length);
+  sd->dI = differential_incoming_compact(ray->dD);
+  differential_dudv_compact(&sd->du, &sd->dv, sd->dPdu, sd->dPdv, sd->dP, sd->Ng);
 #endif
 }
 
@@ -240,8 +240,8 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
 
 #ifdef __RAY_DIFFERENTIALS__
   /* no ray differentials here yet */
-  sd->dP = differential3_zero();
-  sd->dI = differential3_zero();
+  sd->dP = differential_zero_compact();
+  sd->dI = differential_zero_compact();
   sd->du = differential_zero();
   sd->dv = differential_zero();
 #endif
@@ -348,8 +348,8 @@ ccl_device void shader_setup_from_curve(KernelGlobals kg,
 
   /* No ray differentials currently. */
 #ifdef __RAY_DIFFERENTIALS__
-  sd->dP = differential3_zero();
-  sd->dI = differential3_zero();
+  sd->dP = differential_zero_compact();
+  sd->dI = differential_zero_compact();
   sd->du = differential_zero();
   sd->dv = differential_zero();
 #endif
@@ -391,8 +391,8 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals kg,
 
 #ifdef __RAY_DIFFERENTIALS__
   /* differentials */
-  sd->dP = differential3_zero(); /* TODO: ray->dP */
-  differential_incoming(&sd->dI, sd->dP);
+  sd->dP = differential_zero_compact(); /* TODO: ray->dP */
+  sd->dI = differential_zero_compact();
   sd->du = differential_zero();
   sd->dv = differential_zero();
 #endif
@@ -433,8 +433,8 @@ ccl_device_inline void shader_setup_from_volume(KernelGlobals kg,
 
 #  ifdef __RAY_DIFFERENTIALS__
   /* differentials */
-  sd->dP = differential3_zero(); /* TODO ray->dD */
-  differential_incoming(&sd->dI, sd->dP);
+  sd->dP = differential_zero_compact(); /* TODO ray->dD */
+  sd->dI = differential_zero_compact();
   sd->du = differential_zero();
   sd->dv = differential_zero();
 #  endif

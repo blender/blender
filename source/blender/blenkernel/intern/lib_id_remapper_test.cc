@@ -55,6 +55,7 @@ TEST(lib_id_remapper, unassigned)
 {
   ID id1;
   ID *idp = &id1;
+  BLI_strncpy(id1.name, "OB2", sizeof(id1.name));
 
   IDRemapper *remapper = BKE_id_remapper_create();
   BKE_id_remapper_add(remapper, &id1, nullptr);

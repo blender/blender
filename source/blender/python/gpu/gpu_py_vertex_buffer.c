@@ -292,7 +292,7 @@ static PyObject *pygpu_vertbuf_attr_fill(BPyGPUVertBuf *self, PyObject *args, Py
     const char *name = PyUnicode_AsUTF8(identifier);
     id = GPU_vertformat_attr_id_get(format, name);
     if (id == -1) {
-      PyErr_SetString(PyExc_ValueError, "Unknown attribute name");
+      PyErr_Format(PyExc_ValueError, "Unknown attribute '%s'", name);
       return NULL;
     }
   }

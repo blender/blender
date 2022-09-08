@@ -637,10 +637,10 @@ typedef struct UserDef_Experimental {
   /* Debug options, always available. */
   char use_undo_legacy;
   char no_override_auto_resync;
-  char use_override_new_fully_editable;
   char use_cycles_debug;
   char show_asset_debug_info;
   char no_asset_indexing;
+  char use_viewport_debug;
   char SANITIZE_AFTER_HERE;
   /* The following options are automatically sanitized (set to 0)
    * when the release cycle is not alpha. */
@@ -653,6 +653,8 @@ typedef struct UserDef_Experimental {
   char enable_eevee_next;
   char use_sculpt_texture_paint;
   char use_draw_manager_acquire_lock;
+  char use_realtime_compositor;
+  char _pad[7];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
@@ -913,8 +915,7 @@ typedef struct UserDef {
   /** Pie menu distance from center before a direction is set. */
   short pie_menu_threshold;
 
-  short opensubdiv_compute_type;
-  short _pad6;
+  short _pad6[2];
 
   char factor_display_type;
 
@@ -1161,7 +1162,7 @@ typedef enum eUserpref_StatusBar_Flag {
  * #UserDef.autokey_mode
  */
 typedef enum eAutokey_Mode {
-  /* AUTOKEY_ON is a bitflag */
+  /* AUTOKEY_ON is a bit-flag. */
   AUTOKEY_ON = 1,
 
   /**

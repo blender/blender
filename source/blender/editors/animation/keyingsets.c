@@ -39,6 +39,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_path.h"
 
 #include "anim_intern.h"
 
@@ -713,7 +714,7 @@ static void anim_keyingset_visit_for_search_impl(const bContext *C,
                                                  void *visit_user_data,
                                                  const bool use_poll)
 {
-  /* Poll requires context.  */
+  /* Poll requires context. */
   if (use_poll && (C == NULL)) {
     return;
   }

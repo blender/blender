@@ -97,7 +97,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
     DEG_add_special_eval_flag(ctx->node, &cmd->object->id, DAG_EVAL_NEED_CURVE_PATH);
   }
 
-  DEG_add_modifier_to_transform_relation(ctx->node, "Curve Modifier");
+  DEG_add_depends_on_transform_relation(ctx->node, "Curve Modifier");
 }
 
 static void deformVerts(ModifierData *md,
@@ -111,10 +111,10 @@ static void deformVerts(ModifierData *md,
 
   if (ctx->object->type == OB_MESH && cmd->name[0] != '\0') {
     /* mesh_src is only needed for vgroups. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
   }
 
-  struct MDeformVert *dvert = NULL;
+  const MDeformVert *dvert = NULL;
   int defgrp_index = -1;
   MOD_get_vgroup(ctx->object, mesh_src, cmd->name, &dvert, &defgrp_index);
 

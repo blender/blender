@@ -35,6 +35,8 @@ typedef struct GpencilIOParams {
   /** Stroke sampling factor. */
   float stroke_sample;
   int32_t resolution;
+  /** Filename to be used in new objects. */
+  char filename[128];
 } GpencilIOParams;
 
 /* GpencilIOParams->flag. */

@@ -723,15 +723,16 @@ typedef struct sActionzoneData {
 static bool actionzone_area_poll(bContext *C)
 {
   wmWindow *win = CTX_wm_window(C);
-  bScreen *screen = WM_window_get_active_screen(win);
+  if (win && win->eventstate) {
+    bScreen *screen = WM_window_get_active_screen(win);
+    if (screen) {
+      const int *xy = &win->eventstate->xy[0];
 
-  if (screen && win && win->eventstate) {
-    const int *xy = &win->eventstate->xy[0];
-
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (AZone *, az, &area->actionzones) {
-        if (BLI_rcti_isect_pt_v(&az->rect, xy)) {
-          return true;
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (AZone *, az, &area->actionzones) {
+          if (BLI_rcti_isect_pt_v(&az->rect, xy)) {
+            return true;
+          }
         }
       }
     }
@@ -1638,7 +1639,7 @@ static void area_move_set_limits(wmWindow *win,
       }
     }
     else {
-      int areamin = AREAMINX;
+      int areamin = AREAMINX * U.dpi_fac;
 
       if (area->v1->vec.x > window_rect.xmin) {
         areamin += U.pixelsize;
@@ -2061,7 +2062,7 @@ static bool area_split_allowed(const ScrArea *area, const eScreenAxis dir_axis)
     return false;
   }
 
-  if ((dir_axis == SCREEN_AXIS_V && area->winx <= 2 * AREAMINX) ||
+  if ((dir_axis == SCREEN_AXIS_V && area->winx <= 2 * AREAMINX * U.dpi_fac) ||
       (dir_axis == SCREEN_AXIS_H && area->winy <= 2 * ED_area_headersize())) {
     /* Must be at least double minimum sizes to split into two. */
     return false;

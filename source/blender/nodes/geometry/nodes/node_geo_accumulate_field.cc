@@ -192,7 +192,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-template<typename T> class AccumulateFieldInput final : public GeometryFieldInput {
+template<typename T> class AccumulateFieldInput final : public bke::GeometryFieldInput {
  private:
   Field<T> input_;
   Field<int> group_index_;
@@ -204,7 +204,7 @@ template<typename T> class AccumulateFieldInput final : public GeometryFieldInpu
                        Field<T> input,
                        Field<int> group_index,
                        AccumulationMode accumulation_mode)
-      : GeometryFieldInput(CPPType::get<T>(), "Accumulation"),
+      : bke::GeometryFieldInput(CPPType::get<T>(), "Accumulation"),
         input_(input),
         group_index_(group_index),
         source_domain_(source_domain),
@@ -212,18 +212,18 @@ template<typename T> class AccumulateFieldInput final : public GeometryFieldInpu
   {
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const eAttrDomain domain,
-                                 IndexMask UNUSED(mask)) const final
+  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
+                                 const IndexMask /*mask*/) const final
   {
-    const GeometryComponentFieldContext field_context{component, source_domain_};
-    const int domain_size = component.attribute_domain_size(field_context.domain());
+    const AttributeAccessor attributes = *context.attributes();
+    const int domain_size = attributes.domain_size(source_domain_);
     if (domain_size == 0) {
       return {};
     }
-    const AttributeAccessor attributes = *component.attributes();
 
-    fn::FieldEvaluator evaluator{field_context, domain_size};
+    const bke::GeometryFieldContext source_context{
+        context.geometry(), context.type(), source_domain_};
+    fn::FieldEvaluator evaluator{source_context, domain_size};
     evaluator.add(input_);
     evaluator.add(group_index_);
     evaluator.evaluate();
@@ -266,7 +266,7 @@ template<typename T> class AccumulateFieldInput final : public GeometryFieldInpu
     }
 
     return attributes.adapt_domain<T>(
-        VArray<T>::ForContainer(std::move(accumulations_out)), source_domain_, domain);
+        VArray<T>::ForContainer(std::move(accumulations_out)), source_domain_, context.domain());
   }
 
   uint64_t hash() const override
@@ -287,7 +287,7 @@ template<typename T> class AccumulateFieldInput final : public GeometryFieldInpu
   }
 };
 
-template<typename T> class TotalFieldInput final : public GeometryFieldInput {
+template<typename T> class TotalFieldInput final : public bke::GeometryFieldInput {
  private:
   Field<T> input_;
   Field<int> group_index_;
@@ -295,25 +295,25 @@ template<typename T> class TotalFieldInput final : public GeometryFieldInput {
 
  public:
   TotalFieldInput(const eAttrDomain source_domain, Field<T> input, Field<int> group_index)
-      : GeometryFieldInput(CPPType::get<T>(), "Total Value"),
+      : bke::GeometryFieldInput(CPPType::get<T>(), "Total Value"),
         input_(input),
         group_index_(group_index),
         source_domain_(source_domain)
   {
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const eAttrDomain domain,
-                                 IndexMask UNUSED(mask)) const final
+  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
+                                 IndexMask /*mask*/) const final
   {
-    const GeometryComponentFieldContext field_context{component, source_domain_};
-    const int domain_size = component.attribute_domain_size(field_context.domain());
+    const AttributeAccessor attributes = *context.attributes();
+    const int domain_size = attributes.domain_size(source_domain_);
     if (domain_size == 0) {
       return {};
     }
-    const AttributeAccessor attributes = *component.attributes();
 
-    fn::FieldEvaluator evaluator{field_context, domain_size};
+    const bke::GeometryFieldContext source_context{
+        context.geometry(), context.type(), source_domain_};
+    fn::FieldEvaluator evaluator{source_context, domain_size};
     evaluator.add(input_);
     evaluator.add(group_index_);
     evaluator.evaluate();
@@ -339,7 +339,7 @@ template<typename T> class TotalFieldInput final : public GeometryFieldInput {
     }
 
     return attributes.adapt_domain<T>(
-        VArray<T>::ForContainer(std::move(accumulations_out)), source_domain_, domain);
+        VArray<T>::ForContainer(std::move(accumulations_out)), source_domain_, context.domain());
   }
 
   uint64_t hash() const override

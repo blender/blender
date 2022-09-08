@@ -26,6 +26,7 @@ struct BlendExpander;
 struct BlendLibReader;
 struct BlendWriter;
 struct Collection;
+struct ID;
 struct Library;
 struct Main;
 struct Object;
@@ -94,7 +95,7 @@ struct Collection *BKE_collection_duplicate(struct Main *bmain,
 /* Master Collection for Scene */
 
 #define BKE_SCENE_COLLECTION_NAME "Scene Collection"
-struct Collection *BKE_collection_master_add(void);
+struct Collection *BKE_collection_master_add(struct Scene *scene);
 
 /* Collection Objects */
 
@@ -296,7 +297,9 @@ void BKE_main_collections_parent_relations_rebuild(struct Main *bmain);
 /* .blend file I/O */
 
 void BKE_collection_blend_write_nolib(struct BlendWriter *writer, struct Collection *collection);
-void BKE_collection_blend_read_data(struct BlendDataReader *reader, struct Collection *collection);
+void BKE_collection_blend_read_data(struct BlendDataReader *reader,
+                                    struct Collection *collection,
+                                    struct ID *owner_id);
 void BKE_collection_blend_read_lib(struct BlendLibReader *reader, struct Collection *collection);
 void BKE_collection_blend_read_expand(struct BlendExpander *expander,
                                       struct Collection *collection);

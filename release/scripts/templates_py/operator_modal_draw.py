@@ -15,7 +15,7 @@ def draw_callback_px(self, context):
     blf.draw(font_id, "Hello Word " + str(len(self.mouse_path)))
 
     # 50% alpha, 2 pixel width line
-    shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+    shader = gpu.shader.from_builtin('UNIFORM_COLOR')
     gpu.state.blend_set('ALPHA')
     gpu.state.line_width_set(2.0)
     batch = batch_for_shader(shader, 'LINE_STRIP', {"pos": self.mouse_path})

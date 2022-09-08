@@ -18,6 +18,7 @@
 #include "BLI_utildefines.h"
 
 #include "GPU_shader.h"
+#include "GPU_vertex_format.h" /* GPU_VERT_ATTR_MAX_LEN */
 #include "gpu_shader_create_info.hh"
 
 namespace blender::gpu {
@@ -56,6 +57,14 @@ class ShaderInterface {
   /** Location of builtin uniforms. Fast access, no lookup needed. */
   int32_t builtins_[GPU_NUM_UNIFORMS];
   int32_t builtin_blocks_[GPU_NUM_UNIFORM_BLOCKS];
+  int32_t builtin_buffers_[GPU_NUM_STORAGE_BUFFERS];
+
+  /**
+   * Currently only used for `GPU_shader_get_attribute_info`.
+   * This utility is useful for automatic creation of `GPUVertFormat` in Python.
+   * Use `ShaderInput::location` to identify the `Type`.
+   */
+  uint8_t attr_types_[GPU_VERT_ATTR_MAX_LEN];
 
  public:
   ShaderInterface();
@@ -67,6 +76,10 @@ class ShaderInterface {
   inline const ShaderInput *attr_get(const char *name) const
   {
     return input_lookup(inputs_, attr_len_, name);
+  }
+  inline const ShaderInput *attr_get(const int binding) const
+  {
+    return input_lookup(inputs_, attr_len_, binding);
   }
 
   inline const ShaderInput *ubo_get(const char *name) const
@@ -116,9 +129,17 @@ class ShaderInterface {
     return builtin_blocks_[builtin];
   }
 
+  /* Returns binding position. */
+  inline int32_t ssbo_builtin(const GPUStorageBufferBuiltin builtin) const
+  {
+    BLI_assert(builtin >= 0 && builtin < GPU_NUM_STORAGE_BUFFERS);
+    return builtin_buffers_[builtin];
+  }
+
  protected:
   static inline const char *builtin_uniform_name(GPUUniformBuiltin u);
   static inline const char *builtin_uniform_block_name(GPUUniformBlockBuiltin u);
+  static inline const char *builtin_storage_block_name(GPUStorageBufferBuiltin u);
 
   inline uint32_t set_input_name(ShaderInput *input, char *name, uint32_t name_len) const;
   inline void copy_input_name(ShaderInput *input,
@@ -207,6 +228,18 @@ inline const char *ShaderInterface::builtin_uniform_block_name(GPUUniformBlockBu
       return "drw_matrices";
     case GPU_UNIFORM_BLOCK_DRW_INFOS:
       return "drw_infos";
+    default:
+      return nullptr;
+  }
+}
+
+inline const char *ShaderInterface::builtin_storage_block_name(GPUStorageBufferBuiltin u)
+{
+  switch (u) {
+    case GPU_STORAGE_BUFFER_DEBUG_VERTS:
+      return "drw_debug_verts_buf";
+    case GPU_STORAGE_BUFFER_DEBUG_PRINT:
+      return "drw_debug_print_buf";
     default:
       return nullptr;
   }

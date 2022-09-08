@@ -100,7 +100,7 @@ static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmGizmoGroupType *UN
   }
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Base *base = BASACT(view_layer);
+  Base *base = view_layer->basact;
   if (base && BASE_SELECTABLE(v3d, base)) {
     Object *ob = base->object;
     if (ob->type == OB_EMPTY) {
@@ -133,7 +133,7 @@ static void WIDGETGROUP_empty_image_refresh(const bContext *C, wmGizmoGroup *gzg
   struct EmptyImageWidgetGroup *igzgroup = gzgroup->customdata;
   wmGizmo *gz = igzgroup->gizmo;
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = OBACT(view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   copy_m4_m4(gz->matrix_basis, ob->obmat);
 

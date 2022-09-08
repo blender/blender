@@ -413,7 +413,7 @@ struct PartialUpdateRegisterImpl {
   }
 
   /**
-   * /brief Check if data is available to construct the update tiles for the given
+   * \brief Check if data is available to construct the update tiles for the given
    * changeset_id.
    *
    * The update tiles can be created when changeset id is between

@@ -20,6 +20,7 @@
 
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
+#include "BKE_layer.h"
 
 #include "DEG_depsgraph.h"
 
@@ -125,7 +126,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
 static void uiTemplatePaintModeSelection(uiLayout *layout, struct bContext *C)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = OBACT(view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   /* Gizmos aren't used in paint modes */
   if (!ELEM(ob->mode, OB_MODE_SCULPT, OB_MODE_PARTICLE_EDIT)) {
@@ -147,7 +148,7 @@ static void uiTemplatePaintModeSelection(uiLayout *layout, struct bContext *C)
 void uiTemplateHeader3D_mode(uiLayout *layout, struct bContext *C)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob = OBACT(view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
   Object *obedit = CTX_data_edit_object(C);
   bGPdata *gpd = CTX_data_gpencil_data(C);
 

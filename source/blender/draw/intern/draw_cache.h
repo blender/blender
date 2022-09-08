@@ -213,15 +213,6 @@ struct GPUBatch *DRW_cache_particles_get_edit_tip_points(struct Object *object,
                                                          struct PTCacheEdit *edit);
 struct GPUBatch *DRW_cache_particles_get_prim(int type);
 
-/* Metaball */
-
-struct GPUBatch *DRW_cache_mball_surface_get(struct Object *ob);
-struct GPUBatch **DRW_cache_mball_surface_shaded_get(struct Object *ob,
-                                                     struct GPUMaterial **gpumat_array,
-                                                     uint gpumat_array_len);
-struct GPUBatch *DRW_cache_mball_face_wireframe_get(struct Object *ob);
-struct GPUBatch *DRW_cache_mball_edge_detection_get(struct Object *ob, bool *r_is_manifold);
-
 /* Curves */
 
 struct GPUBatch *DRW_cache_curves_surface_get(struct Object *ob);

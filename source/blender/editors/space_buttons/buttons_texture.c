@@ -281,7 +281,7 @@ static void buttons_texture_users_from_context(ListBase *users,
 
     brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
     linestyle = BKE_linestyle_active_from_view_layer(view_layer);
-    ob = OBACT(view_layer);
+    ob = BKE_view_layer_active_object_get(view_layer);
   }
 
   /* fill users */

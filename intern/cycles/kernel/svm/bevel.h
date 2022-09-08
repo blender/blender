@@ -128,8 +128,8 @@ ccl_device float3 svm_bevel(
   path_state_rng_load(state, &rng_state);
 
   for (int sample = 0; sample < num_samples; sample++) {
-    float disk_u, disk_v;
-    path_branched_rng_2D(kg, &rng_state, sample, num_samples, PRNG_BEVEL_U, &disk_u, &disk_v);
+    float2 rand_disk = path_branched_rng_2D(
+        kg, &rng_state, sample, num_samples, PRNG_SURFACE_BEVEL);
 
     /* Pick random axis in local frame and point on disk. */
     float3 disk_N, disk_T, disk_B;
@@ -138,13 +138,13 @@ ccl_device float3 svm_bevel(
     disk_N = sd->Ng;
     make_orthonormals(disk_N, &disk_T, &disk_B);
 
-    float axisu = disk_u;
+    float axisu = rand_disk.x;
 
     if (axisu < 0.5f) {
       pick_pdf_N = 0.5f;
       pick_pdf_T = 0.25f;
       pick_pdf_B = 0.25f;
-      disk_u *= 2.0f;
+      rand_disk.x *= 2.0f;
     }
     else if (axisu < 0.75f) {
       float3 tmp = disk_N;
@@ -153,7 +153,7 @@ ccl_device float3 svm_bevel(
       pick_pdf_N = 0.25f;
       pick_pdf_T = 0.5f;
       pick_pdf_B = 0.25f;
-      disk_u = (disk_u - 0.5f) * 4.0f;
+      rand_disk.x = (rand_disk.x - 0.5f) * 4.0f;
     }
     else {
       float3 tmp = disk_N;
@@ -162,12 +162,12 @@ ccl_device float3 svm_bevel(
       pick_pdf_N = 0.25f;
       pick_pdf_T = 0.25f;
       pick_pdf_B = 0.5f;
-      disk_u = (disk_u - 0.75f) * 4.0f;
+      rand_disk.x = (rand_disk.x - 0.75f) * 4.0f;
     }
 
     /* Sample point on disk. */
-    float phi = M_2PI_F * disk_u;
-    float disk_r = disk_v;
+    float phi = M_2PI_F * rand_disk.x;
+    float disk_r = rand_disk.y;
     float disk_height;
 
     /* Perhaps find something better than Cubic BSSRDF, but happens to work well. */

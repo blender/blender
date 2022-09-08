@@ -11,7 +11,9 @@
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 #ifdef __cplusplus
+#  include "BLI_set.hh"
 #  include "BLI_span.hh"
+#  include "BLI_string_ref.hh"
 #  include "BLI_vector.hh"
 #endif
 
@@ -53,14 +55,17 @@ extern const CustomData_MeshMasks CD_MASK_EVERYTHING;
 typedef enum eCDAllocType {
   /** Use the data pointer. */
   CD_ASSIGN = 0,
-  /** Allocate blank memory. */
-  CD_CALLOC = 1,
-  /** Allocate and set to default. */
-  CD_DEFAULT = 2,
+  /** Allocate and set to default, which is usually just zeroed memory. */
+  CD_SET_DEFAULT = 2,
   /** Use data pointers, set layer flag NOFREE. */
   CD_REFERENCE = 3,
   /** Do a full copy of all layers, only allowed if source has same number of elements. */
   CD_DUPLICATE = 4,
+  /**
+   * Default construct new layer values. Does nothing for trivial types. This should be used
+   * if all layer values will be set by the caller after creating the layer.
+   */
+  CD_CONSTRUCT = 5,
 } eCDAllocType;
 
 #define CD_TYPE_AS_MASK(_type) (eCustomDataMask)((eCustomDataMask)1 << (eCustomDataMask)(_type))
@@ -141,6 +146,15 @@ void CustomData_copy(const struct CustomData *source,
                      eCDAllocType alloctype,
                      int totelem);
 
+/**
+ * Like #CustomData_copy but skips copying layers that are stored as flags on #BMesh.
+ */
+void CustomData_copy_mesh_to_bmesh(const struct CustomData *source,
+                                   struct CustomData *dest,
+                                   eCustomDataMask mask,
+                                   eCDAllocType alloctype,
+                                   int totelem);
+
 /* BMESH_TODO, not really a public function but readfile.c needs it */
 void CustomData_update_typemap(struct CustomData *data);
 
@@ -153,6 +167,15 @@ bool CustomData_merge(const struct CustomData *source,
                       eCustomDataMask mask,
                       eCDAllocType alloctype,
                       int totelem);
+
+/**
+ * Like #CustomData_copy but skips copying layers that are stored as flags on #BMesh.
+ */
+bool CustomData_merge_mesh_to_bmesh(const struct CustomData *source,
+                                    struct CustomData *dest,
+                                    eCustomDataMask mask,
+                                    eCDAllocType alloctype,
+                                    int totelem);
 
 /**
  * Reallocate custom data to a new element count.
@@ -397,7 +420,7 @@ void *CustomData_bmesh_get_n(const struct CustomData *data, void *block, int typ
  */
 void *CustomData_bmesh_get_layer_n(const struct CustomData *data, void *block, int n);
 
-bool CustomData_set_layer_name(const struct CustomData *data, int type, int n, const char *name);
+bool CustomData_set_layer_name(struct CustomData *data, int type, int n, const char *name);
 const char *CustomData_get_layer_name(const struct CustomData *data, int type, int n);
 
 /**
@@ -408,6 +431,7 @@ void *CustomData_get_layer(const struct CustomData *data, int type);
 void *CustomData_get_layer_n(const struct CustomData *data, int type, int n);
 void *CustomData_get_layer_named(const struct CustomData *data, int type, const char *name);
 int CustomData_get_offset(const struct CustomData *data, int type);
+int CustomData_get_offset_named(const CustomData *data, int type, const char *name);
 int CustomData_get_n_offset(const struct CustomData *data, int type, int n);
 
 int CustomData_get_layer_index(const struct CustomData *data, int type);
@@ -428,6 +452,12 @@ int CustomData_get_stencil_layer(const struct CustomData *data, int type);
  * if no such active layer is defined.
  */
 const char *CustomData_get_active_layer_name(const struct CustomData *data, int type);
+
+/**
+ * Returns name of the default layer of the given type or NULL
+ * if no such active layer is defined.
+ */
+const char *CustomData_get_render_layer_name(const struct CustomData *data, int type);
 
 /**
  * Copies the data from source to the data element at index in the first layer of type
@@ -666,7 +696,7 @@ typedef struct CustomDataTransferLayerMap {
   size_t data_size;
   /** Offset of actual data we transfer (in element contained in data_src/dst). */
   size_t data_offset;
-  /** For bitflag transfer, flag(s) to affect in transferred data. */
+  /** For bit-flag transfer, flag(s) to affect in transferred data. */
   uint64_t data_flag;
 
   /** Opaque pointer, to be used by specific interp callback (e.g. transformspace for normals). */
@@ -696,7 +726,8 @@ void CustomData_data_transfer(const struct MeshPairRemap *me_remap,
  * the struct.
  */
 void CustomData_blend_write_prepare(CustomData &data,
-                                    blender::Vector<CustomDataLayer, 16> &layers_to_write);
+                                    blender::Vector<CustomDataLayer, 16> &layers_to_write,
+                                    const blender::Set<std::string> &skip_names = {});
 
 /**
  * \param layers_to_write: Layers created by #CustomData_blend_write_prepare.

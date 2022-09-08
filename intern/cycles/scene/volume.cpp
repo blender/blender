@@ -183,7 +183,7 @@ class VolumeMeshBuilder {
       typename GridType::ValueOnIter iter = copy->beginValueOn();
 
       for (; iter; ++iter) {
-        if (iter.getValue() < ValueType(volume_clipping)) {
+        if (openvdb::math::Abs(iter.getValue()) < ValueType(volume_clipping)) {
           iter.setValueOff();
         }
       }
@@ -294,6 +294,14 @@ void VolumeMeshBuilder::create_mesh(vector<float3> &vertices,
 #endif
 }
 
+#ifdef WITH_OPENVDB
+static bool is_non_empty_leaf(const openvdb::MaskGrid::TreeType &tree, const openvdb::Coord coord)
+{
+  auto *leaf_node = tree.probeLeaf(coord);
+  return (leaf_node && !leaf_node->isEmpty());
+}
+#endif
+
 void VolumeMeshBuilder::generate_vertices_and_quads(vector<ccl::int3> &vertices_is,
                                                     vector<QuadData> &quads)
 {
@@ -306,6 +314,10 @@ void VolumeMeshBuilder::generate_vertices_and_quads(vector<ccl::int3> &vertices_
   unordered_map<size_t, int> used_verts;
 
   for (auto iter = tree.cbeginLeaf(); iter; ++iter) {
+    if (iter->isEmpty()) {
+      continue;
+    }
+
     openvdb::CoordBBox leaf_bbox = iter->getNodeBoundingBox();
     /* +1 to convert from exclusive to include bounds. */
     leaf_bbox.max() = leaf_bbox.max().offsetBy(1);
@@ -333,27 +345,27 @@ void VolumeMeshBuilder::generate_vertices_and_quads(vector<ccl::int3> &vertices_
     static const int LEAF_DIM = openvdb::MaskGrid::TreeType::LeafNodeType::DIM;
     auto center = leaf_bbox.min() + openvdb::Coord(LEAF_DIM / 2);
 
-    if (!tree.probeLeaf(openvdb::Coord(center.x() - LEAF_DIM, center.y(), center.z()))) {
+    if (!is_non_empty_leaf(tree, openvdb::Coord(center.x() - LEAF_DIM, center.y(), center.z()))) {
       create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_X_MIN);
     }
 
-    if (!tree.probeLeaf(openvdb::Coord(center.x() + LEAF_DIM, center.y(), center.z()))) {
+    if (!is_non_empty_leaf(tree, openvdb::Coord(center.x() + LEAF_DIM, center.y(), center.z()))) {
       create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_X_MAX);
     }
 
-    if (!tree.probeLeaf(openvdb::Coord(center.x(), center.y() - LEAF_DIM, center.z()))) {
+    if (!is_non_empty_leaf(tree, openvdb::Coord(center.x(), center.y() - LEAF_DIM, center.z()))) {
       create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Y_MIN);
     }
 
-    if (!tree.probeLeaf(openvdb::Coord(center.x(), center.y() + LEAF_DIM, center.z()))) {
+    if (!is_non_empty_leaf(tree, openvdb::Coord(center.x(), center.y() + LEAF_DIM, center.z()))) {
       create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Y_MAX);
     }
 
-    if (!tree.probeLeaf(openvdb::Coord(center.x(), center.y(), center.z() - LEAF_DIM))) {
+    if (!is_non_empty_leaf(tree, openvdb::Coord(center.x(), center.y(), center.z() - LEAF_DIM))) {
       create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Z_MIN);
     }
 
-    if (!tree.probeLeaf(openvdb::Coord(center.x(), center.y(), center.z() + LEAF_DIM))) {
+    if (!is_non_empty_leaf(tree, openvdb::Coord(center.x(), center.y(), center.z() + LEAF_DIM))) {
       create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Z_MAX);
     }
   }

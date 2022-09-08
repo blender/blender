@@ -36,6 +36,7 @@ struct IDNameLib_Map;
 struct ImBuf;
 struct Library;
 struct MainLock;
+struct UniqueName_Map;
 
 /* Blender thumbnail, as written on file (width, height, and data as char RGBA). */
 /* We pack pixel data after that struct. */
@@ -192,6 +193,9 @@ typedef struct Main {
 
   /* IDMap of IDs. Currently used when reading (expanding) libraries. */
   struct IDNameLib_Map *id_map;
+
+  /* Used for efficient calculations of unique names. */
+  struct UniqueName_Map *name_map;
 
   struct MainLock *lock;
 } Main;

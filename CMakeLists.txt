@@ -25,13 +25,6 @@ endif()
 
 cmake_minimum_required(VERSION 3.10)
 
-# Prefer LEGACY OpenGL to be compatible with all the existing releases and
-# platforms which don't have GLVND yet. Only do it if preference was not set
-# externally.
-if(NOT DEFINED OpenGL_GL_PREFERENCE)
-  set(OpenGL_GL_PREFERENCE "LEGACY")
-endif()
-
 if(NOT EXECUTABLE_OUTPUT_PATH)
   set(FIRST_RUN TRUE)
 else()
@@ -111,6 +104,12 @@ project(Blender)
 blender_project_hack_post()
 
 enable_testing()
+
+#-----------------------------------------------------------------------------
+# Test compiler/library features.
+
+include(build_files/cmake/have_features.cmake)
+
 
 #-----------------------------------------------------------------------------
 # Redirect output files
@@ -196,7 +195,7 @@ endif()
 option(WITH_GMP "Enable features depending on GMP (Exact Boolean)" ON)
 
 # Compositor
-option(WITH_COMPOSITOR         "Enable the tile based nodal compositor" ON)
+option(WITH_COMPOSITOR_CPU     "Enable the tile based CPU nodal compositor" ON)
 option(WITH_OPENIMAGEDENOISE   "Enable the OpenImageDenoise compositing node" ON)
 
 option(WITH_OPENSUBDIV    "Enable OpenSubdiv for surface subdivision" ON)
@@ -223,7 +222,7 @@ if(UNIX AND NOT (APPLE OR HAIKU))
   option(WITH_GHOST_WAYLAND "Enable building Blender against Wayland for windowing (under development)" OFF)
   mark_as_advanced(WITH_GHOST_WAYLAND)
 
-  if (WITH_GHOST_WAYLAND)
+  if(WITH_GHOST_WAYLAND)
     option(WITH_GHOST_WAYLAND_LIBDECOR "Optionally build with LibDecor window decorations" OFF)
     mark_as_advanced(WITH_GHOST_WAYLAND_LIBDECOR)
 
@@ -262,7 +261,6 @@ if(WITH_GHOST_X11)
   option(WITH_X11_XINPUT    "Enable X11 Xinput (tablet support and unicode input)"  ON)
   option(WITH_X11_XF86VMODE "Enable X11 video mode switching"                       ON)
   option(WITH_X11_XFIXES    "Enable X11 XWayland cursor warping workaround"         ON)
-  option(WITH_X11_ALPHA     "Enable X11 transparent background"                     ON)
 endif()
 
 if(UNIX AND NOT APPLE)
@@ -366,7 +364,7 @@ if(WIN32 OR APPLE)
 endif()
 option(WITH_INPUT_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" ON)
 if(UNIX AND NOT APPLE)
-  option(WITH_INSTALL_PORTABLE "Install redistributeable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
+  option(WITH_INSTALL_PORTABLE "Install redistributable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
   option(WITH_STATIC_LIBS "Try to link with static libraries, as much as possible, to make blender more portable across distributions" OFF)
   if(WITH_STATIC_LIBS)
     option(WITH_BOOST_ICU "Boost uses ICU library (required for linking with static Boost built with libicu)." OFF)
@@ -437,10 +435,16 @@ if(NOT APPLE)
   option(WITH_CYCLES_CUBIN_COMPILER    "Build cubins with nvrtc based compiler instead of nvcc" OFF)
   option(WITH_CYCLES_CUDA_BUILD_SERIAL "Build cubins one after another (useful on machines with limited RAM)" OFF)
   option(WITH_CUDA_DYNLOAD             "Dynamically load CUDA libraries at runtime (for developers, makes cuda-gdb work)" ON)
+
+  set(OPTIX_ROOT_DIR                   "" CACHE PATH "Path to the OptiX SDK root directory, for building Cycles OptiX kernels.")
+  set(CYCLES_RUNTIME_OPTIX_ROOT_DIR    "" CACHE PATH "Path to the OptiX SDK root directory. When set, this path will be used at runtime to compile OptiX kernels.")
+
   mark_as_advanced(CYCLES_CUDA_BINARIES_ARCH)
   mark_as_advanced(WITH_CYCLES_CUBIN_COMPILER)
   mark_as_advanced(WITH_CYCLES_CUDA_BUILD_SERIAL)
   mark_as_advanced(WITH_CUDA_DYNLOAD)
+  mark_as_advanced(OPTIX_ROOT_DIR)
+  mark_as_advanced(CYCLES_RUNTIME_OPTIX_ROOT_DIR)
 endif()
 
 # AMD HIP
@@ -464,8 +468,8 @@ if(NOT APPLE)
   option(WITH_CYCLES_ONEAPI_SYCL_HOST_ENABLED "Enable use of SYCL host (CPU) device execution by oneAPI implementation. This option is for debugging purposes and impacts GPU execution." OFF)
 
   # https://www.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-cpp-compiler-dev-guide-and-reference/top/compilation/ahead-of-time-compilation.html
-  SET (CYCLES_ONEAPI_SPIR64_GEN_DEVICES "dg2" CACHE STRING "oneAPI Intel GPU architectures to build binaries for")
-  SET (CYCLES_ONEAPI_SYCL_TARGETS spir64 spir64_gen CACHE STRING "oneAPI targets to build AOT binaries for")
+  set(CYCLES_ONEAPI_SPIR64_GEN_DEVICES "dg2" CACHE STRING "oneAPI Intel GPU architectures to build binaries for")
+  set(CYCLES_ONEAPI_SYCL_TARGETS spir64 spir64_gen CACHE STRING "oneAPI targets to build AOT binaries for")
 
   mark_as_advanced(WITH_CYCLES_ONEAPI_SYCL_HOST_ENABLED)
   mark_as_advanced(CYCLES_ONEAPI_SPIR64_GEN_DEVICES)
@@ -536,69 +540,25 @@ endif()
 
 # OpenGL
 
-# Experimental EGL option.
-option(WITH_GL_EGL "Use the EGL OpenGL system library instead of the platform specific OpenGL system library (CGL, GLX or WGL)" OFF)
-mark_as_advanced(WITH_GL_EGL)
-
-if(WITH_GHOST_WAYLAND)
-  # Wayland can only use EGL to create OpenGL contexts, not GLX.
-  set(WITH_GL_EGL ON)
-endif()
-
-if(UNIX AND NOT APPLE)
-  if(WITH_GL_EGL)
-    # GLEW can only be built with either GLX or EGL support. Most binary distributions are
-    # built with GLX support and we have no automated way to detect this. So always build
-    # GLEW from source to be sure it has EGL support.
-    set(WITH_SYSTEM_GLEW OFF)
-  else()
-    option(WITH_SYSTEM_GLEW "Use GLEW OpenGL wrapper library provided by the operating system" OFF)
-  endif()
-
-  option(WITH_SYSTEM_GLES "Use OpenGL ES library provided by the operating system" ON)
-else()
-  # System GLEW and GLES not an option on other platforms.
-  set(WITH_SYSTEM_GLEW OFF)
-  set(WITH_SYSTEM_GLES OFF)
-endif()
-
 option(WITH_OPENGL              "When off limits visibility of the opengl headers to just bf_gpu and gawain (temporary option for development purposes)" ON)
-option(WITH_GLEW_ES             "Switches to experimental copy of GLEW that has support for OpenGL ES. (temporary option for development purposes)" OFF)
-option(WITH_GL_PROFILE_ES20     "Support using OpenGL ES 2.0. (through either EGL or the AGL/WGL/XGL 'es20' profile)"                               OFF)
 option(WITH_GPU_BUILDTIME_SHADER_BUILDER  "Shader builder is a developer option enabling linting on GLSL during compilation"                                  OFF)
 
 mark_as_advanced(
   WITH_OPENGL
-  WITH_GLEW_ES
-  WITH_GL_PROFILE_ES20
   WITH_GPU_BUILDTIME_SHADER_BUILDER
 )
 
-if(WITH_HEADLESS)
-  set(WITH_OPENGL OFF)
-endif()
-
 # Metal
 
-if (APPLE)
+if(APPLE)
   option(WITH_METAL_BACKEND "Use Metal for graphics instead of (or as well as) OpenGL on macOS." OFF)
   mark_as_advanced(WITH_METAL_BACKEND)
 else()
   set(WITH_METAL_BACKEND OFF)
 endif()
 
-if (WITH_METAL_BACKEND)
+if(WITH_METAL_BACKEND)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version" FORCE)
-endif()
-
-if(WIN32)
-  option(WITH_GL_ANGLE "Link with the ANGLE library, an OpenGL ES 2.0 implementation based on Direct3D, instead of the system OpenGL library." OFF)
-  mark_as_advanced(WITH_GL_ANGLE)
-endif()
-
-if(WITH_GLEW_ES AND WITH_SYSTEM_GLEW)
-  message(WARNING Ignoring WITH_SYSTEM_GLEW and using WITH_GLEW_ES)
-  set(WITH_SYSTEM_GLEW OFF)
 endif()
 
 if(WIN32)
@@ -777,6 +737,13 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   endif()
 endif()
 
+# Effective install path including config folder, as a generator expression.
+get_property(GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(GENERATOR_IS_MULTI_CONFIG)
+  string(REPLACE "\${BUILD_TYPE}" "$<CONFIG>" CMAKE_INSTALL_PREFIX_WITH_CONFIG ${CMAKE_INSTALL_PREFIX})
+else()
+  string(REPLACE "\${BUILD_TYPE}" "" CMAKE_INSTALL_PREFIX_WITH_CONFIG ${CMAKE_INSTALL_PREFIX})
+endif()
 
 
 # Apple
@@ -897,7 +864,6 @@ if(WITH_GHOST_SDL OR WITH_HEADLESS)
   set(WITH_X11_XINPUT    OFF)
   set(WITH_X11_XF86VMODE OFF)
   set(WITH_X11_XFIXES    OFF)
-  set(WITH_X11_ALPHA     OFF)
   set(WITH_GHOST_XDND    OFF)
   set(WITH_INPUT_IME     OFF)
   set(WITH_XR_OPENXR     OFF)
@@ -1196,7 +1162,8 @@ if(WITH_OPENVDB)
   list(APPEND OPENVDB_INCLUDE_DIRS
     ${BOOST_INCLUDE_DIR}
     ${TBB_INCLUDE_DIRS}
-    ${OPENEXR_INCLUDE_DIRS})
+    ${OPENEXR_INCLUDE_DIRS}
+  )
 
   list(APPEND OPENVDB_LIBRARIES ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES})
 
@@ -1211,142 +1178,13 @@ endif()
 #-----------------------------------------------------------------------------
 # Configure OpenGL.
 
-find_package(OpenGL)
-blender_include_dirs_sys("${OPENGL_INCLUDE_DIR}")
-
 if(WITH_OPENGL)
   add_definitions(-DWITH_OPENGL)
 endif()
 
-if(WITH_SYSTEM_GLES)
-  find_package_wrapper(OpenGLES)
-endif()
-
-if(WITH_GL_PROFILE_ES20)
-  if(WITH_SYSTEM_GLES)
-    if(NOT OPENGLES_LIBRARY)
-      message(FATAL_ERROR
-        "Unable to find OpenGL ES libraries. "
-        "Install them or disable WITH_SYSTEM_GLES."
-      )
-    endif()
-
-    list(APPEND BLENDER_GL_LIBRARIES "${OPENGLES_LIBRARY}")
-
-  else()
-    set(OPENGLES_LIBRARY "" CACHE FILEPATH "OpenGL ES 2.0 library file")
-    mark_as_advanced(OPENGLES_LIBRARY)
-
-    list(APPEND BLENDER_GL_LIBRARIES "${OPENGLES_LIBRARY}")
-
-    if(NOT OPENGLES_LIBRARY)
-      message(FATAL_ERROR
-        "To compile WITH_GL_EGL you need to set OPENGLES_LIBRARY "
-        "to the file path of an OpenGL ES 2.0 library."
-      )
-    endif()
-
-  endif()
-
-  if(WIN32)
-    # Setup paths to files needed to install and redistribute Windows Blender with OpenGL ES
-
-    set(OPENGLES_DLL "" CACHE FILEPATH "OpenGL ES 2.0 redistributable DLL file")
-    mark_as_advanced(OPENGLES_DLL)
-
-    if(NOT OPENGLES_DLL)
-      message(FATAL_ERROR
-        "To compile WITH_GL_PROFILE_ES20 you need to set OPENGLES_DLL to the file "
-        "path of an OpenGL ES 2.0 runtime dynamic link library (DLL)."
-      )
-    endif()
-
-    if(WITH_GL_ANGLE)
-      list(APPEND GL_DEFINITIONS -DWITH_ANGLE)
-
-      set(D3DCOMPILER_DLL "" CACHE FILEPATH "Direct3D Compiler redistributable DLL file (needed by ANGLE)")
-
-      get_filename_component(D3DCOMPILER_FILENAME "${D3DCOMPILER_DLL}" NAME)
-      list(APPEND GL_DEFINITIONS "-DD3DCOMPILER=\"\\\"${D3DCOMPILER_FILENAME}\\\"\"")
-
-      mark_as_advanced(D3DCOMPILER_DLL)
-
-      if(D3DCOMPILER_DLL STREQUAL "")
-        message(FATAL_ERROR
-          "To compile WITH_GL_ANGLE you need to set D3DCOMPILER_DLL to the file "
-          "path of a copy of the DirectX redistributable DLL file: D3DCompiler_46.dll"
-        )
-      endif()
-
-    endif()
-
-  endif()
-
-else()
-  if(OpenGL_GL_PREFERENCE STREQUAL "LEGACY" AND OPENGL_gl_LIBRARY)
-    list(APPEND BLENDER_GL_LIBRARIES ${OPENGL_gl_LIBRARY})
-  else()
-    list(APPEND BLENDER_GL_LIBRARIES ${OPENGL_opengl_LIBRARY} ${OPENGL_glx_LIBRARY})
-  endif()
-endif()
-
-if(WITH_GL_EGL)
-  find_package(OpenGL REQUIRED EGL)
-  list(APPEND BLENDER_GL_LIBRARIES OpenGL::EGL)
-
-  list(APPEND GL_DEFINITIONS -DWITH_GL_EGL -DGLEW_EGL -DGLEW_INC_EGL)
-
-  if(WITH_SYSTEM_GLES)
-    if(NOT OPENGLES_EGL_LIBRARY)
-      message(FATAL_ERROR
-        "Unable to find OpenGL ES libraries. "
-        "Install them or disable WITH_SYSTEM_GLES."
-      )
-    endif()
-
-    list(APPEND BLENDER_GL_LIBRARIES ${OPENGLES_EGL_LIBRARY})
-
-  else()
-    set(OPENGLES_EGL_LIBRARY "" CACHE FILEPATH "EGL library file")
-    mark_as_advanced(OPENGLES_EGL_LIBRARY)
-
-    list(APPEND BLENDER_GL_LIBRARIES "${OPENGLES_LIBRARY}" "${OPENGLES_EGL_LIBRARY}")
-
-    if(NOT OPENGLES_EGL_LIBRARY)
-      message(FATAL_ERROR
-        "To compile WITH_GL_EGL you need to set OPENGLES_EGL_LIBRARY "
-        "to the file path of an EGL library."
-      )
-    endif()
-
-  endif()
-
-  if(WIN32)
-    # Setup paths to files needed to install and redistribute Windows Blender with OpenGL ES
-
-    set(OPENGLES_EGL_DLL "" CACHE FILEPATH "EGL redistributable DLL file")
-    mark_as_advanced(OPENGLES_EGL_DLL)
-
-    if(NOT OPENGLES_EGL_DLL)
-      message(FATAL_ERROR
-        "To compile WITH_GL_EGL you need to set OPENGLES_EGL_DLL "
-        "to the file path of an EGL runtime dynamic link library (DLL)."
-      )
-    endif()
-
-  endif()
-
-endif()
-
-if(WITH_GL_PROFILE_ES20)
-  list(APPEND GL_DEFINITIONS -DWITH_GL_PROFILE_ES20)
-else()
-  list(APPEND GL_DEFINITIONS -DWITH_GL_PROFILE_CORE)
-endif()
-
 #-----------------------------------------------------------------------------
 # Configure Metal.
-if (WITH_METAL_BACKEND)
+if(WITH_METAL_BACKEND)
   add_definitions(-DWITH_METAL_BACKEND)
 
   # No need to add frameworks here, all the ones we need for Metal and
@@ -1386,66 +1224,6 @@ if(WITH_OPENMP)
     OpenMP_CXX_FLAGS
   )
 endif()
-
-#-----------------------------------------------------------------------------
-# Configure GLEW
-
-if(WITH_SYSTEM_GLEW)
-  find_package(GLEW)
-
-  # Note: There is an assumption here that the system GLEW is not a static library.
-
-  if(NOT GLEW_FOUND)
-    message(FATAL_ERROR "GLEW is required to build Blender. Install it or disable WITH_SYSTEM_GLEW.")
-  endif()
-
-  set(GLEW_INCLUDE_PATH "${GLEW_INCLUDE_DIR}")
-  set(BLENDER_GLEW_LIBRARIES ${GLEW_LIBRARY})
-else()
-  if(WITH_GLEW_ES)
-    set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extern/glew-es/include")
-
-    list(APPEND GL_DEFINITIONS -DGLEW_STATIC -DWITH_GLEW_ES)
-
-    # These definitions remove APIs from glew.h, making GLEW smaller, and catching unguarded API usage
-    if(WITH_GL_PROFILE_ES20)
-      list(APPEND GL_DEFINITIONS -DGLEW_ES_ONLY)
-    else()
-      # No ES functions are needed
-      list(APPEND GL_DEFINITIONS -DGLEW_NO_ES)
-    endif()
-
-    if(WITH_GL_PROFILE_ES20)
-      if(WITH_GL_EGL)
-        list(APPEND GL_DEFINITIONS -DGLEW_USE_LIB_ES20)
-      endif()
-
-      # ToDo: This is an experiment to eliminate ES 1 symbols,
-      # GLEW doesn't really properly provide this level of control
-      # (for example, without modification it eliminates too many symbols)
-      # so there are lots of modifications to GLEW to make this work,
-      # and no attempt to make it work beyond Blender at this point.
-      list(APPEND GL_DEFINITIONS -DGL_ES_VERSION_1_0=0 -DGL_ES_VERSION_CL_1_1=0 -DGL_ES_VERSION_CM_1_1=0)
-    endif()
-
-    set(BLENDER_GLEW_LIBRARIES extern_glew_es bf_intern_glew_mx)
-
-  else()
-    set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extern/glew/include")
-
-    list(APPEND GL_DEFINITIONS -DGLEW_STATIC)
-
-    # This won't affect the non-experimental glew library,
-    # but is used for conditional compilation elsewhere.
-    list(APPEND GL_DEFINITIONS -DGLEW_NO_ES)
-
-    set(BLENDER_GLEW_LIBRARIES extern_glew)
-
-  endif()
-
-endif()
-
-list(APPEND GL_DEFINITIONS -DGLEW_NO_GLU)
 
 #-----------------------------------------------------------------------------
 # Configure Bullet
@@ -1972,7 +1750,6 @@ if(WITH_BLENDER)
   # internal and external library information first, for test linking
   add_subdirectory(source)
 elseif(WITH_CYCLES_STANDALONE OR WITH_CYCLES_HYDRA_RENDER_DELEGATE)
-  add_subdirectory(intern/glew-mx)
   add_subdirectory(intern/guardedalloc)
   add_subdirectory(intern/libc_compat)
   add_subdirectory(intern/sky)
@@ -1989,9 +1766,6 @@ elseif(WITH_CYCLES_STANDALONE OR WITH_CYCLES_HYDRA_RENDER_DELEGATE)
   endif()
   if(WITH_HIP_DYNLOAD)
     add_subdirectory(extern/hipew)
-  endif()
-  if(NOT WITH_SYSTEM_GLEW)
-    add_subdirectory(extern/glew)
   endif()
 endif()
 
@@ -2085,8 +1859,6 @@ if(FIRST_RUN)
   info_cfg_option(WITH_INSTALL_PORTABLE)
   info_cfg_option(WITH_MEM_JEMALLOC)
   info_cfg_option(WITH_MEM_VALGRIND)
-  info_cfg_option(WITH_SYSTEM_GLEW)
-  info_cfg_option(WITH_X11_ALPHA)
   info_cfg_option(WITH_X11_XF86VMODE)
   info_cfg_option(WITH_X11_XFIXES)
   info_cfg_option(WITH_X11_XINPUT)
@@ -2132,14 +1904,6 @@ if(FIRST_RUN)
   info_cfg_option(WITH_MOD_FLUID)
   info_cfg_option(WITH_MOD_OCEANSIM)
   info_cfg_option(WITH_MOD_REMESH)
-
-  info_cfg_text("OpenGL:")
-  if(WIN32)
-    info_cfg_option(WITH_GL_ANGLE)
-  endif()
-  info_cfg_option(WITH_GL_EGL)
-  info_cfg_option(WITH_GL_PROFILE_ES20)
-  info_cfg_option(WITH_GLEW_ES)
 
   info_cfg_text("")
 

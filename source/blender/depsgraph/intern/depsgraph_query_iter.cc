@@ -153,10 +153,10 @@ bool deg_iterator_duplis_step(DEGObjectIterData *data)
     if (dob->no_draw) {
       continue;
     }
-    if (obd->type == OB_MBALL) {
+    if (dob->ob_data && GS(dob->ob_data->name) == ID_MB) {
       continue;
     }
-    if (deg_object_hide_original(data->eval_mode, dob->ob, dob)) {
+    if (obd->type != OB_MBALL && deg_object_hide_original(data->eval_mode, dob->ob, dob)) {
       continue;
     }
 
@@ -219,7 +219,9 @@ bool deg_iterator_objects_step(DEGObjectIterData *data)
   for (; data->id_node_index < data->num_id_nodes; data->id_node_index++) {
     deg::IDNode *id_node = deg_graph->id_nodes[data->id_node_index];
 
-    if (!id_node->is_directly_visible) {
+    /* Use the build time visibility so that the ID is not appearing/disappearing throughout
+     * animation export. */
+    if (!id_node->is_visible_on_build) {
       continue;
     }
 
@@ -338,10 +340,13 @@ static void DEG_iterator_ids_step(BLI_Iterator *iter, deg::IDNode *id_node, bool
 {
   ID *id_cow = id_node->id_cow;
 
-  if (!id_node->is_directly_visible) {
+  /* Use the build time visibility so that the ID is not appearing/disappearing throughout
+   * animation export. */
+  if (!id_node->is_visible_on_build) {
     iter->skip = true;
     return;
   }
+
   if (only_updated && !(id_cow->recalc & ID_RECALC_ALL)) {
     /* Node-tree is considered part of the data-block. */
     bNodeTree *ntree = ntreeFromID(id_cow);

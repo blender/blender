@@ -43,10 +43,9 @@ BLI_INLINE void vert_set_mesh(GPUIndexBufBuilder *elb,
                               const int v_index,
                               const int l_index)
 {
-  const MVert *mv = &mr->mvert[v_index];
-  if (!((mr->use_hide && (mv->flag & ME_HIDE)) ||
-        ((mr->extract_type == MR_EXTRACT_MAPPED) && (mr->v_origindex) &&
-         (mr->v_origindex[v_index] == ORIGINDEX_NONE)))) {
+  const bool hidden = mr->use_hide && mr->hide_vert && mr->hide_vert[v_index];
+
+  if (!(hidden || ((mr->v_origindex) && (mr->v_origindex[v_index] == ORIGINDEX_NONE)))) {
     GPU_indexbuf_set_point_vert(elb, v_index, l_index);
   }
   else {
@@ -181,8 +180,7 @@ static void extract_points_iter_subdiv_common(GPUIndexBufBuilder *elb,
       }
     }
     else {
-      const MVert *mv = &mr->mvert[coarse_vertex_index];
-      if (mr->use_hide && (mv->flag & ME_HIDE)) {
+      if (mr->use_hide && mr->hide_vert && mr->hide_vert[coarse_vertex_index]) {
         GPU_indexbuf_set_point_restart(elb, coarse_vertex_index);
         continue;
       }

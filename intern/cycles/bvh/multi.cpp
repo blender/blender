@@ -21,4 +21,12 @@ BVHMulti::~BVHMulti()
   }
 }
 
+void BVHMulti::replace_geometry(const vector<Geometry *> &geometry,
+                                const vector<Object *> &objects)
+{
+  foreach (BVH *bvh, sub_bvhs) {
+    bvh->replace_geometry(geometry, objects);
+  }
+}
+
 CCL_NAMESPACE_END

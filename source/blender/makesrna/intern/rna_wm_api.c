@@ -625,7 +625,7 @@ static wmEvent *rna_Window_event_add_simulate(wmWindow *win,
       return NULL;
     }
   }
-  if (ELEM(type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+  if (ISMOUSE_MOTION(type)) {
     if (value != KM_NOTHING) {
       BKE_report(reports, RPT_ERROR, "Value: must be 'NOTHING' for motion");
       return NULL;

@@ -1342,7 +1342,7 @@ ImBuf *BKE_tracking_stabilize_frame(
     return ibuf;
   }
 
-  /* Allocate frame for stabilization result, copy alpha mode and colorspace. */
+  /* Allocate frame for stabilization result, copy alpha mode and color-space. */
   ibuf_flags = 0;
   if (ibuf->rect) {
     ibuf_flags |= IB_rect;

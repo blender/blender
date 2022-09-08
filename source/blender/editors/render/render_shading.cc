@@ -934,7 +934,7 @@ static int view_layer_add_exec(bContext *C, wmOperator *op)
     WM_window_set_active_view_layer(win, view_layer_new);
   }
 
-  DEG_id_tag_update(&scene->id, 0);
+  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   DEG_relations_tag_update(CTX_data_main(C));
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 
@@ -1039,7 +1039,7 @@ static int view_layer_add_aov_exec(bContext *C, wmOperator *UNUSED(op))
     ntreeCompositUpdateRLayers(scene->nodetree);
   }
 
-  DEG_id_tag_update(&scene->id, 0);
+  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
   DEG_relations_tag_update(CTX_data_main(C));
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 
@@ -1091,7 +1091,7 @@ static int view_layer_remove_aov_exec(bContext *C, wmOperator *UNUSED(op))
     ntreeCompositUpdateRLayers(scene->nodetree);
   }
 
-  DEG_id_tag_update(&scene->id, 0);
+  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
   DEG_relations_tag_update(CTX_data_main(C));
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 
@@ -1143,7 +1143,7 @@ static int view_layer_add_lightgroup_exec(bContext *C, wmOperator *op)
     ntreeCompositUpdateRLayers(scene->nodetree);
   }
 
-  DEG_id_tag_update(&scene->id, 0);
+  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
   DEG_relations_tag_update(CTX_data_main(C));
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 
@@ -1193,7 +1193,7 @@ static int view_layer_remove_lightgroup_exec(bContext *C, wmOperator *UNUSED(op)
     ntreeCompositUpdateRLayers(scene->nodetree);
   }
 
-  DEG_id_tag_update(&scene->id, 0);
+  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
   DEG_relations_tag_update(CTX_data_main(C));
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 
@@ -1257,7 +1257,7 @@ static int view_layer_add_used_lightgroups_exec(bContext *C, wmOperator *UNUSED(
     ntreeCompositUpdateRLayers(scene->nodetree);
   }
 
-  DEG_id_tag_update(&scene->id, 0);
+  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
   DEG_relations_tag_update(CTX_data_main(C));
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 
@@ -1301,7 +1301,7 @@ static int view_layer_remove_unused_lightgroups_exec(bContext *C, wmOperator *UN
     ntreeCompositUpdateRLayers(scene->nodetree);
   }
 
-  DEG_id_tag_update(&scene->id, 0);
+  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
   DEG_relations_tag_update(CTX_data_main(C));
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 
@@ -1692,7 +1692,7 @@ static int freestyle_module_remove_exec(bContext *C, wmOperator *UNUSED(op))
 
   BKE_freestyle_module_delete(&view_layer->freestyle_config, module);
 
-  DEG_id_tag_update(&scene->id, 0);
+  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 
   return OPERATOR_FINISHED;
@@ -1722,7 +1722,7 @@ static int freestyle_module_move_exec(bContext *C, wmOperator *op)
   int dir = RNA_enum_get(op->ptr, "direction");
 
   if (BKE_freestyle_module_move(&view_layer->freestyle_config, module, dir)) {
-    DEG_id_tag_update(&scene->id, 0);
+    DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
     WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
   }
 
@@ -1778,7 +1778,7 @@ static int freestyle_lineset_add_exec(bContext *C, wmOperator *UNUSED(op))
 
   BKE_freestyle_lineset_add(bmain, &view_layer->freestyle_config, nullptr);
 
-  DEG_id_tag_update(&scene->id, 0);
+  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 
   return OPERATOR_FINISHED;
@@ -1852,7 +1852,7 @@ static int freestyle_lineset_paste_exec(bContext *C, wmOperator *UNUSED(op))
 
   FRS_paste_active_lineset(&view_layer->freestyle_config);
 
-  DEG_id_tag_update(&scene->id, 0);
+  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 
   return OPERATOR_FINISHED;
@@ -1886,7 +1886,7 @@ static int freestyle_lineset_remove_exec(bContext *C, wmOperator *UNUSED(op))
 
   FRS_delete_active_lineset(&view_layer->freestyle_config);
 
-  DEG_id_tag_update(&scene->id, 0);
+  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 
   return OPERATOR_FINISHED;
@@ -1920,7 +1920,7 @@ static int freestyle_lineset_move_exec(bContext *C, wmOperator *op)
   int dir = RNA_enum_get(op->ptr, "direction");
 
   if (FRS_move_active_lineset(&view_layer->freestyle_config, dir)) {
-    DEG_id_tag_update(&scene->id, 0);
+    DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
     WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
   }
 

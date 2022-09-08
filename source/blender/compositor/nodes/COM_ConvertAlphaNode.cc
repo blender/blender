@@ -10,7 +10,7 @@ void ConvertAlphaNode::convert_to_operations(NodeConverter &converter,
                                              const CompositorContext & /*context*/) const
 {
   NodeOperation *operation = nullptr;
-  bNode *node = this->get_bnode();
+  const bNode *node = this->get_bnode();
 
   /* value hardcoded in rna_nodetree.c */
   if (node->custom1 == 1) {

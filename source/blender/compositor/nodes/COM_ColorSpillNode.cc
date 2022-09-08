@@ -14,7 +14,7 @@ ColorSpillNode::ColorSpillNode(bNode *editor_node) : Node(editor_node)
 void ColorSpillNode::convert_to_operations(NodeConverter &converter,
                                            const CompositorContext & /*context*/) const
 {
-  bNode *editorsnode = get_bnode();
+  const bNode *editorsnode = get_bnode();
 
   NodeInput *input_socket_image = this->get_input_socket(0);
   NodeInput *input_socket_fac = this->get_input_socket(1);

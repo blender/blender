@@ -150,9 +150,15 @@ class SyncModule {
   ObjectHandle &sync_object(Object *ob);
   WorldHandle &sync_world(::World *world);
 
-  void sync_mesh(Object *ob, ObjectHandle &ob_handle);
-  void sync_gpencil(Object *ob, ObjectHandle &ob_handle);
-  void sync_curves(Object *ob, ObjectHandle &ob_handle, ModifierData *modifier_data = nullptr);
+  void sync_mesh(Object *ob,
+                 ObjectHandle &ob_handle,
+                 ResourceHandle res_handle,
+                 const ObjectRef &ob_ref);
+  void sync_gpencil(Object *ob, ObjectHandle &ob_handle, ResourceHandle res_handle);
+  void sync_curves(Object *ob,
+                   ObjectHandle &ob_handle,
+                   ResourceHandle res_handle,
+                   ModifierData *modifier_data = nullptr);
 };
 
 /** \} */

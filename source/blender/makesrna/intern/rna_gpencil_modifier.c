@@ -3197,9 +3197,27 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem modifier_lineart_shadow_region_filtering[] = {
-      {LRT_SHADOW_FILTER_NONE, "NONE", 0, "None", ""},
-      {LRT_SHADOW_FILTER_LIT, "LIT", 0, "Lit", ""},
-      {LRT_SHADOW_FILTER_SHADED, "SHADED", 0, "Shaded", ""},
+      {LRT_SHADOW_FILTER_NONE,
+       "NONE",
+       0,
+       "None",
+       "Not filtering any lines based on illumination region"},
+      {LRT_SHADOW_FILTER_ILLUMINATED,
+       "ILLUMINATED",
+       0,
+       "Illuminated",
+       "Only selecting lines from illuminated regions"},
+      {LRT_SHADOW_FILTER_SHADED,
+       "SHADED",
+       0,
+       "Shaded",
+       "Only selecting lines from shaded regions"},
+      {LRT_SHADOW_FILTER_ILLUMINATED_ENCLOSED_SHAPES,
+       "ILLUMINATED_ENCLOSED",
+       0,
+       "Illuminated (Enclosed Shapes)",
+       "Selecting lines from lit regions, and make the combination of contour, light contour and "
+       "shadow lines into enclosed shapes"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -3463,13 +3481,6 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
                            "Select feature lines that comes from lit or shaded regions. Will not "
                            "affect cast shadow and light contour since they are at the border");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
-
-  prop = RNA_def_property(srna, "use_shadow_enclosed_shapes", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_SHADOW_ENCLOSED_SHAPES);
-  RNA_def_property_ui_text(prop,
-                           "Shadow Enclosed Shapes",
-                           "Reproject visible lines again to get enclosed shadow shapes");
-  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "silhouette_filtering", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "silhouette_selection");

@@ -46,8 +46,11 @@ void key_curve_normal_weights(float t, float data[4], int type);
 
 /**
  * Returns key coordinates (+ tilt) when key applied, NULL otherwise.
+ *
+ * \param obdata: if given, also update that geometry with the result of the shape keys evaluation.
  */
-float *BKE_key_evaluate_object_ex(struct Object *ob, int *r_totelem, float *arr, size_t arr_size);
+float *BKE_key_evaluate_object_ex(
+    struct Object *ob, int *r_totelem, float *arr, size_t arr_size, struct ID *obdata);
 float *BKE_key_evaluate_object(struct Object *ob, int *r_totelem);
 
 /**

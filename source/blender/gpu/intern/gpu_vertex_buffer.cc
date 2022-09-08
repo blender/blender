@@ -40,10 +40,21 @@ VertBuf::~VertBuf()
 
 void VertBuf::init(const GPUVertFormat *format, GPUUsageType usage)
 {
-  usage_ = usage;
+  /* Strip extended usage flags. */
+  usage_ = usage & ~GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY;
+#ifndef NDEBUG
+  /* Store extended usage. */
+  extended_usage_ = usage;
+#endif
   flag = GPU_VERTBUF_DATA_DIRTY;
   GPU_vertformat_copy(&this->format, format);
-  if (!format->packed) {
+  /* Avoid packing vertex formats which are used for texture buffers.
+   * These cases use singular types and do not need packing. They must
+   * also not have increased alignment padding to the minimum per-vertex stride. */
+  if (usage & GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY) {
+    VertexFormat_texture_buffer_pack(&this->format);
+  }
+  if (!this->format.packed) {
     VertexFormat_pack(&this->format);
   }
   flag |= GPU_VERTBUF_INIT;
@@ -62,6 +73,10 @@ VertBuf *VertBuf::duplicate()
   *dst = *this;
   /* Almost full copy... */
   dst->handle_refcount_ = 1;
+  /* Metadata. */
+#ifndef NDEBUG
+  dst->extended_usage_ = extended_usage_;
+#endif
   /* Duplicate all needed implementation specifics data. */
   this->duplicate_data(dst);
   return dst;
@@ -192,6 +207,7 @@ void GPU_vertbuf_data_len_set(GPUVertBuf *verts_, uint v_len)
 void GPU_vertbuf_attr_set(GPUVertBuf *verts_, uint a_idx, uint v_idx, const void *data)
 {
   VertBuf *verts = unwrap(verts_);
+  BLI_assert(verts->get_usage_type() != GPU_USAGE_DEVICE_ONLY);
   const GPUVertFormat *format = &verts->format;
   const GPUVertAttr *a = &format->attrs[a_idx];
   BLI_assert(v_idx < verts->vertex_alloc);
@@ -215,6 +231,7 @@ void GPU_vertbuf_attr_fill(GPUVertBuf *verts_, uint a_idx, const void *data)
 void GPU_vertbuf_vert_set(GPUVertBuf *verts_, uint v_idx, const void *data)
 {
   VertBuf *verts = unwrap(verts_);
+  BLI_assert(verts->get_usage_type() != GPU_USAGE_DEVICE_ONLY);
   const GPUVertFormat *format = &verts->format;
   BLI_assert(v_idx < verts->vertex_alloc);
   BLI_assert(verts->data != nullptr);
@@ -225,6 +242,7 @@ void GPU_vertbuf_vert_set(GPUVertBuf *verts_, uint v_idx, const void *data)
 void GPU_vertbuf_attr_fill_stride(GPUVertBuf *verts_, uint a_idx, uint stride, const void *data)
 {
   VertBuf *verts = unwrap(verts_);
+  BLI_assert(verts->get_usage_type() != GPU_USAGE_DEVICE_ONLY);
   const GPUVertFormat *format = &verts->format;
   const GPUVertAttr *a = &format->attrs[a_idx];
   BLI_assert(a_idx < format->attr_len);

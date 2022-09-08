@@ -30,6 +30,7 @@ typedef enum CurveType {
   CURVE_TYPE_BEZIER = 2,
   CURVE_TYPE_NURBS = 3,
 } CurveType;
+/* The number of supported curve types. */
 #define CURVE_TYPES_NUM 4
 
 typedef enum HandleType {
@@ -66,23 +67,6 @@ typedef enum NormalMode {
  * curve-processing algorithms for multiple Blender data-block types.
  */
 typedef struct CurvesGeometry {
-  /**
-   * A runtime pointer to the "position" attribute data.
-   * \note This data is owned by #point_data.
-   */
-  float (*position)[3];
-  /**
-   * A runtime pointer to the "radius" attribute data.
-   * \note This data is owned by #point_data.
-   */
-  float *radius;
-
-  /**
-   * The type of each curve. #CurveType.
-   * \note This data is owned by #curve_data.
-   */
-  int8_t *curve_type;
-
   /**
    * The start index of each curve in the point data. The size of each curve can be calculated by
    * subtracting the offset from the next offset. That is valid even for the last curve because

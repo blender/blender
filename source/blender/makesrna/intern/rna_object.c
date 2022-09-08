@@ -607,11 +607,7 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
     case OB_GPENCIL:
       return &RNA_GreasePencil;
     case OB_CURVES:
-#  ifdef WITH_NEW_CURVES_TYPE
       return &RNA_Curves;
-#  else
-      return &RNA_ID;
-#  endif
     case OB_POINTCLOUD:
       return &RNA_PointCloud;
     case OB_VOLUME:
@@ -690,6 +686,11 @@ static bool rna_Object_parent_override_apply(Main *bmain,
 static void rna_Object_parent_type_set(PointerRNA *ptr, int value)
 {
   Object *ob = (Object *)ptr->data;
+
+  /* Skip if type did not change (otherwise we loose parent inverse in ED_object_parent). */
+  if (ob->partype == value) {
+    return;
+  }
 
   ED_object_parent(ob, ob->parent, value, ob->parsubstr);
 }
@@ -2228,7 +2229,7 @@ bool rna_GPencil_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
   return ((Object *)value.owner_id)->type == OB_GPENCIL;
 }
 
-int rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)
+bool rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)
 {
   SculptSession *ss = ((Object *)ptr->owner_id)->sculpt;
   return (ss && ss->bm);

@@ -18,7 +18,7 @@ class DataButtonsPanel:
 class DATA_PT_context_volume(DataButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -35,7 +35,7 @@ class DATA_PT_context_volume(DataButtonsPanel, Panel):
 
 class DATA_PT_volume_file(DataButtonsPanel, Panel):
     bl_label = "OpenVDB File"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -80,7 +80,7 @@ class VOLUME_UL_grids(UIList):
 
 class DATA_PT_volume_grids(DataButtonsPanel, Panel):
     bl_label = "Grids"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -93,7 +93,7 @@ class DATA_PT_volume_grids(DataButtonsPanel, Panel):
 
 class DATA_PT_volume_render(DataButtonsPanel, Panel):
     bl_label = "Render"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -125,7 +125,7 @@ class DATA_PT_volume_render(DataButtonsPanel, Panel):
 
 class DATA_PT_volume_viewport_display(DataButtonsPanel, Panel):
     bl_label = "Viewport Display"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
@@ -149,7 +149,7 @@ class DATA_PT_volume_viewport_display(DataButtonsPanel, Panel):
 class DATA_PT_volume_viewport_display_slicing(DataButtonsPanel, Panel):
     bl_label = ""
     bl_parent_id = 'DATA_PT_volume_viewport_display'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
 
     def draw_header(self, context):
         layout = self.layout
@@ -175,7 +175,7 @@ class DATA_PT_volume_viewport_display_slicing(DataButtonsPanel, Panel):
 
 
 class DATA_PT_custom_props_volume(DataButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
     _context_path = "object.data"
     _property_type = bpy.types.Volume
 

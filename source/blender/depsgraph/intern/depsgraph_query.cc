@@ -23,6 +23,7 @@
 #include "DNA_scene_types.h"
 
 #include "RNA_access.h"
+#include "RNA_path.h"
 #include "RNA_prototypes.h"
 
 #include "DEG_depsgraph.h"
@@ -328,7 +329,7 @@ bool DEG_is_fully_evaluated(const struct Depsgraph *depsgraph)
 {
   const deg::Depsgraph *deg_graph = (const deg::Depsgraph *)depsgraph;
   /* Check whether relations are up to date. */
-  if (deg_graph->need_update) {
+  if (deg_graph->need_update_relations) {
     return false;
   }
   /* Check whether IDs are up to date. */

@@ -116,7 +116,7 @@ bool BlendfileLoadingBaseTest::blendfile_load(const char *filepath)
   }
 
   char abspath[FILENAME_MAX];
-  BLI_path_join(abspath, sizeof(abspath), test_assets_dir.c_str(), filepath, NULL);
+  BLI_path_join(abspath, sizeof(abspath), test_assets_dir.c_str(), filepath, nullptr);
 
   BlendFileReadReport bf_reports = {nullptr};
   bfile = BLO_read_from_file(abspath, BLO_READ_SKIP_NONE, &bf_reports);

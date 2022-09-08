@@ -27,6 +27,13 @@
 #include "transform_convert.h"
 #include "transform_snap.h"
 
+struct TransCustomDataNode {
+  View2DEdgePanData edgepan_data;
+
+  /* Compare if the view has changed so we can update with `transformViewUpdate`. */
+  rctf viewrect_prev;
+};
+
 /* -------------------------------------------------------------------- */
 /** \name Node Transform Creation
  * \{ */
@@ -89,21 +96,23 @@ static bool is_node_parent_select(bNode *node)
   return false;
 }
 
-void createTransNodeData(TransInfo *t)
+static void createTransNodeData(bContext *UNUSED(C), TransInfo *t)
 {
   const float dpi_fac = UI_DPI_FAC;
   SpaceNode *snode = t->area->spacedata.first;
 
   /* Custom data to enable edge panning during the node transform */
-  View2DEdgePanData *customdata = MEM_callocN(sizeof(*customdata), __func__);
+  struct TransCustomDataNode *customdata = MEM_callocN(sizeof(*customdata), __func__);
   UI_view2d_edge_pan_init(t->context,
-                          customdata,
+                          &customdata->edgepan_data,
                           NODE_EDGE_PAN_INSIDE_PAD,
                           NODE_EDGE_PAN_OUTSIDE_PAD,
                           NODE_EDGE_PAN_SPEED_RAMP,
                           NODE_EDGE_PAN_MAX_SPEED,
                           NODE_EDGE_PAN_DELAY,
                           NODE_EDGE_PAN_ZOOM_INFLUENCE);
+  customdata->viewrect_prev = customdata->edgepan_data.initial_rect;
+
   t->custom.type.data = customdata;
   t->custom.type.use_free = true;
 
@@ -150,15 +159,15 @@ void createTransNodeData(TransInfo *t)
 /** \name Node Transform Creation
  * \{ */
 
-void flushTransNodes(TransInfo *t)
+static void flushTransNodes(TransInfo *t)
 {
   const float dpi_fac = UI_DPI_FAC;
 
-  View2DEdgePanData *customdata = (View2DEdgePanData *)t->custom.type.data;
+  struct TransCustomDataNode *customdata = (struct TransCustomDataNode *)t->custom.type.data;
 
   if (t->options & CTX_VIEW2D_EDGE_PAN) {
     if (t->state == TRANS_CANCEL) {
-      UI_view2d_edge_pan_cancel(t->context, customdata);
+      UI_view2d_edge_pan_cancel(t->context, &customdata->edgepan_data);
     }
     else {
       /* Edge panning functions expect window coordinates, mval is relative to region */
@@ -166,13 +175,19 @@ void flushTransNodes(TransInfo *t)
           t->region->winrct.xmin + t->mval[0],
           t->region->winrct.ymin + t->mval[1],
       };
-      UI_view2d_edge_pan_apply(t->context, customdata, xy);
+      UI_view2d_edge_pan_apply(t->context, &customdata->edgepan_data, xy);
     }
   }
 
-  /* Initial and current view2D rects for additional transform due to view panning and zooming */
-  const rctf *rect_src = &customdata->initial_rect;
-  const rctf *rect_dst = &t->region->v2d.cur;
+  float offset[2] = {0.0f, 0.0f};
+  if (t->state != TRANS_CANCEL) {
+    if (!BLI_rctf_compare(&customdata->viewrect_prev, &t->region->v2d.cur, FLT_EPSILON)) {
+      /* Additional offset due to change in view2D rect. */
+      BLI_rctf_transform_pt_v(&t->region->v2d.cur, &customdata->viewrect_prev, offset, offset);
+      tranformViewUpdate(t);
+      customdata->viewrect_prev = t->region->v2d.cur;
+    }
+  }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     applyGridAbsolute(t);
@@ -184,10 +199,7 @@ void flushTransNodes(TransInfo *t)
       bNode *node = td->extra;
 
       float loc[2];
-      copy_v2_v2(loc, td2d->loc);
-
-      /* additional offset due to change in view2D rect */
-      BLI_rctf_transform_pt_v(rect_dst, rect_src, loc, loc);
+      add_v2_v2v2(loc, td2d->loc, offset);
 
 #ifdef USE_NODE_CENTER
       loc[0] -= 0.5f * BLI_rctf_size_x(&node->totr);
@@ -220,7 +232,7 @@ void flushTransNodes(TransInfo *t)
 /** \name Special After Transform Node
  * \{ */
 
-void special_aftertrans_update__node(bContext *C, TransInfo *t)
+static void special_aftertrans_update__node(bContext *C, TransInfo *t)
 {
   struct Main *bmain = CTX_data_main(C);
   const bool canceled = (t->state == TRANS_CANCEL);
@@ -249,3 +261,10 @@ void special_aftertrans_update__node(bContext *C, TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_Node = {
+    /* flags */ (T_POINTS | T_2D_EDIT),
+    /* createTransData */ createTransNodeData,
+    /* recalcData */ flushTransNodes,
+    /* special_aftertrans_update */ special_aftertrans_update__node,
+};

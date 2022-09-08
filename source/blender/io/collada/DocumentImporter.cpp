@@ -743,6 +743,7 @@ bool DocumentImporter::writeMaterial(const COLLADAFW::Material *cmat)
   const std::string &str_mat_id = cmat->getName().empty() ? cmat->getOriginalId() :
                                                             cmat->getName();
   Material *ma = BKE_material_add(bmain, (char *)str_mat_id.c_str());
+  id_us_min(&ma->id);
 
   this->uid_effect_map[cmat->getInstantiatedEffect()] = ma;
   this->uid_material_map[cmat->getUniqueId()] = ma;

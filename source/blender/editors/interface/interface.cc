@@ -153,8 +153,8 @@ void ui_block_to_window(const ARegion *region, uiBlock *block, int *r_x, int *r_
 
   ui_block_to_window_fl(region, block, &fx, &fy);
 
-  *r_x = (int)(fx + 0.5f);
-  *r_y = (int)(fy + 0.5f);
+  *r_x = (int)lround(fx);
+  *r_y = (int)lround(fy);
 }
 
 void ui_block_to_region_rctf(const ARegion *region,
@@ -232,8 +232,8 @@ void ui_window_to_block(const ARegion *region, uiBlock *block, int *r_x, int *r_
 
   ui_window_to_block_fl(region, block, &fx, &fy);
 
-  *r_x = (int)(fx + 0.5f);
-  *r_y = (int)(fy + 0.5f);
+  *r_x = (int)lround(fx);
+  *r_y = (int)lround(fy);
 }
 
 void ui_window_to_region(const ARegion *region, int *r_x, int *r_y)
@@ -769,20 +769,11 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
     return false;
   }
 
-  if ((but->type == UI_BTYPE_TREEROW) && (oldbut->type == UI_BTYPE_TREEROW)) {
-    uiButTreeRow *but_treerow = (uiButTreeRow *)but;
-    uiButTreeRow *oldbut_treerow = (uiButTreeRow *)oldbut;
-    if (!but_treerow->tree_item || !oldbut_treerow->tree_item ||
-        !UI_tree_view_item_matches(but_treerow->tree_item, oldbut_treerow->tree_item)) {
-      return false;
-    }
-  }
-
-  if ((but->type == UI_BTYPE_GRID_TILE) && (oldbut->type == UI_BTYPE_GRID_TILE)) {
-    uiButGridTile *but_gridtile = (uiButGridTile *)but;
-    uiButGridTile *oldbut_gridtile = (uiButGridTile *)oldbut;
-    if (!but_gridtile->view_item || !oldbut_gridtile->view_item ||
-        !UI_grid_view_item_matches(but_gridtile->view_item, oldbut_gridtile->view_item)) {
+  if ((but->type == UI_BTYPE_VIEW_ITEM) && (oldbut->type == UI_BTYPE_VIEW_ITEM)) {
+    uiButViewItem *but_item = (uiButViewItem *)but;
+    uiButViewItem *oldbut_item = (uiButViewItem *)oldbut;
+    if (!but_item->view_item || !oldbut_item->view_item ||
+        !UI_view_item_matches(but_item->view_item, oldbut_item->view_item)) {
       return false;
     }
   }
@@ -907,16 +898,10 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
       progress_oldbut->progress = progress_but->progress;
       break;
     }
-    case UI_BTYPE_TREEROW: {
-      uiButTreeRow *treerow_oldbut = (uiButTreeRow *)oldbut;
-      uiButTreeRow *treerow_newbut = (uiButTreeRow *)but;
-      SWAP(uiTreeViewItemHandle *, treerow_newbut->tree_item, treerow_oldbut->tree_item);
-      break;
-    }
-    case UI_BTYPE_GRID_TILE: {
-      uiButGridTile *gridtile_oldbut = (uiButGridTile *)oldbut;
-      uiButGridTile *gridtile_newbut = (uiButGridTile *)but;
-      SWAP(uiGridViewItemHandle *, gridtile_newbut->view_item, gridtile_oldbut->view_item);
+    case UI_BTYPE_VIEW_ITEM: {
+      uiButViewItem *view_item_oldbut = (uiButViewItem *)oldbut;
+      uiButViewItem *view_item_newbut = (uiButViewItem *)but;
+      SWAP(uiViewItemHandle *, view_item_newbut->view_item, view_item_oldbut->view_item);
       break;
     }
     default:
@@ -1013,7 +998,7 @@ static bool ui_but_update_from_old_block(const bContext *C,
 
     /* Stupid special case: The active button may be inside (as in, overlapped on top) a view-item
      * button which we also want to keep highlighted then. */
-    if (ui_but_is_view_item(but)) {
+    if (but->type == UI_BTYPE_VIEW_ITEM) {
       flag_copy |= UI_ACTIVE;
     }
 
@@ -1325,7 +1310,7 @@ static bool ui_but_event_operator_string_from_panel(const bContext *C,
   IDP_AddToGroup(prop_panel, IDP_New(IDP_INT, &region_type_val, "region_type"));
 
   for (int i = 0; i < 2; i++) {
-    /* FIXME(campbell): We can't reasonably search all configurations - long term. */
+    /* FIXME(@campbellbarton): We can't reasonably search all configurations - long term. */
     IDPropertyTemplate val = {0};
     val.i = i;
 
@@ -2245,21 +2230,12 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
           }
         }
         break;
-      case UI_BTYPE_TREEROW: {
-        uiButTreeRow *tree_row_but = (uiButTreeRow *)but;
+      case UI_BTYPE_VIEW_ITEM: {
+        const uiButViewItem *view_item_but = (const uiButViewItem *)but;
 
         is_push = -1;
-        if (tree_row_but->tree_item) {
-          is_push = UI_tree_view_item_is_active(tree_row_but->tree_item);
-        }
-        break;
-      }
-      case UI_BTYPE_GRID_TILE: {
-        uiButGridTile *grid_tile_but = (uiButGridTile *)but;
-
-        is_push = -1;
-        if (grid_tile_but->view_item) {
-          is_push = UI_grid_view_item_is_active(grid_tile_but->view_item);
+        if (view_item_but->view_item) {
+          is_push = UI_view_item_is_active(view_item_but->view_item);
         }
         break;
       }
@@ -2387,9 +2363,9 @@ void ui_but_v3_set(uiBut *but, const float vec[3])
   }
   else if (but->pointype == UI_BUT_POIN_CHAR) {
     char *cp = (char *)but->poin;
-    cp[0] = (char)(0.5f + vec[0] * 255.0f);
-    cp[1] = (char)(0.5f + vec[1] * 255.0f);
-    cp[2] = (char)(0.5f + vec[2] * 255.0f);
+    cp[0] = (char)lround(vec[0] * 255.0f);
+    cp[1] = (char)lround(vec[1] * 255.0f);
+    cp[2] = (char)lround(vec[2] * 255.0f);
   }
   else if (but->pointype == UI_BUT_POIN_FLOAT) {
     float *fp = (float *)but->poin;
@@ -4011,17 +3987,13 @@ static void ui_but_alloc_info(const eButType type,
       alloc_size = sizeof(uiButCurveProfile);
       alloc_str = "uiButCurveProfile";
       break;
-    case UI_BTYPE_TREEROW:
-      alloc_size = sizeof(uiButTreeRow);
-      alloc_str = "uiButTreeRow";
-      break;
     case UI_BTYPE_HOTKEY_EVENT:
       alloc_size = sizeof(uiButHotkeyEvent);
       alloc_str = "uiButHotkeyEvent";
       break;
-    case UI_BTYPE_GRID_TILE:
-      alloc_size = sizeof(uiButGridTile);
-      alloc_str = "uiButGridTile";
+    case UI_BTYPE_VIEW_ITEM:
+      alloc_size = sizeof(uiButViewItem);
+      alloc_str = "uiButViewItem";
       break;
     default:
       alloc_size = sizeof(uiBut);
@@ -4214,7 +4186,6 @@ static uiBut *ui_def_but(uiBlock *block,
                 UI_BTYPE_BLOCK,
                 UI_BTYPE_BUT_MENU,
                 UI_BTYPE_SEARCH_MENU,
-                UI_BTYPE_TREEROW,
                 UI_BTYPE_POPOVER)) {
     but->drawflag |= (UI_BUT_TEXT_LEFT | UI_BUT_ICON_LEFT);
   }
@@ -6469,15 +6440,6 @@ uiBut *uiDefSearchButO_ptr(uiBlock *block,
   return but;
 }
 
-void UI_but_treerow_indentation_set(uiBut *but, int indentation)
-{
-  uiButTreeRow *but_row = (uiButTreeRow *)but;
-  BLI_assert(but->type == UI_BTYPE_TREEROW);
-
-  but_row->indentation = indentation;
-  BLI_assert(indentation >= 0);
-}
-
 void UI_but_hint_drawstr_set(uiBut *but, const char *string)
 {
   ui_but_add_shortcut(but, string, false);
@@ -6792,10 +6754,11 @@ void UI_but_extra_icon_string_info_get(struct bContext *C, uiButExtraOpIcon *ext
         if (ui_but_extra_icon_event_operator_string(C, extra_icon, buf, sizeof(buf))) {
           tmp = BLI_strdup(buf);
         }
+        break;
       }
+      default:
         /* Other types not supported. The caller should expect that outcome, no need to message or
          * assert here. */
-      default:
         break;
     }
 

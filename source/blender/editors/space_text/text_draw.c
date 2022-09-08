@@ -997,7 +997,7 @@ static void draw_textscroll(const SpaceText *st, rcti *scroll, rcti *back)
   /* background so highlights don't go behind the scrollbar */
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColor(TH_BACK);
   immRecti(pos, back->xmin, back->ymin, back->xmax, back->ymax);
   immUnbindProgram();
@@ -1076,7 +1076,7 @@ static void draw_documentation(const SpaceText *st, ARegion *region)
   /* Draw panel */
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   immUniformThemeColor(TH_BACK);
   immRecti(pos, x, y, x + boxw, y - boxh);
@@ -1206,7 +1206,7 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
 
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   immUniformThemeColor(TH_SHADE1);
   immRecti(pos, x - 1, y + 1, x + boxw + 1, y - boxh - 1);
@@ -1232,7 +1232,7 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
     if (item == sel) {
       uint posi = GPU_vertformat_attr_add(
           immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
       immUniformThemeColor(TH_SHADE2);
       immRecti(posi, x + margin_x, y - 3, x + margin_x + w, y + lheight - 3);
@@ -1280,7 +1280,7 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
 
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* Draw the selection */
   if (text->curl != text->sell || text->curc != text->selc) {
@@ -1663,7 +1663,7 @@ void draw_text_main(SpaceText *st, ARegion *region)
   if (st->showlinenrs) {
     uint pos = GPU_vertformat_attr_add(
         immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformThemeColor(TH_GRID);
     immRecti(pos, 0, 0, TXT_NUMCOL_WIDTH(st), region->winy);
     immUnbindProgram();
@@ -1726,7 +1726,7 @@ void draw_text_main(SpaceText *st, ARegion *region)
     if (margin_column_x >= x) {
       uint pos = GPU_vertformat_attr_add(
           immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       float margin_color[4];
       UI_GetThemeColor4fv(TH_TEXT, margin_color);
       margin_color[3] = 0.2f;

@@ -118,7 +118,7 @@ static int engine_get_preview_pixel_size(RenderEngine *UNUSED(engine), Scene *sc
 
 static void engine_bind_display_space_shader(RenderEngine *UNUSED(engine), Scene *UNUSED(scene))
 {
-  GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE);
+  GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE);
   GPU_shader_bind(shader);
 
   int img_loc = GPU_shader_get_uniform(shader, "image");

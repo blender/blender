@@ -8,8 +8,6 @@
 
 #include "gl_context.hh"
 
-#include "glew-mx.h"
-
 /* Manual line breaks for readability. */
 /* clang-format off */
 #define _VA_ARG_LIST1(t) t

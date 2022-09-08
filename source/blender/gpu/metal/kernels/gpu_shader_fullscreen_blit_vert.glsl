@@ -1,12 +1,4 @@
 
-out vec4 uvcoordsvar;
-
-in vec2 pos;
-uniform vec2 fullscreen;
-uniform vec2 size;
-uniform vec2 dst_offset;
-uniform vec2 src_offset;
-
 void main()
 {
   /* The position represents a 0-1 square, we first scale it by the size we want to have it on

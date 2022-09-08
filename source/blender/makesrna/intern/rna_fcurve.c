@@ -1031,6 +1031,13 @@ static void rna_FKeyframe_points_remove(
   rna_tag_animation_update(bmain, id);
 }
 
+static void rna_FKeyframe_points_clear(ID *id, FCurve *fcu, Main *bmain)
+{
+  BKE_fcurve_delete_keys_all(fcu);
+
+  rna_tag_animation_update(bmain, id);
+}
+
 static FCM_EnvelopeData *rna_FModifierEnvelope_points_add(
     ID *id, FModifier *fmod, Main *bmain, ReportList *reports, float frame)
 {
@@ -2310,6 +2317,10 @@ static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
   /* optional */
   RNA_def_boolean(
       func, "fast", 0, "Fast", "Fast keyframe removal to avoid recalculating the curve each time");
+
+  func = RNA_def_function(srna, "clear", "rna_FKeyframe_points_clear");
+  RNA_def_function_ui_description(func, "Remove all keyframes from an F-Curve");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
 }
 
 static void rna_def_fcurve(BlenderRNA *brna)

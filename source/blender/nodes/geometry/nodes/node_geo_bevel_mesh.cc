@@ -1566,7 +1566,7 @@ static Mesh *bevel_mesh_vertices(GeometrySet geometry_set,
 {
   const Mesh &mesh = *component.get_for_read();
   int orig_vert_size = mesh.totvert;
-  GeometryComponentFieldContext context(component, ATTR_DOMAIN_POINT);
+  bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
   FieldEvaluator evaluator{context, orig_vert_size};
   evaluator.set_selection(selection_field);
   evaluator.add(amount_field);

@@ -11,8 +11,7 @@ struct MovieClip;
 struct MovieClipCache;
 struct anim;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct Depsgraph;
 
@@ -30,5 +29,4 @@ class MovieClipBackup {
   struct MovieClipCache *cache;
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

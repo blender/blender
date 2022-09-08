@@ -14,7 +14,7 @@ BrightnessNode::BrightnessNode(bNode *editor_node) : Node(editor_node)
 void BrightnessNode::convert_to_operations(NodeConverter &converter,
                                            const CompositorContext & /*context*/) const
 {
-  bNode *bnode = this->get_bnode();
+  const bNode *bnode = this->get_bnode();
   BrightnessOperation *operation = new BrightnessOperation();
   operation->set_use_premultiply((bnode->custom1 & 1) != 0);
   converter.add_operation(operation);

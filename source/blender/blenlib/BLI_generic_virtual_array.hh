@@ -860,6 +860,7 @@ template<typename T> inline GVArray::GVArray(const VArray<T> &varray)
    * #this is destructed. */
   if (info.type == CommonVArrayInfo::Type::Span && !info.may_have_ownership) {
     *this = GVArray::ForSpan(GSpan(CPPType::get<T>(), info.data, varray.size()));
+    return;
   }
   if (varray.try_assign_GVArray(*this)) {
     return;

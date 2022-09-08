@@ -16,7 +16,6 @@
 #  include "util/log.h"
 #  include "util/map.h"
 #  include "util/md5.h"
-#  include "util/opengl.h"
 #  include "util/path.h"
 #  include "util/string.h"
 #  include "util/system.h"

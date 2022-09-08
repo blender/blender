@@ -247,7 +247,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Lattice = {
-    /* name */ "Lattice",
+    /* name */ N_("Lattice"),
     /* structName */ "LatticeGpencilModifierData",
     /* structSize */ sizeof(LatticeGpencilModifierData),
     /* type */ eGpencilModifierTypeType_Gpencil,

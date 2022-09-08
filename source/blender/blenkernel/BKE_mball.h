@@ -55,18 +55,9 @@ bool BKE_mball_is_basis(const struct Object *ob);
 struct Object *BKE_mball_basis_find(struct Scene *scene, struct Object *ob);
 
 /**
- * Compute bounding box of all meta-elements / meta-ball.
- *
- * Bounding box is computed from polygonized surface. \a ob is
- * basic meta-balls (with name `Meta` for example). All other meta-ball objects
- * (with names `Meta.001`, `Meta.002`, etc) are included in this bounding-box.
- */
-void BKE_mball_texspace_calc(struct Object *ob);
-/**
  * Return or compute bounding-box for given meta-ball object.
  */
 struct BoundBox *BKE_mball_boundbox_get(struct Object *ob);
-float *BKE_mball_make_orco(struct Object *ob, struct ListBase *dispbase);
 
 /**
  * Copy some properties from a meta-ball obdata to all other meta-ball obdata belonging to the same
@@ -110,18 +101,7 @@ bool BKE_mball_select_swap_multi_ex(struct Base **bases, int bases_len);
 
 /* **** Depsgraph evaluation **** */
 
-struct Depsgraph;
-
-/* Draw Cache */
-
-enum {
-  BKE_MBALL_BATCH_DIRTY_ALL = 0,
-};
-void BKE_mball_batch_cache_dirty_tag(struct MetaBall *mb, int mode);
-void BKE_mball_batch_cache_free(struct MetaBall *mb);
-
-extern void (*BKE_mball_batch_cache_dirty_tag_cb)(struct MetaBall *mb, int mode);
-extern void (*BKE_mball_batch_cache_free_cb)(struct MetaBall *mb);
+void BKE_mball_data_update(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
 
 #ifdef __cplusplus
 }

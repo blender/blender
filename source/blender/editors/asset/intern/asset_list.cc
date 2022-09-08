@@ -110,7 +110,7 @@ class AssetList : NonCopyable {
 
   void setup();
   void fetch(const bContext &C);
-  void ensurePreviewsJob(bContext *C);
+  void ensurePreviewsJob(const bContext *C);
   void clear(bContext *C);
 
   bool needsRefetch() const;
@@ -212,7 +212,7 @@ void AssetList::iterate(AssetListIterFn fn) const
   }
 }
 
-void AssetList::ensurePreviewsJob(bContext *C)
+void AssetList::ensurePreviewsJob(const bContext *C)
 {
   FileList *files = filelist_;
   int numfiles = filelist_files_ensure(files);
@@ -422,7 +422,8 @@ void ED_assetlist_storage_fetch(const AssetLibraryReference *library_reference, 
   AssetListStorage::fetch_library(*library_reference, *C);
 }
 
-void ED_assetlist_ensure_previews_job(const AssetLibraryReference *library_reference, bContext *C)
+void ED_assetlist_ensure_previews_job(const AssetLibraryReference *library_reference,
+                                      const bContext *C)
 {
 
   AssetList *list = AssetListStorage::lookup_list(*library_reference);

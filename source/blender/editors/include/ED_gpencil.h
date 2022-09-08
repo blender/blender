@@ -403,12 +403,11 @@ void ED_gpencil_stroke_init_data(struct bGPDstroke *gps,
  */
 void ED_gpencil_create_blank(struct bContext *C, struct Object *ob, float mat[4][4]);
 /**
- * Add a 2D Suzanne (original model created by Matias Mendiola).
+ * Add a 2D Suzanne.
  */
 void ED_gpencil_create_monkey(struct bContext *C, struct Object *ob, float mat[4][4]);
 /**
- * Add a Simple stroke with colors
- * (original design created by Daniel M. Lara and Matias Mendiola).
+ * Add a Simple stroke with colors.
  */
 void ED_gpencil_create_stroke(struct bContext *C, struct Object *ob, float mat[4][4]);
 /**

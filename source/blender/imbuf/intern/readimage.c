@@ -209,7 +209,7 @@ static void imb_cache_filename(char *filepath, const char *name, int flags)
 ImBuf *IMB_loadiffname(const char *filepath, int flags, char colorspace[IM_MAX_SPACE])
 {
   ImBuf *ibuf;
-  int file, a;
+  int file;
   char filepath_tx[IMB_FILENAME_SIZE];
 
   BLI_assert(!BLI_path_is_rel(filepath));
@@ -226,7 +226,7 @@ ImBuf *IMB_loadiffname(const char *filepath, int flags, char colorspace[IM_MAX_S
   if (ibuf) {
     BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
     BLI_strncpy(ibuf->cachename, filepath_tx, sizeof(ibuf->cachename));
-    for (a = 1; a < ibuf->miptot; a++) {
+    for (int a = 1; a < ibuf->miptot; a++) {
       BLI_strncpy(ibuf->mipmap[a - 1]->cachename, filepath_tx, sizeof(ibuf->cachename));
     }
   }

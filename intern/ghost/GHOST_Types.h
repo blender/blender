@@ -61,7 +61,6 @@ typedef struct {
 typedef enum {
   GHOST_glStereoVisual = (1 << 0),
   GHOST_glDebugContext = (1 << 1),
-  GHOST_glAlphaBackground = (1 << 2),
 } GHOST_GLFlags;
 
 typedef enum GHOST_DialogOptions {

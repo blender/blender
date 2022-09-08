@@ -1108,7 +1108,7 @@ static std::string bc_get_uvlayer_name(Mesh *me, int layer)
 static bNodeTree *prepare_material_nodetree(Material *ma)
 {
   if (ma->nodetree == nullptr) {
-    ma->nodetree = ntreeAddTree(nullptr, "Shader Nodetree", "ShaderNodeTree");
+    ntreeAddTreeEmbedded(nullptr, &ma->id, "Shader Nodetree", "ShaderNodeTree");
     ma->use_nodes = true;
   }
   return ma->nodetree;

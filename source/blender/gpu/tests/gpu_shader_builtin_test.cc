@@ -32,12 +32,8 @@ static void test_shader_builtin()
   test_compile_builtin_shader(GPU_SHADER_TEXT, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_KEYFRAME_SHAPE, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_SIMPLE_LIGHTING, GPU_SHADER_CFG_DEFAULT);
-  test_compile_builtin_shader(GPU_SHADER_2D_UNIFORM_COLOR, GPU_SHADER_CFG_DEFAULT);
-  test_compile_builtin_shader(GPU_SHADER_2D_FLAT_COLOR, GPU_SHADER_CFG_DEFAULT);
-  test_compile_builtin_shader(GPU_SHADER_2D_SMOOTH_COLOR, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_3D_IMAGE, GPU_SHADER_CFG_DEFAULT);
-  test_compile_builtin_shader(GPU_SHADER_2D_IMAGE, GPU_SHADER_CFG_DEFAULT);
-  test_compile_builtin_shader(GPU_SHADER_2D_IMAGE_COLOR, GPU_SHADER_CFG_DEFAULT);
+  test_compile_builtin_shader(GPU_SHADER_3D_IMAGE_COLOR, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_IMAGE_DESATURATE_COLOR, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_IMAGE_RECT_COLOR, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR, GPU_SHADER_CFG_DEFAULT);
@@ -60,7 +56,6 @@ static void test_shader_builtin()
                               GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR,
                               GPU_SHADER_CFG_DEFAULT);
-  test_compile_builtin_shader(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_GPENCIL_STROKE, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_AREA_BORDERS, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_WIDGET_BASE, GPU_SHADER_CFG_DEFAULT);

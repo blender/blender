@@ -680,8 +680,7 @@ static int gpencil_modifier_move_to_index_exec(bContext *C, wmOperator *op)
   Object *ob = ED_object_active_context(C);
   GpencilModifierData *md = gpencil_edit_modifier_property_get(op, ob, 0);
   int index = RNA_int_get(op->ptr, "index");
-
-  if (!ED_object_gpencil_modifier_move_to_index(op->reports, ob, md, index)) {
+  if (!(md && ED_object_gpencil_modifier_move_to_index(op->reports, ob, md, index))) {
     return OPERATOR_CANCELLED;
   }
 

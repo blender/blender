@@ -19,6 +19,7 @@
 
 #  include "DEG_depsgraph.h"
 
+#  include "ED_fileselect.h"
 #  include "ED_object.h"
 
 #  include "RNA_access.h"
@@ -36,22 +37,7 @@
 
 static int wm_collada_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  Main *bmain = CTX_data_main(C);
-
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
-    char filepath[FILE_MAX];
-    const char *blendfile_path = BKE_main_blendfile_path(bmain);
-
-    if (blendfile_path[0] == '\0') {
-      BLI_strncpy(filepath, "untitled", sizeof(filepath));
-    }
-    else {
-      BLI_strncpy(filepath, blendfile_path, sizeof(filepath));
-    }
-
-    BLI_path_extension_replace(filepath, sizeof(filepath), ".dae");
-    RNA_string_set(op->ptr, "filepath", filepath);
-  }
+  ED_fileselect_ensure_default_filepath(C, op, ".dae");
 
   WM_event_add_fileselect(C, op);
 
@@ -98,7 +84,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
   int export_count;
   int sample_animations;
 
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }
@@ -709,7 +695,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
   int keep_bind_info;
   ImportSettings import_settings;
 
-  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }

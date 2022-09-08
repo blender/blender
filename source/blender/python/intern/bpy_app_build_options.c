@@ -18,7 +18,7 @@ static PyStructSequence_Field app_builtopts_info_fields[] = {
     {"codec_avi", NULL},
     {"codec_ffmpeg", NULL},
     {"codec_sndfile", NULL},
-    {"compositor", NULL},
+    {"compositor_cpu", NULL},
     {"cycles", NULL},
     {"cycles_osl", NULL},
     {"freestyle", NULL},
@@ -104,7 +104,7 @@ static PyObject *make_builtopts_info(void)
   SetObjIncref(Py_False);
 #endif
 
-#ifdef WITH_COMPOSITOR
+#ifdef WITH_COMPOSITOR_CPU
   SetObjIncref(Py_True);
 #else
   SetObjIncref(Py_False);

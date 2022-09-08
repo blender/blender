@@ -314,7 +314,7 @@ static SpaceLink *clip_duplicate(SpaceLink *sl)
 static void clip_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
   const Scene *scene = params->scene;
 
   /* context changes */
@@ -811,8 +811,8 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
   int width, height;
   bool show_cursor = false;
 
-  /* if tracking is in progress, we should synchronize framenr from clipuser
-   * so latest tracked frame would be shown */
+  /* If tracking is in progress, we should synchronize the frame from the clip-user
+   * (#MovieClipUser.framenr) so latest tracked frame would be shown. */
   if (clip && clip->tracking_context) {
     BKE_autotrack_context_sync_user(clip->tracking_context, &sc->user);
   }
@@ -919,7 +919,7 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
 static void clip_main_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -1118,7 +1118,7 @@ static void clip_header_region_draw(const bContext *C, ARegion *region)
 static void clip_header_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -1160,7 +1160,7 @@ static void clip_tools_region_draw(const bContext *C, ARegion *region)
 static void clip_props_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -1212,7 +1212,7 @@ static void clip_properties_region_draw(const bContext *C, ARegion *region)
 static void clip_properties_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {

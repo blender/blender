@@ -38,6 +38,7 @@ struct ReportList;
 struct Scene;
 struct ScrArea;
 struct SnapObjectContext;
+struct TransConvertTypeInfo;
 struct TransDataContainer;
 struct TransInfo;
 struct TransSnap;
@@ -204,36 +205,6 @@ typedef enum {
   HLP_TRACKBALL = 6,
 } eTHelpline;
 
-typedef enum {
-  TC_NONE = 0,
-  TC_ACTION_DATA,
-  TC_POSE,
-  TC_ARMATURE_VERTS,
-  TC_CURSOR_IMAGE,
-  TC_CURSOR_SEQUENCER,
-  TC_CURSOR_VIEW3D,
-  TC_CURVE_VERTS,
-  TC_GRAPH_EDIT_DATA,
-  TC_GPENCIL,
-  TC_LATTICE_VERTS,
-  TC_MASKING_DATA,
-  TC_MBALL_VERTS,
-  TC_MESH_VERTS,
-  TC_MESH_EDGES,
-  TC_MESH_SKIN,
-  TC_MESH_UV,
-  TC_NLA_DATA,
-  TC_NODE_DATA,
-  TC_OBJECT,
-  TC_OBJECT_TEXSPACE,
-  TC_PAINT_CURVE_VERTS,
-  TC_PARTICLE_VERTS,
-  TC_SCULPT,
-  TC_SEQ_DATA,
-  TC_SEQ_IMAGE_DATA,
-  TC_TRACKING_DATA,
-} eTConvertType;
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -384,10 +355,12 @@ typedef struct MouseInput {
 
   /** Initial mouse position. */
   int imval[2];
-  bool precision;
-  float precision_factor;
+  float imval_unproj[3];
   float center[2];
   float factor;
+  float precision_factor;
+  bool precision;
+
   /** Additional data, if needed by the particular function. */
   void *data;
 
@@ -518,7 +491,7 @@ typedef struct TransInfo {
   int data_len_all;
 
   /** TODO: It should be a member of #TransDataContainer. */
-  eTConvertType data_type;
+  struct TransConvertTypeInfo *data_type;
 
   /** Current context/options for transform. */
   eTContext options;
@@ -647,6 +620,9 @@ typedef struct TransInfo {
    * value of the input parameter, except when a constrain is entered. */
   float values_final[4];
 
+  /** Cache safe value for constraints that require iteration or are slow to calculate. */
+  float values_inside_constraints[4];
+
   /* Axis members for modes that use an axis separate from the orientation (rotate & shear). */
 
   /** Primary axis, rotate only uses this. */
@@ -685,6 +661,9 @@ typedef struct TransInfo {
 
   /** Typically for mode settings. */
   TransCustomDataContainer custom;
+
+  /* Needed for sculpt transform. */
+  const char *undo_name;
 } TransInfo;
 
 /** \} */
@@ -784,6 +763,7 @@ void applyMouseInput(struct TransInfo *t,
                      struct MouseInput *mi,
                      const int mval[2],
                      float output[3]);
+void transform_input_update(TransInfo *t, const float fac);
 
 void setCustomPoints(TransInfo *t, MouseInput *mi, const int start[2], const int end[2]);
 void setCustomPointsFromDirection(TransInfo *t, MouseInput *mi, const float dir[2]);
@@ -832,6 +812,7 @@ void calculateCenter2D(TransInfo *t);
 void calculateCenterLocal(TransInfo *t, const float center_global[3]);
 
 void calculateCenter(TransInfo *t);
+void tranformViewUpdate(TransInfo *t);
 
 /* API functions for getting center points */
 void calculateCenterBound(TransInfo *t, float r_center[3]);

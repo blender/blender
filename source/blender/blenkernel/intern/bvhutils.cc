@@ -15,16 +15,21 @@
 
 #include "BLI_linklist.h"
 #include "BLI_math.h"
+#include "BLI_span.hh"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_bvhutils.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 
 #include "MEM_guardedalloc.h"
+
+using blender::Span;
+using blender::VArray;
 
 /* -------------------------------------------------------------------- */
 /** \name BVHCache
@@ -1180,9 +1185,13 @@ static BLI_bitmap *loose_edges_map_get(const MEdge *medge,
 }
 
 static BLI_bitmap *looptri_no_hidden_map_get(const MPoly *mpoly,
+                                             const VArray<bool> &hide_poly,
                                              const int looptri_len,
                                              int *r_looptri_active_len)
 {
+  if (hide_poly.is_single() && !hide_poly.get_internal_single()) {
+    return nullptr;
+  }
   BLI_bitmap *looptri_mask = BLI_BITMAP_NEW(looptri_len, __func__);
 
   int looptri_no_hidden_len = 0;
@@ -1190,8 +1199,7 @@ static BLI_bitmap *looptri_no_hidden_map_get(const MPoly *mpoly,
   int i_poly = 0;
   while (looptri_iter != looptri_len) {
     int mp_totlooptri = mpoly[i_poly].totloop - 2;
-    const MPoly &mp = mpoly[i_poly];
-    if (mp.flag & ME_HIDE) {
+    if (hide_poly[i_poly]) {
       looptri_iter += mp_totlooptri;
     }
     else {
@@ -1223,14 +1231,17 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
     looptri = BKE_mesh_runtime_looptri_ensure(mesh);
     looptri_len = BKE_mesh_runtime_looptri_len(mesh);
   }
+  const Span<MVert> verts = mesh->verts();
+  const Span<MEdge> edges = mesh->edges();
+  const Span<MLoop> loops = mesh->loops();
 
   /* Setup BVHTreeFromMesh */
   bvhtree_from_mesh_setup_data(nullptr,
                                bvh_cache_type,
-                               mesh->mvert,
-                               mesh->medge,
-                               mesh->mface,
-                               mesh->mloop,
+                               verts.data(),
+                               edges.data(),
+                               (const MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE),
+                               loops.data(),
                                looptri,
                                BKE_mesh_vertex_normals_ensure(mesh),
                                data);
@@ -1254,36 +1265,49 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
   switch (bvh_cache_type) {
     case BVHTREE_FROM_LOOSEVERTS:
       mask = loose_verts_map_get(
-          mesh->medge, mesh->totedge, mesh->mvert, mesh->totvert, &mask_bits_act_len);
+          edges.data(), mesh->totedge, verts.data(), mesh->totvert, &mask_bits_act_len);
       ATTR_FALLTHROUGH;
     case BVHTREE_FROM_VERTS:
       data->tree = bvhtree_from_mesh_verts_create_tree(
-          0.0f, tree_type, 6, mesh->mvert, mesh->totvert, mask, mask_bits_act_len);
+          0.0f, tree_type, 6, verts.data(), mesh->totvert, mask, mask_bits_act_len);
       break;
 
     case BVHTREE_FROM_LOOSEEDGES:
-      mask = loose_edges_map_get(mesh->medge, mesh->totedge, &mask_bits_act_len);
+      mask = loose_edges_map_get(edges.data(), mesh->totedge, &mask_bits_act_len);
       ATTR_FALLTHROUGH;
     case BVHTREE_FROM_EDGES:
       data->tree = bvhtree_from_mesh_edges_create_tree(
-          mesh->mvert, mesh->medge, mesh->totedge, mask, mask_bits_act_len, 0.0f, tree_type, 6);
+          verts.data(), edges.data(), mesh->totedge, mask, mask_bits_act_len, 0.0f, tree_type, 6);
       break;
 
     case BVHTREE_FROM_FACES:
       BLI_assert(!(mesh->totface == 0 && mesh->totpoly != 0));
       data->tree = bvhtree_from_mesh_faces_create_tree(
-          0.0f, tree_type, 6, mesh->mvert, mesh->mface, mesh->totface, nullptr, -1);
+          0.0f,
+          tree_type,
+          6,
+          verts.data(),
+          (const MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE),
+          mesh->totface,
+          nullptr,
+          -1);
       break;
 
-    case BVHTREE_FROM_LOOPTRI_NO_HIDDEN:
-      mask = looptri_no_hidden_map_get(mesh->mpoly, looptri_len, &mask_bits_act_len);
+    case BVHTREE_FROM_LOOPTRI_NO_HIDDEN: {
+      blender::bke::AttributeAccessor attributes = blender::bke::mesh_attributes(*mesh);
+      mask = looptri_no_hidden_map_get(
+          mesh->polys().data(),
+          attributes.lookup_or_default(".hide_poly", ATTR_DOMAIN_FACE, false),
+          looptri_len,
+          &mask_bits_act_len);
       ATTR_FALLTHROUGH;
+    }
     case BVHTREE_FROM_LOOPTRI:
       data->tree = bvhtree_from_mesh_looptri_create_tree(0.0f,
                                                          tree_type,
                                                          6,
-                                                         mesh->mvert,
-                                                         mesh->mloop,
+                                                         verts.data(),
+                                                         loops.data(),
                                                          looptri,
                                                          looptri_len,
                                                          mask,
@@ -1430,13 +1454,17 @@ BVHTree *BKE_bvhtree_from_pointcloud_get(BVHTreeFromPointCloud *data,
     return nullptr;
   }
 
-  for (int i = 0; i < pointcloud->totpoint; i++) {
-    BLI_bvhtree_insert(tree, i, pointcloud->co[i], 1);
+  blender::bke::AttributeAccessor attributes = blender::bke::pointcloud_attributes(*pointcloud);
+  blender::VArraySpan<blender::float3> positions = attributes.lookup_or_default<blender::float3>(
+      "position", ATTR_DOMAIN_POINT, blender::float3(0));
+
+  for (const int i : positions.index_range()) {
+    BLI_bvhtree_insert(tree, i, positions[i], 1);
   }
   BLI_assert(BLI_bvhtree_get_len(tree) == pointcloud->totpoint);
   bvhtree_balance(tree, false);
 
-  data->coords = pointcloud->co;
+  data->coords = (const float(*)[3])positions.data();
   data->tree = tree;
   data->nearest_callback = nullptr;
 

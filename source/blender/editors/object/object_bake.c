@@ -155,15 +155,16 @@ static bool multiresbake_check(bContext *C, wmOperator *op)
       break;
     }
 
-    if (!me->mloopuv) {
+    if (!CustomData_has_layer(&me->ldata, CD_MLOOPUV)) {
       BKE_report(op->reports, RPT_ERROR, "Mesh should be unwrapped before multires data baking");
 
       ok = false;
     }
     else {
+      const int *material_indices = BKE_mesh_material_indices(me);
       a = me->totpoly;
       while (ok && a--) {
-        Image *ima = bake_object_image_get(ob, me->mpoly[a].mat_nr);
+        Image *ima = bake_object_image_get(ob, material_indices ? material_indices[a] : 0);
 
         if (!ima) {
           BKE_report(

@@ -8,7 +8,10 @@
  */
 
 #include "BLI_bitmap.h"
+#include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
+
+#include "bmesh.h"
 
 /* For embedding CCGKey in iterator. */
 #include "BKE_attribute.h"
@@ -42,6 +45,41 @@ struct MeshElemMap;
 
 typedef struct PBVH PBVH;
 typedef struct PBVHNode PBVHNode;
+
+typedef enum {
+  PBVH_FACES,
+  PBVH_GRIDS,
+  PBVH_BMESH,
+} PBVHType;
+
+/* Public members of PBVH, used for inlined functions. */
+struct PBVHPublic {
+  PBVHType type;
+  BMesh *bm;
+};
+
+/*
+ * These structs represent logical verts/edges/faces.
+ * for PBVH_GRIDS and PBVH_FACES they store integer
+ * offsets, PBVH_BMESH stores pointers.
+ *
+ * The idea is to enforce stronger type checking by encapsulating
+ * intptr_t's in structs.
+ */
+
+typedef struct PBVHVertRef {
+  intptr_t i;
+} PBVHVertRef;
+
+typedef struct PBVHEdgeRef {
+  intptr_t i;
+} PBVHEdgeRef;
+
+typedef struct PBVHFaceRef {
+  intptr_t i;
+} PBVHFaceRef;
+
+#define PBVH_REF_NONE -1LL
 
 typedef struct {
   float (*co)[3];
@@ -87,8 +125,96 @@ typedef struct PBVHFrustumPlanes {
   int num_planes;
 } PBVHFrustumPlanes;
 
+BLI_INLINE PBVHType BKE_pbvh_type(const PBVH *pbvh)
+{
+  return ((const struct PBVHPublic *)pbvh)->type;
+}
+
+BLI_INLINE BMesh *BKE_pbvh_get_bmesh(PBVH *pbvh)
+{
+  return ((struct PBVHPublic *)pbvh)->bm;
+}
+
 void BKE_pbvh_set_frustum_planes(PBVH *pbvh, PBVHFrustumPlanes *planes);
 void BKE_pbvh_get_frustum_planes(PBVH *pbvh, PBVHFrustumPlanes *planes);
+
+BLI_INLINE PBVHVertRef BKE_pbvh_make_vref(intptr_t i)
+{
+  PBVHVertRef ret = {i};
+  return ret;
+}
+
+BLI_INLINE PBVHEdgeRef BKE_pbvh_make_eref(intptr_t i)
+{
+  PBVHEdgeRef ret = {i};
+  return ret;
+}
+
+BLI_INLINE PBVHFaceRef BKE_pbvh_make_fref(intptr_t i)
+{
+  PBVHFaceRef ret = {i};
+  return ret;
+}
+
+BLI_INLINE int BKE_pbvh_vertex_to_index(PBVH *pbvh, PBVHVertRef v)
+{
+  return (BKE_pbvh_type(pbvh) == PBVH_BMESH && v.i != PBVH_REF_NONE ?
+              BM_elem_index_get((BMVert *)(v.i)) :
+              (v.i));
+}
+
+BLI_INLINE PBVHVertRef BKE_pbvh_index_to_vertex(PBVH *pbvh, int index)
+{
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_FACES:
+    case PBVH_GRIDS:
+      return BKE_pbvh_make_vref(index);
+    case PBVH_BMESH:
+      return BKE_pbvh_make_vref((intptr_t)BKE_pbvh_get_bmesh(pbvh)->vtable[index]);
+  }
+
+  return BKE_pbvh_make_vref(PBVH_REF_NONE);
+}
+
+BLI_INLINE int BKE_pbvh_edge_to_index(PBVH *pbvh, PBVHEdgeRef e)
+{
+  return (BKE_pbvh_type(pbvh) == PBVH_BMESH && e.i != PBVH_REF_NONE ?
+              BM_elem_index_get((BMEdge *)(e.i)) :
+              (e.i));
+}
+
+BLI_INLINE PBVHEdgeRef BKE_pbvh_index_to_edge(PBVH *pbvh, int index)
+{
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_FACES:
+    case PBVH_GRIDS:
+      return BKE_pbvh_make_eref(index);
+    case PBVH_BMESH:
+      return BKE_pbvh_make_eref((intptr_t)BKE_pbvh_get_bmesh(pbvh)->etable[index]);
+  }
+
+  return BKE_pbvh_make_eref(PBVH_REF_NONE);
+}
+
+BLI_INLINE int BKE_pbvh_face_to_index(PBVH *pbvh, PBVHFaceRef f)
+{
+  return (BKE_pbvh_type(pbvh) == PBVH_BMESH && f.i != PBVH_REF_NONE ?
+              BM_elem_index_get((BMFace *)(f.i)) :
+              (f.i));
+}
+
+BLI_INLINE PBVHFaceRef BKE_pbvh_index_to_face(PBVH *pbvh, int index)
+{
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_FACES:
+    case PBVH_GRIDS:
+      return BKE_pbvh_make_fref(index);
+    case PBVH_BMESH:
+      return BKE_pbvh_make_fref((intptr_t)BKE_pbvh_get_bmesh(pbvh)->ftable[index]);
+  }
+
+  return BKE_pbvh_make_fref(PBVH_REF_NONE);
+}
 
 /* Callbacks */
 
@@ -181,7 +307,7 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
                            const float ray_normal[3],
                            struct IsectRayPrecalc *isect_precalc,
                            float *depth,
-                           int *active_vertex_index,
+                           PBVHVertRef *active_vertex,
                            int *active_face_grid_index,
                            float *face_normal);
 
@@ -224,19 +350,16 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
                       void *user_data,
                       bool full_render);
 
-void BKE_pbvh_draw_debug_cb(
-    PBVH *pbvh,
-    void (*draw_fn)(void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag),
-    void *user_data);
+void BKE_pbvh_draw_debug_cb(PBVH *pbvh,
+                            void (*draw_fn)(PBVHNode *node,
+                                            void *user_data,
+                                            const float bmin[3],
+                                            const float bmax[3],
+                                            PBVHNodeFlags flag),
+                            void *user_data);
 
 /* PBVH Access */
-typedef enum {
-  PBVH_FACES,
-  PBVH_GRIDS,
-  PBVH_BMESH,
-} PBVHType;
 
-PBVHType BKE_pbvh_type(const PBVH *pbvh);
 bool BKE_pbvh_has_faces(const PBVH *pbvh);
 
 /**
@@ -272,7 +395,6 @@ int BKE_pbvh_get_grid_num_faces(const PBVH *pbvh);
 /**
  * Only valid for type == #PBVH_BMESH.
  */
-struct BMesh *BKE_pbvh_get_bmesh(PBVH *pbvh);
 void BKE_pbvh_bmesh_detail_size_set(PBVH *pbvh, float detail_size);
 
 typedef enum {
@@ -308,7 +430,7 @@ void BKE_pbvh_node_fully_unmasked_set(PBVHNode *node, int fully_masked);
 bool BKE_pbvh_node_fully_unmasked_get(PBVHNode *node);
 
 void BKE_pbvh_mark_rebuild_pixels(PBVH *pbvh);
-void BKE_pbvh_vert_mark_update(PBVH *pbvh, int index);
+void BKE_pbvh_vert_tag_update_normal(PBVH *pbvh, PBVHVertRef vertex);
 
 void BKE_pbvh_node_get_grids(PBVH *pbvh,
                              PBVHNode *node,
@@ -399,6 +521,7 @@ typedef struct PBVHVertexIter {
   int gy;
   int i;
   int index;
+  PBVHVertRef vertex;
   bool respect_hide;
 
   /* grid */
@@ -413,6 +536,7 @@ typedef struct PBVHVertexIter {
   /* mesh */
   struct MVert *mverts;
   float (*vert_normals)[3];
+  const bool *hide_vert;
   int totvert;
   const int *vert_indices;
   float *vmask;
@@ -443,7 +567,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
     if (vi.grids) { \
       vi.width = vi.gridsize; \
       vi.height = vi.gridsize; \
-      vi.index = vi.grid_indices[vi.g] * vi.key.grid_area - 1; \
+      vi.index = vi.vertex.i = vi.grid_indices[vi.g] * vi.key.grid_area - 1; \
       vi.grid = vi.grids[vi.grid_indices[vi.g]]; \
       if (mode == PBVH_ITER_UNIQUE) { \
         vi.gh = vi.grid_hidden[vi.grid_indices[vi.g]]; \
@@ -462,6 +586,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
           vi.mask = vi.key.has_mask ? CCG_elem_mask(&vi.key, vi.grid) : NULL; \
           vi.grid = CCG_elem_next(&vi.key, vi.grid); \
           vi.index++; \
+          vi.vertex.i++; \
           vi.visible = true; \
           if (vi.gh) { \
             if (BLI_BITMAP_TEST(vi.gh, vi.gy * vi.gridsize + vi.gx)) { \
@@ -472,7 +597,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
         else if (vi.mverts) { \
           vi.mvert = &vi.mverts[vi.vert_indices[vi.gx]]; \
           if (vi.respect_hide) { \
-            vi.visible = !(vi.mvert->flag & ME_HIDE); \
+            vi.visible = !(vi.hide_vert && vi.hide_vert[vi.vert_indices[vi.gx]]); \
             if (mode == PBVH_ITER_UNIQUE && !vi.visible) { \
               continue; \
             } \
@@ -482,7 +607,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
           } \
           vi.co = vi.mvert->co; \
           vi.no = vi.vert_normals[vi.vert_indices[vi.gx]]; \
-          vi.index = vi.vert_indices[vi.i]; \
+          vi.index = vi.vertex.i = vi.vert_indices[vi.i]; \
           if (vi.vmask) { \
             vi.mask = &vi.vmask[vi.index]; \
           } \
@@ -502,6 +627,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
           } \
           vi.co = vi.bm_vert->co; \
           vi.fno = vi.bm_vert->no; \
+          vi.vertex = BKE_pbvh_make_vref((intptr_t)vi.bm_vert); \
           vi.index = BM_elem_index_get(vi.bm_vert); \
           vi.mask = (float *)BM_ELEM_CD_GET_VOID_P(vi.bm_vert, vi.cd_vert_mask_offset); \
         }
@@ -526,7 +652,7 @@ void BKE_pbvh_node_get_bm_orco_data(PBVHNode *node,
  * however this is important to avoid having to recalculate bound-box & sync the buffers to the
  * GPU (which is far more expensive!) See: T47232.
  */
-bool BKE_pbvh_node_vert_update_check_any(PBVH *pbvh, PBVHNode *node);
+bool BKE_pbvh_node_has_vert_with_normal_update_tag(PBVH *pbvh, PBVHNode *node);
 
 // void BKE_pbvh_node_BB_reset(PBVHNode *node);
 // void BKE_pbvh_node_BB_expand(PBVHNode *node, float co[3]);
@@ -545,6 +671,8 @@ void BKE_pbvh_parallel_range_settings(struct TaskParallelSettings *settings,
 
 struct MVert *BKE_pbvh_get_verts(const PBVH *pbvh);
 const float (*BKE_pbvh_get_vert_normals(const PBVH *pbvh))[3];
+const bool *BKE_pbvh_get_vert_hide(const PBVH *pbvh);
+bool *BKE_pbvh_get_vert_hide_for_write(PBVH *pbvh);
 
 PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node);
 void BKE_pbvh_node_color_buffer_free(PBVH *pbvh);
@@ -581,11 +709,12 @@ void BKE_pbvh_node_num_loops(PBVH *pbvh, PBVHNode *node, int *r_totloop);
 void BKE_pbvh_update_active_vcol(PBVH *pbvh, const struct Mesh *mesh);
 void BKE_pbvh_pmap_set(PBVH *pbvh, const struct MeshElemMap *pmap);
 
-void BKE_pbvh_vertex_color_set(PBVH *pbvh, int vertex, const float color[4]);
-void BKE_pbvh_vertex_color_get(const PBVH *pbvh, int vertex, float r_color[4]);
+void BKE_pbvh_vertex_color_set(PBVH *pbvh, PBVHVertRef vertex, const float color[4]);
+void BKE_pbvh_vertex_color_get(const PBVH *pbvh, PBVHVertRef vertex, float r_color[4]);
 
 void BKE_pbvh_ensure_node_loops(PBVH *pbvh);
 bool BKE_pbvh_draw_cache_invalid(const PBVH *pbvh);
+int BKE_pbvh_debug_draw_gen_get(PBVHNode *node);
 
 #ifdef __cplusplus
 }

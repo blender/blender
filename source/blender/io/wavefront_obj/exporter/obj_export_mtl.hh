@@ -6,38 +6,26 @@
 
 #pragma once
 
-#include "BLI_map.hh"
 #include "BLI_math_vec_types.hh"
-#include "BLI_string_ref.hh"
-#include "BLI_vector.hh"
 
 #include "DNA_node_types.h"
-#include "obj_export_io.hh"
-
-namespace blender {
-template<> struct DefaultHash<io::obj::eMTLSyntaxElement> {
-  uint64_t operator()(const io::obj::eMTLSyntaxElement value) const
-  {
-    return static_cast<uint64_t>(value);
-  }
-};
-
-}  // namespace blender
+struct Material;
 
 namespace blender::io::obj {
-class OBJMesh;
 
-/**
- * Generic container for texture node properties.
- */
-struct tex_map_XX {
-  tex_map_XX(StringRef to_socket_id) : dest_socket_id(to_socket_id){};
+enum class MTLTexMapType { Kd = 0, Ks, Ns, d, refl, Ke, bump, Count };
+extern const char *tex_map_type_to_socket_id[];
 
-  /** Target socket which this texture node connects to. */
-  const std::string dest_socket_id;
+struct MTLTexMap {
+  bool is_valid() const
+  {
+    return !image_path.empty();
+  }
+
+  /* Target socket which this texture node connects to. */
   float3 translation{0.0f};
   float3 scale{1.0f};
-  /* Only Flat and Smooth projections are supported. */
+  /* Only Flat and Sphere projections are supported. */
   int projection_type = SHD_PROJ_FLAT;
   std::string image_path;
   std::string mtl_dir_path;
@@ -47,27 +35,13 @@ struct tex_map_XX {
  * Container suited for storing Material data for/from a .MTL file.
  */
 struct MTLMaterial {
-  MTLMaterial()
+  const MTLTexMap &tex_map_of_type(MTLTexMapType key) const
   {
-    texture_maps.add(eMTLSyntaxElement::map_Kd, tex_map_XX("Base Color"));
-    texture_maps.add(eMTLSyntaxElement::map_Ks, tex_map_XX("Specular"));
-    texture_maps.add(eMTLSyntaxElement::map_Ns, tex_map_XX("Roughness"));
-    texture_maps.add(eMTLSyntaxElement::map_d, tex_map_XX("Alpha"));
-    texture_maps.add(eMTLSyntaxElement::map_refl, tex_map_XX("Metallic"));
-    texture_maps.add(eMTLSyntaxElement::map_Ke, tex_map_XX("Emission"));
-    texture_maps.add(eMTLSyntaxElement::map_Bump, tex_map_XX("Normal"));
+    return texture_maps[(int)key];
   }
-
-  /**
-   * Caller must ensure that the given lookup key exists in the Map.
-   * \return Texture map corresponding to the given ID.
-   */
-  tex_map_XX &tex_map_of_type(const eMTLSyntaxElement key)
+  MTLTexMap &tex_map_of_type(MTLTexMapType key)
   {
-    {
-      BLI_assert(texture_maps.contains_as(key));
-      return texture_maps.lookup_as(key);
-    }
+    return texture_maps[(int)key];
   }
 
   std::string name;
@@ -81,7 +55,7 @@ struct MTLMaterial {
   float Ni{-1.0f};
   float d{-1.0f};
   int illum{-1};
-  Map<const eMTLSyntaxElement, tex_map_XX> texture_maps;
+  MTLTexMap texture_maps[(int)MTLTexMapType::Count];
   /** Only used for Normal Map node: "map_Bump". */
   float map_Bump_strength{-1.0f};
 };
