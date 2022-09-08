@@ -247,8 +247,8 @@ static uiBlock *create_search_popup_block(bContext *C, ARegion *region, void *ar
 {
   LinkDragSearchStorage &storage = *(LinkDragSearchStorage *)arg_op;
 
-  bNodeTree *node_tree = CTX_wm_space_node(C)->nodetree;
-  gather_socket_link_operations(*node_tree, storage.from_socket, storage.search_link_ops);
+  bNodeTree &node_tree = *CTX_wm_space_node(C)->edittree;
+  gather_socket_link_operations(node_tree, storage.from_socket, storage.search_link_ops);
 
   uiBlock *block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
