@@ -401,14 +401,19 @@ class OUTLINER_PT_filter(Panel):
             row.prop(space, "show_mode_column", text="Show Mode Column")
             layout.separator()
 
-        col = layout.column(align=True)
-        col.label(text="Search")
-        col.prop(space, "use_filter_complete", text="Exact Match")
-        col.prop(space, "use_filter_case_sensitive", text="Case Sensitive")
+        filter_text_supported = True
+        # Same exception for library overrides as in OUTLINER_HT_header.
+        if display_mode == 'LIBRARY_OVERRIDES' and space.lib_override_view_mode == 'HIERARCHIES':
+            filter_text_supported = False
+
+        if filter_text_supported:
+            col = layout.column(align=True)
+            col.label(text="Search")
+            col.prop(space, "use_filter_complete", text="Exact Match")
+            col.prop(space, "use_filter_case_sensitive", text="Case Sensitive")
 
         if display_mode == 'LIBRARY_OVERRIDES' and space.lib_override_view_mode == 'PROPERTIES' and bpy.data.libraries:
-            col.separator()
-            row = col.row()
+            row = layout.row()
             row.label(icon='LIBRARY_DATA_OVERRIDE')
             row.prop(space, "use_filter_lib_override_system", text="System Overrides")
 
