@@ -33,9 +33,6 @@ struct OSLShadingSystem;
 
 class OSLShader {
  public:
-  /* init */
-  static void register_closures(OSLShadingSystem *ss);
-
   /* per thread data */
   static void thread_init(KernelGlobalsCPU *kg, OSLGlobals *osl_globals);
   static void thread_free(KernelGlobalsCPU *kg);

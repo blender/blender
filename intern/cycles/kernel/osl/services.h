@@ -76,6 +76,8 @@ class OSLRenderServices : public OSL::RendererServices {
   OSLRenderServices(OSL::TextureSystem *texture_system);
   ~OSLRenderServices();
 
+  static void register_closures(OSL::ShadingSystem *ss);
+
   bool get_matrix(OSL::ShaderGlobals *sg,
                   OSL::Matrix44 &result,
                   OSL::TransformationPtr xform,

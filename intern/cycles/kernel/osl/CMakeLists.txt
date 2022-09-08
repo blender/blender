@@ -10,18 +10,14 @@ set(INC_SYS
 )
 
 set(SRC
-  background.cpp
-  bsdf_diffuse_ramp.cpp
-  bsdf_phong_ramp.cpp
-  emissive.cpp
-  bssrdf.cpp
   closures.cpp
   services.cpp
   shader.cpp
 )
 
 set(HEADER_SRC
-  closures.h
+  closures_setup.h
+  closures_template.h
   globals.h
   services.h
   shader.h

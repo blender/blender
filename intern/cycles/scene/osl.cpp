@@ -298,7 +298,7 @@ void OSLShaderManager::shading_system_init()
     const int nraytypes = sizeof(raytypes) / sizeof(raytypes[0]);
     ss_shared->attribute("raytypes", TypeDesc(TypeDesc::STRING, nraytypes), raytypes);
 
-    OSLShader::register_closures((OSLShadingSystem *)ss_shared);
+    OSLRenderServices::register_closures(ss_shared);
 
     loaded_shaders.clear();
   }

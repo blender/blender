@@ -18,7 +18,6 @@
 #include "scene/pointcloud.h"
 #include "scene/scene.h"
 
-#include "kernel/osl/closures.h"
 #include "kernel/osl/globals.h"
 #include "kernel/osl/services.h"
 #include "kernel/osl/shader.h"
@@ -1605,8 +1604,8 @@ bool OSLRenderServices::trace(TraceOpt &options,
   /* setup ray */
   Ray ray;
 
-  ray.P = TO_FLOAT3(P);
-  ray.D = TO_FLOAT3(R);
+  ray.P = make_float3(P.x, P.y, P.z);
+  ray.D = make_float3(R.x, R.y, R.z);
   ray.tmin = 0.0f;
   ray.tmax = (options.maxdist == 1.0e30f) ? FLT_MAX : options.maxdist - options.mindist;
   ray.time = sd->time;
@@ -1629,12 +1628,12 @@ bool OSLRenderServices::trace(TraceOpt &options,
 
   /* ray differentials */
   differential3 dP;
-  dP.dx = TO_FLOAT3(dPdx);
-  dP.dy = TO_FLOAT3(dPdy);
+  dP.dx = make_float3(dPdx.x, dPdx.y, dPdx.z);
+  dP.dy = make_float3(dPdy.x, dPdy.y, dPdy.z);
   ray.dP = differential_make_compact(dP);
   differential3 dD;
-  dD.dx = TO_FLOAT3(dRdx);
-  dD.dy = TO_FLOAT3(dRdy);
+  dD.dx = make_float3(dRdx.x, dRdx.y, dRdx.z);
+  dD.dy = make_float3(dRdy.x, dRdy.y, dRdy.z);
   ray.dD = differential_make_compact(dD);
 
   /* allocate trace data */
