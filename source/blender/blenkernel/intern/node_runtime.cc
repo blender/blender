@@ -258,6 +258,7 @@ static void toposort_from_start_node(const ToposortDirection direction,
 
   Stack<Item, 64> nodes_to_check;
   nodes_to_check.push({&start_node});
+  node_states[start_node.runtime->index_in_tree].is_in_stack = true;
   while (!nodes_to_check.is_empty()) {
     Item &item = nodes_to_check.peek();
     bNode &node = *item.node;
