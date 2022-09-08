@@ -146,6 +146,8 @@ class BlenderSession {
   BlenderDisplayDriver *display_driver_ = nullptr;
 
   vector<string> full_buffer_files_;
+
+  int bake_id = 0;
 };
 
 CCL_NAMESPACE_END
