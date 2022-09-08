@@ -347,7 +347,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   int totloop = 0, totpoly = 0, vertofs, *matmap = nullptr;
   int i, haskey = 0, edgeofs, loopofs, polyofs;
   bool ok = false, join_parent = false;
-  CustomData vdata, edata, fdata, ldata, pdata;
+  CustomData vdata, edata, ldata, pdata;
 
   if (ob->mode & OB_MODE_EDIT) {
     BKE_report(op->reports, RPT_WARNING, "Cannot join while in edit mode");
@@ -586,7 +586,6 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   /* setup new data for destination mesh */
   CustomData_reset(&vdata);
   CustomData_reset(&edata);
-  CustomData_reset(&fdata);
   CustomData_reset(&ldata);
   CustomData_reset(&pdata);
 
