@@ -522,8 +522,6 @@ typedef struct SequencerScopes {
 
 #define MAXSEQ 128
 
-#define SELECT 1
-
 /** #Editor.overlay_frame_flag */
 #define SEQ_EDIT_OVERLAY_FRAME_SHOW 1
 #define SEQ_EDIT_OVERLAY_FRAME_ABS 2
@@ -549,9 +547,12 @@ typedef struct SequencerScopes {
 
 #define SEQ_NAME_MAXSTR 64
 
+/* From: `DNA_object_types.h`, see it's doc-string there. */
+#define SELECT 1
+
 /** #Sequence.flag */
 enum {
-  /* SELECT */
+  /* `SELECT = (1 << 0)` */
   SEQ_LEFTSEL = (1 << 1),
   SEQ_RIGHTSEL = (1 << 2),
   SEQ_OVERLAP = (1 << 3),
