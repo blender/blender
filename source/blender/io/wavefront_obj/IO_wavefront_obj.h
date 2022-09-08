@@ -16,8 +16,6 @@
 extern "C" {
 #endif
 
-static const int TOTAL_AXES = 3;
-
 struct OBJExportParams {
   /** Full path to the destination .OBJ file. */
   char filepath[FILE_MAX];
