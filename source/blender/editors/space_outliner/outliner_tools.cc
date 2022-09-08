@@ -3185,6 +3185,24 @@ void OUTLINER_OT_modifier_operation(wmOperatorType *ot)
 /** \name Data Menu Operator
  * \{ */
 
+static bool outliner_data_operation_poll(bContext *C)
+{
+  if (!ED_operator_outliner_active(C)) {
+    return false;
+  }
+  const SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
+  const TreeElement *te = get_target_element(space_outliner);
+  int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
+  get_element_operation_type(te, &scenelevel, &objectlevel, &idlevel, &datalevel);
+  return ELEM(datalevel,
+              TSE_POSE_CHANNEL,
+              TSE_BONE,
+              TSE_EBONE,
+              TSE_SEQUENCE,
+              TSE_GP_LAYER,
+              TSE_RNA_STRUCT);
+}
+
 static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
@@ -3295,7 +3313,7 @@ void OUTLINER_OT_data_operation(wmOperatorType *ot)
   /* callbacks */
   ot->invoke = WM_menu_invoke;
   ot->exec = outliner_data_operation_exec;
-  ot->poll = outliner_operation_tree_element_poll;
+  ot->poll = outliner_data_operation_poll;
 
   ot->flag = 0;
 
@@ -3317,9 +3335,12 @@ static int outliner_operator_menu(bContext *C, const char *opname)
 
   /* set this so the default execution context is the same as submenus */
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
-  uiItemsEnumO(layout, ot->idname, RNA_property_identifier(ot->prop));
 
-  uiItemS(layout);
+  if (WM_operator_poll(C, ot)) {
+    uiItemsEnumO(layout, ot->idname, RNA_property_identifier(ot->prop));
+
+    uiItemS(layout);
+  }
 
   uiItemMContents(layout, "OUTLINER_MT_context_menu");
 
