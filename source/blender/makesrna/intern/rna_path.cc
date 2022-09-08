@@ -927,7 +927,6 @@ ID *RNA_find_real_ID_and_path(ID *id, const char **r_path)
     return id;
   }
 
-  const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
   if (r_path) {
     switch (GS(id->name)) {
       case ID_NT:
