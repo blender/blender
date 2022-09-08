@@ -133,7 +133,7 @@ static struct PyModuleDef M_bl_math_module_def = {
     M_bl_math_doc,     /* m_doc */
     0,                 /* m_size */
     M_bl_math_methods, /* m_methods */
-    NULL,              /* m_reload */
+    NULL,              /* m_slots */
     NULL,              /* m_traverse */
     NULL,              /* m_clear */
     NULL,              /* m_free */

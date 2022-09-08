@@ -7868,7 +7868,7 @@ static struct PyModuleDef bpy_types_module_def = {
     bpy_types_module_doc,                 /* m_doc */
     sizeof(struct BPy_TypesModule_State), /* m_size */
     bpy_types_module_methods,             /* m_methods */
-    NULL,                                 /* m_reload */
+    NULL,                                 /* m_slots */
     NULL,                                 /* m_traverse */
     NULL,                                 /* m_clear */
     NULL,                                 /* m_free */

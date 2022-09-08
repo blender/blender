@@ -26,7 +26,7 @@ static struct PyModuleDef _bpy_path_module_def = {
     NULL,        /* m_doc */
     0,           /* m_size */
     NULL,        /* m_methods */
-    NULL,        /* m_reload */
+    NULL,        /* m_slots */
     NULL,        /* m_traverse */
     NULL,        /* m_clear */
     NULL,        /* m_free */
