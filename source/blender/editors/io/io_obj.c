@@ -114,28 +114,24 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  /* Animation options. */
-  uiLayout *box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("Animation"), ICON_ANIM);
-  uiLayout *col = uiLayoutColumn(box, false);
-  uiLayout *sub = uiLayoutColumn(col, false);
-  uiItemR(sub, imfptr, "export_animation", 0, NULL, ICON_NONE);
-  sub = uiLayoutColumn(sub, true);
-  uiItemR(sub, imfptr, "start_frame", 0, IFACE_("Frame Start"), ICON_NONE);
-  uiItemR(sub, imfptr, "end_frame", 0, IFACE_("End"), ICON_NONE);
-  uiLayoutSetEnabled(sub, export_animation);
+  uiLayout *box, *col, *sub, *row;
 
   /* Object Transform options. */
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Object Properties"), ICON_OBJECT_DATA);
   col = uiLayoutColumn(box, false);
-  sub = uiLayoutColumn(col, false);
-  uiItemR(sub, imfptr, "forward_axis", 0, IFACE_("Axis Forward"), ICON_NONE);
-  uiItemR(sub, imfptr, "up_axis", 0, IFACE_("Up"), ICON_NONE);
-  sub = uiLayoutColumn(col, false);
-  uiItemR(sub, imfptr, "scaling_factor", 0, NULL, ICON_NONE);
-  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Objects"));
+  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Limit to"));
   uiItemR(sub, imfptr, "export_selected_objects", 0, IFACE_("Selected Only"), ICON_NONE);
+  uiItemR(sub, imfptr, "scaling_factor", 0, NULL, ICON_NONE);
+
+  row = uiLayoutRow(box, false);
+  uiItemR(row, imfptr, "forward_axis", UI_ITEM_R_EXPAND, IFACE_("Foward Axis"), ICON_NONE);
+  row = uiLayoutRow(box, false);
+  uiItemR(row, imfptr, "up_axis", UI_ITEM_R_EXPAND, IFACE_("Up Axis"), ICON_NONE);
+
+  col = uiLayoutColumn(box, false);
+  sub = uiLayoutColumn(col, false);
+  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Objects"));
   uiItemR(sub, imfptr, "apply_modifiers", 0, IFACE_("Apply Modifiers"), ICON_NONE);
   uiItemR(sub, imfptr, "export_eval_mode", 0, IFACE_("Properties"), ICON_NONE);
   sub = uiLayoutColumn(sub, false);
@@ -144,7 +140,7 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
 
   /* Options for what to write. */
   box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("Geometry Export"), ICON_EXPORT);
+  uiItemL(box, IFACE_("Geometry"), ICON_EXPORT);
   col = uiLayoutColumn(box, false);
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Export"));
   uiItemR(sub, imfptr, "export_uv", 0, IFACE_("UV Coordinates"), ICON_NONE);
@@ -166,6 +162,17 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   sub = uiLayoutColumn(sub, false);
   uiLayoutSetEnabled(sub, export_smooth_groups);
   uiItemR(sub, imfptr, "smooth_group_bitflags", 0, IFACE_("Smooth Group Bitflags"), ICON_NONE);
+
+  /* Animation options. */
+  box = uiLayoutBox(layout);
+  uiItemL(box, IFACE_("Animation"), ICON_ANIM);
+  col = uiLayoutColumn(box, false);
+  sub = uiLayoutColumn(col, false);
+  uiItemR(sub, imfptr, "export_animation", 0, NULL, ICON_NONE);
+  sub = uiLayoutColumn(sub, true);
+  uiItemR(sub, imfptr, "start_frame", 0, IFACE_("Frame Start"), ICON_NONE);
+  uiItemR(sub, imfptr, "end_frame", 0, IFACE_("End"), ICON_NONE);
+  uiLayoutSetEnabled(sub, export_animation);
 }
 
 static void wm_obj_export_draw(bContext *UNUSED(C), wmOperator *op)
@@ -211,15 +218,30 @@ static bool wm_obj_export_check(bContext *C, wmOperator *op)
     RNA_int_set(op->ptr, "start_frame", start);
     RNA_int_set(op->ptr, "end_frame", end);
   }
-
-  /* Both forward and up axes cannot be the same (or same except opposite sign). */
-  if (RNA_enum_get(op->ptr, "forward_axis") % TOTAL_AXES ==
-      (RNA_enum_get(op->ptr, "up_axis") % TOTAL_AXES)) {
-    /* TODO(@ankitm): Show a warning here. */
-    RNA_enum_set(op->ptr, "up_axis", RNA_enum_get(op->ptr, "up_axis") % TOTAL_AXES + 1);
-    changed = true;
-  }
   return changed;
+}
+
+/* Both forward and up axes cannot be along the same direction. */
+static void forward_axis_update(struct Main *UNUSED(main),
+                                struct Scene *UNUSED(scene),
+                                struct PointerRNA *ptr)
+{
+  int forward = RNA_enum_get(ptr, "forward_axis");
+  int up = RNA_enum_get(ptr, "up_axis");
+  if ((forward % 3) == (up % 3)) {
+    RNA_enum_set(ptr, "up_axis", (up + 1) % 6);
+  }
+}
+
+static void up_axis_update(struct Main *UNUSED(main),
+                           struct Scene *UNUSED(scene),
+                           struct PointerRNA *ptr)
+{
+  int forward = RNA_enum_get(ptr, "forward_axis");
+  int up = RNA_enum_get(ptr, "up_axis");
+  if ((forward % 3) == (up % 3)) {
+    RNA_enum_set(ptr, "forward_axis", (forward + 1) % 6);
+  }
 }
 
 void WM_OT_obj_export(struct wmOperatorType *ot)
@@ -271,9 +293,11 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
               INT_MIN,
               INT_MAX);
   /* Object transform options. */
-  RNA_def_enum(
+  prop = RNA_def_enum(
       ot->srna, "forward_axis", io_transform_axis, IO_AXIS_NEGATIVE_Z, "Forward Axis", "");
-  RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
+  RNA_def_property_update_runtime(prop, (void *)forward_axis_update);
+  prop = RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
+  RNA_def_property_update_runtime(prop, (void *)up_axis_update);
   RNA_def_float(ot->srna,
                 "scaling_factor",
                 1.0f,
@@ -428,8 +452,11 @@ static void ui_obj_import_settings(uiLayout *layout, PointerRNA *imfptr)
   uiLayout *sub = uiLayoutColumn(col, false);
   uiItemR(sub, imfptr, "clamp_size", 0, NULL, ICON_NONE);
   sub = uiLayoutColumn(col, false);
-  uiItemR(sub, imfptr, "forward_axis", 0, IFACE_("Axis Forward"), ICON_NONE);
-  uiItemR(sub, imfptr, "up_axis", 0, IFACE_("Up"), ICON_NONE);
+
+  uiLayout *row = uiLayoutRow(box, false);
+  uiItemR(row, imfptr, "forward_axis", UI_ITEM_R_EXPAND, IFACE_("Forward Axis"), ICON_NONE);
+  row = uiLayoutRow(box, false);
+  uiItemR(row, imfptr, "up_axis", UI_ITEM_R_EXPAND, IFACE_("Up Axis"), ICON_NONE);
 
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Options"), ICON_EXPORT);
@@ -478,9 +505,11 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
       "Resize the objects to keep bounding box under this value. Value 0 disables clamping",
       0.0f,
       1000.0f);
-  RNA_def_enum(
+  prop = RNA_def_enum(
       ot->srna, "forward_axis", io_transform_axis, IO_AXIS_NEGATIVE_Z, "Forward Axis", "");
-  RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
+  RNA_def_property_update_runtime(prop, (void *)forward_axis_update);
+  prop = RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
+  RNA_def_property_update_runtime(prop, (void *)up_axis_update);
   RNA_def_boolean(ot->srna,
                   "import_vertex_groups",
                   false,
