@@ -30,8 +30,15 @@ class OUTLINER_HT_header(Header):
 
         layout.separator_spacer()
 
-        row = layout.row(align=True)
-        row.prop(space, "filter_text", icon='VIEWZOOM', text="")
+        filter_text_supported = True
+        # No text filtering for library override hierarchies. The tree is lazy built to avoid
+        # performance issues in complex files.
+        if display_mode == 'LIBRARY_OVERRIDES' and space.lib_override_view_mode == 'HIERARCHIES':
+            filter_text_supported = False
+
+        if filter_text_supported:
+            row = layout.row(align=True)
+            row.prop(space, "filter_text", icon='VIEWZOOM', text="")
 
         layout.separator_spacer()
 
