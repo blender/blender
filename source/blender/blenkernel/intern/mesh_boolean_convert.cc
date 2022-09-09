@@ -381,7 +381,6 @@ static void copy_vert_attributes(Mesh *dest_mesh,
                                  int mv_index,
                                  int index_in_orig_me)
 {
-  mv->bweight = orig_mv->bweight;
   mv->flag = orig_mv->flag;
 
   /* For all layers in the orig mesh, copy the layer information. */
@@ -450,7 +449,6 @@ static void copy_edge_attributes(Mesh *dest_mesh,
                                  int medge_index,
                                  int index_in_orig_me)
 {
-  medge->bweight = orig_medge->bweight;
   medge->crease = orig_medge->crease;
   medge->flag = orig_medge->flag;
   CustomData *target_cd = &dest_mesh->edata;

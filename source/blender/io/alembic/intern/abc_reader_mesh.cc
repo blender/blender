@@ -135,8 +135,6 @@ static void read_mverts_interp(MVert *mverts,
 
     interp_v3_v3v3(tmp, floor_pos.getValue(), ceil_pos.getValue(), static_cast<float>(weight));
     copy_zup_from_yup(mvert.co, tmp);
-
-    mvert.bweight = 0;
   }
 }
 
@@ -163,8 +161,6 @@ void read_mverts(Mesh &mesh, const P3fArraySamplePtr positions, const N3fArraySa
     Imath::V3f pos_in = (*positions)[i];
 
     copy_zup_from_yup(mvert.co, pos_in.getValue());
-
-    mvert.bweight = 0;
   }
   if (normals) {
     float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(&mesh);

@@ -340,11 +340,6 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   MPoly *mpoly = BKE_mesh_polys_for_write(result);
   MLoop *mloop = BKE_mesh_loops_for_write(result);
 
-  if (do_bevel_convex) {
-    /* Make sure bweight is enabled. */
-    result->cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
-  }
-
   if (do_shell) {
     CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, (int)verts_num);
     CustomData_copy_data(&mesh->vdata, &result->vdata, 0, (int)verts_num, (int)verts_num);
@@ -390,6 +385,12 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     /* will be created later */
     CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, (int)loops_num);
     CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, (int)polys_num);
+  }
+
+  float *result_edge_bweight = NULL;
+  if (do_bevel_convex) {
+    result_edge_bweight = CustomData_add_layer(
+        &result->edata, CD_BWEIGHT, CD_SET_DEFAULT, NULL, result->totedge);
   }
 
   /* initializes: (i_end, do_shell_align, mv). */
@@ -671,20 +672,18 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       for (uint i = 0; i < edges_num; i++) {
         if (edge_users[i] == INVALID_PAIR) {
           float angle = edge_angs[i];
-          medge[i].bweight = (char)clamp_i(
-              (int)medge[i].bweight + (int)((angle < M_PI ? clamp_f(bevel_convex, 0.0f, 1.0f) :
-                                                            clamp_f(bevel_convex, -1.0f, 0.0f)) *
-                                            255),
-              0,
-              255);
+          result_edge_bweight[i] = clamp_f(result_edge_bweight[i] +
+                                               (angle < M_PI ? clamp_f(bevel_convex, 0.0f, 1.0f) :
+                                                               clamp_f(bevel_convex, -1.0f, 0.0f)),
+                                           0.0f,
+                                           1.0f);
           if (do_shell) {
-            medge[i + edges_num].bweight = (char)clamp_i(
-                (int)medge[i + edges_num].bweight +
-                    (int)((angle > M_PI ? clamp_f(bevel_convex, 0.0f, 1.0f) :
-                                          clamp_f(bevel_convex, -1.0f, 0.0f)) *
-                          255),
+            result_edge_bweight[i + edges_num] = clamp_f(
+                result_edge_bweight[i + edges_num] + (angle > M_PI ?
+                                                          clamp_f(bevel_convex, 0.0f, 1.0f) :
+                                                          clamp_f(bevel_convex, -1.0f, 0.0f)),
                 0,
-                255);
+                1.0f);
           }
         }
       }
@@ -900,20 +899,17 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       for (i = 0; i < edges_num; i++) {
         if (edge_users[i] == INVALID_PAIR) {
           float angle = edge_angs[i];
-          medge[i].bweight = (char)clamp_i(
-              (int)medge[i].bweight + (int)((angle < M_PI ? clamp_f(bevel_convex, 0, 1) :
-                                                            clamp_f(bevel_convex, -1, 0)) *
-                                            255),
-              0,
-              255);
+          result_edge_bweight[i] = clamp_f(result_edge_bweight[i] +
+                                               (angle < M_PI ? clamp_f(bevel_convex, 0.0f, 1.0f) :
+                                                               clamp_f(bevel_convex, -1.0f, 0.0f)),
+                                           0.0f,
+                                           1.0f);
           if (do_shell) {
-            medge[i + edges_num].bweight = (char)clamp_i(
-                (int)medge[i + edges_num].bweight +
-                    (int)((angle > M_PI ? clamp_f(bevel_convex, 0, 1) :
-                                          clamp_f(bevel_convex, -1, 0)) *
-                          255),
-                0,
-                255);
+            result_edge_bweight[i + edges_num] = clamp_f(
+                result_edge_bweight[i + edges_num] +
+                    (angle > M_PI ? clamp_f(bevel_convex, 0, 1) : clamp_f(bevel_convex, -1, 0)),
+                0.0f,
+                1.0f);
           }
         }
       }

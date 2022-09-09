@@ -493,11 +493,19 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
         else:
             col.operator("mesh.customdata_custom_splitnormals_add", icon='ADD')
 
+        if me.has_bevel_weight_edge:
+            col.operator("mesh.customdata_bevel_weight_edge_clear", icon='X')
+        else:
+            col.operator("mesh.customdata_bevel_weight_edge_add", icon='ADD')
+
+        if me.has_bevel_weight_vertex:
+            col.operator("mesh.customdata_bevel_weight_vertex_clear", icon='X')
+        else:
+            col.operator("mesh.customdata_bevel_weight_vertex_add", icon='ADD')
+
         col = layout.column(heading="Store")
 
         col.enabled = obj is not None and obj.mode != 'EDIT'
-        col.prop(me, "use_customdata_vertex_bevel", text="Vertex Bevel Weight")
-        col.prop(me, "use_customdata_edge_bevel", text="Edge Bevel Weight")
         col.prop(me, "use_customdata_vertex_crease", text="Vertex Crease")
         col.prop(me, "use_customdata_edge_crease", text="Edge Crease")
 

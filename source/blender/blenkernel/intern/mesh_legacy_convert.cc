@@ -918,6 +918,67 @@ void BKE_mesh_add_mface_layers(CustomData *fdata, CustomData *ldata, int total)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Bevel Weight Conversion
+ * \{ */
+
+void BKE_mesh_legacy_bevel_weight_from_layers(Mesh *mesh)
+{
+  using namespace blender;
+  MutableSpan<MVert> verts = mesh->verts_for_write();
+  if (const float *weights = static_cast<const float *>(
+          CustomData_get_layer(&mesh->vdata, CD_BWEIGHT))) {
+    mesh->cd_flag |= ME_CDFLAG_VERT_BWEIGHT;
+    for (const int i : verts.index_range()) {
+      verts[i].bweight = std::clamp(weights[i], 0.0f, 1.0f) * 255.0f;
+    }
+  }
+  else {
+    mesh->cd_flag &= ~ME_CDFLAG_VERT_BWEIGHT;
+    for (const int i : verts.index_range()) {
+      verts[i].bweight = 0;
+    }
+  }
+  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  if (const float *weights = static_cast<const float *>(
+          CustomData_get_layer(&mesh->edata, CD_BWEIGHT))) {
+    mesh->cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
+    for (const int i : edges.index_range()) {
+      edges[i].bweight = std::clamp(weights[i], 0.0f, 1.0f) * 255.0f;
+    }
+  }
+  else {
+    mesh->cd_flag &= ~ME_CDFLAG_EDGE_BWEIGHT;
+    for (const int i : edges.index_range()) {
+      edges[i].bweight = 0;
+    }
+  }
+}
+
+void BKE_mesh_legacy_bevel_weight_to_layers(Mesh *mesh)
+{
+  using namespace blender;
+  const Span<MVert> verts = mesh->verts();
+  if (mesh->cd_flag & ME_CDFLAG_VERT_BWEIGHT) {
+    float *weights = static_cast<float *>(
+        CustomData_add_layer(&mesh->vdata, CD_BWEIGHT, CD_CONSTRUCT, nullptr, verts.size()));
+    for (const int i : verts.index_range()) {
+      weights[i] = verts[i].bweight / 255.0f;
+    }
+  }
+
+  const Span<MEdge> edges = mesh->edges();
+  if (mesh->cd_flag & ME_CDFLAG_EDGE_BWEIGHT) {
+    float *weights = static_cast<float *>(
+        CustomData_add_layer(&mesh->edata, CD_BWEIGHT, CD_CONSTRUCT, nullptr, edges.size()));
+    for (const int i : edges.index_range()) {
+      weights[i] = edges[i].bweight / 255.0f;
+    }
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Hide Attribute and Legacy Flag Conversion
  * \{ */
 

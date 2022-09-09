@@ -294,7 +294,7 @@ static void mesh_merge_transform(Mesh *result,
   for (i = 0; i < cap_nverts; i++, mv++) {
     mul_m4_v3(cap_offset, mv->co);
     /* Reset MVert flags for caps */
-    mv->flag = mv->bweight = 0;
+    mv->flag = 0;
   }
 
   /* We have to correct normals too, if we do not tag them as dirty later! */

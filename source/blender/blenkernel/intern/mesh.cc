@@ -251,6 +251,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     if (!BLO_write_is_undo(writer)) {
       BKE_mesh_legacy_convert_hide_layers_to_flags(mesh);
       BKE_mesh_legacy_convert_material_indices_to_mpoly(mesh);
+      BKE_mesh_legacy_bevel_weight_from_layers(mesh);
       /* When converting to the old mesh format, don't save redundant attributes. */
       names_to_skip.add_multiple_new({".hide_vert", ".hide_edge", ".hide_poly"});
 
@@ -348,6 +349,7 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   if (!BLO_read_data_is_undo(reader)) {
     BKE_mesh_legacy_convert_flags_to_hide_layers(mesh);
     BKE_mesh_legacy_convert_mpoly_to_material_indices(mesh);
+    BKE_mesh_legacy_bevel_weight_to_layers(mesh);
   }
 
   /* We don't expect to load normals from files, since they are derived data. */

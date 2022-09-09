@@ -440,8 +440,10 @@ enum {
 
 /** #Mesh.cd_flag */
 enum {
+#ifdef DNA_DEPRECATED_ALLOW
   ME_CDFLAG_VERT_BWEIGHT = 1 << 0,
   ME_CDFLAG_EDGE_BWEIGHT = 1 << 1,
+#endif
   ME_CDFLAG_EDGE_CREASE = 1 << 2,
   ME_CDFLAG_VERT_CREASE = 1 << 3,
 };

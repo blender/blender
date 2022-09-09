@@ -67,7 +67,9 @@ static void createTransEdge(bContext *UNUSED(C), TransInfo *t)
 
     /* create data we need */
     if (t->mode == TFM_BWEIGHT) {
-      BM_mesh_cd_flag_ensure(em->bm, BKE_mesh_from_object(tc->obedit), ME_CDFLAG_EDGE_BWEIGHT);
+      if (!CustomData_has_layer(&em->bm->edata, CD_BWEIGHT)) {
+        BM_data_layer_add(em->bm, &em->bm->edata, CD_BWEIGHT);
+      }
       cd_edge_float_offset = CustomData_get_offset(&em->bm->edata, CD_BWEIGHT);
     }
     else { /* if (t->mode == TFM_EDGE_CREASE) { */

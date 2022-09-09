@@ -1233,7 +1233,6 @@ static void customdata_weld(
   float no[3] = {0.0f, 0.0f, 0.0f};
 #endif
   int crease = 0;
-  int bweight = 0;
   short flag = 0;
 
   /* interpolates a layer at a time */
@@ -1267,7 +1266,6 @@ static void customdata_weld(
           no[1] += mv_src_no[1];
           no[2] += mv_src_no[2];
 #endif
-          bweight += mv_src->bweight;
           flag |= mv_src->flag;
         }
       }
@@ -1275,7 +1273,6 @@ static void customdata_weld(
         for (j = 0; j < count; j++) {
           MEdge *me_src = &((MEdge *)src_data)[src_indices[j]];
           crease += me_src->crease;
-          bweight += me_src->bweight;
           flag |= me_src->flag;
         }
       }
@@ -1312,8 +1309,6 @@ static void customdata_weld(
     if (type == CD_MVERT) {
       MVert *mv = &((MVert *)layer_dst->data)[dest_index];
       mul_v3_fl(co, fac);
-      bweight *= fac;
-      CLAMP_MAX(bweight, 255);
 
       copy_v3_v3(mv->co, co);
 #ifdef USE_WELD_NORMALS
@@ -1325,17 +1320,13 @@ static void customdata_weld(
 #endif
 
       mv->flag = (char)flag;
-      mv->bweight = (char)bweight;
     }
     else if (type == CD_MEDGE) {
       MEdge *me = &((MEdge *)layer_dst->data)[dest_index];
       crease *= fac;
-      bweight *= fac;
       CLAMP_MAX(crease, 255);
-      CLAMP_MAX(bweight, 255);
 
       me->crease = (char)crease;
-      me->bweight = (char)bweight;
       me->flag = flag;
     }
     else if (CustomData_layer_has_interp(dest, dest_i)) {
