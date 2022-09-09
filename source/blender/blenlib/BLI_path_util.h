@@ -44,7 +44,8 @@ const char *BLI_getenv(const char *env) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
  * \param relabase: Optional prefix to substitute for "//" on front of `dir`.
  * \param string: Area to return result.
  */
-void BLI_make_file_string(const char *relabase, char *string, const char *dir, const char *file);
+void BLI_make_file_string(const char *relabase, char *string, const char *dir, const char *file)
+    ATTR_NONNULL(2, 3, 4);
 /**
  * Ensures that the parent directory of `name` exists.
  *

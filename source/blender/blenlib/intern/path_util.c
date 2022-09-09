@@ -1206,19 +1206,8 @@ bool BLI_make_existing_file(const char *name)
 
 void BLI_make_file_string(const char *relabase, char *string, const char *dir, const char *file)
 {
-  int sl;
-
-  if (string) {
-    /* ensure this is always set even if dir/file are NULL */
-    string[0] = '\0';
-
-    if (ELEM(NULL, dir, file)) {
-      return; /* We don't want any NULLs */
-    }
-  }
-  else {
-    return; /* string is NULL, probably shouldn't happen but return anyway */
-  }
+  /* Ensure this is always set & the following `strcat` works as expected. */
+  string[0] = '\0';
 
   /* Resolve relative references */
   if (relabase && dir[0] == '/' && dir[1] == '/') {
@@ -1266,7 +1255,7 @@ void BLI_make_file_string(const char *relabase, char *string, const char *dir, c
 
   /* Make sure string ends in one (and only one) slash */
   /* first trim all slashes from the end of the string */
-  sl = strlen(string);
+  int sl = strlen(string);
   while ((sl > 0) && ELEM(string[sl - 1], '/', '\\')) {
     string[sl - 1] = '\0';
     sl--;
