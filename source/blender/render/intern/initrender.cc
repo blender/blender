@@ -124,7 +124,8 @@ float RE_filter_value(int type, float x)
       }
       return 1.0f - x;
 
-    case R_FILTER_GAUSS: {
+    case R_FILTER_GAUSS:
+    case R_FILTER_FAST_GAUSS: {
       const float two_gaussfac2 = 2.0f * gaussfac * gaussfac;
       x *= 3.0f * gaussfac;
       return 1.0f / sqrtf((float)M_PI * two_gaussfac2) * expf(-x * x / two_gaussfac2);
