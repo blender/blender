@@ -849,22 +849,24 @@ elseif(WIN32)
   if(WITH_PYTHON)
     string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
 
-    if(NOT CMAKE_COMPILER_IS_GNUCC)
-      install(
-        FILES
-          ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python${_PYTHON_VERSION_NO_DOTS}.dll
-          ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python3.dll
-        DESTINATION ${TARGETDIR_LIB}
-        CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
-      )
+    if(NOT WITH_PYTHON_MODULE)
+      if(NOT CMAKE_COMPILER_IS_GNUCC)
+        install(
+          FILES
+            ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python${_PYTHON_VERSION_NO_DOTS}.dll
+            ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python3.dll
+          DESTINATION ${TARGETDIR_LIB}
+          CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+        )
 
-      install(
-        FILES
-          ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python${_PYTHON_VERSION_NO_DOTS}_d.dll
-          ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python3_d.dll
-        DESTINATION ${TARGETDIR_LIB}
-        CONFIGURATIONS Debug
-      )
+        install(
+          FILES
+            ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python${_PYTHON_VERSION_NO_DOTS}_d.dll
+            ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python3_d.dll
+          DESTINATION ${TARGETDIR_LIB}
+          CONFIGURATIONS Debug
+        )
+      endif()
     endif()
 
     if(WITH_PYTHON_INSTALL)
@@ -1035,16 +1037,19 @@ elseif(WIN32)
     )
   endif()
 
-  install(
-    FILES
-      ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_debug_gpu.cmd
-      ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_debug_gpu_glitchworkaround.cmd
-      ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_debug_log.cmd
-      ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_factory_startup.cmd
-      ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_oculus.cmd
-      ${CMAKE_SOURCE_DIR}/release/windows/batch/oculus.json
-    DESTINATION ${TARGETDIR_LIB}
-  )
+
+  if(NOT WITH_PYTHON_MODULE)
+    install(
+      FILES
+        ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_debug_gpu.cmd
+        ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_debug_gpu_glitchworkaround.cmd
+        ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_debug_log.cmd
+        ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_factory_startup.cmd
+        ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_oculus.cmd
+        ${CMAKE_SOURCE_DIR}/release/windows/batch/oculus.json
+      DESTINATION ${TARGETDIR_LIB}
+    )
+  endif()
 
   if(WITH_BLENDER_THUMBNAILER)
     install(
