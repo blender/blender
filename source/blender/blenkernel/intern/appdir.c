@@ -811,7 +811,7 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name)
 #  endif
 
 #  ifdef _WIN32
-  if (!strict) {
+  {
     wchar_t *fullname_16 = MEM_mallocN(maxlen * sizeof(wchar_t), "ProgramPath");
     if (GetModuleFileNameW(0, fullname_16, maxlen)) {
       conv_utf_16_to_8(fullname_16, fullname, maxlen);
@@ -835,18 +835,14 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name)
     if (name[0] == '.') {
       BLI_path_abs_from_cwd(fullname, maxlen);
 #  ifdef _WIN32
-      if (!strict) {
-        BLI_path_program_extensions_add_win32(fullname, maxlen);
-      }
+      BLI_path_program_extensions_add_win32(fullname, maxlen);
 #  endif
     }
     else if (BLI_path_slash_rfind(name)) {
       /* Full path. */
       BLI_strncpy(fullname, name, maxlen);
 #  ifdef _WIN32
-      if (!strict) {
-        BLI_path_program_extensions_add_win32(fullname, maxlen);
-      }
+      BLI_path_program_extensions_add_win32(fullname, maxlen);
 #  endif
     }
     else {
