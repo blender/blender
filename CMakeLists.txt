@@ -888,7 +888,11 @@ endif()
 if(WITH_CYCLES AND WITH_CYCLES_DEVICE_CUDA AND NOT WITH_CUDA_DYNLOAD)
   find_package(CUDA)
   if(NOT CUDA_FOUND)
-    message(STATUS "CUDA toolkit not found, using dynamic runtime loading of libraries (WITH_CUDA_DYNLOAD) instead")
+    message(
+      STATUS
+      "CUDA toolkit not found, "
+      "using dynamic runtime loading of libraries (WITH_CUDA_DYNLOAD) instead"
+    )
     set(WITH_CUDA_DYNLOAD ON)
   endif()
 endif()
@@ -905,7 +909,8 @@ if(WITH_INTERNATIONAL)
   file(GLOB RESULT "${CMAKE_SOURCE_DIR}/release/datafiles/locale")
   list(LENGTH RESULT DIR_LEN)
   if(DIR_LEN EQUAL 0)
-    message(WARNING
+    message(
+      WARNING
       "Translation path '${CMAKE_SOURCE_DIR}/release/datafiles/locale' is missing, "
       "This is a 'git submodule', which are known not to work with bridges to other version "
       "control systems, disabling 'WITH_INTERNATIONAL'."
@@ -923,13 +928,17 @@ if(WITH_PYTHON)
   # because UNIX will search for the old Python paths which may not exist.
   # giving errors about missing paths before this case is met.
   if(DEFINED PYTHON_VERSION AND "${PYTHON_VERSION}" VERSION_LESS "3.10")
-    message(FATAL_ERROR "At least Python 3.10 is required to build, but found Python ${PYTHON_VERSION}")
+    message(
+      FATAL_ERROR
+      "At least Python 3.10 is required to build, but found Python ${PYTHON_VERSION}"
+    )
   endif()
 
   file(GLOB RESULT "${CMAKE_SOURCE_DIR}/release/scripts/addons")
   list(LENGTH RESULT DIR_LEN)
   if(DIR_LEN EQUAL 0)
-    message(WARNING
+    message(
+      WARNING
       "Addons path '${CMAKE_SOURCE_DIR}/release/scripts/addons' is missing, "
       "This is a 'git submodule', which are known not to work with bridges to other version "
       "control systems: * CONTINUING WITHOUT ADDONS *"
@@ -1037,13 +1046,15 @@ endif()
 
 if(WITH_CYCLES)
   if(NOT WITH_OPENIMAGEIO)
-    message(FATAL_ERROR
+    message(
+      FATAL_ERROR
       "Cycles requires WITH_OPENIMAGEIO, the library may not have been found. "
       "Configure OIIO or disable WITH_CYCLES"
     )
   endif()
   if(NOT WITH_BOOST)
-    message(FATAL_ERROR
+    message(
+      FATAL_ERROR
       "Cycles requires WITH_BOOST, the library may not have been found. "
       "Configure BOOST or disable WITH_CYCLES"
     )
@@ -1051,7 +1062,8 @@ if(WITH_CYCLES)
 
   if(WITH_CYCLES_OSL)
     if(NOT WITH_LLVM)
-      message(FATAL_ERROR
+      message(
+        FATAL_ERROR
         "Cycles OSL requires WITH_LLVM, the library may not have been found. "
         "Configure LLVM or disable WITH_CYCLES_OSL"
       )
@@ -1061,7 +1073,8 @@ endif()
 
 if(WITH_INTERNATIONAL)
   if(NOT WITH_BOOST)
-    message(FATAL_ERROR
+    message(
+      FATAL_ERROR
       "Internationalization requires WITH_BOOST, the library may not have been found. "
       "Configure BOOST or disable WITH_INTERNATIONAL"
     )
@@ -1606,7 +1619,8 @@ endif()
 # be most problematic.
 if(WITH_PYTHON)
   if(NOT EXISTS "${PYTHON_INCLUDE_DIR}/Python.h")
-    message(FATAL_ERROR
+    message(
+      FATAL_ERROR
       "Missing: \"${PYTHON_INCLUDE_DIR}/Python.h\",\n"
       "Set the cache entry 'PYTHON_INCLUDE_DIR' to point "
       "to a valid python include path. Containing "
@@ -1675,9 +1689,11 @@ if(WITH_COMPILER_SHORT_FILE_MACRO)
       if(XCODE AND ${XCODE_VERSION} VERSION_LESS 12.0)
       # Developers may have say LLVM Clang-10.0.1 toolchain (which supports the flag)
       # with Xcode-11 (the Clang of which doesn't support the flag).
-        message(WARNING
+        message(
+          WARNING
           "-fmacro-prefix-map flag is NOT supported by Clang shipped with Xcode-${XCODE_VERSION}."
-          " Some Xcode functionality in Product menu may not work. Disabling WITH_COMPILER_SHORT_FILE_MACRO."
+          " Some Xcode functionality in Product menu may not work. "
+          "Disabling WITH_COMPILER_SHORT_FILE_MACRO."
         )
         set(WITH_COMPILER_SHORT_FILE_MACRO OFF)
       endif()
@@ -1693,7 +1709,8 @@ if(WITH_COMPILER_SHORT_FILE_MACRO)
       unset(_bin_dir)
     endif()
   else()
-    message(WARNING
+    message(
+      WARNING
       "-fmacro-prefix-map flag is NOT supported by C/C++ compiler."
       " Disabling WITH_COMPILER_SHORT_FILE_MACRO."
     )

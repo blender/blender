@@ -193,7 +193,10 @@ if(WITH_BUILDINFO)
   set(buildinfo_h_fake "${CMAKE_CURRENT_BINARY_DIR}/buildinfo.h_fake")
 
   if(EXISTS ${buildinfo_h_fake})
-    message(FATAL_ERROR "File \"${buildinfo_h_fake}\" found, this should never be created, remove!")
+    message(
+      FATAL_ERROR
+      "File \"${buildinfo_h_fake}\" found, this should never be created, remove!"
+    )
   endif()
 
   # From the CMAKE documentation "If the output of the custom command is not actually created as a
@@ -214,12 +217,14 @@ if(WITH_BUILDINFO)
     OUTPUT
       ${buildinfo_h_fake}  # ensure we always run
       ${buildinfo_h_real}
-    COMMAND ${CMAKE_COMMAND}
-    -DSOURCE_DIR=${CMAKE_SOURCE_DIR}
-    # Overrides only used when non-empty strings.
-    -DBUILD_DATE=${BUILDINFO_OVERRIDE_DATE}
-    -DBUILD_TIME=${BUILDINFO_OVERRIDE_TIME}
-    -P ${CMAKE_SOURCE_DIR}/build_files/cmake/buildinfo.cmake)
+    COMMAND
+      ${CMAKE_COMMAND}
+      -DSOURCE_DIR=${CMAKE_SOURCE_DIR}
+      # Overrides only used when non-empty strings.
+      -DBUILD_DATE=${BUILDINFO_OVERRIDE_DATE}
+      -DBUILD_TIME=${BUILDINFO_OVERRIDE_TIME}
+      -P ${CMAKE_SOURCE_DIR}/build_files/cmake/buildinfo.cmake
+    )
 
   # `buildinfo.h` is a generated file.
   set_source_files_properties(
@@ -476,8 +481,9 @@ if("${CMAKE_GENERATOR}" MATCHES ".*Makefiles.*")
   # Message to display after building.
   add_custom_command(
     TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-    COMMAND ${CMAKE_COMMAND} -E
-            echo 'now run: \"make install\" to copy runtime files and scripts to ${TARGETDIR_VER}'
+    COMMAND
+      ${CMAKE_COMMAND} -E
+      echo 'now run: \"make install\" to copy runtime files and scripts to ${TARGETDIR_VER}'
   )
 endif()
 
@@ -491,9 +497,10 @@ if(UNIX AND NOT APPLE)
     if(WITH_DOC_MANPAGE)
       add_custom_target(
         blender_man_page ALL
-        COMMAND ${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py
-                --blender ${EXECUTABLE_OUTPUT_PATH}/blender
-                --output ${CMAKE_CURRENT_BINARY_DIR}/blender.1
+        COMMAND
+          ${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py
+          --blender ${EXECUTABLE_OUTPUT_PATH}/blender
+          --output ${CMAKE_CURRENT_BINARY_DIR}/blender.1
       )
       add_dependencies(blender_man_page blender)
     endif()
@@ -785,7 +792,11 @@ elseif(WIN32)
     string(REPLACE "cl.exe" "clang_rt.asan_dynamic-x86_64.dll" ASAN_DLL ${CMAKE_C_COMPILER})
     string(REPLACE "cl.exe" "clang_rt.asan_dbg_dynamic-x86_64.dll" ASAN_DEBUG_DLL ${CMAKE_C_COMPILER})
     if(NOT EXISTS "${ASAN_DLL}")
-      message(FATAL_ERROR "ASAN is enabled, but the ASAN runtime is not detected, this is an optional component during the MSVC install, please install it")
+      message(
+        FATAL_ERROR
+        "ASAN is enabled, but the ASAN runtime is not detected, "
+        "this is an optional component during the MSVC install, please install it"
+      )
     endif()
     install(
       FILES ${ASAN_DLL}
@@ -1100,9 +1111,11 @@ elseif(APPLE)
   set(OSX_APP_SOURCEDIR ${CMAKE_SOURCE_DIR}/release/darwin/Blender.app)
 
   # Setup `Info.plist`.
-  execute_process(COMMAND date "+%Y-%m-%d"
-                  OUTPUT_VARIABLE BLENDER_DATE
-                  OUTPUT_STRIP_TRAILING_WHITESPACE)
+  execute_process(
+    COMMAND date "+%Y-%m-%d"
+    OUTPUT_VARIABLE BLENDER_DATE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
 
   set_target_properties(blender PROPERTIES
     MACOSX_BUNDLE_INFO_PLIST ${OSX_APP_SOURCEDIR}/Contents/Info.plist
@@ -1111,9 +1124,11 @@ elseif(APPLE)
   )
 
   # Gather the date in finder-style.
-  execute_process(COMMAND date "+%m/%d/%Y/%H:%M"
-  OUTPUT_VARIABLE SETFILE_DATE
-  OUTPUT_STRIP_TRAILING_WHITESPACE)
+  execute_process(
+    COMMAND date "+%m/%d/%Y/%H:%M"
+    OUTPUT_VARIABLE SETFILE_DATE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
 
   # Give the bundle actual creation/modification date.
   #
@@ -1121,8 +1136,9 @@ elseif(APPLE)
   if(NOT EXISTS ${EXECUTABLE_OUTPUT_PATH}/Blender.app)
     file(MAKE_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}/Blender.app)
   endif()
-  execute_process(COMMAND SetFile -d ${SETFILE_DATE} -m ${SETFILE_DATE}
-                  ${EXECUTABLE_OUTPUT_PATH}/Blender.app)
+  execute_process(
+    COMMAND SetFile -d ${SETFILE_DATE} -m ${SETFILE_DATE} ${EXECUTABLE_OUTPUT_PATH}/Blender.app
+  )
 
   install(
     TARGETS blender
