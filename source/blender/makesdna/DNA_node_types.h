@@ -2029,6 +2029,21 @@ typedef enum CMPNodeFlipMode {
   CMP_NODE_FLIP_X_Y = 2,
 } CMPNodeFlipMode;
 
+/* Scale Node. Stored in custom1. */
+typedef enum CMPNodeScaleMethod {
+  CMP_NODE_SCALE_RELATIVE = 0,
+  CMP_NODE_SCALE_ABSOLUTE = 1,
+  CMP_NODE_SCALE_RENDER_PERCENT = 2,
+  CMP_NODE_SCALE_RENDER_SIZE = 3,
+} CMPNodeScaleMethod;
+
+/* Scale Node. Stored in custom2. */
+typedef enum CMPNodeScaleRenderSizeMethod {
+  CMP_NODE_SCALE_RENDER_SIZE_STRETCH = 0,
+  CMP_NODE_SCALE_RENDER_SIZE_FIT = 1,
+  CMP_NODE_SCALE_RENDER_SIZE_CROP = 2,
+} CMPNodeScaleRenderSizeMethod;
+
 /* Filter Node. Stored in custom1. */
 typedef enum CMPNodeFilterMethod {
   CMP_NODE_FILTER_SOFT = 0,
