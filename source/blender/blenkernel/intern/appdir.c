@@ -782,6 +782,7 @@ const char *BKE_appdir_folder_id_version(const int folder_id,
  * Access locations of Blender & Python.
  * \{ */
 
+#ifndef WITH_PYTHON_MODULE
 /**
  * Checks if name is a fully qualified filename to an executable.
  * If not it searches `$PATH` for the file. On Windows it also
@@ -793,14 +794,12 @@ const char *BKE_appdir_folder_id_version(const int folder_id,
  * \param fullname: The full path and full name of the executable
  * (must be #FILE_MAX minimum)
  * \param name: The name of the executable (usually `argv[0]`) to be checked
- * \param strict: When true, use `argv0` unmodified (besides making absolute & normalizing).
- * Otherwise other methods may be used to find the program path, including searching `$PATH`.
  */
-static void where_am_i(char *fullname, const size_t maxlen, const char *name, const bool strict)
+static void where_am_i(char *fullname, const size_t maxlen, const char *name)
 {
-#ifdef WITH_BINRELOC
+#  ifdef WITH_BINRELOC
   /* Linux uses `binreloc` since `argv[0]` is not reliable, call `br_init(NULL)` first. */
-  if (!strict) {
+  {
     const char *path = NULL;
     path = br_find_exe(NULL);
     if (path) {
@@ -809,9 +808,9 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name, co
       return;
     }
   }
-#endif
+#  endif
 
-#ifdef _WIN32
+#  ifdef _WIN32
   if (!strict) {
     wchar_t *fullname_16 = MEM_mallocN(maxlen * sizeof(wchar_t), "ProgramPath");
     if (GetModuleFileNameW(0, fullname_16, maxlen)) {
@@ -827,7 +826,7 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name, co
 
     MEM_freeN(fullname_16);
   }
-#endif
+#  endif
 
   /* Unix and non Linux. */
   if (name && name[0]) {
@@ -835,36 +834,35 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name, co
     BLI_strncpy(fullname, name, maxlen);
     if (name[0] == '.') {
       BLI_path_abs_from_cwd(fullname, maxlen);
-#ifdef _WIN32
+#  ifdef _WIN32
       if (!strict) {
         BLI_path_program_extensions_add_win32(fullname, maxlen);
       }
-#endif
+#  endif
     }
     else if (BLI_path_slash_rfind(name)) {
       /* Full path. */
       BLI_strncpy(fullname, name, maxlen);
-#ifdef _WIN32
+#  ifdef _WIN32
       if (!strict) {
         BLI_path_program_extensions_add_win32(fullname, maxlen);
       }
-#endif
+#  endif
     }
     else {
-      if (!strict) {
-        BLI_path_program_search(fullname, maxlen, name);
-      }
+      BLI_path_program_search(fullname, maxlen, name);
     }
     /* Remove "/./" and "/../" so string comparisons can be used on the path. */
     BLI_path_normalize(NULL, fullname);
 
-#if defined(DEBUG)
+#  if defined(DEBUG)
     if (!STREQ(name, fullname)) {
       CLOG_INFO(&LOG, 2, "guessing '%s' == '%s'", name, fullname);
     }
-#endif
+#  endif
   }
 }
+#endif /* WITH_PYTHON_MODULE */
 
 void BKE_appdir_program_path_init(const char *argv0)
 {
@@ -872,17 +870,28 @@ void BKE_appdir_program_path_init(const char *argv0)
   /* NOTE(@campbellbarton): Always use `argv[0]` as is, when building as a Python module.
    * Otherwise other methods of detecting the binary that override this argument
    * which must point to the Python module for data-files to be detected. */
-  const bool strict = true;
+  STRNCPY(g_app.program_filepath, argv0);
+  BLI_path_abs_from_cwd(g_app.program_filepath, sizeof(g_app.program_filepath));
+  BLI_path_normalize(NULL, g_app.program_filepath);
+
+  if (g_app.program_dirname[0] == '\0') {
+    /* First time initializing, the file binary path isn't valid from a Python module.
+     * Calling again must set the `filepath` and leave the directory as-is. */
+    BLI_split_dir_part(
+        g_app.program_filepath, g_app.program_dirname, sizeof(g_app.program_dirname));
+    g_app.program_filepath[0] = '\0';
+  }
 #else
-  const bool strict = false;
-#endif
-  where_am_i(g_app.program_filepath, sizeof(g_app.program_filepath), argv0, strict);
+  where_am_i(g_app.program_filepath, sizeof(g_app.program_filepath), argv0);
   BLI_split_dir_part(g_app.program_filepath, g_app.program_dirname, sizeof(g_app.program_dirname));
+#endif
 }
 
 const char *BKE_appdir_program_path(void)
 {
+#ifndef WITH_PYTHON_MODULE /* Default's to empty when building as as Python module. */
   BLI_assert(g_app.program_filepath[0]);
+#endif
   return g_app.program_filepath;
 }
 
