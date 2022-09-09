@@ -54,9 +54,11 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+using blender::float3;
 using blender::IndexRange;
 using blender::MutableSpan;
 using blender::Span;
+using blender::StringRefNull;
 
 /* Define for cases when you want extra validation of mesh
  * after certain modifications.
@@ -1081,7 +1083,7 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
   mesh_in_bmain->smoothresh = mesh->smoothresh;
   mesh->mat = nullptr;
 
-  BKE_mesh_nomain_to_mesh(mesh, mesh_in_bmain, nullptr, &CD_MASK_MESH, true);
+  BKE_mesh_nomain_to_mesh(mesh, mesh_in_bmain, nullptr);
 
   /* Anonymous attributes shouldn't exist on original data. */
   mesh_in_bmain->attributes_for_write().remove_anonymous();
@@ -1235,239 +1237,113 @@ Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
   return result;
 }
 
-/* This is a Mesh-based copy of the same function in DerivedMesh.cc */
-static void shapekey_layers_to_keyblocks(Mesh *mesh_src, Mesh *mesh_dst, int actshape_uid)
+static KeyBlock *keyblock_ensure_from_uid(Key &key, const int uid, const StringRefNull name)
 {
-  KeyBlock *kb;
-  int i, j, tot;
-
-  if (!mesh_dst->key) {
-    return;
+  if (KeyBlock *kb = BKE_keyblock_find_uid(&key, uid)) {
+    return kb;
   }
+  KeyBlock *kb = BKE_keyblock_add(&key, name.c_str());
+  kb->uid = uid;
+  return kb;
+}
 
-  tot = CustomData_number_of_layers(&mesh_src->vdata, CD_SHAPEKEY);
-  for (i = 0; i < tot; i++) {
-    CustomDataLayer *layer =
-        &mesh_src->vdata.layers[CustomData_get_layer_index_n(&mesh_src->vdata, CD_SHAPEKEY, i)];
-    float(*kbcos)[3];
+static int find_object_active_key_uid(const Key &key, const Object &object)
+{
+  const int active_kb_index = object.shapenr - 1;
+  const KeyBlock *kb = (const KeyBlock *)BLI_findlink(&key.block, active_kb_index);
+  if (!kb) {
+    CLOG_ERROR(&LOG, "Could not find object's active shapekey %d", active_kb_index);
+    return -1;
+  }
+  return kb->uid;
+}
 
-    for (kb = (KeyBlock *)mesh_dst->key->block.first; kb; kb = kb->next) {
-      if (kb->uid == layer->uid) {
-        break;
-      }
-    }
+static void move_shapekey_layers_to_keyblocks(Mesh &mesh, Key &key_dst, const int actshape_uid)
+{
+  using namespace blender::bke;
+  for (const int i : IndexRange(CustomData_number_of_layers(&mesh.vdata, CD_SHAPEKEY))) {
+    const int layer_index = CustomData_get_layer_index_n(&mesh.vdata, CD_SHAPEKEY, i);
+    CustomDataLayer &layer = mesh.vdata.layers[layer_index];
 
-    if (!kb) {
-      kb = BKE_keyblock_add(mesh_dst->key, layer->name);
-      kb->uid = layer->uid;
-    }
+    KeyBlock *kb = keyblock_ensure_from_uid(key_dst, layer.uid, layer.name);
+    MEM_SAFE_FREE(kb->data);
 
-    if (kb->data) {
-      MEM_freeN(kb->data);
-    }
+    kb->totelem = mesh.totvert;
 
-    const float(*cos)[3] = (const float(*)[3])CustomData_get_layer_n(
-        &mesh_src->vdata, CD_SHAPEKEY, i);
-    kb->totelem = mesh_src->totvert;
-
-    kb->data = kbcos = (float(*)[3])MEM_malloc_arrayN(kb->totelem, sizeof(float[3]), __func__);
     if (kb->uid == actshape_uid) {
-      const Span<MVert> verts = mesh_src->verts();
-      for (j = 0; j < mesh_src->totvert; j++, kbcos++) {
-        copy_v3_v3(*kbcos, verts[j].co);
-      }
+      kb->data = MEM_malloc_arrayN(kb->totelem, sizeof(float3), __func__);
+      MutableSpan<float3> kb_coords(static_cast<float3 *>(kb->data), kb->totelem);
+      mesh.attributes().lookup<float3>("position").materialize(kb_coords);
     }
     else {
-      for (j = 0; j < kb->totelem; j++, cos++, kbcos++) {
-        copy_v3_v3(*kbcos, *cos);
-      }
+      kb->data = layer.data;
+      layer.data = nullptr;
     }
   }
 
-  for (kb = (KeyBlock *)mesh_dst->key->block.first; kb; kb = kb->next) {
-    if (kb->totelem != mesh_src->totvert) {
-      if (kb->data) {
-        MEM_freeN(kb->data);
-      }
-
-      kb->totelem = mesh_src->totvert;
-      kb->data = MEM_calloc_arrayN(kb->totelem, sizeof(float[3]), __func__);
-      CLOG_ERROR(&LOG, "lost a shapekey layer: '%s'! (bmesh internal error)", kb->name);
+  LISTBASE_FOREACH (KeyBlock *, kb, &key_dst.block) {
+    if (kb->totelem != mesh.totvert) {
+      MEM_SAFE_FREE(kb->data);
     }
+    kb->totelem = mesh.totvert;
+    kb->data = MEM_cnew_array<float3>(kb->totelem, __func__);
+    CLOG_ERROR(&LOG, "Data for shape key '%s' on mesh missing from evaluated mesh ", kb->name);
   }
 }
 
-void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
-                             Mesh *mesh_dst,
-                             Object *ob,
-                             const CustomData_MeshMasks *mask,
-                             bool take_ownership)
+void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
 {
   using namespace blender::bke;
   BLI_assert(mesh_src->id.tag & LIB_TAG_NO_MAIN);
-
-  /* mesh_src might depend on mesh_dst, so we need to do everything with a local copy */
-  /* TODO(Sybren): the above claim came from 2.7x derived-mesh code (DM_to_mesh);
-   * check whether it is still true with Mesh */
-  Mesh tmp = blender::dna::shallow_copy(*mesh_dst);
-  int totvert, totedge /*, totface */ /* UNUSED */, totloop, totpoly;
-  bool did_shapekeys = false;
-  eCDAllocType alloctype = CD_DUPLICATE;
-
-  if (take_ownership /* && dm->type == DM_TYPE_CDDM && dm->needsFree */) {
-    bool has_any_referenced_layers = CustomData_has_referenced(&mesh_src->vdata) ||
-                                     CustomData_has_referenced(&mesh_src->edata) ||
-                                     CustomData_has_referenced(&mesh_src->ldata) ||
-                                     CustomData_has_referenced(&mesh_src->fdata) ||
-                                     CustomData_has_referenced(&mesh_src->pdata);
-    if (!has_any_referenced_layers) {
-      alloctype = CD_ASSIGN;
-    }
-  }
-  CustomData_reset(&tmp.vdata);
-  CustomData_reset(&tmp.edata);
-  CustomData_reset(&tmp.fdata);
-  CustomData_reset(&tmp.ldata);
-  CustomData_reset(&tmp.pdata);
-
-  totvert = tmp.totvert = mesh_src->totvert;
-  totedge = tmp.totedge = mesh_src->totedge;
-  totloop = tmp.totloop = mesh_src->totloop;
-  totpoly = tmp.totpoly = mesh_src->totpoly;
-  tmp.totface = 0;
-
-  CustomData_copy(&mesh_src->vdata, &tmp.vdata, mask->vmask, alloctype, totvert);
-  CustomData_copy(&mesh_src->edata, &tmp.edata, mask->emask, alloctype, totedge);
-  CustomData_copy(&mesh_src->ldata, &tmp.ldata, mask->lmask, alloctype, totloop);
-  CustomData_copy(&mesh_src->pdata, &tmp.pdata, mask->pmask, alloctype, totpoly);
-  tmp.cd_flag = mesh_src->cd_flag;
-  tmp.runtime.deformed_only = mesh_src->runtime.deformed_only;
-
-  /* Clear the normals completely, since the new vertex / polygon count might be different. */
-  BKE_mesh_clear_derived_normals(&tmp);
-
-  if (CustomData_has_layer(&mesh_src->vdata, CD_SHAPEKEY)) {
-    KeyBlock *kb;
-    int uid;
-
-    if (ob) {
-      kb = (KeyBlock *)BLI_findlink(&mesh_dst->key->block, ob->shapenr - 1);
-      if (kb) {
-        uid = kb->uid;
-      }
-      else {
-        CLOG_ERROR(&LOG, "could not find active shapekey %d!", ob->shapenr - 1);
-
-        uid = INT_MAX;
-      }
-    }
-    else {
-      /* if no object, set to INT_MAX so we don't mess up any shapekey layers */
-      uid = INT_MAX;
-    }
-
-    shapekey_layers_to_keyblocks(mesh_src, mesh_dst, uid);
-    did_shapekeys = true;
-  }
-
-  /* copy texture space */
   if (ob) {
-    BKE_mesh_texspace_copy_from_object(&tmp, ob);
+    BLI_assert(mesh_dst == ob->data);
   }
 
-  /* not all DerivedMeshes store their verts/edges/faces in CustomData, so
-   * we set them here in case they are missing */
-  /* TODO(Sybren): we could probably replace CD_ASSIGN with alloctype and
-   * always directly pass mesh_src->mxxx, instead of using a ternary operator. */
-  if (!CustomData_has_layer(&tmp.vdata, CD_MVERT)) {
-    CustomData_add_layer(&tmp.vdata,
-                         CD_MVERT,
-                         CD_ASSIGN,
-                         (alloctype == CD_ASSIGN) ? mesh_src->verts_for_write().data() :
-                                                    MEM_dupallocN(mesh_src->verts().data()),
-                         totvert);
-  }
-  if (!CustomData_has_layer(&tmp.edata, CD_MEDGE)) {
-    CustomData_add_layer(&tmp.edata,
-                         CD_MEDGE,
-                         CD_ASSIGN,
-                         (alloctype == CD_ASSIGN) ? mesh_src->edges_for_write().data() :
-                                                    MEM_dupallocN(mesh_src->edges().data()),
-                         totedge);
-  }
-  if (!CustomData_has_layer(&tmp.pdata, CD_MPOLY)) {
-    CustomData_add_layer(&tmp.ldata,
-                         CD_MLOOP,
-                         CD_ASSIGN,
-                         (alloctype == CD_ASSIGN) ? mesh_src->loops_for_write().data() :
-                                                    MEM_dupallocN(mesh_src->loops().data()),
-                         tmp.totloop);
-    CustomData_add_layer(&tmp.pdata,
-                         CD_MPOLY,
-                         CD_ASSIGN,
-                         (alloctype == CD_ASSIGN) ? mesh_src->polys_for_write().data() :
-                                                    MEM_dupallocN(mesh_src->polys().data()),
-                         tmp.totpoly);
-  }
+  BKE_mesh_clear_geometry(mesh_dst);
 
-  /* object had got displacement layer, should copy this layer to save sculpted data */
-  /* NOTE(nazgul): maybe some other layers should be copied? */
-  if (CustomData_has_layer(&mesh_dst->ldata, CD_MDISPS)) {
-    if (totloop == mesh_dst->totloop) {
-      MDisps *mdisps = (MDisps *)CustomData_get_layer(&mesh_dst->ldata, CD_MDISPS);
-      CustomData_add_layer(&tmp.ldata, CD_MDISPS, alloctype, mdisps, totloop);
-      if (alloctype == CD_ASSIGN) {
-        /* Assign nullptr to prevent double-free. */
-        CustomData_set_layer(&mesh_dst->ldata, CD_MDISPS, nullptr);
-      }
-    }
-  }
+  /* Make sure referenced layers have a single user so assigning them to the mesh in main doesn't
+   * share them. "Referenced" layers are not expected to be shared between original meshes. */
+  CustomData_duplicate_referenced_layers(&mesh_src->vdata, mesh_src->totvert);
+  CustomData_duplicate_referenced_layers(&mesh_src->edata, mesh_src->totedge);
+  CustomData_duplicate_referenced_layers(&mesh_src->pdata, mesh_src->totpoly);
+  CustomData_duplicate_referenced_layers(&mesh_src->ldata, mesh_src->totloop);
 
-  CustomData_free(&mesh_dst->vdata, mesh_dst->totvert);
-  CustomData_free(&mesh_dst->edata, mesh_dst->totedge);
-  CustomData_free(&mesh_dst->fdata, mesh_dst->totface);
-  CustomData_free(&mesh_dst->ldata, mesh_dst->totloop);
-  CustomData_free(&mesh_dst->pdata, mesh_dst->totpoly);
+  mesh_dst->totvert = mesh_src->totvert;
+  mesh_dst->totedge = mesh_src->totedge;
+  mesh_dst->totpoly = mesh_src->totpoly;
+  mesh_dst->totloop = mesh_src->totloop;
 
-  /* ok, this should now use new CD shapekey data,
-   * which should be fed through the modifier
-   * stack */
-  if (tmp.totvert != mesh_dst->totvert && !did_shapekeys && mesh_dst->key) {
-    CLOG_ERROR(&LOG, "YEEK! this should be recoded! Shape key loss!: ID '%s'", tmp.id.name);
-    if (tmp.key && !(tmp.id.tag & LIB_TAG_NO_MAIN)) {
-      id_us_min(&tmp.key->id);
-    }
-    tmp.key = nullptr;
-  }
-
-  /* Clear selection history */
-  MEM_SAFE_FREE(tmp.mselect);
-  tmp.totselect = 0;
-  tmp.texflag &= ~ME_AUTOSPACE_EVALUATED;
-
-  /* Clear any run-time data.
-   * Even though this mesh won't typically have run-time data, the Python API can for e.g.
-   * create loop-triangle cache here, which is confusing when left in the mesh, see: T81136. */
-  BKE_mesh_runtime_clear_geometry(&tmp);
-
-  /* skip the listbase */
-  MEMCPY_STRUCT_AFTER(mesh_dst, &tmp, id.prev);
+  /* Using #CD_MASK_MESH ensures that only data that should exist in Main meshes is moved. */
+  const CustomData_MeshMasks mask = CD_MASK_MESH;
+  CustomData_copy(&mesh_src->vdata, &mesh_dst->vdata, mask.vmask, CD_ASSIGN, mesh_src->totvert);
+  CustomData_copy(&mesh_src->edata, &mesh_dst->edata, mask.emask, CD_ASSIGN, mesh_src->totedge);
+  CustomData_copy(&mesh_src->pdata, &mesh_dst->pdata, mask.pmask, CD_ASSIGN, mesh_src->totpoly);
+  CustomData_copy(&mesh_src->ldata, &mesh_dst->ldata, mask.lmask, CD_ASSIGN, mesh_src->totloop);
 
   BLI_freelistN(&mesh_dst->vertex_group_names);
-  BKE_defgroup_copy_list(&mesh_dst->vertex_group_names, &mesh_src->vertex_group_names);
-  mesh_dst->vertex_group_active_index = mesh_src->vertex_group_active_index;
+  mesh_dst->vertex_group_names = mesh_src->vertex_group_names;
+  BLI_listbase_clear(&mesh_src->vertex_group_names);
 
-  if (take_ownership) {
-    if (alloctype == CD_ASSIGN) {
-      CustomData_free_typemask(&mesh_src->vdata, mesh_src->totvert, ~mask->vmask);
-      CustomData_free_typemask(&mesh_src->edata, mesh_src->totedge, ~mask->emask);
-      CustomData_free_typemask(&mesh_src->ldata, mesh_src->totloop, ~mask->lmask);
-      CustomData_free_typemask(&mesh_src->pdata, mesh_src->totpoly, ~mask->pmask);
+  BKE_mesh_copy_parameters(mesh_dst, mesh_src);
+  mesh_dst->cd_flag = mesh_src->cd_flag;
+
+  /* For original meshes, shape key data is stored in the #Key data-block, so it
+   * must be moved from the storage in #CustomData layers used for evaluation. */
+  if (Key *key_dst = mesh_dst->key) {
+    if (CustomData_has_layer(&mesh_src->vdata, CD_SHAPEKEY)) {
+      /* If no object, set to -1 so we don't mess up any shapekey layers. */
+      const int uid_active = ob ? find_object_active_key_uid(*key_dst, *ob) : -1;
+      move_shapekey_layers_to_keyblocks(*mesh_src, *key_dst, uid_active);
     }
-    BKE_id_free(nullptr, mesh_src);
+    else if (mesh_src->totvert != mesh_dst->totvert) {
+      CLOG_ERROR(&LOG, "Mesh in Main '%s' lost shape keys", mesh_src->id.name);
+      if (mesh_src->key) {
+        id_us_min(&mesh_src->key->id);
+      }
+    }
   }
 
-  BKE_mesh_assert_normals_dirty_or_calculated(mesh_dst);
+  BKE_id_free(nullptr, mesh_src);
 }
 
 void BKE_mesh_nomain_to_meshkey(Mesh *mesh_src, Mesh *mesh_dst, KeyBlock *kb)

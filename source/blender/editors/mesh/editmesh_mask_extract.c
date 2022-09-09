@@ -204,7 +204,7 @@ static int geometry_extract_apply(bContext *C,
     local_view_bits = v3d->local_view_uuid;
   }
   Object *new_ob = ED_object_add_type(C, OB_MESH, NULL, ob->loc, ob->rot, false, local_view_bits);
-  BKE_mesh_nomain_to_mesh(new_mesh, new_ob->data, new_ob, &CD_MASK_EVERYTHING, true);
+  BKE_mesh_nomain_to_mesh(new_mesh, new_ob->data, new_ob);
 
   /* Remove the Face Sets as they need to be recreated when entering Sculpt Mode in the new object.
    * TODO(pablodobarro): In the future we can try to preserve them from the original mesh. */
@@ -548,7 +548,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
     /* Remove the mask from the new object so it can be sculpted directly after slicing. */
     CustomData_free_layers(&new_ob_mesh->vdata, CD_PAINT_MASK, new_ob_mesh->totvert);
 
-    BKE_mesh_nomain_to_mesh(new_ob_mesh, new_ob->data, new_ob, &CD_MASK_MESH, true);
+    BKE_mesh_nomain_to_mesh(new_ob_mesh, new_ob->data, new_ob);
     BKE_mesh_copy_parameters_for_eval(new_ob->data, mesh);
     WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, new_ob);
     BKE_mesh_batch_cache_dirty_tag(new_ob->data, BKE_MESH_BATCH_DIRTY_ALL);
@@ -557,7 +557,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, new_ob->data);
   }
 
-  BKE_mesh_nomain_to_mesh(new_mesh, ob->data, ob, &CD_MASK_MESH, true);
+  BKE_mesh_nomain_to_mesh(new_mesh, ob->data, ob);
 
   if (ob->mode == OB_MODE_SCULPT) {
     SculptSession *ss = ob->sculpt;

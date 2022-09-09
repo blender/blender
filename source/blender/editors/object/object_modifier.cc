@@ -763,7 +763,7 @@ static bool modifier_apply_obdata(
 
       Main *bmain = DEG_get_bmain(depsgraph);
       BKE_object_material_from_eval_data(bmain, ob, &mesh_applied->id);
-      BKE_mesh_nomain_to_mesh(mesh_applied, me, ob, &CD_MASK_MESH, true);
+      BKE_mesh_nomain_to_mesh(mesh_applied, me, ob);
 
       /* Anonymous attributes shouldn't be available on the applied geometry. */
       me->attributes_for_write().remove_anonymous();

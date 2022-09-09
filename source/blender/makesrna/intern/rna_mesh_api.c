@@ -22,6 +22,7 @@
 
 #  include "DNA_mesh_types.h"
 
+#  include "BKE_anim_data.h"
 #  include "BKE_mesh.h"
 #  include "BKE_mesh_mapping.h"
 #  include "BKE_mesh_runtime.h"
@@ -192,6 +193,7 @@ static void rna_Mesh_count_selected_items(Mesh *mesh, int r_count[3])
 static void rna_Mesh_clear_geometry(Mesh *mesh)
 {
   BKE_mesh_clear_geometry(mesh);
+  BKE_animdata_free(&mesh->id, false);
 
   DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY_ALL_MODES);
   WM_main_add_notifier(NC_GEOM | ND_DATA, mesh);

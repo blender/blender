@@ -1252,7 +1252,7 @@ int multiresModifier_rebuild_subdiv(struct Depsgraph *depsgraph,
   }
 
   /* Copy the new base mesh to the original mesh. */
-  BKE_mesh_nomain_to_mesh(unsubdiv_context.base_mesh, object->data, object, &CD_MASK_MESH, true);
+  BKE_mesh_nomain_to_mesh(unsubdiv_context.base_mesh, object->data, object);
   Mesh *base_mesh = object->data;
   multires_create_grids_in_unsubdivided_base_mesh(&unsubdiv_context, base_mesh);
 

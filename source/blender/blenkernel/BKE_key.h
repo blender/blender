@@ -95,6 +95,9 @@ struct KeyBlock *BKE_keyblock_from_key(struct Key *key, int index);
  * Get the appropriate #KeyBlock given a name to search for.
  */
 struct KeyBlock *BKE_keyblock_find_name(struct Key *key, const char name[]);
+
+struct KeyBlock *BKE_keyblock_find_uid(struct Key *key, int uid);
+
 /**
  * \brief copy shape-key attributes, but not key data or name/UID.
  */

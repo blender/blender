@@ -1315,8 +1315,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
                                             }),
                                             sculpt_mesh);
   BM_mesh_free(bm);
-  BKE_mesh_nomain_to_mesh(
-      result, sgcontext->vc.obact->data, sgcontext->vc.obact, &CD_MASK_MESH, true);
+  BKE_mesh_nomain_to_mesh(result, sgcontext->vc.obact->data, sgcontext->vc.obact);
 }
 
 static void sculpt_gesture_trim_begin(bContext *C, SculptGestureContext *sgcontext)

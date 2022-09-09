@@ -179,7 +179,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
     BKE_remesh_reproject_vertex_paint(new_mesh, mesh);
   }
 
-  BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob, &CD_MASK_MESH, true);
+  BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob);
 
   if (smooth_normals) {
     BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), true);
@@ -905,7 +905,7 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
     BKE_mesh_remesh_reproject_paint_mask(new_mesh, mesh);
   }
 
-  BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob, &CD_MASK_MESH, true);
+  BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob);
 
   if (qj->smooth_normals) {
     BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), true);

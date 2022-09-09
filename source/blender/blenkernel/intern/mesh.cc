@@ -881,11 +881,12 @@ static void mesh_clear_geometry(Mesh *mesh)
   mesh->totpoly = 0;
   mesh->act_face = -1;
   mesh->totselect = 0;
+
+  BLI_freelistN(&mesh->vertex_group_names);
 }
 
 void BKE_mesh_clear_geometry(Mesh *mesh)
 {
-  BKE_animdata_free(&mesh->id, false);
   BKE_mesh_runtime_clear_cache(mesh);
   mesh_clear_geometry(mesh);
 }
@@ -975,6 +976,7 @@ void BKE_mesh_copy_parameters(Mesh *me_dst, const Mesh *me_src)
   copy_v3_v3(me_dst->size, me_src->size);
 
   me_dst->vertex_group_active_index = me_src->vertex_group_active_index;
+  me_dst->attributes_active_index = me_src->attributes_active_index;
 }
 
 void BKE_mesh_copy_parameters_for_eval(Mesh *me_dst, const Mesh *me_src)

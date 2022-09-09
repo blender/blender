@@ -69,11 +69,7 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
   }
   transform_object(obj, import_params);
 
-  /* FIXME: after 2.80; `mesh->flag` isn't copied by #BKE_mesh_nomain_to_mesh() */
-  const uint16_t autosmooth = (mesh->flag & ME_AUTOSMOOTH);
-  Mesh *dst = static_cast<Mesh *>(obj->data);
-  BKE_mesh_nomain_to_mesh(mesh, dst, obj, &CD_MASK_EVERYTHING, true);
-  dst->flag |= autosmooth;
+  BKE_mesh_nomain_to_mesh(mesh, static_cast<Mesh *>(obj->data), obj);
 
   /* NOTE: vertex groups have to be created after final mesh is assigned to the object. */
   create_vertex_groups(obj);

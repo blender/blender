@@ -1938,6 +1938,16 @@ KeyBlock *BKE_keyblock_find_name(Key *key, const char name[])
   return BLI_findstring(&key->block, name, offsetof(KeyBlock, name));
 }
 
+KeyBlock *BKE_keyblock_find_uid(Key *key, const int uid)
+{
+  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
+    if (kb->uid == uid) {
+      return kb;
+    }
+  }
+  return NULL;
+}
+
 void BKE_keyblock_copy_settings(KeyBlock *kb_dst, const KeyBlock *kb_src)
 {
   kb_dst->pos = kb_src->pos;

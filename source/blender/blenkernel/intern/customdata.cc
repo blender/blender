@@ -2353,8 +2353,16 @@ bool CustomData_merge(const CustomData *source,
       changed = true;
 
       if (layer->anonymous_id != nullptr) {
-        BKE_anonymous_attribute_id_increment_weak(layer->anonymous_id);
         newlayer->anonymous_id = layer->anonymous_id;
+        if (alloctype == CD_ASSIGN) {
+          layer->anonymous_id = nullptr;
+        }
+        else {
+          BKE_anonymous_attribute_id_increment_weak(layer->anonymous_id);
+        }
+      }
+      if (alloctype == CD_ASSIGN) {
+        layer->data = nullptr;
       }
     }
   }

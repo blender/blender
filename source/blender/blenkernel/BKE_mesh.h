@@ -292,13 +292,10 @@ struct Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
                                                   bool build_shapekey_layers);
 
 /**
- * Copies a nomain-Mesh into an existing Mesh.
+ * Move data from a mesh outside of the main data-base into a mesh in the data-base.
+ * Takes ownership of the source mesh.
  */
-void BKE_mesh_nomain_to_mesh(struct Mesh *mesh_src,
-                             struct Mesh *mesh_dst,
-                             struct Object *ob,
-                             const struct CustomData_MeshMasks *mask,
-                             bool take_ownership);
+void BKE_mesh_nomain_to_mesh(struct Mesh *mesh_src, struct Mesh *mesh_dst, struct Object *ob);
 void BKE_mesh_nomain_to_meshkey(struct Mesh *mesh_src, struct Mesh *mesh_dst, struct KeyBlock *kb);
 
 /* vertex level transformations & checks (no derived mesh) */
