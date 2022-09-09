@@ -506,7 +506,7 @@ static void mesh_defvert_mirror_update_internal(Object *ob,
   if (def_nr == -1) {
     /* All vgroups, add groups where needed. */
     int flip_map_len;
-    int *flip_map = BKE_object_defgroup_flip_map(ob, &flip_map_len, true);
+    int *flip_map = BKE_object_defgroup_flip_map_unlocked(ob, &flip_map_len, true);
     BKE_defvert_sync_mapped(dvert_dst, dvert_src, flip_map, flip_map_len, true);
     MEM_freeN(flip_map);
   }

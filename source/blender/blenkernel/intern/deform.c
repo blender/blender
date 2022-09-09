@@ -572,7 +572,10 @@ void BKE_object_defgroup_active_index_set(Object *ob, const int new_index)
   *index = new_index;
 }
 
-int *BKE_object_defgroup_flip_map(const Object *ob, int *flip_map_len, const bool use_default)
+static int *object_defgroup_unlocked_flip_map_ex(const Object *ob,
+                                                 int *flip_map_len,
+                                                 const bool use_default,
+                                                 const bool use_only_unlocked)
 {
   const ListBase *defbase = BKE_object_defgroup_list(ob);
   int defbase_tot = *flip_map_len = BLI_listbase_count(defbase);
@@ -583,9 +586,10 @@ int *BKE_object_defgroup_flip_map(const Object *ob, int *flip_map_len, const boo
 
   bDeformGroup *dg;
   char name_flip[sizeof(dg->name)];
-  int i, flip_num, *map = MEM_mallocN(defbase_tot * sizeof(int), __func__);
+  int i, flip_num;
+  int *map = MEM_mallocN(defbase_tot * sizeof(int), __func__);
 
-  for (i = 0; i < defbase_tot; i++) {
+  for (int i = 0; i < defbase_tot; i++) {
     map[i] = -1;
   }
 
@@ -597,11 +601,15 @@ int *BKE_object_defgroup_flip_map(const Object *ob, int *flip_map_len, const boo
         map[i] = i;
       }
 
+      if (use_only_unlocked && (dg->flag & DG_LOCK_WEIGHT)) {
+        continue;
+      }
+
       BLI_string_flip_side_name(name_flip, dg->name, false, sizeof(name_flip));
 
       if (!STREQ(name_flip, dg->name)) {
         flip_num = BKE_object_defgroup_name_index(ob, name_flip);
-        if (flip_num >= 0) {
+        if (flip_num != -1) {
           map[i] = flip_num;
           map[flip_num] = i; /* save an extra lookup */
         }
@@ -609,6 +617,18 @@ int *BKE_object_defgroup_flip_map(const Object *ob, int *flip_map_len, const boo
     }
   }
   return map;
+}
+
+int *BKE_object_defgroup_flip_map(const Object *ob, int *flip_map_len, const bool use_default)
+{
+  return object_defgroup_unlocked_flip_map_ex(ob, flip_map_len, use_default, false);
+}
+
+int *BKE_object_defgroup_flip_map_unlocked(const Object *ob,
+                                           int *flip_map_len,
+                                           const bool use_default)
+{
+  return object_defgroup_unlocked_flip_map_ex(ob, flip_map_len, use_default, true);
 }
 
 int *BKE_object_defgroup_flip_map_single(const Object *ob,

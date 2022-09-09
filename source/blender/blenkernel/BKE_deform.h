@@ -53,6 +53,15 @@ struct bDeformGroup *BKE_object_defgroup_find_name(const struct Object *ob, cons
  * \note caller must free.
  */
 int *BKE_object_defgroup_flip_map(const struct Object *ob, int *flip_map_len, bool use_default);
+
+/**
+ * Returns flip map for only unlocked defgroups.
+ * \note caller must free.
+ */
+int *BKE_object_defgroup_flip_map_unlocked(const struct Object *ob,
+                                           int *flip_map_len,
+                                           bool use_default);
+
 /**
  * \note caller must free.
  */
