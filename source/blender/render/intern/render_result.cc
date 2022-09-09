@@ -929,7 +929,11 @@ int render_result_exr_file_read_path(RenderResult *rr,
   return 1;
 }
 
-static void render_result_exr_file_cache_path(Scene *sce, const char *root, char *r_path)
+#define FILE_CACHE_MAX (FILE_MAXFILE + FILE_MAXFILE + MAX_ID_NAME + 100)
+
+static void render_result_exr_file_cache_path(Scene *sce,
+                                              const char *root,
+                                              char r_path[FILE_CACHE_MAX])
 {
   char filename_full[FILE_MAX + MAX_ID_NAME + 100], filename[FILE_MAXFILE], dirname[FILE_MAXDIR];
   char path_digest[16] = {0};
@@ -959,13 +963,17 @@ static void render_result_exr_file_cache_path(Scene *sce, const char *root, char
                filename,
                sce->id.name + 2,
                path_hexdigest);
-  BLI_make_file_string(dirname, r_path, root, filename_full);
+
+  BLI_join_dirfile(r_path, FILE_CACHE_MAX, root, filename_full);
+  if (BLI_path_is_rel(r_path)) {
+    BLI_path_abs(r_path, dirname);
+  }
 }
 
 void render_result_exr_file_cache_write(Render *re)
 {
   RenderResult *rr = re->result;
-  char str[FILE_MAXFILE + FILE_MAXFILE + MAX_ID_NAME + 100];
+  char str[FILE_CACHE_MAX];
   char *root = U.render_cachedir;
 
   render_result_passes_allocated_ensure(rr);
@@ -979,7 +987,7 @@ void render_result_exr_file_cache_write(Render *re)
 bool render_result_exr_file_cache_read(Render *re)
 {
   /* File path to cache. */
-  char filepath[FILE_MAXFILE + MAX_ID_NAME + MAX_ID_NAME + 100] = "";
+  char filepath[FILE_CACHE_MAX] = "";
   char *root = U.render_cachedir;
   render_result_exr_file_cache_path(re->scene, root, filepath);
 
