@@ -92,6 +92,10 @@ class SocketDeclaration {
    * realtime_compositor::InputDescriptor for more information. */
   int compositor_domain_priority_ = 0;
 
+  /** This input shouldn't be realized on the operation domain of the node. See
+   * realtime_compositor::InputDescriptor for more information. */
+  bool compositor_skip_realization_ = false;
+
   /** This input expects a single value and can't operate on non-single values. See
    * realtime_compositor::InputDescriptor for more information. */
   bool compositor_expects_single_value_ = false;
@@ -133,6 +137,7 @@ class SocketDeclaration {
   const OutputFieldDependency &output_field_dependency() const;
 
   int compositor_domain_priority() const;
+  bool compositor_skip_realization() const;
   bool compositor_expects_single_value() const;
 
  protected:
@@ -254,6 +259,14 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
   Self &compositor_domain_priority(int priority)
   {
     decl_->compositor_domain_priority_ = priority;
+    return *(Self *)this;
+  }
+
+  /** This input shouldn't be realized on the operation domain of the node. See
+   * realtime_compositor::InputDescriptor for more information. */
+  Self &compositor_skip_realization(bool value = true)
+  {
+    decl_->compositor_skip_realization_ = value;
     return *(Self *)this;
   }
 
@@ -458,6 +471,11 @@ inline const OutputFieldDependency &SocketDeclaration::output_field_dependency()
 inline int SocketDeclaration::compositor_domain_priority() const
 {
   return compositor_domain_priority_;
+}
+
+inline bool SocketDeclaration::compositor_skip_realization() const
+{
+  return compositor_skip_realization_;
 }
 
 inline bool SocketDeclaration::compositor_expects_single_value() const
