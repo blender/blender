@@ -1,7 +1,9 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
  */
+
 #include "mtl_index_buffer.hh"
 #include "mtl_context.hh"
 #include "mtl_debug.hh"
