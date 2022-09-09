@@ -253,7 +253,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
       BKE_mesh_legacy_convert_material_indices_to_mpoly(mesh);
       BKE_mesh_legacy_bevel_weight_from_layers(mesh);
       /* When converting to the old mesh format, don't save redundant attributes. */
-      names_to_skip.add_multiple_new({".hide_vert", ".hide_edge", ".hide_poly"});
+      names_to_skip.add_multiple_new({".hide_vert", ".hide_edge", ".hide_poly", "material_index"});
 
       /* Set deprecated mesh data pointers for forward compatibility. */
       mesh->mvert = const_cast<MVert *>(mesh->verts().data());
