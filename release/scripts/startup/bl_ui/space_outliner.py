@@ -323,17 +323,20 @@ class OUTLINER_MT_object(Menu):
         OUTLINER_MT_context_menu.draw_common_operators(layout)
 
 
+def has_selected_ids_in_context(context):
+    if hasattr(context, "id"):
+        return True
+    if len(context.selected_ids) > 0:
+        return True
+
+    return False
+
 class OUTLINER_MT_asset(Menu):
     bl_label = "Assets"
 
     @classmethod
     def poll(cls, context):
-        if hasattr(context, "id"):
-            return True
-        if len(context.selected_ids) > 0:
-            return True
-
-        return False
+        return has_selected_ids_in_context(context)
 
     def draw(self, _context):
         layout = self.layout
@@ -345,6 +348,10 @@ class OUTLINER_MT_asset(Menu):
 
 class OUTLINER_MT_liboverride(Menu):
     bl_label = "Library Override"
+
+    @classmethod
+    def poll(cls, context):
+        return has_selected_ids_in_context(context)
 
     def draw(self, _context):
         layout = self.layout
