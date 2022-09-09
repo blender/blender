@@ -2127,6 +2127,12 @@ void size_to_mat4(float R[4][4], const float size[3])
   R[3][3] = 1.0f;
 }
 
+void mat3_to_size_2d(float size[2], const float M[3][3])
+{
+  size[0] = len_v2(M[0]);
+  size[1] = len_v2(M[1]);
+}
+
 void mat3_to_size(float size[3], const float M[3][3])
 {
   size[0] = len_v3(M[0]);
