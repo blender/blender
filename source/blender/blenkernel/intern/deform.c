@@ -589,7 +589,7 @@ static int *object_defgroup_unlocked_flip_map_ex(const Object *ob,
   int i, flip_num;
   int *map = MEM_mallocN(defbase_tot * sizeof(int), __func__);
 
-  for (int i = 0; i < defbase_tot; i++) {
+  for (i = 0; i < defbase_tot; i++) {
     map[i] = -1;
   }
 
