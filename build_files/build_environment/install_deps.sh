@@ -136,7 +136,7 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
         Build and install the OpenImageDenoise libraries.
 
     --with-nanovdb
-        Build and install the NanoVDB branch of OpenVDB (instead of official release of OpenVDB).
+        Build and install NanoVDB together with OpenVDB.
 
     --with-jack
         Install the jack libraries.
@@ -534,10 +534,10 @@ OSD_SKIP=false
 # OpenVDB needs to be compiled for now
 OPENVDB_BLOSC_VERSION="1.21.1"
 
-OPENVDB_VERSION="9.0.0"
-OPENVDB_VERSION_SHORT="9.0"
+OPENVDB_VERSION="9.1.0"
+OPENVDB_VERSION_SHORT="9.1"
 OPENVDB_VERSION_MIN="9.0"
-OPENVDB_VERSION_MEX="9.1"
+OPENVDB_VERSION_MEX="9.2"
 OPENVDB_FORCE_BUILD=false
 OPENVDB_FORCE_REBUILD=false
 OPENVDB_SKIP=false
@@ -2919,6 +2919,10 @@ compile_OPENVDB() {
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D USE_STATIC_DEPENDENCIES=OFF"
     cmake_d="$cmake_d -D OPENVDB_BUILD_BINARIES=OFF"
+    # Unfortunately OpenVDB currently forces using recent oneTBB over older versions when it finds it,
+    # even when TBB_ROOT is specified. So have to prevent any check for system library -
+    # in the hope it will not break in some other cases.
+    cmake_d="$cmake_d -D DISABLE_CMAKE_SEARCH_PATHS=ON"
 
     if [ "$WITH_NANOVDB" = true ]; then
       cmake_d="$cmake_d -D USE_NANOVDB=ON"
@@ -2930,7 +2934,6 @@ compile_OPENVDB() {
       cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost"
       cmake_d="$cmake_d -D Boost_USE_MULTITHREADED=ON"
       cmake_d="$cmake_d -D Boost_NO_SYSTEM_PATHS=ON"
-      cmake_d="$cmake_d -D Boost_NO_BOOST_CMAKE=ON"
       cmake_d="$cmake_d -D Boost_NO_BOOST_CMAKE=ON"
     fi
     if [ -d $INST/tbb ]; then
@@ -3195,7 +3198,7 @@ _init_opencollada() {
   _inst_shortcut=$INST/opencollada
 }
 
-_update_deps_collada() {
+_update_deps_opencollada() {
   :
 }
 
@@ -6215,7 +6218,7 @@ print_info() {
     fi
     if [ -d $INST/nanovdb ]; then
       _1="-D WITH_NANOVDB=ON"
-      _2="-D NANOVDB_ROOT_DIR=$INST/nanovdb"
+      _2="-D NANOVDB_ROOT_DIR=$INST/openvdb"
       PRINT "  $_1"
       PRINT "  $_2"
       _buildargs="$_buildargs $_1 $_2"
