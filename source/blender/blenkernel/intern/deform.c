@@ -94,10 +94,10 @@ bDeformGroup *BKE_defgroup_duplicate(const bDeformGroup *ingroup)
 void BKE_defvert_copy_subset(MDeformVert *dvert_dst,
                              const MDeformVert *dvert_src,
                              const bool *vgroup_subset,
-                             const int vgroup_tot)
+                             const int vgroup_num)
 {
   int defgroup;
-  for (defgroup = 0; defgroup < vgroup_tot; defgroup++) {
+  for (defgroup = 0; defgroup < vgroup_num; defgroup++) {
     if (vgroup_subset[defgroup]) {
       BKE_defvert_copy_index(dvert_dst, defgroup, dvert_src, defgroup);
     }
@@ -107,12 +107,12 @@ void BKE_defvert_copy_subset(MDeformVert *dvert_dst,
 void BKE_defvert_mirror_subset(MDeformVert *dvert_dst,
                                const MDeformVert *dvert_src,
                                const bool *vgroup_subset,
-                               const int vgroup_tot,
+                               const int vgroup_num,
                                const int *flip_map,
-                               const int flip_map_len)
+                               const int flip_map_num)
 {
   int defgroup;
-  for (defgroup = 0; defgroup < vgroup_tot && defgroup < flip_map_len; defgroup++) {
+  for (defgroup = 0; defgroup < vgroup_num && defgroup < flip_map_num; defgroup++) {
     if (vgroup_subset[defgroup] && (dvert_dst != dvert_src || flip_map[defgroup] != defgroup)) {
       BKE_defvert_copy_index(dvert_dst, flip_map[defgroup], dvert_src, defgroup);
     }
@@ -189,13 +189,13 @@ void BKE_defvert_sync(MDeformVert *dvert_dst, const MDeformVert *dvert_src, cons
 void BKE_defvert_sync_mapped(MDeformVert *dvert_dst,
                              const MDeformVert *dvert_src,
                              const int *flip_map,
-                             const int flip_map_len,
+                             const int flip_map_num,
                              const bool use_ensure)
 {
   if (dvert_src->totweight && dvert_dst->totweight) {
     MDeformWeight *dw_src = dvert_src->dw;
     for (int i = 0; i < dvert_src->totweight; i++, dw_src++) {
-      if (dw_src->def_nr < flip_map_len) {
+      if (dw_src->def_nr < flip_map_num) {
         MDeformWeight *dw_dst;
         if (use_ensure) {
           dw_dst = BKE_defvert_ensure_index(dvert_dst, flip_map[dw_src->def_nr]);
@@ -226,14 +226,14 @@ void BKE_defvert_remap(MDeformVert *dvert, const int *map, const int map_len)
 
 void BKE_defvert_normalize_subset(MDeformVert *dvert,
                                   const bool *vgroup_subset,
-                                  const int vgroup_tot)
+                                  const int vgroup_num)
 {
   if (dvert->totweight == 0) {
     /* nothing */
   }
   else if (dvert->totweight == 1) {
     MDeformWeight *dw = dvert->dw;
-    if ((dw->def_nr < vgroup_tot) && vgroup_subset[dw->def_nr]) {
+    if ((dw->def_nr < vgroup_num) && vgroup_subset[dw->def_nr]) {
       dw->weight = 1.0f;
     }
   }
@@ -241,7 +241,7 @@ void BKE_defvert_normalize_subset(MDeformVert *dvert,
     MDeformWeight *dw = dvert->dw;
     float tot_weight = 0.0f;
     for (int i = dvert->totweight; i != 0; i--, dw++) {
-      if ((dw->def_nr < vgroup_tot) && vgroup_subset[dw->def_nr]) {
+      if ((dw->def_nr < vgroup_num) && vgroup_subset[dw->def_nr]) {
         tot_weight += dw->weight;
       }
     }
@@ -250,7 +250,7 @@ void BKE_defvert_normalize_subset(MDeformVert *dvert,
       float scalar = 1.0f / tot_weight;
       dw = dvert->dw;
       for (int i = dvert->totweight; i != 0; i--, dw++) {
-        if ((dw->def_nr < vgroup_tot) && vgroup_subset[dw->def_nr]) {
+        if ((dw->def_nr < vgroup_num) && vgroup_subset[dw->def_nr]) {
           dw->weight *= scalar;
 
           /* in case of division errors with very low weights */
@@ -292,7 +292,7 @@ void BKE_defvert_normalize(MDeformVert *dvert)
 
 void BKE_defvert_normalize_lock_single(MDeformVert *dvert,
                                        const bool *vgroup_subset,
-                                       const int vgroup_tot,
+                                       const int vgroup_num,
                                        const uint def_nr_lock)
 {
   if (dvert->totweight == 0) {
@@ -300,7 +300,7 @@ void BKE_defvert_normalize_lock_single(MDeformVert *dvert,
   }
   else if (dvert->totweight == 1) {
     MDeformWeight *dw = dvert->dw;
-    if ((dw->def_nr < vgroup_tot) && vgroup_subset[dw->def_nr]) {
+    if ((dw->def_nr < vgroup_num) && vgroup_subset[dw->def_nr]) {
       if (def_nr_lock != dw->def_nr) {
         dw->weight = 1.0f;
       }
@@ -314,7 +314,7 @@ void BKE_defvert_normalize_lock_single(MDeformVert *dvert,
     float lock_iweight = 1.0f;
 
     for (i = dvert->totweight, dw = dvert->dw; i != 0; i--, dw++) {
-      if ((dw->def_nr < vgroup_tot) && vgroup_subset[dw->def_nr]) {
+      if ((dw->def_nr < vgroup_num) && vgroup_subset[dw->def_nr]) {
         if (dw->def_nr != def_nr_lock) {
           tot_weight += dw->weight;
         }
@@ -331,7 +331,7 @@ void BKE_defvert_normalize_lock_single(MDeformVert *dvert,
 
       float scalar = (1.0f / tot_weight) * lock_iweight;
       for (i = dvert->totweight, dw = dvert->dw; i != 0; i--, dw++) {
-        if ((dw->def_nr < vgroup_tot) && vgroup_subset[dw->def_nr]) {
+        if ((dw->def_nr < vgroup_num) && vgroup_subset[dw->def_nr]) {
           if (dw != dw_lock) {
             dw->weight *= scalar;
 
@@ -346,17 +346,17 @@ void BKE_defvert_normalize_lock_single(MDeformVert *dvert,
 
 void BKE_defvert_normalize_lock_map(MDeformVert *dvert,
                                     const bool *vgroup_subset,
-                                    const int vgroup_tot,
+                                    const int vgroup_num,
                                     const bool *lock_flags,
-                                    const int defbase_tot)
+                                    const int defbase_num)
 {
   if (dvert->totweight == 0) {
     /* nothing */
   }
   else if (dvert->totweight == 1) {
     MDeformWeight *dw = dvert->dw;
-    if ((dw->def_nr < vgroup_tot) && vgroup_subset[dw->def_nr]) {
-      if ((dw->def_nr < defbase_tot) && (lock_flags[dw->def_nr] == false)) {
+    if ((dw->def_nr < vgroup_num) && vgroup_subset[dw->def_nr]) {
+      if ((dw->def_nr < defbase_num) && (lock_flags[dw->def_nr] == false)) {
         dw->weight = 1.0f;
       }
     }
@@ -368,8 +368,8 @@ void BKE_defvert_normalize_lock_map(MDeformVert *dvert,
     float lock_iweight = 0.0f;
 
     for (i = dvert->totweight, dw = dvert->dw; i != 0; i--, dw++) {
-      if ((dw->def_nr < vgroup_tot) && vgroup_subset[dw->def_nr]) {
-        if ((dw->def_nr < defbase_tot) && (lock_flags[dw->def_nr] == false)) {
+      if ((dw->def_nr < vgroup_num) && vgroup_subset[dw->def_nr]) {
+        if ((dw->def_nr < defbase_num) && (lock_flags[dw->def_nr] == false)) {
           tot_weight += dw->weight;
         }
         else {
@@ -386,8 +386,8 @@ void BKE_defvert_normalize_lock_map(MDeformVert *dvert,
 
       float scalar = (1.0f / tot_weight) * lock_iweight;
       for (i = dvert->totweight, dw = dvert->dw; i != 0; i--, dw++) {
-        if ((dw->def_nr < vgroup_tot) && vgroup_subset[dw->def_nr]) {
-          if ((dw->def_nr < defbase_tot) && (lock_flags[dw->def_nr] == false)) {
+        if ((dw->def_nr < vgroup_num) && vgroup_subset[dw->def_nr]) {
+          if ((dw->def_nr < defbase_num) && (lock_flags[dw->def_nr] == false)) {
             dw->weight *= scalar;
 
             /* in case of division errors with very low weights */
@@ -399,13 +399,13 @@ void BKE_defvert_normalize_lock_map(MDeformVert *dvert,
   }
 }
 
-void BKE_defvert_flip(MDeformVert *dvert, const int *flip_map, const int flip_map_len)
+void BKE_defvert_flip(MDeformVert *dvert, const int *flip_map, const int flip_map_num)
 {
   MDeformWeight *dw;
   int i;
 
   for (dw = dvert->dw, i = 0; i < dvert->totweight; dw++, i++) {
-    if (dw->def_nr < flip_map_len) {
+    if (dw->def_nr < flip_map_num) {
       if (flip_map[dw->def_nr] >= 0) {
         dw->def_nr = flip_map[dw->def_nr];
       }
@@ -413,7 +413,7 @@ void BKE_defvert_flip(MDeformVert *dvert, const int *flip_map, const int flip_ma
   }
 }
 
-void BKE_defvert_flip_merged(MDeformVert *dvert, const int *flip_map, const int flip_map_len)
+void BKE_defvert_flip_merged(MDeformVert *dvert, const int *flip_map, const int flip_map_num)
 {
   MDeformWeight *dw, *dw_cpy;
   float weight;
@@ -421,7 +421,7 @@ void BKE_defvert_flip_merged(MDeformVert *dvert, const int *flip_map, const int 
 
   /* copy weights */
   for (dw = dvert->dw, i = 0; i < totweight; dw++, i++) {
-    if (dw->def_nr < flip_map_len) {
+    if (dw->def_nr < flip_map_num) {
       if (flip_map[dw->def_nr] >= 0) {
         /* error checkers complain of this but we'll never get NULL return */
         dw_cpy = BKE_defvert_ensure_index(dvert, flip_map[dw->def_nr]);
@@ -573,23 +573,24 @@ void BKE_object_defgroup_active_index_set(Object *ob, const int new_index)
 }
 
 static int *object_defgroup_unlocked_flip_map_ex(const Object *ob,
-                                                 int *flip_map_len,
                                                  const bool use_default,
-                                                 const bool use_only_unlocked)
+                                                 const bool use_only_unlocked,
+                                                 int *r_flip_map_num)
 {
   const ListBase *defbase = BKE_object_defgroup_list(ob);
-  int defbase_tot = *flip_map_len = BLI_listbase_count(defbase);
+  const int defbase_num = BLI_listbase_count(defbase);
+  *r_flip_map_num = defbase_num;
 
-  if (defbase_tot == 0) {
+  if (defbase_num == 0) {
     return NULL;
   }
 
   bDeformGroup *dg;
   char name_flip[sizeof(dg->name)];
   int i, flip_num;
-  int *map = MEM_mallocN(defbase_tot * sizeof(int), __func__);
+  int *map = MEM_mallocN(defbase_num * sizeof(int), __func__);
 
-  for (i = 0; i < defbase_tot; i++) {
+  for (i = 0; i < defbase_num; i++) {
     map[i] = -1;
   }
 
@@ -619,35 +620,36 @@ static int *object_defgroup_unlocked_flip_map_ex(const Object *ob,
   return map;
 }
 
-int *BKE_object_defgroup_flip_map(const Object *ob, int *flip_map_len, const bool use_default)
+int *BKE_object_defgroup_flip_map(const Object *ob, const bool use_default, int *r_flip_map_num)
 {
-  return object_defgroup_unlocked_flip_map_ex(ob, flip_map_len, use_default, false);
+  return object_defgroup_unlocked_flip_map_ex(ob, use_default, false, r_flip_map_num);
 }
 
 int *BKE_object_defgroup_flip_map_unlocked(const Object *ob,
-                                           int *flip_map_len,
-                                           const bool use_default)
+                                           const bool use_default,
+                                           int *r_flip_map_num)
 {
-  return object_defgroup_unlocked_flip_map_ex(ob, flip_map_len, use_default, true);
+  return object_defgroup_unlocked_flip_map_ex(ob, use_default, true, r_flip_map_num);
 }
 
 int *BKE_object_defgroup_flip_map_single(const Object *ob,
-                                         int *flip_map_len,
                                          const bool use_default,
-                                         int defgroup)
+                                         const int defgroup,
+                                         int *r_flip_map_num)
 {
   const ListBase *defbase = BKE_object_defgroup_list(ob);
-  int defbase_tot = *flip_map_len = BLI_listbase_count(defbase);
+  const int defbase_num = BLI_listbase_count(defbase);
+  *r_flip_map_num = defbase_num;
 
-  if (defbase_tot == 0) {
+  if (defbase_num == 0) {
     return NULL;
   }
 
   bDeformGroup *dg;
   char name_flip[sizeof(dg->name)];
-  int i, flip_num, *map = MEM_mallocN(defbase_tot * sizeof(int), __func__);
+  int i, flip_num, *map = MEM_mallocN(defbase_num * sizeof(int), __func__);
 
-  for (i = 0; i < defbase_tot; i++) {
+  for (i = 0; i < defbase_num; i++) {
     map[i] = use_default ? i : -1;
   }
 
@@ -796,7 +798,7 @@ MDeformWeight *BKE_defvert_ensure_index(MDeformVert *dvert, const int defgroup)
   return dw_new;
 }
 
-void BKE_defvert_add_index_notest(MDeformVert *dvert, int defgroup, const float weight)
+void BKE_defvert_add_index_notest(MDeformVert *dvert, const int defgroup, const float weight)
 {
   /* TODO: merge with #BKE_defvert_ensure_index! */
 
@@ -890,7 +892,7 @@ bool BKE_defvert_is_weight_zero(const struct MDeformVert *dvert, const int defgr
 }
 
 float BKE_defvert_total_selected_weight(const struct MDeformVert *dv,
-                                        int defbase_tot,
+                                        int defbase_num,
                                         const bool *defbase_sel)
 {
   float total = 0.0f;
@@ -901,7 +903,7 @@ float BKE_defvert_total_selected_weight(const struct MDeformVert *dv,
   }
 
   for (int i = dv->totweight; i != 0; i--, dw++) {
-    if (dw->def_nr < defbase_tot) {
+    if (dw->def_nr < defbase_num) {
       if (defbase_sel[dw->def_nr]) {
         total += dw->weight;
       }
@@ -912,17 +914,17 @@ float BKE_defvert_total_selected_weight(const struct MDeformVert *dv,
 }
 
 float BKE_defvert_multipaint_collective_weight(const struct MDeformVert *dv,
-                                               int defbase_tot,
+                                               const int defbase_num,
                                                const bool *defbase_sel,
-                                               int defbase_tot_sel,
-                                               bool is_normalized)
+                                               const int defbase_sel_num,
+                                               const bool is_normalized)
 {
-  float total = BKE_defvert_total_selected_weight(dv, defbase_tot, defbase_sel);
+  float total = BKE_defvert_total_selected_weight(dv, defbase_num, defbase_sel);
 
   /* in multipaint, get the average if auto normalize is inactive
    * get the sum if it is active */
   if (!is_normalized) {
-    total /= defbase_tot_sel;
+    total /= defbase_sel_num;
   }
 
   return total;
@@ -956,19 +958,19 @@ float BKE_defvert_calc_lock_relative_weight(float weight,
   return weight / (1.0f - locked_weight);
 }
 
-float BKE_defvert_lock_relative_weight(float weight,
+float BKE_defvert_lock_relative_weight(const float weight,
                                        const struct MDeformVert *dv,
-                                       int defbase_tot,
+                                       const int defbase_num,
                                        const bool *defbase_locked,
                                        const bool *defbase_unlocked)
 {
-  float unlocked = BKE_defvert_total_selected_weight(dv, defbase_tot, defbase_unlocked);
+  float unlocked = BKE_defvert_total_selected_weight(dv, defbase_num, defbase_unlocked);
 
   if (unlocked > 0.0f) {
     return weight / unlocked;
   }
 
-  float locked = BKE_defvert_total_selected_weight(dv, defbase_tot, defbase_locked);
+  float locked = BKE_defvert_total_selected_weight(dv, defbase_num, defbase_locked);
 
   return BKE_defvert_calc_lock_relative_weight(weight, locked, unlocked);
 }
@@ -1030,12 +1032,12 @@ void BKE_defvert_array_free(MDeformVert *dvert, int totvert)
 
 void BKE_defvert_extract_vgroup_to_vertweights(const MDeformVert *dvert,
                                                const int defgroup,
-                                               const int num_verts,
+                                               const int verts_num,
                                                const bool invert_vgroup,
                                                float *r_weights)
 {
   if (dvert && defgroup != -1) {
-    int i = num_verts;
+    int i = verts_num;
 
     while (i--) {
       const float w = BKE_defvert_find_weight(&dvert[i], defgroup);
@@ -1043,24 +1045,24 @@ void BKE_defvert_extract_vgroup_to_vertweights(const MDeformVert *dvert,
     }
   }
   else {
-    copy_vn_fl(r_weights, num_verts, invert_vgroup ? 1.0f : 0.0f);
+    copy_vn_fl(r_weights, verts_num, invert_vgroup ? 1.0f : 0.0f);
   }
 }
 
 void BKE_defvert_extract_vgroup_to_edgeweights(const MDeformVert *dvert,
                                                const int defgroup,
-                                               const int num_verts,
+                                               const int verts_num,
                                                const MEdge *edges,
-                                               const int num_edges,
+                                               const int edges_num,
                                                const bool invert_vgroup,
                                                float *r_weights)
 {
   if (dvert && defgroup != -1) {
-    int i = num_edges;
-    float *tmp_weights = MEM_mallocN(sizeof(*tmp_weights) * (size_t)num_verts, __func__);
+    int i = edges_num;
+    float *tmp_weights = MEM_mallocN(sizeof(*tmp_weights) * (size_t)verts_num, __func__);
 
     BKE_defvert_extract_vgroup_to_vertweights(
-        dvert, defgroup, num_verts, invert_vgroup, tmp_weights);
+        dvert, defgroup, verts_num, invert_vgroup, tmp_weights);
 
     while (i--) {
       const MEdge *me = &edges[i];
@@ -1071,24 +1073,24 @@ void BKE_defvert_extract_vgroup_to_edgeweights(const MDeformVert *dvert,
     MEM_freeN(tmp_weights);
   }
   else {
-    copy_vn_fl(r_weights, num_edges, 0.0f);
+    copy_vn_fl(r_weights, edges_num, 0.0f);
   }
 }
 
 void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
                                                const int defgroup,
-                                               const int num_verts,
+                                               const int verts_num,
                                                const MLoop *loops,
-                                               const int num_loops,
+                                               const int loops_num,
                                                const bool invert_vgroup,
                                                float *r_weights)
 {
   if (dvert && defgroup != -1) {
-    int i = num_loops;
-    float *tmp_weights = MEM_mallocN(sizeof(*tmp_weights) * (size_t)num_verts, __func__);
+    int i = loops_num;
+    float *tmp_weights = MEM_mallocN(sizeof(*tmp_weights) * (size_t)verts_num, __func__);
 
     BKE_defvert_extract_vgroup_to_vertweights(
-        dvert, defgroup, num_verts, invert_vgroup, tmp_weights);
+        dvert, defgroup, verts_num, invert_vgroup, tmp_weights);
 
     while (i--) {
       const MLoop *ml = &loops[i];
@@ -1099,26 +1101,26 @@ void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
     MEM_freeN(tmp_weights);
   }
   else {
-    copy_vn_fl(r_weights, num_loops, 0.0f);
+    copy_vn_fl(r_weights, loops_num, 0.0f);
   }
 }
 
 void BKE_defvert_extract_vgroup_to_polyweights(const MDeformVert *dvert,
                                                const int defgroup,
-                                               const int num_verts,
+                                               const int verts_num,
                                                const MLoop *loops,
-                                               const int UNUSED(num_loops),
+                                               const int UNUSED(loops_num),
                                                const MPoly *polys,
-                                               const int num_polys,
+                                               const int polys_num,
                                                const bool invert_vgroup,
                                                float *r_weights)
 {
   if (dvert && defgroup != -1) {
-    int i = num_polys;
-    float *tmp_weights = MEM_mallocN(sizeof(*tmp_weights) * (size_t)num_verts, __func__);
+    int i = polys_num;
+    float *tmp_weights = MEM_mallocN(sizeof(*tmp_weights) * (size_t)verts_num, __func__);
 
     BKE_defvert_extract_vgroup_to_vertweights(
-        dvert, defgroup, num_verts, invert_vgroup, tmp_weights);
+        dvert, defgroup, verts_num, invert_vgroup, tmp_weights);
 
     while (i--) {
       const MPoly *mp = &polys[i];
@@ -1135,7 +1137,7 @@ void BKE_defvert_extract_vgroup_to_polyweights(const MDeformVert *dvert,
     MEM_freeN(tmp_weights);
   }
   else {
-    copy_vn_fl(r_weights, num_polys, 0.0f);
+    copy_vn_fl(r_weights, polys_num, 0.0f);
   }
 }
 
@@ -1227,7 +1229,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
   const ListBase *src_list = BKE_object_defgroup_list(ob_src);
   ListBase *dst_defbase = BKE_object_defgroup_list_mutable(ob_dst);
 
-  int tot_dst = BLI_listbase_count(dst_defbase);
+  const int tot_dst = BLI_listbase_count(dst_defbase);
 
   const size_t elem_size = sizeof(*((MDeformVert *)NULL));
 
