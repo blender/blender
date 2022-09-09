@@ -326,6 +326,15 @@ class OUTLINER_MT_object(Menu):
 class OUTLINER_MT_asset(Menu):
     bl_label = "Assets"
 
+    @classmethod
+    def poll(cls, context):
+        if hasattr(context, "id"):
+            return True
+        if len(context.selected_ids) > 0:
+            return True
+
+        return False
+
     def draw(self, _context):
         layout = self.layout
 
