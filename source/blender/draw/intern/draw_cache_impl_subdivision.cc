@@ -10,6 +10,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
@@ -2155,7 +2156,17 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
   int subd_vert_offset = 0;
 
   /* Subdivide each loose coarse edge. */
+  const Span<MVert> coarse_verts = coarse_mesh->verts();
   const Span<MEdge> coarse_edges = coarse_mesh->edges();
+
+  int *vert_to_edge_buffer;
+  MeshElemMap *vert_to_edge_map;
+  BKE_mesh_vert_edge_map_create(&vert_to_edge_map,
+                                &vert_to_edge_buffer,
+                                coarse_edges.data(),
+                                coarse_mesh->totvert,
+                                coarse_edges.size());
+
   for (int i = 0; i < coarse_loose_edge_len; i++) {
     const int coarse_edge_index = cache->loose_geom.edges[i];
     const MEdge *coarse_edge = &coarse_edges[cache->loose_geom.edges[i]];
@@ -2169,8 +2180,13 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
       DRWSubdivLooseVertex &subd_v1 = loose_subd_verts[subd_vert_offset];
       subd_v1.coarse_vertex_index = (i == 0) ? coarse_edge->v1 : -1u;
       const float u1 = i * inv_resolution_1;
-      BKE_subdiv_mesh_interpolate_position_on_edge(
-          coarse_mesh, coarse_edge, is_simple, u1, subd_v1.co);
+      BKE_subdiv_mesh_interpolate_position_on_edge(coarse_verts.data(),
+                                                   coarse_edges.data(),
+                                                   vert_to_edge_map,
+                                                   coarse_edge_index,
+                                                   is_simple,
+                                                   u1,
+                                                   subd_v1.co);
 
       subd_edge.loose_subdiv_v1_index = subd_vert_offset++;
 
@@ -2178,15 +2194,22 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
       DRWSubdivLooseVertex &subd_v2 = loose_subd_verts[subd_vert_offset];
       subd_v2.coarse_vertex_index = ((i + 1) == resolution - 1) ? coarse_edge->v2 : -1u;
       const float u2 = (i + 1) * inv_resolution_1;
-      BKE_subdiv_mesh_interpolate_position_on_edge(
-          coarse_mesh, coarse_edge, is_simple, u2, subd_v2.co);
+      BKE_subdiv_mesh_interpolate_position_on_edge(coarse_verts.data(),
+                                                   coarse_edges.data(),
+                                                   vert_to_edge_map,
+                                                   coarse_edge_index,
+                                                   is_simple,
+                                                   u2,
+                                                   subd_v2.co);
 
       subd_edge.loose_subdiv_v2_index = subd_vert_offset++;
     }
   }
 
+  MEM_freeN(vert_to_edge_buffer);
+  MEM_freeN(vert_to_edge_map);
+
   /* Copy the remaining loose_verts. */
-  const Span<MVert> coarse_verts = coarse_mesh->verts();
   for (int i = 0; i < coarse_loose_vert_len; i++) {
     const int coarse_vertex_index = cache->loose_geom.verts[i];
     const MVert &coarse_vertex = coarse_verts[coarse_vertex_index];
