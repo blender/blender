@@ -98,7 +98,6 @@ class Manager {
   /** Number of object attribute recorded. */
   uint attribute_len_ = 0;
 
-  Object *object = nullptr;
   Object *object_active = nullptr;
 
  public:
