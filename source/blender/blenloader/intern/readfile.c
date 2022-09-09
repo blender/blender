@@ -3066,8 +3066,8 @@ static BHead *read_data_into_datamap(FileData *fd, BHead *bhead, const char *all
      * This is kept disabled as the #malloc for the text always leaks memory. */
 #if 0
     {
-      const short *sp = fd->filesdna->structs[bhead->SDNAnr];
-      allocname = fd->filesdna->types[sp[0]];
+      SDNA_Struct *sp = fd->filesdna->structs[bhead->SDNAnr];
+      allocname = fd->filesdna->types[sp->type];
       size_t allocname_size = strlen(allocname) + 1;
       char *allocname_buf = malloc(allocname_size);
       memcpy(allocname_buf, allocname, allocname_size);
