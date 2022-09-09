@@ -5,10 +5,16 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_base.hh"
+#include "BLI_math_vec_types.hh"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "GPU_texture.h"
+
 #include "COM_node_operation.hh"
+#include "COM_utilities.hh"
 
 #include "node_composite_util.hh"
 
@@ -18,10 +24,22 @@ namespace blender::nodes::node_composite_bokehblur_cc {
 
 static void cmp_node_bokehblur_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image")).default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_input<decl::Color>(N_("Bokeh")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Float>(N_("Size")).default_value(1.0f).min(0.0f).max(10.0f);
-  b.add_input<decl::Float>(N_("Bounding box")).default_value(1.0f).min(0.0f).max(1.0f);
+  b.add_input<decl::Color>(N_("Image"))
+      .default_value({0.8f, 0.8f, 0.8f, 1.0f})
+      .compositor_domain_priority(0);
+  b.add_input<decl::Color>(N_("Bokeh"))
+      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .compositor_skip_realization();
+  b.add_input<decl::Float>(N_("Size"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(10.0f)
+      .compositor_domain_priority(1);
+  b.add_input<decl::Float>(N_("Bounding box"))
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .compositor_domain_priority(2);
   b.add_output<decl::Color>(N_("Image"));
 }
 
@@ -47,7 +65,82 @@ class BokehBlurOperation : public NodeOperation {
 
   void execute() override
   {
-    get_input("Image").pass_through(get_result("Image"));
+    if (is_identity()) {
+      get_input("Image").pass_through(get_result("Image"));
+      return;
+    }
+
+    GPUShader *shader = shader_manager().get("compositor_blur");
+    GPU_shader_bind(shader);
+
+    GPU_shader_uniform_1i(shader, "radius", compute_blur_radius());
+    GPU_shader_uniform_1b(shader, "extend_bounds", get_extend_bounds());
+
+    const Result &input_image = get_input("Image");
+    input_image.bind_as_texture(shader, "input_tx");
+
+    const Result &input_weights = get_input("Bokeh");
+    input_weights.bind_as_texture(shader, "weights_tx");
+
+    const Result &input_mask = get_input("Bounding box");
+    input_mask.bind_as_texture(shader, "mask_tx");
+
+    Domain domain = compute_domain();
+    if (get_extend_bounds()) {
+      /* Add a radius amount of pixels in both sides of the image, hence the multiply by 2. */
+      domain.size += int2(compute_blur_radius() * 2);
+    }
+
+    Result &output_image = get_result("Image");
+    output_image.allocate_texture(domain);
+    output_image.bind_as_image(shader, "output_img");
+
+    compute_dispatch_threads_at_least(shader, domain.size);
+
+    GPU_shader_unbind();
+    output_image.unbind_as_image();
+    input_image.unbind_as_texture();
+    input_weights.unbind_as_texture();
+    input_mask.unbind_as_texture();
+  }
+
+  int compute_blur_radius()
+  {
+    const int2 image_size = get_input("Image").domain().size;
+    const int max_size = math::max(image_size.x, image_size.y);
+
+    /* The [0, 10] range of the size is arbitrary and is merely in place to avoid very long
+     * computations of the bokeh blur. */
+    const float size = math::clamp(get_input("Size").get_float_value_default(1.0f), 0.0f, 10.0f);
+
+    /* The 100 divisor is arbitrary and was chosen using visual judgement. */
+    return size * (max_size / 100.0f);
+  }
+
+  bool is_identity()
+  {
+    const Result &input = get_input("Image");
+    if (input.is_single_value()) {
+      return true;
+    }
+
+    if (compute_blur_radius() == 0) {
+      return true;
+    }
+
+    /* This input is, in fact, a boolean mask. If it is zero, no blurring will take place.
+     * Otherwise, the blurring will take place ignoring the value of the input entirely. */
+    const Result &bounding_box = get_input("Bounding box");
+    if (bounding_box.is_single_value() && bounding_box.get_float_value() == 0.0) {
+      return true;
+    }
+
+    return false;
+  }
+
+  bool get_extend_bounds()
+  {
+    return bnode().custom1 & CMP_NODEFLAG_BLUR_EXTEND_BOUNDS;
   }
 };
 
