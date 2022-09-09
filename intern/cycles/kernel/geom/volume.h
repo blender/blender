@@ -29,7 +29,7 @@ ccl_device_inline float3 volume_normalized_position(KernelGlobals kg,
   object_inverse_position_transform(kg, sd, &P);
 
   if (desc.offset != ATTR_STD_NOT_FOUND) {
-    Transform tfm = primitive_attribute_matrix(kg, sd, desc);
+    Transform tfm = primitive_attribute_matrix(kg, desc);
     P = transform_point(&tfm, P);
   }
 

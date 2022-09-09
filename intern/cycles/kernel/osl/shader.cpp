@@ -21,8 +21,6 @@
 #include "kernel/util/differential.h"
 // clang-format on
 
-#include "scene/attribute.h"
-
 CCL_NAMESPACE_BEGIN
 
 /* Threads */
@@ -384,42 +382,6 @@ void OSLShader::eval_displacement(const KernelGlobalsCPU *kg, const void *state,
 
   /* get back position */
   sd->P = TO_FLOAT3(globals->P);
-}
-
-/* Attributes */
-
-int OSLShader::find_attribute(const KernelGlobalsCPU *kg,
-                              const ShaderData *sd,
-                              uint id,
-                              AttributeDescriptor *desc)
-{
-  /* for OSL, a hash map is used to lookup the attribute by name. */
-  int object = sd->object * ATTR_PRIM_TYPES;
-
-  OSLGlobals::AttributeMap &attr_map = kg->osl->attribute_map[object];
-  ustring stdname(std::string("geom:") +
-                  std::string(Attribute::standard_name((AttributeStandard)id)));
-  OSLGlobals::AttributeMap::const_iterator it = attr_map.find(stdname);
-
-  if (it != attr_map.end()) {
-    const OSLGlobals::Attribute &osl_attr = it->second;
-    *desc = osl_attr.desc;
-
-    if (sd->prim == PRIM_NONE && (AttributeElement)osl_attr.desc.element != ATTR_ELEMENT_MESH) {
-      desc->offset = ATTR_STD_NOT_FOUND;
-      return ATTR_STD_NOT_FOUND;
-    }
-
-    /* return result */
-    if (osl_attr.desc.element == ATTR_ELEMENT_NONE) {
-      desc->offset = ATTR_STD_NOT_FOUND;
-    }
-    return desc->offset;
-  }
-  else {
-    desc->offset = ATTR_STD_NOT_FOUND;
-    return (int)ATTR_STD_NOT_FOUND;
-  }
 }
 
 CCL_NAMESPACE_END

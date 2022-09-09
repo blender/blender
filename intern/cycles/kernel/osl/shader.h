@@ -54,12 +54,6 @@ class OSLShader {
                           ShaderData *sd,
                           uint32_t path_flag);
   static void eval_displacement(const KernelGlobalsCPU *kg, const void *state, ShaderData *sd);
-
-  /* attributes */
-  static int find_attribute(const KernelGlobalsCPU *kg,
-                            const ShaderData *sd,
-                            uint id,
-                            AttributeDescriptor *desc);
 };
 
 CCL_NAMESPACE_END

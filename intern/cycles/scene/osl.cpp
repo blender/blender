@@ -78,6 +78,18 @@ void OSLShaderManager::reset(Scene * /*scene*/)
   shading_system_init();
 }
 
+uint64_t OSLShaderManager::get_attribute_id(ustring name)
+{
+  return name.hash();
+}
+
+uint64_t OSLShaderManager::get_attribute_id(AttributeStandard std)
+{
+  /* if standard attribute, use geom: name convention */
+  ustring stdname(string("geom:") + string(Attribute::standard_name(std)));
+  return stdname.hash();
+}
+
 void OSLShaderManager::device_update_specific(Device *device,
                                               DeviceScene *dscene,
                                               Scene *scene,

@@ -56,16 +56,8 @@ struct OSLGlobals {
   OSL::ShaderGroupRef background_state;
 
   /* attributes */
-  struct Attribute {
-    TypeDesc type;
-    AttributeDescriptor desc;
-    ParamValue value;
-  };
-
-  typedef unordered_map<ustring, Attribute, ustringHash> AttributeMap;
   typedef unordered_map<ustring, int, ustringHash> ObjectNameMap;
 
-  vector<AttributeMap> attribute_map;
   ObjectNameMap object_name_map;
   vector<ustring> object_names;
 };
