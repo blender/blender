@@ -3065,7 +3065,11 @@ static BHead *read_data_into_datamap(FileData *fd, BHead *bhead, const char *all
      * With the code below we get the struct-name to help tracking down the leak.
      * This is kept disabled as the #malloc for the text always leaks memory. */
 #if 0
-    {
+    if (bhead->SDNAnr == 0) {
+      /* The data type here is unclear because #writedata sets SDNAnr to 0. */
+      allocname = "likely raw data";
+    }
+    else {
       SDNA_Struct *sp = fd->filesdna->structs[bhead->SDNAnr];
       allocname = fd->filesdna->types[sp->type];
       size_t allocname_size = strlen(allocname) + 1;
