@@ -247,19 +247,29 @@ add_cc_flags_custom_test(blender)
 if(WITH_PYTHON_MODULE)
   add_definitions(-DWITH_PYTHON_MODULE)
 
-  # creates ./bin/bpy.so which can be imported as a python module.
+  # Creates `./bpy/__init__.so` which can be imported as a python module.
   #
   # note that 'SHARED' works on Linux and Windows,
   # but not OSX which _must_ be 'MODULE'
   add_library(blender MODULE ${SRC})
+
+
+  get_property(GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+  if(GENERATOR_IS_MULTI_CONFIG)
+    set(BPY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>/bpy)
+  else()
+    set(BPY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/bpy)
+  endif()
+
   set_target_properties(
     blender
     PROPERTIES
       PREFIX ""
-      OUTPUT_NAME bpy
-      LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-      RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin  # only needed on windows
+      OUTPUT_NAME __init__
+      LIBRARY_OUTPUT_DIRECTORY ${BPY_OUTPUT_DIRECTORY}
+      RUNTIME_OUTPUT_DIRECTORY ${BPY_OUTPUT_DIRECTORY}
   )
+  unset(BPY_OUTPUT_DIRECTORY)
 
   if(APPLE)
     set_target_properties(blender PROPERTIES MACOSX_BUNDLE TRUE)
@@ -306,13 +316,13 @@ set(BLENDER_TEXT_FILES
 if(UNIX AND NOT APPLE)
   if(WITH_PYTHON_MODULE)
     if(WITH_INSTALL_PORTABLE)
-      set(TARGETDIR_BPY .)
-      set(TARGETDIR_VER ${BLENDER_VERSION})
-      set(TARGETDIR_LIB lib)
+      set(TARGETDIR_BPY bpy)
+      set(TARGETDIR_VER bpy/${BLENDER_VERSION})
+      set(TARGETDIR_LIB bpy/lib)
     else()
-      set(TARGETDIR_BPY ${PYTHON_SITE_PACKAGES})
-      set(TARGETDIR_VER ${PYTHON_SITE_PACKAGES}/${BLENDER_VERSION})
-      set(TARGETDIR_LIB ${PYTHON_SITE_PACKAGES}/lib)
+      set(TARGETDIR_BPY ${PYTHON_SITE_PACKAGES}/bpy)
+      set(TARGETDIR_VER ${PYTHON_SITE_PACKAGES}/bpy/${BLENDER_VERSION})
+      set(TARGETDIR_LIB ${PYTHON_SITE_PACKAGES}/bpy/lib)
     endif()
   else()
     if(WITH_INSTALL_PORTABLE)
@@ -326,21 +336,28 @@ if(UNIX AND NOT APPLE)
   endif()
 
 elseif(WIN32)
-  set(TARGETDIR_VER ${BLENDER_VERSION})
-  set(TARGETDIR_TEXT .)
-  set(TARGETDIR_LIB .)
-
+  if(WITH_PYTHON_MODULE)
+    set(TARGETDIR_BPY $<TARGET_FILE_DIR:blender>)
+    set(TARGETDIR_VER $<TARGET_FILE_DIR:blender>/${BLENDER_VERSION})
+    # Important the DLL's are next to `__init__.pyd` otherwise it won't load.
+    set(TARGETDIR_LIB $<TARGET_FILE_DIR:blender>)
+  else()
+    set(TARGETDIR_VER ${BLENDER_VERSION})
+    set(TARGETDIR_TEXT .)
+    set(TARGETDIR_LIB .)
+  endif()
 elseif(APPLE)
   if(WITH_PYTHON_MODULE)
     if(WITH_INSTALL_PORTABLE)
-      set(TARGETDIR_VER $<TARGET_FILE_DIR:blender>/../Resources/${BLENDER_VERSION})
-      set(TARGETDIR_LIB lib)
+      set(TARGETDIR_BPY bpy)
+      set(TARGETDIR_VER bpy/${BLENDER_VERSION})
+      set(TARGETDIR_LIB bpy/lib)
     else()
       # Paths defined in terms of site-packages since the site-packages
       # directory can be a symlink (brew for example).
-      set(TARGETDIR_BPY ${PYTHON_LIBPATH}/site-packages)
-      set(TARGETDIR_VER ${TARGETDIR_BPY}/../Resources/${BLENDER_VERSION})
-      set(TARGETDIR_LIB ${TARGETDIR_BPY}/lib)
+      set(TARGETDIR_BPY ${PYTHON_LIBPATH}/site-packages/bpy)
+      set(TARGETDIR_VER ${PYTHON_LIBPATH}/site-packages/bpy/${BLENDER_VERSION})
+      set(TARGETDIR_LIB ${PYTHON_LIBPATH}/site-packages/bpy/lib)
     endif()
   else()
     set(TARGETDIR_VER Blender.app/Contents/Resources/${BLENDER_VERSION})

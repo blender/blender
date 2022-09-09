@@ -374,7 +374,7 @@ static bool get_path_local_ex(char *targetpath,
   /* Try `{g_app.program_dirname}/2.xx/{folder_name}` the default directory
    * for a portable distribution. See `WITH_INSTALL_PORTABLE` build-option. */
   const char *path_base = g_app.program_dirname;
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(WITH_PYTHON_MODULE)
   /* Due new code-sign situation in OSX > 10.9.5
    * we must move the blender_version dir with contents to Resources. */
   char osx_resourses[FILE_MAX];
