@@ -157,9 +157,6 @@ mark_as_advanced(WITH_PYTHON_SECURITY)  # some distributions see this as a secur
 option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some efficiency, only enable for development)." OFF)
 mark_as_advanced(WITH_PYTHON_SAFETY)
 option(WITH_PYTHON_MODULE "Enable building as a python module which runs without a user interface, like running regular blender in background mode (experimental, only enable for development), installs to PYTHON_SITE_PACKAGES (or CMAKE_INSTALL_PREFIX if WITH_INSTALL_PORTABLE is enabled)." OFF)
-if(APPLE)
-  option(WITH_PYTHON_FRAMEWORK "Enable building using the Python available in the framework (OSX only)" OFF)
-endif()
 
 option(WITH_BUILDINFO     "Include extra build details (only disable for development & faster builds)" ON)
 set(BUILDINFO_OVERRIDE_DATE "" CACHE STRING "Use instead of the current date for reproducible builds (empty string disables this option)")
@@ -1628,8 +1625,8 @@ if(WITH_PYTHON)
     )
   endif()
 
-  if(WIN32 OR APPLE)
-    # Windows and macOS have this bundled with Python libraries.
+  if(WIN32)
+    # Always use numpy bundled in precompiled libs.
   elseif((WITH_PYTHON_INSTALL AND WITH_PYTHON_INSTALL_NUMPY) OR WITH_PYTHON_NUMPY)
     if(("${PYTHON_NUMPY_PATH}" STREQUAL "") OR (${PYTHON_NUMPY_PATH} MATCHES NOTFOUND))
       find_python_package(numpy "core/include")
@@ -1637,13 +1634,13 @@ if(WITH_PYTHON)
   endif()
 
   if(WIN32 OR APPLE)
-    # pass, we have this in lib/python/site-packages
+    # Always copy from precompiled libs.
   elseif(WITH_PYTHON_INSTALL_REQUESTS)
     find_python_package(requests "")
   endif()
 
   if(WIN32 OR APPLE)
-    # pass, we have this in lib/python/site-packages
+    # Always copy from precompiled libs.
   elseif(WITH_PYTHON_INSTALL_ZSTANDARD)
     find_python_package(zstandard "")
   endif()
@@ -1908,9 +1905,6 @@ if(FIRST_RUN)
   info_cfg_option(WITH_LZO)
 
   info_cfg_text("Python:")
-  if(APPLE)
-    info_cfg_option(WITH_PYTHON_FRAMEWORK)
-  endif()
   info_cfg_option(WITH_PYTHON_INSTALL)
   info_cfg_option(WITH_PYTHON_INSTALL_NUMPY)
   info_cfg_option(WITH_PYTHON_INSTALL_ZSTANDARD)

@@ -36,6 +36,9 @@ endmacro()
 # ------------------------------------------------------------------------
 # Find system provided libraries.
 
+# Avoid searching for headers in frameworks (like Mono), and libraries in LIBDIR.
+set(CMAKE_FIND_FRAMEWORK NEVER)
+
 # Find system ZLIB, not the pre-compiled one supplied with OpenCollada.
 set(ZLIB_ROOT /usr)
 find_package(ZLIB REQUIRED)
@@ -73,6 +76,11 @@ else()
 endif()
 if(NOT EXISTS "${LIBDIR}/")
   message(FATAL_ERROR "Mac OSX requires pre-compiled libs at: '${LIBDIR}'")
+endif()
+
+# Optionally use system Python if PYTHON_ROOT_DIR is specified.
+if(WITH_PYTHON AND (WITH_PYTHON_MODULE AND PYTHON_ROOT_DIR))
+  find_package(PythonLibsUnix REQUIRED)
 endif()
 
 # Prefer lib directory paths
@@ -123,34 +131,8 @@ if(WITH_CODEC_SNDFILE)
   unset(_sndfile_VORBISENC_LIBRARY)
 endif()
 
-if(WITH_PYTHON)
-  # Use precompiled libraries by default.
-  set(PYTHON_VERSION 3.10)
-  if(NOT WITH_PYTHON_MODULE AND NOT WITH_PYTHON_FRAMEWORK)
-    # Normally cached but not since we include them with blender.
-    set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}")
-    set(PYTHON_EXECUTABLE "${LIBDIR}/python/bin/python${PYTHON_VERSION}")
-    set(PYTHON_LIBRARY ${LIBDIR}/python/lib/libpython${PYTHON_VERSION}.a)
-    set(PYTHON_LIBPATH "${LIBDIR}/python/lib/python${PYTHON_VERSION}")
-  else()
-    # Module must be compiled against Python framework.
-    set(_py_framework "/Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}")
-    set(PYTHON_INCLUDE_DIR "${_py_framework}/include/python${PYTHON_VERSION}")
-    set(PYTHON_EXECUTABLE "${_py_framework}/bin/python${PYTHON_VERSION}")
-    set(PYTHON_LIBPATH "${_py_framework}/lib/python${PYTHON_VERSION}")
-    unset(_py_framework)
-  endif()
-
-  # uncached vars
-  set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
-  set(PYTHON_LIBRARIES  "${PYTHON_LIBRARY}")
-
-  # needed for Audaspace, numpy is installed into python site-packages
-  set(PYTHON_NUMPY_INCLUDE_DIRS "${PYTHON_LIBPATH}/site-packages/numpy/core/include")
-
-  if(NOT EXISTS "${PYTHON_EXECUTABLE}")
-    message(FATAL_ERROR "Python executable missing: ${PYTHON_EXECUTABLE}")
-  endif()
+if(WITH_PYTHON AND NOT (WITH_PYTHON_MODULE AND PYTHON_ROOT_DIR))
+  find_package(PythonLibsUnix REQUIRED)
 endif()
 
 if(WITH_FFTW3)
@@ -211,11 +193,6 @@ endif()
 
 if(WITH_JACK)
   string(APPEND PLATFORM_LINKFLAGS " -F/Library/Frameworks -weak_framework jackmp")
-endif()
-
-if(WITH_PYTHON_MODULE OR WITH_PYTHON_FRAMEWORK)
-  # force cmake to link right framework
-  string(APPEND PLATFORM_LINKFLAGS " /Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}/Python")
 endif()
 
 if(WITH_OPENCOLLADA)

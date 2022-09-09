@@ -362,9 +362,9 @@ elseif(APPLE)
     else()
       # Paths defined in terms of site-packages since the site-packages
       # directory can be a symlink (brew for example).
-      set(TARGETDIR_BPY ${PYTHON_LIBPATH}/site-packages/bpy)
-      set(TARGETDIR_VER ${PYTHON_LIBPATH}/site-packages/bpy/${BLENDER_VERSION})
-      set(TARGETDIR_LIB ${PYTHON_LIBPATH}/site-packages/bpy/lib)
+      set(TARGETDIR_BPY ${PYTHON_SITE_PACKAGES}/bpy)
+      set(TARGETDIR_VER ${PYTHON_SITE_PACKAGES}/bpy/${BLENDER_VERSION})
+      set(TARGETDIR_LIB ${PYTHON_SITE_PACKAGES}/bpy/lib)
     endif()
   else()
     set(TARGETDIR_VER Blender.app/Contents/Resources/${BLENDER_VERSION})
