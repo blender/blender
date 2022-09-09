@@ -1899,7 +1899,7 @@ static bool wm_file_write(bContext *C,
 /** \name Auto-Save API
  * \{ */
 
-static void wm_autosave_location(char *filepath)
+static void wm_autosave_location(char filepath[FILE_MAX])
 {
   const int pid = abs(getpid());
   char path[1024];
@@ -1918,23 +1918,23 @@ static void wm_autosave_location(char *filepath)
     BLI_snprintf(path, sizeof(path), "%d_autosave.blend", pid);
   }
 
+  const char *tempdir_base = BKE_tempdir_base();
 #ifdef WIN32
-  /* XXX Need to investigate how to handle default location of '/tmp/'
-   * This is a relative directory on Windows, and it may be
-   * found. Example:
-   * Blender installed on D:\ drive, D:\ drive has D:\tmp\
-   * Now, BLI_exists() will find '/tmp/' exists, but
-   * BLI_make_file_string will create string that has it most likely on C:\
-   * through BLI_windows_get_default_root_dir().
-   * If there is no C:\tmp autosave fails. */
-  if (!BLI_exists(BKE_tempdir_base())) {
+  /* XXX Need to investigate how to handle default location of `/tmp/`
+   * This is a relative directory on Windows, and it may be found. Example:
+   * Blender installed on `D:\` drive, `D:\` drive has `D:\tmp\` Now, `BLI_exists()`
+   * will find `/tmp/` exists, but #BLI_make_file_string will create string
+   * that has it most likely on `C:\` through #BLI_windows_get_default_root_dir.
+   * If there is no `C:\tmp` autosave fails. */
+  if (!BLI_exists(tempdir_base)) {
     const char *savedir = BKE_appdir_folder_id_create(BLENDER_USER_AUTOSAVE, NULL);
-    BLI_make_file_string("/", filepath, savedir, path);
-    return;
+    if (savedir) {
+      tempdir_base = savedir;
+    }
   }
 #endif
 
-  BLI_join_dirfile(filepath, FILE_MAX, BKE_tempdir_base(), path);
+  BLI_join_dirfile(filepath, FILE_MAX, tempdir_base, path);
 }
 
 static void wm_autosave_write(Main *bmain, wmWindowManager *wm)
