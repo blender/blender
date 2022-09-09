@@ -196,7 +196,7 @@ class BitVector {
   /** Current size of the vector in bits. */
   int64_t size_in_bits_;
 
-  /** Number of bits that fit into the vector until a reallocation has to occure. */
+  /** Number of bits that fit into the vector until a reallocation has to occur. */
   int64_t capacity_in_bits_;
 
   /** Used for allocations when the inline buffer is too small. */

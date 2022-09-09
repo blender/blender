@@ -1015,7 +1015,7 @@ typedef struct EEVEE_PrivateData {
   struct GHash *material_hash;
   float background_alpha; /* TODO: find a better place for this. */
   bool disable_ligthprobes;
-  /* Chosen lightcache: can come from Lookdev or the viewlayer. */
+  /** Chosen light-cache: can come from Lookdev or the view-layer. */
   struct LightCache *light_cache;
   /* For planar probes */
   float planar_texel_size[2];

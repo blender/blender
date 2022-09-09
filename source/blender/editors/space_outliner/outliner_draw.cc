@@ -285,7 +285,7 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
       }
       else {
         Base *base_iter = BKE_view_layer_base_find(view_layer, ob_iter);
-        /* Child can be in a collection excluded from viewlayer. */
+        /* Child can be in a collection excluded from view-layer. */
         if (base_iter == nullptr) {
           continue;
         }

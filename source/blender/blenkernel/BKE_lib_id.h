@@ -623,7 +623,7 @@ bool BKE_id_can_be_asset(const struct ID *id);
 /**
  * Return the owner ID of the given `id`, if any.
  *
- * \note: This will only return non-NULL for embedded IDs (master collections etc.), and shapekeys.
+ * \note This will only return non-NULL for embedded IDs (master collections etc.), and shape-keys.
  */
 struct ID *BKE_id_owner_get(struct ID *id);
 

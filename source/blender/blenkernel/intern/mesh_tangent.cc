@@ -68,7 +68,7 @@ struct BKEMeshToTangent {
   }
 
   const MPoly *mpolys;     /* faces */
-  const MLoop *mloops;     /* faces's vertices */
+  const MLoop *mloops;     /* faces vertices */
   const MVert *mverts;     /* vertices */
   const MLoopUV *luvs;     /* texture coordinates */
   const float (*lnors)[3]; /* loops' normals */

@@ -37,7 +37,7 @@ void UI_but_drag_set_asset(uiBut *but,
 {
   wmDragAsset *asset_drag = WM_drag_create_asset_data(asset, metadata, path, import_type);
 
-  /* FIXME: This is temporary evil solution to get scene/viewlayer/etc in the copy callback of the
+  /* FIXME: This is temporary evil solution to get scene/view-layer/etc in the copy callback of the
    * #wmDropBox.
    * TODO: Handle link/append in operator called at the end of the drop process, and NOT in its
    * copy callback.

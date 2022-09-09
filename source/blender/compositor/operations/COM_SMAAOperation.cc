@@ -12,7 +12,7 @@ extern "C" {
 namespace blender::compositor {
 
 /*
- * An implementation of Enhanced Subpixel Morphological Antialiasing (SMAA)
+ * An implementation of Enhanced Sub-pixel Morphological Anti-aliasing (SMAA)
  *
  * The algorithm was proposed by:
  *   Jorge Jimenez, Jose I. Echevarria, Tiago Sousa, Diego Gutierrez
