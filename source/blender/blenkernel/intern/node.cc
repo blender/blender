@@ -1931,6 +1931,9 @@ static void node_socket_free(bNodeSocket *sock, const bool do_id_user)
     }
     MEM_freeN(sock->default_value);
   }
+  if (sock->default_attribute_name) {
+    MEM_freeN(sock->default_attribute_name);
+  }
   MEM_delete(sock->runtime);
 }
 
@@ -3014,6 +3017,9 @@ static void node_socket_interface_free(bNodeTree *UNUSED(ntree),
       socket_id_user_decrement(sock);
     }
     MEM_freeN(sock->default_value);
+  }
+  if (sock->default_attribute_name) {
+    MEM_freeN(sock->default_attribute_name);
   }
   MEM_delete(sock->runtime);
 }
