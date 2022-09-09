@@ -793,6 +793,8 @@ const char *BKE_appdir_folder_id_version(const int folder_id,
  * \param fullname: The full path and full name of the executable
  * (must be #FILE_MAX minimum)
  * \param name: The name of the executable (usually `argv[0]`) to be checked
+ * \param strict: When true, use `argv0` unmodified (besides making absolute & normalizing).
+ * Otherwise other methods may be used to find the program path, including searching `$PATH`.
  */
 static void where_am_i(char *fullname, const size_t maxlen, const char *name, const bool strict)
 {
@@ -864,8 +866,16 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name, co
   }
 }
 
-void BKE_appdir_program_path_init(const char *argv0, const bool strict)
+void BKE_appdir_program_path_init(const char *argv0)
 {
+#ifdef WITH_PYTHON_MODULE
+  /* NOTE(@campbellbarton): Always use `argv[0]` as is, when building as a Python module.
+   * Otherwise other methods of detecting the binary that override this argument
+   * which must point to the Python module for data-files to be detected. */
+  const bool strict = true;
+#else
+  const bool strict = false;
+#endif
   where_am_i(g_app.program_filepath, sizeof(g_app.program_filepath), argv0, strict);
   BLI_split_dir_part(g_app.program_filepath, g_app.program_dirname, sizeof(g_app.program_dirname));
 }

@@ -105,11 +105,8 @@ void BKE_appdir_app_templates(struct ListBase *templates);
 
 /**
  * Initialize path to program executable.
- *
- * \param strict: When true, use `argv0` unmodified (besides making absolute & normalizing).
- * Otherwise other methods may be used to find the program path, including searching `$PATH`.
  */
-void BKE_appdir_program_path_init(const char *argv0, bool strict);
+void BKE_appdir_program_path_init(const char *argv0);
 
 /**
  * Path to executable
