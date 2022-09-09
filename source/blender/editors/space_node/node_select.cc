@@ -14,7 +14,6 @@
 #include "BLI_lasso_2d.h"
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
-#include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_string_search.h"
 #include "BLI_string_utf8.h"
@@ -645,29 +644,28 @@ static bool node_mouse_select(bContext *C,
     }
   }
 
-  if (!(changed || found)) {
-    return false;
+  /* update node order */
+  if (changed || found) {
+    bool active_texture_changed = false;
+    bool viewer_node_changed = false;
+    if ((node != nullptr) && (node_was_selected == false || params->select_passthrough == false)) {
+      viewer_node_changed = (node->flag & NODE_DO_OUTPUT) == 0 && node->type == GEO_NODE_VIEWER;
+      ED_node_set_active(&bmain, &snode, snode.edittree, node, &active_texture_changed);
+    }
+    else if (node != nullptr && node->type == GEO_NODE_VIEWER) {
+      ED_spreadsheet_context_paths_set_geometry_node(&bmain, &snode, node);
+    }
+    ED_node_set_active_viewer_key(&snode);
+    node_sort(*snode.edittree);
+    if ((active_texture_changed && has_workbench_in_texture_color(wm, scene, ob)) ||
+        viewer_node_changed) {
+      DEG_id_tag_update(&snode.edittree->id, ID_RECALC_COPY_ON_WRITE);
+    }
+
+    WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
   }
 
-  bool active_texture_changed = false;
-  bool viewer_node_changed = false;
-  if ((node != nullptr) && (node_was_selected == false || params->select_passthrough == false)) {
-    viewer_node_changed = (node->flag & NODE_DO_OUTPUT) == 0 && node->type == GEO_NODE_VIEWER;
-    ED_node_set_active(&bmain, &snode, snode.edittree, node, &active_texture_changed);
-  }
-  else if (node != nullptr && node->type == GEO_NODE_VIEWER) {
-    ED_spreadsheet_context_paths_set_geometry_node(&bmain, &snode, node);
-  }
-  ED_node_set_active_viewer_key(&snode);
-  node_sort(*snode.edittree);
-  if ((active_texture_changed && has_workbench_in_texture_color(wm, scene, ob)) ||
-      viewer_node_changed) {
-    DEG_id_tag_update(&snode.edittree->id, ID_RECALC_COPY_ON_WRITE);
-  }
-
-  WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
-
-  return true;
+  return changed || found;
 }
 
 static int node_select_exec(bContext *C, wmOperator *op)

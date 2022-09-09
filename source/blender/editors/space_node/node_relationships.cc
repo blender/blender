@@ -1727,33 +1727,32 @@ static int node_attach_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
   bNode *frame = node_find_frame_to_attach(region, ntree, event->mval);
-  if (frame == nullptr) {
-    return OPERATOR_CANCELLED;
-  }
 
-  LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree.nodes) {
-    if (node->flag & NODE_SELECT) {
-      if (node->parent == nullptr) {
-        /* disallow moving a parent into its child */
-        if (nodeAttachNodeCheck(frame, node) == false) {
-          /* attach all unparented nodes */
-          nodeAttachNode(node, frame);
-        }
-      }
-      else {
-        /* attach nodes which share parent with the frame */
-        bNode *parent;
-        for (parent = frame->parent; parent; parent = parent->parent) {
-          if (parent == node->parent) {
-            break;
-          }
-        }
-
-        if (parent) {
+  if (frame) {
+    LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree.nodes) {
+      if (node->flag & NODE_SELECT) {
+        if (node->parent == nullptr) {
           /* disallow moving a parent into its child */
           if (nodeAttachNodeCheck(frame, node) == false) {
-            nodeDetachNode(node);
+            /* attach all unparented nodes */
             nodeAttachNode(node, frame);
+          }
+        }
+        else {
+          /* attach nodes which share parent with the frame */
+          bNode *parent;
+          for (parent = frame->parent; parent; parent = parent->parent) {
+            if (parent == node->parent) {
+              break;
+            }
+          }
+
+          if (parent) {
+            /* disallow moving a parent into its child */
+            if (nodeAttachNodeCheck(frame, node) == false) {
+              nodeDetachNode(node);
+              nodeAttachNode(node, frame);
+            }
           }
         }
       }
