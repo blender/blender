@@ -3791,6 +3791,101 @@ void GPENCIL_OT_stroke_flip(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Stroke Start Set Operator
+ * \{ */
+
+static int gpencil_stroke_start_set_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = CTX_data_active_object(C);
+  bGPdata *gpd = ob->data;
+
+  /* sanity checks */
+  if (ELEM(NULL, ob, gpd)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  if (is_curve_edit) {
+    BKE_report(op->reports, RPT_ERROR, "Curve Edit mode not supported");
+    return OPERATOR_CANCELLED;
+  }
+
+  bool changed = false;
+  /* Read all selected strokes. */
+  CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
+    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
+
+    for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+      if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
+        if (gpf == NULL) {
+          continue;
+        }
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+          if (gps->flag & GP_STROKE_SELECT) {
+            /* skip strokes that are invalid for current view */
+            if (ED_gpencil_stroke_can_use(C, gps) == false) {
+              continue;
+            }
+            /* check if the color is editable */
+            if (ED_gpencil_stroke_material_editable(ob, gpl, gps) == false) {
+              continue;
+            }
+
+            /* Only cyclic strokes. */
+            if ((gps->flag & GP_STROKE_CYCLIC) == 0) {
+              continue;
+            }
+
+            /* Find first selected point and set start. */
+            bGPDspoint *pt;
+            for (int i = 0; i < gps->totpoints; i++) {
+              pt = &gps->points[i];
+              if (pt->flag & GP_SPOINT_SELECT) {
+                BKE_gpencil_stroke_start_set(gps, i);
+                BKE_gpencil_stroke_geometry_update(gpd, gps);
+                changed = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+      /* If not multi-edit, exit loop. */
+      if (!is_multiedit) {
+        break;
+      }
+    }
+  }
+  CTX_DATA_END;
+
+  if (changed) {
+    /* notifiers */
+    DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_stroke_start_set(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Set Start Point";
+  ot->idname = "GPENCIL_OT_stroke_start_set";
+  ot->description = "Set start point for cyclic strokes";
+
+  /* api callbacks */
+  ot->exec = gpencil_stroke_start_set_exec;
+  ot->poll = gpencil_active_layer_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Stroke Re-project Operator
  * \{ */
 
