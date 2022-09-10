@@ -450,6 +450,7 @@ static bool set_attribute_float2(float2 f[3], TypeDesc type, bool derivatives, v
   return false;
 }
 
+#if 0
 static bool set_attribute_float2(float2 f, TypeDesc type, bool derivatives, void *val)
 {
   float2 fv[3];
@@ -460,6 +461,7 @@ static bool set_attribute_float2(float2 f, TypeDesc type, bool derivatives, void
 
   return set_attribute_float2(fv, type, derivatives, val);
 }
+#endif
 
 static bool set_attribute_float3(float3 f[3], TypeDesc type, bool derivatives, void *val)
 {
@@ -588,6 +590,7 @@ static bool set_attribute_float4(float4 f[3], TypeDesc type, bool derivatives, v
   return false;
 }
 
+#if 0
 static bool set_attribute_float4(float4 f, TypeDesc type, bool derivatives, void *val)
 {
   float4 fv[3];
@@ -598,6 +601,7 @@ static bool set_attribute_float4(float4 f, TypeDesc type, bool derivatives, void
 
   return set_attribute_float4(fv, type, derivatives, val);
 }
+#endif
 
 static bool set_attribute_float(float f[3], TypeDesc type, bool derivatives, void *val)
 {
