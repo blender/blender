@@ -1053,19 +1053,17 @@ static int bookmark_select_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
-  PropertyRNA *prop;
 
-  if ((prop = RNA_struct_find_property(op->ptr, "dir"))) {
-    FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-    char entry[256];
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "dir");
+  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  char entry[256];
 
-    RNA_property_string_get(op->ptr, prop, entry);
-    BLI_strncpy(params->dir, entry, sizeof(params->dir));
-    BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir);
-    ED_file_change_dir(C);
+  RNA_property_string_get(op->ptr, prop, entry);
+  BLI_strncpy(params->dir, entry, sizeof(params->dir));
+  BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir);
+  ED_file_change_dir(C);
 
-    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
-  }
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 
   return OPERATOR_FINISHED;
 }
@@ -1146,27 +1144,19 @@ static int bookmark_delete_exec(bContext *C, wmOperator *op)
   int nentries = ED_fsmenu_get_nentries(fsmenu, FS_CATEGORY_BOOKMARKS);
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "index");
+  const int index = RNA_property_is_set(op->ptr, prop) ? RNA_property_int_get(op->ptr, prop) :
+                                                         sfile->bookmarknr;
+  if ((index > -1) && (index < nentries)) {
+    char name[FILE_MAX];
 
-  if (prop) {
-    int index;
-    if (RNA_property_is_set(op->ptr, prop)) {
-      index = RNA_property_int_get(op->ptr, prop);
-    }
-    else { /* if index unset, use active bookmark... */
-      index = sfile->bookmarknr;
-    }
-    if ((index > -1) && (index < nentries)) {
-      char name[FILE_MAX];
-
-      fsmenu_remove_entry(fsmenu, FS_CATEGORY_BOOKMARKS, index);
-      BLI_join_dirfile(name,
-                       sizeof(name),
-                       BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
-                       BLENDER_BOOKMARK_FILE);
-      fsmenu_write_file(fsmenu, name);
-      ED_area_tag_refresh(area);
-      ED_area_tag_redraw(area);
-    }
+    fsmenu_remove_entry(fsmenu, FS_CATEGORY_BOOKMARKS, index);
+    BLI_join_dirfile(name,
+                     sizeof(name),
+                     BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
+                     BLENDER_BOOKMARK_FILE);
+    fsmenu_write_file(fsmenu, name);
+    ED_area_tag_refresh(area);
+    ED_area_tag_redraw(area);
   }
 
   return OPERATOR_FINISHED;
@@ -2327,7 +2317,6 @@ static int file_directory_new_exec(bContext *C, wmOperator *op)
   char name[FILE_MAXFILE];
   char path[FILE_MAX];
   bool generate_name = true;
-  PropertyRNA *prop;
 
   wmWindowManager *wm = CTX_wm_manager(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
@@ -2341,7 +2330,8 @@ static int file_directory_new_exec(bContext *C, wmOperator *op)
 
   path[0] = '\0';
 
-  if ((prop = RNA_struct_find_property(op->ptr, "directory"))) {
+  {
+    PropertyRNA *prop = RNA_struct_find_property(op->ptr, "directory");
     RNA_property_string_get(op->ptr, prop, path);
     if (path[0] != '\0') {
       generate_name = false;
