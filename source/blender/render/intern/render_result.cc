@@ -952,7 +952,7 @@ static void render_result_exr_file_cache_path(Scene *sce,
   }
   BLI_hash_md5_to_hexdigest(path_digest, path_hexdigest);
 
-  /* Default to *non-volatile* tmp dir. */
+  /* Default to *non-volatile* temp dir. */
   if (*root == '\0') {
     root = BKE_tempdir_base();
   }

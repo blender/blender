@@ -113,7 +113,7 @@ class BokehBlurOperation : public NodeOperation {
      * computations of the bokeh blur. */
     const float size = math::clamp(get_input("Size").get_float_value_default(1.0f), 0.0f, 10.0f);
 
-    /* The 100 divisor is arbitrary and was chosen using visual judgement. */
+    /* The 100 divisor is arbitrary and was chosen using visual judgment. */
     return size * (max_size / 100.0f);
   }
 

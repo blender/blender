@@ -136,7 +136,7 @@ typedef struct SequenceRuntime {
  */
 typedef struct Sequence {
   struct Sequence *next, *prev;
-  /** Tmp var for copying, and tagging for linked selection. */
+  /** Temp var for copying, and tagging for linked selection. */
   void *tmp;
   /** Needed (to be like ipo), else it will raise libdata warnings, this should never be used. */
   void *lib;
