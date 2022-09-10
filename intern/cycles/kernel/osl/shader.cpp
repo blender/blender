@@ -150,7 +150,8 @@ static void flatten_surface_closure_tree(const KernelGlobalsCPU *kg,
   switch (closure->id) {
     case OSL::ClosureColor::MUL: {
       OSL::ClosureMul *mul = (OSL::ClosureMul *)closure;
-      flatten_surface_closure_tree(kg, sd, path_flag, mul->closure, TO_FLOAT3(mul->weight) * weight);
+      flatten_surface_closure_tree(
+          kg, sd, path_flag, mul->closure, TO_FLOAT3(mul->weight) * weight);
       break;
     }
     case OSL::ClosureColor::ADD: {
@@ -161,14 +162,10 @@ static void flatten_surface_closure_tree(const KernelGlobalsCPU *kg,
     }
 #define OSL_CLOSURE_STRUCT_BEGIN(Upper, lower) \
   case OSL_CLOSURE_##Upper##_ID: { \
-    const OSL::ClosureComponent *comp = \
-        reinterpret_cast<const OSL::ClosureComponent *>(closure); \
+    const OSL::ClosureComponent *comp = reinterpret_cast<const OSL::ClosureComponent *>(closure); \
     weight *= TO_FLOAT3(comp->w); \
-    osl_closure_##lower##_setup(kg, \
-                                sd, \
-                                path_flag, \
-                                weight, \
-                                reinterpret_cast<const Upper##Closure *>(comp + 1)); \
+    osl_closure_##lower##_setup( \
+        kg, sd, path_flag, weight, reinterpret_cast<const Upper##Closure *>(comp + 1)); \
     break; \
   }
 #include "closures_template.h"

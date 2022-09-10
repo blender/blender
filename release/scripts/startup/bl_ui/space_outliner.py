@@ -331,6 +331,7 @@ def has_selected_ids_in_context(context):
 
     return False
 
+
 class OUTLINER_MT_asset(Menu):
     bl_label = "Assets"
 

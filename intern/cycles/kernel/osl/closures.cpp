@@ -20,8 +20,8 @@
 #include "kernel/device/cpu/compat.h"
 #include "kernel/device/cpu/globals.h"
 
-#include "kernel/osl/types.h"
 #include "kernel/osl/closures_setup.h"
+#include "kernel/osl/types.h"
 
 CCL_NAMESPACE_BEGIN
 

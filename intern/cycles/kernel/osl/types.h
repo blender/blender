@@ -17,5 +17,4 @@ enum ClosureTypeOSL {
 #include "closures_template.h"
 };
 
-
 CCL_NAMESPACE_END
