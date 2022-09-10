@@ -1166,19 +1166,21 @@ static void studiolight_add_files_from_datafolder(const int folder_id,
                                                   const char *subfolder,
                                                   int flag)
 {
-  struct direntry *dirs;
   const char *folder = BKE_appdir_folder_id(folder_id, subfolder);
-  if (folder) {
-    const uint dirs_num = BLI_filelist_dir_contents(folder, &dirs);
-    int i;
-    for (i = 0; i < dirs_num; i++) {
-      if (dirs[i].type & S_IFREG) {
-        studiolight_add_file(dirs[i].path, flag);
-      }
-    }
-    BLI_filelist_free(dirs, dirs_num);
-    dirs = NULL;
+  if (!folder) {
+    return;
   }
+
+  struct direntry *dirs;
+  const uint dirs_num = BLI_filelist_dir_contents(folder, &dirs);
+  int i;
+  for (i = 0; i < dirs_num; i++) {
+    if (dirs[i].type & S_IFREG) {
+      studiolight_add_file(dirs[i].path, flag);
+    }
+  }
+  BLI_filelist_free(dirs, dirs_num);
+  dirs = NULL;
 }
 
 static int studiolight_flag_cmp_order(const StudioLight *sl)

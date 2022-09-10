@@ -1397,29 +1397,27 @@ void wm_homefile_read_post(struct bContext *C,
 
 void wm_history_file_read(void)
 {
-  char name[FILE_MAX];
-  LinkNode *l, *lines;
-  struct RecentFile *recent;
-  const char *line;
-  int num;
   const char *const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, NULL);
-
   if (!cfgdir) {
     return;
   }
 
+  char name[FILE_MAX];
+  LinkNode *l;
+  int num;
+
   BLI_join_dirfile(name, sizeof(name), cfgdir, BLENDER_HISTORY_FILE);
 
-  lines = BLI_file_read_as_lines(name);
+  LinkNode *lines = BLI_file_read_as_lines(name);
 
   wm_history_files_free();
 
   /* read list of recent opened files from recent-files.txt to memory */
   for (l = lines, num = 0; l && (num < U.recent_files); l = l->next) {
-    line = l->link;
+    const char *line = l->link;
     /* don't check if files exist, causes slow startup for remote/external drives */
     if (line[0]) {
-      recent = (RecentFile *)MEM_mallocN(sizeof(RecentFile), "RecentFile");
+      struct RecentFile *recent = (RecentFile *)MEM_mallocN(sizeof(RecentFile), "RecentFile");
       BLI_addtail(&(G.recent_files), recent);
       recent->filepath = BLI_strdup(line);
       num++;

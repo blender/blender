@@ -734,6 +734,7 @@ const char *BKE_appdir_folder_id_create(const int folder_id, const char *subfold
             BLENDER_USER_CONFIG,
             BLENDER_USER_SCRIPTS,
             BLENDER_USER_AUTOSAVE)) {
+    BLI_assert_unreachable();
     return NULL;
   }
 
