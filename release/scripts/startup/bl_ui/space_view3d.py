@@ -7330,6 +7330,7 @@ class VIEW3D_MT_gpencil_edit_context_menu(Menu):
             col.operator("transform.shear", text="Shear")
             col.operator("transform.tosphere", text="To Sphere")
             col.operator("transform.transform", text="Shrink/Fatten").mode = 'GPENCIL_SHRINKFATTEN'
+            col.operator("gpencil.stroke_start_set", text="Set Start Point")
 
             col.separator()
 
