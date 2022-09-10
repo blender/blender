@@ -51,7 +51,7 @@ static void initData(ModifierData *md)
   VolumeToMeshModifierData *vmmd = reinterpret_cast<VolumeToMeshModifierData *>(md);
   vmmd->object = nullptr;
   vmmd->threshold = 0.1f;
-  strncpy(vmmd->grid_name, "density", MAX_NAME);
+  STRNCPY(vmmd->grid_name, "density");
   vmmd->adaptivity = 0.0f;
   vmmd->resolution_mode = VOLUME_TO_MESH_RESOLUTION_MODE_GRID;
   vmmd->voxel_amount = 32;

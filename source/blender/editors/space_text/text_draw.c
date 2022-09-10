@@ -706,7 +706,7 @@ static void text_update_drawcache(SpaceText *st, ARegion *region)
   drawcache->showlinenrs = st->showlinenrs;
   drawcache->tabnumber = st->tabnumber;
 
-  strncpy(drawcache->text_id, txt->id.name, MAX_ID_NAME);
+  STRNCPY(drawcache->text_id, txt->id.name);
 
   /* clear update flag */
   drawcache->update_flag = 0;

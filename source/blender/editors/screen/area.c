@@ -16,6 +16,7 @@
 #include "BLI_linklist_stack.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -2687,12 +2688,13 @@ static void ed_panel_draw(const bContext *C,
   const uiStyle *style = UI_style_get_dpi();
 
   /* Draw panel. */
-
   char block_name[BKE_ST_MAXNAME + INSTANCED_PANEL_UNIQUE_STR_LEN];
-  strncpy(block_name, pt->idname, BKE_ST_MAXNAME);
-  if (unique_panel_str != NULL) {
+  if (unique_panel_str) {
     /* Instanced panels should have already been added at this point. */
-    strncat(block_name, unique_panel_str, INSTANCED_PANEL_UNIQUE_STR_LEN);
+    BLI_string_join(block_name, sizeof(block_name), pt->idname, unique_panel_str);
+  }
+  else {
+    STRNCPY(block_name, pt->idname);
   }
   uiBlock *block = UI_block_begin(C, region, block_name, UI_EMBOSS);
 

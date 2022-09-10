@@ -1021,7 +1021,7 @@ void ED_spacetype_node()
   ARegionType *art;
 
   st->spaceid = SPACE_NODE;
-  strncpy(st->name, "Node", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "Node");
 
   st->create = node_create;
   st->free = node_free;

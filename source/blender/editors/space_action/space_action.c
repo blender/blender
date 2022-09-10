@@ -840,7 +840,7 @@ void ED_spacetype_action(void)
   ARegionType *art;
 
   st->spaceid = SPACE_ACTION;
-  strncpy(st->name, "Action", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "Action");
 
   st->create = action_create;
   st->free = action_free;

@@ -289,7 +289,7 @@ void ED_spacetype_console(void)
   ARegionType *art;
 
   st->spaceid = SPACE_CONSOLE;
-  strncpy(st->name, "Console", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "Console");
 
   st->create = console_create;
   st->free = console_free;

@@ -568,7 +568,7 @@ void ED_spacetype_nla(void)
   ARegionType *art;
 
   st->spaceid = SPACE_NLA;
-  strncpy(st->name, "NLA", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "NLA");
 
   st->create = nla_create;
   st->free = nla_free;

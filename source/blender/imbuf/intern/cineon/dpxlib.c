@@ -18,6 +18,7 @@
 #include <time.h>
 
 #include "BLI_fileops.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
@@ -60,14 +61,12 @@ static void fillDpxMainHeader(LogImageFile *dpx,
   header->fileHeader.ind_hdr_size = swap_uint(sizeof(DpxFilmHeader) + sizeof(DpxTelevisionHeader),
                                               dpx->isMSB);
   header->fileHeader.user_data_size = DPX_UNDEFINED_U32;
-  strncpy(header->fileHeader.file_name, filename, 99);
-  header->fileHeader.file_name[99] = 0;
+  STRNCPY(header->fileHeader.file_name, filename);
   fileClock = time(NULL);
   fileTime = localtime(&fileClock);
   strftime(header->fileHeader.creation_date, 24, "%Y:%m:%d:%H:%M:%S%Z", fileTime);
   header->fileHeader.creation_date[23] = 0;
-  strncpy(header->fileHeader.creator, creator, 99);
-  header->fileHeader.creator[99] = 0;
+  STRNCPY(header->fileHeader.creator, creator);
   header->fileHeader.project[0] = 0;
   header->fileHeader.copyright[0] = 0;
   header->fileHeader.key = 0xFFFFFFFF;

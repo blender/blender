@@ -1972,7 +1972,7 @@ void ED_spacetype_view3d(void)
   ARegionType *art;
 
   st->spaceid = SPACE_VIEW3D;
-  strncpy(st->name, "View3D", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "View3D");
 
   st->create = view3d_create;
   st->free = view3d_free;

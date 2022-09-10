@@ -445,7 +445,7 @@ void ED_spacetype_outliner(void)
   ARegionType *art;
 
   st->spaceid = SPACE_OUTLINER;
-  strncpy(st->name, "Outliner", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "Outliner");
 
   st->create = outliner_create;
   st->free = outliner_free;

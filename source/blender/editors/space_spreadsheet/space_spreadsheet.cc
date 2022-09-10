@@ -619,7 +619,7 @@ void ED_spacetype_spreadsheet()
   ARegionType *art;
 
   st->spaceid = SPACE_SPREADSHEET;
-  strncpy(st->name, "Spreadsheet", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "Spreadsheet");
 
   st->create = spreadsheet_create;
   st->free = spreadsheet_free;

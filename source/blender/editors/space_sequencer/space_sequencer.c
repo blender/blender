@@ -997,7 +997,7 @@ void ED_spacetype_sequencer(void)
   ARegionType *art;
 
   st->spaceid = SPACE_SEQ;
-  strncpy(st->name, "Sequencer", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "Sequencer");
 
   st->create = sequencer_create;
   st->free = sequencer_free;
