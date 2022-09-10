@@ -1917,12 +1917,11 @@ static void wm_autosave_location(char filepath[FILE_MAX])
   }
 
   const char *tempdir_base = BKE_tempdir_base();
+  /* NOTE(@campbellbarton): It's strange that this is only used on WIN32.
+   * From reading commits it seems accessing the temporary directory used to be less reliable.
+   * If this is still the case on WIN32 - other features such as copy-paste will also fail.
+   * We could support #BLENDER_USER_AUTOSAVE on all platforms or remove it entirely. */
 #ifdef WIN32
-  /* XXX Need to investigate how to handle default location of `/tmp/`
-   * This is a relative directory on Windows, and it may be found. Example:
-   * Blender installed on `D:\` drive, `D:\` drive has `D:\tmp\` Now, `BLI_exists()`
-   * will find `/tmp/` exists, but  #BLI_windows_get_default_root_dir will expand this to `C:\`.
-   * If there is no `C:\tmp` autosave fails. */
   if (!BLI_exists(tempdir_base)) {
     const char *savedir = BKE_appdir_folder_id_create(BLENDER_USER_AUTOSAVE, NULL);
     if (savedir) {
