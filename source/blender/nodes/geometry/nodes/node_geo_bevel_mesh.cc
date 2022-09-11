@@ -11,6 +11,7 @@
 #include "BLI_array.hh"
 #include "BLI_math_vec_types.hh"
 #include "BLI_math_vector.hh"
+#include "BLI_mesh_inset.hh"
 #include "BLI_set.hh"
 #include "BLI_sort.hh"
 #include "BLI_task.hh"
@@ -781,6 +782,7 @@ class IndexAlloc {
  */
 class MeshDelta {
   const Mesh &mesh_;
+  const MeshTopology &topo_;
   IndexAlloc vert_alloc_;
   IndexAlloc edge_alloc_;
   IndexAlloc poly_alloc_;
@@ -799,13 +801,15 @@ class MeshDelta {
   Vector<int> new_loop_rep_;
 
  public:
-  MeshDelta(const Mesh &mesh);
+  MeshDelta(const Mesh &mesh, const MeshTopology &topo);
 
   /* In the following, `rep` is the index of the old mesh element to base attributes on.  */
   int new_vert(const float3 &co, int rep);
   int new_edge(int v1, int v2, int rep);
   int new_loop(int v, int e, int rep);
   int new_face(int loopstart, int totloop, int rep);
+  /* Find the edge either in mesh or new_edges_, or make a new one if not there. */
+  int find_or_add_edge(int v1, int v2, int rep);
 
   void delete_vert(int v)
   {
@@ -830,8 +834,9 @@ class MeshDelta {
   void print(const std::string &label) const;
 };
 
-MeshDelta::MeshDelta(const Mesh &mesh)
+MeshDelta::MeshDelta(const Mesh &mesh, const MeshTopology &topo)
     : mesh_(mesh),
+      topo_(topo),
       vert_alloc_(mesh_.totvert),
       edge_alloc_(mesh_.totedge),
       poly_alloc_(mesh_.totpoly),
@@ -863,6 +868,26 @@ int MeshDelta::new_edge(int v1, int v2, int rep)
   new_edges_.append(medge);
   new_edge_rep_.append(rep);
   return e;
+}
+
+int MeshDelta::find_or_add_edge(int v1, int v2, int rep)
+{
+  if (v1 < mesh_.totvert) {
+    for (int i : topo_.vert_edges(v1)) {
+      const MEdge &e = mesh_.edges()[i];
+      if ((e.v1 == v1 && e.v2 == v2) || (e.v1 == v2 && e.v2 == v1)) {
+        return i;
+      }
+    }
+  }
+  /* TODO: have an equivalent of vert_edges() in MeshDelta to make this fast! */
+  for (int i : new_edges_.index_range()) {
+    const MEdge &e = new_edges_[i];
+    if ((e.v1 == v1 && e.v2 == v2) || (e.v1 == v2 && e.v2 == v1)) {
+      return mesh_.totedge + i;
+    }
+  }
+  return new_edge(v1, v2, rep);
 }
 
 int MeshDelta::new_loop(int v, int e, int rep)
@@ -1402,7 +1427,7 @@ static Mesh *finish_vertex_bevel(BevelData &bd,
                                  GeometrySet geometry_set,
                                  const MeshComponent &component)
 {
-  MeshDelta mesh_delta(mesh);
+  MeshDelta mesh_delta(mesh, bd.topo);
   MutableSpan<BevelVertexData> beveled_bvds = bd.mutable_beveled_vertices_data();
 
   /* Make the polygons that will replace the beveled vertices. */
@@ -1562,6 +1587,73 @@ static Mesh *finish_vertex_bevel(BevelData &bd,
   return mesh_out;
 }
 
+/* Temporary face bevel function. TODO: expand to regional face bevels. */
+static Mesh *calculate_face_bevel(BevelData &bd,
+                                  const Mesh &mesh,
+                                  GeometrySet geometry_set,
+                                  const MeshComponent &component,
+                                  const IndexMask &to_bevel,
+                                  const VArray<float> amounts)
+{
+  Span<MPoly> faces = mesh.polys();
+  Span<MVert> verts = mesh.verts();
+  Span<MLoop> loops = mesh.loops();
+  MeshDelta delta(mesh, bd.topo);
+  for (const int i : to_bevel.index_range()) {
+    const int face_index = to_bevel[i];
+    const MPoly &face = faces[face_index];
+    const int n = face.totloop;
+    Array<float3> vert_co(n);
+    Array<int> mi_vert_to_mesh_vert(n);
+    Vector<int> face_vert;
+    for (const int l : IndexRange(n)) {
+      const MLoop &loop = loops[face.loopstart + l];
+      const int v_index = loop.v;
+      vert_co[l] = verts[v_index].co;
+      mi_vert_to_mesh_vert[l] = v_index;
+      face_vert.append(l);
+    }
+    Array<Vector<int>> mi_faces(1);
+    mi_faces[0] = face_vert;
+    meshinset::MeshInset_Input mi_input;
+    mi_input.vert = vert_co.as_span();
+    mi_input.face = mi_faces.as_span();
+    mi_input.contour = mi_faces.as_span();
+    mi_input.inset_amount = amounts[face_index];
+    meshinset::MeshInset_Result mi_result = meshinset::mesh_inset_calc(mi_input);
+    /* Mapping from the result output vert indices to mesh indices. */
+    Array<int> mr_vert_to_mesh_vert(mi_result.vert.size());
+    for (const int i : mi_result.vert.index_range()) {
+      if (mi_result.orig_vert[i] != -1) {
+        mr_vert_to_mesh_vert[i] = mi_vert_to_mesh_vert[mi_result.orig_vert[i]];
+      }
+      else {
+        mr_vert_to_mesh_vert[i] = delta.new_vert(mi_result.vert[i], 0); // TODO: better rep!
+      }
+    }
+    /* Construct the output faces. */
+    for (const int out_face_index : mi_result.face.index_range()) {
+      Vector<int> &mr_face = mi_result.face[out_face_index];
+      const int m = mr_face.size();
+      int lfirst = -1;
+      for (const int i : IndexRange(m)) {
+        int v = mr_vert_to_mesh_vert[mr_face[i]];
+        int v_next = mr_vert_to_mesh_vert[mr_face[(i + 1) % m]];
+        int e = delta.find_or_add_edge(v, v_next, 0); // TODO: better rep!
+        int l = delta.new_loop(v, e, 0); //TODO: better rep!
+        if (lfirst == -1) {
+          lfirst = l;
+        }
+      }
+      delta.new_face(lfirst, m, face_index); // TODO: better rep!
+    }
+    /* The following also deletes the loops. The edges in the original faces should have all been reused. */
+    delta.delete_face(face_index);
+  }
+  Mesh *mesh_out = delta.apply_delta_to_mesh(geometry_set, component);
+  return mesh_out;
+}
+
 static Mesh *bevel_mesh_vertices(GeometrySet geometry_set,
                                  const MeshComponent &component,
                                  const Field<bool> &selection_field,
@@ -1583,16 +1675,35 @@ static Mesh *bevel_mesh_vertices(GeometrySet geometry_set,
   return finish_vertex_bevel(bdata, mesh, geometry_set, component);
 }
 
-static void bevel_mesh_edges(const MeshComponent &UNUSED(component),
+static Mesh *bevel_mesh_edges(GeometrySet geometry_set,
+                             const MeshComponent &component,
                              const Field<bool> &UNUSED(selection_field),
                              const Field<float> &UNUSED(amount_field))
 {
+  const Mesh &mesh = *component.get_for_read();
+  BevelData bdata(mesh);
+  MeshDelta delta(mesh, bdata.topo);
+  /* TODO: actually bevel the edges! */
+  Mesh *mesh_out = delta.apply_delta_to_mesh(geometry_set, component);
+  return mesh_out;
 }
 
-static void bevel_mesh_faces(const MeshComponent &UNUSED(component),
-                             const Field<bool> &UNUSED(selection_field),
-                             const Field<float> &UNUSED(amount_field))
+static Mesh *bevel_mesh_faces(GeometrySet geometry_set,
+                             const MeshComponent &component,
+                             const Field<bool> &selection_field,
+                             const Field<float> &amount_field)
 {
+  const Mesh &mesh = *component.get_for_read();
+  bke::MeshFieldContext context{mesh, ATTR_DOMAIN_FACE};
+  FieldEvaluator evaluator{context, mesh.totpoly};
+  evaluator.set_selection(selection_field);
+  evaluator.add(amount_field);
+  evaluator.evaluate();
+  VArray<float> amounts = evaluator.get_evaluated<float>(0);
+  const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+
+  BevelData bdata(mesh);
+  return calculate_face_bevel(bdata, mesh, geometry_set, component, selection, amounts);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -1612,10 +1723,10 @@ static void node_geo_exec(GeoNodeExecParams params)
           mesh_out = bevel_mesh_vertices(geometry_set, component, selection_field, amount_field);
           break;
         case GEO_NODE_BEVEL_MESH_EDGES:
-          bevel_mesh_edges(component, selection_field, amount_field);
+          mesh_out = bevel_mesh_edges(geometry_set, component, selection_field, amount_field);
           break;
         case GEO_NODE_BEVEL_MESH_FACES:
-          bevel_mesh_faces(component, selection_field, amount_field);
+          mesh_out = bevel_mesh_faces(geometry_set, component, selection_field, amount_field);
           break;
       }
       BLI_assert(BKE_mesh_is_valid(mesh_out));

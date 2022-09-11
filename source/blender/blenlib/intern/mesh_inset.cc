@@ -2964,10 +2964,14 @@ static MeshInset_Result trimesh_to_output(const TriangleMesh &trimesh,
     }
   }
   result.vert = Array<float3>(totv);
+  result.orig_vert = Array<int>(totv, -1);
   int out_v_index = 0;
   for (int i : IndexRange(tot_all_verts)) {
     const Vert *v = trimesh.get_vert_by_index(i);
     if (!v->is_deleted()) {
+      if (i < input.vert.size()) {
+        result.orig_vert[out_v_index] = i;
+      }
       result.vert[out_v_index++] = v->co;
     }
   }
@@ -3031,6 +3035,23 @@ static MeshInset_Result trimesh_to_output(const TriangleMesh &trimesh,
   for (int fi : out_faces.index_range()) {
     result.face[fi] = out_faces[fi];
   }
+  if (dbg_level > 0) {
+    std::cout << "result:\n";
+    for (int i : result.vert.index_range()) {
+      std::cout << "vert[" << i << "] = " << result.vert[i] << "\n";
+    }
+    for (int i : result.face.index_range()) {
+      const Vector<int> &f = result.face[i];
+      std::cout << "face[" << i << "] =";
+      for (int j : f.index_range()) {
+        std::cout << " " << f[j];
+      }
+      std::cout << "\n";
+    }
+    for (int i : result.orig_vert.index_range()) {
+      std::cout << "orig_vert[" << i << "] = " << result.orig_vert[i] << "\n";
+    }
+  }
   return result;
 }
 
@@ -3038,7 +3059,29 @@ MeshInset_Result mesh_inset_calc(const MeshInset_Input &input)
 {
   constexpr int dbg_level = 0;
   if (dbg_level > 0) {
-    std::cout << "mesh_inset_calc, input has " << input.face.size() << " faces\n";
+    std::cout << "mesh_inset_calc\n";
+    if (dbg_level > 1) {
+      std::cout << "input\n";
+      for (int i : input.vert.index_range()) {
+        std::cout << "vert[" << i << "] = " << input.vert[i] << "\n";
+      }
+      for (int i : input.face.index_range()) {
+        std::cout << "face[" << i << "] =";
+        const Vector<int> &f = input.face[i];
+        for (int j : f.index_range()) {
+          std::cout << " " << f[j];
+        }
+        std::cout << "\n";
+      }
+      for (int i : input.contour.index_range()) {
+        std::cout << "contour[" << i << "] =";
+        const Vector<int> &c = input.contour[i];
+        for (int j : c.index_range()) {
+          std::cout << " " << c[j];
+        }
+        std::cout << "\n";
+      }
+    }
   }
   TriangleMesh trimesh = triangulate_input(input);
   StraightSkeleton ss(trimesh, input.contour, input.inset_amount);
