@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-from bpy.types import Menu, Panel, UIList
+from bpy.types import Menu, Panel, UIList, ViewLayer
+
+from rna_prop_ui import PropertyPanel
 
 
 class VIEWLAYER_UL_aov(UIList):
@@ -249,6 +251,14 @@ class VIEWLAYER_PT_layer_passes_lightgroups(ViewLayerLightgroupsPanel):
     COMPAT_ENGINES = {'CYCLES'}
 
 
+class VIEWLAYER_PT_layer_custom_props(PropertyPanel, Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "view_layer"
+    _context_path = "view_layer"
+    _property_type = ViewLayer
+
+
 classes = (
     VIEWLAYER_MT_lightgroup_sync,
     VIEWLAYER_PT_layer,
@@ -260,6 +270,7 @@ classes = (
     VIEWLAYER_PT_layer_passes_cryptomatte,
     VIEWLAYER_PT_layer_passes_aov,
     VIEWLAYER_PT_layer_passes_lightgroups,
+    VIEWLAYER_PT_layer_custom_props,
     VIEWLAYER_UL_aov,
 )
 
