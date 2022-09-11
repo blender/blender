@@ -44,6 +44,7 @@ typedef struct DRWCommandsState {
   int obmats_loc;
   int obinfos_loc;
   int obattrs_loc;
+  int vlattrs_loc;
   int baseinst_loc;
   int chunkid_loc;
   int resourceid_loc;
@@ -682,6 +683,10 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
                                                                uni->uniform_attrs);
           DRW_sparse_uniform_buffer_bind(state->obattrs_ubo, 0, uni->location);
           break;
+        case DRW_UNIFORM_BLOCK_VLATTRS:
+          state->vlattrs_loc = uni->location;
+          GPU_uniformbuf_bind(drw_ensure_layer_attribute_buffer(), uni->location);
+          break;
         case DRW_UNIFORM_RESOURCE_CHUNK:
           state->chunkid_loc = uni->location;
           GPU_shader_uniform_int(shgroup->shader, uni->location, 0);
@@ -960,6 +965,9 @@ static void draw_call_batching_finish(DRWShadingGroup *shgroup, DRWCommandsState
   if (state->obattrs_loc != -1) {
     DRW_sparse_uniform_buffer_unbind(state->obattrs_ubo, state->resource_chunk);
   }
+  if (state->vlattrs_loc != -1) {
+    GPU_uniformbuf_unbind(DST.vmempool->vlattrs_ubo);
+  }
 }
 
 static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
@@ -970,6 +978,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
       .obmats_loc = -1,
       .obinfos_loc = -1,
       .obattrs_loc = -1,
+      .vlattrs_loc = -1,
       .baseinst_loc = -1,
       .chunkid_loc = -1,
       .resourceid_loc = -1,

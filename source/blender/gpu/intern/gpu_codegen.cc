@@ -183,6 +183,8 @@ static std::ostream &operator<<(std::ostream &stream, const GPUInput *input)
       return stream << "var_attrs.v" << input->attr->id;
     case GPU_SOURCE_UNIFORM_ATTR:
       return stream << "unf_attrs[resource_id].attr" << input->uniform_attr->id;
+    case GPU_SOURCE_LAYER_ATTR:
+      return stream << "attr_load_layer(" << input->layer_attr->hash_code << ")";
     case GPU_SOURCE_STRUCT:
       return stream << "strct" << input->id;
     case GPU_SOURCE_TEX:
@@ -430,6 +432,10 @@ void GPUCodegen::generate_resources()
     /* TODO(fclem): Use the macro for length. Currently not working for EEVEE. */
     /* DRW_RESOURCE_CHUNK_LEN = 512 */
     info.uniform_buf(2, "UniformAttrs", GPU_ATTRIBUTE_UBO_BLOCK_NAME "[512]", Frequency::BATCH);
+  }
+
+  if (!BLI_listbase_is_empty(&graph.layer_attrs)) {
+    info.additional_info("draw_layer_attributes");
   }
 
   info.typedef_source_generated = ss.str();

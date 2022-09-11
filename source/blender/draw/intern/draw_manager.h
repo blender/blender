@@ -335,6 +335,7 @@ typedef enum {
   DRW_UNIFORM_BLOCK_OBMATS,
   DRW_UNIFORM_BLOCK_OBINFOS,
   DRW_UNIFORM_BLOCK_OBATTRS,
+  DRW_UNIFORM_BLOCK_VLATTRS,
   DRW_UNIFORM_RESOURCE_CHUNK,
   DRW_UNIFORM_RESOURCE_ID,
   /** Legacy / Fallback */
@@ -527,6 +528,11 @@ typedef struct DRWData {
   struct GPUUniformBuf **matrices_ubo;
   struct GPUUniformBuf **obinfos_ubo;
   struct GHash *obattrs_ubo_pool;
+  struct GHash *vlattrs_name_cache;
+  struct ListBase vlattrs_name_list;
+  struct LayerAttribute *vlattrs_buf;
+  struct GPUUniformBuf *vlattrs_ubo;
+  bool vlattrs_ubo_ready;
   uint ubo_len;
   /** Per draw-call volume object data. */
   void *volume_grids_ubos; /* VolumeUniformBufPool */
@@ -690,6 +696,8 @@ void drw_uniform_attrs_pool_update(struct GHash *table,
                                    struct Object *ob,
                                    struct Object *dupli_parent,
                                    struct DupliObject *dupli_source);
+
+GPUUniformBuf *drw_ensure_layer_attribute_buffer();
 
 double *drw_engine_data_cache_time_get(GPUViewport *viewport);
 void *drw_engine_data_engine_data_create(GPUViewport *viewport, void *engine_type);

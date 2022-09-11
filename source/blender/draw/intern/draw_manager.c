@@ -378,6 +378,8 @@ DRWData *DRW_viewport_data_create(void)
   drw_data->views = BLI_memblock_create(sizeof(DRWView));
   drw_data->images = BLI_memblock_create(sizeof(GPUTexture *));
   drw_data->obattrs_ubo_pool = DRW_uniform_attrs_pool_new();
+  drw_data->vlattrs_name_cache = BLI_ghash_new(
+      BLI_ghashutil_inthash_p_simple, BLI_ghashutil_intcmp, "View Layer Attribute names");
   {
     uint chunk_len = sizeof(DRWObjectMatrix) * DRW_RESOURCE_CHUNK_LEN;
     drw_data->obmats = BLI_memblock_create_ex(sizeof(DRWObjectMatrix), chunk_len);
@@ -413,9 +415,23 @@ static void draw_texture_release(DRWData *drw_data)
   }
 }
 
+static void draw_prune_vlattrs(DRWData *drw_data)
+{
+  drw_data->vlattrs_ubo_ready = false;
+
+  /* Forget known attributes after they are unused for a few frames. */
+  LISTBASE_FOREACH_MUTABLE (GPULayerAttr *, attr, &drw_data->vlattrs_name_list) {
+    if (++attr->users > 10) {
+      BLI_ghash_remove(drw_data->vlattrs_name_cache, (void *)attr->hash_code, NULL, NULL);
+      BLI_freelinkN(&drw_data->vlattrs_name_list, attr);
+    }
+  }
+}
+
 static void drw_viewport_data_reset(DRWData *drw_data)
 {
   draw_texture_release(drw_data);
+  draw_prune_vlattrs(drw_data);
 
   BLI_memblock_clear(drw_data->commands, NULL);
   BLI_memblock_clear(drw_data->commands_small, NULL);
@@ -451,6 +467,12 @@ void DRW_viewport_data_free(DRWData *drw_data)
   BLI_memblock_destroy(drw_data->passes, NULL);
   BLI_memblock_destroy(drw_data->images, NULL);
   DRW_uniform_attrs_pool_free(drw_data->obattrs_ubo_pool);
+  BLI_ghash_free(drw_data->vlattrs_name_cache, NULL, NULL);
+  BLI_freelistN(&drw_data->vlattrs_name_list);
+  if (drw_data->vlattrs_ubo) {
+    GPU_uniformbuf_free(drw_data->vlattrs_ubo);
+    MEM_freeN(drw_data->vlattrs_buf);
+  }
   DRW_instance_data_list_free(drw_data->idatalist);
   DRW_texture_pool_free(drw_data->texture_pool);
   for (int i = 0; i < 2; i++) {
@@ -811,6 +833,7 @@ static bool id_type_can_have_drawdata(const short id_type)
     /* has DrawData */
     case ID_OB:
     case ID_WO:
+    case ID_SCE:
       return true;
 
     /* no DrawData */

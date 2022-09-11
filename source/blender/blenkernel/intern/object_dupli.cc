@@ -57,10 +57,12 @@
 #include "DEG_depsgraph_query.h"
 
 #include "BLI_hash.h"
+#include "DNA_world_types.h"
 
 #include "NOD_geometry_nodes_log.hh"
 #include "RNA_access.h"
 #include "RNA_path.h"
+#include "RNA_prototypes.h"
 #include "RNA_types.h"
 
 using blender::Array;
@@ -1910,6 +1912,32 @@ bool BKE_object_dupli_find_rgba_attribute(
     if (ob->data && find_rna_property_rgba((ID *)ob->data, name, r_value)) {
       return true;
     }
+  }
+
+  copy_v4_fl(r_value, 0.0f);
+  return false;
+}
+
+bool BKE_view_layer_find_rgba_attribute(struct Scene *scene,
+                                        struct ViewLayer *layer,
+                                        const char *name,
+                                        float r_value[4])
+{
+  if (layer) {
+    PointerRNA layer_ptr;
+    RNA_pointer_create(&scene->id, &RNA_ViewLayer, layer, &layer_ptr);
+
+    if (find_rna_property_rgba(&layer_ptr, name, r_value)) {
+      return true;
+    }
+  }
+
+  if (find_rna_property_rgba(&scene->id, name, r_value)) {
+    return true;
+  }
+
+  if (scene->world && find_rna_property_rgba(&scene->world->id, name, r_value)) {
+    return true;
   }
 
   copy_v4_fl(r_value, 0.0f);
