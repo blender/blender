@@ -329,8 +329,14 @@ int SCULPT_active_face_set_get(SculptSession *ss)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      return ss->face_sets ? ss->face_sets[ss->active_face_index] : SCULPT_FACE_SET_NONE;
+      if (!ss->face_sets) {
+        return SCULPT_FACE_SET_NONE;
+      }
+      return ss->face_sets[ss->active_face_index];
     case PBVH_GRIDS: {
+      if (!ss->face_sets) {
+        return SCULPT_FACE_SET_NONE;
+      }
       const int face_index = BKE_subdiv_ccg_grid_to_face_index(ss->subdiv_ccg,
                                                                ss->active_grid_index);
       return ss->face_sets[face_index];
