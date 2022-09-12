@@ -199,7 +199,7 @@ static void free_operator_customdata(wmOperator *op)
   }
 }
 
-static void wm_usd_export_cancel(bContext *C, wmOperator *op, const wmEvent *event)
+static void wm_usd_export_cancel(bContext *UNUSED(C), wmOperator *op)
 {
   free_operator_customdata(op);
 }
@@ -436,7 +436,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static void wm_usd_import_cancel(bContext *C, wmOperator *op, const wmEvent *event)
+static void wm_usd_import_cancel(bContext *UNUSED(C), wmOperator *op)
 {
   free_operator_customdata(op);
 }
