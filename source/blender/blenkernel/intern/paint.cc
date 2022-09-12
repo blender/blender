@@ -1088,10 +1088,10 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
     Sculpt *data = MEM_cnew<Sculpt>(__func__);
     paint = &data->paint;
 
-    /* Turn on X plane mirror symmetry by default */
+    /* Turn on X plane mirror symmetry by default. */
     paint->symmetry_flags |= PAINT_SYMM_X;
 
-    /* Make sure at least dyntopo subdivision is enabled */
+    /* Make sure at least dyntopo subdivision is enabled. */
     data->flags |= SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE;
   }
   else if ((GpPaint **)r_paint == &ts->gp_paint) {
@@ -1146,7 +1146,7 @@ void BKE_paint_init(Main *bmain, Scene *sce, ePaintMode mode, const uchar col[3]
       brush = BKE_brush_first_search(bmain, ob_mode);
       if (!brush) {
         brush = BKE_brush_add(bmain, "Brush", ob_mode);
-        id_us_min(&brush->id); /* fake user only */
+        id_us_min(&brush->id); /* Fake user only. */
       }
       BKE_paint_brush_set(paint, brush);
     }
@@ -1257,7 +1257,7 @@ bool paint_is_face_hidden(const MLoopTri *lt, const bool *hide_poly)
 
 bool paint_is_grid_face_hidden(const uint *grid_hidden, int gridsize, int x, int y)
 {
-  /* skip face if any of its corners are hidden */
+  /* Skip face if any of its corners are hidden. */
   return (BLI_BITMAP_TEST(grid_hidden, y * gridsize + x) ||
           BLI_BITMAP_TEST(grid_hidden, y * gridsize + x + 1) ||
           BLI_BITMAP_TEST(grid_hidden, (y + 1) * gridsize + x + 1) ||
@@ -1287,7 +1287,7 @@ float paint_grid_paint_mask(const GridPaintMask *gpm, uint level, uint x, uint y
   return gpm->data[(y * factor) * gridsize + (x * factor)];
 }
 
-/* threshold to move before updating the brush rotation */
+/* Threshold to move before updating the brush rotation. */
 #define RAKE_THRESHHOLD 20
 
 void paint_update_brush_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, float rotation)
@@ -1330,8 +1330,8 @@ bool paint_calculate_rake_rotation(UnifiedPaintSettings *ups,
       paint_update_brush_rake_rotation(ups, brush, rotation);
       ok = true;
     }
-    /* make sure we reset here to the last rotation to avoid accumulating
-     * values in case a random rotation is also added */
+    /* Make sure we reset here to the last rotation to avoid accumulating
+     * values in case a random rotation is also added. */
     else {
       paint_update_brush_rake_rotation(ups, brush, ups->last_rake_angle);
       ok = false;
@@ -1536,7 +1536,7 @@ MultiresModifierData *sculpt_multires_modifier_get(const Scene *scene,
   VirtualModifierData virtualModifierData;
 
   if (ob->sculpt && ob->sculpt->bm) {
-    /* can't combine multires and dynamic topology */
+    /* Can't combine multires and dynamic topology. */
     return nullptr;
   }
 
@@ -1544,7 +1544,7 @@ MultiresModifierData *sculpt_multires_modifier_get(const Scene *scene,
 
   if (!CustomData_get_layer(&me->ldata, CD_MDISPS)) {
     if (!auto_create_mdisps) {
-      /* multires can't work without displacement layer */
+      /* Multires can't work without displacement layer. */
       return nullptr;
     }
     else {
@@ -1597,14 +1597,14 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
     return false;
   }
 
-  /* non-locked shape keys could be handled in the same way as deformed mesh */
+  /* Non-locked shape keys could be handled in the same way as deformed mesh. */
   if ((ob->shapeflag & OB_SHAPE_LOCK) == 0 && me->key && ob->shapenr) {
     return true;
   }
 
   md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
 
-  /* exception for shape keys because we can edit those */
+  /* Exception for shape keys because we can edit those. */
   for (; md; md = md->next) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(static_cast<ModifierType>(md->type));
     if (!BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) {
@@ -1950,7 +1950,7 @@ int *BKE_sculpt_face_sets_ensure(Mesh *mesh)
   }
   else {
     const int face_sets_default_visible_id = 1;
-    const int face_sets_default_hidden_id = -(face_sets_default_visible_id + 1);
+    const int face_sets_default_hidden_id = -2;
 
     const VArraySpan<bool> hide_poly_span{hide_poly};
     for (const int i : face_sets.index_range()) {
@@ -2027,7 +2027,7 @@ int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
     ret |= SCULPT_MASK_LAYER_CALC_LOOP;
   }
 
-  /* create vertex paint mask layer if there isn't one already */
+  /* Create vertex paint mask layer if there isn't one already. */
   if (!paint_mask) {
     CustomData_add_layer(&me->vdata, CD_PAINT_MASK, CD_SET_DEFAULT, nullptr, me->totvert);
     ret |= SCULPT_MASK_LAYER_CALC_VERT;
@@ -2051,7 +2051,7 @@ void BKE_sculpt_toolsettings_data_ensure(Scene *scene)
     sd->constant_detail = 3.0f;
   }
 
-  /* Set sane default tiling offsets */
+  /* Set sane default tiling offsets. */
   if (!sd->paint.tile_offset[0]) {
     sd->paint.tile_offset[0] = 1.0f;
   }
@@ -2069,8 +2069,7 @@ static bool check_sculpt_object_deformed(Object *object, const bool for_construc
 
   /* Active modifiers means extra deformation, which can't be handled correct
    * on birth of PBVH and sculpt "layer" levels, so use PBVH only for internal brush
-   * stuff and show final evaluated mesh so user would see actual object shape.
-   */
+   * stuff and show final evaluated mesh so user would see actual object shape. */
   deformed |= object->sculpt->deform_modifiers_active;
 
   if (for_construction) {
@@ -2079,8 +2078,7 @@ static bool check_sculpt_object_deformed(Object *object, const bool for_construc
   else {
     /* As in case with modifiers, we can't synchronize deformation made against
      * PBVH and non-locked keyblock, so also use PBVH only for brushes and
-     * final DM to give final result to user.
-     */
+     * final DM to give final result to user. */
     deformed |= object->sculpt->shapekey_active && (object->shapeflag & OB_SHAPE_LOCK) == 0;
   }
 
