@@ -191,6 +191,19 @@ static void wm_usd_export_draw(bContext *UNUSED(C), wmOperator *op)
   uiItemR(box, ptr, "use_instancing", 0, NULL, ICON_NONE);
 }
 
+static void free_operator_customdata(wmOperator *op)
+{
+  if (op->customdata) {
+    MEM_freeN(op->customdata);
+    op->customdata = NULL;
+  }
+}
+
+static void wm_usd_export_cancel(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  free_operator_customdata(op);
+}
+
 static bool wm_usd_export_check(bContext *UNUSED(C), wmOperator *op)
 {
   char filepath[FILE_MAX];
@@ -215,6 +228,7 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
   ot->exec = wm_usd_export_exec;
   ot->poll = WM_operator_winactive;
   ot->ui = wm_usd_export_draw;
+  ot->cancel = wm_usd_export_cancel;
   ot->check = wm_usd_export_check;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_PRESET; /* No UNDO possible. */
@@ -360,7 +374,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
 
   const bool create_collection = RNA_boolean_get(op->ptr, "create_collection");
 
-  char *prim_path_mask = malloc(1024);
+  char prim_path_mask[1024];
   RNA_string_get(op->ptr, "prim_path_mask", prim_path_mask);
 
   const bool import_guide = RNA_boolean_get(op->ptr, "import_guide");
@@ -402,7 +416,6 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
                                    .import_materials = import_materials,
                                    .import_meshes = import_meshes,
                                    .import_volumes = import_volumes,
-                                   .prim_path_mask = prim_path_mask,
                                    .import_subdiv = import_subdiv,
                                    .import_instance_proxies = import_instance_proxies,
                                    .create_collection = create_collection,
@@ -416,9 +429,16 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
                                    .light_intensity_scale = light_intensity_scale,
                                    .mtl_name_collision_mode = mtl_name_collision_mode};
 
+  STRNCPY(params.prim_path_mask, prim_path_mask);
+
   const bool ok = USD_import(C, filename, &params, as_background_job);
 
   return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+}
+
+static void wm_usd_import_cancel(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  free_operator_customdata(op);
 }
 
 static void wm_usd_import_draw(bContext *UNUSED(C), wmOperator *op)
@@ -476,6 +496,7 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
 
   ot->invoke = wm_usd_import_invoke;
   ot->exec = wm_usd_import_exec;
+  ot->cancel = wm_usd_import_cancel;
   ot->poll = WM_operator_winactive;
   ot->ui = wm_usd_import_draw;
 
