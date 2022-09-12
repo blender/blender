@@ -5,6 +5,8 @@
 
 #include "kernel/geom/geom.h"
 
+#include "kernel/camera/camera.h"
+
 #include "kernel/film/cryptomatte_passes.h"
 #include "kernel/film/write.h"
 

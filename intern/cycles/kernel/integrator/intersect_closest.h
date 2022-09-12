@@ -12,8 +12,6 @@
 
 #include "kernel/light/light.h"
 
-#include "kernel/util/differential.h"
-
 #include "kernel/geom/geom.h"
 
 #include "kernel/bvh/bvh.h"

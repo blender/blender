@@ -323,7 +323,6 @@ class OSLRenderServices : public OSL::RendererServices {
    * globals to be shared between different render sessions. This saves memory,
    * and is required because texture handles are cached as part of the shared
    * shading system. */
-  OSL::TextureSystem *texture_system;
   OSLTextureHandleMap textures;
 };
 

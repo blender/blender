@@ -17,7 +17,6 @@
 
 #  include "kernel/osl/globals.h"
 #  include "kernel/osl/services.h"
-#  include "kernel/osl/shader.h"
 
 #  include "util/aligned_malloc.h"
 #  include "util/foreach.h"

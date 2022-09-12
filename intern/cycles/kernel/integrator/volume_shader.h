@@ -10,10 +10,11 @@
 #include "kernel/closure/bsdf_util.h"
 #include "kernel/closure/emissive.h"
 
-#include "kernel/svm/svm.h"
-
+#ifdef __SVM__
+#  include "kernel/svm/svm.h"
+#endif
 #ifdef __OSL__
-#  include "kernel/osl/shader.h"
+#  include "kernel/osl/osl.h"
 #endif
 
 CCL_NAMESPACE_BEGIN
@@ -326,18 +327,18 @@ ccl_device_inline void volume_shader_eval(KernelGlobals kg,
     }
 
     /* evaluate shader */
-#  ifdef __SVM__
-#    ifdef __OSL__
+#  ifdef __OSL__
     if (kg->osl) {
       OSLShader::eval_volume(kg, state, sd, path_flag);
     }
     else
-#    endif
+#  endif
     {
+#  ifdef __SVM__
       svm_eval_nodes<KERNEL_FEATURE_NODE_MASK_VOLUME, SHADER_TYPE_VOLUME>(
           kg, state, sd, NULL, path_flag);
-    }
 #  endif
+    }
 
     /* Merge closures to avoid exceeding number of closures limit. */
     if (!shadow) {

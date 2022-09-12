@@ -544,8 +544,6 @@ if(WITH_CYCLES_CUDA_BINARIES)
   cycles_set_solution_folder(cycles_kernel_cuda)
 endif()
 
-####################################################### START
-
 # HIP module
 
 if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
@@ -620,7 +618,6 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
   cycles_set_solution_folder(cycles_kernel_hip)
 endif()
 
-####################################################### END
 # OptiX PTX modules
 
 if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
@@ -711,6 +708,8 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
   add_custom_target(cycles_kernel_optix ALL DEPENDS ${optix_ptx})
   cycles_set_solution_folder(cycles_kernel_optix)
 endif()
+
+# oneAPI module
 
 if(WITH_CYCLES_DEVICE_ONEAPI)
   if(WIN32)

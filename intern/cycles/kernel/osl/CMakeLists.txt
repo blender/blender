@@ -11,16 +11,17 @@ set(INC_SYS
 
 set(SRC
   closures.cpp
+  globals.cpp
   services.cpp
-  shader.cpp
 )
 
 set(HEADER_SRC
   closures_setup.h
   closures_template.h
   globals.h
+  osl.h
   services.h
-  shader.h
+  types.h
 )
 
 set(LIB

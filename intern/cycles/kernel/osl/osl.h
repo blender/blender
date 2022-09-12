@@ -1,10 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0
  * Copyright 2011-2022 Blender Foundation */
 
-#ifndef __OSL_SHADER_H__
-#define __OSL_SHADER_H__
-
-#ifdef WITH_OSL
+#pragma once
 
 /* OSL Shader Engine
  *
@@ -16,27 +13,12 @@
  * This means no thread state must be passed along in the kernel itself.
  */
 
-#  include "kernel/types.h"
+#include "kernel/osl/types.h"
 
 CCL_NAMESPACE_BEGIN
 
-class Scene;
-
-struct ShaderClosure;
-struct ShaderData;
-struct IntegratorStateCPU;
-struct differential3;
-struct KernelGlobalsCPU;
-
-struct OSLGlobals;
-struct OSLShadingSystem;
-
 class OSLShader {
  public:
-  /* per thread data */
-  static void thread_init(KernelGlobalsCPU *kg, OSLGlobals *osl_globals);
-  static void thread_free(KernelGlobalsCPU *kg);
-
   /* eval */
   static void eval_surface(const KernelGlobalsCPU *kg,
                            const void *state,
@@ -54,7 +36,3 @@ class OSLShader {
 };
 
 CCL_NAMESPACE_END
-
-#endif
-
-#endif /* __OSL_SHADER_H__ */
