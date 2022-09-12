@@ -2058,7 +2058,7 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
           size_t xstride = sizeof(float[4]);
           size_t ystride = -xstride * width;
 
-          imb_addrectfloatImBuf(ibuf);
+          imb_addrectfloatImBuf(ibuf, 4);
 
           /* Inverse correct first pixel for data-window
            * coordinates (- dw.min.y because of y flip). */

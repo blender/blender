@@ -598,7 +598,7 @@ static void modifier_color_balance_apply(
   ColorBalanceInitData init_data;
 
   if (!ibuf->rect_float && make_float) {
-    imb_addrectfloatImBuf(ibuf);
+    imb_addrectfloatImBuf(ibuf, 4);
   }
 
   init_data.cb = cb;
