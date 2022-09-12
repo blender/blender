@@ -14,6 +14,7 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
@@ -174,10 +175,14 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  const Scene *scene = CTX_data_scene(C);
   PBVHNode **nodes;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   int totnode;
   int filter_type = RNA_enum_get(op->ptr, "filter_type");
+
+  MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
+  BKE_sculpt_mask_layers_ensure(ob, mmd);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 

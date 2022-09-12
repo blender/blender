@@ -134,6 +134,7 @@ static void mask_flood_fill_task_cb(void *__restrict userdata,
 
 static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 {
+  const Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   PaintMaskFloodMode mode;
@@ -145,6 +146,9 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 
   mode = RNA_enum_get(op->ptr, "mode");
   value = RNA_float_get(op->ptr, "value");
+
+  MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
+  BKE_sculpt_mask_layers_ensure(ob, mmd);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true, false);
   pbvh = ob->sculpt->pbvh;
@@ -774,6 +778,8 @@ static void sculpt_gesture_init_face_set_properties(SculptGestureContext *sgcont
   struct Mesh *mesh = BKE_mesh_from_object(sgcontext->vc.obact);
   sgcontext->operation = MEM_callocN(sizeof(SculptGestureFaceSetOperation), "Face Set Operation");
 
+  sgcontext->ss->face_sets = BKE_sculpt_face_sets_ensure(mesh);
+
   SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
                                                           sgcontext->operation;
 
@@ -817,7 +823,7 @@ static void mask_gesture_apply_task_cb(void *__restrict userdata,
 
   BKE_pbvh_vertex_iter_begin (sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (sculpt_gesture_is_vertex_effected(sgcontext, &vd)) {
-      float prevmask = *vd.mask;
+      float prevmask = vd.mask ? *vd.mask : 0.0f;
       if (!any_masked) {
         any_masked = true;
 
@@ -862,6 +868,10 @@ static void sculpt_gesture_init_mask_properties(SculptGestureContext *sgcontext,
   sgcontext->operation = MEM_callocN(sizeof(SculptGestureMaskOperation), "Mask Operation");
 
   SculptGestureMaskOperation *mask_operation = (SculptGestureMaskOperation *)sgcontext->operation;
+
+  Object *object = sgcontext->vc.obact;
+  MultiresModifierData *mmd = BKE_sculpt_multires_active(sgcontext->vc.scene, object);
+  BKE_sculpt_mask_layers_ensure(sgcontext->vc.obact, mmd);
 
   mask_operation->op.sculpt_gesture_begin = sculpt_gesture_mask_begin;
   mask_operation->op.sculpt_gesture_apply_for_symmetry_pass =

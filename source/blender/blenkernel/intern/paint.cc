@@ -1247,13 +1247,12 @@ void BKE_paint_blend_read_lib(BlendLibReader *reader, Scene *sce, Paint *p)
   }
 }
 
-bool paint_is_face_hidden(const MLoopTri *lt, const bool *hide_vert, const MLoop *mloop)
+bool paint_is_face_hidden(const MLoopTri *lt, const bool *hide_poly)
 {
-  if (!hide_vert) {
+  if (!hide_poly) {
     return false;
   }
-  return ((hide_vert[mloop[lt->tri[0]].v]) || (hide_vert[mloop[lt->tri[1]].v]) ||
-          (hide_vert[mloop[lt->tri[2]].v]));
+  return hide_poly[lt->poly];
 }
 
 bool paint_is_grid_face_hidden(const uint *grid_hidden, int gridsize, int x, int y)
@@ -1632,15 +1631,8 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
   return false;
 }
 
-/**
- * \param need_mask: So that the evaluated mesh that is returned has mask data.
- */
-static void sculpt_update_object(Depsgraph *depsgraph,
-                                 Object *ob,
-                                 Object *ob_eval,
-                                 bool need_pmap,
-                                 bool need_mask,
-                                 bool is_paint_tool)
+static void sculpt_update_object(
+    Depsgraph *depsgraph, Object *ob, Object *ob_eval, bool need_pmap, bool is_paint_tool)
 {
   Scene *scene = DEG_get_input_scene(depsgraph);
   Sculpt *sd = scene->toolsettings->sculpt;
@@ -1661,15 +1653,6 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   ss->building_vp_handle = false;
 
   ss->scene = scene;
-
-  if (need_mask) {
-    if (mmd == nullptr) {
-      BLI_assert(CustomData_has_layer(&me->vdata, CD_PAINT_MASK));
-    }
-    else {
-      BLI_assert(CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK));
-    }
-  }
 
   ss->shapekey_active = (mmd == nullptr) ? BKE_keyblock_from_object(ob) : nullptr;
 
@@ -1726,7 +1709,6 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
   /* Sculpt Face Sets. */
   if (use_face_sets) {
-    BLI_assert(CustomData_has_layer(&me->pdata, CD_SCULPT_FACE_SETS));
     ss->face_sets = static_cast<int *>(CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS));
   }
   else {
@@ -1859,24 +1841,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   }
 }
 
-static void sculpt_face_sets_ensure(Mesh *mesh)
-{
-  if (CustomData_has_layer(&mesh->pdata, CD_SCULPT_FACE_SETS)) {
-    return;
-  }
-
-  int *new_face_sets = static_cast<int *>(CustomData_add_layer(
-      &mesh->pdata, CD_SCULPT_FACE_SETS, CD_CONSTRUCT, nullptr, mesh->totpoly));
-
-  /* Initialize the new Face Set data-layer with a default valid visible ID and set the default
-   * color to render it white. */
-  for (int i = 0; i < mesh->totpoly; i++) {
-    new_face_sets[i] = 1;
-  }
-  mesh->face_sets_color_default = 1;
-}
-
-void BKE_sculpt_update_object_before_eval(const Scene *scene, Object *ob_eval)
+void BKE_sculpt_update_object_before_eval(Object *ob_eval)
 {
   /* Update before mesh evaluation in the dependency graph. */
   SculptSession *ss = ob_eval->sculpt;
@@ -1906,16 +1871,6 @@ void BKE_sculpt_update_object_before_eval(const Scene *scene, Object *ob_eval)
       MEM_freeN(nodes);
     }
   }
-
-  if (ss) {
-    Object *ob_orig = DEG_get_original_object(ob_eval);
-    Mesh *mesh = BKE_object_get_original_mesh(ob_orig);
-    MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob_orig);
-
-    /* Ensure attribute layout is still correct. */
-    sculpt_face_sets_ensure(mesh);
-    BKE_sculpt_mask_layers_ensure(ob_orig, mmd);
-  }
 }
 
 void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval)
@@ -1924,7 +1879,7 @@ void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval)
    * other data when modifiers change the mesh. */
   Object *ob_orig = DEG_get_original_object(ob_eval);
 
-  sculpt_update_object(depsgraph, ob_orig, ob_eval, false, false, false);
+  sculpt_update_object(depsgraph, ob_orig, ob_eval, false, false);
 }
 
 void BKE_sculpt_color_layer_create_if_needed(Object *object)
@@ -1962,13 +1917,53 @@ void BKE_sculpt_color_layer_create_if_needed(Object *object)
 }
 
 void BKE_sculpt_update_object_for_edit(
-    Depsgraph *depsgraph, Object *ob_orig, bool need_pmap, bool need_mask, bool is_paint_tool)
+    Depsgraph *depsgraph, Object *ob_orig, bool need_pmap, bool /*need_mask*/, bool is_paint_tool)
 {
   BLI_assert(ob_orig == DEG_get_original_object(ob_orig));
 
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_orig);
 
-  sculpt_update_object(depsgraph, ob_orig, ob_eval, need_pmap, need_mask, is_paint_tool);
+  sculpt_update_object(depsgraph, ob_orig, ob_eval, need_pmap, is_paint_tool);
+}
+
+int *BKE_sculpt_face_sets_ensure(Mesh *mesh)
+{
+  using namespace blender;
+  using namespace blender::bke;
+  if (CustomData_has_layer(&mesh->pdata, CD_SCULPT_FACE_SETS)) {
+    return static_cast<int *>(CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS));
+  }
+
+  const AttributeAccessor attributes = mesh->attributes_for_write();
+  const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
+      ".hide_poly", ATTR_DOMAIN_FACE, false);
+
+  MutableSpan<int> face_sets = {
+      static_cast<int *>(CustomData_add_layer(
+          &mesh->pdata, CD_SCULPT_FACE_SETS, CD_CONSTRUCT, nullptr, mesh->totpoly)),
+      mesh->totpoly};
+
+  /* Initialize the new face sets with a default valid visible ID and set the default
+   * color to render it white. */
+  if (hide_poly.is_single() && !hide_poly.get_internal_single()) {
+    face_sets.fill(1);
+  }
+  else {
+    const int face_sets_default_visible_id = 1;
+    const int face_sets_default_hidden_id = -(face_sets_default_visible_id + 1);
+
+    const VArraySpan<bool> hide_poly_span{hide_poly};
+    for (const int i : face_sets.index_range()) {
+      /* Assign a new hidden ID to hidden faces. This way we get at initial split in two Face Sets
+       * between hidden and visible faces based on the previous mesh visibly from other mode that
+       * can be useful in some cases. */
+      face_sets[i] = hide_poly_span[i] ? face_sets_default_hidden_id :
+                                         face_sets_default_visible_id;
+    }
+  }
+
+  mesh->face_sets_color_default = 1;
+  return face_sets.data();
 }
 
 int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
@@ -2092,67 +2087,48 @@ static bool check_sculpt_object_deformed(Object *object, const bool for_construc
   return deformed;
 }
 
-void BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(Mesh *mesh)
+void BKE_sculpt_face_sets_update_from_base_mesh_visibility(Mesh *mesh)
 {
-  const int face_sets_default_visible_id = 1;
-  const int face_sets_default_hidden_id = -(face_sets_default_visible_id + 1);
-
-  bool initialize_new_face_sets = false;
-
-  if (CustomData_has_layer(&mesh->pdata, CD_SCULPT_FACE_SETS)) {
-    /* Make everything visible. */
-    int *current_face_sets = static_cast<int *>(
-        CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS));
-    for (int i = 0; i < mesh->totpoly; i++) {
-      current_face_sets[i] = abs(current_face_sets[i]);
-    }
-  }
-  else {
-    initialize_new_face_sets = true;
-    int *new_face_sets = static_cast<int *>(CustomData_add_layer(
-        &mesh->pdata, CD_SCULPT_FACE_SETS, CD_CONSTRUCT, nullptr, mesh->totpoly));
-
-    /* Initialize the new Face Set data-layer with a default valid visible ID and set the default
-     * color to render it white. */
-    for (int i = 0; i < mesh->totpoly; i++) {
-      new_face_sets[i] = face_sets_default_visible_id;
-    }
-    mesh->face_sets_color_default = face_sets_default_visible_id;
-  }
-
-  int *face_sets = static_cast<int *>(CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS));
-  const bool *hide_poly = (const bool *)CustomData_get_layer_named(
-      &mesh->pdata, CD_PROP_BOOL, ".hide_poly");
-
-  for (int i = 0; i < mesh->totpoly; i++) {
-    if (!(hide_poly && hide_poly[i])) {
-      continue;
-    }
-
-    if (initialize_new_face_sets) {
-      /* When initializing a new Face Set data-layer, assign a new hidden Face Set ID to hidden
-       * vertices. This way, we get at initial split in two Face Sets between hidden and
-       * visible vertices based on the previous mesh visibly from other mode that can be
-       * useful in some cases. */
-      face_sets[i] = face_sets_default_hidden_id;
-    }
-    else {
-      /* Otherwise, set the already existing Face Set ID to hidden. */
-      face_sets[i] = -abs(face_sets[i]);
-    }
-  }
-}
-
-void BKE_sculpt_sync_face_sets_visibility_to_base_mesh(Mesh *mesh)
-{
+  using namespace blender;
   using namespace blender::bke;
-  const int *face_sets = static_cast<const int *>(
-      CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS));
-  if (!face_sets) {
+  if (!CustomData_has_layer(&mesh->pdata, CD_SCULPT_FACE_SETS)) {
     return;
   }
 
-  MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  const AttributeAccessor attributes = mesh->attributes();
+  const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
+      ".hide_poly", ATTR_DOMAIN_FACE, false);
+  if (hide_poly.is_single() && !hide_poly.get_internal_single()) {
+    return;
+  }
+
+  MutableSpan<int> face_sets{
+      static_cast<int *>(CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS)), mesh->totpoly};
+
+  for (const int i : hide_poly.index_range()) {
+    face_sets[i] = hide_poly[i] ? -std::abs(face_sets[i]) : std::abs(face_sets[i]);
+  }
+}
+
+static void set_hide_poly_from_face_sets(Mesh &mesh)
+{
+  using namespace blender;
+  using namespace blender::bke;
+  if (!CustomData_has_layer(&mesh.pdata, CD_SCULPT_FACE_SETS)) {
+    return;
+  }
+
+  const Span<int> face_sets{
+      static_cast<const int *>(CustomData_get_layer(&mesh.pdata, CD_SCULPT_FACE_SETS)),
+      mesh.totpoly};
+
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  if (std::all_of(
+          face_sets.begin(), face_sets.end(), [&](const int value) { return value > 0; })) {
+    attributes.remove(".hide_poly");
+    return;
+  }
+
   SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_only_span<bool>(
       ".hide_poly", ATTR_DOMAIN_FACE);
   if (!hide_poly) {
@@ -2162,7 +2138,11 @@ void BKE_sculpt_sync_face_sets_visibility_to_base_mesh(Mesh *mesh)
     hide_poly.span[i] = face_sets[i] < 0;
   }
   hide_poly.finish();
+}
 
+void BKE_sculpt_sync_face_sets_visibility_to_base_mesh(Mesh *mesh)
+{
+  set_hide_poly_from_face_sets(*mesh);
   BKE_mesh_flush_hidden_from_polys(mesh);
 }
 
@@ -2200,41 +2180,29 @@ void BKE_sculpt_sync_face_sets_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv
 
 void BKE_sculpt_sync_face_set_visibility(Mesh *mesh, SubdivCCG *subdiv_ccg)
 {
-  BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(mesh);
+  BKE_sculpt_face_sets_update_from_base_mesh_visibility(mesh);
   BKE_sculpt_sync_face_sets_visibility_to_base_mesh(mesh);
   BKE_sculpt_sync_face_sets_visibility_to_grids(mesh, subdiv_ccg);
 }
 
-void BKE_sculpt_ensure_orig_mesh_data(Scene *scene, Object *object)
+void BKE_sculpt_ensure_orig_mesh_data(Object *object)
 {
   Mesh *mesh = BKE_mesh_from_object(object);
-  MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, object);
-
   BLI_assert(object->mode == OB_MODE_SCULPT);
 
   /* Copy the current mesh visibility to the Face Sets. */
-  BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(mesh);
-  if (object->sculpt != nullptr) {
-    /* If a sculpt session is active, ensure we have its face-set data properly up-to-date. */
-    object->sculpt->face_sets = static_cast<int *>(
-        CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS));
-
-    /* NOTE: In theory we could add that on the fly when required by sculpt code.
-     * But this then requires proper update of depsgraph etc. For now we play safe, optimization is
-     * always possible later if it's worth it. */
-    BKE_sculpt_mask_layers_ensure(object, mmd);
-  }
+  BKE_sculpt_face_sets_update_from_base_mesh_visibility(mesh);
 
   /* Tessfaces aren't used and will become invalid. */
   BKE_mesh_tessface_clear(mesh);
 
   /* We always need to flush updates from depsgraph here, since at the very least
-   * `BKE_sculpt_face_sets_ensure_from_base_mesh_visibility()` will have updated some data layer of
+   * `BKE_sculpt_face_sets_update_from_base_mesh_visibility()` will have updated some data layer of
    * the mesh.
    *
    * All known potential sources of updates:
    *   - Addition of, or changes to, the `CD_SCULPT_FACE_SETS` data layer
-   *     (`BKE_sculpt_face_sets_ensure_from_base_mesh_visibility`).
+   *     (`BKE_sculpt_face_sets_update_from_base_mesh_visibility`).
    *   - Addition of a `CD_PAINT_MASK` data layer (`BKE_sculpt_mask_layers_ensure`).
    *   - Object has any active modifier (modifier stack can be different in Sculpt mode).
    *   - Multires:

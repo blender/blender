@@ -213,9 +213,7 @@ bool BKE_paint_always_hide_test(struct Object *ob);
 /**
  * Returns non-zero if any of the face's vertices are hidden, zero otherwise.
  */
-bool paint_is_face_hidden(const struct MLoopTri *lt,
-                          const bool *hide_vert,
-                          const struct MLoop *mloop);
+bool paint_is_face_hidden(const struct MLoopTri *lt, const bool *hide_poly);
 /**
  * Returns non-zero if any of the corners of the grid
  * face whose inner corner is at (x, y) are hidden, zero otherwise.
@@ -689,7 +687,7 @@ void BKE_sculpt_update_object_for_edit(struct Depsgraph *depsgraph,
                                        bool need_pmap,
                                        bool need_mask,
                                        bool is_paint_tool);
-void BKE_sculpt_update_object_before_eval(const struct Scene *scene, struct Object *ob_eval);
+void BKE_sculpt_update_object_before_eval(struct Object *ob_eval);
 void BKE_sculpt_update_object_after_eval(struct Depsgraph *depsgraph, struct Object *ob_eval);
 
 /**
@@ -698,6 +696,7 @@ void BKE_sculpt_update_object_after_eval(struct Depsgraph *depsgraph, struct Obj
  */
 struct MultiresModifierData *BKE_sculpt_multires_active(const struct Scene *scene,
                                                         struct Object *ob);
+int *BKE_sculpt_face_sets_ensure(struct Mesh *mesh);
 int BKE_sculpt_mask_layers_ensure(struct Object *ob, struct MultiresModifierData *mmd);
 void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene);
 
@@ -719,18 +718,17 @@ void BKE_sculpt_sync_face_sets_visibility_to_grids(struct Mesh *mesh,
                                                    struct SubdivCCG *subdiv_ccg);
 
 /**
- * Ensures that a Face Set data-layers exists. If it does not, it creates one respecting the
- * visibility stored in the vertices of the mesh. If it does, it copies the visibility from the
- * mesh to the Face Sets. */
-void BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(struct Mesh *mesh);
+ * If a face set layer exists, initialize its visiblity (sign) from the mesh's hidden values.
+ */
+void BKE_sculpt_face_sets_update_from_base_mesh_visibility(struct Mesh *mesh);
 
 /**
- * Ensures we do have expected mesh data in original mesh for the sculpt mode.
+ * Makes sculpt data consistent with other data on the mesh.
  *
  * \note IDs are expected to be original ones here, and calling code should ensure it updates its
  * depsgraph properly after calling this function if it needs up-to-date evaluated data.
  */
-void BKE_sculpt_ensure_orig_mesh_data(struct Scene *scene, struct Object *object);
+void BKE_sculpt_ensure_orig_mesh_data(struct Object *object);
 
 /**
  * Test if PBVH can be used directly for drawing, which is faster than

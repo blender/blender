@@ -300,28 +300,30 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
   ob->sculpt->mode_type = OB_MODE_SCULPT;
 
-  BKE_sculpt_ensure_orig_mesh_data(scene, ob);
+  BKE_sculpt_ensure_orig_mesh_data(ob);
 
   BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
 
   /* This function expects a fully evaluated depsgraph. */
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 
-  /* Here we can detect geometry that was just added to Sculpt Mode as it has the
-   * SCULPT_FACE_SET_NONE assigned, so we can create a new Face Set for it. */
-  /* In sculpt mode all geometry that is assigned to SCULPT_FACE_SET_NONE is considered as not
-   * initialized, which is used is some operators that modify the mesh topology to perform certain
-   * actions in the new polys. After these operations are finished, all polys should have a valid
-   * face set ID assigned (different from SCULPT_FACE_SET_NONE) to manage their visibility
-   * correctly. */
-  /* TODO(pablodp606): Based on this we can improve the UX in future tools for creating new
-   * objects, like moving the transform pivot position to the new area or masking existing
-   * geometry. */
   SculptSession *ss = ob->sculpt;
-  const int new_face_set = SCULPT_face_set_next_available_get(ss);
-  for (int i = 0; i < ss->totfaces; i++) {
-    if (ss->face_sets[i] == SCULPT_FACE_SET_NONE) {
-      ss->face_sets[i] = new_face_set;
+  if (ss->face_sets) {
+    /* Here we can detect geometry that was just added to Sculpt Mode as it has the
+     * SCULPT_FACE_SET_NONE assigned, so we can create a new Face Set for it. */
+    /* In sculpt mode all geometry that is assigned to SCULPT_FACE_SET_NONE is considered as not
+     * initialized, which is used is some operators that modify the mesh topology to perform
+     * certain actions in the new polys. After these operations are finished, all polys should have
+     * a valid face set ID assigned (different from SCULPT_FACE_SET_NONE) to manage their
+     * visibility correctly. */
+    /* TODO(pablodp606): Based on this we can improve the UX in future tools for creating new
+     * objects, like moving the transform pivot position to the new area or masking existing
+     * geometry. */
+    const int new_face_set = SCULPT_face_set_next_available_get(ss);
+    for (int i = 0; i < ss->totfaces; i++) {
+      if (ss->face_sets[i] == SCULPT_FACE_SET_NONE) {
+        ss->face_sets[i] = new_face_set;
+      }
     }
   }
 }

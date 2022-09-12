@@ -17,6 +17,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_brush.h"
@@ -1390,9 +1391,15 @@ static void sculpt_expand_original_state_store(Object *ob, ExpandCache *expand_c
   /* Face Sets are always stored as they are needed for snapping. */
   expand_cache->initial_face_sets = MEM_malloc_arrayN(totface, sizeof(int), "initial face set");
   expand_cache->original_face_sets = MEM_malloc_arrayN(totface, sizeof(int), "original face set");
-  for (int i = 0; i < totface; i++) {
-    expand_cache->initial_face_sets[i] = ss->face_sets[i];
-    expand_cache->original_face_sets[i] = ss->face_sets[i];
+  if (ss->face_sets) {
+    for (int i = 0; i < totface; i++) {
+      expand_cache->initial_face_sets[i] = ss->face_sets[i];
+      expand_cache->original_face_sets[i] = ss->face_sets[i];
+    }
+  }
+  else {
+    memset(expand_cache->initial_face_sets, SCULPT_FACE_SET_NONE, sizeof(int) * totface);
+    memset(expand_cache->original_face_sets, SCULPT_FACE_SET_NONE, sizeof(int) * totface);
   }
 
   if (expand_cache->target == SCULPT_EXPAND_TARGET_MASK) {
@@ -2116,6 +2123,16 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   if (totvert == 0) {
     sculpt_expand_cache_free(ss);
     return OPERATOR_CANCELLED;
+  }
+
+  if (ss->expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
+    Mesh *mesh = ob->data;
+    ss->face_sets = BKE_sculpt_face_sets_ensure(mesh);
+  }
+
+  if (ss->expand_cache->target == SCULPT_EXPAND_TARGET_MASK) {
+    MultiresModifierData *mmd = BKE_sculpt_multires_active(ss->scene, ob);
+    BKE_sculpt_mask_layers_ensure(ob, mmd);
   }
 
   /* Face Set operations are not supported in dyntopo. */

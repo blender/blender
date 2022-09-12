@@ -186,7 +186,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   }
 
   if (ob->mode == OB_MODE_SCULPT) {
-    BKE_sculpt_ensure_orig_mesh_data(CTX_data_scene(C), ob);
+    BKE_sculpt_ensure_orig_mesh_data(ob);
     ED_sculpt_undo_geometry_end(ob);
   }
 
@@ -912,7 +912,7 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
   }
 
   if (ob->mode == OB_MODE_SCULPT) {
-    BKE_sculpt_ensure_orig_mesh_data(qj->scene, ob);
+    BKE_sculpt_ensure_orig_mesh_data(ob);
     ED_sculpt_undo_geometry_end(ob);
   }
 

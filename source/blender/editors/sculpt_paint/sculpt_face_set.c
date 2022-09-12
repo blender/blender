@@ -303,6 +303,9 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  Mesh *mesh = ob->data;
+  ss->face_sets = BKE_sculpt_face_sets_ensure(mesh);
+
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, mode == SCULPT_FACE_SET_MASKED, false);
 
   const int tot_vert = SCULPT_vertex_count_get(ss);
@@ -349,7 +352,6 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
     }
 
     if (all_visible) {
-      Mesh *mesh = ob->data;
       mesh->face_sets_color_default = next_face_set;
       BKE_pbvh_face_sets_color_set(
           ss->pbvh, mesh->face_sets_color_seed, mesh->face_sets_color_default);
@@ -373,7 +375,6 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
   }
 
   if (mode == SCULPT_FACE_SET_SELECTION) {
-    Mesh *mesh = ob->data;
     BMesh *bm;
     const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
     bm = BM_mesh_create(&allocsize,
@@ -850,6 +851,10 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  if (!pbvh_has_face_sets(ss->pbvh)) {
+    return OPERATOR_CANCELLED;
+  }
+
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
   const int tot_vert = SCULPT_vertex_count_get(ss);
@@ -997,6 +1002,10 @@ static int sculpt_face_sets_randomize_colors_exec(bContext *C, wmOperator *UNUSE
 
   /* Dyntopo not supported. */
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (!pbvh_has_face_sets(ss->pbvh)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1154,7 +1163,9 @@ static void sculpt_face_set_shrink(Object *ob,
 
 static bool check_single_face_set(SculptSession *ss, int *face_sets, const bool check_visible_only)
 {
-
+  if (face_sets == NULL) {
+    return true;
+  }
   int first_face_set = SCULPT_FACE_SET_NONE;
   if (check_visible_only) {
     for (int f = 0; f < ss->totfaces; f++) {

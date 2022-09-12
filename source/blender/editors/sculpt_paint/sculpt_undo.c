@@ -476,7 +476,8 @@ static bool sculpt_undo_restore_face_sets(bContext *C, SculptUndoNode *unode)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   Mesh *me = BKE_object_get_original_mesh(ob);
-  int *face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
+  int *face_sets = CustomData_add_layer(
+      &me->pdata, CD_SCULPT_FACE_SETS, CD_CONSTRUCT, NULL, me->totpoly);
   for (int i = 0; i < me->totpoly; i++) {
     face_sets[i] = unode->face_sets[i];
   }
@@ -1354,8 +1355,13 @@ static SculptUndoNode *sculpt_undo_face_sets_push(Object *ob, SculptUndoType typ
   unode->face_sets = MEM_callocN(me->totpoly * sizeof(int), "sculpt face sets");
 
   const int *face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
-  for (int i = 0; i < me->totpoly; i++) {
-    unode->face_sets[i] = face_sets[i];
+  if (face_sets) {
+    for (int i = 0; i < me->totpoly; i++) {
+      unode->face_sets[i] = face_sets[i];
+    }
+  }
+  else {
+    memset(unode->face_sets, SCULPT_FACE_SET_NONE, sizeof(int) * me->totpoly);
   }
 
   BLI_addtail(&usculpt->nodes, unode);
@@ -1513,7 +1519,9 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
       sculpt_undo_store_hidden(ob, unode);
       break;
     case SCULPT_UNDO_MASK:
-      sculpt_undo_store_mask(ob, unode);
+      if (pbvh_has_mask(ss->pbvh)) {
+        sculpt_undo_store_mask(ob, unode);
+      }
       break;
     case SCULPT_UNDO_COLOR:
       sculpt_undo_store_color(ob, unode);

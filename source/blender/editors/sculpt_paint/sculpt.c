@@ -253,11 +253,11 @@ float SCULPT_vertex_mask_get(SculptSession *ss, PBVHVertRef vertex)
   float *mask;
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      return ss->vmask[vertex.i];
+      return ss->vmask ? ss->vmask[vertex.i] : 0.0f;
     case PBVH_BMESH:
       v = (BMVert *)vertex.i;
       mask = BM_ELEM_CD_GET_VOID_P(v, CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK));
-      return *mask;
+      return mask ? *mask : 0.0f;
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
       const int grid_index = vertex.i / key->grid_area;
@@ -329,7 +329,7 @@ int SCULPT_active_face_set_get(SculptSession *ss)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      return ss->face_sets[ss->active_face_index];
+      return ss->face_sets ? ss->face_sets[ss->active_face_index] : SCULPT_FACE_SET_NONE;
     case PBVH_GRIDS: {
       const int face_index = BKE_subdiv_ccg_grid_to_face_index(ss->subdiv_ccg,
                                                                ss->active_grid_index);
@@ -383,6 +383,7 @@ bool SCULPT_vertex_visible_get(SculptSession *ss, PBVHVertRef vertex)
 
 void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visible)
 {
+  BLI_assert(ss->face_sets != NULL);
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
     case PBVH_GRIDS:
@@ -405,6 +406,7 @@ void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visibl
 
 void SCULPT_face_sets_visibility_invert(SculptSession *ss)
 {
+  BLI_assert(ss->face_sets != NULL);
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
     case PBVH_GRIDS:
@@ -422,6 +424,9 @@ void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool visible)
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
     case PBVH_GRIDS:
+      if (!ss->face_sets) {
+        return;
+      }
       for (int i = 0; i < ss->totfaces; i++) {
 
         /* This can run on geometry without a face set assigned, so its ID sign can't be changed to
@@ -446,11 +451,15 @@ void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool visible)
 
 bool SCULPT_vertex_any_face_set_visible_get(SculptSession *ss, PBVHVertRef vertex)
 {
+  const bool *hide_poly = BKE_pbvh_get_poly_hide(ss->pbvh);
+  if (!hide_poly) {
+    return true;
+  }
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       MeshElemMap *vert_map = &ss->pmap[vertex.i];
       for (int j = 0; j < ss->pmap[vertex.i].count; j++) {
-        if (ss->face_sets[vert_map->indices[j]] > 0) {
+        if (!hide_poly[vert_map->indices[j]]) {
           return true;
         }
       }
@@ -466,11 +475,15 @@ bool SCULPT_vertex_any_face_set_visible_get(SculptSession *ss, PBVHVertRef verte
 
 bool SCULPT_vertex_all_face_sets_visible_get(const SculptSession *ss, PBVHVertRef vertex)
 {
+  const bool *hide_poly = BKE_pbvh_get_poly_hide(ss->pbvh);
+  if (!hide_poly) {
+    return true;
+  }
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       MeshElemMap *vert_map = &ss->pmap[vertex.i];
       for (int j = 0; j < ss->pmap[vertex.i].count; j++) {
-        if (ss->face_sets[vert_map->indices[j]] < 0) {
+        if (hide_poly[vert_map->indices[j]]) {
           return false;
         }
       }
@@ -482,7 +495,7 @@ bool SCULPT_vertex_all_face_sets_visible_get(const SculptSession *ss, PBVHVertRe
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
       const int grid_index = vertex.i / key->grid_area;
       const int face_index = BKE_subdiv_ccg_grid_to_face_index(ss->subdiv_ccg, grid_index);
-      return ss->face_sets[face_index] > 0;
+      return !hide_poly[face_index];
     }
   }
   return true;
@@ -492,6 +505,7 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
+      BLI_assert(ss->face_sets != NULL);
       MeshElemMap *vert_map = &ss->pmap[vertex.i];
       for (int j = 0; j < ss->pmap[vertex.i].count; j++) {
         if (ss->face_sets[vert_map->indices[j]] > 0) {
@@ -502,6 +516,7 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_
     case PBVH_BMESH:
       break;
     case PBVH_GRIDS: {
+      BLI_assert(ss->face_sets != NULL);
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
       const int grid_index = vertex.i / key->grid_area;
       const int face_index = BKE_subdiv_ccg_grid_to_face_index(ss->subdiv_ccg, grid_index);
@@ -517,6 +532,9 @@ int SCULPT_vertex_face_set_get(SculptSession *ss, PBVHVertRef vertex)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
+      if (!ss->face_sets) {
+        return SCULPT_FACE_SET_NONE;
+      }
       MeshElemMap *vert_map = &ss->pmap[vertex.i];
       int face_set = 0;
       for (int i = 0; i < ss->pmap[vertex.i].count; i++) {
@@ -529,6 +547,9 @@ int SCULPT_vertex_face_set_get(SculptSession *ss, PBVHVertRef vertex)
     case PBVH_BMESH:
       return 0;
     case PBVH_GRIDS: {
+      if (!ss->face_sets) {
+        return SCULPT_FACE_SET_NONE;
+      }
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
       const int grid_index = vertex.i / key->grid_area;
       const int face_index = BKE_subdiv_ccg_grid_to_face_index(ss->subdiv_ccg, grid_index);
@@ -542,6 +563,9 @@ bool SCULPT_vertex_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
+      if (!ss->face_sets) {
+        return face_set == SCULPT_FACE_SET_NONE;
+      }
       MeshElemMap *vert_map = &ss->pmap[vertex.i];
       for (int i = 0; i < ss->pmap[vertex.i].count; i++) {
         if (ss->face_sets[vert_map->indices[i]] == face_set) {
@@ -553,6 +577,9 @@ bool SCULPT_vertex_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_
     case PBVH_BMESH:
       return true;
     case PBVH_GRIDS: {
+      if (!ss->face_sets) {
+        return face_set == SCULPT_FACE_SET_NONE;
+      }
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
       const int grid_index = vertex.i / key->grid_area;
       const int face_index = BKE_subdiv_ccg_grid_to_face_index(ss->subdiv_ccg, grid_index);
@@ -599,6 +626,9 @@ static void UNUSED_FUNCTION(sculpt_visibility_sync_vertex_to_face_sets)(SculptSe
 void SCULPT_visibility_sync_all_vertex_to_face_sets(SculptSession *ss)
 {
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
+    if (ss->face_sets == NULL) {
+      return;
+    }
     for (int i = 0; i < ss->totfaces; i++) {
       const MPoly *poly = &ss->mpoly[i];
       bool poly_visible = true;
@@ -620,6 +650,9 @@ void SCULPT_visibility_sync_all_vertex_to_face_sets(SculptSession *ss)
 
 static bool sculpt_check_unique_face_set_in_base_mesh(SculptSession *ss, int index)
 {
+  if (!ss->face_sets) {
+    return true;
+  }
   MeshElemMap *vert_map = &ss->pmap[index];
   int face_set = -1;
   for (int i = 0; i < ss->pmap[index].count; i++) {
@@ -676,6 +709,9 @@ bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, PBVHVertRef vertex)
     case PBVH_BMESH:
       return true;
     case PBVH_GRIDS: {
+      if (!ss->face_sets) {
+        return true;
+      }
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
       const int grid_index = vertex.i / key->grid_area;
       const int vertex_index = vertex.i - grid_index * key->grid_area;
@@ -703,6 +739,9 @@ int SCULPT_face_set_next_available_get(SculptSession *ss)
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
     case PBVH_GRIDS: {
+      if (!ss->face_sets) {
+        return 0;
+      }
       int next_face_set = 0;
       for (int i = 0; i < ss->totfaces; i++) {
         if (abs(ss->face_sets[i]) > next_face_set) {
@@ -792,9 +831,10 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
   iter->capacity = SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
   iter->neighbors = iter->neighbors_fixed;
   iter->neighbor_indices = iter->neighbor_indices_fixed;
+  const bool *hide_poly = BKE_pbvh_get_vert_hide(ss->pbvh);
 
   for (int i = 0; i < ss->pmap[vertex.i].count; i++) {
-    if (ss->face_sets[vert_map->indices[i]] < 0) {
+    if (hide_poly && hide_poly[vert_map->indices[i]]) {
       /* Skip connectivity from hidden faces. */
       continue;
     }
@@ -3300,6 +3340,15 @@ static void do_brush_action(Sculpt *sd,
     }
 
     BKE_pbvh_ensure_node_loops(ss->pbvh);
+  }
+
+  if (SCULPT_tool_is_mask(brush->sculpt_tool)) {
+    MultiresModifierData *mmd = BKE_sculpt_multires_active(ss->scene, ob);
+    BKE_sculpt_mask_layers_ensure(ob, mmd);
+  }
+  if (SCULPT_tool_is_face_sets(brush->sculpt_tool)) {
+    Mesh *mesh = BKE_object_get_original_mesh(ob);
+    ss->face_sets = BKE_sculpt_face_sets_ensure(mesh);
   }
 
   /* Build a list of all nodes that are potentially within the brush's area of influence */
