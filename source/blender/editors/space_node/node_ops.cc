@@ -144,7 +144,7 @@ void ED_operatormacros_node()
   WM_operatortype_macro_define(ot, "NODE_OT_attach");
   WM_operatortype_macro_define(ot, "NODE_OT_insert_offset");
 
-  /* NODE_OT_translate_attach with remove_on_canel set to true */
+  /* NODE_OT_translate_attach with remove_on_cancel set to true. */
   ot = WM_operatortype_append_macro("NODE_OT_translate_attach_remove_on_cancel",
                                     "Move and Attach",
                                     "Move nodes and attach to frame",
