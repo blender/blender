@@ -479,7 +479,7 @@ static bool sculpt_undo_restore_face_sets(bContext *C, SculptUndoNode *unode)
   int *face_sets = CustomData_add_layer(
       &me->pdata, CD_SCULPT_FACE_SETS, CD_CONSTRUCT, NULL, me->totpoly);
   for (int i = 0; i < me->totpoly; i++) {
-    face_sets[i] = unode->face_sets[i];
+    SWAP(int, face_sets[i], unode->face_sets[i]);
   }
   return false;
 }
