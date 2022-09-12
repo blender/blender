@@ -17,6 +17,8 @@
 #include "kernel/osl/globals.h"
 #include "kernel/osl/services.h"
 #include "kernel/osl/shader.h"
+
+#include "kernel/util/differential.h"
 // clang-format on
 
 #include "scene/attribute.h"
@@ -199,13 +201,20 @@ void OSLShader::eval_surface(const KernelGlobalsCPU *kg,
       (void)found;
       assert(found);
 
+      differential3 dP;
       memcpy(&sd->P, data, sizeof(float) * 3);
-      memcpy(&sd->dP.dx, data + 3, sizeof(float) * 3);
-      memcpy(&sd->dP.dy, data + 6, sizeof(float) * 3);
+      memcpy(&dP.dx, data + 3, sizeof(float) * 3);
+      memcpy(&dP.dy, data + 6, sizeof(float) * 3);
 
       object_position_transform(kg, sd, &sd->P);
-      object_dir_transform(kg, sd, &sd->dP.dx);
-      object_dir_transform(kg, sd, &sd->dP.dy);
+      object_dir_transform(kg, sd, &dP.dx);
+      object_dir_transform(kg, sd, &dP.dy);
+
+      const float dP_radius = differential_make_compact(dP);
+
+      make_orthonormals(sd->Ng, &sd->dP.dx, &sd->dP.dy);
+      sd->dP.dx *= dP_radius;
+      sd->dP.dy *= dP_radius;
 
       globals->P = TO_VEC3(sd->P);
       globals->dPdx = TO_VEC3(sd->dP.dx);
