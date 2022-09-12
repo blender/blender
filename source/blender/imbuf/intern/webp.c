@@ -4,14 +4,21 @@
  *  \ingroup imbuf
  */
 
+#ifdef _WIN32
+#  include <io.h>
+#endif
+
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <webp/decode.h>
 #include <webp/encode.h>
 
 #include "BLI_fileops.h"
+#include "BLI_mmap.h"
 #include "BLI_utildefines.h"
 
+#include "IMB_allocimbuf.h"
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
 #include "IMB_filetype.h"
@@ -63,6 +70,85 @@ ImBuf *imb_loadwebp(const unsigned char *mem,
       fprintf(stderr, "WebP: Failed to decode image\n");
     }
   }
+
+  return ibuf;
+}
+
+struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
+                                               const int flags,
+                                               const size_t max_thumb_size,
+                                               char colorspace[],
+                                               size_t *r_width,
+                                               size_t *r_height)
+{
+  const int file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
+  if (file == -1) {
+    return NULL;
+  }
+
+  const size_t data_size = BLI_file_descriptor_size(file);
+
+  imb_mmap_lock();
+  BLI_mmap_file *mmap_file = BLI_mmap_open(file);
+  imb_mmap_unlock();
+  close(file);
+  if (mmap_file == NULL) {
+    return NULL;
+  }
+
+  const unsigned char *data = BLI_mmap_get_pointer(mmap_file);
+
+  WebPDecoderConfig config;
+  if (!data || !WebPInitDecoderConfig(&config) ||
+      WebPGetFeatures(data, data_size, &config.input) != VP8_STATUS_OK) {
+    fprintf(stderr, "WebP: Invalid file\n");
+    imb_mmap_lock();
+    BLI_mmap_free(mmap_file);
+    imb_mmap_unlock();
+    return NULL;
+  }
+
+  const float scale = (float)max_thumb_size / MAX2(config.input.width, config.input.height);
+  const int dest_w = (int)(config.input.width * scale);
+  const int dest_h = (int)(config.input.height * scale);
+
+  colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
+  struct ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, 32, IB_rect);
+  if (ibuf == NULL) {
+    fprintf(stderr, "WebP: Failed to allocate image memory\n");
+    imb_mmap_lock();
+    BLI_mmap_free(mmap_file);
+    imb_mmap_unlock();
+    return NULL;
+  }
+
+  config.options.no_fancy_upsampling = 1;
+  config.options.use_scaling = 1;
+  config.options.scaled_width = dest_w;
+  config.options.scaled_height = dest_h;
+  config.options.bypass_filtering = 1;
+  config.options.use_threads = 0;
+  config.options.flip = 1;
+  config.output.is_external_memory = 1;
+  config.output.colorspace = MODE_RGBA;
+  config.output.u.RGBA.rgba = (uint8_t *)ibuf->rect;
+  config.output.u.RGBA.stride = 4 * ibuf->x;
+  config.output.u.RGBA.size = (size_t)(config.output.u.RGBA.stride * ibuf->y);
+
+  if (WebPDecode(data, data_size, &config) != VP8_STATUS_OK) {
+    fprintf(stderr, "WebP: Failed to decode image\n");
+    imb_mmap_lock();
+    BLI_mmap_free(mmap_file);
+    imb_mmap_unlock();
+    return NULL;
+  }
+
+  /* Free the output buffer. */
+  WebPFreeDecBuffer(&config.output);
+
+  imb_mmap_lock();
+  BLI_mmap_free(mmap_file);
+  imb_mmap_unlock();
 
   return ibuf;
 }
