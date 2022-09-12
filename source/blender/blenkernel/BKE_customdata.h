@@ -178,13 +178,11 @@ bool CustomData_merge_mesh_to_bmesh(const struct CustomData *source,
                                     int totelem);
 
 /**
- * Reallocate custom data to a new element count.
- * Only affects on data layers which are owned by the CustomData itself,
- * referenced data is kept unchanged,
- *
- * \note Take care of referenced layers by yourself!
+ * Reallocate custom data to a new element count. If the new size is larger, the new values use
+ * the #CD_CONSTRUCT behavior, so trivial types must be initialized by the caller. After being
+ * resized, the #CustomData does not contain any referenced layers.
  */
-void CustomData_realloc(struct CustomData *data, int totelem);
+void CustomData_realloc(struct CustomData *data, int old_size, int new_size);
 
 /**
  * BMesh version of CustomData_merge; merges the layouts of source and `dest`,

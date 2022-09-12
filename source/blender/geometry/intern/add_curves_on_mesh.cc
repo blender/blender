@@ -372,6 +372,28 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   curves.fill_curve_types(new_curves_range, CURVE_TYPE_CATMULL_ROM);
 
+  /* Explicitly set all other attributes besides those processed above to default values. */
+  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+  Set<std::string> attributes_to_skip{{"position",
+                                       "curve_type",
+                                       "surface_uv_coordinate",
+                                       ".selection_point_float",
+                                       ".selection_curve_float"}};
+  attributes.for_all(
+      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData /*meta_data*/) {
+        if (id.is_named() && attributes_to_skip.contains(id.name())) {
+          return true;
+        }
+        bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
+        const int new_elements_num = attribute.domain == ATTR_DOMAIN_POINT ? new_points_num :
+                                                                             new_curves_num;
+        const CPPType &type = attribute.span.type();
+        GMutableSpan new_data = attribute.span.take_back(new_elements_num);
+        type.fill_assign_n(type.default_value(), new_data.data(), new_data.size());
+        attribute.finish();
+        return true;
+      });
+
   return outputs;
 }
 

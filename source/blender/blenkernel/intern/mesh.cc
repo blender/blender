@@ -2095,11 +2095,11 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
     const bool do_edges = (num_new_edges > 0);
 
     /* Reallocate all vert and edge related data. */
+    CustomData_realloc(&mesh->vdata, mesh->totvert, mesh->totvert + num_new_verts);
     mesh->totvert += num_new_verts;
-    CustomData_realloc(&mesh->vdata, mesh->totvert);
     if (do_edges) {
+      CustomData_realloc(&mesh->edata, mesh->totedge, mesh->totedge + num_new_edges);
       mesh->totedge += num_new_edges;
-      CustomData_realloc(&mesh->edata, mesh->totedge);
     }
 
     /* Update normals manually to avoid recalculation after this operation. */

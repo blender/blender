@@ -105,8 +105,9 @@ static void make_edges_mdata_extend(Mesh &mesh)
 #endif
 
   if (totedge_new) {
-    CustomData_realloc(&mesh.edata, totedge + totedge_new);
-
+    /* The only layer should be edges, so no other layers need to be initialized. */
+    BLI_assert(mesh.edata.totlayer == 1);
+    CustomData_realloc(&mesh.edata, totedge, totedge + totedge_new);
     mesh.totedge += totedge_new;
     MutableSpan<MEdge> edges = mesh.edges_for_write();
     MEdge *medge = &edges[totedge];
@@ -634,9 +635,11 @@ void BKE_pointcloud_from_mesh(Mesh *me, PointCloud *pointcloud)
   using namespace blender;
 
   BLI_assert(me != nullptr);
-
+  /* The pointcloud should only contain the position attribute, otherwise more attributes would
+   * need to be initialized below. */
+  BLI_assert(pointcloud->attributes().all_ids().size() == 1);
+  CustomData_realloc(&pointcloud->pdata, pointcloud->totpoint, me->totvert);
   pointcloud->totpoint = me->totvert;
-  CustomData_realloc(&pointcloud->pdata, pointcloud->totpoint);
 
   /* Copy over all attributes. */
   CustomData_merge(&me->vdata, &pointcloud->pdata, CD_MASK_PROP_ALL, CD_DUPLICATE, me->totvert);

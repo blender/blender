@@ -726,8 +726,22 @@ bool CustomDataAttributes::remove(const AttributeIDRef &attribute_id)
 
 void CustomDataAttributes::reallocate(const int size)
 {
+  const int old_size = size_;
   size_ = size;
-  CustomData_realloc(&data, size);
+  CustomData_realloc(&data, old_size, size_);
+  if (size_ > old_size) {
+    /* Fill default new values. */
+    const int new_elements_num = size_ - old_size;
+    this->foreach_attribute(
+        [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData /*meta_data*/) {
+          GMutableSpan new_data = this->get_for_write(id)->take_back(new_elements_num);
+          const CPPType &type = new_data.type();
+          type.fill_assign_n(type.default_value(), new_data.data(), new_data.size());
+          return true;
+        },
+        /* Dummy. */
+        ATTR_DOMAIN_POINT);
+  }
 }
 
 void CustomDataAttributes::clear()
