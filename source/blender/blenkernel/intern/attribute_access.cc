@@ -875,6 +875,16 @@ GAttributeWriter MutableAttributeAccessor::lookup_for_write(const AttributeIDRef
   return attribute;
 }
 
+GSpanAttributeWriter MutableAttributeAccessor::lookup_for_write_span(
+    const AttributeIDRef &attribute_id)
+{
+  GAttributeWriter attribute = this->lookup_for_write(attribute_id);
+  if (attribute) {
+    return GSpanAttributeWriter{std::move(attribute), true};
+  }
+  return {};
+}
+
 GAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write(
     const AttributeIDRef &attribute_id,
     const eAttrDomain domain,
