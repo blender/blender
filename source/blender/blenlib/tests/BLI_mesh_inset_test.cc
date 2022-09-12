@@ -338,6 +338,43 @@ TEST(mesh_inset, Flipper)
   EXPECT_EQ(out11.face.size(), 20);
 }
 
+TEST(mesh_inset, Grid)
+{
+  const char *spec = R"(16 9 1
+  0.0 0.0 0.0
+  1.0 0.0 0.0
+  2.0 0.0 0.0
+  3.0 0.0 0.0
+  0.0 1.0 0.0
+  1.0 1.0 0.0
+  2.0 1.0 0.0
+  3.0 1.0 0.0
+  0.0 2.0 0.0
+  1.0 2.0 0.0
+  2.0 2.0 0.0
+  3.0 2.0 0.0
+  0.0 3.0 0.0
+  1.0 3.0 0.0
+  2.0 3.0 0.0
+  3.0 3.0 0.0
+  0 1 5 4
+  1 2 6 5
+  2 3 7 6
+  4 5 9 8
+  5 6 10 9
+  6 7 11 10
+  8 9 13 12
+  9 10 14 13
+  10 11 15 14
+  0 1 2 3 7 11 15 14 13 12 8 4
+  )";
+
+  InputHolder in1(spec, 0.5);
+  MeshInset_Result out1 = mesh_inset_calc(in1.input);
+  EXPECT_EQ(out1.vert.size(), 28);
+  EXPECT_EQ(out1.face.size(), 21);
+}
+
 }  // namespace test
 
 }  // namespace blender::meshinset

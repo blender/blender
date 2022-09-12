@@ -160,12 +160,15 @@ class Triangle {
     TSPOKE0 = 1 << 3,
     TSPOKE1 = 1 << 4,
     TSPOKE2 = 1 << 5,
+    TORIG0 = 1 << 6,
+    TORIG1 = 1 << 7,
+    TORIG2 = 1 << 8,
   };
   Edge neighbor_[3];
   Vert *vert_[3];
   float3 normal_;
   int id_{0};
-  uint8_t flags_{0};
+  uint16_t flags_{0};
 
  public:
   Triangle(Vert *v0, Vert *v1, Vert *v2)
@@ -287,6 +290,22 @@ class Triangle {
   bool is_spoke(int pos) const
   {
     return (flags_ & (TSPOKE0 << pos)) != 0;
+  }
+
+  /* Our algorithm cares about which edges are original edges
+   * (i.e., not triangulation edges). */
+  void mark_orig(int pos) {
+    flags_ |= (TORIG0 << pos);
+    Edge en = neighbor_[pos];
+    if (!en.is_null()) {
+      Triangle *tn = en.tri();
+      tn->flags_ |= (TORIG0 << en.tri_edge_index());
+    }
+  }
+
+  bool is_orig(int pos) const
+  {
+    return (flags_ & (TORIG0 << pos)) != 0;
   }
 
   friend void set_mutual_neighbors(Triangle *t1, int pos1, Triangle *t2, int pos2);
@@ -581,6 +600,9 @@ std::ostream &operator<<(std::ostream &os, const Triangle &tri)
   for (int i = 0; i < 3; ++i) {
     if (tri.is_spoke(i)) {
       os << " s" << i;
+    }
+    if (tri.is_orig(i)) {
+      os << " o" << i;
     }
   }
   return os;
@@ -1551,6 +1573,18 @@ static Edge find_cw_spoke_or_wavefront_edge(Edge edge)
   Edge e = rot_cw(edge);
   do {
     if (e.tri()->is_spoke(e.tri_edge_index()) || is_wavefront_edge(e)) {
+      return e;
+    }
+    e = rot_cw(e);
+  } while (e != edge);
+  return null_edge;
+}
+
+static Edge find_cw_wavefront_or_orig_edge(Edge edge)
+{
+  Edge e = rot_cw(edge);
+  do {
+    if (is_wavefront_edge(e) || e.tri()->is_orig(e.tri_edge_index())) {
       return e;
     }
     e = rot_cw(e);
@@ -2714,11 +2748,19 @@ static Vector<Triangle *> triangulate_face(int f,
       t0 = new Triangle(v0, v1, v3);
       t1 = new Triangle(v1, v2, v3);
       set_mutual_neighbors(t0, 1, t1, 2);
+      t0->mark_orig(0);
+      t0->mark_orig(2);
+      t1->mark_orig(0);
+      t1->mark_orig(1);
     }
     else {
       t0 = new Triangle(v0, v1, v2);
       t1 = new Triangle(v0, v2, v3);
       set_mutual_neighbors(t0, 2, t1, 0);
+      t0->mark_orig(0);
+      t0->mark_orig(1);
+      t1->mark_orig(1);
+      t1->mark_orig(2);
     }
     ans.append(t0);
     ans.append(t1);
@@ -2733,9 +2775,10 @@ static Vector<Triangle *> triangulate_face(int f,
     tris = static_cast<unsigned int(*)[3]>(MEM_malloc_arrayN(totfilltri, sizeof(*tris), __func__));
     projverts = static_cast<float(*)[2]>(MEM_malloc_arrayN(flen, sizeof(*projverts), __func__));
     axis_dominant_v3_to_m3_negate(axis_mat, norm);
-    ;
+    Map<int, int> vert_index_to_facepos;
     for (int j : IndexRange(flen)) {
       mul_v2_m3v3(projverts[j], axis_mat, base_trimesh.get_vert_by_index(face[j])->co);
+      vert_index_to_facepos.add(face[j], j);
     }
     MemArena *pf_arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, __func__);
     Heap *pf_heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
@@ -2750,7 +2793,20 @@ static Vector<Triangle *> triangulate_face(int f,
         BLI_assert(tri[k] < flen);
         v[k] = fvert[tri[k]];
       }
-      ans.append(new Triangle(v[0], v[1], v[2]));
+      Triangle *newtri = new Triangle(v[0], v[1], v[2]);
+      /* Find and mark the original edges. */
+      for (int k = 0; k < 3; k++) {
+        int v1 = newtri->vert(k)->id;
+        int v2 = newtri->vert((k + 1) % 3)->id;
+        int pos = vert_index_to_facepos.lookup_default(v1, -1);
+        if (pos != -1) {
+          BLI_assert(face[pos] == v1);
+          if (face[(pos + 1) % flen] == v2) {
+            newtri->mark_orig(k);
+          }
+        }
+      }
+      ans.append(newtri);
     }
 
     MEM_freeN(tris);
@@ -2938,6 +2994,64 @@ static Vector<Vector<Edge>> find_cycle_partition(const Vector<Edge> &edges)
   return ans;
 }
 
+/** Find and append the faces inside the wavefront cycle \a contour and append them to \a out_faces.  */
+static void append_interior_faces_for_cycle(Vector<Vector<int>> &out_faces, const Vector<Edge> contour)
+{
+  constexpr int dbg_level = 0;
+  if (dbg_level > 0) {
+    std::cout << "append_interior_faces_for_cycle ";
+    for (Edge e : contour) {
+      std::cout << " " << e;
+    }
+    std::cout << "\n";
+  }
+  if (contour.size() < 3) {
+    return;
+  }
+  Vector<Edge> stack;
+  Set<Edge> processed;
+  for (Edge e : contour) {
+    stack.append(e);
+  }
+  while (!stack.is_empty()) {
+    Edge estart = stack.pop_last();
+    if (processed.contains(estart)) {
+      continue;
+    }
+    /* Find a cycle of edges starting with estart that contain only original edges
+     * or wavefront edges. */
+    processed.add(estart);
+    out_faces.append(Vector<int>());
+    Vector<int> &face = out_faces.last();
+    face.append(v_src(estart)->id);
+    Edge ecur = estart;
+    do {
+      Edge enext = find_cw_wavefront_or_orig_edge(neighbor_edge(ecur));
+      if (enext.is_null()) {
+        /* Shouldn't happen unless didn't propagate "origness" properly. Just choose an edge. */
+        BLI_assert_unreachable();
+        enext = rot_cw(neighbor_edge(estart));
+      }
+      processed.add(enext);
+      face.append(v_src(enext)->id);
+      if (!is_wavefront_edge(enext)) {
+        Edge en = neighbor_edge(enext);
+        if (!processed.contains(en)) {
+          stack.append(en);
+        }
+      }
+      ecur = enext;
+    } while (v_dst(ecur) != v_src(estart));
+    if (dbg_level > 0) {
+      std::cout << "added face";
+      for (int v : face) {
+        std::cout << " " << v;
+      }
+      std::cout << "\n";
+    }
+  }
+}
+
 /** Find the vertices and faces that make up the final result from \a trimesh.
  * Many triangles in the triangle mesh need to be merged to form an output face,
  * though we can sometimes avoid a merging step by just tracing around the
@@ -3007,21 +3121,7 @@ static MeshInset_Result trimesh_to_output(const TriangleMesh &trimesh,
     /* TODO: handle inner faces propery by preserving the
      * exsiting geometry, which means dissolving only the triangulation edges. */
     for (const Vector<Edge> &cycle : cycles) {
-      if (cycle.size() >= 3) {
-        out_faces.append(Vector<int>());
-        Vector<int> &face = out_faces.last();
-        face.reserve(cycle.size());
-        for (const Edge e : cycle) {
-          face.append(v_src(e)->id);
-        }
-        if (dbg_level > 0) {
-          std::cout << "new inner face:";
-          for (int i : face) {
-            std::cout << " " << i;
-          }
-          std::cout << "\n";
-        }
-      }
+      append_interior_faces_for_cycle(out_faces, cycle);
     }
   }
   /* Change indices in faces to output vertex numbers, */
