@@ -364,7 +364,7 @@ void *imb_alloc_pixels(
   return MEM_callocN(size, name);
 }
 
-bool imb_addrectfloatImBuf(ImBuf *ibuf)
+bool imb_addrectfloatImBuf(ImBuf *ibuf, const unsigned int channels)
 {
   if (ibuf == NULL) {
     return false;
@@ -374,8 +374,8 @@ bool imb_addrectfloatImBuf(ImBuf *ibuf)
     imb_freerectfloatImBuf(ibuf); /* frees mipmap too, hrm */
   }
 
-  ibuf->channels = 4;
-  if ((ibuf->rect_float = imb_alloc_pixels(ibuf->x, ibuf->y, 4, sizeof(float), __func__))) {
+  ibuf->channels = channels;
+  if ((ibuf->rect_float = imb_alloc_pixels(ibuf->x, ibuf->y, channels, sizeof(float), __func__))) {
     ibuf->mall |= IB_rectfloat;
     ibuf->flags |= IB_rectfloat;
     return true;
@@ -536,7 +536,7 @@ bool IMB_initImBuf(
   }
 
   if (flags & IB_rectfloat) {
-    if (imb_addrectfloatImBuf(ibuf) == false) {
+    if (imb_addrectfloatImBuf(ibuf, ibuf->channels) == false) {
       return false;
     }
   }

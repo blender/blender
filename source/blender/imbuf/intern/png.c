@@ -646,7 +646,7 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 
   if (ibuf && ((flags & IB_test) == 0)) {
     if (bit_depth == 16) {
-      imb_addrectfloatImBuf(ibuf);
+      imb_addrectfloatImBuf(ibuf, 4);
       png_set_swap(png_ptr);
 
       pixels16 = imb_alloc_pixels(ibuf->x, ibuf->y, channels, sizeof(png_uint_16), "pixels");

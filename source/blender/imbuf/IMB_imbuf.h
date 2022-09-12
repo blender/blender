@@ -809,7 +809,7 @@ bool imb_addrectImBuf(struct ImBuf *ibuf);
  */
 void imb_freerectImBuf(struct ImBuf *ibuf);
 
-bool imb_addrectfloatImBuf(struct ImBuf *ibuf);
+bool imb_addrectfloatImBuf(struct ImBuf *ibuf, const unsigned int channels);
 /**
  * Any free `ibuf->rect` frees mipmaps to be sure, creation is in render on first request.
  */
