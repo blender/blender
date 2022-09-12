@@ -526,21 +526,27 @@ static void unpack_generate_paths(const char *name,
     BLI_strncpy(tempdir, "//", sizeof(tempdir));
   }
 
-  switch (id_type) {
-    case ID_VF:
-      BLI_snprintf(r_relpath, relpathlen, "//fonts/%s", tempname);
-      break;
-    case ID_SO:
-      BLI_snprintf(r_relpath, relpathlen, "//sounds/%s", tempname);
-      break;
-    case ID_IM:
-      BLI_snprintf(r_relpath, relpathlen, "//textures/%s", tempname);
-      break;
-    case ID_VO:
-      BLI_snprintf(r_relpath, relpathlen, "//volumes/%s", tempname);
-      break;
-    default:
-      break;
+  {
+    const char *dir_name = NULL;
+    switch (id_type) {
+      case ID_VF:
+        dir_name = "fonts";
+        break;
+      case ID_SO:
+        dir_name = "sounds";
+        break;
+      case ID_IM:
+        dir_name = "textures";
+        break;
+      case ID_VO:
+        dir_name = "volumes";
+        break;
+      default:
+        break;
+    }
+    if (dir_name) {
+      BLI_path_join(r_relpath, relpathlen, "//", dir_name, tempname, NULL);
+    }
   }
 
   {

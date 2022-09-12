@@ -371,14 +371,16 @@ static bool get_path_local_ex(char *targetpath,
     relfolder[0] = '\0';
   }
 
-  /* Try `{g_app.program_dirname}/2.xx/{folder_name}` the default directory
+  /* Try `{g_app.program_dirname}/3.xx/{folder_name}` the default directory
    * for a portable distribution. See `WITH_INSTALL_PORTABLE` build-option. */
   const char *path_base = g_app.program_dirname;
 #if defined(__APPLE__) && !defined(WITH_PYTHON_MODULE)
   /* Due new code-sign situation in OSX > 10.9.5
-   * we must move the blender_version dir with contents to Resources. */
-  char osx_resourses[FILE_MAX];
-  BLI_snprintf(osx_resourses, sizeof(osx_resourses), "%s../Resources", g_app.program_dirname);
+   * we must move the blender_version dir with contents to Resources.
+   * Add 4 + 9 for the temporary `/../` path & `Resources`. */
+  char osx_resourses[FILE_MAX + 4 + 9];
+  BLI_path_join(
+      osx_resourses, sizeof(osx_resourses), g_app.program_dirname, "..", "Resources", NULL);
   /* Remove the '/../' added above. */
   BLI_path_normalize(NULL, osx_resourses);
   path_base = osx_resourses;
