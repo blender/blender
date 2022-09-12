@@ -125,7 +125,7 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(sub, imfptr, "scaling_factor", 0, NULL, ICON_NONE);
 
   row = uiLayoutRow(box, false);
-  uiItemR(row, imfptr, "forward_axis", UI_ITEM_R_EXPAND, IFACE_("Foward Axis"), ICON_NONE);
+  uiItemR(row, imfptr, "forward_axis", UI_ITEM_R_EXPAND, IFACE_("Forward Axis"), ICON_NONE);
   row = uiLayoutRow(box, false);
   uiItemR(row, imfptr, "up_axis", UI_ITEM_R_EXPAND, IFACE_("Up Axis"), ICON_NONE);
 
