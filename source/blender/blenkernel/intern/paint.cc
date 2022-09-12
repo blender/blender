@@ -1528,7 +1528,9 @@ void BKE_sculptsession_free(Object *ob)
   }
 }
 
-MultiresModifierData *BKE_sculpt_multires_active(const Scene *scene, Object *ob)
+MultiresModifierData *sculpt_multires_modifier_get(const Scene *scene,
+                                                   Object *ob,
+                                                   bool auto_create_mdisps)
 {
   Mesh *me = (Mesh *)ob->data;
   ModifierData *md;
@@ -1539,9 +1541,16 @@ MultiresModifierData *BKE_sculpt_multires_active(const Scene *scene, Object *ob)
     return nullptr;
   }
 
+  bool need_mdisps = false;
+
   if (!CustomData_get_layer(&me->ldata, CD_MDISPS)) {
-    /* multires can't work without displacement layer */
-    return nullptr;
+    if (!auto_create_mdisps) {
+      /* multires can't work without displacement layer */
+      return nullptr;
+    }
+    else {
+      need_mdisps = true;
+    }
   }
 
   /* Weight paint operates on original vertices, and needs to treat multires as regular modifier
@@ -1559,6 +1568,10 @@ MultiresModifierData *BKE_sculpt_multires_active(const Scene *scene, Object *ob)
       }
 
       if (mmd->sculptlvl > 0 && !(mmd->flags & eMultiresModifierFlag_UseSculptBaseMesh)) {
+        if (need_mdisps) {
+          CustomData_add_layer(&me->ldata, CD_MDISPS, CD_SET_DEFAULT, nullptr, me->totloop);
+        }
+
         return mmd;
       }
 
@@ -1567,6 +1580,11 @@ MultiresModifierData *BKE_sculpt_multires_active(const Scene *scene, Object *ob)
   }
 
   return nullptr;
+}
+
+MultiresModifierData *BKE_sculpt_multires_active(const Scene *scene, Object *ob)
+{
+  return sculpt_multires_modifier_get(scene, ob, false);
 }
 
 /* Checks if there are any supported deformation modifiers active */
@@ -1629,7 +1647,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   SculptSession *ss = ob->sculpt;
   Mesh *me = BKE_object_get_original_mesh(ob);
   Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
-  MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
+  MultiresModifierData *mmd = sculpt_multires_modifier_get(scene, ob, true);
   const bool use_face_sets = (ob->mode & OB_MODE_SCULPT) != 0;
 
   BLI_assert(me_eval != nullptr);
