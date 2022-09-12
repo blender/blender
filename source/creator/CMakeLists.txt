@@ -1173,7 +1173,7 @@ elseif(APPLE)
   if(WITH_PYTHON AND NOT WITH_PYTHON_MODULE AND NOT WITH_PYTHON_FRAMEWORK)
     # Copy the python libraries into the install directory.
     install_dir(
-      ${PYTHON_LIBPATH}
+      ${PYTHON_LIBPATH}/python${PYTHON_VERSION}
       ${TARGETDIR_VER}/python/lib
     )
 
