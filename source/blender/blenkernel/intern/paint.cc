@@ -1527,9 +1527,9 @@ void BKE_sculptsession_free(Object *ob)
   }
 }
 
-MultiresModifierData *sculpt_multires_modifier_get(const Scene *scene,
-                                                   Object *ob,
-                                                   bool auto_create_mdisps)
+static MultiresModifierData *sculpt_multires_modifier_get(const Scene *scene,
+                                                          Object *ob,
+                                                          const bool auto_create_mdisps)
 {
   Mesh *me = (Mesh *)ob->data;
   ModifierData *md;
