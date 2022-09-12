@@ -1276,8 +1276,6 @@ void RE_engine_gpu_context_destroy(RenderEngine *engine)
     return;
   }
 
-  BLI_assert(BLI_thread_is_main());
-
   const bool drw_state = DRW_opengl_context_release();
 
   WM_opengl_context_activate(engine->gpu_context);
