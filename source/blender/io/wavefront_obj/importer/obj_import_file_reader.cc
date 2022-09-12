@@ -596,26 +596,26 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
 static MTLTexMapType mtl_line_start_to_texture_type(const char *&p, const char *end)
 {
   if (parse_keyword(p, end, "map_Kd")) {
-    return MTLTexMapType::Kd;
+    return MTLTexMapType::Color;
   }
   if (parse_keyword(p, end, "map_Ks")) {
-    return MTLTexMapType::Ks;
+    return MTLTexMapType::Specular;
   }
   if (parse_keyword(p, end, "map_Ns")) {
-    return MTLTexMapType::Ns;
+    return MTLTexMapType::SpecularExponent;
   }
   if (parse_keyword(p, end, "map_d")) {
-    return MTLTexMapType::d;
+    return MTLTexMapType::Alpha;
   }
   if (parse_keyword(p, end, "refl") || parse_keyword(p, end, "map_refl")) {
-    return MTLTexMapType::refl;
+    return MTLTexMapType::Reflection;
   }
   if (parse_keyword(p, end, "map_Ke")) {
-    return MTLTexMapType::Ke;
+    return MTLTexMapType::Emission;
   }
   if (parse_keyword(p, end, "bump") || parse_keyword(p, end, "map_Bump") ||
       parse_keyword(p, end, "map_bump")) {
-    return MTLTexMapType::bump;
+    return MTLTexMapType::Normal;
   }
   return MTLTexMapType::Count;
 }
@@ -647,7 +647,7 @@ static bool parse_texture_option(const char *&p,
     return true;
   }
   if (parse_keyword(p, end, "-bm")) {
-    p = parse_float(p, end, 1.0f, material->map_Bump_strength, true, true);
+    p = parse_float(p, end, 1.0f, material->normal_strength, true, true);
     return true;
   }
   if (parse_keyword(p, end, "-type")) {
@@ -780,31 +780,31 @@ void MTLParser::parse_and_store(Map<string, std::unique_ptr<MTLMaterial>> &r_mat
     }
     else if (material != nullptr) {
       if (parse_keyword(p, end, "Ns")) {
-        parse_float(p, end, 324.0f, material->Ns);
+        parse_float(p, end, 324.0f, material->spec_exponent);
       }
       else if (parse_keyword(p, end, "Ka")) {
-        parse_floats(p, end, 0.0f, material->Ka, 3);
+        parse_floats(p, end, 0.0f, material->ambient_color, 3);
       }
       else if (parse_keyword(p, end, "Kd")) {
-        parse_floats(p, end, 0.8f, material->Kd, 3);
+        parse_floats(p, end, 0.8f, material->color, 3);
       }
       else if (parse_keyword(p, end, "Ks")) {
-        parse_floats(p, end, 0.5f, material->Ks, 3);
+        parse_floats(p, end, 0.5f, material->spec_color, 3);
       }
       else if (parse_keyword(p, end, "Ke")) {
-        parse_floats(p, end, 0.0f, material->Ke, 3);
+        parse_floats(p, end, 0.0f, material->emission_color, 3);
       }
       else if (parse_keyword(p, end, "Ni")) {
-        parse_float(p, end, 1.45f, material->Ni);
+        parse_float(p, end, 1.45f, material->ior);
       }
       else if (parse_keyword(p, end, "d")) {
-        parse_float(p, end, 1.0f, material->d);
+        parse_float(p, end, 1.0f, material->alpha);
       }
       else if (parse_keyword(p, end, "illum")) {
         /* Some files incorrectly use a float (T60135). */
         float val;
         parse_float(p, end, 1.0f, val);
-        material->illum = val;
+        material->illum_mode = val;
       }
       else {
         parse_texture_map(p, end, material, mtl_dir_path_);

@@ -13,7 +13,16 @@ struct Material;
 
 namespace blender::io::obj {
 
-enum class MTLTexMapType { Kd = 0, Ks, Ns, d, refl, Ke, bump, Count };
+enum class MTLTexMapType {
+  Color = 0,
+  Specular,
+  SpecularExponent,
+  Alpha,
+  Reflection,
+  Emission,
+  Normal,
+  Count
+};
 extern const char *tex_map_type_to_socket_id[];
 
 struct MTLTexMap {
@@ -47,17 +56,17 @@ struct MTLMaterial {
   std::string name;
   /* Always check for negative values while importing or exporting. Use defaults if
    * any value is negative. */
-  float Ns{-1.0f};
-  float3 Ka{-1.0f};
-  float3 Kd{-1.0f};
-  float3 Ks{-1.0f};
-  float3 Ke{-1.0f};
-  float Ni{-1.0f};
-  float d{-1.0f};
-  int illum{-1};
+  float spec_exponent{-1.0f};   /* Ns */
+  float3 ambient_color{-1.0f};  /* Ka */
+  float3 color{-1.0f};          /* Kd */
+  float3 spec_color{-1.0f};     /* Ks */
+  float3 emission_color{-1.0f}; /* Ke */
+  float ior{-1.0f};             /* Ni */
+  float alpha{-1.0f};           /* d */
+  int illum_mode{-1};
   MTLTexMap texture_maps[(int)MTLTexMapType::Count];
-  /** Only used for Normal Map node: "map_Bump". */
-  float map_Bump_strength{-1.0f};
+  /* Only used for Normal Map node: "map_Bump". */
+  float normal_strength{-1.0f};
 };
 
 MTLMaterial mtlmaterial_for_material(const Material *material);

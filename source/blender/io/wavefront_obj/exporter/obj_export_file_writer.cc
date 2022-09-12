@@ -558,24 +558,26 @@ void MTLWriter::write_bsdf_properties(const MTLMaterial &mtl)
   /* For various material properties, we only capture information
    * coming from the texture, or the default value of the socket.
    * When the texture is present, do not emit the default value. */
-  if (!mtl.tex_map_of_type(MTLTexMapType::Ns).is_valid()) {
-    fmt_handler_.write_mtl_float("Ns", mtl.Ns);
+  if (!mtl.tex_map_of_type(MTLTexMapType::SpecularExponent).is_valid()) {
+    fmt_handler_.write_mtl_float("Ns", mtl.spec_exponent);
   }
-  fmt_handler_.write_mtl_float3("Ka", mtl.Ka.x, mtl.Ka.y, mtl.Ka.z);
-  if (!mtl.tex_map_of_type(MTLTexMapType::Kd).is_valid()) {
-    fmt_handler_.write_mtl_float3("Kd", mtl.Kd.x, mtl.Kd.y, mtl.Kd.z);
+  fmt_handler_.write_mtl_float3(
+      "Ka", mtl.ambient_color.x, mtl.ambient_color.y, mtl.ambient_color.z);
+  if (!mtl.tex_map_of_type(MTLTexMapType::Color).is_valid()) {
+    fmt_handler_.write_mtl_float3("Kd", mtl.color.x, mtl.color.y, mtl.color.z);
   }
-  if (!mtl.tex_map_of_type(MTLTexMapType::Ks).is_valid()) {
-    fmt_handler_.write_mtl_float3("Ks", mtl.Ks.x, mtl.Ks.y, mtl.Ks.z);
+  if (!mtl.tex_map_of_type(MTLTexMapType::Specular).is_valid()) {
+    fmt_handler_.write_mtl_float3("Ks", mtl.spec_color.x, mtl.spec_color.y, mtl.spec_color.z);
   }
-  if (!mtl.tex_map_of_type(MTLTexMapType::Ke).is_valid()) {
-    fmt_handler_.write_mtl_float3("Ke", mtl.Ke.x, mtl.Ke.y, mtl.Ke.z);
+  if (!mtl.tex_map_of_type(MTLTexMapType::Emission).is_valid()) {
+    fmt_handler_.write_mtl_float3(
+        "Ke", mtl.emission_color.x, mtl.emission_color.y, mtl.emission_color.z);
   }
-  fmt_handler_.write_mtl_float("Ni", mtl.Ni);
-  if (!mtl.tex_map_of_type(MTLTexMapType::d).is_valid()) {
-    fmt_handler_.write_mtl_float("d", mtl.d);
+  fmt_handler_.write_mtl_float("Ni", mtl.ior);
+  if (!mtl.tex_map_of_type(MTLTexMapType::Alpha).is_valid()) {
+    fmt_handler_.write_mtl_float("d", mtl.alpha);
   }
-  fmt_handler_.write_mtl_illum(mtl.illum);
+  fmt_handler_.write_mtl_illum(mtl.illum_mode);
 }
 
 void MTLWriter::write_texture_map(const MTLMaterial &mtl_material,
@@ -594,8 +596,8 @@ void MTLWriter::write_texture_map(const MTLMaterial &mtl_material,
   if (texture_map.scale != float3{1.0f, 1.0f, 1.0f}) {
     options.append(" -s ").append(float3_to_string(texture_map.scale));
   }
-  if (texture_key == MTLTexMapType::bump && mtl_material.map_Bump_strength > 0.0001f) {
-    options.append(" -bm ").append(std::to_string(mtl_material.map_Bump_strength));
+  if (texture_key == MTLTexMapType::Normal && mtl_material.normal_strength > 0.0001f) {
+    options.append(" -bm ").append(std::to_string(mtl_material.normal_strength));
   }
 
   std::string path = path_reference(

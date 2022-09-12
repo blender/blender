@@ -212,11 +212,11 @@ static void store_bsdf_properties(const bNode *bsdf_node,
     copy_property_from_node(SOCK_FLOAT, bsdf_node, "IOR", {&refraction_index, 1});
   }
 
-  float dissolved = material->a;
+  float alpha = material->a;
   if (bsdf_node) {
-    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Alpha", {&dissolved, 1});
+    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Alpha", {&alpha, 1});
   }
-  const bool transparent = dissolved != 1.0f;
+  const bool transparent = alpha != 1.0f;
 
   float3 diffuse_col = {material->r, material->g, material->b};
   if (bsdf_node) {
@@ -253,19 +253,19 @@ static void store_bsdf_properties(const bNode *bsdf_node,
     /* Transparency: Glass on, Reflection: Ray trace off */
     illum = 9;
   }
-  r_mtl_mat.Ns = spec_exponent;
+  r_mtl_mat.spec_exponent = spec_exponent;
   if (metallic != 0.0f) {
-    r_mtl_mat.Ka = {metallic, metallic, metallic};
+    r_mtl_mat.ambient_color = {metallic, metallic, metallic};
   }
   else {
-    r_mtl_mat.Ka = {1.0f, 1.0f, 1.0f};
+    r_mtl_mat.ambient_color = {1.0f, 1.0f, 1.0f};
   }
-  r_mtl_mat.Kd = diffuse_col;
-  r_mtl_mat.Ks = {specular, specular, specular};
-  r_mtl_mat.Ke = emission_col;
-  r_mtl_mat.Ni = refraction_index;
-  r_mtl_mat.d = dissolved;
-  r_mtl_mat.illum = illum;
+  r_mtl_mat.color = diffuse_col;
+  r_mtl_mat.spec_color = {specular, specular, specular};
+  r_mtl_mat.emission_color = emission_col;
+  r_mtl_mat.ior = refraction_index;
+  r_mtl_mat.alpha = alpha;
+  r_mtl_mat.illum_mode = illum;
 }
 
 /**
@@ -291,7 +291,7 @@ static void store_image_textures(const bNode *bsdf_node,
     Vector<const bNodeSocket *> linked_sockets;
     const bNode *normal_map_node{nullptr};
 
-    if (key == (int)MTLTexMapType::bump) {
+    if (key == (int)MTLTexMapType::Normal) {
       /* Find sockets linked to destination "Normal" socket in P-BSDF node. */
       linked_sockets_to_dest_id(bsdf_node, *node_tree, "Normal", linked_sockets);
       /* Among the linked sockets, find Normal Map shader node. */
@@ -302,7 +302,7 @@ static void store_image_textures(const bNode *bsdf_node,
     }
     else {
       /* Skip emission map if emission strength is zero. */
-      if (key == (int)MTLTexMapType::Ke) {
+      if (key == (int)MTLTexMapType::Emission) {
         float emission_strength = 0.0f;
         copy_property_from_node(
             SOCK_FLOAT, bsdf_node, "Emission Strength", {&emission_strength, 1});
@@ -331,7 +331,7 @@ static void store_image_textures(const bNode *bsdf_node,
 
     if (normal_map_node) {
       copy_property_from_node(
-          SOCK_FLOAT, normal_map_node, "Strength", {&r_mtl_mat.map_Bump_strength, 1});
+          SOCK_FLOAT, normal_map_node, "Strength", {&r_mtl_mat.normal_strength, 1});
     }
     /* Texture transform options. Only translation (origin offset, "-o") and scale
      * ("-o") are supported. */
