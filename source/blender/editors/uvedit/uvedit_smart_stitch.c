@@ -1855,7 +1855,7 @@ static StitchState *stitch_init(bContext *C,
    * for stitch this isn't useful behavior, see T86924. */
   const int selectmode_orig = scene->toolsettings->selectmode;
   scene->toolsettings->selectmode = SCE_SELECT_VERTEX;
-  state->element_map = BM_uv_element_map_create(state->em->bm, scene, false, true, true);
+  state->element_map = BM_uv_element_map_create(state->em->bm, scene, false, true, true, true);
   scene->toolsettings->selectmode = selectmode_orig;
 
   if (!state->element_map) {

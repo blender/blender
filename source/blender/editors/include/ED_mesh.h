@@ -139,6 +139,7 @@ struct UvElementMap *BM_uv_element_map_create(struct BMesh *bm,
                                               const struct Scene *scene,
                                               bool uv_selected,
                                               bool use_winding,
+                                              bool use_seams,
                                               bool do_islands);
 void BM_uv_element_map_free(struct UvElementMap *element_map);
 struct UvElement *BM_uv_element_get(const struct UvElementMap *map,
