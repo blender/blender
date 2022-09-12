@@ -147,54 +147,6 @@ static MPoly *dm_getPolyArray(DerivedMesh *dm)
   return mpoly;
 }
 
-static MVert *dm_dupVertArray(DerivedMesh *dm)
-{
-  MVert *tmp = (MVert *)MEM_malloc_arrayN(
-      dm->getNumVerts(dm), sizeof(*tmp), "dm_dupVertArray tmp");
-
-  if (tmp) {
-    dm->copyVertArray(dm, tmp);
-  }
-
-  return tmp;
-}
-
-static MEdge *dm_dupEdgeArray(DerivedMesh *dm)
-{
-  MEdge *tmp = (MEdge *)MEM_malloc_arrayN(
-      dm->getNumEdges(dm), sizeof(*tmp), "dm_dupEdgeArray tmp");
-
-  if (tmp) {
-    dm->copyEdgeArray(dm, tmp);
-  }
-
-  return tmp;
-}
-
-static MLoop *dm_dupLoopArray(DerivedMesh *dm)
-{
-  MLoop *tmp = (MLoop *)MEM_malloc_arrayN(
-      dm->getNumLoops(dm), sizeof(*tmp), "dm_dupLoopArray tmp");
-
-  if (tmp) {
-    dm->copyLoopArray(dm, tmp);
-  }
-
-  return tmp;
-}
-
-static MPoly *dm_dupPolyArray(DerivedMesh *dm)
-{
-  MPoly *tmp = (MPoly *)MEM_malloc_arrayN(
-      dm->getNumPolys(dm), sizeof(*tmp), "dm_dupPolyArray tmp");
-
-  if (tmp) {
-    dm->copyPolyArray(dm, tmp);
-  }
-
-  return tmp;
-}
-
 static int dm_getNumLoopTri(DerivedMesh *dm)
 {
   const int numlooptris = poly_to_tri_count(dm->getNumPolys(dm), dm->getNumLoops(dm));
@@ -233,10 +185,6 @@ void DM_init_funcs(DerivedMesh *dm)
   dm->getEdgeArray = dm_getEdgeArray;
   dm->getLoopArray = dm_getLoopArray;
   dm->getPolyArray = dm_getPolyArray;
-  dm->dupVertArray = dm_dupVertArray;
-  dm->dupEdgeArray = dm_dupEdgeArray;
-  dm->dupLoopArray = dm_dupLoopArray;
-  dm->dupPolyArray = dm_dupPolyArray;
 
   dm->getLoopTriArray = dm_getLoopTriArray;
 
@@ -329,36 +277,6 @@ bool DM_release(DerivedMesh *dm)
   CustomData_free_temporary(&dm->polyData, dm->numPolyData);
 
   return false;
-}
-
-void DM_DupPolys(DerivedMesh *source, DerivedMesh *target)
-{
-  CustomData_free(&target->loopData, source->numLoopData);
-  CustomData_free(&target->polyData, source->numPolyData);
-
-  CustomData_copy(&source->loopData,
-                  &target->loopData,
-                  CD_MASK_DERIVEDMESH.lmask,
-                  CD_DUPLICATE,
-                  source->numLoopData);
-  CustomData_copy(&source->polyData,
-                  &target->polyData,
-                  CD_MASK_DERIVEDMESH.pmask,
-                  CD_DUPLICATE,
-                  source->numPolyData);
-
-  target->numLoopData = source->numLoopData;
-  target->numPolyData = source->numPolyData;
-
-  if (!CustomData_has_layer(&target->polyData, CD_MPOLY)) {
-    MPoly *mpoly;
-    MLoop *mloop;
-
-    mloop = source->dupLoopArray(source);
-    mpoly = source->dupPolyArray(source);
-    CustomData_add_layer(&target->loopData, CD_MLOOP, CD_ASSIGN, mloop, source->numLoopData);
-    CustomData_add_layer(&target->polyData, CD_MPOLY, CD_ASSIGN, mpoly, source->numPolyData);
-  }
 }
 
 void DM_ensure_looptri_data(DerivedMesh *dm)
