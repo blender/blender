@@ -307,12 +307,70 @@ static float p_vec2_angle(const float v1[2], const float v2[2], const float v3[2
 {
   return angle_v2v2v2(v1, v2, v3);
 }
+
+/* Angles close to 0 or 180 degrees cause rows filled with zeros in the linear_solver.
+ * The matrix will then be rank deficient and / or have poor conditioning.
+ * => Reduce the maximum angle to 179 degrees, and spread the remainder to the other angles.
+ */
+static void fix_large_angle(const float v_fix[3],
+                            const float v1[3],
+                            const float v2[3],
+                            float *r_fix,
+                            float *r_a1,
+                            float *r_a2)
+{
+  const float max_angle = (float)M_PI * (179.0f / 180.0f);
+  const float fix_amount = *r_fix - max_angle;
+  if (fix_amount < 0.0f) {
+    return; /* angle is reasonable, i.e. less than 179 degrees. */
+  }
+
+  /* The triangle is probably degenerate, or close to it.
+   * Without loss of generality, transform the triangle such that
+   *   v_fix == {  0, s}, *r_fix = 180 degrees
+   *   v1    == {-x1, 0}, *r_a1  = 0
+   *   v2    == { x2, 0}, *r_a2  = 0
+   *
+   * With `s = 0`, `x1 > 0`, `x2 > 0`
+   *
+   * Now make `s` a small number and do some math:
+   *  tan(*r_a1) = s / x1
+   *  tan(*r_a2) = s / x2
+   *
+   * Remember that `tan = sin / cos`, `sin(s) ~= s` and `cos(s) = 1`
+   *
+   * Rearrange to obtain:
+   *  *r_a1 = fix_amount * x2 / (x1 + x2)
+   *  *r_a2 = fix_amount * x1 / (x1 + x2)
+   */
+
+  const float dist_v1 = len_v3v3(v_fix, v1);
+  const float dist_v2 = len_v3v3(v_fix, v2);
+  const float sum = dist_v1 + dist_v2;
+  const float weight = (sum > 1e-20f) ? dist_v2 / sum : 0.5f;
+
+  /* Ensure sum of angles in triangle is unchanged. */
+  *r_fix -= fix_amount;
+  *r_a1 += fix_amount * weight;
+  *r_a2 += fix_amount * (1.0f - weight);
+}
+
 static void p_triangle_angles(
     const float v1[3], const float v2[3], const float v3[3], float *r_a1, float *r_a2, float *r_a3)
 {
   *r_a1 = p_vec_angle(v3, v1, v2);
   *r_a2 = p_vec_angle(v1, v2, v3);
-  *r_a3 = (float)M_PI - *r_a2 - *r_a1;
+  *r_a3 = p_vec_angle(v2, v3, v1);
+
+  /* Fix for degenerate geometry e.g. v1 = sum(v2 + v3). See T100874 */
+  fix_large_angle(v1, v2, v3, r_a1, r_a2, r_a3);
+  fix_large_angle(v2, v3, v1, r_a2, r_a3, r_a1);
+  fix_large_angle(v3, v1, v2, r_a3, r_a1, r_a2);
+
+  /* Workaround for degenerate geometry, e.g. v1 == v2 == v3. */
+  *r_a1 = max_ff(*r_a1, 0.001f);
+  *r_a2 = max_ff(*r_a2, 0.001f);
+  *r_a3 = max_ff(*r_a3, 0.001f);
 }
 
 static void p_face_angles(PFace *f, float *r_a1, float *r_a2, float *r_a3)
@@ -2266,7 +2324,6 @@ using PAbfSystem = struct PAbfSystem {
   float *bAlpha, *bTriangle, *bInterior;
   float *lambdaTriangle, *lambdaPlanar, *lambdaLength;
   float (*J2dt)[3], *bstar, *dstar;
-  float minangle, maxangle;
 };
 
 static void p_abf_setup_system(PAbfSystem *sys)
@@ -2294,9 +2351,6 @@ static void p_abf_setup_system(PAbfSystem *sys)
   for (i = 0; i < sys->ninterior; i++) {
     sys->lambdaLength[i] = 1.0;
   }
-
-  sys->minangle = 1.0 * M_PI / 180.0;
-  sys->maxangle = (float)M_PI - sys->minangle;
 }
 
 static void p_abf_free_system(PAbfSystem *sys)
@@ -2706,25 +2760,6 @@ static bool p_chart_abf_solve(PChart *chart)
     e2 = e1->next;
     e3 = e2->next;
     p_face_angles(f, &a1, &a2, &a3);
-
-    if (a1 < sys.minangle) {
-      a1 = sys.minangle;
-    }
-    else if (a1 > sys.maxangle) {
-      a1 = sys.maxangle;
-    }
-    if (a2 < sys.minangle) {
-      a2 = sys.minangle;
-    }
-    else if (a2 > sys.maxangle) {
-      a2 = sys.maxangle;
-    }
-    if (a3 < sys.minangle) {
-      a3 = sys.minangle;
-    }
-    else if (a3 > sys.maxangle) {
-      a3 = sys.maxangle;
-    }
 
     sys.alpha[e1->u.id] = sys.beta[e1->u.id] = a1;
     sys.alpha[e2->u.id] = sys.beta[e2->u.id] = a2;
