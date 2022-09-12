@@ -556,8 +556,7 @@ static bool mesh_batch_cache_valid(Object *object, Mesh *me)
   }
 
   if (object->sculpt && object->sculpt->pbvh) {
-    if (cache->pbvh_is_drawing != BKE_pbvh_is_drawing(object->sculpt->pbvh) ||
-        BKE_pbvh_draw_cache_invalid(object->sculpt->pbvh)) {
+    if (cache->pbvh_is_drawing != BKE_pbvh_is_drawing(object->sculpt->pbvh)) {
       return false;
     }
 
