@@ -1505,8 +1505,8 @@ size_t BLI_path_join(char *__restrict dst, const size_t dst_len, const char *pat
     return ofs;
   }
 
-  /* remove trailing slashes, unless there are _only_ trailing slashes
-   * (allow "//" as the first argument). */
+  /* Remove trailing slashes, unless there are *only* trailing slashes
+   * (allow `//` or `//some_path` as the first argument). */
   bool has_trailing_slash = false;
   if (ofs != 0) {
     size_t len = ofs;
