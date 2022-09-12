@@ -67,6 +67,7 @@
 
 #include "ED_armature.h"
 #include "ED_gpencil.h"
+#include "ED_keyframing.h"
 #include "ED_object.h"
 #include "ED_outliner.h"
 #include "ED_screen.h"
@@ -1715,10 +1716,15 @@ static int gpencil_strokes_paste_exec(bContext *C, wmOperator *op)
 
         /* Ensure we have a frame to draw into
          * NOTE: Since this is an op which creates strokes,
-         *       we are obliged to add a new frame if one
-         *       doesn't exist already
+         *       we resuse active frame or add a new frame if one
+         *       doesn't exist already depending on REC button status.
          */
-        gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_ADD_NEW);
+        if (IS_AUTOKEY_ON(scene) || (gpl->actframe == NULL)) {
+          gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_ADD_NEW);
+        }
+        else {
+          gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_USE_PREV);
+        }
         if (gpf) {
           /* Create new stroke */
           bGPDstroke *new_stroke = BKE_gpencil_stroke_duplicate(gps, true, true);
