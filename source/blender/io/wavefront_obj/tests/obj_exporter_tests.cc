@@ -527,4 +527,27 @@ TEST_F(obj_exporter_regression_test, all_objects_mat_groups)
                                _export.params);
 }
 
+TEST_F(obj_exporter_regression_test, materials_without_pbr)
+{
+  OBJExportParamsDefault _export;
+  _export.params.export_normals = false;
+  _export.params.path_mode = PATH_REFERENCE_RELATIVE;
+  compare_obj_export_to_golden("io_tests/blend_geometry/materials_pbr.blend",
+                               "io_tests/obj/materials_without_pbr.obj",
+                               "io_tests/obj/materials_without_pbr.mtl",
+                               _export.params);
+}
+
+TEST_F(obj_exporter_regression_test, materials_pbr)
+{
+  OBJExportParamsDefault _export;
+  _export.params.export_normals = false;
+  _export.params.path_mode = PATH_REFERENCE_RELATIVE;
+  _export.params.export_pbr_extensions = true;
+  compare_obj_export_to_golden("io_tests/blend_geometry/materials_pbr.blend",
+                               "io_tests/obj/materials_pbr.obj",
+                               "io_tests/obj/materials_pbr.mtl",
+                               _export.params);
+}
+
 }  // namespace blender::io::obj

@@ -93,6 +93,7 @@ static int wm_obj_export_exec(bContext *C, wmOperator *op)
   export_params.path_mode = RNA_enum_get(op->ptr, "path_mode");
   export_params.export_triangulated_mesh = RNA_boolean_get(op->ptr, "export_triangulated_mesh");
   export_params.export_curves_as_nurbs = RNA_boolean_get(op->ptr, "export_curves_as_nurbs");
+  export_params.export_pbr_extensions = RNA_boolean_get(op->ptr, "export_pbr_extensions");
 
   export_params.export_object_groups = RNA_boolean_get(op->ptr, "export_object_groups");
   export_params.export_material_groups = RNA_boolean_get(op->ptr, "export_material_groups");
@@ -118,7 +119,6 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
 
   /* Object Transform options. */
   box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("Object Properties"), ICON_OBJECT_DATA);
   col = uiLayoutColumn(box, false);
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Limit to"));
   uiItemR(sub, imfptr, "export_selected_objects", 0, IFACE_("Selected Only"), ICON_NONE);
@@ -134,27 +134,31 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Objects"));
   uiItemR(sub, imfptr, "apply_modifiers", 0, IFACE_("Apply Modifiers"), ICON_NONE);
   uiItemR(sub, imfptr, "export_eval_mode", 0, IFACE_("Properties"), ICON_NONE);
-  sub = uiLayoutColumn(sub, false);
-  uiLayoutSetEnabled(sub, export_materials);
-  uiItemR(sub, imfptr, "path_mode", 0, IFACE_("Path Mode"), ICON_NONE);
 
-  /* Options for what to write. */
+  /* Geometry options. */
   box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("Geometry"), ICON_EXPORT);
   col = uiLayoutColumn(box, false);
-  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Export"));
+  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Geometry"));
   uiItemR(sub, imfptr, "export_uv", 0, IFACE_("UV Coordinates"), ICON_NONE);
   uiItemR(sub, imfptr, "export_normals", 0, IFACE_("Normals"), ICON_NONE);
   uiItemR(sub, imfptr, "export_colors", 0, IFACE_("Colors"), ICON_NONE);
-  uiItemR(sub, imfptr, "export_materials", 0, IFACE_("Materials"), ICON_NONE);
   uiItemR(sub, imfptr, "export_triangulated_mesh", 0, IFACE_("Triangulated Mesh"), ICON_NONE);
   uiItemR(sub, imfptr, "export_curves_as_nurbs", 0, IFACE_("Curves as NURBS"), ICON_NONE);
 
+  /* Material options. */
+  box = uiLayoutBox(layout);
+  col = uiLayoutColumn(box, false);
+  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Materials"));
+  uiItemR(sub, imfptr, "export_materials", 0, IFACE_("Export"), ICON_NONE);
+  sub = uiLayoutColumn(sub, false);
+  uiLayoutSetEnabled(sub, export_materials);
+  uiItemR(sub, imfptr, "export_pbr_extensions", 0, IFACE_("PBR Extensions"), ICON_NONE);
+  uiItemR(sub, imfptr, "path_mode", 0, IFACE_("Path Mode"), ICON_NONE);
+
   /* Grouping options. */
   box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("Grouping"), ICON_GROUP);
   col = uiLayoutColumn(box, false);
-  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Export"));
+  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Grouping"));
   uiItemR(sub, imfptr, "export_object_groups", 0, IFACE_("Object Groups"), ICON_NONE);
   uiItemR(sub, imfptr, "export_material_groups", 0, IFACE_("Material Groups"), ICON_NONE);
   uiItemR(sub, imfptr, "export_vertex_groups", 0, IFACE_("Vertex Groups"), ICON_NONE);
@@ -165,14 +169,13 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
 
   /* Animation options. */
   box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("Animation"), ICON_ANIM);
   col = uiLayoutColumn(box, false);
-  sub = uiLayoutColumn(col, false);
-  uiItemR(sub, imfptr, "export_animation", 0, NULL, ICON_NONE);
+  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Animation"));
+  uiItemR(sub, imfptr, "export_animation", 0, IFACE_("Export"), ICON_NONE);
   sub = uiLayoutColumn(sub, true);
+  uiLayoutSetEnabled(sub, export_animation);
   uiItemR(sub, imfptr, "start_frame", 0, IFACE_("Frame Start"), ICON_NONE);
   uiItemR(sub, imfptr, "end_frame", 0, IFACE_("End"), ICON_NONE);
-  uiLayoutSetEnabled(sub, export_animation);
 }
 
 static void wm_obj_export_draw(bContext *UNUSED(C), wmOperator *op)
@@ -336,6 +339,12 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
                   "Export Materials",
                   "Export MTL library. There must be a Principled-BSDF node for image textures to "
                   "be exported to the MTL file");
+  RNA_def_boolean(ot->srna,
+                  "export_pbr_extensions",
+                  false,
+                  "Export Materials with PBR Extensions",
+                  "Export MTL library using PBR extensions (roughness, metallic, sheen, "
+                  "clearcoat, anisotropy, transmission)");
   RNA_def_enum(ot->srna,
                "path_mode",
                io_obj_path_mode,

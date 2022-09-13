@@ -186,7 +186,8 @@ class MTLWriter : NonMovable, NonCopyable {
    */
   void write_materials(const char *blen_filepath,
                        ePathReferenceMode path_mode,
-                       const char *dest_dir);
+                       const char *dest_dir,
+                       bool write_pbr);
   StringRefNull mtl_file_path() const;
   /**
    * Add the materials of the given object to #MTLWriter, de-duplicating
@@ -203,7 +204,7 @@ class MTLWriter : NonMovable, NonCopyable {
   /**
    * Write properties sourced from p-BSDF node or #Object.Material.
    */
-  void write_bsdf_properties(const MTLMaterial &mtl_material);
+  void write_bsdf_properties(const MTLMaterial &mtl_material, bool write_pbr);
   /**
    * Write a texture map in the form "map_XX -s 1. 1. 1. -o 0. 0. 0. [-bm 1.] path/to/image".
    */

@@ -617,6 +617,15 @@ static MTLTexMapType mtl_line_start_to_texture_type(const char *&p, const char *
       parse_keyword(p, end, "map_bump")) {
     return MTLTexMapType::Normal;
   }
+  if (parse_keyword(p, end, "map_Pr")) {
+    return MTLTexMapType::Roughness;
+  }
+  if (parse_keyword(p, end, "map_Pm")) {
+    return MTLTexMapType::Metallic;
+  }
+  if (parse_keyword(p, end, "map_Ps")) {
+    return MTLTexMapType::Sheen;
+  }
   return MTLTexMapType::Count;
 }
 
@@ -805,6 +814,30 @@ void MTLParser::parse_and_store(Map<string, std::unique_ptr<MTLMaterial>> &r_mat
         float val;
         parse_float(p, end, 1.0f, val);
         material->illum_mode = val;
+      }
+      else if (parse_keyword(p, end, "Pr")) {
+        parse_float(p, end, 0.5f, material->roughness);
+      }
+      else if (parse_keyword(p, end, "Pm")) {
+        parse_float(p, end, 0.0f, material->metallic);
+      }
+      else if (parse_keyword(p, end, "Ps")) {
+        parse_float(p, end, 0.0f, material->sheen);
+      }
+      else if (parse_keyword(p, end, "Pc")) {
+        parse_float(p, end, 0.0f, material->cc_thickness);
+      }
+      else if (parse_keyword(p, end, "Pcr")) {
+        parse_float(p, end, 0.0f, material->cc_roughness);
+      }
+      else if (parse_keyword(p, end, "aniso")) {
+        parse_float(p, end, 0.0f, material->aniso);
+      }
+      else if (parse_keyword(p, end, "anisor")) {
+        parse_float(p, end, 0.0f, material->aniso_rot);
+      }
+      else if (parse_keyword(p, end, "Kt") || parse_keyword(p, end, "Tf")) {
+        parse_floats(p, end, 0.0f, material->transmit_color, 3);
       }
       else {
         parse_texture_map(p, end, material, mtl_dir_path_);

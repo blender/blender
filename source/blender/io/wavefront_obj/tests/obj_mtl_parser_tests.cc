@@ -54,11 +54,19 @@ class obj_mtl_parser_test : public testing::Test {
       EXPECT_V3_NEAR(exp.color, got.color, tol);
       EXPECT_V3_NEAR(exp.spec_color, got.spec_color, tol);
       EXPECT_V3_NEAR(exp.emission_color, got.emission_color, tol);
+      EXPECT_V3_NEAR(exp.transmit_color, got.transmit_color, tol);
       EXPECT_NEAR(exp.spec_exponent, got.spec_exponent, tol);
       EXPECT_NEAR(exp.ior, got.ior, tol);
       EXPECT_NEAR(exp.alpha, got.alpha, tol);
       EXPECT_NEAR(exp.normal_strength, got.normal_strength, tol);
       EXPECT_EQ(exp.illum_mode, got.illum_mode);
+      EXPECT_NEAR(exp.roughness, got.roughness, tol);
+      EXPECT_NEAR(exp.metallic, got.metallic, tol);
+      EXPECT_NEAR(exp.sheen, got.sheen, tol);
+      EXPECT_NEAR(exp.cc_thickness, got.cc_thickness, tol);
+      EXPECT_NEAR(exp.cc_roughness, got.cc_roughness, tol);
+      EXPECT_NEAR(exp.aniso, got.aniso, tol);
+      EXPECT_NEAR(exp.aniso_rot, got.aniso_rot, tol);
       for (int key = 0; key < (int)MTLTexMapType::Count; key++) {
         const MTLTexMap &exp_tex = exp.texture_maps[key];
         const MTLTexMap &got_tex = got.texture_maps[key];
@@ -222,6 +230,15 @@ TEST_F(obj_mtl_parser_test, materials)
   mat[4].ior = 1.5;
   mat[4].alpha = 0.5;
   mat[4].normal_strength = 0.1f;
+  mat[4].transmit_color = {0.1f, 0.3f, 0.5f};
+  mat[4].normal_strength = 0.1f;
+  mat[4].roughness = 0.2f;
+  mat[4].metallic = 0.3f;
+  mat[4].sheen = 0.4f;
+  mat[4].cc_thickness = 0.5f;
+  mat[4].cc_roughness = 0.6f;
+  mat[4].aniso = 0.7f;
+  mat[4].aniso_rot = 0.8f;
   {
     MTLTexMap &kd = mat[4].tex_map_of_type(MTLTexMapType::Color);
     kd.image_path = "sometex_d.png";
@@ -252,6 +269,77 @@ TEST_F(obj_mtl_parser_test, materials)
   }
 
   check("materials.mtl", mat, ARRAY_SIZE(mat));
+}
+
+TEST_F(obj_mtl_parser_test, materials_without_pbr)
+{
+  MTLMaterial mat[2];
+  mat[0].name = "Mat1";
+  mat[0].spec_exponent = 360.0f;
+  mat[0].ambient_color = {0.9f, 0.9f, 0.9f};
+  mat[0].color = {0.8f, 0.276449f, 0.101911f};
+  mat[0].spec_color = {0.25f, 0.25f, 0.25f};
+  mat[0].emission_color = {0, 0, 0};
+  mat[0].ior = 1.45f;
+  mat[0].alpha = 1;
+  mat[0].illum_mode = 3;
+
+  mat[1].name = "Mat2";
+  mat[1].ambient_color = {1, 1, 1};
+  mat[1].color = {0.8f, 0.8f, 0.8f};
+  mat[1].spec_color = {0.5f, 0.5f, 0.5f};
+  mat[1].ior = 1.45f;
+  mat[1].alpha = 1;
+  mat[1].illum_mode = 2;
+  {
+    MTLTexMap &ns = mat[1].tex_map_of_type(MTLTexMapType::SpecularExponent);
+    ns.image_path = "../blend_geometry/texture_roughness.png";
+    MTLTexMap &ke = mat[1].tex_map_of_type(MTLTexMapType::Emission);
+    ke.image_path = "../blend_geometry/texture_illum.png";
+  }
+
+  check("materials_without_pbr.mtl", mat, ARRAY_SIZE(mat));
+}
+
+TEST_F(obj_mtl_parser_test, materials_pbr)
+{
+  MTLMaterial mat[2];
+  mat[0].name = "Mat1";
+  mat[0].color = {0.8f, 0.276449f, 0.101911f};
+  mat[0].spec_color = {0.25f, 0.25f, 0.25f};
+  mat[0].emission_color = {0, 0, 0};
+  mat[0].ior = 1.45f;
+  mat[0].alpha = 1;
+  mat[0].illum_mode = 3;
+  mat[0].roughness = 0.4f;
+  mat[0].metallic = 0.9f;
+  mat[0].sheen = 0.3f;
+  mat[0].cc_thickness = 0.393182f;
+  mat[0].cc_roughness = 0.05f;
+  mat[0].aniso = 0.2f;
+  mat[0].aniso_rot = 0.0f;
+
+  mat[1].name = "Mat2";
+  mat[1].color = {0.8f, 0.8f, 0.8f};
+  mat[1].spec_color = {0.5f, 0.5f, 0.5f};
+  mat[1].ior = 1.45f;
+  mat[1].alpha = 1;
+  mat[1].illum_mode = 2;
+  mat[1].metallic = 0.0f;
+  mat[1].cc_thickness = 0.3f;
+  mat[1].cc_roughness = 0.4f;
+  mat[1].aniso = 0.8f;
+  mat[1].aniso_rot = 0.7f;
+  {
+    MTLTexMap &pr = mat[1].tex_map_of_type(MTLTexMapType::Roughness);
+    pr.image_path = "../blend_geometry/texture_roughness.png";
+    MTLTexMap &ps = mat[1].tex_map_of_type(MTLTexMapType::Sheen);
+    ps.image_path = "../blend_geometry/texture_checker.png";
+    MTLTexMap &ke = mat[1].tex_map_of_type(MTLTexMapType::Emission);
+    ke.image_path = "../blend_geometry/texture_illum.png";
+  }
+
+  check("materials_pbr.mtl", mat, ARRAY_SIZE(mat));
 }
 
 }  // namespace blender::io::obj

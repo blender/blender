@@ -493,11 +493,14 @@ void OBJWriter::write_nurbs_curve(FormatHandler &fh, const OBJCurve &obj_nurbs_d
 
 static const char *tex_map_type_to_string[] = {
     "map_Kd",
+    "map_Pm",
     "map_Ks",
     "map_Ns",
-    "map_d",
+    "map_Pr",
+    "map_Ps",
     "map_refl",
     "map_Ke",
+    "map_d",
     "map_Bump",
 };
 BLI_STATIC_ASSERT(ARRAY_SIZE(tex_map_type_to_string) == (int)MTLTexMapType::Count,
@@ -553,16 +556,20 @@ StringRefNull MTLWriter::mtl_file_path() const
   return mtl_filepath_;
 }
 
-void MTLWriter::write_bsdf_properties(const MTLMaterial &mtl)
+void MTLWriter::write_bsdf_properties(const MTLMaterial &mtl, bool write_pbr)
 {
   /* For various material properties, we only capture information
    * coming from the texture, or the default value of the socket.
    * When the texture is present, do not emit the default value. */
-  if (!mtl.tex_map_of_type(MTLTexMapType::SpecularExponent).is_valid()) {
-    fmt_handler_.write_mtl_float("Ns", mtl.spec_exponent);
+
+  /* Do not write Ns & Ka when writing in PBR mode. */
+  if (!write_pbr) {
+    if (!mtl.tex_map_of_type(MTLTexMapType::SpecularExponent).is_valid()) {
+      fmt_handler_.write_mtl_float("Ns", mtl.spec_exponent);
+    }
+    fmt_handler_.write_mtl_float3(
+        "Ka", mtl.ambient_color.x, mtl.ambient_color.y, mtl.ambient_color.z);
   }
-  fmt_handler_.write_mtl_float3(
-      "Ka", mtl.ambient_color.x, mtl.ambient_color.y, mtl.ambient_color.z);
   if (!mtl.tex_map_of_type(MTLTexMapType::Color).is_valid()) {
     fmt_handler_.write_mtl_float3("Kd", mtl.color.x, mtl.color.y, mtl.color.z);
   }
@@ -578,6 +585,35 @@ void MTLWriter::write_bsdf_properties(const MTLMaterial &mtl)
     fmt_handler_.write_mtl_float("d", mtl.alpha);
   }
   fmt_handler_.write_mtl_illum(mtl.illum_mode);
+
+  if (write_pbr) {
+    if (!mtl.tex_map_of_type(MTLTexMapType::Roughness).is_valid() && mtl.roughness >= 0.0f) {
+      fmt_handler_.write_mtl_float("Pr", mtl.roughness);
+    }
+    if (!mtl.tex_map_of_type(MTLTexMapType::Metallic).is_valid() && mtl.metallic >= 0.0f) {
+      fmt_handler_.write_mtl_float("Pm", mtl.metallic);
+    }
+    if (!mtl.tex_map_of_type(MTLTexMapType::Sheen).is_valid() && mtl.sheen >= 0.0f) {
+      fmt_handler_.write_mtl_float("Ps", mtl.sheen);
+    }
+    if (mtl.cc_thickness >= 0.0f) {
+      fmt_handler_.write_mtl_float("Pc", mtl.cc_thickness);
+    }
+    if (mtl.cc_roughness >= 0.0f) {
+      fmt_handler_.write_mtl_float("Pcr", mtl.cc_roughness);
+    }
+    if (mtl.aniso >= 0.0f) {
+      fmt_handler_.write_mtl_float("aniso", mtl.aniso);
+    }
+    if (mtl.aniso_rot >= 0.0f) {
+      fmt_handler_.write_mtl_float("anisor", mtl.aniso_rot);
+    }
+    if (mtl.transmit_color.x > 0.0f || mtl.transmit_color.y > 0.0f ||
+        mtl.transmit_color.z > 0.0f) {
+      fmt_handler_.write_mtl_float3(
+          "Tf", mtl.transmit_color.x, mtl.transmit_color.y, mtl.transmit_color.z);
+    }
+  }
 }
 
 void MTLWriter::write_texture_map(const MTLMaterial &mtl_material,
@@ -608,9 +644,21 @@ void MTLWriter::write_texture_map(const MTLMaterial &mtl_material,
   fmt_handler_.write_mtl_map(tex_map_type_to_string[(int)texture_key], options, path);
 }
 
+static bool is_pbr_map(MTLTexMapType type)
+{
+  return type == MTLTexMapType::Metallic || type == MTLTexMapType::Roughness ||
+         type == MTLTexMapType::Sheen;
+}
+
+static bool is_non_pbr_map(MTLTexMapType type)
+{
+  return type == MTLTexMapType::SpecularExponent || type == MTLTexMapType::Reflection;
+}
+
 void MTLWriter::write_materials(const char *blen_filepath,
                                 ePathReferenceMode path_mode,
-                                const char *dest_dir)
+                                const char *dest_dir,
+                                bool write_pbr)
 {
   if (mtlmaterials_.size() == 0) {
     return;
@@ -628,10 +676,16 @@ void MTLWriter::write_materials(const char *blen_filepath,
   for (const MTLMaterial &mtlmat : mtlmaterials_) {
     fmt_handler_.write_string("");
     fmt_handler_.write_mtl_newmtl(mtlmat.name);
-    write_bsdf_properties(mtlmat);
+    write_bsdf_properties(mtlmat, write_pbr);
     for (int key = 0; key < (int)MTLTexMapType::Count; key++) {
       const MTLTexMap &tex = mtlmat.texture_maps[key];
       if (!tex.is_valid()) {
+        continue;
+      }
+      if (!write_pbr && is_pbr_map((MTLTexMapType)key)) {
+        continue;
+      }
+      if (write_pbr && is_non_pbr_map((MTLTexMapType)key)) {
         continue;
       }
       write_texture_map(

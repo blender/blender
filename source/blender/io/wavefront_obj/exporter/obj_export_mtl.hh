@@ -15,11 +15,14 @@ namespace blender::io::obj {
 
 enum class MTLTexMapType {
   Color = 0,
+  Metallic,
   Specular,
   SpecularExponent,
-  Alpha,
+  Roughness,
+  Sheen,
   Reflection,
   Emission,
+  Alpha,
   Normal,
   Count
 };
@@ -63,6 +66,15 @@ struct MTLMaterial {
   float3 emission_color{-1.0f}; /* `Ke` */
   float ior{-1.0f};             /* `Ni` */
   float alpha{-1.0f};           /* `d` */
+  float3 transmit_color{-1.0f}; /* `Kt` / `Tf` */
+  float roughness{-1.0f};       /* `Pr` */
+  float metallic{-1.0f};        /* `Pm` */
+  float sheen{-1.0f};           /* `Ps` */
+  float cc_thickness{-1.0f};    /* `Pc` */
+  float cc_roughness{-1.0f};    /* `Pcr` */
+  float aniso{-1.0f};           /* `aniso` */
+  float aniso_rot{-1.0f};       /* `anisor` */
+
   int illum_mode{-1};
   MTLTexMap texture_maps[(int)MTLTexMapType::Count];
   /* Only used for Normal Map node: `map_Bump`. */

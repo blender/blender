@@ -284,6 +284,14 @@ static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial
     alpha = 1.0f;
   }
 
+  /* PBR values, when present, override the ones calculated above. */
+  if (mtl_mat.roughness >= 0) {
+    roughness = mtl_mat.roughness;
+  }
+  if (mtl_mat.metallic >= 0) {
+    metallic = mtl_mat.metallic;
+  }
+
   float3 base_color = mtl_mat.color;
   if (base_color.x >= 0 && base_color.y >= 0 && base_color.z >= 0) {
     set_property_of_socket(SOCK_RGBA, "Base Color", {base_color, 3}, bsdf);
@@ -313,6 +321,30 @@ static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial
   }
   if (do_tranparency || (alpha >= 0.0f && alpha < 1.0f)) {
     mat->blend_method = MA_BM_BLEND;
+  }
+
+  if (mtl_mat.sheen >= 0) {
+    set_property_of_socket(SOCK_FLOAT, "Sheen", {mtl_mat.sheen}, bsdf);
+  }
+  if (mtl_mat.cc_thickness >= 0) {
+    set_property_of_socket(SOCK_FLOAT, "Clearcoat", {mtl_mat.cc_thickness}, bsdf);
+  }
+  if (mtl_mat.cc_roughness >= 0) {
+    set_property_of_socket(SOCK_FLOAT, "Clearcoat Roughness", {mtl_mat.cc_roughness}, bsdf);
+  }
+  if (mtl_mat.aniso >= 0) {
+    set_property_of_socket(SOCK_FLOAT, "Anisotropic", {mtl_mat.aniso}, bsdf);
+  }
+  if (mtl_mat.aniso_rot >= 0) {
+    set_property_of_socket(SOCK_FLOAT, "Anisotropic Rotation", {mtl_mat.aniso_rot}, bsdf);
+  }
+
+  /* Transmission: average of transmission color. */
+  float transmission = (mtl_mat.transmit_color[0] + mtl_mat.transmit_color[1] +
+                        mtl_mat.transmit_color[2]) /
+                       3;
+  if (transmission >= 0) {
+    set_property_of_socket(SOCK_FLOAT, "Transmission", {transmission}, bsdf);
   }
 }
 

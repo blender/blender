@@ -48,18 +48,15 @@ struct OBJExportParams {
   bool export_triangulated_mesh;
   bool export_curves_as_nurbs;
   ePathReferenceMode path_mode;
+  bool export_pbr_extensions;
 
   /* Grouping options. */
   bool export_object_groups;
   bool export_material_groups;
   bool export_vertex_groups;
-  /**
-   * Calculate smooth groups from sharp edges.
-   */
+  /* Calculate smooth groups from sharp edges. */
   bool export_smooth_groups;
-  /**
-   * Create bitflags instead of the default "0"/"1" group IDs.
-   */
+  /* Create bitflags instead of the default "0"/"1" group IDs. */
   bool smooth_groups_bitflags;
 };
 

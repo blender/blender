@@ -23,11 +23,14 @@ namespace blender::io::obj {
 
 const char *tex_map_type_to_socket_id[] = {
     "Base Color",
-    "Specular",
-    "Roughness",
-    "Alpha",
     "Metallic",
+    "Specular",
+    "Roughness", /* Map specular exponent to roughness. */
+    "Roughness",
+    "Sheen",
+    "Metallic", /* Map reflection to metallic. */
     "Emission",
+    "Alpha",
     "Normal",
 };
 BLI_STATIC_ASSERT(ARRAY_SIZE(tex_map_type_to_socket_id) == (int)MTLTexMapType::Count,
@@ -188,7 +191,6 @@ static void store_bsdf_properties(const bNode *bsdf_node,
                                   const Material *material,
                                   MTLMaterial &r_mtl_mat)
 {
-  /* If p-BSDF is not present, fallback to #Object.Material. */
   float roughness = material->roughness;
   if (bsdf_node) {
     copy_property_from_node(SOCK_FLOAT, bsdf_node, "Roughness", {&roughness, 1});
@@ -231,6 +233,22 @@ static void store_bsdf_properties(const bNode *bsdf_node,
   }
   mul_v3_fl(emission_col, emission_strength);
 
+  float sheen = -1.0f;
+  float clearcoat = -1.0f;
+  float clearcoat_roughness = -1.0f;
+  float aniso = -1.0f;
+  float aniso_rot = -1.0f;
+  float transmission = -1.0f;
+  if (bsdf_node) {
+    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Sheen", {&sheen, 1});
+    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Clearcoat", {&clearcoat, 1});
+    copy_property_from_node(
+        SOCK_FLOAT, bsdf_node, "Clearcoat Roughness", {&clearcoat_roughness, 1});
+    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Anisotropic", {&aniso, 1});
+    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Anisotropic Rotation", {&aniso_rot, 1});
+    copy_property_from_node(SOCK_FLOAT, bsdf_node, "Transmission", {&transmission, 1});
+  }
+
   /* See https://wikipedia.org/wiki/Wavefront_.obj_file for all possible values of `illum`. */
   /* Highlight on. */
   int illum = 2;
@@ -266,6 +284,14 @@ static void store_bsdf_properties(const bNode *bsdf_node,
   r_mtl_mat.ior = refraction_index;
   r_mtl_mat.alpha = alpha;
   r_mtl_mat.illum_mode = illum;
+  r_mtl_mat.roughness = roughness;
+  r_mtl_mat.metallic = metallic;
+  r_mtl_mat.sheen = sheen;
+  r_mtl_mat.cc_thickness = clearcoat;
+  r_mtl_mat.cc_roughness = clearcoat_roughness;
+  r_mtl_mat.aniso = aniso;
+  r_mtl_mat.aniso_rot = aniso_rot;
+  r_mtl_mat.transmit_color = {transmission, transmission, transmission};
 }
 
 /**
