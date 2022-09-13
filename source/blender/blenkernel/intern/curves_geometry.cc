@@ -1380,16 +1380,6 @@ static void reverse_swap_curve_point_data(const CurvesGeometry &curves,
   });
 }
 
-static bool layer_matches_name_and_type(const CustomDataLayer &layer,
-                                        const StringRef name,
-                                        const eCustomDataType type)
-{
-  if (layer.type != type) {
-    return false;
-  }
-  return layer.name == name;
-}
-
 void CurvesGeometry::reverse_curves(const IndexMask curves_to_reverse)
 {
   Set<StringRef> bezier_handle_names{{ATTR_HANDLE_POSITION_LEFT,
