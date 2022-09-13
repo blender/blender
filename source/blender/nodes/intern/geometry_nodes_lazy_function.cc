@@ -71,9 +71,9 @@ static void lazy_function_interface_from_node(const bNode &node,
                                               Vector<lf::Output> &r_outputs)
 {
   const bool is_muted = node.is_muted();
-  const bool supports_lazyness = node.typeinfo->geometry_node_execute_supports_laziness ||
+  const bool supports_laziness = node.typeinfo->geometry_node_execute_supports_laziness ||
                                  node.is_group();
-  const lf::ValueUsage input_usage = supports_lazyness ? lf::ValueUsage::Maybe :
+  const lf::ValueUsage input_usage = supports_laziness ? lf::ValueUsage::Maybe :
                                                          lf::ValueUsage::Used;
   for (const bNodeSocket *socket : node.input_sockets()) {
     if (!socket->is_available()) {
