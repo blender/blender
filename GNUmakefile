@@ -230,9 +230,18 @@ endif
 
 
 # -----------------------------------------------------------------------------
-# additional targets for the build configuration
+# Additional targets for the build configuration
 
-# support 'make debug'
+# NOTE: These targets can be combined and are applied in reverse order listed here.
+# So it's important that `bpy` comes before `release` (for example)
+# `make bpy release` first loads `release` configuration, then `bpy`.
+# This is important as `bpy` will turn off some settings enabled by release.
+
+ifneq "$(findstring bpy, $(MAKECMDGOALS))" ""
+	BUILD_DIR:=$(BUILD_DIR)_bpy
+	CMAKE_CONFIG_ARGS:=-C"$(BLENDER_DIR)/build_files/cmake/config/bpy_module.cmake" $(CMAKE_CONFIG_ARGS)
+	BLENDER_IS_PYTHON_MODULE:=1
+endif
 ifneq "$(findstring debug, $(MAKECMDGOALS))" ""
 	BUILD_DIR:=$(BUILD_DIR)_debug
 	BUILD_TYPE:=Debug
@@ -256,11 +265,6 @@ endif
 ifneq "$(findstring headless, $(MAKECMDGOALS))" ""
 	BUILD_DIR:=$(BUILD_DIR)_headless
 	CMAKE_CONFIG_ARGS:=-C"$(BLENDER_DIR)/build_files/cmake/config/blender_headless.cmake" $(CMAKE_CONFIG_ARGS)
-endif
-ifneq "$(findstring bpy, $(MAKECMDGOALS))" ""
-	BUILD_DIR:=$(BUILD_DIR)_bpy
-	CMAKE_CONFIG_ARGS:=-C"$(BLENDER_DIR)/build_files/cmake/config/bpy_module.cmake" $(CMAKE_CONFIG_ARGS)
-	BLENDER_IS_PYTHON_MODULE:=1
 endif
 
 ifneq "$(findstring developer, $(MAKECMDGOALS))" ""
