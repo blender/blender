@@ -161,7 +161,7 @@ static bool is_vertex_diagonal(BMVert *from_v, BMVert *to_v)
  */
 static void unsubdivide_face_center_vertex_tag(BMesh *bm, BMVert *initial_vertex)
 {
-  bool *visited_vertices = MEM_calloc_arrayN(bm->totvert, sizeof(bool), "visited vertices");
+  bool *visited_verts = MEM_calloc_arrayN(bm->totvert, sizeof(bool), "visited vertices");
   GSQueue *queue;
   queue = BLI_gsqueue_new(sizeof(BMVert *));
 
@@ -177,7 +177,7 @@ static void unsubdivide_face_center_vertex_tag(BMesh *bm, BMVert *initial_vertex
       int neighbor_vertex_index = BM_elem_index_get(neighbor_v);
       if (neighbor_v != initial_vertex && is_vertex_diagonal(neighbor_v, initial_vertex)) {
         BLI_gsqueue_push(queue, &neighbor_v);
-        visited_vertices[neighbor_vertex_index] = true;
+        visited_verts[neighbor_vertex_index] = true;
         BM_elem_flag_set(neighbor_v, BM_ELEM_TAG, true);
       }
     }
@@ -211,10 +211,10 @@ static void unsubdivide_face_center_vertex_tag(BMesh *bm, BMVert *initial_vertex
       BM_ITER_ELEM (f, &iter, diagonal_v, BM_FACES_OF_VERT) {
         BM_ITER_ELEM (neighbor_v, &iter_a, f, BM_VERTS_OF_FACE) {
           int neighbor_vertex_index = BM_elem_index_get(neighbor_v);
-          if (!visited_vertices[neighbor_vertex_index] && neighbor_v != diagonal_v &&
+          if (!visited_verts[neighbor_vertex_index] && neighbor_v != diagonal_v &&
               is_vertex_diagonal(neighbor_v, diagonal_v)) {
             BLI_gsqueue_push(queue, &neighbor_v);
-            visited_vertices[neighbor_vertex_index] = true;
+            visited_verts[neighbor_vertex_index] = true;
             BM_elem_flag_set(neighbor_v, BM_ELEM_TAG, true);
           }
         }
@@ -224,7 +224,7 @@ static void unsubdivide_face_center_vertex_tag(BMesh *bm, BMVert *initial_vertex
   }
 
   BLI_gsqueue_free(queue);
-  MEM_freeN(visited_vertices);
+  MEM_freeN(visited_verts);
 }
 
 /**
@@ -352,14 +352,14 @@ static bool unsubdivide_tag_disconnected_mesh_element(BMesh *bm, int *elem_id, i
  */
 static int unsubdivide_init_elem_ids(BMesh *bm, int *elem_id)
 {
-  bool *visited_vertices = MEM_calloc_arrayN(bm->totvert, sizeof(bool), "visited vertices");
+  bool *visited_verts = MEM_calloc_arrayN(bm->totvert, sizeof(bool), "visited vertices");
   int current_id = 0;
   for (int i = 0; i < bm->totvert; i++) {
-    if (!visited_vertices[i]) {
+    if (!visited_verts[i]) {
       GSQueue *queue;
       queue = BLI_gsqueue_new(sizeof(BMVert *));
 
-      visited_vertices[i] = true;
+      visited_verts[i] = true;
       elem_id[i] = current_id;
       BMVert *iv = BM_vert_at_index(bm, i);
       BLI_gsqueue_push(queue, &iv);
@@ -372,8 +372,8 @@ static int unsubdivide_init_elem_ids(BMesh *bm, int *elem_id)
         BM_ITER_ELEM (ed, &iter, current_v, BM_EDGES_OF_VERT) {
           neighbor_v = BM_edge_other_vert(ed, current_v);
           const int neighbor_index = BM_elem_index_get(neighbor_v);
-          if (!visited_vertices[neighbor_index]) {
-            visited_vertices[neighbor_index] = true;
+          if (!visited_verts[neighbor_index]) {
+            visited_verts[neighbor_index] = true;
             elem_id[neighbor_index] = current_id;
             BLI_gsqueue_push(queue, &neighbor_v);
           }
@@ -383,7 +383,7 @@ static int unsubdivide_init_elem_ids(BMesh *bm, int *elem_id)
       BLI_gsqueue_free(queue);
     }
   }
-  MEM_freeN(visited_vertices);
+  MEM_freeN(visited_verts);
   return current_id;
 }
 
@@ -639,9 +639,10 @@ static void store_grid_data(MultiresUnsubdivideContext *context,
                             int grid_x,
                             int grid_y)
 {
-
   Mesh *original_mesh = context->original_mesh;
-  MPoly *poly = &original_mesh->mpoly[BM_elem_index_get(f)];
+  const MPoly *polys = BKE_mesh_polys(original_mesh);
+  const MLoop *loops = BKE_mesh_loops(original_mesh);
+  const MPoly *poly = &polys[BM_elem_index_get(f)];
 
   const int corner_vertex_index = BM_elem_index_get(v);
 
@@ -650,7 +651,7 @@ static void store_grid_data(MultiresUnsubdivideContext *context,
   int loop_offset = 0;
   for (int i = 0; i < poly->totloop; i++) {
     const int loop_index = poly->loopstart + i;
-    MLoop *l = &original_mesh->mloop[loop_index];
+    const MLoop *l = &loops[loop_index];
     if (l->v == corner_vertex_index) {
       loop_offset = i;
       break;
@@ -901,10 +902,10 @@ static void multires_unsubdivide_add_original_index_datalayers(Mesh *mesh)
   multires_unsubdivide_free_original_datalayers(mesh);
 
   int *l_index = CustomData_add_layer_named(
-      &mesh->ldata, CD_PROP_INT32, CD_CALLOC, NULL, mesh->totloop, lname);
+      &mesh->ldata, CD_PROP_INT32, CD_SET_DEFAULT, NULL, mesh->totloop, lname);
 
   int *v_index = CustomData_add_layer_named(
-      &mesh->vdata, CD_PROP_INT32, CD_CALLOC, NULL, mesh->totvert, vname);
+      &mesh->vdata, CD_PROP_INT32, CD_SET_DEFAULT, NULL, mesh->totvert, vname);
 
   /* Initialize these data-layer with the indices in the current mesh. */
   for (int i = 0; i < mesh->totloop; i++) {
@@ -918,8 +919,9 @@ static void multires_unsubdivide_add_original_index_datalayers(Mesh *mesh)
 static void multires_unsubdivide_prepare_original_bmesh_for_extract(
     MultiresUnsubdivideContext *context)
 {
-
   Mesh *original_mesh = context->original_mesh;
+  const MPoly *original_polys = BKE_mesh_polys(original_mesh);
+
   Mesh *base_mesh = context->base_mesh;
 
   BMesh *bm_original_mesh = context->bm_original_mesh = get_bmesh_from_mesh(original_mesh);
@@ -949,7 +951,7 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
   context->loop_to_face_map = MEM_calloc_arrayN(original_mesh->totloop, sizeof(int), "loop map");
 
   for (int i = 0; i < original_mesh->totpoly; i++) {
-    MPoly *poly = &original_mesh->mpoly[i];
+    const MPoly *poly = &original_polys[i];
     for (int l = 0; l < poly->totloop; l++) {
       int original_loop_index = l + poly->loopstart;
       context->loop_to_face_map[original_loop_index] = i;
@@ -963,16 +965,19 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
  */
 static bool multires_unsubdivide_flip_grid_x_axis(Mesh *mesh, int poly, int loop, int v_x)
 {
-  MPoly *p = &mesh->mpoly[poly];
+  const MPoly *polys = BKE_mesh_polys(mesh);
+  const MLoop *loops = BKE_mesh_loops(mesh);
 
-  MLoop *l_first = &mesh->mloop[p->loopstart];
+  const MPoly *p = &polys[poly];
+
+  const MLoop *l_first = &loops[p->loopstart];
   if ((loop == (p->loopstart + (p->totloop - 1))) && l_first->v == v_x) {
     return true;
   }
 
   int next_l_index = loop + 1;
   if (next_l_index < p->loopstart + p->totloop) {
-    MLoop *l_next = &mesh->mloop[next_l_index];
+    const MLoop *l_next = &loops[next_l_index];
     if (l_next->v == v_x) {
       return true;
     }
@@ -1174,7 +1179,7 @@ static void multires_create_grids_in_unsubdivided_base_mesh(MultiresUnsubdivideC
     CustomData_free_layers(&base_mesh->ldata, CD_MDISPS, base_mesh->totloop);
   }
   MDisps *mdisps = CustomData_add_layer(
-      &base_mesh->ldata, CD_MDISPS, CD_CALLOC, NULL, base_mesh->totloop);
+      &base_mesh->ldata, CD_MDISPS, CD_SET_DEFAULT, NULL, base_mesh->totloop);
 
   const int totdisp = pow_i(BKE_ccg_gridsize(context->num_total_levels), 2);
   const int totloop = base_mesh->totloop;
@@ -1247,7 +1252,7 @@ int multiresModifier_rebuild_subdiv(struct Depsgraph *depsgraph,
   }
 
   /* Copy the new base mesh to the original mesh. */
-  BKE_mesh_nomain_to_mesh(unsubdiv_context.base_mesh, object->data, object, &CD_MASK_MESH, true);
+  BKE_mesh_nomain_to_mesh(unsubdiv_context.base_mesh, object->data, object);
   Mesh *base_mesh = object->data;
   multires_create_grids_in_unsubdivided_base_mesh(&unsubdiv_context, base_mesh);
 

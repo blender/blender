@@ -25,6 +25,8 @@ struct CryptomatteSession *BKE_cryptomatte_init(void);
 struct CryptomatteSession *BKE_cryptomatte_init_from_render_result(
     const struct RenderResult *render_result);
 struct CryptomatteSession *BKE_cryptomatte_init_from_scene(const struct Scene *scene);
+struct CryptomatteSession *BKE_cryptomatte_init_from_view_layer(
+    const struct ViewLayer *view_layer);
 void BKE_cryptomatte_free(struct CryptomatteSession *session);
 void BKE_cryptomatte_add_layer(struct CryptomatteSession *session, const char *layer_name);
 

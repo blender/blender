@@ -108,7 +108,7 @@ static void PaintCurvePointToTransData(PaintCurvePoint *pcp,
   }
 }
 
-void createTransPaintCurveVerts(bContext *C, TransInfo *t)
+static void createTransPaintCurveVerts(bContext *C, TransInfo *t)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
   PaintCurve *pc;
@@ -188,7 +188,7 @@ void createTransPaintCurveVerts(bContext *C, TransInfo *t)
 /** \name Paint Curve Transform Flush
  * \{ */
 
-void flushTransPaintCurve(TransInfo *t)
+static void flushTransPaintCurve(TransInfo *t)
 {
   int i;
 
@@ -204,3 +204,10 @@ void flushTransPaintCurve(TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_PaintCurve = {
+    /* flags */ (T_POINTS | T_2D_EDIT),
+    /* createTransData */ createTransPaintCurveVerts,
+    /* recalcData */ flushTransPaintCurve,
+    /* special_aftertrans_update */ NULL,
+};

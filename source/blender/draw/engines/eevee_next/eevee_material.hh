@@ -203,12 +203,11 @@ class DefaultSurfaceNodeTree {
  * \{ */
 
 struct MaterialPass {
-  GPUMaterial *gpumat = nullptr;
-  DRWShadingGroup *shgrp = nullptr;
+  GPUMaterial *gpumat;
+  PassMain::Sub *sub_pass;
 };
 
 struct Material {
-  bool init = false;
   bool is_alpha_blend_transparent;
   MaterialPass shadow, shading, prepass;
 };
@@ -228,8 +227,8 @@ class MaterialModule {
  private:
   Instance &inst_;
 
-  Map<MaterialKey, Material *> material_map_;
-  Map<ShaderKey, DRWShadingGroup *> shader_map_;
+  Map<MaterialKey, Material> material_map_;
+  Map<ShaderKey, PassMain::Sub *> shader_map_;
 
   MaterialArray material_array_;
 
@@ -254,13 +253,15 @@ class MaterialModule {
   Material &material_get(Object *ob, bool has_motion, int mat_nr, eMaterialGeometry geometry_type);
 
  private:
-  Material &material_sync(::Material *blender_mat,
+  Material &material_sync(Object *ob,
+                          ::Material *blender_mat,
                           eMaterialGeometry geometry_type,
                           bool has_motion);
 
   /** Return correct material or empty default material if slot is empty. */
   ::Material *material_from_slot(Object *ob, int slot);
-  MaterialPass material_pass_get(::Material *blender_mat,
+  MaterialPass material_pass_get(Object *ob,
+                                 ::Material *blender_mat,
                                  eMaterialPipeline pipeline_type,
                                  eMaterialGeometry geometry_type);
 };

@@ -133,6 +133,7 @@ static struct {
   struct GPUShader *scatter_with_lights_sh;
   struct GPUShader *volumetric_integration_sh;
   struct GPUShader *volumetric_resolve_sh[2];
+  struct GPUShader *volumetric_resolve_comp_sh[2];
   struct GPUShader *volumetric_accum_sh;
 
   /* Shader strings */
@@ -181,6 +182,7 @@ extern char datatoc_closure_type_lib_glsl[];
 extern char datatoc_closure_eval_volume_lib_glsl[];
 extern char datatoc_common_uniforms_lib_glsl[];
 extern char datatoc_common_utiltex_lib_glsl[];
+extern char datatoc_cryptomatte_lib_glsl[];
 extern char datatoc_cryptomatte_frag_glsl[];
 extern char datatoc_cryptomatte_vert_glsl[];
 extern char datatoc_cubemap_lib_glsl[];
@@ -260,6 +262,7 @@ extern char datatoc_volumetric_frag_glsl[];
 extern char datatoc_volumetric_geom_glsl[];
 extern char datatoc_volumetric_integration_frag_glsl[];
 extern char datatoc_volumetric_lib_glsl[];
+extern char datatoc_volumetric_resolve_comp_glsl[];
 extern char datatoc_volumetric_resolve_frag_glsl[];
 extern char datatoc_volumetric_scatter_frag_glsl[];
 extern char datatoc_volumetric_vert_glsl[];
@@ -304,6 +307,7 @@ static void eevee_shader_library_ensure(void)
     DRW_SHADER_LIB_ADD(e_data.lib, closure_eval_refraction_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, closure_eval_surface_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, closure_eval_volume_lib);
+    DRW_SHADER_LIB_ADD(e_data.lib, cryptomatte_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, surface_vert);
 
     e_data.surface_lit_frag = DRW_shader_library_create_shader_string(e_data.lib,
@@ -901,6 +905,20 @@ struct GPUShader *EEVEE_shaders_volumes_resolve_sh_get(bool accum)
   return e_data.volumetric_resolve_sh[index];
 }
 
+struct GPUShader *EEVEE_shaders_volumes_resolve_comp_sh_get(bool float_target)
+{
+  const int index = (float_target ? 1 : 0);
+  if (e_data.volumetric_resolve_comp_sh[index] == NULL) {
+    e_data.volumetric_resolve_comp_sh[index] = DRW_shader_create_compute_with_shaderlib(
+        datatoc_volumetric_resolve_comp_glsl,
+        e_data.lib,
+        float_target ? "#define TARGET_IMG_FLOAT\n" SHADER_DEFINES : SHADER_DEFINES,
+        __func__);
+  }
+
+  return e_data.volumetric_resolve_comp_sh[index];
+}
+
 struct GPUShader *EEVEE_shaders_volumes_accum_sh_get()
 {
   if (e_data.volumetric_accum_sh == NULL) {
@@ -1190,8 +1208,8 @@ Material *EEVEE_material_default_diffuse_get(void)
   if (!e_data.diffuse_mat) {
     Material *ma = BKE_id_new_nomain(ID_MA, "EEVEEE default diffuse");
 
-    bNodeTree *ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
-    ma->nodetree = ntree;
+    bNodeTree *ntree = ntreeAddTreeEmbedded(
+        NULL, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
     ma->use_nodes = true;
 
     bNode *bsdf = nodeAddStaticNode(NULL, ntree, SH_NODE_BSDF_DIFFUSE);
@@ -1217,8 +1235,8 @@ Material *EEVEE_material_default_glossy_get(void)
   if (!e_data.glossy_mat) {
     Material *ma = BKE_id_new_nomain(ID_MA, "EEVEEE default metal");
 
-    bNodeTree *ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
-    ma->nodetree = ntree;
+    bNodeTree *ntree = ntreeAddTreeEmbedded(
+        NULL, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
     ma->use_nodes = true;
 
     bNode *bsdf = nodeAddStaticNode(NULL, ntree, SH_NODE_BSDF_GLOSSY);
@@ -1246,8 +1264,8 @@ Material *EEVEE_material_default_error_get(void)
   if (!e_data.error_mat) {
     Material *ma = BKE_id_new_nomain(ID_MA, "EEVEEE default error");
 
-    bNodeTree *ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
-    ma->nodetree = ntree;
+    bNodeTree *ntree = ntreeAddTreeEmbedded(
+        NULL, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
     ma->use_nodes = true;
 
     /* Use emission and output material to be compatible with both World and Material. */

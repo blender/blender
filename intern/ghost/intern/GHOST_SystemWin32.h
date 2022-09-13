@@ -10,10 +10,10 @@
 
 #ifndef WIN32
 #  error WIN32 only!
-#endif  // WIN32
+#endif /* WIN32 */
 
 #define WIN32_LEAN_AND_MEAN
-#include <ole2.h>  // for drag-n-drop
+#include <ole2.h> /* For drag-n-drop. */
 #include <windows.h>
 
 #include "GHOST_System.h"
@@ -295,11 +295,10 @@ class GHOST_SystemWin32 : public GHOST_System {
   /**
    * Catches raw WIN32 key codes from WM_INPUT in the wndproc.
    * \param raw: RawInput structure with detailed info about the key event.
-   * \param keyDown: Pointer flag that specify if a key is down.
-   * \param vk: Pointer to virtual key.
+   * \param r_key_down: Set true when the key is pressed, otherwise false.
    * \return The GHOST key (GHOST_kKeyUnknown if no match).
    */
-  GHOST_TKey hardKey(RAWINPUT const &raw, bool *r_keyDown, bool *r_is_repeated_modifier);
+  GHOST_TKey hardKey(RAWINPUT const &raw, bool *r_key_down);
 
   /**
    * Creates mouse button event.
@@ -387,7 +386,7 @@ class GHOST_SystemWin32 : public GHOST_System {
   static GHOST_Event *processImeEvent(GHOST_TEventType type,
                                       GHOST_WindowWin32 *window,
                                       GHOST_TEventImeData *data);
-#endif  // WITH_INPUT_IME
+#endif /* WITH_INPUT_IME */
 
   /**
    * Handles minimum window size.
@@ -417,19 +416,6 @@ class GHOST_SystemWin32 : public GHOST_System {
   void processTrackpad();
 
   /**
-   * Returns the local state of the modifier keys (from the message queue).
-   * \param keys: The state of the keys.
-   */
-  inline void retrieveModifierKeys(GHOST_ModifierKeys &keys) const;
-
-  /**
-   * Stores the state of the modifier keys locally.
-   * For internal use only!
-   * param keys The new state of the modifier keys.
-   */
-  inline void storeModifierKeys(const GHOST_ModifierKeys &keys);
-
-  /**
    * Check current key layout for AltGr
    */
   inline void handleKeyboardChange(void);
@@ -444,10 +430,8 @@ class GHOST_SystemWin32 : public GHOST_System {
    * \param action: console state
    * \return current status (1 -visible, 0 - hidden)
    */
-  int setConsoleWindowState(GHOST_TConsoleWindowState action);
+  bool setConsoleWindowState(GHOST_TConsoleWindowState action);
 
-  /** The current state of the modifier keys. */
-  GHOST_ModifierKeys m_modifierKeys;
   /** The virtual-key code (VKey) of the last press event. Used to detect repeat events. */
   unsigned short m_keycode_last_repeat_key;
   /** State variable set at initialization. */
@@ -466,36 +450,26 @@ class GHOST_SystemWin32 : public GHOST_System {
   HKL m_keylayout;
 
   /** Console status. */
-  int m_consoleStatus;
+  bool m_consoleStatus;
 
   /** Wheel delta accumulator. */
   int m_wheelDeltaAccum;
 };
 
-inline void GHOST_SystemWin32::retrieveModifierKeys(GHOST_ModifierKeys &keys) const
-{
-  keys = m_modifierKeys;
-}
-
-inline void GHOST_SystemWin32::storeModifierKeys(const GHOST_ModifierKeys &keys)
-{
-  m_modifierKeys = keys;
-}
-
 inline void GHOST_SystemWin32::handleKeyboardChange(void)
 {
-  m_keylayout = GetKeyboardLayout(0);  // get keylayout for current thread
+  m_keylayout = GetKeyboardLayout(0); /* Get keylayout for current thread. */
   int i;
   SHORT s;
 
-  // save the language identifier.
+  /* Save the language identifier. */
   m_langId = LOWORD(m_keylayout);
 
   for (m_hasAltGr = false, i = 32; i < 256; ++i) {
     s = VkKeyScanEx((char)i, m_keylayout);
-    // s == -1 means no key that translates passed char code
-    // high byte contains shift state. bit 2 ctrl pressed, bit 4 alt pressed
-    // if both are pressed, we have AltGr keycombo on keylayout
+    /* `s == -1` means no key that translates passed char code high byte contains shift state.
+     * bit 2 Control pressed, bit 4 `Alt` pressed if both are pressed,
+     * we have `AltGr` key-combination on key-layout. */
     if (s != -1 && (s & 0x600) == 0x600) {
       m_hasAltGr = true;
       break;

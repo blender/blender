@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "RE_pipeline.h"
+
 struct Depsgraph;
 struct ImBuf;
 struct MLoopUV;
@@ -24,6 +26,9 @@ typedef struct BakeImage {
   int width;
   int height;
   size_t offset;
+
+  /* For associating render result layer with image. */
+  char render_layer_name[RE_MAXNAME];
 } BakeImage;
 
 typedef struct BakeTargets {

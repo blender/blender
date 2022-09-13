@@ -20,8 +20,8 @@ void SeparateColorNode::convert_to_operations(NodeConverter &converter,
   NodeOutput *output_bsocket = this->get_output_socket(2);
   NodeOutput *output_asocket = this->get_output_socket(3);
 
-  bNode *editor_node = this->get_bnode();
-  NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)editor_node->storage;
+  const bNode *editor_node = this->get_bnode();
+  const NodeCMPCombSepColor *storage = (const NodeCMPCombSepColor *)editor_node->storage;
 
   NodeOperation *color_conv = nullptr;
   switch (storage->mode) {

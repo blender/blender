@@ -39,10 +39,10 @@ enum BVHType {
   BVH_NUM_TYPES,
 };
 
-/* Names bitflag type to denote which BVH layouts are supported by
+/* Names bit-flag type to denote which BVH layouts are supported by
  * particular area.
  *
- * Bitflags are the BVH_LAYOUT_* values.
+ * Bit-flags are the BVH_LAYOUT_* values.
  */
 typedef int BVHLayoutMask;
 

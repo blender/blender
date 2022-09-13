@@ -83,7 +83,7 @@ static void statusbar_keymap(struct wmKeyConfig *UNUSED(keyconf))
 static void statusbar_header_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -136,7 +136,7 @@ void ED_spacetype_statusbar(void)
   ARegionType *art;
 
   st->spaceid = SPACE_STATUSBAR;
-  strncpy(st->name, "Status Bar", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "Status Bar");
 
   st->create = statusbar_create;
   st->free = statusbar_free;

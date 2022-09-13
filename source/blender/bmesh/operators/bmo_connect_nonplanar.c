@@ -24,7 +24,7 @@
 static float bm_face_subset_calc_planar(BMLoop *l_first, BMLoop *l_last, const float no[3])
 {
   float axis_mat[3][3];
-  float z_prev, z_curr;
+  float z_prev;
   float delta_z = 0.0f;
 
   /* Newell's Method */
@@ -35,7 +35,7 @@ static float bm_face_subset_calc_planar(BMLoop *l_first, BMLoop *l_last, const f
 
   z_prev = dot_m3_v3_row_z(axis_mat, l_last->v->co);
   do {
-    z_curr = dot_m3_v3_row_z(axis_mat, l_iter->v->co);
+    const float z_curr = dot_m3_v3_row_z(axis_mat, l_iter->v->co);
     delta_z += fabsf(z_curr - z_prev);
     z_prev = z_curr;
   } while ((l_iter = l_iter->next) != l_term);

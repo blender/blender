@@ -593,6 +593,7 @@ void GPENCIL_OT_stroke_cyclical_set(struct wmOperatorType *ot);
  */
 void GPENCIL_OT_stroke_caps_set(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_join(struct wmOperatorType *ot);
+void GPENCIL_OT_stroke_start_set(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_flip(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_subdivide(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_simplify(struct wmOperatorType *ot);
@@ -608,6 +609,7 @@ void GPENCIL_OT_stroke_merge_by_distance(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_merge_material(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_reset_vertex_color(struct wmOperatorType *ot);
 void GPENCIL_OT_stroke_normalize(struct wmOperatorType *ot);
+void GPENCIL_OT_stroke_outline(struct wmOperatorType *ot);
 
 void GPENCIL_OT_material_to_vertex_color(struct wmOperatorType *ot);
 void GPENCIL_OT_extract_palette_vertex(struct wmOperatorType *ot);

@@ -32,7 +32,7 @@ ccl_device_inline float calculate_avg_principled_sheen_brdf(float3 N, float3 I)
   return schlick_fresnel(NdotI) * NdotI;
 }
 
-ccl_device float3
+ccl_device Spectrum
 calculate_principled_sheen_brdf(float3 N, float3 V, float3 L, float3 H, ccl_private float *pdf)
 {
   float NdotL = dot(N, L);
@@ -40,14 +40,14 @@ calculate_principled_sheen_brdf(float3 N, float3 V, float3 L, float3 H, ccl_priv
 
   if (NdotL < 0 || NdotV < 0) {
     *pdf = 0.0f;
-    return make_float3(0.0f, 0.0f, 0.0f);
+    return zero_spectrum();
   }
 
   float LdotH = dot(L, H);
 
   float value = schlick_fresnel(LdotH) * NdotL;
 
-  return make_float3(value, value, value);
+  return make_spectrum(value);
 }
 
 ccl_device int bsdf_principled_sheen_setup(ccl_private const ShaderData *sd,
@@ -59,10 +59,10 @@ ccl_device int bsdf_principled_sheen_setup(ccl_private const ShaderData *sd,
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device float3 bsdf_principled_sheen_eval_reflect(ccl_private const ShaderClosure *sc,
-                                                     const float3 I,
-                                                     const float3 omega_in,
-                                                     ccl_private float *pdf)
+ccl_device Spectrum bsdf_principled_sheen_eval_reflect(ccl_private const ShaderClosure *sc,
+                                                       const float3 I,
+                                                       const float3 omega_in,
+                                                       ccl_private float *pdf)
 {
   ccl_private const PrincipledSheenBsdf *bsdf = (ccl_private const PrincipledSheenBsdf *)sc;
 
@@ -77,30 +77,26 @@ ccl_device float3 bsdf_principled_sheen_eval_reflect(ccl_private const ShaderClo
   }
   else {
     *pdf = 0.0f;
-    return make_float3(0.0f, 0.0f, 0.0f);
+    return zero_spectrum();
   }
 }
 
-ccl_device float3 bsdf_principled_sheen_eval_transmit(ccl_private const ShaderClosure *sc,
-                                                      const float3 I,
-                                                      const float3 omega_in,
-                                                      ccl_private float *pdf)
+ccl_device Spectrum bsdf_principled_sheen_eval_transmit(ccl_private const ShaderClosure *sc,
+                                                        const float3 I,
+                                                        const float3 omega_in,
+                                                        ccl_private float *pdf)
 {
   *pdf = 0.0f;
-  return make_float3(0.0f, 0.0f, 0.0f);
+  return zero_spectrum();
 }
 
 ccl_device int bsdf_principled_sheen_sample(ccl_private const ShaderClosure *sc,
                                             float3 Ng,
                                             float3 I,
-                                            float3 dIdx,
-                                            float3 dIdy,
                                             float randu,
                                             float randv,
-                                            ccl_private float3 *eval,
+                                            ccl_private Spectrum *eval,
                                             ccl_private float3 *omega_in,
-                                            ccl_private float3 *domega_in_dx,
-                                            ccl_private float3 *domega_in_dy,
                                             ccl_private float *pdf)
 {
   ccl_private const PrincipledSheenBsdf *bsdf = (ccl_private const PrincipledSheenBsdf *)sc;
@@ -113,15 +109,9 @@ ccl_device int bsdf_principled_sheen_sample(ccl_private const ShaderClosure *sc,
     float3 H = normalize(I + *omega_in);
 
     *eval = calculate_principled_sheen_brdf(N, I, *omega_in, H, pdf);
-
-#ifdef __RAY_DIFFERENTIALS__
-    // TODO: find a better approximation for the diffuse bounce
-    *domega_in_dx = -((2 * dot(N, dIdx)) * N - dIdx);
-    *domega_in_dy = -((2 * dot(N, dIdy)) * N - dIdy);
-#endif
   }
   else {
-    *eval = make_float3(0.0f, 0.0f, 0.0f);
+    *eval = zero_spectrum();
     *pdf = 0.0f;
   }
   return LABEL_REFLECT | LABEL_DIFFUSE;

@@ -97,7 +97,7 @@ IDTypeInfo IDType_ID_LI = {
     .foreach_id = library_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = library_foreach_path,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = NULL,
     .blend_read_data = library_blend_read_data,
@@ -122,7 +122,7 @@ void BKE_library_filepath_set(Main *bmain, Library *lib, const char *filepath)
   /* Not essential but set `filepath_abs` is an absolute copy of value which
    * is more useful if its kept in sync. */
   if (BLI_path_is_rel(lib->filepath_abs)) {
-    /* NOTE(campbell): the file may be unsaved, in this case, setting the
+    /* NOTE(@campbellbarton): the file may be unsaved, in this case, setting the
      * `filepath_abs` on an indirectly linked path is not allowed from the
      * outliner, and its not really supported but allow from here for now
      * since making local could cause this to be directly linked.

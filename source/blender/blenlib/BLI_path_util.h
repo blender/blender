@@ -36,16 +36,6 @@ void BLI_setenv_if_new(const char *env, const char *val) ATTR_NONNULL(1);
 const char *BLI_getenv(const char *env) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 
 /**
- * Returns in `string` the concatenation of `dir` and `file` (also with `relabase` on the
- * front if specified and `dir` begins with "//"). Normalizes all occurrences of path
- * separators, including ensuring there is exactly one between the copies of `dir` and `file`,
- * and between the copies of `relabase` and `dir`.
- *
- * \param relabase: Optional prefix to substitute for "//" on front of `dir`.
- * \param string: Area to return result.
- */
-void BLI_make_file_string(const char *relabase, char *string, const char *dir, const char *file);
-/**
  * Ensures that the parent directory of `name` exists.
  *
  * \return true on success (i.e. given path now exists on file-system), false otherwise.
@@ -94,10 +84,18 @@ void BLI_join_dirfile(char *__restrict dst,
  * Join multiple strings into a path, ensuring only a single path separator between each,
  * and trailing slash is kept.
  *
+ * \param path: The first patch which has special treatment,
+ * allowing `//` prefix which is kept intact unlike double-slashes which are stripped
+ * from the bounds of all other paths passed in.
+ * Passing in the following paths all result in the same output (`//a/b/c`):
+ * - `"//", "a", "b", "c"`.
+ * - `"//", "/a/", "/b/", "/c"`.
+ * - `"//a", "b/c"`.
+ *
  * \note If you want a trailing slash, add `SEP_STR` as the last path argument,
  * duplicate slashes will be cleaned up.
  */
-size_t BLI_path_join(char *__restrict dst, size_t dst_len, const char *path_first, ...)
+size_t BLI_path_join(char *__restrict dst, size_t dst_len, const char *path, ...)
     ATTR_NONNULL(1, 3) ATTR_SENTINEL(0);
 /**
  * Like Python's `os.path.basename()`

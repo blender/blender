@@ -3,12 +3,9 @@
 
 set(INC
   ..
-  ../../glew-mx
 )
 
-set(INC_SYS
-  ${GLEW_INCLUDE_DIR}
-)
+set(INC_SYS )
 
 if(WITH_CYCLES_DEVICE_OPTIX OR WITH_CYCLES_DEVICE_CUDA)
   if(WITH_CUDA_DYNLOAD)
@@ -22,6 +19,8 @@ if(WITH_CYCLES_DEVICE_OPTIX OR WITH_CYCLES_DEVICE_CUDA)
     )
     add_definitions(-DCYCLES_CUDA_NVCC_EXECUTABLE="${CUDA_NVCC_EXECUTABLE}")
   endif()
+
+  add_definitions(-DCYCLES_RUNTIME_OPTIX_ROOT_DIR="${CYCLES_RUNTIME_OPTIX_ROOT_DIR}")
 endif()
 
 if(WITH_CYCLES_DEVICE_HIP AND WITH_HIP_DYNLOAD)
@@ -150,7 +149,6 @@ set(SRC
 set(LIB
   cycles_kernel
   cycles_util
-  ${CYCLES_GL_LIBRARIES}
 )
 
 if(WITH_CYCLES_DEVICE_OPTIX OR WITH_CYCLES_DEVICE_CUDA)
@@ -170,8 +168,6 @@ if(WITH_CYCLES_DEVICE_HIP AND WITH_HIP_DYNLOAD)
     extern_hipew
   )
 endif()
-
-add_definitions(${GL_DEFINITIONS})
 
 if(WITH_CYCLES_DEVICE_CUDA)
   add_definitions(-DWITH_CUDA)

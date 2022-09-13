@@ -186,7 +186,7 @@ IDTypeInfo IDType_ID_CA = {
     .foreach_id = camera_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = camera_blend_write,
     .blend_read_data = camera_blend_read_data,

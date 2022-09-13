@@ -146,7 +146,7 @@ endif()
 if(WITH_COMPILER_ASAN AND MSVC AND NOT MSVC_CLANG)
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.28.29828)
     #set a flag so we don't have to do this comparison all the time
-    SET(MSVC_ASAN ON)
+    set(MSVC_ASAN ON)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fsanitize=address")
     set(CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} /fsanitize=address")
     string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " /INCREMENTAL:NO")
@@ -185,20 +185,20 @@ endif()
 
 
 if(WITH_WINDOWS_SCCACHE)
-    set(CMAKE_C_COMPILER_LAUNCHER sccache)
-    set(CMAKE_CXX_COMPILER_LAUNCHER sccache)
+  set(CMAKE_C_COMPILER_LAUNCHER sccache)
+  set(CMAKE_CXX_COMPILER_LAUNCHER sccache)
+  set(SYMBOL_FORMAT /Z7)
+  set(SYMBOL_FORMAT_RELEASE /Z7)
+else()
+  unset(CMAKE_C_COMPILER_LAUNCHER)
+  unset(CMAKE_CXX_COMPILER_LAUNCHER)
+  if(MSVC_ASAN)
     set(SYMBOL_FORMAT /Z7)
     set(SYMBOL_FORMAT_RELEASE /Z7)
-else()
-    unset(CMAKE_C_COMPILER_LAUNCHER)
-    unset(CMAKE_CXX_COMPILER_LAUNCHER)
-    if(MSVC_ASAN)
-      set(SYMBOL_FORMAT /Z7)
-      set(SYMBOL_FORMAT_RELEASE /Z7)
-    else()
-      set(SYMBOL_FORMAT /ZI)
-      set(SYMBOL_FORMAT_RELEASE /Zi)
-    endif()
+  else()
+    set(SYMBOL_FORMAT /ZI)
+    set(SYMBOL_FORMAT_RELEASE /Zi)
+  endif()
 endif()
 
 if(WITH_WINDOWS_PDB)
@@ -323,6 +323,13 @@ if(NOT JPEG_FOUND)
   set(JPEG_LIBRARIES ${LIBDIR}/jpeg/lib/libjpeg.lib)
 endif()
 
+set(EPOXY_ROOT_DIR ${LIBDIR}/epoxy)
+windows_find_package(Epoxy REQUIRED)
+if(NOT EPOXY_FOUND)
+  set(Epoxy_INCLUDE_DIRS ${LIBDIR}/epoxy/include)
+  set(Epoxy_LIBRARIES ${LIBDIR}/epoxy/lib/epoxy.lib)
+endif()
+
 set(PTHREADS_INCLUDE_DIRS ${LIBDIR}/pthreads/include)
 set(PTHREADS_LIBRARIES ${LIBDIR}/pthreads/lib/pthreadVC3.lib)
 
@@ -416,7 +423,7 @@ if(WITH_CODEC_FFMPEG)
       ${LIBDIR}/ffmpeg/lib/avdevice.lib
       ${LIBDIR}/ffmpeg/lib/avutil.lib
       ${LIBDIR}/ffmpeg/lib/swscale.lib
-      )
+    )
   endif()
 endif()
 
@@ -565,12 +572,14 @@ if(WITH_BOOST)
     if(WITH_CYCLES AND WITH_CYCLES_OSL)
       set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
         optimized ${BOOST_LIBPATH}/libboost_wave-${BOOST_POSTFIX}
-        debug ${BOOST_LIBPATH}/libboost_wave-${BOOST_DEBUG_POSTFIX})
+        debug ${BOOST_LIBPATH}/libboost_wave-${BOOST_DEBUG_POSTFIX}
+      )
     endif()
     if(WITH_INTERNATIONAL)
       set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
         optimized ${BOOST_LIBPATH}/libboost_locale-${BOOST_POSTFIX}
-        debug ${BOOST_LIBPATH}/libboost_locale-${BOOST_DEBUG_POSTFIX})
+        debug ${BOOST_LIBPATH}/libboost_locale-${BOOST_DEBUG_POSTFIX}
+      )
     endif()
   else() # we found boost using find_package
     set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
@@ -677,7 +686,8 @@ if(WITH_OPENIMAGEDENOISE)
     optimized ${OPENIMAGEDENOISE_LIBPATH}/dnnl.lib
     debug ${OPENIMAGEDENOISE_LIBPATH}/OpenImageDenoise_d.lib
     debug ${OPENIMAGEDENOISE_LIBPATH}/common_d.lib
-    debug ${OPENIMAGEDENOISE_LIBPATH}/dnnl_d.lib)
+    debug ${OPENIMAGEDENOISE_LIBPATH}/dnnl_d.lib
+  )
   set(OPENIMAGEDENOISE_DEFINITIONS)
 endif()
 
@@ -832,7 +842,8 @@ if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
       debug ${LIBDIR}/embree/lib/math_d.lib
       debug ${LIBDIR}/embree/lib/simd_d.lib
       debug ${LIBDIR}/embree/lib/sys_d.lib
-      debug ${LIBDIR}/embree/lib/tasking_d.lib)
+      debug ${LIBDIR}/embree/lib/tasking_d.lib
+    )
   endif()
 endif()
 

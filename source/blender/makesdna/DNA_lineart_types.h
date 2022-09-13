@@ -38,7 +38,6 @@ typedef enum eLineartMainFlags {
   LRT_USE_BACK_FACE_CULLING = (1 << 19),
   LRT_USE_IMAGE_BOUNDARY_TRIMMING = (1 << 20),
   LRT_CHAIN_PRESERVE_DETAILS = (1 << 22),
-  LRT_SHADOW_ENCLOSED_SHAPES = (1 << 23),
   LRT_SHADOW_USE_SILHOUETTE = (1 << 24),
 } eLineartMainFlags;
 

@@ -43,12 +43,8 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
   float3 P = ray->P;
   float3 dir = bvh_clamp_direction(ray->D);
   float3 idir = bvh_inverse_direction(dir);
-  float tmin = ray->tmin;
+  const float tmin = ray->tmin;
   int object = OBJECT_NONE;
-
-#if BVH_FEATURE(BVH_MOTION)
-  Transform ob_itfm;
-#endif
 
   isect->t = ray->tmax;
   isect->u = 0.0f;
@@ -223,14 +219,10 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
           object = kernel_data_fetch(prim_object, -prim_addr - 1);
 
 #if BVH_FEATURE(BVH_MOTION)
-          const float t_world_to_instance = bvh_instance_motion_push(
-              kg, object, ray, &P, &dir, &idir, &ob_itfm);
+          bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir);
 #else
-          const float t_world_to_instance = bvh_instance_push(kg, object, ray, &P, &dir, &idir);
+          bvh_instance_push(kg, object, ray, &P, &dir, &idir);
 #endif
-
-          isect->t *= t_world_to_instance;
-          tmin *= t_world_to_instance;
 
           ++stack_ptr;
           kernel_assert(stack_ptr < BVH_STACK_SIZE);
@@ -245,12 +237,7 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
       kernel_assert(object != OBJECT_NONE);
 
       /* instance pop */
-#if BVH_FEATURE(BVH_MOTION)
-      isect->t = bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, isect->t, &ob_itfm);
-#else
-      isect->t = bvh_instance_pop(kg, object, ray, &P, &dir, &idir, isect->t);
-#endif
-      tmin = ray->tmin;
+      bvh_instance_pop(ray, &P, &dir, &idir);
 
       object = OBJECT_NONE;
       node_addr = traversal_stack[stack_ptr];

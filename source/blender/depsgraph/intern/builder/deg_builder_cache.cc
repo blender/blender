@@ -15,6 +15,8 @@
 
 #include "BKE_animsys.h"
 
+#include "RNA_path.h"
+
 namespace blender::deg {
 
 /* Animated property storage. */

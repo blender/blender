@@ -25,10 +25,12 @@ static OneAPIDLLInterface oneapi_dll;
 
 #ifdef _WIN32
 #  define LOAD_ONEAPI_SHARED_LIBRARY(path) (void *)(LoadLibrary(path))
+#  define LOAD_ONEAPI_SHARED_LIBRARY_ERROR() GetLastError()
 #  define FREE_SHARED_LIBRARY(handle) FreeLibrary((HMODULE)handle)
 #  define GET_SHARED_LIBRARY_SYMBOL(handle, name) GetProcAddress((HMODULE)handle, name)
 #elif __linux__
 #  define LOAD_ONEAPI_SHARED_LIBRARY(path) dlopen(path, RTLD_NOW)
+#  define LOAD_ONEAPI_SHARED_LIBRARY_ERROR() dlerror()
 #  define FREE_SHARED_LIBRARY(handle) dlclose(handle)
 #  define GET_SHARED_LIBRARY_SYMBOL(handle, name) dlsym(handle, name)
 #endif
@@ -49,8 +51,8 @@ bool device_oneapi_init()
 
   /* This shouldn't happen, but it still makes sense to have a branch for this. */
   if (lib_handle == NULL) {
-    LOG(ERROR) << "oneAPI kernel shared library cannot be loaded for some reason. This should not "
-                  "happen, however, it occurs hence oneAPI rendering will be disabled";
+    LOG(ERROR) << "oneAPI kernel shared library cannot be loaded: "
+               << LOAD_ONEAPI_SHARED_LIBRARY_ERROR();
     return false;
   }
 

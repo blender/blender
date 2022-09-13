@@ -1,11 +1,13 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 if(WIN32)
-  if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-    set(VPX_EXTRA_FLAGS --target=x86_64-win64-gcc --disable-multithread)
-  else()
-    set(VPX_EXTRA_FLAGS --target=x86-win32-gcc --disable-multithread)
-  endif()
+  # VPX is determined to use pthreads which it will tell ffmpeg to dynamically
+  # link, which is not something we're super into distribution wise. However
+  # if it cannot find pthread.h it'll happily provide a pthread emulation
+  # layer using win32 threads. So all this patch does is make it not find
+  # pthead.h
+  set(VPX_PATCH ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/vpx/src/external_vpx < ${PATCH_DIR}/vpx_windows.diff)
+  set(VPX_EXTRA_FLAGS --target=x86_64-win64-gcc )
 else()
   if(APPLE)
     if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
@@ -16,6 +18,16 @@ else()
   else()
     set(VPX_EXTRA_FLAGS --target=generic-gnu)
   endif()
+endif()
+
+if(NOT BLENDER_PLATFORM_ARM)
+  list(APPEND VPX_EXTRA_FLAGS
+    --enable-sse4_1
+    --enable-sse3
+    --enable-ssse3
+    --enable-avx
+    --enable-avx2
+  )
 endif()
 
 ExternalProject_Add(external_vpx
@@ -30,11 +42,6 @@ ExternalProject_Add(external_vpx
       --enable-static
       --disable-install-bins
       --disable-install-srcs
-      --disable-sse4_1
-      --disable-sse3
-      --disable-ssse3
-      --disable-avx
-      --disable-avx2
       --disable-unit-tests
       --disable-examples
       --enable-vp8
@@ -42,6 +49,7 @@ ExternalProject_Add(external_vpx
       ${VPX_EXTRA_FLAGS}
   BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/vpx/src/external_vpx/ && make -j${MAKE_THREADS}
   INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/vpx/src/external_vpx/ && make install
+  PATCH_COMMAND ${VPX_PATCH}
   INSTALL_DIR ${LIBDIR}/vpx
 )
 

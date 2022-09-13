@@ -550,7 +550,7 @@ static Scene *preview_prepare_scene(
             }
           }
           else if (base->object->type == OB_LAMP) {
-            base->flag |= BASE_VISIBLE_DEPSGRAPH;
+            base->flag |= BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT;
           }
         }
       }
@@ -679,7 +679,7 @@ static bool ed_preview_draw_rect(ScrArea *area, int split, int first, rcti *rect
         /* material preview only needs monoscopy (view 0) */
         RE_AcquiredResultGet32(re, &rres, (uint *)rect_byte, 0);
 
-        IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+        IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
         immDrawPixelsTexTiled(&state,
                               fx,
                               fy,
@@ -1304,40 +1304,32 @@ static void shader_preview_free(void *customdata)
 
 static ImBuf *icon_preview_imbuf_from_brush(Brush *brush)
 {
-  static const int flags = IB_rect | IB_multilayer | IB_metadata;
+  if (!brush->icon_imbuf && (brush->flag & BRUSH_CUSTOM_ICON) && brush->icon_filepath[0]) {
+    const int flags = IB_rect | IB_multilayer | IB_metadata;
 
-  char filepath[FILE_MAX];
-  const char *folder;
+    /* First use the path directly to try and load the file. */
+    char filepath[FILE_MAX];
 
-  if (!(brush->icon_imbuf)) {
-    if (brush->flag & BRUSH_CUSTOM_ICON) {
+    BLI_strncpy(filepath, brush->icon_filepath, sizeof(brush->icon_filepath));
+    BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&brush->id));
 
-      if (brush->icon_filepath[0]) {
-        /* First use the path directly to try and load the file. */
+    /* Use default color-spaces for brushes. */
+    brush->icon_imbuf = IMB_loadiffname(filepath, flags, nullptr);
 
-        BLI_strncpy(filepath, brush->icon_filepath, sizeof(brush->icon_filepath));
-        BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&brush->id));
+    /* Otherwise lets try to find it in other directories. */
+    if (!(brush->icon_imbuf)) {
+      const char *brushicons_dir = BKE_appdir_folder_id(BLENDER_DATAFILES, "brushicons");
+      /* Expected to be found, but don't crash if it's not. */
+      if (brushicons_dir) {
+        BLI_join_dirfile(filepath, sizeof(filepath), brushicons_dir, brush->icon_filepath);
 
-        /* Use default color-spaces for brushes. */
+        /* Use default color spaces. */
         brush->icon_imbuf = IMB_loadiffname(filepath, flags, nullptr);
-
-        /* otherwise lets try to find it in other directories */
-        if (!(brush->icon_imbuf)) {
-          folder = BKE_appdir_folder_id(BLENDER_DATAFILES, "brushicons");
-
-          BLI_make_file_string(
-              BKE_main_blendfile_path_from_global(), filepath, folder, brush->icon_filepath);
-
-          if (filepath[0]) {
-            /* Use default color spaces. */
-            brush->icon_imbuf = IMB_loadiffname(filepath, flags, nullptr);
-          }
-        }
-
-        if (brush->icon_imbuf) {
-          BKE_icon_changed(BKE_icon_id_ensure(&brush->id));
-        }
       }
+    }
+
+    if (brush->icon_imbuf) {
+      BKE_icon_changed(BKE_icon_id_ensure(&brush->id));
     }
   }
 
@@ -1771,7 +1763,7 @@ PreviewLoadJob &PreviewLoadJob::ensure_job(wmWindowManager *wm, wmWindow *win)
     WM_jobs_start(wm, wm_job);
   }
 
-  return *reinterpret_cast<PreviewLoadJob *>(WM_jobs_customdata_get(wm_job));
+  return *static_cast<PreviewLoadJob *>(WM_jobs_customdata_get(wm_job));
 }
 
 void PreviewLoadJob::load_jobless(PreviewImage *preview, const eIconSizes icon_size)
@@ -1807,11 +1799,11 @@ void PreviewLoadJob::run_fn(void *customdata,
                             short *do_update,
                             float *UNUSED(progress))
 {
-  PreviewLoadJob *job_data = reinterpret_cast<PreviewLoadJob *>(customdata);
+  PreviewLoadJob *job_data = static_cast<PreviewLoadJob *>(customdata);
 
   IMB_thumb_locks_acquire();
 
-  while (RequestedPreview *request = reinterpret_cast<RequestedPreview *>(
+  while (RequestedPreview *request = static_cast<RequestedPreview *>(
              BLI_thread_queue_pop_timeout(job_data->todo_queue_, 100))) {
     if (*stop) {
       break;
@@ -1864,7 +1856,7 @@ void PreviewLoadJob::finish_request(RequestedPreview &request)
 
 void PreviewLoadJob::update_fn(void *customdata)
 {
-  PreviewLoadJob *job_data = reinterpret_cast<PreviewLoadJob *>(customdata);
+  PreviewLoadJob *job_data = static_cast<PreviewLoadJob *>(customdata);
 
   for (auto request_it = job_data->requested_previews_.begin();
        request_it != job_data->requested_previews_.end();) {
@@ -1884,7 +1876,7 @@ void PreviewLoadJob::update_fn(void *customdata)
 
 void PreviewLoadJob::end_fn(void *customdata)
 {
-  PreviewLoadJob *job_data = reinterpret_cast<PreviewLoadJob *>(customdata);
+  PreviewLoadJob *job_data = static_cast<PreviewLoadJob *>(customdata);
 
   /* Finish any possibly remaining queued previews. */
   for (RequestedPreview &request : job_data->requested_previews_) {
@@ -1895,7 +1887,7 @@ void PreviewLoadJob::end_fn(void *customdata)
 
 void PreviewLoadJob::free_fn(void *customdata)
 {
-  MEM_delete(reinterpret_cast<PreviewLoadJob *>(customdata));
+  MEM_delete(static_cast<PreviewLoadJob *>(customdata));
 }
 
 static void icon_preview_free(void *customdata)

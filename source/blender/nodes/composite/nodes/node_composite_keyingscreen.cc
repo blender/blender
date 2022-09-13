@@ -21,6 +21,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "COM_node_operation.hh"
+
 #include "node_composite_util.hh"
 
 /* **************** Keying Screen  ******************** */
@@ -78,6 +80,23 @@ static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, Point
   }
 }
 
+using namespace blender::realtime_compositor;
+
+class KeyingScreenOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    get_result("Screen").allocate_invalid();
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, DNode node)
+{
+  return new KeyingScreenOperation(context, node);
+}
+
 }  // namespace blender::nodes::node_composite_keyingscreen_cc
 
 void register_node_type_cmp_keyingscreen()
@@ -92,6 +111,7 @@ void register_node_type_cmp_keyingscreen()
   ntype.initfunc_api = file_ns::node_composit_init_keyingscreen;
   node_type_storage(
       &ntype, "NodeKeyingScreenData", node_free_standard_storage, node_copy_standard_storage);
+  ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);
 }

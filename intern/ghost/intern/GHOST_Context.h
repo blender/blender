@@ -11,7 +11,7 @@
 #include "GHOST_IContext.h"
 #include "GHOST_Types.h"
 
-#include "glew-mx.h"
+#include <epoxy/gl.h>
 
 #include <cstdlib>  // for NULL
 
@@ -136,8 +136,6 @@ class GHOST_Context : public GHOST_IContext {
   }
 
  protected:
-  void initContextGLEW();
-
   bool m_stereoVisual;
 
   /** Caller specified, not for internal use. */

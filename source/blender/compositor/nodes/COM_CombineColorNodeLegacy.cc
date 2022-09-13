@@ -65,7 +65,7 @@ NodeOperation *CombineHSVANode::get_color_converter(const CompositorContext & /*
 NodeOperation *CombineYCCANode::get_color_converter(const CompositorContext & /*context*/) const
 {
   ConvertYCCToRGBOperation *operation = new ConvertYCCToRGBOperation();
-  bNode *editor_node = this->get_bnode();
+  const bNode *editor_node = this->get_bnode();
   operation->set_mode(editor_node->custom1);
   return operation;
 }

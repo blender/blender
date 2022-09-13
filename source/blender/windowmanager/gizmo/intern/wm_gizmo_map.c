@@ -259,7 +259,7 @@ bool WM_gizmomap_minmax(const wmGizmoMap *gzmap,
  * \param poll: Polling function for excluding gizmos.
  * \param data: Custom data passed to \a poll
  *
- * TODO(campbell): this uses unreliable order,
+ * TODO(@campbellbarton): this uses unreliable order,
  * best we use an iterator function instead of a hash.
  */
 static GHash *WM_gizmomap_gizmo_hash_new(const bContext *C,
@@ -430,9 +430,9 @@ static void gizmos_draw_list(const wmGizmoMap *gzmap, const bContext *C, ListBas
     return;
   }
 
-  /* TODO(campbell): This will need it own shader probably?
+  /* TODO(@campbellbarton): This will need it own shader probably?
    * Don't think it can be handled from that point though. */
-  /* const bool use_lighting = (U.gizmo_flag & V3D_GIZMO_SHADED) != 0; */
+  // const bool use_lighting = (U.gizmo_flag & V3D_GIZMO_SHADED) != 0;
 
   bool is_depth_prev = false;
 
@@ -501,7 +501,7 @@ static void gizmo_draw_select_3d_loop(const bContext *C,
                                       bool *r_use_select_bias)
 {
 
-  /* TODO(campbell): this depends on depth buffer being written to,
+  /* TODO(@campbellbarton): this depends on depth buffer being written to,
    * currently broken for the 3D view. */
   bool is_depth_prev = false;
   bool is_depth_skip_prev = false;
@@ -674,7 +674,7 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
    * This way we always use the first hit. */
   if (has_3d) {
 
-    /* The depth buffer is needed for for gizmos to obscure each other. */
+    /* The depth buffer is needed for gizmos to obscure each other. */
     GPUViewport *viewport = WM_draw_region_get_viewport(CTX_wm_region(C));
 
     /* When switching between modes and the mouse pointer is over a gizmo, the highlight test is

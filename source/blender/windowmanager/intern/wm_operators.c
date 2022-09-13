@@ -81,6 +81,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_path.h"
 #include "RNA_prototypes.h"
 
 #include "UI_interface.h"
@@ -638,7 +639,7 @@ char *WM_prop_pystring_assign(bContext *C, PointerRNA *ptr, PropertyRNA *prop, i
 
   if (lhs == NULL) {
     /* Fallback to `bpy.data.foo[id]` if we don't find in the context. */
-    lhs = RNA_path_full_property_py(CTX_data_main(C), ptr, prop, index);
+    lhs = RNA_path_full_property_py(ptr, prop, index);
   }
 
   if (!lhs) {
@@ -2327,7 +2328,7 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
       GPU_matrix_rotate_2d(RAD2DEGF(rot));
     }
 
-    immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_COLOR);
 
     immUniformColor3fvAlpha(col, alpha);
     immBindTexture("image", rc->texture);
@@ -2358,7 +2359,7 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
   }
   else {
     /* flat color if no texture available */
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor3fvAlpha(col, alpha);
     imm_draw_circle_fill_2d(pos, 0.0f, 0.0f, radius, 40);
   }
@@ -2470,7 +2471,7 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   if (rc->subtype == PROP_ANGLE) {
     GPU_matrix_push();

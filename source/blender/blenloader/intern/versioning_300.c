@@ -57,6 +57,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_screen.h"
@@ -863,6 +864,34 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 303, 6)) {
+    /* In the Dope Sheet, for every mode other than Timeline, open the Properties panel. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype != SPACE_ACTION) {
+            continue;
+          }
+
+          /* Skip the timeline, it shouldn't get its Properties panel opened. */
+          SpaceAction *saction = (SpaceAction *)sl;
+          if (saction->mode == SACTCONT_TIMELINE) {
+            continue;
+          }
+
+          const bool is_first_space = sl == area->spacedata.first;
+          ListBase *regionbase = is_first_space ? &area->regionbase : &sl->regionbase;
+          ARegion *region = BKE_region_find_in_listbase_by_type(regionbase, RGN_TYPE_UI);
+          if (region == NULL) {
+            continue;
+          }
+
+          region->flag &= ~RGN_FLAG_HIDDEN;
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -1664,6 +1693,27 @@ static void versioning_replace_legacy_combined_and_separate_color_nodes(bNodeTre
           break;
         }
       }
+    }
+  }
+}
+
+static void versioning_replace_legacy_mix_rgb_node(bNodeTree *ntree)
+{
+  version_node_input_socket_name(ntree, SH_NODE_MIX_RGB_LEGACY, "Fac", "Factor_Float");
+  version_node_input_socket_name(ntree, SH_NODE_MIX_RGB_LEGACY, "Color1", "A_Color");
+  version_node_input_socket_name(ntree, SH_NODE_MIX_RGB_LEGACY, "Color2", "B_Color");
+  version_node_output_socket_name(ntree, SH_NODE_MIX_RGB_LEGACY, "Color", "Result_Color");
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type == SH_NODE_MIX_RGB_LEGACY) {
+      strcpy(node->idname, "ShaderNodeMix");
+      node->type = SH_NODE_MIX;
+      NodeShaderMix *data = (NodeShaderMix *)MEM_callocN(sizeof(NodeShaderMix), __func__);
+      data->blend_type = node->custom1;
+      data->clamp_result = node->custom2;
+      data->clamp_factor = 1;
+      data->data_type = SOCK_RGBA;
+      data->factor_mode = NODE_MIX_MODE_UNIFORM;
+      node->storage = data;
     }
   }
 }
@@ -3102,6 +3152,13 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 302, 14)) {
+    /* Compensate for previously wrong squared distance. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      scene->r.bake.max_ray_distance = sasqrt(scene->r.bake.max_ray_distance);
+    }
+  }
+
   if (!MAIN_VERSION_ATLEAST(bmain, 303, 1)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       versioning_replace_legacy_combined_and_separate_color_nodes(ntree);
@@ -3257,18 +3314,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
   }
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 303, 6)) {
     /* Initialize brush curves sculpt settings. */
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       if (brush->ob_mode != OB_MODE_SCULPT_CURVES) {
@@ -3283,6 +3330,43 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       if (ob->type == OB_CURVES) {
         ob->dtx &= ~OB_DRAWBOUNDOX;
       }
+    }
+
+    BKE_main_namemap_validate_and_fix(bmain);
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
+
+    /* Image generation information transferred to tiles. */
+    if (!DNA_struct_elem_find(fd->filesdna, "ImageTile", "int", "gen_x")) {
+      for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
+        for (ImageTile *tile = ima->tiles.first; tile; tile = tile->next) {
+          tile->gen_x = ima->gen_x;
+          tile->gen_y = ima->gen_y;
+          tile->gen_type = ima->gen_type;
+          tile->gen_flag = ima->gen_flag;
+          tile->gen_depth = ima->gen_depth;
+          copy_v4_v4(tile->gen_color, ima->gen_color);
+        }
+      }
+    }
+
+    /* Convert mix rgb node to new mix node and add storage. */
+    {
+      FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+        versioning_replace_legacy_mix_rgb_node(ntree);
+      }
+      FOREACH_NODETREE_END;
     }
   }
 }

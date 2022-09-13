@@ -25,7 +25,7 @@ class MTLQueryPool : public QueryPool {
   MTLVisibilityResultMode mtl_type_;
   Vector<gpu::MTLBuffer *> buffer_;
 
-  void allocate_buffer();
+  void allocate();
 
  public:
   MTLQueryPool();

@@ -106,4 +106,4 @@ struct GHash *DRW_uniform_attrs_pool_new(void);
 void DRW_uniform_attrs_pool_flush_all(struct GHash *table);
 void DRW_uniform_attrs_pool_clear_all(struct GHash *table);
 struct DRWSparseUniformBuf *DRW_uniform_attrs_pool_find_ubo(struct GHash *table,
-                                                            struct GPUUniformAttrList *key);
+                                                            const struct GPUUniformAttrList *key);

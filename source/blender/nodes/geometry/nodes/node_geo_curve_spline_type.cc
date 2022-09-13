@@ -45,14 +45,13 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (!geometry_set.has_curves()) {
       return;
     }
-    const CurveComponent &src_component = *geometry_set.get_component_for_read<CurveComponent>();
-    const Curves &src_curves_id = *src_component.get_for_read();
+    const Curves &src_curves_id = *geometry_set.get_curves_for_read();
     const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(src_curves_id.geometry);
     if (src_curves.is_single_type(dst_type)) {
       return;
     }
 
-    GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_CURVE};
+    bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
     fn::FieldEvaluator evaluator{field_context, src_curves.curves_num()};
     evaluator.set_selection(selection_field);
     evaluator.evaluate();

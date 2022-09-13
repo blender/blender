@@ -182,7 +182,7 @@ static void do_pose_brush_task_cb_ex(void *__restrict userdata,
 
       /* Apply the vertex mask to the displacement. */
       const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
-      const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.index);
+      const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.vertex);
       mul_v3_fl(disp, mask * automask);
 
       /* Accumulate the displacement. */
@@ -196,7 +196,7 @@ static void do_pose_brush_task_cb_ex(void *__restrict userdata,
     copy_v3_v3(target_co, final_pos);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -221,7 +221,7 @@ static void pose_brush_grow_factor_task_cb_ex(void *__restrict userdata,
     float max = 0.0f;
 
     /* Grow the factor. */
-    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
       float vmask_f = data->prev_mask[ni.index];
       max = MAX2(vmask_f, max);
     }
@@ -367,7 +367,7 @@ typedef struct PoseFloodFillData {
   int current_face_set;
   int next_face_set;
   int prev_face_set;
-  int next_vertex;
+  PBVHVertRef next_vertex;
 
   bool next_face_set_found;
 
@@ -397,14 +397,19 @@ typedef struct PoseFloodFillData {
   int target_face_set;
 } PoseFloodFillData;
 
-static bool pose_topology_floodfill_cb(
-    SculptSession *ss, int UNUSED(from_v), int to_v, bool is_duplicate, void *userdata)
+static bool pose_topology_floodfill_cb(SculptSession *ss,
+                                       PBVHVertRef UNUSED(from_v),
+                                       PBVHVertRef to_v,
+                                       bool is_duplicate,
+                                       void *userdata)
 {
+  int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
+
   PoseFloodFillData *data = userdata;
   const float *co = SCULPT_vertex_co_get(ss, to_v);
 
   if (data->pose_factor) {
-    data->pose_factor[to_v] = 1.0f;
+    data->pose_factor[to_v_i] = 1.0f;
   }
 
   if (len_squared_v3v3(data->pose_initial_co, data->fallback_floodfill_origin) <
@@ -426,15 +431,19 @@ static bool pose_topology_floodfill_cb(
   return false;
 }
 
-static bool pose_face_sets_floodfill_cb(
-    SculptSession *ss, int UNUSED(from_v), int to_v, bool is_duplicate, void *userdata)
+static bool pose_face_sets_floodfill_cb(SculptSession *ss,
+                                        PBVHVertRef UNUSED(from_v),
+                                        PBVHVertRef to_v,
+                                        bool is_duplicate,
+                                        void *userdata)
 {
   PoseFloodFillData *data = userdata;
 
-  const int index = to_v;
+  const int index = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
+  const PBVHVertRef vertex = to_v;
   bool visit_next = false;
 
-  const float *co = SCULPT_vertex_co_get(ss, index);
+  const float *co = SCULPT_vertex_co_get(ss, vertex);
   const bool symmetry_check = SCULPT_check_vertex_pivot_symmetry(
                                   co, data->pose_initial_co, data->symm) &&
                               !is_duplicate;
@@ -448,11 +457,11 @@ static bool pose_face_sets_floodfill_cb(
 
     if (sculpt_pose_brush_is_vertex_inside_brush_radius(
             co, data->pose_initial_co, data->radius, data->symm)) {
-      const int visited_face_set = SCULPT_vertex_face_set_get(ss, index);
+      const int visited_face_set = SCULPT_vertex_face_set_get(ss, vertex);
       BLI_gset_add(data->visited_face_sets, POINTER_FROM_INT(visited_face_set));
     }
     else if (symmetry_check) {
-      data->current_face_set = SCULPT_vertex_face_set_get(ss, index);
+      data->current_face_set = SCULPT_vertex_face_set_get(ss, vertex);
       BLI_gset_add(data->visited_face_sets, POINTER_FROM_INT(data->current_face_set));
     }
     return true;
@@ -466,11 +475,11 @@ static bool pose_face_sets_floodfill_cb(
     GSetIterator gs_iter;
     GSET_ITER (gs_iter, data->visited_face_sets) {
       const int visited_face_set = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
-      is_vertex_valid |= SCULPT_vertex_has_face_set(ss, index, visited_face_set);
+      is_vertex_valid |= SCULPT_vertex_has_face_set(ss, vertex, visited_face_set);
     }
   }
   else {
-    is_vertex_valid = SCULPT_vertex_has_face_set(ss, index, data->current_face_set);
+    is_vertex_valid = SCULPT_vertex_has_face_set(ss, vertex, data->current_face_set);
   }
 
   if (!is_vertex_valid) {
@@ -485,11 +494,11 @@ static bool pose_face_sets_floodfill_cb(
 
   /* Fallback origin accumulation. */
   if (symmetry_check) {
-    add_v3_v3(data->fallback_origin, SCULPT_vertex_co_get(ss, index));
+    add_v3_v3(data->fallback_origin, SCULPT_vertex_co_get(ss, vertex));
     data->fallback_count++;
   }
 
-  if (!symmetry_check || SCULPT_vertex_has_unique_face_set(ss, index)) {
+  if (!symmetry_check || SCULPT_vertex_has_unique_face_set(ss, vertex)) {
     return visit_next;
   }
 
@@ -498,15 +507,15 @@ static bool pose_face_sets_floodfill_cb(
   bool count_as_boundary = false;
 
   SculptVertexNeighborIter ni;
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, index, ni) {
-    int next_face_set_candidate = SCULPT_vertex_face_set_get(ss, ni.index);
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+    int next_face_set_candidate = SCULPT_vertex_face_set_get(ss, ni.vertex);
 
     /* Check if we can get a valid face set for the next iteration from this neighbor. */
-    if (SCULPT_vertex_has_unique_face_set(ss, ni.index) &&
+    if (SCULPT_vertex_has_unique_face_set(ss, ni.vertex) &&
         !BLI_gset_haskey(data->visited_face_sets, POINTER_FROM_INT(next_face_set_candidate))) {
       if (!data->next_face_set_found) {
         data->next_face_set = next_face_set_candidate;
-        data->next_vertex = ni.index;
+        data->next_vertex = ni.vertex;
         data->next_face_set_found = true;
       }
       count_as_boundary = true;
@@ -516,7 +525,7 @@ static bool pose_face_sets_floodfill_cb(
 
   /* Origin accumulation. */
   if (count_as_boundary) {
-    add_v3_v3(data->pose_origin, SCULPT_vertex_co_get(ss, index));
+    add_v3_v3(data->pose_origin, SCULPT_vertex_co_get(ss, vertex));
     data->tot_co++;
   }
   return visit_next;
@@ -585,7 +594,7 @@ static void pose_brush_init_task_cb_ex(void *__restrict userdata,
     SculptVertexNeighborIter ni;
     float avg = 0.0f;
     int total = 0;
-    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
       avg += data->pose_factor[ni.index];
       total++;
     }
@@ -660,7 +669,8 @@ static SculptPoseIKChain *pose_ik_chain_init_topology(Sculpt *sd,
   float next_chain_segment_target[3];
 
   int totvert = SCULPT_vertex_count_get(ss);
-  int nearest_vertex_index = SCULPT_nearest_vertex_get(sd, ob, initial_location, FLT_MAX, true);
+  PBVHVertRef nearest_vertex = SCULPT_nearest_vertex_get(sd, ob, initial_location, FLT_MAX, true);
+  int nearest_vertex_index = BKE_pbvh_vertex_to_index(ss->pbvh, nearest_vertex);
 
   /* Init the buffers used to keep track of the changes in the pose factors as more segments are
    * added to the IK chain. */
@@ -745,7 +755,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(
   int current_face_set = SCULPT_FACE_SET_NONE;
   int prev_face_set = SCULPT_FACE_SET_NONE;
 
-  int current_vertex = SCULPT_active_vertex_get(ss);
+  PBVHVertRef current_vertex = SCULPT_active_vertex_get(ss);
 
   for (int s = 0; s < ik_chain->tot_segments; s++) {
 
@@ -801,15 +811,18 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(
 }
 
 static bool pose_face_sets_fk_find_masked_floodfill_cb(
-    SculptSession *ss, int from_v, int to_v, bool is_duplicate, void *userdata)
+    SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate, void *userdata)
 {
   PoseFloodFillData *data = userdata;
 
+  int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_v);
+  int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
+
   if (!is_duplicate) {
-    data->floodfill_it[to_v] = data->floodfill_it[from_v] + 1;
+    data->floodfill_it[to_v_i] = data->floodfill_it[from_v_i] + 1;
   }
   else {
-    data->floodfill_it[to_v] = data->floodfill_it[from_v];
+    data->floodfill_it[to_v_i] = data->floodfill_it[from_v_i];
   }
 
   const int to_face_set = SCULPT_vertex_face_set_get(ss, to_v);
@@ -820,9 +833,9 @@ static bool pose_face_sets_fk_find_masked_floodfill_cb(
 
       BLI_gset_add(data->visited_face_sets, POINTER_FROM_INT(to_face_set));
 
-      if (data->floodfill_it[to_v] >= data->masked_face_set_it) {
+      if (data->floodfill_it[to_v_i] >= data->masked_face_set_it) {
         data->masked_face_set = to_face_set;
-        data->masked_face_set_it = data->floodfill_it[to_v];
+        data->masked_face_set_it = data->floodfill_it[to_v_i];
       }
 
       if (data->target_face_set == SCULPT_FACE_SET_NONE) {
@@ -834,11 +847,17 @@ static bool pose_face_sets_fk_find_masked_floodfill_cb(
   return SCULPT_vertex_has_face_set(ss, to_v, data->initial_face_set);
 }
 
-static bool pose_face_sets_fk_set_weights_floodfill_cb(
-    SculptSession *ss, int UNUSED(from_v), int to_v, bool UNUSED(is_duplicate), void *userdata)
+static bool pose_face_sets_fk_set_weights_floodfill_cb(SculptSession *ss,
+                                                       PBVHVertRef UNUSED(from_v),
+                                                       PBVHVertRef to_v,
+                                                       bool UNUSED(is_duplicate),
+                                                       void *userdata)
 {
   PoseFloodFillData *data = userdata;
-  data->fk_weights[to_v] = 1.0f;
+
+  int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
+
+  data->fk_weights[to_v_i] = 1.0f;
   return !SCULPT_vertex_has_face_set(ss, to_v, data->masked_face_set);
 }
 
@@ -849,7 +868,9 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
 
   SculptPoseIKChain *ik_chain = pose_ik_chain_new(1, totvert);
 
-  const int active_vertex = SCULPT_active_vertex_get(ss);
+  const PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
+  int active_vertex_index = BKE_pbvh_vertex_to_index(ss->pbvh, active_vertex);
+
   const int active_face_set = SCULPT_active_face_set_get(ss);
 
   SculptFloodFill flood;
@@ -857,7 +878,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
   SCULPT_floodfill_add_initial(&flood, active_vertex);
   PoseFloodFillData fdata;
   fdata.floodfill_it = MEM_calloc_arrayN(totvert, sizeof(int), "floodfill iteration");
-  fdata.floodfill_it[active_vertex] = 1;
+  fdata.floodfill_it[active_vertex_index] = 1;
   fdata.initial_face_set = active_face_set;
   fdata.masked_face_set = SCULPT_FACE_SET_NONE;
   fdata.target_face_set = SCULPT_FACE_SET_NONE;
@@ -870,9 +891,12 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
   int origin_count = 0;
   float origin_acc[3] = {0.0f};
   for (int i = 0; i < totvert; i++) {
-    if (fdata.floodfill_it[i] != 0 && SCULPT_vertex_has_face_set(ss, i, fdata.initial_face_set) &&
-        SCULPT_vertex_has_face_set(ss, i, fdata.masked_face_set)) {
-      add_v3_v3(origin_acc, SCULPT_vertex_co_get(ss, i));
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+
+    if (fdata.floodfill_it[i] != 0 &&
+        SCULPT_vertex_has_face_set(ss, vertex, fdata.initial_face_set) &&
+        SCULPT_vertex_has_face_set(ss, vertex, fdata.masked_face_set)) {
+      add_v3_v3(origin_acc, SCULPT_vertex_co_get(ss, vertex));
       origin_count++;
     }
   }
@@ -881,10 +905,12 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
   float target_acc[3] = {0.0f};
   if (fdata.target_face_set != fdata.masked_face_set) {
     for (int i = 0; i < totvert; i++) {
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+
       if (fdata.floodfill_it[i] != 0 &&
-          SCULPT_vertex_has_face_set(ss, i, fdata.initial_face_set) &&
-          SCULPT_vertex_has_face_set(ss, i, fdata.target_face_set)) {
-        add_v3_v3(target_acc, SCULPT_vertex_co_get(ss, i));
+          SCULPT_vertex_has_face_set(ss, vertex, fdata.initial_face_set) &&
+          SCULPT_vertex_has_face_set(ss, vertex, fdata.target_face_set)) {
+        add_v3_v3(target_acc, SCULPT_vertex_co_get(ss, vertex));
         target_count++;
       }
     }

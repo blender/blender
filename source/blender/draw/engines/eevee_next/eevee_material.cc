@@ -72,10 +72,9 @@ bNodeTree *DefaultSurfaceNodeTree::nodetree_get(::Material *ma)
 MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
 {
   {
-    bNodeTree *ntree = ntreeAddTree(nullptr, "Shader Nodetree", ntreeType_Shader->idname);
-
     diffuse_mat = (::Material *)BKE_id_new_nomain(ID_MA, "EEVEE default diffuse");
-    diffuse_mat->nodetree = ntree;
+    bNodeTree *ntree = ntreeAddTreeEmbedded(
+        nullptr, &diffuse_mat->id, "Shader Nodetree", ntreeType_Shader->idname);
     diffuse_mat->use_nodes = true;
     /* To use the forward pipeline. */
     diffuse_mat->blend_method = MA_BM_BLEND;
@@ -95,10 +94,9 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
     nodeSetActive(ntree, output);
   }
   {
-    bNodeTree *ntree = ntreeAddTree(nullptr, "Shader Nodetree", ntreeType_Shader->idname);
-
     glossy_mat = (::Material *)BKE_id_new_nomain(ID_MA, "EEVEE default metal");
-    glossy_mat->nodetree = ntree;
+    bNodeTree *ntree = ntreeAddTreeEmbedded(
+        nullptr, &glossy_mat->id, "Shader Nodetree", ntreeType_Shader->idname);
     glossy_mat->use_nodes = true;
     /* To use the forward pipeline. */
     glossy_mat->blend_method = MA_BM_BLEND;
@@ -120,10 +118,9 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
     nodeSetActive(ntree, output);
   }
   {
-    bNodeTree *ntree = ntreeAddTree(nullptr, "Shader Nodetree", ntreeType_Shader->idname);
-
     error_mat_ = (::Material *)BKE_id_new_nomain(ID_MA, "EEVEE default error");
-    error_mat_->nodetree = ntree;
+    bNodeTree *ntree = ntreeAddTreeEmbedded(
+        nullptr, &error_mat_->id, "Shader Nodetree", ntreeType_Shader->idname);
     error_mat_->use_nodes = true;
 
     /* Use emission and output material to be compatible with both World and Material. */
@@ -145,9 +142,6 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
 
 MaterialModule::~MaterialModule()
 {
-  for (Material *mat : material_map_.values()) {
-    delete mat;
-  }
   BKE_id_free(nullptr, glossy_mat);
   BKE_id_free(nullptr, diffuse_mat);
   BKE_id_free(nullptr, error_mat_);
@@ -157,13 +151,12 @@ void MaterialModule::begin_sync()
 {
   queued_shaders_count = 0;
 
-  for (Material *mat : material_map_.values()) {
-    mat->init = false;
-  }
+  material_map_.clear();
   shader_map_.clear();
 }
 
-MaterialPass MaterialModule::material_pass_get(::Material *blender_mat,
+MaterialPass MaterialModule::material_pass_get(Object *ob,
+                                               ::Material *blender_mat,
                                                eMaterialPipeline pipeline_type,
                                                eMaterialGeometry geometry_type)
 {
@@ -203,35 +196,34 @@ MaterialPass MaterialModule::material_pass_get(::Material *blender_mat,
     pipeline_type = MAT_PIPE_FORWARD;
   }
 
-  if ((pipeline_type == MAT_PIPE_FORWARD) &&
+  if (ELEM(pipeline_type,
+           MAT_PIPE_FORWARD,
+           MAT_PIPE_FORWARD_PREPASS,
+           MAT_PIPE_FORWARD_PREPASS_VELOCITY) &&
       GPU_material_flag_get(matpass.gpumat, GPU_MATFLAG_TRANSPARENT)) {
-    /* Transparent needs to use one shgroup per object to support reordering. */
-    matpass.shgrp = inst_.pipelines.material_add(blender_mat, matpass.gpumat, pipeline_type);
+    /* Transparent pass is generated later. */
+    matpass.sub_pass = nullptr;
   }
   else {
     ShaderKey shader_key(matpass.gpumat, geometry_type, pipeline_type);
 
-    auto add_cb = [&]() -> DRWShadingGroup * {
-      /* First time encountering this shader. Create a shading group. */
-      return inst_.pipelines.material_add(blender_mat, matpass.gpumat, pipeline_type);
-    };
-    DRWShadingGroup *grp = shader_map_.lookup_or_add_cb(shader_key, add_cb);
+    PassMain::Sub *shader_sub = shader_map_.lookup_or_add_cb(shader_key, [&]() {
+      /* First time encountering this shader. Create a sub that will contain materials using it. */
+      return inst_.pipelines.material_add(ob, blender_mat, matpass.gpumat, pipeline_type);
+    });
 
-    if (grp != nullptr) {
-      /* Shading group for this shader already exists. Create a sub one for this material. */
-      /* IMPORTANT: We always create a subgroup so that all subgroups are inserted after the
-       * first "empty" shgroup. This avoids messing the order of subgroups when there is more
-       * nested subgroup (i.e: hair drawing). */
-      /* TODO(@fclem): Remove material resource binding from the first group creation. */
-      matpass.shgrp = DRW_shgroup_create_sub(grp);
-      DRW_shgroup_add_material_resources(matpass.shgrp, matpass.gpumat);
+    if (shader_sub != nullptr) {
+      /* Create a sub for this material as `shader_sub` is for sharing shader between materials. */
+      matpass.sub_pass = &shader_sub->sub(GPU_material_get_name(matpass.gpumat));
+      matpass.sub_pass->material_set(*inst_.manager, matpass.gpumat);
     }
   }
 
   return matpass;
 }
 
-Material &MaterialModule::material_sync(::Material *blender_mat,
+Material &MaterialModule::material_sync(Object *ob,
+                                        ::Material *blender_mat,
                                         eMaterialGeometry geometry_type,
                                         bool has_motion)
 {
@@ -249,27 +241,32 @@ Material &MaterialModule::material_sync(::Material *blender_mat,
 
   MaterialKey material_key(blender_mat, geometry_type, surface_pipe);
 
-  /* TODO: allocate in blocks to avoid memory fragmentation. */
-  auto add_cb = [&]() { return new Material(); };
-  Material &mat = *material_map_.lookup_or_add_cb(material_key, add_cb);
-
-  /* Forward pipeline needs to use one shgroup per object. */
-  if (mat.init == false || (surface_pipe == MAT_PIPE_FORWARD)) {
-    mat.init = true;
+  Material &mat = material_map_.lookup_or_add_cb(material_key, [&]() {
+    Material mat;
     /* Order is important for transparent. */
-    mat.prepass = material_pass_get(blender_mat, prepass_pipe, geometry_type);
-    mat.shading = material_pass_get(blender_mat, surface_pipe, geometry_type);
+    mat.prepass = material_pass_get(ob, blender_mat, prepass_pipe, geometry_type);
+    mat.shading = material_pass_get(ob, blender_mat, surface_pipe, geometry_type);
     if (blender_mat->blend_shadow == MA_BS_NONE) {
       mat.shadow = MaterialPass();
     }
     else {
-      mat.shadow = material_pass_get(blender_mat, MAT_PIPE_SHADOW, geometry_type);
+      mat.shadow = material_pass_get(ob, blender_mat, MAT_PIPE_SHADOW, geometry_type);
     }
-
     mat.is_alpha_blend_transparent = (blender_mat->blend_method == MA_BM_BLEND) &&
-                                     GPU_material_flag_get(mat.prepass.gpumat,
+                                     GPU_material_flag_get(mat.shading.gpumat,
                                                            GPU_MATFLAG_TRANSPARENT);
+    return mat;
+  });
+
+  if (mat.is_alpha_blend_transparent) {
+    /* Transparent needs to use one sub pass per object to support reordering.
+     * NOTE: Pre-pass needs to be created first in order to be sorted first. */
+    mat.prepass.sub_pass = inst_.pipelines.forward.prepass_transparent_add(
+        ob, blender_mat, mat.shading.gpumat);
+    mat.shading.sub_pass = inst_.pipelines.forward.material_transparent_add(
+        ob, blender_mat, mat.shading.gpumat);
   }
+
   return mat;
 }
 
@@ -297,7 +294,7 @@ MaterialArray &MaterialModule::material_array_get(Object *ob, bool has_motion)
 
   for (auto i : IndexRange(materials_len)) {
     ::Material *blender_mat = material_from_slot(ob, i);
-    Material &mat = material_sync(blender_mat, to_material_geometry(ob), has_motion);
+    Material &mat = material_sync(ob, blender_mat, to_material_geometry(ob), has_motion);
     material_array_.materials.append(&mat);
     material_array_.gpu_materials.append(mat.shading.gpumat);
   }
@@ -310,7 +307,7 @@ Material &MaterialModule::material_get(Object *ob,
                                        eMaterialGeometry geometry_type)
 {
   ::Material *blender_mat = material_from_slot(ob, mat_nr);
-  Material &mat = material_sync(blender_mat, geometry_type, has_motion);
+  Material &mat = material_sync(ob, blender_mat, geometry_type, has_motion);
   return mat;
 }
 

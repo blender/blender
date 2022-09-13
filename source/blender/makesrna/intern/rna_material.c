@@ -367,13 +367,13 @@ static char *rna_GpencilColorData_path(const PointerRNA *UNUSED(ptr))
   return BLI_strdup("grease_pencil");
 }
 
-static int rna_GpencilColorData_is_stroke_visible_get(PointerRNA *ptr)
+static bool rna_GpencilColorData_is_stroke_visible_get(PointerRNA *ptr)
 {
   MaterialGPencilStyle *pcolor = ptr->data;
   return (pcolor->stroke_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH);
 }
 
-static int rna_GpencilColorData_is_fill_visible_get(PointerRNA *ptr)
+static bool rna_GpencilColorData_is_fill_visible_get(PointerRNA *ptr)
 {
   MaterialGPencilStyle *pcolor = (MaterialGPencilStyle *)ptr->data;
   return ((pcolor->fill_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) || (pcolor->fill_style > 0));

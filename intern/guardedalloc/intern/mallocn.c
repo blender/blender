@@ -49,6 +49,7 @@ size_t (*MEM_get_peak_memory)(void) = MEM_lockfree_get_peak_memory;
 
 #ifndef NDEBUG
 const char *(*MEM_name_ptr)(void *vmemh) = MEM_lockfree_name_ptr;
+void (*MEM_name_ptr_set)(void *vmemh, const char *str) = MEM_lockfree_name_ptr_set;
 #endif
 
 void *aligned_malloc(size_t size, size_t alignment)
@@ -128,6 +129,7 @@ void MEM_use_lockfree_allocator(void)
 
 #ifndef NDEBUG
   MEM_name_ptr = MEM_lockfree_name_ptr;
+  MEM_name_ptr_set = MEM_lockfree_name_ptr_set;
 #endif
 }
 
@@ -159,5 +161,6 @@ void MEM_use_guarded_allocator(void)
 
 #ifndef NDEBUG
   MEM_name_ptr = MEM_guarded_name_ptr;
+  MEM_name_ptr_set = MEM_guarded_name_ptr_set;
 #endif
 }

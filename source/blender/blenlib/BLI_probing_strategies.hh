@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <numeric>
+
 /** \file
  * \ingroup bli
  *
@@ -20,7 +22,7 @@
  * clustering issues. However, more linear steps can also make things slower when the initial hash
  * produces many collisions.
  *
- * Every probing strategy has to guarantee, that every possible uint64_t is returned eventually.
+ * Every probing strategy has to guarantee that every possible uint64_t is returned eventually.
  * This is necessary for correctness. If this is not the case, empty slots might not be found.
  *
  * The SLOT_PROBING_BEGIN and SLOT_PROBING_END macros can be used to implement a loop that iterates
@@ -69,7 +71,7 @@ class LinearProbingStrategy {
 
   int64_t linear_steps() const
   {
-    return UINT32_MAX;
+    return std::numeric_limits<int64_t>::max();
   }
 };
 

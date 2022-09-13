@@ -5,9 +5,26 @@
 /** \name Math intersection & projection functions.
  * \{ */
 
+vec4 plane_from_quad(vec3 v0, vec3 v1, vec3 v2, vec3 v3)
+{
+  vec3 nor = normalize(cross(v2 - v1, v0 - v1) + cross(v0 - v3, v2 - v3));
+  return vec4(nor, -dot(nor, v2));
+}
+
+vec4 plane_from_tri(vec3 v0, vec3 v1, vec3 v2)
+{
+  vec3 nor = normalize(cross(v2 - v1, v0 - v1));
+  return vec4(nor, -dot(nor, v2));
+}
+
 float point_plane_projection_dist(vec3 line_origin, vec3 plane_origin, vec3 plane_normal)
 {
   return dot(plane_normal, plane_origin - line_origin);
+}
+
+float point_line_projection_dist(vec2 point, vec2 line_origin, vec2 line_normal)
+{
+  return dot(line_normal, line_origin - point);
 }
 
 float line_plane_intersect_dist(vec3 line_origin,
@@ -101,6 +118,25 @@ float line_unit_box_intersect_dist_safe(vec3 line_origin, vec3 line_direction)
   vec3 safe_line_direction = max(vec3(1e-8), abs(line_direction)) *
                              select(vec3(1.0), -vec3(1.0), lessThan(line_direction, vec3(0.0)));
   return line_unit_box_intersect_dist(line_origin, safe_line_direction);
+}
+
+/**
+ * Same as line_unit_box_intersect_dist but for 2D case.
+ */
+float line_unit_square_intersect_dist(vec2 line_origin, vec2 line_direction)
+{
+  vec2 first_plane = (vec2(1.0) - line_origin) / line_direction;
+  vec2 second_plane = (vec2(-1.0) - line_origin) / line_direction;
+  vec2 farthest_plane = max(first_plane, second_plane);
+
+  return min_v2(farthest_plane);
+}
+
+float line_unit_square_intersect_dist_safe(vec2 line_origin, vec2 line_direction)
+{
+  vec2 safe_line_direction = max(vec2(1e-8), abs(line_direction)) *
+                             select(vec2(1.0), -vec2(1.0), lessThan(line_direction, vec2(0.0)));
+  return line_unit_square_intersect_dist(line_origin, safe_line_direction);
 }
 
 /**

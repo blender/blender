@@ -59,6 +59,7 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "RNA_access.h"
 
@@ -92,7 +93,7 @@ IDTypeInfo IDType_ID_LINK_PLACEHOLDER = {
     .foreach_id = NULL,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = NULL,
     .blend_read_data = NULL,
@@ -178,6 +179,10 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
 {
   const bool id_in_mainlist = (id->tag & LIB_TAG_NO_MAIN) == 0 &&
                               (id->flag & LIB_EMBEDDED_DATA) == 0;
+
+  if (id_in_mainlist) {
+    BKE_main_namemap_remove_name(bmain, id, id->name + 2);
+  }
 
   lib_id_library_local_paths(bmain, id->lib, id);
 
@@ -704,6 +709,58 @@ ID *BKE_id_copy_for_duplicate(Main *bmain,
   return id->newid;
 }
 
+static int foreach_assign_id_to_orig_callback(LibraryIDLinkCallbackData *cb_data)
+{
+  ID **id_p = cb_data->id_pointer;
+
+  if (*id_p) {
+    ID *id = *id_p;
+    *id_p = DEG_get_original_id(id);
+
+    /* If the ID changes increase the user count.
+     *
+     * This means that the reference to evaluated ID has been changed with a reference to the
+     * original ID which implies that the user count of the original ID is increased.
+     *
+     * The evaluated IDs do not maintain their user counter, so do not change it to avoid issues
+     * with the user counter going negative. */
+    if (*id_p != id) {
+      if ((cb_data->cb_flag & IDWALK_CB_USER) != 0) {
+        id_us_plus(*id_p);
+      }
+    }
+  }
+
+  return IDWALK_RET_NOP;
+}
+
+ID *BKE_id_copy_for_use_in_bmain(Main *bmain, const ID *id)
+{
+  ID *newid = BKE_id_copy(bmain, id);
+
+  if (newid == NULL) {
+    return newid;
+  }
+
+  /* Assign ID references directly used by the given ID to their original complementary parts.
+   *
+   * For example, when is called on an evaluated object will assign object->data to its original
+   * pointer, the evaluated object->data will be kept unchanged. */
+  BKE_library_foreach_ID_link(NULL, newid, foreach_assign_id_to_orig_callback, NULL, IDWALK_NOP);
+
+  /* Shape keys reference on evaluated ID is preserved to keep driver paths available, but the key
+   * data is likely to be invalid now due to modifiers, so clear the shape key reference avoiding
+   * any possible shape corruption. */
+  if (DEG_is_evaluated_id(id)) {
+    Key **key_p = BKE_key_from_id_p(newid);
+    if (key_p) {
+      *key_p = NULL;
+    }
+  }
+
+  return newid;
+}
+
 /**
  * Does a mere memory swap over the whole IDs data (including type-specific memory).
  * \note Most internal ID data itself is not swapped (only IDProperties are).
@@ -1080,6 +1137,9 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int fl
       /* alphabetic insertion: is in new_id */
       BKE_main_unlock(bmain);
 
+      /* This assert avoids having to keep name_map consistency when changing the library of an ID,
+       * if this check is not true anymore it will have to be done here too. */
+      BLI_assert(bmain->curlib == NULL || bmain->curlib->runtime.name_map == NULL);
       /* This is important in 'readfile doversion after liblink' context mainly, but is a good
        * consistency change in general: ID created for a Main should get that main's current
        * library pointer. */
@@ -1903,6 +1963,18 @@ bool BKE_id_can_be_asset(const ID *id)
 {
   return !ID_IS_LINKED(id) && !ID_IS_OVERRIDE_LIBRARY(id) &&
          BKE_idtype_idcode_is_linkable(GS(id->name));
+}
+
+ID *BKE_id_owner_get(ID *id)
+{
+  const IDTypeInfo *idtype = BKE_idtype_get_info_from_id(id);
+  if (idtype->owner_pointer_get != NULL) {
+    ID **owner_id_pointer = idtype->owner_pointer_get(id);
+    if (owner_id_pointer != NULL) {
+      return *owner_id_pointer;
+    }
+  }
+  return NULL;
 }
 
 bool BKE_id_is_editable(const Main *bmain, const ID *id)

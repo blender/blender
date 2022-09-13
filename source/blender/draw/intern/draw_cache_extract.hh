@@ -55,7 +55,6 @@ enum {
 struct DRW_MeshCDMask {
   uint32_t uv : 8;
   uint32_t tan : 8;
-  uint32_t vcol : 8;
   uint32_t orco : 1;
   uint32_t tan_orco : 1;
   uint32_t sculpt_overlays : 1;
@@ -111,7 +110,6 @@ struct MeshBufferList {
     GPUVertBuf *weights;  /* extend */
     GPUVertBuf *uv;
     GPUVertBuf *tan;
-    GPUVertBuf *vcol;
     GPUVertBuf *sculpt_data;
     GPUVertBuf *orco;
     /* Only for edit mode. */

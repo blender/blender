@@ -30,7 +30,7 @@ bool SEQ_transform_test_overlap(const struct Scene *scene,
 bool SEQ_transform_test_overlap_seq_seq(const struct Scene *scene,
                                         struct Sequence *seq1,
                                         struct Sequence *seq2);
-void SEQ_transform_translate_sequence(struct Scene *scene, struct Sequence *seq, int delta);
+void SEQ_transform_translate_sequence(struct Scene *evil_scene, struct Sequence *seq, int delta);
 /**
  * \return 0 if there weren't enough space.
  */

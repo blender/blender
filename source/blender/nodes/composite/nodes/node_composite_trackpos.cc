@@ -18,6 +18,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "COM_node_operation.hh"
+
 #include "node_composite_util.hh"
 
 namespace blender::nodes::node_composite_trackpos_cc {
@@ -102,6 +104,25 @@ static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRN
   }
 }
 
+using namespace blender::realtime_compositor;
+
+class TrackPositionOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    get_result("X").allocate_invalid();
+    get_result("Y").allocate_invalid();
+    get_result("Speed").allocate_invalid();
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, DNode node)
+{
+  return new TrackPositionOperation(context, node);
+}
+
 }  // namespace blender::nodes::node_composite_trackpos_cc
 
 void register_node_type_cmp_trackpos()
@@ -116,6 +137,7 @@ void register_node_type_cmp_trackpos()
   ntype.initfunc_api = file_ns::init;
   node_type_storage(
       &ntype, "NodeTrackPosData", node_free_standard_storage, node_copy_standard_storage);
+  ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);
 }

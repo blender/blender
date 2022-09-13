@@ -102,10 +102,9 @@ bke::CurvesGeometry primitive_random_sphere(const int curves_size, const int poi
 
   MutableSpan<int> offsets = curves.offsets_for_write();
   MutableSpan<float3> positions = curves.positions_for_write();
-
-  float *radius_data = (float *)CustomData_add_layer_named(
-      &curves.point_data, CD_PROP_FLOAT, CD_DEFAULT, nullptr, curves.point_num, "radius");
-  MutableSpan<float> radii{radius_data, curves.points_num()};
+  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+  bke::SpanAttributeWriter<float> radius = attributes.lookup_or_add_for_write_only_span<float>(
+      "radius", ATTR_DOMAIN_POINT);
 
   for (const int i : offsets.index_range()) {
     offsets[i] = points_per_curve * i;
@@ -114,9 +113,9 @@ bke::CurvesGeometry primitive_random_sphere(const int curves_size, const int poi
   RandomNumberGenerator rng;
 
   for (const int i : curves.curves_range()) {
-    const IndexRange curve_range = curves.points_for_curve(i);
-    MutableSpan<float3> curve_positions = positions.slice(curve_range);
-    MutableSpan<float> curve_radii = radii.slice(curve_range);
+    const IndexRange points = curves.points_for_curve(i);
+    MutableSpan<float3> curve_positions = positions.slice(points);
+    MutableSpan<float> curve_radii = radius.span.slice(points);
 
     const float theta = 2.0f * M_PI * rng.get_float();
     const float phi = saacosf(2.0f * rng.get_float() - 1.0f);
@@ -134,6 +133,8 @@ bke::CurvesGeometry primitive_random_sphere(const int curves_size, const int poi
       co += (offset + no) / points_per_curve;
     }
   }
+
+  radius.finish();
 
   return curves;
 }

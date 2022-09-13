@@ -38,22 +38,6 @@ using namespace metal;
 #  define POSITION_TYPE uint3
 #endif
 
-float3 mtl_linear_to_srgb_attr(float3 c)
-{
-  c = max(c, float3(0.0));
-  float3 c1 = c * 12.92;
-  float3 c2 = 1.055 * pow(c, float3(1.0 / 2.4)) - 0.055;
-  return mix(c1, c2, step(float3(0.0031308), c));
-}
-
-float3 mtl_srgb_to_linear_attr(float3 c)
-{
-  c = max(c, float3(0.0));
-  float3 c1 = c * (1.0 / 12.92);
-  float3 c2 = pow((c + 0.055) * (1.0 / 1.055), float3(2.4));
-  return mix(c1, c2, step(float3(0.04045), c));
-}
-
 struct TextureUpdateParams {
   int mip_index;
   int extent[3];

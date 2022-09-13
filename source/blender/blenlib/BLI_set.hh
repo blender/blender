@@ -427,10 +427,10 @@ class Set {
       return *this;
     }
 
-    Iterator operator++(int) const
+    Iterator operator++(int)
     {
       Iterator copied_iterator = *this;
-      ++copied_iterator;
+      ++(*this);
       return copied_iterator;
     }
 

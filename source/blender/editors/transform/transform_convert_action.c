@@ -18,6 +18,7 @@
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
 #include "BKE_key.h"
+#include "BKE_layer.h"
 #include "BKE_mask.h"
 #include "BKE_nla.h"
 
@@ -289,7 +290,7 @@ static int MaskLayerToTransData(TransData *td,
   return count;
 }
 
-void createTransActionData(bContext *C, TransInfo *t)
+static void createTransActionData(bContext *C, TransInfo *t)
 {
   Scene *scene = t->scene;
   TransData *td = NULL;
@@ -565,7 +566,7 @@ static void flushTransIntFrameActionData(TransInfo *t)
   }
 }
 
-void recalcData_actedit(TransInfo *t)
+static void recalcData_actedit(TransInfo *t)
 {
   ViewLayer *view_layer = t->view_layer;
   SpaceAction *saction = (SpaceAction *)t->area->spacedata.first;
@@ -580,7 +581,7 @@ void recalcData_actedit(TransInfo *t)
   ac.bmain = CTX_data_main(t->context);
   ac.scene = t->scene;
   ac.view_layer = t->view_layer;
-  ac.obact = OBACT(view_layer);
+  ac.obact = BKE_view_layer_active_object_get(view_layer);
   ac.area = t->area;
   ac.region = t->region;
   ac.sl = (t->area) ? t->area->spacedata.first : NULL;
@@ -759,7 +760,7 @@ static void posttrans_action_clean(bAnimContext *ac, bAction *act)
   ANIM_animdata_freelist(&anim_data);
 }
 
-void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
+static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
 {
   SpaceAction *saction = (SpaceAction *)t->area->spacedata.first;
   bAnimContext ac;
@@ -901,18 +902,18 @@ void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
         if (ELEM(t->frame_side, 'L', 'R')) { /* TFM_TIME_EXTEND */
           /* same as below */
           ED_markers_post_apply_transform(
-              ED_context_get_markers(C), t->scene, t->mode, t->values[0], t->frame_side);
+              ED_context_get_markers(C), t->scene, t->mode, t->values_final[0], t->frame_side);
         }
         else /* TFM_TIME_TRANSLATE */
 #endif
       {
         ED_markers_post_apply_transform(
-            ED_context_get_markers(C), t->scene, t->mode, t->values[0], t->frame_side);
+            ED_context_get_markers(C), t->scene, t->mode, t->values_final[0], t->frame_side);
       }
     }
     else if (t->mode == TFM_TIME_SCALE) {
       ED_markers_post_apply_transform(
-          ED_context_get_markers(C), t->scene, t->mode, t->values[0], t->frame_side);
+          ED_context_get_markers(C), t->scene, t->mode, t->values_final[0], t->frame_side);
     }
   }
 
@@ -926,3 +927,10 @@ void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_Action = {
+    /* flags */ (T_POINTS | T_2D_EDIT),
+    /* createTransData */ createTransActionData,
+    /* recalcData */ recalcData_actedit,
+    /* special_aftertrans_update */ special_aftertrans_update__actedit,
+};

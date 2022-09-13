@@ -199,6 +199,7 @@ void DRW_create_subdivision(struct Object *ob,
                             const float obmat[4][4],
                             const bool do_final,
                             const bool do_uvedit,
+                            const bool do_cage,
                             const ToolSettings *ts,
                             const bool use_hide);
 

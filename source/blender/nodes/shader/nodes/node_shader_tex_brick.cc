@@ -261,7 +261,7 @@ class BrickFunction : public fn::MultiFunction {
 
 static void sh_node_brick_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &node = builder.node();
+  const bNode &node = builder.node();
   NodeTexBrick *tex = (NodeTexBrick *)node.storage;
 
   builder.construct_and_set_matching_fn<BrickFunction>(

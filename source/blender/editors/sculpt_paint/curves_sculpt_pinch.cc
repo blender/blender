@@ -157,6 +157,9 @@ struct PinchOperationExecutor {
   {
     const float4x4 brush_transform_inv = brush_transform.inverted();
 
+    const bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
+
     float4x4 projection;
     ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
     MutableSpan<float3> positions_cu = curves_->positions_for_write();
@@ -167,11 +170,13 @@ struct PinchOperationExecutor {
       for (const int curve_i : curve_selection_.slice(range)) {
         const IndexRange points = curves_->points_for_curve(curve_i);
         for (const int point_i : points.drop_front(1)) {
-          const float3 old_pos_cu = brush_transform_inv * positions_cu[point_i];
-          float2 old_pos_re;
-          ED_view3d_project_float_v2_m4(ctx_.region, old_pos_cu, old_pos_re, projection.values);
+          const float3 old_pos_cu = deformation.positions[point_i];
+          const float3 old_symm_pos_cu = brush_transform_inv * old_pos_cu;
+          float2 old_symm_pos_re;
+          ED_view3d_project_float_v2_m4(
+              ctx_.region, old_symm_pos_cu, old_symm_pos_re, projection.values);
 
-          const float dist_to_brush_sq_re = math::distance_squared(old_pos_re, brush_pos_re_);
+          const float dist_to_brush_sq_re = math::distance_squared(old_symm_pos_re, brush_pos_re_);
           if (dist_to_brush_sq_re > brush_radius_sq_re) {
             continue;
           }
@@ -182,14 +187,21 @@ struct PinchOperationExecutor {
           const float weight = invert_factor_ * 0.1f * brush_strength_ * radius_falloff *
                                point_factors_[point_i];
 
-          const float2 new_pos_re = math::interpolate(old_pos_re, brush_pos_re_, weight);
+          const float2 new_symm_pos_re = math::interpolate(old_symm_pos_re, brush_pos_re_, weight);
 
-          const float3 old_pos_wo = transforms_.curves_to_world * old_pos_cu;
-          float3 new_pos_wo;
-          ED_view3d_win_to_3d(ctx_.v3d, ctx_.region, old_pos_wo, new_pos_re, new_pos_wo);
+          float3 new_symm_pos_wo;
+          ED_view3d_win_to_3d(ctx_.v3d,
+                              ctx_.region,
+                              transforms_.curves_to_world * old_symm_pos_cu,
+                              new_symm_pos_re,
+                              new_symm_pos_wo);
 
-          const float3 new_pos_cu = transforms_.world_to_curves * new_pos_wo;
-          positions_cu[point_i] = brush_transform * new_pos_cu;
+          const float3 new_pos_cu = brush_transform * transforms_.world_to_curves *
+                                    new_symm_pos_wo;
+          const float3 translation_eval = new_pos_cu - old_pos_cu;
+          const float3 translation_orig = deformation.translation_from_deformed_to_original(
+              point_i, translation_eval);
+          positions_cu[point_i] += translation_orig;
           r_changed_curves[curve_i] = true;
         }
       }
@@ -221,11 +233,14 @@ struct PinchOperationExecutor {
     MutableSpan<float3> positions_cu = curves_->positions_for_write();
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
 
+    const bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
+
     threading::parallel_for(curve_selection_.index_range(), 256, [&](const IndexRange range) {
       for (const int curve_i : curve_selection_.slice(range)) {
         const IndexRange points = curves_->points_for_curve(curve_i);
         for (const int point_i : points.drop_front(1)) {
-          const float3 old_pos_cu = positions_cu[point_i];
+          const float3 old_pos_cu = deformation.positions[point_i];
 
           const float dist_to_brush_sq_cu = math::distance_squared(old_pos_cu, brush_pos_cu);
           if (dist_to_brush_sq_cu > brush_radius_sq_cu) {
@@ -239,7 +254,10 @@ struct PinchOperationExecutor {
                                point_factors_[point_i];
 
           const float3 new_pos_cu = math::interpolate(old_pos_cu, brush_pos_cu, weight);
-          positions_cu[point_i] = new_pos_cu;
+          const float3 translation_eval = new_pos_cu - old_pos_cu;
+          const float3 translation_orig = deformation.translation_from_deformed_to_original(
+              point_i, translation_eval);
+          positions_cu[point_i] += translation_orig;
 
           r_changed_curves[curve_i] = true;
         }

@@ -1,0 +1,11 @@
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
+
+#include "stdcycles.h"
+
+shader node_mix_float(
+    int use_clamp = 0, float Factor = 0.5, float A = 0.0, float B = 0.0, output float Result = 0.0)
+{
+  float t = (use_clamp) ? clamp(Factor, 0.0, 1.0) : Factor;
+  Result = mix(A, B, t);
+}

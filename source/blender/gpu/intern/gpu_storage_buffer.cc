@@ -109,4 +109,9 @@ void GPU_storagebuf_copy_sub_from_vertbuf(
   unwrap(ssbo)->copy_sub(unwrap(src), dst_offset, src_offset, copy_size);
 }
 
+void GPU_storagebuf_read(GPUStorageBuf *ssbo, void *data)
+{
+  unwrap(ssbo)->read(data);
+}
+
 /** \} */

@@ -585,6 +585,18 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       SVM_CASE(NODE_AOV_VALUE)
       svm_node_aov_value<node_feature_mask>(kg, state, sd, stack, node, render_buffer);
       break;
+      SVM_CASE(NODE_MIX_COLOR)
+      svm_node_mix_color(sd, stack, node.y, node.z, node.w);
+      break;
+      SVM_CASE(NODE_MIX_FLOAT)
+      svm_node_mix_float(sd, stack, node.y, node.z, node.w);
+      break;
+      SVM_CASE(NODE_MIX_VECTOR)
+      svm_node_mix_vector(sd, stack, node.y, node.z);
+      break;
+      SVM_CASE(NODE_MIX_VECTOR_NON_UNIFORM)
+      svm_node_mix_vector_non_uniform(sd, stack, node.y, node.z);
+      break;
       default:
         kernel_assert(!"Unknown node type was passed to the SVM machine");
         return;

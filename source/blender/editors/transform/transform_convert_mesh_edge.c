@@ -23,7 +23,7 @@
 /** \name Edge (for crease) Transform Creation
  * \{ */
 
-void createTransEdge(TransInfo *t)
+static void createTransEdge(bContext *UNUSED(C), TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
@@ -67,7 +67,9 @@ void createTransEdge(TransInfo *t)
 
     /* create data we need */
     if (t->mode == TFM_BWEIGHT) {
-      BM_mesh_cd_flag_ensure(em->bm, BKE_mesh_from_object(tc->obedit), ME_CDFLAG_EDGE_BWEIGHT);
+      if (!CustomData_has_layer(&em->bm->edata, CD_BWEIGHT)) {
+        BM_data_layer_add(em->bm, &em->bm->edata, CD_BWEIGHT);
+      }
       cd_edge_float_offset = CustomData_get_offset(&em->bm->edata, CD_BWEIGHT);
     }
     else { /* if (t->mode == TFM_EDGE_CREASE) { */
@@ -108,7 +110,7 @@ void createTransEdge(TransInfo *t)
   }
 }
 
-void recalcData_mesh_edge(TransInfo *t)
+static void recalcData_mesh_edge(TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     DEG_id_tag_update(tc->obedit->data, ID_RECALC_GEOMETRY);
@@ -116,3 +118,10 @@ void recalcData_mesh_edge(TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_MeshEdge = {
+    /* flags */ T_EDIT,
+    /* createTransData */ createTransEdge,
+    /* recalcData */ recalcData_mesh_edge,
+    /* special_aftertrans_update */ special_aftertrans_update__mesh,
+};

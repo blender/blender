@@ -47,13 +47,9 @@ ccl_device_inline
   float3 P = ray->P;
   float3 dir = bvh_clamp_direction(ray->D);
   float3 idir = bvh_inverse_direction(dir);
-  float tmin = ray->tmin;
+  const float tmin = ray->tmin;
   int object = OBJECT_NONE;
   float isect_t = ray->tmax;
-
-#if BVH_FEATURE(BVH_MOTION)
-  Transform ob_itfm;
-#endif
 
   int num_hits_in_instance = 0;
 
@@ -159,18 +155,6 @@ ccl_device_inline
                   num_hits_in_instance++;
                   isect_array->t = isect_t;
                   if (num_hits == max_hits) {
-                    if (object != OBJECT_NONE) {
-#if BVH_FEATURE(BVH_MOTION)
-                      float t_fac = 1.0f / len(transform_direction(&ob_itfm, dir));
-#else
-                      Transform itfm = object_fetch_transform(
-                          kg, object, OBJECT_INVERSE_TRANSFORM);
-                      float t_fac = 1.0f / len(transform_direction(&itfm, dir));
-#endif
-                      for (int i = 0; i < num_hits_in_instance; i++) {
-                        (isect_array - i - 1)->t *= t_fac;
-                      }
-                    }
                     return num_hits;
                   }
                 }
@@ -212,18 +196,6 @@ ccl_device_inline
                   num_hits_in_instance++;
                   isect_array->t = isect_t;
                   if (num_hits == max_hits) {
-                    if (object != OBJECT_NONE) {
-#  if BVH_FEATURE(BVH_MOTION)
-                      float t_fac = 1.0f / len(transform_direction(&ob_itfm, dir));
-#  else
-                      Transform itfm = object_fetch_transform(
-                          kg, object, OBJECT_INVERSE_TRANSFORM);
-                      float t_fac = 1.0f / len(transform_direction(&itfm, dir));
-#  endif
-                      for (int i = 0; i < num_hits_in_instance; i++) {
-                        (isect_array - i - 1)->t *= t_fac;
-                      }
-                    }
                     return num_hits;
                   }
                 }
@@ -242,14 +214,10 @@ ccl_device_inline
           int object_flag = kernel_data_fetch(object_flag, object);
           if (object_flag & SD_OBJECT_HAS_VOLUME) {
 #if BVH_FEATURE(BVH_MOTION)
-            const float t_world_to_instance = bvh_instance_motion_push(
-                kg, object, ray, &P, &dir, &idir, &ob_itfm);
+            bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir);
 #else
-            const float t_world_to_instance = bvh_instance_push(kg, object, ray, &P, &dir, &idir);
+            bvh_instance_push(kg, object, ray, &P, &dir, &idir);
 #endif
-
-            isect_t *= t_world_to_instance;
-            tmin *= t_world_to_instance;
 
             num_hits_in_instance = 0;
             isect_array->t = isect_t;
@@ -274,29 +242,7 @@ ccl_device_inline
       kernel_assert(object != OBJECT_NONE);
 
       /* Instance pop. */
-      if (num_hits_in_instance) {
-        float t_fac;
-#if BVH_FEATURE(BVH_MOTION)
-        bvh_instance_motion_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac, &ob_itfm);
-#else
-        bvh_instance_pop_factor(kg, object, ray, &P, &dir, &idir, &t_fac);
-#endif
-        /* Scale isect->t to adjust for instancing. */
-        for (int i = 0; i < num_hits_in_instance; i++) {
-          (isect_array - i - 1)->t *= t_fac;
-        }
-      }
-      else {
-#if BVH_FEATURE(BVH_MOTION)
-        bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, FLT_MAX, &ob_itfm);
-#else
-        bvh_instance_pop(kg, object, ray, &P, &dir, &idir, FLT_MAX);
-#endif
-      }
-
-      tmin = ray->tmin;
-      isect_t = ray->tmax;
-      isect_array->t = isect_t;
+      bvh_instance_pop(ray, &P, &dir, &idir);
 
       object = OBJECT_NONE;
       node_addr = traversal_stack[stack_ptr];

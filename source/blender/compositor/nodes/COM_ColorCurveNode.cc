@@ -16,7 +16,7 @@ void ColorCurveNode::convert_to_operations(NodeConverter &converter,
 {
   if (this->get_input_socket(2)->is_linked() || this->get_input_socket(3)->is_linked()) {
     ColorCurveOperation *operation = new ColorCurveOperation();
-    operation->set_curve_mapping((CurveMapping *)this->get_bnode()->storage);
+    operation->set_curve_mapping((const CurveMapping *)this->get_bnode()->storage);
     converter.add_operation(operation);
 
     converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
@@ -33,7 +33,7 @@ void ColorCurveNode::convert_to_operations(NodeConverter &converter,
     operation->set_black_level(col);
     this->get_input_socket(3)->get_editor_value_color(col);
     operation->set_white_level(col);
-    operation->set_curve_mapping((CurveMapping *)this->get_bnode()->storage);
+    operation->set_curve_mapping((const CurveMapping *)this->get_bnode()->storage);
     converter.add_operation(operation);
 
     converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));

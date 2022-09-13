@@ -47,7 +47,7 @@ void wm_stereo3d_draw_sidebyside(wmWindow *win, int view)
   uint texcoord = GPU_vertformat_attr_add(format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_IMAGE);
+  immBindBuiltinProgram(GPU_SHADER_3D_IMAGE);
 
   int soffx = WM_window_pixels_x(win) * 0.5f;
   if (view == STEREO_LEFT_ID) {
@@ -95,7 +95,7 @@ void wm_stereo3d_draw_topbottom(wmWindow *win, int view)
   uint texcoord = GPU_vertformat_attr_add(format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_IMAGE);
+  immBindBuiltinProgram(GPU_SHADER_3D_IMAGE);
 
   int soffy;
   if (view == STEREO_LEFT_ID) {

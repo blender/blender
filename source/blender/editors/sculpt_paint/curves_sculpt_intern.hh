@@ -12,6 +12,7 @@
 #include "BLI_virtual_array.hh"
 
 #include "BKE_attribute.h"
+#include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 
 #include "ED_curves_sculpt.h"
@@ -24,6 +25,7 @@ struct Object;
 struct Brush;
 struct Scene;
 struct BVHTreeFromMesh;
+struct ReportList;
 
 namespace blender::ed::sculpt_paint {
 
@@ -34,6 +36,7 @@ struct StrokeExtension {
   bool is_first;
   float2 mouse_position;
   float pressure;
+  ReportList *reports = nullptr;
 };
 
 float brush_radius_factor(const Brush &brush, const StrokeExtension &stroke_extension);
@@ -55,8 +58,7 @@ class CurvesSculptStrokeOperation {
   virtual void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) = 0;
 };
 
-std::unique_ptr<CurvesSculptStrokeOperation> new_add_operation(const bContext &C,
-                                                               ReportList *reports);
+std::unique_ptr<CurvesSculptStrokeOperation> new_add_operation();
 std::unique_ptr<CurvesSculptStrokeOperation> new_comb_operation();
 std::unique_ptr<CurvesSculptStrokeOperation> new_delete_operation();
 std::unique_ptr<CurvesSculptStrokeOperation> new_snake_hook_operation();
@@ -125,5 +127,12 @@ std::optional<CurvesBrush3D> sample_curves_surface_3d_brush(
 float transform_brush_radius(const float4x4 &transform,
                              const float3 &brush_position,
                              const float old_radius);
+
+void report_empty_original_surface(ReportList *reports);
+void report_empty_evaluated_surface(ReportList *reports);
+void report_missing_surface(ReportList *reports);
+void report_missing_uv_map_on_original_surface(ReportList *reports);
+void report_missing_uv_map_on_evaluated_surface(ReportList *reports);
+void report_invalid_uv_map(ReportList *reports);
 
 }  // namespace blender::ed::sculpt_paint

@@ -190,7 +190,7 @@ IDTypeInfo IDType_ID_LT = {
     .foreach_id = lattice_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = lattice_blend_write,
     .blend_read_data = lattice_blend_read_data,
@@ -396,21 +396,6 @@ Lattice *BKE_lattice_add(Main *bmain, const char *name)
   lt = BKE_id_new(bmain, ID_LT, name);
 
   return lt;
-}
-
-bool object_deform_mball(Object *ob, ListBase *dispbase)
-{
-  if (ob->parent && ob->parent->type == OB_LATTICE && ob->partype == PARSKEL) {
-    DispList *dl;
-
-    for (dl = dispbase->first; dl; dl = dl->next) {
-      BKE_lattice_deform_coords(ob->parent, ob, (float(*)[3])dl->verts, dl->nr, 0, NULL, 1.0f);
-    }
-
-    return true;
-  }
-
-  return false;
 }
 
 static BPoint *latt_bp(Lattice *lt, int u, int v, int w)

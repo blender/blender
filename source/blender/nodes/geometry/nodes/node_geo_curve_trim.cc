@@ -504,19 +504,17 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
   if (!geometry_set.has_curves()) {
     return;
   }
+  const Curves &src_curves_id = *geometry_set.get_curves_for_read();
+  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(src_curves_id.geometry);
 
-  CurveComponent &component = geometry_set.get_component_for_write<CurveComponent>();
-  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_CURVE};
-  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_CURVE);
-
-  fn::FieldEvaluator evaluator{field_context, domain_size};
+  bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
+  fn::FieldEvaluator evaluator{field_context, curves.curves_num()};
   evaluator.add(start_field);
   evaluator.add(end_field);
   evaluator.evaluate();
   const VArray<float> starts = evaluator.get_evaluated<float>(0);
   const VArray<float> ends = evaluator.get_evaluated<float>(1);
 
-  const Curves &src_curves_id = *geometry_set.get_curves_for_read();
   std::unique_ptr<CurveEval> curve = curves_to_curve_eval(src_curves_id);
   MutableSpan<SplinePtr> splines = curve->splines();
 
@@ -579,6 +577,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)storage.mode;
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
+  GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
 
   if (mode == GEO_NODE_CURVE_SAMPLE_FACTOR) {
     Field<float> start_field = params.extract_input<Field<float>>("Start");

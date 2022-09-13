@@ -54,6 +54,7 @@
 #include "BKE_global.h" /* for G */
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_node_tree_update.h"
@@ -989,15 +990,15 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     int a, tot;
 
     /* shape keys are no longer applied to the mesh itself, but rather
-     * to the evaluated #Mesh / #DispList, so here we ensure that the basis
+     * to the evaluated #Mesh, so here we ensure that the basis
      * shape key is always set in the mesh coordinates. */
     for (me = bmain->meshes.first; me; me = me->id.next) {
       if ((key = blo_do_versions_newlibadr(fd, lib, me->key)) && key->refkey) {
         data = key->refkey->data;
         tot = MIN2(me->totvert, key->refkey->totelem);
-
+        MVert *verts = BKE_mesh_verts_for_write(me);
         for (a = 0; a < tot; a++, data += 3) {
-          copy_v3_v3(me->mvert[a].co, data);
+          copy_v3_v3(verts[a].co, data);
         }
       }
     }

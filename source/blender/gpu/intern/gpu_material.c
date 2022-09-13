@@ -91,6 +91,8 @@ struct GPUMaterial {
 
 #ifndef NDEBUG
   char name[64];
+#else
+  char name[16];
 #endif
 };
 
@@ -141,7 +143,7 @@ static void gpu_material_ramp_texture_build(GPUMaterial *mat)
   mat->coba_builder = NULL;
 }
 
-static void gpu_material_free_single(GPUMaterial *material)
+void GPU_material_free_single(GPUMaterial *material)
 {
   bool do_free = atomic_sub_and_fetch_uint32(&material->refcount, 1) == 0;
   if (!do_free) {
@@ -173,7 +175,7 @@ void GPU_material_free(ListBase *gpumaterial)
   LISTBASE_FOREACH (LinkData *, link, gpumaterial) {
     GPUMaterial *material = link->data;
     DRW_deferred_shader_remove(material);
-    gpu_material_free_single(material);
+    GPU_material_free_single(material);
   }
   BLI_freelistN(gpumaterial);
 }
@@ -193,6 +195,11 @@ GPUShader *GPU_material_get_shader(GPUMaterial *material)
   return material->pass ? GPU_pass_shader_get(material->pass) : NULL;
 }
 
+const char *GPU_material_get_name(GPUMaterial *material)
+{
+  return material->name;
+}
+
 Material *GPU_material_get_material(GPUMaterial *material)
 {
   return material->ma;
@@ -205,12 +212,7 @@ GPUUniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material)
 
 void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs)
 {
-#ifndef NDEBUG
-  const char *name = material->name;
-#else
-  const char *name = "Material";
-#endif
-  material->ubo = GPU_uniformbuf_create_from_list(inputs, name);
+  material->ubo = GPU_uniformbuf_create_from_list(inputs, material->name);
 }
 
 ListBase GPU_material_attributes(GPUMaterial *material)
@@ -223,9 +225,9 @@ ListBase GPU_material_textures(GPUMaterial *material)
   return material->graph.textures;
 }
 
-GPUUniformAttrList *GPU_material_uniform_attributes(GPUMaterial *material)
+const GPUUniformAttrList *GPU_material_uniform_attributes(const GPUMaterial *material)
 {
-  GPUUniformAttrList *attrs = &material->graph.uniform_attrs;
+  const GPUUniformAttrList *attrs = &material->graph.uniform_attrs;
   return attrs->count > 0 ? attrs : NULL;
 }
 
@@ -538,6 +540,13 @@ void GPU_material_add_output_link_aov(GPUMaterial *material, GPUNodeLink *link, 
   BLI_addtail(&material->graph.outlink_aovs, aov_link);
 }
 
+void GPU_material_add_output_link_composite(GPUMaterial *material, GPUNodeLink *link)
+{
+  GPUNodeGraphOutputLink *compositor_link = MEM_callocN(sizeof(GPUNodeGraphOutputLink), __func__);
+  compositor_link->outlink = link;
+  BLI_addtail(&material->graph.outlink_compositor, compositor_link);
+}
+
 char *GPU_material_split_sub_function(GPUMaterial *material,
                                       eGPUType return_type,
                                       GPUNodeLink **link)
@@ -665,11 +674,7 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
   mat->graph.used_libraries = BLI_gset_new(
       BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "GPUNodeGraph.used_libraries");
   mat->refcount = 1;
-#ifndef NDEBUG
   STRNCPY(mat->name, name);
-#else
-  UNUSED_VARS(name);
-#endif
   if (is_lookdev) {
     mat->flag |= GPU_MATFLAG_LOOKDEV_HACK;
   }
@@ -721,7 +726,7 @@ void GPU_material_acquire(GPUMaterial *mat)
 
 void GPU_material_release(GPUMaterial *mat)
 {
-  gpu_material_free_single(mat);
+  GPU_material_free_single(mat);
 }
 
 void GPU_material_compile(GPUMaterial *mat)
@@ -771,4 +776,43 @@ void GPU_materials_free(Main *bmain)
 
   // BKE_world_defaults_free_gpu();
   BKE_material_defaults_free_gpu();
+}
+
+GPUMaterial *GPU_material_from_callbacks(ConstructGPUMaterialFn construct_function_cb,
+                                         GPUCodegenCallbackFn generate_code_function_cb,
+                                         void *thunk)
+{
+  /* Allocate a new material and its material graph, and initialize its reference count. */
+  GPUMaterial *material = MEM_callocN(sizeof(GPUMaterial), "GPUMaterial");
+  material->graph.used_libraries = BLI_gset_new(
+      BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "GPUNodeGraph.used_libraries");
+  material->refcount = 1;
+
+  /* Construct the material graph by adding and linking the necessary GPU material nodes. */
+  construct_function_cb(thunk, material);
+
+  /* Create and initialize the texture storing color bands used by Ramp and Curve nodes. */
+  gpu_material_ramp_texture_build(material);
+
+  /* Lookup an existing pass in the cache or generate a new one. */
+  material->pass = GPU_generate_pass(material, &material->graph, generate_code_function_cb, thunk);
+
+  /* The pass already exists in the pass cache but its shader already failed to compile. */
+  if (material->pass == NULL) {
+    material->status = GPU_MAT_FAILED;
+    gpu_node_graph_free(&material->graph);
+    return material;
+  }
+
+  /* The pass already exists in the pass cache and its shader is already compiled. */
+  GPUShader *shader = GPU_pass_shader_get(material->pass);
+  if (shader != NULL) {
+    material->status = GPU_MAT_SUCCESS;
+    gpu_node_graph_free_nodes(&material->graph);
+    return material;
+  }
+
+  /* The material was created successfully but still needs to be compiled. */
+  material->status = GPU_MAT_CREATED;
+  return material;
 }

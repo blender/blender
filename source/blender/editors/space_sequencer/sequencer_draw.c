@@ -311,7 +311,7 @@ static size_t draw_waveform_segment(WaveVizData *waveform_data, bool use_rms)
   GPUPrimType prim_type = waveform_data->draw_line ? GPU_PRIM_LINE_STRIP : GPU_PRIM_TRI_STRIP;
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
   immBegin(prim_type, vertex_count);
 
   while (vertices_done < vertex_count && !waveform_data->final_sample) {
@@ -519,18 +519,6 @@ static void draw_seq_waveform_overlay(
   MEM_freeN(waveform_data);
 }
 
-/*
-static size_t *waveform_append(WaveVizData *waveform_data,
-                               vec2f pos,
-                               const float value_min,
-                               const float value_max,
-                               const float y_mid,
-                               const float y_scale,
-                               const float rms,
-                               const bool is_clipping,
-                               const bool is_line_strip)
-*/
-
 static void drawmeta_contents(Scene *scene,
                               Sequence *seqm,
                               float x1,
@@ -580,7 +568,7 @@ static void drawmeta_contents(Scene *scene,
   col[3] = 196; /* Alpha, used for all meta children. */
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* Draw only immediate children (1 level depth). */
   for (seq = meta_seqbase->first; seq; seq = seq->next) {
@@ -1170,7 +1158,7 @@ static void draw_seq_invalid(float x1, float x2, float y2, float text_margin_y)
   GPU_blend(GPU_BLEND_ALPHA);
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor4f(1.0f, 0.0f, 0.0f, 0.9f);
   immRectf(pos, x1, y2, x2, text_margin_y);
 
@@ -1288,7 +1276,7 @@ static void draw_seq_fcurve_overlay(
 
     GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_TRI_STRIP, vbo, NULL, GPU_BATCH_OWNS_VBO);
     GPU_vertbuf_data_len_set(vbo, vert_count);
-    GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_UNIFORM_COLOR);
+    GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
     GPU_batch_uniform_4f(batch, "color", 0.0f, 0.0f, 0.0f, 0.15f);
     GPU_blend(GPU_BLEND_ALPHA);
 
@@ -1356,7 +1344,7 @@ static void draw_seq_strip(const bContext *C,
   }
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   draw_seq_background(scene, seq, pos, x1, x2, y1, y2, is_single_image, show_strip_color_tag);
 
@@ -1412,7 +1400,7 @@ static void draw_seq_strip(const bContext *C,
   }
 
   pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   if (!SEQ_transform_is_locked(channels, seq)) {
     draw_seq_handle(
@@ -1454,7 +1442,7 @@ static void draw_effect_inputs_highlight(const Scene *scene, Sequence *seq)
   GPU_blend(GPU_BLEND_ALPHA);
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   immUniformColor4ub(255, 255, 255, 48);
   immRectf(pos,
@@ -1661,7 +1649,7 @@ static void sequencer_draw_borders_overlay(const SpaceSeq *sseq,
   const uint shdr_pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);
@@ -1932,7 +1920,7 @@ static void sequencer_draw_display_buffer(const bContext *C,
   GPU_texture_bind(texture, 0);
 
   if (!glsl_used) {
-    immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_COLOR);
     immUniformColor3f(1.0f, 1.0f, 1.0f);
   }
 
@@ -2121,7 +2109,7 @@ static void seq_draw_image_origin_and_outline(const bContext *C, Sequence *seq, 
   GPU_line_smooth(true);
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_line_width(2);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   float col[3];
   if (is_active_seq) {
@@ -2259,7 +2247,7 @@ void sequencer_draw_preview(const bContext *C,
 static void draw_seq_timeline_channels(View2D *v2d)
 {
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_blend(GPU_BLEND_ALPHA);
   immUniformThemeColor(TH_ROW_ALTERNATE);
 
@@ -2337,7 +2325,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
         GPU_blend(GPU_BLEND_ALPHA);
         uint pos = GPU_vertformat_attr_add(
             immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-        immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+        immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
         immUniformColor4ub(255, 255, 255, 48);
         immRectf(pos, v2d->cur.xmin, channel, v2d->cur.xmax, channel + 1);
@@ -2354,7 +2342,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
     GPU_blend(GPU_BLEND_ALPHA);
 
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     immUniformColor4ub(255, 255, 255, 48);
     immRectf(pos,
@@ -2378,7 +2366,7 @@ static void seq_draw_sfra_efra(const Scene *scene, View2D *v2d)
   GPU_blend(GPU_BLEND_ALPHA);
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* Draw overlay outside of frame range. */
   immUniformThemeColorShadeAlpha(TH_BACK, -10, -100);
@@ -2420,7 +2408,7 @@ static void seq_draw_sfra_efra(const Scene *scene, View2D *v2d)
 
     immUnbindProgram();
 
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformThemeColorShade(TH_BACK, -40);
 
     immBegin(GPU_PRIM_LINES, 4);
@@ -2544,7 +2532,7 @@ static void draw_cache_view_batch(
   GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, NULL, GPU_BATCH_OWNS_VBO);
   if (vert_count > 0) {
     GPU_vertbuf_data_len_set(vbo, vert_count);
-    GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_UNIFORM_COLOR);
+    GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
     GPU_batch_uniform_4f(batch, "color", col_r, col_g, col_b, col_a);
     GPU_batch_draw(batch);
   }
@@ -2563,7 +2551,7 @@ static void draw_cache_view(const bContext *C)
 
   GPU_blend(GPU_BLEND_ALPHA);
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   float stripe_bot, stripe_top;
   float stripe_ofs_y = UI_view2d_region_to_view_y(v2d, 1.0f) - v2d->cur.ymin;
@@ -2672,7 +2660,7 @@ static void draw_overlap_frame_indicator(const struct Scene *scene, const View2D
                           scene->r.cfra + scene->ed->overlay_frame_ofs;
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);
   immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);

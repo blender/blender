@@ -14,7 +14,7 @@ TonemapNode::TonemapNode(bNode *editor_node) : Node(editor_node)
 void TonemapNode::convert_to_operations(NodeConverter &converter,
                                         const CompositorContext & /*context*/) const
 {
-  NodeTonemap *data = (NodeTonemap *)this->get_bnode()->storage;
+  const NodeTonemap *data = (const NodeTonemap *)this->get_bnode()->storage;
 
   TonemapOperation *operation = data->type == 1 ? new PhotoreceptorTonemapOperation() :
                                                   new TonemapOperation();

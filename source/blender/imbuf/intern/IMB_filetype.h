@@ -264,6 +264,12 @@ struct ImBuf *imb_loadwebp(const unsigned char *mem,
                            size_t size,
                            int flags,
                            char colorspace[IM_MAX_SPACE]);
+struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
+                                               const int flags,
+                                               const size_t max_thumb_size,
+                                               char colorspace[],
+                                               size_t *r_width,
+                                               size_t *r_height);
 bool imb_savewebp(struct ImBuf *ibuf, const char *name, int flags);
 
 /** \} */

@@ -32,35 +32,35 @@
  */
 static bool wm_platform_support_check_approval(const char *platform_support_key, bool update)
 {
-  const char *const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, NULL);
-  bool result = false;
-
   if (G.factory_startup) {
-    return result;
+    return false;
+  }
+  const char *const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, NULL);
+  if (!cfgdir) {
+    return false;
   }
 
-  if (cfgdir) {
-    char filepath[FILE_MAX];
-    BLI_join_dirfile(filepath, sizeof(filepath), cfgdir, BLENDER_PLATFORM_SUPPORT_FILE);
-    LinkNode *lines = BLI_file_read_as_lines(filepath);
-    for (LinkNode *line_node = lines; line_node; line_node = line_node->next) {
-      char *line = line_node->link;
-      if (STREQ(line, platform_support_key)) {
-        result = true;
-        break;
-      }
+  bool result = false;
+  char filepath[FILE_MAX];
+  BLI_join_dirfile(filepath, sizeof(filepath), cfgdir, BLENDER_PLATFORM_SUPPORT_FILE);
+  LinkNode *lines = BLI_file_read_as_lines(filepath);
+  for (LinkNode *line_node = lines; line_node; line_node = line_node->next) {
+    char *line = line_node->link;
+    if (STREQ(line, platform_support_key)) {
+      result = true;
+      break;
     }
-
-    if (!result && update) {
-      FILE *fp = BLI_fopen(filepath, "a");
-      if (fp) {
-        fprintf(fp, "%s\n", platform_support_key);
-        fclose(fp);
-      }
-    }
-
-    BLI_file_free_lines(lines);
   }
+
+  if (!result && update) {
+    FILE *fp = BLI_fopen(filepath, "a");
+    if (fp) {
+      fprintf(fp, "%s\n", platform_support_key);
+      fclose(fp);
+    }
+  }
+
+  BLI_file_free_lines(lines);
   return result;
 }
 

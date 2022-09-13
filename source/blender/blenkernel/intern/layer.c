@@ -39,6 +39,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
+#include "DNA_world_types.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_debug.h"
@@ -55,7 +56,8 @@
 static CLG_LogRef LOG = {"bke.layercollection"};
 
 /* Set of flags which are dependent on a collection settings. */
-static const short g_base_collection_flags = (BASE_VISIBLE_DEPSGRAPH | BASE_VISIBLE_VIEWLAYER |
+static const short g_base_collection_flags = (BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT |
+                                              BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT |
                                               BASE_SELECTABLE | BASE_ENABLED_VIEWPORT |
                                               BASE_ENABLED_RENDER | BASE_HOLDOUT |
                                               BASE_INDIRECT_ONLY);
@@ -571,7 +573,7 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
   }
 
   /* Dependency graph uses view layer name based lookups. */
-  DEG_id_tag_update(&scene->id, 0);
+  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 }
 
 /* LayerCollection */
@@ -997,9 +999,10 @@ static void layer_collection_objects_sync(ViewLayer *view_layer,
     }
 
     if ((collection_restrict & COLLECTION_HIDE_VIEWPORT) == 0) {
-      base->flag_from_collection |= (BASE_ENABLED_VIEWPORT | BASE_VISIBLE_DEPSGRAPH);
+      base->flag_from_collection |= (BASE_ENABLED_VIEWPORT |
+                                     BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT);
       if ((layer_restrict & LAYER_COLLECTION_HIDE) == 0) {
-        base->flag_from_collection |= BASE_VISIBLE_VIEWLAYER;
+        base->flag_from_collection |= BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT;
       }
       if (((collection_restrict & COLLECTION_HIDE_SELECT) == 0)) {
         base->flag_from_collection |= BASE_SELECTABLE;
@@ -1377,12 +1380,12 @@ void BKE_main_collection_sync_remap(const Main *bmain)
       if (view_layer->object_bases_hash) {
         BLI_ghash_free(view_layer->object_bases_hash, NULL, NULL);
         view_layer->object_bases_hash = NULL;
-
-        /* Directly re-create the mapping here, so that we can also deal with duplicates in
-         * `view_layer->object_bases` list of bases properly. This is the only place where such
-         * duplicates should be fixed, and not considered as a critical error. */
-        view_layer_bases_hash_create(view_layer, true);
       }
+
+      /* Directly re-create the mapping here, so that we can also deal with duplicates in
+       * `view_layer->object_bases` list of bases properly. This is the only place where such
+       * duplicates should be fixed, and not considered as a critical error. */
+      view_layer_bases_hash_create(view_layer, true);
     }
 
     BKE_collection_object_cache_free(scene->master_collection);
@@ -1451,7 +1454,8 @@ bool BKE_layer_collection_has_selected_objects(ViewLayer *view_layer, LayerColle
     LISTBASE_FOREACH (CollectionObject *, cob, &lc->collection->gobject) {
       Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
 
-      if (base && (base->flag & BASE_SELECTED) && (base->flag & BASE_VISIBLE_DEPSGRAPH)) {
+      if (base && (base->flag & BASE_SELECTED) &&
+          (base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT)) {
         return true;
       }
     }
@@ -1507,12 +1511,12 @@ void BKE_base_set_visible(Scene *scene, ViewLayer *view_layer, Base *base, bool 
 
 bool BKE_base_is_visible(const View3D *v3d, const Base *base)
 {
-  if ((base->flag & BASE_VISIBLE_DEPSGRAPH) == 0) {
+  if ((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) == 0) {
     return false;
   }
 
   if (v3d == NULL) {
-    return base->flag & BASE_VISIBLE_VIEWLAYER;
+    return base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT;
   }
 
   if ((v3d->localvd) && ((v3d->local_view_uuid & base->local_view_bits) == 0)) {
@@ -1527,7 +1531,7 @@ bool BKE_base_is_visible(const View3D *v3d, const Base *base)
     return (v3d->local_collections_uuid & base->local_collections_bits) != 0;
   }
 
-  return base->flag & BASE_VISIBLE_VIEWLAYER;
+  return base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT;
 }
 
 bool BKE_object_is_visible_in_viewport(const View3D *v3d, const struct Object *ob)
@@ -1553,7 +1557,7 @@ bool BKE_object_is_visible_in_viewport(const View3D *v3d, const struct Object *o
 
   /* If not using local collection the object may still be in a hidden collection. */
   if ((v3d->flag & V3D_LOCAL_COLLECTIONS) == 0) {
-    return (ob->base_flag & BASE_VISIBLE_VIEWLAYER) != 0;
+    return (ob->base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) != 0;
   }
 
   return true;
@@ -2010,12 +2014,13 @@ static void objects_iterator_end(BLI_Iterator *iter)
 
 void BKE_view_layer_selected_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
-  objects_iterator_begin(iter, data_in, BASE_VISIBLE_DEPSGRAPH | BASE_SELECTED);
+  objects_iterator_begin(
+      iter, data_in, BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT | BASE_SELECTED);
 }
 
 void BKE_view_layer_selected_objects_iterator_next(BLI_Iterator *iter)
 {
-  objects_iterator_next(iter, BASE_VISIBLE_DEPSGRAPH | BASE_SELECTED);
+  objects_iterator_next(iter, BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT | BASE_SELECTED);
 }
 
 void BKE_view_layer_selected_objects_iterator_end(BLI_Iterator *iter)
@@ -2052,7 +2057,8 @@ void BKE_view_layer_visible_objects_iterator_end(BLI_Iterator *iter)
 
 void BKE_view_layer_selected_editable_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
-  objects_iterator_begin(iter, data_in, BASE_VISIBLE_DEPSGRAPH | BASE_SELECTED);
+  objects_iterator_begin(
+      iter, data_in, BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT | BASE_SELECTED);
   if (iter->valid) {
     if (BKE_object_is_libdata((Object *)iter->current) == false) {
       /* First object is valid (selectable and not libdata) -> all good. */
@@ -2069,7 +2075,7 @@ void BKE_view_layer_selected_editable_objects_iterator_next(BLI_Iterator *iter)
   /* Search while there are objects and the one we have is not editable (editable = not libdata).
    */
   do {
-    objects_iterator_next(iter, BASE_VISIBLE_DEPSGRAPH | BASE_SELECTED);
+    objects_iterator_next(iter, BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT | BASE_SELECTED);
   } while (iter->valid && BKE_object_is_libdata((Object *)iter->current) != false);
 }
 
@@ -2086,12 +2092,13 @@ void BKE_view_layer_selected_editable_objects_iterator_end(BLI_Iterator *iter)
 
 void BKE_view_layer_selected_bases_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
-  objects_iterator_begin(iter, data_in, BASE_VISIBLE_DEPSGRAPH | BASE_SELECTED);
+  objects_iterator_begin(
+      iter, data_in, BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT | BASE_SELECTED);
 }
 
 void BKE_view_layer_selected_bases_iterator_next(BLI_Iterator *iter)
 {
-  object_bases_iterator_next(iter, BASE_VISIBLE_DEPSGRAPH | BASE_SELECTED);
+  object_bases_iterator_next(iter, BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT | BASE_SELECTED);
 }
 
 void BKE_view_layer_selected_bases_iterator_end(BLI_Iterator *iter)
@@ -2218,7 +2225,8 @@ void BKE_base_eval_flags(Base *base)
    * can change these again, but for tools we always want the viewport
    * visibility to be in sync regardless if depsgraph was evaluated. */
   if (!(base->flag & BASE_ENABLED_VIEWPORT) || (base->flag & BASE_HIDDEN)) {
-    base->flag &= ~(BASE_VISIBLE_DEPSGRAPH | BASE_VISIBLE_VIEWLAYER | BASE_SELECTABLE);
+    base->flag &= ~(BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT |
+                    BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT | BASE_SELECTABLE);
   }
 
   /* Deselect unselectable objects. */
@@ -2302,7 +2310,7 @@ static void direct_link_layer_collections(BlendDataReader *reader, ListBase *lb,
     BLO_read_data_address(reader, &lc->scene_collection);
 #endif
 
-    /* Master collection is not a real data-lock. */
+    /* Master collection is not a real data-block. */
     if (master) {
       BLO_read_data_address(reader, &lc->collection);
     }
@@ -2342,7 +2350,7 @@ static void lib_link_layer_collection(BlendLibReader *reader,
                                       LayerCollection *layer_collection,
                                       bool master)
 {
-  /* Master collection is not a real data-lock. */
+  /* Master collection is not a real data-block. */
   if (!master) {
     BLO_read_id_address(reader, lib, &layer_collection->collection);
   }
@@ -2383,7 +2391,7 @@ void BKE_view_layer_blend_read_lib(BlendLibReader *reader, Library *lib, ViewLay
 
   BLO_read_id_address(reader, lib, &view_layer->mat_override);
 
-  IDP_BlendReadLib(reader, view_layer->id_properties);
+  IDP_BlendReadLib(reader, lib, view_layer->id_properties);
 }
 
 /** \} */
@@ -2588,12 +2596,36 @@ ViewLayer *BKE_view_layer_find_with_lightgroup(struct Scene *scene,
   return NULL;
 }
 
-void BKE_view_layer_rename_lightgroup(ViewLayer *view_layer,
+void BKE_view_layer_rename_lightgroup(Scene *scene,
+                                      ViewLayer *view_layer,
                                       ViewLayerLightgroup *lightgroup,
                                       const char *name)
 {
+  char old_name[64];
+  BLI_strncpy_utf8(old_name, lightgroup->name, sizeof(old_name));
   BLI_strncpy_utf8(lightgroup->name, name, sizeof(lightgroup->name));
   viewlayer_lightgroup_make_name_unique(view_layer, lightgroup);
+
+  if (scene != NULL) {
+    /* Update objects in the scene to refer to the new name instead. */
+    FOREACH_SCENE_OBJECT_BEGIN (scene, ob) {
+      if (!ID_IS_LINKED(ob) && ob->lightgroup != NULL) {
+        LightgroupMembership *lgm = ob->lightgroup;
+        if (STREQ(lgm->name, old_name)) {
+          BLI_strncpy_utf8(lgm->name, lightgroup->name, sizeof(lgm->name));
+        }
+      }
+    }
+    FOREACH_SCENE_OBJECT_END;
+
+    /* Update the scene's world to refer to the new name instead. */
+    if (scene->world != NULL && !ID_IS_LINKED(scene->world) && scene->world->lightgroup != NULL) {
+      LightgroupMembership *lgm = scene->world->lightgroup;
+      if (STREQ(lgm->name, old_name)) {
+        BLI_strncpy_utf8(lgm->name, lightgroup->name, sizeof(lgm->name));
+      }
+    }
+  }
 }
 
 void BKE_lightgroup_membership_get(struct LightgroupMembership *lgm, char *name)

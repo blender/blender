@@ -7,6 +7,7 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_sys_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,6 +20,7 @@ struct BlendWriter;
 struct ID;
 struct IDProperty;
 struct IDPropertyUIData;
+struct Library;
 
 typedef union IDPropertyTemplate {
   int i;
@@ -96,7 +98,7 @@ void IDP_AssignID(struct IDProperty *prop, struct ID *id, int flag);
  * Sync values from one group to another when values name and types match,
  * copy the values, else ignore.
  *
- * \note Use for syncing proxies.
+ * \note Was used for syncing proxies.
  */
 void IDP_SyncGroupValues(struct IDProperty *dest, const struct IDProperty *src) ATTR_NONNULL();
 void IDP_SyncGroupTypes(struct IDProperty *dest, const struct IDProperty *src, bool do_arraylen)
@@ -318,7 +320,7 @@ void IDP_BlendReadData_impl(struct BlendDataReader *reader,
                             struct IDProperty **prop,
                             const char *caller_func_id);
 #define IDP_BlendDataRead(reader, prop) IDP_BlendReadData_impl(reader, prop, __func__)
-void IDP_BlendReadLib(struct BlendLibReader *reader, struct IDProperty *prop);
+void IDP_BlendReadLib(struct BlendLibReader *reader, struct Library *lib, struct IDProperty *prop);
 void IDP_BlendReadExpand(struct BlendExpander *expander, struct IDProperty *prop);
 
 typedef enum eIDPropertyUIDataType {

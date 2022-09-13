@@ -70,7 +70,7 @@ enum class EvaluationStage {
    * involved. */
   COPY_ON_WRITE,
 
-  /* Evaluate actual ID nodes visiblity based on the current state of animation and drivers. */
+  /* Evaluate actual ID nodes visibility based on the current state of animation and drivers. */
   DYNAMIC_VISIBILITY,
 
   /* Threaded evaluation of all possible operations. */
@@ -111,7 +111,8 @@ void evaluate_node(const DepsgraphEvalState *state, OperationNode *operation_nod
    * times.
    * This is a thread-safe modification as the node's flags are only read for a non-scheduled nodes
    * and this node has been scheduled. */
-  operation_node->flag &= ~DEPSOP_FLAG_NEEDS_UPDATE;
+  operation_node->flag &= ~(DEPSOP_FLAG_DIRECTLY_MODIFIED | DEPSOP_FLAG_NEEDS_UPDATE |
+                            DEPSOP_FLAG_USER_MODIFIED);
 }
 
 void deg_task_run_func(TaskPool *pool, void *taskdata)
@@ -136,7 +137,7 @@ bool check_operation_node_visible(const DepsgraphEvalState *state, OperationNode
     return true;
   }
 
-  /* Special case for dynamic visiblity pass: the actual visibility is not yet known, so limit to
+  /* Special case for dynamic visibility pass: the actual visibility is not yet known, so limit to
    * only operations which affects visibility. */
   if (state->stage == EvaluationStage::DYNAMIC_VISIBILITY) {
     return op_node->flag & OperationFlag::DEPSOP_FLAG_AFFECTS_VISIBILITY;
@@ -436,7 +437,7 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
 
   evaluate_graph_threaded_stage(&state, task_pool, EvaluationStage::COPY_ON_WRITE);
 
-  if (graph->has_animated_visibility) {
+  if (graph->has_animated_visibility || graph->need_update_nodes_visibility) {
     /* Update pending parents including only the ones which are affecting operations which are
      * affecting visibility. */
     state.need_update_pending_parents = true;
@@ -466,7 +467,7 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
     deg_eval_stats_aggregate(graph);
   }
 
-  /* Clear any uncleared tags - just in case. */
+  /* Clear any uncleared tags. */
   deg_graph_clear_tags(graph);
   graph->is_evaluating = false;
 

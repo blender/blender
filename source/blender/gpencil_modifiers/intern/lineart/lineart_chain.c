@@ -1051,6 +1051,38 @@ void MOD_lineart_chain_clear_picked_flag(LineartCache *lc)
   }
 }
 
+LineartElementLinkNode *lineart_find_matching_eln_obj(ListBase *elns, struct Object *obj)
+{
+  LISTBASE_FOREACH (LineartElementLinkNode *, eln, elns) {
+    if (eln->object_ref == obj) {
+      return eln;
+    }
+  }
+  return NULL;
+}
+
+void MOD_lineart_finalize_chains(LineartData *ld)
+{
+  LISTBASE_FOREACH (LineartEdgeChain *, ec, &ld->chains) {
+    if (ELEM(ec->type,
+             LRT_EDGE_FLAG_INTERSECTION,
+             LRT_EDGE_FLAG_PROJECTED_SHADOW,
+             LRT_EDGE_FLAG_LIGHT_CONTOUR)) {
+      continue;
+    }
+    LineartElementLinkNode *eln = lineart_find_matching_eln_obj(&ld->geom.vertex_buffer_pointers,
+                                                                ec->object_ref);
+    BLI_assert(eln != NULL);
+    if (LIKELY(eln)) {
+      LISTBASE_FOREACH (LineartEdgeChainItem *, eci, &ec->chain) {
+        if (eci->index > eln->global_index_offset) {
+          eci->index -= eln->global_index_offset;
+        }
+      }
+    }
+  }
+}
+
 void MOD_lineart_smooth_chains(LineartData *ld, float tolerance)
 {
   LISTBASE_FOREACH (LineartEdgeChain *, ec, &ld->chains) {

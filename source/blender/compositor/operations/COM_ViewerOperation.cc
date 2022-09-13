@@ -156,7 +156,7 @@ void ViewerOperation::init_image()
     ibuf->y = display_height_;
     /* zero size can happen if no image buffers exist to define a sensible resolution */
     if (ibuf->x > 0 && ibuf->y > 0) {
-      imb_addrectfloatImBuf(ibuf);
+      imb_addrectfloatImBuf(ibuf, 4);
     }
 
     ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;

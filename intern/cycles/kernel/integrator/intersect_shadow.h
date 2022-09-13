@@ -51,7 +51,7 @@ ccl_device_forceinline int integrate_shadow_max_transparent_hits(KernelGlobals k
 }
 
 #ifdef __TRANSPARENT_SHADOWS__
-#  if defined(__KERNEL_CPU__)
+#  ifndef __KERNEL_GPU__
 ccl_device int shadow_intersections_compare(const void *a, const void *b)
 {
   const Intersection *isect_a = (const Intersection *)a;

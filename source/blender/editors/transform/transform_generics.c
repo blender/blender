@@ -176,7 +176,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 {
   Scene *sce = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *obact = OBACT(view_layer);
+  Object *obact = BKE_view_layer_active_object_get(view_layer);
   const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
   ToolSettings *ts = CTX_data_tool_settings(C);
   ARegion *region = CTX_wm_region(C);
@@ -333,7 +333,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
   else if (t->spacetype == SPACE_IMAGE) {
     SpaceImage *sima = area->spacedata.first;
-    if (ED_space_image_show_uvedit(sima, OBACT(t->view_layer))) {
+    if (ED_space_image_show_uvedit(sima, BKE_view_layer_active_object_get(t->view_layer))) {
       /* UV transform */
     }
     else if (sima->mode == SI_MODE_MASK) {
@@ -1067,7 +1067,7 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
   }
   else if (t->options & CTX_POSE_BONE) {
     ViewLayer *view_layer = t->view_layer;
-    Object *ob = OBACT(view_layer);
+    Object *ob = BKE_view_layer_active_object_get(view_layer);
     if (ED_object_calc_active_center_for_posemode(ob, select_only, r_center)) {
       mul_m4_v3(ob->obmat, r_center);
       return true;
@@ -1084,8 +1084,8 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
   else {
     /* object mode */
     ViewLayer *view_layer = t->view_layer;
-    Object *ob = OBACT(view_layer);
-    Base *base = BASACT(view_layer);
+    Object *ob = BKE_view_layer_active_object_get(view_layer);
+    Base *base = view_layer->basact;
     if (ob && ((!select_only) || ((base->flag & BASE_SELECTED) != 0))) {
       copy_v3_v3(r_center, ob->obmat[3]);
       return true;
@@ -1132,6 +1132,33 @@ static void calculateCenter_FromAround(TransInfo *t, int around, float r_center[
   }
 }
 
+static void calculateZfac(TransInfo *t)
+{
+  /* ED_view3d_calc_zfac() defines a factor for perspective depth correction,
+   * used in ED_view3d_win_to_delta() */
+
+  /* zfac is only used convertViewVec only in cases operator was invoked in RGN_TYPE_WINDOW
+   * and never used in other cases.
+   *
+   * We need special case here as well, since ED_view3d_calc_zfac will crash when called
+   * for a region different from RGN_TYPE_WINDOW.
+   */
+  if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
+    t->zfac = ED_view3d_calc_zfac(t->region->regiondata, t->center_global);
+  }
+  else if (t->spacetype == SPACE_IMAGE) {
+    SpaceImage *sima = t->area->spacedata.first;
+    t->zfac = 1.0f / sima->zoom;
+  }
+  else if (t->region) {
+    View2D *v2d = &t->region->v2d;
+    /* Get zoom fac the same way as in
+     * `ui_view2d_curRect_validate_resize` - better keep in sync! */
+    const float zoomx = (float)(BLI_rcti_size_x(&v2d->mask) + 1) / BLI_rctf_size_x(&v2d->cur);
+    t->zfac = 1.0f / zoomx;
+  }
+}
+
 void calculateCenter(TransInfo *t)
 {
   if ((t->flag & T_OVERRIDE_CENTER) == 0) {
@@ -1166,22 +1193,46 @@ void calculateCenter(TransInfo *t)
     }
   }
 
-  if (t->spacetype == SPACE_VIEW3D) {
-    /* #ED_view3d_calc_zfac() defines a factor for perspective depth correction,
-     * used in #ED_view3d_win_to_delta(). */
+  calculateZfac(t);
+}
 
-    /* NOTE: `t->zfac` is only used #convertViewVec only in cases operator was invoked in
-     * #RGN_TYPE_WINDOW and never used in other cases.
-     *
-     * We need special case here as well, since #ED_view3d_calc_zfac will crash when called
-     * for a region different from #RGN_TYPE_WINDOW. */
-    if (t->region->regiontype == RGN_TYPE_WINDOW) {
-      t->zfac = ED_view3d_calc_zfac(t->region->regiondata, t->center_global);
+/* Called every time the view changes due to navigation.
+ * Adjusts the mouse position relative to the object. */
+void tranformViewUpdate(TransInfo *t)
+{
+  float zoom_prev = t->zfac;
+  float zoom_new;
+  if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
+    if (!t->persp) {
+      zoom_prev *= len_v3(t->persinv[0]);
     }
-    else {
-      t->zfac = 0.0f;
+
+    setTransformViewMatrices(t);
+    calculateZfac(t);
+
+    zoom_new = t->zfac;
+    if (!t->persp) {
+      zoom_new *= len_v3(t->persinv[0]);
+    }
+
+    for (int i = 0; i < ARRAY_SIZE(t->orient); i++) {
+      if (t->orient[i].type == V3D_ORIENT_VIEW) {
+        copy_m3_m4(t->orient[i].matrix, t->viewinv);
+        normalize_m3(t->orient[i].matrix);
+        if (t->orient_curr == i) {
+          copy_m3_m3(t->spacemtx, t->orient[i].matrix);
+          invert_m3_m3_safe_ortho(t->spacemtx_inv, t->spacemtx);
+        }
+      }
     }
   }
+  else {
+    calculateZfac(t);
+    zoom_new = t->zfac;
+  }
+
+  calculateCenter2D(t);
+  transform_input_update(t, zoom_prev / zoom_new);
 }
 
 void calculatePropRatio(TransInfo *t)

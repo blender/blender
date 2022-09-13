@@ -146,7 +146,7 @@ IDTypeInfo IDType_ID_CF = {
     .foreach_id = NULL,
     .foreach_cache = NULL,
     .foreach_path = cache_file_foreach_path,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = cache_file_blend_write,
     .blend_read_data = cache_file_blend_read_data,
@@ -429,10 +429,10 @@ bool BKE_cache_file_uses_render_procedural(const CacheFile *cache_file, Scene *s
   return cache_file->use_render_procedural;
 }
 
-CacheFileLayer *BKE_cachefile_add_layer(CacheFile *cache_file, const char filename[1024])
+CacheFileLayer *BKE_cachefile_add_layer(CacheFile *cache_file, const char filepath[1024])
 {
   for (CacheFileLayer *layer = cache_file->layers.first; layer; layer = layer->next) {
-    if (STREQ(layer->filepath, filename)) {
+    if (STREQ(layer->filepath, filepath)) {
       return NULL;
     }
   }
@@ -440,7 +440,7 @@ CacheFileLayer *BKE_cachefile_add_layer(CacheFile *cache_file, const char filena
   const int num_layers = BLI_listbase_count(&cache_file->layers);
 
   CacheFileLayer *layer = MEM_callocN(sizeof(CacheFileLayer), "CacheFileLayer");
-  BLI_strncpy(layer->filepath, filename, sizeof(layer->filepath));
+  BLI_strncpy(layer->filepath, filepath, sizeof(layer->filepath));
 
   BLI_addtail(&cache_file->layers, layer);
 

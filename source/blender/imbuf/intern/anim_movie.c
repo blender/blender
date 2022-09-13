@@ -97,9 +97,9 @@ static void free_anim_movie(struct anim *UNUSED(anim))
 #  define PATHSEPARATOR '/'
 #endif
 
-static int an_stringdec(const char *string, char *head, char *tail, unsigned short *numlen)
+static int an_stringdec(const char *string, char *head, char *tail, ushort *numlen)
 {
-  unsigned short len, nume, nums = 0;
+  ushort len, nume, nums = 0;
   short i;
   bool found = false;
 
@@ -139,8 +139,7 @@ static int an_stringdec(const char *string, char *head, char *tail, unsigned sho
   return true;
 }
 
-static void an_stringenc(
-    char *string, const char *head, const char *tail, unsigned short numlen, int pic)
+static void an_stringenc(char *string, const char *head, const char *tail, ushort numlen, int pic)
 {
   BLI_path_sequence_encode(string, head, tail, numlen, pic);
 }
@@ -454,7 +453,7 @@ static ImBuf *avi_fetchibuf(struct anim *anim, int position)
       lpbi = AVIStreamGetFrame(anim->pgf, position + AVIStreamStart(anim->pavi[anim->firstvideo]));
       if (lpbi) {
         ibuf = IMB_ibImageFromMemory(
-            (const unsigned char *)lpbi, 100, IB_rect, anim->colorspace, "<avi_fetchibuf>");
+            (const uchar *)lpbi, 100, IB_rect, anim->colorspace, "<avi_fetchibuf>");
         /* Oh brother... */
       }
     }
@@ -1568,7 +1567,7 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim,
 {
   struct ImBuf *ibuf = NULL;
   char head[256], tail[256];
-  unsigned short digits;
+  ushort digits;
   int pic;
   int filter_y;
   if (anim == NULL) {

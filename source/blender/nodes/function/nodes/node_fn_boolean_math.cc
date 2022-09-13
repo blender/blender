@@ -68,7 +68,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-static const fn::MultiFunction *get_multi_function(bNode &bnode)
+static const fn::MultiFunction *get_multi_function(const bNode &bnode)
 {
   static auto exec_preset = fn::CustomMF_presets::AllSpanOrSingle();
   static fn::CustomMF_SI_SI_SO<bool, bool, bool> and_fn{

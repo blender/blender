@@ -18,7 +18,7 @@ Stabilize2dNode::Stabilize2dNode(bNode *editor_node) : Node(editor_node)
 void Stabilize2dNode::convert_to_operations(NodeConverter &converter,
                                             const CompositorContext &context) const
 {
-  bNode *editor_node = this->get_bnode();
+  const bNode *editor_node = this->get_bnode();
   NodeInput *image_input = this->get_input_socket(0);
   MovieClip *clip = (MovieClip *)editor_node->id;
   bool invert = (editor_node->custom2 & CMP_NODEFLAG_STABILIZE_INVERSE) != 0;

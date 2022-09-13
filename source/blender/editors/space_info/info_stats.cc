@@ -130,7 +130,7 @@ static void stats_object(Object *ob,
                          SceneStats *stats,
                          GSet *objects_gset)
 {
-  if ((ob->base_flag & BASE_VISIBLE_VIEWLAYER) == 0) {
+  if ((ob->base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0) {
     return;
   }
 
@@ -161,42 +161,6 @@ static void stats_object(Object *ob,
         stats->totlampsel++;
       }
       break;
-    case OB_SURF:
-    case OB_CURVES_LEGACY:
-    case OB_FONT: {
-      const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
-      if ((me_eval != nullptr) && !BLI_gset_add(objects_gset, (void *)me_eval)) {
-        break;
-      }
-
-      if (stats_mesheval(me_eval, is_selected, stats)) {
-        break;
-      }
-      ATTR_FALLTHROUGH; /* Fall-through to displist. */
-    }
-    case OB_MBALL: {
-      int totv = 0, totf = 0, tottri = 0;
-
-      if (ob->runtime.curve_cache && ob->runtime.curve_cache->disp.first) {
-        /* NOTE: We only get the same curve_cache for instances of the same curve/font/...
-         * For simple linked duplicated objects, each has its own dispList. */
-        if (!BLI_gset_add(objects_gset, ob->runtime.curve_cache)) {
-          break;
-        }
-
-        BKE_displist_count(&ob->runtime.curve_cache->disp, &totv, &totf, &tottri);
-      }
-
-      stats->totvert += totv;
-      stats->totface += totf;
-      stats->tottri += tottri;
-
-      if (is_selected) {
-        stats->totvertsel += totv;
-        stats->totfacesel += totf;
-      }
-      break;
-    }
     case OB_GPENCIL: {
       if (is_selected) {
         bGPdata *gpd = (bGPdata *)ob->data;
@@ -381,7 +345,7 @@ static void stats_object_sculpt(const Object *ob, SceneStats *stats)
       stats->tottri = ob->sculpt->bm->totface;
       break;
     case PBVH_GRIDS:
-      stats->totvertsculpt = BKE_pbvh_get_grid_num_vertices(ss->pbvh);
+      stats->totvertsculpt = BKE_pbvh_get_grid_num_verts(ss->pbvh);
       stats->totfacesculpt = BKE_pbvh_get_grid_num_faces(ss->pbvh);
       break;
   }
@@ -393,15 +357,15 @@ static void stats_update(Depsgraph *depsgraph,
                          View3D *v3d_local,
                          SceneStats *stats)
 {
-  const Object *ob = OBACT(view_layer);
-  const Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  const Object *ob = BKE_view_layer_active_object_get(view_layer);
+  const Object *obedit = BKE_view_layer_edit_object_get(view_layer);
 
   memset(stats, 0x0, sizeof(*stats));
 
   if (obedit) {
     /* Edit Mode. */
     FOREACH_OBJECT_BEGIN (view_layer, ob_iter) {
-      if (ob_iter->base_flag & BASE_VISIBLE_VIEWLAYER) {
+      if (ob_iter->base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) {
         if (ob_iter->mode & OB_MODE_EDIT) {
           stats_object_edit(ob_iter, stats);
           stats->totobjsel++;
@@ -421,7 +385,7 @@ static void stats_update(Depsgraph *depsgraph,
   else if (ob && (ob->mode & OB_MODE_POSE)) {
     /* Pose Mode. */
     FOREACH_OBJECT_BEGIN (view_layer, ob_iter) {
-      if (ob_iter->base_flag & BASE_VISIBLE_VIEWLAYER) {
+      if (ob_iter->base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) {
         if (ob_iter->mode & OB_MODE_POSE) {
           stats_object_pose(ob_iter, stats);
           stats->totobjsel++;
@@ -439,14 +403,7 @@ static void stats_update(Depsgraph *depsgraph,
   }
   else if (ob && (ob->mode & OB_MODE_SCULPT)) {
     /* Sculpt Mode. */
-    if (stats_is_object_dynamic_topology_sculpt(ob)) {
-      /* Dynamic topology. Do not count all vertices,
-       * dynamic topology stats are initialized later as part of sculpt stats. */
-    }
-    else {
-      /* When dynamic topology is not enabled both sculpt stats and scene stats are collected. */
-      stats_object_sculpt(ob, stats);
-    }
+    stats_object_sculpt(ob, stats);
   }
   else {
     /* Objects. */
@@ -535,7 +492,7 @@ static bool format_stats(
 static void get_stats_string(
     char *info, int len, size_t *ofs, ViewLayer *view_layer, SceneStatsFmt *stats_fmt)
 {
-  Object *ob = OBACT(view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);
   eObjectMode object_mode = ob ? (eObjectMode)ob->mode : OB_MODE_OBJECT;
   LayerCollection *layer_collection = view_layer->active_collection;
@@ -727,7 +684,7 @@ void ED_info_draw_stats(
     return;
   }
 
-  Object *ob = OBACT(view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);
   eObjectMode object_mode = ob ? (eObjectMode)ob->mode : OB_MODE_OBJECT;
   const int font_id = BLF_set_default();

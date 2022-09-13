@@ -138,6 +138,8 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
   int arraywidth = 0, arrayheight = 0;
   ListBase boxes = {nullptr};
 
+  int planes = 0;
+
   LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
     ImageUser iuser;
     BKE_imageuser_default(&iuser);
@@ -164,6 +166,7 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
 
       BKE_image_release_ibuf(ima, ibuf, nullptr);
       BLI_addtail(&boxes, packtile);
+      planes = max_ii(planes, ibuf->planes);
     }
   }
 
@@ -195,9 +198,15 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
   }
 
   const bool use_high_bitdepth = (ima->flag & IMA_HIGH_BITDEPTH);
+  const bool use_grayscale = planes <= 8;
   /* Create Texture without content. */
-  GPUTexture *tex = IMB_touch_gpu_texture(
-      ima->id.name + 2, main_ibuf, arraywidth, arrayheight, arraylayers, use_high_bitdepth);
+  GPUTexture *tex = IMB_touch_gpu_texture(ima->id.name + 2,
+                                          main_ibuf,
+                                          arraywidth,
+                                          arrayheight,
+                                          arraylayers,
+                                          use_high_bitdepth,
+                                          use_grayscale);
 
   /* Upload each tile one by one. */
   LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
@@ -223,6 +232,7 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
                                  tilelayer,
                                  UNPACK2(tilesize),
                                  use_high_bitdepth,
+                                 use_grayscale,
                                  store_premultiplied);
     }
 

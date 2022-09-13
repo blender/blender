@@ -266,11 +266,12 @@ ForEachMacros:
   - MAP_SLOT_PROBING_BEGIN
   - VECTOR_SET_SLOT_PROBING_BEGIN
   - WL_ARRAY_FOR_EACH
+  - FOREACH_SPECTRUM_CHANNEL
 
 StatementMacros:
   - PyObject_HEAD
   - PyObject_VAR_HEAD
   - ccl_gpu_kernel_postfix
 
-MacroBlockBegin: "^BSDF_CLOSURE_CLASS_BEGIN$"
-MacroBlockEnd: "^BSDF_CLOSURE_CLASS_END$"
+MacroBlockBegin: "^OSL_CLOSURE_STRUCT_BEGIN$"
+MacroBlockEnd: "^OSL_CLOSURE_STRUCT_END$"

@@ -23,7 +23,6 @@ struct CustomDataAccessInfo {
   CustomDataGetter get_custom_data;
   ConstCustomDataGetter get_const_custom_data;
   GetElementNum get_element_num;
-  UpdateCustomDataPointers update_custom_data_pointers;
 };
 
 /**
@@ -125,10 +124,7 @@ class DynamicAttributesProvider {
  */
 class CustomDataAttributeProvider final : public DynamicAttributesProvider {
  private:
-  static constexpr uint64_t supported_types_mask = CD_MASK_PROP_FLOAT | CD_MASK_PROP_FLOAT2 |
-                                                   CD_MASK_PROP_FLOAT3 | CD_MASK_PROP_INT32 |
-                                                   CD_MASK_PROP_COLOR | CD_MASK_PROP_BOOL |
-                                                   CD_MASK_PROP_INT8 | CD_MASK_PROP_BYTE_COLOR;
+  static constexpr uint64_t supported_types_mask = CD_MASK_PROP_ALL;
   const eAttrDomain domain_;
   const CustomDataAccessInfo custom_data_access_;
 
@@ -226,12 +222,12 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
   using AsReadAttribute = GVArray (*)(const void *data, int element_num);
   using AsWriteAttribute = GVMutableArray (*)(void *data, int element_num);
   using UpdateOnRead = void (*)(const void *owner);
-  using UpdateOnWrite = void (*)(void *owner);
+  using UpdateOnChange = void (*)(void *owner);
   const eCustomDataType stored_type_;
   const CustomDataAccessInfo custom_data_access_;
   const AsReadAttribute as_read_attribute_;
   const AsWriteAttribute as_write_attribute_;
-  const UpdateOnWrite update_on_write_;
+  const UpdateOnChange update_on_change_;
   bool stored_as_named_attribute_;
 
  public:
@@ -245,14 +241,14 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
                                  const CustomDataAccessInfo custom_data_access,
                                  const AsReadAttribute as_read_attribute,
                                  const AsWriteAttribute as_write_attribute,
-                                 const UpdateOnWrite update_on_write)
+                                 const UpdateOnChange update_on_write)
       : BuiltinAttributeProvider(
             std::move(attribute_name), domain, attribute_type, creatable, writable, deletable),
         stored_type_(stored_type),
         custom_data_access_(custom_data_access),
         as_read_attribute_(as_read_attribute),
         as_write_attribute_(as_write_attribute),
-        update_on_write_(update_on_write),
+        update_on_change_(update_on_write),
         stored_as_named_attribute_(data_type_ == stored_type_)
   {
   }
@@ -262,6 +258,9 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
   bool try_delete(void *owner) const final;
   bool try_create(void *owner, const AttributeInit &initializer) const final;
   bool exists(const void *owner) const final;
+
+ private:
+  bool layer_exists(const CustomData &custom_data) const;
 };
 
 /**

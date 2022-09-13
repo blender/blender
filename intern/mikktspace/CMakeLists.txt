@@ -1,28 +1,24 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright 2006 Blender Foundation. All rights reserved.
 
-if(CMAKE_COMPILER_IS_GNUCC)
-  remove_cc_flag(
-    "-Wshadow"
-    "-Werror=shadow"
-  )
+add_library(bf_intern_mikktspace INTERFACE)
+target_include_directories(bf_intern_mikktspace INTERFACE .)
+
+if(WITH_TBB)
+  target_compile_definitions(bf_intern_mikktspace INTERFACE -DWITH_TBB)
+  target_include_directories(bf_intern_mikktspace INTERFACE ${TBB_INCLUDE_DIRS})
+  target_link_libraries(bf_intern_mikktspace INTERFACE ${TBB_LIBRARIES})
 endif()
 
-set(INC
-  .
-)
-
-set(INC_SYS
-
-)
-
-set(SRC
-  mikktspace.c
-
-  mikktspace.h
-)
-
-set(LIB
-)
-
-blender_add_lib(bf_intern_mikktspace "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+# CMake 3.19+ allows one to populate the interface library with
+# source files to show in the IDE.
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.19")
+  set(SRC
+    mikk_atomic_hash_set.hh
+    mikk_float3.hh
+    mikk_util.hh
+    mikktspace.hh
+  )
+  target_sources(bf_intern_mikktspace PRIVATE ${SRC})
+  blender_source_group(bf_intern_mikktspace ${SRC})
+endif()

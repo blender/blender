@@ -308,15 +308,15 @@ void MESH_OT_mark_freestyle_face(struct wmOperatorType *ot);
 
 void MESH_OT_uv_texture_add(struct wmOperatorType *ot);
 void MESH_OT_uv_texture_remove(struct wmOperatorType *ot);
-void MESH_OT_vertex_color_add(struct wmOperatorType *ot);
-void MESH_OT_vertex_color_remove(struct wmOperatorType *ot);
-void MESH_OT_sculpt_vertex_color_add(struct wmOperatorType *ot);
-void MESH_OT_sculpt_vertex_color_remove(struct wmOperatorType *ot);
 void MESH_OT_customdata_mask_clear(struct wmOperatorType *ot);
 void MESH_OT_customdata_skin_add(struct wmOperatorType *ot);
 void MESH_OT_customdata_skin_clear(struct wmOperatorType *ot);
 void MESH_OT_customdata_custom_splitnormals_add(struct wmOperatorType *ot);
 void MESH_OT_customdata_custom_splitnormals_clear(struct wmOperatorType *ot);
+void MESH_OT_customdata_bevel_weight_vertex_add(struct wmOperatorType *ot);
+void MESH_OT_customdata_bevel_weight_vertex_clear(struct wmOperatorType *ot);
+void MESH_OT_customdata_bevel_weight_edge_add(struct wmOperatorType *ot);
+void MESH_OT_customdata_bevel_weight_edge_clear(struct wmOperatorType *ot);
 
 #ifdef __cplusplus
 }

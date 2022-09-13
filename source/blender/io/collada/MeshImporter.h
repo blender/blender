@@ -80,6 +80,7 @@ class MeshImporter : public MeshImporterBase {
    * (<triangles>, <polylist>, etc.) */
   struct Primitive {
     MPoly *mpoly;
+    int *material_indices;
     unsigned int totpoly;
   };
   typedef std::map<COLLADAFW::MaterialId, std::vector<Primitive>> MaterialIdPrimitiveArrayMap;
@@ -203,7 +204,6 @@ class MeshImporter : public MeshImporterBase {
    *         if the check is positive:
    *             Add the materials of the first user to the geometry
    *             adjust all other users accordingly.
-   *
    */
   void optimize_material_assignements();
 

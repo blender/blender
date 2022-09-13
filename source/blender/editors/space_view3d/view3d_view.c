@@ -202,6 +202,8 @@ static void sync_viewport_camera_smoothview(bContext *C,
                                               .quat = other_rv3d->viewquat,
                                               .dist = &other_rv3d->dist,
                                               .lens = &other_v3d->lens,
+                                              /* No undo because this switches cameras. */
+                                              .undo_str = NULL,
                                           });
                   }
                   else {
@@ -256,6 +258,8 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
                                 .quat = rv3d->viewquat,
                                 .dist = &rv3d->dist,
                                 .lens = &v3d->lens,
+                                /* No undo because this switches cameras. */
+                                .undo_str = NULL,
                             });
     }
 
@@ -549,7 +553,7 @@ int view3d_opengl_select_ex(ViewContext *vc,
   ARegion *region = vc->region;
   rcti rect;
   int hits = 0;
-  const bool use_obedit_skip = (OBEDIT_FROM_VIEW_LAYER(vc->view_layer) != NULL) &&
+  const bool use_obedit_skip = (BKE_view_layer_edit_object_get(vc->view_layer) != NULL) &&
                                (vc->obedit == NULL);
   const bool is_pick_select = (U.gpu_flag & USER_GPU_FLAG_NO_DEPT_PICK) == 0;
   const bool do_passes = ((is_pick_select == false) &&
@@ -597,7 +601,7 @@ int view3d_opengl_select_ex(ViewContext *vc,
     goto finally;
   }
 
-  /* Important to use 'vc->obact', not 'OBACT(vc->view_layer)' below,
+  /* Important to use 'vc->obact', not 'BKE_view_layer_active_object_get(vc->view_layer)' below,
    * so it will be NULL when hidden. */
   struct {
     DRW_ObjectFilterFn fn;
@@ -827,7 +831,6 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
                                   ReportList *reports)
 {
   View3D *v3d = area->spacedata.first;
-  Base *base;
   float min[3], max[3], box[3];
   float size = 0.0f;
   uint local_view_bit;
@@ -848,9 +851,9 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
     ok = false;
   }
   else {
-    Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+    Object *obedit = BKE_view_layer_edit_object_get(view_layer);
     if (obedit) {
-      for (base = FIRSTBASE(view_layer); base; base = base->next) {
+      LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
         base->local_view_bits &= ~local_view_bit;
       }
       FOREACH_BASE_IN_EDIT_MODE_BEGIN (view_layer, v3d, base_iter) {
@@ -861,7 +864,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
       FOREACH_BASE_IN_EDIT_MODE_END;
     }
     else {
-      for (base = FIRSTBASE(view_layer); base; base = base->next) {
+      LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
         if (BASE_SELECTED(v3d, base)) {
           BKE_object_minmax(base->object, min, max, false);
           base->local_view_bits |= local_view_bit;
@@ -939,6 +942,8 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
                                      .quat = rv3d->viewquat,
                                      .dist = ok_dist ? &dist_new : NULL,
                                      .lens = &v3d->lens,
+                                     /* No undo because this doesn't move the camera. */
+                                     .undo_str = NULL,
                                  });
       }
     }
@@ -961,7 +966,7 @@ static void view3d_localview_exit(const Depsgraph *depsgraph,
     return;
   }
 
-  for (Base *base = FIRSTBASE(view_layer); base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     if (base->local_view_bits & v3d->local_view_uuid) {
       base->local_view_bits &= ~v3d->local_view_uuid;
     }
@@ -1008,6 +1013,8 @@ static void view3d_localview_exit(const Depsgraph *depsgraph,
                                      .ofs = rv3d->localvd->ofs,
                                      .quat = rv3d->localvd->viewquat,
                                      .dist = &rv3d->localvd->dist,
+                                     /* No undo because this doesn't move the camera. */
+                                     .undo_str = NULL,
                                  });
       }
 
@@ -1086,12 +1093,12 @@ static int localview_remove_from_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   bool changed = false;
 
-  for (Base *base = FIRSTBASE(view_layer); base; base = base->next) {
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     if (BASE_SELECTED(v3d, base)) {
       base->local_view_bits &= ~v3d->local_view_uuid;
       ED_object_base_select(base, BA_DESELECT);
 
-      if (base == BASACT(view_layer)) {
+      if (base == view_layer->basact) {
         view_layer->basact = NULL;
       }
       changed = true;

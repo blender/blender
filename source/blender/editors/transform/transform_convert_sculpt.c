@@ -10,6 +10,7 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
@@ -23,7 +24,7 @@
 /** \name Sculpt Transform Creation
  * \{ */
 
-void createTransSculpt(bContext *C, TransInfo *t)
+static void createTransSculpt(bContext *C, TransInfo *t)
 {
   TransData *td;
 
@@ -33,7 +34,7 @@ void createTransSculpt(bContext *C, TransInfo *t)
     return;
   }
 
-  Object *ob = OBACT(t->view_layer);
+  Object *ob = BKE_view_layer_active_object_get(t->view_layer);
   SculptSession *ss = ob->sculpt;
 
   {
@@ -85,7 +86,7 @@ void createTransSculpt(bContext *C, TransInfo *t)
   copy_m3_m4(td->axismtx, ob->obmat);
 
   BLI_assert(!(t->options & CTX_PAINT_CURVE));
-  ED_sculpt_init_transform(C, ob);
+  ED_sculpt_init_transform(C, ob, t->undo_name);
 }
 
 /** \} */
@@ -94,13 +95,13 @@ void createTransSculpt(bContext *C, TransInfo *t)
 /** \name Recalc Data object
  * \{ */
 
-void recalcData_sculpt(TransInfo *t)
+static void recalcData_sculpt(TransInfo *t)
 {
-  Object *ob = OBACT(t->view_layer);
+  Object *ob = BKE_view_layer_active_object_get(t->view_layer);
   ED_sculpt_update_modal_transform(t->context, ob);
 }
 
-void special_aftertrans_update__sculpt(bContext *C, TransInfo *t)
+static void special_aftertrans_update__sculpt(bContext *C, TransInfo *t)
 {
   Scene *scene = t->scene;
   if (!BKE_id_is_editable(CTX_data_main(C), &scene->id)) {
@@ -108,9 +109,16 @@ void special_aftertrans_update__sculpt(bContext *C, TransInfo *t)
     return;
   }
 
-  Object *ob = OBACT(t->view_layer);
+  Object *ob = BKE_view_layer_active_object_get(t->view_layer);
   BLI_assert(!(t->options & CTX_PAINT_CURVE));
   ED_sculpt_end_transform(C, ob);
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_Sculpt = {
+    /* flags */ 0,
+    /* createTransData */ createTransSculpt,
+    /* recalcData */ recalcData_sculpt,
+    /* special_aftertrans_update */ special_aftertrans_update__sculpt,
+};

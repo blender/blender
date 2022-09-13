@@ -95,11 +95,6 @@ GHOST_TSuccess GHOST_ContextGLX::releaseDrawingContext()
   return ::glXMakeCurrent(m_display, None, nullptr) ? GHOST_kSuccess : GHOST_kFailure;
 }
 
-void GHOST_ContextGLX::initContextGLXEW()
-{
-  initContextGLEW();
-}
-
 GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
 {
   GHOST_X11_ERROR_HANDLERS_OVERRIDE(handler_store);
@@ -278,17 +273,10 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
 
     glXMakeCurrent(m_display, m_window, m_context);
 
-    /* Seems that this has to be called after #glXMakeCurrent,
-     * which means we cannot use `glX` extensions until after we create a context. */
-    initContextGLXEW();
-
     if (m_window) {
       initClearGL();
       ::glXSwapBuffers(m_display, m_window);
     }
-
-    /* re initialize to get the extensions properly */
-    initContextGLXEW();
 
     version = glGetString(GL_VERSION);
 
@@ -318,7 +306,7 @@ GHOST_TSuccess GHOST_ContextGLX::releaseNativeHandles()
 
 GHOST_TSuccess GHOST_ContextGLX::setSwapInterval(int interval)
 {
-  if (!GLXEW_EXT_swap_control) {
+  if (!epoxy_has_glx_extension(m_display, DefaultScreen(m_display), "GLX_EXT_swap_control")) {
     ::glXSwapIntervalEXT(m_display, m_window, interval);
     return GHOST_kSuccess;
   }
@@ -327,7 +315,7 @@ GHOST_TSuccess GHOST_ContextGLX::setSwapInterval(int interval)
 
 GHOST_TSuccess GHOST_ContextGLX::getSwapInterval(int &intervalOut)
 {
-  if (GLXEW_EXT_swap_control) {
+  if (epoxy_has_glx_extension(m_display, DefaultScreen(m_display), "GLX_EXT_swap_control")) {
     unsigned int interval = 0;
 
     ::glXQueryDrawable(m_display, m_window, GLX_SWAP_INTERVAL_EXT, &interval);

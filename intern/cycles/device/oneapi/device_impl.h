@@ -24,6 +24,7 @@ class OneapiDevice : public Device {
   void *kg_memory_;
   void *kg_memory_device_;
   size_t kg_memory_size_ = (size_t)0;
+  size_t max_memory_on_device_ = (size_t)0;
   OneAPIDLLInterface oneapi_dll_;
   std::string oneapi_error_string_;
 
@@ -88,6 +89,9 @@ class OneapiDevice : public Device {
   virtual bool should_use_graphics_interop() override;
 
   virtual unique_ptr<DeviceQueue> gpu_queue_create() override;
+
+  int get_num_multiprocessors();
+  int get_max_num_threads_per_multiprocessor();
 
   /* NOTE(@nsirgien): Create this methods to avoid some compilation problems on Windows with host
    * side compilation (MSVC). */

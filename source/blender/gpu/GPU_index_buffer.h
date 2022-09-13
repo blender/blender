@@ -26,14 +26,17 @@ typedef struct GPUIndexBufBuilder {
   uint index_len;
   uint index_min;
   uint index_max;
+  uint restart_index_value;
+  bool uses_restart_indices;
+
   GPUPrimType prim_type;
   uint32_t *data;
 } GPUIndexBufBuilder;
 
-/* supports all primitive types. */
+/** Supports all primitive types. */
 void GPU_indexbuf_init_ex(GPUIndexBufBuilder *, GPUPrimType, uint index_len, uint vertex_len);
 
-/* supports only GPU_PRIM_POINTS, GPU_PRIM_LINES and GPU_PRIM_TRIS. */
+/** Supports only #GPU_PRIM_POINTS, #GPU_PRIM_LINES and #GPU_PRIM_TRIS. */
 void GPU_indexbuf_init(GPUIndexBufBuilder *, GPUPrimType, uint prim_len, uint vertex_len);
 GPUIndexBuf *GPU_indexbuf_build_on_device(uint index_len);
 

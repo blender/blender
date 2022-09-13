@@ -20,6 +20,10 @@
 #  include "MEM_guardedalloc.h"
 #endif
 
+struct Depsgraph;
+struct Render;
+struct ViewLayer;
+
 namespace Freestyle {
 
 class AppCanvas;

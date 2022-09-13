@@ -298,6 +298,13 @@ TEST(path_util, JoinComplex)
   JOIN("1/2/3/", 100, "1", "////////", "", "2", "3\\");
 }
 
+TEST(path_util, JoinRelativePrefix)
+{
+  JOIN("//a/b/c", 100, "//a", "b", "c");
+  JOIN("//a/b/c", 100, "//", "//a//", "//b//", "//c");
+  JOIN("//a/b/c", 100, "//", "//", "a", "//", "b", "//", "c");
+}
+
 #undef JOIN
 
 /* BLI_path_frame */

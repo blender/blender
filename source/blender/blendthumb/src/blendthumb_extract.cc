@@ -136,7 +136,7 @@ static eThumbStatus blendthumb_extract_from_file_impl(FileReader *file,
         thumb->height = bytes_to_native_i32(&shape[4], endian_switch);
 
         /* Verify that image dimensions and data size make sense. */
-        size_t data_size = block_size - 8;
+        size_t data_size = block_size - sizeof(shape);
         const uint64_t expected_size = static_cast<uint64_t>(thumb->width) *
                                        static_cast<uint64_t>(thumb->height) * 4;
         if (thumb->width < 0 || thumb->height < 0 || data_size != expected_size) {

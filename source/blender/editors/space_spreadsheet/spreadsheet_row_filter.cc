@@ -71,6 +71,14 @@ static void apply_row_filter(const SpreadsheetRowFilter &row_filter,
       }
     }
   }
+  else if (column_data.type().is<bool>()) {
+    const bool value = (row_filter.flag & SPREADSHEET_ROW_FILTER_BOOL_VALUE) != 0;
+    apply_filter_operation(
+        column_data.typed<bool>(),
+        [&](const bool cell) { return cell == value; },
+        prev_mask,
+        new_indices);
+  }
   else if (column_data.type().is<int8_t>()) {
     const int value = row_filter.value_int;
     switch (row_filter.operation) {
@@ -274,7 +282,6 @@ static void apply_row_filter(const SpreadsheetRowFilter &row_filter,
   }
   else if (column_data.type().is<InstanceReference>()) {
     const StringRef value = row_filter.value_string;
-
     apply_filter_operation(
         column_data.typed<InstanceReference>(),
         [&](const InstanceReference cell) {

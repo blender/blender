@@ -134,15 +134,15 @@ void ED_operatortypes_mesh(void)
 
   WM_operatortype_append(MESH_OT_uv_texture_add);
   WM_operatortype_append(MESH_OT_uv_texture_remove);
-  WM_operatortype_append(MESH_OT_vertex_color_add);
-  WM_operatortype_append(MESH_OT_vertex_color_remove);
-  WM_operatortype_append(MESH_OT_sculpt_vertex_color_add);
-  WM_operatortype_append(MESH_OT_sculpt_vertex_color_remove);
   WM_operatortype_append(MESH_OT_customdata_mask_clear);
   WM_operatortype_append(MESH_OT_customdata_skin_add);
   WM_operatortype_append(MESH_OT_customdata_skin_clear);
   WM_operatortype_append(MESH_OT_customdata_custom_splitnormals_add);
   WM_operatortype_append(MESH_OT_customdata_custom_splitnormals_clear);
+  WM_operatortype_append(MESH_OT_customdata_bevel_weight_vertex_add);
+  WM_operatortype_append(MESH_OT_customdata_bevel_weight_vertex_clear);
+  WM_operatortype_append(MESH_OT_customdata_bevel_weight_edge_add);
+  WM_operatortype_append(MESH_OT_customdata_bevel_weight_edge_clear);
 
   WM_operatortype_append(MESH_OT_edgering_select);
   WM_operatortype_append(MESH_OT_loopcut);

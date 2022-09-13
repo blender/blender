@@ -46,7 +46,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-void ED_sculpt_init_transform(struct bContext *C, Object *ob)
+void ED_sculpt_init_transform(struct bContext *C, Object *ob, const char *undo_name)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
@@ -60,7 +60,7 @@ void ED_sculpt_init_transform(struct bContext *C, Object *ob)
   copy_v4_v4(ss->prev_pivot_rot, ss->pivot_rot);
   copy_v3_v3(ss->prev_pivot_scale, ss->pivot_scale);
 
-  SCULPT_undo_push_begin(ob, "Transform");
+  SCULPT_undo_push_begin_ex(ob, undo_name);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 
   ss->pivot_rot[3] = 1.0f;
@@ -179,7 +179,7 @@ static void sculpt_transform_task_cb(void *__restrict userdata,
     add_v3_v3v3(vd.co, start_co, disp);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -253,7 +253,7 @@ static void sculpt_elastic_transform_task_cb(void *__restrict userdata,
     copy_v3_v3(proxy[vd.i], final_disp);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -288,9 +288,6 @@ static void sculpt_transform_radius_elastic(Sculpt *sd, Object *ob, const float 
     if (SCULPT_is_symmetry_iteration_valid(symmpass, symm)) {
       flip_v3_v3(data.elastic_transform_pivot, ss->pivot_pos, symmpass);
       flip_v3_v3(data.elastic_transform_pivot_init, ss->init_pivot_pos, symmpass);
-
-      printf(
-          "%.2f %.2f %.2f\n", ss->init_pivot_pos[0], ss->init_pivot_pos[1], ss->init_pivot_pos[2]);
 
       const int symm_area = SCULPT_get_vertex_symm_area(data.elastic_transform_pivot);
       copy_m4_m4(data.elastic_transform_mat, data.transform_mats[symm_area]);
@@ -354,11 +351,6 @@ void ED_sculpt_end_transform(struct bContext *C, Object *ob)
   if (ss->filter_cache) {
     SCULPT_filter_cache_free(ss);
   }
-  /* Force undo push to happen even inside transform operator, since the sculpt
-   * undo system works separate from regular undo and this is require to properly
-   * finish an undo step also when canceling. */
-  const bool use_nested_undo = true;
-  SCULPT_undo_push_end_ex(ob, use_nested_undo);
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
 }
 

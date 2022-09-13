@@ -14,7 +14,7 @@ CropNode::CropNode(bNode *editor_node) : Node(editor_node)
 void CropNode::convert_to_operations(NodeConverter &converter,
                                      const CompositorContext & /*context*/) const
 {
-  bNode *node = get_bnode();
+  const bNode *node = get_bnode();
   NodeTwoXYs *crop_settings = (NodeTwoXYs *)node->storage;
   bool relative = (bool)node->custom2;
   bool crop_image = (bool)node->custom1;

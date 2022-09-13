@@ -160,7 +160,6 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
   pd->edit_uv.draw_type = sima->dt_uvstretch;
   BLI_listbase_clear(&pd->edit_uv.totals);
   pd->edit_uv.total_area_ratio = 0.0f;
-  pd->edit_uv.total_area_ratio_inv = 0.0f;
 
   /* During engine initialization phase the `sima` isn't locked and
    * we are able to retrieve the needed data.
@@ -280,8 +279,6 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
       DRW_shgroup_uniform_block(pd->edit_uv_stretching_grp, "globalsBlock", G_draw.block_ubo);
       DRW_shgroup_uniform_float(
           pd->edit_uv_stretching_grp, "totalAreaRatio", &pd->edit_uv.total_area_ratio, 1);
-      DRW_shgroup_uniform_float(
-          pd->edit_uv_stretching_grp, "totalAreaRatioInv", &pd->edit_uv.total_area_ratio_inv, 1);
     }
   }
 
@@ -510,7 +507,6 @@ static void edit_uv_stretching_update_ratios(OVERLAY_Data *vedata)
 
     if (total_area > FLT_EPSILON && total_area_uv > FLT_EPSILON) {
       pd->edit_uv.total_area_ratio = total_area / total_area_uv;
-      pd->edit_uv.total_area_ratio_inv = total_area_uv / total_area;
     }
   }
   BLI_freelistN(&pd->edit_uv.totals);

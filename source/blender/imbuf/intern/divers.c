@@ -48,7 +48,7 @@ static void clear_dither_context(DitherContext *di)
 /** \name Generic Buffer Conversion
  * \{ */
 
-MINLINE void ushort_to_byte_v4(uchar b[4], const unsigned short us[4])
+MINLINE void ushort_to_byte_v4(uchar b[4], const ushort us[4])
 {
   b[0] = unit_ushort_to_uchar(us[0]);
   b[1] = unit_ushort_to_uchar(us[1]);
@@ -56,13 +56,13 @@ MINLINE void ushort_to_byte_v4(uchar b[4], const unsigned short us[4])
   b[3] = unit_ushort_to_uchar(us[3]);
 }
 
-MINLINE unsigned char ftochar(float value)
+MINLINE uchar ftochar(float value)
 {
   return unit_float_to_uchar_clamp(value);
 }
 
 MINLINE void ushort_to_byte_dither_v4(
-    uchar b[4], const unsigned short us[4], DitherContext *di, float s, float t)
+    uchar b[4], const ushort us[4], DitherContext *di, float s, float t)
 {
 #define USHORTTOFLOAT(val) ((float)val / 65535.0f)
   float dither_value = dither_random_value(s, t) * 0.0033f * di->dither;
@@ -192,7 +192,7 @@ void IMB_buffer_byte_from_float(uchar *rect_to,
       }
       else if (profile_to == IB_PROFILE_SRGB) {
         /* convert from linear to sRGB */
-        unsigned short us[4];
+        ushort us[4];
         float straight[4];
 
         if (dither && predivide) {
@@ -729,7 +729,7 @@ void IMB_rect_from_float(ImBuf *ibuf)
   }
 
   /* convert float to byte */
-  IMB_buffer_byte_from_float((unsigned char *)ibuf->rect,
+  IMB_buffer_byte_from_float((uchar *)ibuf->rect,
                              buffer,
                              ibuf->channels,
                              ibuf->dither,
@@ -768,7 +768,7 @@ void IMB_float_from_rect_ex(struct ImBuf *dst,
 
   float *rect_float = dst->rect_float;
   rect_float += (region_to_update->xmin + region_to_update->ymin * dst->x) * 4;
-  unsigned char *rect = (unsigned char *)src->rect;
+  uchar *rect = (uchar *)src->rect;
   rect += (region_to_update->xmin + region_to_update->ymin * dst->x) * 4;
   const int region_width = BLI_rcti_size_x(region_to_update);
   const int region_height = BLI_rcti_size_y(region_to_update);
@@ -889,7 +889,7 @@ void IMB_buffer_float_premultiply(float *buf, int width, int height)
 void IMB_saturation(ImBuf *ibuf, float sat)
 {
   size_t i;
-  unsigned char *rct = (unsigned char *)ibuf->rect;
+  uchar *rct = (uchar *)ibuf->rect;
   float *rct_fl = ibuf->rect_float;
   float hsv[3];
 

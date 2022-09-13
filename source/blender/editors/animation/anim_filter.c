@@ -122,7 +122,7 @@ static Key *actedit_get_shapekeys(bAnimContext *ac)
   Object *ob;
   Key *key;
 
-  ob = OBACT(view_layer);
+  ob = BKE_view_layer_active_object_get(view_layer);
   if (ob == NULL) {
     return NULL;
   }
@@ -1876,8 +1876,8 @@ static size_t animdata_filter_gpencil(bAnimContext *ac,
       if ((filter_mode & ANIMFILTER_DATA_VISIBLE) && !(ads->filterflag & ADS_FILTER_INCL_HIDDEN)) {
         /* Layer visibility - we check both object and base,
          * since these may not be in sync yet. */
-        if ((base->flag & BASE_VISIBLE_DEPSGRAPH) == 0 ||
-            (base->flag & BASE_VISIBLE_VIEWLAYER) == 0) {
+        if ((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) == 0 ||
+            (base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0) {
           continue;
         }
 
@@ -3089,7 +3089,8 @@ static bool animdata_filter_base_is_ok(bDopeSheet *ads,
    */
   if ((filter_mode & ANIMFILTER_DATA_VISIBLE) && !(ads->filterflag & ADS_FILTER_INCL_HIDDEN)) {
     /* layer visibility - we check both object and base, since these may not be in sync yet */
-    if ((base->flag & BASE_VISIBLE_DEPSGRAPH) == 0 || (base->flag & BASE_VISIBLE_VIEWLAYER) == 0) {
+    if ((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) == 0 ||
+        (base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0) {
       return false;
     }
 
@@ -3272,7 +3273,7 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac,
     /* Filter and add contents of each base (i.e. object) without them sorting first
      * NOTE: This saves performance in cases where order doesn't matter
      */
-    Object *obact = OBACT(view_layer);
+    Object *obact = BKE_view_layer_active_object_get(view_layer);
     const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
     LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
       if (animdata_filter_base_is_ok(ads, base, object_mode, filter_mode)) {
@@ -3406,9 +3407,8 @@ static size_t animdata_filter_remove_duplis(ListBase *anim_data)
   GSet *gs;
   size_t items = 0;
 
-  /* build new hashtable to efficiently store and retrieve which entries have been
-   * encountered already while searching
-   */
+  /* Build new hash-table to efficiently store and retrieve which entries have been
+   * encountered already while searching. */
   gs = BLI_gset_ptr_new(__func__);
 
   /* loop through items, removing them from the list if a similar item occurs already */

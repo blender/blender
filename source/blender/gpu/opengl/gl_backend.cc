@@ -51,7 +51,12 @@ void GLBackend::platform_init()
   os = GPU_OS_UNIX;
 #endif
 
-  if (strstr(vendor, "ATI") || strstr(vendor, "AMD")) {
+  if (!vendor) {
+    printf("Warning: No OpenGL vendor detected.\n");
+    device = GPU_DEVICE_UNKNOWN;
+    driver = GPU_DRIVER_ANY;
+  }
+  else if (strstr(vendor, "ATI") || strstr(vendor, "AMD")) {
     device = GPU_DEVICE_ATI;
     driver = GPU_DRIVER_OFFICIAL;
   }
@@ -113,7 +118,7 @@ void GLBackend::platform_init()
   }
 
   /* Detect support level */
-  if (!GLEW_VERSION_3_3) {
+  if (!(epoxy_gl_version() >= 33)) {
     support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
   }
   else {
@@ -222,6 +227,7 @@ static void detect_workarounds()
     GLContext::unused_fb_slot_workaround = true;
     /* Turn off extensions. */
     GCaps.shader_image_load_store_support = false;
+    GCaps.shader_draw_parameters_support = false;
     GCaps.shader_storage_buffer_objects_support = false;
     GLContext::base_instance_support = false;
     GLContext::clear_texture_support = false;
@@ -243,14 +249,14 @@ static void detect_workarounds()
     return;
   }
 
-  /* Limit support for GLEW_ARB_base_instance to OpenGL 4.0 and higher. NVIDIA Quadro FX 4800
-   * (TeraScale) report that they support GLEW_ARB_base_instance, but the driver does not support
+  /* Limit support for GL_ARB_base_instance to OpenGL 4.0 and higher. NVIDIA Quadro FX 4800
+   * (TeraScale) report that they support GL_ARB_base_instance, but the driver does not support
    * GLEW_ARB_draw_indirect as it has an OpenGL3 context what also matches the minimum needed
    * requirements.
    *
    * We use it as a target for glMapBuffer(Range) what is part of the OpenGL 4 API. So better
    * disable it when we don't have an OpenGL4 context (See T77657) */
-  if (!GLEW_VERSION_4_0) {
+  if (!(epoxy_gl_version() >= 40)) {
     GLContext::base_instance_support = false;
   }
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
@@ -266,6 +272,7 @@ static void detect_workarounds()
     GLContext::unused_fb_slot_workaround = true;
     GCaps.mip_render_workaround = true;
     GCaps.shader_image_load_store_support = false;
+    GCaps.shader_draw_parameters_support = false;
     GCaps.broken_amd_driver = true;
   }
   /* Compute shaders have some issues with those versions (see T94936). */
@@ -279,12 +286,14 @@ static void detect_workarounds()
        strstr(renderer, "AMD TAHITI"))) {
     GLContext::unused_fb_slot_workaround = true;
     GCaps.shader_image_load_store_support = false;
+    GCaps.shader_draw_parameters_support = false;
     GCaps.broken_amd_driver = true;
   }
   /* Fix slowdown on this particular driver. (see T77641) */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE) &&
       strstr(version, "Mesa 19.3.4")) {
     GCaps.shader_image_load_store_support = false;
+    GCaps.shader_draw_parameters_support = false;
     GCaps.broken_amd_driver = true;
   }
   /* See T82856: AMD drivers since 20.11 running on a polaris architecture doesn't support the
@@ -313,7 +322,8 @@ static void detect_workarounds()
   /* Limit this fix to older hardware with GL < 4.5. This means Broadwell GPUs are
    * covered since they only support GL 4.4 on windows.
    * This fixes some issues with workbench anti-aliasing on Win + Intel GPU. (see T76273) */
-  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) && !GLEW_VERSION_4_5) {
+  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
+      !(epoxy_gl_version() >= 45)) {
     GLContext::copy_image_support = false;
   }
   /* Special fix for these specific GPUs.
@@ -328,7 +338,7 @@ static void detect_workarounds()
        strstr(renderer, "HD Graphics 2500"))) {
     GLContext::texture_cube_map_array_support = false;
   }
-  /* Maybe not all of these drivers have problems with `GLEW_ARB_base_instance`.
+  /* Maybe not all of these drivers have problems with `GL_ARB_base_instance`.
    * But it's hard to test each case.
    * We get crashes from some crappy Intel drivers don't work well with shaders created in
    * different rendering contexts. */
@@ -353,7 +363,8 @@ static void detect_workarounds()
   }
   /* There is a bug on older Nvidia GPU where GL_ARB_texture_gather
    * is reported to be supported but yield a compile error (see T55802). */
-  if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY) && !GLEW_VERSION_4_0) {
+  if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY) &&
+      !(epoxy_gl_version() >= 40)) {
     GLContext::texture_gather_support = false;
   }
 
@@ -373,6 +384,11 @@ static void detect_workarounds()
       GLContext::derivative_signs[0] = -1.0;
       GLContext::derivative_signs[1] = 1.0;
     }
+  }
+
+  /* Disable TF on macOS. */
+  if (GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY)) {
+    GCaps.transform_feedback_support = false;
   }
 
   /* Some Intel drivers have issues with using mips as frame-buffer targets if
@@ -420,7 +436,6 @@ static void detect_workarounds()
 /** Internal capabilities. */
 
 GLint GLContext::max_cubemap_size = 0;
-GLint GLContext::max_texture_3d_size = 0;
 GLint GLContext::max_ubo_binds = 0;
 GLint GLContext::max_ubo_size = 0;
 GLint GLContext::max_ssbo_binds = 0;
@@ -457,7 +472,7 @@ float GLContext::derivative_signs[2] = {1.0f, 1.0f};
 
 void GLBackend::capabilities_init()
 {
-  BLI_assert(GLEW_VERSION_3_3);
+  BLI_assert(epoxy_gl_version() >= 33);
   /* Common Capabilities. */
   glGetIntegerv(GL_MAX_TEXTURE_SIZE, &GCaps.max_texture_size);
   glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &GCaps.max_texture_layers);
@@ -482,9 +497,15 @@ void GLBackend::capabilities_init()
   glGetIntegerv(GL_NUM_EXTENSIONS, &GCaps.extensions_len);
   GCaps.extension_get = gl_extension_get;
 
-  GCaps.mem_stats_support = GLEW_NVX_gpu_memory_info || GLEW_ATI_meminfo;
-  GCaps.shader_image_load_store_support = GLEW_ARB_shader_image_load_store;
-  GCaps.compute_shader_support = GLEW_ARB_compute_shader && GLEW_VERSION_4_3;
+  GCaps.max_samplers = GCaps.max_textures;
+  GCaps.mem_stats_support = epoxy_has_gl_extension("GL_NVX_gpu_memory_info") ||
+                            epoxy_has_gl_extension("GL_ATI_meminfo");
+  GCaps.shader_image_load_store_support = epoxy_has_gl_extension("GL_ARB_shader_image_load_store");
+  GCaps.shader_draw_parameters_support = epoxy_has_gl_extension("GL_ARB_shader_draw_parameters");
+  GCaps.compute_shader_support = epoxy_has_gl_extension("GL_ARB_compute_shader") &&
+                                 epoxy_gl_version() >= 43;
+  GCaps.max_samplers = GCaps.max_textures;
+
   if (GCaps.compute_shader_support) {
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &GCaps.max_work_group_count[0]);
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &GCaps.max_work_group_count[1]);
@@ -496,35 +517,56 @@ void GLBackend::capabilities_init()
                   &GCaps.max_shader_storage_buffer_bindings);
     glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &GCaps.max_compute_shader_storage_blocks);
   }
-  GCaps.shader_storage_buffer_objects_support = GLEW_ARB_shader_storage_buffer_object;
+  GCaps.shader_storage_buffer_objects_support = epoxy_has_gl_extension(
+      "GL_ARB_shader_storage_buffer_object");
+  GCaps.transform_feedback_support = true;
+
   /* GL specific capabilities. */
-  glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &GLContext::max_texture_3d_size);
+  glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &GCaps.max_texture_3d_size);
   glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &GLContext::max_cubemap_size);
   glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_BLOCKS, &GLContext::max_ubo_binds);
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &GLContext::max_ubo_size);
   if (GCaps.shader_storage_buffer_objects_support) {
-    glGetIntegerv(GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS, &GLContext::max_ssbo_binds);
+    GLint max_ssbo_binds;
+    GLContext::max_ssbo_binds = 999999;
+    glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);
+    GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
+    glGetIntegerv(GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);
+    GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
+    glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);
+    GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
+    if (GLContext::max_ssbo_binds < 8) {
+      /* Does not meet our minimum requirements. */
+      GCaps.shader_storage_buffer_objects_support = false;
+    }
     glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &GLContext::max_ssbo_size);
   }
-  GLContext::base_instance_support = GLEW_ARB_base_instance;
-  GLContext::clear_texture_support = GLEW_ARB_clear_texture;
-  GLContext::copy_image_support = GLEW_ARB_copy_image;
-  GLContext::debug_layer_support = GLEW_VERSION_4_3 || GLEW_KHR_debug || GLEW_ARB_debug_output;
-  GLContext::direct_state_access_support = GLEW_ARB_direct_state_access;
-  GLContext::explicit_location_support = GLEW_VERSION_4_3;
-  GLContext::geometry_shader_invocations = GLEW_ARB_gpu_shader5;
-  GLContext::fixed_restart_index_support = GLEW_ARB_ES3_compatibility;
-  GLContext::layered_rendering_support = GLEW_AMD_vertex_shader_layer;
-  GLContext::native_barycentric_support = GLEW_AMD_shader_explicit_vertex_parameter;
-  GLContext::multi_bind_support = GLEW_ARB_multi_bind;
-  GLContext::multi_draw_indirect_support = GLEW_ARB_multi_draw_indirect;
-  GLContext::shader_draw_parameters_support = GLEW_ARB_shader_draw_parameters;
-  GLContext::stencil_texturing_support = GLEW_VERSION_4_3;
-  GLContext::texture_cube_map_array_support = GLEW_ARB_texture_cube_map_array;
-  GLContext::texture_filter_anisotropic_support = GLEW_EXT_texture_filter_anisotropic;
-  GLContext::texture_gather_support = GLEW_ARB_texture_gather;
-  GLContext::texture_storage_support = GLEW_VERSION_4_3;
-  GLContext::vertex_attrib_binding_support = GLEW_ARB_vertex_attrib_binding;
+  GLContext::base_instance_support = epoxy_has_gl_extension("GL_ARB_base_instance");
+  GLContext::clear_texture_support = epoxy_has_gl_extension("GL_ARB_clear_texture");
+  GLContext::copy_image_support = epoxy_has_gl_extension("GL_ARB_copy_image");
+  GLContext::debug_layer_support = epoxy_gl_version() >= 43 ||
+                                   epoxy_has_gl_extension("GL_KHR_debug") ||
+                                   epoxy_has_gl_extension("GL_ARB_debug_output");
+  GLContext::direct_state_access_support = epoxy_has_gl_extension("GL_ARB_direct_state_access");
+  GLContext::explicit_location_support = epoxy_gl_version() >= 43;
+  GLContext::geometry_shader_invocations = epoxy_has_gl_extension("GL_ARB_gpu_shader5");
+  GLContext::fixed_restart_index_support = epoxy_has_gl_extension("GL_ARB_ES3_compatibility");
+  GLContext::layered_rendering_support = epoxy_has_gl_extension("GL_AMD_vertex_shader_layer");
+  GLContext::native_barycentric_support = epoxy_has_gl_extension(
+      "GL_AMD_shader_explicit_vertex_parameter");
+  GLContext::multi_bind_support = epoxy_has_gl_extension("GL_ARB_multi_bind");
+  GLContext::multi_draw_indirect_support = epoxy_has_gl_extension("GL_ARB_multi_draw_indirect");
+  GLContext::shader_draw_parameters_support = epoxy_has_gl_extension(
+      "GL_ARB_shader_draw_parameters");
+  GLContext::stencil_texturing_support = epoxy_gl_version() >= 43;
+  GLContext::texture_cube_map_array_support = epoxy_has_gl_extension(
+      "GL_ARB_texture_cube_map_array");
+  GLContext::texture_filter_anisotropic_support = epoxy_has_gl_extension(
+      "GL_EXT_texture_filter_anisotropic");
+  GLContext::texture_gather_support = epoxy_has_gl_extension("GL_ARB_texture_gather");
+  GLContext::texture_storage_support = epoxy_gl_version() >= 43;
+  GLContext::vertex_attrib_binding_support = epoxy_has_gl_extension(
+      "GL_ARB_vertex_attrib_binding");
 
   detect_workarounds();
 

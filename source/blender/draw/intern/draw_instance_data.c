@@ -27,6 +27,7 @@
 #include "BKE_duplilist.h"
 
 #include "RNA_access.h"
+#include "RNA_path.h"
 
 #include "BLI_bitmap.h"
 #include "BLI_memblock.h"
@@ -563,7 +564,8 @@ typedef struct DRWUniformAttrBuf {
   struct DRWUniformAttrBuf *next_empty;
 } DRWUniformAttrBuf;
 
-static DRWUniformAttrBuf *drw_uniform_attrs_pool_ensure(GHash *table, GPUUniformAttrList *key)
+static DRWUniformAttrBuf *drw_uniform_attrs_pool_ensure(GHash *table,
+                                                        const GPUUniformAttrList *key)
 {
   void **pkey, **pval;
 
@@ -641,23 +643,16 @@ static void drw_uniform_attribute_lookup(GPUUniformAttr *attr,
 {
   copy_v4_fl(r_data, 0);
 
-  char idprop_name[(sizeof(attr->name) * 2) + 4];
-  {
-    char attr_name_esc[sizeof(attr->name) * 2];
-    BLI_str_escape(attr_name_esc, attr->name, sizeof(attr_name_esc));
-    SNPRINTF(idprop_name, "[\"%s\"]", attr_name_esc);
-  }
-
   /* If requesting instance data, check the parent particle system and object. */
   if (attr->use_dupli) {
     if (dupli_source && dupli_source->particle_system) {
       ParticleSettings *settings = dupli_source->particle_system->part;
-      if (drw_uniform_property_lookup((ID *)settings, idprop_name, r_data) ||
+      if (drw_uniform_property_lookup((ID *)settings, attr->name_id_prop, r_data) ||
           drw_uniform_property_lookup((ID *)settings, attr->name, r_data)) {
         return;
       }
     }
-    if (drw_uniform_property_lookup((ID *)dupli_parent, idprop_name, r_data) ||
+    if (drw_uniform_property_lookup((ID *)dupli_parent, attr->name_id_prop, r_data) ||
         drw_uniform_property_lookup((ID *)dupli_parent, attr->name, r_data)) {
       return;
     }
@@ -665,9 +660,9 @@ static void drw_uniform_attribute_lookup(GPUUniformAttr *attr,
 
   /* Check the object and mesh. */
   if (ob) {
-    if (drw_uniform_property_lookup((ID *)ob, idprop_name, r_data) ||
+    if (drw_uniform_property_lookup((ID *)ob, attr->name_id_prop, r_data) ||
         drw_uniform_property_lookup((ID *)ob, attr->name, r_data) ||
-        drw_uniform_property_lookup((ID *)ob->data, idprop_name, r_data) ||
+        drw_uniform_property_lookup((ID *)ob->data, attr->name_id_prop, r_data) ||
         drw_uniform_property_lookup((ID *)ob->data, attr->name, r_data)) {
       return;
     }
@@ -675,7 +670,7 @@ static void drw_uniform_attribute_lookup(GPUUniformAttr *attr,
 }
 
 void drw_uniform_attrs_pool_update(GHash *table,
-                                   GPUUniformAttrList *key,
+                                   const GPUUniformAttrList *key,
                                    DRWResourceHandle *handle,
                                    Object *ob,
                                    Object *dupli_parent,
@@ -696,7 +691,8 @@ void drw_uniform_attrs_pool_update(GHash *table,
   }
 }
 
-DRWSparseUniformBuf *DRW_uniform_attrs_pool_find_ubo(GHash *table, struct GPUUniformAttrList *key)
+DRWSparseUniformBuf *DRW_uniform_attrs_pool_find_ubo(GHash *table,
+                                                     const struct GPUUniformAttrList *key)
 {
   DRWUniformAttrBuf *buffer = BLI_ghash_lookup(table, key);
   return buffer ? &buffer->ubos : NULL;

@@ -50,16 +50,34 @@ void BKE_defgroup_copy_list(struct ListBase *outbase, const struct ListBase *inb
 struct bDeformGroup *BKE_defgroup_duplicate(const struct bDeformGroup *ingroup);
 struct bDeformGroup *BKE_object_defgroup_find_name(const struct Object *ob, const char *name);
 /**
- * \note caller must free.
+ * Returns flip map for the vertex-groups of `ob`.
+ *
+ * \param use_default: How to handle cases where no symmetrical group is found.
+ * - false: sets these indices to -1, indicating the group should be ignored.
+ * - true: sets the index to its location in the array (making the group point to it's self).
+ *   Enable this for symmetrical actions which apply weight operations on symmetrical vertices
+ *   where the symmetrical group will be used (if found), otherwise the same group is used.
+ *
+ * \return An index array `r_flip_map_num` length,
+ * (aligned with the list result from `BKE_id_defgroup_list_get(ob)`).
+ * referencing the index of the symmetrical vertex-group of a fall-back value (see `use_default`).
+ * The caller is responsible for freeing the array.
  */
-int *BKE_object_defgroup_flip_map(const struct Object *ob, int *flip_map_len, bool use_default);
+int *BKE_object_defgroup_flip_map(const struct Object *ob, bool use_default, int *r_flip_map_num);
+
 /**
- * \note caller must free.
+ * A version of #BKE_object_defgroup_flip_map that ignores locked groups.
+ */
+int *BKE_object_defgroup_flip_map_unlocked(const struct Object *ob,
+                                           bool use_default,
+                                           int *r_flip_map_num);
+/**
+ * A version of #BKE_object_defgroup_flip_map that only takes a single group into account.
  */
 int *BKE_object_defgroup_flip_map_single(const struct Object *ob,
-                                         int *flip_map_len,
                                          bool use_default,
-                                         int defgroup);
+                                         int defgroup,
+                                         int *r_flip_map_num);
 int BKE_object_defgroup_flip_index(const struct Object *ob, int index, bool use_default);
 int BKE_object_defgroup_name_index(const struct Object *ob, const char *name);
 void BKE_object_defgroup_unique_name(struct bDeformGroup *dg, struct Object *ob);
@@ -112,7 +130,7 @@ float BKE_defvert_array_find_weight_safe(const struct MDeformVert *dvert, int in
  * \return The total weight in all groups marked in the selection mask.
  */
 float BKE_defvert_total_selected_weight(const struct MDeformVert *dv,
-                                        int defbase_tot,
+                                        int defbase_num,
                                         const bool *defbase_sel);
 
 /**
@@ -124,9 +142,9 @@ float BKE_defvert_total_selected_weight(const struct MDeformVert *dv,
  * commutative with the collective weight function.
  */
 float BKE_defvert_multipaint_collective_weight(const struct MDeformVert *dv,
-                                               int defbase_tot,
+                                               int defbase_num,
                                                const bool *defbase_sel,
-                                               int defbase_tot_sel,
+                                               int defbase_sel_num,
                                                bool is_normalized);
 
 /* This much unlocked weight is considered equivalent to none. */
@@ -147,7 +165,7 @@ float BKE_defvert_calc_lock_relative_weight(float weight,
  */
 float BKE_defvert_lock_relative_weight(float weight,
                                        const struct MDeformVert *dv,
-                                       int defbase_tot,
+                                       int defbase_num,
                                        const bool *defbase_locked,
                                        const bool *defbase_unlocked);
 
@@ -160,7 +178,7 @@ void BKE_defvert_copy(struct MDeformVert *dvert_dst, const struct MDeformVert *d
 void BKE_defvert_copy_subset(struct MDeformVert *dvert_dst,
                              const struct MDeformVert *dvert_src,
                              const bool *vgroup_subset,
-                             int vgroup_tot);
+                             int vgroup_num);
 /**
  * Overwrite weights filtered by vgroup_subset and with mirroring specified by the flip map
  * - do nothing if neither are set.
@@ -169,9 +187,9 @@ void BKE_defvert_copy_subset(struct MDeformVert *dvert_dst,
 void BKE_defvert_mirror_subset(struct MDeformVert *dvert_dst,
                                const struct MDeformVert *dvert_src,
                                const bool *vgroup_subset,
-                               int vgroup_tot,
+                               int vgroup_num,
                                const int *flip_map,
-                               int flip_map_len);
+                               int flip_map_num);
 /**
  * Copy an index from one #MDeformVert to another.
  * - do nothing if neither are set.
@@ -194,43 +212,43 @@ void BKE_defvert_sync(struct MDeformVert *dvert_dst,
 void BKE_defvert_sync_mapped(struct MDeformVert *dvert_dst,
                              const struct MDeformVert *dvert_src,
                              const int *flip_map,
-                             int flip_map_len,
+                             int flip_map_num,
                              bool use_ensure);
 /**
  * be sure all flip_map values are valid
  */
 void BKE_defvert_remap(struct MDeformVert *dvert, const int *map, int map_len);
-void BKE_defvert_flip(struct MDeformVert *dvert, const int *flip_map, int flip_map_len);
-void BKE_defvert_flip_merged(struct MDeformVert *dvert, const int *flip_map, int flip_map_len);
+void BKE_defvert_flip(struct MDeformVert *dvert, const int *flip_map, int flip_map_num);
+void BKE_defvert_flip_merged(struct MDeformVert *dvert, const int *flip_map, int flip_map_num);
 void BKE_defvert_normalize(struct MDeformVert *dvert);
 /**
  * Same as #BKE_defvert_normalize but takes a bool array.
  */
 void BKE_defvert_normalize_subset(struct MDeformVert *dvert,
                                   const bool *vgroup_subset,
-                                  int vgroup_tot);
+                                  int vgroup_num);
 /**
  * Same as BKE_defvert_normalize() if the locked vgroup is not a member of the subset
  */
 void BKE_defvert_normalize_lock_single(struct MDeformVert *dvert,
                                        const bool *vgroup_subset,
-                                       int vgroup_tot,
+                                       int vgroup_num,
                                        uint def_nr_lock);
 /**
  * Same as BKE_defvert_normalize() if no locked vgroup is a member of the subset
  */
 void BKE_defvert_normalize_lock_map(struct MDeformVert *dvert,
                                     const bool *vgroup_subset,
-                                    int vgroup_tot,
+                                    int vgroup_num,
                                     const bool *lock_flags,
-                                    int defbase_tot);
+                                    int defbase_num);
 
 /* Utilities to 'extract' a given vgroup into a simple float array,
  * for verts, but also edges/polys/loops. */
 
 void BKE_defvert_extract_vgroup_to_vertweights(const struct MDeformVert *dvert,
                                                int defgroup,
-                                               int num_verts,
+                                               int verts_num,
                                                bool invert_vgroup,
                                                float *r_weights);
 /**
@@ -239,25 +257,25 @@ void BKE_defvert_extract_vgroup_to_vertweights(const struct MDeformVert *dvert,
  */
 void BKE_defvert_extract_vgroup_to_edgeweights(const struct MDeformVert *dvert,
                                                int defgroup,
-                                               int num_verts,
-                                               struct MEdge *edges,
-                                               int num_edges,
+                                               int verts_num,
+                                               const struct MEdge *edges,
+                                               int edges_num,
                                                bool invert_vgroup,
                                                float *r_weights);
 void BKE_defvert_extract_vgroup_to_loopweights(const struct MDeformVert *dvert,
                                                int defgroup,
-                                               int num_verts,
-                                               struct MLoop *loops,
-                                               int num_loops,
+                                               int verts_num,
+                                               const struct MLoop *loops,
+                                               int loops_num,
                                                bool invert_vgroup,
                                                float *r_weights);
 void BKE_defvert_extract_vgroup_to_polyweights(const struct MDeformVert *dvert,
                                                int defgroup,
-                                               int num_verts,
-                                               struct MLoop *loops,
-                                               int num_loops,
-                                               struct MPoly *polys,
-                                               int num_polys,
+                                               int verts_num,
+                                               const struct MLoop *loops,
+                                               int loops_num,
+                                               const struct MPoly *polys,
+                                               int polys_num,
                                                bool invert_vgroup,
                                                float *r_weights);
 

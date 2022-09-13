@@ -130,11 +130,6 @@ class OBJMesh : NonCopyable {
    * Return mat_nr-th material of the object. The given index should be zero-based.
    */
   const Material *get_object_material(int16_t mat_nr) const;
-  /**
-   * Returns a zero-based index of a polygon's material indexing into
-   * the Object's material slots.
-   */
-  int16_t ith_poly_matnr(int poly_index) const;
 
   void ensure_mesh_normals() const;
   void ensure_mesh_edges() const;

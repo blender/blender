@@ -1131,6 +1131,7 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
 # Changes In Blender will force errors here.
 context_type_map = {
     # context_member: (RNA type, is_collection)
+    "active_action": ("Action", False),
     "active_annotation_layer": ("GPencilLayer", False),
     "active_bone": ("EditBone", False),
     "active_file": ("FileSelectEntry", False),

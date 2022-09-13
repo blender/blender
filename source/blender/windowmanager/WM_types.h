@@ -321,6 +321,7 @@ typedef struct wmNotifier {
 
 /* category */
 #define NOTE_CATEGORY 0xFF000000
+#define NOTE_CATEGORY_TAG_CLEARED NOTE_CATEGORY
 #define NC_WM (1 << 24)
 #define NC_WINDOW (2 << 24)
 #define NC_WORKSPACE (3 << 24)
@@ -415,8 +416,8 @@ typedef struct wmNotifier {
 #define ND_POINTCACHE (28 << 16)
 #define ND_PARENT (29 << 16)
 #define ND_LOD (30 << 16)
-#define ND_DRAW_RENDER_VIEWPORT \
-  (31 << 16) /* for camera & sequencer viewport update, also /w NC_SCENE */
+/** For camera & sequencer viewport update, also with #NC_SCENE. */
+#define ND_DRAW_RENDER_VIEWPORT (31 << 16)
 #define ND_SHADERFX (32 << 16)
 /* For updating motion paths in 3dview. */
 #define ND_DRAW_ANIMVIZ (33 << 16)
@@ -668,7 +669,6 @@ typedef struct wmTabletData {
  *
  * - Mouse-wheel events are excluded even though they generate #KM_PRESS
  *   as clicking and dragging don't make sense for mouse wheel events.
- *
  */
 typedef struct wmEvent {
   struct wmEvent *next, *prev;

@@ -11,7 +11,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Transform Inverse */
 
-static bool transform_matrix4_gj_inverse(float R[][4], float M[][4])
+static bool projection_matrix4_inverse(float R[][4], float M[][4])
 {
   /* SPDX-License-Identifier: BSD-3-Clause
    * Adapted from code:
@@ -98,16 +98,8 @@ ProjectionTransform projection_inverse(const ProjectionTransform &tfm)
   memcpy(R, &tfmR, sizeof(R));
   memcpy(M, &tfm, sizeof(M));
 
-  if (UNLIKELY(!transform_matrix4_gj_inverse(R, M))) {
-    /* matrix is degenerate (e.g. 0 scale on some axis), ideally we should
-     * never be in this situation, but try to invert it anyway with tweak */
-    M[0][0] += 1e-8f;
-    M[1][1] += 1e-8f;
-    M[2][2] += 1e-8f;
-
-    if (UNLIKELY(!transform_matrix4_gj_inverse(R, M))) {
-      return projection_identity();
-    }
+  if (UNLIKELY(!projection_matrix4_inverse(R, M))) {
+    return projection_identity();
   }
 
   memcpy(&tfmR, R, sizeof(R));
@@ -115,16 +107,9 @@ ProjectionTransform projection_inverse(const ProjectionTransform &tfm)
   return tfmR;
 }
 
-Transform transform_inverse(const Transform &tfm)
-{
-  ProjectionTransform projection(tfm);
-  return projection_to_transform(projection_inverse(projection));
-}
-
 Transform transform_transposed_inverse(const Transform &tfm)
 {
-  ProjectionTransform projection(tfm);
-  ProjectionTransform iprojection = projection_inverse(projection);
+  ProjectionTransform iprojection(transform_inverse(tfm));
   return projection_to_transform(projection_transpose(iprojection));
 }
 

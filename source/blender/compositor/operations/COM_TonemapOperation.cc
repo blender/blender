@@ -46,7 +46,7 @@ void TonemapOperation::execute_pixel(float output[4], int x, int y, void *data)
 void PhotoreceptorTonemapOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
   AvgLogLum *avg = (AvgLogLum *)data;
-  NodeTonemap *ntm = data_;
+  const NodeTonemap *ntm = data_;
 
   const float f = expf(-data_->f);
   const float m = (ntm->m > 0.0f) ? ntm->m : (0.3f + 0.7f * powf(avg->auto_key, 1.4f));
@@ -233,7 +233,7 @@ void PhotoreceptorTonemapOperation::update_memory_buffer_partial(MemoryBuffer *o
                                                                  Span<MemoryBuffer *> inputs)
 {
   AvgLogLum *avg = cached_instance_;
-  NodeTonemap *ntm = data_;
+  const NodeTonemap *ntm = data_;
   const float f = expf(-data_->f);
   const float m = (ntm->m > 0.0f) ? ntm->m : (0.3f + 0.7f * powf(avg->auto_key, 1.4f));
   const float ic = 1.0f - ntm->c;

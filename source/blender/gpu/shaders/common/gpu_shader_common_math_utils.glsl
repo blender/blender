@@ -34,6 +34,17 @@ float compatible_pow(float x, float y)
   return pow(x, y);
 }
 
+/* A version of pow that returns a fallback value if the computation is undefined. From the spec:
+ * The result is undefined if x < 0 or if x = 0 and y is less than or equal 0. */
+float fallback_pow(float x, float y, float fallback)
+{
+  if (x < 0.0 || (x == 0.0 && y <= 0.0)) {
+    return fallback;
+  }
+
+  return pow(x, y);
+}
+
 float wrap(float a, float b, float c)
 {
   float range = b - c;
@@ -114,7 +125,23 @@ void vector_copy(vec3 normal, out vec3 outnormal)
   outnormal = normal;
 }
 
+vec3 fallback_pow(vec3 a, float b, vec3 fallback)
+{
+  return vec3(fallback_pow(a.x, b, fallback.x),
+              fallback_pow(a.y, b, fallback.y),
+              fallback_pow(a.z, b, fallback.z));
+}
+
 /* Matirx Math */
+
+/* Return a 2D rotation matrix with the angle that the input 2D vector makes with the x axis. */
+mat2 vector_to_rotation_matrix(vec2 vector)
+{
+  vec2 normalized_vector = normalize(vector);
+  float cos_angle = normalized_vector.x;
+  float sin_angle = normalized_vector.y;
+  return mat2(cos_angle, sin_angle, -sin_angle, cos_angle);
+}
 
 mat3 euler_to_mat3(vec3 euler)
 {

@@ -128,53 +128,42 @@ int system_cpu_bits()
 #if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
 
 struct CPUCapabilities {
-  bool x64;
-  bool mmx;
-  bool sse;
   bool sse2;
   bool sse3;
-  bool ssse3;
   bool sse41;
-  bool sse42;
-  bool sse4a;
   bool avx;
-  bool f16c;
   bool avx2;
-  bool xop;
-  bool fma3;
-  bool fma4;
-  bool bmi1;
-  bool bmi2;
 };
 
 static CPUCapabilities &system_cpu_capabilities()
 {
-  static CPUCapabilities caps;
+  static CPUCapabilities caps = {};
   static bool caps_init = false;
 
   if (!caps_init) {
     int result[4], num;
-
-    memset(&caps, 0, sizeof(caps));
 
     __cpuid(result, 0);
     num = result[0];
 
     if (num >= 1) {
       __cpuid(result, 0x00000001);
-      caps.mmx = (result[3] & ((int)1 << 23)) != 0;
-      caps.sse = (result[3] & ((int)1 << 25)) != 0;
-      caps.sse2 = (result[3] & ((int)1 << 26)) != 0;
-      caps.sse3 = (result[2] & ((int)1 << 0)) != 0;
+      const bool sse = (result[3] & ((int)1 << 25)) != 0;
+      const bool sse2 = (result[3] & ((int)1 << 26)) != 0;
+      const bool sse3 = (result[2] & ((int)1 << 0)) != 0;
 
-      caps.ssse3 = (result[2] & ((int)1 << 9)) != 0;
-      caps.sse41 = (result[2] & ((int)1 << 19)) != 0;
-      caps.sse42 = (result[2] & ((int)1 << 20)) != 0;
+      const bool ssse3 = (result[2] & ((int)1 << 9)) != 0;
+      const bool sse41 = (result[2] & ((int)1 << 19)) != 0;
+      /* const bool sse42 = (result[2] & ((int)1 << 20)) != 0; */
 
-      caps.fma3 = (result[2] & ((int)1 << 12)) != 0;
-      caps.avx = false;
-      bool os_uses_xsave_xrestore = (result[2] & ((int)1 << 27)) != 0;
-      bool cpu_avx_support = (result[2] & ((int)1 << 28)) != 0;
+      const bool fma3 = (result[2] & ((int)1 << 12)) != 0;
+      const bool os_uses_xsave_xrestore = (result[2] & ((int)1 << 27)) != 0;
+      const bool cpu_avx_support = (result[2] & ((int)1 << 28)) != 0;
+
+      /* Simplify to combined capabilities for which we specialize kernels. */
+      caps.sse2 = sse && sse2;
+      caps.sse3 = sse && sse2 && sse3 && ssse3;
+      caps.sse41 = sse && sse2 && sse3 && ssse3 && sse41;
 
       if (os_uses_xsave_xrestore && cpu_avx_support) {
         // Check if the OS will save the YMM registers
@@ -189,15 +178,18 @@ static CPUCapabilities &system_cpu_capabilities()
 #  else
         xcr_feature_mask = 0;
 #  endif
-        caps.avx = (xcr_feature_mask & 0x6) == 0x6;
+        const bool avx = (xcr_feature_mask & 0x6) == 0x6;
+        const bool f16c = (result[2] & ((int)1 << 29)) != 0;
+
+        __cpuid(result, 0x00000007);
+        bool bmi1 = (result[1] & ((int)1 << 3)) != 0;
+        bool bmi2 = (result[1] & ((int)1 << 8)) != 0;
+        bool avx2 = (result[1] & ((int)1 << 5)) != 0;
+
+        caps.avx = sse && sse2 && sse3 && ssse3 && sse41 && avx;
+        caps.avx2 = sse && sse2 && sse3 && ssse3 && sse41 && avx && f16c && avx2 && fma3 && bmi1 &&
+                    bmi2;
       }
-
-      caps.f16c = (result[2] & ((int)1 << 29)) != 0;
-
-      __cpuid(result, 0x00000007);
-      caps.bmi1 = (result[1] & ((int)1 << 3)) != 0;
-      caps.bmi2 = (result[1] & ((int)1 << 8)) != 0;
-      caps.avx2 = (result[1] & ((int)1 << 5)) != 0;
     }
 
     caps_init = true;
@@ -209,32 +201,31 @@ static CPUCapabilities &system_cpu_capabilities()
 bool system_cpu_support_sse2()
 {
   CPUCapabilities &caps = system_cpu_capabilities();
-  return caps.sse && caps.sse2;
+  return caps.sse2;
 }
 
 bool system_cpu_support_sse3()
 {
   CPUCapabilities &caps = system_cpu_capabilities();
-  return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3;
+  return caps.sse3;
 }
 
 bool system_cpu_support_sse41()
 {
   CPUCapabilities &caps = system_cpu_capabilities();
-  return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41;
+  return caps.sse41;
 }
 
 bool system_cpu_support_avx()
 {
   CPUCapabilities &caps = system_cpu_capabilities();
-  return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41 && caps.avx;
+  return caps.avx;
 }
 
 bool system_cpu_support_avx2()
 {
   CPUCapabilities &caps = system_cpu_capabilities();
-  return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41 && caps.avx && caps.f16c &&
-         caps.avx2 && caps.fma3 && caps.bmi1 && caps.bmi2;
+  return caps.avx2;
 }
 #else
 
@@ -263,26 +254,6 @@ bool system_cpu_support_avx2()
 }
 
 #endif
-
-bool system_call_self(const vector<string> &args)
-{
-  /* Escape program and arguments in case they contain spaces. */
-  string cmd = "\"" + Sysutil::this_program_path() + "\"";
-
-  for (int i = 0; i < args.size(); i++) {
-    cmd += " \"" + args[i] + "\"";
-  }
-
-#ifdef _WIN32
-  /* Use cmd /S to avoid issues with spaces in arguments. */
-  cmd = "cmd /S /C \"" + cmd + " > nul \"";
-#else
-  /* Quiet output. */
-  cmd += " > /dev/null";
-#endif
-
-  return (system(cmd.c_str()) == 0);
-}
 
 size_t system_physical_ram()
 {

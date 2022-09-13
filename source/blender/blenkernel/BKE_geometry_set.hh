@@ -43,7 +43,8 @@ enum class GeometryOwnershipType {
 
 namespace blender::bke {
 class ComponentAttributeProviders;
-}
+class CurvesEditHints;
+}  // namespace blender::bke
 
 class GeometryComponent;
 
@@ -168,6 +169,12 @@ struct GeometrySet {
    * Remove all geometry components with types that are not in the provided list.
    */
   void keep_only(const blender::Span<GeometryComponentType> component_types);
+  /**
+   * Keeps the provided geometry types, but also instances and edit data.
+   * Instances must not be removed while using #modify_geometry_sets.
+   */
+  void keep_only_during_modify(const blender::Span<GeometryComponentType> component_types);
+  void remove_geometry_during_modify();
 
   void add(const GeometryComponent &component);
 
@@ -287,6 +294,10 @@ struct GeometrySet {
    * Returns a read-only curves data-block or null.
    */
   const Curves *get_curves_for_read() const;
+  /**
+   * Returns read-only curve edit hints or null.
+   */
+  const blender::bke::CurvesEditHints *get_curve_edit_hints_for_read() const;
 
   /**
    * Returns a mutable mesh or null. No ownership is transferred.
@@ -304,6 +315,10 @@ struct GeometrySet {
    * Returns a mutable curves data-block or null. No ownership is transferred.
    */
   Curves *get_curves_for_write();
+  /**
+   * Returns mutable curve edit hints or null.
+   */
+  blender::bke::CurvesEditHints *get_curve_edit_hints_for_write();
 
   /* Utility methods for replacement. */
   /**
@@ -490,7 +505,7 @@ class CurveComponentLegacy : public GeometryComponent {
 
 /**
  * A geometry component that stores a group of curves, corresponding the #Curves data-block type
- * and the #CurvesGeometry type. Attributes are are stored on the control point domain and the
+ * and the #CurvesGeometry type. Attributes are stored on the control point domain and the
  * curve domain.
  */
 class CurveComponent : public GeometryComponent {
@@ -824,4 +839,38 @@ class VolumeComponent : public GeometryComponent {
   void ensure_owns_direct_data() override;
 
   static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_VOLUME;
+};
+
+/**
+ * When the original data is in some edit mode, we want to propagate some additional information
+ * through object evaluation. This information can be used by edit modes to support working on
+ * evaluated data.
+ *
+ * This component is added at the beginning of modifier evaluation.
+ */
+class GeometryComponentEditData final : public GeometryComponent {
+ public:
+  /**
+   * Information about how original curves are manipulated during evaluation. This data is used so
+   * that curve sculpt tools can work on evaluated data. It is not stored in #CurveComponent
+   * because the data remains valid even when there is no actual curves geometry anymore, for
+   * example, when the curves have been converted to a mesh.
+   */
+  std::unique_ptr<blender::bke::CurvesEditHints> curves_edit_hints_;
+
+  GeometryComponentEditData();
+
+  GeometryComponent *copy() const final;
+  bool owns_direct_data() const final;
+  void ensure_owns_direct_data() final;
+
+  /**
+   * The first node that does topology changing operations on curves should store the curve point
+   * positions it retrieved as input. Without this, information about the deformed positions is
+   * lost, which would make curves sculpt mode fall back to using original curve positions instead
+   * of deformed ones.
+   */
+  static void remember_deformed_curve_positions_if_necessary(GeometrySet &geometry);
+
+  static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_EDIT;
 };

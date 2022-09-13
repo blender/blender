@@ -140,7 +140,7 @@ typedef struct IntegratorStateGPU {
  * happen from a kernel which operates on a "main" path. Attempt to use shadow catcher accessors
  * from a kernel which operates on a shadow catcher state will cause bad memory access. */
 
-#ifdef __KERNEL_CPU__
+#ifndef __KERNEL_GPU__
 
 /* Scalar access on CPU. */
 
@@ -159,7 +159,7 @@ typedef const IntegratorShadowStateCPU *ccl_restrict ConstIntegratorShadowState;
 #  define INTEGRATOR_STATE_ARRAY_WRITE(state, nested_struct, array_index, member) \
     ((state)->nested_struct[array_index].member)
 
-#else /* __KERNEL_CPU__ */
+#else /* !__KERNEL_GPU__ */
 
 /* Array access on GPU with Structure-of-Arrays. */
 
@@ -180,6 +180,6 @@ typedef int ConstIntegratorShadowState;
 #  define INTEGRATOR_STATE_ARRAY_WRITE(state, nested_struct, array_index, member) \
     INTEGRATOR_STATE_ARRAY(state, nested_struct, array_index, member)
 
-#endif /* __KERNEL_CPU__ */
+#endif /* !__KERNEL_GPU__ */
 
 CCL_NAMESPACE_END

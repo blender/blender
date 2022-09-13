@@ -1125,7 +1125,7 @@ float BLI_noise_cell(float x, float y, float z)
   return (2.0f * BLI_cellNoiseU(x, y, z) - 1.0f);
 }
 
-void BLI_noise_cell_v3(float x, float y, float z, float ca[3])
+void BLI_noise_cell_v3(float x, float y, float z, float r_ca[3])
 {
   /* avoid precision issues on unit coordinates */
   x = (x + 0.000001f) * 1.00001f;
@@ -1136,9 +1136,9 @@ void BLI_noise_cell_v3(float x, float y, float z, float ca[3])
   int yi = (int)(floor(y));
   int zi = (int)(floor(z));
   const float *p = HASHPNT(xi, yi, zi);
-  ca[0] = p[0];
-  ca[1] = p[1];
-  ca[2] = p[2];
+  r_ca[0] = p[0];
+  r_ca[1] = p[1];
+  r_ca[2] = p[2];
 }
 
 /** \} */

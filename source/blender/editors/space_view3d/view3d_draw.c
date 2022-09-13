@@ -567,7 +567,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
 
   /* First, solid lines. */
   {
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     /* passepartout, specified in camera edit buttons */
     if (ca && (ca->flag & CAM_SHOWPASSEPARTOUT) && ca->passepartalpha > 0.000001f) {
@@ -618,7 +618,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
   }
 
   /* And now, the dashed lines! */
-  immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
   {
     float viewport_size[4];
@@ -800,7 +800,7 @@ static void drawrenderborder(ARegion *region, View3D *v3d)
 
   GPU_line_width(1.0f);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);
@@ -982,7 +982,7 @@ static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
   immBegin(GPU_PRIM_LINES, 6);
 
   for (int axis_i = 0; axis_i < 3; axis_i++) {
@@ -1497,7 +1497,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
     }
 
     if (U.uiflag & USER_DRAWVIEWINFO) {
-      Object *ob = OBACT(view_layer);
+      Object *ob = BKE_view_layer_active_object_get(view_layer);
       draw_selected_name(scene, view_layer, ob, xoffset, &yoffset);
     }
 
@@ -2152,7 +2152,7 @@ static void validate_object_select_id(struct Depsgraph *depsgraph,
     return;
   }
 
-  if (obact_eval && ((obact_eval->base_flag & BASE_VISIBLE_DEPSGRAPH) != 0)) {
+  if (obact_eval && ((obact_eval->base_flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) != 0)) {
     Base *base = BKE_view_layer_base_find(view_layer, obact);
     DRW_select_buffer_context_create(&base, 1, -1);
   }
@@ -2247,16 +2247,16 @@ void view3d_depths_rect_create(ARegion *region, rcti *rect, ViewDepths *r_d)
 static ViewDepths *view3d_depths_create(ARegion *region)
 {
   ViewDepths *d = MEM_callocN(sizeof(ViewDepths), "ViewDepths");
-  d->w = region->winx;
-  d->h = region->winy;
 
   {
     GPUViewport *viewport = WM_draw_region_get_viewport(region);
     GPUTexture *depth_tx = GPU_viewport_depth_texture(viewport);
     uint32_t *int_depths = GPU_texture_read(depth_tx, GPU_DATA_UINT_24_8, 0);
+    d->w = GPU_texture_width(depth_tx);
+    d->h = GPU_texture_height(depth_tx);
     d->depths = (float *)int_depths;
     /* Convert in-place. */
-    int pixel_count = GPU_texture_width(depth_tx) * GPU_texture_height(depth_tx);
+    int pixel_count = d->w * d->h;
     for (int i = 0; i < pixel_count; i++) {
       d->depths[i] = (int_depths[i] >> 8u) / (float)0xFFFFFF;
     }

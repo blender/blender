@@ -548,7 +548,6 @@ set(INC
   ../python/intern
   ../render
   ../render/intern
-  ../../../extern/glew/include
   ../../../intern/guardedalloc
 
   # RNA_prototypes.h

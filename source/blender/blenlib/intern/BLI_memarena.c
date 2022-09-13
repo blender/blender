@@ -158,6 +158,7 @@ void *BLI_memarena_calloc(MemArena *ma, size_t size)
   BLI_assert(ma->use_calloc == false);
 
   ptr = BLI_memarena_alloc(ma, size);
+  BLI_assert(ptr != NULL);
   memset(ptr, 0, size);
 
   return ptr;

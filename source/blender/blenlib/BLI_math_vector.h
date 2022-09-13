@@ -155,7 +155,7 @@ MINLINE void mul_v3_v3db_db(double r[3], const double a[3], double f);
 MINLINE void mul_v2_v2(float r[2], const float a[2]);
 MINLINE void mul_v2_v2v2(float r[2], const float a[2], const float b[2]);
 MINLINE void mul_v3_v3(float r[3], const float a[3]);
-MINLINE void mul_v3_v3v3(float r[3], const float a[3], const float b[3]);
+MINLINE void mul_v3_v3v3(float r[3], const float v1[3], const float v2[3]);
 MINLINE void mul_v4_fl(float r[4], float f);
 MINLINE void mul_v4_v4(float r[4], const float a[4]);
 MINLINE void mul_v4_v4fl(float r[4], const float a[4], float f);
@@ -271,10 +271,10 @@ MINLINE float len_squared_v3(const float v[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_manhattan_v2(const float v[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE int len_manhattan_v2_int(const int v[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_manhattan_v3(const float v[3]) ATTR_WARN_UNUSED_RESULT;
-MINLINE float len_v2(const float a[2]) ATTR_WARN_UNUSED_RESULT;
+MINLINE float len_v2(const float v[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE double len_v2_db(const double v[2]) ATTR_WARN_UNUSED_RESULT;
-MINLINE float len_v2v2(const float a[2], const float b[2]) ATTR_WARN_UNUSED_RESULT;
-MINLINE double len_v2v2_db(const double a[2], const double b[2]) ATTR_WARN_UNUSED_RESULT;
+MINLINE float len_v2v2(const float v1[2], const float v2[2]) ATTR_WARN_UNUSED_RESULT;
+MINLINE double len_v2v2_db(const double v1[2], const double v2[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_v2v2_int(const int v1[2], const int v2[2]);
 MINLINE float len_squared_v2v2(const float a[2], const float b[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE double len_squared_v2v2_db(const double a[2], const double b[2]) ATTR_WARN_UNUSED_RESULT;
@@ -288,22 +288,22 @@ MINLINE float len_v3v3(const float a[3], const float b[3]) ATTR_WARN_UNUSED_RESU
 
 MINLINE double len_v3_db(const double a[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE double len_squared_v3_db(const double v[3]) ATTR_WARN_UNUSED_RESULT;
-MINLINE float normalize_v2_length(float r[2], float unit_scale);
+MINLINE float normalize_v2_length(float n[2], float unit_length);
 /**
  * \note any vectors containing `nan` will be zeroed out.
  */
-MINLINE float normalize_v2_v2_length(float r[2], const float a[2], float unit_scale);
-MINLINE float normalize_v3_length(float r[3], float unit_scale);
+MINLINE float normalize_v2_v2_length(float r[2], const float a[2], float unit_length);
+MINLINE float normalize_v3_length(float n[3], float unit_length);
 /**
  * \note any vectors containing `nan` will be zeroed out.
  */
-MINLINE float normalize_v3_v3_length(float r[3], const float a[3], float unit_scale);
-MINLINE double normalize_v3_length_db(double n[3], double unit_scale);
-MINLINE double normalize_v3_v3_length_db(double r[3], const double a[3], double unit_scale);
+MINLINE float normalize_v3_v3_length(float r[3], const float a[3], float unit_length);
+MINLINE double normalize_v3_length_db(double n[3], double unit_length);
+MINLINE double normalize_v3_v3_length_db(double r[3], const double a[3], double unit_length);
 
-MINLINE float normalize_v2(float r[2]);
+MINLINE float normalize_v2(float n[2]);
 MINLINE float normalize_v2_v2(float r[2], const float a[2]);
-MINLINE float normalize_v3(float r[3]);
+MINLINE float normalize_v3(float n[3]);
 MINLINE float normalize_v3_v3(float r[3], const float a[3]);
 MINLINE double normalize_v3_v3_db(double r[3], const double a[3]);
 MINLINE double normalize_v3_db(double n[3]);
@@ -424,45 +424,51 @@ void flip_v2_v2v2(float v[2], const float v1[2], const float v2[2]);
 /** \name Comparison
  * \{ */
 
-MINLINE bool is_zero_v2(const float a[2]) ATTR_WARN_UNUSED_RESULT;
-MINLINE bool is_zero_v3(const float a[3]) ATTR_WARN_UNUSED_RESULT;
-MINLINE bool is_zero_v4(const float a[4]) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool is_zero_v2(const float v[2]) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool is_zero_v3(const float v[3]) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool is_zero_v4(const float v[4]) ATTR_WARN_UNUSED_RESULT;
 
-MINLINE bool is_zero_v2_db(const double a[2]) ATTR_WARN_UNUSED_RESULT;
-MINLINE bool is_zero_v3_db(const double a[3]) ATTR_WARN_UNUSED_RESULT;
-MINLINE bool is_zero_v4_db(const double a[4]) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool is_zero_v2_db(const double v[2]) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool is_zero_v3_db(const double v[3]) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool is_zero_v4_db(const double v[4]) ATTR_WARN_UNUSED_RESULT;
 
-bool is_finite_v2(const float a[2]) ATTR_WARN_UNUSED_RESULT;
-bool is_finite_v3(const float a[3]) ATTR_WARN_UNUSED_RESULT;
-bool is_finite_v4(const float a[4]) ATTR_WARN_UNUSED_RESULT;
+bool is_finite_v2(const float v[2]) ATTR_WARN_UNUSED_RESULT;
+bool is_finite_v3(const float v[3]) ATTR_WARN_UNUSED_RESULT;
+bool is_finite_v4(const float v[4]) ATTR_WARN_UNUSED_RESULT;
 
-MINLINE bool is_one_v3(const float a[3]) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool is_one_v3(const float v[3]) ATTR_WARN_UNUSED_RESULT;
 
 MINLINE bool equals_v2v2(const float v1[2], const float v2[2]) ATTR_WARN_UNUSED_RESULT;
-MINLINE bool equals_v3v3(const float a[3], const float b[3]) ATTR_WARN_UNUSED_RESULT;
-MINLINE bool equals_v4v4(const float a[4], const float b[4]) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool equals_v3v3(const float v1[3], const float v2[3]) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool equals_v4v4(const float v1[4], const float v2[4]) ATTR_WARN_UNUSED_RESULT;
 
 MINLINE bool equals_v2v2_int(const int v1[2], const int v2[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE bool equals_v3v3_int(const int v1[3], const int v2[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE bool equals_v4v4_int(const int v1[4], const int v2[4]) ATTR_WARN_UNUSED_RESULT;
 
-MINLINE bool compare_v2v2(const float a[2], const float b[2], float limit) ATTR_WARN_UNUSED_RESULT;
-MINLINE bool compare_v3v3(const float a[3], const float b[3], float limit) ATTR_WARN_UNUSED_RESULT;
-MINLINE bool compare_v4v4(const float a[4], const float b[4], float limit) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool compare_v2v2(const float v1[2],
+                          const float v2[2],
+                          float limit) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool compare_v3v3(const float v1[3],
+                          const float v2[3],
+                          float limit) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool compare_v4v4(const float v1[4],
+                          const float v2[4],
+                          float limit) ATTR_WARN_UNUSED_RESULT;
 
-MINLINE bool compare_v2v2_relative(const float a[2], const float b[2], float limit, int max_ulps)
+MINLINE bool compare_v2v2_relative(const float v1[2], const float v2[2], float limit, int max_ulps)
     ATTR_WARN_UNUSED_RESULT;
-MINLINE bool compare_v3v3_relative(const float a[3], const float b[3], float limit, int max_ulps)
+MINLINE bool compare_v3v3_relative(const float v1[3], const float v2[3], float limit, int max_ulps)
     ATTR_WARN_UNUSED_RESULT;
-MINLINE bool compare_v4v4_relative(const float a[4], const float b[4], float limit, int max_ulps)
+MINLINE bool compare_v4v4_relative(const float v1[4], const float v2[4], float limit, int max_ulps)
     ATTR_WARN_UNUSED_RESULT;
 
-MINLINE bool compare_len_v3v3(const float a[3],
-                              const float b[3],
+MINLINE bool compare_len_v3v3(const float v1[3],
+                              const float v2[3],
                               float limit) ATTR_WARN_UNUSED_RESULT;
 
-MINLINE bool compare_size_v3v3(const float a[3],
-                               const float b[3],
+MINLINE bool compare_size_v3v3(const float v1[3],
+                               const float v2[3],
                                float limit) ATTR_WARN_UNUSED_RESULT;
 
 /**
@@ -606,8 +612,8 @@ void project_v3_plane(float out[3], const float plane_no[3], const float plane_c
  * out: result (negate for a 'bounce').
  * </pre>
  */
-void reflect_v3_v3v3(float out[3], const float vec[3], const float normal[3]);
-void reflect_v3_v3v3_db(double out[3], const double vec[3], const double normal[3]);
+void reflect_v3_v3v3(float out[3], const float v[3], const float normal[3]);
+void reflect_v3_v3v3_db(double out[3], const double v[3], const double normal[3]);
 /**
  * Takes a vector and computes 2 orthogonal directions.
  *
@@ -655,10 +661,10 @@ void print_vn(const char *str, const float v[], int n);
 #define print_v4_id(v) print_v4(STRINGIFY(v), v)
 #define print_vn_id(v, n) print_vn(STRINGIFY(v), v, n)
 
-MINLINE void normal_float_to_short_v2(short r[2], const float n[2]);
-MINLINE void normal_short_to_float_v3(float r[3], const short n[3]);
-MINLINE void normal_float_to_short_v3(short r[3], const float n[3]);
-MINLINE void normal_float_to_short_v4(short r[4], const float n[4]);
+MINLINE void normal_float_to_short_v2(short out[2], const float in[2]);
+MINLINE void normal_short_to_float_v3(float out[3], const short in[3]);
+MINLINE void normal_float_to_short_v3(short out[3], const float in[3]);
+MINLINE void normal_float_to_short_v4(short out[4], const float in[4]);
 
 void minmax_v4v4_v4(float min[4], float max[4], const float vec[4]);
 void minmax_v3v3_v3(float min[3], float max[3], const float vec[3]);

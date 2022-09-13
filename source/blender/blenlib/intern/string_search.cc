@@ -11,8 +11,8 @@
 #include "BLI_timeit.hh"
 
 /* Right arrow, keep in sync with #UI_MENU_ARROW_SEP in `UI_interface.h`. */
-#define UI_MENU_ARROW_SEP "\xe2\x96\xb6"
-#define UI_MENU_ARROW_SEP_UNICODE 0x25b6
+#define UI_MENU_ARROW_SEP "\xe2\x96\xb8"
+#define UI_MENU_ARROW_SEP_UNICODE 0x25b8
 
 namespace blender::string_search {
 

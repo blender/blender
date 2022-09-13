@@ -489,7 +489,7 @@ static void knifetool_draw_visible_distances(const KnifeTool_OpData *kcd)
   wmOrtho2_region_pixelspace(kcd->region);
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   char numstr[256];
   float numstr_size[2];
@@ -629,7 +629,7 @@ static void knifetool_draw_angle(const KnifeTool_OpData *kcd,
 
   uint pos_2d = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* Angle as string. */
   char numstr[256];
@@ -4300,7 +4300,7 @@ static void knifetool_finish_single_pre(KnifeTool_OpData *kcd, Object *ob)
 }
 
 /**
- * A post version is needed to to delay recalculating tessellation after making cuts.
+ * A post version is needed to delay recalculating tessellation after making cuts.
  * Without this, knife-project can't use the BVH tree to select geometry after a cut, see: T98349.
  */
 static void knifetool_finish_single_post(KnifeTool_OpData *UNUSED(kcd), Object *ob)

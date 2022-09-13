@@ -1,4 +1,4 @@
-** Blosc; version 1.5.0 -- https://github.com/Blosc/c-blosc
+** Blosc; version 1.21.1 -- https://github.com/Blosc/c-blosc
 For Blosc - A blocking, shuffling and lossless compression library
 
 Copyright (C) 2009-2018 Francesc Alted <francesc@blosc.org>
@@ -22,12 +22,14 @@ PERFORMANCE OF THIS SOFTWARE.
 ** Audaspace; version 1.3.0 -- https://audaspace.github.io/
 ** Cuda Wrangler; version cbf465b -- https://github.com/CudaWrangler/cuew
 ** Draco; version 1.3.6 -- https://google.github.io/draco/
-** Embree; version 3.10 -- https://github.com/embree/embree
+** Embree; version 3.13.4 -- https://github.com/embree/embree
+** Intel® Open Path Guiding Library; version v0.3.1-beta --
+http://www.openpgl.org/
 ** Mantaflow; version 0.13 -- http://mantaflow.com/
-** oneAPI Threading Building Block; version 2020_U2 --
+** oneAPI Threading Building Block; version 2020_U3 --
 https://software.intel.com/en-us/oneapi/onetbb
 ** OpenCL Wrangler; version 27a6867 -- https://github.com/OpenCLWrangler/clew
-** OpenImageDenoise; version 1.4.1 -- https://www.openimagedenoise.org/
+** OpenImageDenoise; version 1.4.3 -- https://www.openimagedenoise.org/
 ** OpenSSL; version 1.1.1 -- https://www.openssl.org/
 ** OpenXR SDK; version 1.0.17 -- https://khronos.org/openxr
 ** RangeTree; version 40ebed8aa209 -- https://github.com/ideasman42/rangetree-c
@@ -240,6 +242,8 @@ limitations under the License.
     Copyright 2018 The Draco Authors
 * For Embree see also this required NOTICE:
     Copyright 2009-2020 Intel Corporation
+* For Intel® Open Path Guiding Library see also this required NOTICE:
+    Copyright 2020 Intel Corporation.
 * For Mantaflow see also this required NOTICE:
     MantaFlow fluid solver framework
     Copyright 2011 Tobias Pfaff, Nils Thuerey
@@ -265,9 +269,11 @@ limitations under the License.
 
 ------
 
+** libAOM; version 3.4.0 -- https://aomedia.googlesource.com/aom/
+Copyright (c) 2016, Alliance for Open Media. All rights reserved.
 ** NASM; version 2.15.02 -- https://www.nasm.us/
 Contributions since 2008-12-15 are Copyright Intel Corporation.
-** OpenJPEG; version 2.3.1 -- https://github.com/uclouvain/openjpeg
+** OpenJPEG; version 2.4.0 -- https://github.com/uclouvain/openjpeg
 Copyright (c) 2002-2014, Universite catholique de Louvain (UCL), Belgium
 Copyright (c) 2002-2014, Professor Benoit Macq
 Copyright (c) 2003-2014, Antonin Descampe
@@ -316,22 +322,35 @@ All rights reserved.
 ** Google Logging; version 4.4.0 -- https://github.com/google/glog
 Copyright (c) 2006, Google Inc.
 All rights reserved.
-** ISPC; version 1.16.0 -- https://github.com/ispc/ispc
+** Imath; version 3.1.5 -- https://github.com/AcademySoftwareFoundation/Imath
+Contributors to the OpenEXR Project.
+** ISPC; version 1.17.0 -- https://github.com/ispc/ispc
 Copyright Intel Corporation
 ** NumPy; version 1.22.0 -- https://numpy.org/
 Copyright (c) 2005-2021, NumPy Developers.
-** Open Shading Language; version 1.11.14.1 --
+** Ogg; version 1.3.5 -- https://www.xiph.org/ogg/
+COPYRIGHT (C) 1994-2019 by the Xiph.Org Foundation https://www.xiph.org/
+** Open Shading Language; version 1.11.17.0 --
 https://github.com/imageworks/OpenShadingLanguage
 Copyright Contributors to the Open Shading Language project.
-** OpenColorIO; version 2.0.0 --
+** OpenColorIO; version 2.1.1 --
 https://github.com/AcademySoftwareFoundation/OpenColorIO
 Copyright Contributors to the OpenColorIO Project.
-** OpenEXR; version 2.5.5 --
+** OpenEXR; version 3.1.5 --
 https://github.com/AcademySoftwareFoundation/openexr
 Copyright Contributors to the OpenEXR Project. All rights reserved.
-** OpenImageIO; version 2.2.15.1 -- http://www.openimageio.org
+** OpenImageIO; version 2.3.13.0 -- http://www.openimageio.org
 Copyright (c) 2008-present by Contributors to the OpenImageIO project. All
 Rights Reserved.
+** Pystring; version 1.1.3 -- https://github.com/imageworks/pystring
+Copyright (c) 2008-2010, Sony Pictures Imageworks Inc
+All rights reserved.
+** Vorbis; version 1.3.7 -- https://xiph.org/vorbis/
+Copyright (c) 2002-2020 Xiph.org Foundation
+** VPX; version 1.11.0 -- https://github.com/webmproject/libvpx
+Copyright (c) 2010, The WebM Project authors. All rights reserved.
+** WebP; version 1.2.2 -- https://github.com/webmproject/libwebp
+Copyright (c) 2010, Google Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -493,6 +512,9 @@ effect of CC0 on those rights.
 
 ------
 
+** FLAC; version 1.3.4 -- https://xiph.org/flac/
+Copyright (C) 2001-2009  Josh Coalson
+Copyright (C) 2011-2016  Xiph.Org Foundation
 ** Potrace; version 1.16 -- http://potrace.sourceforge.net/
 Copyright (C) 2001-2019 Peter Selinger.
 
@@ -819,12 +841,12 @@ Yoyodyne, Inc., hereby disclaims all copyright interest in the program
 
 ------
 
-** FFTW; version 3.3.8 -- http://www.fftw.org/
+** FFTW; version 3.3.10 -- http://www.fftw.org/
 Copyright (c) 2003, 2007-14 Matteo Frigo
 Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
 ** GMP; version 6.2.1 -- https://gmplib.org/
 Copyright 1996-2020 Free Software Foundation, Inc.
-** OpenAL; version 1.20.1 -- http://openal-soft.org
+** OpenAL; version 1.21.1 -- http://openal-soft.org
 Copyright (c) 2015, Archontis Politis
 Copyright (c) 2019, Christopher Robinson
 
@@ -1156,8 +1178,7 @@ License.
 
 ------
 
-** libx264; version 33f9e1474613f59392be5ab6a7e7abf60fa63622 --
-https://code.videolan.org/videolan/x264
+** libx264; version 35fe20d1ba49918e -- https://code.videolan.org/videolan/x264
 Copyright (C) 2003-2021 x264 project
 ** miniLZO; version 2.08 -- http://www.oberhumer.com/opensource/lzo/
 LZO and miniLZO are Copyright (C) 1996-2014 Markus Franz Xaver Oberhumer
@@ -2165,7 +2186,7 @@ of this License. But first, please read <http s ://www.gnu.org/ licenses
 
 ------
 
-** FFmpeg; version 4.4 -- http://ffmpeg.org/
+** FFmpeg; version 5.0 -- http://ffmpeg.org/
 -
 
 GNU LESSER GENERAL PUBLIC LICENSE
@@ -2956,19 +2977,30 @@ December 9, 2010
 
 ------
 
+** {fmt}; version 8.0.0 -- https://github.com/fmtlib/fmt
+Copyright (c) 2012 - present, Victor Zverovich
 ** Brotli; version 1.0.9 -- https://github.com/google/brotli
 Copyright (c) 2009, 2010, 2013-2016 by the Brotli Authors.
-** Expat; version 2.2.10 -- https://github.com/libexpat/libexpat/
+** Epoxy; version 1.5.10 -- https://github.com/anholt/libepoxy
+Copyright © 2013-2014 Intel Corporation.
+Copyright © 2013 The Khronos Group Inc.
+** Expat; version 2.4.4 -- https://github.com/libexpat/libexpat/
 Copyright (c) 1998-2000 Thai Open Source Software Center Ltd and Clark Cooper
 Copyright (c) 2001-2019 Expat maintainers
-** {fmt}; version 8.1.1 -- https://github.com/fmtlib/fmt
-Copyright (c) 2012 - present, Victor Zverovich
+** Intel(R) Graphics Memory Management Library; version 22.1.2 --
+https://github.com/intel/gmmlib
+Copyright (c) 2017 Intel Corporation.
+Copyright (c) 2016 Gabi Melman.
+Copyright 2008, Google Inc. All rights reserved.
 ** JSON for Modern C++; version 3.10.2 -- https://github.com/nlohmann/json/
 Copyright (c) 2013-2021 Niels Lohmann
 ** Libxml2; version 2.9.10 -- http://xmlsoft.org/
 Copyright (C) 1998-2012 Daniel Veillard.  All Rights Reserved.
 ** Mesa 3D; version 21.1.5 -- https://www.mesa3d.org/
 Copyright (C) 1999-2007  Brian Paul   All Rights Reserved.
+** oneAPI Level Zero; version v1.7.15 --
+https://github.com/oneapi-src/level-zero
+Copyright (C) 2019-2021 Intel Corporation
 ** OPENCollada; version 1.6.68 -- https://github.com/KhronosGroup/OpenCOLLADA
 Copyright (c) 2008-2009 NetAllied Systems GmbH
 ** PugiXML; version 1.10 -- http://pugixml.org/
@@ -2976,6 +3008,8 @@ Copyright (c) 2006-2020 Arseny Kapoulkine
 ** QuadriFlow; version 27a6867 -- https://github.com/hjwdzh/QuadriFlow
 Copyright (c) 2018 Jingwei Huang, Yichao Zhou, Matthias Niessner,
 Jonathan Shewchuk and Leonidas Guibas. All rights reserved.
+** robin-map; version 0.6.2 -- https://github.com/Tessil/robin-map
+Copyright (c) 2017 Thibaut Goetghebuer-Planchon <tessil@gmx.com>
 ** sse2neon; version fe5ff00bb8d19b327714a3c290f3e2ce81ba3525 --
 https://github.com/DLTcollab/sse2neon
 Copyright sse2neon contributors
@@ -3015,7 +3049,7 @@ SOFTWARE.
 ** NanoVDB; version dc37d8a631922e7bef46712947dc19b755f3e841 --
 https://github.com/AcademySoftwareFoundation/openvdb
 Copyright Contributors to the OpenVDB Project
-** OpenVDB; version 8.0.1 -- http://www.openvdb.org/
+** OpenVDB; version 9.0.0 -- http://www.openvdb.org/
 Copyright Contributors to the OpenVDB Project
 
 Mozilla Public License Version 2.0
@@ -3363,9 +3397,11 @@ Copyright 2000-2006 (c) Takeshi Kanno
 Copyright 2007-2009 (c) Antony Dovgal et al.
 ** NanoSVG; version 3cdd4a9d788 -- https://github.com/memononen/nanosvg
 Copyright (c) 2013-14 Mikko Mononen memon@inside.org
-** SDL; version 2.0.12 -- https://www.libsdl.org
+** SDL; version 2.0.20 -- https://www.libsdl.org
 Copyright (C) 1997-2020 Sam Lantinga <slouken@libsdl.org>
-** zlib; version 1.2.11 -- https://zlib.net
+** TinyXML; version 2.6.2 -- https://sourceforge.net/projects/tinyxml/
+Lee Thomason, Yves Berquin, Andrew Ellerton.
+** zlib; version 1.2.12 -- https://zlib.net
 Copyright (C) 1995-2017 Jean-loup Gailly
 
 zlib License Copyright (c) <year> <copyright holders>
@@ -3390,7 +3426,7 @@ the following restrictions:
 
 ------
 
-** LibTIFF; version 4.1.0 -- http://www.libtiff.org/
+** LibTIFF; version 4.4.0 -- http://www.libtiff.org/
 Copyright (c) 1988-1997 Sam Leffler
 Copyright (c) 1991-1997 Silicon Graphics, Inc.
 
@@ -3444,9 +3480,9 @@ Software.
 
 ------
 
-** OpenSubdiv; version 3.4.3 -- http://graphics.pixar.com/opensubdiv
+** OpenSubdiv; version 3.4.4 -- http://graphics.pixar.com/opensubdiv
 Copyright 2013 Pixar
-** Universal Scene Description; version 21.02 -- http://www.openusd.org/
+** Universal Scene Description; version 22.03 -- http://www.openusd.org/
 Copyright 2016 Pixar
 
 Licensed under the Apache License, Version 2.0 (the "Apache License") with the
@@ -3462,7 +3498,7 @@ the content of the NOTICE file.
 
 ------
 
-** libjpeg-turbo; version 2.0.4 --
+** libjpeg-turbo; version 2.1.3 --
 https://github.com/libjpeg-turbo/libjpeg-turbo/
 Copyright (C)2009-2020 D. R. Commander. All Rights Reserved.
 Copyright (C)2015 Viktor Szathmáry. All Rights Reserved.
@@ -3491,7 +3527,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ------
 
-** Boost C++ Libraries; version 1.73.0 -- https://www.boost.org/
+** Boost C++ Libraries; version 1.78.0 -- https://www.boost.org/
 -
 
 Boost Software License - Version 1.0 - August 17th, 2003
@@ -3520,7 +3556,7 @@ DEALINGS IN THE SOFTWARE.
 
 ------
 
-** Alembic; version 1.7.16 -- https://github.com/alembic/alembic
+** Alembic; version 1.8.3 -- https://github.com/alembic/alembic
 TM & © 2009-2015 Lucasfilm Entertainment Company Ltd. or Lucasfilm Ltd.
 All rights reserved.
 
@@ -3986,38 +4022,6 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ------
-
-** The OpenGL Extension Wrangler Library; version 2.0.0 --
-http://glew.sourceforge.net/
-Copyright (C) 2008-2015, Nigel Stewart <nigels[]users sourceforge net>
-Copyright (C) 2002-2008, Milan Ikits <milan ikits[]ieee org>
-Copyright (C) 2002-2008, Marcelo E. Magallon <mmagallo[]debian org>
-Copyright (C) 2002, Lev Povalahev
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-* Redistributions of source code must retain the above copyright notice,
-  this list of conditions and the following disclaimer.
-* Redistributions in binary form must reproduce the above copyright notice,
-  this list of conditions and the following disclaimer in the documentation
-  and/or other materials provided with the distribution.
-* The name of the author may be used to endorse or promote products
-  derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
-THE POSSIBILITY OF SUCH DAMAGE.
-
 
 Mesa 3-D graphics library
 Version:  7.0

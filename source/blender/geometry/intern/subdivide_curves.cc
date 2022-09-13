@@ -91,7 +91,8 @@ static void subdivide_attribute_linear(const bke::CurvesGeometry &src_curves,
         }
       });
 
-      const IndexRange dst_last_segment = bke::offsets_to_range(offsets, src_points.size() - 1);
+      const IndexRange dst_last_segment = dst_points.slice(
+          bke::offsets_to_range(offsets, src_points.size() - 1));
       linear_interpolation(curve_src.last(), curve_src.first(), dst.slice(dst_last_segment));
     }
   });

@@ -3,18 +3,19 @@
 
 #pragma once
 
-#include "kernel/film/accumulate.h"
-#include "kernel/integrator/shader_eval.h"
+#include "kernel/film/light_passes.h"
+
+#include "kernel/integrator/surface_shader.h"
+
 #include "kernel/light/light.h"
 #include "kernel/light/sample.h"
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device float3 integrator_eval_background_shader(KernelGlobals kg,
-                                                    IntegratorState state,
-                                                    ccl_global float *ccl_restrict render_buffer)
+ccl_device Spectrum integrator_eval_background_shader(KernelGlobals kg,
+                                                      IntegratorState state,
+                                                      ccl_global float *ccl_restrict render_buffer)
 {
-#ifdef __BACKGROUND__
   const int shader = kernel_data.background.surface_shader;
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
@@ -26,55 +27,35 @@ ccl_device float3 integrator_eval_background_shader(KernelGlobals kg,
         ((shader & SHADER_EXCLUDE_TRANSMIT) && (path_flag & PATH_RAY_TRANSMIT)) ||
         ((shader & SHADER_EXCLUDE_CAMERA) && (path_flag & PATH_RAY_CAMERA)) ||
         ((shader & SHADER_EXCLUDE_SCATTER) && (path_flag & PATH_RAY_VOLUME_SCATTER)))
-      return zero_float3();
+      return zero_spectrum();
   }
 
   /* Use fast constant background color if available. */
-  float3 L = zero_float3();
-  if (!shader_constant_emission_eval(kg, shader, &L)) {
-    /* Evaluate background shader. */
-
-    /* TODO: does aliasing like this break automatic SoA in CUDA?
-     * Should we instead store closures separate from ShaderData? */
-    ShaderDataTinyStorage emission_sd_storage;
-    ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
-
-    PROFILING_INIT_FOR_SHADER(kg, PROFILING_SHADE_LIGHT_SETUP);
-    shader_setup_from_background(kg,
-                                 emission_sd,
-                                 INTEGRATOR_STATE(state, ray, P),
-                                 INTEGRATOR_STATE(state, ray, D),
-                                 INTEGRATOR_STATE(state, ray, time));
-
-    PROFILING_SHADER(emission_sd->object, emission_sd->shader);
-    PROFILING_EVENT(PROFILING_SHADE_LIGHT_EVAL);
-    shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_BACKGROUND>(
-        kg, state, emission_sd, render_buffer, path_flag | PATH_RAY_EMISSION);
-
-    L = shader_background_eval(emission_sd);
+  Spectrum L = zero_spectrum();
+  if (surface_shader_constant_emission(kg, shader, &L)) {
+    return L;
   }
 
-  /* Background MIS weights. */
-#  ifdef __BACKGROUND_MIS__
-  /* Check if background light exists or if we should skip pdf. */
-  if (!(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_MIS_SKIP) &&
-      kernel_data.background.use_mis) {
-    const float3 ray_P = INTEGRATOR_STATE(state, ray, P);
-    const float3 ray_D = INTEGRATOR_STATE(state, ray, D);
-    const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
+  /* Evaluate background shader. */
 
-    /* multiple importance sampling, get background light pdf for ray
-     * direction, and compute weight with respect to BSDF pdf */
-    const float pdf = background_light_pdf(kg, ray_P, ray_D);
-    const float mis_weight = light_sample_mis_weight_forward(kg, mis_ray_pdf, pdf);
-    L *= mis_weight;
-  }
-#  endif
+  /* TODO: does aliasing like this break automatic SoA in CUDA?
+   * Should we instead store closures separate from ShaderData? */
+  ShaderDataTinyStorage emission_sd_storage;
+  ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
 
-  return L;
-#else
-  return make_float3(0.8f, 0.8f, 0.8f);
-#endif
+  PROFILING_INIT_FOR_SHADER(kg, PROFILING_SHADE_LIGHT_SETUP);
+  shader_setup_from_background(kg,
+                               emission_sd,
+                               INTEGRATOR_STATE(state, ray, P),
+                               INTEGRATOR_STATE(state, ray, D),
+                               INTEGRATOR_STATE(state, ray, time));
+
+  PROFILING_SHADER(emission_sd->object, emission_sd->shader);
+  PROFILING_EVENT(PROFILING_SHADE_LIGHT_EVAL);
+  surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_BACKGROUND>(
+      kg, state, emission_sd, render_buffer, path_flag | PATH_RAY_EMISSION);
+
+  return surface_shader_background(emission_sd);
 }
 
 ccl_device_inline void integrate_background(KernelGlobals kg,
@@ -117,17 +98,37 @@ ccl_device_inline void integrate_background(KernelGlobals kg,
 #endif /* __MNEE__ */
 
   /* Evaluate background shader. */
-  float3 L = (eval_background) ? integrator_eval_background_shader(kg, state, render_buffer) :
-                                 zero_float3();
+  Spectrum L = zero_spectrum();
 
-  /* When using the ao bounces approximation, adjust background
-   * shader intensity with ao factor. */
-  if (path_state_ao_bounce(kg, state)) {
-    L *= kernel_data.integrator.ao_bounces_factor;
+  if (eval_background) {
+    L = integrator_eval_background_shader(kg, state, render_buffer);
+
+    /* When using the ao bounces approximation, adjust background
+     * shader intensity with ao factor. */
+    if (path_state_ao_bounce(kg, state)) {
+      L *= kernel_data.integrator.ao_bounces_factor;
+    }
+
+    /* Background MIS weights. */
+    float mis_weight = 1.0f;
+    /* Check if background light exists or if we should skip pdf. */
+    if (!(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_MIS_SKIP) &&
+        kernel_data.background.use_mis) {
+      const float3 ray_P = INTEGRATOR_STATE(state, ray, P);
+      const float3 ray_D = INTEGRATOR_STATE(state, ray, D);
+      const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
+
+      /* multiple importance sampling, get background light pdf for ray
+       * direction, and compute weight with respect to BSDF pdf */
+      const float pdf = background_light_pdf(kg, ray_P, ray_D);
+      mis_weight = light_sample_mis_weight_forward(kg, mis_ray_pdf, pdf);
+    }
+
+    L *= mis_weight;
   }
 
   /* Write to render buffer. */
-  kernel_accum_background(kg, state, L, transparent, is_transparent_background_ray, render_buffer);
+  film_write_background(kg, state, L, transparent, is_transparent_background_ray, render_buffer);
 }
 
 ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
@@ -169,24 +170,23 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
       /* TODO: does aliasing like this break automatic SoA in CUDA? */
       ShaderDataTinyStorage emission_sd_storage;
       ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
-      float3 light_eval = light_sample_shader_eval(kg, state, emission_sd, &ls, ray_time);
+      Spectrum light_eval = light_sample_shader_eval(kg, state, emission_sd, &ls, ray_time);
       if (is_zero(light_eval)) {
         return;
       }
 
       /* MIS weighting. */
+      float mis_weight = 1.0f;
       if (!(path_flag & PATH_RAY_MIS_SKIP)) {
         /* multiple importance sampling, get regular light pdf,
          * and compute weight with respect to BSDF pdf */
         const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
-        const float mis_weight = light_sample_mis_weight_forward(kg, mis_ray_pdf, ls.pdf);
-        light_eval *= mis_weight;
+        mis_weight = light_sample_mis_weight_forward(kg, mis_ray_pdf, ls.pdf);
       }
 
       /* Write to render buffer. */
-      const float3 throughput = INTEGRATOR_STATE(state, path, throughput);
-      kernel_accum_emission(
-          kg, state, throughput * light_eval, render_buffer, kernel_data.background.lightgroup);
+      film_write_surface_emission(
+          kg, state, light_eval, mis_weight, render_buffer, kernel_data.background.lightgroup);
     }
   }
 }

@@ -14,6 +14,7 @@
 #include "BKE_material.h"
 
 #include "ED_gpencil.h"
+#include "ED_object.h"
 
 #include "gpencil_io_import_base.hh"
 
@@ -27,10 +28,22 @@ GpencilImporter::GpencilImporter(const GpencilIOParams *iparams) : GpencilIO(ipa
 
 Object *GpencilImporter::create_object()
 {
-  const float *cur = scene_->cursor.location;
+  const float *cur_loc = scene_->cursor.location;
+  const float rot[3] = {0.0f};
   ushort local_view_bits = (params_.v3d && params_.v3d->localvd) ? params_.v3d->local_view_uuid :
                                                                    (ushort)0;
-  Object *ob_gpencil = ED_gpencil_add_object(params_.C, cur, local_view_bits);
+
+  Object *ob_gpencil = ED_object_add_type(params_.C,
+                                          OB_GPENCIL,
+                                          (params_.filename[0] != '\0') ? params_.filename :
+                                                                          nullptr,
+                                          cur_loc,
+                                          rot,
+                                          false,
+                                          local_view_bits);
+
+  /* Set object defaults. */
+  ED_gpencil_add_defaults(params_.C, ob_gpencil);
 
   return ob_gpencil;
 }

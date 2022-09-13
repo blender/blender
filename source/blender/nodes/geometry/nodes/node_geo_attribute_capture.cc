@@ -115,7 +115,7 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
   if (domain_size == 0) {
     return;
   }
-  GeometryComponentFieldContext field_context{component, domain};
+  bke::GeometryFieldContext field_context{component, domain};
   MutableAttributeAccessor attributes = *component.attributes_for_write();
   const IndexMask mask{IndexMask(domain_size)};
 

@@ -22,7 +22,7 @@ static void fn_node_input_vector_layout(uiLayout *layout, bContext *UNUSED(C), P
 
 static void fn_node_input_vector_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &bnode = builder.node();
+  const bNode &bnode = builder.node();
   NodeInputVector *node_storage = static_cast<NodeInputVector *>(bnode.storage);
   float3 vector(node_storage->vector);
   builder.construct_and_set_matching_fn<fn::CustomMF_Constant<float3>>(vector);

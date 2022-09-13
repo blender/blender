@@ -41,7 +41,6 @@
 #include "BKE_global.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_idtype.h"
-#include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
@@ -234,6 +233,12 @@ void gmp_blender_init_allocator()
 /** \name Main Function
  * \{ */
 
+/* When building as a Python module, don't use special argument handling
+ * so the module loading logic can control the `argv` & `argc`. */
+#if defined(WIN32) && !defined(WITH_PYTHON_MODULE)
+#  define USE_WIN32_UNICODE_ARGS
+#endif
+
 /**
  * Blender's main function responsibilities are:
  * - setup subsystems.
@@ -242,7 +247,7 @@ void gmp_blender_init_allocator()
  *   or exit immediately when running in background-mode.
  */
 int main(int argc,
-#ifdef WIN32
+#ifdef USE_WIN32_UNICODE_ARGS
          const char **UNUSED(argv_c)
 #else
          const char **argv
@@ -255,7 +260,7 @@ int main(int argc,
   bArgs *ba;
 #endif
 
-#ifdef WIN32
+#ifdef USE_WIN32_UNICODE_ARGS
   char **argv;
   int argv_num;
 #endif
@@ -281,11 +286,11 @@ int main(int argc,
   _putenv_s("OMP_WAIT_POLICY", "PASSIVE");
 #  endif
 
+#  ifdef USE_WIN32_UNICODE_ARGS
   /* Win32 Unicode Arguments. */
-  /* NOTE: cannot use `guardedalloc` allocation here, as it's not yet initialized
-   *       (it depends on the arguments passed in, which is what we're getting here!)
-   */
   {
+    /* NOTE: Can't use `guardedalloc` allocation here, as it's not yet initialized
+     * (it depends on the arguments passed in, which is what we're getting here!) */
     wchar_t **argv_16 = CommandLineToArgvW(GetCommandLineW(), &argc);
     argv = malloc(argc * sizeof(char *));
     for (argv_num = 0; argv_num < argc; argv_num++) {
@@ -297,7 +302,8 @@ int main(int argc,
     app_init_data.argv = argv;
     app_init_data.argv_num = argv_num;
   }
-#endif /* WIN32 */
+#  endif /* USE_WIN32_UNICODE_ARGS */
+#endif   /* WIN32 */
 
   /* NOTE: Special exception for guarded allocator type switch:
    *       we need to perform switch from lock-free to fully

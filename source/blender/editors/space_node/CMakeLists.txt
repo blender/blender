@@ -17,7 +17,6 @@ set(INC
   ../../nodes
   ../../render
   ../../windowmanager
-  ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -50,8 +49,8 @@ set(LIB
   bf_editor_screen
 )
 
-if(WITH_COMPOSITOR)
-  add_definitions(-DWITH_COMPOSITOR)
+if(WITH_COMPOSITOR_CPU)
+  add_definitions(-DWITH_COMPOSITOR_CPU)
 endif()
 
 if(WITH_OPENIMAGEDENOISE)

@@ -474,8 +474,8 @@ void BKE_object_handle_data_update(struct Depsgraph *depsgraph,
  */
 void BKE_object_handle_update(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
 /**
- * The main object update call, for object matrix, constraints, keys and #DispList (modifiers)
- * requires flags to be set!
+ * The main object update call, for object matrix, constraints, keys and modifiers.
+ * Requires flags to be set!
  *
  * Ideally we shouldn't have to pass the rigid body world,
  * but need bigger restructuring to avoid id.
@@ -586,7 +586,6 @@ void BKE_object_runtime_reset_on_copy(struct Object *object, int flag);
 void BKE_object_runtime_free_data(struct Object *object);
 
 void BKE_object_batch_cache_dirty_tag(struct Object *ob);
-void BKE_object_data_batch_cache_dirty_tag(struct ID *object_data);
 
 /* this function returns a superset of the scenes selection based on relationships */
 

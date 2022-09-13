@@ -22,6 +22,7 @@
 #include "BKE_data_transfer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
+#include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remap.h"
 #include "BKE_modifier.h"
@@ -129,7 +130,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
     if (dtmd->flags & MOD_DATATRANSFER_OBSRC_TRANSFORM) {
       DEG_add_object_relation(
           ctx->node, dtmd->ob_source, DEG_OB_COMP_TRANSFORM, "DataTransfer Modifier");
-      DEG_add_modifier_to_transform_relation(ctx->node, "DataTransfer Modifier");
+      DEG_add_depends_on_transform_relation(ctx->node, "DataTransfer Modifier");
     }
   }
 }
@@ -178,7 +179,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     BLI_SPACE_TRANSFORM_SETUP(space_transform, ctx->object, ob_source);
   }
 
-  if (((result == me) || (me->mvert == result->mvert) || (me->medge == result->medge)) &&
+  const MVert *me_verts = BKE_mesh_verts(me);
+  const MEdge *me_edges = BKE_mesh_edges(me);
+  const MVert *result_verts = BKE_mesh_verts(result);
+  const MEdge *result_edges = BKE_mesh_edges(result);
+
+  if (((result == me) || (me_verts == result_verts) || (me_edges == result_edges)) &&
       (dtmd->data_types & DT_TYPES_AFFECT_MESH)) {
     /* We need to duplicate data here, otherwise setting custom normals, edges' sharpness, etc.,
      * could modify org mesh, see T43671. */
@@ -211,7 +217,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                                   dtmd->defgrp_name,
                                   invert_vgroup,
                                   &reports)) {
-    result->runtime.is_original = false;
+    result->runtime.is_original_bmesh = false;
   }
 
   if (BKE_reports_contain(&reports, RPT_ERROR)) {

@@ -83,7 +83,7 @@ static const char *get_gpufn_name_from_to(short from, short to, bool is_directio
       }
       break;
   }
-  return NULL;
+  return nullptr;
 }
 
 static int gpu_shader_vect_transform(GPUMaterial *mat,

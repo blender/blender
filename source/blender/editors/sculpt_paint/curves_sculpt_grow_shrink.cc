@@ -144,21 +144,20 @@ class ExtrapolateCurvesEffect : public CurvesEffect {
       for (const int influence_i : range) {
         const int curve_i = curve_indices[influence_i];
         const float move_distance_cu = move_distances_cu[influence_i];
-        const IndexRange curve_points = curves.points_for_curve(curve_i);
+        const IndexRange points = curves.points_for_curve(curve_i);
 
-        if (curve_points.size() <= 1) {
+        if (points.size() <= 1) {
           continue;
         }
 
-        const float3 old_last_pos_cu = positions_cu[curve_points.last()];
+        const float3 old_last_pos_cu = positions_cu[points.last()];
         /* Use some point within the curve rather than the end point to smooth out some random
          * variation. */
-        const float3 direction_reference_point =
-            positions_cu[curve_points[curve_points.size() / 2]];
+        const float3 direction_reference_point = positions_cu[points[points.size() / 2]];
         const float3 direction = math::normalize(old_last_pos_cu - direction_reference_point);
 
         const float3 new_last_pos_cu = old_last_pos_cu + direction * move_distance_cu;
-        move_last_point_and_resample(positions_cu.slice(curve_points), new_last_pos_cu);
+        move_last_point_and_resample(positions_cu.slice(points), new_last_pos_cu);
       }
     });
   }
@@ -342,7 +341,8 @@ struct CurvesEffectOperationExecutor {
   void gather_influences_projected(
       threading::EnumerableThreadSpecific<Influences> &influences_for_thread)
   {
-    const Span<float3> positions_cu = curves_->positions();
+    const bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
 
     float4x4 projection;
     ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
@@ -350,7 +350,7 @@ struct CurvesEffectOperationExecutor {
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
     Vector<float4x4> symmetry_brush_transforms_inv;
-    for (const float4x4 brush_transform : symmetry_brush_transforms) {
+    for (const float4x4 &brush_transform : symmetry_brush_transforms) {
       symmetry_brush_transforms_inv.append(brush_transform.inverted());
     }
 
@@ -368,8 +368,8 @@ struct CurvesEffectOperationExecutor {
         float max_move_distance_cu = 0.0f;
         for (const float4x4 &brush_transform_inv : symmetry_brush_transforms_inv) {
           for (const int segment_i : points.drop_back(1)) {
-            const float3 p1_cu = brush_transform_inv * positions_cu[segment_i];
-            const float3 p2_cu = brush_transform_inv * positions_cu[segment_i + 1];
+            const float3 p1_cu = brush_transform_inv * deformation.positions[segment_i];
+            const float3 p2_cu = brush_transform_inv * deformation.positions[segment_i + 1];
 
             float2 p1_re, p2_re;
             ED_view3d_project_float_v2_m4(ctx_.region, p1_cu, p1_re, projection.values);
@@ -430,7 +430,8 @@ struct CurvesEffectOperationExecutor {
   void gather_influences_spherical(
       threading::EnumerableThreadSpecific<Influences> &influences_for_thread)
   {
-    const Span<float3> positions_cu = curves_->positions();
+    const bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
 
     float3 brush_pos_start_wo, brush_pos_end_wo;
     ED_view3d_win_to_3d(ctx_.v3d,
@@ -468,8 +469,8 @@ struct CurvesEffectOperationExecutor {
           const float3 brush_pos_end_transformed_cu = brush_transform * brush_pos_end_cu;
 
           for (const int segment_i : points.drop_back(1)) {
-            const float3 &p1_cu = positions_cu[segment_i];
-            const float3 &p2_cu = positions_cu[segment_i + 1];
+            const float3 &p1_cu = deformation.positions[segment_i];
+            const float3 &p2_cu = deformation.positions[segment_i + 1];
 
             float3 closest_on_segment_cu;
             float3 closest_on_brush_cu;

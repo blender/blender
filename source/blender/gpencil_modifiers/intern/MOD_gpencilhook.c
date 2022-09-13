@@ -387,7 +387,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Hook = {
-    /* name */ "Hook",
+    /* name */ N_("Hook"),
     /* structName */ "HookGpencilModifierData",
     /* structSize */ sizeof(HookGpencilModifierData),
     /* type */ eGpencilModifierTypeType_Gpencil,

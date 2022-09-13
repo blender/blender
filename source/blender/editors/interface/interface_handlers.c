@@ -4344,15 +4344,18 @@ static uiButExtraOpIcon *ui_but_extra_operator_icon_mouse_over_get(uiBut *but,
                                                                    ARegion *region,
                                                                    const wmEvent *event)
 {
-  float xmax = but->rect.xmax;
-  const float icon_size = 0.8f * BLI_rctf_size_y(&but->rect); /* ICON_SIZE_FROM_BUTRECT */
-  int x = event->xy[0], y = event->xy[1];
+  if (BLI_listbase_is_empty(&but->extra_op_icons)) {
+    return NULL;
+  }
 
+  int x = event->xy[0], y = event->xy[1];
   ui_window_to_block(region, but->block, &x, &y);
   if (!BLI_rctf_isect_pt(&but->rect, x, y)) {
     return NULL;
   }
 
+  const float icon_size = 0.8f * BLI_rctf_size_y(&but->rect); /* ICON_SIZE_FROM_BUTRECT */
+  float xmax = but->rect.xmax;
   /* Same as in 'widget_draw_extra_icons', icon padding from the right edge. */
   xmax -= 0.2 * icon_size;
 
@@ -8810,7 +8813,7 @@ void UI_context_active_but_prop_handle(bContext *C, const bool handle_undo)
 {
   uiBut *activebut = ui_context_rna_button_active(C);
   if (activebut) {
-    /* TODO(campbell): look into a better way to handle the button change
+    /* TODO(@campbellbarton): look into a better way to handle the button change
      * currently this is mainly so reset defaults works for the
      * operator redo panel. */
     uiBlock *block = activebut->block;

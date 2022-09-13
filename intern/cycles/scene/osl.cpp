@@ -17,7 +17,6 @@
 
 #  include "kernel/osl/globals.h"
 #  include "kernel/osl/services.h"
-#  include "kernel/osl/shader.h"
 
 #  include "util/aligned_malloc.h"
 #  include "util/foreach.h"
@@ -76,6 +75,18 @@ void OSLShaderManager::reset(Scene * /*scene*/)
 {
   shading_system_free();
   shading_system_init();
+}
+
+uint64_t OSLShaderManager::get_attribute_id(ustring name)
+{
+  return name.hash();
+}
+
+uint64_t OSLShaderManager::get_attribute_id(AttributeStandard std)
+{
+  /* if standard attribute, use geom: name convention */
+  ustring stdname(string("geom:") + string(Attribute::standard_name(std)));
+  return stdname.hash();
 }
 
 void OSLShaderManager::device_update_specific(Device *device,
@@ -286,7 +297,7 @@ void OSLShaderManager::shading_system_init()
     const int nraytypes = sizeof(raytypes) / sizeof(raytypes[0]);
     ss_shared->attribute("raytypes", TypeDesc(TypeDesc::STRING, nraytypes), raytypes);
 
-    OSLShader::register_closures((OSLShadingSystem *)ss_shared);
+    OSLRenderServices::register_closures(ss_shared);
 
     loaded_shaders.clear();
   }

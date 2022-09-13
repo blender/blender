@@ -21,9 +21,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void scale_instances(GeoNodeExecParams &params, InstancesComponent &instances_component)
 {
-  GeometryComponentFieldContext field_context{instances_component, ATTR_DOMAIN_INSTANCE};
-
-  fn::FieldEvaluator evaluator{field_context, instances_component.instances_num()};
+  const bke::InstancesFieldContext context{instances_component};
+  fn::FieldEvaluator evaluator{context, instances_component.instances_num()};
   evaluator.set_selection(params.extract_input<Field<bool>>("Selection"));
   evaluator.add(params.extract_input<Field<float3>>("Scale"));
   evaluator.add(params.extract_input<Field<float3>>("Center"));

@@ -16,9 +16,16 @@ if(NOT DEFINED LIBDIR)
   # Choose the best suitable libraries.
   if(EXISTS ${LIBDIR_NATIVE_ABI})
     set(LIBDIR ${LIBDIR_NATIVE_ABI})
+    set(WITH_LIBC_MALLOC_HOOK_WORKAROUND True)
   elseif(EXISTS ${LIBDIR_CENTOS7_ABI})
     set(LIBDIR ${LIBDIR_CENTOS7_ABI})
     set(WITH_CXX11_ABI OFF)
+    if(WITH_MEM_JEMALLOC)
+      # jemalloc provides malloc hooks.
+      set(WITH_LIBC_MALLOC_HOOK_WORKAROUND False)
+    else()
+      set(WITH_LIBC_MALLOC_HOOK_WORKAROUND True)
+    endif()
 
     if(CMAKE_COMPILER_IS_GNUCC AND
        CMAKE_C_COMPILER_VERSION VERSION_LESS 9.3)
@@ -81,6 +88,15 @@ macro(find_package_wrapper)
   endif()
 endmacro()
 
+# Utility to install precompiled shared libraries.
+macro(add_bundled_libraries library)
+  if(EXISTS ${LIBDIR})
+    file(GLOB _all_library_versions ${LIBDIR}/${library}/lib/*\.so*)
+    list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_all_library_versions})
+    unset(_all_library_versions)
+ endif()
+endmacro()
+
 # ----------------------------------------------------------------------------
 # Precompiled Libraries
 #
@@ -95,6 +111,19 @@ find_package_wrapper(JPEG REQUIRED)
 find_package_wrapper(PNG REQUIRED)
 find_package_wrapper(ZLIB REQUIRED)
 find_package_wrapper(Zstd REQUIRED)
+find_package_wrapper(Epoxy REQUIRED)
+
+function(check_freetype_for_brotli)
+  include(CheckSymbolExists)
+  set(CMAKE_REQUIRED_INCLUDES ${FREETYPE_INCLUDE_DIRS})
+  check_symbol_exists(FT_CONFIG_OPTION_USE_BROTLI "freetype/config/ftconfig.h" HAVE_BROTLI)
+  unset(CMAKE_REQUIRED_INCLUDES)
+  if(NOT HAVE_BROTLI)
+    unset(HAVE_BROTLI CACHE)
+    message(FATAL_ERROR "Freetype needs to be compiled with brotli support!")
+  endif()
+  unset(HAVE_BROTLI CACHE)
+endfunction()
 
 if(NOT WITH_SYSTEM_FREETYPE)
   # FreeType compiled with Brotli compression for woff2.
@@ -110,6 +139,7 @@ if(NOT WITH_SYSTEM_FREETYPE)
     #   ${BROTLI_LIBRARIES}
     # )
   endif()
+  check_freetype_for_brotli()
 endif()
 
 if(WITH_PYTHON)
@@ -202,6 +232,9 @@ if(WITH_CODEC_FFMPEG)
       vpx
       x264
       xvidcore)
+    if(EXISTS ${LIBDIR}/ffmpeg/lib/libaom.a)
+      list(APPEND FFMPEG_FIND_COMPONENTS aom)
+    endif()
   elseif(FFMPEG)
     # Old cache variable used for root dir, convert to new standard.
     set(FFMPEG_ROOT_DIR ${FFMPEG})
@@ -584,6 +617,7 @@ if(WITH_SYSTEM_FREETYPE)
   if(NOT FREETYPE_FOUND)
     message(FATAL_ERROR "Failed finding system FreeType version!")
   endif()
+  check_freetype_for_brotli()
 endif()
 
 if(WITH_LZO AND WITH_SYSTEM_LZO)
@@ -626,46 +660,92 @@ endif()
 
 if(WITH_GHOST_WAYLAND)
   find_package(PkgConfig)
-  pkg_check_modules(wayland-client REQUIRED wayland-client>=1.12)
-  pkg_check_modules(wayland-egl REQUIRED wayland-egl)
-  pkg_check_modules(wayland-scanner REQUIRED wayland-scanner)
-  pkg_check_modules(xkbcommon REQUIRED xkbcommon)
-  pkg_check_modules(wayland-cursor REQUIRED wayland-cursor)
+  pkg_check_modules(wayland-client wayland-client>=1.12)
+  pkg_check_modules(wayland-egl wayland-egl)
+  pkg_check_modules(wayland-scanner wayland-scanner)
+  pkg_check_modules(xkbcommon xkbcommon)
+  pkg_check_modules(wayland-cursor wayland-cursor)
+  pkg_check_modules(wayland-protocols wayland-protocols>=1.15)
 
-  if(WITH_GHOST_WAYLAND_DBUS)
-    pkg_check_modules(dbus REQUIRED dbus-1)
-  endif()
-
-  if(WITH_GHOST_WAYLAND_LIBDECOR)
-    pkg_check_modules(libdecor REQUIRED libdecor-0>=0.1)
-  endif()
-
-  list(APPEND PLATFORM_LINKLIBS
-    ${xkbcommon_LINK_LIBRARIES}
-  )
-
-  if(NOT WITH_GHOST_WAYLAND_DYNLOAD)
-    list(APPEND PLATFORM_LINKLIBS
-      ${wayland-client_LINK_LIBRARIES}
-      ${wayland-egl_LINK_LIBRARIES}
-      ${wayland-cursor_LINK_LIBRARIES}
+  if(${wayland-protocols_FOUND})
+    pkg_get_variable(WAYLAND_PROTOCOLS_DIR wayland-protocols pkgdatadir)
+  else()
+    # CentOS 7 packages have too old a version, a newer version exist in the
+    # precompiled libraries.
+    find_path(WAYLAND_PROTOCOLS_DIR
+      NAMES unstable/xdg-decoration/xdg-decoration-unstable-v1.xml
+      PATH_SUFFIXES share/wayland-protocols
+      PATHS ${LIBDIR}/wayland-protocols
     )
+
+    if(EXISTS ${WAYLAND_PROTOCOLS_DIR})
+      set(wayland-protocols_FOUND ON)
+    endif()
   endif()
 
-  if(WITH_GHOST_WAYLAND_DBUS)
+  if (NOT ${wayland-client_FOUND})
+    message(STATUS "wayland-client not found, disabling WITH_GHOST_WAYLAND")
+    set(WITH_GHOST_WAYLAND OFF)
+  endif()
+  if (NOT ${wayland-egl_FOUND})
+    message(STATUS "wayland-egl not found, disabling WITH_GHOST_WAYLAND")
+    set(WITH_GHOST_WAYLAND OFF)
+  endif()
+  if (NOT ${wayland-scanner_FOUND})
+    message(STATUS "wayland-scanner not found, disabling WITH_GHOST_WAYLAND")
+    set(WITH_GHOST_WAYLAND OFF)
+  endif()
+  if (NOT ${wayland-cursor_FOUND})
+    message(STATUS "wayland-cursor not found, disabling WITH_GHOST_WAYLAND")
+    set(WITH_GHOST_WAYLAND OFF)
+  endif()
+  if (NOT ${wayland-protocols_FOUND})
+    message(STATUS "wayland-protocols not found, disabling WITH_GHOST_WAYLAND")
+    set(WITH_GHOST_WAYLAND OFF)
+  endif()
+  if (NOT ${xkbcommon_FOUND})
+    message(STATUS "xkbcommon not found, disabling WITH_GHOST_WAYLAND")
+    set(WITH_GHOST_WAYLAND OFF)
+  endif()
+
+  if(WITH_GHOST_WAYLAND)
+    if(WITH_GHOST_WAYLAND_DBUS)
+      pkg_check_modules(dbus REQUIRED dbus-1)
+    endif()
+
+    if(WITH_GHOST_WAYLAND_LIBDECOR)
+      pkg_check_modules(libdecor REQUIRED libdecor-0>=0.1)
+    endif()
+
     list(APPEND PLATFORM_LINKLIBS
-      ${dbus_LINK_LIBRARIES}
+      ${xkbcommon_LINK_LIBRARIES}
     )
-    add_definitions(-DWITH_GHOST_WAYLAND_DBUS)
-  endif()
 
-  if(WITH_GHOST_WAYLAND_LIBDECOR)
     if(NOT WITH_GHOST_WAYLAND_DYNLOAD)
       list(APPEND PLATFORM_LINKLIBS
-        ${libdecor_LIBRARIES}
+        ${wayland-client_LINK_LIBRARIES}
+        ${wayland-egl_LINK_LIBRARIES}
+        ${wayland-cursor_LINK_LIBRARIES}
       )
     endif()
-    add_definitions(-DWITH_GHOST_WAYLAND_LIBDECOR)
+
+    if(WITH_GHOST_WAYLAND_DBUS)
+      list(APPEND PLATFORM_LINKLIBS
+        ${dbus_LINK_LIBRARIES}
+      )
+      add_definitions(-DWITH_GHOST_WAYLAND_DBUS)
+    endif()
+
+    if(WITH_GHOST_WAYLAND_LIBDECOR)
+      if(NOT WITH_GHOST_WAYLAND_DYNLOAD)
+        list(APPEND PLATFORM_LINKLIBS
+          ${libdecor_LIBRARIES}
+        )
+      endif()
+      add_definitions(-DWITH_GHOST_WAYLAND_LIBDECOR)
+    endif()
+
+    pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
   endif()
 endif()
 
@@ -786,7 +866,8 @@ if(CMAKE_COMPILER_IS_GNUCC)
           "The mold linker could not find the directory containing the linker command "
           "(typically "
           "\"${MOLD_PREFIX}/libexec/mold/ld\") or "
-          "\"${MOLD_PREFIX}/lib/mold/ld\") using system linker.")
+          "\"${MOLD_PREFIX}/lib/mold/ld\") using system linker."
+        )
         set(WITH_LINKER_MOLD OFF)
       endif()
       unset(MOLD_PREFIX)
@@ -885,8 +966,9 @@ unset(_IS_LINKER_DEFAULT)
 
 # Avoid conflicts with Mesa llvmpipe, Luxrender, and other plug-ins that may
 # use the same libraries as Blender with a different version or build options.
+set(PLATFORM_SYMBOLS_MAP ${CMAKE_SOURCE_DIR}/source/creator/symbols_unix.map)
 set(PLATFORM_LINKFLAGS
-  "${PLATFORM_LINKFLAGS} -Wl,--version-script='${CMAKE_SOURCE_DIR}/source/creator/blender.map'"
+  "${PLATFORM_LINKFLAGS} -Wl,--version-script='${PLATFORM_SYMBOLS_MAP}'"
 )
 
 # Don't use position independent executable for portable install since file
@@ -924,7 +1006,8 @@ function(CONFIGURE_ATOMIC_LIB_IF_NEEDED)
       int main(int argc, char **argv) {
         std::atomic<uint64_t> uint64; uint64++;
         return 0;
-      }")
+      }"
+  )
 
   include(CheckCXXSourceCompiles)
   check_cxx_source_compiles("${_source}" ATOMIC_OPS_WITHOUT_LIBATOMIC)
@@ -936,6 +1019,7 @@ function(CONFIGURE_ATOMIC_LIB_IF_NEEDED)
 
     set(CMAKE_REQUIRED_LIBRARIES atomic)
     check_cxx_source_compiles("${_source}" ATOMIC_OPS_WITH_LIBATOMIC)
+    unset(CMAKE_REQUIRED_LIBRARIES)
 
     if(ATOMIC_OPS_WITH_LIBATOMIC)
       set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -latomic" PARENT_SCOPE)
@@ -949,3 +1033,16 @@ function(CONFIGURE_ATOMIC_LIB_IF_NEEDED)
 endfunction()
 
 CONFIGURE_ATOMIC_LIB_IF_NEEDED()
+
+if(PLATFORM_BUNDLED_LIBRARIES)
+  # For the installed Python module and installed Blender executable, we set the
+  # rpath to the relative path where the install step will copy the shared libraries.
+  set(CMAKE_SKIP_INSTALL_RPATH FALSE)
+  list(APPEND CMAKE_INSTALL_RPATH $ORIGIN/lib)
+
+  # For executables that are built but not installed (mainly tests) we set an absolute
+  # rpath to the lib folder. This is needed because these can be in different folders,
+  # and because the build and install folder may be different.
+  set(CMAKE_SKIP_BUILD_RPATH FALSE)
+  list(APPEND CMAKE_BUILD_RPATH $ORIGIN/lib ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/lib)
+endif()

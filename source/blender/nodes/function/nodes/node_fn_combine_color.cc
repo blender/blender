@@ -49,7 +49,7 @@ static void fn_node_combine_color_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static const fn::MultiFunction *get_multi_function(bNode &bnode)
+static const fn::MultiFunction *get_multi_function(const bNode &bnode)
 {
   const NodeCombSepColor &storage = node_storage(bnode);
 

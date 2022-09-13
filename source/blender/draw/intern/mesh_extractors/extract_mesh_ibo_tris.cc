@@ -189,12 +189,12 @@ static void extract_tris_single_mat_iter_looptri_mesh(const MeshRenderData *mr,
                                                       void *_data)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
-  const MPoly *mp = &mr->mpoly[mlt->poly];
-  if (!(mr->use_hide && (mp->flag & ME_HIDE))) {
-    GPU_indexbuf_set_tri_verts(elb, mlt_index, mlt->tri[0], mlt->tri[1], mlt->tri[2]);
+  const bool hidden = mr->use_hide && mr->hide_poly && mr->hide_poly[mlt->poly];
+  if (hidden) {
+    GPU_indexbuf_set_tri_restart(elb, mlt_index);
   }
   else {
-    GPU_indexbuf_set_tri_restart(elb, mlt_index);
+    GPU_indexbuf_set_tri_verts(elb, mlt_index, mlt->tri[0], mlt->tri[1], mlt->tri[2]);
   }
 }
 

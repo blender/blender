@@ -332,6 +332,29 @@ extern const float bvhtree_kdop_axes[13][3];
 
 namespace blender {
 
+using BVHTree_RayCastCallback_CPP =
+    FunctionRef<void(int index, const BVHTreeRay &ray, BVHTreeRayHit &hit)>;
+
+inline void BLI_bvhtree_ray_cast_all_cpp(BVHTree &tree,
+                                         const float3 co,
+                                         const float3 dir,
+                                         float radius,
+                                         float hit_dist,
+                                         BVHTree_RayCastCallback_CPP fn)
+{
+  BLI_bvhtree_ray_cast_all(
+      &tree,
+      co,
+      dir,
+      radius,
+      hit_dist,
+      [](void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit) {
+        BVHTree_RayCastCallback_CPP fn = *static_cast<BVHTree_RayCastCallback_CPP *>(userdata);
+        fn(index, *ray, *hit);
+      },
+      &fn);
+}
+
 using BVHTree_RangeQuery_CPP = FunctionRef<void(int index, const float3 &co, float dist_sq)>;
 
 inline void BLI_bvhtree_range_query_cpp(BVHTree &tree,

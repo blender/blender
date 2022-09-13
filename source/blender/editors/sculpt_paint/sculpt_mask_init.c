@@ -99,7 +99,7 @@ static void mask_init_task_cb(void *__restrict userdata,
         *vd.mask = BLI_hash_int_01(vd.index + seed);
         break;
       case SCULPT_MASK_INIT_RANDOM_PER_FACE_SET: {
-        const int face_set = SCULPT_vertex_face_set_get(ss, vd.index);
+        const int face_set = SCULPT_vertex_face_set_get(ss, vd.vertex);
         *vd.mask = BLI_hash_int_01(face_set + seed);
         break;
       }
@@ -131,7 +131,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  SCULPT_undo_push_begin(ob, "init mask");
+  SCULPT_undo_push_begin(ob, op);
 
   if (mode == SCULPT_MASK_INIT_RANDOM_PER_LOOSE_PART) {
     SCULPT_connected_components_ensure(ob);

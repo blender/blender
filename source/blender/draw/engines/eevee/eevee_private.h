@@ -1015,7 +1015,7 @@ typedef struct EEVEE_PrivateData {
   struct GHash *material_hash;
   float background_alpha; /* TODO: find a better place for this. */
   bool disable_ligthprobes;
-  /* Chosen lightcache: can come from Lookdev or the viewlayer. */
+  /** Chosen light-cache: can come from Lookdev or the view-layer. */
   struct LightCache *light_cache;
   /* For planar probes */
   float planar_texel_size[2];
@@ -1261,6 +1261,7 @@ struct GPUShader *EEVEE_shaders_volumes_scatter_sh_get(void);
 struct GPUShader *EEVEE_shaders_volumes_scatter_with_lights_sh_get(void);
 struct GPUShader *EEVEE_shaders_volumes_integration_sh_get(void);
 struct GPUShader *EEVEE_shaders_volumes_resolve_sh_get(bool accum);
+struct GPUShader *EEVEE_shaders_volumes_resolve_comp_sh_get(bool float_target);
 struct GPUShader *EEVEE_shaders_volumes_accum_sh_get(void);
 struct GPUShader *EEVEE_shaders_ggx_lut_sh_get(void);
 struct GPUShader *EEVEE_shaders_ggx_refraction_lut_sh_get(void);

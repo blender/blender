@@ -354,10 +354,9 @@ static GridCoord *vertex_grid_coord_with_grid_index(const Vertex *vertex, const 
 
 /* Get grid coordinates which correspond to corners of the given face.
  * All the grid coordinates will be from the same grid index. */
-static void grid_coords_from_face_vertices(
-    const MultiresReshapeSmoothContext *reshape_smooth_context,
-    const Face *face,
-    const GridCoord *grid_coords[])
+static void grid_coords_from_face_verts(const MultiresReshapeSmoothContext *reshape_smooth_context,
+                                        const Face *face,
+                                        const GridCoord *grid_coords[])
 {
   BLI_assert(face->num_corners == 4);
 
@@ -417,7 +416,7 @@ static void foreach_toplevel_grid_coord_task(void *__restrict userdata_v,
 
   const Face *face = &reshape_smooth_context->geometry.faces[face_index];
   const GridCoord *face_grid_coords[4];
-  grid_coords_from_face_vertices(reshape_smooth_context, face, face_grid_coords);
+  grid_coords_from_face_verts(reshape_smooth_context, face, face_grid_coords);
 
   for (int y = 0; y < inner_grid_size; ++y) {
     const float ptex_v = (float)y * inner_grid_size_1_inv;
@@ -643,8 +642,7 @@ static void foreach_vertex(const SubdivForeachContext *foreach_context,
   const int face_index = multires_reshape_grid_to_face_index(reshape_context,
                                                              grid_coord.grid_index);
 
-  const Mesh *base_mesh = reshape_context->base_mesh;
-  const MPoly *base_poly = &base_mesh->mpoly[face_index];
+  const MPoly *base_poly = &reshape_context->base_polys[face_index];
   const int num_corners = base_poly->totloop;
   const int start_grid_index = reshape_context->face_start_grid_index[face_index];
   const int corner = grid_coord.grid_index - start_grid_index;
@@ -834,8 +832,7 @@ static void foreach_edge(const struct SubdivForeachContext *foreach_context,
     return;
   }
   /* Edges without crease are to be ignored as well. */
-  const Mesh *base_mesh = reshape_context->base_mesh;
-  const MEdge *base_edge = &base_mesh->medge[coarse_edge_index];
+  const MEdge *base_edge = &reshape_context->base_edges[coarse_edge_index];
   const char crease = get_effective_crease_char(reshape_smooth_context, base_edge);
   if (crease == 0) {
     return;
@@ -847,9 +844,9 @@ static void geometry_init_loose_information(MultiresReshapeSmoothContext *reshap
 {
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
   const Mesh *base_mesh = reshape_context->base_mesh;
-  const MPoly *base_mpoly = base_mesh->mpoly;
-  const MLoop *base_mloop = base_mesh->mloop;
-  const MEdge *base_edge = base_mesh->medge;
+  const MPoly *base_mpoly = reshape_context->base_polys;
+  const MLoop *base_mloop = reshape_context->base_loops;
+  const MEdge *base_edge = reshape_context->base_edges;
 
   reshape_smooth_context->non_loose_base_edge_map = BLI_BITMAP_NEW(base_mesh->totedge,
                                                                    "non_loose_base_edge_map");

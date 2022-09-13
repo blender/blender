@@ -188,10 +188,28 @@ template<typename T> class SimpleMixer {
    * \param default_value: Output value for an element that has not been affected by a #mix_in.
    */
   SimpleMixer(MutableSpan<T> buffer, T default_value = {})
+      : SimpleMixer(buffer, buffer.index_range(), default_value)
+  {
+  }
+
+  /**
+   * \param mask: Only initialize these indices. Other indices in the buffer will be invalid.
+   */
+  SimpleMixer(MutableSpan<T> buffer, const IndexMask mask, T default_value = {})
       : buffer_(buffer), default_value_(default_value), total_weights_(buffer.size(), 0.0f)
   {
     BLI_STATIC_ASSERT(std::is_trivial_v<T>, "");
-    memset(buffer_.data(), 0, sizeof(T) * buffer_.size());
+    mask.foreach_index([&](const int64_t i) { buffer_[i] = default_value_; });
+  }
+
+  /**
+   * Set a #value into the element with the given #index.
+   */
+  void set(const int64_t index, const T &value, const float weight = 1.0f)
+  {
+    BLI_assert(weight >= 0.0f);
+    buffer_[index] = value * weight;
+    total_weights_[index] = weight;
   }
 
   /**
@@ -209,7 +227,12 @@ template<typename T> class SimpleMixer {
    */
   void finalize()
   {
-    for (const int64_t i : buffer_.index_range()) {
+    this->finalize(IndexMask(buffer_.size()));
+  }
+
+  void finalize(const IndexMask mask)
+  {
+    mask.foreach_index([&](const int64_t i) {
       const float weight = total_weights_[i];
       if (weight > 0.0f) {
         buffer_[i] *= 1.0f / weight;
@@ -217,7 +240,7 @@ template<typename T> class SimpleMixer {
       else {
         buffer_[i] = default_value_;
       }
-    }
+    });
   }
 };
 
@@ -237,9 +260,25 @@ class BooleanPropagationMixer {
   /**
    * \param buffer: Span where the interpolated values should be stored.
    */
-  BooleanPropagationMixer(MutableSpan<bool> buffer) : buffer_(buffer)
+  BooleanPropagationMixer(MutableSpan<bool> buffer)
+      : BooleanPropagationMixer(buffer, buffer.index_range())
   {
-    buffer_.fill(false);
+  }
+
+  /**
+   * \param mask: Only initialize these indices. Other indices in the buffer will be invalid.
+   */
+  BooleanPropagationMixer(MutableSpan<bool> buffer, const IndexMask mask) : buffer_(buffer)
+  {
+    mask.foreach_index([&](const int64_t i) { buffer_[i] = false; });
+  }
+
+  /**
+   * Set a #value into the element with the given #index.
+   */
+  void set(const int64_t index, const bool value, [[maybe_unused]] const float weight = 1.0f)
+  {
+    buffer_[index] = value;
   }
 
   /**
@@ -254,6 +293,10 @@ class BooleanPropagationMixer {
    * Does not do anything, since the mixing is trivial.
    */
   void finalize()
+  {
+  }
+
+  void finalize(const IndexMask /*mask*/)
   {
   }
 };
@@ -277,8 +320,27 @@ class SimpleMixerWithAccumulationType {
 
  public:
   SimpleMixerWithAccumulationType(MutableSpan<T> buffer, T default_value = {})
+      : SimpleMixerWithAccumulationType(buffer, buffer.index_range(), default_value)
+  {
+  }
+
+  /**
+   * \param mask: Only initialize these indices. Other indices in the buffer will be invalid.
+   */
+  SimpleMixerWithAccumulationType(MutableSpan<T> buffer,
+                                  const IndexMask mask,
+                                  T default_value = {})
       : buffer_(buffer), default_value_(default_value), accumulation_buffer_(buffer.size())
   {
+    mask.foreach_index([&](const int64_t index) { buffer_[index] = default_value_; });
+  }
+
+  void set(const int64_t index, const T &value, const float weight = 1.0f)
+  {
+    const AccumulationT converted_value = static_cast<AccumulationT>(value);
+    Item &item = accumulation_buffer_[index];
+    item.value = converted_value * weight;
+    item.weight = weight;
   }
 
   void mix_in(const int64_t index, const T &value, const float weight = 1.0f)
@@ -291,7 +353,12 @@ class SimpleMixerWithAccumulationType {
 
   void finalize()
   {
-    for (const int64_t i : buffer_.index_range()) {
+    this->finalize(buffer_.index_range());
+  }
+
+  void finalize(const IndexMask mask)
+  {
+    mask.foreach_index([&](const int64_t i) {
       const Item &item = accumulation_buffer_[i];
       if (item.weight > 0.0f) {
         const float weight_inv = 1.0f / item.weight;
@@ -301,7 +368,7 @@ class SimpleMixerWithAccumulationType {
       else {
         buffer_[i] = default_value_;
       }
-    }
+    });
   }
 };
 
@@ -314,8 +381,16 @@ class ColorGeometry4fMixer {
  public:
   ColorGeometry4fMixer(MutableSpan<ColorGeometry4f> buffer,
                        ColorGeometry4f default_color = ColorGeometry4f(0.0f, 0.0f, 0.0f, 1.0f));
+  /**
+   * \param mask: Only initialize these indices. Other indices in the buffer will be invalid.
+   */
+  ColorGeometry4fMixer(MutableSpan<ColorGeometry4f> buffer,
+                       IndexMask mask,
+                       ColorGeometry4f default_color = ColorGeometry4f(0.0f, 0.0f, 0.0f, 1.0f));
+  void set(int64_t index, const ColorGeometry4f &color, float weight = 1.0f);
   void mix_in(int64_t index, const ColorGeometry4f &color, float weight = 1.0f);
   void finalize();
+  void finalize(IndexMask mask);
 };
 
 class ColorGeometry4bMixer {
@@ -328,8 +403,16 @@ class ColorGeometry4bMixer {
  public:
   ColorGeometry4bMixer(MutableSpan<ColorGeometry4b> buffer,
                        ColorGeometry4b default_color = ColorGeometry4b(0, 0, 0, 255));
+  /**
+   * \param mask: Only initialize these indices. Other indices in the buffer will be invalid.
+   */
+  ColorGeometry4bMixer(MutableSpan<ColorGeometry4b> buffer,
+                       IndexMask mask,
+                       ColorGeometry4b default_color = ColorGeometry4b(0, 0, 0, 255));
+  void set(int64_t index, const ColorGeometry4b &color, float weight = 1.0f);
   void mix_in(int64_t index, const ColorGeometry4b &color, float weight = 1.0f);
   void finalize();
+  void finalize(IndexMask mask);
 };
 
 template<typename T> struct DefaultMixerStruct {
@@ -381,12 +464,12 @@ template<> struct DefaultMixerStruct<int8_t> {
   using type = SimpleMixerWithAccumulationType<int8_t, float, float_to_int8_t>;
 };
 
-template<typename T> struct DefaultPropatationMixerStruct {
+template<typename T> struct DefaultPropagationMixerStruct {
   /* Use void by default. This can be checked for in `if constexpr` statements. */
   using type = typename DefaultMixerStruct<T>::type;
 };
 
-template<> struct DefaultPropatationMixerStruct<bool> {
+template<> struct DefaultPropagationMixerStruct<bool> {
   using type = BooleanPropagationMixer;
 };
 
@@ -396,7 +479,7 @@ template<> struct DefaultPropatationMixerStruct<bool> {
  * (the default mixing for booleans).
  */
 template<typename T>
-using DefaultPropatationMixer = typename DefaultPropatationMixerStruct<T>::type;
+using DefaultPropagationMixer = typename DefaultPropagationMixerStruct<T>::type;
 
 /* Utility to get a good default mixer for a given type. This is `void` when there is no default
  * mixer for the given type. */

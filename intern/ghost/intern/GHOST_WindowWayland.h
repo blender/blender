@@ -14,8 +14,8 @@
 
 class GHOST_SystemWayland;
 
-struct output_t;
-struct window_t;
+struct GWL_Output;
+struct GWL_Window;
 
 class GHOST_WindowWayland : public GHOST_Window {
  public:
@@ -97,8 +97,8 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   uint16_t dpi() const;
   int scale() const;
-  struct wl_surface *surface() const;
-  const std::vector<output_t *> &outputs();
+  struct wl_surface *wl_surface() const;
+  const std::vector<GWL_Output *> &outputs();
 
   /* WAYLAND window-level functions. */
 
@@ -109,14 +109,14 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   /* WAYLAND utility functions. */
 
-  bool outputs_enter(output_t *reg_output);
-  bool outputs_leave(output_t *reg_output);
+  bool outputs_enter(GWL_Output *output);
+  bool outputs_leave(GWL_Output *output);
 
   bool outputs_changed_update_scale();
 
  private:
   GHOST_SystemWayland *m_system;
-  struct window_t *w;
+  struct GWL_Window *w;
   std::string title;
 
   /**

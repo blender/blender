@@ -90,7 +90,6 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
   BLI_addtail(&saction->regionbase, region);
   region->regiontype = RGN_TYPE_UI;
   region->alignment = RGN_ALIGN_RIGHT;
-  region->flag = RGN_FLAG_HIDDEN;
 
   /* main region */
   region = MEM_callocN(sizeof(ARegion), "main region for action");
@@ -308,7 +307,7 @@ static void action_header_region_draw(const bContext *C, ARegion *region)
 static void action_channel_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -402,7 +401,7 @@ static void saction_channel_region_message_subscribe(const wmRegionMessageSubscr
 static void action_main_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -500,7 +499,7 @@ static void saction_main_region_message_subscribe(const wmRegionMessageSubscribe
 static void action_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
   SpaceAction *saction = (SpaceAction *)area->spacedata.first;
 
   /* context changes */
@@ -654,7 +653,7 @@ static void action_header_region_listener(const wmRegionListenerParams *params)
 {
   ScrArea *area = params->area;
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
   SpaceAction *saction = (SpaceAction *)area->spacedata.first;
 
   /* context changes */
@@ -729,7 +728,7 @@ static void action_buttons_area_draw(const bContext *C, ARegion *region)
 static void action_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -841,7 +840,7 @@ void ED_spacetype_action(void)
   ARegionType *art;
 
   st->spaceid = SPACE_ACTION;
-  strncpy(st->name, "Action", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "Action");
 
   st->create = action_create;
   st->free = action_free;

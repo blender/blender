@@ -19,6 +19,8 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 
+#include "BLT_translation.h"
+
 #include "DEG_depsgraph.h"
 
 #include "ED_gpencil.h"
@@ -54,7 +56,7 @@ static int gpencil_monkey_color(
     Main *bmain, Object *ob, const ColorTemplate *pct, bool stroke, bool fill)
 {
   int index;
-  Material *ma = BKE_gpencil_object_material_ensure_by_name(bmain, ob, pct->name, &index);
+  Material *ma = BKE_gpencil_object_material_ensure_by_name(bmain, ob, DATA_(pct->name), &index);
 
   copy_v4_v4(ma->gp_style->stroke_rgba, pct->line);
   srgb_to_linearrgb_v4(ma->gp_style->stroke_rgba, ma->gp_style->stroke_rgba);
@@ -781,37 +783,37 @@ static const float data27[33 * GP_PRIM_DATABUF_SIZE] = {
 /* Monkey Color Data */
 
 static const ColorTemplate gp_monkey_pct_black = {
-    "Black",
+    N_("Black"),
     {0.0f, 0.0f, 0.0f, 1.0f},
     {0.0f, 0.0f, 0.0f, 0.0f},
 };
 
 static const ColorTemplate gp_monkey_pct_skin = {
-    "Skin",
+    N_("Skin"),
     {0.733f, 0.569f, 0.361f, 1.0f},
     {0.745f, 0.502f, 0.278f, 1.0f},
 };
 
 static const ColorTemplate gp_monkey_pct_skin_light = {
-    "Skin_Light",
+    N_("Skin_Light"),
     {0.914f, 0.827f, 0.635f, 1.0f},
     {0.913f, 0.828f, 0.637f, 0.0f},
 };
 
 static const ColorTemplate gp_monkey_pct_skin_shadow = {
-    "Skin_Shadow",
+    N_("Skin_Shadow"),
     {0.322f, 0.29f, 0.224f, 0.5f},
     {0.32f, 0.29f, 0.223f, 0.3f},
 };
 
 static const ColorTemplate gp_monkey_pct_eyes = {
-    "Eyes",
+    N_("Eyes"),
     {0.553f, 0.39f, 0.266f, 0.0f},
     {0.847f, 0.723f, 0.599f, 1.0f},
 };
 
 static const ColorTemplate gp_monkey_pct_pupils = {
-    "Pupils",
+    N_("Pupils"),
     {0.0f, 0.0f, 0.0f, 0.0f},
     {0.0f, 0.0f, 0.0f, 1.0f},
 };
@@ -821,6 +823,8 @@ static const ColorTemplate gp_monkey_pct_pupils = {
 
 void ED_gpencil_create_monkey(bContext *C, Object *ob, float mat[4][4])
 {
+  /* Original model created by Matias Mendiola. */
+
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   bGPdata *gpd = (bGPdata *)ob->data;

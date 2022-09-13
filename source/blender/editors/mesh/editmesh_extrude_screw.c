@@ -41,7 +41,7 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
   int valence;
   uint objects_empty_len = 0;
   uint failed_axis_len = 0;
-  uint failed_vertices_len = 0;
+  uint failed_verts_len = 0;
 
   turns = RNA_int_get(op->ptr, "turns");
   steps = RNA_int_get(op->ptr, "steps");
@@ -97,7 +97,7 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
     }
 
     if (v1 == NULL || v2 == NULL) {
-      failed_vertices_len++;
+      failed_verts_len++;
       continue;
     }
 
@@ -151,7 +151,7 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
   if (failed_axis_len == objects_len - objects_empty_len) {
     BKE_report(op->reports, RPT_ERROR, "Invalid/unset axis");
   }
-  else if (failed_vertices_len == objects_len - objects_empty_len) {
+  else if (failed_verts_len == objects_len - objects_empty_len) {
     BKE_report(op->reports, RPT_ERROR, "You have to select a string of connected vertices too");
   }
 

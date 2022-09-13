@@ -8,7 +8,6 @@
 
 #include "BKE_attribute.h"
 #include "BKE_curves.hh"
-#include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
@@ -19,6 +18,7 @@
 
 #include "DNA_collection_types.h"
 #include "DNA_object_types.h"
+#include "DNA_pointcloud_types.h"
 
 #include "BLI_rand.hh"
 
@@ -53,6 +53,8 @@ GeometryComponent *GeometryComponent::create(GeometryComponentType component_typ
       return new VolumeComponent();
     case GEO_COMPONENT_TYPE_CURVE:
       return new CurveComponent();
+    case GEO_COMPONENT_TYPE_EDIT:
+      return new GeometryComponentEditData();
   }
   BLI_assert_unreachable();
   return nullptr;
@@ -175,6 +177,20 @@ void GeometrySet::keep_only(const blender::Span<GeometryComponentType> component
   }
 }
 
+void GeometrySet::keep_only_during_modify(
+    const blender::Span<GeometryComponentType> component_types)
+{
+  Vector<GeometryComponentType> extended_types = component_types;
+  extended_types.append_non_duplicates(GEO_COMPONENT_TYPE_INSTANCES);
+  extended_types.append_non_duplicates(GEO_COMPONENT_TYPE_EDIT);
+  this->keep_only(extended_types);
+}
+
+void GeometrySet::remove_geometry_during_modify()
+{
+  this->keep_only_during_modify({});
+}
+
 void GeometrySet::add(const GeometryComponent &component)
 {
   BLI_assert(!components_[component.type()]);
@@ -222,8 +238,40 @@ bool GeometrySet::compute_boundbox_without_instances(float3 *r_min, float3 *r_ma
 
 std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set)
 {
-  stream << "<GeometrySet at " << &geometry_set << ", " << geometry_set.components_.size()
-         << " components>";
+  Vector<std::string> parts;
+  if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
+    parts.append(std::to_string(mesh->totvert) + " verts");
+    parts.append(std::to_string(mesh->totedge) + " edges");
+    parts.append(std::to_string(mesh->totpoly) + " polys");
+    parts.append(std::to_string(mesh->totloop) + " corners");
+  }
+  if (const Curves *curves = geometry_set.get_curves_for_read()) {
+    parts.append(std::to_string(curves->geometry.point_num) + " control points");
+    parts.append(std::to_string(curves->geometry.curve_num) + " curves");
+  }
+  if (const PointCloud *point_cloud = geometry_set.get_pointcloud_for_read()) {
+    parts.append(std::to_string(point_cloud->totpoint) + " points");
+  }
+  if (const Volume *volume = geometry_set.get_volume_for_read()) {
+    parts.append(std::to_string(BKE_volume_num_grids(volume)) + " volume grids");
+  }
+  if (geometry_set.has_instances()) {
+    parts.append(std::to_string(
+                     geometry_set.get_component_for_read<InstancesComponent>()->instances_num()) +
+                 " instances");
+  }
+  if (geometry_set.get_curve_edit_hints_for_read()) {
+    parts.append("curve edit hints");
+  }
+
+  stream << "<GeometrySet: ";
+  for (const int i : parts.index_range()) {
+    stream << parts[i];
+    if (i < parts.size() - 1) {
+      stream << ", ";
+    }
+  }
+  stream << ">";
   return stream;
 }
 
@@ -288,6 +336,13 @@ const Curves *GeometrySet::get_curves_for_read() const
 {
   const CurveComponent *component = this->get_component_for_read<CurveComponent>();
   return (component == nullptr) ? nullptr : component->get_for_read();
+}
+
+const blender::bke::CurvesEditHints *GeometrySet::get_curve_edit_hints_for_read() const
+{
+  const GeometryComponentEditData *component =
+      this->get_component_for_read<GeometryComponentEditData>();
+  return (component == nullptr) ? nullptr : component->curves_edit_hints_.get();
 }
 
 bool GeometrySet::has_pointcloud() const
@@ -453,6 +508,16 @@ Curves *GeometrySet::get_curves_for_write()
   return component == nullptr ? nullptr : component->get_for_write();
 }
 
+blender::bke::CurvesEditHints *GeometrySet::get_curve_edit_hints_for_write()
+{
+  if (!this->has<GeometryComponentEditData>()) {
+    return nullptr;
+  }
+  GeometryComponentEditData &component =
+      this->get_component_for_write<GeometryComponentEditData>();
+  return component.curves_edit_hints_.get();
+}
+
 void GeometrySet::attribute_foreach(const Span<GeometryComponentType> component_types,
                                     const bool include_instances,
                                     const AttributeForeachCallback callback) const
@@ -601,48 +666,6 @@ void GeometrySet::modify_geometry_sets(ForeachSubGeometryCallback callback)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Mesh and Curve Normals Field Input
- * \{ */
-
-namespace blender::bke {
-
-GVArray NormalFieldInput::get_varray_for_context(const GeometryComponent &component,
-                                                 const eAttrDomain domain,
-                                                 IndexMask mask) const
-{
-  if (component.type() == GEO_COMPONENT_TYPE_MESH) {
-    const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-    if (const Mesh *mesh = mesh_component.get_for_read()) {
-      return mesh_normals_varray(mesh_component, *mesh, mask, domain);
-    }
-  }
-  else if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
-    const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-    return curve_normals_varray(curve_component, domain);
-  }
-  return {};
-}
-
-std::string NormalFieldInput::socket_inspection_name() const
-{
-  return TIP_("Normal");
-}
-
-uint64_t NormalFieldInput::hash() const
-{
-  return 213980475983;
-}
-
-bool NormalFieldInput::is_equal_to(const fn::FieldNode &other) const
-{
-  return dynamic_cast<const NormalFieldInput *>(&other) != nullptr;
-}
-
-}  // namespace blender::bke
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name C API
  * \{ */
 
@@ -678,6 +701,8 @@ bool BKE_object_has_geometry_set_instances(const Object *ob)
         break;
       case GEO_COMPONENT_TYPE_CURVE:
         is_instance = !ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT);
+        break;
+      case GEO_COMPONENT_TYPE_EDIT:
         break;
     }
     if (is_instance) {

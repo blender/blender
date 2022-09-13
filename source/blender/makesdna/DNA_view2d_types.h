@@ -29,7 +29,7 @@ typedef struct View2D {
   /** Allowable zoom factor range (only when (keepzoom & V2D_LIMITZOOM)) is set. */
   float minzoom, maxzoom;
 
-  /** Scroll - scrollbars to display (bitflag). */
+  /** Scroll - scrollbars to display (bit-flag). */
   short scroll;
   /** Scroll_ui - temp settings used for UI drawing of scrollers. */
   short scroll_ui;

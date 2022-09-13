@@ -317,7 +317,6 @@ def ctx_editmode_mesh_extra():
     bpy.ops.object.shape_key_add(from_mix=False)
     bpy.ops.object.shape_key_add(from_mix=True)
     bpy.ops.mesh.uv_texture_add()
-    bpy.ops.mesh.vertex_color_add()
     bpy.ops.object.material_slot_add()
     # editmode last!
     bpy.ops.object.mode_set(mode='EDIT')

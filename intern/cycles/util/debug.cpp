@@ -13,7 +13,6 @@
 CCL_NAMESPACE_BEGIN
 
 DebugFlags::CPU::CPU()
-    : avx2(true), avx(true), sse41(true), sse3(true), sse2(true), bvh_layout(BVH_LAYOUT_AUTO)
 {
   reset();
 }
@@ -41,17 +40,17 @@ void DebugFlags::CPU::reset()
   bvh_layout = BVH_LAYOUT_AUTO;
 }
 
-DebugFlags::CUDA::CUDA() : adaptive_compile(false)
+DebugFlags::CUDA::CUDA()
 {
   reset();
 }
 
-DebugFlags::HIP::HIP() : adaptive_compile(false)
+DebugFlags::HIP::HIP()
 {
   reset();
 }
 
-DebugFlags::Metal::Metal() : adaptive_compile(false)
+DebugFlags::Metal::Metal()
 {
   reset();
 }
@@ -84,14 +83,13 @@ void DebugFlags::OptiX::reset()
   use_debug = false;
 }
 
-DebugFlags::DebugFlags() : viewport_static_bvh(false), running_inside_blender(false)
+DebugFlags::DebugFlags()
 {
   /* Nothing for now. */
 }
 
 void DebugFlags::reset()
 {
-  viewport_static_bvh = false;
   cpu.reset();
   cuda.reset();
   optix.reset();

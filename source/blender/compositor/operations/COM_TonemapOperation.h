@@ -34,7 +34,7 @@ class TonemapOperation : public MultiThreadedOperation {
   /**
    * \brief settings of the Tonemap
    */
-  NodeTonemap *data_;
+  const NodeTonemap *data_;
 
   /**
    * \brief temporarily cache of the execution storage
@@ -62,7 +62,7 @@ class TonemapOperation : public MultiThreadedOperation {
    */
   void deinit_execution() override;
 
-  void set_data(NodeTonemap *data)
+  void set_data(const NodeTonemap *data)
   {
     data_ = data;
   }

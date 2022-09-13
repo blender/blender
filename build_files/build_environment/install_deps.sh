@@ -136,7 +136,7 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
         Build and install the OpenImageDenoise libraries.
 
     --with-nanovdb
-        Build and install the NanoVDB branch of OpenVDB (instead of official release of OpenVDB).
+        Build and install NanoVDB together with OpenVDB.
 
     --with-jack
         Install the jack libraries.
@@ -385,7 +385,7 @@ CLANG_FORMAT_VERSION="10.0"
 CLANG_FORMAT_VERSION_MIN="6.0"
 CLANG_FORMAT_VERSION_MEX="14.0"
 
-PYTHON_VERSION="3.10.2"
+PYTHON_VERSION="3.10.6"
 PYTHON_VERSION_SHORT="3.10"
 PYTHON_VERSION_MIN="3.10"
 PYTHON_VERSION_MEX="3.12"
@@ -425,7 +425,7 @@ PYTHON_ZSTANDARD_VERSION_MIN="0.15.2"
 PYTHON_ZSTANDARD_VERSION_MEX="0.20.0"
 PYTHON_ZSTANDARD_NAME="zstandard"
 
-PYTHON_NUMPY_VERSION="1.22.0"
+PYTHON_NUMPY_VERSION="1.23.2"
 PYTHON_NUMPY_VERSION_MIN="1.14"
 PYTHON_NUMPY_VERSION_MEX="2.0"
 PYTHON_NUMPY_NAME="numpy"
@@ -453,8 +453,8 @@ PYTHON_MODULES_PIP=(
 )
 
 
-BOOST_VERSION="1.78.0"
-BOOST_VERSION_SHORT="1.78"
+BOOST_VERSION="1.80.0"
+BOOST_VERSION_SHORT="1.80"
 BOOST_VERSION_MIN="1.49"
 BOOST_VERSION_MEX="2.0"
 BOOST_FORCE_BUILD=false
@@ -478,7 +478,7 @@ OCIO_FORCE_BUILD=false
 OCIO_FORCE_REBUILD=false
 OCIO_SKIP=false
 
-IMATH_VERSION="3.1.4"
+IMATH_VERSION="3.1.5"
 IMATH_VERSION_SHORT="3.1"
 IMATH_VERSION_MIN="3.0"
 IMATH_VERSION_MEX="4.0"
@@ -487,7 +487,7 @@ IMATH_FORCE_REBUILD=false
 IMATH_SKIP=false
 _with_built_imath=false
 
-OPENEXR_VERSION="3.1.4"
+OPENEXR_VERSION="3.1.5"
 OPENEXR_VERSION_SHORT="3.1"
 OPENEXR_VERSION_MIN="3.0"
 OPENEXR_VERSION_MEX="4.0"
@@ -496,7 +496,7 @@ OPENEXR_FORCE_REBUILD=false
 OPENEXR_SKIP=false
 _with_built_openexr=false
 
-OIIO_VERSION="2.3.13.0"
+OIIO_VERSION="2.3.18.0"
 OIIO_VERSION_SHORT="2.3"
 OIIO_VERSION_MIN="2.1.12"
 OIIO_VERSION_MEX="2.4.0"
@@ -534,10 +534,10 @@ OSD_SKIP=false
 # OpenVDB needs to be compiled for now
 OPENVDB_BLOSC_VERSION="1.21.1"
 
-OPENVDB_VERSION="9.0.0"
-OPENVDB_VERSION_SHORT="9.0"
+OPENVDB_VERSION="9.1.0"
+OPENVDB_VERSION_SHORT="9.1"
 OPENVDB_VERSION_MIN="9.0"
-OPENVDB_VERSION_MEX="9.1"
+OPENVDB_VERSION_MEX="9.2"
 OPENVDB_FORCE_BUILD=false
 OPENVDB_FORCE_REBUILD=false
 OPENVDB_SKIP=false
@@ -627,6 +627,9 @@ WEBP_DEV=""
 VPX_USE=false
 VPX_VERSION_MIN=0.9.7
 VPX_DEV=""
+AOM_USE=false
+AOM_VERSION_MIN=3.3.0
+AOM_DEV=""
 OPUS_USE=false
 OPUS_VERSION_MIN=1.1.1
 OPUS_DEV=""
@@ -1190,7 +1193,7 @@ Those libraries should be available as packages in all recent distributions (opt
     * libx11, libxcursor, libxi, libxrandr, libxinerama (and other libx... as needed).
     * libwayland-client0, libwayland-cursor0, libwayland-egl1, libxkbcommon0, libdbus-1-3, libegl1 (Wayland)
     * libsqlite3, libzstd, libbz2, libssl, libfftw3, libxml2, libtinyxml, yasm, libyaml-cpp, flex.
-    * libsdl2, libglew, libpugixml, libpotrace, [libgmp], fontconfig, [libharu/libhpdf].\""
+    * libsdl2, libepoxy, libpugixml, libpotrace, [libgmp], fontconfig, [libharu/libhpdf].\""
 
 DEPS_SPECIFIC_INFO="\"BUILDABLE DEPENDENCIES:
 
@@ -1209,7 +1212,7 @@ You may also want to build them yourself (optional ones are [between brackets]):
     ** [NumPy $PYTHON_NUMPY_VERSION] (use pip).
     * Boost $BOOST_VERSION (from $BOOST_SOURCE, modules: $BOOST_BUILD_MODULES).
     * TBB $TBB_VERSION (from $TBB_SOURCE).
-    * [FFMpeg $FFMPEG_VERSION (needs libvorbis, libogg, libtheora, libx264, libmp3lame, libxvidcore, libvpx, libwebp, ...)] (from $FFMPEG_SOURCE).
+    * [FFMpeg $FFMPEG_VERSION (needs libvorbis, libogg, libtheora, libx264, libmp3lame, libxvidcore, libvpx, libaom, libwebp, ...)] (from $FFMPEG_SOURCE).
     * [OpenColorIO $OCIO_VERSION] (from $OCIO_SOURCE).
     * Imath $IMATH_VERSION (from $IMATH_SOURCE).
     * OpenEXR $OPENEXR_VERSION (from $OPENEXR_SOURCE).
@@ -2916,6 +2919,10 @@ compile_OPENVDB() {
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D USE_STATIC_DEPENDENCIES=OFF"
     cmake_d="$cmake_d -D OPENVDB_BUILD_BINARIES=OFF"
+    # Unfortunately OpenVDB currently forces using recent oneTBB over older versions when it finds it,
+    # even when TBB_ROOT is specified. So have to prevent any check for system library -
+    # in the hope it will not break in some other cases.
+    cmake_d="$cmake_d -D DISABLE_CMAKE_SEARCH_PATHS=ON"
 
     if [ "$WITH_NANOVDB" = true ]; then
       cmake_d="$cmake_d -D USE_NANOVDB=ON"
@@ -2927,7 +2934,6 @@ compile_OPENVDB() {
       cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost"
       cmake_d="$cmake_d -D Boost_USE_MULTITHREADED=ON"
       cmake_d="$cmake_d -D Boost_NO_SYSTEM_PATHS=ON"
-      cmake_d="$cmake_d -D Boost_NO_BOOST_CMAKE=ON"
       cmake_d="$cmake_d -D Boost_NO_BOOST_CMAKE=ON"
     fi
     if [ -d $INST/tbb ]; then
@@ -3000,7 +3006,7 @@ compile_ALEMBIC() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  alembic_magic=2
+  alembic_magic=3
   _init_alembic
 
   # Force having own builds for the dependencies.
@@ -3048,7 +3054,7 @@ compile_ALEMBIC() {
     fi
     if [ "$_with_built_openexr" = true ]; then
       cmake_d="$cmake_d -D USE_ARNOLD=OFF"
-      cmake_d="$cmake_d -D USE_BINARIES=OFF"
+      cmake_d="$cmake_d -D USE_BINARIES=ON"  # Tests use some Alembic binaries...
       cmake_d="$cmake_d -D USE_EXAMPLES=OFF"
       cmake_d="$cmake_d -D USE_HDF5=OFF"
       cmake_d="$cmake_d -D USE_MAYA=OFF"
@@ -3192,7 +3198,7 @@ _init_opencollada() {
   _inst_shortcut=$INST/opencollada
 }
 
-_update_deps_collada() {
+_update_deps_opencollada() {
   :
 }
 
@@ -3634,7 +3640,7 @@ compile_FFmpeg() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  ffmpeg_magic=5
+  ffmpeg_magic=6
   _init_ffmpeg
 
   # Force having own builds for the dependencies.
@@ -3685,6 +3691,10 @@ compile_FFmpeg() {
 
     if [ "$VPX_USE" = true ]; then
       extra="$extra --enable-libvpx"
+    fi
+
+    if [ "$AOM_USE" = true ]; then
+      extra="$extra --enable-libaom"
     fi
 
     if [ "$WEBP_USE" = true ]; then
@@ -4055,7 +4065,7 @@ install_DEB() {
              libxcursor-dev libxi-dev wget libsqlite3-dev libxrandr-dev libxinerama-dev \
              libwayland-dev wayland-protocols libegl-dev libxkbcommon-dev libdbus-1-dev linux-libc-dev \
              libbz2-dev libncurses5-dev libssl-dev liblzma-dev libreadline-dev \
-             libopenal-dev libglew-dev yasm \
+             libopenal-dev libepoxy-dev yasm \
              libsdl2-dev libfftw3-dev patch bzip2 libxml2-dev libtinyxml-dev libjemalloc-dev \
              libgmp-dev libpugixml-dev libpotrace-dev libhpdf-dev libzstd-dev libpystring-dev"
 
@@ -4140,30 +4150,34 @@ install_DEB() {
     WEBP_USE=true
   fi
 
-  if [ "$WITH_ALL" = true ]; then
-    XVID_DEV="libxvidcore-dev"
-    check_package_DEB $XVID_DEV
-    if [ $? -eq 0 ]; then
-      XVID_USE=true
-    fi
+  XVID_DEV="libxvidcore-dev"
+  check_package_DEB $XVID_DEV
+  if [ $? -eq 0 ]; then
+    XVID_USE=true
+  fi
 
-    MP3LAME_DEV="libmp3lame-dev"
-    check_package_DEB $MP3LAME_DEV
-    if [ $? -eq 0 ]; then
-      MP3LAME_USE=true
-    fi
+  MP3LAME_DEV="libmp3lame-dev"
+  check_package_DEB $MP3LAME_DEV
+  if [ $? -eq 0 ]; then
+    MP3LAME_USE=true
+  fi
 
-    VPX_DEV="libvpx-dev"
-    check_package_version_ge_DEB $VPX_DEV $VPX_VERSION_MIN
-    if [ $? -eq 0 ]; then
-      VPX_USE=true
-    fi
+  VPX_DEV="libvpx-dev"
+  check_package_version_ge_DEB $VPX_DEV $VPX_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    VPX_USE=true
+  fi
 
-    OPUS_DEV="libopus-dev"
-    check_package_version_ge_DEB $OPUS_DEV $OPUS_VERSION_MIN
-    if [ $? -eq 0 ]; then
-      OPUS_USE=true
-    fi
+  AOM_DEV="libaom-dev"
+  check_package_version_ge_DEB $AOM_DEV $AOM_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    AOM_USE=true
+  fi
+
+  OPUS_DEV="libopus-dev"
+  check_package_version_ge_DEB $OPUS_DEV $OPUS_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    OPUS_USE=true
   fi
 
   # Check cmake version and disable features for older distros.
@@ -4546,6 +4560,9 @@ install_DEB() {
     if [ "$VPX_USE" = true ]; then
       _packages="$_packages $VPX_DEV"
     fi
+    if [ "$AOM_USE" = true ]; then
+      _packages="$_packages $AOM_DEV"
+    fi
     if [ "$OPUS_USE" = true ]; then
       _packages="$_packages $OPUS_DEV"
     fi
@@ -4758,7 +4775,7 @@ install_RPM() {
              libX11-devel libXi-devel libXcursor-devel libXrandr-devel libXinerama-devel \
              wayland-devel wayland-protocols-devel mesa-libEGL-devel libxkbcommon-devel dbus-devel kernel-headers \
              wget ncurses-devel readline-devel $OPENJPEG_DEV openal-soft-devel \
-             glew-devel yasm patch \
+             libepoxy-devel yasm patch \
              libxml2-devel yaml-cpp-devel tinyxml-devel jemalloc-devel \
              gmp-devel pugixml-devel potrace-devel libharu-devel libzstd-devel pystring-devel"
 
@@ -4846,21 +4863,27 @@ install_RPM() {
     WEBP_USE=true
   fi
 
-  if [ "$WITH_ALL" = true ]; then
-    VPX_DEV="libvpx-devel"
-    check_package_version_ge_RPM $VPX_DEV $VPX_VERSION_MIN
-    if [ $? -eq 0 ]; then
-      VPX_USE=true
-    fi
+  VPX_DEV="libvpx-devel"
+  check_package_version_ge_RPM $VPX_DEV $VPX_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    VPX_USE=true
+  fi
 
+  AOM_DEV="libaom-devel"
+  check_package_version_ge_RPM $AOM_DEV $AOM_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    AOM_USE=true
+  fi
+
+  OPUS_DEV="libopus-devel"
+  check_package_version_ge_RPM $OPUS_DEV $OPUS_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    OPUS_USE=true
+  fi
+
+  if [ "$WITH_ALL" = true ]; then
     PRINT ""
     install_packages_RPM libspnav-devel
-
-    OPUS_DEV="libopus-devel"
-    check_package_version_ge_RPM $OPUS_DEV $OPUS_VERSION_MIN
-    if [ $? -eq 0 ]; then
-      OPUS_USE=true
-    fi
   fi
 
   PRINT ""
@@ -5245,6 +5268,9 @@ install_RPM() {
     if [ "$VPX_USE" = true ]; then
       _packages="$_packages $VPX_DEV"
     fi
+    if [ "$AOM_USE" = true ]; then
+      _packages="$_packages $AOM_DEV"
+    fi
     if [ "$OPUS_USE" = true ]; then
       _packages="$_packages $OPUS_DEV"
     fi
@@ -5389,7 +5415,7 @@ install_ARCH() {
   fi
 
   _packages="$BASE_DEVEL git cmake fontconfig flex \
-             libxi libxcursor libxrandr libxinerama glew libpng libtiff wget openal \
+             libxi libxcursor libxrandr libxinerama libepoxy libpng libtiff wget openal \
              $OPENJPEG_DEV yasm sdl2 fftw \
              libxml2 yaml-cpp tinyxml python-requests jemalloc gmp potrace pugixml libharu \
              zstd pystring"
@@ -5434,30 +5460,34 @@ install_ARCH() {
     WEBP_USE=true
   fi
 
-  if [ "$WITH_ALL" = true ]; then
-    XVID_DEV="xvidcore"
-    check_package_ARCH $XVID_DEV
-    if [ $? -eq 0 ]; then
-      XVID_USE=true
-    fi
+  XVID_DEV="xvidcore"
+  check_package_ARCH $XVID_DEV
+  if [ $? -eq 0 ]; then
+    XVID_USE=true
+  fi
 
-    MP3LAME_DEV="lame"
-    check_package_ARCH $MP3LAME_DEV
-    if [ $? -eq 0 ]; then
-      MP3LAME_USE=true
-    fi
+  MP3LAME_DEV="lame"
+  check_package_ARCH $MP3LAME_DEV
+  if [ $? -eq 0 ]; then
+    MP3LAME_USE=true
+  fi
 
-    VPX_DEV="libvpx"
-    check_package_version_ge_ARCH $VPX_DEV $VPX_VERSION_MIN
-    if [ $? -eq 0 ]; then
-      VPX_USE=true
-    fi
+  VPX_DEV="libvpx"
+  check_package_version_ge_ARCH $VPX_DEV $VPX_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    VPX_USE=true
+  fi
 
-    OPUS_DEV="opus"
-    check_package_version_ge_ARCH $OPUS_DEV $OPUS_VERSION_MIN
-    if [ $? -eq 0 ]; then
-      OPUS_USE=true
-    fi
+  AOM_DEV="libaom"
+  check_package_version_ge_ARCH $AOM_DEV $AOM_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    AOM_USE=true
+  fi
+
+  OPUS_DEV="opus"
+  check_package_version_ge_ARCH $OPUS_DEV $OPUS_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    OPUS_USE=true
   fi
 
 
@@ -5835,6 +5865,9 @@ install_ARCH() {
     if [ "$VPX_USE" = true ]; then
       _packages="$_packages $VPX_DEV"
     fi
+    if [ "$AOM_USE" = true ]; then
+      _packages="$_packages $AOM_DEV"
+    fi
     if [ "$OPUS_USE" = true ]; then
       _packages="$_packages $OPUS_DEV"
     fi
@@ -6185,7 +6218,7 @@ print_info() {
     fi
     if [ -d $INST/nanovdb ]; then
       _1="-D WITH_NANOVDB=ON"
-      _2="-D NANOVDB_ROOT_DIR=$INST/nanovdb"
+      _2="-D NANOVDB_ROOT_DIR=$INST/openvdb"
       PRINT "  $_1"
       PRINT "  $_2"
       _buildargs="$_buildargs $_1 $_2"

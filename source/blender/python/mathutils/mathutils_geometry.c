@@ -1790,7 +1790,7 @@ static struct PyModuleDef M_Geometry_module_def = {
     M_Geometry_doc,       /* m_doc */
     0,                    /* m_size */
     M_Geometry_methods,   /* m_methods */
-    NULL,                 /* m_reload */
+    NULL,                 /* m_slots */
     NULL,                 /* m_traverse */
     NULL,                 /* m_clear */
     NULL,                 /* m_free */

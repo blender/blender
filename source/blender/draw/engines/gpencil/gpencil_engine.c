@@ -799,7 +799,7 @@ static void gpencil_draw_mask(GPENCIL_Data *vedata, GPENCIL_tObject *ob, GPENCIL
     }
 
     GPENCIL_tLayer *mask_layer = gpencil_layer_cache_get(ob, i);
-    /* When filtering by viewlayer, the mask could be null and must be ignored. */
+    /* When filtering by view-layer, the mask could be null and must be ignored. */
     if (mask_layer == NULL) {
       continue;
     }

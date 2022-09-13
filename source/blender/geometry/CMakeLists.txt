@@ -27,7 +27,7 @@ set(SRC
   intern/reverse_uv_sampler.cc
   intern/set_curve_type.cc
   intern/subdivide_curves.cc
-  intern/uv_parametrizer.c
+  intern/uv_parametrizer.cc
 
   GEO_add_curves_on_mesh.hh
   GEO_fillet_curves.hh

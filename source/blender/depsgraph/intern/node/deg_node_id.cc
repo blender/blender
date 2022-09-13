@@ -75,6 +75,7 @@ void IDNode::init(const ID *id, const char *UNUSED(subdata))
   has_base = false;
   is_user_modified = false;
   id_cow_recalc_backup = 0;
+  id_invisible_recalc = 0;
 
   visible_components_mask = 0;
   previously_visible_components_mask = 0;

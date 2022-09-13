@@ -153,8 +153,8 @@ void ui_block_to_window(const ARegion *region, uiBlock *block, int *r_x, int *r_
 
   ui_block_to_window_fl(region, block, &fx, &fy);
 
-  *r_x = (int)(fx + 0.5f);
-  *r_y = (int)(fy + 0.5f);
+  *r_x = (int)lround(fx);
+  *r_y = (int)lround(fy);
 }
 
 void ui_block_to_region_rctf(const ARegion *region,
@@ -232,8 +232,8 @@ void ui_window_to_block(const ARegion *region, uiBlock *block, int *r_x, int *r_
 
   ui_window_to_block_fl(region, block, &fx, &fy);
 
-  *r_x = (int)(fx + 0.5f);
-  *r_y = (int)(fy + 0.5f);
+  *r_x = (int)lround(fx);
+  *r_y = (int)lround(fy);
 }
 
 void ui_window_to_region(const ARegion *region, int *r_x, int *r_y)
@@ -1310,7 +1310,7 @@ static bool ui_but_event_operator_string_from_panel(const bContext *C,
   IDP_AddToGroup(prop_panel, IDP_New(IDP_INT, &region_type_val, "region_type"));
 
   for (int i = 0; i < 2; i++) {
-    /* FIXME(campbell): We can't reasonably search all configurations - long term. */
+    /* FIXME(@campbellbarton): We can't reasonably search all configurations - long term. */
     IDPropertyTemplate val = {0};
     val.i = i;
 
@@ -2363,9 +2363,9 @@ void ui_but_v3_set(uiBut *but, const float vec[3])
   }
   else if (but->pointype == UI_BUT_POIN_CHAR) {
     char *cp = (char *)but->poin;
-    cp[0] = (char)(0.5f + vec[0] * 255.0f);
-    cp[1] = (char)(0.5f + vec[1] * 255.0f);
-    cp[2] = (char)(0.5f + vec[2] * 255.0f);
+    cp[0] = (char)lround(vec[0] * 255.0f);
+    cp[1] = (char)lround(vec[1] * 255.0f);
+    cp[2] = (char)lround(vec[2] * 255.0f);
   }
   else if (but->pointype == UI_BUT_POIN_FLOAT) {
     float *fp = (float *)but->poin;
@@ -6754,10 +6754,11 @@ void UI_but_extra_icon_string_info_get(struct bContext *C, uiButExtraOpIcon *ext
         if (ui_but_extra_icon_event_operator_string(C, extra_icon, buf, sizeof(buf))) {
           tmp = BLI_strdup(buf);
         }
+        break;
       }
+      default:
         /* Other types not supported. The caller should expect that outcome, no need to message or
          * assert here. */
-      default:
         break;
     }
 

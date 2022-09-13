@@ -24,6 +24,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
@@ -31,6 +32,9 @@
 #include "DEG_depsgraph.h"
 
 #include "MEM_guardedalloc.h"
+
+using blender::MutableSpan;
+using blender::Span;
 
 /* loop v/e are unsigned, so using max uint_32 value as invalid marker... */
 #define INVALID_LOOP_EDGE_MARKER 4294967295u
@@ -237,6 +241,10 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     free_flag.polyloops = do_fixes; \
   } \
   (void)0
+
+  blender::bke::AttributeWriter<int> material_indices =
+      mesh->attributes_for_write().lookup_for_write<int>("material_index");
+  blender::MutableVArraySpan<int> material_indices_span(material_indices.varray);
 
   MVert *mv = mverts;
   MEdge *me;
@@ -559,10 +567,10 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       /* Material index, isolated from other tests here. While large indices are clamped,
        * negative indices aren't supported by drawing, exporters etc.
        * To check the indices are in range, use #BKE_mesh_validate_material_indices */
-      if (mp->mat_nr < 0) {
-        PRINT_ERR("\tPoly %u has invalid material (%d)", sp->index, mp->mat_nr);
+      if (material_indices && material_indices_span[i] < 0) {
+        PRINT_ERR("\tPoly %u has invalid material (%d)", sp->index, material_indices_span[i]);
         if (do_fixes) {
-          mp->mat_nr = 0;
+          material_indices_span[i] = 0;
         }
       }
 
@@ -916,6 +924,9 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     }
   }
 
+  material_indices_span.save();
+  material_indices.finish();
+
   PRINT_MSG("%s: finished\n\n", __func__);
 
   *r_changed = (fix_flag.as_flag || free_flag.as_flag || recalc_flag.as_flag);
@@ -1001,10 +1012,6 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata,
   CustomData_MeshMasks mask = {0};
   if (check_meshmask) {
     mask = CD_MASK_MESH;
-    /* Normal data isn't in the mask since it is derived data,
-     * but it is valid and should not be removed. */
-    mask.vmask |= CD_MASK_NORMAL;
-    mask.pmask |= CD_MASK_NORMAL;
   }
 
   is_valid &= mesh_validate_customdata(
@@ -1017,20 +1024,12 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata,
       pdata, mask.pmask, totpoly, do_verbose, do_fixes, &is_change_p);
 
   const int tot_uvloop = CustomData_number_of_layers(ldata, CD_MLOOPUV);
-  const int tot_vcolloop = CustomData_number_of_layers(ldata, CD_PROP_BYTE_COLOR);
   if (tot_uvloop > MAX_MTFACE) {
     PRINT_ERR(
         "\tMore UV layers than %d allowed, %d last ones won't be available for render, shaders, "
         "etc.\n",
         MAX_MTFACE,
         tot_uvloop - MAX_MTFACE);
-  }
-  if (tot_vcolloop > MAX_MCOL) {
-    PRINT_ERR(
-        "\tMore VCol layers than %d allowed, %d last ones won't be available for render, shaders, "
-        "etc.\n",
-        MAX_MCOL,
-        tot_vcolloop - MAX_MCOL);
   }
 
   /* check indices of clone/stencil */
@@ -1068,19 +1067,23 @@ bool BKE_mesh_validate(Mesh *me, const bool do_verbose, const bool cddata_check_
                                    do_verbose,
                                    true,
                                    &changed);
+  MutableSpan<MVert> verts = me->verts_for_write();
+  MutableSpan<MEdge> edges = me->edges_for_write();
+  MutableSpan<MPoly> polys = me->polys_for_write();
+  MutableSpan<MLoop> loops = me->loops_for_write();
 
   BKE_mesh_validate_arrays(me,
-                           me->mvert,
-                           me->totvert,
-                           me->medge,
-                           me->totedge,
-                           me->mface,
+                           verts.data(),
+                           verts.size(),
+                           edges.data(),
+                           edges.size(),
+                           (MFace *)CustomData_get_layer(&me->fdata, CD_MFACE),
                            me->totface,
-                           me->mloop,
-                           me->totloop,
-                           me->mpoly,
-                           me->totpoly,
-                           me->dvert,
+                           loops.data(),
+                           loops.size(),
+                           polys.data(),
+                           polys.size(),
+                           me->deform_verts_for_write().data(),
                            do_verbose,
                            true,
                            &changed);
@@ -1117,18 +1120,23 @@ bool BKE_mesh_is_valid(Mesh *me)
       do_fixes,
       &changed);
 
+  MutableSpan<MVert> verts = me->verts_for_write();
+  MutableSpan<MEdge> edges = me->edges_for_write();
+  MutableSpan<MPoly> polys = me->polys_for_write();
+  MutableSpan<MLoop> loops = me->loops_for_write();
+
   is_valid &= BKE_mesh_validate_arrays(me,
-                                       me->mvert,
-                                       me->totvert,
-                                       me->medge,
-                                       me->totedge,
-                                       me->mface,
+                                       verts.data(),
+                                       verts.size(),
+                                       edges.data(),
+                                       edges.size(),
+                                       (MFace *)CustomData_get_layer(&me->fdata, CD_MFACE),
                                        me->totface,
-                                       me->mloop,
-                                       me->totloop,
-                                       me->mpoly,
-                                       me->totpoly,
-                                       me->dvert,
+                                       loops.data(),
+                                       loops.size(),
+                                       polys.data(),
+                                       polys.size(),
+                                       me->deform_verts_for_write().data(),
                                        do_verbose,
                                        do_fixes,
                                        &changed);
@@ -1140,19 +1148,20 @@ bool BKE_mesh_is_valid(Mesh *me)
 
 bool BKE_mesh_validate_material_indices(Mesh *me)
 {
-  /* Cast to unsigned to catch negative indices too. */
-  const uint16_t mat_nr_max = max_ii(0, me->totcol - 1);
-  MPoly *mp;
-  const int totpoly = me->totpoly;
-  int i;
+  const int mat_nr_max = max_ii(0, me->totcol - 1);
   bool is_valid = true;
 
-  for (mp = me->mpoly, i = 0; i < totpoly; i++, mp++) {
-    if ((uint16_t)mp->mat_nr > mat_nr_max) {
-      mp->mat_nr = 0;
+  blender::bke::AttributeWriter<int> material_indices =
+      me->attributes_for_write().lookup_for_write<int>("material_index");
+  blender::MutableVArraySpan<int> material_indices_span(material_indices.varray);
+  for (const int i : material_indices_span.index_range()) {
+    if (material_indices_span[i] < 0 || material_indices_span[i] > mat_nr_max) {
+      material_indices_span[i] = 0;
       is_valid = false;
     }
   }
+  material_indices_span.save();
+  material_indices.finish();
 
   if (!is_valid) {
     DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY_ALL_MODES);
@@ -1173,11 +1182,12 @@ void BKE_mesh_strip_loose_faces(Mesh *me)
   /* NOTE: We need to keep this for edge creation (for now?), and some old `readfile.c` code. */
   MFace *f;
   int a, b;
+  MFace *mfaces = (MFace *)CustomData_get_layer(&me->fdata, CD_MFACE);
 
-  for (a = b = 0, f = me->mface; a < me->totface; a++, f++) {
+  for (a = b = 0, f = mfaces; a < me->totface; a++, f++) {
     if (f->v3) {
       if (a != b) {
-        memcpy(&me->mface[b], f, sizeof(me->mface[b]));
+        memcpy(&mfaces[b], f, sizeof(mfaces[b]));
         CustomData_copy_data(&me->fdata, &me->fdata, a, b, 1);
       }
       b++;
@@ -1191,13 +1201,16 @@ void BKE_mesh_strip_loose_faces(Mesh *me)
 
 void BKE_mesh_strip_loose_polysloops(Mesh *me)
 {
+  MutableSpan<MPoly> polys = me->polys_for_write();
+  MutableSpan<MLoop> loops = me->loops_for_write();
+
   MPoly *p;
   MLoop *l;
   int a, b;
   /* New loops idx! */
   int *new_idx = (int *)MEM_mallocN(sizeof(int) * me->totloop, __func__);
 
-  for (a = b = 0, p = me->mpoly; a < me->totpoly; a++, p++) {
+  for (a = b = 0, p = polys.data(); a < me->totpoly; a++, p++) {
     bool invalid = false;
     int i = p->loopstart;
     int stop = i + p->totloop;
@@ -1206,7 +1219,7 @@ void BKE_mesh_strip_loose_polysloops(Mesh *me)
       invalid = true;
     }
     else {
-      l = &me->mloop[i];
+      l = &loops[i];
       i = stop - i;
       /* If one of the poly's loops is invalid, the whole poly is invalid! */
       for (; i--; l++) {
@@ -1219,7 +1232,7 @@ void BKE_mesh_strip_loose_polysloops(Mesh *me)
 
     if (p->totloop >= 3 && !invalid) {
       if (a != b) {
-        memcpy(&me->mpoly[b], p, sizeof(me->mpoly[b]));
+        memcpy(&polys[b], p, sizeof(polys[b]));
         CustomData_copy_data(&me->pdata, &me->pdata, a, b, 1);
       }
       b++;
@@ -1231,10 +1244,10 @@ void BKE_mesh_strip_loose_polysloops(Mesh *me)
   }
 
   /* And now, get rid of invalid loops. */
-  for (a = b = 0, l = me->mloop; a < me->totloop; a++, l++) {
+  for (a = b = 0, l = loops.data(); a < me->totloop; a++, l++) {
     if (l->e != INVALID_LOOP_EDGE_MARKER) {
       if (a != b) {
-        memcpy(&me->mloop[b], l, sizeof(me->mloop[b]));
+        memcpy(&loops[b], l, sizeof(loops[b]));
         CustomData_copy_data(&me->ldata, &me->ldata, a, b, 1);
       }
       new_idx[a] = b;
@@ -1253,8 +1266,8 @@ void BKE_mesh_strip_loose_polysloops(Mesh *me)
 
   /* And now, update polys' start loop index. */
   /* NOTE: At this point, there should never be any poly using a striped loop! */
-  for (a = 0, p = me->mpoly; a < me->totpoly; a++, p++) {
-    p->loopstart = new_idx[p->loopstart];
+  for (const int i : polys.index_range()) {
+    polys[i].loopstart = new_idx[polys[i].loopstart];
   }
 
   MEM_freeN(new_idx);
@@ -1263,14 +1276,14 @@ void BKE_mesh_strip_loose_polysloops(Mesh *me)
 void BKE_mesh_strip_loose_edges(Mesh *me)
 {
   MEdge *e;
-  MLoop *l;
   int a, b;
   uint *new_idx = (uint *)MEM_mallocN(sizeof(int) * me->totedge, __func__);
+  MutableSpan<MEdge> edges = me->edges_for_write();
 
-  for (a = b = 0, e = me->medge; a < me->totedge; a++, e++) {
+  for (a = b = 0, e = edges.data(); a < me->totedge; a++, e++) {
     if (e->v1 != e->v2) {
       if (a != b) {
-        memcpy(&me->medge[b], e, sizeof(me->medge[b]));
+        memcpy(&edges[b], e, sizeof(edges[b]));
         CustomData_copy_data(&me->edata, &me->edata, a, b, 1);
       }
       new_idx[a] = b;
@@ -1288,8 +1301,9 @@ void BKE_mesh_strip_loose_edges(Mesh *me)
   /* And now, update loops' edge indices. */
   /* XXX We hope no loop was pointing to a striped edge!
    *     Else, its e will be set to INVALID_LOOP_EDGE_MARKER :/ */
-  for (a = 0, l = me->mloop; a < me->totloop; a++, l++) {
-    l->e = new_idx[l->e];
+  MutableSpan<MLoop> loops = me->loops_for_write();
+  for (MLoop &loop : loops) {
+    loop.e = new_idx[loop.e];
   }
 
   MEM_freeN(new_idx);
@@ -1347,10 +1361,10 @@ static int vergedgesort(const void *v1, const void *v2)
 /* Create edges based on known verts and faces,
  * this function is only used when loading very old blend files */
 
-static void mesh_calc_edges_mdata(MVert *UNUSED(allvert),
-                                  MFace *allface,
+static void mesh_calc_edges_mdata(const MVert *UNUSED(allvert),
+                                  const MFace *allface,
                                   MLoop *allloop,
-                                  MPoly *allpoly,
+                                  const MPoly *allpoly,
                                   int UNUSED(totvert),
                                   int totface,
                                   int UNUSED(totloop),
@@ -1359,8 +1373,8 @@ static void mesh_calc_edges_mdata(MVert *UNUSED(allvert),
                                   MEdge **r_medge,
                                   int *r_totedge)
 {
-  MPoly *mpoly;
-  MFace *mface;
+  const MPoly *mpoly;
+  const MFace *mface;
   MEdge *medge, *med;
   EdgeHash *hash;
   struct EdgeSort *edsort, *ed;
@@ -1483,28 +1497,29 @@ void BKE_mesh_calc_edges_legacy(Mesh *me, const bool use_old)
 {
   MEdge *medge;
   int totedge = 0;
+  const Span<MVert> verts = me->verts();
+  const Span<MPoly> polys = me->polys();
+  MutableSpan<MLoop> loops = me->loops_for_write();
 
-  mesh_calc_edges_mdata(me->mvert,
-                        me->mface,
-                        me->mloop,
-                        me->mpoly,
-                        me->totvert,
+  mesh_calc_edges_mdata(verts.data(),
+                        (MFace *)CustomData_get_layer(&me->fdata, CD_MFACE),
+                        loops.data(),
+                        polys.data(),
+                        verts.size(),
                         me->totface,
-                        me->totloop,
-                        me->totpoly,
+                        loops.size(),
+                        polys.size(),
                         use_old,
                         &medge,
                         &totedge);
 
   if (totedge == 0) {
     /* flag that mesh has edges */
-    me->medge = medge;
     me->totedge = 0;
     return;
   }
 
   medge = (MEdge *)CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, medge, totedge);
-  me->medge = medge;
   me->totedge = totedge;
 
   BKE_mesh_strip_loose_faces(me);
@@ -1512,18 +1527,18 @@ void BKE_mesh_calc_edges_legacy(Mesh *me, const bool use_old)
 
 void BKE_mesh_calc_edges_loose(Mesh *mesh)
 {
-  MEdge *med = mesh->medge;
-  for (int i = 0; i < mesh->totedge; i++, med++) {
-    med->flag |= ME_LOOSEEDGE;
+  const Span<MLoop> loops = mesh->loops();
+  MutableSpan<MEdge> edges = mesh->edges_for_write();
+
+  for (const int i : edges.index_range()) {
+    edges[i].flag |= ME_LOOSEEDGE;
   }
-  MLoop *ml = mesh->mloop;
-  for (int i = 0; i < mesh->totloop; i++, ml++) {
-    mesh->medge[ml->e].flag &= ~ME_LOOSEEDGE;
+  for (const int i : loops.index_range()) {
+    edges[loops[i].e].flag &= ~ME_LOOSEEDGE;
   }
-  med = mesh->medge;
-  for (int i = 0; i < mesh->totedge; i++, med++) {
-    if (med->flag & ME_LOOSEEDGE) {
-      med->flag |= ME_EDGEDRAW;
+  for (const int i : edges.index_range()) {
+    if (edges[i].flag & ME_LOOSEEDGE) {
+      edges[i].flag |= ME_EDGEDRAW;
     }
   }
 }
@@ -1532,8 +1547,9 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh)
 {
   const int numFaces = mesh->totface;
   EdgeSet *eh = BLI_edgeset_new_ex(__func__, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(numFaces));
+  MFace *mfaces = (MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
 
-  MFace *mf = mesh->mface;
+  MFace *mf = mfaces;
   for (int i = 0; i < numFaces; i++, mf++) {
     BLI_edgeset_add(eh, mf->v1, mf->v2);
     BLI_edgeset_add(eh, mf->v2, mf->v3);
@@ -1552,8 +1568,8 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh)
   /* write new edges into a temporary CustomData */
   CustomData edgeData;
   CustomData_reset(&edgeData);
-  CustomData_add_layer(&edgeData, CD_MEDGE, CD_CALLOC, nullptr, numEdges);
-  CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_CALLOC, nullptr, numEdges);
+  CustomData_add_layer(&edgeData, CD_MEDGE, CD_SET_DEFAULT, nullptr, numEdges);
+  CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_SET_DEFAULT, nullptr, numEdges);
 
   MEdge *med = (MEdge *)CustomData_get_layer(&edgeData, CD_MEDGE);
   int *index = (int *)CustomData_get_layer(&edgeData, CD_ORIGINDEX);
@@ -1572,8 +1588,6 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh)
   CustomData_free(&mesh->edata, mesh->totedge);
   mesh->edata = edgeData;
   mesh->totedge = numEdges;
-
-  mesh->medge = (MEdge *)CustomData_get_layer(&mesh->edata, CD_MEDGE);
 
   BLI_edgeset_free(eh);
 }

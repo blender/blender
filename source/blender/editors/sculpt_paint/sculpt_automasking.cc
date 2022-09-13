@@ -114,16 +114,21 @@ static bool SCULPT_automasking_needs_factors_cache(const Sculpt *sd, const Brush
   return false;
 }
 
-float SCULPT_automasking_factor_get(AutomaskingCache *automasking, SculptSession *ss, int vert)
+float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
+                                    SculptSession *ss,
+                                    PBVHVertRef vert)
 {
   if (!automasking) {
     return 1.0f;
   }
+
+  int index = BKE_pbvh_vertex_to_index(ss->pbvh, vert);
+
   /* If the cache is initialized with valid info, use the cache. This is used when the
    * automasking information can't be computed in real time per vertex and needs to be
    * initialized for the whole mesh when the stroke starts. */
   if (automasking->factor) {
-    return automasking->factor[vert];
+    return automasking->factor[index];
   }
 
   if (automasking->settings.flags & BRUSH_AUTOMASKING_FACE_SETS) {
@@ -178,13 +183,18 @@ struct AutomaskFloodFillData {
   char symm;
 };
 
-static bool automask_floodfill_cb(
-    SculptSession *ss, int from_v, int to_v, bool UNUSED(is_duplicate), void *userdata)
+static bool automask_floodfill_cb(SculptSession *ss,
+                                  PBVHVertRef from_v,
+                                  PBVHVertRef to_v,
+                                  bool UNUSED(is_duplicate),
+                                  void *userdata)
 {
   AutomaskFloodFillData *data = (AutomaskFloodFillData *)userdata;
+  int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_v);
+  int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
 
-  data->automask_factor[to_v] = 1.0f;
-  data->automask_factor[from_v] = 1.0f;
+  data->automask_factor[to_v_i] = 1.0f;
+  data->automask_factor[from_v_i] = 1.0f;
   return (!data->use_radius ||
           SCULPT_is_vertex_inside_brush_radius_symm(
               SCULPT_vertex_co_get(ss, to_v), data->location, data->radius, data->symm));
@@ -243,7 +253,9 @@ static float *sculpt_face_sets_automasking_init(Sculpt *sd, Object *ob, float *a
   int tot_vert = SCULPT_vertex_count_get(ss);
   int active_face_set = SCULPT_active_face_set_get(ss);
   for (int i : IndexRange(tot_vert)) {
-    if (!SCULPT_vertex_has_face_set(ss, i, active_face_set)) {
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+
+    if (!SCULPT_vertex_has_face_set(ss, vertex, active_face_set)) {
       automask_factor[i] *= 0.0f;
     }
   }
@@ -269,15 +281,17 @@ float *SCULPT_boundary_automasking_init(Object *ob,
   int *edge_distance = (int *)MEM_callocN(sizeof(int) * totvert, "automask_factor");
 
   for (int i : IndexRange(totvert)) {
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+
     edge_distance[i] = EDGE_DISTANCE_INF;
     switch (mode) {
       case AUTOMASK_INIT_BOUNDARY_EDGES:
-        if (SCULPT_vertex_is_boundary(ss, i)) {
+        if (SCULPT_vertex_is_boundary(ss, vertex)) {
           edge_distance[i] = 0;
         }
         break;
       case AUTOMASK_INIT_BOUNDARY_FACE_SETS:
-        if (!SCULPT_vertex_has_unique_face_set(ss, i)) {
+        if (!SCULPT_vertex_has_unique_face_set(ss, vertex)) {
           edge_distance[i] = 0;
         }
         break;
@@ -286,11 +300,13 @@ float *SCULPT_boundary_automasking_init(Object *ob,
 
   for (int propagation_it : IndexRange(propagation_steps)) {
     for (int i : IndexRange(totvert)) {
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+
       if (edge_distance[i] != EDGE_DISTANCE_INF) {
         continue;
       }
       SculptVertexNeighborIter ni;
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
         if (edge_distance[ni.index] == propagation_it) {
           edge_distance[i] = propagation_it + 1;
         }

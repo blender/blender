@@ -104,7 +104,7 @@ static void color_filter_task_cb(void *__restrict userdata,
     float fade = vd.mask ? *vd.mask : 0.0f;
     fade = 1.0f - fade;
     fade *= data->filter_strength;
-    fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.index);
+    fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.vertex);
     if (fade == 0.0f) {
       continue;
     }
@@ -189,10 +189,10 @@ static void color_filter_task_cb(void *__restrict userdata,
       case COLOR_FILTER_SMOOTH: {
         fade = clamp_f(fade, -1.0f, 1.0f);
         float smooth_color[4];
-        SCULPT_neighbor_color_average(ss, smooth_color, vd.index);
+        SCULPT_neighbor_color_average(ss, smooth_color, vd.vertex);
 
         float col[4];
-        SCULPT_vertex_color_get(ss, vd.index, col);
+        SCULPT_vertex_color_get(ss, vd.vertex, col);
 
         if (fade < 0.0f) {
           interp_v4_v4v4(smooth_color, smooth_color, col, 0.5f);
@@ -224,11 +224,7 @@ static void color_filter_task_cb(void *__restrict userdata,
       }
     }
 
-    SCULPT_vertex_color_set(ss, vd.index, final_color);
-
-    if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
-    }
+    SCULPT_vertex_color_set(ss, vd.vertex, final_color);
   }
   BKE_pbvh_vertex_iter_end;
   BKE_pbvh_node_mark_update_color(data->nodes[n]);
@@ -244,7 +240,8 @@ static void sculpt_color_presmooth_init(SculptSession *ss)
   }
 
   for (int i = 0; i < totvert; i++) {
-    SCULPT_vertex_color_get(ss, i, ss->filter_cache->pre_smoothed_color[i]);
+    SCULPT_vertex_color_get(
+        ss, BKE_pbvh_index_to_vertex(ss->pbvh, i), ss->filter_cache->pre_smoothed_color[i]);
   }
 
   for (int iteration = 0; iteration < 2; iteration++) {
@@ -253,7 +250,7 @@ static void sculpt_color_presmooth_init(SculptSession *ss)
       int total = 0;
 
       SculptVertexNeighborIter ni;
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, BKE_pbvh_index_to_vertex(ss->pbvh, i), ni) {
         float col[4] = {0};
 
         copy_v4_v4(col, ss->filter_cache->pre_smoothed_color[ni.index]);
@@ -349,7 +346,7 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
-  SCULPT_undo_push_begin(ob, "color filter");
+  SCULPT_undo_push_begin(ob, op);
   BKE_sculpt_color_layer_create_if_needed(ob);
 
   /* CTX_data_ensure_evaluated_depsgraph should be used at the end to include the updates of

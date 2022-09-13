@@ -63,6 +63,7 @@ typedef struct {
   MVert *mvert;
   const float (*vert_normals)[3];
   MPoly *mpoly;
+  const int *material_indices;
   MLoop *mloop;
   MLoopUV *mloopuv;
   float uv_offset[2];
@@ -382,8 +383,7 @@ static void *do_multires_bake_thread(void *data_v)
 
   while ((tri_index = multires_bake_queue_next_tri(handle->queue)) >= 0) {
     const MLoopTri *lt = &data->mlooptri[tri_index];
-    const MPoly *mp = &data->mpoly[lt->poly];
-    const short mat_nr = mp->mat_nr;
+    const short mat_nr = data->material_indices == NULL ? 0 : data->material_indices[lt->poly];
     const MLoopUV *mloopuv = data->mloopuv;
 
     if (multiresbake_test_break(bkr)) {
@@ -485,10 +485,18 @@ static void do_multires_bake(MultiresBakeRender *bkr,
 
   Mesh *temp_mesh = BKE_mesh_new_nomain(
       dm->getNumVerts(dm), dm->getNumEdges(dm), 0, dm->getNumLoops(dm), dm->getNumPolys(dm));
-  memcpy(temp_mesh->mvert, dm->getVertArray(dm), temp_mesh->totvert * sizeof(*temp_mesh->mvert));
-  memcpy(temp_mesh->medge, dm->getEdgeArray(dm), temp_mesh->totedge * sizeof(*temp_mesh->medge));
-  memcpy(temp_mesh->mpoly, dm->getPolyArray(dm), temp_mesh->totpoly * sizeof(*temp_mesh->mpoly));
-  memcpy(temp_mesh->mloop, dm->getLoopArray(dm), temp_mesh->totloop * sizeof(*temp_mesh->mloop));
+  memcpy(BKE_mesh_verts_for_write(temp_mesh),
+         dm->getVertArray(dm),
+         temp_mesh->totvert * sizeof(MVert));
+  memcpy(BKE_mesh_edges_for_write(temp_mesh),
+         dm->getEdgeArray(dm),
+         temp_mesh->totedge * sizeof(MEdge));
+  memcpy(BKE_mesh_polys_for_write(temp_mesh),
+         dm->getPolyArray(dm),
+         temp_mesh->totpoly * sizeof(MPoly));
+  memcpy(BKE_mesh_loops_for_write(temp_mesh),
+         dm->getLoopArray(dm),
+         temp_mesh->totloop * sizeof(MLoop));
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(temp_mesh);
   const float(*poly_normals)[3] = BKE_mesh_poly_normals_ensure(temp_mesh);
 
@@ -545,6 +553,8 @@ static void do_multires_bake(MultiresBakeRender *bkr,
     handle->queue = &queue;
 
     handle->data.mpoly = mpoly;
+    handle->data.material_indices = CustomData_get_layer_named(
+        &dm->polyData, CD_PROP_INT32, "material_index");
     handle->data.mvert = mvert;
     handle->data.vert_normals = vert_normals;
     handle->data.mloopuv = mloopuv;

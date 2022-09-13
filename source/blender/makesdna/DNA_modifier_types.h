@@ -2217,7 +2217,7 @@ typedef struct SurfaceDeformModifierData {
   SDefVert *verts;
   void *_pad1;
   float falloff;
-  /* Number of of vertices on the deformed mesh upon the bind process. */
+  /* Number of vertices on the deformed mesh upon the bind process. */
   unsigned int mesh_verts_num;
   /* Number of vertices in the `verts` array of this modifier. */
   unsigned int bind_verts_num;

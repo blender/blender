@@ -1385,7 +1385,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(
 
 static bool tree_intersect_plane_test(const float *bv, const float plane[4])
 {
-  /* TODO(germano): Support other KDOP geometries. */
+  /* TODO(@germano): Support other KDOP geometries. */
   const float bb_min[3] = {bv[0], bv[2], bv[4]};
   const float bb_max[3] = {bv[1], bv[3], bv[5]};
   float bb_near[3], bb_far[3];

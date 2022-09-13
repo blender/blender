@@ -11,6 +11,7 @@ set(INC
   ../../windowmanager
   ../../../../intern/clog
   ../../../../intern/guardedalloc
+  ../../bmesh
 )
 
 set(SRC

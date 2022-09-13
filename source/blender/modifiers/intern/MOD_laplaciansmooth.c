@@ -376,8 +376,8 @@ static void laplaciansmoothModifier_do(
     LaplacianSmoothModifierData *smd, Object *ob, Mesh *mesh, float (*vertexCos)[3], int verts_num)
 {
   LaplacianSystem *sys;
-  MDeformVert *dvert = NULL;
-  MDeformVert *dv = NULL;
+  const MDeformVert *dvert = NULL;
+  const MDeformVert *dv = NULL;
   float w, wpaint;
   int i, iter;
   int defgrp_index;
@@ -388,9 +388,9 @@ static void laplaciansmoothModifier_do(
     return;
   }
 
-  sys->mpoly = mesh->mpoly;
-  sys->mloop = mesh->mloop;
-  sys->medges = mesh->medge;
+  sys->mpoly = BKE_mesh_polys(mesh);
+  sys->mloop = BKE_mesh_loops(mesh);
+  sys->medges = BKE_mesh_edges(mesh);
   sys->vertexCos = vertexCos;
   sys->min_area = 0.00001f;
   MOD_get_vgroup(ob, mesh, smd->defgrp_name, &dvert, &defgrp_index);
@@ -535,7 +535,7 @@ static void deformVerts(ModifierData *md,
     return;
   }
 
-  mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false, false);
+  mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
 
   laplaciansmoothModifier_do(
       (LaplacianSmoothModifierData *)md, ctx->object, mesh_src, vertexCos, verts_num);
@@ -558,9 +558,9 @@ static void deformVertsEM(ModifierData *md,
     return;
   }
 
-  mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, verts_num, false, false);
+  mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, verts_num, false);
 
-  /* TODO(Campbell): use edit-mode data only (remove this line). */
+  /* TODO(@campbellbarton): use edit-mode data only (remove this line). */
   if (mesh_src != NULL) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }

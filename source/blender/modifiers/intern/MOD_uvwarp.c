@@ -23,6 +23,7 @@
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_lib_query.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
 
@@ -81,11 +82,11 @@ static void matrix_from_obj_pchan(float mat[4][4], Object *ob, const char *bonen
 }
 
 typedef struct UVWarpData {
-  MPoly *mpoly;
-  MLoop *mloop;
+  const MPoly *mpoly;
+  const MLoop *mloop;
   MLoopUV *mloopuv;
 
-  MDeformVert *dvert;
+  const MDeformVert *dvert;
   int defgrp_index;
 
   float (*warp_mat)[4];
@@ -131,10 +132,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 {
   UVWarpModifierData *umd = (UVWarpModifierData *)md;
   int polys_num, loops_num;
-  MPoly *mpoly;
-  MLoop *mloop;
   MLoopUV *mloopuv;
-  MDeformVert *dvert;
+  const MDeformVert *dvert;
   int defgrp_index;
   char uvname[MAX_CUSTOMDATA_LAYER_NAME];
   float warp_mat[4][4];
@@ -196,19 +195,19 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   /* make sure we're using an existing layer */
   CustomData_validate_layer_name(&mesh->ldata, CD_MLOOPUV, umd->uvlayer_name, uvname);
 
+  const MPoly *polys = BKE_mesh_polys(mesh);
+  const MLoop *loops = BKE_mesh_loops(mesh);
   polys_num = mesh->totpoly;
   loops_num = mesh->totloop;
 
-  mpoly = mesh->mpoly;
-  mloop = mesh->mloop;
   /* make sure we are not modifying the original UV map */
   mloopuv = CustomData_duplicate_referenced_layer_named(
       &mesh->ldata, CD_MLOOPUV, uvname, loops_num);
   MOD_get_vgroup(ctx->object, mesh, umd->vgroup_name, &dvert, &defgrp_index);
 
   UVWarpData data = {
-      .mpoly = mpoly,
-      .mloop = mloop,
+      .mpoly = polys,
+      .mloop = loops,
       .mloopuv = mloopuv,
       .dvert = dvert,
       .defgrp_index = defgrp_index,
@@ -220,7 +219,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   settings.use_threading = (polys_num > 1000);
   BLI_task_parallel_range(0, polys_num, &data, uv_warp_compute, &settings);
 
-  mesh->runtime.is_original = false;
+  mesh->runtime.is_original_bmesh = false;
 
   return mesh;
 }
@@ -242,7 +241,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   MOD_depsgraph_update_object_bone_relation(
       ctx->node, umd->object_dst, umd->bone_dst, "UVWarp Modifier");
 
-  DEG_add_modifier_to_transform_relation(ctx->node, "UVWarp Modifier");
+  DEG_add_depends_on_transform_relation(ctx->node, "UVWarp Modifier");
 }
 
 static void panel_draw(const bContext *UNUSED(C), Panel *panel)

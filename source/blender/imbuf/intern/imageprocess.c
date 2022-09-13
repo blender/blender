@@ -26,7 +26,7 @@
 void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
 {
   size_t size;
-  unsigned char rt, *cp = (unsigned char *)ibuf->rect;
+  uchar rt, *cp = (uchar *)ibuf->rect;
   float rtf, *cpf = ibuf->rect_float;
 
   if (ibuf->rect) {
@@ -58,14 +58,13 @@ void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
   }
 }
 
-static void pixel_from_buffer(
-    const struct ImBuf *ibuf, unsigned char **outI, float **outF, int x, int y)
+static void pixel_from_buffer(const struct ImBuf *ibuf, uchar **outI, float **outF, int x, int y)
 
 {
   size_t offset = ((size_t)ibuf->x) * y * 4 + 4 * x;
 
   if (ibuf->rect) {
-    *outI = (unsigned char *)ibuf->rect + offset;
+    *outI = (uchar *)ibuf->rect + offset;
   }
 
   if (ibuf->rect_float) {
@@ -78,19 +77,19 @@ static void pixel_from_buffer(
  * \{ */
 
 void bicubic_interpolation_color(
-    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
+    const struct ImBuf *in, uchar outI[4], float outF[4], float u, float v)
 {
   if (outF) {
     BLI_bicubic_interpolation_fl(in->rect_float, outF, in->x, in->y, 4, u, v);
   }
   else {
-    BLI_bicubic_interpolation_char((unsigned char *)in->rect, outI, in->x, in->y, 4, u, v);
+    BLI_bicubic_interpolation_char((uchar *)in->rect, outI, in->x, in->y, 4, u, v);
   }
 }
 
 void bicubic_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int xout, int yout)
 {
-  unsigned char *outI = NULL;
+  uchar *outI = NULL;
   float *outF = NULL;
 
   if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) {
@@ -110,7 +109,7 @@ void bicubic_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int xo
  * \{ */
 
 void bilinear_interpolation_color_fl(
-    const struct ImBuf *in, unsigned char UNUSED(outI[4]), float outF[4], float u, float v)
+    const struct ImBuf *in, uchar UNUSED(outI[4]), float outF[4], float u, float v)
 {
   BLI_assert(outF);
   BLI_assert(in->rect_float);
@@ -118,21 +117,21 @@ void bilinear_interpolation_color_fl(
 }
 
 void bilinear_interpolation_color_char(
-    const struct ImBuf *in, unsigned char outI[4], float UNUSED(outF[4]), float u, float v)
+    const struct ImBuf *in, uchar outI[4], float UNUSED(outF[4]), float u, float v)
 {
   BLI_assert(outI);
   BLI_assert(in->rect);
-  BLI_bilinear_interpolation_char((unsigned char *)in->rect, outI, in->x, in->y, 4, u, v);
+  BLI_bilinear_interpolation_char((uchar *)in->rect, outI, in->x, in->y, 4, u, v);
 }
 
 void bilinear_interpolation_color(
-    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
+    const struct ImBuf *in, uchar outI[4], float outF[4], float u, float v)
 {
   if (outF) {
     BLI_bilinear_interpolation_fl(in->rect_float, outF, in->x, in->y, 4, u, v);
   }
   else {
-    BLI_bilinear_interpolation_char((unsigned char *)in->rect, outI, in->x, in->y, 4, u, v);
+    BLI_bilinear_interpolation_char((uchar *)in->rect, outI, in->x, in->y, 4, u, v);
   }
 }
 
@@ -140,10 +139,10 @@ void bilinear_interpolation_color(
 /* BILINEAR INTERPOLATION */
 
 void bilinear_interpolation_color_wrap(
-    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
+    const struct ImBuf *in, uchar outI[4], float outF[4], float u, float v)
 {
   float *row1, *row2, *row3, *row4, a, b;
-  unsigned char *row1I, *row2I, *row3I, *row4I;
+  uchar *row1I, *row2I, *row3I, *row4I;
   float a_b, ma_b, a_mb, ma_mb;
   int y1, y2, x1, x2;
 
@@ -198,10 +197,10 @@ void bilinear_interpolation_color_wrap(
   }
   if (outI) {
     /* sample including outside of edges of image */
-    row1I = (unsigned char *)in->rect + ((size_t)in->x) * y1 * 4 + 4 * x1;
-    row2I = (unsigned char *)in->rect + ((size_t)in->x) * y2 * 4 + 4 * x1;
-    row3I = (unsigned char *)in->rect + ((size_t)in->x) * y1 * 4 + 4 * x2;
-    row4I = (unsigned char *)in->rect + ((size_t)in->x) * y2 * 4 + 4 * x2;
+    row1I = (uchar *)in->rect + ((size_t)in->x) * y1 * 4 + 4 * x1;
+    row2I = (uchar *)in->rect + ((size_t)in->x) * y2 * 4 + 4 * x1;
+    row3I = (uchar *)in->rect + ((size_t)in->x) * y1 * 4 + 4 * x2;
+    row4I = (uchar *)in->rect + ((size_t)in->x) * y2 * 4 + 4 * x2;
 
     /* Tested with white images and this should not wrap back to zero. */
     outI[0] = roundf(ma_mb * row1I[0] + a_mb * row3I[0] + ma_b * row2I[0] + a_b * row4I[0]);
@@ -213,7 +212,7 @@ void bilinear_interpolation_color_wrap(
 
 void bilinear_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int xout, int yout)
 {
-  unsigned char *outI = NULL;
+  uchar *outI = NULL;
   float *outF = NULL;
 
   if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) {
@@ -233,7 +232,7 @@ void bilinear_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int x
  * \{ */
 
 void nearest_interpolation_color_char(
-    const struct ImBuf *in, unsigned char outI[4], float UNUSED(outF[4]), float u, float v)
+    const struct ImBuf *in, uchar outI[4], float UNUSED(outF[4]), float u, float v)
 {
   BLI_assert(outI);
   BLI_assert(in->rect);
@@ -248,7 +247,7 @@ void nearest_interpolation_color_char(
   }
 
   const size_t offset = ((size_t)in->x * y1 + x1) * 4;
-  const unsigned char *dataI = (unsigned char *)in->rect + offset;
+  const uchar *dataI = (uchar *)in->rect + offset;
   outI[0] = dataI[0];
   outI[1] = dataI[1];
   outI[2] = dataI[2];
@@ -256,7 +255,7 @@ void nearest_interpolation_color_char(
 }
 
 void nearest_interpolation_color_fl(
-    const struct ImBuf *in, unsigned char UNUSED(outI[4]), float outF[4], float u, float v)
+    const struct ImBuf *in, uchar UNUSED(outI[4]), float outF[4], float u, float v)
 {
   BLI_assert(outF);
   BLI_assert(in->rect_float);
@@ -276,7 +275,7 @@ void nearest_interpolation_color_fl(
 }
 
 void nearest_interpolation_color(
-    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
+    const struct ImBuf *in, uchar outI[4], float outF[4], float u, float v)
 {
   if (outF) {
     nearest_interpolation_color_fl(in, outI, outF, u, v);
@@ -287,10 +286,10 @@ void nearest_interpolation_color(
 }
 
 void nearest_interpolation_color_wrap(
-    const struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
+    const struct ImBuf *in, uchar outI[4], float outF[4], float u, float v)
 {
   const float *dataF;
-  unsigned char *dataI;
+  uchar *dataI;
   int y, x;
 
   /* ImBuf in must have a valid rect or rect_float, assume this is already checked */
@@ -309,7 +308,7 @@ void nearest_interpolation_color_wrap(
     y += in->y;
   }
 
-  dataI = (unsigned char *)in->rect + ((size_t)in->x) * y * 4 + 4 * x;
+  dataI = (uchar *)in->rect + ((size_t)in->x) * y * 4 + 4 * x;
   if (outI) {
     outI[0] = dataI[0];
     outI[1] = dataI[1];
@@ -327,7 +326,7 @@ void nearest_interpolation_color_wrap(
 
 void nearest_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int xout, int yout)
 {
-  unsigned char *outI = NULL;
+  uchar *outI = NULL;
   float *outF = NULL;
 
   if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) {
@@ -446,10 +445,10 @@ void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[
   }
 }
 
-void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, const float backcol[3])
+void IMB_alpha_under_color_byte(uchar *rect, int x, int y, const float backcol[3])
 {
   size_t a = ((size_t)x) * y;
-  unsigned char *cp = rect;
+  uchar *cp = rect;
 
   while (a--) {
     if (cp[3] == 255) {
@@ -487,7 +486,7 @@ void IMB_sampleImageAtLocation(ImBuf *ibuf, float x, float y, bool make_linear_r
     nearest_interpolation_color(ibuf, NULL, color, x, y);
   }
   else {
-    unsigned char byte_color[4];
+    uchar byte_color[4];
     nearest_interpolation_color(ibuf, byte_color, NULL, x, y);
     rgba_uchar_to_float(color, byte_color);
     if (make_linear_rgb) {

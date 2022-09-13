@@ -68,19 +68,18 @@ static void update_handle_types_for_movement(int8_t &type, int8_t &other)
   }
 }
 
-static void set_position_in_component(CurveComponent &component,
+static void set_position_in_component(bke::CurvesGeometry &curves,
                                       const GeometryNodeCurveHandleMode mode,
                                       const Field<bool> &selection_field,
                                       const Field<float3> &position_field,
                                       const Field<float3> &offset_field)
 {
-  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
-  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_POINT);
-  if (domain_size == 0) {
+  if (curves.points_num() == 0) {
     return;
   }
 
-  fn::FieldEvaluator evaluator{field_context, domain_size};
+  bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_POINT};
+  fn::FieldEvaluator evaluator{field_context, curves.points_num()};
   evaluator.set_selection(selection_field);
   evaluator.add(position_field);
   evaluator.add(offset_field);
@@ -88,9 +87,6 @@ static void set_position_in_component(CurveComponent &component,
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
   const VArray<float3> new_positions = evaluator.get_evaluated<float3>(0);
   const VArray<float3> new_offsets = evaluator.get_evaluated<float3>(1);
-
-  Curves &curves_id = *component.get_for_write();
-  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
 
   Span<float3> positions = curves.positions();
 
@@ -141,22 +137,17 @@ static void node_geo_exec(GeoNodeExecParams params)
   std::atomic<bool> has_bezier = false;
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (!geometry_set.has_curves()) {
-      return;
-    }
-    has_curves = true;
-    const CurveComponent &component = *geometry_set.get_component_for_read<CurveComponent>();
-    const AttributeAccessor attributes = *component.attributes();
-    if (!attributes.contains("handle_left") || !attributes.contains("handle_right")) {
-      return;
-    }
-    has_bezier = true;
+    if (Curves *curves_id = geometry_set.get_curves_for_write()) {
+      bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+      has_curves = true;
+      const AttributeAccessor attributes = curves.attributes();
+      if (!attributes.contains("handle_left") || !attributes.contains("handle_right")) {
+        return;
+      }
+      has_bezier = true;
 
-    set_position_in_component(geometry_set.get_component_for_write<CurveComponent>(),
-                              mode,
-                              selection_field,
-                              position_field,
-                              offset_field);
+      set_position_in_component(curves, mode, selection_field, position_field, offset_field);
+    }
   });
 
   if (has_curves && !has_bezier) {

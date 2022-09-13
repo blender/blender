@@ -5,8 +5,8 @@
 
 #include "kernel/camera/camera.h"
 
-#include "kernel/film/accumulate.h"
 #include "kernel/film/adaptive_sampling.h"
+#include "kernel/film/light_passes.h"
 
 #include "kernel/integrator/path_state.h"
 #include "kernel/integrator/shadow_catcher.h"
@@ -23,31 +23,21 @@ ccl_device_inline void integrate_camera_sample(KernelGlobals kg,
                                                ccl_private Ray *ray)
 {
   /* Filter sampling. */
-  float filter_u, filter_v;
-
-  if (sample == 0) {
-    filter_u = 0.5f;
-    filter_v = 0.5f;
-  }
-  else {
-    path_rng_2D(kg, rng_hash, sample, PRNG_FILTER_U, &filter_u, &filter_v);
-  }
+  const float2 rand_filter = (sample == 0) ? make_float2(0.5f, 0.5f) :
+                                             path_rng_2D(kg, rng_hash, sample, PRNG_FILTER);
 
   /* Depth of field sampling. */
-  float lens_u = 0.0f, lens_v = 0.0f;
-  if (kernel_data.cam.aperturesize > 0.0f) {
-    path_rng_2D(kg, rng_hash, sample, PRNG_LENS_U, &lens_u, &lens_v);
-  }
+  const float2 rand_lens = (kernel_data.cam.aperturesize > 0.0f) ?
+                               path_rng_2D(kg, rng_hash, sample, PRNG_LENS) :
+                               zero_float2();
 
   /* Motion blur time sampling. */
-  float time = 0.0f;
-#ifdef __CAMERA_MOTION__
-  if (kernel_data.cam.shuttertime != -1.0f)
-    time = path_rng_1D(kg, rng_hash, sample, PRNG_TIME);
-#endif
+  const float rand_time = (kernel_data.cam.shuttertime != -1.0f) ?
+                              path_rng_1D(kg, rng_hash, sample, PRNG_TIME) :
+                              0.0f;
 
   /* Generate camera ray. */
-  camera_sample(kg, x, y, filter_u, filter_v, lens_u, lens_v, time, ray);
+  camera_sample(kg, x, y, rand_filter.x, rand_filter.y, rand_lens.x, rand_lens.y, rand_time, ray);
 }
 
 /* Return false to indicate that this pixel is finished.
@@ -67,7 +57,7 @@ ccl_device bool integrator_init_from_camera(KernelGlobals kg,
   path_state_init(state, tile, x, y);
 
   /* Check whether the pixel has converged and should not be sampled anymore. */
-  if (!kernel_need_sample_pixel(kg, state, render_buffer)) {
+  if (!film_need_sample_pixel(kg, state, render_buffer)) {
     return false;
   }
 
@@ -76,7 +66,7 @@ ccl_device bool integrator_init_from_camera(KernelGlobals kg,
    * This logic allows to both count actual number of samples per pixel, and to add samples to this
    * pixel after it was converged and samples were added somewhere else (in which case the
    * `scheduled_sample` will be different from actual number of samples in this pixel). */
-  const int sample = kernel_accum_sample(
+  const int sample = film_write_sample(
       kg, state, render_buffer, scheduled_sample, tile->sample_offset);
 
   /* Initialize random number seed for path. */

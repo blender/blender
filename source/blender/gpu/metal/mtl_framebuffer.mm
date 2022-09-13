@@ -885,12 +885,12 @@ bool MTLFrameBuffer::add_color_attachment(gpu::MTLTexture *texture,
         mtl_color_attachments_[slot].depth_plane = 0;
         break;
       default:
-        MTL_LOG_ERROR("MTLFrameBuffer::add_color_attachment Unrecognised texture type %u\n",
+        MTL_LOG_ERROR("MTLFrameBuffer::add_color_attachment Unrecognized texture type %u\n",
                       texture->type_);
         break;
     }
 
-    /* Update Framebuffer Resolution. */
+    /* Update Frame-buffer Resolution. */
     int width_of_miplayer, height_of_miplayer;
     if (miplevel <= 0) {
       width_of_miplayer = texture->width_get();
@@ -1007,11 +1007,11 @@ bool MTLFrameBuffer::add_depth_attachment(gpu::MTLTexture *texture, int miplevel
         mtl_depth_attachment_.depth_plane = 0;
         break;
       default:
-        BLI_assert(false && "Unrecognised texture type");
+        BLI_assert(false && "Unrecognized texture type");
         break;
     }
 
-    /* Update Framebuffer Resolution. */
+    /* Update Frame-buffer Resolution. */
     int width_of_miplayer, height_of_miplayer;
     if (miplevel <= 0) {
       width_of_miplayer = texture->width_get();
@@ -1022,7 +1022,7 @@ bool MTLFrameBuffer::add_depth_attachment(gpu::MTLTexture *texture, int miplevel
       height_of_miplayer = max_ii(texture->height_get() >> miplevel, 1);
     }
 
-    /* Update Framebuffer Resolution. */
+    /* Update Frame-buffer Resolution. */
     if (width_ == 0 || height_ == 0) {
       this->size_set(width_of_miplayer, height_of_miplayer);
       this->scissor_reset();
@@ -1129,11 +1129,11 @@ bool MTLFrameBuffer::add_stencil_attachment(gpu::MTLTexture *texture, int miplev
         mtl_stencil_attachment_.depth_plane = 0;
         break;
       default:
-        BLI_assert(false && "Unrecognised texture type");
+        BLI_assert(false && "Unrecognized texture type");
         break;
     }
 
-    /* Update Framebuffer Resolution. */
+    /* Update Frame-buffer Resolution. */
     int width_of_miplayer, height_of_miplayer;
     if (miplevel <= 0) {
       width_of_miplayer = texture->width_get();
@@ -1144,7 +1144,7 @@ bool MTLFrameBuffer::add_stencil_attachment(gpu::MTLTexture *texture, int miplev
       height_of_miplayer = max_ii(texture->height_get() >> miplevel, 1);
     }
 
-    /* Update Framebuffer Resolution. */
+    /* Update Frame-buffer Resolution. */
     if (width_ == 0 || height_ == 0) {
       this->size_set(width_of_miplayer, height_of_miplayer);
       this->scissor_reset();
@@ -1376,7 +1376,7 @@ bool MTLFrameBuffer::reset_clear_state()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \ Fetch values and Framebuffer status
+/** \ Fetch values and Frame-buffer status
  * \{ */
 
 bool MTLFrameBuffer::has_attachment_at_slot(uint slot)
@@ -1506,7 +1506,7 @@ MTLRenderPassDescriptor *MTLFrameBuffer::bake_render_pass_descriptor(bool load_c
   BLI_assert(metal_ctx && metal_ctx->get_inside_frame());
   UNUSED_VARS_NDEBUG(metal_ctx);
 
-  /* If Framebuffer has been modified, regenerate descriptor. */
+  /* If Frame-buffer has been modified, regenerate descriptor. */
   if (is_dirty_) {
     /* Clear all configs. */
     for (int config = 0; config < 3; config++) {

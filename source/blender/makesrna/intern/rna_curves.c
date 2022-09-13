@@ -195,7 +195,7 @@ static void rna_def_curves_point(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "CurvePoint", NULL);
-  RNA_def_struct_ui_text(srna, "Curve Point", "Curve curve control point");
+  RNA_def_struct_ui_text(srna, "Curve Point", "Curve control point");
   RNA_def_struct_path_func(srna, "rna_CurvePoint_path");
 
   prop = RNA_def_property(srna, "position", PROP_FLOAT, PROP_TRANSLATION);

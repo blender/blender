@@ -545,7 +545,7 @@ std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) con
     if (!GLContext::native_barycentric_support) {
       /* Disabled or unsupported. */
     }
-    else if (GLEW_AMD_shader_explicit_vertex_parameter) {
+    else if (epoxy_has_gl_extension("GL_AMD_shader_explicit_vertex_parameter")) {
       /* Need this for stable barycentric. */
       ss << "flat out vec4 gpu_pos_flat;\n";
       ss << "out vec4 gpu_pos;\n";
@@ -581,7 +581,7 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
       ss << "noperspective in vec3 gpu_BaryCoordNoPersp;\n";
       ss << "#define gpu_position_at_vertex(v) gpu_pos[v]\n";
     }
-    else if (GLEW_AMD_shader_explicit_vertex_parameter) {
+    else if (epoxy_has_gl_extension("GL_AMD_shader_explicit_vertex_parameter")) {
       std::cout << "native" << std::endl;
       /* NOTE(fclem): This won't work with geometry shader. Hopefully, we don't need geometry
        * shader workaround if this extension/feature is detected. */
@@ -612,7 +612,7 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
   if (info.early_fragment_test_) {
     ss << "layout(early_fragment_tests) in;\n";
   }
-  if (GLEW_ARB_conservative_depth) {
+  if (epoxy_has_gl_extension("GL_ARB_conservative_depth")) {
     ss << "layout(" << to_string(info.depth_write_) << ") out float gl_FragDepth;\n";
   }
   ss << "\n/* Outputs. */\n";
@@ -805,7 +805,7 @@ static char *glsl_patch_default_get()
 
   size_t slen = 0;
   /* Version need to go first. */
-  if (GLEW_VERSION_4_3) {
+  if (epoxy_gl_version() >= 43) {
     STR_CONCAT(patch, slen, "#version 430\n");
   }
   else {
@@ -816,8 +816,8 @@ static char *glsl_patch_default_get()
    * don't use an extension for something already available! */
   if (GLContext::texture_gather_support) {
     STR_CONCAT(patch, slen, "#extension GL_ARB_texture_gather: enable\n");
-    /* Some drivers don't agree on GLEW_ARB_texture_gather and the actual support in the
-     * shader so double check the preprocessor define (see T56544). */
+    /* Some drivers don't agree on epoxy_has_gl_extension("GL_ARB_texture_gather") and the actual
+     * support in the shader so double check the preprocessor define (see T56544). */
     STR_CONCAT(patch, slen, "#ifdef GL_ARB_texture_gather\n");
     STR_CONCAT(patch, slen, "#  define GPU_ARB_texture_gather\n");
     STR_CONCAT(patch, slen, "#endif\n");
@@ -835,7 +835,7 @@ static char *glsl_patch_default_get()
     STR_CONCAT(patch, slen, "#extension GL_ARB_texture_cube_map_array : enable\n");
     STR_CONCAT(patch, slen, "#define GPU_ARB_texture_cube_map_array\n");
   }
-  if (GLEW_ARB_conservative_depth) {
+  if (epoxy_has_gl_extension("GL_ARB_conservative_depth")) {
     STR_CONCAT(patch, slen, "#extension GL_ARB_conservative_depth : enable\n");
   }
   if (GPU_shader_image_load_store_support()) {
@@ -1135,108 +1135,6 @@ void GLShader::uniform_int(int location, int comp_len, int array_size, const int
 /* -------------------------------------------------------------------- */
 /** \name GPUVertFormat from Shader
  * \{ */
-
-static uint calc_component_size(const GLenum gl_type)
-{
-  switch (gl_type) {
-    case GL_FLOAT_VEC2:
-    case GL_INT_VEC2:
-    case GL_UNSIGNED_INT_VEC2:
-      return 2;
-    case GL_FLOAT_VEC3:
-    case GL_INT_VEC3:
-    case GL_UNSIGNED_INT_VEC3:
-      return 3;
-    case GL_FLOAT_VEC4:
-    case GL_FLOAT_MAT2:
-    case GL_INT_VEC4:
-    case GL_UNSIGNED_INT_VEC4:
-      return 4;
-    case GL_FLOAT_MAT3:
-      return 9;
-    case GL_FLOAT_MAT4:
-      return 16;
-    case GL_FLOAT_MAT2x3:
-    case GL_FLOAT_MAT3x2:
-      return 6;
-    case GL_FLOAT_MAT2x4:
-    case GL_FLOAT_MAT4x2:
-      return 8;
-    case GL_FLOAT_MAT3x4:
-    case GL_FLOAT_MAT4x3:
-      return 12;
-    default:
-      return 1;
-  }
-}
-
-static void get_fetch_mode_and_comp_type(int gl_type,
-                                         GPUVertCompType *r_comp_type,
-                                         GPUVertFetchMode *r_fetch_mode)
-{
-  switch (gl_type) {
-    case GL_FLOAT:
-    case GL_FLOAT_VEC2:
-    case GL_FLOAT_VEC3:
-    case GL_FLOAT_VEC4:
-    case GL_FLOAT_MAT2:
-    case GL_FLOAT_MAT3:
-    case GL_FLOAT_MAT4:
-    case GL_FLOAT_MAT2x3:
-    case GL_FLOAT_MAT2x4:
-    case GL_FLOAT_MAT3x2:
-    case GL_FLOAT_MAT3x4:
-    case GL_FLOAT_MAT4x2:
-    case GL_FLOAT_MAT4x3:
-      *r_comp_type = GPU_COMP_F32;
-      *r_fetch_mode = GPU_FETCH_FLOAT;
-      break;
-    case GL_INT:
-    case GL_INT_VEC2:
-    case GL_INT_VEC3:
-    case GL_INT_VEC4:
-      *r_comp_type = GPU_COMP_I32;
-      *r_fetch_mode = GPU_FETCH_INT;
-      break;
-    case GL_UNSIGNED_INT:
-    case GL_UNSIGNED_INT_VEC2:
-    case GL_UNSIGNED_INT_VEC3:
-    case GL_UNSIGNED_INT_VEC4:
-      *r_comp_type = GPU_COMP_U32;
-      *r_fetch_mode = GPU_FETCH_INT;
-      break;
-    default:
-      BLI_assert(0);
-  }
-}
-
-void GLShader::vertformat_from_shader(GPUVertFormat *format) const
-{
-  GPU_vertformat_clear(format);
-
-  GLint attr_len;
-  glGetProgramiv(shader_program_, GL_ACTIVE_ATTRIBUTES, &attr_len);
-
-  for (int i = 0; i < attr_len; i++) {
-    char name[256];
-    GLenum gl_type;
-    GLint size;
-    glGetActiveAttrib(shader_program_, i, sizeof(name), nullptr, &size, &gl_type, name);
-
-    /* Ignore OpenGL names like `gl_BaseInstanceARB`, `gl_InstanceID` and `gl_VertexID`. */
-    if (glGetAttribLocation(shader_program_, name) == -1) {
-      continue;
-    }
-
-    GPUVertCompType comp_type;
-    GPUVertFetchMode fetch_mode;
-    get_fetch_mode_and_comp_type(gl_type, &comp_type, &fetch_mode);
-
-    int comp_len = calc_component_size(gl_type) * size;
-
-    GPU_vertformat_attr_add(format, name, comp_type, comp_len, fetch_mode);
-  }
-}
 
 int GLShader::program_handle_get() const
 {

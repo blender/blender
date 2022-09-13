@@ -18,6 +18,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
@@ -471,7 +472,7 @@ bool ED_space_image_maskedit_poll(bContext *C)
 
   if (sima) {
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+    Object *obedit = BKE_view_layer_edit_object_get(view_layer);
     return ED_space_image_check_show_maskedit(sima, obedit);
   }
 

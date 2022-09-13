@@ -32,7 +32,7 @@ static const char *gpu_shader_get_name(int mode)
     case MA_RAMP_SCREEN:
       return "mix_screen";
     case MA_RAMP_DIV:
-      return "mix_div";
+      return "mix_div_fallback";
     case MA_RAMP_DIFF:
       return "mix_diff";
     case MA_RAMP_DARK:
@@ -70,18 +70,23 @@ static int gpu_shader_mix_rgb(GPUMaterial *mat,
 {
   const char *name = gpu_shader_get_name(node->custom1);
 
-  if (name != nullptr) {
-    int ret = GPU_stack_link(mat, node, name, in, out);
-    if (ret && node->custom2 & SHD_MIXRGB_CLAMP) {
-      const float min[3] = {0.0f, 0.0f, 0.0f};
-      const float max[3] = {1.0f, 1.0f, 1.0f};
-      GPU_link(
-          mat, "clamp_color", out[0].link, GPU_constant(min), GPU_constant(max), &out[0].link);
-    }
-    return ret;
+  if (name == nullptr) {
+    return 0;
   }
 
-  return 0;
+  const float min = 0.0f;
+  const float max = 1.0f;
+  const GPUNodeLink *factor_link = in[0].link ? in[0].link : GPU_uniform(in[0].vec);
+  GPU_link(mat, "clamp_value", factor_link, GPU_constant(&min), GPU_constant(&max), &in[0].link);
+
+  int ret = GPU_stack_link(mat, node, name, in, out);
+
+  if (ret && node->custom2 & SHD_MIXRGB_CLAMP) {
+    const float min[3] = {0.0f, 0.0f, 0.0f};
+    const float max[3] = {1.0f, 1.0f, 1.0f};
+    GPU_link(mat, "clamp_color", out[0].link, GPU_constant(min), GPU_constant(max), &out[0].link);
+  }
+  return ret;
 }
 
 class MixRGBFunction : public fn::MultiFunction {
@@ -131,7 +136,7 @@ class MixRGBFunction : public fn::MultiFunction {
 
 static void sh_node_mix_rgb_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &node = builder.node();
+  const bNode &node = builder.node();
   bool clamp = node.custom2 & SHD_MIXRGB_CLAMP;
   int mix_type = node.custom1;
   builder.construct_and_set_matching_fn<MixRGBFunction>(clamp, mix_type);
@@ -145,11 +150,11 @@ void register_node_type_sh_mix_rgb()
 
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_MIX_RGB, "Mix", NODE_CLASS_OP_COLOR);
+  sh_fn_node_type_base(&ntype, SH_NODE_MIX_RGB_LEGACY, "Mix", NODE_CLASS_OP_COLOR);
   ntype.declare = file_ns::sh_node_mix_rgb_declare;
   ntype.labelfunc = node_blend_label;
   node_type_gpu(&ntype, file_ns::gpu_shader_mix_rgb);
   ntype.build_multi_function = file_ns::sh_node_mix_rgb_build_multi_function;
-
+  ntype.gather_link_search_ops = nullptr;
   nodeRegisterType(&ntype);
 }

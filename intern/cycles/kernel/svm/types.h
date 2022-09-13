@@ -12,7 +12,7 @@ CCL_NAMESPACE_BEGIN
 /* SVM stack offsets with this value indicate that it's not on the stack */
 #define SVM_STACK_INVALID 255
 
-#define SVM_BUMP_EVAL_STATE_SIZE 9
+#define SVM_BUMP_EVAL_STATE_SIZE 4
 
 /* Nodes */
 
@@ -133,7 +133,7 @@ typedef enum NodeMix {
   NODE_MIX_HUE,
   NODE_MIX_SAT,
   NODE_MIX_VAL,
-  NODE_MIX_COLOR,
+  NODE_MIX_COL,
   NODE_MIX_SOFT,
   NODE_MIX_LINEAR,
   NODE_MIX_CLAMP /* used for the clamp UI option */

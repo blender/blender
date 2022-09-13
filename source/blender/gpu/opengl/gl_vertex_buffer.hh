@@ -9,8 +9,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "glew-mx.h"
-
 #include "GPU_texture.h"
 
 #include "gpu_vertex_buffer_private.hh"

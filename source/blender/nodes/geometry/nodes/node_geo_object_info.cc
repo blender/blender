@@ -80,7 +80,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     else {
       geometry_set = bke::object_get_evaluated_geometry_set(*object);
       if (transform_space_relative) {
-        transform_geometry_set(geometry_set, transform, *params.depsgraph());
+        transform_geometry_set(params, geometry_set, transform, *params.depsgraph());
       }
     }
 

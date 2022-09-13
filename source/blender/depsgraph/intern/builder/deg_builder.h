@@ -10,6 +10,7 @@
 struct Base;
 struct ID;
 struct Main;
+struct ModifierData;
 struct Object;
 struct bPoseChannel;
 
@@ -25,6 +26,7 @@ class DepsgraphBuilder {
   virtual bool need_pull_base_into_graph(const Base *base);
 
   virtual bool is_object_visibility_animated(const Object *object);
+  virtual bool is_modifier_visibility_animated(const Object *object, const ModifierData *modifier);
 
   virtual bool check_pchan_has_bbone(const Object *object, const bPoseChannel *pchan);
   virtual bool check_pchan_has_bbone_segments(const Object *object, const bPoseChannel *pchan);

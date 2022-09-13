@@ -41,12 +41,14 @@ void fixup_line_continuations(char *p, char *end)
   while (true) {
     /* Find next backslash, if any. */
     char *backslash = std::find(p, end, '\\');
-    if (backslash == end)
+    if (backslash == end) {
       break;
+    }
     /* Skip over possible whitespace right after it. */
     p = backslash + 1;
-    while (p < end && is_whitespace(*p) && *p != '\n')
+    while (p < end && is_whitespace(*p) && *p != '\n') {
       ++p;
+    }
     /* If then we have a newline, turn both backslash
      * and the newline into regular spaces. */
     if (p < end && *p == '\n') {

@@ -849,7 +849,7 @@ static void eevee_lightbake_delete_resources(EEVEE_LightBake *lbake)
     DRW_opengl_context_enable();
   }
 
-  /* XXX Free the resources contained in the viewlayer data
+  /* XXX: Free the resources contained in the view-layer data
    * to be able to free the context before deleting the depsgraph. */
   if (lbake->sldata) {
     EEVEE_view_layer_data_free(lbake->sldata);

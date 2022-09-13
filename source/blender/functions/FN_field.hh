@@ -221,6 +221,17 @@ class FieldOperation : public FieldNode {
   const MultiFunction &multi_function() const;
 
   const CPPType &output_cpp_type(int output_index) const override;
+
+  static std::shared_ptr<FieldOperation> Create(std::shared_ptr<const MultiFunction> function,
+                                                Vector<GField> inputs = {})
+  {
+    return std::make_shared<FieldOperation>(FieldOperation(std::move(function), inputs));
+  }
+  static std::shared_ptr<FieldOperation> Create(const MultiFunction &function,
+                                                Vector<GField> inputs = {})
+  {
+    return std::make_shared<FieldOperation>(FieldOperation(function, inputs));
+  }
 };
 
 class FieldContext;
@@ -553,6 +564,17 @@ template<typename T> struct ValueOrField {
       return evaluate_constant_field(this->field);
     }
     return this->value;
+  }
+
+  friend std::ostream &operator<<(std::ostream &stream, const ValueOrField<T> &value_or_field)
+  {
+    if (value_or_field.field) {
+      stream << "ValueOrField<T>";
+    }
+    else {
+      stream << value_or_field.value;
+    }
+    return stream;
   }
 };
 

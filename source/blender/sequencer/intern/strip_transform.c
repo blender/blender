@@ -84,7 +84,7 @@ bool SEQ_transform_seqbase_isolated_sel_check(ListBase *seqbase)
 
 void SEQ_transform_fix_single_image_seq_offsets(const Scene *scene, Sequence *seq)
 {
-  int left, start, offset;
+  int left, start;
   if (!SEQ_transform_single_image_check(seq)) {
     return;
   }
@@ -94,7 +94,7 @@ void SEQ_transform_fix_single_image_seq_offsets(const Scene *scene, Sequence *se
   left = SEQ_time_left_handle_frame_get(scene, seq);
   start = seq->start;
   if (start != left) {
-    offset = left - start;
+    const int offset = left - start;
     SEQ_time_left_handle_frame_set(
         scene, seq, SEQ_time_left_handle_frame_get(scene, seq) - offset);
     SEQ_time_right_handle_frame_set(

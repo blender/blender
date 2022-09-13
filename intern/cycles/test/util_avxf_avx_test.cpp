@@ -2,7 +2,6 @@
  * Copyright 2011-2022 Blender Foundation */
 
 #define __KERNEL_AVX__
-#define __KERNEL_CPU__
 
 #define TEST_CATEGORY_NAME util_avx
 

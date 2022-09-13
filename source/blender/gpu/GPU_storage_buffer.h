@@ -48,6 +48,13 @@ void GPU_storagebuf_clear(GPUStorageBuf *ssbo,
 void GPU_storagebuf_clear_to_zero(GPUStorageBuf *ssbo);
 
 /**
+ * Read back content of the buffer to CPU for inspection.
+ * Slow! Only use for inspection / debugging.
+ * NOTE: Not synchronized. Use appropriate barrier before reading.
+ */
+void GPU_storagebuf_read(GPUStorageBuf *ssbo, void *data);
+
+/**
  * \brief Copy a part of a vertex buffer to a storage buffer.
  *
  * \param ssbo: destination storage buffer

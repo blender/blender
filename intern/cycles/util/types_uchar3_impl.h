@@ -10,7 +10,8 @@
 
 CCL_NAMESPACE_BEGIN
 
-#if !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__)
+#ifndef __KERNEL_NATIVE_VECTOR_TYPES__
+#  ifndef __KERNEL_GPU__
 uchar uchar3::operator[](int i) const
 {
   util_assert(i >= 0);
@@ -24,13 +25,14 @@ uchar &uchar3::operator[](int i)
   util_assert(i < 3);
   return *(&x + i);
 }
+#  endif
 
 ccl_device_inline uchar3 make_uchar3(uchar x, uchar y, uchar z)
 {
   uchar3 a = {x, y, z};
   return a;
 }
-#endif /* !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__) */
+#endif /* __KERNEL_NATIVE_VECTOR_TYPES__ */
 
 CCL_NAMESPACE_END
 

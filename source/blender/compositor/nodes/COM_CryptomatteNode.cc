@@ -23,8 +23,9 @@ void CryptomatteBaseNode::convert_to_operations(NodeConverter &converter,
 {
   NodeOutput *output_image_socket = this->get_output_socket(0);
 
-  bNode *node = this->get_bnode();
-  NodeCryptomatte *cryptomatte_settings = static_cast<NodeCryptomatte *>(node->storage);
+  const bNode *node = this->get_bnode();
+  const NodeCryptomatte *cryptomatte_settings = static_cast<const NodeCryptomatte *>(
+      node->storage);
 
   CryptomatteOperation *cryptomatte_operation = create_cryptomatte_operation(
       converter, context, *node, cryptomatte_settings);

@@ -142,7 +142,8 @@ static ModifierData *modifier_allocate_and_init(int type)
   md->type = type;
   md->mode = eModifierMode_Realtime | eModifierMode_Render;
   md->flag = eModifierFlag_OverrideLibrary_Local;
-  md->ui_expand_flag = 1; /* Only open the main panel at the beginning, not the sub-panels. */
+  /* Only open the main panel at the beginning, not the sub-panels. */
+  md->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT;
 
   if (mti->flags & eModifierTypeFlag_EnableInEditmode) {
     md->mode |= eModifierMode_Editmode;

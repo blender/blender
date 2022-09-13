@@ -1,6 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0
  * Copyright 2011-2022 Blender Foundation */
 
+/* Functions to retrieving render passes for display or output. Reading from
+ * the raw render buffer and normalizing based on the number of samples,
+ * computing alpha, compositing shadow catchers, etc. */
+
 #pragma once
 
 CCL_NAMESPACE_BEGIN
@@ -235,6 +239,21 @@ ccl_device_inline void film_get_pass_pixel_float3(ccl_global const KernelFilmCon
   pixel[0] = f.x;
   pixel[1] = f.y;
   pixel[2] = f.z;
+
+  /* Optional alpha channel. */
+  if (kfilm_convert->num_components >= 4) {
+    if (kfilm_convert->pass_combined != PASS_UNUSED) {
+      float scale, scale_exposure;
+      film_get_scale_and_scale_exposure(kfilm_convert, buffer, &scale, &scale_exposure);
+
+      ccl_global const float *in_combined = buffer + kfilm_convert->pass_combined;
+      const float alpha = in_combined[3] * scale;
+      pixel[3] = film_transparency_to_alpha(alpha);
+    }
+    else {
+      pixel[3] = 1.0f;
+    }
+  }
 }
 
 /* --------------------------------------------------------------------

@@ -145,6 +145,8 @@
 #include "atomic_ops.h"
 
 using blender::float3;
+using blender::MutableSpan;
+using blender::Span;
 
 static CLG_LogRef LOG = {"bke.object"};
 
@@ -449,7 +451,7 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
 
     if (object->soft->effector_weights) {
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(
-          data, object->soft->effector_weights->group, IDWALK_CB_NOP);
+          data, object->soft->effector_weights->group, IDWALK_CB_USER);
     }
   }
 }
@@ -1237,7 +1239,7 @@ IDTypeInfo IDType_ID_OB = {
     /* foreach_id */ object_foreach_id,
     /* foreach_cache */ nullptr,
     /* foreach_path */ object_foreach_path,
-    /* owner_get */ nullptr,
+    /* owner_pointer_get */ nullptr,
 
     /* blend_write */ object_blend_write,
     /* blend_read_data */ object_blend_read_data,
@@ -1665,7 +1667,7 @@ static void copy_ccg_data(Mesh *mesh_destination, Mesh *mesh_source, int layer_t
   const int layer_index = CustomData_get_layer_index(data_destination, layer_type);
   CustomData_free_layer(data_destination, layer_type, num_elements, layer_index);
   BLI_assert(!CustomData_has_layer(data_destination, layer_type));
-  CustomData_add_layer(data_destination, layer_type, CD_CALLOC, nullptr, num_elements);
+  CustomData_add_layer(data_destination, layer_type, CD_SET_DEFAULT, nullptr, num_elements);
   BLI_assert(CustomData_has_layer(data_destination, layer_type));
   CustomData_copy_layer_type_data(data_source, data_destination, layer_type, 0, 0, num_elements);
 }
@@ -2038,7 +2040,7 @@ bool BKE_object_is_mode_compat(const struct Object *ob, eObjectMode object_mode)
 
 int BKE_object_visibility(const Object *ob, const int dag_eval_mode)
 {
-  if ((ob->base_flag & BASE_VISIBLE_DEPSGRAPH) == 0) {
+  if ((ob->base_flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) == 0) {
     return 0;
   }
 
@@ -2414,7 +2416,7 @@ ParticleSystem *BKE_object_copy_particlesystem(ParticleSystem *psys, const int f
   }
 
   /* XXX(@campbellbarton): from reading existing code this seems correct but intended usage of
-   * point-cache should /w cloth should be added in 'ParticleSystem'. */
+   * point-cache should with cloth should be added in 'ParticleSystem'. */
   if (psysn->clmd) {
     psysn->clmd->point_cache = psysn->pointcache;
   }
@@ -2547,7 +2549,7 @@ Object **BKE_object_pose_array_get_ex(ViewLayer *view_layer,
                                       uint *r_objects_len,
                                       bool unique)
 {
-  Object *ob_active = OBACT(view_layer);
+  Object *ob_active = BKE_view_layer_active_object_get(view_layer);
   Object *ob_pose = BKE_object_pose_armature_get(ob_active);
   Object **objects = nullptr;
   if (ob_pose == ob_active) {
@@ -2583,7 +2585,7 @@ Base **BKE_object_pose_base_array_get_ex(ViewLayer *view_layer,
                                          uint *r_bases_len,
                                          bool unique)
 {
-  Base *base_active = BASACT(view_layer);
+  Base *base_active = view_layer->basact;
   Object *ob_pose = base_active ? BKE_object_pose_armature_get(base_active->object) : nullptr;
   Base *base_pose = nullptr;
   Base **bases = nullptr;
@@ -3189,6 +3191,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
                            BKE_object_get_evaluated_mesh(par);
 
     if (me_eval) {
+      const MVert *verts = BKE_mesh_verts(me_eval);
       int count = 0;
       int numVerts = me_eval->totvert;
 
@@ -3222,14 +3225,14 @@ static void give_parvert(Object *par, int nr, float vec[3])
         /* Get the average of all verts with (original index == nr). */
         for (int i = 0; i < numVerts; i++) {
           if (index[i] == nr) {
-            add_v3_v3(vec, me_eval->mvert[i].co);
+            add_v3_v3(vec, verts[i].co);
             count++;
           }
         }
       }
       else {
         if (nr < numVerts) {
-          add_v3_v3(vec, me_eval->mvert[nr].co);
+          add_v3_v3(vec, verts[nr].co);
           count++;
         }
       }
@@ -3243,7 +3246,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
       else {
         /* use first index if its out of range */
         if (me_eval->totvert) {
-          copy_v3_v3(vec, me_eval->mvert[0].co);
+          copy_v3_v3(vec, verts[0].co);
         }
       }
     }
@@ -4127,10 +4130,10 @@ void BKE_object_foreach_display_point(Object *ob,
   float3 co;
 
   if (mesh_eval != nullptr) {
-    const MVert *mv = mesh_eval->mvert;
+    const MVert *verts = BKE_mesh_verts(mesh_eval);
     const int totvert = mesh_eval->totvert;
-    for (int i = 0; i < totvert; i++, mv++) {
-      mul_v3_m4v3(co, obmat, mv->co);
+    for (int i = 0; i < totvert; i++) {
+      mul_v3_m4v3(co, obmat, verts[i].co);
       func_cb(co, user_data);
     }
   }
@@ -4754,7 +4757,8 @@ bool BKE_object_shapekey_remove(Main *bmain, Object *ob, KeyBlock *kb)
       switch (ob->type) {
         case OB_MESH: {
           Mesh *mesh = (Mesh *)ob->data;
-          BKE_keyblock_convert_to_mesh(key->refkey, mesh->mvert, mesh->totvert);
+          MutableSpan<MVert> verts = mesh->verts_for_write();
+          BKE_keyblock_convert_to_mesh(key->refkey, verts.data(), mesh->totvert);
           break;
         }
         case OB_CURVES_LEGACY:
@@ -5250,32 +5254,31 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
       const int *index;
 
       if (me_eval && (index = (const int *)CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX))) {
-        MVert *mvert = me_eval->mvert;
-        uint totvert = me_eval->totvert;
+        const Span<MVert> verts = me->verts();
 
         /* Tree over-allocates in case where some verts have #ORIGINDEX_NONE. */
         tot = 0;
-        tree = BLI_kdtree_3d_new(totvert);
+        tree = BLI_kdtree_3d_new(verts.size());
 
         /* We don't how many verts from the DM we can use. */
-        for (i = 0; i < totvert; i++) {
+        for (i = 0; i < verts.size(); i++) {
           if (index[i] != ORIGINDEX_NONE) {
             float co[3];
-            mul_v3_m4v3(co, ob->obmat, mvert[i].co);
+            mul_v3_m4v3(co, ob->obmat, verts[i].co);
             BLI_kdtree_3d_insert(tree, index[i], co);
             tot++;
           }
         }
       }
       else {
-        MVert *mvert = me->mvert;
+        const Span<MVert> verts = me->verts();
 
-        tot = me->totvert;
+        tot = verts.size();
         tree = BLI_kdtree_3d_new(tot);
 
         for (i = 0; i < tot; i++) {
           float co[3];
-          mul_v3_m4v3(co, ob->obmat, mvert[i].co);
+          mul_v3_m4v3(co, ob->obmat, verts[i].co);
           BLI_kdtree_3d_insert(tree, i, co);
         }
       }

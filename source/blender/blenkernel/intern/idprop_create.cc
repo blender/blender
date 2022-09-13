@@ -44,6 +44,14 @@ std::unique_ptr<IDProperty, IDPropertyDeleter> create(const StringRefNull prop_n
   return std::unique_ptr<IDProperty, IDPropertyDeleter>(property);
 }
 
+std::unique_ptr<IDProperty, IDPropertyDeleter> create(const StringRefNull prop_name, ID *value)
+{
+  IDPropertyTemplate prop_template{0};
+  prop_template.id = value;
+  IDProperty *property = IDP_New(IDP_ID, &prop_template, prop_name.c_str());
+  return std::unique_ptr<IDProperty, IDPropertyDeleter>(property);
+}
+
 static std::unique_ptr<IDProperty, IDPropertyDeleter> array_create(const StringRefNull prop_name,
                                                                    eIDPropertyType subtype,
                                                                    size_t array_len)
@@ -76,7 +84,7 @@ template<
 std::unique_ptr<IDProperty, IDPropertyDeleter> create_array(StringRefNull prop_name,
                                                             Span<PrimitiveType> values)
 {
-  static_assert(std::is_same_v<PrimitiveType, int32_t> || std::is_same_v<PrimitiveType, float_t> ||
+  static_assert(std::is_same_v<PrimitiveType, int32_t> || std::is_same_v<PrimitiveType, float> ||
                     std::is_same_v<PrimitiveType, double>,
                 "Allowed values for PrimitiveType are int32_t, float and double.");
   static_assert(!std::is_same_v<PrimitiveType, int32_t> || id_property_subtype == IDP_INT,

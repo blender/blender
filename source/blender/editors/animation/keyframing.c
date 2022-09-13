@@ -64,6 +64,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_path.h"
 #include "RNA_prototypes.h"
 
 #include "anim_intern.h"
@@ -1080,10 +1081,7 @@ static float *visualkey_get_values(
   }
 
   if (strstr(identifier, "rotation_quaternion")) {
-    float mat3[3][3];
-
-    copy_m3_m4(mat3, tmat);
-    mat3_to_quat_is_ok(buffer, mat3);
+    mat4_to_quat(buffer, tmat);
 
     *r_count = 4;
     return buffer;

@@ -31,6 +31,7 @@
 #include "intern/debug/deg_debug.h"
 #include "intern/depsgraph.h"
 #include "intern/depsgraph_relation.h"
+#include "intern/depsgraph_tag.h"
 #include "intern/depsgraph_type.h"
 #include "intern/depsgraph_update.h"
 #include "intern/node/deg_node.h"
@@ -99,6 +100,18 @@ inline void flush_prepare(Depsgraph *graph)
 
 inline void flush_schedule_entrypoints(Depsgraph *graph, FlushQueue *queue)
 {
+  /* Something changed in the scene, so re-tag IDs with flags which were previously ignored due to
+   * ID being hidden. This will ensure the ID is properly evaluated when it becomes visible. */
+  for (IDNode *node : graph->id_nodes) {
+    if (node->id_invisible_recalc) {
+      graph_id_tag_update(graph->bmain,
+                          graph,
+                          node->id_orig,
+                          node->id_invisible_recalc,
+                          DEG_UPDATE_SOURCE_VISIBILITY);
+    }
+  }
+
   for (OperationNode *op_node : graph->entry_tags) {
     queue->push_back(op_node);
     op_node->scheduled = true;
@@ -129,7 +142,18 @@ inline void flush_handle_component_node(IDNode *id_node,
    *
    * TODO(sergey): Make this a more generic solution. */
   if (!ELEM(comp_node->type, NodeType::PARTICLE_SETTINGS, NodeType::PARTICLE_SYSTEM)) {
+    const bool is_geometry_component = comp_node->type == NodeType::GEOMETRY;
     for (OperationNode *op : comp_node->operations) {
+      /* Special case for the visibility operation in the geometry component.
+       *
+       * This operation is a part of the geometry component so that manual tag for geometry recalc
+       * ensures that the visibility is re-evaluated. This operation is not to be re-evaluated when
+       * an update is flushed to the geometry component via a time dependency or a driver targeting
+       * a modifier. Skipping update in this case avoids CPU time unnecessarily spent looping over
+       * modifiers and looking up operations by name in the visibility evaluation function. */
+      if (is_geometry_component && op->opcode == OperationCode::VISIBILITY) {
+        continue;
+      }
       op->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
     }
   }
@@ -360,6 +384,10 @@ void deg_graph_flush_updates(Depsgraph *graph)
     while (op_node != nullptr) {
       /* Tag operation as required for update. */
       op_node->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
+      /* Tag depsgraph visibility update when visibility operation is tagged for an update. */
+      if (op_node->opcode == OperationCode::VISIBILITY) {
+        graph->need_update_nodes_visibility = true;
+      }
       /* Inform corresponding ID and component nodes about the change. */
       ComponentNode *comp_node = op_node->owner;
       IDNode *id_node = comp_node->owner;
@@ -378,11 +406,6 @@ void deg_graph_flush_updates(Depsgraph *graph)
 
 void deg_graph_clear_tags(Depsgraph *graph)
 {
-  /* Go over all operation nodes, clearing tags. */
-  for (OperationNode *node : graph->operations) {
-    node->flag &= ~(DEPSOP_FLAG_DIRECTLY_MODIFIED | DEPSOP_FLAG_NEEDS_UPDATE |
-                    DEPSOP_FLAG_USER_MODIFIED);
-  }
   /* Clear any entry tags which haven't been flushed. */
   graph->entry_tags.clear();
 

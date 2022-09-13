@@ -79,7 +79,6 @@ static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
   BLI_addtail(&snla->regionbase, region);
   region->regiontype = RGN_TYPE_UI;
   region->alignment = RGN_ALIGN_RIGHT;
-  region->flag = RGN_FLAG_HIDDEN;
 
   /* main region */
   region = MEM_callocN(sizeof(ARegion), "main region for nla");
@@ -304,7 +303,7 @@ static void nla_buttons_region_draw(const bContext *C, ARegion *region)
 static void nla_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -343,7 +342,7 @@ static void nla_region_listener(const wmRegionListenerParams *params)
 static void nla_main_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -437,7 +436,7 @@ static void nla_main_region_message_subscribe(const wmRegionMessageSubscribePara
 static void nla_channel_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -513,7 +512,7 @@ static void nla_channel_region_message_subscribe(const wmRegionMessageSubscribeP
 static void nla_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -569,7 +568,7 @@ void ED_spacetype_nla(void)
   ARegionType *art;
 
   st->spaceid = SPACE_NLA;
-  strncpy(st->name, "NLA", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "NLA");
 
   st->create = nla_create;
   st->free = nla_free;

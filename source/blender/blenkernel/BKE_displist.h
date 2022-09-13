@@ -24,8 +24,6 @@ enum {
   DL_SURF = 2,
   /** Triangles. */
   DL_INDEX3 = 4,
-  /** Quads, with support for triangles (when values of the 3rd and 4th indices match). */
-  DL_INDEX4 = 5,
   // DL_VERTCOL = 6, /* UNUSED */
   /** Isolated points. */
   DL_VERTS = 7,
@@ -61,17 +59,13 @@ typedef struct DispList {
   int totindex; /* indexed array drawing surfaces */
 } DispList;
 
-void BKE_displist_copy(struct ListBase *lbn, const struct ListBase *lb);
 DispList *BKE_displist_find(struct ListBase *lb, int type);
-void BKE_displist_normals_add(struct ListBase *lb);
-void BKE_displist_count(const struct ListBase *lb, int *totvert, int *totface, int *tottri);
 void BKE_displist_free(struct ListBase *lb);
 
 void BKE_displist_make_curveTypes(struct Depsgraph *depsgraph,
                                   const struct Scene *scene,
                                   struct Object *ob,
                                   bool for_render);
-void BKE_displist_make_mball(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
 
 void BKE_curve_calc_modifiers_pre(struct Depsgraph *depsgraph,
                                   const struct Scene *scene,

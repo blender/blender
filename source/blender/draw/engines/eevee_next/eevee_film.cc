@@ -146,8 +146,9 @@ void Film::sync_mist()
 
 inline bool operator==(const FilmData &a, const FilmData &b)
 {
-  return (a.extent == b.extent) && (a.offset == b.offset) && (a.filter_size == b.filter_size) &&
-         (a.scaling_factor == b.scaling_factor);
+  return (a.extent == b.extent) && (a.offset == b.offset) &&
+         (a.filter_radius == b.filter_radius) && (a.scaling_factor == b.scaling_factor) &&
+         (a.background_opacity == b.background_opacity);
 }
 
 inline bool operator!=(const FilmData &a, const FilmData &b)
@@ -161,9 +162,50 @@ inline bool operator!=(const FilmData &a, const FilmData &b)
 /** \name Film
  * \{ */
 
+static eViewLayerEEVEEPassType enabled_passes(const ViewLayer *view_layer)
+{
+  eViewLayerEEVEEPassType result = eViewLayerEEVEEPassType(view_layer->eevee.render_passes);
+
+#define ENABLE_FROM_LEGACY(name_legacy, name_eevee) \
+  SET_FLAG_FROM_TEST(result, \
+                     (view_layer->passflag & SCE_PASS_##name_legacy) != 0, \
+                     EEVEE_RENDER_PASS_##name_eevee);
+
+  ENABLE_FROM_LEGACY(COMBINED, COMBINED)
+  ENABLE_FROM_LEGACY(Z, Z)
+  ENABLE_FROM_LEGACY(MIST, MIST)
+  ENABLE_FROM_LEGACY(NORMAL, NORMAL)
+  ENABLE_FROM_LEGACY(SHADOW, SHADOW)
+  ENABLE_FROM_LEGACY(AO, AO)
+  ENABLE_FROM_LEGACY(EMIT, EMIT)
+  ENABLE_FROM_LEGACY(ENVIRONMENT, ENVIRONMENT)
+  ENABLE_FROM_LEGACY(DIFFUSE_COLOR, DIFFUSE_COLOR)
+  ENABLE_FROM_LEGACY(GLOSSY_COLOR, SPECULAR_COLOR)
+  ENABLE_FROM_LEGACY(DIFFUSE_DIRECT, DIFFUSE_LIGHT)
+  ENABLE_FROM_LEGACY(GLOSSY_DIRECT, SPECULAR_LIGHT)
+  ENABLE_FROM_LEGACY(ENVIRONMENT, ENVIRONMENT)
+  ENABLE_FROM_LEGACY(VECTOR, VECTOR)
+
+#undef ENABLE_FROM_LEGACY
+
+  SET_FLAG_FROM_TEST(result,
+                     view_layer->cryptomatte_flag & VIEW_LAYER_CRYPTOMATTE_OBJECT,
+                     EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT);
+  SET_FLAG_FROM_TEST(result,
+                     view_layer->cryptomatte_flag & VIEW_LAYER_CRYPTOMATTE_ASSET,
+                     EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET);
+  SET_FLAG_FROM_TEST(result,
+                     view_layer->cryptomatte_flag & VIEW_LAYER_CRYPTOMATTE_MATERIAL,
+                     EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL);
+
+  return result;
+}
+
 void Film::init(const int2 &extent, const rcti *output_rect)
 {
   Sampling &sampling = inst_.sampling;
+  Scene &scene = *inst_.scene;
+  SceneEEVEE &scene_eevee = scene.eevee;
 
   init_aovs();
 
@@ -180,38 +222,19 @@ void Film::init(const int2 &extent, const rcti *output_rect)
          * Using the render pass ensure we store the center depth. */
         render_passes |= EEVEE_RENDER_PASS_Z;
       }
-      /* TEST */
-      render_passes |= EEVEE_RENDER_PASS_VECTOR;
     }
     else {
       /* Render Case. */
-      render_passes = eViewLayerEEVEEPassType(inst_.view_layer->eevee.render_passes);
-
-      render_passes |= EEVEE_RENDER_PASS_COMBINED;
-
-#define ENABLE_FROM_LEGACY(name_legacy, name_eevee) \
-  SET_FLAG_FROM_TEST(render_passes, \
-                     (inst_.view_layer->passflag & SCE_PASS_##name_legacy) != 0, \
-                     EEVEE_RENDER_PASS_##name_eevee);
-
-      ENABLE_FROM_LEGACY(Z, Z)
-      ENABLE_FROM_LEGACY(MIST, MIST)
-      ENABLE_FROM_LEGACY(NORMAL, NORMAL)
-      ENABLE_FROM_LEGACY(SHADOW, SHADOW)
-      ENABLE_FROM_LEGACY(AO, AO)
-      ENABLE_FROM_LEGACY(EMIT, EMIT)
-      ENABLE_FROM_LEGACY(ENVIRONMENT, ENVIRONMENT)
-      ENABLE_FROM_LEGACY(DIFFUSE_COLOR, DIFFUSE_COLOR)
-      ENABLE_FROM_LEGACY(GLOSSY_COLOR, SPECULAR_COLOR)
-      ENABLE_FROM_LEGACY(DIFFUSE_DIRECT, DIFFUSE_LIGHT)
-      ENABLE_FROM_LEGACY(GLOSSY_DIRECT, SPECULAR_LIGHT)
-      ENABLE_FROM_LEGACY(ENVIRONMENT, ENVIRONMENT)
-
-#undef ENABLE_FROM_LEGACY
+      render_passes = enabled_passes(inst_.view_layer);
     }
 
     /* Filter obsolete passes. */
     render_passes &= ~(EEVEE_RENDER_PASS_UNUSED_8 | EEVEE_RENDER_PASS_BLOOM);
+
+    if (scene_eevee.flag & SCE_EEVEE_MOTION_BLUR_ENABLED) {
+      /* Disable motion vector pass if motion blur is enabled. */
+      render_passes &= ~EEVEE_RENDER_PASS_VECTOR;
+    }
 
     /* TODO(@fclem): Can't we rely on depsgraph update notification? */
     if (assign_if_different(enabled_passes_, render_passes)) {
@@ -230,12 +253,17 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     data.offset = int2(output_rect->xmin, output_rect->ymin);
     data.extent_inv = 1.0f / float2(data.extent);
     /* Disable filtering if sample count is 1. */
-    data.filter_size = (sampling.sample_count() == 1) ?
-                           0.0f :
-                           clamp_f(inst_.scene->r.gauss, 0.0f, 100.0f);
+    data.filter_radius = (sampling.sample_count() == 1) ? 0.0f :
+                                                          clamp_f(scene.r.gauss, 0.0f, 100.0f);
     /* TODO(fclem): parameter hidden in experimental.
      * We need to figure out LOD bias first in order to preserve texture crispiness. */
     data.scaling_factor = 1;
+    data.cryptomatte_samples_len = inst_.view_layer->cryptomatte_levels;
+
+    data.background_opacity = (scene.r.alphamode == R_ALPHAPREMUL) ? 0.0f : 1.0f;
+    if (inst_.is_viewport() && false /* TODO(fclem): StudioLight */) {
+      data.background_opacity = inst_.v3d->shading.studiolight_background;
+    }
 
     FilmData &data_prev_ = data_;
     if (assign_if_different(data_prev_, data)) {
@@ -254,16 +282,17 @@ void Film::init(const int2 &extent, const rcti *output_rect)
                                                    EEVEE_RENDER_PASS_MIST |
                                                    EEVEE_RENDER_PASS_SHADOW | EEVEE_RENDER_PASS_AO;
 
-    data_.exposure = 1.0f /* TODO */;
+    data_.exposure_scale = pow2f(scene.view_settings.exposure);
     data_.has_data = (enabled_passes_ & data_passes) != 0;
     data_.any_render_pass_1 = (enabled_passes_ & color_passes_1) != 0;
     data_.any_render_pass_2 = (enabled_passes_ & color_passes_2) != 0;
   }
   {
-    /* Set pass offsets.  */
+    /* Set pass offsets. */
 
     data_.display_id = aovs_info.display_id;
-    data_.display_is_value = aovs_info.display_is_value;
+    data_.display_storage_type = aovs_info.display_is_value ? PASS_STORAGE_VALUE :
+                                                              PASS_STORAGE_COLOR;
 
     /* Combined is in a separate buffer. */
     data_.combined_id = (enabled_passes_ & EEVEE_RENDER_PASS_COMBINED) ? 0 : -1;
@@ -274,13 +303,13 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     data_.value_len = 0;
 
     auto pass_index_get = [&](eViewLayerEEVEEPassType pass_type) {
-      bool is_value = pass_is_value(pass_type);
+      ePassStorageType storage_type = pass_storage_type(pass_type);
       int index = (enabled_passes_ & pass_type) ?
-                      (is_value ? data_.value_len : data_.color_len)++ :
+                      (storage_type == PASS_STORAGE_VALUE ? data_.value_len : data_.color_len)++ :
                       -1;
       if (inst_.is_viewport() && inst_.v3d->shading.render_pass == pass_type) {
         data_.display_id = index;
-        data_.display_is_value = is_value;
+        data_.display_storage_type = storage_type;
       }
       return index;
     };
@@ -306,17 +335,36 @@ void Film::init(const int2 &extent, const rcti *output_rect)
 
     data_.color_len += data_.aov_color_len;
     data_.value_len += data_.aov_value_len;
+
+    int cryptomatte_id = 0;
+    auto cryptomatte_index_get = [&](eViewLayerEEVEEPassType pass_type) {
+      int index = -1;
+      if (enabled_passes_ & pass_type) {
+        index = cryptomatte_id;
+        cryptomatte_id += data_.cryptomatte_samples_len / 2;
+
+        if (inst_.is_viewport() && inst_.v3d->shading.render_pass == pass_type) {
+          data_.display_id = index;
+          data_.display_storage_type = PASS_STORAGE_CRYPTOMATTE;
+        }
+      }
+      return index;
+    };
+    data_.cryptomatte_object_id = cryptomatte_index_get(EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT);
+    data_.cryptomatte_asset_id = cryptomatte_index_get(EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET);
+    data_.cryptomatte_material_id = cryptomatte_index_get(EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL);
   }
   {
     /* TODO(@fclem): Over-scans. */
 
-    render_extent_ = math::divide_ceil(extent, int2(data_.scaling_factor));
+    data_.render_extent = math::divide_ceil(extent, int2(data_.scaling_factor));
     int2 weight_extent = inst_.camera.is_panoramic() ? data_.extent : int2(data_.scaling_factor);
 
     eGPUTextureFormat color_format = GPU_RGBA16F;
     eGPUTextureFormat float_format = GPU_R16F;
     eGPUTextureFormat weight_format = GPU_R32F;
     eGPUTextureFormat depth_format = GPU_R32F;
+    eGPUTextureFormat cryptomatte_format = GPU_RGBA32F;
 
     int reset = 0;
     reset += depth_tx_.ensure_2d(depth_format, data_.extent);
@@ -331,6 +379,12 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     reset += value_accum_tx_.ensure_2d_array(float_format,
                                              (data_.value_len > 0) ? data_.extent : int2(1),
                                              (data_.value_len > 0) ? data_.value_len : 1);
+    /* Divided by two as two cryptomatte samples fit in pixel (RG, BA). */
+    int cryptomatte_array_len = cryptomatte_layer_len_get() * data_.cryptomatte_samples_len / 2;
+    reset += cryptomatte_tx_.ensure_2d_array(cryptomatte_format,
+                                             (cryptomatte_array_len > 0) ? data_.extent : int2(1),
+                                             (cryptomatte_array_len > 0) ? cryptomatte_array_len :
+                                                                           1);
 
     if (reset > 0) {
       sampling.reset();
@@ -343,10 +397,11 @@ void Film::init(const int2 &extent, const rcti *output_rect)
       combined_tx_.current().clear(float4(0.0f));
       weight_tx_.current().clear(float4(0.0f));
       depth_tx_.clear(float4(0.0f));
+      cryptomatte_tx_.clear(float4(0.0f));
     }
   }
 
-  force_disable_reprojection_ = (inst_.scene->eevee.flag & SCE_EEVEE_TAA_REPROJECTION) == 0;
+  force_disable_reprojection_ = (scene_eevee.flag & SCE_EEVEE_TAA_REPROJECTION) == 0;
 }
 
 void Film::sync()
@@ -367,49 +422,62 @@ void Film::sync()
    * Still bind previous step to avoid undefined behavior. */
   eVelocityStep step_next = inst_.is_viewport() ? STEP_PREVIOUS : STEP_NEXT;
 
-  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS;
-  accumulate_ps_ = DRW_pass_create("Film.Accumulate", state);
-  GPUShader *sh = inst_.shaders.static_shader_get(shader);
-  DRWShadingGroup *grp = DRW_shgroup_create(sh, accumulate_ps_);
-  DRW_shgroup_uniform_block_ref(grp, "film_buf", &data_);
-  DRW_shgroup_uniform_block_ref(grp, "camera_prev", &(*velocity.camera_steps[STEP_PREVIOUS]));
-  DRW_shgroup_uniform_block_ref(grp, "camera_curr", &(*velocity.camera_steps[STEP_CURRENT]));
-  DRW_shgroup_uniform_block_ref(grp, "camera_next", &(*velocity.camera_steps[step_next]));
-  DRW_shgroup_uniform_texture_ref(grp, "depth_tx", &rbuffers.depth_tx);
-  DRW_shgroup_uniform_texture_ref(grp, "combined_tx", &rbuffers.combined_tx);
-  DRW_shgroup_uniform_texture_ref(grp, "normal_tx", &rbuffers.normal_tx);
-  DRW_shgroup_uniform_texture_ref(grp, "vector_tx", &rbuffers.vector_tx);
-  DRW_shgroup_uniform_texture_ref(grp, "diffuse_light_tx", &rbuffers.diffuse_light_tx);
-  DRW_shgroup_uniform_texture_ref(grp, "diffuse_color_tx", &rbuffers.diffuse_color_tx);
-  DRW_shgroup_uniform_texture_ref(grp, "specular_light_tx", &rbuffers.specular_light_tx);
-  DRW_shgroup_uniform_texture_ref(grp, "specular_color_tx", &rbuffers.specular_color_tx);
-  DRW_shgroup_uniform_texture_ref(grp, "volume_light_tx", &rbuffers.volume_light_tx);
-  DRW_shgroup_uniform_texture_ref(grp, "emission_tx", &rbuffers.emission_tx);
-  DRW_shgroup_uniform_texture_ref(grp, "environment_tx", &rbuffers.environment_tx);
-  DRW_shgroup_uniform_texture_ref(grp, "shadow_tx", &rbuffers.shadow_tx);
-  DRW_shgroup_uniform_texture_ref(grp, "ambient_occlusion_tx", &rbuffers.ambient_occlusion_tx);
-  DRW_shgroup_uniform_texture_ref(grp, "aov_color_tx", &rbuffers.aov_color_tx);
-  DRW_shgroup_uniform_texture_ref(grp, "aov_value_tx", &rbuffers.aov_value_tx);
+  accumulate_ps_.init();
+  accumulate_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
+  accumulate_ps_.shader_set(inst_.shaders.static_shader_get(shader));
+  accumulate_ps_.bind_ubo("film_buf", &data_);
+  accumulate_ps_.bind_ubo("camera_prev", &(*velocity.camera_steps[STEP_PREVIOUS]));
+  accumulate_ps_.bind_ubo("camera_curr", &(*velocity.camera_steps[STEP_CURRENT]));
+  accumulate_ps_.bind_ubo("camera_next", &(*velocity.camera_steps[step_next]));
+  accumulate_ps_.bind_texture("depth_tx", &rbuffers.depth_tx);
+  accumulate_ps_.bind_texture("combined_tx", &combined_final_tx_);
+  accumulate_ps_.bind_texture("normal_tx", &rbuffers.normal_tx);
+  accumulate_ps_.bind_texture("vector_tx", &rbuffers.vector_tx);
+  accumulate_ps_.bind_texture("light_tx", &rbuffers.light_tx);
+  accumulate_ps_.bind_texture("diffuse_color_tx", &rbuffers.diffuse_color_tx);
+  accumulate_ps_.bind_texture("specular_color_tx", &rbuffers.specular_color_tx);
+  accumulate_ps_.bind_texture("volume_light_tx", &rbuffers.volume_light_tx);
+  accumulate_ps_.bind_texture("emission_tx", &rbuffers.emission_tx);
+  accumulate_ps_.bind_texture("environment_tx", &rbuffers.environment_tx);
+  accumulate_ps_.bind_texture("shadow_tx", &rbuffers.shadow_tx);
+  accumulate_ps_.bind_texture("ambient_occlusion_tx", &rbuffers.ambient_occlusion_tx);
+  accumulate_ps_.bind_texture("aov_color_tx", &rbuffers.aov_color_tx);
+  accumulate_ps_.bind_texture("aov_value_tx", &rbuffers.aov_value_tx);
+  accumulate_ps_.bind_texture("cryptomatte_tx", &rbuffers.cryptomatte_tx);
   /* NOTE(@fclem): 16 is the max number of sampled texture in many implementations.
    * If we need more, we need to pack more of the similar passes in the same textures as arrays or
    * use image binding instead. */
-  DRW_shgroup_uniform_image_ref(grp, "in_weight_img", &weight_tx_.current());
-  DRW_shgroup_uniform_image_ref(grp, "out_weight_img", &weight_tx_.next());
-  DRW_shgroup_uniform_texture_ref_ex(grp, "in_combined_tx", &combined_tx_.current(), filter);
-  DRW_shgroup_uniform_image_ref(grp, "out_combined_img", &combined_tx_.next());
-  DRW_shgroup_uniform_image_ref(grp, "depth_img", &depth_tx_);
-  DRW_shgroup_uniform_image_ref(grp, "color_accum_img", &color_accum_tx_);
-  DRW_shgroup_uniform_image_ref(grp, "value_accum_img", &value_accum_tx_);
+  accumulate_ps_.bind_image("in_weight_img", &weight_tx_.current());
+  accumulate_ps_.bind_image("out_weight_img", &weight_tx_.next());
+  accumulate_ps_.bind_texture("in_combined_tx", &combined_tx_.current(), filter);
+  accumulate_ps_.bind_image("out_combined_img", &combined_tx_.next());
+  accumulate_ps_.bind_image("depth_img", &depth_tx_);
+  accumulate_ps_.bind_image("color_accum_img", &color_accum_tx_);
+  accumulate_ps_.bind_image("value_accum_img", &value_accum_tx_);
+  accumulate_ps_.bind_image("cryptomatte_img", &cryptomatte_tx_);
   /* Sync with rendering passes. */
-  DRW_shgroup_barrier(grp, GPU_BARRIER_TEXTURE_FETCH);
-  /* Sync with rendering passes. */
-  DRW_shgroup_barrier(grp, GPU_BARRIER_SHADER_IMAGE_ACCESS);
+  accumulate_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
   if (use_compute) {
-    int2 dispatch_size = math::divide_ceil(data_.extent, int2(FILM_GROUP_SIZE));
-    DRW_shgroup_call_compute(grp, UNPACK2(dispatch_size), 1);
+    accumulate_ps_.dispatch(int3(math::divide_ceil(data_.extent, int2(FILM_GROUP_SIZE)), 1));
   }
   else {
-    DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
+    accumulate_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+  }
+
+  const int cryptomatte_layer_count = cryptomatte_layer_len_get();
+  const bool is_cryptomatte_pass_enabled = cryptomatte_layer_count > 0;
+  const bool do_cryptomatte_sorting = inst_.is_viewport() == false;
+  cryptomatte_post_ps_.init();
+  if (is_cryptomatte_pass_enabled && do_cryptomatte_sorting) {
+    cryptomatte_post_ps_.state_set(DRW_STATE_NO_DRAW);
+    cryptomatte_post_ps_.shader_set(inst_.shaders.static_shader_get(FILM_CRYPTOMATTE_POST));
+    cryptomatte_post_ps_.bind_image("cryptomatte_img", &cryptomatte_tx_);
+    cryptomatte_post_ps_.bind_image("weight_img", &weight_tx_.current());
+    cryptomatte_post_ps_.push_constant("cryptomatte_layer_len", cryptomatte_layer_count);
+    cryptomatte_post_ps_.push_constant("cryptomatte_samples_per_layer",
+                                       inst_.view_layer->cryptomatte_levels);
+    int2 dispatch_size = math::divide_ceil(int2(cryptomatte_tx_.size()), int2(FILM_GROUP_SIZE));
+    cryptomatte_post_ps_.dispatch(int3(UNPACK2(dispatch_size), 1));
   }
 }
 
@@ -432,16 +500,16 @@ float2 Film::pixel_jitter_get() const
 {
   float2 jitter = inst_.sampling.rng_2d_get(SAMPLING_FILTER_U);
 
-  if (data_.filter_size < M_SQRT1_2 && !inst_.camera.is_panoramic()) {
+  if (!use_box_filter && data_.filter_radius < M_SQRT1_2 && !inst_.camera.is_panoramic()) {
     /* For filter size less than a pixel, change sampling strategy and use a uniform disk
      * distribution covering the filter shape. This avoids putting samples in areas without any
      * weights. */
     /* TODO(fclem): Importance sampling could be a better option here. */
-    jitter = Sampling::sample_disk(jitter) * data_.filter_size;
+    jitter = Sampling::sample_disk(jitter) * data_.filter_radius;
   }
   else {
-    /* Jitter the size of a whole pixel. */
-    jitter = jitter * 2.0f - 1.0f;
+    /* Jitter the size of a whole pixel. [-0.5..0.5] */
+    jitter -= 0.5f;
   }
   /* TODO(fclem): Mixed-resolution rendering: We need to offset to each of the target pixel covered
    * by a render pixel, ideally, by choosing one randomly using another sampling dimension, or by
@@ -451,43 +519,70 @@ float2 Film::pixel_jitter_get() const
 
 eViewLayerEEVEEPassType Film::enabled_passes_get() const
 {
+  if (inst_.is_viewport() && data_.use_reprojection) {
+    /* Enable motion vector rendering but not the accumulation buffer. */
+    return enabled_passes_ | EEVEE_RENDER_PASS_VECTOR;
+  }
   return enabled_passes_;
+}
+
+int Film::cryptomatte_layer_len_get() const
+{
+  int result = 0;
+  result += data_.cryptomatte_object_id == -1 ? 0 : 1;
+  result += data_.cryptomatte_asset_id == -1 ? 0 : 1;
+  result += data_.cryptomatte_material_id == -1 ? 0 : 1;
+  return result;
+}
+
+int Film::cryptomatte_layer_max_get() const
+{
+  if (data_.cryptomatte_material_id != -1) {
+    return 3;
+  }
+  if (data_.cryptomatte_asset_id != -1) {
+    return 2;
+  }
+  if (data_.cryptomatte_object_id != -1) {
+    return 1;
+  }
+  return 0;
 }
 
 void Film::update_sample_table()
 {
   data_.subpixel_offset = pixel_jitter_get();
 
-  int filter_size_ceil = ceilf(data_.filter_size);
-  float filter_size_sqr = square_f(data_.filter_size);
+  int filter_radius_ceil = ceilf(data_.filter_radius);
+  float filter_radius_sqr = square_f(data_.filter_radius);
 
   data_.samples_len = 0;
-  if (data_.filter_size < 0.01f) {
-    /* Disable filtering. */
+  if (use_box_filter || data_.filter_radius < 0.01f) {
+    /* Disable gather filtering. */
     data_.samples[0].texel = int2(0, 0);
     data_.samples[0].weight = 1.0f;
     data_.samples_weight_total = 1.0f;
     data_.samples_len = 1;
   }
-  /* NOTE: Threshold determined by hand until we don't hit the assert bellow. */
-  else if (data_.filter_size < 2.20f) {
+  /* NOTE: Threshold determined by hand until we don't hit the assert below. */
+  else if (data_.filter_radius < 2.20f) {
     /* Small filter Size. */
     int closest_index = 0;
     float closest_distance = FLT_MAX;
     data_.samples_weight_total = 0.0f;
     /* TODO(fclem): For optimization, could try Z-tile ordering. */
-    for (int y = -filter_size_ceil; y <= filter_size_ceil; y++) {
-      for (int x = -filter_size_ceil; x <= filter_size_ceil; x++) {
+    for (int y = -filter_radius_ceil; y <= filter_radius_ceil; y++) {
+      for (int x = -filter_radius_ceil; x <= filter_radius_ceil; x++) {
         float2 pixel_offset = float2(x, y) - data_.subpixel_offset;
         float distance_sqr = math::length_squared(pixel_offset);
-        if (distance_sqr < filter_size_sqr) {
+        if (distance_sqr < filter_radius_sqr) {
           if (data_.samples_len >= FILM_PRECOMP_SAMPLE_MAX) {
             BLI_assert_msg(0, "Precomputed sample table is too small.");
             break;
           }
           FilmSample &sample = data_.samples[data_.samples_len];
           sample.texel = int2(x, y);
-          sample.weight = film_filter_weight(data_.filter_size, distance_sqr);
+          sample.weight = film_filter_weight(data_.filter_radius, distance_sqr);
           data_.samples_weight_total += sample.weight;
 
           if (distance_sqr < closest_distance) {
@@ -515,37 +610,46 @@ void Film::update_sample_table()
     int i = 0;
     for (FilmSample &sample : sample_table) {
       /* TODO(fclem): Own RNG. */
-      float2 random_2d = inst_.sampling.rng_2d_get(SAMPLING_FILTER_U);
+      float2 random_2d = inst_.sampling.rng_2d_get(SAMPLING_SSS_U);
       /* This randomization makes sure we converge to the right result but also makes nearest
        * neighbor filtering not converging rapidly. */
       random_2d.x = (random_2d.x + i) / float(FILM_PRECOMP_SAMPLE_MAX);
 
-      float2 pixel_offset = math::floor(Sampling::sample_spiral(random_2d) * data_.filter_size);
+      float2 pixel_offset = math::floor(Sampling::sample_spiral(random_2d) * data_.filter_radius);
       sample.texel = int2(pixel_offset);
 
       float distance_sqr = math::length_squared(pixel_offset - data_.subpixel_offset);
-      sample.weight = film_filter_weight(data_.filter_size, distance_sqr);
+      sample.weight = film_filter_weight(data_.filter_radius, distance_sqr);
       data_.samples_weight_total += sample.weight;
       i++;
     }
   }
 }
 
-void Film::accumulate(const DRWView *view)
+void Film::accumulate(const DRWView *view, GPUTexture *combined_final_tx)
 {
   if (inst_.is_viewport()) {
     DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+    DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
     GPU_framebuffer_bind(dfbl->default_fb);
+    /* Clear when using render borders. */
+    if (data_.extent != int2(GPU_texture_width(dtxl->color), GPU_texture_height(dtxl->color))) {
+      float4 clear_color = {0.0f, 0.0f, 0.0f, 0.0f};
+      GPU_framebuffer_clear_color(dfbl->default_fb, clear_color);
+    }
     GPU_framebuffer_viewport_set(dfbl->default_fb, UNPACK2(data_.offset), UNPACK2(data_.extent));
   }
 
   update_sample_table();
 
+  combined_final_tx_ = combined_final_tx;
+
   data_.display_only = false;
   data_.push_update();
 
-  DRW_view_set_active(view);
-  DRW_draw_pass(accumulate_ps_);
+  draw::View drw_view("MainView", view);
+
+  DRW_manager_get()->submit(accumulate_ps_, drw_view);
 
   combined_tx_.swap();
   weight_tx_.swap();
@@ -561,41 +665,61 @@ void Film::display()
   BLI_assert(inst_.is_viewport());
 
   /* Acquire dummy render buffers for correct binding. They will not be used. */
-  inst_.render_buffers.acquire(int2(1), (void *)this);
+  inst_.render_buffers.acquire(int2(1));
 
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
   GPU_framebuffer_bind(dfbl->default_fb);
   GPU_framebuffer_viewport_set(dfbl->default_fb, UNPACK2(data_.offset), UNPACK2(data_.extent));
 
+  combined_final_tx_ = inst_.render_buffers.combined_tx;
+
   data_.display_only = true;
   data_.push_update();
 
-  DRW_view_set_active(nullptr);
-  DRW_draw_pass(accumulate_ps_);
+  draw::View drw_view("MainView", DRW_view_default_get());
+
+  DRW_manager_get()->submit(accumulate_ps_, drw_view);
 
   inst_.render_buffers.release();
 
   /* IMPORTANT: Do not swap! No accumulation has happened. */
 }
 
-float *Film::read_pass(eViewLayerEEVEEPassType pass_type)
+void Film::cryptomatte_sort()
 {
+  DRW_manager_get()->submit(cryptomatte_post_ps_);
+}
 
-  bool is_value = pass_is_value(pass_type);
+float *Film::read_pass(eViewLayerEEVEEPassType pass_type, int layer_offset)
+{
+  ePassStorageType storage_type = pass_storage_type(pass_type);
+  const bool is_value = storage_type == PASS_STORAGE_VALUE;
+  const bool is_cryptomatte = storage_type == PASS_STORAGE_CRYPTOMATTE;
+
   Texture &accum_tx = (pass_type == EEVEE_RENDER_PASS_COMBINED) ?
                           combined_tx_.current() :
                       (pass_type == EEVEE_RENDER_PASS_Z) ?
                           depth_tx_ :
-                          (is_value ? value_accum_tx_ : color_accum_tx_);
+                          (is_cryptomatte ? cryptomatte_tx_ :
+                                            (is_value ? value_accum_tx_ : color_accum_tx_));
 
   accum_tx.ensure_layer_views();
 
   int index = pass_id_get(pass_type);
-  GPUTexture *pass_tx = accum_tx.layer_view(index);
+  GPUTexture *pass_tx = accum_tx.layer_view(index + layer_offset);
 
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
 
-  return (float *)GPU_texture_read(pass_tx, GPU_DATA_FLOAT, 0);
+  float *result = (float *)GPU_texture_read(pass_tx, GPU_DATA_FLOAT, 0);
+
+  if (pass_is_float3(pass_type)) {
+    /* Convert result in place as we cannot do this conversion on GPU. */
+    for (auto px : IndexRange(accum_tx.width() * accum_tx.height())) {
+      *(reinterpret_cast<float3 *>(result) + px) = *(reinterpret_cast<float3 *>(result + px * 4));
+    }
+  }
+
+  return result;
 }
 
 /** \} */

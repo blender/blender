@@ -89,7 +89,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ShaderFxTypeInfo shaderfx_Type_Rim = {
-    /* name */ "Rim",
+    /* name */ N_("Rim"),
     /* structName */ "RimShaderFxData",
     /* structSize */ sizeof(RimShaderFxData),
     /* type */ eShaderFxType_GpencilType,

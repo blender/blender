@@ -126,7 +126,7 @@ class PatchMap {
 
   // Internal methods supporting quadtree construction and queries
   void assignRootNode(QuadNode *node, int index);
-  QuadNode *assignLeafOrChildNode(QuadNode *node, bool isLeaf, int quad, int index);
+  QuadNode *assignLeafOrChildNode(QuadNode *node, bool isLeaf, int quadrant, int index);
 
   template<class T> static int transformUVToQuadQuadrant(T const &median, T &u, T &v);
   template<class T>

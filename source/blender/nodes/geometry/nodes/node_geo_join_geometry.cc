@@ -177,7 +177,7 @@ static void join_component_type(Span<GeometrySet> src_geometry_sets, GeometrySet
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Vector<GeometrySet> geometry_sets = params.extract_multi_input<GeometrySet>("Geometry");
+  Vector<GeometrySet> geometry_sets = params.extract_input<Vector<GeometrySet>>("Geometry");
 
   GeometrySet geometry_set_result;
   join_component_type<MeshComponent>(geometry_sets, geometry_set_result);
@@ -185,6 +185,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   join_component_type<InstancesComponent>(geometry_sets, geometry_set_result);
   join_component_type<VolumeComponent>(geometry_sets, geometry_set_result);
   join_component_type<CurveComponent>(geometry_sets, geometry_set_result);
+  join_component_type<GeometryComponentEditData>(geometry_sets, geometry_set_result);
 
   params.set_output("Geometry", std::move(geometry_set_result));
 }

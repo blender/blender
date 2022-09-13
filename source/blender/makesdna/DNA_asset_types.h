@@ -96,7 +96,7 @@ typedef enum eAssetLibraryType {
 } eAssetLibraryType;
 
 /**
- * Information to identify a asset library. May be either one of the predefined types (current
+ * Information to identify an asset library. May be either one of the predefined types (current
  * 'Main', builtin library, project library), or a custom type as defined in the Preferences.
  *
  * If the type is set to #ASSET_LIBRARY_CUSTOM, `custom_library_index` must be set to identify the

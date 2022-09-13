@@ -67,10 +67,11 @@ static IndexMask retrieve_selected_curves(const CurvesGeometry &curves,
         return selection.get_internal_single() <= 0.0f ? IndexMask(0) :
                                                          IndexMask(curves.curves_num());
       }
+      const Span<float> point_selection_span = selection.get_internal_span();
       return index_mask_ops::find_indices_based_on_predicate(
           curves.curves_range(), 512, r_indices, [&](const int curve_i) {
             for (const int i : curves.points_for_curve(curve_i)) {
-              if (selection[i] > 0.0f) {
+              if (point_selection_span[i] > 0.0f) {
                 return true;
               }
             }

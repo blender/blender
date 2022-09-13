@@ -15,6 +15,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "ED_screen.h"
 
 #include "view3d_intern.h"
@@ -167,7 +169,13 @@ static int viewroll_exec(bContext *C, wmOperator *op)
   }
 
   rv3d = region->regiondata;
-  if ((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d)) {
+
+  const bool is_camera_lock = ED_view3d_camera_lock_check(v3d, rv3d);
+  if ((rv3d->persp != RV3D_CAMOB) || is_camera_lock) {
+    if (is_camera_lock) {
+      const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+      ED_view3d_camera_lock_init(depsgraph, v3d, rv3d);
+    }
 
     ED_view3d_smooth_view_force_finish(C, v3d, region);
 
@@ -202,6 +210,9 @@ static int viewroll_exec(bContext *C, wmOperator *op)
                           &(const V3D_SmoothParams){
                               .quat = quat_new,
                               .dyn_ofs = dyn_ofs_pt,
+                              /* Group as successive roll may run by holding a key. */
+                              .undo_str = op->type->name,
+                              .undo_grouped = true,
                           });
 
     viewops_data_free(C, op->customdata);

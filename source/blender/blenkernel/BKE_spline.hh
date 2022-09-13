@@ -360,7 +360,7 @@ class BezierSpline final : public Spline {
    * Returns non-owning access to an array of values containing the information necessary to
    * interpolate values from the original control points to evaluated points. The control point
    * index is the integer part of each value, and the factor used for interpolating to the next
-   * control point is the remaining factional part.
+   * control point is the remaining fractional part.
    */
   blender::Span<float> evaluated_mappings() const;
   blender::Span<blender::float3> evaluated_positions() const final;

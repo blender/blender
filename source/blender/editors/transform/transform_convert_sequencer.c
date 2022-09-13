@@ -465,7 +465,7 @@ static SeqCollection *query_time_dependent_strips_strips(TransInfo *t)
   return dependent;
 }
 
-void createTransSeqData(TransInfo *t)
+static void createTransSeqData(bContext *UNUSED(C), TransInfo *t)
 {
   Scene *scene = t->scene;
   Editing *ed = SEQ_editing_get(t->scene);
@@ -659,7 +659,7 @@ static void flushTransSeq(TransInfo *t)
   SEQ_collection_free(transformed_strips);
 }
 
-void recalcData_sequencer(TransInfo *t)
+static void recalcData_sequencer(TransInfo *t)
 {
   TransData *td;
   int a;
@@ -689,7 +689,7 @@ void recalcData_sequencer(TransInfo *t)
 /** \name Special After Transform Sequencer
  * \{ */
 
-void special_aftertrans_update__sequencer(bContext *UNUSED(C), TransInfo *t)
+static void special_aftertrans_update__sequencer(bContext *UNUSED(C), TransInfo *t)
 {
   if (t->state == TRANS_CANCEL) {
     return;
@@ -708,12 +708,12 @@ void special_aftertrans_update__sequencer(bContext *UNUSED(C), TransInfo *t)
     if (t->mode == TFM_SEQ_SLIDE) {
       if (t->frame_side == 'B') {
         ED_markers_post_apply_transform(
-            &t->scene->markers, t->scene, TFM_TIME_TRANSLATE, t->values[0], t->frame_side);
+            &t->scene->markers, t->scene, TFM_TIME_TRANSLATE, t->values_final[0], t->frame_side);
       }
     }
     else if (ELEM(t->frame_side, 'L', 'R')) {
       ED_markers_post_apply_transform(
-          &t->scene->markers, t->scene, TFM_TIME_EXTEND, t->values[0], t->frame_side);
+          &t->scene->markers, t->scene, TFM_TIME_EXTEND, t->values_final[0], t->frame_side);
     }
   }
 }
@@ -734,3 +734,10 @@ void transform_convert_sequencer_channel_clamp(TransInfo *t, float r_val[2])
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_Sequencer = {
+    /* flags */ (T_POINTS | T_2D_EDIT),
+    /* createTransData */ createTransSeqData,
+    /* recalcData */ recalcData_sequencer,
+    /* special_aftertrans_update */ special_aftertrans_update__sequencer,
+};

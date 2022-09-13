@@ -15,7 +15,7 @@ BokehBlurNode::BokehBlurNode(bNode *editor_node) : Node(editor_node)
 void BokehBlurNode::convert_to_operations(NodeConverter &converter,
                                           const CompositorContext &context) const
 {
-  bNode *b_node = this->get_bnode();
+  const bNode *b_node = this->get_bnode();
 
   NodeInput *input_size_socket = this->get_input_socket(2);
 

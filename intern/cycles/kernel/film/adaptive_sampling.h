@@ -3,15 +3,15 @@
 
 #pragma once
 
-#include "kernel/film/write_passes.h"
+#include "kernel/film/write.h"
 
 CCL_NAMESPACE_BEGIN
 
 /* Check whether the pixel has converged and should not be sampled anymore. */
 
-ccl_device_forceinline bool kernel_need_sample_pixel(KernelGlobals kg,
-                                                     ConstIntegratorState state,
-                                                     ccl_global float *render_buffer)
+ccl_device_forceinline bool film_need_sample_pixel(KernelGlobals kg,
+                                                   ConstIntegratorState state,
+                                                   ccl_global float *render_buffer)
 {
   if (kernel_data.film.pass_adaptive_aux_buffer == PASS_UNUSED) {
     return true;
@@ -28,14 +28,14 @@ ccl_device_forceinline bool kernel_need_sample_pixel(KernelGlobals kg,
 
 /* Determines whether to continue sampling a given pixel or if it has sufficiently converged. */
 
-ccl_device bool kernel_adaptive_sampling_convergence_check(KernelGlobals kg,
-                                                           ccl_global float *render_buffer,
-                                                           int x,
-                                                           int y,
-                                                           float threshold,
-                                                           bool reset,
-                                                           int offset,
-                                                           int stride)
+ccl_device bool film_adaptive_sampling_convergence_check(KernelGlobals kg,
+                                                         ccl_global float *render_buffer,
+                                                         int x,
+                                                         int y,
+                                                         float threshold,
+                                                         bool reset,
+                                                         int offset,
+                                                         int stride)
 {
   kernel_assert(kernel_data.film.pass_adaptive_aux_buffer != PASS_UNUSED);
   kernel_assert(kernel_data.film.pass_sample_count != PASS_UNUSED);
@@ -78,13 +78,13 @@ ccl_device bool kernel_adaptive_sampling_convergence_check(KernelGlobals kg,
 /* This is a simple box filter in two passes.
  * When a pixel demands more adaptive samples, let its neighboring pixels draw more samples too. */
 
-ccl_device void kernel_adaptive_sampling_filter_x(KernelGlobals kg,
-                                                  ccl_global float *render_buffer,
-                                                  int y,
-                                                  int start_x,
-                                                  int width,
-                                                  int offset,
-                                                  int stride)
+ccl_device void film_adaptive_sampling_filter_x(KernelGlobals kg,
+                                                ccl_global float *render_buffer,
+                                                int y,
+                                                int start_x,
+                                                int width,
+                                                int offset,
+                                                int stride)
 {
   kernel_assert(kernel_data.film.pass_adaptive_aux_buffer != PASS_UNUSED);
 
@@ -111,13 +111,13 @@ ccl_device void kernel_adaptive_sampling_filter_x(KernelGlobals kg,
   }
 }
 
-ccl_device void kernel_adaptive_sampling_filter_y(KernelGlobals kg,
-                                                  ccl_global float *render_buffer,
-                                                  int x,
-                                                  int start_y,
-                                                  int height,
-                                                  int offset,
-                                                  int stride)
+ccl_device void film_adaptive_sampling_filter_y(KernelGlobals kg,
+                                                ccl_global float *render_buffer,
+                                                int x,
+                                                int start_y,
+                                                int height,
+                                                int offset,
+                                                int stride)
 {
   kernel_assert(kernel_data.film.pass_adaptive_aux_buffer != PASS_UNUSED);
 

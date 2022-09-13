@@ -225,6 +225,10 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     }
     return node_identifier;
   }
+
+  const char *prop_identifier = prop != nullptr ? RNA_property_identifier((PropertyRNA *)prop) :
+                                                  "";
+
   if (RNA_struct_is_a(ptr->type, &RNA_Constraint)) {
     const Object *object = reinterpret_cast<const Object *>(ptr->owner_id);
     const bConstraint *constraint = static_cast<const bConstraint *>(ptr->data);
@@ -264,6 +268,13 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
       return node_identifier;
     }
   }
+  else if (RNA_struct_is_a(ptr->type, &RNA_Modifier) &&
+           (contains(prop_identifier, "show_viewport") ||
+            contains(prop_identifier, "show_render"))) {
+    node_identifier.type = NodeType::GEOMETRY;
+    node_identifier.operation_code = OperationCode::VISIBILITY;
+    return node_identifier;
+  }
   else if (RNA_struct_is_a(ptr->type, &RNA_Mesh) || RNA_struct_is_a(ptr->type, &RNA_Modifier) ||
            RNA_struct_is_a(ptr->type, &RNA_GpencilModifier) ||
            RNA_struct_is_a(ptr->type, &RNA_Spline) || RNA_struct_is_a(ptr->type, &RNA_TextBox) ||
@@ -290,7 +301,6 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
   else if (ptr->type == &RNA_Object) {
     /* Transforms props? */
     if (prop != nullptr) {
-      const char *prop_identifier = RNA_property_identifier((PropertyRNA *)prop);
       /* TODO(sergey): How to optimize this? */
       if (contains(prop_identifier, "location") || contains(prop_identifier, "matrix_basis") ||
           contains(prop_identifier, "matrix_channel") ||

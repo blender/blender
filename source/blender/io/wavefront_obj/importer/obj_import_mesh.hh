@@ -62,7 +62,8 @@ class MeshFromGeometry : NonMovable, NonCopyable {
   void create_materials(Main *bmain,
                         Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
                         Map<std::string, Material *> &created_materials,
-                        Object *obj);
+                        Object *obj,
+                        bool relative_paths);
   void create_normals(Mesh *mesh);
   void create_colors(Mesh *mesh);
   void create_vertex_groups(Object *obj);

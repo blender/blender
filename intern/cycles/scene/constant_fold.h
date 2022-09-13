@@ -51,6 +51,7 @@ class ConstantFolder {
 
   /* Specific nodes. */
   void fold_mix(NodeMix type, bool clamp) const;
+  void fold_mix_color(NodeMix type, bool clamp_factor, bool clamp) const;
   void fold_math(NodeMathType type) const;
   void fold_vector_math(NodeVectorMathType type) const;
   void fold_mapping(NodeMappingType type) const;

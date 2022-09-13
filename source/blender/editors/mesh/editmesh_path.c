@@ -21,6 +21,7 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
+#include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_report.h"
@@ -348,7 +349,9 @@ static void edgetag_ensure_cd_flag(Mesh *me, const char edge_mode)
       BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_CREASE);
       break;
     case EDGE_MODE_TAG_BEVEL:
-      BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_BWEIGHT);
+      if (!CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
+        BM_data_layer_add(bm, &bm->edata, CD_BWEIGHT);
+      }
       break;
 #ifdef WITH_FREESTYLE
     case EDGE_MODE_TAG_FREESTYLE:
@@ -679,7 +682,7 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
 
   em_setup_viewcontext(C, &vc);
   copy_v2_v2_int(vc.mval, event->mval);
-  Base *basact = BASACT(vc.view_layer);
+  Base *basact = vc.view_layer->basact;
   BMEditMesh *em = vc.em;
 
   view3d_operator_needs_opengl(C);

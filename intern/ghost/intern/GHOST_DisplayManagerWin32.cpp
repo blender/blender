@@ -11,8 +11,9 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-// We do not support multiple monitors at the moment
+/* We do not support multiple monitors at the moment. */
 #define COMPILE_MULTIMON_STUBS
+
 #include <multimon.h>
 
 GHOST_DisplayManagerWin32::GHOST_DisplayManagerWin32(void)
@@ -31,16 +32,15 @@ static BOOL get_dd(DWORD d, DISPLAY_DEVICE *dd)
   return ::EnumDisplayDevices(NULL, d, dd, 0);
 }
 
-/*
- * When you call EnumDisplaySettings with iModeNum set to zero, the operating system
- * initializes and caches information about the display device. When you call
- * EnumDisplaySettings with iModeNum set to a non-zero value, the function returns
- * the information that was cached the last time the function was called with iModeNum
- * set to zero.
- */
 GHOST_TSuccess GHOST_DisplayManagerWin32::getNumDisplaySettings(uint8_t display,
                                                                 int32_t &numSettings) const
 {
+  /* When you call #EnumDisplaySettings with #iModeNum set to zero, the operating system
+   * initializes and caches information about the display device.
+   * When you call #EnumDisplaySettings with #iModeNum set to a non-zero value,
+   * the function returns the information that was cached the last time the
+   * function was called with #iModeNum set to zero. */
+
   DISPLAY_DEVICE display_device;
   if (!get_dd(display, &display_device))
     return GHOST_kFailure;
@@ -70,21 +70,20 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::getDisplaySetting(uint8_t display,
            dm.dmPelsHeight,
            dm.dmBitsPerPel,
            dm.dmDisplayFrequency);
-#endif  // WITH_GHOST_DEBUG
+#endif /* WITH_GHOST_DEBUG */
     setting.xPixels = dm.dmPelsWidth;
     setting.yPixels = dm.dmPelsHeight;
     setting.bpp = dm.dmBitsPerPel;
-    /* When you call the EnumDisplaySettings function, the dmDisplayFrequency member
+    /* When you call the #EnumDisplaySettings function, the #dmDisplayFrequency member
      * may return with the value 0 or 1. These values represent the display hardware's
      * default refresh rate. This default rate is typically set by switches on a display
      * card or computer motherboard, or by a configuration program that does not use
-     * Win32 display functions such as ChangeDisplaySettings.
-     */
-    /* First, we tried to explicitly set the frequency to 60 if EnumDisplaySettings
+     * Win32 display functions such as #ChangeDisplaySettings. */
+
+    /* First, we tried to explicitly set the frequency to 60 if #EnumDisplaySettings
      * returned 0 or 1 but this doesn't work since later on an exact match will
      * be searched. And this will never happen if we change it to 60. Now we rely
-     * on the default h/w setting.
-     */
+     * on the default hardware setting. */
     setting.frequency = dm.dmDisplayFrequency;
     success = GHOST_kSuccess;
   }
@@ -117,22 +116,23 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::setCurrentDisplaySetting(
       break;
     }
   }
-  /*
-   * dm.dmBitsPerPel = match.bpp;
-   * dm.dmPelsWidth = match.xPixels;
-   * dm.dmPelsHeight = match.yPixels;
-   * dm.dmDisplayFrequency = match.frequency;
-   * dm.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
-   * dm.dmSize = sizeof(DEVMODE);
-   * dm.dmDriverExtra = 0;
-   */
+#if 0
+  dm.dmBitsPerPel = match.bpp;
+  dm.dmPelsWidth = match.xPixels;
+  dm.dmPelsHeight = match.yPixels;
+  dm.dmDisplayFrequency = match.frequency;
+  dm.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
+  dm.dmSize = sizeof(DEVMODE);
+  dm.dmDriverExtra = 0;
+#endif
+
 #ifdef WITH_GHOST_DEBUG
   printf("display change: Requested settings:\n");
   printf("  dmBitsPerPel=%d\n", dm.dmBitsPerPel);
   printf("  dmPelsWidth=%d\n", dm.dmPelsWidth);
   printf("  dmPelsHeight=%d\n", dm.dmPelsHeight);
   printf("  dmDisplayFrequency=%d\n", dm.dmDisplayFrequency);
-#endif  // WITH_GHOST_DEBUG
+#endif /* WITH_GHOST_DEBUG */
 
   LONG status = ::ChangeDisplaySettings(&dm, CDS_FULLSCREEN);
 #ifdef WITH_GHOST_DEBUG
@@ -166,6 +166,6 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::setCurrentDisplaySetting(
       printf("display change: Return value invalid\n");
       break;
   }
-#endif  // WITH_GHOST_DEBUG
+#endif /* WITH_GHOST_DEBUG */
   return status == DISP_CHANGE_SUCCESSFUL ? GHOST_kSuccess : GHOST_kFailure;
 }

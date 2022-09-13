@@ -609,7 +609,7 @@ Object *ED_object_add_type_with_obdata(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   {
-    Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+    Object *obedit = BKE_view_layer_edit_object_get(view_layer);
     if (obedit != nullptr) {
       ED_object_editmode_exit_ex(bmain, scene, obedit, EM_FREEDATA);
     }
@@ -629,7 +629,7 @@ Object *ED_object_add_type_with_obdata(bContext *C,
     ob = BKE_object_add(bmain, view_layer, type, name);
   }
 
-  Base *ob_base_act = BASACT(view_layer);
+  Base *ob_base_act = view_layer->basact;
   /* While not getting a valid base is not a good thing, it can happen in convoluted corner cases,
    * better not crash on it in releases. */
   BLI_assert(ob_base_act != nullptr);
@@ -657,8 +657,7 @@ Object *ED_object_add_type_with_obdata(bContext *C,
 
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
-  /* TODO(sergey): Use proper flag for tagging here. */
-  DEG_id_tag_update(&scene->id, 0);
+  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 
   ED_outliner_select_sync_from_object_tag(C);
 
@@ -991,7 +990,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
   }
 
   bool newob = false;
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit == nullptr || obedit->type != OB_MBALL) {
     obedit = ED_object_add_type(C, OB_MBALL, nullptr, loc, rot, true, local_view_bits);
     newob = true;
@@ -1100,7 +1099,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
 
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   bool newob = false;
@@ -2771,25 +2770,6 @@ static const EnumPropertyItem convert_target_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void object_data_convert_ensure_curve_cache(Depsgraph *depsgraph, Scene *scene, Object *ob)
-{
-  if (ob->runtime.curve_cache == nullptr) {
-    /* Force creation. This is normally not needed but on operator
-     * redo we might end up with an object which isn't evaluated yet.
-     * Also happens in case we are working on a copy of the object
-     * (all its caches have been nuked then).
-     */
-    if (ELEM(ob->type, OB_SURF, OB_CURVES_LEGACY, OB_FONT)) {
-      /* We need 'for render' ON here, to enable computing bevel #DispList if needed.
-       * Also makes sense anyway, we would not want e.g. to lose hidden parts etc. */
-      BKE_displist_make_curveTypes(depsgraph, scene, ob, true);
-    }
-    else if (ob->type == OB_MBALL) {
-      BKE_displist_make_mball(depsgraph, scene, ob);
-    }
-  }
-}
-
 static void object_data_convert_curve_to_mesh(Main *bmain, Depsgraph *depsgraph, Object *ob)
 {
   Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
@@ -2908,7 +2888,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
   const bool use_faces = RNA_boolean_get(op->ptr, "faces");
   const float offset = RNA_float_get(op->ptr, "offset");
 
-  int a, mballConverted = 0;
+  int mballConverted = 0;
   bool gpencilConverted = false;
   bool gpencilCurveConverted = false;
 
@@ -3171,14 +3151,14 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       BKE_mesh_edges_set_draw_render(me_eval);
       BKE_object_material_from_eval_data(bmain, newob, &me_eval->id);
       Mesh *new_mesh = (Mesh *)newob->data;
-      BKE_mesh_nomain_to_mesh(me_eval, new_mesh, newob, &CD_MASK_MESH, true);
+      BKE_mesh_nomain_to_mesh(me_eval, new_mesh, newob);
 
       if (do_merge_customdata) {
         BKE_mesh_merge_customdata_for_apply_modifier(new_mesh);
       }
 
       /* Anonymous attributes shouldn't be available on the applied geometry. */
-      blender::bke::mesh_attributes_for_write(*new_mesh).remove_anonymous();
+      new_mesh->attributes_for_write().remove_anonymous();
 
       BKE_object_free_modifiers(newob, 0); /* after derivedmesh calls! */
     }
@@ -3256,7 +3236,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         /* No assumption should be made that the resulting objects is a mesh, as conversion can
          * fail. */
         object_data_convert_curve_to_mesh(bmain, depsgraph, newob);
-        /* meshes doesn't use displist */
+        /* Meshes doesn't use the "curve cache". */
         BKE_object_free_curve_cache(newob);
       }
       else if (target == OB_GPENCIL) {
@@ -3291,7 +3271,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         /* No assumption should be made that the resulting objects is a mesh, as conversion can
          * fail. */
         object_data_convert_curve_to_mesh(bmain, depsgraph, newob);
-        /* meshes doesn't use displist */
+        /* Meshes don't use the "curve cache". */
         BKE_object_free_curve_cache(newob);
       }
       else if (target == OB_GPENCIL) {
@@ -3332,21 +3312,13 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         MetaBall *mb = static_cast<MetaBall *>(newob->data);
         id_us_min(&mb->id);
 
-        newob->data = BKE_mesh_add(bmain, "Mesh");
+        /* Find the evaluated mesh of the basis metaball object. */
+        Object *object_eval = DEG_get_evaluated_object(depsgraph, baseob);
+        Mesh *mesh = BKE_mesh_new_from_object_to_bmain(bmain, depsgraph, object_eval, true);
+
+        id_us_plus(&mesh->id);
+        newob->data = mesh;
         newob->type = OB_MESH;
-
-        Mesh *me = static_cast<Mesh *>(newob->data);
-        me->totcol = mb->totcol;
-        if (newob->totcol) {
-          me->mat = static_cast<Material **>(MEM_dupallocN(mb->mat));
-          for (a = 0; a < newob->totcol; a++) {
-            id_us_plus((ID *)me->mat[a]);
-          }
-        }
-
-        object_data_convert_ensure_curve_cache(depsgraph, scene, baseob);
-        BKE_mesh_from_metaball(&baseob->runtime.curve_cache->disp,
-                               static_cast<Mesh *>(newob->data));
 
         if (obact->type == OB_MBALL) {
           basact = basen;
@@ -3395,7 +3367,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
     /* If the original object is active then make this object active */
     if (basen) {
       if (ob == obact) {
-        /* store new active base to update BASACT */
+        /* Store new active base to update view layer. */
         basact = basen;
       }
 
@@ -3469,11 +3441,11 @@ static int object_convert_exec(bContext *C, wmOperator *op)
   if (basact) {
     /* active base was changed */
     ED_object_base_activate(C, basact);
-    BASACT(view_layer) = basact;
+    view_layer->basact = basact;
   }
-  else if (BASACT(view_layer)->object->flag & OB_DONE) {
-    WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, BASACT(view_layer)->object);
-    WM_event_add_notifier(C, NC_OBJECT | ND_DATA, BASACT(view_layer)->object);
+  else if (view_layer->basact->object->flag & OB_DONE) {
+    WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, view_layer->basact->object);
+    WM_event_add_notifier(C, NC_OBJECT | ND_DATA, view_layer->basact->object);
   }
 
   DEG_relations_tag_update(bmain);
@@ -3601,7 +3573,7 @@ static Base *object_add_duplicate_internal(Main *bmain,
     DEG_id_tag_update(&obn->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
     base = BKE_view_layer_base_find(view_layer, ob);
-    if ((base != nullptr) && (base->flag & BASE_VISIBLE_DEPSGRAPH)) {
+    if ((base != nullptr) && (base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT)) {
       BKE_collection_object_add_from(bmain, scene, ob, obn);
     }
     else {
@@ -3692,7 +3664,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
   Object *ob_new_active = nullptr;
 
   CTX_DATA_BEGIN (C, Base *, base, selected_bases) {
-    Object *ob_new = NULL;
+    Object *ob_new = nullptr;
     object_add_duplicate_internal(bmain,
                                   scene,
                                   view_layer,
@@ -3710,17 +3682,18 @@ static int duplicate_exec(bContext *C, wmOperator *op)
     ED_object_base_select(base, BA_DESELECT);
 
     /* new object will become active */
-    if (BASACT(view_layer) == base) {
+    if (view_layer->basact == base) {
       ob_new_active = ob_new;
     }
   }
   CTX_DATA_END;
+  BKE_layer_collection_resync_allow();
 
   if (source_bases_new_objects.is_empty()) {
     return OPERATOR_CANCELLED;
   }
+
   /* Sync the collection now, after everything is duplicated. */
-  BKE_layer_collection_resync_allow();
   BKE_main_collection_sync(bmain);
 
   /* After sync we can get to the new Base data, process it here. */
@@ -3921,7 +3894,7 @@ static int object_transform_to_mouse_exec(bContext *C, wmOperator *op)
       WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_OB));
 
   if (!ob) {
-    ob = OBACT(view_layer);
+    ob = BKE_view_layer_active_object_get(view_layer);
   }
 
   if (ob == nullptr) {
@@ -3993,7 +3966,7 @@ void OBJECT_OT_transform_to_mouse(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = object_add_drop_xy_generic_invoke;
   ot->exec = object_transform_to_mouse_exec;
-  ot->poll = ED_operator_objectmode;
+  ot->poll = ED_operator_objectmode_poll_msg;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

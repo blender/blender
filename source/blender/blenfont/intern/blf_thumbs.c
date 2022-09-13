@@ -32,26 +32,34 @@
 void BLF_thumb_preview(const char *filepath,
                        const char **draw_str,
                        const char **i18n_draw_str,
-                       const unsigned char draw_str_lines,
+                       const uchar draw_str_lines,
                        const float font_color[4],
                        const int font_size,
-                       unsigned char *buf,
-                       int w,
-                       int h,
-                       int channels)
+                       uchar *buf,
+                       const int w,
+                       const int h,
+                       const int channels)
 {
-  const unsigned int dpi = 72;
+  const uint dpi = 72;
   const int font_size_min = 6;
   int font_size_curr;
   /* shrink 1/th each line */
   int font_shrink = 4;
 
-  FontBLF *font;
+  /* While viewing thumbnails in font directories this function can be called simultaneously from a
+   * greater number of threads than we want the FreeType cache to keep open at a time. Therefore
+   * pass own FT_Library to font creation so that it is not managed by the FreeType cache system.
+   */
 
-  /* Create a new blender font obj and fill it with default values */
-  font = blf_font_new("thumb_font", filepath);
+  FT_Library ft_library = NULL;
+  if (FT_Init_FreeType(&ft_library) != FT_Err_Ok) {
+    return;
+  }
+
+  FontBLF *font = blf_font_new_ex("thumb_font", filepath, NULL, 0, ft_library);
   if (!font) {
     printf("Info: Can't load font '%s', no preview possible\n", filepath);
+    FT_Done_FreeType(ft_library);
     return;
   }
 
@@ -102,4 +110,5 @@ void BLF_thumb_preview(const char *filepath,
 
   blf_draw_buffer__end();
   blf_font_free(font);
+  FT_Done_FreeType(ft_library);
 }

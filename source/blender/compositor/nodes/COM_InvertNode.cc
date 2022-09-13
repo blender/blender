@@ -16,7 +16,7 @@ void InvertNode::convert_to_operations(NodeConverter &converter,
                                        const CompositorContext & /*context*/) const
 {
   InvertOperation *operation = new InvertOperation();
-  bNode *node = this->get_bnode();
+  const bNode *node = this->get_bnode();
   operation->set_color(node->custom1 & CMP_CHAN_RGB);
   operation->set_alpha(node->custom1 & CMP_CHAN_A);
   converter.add_operation(operation);

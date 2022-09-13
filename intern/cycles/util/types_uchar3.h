@@ -10,16 +10,18 @@
 
 CCL_NAMESPACE_BEGIN
 
-#if !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__)
+#ifndef __KERNEL_NATIVE_VECTOR_TYPES__
 struct uchar3 {
   uchar x, y, z;
 
+#  ifndef __KERNEL_GPU__
   __forceinline uchar operator[](int i) const;
   __forceinline uchar &operator[](int i);
+#  endif
 };
 
 ccl_device_inline uchar3 make_uchar3(uchar x, uchar y, uchar z);
-#endif /* !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__) */
+#endif /* __KERNEL_NATIVE_VECTOR_TYPES__ */
 
 CCL_NAMESPACE_END
 
