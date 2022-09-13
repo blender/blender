@@ -7,8 +7,6 @@
 #   cmake -C../blender/build_files/cmake/config/blender_lite.cmake  ../blender
 #
 
-set(WITH_INSTALL_PORTABLE    ON  CACHE BOOL "" FORCE)
-
 set(WITH_ALEMBIC             OFF CACHE BOOL "" FORCE)
 set(WITH_AUDASPACE           OFF CACHE BOOL "" FORCE)
 set(WITH_BLENDER_THUMBNAILER OFF CACHE BOOL "" FORCE)
