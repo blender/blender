@@ -47,6 +47,7 @@ set(SRC
   intern/array_store.c
   intern/array_store_utils.c
   intern/array_utils.c
+  intern/array_utils.cc
   intern/astar.c
   intern/bitmap.c
   intern/bitmap_draw_2d.c
@@ -164,6 +165,7 @@ set(SRC
   BLI_array_store.h
   BLI_array_store_utils.h
   BLI_array_utils.h
+  BLI_array_utils.hh
   BLI_asan.h
   BLI_assert.h
   BLI_astar.h

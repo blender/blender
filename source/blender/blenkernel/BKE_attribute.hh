@@ -710,6 +710,19 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
     eAttrDomainMask domain_mask,
     const Set<std::string> &skip = {});
 
+/**
+ * Copy attributes for the domain based on the elementwise mask.
+ *
+ * \param mask_indices: Indexed elements to copy from the source data-block.
+ * \param domain: Attribute domain to transfer.
+ * \param skip: Named attributes to ignore/skip.
+ */
+void copy_attribute_domain(AttributeAccessor src_attributes,
+                           MutableAttributeAccessor dst_attributes,
+                           IndexMask selection,
+                           eAttrDomain domain,
+                           const Set<std::string> &skip = {});
+
 bool allow_procedural_attribute_access(StringRef attribute_name);
 extern const char *no_procedural_access_message;
 
