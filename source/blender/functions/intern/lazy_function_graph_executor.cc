@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * This file implements the evaluation of a lazy-function graph. It's main objectices are:
+ * This file implements the evaluation of a lazy-function graph. It's main objectives are:
  * - Only compute values that are actually used.
  * - Allow spreading the work over an arbitrary number of CPU cores.
  *
@@ -78,7 +78,7 @@ struct InputState {
   /**
    * Value of this input socket. By default, the value is empty. When other nodes are done
    * computing their outputs, the computed values will be forwarded to linked input sockets. The
-   * value will thenlive here until it is found that it is not needed anymore.
+   * value will then live here until it is found that it is not needed anymore.
    *
    * If #was_ready_for_execution is true, access does not require holding the node lock.
    */
@@ -532,10 +532,10 @@ class Executor {
     BLI_assert(locked_node.node.is_function());
     switch (locked_node.node_state.schedule_state) {
       case NodeScheduleState::NotScheduled: {
-        /* Don't add the node to the task pool immeditately, because the task pool might start
-         * executing it immediatly (when Blender is started with a single thread). That would often
-         * result in a deadlock, because we are still holding the mutex of the current node.
-         * Also see comments in #LockedNode. */
+        /* Don't add the node to the task pool immediately, because the task pool might start
+         * executing it immediately (when Blender is started with a single thread).
+         * That would often result in a deadlock, because we are still holding the mutex of the
+         * current node. Also see comments in #LockedNode. */
         locked_node.node_state.schedule_state = NodeScheduleState::Scheduled;
         locked_node.delayed_scheduled_nodes.append(
             &static_cast<const FunctionNode &>(locked_node.node));
@@ -1057,7 +1057,7 @@ class GraphExecutorLFParams final : public Params {
 /**
  * Actually execute the node.
  *
- * Making this `inline` results in a simpler backtrace in release builds.
+ * Making this `inline` results in a simpler back-trace in release builds.
  */
 inline void Executor::execute_node(const FunctionNode &node,
                                    NodeState &node_state,

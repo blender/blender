@@ -428,7 +428,7 @@ int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
   LogImageElement mergedElement;
 
   /* Determine the depth of the picture and if there's a separate alpha element.
-   * If the element is supported, load it into an uints array. */
+   * If the element is supported, load it into an `uint` array. */
   memset(&elementData, 0, 8 * sizeof(float *));
   hasAlpha = 0;
 

@@ -6,12 +6,12 @@
  * \ingroup fn
  *
  * A `LazyFunction` encapsulates a computation which has inputs, outputs and potentially side
- * effects. Most importantly, a `LazyFunction` supports lazyness in its inputs and outputs:
+ * effects. Most importantly, a `LazyFunction` supports laziness in its inputs and outputs:
  * - Only outputs that are actually used have to be computed.
  * - Inputs can be requested lazily based on which outputs are used or what side effects the
  *   function has.
  *
- * A lazy-function that uses lazyness may be executed more than once. The most common example is
+ * A lazy-function that uses laziness may be executed more than once. The most common example is
  * the geometry nodes switch node. Depending on a condition input, it decides which one of the
  * other inputs is actually used. From the perspective of the switch node, its execution works as
  * follows:
@@ -27,7 +27,7 @@
  * executed, it advances its state until all required outputs are ready.
  *
  * The lazy-function interface is designed to support composition of many such functions into a new
- * lazy-functions, all while keeping the lazyness working. For example, in geometry nodes a switch
+ * lazy-functions, all while keeping the laziness working. For example, in geometry nodes a switch
  * node in a node group should still be able to decide whether a node in the parent group will be
  * executed or not. This is essential to avoid doing unnecessary work.
  *
@@ -129,7 +129,7 @@ class Params {
 
   /**
    * Call this after the output value is initialized. After this is called, the value must not be
-   * touched anymore. It may be moved or destructed immediatly.
+   * touched anymore. It may be moved or destructed immediately.
    */
   void output_set(int index);
 

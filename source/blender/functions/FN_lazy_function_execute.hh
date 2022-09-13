@@ -97,7 +97,7 @@ inline void execute_lazy_function_eagerly_impl(
 /**
  * In some cases (mainly for tests), the set of inputs and outputs for a lazy-function is known at
  * compile time and one just wants to compute the outputs based on the inputs, without any
- * lazyness.
+ * laziness.
  *
  * This function does exactly that. It takes all inputs in a tuple and writes the outputs to points
  * provided in a second tuple. Since all inputs have to be provided, the lazy-function has to

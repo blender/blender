@@ -104,7 +104,7 @@ static void FlipDXT5BlockFull(uint8_t *block)
    *       bits = bits_0 + 256 * (bits_1 + 256 * (bits_2 + 256 * (bits_3 +
    *                                   256 * (bits_4 + 256 * bits_5))))
    *
-   *   bits is a 48-bit uinteger, from which a three-bit control code
+   *   bits is a 48-bit unsigned-integer, from which a three-bit control code
    *   is extracted for a texel at location (x,y) in the block using:
    *
    *           code(x,y) = bits[3*(4*y+x)+1..3*(4*y+x)+0]

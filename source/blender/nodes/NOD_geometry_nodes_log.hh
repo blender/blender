@@ -20,7 +20,7 @@
  *   resources.
  * - Log (#GeoTreeLog, #GeoNodeLog): Those are used when accessing logged data in UI code. They
  *   contain and cache preprocessed data produced during logging. The log combines data from all
- *   threadlocal loggers to provide simple access. Importantly, the (preprocessed) log is only
+ *   thread-local loggers to provide simple access. Importantly, the (preprocessed) log is only
  *   created when it is actually used by UI code.
  */
 
@@ -66,7 +66,7 @@ enum class NamedAttributeUsage {
 ENUM_OPERATORS(NamedAttributeUsage, NamedAttributeUsage::Remove);
 
 /**
- * Values of different types are logged differently. This is necesary because some types are so
+ * Values of different types are logged differently. This is necessary because some types are so
  * simple that we can log them entirely (e.g. `int`), while we don't want to log all intermediate
  * geometries in their entirety.
  *
@@ -97,7 +97,7 @@ class GenericValueLog : public ValueLog {
 
 /**
  * Fields are not logged entirely, because they might contain arbitrarily large data (e.g.
- * geometries that are sampled). Instead, only the data needed for ui features is logged.
+ * geometries that are sampled). Instead, only the data needed for UI features is logged.
  */
 class FieldInfoLog : public ValueLog {
  public:
@@ -116,7 +116,7 @@ struct GeometryAttributeInfo {
 
 /**
  * Geometries are not logged entirely, because that would result in a lot of time and memory
- * overhead. Instead, only the data needed for ui features is logged.
+ * overhead. Instead, only the data needed for UI features is logged.
  */
 class GeometryInfoLog : public ValueLog {
  public:
@@ -308,7 +308,7 @@ class GeoModifierLog {
     Map<ComputeContextHash, destruct_ptr<GeoTreeLogger>> tree_logger_by_context;
   };
 
-  /** Container for all threadlocal data. */
+  /** Container for all thread-local data. */
   threading::EnumerableThreadSpecific<LocalData> data_per_thread_;
   /**
    * A #GeoTreeLog for every compute context. Those are created lazily when requested by UI code.
@@ -320,7 +320,7 @@ class GeoModifierLog {
   ~GeoModifierLog();
 
   /**
-   * Get a threadlocal logger for the current node tree.
+   * Get a thread-local logger for the current node tree.
    */
   GeoTreeLogger &get_local_tree_logger(const ComputeContext &compute_context);
 
