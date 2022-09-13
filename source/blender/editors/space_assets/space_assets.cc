@@ -161,7 +161,7 @@ static void asset_browser_main_region_init(wmWindowManager *wm, ARegion *region)
 
 static void asset_browser_main_region_listener(const wmRegionListenerParams *params)
 {
-  wmNotifier *notifier = params->notifier;
+  const wmNotifier *notifier = params->notifier;
   ARegion *region = params->region;
 
   switch (notifier->category) {
