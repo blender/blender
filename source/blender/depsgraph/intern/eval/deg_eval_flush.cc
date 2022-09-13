@@ -31,7 +31,6 @@
 #include "intern/debug/deg_debug.h"
 #include "intern/depsgraph.h"
 #include "intern/depsgraph_relation.h"
-#include "intern/depsgraph_tag.h"
 #include "intern/depsgraph_type.h"
 #include "intern/depsgraph_update.h"
 #include "intern/node/deg_node.h"
@@ -100,18 +99,6 @@ inline void flush_prepare(Depsgraph *graph)
 
 inline void flush_schedule_entrypoints(Depsgraph *graph, FlushQueue *queue)
 {
-  /* Something changed in the scene, so re-tag IDs with flags which were previously ignored due to
-   * ID being hidden. This will ensure the ID is properly evaluated when it becomes visible. */
-  for (IDNode *node : graph->id_nodes) {
-    if (node->id_invisible_recalc) {
-      graph_id_tag_update(graph->bmain,
-                          graph,
-                          node->id_orig,
-                          node->id_invisible_recalc,
-                          DEG_UPDATE_SOURCE_VISIBILITY);
-    }
-  }
-
   for (OperationNode *op_node : graph->entry_tags) {
     queue->push_back(op_node);
     op_node->scheduled = true;
@@ -384,10 +371,6 @@ void deg_graph_flush_updates(Depsgraph *graph)
     while (op_node != nullptr) {
       /* Tag operation as required for update. */
       op_node->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
-      /* Tag depsgraph visibility update when visibility operation is tagged for an update. */
-      if (op_node->opcode == OperationCode::VISIBILITY) {
-        graph->need_update_nodes_visibility = true;
-      }
       /* Inform corresponding ID and component nodes about the change. */
       ComponentNode *comp_node = op_node->owner;
       IDNode *id_node = comp_node->owner;

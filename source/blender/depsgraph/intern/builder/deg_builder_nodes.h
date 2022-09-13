@@ -250,8 +250,6 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
     IDComponentsMask previously_visible_components_mask;
     /* Special evaluation flag mask from the previous depsgraph. */
     uint32_t previous_eval_flags;
-    /* Recalculation flags which were not evaluated for the ID in the previous depsgraph. */
-    int id_invisible_recalc;
     /* Mesh CustomData mask from the previous depsgraph. */
     DEGCustomDataMeshMasks previous_customdata_masks;
   };

@@ -155,14 +155,12 @@ IDNode *DepsgraphNodeBuilder::add_id_node(ID *id)
   IDComponentsMask previously_visible_components_mask = 0;
   uint32_t previous_eval_flags = 0;
   DEGCustomDataMeshMasks previous_customdata_masks;
-  int id_invisible_recalc = 0;
   IDInfo *id_info = id_info_hash_.lookup_default(id->session_uuid, nullptr);
   if (id_info != nullptr) {
     id_cow = id_info->id_cow;
     previously_visible_components_mask = id_info->previously_visible_components_mask;
     previous_eval_flags = id_info->previous_eval_flags;
     previous_customdata_masks = id_info->previous_customdata_masks;
-    id_invisible_recalc = id_info->id_invisible_recalc;
     /* Tag ID info to not free the CoW ID pointer. */
     id_info->id_cow = nullptr;
   }
@@ -170,7 +168,6 @@ IDNode *DepsgraphNodeBuilder::add_id_node(ID *id)
   id_node->previously_visible_components_mask = previously_visible_components_mask;
   id_node->previous_eval_flags = previous_eval_flags;
   id_node->previous_customdata_masks = previous_customdata_masks;
-  id_node->id_invisible_recalc = id_invisible_recalc;
 
   /* NOTE: Zero number of components indicates that ID node was just created. */
   const bool is_newly_created = id_node->components.is_empty();
@@ -369,7 +366,6 @@ void DepsgraphNodeBuilder::begin_build()
     id_info->previously_visible_components_mask = id_node->visible_components_mask;
     id_info->previous_eval_flags = id_node->eval_flags;
     id_info->previous_customdata_masks = id_node->customdata_masks;
-    id_info->id_invisible_recalc = id_node->id_invisible_recalc;
     BLI_assert(!id_info_hash_.contains(id_node->id_orig_session_uuid));
     id_info_hash_.add_new(id_node->id_orig_session_uuid, id_info);
     id_node->id_cow = nullptr;

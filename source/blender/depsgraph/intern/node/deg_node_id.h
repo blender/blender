@@ -123,9 +123,6 @@ struct IDNode : public Node {
   /* Accumulate recalc flags from multiple update passes. */
   int id_cow_recalc_backup;
 
-  /* Flags which components were not evaluated due to ID being invisible. */
-  int id_invisible_recalc;
-
   IDComponentsMask visible_components_mask;
   IDComponentsMask previously_visible_components_mask;
 

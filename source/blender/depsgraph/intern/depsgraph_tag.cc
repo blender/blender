@@ -890,13 +890,6 @@ void DEG_ids_clear_recalc(Depsgraph *depsgraph, const bool backup)
   }
   /* Go over all ID nodes, clearing tags. */
   for (deg::IDNode *id_node : deg_graph->id_nodes) {
-    if (!id_node->is_enabled_on_eval) {
-      id_node->id_invisible_recalc |= id_node->id_cow->recalc;
-    }
-    else {
-      id_node->id_invisible_recalc = 0;
-    }
-
     if (backup) {
       id_node->id_cow_recalc_backup |= id_node->id_cow->recalc;
     }
