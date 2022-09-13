@@ -207,6 +207,10 @@ struct GPUShader *DRW_shader_create_with_lib_ex(const char *vert,
                                                 const char *lib,
                                                 const char *defines,
                                                 const char *name);
+struct GPUShader *DRW_shader_create_compute_with_shaderlib(const char *comp,
+                                                           const DRWShaderLibrary *lib,
+                                                           const char *defines,
+                                                           const char *name);
 struct GPUShader *DRW_shader_create_with_shaderlib_ex(const char *vert,
                                                       const char *geom,
                                                       const char *frag,

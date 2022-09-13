@@ -1261,6 +1261,7 @@ struct GPUShader *EEVEE_shaders_volumes_scatter_sh_get(void);
 struct GPUShader *EEVEE_shaders_volumes_scatter_with_lights_sh_get(void);
 struct GPUShader *EEVEE_shaders_volumes_integration_sh_get(void);
 struct GPUShader *EEVEE_shaders_volumes_resolve_sh_get(bool accum);
+struct GPUShader *EEVEE_shaders_volumes_resolve_comp_sh_get(bool float_target);
 struct GPUShader *EEVEE_shaders_volumes_accum_sh_get(void);
 struct GPUShader *EEVEE_shaders_ggx_lut_sh_get(void);
 struct GPUShader *EEVEE_shaders_ggx_refraction_lut_sh_get(void);

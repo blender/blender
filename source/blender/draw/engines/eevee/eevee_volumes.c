@@ -396,18 +396,37 @@ void EEVEE_volumes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
         grp, NULL, USE_VOLUME_OPTI ? 1 : common_data->vol_tex_size[2]);
 
     DRW_PASS_CREATE(psl->volumetric_resolve_ps, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
-    grp = DRW_shgroup_create(EEVEE_shaders_volumes_resolve_sh_get(false),
-                             psl->volumetric_resolve_ps);
-    DRW_shgroup_uniform_texture_ref(grp, "inScattering", &txl->volume_scatter);
-    DRW_shgroup_uniform_texture_ref(grp, "inTransmittance", &txl->volume_transmit);
-    DRW_shgroup_uniform_texture_ref(grp, "inSceneDepth", &e_data.depth_src);
-    DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
-    DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-    DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
-    DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
-    DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
+    if (GPU_compute_shader_support() && GPU_shader_image_load_store_support()) {
+      const bool use_float_target = DRW_state_is_image_render();
+      grp = DRW_shgroup_create(EEVEE_shaders_volumes_resolve_comp_sh_get(use_float_target),
+                               psl->volumetric_resolve_ps);
+      DRW_shgroup_uniform_texture_ref(grp, "inScattering", &txl->volume_scatter);
+      DRW_shgroup_uniform_texture_ref(grp, "inTransmittance", &txl->volume_transmit);
+      DRW_shgroup_uniform_texture_ref(grp, "inSceneDepth", &e_data.depth_src);
+      DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
+      DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
+      DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
+      DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
+      DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
+      DRW_shgroup_uniform_image_ref(grp, "target_img", &txl->color);
 
-    DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
+      const float *size = DRW_viewport_size_get();
+      DRW_shgroup_call_compute(grp, size[0], size[1], 1);
+    }
+    else {
+      grp = DRW_shgroup_create(EEVEE_shaders_volumes_resolve_sh_get(false),
+                               psl->volumetric_resolve_ps);
+      DRW_shgroup_uniform_texture_ref(grp, "inScattering", &txl->volume_scatter);
+      DRW_shgroup_uniform_texture_ref(grp, "inTransmittance", &txl->volume_transmit);
+      DRW_shgroup_uniform_texture_ref(grp, "inSceneDepth", &e_data.depth_src);
+      DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
+      DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
+      DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
+      DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
+      DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
+
+      DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
+    }
   }
 }
 
@@ -546,11 +565,16 @@ void EEVEE_volumes_resolve(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *veda
     }
 
     /* Apply for opaque geometry. */
-    GPU_framebuffer_bind(fbl->main_color_fb);
-    DRW_draw_pass(psl->volumetric_resolve_ps);
+    if (GPU_compute_shader_support() && GPU_shader_image_load_store_support()) {
+      DRW_draw_pass(psl->volumetric_resolve_ps);
+    }
+    else {
+      GPU_framebuffer_bind(fbl->main_color_fb);
+      DRW_draw_pass(psl->volumetric_resolve_ps);
 
-    /* Restore. */
-    GPU_framebuffer_bind(fbl->main_fb);
+      /* Restore. */
+      GPU_framebuffer_bind(fbl->main_fb);
+    }
   }
 }
 
