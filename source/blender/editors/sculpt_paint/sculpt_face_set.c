@@ -713,6 +713,9 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
 
   const float threshold = RNA_float_get(op->ptr, "threshold");
 
+  Mesh *mesh = ob->data;
+  ss->face_sets = BKE_sculpt_face_sets_ensure(mesh);
+
   switch (mode) {
     case SCULPT_FACE_SETS_FROM_LOOSE_PARTS:
       sculpt_face_sets_init_flood_fill(ob, sculpt_face_sets_init_loose_parts_test, threshold);
