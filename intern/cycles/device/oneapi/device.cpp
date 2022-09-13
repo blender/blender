@@ -49,8 +49,7 @@ bool device_oneapi_init()
 
   /* This shouldn't happen, but it still makes sense to have a branch for this. */
   if (lib_handle == NULL) {
-    LOG(ERROR) << "oneAPI kernel shared library cannot be loaded for some reason. This should not "
-                  "happen, however, it occurs hence oneAPI rendering will be disabled";
+    LOG(ERROR) << "oneAPI kernel shared library cannot be loaded: " << dlerror();
     return false;
   }
 
