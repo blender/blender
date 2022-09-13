@@ -1,11 +1,12 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright 2006 Blender Foundation. All rights reserved.
 
-#-----------------------------------------------------------------------------
-# We don't allow in-source builds. This causes no end of troubles because
+# -----------------------------------------------------------------------------
+# Early Initialization
+
+# NOTE: We don't allow in-source builds. This causes no end of troubles because
 # all out-of-source builds will use the CMakeCache.txt file there and even
 # build the libs and objects in it.
-
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
   if(NOT DEFINED WITH_IN_SOURCE_BUILD)
     message(FATAL_ERROR
@@ -35,7 +36,7 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build_files/cmake/Modules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build_files/cmake/platform")
 
-# avoid having empty buildtype
+# Avoid having an empty `CMAKE_BUILD_TYPE`.
 if(NOT DEFINED CMAKE_BUILD_TYPE_INIT)
   set(CMAKE_BUILD_TYPE_INIT "Release")
   # Internal logic caches this variable, avoid showing it by default
@@ -59,7 +60,8 @@ set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
   $<$<CONFIG:RelWithDebInfo>:NDEBUG>
 )
 
-#-----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 # Set policy
 
 # see "cmake --help-policy CMP0003"
@@ -89,13 +91,16 @@ endif()
 if(POLICY CMP0087)
   cmake_policy(SET CMP0087 NEW)
 endif()
-#-----------------------------------------------------------------------------
-# Load some macros.
+
+
+# -----------------------------------------------------------------------------
+# Load Blender's Local Macros
+
 include(build_files/cmake/macros.cmake)
 
 
-#-----------------------------------------------------------------------------
-# Initialize project.
+# -----------------------------------------------------------------------------
+# Initialize Project
 
 blender_project_hack_pre()
 
@@ -105,14 +110,15 @@ blender_project_hack_post()
 
 enable_testing()
 
-#-----------------------------------------------------------------------------
-# Test compiler/library features.
+
+# -----------------------------------------------------------------------------
+# Test Compiler/Library Features
 
 include(build_files/cmake/have_features.cmake)
 
 
-#-----------------------------------------------------------------------------
-# Redirect output files
+# -----------------------------------------------------------------------------
+# Redirect Output Files
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE INTERNAL "" FORCE)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib CACHE INTERNAL "" FORCE)
@@ -124,14 +130,15 @@ else()
   set(TESTS_OUTPUT_DIR ${EXECUTABLE_OUTPUT_PATH}/tests/ CACHE INTERNAL "" FORCE)
 endif()
 
-#-----------------------------------------------------------------------------
-# Set default config options
+
+# -----------------------------------------------------------------------------
+# Set Default Configuration Options
 
 get_blender_version()
 
 
-#-----------------------------------------------------------------------------
-# Options
+# -----------------------------------------------------------------------------
+# Declare Options
 
 # Blender internal features
 option(WITH_BLENDER "Build blender (disable to build only the blender player)" ON)
@@ -750,8 +757,8 @@ if(APPLE)
 endif()
 
 
-#-----------------------------------------------------------------------------
-# Check for conflicting/unsupported configurations
+# -----------------------------------------------------------------------------
+# Check for Conflicting/Unsupported Configurations
 
 if(NOT WITH_BLENDER AND NOT WITH_CYCLES_STANDALONE AND NOT WITH_CYCLES_HYDRA_RENDER_DELEGATE)
   message(FATAL_ERROR
@@ -899,8 +906,9 @@ if(WITH_CYCLES_DEVICE_HIP)
   set(WITH_HIP_DYNLOAD ON)
 endif()
 
-#-----------------------------------------------------------------------------
-# Check if submodules are cloned.
+
+# -----------------------------------------------------------------------------
+# Check if Sub-modules are Cloned
 
 if(WITH_INTERNATIONAL)
   file(GLOB RESULT "${CMAKE_SOURCE_DIR}/release/datafiles/locale")
@@ -943,8 +951,9 @@ if(WITH_PYTHON)
   endif()
 endif()
 
-#-----------------------------------------------------------------------------
-# Initialize un-cached vars, avoid unused warning
+
+# -----------------------------------------------------------------------------
+# InitialIze Un-cached Vars, Avoid Unused Warning
 
 # linux only, not cached
 set(WITH_BINRELOC OFF)
@@ -1019,6 +1028,7 @@ if(WITH_CPU_SIMD)
   endif()
 endif()
 
+
 # ----------------------------------------------------------------------------
 # Main Platform Checks
 #
@@ -1034,8 +1044,9 @@ elseif(APPLE)
   include(platform_apple)
 endif()
 
-#-----------------------------------------------------------------------------
-# Common.
+
+# -----------------------------------------------------------------------------
+# Common Checks for Compatible Options
 
 if(NOT WITH_FFTW3 AND WITH_MOD_OCEANSIM)
   message(FATAL_ERROR "WITH_MOD_OCEANSIM requires WITH_FFTW3 to be ON")
@@ -1185,15 +1196,18 @@ if(WITH_OPENVDB)
   list(APPEND OPENVDB_LIBRARIES ${BOOST_LIBRARIES} ${TBB_LIBRARIES})
 endif()
 
-#-----------------------------------------------------------------------------
-# Configure OpenGL.
+
+# -----------------------------------------------------------------------------
+# Configure OpenGL
 
 if(WITH_OPENGL)
   add_definitions(-DWITH_OPENGL)
 endif()
 
-#-----------------------------------------------------------------------------
-# Configure Metal.
+
+# -----------------------------------------------------------------------------
+# Configure Metal
+
 if(WITH_METAL_BACKEND)
   add_definitions(-DWITH_METAL_BACKEND)
 
@@ -1202,8 +1216,10 @@ if(WITH_METAL_BACKEND)
   # build_files/cmake/platform/platform_apple.cmake
 endif()
 
-#-----------------------------------------------------------------------------
-# Configure OpenMP.
+
+# -----------------------------------------------------------------------------
+# Configure OpenMP
+
 if(WITH_OPENMP)
   if(NOT OPENMP_CUSTOM)
     find_package(OpenMP)
@@ -1235,7 +1251,8 @@ if(WITH_OPENMP)
   )
 endif()
 
-#-----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 # Configure Bullet
 
 if(WITH_BULLET AND WITH_SYSTEM_BULLET)
@@ -1249,15 +1266,17 @@ else()
   # set(BULLET_LIBRARIES "")
 endif()
 
-#-----------------------------------------------------------------------------
-# Configure Python.
+
+# -----------------------------------------------------------------------------
+# Configure Python
 
 if(WITH_PYTHON_MODULE)
   add_definitions(-DPy_ENABLE_SHARED)
 endif()
 
-#-----------------------------------------------------------------------------
-# Configure GLog/GFlags
+
+# -----------------------------------------------------------------------------
+# Configure `GLog/GFlags`
 
 if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
   if(WITH_SYSTEM_GFLAGS)
@@ -1265,7 +1284,7 @@ if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
     if(NOT GFLAGS_FOUND)
       message(FATAL_ERROR "System wide Gflags is requested but was not found")
     endif()
-    # FindGflags does not define this, and we are not even sure what to use here.
+    # `FindGflags` does not define this, and we are not even sure what to use here.
     set(GFLAGS_DEFINES)
   else()
     set(GFLAGS_DEFINES
@@ -1283,7 +1302,7 @@ if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
     if(NOT GLOG_FOUND)
       message(FATAL_ERROR "System wide Glog is requested but was not found")
     endif()
-    # FindGlog does not define this, and we are not even sure what to use here.
+    # `FindGlog` does not define this, and we are not even sure what to use here.
     set(GLOG_DEFINES)
   else()
     set(GLOG_DEFINES
@@ -1298,9 +1317,13 @@ if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
   endif()
 endif()
 
-#-----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Ninja Job Limiting
+
 # Extra limits to number of jobs running in parallel for some kind os tasks.
 # Only supported by Ninja build system currently.
+
 if("${CMAKE_GENERATOR}" MATCHES "Ninja" AND WITH_NINJA_POOL_JOBS)
   if(NOT NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS AND
      NOT NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS AND
@@ -1312,7 +1335,8 @@ if("${CMAKE_GENERATOR}" MATCHES "Ninja" AND WITH_NINJA_POOL_JOBS)
     # Note: this gives mem in MB.
     cmake_host_system_information(RESULT _TOT_MEM QUERY TOTAL_PHYSICAL_MEMORY)
 
-    # Heuristics... the more cores we have, the more free mem we have to keep for the non-heavy tasks too.
+    # Heuristics: the more cores we have, the more free memory we have to keep
+    # for the non-heavy tasks too.
     if(${_TOT_MEM} LESS 8000 AND ${_NUM_CORES} GREATER 2)
       set(_compile_heavy_jobs "1")
     elseif(${_TOT_MEM} LESS 16000 AND ${_NUM_CORES} GREATER 4)
@@ -1332,7 +1356,8 @@ if("${CMAKE_GENERATOR}" MATCHES "Ninja" AND WITH_NINJA_POOL_JOBS)
     mark_as_advanced(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
     set(_compile_heavy_jobs)
 
-    # Only set regular compile jobs if we set heavy jobs, otherwise default (using all cores) if fine.
+    # Only set regular compile jobs if we set heavy jobs,
+    # otherwise default (using all cores) if fine.
     if(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
       math(EXPR _compile_jobs "${_NUM_CORES} - 1")
     else()
@@ -1343,8 +1368,8 @@ if("${CMAKE_GENERATOR}" MATCHES "Ninja" AND WITH_NINJA_POOL_JOBS)
     mark_as_advanced(NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS)
     set(_compile_jobs)
 
-    # In practice, even when there is RAM available, this proves to be quicker than running in parallel
-    # (due to slow disks accesses).
+    # In practice, even when there is RAM available,
+    # this proves to be quicker than running in parallel (due to slow disks accesses).
     set(NINJA_MAX_NUM_PARALLEL_LINK_JOBS "1" CACHE STRING
         "Define the maximum number of concurrent link jobs, for ninja build system." FORCE)
     mark_as_advanced(NINJA_MAX_NUM_PARALLEL_LINK_JOBS)
@@ -1368,8 +1393,9 @@ if("${CMAKE_GENERATOR}" MATCHES "Ninja" AND WITH_NINJA_POOL_JOBS)
   endif()
 endif()
 
-#-----------------------------------------------------------------------------
-# Extra compile flags
+
+# -----------------------------------------------------------------------------
+# Extra Compile Flags
 
 if(CMAKE_COMPILER_IS_GNUCC)
 
@@ -1459,7 +1485,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
   endif()
 
 
-  #----------------------
+  # ---------------------
   # Suppress Strict Flags
   #
   # Exclude the following warnings from this list:
@@ -1525,7 +1551,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   # ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNUSED_MACROS      -Wunused-macros)
   # ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNUSED_MACROS          -Wunused-macros)
 
-  #----------------------
+  # ---------------------
   # Suppress Strict Flags
 
   # flags to undo strict flags
@@ -1737,7 +1763,8 @@ mark_as_advanced(
   LLVM_VERSION
 )
 
-#-------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------
 # Global Defines
 
 # better not set includes here but this debugging option is off by default.
@@ -1753,8 +1780,9 @@ endif()
 # message(STATUS "Using CFLAGS: ${CMAKE_C_FLAGS}")
 # message(STATUS "Using CXXFLAGS: ${CMAKE_CXX_FLAGS}")
 
-#-----------------------------------------------------------------------------
-# Libraries
+
+# -----------------------------------------------------------------------------
+# Add Sub-Directories
 
 if(WITH_BLENDER)
   add_subdirectory(intern)
@@ -1783,33 +1811,41 @@ elseif(WITH_CYCLES_STANDALONE OR WITH_CYCLES_HYDRA_RENDER_DELEGATE)
   endif()
 endif()
 
-#-----------------------------------------------------------------------------
-# Testing
+
+# -----------------------------------------------------------------------------
+# Add Testing Directory
+
 add_subdirectory(tests)
 
-#-----------------------------------------------------------------------------
-# Blender Application
+
+# -----------------------------------------------------------------------------
+# Add Blender Application
+
 if(WITH_BLENDER)
   add_subdirectory(source/creator)
 endif()
 
 
-#-----------------------------------------------------------------------------
-# Define 'heavy' submodules (for Ninja builder when using pools).
+# -----------------------------------------------------------------------------
+# Define 'heavy' sub-modules (for Ninja builder when using pools)
 setup_heavy_lib_pool()
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # CPack for generating packages
+
 include(build_files/cmake/packaging.cmake)
 
-#-----------------------------------------------------------------------------
-# Use dynamic loading for OpenMP
+
+# -----------------------------------------------------------------------------
+# Use Dynamic Loading for OpenMP
+
 if(WITH_BLENDER)
   openmp_delayload(blender)
 endif()
 
-#-----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 # Print Final Configuration
 
 if(FIRST_RUN)
