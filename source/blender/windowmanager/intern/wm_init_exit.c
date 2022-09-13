@@ -641,7 +641,8 @@ void WM_exit_ex(bContext *C, const bool do_python)
 
   BKE_tempdir_session_purge();
 
-  /* Keep last (or near last) so logging can be used right up until everything is shut-down. */
+  /* Logging cannot be called after exiting (#CLOG_INFO, #CLOG_WARN etc will crash).
+   * So postpone exiting until other sub-systems that may use logging have shut down. */
   CLG_exit();
 }
 
