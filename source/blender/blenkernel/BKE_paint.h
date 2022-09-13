@@ -718,7 +718,7 @@ void BKE_sculpt_sync_face_sets_visibility_to_grids(struct Mesh *mesh,
                                                    struct SubdivCCG *subdiv_ccg);
 
 /**
- * If a face set layer exists, initialize its visiblity (sign) from the mesh's hidden values.
+ * If a face set layer exists, initialize its visibility (sign) from the mesh's hidden values.
  */
 void BKE_sculpt_face_sets_update_from_base_mesh_visibility(struct Mesh *mesh);
 

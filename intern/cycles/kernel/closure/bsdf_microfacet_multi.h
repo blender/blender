@@ -371,7 +371,7 @@ ccl_device void bsdf_microfacet_multi_ggx_blur(ccl_private ShaderClosure *sc, fl
 
 /* === Closure implementations === */
 
-/* Multiscattering GGX Glossy closure */
+/* Multi-scattering GGX Glossy closure */
 
 ccl_device int bsdf_microfacet_multi_ggx_common_setup(ccl_private MicrofacetBsdf *bsdf)
 {
@@ -546,7 +546,7 @@ ccl_device int bsdf_microfacet_multi_ggx_sample(KernelGlobals kg,
   return LABEL_REFLECT | LABEL_GLOSSY;
 }
 
-/* Multiscattering GGX Glass closure */
+/* Multi-scattering GGX Glass closure */
 
 ccl_device int bsdf_microfacet_multi_ggx_glass_setup(ccl_private MicrofacetBsdf *bsdf)
 {

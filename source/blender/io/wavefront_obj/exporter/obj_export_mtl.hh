@@ -56,16 +56,16 @@ struct MTLMaterial {
   std::string name;
   /* Always check for negative values while importing or exporting. Use defaults if
    * any value is negative. */
-  float spec_exponent{-1.0f};   /* Ns */
-  float3 ambient_color{-1.0f};  /* Ka */
-  float3 color{-1.0f};          /* Kd */
-  float3 spec_color{-1.0f};     /* Ks */
-  float3 emission_color{-1.0f}; /* Ke */
-  float ior{-1.0f};             /* Ni */
-  float alpha{-1.0f};           /* d */
+  float spec_exponent{-1.0f};   /* `Ns` */
+  float3 ambient_color{-1.0f};  /* `Ka` */
+  float3 color{-1.0f};          /* `Kd` */
+  float3 spec_color{-1.0f};     /* `Ks` */
+  float3 emission_color{-1.0f}; /* `Ke` */
+  float ior{-1.0f};             /* `Ni` */
+  float alpha{-1.0f};           /* `d` */
   int illum_mode{-1};
   MTLTexMap texture_maps[(int)MTLTexMapType::Count];
-  /* Only used for Normal Map node: "map_Bump". */
+  /* Only used for Normal Map node: `map_Bump`. */
   float normal_strength{-1.0f};
 };
 

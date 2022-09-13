@@ -1714,9 +1714,9 @@ static int gpencil_strokes_paste_exec(bContext *C, wmOperator *op)
           }
         }
 
-        /* Ensure we have a frame to draw into
+        /* Ensure we have a frame to draw into.
          * NOTE: Since this is an op which creates strokes,
-         *       we resuse active frame or add a new frame if one
+         *       we reuse active frame or add a new frame if one
          *       doesn't exist already depending on REC button status.
          */
         if (IS_AUTOKEY_ON(scene) || (gpl->actframe == NULL)) {

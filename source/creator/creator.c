@@ -286,12 +286,11 @@ int main(int argc,
   _putenv_s("OMP_WAIT_POLICY", "PASSIVE");
 #  endif
 
-  /* Win32 Unicode Arguments. */
-  /* NOTE: cannot use `guardedalloc` allocation here, as it's not yet initialized
-   *       (it depends on the arguments passed in, which is what we're getting here!)
-   */
 #  ifdef USE_WIN32_UNICODE_ARGS
+  /* Win32 Unicode Arguments. */
   {
+    /* NOTE: Can't use `guardedalloc` allocation here, as it's not yet initialized
+     * (it depends on the arguments passed in, which is what we're getting here!) */
     wchar_t **argv_16 = CommandLineToArgvW(GetCommandLineW(), &argc);
     argv = malloc(argc * sizeof(char *));
     for (argv_num = 0; argv_num < argc; argv_num++) {

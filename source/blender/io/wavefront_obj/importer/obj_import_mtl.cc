@@ -257,7 +257,7 @@ static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial
     float clamped_ns = std::max(0.0f, std::min(1000.0f, mtl_mat.spec_exponent));
     roughness = 1.0f - sqrt(clamped_ns / 1000.0f);
   }
-  /* Metallic: average of Ka components. */
+  /* Metallic: average of `Ka` components. */
   float metallic = (mtl_mat.ambient_color[0] + mtl_mat.ambient_color[1] +
                     mtl_mat.ambient_color[2]) /
                    3;
