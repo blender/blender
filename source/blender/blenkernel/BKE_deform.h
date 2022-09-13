@@ -50,19 +50,29 @@ void BKE_defgroup_copy_list(struct ListBase *outbase, const struct ListBase *inb
 struct bDeformGroup *BKE_defgroup_duplicate(const struct bDeformGroup *ingroup);
 struct bDeformGroup *BKE_object_defgroup_find_name(const struct Object *ob, const char *name);
 /**
- * \note caller must free.
+ * Returns flip map for the vertex-groups of `ob`.
+ *
+ * \param use_default: How to handle cases where no symmetrical group is found.
+ * - false: sets these indices to -1, indicating the group should be ignored.
+ * - true: sets the index to its location in the array (making the group point to it's self).
+ *   Enable this for symmetrical actions which apply weight operations on symmetrical vertices
+ *   where the symmetrical group will be used (if found), otherwise the same group is used.
+ *
+ * \return An index array `r_flip_map_num` length,
+ * (aligned with the list result from `BKE_id_defgroup_list_get(ob)`).
+ * referencing the index of the symmetrical vertex-group of a fall-back value (see `use_default`).
+ * The caller is responsible for freeing the array.
  */
 int *BKE_object_defgroup_flip_map(const struct Object *ob, bool use_default, int *r_flip_map_num);
 
 /**
- * Returns flip map for only unlocked defgroups.
- * \note caller must free.
+ * A version of #BKE_object_defgroup_flip_map that ignores locked groups.
  */
 int *BKE_object_defgroup_flip_map_unlocked(const struct Object *ob,
                                            bool use_default,
                                            int *r_flip_map_num);
 /**
- * \note caller must free.
+ * A version of #BKE_object_defgroup_flip_map that only takes a single group into account.
  */
 int *BKE_object_defgroup_flip_map_single(const struct Object *ob,
                                          bool use_default,
