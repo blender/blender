@@ -402,7 +402,7 @@ class IMAGE_MT_uvs(Menu):
         layout.menu("IMAGE_MT_uvs_mirror")
         layout.menu("IMAGE_MT_uvs_snap")
 
-        layout.prop_menu_enum(uv, "pixel_snap_mode")
+        layout.prop_menu_enum(uv, "pixel_round_mode")
         layout.prop(uv, "lock_bounds")
 
         layout.separator()
