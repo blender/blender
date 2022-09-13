@@ -6,6 +6,8 @@
 
 #ifdef _WIN32
 #  include <io.h>
+#else
+#  include <unistd.h>
 #endif
 
 #include <fcntl.h>
@@ -75,7 +77,7 @@ ImBuf *imb_loadwebp(const unsigned char *mem,
 }
 
 struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
-                                               const int flags,
+                                               const int UNUSED(flags),
                                                const size_t max_thumb_size,
                                                char colorspace[],
                                                size_t *r_width,
@@ -107,6 +109,10 @@ struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
     imb_mmap_unlock();
     return NULL;
   }
+
+  /* Return full size of the image. */
+  *r_width = (size_t)config.input.width;
+  *r_height = (size_t)config.input.height;
 
   const float scale = (float)max_thumb_size / MAX2(config.input.width, config.input.height);
   const int dest_w = (int)(config.input.width * scale);
