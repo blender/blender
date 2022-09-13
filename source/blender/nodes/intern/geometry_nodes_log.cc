@@ -600,7 +600,8 @@ const ViewerNodeLog *GeoModifierLog::find_viewer_node_log_for_spreadsheet(
   }
   const SpreadsheetContextNode &last_node_context =
       *reinterpret_cast<const SpreadsheetContextNode *>(last_context);
-  const ViewerNodeLog *viewer_log = tree_log.viewer_node_logs.lookup(last_node_context.node_name);
+  const ViewerNodeLog *viewer_log = tree_log.viewer_node_logs.lookup_default(
+      last_node_context.node_name, nullptr);
   return viewer_log;
 }
 
