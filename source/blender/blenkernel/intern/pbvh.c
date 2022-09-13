@@ -3247,6 +3247,14 @@ void BKE_pbvh_face_sets_set(PBVH *pbvh, int *face_sets)
   pbvh->face_sets = face_sets;
 }
 
+void BKE_pbvh_update_hide_attributes_from_mesh(PBVH *pbvh)
+{
+  if (pbvh->header.type == PBVH_FACES) {
+    pbvh->hide_vert = CustomData_get_layer_named(&pbvh->mesh->vdata, CD_PROP_BOOL, ".hide_vert");
+    pbvh->hide_poly = CustomData_get_layer_named(&pbvh->mesh->pdata, CD_PROP_BOOL, ".hide_poly");
+  }
+}
+
 void BKE_pbvh_respect_hide_set(PBVH *pbvh, bool respect_hide)
 {
   pbvh->respect_hide = respect_hide;

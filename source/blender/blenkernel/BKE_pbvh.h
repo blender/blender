@@ -491,6 +491,12 @@ void BKE_pbvh_grids_update(PBVH *pbvh,
 void BKE_pbvh_subdiv_cgg_set(PBVH *pbvh, struct SubdivCCG *subdiv_ccg);
 void BKE_pbvh_face_sets_set(PBVH *pbvh, int *face_sets);
 
+/**
+ * If an operation causes the hide status stored in the mesh to change, this must be called
+ * to update the references to those attributes, since they are only added when necessary.
+ */
+void BKE_pbvh_update_hide_attributes_from_mesh(PBVH *pbvh);
+
 void BKE_pbvh_face_sets_color_set(PBVH *pbvh, int seed, int color_default);
 
 void BKE_pbvh_respect_hide_set(PBVH *pbvh, bool respect_hide);

@@ -602,6 +602,7 @@ void SCULPT_visibility_sync_all_face_sets_to_verts(Object *ob)
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       BKE_sculpt_sync_face_sets_visibility_to_base_mesh(mesh);
+      BKE_pbvh_update_hide_attributes_from_mesh(ss->pbvh);
       break;
     }
     case PBVH_GRIDS: {
