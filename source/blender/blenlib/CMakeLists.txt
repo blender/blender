@@ -23,7 +23,6 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/BLI_args.c
   intern/BLI_array.c
   intern/BLI_assert.c
   intern/BLI_color.cc
@@ -160,7 +159,6 @@ set(SRC
   BLI_alloca.h
   BLI_allocator.hh
   BLI_any.hh
-  BLI_args.h
   BLI_array.h
   BLI_array.hh
   BLI_array_store.h
@@ -354,6 +352,14 @@ set(LIB
   ${ZLIB_LIBRARIES}
   ${ZSTD_LIBRARIES}
 )
+
+if(NOT WITH_PYTHON_MODULE)
+  list(APPEND SRC
+    intern/BLI_args.c
+
+    BLI_args.h
+  )
+endif()
 
 if(WITH_MEM_VALGRIND)
   add_definitions(-DWITH_MEM_VALGRIND)
