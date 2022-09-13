@@ -36,7 +36,8 @@ endmacro()
 # ------------------------------------------------------------------------
 # Find system provided libraries.
 
-# Avoid searching for headers in frameworks (like Mono), and libraries in LIBDIR.
+# Avoid searching for headers since this would otherwise override our lib
+# directory as well as PYTHON_ROOT_DIR.
 set(CMAKE_FIND_FRAMEWORK NEVER)
 
 # Find system ZLIB, not the pre-compiled one supplied with OpenCollada.
@@ -438,6 +439,9 @@ find_package(Zstd REQUIRED)
 if(EXISTS ${LIBDIR})
   without_system_libs_end()
 endif()
+
+# Restore to default.
+set(CMAKE_FIND_FRAMEWORK FIRST)
 
 # ---------------------------------------------------------------------
 # Set compiler and linker flags.
