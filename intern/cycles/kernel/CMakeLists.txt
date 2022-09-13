@@ -793,7 +793,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   if(UNIX AND NOT APPLE)
     if(NOT WITH_CXX11_ABI)
       check_library_exists(sycl
-        _ZN2cl4sycl7handler22verifyUsedKernelBundleERKSs ${sycl_compiler_root}/../lib SYCL_NO_CXX11_ABI)
+        _ZN4sycl3_V17handler22verifyUsedKernelBundleERKSs ${sycl_compiler_root}/../lib SYCL_NO_CXX11_ABI)
       if(SYCL_NO_CXX11_ABI)
         list(APPEND sycl_compiler_flags -D_GLIBCXX_USE_CXX11_ABI=0)
       endif()
