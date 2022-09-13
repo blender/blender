@@ -11,6 +11,7 @@
 
 #include "DNA_customdata_types.h"
 #include "DNA_image_types.h"
+#include "DNA_material_types.h"
 
 #include "BLI_ghash.h"
 #include "BLI_hash_mm2a.h"
@@ -20,6 +21,7 @@
 
 #include "PIL_time.h"
 
+#include "BKE_cryptomatte.hh"
 #include "BKE_material.h"
 
 #include "GPU_capabilities.h"
@@ -238,6 +240,7 @@ class GPUCodegen {
   uint32_t hash_ = 0;
   BLI_HashMurmur2A hm2a_;
   ListBase ubo_inputs_ = {nullptr, nullptr};
+  GPUInput *cryptomatte_input_ = nullptr;
 
  public:
   GPUCodegen(GPUMaterial *mat_, GPUNodeGraph *graph_) : mat(*mat_), graph(*graph_)
@@ -262,11 +265,13 @@ class GPUCodegen {
     MEM_SAFE_FREE(output.displacement);
     MEM_SAFE_FREE(output.composite);
     MEM_SAFE_FREE(output.material_functions);
+    MEM_SAFE_FREE(cryptomatte_input_);
     delete create_info;
     BLI_freelistN(&ubo_inputs_);
   };
 
   void generate_graphs();
+  void generate_cryptomatte();
   void generate_uniform_buffer();
   void generate_attribs();
   void generate_resources();
@@ -399,7 +404,12 @@ void GPUCodegen::generate_resources()
     ss << "struct NodeTree {\n";
     LISTBASE_FOREACH (LinkData *, link, &ubo_inputs_) {
       GPUInput *input = (GPUInput *)(link->data);
-      ss << input->type << " u" << input->id << ";\n";
+      if (input->source == GPU_SOURCE_CRYPTOMATTE) {
+        ss << input->type << " crypto_hash;\n";
+      }
+      else {
+        ss << input->type << " u" << input->id << ";\n";
+      }
     }
     ss << "};\n\n";
 
@@ -535,6 +545,24 @@ char *GPUCodegen::graph_serialize(eGPUNodeTag tree_tag)
   return eval_c_str;
 }
 
+void GPUCodegen::generate_cryptomatte()
+{
+  cryptomatte_input_ = static_cast<GPUInput *>(MEM_callocN(sizeof(GPUInput), __func__));
+  cryptomatte_input_->type = GPU_FLOAT;
+  cryptomatte_input_->source = GPU_SOURCE_CRYPTOMATTE;
+
+  float material_hash = 0.0f;
+  Material *material = GPU_material_get_material(&mat);
+  if (material) {
+    blender::bke::cryptomatte::CryptomatteHash hash(material->id.name,
+                                                    BLI_strnlen(material->id.name, MAX_NAME - 2));
+    material_hash = hash.float_encoded();
+  }
+  cryptomatte_input_->vec[0] = material_hash;
+
+  BLI_addtail(&ubo_inputs_, BLI_genericNodeN(cryptomatte_input_));
+}
+
 void GPUCodegen::generate_uniform_buffer()
 {
   /* Extract uniform inputs. */
@@ -615,6 +643,7 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
 
   GPUCodegen codegen(material, graph);
   codegen.generate_graphs();
+  codegen.generate_cryptomatte();
   codegen.generate_uniform_buffer();
 
   /* Cache lookup: Reuse shaders already compiled. */

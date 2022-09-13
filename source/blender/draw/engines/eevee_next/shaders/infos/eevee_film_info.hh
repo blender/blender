@@ -21,7 +21,7 @@ GPU_SHADER_CREATE_INFO(eevee_film)
     .sampler(13, ImageType::FLOAT_2D_ARRAY, "aov_value_tx")
     /* Color History for TAA needs to be sampler to leverage bilinear sampling. */
     .sampler(14, ImageType::FLOAT_2D, "in_combined_tx")
-    // .sampler(15, ImageType::FLOAT_2D, "cryptomatte_tx") /* TODO */
+    .sampler(15, ImageType::FLOAT_2D, "cryptomatte_tx")
     .image(0, GPU_R32F, Qualifier::READ, ImageType::FLOAT_2D_ARRAY, "in_weight_img")
     .image(1, GPU_R32F, Qualifier::WRITE, ImageType::FLOAT_2D_ARRAY, "out_weight_img")
     /* Color History for TAA needs to be sampler to leverage bilinear sampling. */
@@ -30,6 +30,7 @@ GPU_SHADER_CREATE_INFO(eevee_film)
     .image(4, GPU_R32F, Qualifier::READ_WRITE, ImageType::FLOAT_2D, "depth_img")
     .image(5, GPU_RGBA16F, Qualifier::READ_WRITE, ImageType::FLOAT_2D_ARRAY, "color_accum_img")
     .image(6, GPU_R16F, Qualifier::READ_WRITE, ImageType::FLOAT_2D_ARRAY, "value_accum_img")
+    .image(7, GPU_RGBA32F, Qualifier::READ_WRITE, ImageType::FLOAT_2D_ARRAY, "cryptomatte_img")
     .additional_info("eevee_shared")
     .additional_info("eevee_velocity_camera")
     .additional_info("draw_view");
@@ -45,3 +46,13 @@ GPU_SHADER_CREATE_INFO(eevee_film_comp)
     .local_group_size(FILM_GROUP_SIZE, FILM_GROUP_SIZE)
     .compute_source("eevee_film_comp.glsl")
     .additional_info("eevee_film");
+
+GPU_SHADER_CREATE_INFO(eevee_film_cryptomatte_post)
+    .do_static_compilation(true)
+    .image(0, GPU_RGBA32F, Qualifier::READ_WRITE, ImageType::FLOAT_2D_ARRAY, "cryptomatte_img")
+    .image(1, GPU_R32F, Qualifier::READ, ImageType::FLOAT_2D_ARRAY, "weight_img")
+    .push_constant(Type::INT, "cryptomatte_layer_len")
+    .push_constant(Type::INT, "cryptomatte_samples_per_layer")
+    .local_group_size(FILM_GROUP_SIZE, FILM_GROUP_SIZE)
+    .compute_source("eevee_film_cryptomatte_post_comp.glsl")
+    .additional_info("eevee_shared");

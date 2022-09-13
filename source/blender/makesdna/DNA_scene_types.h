@@ -304,6 +304,10 @@ typedef enum eScenePassType {
 #define RE_PASSNAME_BLOOM "BloomCol"
 #define RE_PASSNAME_VOLUME_LIGHT "VolumeDir"
 
+#define RE_PASSNAME_CRYPTOMATTE_OBJECT "CryptoObject"
+#define RE_PASSNAME_CRYPTOMATTE_ASSET "CryptoAsset"
+#define RE_PASSNAME_CRYPTOMATTE_MATERIAL "CryptoMaterial"
+
 /** View - MultiView. */
 typedef struct SceneRenderView {
   struct SceneRenderView *next, *prev;

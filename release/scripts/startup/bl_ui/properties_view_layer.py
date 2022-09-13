@@ -209,7 +209,7 @@ class ViewLayerCryptomattePanel(ViewLayerButtonsPanel, Panel):
 
 class VIEWLAYER_PT_layer_passes_cryptomatte(ViewLayerCryptomattePanel, Panel):
     bl_parent_id = "VIEWLAYER_PT_layer_passes"
-    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT'}
 
 
 class VIEWLAYER_MT_lightgroup_sync(Menu):
