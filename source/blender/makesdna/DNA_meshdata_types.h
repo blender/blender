@@ -29,7 +29,7 @@ typedef struct MVert {
   /**
    * Deprecated bevel weight storage, now located in #CD_BWEIGHT, except for file read and write.
    */
-  char bweight DNA_DEPRECATED;
+  char bweight_legacy;
   char _pad[2];
 } MVert;
 
@@ -55,7 +55,7 @@ typedef struct MEdge {
   /**
    * Deprecated bevel weight storage, now located in #CD_BWEIGHT, except for file read and write.
    */
-  char bweight DNA_DEPRECATED;
+  char bweight_legacy;
   short flag;
 } MEdge;
 
@@ -83,7 +83,7 @@ typedef struct MPoly {
   /** Keep signed since we need to subtract when getting the previous loop. */
   int totloop;
   /** Deprecated material index. Now stored in the "material_index" attribute, but kept for IO. */
-  short mat_nr DNA_DEPRECATED;
+  short mat_nr_legacy;
   char flag, _pad;
 } MPoly;
 

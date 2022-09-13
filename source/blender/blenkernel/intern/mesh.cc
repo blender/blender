@@ -1612,14 +1612,14 @@ void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh)
   const Span<MEdge> edges = mesh->edges();
 
   for (const MVert &vert : verts) {
-    if (vert.bweight != 0) {
+    if (vert.bweight_legacy != 0) {
       mesh->cd_flag |= ME_CDFLAG_VERT_BWEIGHT;
       break;
     }
   }
 
   for (const MEdge &edge : edges) {
-    if (edge.bweight != 0) {
+    if (edge.bweight_legacy != 0) {
       mesh->cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
       if (mesh->cd_flag & ME_CDFLAG_EDGE_CREASE) {
         break;
