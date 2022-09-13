@@ -16,9 +16,16 @@ if(NOT DEFINED LIBDIR)
   # Choose the best suitable libraries.
   if(EXISTS ${LIBDIR_NATIVE_ABI})
     set(LIBDIR ${LIBDIR_NATIVE_ABI})
+    set(WITH_LIBC_MALLOC_HOOK_WORKAROUND True)
   elseif(EXISTS ${LIBDIR_CENTOS7_ABI})
     set(LIBDIR ${LIBDIR_CENTOS7_ABI})
     set(WITH_CXX11_ABI OFF)
+    if(WITH_MEM_JEMALLOC)
+      # jemalloc provides malloc hooks.
+      set(WITH_LIBC_MALLOC_HOOK_WORKAROUND False)
+    else()
+      set(WITH_LIBC_MALLOC_HOOK_WORKAROUND True)
+    endif()
 
     if(CMAKE_COMPILER_IS_GNUCC AND
        CMAKE_C_COMPILER_VERSION VERSION_LESS 9.3)

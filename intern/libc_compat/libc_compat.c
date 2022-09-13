@@ -116,7 +116,7 @@ float __powf_finite(float x, float y)
 
 #    endif /* __GLIBC_PREREQ(2, 31) */
 
-#    if __GLIBC_PREREQ(2, 34)
+#    if __GLIBC_PREREQ(2, 34) && defined(WITH_LIBC_MALLOC_HOOK_WORKAROUND)
 
 extern void *(*__malloc_hook)(size_t __size, const void *);
 extern void *(*__realloc_hook)(void *__ptr, size_t __size, const void *);
