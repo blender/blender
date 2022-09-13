@@ -59,7 +59,7 @@ class ValueOrFieldCPPType : public CPPType {
  public:
   template<typename T>
   ValueOrFieldCPPType(FieldCPPTypeParam<ValueOrField<T>> /* unused */, StringRef debug_name)
-      : CPPType(CPPTypeParam<ValueOrField<T>, CPPTypeFlags::None>(), debug_name),
+      : CPPType(CPPTypeParam<ValueOrField<T>, CPPTypeFlags::Printable>(), debug_name),
         base_type_(CPPType::get<T>())
   {
     construct_from_value_ = [](void *dst, const void *value_or_field) {

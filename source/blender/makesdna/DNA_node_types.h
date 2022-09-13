@@ -637,6 +637,9 @@ typedef struct bNodeTree {
   /** A span containing all nodes in the node tree. */
   blender::Span<bNode *> all_nodes();
   blender::Span<const bNode *> all_nodes() const;
+  /** A span containing all group nodes in the node tree. */
+  blender::Span<bNode *> group_nodes();
+  blender::Span<const bNode *> group_nodes() const;
   /** A span containing all input sockets in the node tree. */
   blender::Span<bNodeSocket *> all_input_sockets();
   blender::Span<const bNodeSocket *> all_input_sockets() const;

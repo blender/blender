@@ -10,7 +10,21 @@
 #include "BLI_task.hh"
 #include "BLI_timeit.hh"
 
+#include "NOD_geometry_nodes_lazy_function.hh"
+
 namespace blender::bke::node_tree_runtime {
+
+void handle_node_tree_output_changed(bNodeTree &tree_cow)
+{
+  if (tree_cow.type == NTREE_GEOMETRY) {
+    /* Rebuild geometry nodes lazy function graph. */
+    {
+      std::lock_guard lock{tree_cow.runtime->geometry_nodes_lazy_function_graph_info_mutex};
+      tree_cow.runtime->geometry_nodes_lazy_function_graph_info.reset();
+    }
+    blender::nodes::ensure_geometry_nodes_lazy_function_graph(tree_cow);
+  }
+}
 
 static void double_checked_lock(std::mutex &mutex, bool &data_is_dirty, FunctionRef<void()> fn)
 {
@@ -36,11 +50,15 @@ static void update_node_vector(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
   tree_runtime.nodes.clear();
+  tree_runtime.group_nodes.clear();
   tree_runtime.has_undefined_nodes_or_sockets = false;
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
     node->runtime->index_in_tree = tree_runtime.nodes.append_and_get_index(node);
     node->runtime->owner_tree = const_cast<bNodeTree *>(&ntree);
     tree_runtime.has_undefined_nodes_or_sockets |= node->typeinfo == &NodeTypeUndefined;
+    if (node->is_group()) {
+      tree_runtime.group_nodes.append(node);
+    }
   }
 }
 

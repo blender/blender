@@ -1741,7 +1741,14 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
   /* Animation, */
   build_animdata(&ntree->id);
   /* Output update. */
-  add_operation_node(&ntree->id, NodeType::NTREE_OUTPUT, OperationCode::NTREE_OUTPUT);
+  ID *id_cow = get_cow_id(&ntree->id);
+  add_operation_node(&ntree->id,
+                     NodeType::NTREE_OUTPUT,
+                     OperationCode::NTREE_OUTPUT,
+                     [id_cow](::Depsgraph * /*depsgraph*/) {
+                       bNodeTree *ntree_cow = reinterpret_cast<bNodeTree *>(id_cow);
+                       bke::node_tree_runtime::handle_node_tree_output_changed(*ntree_cow);
+                     });
   /* nodetree's nodes... */
   LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
     build_idproperties(bnode->prop);

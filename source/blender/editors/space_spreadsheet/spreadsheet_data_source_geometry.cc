@@ -4,6 +4,7 @@
 #include "BLI_virtual_array.hh"
 
 #include "BKE_attribute.hh"
+#include "BKE_compute_contexts.hh"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
 #include "BKE_editmesh.h"
@@ -26,7 +27,8 @@
 #include "ED_curves_sculpt.h"
 #include "ED_spreadsheet.h"
 
-#include "NOD_geometry_nodes_eval_log.hh"
+#include "NOD_geometry_nodes_lazy_function.hh"
+#include "NOD_geometry_nodes_log.hh"
 
 #include "BLT_translation.h"
 
@@ -40,8 +42,8 @@
 #include "spreadsheet_data_source_geometry.hh"
 #include "spreadsheet_intern.hh"
 
-namespace geo_log = blender::nodes::geometry_nodes_eval_log;
 using blender::fn::GField;
+using blender::nodes::geo_eval_log::ViewerNodeLog;
 
 namespace blender::ed::spreadsheet {
 
@@ -465,19 +467,10 @@ GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspread
         }
       }
       else {
-        const geo_log::NodeLog *node_log =
-            geo_log::ModifierLog::find_node_by_spreadsheet_editor_context(*sspreadsheet);
-        if (node_log != nullptr) {
-          for (const geo_log::SocketLog &input_log : node_log->input_logs()) {
-            if (const geo_log::GeometryValueLog *geo_value_log =
-                    dynamic_cast<const geo_log::GeometryValueLog *>(input_log.value())) {
-              const GeometrySet *full_geometry = geo_value_log->full_geometry();
-              if (full_geometry != nullptr) {
-                geometry_set = *full_geometry;
-                break;
-              }
-            }
-          }
+        if (const ViewerNodeLog *viewer_log =
+                nodes::geo_eval_log::GeoModifierLog::find_viewer_node_log_for_spreadsheet(
+                    *sspreadsheet)) {
+          geometry_set = viewer_log->geometry;
         }
       }
     }
@@ -495,27 +488,11 @@ static void find_fields_to_evaluate(const SpaceSpreadsheet *sspreadsheet,
     /* No viewer is currently referenced by the context path. */
     return;
   }
-  const geo_log::NodeLog *node_log = geo_log::ModifierLog::find_node_by_spreadsheet_editor_context(
-      *sspreadsheet);
-  if (node_log == nullptr) {
-    return;
-  }
-  for (const geo_log::SocketLog &socket_log : node_log->input_logs()) {
-    const geo_log::ValueLog *value_log = socket_log.value();
-    if (value_log == nullptr) {
-      continue;
-    }
-    if (const geo_log::GFieldValueLog *field_value_log =
-            dynamic_cast<const geo_log::GFieldValueLog *>(value_log)) {
-      const GField &field = field_value_log->field();
-      if (field) {
-        r_fields.add("Viewer", std::move(field));
-      }
-    }
-    if (const geo_log::GenericValueLog *generic_value_log =
-            dynamic_cast<const geo_log::GenericValueLog *>(value_log)) {
-      GPointer value = generic_value_log->value();
-      r_fields.add("Viewer", fn::make_constant_field(*value.type(), value.get()));
+  if (const ViewerNodeLog *viewer_log =
+          nodes::geo_eval_log::GeoModifierLog::find_viewer_node_log_for_spreadsheet(
+              *sspreadsheet)) {
+    if (viewer_log->field) {
+      r_fields.add("Viewer", viewer_log->field);
     }
   }
 }

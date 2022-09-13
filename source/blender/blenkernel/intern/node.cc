@@ -71,6 +71,7 @@
 #include "NOD_composite.h"
 #include "NOD_function.h"
 #include "NOD_geometry.h"
+#include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_shader.h"
 #include "NOD_socket.h"

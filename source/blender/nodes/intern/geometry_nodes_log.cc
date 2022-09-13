@@ -1,0 +1,607 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+#include "NOD_geometry_nodes_lazy_function.hh"
+#include "NOD_geometry_nodes_log.hh"
+
+#include "BKE_compute_contexts.hh"
+#include "BKE_curves.hh"
+#include "BKE_node_runtime.hh"
+
+#include "FN_field_cpp_type.hh"
+
+#include "DNA_modifier_types.h"
+#include "DNA_space_types.h"
+
+namespace blender::nodes::geo_eval_log {
+
+using fn::FieldInput;
+using fn::FieldInputs;
+
+GenericValueLog::~GenericValueLog()
+{
+  this->value.destruct();
+}
+
+FieldInfoLog::FieldInfoLog(const GField &field) : type(field.cpp_type())
+{
+  const std::shared_ptr<const fn::FieldInputs> &field_input_nodes = field.node().field_inputs();
+
+  /* Put the deduplicated field inputs into a vector so that they can be sorted below. */
+  Vector<std::reference_wrapper<const FieldInput>> field_inputs;
+  if (field_input_nodes) {
+    field_inputs.extend(field_input_nodes->deduplicated_nodes.begin(),
+                        field_input_nodes->deduplicated_nodes.end());
+  }
+
+  std::sort(
+      field_inputs.begin(), field_inputs.end(), [](const FieldInput &a, const FieldInput &b) {
+        const int index_a = (int)a.category();
+        const int index_b = (int)b.category();
+        if (index_a == index_b) {
+          return a.socket_inspection_name().size() < b.socket_inspection_name().size();
+        }
+        return index_a < index_b;
+      });
+
+  for (const FieldInput &field_input : field_inputs) {
+    this->input_tooltips.append(field_input.socket_inspection_name());
+  }
+}
+
+GeometryInfoLog::GeometryInfoLog(const GeometrySet &geometry_set)
+{
+  static std::array all_component_types = {GEO_COMPONENT_TYPE_CURVE,
+                                           GEO_COMPONENT_TYPE_INSTANCES,
+                                           GEO_COMPONENT_TYPE_MESH,
+                                           GEO_COMPONENT_TYPE_POINT_CLOUD,
+                                           GEO_COMPONENT_TYPE_VOLUME};
+
+  /* Keep track handled attribute names to make sure that we do not return the same name twice.
+   * Currently #GeometrySet::attribute_foreach does not do that. Note that this will merge
+   * attributes with the same name but different domains or data types on separate components. */
+  Set<StringRef> names;
+
+  geometry_set.attribute_foreach(
+      all_component_types,
+      true,
+      [&](const bke::AttributeIDRef &attribute_id,
+          const bke::AttributeMetaData &meta_data,
+          const GeometryComponent &UNUSED(component)) {
+        if (attribute_id.is_named() && names.add(attribute_id.name())) {
+          this->attributes.append({attribute_id.name(), meta_data.domain, meta_data.data_type});
+        }
+      });
+
+  for (const GeometryComponent *component : geometry_set.get_components_for_read()) {
+    this->component_types.append(component->type());
+    switch (component->type()) {
+      case GEO_COMPONENT_TYPE_MESH: {
+        const MeshComponent &mesh_component = *(const MeshComponent *)component;
+        MeshInfo &info = this->mesh_info.emplace();
+        info.verts_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_POINT);
+        info.edges_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_EDGE);
+        info.faces_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_FACE);
+        break;
+      }
+      case GEO_COMPONENT_TYPE_CURVE: {
+        const CurveComponent &curve_component = *(const CurveComponent *)component;
+        CurveInfo &info = this->curve_info.emplace();
+        info.splines_num = curve_component.attribute_domain_size(ATTR_DOMAIN_CURVE);
+        break;
+      }
+      case GEO_COMPONENT_TYPE_POINT_CLOUD: {
+        const PointCloudComponent &pointcloud_component = *(const PointCloudComponent *)component;
+        PointCloudInfo &info = this->pointcloud_info.emplace();
+        info.points_num = pointcloud_component.attribute_domain_size(ATTR_DOMAIN_POINT);
+        break;
+      }
+      case GEO_COMPONENT_TYPE_INSTANCES: {
+        const InstancesComponent &instances_component = *(const InstancesComponent *)component;
+        InstancesInfo &info = this->instances_info.emplace();
+        info.instances_num = instances_component.instances_num();
+        break;
+      }
+      case GEO_COMPONENT_TYPE_EDIT: {
+        const GeometryComponentEditData &edit_component = *(
+            const GeometryComponentEditData *)component;
+        if (const bke::CurvesEditHints *curve_edit_hints =
+                edit_component.curves_edit_hints_.get()) {
+          EditDataInfo &info = this->edit_data_info.emplace();
+          info.has_deform_matrices = curve_edit_hints->deform_mats.has_value();
+          info.has_deformed_positions = curve_edit_hints->positions.has_value();
+        }
+        break;
+      }
+      case GEO_COMPONENT_TYPE_VOLUME: {
+        break;
+      }
+    }
+  }
+}
+
+/* Avoid generating these in every translation unit. */
+GeoModifierLog::GeoModifierLog() = default;
+GeoModifierLog::~GeoModifierLog() = default;
+
+GeoTreeLogger::GeoTreeLogger() = default;
+GeoTreeLogger::~GeoTreeLogger() = default;
+
+GeoNodeLog::GeoNodeLog() = default;
+GeoNodeLog::~GeoNodeLog() = default;
+
+GeoTreeLog::GeoTreeLog(GeoModifierLog *modifier_log, Vector<GeoTreeLogger *> tree_loggers)
+    : modifier_log_(modifier_log), tree_loggers_(std::move(tree_loggers))
+{
+  for (GeoTreeLogger *tree_logger : tree_loggers_) {
+    for (const ComputeContextHash &hash : tree_logger->children_hashes) {
+      children_hashes_.add(hash);
+    }
+  }
+}
+
+GeoTreeLog::~GeoTreeLog() = default;
+
+void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, const GPointer value)
+{
+  const CPPType &type = *value.type();
+
+  auto store_logged_value = [&](destruct_ptr<ValueLog> value_log) {
+    auto &socket_values = socket.in_out == SOCK_IN ? this->input_socket_values :
+                                                     this->output_socket_values;
+    socket_values.append({node.name, socket.identifier, std::move(value_log)});
+  };
+
+  auto log_generic_value = [&](const CPPType &type, const void *value) {
+    void *buffer = this->allocator->allocate(type.size(), type.alignment());
+    type.copy_construct(value, buffer);
+    store_logged_value(this->allocator->construct<GenericValueLog>(GMutablePointer{type, buffer}));
+  };
+
+  if (type.is<GeometrySet>()) {
+    const GeometrySet &geometry = *value.get<GeometrySet>();
+    store_logged_value(this->allocator->construct<GeometryInfoLog>(geometry));
+  }
+  else if (const auto *value_or_field_type = dynamic_cast<const fn::ValueOrFieldCPPType *>(
+               &type)) {
+    const void *value_or_field = value.get();
+    const CPPType &base_type = value_or_field_type->base_type();
+    if (value_or_field_type->is_field(value_or_field)) {
+      const GField *field = value_or_field_type->get_field_ptr(value_or_field);
+      if (field->node().depends_on_input()) {
+        store_logged_value(this->allocator->construct<FieldInfoLog>(*field));
+      }
+      else {
+        BUFFER_FOR_CPP_TYPE_VALUE(base_type, value);
+        fn::evaluate_constant_field(*field, value);
+        log_generic_value(base_type, value);
+      }
+    }
+    else {
+      const void *value = value_or_field_type->get_value_ptr(value_or_field);
+      log_generic_value(base_type, value);
+    }
+  }
+  else {
+    log_generic_value(type, value.get());
+  }
+}
+
+void GeoTreeLogger::log_viewer_node(const bNode &viewer_node,
+                                    const GeometrySet &geometry,
+                                    const GField &field)
+{
+  destruct_ptr<ViewerNodeLog> log = this->allocator->construct<ViewerNodeLog>();
+  log->geometry = geometry;
+  log->field = field;
+  log->geometry.ensure_owns_direct_data();
+  this->viewer_node_logs.append({viewer_node.name, std::move(log)});
+}
+
+void GeoTreeLog::ensure_node_warnings()
+{
+  if (reduced_node_warnings_) {
+    return;
+  }
+  for (GeoTreeLogger *tree_logger : tree_loggers_) {
+    for (const GeoTreeLogger::WarningWithNode &warnings : tree_logger->node_warnings) {
+      this->nodes.lookup_or_add_default(warnings.node_name).warnings.append(warnings.warning);
+      this->all_warnings.append(warnings.warning);
+    }
+  }
+  for (const ComputeContextHash &child_hash : children_hashes_) {
+    GeoTreeLog &child_log = modifier_log_->get_tree_log(child_hash);
+    child_log.ensure_node_warnings();
+    const std::optional<std::string> &group_node_name =
+        child_log.tree_loggers_[0]->group_node_name;
+    if (group_node_name.has_value()) {
+      this->nodes.lookup_or_add_default(*group_node_name).warnings.extend(child_log.all_warnings);
+    }
+    this->all_warnings.extend(child_log.all_warnings);
+  }
+  reduced_node_warnings_ = true;
+}
+
+void GeoTreeLog::ensure_node_run_time()
+{
+  if (reduced_node_run_times_) {
+    return;
+  }
+  for (GeoTreeLogger *tree_logger : tree_loggers_) {
+    for (const GeoTreeLogger::NodeExecutionTime &timings : tree_logger->node_execution_times) {
+      const std::chrono::nanoseconds duration = timings.end - timings.start;
+      this->nodes.lookup_or_add_default_as(timings.node_name).run_time += duration;
+      this->run_time_sum += duration;
+    }
+  }
+  for (const ComputeContextHash &child_hash : children_hashes_) {
+    GeoTreeLog &child_log = modifier_log_->get_tree_log(child_hash);
+    child_log.ensure_node_run_time();
+    const std::optional<std::string> &group_node_name =
+        child_log.tree_loggers_[0]->group_node_name;
+    if (group_node_name.has_value()) {
+      this->nodes.lookup_or_add_default(*group_node_name).run_time += child_log.run_time_sum;
+    }
+    this->run_time_sum += child_log.run_time_sum;
+  }
+  reduced_node_run_times_ = true;
+}
+
+void GeoTreeLog::ensure_socket_values()
+{
+  if (reduced_socket_values_) {
+    return;
+  }
+  for (GeoTreeLogger *tree_logger : tree_loggers_) {
+    for (const GeoTreeLogger::SocketValueLog &value_log_data : tree_logger->input_socket_values) {
+      this->nodes.lookup_or_add_as(value_log_data.node_name)
+          .input_values_.add(value_log_data.socket_identifier, value_log_data.value.get());
+    }
+    for (const GeoTreeLogger::SocketValueLog &value_log_data : tree_logger->output_socket_values) {
+      this->nodes.lookup_or_add_as(value_log_data.node_name)
+          .output_values_.add(value_log_data.socket_identifier, value_log_data.value.get());
+    }
+  }
+  reduced_socket_values_ = true;
+}
+
+void GeoTreeLog::ensure_viewer_node_logs()
+{
+  if (reduced_viewer_node_logs_) {
+    return;
+  }
+  for (GeoTreeLogger *tree_logger : tree_loggers_) {
+    for (const GeoTreeLogger::ViewerNodeLogWithNode &viewer_log : tree_logger->viewer_node_logs) {
+      this->viewer_node_logs.add(viewer_log.node_name, viewer_log.viewer_log.get());
+    }
+  }
+  reduced_viewer_node_logs_ = true;
+}
+
+void GeoTreeLog::ensure_existing_attributes()
+{
+  if (reduced_existing_attributes_) {
+    return;
+  }
+  this->ensure_socket_values();
+
+  Set<StringRef> names;
+
+  auto handle_value_log = [&](const ValueLog &value_log) {
+    const GeometryInfoLog *geo_log = dynamic_cast<const GeometryInfoLog *>(&value_log);
+    if (geo_log == nullptr) {
+      return;
+    }
+    for (const GeometryAttributeInfo &attribute : geo_log->attributes) {
+      if (names.add(attribute.name)) {
+        this->existing_attributes.append(&attribute);
+      }
+    }
+  };
+
+  for (const GeoNodeLog &node_log : this->nodes.values()) {
+    for (const ValueLog *value_log : node_log.input_values_.values()) {
+      handle_value_log(*value_log);
+    }
+    for (const ValueLog *value_log : node_log.output_values_.values()) {
+      handle_value_log(*value_log);
+    }
+  }
+  reduced_existing_attributes_ = true;
+}
+
+void GeoTreeLog::ensure_used_named_attributes()
+{
+  if (reduced_used_named_attributes_) {
+    return;
+  }
+
+  auto add_attribute = [&](const StringRef node_name,
+                           const StringRef attribute_name,
+                           const NamedAttributeUsage &usage) {
+    this->nodes.lookup_or_add_as(node_name).used_named_attributes.lookup_or_add_as(attribute_name,
+                                                                                   usage) |= usage;
+    this->used_named_attributes.lookup_or_add_as(attribute_name, usage) |= usage;
+  };
+
+  for (GeoTreeLogger *tree_logger : tree_loggers_) {
+    for (const GeoTreeLogger::AttributeUsageWithNode &item : tree_logger->used_named_attributes) {
+      add_attribute(item.node_name, item.attribute_name, item.usage);
+    }
+  }
+  for (const ComputeContextHash &child_hash : children_hashes_) {
+    GeoTreeLog &child_log = modifier_log_->get_tree_log(child_hash);
+    child_log.ensure_used_named_attributes();
+    if (const std::optional<std::string> &group_node_name =
+            child_log.tree_loggers_[0]->group_node_name) {
+      for (const auto &item : child_log.used_named_attributes.items()) {
+        add_attribute(*group_node_name, item.key, item.value);
+      }
+    }
+  }
+  reduced_used_named_attributes_ = true;
+}
+
+void GeoTreeLog::ensure_debug_messages()
+{
+  if (reduced_debug_messages_) {
+    return;
+  }
+  for (GeoTreeLogger *tree_logger : tree_loggers_) {
+    for (const GeoTreeLogger::DebugMessage &debug_message : tree_logger->debug_messages) {
+      this->nodes.lookup_or_add_as(debug_message.node_name)
+          .debug_messages.append(debug_message.message);
+    }
+  }
+  reduced_debug_messages_ = true;
+}
+
+ValueLog *GeoTreeLog::find_socket_value_log(const bNodeSocket &query_socket)
+{
+  /**
+   * Geometry nodes does not log values for every socket. That would produce a lot of redundant
+   * data,because often many linked sockets have the same value. To find the logged value for a
+   * socket one might have to look at linked sockets as well.
+   */
+
+  BLI_assert(reduced_socket_values_);
+  if (query_socket.is_multi_input()) {
+    /* Not supported currently. */
+    return nullptr;
+  }
+
+  Set<const bNodeSocket *> added_sockets;
+  Stack<const bNodeSocket *> sockets_to_check;
+  sockets_to_check.push(&query_socket);
+  added_sockets.add(&query_socket);
+
+  while (!sockets_to_check.is_empty()) {
+    const bNodeSocket &socket = *sockets_to_check.pop();
+    const bNode &node = socket.owner_node();
+    if (GeoNodeLog *node_log = this->nodes.lookup_ptr(node.name)) {
+      ValueLog *value_log = socket.is_input() ?
+                                node_log->input_values_.lookup_default(socket.identifier,
+                                                                       nullptr) :
+                                node_log->output_values_.lookup_default(socket.identifier,
+                                                                        nullptr);
+      if (value_log != nullptr) {
+        return value_log;
+      }
+    }
+
+    if (socket.is_input()) {
+      const Span<const bNodeLink *> links = socket.directly_linked_links();
+      for (const bNodeLink *link : links) {
+        const bNodeSocket &from_socket = *link->fromsock;
+        if (added_sockets.add(&from_socket)) {
+          sockets_to_check.push(&from_socket);
+        }
+      }
+    }
+    else {
+      if (node.is_reroute()) {
+        const bNodeSocket &input_socket = node.input_socket(0);
+        if (added_sockets.add(&input_socket)) {
+          sockets_to_check.push(&input_socket);
+        }
+        const Span<const bNodeLink *> links = input_socket.directly_linked_links();
+        for (const bNodeLink *link : links) {
+          const bNodeSocket &from_socket = *link->fromsock;
+          if (added_sockets.add(&from_socket)) {
+            sockets_to_check.push(&from_socket);
+          }
+        }
+      }
+      else if (node.is_muted()) {
+        if (const bNodeSocket *input_socket = socket.internal_link_input()) {
+          if (added_sockets.add(input_socket)) {
+            sockets_to_check.push(input_socket);
+          }
+          const Span<const bNodeLink *> links = input_socket->directly_linked_links();
+          for (const bNodeLink *link : links) {
+            const bNodeSocket &from_socket = *link->fromsock;
+            if (added_sockets.add(&from_socket)) {
+              sockets_to_check.push(&from_socket);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return nullptr;
+}
+
+GeoTreeLogger &GeoModifierLog::get_local_tree_logger(const ComputeContext &compute_context)
+{
+  LocalData &local_data = data_per_thread_.local();
+  Map<ComputeContextHash, destruct_ptr<GeoTreeLogger>> &local_tree_loggers =
+      local_data.tree_logger_by_context;
+  destruct_ptr<GeoTreeLogger> &tree_logger_ptr = local_tree_loggers.lookup_or_add_default(
+      compute_context.hash());
+  if (tree_logger_ptr) {
+    return *tree_logger_ptr;
+  }
+  tree_logger_ptr = local_data.allocator.construct<GeoTreeLogger>();
+  GeoTreeLogger &tree_logger = *tree_logger_ptr;
+  tree_logger.allocator = &local_data.allocator;
+  const ComputeContext *parent_compute_context = compute_context.parent();
+  if (parent_compute_context != nullptr) {
+    tree_logger.parent_hash = parent_compute_context->hash();
+    GeoTreeLogger &parent_logger = this->get_local_tree_logger(*parent_compute_context);
+    parent_logger.children_hashes.append(compute_context.hash());
+  }
+  if (const bke::NodeGroupComputeContext *node_group_compute_context =
+          dynamic_cast<const bke::NodeGroupComputeContext *>(&compute_context)) {
+    tree_logger.group_node_name.emplace(node_group_compute_context->node_name());
+  }
+  return tree_logger;
+}
+
+GeoTreeLog &GeoModifierLog::get_tree_log(const ComputeContextHash &compute_context_hash)
+{
+  GeoTreeLog &reduced_tree_log = *tree_logs_.lookup_or_add_cb(compute_context_hash, [&]() {
+    Vector<GeoTreeLogger *> tree_logs;
+    for (LocalData &local_data : data_per_thread_) {
+      destruct_ptr<GeoTreeLogger> *tree_log = local_data.tree_logger_by_context.lookup_ptr(
+          compute_context_hash);
+      if (tree_log != nullptr) {
+        tree_logs.append(tree_log->get());
+      }
+    }
+    return std::make_unique<GeoTreeLog>(this, std::move(tree_logs));
+  });
+  return reduced_tree_log;
+}
+
+struct ObjectAndModifier {
+  const Object *object;
+  const NodesModifierData *nmd;
+};
+
+static std::optional<ObjectAndModifier> get_modifier_for_node_editor(const SpaceNode &snode)
+{
+  if (snode.id == nullptr) {
+    return std::nullopt;
+  }
+  if (GS(snode.id->name) != ID_OB) {
+    return std::nullopt;
+  }
+  const Object *object = reinterpret_cast<Object *>(snode.id);
+  const NodesModifierData *used_modifier = nullptr;
+  if (snode.flag & SNODE_PIN) {
+    LISTBASE_FOREACH (const ModifierData *, md, &object->modifiers) {
+      if (md->type == eModifierType_Nodes) {
+        const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
+        /* Would be good to store the name of the pinned modifier in the node editor. */
+        if (nmd->node_group == snode.nodetree) {
+          used_modifier = nmd;
+          break;
+        }
+      }
+    }
+  }
+  else {
+    LISTBASE_FOREACH (const ModifierData *, md, &object->modifiers) {
+      if (md->type == eModifierType_Nodes) {
+        const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
+        if (nmd->node_group == snode.nodetree) {
+          if (md->flag & eModifierFlag_Active) {
+            used_modifier = nmd;
+            break;
+          }
+        }
+      }
+    }
+  }
+  if (used_modifier == nullptr) {
+    return std::nullopt;
+  }
+  return ObjectAndModifier{object, used_modifier};
+}
+
+GeoTreeLog *GeoModifierLog::get_tree_log_for_node_editor(const SpaceNode &snode)
+{
+  std::optional<ObjectAndModifier> object_and_modifier = get_modifier_for_node_editor(snode);
+  if (!object_and_modifier) {
+    return nullptr;
+  }
+  GeoModifierLog *modifier_log = static_cast<GeoModifierLog *>(
+      object_and_modifier->nmd->runtime_eval_log);
+  if (modifier_log == nullptr) {
+    return nullptr;
+  }
+  Vector<const bNodeTreePath *> tree_path = snode.treepath;
+  if (tree_path.is_empty()) {
+    return nullptr;
+  }
+  ComputeContextBuilder compute_context_builder;
+  compute_context_builder.push<bke::ModifierComputeContext>(
+      object_and_modifier->nmd->modifier.name);
+  for (const bNodeTreePath *path_item : tree_path.as_span().drop_front(1)) {
+    compute_context_builder.push<bke::NodeGroupComputeContext>(path_item->node_name);
+  }
+  return &modifier_log->get_tree_log(compute_context_builder.hash());
+}
+
+const ViewerNodeLog *GeoModifierLog::find_viewer_node_log_for_spreadsheet(
+    const SpaceSpreadsheet &sspreadsheet)
+{
+  Vector<const SpreadsheetContext *> context_path = sspreadsheet.context_path;
+  if (context_path.size() < 3) {
+    return nullptr;
+  }
+  if (context_path[0]->type != SPREADSHEET_CONTEXT_OBJECT) {
+    return nullptr;
+  }
+  if (context_path[1]->type != SPREADSHEET_CONTEXT_MODIFIER) {
+    return nullptr;
+  }
+  const SpreadsheetContextObject *object_context =
+      reinterpret_cast<const SpreadsheetContextObject *>(context_path[0]);
+  const SpreadsheetContextModifier *modifier_context =
+      reinterpret_cast<const SpreadsheetContextModifier *>(context_path[1]);
+  if (object_context->object == nullptr) {
+    return nullptr;
+  }
+  NodesModifierData *nmd = nullptr;
+  LISTBASE_FOREACH (ModifierData *, md, &object_context->object->modifiers) {
+    if (STREQ(md->name, modifier_context->modifier_name)) {
+      if (md->type == eModifierType_Nodes) {
+        nmd = reinterpret_cast<NodesModifierData *>(md);
+      }
+    }
+  }
+  if (nmd == nullptr) {
+    return nullptr;
+  }
+  if (nmd->runtime_eval_log == nullptr) {
+    return nullptr;
+  }
+  nodes::geo_eval_log::GeoModifierLog *modifier_log =
+      static_cast<nodes::geo_eval_log::GeoModifierLog *>(nmd->runtime_eval_log);
+
+  ComputeContextBuilder compute_context_builder;
+  compute_context_builder.push<bke::ModifierComputeContext>(modifier_context->modifier_name);
+  for (const SpreadsheetContext *context : context_path.as_span().drop_front(2).drop_back(1)) {
+    if (context->type != SPREADSHEET_CONTEXT_NODE) {
+      return nullptr;
+    }
+    const SpreadsheetContextNode &node_context = *reinterpret_cast<const SpreadsheetContextNode *>(
+        context);
+    compute_context_builder.push<bke::NodeGroupComputeContext>(node_context.node_name);
+  }
+  const ComputeContextHash context_hash = compute_context_builder.hash();
+  nodes::geo_eval_log::GeoTreeLog &tree_log = modifier_log->get_tree_log(context_hash);
+  tree_log.ensure_viewer_node_logs();
+
+  const SpreadsheetContext *last_context = context_path.last();
+  if (last_context->type != SPREADSHEET_CONTEXT_NODE) {
+    return nullptr;
+  }
+  const SpreadsheetContextNode &last_node_context =
+      *reinterpret_cast<const SpreadsheetContextNode *>(last_context);
+  const ViewerNodeLog *viewer_log = tree_log.viewer_node_logs.lookup(last_node_context.node_name);
+  return viewer_log;
+}
+
+}  // namespace blender::nodes::geo_eval_log

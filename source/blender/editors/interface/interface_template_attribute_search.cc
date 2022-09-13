@@ -14,13 +14,15 @@
 
 #include "BLT_translation.h"
 
-#include "NOD_geometry_nodes_eval_log.hh"
+#include "BKE_attribute.hh"
+
+#include "NOD_geometry_nodes_log.hh"
 
 #include "UI_interface.h"
 #include "UI_interface.hh"
 #include "UI_resources.h"
 
-using blender::nodes::geometry_nodes_eval_log::GeometryAttributeInfo;
+using blender::nodes::geo_eval_log::GeometryAttributeInfo;
 
 namespace blender::ui {
 
