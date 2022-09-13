@@ -30,18 +30,18 @@
 /***/
 
 typedef struct TARGA {
-  unsigned char numid;
-  unsigned char maptyp;
-  unsigned char imgtyp;
+  uchar numid;
+  uchar maptyp;
+  uchar imgtyp;
   short maporig;
   short mapsize;
-  unsigned char mapbits;
+  uchar mapbits;
   short xorig;
   short yorig;
   short xsize;
   short ysize;
-  unsigned char pixsize;
-  unsigned char imgdes;
+  uchar pixsize;
+  uchar imgdes;
 } TARGA;
 
 /**
@@ -54,7 +54,7 @@ typedef struct TARGA {
 
 /***/
 
-static int tga_out1(unsigned int data, FILE *file)
+static int tga_out1(uint data, FILE *file)
 {
   uchar *p;
 
@@ -65,7 +65,7 @@ static int tga_out1(unsigned int data, FILE *file)
   return ~EOF;
 }
 
-static int tga_out2(unsigned int data, FILE *file)
+static int tga_out2(uint data, FILE *file)
 {
   uchar *p;
 
@@ -79,7 +79,7 @@ static int tga_out2(unsigned int data, FILE *file)
   return ~EOF;
 }
 
-static int tga_out3(unsigned int data, FILE *file)
+static int tga_out3(uint data, FILE *file)
 {
   uchar *p;
 
@@ -96,7 +96,7 @@ static int tga_out3(unsigned int data, FILE *file)
   return ~EOF;
 }
 
-static int tga_out4(unsigned int data, FILE *file)
+static int tga_out4(uint data, FILE *file)
 {
   uchar *p;
 
@@ -117,11 +117,11 @@ static int tga_out4(unsigned int data, FILE *file)
   return ~EOF;
 }
 
-static bool makebody_tga(ImBuf *ibuf, FILE *file, int (*out)(unsigned int, FILE *))
+static bool makebody_tga(ImBuf *ibuf, FILE *file, int (*out)(uint, FILE *))
 {
   int last, this;
   int copy, bytes;
-  unsigned int *rect, *rectstart, *temp;
+  uint *rect, *rectstart, *temp;
   int y;
 
   for (y = 0; y < ibuf->y; y++) {
@@ -345,7 +345,7 @@ bool imb_savetarga(struct ImBuf *ibuf, const char *filepath, int UNUSED(flags))
   return ok;
 }
 
-static bool checktarga(TARGA *tga, const unsigned char *mem, const size_t size)
+static bool checktarga(TARGA *tga, const uchar *mem, const size_t size)
 {
   if (size < TARGA_HEADER_SIZE) {
     return false;
@@ -397,14 +397,14 @@ static bool checktarga(TARGA *tga, const unsigned char *mem, const size_t size)
   return true;
 }
 
-bool imb_is_a_targa(const unsigned char *buf, size_t size)
+bool imb_is_a_targa(const uchar *buf, size_t size)
 {
   TARGA tga;
 
   return checktarga(&tga, buf, size);
 }
 
-static void complete_partial_load(struct ImBuf *ibuf, unsigned int *rect)
+static void complete_partial_load(struct ImBuf *ibuf, uint *rect)
 {
   int size = (ibuf->x * ibuf->y) - (rect - ibuf->rect);
   if (size) {
@@ -420,11 +420,11 @@ static void complete_partial_load(struct ImBuf *ibuf, unsigned int *rect)
   }
 }
 
-static void decodetarga(struct ImBuf *ibuf, const unsigned char *mem, size_t mem_size, int psize)
+static void decodetarga(struct ImBuf *ibuf, const uchar *mem, size_t mem_size, int psize)
 {
-  const unsigned char *mem_end = mem + mem_size;
+  const uchar *mem_end = mem + mem_size;
   int count, col, size;
-  unsigned int *rect;
+  uint *rect;
   uchar *cp = (uchar *)&col;
 
   if (ibuf == NULL) {
@@ -545,11 +545,11 @@ partial_load:
   complete_partial_load(ibuf, rect);
 }
 
-static void ldtarga(struct ImBuf *ibuf, const unsigned char *mem, size_t mem_size, int psize)
+static void ldtarga(struct ImBuf *ibuf, const uchar *mem, size_t mem_size, int psize)
 {
-  const unsigned char *mem_end = mem + mem_size;
+  const uchar *mem_end = mem + mem_size;
   int col, size;
-  unsigned int *rect;
+  uint *rect;
   uchar *cp = (uchar *)&col;
 
   if (ibuf == NULL) {
@@ -609,15 +609,12 @@ partial_load:
   complete_partial_load(ibuf, rect);
 }
 
-ImBuf *imb_loadtarga(const unsigned char *mem,
-                     size_t mem_size,
-                     int flags,
-                     char colorspace[IM_MAX_SPACE])
+ImBuf *imb_loadtarga(const uchar *mem, size_t mem_size, int flags, char colorspace[IM_MAX_SPACE])
 {
   TARGA tga;
   struct ImBuf *ibuf;
   int count, size;
-  unsigned int *rect, *cmap = NULL /*, mincol = 0*/, cmap_max = 0;
+  uint *rect, *cmap = NULL /*, mincol = 0*/, cmap_max = 0;
   int32_t cp_data;
   uchar *cp = (uchar *)&cp_data;
 
@@ -650,7 +647,7 @@ ImBuf *imb_loadtarga(const unsigned char *mem,
     /* Load color map. */
     // mincol = tga.maporig; /* UNUSED */
     cmap_max = tga.mapsize;
-    cmap = MEM_callocN(sizeof(unsigned int) * cmap_max, "targa cmap");
+    cmap = MEM_callocN(sizeof(uint) * cmap_max, "targa cmap");
 
     for (count = 0; count < cmap_max; count++) {
       switch (tga.mapbits >> 3) {
@@ -753,7 +750,7 @@ ImBuf *imb_loadtarga(const unsigned char *mem,
   }
 
   if (tga.pixsize == 16) {
-    unsigned int col;
+    uint col;
     rect = ibuf->rect;
     for (size = ibuf->x * ibuf->y; size > 0; size--, rect++) {
       col = *rect;
@@ -773,10 +770,10 @@ ImBuf *imb_loadtarga(const unsigned char *mem,
 
   if (ELEM(tga.imgtyp, 3, 11)) {
     uchar *crect;
-    unsigned int *lrect, col;
+    uint *lrect, col;
 
     crect = (uchar *)ibuf->rect;
-    lrect = (unsigned int *)ibuf->rect;
+    lrect = (uint *)ibuf->rect;
 
     for (size = ibuf->x * ibuf->y; size > 0; size--) {
       col = *lrect++;

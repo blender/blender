@@ -29,7 +29,7 @@
 
 #include "MEM_guardedalloc.h"
 
-bool imb_is_a_webp(const unsigned char *buf, size_t size)
+bool imb_is_a_webp(const uchar *buf, size_t size)
 {
   if (WebPGetInfo(buf, size, NULL, NULL)) {
     return true;
@@ -37,10 +37,7 @@ bool imb_is_a_webp(const unsigned char *buf, size_t size)
   return false;
 }
 
-ImBuf *imb_loadwebp(const unsigned char *mem,
-                    size_t size,
-                    int flags,
-                    char colorspace[IM_MAX_SPACE])
+ImBuf *imb_loadwebp(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
   if (!imb_is_a_webp(mem, size)) {
     return NULL;
@@ -66,7 +63,7 @@ ImBuf *imb_loadwebp(const unsigned char *mem,
     ibuf->ftype = IMB_FTYPE_WEBP;
     imb_addrectImBuf(ibuf);
     /* Flip the image during decoding to match Blender. */
-    unsigned char *last_row = (unsigned char *)(ibuf->rect + (ibuf->y - 1) * ibuf->x);
+    uchar *last_row = (uchar *)(ibuf->rect + (ibuf->y - 1) * ibuf->x);
     if (WebPDecodeRGBAInto(mem, size, last_row, (size_t)(ibuf->x) * ibuf->y * 4, -4 * ibuf->x) ==
         NULL) {
       fprintf(stderr, "WebP: Failed to decode image\n");
@@ -98,7 +95,7 @@ struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
     return NULL;
   }
 
-  const unsigned char *data = BLI_mmap_get_pointer(mmap_file);
+  const uchar *data = BLI_mmap_get_pointer(mmap_file);
 
   WebPDecoderConfig config;
   if (!data || !WebPInitDecoderConfig(&config) ||
@@ -162,7 +159,7 @@ struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
 bool imb_savewebp(struct ImBuf *ibuf, const char *name, int UNUSED(flags))
 {
   const int bytesperpixel = (ibuf->planes + 7) >> 3;
-  unsigned char *encoded_data, *last_row;
+  uchar *encoded_data, *last_row;
   size_t encoded_data_size;
 
   if (bytesperpixel == 3) {
@@ -176,7 +173,7 @@ bool imb_savewebp(struct ImBuf *ibuf, const char *name, int UNUSED(flags))
       rgb_rect[i * 3 + 2] = rgba_rect[i * 4 + 2];
     }
 
-    last_row = (unsigned char *)(rgb_rect + (ibuf->y - 1) * ibuf->x * 3);
+    last_row = (uchar *)(rgb_rect + (ibuf->y - 1) * ibuf->x * 3);
 
     if (ibuf->foptions.quality == 100.0f) {
       encoded_data_size = WebPEncodeLosslessRGB(
@@ -189,7 +186,7 @@ bool imb_savewebp(struct ImBuf *ibuf, const char *name, int UNUSED(flags))
     MEM_freeN(rgb_rect);
   }
   else if (bytesperpixel == 4) {
-    last_row = (unsigned char *)(ibuf->rect + (ibuf->y - 1) * ibuf->x);
+    last_row = (uchar *)(ibuf->rect + (ibuf->y - 1) * ibuf->x);
 
     if (ibuf->foptions.quality == 100.0f) {
       encoded_data_size = WebPEncodeLosslessRGBA(

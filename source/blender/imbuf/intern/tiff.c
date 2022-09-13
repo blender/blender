@@ -60,7 +60,7 @@ static void imb_tiff_DummyUnmapProc(thandle_t fd, tdata_t base, toff_t size);
 /** Structure for in-memory TIFF file. */
 typedef struct ImbTIFFMemFile {
   /** Location of first byte of TIFF file. */
-  const unsigned char *mem;
+  const uchar *mem;
   /** Current offset within the file. */
   toff_t offset;
   /** Size of the TIFF file. */
@@ -262,7 +262,7 @@ static toff_t imb_tiff_SizeProc(thandle_t handle)
   return (toff_t)(mfile->size);
 }
 
-static TIFF *imb_tiff_client_open(ImbTIFFMemFile *memFile, const unsigned char *mem, size_t size)
+static TIFF *imb_tiff_client_open(ImbTIFFMemFile *memFile, const uchar *mem, size_t size)
 {
   /* open the TIFF client layer interface to the in-memory file */
   memFile->mem = mem;
@@ -303,7 +303,7 @@ static TIFF *imb_tiff_client_open(ImbTIFFMemFile *memFile, const unsigned char *
  * hence my manual comparison. - Jonathan Merritt (lancelet) 4th Sept 2005.
  */
 #define IMB_TIFF_NCB 4 /* number of comparison bytes used */
-bool imb_is_a_tiff(const unsigned char *buf, size_t size)
+bool imb_is_a_tiff(const uchar *buf, size_t size)
 {
   const char big_endian[IMB_TIFF_NCB] = {0x4d, 0x4d, 0x00, 0x2a};
   const char lil_endian[IMB_TIFF_NCB] = {0x49, 0x49, 0x2a, 0x00};
@@ -315,10 +315,7 @@ bool imb_is_a_tiff(const unsigned char *buf, size_t size)
           (memcmp(lil_endian, buf, IMB_TIFF_NCB) == 0));
 }
 
-static void scanline_contig_16bit(float *rectf,
-                                  const unsigned short *sbuf,
-                                  int scanline_w,
-                                  int spp)
+static void scanline_contig_16bit(float *rectf, const ushort *sbuf, int scanline_w, int spp)
 {
   int i;
   for (i = 0; i < scanline_w; i++) {
@@ -340,10 +337,7 @@ static void scanline_contig_32bit(float *rectf, const float *fbuf, int scanline_
   }
 }
 
-static void scanline_separate_16bit(float *rectf,
-                                    const unsigned short *sbuf,
-                                    int scanline_w,
-                                    int chan)
+static void scanline_separate_16bit(float *rectf, const ushort *sbuf, int scanline_w, int chan)
 {
   int i;
   for (i = 0; i < scanline_w; i++) {
@@ -392,7 +386,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
   size_t scanline;
   int ib_flag = 0, row, chan;
   float *fbuf = NULL;
-  unsigned short *sbuf = NULL;
+  ushort *sbuf = NULL;
 
   TIFFGetField(image, TIFFTAG_BITSPERSAMPLE, &bitspersample);
   TIFFGetField(image, TIFFTAG_SAMPLESPERPIXEL, &spp); /* number of 'channels' */
@@ -410,7 +404,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
      *       So let's keep this thing here for until proper solution is found (sergey)
      */
 
-    unsigned short extraSampleTypes[1];
+    ushort extraSampleTypes[1];
     extraSampleTypes[0] = EXTRASAMPLE_ASSOCALPHA;
     TIFFSetField(image, TIFFTAG_EXTRASAMPLES, 1, extraSampleTypes);
   }
@@ -428,7 +422,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
   }
   else if (bitspersample == 16) {
     ib_flag = IB_rectfloat;
-    sbuf = (unsigned short *)_TIFFmalloc(scanline);
+    sbuf = (ushort *)_TIFFmalloc(scanline);
     if (!sbuf) {
       goto cleanup;
     }
@@ -539,10 +533,7 @@ void imb_inittiff(void)
   }
 }
 
-ImBuf *imb_loadtiff(const unsigned char *mem,
-                    size_t size,
-                    int flags,
-                    char colorspace[IM_MAX_SPACE])
+ImBuf *imb_loadtiff(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
   TIFF *image = NULL;
   ImBuf *ibuf = NULL, *hbuf;
@@ -589,7 +580,7 @@ ImBuf *imb_loadtiff(const unsigned char *mem,
   /* get alpha mode from file header */
   if (flags & IB_alphamode_detect) {
     if (spp == 4) {
-      unsigned short extra, *extraSampleTypes;
+      ushort extra, *extraSampleTypes;
       const int found = TIFFGetField(image, TIFFTAG_EXTRASAMPLES, &extra, &extraSampleTypes);
 
       if (found && (extraSampleTypes[0] == EXTRASAMPLE_ASSOCALPHA)) {
@@ -661,8 +652,7 @@ ImBuf *imb_loadtiff(const unsigned char *mem,
   return ibuf;
 }
 
-void imb_loadtiletiff(
-    ImBuf *ibuf, const unsigned char *mem, size_t size, int tx, int ty, unsigned int *rect)
+void imb_loadtiletiff(ImBuf *ibuf, const uchar *mem, size_t size, int tx, int ty, uint *rect)
 {
   TIFF *image = NULL;
   uint32_t width, height;
@@ -723,9 +713,9 @@ bool imb_savetiff(ImBuf *ibuf, const char *filepath, int flags)
   TIFF *image = NULL;
   uint16_t samplesperpixel, bitspersample;
   size_t npixels;
-  unsigned char *pixels = NULL;
-  unsigned char *from = NULL, *to = NULL;
-  unsigned short *pixels16 = NULL, *to16 = NULL;
+  uchar *pixels = NULL;
+  uchar *from = NULL, *to = NULL;
+  ushort *pixels16 = NULL, *to16 = NULL;
   float *fromf = NULL;
   float xres, yres;
   int x, y, from_i, to_i, i;
@@ -786,10 +776,10 @@ bool imb_savetiff(ImBuf *ibuf, const char *filepath, int flags)
   /* allocate array for pixel data */
   npixels = ibuf->x * ibuf->y;
   if (bitspersample == 16) {
-    pixels16 = (unsigned short *)_TIFFmalloc(npixels * samplesperpixel * sizeof(unsigned short));
+    pixels16 = (ushort *)_TIFFmalloc(npixels * samplesperpixel * sizeof(ushort));
   }
   else {
-    pixels = (unsigned char *)_TIFFmalloc(npixels * samplesperpixel * sizeof(unsigned char));
+    pixels = (uchar *)_TIFFmalloc(npixels * samplesperpixel * sizeof(uchar));
   }
 
   if (pixels == NULL && pixels16 == NULL) {
@@ -804,7 +794,7 @@ bool imb_savetiff(ImBuf *ibuf, const char *filepath, int flags)
     to16 = pixels16;
   }
   else {
-    from = (unsigned char *)ibuf->rect;
+    from = (uchar *)ibuf->rect;
     to = pixels;
   }
 
@@ -813,7 +803,7 @@ bool imb_savetiff(ImBuf *ibuf, const char *filepath, int flags)
   TIFFSetField(image, TIFFTAG_SAMPLESPERPIXEL, samplesperpixel);
 
   if (samplesperpixel == 4) {
-    unsigned short extraSampleTypes[1];
+    ushort extraSampleTypes[1];
 
     if (bitspersample == 16) {
       extraSampleTypes[0] = EXTRASAMPLE_ASSOCALPHA;
@@ -908,7 +898,7 @@ bool imb_savetiff(ImBuf *ibuf, const char *filepath, int flags)
   TIFFSetField(image, TIFFTAG_RESOLUTIONUNIT, RESUNIT_INCH);
   if (TIFFWriteEncodedStrip(image,
                             0,
-                            (bitspersample == 16) ? (unsigned char *)pixels16 : pixels,
+                            (bitspersample == 16) ? (uchar *)pixels16 : pixels,
                             (size_t)ibuf->x * ibuf->y * samplesperpixel * bitspersample / 8) ==
       -1) {
     fprintf(stderr, "imb_savetiff: Could not write encoded TIFF.\n");

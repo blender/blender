@@ -122,8 +122,7 @@ static void imb_exr_type_by_channels(ChannelList &channels,
 
 class IMemStream : public Imf::IStream {
  public:
-  IMemStream(unsigned char *exrbuf, size_t exrsize)
-      : IStream("<memory>"), _exrpos(0), _exrsize(exrsize)
+  IMemStream(uchar *exrbuf, size_t exrsize) : IStream("<memory>"), _exrpos(0), _exrsize(exrsize)
   {
     _exrbuf = exrbuf;
   }
@@ -156,7 +155,7 @@ class IMemStream : public Imf::IStream {
  private:
   exr_file_offset_t _exrpos;
   exr_file_offset_t _exrsize;
-  unsigned char *_exrbuf;
+  uchar *_exrbuf;
 };
 
 /* Memory-Mapped Input Stream */
@@ -178,7 +177,7 @@ class IMMapStream : public Imf::IStream {
       throw IEX_NAMESPACE::InputExc("BLI_mmap_open failed");
     }
     close(file);
-    _exrbuf = (unsigned char *)BLI_mmap_get_pointer(_mmap_file);
+    _exrbuf = (uchar *)BLI_mmap_get_pointer(_mmap_file);
   }
 
   ~IMMapStream() override
@@ -216,7 +215,7 @@ class IMMapStream : public Imf::IStream {
   BLI_mmap_file *_mmap_file;
   exr_file_offset_t _exrpos;
   exr_file_offset_t _exrsize;
-  unsigned char *_exrbuf;
+  uchar *_exrbuf;
 };
 
 /* File Input Stream */
@@ -395,7 +394,7 @@ static half float_to_half_safe(const float value)
 
 extern "C" {
 
-bool imb_is_a_openexr(const unsigned char *mem, const size_t size)
+bool imb_is_a_openexr(const uchar *mem, const size_t size)
 {
   /* No define is exposed for this size. */
   if (size < 4) {
@@ -547,10 +546,10 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *name, const int flags
       }
     }
     else {
-      unsigned char *from;
+      uchar *from;
 
       for (int i = ibuf->y - 1; i >= 0; i--) {
-        from = (unsigned char *)ibuf->rect + 4 * i * width;
+        from = (uchar *)ibuf->rect + 4 * i * width;
 
         for (int j = ibuf->x; j > 0; j--) {
           to->r = srgb_to_linearrgb((float)from[0] / 255.0f);
@@ -1670,29 +1669,29 @@ static bool imb_exr_multilayer_parse_channels_from_file(ExrHandle *data)
           if (ELEM(pass->totchan, 3, 4)) {
             if (pass->chan[0]->chan_id == 'B' || pass->chan[1]->chan_id == 'B' ||
                 pass->chan[2]->chan_id == 'B') {
-              lookup[(unsigned int)'R'] = 0;
-              lookup[(unsigned int)'G'] = 1;
-              lookup[(unsigned int)'B'] = 2;
-              lookup[(unsigned int)'A'] = 3;
+              lookup[(uint)'R'] = 0;
+              lookup[(uint)'G'] = 1;
+              lookup[(uint)'B'] = 2;
+              lookup[(uint)'A'] = 3;
             }
             else if (pass->chan[0]->chan_id == 'Y' || pass->chan[1]->chan_id == 'Y' ||
                      pass->chan[2]->chan_id == 'Y') {
-              lookup[(unsigned int)'X'] = 0;
-              lookup[(unsigned int)'Y'] = 1;
-              lookup[(unsigned int)'Z'] = 2;
-              lookup[(unsigned int)'W'] = 3;
+              lookup[(uint)'X'] = 0;
+              lookup[(uint)'Y'] = 1;
+              lookup[(uint)'Z'] = 2;
+              lookup[(uint)'W'] = 3;
             }
             else {
-              lookup[(unsigned int)'U'] = 0;
-              lookup[(unsigned int)'V'] = 1;
-              lookup[(unsigned int)'A'] = 2;
+              lookup[(uint)'U'] = 0;
+              lookup[(uint)'V'] = 1;
+              lookup[(uint)'A'] = 2;
             }
             for (int a = 0; a < pass->totchan; a++) {
               echan = pass->chan[a];
-              echan->rect = pass->rect + lookup[(unsigned int)echan->chan_id];
+              echan->rect = pass->rect + lookup[(uint)echan->chan_id];
               echan->xstride = pass->totchan;
               echan->ystride = data->width * pass->totchan;
-              pass->chan_id[(unsigned int)lookup[(unsigned int)echan->chan_id]] = echan->chan_id;
+              pass->chan_id[(uint)lookup[(uint)echan->chan_id]] = echan->chan_id;
             }
           }
           else { /* unknown */
@@ -1969,7 +1968,7 @@ bool IMB_exr_has_multilayer(void *handle)
   return imb_exr_is_multi(*data->ifile);
 }
 
-struct ImBuf *imb_load_openexr(const unsigned char *mem,
+struct ImBuf *imb_load_openexr(const uchar *mem,
                                size_t size,
                                int flags,
                                char colorspace[IM_MAX_SPACE])
@@ -1987,7 +1986,7 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
   try {
     bool is_multi;
 
-    membuf = new IMemStream((unsigned char *)mem, size);
+    membuf = new IMemStream((uchar *)mem, size);
     file = new MultiPartInputFile(*membuf);
 
     Box2i dw = file->header(0).dataWindow();
@@ -2209,7 +2208,7 @@ struct ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
     if (file->header().hasPreviewImage()) {
       const Imf::PreviewImage &preview = file->header().previewImage();
       ImBuf *ibuf = IMB_allocFromBuffer(
-          (unsigned int *)preview.pixels(), nullptr, preview.width(), preview.height(), 4);
+          (uint *)preview.pixels(), nullptr, preview.width(), preview.height(), 4);
       delete file;
       delete stream;
       IMB_flipy(ibuf);

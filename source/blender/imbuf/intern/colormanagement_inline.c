@@ -21,7 +21,7 @@ float IMB_colormanagement_get_luminance(const float rgb[3])
   return dot_v3v3(imbuf_luma_coefficients, rgb);
 }
 
-unsigned char IMB_colormanagement_get_luminance_byte(const unsigned char rgb[3])
+uchar IMB_colormanagement_get_luminance_byte(const uchar rgb[3])
 {
   float rgbf[3];
   float val;

@@ -650,8 +650,8 @@ static void imb_stereo3d_squeeze_rect(
   IMB_stereo3d_write_dimensions(s3d->display_mode, false, x, y, &width, &height);
   ibuf = IMB_allocImBuf(width, height, channels, IB_rect);
 
-  IMB_buffer_byte_from_byte((unsigned char *)ibuf->rect,
-                            (unsigned char *)rect,
+  IMB_buffer_byte_from_byte((uchar *)ibuf->rect,
+                            (uchar *)rect,
                             IB_PROFILE_SRGB,
                             IB_PROFILE_SRGB,
                             false,
@@ -661,7 +661,7 @@ static void imb_stereo3d_squeeze_rect(
                             width);
 
   IMB_scaleImBuf_threaded(ibuf, x, y);
-  memcpy(rect, ibuf->rect, x * y * sizeof(unsigned int));
+  memcpy(rect, ibuf->rect, x * y * sizeof(uint));
   IMB_freeImBuf(ibuf);
 }
 

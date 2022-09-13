@@ -119,7 +119,7 @@ static void fillDpxMainHeader(LogImageFile *dpx,
   header->televisionHeader.integration_times = swap_float(DPX_UNDEFINED_R32, dpx->isMSB);
 }
 
-LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t bufferSize)
+LogImageFile *dpxOpen(const uchar *byteStuff, int fromMemory, size_t bufferSize)
 {
   DpxMainHeader header;
   LogImageFile *dpx = (LogImageFile *)MEM_mallocN(sizeof(LogImageFile), __func__);
@@ -155,8 +155,8 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
     dpx->memBufferSize = 0;
   }
   else {
-    dpx->memBuffer = (unsigned char *)byteStuff;
-    dpx->memCursor = (unsigned char *)byteStuff;
+    dpx->memBuffer = (uchar *)byteStuff;
+    dpx->memCursor = (uchar *)byteStuff;
     dpx->memBufferSize = bufferSize;
   }
 
@@ -320,7 +320,7 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
         }
 
         if (dpx->element[i].refHighData == DPX_UNDEFINED_U32) {
-          dpx->element[i].refHighData = (unsigned int)dpx->element[i].maxValue;
+          dpx->element[i].refHighData = (uint)dpx->element[i].maxValue;
         }
 
         if (IS_DPX_UNDEFINED_R32(dpx->element[i].refLowQuantity)) {
@@ -418,7 +418,7 @@ LogImageFile *dpxCreate(const char *filepath,
 {
   DpxMainHeader header;
   const char *shortFilename = NULL;
-  unsigned char pad[6044];
+  uchar pad[6044];
 
   LogImageFile *dpx = (LogImageFile *)MEM_mallocN(sizeof(LogImageFile), __func__);
   if (dpx == NULL) {
