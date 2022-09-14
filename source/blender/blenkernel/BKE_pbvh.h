@@ -380,8 +380,6 @@ int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
                               int totgrid,
                               int gridsize);
 
-void BKE_pbvh_sync_face_sets_to_grids(PBVH *pbvh);
-
 /**
  * Multi-res level, only valid for type == #PBVH_GRIDS.
  */

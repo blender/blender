@@ -1004,9 +1004,13 @@ void SCULPT_connected_components_ensure(Object *ob);
 
 void SCULPT_vertex_visible_set(SculptSession *ss, PBVHVertRef vertex, bool visible);
 bool SCULPT_vertex_visible_get(SculptSession *ss, PBVHVertRef vertex);
+bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef vertex);
+bool SCULPT_vertex_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex);
 
-void SCULPT_visibility_sync_all_face_sets_to_verts(struct Object *ob);
-void SCULPT_visibility_sync_all_vertex_to_face_sets(struct SculptSession *ss);
+void SCULPT_face_visibility_all_invert(SculptSession *ss);
+void SCULPT_face_visibility_all_set(SculptSession *ss, bool visible);
+
+void SCULPT_visibility_sync_all_from_faces(struct Object *ob);
 
 /** \} */
 
@@ -1024,11 +1028,6 @@ bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, PBVHVertRef vertex);
 int SCULPT_face_set_next_available_get(SculptSession *ss);
 
 void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visible);
-bool SCULPT_vertex_all_face_sets_visible_get(const SculptSession *ss, PBVHVertRef vertex);
-bool SCULPT_vertex_any_face_set_visible_get(SculptSession *ss, PBVHVertRef vertex);
-
-void SCULPT_face_sets_visibility_invert(SculptSession *ss);
-void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool visible);
 
 /** \} */
 

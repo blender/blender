@@ -386,8 +386,6 @@ static int hide_show_exec(bContext *C, wmOperator *op)
     BKE_pbvh_update_hide_attributes_from_mesh(pbvh);
   }
 
-  SCULPT_visibility_sync_all_vertex_to_face_sets(ob->sculpt);
-
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
   ED_region_tag_redraw(region);
 

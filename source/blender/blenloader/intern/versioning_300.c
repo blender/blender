@@ -3368,5 +3368,15 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
       FOREACH_NODETREE_END;
     }
+
+    /* Face sets no longer store whether the corresponding face is hidden. */
+    LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
+      int *face_sets = (int *)CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+      if (face_sets) {
+        for (int i = 0; i < mesh->totpoly; i++) {
+          face_sets[i] = abs(face_sets[i]);
+        }
+      }
+    }
   }
 }

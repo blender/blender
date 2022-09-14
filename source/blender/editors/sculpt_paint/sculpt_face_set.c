@@ -67,7 +67,7 @@ int ED_sculpt_face_sets_find_next_available_id(struct Mesh *mesh)
 
   int next_face_set_id = 0;
   for (int i = 0; i < mesh->totpoly; i++) {
-    next_face_set_id = max_ii(next_face_set_id, abs(face_sets[i]));
+    next_face_set_id = max_ii(next_face_set_id, face_sets[i]);
   }
   next_face_set_id++;
 
@@ -135,6 +135,10 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
         if (!sculpt_brush_test_sq_fn(&test, poly_center)) {
           continue;
         }
+        const bool face_hidden = ss->hide_poly && ss->hide_poly[vert_map->indices[j]];
+        if (face_hidden) {
+          continue;
+        }
         const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                     brush,
                                                                     vd.co,
@@ -145,8 +149,8 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
                                                                     vd.vertex,
                                                                     thread_id);
 
-        if (fade > 0.05f && ss->face_sets[vert_map->indices[j]] > 0) {
-          ss->face_sets[vert_map->indices[j]] = abs(ss->cache->paint_face_set);
+        if (fade > 0.05f) {
+          ss->face_sets[vert_map->indices[j]] = ss->cache->paint_face_set;
         }
       }
     }
@@ -750,7 +754,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
   SCULPT_undo_push_end(ob);
 
   /* Sync face sets visibility and vertex visibility as now all Face Sets are visible. */
-  SCULPT_visibility_sync_all_face_sets_to_verts(ob);
+  SCULPT_visibility_sync_all_from_faces(ob);
 
   for (int i = 0; i < totnode; i++) {
     BKE_pbvh_node_mark_update_visibility(nodes[i]);
@@ -854,9 +858,11 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (!pbvh_has_face_sets(ss->pbvh)) {
+  if (!ss->face_sets) {
     return OPERATOR_CANCELLED;
   }
+
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
@@ -895,37 +901,49 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
       }
     }
 
-    for (int i = 0; i < ss->totfaces; i++) {
-      if (ss->face_sets[i] <= 0) {
-        hidden_vertex = true;
-        break;
+    if (ss->hide_poly) {
+      for (int i = 0; i < ss->totfaces; i++) {
+        if (ss->hide_poly[i]) {
+          hidden_vertex = true;
+          break;
+        }
       }
     }
 
+    ss->hide_poly = BKE_sculpt_hide_poly_ensure(mesh);
+
     if (hidden_vertex) {
-      SCULPT_face_sets_visibility_all_set(ss, true);
+      SCULPT_face_visibility_all_set(ss, true);
     }
     else {
-      SCULPT_face_sets_visibility_all_set(ss, false);
+      SCULPT_face_visibility_all_set(ss, false);
       SCULPT_face_set_visibility_set(ss, active_face_set, true);
     }
   }
 
   if (mode == SCULPT_FACE_SET_VISIBILITY_SHOW_ALL) {
-    SCULPT_face_sets_visibility_all_set(ss, true);
+    /* As an optimization, free the hide attribute when making all geometry visible. This allows
+     * reduced memory usage without manually clearing it later, and allows sculpt operations to
+     * avoid checking element's hide status. */
+    CustomData_free_layer_named(&mesh->pdata, ".hide_poly", mesh->totpoly);
+    ss->hide_poly = NULL;
+    BKE_pbvh_update_hide_attributes_from_mesh(pbvh);
   }
 
   if (mode == SCULPT_FACE_SET_VISIBILITY_SHOW_ACTIVE) {
-    SCULPT_face_sets_visibility_all_set(ss, false);
+    ss->hide_poly = BKE_sculpt_hide_poly_ensure(mesh);
+    SCULPT_face_visibility_all_set(ss, false);
     SCULPT_face_set_visibility_set(ss, active_face_set, true);
   }
 
   if (mode == SCULPT_FACE_SET_VISIBILITY_HIDE_ACTIVE) {
+    ss->hide_poly = BKE_sculpt_hide_poly_ensure(mesh);
     SCULPT_face_set_visibility_set(ss, active_face_set, false);
   }
 
   if (mode == SCULPT_FACE_SET_VISIBILITY_INVERT) {
-    SCULPT_face_sets_visibility_invert(ss);
+    ss->hide_poly = BKE_sculpt_hide_poly_ensure(mesh);
+    SCULPT_face_visibility_all_invert(ss);
   }
 
   /* For modes that use the cursor active vertex, update the rotation origin for viewport
@@ -941,7 +959,7 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
   }
 
   /* Sync face sets visibility and vertex visibility. */
-  SCULPT_visibility_sync_all_face_sets_to_verts(ob);
+  SCULPT_visibility_sync_all_from_faces(ob);
 
   SCULPT_undo_push_end(ob);
 
@@ -1008,7 +1026,7 @@ static int sculpt_face_sets_randomize_colors_exec(bContext *C, wmOperator *UNUSE
     return OPERATOR_CANCELLED;
   }
 
-  if (!pbvh_has_face_sets(ss->pbvh)) {
+  if (!ss->face_sets) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1172,14 +1190,15 @@ static bool check_single_face_set(SculptSession *ss, int *face_sets, const bool 
   int first_face_set = SCULPT_FACE_SET_NONE;
   if (check_visible_only) {
     for (int f = 0; f < ss->totfaces; f++) {
-      if (face_sets[f] > 0) {
-        first_face_set = face_sets[f];
-        break;
+      if (ss->hide_poly && ss->hide_poly[f]) {
+        continue;
       }
+      first_face_set = face_sets[f];
+      break;
     }
   }
   else {
-    first_face_set = abs(face_sets[0]);
+    first_face_set = face_sets[0];
   }
 
   if (first_face_set == SCULPT_FACE_SET_NONE) {
@@ -1187,8 +1206,10 @@ static bool check_single_face_set(SculptSession *ss, int *face_sets, const bool 
   }
 
   for (int f = 0; f < ss->totfaces; f++) {
-    const int face_set_id = check_visible_only ? face_sets[f] : abs(face_sets[f]);
-    if (face_set_id != first_face_set) {
+    if (check_visible_only && ss->hide_poly && ss->hide_poly[f]) {
+      continue;
+    }
+    if (face_sets[f] != first_face_set) {
       return false;
     }
   }
@@ -1222,9 +1243,10 @@ static void sculpt_face_set_delete_geometry(Object *ob,
   BMFace *f;
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     const int face_index = BM_elem_index_get(f);
-    const int face_set_id = modify_hidden ? abs(ss->face_sets[face_index]) :
-                                            ss->face_sets[face_index];
-    BM_elem_flag_set(f, BM_ELEM_TAG, face_set_id == active_face_set_id);
+    if (!modify_hidden && ss->hide_poly && ss->hide_poly[face_index]) {
+      continue;
+    }
+    BM_elem_flag_set(f, BM_ELEM_TAG, ss->face_sets[face_index] == active_face_set_id);
   }
   BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_FACES);
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
@@ -1353,7 +1375,7 @@ static void face_set_edit_do_post_visibility_updates(Object *ob, PBVHNode **node
   PBVH *pbvh = ss->pbvh;
 
   /* Sync face sets visibility and vertex visibility as now all Face Sets are visible. */
-  SCULPT_visibility_sync_all_face_sets_to_verts(ob);
+  SCULPT_visibility_sync_all_from_faces(ob);
 
   for (int i = 0; i < totnode; i++) {
     BKE_pbvh_node_mark_update_visibility(nodes[i]);

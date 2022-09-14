@@ -300,8 +300,6 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
   ob->sculpt->mode_type = OB_MODE_SCULPT;
 
-  BKE_sculpt_ensure_orig_mesh_data(ob);
-
   BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
 
   /* This function expects a fully evaluated depsgraph. */

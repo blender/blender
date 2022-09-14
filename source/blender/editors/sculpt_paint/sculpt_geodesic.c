@@ -170,8 +170,6 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
     }
   }
 
-  const bool *hide_poly = BKE_pbvh_get_poly_hide(ss->pbvh);
-
   /* Add edges adjacent to an initial vertex to the queue. */
   for (int i = 0; i < totedge; i++) {
     const int v1 = edges[i].v1;
@@ -201,7 +199,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
       if (ss->epmap[e].count != 0) {
         for (int poly_map_index = 0; poly_map_index < ss->epmap[e].count; poly_map_index++) {
           const int poly = ss->epmap[e].indices[poly_map_index];
-          if (hide_poly && hide_poly[poly]) {
+          if (ss->hide_poly && ss->hide_poly[poly]) {
             continue;
           }
           const MPoly *mpoly = &polys[poly];
