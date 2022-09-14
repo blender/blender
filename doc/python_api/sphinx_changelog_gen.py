@@ -101,7 +101,7 @@ def api_dump(args):
 
     version, version_key = api_version()
     if version is None:
-        raise(ValueError("API dumps can only be generated from within Blender."))
+        raise ValueError("API dumps can only be generated from within Blender.")
 
     dump = {}
     dump_module = dump["bpy.types"] = {}
@@ -250,7 +250,7 @@ def api_changelog(args):
 
     version, version_key = api_version()
     if version is None and (filepath_in_from is None or filepath_in_to is None):
-        raise(ValueError("API dumps files must be given when ran outside of Blender."))
+        raise ValueError("API dumps files must be given when ran outside of Blender.")
 
     with open(indexpath, 'r', encoding='utf-8') as file_handle:
         index = json.load(file_handle)
@@ -258,17 +258,21 @@ def api_changelog(args):
     if filepath_in_to is None:
         filepath_in_to = index.get(version_key, None)
     if filepath_in_to is None:
-        raise(ValueError("Cannot find API dump file for Blender version " + str(version) + " in index file."))
+        raise ValueError("Cannot find API dump file for Blender version " + str(version) + " in index file.")
 
     print("Found to file: %r" % filepath_in_to)
 
     if filepath_in_from is None:
         version_from, version_from_key = api_version_previous_in_index(index, version)
         if version_from is None:
-            raise(ValueError("No previous version of Blender could be found in the index."))
+            raise ValueError("No previous version of Blender could be found in the index.")
         filepath_in_from = index.get(version_from_key, None)
     if filepath_in_from is None:
-        raise(ValueError("Cannot find API dump file for previous Blender version " + str(version_from) + " in index file."))
+        raise ValueError(
+            "Cannot find API dump file for previous Blender version " +
+            str(version_from) +
+            " in index file."
+        )
 
     print("Found from file: %r" % filepath_in_from)
 
@@ -277,7 +281,7 @@ def api_changelog(args):
 
     with open(os.path.join(rootpath, filepath_in_to), 'r', encoding='utf-8') as file_handle:
         dump_version, dict_to = json.load(file_handle)
-        assert(tuple(dump_version) == version)
+        assert tuple(dump_version) == version
 
     api_changes = []
 

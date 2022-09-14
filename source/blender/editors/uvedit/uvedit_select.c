@@ -5384,7 +5384,7 @@ static void uv_isolate_selected_islands(const Scene *scene,
   BLI_assert((scene->toolsettings->uv_flag & UV_SYNC_SELECTION) == 0);
   BMFace *efa;
   BMIter iter, liter;
-  UvElementMap *elementmap = BM_uv_element_map_create(em->bm, scene, false, false, true);
+  UvElementMap *elementmap = BM_uv_element_map_create(em->bm, scene, false, false, true, true);
   if (elementmap == NULL) {
     return;
   }

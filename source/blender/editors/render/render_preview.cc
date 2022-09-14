@@ -550,7 +550,7 @@ static Scene *preview_prepare_scene(
             }
           }
           else if (base->object->type == OB_LAMP) {
-            base->flag |= BASE_VISIBLE_DEPSGRAPH;
+            base->flag |= BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT;
           }
         }
       }
@@ -1304,40 +1304,32 @@ static void shader_preview_free(void *customdata)
 
 static ImBuf *icon_preview_imbuf_from_brush(Brush *brush)
 {
-  static const int flags = IB_rect | IB_multilayer | IB_metadata;
+  if (!brush->icon_imbuf && (brush->flag & BRUSH_CUSTOM_ICON) && brush->icon_filepath[0]) {
+    const int flags = IB_rect | IB_multilayer | IB_metadata;
 
-  char filepath[FILE_MAX];
-  const char *folder;
+    /* First use the path directly to try and load the file. */
+    char filepath[FILE_MAX];
 
-  if (!(brush->icon_imbuf)) {
-    if (brush->flag & BRUSH_CUSTOM_ICON) {
+    BLI_strncpy(filepath, brush->icon_filepath, sizeof(brush->icon_filepath));
+    BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&brush->id));
 
-      if (brush->icon_filepath[0]) {
-        /* First use the path directly to try and load the file. */
+    /* Use default color-spaces for brushes. */
+    brush->icon_imbuf = IMB_loadiffname(filepath, flags, nullptr);
 
-        BLI_strncpy(filepath, brush->icon_filepath, sizeof(brush->icon_filepath));
-        BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&brush->id));
+    /* Otherwise lets try to find it in other directories. */
+    if (!(brush->icon_imbuf)) {
+      const char *brushicons_dir = BKE_appdir_folder_id(BLENDER_DATAFILES, "brushicons");
+      /* Expected to be found, but don't crash if it's not. */
+      if (brushicons_dir) {
+        BLI_join_dirfile(filepath, sizeof(filepath), brushicons_dir, brush->icon_filepath);
 
-        /* Use default color-spaces for brushes. */
+        /* Use default color spaces. */
         brush->icon_imbuf = IMB_loadiffname(filepath, flags, nullptr);
-
-        /* otherwise lets try to find it in other directories */
-        if (!(brush->icon_imbuf)) {
-          folder = BKE_appdir_folder_id(BLENDER_DATAFILES, "brushicons");
-
-          BLI_make_file_string(
-              BKE_main_blendfile_path_from_global(), filepath, folder, brush->icon_filepath);
-
-          if (filepath[0]) {
-            /* Use default color spaces. */
-            brush->icon_imbuf = IMB_loadiffname(filepath, flags, nullptr);
-          }
-        }
-
-        if (brush->icon_imbuf) {
-          BKE_icon_changed(BKE_icon_id_ensure(&brush->id));
-        }
       }
+    }
+
+    if (brush->icon_imbuf) {
+      BKE_icon_changed(BKE_icon_id_ensure(&brush->id));
     }
   }
 

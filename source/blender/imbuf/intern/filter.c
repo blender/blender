@@ -18,9 +18,9 @@
 
 #include "imbuf.h"
 
-static void filtrow(unsigned char *point, int x)
+static void filtrow(uchar *point, int x)
 {
-  unsigned int c1, c2, c3, error;
+  uint c1, c2, c3, error;
 
   if (x > 1) {
     c1 = c2 = *point;
@@ -56,10 +56,10 @@ static void filtrowf(float *point, int x)
   }
 }
 
-static void filtcolum(unsigned char *point, int y, int skip)
+static void filtcolum(uchar *point, int y, int skip)
 {
-  unsigned int c1, c2, c3, error;
-  unsigned char *point2;
+  uint c1, c2, c3, error;
+  uchar *point2;
 
   if (y > 1) {
     c1 = c2 = *point;
@@ -101,11 +101,11 @@ static void filtcolumf(float *point, int y, int skip)
 
 void IMB_filtery(struct ImBuf *ibuf)
 {
-  unsigned char *point;
+  uchar *point;
   float *pointf;
   int x, y, skip;
 
-  point = (unsigned char *)ibuf->rect;
+  point = (uchar *)ibuf->rect;
   pointf = ibuf->rect_float;
 
   x = ibuf->x;
@@ -142,11 +142,11 @@ void IMB_filtery(struct ImBuf *ibuf)
 
 void imb_filterx(struct ImBuf *ibuf)
 {
-  unsigned char *point;
+  uchar *point;
   float *pointf;
   int x, y, skip;
 
-  point = (unsigned char *)ibuf->rect;
+  point = (uchar *)ibuf->rect;
   pointf = ibuf->rect_float;
 
   x = ibuf->x;
@@ -395,7 +395,7 @@ static int check_pixel_assigned(
       res = mask[index] != 0 ? 1 : 0;
     }
     else if ((is_float && ((const float *)buffer)[alpha_index] != 0.0f) ||
-             (!is_float && ((const unsigned char *)buffer)[alpha_index] != 0)) {
+             (!is_float && ((const uchar *)buffer)[alpha_index] != 0)) {
       res = 1;
     }
   }
@@ -408,7 +408,7 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
   const int width = ibuf->x;
   const int height = ibuf->y;
   const int depth = 4; /* always 4 channels */
-  const int chsize = ibuf->rect_float ? sizeof(float) : sizeof(unsigned char);
+  const int chsize = ibuf->rect_float ? sizeof(float) : sizeof(uchar);
   const size_t bsize = ((size_t)width) * height * depth * chsize;
   const bool is_float = (ibuf->rect_float != NULL);
   void *dstbuf = (void *)MEM_dupallocN(ibuf->rect_float ? (void *)ibuf->rect_float :
@@ -478,7 +478,7 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
                     }
                     else {
                       for (c = 0; c < depth; c++) {
-                        tmp[c] = (float)((const unsigned char *)srcbuf)[depth * tmpindex + c];
+                        tmp[c] = (float)((const uchar *)srcbuf)[depth * tmpindex + c];
                       }
                     }
 
@@ -505,8 +505,10 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
               }
               else {
                 for (c = 0; c < depth; c++) {
-                  ((unsigned char *)dstbuf)[depth * index + c] =
-                      acc[c] > 255 ? 255 : (acc[c] < 0 ? 0 : (unsigned char)roundf(acc[c]));
+                  ((uchar *)dstbuf)[depth * index + c] = acc[c] > 255 ?
+                                                             255 :
+                                                             (acc[c] < 0 ? 0 :
+                                                                           (uchar)roundf(acc[c]));
                 }
               }
 
@@ -613,7 +615,7 @@ ImBuf *IMB_getmipmap(ImBuf *ibuf, int level)
   return (level == 0) ? ibuf : ibuf->mipmap[level - 1];
 }
 
-void IMB_premultiply_rect(unsigned int *rect, char planes, int w, int h)
+void IMB_premultiply_rect(uint *rect, char planes, int w, int h)
 {
   char *cp;
   int x, y, val;
@@ -674,7 +676,7 @@ void IMB_premultiply_alpha(ImBuf *ibuf)
   }
 }
 
-void IMB_unpremultiply_rect(unsigned int *rect, char planes, int w, int h)
+void IMB_unpremultiply_rect(uint *rect, char planes, int w, int h)
 {
   char *cp;
   int x, y;

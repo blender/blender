@@ -256,7 +256,7 @@ static void get_loops_polys(const Mesh *mesh, USDMeshData &usd_mesh_data)
 {
   /* Only construct face groups (a.k.a. geometry subsets) when we need them for material
    * assignments. */
-  const bke::AttributeAccessor attributes = bke::mesh_attributes(*mesh);
+  const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<int> material_indices = attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   if (!material_indices.is_single() && mesh->totcol > 1) {

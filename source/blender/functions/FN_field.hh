@@ -565,6 +565,17 @@ template<typename T> struct ValueOrField {
     }
     return this->value;
   }
+
+  friend std::ostream &operator<<(std::ostream &stream, const ValueOrField<T> &value_or_field)
+  {
+    if (value_or_field.field) {
+      stream << "ValueOrField<T>";
+    }
+    else {
+      stream << value_or_field.value;
+    }
+    return stream;
+  }
 };
 
 /** \} */

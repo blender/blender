@@ -208,8 +208,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, maxLoops);
   CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, maxPolys);
 
-  /* Subsurf for eg won't have mesh data in the custom-data arrays.
-   * now add mvert/medge/mpoly layers. */
+  /* Subdivision-surface for eg won't have mesh data in the custom-data arrays.
+   * Now add #MVert/#MEdge/#MPoly layers. */
   if (!CustomData_has_layer(&mesh->vdata, CD_MVERT)) {
     memcpy(BKE_mesh_verts_for_write(result), BKE_mesh_verts(mesh), sizeof(MVert) * mesh->totvert);
   }
@@ -450,7 +450,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     MDeformVert *dvert = BKE_mesh_deform_verts_for_write(result) + maxVerts;
     int *flip_map = NULL, flip_map_len = 0;
 
-    flip_map = BKE_object_defgroup_flip_map(ob, &flip_map_len, false);
+    flip_map = BKE_object_defgroup_flip_map(ob, false, &flip_map_len);
 
     if (flip_map) {
       for (i = 0; i < maxVerts; dvert++, i++) {

@@ -292,13 +292,10 @@ struct Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
                                                   bool build_shapekey_layers);
 
 /**
- * Copies a nomain-Mesh into an existing Mesh.
+ * Move data from a mesh outside of the main data-base into a mesh in the data-base.
+ * Takes ownership of the source mesh.
  */
-void BKE_mesh_nomain_to_mesh(struct Mesh *mesh_src,
-                             struct Mesh *mesh_dst,
-                             struct Object *ob,
-                             const struct CustomData_MeshMasks *mask,
-                             bool take_ownership);
+void BKE_mesh_nomain_to_mesh(struct Mesh *mesh_src, struct Mesh *mesh_dst, struct Object *ob);
 void BKE_mesh_nomain_to_meshkey(struct Mesh *mesh_src, struct Mesh *mesh_dst, struct KeyBlock *kb);
 
 /* vertex level transformations & checks (no derived mesh) */
@@ -665,18 +662,18 @@ void BKE_mesh_normals_loop_custom_set(const struct MVert *mverts,
                                       const float (*polynors)[3],
                                       int numPolys,
                                       short (*r_clnors_data)[2]);
-void BKE_mesh_normals_loop_custom_from_vertices_set(const struct MVert *mverts,
-                                                    const float (*vert_normals)[3],
-                                                    float (*r_custom_vertnors)[3],
-                                                    int numVerts,
-                                                    struct MEdge *medges,
-                                                    int numEdges,
-                                                    const struct MLoop *mloops,
-                                                    int numLoops,
-                                                    const struct MPoly *mpolys,
-                                                    const float (*polynors)[3],
-                                                    int numPolys,
-                                                    short (*r_clnors_data)[2]);
+void BKE_mesh_normals_loop_custom_from_verts_set(const struct MVert *mverts,
+                                                 const float (*vert_normals)[3],
+                                                 float (*r_custom_vertnors)[3],
+                                                 int numVerts,
+                                                 struct MEdge *medges,
+                                                 int numEdges,
+                                                 const struct MLoop *mloops,
+                                                 int numLoops,
+                                                 const struct MPoly *mpolys,
+                                                 const float (*polynors)[3],
+                                                 int numPolys,
+                                                 short (*r_clnors_data)[2]);
 
 /**
  * Computes average per-vertex normals from given custom loop normals.
@@ -717,12 +714,12 @@ void BKE_mesh_calc_normals_split_ex(struct Mesh *mesh,
 void BKE_mesh_set_custom_normals(struct Mesh *mesh, float (*r_custom_loopnors)[3]);
 /**
  * Higher level functions hiding most of the code needed around call to
- * #BKE_mesh_normals_loop_custom_from_vertices_set().
+ * #BKE_mesh_normals_loop_custom_from_verts_set().
  *
  * \param r_custom_vertnors: is not const, since code will replace zero_v3 normals there
  * with automatically computed vectors.
  */
-void BKE_mesh_set_custom_normals_from_vertices(struct Mesh *mesh, float (*r_custom_vertnors)[3]);
+void BKE_mesh_set_custom_normals_from_verts(struct Mesh *mesh, float (*r_custom_vertnors)[3]);
 
 /* *** mesh_evaluate.cc *** */
 
@@ -812,10 +809,10 @@ void BKE_mesh_polygon_flip(const struct MPoly *mpoly,
  *
  * \note Invalidates tessellation, caller must handle that.
  */
-void BKE_mesh_polygons_flip(const struct MPoly *mpoly,
-                            struct MLoop *mloop,
-                            struct CustomData *ldata,
-                            int totpoly);
+void BKE_mesh_polys_flip(const struct MPoly *mpoly,
+                         struct MLoop *mloop,
+                         struct CustomData *ldata,
+                         int totpoly);
 
 /* Merge verts. */
 /* Enum for merge_mode of #BKE_mesh_merge_verts.

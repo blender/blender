@@ -34,6 +34,15 @@ TEST(float3x3, Rotation)
   EXPECT_FLOAT_EQ(result[1], 1.0f);
 }
 
+TEST(float3x3, Scale)
+{
+  float2 point(1.0f, 2.0f);
+  float3x3 transformation = float3x3::from_scale(float2(2.0f, 3.0f));
+  float2 result = transformation * point;
+  EXPECT_FLOAT_EQ(result[0], 2.0f);
+  EXPECT_FLOAT_EQ(result[1], 6.0f);
+}
+
 TEST(float3x3, TranslationRotationScale)
 {
   float2 point(1.0f, 2.0f);
@@ -114,6 +123,13 @@ TEST(float3x3, Origin)
   float2 result = transformation * point;
   EXPECT_FLOAT_EQ(result[0], 0.0f);
   EXPECT_FLOAT_EQ(result[1], 3.0f);
+}
+
+TEST(float3x3, GetScale2D)
+{
+  float2 scale(2.0f, 3.0f);
+  float3x3 transformation = float3x3::from_scale(scale);
+  EXPECT_EQ(scale, transformation.scale_2d());
 }
 
 }  // namespace blender::tests

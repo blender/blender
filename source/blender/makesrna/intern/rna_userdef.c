@@ -6377,7 +6377,7 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "use_viewport_debug", 1);
   RNA_def_property_ui_text(prop,
                            "Viewport Debug",
-                           "Enable viewport debugging options for developpers in the overlays "
+                           "Enable viewport debugging options for developers in the overlays "
                            "pop-over");
   RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
 }

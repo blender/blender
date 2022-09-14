@@ -668,7 +668,7 @@ static AllPointCloudsInfo preprocess_pointclouds(const GeometrySet &geometry_set
     pointcloud_info.pointcloud = pointcloud;
 
     /* Access attributes. */
-    bke::AttributeAccessor attributes = bke::pointcloud_attributes(*pointcloud);
+    bke::AttributeAccessor attributes = pointcloud->attributes();
     pointcloud_info.attributes.reinitialize(info.attributes.size());
     for (const int attribute_index : info.attributes.index_range()) {
       const AttributeIDRef &attribute_id = info.attributes.ids[attribute_index];
@@ -744,8 +744,7 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
   PointCloudComponent &dst_component =
       r_realized_geometry.get_component_for_write<PointCloudComponent>();
   dst_component.replace(dst_pointcloud);
-  bke::MutableAttributeAccessor dst_attributes = bke::pointcloud_attributes_for_write(
-      *dst_pointcloud);
+  bke::MutableAttributeAccessor dst_attributes = dst_pointcloud->attributes_for_write();
 
   SpanAttributeWriter<float3> positions = dst_attributes.lookup_or_add_for_write_only_span<float3>(
       "position", ATTR_DOMAIN_POINT);
@@ -883,7 +882,7 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
     }
 
     /* Access attributes. */
-    bke::AttributeAccessor attributes = bke::mesh_attributes(*mesh);
+    bke::AttributeAccessor attributes = mesh->attributes();
     mesh_info.attributes.reinitialize(info.attributes.size());
     for (const int attribute_index : info.attributes.index_range()) {
       const AttributeIDRef &attribute_id = info.attributes.ids[attribute_index];
@@ -1045,7 +1044,7 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   Mesh *dst_mesh = BKE_mesh_new_nomain(tot_vertices, tot_edges, 0, tot_loops, tot_poly);
   MeshComponent &dst_component = r_realized_geometry.get_component_for_write<MeshComponent>();
   dst_component.replace(dst_mesh);
-  bke::MutableAttributeAccessor dst_attributes = bke::mesh_attributes_for_write(*dst_mesh);
+  bke::MutableAttributeAccessor dst_attributes = dst_mesh->attributes_for_write();
   MutableSpan<MVert> dst_verts = dst_mesh->verts_for_write();
   MutableSpan<MEdge> dst_edges = dst_mesh->edges_for_write();
   MutableSpan<MPoly> dst_polys = dst_mesh->polys_for_write();

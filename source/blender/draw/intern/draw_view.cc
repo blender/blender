@@ -260,13 +260,15 @@ void View::update_view_vectors()
   }
 
   /**
-   * If ortho : view_vecs[0] is the near-bottom-left corner of the frustum and
-   *            view_vecs[1] is the vector going from the near-bottom-left corner to
-   *            the far-top-right corner.
-   * If Persp : view_vecs[0].xy and view_vecs[1].xy are respectively the bottom-left corner
-   *            when Z = 1, and top-left corner if Z = 1.
-   *            view_vecs[0].z the near clip distance and view_vecs[1].z is the (signed)
-   *            distance from the near plane to the far clip plane.
+   * - If orthographic:
+   *   `view_vecs[0]` is the near-bottom-left corner of the frustum and
+   *   `view_vecs[1]` is the vector going from the near-bottom-left corner to
+   *   the far-top-right corner.
+   * - If perspective:
+   *   `view_vecs[0].xy` and `view_vecs[1].xy` are respectively the bottom-left corner
+   *   when `Z = 1`, and top-left corner if `Z = 1`.
+   *   `view_vecs[0].z` the near clip distance and `view_vecs[1].z` is the (signed)
+   *   distance from the near plane to the far clip plane.
    */
   copy_v3_v3(data_.viewvecs[0], view_vecs[0]);
 

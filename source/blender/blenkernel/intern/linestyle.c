@@ -749,7 +749,7 @@ IDTypeInfo IDType_ID_LS = {
     .foreach_id = linestyle_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = linestyle_blend_write,
     .blend_read_data = linestyle_blend_read_data,

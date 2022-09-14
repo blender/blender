@@ -535,7 +535,7 @@ static bool uvedit_uv_straighten(Scene *scene, BMesh *bm, eUVWeldAlign tool)
     return false;
   }
 
-  UvElementMap *element_map = BM_uv_element_map_create(bm, scene, true, false, true);
+  UvElementMap *element_map = BM_uv_element_map_create(bm, scene, true, false, true, true);
   if (element_map == NULL) {
     return false;
   }

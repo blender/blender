@@ -79,8 +79,6 @@ static PyStructSequence_Field app_info_fields[] = {
     {"version_string", "The Blender version formatted as a string"},
     {"version_cycle", "The release status of this build alpha/beta/rc/release"},
     {"version_char", "Deprecated, always an empty string"},
-    {"binary_path",
-     "The location of Blender's executable, useful for utilities that open new instances"},
     {"background",
      "Boolean, True when blender is running without a user interface (started with -b)"},
     {"factory_startup", "Boolean, True when blender is running with --factory-startup)"},
@@ -151,7 +149,6 @@ static PyObject *make_app_info(void)
 
   SetStrItem(STRINGIFY(BLENDER_VERSION_CYCLE));
   SetStrItem("");
-  SetStrItem(BKE_appdir_program_path());
   SetObjItem(PyBool_FromLong(G.background));
   SetObjItem(PyBool_FromLong(G.factory_startup));
 
@@ -345,6 +342,33 @@ static PyObject *bpy_app_autoexec_fail_message_get(PyObject *UNUSED(self), void 
   return PyC_UnicodeFromByte(G.autoexec_fail);
 }
 
+PyDoc_STRVAR(bpy_app_binary_path_doc,
+             "The location of Blender's executable, useful for utilities that open new instances. "
+             "Read-only unless Blender is built as a Python module - in this case the value is "
+             "an empty string which script authors may point to a Blender binary.");
+static PyObject *bpy_app_binary_path_get(PyObject *UNUSED(self), void *UNUSED(closure))
+{
+  return PyC_UnicodeFromByte(BKE_appdir_program_path());
+}
+
+static int bpy_app_binary_path_set(PyObject *UNUSED(self), PyObject *value, void *UNUSED(closure))
+{
+#ifndef WITH_PYTHON_MODULE
+  PyErr_SetString(PyExc_AttributeError,
+                  "bpy.app.binary_path is only writable when built as a Python module");
+  return -1;
+#endif
+  PyObject *value_coerce = NULL;
+  const char *filepath = PyC_UnicodeAsByte(value, &value_coerce);
+  if (filepath == NULL) {
+    PyErr_Format(PyExc_ValueError, "expected a string or bytes, got %s", Py_TYPE(value)->tp_name);
+    return -1;
+  }
+  BKE_appdir_program_path_init(filepath);
+  Py_XDECREF(value_coerce);
+  return 0;
+}
+
 static PyGetSetDef bpy_app_getsets[] = {
     {"debug", bpy_app_debug_get, bpy_app_debug_set, bpy_app_debug_doc, (void *)G_DEBUG},
     {"debug_ffmpeg",
@@ -450,7 +474,14 @@ static PyGetSetDef bpy_app_getsets[] = {
      (void *)G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET},
     {"autoexec_fail_message", bpy_app_autoexec_fail_message_get, NULL, NULL, NULL},
 
-    /* End-of-list marker. */
+    /* Support script authors setting the Blender binary path to use, otherwise this value
+     * is not known when built as a Python module. */
+    {"binary_path",
+     bpy_app_binary_path_get,
+     bpy_app_binary_path_set,
+     bpy_app_binary_path_doc,
+     NULL},
+
     {NULL, NULL, NULL, NULL, NULL},
 };
 

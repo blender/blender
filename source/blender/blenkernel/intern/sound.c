@@ -211,7 +211,7 @@ IDTypeInfo IDType_ID_SO = {
     .foreach_id = NULL,
     .foreach_cache = sound_foreach_cache,
     .foreach_path = sound_foreach_path,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = sound_blend_write,
     .blend_read_data = sound_blend_read_data,

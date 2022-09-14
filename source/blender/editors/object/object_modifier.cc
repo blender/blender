@@ -763,10 +763,10 @@ static bool modifier_apply_obdata(
 
       Main *bmain = DEG_get_bmain(depsgraph);
       BKE_object_material_from_eval_data(bmain, ob, &mesh_applied->id);
-      BKE_mesh_nomain_to_mesh(mesh_applied, me, ob, &CD_MASK_MESH, true);
+      BKE_mesh_nomain_to_mesh(mesh_applied, me, ob);
 
       /* Anonymous attributes shouldn't be available on the applied geometry. */
-      blender::bke::mesh_attributes_for_write(*me).remove_anonymous();
+      me->attributes_for_write().remove_anonymous();
 
       if (md_eval->type == eModifierType_Multires) {
         multires_customdata_delete(me);
@@ -3397,6 +3397,7 @@ static int geometry_node_tree_copy_assign_exec(bContext *C, wmOperator *UNUSED(o
   nmd->node_group = new_tree;
   id_us_min(&tree->id);
 
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
   return OPERATOR_FINISHED;

@@ -35,7 +35,7 @@ class RenderBuffers {
   TextureFromPool environment_tx;
   TextureFromPool shadow_tx;
   TextureFromPool ambient_occlusion_tx;
-  // TextureFromPool cryptomatte_tx; /* TODO */
+  TextureFromPool cryptomatte_tx;
   /* TODO(fclem): Use texture from pool once they support texture array. */
   Texture light_tx;
   Texture aov_color_tx;

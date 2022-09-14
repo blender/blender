@@ -655,12 +655,11 @@ typedef struct AttributeDescriptor {
 
 /* For looking up attributes on objects and geometry. */
 typedef struct AttributeMap {
-  uint id;       /* Global unique identifier. */
-  uint element;  /* AttributeElement. */
-  int offset;    /* Offset into __attributes global arrays. */
-  uint8_t type;  /* NodeAttributeType. */
-  uint8_t flags; /* AttributeFlag. */
-  uint8_t pad[2];
+  uint64_t id;      /* Global unique identifier. */
+  int offset;       /* Offset into __attributes global arrays. */
+  uint16_t element; /* AttributeElement. */
+  uint8_t type;     /* NodeAttributeType. */
+  uint8_t flags;    /* AttributeFlag. */
 } AttributeMap;
 
 /* Closure data */

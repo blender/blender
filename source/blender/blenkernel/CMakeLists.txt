@@ -98,6 +98,7 @@ set(SRC
   intern/collision.c
   intern/colorband.c
   intern/colortools.c
+  intern/compute_contexts.cc
   intern/constraint.c
   intern/context.c
   intern/crazyspace.cc
@@ -352,6 +353,7 @@ set(SRC
   BKE_collision.h
   BKE_colorband.h
   BKE_colortools.h
+  BKE_compute_contexts.hh
   BKE_constraint.h
   BKE_context.h
   BKE_crazyspace.h
@@ -658,6 +660,10 @@ if(WITH_PYTHON)
     bf_python_bmesh
   )
   add_definitions(-DWITH_PYTHON)
+
+  if(WITH_PYTHON_MODULE)
+    add_definitions(-DWITH_PYTHON_MODULE)
+  endif()
 
   if(WITH_PYTHON_SAFETY)
     add_definitions(-DWITH_PYTHON_SAFETY)

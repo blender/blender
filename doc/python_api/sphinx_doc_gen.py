@@ -402,7 +402,14 @@ INFO_DOCS = (
      "Tips and Tricks: Hints to help you while writing scripts for Blender"),
     ("info_gotcha.rst",
      "Gotcha's: Some of the problems you may encounter when writing scripts"),
+    ("info_advanced.rst",
+     "Advanced use (topics which may not be required for typical usage)"),
     ("change_log.rst", "Change Log: List of changes since last Blender release"),
+)
+# Referenced indirectly.
+INFO_DOCS_OTHER = (
+    # Included by: `info_advanced.rst`.
+    "info_advanced_blender_as_bpy.rst",
 )
 
 # only support for properties atm.
@@ -1470,7 +1477,7 @@ def pyrna2sphinx(basepath):
 
         struct_module_name = struct.module_name
         if USE_ONLY_BUILTIN_RNA_TYPES:
-            assert(struct_module_name == "bpy.types")
+            assert struct_module_name == "bpy.types"
         filepath = os.path.join(basepath, "%s.%s.rst" % (struct_module_name, struct.identifier))
         file = open(filepath, "w", encoding="utf-8")
         fw = file.write
@@ -2313,6 +2320,8 @@ def copy_handwritten_rsts(basepath):
     # Info docs.
     if not EXCLUDE_INFO_DOCS:
         for info, _info_desc in INFO_DOCS:
+            shutil.copy2(os.path.join(RST_DIR, info), basepath)
+        for info in INFO_DOCS_OTHER:
             shutil.copy2(os.path.join(RST_DIR, info), basepath)
 
     # TODO: put this docs in Blender's code and use import as per modules above.

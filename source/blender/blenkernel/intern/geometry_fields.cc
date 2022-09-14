@@ -18,7 +18,7 @@ namespace blender::bke {
 MeshFieldContext::MeshFieldContext(const Mesh &mesh, const eAttrDomain domain)
     : mesh_(mesh), domain_(domain)
 {
-  BLI_assert(mesh_attributes(mesh).domain_supported(domain_));
+  BLI_assert(mesh.attributes().domain_supported(domain_));
 }
 
 CurvesFieldContext::CurvesFieldContext(const CurvesGeometry &curves, const eAttrDomain domain)
@@ -94,13 +94,13 @@ GeometryFieldContext::GeometryFieldContext(const InstancesComponent &instances)
 std::optional<AttributeAccessor> GeometryFieldContext::attributes() const
 {
   if (const Mesh *mesh = this->mesh()) {
-    return mesh_attributes(*mesh);
+    return mesh->attributes();
   }
   if (const CurvesGeometry *curves = this->curves()) {
     return curves->attributes();
   }
   if (const PointCloud *pointcloud = this->pointcloud()) {
-    return pointcloud_attributes(*pointcloud);
+    return pointcloud->attributes();
   }
   if (const InstancesComponent *instances = this->instances()) {
     return instances->attributes();

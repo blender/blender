@@ -147,7 +147,7 @@ class NoDiscard : public BaseDiscard {
 template<
     /**
      * \brief Kind of buffer.
-     * Possible options: float, unsigned char.
+     * Possible options: float, uchar.
      */
     typename StorageType = float,
 
@@ -170,10 +170,9 @@ class PixelPointer {
     if constexpr (std::is_same_v<StorageType, float>) {
       pointer = image_buffer->rect_float + offset;
     }
-    else if constexpr (std::is_same_v<StorageType, unsigned char>) {
-      pointer = const_cast<unsigned char *>(
-          static_cast<const unsigned char *>(static_cast<const void *>(image_buffer->rect)) +
-          offset);
+    else if constexpr (std::is_same_v<StorageType, uchar>) {
+      pointer = const_cast<uchar *>(
+          static_cast<const uchar *>(static_cast<const void *>(image_buffer->rect)) + offset);
     }
     else {
       pointer = nullptr;
@@ -264,7 +263,7 @@ template<
     /** \brief Interpolation mode to use when sampling. */
     eIMBInterpolationFilterMode Filter,
 
-    /** \brief storage type of a single pixel channel (unsigned char or float). */
+    /** \brief storage type of a single pixel channel (uchar or float). */
     typename StorageType,
     /**
      * \brief number of channels if the image to read.
@@ -294,14 +293,14 @@ class Sampler {
       const float wrapped_v = uv_wrapper.modify_v(source, v);
       bilinear_interpolation_color_fl(source, nullptr, r_sample.data(), wrapped_u, wrapped_v);
     }
-    else if constexpr (Filter == IMB_FILTER_NEAREST &&
-                       std::is_same_v<StorageType, unsigned char> && NumChannels == 4) {
+    else if constexpr (Filter == IMB_FILTER_NEAREST && std::is_same_v<StorageType, uchar> &&
+                       NumChannels == 4) {
       const float wrapped_u = uv_wrapper.modify_u(source, u);
       const float wrapped_v = uv_wrapper.modify_v(source, v);
       nearest_interpolation_color_char(source, r_sample.data(), nullptr, wrapped_u, wrapped_v);
     }
-    else if constexpr (Filter == IMB_FILTER_BILINEAR &&
-                       std::is_same_v<StorageType, unsigned char> && NumChannels == 4) {
+    else if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<StorageType, uchar> &&
+                       NumChannels == 4) {
       const float wrapped_u = uv_wrapper.modify_u(source, u);
       const float wrapped_v = uv_wrapper.modify_v(source, v);
       bilinear_interpolation_color_char(source, r_sample.data(), nullptr, wrapped_u, wrapped_v);
@@ -374,7 +373,7 @@ class Sampler {
  *
  * Template class to convert and store a sample in a PixelPointer.
  * It supports:
- * - 4 channel unsigned char -> 4 channel unsigned char.
+ * - 4 channel uchar -> 4 channel uchar.
  * - 4 channel float -> 4 channel float.
  * - 3 channel float -> 4 channel float.
  * - 2 channel float -> 4 channel float.
@@ -392,7 +391,7 @@ class ChannelConverter {
    */
   void convert_and_store(const SampleType &sample, PixelType &pixel_pointer)
   {
-    if constexpr (std::is_same_v<StorageType, unsigned char>) {
+    if constexpr (std::is_same_v<StorageType, uchar>) {
       BLI_STATIC_ASSERT(SourceNumChannels == 4, "Unsigned chars always have 4 channels.");
       BLI_STATIC_ASSERT(DestinationNumChannels == 4, "Unsigned chars always have 4 channels.");
 
@@ -550,8 +549,8 @@ static void transform_threaded(TransformUserData *user_data, const eIMBTransform
     scanline_func = get_scanline_function<Filter>(user_data, mode);
   }
   else if (user_data->dst->rect && user_data->src->rect) {
-    /* Number of channels is always 4 when using unsigned char buffers (sRGB + straight alpha). */
-    scanline_func = get_scanline_function<Filter, unsigned char, 4, 4>(mode);
+    /* Number of channels is always 4 when using uchar buffers (sRGB + straight alpha). */
+    scanline_func = get_scanline_function<Filter, uchar, 4, 4>(mode);
   }
 
   if (scanline_func != nullptr) {

@@ -125,7 +125,7 @@ class ShortestEdgePathsNextVertFieldInput final : public bke::MeshFieldInput {
         }
       }
     });
-    return bke::mesh_attributes(mesh).adapt_domain<int>(
+    return mesh.attributes().adapt_domain<int>(
         VArray<int>::ForContainer(std::move(next_index)), ATTR_DOMAIN_POINT, domain);
   }
 
@@ -189,7 +189,7 @@ class ShortestEdgePathsCostFieldInput final : public bke::MeshFieldInput {
         }
       }
     });
-    return bke::mesh_attributes(mesh).adapt_domain<float>(
+    return mesh.attributes().adapt_domain<float>(
         VArray<float>::ForContainer(std::move(cost)), ATTR_DOMAIN_POINT, domain);
   }
 

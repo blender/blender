@@ -22,7 +22,7 @@ void IMB_flipy(struct ImBuf *ibuf)
   }
 
   if (ibuf->rect) {
-    unsigned int *top, *bottom, *line;
+    uint *top, *bottom, *line;
 
     x_size = ibuf->x;
     y_size = ibuf->y;
@@ -88,7 +88,7 @@ void IMB_flipx(struct ImBuf *ibuf)
     for (yi = y - 1; yi >= 0; yi--) {
       const size_t x_offset = (size_t)x * yi;
       for (xr = x - 1, xl = 0; xr >= xl; xr--, xl++) {
-        SWAP(unsigned int, ibuf->rect[x_offset + xr], ibuf->rect[x_offset + xl]);
+        SWAP(uint, ibuf->rect[x_offset + xr], ibuf->rect[x_offset + xl]);
       }
     }
   }

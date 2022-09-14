@@ -131,8 +131,8 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   }
 
   /* Output mesh will be all smooth or all flat shading. */
-  const Span<MPoly> polygons = mesh->polys();
-  const bool smooth_normals = polygons.first().flag & ME_SMOOTH;
+  const Span<MPoly> polys = mesh->polys();
+  const bool smooth_normals = polys.first().flag & ME_SMOOTH;
 
   float isovalue = 0.0f;
   if (mesh->flag & ME_REMESH_REPROJECT_VOLUME) {
@@ -179,14 +179,14 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
     BKE_remesh_reproject_vertex_paint(new_mesh, mesh);
   }
 
-  BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob, &CD_MASK_MESH, true);
+  BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob);
 
   if (smooth_normals) {
     BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), true);
   }
 
   if (ob->mode == OB_MODE_SCULPT) {
-    BKE_sculpt_ensure_orig_mesh_data(CTX_data_scene(C), ob);
+    BKE_sculpt_ensure_orig_mesh_data(ob);
     ED_sculpt_undo_geometry_end(ob);
   }
 
@@ -905,14 +905,14 @@ static void quadriflow_start_job(void *customdata, short *stop, short *do_update
     BKE_mesh_remesh_reproject_paint_mask(new_mesh, mesh);
   }
 
-  BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob, &CD_MASK_MESH, true);
+  BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob);
 
   if (qj->smooth_normals) {
     BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), true);
   }
 
   if (ob->mode == OB_MODE_SCULPT) {
-    BKE_sculpt_ensure_orig_mesh_data(qj->scene, ob);
+    BKE_sculpt_ensure_orig_mesh_data(ob);
     ED_sculpt_undo_geometry_end(ob);
   }
 

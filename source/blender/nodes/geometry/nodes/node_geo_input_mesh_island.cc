@@ -47,7 +47,7 @@ class IslandFieldInput final : public bke::MeshFieldInput {
       output[i] = ordered_roots.index_of_or_add(root);
     }
 
-    return bke::mesh_attributes(mesh).adapt_domain<int>(
+    return mesh.attributes().adapt_domain<int>(
         VArray<int>::ForContainer(std::move(output)), ATTR_DOMAIN_POINT, domain);
   }
 
@@ -87,8 +87,7 @@ class IslandCountFieldInput final : public bke::MeshFieldInput {
       island_list.add(root);
     }
 
-    return VArray<int>::ForSingle(island_list.size(),
-                                  bke::mesh_attributes(mesh).domain_size(domain));
+    return VArray<int>::ForSingle(island_list.size(), mesh.attributes().domain_size(domain));
   }
 
   uint64_t hash() const override

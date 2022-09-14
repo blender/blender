@@ -39,7 +39,7 @@ typedef struct img_folder {
   float *rates;
 } img_fol_t;
 
-static bool check_jp2(const unsigned char *mem, const size_t size) /* J2K_CFMT */
+static bool check_jp2(const uchar *mem, const size_t size) /* J2K_CFMT */
 {
   if (size < sizeof(JP2_HEAD)) {
     return false;
@@ -47,7 +47,7 @@ static bool check_jp2(const unsigned char *mem, const size_t size) /* J2K_CFMT *
   return memcmp(JP2_HEAD, mem, sizeof(JP2_HEAD)) ? 0 : 1;
 }
 
-static bool check_j2k(const unsigned char *mem, const size_t size) /* J2K_CFMT */
+static bool check_j2k(const uchar *mem, const size_t size) /* J2K_CFMT */
 {
   if (size < sizeof(J2K_HEAD)) {
     return false;
@@ -55,8 +55,7 @@ static bool check_j2k(const unsigned char *mem, const size_t size) /* J2K_CFMT *
   return memcmp(J2K_HEAD, mem, sizeof(J2K_HEAD)) ? 0 : 1;
 }
 
-static OPJ_CODEC_FORMAT format_from_header(const unsigned char mem[JP2_FILEHEADER_SIZE],
-                                           const size_t size)
+static OPJ_CODEC_FORMAT format_from_header(const uchar mem[JP2_FILEHEADER_SIZE], const size_t size)
 {
   if (check_jp2(mem, size)) {
     return OPJ_CODEC_JP2;
@@ -68,7 +67,7 @@ static OPJ_CODEC_FORMAT format_from_header(const unsigned char mem[JP2_FILEHEADE
   return OPJ_CODEC_UNKNOWN;
 }
 
-bool imb_is_a_jp2(const unsigned char *buf, size_t size)
+bool imb_is_a_jp2(const uchar *buf, size_t size)
 {
   return (check_jp2(buf, size) || check_j2k(buf, size));
 }
@@ -102,11 +101,11 @@ static void info_callback(const char *msg, void *client_data)
 #endif
 
 #define PIXEL_LOOPER_BEGIN(_rect) \
-  for (y = h - 1; y != (unsigned int)(-1); y--) { \
+  for (y = h - 1; y != (uint)(-1); y--) { \
     for (i = y * w, i_next = (y + 1) * w; i < i_next; i++, _rect += 4) {
 
 #define PIXEL_LOOPER_BEGIN_CHANNELS(_rect, _channels) \
-  for (y = h - 1; y != (unsigned int)(-1); y--) { \
+  for (y = h - 1; y != (uint)(-1); y--) { \
     for (i = y * w, i_next = (y + 1) * w; i < i_next; i++, _rect += _channels) {
 
 #define PIXEL_LOOPER_END \
@@ -119,8 +118,8 @@ static void info_callback(const char *msg, void *client_data)
  * \{ */
 
 struct BufInfo {
-  const unsigned char *buf;
-  const unsigned char *cur;
+  const uchar *buf;
+  const uchar *cur;
   OPJ_OFF_T len;
 };
 
@@ -300,10 +299,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
                                   int flags,
                                   char colorspace[IM_MAX_SPACE]);
 
-ImBuf *imb_load_jp2(const unsigned char *mem,
-                    size_t size,
-                    int flags,
-                    char colorspace[IM_MAX_SPACE])
+ImBuf *imb_load_jp2(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
   const OPJ_CODEC_FORMAT format = (size > JP2_FILEHEADER_SIZE) ? format_from_header(mem, size) :
                                                                  OPJ_CODEC_UNKNOWN;
@@ -322,7 +318,7 @@ ImBuf *imb_load_jp2(const unsigned char *mem,
 ImBuf *imb_load_jp2_filepath(const char *filepath, int flags, char colorspace[IM_MAX_SPACE])
 {
   FILE *p_file = NULL;
-  unsigned char mem[JP2_FILEHEADER_SIZE];
+  uchar mem[JP2_FILEHEADER_SIZE];
   opj_stream_t *stream = opj_stream_create_from_file(
       filepath, OPJ_J2K_STREAM_CHUNK_SIZE, true, &p_file);
   if (stream) {
@@ -358,8 +354,8 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
   long signed_offsets[4] = {0, 0, 0, 0};
   int float_divs[4] = {1, 1, 1, 1};
 
-  unsigned int i, i_next, w, h, planes;
-  unsigned int y;
+  uint i, i_next, w, h, planes;
+  uint y;
   int *r, *g, *b, *a; /* matching 'opj_image_comp.data' type */
 
   opj_dparameters_t parameters; /* decompression parameters */
@@ -509,7 +505,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
     }
   }
   else {
-    unsigned char *rect_uchar = (unsigned char *)ibuf->rect;
+    uchar *rect_uchar = (uchar *)ibuf->rect;
 
     if (image->numcomps < 3) {
       r = image->comps[0].data;
@@ -599,11 +595,11 @@ static opj_image_t *rawtoimage(const char *filename,
     (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 65535 : (int)(65535.0f * (_val)))
 #else
 
-BLI_INLINE int UPSAMPLE_8_TO_12(const unsigned char _val)
+BLI_INLINE int UPSAMPLE_8_TO_12(const uchar _val)
 {
   return (_val << 4) | (_val & ((1 << 4) - 1));
 }
-BLI_INLINE int UPSAMPLE_8_TO_16(const unsigned char _val)
+BLI_INLINE int UPSAMPLE_8_TO_16(const uchar _val)
 {
   return (_val << 8) + _val;
 }
@@ -811,14 +807,14 @@ static float channel_colormanage_noop(float value)
 
 static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 {
-  unsigned char *rect_uchar;
+  uchar *rect_uchar;
   float *rect_float, from_straight[4];
 
-  unsigned int subsampling_dx = parameters->subsampling_dx;
-  unsigned int subsampling_dy = parameters->subsampling_dy;
+  uint subsampling_dx = parameters->subsampling_dx;
+  uint subsampling_dy = parameters->subsampling_dy;
 
-  unsigned int i, i_next, numcomps, w, h, prec;
-  unsigned int y;
+  uint i, i_next, numcomps, w, h, prec;
+  uint y;
   int *r, *g, *b, *a; /* matching 'opj_image_comp.data' type */
   OPJ_COLOR_SPACE color_space;
   opj_image_cmptparm_t cmptparm[4]; /* maximum of 4 components */
@@ -910,7 +906,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
   image->y1 = image->y0 + (h - 1) * subsampling_dy + 1 + image->y0;
 
   /* set image data */
-  rect_uchar = (unsigned char *)ibuf->rect;
+  rect_uchar = (uchar *)ibuf->rect;
   rect_float = ibuf->rect_float;
 
   /* set the destination channels */

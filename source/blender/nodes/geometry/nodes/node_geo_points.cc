@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_pointcloud.h"
+#include "DNA_pointcloud_types.h"
 
 #include "BLI_task.hh"
 
@@ -70,7 +71,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<float> radius_field = params.extract_input<Field<float>>("Radius");
 
   PointCloud *points = BKE_pointcloud_new_nomain(count);
-  MutableAttributeAccessor attributes = bke::pointcloud_attributes_for_write(*points);
+  MutableAttributeAccessor attributes = points->attributes_for_write();
   AttributeWriter<float3> output_position = attributes.lookup_or_add_for_write<float3>(
       "position", ATTR_DOMAIN_POINT);
   AttributeWriter<float> output_radii = attributes.lookup_or_add_for_write<float>(

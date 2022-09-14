@@ -781,6 +781,7 @@ static const EnumPropertyItem *rna_asset_library_reference_itemf(bContext *UNUSE
   const EnumPropertyItem *items = ED_asset_library_reference_to_rna_enum_itemf(false);
   if (!items) {
     *r_free = false;
+    return nullptr;
   }
 
   *r_free = true;

@@ -136,7 +136,7 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
         Build and install the OpenImageDenoise libraries.
 
     --with-nanovdb
-        Build and install the NanoVDB branch of OpenVDB (instead of official release of OpenVDB).
+        Build and install NanoVDB together with OpenVDB.
 
     --with-jack
         Install the jack libraries.
@@ -385,7 +385,7 @@ CLANG_FORMAT_VERSION="10.0"
 CLANG_FORMAT_VERSION_MIN="6.0"
 CLANG_FORMAT_VERSION_MEX="14.0"
 
-PYTHON_VERSION="3.10.2"
+PYTHON_VERSION="3.10.6"
 PYTHON_VERSION_SHORT="3.10"
 PYTHON_VERSION_MIN="3.10"
 PYTHON_VERSION_MEX="3.12"
@@ -425,7 +425,7 @@ PYTHON_ZSTANDARD_VERSION_MIN="0.15.2"
 PYTHON_ZSTANDARD_VERSION_MEX="0.20.0"
 PYTHON_ZSTANDARD_NAME="zstandard"
 
-PYTHON_NUMPY_VERSION="1.22.0"
+PYTHON_NUMPY_VERSION="1.23.2"
 PYTHON_NUMPY_VERSION_MIN="1.14"
 PYTHON_NUMPY_VERSION_MEX="2.0"
 PYTHON_NUMPY_NAME="numpy"
@@ -453,8 +453,8 @@ PYTHON_MODULES_PIP=(
 )
 
 
-BOOST_VERSION="1.78.0"
-BOOST_VERSION_SHORT="1.78"
+BOOST_VERSION="1.80.0"
+BOOST_VERSION_SHORT="1.80"
 BOOST_VERSION_MIN="1.49"
 BOOST_VERSION_MEX="2.0"
 BOOST_FORCE_BUILD=false
@@ -496,7 +496,7 @@ OPENEXR_FORCE_REBUILD=false
 OPENEXR_SKIP=false
 _with_built_openexr=false
 
-OIIO_VERSION="2.3.13.0"
+OIIO_VERSION="2.3.18.0"
 OIIO_VERSION_SHORT="2.3"
 OIIO_VERSION_MIN="2.1.12"
 OIIO_VERSION_MEX="2.4.0"
@@ -534,10 +534,10 @@ OSD_SKIP=false
 # OpenVDB needs to be compiled for now
 OPENVDB_BLOSC_VERSION="1.21.1"
 
-OPENVDB_VERSION="9.0.0"
-OPENVDB_VERSION_SHORT="9.0"
+OPENVDB_VERSION="9.1.0"
+OPENVDB_VERSION_SHORT="9.1"
 OPENVDB_VERSION_MIN="9.0"
-OPENVDB_VERSION_MEX="9.1"
+OPENVDB_VERSION_MEX="9.2"
 OPENVDB_FORCE_BUILD=false
 OPENVDB_FORCE_REBUILD=false
 OPENVDB_SKIP=false
@@ -2919,6 +2919,10 @@ compile_OPENVDB() {
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D USE_STATIC_DEPENDENCIES=OFF"
     cmake_d="$cmake_d -D OPENVDB_BUILD_BINARIES=OFF"
+    # Unfortunately OpenVDB currently forces using recent oneTBB over older versions when it finds it,
+    # even when TBB_ROOT is specified. So have to prevent any check for system library -
+    # in the hope it will not break in some other cases.
+    cmake_d="$cmake_d -D DISABLE_CMAKE_SEARCH_PATHS=ON"
 
     if [ "$WITH_NANOVDB" = true ]; then
       cmake_d="$cmake_d -D USE_NANOVDB=ON"
@@ -2930,7 +2934,6 @@ compile_OPENVDB() {
       cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost"
       cmake_d="$cmake_d -D Boost_USE_MULTITHREADED=ON"
       cmake_d="$cmake_d -D Boost_NO_SYSTEM_PATHS=ON"
-      cmake_d="$cmake_d -D Boost_NO_BOOST_CMAKE=ON"
       cmake_d="$cmake_d -D Boost_NO_BOOST_CMAKE=ON"
     fi
     if [ -d $INST/tbb ]; then
@@ -3195,7 +3198,7 @@ _init_opencollada() {
   _inst_shortcut=$INST/opencollada
 }
 
-_update_deps_collada() {
+_update_deps_opencollada() {
   :
 }
 
@@ -6215,7 +6218,7 @@ print_info() {
     fi
     if [ -d $INST/nanovdb ]; then
       _1="-D WITH_NANOVDB=ON"
-      _2="-D NANOVDB_ROOT_DIR=$INST/nanovdb"
+      _2="-D NANOVDB_ROOT_DIR=$INST/openvdb"
       PRINT "  $_1"
       PRINT "  $_2"
       _buildargs="$_buildargs $_1 $_2"

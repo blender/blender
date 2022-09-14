@@ -265,7 +265,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
     /* count */
     if (is_island_center) {
       /* create element map with island information */
-      elementmap = BM_uv_element_map_create(em->bm, scene, true, false, true);
+      elementmap = BM_uv_element_map_create(em->bm, scene, true, false, true, true);
       if (elementmap == NULL) {
         continue;
       }

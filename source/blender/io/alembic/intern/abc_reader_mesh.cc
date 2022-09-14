@@ -135,8 +135,6 @@ static void read_mverts_interp(MVert *mverts,
 
     interp_v3_v3v3(tmp, floor_pos.getValue(), ceil_pos.getValue(), static_cast<float>(weight));
     copy_zup_from_yup(mvert.co, tmp);
-
-    mvert.bweight = 0;
   }
 }
 
@@ -163,8 +161,6 @@ void read_mverts(Mesh &mesh, const P3fArraySamplePtr positions, const N3fArraySa
     Imath::V3f pos_in = (*positions)[i];
 
     copy_zup_from_yup(mvert.co, pos_in.getValue());
-
-    mvert.bweight = 0;
   }
   if (normals) {
     float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(&mesh);
@@ -310,7 +306,7 @@ static void process_vertex_normals(CDStreamConfig &config,
   }
 
   config.mesh->flag |= ME_AUTOSMOOTH;
-  BKE_mesh_set_custom_normals_from_vertices(config.mesh, vnors);
+  BKE_mesh_set_custom_normals_from_verts(config.mesh, vnors);
   MEM_freeN(vnors);
 }
 
@@ -619,11 +615,7 @@ void AbcMeshReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
 
   Mesh *read_mesh = this->read_mesh(mesh, sample_sel, MOD_MESHSEQ_READ_ALL, "", 0.0f, nullptr);
   if (read_mesh != mesh) {
-    /* XXX FIXME: after 2.80; mesh->flag isn't copied by #BKE_mesh_nomain_to_mesh(). */
-    /* read_mesh can be freed by BKE_mesh_nomain_to_mesh(), so get the flag before that happens. */
-    uint16_t autosmooth = (read_mesh->flag & ME_AUTOSMOOTH);
-    BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object, &CD_MASK_EVERYTHING, true);
-    mesh->flag |= autosmooth;
+    BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object);
   }
 
   if (m_settings->validate_meshes) {
@@ -769,7 +761,7 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
     size_t num_polys = new_mesh->totpoly;
     if (num_polys > 0) {
       std::map<std::string, int> mat_map;
-      bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*new_mesh);
+      bke::MutableAttributeAccessor attributes = new_mesh->attributes_for_write();
       bke::SpanAttributeWriter<int> material_indices =
           attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
       assign_facesets_to_material_indices(sample_sel, material_indices.span, mat_map);
@@ -830,7 +822,7 @@ void AbcMeshReader::assign_facesets_to_material_indices(const ISampleSelector &s
 void AbcMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const ISampleSelector &sample_sel)
 {
   std::map<std::string, int> mat_map;
-  bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*mesh);
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<int> material_indices =
       attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
   assign_facesets_to_material_indices(sample_sel, material_indices.span, mat_map);
@@ -1003,7 +995,7 @@ void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
 
   Mesh *read_mesh = this->read_mesh(mesh, sample_sel, MOD_MESHSEQ_READ_ALL, "", 0.0f, nullptr);
   if (read_mesh != mesh) {
-    BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object, &CD_MASK_EVERYTHING, true);
+    BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object);
   }
 
   ISubDSchema::Sample sample;

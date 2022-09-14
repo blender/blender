@@ -995,7 +995,9 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
       if (apply_vcos || median->bv_weight || median->v_crease || median->skin[0] ||
           median->skin[1]) {
         if (median->bv_weight) {
-          BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_VERT_BWEIGHT);
+          if (!CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {
+            BM_data_layer_add(bm, &bm->vdata, CD_BWEIGHT);
+          }
           cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
           BLI_assert(cd_vert_bweight_offset != -1);
 
@@ -1061,7 +1063,9 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
       if (median->be_weight || median->e_crease) {
         if (median->be_weight) {
-          BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_BWEIGHT);
+          if (!CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
+            BM_data_layer_add(bm, &bm->edata, CD_BWEIGHT);
+          }
           cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
           BLI_assert(cd_edge_bweight_offset != -1);
 

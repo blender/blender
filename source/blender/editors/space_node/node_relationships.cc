@@ -1728,7 +1728,8 @@ static int node_attach_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent
   bNodeTree &ntree = *snode.edittree;
   bNode *frame = node_find_frame_to_attach(region, ntree, event->mval);
   if (frame == nullptr) {
-    return OPERATOR_CANCELLED;
+    /* Return "finished" so that auto offset operator macros can work. */
+    return OPERATOR_FINISHED;
   }
 
   LISTBASE_FOREACH_BACKWARD (bNode *, node, &ntree.nodes) {

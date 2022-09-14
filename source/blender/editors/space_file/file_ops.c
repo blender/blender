@@ -367,6 +367,39 @@ static FileSelect file_select(
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Bookmark Utilities
+ * \{ */
+
+/**
+ * Local utility to write #BLENDER_BOOKMARK_FILE, reporting an error on failure.
+ */
+static bool fsmenu_write_file_and_refresh_or_report_error(struct FSMenu *fsmenu,
+                                                          ScrArea *area,
+                                                          ReportList *reports)
+{
+  /* NOTE: use warning instead of error here, because the bookmark operation may be part of
+   * other actions which should not cause the operator to fail entirely. */
+  const char *cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL);
+  if (UNLIKELY(!cfgdir)) {
+    BKE_report(reports, RPT_ERROR, "Unable to create configuration directory to write bookmarks");
+    return false;
+  }
+
+  char filepath[FILE_MAX];
+  BLI_join_dirfile(filepath, sizeof(filepath), cfgdir, BLENDER_BOOKMARK_FILE);
+  if (UNLIKELY(!fsmenu_write_file(fsmenu, filepath))) {
+    BKE_reportf(reports, RPT_ERROR, "Unable to open or write bookmark file \"%s\"", filepath);
+    return false;
+  }
+
+  ED_area_tag_refresh(area);
+  ED_area_tag_redraw(area);
+  return true;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Box Select Operator
  * \{ */
 
@@ -1053,19 +1086,17 @@ static int bookmark_select_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
-  PropertyRNA *prop;
 
-  if ((prop = RNA_struct_find_property(op->ptr, "dir"))) {
-    FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-    char entry[256];
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "dir");
+  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  char entry[256];
 
-    RNA_property_string_get(op->ptr, prop, entry);
-    BLI_strncpy(params->dir, entry, sizeof(params->dir));
-    BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir);
-    ED_file_change_dir(C);
+  RNA_property_string_get(op->ptr, prop, entry);
+  BLI_strncpy(params->dir, entry, sizeof(params->dir));
+  BLI_path_normalize_dir(BKE_main_blendfile_path(bmain), params->dir);
+  ED_file_change_dir(C);
 
-    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
-  }
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 
   return OPERATOR_FINISHED;
 }
@@ -1095,7 +1126,7 @@ void FILE_OT_select_bookmark(wmOperatorType *ot)
 /** \name Add Bookmark Operator
  * \{ */
 
-static int bookmark_add_exec(bContext *C, wmOperator *UNUSED(op))
+static int bookmark_add_exec(bContext *C, wmOperator *op)
 {
   ScrArea *area = CTX_wm_area(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
@@ -1103,19 +1134,11 @@ static int bookmark_add_exec(bContext *C, wmOperator *UNUSED(op))
   struct FileSelectParams *params = ED_fileselect_get_active_params(sfile);
 
   if (params->dir[0] != '\0') {
-    char name[FILE_MAX];
 
     fsmenu_insert_entry(
         fsmenu, FS_CATEGORY_BOOKMARKS, params->dir, NULL, ICON_FILE_FOLDER, FS_INSERT_SAVE);
-    BLI_join_dirfile(name,
-                     sizeof(name),
-                     BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
-                     BLENDER_BOOKMARK_FILE);
-    fsmenu_write_file(fsmenu, name);
+    fsmenu_write_file_and_refresh_or_report_error(fsmenu, area, op->reports);
   }
-
-  ED_area_tag_refresh(area);
-  ED_area_tag_redraw(area);
   return OPERATOR_FINISHED;
 }
 
@@ -1146,27 +1169,11 @@ static int bookmark_delete_exec(bContext *C, wmOperator *op)
   int nentries = ED_fsmenu_get_nentries(fsmenu, FS_CATEGORY_BOOKMARKS);
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "index");
-
-  if (prop) {
-    int index;
-    if (RNA_property_is_set(op->ptr, prop)) {
-      index = RNA_property_int_get(op->ptr, prop);
-    }
-    else { /* if index unset, use active bookmark... */
-      index = sfile->bookmarknr;
-    }
-    if ((index > -1) && (index < nentries)) {
-      char name[FILE_MAX];
-
-      fsmenu_remove_entry(fsmenu, FS_CATEGORY_BOOKMARKS, index);
-      BLI_join_dirfile(name,
-                       sizeof(name),
-                       BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
-                       BLENDER_BOOKMARK_FILE);
-      fsmenu_write_file(fsmenu, name);
-      ED_area_tag_refresh(area);
-      ED_area_tag_redraw(area);
-    }
+  const int index = RNA_property_is_set(op->ptr, prop) ? RNA_property_int_get(op->ptr, prop) :
+                                                         sfile->bookmarknr;
+  if ((index > -1) && (index < nentries)) {
+    fsmenu_remove_entry(fsmenu, FS_CATEGORY_BOOKMARKS, index);
+    fsmenu_write_file_and_refresh_or_report_error(fsmenu, area, op->reports);
   }
 
   return OPERATOR_FINISHED;
@@ -1197,7 +1204,7 @@ void FILE_OT_bookmark_delete(wmOperatorType *ot)
 /** \name Cleanup Bookmark Operator
  * \{ */
 
-static int bookmark_cleanup_exec(bContext *C, wmOperator *UNUSED(op))
+static int bookmark_cleanup_exec(bContext *C, wmOperator *op)
 {
   ScrArea *area = CTX_wm_area(C);
   struct FSMenu *fsmenu = ED_fsmenu_get();
@@ -1218,16 +1225,8 @@ static int bookmark_cleanup_exec(bContext *C, wmOperator *UNUSED(op))
   }
 
   if (changed) {
-    char name[FILE_MAX];
-
-    BLI_join_dirfile(name,
-                     sizeof(name),
-                     BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
-                     BLENDER_BOOKMARK_FILE);
-    fsmenu_write_file(fsmenu, name);
+    fsmenu_write_file_and_refresh_or_report_error(fsmenu, area, op->reports);
     fsmenu_refresh_bookmarks_status(CTX_wm_manager(C), fsmenu);
-    ED_area_tag_refresh(area);
-    ED_area_tag_redraw(area);
   }
 
   return OPERATOR_FINISHED;
@@ -1269,8 +1268,6 @@ static int bookmark_move_exec(bContext *C, wmOperator *op)
   struct FSMenuEntry *fsmentry = ED_fsmenu_get_category(fsmenu, FS_CATEGORY_BOOKMARKS);
   const struct FSMenuEntry *fsmentry_org = fsmentry;
 
-  char fname[FILE_MAX];
-
   const int direction = RNA_enum_get(op->ptr, "direction");
   const int totitems = ED_fsmenu_get_nentries(fsmenu, FS_CATEGORY_BOOKMARKS);
   const int act_index = sfile->bookmarknr;
@@ -1306,13 +1303,8 @@ static int bookmark_move_exec(bContext *C, wmOperator *op)
   /* Need to update active bookmark number. */
   sfile->bookmarknr = new_index;
 
-  BLI_join_dirfile(fname,
-                   sizeof(fname),
-                   BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
-                   BLENDER_BOOKMARK_FILE);
-  fsmenu_write_file(fsmenu, fname);
+  fsmenu_write_file_and_refresh_or_report_error(fsmenu, area, op->reports);
 
-  ED_area_tag_redraw(area);
   return OPERATOR_FINISHED;
 }
 
@@ -1352,21 +1344,16 @@ void FILE_OT_bookmark_move(wmOperatorType *ot)
 /** \name Reset Recent Blend Files Operator
  * \{ */
 
-static int reset_recent_exec(bContext *C, wmOperator *UNUSED(op))
+static int reset_recent_exec(bContext *C, wmOperator *op)
 {
   ScrArea *area = CTX_wm_area(C);
-  char name[FILE_MAX];
   struct FSMenu *fsmenu = ED_fsmenu_get();
 
   while (ED_fsmenu_get_entry(fsmenu, FS_CATEGORY_RECENT, 0) != NULL) {
     fsmenu_remove_entry(fsmenu, FS_CATEGORY_RECENT, 0);
   }
-  BLI_join_dirfile(name,
-                   sizeof(name),
-                   BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
-                   BLENDER_BOOKMARK_FILE);
-  fsmenu_write_file(fsmenu, name);
-  ED_area_tag_redraw(area);
+
+  fsmenu_write_file_and_refresh_or_report_error(fsmenu, area, op->reports);
 
   return OPERATOR_FINISHED;
 }
@@ -1795,6 +1782,8 @@ static bool file_execute(bContext *C, SpaceFile *sfile)
   }
   /* Opening file, sends events now, so things get handled on window-queue level. */
   else if (sfile->op) {
+    ScrArea *area = CTX_wm_area(C);
+    struct FSMenu *fsmenu = ED_fsmenu_get();
     wmOperator *op = sfile->op;
     char filepath[FILE_MAX];
 
@@ -1803,7 +1792,7 @@ static bool file_execute(bContext *C, SpaceFile *sfile)
     file_sfile_to_operator_ex(bmain, op, sfile, filepath);
 
     if (BLI_exists(params->dir)) {
-      fsmenu_insert_entry(ED_fsmenu_get(),
+      fsmenu_insert_entry(fsmenu,
                           FS_CATEGORY_RECENT,
                           params->dir,
                           NULL,
@@ -1811,11 +1800,8 @@ static bool file_execute(bContext *C, SpaceFile *sfile)
                           FS_INSERT_SAVE | FS_INSERT_FIRST);
     }
 
-    BLI_join_dirfile(filepath,
-                     sizeof(filepath),
-                     BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
-                     BLENDER_BOOKMARK_FILE);
-    fsmenu_write_file(ED_fsmenu_get(), filepath);
+    fsmenu_write_file_and_refresh_or_report_error(fsmenu, area, op->reports);
+
     WM_event_fileselect_event(CTX_wm_manager(C), op, EVT_FILESELECT_EXEC);
   }
 
@@ -2327,7 +2313,6 @@ static int file_directory_new_exec(bContext *C, wmOperator *op)
   char name[FILE_MAXFILE];
   char path[FILE_MAX];
   bool generate_name = true;
-  PropertyRNA *prop;
 
   wmWindowManager *wm = CTX_wm_manager(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
@@ -2341,7 +2326,8 @@ static int file_directory_new_exec(bContext *C, wmOperator *op)
 
   path[0] = '\0';
 
-  if ((prop = RNA_struct_find_property(op->ptr, "directory"))) {
+  {
+    PropertyRNA *prop = RNA_struct_find_property(op->ptr, "directory");
     RNA_property_string_get(op->ptr, prop, path);
     if (path[0] != '\0') {
       generate_name = false;

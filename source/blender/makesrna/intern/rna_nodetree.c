@@ -7190,18 +7190,18 @@ static void def_cmp_scale(StructRNA *srna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem space_items[] = {
-      {CMP_SCALE_RELATIVE, "RELATIVE", 0, "Relative", ""},
-      {CMP_SCALE_ABSOLUTE, "ABSOLUTE", 0, "Absolute", ""},
-      {CMP_SCALE_SCENEPERCENT, "SCENE_SIZE", 0, "Scene Size", ""},
-      {CMP_SCALE_RENDERPERCENT, "RENDER_SIZE", 0, "Render Size", ""},
+      {CMP_NODE_SCALE_RELATIVE, "RELATIVE", 0, "Relative", ""},
+      {CMP_NODE_SCALE_ABSOLUTE, "ABSOLUTE", 0, "Absolute", ""},
+      {CMP_NODE_SCALE_RENDER_PERCENT, "SCENE_SIZE", 0, "Scene Size", ""},
+      {CMP_NODE_SCALE_RENDER_SIZE, "RENDER_SIZE", 0, "Render Size", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
   /* matching bgpic_camera_frame_items[] */
   static const EnumPropertyItem space_frame_items[] = {
-      {0, "STRETCH", 0, "Stretch", ""},
-      {CMP_SCALE_RENDERSIZE_FRAME_ASPECT, "FIT", 0, "Fit", ""},
-      {CMP_SCALE_RENDERSIZE_FRAME_ASPECT | CMP_SCALE_RENDERSIZE_FRAME_CROP, "CROP", 0, "Crop", ""},
+      {CMP_NODE_SCALE_RENDER_SIZE_STRETCH, "STRETCH", 0, "Stretch", ""},
+      {CMP_NODE_SCALE_RENDER_SIZE_FIT, "FIT", 0, "Fit", ""},
+      {CMP_NODE_SCALE_RENDER_SIZE_CROP, "CROP", 0, "Crop", ""},
       {0, NULL, 0, NULL, NULL},
   };
 

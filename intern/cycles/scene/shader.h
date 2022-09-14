@@ -192,8 +192,8 @@ class ShaderManager {
   void device_free_common(Device *device, DeviceScene *dscene, Scene *scene);
 
   /* get globally unique id for a type of attribute */
-  uint get_attribute_id(ustring name);
-  uint get_attribute_id(AttributeStandard std);
+  virtual uint64_t get_attribute_id(ustring name);
+  virtual uint64_t get_attribute_id(AttributeStandard std);
 
   /* get shader id for mesh faces */
   int get_shader_id(Shader *shader, bool smooth = false);
@@ -223,7 +223,7 @@ class ShaderManager {
 
   uint32_t update_flags;
 
-  typedef unordered_map<ustring, uint, ustringHash> AttributeIDMap;
+  typedef unordered_map<ustring, uint64_t, ustringHash> AttributeIDMap;
   AttributeIDMap unique_attribute_id;
 
   static thread_mutex lookup_table_mutex;

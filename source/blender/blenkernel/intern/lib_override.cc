@@ -97,21 +97,17 @@ BLI_INLINE const IDOverrideLibrary *BKE_lib_override_library_get(const Main * /*
                                                                  const ID * /*owner_id_hint*/,
                                                                  const ID **r_owner_id)
 {
+  if (id->flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE) {
+    const ID *owner_id = BKE_id_owner_get(const_cast<ID *>(id));
+    BLI_assert_msg(owner_id != nullptr, "Liboverride-embedded ID with no owner");
+    if (r_owner_id != nullptr) {
+      *r_owner_id = owner_id;
+    }
+    return owner_id->override_library;
+  }
+
   if (r_owner_id != nullptr) {
     *r_owner_id = id;
-  }
-  if (id->flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE) {
-    const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
-    if (id_type->owner_get != nullptr) {
-      /* The #IDTypeInfo::owner_get callback should not modify the arguments, so casting away const
-       * is okay. */
-      const ID *owner_id = id_type->owner_get(const_cast<ID *>(id));
-      if (r_owner_id != nullptr) {
-        *r_owner_id = owner_id;
-      }
-      return owner_id->override_library;
-    }
-    BLI_assert_msg(0, "IDTypeInfo of liboverride-embedded ID with no owner getter");
   }
   return id->override_library;
 }
@@ -2211,9 +2207,9 @@ static bool lib_override_resync_id_lib_level_is_valid(ID *id,
 static ID *lib_override_library_main_resync_root_get(Main * /*bmain*/, ID *id)
 {
   if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
-    const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
-    if (id_type->owner_get != nullptr) {
-      id = id_type->owner_get(id);
+    ID *id_owner = BKE_id_owner_get(id);
+    if (id_owner != nullptr) {
+      id = id_owner;
     }
     BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id));
   }

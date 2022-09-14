@@ -51,7 +51,6 @@
 #include "ED_screen.h"
 #include "ED_select_utils.h"
 #include "ED_transform.h"
-#include "ED_types.h"
 #include "ED_util.h"
 
 #include "DEG_depsgraph.h"

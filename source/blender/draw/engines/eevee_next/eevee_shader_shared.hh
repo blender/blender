@@ -199,6 +199,12 @@ enum eFilmWeightLayerIndex : uint32_t {
   FILM_WEIGHT_LAYER_DISTANCE = 1u,
 };
 
+enum ePassStorageType : uint32_t {
+  PASS_STORAGE_COLOR = 0u,
+  PASS_STORAGE_VALUE = 1u,
+  PASS_STORAGE_CRYPTOMATTE = 2u,
+};
+
 struct FilmSample {
   int2 texel;
   float weight;
@@ -255,13 +261,19 @@ struct FilmData {
   int combined_id;
   /** Id of the render-pass to be displayed. -1 for combined. */
   int display_id;
-  /** True if the render-pass to be displayed is from the value accum buffer. */
-  bool1 display_is_value;
+  /** Storage type of the render-pass to be displayed. */
+  ePassStorageType display_storage_type;
   /** True if we bypass the accumulation and directly output the accumulation buffer. */
   bool1 display_only;
   /** Start of AOVs and number of aov. */
   int aov_color_id, aov_color_len;
   int aov_value_id, aov_value_len;
+  /** Start of cryptomatte per layer (-1 if pass is not enabled). */
+  int cryptomatte_object_id;
+  int cryptomatte_asset_id;
+  int cryptomatte_material_id;
+  /** Max number of samples stored per layer (is even number). */
+  int cryptomatte_samples_len;
   /** Settings to render mist pass */
   float mist_scale, mist_bias, mist_exponent;
   /** Scene exposure used for better noise reduction. */
@@ -750,6 +762,7 @@ using SamplingDataBuf = draw::StorageBuffer<SamplingData>;
 using VelocityGeometryBuf = draw::StorageArrayBuffer<float4, 16, true>;
 using VelocityIndexBuf = draw::StorageArrayBuffer<VelocityIndex, 16>;
 using VelocityObjectBuf = draw::StorageArrayBuffer<float4x4, 16>;
+using CryptomatteObjectBuf = draw::StorageArrayBuffer<float2, 16>;
 
 }  // namespace blender::eevee
 #endif

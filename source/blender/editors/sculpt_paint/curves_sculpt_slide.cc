@@ -180,8 +180,8 @@ struct SlideOperationExecutor {
     }
     surface_looptris_orig_ = {BKE_mesh_runtime_looptri_ensure(surface_orig_),
                               BKE_mesh_runtime_looptri_len(surface_orig_)};
-    surface_uv_map_orig_ =
-        bke::mesh_attributes(*surface_orig_).lookup<float2>(uv_map_name, ATTR_DOMAIN_CORNER);
+    surface_uv_map_orig_ = surface_orig_->attributes().lookup<float2>(uv_map_name,
+                                                                      ATTR_DOMAIN_CORNER);
     if (surface_uv_map_orig_.is_empty()) {
       report_missing_uv_map_on_original_surface(stroke_extension.reports);
       return;
@@ -209,8 +209,8 @@ struct SlideOperationExecutor {
                               BKE_mesh_runtime_looptri_len(surface_eval_)};
     surface_verts_eval_ = surface_eval_->verts();
     surface_loops_eval_ = surface_eval_->loops();
-    surface_uv_map_eval_ =
-        bke::mesh_attributes(*surface_eval_).lookup<float2>(uv_map_name, ATTR_DOMAIN_CORNER);
+    surface_uv_map_eval_ = surface_eval_->attributes().lookup<float2>(uv_map_name,
+                                                                      ATTR_DOMAIN_CORNER);
     if (surface_uv_map_eval_.is_empty()) {
       report_missing_uv_map_on_evaluated_surface(stroke_extension.reports);
       return;

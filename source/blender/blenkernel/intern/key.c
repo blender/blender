@@ -91,14 +91,14 @@ static void shapekey_foreach_id(ID *id, LibraryForeachIDData *data)
   BKE_LIB_FOREACHID_PROCESS_ID(data, key->from, IDWALK_CB_LOOPBACK);
 }
 
-static ID *shapekey_owner_get(ID *id)
+static ID **shapekey_owner_pointer_get(ID *id)
 {
   Key *key = (Key *)id;
 
   BLI_assert(key->from != NULL);
   BLI_assert(BKE_key_from_id(key->from) == key);
 
-  return key->from;
+  return &key->from;
 }
 
 static void shapekey_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -215,7 +215,7 @@ IDTypeInfo IDType_ID_KE = {
     .foreach_path = NULL,
     /* A bit weird, due to shape-keys not being strictly speaking embedded data... But they also
      * share a lot with those (non linkable, only ever used by one owner ID, etc.). */
-    .owner_get = shapekey_owner_get,
+    .owner_pointer_get = shapekey_owner_pointer_get,
 
     .blend_write = shapekey_blend_write,
     .blend_read_data = shapekey_blend_read_data,
@@ -1936,6 +1936,16 @@ KeyBlock *BKE_keyblock_from_key(Key *key, int index)
 KeyBlock *BKE_keyblock_find_name(Key *key, const char name[])
 {
   return BLI_findstring(&key->block, name, offsetof(KeyBlock, name));
+}
+
+KeyBlock *BKE_keyblock_find_uid(Key *key, const int uid)
+{
+  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
+    if (kb->uid == uid) {
+      return kb;
+    }
+  }
+  return NULL;
 }
 
 void BKE_keyblock_copy_settings(KeyBlock *kb_dst, const KeyBlock *kb_src)

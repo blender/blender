@@ -879,7 +879,7 @@ static void ccgDM_getFinalVertNo(DerivedMesh *dm, int vertNum, float r_no[3])
 BLI_INLINE void ccgDM_to_MVert(MVert *mv, const CCGKey *key, CCGElem *elem)
 {
   copy_v3_v3(mv->co, CCG_elem_co(key, elem));
-  mv->flag = mv->bweight = 0;
+  mv->flag = 0;
 }
 
 static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
@@ -949,7 +949,7 @@ BLI_INLINE void ccgDM_to_MEdge(MEdge *med, const int v1, const int v2, const sho
 {
   med->v1 = v1;
   med->v2 = v2;
-  med->crease = med->bweight = 0;
+  med->crease = 0;
   med->flag = flag;
 }
 

@@ -288,7 +288,7 @@ static bool collect_vertex_counts_per_poly(Mesh *me,
                                            std::vector<unsigned long> &vcount_list)
 {
   const Span<MPoly> polys = me->polys();
-  const blender::bke::AttributeAccessor attributes = blender::bke::mesh_attributes(*me);
+  const blender::bke::AttributeAccessor attributes = me->attributes();
   const blender::VArray<int> material_indices = attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   bool is_triangulated = true;
@@ -399,7 +399,7 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
   /* performs the actual writing */
   prepareToAppendValues(is_triangulated, *primitive_list, vcount_list);
 
-  const blender::bke::AttributeAccessor attributes = blender::bke::mesh_attributes(*me);
+  const blender::bke::AttributeAccessor attributes = me->attributes();
   const blender::VArray<int> material_indices = attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
 

@@ -1917,7 +1917,7 @@ class VIEW3D_PT_tools_grease_pencil_sculpt_select(Panel, View3DPanel, GreasePenc
             if brush is not None:
                 col.prop(brush, "use_custom_icon", toggle=True, icon='FILE_IMAGE', text="")
 
-                if(brush.use_custom_icon):
+                if (brush.use_custom_icon):
                     layout.row().prop(brush, "icon_filepath", text="")
 
 
@@ -2026,7 +2026,7 @@ class VIEW3D_PT_tools_grease_pencil_weight_paint_select(View3DPanel, Panel, Grea
             if brush is not None:
                 col.prop(brush, "use_custom_icon", toggle=True, icon='FILE_IMAGE', text="")
 
-                if(brush.use_custom_icon):
+                if (brush.use_custom_icon):
                     layout.row().prop(brush, "icon_filepath", text="")
 
 
@@ -2101,7 +2101,7 @@ class VIEW3D_PT_tools_grease_pencil_vertex_paint_select(View3DPanel, Panel, Grea
             if brush is not None:
                 col.prop(brush, "use_custom_icon", toggle=True, icon='FILE_IMAGE', text="")
 
-                if(brush.use_custom_icon):
+                if (brush.use_custom_icon):
                     layout.row().prop(brush, "icon_filepath", text="")
 
 

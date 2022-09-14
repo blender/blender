@@ -81,7 +81,7 @@ struct MovieCacheItem {
   bool added_empty;
 };
 
-static unsigned int moviecache_hashhash(const void *keyv)
+static uint moviecache_hashhash(const void *keyv)
 {
   const MovieCacheKey *key = (const MovieCacheKey *)keyv;
 

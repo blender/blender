@@ -1251,7 +1251,7 @@ void ED_spacetype_clip(void)
   ARegionType *art;
 
   st->spaceid = SPACE_CLIP;
-  strncpy(st->name, "Clip", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "Clip");
 
   st->create = clip_create;
   st->free = clip_free;

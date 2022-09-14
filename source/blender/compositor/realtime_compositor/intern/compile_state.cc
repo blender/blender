@@ -149,6 +149,11 @@ Domain CompileState::compute_shader_node_domain(DNode node)
       continue;
     }
 
+    /* An input that skips realization can't be a domain input. */
+    if (input_descriptor.skip_realization) {
+      continue;
+    }
+
     /* Notice that the lower the domain priority value is, the higher the priority is, hence the
      * less than comparison. */
     if (input_descriptor.domain_priority < current_domain_priority) {

@@ -10,6 +10,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
@@ -807,15 +808,15 @@ struct DRWCacheBuildingContext {
 };
 
 static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_context,
-                                         const int num_vertices,
+                                         const int num_verts,
                                          const int num_edges,
                                          const int num_loops,
-                                         const int num_polygons,
+                                         const int num_polys,
                                          const int *subdiv_polygon_offset)
 {
   /* num_loops does not take into account meshes with only loose geometry, which might be meshes
-   * used as custom bone shapes, so let's check the num_vertices also. */
-  if (num_vertices == 0 && num_loops == 0) {
+   * used as custom bone shapes, so let's check the num_verts also. */
+  if (num_verts == 0 && num_loops == 0) {
     return false;
   }
 
@@ -826,12 +827,12 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
   if (num_loops != 0) {
     cache->num_subdiv_edges = (uint)num_edges;
     cache->num_subdiv_loops = (uint)num_loops;
-    cache->num_subdiv_verts = (uint)num_vertices;
-    cache->num_subdiv_quads = (uint)num_polygons;
+    cache->num_subdiv_verts = (uint)num_verts;
+    cache->num_subdiv_quads = (uint)num_polys;
     cache->subdiv_polygon_offset = static_cast<int *>(MEM_dupallocN(subdiv_polygon_offset));
   }
 
-  cache->may_have_loose_geom = num_vertices != 0 || num_edges != 0;
+  cache->may_have_loose_geom = num_verts != 0 || num_edges != 0;
 
   /* Initialize cache buffers, prefer dynamic usage so we can reuse memory on the host even after
    * it was sent to the device, since we may use the data while building other buffers on the CPU
@@ -882,7 +883,7 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
   if (cache->num_subdiv_verts) {
     ctx->vert_origindex_map = static_cast<int *>(
         MEM_mallocN(cache->num_subdiv_verts * sizeof(int), "subdiv_vert_origindex_map"));
-    for (int i = 0; i < num_vertices; i++) {
+    for (int i = 0; i < num_verts; i++) {
       ctx->vert_origindex_map[i] = -1;
     }
   }
@@ -1967,9 +1968,8 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache *cache,
     return;
   }
 
-  const blender::VArraySpan<int> material_indices = blender::bke::mesh_attributes(*mesh_eval)
-                                                        .lookup_or_default<int>(
-                                                            "material_index", ATTR_DOMAIN_FACE, 0);
+  const blender::VArraySpan<int> material_indices = mesh_eval->attributes().lookup_or_default<int>(
+      "material_index", ATTR_DOMAIN_FACE, 0);
 
   /* Count number of subdivided polygons for each material. */
   int *mat_start = static_cast<int *>(MEM_callocN(sizeof(int) * mat_len, "subdiv mat_start"));
@@ -2156,7 +2156,17 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
   int subd_vert_offset = 0;
 
   /* Subdivide each loose coarse edge. */
+  const Span<MVert> coarse_verts = coarse_mesh->verts();
   const Span<MEdge> coarse_edges = coarse_mesh->edges();
+
+  int *vert_to_edge_buffer;
+  MeshElemMap *vert_to_edge_map;
+  BKE_mesh_vert_edge_map_create(&vert_to_edge_map,
+                                &vert_to_edge_buffer,
+                                coarse_edges.data(),
+                                coarse_mesh->totvert,
+                                coarse_edges.size());
+
   for (int i = 0; i < coarse_loose_edge_len; i++) {
     const int coarse_edge_index = cache->loose_geom.edges[i];
     const MEdge *coarse_edge = &coarse_edges[cache->loose_geom.edges[i]];
@@ -2170,8 +2180,13 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
       DRWSubdivLooseVertex &subd_v1 = loose_subd_verts[subd_vert_offset];
       subd_v1.coarse_vertex_index = (i == 0) ? coarse_edge->v1 : -1u;
       const float u1 = i * inv_resolution_1;
-      BKE_subdiv_mesh_interpolate_position_on_edge(
-          coarse_mesh, coarse_edge, is_simple, u1, subd_v1.co);
+      BKE_subdiv_mesh_interpolate_position_on_edge(coarse_verts.data(),
+                                                   coarse_edges.data(),
+                                                   vert_to_edge_map,
+                                                   coarse_edge_index,
+                                                   is_simple,
+                                                   u1,
+                                                   subd_v1.co);
 
       subd_edge.loose_subdiv_v1_index = subd_vert_offset++;
 
@@ -2179,15 +2194,22 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
       DRWSubdivLooseVertex &subd_v2 = loose_subd_verts[subd_vert_offset];
       subd_v2.coarse_vertex_index = ((i + 1) == resolution - 1) ? coarse_edge->v2 : -1u;
       const float u2 = (i + 1) * inv_resolution_1;
-      BKE_subdiv_mesh_interpolate_position_on_edge(
-          coarse_mesh, coarse_edge, is_simple, u2, subd_v2.co);
+      BKE_subdiv_mesh_interpolate_position_on_edge(coarse_verts.data(),
+                                                   coarse_edges.data(),
+                                                   vert_to_edge_map,
+                                                   coarse_edge_index,
+                                                   is_simple,
+                                                   u2,
+                                                   subd_v2.co);
 
       subd_edge.loose_subdiv_v2_index = subd_vert_offset++;
     }
   }
 
+  MEM_freeN(vert_to_edge_buffer);
+  MEM_freeN(vert_to_edge_map);
+
   /* Copy the remaining loose_verts. */
-  const Span<MVert> coarse_verts = coarse_mesh->verts();
   for (int i = 0; i < coarse_loose_vert_len; i++) {
     const int coarse_vertex_index = cache->loose_geom.verts[i];
     const MVert &coarse_vertex = coarse_verts[coarse_vertex_index];

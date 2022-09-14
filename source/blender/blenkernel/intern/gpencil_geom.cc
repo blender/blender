@@ -2715,7 +2715,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
         gpl_fill, scene->r.cfra + frame_offset, GP_GETFRAME_ADD_NEW);
     int i;
 
-    const VArray<int> mesh_material_indices = mesh_attributes(*me_eval).lookup_or_default<int>(
+    const VArray<int> mesh_material_indices = me_eval->attributes().lookup_or_default<int>(
         "material_index", ATTR_DOMAIN_FACE, 0);
     for (i = 0; i < mpoly_len; i++) {
       const MPoly *mp = &polys[i];

@@ -152,7 +152,7 @@ void ED_spacetype_script(void)
   ARegionType *art;
 
   st->spaceid = SPACE_SCRIPT;
-  strncpy(st->name, "Script", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "Script");
 
   st->create = script_create;
   st->free = script_free;

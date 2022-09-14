@@ -49,7 +49,7 @@ LANGUAGES = (
     (15, "Russian (Русский)", "ru_RU"),
     (16, "Croatian (Hrvatski)", "hr_HR"),
     (17, "Serbian (Српски)", "sr_RS"),
-    (18, "Ukrainian (Український)", "uk_UA"),
+    (18, "Ukrainian (Українська)", "uk_UA"),
     (19, "Polish (Polski)", "pl_PL"),
     (20, "Romanian (Român)", "ro_RO"),
     # Using the utf8 flipped form of Arabic (العربية).
@@ -87,7 +87,7 @@ LANGUAGES = (
 
 # Default context, in py (keep in sync with `BLT_translation.h`)!
 if bpy is not None:
-    assert(bpy.app.translations.contexts.default == "*")
+    assert bpy.app.translations.contexts.default == "*"
 DEFAULT_CONTEXT = "*"
 
 # Name of language file used by Blender to generate translations' menu.
@@ -318,6 +318,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "glTF 2.0 (.glb/.gltf)",
     "glTF Binary (.glb)",
     "glTF Embedded (.gltf)",
+    "glTF Material Output",
     "glTF Original PBR data",
     "glTF Separate (.gltf + .bin + textures)",
     "invoke() needs to be called before execute()",
@@ -368,10 +369,11 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "and AMD Radeon Pro 21.Q4 driver or newer",
     "and Linux driver version xx.xx.23570 or newer",
     "and NVIDIA driver version 470 or newer",
-    "and Windows driver version 101.1660 or newer",
+    "and Windows driver version 101.3268 or newer",
     "available with",
     "brown fox",
     "can't save image while rendering",
+    "category",
     "constructive modifier",
     "cursor",
     "custom",
@@ -398,6 +400,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "local",
     "matrices", "no matrices",
     "multi-res modifier",
+    "name",
     "non-triangle face",
     "normal",
     "or AMD with macOS 12.3 or newer",
@@ -423,6 +426,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "unsupported format",
     "unsupported image format",
     "unsupported movie clip format",
+    "untitled",
     "vertex data",
     "verts only",
     "view",

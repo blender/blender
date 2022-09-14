@@ -11,6 +11,10 @@
 #include <Python.h>
 #include <frameobject.h>
 
+#ifdef WITH_PYTHON_MODULE
+#  include "pylifecycle.h" /* For `Py_Version`. */
+#endif
+
 #include "MEM_guardedalloc.h"
 
 #include "CLG_log.h"
@@ -768,7 +772,7 @@ static struct PyModuleDef bpy_proxy_def = {
     NULL,            /* m_doc */
     0,               /* m_size */
     NULL,            /* m_methods */
-    NULL,            /* m_reload */
+    NULL,            /* m_slots */
     NULL,            /* m_traverse */
     NULL,            /* m_clear */
     bpy_module_free, /* m_free */
@@ -807,6 +811,50 @@ static void bpy_module_delay_init(PyObject *bpy_proxy)
   PyDict_Update(PyModule_GetDict(bpy_proxy), PyModule_GetDict(bpy_package_py));
 }
 
+/**
+ * Raise an error and return false if the Python version used to compile Blender
+ * isn't compatible with the interpreter loading the `bpy` module.
+ */
+static bool bpy_module_ensure_compatible_version(void)
+{
+  /* First check the Python version used matches the major version that Blender was built with.
+   * While this isn't essential, the error message in this case may be cryptic and misleading.
+   * NOTE: using `Py_LIMITED_API` would remove the need for this, in practice it's
+   * unlikely Blender will ever used the limited API though. */
+#  if PY_VERSION_HEX >= 0x030b0000 /* Python 3.11 & newer. */
+  const uint version_runtime = Py_Version;
+#  else
+  uint version_runtime;
+  {
+    uint version_runtime_major = 0, version_runtime_minor = 0;
+    const char *version_str = Py_GetVersion();
+    if (sscanf(version_str, "%u.%u.", &version_runtime_major, &version_runtime_minor) != 2) {
+      /* Should never happen, raise an error to ensure this check never fails silently. */
+      PyErr_Format(PyExc_ImportError, "Failed to extract the version from \"%s\"", version_str);
+      return false;
+    }
+    version_runtime = (version_runtime_major << 24) | (version_runtime_minor << 16);
+  }
+#  endif
+
+  uint version_compile_major = PY_VERSION_HEX >> 24;
+  uint version_compile_minor = ((PY_VERSION_HEX & 0x00ff0000) >> 16);
+  uint version_runtime_major = version_runtime >> 24;
+  uint version_runtime_minor = ((version_runtime & 0x00ff0000) >> 16);
+  if ((version_compile_major != version_runtime_major) ||
+      (version_compile_minor != version_runtime_minor)) {
+    PyErr_Format(PyExc_ImportError,
+                 "The version of \"bpy\" was compiled with: "
+                 "(%u.%u) is incompatible with: (%u.%u) used by the interpreter!",
+                 version_compile_major,
+                 version_compile_minor,
+                 version_runtime_major,
+                 version_runtime_minor);
+    return false;
+  }
+  return true;
+}
+
 static void dealloc_obj_dealloc(PyObject *self);
 
 static PyTypeObject dealloc_obj_Type;
@@ -824,6 +872,10 @@ PyMODINIT_FUNC PyInit_bpy(void);
 
 PyMODINIT_FUNC PyInit_bpy(void)
 {
+  if (!bpy_module_ensure_compatible_version()) {
+    return NULL; /* The error has been set. */
+  }
+
   PyObject *bpy_proxy = PyModule_Create(&bpy_proxy_def);
 
   /* Problem:

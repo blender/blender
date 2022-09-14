@@ -126,17 +126,6 @@ void BM_mesh_cd_flag_apply(BMesh *bm, const char cd_flag)
   BLI_assert(bm->edata.totlayer == 0 || bm->edata.pool != nullptr);
   BLI_assert(bm->pdata.totlayer == 0 || bm->pdata.pool != nullptr);
 
-  if (cd_flag & ME_CDFLAG_VERT_BWEIGHT) {
-    if (!CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {
-      BM_data_layer_add(bm, &bm->vdata, CD_BWEIGHT);
-    }
-  }
-  else {
-    if (CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {
-      BM_data_layer_free(bm, &bm->vdata, CD_BWEIGHT);
-    }
-  }
-
   if (cd_flag & ME_CDFLAG_VERT_CREASE) {
     if (!CustomData_has_layer(&bm->vdata, CD_CREASE)) {
       BM_data_layer_add(bm, &bm->vdata, CD_CREASE);
@@ -145,17 +134,6 @@ void BM_mesh_cd_flag_apply(BMesh *bm, const char cd_flag)
   else {
     if (CustomData_has_layer(&bm->vdata, CD_CREASE)) {
       BM_data_layer_free(bm, &bm->vdata, CD_CREASE);
-    }
-  }
-
-  if (cd_flag & ME_CDFLAG_EDGE_BWEIGHT) {
-    if (!CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
-      BM_data_layer_add(bm, &bm->edata, CD_BWEIGHT);
-    }
-  }
-  else {
-    if (CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
-      BM_data_layer_free(bm, &bm->edata, CD_BWEIGHT);
     }
   }
 
@@ -174,14 +152,8 @@ void BM_mesh_cd_flag_apply(BMesh *bm, const char cd_flag)
 char BM_mesh_cd_flag_from_bmesh(BMesh *bm)
 {
   char cd_flag = 0;
-  if (CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {
-    cd_flag |= ME_CDFLAG_VERT_BWEIGHT;
-  }
   if (CustomData_has_layer(&bm->vdata, CD_CREASE)) {
     cd_flag |= ME_CDFLAG_VERT_CREASE;
-  }
-  if (CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
-    cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
   }
   if (CustomData_has_layer(&bm->edata, CD_CREASE)) {
     cd_flag |= ME_CDFLAG_EDGE_CREASE;
@@ -342,12 +314,6 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
 
   /* Only copy these values over if the source mesh is flagged to be using them.
    * Even if `bm` has these layers, they may have been added from another mesh, when `!is_new`. */
-  const int cd_vert_bweight_offset = (me->cd_flag & ME_CDFLAG_VERT_BWEIGHT) ?
-                                         CustomData_get_offset(&bm->vdata, CD_BWEIGHT) :
-                                         -1;
-  const int cd_edge_bweight_offset = (me->cd_flag & ME_CDFLAG_EDGE_BWEIGHT) ?
-                                         CustomData_get_offset(&bm->edata, CD_BWEIGHT) :
-                                         -1;
   const int cd_edge_crease_offset = (me->cd_flag & ME_CDFLAG_EDGE_CREASE) ?
                                         CustomData_get_offset(&bm->edata, CD_CREASE) :
                                         -1;
@@ -391,10 +357,6 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     /* Copy Custom Data */
     CustomData_to_bmesh_block(&me->vdata, &bm->vdata, i, &v->head.data, true);
 
-    if (cd_vert_bweight_offset != -1) {
-      BM_ELEM_CD_SET_FLOAT(v, cd_vert_bweight_offset, (float)mvert[i].bweight / 255.0f);
-    }
-
     /* Set shape key original index. */
     if (cd_shape_keyindex_offset != -1) {
       BM_ELEM_CD_SET_INT(v, cd_shape_keyindex_offset, i);
@@ -433,9 +395,6 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     /* Copy Custom Data */
     CustomData_to_bmesh_block(&me->edata, &bm->edata, i, &e->head.data, true);
 
-    if (cd_edge_bweight_offset != -1) {
-      BM_ELEM_CD_SET_FLOAT(e, cd_edge_bweight_offset, (float)medge[i].bweight / 255.0f);
-    }
     if (cd_edge_crease_offset != -1) {
       BM_ELEM_CD_SET_FLOAT(e, cd_edge_crease_offset, (float)medge[i].crease / 255.0f);
     }
@@ -965,7 +924,7 @@ static void convert_bmesh_hide_flags_to_mesh_attributes(BMesh &bm,
     return;
   }
 
-  bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(mesh);
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   BM_mesh_elem_table_ensure(&bm, BM_VERT | BM_EDGE | BM_FACE);
 
   write_fn_to_attribute<bool>(
@@ -990,8 +949,6 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   BMIter iter;
   int i, j;
 
-  const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
-  const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
   const int cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
   const int cd_shape_keyindex_offset = CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX);
 
@@ -1073,10 +1030,6 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
     /* Copy over custom-data. */
     CustomData_from_bmesh_block(&bm->vdata, &me->vdata, v->head.data, i);
 
-    if (cd_vert_bweight_offset != -1) {
-      mvert[i].bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(v, cd_vert_bweight_offset);
-    }
-
     i++;
 
     BM_CHECK_ELEMENT(v);
@@ -1102,9 +1055,6 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
 
     if (cd_edge_crease_offset != -1) {
       medge[i].crease = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(e, cd_edge_crease_offset);
-    }
-    if (cd_edge_bweight_offset != -1) {
-      medge[i].bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(e, cd_edge_bweight_offset);
     }
 
     i++;
@@ -1154,11 +1104,9 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   if (need_material_index) {
     BM_mesh_elem_table_ensure(bm, BM_FACE);
     write_fn_to_attribute<int>(
-        blender::bke::mesh_attributes_for_write(*me),
-        "material_index",
-        ATTR_DOMAIN_FACE,
-        true,
-        [&](const int i) { return static_cast<int>(BM_face_at_index(bm, i)->mat_nr); });
+        me->attributes_for_write(), "material_index", ATTR_DOMAIN_FACE, true, [&](const int i) {
+          return static_cast<int>(BM_face_at_index(bm, i)->mat_nr);
+        });
   }
 
   /* Patch hook indices and vertex parents. */
@@ -1314,8 +1262,6 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   MLoop *mloop = loops.data();
   unsigned int i, j;
 
-  const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
-  const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
   const int cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
 
   bool need_hide_vert = false;
@@ -1339,14 +1285,6 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
     mv->flag = BM_vert_flag_to_mflag(eve);
     if (BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
       need_hide_vert = true;
-    }
-
-    if (cd_vert_bweight_offset != -1) {
-      mv->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eve, cd_vert_bweight_offset);
-    }
-
-    if (cd_vert_bweight_offset != -1) {
-      mv->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eve, cd_vert_bweight_offset);
     }
 
     CustomData_from_bmesh_block(&bm->vdata, &me->vdata, eve->head.data, i);
@@ -1376,9 +1314,6 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
 
     if (cd_edge_crease_offset != -1) {
       med->crease = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eed, cd_edge_crease_offset);
-    }
-    if (cd_edge_bweight_offset != -1) {
-      med->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eed, cd_edge_bweight_offset);
     }
 
     CustomData_from_bmesh_block(&bm->edata, &me->edata, eed->head.data, i);
@@ -1423,11 +1358,9 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   if (need_material_index) {
     BM_mesh_elem_table_ensure(bm, BM_FACE);
     write_fn_to_attribute<int>(
-        blender::bke::mesh_attributes_for_write(*me),
-        "material_index",
-        ATTR_DOMAIN_FACE,
-        true,
-        [&](const int i) { return static_cast<int>(BM_face_at_index(bm, i)->mat_nr); });
+        me->attributes_for_write(), "material_index", ATTR_DOMAIN_FACE, true, [&](const int i) {
+          return static_cast<int>(BM_face_at_index(bm, i)->mat_nr);
+        });
   }
 
   convert_bmesh_hide_flags_to_mesh_attributes(

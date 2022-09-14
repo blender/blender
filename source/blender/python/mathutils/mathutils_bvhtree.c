@@ -1294,7 +1294,7 @@ static struct PyModuleDef bvhtree_moduledef = {
     py_bvhtree_doc,      /* m_doc */
     0,                   /* m_size */
     NULL,                /* m_methods */
-    NULL,                /* m_reload */
+    NULL,                /* m_slots */
     NULL,                /* m_traverse */
     NULL,                /* m_clear */
     NULL,                /* m_free */

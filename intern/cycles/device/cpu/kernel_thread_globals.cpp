@@ -3,10 +3,7 @@
 
 #include "device/cpu/kernel_thread_globals.h"
 
-// clang-format off
-#include "kernel/osl/shader.h"
 #include "kernel/osl/globals.h"
-// clang-format on
 
 #include "util/profiling.h"
 
@@ -20,7 +17,7 @@ CPUKernelThreadGlobals::CPUKernelThreadGlobals(const KernelGlobalsCPU &kernel_gl
   reset_runtime_memory();
 
 #ifdef WITH_OSL
-  OSLShader::thread_init(this, reinterpret_cast<OSLGlobals *>(osl_globals_memory));
+  OSLGlobals::thread_init(this, static_cast<OSLGlobals *>(osl_globals_memory));
 #else
   (void)osl_globals_memory;
 #endif
@@ -35,7 +32,7 @@ CPUKernelThreadGlobals::CPUKernelThreadGlobals(CPUKernelThreadGlobals &&other) n
 CPUKernelThreadGlobals::~CPUKernelThreadGlobals()
 {
 #ifdef WITH_OSL
-  OSLShader::thread_free(this);
+  OSLGlobals::thread_free(this);
 #endif
 }
 

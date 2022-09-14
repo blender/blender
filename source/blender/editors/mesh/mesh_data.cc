@@ -626,6 +626,28 @@ static int mesh_customdata_clear_exec__internal(bContext *C, char htype, int typ
   return OPERATOR_CANCELLED;
 }
 
+static int mesh_customdata_add_exec__internal(bContext *C, char htype, int type)
+{
+  Mesh *mesh = ED_mesh_context(C);
+
+  int tot;
+  CustomData *data = mesh_customdata_get_type(mesh, htype, &tot);
+
+  BLI_assert(CustomData_layertype_is_singleton(type) == true);
+
+  if (mesh->edit_mesh) {
+    BM_data_layer_add(mesh->edit_mesh->bm, data, type);
+  }
+  else {
+    CustomData_add_layer(data, type, CD_SET_DEFAULT, NULL, tot);
+  }
+
+  DEG_id_tag_update(&mesh->id, 0);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
+
+  return CustomData_has_layer(data, type) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+}
+
 /* Clear Mask */
 static bool mesh_customdata_mask_clear_poll(bContext *C)
 {
@@ -845,6 +867,126 @@ void MESH_OT_customdata_custom_splitnormals_clear(wmOperatorType *ot)
   ot->poll = ED_operator_editable_mesh;
 
   /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* Vertex bevel weight. */
+
+static int mesh_customdata_bevel_weight_vertex_state(bContext *C)
+{
+  const Object *object = ED_object_context(C);
+
+  if (object && object->type == OB_MESH) {
+    const Mesh *mesh = static_cast<Mesh *>(object->data);
+    if (!ID_IS_LINKED(mesh)) {
+      const CustomData *data = GET_CD_DATA(mesh, vdata);
+      return CustomData_has_layer(data, CD_BWEIGHT);
+    }
+  }
+  return -1;
+}
+
+static bool mesh_customdata_bevel_weight_vertex_add_poll(bContext *C)
+{
+  return mesh_customdata_bevel_weight_vertex_state(C) == 0;
+}
+
+static int mesh_customdata_bevel_weight_vertex_add_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  return mesh_customdata_add_exec__internal(C, BM_VERT, CD_BWEIGHT);
+}
+
+void MESH_OT_customdata_bevel_weight_vertex_add(wmOperatorType *ot)
+{
+  ot->name = "Add Vertex Bevel Weight";
+  ot->idname = "MESH_OT_customdata_bevel_weight_vertex_add";
+  ot->description = "Add a vertex bevel weight layer";
+
+  ot->exec = mesh_customdata_bevel_weight_vertex_add_exec;
+  ot->poll = mesh_customdata_bevel_weight_vertex_add_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static bool mesh_customdata_bevel_weight_vertex_clear_poll(bContext *C)
+{
+  return (mesh_customdata_bevel_weight_vertex_state(C) == 1);
+}
+
+static int mesh_customdata_bevel_weight_vertex_clear_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  return mesh_customdata_clear_exec__internal(C, BM_VERT, CD_BWEIGHT);
+}
+
+void MESH_OT_customdata_bevel_weight_vertex_clear(wmOperatorType *ot)
+{
+  ot->name = "Clear Vertex Bevel Weight";
+  ot->idname = "MESH_OT_customdata_bevel_weight_vertex_clear";
+  ot->description = "Clear the vertex bevel weight layer";
+
+  ot->exec = mesh_customdata_bevel_weight_vertex_clear_exec;
+  ot->poll = mesh_customdata_bevel_weight_vertex_clear_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* Edge bevel weight. */
+
+static int mesh_customdata_bevel_weight_edge_state(bContext *C)
+{
+  const Object *ob = ED_object_context(C);
+
+  if (ob && ob->type == OB_MESH) {
+    const Mesh *mesh = static_cast<Mesh *>(ob->data);
+    if (!ID_IS_LINKED(mesh)) {
+      const CustomData *data = GET_CD_DATA(mesh, edata);
+      return CustomData_has_layer(data, CD_BWEIGHT);
+    }
+  }
+  return -1;
+}
+
+static bool mesh_customdata_bevel_weight_edge_add_poll(bContext *C)
+{
+  return mesh_customdata_bevel_weight_edge_state(C) == 0;
+}
+
+static int mesh_customdata_bevel_weight_edge_add_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  return mesh_customdata_add_exec__internal(C, BM_EDGE, CD_BWEIGHT);
+}
+
+void MESH_OT_customdata_bevel_weight_edge_add(wmOperatorType *ot)
+{
+  ot->name = "Add Edge Bevel Weight";
+  ot->idname = "MESH_OT_customdata_bevel_weight_edge_add";
+  ot->description = "Add an edge bevel weight layer";
+
+  ot->exec = mesh_customdata_bevel_weight_edge_add_exec;
+  ot->poll = mesh_customdata_bevel_weight_edge_add_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static bool mesh_customdata_bevel_weight_edge_clear_poll(bContext *C)
+{
+  return mesh_customdata_bevel_weight_edge_state(C) == 1;
+}
+
+static int mesh_customdata_bevel_weight_edge_clear_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  return mesh_customdata_clear_exec__internal(C, BM_EDGE, CD_BWEIGHT);
+}
+
+void MESH_OT_customdata_bevel_weight_edge_clear(wmOperatorType *ot)
+{
+  ot->name = "Clear Edge Bevel Weight";
+  ot->idname = "MESH_OT_customdata_bevel_weight_edge_clear";
+  ot->description = "Clear the edge bevel weight layer";
+
+  ot->exec = mesh_customdata_bevel_weight_edge_clear_exec;
+  ot->poll = mesh_customdata_bevel_weight_edge_clear_poll;
+
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 

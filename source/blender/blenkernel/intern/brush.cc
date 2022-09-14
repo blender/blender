@@ -413,7 +413,7 @@ IDTypeInfo IDType_ID_BR = {
     /* foreach_id */ brush_foreach_id,
     /* foreach_cache */ nullptr,
     /* foreach_path */ brush_foreach_path,
-    /* owner_get */ nullptr,
+    /* owner_pointer_get */ nullptr,
 
     /* blend_write */ brush_blend_write,
     /* blend_read_data */ brush_blend_read_data,

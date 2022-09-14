@@ -1204,87 +1204,6 @@ bool BLI_make_existing_file(const char *name)
   return BLI_dir_create_recursive(di);
 }
 
-void BLI_make_file_string(const char *relabase, char *string, const char *dir, const char *file)
-{
-  int sl;
-
-  if (string) {
-    /* ensure this is always set even if dir/file are NULL */
-    string[0] = '\0';
-
-    if (ELEM(NULL, dir, file)) {
-      return; /* We don't want any NULLs */
-    }
-  }
-  else {
-    return; /* string is NULL, probably shouldn't happen but return anyway */
-  }
-
-  /* Resolve relative references */
-  if (relabase && dir[0] == '/' && dir[1] == '/') {
-    char *lslash;
-
-    /* Get the file name, chop everything past the last slash (ie. the filename) */
-    strcpy(string, relabase);
-
-    lslash = (char *)BLI_path_slash_rfind(string);
-    if (lslash) {
-      *(lslash + 1) = 0;
-    }
-
-    dir += 2; /* Skip over the relative reference */
-  }
-#ifdef WIN32
-  else {
-    if (BLI_strnlen(dir, 3) >= 2 && dir[1] == ':') {
-      BLI_strncpy(string, dir, 3);
-      dir += 2;
-    }
-    else if (BLI_strnlen(dir, 3) >= 2 && BLI_path_is_unc(dir)) {
-      string[0] = 0;
-    }
-    else { /* no drive specified */
-           /* first option: get the drive from the relabase if it has one */
-      if (relabase && BLI_strnlen(relabase, 3) >= 2 && relabase[1] == ':') {
-        BLI_strncpy(string, relabase, 3);
-        string[2] = '\\';
-        string[3] = '\0';
-      }
-      else { /* we're out of luck here, guessing the first valid drive, usually c:\ */
-        BLI_windows_get_default_root_dir(string);
-      }
-
-      /* ignore leading slashes */
-      while (ELEM(*dir, '/', '\\')) {
-        dir++;
-      }
-    }
-  }
-#endif
-
-  strcat(string, dir);
-
-  /* Make sure string ends in one (and only one) slash */
-  /* first trim all slashes from the end of the string */
-  sl = strlen(string);
-  while ((sl > 0) && ELEM(string[sl - 1], '/', '\\')) {
-    string[sl - 1] = '\0';
-    sl--;
-  }
-  /* since we've now removed all slashes, put back one slash at the end. */
-  strcat(string, "/");
-
-  while (ELEM(*file, '/', '\\')) {
-    /* Trim slashes from the front of file */
-    file++;
-  }
-
-  strcat(string, file);
-
-  /* Push all slashes to the system preferred direction */
-  BLI_path_slash_native(string);
-}
-
 static bool path_extension_check_ex(const char *str,
                                     const size_t str_len,
                                     const char *ext,
@@ -1586,8 +1505,8 @@ size_t BLI_path_join(char *__restrict dst, const size_t dst_len, const char *pat
     return ofs;
   }
 
-  /* remove trailing slashes, unless there are _only_ trailing slashes
-   * (allow "//" as the first argument). */
+  /* Remove trailing slashes, unless there are *only* trailing slashes
+   * (allow `//` or `//some_path` as the first argument). */
   bool has_trailing_slash = false;
   if (ofs != 0) {
     size_t len = ofs;

@@ -371,10 +371,6 @@ void deg_graph_flush_updates(Depsgraph *graph)
     while (op_node != nullptr) {
       /* Tag operation as required for update. */
       op_node->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
-      /* Tag depsgraph visibility update when visibility operation is tagged for an update. */
-      if (op_node->opcode == OperationCode::VISIBILITY) {
-        graph->need_update_nodes_visibility = true;
-      }
       /* Inform corresponding ID and component nodes about the change. */
       ComponentNode *comp_node = op_node->owner;
       IDNode *id_node = comp_node->owner;

@@ -229,7 +229,7 @@ def keyconfig_export_as_data(wm, kc, filepath, *, all_keymaps=False):
 # Take care making changes that could impact performance.
 
 def _init_properties_from_data(base_props, base_value):
-    assert(type(base_value) is list)
+    assert type(base_value) is list
     for attr, value in base_value:
         if type(value) is list:
             base_props.property_unset(attr)

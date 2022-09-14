@@ -522,7 +522,7 @@ static void ubuf_ensure_compat_ibuf(const UndoImageBuf *ubuf, ImBuf *ibuf)
   IMB_rect_size_set(ibuf, ubuf->image_dims);
 
   if (ubuf->image_state.use_float) {
-    imb_addrectfloatImBuf(ibuf);
+    imb_addrectfloatImBuf(ibuf, 4);
   }
   else {
     imb_addrectImBuf(ibuf);

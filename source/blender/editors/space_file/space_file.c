@@ -992,7 +992,7 @@ void ED_spacetype_file(void)
   ARegionType *art;
 
   st->spaceid = SPACE_FILE;
-  strncpy(st->name, "File", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "File");
 
   st->create = file_create;
   st->free = file_free;

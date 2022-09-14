@@ -686,9 +686,10 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     /* Winding was added to island detection in 5197aa04c6bd
      * However the sculpt tools can flip faces, potentially creating orphaned islands.
      * See T100132 */
-    bool use_winding = false;
+    const bool use_winding = false;
+    const bool use_seams = true;
     data->elementMap = BM_uv_element_map_create(
-        bm, scene, false, use_winding, do_island_optimization);
+        bm, scene, false, use_winding, use_seams, do_island_optimization);
 
     if (!data->elementMap) {
       uv_sculpt_stroke_exit(C, op);

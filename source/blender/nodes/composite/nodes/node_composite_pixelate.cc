@@ -5,6 +5,9 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector.hh"
+
 #include "COM_node_operation.hh"
 
 #include "node_composite_util.hh"
@@ -27,7 +30,33 @@ class PixelateOperation : public NodeOperation {
 
   void execute() override
   {
+    /* It might seems strange that the input is passed through without any processing, but note
+     * that the actual processing happens inside the domain realization input processor of the
+     * input. Indeed, the pixelate node merely realizes its input on a smaller-sized domain that
+     * matches its apparent size, that is, its size after the domain transformation. The pixelate
+     * node has no effect if the input is scaled-up. See the compute_domain method for more
+     * information. */
     get_input("Color").pass_through(get_result("Color"));
+  }
+
+  /* Compute a smaller-sized domain that matches the apparent size of the input while having a unit
+   * scale transformation, see the execute method for more information. */
+  Domain compute_domain() override
+  {
+    Domain domain = get_input("Color").domain();
+
+    /* Get the scaling component of the domain transformation, but make sure it doesn't exceed 1,
+     * because pixelation should only happen if the input is scaled down. */
+    const float2 scale = math::min(float2(1.0f), domain.transformation.scale_2d());
+
+    /* Multiply the size of the domain by its scale to match its apparent size, but make sure it is
+     * at least 1 pixel in both axis. */
+    domain.size = math::max(int2(float2(domain.size) * scale), int2(1));
+
+    /* Reset the scale of the transformation by transforming it with the inverse of the scale. */
+    domain.transformation *= float3x3::from_scale(math::safe_divide(float2(1.0f), scale));
+
+    return domain;
   }
 };
 

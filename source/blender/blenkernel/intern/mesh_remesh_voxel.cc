@@ -124,6 +124,7 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
 
   /* Construct the new output mesh */
   Mesh *mesh = BKE_mesh_new_nomain(qrd.out_totverts, 0, 0, qrd.out_totfaces * 4, qrd.out_totfaces);
+  BKE_mesh_copy_parameters(mesh, input_mesh);
   MutableSpan<MVert> mesh_verts = mesh->verts_for_write();
   MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
@@ -273,7 +274,9 @@ Mesh *BKE_mesh_remesh_voxel(const Mesh *mesh,
 {
 #ifdef WITH_OPENVDB
   openvdb::FloatGrid::Ptr level_set = remesh_voxel_level_set_create(mesh, voxel_size);
-  return remesh_voxel_volume_to_mesh(level_set, isovalue, adaptivity, false);
+  Mesh *result = remesh_voxel_volume_to_mesh(level_set, isovalue, adaptivity, false);
+  BKE_mesh_copy_parameters(result, mesh);
+  return result;
 #else
   UNUSED_VARS(mesh, voxel_size, adaptivity, isovalue);
   return nullptr;

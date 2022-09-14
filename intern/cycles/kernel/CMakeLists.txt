@@ -544,8 +544,6 @@ if(WITH_CYCLES_CUDA_BINARIES)
   cycles_set_solution_folder(cycles_kernel_cuda)
 endif()
 
-####################################################### START
-
 # HIP module
 
 if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
@@ -620,7 +618,6 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
   cycles_set_solution_folder(cycles_kernel_hip)
 endif()
 
-####################################################### END
 # OptiX PTX modules
 
 if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
@@ -712,6 +709,8 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
   cycles_set_solution_folder(cycles_kernel_optix)
 endif()
 
+# oneAPI module
+
 if(WITH_CYCLES_DEVICE_ONEAPI)
   if(WIN32)
     set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/cycles_kernel_oneapi.dll)
@@ -793,7 +792,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   if(UNIX AND NOT APPLE)
     if(NOT WITH_CXX11_ABI)
       check_library_exists(sycl
-        _ZN2cl4sycl7handler22verifyUsedKernelBundleERKSs ${sycl_compiler_root}/../lib SYCL_NO_CXX11_ABI)
+        _ZN4sycl3_V17handler22verifyUsedKernelBundleERKSs ${sycl_compiler_root}/../lib SYCL_NO_CXX11_ABI)
       if(SYCL_NO_CXX11_ABI)
         list(APPEND sycl_compiler_flags -D_GLIBCXX_USE_CXX11_ABI=0)
       endif()

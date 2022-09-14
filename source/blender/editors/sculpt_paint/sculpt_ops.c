@@ -300,28 +300,30 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
   ob->sculpt->mode_type = OB_MODE_SCULPT;
 
-  BKE_sculpt_ensure_orig_mesh_data(scene, ob);
+  BKE_sculpt_ensure_orig_mesh_data(ob);
 
   BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
 
   /* This function expects a fully evaluated depsgraph. */
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 
-  /* Here we can detect geometry that was just added to Sculpt Mode as it has the
-   * SCULPT_FACE_SET_NONE assigned, so we can create a new Face Set for it. */
-  /* In sculpt mode all geometry that is assigned to SCULPT_FACE_SET_NONE is considered as not
-   * initialized, which is used is some operators that modify the mesh topology to perform certain
-   * actions in the new polys. After these operations are finished, all polys should have a valid
-   * face set ID assigned (different from SCULPT_FACE_SET_NONE) to manage their visibility
-   * correctly. */
-  /* TODO(pablodp606): Based on this we can improve the UX in future tools for creating new
-   * objects, like moving the transform pivot position to the new area or masking existing
-   * geometry. */
   SculptSession *ss = ob->sculpt;
-  const int new_face_set = SCULPT_face_set_next_available_get(ss);
-  for (int i = 0; i < ss->totfaces; i++) {
-    if (ss->face_sets[i] == SCULPT_FACE_SET_NONE) {
-      ss->face_sets[i] = new_face_set;
+  if (ss->face_sets) {
+    /* Here we can detect geometry that was just added to Sculpt Mode as it has the
+     * SCULPT_FACE_SET_NONE assigned, so we can create a new Face Set for it. */
+    /* In sculpt mode all geometry that is assigned to SCULPT_FACE_SET_NONE is considered as not
+     * initialized, which is used is some operators that modify the mesh topology to perform
+     * certain actions in the new polys. After these operations are finished, all polys should have
+     * a valid face set ID assigned (different from SCULPT_FACE_SET_NONE) to manage their
+     * visibility correctly. */
+    /* TODO(pablodp606): Based on this we can improve the UX in future tools for creating new
+     * objects, like moving the transform pivot position to the new area or masking existing
+     * geometry. */
+    const int new_face_set = SCULPT_face_set_next_available_get(ss);
+    for (int i = 0; i < ss->totfaces; i++) {
+      if (ss->face_sets[i] == SCULPT_FACE_SET_NONE) {
+        ss->face_sets[i] = new_face_set;
+      }
     }
   }
 }
@@ -571,49 +573,48 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
   float brush_co[3];
   copy_v3_v3(brush_co, SCULPT_active_vertex_co_get(ss));
 
-  BLI_bitmap *visited_vertices = BLI_BITMAP_NEW(SCULPT_vertex_count_get(ss), "visited_vertices");
+  BLI_bitmap *visited_verts = BLI_BITMAP_NEW(SCULPT_vertex_count_get(ss), "visited_verts");
 
   /* Assuming an average of 6 edges per vertex in a triangulated mesh. */
-  const int max_preview_vertices = SCULPT_vertex_count_get(ss) * 3 * 2;
+  const int max_preview_verts = SCULPT_vertex_count_get(ss) * 3 * 2;
 
   if (ss->preview_vert_list == NULL) {
-    ss->preview_vert_list = MEM_callocN(max_preview_vertices * sizeof(PBVHVertRef),
-                                        "preview lines");
+    ss->preview_vert_list = MEM_callocN(max_preview_verts * sizeof(PBVHVertRef), "preview lines");
   }
 
-  GSQueue *not_visited_vertices = BLI_gsqueue_new(sizeof(PBVHVertRef));
+  GSQueue *non_visited_verts = BLI_gsqueue_new(sizeof(PBVHVertRef));
   PBVHVertRef active_v = SCULPT_active_vertex_get(ss);
-  BLI_gsqueue_push(not_visited_vertices, &active_v);
+  BLI_gsqueue_push(non_visited_verts, &active_v);
 
-  while (!BLI_gsqueue_is_empty(not_visited_vertices)) {
+  while (!BLI_gsqueue_is_empty(non_visited_verts)) {
     PBVHVertRef from_v;
 
-    BLI_gsqueue_pop(not_visited_vertices, &from_v);
+    BLI_gsqueue_pop(non_visited_verts, &from_v);
     SculptVertexNeighborIter ni;
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, from_v, ni) {
-      if (totpoints + (ni.size * 2) < max_preview_vertices) {
+      if (totpoints + (ni.size * 2) < max_preview_verts) {
         PBVHVertRef to_v = ni.vertex;
         int to_v_i = ni.index;
         ss->preview_vert_list[totpoints] = from_v;
         totpoints++;
         ss->preview_vert_list[totpoints] = to_v;
         totpoints++;
-        if (BLI_BITMAP_TEST(visited_vertices, to_v_i)) {
+        if (BLI_BITMAP_TEST(visited_verts, to_v_i)) {
           continue;
         }
-        BLI_BITMAP_ENABLE(visited_vertices, to_v_i);
+        BLI_BITMAP_ENABLE(visited_verts, to_v_i);
         const float *co = SCULPT_vertex_co_for_grab_active_get(ss, to_v);
         if (len_squared_v3v3(brush_co, co) < radius * radius) {
-          BLI_gsqueue_push(not_visited_vertices, &to_v);
+          BLI_gsqueue_push(non_visited_verts, &to_v);
         }
       }
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
 
-  BLI_gsqueue_free(not_visited_vertices);
+  BLI_gsqueue_free(non_visited_verts);
 
-  MEM_freeN(visited_vertices);
+  MEM_freeN(visited_verts);
 
   ss->preview_vert_count = totpoints;
 }

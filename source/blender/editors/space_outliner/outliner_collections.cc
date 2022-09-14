@@ -377,10 +377,8 @@ void outliner_collection_delete(
             if (parent->flag & COLLECTION_IS_MASTER) {
               BLI_assert(parent->id.flag & LIB_EMBEDDED_DATA);
 
-              const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(&parent->id);
-              BLI_assert(id_type->owner_get != nullptr);
-
-              ID *scene_owner = id_type->owner_get(&parent->id);
+              ID *scene_owner = BKE_id_owner_get(&parent->id);
+              BLI_assert(scene_owner != nullptr);
               BLI_assert(GS(scene_owner->name) == ID_SCE);
               if (ID_IS_LINKED(scene_owner) || ID_IS_OVERRIDE_LIBRARY(scene_owner)) {
                 skip = true;
@@ -610,10 +608,7 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
   else if (parent != nullptr && (parent->flag & COLLECTION_IS_MASTER) != 0) {
     BLI_assert(parent->id.flag & LIB_EMBEDDED_DATA);
 
-    const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(&parent->id);
-    BLI_assert(id_type->owner_get != nullptr);
-
-    Scene *scene_owner = (Scene *)id_type->owner_get(&parent->id);
+    Scene *scene_owner = reinterpret_cast<Scene *>(BKE_id_owner_get(&parent->id));
     BLI_assert(scene_owner != nullptr);
     BLI_assert(GS(scene_owner->id.name) == ID_SCE);
 

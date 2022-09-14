@@ -35,6 +35,7 @@ typedef enum eGPUDataSource {
   GPU_SOURCE_TEX,
   GPU_SOURCE_TEX_TILED_MAPPING,
   GPU_SOURCE_FUNCTION_CALL,
+  GPU_SOURCE_CRYPTOMATTE,
 } eGPUDataSource;
 
 typedef enum {

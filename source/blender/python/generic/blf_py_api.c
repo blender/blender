@@ -465,7 +465,7 @@ static struct PyModuleDef BLF_module_def = {
     BLF_doc,     /* m_doc */
     0,           /* m_size */
     BLF_methods, /* m_methods */
-    NULL,        /* m_reload */
+    NULL,        /* m_slots */
     NULL,        /* m_traverse */
     NULL,        /* m_clear */
     NULL,        /* m_free */

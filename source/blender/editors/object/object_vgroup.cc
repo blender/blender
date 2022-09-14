@@ -277,7 +277,7 @@ void ED_vgroup_parray_mirror_sync(Object *ob,
   }
 
   int flip_map_len;
-  const int *flip_map = BKE_object_defgroup_flip_map(ob, &flip_map_len, true);
+  const int *flip_map = BKE_object_defgroup_flip_map(ob, true, &flip_map_len);
 
   for (int i_src = 0; i_src < dvert_tot; i_src++) {
     if (dvert_array[i_src] != nullptr) {
@@ -506,7 +506,7 @@ static void mesh_defvert_mirror_update_internal(Object *ob,
   if (def_nr == -1) {
     /* All vgroups, add groups where needed. */
     int flip_map_len;
-    int *flip_map = BKE_object_defgroup_flip_map(ob, &flip_map_len, true);
+    int *flip_map = BKE_object_defgroup_flip_map_unlocked(ob, true, &flip_map_len);
     BKE_defvert_sync_mapped(dvert_dst, dvert_src, flip_map, flip_map_len, true);
     MEM_freeN(flip_map);
   }
@@ -2392,8 +2392,8 @@ void ED_vgroup_mirror(Object *ob,
   }
 
   if (flip_vgroups) {
-    flip_map = all_vgroups ? BKE_object_defgroup_flip_map(ob, &flip_map_len, false) :
-                             BKE_object_defgroup_flip_map_single(ob, &flip_map_len, false, def_nr);
+    flip_map = all_vgroups ? BKE_object_defgroup_flip_map(ob, false, &flip_map_len) :
+                             BKE_object_defgroup_flip_map_single(ob, false, def_nr, &flip_map_len);
 
     BLI_assert(flip_map != nullptr);
 

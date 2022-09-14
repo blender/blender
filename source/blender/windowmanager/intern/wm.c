@@ -275,7 +275,7 @@ IDTypeInfo IDType_ID_WM = {
     .foreach_id = window_manager_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = window_manager_blend_write,
     .blend_read_data = window_manager_blend_read_data,

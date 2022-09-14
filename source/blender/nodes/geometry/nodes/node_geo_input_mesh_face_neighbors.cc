@@ -37,7 +37,7 @@ static VArray<int> construct_neighbor_count_varray(const Mesh &mesh, const eAttr
     }
   }
 
-  return bke::mesh_attributes(mesh).adapt_domain<int>(
+  return mesh.attributes().adapt_domain<int>(
       VArray<int>::ForContainer(std::move(poly_count)), ATTR_DOMAIN_FACE, domain);
 }
 
@@ -71,7 +71,7 @@ class FaceNeighborCountFieldInput final : public bke::MeshFieldInput {
 static VArray<int> construct_vertex_count_varray(const Mesh &mesh, const eAttrDomain domain)
 {
   const Span<MPoly> polys = mesh.polys();
-  return bke::mesh_attributes(mesh).adapt_domain<int>(
+  return mesh.attributes().adapt_domain<int>(
       VArray<int>::ForFunc(polys.size(),
                            [polys](const int i) -> float { return polys[i].totloop; }),
       ATTR_DOMAIN_FACE,

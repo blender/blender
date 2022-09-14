@@ -56,7 +56,7 @@ const char *BKE_appdir_folder_home(void);
  *
  * \returns True if the path is valid and points to an existing directory.
  */
-bool BKE_appdir_folder_documents(char *dir);
+bool BKE_appdir_folder_documents(char *dir) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 /**
  * Get the user's cache directory, i.e.
  * - Linux: `$HOME/.cache/blender/`
@@ -66,7 +66,7 @@ bool BKE_appdir_folder_documents(char *dir);
  * \returns True if the path is valid. It doesn't create or checks format
  * if the `blender` folder exists. It does check if the parent of the path exists.
  */
-bool BKE_appdir_folder_caches(char *r_path, size_t path_len);
+bool BKE_appdir_folder_caches(char *r_path, size_t path_len) ATTR_NONNULL(1);
 /**
  * Get a folder out of the \a folder_id presets for paths.
  *
@@ -75,15 +75,17 @@ bool BKE_appdir_folder_caches(char *r_path, size_t path_len);
  * \return The path if found, NULL string if not.
  */
 bool BKE_appdir_folder_id_ex(int folder_id, const char *subfolder, char *path, size_t path_len);
-const char *BKE_appdir_folder_id(int folder_id, const char *subfolder);
+const char *BKE_appdir_folder_id(int folder_id, const char *subfolder) ATTR_WARN_UNUSED_RESULT;
 /**
  * Returns the path to a folder in the user area, creating it if it doesn't exist.
  */
-const char *BKE_appdir_folder_id_create(int folder_id, const char *subfolder);
+const char *BKE_appdir_folder_id_create(int folder_id,
+                                        const char *subfolder) ATTR_WARN_UNUSED_RESULT;
 /**
  * Returns the path to a folder in the user area without checking that it actually exists first.
  */
-const char *BKE_appdir_folder_id_user_notest(int folder_id, const char *subfolder);
+const char *BKE_appdir_folder_id_user_notest(int folder_id,
+                                             const char *subfolder) ATTR_WARN_UNUSED_RESULT;
 /**
  * Returns the path of the top-level version-specific local, user or system directory.
  * If check_is_dir, then the result will be NULL if the directory doesn't exist.
@@ -99,23 +101,24 @@ bool BKE_appdir_app_is_portable_install(void);
  * Return true if templates exist
  */
 bool BKE_appdir_app_template_any(void);
-bool BKE_appdir_app_template_id_search(const char *app_template, char *path, size_t path_len);
-bool BKE_appdir_app_template_has_userpref(const char *app_template);
-void BKE_appdir_app_templates(struct ListBase *templates);
+bool BKE_appdir_app_template_id_search(const char *app_template, char *path, size_t path_len)
+    ATTR_NONNULL(1);
+bool BKE_appdir_app_template_has_userpref(const char *app_template) ATTR_NONNULL(1);
+void BKE_appdir_app_templates(struct ListBase *templates) ATTR_NONNULL(1);
 
 /**
  * Initialize path to program executable.
  */
-void BKE_appdir_program_path_init(const char *argv0);
+void BKE_appdir_program_path_init(const char *argv0) ATTR_NONNULL(1);
 
 /**
  * Path to executable
  */
-const char *BKE_appdir_program_path(void);
+const char *BKE_appdir_program_path(void) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 /**
  * Path to directory of executable
  */
-const char *BKE_appdir_program_dir(void);
+const char *BKE_appdir_program_dir(void) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 
 /**
  * Gets a good default directory for fonts.
@@ -128,7 +131,7 @@ bool BKE_appdir_font_folder_default(char *dir);
 bool BKE_appdir_program_python_search(char *fullpath,
                                       size_t fullpath_len,
                                       int version_major,
-                                      int version_minor);
+                                      int version_minor) ATTR_NONNULL(1);
 
 /**
  * Initialize path to temporary directory.
@@ -138,11 +141,11 @@ void BKE_tempdir_init(const char *userdir);
 /**
  * Path to persistent temporary directory (with trailing slash)
  */
-const char *BKE_tempdir_base(void);
+const char *BKE_tempdir_base(void) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 /**
  * Path to temporary directory (with trailing slash)
  */
-const char *BKE_tempdir_session(void);
+const char *BKE_tempdir_session(void) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 /**
  * Delete content of this instance's temp dir.
  */

@@ -44,6 +44,7 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
   world_ps_.bind_image("rp_diffuse_color_img", &rbufs.diffuse_color_tx);
   world_ps_.bind_image("rp_specular_color_img", &rbufs.specular_color_tx);
   world_ps_.bind_image("rp_emission_img", &rbufs.emission_tx);
+  world_ps_.bind_image("rp_cryptomatte_img", &rbufs.cryptomatte_tx);
 
   world_ps_.draw(DRW_cache_fullscreen_quad_get(), handle);
   /* To allow opaque pass rendering over it. */
@@ -110,6 +111,8 @@ void ForwardPipeline::sync()
       /* AOVs. */
       opaque_ps_.bind_image(RBUFS_AOV_COLOR_SLOT, &inst_.render_buffers.aov_color_tx);
       opaque_ps_.bind_image(RBUFS_AOV_VALUE_SLOT, &inst_.render_buffers.aov_value_tx);
+      /* Cryptomatte. */
+      opaque_ps_.bind_image(RBUFS_CRYPTOMATTE_SLOT, &inst_.render_buffers.cryptomatte_tx);
       /* Storage Buf. */
       opaque_ps_.bind_ssbo(RBUFS_AOV_BUF_SLOT, &inst_.film.aovs_info);
       /* Textures. */
@@ -117,6 +120,7 @@ void ForwardPipeline::sync()
 
       inst_.lights.bind_resources(&opaque_ps_);
       inst_.sampling.bind_resources(&opaque_ps_);
+      inst_.cryptomatte.bind_resources(&opaque_ps_);
     }
 
     opaque_single_sided_ps_ = &opaque_ps_.sub("SingleSided");

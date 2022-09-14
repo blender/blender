@@ -178,7 +178,7 @@ static void link_sockets(bNodeTree *ntree,
 
 static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial &mtl_mat)
 {
-  const int illum = mtl_mat.illum;
+  const int illum = mtl_mat.illum_mode;
   bool do_highlight = false;
   bool do_tranparency = false;
   bool do_reflection = false;
@@ -244,21 +244,23 @@ static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial
   /* Approximations for trying to map obj/mtl material model into
    * Principled BSDF: */
   /* Specular: average of Ks components. */
-  float specular = (mtl_mat.Ks[0] + mtl_mat.Ks[1] + mtl_mat.Ks[2]) / 3;
+  float specular = (mtl_mat.spec_color[0] + mtl_mat.spec_color[1] + mtl_mat.spec_color[2]) / 3;
   if (specular < 0.0f) {
     specular = do_highlight ? 1.0f : 0.0f;
   }
   /* Roughness: map 0..1000 range to 1..0 and apply non-linearity. */
   float roughness;
-  if (mtl_mat.Ns < 0.0f) {
+  if (mtl_mat.spec_exponent < 0.0f) {
     roughness = do_highlight ? 0.0f : 1.0f;
   }
   else {
-    float clamped_ns = std::max(0.0f, std::min(1000.0f, mtl_mat.Ns));
+    float clamped_ns = std::max(0.0f, std::min(1000.0f, mtl_mat.spec_exponent));
     roughness = 1.0f - sqrt(clamped_ns / 1000.0f);
   }
-  /* Metallic: average of Ka components. */
-  float metallic = (mtl_mat.Ka[0] + mtl_mat.Ka[1] + mtl_mat.Ka[2]) / 3;
+  /* Metallic: average of `Ka` components. */
+  float metallic = (mtl_mat.ambient_color[0] + mtl_mat.ambient_color[1] +
+                    mtl_mat.ambient_color[2]) /
+                   3;
   if (do_reflection) {
     if (metallic < 0.0f) {
       metallic = 1.0f;
@@ -268,7 +270,7 @@ static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial
     metallic = 0.0f;
   }
 
-  float ior = mtl_mat.Ni;
+  float ior = mtl_mat.ior;
   if (ior < 0) {
     if (do_tranparency) {
       ior = 1.0f;
@@ -277,12 +279,20 @@ static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial
       ior = 1.5f;
     }
   }
-  float alpha = mtl_mat.d;
+  float alpha = mtl_mat.alpha;
   if (do_tranparency && alpha < 0) {
     alpha = 1.0f;
   }
 
-  float3 base_color = {mtl_mat.Kd[0], mtl_mat.Kd[1], mtl_mat.Kd[2]};
+  /* PBR values, when present, override the ones calculated above. */
+  if (mtl_mat.roughness >= 0) {
+    roughness = mtl_mat.roughness;
+  }
+  if (mtl_mat.metallic >= 0) {
+    metallic = mtl_mat.metallic;
+  }
+
+  float3 base_color = mtl_mat.color;
   if (base_color.x >= 0 && base_color.y >= 0 && base_color.z >= 0) {
     set_property_of_socket(SOCK_RGBA, "Base Color", {base_color, 3}, bsdf);
     /* Viewport shading uses legacy r,g,b base color. */
@@ -291,11 +301,11 @@ static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial
     mat->b = base_color.z;
   }
 
-  float3 emission_color = {mtl_mat.Ke[0], mtl_mat.Ke[1], mtl_mat.Ke[2]};
+  float3 emission_color = mtl_mat.emission_color;
   if (emission_color.x >= 0 && emission_color.y >= 0 && emission_color.z >= 0) {
     set_property_of_socket(SOCK_RGBA, "Emission", {emission_color, 3}, bsdf);
   }
-  if (mtl_mat.tex_map_of_type(MTLTexMapType::Ke).is_valid()) {
+  if (mtl_mat.tex_map_of_type(MTLTexMapType::Emission).is_valid()) {
     set_property_of_socket(SOCK_FLOAT, "Emission Strength", {1.0f}, bsdf);
   }
   set_property_of_socket(SOCK_FLOAT, "Specular", {specular}, bsdf);
@@ -311,6 +321,30 @@ static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial
   }
   if (do_tranparency || (alpha >= 0.0f && alpha < 1.0f)) {
     mat->blend_method = MA_BM_BLEND;
+  }
+
+  if (mtl_mat.sheen >= 0) {
+    set_property_of_socket(SOCK_FLOAT, "Sheen", {mtl_mat.sheen}, bsdf);
+  }
+  if (mtl_mat.cc_thickness >= 0) {
+    set_property_of_socket(SOCK_FLOAT, "Clearcoat", {mtl_mat.cc_thickness}, bsdf);
+  }
+  if (mtl_mat.cc_roughness >= 0) {
+    set_property_of_socket(SOCK_FLOAT, "Clearcoat Roughness", {mtl_mat.cc_roughness}, bsdf);
+  }
+  if (mtl_mat.aniso >= 0) {
+    set_property_of_socket(SOCK_FLOAT, "Anisotropic", {mtl_mat.aniso}, bsdf);
+  }
+  if (mtl_mat.aniso_rot >= 0) {
+    set_property_of_socket(SOCK_FLOAT, "Anisotropic Rotation", {mtl_mat.aniso_rot}, bsdf);
+  }
+
+  /* Transmission: average of transmission color. */
+  float transmission = (mtl_mat.transmit_color[0] + mtl_mat.transmit_color[1] +
+                        mtl_mat.transmit_color[2]) /
+                       3;
+  if (transmission >= 0) {
+    set_property_of_socket(SOCK_FLOAT, "Transmission", {transmission}, bsdf);
   }
 }
 
@@ -341,9 +375,9 @@ static void add_image_textures(Main *bmain,
 
     /* Add normal map node if needed. */
     bNode *normal_map = nullptr;
-    if (key == (int)MTLTexMapType::bump) {
+    if (key == (int)MTLTexMapType::Normal) {
       normal_map = add_node(ntree, SH_NODE_NORMAL_MAP, node_locx_normalmap, node_locy);
-      const float bump = std::max(0.0f, mtl_mat.map_Bump_strength);
+      const float bump = std::max(0.0f, mtl_mat.normal_strength);
       set_property_of_socket(SOCK_FLOAT, "Strength", {bump}, normal_map);
     }
 
@@ -362,7 +396,7 @@ static void add_image_textures(Main *bmain,
       link_sockets(ntree, image_node, "Color", normal_map, "Color");
       link_sockets(ntree, normal_map, "Normal", bsdf, "Normal");
     }
-    else if (key == (int)MTLTexMapType::d) {
+    else if (key == (int)MTLTexMapType::Alpha) {
       link_sockets(ntree, image_node, "Alpha", bsdf, tex_map_type_to_socket_id[key]);
       mat->blend_method = MA_BM_BLEND;
     }

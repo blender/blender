@@ -68,7 +68,7 @@ def locale_explode(locale):
 
     try:
         import bpy.app.translations as bpy_translations
-        assert(ret == bpy_translations.locale_explode(locale))
+        assert ret == bpy_translations.locale_explode(locale)
     except ModuleNotFoundError:
         pass
 

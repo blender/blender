@@ -364,22 +364,22 @@ static bool edbm_backbuf_check_and_select_faces_obmode(Mesh *me,
                                                        EditSelectBuf_Cache *esel,
                                                        const eSelectOp sel_op)
 {
-  MPoly *polygons = BKE_mesh_polys_for_write(me);
+  MPoly *polys = BKE_mesh_polys_for_write(me);
   bool changed = false;
 
   const BLI_bitmap *select_bitmap = esel->select_bitmap;
 
-  if (polygons) {
+  if (polys) {
     const bool *hide_poly = (const bool *)CustomData_get_layer_named(
         &me->vdata, CD_PROP_BOOL, ".hide_poly");
 
     for (int index = 0; index < me->totpoly; index++) {
       if (!(hide_poly && hide_poly[index])) {
-        const bool is_select = polygons[index].flag & ME_FACE_SEL;
+        const bool is_select = polys[index].flag & ME_FACE_SEL;
         const bool is_inside = BLI_BITMAP_TEST_BOOL(select_bitmap, index);
         const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
         if (sel_op_result != -1) {
-          SET_FLAG_FROM_TEST(polygons[index].flag, sel_op_result, ME_FACE_SEL);
+          SET_FLAG_FROM_TEST(polys[index].flag, sel_op_result, ME_FACE_SEL);
           changed = true;
         }
       }
@@ -3434,7 +3434,8 @@ static bool do_mesh_box_select(ViewContext *vc,
   }
   if (ts->selectmode & SCE_SELECT_EDGE) {
     /* Does both use_zbuf and non-use_zbuf versions (need screen cos for both) */
-    struct BoxSelectUserData_ForMeshEdge cb_data {};
+    struct BoxSelectUserData_ForMeshEdge cb_data {
+    };
     cb_data.data = &data;
     cb_data.esel = use_zbuf ? esel : nullptr;
     cb_data.backbuf_offset = use_zbuf ? DRW_select_buffer_context_offset_for_object_elem(

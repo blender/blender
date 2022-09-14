@@ -44,7 +44,7 @@ bke::CurvesGeometry create_curve_from_vert_indices(const Mesh &mesh,
   curves.cyclic_for_write().fill(false);
   curves.cyclic_for_write().slice(cyclic_curves).fill(true);
 
-  const bke::AttributeAccessor mesh_attributes = bke::mesh_attributes(mesh);
+  const bke::AttributeAccessor mesh_attributes = mesh.attributes();
   bke::MutableAttributeAccessor curves_attributes = curves.attributes_for_write();
 
   Set<bke::AttributeIDRef> source_attribute_ids = mesh_attributes.all_ids();

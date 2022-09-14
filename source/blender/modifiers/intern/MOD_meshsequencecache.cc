@@ -181,15 +181,15 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     const Span<MVert> mesh_verts = mesh->verts();
     const Span<MEdge> mesh_edges = mesh->edges();
     const Span<MPoly> mesh_polys = mesh->polys();
-    const Span<MVert> me_vertices = me->verts();
+    const Span<MVert> me_verts = me->verts();
     const Span<MEdge> me_edges = me->edges();
-    const Span<MPoly> me_polygons = me->polys();
+    const Span<MPoly> me_polys = me->polys();
 
     /* TODO(sybren+bastien): possibly check relevant custom data layers (UV/color depending on
      * flags) and duplicate those too.
      * XXX(Hans): This probably isn't true anymore with various CoW improvements, etc. */
-    if ((me_vertices.data() == mesh_verts.data()) || (me_edges.data() == mesh_edges.data()) ||
-        (me_polygons.data() == mesh_polys.data())) {
+    if ((me_verts.data() == mesh_verts.data()) || (me_edges.data() == mesh_edges.data()) ||
+        (me_polys.data() == mesh_polys.data())) {
       /* We need to duplicate data here, otherwise we'll modify org mesh, see T51701. */
       mesh = reinterpret_cast<Mesh *>(
           BKE_id_copy_ex(nullptr,

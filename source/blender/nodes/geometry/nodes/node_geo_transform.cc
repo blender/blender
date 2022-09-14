@@ -47,7 +47,7 @@ static void transform_mesh(Mesh &mesh, const float4x4 &transform)
 
 static void translate_pointcloud(PointCloud &pointcloud, const float3 translation)
 {
-  MutableAttributeAccessor attributes = bke::pointcloud_attributes_for_write(pointcloud);
+  MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
   SpanAttributeWriter position = attributes.lookup_or_add_for_write_span<float3>(
       "position", ATTR_DOMAIN_POINT);
   for (const int i : position.span.index_range()) {
@@ -58,7 +58,7 @@ static void translate_pointcloud(PointCloud &pointcloud, const float3 translatio
 
 static void transform_pointcloud(PointCloud &pointcloud, const float4x4 &transform)
 {
-  MutableAttributeAccessor attributes = bke::pointcloud_attributes_for_write(pointcloud);
+  MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
   SpanAttributeWriter position = attributes.lookup_or_add_for_write_span<float3>(
       "position", ATTR_DOMAIN_POINT);
   for (const int i : position.span.index_range()) {

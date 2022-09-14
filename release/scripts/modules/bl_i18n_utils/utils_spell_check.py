@@ -750,6 +750,7 @@ class SpellChecker:
         "unix",
         "uuid",
         "vbo", "vbos",
+        "vfx",
         "vr",
         "wxyz",
         "xr",

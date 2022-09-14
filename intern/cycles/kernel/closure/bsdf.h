@@ -116,7 +116,7 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
     case CLOSURE_BSDF_DIFFUSE_ID:
       label = bsdf_diffuse_sample(sc, Ng, sd->I, randu, randv, eval, omega_in, pdf);
       break;
-#ifdef __SVM__
+#if defined(__SVM__) || defined(__OSL__)
     case CLOSURE_BSDF_OREN_NAYAR_ID:
       label = bsdf_oren_nayar_sample(sc, Ng, sd->I, randu, randv, eval, omega_in, pdf);
       break;
@@ -246,7 +246,7 @@ ccl_device_inline
       case CLOSURE_BSDF_DIFFUSE_ID:
         eval = bsdf_diffuse_eval_reflect(sc, sd->I, omega_in, pdf);
         break;
-#ifdef __SVM__
+#if defined(__SVM__) || defined(__OSL__)
       case CLOSURE_BSDF_OREN_NAYAR_ID:
         eval = bsdf_oren_nayar_eval_reflect(sc, sd->I, omega_in, pdf);
         break;
@@ -337,7 +337,7 @@ ccl_device_inline
       case CLOSURE_BSDF_DIFFUSE_ID:
         eval = bsdf_diffuse_eval_transmit(sc, sd->I, omega_in, pdf);
         break;
-#ifdef __SVM__
+#if defined(__SVM__) || defined(__OSL__)
       case CLOSURE_BSDF_OREN_NAYAR_ID:
         eval = bsdf_oren_nayar_eval_transmit(sc, sd->I, omega_in, pdf);
         break;
@@ -419,7 +419,7 @@ ccl_device_inline
 ccl_device void bsdf_blur(KernelGlobals kg, ccl_private ShaderClosure *sc, float roughness)
 {
   /* TODO: do we want to blur volume closures? */
-#ifdef __SVM__
+#if defined(__SVM__) || defined(__OSL__)
   switch (sc->type) {
     case CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID:
     case CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID:

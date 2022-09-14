@@ -251,8 +251,9 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     if (!BLO_write_is_undo(writer)) {
       BKE_mesh_legacy_convert_hide_layers_to_flags(mesh);
       BKE_mesh_legacy_convert_material_indices_to_mpoly(mesh);
+      BKE_mesh_legacy_bevel_weight_from_layers(mesh);
       /* When converting to the old mesh format, don't save redundant attributes. */
-      names_to_skip.add_multiple_new({".hide_vert", ".hide_edge", ".hide_poly"});
+      names_to_skip.add_multiple_new({".hide_vert", ".hide_edge", ".hide_poly", "material_index"});
 
       /* Set deprecated mesh data pointers for forward compatibility. */
       mesh->mvert = const_cast<MVert *>(mesh->verts().data());
@@ -348,6 +349,7 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   if (!BLO_read_data_is_undo(reader)) {
     BKE_mesh_legacy_convert_flags_to_hide_layers(mesh);
     BKE_mesh_legacy_convert_mpoly_to_material_indices(mesh);
+    BKE_mesh_legacy_bevel_weight_to_layers(mesh);
   }
 
   /* We don't expect to load normals from files, since they are derived data. */
@@ -402,7 +404,7 @@ IDTypeInfo IDType_ID_ME = {
     /* foreach_id */ mesh_foreach_id,
     /* foreach_cache */ nullptr,
     /* foreach_path */ mesh_foreach_path,
-    /* owner_get */ nullptr,
+    /* owner_pointer_get */ nullptr,
 
     /* blend_write */ mesh_blend_write,
     /* blend_read_data */ mesh_blend_read_data,
@@ -881,11 +883,12 @@ static void mesh_clear_geometry(Mesh *mesh)
   mesh->totpoly = 0;
   mesh->act_face = -1;
   mesh->totselect = 0;
+
+  BLI_freelistN(&mesh->vertex_group_names);
 }
 
 void BKE_mesh_clear_geometry(Mesh *mesh)
 {
-  BKE_animdata_free(&mesh->id, false);
   BKE_mesh_runtime_clear_cache(mesh);
   mesh_clear_geometry(mesh);
 }
@@ -975,6 +978,7 @@ void BKE_mesh_copy_parameters(Mesh *me_dst, const Mesh *me_src)
   copy_v3_v3(me_dst->size, me_src->size);
 
   me_dst->vertex_group_active_index = me_src->vertex_group_active_index;
+  me_dst->attributes_active_index = me_src->attributes_active_index;
 }
 
 void BKE_mesh_copy_parameters_for_eval(Mesh *me_dst, const Mesh *me_src)
@@ -1343,7 +1347,7 @@ void BKE_mesh_material_index_remove(Mesh *me, short index)
 {
   using namespace blender;
   using namespace blender::bke;
-  MutableAttributeAccessor attributes = mesh_attributes_for_write(*me);
+  MutableAttributeAccessor attributes = me->attributes_for_write();
   AttributeWriter<int> material_indices = attributes.lookup_for_write<int>("material_index");
   if (!material_indices) {
     return;
@@ -1368,7 +1372,7 @@ bool BKE_mesh_material_index_used(Mesh *me, short index)
 {
   using namespace blender;
   using namespace blender::bke;
-  const AttributeAccessor attributes = mesh_attributes(*me);
+  const AttributeAccessor attributes = me->attributes();
   const VArray<int> material_indices = attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   if (material_indices.is_single()) {
@@ -1382,7 +1386,7 @@ void BKE_mesh_material_index_clear(Mesh *me)
 {
   using namespace blender;
   using namespace blender::bke;
-  MutableAttributeAccessor attributes = mesh_attributes_for_write(*me);
+  MutableAttributeAccessor attributes = me->attributes_for_write();
   attributes.remove("material_index");
 
   BKE_mesh_tessface_clear(me);
@@ -1411,20 +1415,16 @@ void BKE_mesh_material_remap(Mesh *me, const uint *remap, uint remap_len)
     }
   }
   else {
-    MutableAttributeAccessor attributes = mesh_attributes_for_write(*me);
-    AttributeWriter<int> material_indices = attributes.lookup_for_write<int>("material_index");
+    MutableAttributeAccessor attributes = me->attributes_for_write();
+    SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
+        "material_index", ATTR_DOMAIN_FACE);
     if (!material_indices) {
       return;
     }
-    if (material_indices.domain != ATTR_DOMAIN_FACE) {
-      BLI_assert_unreachable();
-      return;
+    for (const int i : material_indices.span.index_range()) {
+      MAT_NR_REMAP(material_indices.span[i]);
     }
-    MutableVArraySpan<int> indices_span(material_indices.varray);
-    for (const int i : indices_span.index_range()) {
-      MAT_NR_REMAP(indices_span[i]);
-    }
-    indices_span.save();
+    material_indices.span.save();
     material_indices.finish();
   }
 
@@ -1612,14 +1612,14 @@ void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh)
   const Span<MEdge> edges = mesh->edges();
 
   for (const MVert &vert : verts) {
-    if (vert.bweight != 0) {
+    if (vert.bweight_legacy != 0) {
       mesh->cd_flag |= ME_CDFLAG_VERT_BWEIGHT;
       break;
     }
   }
 
   for (const MEdge &edge : edges) {
-    if (edge.bweight != 0) {
+    if (edge.bweight_legacy != 0) {
       mesh->cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
       if (mesh->cd_flag & ME_CDFLAG_EDGE_CREASE) {
         break;
@@ -1763,7 +1763,7 @@ void BKE_mesh_count_selected_items(const Mesh *mesh, int r_count[3])
 
 void BKE_mesh_vert_coords_get(const Mesh *mesh, float (*vert_coords)[3])
 {
-  blender::bke::AttributeAccessor attributes = blender::bke::mesh_attributes(*mesh);
+  blender::bke::AttributeAccessor attributes = mesh->attributes();
   VArray<float3> positions = attributes.lookup_or_default(
       "position", ATTR_DOMAIN_POINT, float3(0));
   positions.materialize({(float3 *)vert_coords, mesh->totvert});
@@ -2091,11 +2091,11 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
     const bool do_edges = (num_new_edges > 0);
 
     /* Reallocate all vert and edge related data. */
+    CustomData_realloc(&mesh->vdata, mesh->totvert, mesh->totvert + num_new_verts);
     mesh->totvert += num_new_verts;
-    CustomData_realloc(&mesh->vdata, mesh->totvert);
     if (do_edges) {
+      CustomData_realloc(&mesh->edata, mesh->totedge, mesh->totedge + num_new_edges);
       mesh->totedge += num_new_edges;
-      CustomData_realloc(&mesh->edata, mesh->totedge);
     }
 
     /* Update normals manually to avoid recalculation after this operation. */

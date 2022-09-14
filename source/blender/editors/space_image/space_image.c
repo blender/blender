@@ -1029,7 +1029,7 @@ void ED_spacetype_image(void)
   ARegionType *art;
 
   st->spaceid = SPACE_IMAGE;
-  strncpy(st->name, "Image", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "Image");
 
   st->create = image_create;
   st->free = image_free;

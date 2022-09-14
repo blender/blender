@@ -180,7 +180,7 @@ IDTypeInfo IDType_ID_MB = {
     /* foreach_id */ metaball_foreach_id,
     /* foreach_cache */ nullptr,
     /* foreach_path */ nullptr,
-    /* owner_get */ nullptr,
+    /* owner_pointer_get */ nullptr,
 
     /* blend_write */ metaball_blend_write,
     /* blend_read_data */ metaball_blend_read_data,

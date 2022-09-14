@@ -59,9 +59,9 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
   Field<int> next_vertex_;
 
  public:
-  PathToEdgeSelectionFieldInput(Field<bool> start_vertices, Field<int> next_vertex)
+  PathToEdgeSelectionFieldInput(Field<bool> start_verts, Field<int> next_vertex)
       : bke::MeshFieldInput(CPPType::get<bool>(), "Edge Selection"),
-        start_vertices_(start_vertices),
+        start_vertices_(start_verts),
         next_vertex_(next_vertex)
   {
     category_ = Category::Generated;
@@ -88,7 +88,7 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
 
     edge_paths_to_selection(mesh, start_verts, next_vert, selection_span);
 
-    return bke::mesh_attributes(mesh).adapt_domain<bool>(
+    return mesh.attributes().adapt_domain<bool>(
         VArray<bool>::ForContainer(std::move(selection)), ATTR_DOMAIN_EDGE, domain);
   }
 
@@ -110,10 +110,10 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Field<bool> start_vertices = params.extract_input<Field<bool>>("Start Vertices");
+  Field<bool> start_verts = params.extract_input<Field<bool>>("Start Vertices");
   Field<int> next_vertex = params.extract_input<Field<int>>("Next Vertex Index");
   Field<bool> selection_field{
-      std::make_shared<PathToEdgeSelectionFieldInput>(start_vertices, next_vertex)};
+      std::make_shared<PathToEdgeSelectionFieldInput>(start_verts, next_vertex)};
   params.set_output("Selection", std::move(selection_field));
 }
 

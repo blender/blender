@@ -121,6 +121,9 @@ static void console_main_region_init(wmWindowManager *wm, ARegion *region)
     region->v2d.cur.ymax = prev_y_min + cur_y_range;
   }
 
+  keymap = WM_keymap_ensure(wm->defaultconf, "View2D Buttons List", 0, 0);
+  WM_event_add_keymap_handler(&region->handlers, keymap);
+
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "Console", SPACE_CONSOLE, 0);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
@@ -286,7 +289,7 @@ void ED_spacetype_console(void)
   ARegionType *art;
 
   st->spaceid = SPACE_CONSOLE;
-  strncpy(st->name, "Console", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "Console");
 
   st->create = console_create;
   st->free = console_free;

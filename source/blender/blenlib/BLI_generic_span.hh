@@ -100,6 +100,34 @@ class GSpan {
   {
     return this->slice(range.start(), range.size());
   }
+
+  GSpan drop_front(const int64_t n) const
+  {
+    BLI_assert(n >= 0);
+    const int64_t new_size = std::max<int64_t>(0, size_ - n);
+    return GSpan(*type_, POINTER_OFFSET(data_, type_->size() * n), new_size);
+  }
+
+  GSpan drop_back(const int64_t n) const
+  {
+    BLI_assert(n >= 0);
+    const int64_t new_size = std::max<int64_t>(0, size_ - n);
+    return GSpan(*type_, data_, new_size);
+  }
+
+  GSpan take_front(const int64_t n) const
+  {
+    BLI_assert(n >= 0);
+    const int64_t new_size = std::min<int64_t>(size_, n);
+    return GSpan(*type_, data_, new_size);
+  }
+
+  GSpan take_back(const int64_t n) const
+  {
+    BLI_assert(n >= 0);
+    const int64_t new_size = std::min<int64_t>(size_, n);
+    return GSpan(*type_, POINTER_OFFSET(data_, type_->size() * (size_ - new_size)), new_size);
+  }
 };
 
 /**
@@ -197,6 +225,35 @@ class GMutableSpan {
   GMutableSpan slice(IndexRange range) const
   {
     return this->slice(range.start(), range.size());
+  }
+
+  GMutableSpan drop_front(const int64_t n) const
+  {
+    BLI_assert(n >= 0);
+    const int64_t new_size = std::max<int64_t>(0, size_ - n);
+    return GMutableSpan(*type_, POINTER_OFFSET(data_, type_->size() * n), new_size);
+  }
+
+  GMutableSpan drop_back(const int64_t n) const
+  {
+    BLI_assert(n >= 0);
+    const int64_t new_size = std::max<int64_t>(0, size_ - n);
+    return GMutableSpan(*type_, data_, new_size);
+  }
+
+  GMutableSpan take_front(const int64_t n) const
+  {
+    BLI_assert(n >= 0);
+    const int64_t new_size = std::min<int64_t>(size_, n);
+    return GMutableSpan(*type_, data_, new_size);
+  }
+
+  GMutableSpan take_back(const int64_t n) const
+  {
+    BLI_assert(n >= 0);
+    const int64_t new_size = std::min<int64_t>(size_, n);
+    return GMutableSpan(
+        *type_, POINTER_OFFSET(data_, type_->size() * (size_ - new_size)), new_size);
   }
 
   /**

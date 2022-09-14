@@ -85,7 +85,7 @@ typedef void (*IDTypeForeachCacheFunction)(struct ID *id,
 
 typedef void (*IDTypeForeachPathFunction)(struct ID *id, struct BPathForeachPathData *bpath_data);
 
-typedef struct ID *(*IDTypeEmbeddedOwnerGetFunction)(struct ID *id);
+typedef struct ID **(*IDTypeEmbeddedOwnerPointerGetFunction)(struct ID *id);
 
 typedef void (*IDTypeBlendWriteFunction)(struct BlendWriter *writer,
                                          struct ID *id,
@@ -180,9 +180,9 @@ typedef struct IDTypeInfo {
   IDTypeForeachPathFunction foreach_path;
 
   /**
-   * For embedded IDs, return their owner ID.
+   * For embedded IDs, return the address of the pointer to their owner ID.
    */
-  IDTypeEmbeddedOwnerGetFunction owner_get;
+  IDTypeEmbeddedOwnerPointerGetFunction owner_pointer_get;
 
   /* ********** Callbacks for reading and writing .blend files. ********** */
 

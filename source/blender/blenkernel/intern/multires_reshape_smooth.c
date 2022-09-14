@@ -354,10 +354,9 @@ static GridCoord *vertex_grid_coord_with_grid_index(const Vertex *vertex, const 
 
 /* Get grid coordinates which correspond to corners of the given face.
  * All the grid coordinates will be from the same grid index. */
-static void grid_coords_from_face_vertices(
-    const MultiresReshapeSmoothContext *reshape_smooth_context,
-    const Face *face,
-    const GridCoord *grid_coords[])
+static void grid_coords_from_face_verts(const MultiresReshapeSmoothContext *reshape_smooth_context,
+                                        const Face *face,
+                                        const GridCoord *grid_coords[])
 {
   BLI_assert(face->num_corners == 4);
 
@@ -417,7 +416,7 @@ static void foreach_toplevel_grid_coord_task(void *__restrict userdata_v,
 
   const Face *face = &reshape_smooth_context->geometry.faces[face_index];
   const GridCoord *face_grid_coords[4];
-  grid_coords_from_face_vertices(reshape_smooth_context, face, face_grid_coords);
+  grid_coords_from_face_verts(reshape_smooth_context, face, face_grid_coords);
 
   for (int y = 0; y < inner_grid_size; ++y) {
     const float ptex_v = (float)y * inner_grid_size_1_inv;

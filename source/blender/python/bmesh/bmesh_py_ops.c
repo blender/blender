@@ -267,7 +267,7 @@ static struct PyModuleDef BPy_BM_ops_module_def = {
     BPy_BM_ops_doc,     /* m_doc */
     0,                  /* m_size */
     BPy_BM_ops_methods, /* m_methods */
-    NULL,               /* m_reload */
+    NULL,               /* m_slots */
     NULL,               /* m_traverse */
     NULL,               /* m_clear */
     NULL,               /* m_free */

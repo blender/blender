@@ -248,11 +248,7 @@ void USDMeshReader::read_object_data(Main *bmain, const double motionSampleTime)
 
   is_initial_load_ = false;
   if (read_mesh != mesh) {
-    /* FIXME: after 2.80; `mesh->flag` isn't copied by #BKE_mesh_nomain_to_mesh() */
-    /* read_mesh can be freed by BKE_mesh_nomain_to_mesh(), so get the flag before that happens. */
-    uint16_t autosmooth = (read_mesh->flag & ME_AUTOSMOOTH);
-    BKE_mesh_nomain_to_mesh(read_mesh, mesh, object_, &CD_MASK_MESH, true);
-    mesh->flag |= autosmooth;
+    BKE_mesh_nomain_to_mesh(read_mesh, mesh, object_);
   }
 
   readFaceSetsSample(bmain, mesh, motionSampleTime);
@@ -807,7 +803,7 @@ void USDMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const double mot
 
   std::map<pxr::SdfPath, int> mat_map;
 
-  bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*mesh);
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<int> material_indices =
       attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
   this->assign_facesets_to_material_indices(motionSampleTime, material_indices.span, &mat_map);
@@ -916,7 +912,7 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
     MutableSpan<MPoly> polys = active_mesh->polys_for_write();
     if (!polys.is_empty() && import_params_.import_materials) {
       std::map<pxr::SdfPath, int> mat_map;
-      bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*active_mesh);
+      bke::MutableAttributeAccessor attributes = active_mesh->attributes_for_write();
       bke::SpanAttributeWriter<int> material_indices =
           attributes.lookup_or_add_for_write_only_span<int>("material_index", ATTR_DOMAIN_FACE);
       assign_facesets_to_material_indices(motionSampleTime, material_indices.span, &mat_map);

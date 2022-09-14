@@ -570,7 +570,7 @@ static struct PyModuleDef IMB_module_def = {
     IMB_doc,     /* m_doc */
     0,           /* m_size */
     IMB_methods, /* m_methods */
-    NULL,        /* m_reload */
+    NULL,        /* m_slots */
     NULL,        /* m_traverse */
     NULL,        /* m_clear */
     NULL,        /* m_free */
@@ -614,7 +614,7 @@ static struct PyModuleDef IMB_types_module_def = {
     IMB_types_doc, /* m_doc */
     0,             /* m_size */
     NULL,          /* m_methods */
-    NULL,          /* m_reload */
+    NULL,          /* m_slots */
     NULL,          /* m_traverse */
     NULL,          /* m_clear */
     NULL,          /* m_free */

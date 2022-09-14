@@ -377,7 +377,7 @@ void unpack_menu(bContext *C,
     char local_name[FILE_MAXDIR + FILE_MAX], fi[FILE_MAX];
 
     BLI_split_file_part(abs_name, fi, sizeof(fi));
-    BLI_snprintf(local_name, sizeof(local_name), "//%s/%s", folder, fi);
+    BLI_path_join(local_name, sizeof(local_name), "//", folder, fi, NULL);
     if (!STREQ(abs_name, local_name)) {
       switch (BKE_packedfile_compare_to_file(blendfile_path, local_name, pf)) {
         case PF_CMP_NOFILE:

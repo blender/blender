@@ -149,7 +149,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  params.used_named_attribute(name, eNamedAttrUsage::Write);
+  params.used_named_attribute(name, NamedAttributeUsage::Write);
 
   const NodeGeometryStoreNamedAttribute &storage = node_storage(params.node());
   const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);

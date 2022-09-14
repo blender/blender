@@ -5,6 +5,8 @@
  * \ingroup bke
  */
 
+#include <mutex>
+
 #include "atomic_ops.h"
 
 #include "DNA_key_types.h"
@@ -18,12 +20,15 @@
 #include "BKE_customdata.h"
 #include "BKE_key.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_eval.h"
 #include "BKE_subdiv_foreach.h"
 #include "BKE_subdiv_mesh.h"
 
 #include "MEM_guardedalloc.h"
+
+using blender::Span;
 
 /* -------------------------------------------------------------------- */
 /** \name Subdivision Context
@@ -58,6 +63,11 @@ struct SubdivMeshContext {
   /* Per-subdivided vertex counter of averaged values. */
   int *accumulated_counters;
   bool have_displacement;
+
+  /* Lazily initialize a map from vertices to connected edges. */
+  std::mutex vert_to_edge_map_mutex;
+  int *vert_to_edge_buffer;
+  MeshElemMap *vert_to_edge_map;
 };
 
 static void subdiv_mesh_ctx_cache_uv_layers(SubdivMeshContext *ctx)
@@ -106,6 +116,8 @@ static void subdiv_mesh_prepare_accumulator(SubdivMeshContext *ctx, int num_vert
 static void subdiv_mesh_context_free(SubdivMeshContext *ctx)
 {
   MEM_SAFE_FREE(ctx->accumulated_counters);
+  MEM_SAFE_FREE(ctx->vert_to_edge_buffer);
+  MEM_SAFE_FREE(ctx->vert_to_edge_map);
 }
 
 /** \} */
@@ -779,7 +791,6 @@ static void subdiv_copy_edge_data(SubdivMeshContext *ctx,
   const int subdiv_edge_index = subdiv_edge - ctx->subdiv_edges;
   if (coarse_edge == nullptr) {
     subdiv_edge->crease = 0;
-    subdiv_edge->bweight = 0;
     subdiv_edge->flag = 0;
     if (!ctx->settings->use_optimal_display) {
       subdiv_edge->flag |= ME_EDGERENDER;
@@ -961,25 +972,30 @@ static void subdiv_mesh_vertex_loose(const SubdivForeachContext *foreach_context
 /* Get neighbor edges of the given one.
  * - neighbors[0] is an edge adjacent to edge->v1.
  * - neighbors[1] is an edge adjacent to edge->v2. */
-static void find_edge_neighbors(const Mesh *coarse_mesh,
-                                const MEdge *edge,
+static void find_edge_neighbors(const MEdge *coarse_edges,
+                                const MeshElemMap *vert_to_edge_map,
+                                const int edge_index,
                                 const MEdge *neighbors[2])
 {
-  const blender::Span<MEdge> coarse_edges = coarse_mesh->edges();
+  const MEdge *edge = &coarse_edges[edge_index];
   neighbors[0] = nullptr;
   neighbors[1] = nullptr;
   int neighbor_counters[2] = {0, 0};
-  for (int edge_index = 0; edge_index < coarse_mesh->totedge; edge_index++) {
-    const MEdge *current_edge = &coarse_edges[edge_index];
-    if (current_edge == edge) {
+  for (const int i : Span(vert_to_edge_map[edge->v1].indices, vert_to_edge_map[edge->v1].count)) {
+    if (i == edge_index) {
       continue;
     }
-    if (ELEM(edge->v1, current_edge->v1, current_edge->v2)) {
-      neighbors[0] = current_edge;
+    if (ELEM(edge->v1, coarse_edges[i].v1, coarse_edges[i].v2)) {
+      neighbors[0] = &coarse_edges[i];
       ++neighbor_counters[0];
     }
-    if (ELEM(edge->v2, current_edge->v1, current_edge->v2)) {
-      neighbors[1] = current_edge;
+  }
+  for (const int i : Span(vert_to_edge_map[edge->v2].indices, vert_to_edge_map[edge->v2].count)) {
+    if (i == edge_index) {
+      continue;
+    }
+    if (ELEM(edge->v2, coarse_edges[i].v1, coarse_edges[i].v2)) {
+      neighbors[1] = &coarse_edges[i];
       ++neighbor_counters[1];
     }
   }
@@ -994,12 +1010,11 @@ static void find_edge_neighbors(const Mesh *coarse_mesh,
   }
 }
 
-static void points_for_loose_edges_interpolation_get(const Mesh *coarse_mesh,
+static void points_for_loose_edges_interpolation_get(const MVert *coarse_mvert,
                                                      const MEdge *coarse_edge,
                                                      const MEdge *neighbors[2],
                                                      float points_r[4][3])
 {
-  const MVert *coarse_mvert = BKE_mesh_verts(coarse_mesh);
   /* Middle points corresponds to the edge. */
   copy_v3_v3(points_r[1], coarse_mvert[coarse_edge->v1].co);
   copy_v3_v3(points_r[2], coarse_mvert[coarse_edge->v2].co);
@@ -1031,24 +1046,26 @@ static void points_for_loose_edges_interpolation_get(const Mesh *coarse_mesh,
   }
 }
 
-void BKE_subdiv_mesh_interpolate_position_on_edge(const Mesh *coarse_mesh,
-                                                  const MEdge *coarse_edge,
+void BKE_subdiv_mesh_interpolate_position_on_edge(const MVert *coarse_verts,
+                                                  const MEdge *coarse_edges,
+                                                  const MeshElemMap *vert_to_edge_map,
+                                                  const int coarse_edge_index,
                                                   const bool is_simple,
                                                   const float u,
                                                   float pos_r[3])
 {
+  const MEdge *coarse_edge = &coarse_edges[coarse_edge_index];
   if (is_simple) {
-    const MVert *coarse_mvert = BKE_mesh_verts(coarse_mesh);
-    const MVert *vert_1 = &coarse_mvert[coarse_edge->v1];
-    const MVert *vert_2 = &coarse_mvert[coarse_edge->v2];
+    const MVert *vert_1 = &coarse_verts[coarse_edge->v1];
+    const MVert *vert_2 = &coarse_verts[coarse_edge->v2];
     interp_v3_v3v3(pos_r, vert_1->co, vert_2->co, u);
   }
   else {
     /* Find neighbors of the coarse edge. */
     const MEdge *neighbors[2];
-    find_edge_neighbors(coarse_mesh, coarse_edge, neighbors);
+    find_edge_neighbors(coarse_edges, vert_to_edge_map, coarse_edge_index, neighbors);
     float points[4][3];
-    points_for_loose_edges_interpolation_get(coarse_mesh, coarse_edge, neighbors, points);
+    points_for_loose_edges_interpolation_get(coarse_verts, coarse_edge, neighbors, points);
     float weights[4];
     key_curve_position_weights(u, weights, KEY_BSPLINE);
     interp_v3_v3v3v3v3(pos_r, points[0], points[1], points[2], points[3], weights);
@@ -1090,6 +1107,20 @@ static void subdiv_mesh_vertex_of_loose_edge(const SubdivForeachContext *foreach
   const Mesh *coarse_mesh = ctx->coarse_mesh;
   const MEdge *coarse_edge = &ctx->coarse_edges[coarse_edge_index];
   const bool is_simple = ctx->subdiv->settings.is_simple;
+
+  /* Lazily initialize a vertex to edge map to avoid quadratic runtime when subdividing loose
+   * edges. Do this here to avoid the cost in common cases when there are no loose edges at all. */
+  if (ctx->vert_to_edge_map == NULL) {
+    std::lock_guard lock{ctx->vert_to_edge_map_mutex};
+    if (ctx->vert_to_edge_map == NULL) {
+      BKE_mesh_vert_edge_map_create(&ctx->vert_to_edge_map,
+                                    &ctx->vert_to_edge_buffer,
+                                    ctx->coarse_edges,
+                                    coarse_mesh->totvert,
+                                    ctx->coarse_mesh->totedge);
+    }
+  }
+
   /* Interpolate custom data when not an end point.
    * This data has already been copied from the original vertex by #subdiv_mesh_vertex_loose. */
   if (!ELEM(u, 0.0, 1.0)) {
@@ -1097,13 +1128,15 @@ static void subdiv_mesh_vertex_of_loose_edge(const SubdivForeachContext *foreach
   }
   /* Interpolate coordinate. */
   MVert *subdiv_vertex = &ctx->subdiv_verts[subdiv_vertex_index];
-  BKE_subdiv_mesh_interpolate_position_on_edge(
-      coarse_mesh, coarse_edge, is_simple, u, subdiv_vertex->co);
+  BKE_subdiv_mesh_interpolate_position_on_edge(ctx->coarse_verts,
+                                               ctx->coarse_edges,
+                                               ctx->vert_to_edge_map,
+                                               coarse_edge_index,
+                                               is_simple,
+                                               u,
+                                               subdiv_vertex->co);
   /* Reset flags and such. */
   subdiv_vertex->flag = 0;
-  /* TODO(sergey): This matches old behavior, but we can as well interpolate
-   * it. Maybe even using vertex varying attributes. */
-  subdiv_vertex->bweight = 0.0f;
 }
 
 /** \} */

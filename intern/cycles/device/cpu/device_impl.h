@@ -23,7 +23,6 @@
 #include "kernel/device/cpu/kernel.h"
 #include "kernel/device/cpu/globals.h"
 
-#include "kernel/osl/shader.h"
 #include "kernel/osl/globals.h"
 // clang-format on
 

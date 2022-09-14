@@ -1459,7 +1459,7 @@ static bool outliner_element_visible_get(ViewLayer *view_layer,
 
       bool is_visible = true;
       if (exclude_filter & SO_FILTER_OB_STATE_VISIBLE) {
-        if ((base->flag & BASE_VISIBLE_VIEWLAYER) == 0) {
+        if ((base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0) {
           is_visible = false;
         }
       }

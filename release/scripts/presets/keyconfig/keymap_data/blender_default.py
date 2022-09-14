@@ -128,7 +128,7 @@ class Params:
         self.legacy = legacy
 
         if use_mouse_emulate_3_button:
-            assert(use_alt_tool_or_cursor is False)
+            assert use_alt_tool_or_cursor is False
 
         if select_mouse == 'RIGHT':
             # Right mouse select.

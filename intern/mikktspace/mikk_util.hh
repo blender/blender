@@ -108,7 +108,7 @@ void radixsort(std::vector<T> &data, std::vector<T> &data2, KeyGetter getKey)
   static_assert(datasize % 2 == 0);
   static_assert(std::is_integral<key_t>::value);
 
-  uint bins[datasize][257] = {0};
+  uint bins[datasize][257] = {{0}};
 
   /* Count number of elements per bin. */
   for (const T &item : data) {

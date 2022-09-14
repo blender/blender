@@ -149,7 +149,7 @@ IDTypeInfo IDType_ID_SIM = {
     /* foreach_id */ simulation_foreach_id,
     /* foreach_cache */ nullptr,
     /* foreach_path */ nullptr,
-    /* owner_get */ nullptr,
+    /* owner_pointer_get */ nullptr,
 
     /* blend_write */ simulation_blend_write,
     /* blend_read_data */ simulation_blend_read_data,

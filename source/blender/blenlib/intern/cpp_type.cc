@@ -26,3 +26,4 @@ BLI_CPP_TYPE_MAKE(ColorGeometry4f, blender::ColorGeometry4f, CPPTypeFlags::Basic
 BLI_CPP_TYPE_MAKE(ColorGeometry4b, blender::ColorGeometry4b, CPPTypeFlags::BasicType)
 
 BLI_CPP_TYPE_MAKE(string, std::string, CPPTypeFlags::BasicType)
+BLI_CPP_TYPE_MAKE(StringVector, blender::Vector<std::string>, CPPTypeFlags::None)

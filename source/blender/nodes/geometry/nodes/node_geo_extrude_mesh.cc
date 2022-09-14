@@ -66,7 +66,7 @@ static void save_selection_as_attribute(Mesh &mesh,
                                         const eAttrDomain domain,
                                         const IndexMask selection)
 {
-  MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(mesh);
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
   BLI_assert(!attributes.contains(id));
 
   SpanAttributeWriter<bool> attribute = attributes.lookup_or_add_for_write_span<bool>(id, domain);
@@ -94,28 +94,24 @@ static void expand_mesh(Mesh &mesh,
                         const int loop_expand)
 {
   if (vert_expand != 0) {
-    CustomData_duplicate_referenced_layers(&mesh.vdata, mesh.totvert);
+    const int old_verts_num = mesh.totvert;
     mesh.totvert += vert_expand;
-    CustomData_realloc(&mesh.vdata, mesh.totvert);
-  }
-  else {
-    /* Even when the number of vertices is not changed, the mesh can still be deformed. */
-    CustomData_duplicate_referenced_layer(&mesh.vdata, CD_MVERT, mesh.totvert);
+    CustomData_realloc(&mesh.vdata, old_verts_num, mesh.totvert);
   }
   if (edge_expand != 0) {
-    CustomData_duplicate_referenced_layers(&mesh.edata, mesh.totedge);
+    const int old_edges_num = mesh.totedge;
     mesh.totedge += edge_expand;
-    CustomData_realloc(&mesh.edata, mesh.totedge);
+    CustomData_realloc(&mesh.edata, old_edges_num, mesh.totedge);
   }
   if (poly_expand != 0) {
-    CustomData_duplicate_referenced_layers(&mesh.pdata, mesh.totpoly);
+    const int old_polys_num = mesh.totpoly;
     mesh.totpoly += poly_expand;
-    CustomData_realloc(&mesh.pdata, mesh.totpoly);
+    CustomData_realloc(&mesh.pdata, old_polys_num, mesh.totpoly);
   }
   if (loop_expand != 0) {
-    CustomData_duplicate_referenced_layers(&mesh.ldata, mesh.totloop);
+    const int old_loops_num = mesh.totloop;
     mesh.totloop += loop_expand;
-    CustomData_realloc(&mesh.ldata, mesh.totloop);
+    CustomData_realloc(&mesh.ldata, old_loops_num, mesh.totloop);
   }
 }
 
@@ -138,7 +134,7 @@ static CustomData &get_customdata(Mesh &mesh, const eAttrDomain domain)
 
 static MutableSpan<int> get_orig_index_layer(Mesh &mesh, const eAttrDomain domain)
 {
-  const bke::AttributeAccessor attributes = bke::mesh_attributes(mesh);
+  const bke::AttributeAccessor attributes = mesh.attributes();
   CustomData &custom_data = get_customdata(mesh, domain);
   if (int *orig_indices = static_cast<int *>(CustomData_get_layer(&custom_data, CD_ORIGINDEX))) {
     return {orig_indices, attributes.domain_size(domain)};
@@ -151,6 +147,7 @@ static MEdge new_edge(const int v1, const int v2)
   MEdge edge;
   edge.v1 = v1;
   edge.v2 = v2;
+  edge.crease = 0;
   edge.flag = (ME_EDGEDRAW | ME_EDGERENDER);
   return edge;
 }
@@ -160,6 +157,7 @@ static MEdge new_loose_edge(const int v1, const int v2)
   MEdge edge;
   edge.v1 = v1;
   edge.v2 = v2;
+  edge.crease = 0;
   edge.flag = ME_LOOSEEDGE;
   return edge;
 }
@@ -252,7 +250,7 @@ static void extrude_mesh_vertices(Mesh &mesh,
     new_edges[i_selection] = new_loose_edge(selection[i_selection], new_vert_range[i_selection]);
   }
 
-  MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(mesh);
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
 
   attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
     if (!ELEM(meta_data.domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE)) {
@@ -290,6 +288,7 @@ static void extrude_mesh_vertices(Mesh &mesh,
       for (const int i : range) {
         const float3 offset = offsets[selection[i]];
         add_v3_v3(new_verts[i].co, offset);
+        new_verts[i].flag = 0;
       }
     });
   });
@@ -498,7 +497,7 @@ static void extrude_mesh_edges(Mesh &mesh,
   const Array<Vector<int>> new_vert_to_duplicate_edge_map = create_vert_to_edge_map(
       new_vert_range.size(), duplicate_edges, orig_vert_size);
 
-  MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(mesh);
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
 
   attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
     GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_span(
@@ -612,6 +611,7 @@ static void extrude_mesh_edges(Mesh &mesh,
     threading::parallel_for(new_verts.index_range(), 1024, [&](const IndexRange range) {
       for (const int i : range) {
         add_v3_v3(new_verts[i].co, offset);
+        new_verts[i].flag = 0;
       }
     });
   }
@@ -619,6 +619,7 @@ static void extrude_mesh_edges(Mesh &mesh,
     threading::parallel_for(new_verts.index_range(), 1024, [&](const IndexRange range) {
       for (const int i : range) {
         add_v3_v3(new_verts[i].co, vert_offsets[new_vert_indices[i]]);
+        new_verts[i].flag = 0;
       }
     });
   }
@@ -878,7 +879,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   const Array<Vector<int>> new_vert_to_duplicate_edge_map = create_vert_to_edge_map(
       new_vert_range.size(), boundary_edges, orig_vert_size);
 
-  MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(mesh);
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
 
   attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
     GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_span(
@@ -998,6 +999,10 @@ static void extrude_mesh_face_regions(Mesh &mesh,
             add_v3_v3(vert.co, offset);
           }
         });
+  }
+
+  for (MVert &vert : verts.slice(new_vert_range)) {
+    vert.flag = 0;
   }
 
   MutableSpan<int> vert_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT);
@@ -1132,7 +1137,7 @@ static void extrude_individual_mesh_faces(Mesh &mesh,
     }
   });
 
-  MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(mesh);
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
 
   attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
     GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_span(
@@ -1257,6 +1262,7 @@ static void extrude_individual_mesh_faces(Mesh &mesh,
       const IndexRange poly_corner_range = selected_corner_range(index_offsets, i_selection);
       for (MVert &vert : new_verts.slice(poly_corner_range)) {
         add_v3_v3(vert.co, poly_offset[poly_selection[i_selection]]);
+        vert.flag = 0;
       }
     }
   });

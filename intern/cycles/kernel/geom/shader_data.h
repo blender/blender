@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "kernel/util/differential.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* ShaderData setup from incoming ray */

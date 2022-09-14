@@ -72,7 +72,7 @@ class PlanarFieldInput final : public bke::MeshFieldInput {
       return max - min < thresholds[i] / 2.0f;
     };
 
-    return bke::mesh_attributes(mesh).adapt_domain<bool>(
+    return mesh.attributes().adapt_domain<bool>(
         VArray<bool>::ForFunc(polys.size(), planar_fn), ATTR_DOMAIN_FACE, domain);
   }
 

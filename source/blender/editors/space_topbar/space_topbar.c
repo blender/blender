@@ -288,7 +288,7 @@ void ED_spacetype_topbar(void)
   ARegionType *art;
 
   st->spaceid = SPACE_TOPBAR;
-  strncpy(st->name, "Top Bar", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "Top Bar");
 
   st->create = topbar_create;
   st->free = topbar_free;

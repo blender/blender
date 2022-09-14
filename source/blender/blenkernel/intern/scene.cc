@@ -1675,7 +1675,7 @@ constexpr IDTypeInfo get_type_info()
   info.foreach_id = scene_foreach_id;
   info.foreach_cache = scene_foreach_cache;
   info.foreach_path = scene_foreach_path;
-  info.owner_get = nullptr;
+  info.owner_pointer_get = nullptr;
 
   info.blend_write = scene_blend_write;
   info.blend_read_data = scene_blend_read_data;

@@ -141,7 +141,7 @@ static void pointcloud_batch_cache_ensure_pos(const PointCloud &pointcloud,
     return;
   }
 
-  const bke::AttributeAccessor attributes = bke::pointcloud_attributes(pointcloud);
+  const bke::AttributeAccessor attributes = pointcloud.attributes();
   const VArraySpan<float3> positions = attributes.lookup<float3>("position", ATTR_DOMAIN_POINT);
   const VArray<float> radii = attributes.lookup<float>("radius", ATTR_DOMAIN_POINT);
   /* From the opengl wiki:

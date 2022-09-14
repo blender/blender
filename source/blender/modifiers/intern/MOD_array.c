@@ -294,7 +294,7 @@ static void mesh_merge_transform(Mesh *result,
   for (i = 0; i < cap_nverts; i++, mv++) {
     mul_m4_v3(cap_offset, mv->co);
     /* Reset MVert flags for caps */
-    mv->flag = mv->bweight = 0;
+    mv->flag = 0;
   }
 
   /* We have to correct normals too, if we do not tag them as dirty later! */
@@ -482,7 +482,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   }
 
   /* About 67 million vertices max seems a decent limit for now. */
-  const size_t max_vertices_num = 1 << 26;
+  const size_t max_verts_num = 1 << 26;
 
   /* calculate the maximum number of copies which will fit within the
    * prescribed length */
@@ -500,7 +500,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
        * vertices.
        */
       if (((size_t)count * (size_t)chunk_nverts + (size_t)start_cap_nverts +
-           (size_t)end_cap_nverts) > max_vertices_num) {
+           (size_t)end_cap_nverts) > max_verts_num) {
         count = 1;
         offset_is_too_small = true;
       }
@@ -522,7 +522,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
    * vertices.
    */
   else if (((size_t)count * (size_t)chunk_nverts + (size_t)start_cap_nverts +
-            (size_t)end_cap_nverts) > max_vertices_num) {
+            (size_t)end_cap_nverts) > max_verts_num) {
     count = 1;
     BKE_modifier_set_error(ctx->object,
                            &amd->modifier,
@@ -560,8 +560,8 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, chunk_nloops);
   CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, chunk_npolys);
 
-  /* Subsurf for eg won't have mesh data in the custom data arrays.
-   * now add mvert/medge/mpoly layers. */
+  /* Subdivision-surface for eg won't have mesh data in the custom-data arrays.
+   * Now add #MVert/#MEdge/#MPoly layers. */
   if (!CustomData_has_layer(&mesh->vdata, CD_MVERT)) {
     memcpy(result_verts, src_verts, sizeof(MVert) * mesh->totvert);
   }

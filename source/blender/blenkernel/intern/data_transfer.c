@@ -192,7 +192,7 @@ int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type)
     case DT_TYPE_SKIN:
       return CD_MVERT_SKIN;
     case DT_TYPE_BWEIGHT_VERT:
-      return CD_FAKE_BWEIGHT;
+      return CD_BWEIGHT;
 
     case DT_TYPE_SHARP_EDGE:
       return CD_FAKE_SHARP;
@@ -201,7 +201,7 @@ int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type)
     case DT_TYPE_CREASE:
       return CD_FAKE_CREASE;
     case DT_TYPE_BWEIGHT_EDGE:
-      return CD_FAKE_BWEIGHT;
+      return CD_BWEIGHT;
     case DT_TYPE_FREESTYLE_EDGE:
       return CD_FREESTYLE_EDGE;
 
@@ -928,38 +928,6 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       }
       return true;
     }
-    if (cddata_type == CD_FAKE_BWEIGHT) {
-      const size_t elem_size = sizeof(*((MVert *)NULL));
-      const size_t data_size = sizeof(((MVert *)NULL)->bweight);
-      const size_t data_offset = offsetof(MVert, bweight);
-      const uint64_t data_flag = 0;
-
-      if (!(me_src->cd_flag & ME_CDFLAG_VERT_BWEIGHT)) {
-        if (use_delete) {
-          me_dst->cd_flag &= ~ME_CDFLAG_VERT_BWEIGHT;
-        }
-        return true;
-      }
-      me_dst->cd_flag |= ME_CDFLAG_VERT_BWEIGHT;
-      if (r_map) {
-        data_transfer_layersmapping_add_item(r_map,
-                                             cddata_type,
-                                             mix_mode,
-                                             mix_factor,
-                                             mix_weights,
-                                             BKE_mesh_verts(me_src),
-                                             BKE_mesh_verts_for_write(me_dst),
-                                             me_src->totvert,
-                                             me_dst->totvert,
-                                             elem_size,
-                                             data_size,
-                                             data_offset,
-                                             data_flag,
-                                             data_transfer_interp_char,
-                                             interp_data);
-      }
-      return true;
-    }
     if (cddata_type == CD_FAKE_MDEFORMVERT) {
       bool ret;
 
@@ -1045,38 +1013,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       }
       return true;
     }
-    if (cddata_type == CD_FAKE_BWEIGHT) {
-      const size_t elem_size = sizeof(*((MEdge *)NULL));
-      const size_t data_size = sizeof(((MEdge *)NULL)->bweight);
-      const size_t data_offset = offsetof(MEdge, bweight);
-      const uint64_t data_flag = 0;
 
-      if (!(me_src->cd_flag & ME_CDFLAG_EDGE_BWEIGHT)) {
-        if (use_delete) {
-          me_dst->cd_flag &= ~ME_CDFLAG_EDGE_BWEIGHT;
-        }
-        return true;
-      }
-      me_dst->cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
-      if (r_map) {
-        data_transfer_layersmapping_add_item(r_map,
-                                             cddata_type,
-                                             mix_mode,
-                                             mix_factor,
-                                             mix_weights,
-                                             BKE_mesh_edges(me_src),
-                                             BKE_mesh_edges_for_write(me_dst),
-                                             me_src->totedge,
-                                             me_dst->totedge,
-                                             elem_size,
-                                             data_size,
-                                             data_offset,
-                                             data_flag,
-                                             data_transfer_interp_char,
-                                             interp_data);
-      }
-      return true;
-    }
     if (r_map && ELEM(cddata_type, CD_FAKE_SHARP, CD_FAKE_SEAM)) {
       const size_t elem_size = sizeof(*((MEdge *)NULL));
       const size_t data_size = sizeof(((MEdge *)NULL)->flag);

@@ -176,9 +176,9 @@ static void copy_face_corner_attributes(const Map<AttributeIDRef, AttributeKind>
       attributes, src_attributes, dst_attributes, ATTR_DOMAIN_CORNER, IndexMask(indices));
 }
 
-static void copy_masked_vertices_to_new_mesh(const Mesh &src_mesh,
-                                             Mesh &dst_mesh,
-                                             Span<int> vertex_map)
+static void copy_masked_verts_to_new_mesh(const Mesh &src_mesh,
+                                          Mesh &dst_mesh,
+                                          Span<int> vertex_map)
 {
   BLI_assert(src_mesh.totvert == vertex_map.size());
   const Span<MVert> src_verts = src_mesh.verts();
@@ -239,16 +239,16 @@ static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
                                           Span<int> masked_poly_indices,
                                           Span<int> new_loop_starts)
 {
-  const Span<MPoly> src_polygons = src_mesh.polys();
+  const Span<MPoly> src_polys = src_mesh.polys();
   const Span<MLoop> src_loops = src_mesh.loops();
-  MutableSpan<MPoly> dst_polygons = dst_mesh.polys_for_write();
+  MutableSpan<MPoly> dst_polys = dst_mesh.polys_for_write();
   MutableSpan<MLoop> dst_loops = dst_mesh.loops_for_write();
 
   for (const int i_dst : masked_poly_indices.index_range()) {
     const int i_src = masked_poly_indices[i_dst];
 
-    const MPoly &mp_src = src_polygons[i_src];
-    MPoly &mp_dst = dst_polygons[i_dst];
+    const MPoly &mp_src = src_polys[i_src];
+    MPoly &mp_dst = dst_polys[i_dst];
     const int i_ml_src = mp_src.loopstart;
     const int i_ml_dst = new_loop_starts[i_dst];
 
@@ -270,16 +270,16 @@ static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
                                           Span<int> masked_poly_indices,
                                           Span<int> new_loop_starts)
 {
-  const Span<MPoly> src_polygons = src_mesh.polys();
+  const Span<MPoly> src_polys = src_mesh.polys();
   const Span<MLoop> src_loops = src_mesh.loops();
-  MutableSpan<MPoly> dst_polygons = dst_mesh.polys_for_write();
+  MutableSpan<MPoly> dst_polys = dst_mesh.polys_for_write();
   MutableSpan<MLoop> dst_loops = dst_mesh.loops_for_write();
 
   for (const int i_dst : masked_poly_indices.index_range()) {
     const int i_src = masked_poly_indices[i_dst];
 
-    const MPoly &mp_src = src_polygons[i_src];
-    MPoly &mp_dst = dst_polygons[i_dst];
+    const MPoly &mp_src = src_polys[i_src];
+    MPoly &mp_dst = dst_polys[i_dst];
     const int i_ml_src = mp_src.loopstart;
     const int i_ml_dst = new_loop_starts[i_dst];
 
@@ -302,16 +302,16 @@ static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
                                           Span<int> masked_poly_indices,
                                           Span<int> new_loop_starts)
 {
-  const Span<MPoly> src_polygons = src_mesh.polys();
+  const Span<MPoly> src_polys = src_mesh.polys();
   const Span<MLoop> src_loops = src_mesh.loops();
-  MutableSpan<MPoly> dst_polygons = dst_mesh.polys_for_write();
+  MutableSpan<MPoly> dst_polys = dst_mesh.polys_for_write();
   MutableSpan<MLoop> dst_loops = dst_mesh.loops_for_write();
 
   for (const int i_dst : masked_poly_indices.index_range()) {
     const int i_src = masked_poly_indices[i_dst];
 
-    const MPoly &mp_src = src_polygons[i_src];
-    MPoly &mp_dst = dst_polygons[i_dst];
+    const MPoly &mp_src = src_polys[i_src];
+    MPoly &mp_dst = dst_polys[i_dst];
     const int i_ml_src = mp_src.loopstart;
     const int i_ml_dst = new_loop_starts[i_dst];
 
@@ -382,8 +382,8 @@ static void separate_point_cloud_selection(GeometrySet &geometry_set,
       {GEO_COMPONENT_TYPE_POINT_CLOUD}, GEO_COMPONENT_TYPE_POINT_CLOUD, false, attributes);
 
   copy_attributes_based_on_mask(attributes,
-                                bke::pointcloud_attributes(src_pointcloud),
-                                bke::pointcloud_attributes_for_write(*pointcloud),
+                                src_pointcloud.attributes(),
+                                pointcloud->attributes_for_write(),
                                 ATTR_DOMAIN_POINT,
                                 selection);
   geometry_set.replace_pointcloud(pointcloud);
@@ -407,9 +407,9 @@ static void delete_selected_instances(GeometrySet &geometry_set,
   instances.remove_instances(selection);
 }
 
-static void compute_selected_vertices_from_vertex_selection(const Span<bool> vertex_selection,
-                                                            MutableSpan<int> r_vertex_map,
-                                                            int *r_selected_vertices_num)
+static void compute_selected_verts_from_vertex_selection(const Span<bool> vertex_selection,
+                                                         MutableSpan<int> r_vertex_map,
+                                                         int *r_selected_verts_num)
 {
   BLI_assert(vertex_selection.size() == r_vertex_map.size());
 
@@ -424,7 +424,7 @@ static void compute_selected_vertices_from_vertex_selection(const Span<bool> ver
     }
   }
 
-  *r_selected_vertices_num = selected_verts_num;
+  *r_selected_verts_num = selected_verts_num;
 }
 
 static void compute_selected_edges_from_vertex_selection(const Mesh &mesh,
@@ -452,12 +452,12 @@ static void compute_selected_edges_from_vertex_selection(const Mesh &mesh,
   *r_selected_edges_num = selected_edges_num;
 }
 
-static void compute_selected_polygons_from_vertex_selection(const Mesh &mesh,
-                                                            const Span<bool> vertex_selection,
-                                                            Vector<int> &r_selected_poly_indices,
-                                                            Vector<int> &r_loop_starts,
-                                                            int *r_selected_polys_num,
-                                                            int *r_selected_loops_num)
+static void compute_selected_polys_from_vertex_selection(const Mesh &mesh,
+                                                         const Span<bool> vertex_selection,
+                                                         Vector<int> &r_selected_poly_indices,
+                                                         Vector<int> &r_loop_starts,
+                                                         int *r_selected_polys_num,
+                                                         int *r_selected_loops_num)
 {
   BLI_assert(mesh.totvert == vertex_selection.size());
   const Span<MPoly> polys = mesh.polys();
@@ -494,13 +494,12 @@ static void compute_selected_polygons_from_vertex_selection(const Mesh &mesh,
  * Checks for every edge if it is in `edge_selection`. If it is, then the two vertices of the
  * edge are kept along with the edge.
  */
-static void compute_selected_vertices_and_edges_from_edge_selection(
-    const Mesh &mesh,
-    const Span<bool> edge_selection,
-    MutableSpan<int> r_vertex_map,
-    MutableSpan<int> r_edge_map,
-    int *r_selected_vertices_num,
-    int *r_selected_edges_num)
+static void compute_selected_verts_and_edges_from_edge_selection(const Mesh &mesh,
+                                                                 const Span<bool> edge_selection,
+                                                                 MutableSpan<int> r_vertex_map,
+                                                                 MutableSpan<int> r_edge_map,
+                                                                 int *r_selected_verts_num,
+                                                                 int *r_selected_edges_num)
 {
   BLI_assert(mesh.totedge == edge_selection.size());
   const Span<MEdge> edges = mesh.edges();
@@ -526,7 +525,7 @@ static void compute_selected_vertices_and_edges_from_edge_selection(
     }
   }
 
-  *r_selected_vertices_num = selected_verts_num;
+  *r_selected_verts_num = selected_verts_num;
   *r_selected_edges_num = selected_edges_num;
 }
 
@@ -558,12 +557,12 @@ static void compute_selected_edges_from_edge_selection(const Mesh &mesh,
  * Checks for every polygon if all the edges are in `edge_selection`. If they are, then that
  * polygon is kept.
  */
-static void compute_selected_polygons_from_edge_selection(const Mesh &mesh,
-                                                          const Span<bool> edge_selection,
-                                                          Vector<int> &r_selected_poly_indices,
-                                                          Vector<int> &r_loop_starts,
-                                                          int *r_selected_polys_num,
-                                                          int *r_selected_loops_num)
+static void compute_selected_polys_from_edge_selection(const Mesh &mesh,
+                                                       const Span<bool> edge_selection,
+                                                       Vector<int> &r_selected_poly_indices,
+                                                       Vector<int> &r_loop_starts,
+                                                       int *r_selected_polys_num,
+                                                       int *r_selected_loops_num)
 {
   const Span<MPoly> polys = mesh.polys();
   const Span<MLoop> loops = mesh.loops();
@@ -612,12 +611,12 @@ static void compute_selected_mesh_data_from_vertex_selection_edge_face(
   compute_selected_edges_from_vertex_selection(
       mesh, vertex_selection, r_edge_map, r_selected_edges_num);
 
-  compute_selected_polygons_from_vertex_selection(mesh,
-                                                  vertex_selection,
-                                                  r_selected_poly_indices,
-                                                  r_loop_starts,
-                                                  r_selected_polys_num,
-                                                  r_selected_loops_num);
+  compute_selected_polys_from_vertex_selection(mesh,
+                                               vertex_selection,
+                                               r_selected_poly_indices,
+                                               r_loop_starts,
+                                               r_selected_polys_num,
+                                               r_selected_loops_num);
 }
 
 /**
@@ -630,23 +629,23 @@ static void compute_selected_mesh_data_from_vertex_selection(const Mesh &mesh,
                                                              MutableSpan<int> r_edge_map,
                                                              Vector<int> &r_selected_poly_indices,
                                                              Vector<int> &r_loop_starts,
-                                                             int *r_selected_vertices_num,
+                                                             int *r_selected_verts_num,
                                                              int *r_selected_edges_num,
                                                              int *r_selected_polys_num,
                                                              int *r_selected_loops_num)
 {
-  compute_selected_vertices_from_vertex_selection(
-      vertex_selection, r_vertex_map, r_selected_vertices_num);
+  compute_selected_verts_from_vertex_selection(
+      vertex_selection, r_vertex_map, r_selected_verts_num);
 
   compute_selected_edges_from_vertex_selection(
       mesh, vertex_selection, r_edge_map, r_selected_edges_num);
 
-  compute_selected_polygons_from_vertex_selection(mesh,
-                                                  vertex_selection,
-                                                  r_selected_poly_indices,
-                                                  r_loop_starts,
-                                                  r_selected_polys_num,
-                                                  r_selected_loops_num);
+  compute_selected_polys_from_vertex_selection(mesh,
+                                               vertex_selection,
+                                               r_selected_poly_indices,
+                                               r_loop_starts,
+                                               r_selected_polys_num,
+                                               r_selected_loops_num);
 }
 
 /**
@@ -665,12 +664,12 @@ static void compute_selected_mesh_data_from_edge_selection_edge_face(
 {
   compute_selected_edges_from_edge_selection(
       mesh, edge_selection, r_edge_map, r_selected_edges_num);
-  compute_selected_polygons_from_edge_selection(mesh,
-                                                edge_selection,
-                                                r_selected_poly_indices,
-                                                r_loop_starts,
-                                                r_selected_polys_num,
-                                                r_selected_loops_num);
+  compute_selected_polys_from_edge_selection(mesh,
+                                             edge_selection,
+                                             r_selected_poly_indices,
+                                             r_loop_starts,
+                                             r_selected_polys_num,
+                                             r_selected_loops_num);
 }
 
 /**
@@ -683,35 +682,31 @@ static void compute_selected_mesh_data_from_edge_selection(const Mesh &mesh,
                                                            MutableSpan<int> r_edge_map,
                                                            Vector<int> &r_selected_poly_indices,
                                                            Vector<int> &r_loop_starts,
-                                                           int *r_selected_vertices_num,
+                                                           int *r_selected_verts_num,
                                                            int *r_selected_edges_num,
                                                            int *r_selected_polys_num,
                                                            int *r_selected_loops_num)
 {
   r_vertex_map.fill(-1);
-  compute_selected_vertices_and_edges_from_edge_selection(mesh,
-                                                          edge_selection,
-                                                          r_vertex_map,
-                                                          r_edge_map,
-                                                          r_selected_vertices_num,
-                                                          r_selected_edges_num);
-  compute_selected_polygons_from_edge_selection(mesh,
-                                                edge_selection,
-                                                r_selected_poly_indices,
-                                                r_loop_starts,
-                                                r_selected_polys_num,
-                                                r_selected_loops_num);
+  compute_selected_verts_and_edges_from_edge_selection(
+      mesh, edge_selection, r_vertex_map, r_edge_map, r_selected_verts_num, r_selected_edges_num);
+  compute_selected_polys_from_edge_selection(mesh,
+                                             edge_selection,
+                                             r_selected_poly_indices,
+                                             r_loop_starts,
+                                             r_selected_polys_num,
+                                             r_selected_loops_num);
 }
 
 /**
  * Checks for every polygon if it is in `poly_selection`.
  */
-static void compute_selected_polygons_from_poly_selection(const Mesh &mesh,
-                                                          const Span<bool> poly_selection,
-                                                          Vector<int> &r_selected_poly_indices,
-                                                          Vector<int> &r_loop_starts,
-                                                          int *r_selected_polys_num,
-                                                          int *r_selected_loops_num)
+static void compute_selected_polys_from_poly_selection(const Mesh &mesh,
+                                                       const Span<bool> poly_selection,
+                                                       Vector<int> &r_selected_poly_indices,
+                                                       Vector<int> &r_loop_starts,
+                                                       int *r_selected_polys_num,
+                                                       int *r_selected_loops_num)
 {
   BLI_assert(mesh.totpoly == poly_selection.size());
   const Span<MPoly> polys = mesh.polys();
@@ -792,7 +787,7 @@ static void compute_selected_mesh_data_from_poly_selection(const Mesh &mesh,
                                                            MutableSpan<int> r_edge_map,
                                                            Vector<int> &r_selected_poly_indices,
                                                            Vector<int> &r_loop_starts,
-                                                           int *r_selected_vertices_num,
+                                                           int *r_selected_verts_num,
                                                            int *r_selected_edges_num,
                                                            int *r_selected_polys_num,
                                                            int *r_selected_loops_num)
@@ -834,7 +829,7 @@ static void compute_selected_mesh_data_from_poly_selection(const Mesh &mesh,
       }
     }
   }
-  *r_selected_vertices_num = selected_verts_num;
+  *r_selected_verts_num = selected_verts_num;
   *r_selected_edges_num = selected_edges_num;
   *r_selected_polys_num = r_selected_poly_indices.size();
   *r_selected_loops_num = selected_loops_num;
@@ -919,30 +914,30 @@ static void do_mesh_separation(GeometrySet &geometry_set,
                                                    selected_polys_num);
 
       /* Copy the selected parts of the mesh over to the new mesh. */
-      copy_masked_vertices_to_new_mesh(mesh_in, *mesh_out, vertex_map);
+      copy_masked_verts_to_new_mesh(mesh_in, *mesh_out, vertex_map);
       copy_masked_edges_to_new_mesh(mesh_in, *mesh_out, vertex_map, edge_map);
       copy_masked_polys_to_new_mesh(
           mesh_in, *mesh_out, vertex_map, edge_map, selected_poly_indices, new_loop_starts);
 
       /* Copy attributes. */
       copy_attributes_based_on_map(attributes,
-                                   bke::mesh_attributes(mesh_in),
-                                   bke::mesh_attributes_for_write(*mesh_out),
+                                   mesh_in.attributes(),
+                                   mesh_out->attributes_for_write(),
                                    ATTR_DOMAIN_POINT,
                                    vertex_map);
       copy_attributes_based_on_map(attributes,
-                                   bke::mesh_attributes(mesh_in),
-                                   bke::mesh_attributes_for_write(*mesh_out),
+                                   mesh_in.attributes(),
+                                   mesh_out->attributes_for_write(),
                                    ATTR_DOMAIN_EDGE,
                                    edge_map);
       copy_attributes_based_on_mask(attributes,
-                                    bke::mesh_attributes(mesh_in),
-                                    bke::mesh_attributes_for_write(*mesh_out),
+                                    mesh_in.attributes(),
+                                    mesh_out->attributes_for_write(),
                                     ATTR_DOMAIN_FACE,
                                     IndexMask(Vector<int64_t>(selected_poly_indices.as_span())));
       copy_face_corner_attributes(attributes,
-                                  bke::mesh_attributes(mesh_in),
-                                  bke::mesh_attributes_for_write(*mesh_out),
+                                  mesh_in.attributes(),
+                                  mesh_out->attributes_for_write(),
                                   selected_loops_num,
                                   selected_poly_indices,
                                   mesh_in);
@@ -1002,23 +997,21 @@ static void do_mesh_separation(GeometrySet &geometry_set,
           mesh_in, *mesh_out, edge_map, selected_poly_indices, new_loop_starts);
 
       /* Copy attributes. */
-      copy_attributes(attributes,
-                      bke::mesh_attributes(mesh_in),
-                      bke::mesh_attributes_for_write(*mesh_out),
-                      {ATTR_DOMAIN_POINT});
+      copy_attributes(
+          attributes, mesh_in.attributes(), mesh_out->attributes_for_write(), {ATTR_DOMAIN_POINT});
       copy_attributes_based_on_map(attributes,
-                                   bke::mesh_attributes(mesh_in),
-                                   bke::mesh_attributes_for_write(*mesh_out),
+                                   mesh_in.attributes(),
+                                   mesh_out->attributes_for_write(),
                                    ATTR_DOMAIN_EDGE,
                                    edge_map);
       copy_attributes_based_on_mask(attributes,
-                                    bke::mesh_attributes(mesh_in),
-                                    bke::mesh_attributes_for_write(*mesh_out),
+                                    mesh_in.attributes(),
+                                    mesh_out->attributes_for_write(),
                                     ATTR_DOMAIN_FACE,
                                     IndexMask(Vector<int64_t>(selected_poly_indices.as_span())));
       copy_face_corner_attributes(attributes,
-                                  bke::mesh_attributes(mesh_in),
-                                  bke::mesh_attributes_for_write(*mesh_out),
+                                  mesh_in.attributes(),
+                                  mesh_out->attributes_for_write(),
                                   selected_loops_num,
                                   selected_poly_indices,
                                   mesh_in);
@@ -1028,28 +1021,28 @@ static void do_mesh_separation(GeometrySet &geometry_set,
       /* Fill all the maps based on the selection. */
       switch (domain) {
         case ATTR_DOMAIN_POINT:
-          compute_selected_polygons_from_vertex_selection(mesh_in,
-                                                          selection,
-                                                          selected_poly_indices,
-                                                          new_loop_starts,
-                                                          &selected_polys_num,
-                                                          &selected_loops_num);
+          compute_selected_polys_from_vertex_selection(mesh_in,
+                                                       selection,
+                                                       selected_poly_indices,
+                                                       new_loop_starts,
+                                                       &selected_polys_num,
+                                                       &selected_loops_num);
           break;
         case ATTR_DOMAIN_EDGE:
-          compute_selected_polygons_from_edge_selection(mesh_in,
-                                                        selection,
-                                                        selected_poly_indices,
-                                                        new_loop_starts,
-                                                        &selected_polys_num,
-                                                        &selected_loops_num);
+          compute_selected_polys_from_edge_selection(mesh_in,
+                                                     selection,
+                                                     selected_poly_indices,
+                                                     new_loop_starts,
+                                                     &selected_polys_num,
+                                                     &selected_loops_num);
           break;
         case ATTR_DOMAIN_FACE:
-          compute_selected_polygons_from_poly_selection(mesh_in,
-                                                        selection,
-                                                        selected_poly_indices,
-                                                        new_loop_starts,
-                                                        &selected_polys_num,
-                                                        &selected_loops_num);
+          compute_selected_polys_from_poly_selection(mesh_in,
+                                                     selection,
+                                                     selected_poly_indices,
+                                                     new_loop_starts,
+                                                     &selected_polys_num,
+                                                     &selected_loops_num);
           break;
         default:
           BLI_assert_unreachable();
@@ -1065,17 +1058,17 @@ static void do_mesh_separation(GeometrySet &geometry_set,
 
       /* Copy attributes. */
       copy_attributes(attributes,
-                      bke::mesh_attributes(mesh_in),
-                      bke::mesh_attributes_for_write(*mesh_out),
+                      mesh_in.attributes(),
+                      mesh_out->attributes_for_write(),
                       {ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE});
       copy_attributes_based_on_mask(attributes,
-                                    bke::mesh_attributes(mesh_in),
-                                    bke::mesh_attributes_for_write(*mesh_out),
+                                    mesh_in.attributes(),
+                                    mesh_out->attributes_for_write(),
                                     ATTR_DOMAIN_FACE,
                                     IndexMask(Vector<int64_t>(selected_poly_indices.as_span())));
       copy_face_corner_attributes(attributes,
-                                  bke::mesh_attributes(mesh_in),
-                                  bke::mesh_attributes_for_write(*mesh_out),
+                                  mesh_in.attributes(),
+                                  mesh_out->attributes_for_write(),
                                   selected_loops_num,
                                   selected_poly_indices,
                                   mesh_in);
@@ -1094,8 +1087,7 @@ static void separate_mesh_selection(GeometrySet &geometry_set,
 {
   const Mesh &src_mesh = *geometry_set.get_mesh_for_read();
   bke::MeshFieldContext field_context{src_mesh, selection_domain};
-  fn::FieldEvaluator evaluator{field_context,
-                               bke::mesh_attributes(src_mesh).domain_size(selection_domain)};
+  fn::FieldEvaluator evaluator{field_context, src_mesh.attributes().domain_size(selection_domain)};
   evaluator.add(selection_field);
   evaluator.evaluate();
   const VArray<bool> selection = evaluator.get_evaluated<bool>(0);

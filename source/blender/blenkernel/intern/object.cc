@@ -1239,7 +1239,7 @@ IDTypeInfo IDType_ID_OB = {
     /* foreach_id */ object_foreach_id,
     /* foreach_cache */ nullptr,
     /* foreach_path */ object_foreach_path,
-    /* owner_get */ nullptr,
+    /* owner_pointer_get */ nullptr,
 
     /* blend_write */ object_blend_write,
     /* blend_read_data */ object_blend_read_data,
@@ -2040,7 +2040,7 @@ bool BKE_object_is_mode_compat(const struct Object *ob, eObjectMode object_mode)
 
 int BKE_object_visibility(const Object *ob, const int dag_eval_mode)
 {
-  if ((ob->base_flag & BASE_VISIBLE_DEPSGRAPH) == 0) {
+  if ((ob->base_flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) == 0) {
     return 0;
   }
 

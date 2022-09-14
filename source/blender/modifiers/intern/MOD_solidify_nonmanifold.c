@@ -189,6 +189,10 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   const MPoly *orig_mpoly = BKE_mesh_polys(mesh);
   const MLoop *orig_mloop = BKE_mesh_loops(mesh);
 
+  /* These might be null. */
+  const float *orig_vert_bweight = CustomData_get_layer(&mesh->vdata, CD_BWEIGHT);
+  const float *orig_edge_bweight = CustomData_get_layer(&mesh->edata, CD_BWEIGHT);
+
   uint new_verts_num = 0;
   uint new_edges_num = 0;
   uint new_loops_num = 0;
@@ -1965,9 +1969,10 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   int *origindex_edge = CustomData_get_layer(&result->edata, CD_ORIGINDEX);
   int *origindex_poly = CustomData_get_layer(&result->pdata, CD_ORIGINDEX);
 
-  if (bevel_convex != 0.0f || (result->cd_flag & ME_CDFLAG_VERT_BWEIGHT) != 0) {
-    /* make sure bweight is enabled */
-    result->cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
+  float *result_edge_bweight = CustomData_get_layer(&result->edata, CD_BWEIGHT);
+  if (bevel_convex != 0.0f || orig_vert_bweight != NULL) {
+    result_edge_bweight = CustomData_add_layer(
+        &result->edata, CD_BWEIGHT, CD_SET_DEFAULT, NULL, result->totedge);
   }
 
   /* Checks that result has dvert data. */
@@ -2038,17 +2043,18 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
             medge[insert].v2 = v2;
             medge[insert].flag = orig_medge[(*l)->old_edge].flag | ME_EDGEDRAW | ME_EDGERENDER;
             medge[insert].crease = orig_medge[(*l)->old_edge].crease;
-            medge[insert].bweight = orig_medge[(*l)->old_edge].bweight;
+            if (result_edge_bweight) {
+              result_edge_bweight[insert] = orig_edge_bweight[(*l)->old_edge];
+            }
             if (bevel_convex != 0.0f && (*l)->faces[1] != NULL) {
-              medge[insert].bweight = (char)clamp_i(
-                  (int)medge[insert].bweight + (int)(((*l)->angle > M_PI + FLT_EPSILON ?
-                                                          clamp_f(bevel_convex, 0.0f, 1.0f) :
-                                                          ((*l)->angle < M_PI - FLT_EPSILON ?
-                                                               clamp_f(bevel_convex, -1.0f, 0.0f) :
-                                                               0)) *
-                                                     255),
-                  0,
-                  255);
+              result_edge_bweight[insert] = clamp_f(
+                  result_edge_bweight[insert] +
+                      ((*l)->angle > M_PI + FLT_EPSILON ?
+                           clamp_f(bevel_convex, 0.0f, 1.0f) :
+                           ((*l)->angle < M_PI - FLT_EPSILON ? clamp_f(bevel_convex, -1.0f, 0.0f) :
+                                                               0)),
+                  0.0f,
+                  1.0f);
             }
             (*l)->new_edge = insert;
           }
@@ -2113,13 +2119,14 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
         EdgeGroup *last_g = NULL;
         EdgeGroup *first_g = NULL;
         char mv_crease = vertex_crease ? (char)(vertex_crease[i] * 255.0f) : 0;
+        float mv_bweight = orig_vert_bweight ? orig_vert_bweight[i] : 0.0f;
         /* Data calculation cache. */
         char max_crease;
         char last_max_crease = 0;
         char first_max_crease = 0;
-        char max_bweight;
-        char last_max_bweight = 0;
-        char first_max_bweight = 0;
+        float max_bweight;
+        float last_max_bweight = 0.0f;
+        float first_max_bweight = 0.0f;
         short flag;
         short last_flag = 0;
         short first_flag = 0;
@@ -2142,20 +2149,24 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                   max_crease = ed->crease;
                 }
                 if (g->edges[k]->new_edge != MOD_SOLIDIFY_EMPTY_TAG) {
-                  char bweight = medge[g->edges[k]->new_edge].bweight;
-                  if (bweight > max_bweight) {
-                    max_bweight = bweight;
+                  if (result_edge_bweight) {
+                    float bweight = result_edge_bweight[g->edges[k]->new_edge];
+                    if (bweight > max_bweight) {
+                      max_bweight = bweight;
+                    }
                   }
                 }
                 flag |= ed->flag;
               }
             }
 
-            const char bweight_open_edge = min_cc(
-                orig_medge[g->edges[0]->old_edge].bweight,
-                orig_medge[g->edges[g->edges_len - 1]->old_edge].bweight);
+            const float bweight_open_edge =
+                orig_edge_bweight ?
+                    min_ff(orig_edge_bweight[g->edges[0]->old_edge],
+                           orig_edge_bweight[g->edges[g->edges_len - 1]->old_edge]) :
+                    0.0f;
             if (bweight_open_edge > 0) {
-              max_bweight = min_cc(bweight_open_edge, max_bweight);
+              max_bweight = min_ff(bweight_open_edge, max_bweight);
             }
             else {
               if (bevel_convex < 0.0f) {
@@ -2183,8 +2194,11 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               medge[edge_index].flag = ME_EDGEDRAW | ME_EDGERENDER |
                                        ((last_flag | flag) & (ME_SEAM | ME_SHARP));
               medge[edge_index].crease = max_cc(mv_crease, min_cc(last_max_crease, max_crease));
-              medge[edge_index++].bweight = max_cc(mv->bweight,
-                                                   min_cc(last_max_bweight, max_bweight));
+              if (result_edge_bweight) {
+                result_edge_bweight[edge_index] = max_ff(mv_bweight,
+                                                         min_ff(last_max_bweight, max_bweight));
+              }
+              edge_index++;
             }
             last_g = g;
             last_max_crease = max_crease;
@@ -2212,8 +2226,11 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                                        ((last_flag | first_flag) & (ME_SEAM | ME_SHARP));
               medge[edge_index].crease = max_cc(mv_crease,
                                                 min_cc(last_max_crease, first_max_crease));
-              medge[edge_index++].bweight = max_cc(mv->bweight,
-                                                   min_cc(last_max_bweight, first_max_bweight));
+              if (result_edge_bweight) {
+                result_edge_bweight[edge_index] = max_ff(
+                    mv_bweight, min_ff(last_max_bweight, first_max_bweight));
+              }
+              edge_index++;
 
               /* Loop data. */
               int *loops = MEM_malloc_arrayN(j, sizeof(*loops), "loops in solidify");

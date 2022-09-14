@@ -116,6 +116,7 @@ InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket)
   }
   const SocketDeclarationPtr &socket_declaration = node_declaration->inputs()[socket->index()];
   input_descriptor.domain_priority = socket_declaration->compositor_domain_priority();
+  input_descriptor.skip_realization = socket_declaration->compositor_skip_realization();
   input_descriptor.expects_single_value = socket_declaration->compositor_expects_single_value();
   return input_descriptor;
 }

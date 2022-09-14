@@ -326,6 +326,7 @@ set(GLSL_SRC
 
   shaders/compositor/compositor_alpha_crop.glsl
   shaders/compositor/compositor_bilateral_blur.glsl
+  shaders/compositor/compositor_blur.glsl
   shaders/compositor/compositor_bokeh_image.glsl
   shaders/compositor/compositor_box_mask.glsl
   shaders/compositor/compositor_convert.glsl
@@ -345,8 +346,11 @@ set(GLSL_SRC
   shaders/compositor/compositor_screen_lens_distortion.glsl
   shaders/compositor/compositor_set_alpha.glsl
   shaders/compositor/compositor_split_viewer.glsl
+  shaders/compositor/compositor_symmetric_blur.glsl
+  shaders/compositor/compositor_symmetric_separable_blur.glsl
 
   shaders/compositor/library/gpu_shader_compositor_alpha_over.glsl
+  shaders/compositor/library/gpu_shader_compositor_blur_common.glsl
   shaders/compositor/library/gpu_shader_compositor_bright_contrast.glsl
   shaders/compositor/library/gpu_shader_compositor_channel_matte.glsl
   shaders/compositor/library/gpu_shader_compositor_chroma_matte.glsl
@@ -601,6 +605,7 @@ set(SRC_SHADER_CREATE_INFOS
 
   shaders/compositor/infos/compositor_alpha_crop_info.hh
   shaders/compositor/infos/compositor_bilateral_blur_info.hh
+  shaders/compositor/infos/compositor_blur_info.hh
   shaders/compositor/infos/compositor_bokeh_image_info.hh
   shaders/compositor/infos/compositor_box_mask_info.hh
   shaders/compositor/infos/compositor_convert_info.hh
@@ -620,6 +625,8 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/compositor/infos/compositor_screen_lens_distortion_info.hh
   shaders/compositor/infos/compositor_set_alpha_info.hh
   shaders/compositor/infos/compositor_split_viewer_info.hh
+  shaders/compositor/infos/compositor_symmetric_blur_info.hh
+  shaders/compositor/infos/compositor_symmetric_separable_blur_info.hh
 )
 
 set(SRC_SHADER_CREATE_INFOS_MTL

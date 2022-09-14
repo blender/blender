@@ -287,7 +287,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 
   /* Hide selected or unselected objects. */
   LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
-    if (!(base->flag & BASE_VISIBLE_VIEWLAYER)) {
+    if (!(base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT)) {
       continue;
     }
 

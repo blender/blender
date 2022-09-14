@@ -455,6 +455,9 @@ static const EnumPropertyItem rna_enum_view3dshading_render_pass_type_items[] = 
     RNA_ENUM_ITEM_HEADING(N_("Data"), NULL),
     {EEVEE_RENDER_PASS_NORMAL, "NORMAL", 0, "Normal", ""},
     {EEVEE_RENDER_PASS_MIST, "MIST", 0, "Mist", ""},
+    {EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT, "CryptoObject", 0, "CryptoObject", ""},
+    {EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET, "CryptoAsset", 0, "CryptoAsset", ""},
+    {EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL, "CryptoMaterial", 0, "CryptoMaterial", ""},
 
     RNA_ENUM_ITEM_HEADING(N_("Shader AOV"), NULL),
     {EEVEE_RENDER_PASS_AOV, "AOV", 0, "AOV", ""},
@@ -1423,6 +1426,7 @@ static const EnumPropertyItem *rna_3DViewShading_render_pass_itemf(bContext *C,
 
   const bool bloom_enabled = scene->eevee.flag & SCE_EEVEE_BLOOM_ENABLED;
   const bool aov_available = BKE_view_layer_has_valid_aov(view_layer);
+  const bool eevee_next_active = STREQ(scene->r.engine, "BLENDER_EEVEE_NEXT");
 
   int totitem = 0;
   EnumPropertyItem *result = NULL;
@@ -1442,6 +1446,12 @@ static const EnumPropertyItem *rna_3DViewShading_render_pass_itemf(bContext *C,
         RNA_enum_item_add(&result, &totitem, &aov_template);
         aov_template.value++;
       }
+    }
+    else if (ELEM(item->value,
+                  EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT,
+                  EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET,
+                  EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL) &&
+             !eevee_next_active) {
     }
     else if (!((!bloom_enabled &&
                 (item->value == EEVEE_RENDER_PASS_BLOOM || STREQ(item->name, "Effects"))) ||

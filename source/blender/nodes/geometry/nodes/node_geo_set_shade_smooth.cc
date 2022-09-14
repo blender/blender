@@ -22,7 +22,7 @@ static void set_smooth(Mesh &mesh,
     return;
   }
 
-  MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(mesh);
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
   AttributeWriter<bool> smooth = attributes.lookup_or_add_for_write<bool>("shade_smooth",
                                                                           ATTR_DOMAIN_FACE);
 

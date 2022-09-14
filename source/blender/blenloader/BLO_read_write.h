@@ -237,6 +237,7 @@ void BLO_read_pointer_array(BlendDataReader *reader, void **ptr_p);
 
 /* Misc. */
 
+int BLO_read_fileversion_get(BlendDataReader *reader);
 bool BLO_read_requires_endian_switch(BlendDataReader *reader);
 bool BLO_read_data_is_undo(BlendDataReader *reader);
 void BLO_read_data_globmap_add(BlendDataReader *reader, void *oldaddr, void *newaddr);

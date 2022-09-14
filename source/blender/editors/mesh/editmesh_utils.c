@@ -851,10 +851,99 @@ static void bm_uv_build_islands(UvElementMap *element_map,
   MEM_SAFE_FREE(map);
 }
 
+/* return true if `loop` has UV co-ordinates which match `luv_a` and `luv_b` */
+static bool loop_uv_match(BMLoop *loop, MLoopUV *luv_a, MLoopUV *luv_b, int cd_loop_uv_offset)
+{
+  MLoopUV *luv_c = BM_ELEM_CD_GET_VOID_P(loop, cd_loop_uv_offset);
+  MLoopUV *luv_d = BM_ELEM_CD_GET_VOID_P(loop->next, cd_loop_uv_offset);
+  return compare_v2v2(luv_a->uv, luv_c->uv, STD_UV_CONNECT_LIMIT) &&
+         compare_v2v2(luv_b->uv, luv_d->uv, STD_UV_CONNECT_LIMIT);
+}
+
+/* Given `anchor` and `edge`, return true if there are edges that fan between them that are
+ * seam-free. */
+static bool seam_connected_recursive(BMVert *anchor,
+                                     BMEdge *edge,
+                                     MLoopUV *luv_anchor,
+                                     MLoopUV *luv_fan,
+                                     BMLoop *needle,
+                                     GSet *visited,
+                                     int cd_loop_uv_offset)
+{
+  BLI_assert(edge->v1 == anchor || edge->v2 == anchor);
+  BLI_assert(needle->v == anchor || needle->next->v == anchor);
+
+  if (BM_elem_flag_test(edge, BM_ELEM_SEAM)) {
+    return false; /* Edge is a seam, don't traverse. */
+  }
+
+  if (!BLI_gset_add(visited, edge)) {
+    return false; /* Already visited. */
+  }
+
+  BMLoop *loop;
+  BMIter liter;
+  BM_ITER_ELEM (loop, &liter, edge, BM_LOOPS_OF_EDGE) {
+    if (loop->v == anchor) {
+      if (!loop_uv_match(loop, luv_anchor, luv_fan, cd_loop_uv_offset)) {
+        continue; /* `loop` is disjoint in UV space. */
+      }
+
+      if (loop->prev == needle) {
+        return true; /* Success. */
+      }
+
+      MLoopUV *luv_far = BM_ELEM_CD_GET_VOID_P(loop->prev, cd_loop_uv_offset);
+      if (seam_connected_recursive(
+              anchor, loop->prev->e, luv_anchor, luv_far, needle, visited, cd_loop_uv_offset)) {
+        return true;
+      }
+    }
+    else {
+      BLI_assert(loop->next->v == anchor);
+      if (!loop_uv_match(loop, luv_fan, luv_anchor, cd_loop_uv_offset)) {
+        continue; /* `loop` is disjoint in UV space. */
+      }
+
+      if (loop->next == needle) {
+        return true; /* Success. */
+      }
+
+      MLoopUV *luv_far = BM_ELEM_CD_GET_VOID_P(loop->next->next, cd_loop_uv_offset);
+      if (seam_connected_recursive(
+              anchor, loop->next->e, luv_anchor, luv_far, needle, visited, cd_loop_uv_offset)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/* Given `loop_a` and `loop_b` originate from the same vertex and share a UV,
+ * return true if there are edges that fan between them that are seam-free.
+ * return false otherwise.
+ */
+static bool seam_connected(BMLoop *loop_a, BMLoop *loop_b, GSet *visited, int cd_loop_uv_offset)
+{
+  BLI_assert(loop_a && loop_b);
+  BLI_assert(loop_a != loop_b);
+  BLI_assert(loop_a->v == loop_b->v);
+
+  BLI_gset_clear(visited, NULL);
+
+  MLoopUV *luv_anchor = BM_ELEM_CD_GET_VOID_P(loop_a, cd_loop_uv_offset);
+  MLoopUV *luv_fan = BM_ELEM_CD_GET_VOID_P(loop_a->next, cd_loop_uv_offset);
+  const bool result = seam_connected_recursive(
+      loop_a->v, loop_a->e, luv_anchor, luv_fan, loop_b, visited, cd_loop_uv_offset);
+  return result;
+}
+
 UvElementMap *BM_uv_element_map_create(BMesh *bm,
                                        const Scene *scene,
                                        const bool uv_selected,
                                        const bool use_winding,
+                                       const bool use_seams,
                                        const bool do_islands)
 {
   /* In uv sync selection, all UVs are visible. */
@@ -956,6 +1045,8 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
   }
   BLI_buffer_free(&tf_uv_buf);
 
+  GSet *seam_visited_gset = use_seams ? BLI_gset_ptr_new(__func__) : NULL;
+
   /* For each BMVert, sort associated linked list into unique uvs. */
   int ev_index;
   BM_ITER_MESH_INDEX (ev, &iter, bm, BM_VERTS_OF_MESH, ev_index) {
@@ -1001,6 +1092,10 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
                       winding[BM_elem_index_get(v->l->f)];
         }
 
+        if (connected && use_seams) {
+          connected = seam_connected(iterv->l, v->l, seam_visited_gset, cd_loop_uv_offset);
+        }
+
         if (connected) {
           if (lastv) {
             lastv->next = next;
@@ -1026,6 +1121,10 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     element_map->vertex[ev_index] = newvlist;
   }
 
+  if (seam_visited_gset) {
+    BLI_gset_free(seam_visited_gset, NULL);
+    seam_visited_gset = NULL;
+  }
   MEM_SAFE_FREE(winding);
 
   /* at this point, every UvElement in vert points to a UvElement sharing the same vertex.

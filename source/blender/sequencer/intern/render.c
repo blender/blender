@@ -134,7 +134,7 @@ void seq_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, bool make_float)
       /* We perform conversion to a float buffer so we don't worry about
        * precision loss.
        */
-      imb_addrectfloatImBuf(ibuf);
+      imb_addrectfloatImBuf(ibuf, 4);
       IMB_colormanagement_transform_from_byte_threaded(ibuf->rect_float,
                                                        (unsigned char *)ibuf->rect,
                                                        ibuf->x,
@@ -1506,8 +1506,16 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
         re = RE_NewSceneRender(scene);
       }
 
-      RE_RenderFrame(
-          re, context->bmain, scene, have_comp ? NULL : view_layer, camera, frame, 0.0f, false);
+      const float subframe = frame - floorf(frame);
+
+      RE_RenderFrame(re,
+                     context->bmain,
+                     scene,
+                     have_comp ? NULL : view_layer,
+                     camera,
+                     floorf(frame),
+                     subframe,
+                     false);
 
       /* restore previous state after it was toggled on & off by RE_RenderFrame */
       G.is_rendering = is_rendering;

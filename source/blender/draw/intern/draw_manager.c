@@ -181,7 +181,7 @@ static void drw_task_graph_deinit(void)
 
 bool DRW_object_is_renderable(const Object *ob)
 {
-  BLI_assert((ob->base_flag & BASE_VISIBLE_DEPSGRAPH) != 0);
+  BLI_assert((ob->base_flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) != 0);
 
   if (ob->type == OB_MESH) {
     if ((ob == DST.draw_ctx.object_edit) || DRW_object_is_in_edit_mode(ob)) {
@@ -2479,7 +2479,7 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
         }
 
         if (use_pose_exception && (ob->mode & OB_MODE_POSE)) {
-          if ((ob->base_flag & BASE_VISIBLE_VIEWLAYER) == 0) {
+          if ((ob->base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0) {
             continue;
           }
         }

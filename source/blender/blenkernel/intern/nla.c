@@ -1241,7 +1241,7 @@ static NlaStrip *nlastrip_find_active(ListBase /* NlaStrip */ *strips)
 
 float BKE_nlastrip_compute_frame_from_previous_strip(NlaStrip *strip)
 {
-  float limit_prev = MINFRAMEF;
+  float limit_prev = MINAFRAMEF;
 
   /* Find the previous end frame, with a special case if the previous strip was a transition : */
   if (strip->prev) {

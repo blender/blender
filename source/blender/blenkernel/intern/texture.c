@@ -207,7 +207,7 @@ IDTypeInfo IDType_ID_TE = {
     .foreach_id = texture_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = texture_blend_write,
     .blend_read_data = texture_blend_read_data,

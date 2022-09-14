@@ -156,6 +156,7 @@ struct PBVH {
   bool *hide_vert;
   struct MVert *verts;
   const struct MPoly *mpoly;
+  bool *hide_poly;
   /** Material indices. Only valid for polygon meshes. */
   const int *material_indices;
   const struct MLoop *mloop;

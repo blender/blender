@@ -460,7 +460,7 @@ GPENCIL_ViewLayerData *GPENCIL_view_layer_data_ensure(void)
   GPENCIL_ViewLayerData **vldata = (GPENCIL_ViewLayerData **)DRW_view_layer_engine_data_ensure(
       &draw_engine_gpencil_type, gpencil_view_layer_data_free);
 
-  /* NOTE(&fclem): Putting this stuff in viewlayer means it is shared by all viewports.
+  /* NOTE(@fclem): Putting this stuff in view-layer means it is shared by all viewports.
    * For now it is ok, but in the future, it could become a problem if we implement
    * the caching system. */
   if (*vldata == NULL) {

@@ -391,7 +391,7 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
   if (create_face_set) {
     ss->filter_cache->prev_face_set = MEM_callocN(sizeof(float) * ss->totfaces, "prev face mask");
     for (int i = 0; i < ss->totfaces; i++) {
-      ss->filter_cache->prev_face_set[i] = ss->face_sets[i];
+      ss->filter_cache->prev_face_set[i] = ss->face_sets ? ss->face_sets[i] : 0;
     }
     ss->filter_cache->new_face_set = SCULPT_face_set_next_available_get(ss);
   }

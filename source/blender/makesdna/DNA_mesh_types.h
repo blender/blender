@@ -18,6 +18,10 @@
 namespace blender {
 template<typename T> class Span;
 template<typename T> class MutableSpan;
+namespace bke {
+class AttributeAccessor;
+class MutableAttributeAccessor;
+}  // namespace bke
 }  // namespace blender
 #endif
 
@@ -346,6 +350,9 @@ typedef struct Mesh {
   /** Write access to loop data. */
   blender::MutableSpan<MLoop> loops_for_write();
 
+  blender::bke::AttributeAccessor attributes() const;
+  blender::bke::MutableAttributeAccessor attributes_for_write();
+
   /**
    * Vertex group data, encoded as an array of indices and weights for every vertex.
    * \warning: May be empty.
@@ -433,8 +440,10 @@ enum {
 
 /** #Mesh.cd_flag */
 enum {
+#ifdef DNA_DEPRECATED_ALLOW
   ME_CDFLAG_VERT_BWEIGHT = 1 << 0,
   ME_CDFLAG_EDGE_BWEIGHT = 1 << 1,
+#endif
   ME_CDFLAG_EDGE_CREASE = 1 << 2,
   ME_CDFLAG_VERT_CREASE = 1 << 3,
 };

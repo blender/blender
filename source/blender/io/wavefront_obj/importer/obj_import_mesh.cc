@@ -69,11 +69,7 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
   }
   transform_object(obj, import_params);
 
-  /* FIXME: after 2.80; `mesh->flag` isn't copied by #BKE_mesh_nomain_to_mesh() */
-  const uint16_t autosmooth = (mesh->flag & ME_AUTOSMOOTH);
-  Mesh *dst = static_cast<Mesh *>(obj->data);
-  BKE_mesh_nomain_to_mesh(mesh, dst, obj, &CD_MASK_EVERYTHING, true);
-  dst->flag |= autosmooth;
+  BKE_mesh_nomain_to_mesh(mesh, static_cast<Mesh *>(obj->data), obj);
 
   /* NOTE: vertex groups have to be created after final mesh is assigned to the object. */
   create_vertex_groups(obj);
@@ -188,8 +184,8 @@ void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
   MutableSpan<MPoly> polys = mesh->polys_for_write();
   MutableSpan<MLoop> loops = mesh->loops_for_write();
   bke::SpanAttributeWriter<int> material_indices =
-      bke::mesh_attributes_for_write(*mesh).lookup_or_add_for_write_only_span<int>(
-          "material_index", ATTR_DOMAIN_FACE);
+      mesh->attributes_for_write().lookup_or_add_for_write_only_span<int>("material_index",
+                                                                          ATTR_DOMAIN_FACE);
 
   const int64_t tot_face_elems{mesh->totpoly};
   int tot_loop_idx = 0;

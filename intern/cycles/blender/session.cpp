@@ -704,7 +704,7 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
     buffer_params.window_width = bake_width;
     buffer_params.window_height = bake_height;
     /* Unique layer name for multi-image baking. */
-    buffer_params.layer = string_printf("bake_%d\n", (int)full_buffer_files_.size());
+    buffer_params.layer = string_printf("bake_%d\n", bake_id++);
 
     /* Update session. */
     session->reset(session_params, buffer_params);

@@ -2632,7 +2632,7 @@ static void springs_from_mesh(Object *ob)
   BodyPoint *bp;
   int a;
   float scale = 1.0f;
-  const MVert *vertices = BKE_mesh_verts(me);
+  const MVert *verts = BKE_mesh_verts(me);
 
   sb = ob->soft;
   if (me && sb) {
@@ -2643,7 +2643,7 @@ static void springs_from_mesh(Object *ob)
     if (me->totvert) {
       bp = ob->soft->bpoint;
       for (a = 0; a < me->totvert; a++, bp++) {
-        copy_v3_v3(bp->origS, vertices[a].co);
+        copy_v3_v3(bp->origS, verts[a].co);
         mul_m4_v3(ob->obmat, bp->origS);
       }
     }
@@ -2755,15 +2755,15 @@ static void mesh_faces_to_scratch(Object *ob)
   MLoopTri *looptri, *lt;
   BodyFace *bodyface;
   int a;
-  const MVert *vertices = BKE_mesh_verts(me);
-  const MPoly *polygons = BKE_mesh_polys(me);
+  const MVert *verts = BKE_mesh_verts(me);
+  const MPoly *polys = BKE_mesh_polys(me);
   const MLoop *loops = BKE_mesh_loops(me);
 
   /* Allocate and copy faces. */
 
   sb->scratch->totface = poly_to_tri_count(me->totpoly, me->totloop);
   looptri = lt = MEM_mallocN(sizeof(*looptri) * sb->scratch->totface, __func__);
-  BKE_mesh_recalc_looptri(loops, polygons, vertices, me->totloop, me->totpoly, looptri);
+  BKE_mesh_recalc_looptri(loops, polys, verts, me->totloop, me->totpoly, looptri);
 
   bodyface = sb->scratch->bodyface = MEM_mallocN(sizeof(BodyFace) * sb->scratch->totface,
                                                  "SB_body_Faces");

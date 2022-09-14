@@ -354,11 +354,11 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
     ml = src_loops + mp->loopstart;
 
     /* check faces with all vertices merged */
-    bool all_vertices_merged = true;
+    bool all_verts_merged = true;
 
     for (j = 0; j < mp->totloop; j++, ml++) {
       if (vtargetmap[ml->v] == -1) {
-        all_vertices_merged = false;
+        all_verts_merged = false;
         /* This will be used to check for poly using several time the same vert. */
         BLI_BITMAP_DISABLE(vert_tag, ml->v);
       }
@@ -368,7 +368,7 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
       }
     }
 
-    if (UNLIKELY(all_vertices_merged)) {
+    if (UNLIKELY(all_verts_merged)) {
       if (merge_mode == MESH_MERGE_VERTS_DUMP_IF_MAPPED) {
         /* In this mode, all vertices merged is enough to dump face */
         continue;

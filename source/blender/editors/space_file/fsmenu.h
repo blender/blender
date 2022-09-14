@@ -37,8 +37,11 @@ short fsmenu_can_save(struct FSMenu *fsmenu, enum FSMenuCategory category, int i
 /** Removes the fsmenu entry at the given \a index. */
 void fsmenu_remove_entry(struct FSMenu *fsmenu, enum FSMenuCategory category, int idx);
 
-/** saves the 'bookmarks' to the specified file */
-void fsmenu_write_file(struct FSMenu *fsmenu, const char *filepath);
+/**
+ * Saves the 'bookmarks' to the specified file.
+ * \return true on success.
+ */
+bool fsmenu_write_file(struct FSMenu *fsmenu, const char *filepath);
 
 /** reads the 'bookmarks' from the specified file */
 void fsmenu_read_bookmarks(struct FSMenu *fsmenu, const char *filepath);

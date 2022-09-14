@@ -139,7 +139,7 @@ https://www.blender.org''')
 
                 l = lines.pop(0)
                 if l:
-                    assert(l.startswith('\t'))
+                    assert l.startswith('\t')
                     l = l[1:]  # Remove first white-space (tab).
 
                 fh.write('%s\n' % man_format(l))

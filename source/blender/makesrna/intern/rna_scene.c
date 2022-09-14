@@ -1482,8 +1482,7 @@ static void rna_ImageFormatSettings_color_management_set(PointerRNA *ptr, int va
       ID *owner_id = ptr->owner_id;
       if (owner_id && GS(owner_id->name) == ID_NT) {
         /* For compositing nodes, find the corresponding scene. */
-        const IDTypeInfo *type_info = BKE_idtype_get_info_from_id(owner_id);
-        owner_id = type_info->owner_get(owner_id);
+        owner_id = BKE_id_owner_get(owner_id);
       }
       if (owner_id && GS(owner_id->name) == ID_SCE) {
         BKE_image_format_color_management_copy_from_scene(imf, (Scene *)owner_id);

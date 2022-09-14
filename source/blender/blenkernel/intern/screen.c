@@ -292,7 +292,7 @@ IDTypeInfo IDType_ID_SCR = {
     .foreach_id = screen_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = screen_blend_write,
     /* Cannot be used yet, because #direct_link_screen has a return value. */
