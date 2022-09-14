@@ -79,7 +79,7 @@ bool CUDADeviceQueue::enqueue(DeviceKernel kernel,
     return false;
   }
 
-  debug_enqueue(kernel, work_size);
+  debug_enqueue_begin(kernel, work_size);
 
   const CUDAContextScope scope(cuda_device_);
   const CUDADeviceKernel &cuda_kernel = cuda_device_->kernels.get(kernel);
@@ -120,6 +120,8 @@ bool CUDADeviceQueue::enqueue(DeviceKernel kernel,
                                 const_cast<void **>(args.values),
                                 0),
                  "enqueue");
+
+  debug_enqueue_end();
 
   return !(cuda_device_->have_error());
 }
