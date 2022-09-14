@@ -617,6 +617,7 @@ static void import_endjob(void *user_data)
     /* Sync the collection, and do view layer operations. */
     BKE_layer_collection_resync_allow();
     BKE_main_collection_sync(data->bmain);
+    BKE_view_layer_synced_ensure(scene, view_layer);
     for (AbcObjectReader *reader : data->readers) {
       Object *ob = reader->object();
       base = BKE_view_layer_base_find(view_layer, ob);

@@ -11,6 +11,7 @@
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_mball_tessellate.h"
 #include "BKE_modifier.h"
@@ -125,6 +126,13 @@ bool BlendfileLoadingBaseTest::blendfile_load(const char *filepath)
                   << test_assets_dir << "'";
     return false;
   }
+
+  /* Make sure that all view_layers in the file are synced. Depsgraph can make a copy of the whole
+   * scene, which will fail when one view layer isn't synced. */
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &bfile->curscene->view_layers) {
+    BKE_view_layer_synced_ensure(bfile->curscene, view_layer);
+  }
+
   return true;
 }
 

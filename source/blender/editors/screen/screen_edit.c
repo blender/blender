@@ -1163,6 +1163,7 @@ static void screen_set_3dview_camera(Scene *scene,
   /* fix any cameras that are used in the 3d view but not in the scene */
   BKE_screen_view3d_sync(v3d, scene);
 
+  BKE_view_layer_synced_ensure(scene, view_layer);
   if (!v3d->camera || !BKE_view_layer_base_find(view_layer, v3d->camera)) {
     v3d->camera = BKE_view_layer_camera_find(scene, view_layer);
     // XXX if (screen == curscreen) handle_view3d_lock();

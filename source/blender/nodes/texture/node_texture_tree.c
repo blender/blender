@@ -47,6 +47,7 @@ static void texture_get_from_context(const bContext *C,
   SpaceNode *snode = CTX_wm_space_node(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   Tex *tx = NULL;
 

@@ -262,8 +262,8 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
       }
       else {
         Object workob;
-
-        ob->parent = view_layer->basact->object;
+        BKE_view_layer_synced_ensure(scene, view_layer);
+        ob->parent = BKE_view_layer_active_object_get(view_layer);
         if (par3 != INDEX_UNSET) {
           ob->partype = PARVERT3;
           ob->par1 = par1;
@@ -2073,6 +2073,7 @@ static void tag_localizable_objects(bContext *C, const int mode)
  * otherwise they're lost on reload, see T40595.
  */
 static bool make_local_all__instance_indirect_unused(Main *bmain,
+                                                     const Scene *scene,
                                                      ViewLayer *view_layer,
                                                      Collection *collection)
 {
@@ -2086,6 +2087,7 @@ static bool make_local_all__instance_indirect_unused(Main *bmain,
       id_us_plus(&ob->id);
 
       BKE_collection_object_add(bmain, collection, ob);
+      BKE_view_layer_synced_ensure(scene, view_layer);
       base = BKE_view_layer_base_find(view_layer, ob);
       ED_object_base_select(base, BA_SELECT);
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
@@ -2162,7 +2164,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
     /* De-select so the user can differentiate newly instanced from existing objects. */
     BKE_view_layer_base_deselect_all(scene, view_layer);
 
-    if (make_local_all__instance_indirect_unused(bmain, view_layer, collection)) {
+    if (make_local_all__instance_indirect_unused(bmain, scene, view_layer, collection)) {
       BKE_report(op->reports,
                  RPT_INFO,
                  "Orphan library objects added to the current scene to avoid loss");
@@ -2623,6 +2625,7 @@ static int clear_override_library_exec(bContext *C, wmOperator *UNUSED(op))
     Object *ob_iter = todo_object_iter->link;
     if (BKE_lib_override_library_is_hierarchy_leaf(bmain, &ob_iter->id)) {
       bool do_remap_active = false;
+      BKE_view_layer_synced_ensure(scene, view_layer);
       if (BKE_view_layer_active_object_get(view_layer) == ob_iter) {
         do_remap_active = true;
       }

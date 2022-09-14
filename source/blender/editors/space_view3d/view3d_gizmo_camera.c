@@ -55,8 +55,10 @@ static bool WIDGETGROUP_camera_poll(const bContext *C, wmGizmoGroupType *UNUSED(
     return false;
   }
 
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Base *base = view_layer->basact;
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Base *base = BKE_view_layer_active_base_get(view_layer);
   if (base && BASE_SELECTABLE(v3d, base)) {
     Object *ob = base->object;
     if (ob->type == OB_CAMERA) {
@@ -72,7 +74,9 @@ static bool WIDGETGROUP_camera_poll(const bContext *C, wmGizmoGroupType *UNUSED(
 
 static void WIDGETGROUP_camera_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   float dir[3];
 
@@ -124,7 +128,9 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   struct CameraWidgetGroup *cagzgroup = gzgroup->customdata;
   View3D *v3d = CTX_wm_view3d(C);
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   Camera *ca = ob->data;
   PointerRNA camera_ptr;
@@ -151,7 +157,6 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   }
 
   /* TODO: make focal length/ortho ob_scale_inv widget optional. */
-  const Scene *scene = CTX_data_scene(C);
   const float aspx = (float)scene->r.xsch * scene->r.xasp;
   const float aspy = (float)scene->r.ysch * scene->r.yasp;
   const bool is_ortho = (ca->type == CAM_ORTHO);
@@ -241,7 +246,9 @@ static void WIDGETGROUP_camera_message_subscribe(const bContext *C,
                                                  struct wmMsgBus *mbus)
 {
   ARegion *region = CTX_wm_region(C);
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   Camera *ca = ob->data;
 
@@ -370,6 +377,7 @@ static bool WIDGETGROUP_camera_view_poll(const bContext *C, wmGizmoGroupType *UN
    * We could change the rules for when to show. */
   {
     ViewLayer *view_layer = CTX_data_view_layer(C);
+    BKE_view_layer_synced_ensure(scene, view_layer);
     if (scene->camera != BKE_view_layer_active_object_get(view_layer)) {
       return false;
     }

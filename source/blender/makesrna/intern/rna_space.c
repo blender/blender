@@ -1673,7 +1673,9 @@ static bool rna_SpaceImageEditor_show_uvedit_get(PointerRNA *ptr)
   Object *obedit = NULL;
   wmWindow *win = ED_screen_window_find(screen, G_MAIN->wm.first);
   if (win != NULL) {
+    Scene *scene = WM_window_get_active_scene(win);
     ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+    BKE_view_layer_synced_ensure(scene, view_layer);
     obedit = BKE_view_layer_edit_object_get(view_layer);
   }
   return ED_space_image_show_uvedit(sima, obedit);
@@ -1686,7 +1688,9 @@ static bool rna_SpaceImageEditor_show_maskedit_get(PointerRNA *ptr)
   Object *obedit = NULL;
   wmWindow *win = ED_screen_window_find(screen, G_MAIN->wm.first);
   if (win != NULL) {
+    Scene *scene = WM_window_get_active_scene(win);
     ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+    BKE_view_layer_synced_ensure(scene, view_layer);
     obedit = BKE_view_layer_edit_object_get(view_layer);
   }
   return ED_space_image_check_show_maskedit(sima, obedit);
@@ -2184,9 +2188,11 @@ static void rna_SpaceDopeSheetEditor_action_set(PointerRNA *ptr,
 static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
 {
   SpaceAction *saction = (SpaceAction *)(ptr->data);
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Main *bmain = CTX_data_main(C);
 
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obact = BKE_view_layer_active_object_get(view_layer);
   if (obact == NULL) {
     return;
@@ -2259,7 +2265,9 @@ static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
 {
   SpaceAction *saction = (SpaceAction *)(ptr->data);
   ScrArea *area = CTX_wm_area(C);
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obact = BKE_view_layer_active_object_get(view_layer);
 
   /* special exceptions for ShapeKey Editor mode */

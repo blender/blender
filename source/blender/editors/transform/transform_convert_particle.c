@@ -35,6 +35,7 @@ static void createTransParticleVerts(bContext *UNUSED(C), TransInfo *t)
 
     TransData *td = NULL;
     TransDataExtension *tx;
+    BKE_view_layer_synced_ensure(t->scene, t->view_layer);
     Object *ob = BKE_view_layer_active_object_get(t->view_layer);
     ParticleEditSettings *pset = PE_settings(t->scene);
     PTCacheEdit *edit = PE_get_current(t->depsgraph, t->scene, ob);
@@ -184,6 +185,7 @@ static void flushTransParticles(TransInfo *t)
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     Scene *scene = t->scene;
     ViewLayer *view_layer = t->view_layer;
+    BKE_view_layer_synced_ensure(scene, view_layer);
     Object *ob = BKE_view_layer_active_object_get(view_layer);
     PTCacheEdit *edit = PE_get_current(t->depsgraph, scene, ob);
     ParticleSystem *psys = edit->psys;
@@ -224,7 +226,7 @@ static void flushTransParticles(TransInfo *t)
       }
     }
 
-    PE_update_object(t->depsgraph, scene, BKE_view_layer_active_object_get(view_layer), 1);
+    PE_update_object(t->depsgraph, scene, ob, 1);
     BKE_particle_batch_cache_dirty_tag(psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
     DEG_id_tag_update(&ob->id, ID_RECALC_PSYS_REDO);
   }

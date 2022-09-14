@@ -118,10 +118,12 @@ static void animedit_get_yscale_factor(bAnimContext *ac)
 /* NOTE: there's a similar function in key.c #BKE_key_from_object. */
 static Key *actedit_get_shapekeys(bAnimContext *ac)
 {
+  Scene *scene = ac->scene;
   ViewLayer *view_layer = ac->view_layer;
   Object *ob;
   Key *key;
 
+  BKE_view_layer_synced_ensure(scene, view_layer);
   ob = BKE_view_layer_active_object_get(view_layer);
   if (ob == NULL) {
     return NULL;
@@ -393,12 +395,13 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
   /* get useful default context settings from context */
   ac->bmain = bmain;
   ac->scene = scene;
+  ac->view_layer = CTX_data_view_layer(C);
   if (scene) {
     ac->markers = ED_context_get_markers(C);
+    BKE_view_layer_synced_ensure(ac->scene, ac->view_layer);
   }
-  ac->view_layer = CTX_data_view_layer(C);
   ac->depsgraph = CTX_data_depsgraph_pointer(C);
-  ac->obact = (ac->view_layer->basact) ? ac->view_layer->basact->object : NULL;
+  ac->obact = BKE_view_layer_active_object_get(ac->view_layer);
   ac->area = area;
   ac->region = region;
   ac->sl = sl;
@@ -1846,8 +1849,8 @@ static size_t animdata_filter_gpencil(bAnimContext *ac,
   bDopeSheet *ads = ac->ads;
   size_t items = 0;
 
+  Scene *scene = ac->scene;
   ViewLayer *view_layer = (ViewLayer *)ac->view_layer;
-  Base *base;
 
   /* Include all annotation datablocks. */
   if (((ads->filterflag & ADS_FILTER_ONLYSEL) == 0) ||
@@ -1859,7 +1862,8 @@ static size_t animdata_filter_gpencil(bAnimContext *ac,
     }
   }
   /* Objects in the scene */
-  for (base = view_layer->object_bases.first; base; base = base->next) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     /* Only consider this object if it has got some GP data (saving on all the other tests) */
     if (base->object && (base->object->type == OB_GPENCIL)) {
       Object *ob = base->object;
@@ -3170,16 +3174,19 @@ static int ds_base_sorting_cmp(const void *base1_ptr, const void *base2_ptr)
 
 /* Get a sorted list of all the bases - for inclusion in dopesheet (when drawing channels) */
 static Base **animdata_filter_ds_sorted_bases(bDopeSheet *ads,
+                                              const Scene *scene,
                                               ViewLayer *view_layer,
                                               int filter_mode,
                                               size_t *r_usable_bases)
 {
   /* Create an array with space for all the bases, but only containing the usable ones */
-  size_t tot_bases = BLI_listbase_count(&view_layer->object_bases);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  ListBase *object_bases = BKE_view_layer_object_bases_get(view_layer);
+  size_t tot_bases = BLI_listbase_count(object_bases);
   size_t num_bases = 0;
 
   Base **sorted_bases = MEM_mallocN(sizeof(Base *) * tot_bases, "Dopesheet Usable Sorted Bases");
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+  LISTBASE_FOREACH (Base *, base, object_bases) {
     if (animdata_filter_base_is_ok(ads, base, OB_MODE_OBJECT, filter_mode)) {
       sorted_bases[num_bases++] = base;
     }
@@ -3249,14 +3256,17 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac,
    * - Don't do this if this behavior has been turned off (i.e. due to it being too slow)
    * - Don't do this if there's just a single object
    */
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  ListBase *object_bases = BKE_view_layer_object_bases_get(view_layer);
   if ((filter_mode & ANIMFILTER_LIST_CHANNELS) && !(ads->flag & ADS_FLAG_NO_DB_SORT) &&
-      (view_layer->object_bases.first != view_layer->object_bases.last)) {
+      (object_bases->first != object_bases->last)) {
     /* Filter list of bases (i.e. objects), sort them, then add their contents normally... */
     /* TODO: Cache the old sorted order - if the set of bases hasn't changed, don't re-sort... */
     Base **sorted_bases;
     size_t num_bases;
 
-    sorted_bases = animdata_filter_ds_sorted_bases(ads, view_layer, filter_mode, &num_bases);
+    sorted_bases = animdata_filter_ds_sorted_bases(
+        ads, scene, view_layer, filter_mode, &num_bases);
     if (sorted_bases) {
       /* Add the necessary channels for these bases... */
       for (size_t i = 0; i < num_bases; i++) {
@@ -3275,7 +3285,7 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac,
      */
     Object *obact = BKE_view_layer_active_object_get(view_layer);
     const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
-    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    LISTBASE_FOREACH (Base *, base, object_bases) {
       if (animdata_filter_base_is_ok(ads, base, object_mode, filter_mode)) {
         /* since we're still here, this object should be usable */
         items += animdata_filter_dopesheet_ob(ac, anim_data, ads, base, filter_mode);

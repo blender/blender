@@ -41,6 +41,7 @@
 #include "BKE_idtype.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -447,9 +448,11 @@ Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer)
 {
   if (sce && view_layer) {
     ToolSettings *ts = sce->toolsettings;
+    BKE_view_layer_synced_ensure(sce, view_layer);
+    Object *actob = BKE_view_layer_active_object_get(view_layer);
 
-    if (view_layer->basact && view_layer->basact->object) {
-      switch (view_layer->basact->object->mode) {
+    if (actob) {
+      switch (actob->mode) {
         case OB_MODE_SCULPT:
           return &ts->sculpt->paint;
         case OB_MODE_VERTEX_PAINT:
@@ -490,11 +493,8 @@ Paint *BKE_paint_get_active_from_context(const bContext *C)
 
   if (sce && view_layer) {
     ToolSettings *ts = sce->toolsettings;
-    Object *obact = nullptr;
-
-    if (view_layer->basact && view_layer->basact->object) {
-      obact = view_layer->basact->object;
-    }
+    BKE_view_layer_synced_ensure(sce, view_layer);
+    Object *obact = BKE_view_layer_active_object_get(view_layer);
 
     if ((sima = CTX_wm_space_image(C)) != nullptr) {
       if (obact && obact->mode == OB_MODE_EDIT) {
@@ -524,11 +524,8 @@ ePaintMode BKE_paintmode_get_active_from_context(const bContext *C)
   SpaceImage *sima;
 
   if (sce && view_layer) {
-    Object *obact = nullptr;
-
-    if (view_layer->basact && view_layer->basact->object) {
-      obact = view_layer->basact->object;
-    }
+    BKE_view_layer_synced_ensure(sce, view_layer);
+    Object *obact = BKE_view_layer_active_object_get(view_layer);
 
     if ((sima = CTX_wm_space_image(C)) != nullptr) {
       if (obact && obact->mode == OB_MODE_EDIT) {

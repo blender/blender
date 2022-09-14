@@ -164,6 +164,7 @@ static void do_outliner_item_mode_toggle_generic(bContext *C, TreeViewContext *t
   ED_undo_group_begin(C);
 
   if (ED_object_mode_set(C, OB_MODE_OBJECT)) {
+    BKE_view_layer_synced_ensure(tvc->scene, tvc->view_layer);
     Base *base_active = BKE_view_layer_base_find(tvc->view_layer, tvc->obact);
     if (base_active != base) {
       BKE_view_layer_base_deselect_all(tvc->scene, tvc->view_layer);
@@ -188,6 +189,7 @@ void outliner_item_mode_toggle(bContext *C,
 
   if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
     Object *ob = (Object *)tselem->id;
+    BKE_view_layer_synced_ensure(tvc->scene, tvc->view_layer);
     Base *base = BKE_view_layer_base_find(tvc->view_layer, ob);
 
     /* Hidden objects can be removed from the mode. */
@@ -234,11 +236,13 @@ static void tree_element_viewlayer_activate(bContext *C, TreeElement *te)
 /**
  * Select object tree
  */
-static void do_outliner_object_select_recursive(ViewLayer *view_layer,
+static void do_outliner_object_select_recursive(const Scene *scene,
+                                                ViewLayer *view_layer,
                                                 Object *ob_parent,
                                                 bool select)
 {
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     Object *ob = base->object;
     if ((((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) != 0) &&
          BKE_object_is_child_recursive(ob_parent, ob))) {
@@ -300,6 +304,7 @@ static void tree_element_object_activate(bContext *C,
       ob = (Object *)parent_tselem->id;
 
       /* Don't return when activating children of the previous active object. */
+      BKE_view_layer_synced_ensure(scene, view_layer);
       if (ob == BKE_view_layer_active_object_get(view_layer) && set == OL_SETSEL_NONE) {
         return;
       }
@@ -316,6 +321,7 @@ static void tree_element_object_activate(bContext *C,
   }
 
   /* find associated base in current scene */
+  BKE_view_layer_synced_ensure(sce, view_layer);
   base = BKE_view_layer_base_find(view_layer, ob);
 
   if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
@@ -371,7 +377,8 @@ static void tree_element_object_activate(bContext *C,
 
     if (recursive) {
       /* Recursive select/deselect for Object hierarchies */
-      do_outliner_object_select_recursive(view_layer, ob, (base->flag & BASE_SELECTED) != 0);
+      do_outliner_object_select_recursive(
+          scene, view_layer, ob, (base->flag & BASE_SELECTED) != 0);
     }
 
     if (set != OL_SETSEL_NONE) {
@@ -382,11 +389,15 @@ static void tree_element_object_activate(bContext *C,
   }
 }
 
-static void tree_element_material_activate(bContext *C, ViewLayer *view_layer, TreeElement *te)
+static void tree_element_material_activate(bContext *C,
+                                           const Scene *scene,
+                                           ViewLayer *view_layer,
+                                           TreeElement *te)
 {
   /* we search for the object parent */
   Object *ob = (Object *)outliner_search_back(te, ID_OB);
   /* Note : ob->matbits can be nullptr when a local object points to a library mesh. */
+  BKE_view_layer_synced_ensure(scene, view_layer);
   if (ob == nullptr || ob != BKE_view_layer_active_object_get(view_layer) ||
       ob->matbits == nullptr) {
     return; /* just paranoia */
@@ -536,6 +547,7 @@ static void tree_element_posechannel_activate(bContext *C,
 }
 
 static void tree_element_bone_activate(bContext *C,
+                                       const Scene *scene,
                                        ViewLayer *view_layer,
                                        TreeElement *te,
                                        TreeStoreElem *tselem,
@@ -546,6 +558,7 @@ static void tree_element_bone_activate(bContext *C,
   Bone *bone = static_cast<Bone *>(te->directdata);
 
   if (!(bone->flag & BONE_HIDDEN_P)) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
     Object *ob = BKE_view_layer_active_object_get(view_layer);
     if (ob) {
       if (set != OL_SETSEL_EXTEND) {
@@ -769,7 +782,7 @@ void tree_element_activate(bContext *C,
       }
       break;
     case ID_MA:
-      tree_element_material_activate(C, tvc->view_layer, te);
+      tree_element_material_activate(C, tvc->scene, tvc->view_layer, te);
       break;
     case ID_WO:
       tree_element_world_activate(C, tvc->scene, te);
@@ -796,7 +809,7 @@ void tree_element_type_active_set(bContext *C,
       tree_element_defgroup_activate(C, te, tselem);
       break;
     case TSE_BONE:
-      tree_element_bone_activate(C, tvc->view_layer, te, tselem, set, recursive);
+      tree_element_bone_activate(C, tvc->scene, tvc->view_layer, te, tselem, set, recursive);
       break;
     case TSE_EBONE:
       tree_element_ebone_activate(C, tvc->scene, tvc->view_layer, te, tselem, set, recursive);
@@ -844,11 +857,13 @@ void tree_element_type_active_set(bContext *C,
   }
 }
 
-static eOLDrawState tree_element_defgroup_state_get(const ViewLayer *view_layer,
+static eOLDrawState tree_element_defgroup_state_get(const Scene *scene,
+                                                    ViewLayer *view_layer,
                                                     const TreeElement *te,
                                                     const TreeStoreElem *tselem)
 {
   const Object *ob = (const Object *)tselem->id;
+  BKE_view_layer_synced_ensure(scene, view_layer);
   if (ob == BKE_view_layer_active_object_get(view_layer)) {
     if (BKE_object_defgroup_active_index_get(ob) == te->index + 1) {
       return OL_DRAWSEL_NORMAL;
@@ -857,12 +872,14 @@ static eOLDrawState tree_element_defgroup_state_get(const ViewLayer *view_layer,
   return OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState tree_element_bone_state_get(const ViewLayer *view_layer,
+static eOLDrawState tree_element_bone_state_get(const Scene *scene,
+                                                ViewLayer *view_layer,
                                                 const TreeElement *te,
                                                 const TreeStoreElem *tselem)
 {
   const bArmature *arm = (const bArmature *)tselem->id;
   const Bone *bone = static_cast<Bone *>(te->directdata);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   const Object *ob = BKE_view_layer_active_object_get(view_layer);
   if (ob && ob->data == arm) {
     if (bone->flag & BONE_SELECTED) {
@@ -896,11 +913,13 @@ static eOLDrawState tree_element_object_state_get(const TreeViewContext *tvc,
   return (tselem->id == (const ID *)tvc->obact) ? OL_DRAWSEL_NORMAL : OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState tree_element_pose_state_get(const ViewLayer *view_layer,
+static eOLDrawState tree_element_pose_state_get(const Scene *scene,
+                                                const ViewLayer *view_layer,
                                                 const TreeStoreElem *tselem)
 {
   const Object *ob = (const Object *)tselem->id;
   /* This will just lookup in a cache, it will not change the arguments. */
+  BKE_view_layer_synced_ensure(scene, (ViewLayer *)view_layer);
   const Base *base = BKE_view_layer_base_find((ViewLayer *)view_layer, (Object *)ob);
   if (base == nullptr) {
     /* Armature not instantiated in current scene (e.g. inside an appended group). */
@@ -942,12 +961,14 @@ static eOLDrawState tree_element_viewlayer_state_get(const bContext *C, const Tr
   return OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState tree_element_posegroup_state_get(const ViewLayer *view_layer,
+static eOLDrawState tree_element_posegroup_state_get(const Scene *scene,
+                                                     ViewLayer *view_layer,
                                                      const TreeElement *te,
                                                      const TreeStoreElem *tselem)
 {
   const Object *ob = (const Object *)tselem->id;
 
+  BKE_view_layer_synced_ensure(scene, view_layer);
   if (ob == BKE_view_layer_active_object_get(view_layer) && ob->pose) {
     if (ob->pose->active_group == te->index + 1) {
       return OL_DRAWSEL_NORMAL;
@@ -1008,12 +1029,14 @@ static eOLDrawState tree_element_layer_collection_state_get(const bContext *C,
   return OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState tree_element_active_material_get(const ViewLayer *view_layer,
+static eOLDrawState tree_element_active_material_get(const Scene *scene,
+                                                     ViewLayer *view_layer,
                                                      const TreeElement *te)
 {
   /* we search for the object parent */
   const Object *ob = (const Object *)outliner_search_back((TreeElement *)te, ID_OB);
   /* Note : ob->matbits can be nullptr when a local object points to a library mesh. */
+  BKE_view_layer_synced_ensure(scene, view_layer);
   if (ob == nullptr || ob != BKE_view_layer_active_object_get(view_layer) ||
       ob->matbits == nullptr) {
     return OL_DRAWSEL_NONE; /* just paranoia */
@@ -1084,7 +1107,7 @@ eOLDrawState tree_element_active_state_get(const TreeViewContext *tvc,
       return OL_DRAWSEL_NONE;
       break;
     case ID_MA:
-      return tree_element_active_material_get(tvc->view_layer, te);
+      return tree_element_active_material_get(tvc->scene, tvc->view_layer, te);
     case ID_WO:
       return tree_element_active_world_get(tvc->scene, te);
     case ID_CA:
@@ -1100,9 +1123,9 @@ eOLDrawState tree_element_type_active_state_get(const bContext *C,
 {
   switch (tselem->type) {
     case TSE_DEFGROUP:
-      return tree_element_defgroup_state_get(tvc->view_layer, te, tselem);
+      return tree_element_defgroup_state_get(tvc->scene, tvc->view_layer, te, tselem);
     case TSE_BONE:
-      return tree_element_bone_state_get(tvc->view_layer, te, tselem);
+      return tree_element_bone_state_get(tvc->scene, tvc->view_layer, te, tselem);
     case TSE_EBONE:
       return tree_element_ebone_state_get(te);
     case TSE_MODIFIER:
@@ -1112,7 +1135,7 @@ eOLDrawState tree_element_type_active_state_get(const bContext *C,
     case TSE_LINKED_PSYS:
       return OL_DRAWSEL_NONE;
     case TSE_POSE_BASE:
-      return tree_element_pose_state_get(tvc->view_layer, tselem);
+      return tree_element_pose_state_get(tvc->scene, tvc->view_layer, tselem);
     case TSE_POSE_CHANNEL:
       return tree_element_posechannel_state_get(tvc->ob_pose, te, tselem);
     case TSE_CONSTRAINT_BASE:
@@ -1121,7 +1144,7 @@ eOLDrawState tree_element_type_active_state_get(const bContext *C,
     case TSE_R_LAYER:
       return tree_element_viewlayer_state_get(C, te);
     case TSE_POSEGRP:
-      return tree_element_posegroup_state_get(tvc->view_layer, te, tselem);
+      return tree_element_posegroup_state_get(tvc->scene, tvc->view_layer, te, tselem);
     case TSE_SEQUENCE:
       return tree_element_sequence_state_get(tvc->scene, te);
     case TSE_SEQUENCE_DUP:
@@ -1402,6 +1425,7 @@ static void do_outliner_item_activate_tree_element(bContext *C,
     }
     else if ((te->idcode == ID_GR) && (space_outliner->outlinevis != SO_VIEW_LAYER)) {
       Collection *gr = (Collection *)tselem->id;
+      BKE_view_layer_synced_ensure(tvc->scene, tvc->view_layer);
 
       if (extend) {
         eObjectSelect_Mode sel = BA_SELECT;
@@ -1575,7 +1599,9 @@ static bool outliner_is_co_within_active_mode_column(bContext *C,
                                                      SpaceOutliner *space_outliner,
                                                      const float view_mval[2])
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obact = BKE_view_layer_active_object_get(view_layer);
 
   return outliner_is_co_within_mode_column(space_outliner, view_mval) && obact &&

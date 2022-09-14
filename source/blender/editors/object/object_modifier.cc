@@ -1233,6 +1233,7 @@ static int modifier_remove_exec(bContext *C, wmOperator *op)
   /* if cloth/softbody was removed, particle mode could be cleared */
   if (mode_orig & OB_MODE_PARTICLE_EDIT) {
     if ((ob->mode & OB_MODE_PARTICLE_EDIT) == 0) {
+      BKE_view_layer_synced_ensure(scene, view_layer);
       if (ob == BKE_view_layer_active_object_get(view_layer)) {
         WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, nullptr);
       }

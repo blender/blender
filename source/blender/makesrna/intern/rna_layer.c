@@ -50,8 +50,10 @@
 
 static PointerRNA rna_ViewLayer_active_layer_collection_get(PointerRNA *ptr)
 {
+  const Scene *scene = (const Scene *)ptr->owner_id;
   ViewLayer *view_layer = (ViewLayer *)ptr->data;
-  LayerCollection *lc = view_layer->active_collection;
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LayerCollection *lc = BKE_view_layer_active_collection_get(view_layer);
   return rna_pointer_inherit_refine(ptr, &RNA_LayerCollection, lc);
 }
 
@@ -59,8 +61,10 @@ static void rna_ViewLayer_active_layer_collection_set(PointerRNA *ptr,
                                                       PointerRNA value,
                                                       struct ReportList *UNUSED(reports))
 {
+  const Scene *scene = (const Scene *)ptr->owner_id;
   ViewLayer *view_layer = (ViewLayer *)ptr->data;
   LayerCollection *lc = (LayerCollection *)value.data;
+  BKE_view_layer_synced_ensure(scene, view_layer);
   const int index = BKE_layer_collection_findindex(view_layer, lc);
   if (index != -1) {
     BKE_layer_collection_activate(view_layer, lc);
@@ -69,18 +73,22 @@ static void rna_ViewLayer_active_layer_collection_set(PointerRNA *ptr,
 
 static PointerRNA rna_LayerObjects_active_object_get(PointerRNA *ptr)
 {
+  const Scene *scene = (Scene *)ptr->owner_id;
   ViewLayer *view_layer = (ViewLayer *)ptr->data;
+  BKE_view_layer_synced_ensure(scene, view_layer);
   return rna_pointer_inherit_refine(
-      ptr, &RNA_Object, view_layer->basact ? view_layer->basact->object : NULL);
+      ptr, &RNA_Object, BKE_view_layer_active_object_get(view_layer));
 }
 
 static void rna_LayerObjects_active_object_set(PointerRNA *ptr,
                                                PointerRNA value,
                                                struct ReportList *reports)
 {
+  const Scene *scene = (Scene *)ptr->owner_id;
   ViewLayer *view_layer = (ViewLayer *)ptr->data;
   if (value.data) {
     Object *ob = value.data;
+    BKE_view_layer_synced_ensure(scene, view_layer);
     Base *basact_test = BKE_view_layer_base_find(view_layer, ob);
     if (basact_test != NULL) {
       view_layer->basact = basact_test;
@@ -197,7 +205,7 @@ static void rna_LayerObjects_selected_begin(CollectionPropertyIterator *iter, Po
 {
   ViewLayer *view_layer = (ViewLayer *)ptr->data;
   rna_iterator_listbase_begin(
-      iter, &view_layer->object_bases, rna_ViewLayer_objects_selected_skip);
+      iter, BKE_view_layer_object_bases_get(view_layer), rna_ViewLayer_objects_selected_skip);
 }
 
 static void rna_ViewLayer_update_tagged(ID *id_ptr,
@@ -245,7 +253,7 @@ static void rna_ObjectBase_hide_viewport_update(bContext *C, PointerRNA *UNUSED(
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  BKE_layer_collection_sync(scene, view_layer);
+  BKE_view_layer_need_resync_tag(view_layer);
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 }
@@ -309,7 +317,7 @@ static void rna_LayerCollection_exclude_update(Main *bmain, Scene *UNUSED(scene)
   const bool exclude = (lc->flag & LAYER_COLLECTION_EXCLUDE) != 0;
   BKE_layer_collection_set_flag(lc, LAYER_COLLECTION_EXCLUDE, exclude);
 
-  BKE_layer_collection_sync(scene, view_layer);
+  BKE_view_layer_need_resync_tag(view_layer);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   if (!exclude) {
@@ -334,7 +342,7 @@ static void rna_LayerCollection_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
   LayerCollection *lc = (LayerCollection *)ptr->data;
   ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, lc);
 
-  BKE_layer_collection_sync(scene, view_layer);
+  BKE_view_layer_need_resync_tag(view_layer);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 

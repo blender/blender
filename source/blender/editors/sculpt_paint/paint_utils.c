@@ -404,6 +404,7 @@ void paint_sample_color(
   if (v3d && texpaint_proj) {
     /* first try getting a color directly from the mesh faces if possible */
     ViewLayer *view_layer = CTX_data_view_layer(C);
+    BKE_view_layer_synced_ensure(scene, view_layer);
     Object *ob = BKE_view_layer_active_object_get(view_layer);
     Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
     ImagePaintSettings *imapaint = &scene->toolsettings->imapaint;

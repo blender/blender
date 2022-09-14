@@ -215,6 +215,27 @@ struct Object **BKE_view_layer_array_from_objects_in_mode_unique_data(const Scen
   return BKE_view_layer_array_from_objects_in_mode_params(scene, view_layer, v3d, r_len, &params);
 }
 
+ListBase *BKE_view_layer_object_bases_get(ViewLayer *view_layer)
+{
+  BLI_assert_msg((view_layer->flag & VIEW_LAYER_OUT_OF_SYNC) == 0,
+                 "Object Bases out of sync, invoke BKE_view_layer_synced_ensure.");
+  return &view_layer->object_bases;
+}
+
+Base *BKE_view_layer_active_base_get(ViewLayer *view_layer)
+{
+  BLI_assert_msg((view_layer->flag & VIEW_LAYER_OUT_OF_SYNC) == 0,
+                 "Active Base out of sync, invoke BKE_view_layer_synced_ensure.");
+  return view_layer->basact;
+}
+
+LayerCollection *BKE_view_layer_active_collection_get(ViewLayer *view_layer)
+{
+  BLI_assert_msg((view_layer->flag & VIEW_LAYER_OUT_OF_SYNC) == 0,
+                 "Active Collection out of sync, invoke BKE_view_layer_synced_ensure.");
+  return view_layer->active_collection;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -249,10 +270,11 @@ bool BKE_view_layer_filter_edit_mesh_has_edges(const Object *ob, void *UNUSED(us
   return false;
 }
 
-Object *BKE_view_layer_non_active_selected_object(const Scene *UNUSED(scene),
+Object *BKE_view_layer_non_active_selected_object(const struct Scene *scene,
                                                   struct ViewLayer *view_layer,
                                                   const struct View3D *v3d)
 {
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob_active = BKE_view_layer_active_object_get(view_layer);
   Object *ob_result = NULL;
   FOREACH_SELECTED_OBJECT_BEGIN (view_layer, v3d, ob_iter) {
@@ -280,7 +302,8 @@ Object *BKE_view_layer_non_active_selected_object(const Scene *UNUSED(scene),
 
 Object *BKE_view_layer_active_object_get(const ViewLayer *view_layer)
 {
-  return view_layer->basact ? view_layer->basact->object : NULL;
+  Base *base = BKE_view_layer_active_base_get((ViewLayer *)view_layer);
+  return base ? base->object : NULL;
 }
 
 Object *BKE_view_layer_edit_object_get(const ViewLayer *view_layer)

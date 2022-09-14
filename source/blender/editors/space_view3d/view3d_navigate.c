@@ -164,8 +164,10 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 
   const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
   View3D *v3d = CTX_wm_view3d(C);
+  BKE_view_layer_synced_ensure(scene_eval, view_layer_eval);
   Object *ob_act_eval = BKE_view_layer_active_object_get(view_layer_eval);
   Object *ob_act = DEG_get_original_object(ob_act_eval);
 
@@ -207,7 +209,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
     float select_center[3];
 
     zero_v3(select_center);
-    LISTBASE_FOREACH (Base *, base_eval, &view_layer_eval->object_bases) {
+    LISTBASE_FOREACH (Base *, base_eval, BKE_view_layer_object_bases_get(view_layer_eval)) {
       if (BASE_SELECTED(v3d, base_eval)) {
         /* use the boundbox if we can */
         Object *ob_eval = base_eval->object;
@@ -751,8 +753,9 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
-  Base *base_eval;
+
   const bool use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
   const bool skip_camera = (ED_view3d_camera_lock_check(v3d, region->regiondata) ||
                             /* any one of the regions may be locked */
@@ -777,7 +780,8 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
     INIT_MINMAX(min, max);
   }
 
-  for (base_eval = view_layer_eval->object_bases.first; base_eval; base_eval = base_eval->next) {
+  BKE_view_layer_synced_ensure(scene_eval, view_layer_eval);
+  LISTBASE_FOREACH (Base *, base_eval, BKE_view_layer_object_bases_get(view_layer_eval)) {
     if (BASE_VISIBLE(v3d, base_eval)) {
       bool only_center = false;
       Object *ob = DEG_get_original_object(base_eval->object);
@@ -863,6 +867,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   const Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
+  BKE_view_layer_synced_ensure(scene_eval, view_layer_eval);
   Object *ob_eval = BKE_view_layer_active_object_get(view_layer_eval);
   Object *obedit = CTX_data_edit_object(C);
   const bGPdata *gpd_eval = ob_eval && (ob_eval->type == OB_GPENCIL) ? ob_eval->data : NULL;
@@ -887,7 +892,8 @@ static int viewselected_exec(bContext *C, wmOperator *op)
     /* this is weak code this way, we should make a generic
      * active/selection callback interface once... */
     Base *base_eval;
-    for (base_eval = view_layer_eval->object_bases.first; base_eval; base_eval = base_eval->next) {
+    for (base_eval = BKE_view_layer_object_bases_get(view_layer_eval)->first; base_eval;
+         base_eval = base_eval->next) {
       if (BASE_SELECTED_EDITABLE(v3d, base_eval)) {
         if (base_eval->object->type == OB_ARMATURE) {
           if (base_eval->object->mode & OB_MODE_POSE) {
@@ -964,7 +970,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
     ok_dist = 0; /* don't zoom */
   }
   else {
-    LISTBASE_FOREACH (Base *, base_eval, &view_layer_eval->object_bases) {
+    LISTBASE_FOREACH (Base *, base_eval, BKE_view_layer_object_bases_get(view_layer_eval)) {
       if (BASE_SELECTED(v3d, base_eval)) {
         bool only_center = false;
         Object *ob = DEG_get_original_object(base_eval->object);
@@ -1308,6 +1314,7 @@ static int view_camera_exec(bContext *C, wmOperator *op)
     Scene *scene = CTX_data_scene(C);
 
     if (rv3d->persp != RV3D_CAMOB) {
+      BKE_view_layer_synced_ensure(scene, view_layer);
       Object *ob = BKE_view_layer_active_object_get(view_layer);
 
       if (!rv3d->smooth_timer) {

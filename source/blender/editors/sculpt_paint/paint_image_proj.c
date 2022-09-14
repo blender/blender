@@ -6042,6 +6042,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
   int orig_brush_size;
   IDProperty *idgroup;
   IDProperty *view_data = NULL;
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   bool uvs, mat, tex;
 

@@ -419,11 +419,13 @@ static bool is_noncolor_pass(eScenePassType pass_type)
 }
 
 /* if all is good tag image and return true */
-static bool bake_object_check(ViewLayer *view_layer,
+static bool bake_object_check(const Scene *scene,
+                              ViewLayer *view_layer,
                               Object *ob,
                               const eBakeTarget target,
                               ReportList *reports)
 {
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, ob);
 
   if (base == NULL) {
@@ -591,6 +593,7 @@ static bool bake_pass_filter_check(eScenePassType pass_type,
 
 /* before even getting in the bake function we check for some basic errors */
 static bool bake_objects_check(Main *bmain,
+                               const Scene *scene,
                                ViewLayer *view_layer,
                                Object *ob,
                                ListBase *selected_objects,
@@ -606,7 +609,7 @@ static bool bake_objects_check(Main *bmain,
   if (is_selected_to_active) {
     int tot_objects = 0;
 
-    if (!bake_object_check(view_layer, ob, target, reports)) {
+    if (!bake_object_check(scene, view_layer, ob, target, reports)) {
       return false;
     }
 
@@ -640,7 +643,7 @@ static bool bake_objects_check(Main *bmain,
     }
 
     for (link = selected_objects->first; link; link = link->next) {
-      if (!bake_object_check(view_layer, link->ptr.data, target, reports)) {
+      if (!bake_object_check(scene, view_layer, link->ptr.data, target, reports)) {
         return false;
       }
     }
@@ -1812,6 +1815,7 @@ static int bake_exec(bContext *C, wmOperator *op)
   }
 
   if (!bake_objects_check(bkr.main,
+                          bkr.scene,
                           bkr.view_layer,
                           bkr.ob,
                           &bkr.selected_objects,
@@ -1865,6 +1869,7 @@ static void bake_startjob(void *bkv, short *UNUSED(stop), short *do_update, floa
   }
 
   if (!bake_objects_check(bkr->main,
+                          bkr->scene,
                           bkr->view_layer,
                           bkr->ob,
                           &bkr->selected_objects,

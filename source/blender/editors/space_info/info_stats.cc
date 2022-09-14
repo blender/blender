@@ -358,6 +358,7 @@ static void stats_update(Depsgraph *depsgraph,
                          View3D *v3d_local,
                          SceneStats *stats)
 {
+  BKE_view_layer_synced_ensure(scene, view_layer);
   const Object *ob = BKE_view_layer_active_object_get(view_layer);
   const Object *obedit = BKE_view_layer_edit_object_get(view_layer);
 
@@ -490,13 +491,18 @@ static bool format_stats(
   return true;
 }
 
-static void get_stats_string(
-    char *info, int len, size_t *ofs, ViewLayer *view_layer, SceneStatsFmt *stats_fmt)
+static void get_stats_string(char *info,
+                             int len,
+                             size_t *ofs,
+                             const Scene *scene,
+                             ViewLayer *view_layer,
+                             SceneStatsFmt *stats_fmt)
 {
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);
   eObjectMode object_mode = ob ? (eObjectMode)ob->mode : OB_MODE_OBJECT;
-  LayerCollection *layer_collection = view_layer->active_collection;
+  LayerCollection *layer_collection = BKE_view_layer_active_collection_get(view_layer);
 
   if (object_mode == OB_MODE_OBJECT) {
     *ofs += BLI_snprintf_rlen(info + *ofs,
@@ -600,7 +606,7 @@ static const char *info_statusbar_string(Main *bmain,
   if (statusbar_flag & STATUSBAR_SHOW_STATS) {
     SceneStatsFmt stats_fmt;
     if (format_stats(bmain, scene, view_layer, nullptr, &stats_fmt)) {
-      get_stats_string(info + ofs, len, &ofs, view_layer, &stats_fmt);
+      get_stats_string(info + ofs, len, &ofs, scene, view_layer, &stats_fmt);
     }
   }
 
@@ -685,6 +691,7 @@ void ED_info_draw_stats(
     return;
   }
 
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);
   eObjectMode object_mode = ob ? (eObjectMode)ob->mode : OB_MODE_OBJECT;

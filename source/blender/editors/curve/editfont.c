@@ -26,6 +26,7 @@
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
@@ -619,7 +620,7 @@ static void txt_add_object(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Curve *cu;
   Object *obedit;
-  Base *base;
+  Object *object;
   const struct TextLine *tmp;
   int nchars = 0, nbytes = 0;
   char *s;
@@ -627,10 +628,11 @@ static void txt_add_object(bContext *C,
   const float rot[3] = {0.0f, 0.0f, 0.0f};
 
   obedit = BKE_object_add(bmain, scene, view_layer, OB_FONT, NULL);
-  base = view_layer->basact;
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  object = BKE_view_layer_active_object_get(view_layer);
 
   /* seems to assume view align ? TODO: look into this, could be an operator option. */
-  ED_object_base_init_transform_on_add(base->object, NULL, rot);
+  ED_object_base_init_transform_on_add(object, NULL, rot);
 
   BKE_object_where_is_calc(depsgraph, scene, obedit);
 

@@ -53,6 +53,7 @@
 #include "BKE_idtype.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
@@ -761,13 +762,15 @@ static PTCacheEdit *psys_orig_edit_get(ParticleSystem *psys)
 
 bool psys_in_edit_mode(Depsgraph *depsgraph, const ParticleSystem *psys)
 {
-  const ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
-  if (view_layer->basact == NULL) {
+  const Scene *scene = DEG_get_input_scene(depsgraph);
+  ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  const Object *object = BKE_view_layer_active_object_get(view_layer);
+  if (object == NULL) {
     /* TODO(sergey): Needs double-check with multi-object edit. */
     return false;
   }
   const bool use_render_params = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
-  const Object *object = view_layer->basact->object;
   if (object->mode != OB_MODE_PARTICLE_EDIT) {
     return false;
   }

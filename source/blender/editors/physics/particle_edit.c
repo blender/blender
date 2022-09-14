@@ -169,6 +169,7 @@ void PE_free_ptcache_edit(PTCacheEdit *edit)
 int PE_minmax(
     Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, float min[3], float max[3])
 {
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
   ParticleSystem *psys;

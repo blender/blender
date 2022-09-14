@@ -121,7 +121,7 @@ void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
   }
 }
 
-bool ED_armature_pose_select_pick_bone(const Scene *UNUSED(scene),
+bool ED_armature_pose_select_pick_bone(const Scene *scene,
                                        ViewLayer *view_layer,
                                        View3D *v3d,
                                        Object *ob,
@@ -159,6 +159,7 @@ bool ED_armature_pose_select_pick_bone(const Scene *UNUSED(scene),
   }
 
   if (found) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
     Object *ob_act = BKE_view_layer_active_object_get(view_layer);
     BLI_assert(BKE_view_layer_edit_object_get(view_layer) == NULL);
 
@@ -268,11 +269,12 @@ bool ED_armature_pose_select_pick_with_buffer(const Scene *scene,
   return ED_armature_pose_select_pick_bone(scene, view_layer, v3d, ob, nearBone, params);
 }
 
-void ED_armature_pose_select_in_wpaint_mode(const Scene *UNUSED(scene),
+void ED_armature_pose_select_in_wpaint_mode(const Scene *scene,
                                             ViewLayer *view_layer,
                                             Base *base_select)
 {
   BLI_assert(base_select && (base_select->object->type == OB_ARMATURE));
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob_active = BKE_view_layer_active_object_get(view_layer);
   BLI_assert(ob_active && (ob_active->mode & OB_MODE_ALL_WEIGHT_PAINT));
 

@@ -333,6 +333,7 @@ static void import_endjob(void *customdata)
     /* Sync the collection, and do view layer operations. */
     BKE_layer_collection_resync_allow();
     BKE_main_collection_sync(data->bmain);
+    BKE_view_layer_synced_ensure(scene, view_layer);
     for (USDPrimReader *reader : data->archive->readers()) {
       if (!reader) {
         continue;

@@ -273,6 +273,7 @@ enum {
   VIEW_LAYER_RENDER = (1 << 0),
   /* VIEW_LAYER_DEPRECATED  = (1 << 1), */
   VIEW_LAYER_FREESTYLE = (1 << 2),
+  VIEW_LAYER_OUT_OF_SYNC = (1 << 3),
 };
 
 /****************************** Deprecated ******************************/

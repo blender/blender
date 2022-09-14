@@ -293,6 +293,7 @@ static bool parent_drop_allowed(TreeElement *te, Object *potential_child)
    * active scene and parenting them is allowed (sergey) */
   if (scene) {
     LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+      BKE_view_layer_synced_ensure(scene, view_layer);
       if (BKE_view_layer_base_find(view_layer, potential_child)) {
         return true;
       }
@@ -580,6 +581,7 @@ static int scene_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent 
   BKE_collection_object_add(bmain, collection, ob);
 
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
     Base *base = BKE_view_layer_base_find(view_layer, ob);
     if (base) {
       ED_object_base_select(base, BA_SELECT);

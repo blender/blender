@@ -421,6 +421,7 @@ void ED_object_sculptmode_enter(struct bContext *C, Depsgraph *depsgraph, Report
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, false, reports);
 }
@@ -473,6 +474,7 @@ void ED_object_sculptmode_exit(bContext *C, Depsgraph *depsgraph)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   ED_object_sculptmode_exit_ex(bmain, depsgraph, scene, ob);
 }
@@ -485,6 +487,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   const int mode_flag = OB_MODE_SCULPT;
   const bool is_mode_set = (ob->mode & mode_flag) != 0;

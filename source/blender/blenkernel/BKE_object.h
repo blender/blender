@@ -175,7 +175,7 @@ struct Object *BKE_object_add_only_object(struct Main *bmain,
  * \note Creates minimum required data, but without vertices etc.
  */
 struct Object *BKE_object_add(struct Main *bmain,
-                              const struct Scene *scene,
+                              struct Scene *scene,
                               struct ViewLayer *view_layer,
                               int type,
                               const char *name) ATTR_NONNULL(1, 2, 3) ATTR_RETURNS_NONNULL;

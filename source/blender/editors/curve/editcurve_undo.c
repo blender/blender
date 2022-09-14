@@ -160,7 +160,9 @@ static void undocurve_free_data(UndoCurve *uc)
 
 static Object *editcurve_object_from_context(bContext *C)
 {
+  Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit && ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = obedit->data;

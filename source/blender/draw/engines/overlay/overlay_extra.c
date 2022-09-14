@@ -1485,10 +1485,11 @@ static void OVERLAY_volume_extra(OVERLAY_ExtraCallBuffers *cb,
 static void OVERLAY_object_center(OVERLAY_ExtraCallBuffers *cb,
                                   Object *ob,
                                   OVERLAY_PrivateData *pd,
+                                  const Scene *scene,
                                   ViewLayer *view_layer)
 {
   const bool is_library = ID_REAL_USERS(&ob->id) > 1 || ID_IS_LINKED(ob);
-
+  BKE_view_layer_synced_ensure(scene, view_layer);
   if (ob == BKE_view_layer_active_object_get(view_layer)) {
     DRW_buffer_add_entry(cb->center_active, ob->obmat[3]);
   }
@@ -1573,7 +1574,7 @@ void OVERLAY_extra_cache_populate(OVERLAY_Data *vedata, Object *ob)
   /* don't show object extras in set's */
   if (!from_dupli) {
     if (draw_obcenters) {
-      OVERLAY_object_center(cb, ob, pd, view_layer);
+      OVERLAY_object_center(cb, ob, pd, scene, view_layer);
     }
     if (draw_relations) {
       OVERLAY_relationship_lines(cb, draw_ctx->depsgraph, draw_ctx->scene, ob);

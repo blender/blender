@@ -9,7 +9,10 @@
 #include "BlenderContext.h"
 #include "ExportSettings.h"
 
+#include "BKE_layer.h"
 #include "BKE_scene.h"
+
+#include "BLI_listbase.h"
 
 bool bc_is_base_node(LinkNode *export_set, Object *ob, const Scene *scene, ViewLayer *view_layer)
 {
@@ -37,8 +40,8 @@ void bc_get_children(std::vector<Object *> &child_set,
                      const Scene *scene,
                      ViewLayer *view_layer)
 {
-  Base *base;
-  for (base = (Base *)view_layer->object_bases.first; base; base = base->next) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     Object *cob = base->object;
     if (cob->parent == ob) {
       switch (ob->type) {

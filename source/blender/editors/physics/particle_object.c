@@ -23,6 +23,7 @@
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
@@ -118,7 +119,8 @@ static int particle_system_remove_exec(bContext *C, wmOperator *UNUSED(op))
    */
   if (mode_orig & OB_MODE_PARTICLE_EDIT) {
     if ((ob->mode & OB_MODE_PARTICLE_EDIT) == 0) {
-      if (view_layer->basact && view_layer->basact->object == ob) {
+      BKE_view_layer_synced_ensure(scene, view_layer);
+      if (BKE_view_layer_active_object_get(view_layer) == ob) {
         WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
       }
     }

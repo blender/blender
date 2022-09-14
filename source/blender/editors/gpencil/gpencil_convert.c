@@ -1303,6 +1303,7 @@ static void gpencil_layer_to_curve(bContext *C,
   ob = BKE_object_add_only_object(bmain, OB_CURVES_LEGACY, gpl->info);
   cu = ob->data = BKE_curve_add(bmain, gpl->info, OB_CURVES_LEGACY);
   BKE_collection_object_add(bmain, collection, ob);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   base_new = BKE_view_layer_base_find(view_layer, ob);
   DEG_relations_tag_update(bmain); /* added object */
 

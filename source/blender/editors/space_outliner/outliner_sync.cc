@@ -225,7 +225,8 @@ static void outliner_select_sync_to_object(ViewLayer *view_layer,
   }
 }
 
-static void outliner_select_sync_to_edit_bone(ViewLayer *view_layer,
+static void outliner_select_sync_to_edit_bone(const Scene *scene,
+                                              ViewLayer *view_layer,
                                               TreeElement *te,
                                               TreeStoreElem *tselem,
                                               GSet *selected_ebones)
@@ -250,6 +251,7 @@ static void outliner_select_sync_to_edit_bone(ViewLayer *view_layer,
 
   /* Tag if selection changed */
   if (bone_flag != ebone->flag) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
     Object *obedit = BKE_view_layer_edit_object_get(view_layer);
     DEG_id_tag_update(&arm->id, ID_RECALC_SELECT);
     WM_main_add_notifier(NC_OBJECT | ND_BONE_SELECT, obedit);
@@ -318,7 +320,8 @@ static void outliner_sync_selection_from_outliner(Scene *scene,
     }
     else if (tselem->type == TSE_EBONE) {
       if (sync_types->edit_bone) {
-        outliner_select_sync_to_edit_bone(view_layer, te, tselem, selected_items->edit_bones);
+        outliner_select_sync_to_edit_bone(
+            scene, view_layer, te, tselem, selected_items->edit_bones);
       }
     }
     else if (tselem->type == TSE_POSE_CHANNEL) {
@@ -388,12 +391,14 @@ void ED_outliner_select_sync_from_outliner(bContext *C, SpaceOutliner *space_out
 
 namespace blender::ed::outliner {
 
-static void outliner_select_sync_from_object(ViewLayer *view_layer,
+static void outliner_select_sync_from_object(const Scene *scene,
+                                             ViewLayer *view_layer,
                                              Object *obact,
                                              TreeElement *te,
                                              TreeStoreElem *tselem)
 {
   Object *ob = (Object *)tselem->id;
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = (te->directdata) ? (Base *)te->directdata :
                                   BKE_view_layer_base_find(view_layer, ob);
   const bool is_selected = (base != nullptr) && ((base->flag & BASE_SELECTED) != 0);
@@ -487,7 +492,8 @@ struct SyncSelectActiveData {
 };
 
 /** Sync select and active flags from active view layer, bones, and sequences to the outliner. */
-static void outliner_sync_selection_to_outliner(ViewLayer *view_layer,
+static void outliner_sync_selection_to_outliner(const Scene *scene,
+                                                ViewLayer *view_layer,
                                                 SpaceOutliner *space_outliner,
                                                 ListBase *tree,
                                                 SyncSelectActiveData *active_data,
@@ -498,7 +504,7 @@ static void outliner_sync_selection_to_outliner(ViewLayer *view_layer,
 
     if ((tselem->type == TSE_SOME_ID) && te->idcode == ID_OB) {
       if (sync_types->object) {
-        outliner_select_sync_from_object(view_layer, active_data->object, te, tselem);
+        outliner_select_sync_from_object(scene, view_layer, active_data->object, te, tselem);
       }
     }
     else if (tselem->type == TSE_EBONE) {
@@ -522,7 +528,7 @@ static void outliner_sync_selection_to_outliner(ViewLayer *view_layer,
 
     /* Sync subtree elements */
     outliner_sync_selection_to_outliner(
-        view_layer, space_outliner, &te->subtree, active_data, sync_types);
+        scene, view_layer, space_outliner, &te->subtree, active_data, sync_types);
   }
 }
 
@@ -531,6 +537,7 @@ static void get_sync_select_active_data(const bContext *C, SyncSelectActiveData 
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   active_data->object = BKE_view_layer_active_object_get(view_layer);
   active_data->edit_bone = CTX_data_active_bone(C);
   active_data->pose_channel = CTX_data_active_pose_bone(C);
@@ -545,6 +552,7 @@ void outliner_sync_selection(const bContext *C, SpaceOutliner *space_outliner)
       C, space_outliner, &sync_types);
 
   if (sync_required) {
+    const Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
 
     /* Store active object, bones, and sequence */
@@ -552,7 +560,7 @@ void outliner_sync_selection(const bContext *C, SpaceOutliner *space_outliner)
     get_sync_select_active_data(C, &active_data);
 
     outliner_sync_selection_to_outliner(
-        view_layer, space_outliner, &space_outliner->tree, &active_data, &sync_types);
+        scene, view_layer, space_outliner, &space_outliner->tree, &active_data, &sync_types);
 
     /* Keep any un-synced data in the dirty flag. */
     if (sync_types.object) {

@@ -294,6 +294,7 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
   copy_v2_v2(pop->startmouse, mouse);
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   /* initialize from context */

@@ -859,15 +859,15 @@ void BKE_collection_object_cache_free(Collection *collection)
   collection_object_cache_free(collection);
 }
 
-Base *BKE_collection_or_layer_objects(const Scene *UNUSED(scene),
+Base *BKE_collection_or_layer_objects(const Scene *scene,
                                       ViewLayer *view_layer,
                                       Collection *collection)
 {
   if (collection) {
     return BKE_collection_object_cache_get(collection).first;
   }
-
-  return view_layer->object_bases.first;
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  return BKE_view_layer_object_bases_get(view_layer)->first;
 }
 
 /** \} */
@@ -1751,7 +1751,10 @@ Collection *BKE_collection_from_index(Scene *scene, const int index)
   return collection_from_index_recursive(master_collection, index, &index_current);
 }
 
-static bool collection_objects_select(ViewLayer *view_layer, Collection *collection, bool deselect)
+static bool collection_objects_select(const Scene *scene,
+                                      ViewLayer *view_layer,
+                                      Collection *collection,
+                                      bool deselect)
 {
   bool changed = false;
 
@@ -1759,6 +1762,7 @@ static bool collection_objects_select(ViewLayer *view_layer, Collection *collect
     return false;
   }
 
+  BKE_view_layer_synced_ensure(scene, view_layer);
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
     Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
 
@@ -1779,7 +1783,7 @@ static bool collection_objects_select(ViewLayer *view_layer, Collection *collect
   }
 
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    if (collection_objects_select(view_layer, collection, deselect)) {
+    if (collection_objects_select(scene, view_layer, collection, deselect)) {
       changed = true;
     }
   }
@@ -1799,7 +1803,7 @@ bool BKE_collection_objects_select(const Scene *scene,
     return BKE_layer_collection_objects_select(scene, view_layer, layer_collection, deselect);
   }
 
-  return collection_objects_select(view_layer, collection, deselect);
+  return collection_objects_select(scene, view_layer, collection, deselect);
 }
 
 /** \} */

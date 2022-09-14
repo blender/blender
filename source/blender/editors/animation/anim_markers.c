@@ -1291,6 +1291,7 @@ static void select_marker_camera_switch(
       }
     }
 
+    BKE_view_layer_synced_ensure(scene, view_layer);
     for (marker = markers->first; marker; marker = marker->next) {
       if (marker->camera) {
         if (marker->frame == cfra) {
