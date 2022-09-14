@@ -603,7 +603,6 @@ bool BKE_modifier_is_nonlocal_in_liboverride(const Object *ob, const ModifierDat
 }
 
 CDMaskLink *BKE_modifier_calc_data_masks(const struct Scene *scene,
-                                         Object *ob,
                                          ModifierData *md,
                                          CustomData_MeshMasks *final_datamask,
                                          int required_mode,
@@ -626,7 +625,7 @@ CDMaskLink *BKE_modifier_calc_data_masks(const struct Scene *scene,
       }
 
       if (mti->requiredDataMask) {
-        mti->requiredDataMask(ob, md, &curr->mask);
+        mti->requiredDataMask(md, &curr->mask);
       }
 
       if (previewmd == md && previewmask != NULL) {

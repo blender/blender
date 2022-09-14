@@ -731,7 +731,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
    * subdividing them is expensive. */
   CustomData_MeshMasks final_datamask = *dataMask;
   CDMaskLink *datamasks = BKE_modifier_calc_data_masks(
-      scene, ob, md, &final_datamask, required_mode, previewmd, &previewmask);
+      scene, md, &final_datamask, required_mode, previewmd, &previewmask);
   CDMaskLink *md_datamask = datamasks;
   /* XXX Always copying POLYINDEX, else tessellated data are no more valid! */
   CustomData_MeshMasks append_mask = CD_MASK_BAREMESH_ORIGINDEX;
@@ -852,7 +852,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
     /* Add orco mesh as layer if needed by this modifier. */
     if (mesh_final && mesh_orco && mti->requiredDataMask) {
       CustomData_MeshMasks mask = {0};
-      mti->requiredDataMask(ob, md, &mask);
+      mti->requiredDataMask(md, &mask);
       if (mask.vmask & CD_MASK_ORCO) {
         add_orco_mesh(ob, nullptr, mesh_final, mesh_orco, CD_ORCO);
       }
@@ -1003,7 +1003,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
         temp_cddata_masks.pmask = CD_MASK_ORIGINDEX;
 
         if (mti->requiredDataMask != nullptr) {
-          mti->requiredDataMask(ob, md, &temp_cddata_masks);
+          mti->requiredDataMask(md, &temp_cddata_masks);
         }
         CustomData_MeshMasks_update(&temp_cddata_masks, &nextmask);
         mesh_set_only_copy(mesh_orco, &temp_cddata_masks);
@@ -1298,7 +1298,7 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
    * subdividing them is expensive. */
   CustomData_MeshMasks final_datamask = *dataMask;
   CDMaskLink *datamasks = BKE_modifier_calc_data_masks(
-      scene, ob, md, &final_datamask, required_mode, nullptr, nullptr);
+      scene, md, &final_datamask, required_mode, nullptr, nullptr);
   CDMaskLink *md_datamask = datamasks;
   CustomData_MeshMasks append_mask = CD_MASK_BAREMESH;
 
@@ -1328,7 +1328,7 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
     /* Add an orco mesh as layer if needed by this modifier. */
     if (mesh_final && mesh_orco && mti->requiredDataMask) {
       CustomData_MeshMasks mask = {0};
-      mti->requiredDataMask(ob, md, &mask);
+      mti->requiredDataMask(md, &mask);
       if (mask.vmask & CD_MASK_ORCO) {
         add_orco_mesh(ob, em_input, mesh_final, mesh_orco, CD_ORCO);
       }

@@ -265,9 +265,7 @@ typedef struct ModifierTypeInfo {
    *
    * This function is optional.
    */
-  void (*requiredDataMask)(struct Object *ob,
-                           struct ModifierData *md,
-                           struct CustomData_MeshMasks *r_cddata_masks);
+  void (*requiredDataMask)(struct ModifierData *md, struct CustomData_MeshMasks *r_cddata_masks);
 
   /**
    * Free internal modifier data variables, this function should
@@ -521,7 +519,6 @@ typedef struct CDMaskLink {
  * final_datamask is required at the end of the stack.
  */
 struct CDMaskLink *BKE_modifier_calc_data_masks(const struct Scene *scene,
-                                                struct Object *ob,
                                                 struct ModifierData *md,
                                                 struct CustomData_MeshMasks *final_datamask,
                                                 int required_mode,
