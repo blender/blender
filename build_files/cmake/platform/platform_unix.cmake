@@ -143,14 +143,38 @@ if(NOT WITH_SYSTEM_FREETYPE)
 endif()
 
 if(WITH_PYTHON)
-  # No way to set py35, remove for now.
-  # find_package(PythonLibs)
+  # This could be used, see: D14954 for details.
+  # `find_package(PythonLibs)`
 
-  # Use our own instead, since without py is such a rare case,
-  # require this package
-  # XXX Linking errors with debian static python :/
-#       find_package_wrapper(PythonLibsUnix REQUIRED)
+  # Use our own instead, since without Python is such a rare case,
+  # require this package.
+  # XXX: Linking errors with Debian static Python (sigh).
+  # find_package_wrapper(PythonLibsUnix REQUIRED)
   find_package(PythonLibsUnix REQUIRED)
+
+  if(WITH_PYTHON_MODULE AND NOT WITH_INSTALL_PORTABLE)
+    # Installing into `site-packages`, warn when installing into `./../lib/`
+    # which script authors almost certainly don't want.
+    if(EXISTS ${LIBDIR})
+      cmake_path(IS_PREFIX LIBDIR "${PYTHON_SITE_PACKAGES}" NORMALIZE _is_prefix)
+      if(_is_prefix)
+        message(WARNING "
+Building Blender with the following configuration:
+  - WITH_PYTHON_MODULE=ON
+  - WITH_INSTALL_PORTABLE=OFF
+  - LIBDIR=\"${LIBDIR}\"
+  - PYTHON_SITE_PACKAGES=\"${PYTHON_SITE_PACKAGES}\"
+In this case you may want to either:
+  - Use the system Python's site-packages, see:
+    python -c \"import site; print(site.getsitepackages()[0])\"
+  - Set WITH_INSTALL_PORTABLE=ON to create a stand-alone \"bpy\" module
+    which you will need to ensure is in Python's module search path.
+Proceeding with PYTHON_SITE_PACKAGES install target, you have been warned!"
+        )
+      endif()
+      unset(_is_prefix)
+    endif()
+  endif()
 endif()
 
 if(WITH_IMAGE_OPENEXR)
