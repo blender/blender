@@ -157,12 +157,7 @@ class GeometryNodesLazyFunctionLogger : public fn::lazy_function::GraphExecutor:
  */
 class GeometryNodesLazyFunctionSideEffectProvider
     : public fn::lazy_function::GraphExecutor::SideEffectProvider {
- private:
-  const GeometryNodesLazyFunctionGraphInfo &lf_graph_info_;
-
  public:
-  GeometryNodesLazyFunctionSideEffectProvider(
-      const GeometryNodesLazyFunctionGraphInfo &lf_graph_info);
   Vector<const lf::FunctionNode *> get_nodes_with_side_effects(
       const lf::Context &context) const override;
 };

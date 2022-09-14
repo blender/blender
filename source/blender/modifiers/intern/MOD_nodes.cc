@@ -1142,8 +1142,7 @@ static GeometrySet compute_geometry(
   Array<bool> param_set_outputs(graph_outputs.size(), false);
 
   blender::nodes::GeometryNodesLazyFunctionLogger lf_logger(lf_graph_info);
-  blender::nodes::GeometryNodesLazyFunctionSideEffectProvider lf_side_effect_provider(
-      lf_graph_info);
+  blender::nodes::GeometryNodesLazyFunctionSideEffectProvider lf_side_effect_provider;
 
   lf::GraphExecutor graph_executor{
       lf_graph_info.graph, graph_inputs, graph_outputs, &lf_logger, &lf_side_effect_provider};
