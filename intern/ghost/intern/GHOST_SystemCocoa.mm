@@ -1123,6 +1123,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
     case GHOST_kEventDraggingEntered:
     case GHOST_kEventDraggingUpdated:
     case GHOST_kEventDraggingExited:
+      window->clientToScreenIntern(mouseX, mouseY, mouseX, mouseY);
       pushEvent(new GHOST_EventDragnDrop(
           getMilliSeconds(), eventType, draggedObjectType, window, mouseX, mouseY, NULL));
       break;
@@ -1331,6 +1332,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
           return GHOST_kFailure;
           break;
       }
+
+      window->clientToScreenIntern(mouseX, mouseY, mouseX, mouseY);
       pushEvent(new GHOST_EventDragnDrop(
           getMilliSeconds(), eventType, draggedObjectType, window, mouseX, mouseY, eventData));
 
