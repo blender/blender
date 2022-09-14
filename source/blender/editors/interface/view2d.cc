@@ -2100,12 +2100,22 @@ void UI_view2d_text_cache_draw(ARegion *region)
       col_pack_prev = v2s->col.pack;
     }
 
-    BLF_enable(font_id, BLF_CLIPPING);
-    BLF_clipping(
-        font_id, v2s->rect.xmin - 4, v2s->rect.ymin - 4, v2s->rect.xmax + 4, v2s->rect.ymax + 4);
-    BLF_draw_default(
-        v2s->rect.xmin + xofs, v2s->rect.ymin + yofs, 0.0f, v2s->str, BLF_DRAW_STR_DUMMY_MAX);
-    BLF_disable(font_id, BLF_CLIPPING);
+    /* Don't use clipping if `v2s->rect` is not set. */
+    if (BLI_rcti_size_x(&v2s->rect) == 0 && BLI_rcti_size_y(&v2s->rect) == 0) {
+      BLF_draw_default((float)(v2s->mval[0] + xofs),
+                       (float)(v2s->mval[1] + yofs),
+                       0.0,
+                       v2s->str,
+                       BLF_DRAW_STR_DUMMY_MAX);
+    }
+    else {
+      BLF_enable(font_id, BLF_CLIPPING);
+      BLF_clipping(
+          font_id, v2s->rect.xmin - 4, v2s->rect.ymin - 4, v2s->rect.xmax + 4, v2s->rect.ymax + 4);
+      BLF_draw_default(
+          v2s->rect.xmin + xofs, v2s->rect.ymin + yofs, 0.0f, v2s->str, BLF_DRAW_STR_DUMMY_MAX);
+      BLF_disable(font_id, BLF_CLIPPING);
+    }
   }
   g_v2d_strings = nullptr;
 
