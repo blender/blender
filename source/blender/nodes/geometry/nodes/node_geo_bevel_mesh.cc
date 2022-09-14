@@ -850,7 +850,6 @@ int MeshDelta::new_vert(const float3 &co, int rep)
   MVert mvert;
   copy_v3_v3(mvert.co, co);
   mvert.flag = 0;
-  mvert.bweight = 0;
   new_verts_.append(mvert);
   new_vert_rep_.append(rep);
   return v;
@@ -863,7 +862,6 @@ int MeshDelta::new_edge(int v1, int v2, int rep)
   medge.v1 = v1;
   medge.v2 = v2;
   medge.crease = 0;
-  medge.bweight = 0;
   medge.flag = ME_EDGEDRAW;
   new_edges_.append(medge);
   new_edge_rep_.append(rep);
