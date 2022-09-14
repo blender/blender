@@ -1838,7 +1838,7 @@ static bool wm_file_write(bContext *C,
   ED_editors_flush_edits(bmain);
 
   /* XXX(ton): temp solution to solve bug, real fix coming. */
-  bmain->recovered = 0;
+  bmain->recovered = false;
 
   if (BLO_write_file(bmain,
                      filepath,
