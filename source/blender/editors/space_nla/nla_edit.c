@@ -610,7 +610,7 @@ void NLA_OT_view_frame(wmOperatorType *ot)
 static int nlaedit_get_editable_tracks(bAnimContext *ac, ListBase *anim_data)
 {
   const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ACTIVE | ANIMFILTER_FOREDIT |
-            ANIMFILTER_FCURVESONLY);
+                      ANIMFILTER_FCURVESONLY);
   return ANIM_animdata_filter(ac, anim_data, filter, ac->data, ac->datatype);
 }
 

@@ -746,8 +746,7 @@ static void rna_def_depsgraph(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "ViewLayer");
   RNA_def_property_pointer_funcs(prop, "rna_Depsgraph_view_layer_eval_get", NULL, NULL, NULL);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(
-      prop, "View Layer", "View layer at its evaluated state");
+  RNA_def_property_ui_text(prop, "View Layer", "View layer at its evaluated state");
 
   /* Iterators. */
 

@@ -214,7 +214,8 @@ static bool nla_animdata_panel_poll(const bContext *C, PanelType *UNUSED(pt))
 {
   PointerRNA ptr;
   PointerRNA strip_ptr;
-  return (nla_panel_context(C, &ptr, NULL, &strip_ptr) && (ptr.data != NULL) && (ptr.owner_id != strip_ptr.owner_id));
+  return (nla_panel_context(C, &ptr, NULL, &strip_ptr) && (ptr.data != NULL) &&
+          (ptr.owner_id != strip_ptr.owner_id));
 }
 
 static bool nla_strip_panel_poll(const bContext *C, PanelType *UNUSED(pt))
@@ -277,7 +278,7 @@ static void nla_panel_animdata(const bContext *C, Panel *panel)
     return;
   }
 
-  if(adt_ptr.owner_id == strip_ptr.owner_id){
+  if (adt_ptr.owner_id == strip_ptr.owner_id) {
     return;
   }
 
