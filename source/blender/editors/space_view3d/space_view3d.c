@@ -742,7 +742,7 @@ static void view3d_ob_drop_copy_external_asset(bContext *UNUSED(C), wmDrag *drag
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  BKE_view_layer_base_deselect_all(view_layer);
+  BKE_view_layer_base_deselect_all(scene, view_layer);
 
   ID *id = WM_drag_asset_id_import(asset_drag, FILE_AUTOSELECT);
 
@@ -791,7 +791,7 @@ static void view3d_collection_drop_copy_external_asset(bContext *UNUSED(C),
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  BKE_view_layer_base_deselect_all(view_layer);
+  BKE_view_layer_base_deselect_all(scene, view_layer);
 
   ID *id = WM_drag_asset_id_import(asset_drag, FILE_AUTOSELECT);
   Collection *collection = (Collection *)id;

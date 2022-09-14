@@ -471,6 +471,7 @@ static bke::CurvesGeometry particles_to_curves(Object &object, ParticleSystem &p
 static int curves_convert_from_particle_system_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main &bmain = *CTX_data_main(C);
+  Scene &scene = *CTX_data_scene(C);
   ViewLayer &view_layer = *CTX_data_view_layer(C);
   Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   Object *ob_from_orig = ED_object_active_context(C);
@@ -495,7 +496,7 @@ static int curves_convert_from_particle_system_exec(bContext *C, wmOperator *UNU
     psys_eval = psmd->psys;
   }
 
-  Object *ob_new = BKE_object_add(&bmain, &view_layer, OB_CURVES, psys_eval->name);
+  Object *ob_new = BKE_object_add(&bmain, &scene, &view_layer, OB_CURVES, psys_eval->name);
   Curves *curves_id = static_cast<Curves *>(ob_new->data);
   BKE_object_apply_mat4(ob_new, ob_from_orig->obmat, true, false);
   bke::CurvesGeometry::wrap(curves_id->geometry) = particles_to_curves(*ob_from_eval, *psys_eval);

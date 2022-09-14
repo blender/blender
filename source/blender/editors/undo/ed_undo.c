@@ -820,15 +820,15 @@ void ED_undo_object_editmode_restore_helper(struct bContext *C,
                                             uint object_array_stride)
 {
   Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint bases_len = 0;
   /* Don't request unique data because we want to de-select objects when exiting edit-mode
    * for that to be done on all objects we can't skip ones that share data. */
-  Base **bases = ED_undo_editmode_bases_from_view_layer(view_layer, &bases_len);
+  Base **bases = ED_undo_editmode_bases_from_view_layer(scene, view_layer, &bases_len);
   for (uint i = 0; i < bases_len; i++) {
     ((ID *)bases[i]->object->data)->tag |= LIB_TAG_DOIT;
   }
-  Scene *scene = CTX_data_scene(C);
   Object **ob_p = object_array;
   for (uint i = 0; i < object_array_len; i++, ob_p = POINTER_OFFSET(ob_p, object_array_stride)) {
     Object *obedit = *ob_p;
@@ -885,7 +885,9 @@ static int undo_editmode_objects_from_view_layer_prepare(ViewLayer *view_layer, 
   return len;
 }
 
-Object **ED_undo_editmode_objects_from_view_layer(ViewLayer *view_layer, uint *r_len)
+Object **ED_undo_editmode_objects_from_view_layer(const Scene *UNUSED(scene),
+                                                  ViewLayer *view_layer,
+                                                  uint *r_len)
 {
   Base *baseact = view_layer->basact;
   if ((baseact == NULL) || (baseact->object->mode & OB_MODE_EDIT) == 0) {
@@ -914,7 +916,9 @@ Object **ED_undo_editmode_objects_from_view_layer(ViewLayer *view_layer, uint *r
   return objects;
 }
 
-Base **ED_undo_editmode_bases_from_view_layer(ViewLayer *view_layer, uint *r_len)
+Base **ED_undo_editmode_bases_from_view_layer(const Scene *UNUSED(scene),
+                                              ViewLayer *view_layer,
+                                              uint *r_len)
 {
   Base *baseact = view_layer->basact;
   if ((baseact == NULL) || (baseact->object->mode & OB_MODE_EDIT) == 0) {

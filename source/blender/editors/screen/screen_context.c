@@ -201,11 +201,12 @@ static eContextResult screen_ctx_objects_in_mode(const bContext *C, bContextData
 {
   wmWindow *win = CTX_wm_window(C);
   View3D *v3d = CTX_wm_view3d(C); /* This may be NULL in a lot of cases. */
+  const Scene *scene = WM_window_get_active_scene(win);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   Object *obact = view_layer->basact ? view_layer->basact->object : NULL;
 
   if (obact && (obact->mode != OB_MODE_OBJECT)) {
-    FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, obact->type, obact->mode, ob_iter) {
+    FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, obact->type, obact->mode, ob_iter) {
       CTX_data_id_list_add(result, &ob_iter->id);
     }
     FOREACH_OBJECT_IN_MODE_END;
@@ -218,15 +219,16 @@ static eContextResult screen_ctx_objects_in_mode_unique_data(const bContext *C,
 {
   wmWindow *win = CTX_wm_window(C);
   View3D *v3d = CTX_wm_view3d(C); /* This may be NULL in a lot of cases. */
+  const Scene *scene = WM_window_get_active_scene(win);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   Object *obact = view_layer->basact ? view_layer->basact->object : NULL;
 
   if (obact && (obact->mode != OB_MODE_OBJECT)) {
-    FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, obact->type, obact->mode, ob_iter) {
+    FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, obact->type, obact->mode, ob_iter) {
       ob_iter->id.tag |= LIB_TAG_DOIT;
     }
     FOREACH_OBJECT_IN_MODE_END;
-    FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, obact->type, obact->mode, ob_iter) {
+    FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, obact->type, obact->mode, ob_iter) {
       if (ob_iter->id.tag & LIB_TAG_DOIT) {
         ob_iter->id.tag &= ~LIB_TAG_DOIT;
         CTX_data_id_list_add(result, &ob_iter->id);
@@ -242,6 +244,7 @@ static eContextResult screen_ctx_visible_or_editable_bones_(const bContext *C,
                                                             const bool editable_bones)
 {
   wmWindow *win = CTX_wm_window(C);
+  const Scene *scene = WM_window_get_active_scene(win);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
 
@@ -251,7 +254,7 @@ static eContextResult screen_ctx_visible_or_editable_bones_(const bContext *C,
   if (arm && arm->edbo) {
     uint objects_len;
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-        view_layer, CTX_wm_view3d(C), &objects_len);
+        scene, view_layer, CTX_wm_view3d(C), &objects_len);
     for (uint i = 0; i < objects_len; i++) {
       Object *ob = objects[i];
       arm = ob->data;
@@ -313,6 +316,7 @@ static eContextResult screen_ctx_selected_bones_(const bContext *C,
                                                  const bool selected_editable_bones)
 {
   wmWindow *win = CTX_wm_window(C);
+  const Scene *scene = WM_window_get_active_scene(win);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   bArmature *arm = (obedit && obedit->type == OB_ARMATURE) ? obedit->data : NULL;
@@ -321,7 +325,7 @@ static eContextResult screen_ctx_selected_bones_(const bContext *C,
   if (arm && arm->edbo) {
     uint objects_len;
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-        view_layer, CTX_wm_view3d(C), &objects_len);
+        scene, view_layer, CTX_wm_view3d(C), &objects_len);
     for (uint i = 0; i < objects_len; i++) {
       Object *ob = objects[i];
       arm = ob->data;
@@ -383,6 +387,7 @@ static eContextResult screen_ctx_visible_pose_bones(const bContext *C, bContextD
 {
   wmWindow *win = CTX_wm_window(C);
   View3D *v3d = CTX_wm_view3d(C); /* This may be NULL in a lot of cases. */
+  const Scene *scene = WM_window_get_active_scene(win);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   Object *obact = view_layer->basact ? view_layer->basact->object : NULL;
   Object *obpose = BKE_object_pose_armature_get(obact);
@@ -394,7 +399,7 @@ static eContextResult screen_ctx_visible_pose_bones(const bContext *C, bContextD
       FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
     }
     else if (obact->mode & OB_MODE_POSE) {
-      FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob_iter) {
+      FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob_iter) {
         FOREACH_PCHAN_VISIBLE_IN_OBJECT_BEGIN (ob_iter, pchan) {
           CTX_data_list_add(result, &ob_iter->id, &RNA_PoseBone, pchan);
         }
@@ -411,6 +416,7 @@ static eContextResult screen_ctx_selected_pose_bones(const bContext *C, bContext
 {
   wmWindow *win = CTX_wm_window(C);
   View3D *v3d = CTX_wm_view3d(C); /* This may be NULL in a lot of cases. */
+  const Scene *scene = WM_window_get_active_scene(win);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   Object *obact = view_layer->basact ? view_layer->basact->object : NULL;
   Object *obpose = BKE_object_pose_armature_get(obact);
@@ -422,7 +428,7 @@ static eContextResult screen_ctx_selected_pose_bones(const bContext *C, bContext
       FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
     }
     else if (obact->mode & OB_MODE_POSE) {
-      FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob_iter) {
+      FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob_iter) {
         FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (ob_iter, pchan) {
           CTX_data_list_add(result, &ob_iter->id, &RNA_PoseBone, pchan);
         }

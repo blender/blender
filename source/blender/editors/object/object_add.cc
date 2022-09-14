@@ -619,14 +619,14 @@ Object *ED_object_add_type_with_obdata(bContext *C,
   Object *ob;
   if (obdata != nullptr) {
     BLI_assert(type == BKE_object_obdata_to_type(obdata));
-    ob = BKE_object_add_for_data(bmain, view_layer, type, name, obdata, true);
+    ob = BKE_object_add_for_data(bmain, scene, view_layer, type, name, obdata, true);
     const short *materials_len_p = BKE_id_material_len_p(obdata);
     if (materials_len_p && *materials_len_p > 0) {
       BKE_object_materials_test(bmain, ob, static_cast<ID *>(ob->data));
     }
   }
   else {
-    ob = BKE_object_add(bmain, view_layer, type, name);
+    ob = BKE_object_add(bmain, scene, view_layer, type, name);
   }
 
   Base *ob_base_act = view_layer->basact;
@@ -3811,7 +3811,7 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
 
   /* object_add_duplicate_internal() doesn't deselect other objects, unlike object_add_common() or
    * BKE_view_layer_base_deselect_all(). */
-  ED_object_base_deselect_all(view_layer, nullptr, SEL_DESELECT);
+  ED_object_base_deselect_all(scene, view_layer, nullptr, SEL_DESELECT);
   ED_object_base_select(basen, BA_SELECT);
   ED_object_base_activate(C, basen);
 

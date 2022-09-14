@@ -258,7 +258,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
   /* from here down, no error returns */
 
   if (view_layer && RNA_boolean_get(op->ptr, "autoselect")) {
-    BKE_view_layer_base_deselect_all(view_layer);
+    BKE_view_layer_base_deselect_all(scene, view_layer);
   }
 
   /* tag everything, all untagged data can be made local

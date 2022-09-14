@@ -136,7 +136,7 @@ static int knifeproject_exec(bContext *C, wmOperator *op)
    * since each knife-project runs as a separate operation. */
   uint objects_len;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      vc.view_layer, vc.v3d, &objects_len);
+      vc.scene, vc.view_layer, vc.v3d, &objects_len);
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     ED_view3d_viewcontext_init_object(&vc, obedit);

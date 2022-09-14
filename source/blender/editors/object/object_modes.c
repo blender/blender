@@ -465,7 +465,7 @@ static bool object_transfer_mode_to_base(bContext *C, wmOperator *op, Base *base
   if (ED_object_mode_set_ex(C, OB_MODE_OBJECT, true, op->reports)) {
     Object *ob_dst_orig = DEG_get_original_object(ob_dst);
     Base *base = BKE_view_layer_base_find(view_layer, ob_dst_orig);
-    BKE_view_layer_base_deselect_all(view_layer);
+    BKE_view_layer_base_deselect_all(scene, view_layer);
     BKE_view_layer_base_select_and_set_active(view_layer, base);
     DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
 

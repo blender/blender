@@ -120,7 +120,7 @@ bool DocumentImporter::import()
   loader.registerExtraDataCallbackHandler(ehandler);
 
   /* deselect all to select new objects */
-  BKE_view_layer_base_deselect_all(view_layer);
+  BKE_view_layer_base_deselect_all(CTX_data_scene(mContext), view_layer);
 
   std::string mFilename = std::string(this->import_settings->filepath);
   const std::string encodedFilename = bc_url_encode(mFilename);

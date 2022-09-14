@@ -2258,20 +2258,22 @@ Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
   return ob;
 }
 
-static Object *object_add_common(Main *bmain, ViewLayer *view_layer, int type, const char *name)
+static Object *object_add_common(
+    Main *bmain, const Scene *scene, ViewLayer *view_layer, int type, const char *name)
 {
   Object *ob = BKE_object_add_only_object(bmain, type, name);
   ob->data = BKE_object_obdata_add_from_type(bmain, type, name);
-  BKE_view_layer_base_deselect_all(view_layer);
+  BKE_view_layer_base_deselect_all(scene, view_layer);
 
   DEG_id_tag_update_ex(
       bmain, &ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
   return ob;
 }
 
-Object *BKE_object_add(Main *bmain, ViewLayer *view_layer, int type, const char *name)
+Object *BKE_object_add(
+    Main *bmain, const Scene *scene, ViewLayer *view_layer, int type, const char *name)
 {
-  Object *ob = object_add_common(bmain, view_layer, type, name);
+  Object *ob = object_add_common(bmain, scene, view_layer, type, name);
 
   LayerCollection *layer_collection = BKE_layer_collection_get_active(view_layer);
   BKE_collection_viewlayer_object_add(bmain, view_layer, layer_collection->collection, ob);
@@ -2289,7 +2291,7 @@ Object *BKE_object_add(Main *bmain, ViewLayer *view_layer, int type, const char 
 Object *BKE_object_add_from(
     Main *bmain, Scene *scene, ViewLayer *view_layer, int type, const char *name, Object *ob_src)
 {
-  Object *ob = object_add_common(bmain, view_layer, type, name);
+  Object *ob = object_add_common(bmain, scene, view_layer, type, name);
   BKE_collection_object_add_from(bmain, scene, ob_src, ob);
 
   Base *base = BKE_view_layer_base_find(view_layer, ob);
@@ -2298,8 +2300,13 @@ Object *BKE_object_add_from(
   return ob;
 }
 
-Object *BKE_object_add_for_data(
-    Main *bmain, ViewLayer *view_layer, int type, const char *name, ID *data, bool do_id_user)
+Object *BKE_object_add_for_data(Main *bmain,
+                                const Scene *scene,
+                                ViewLayer *view_layer,
+                                int type,
+                                const char *name,
+                                ID *data,
+                                bool do_id_user)
 {
   /* same as object_add_common, except we don't create new ob->data */
   Object *ob = BKE_object_add_only_object(bmain, type, name);
@@ -2308,7 +2315,7 @@ Object *BKE_object_add_for_data(
     id_us_plus(data);
   }
 
-  BKE_view_layer_base_deselect_all(view_layer);
+  BKE_view_layer_base_deselect_all(scene, view_layer);
   DEG_id_tag_update_ex(
       bmain, &ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
 
@@ -2530,7 +2537,10 @@ Object *BKE_object_pose_armature_get(Object *ob)
   return nullptr;
 }
 
-Object *BKE_object_pose_armature_get_visible(Object *ob, ViewLayer *view_layer, View3D *v3d)
+Object *BKE_object_pose_armature_get_visible(Object *ob,
+                                             const Scene *UNUSED(scene),
+                                             ViewLayer *view_layer,
+                                             View3D *v3d)
 {
   Object *ob_armature = BKE_object_pose_armature_get(ob);
   if (ob_armature) {
@@ -2544,10 +2554,8 @@ Object *BKE_object_pose_armature_get_visible(Object *ob, ViewLayer *view_layer, 
   return nullptr;
 }
 
-Object **BKE_object_pose_array_get_ex(ViewLayer *view_layer,
-                                      View3D *v3d,
-                                      uint *r_objects_len,
-                                      bool unique)
+Object **BKE_object_pose_array_get_ex(
+    const Scene *scene, ViewLayer *view_layer, View3D *v3d, uint *r_objects_len, bool unique)
 {
   Object *ob_active = BKE_view_layer_active_object_get(view_layer);
   Object *ob_pose = BKE_object_pose_armature_get(ob_active);
@@ -2558,7 +2566,7 @@ Object **BKE_object_pose_array_get_ex(ViewLayer *view_layer,
     ob_params.no_dup_data = unique;
 
     objects = BKE_view_layer_array_from_objects_in_mode_params(
-        view_layer, v3d, r_objects_len, &ob_params);
+        scene, view_layer, v3d, r_objects_len, &ob_params);
   }
   else if (ob_pose != nullptr) {
     *r_objects_len = 1;
@@ -2571,19 +2579,23 @@ Object **BKE_object_pose_array_get_ex(ViewLayer *view_layer,
   }
   return objects;
 }
-Object **BKE_object_pose_array_get_unique(ViewLayer *view_layer, View3D *v3d, uint *r_objects_len)
+Object **BKE_object_pose_array_get_unique(const Scene *scene,
+                                          ViewLayer *view_layer,
+                                          View3D *v3d,
+                                          uint *r_objects_len)
 {
-  return BKE_object_pose_array_get_ex(view_layer, v3d, r_objects_len, true);
+  return BKE_object_pose_array_get_ex(scene, view_layer, v3d, r_objects_len, true);
 }
-Object **BKE_object_pose_array_get(ViewLayer *view_layer, View3D *v3d, uint *r_objects_len)
+Object **BKE_object_pose_array_get(const Scene *scene,
+                                   ViewLayer *view_layer,
+                                   View3D *v3d,
+                                   uint *r_objects_len)
 {
-  return BKE_object_pose_array_get_ex(view_layer, v3d, r_objects_len, false);
+  return BKE_object_pose_array_get_ex(scene, view_layer, v3d, r_objects_len, false);
 }
 
-Base **BKE_object_pose_base_array_get_ex(ViewLayer *view_layer,
-                                         View3D *v3d,
-                                         uint *r_bases_len,
-                                         bool unique)
+Base **BKE_object_pose_base_array_get_ex(
+    const Scene *scene, ViewLayer *view_layer, View3D *v3d, uint *r_bases_len, bool unique)
 {
   Base *base_active = view_layer->basact;
   Object *ob_pose = base_active ? BKE_object_pose_armature_get(base_active->object) : nullptr;
@@ -2605,7 +2617,7 @@ Base **BKE_object_pose_base_array_get_ex(ViewLayer *view_layer,
     ob_params.no_dup_data = unique;
 
     bases = BKE_view_layer_array_from_bases_in_mode_params(
-        view_layer, v3d, r_bases_len, &ob_params);
+        scene, view_layer, v3d, r_bases_len, &ob_params);
   }
   else if (base_pose != nullptr) {
     *r_bases_len = 1;
@@ -2618,13 +2630,19 @@ Base **BKE_object_pose_base_array_get_ex(ViewLayer *view_layer,
   }
   return bases;
 }
-Base **BKE_object_pose_base_array_get_unique(ViewLayer *view_layer, View3D *v3d, uint *r_bases_len)
+Base **BKE_object_pose_base_array_get_unique(const Scene *scene,
+                                             ViewLayer *view_layer,
+                                             View3D *v3d,
+                                             uint *r_bases_len)
 {
-  return BKE_object_pose_base_array_get_ex(view_layer, v3d, r_bases_len, true);
+  return BKE_object_pose_base_array_get_ex(scene, view_layer, v3d, r_bases_len, true);
 }
-Base **BKE_object_pose_base_array_get(ViewLayer *view_layer, View3D *v3d, uint *r_bases_len)
+Base **BKE_object_pose_base_array_get(const Scene *scene,
+                                      ViewLayer *view_layer,
+                                      View3D *v3d,
+                                      uint *r_bases_len)
 {
-  return BKE_object_pose_base_array_get_ex(view_layer, v3d, r_bases_len, false);
+  return BKE_object_pose_base_array_get_ex(scene, view_layer, v3d, r_bases_len, false);
 }
 
 void BKE_object_transform_copy(Object *ob_tar, const Object *ob_src)
@@ -5136,7 +5154,8 @@ static void obrel_list_add(LinkNode **links, Object *ob)
   ob->id.tag |= LIB_TAG_DOIT;
 }
 
-LinkNode *BKE_object_relational_superset(struct ViewLayer *view_layer,
+LinkNode *BKE_object_relational_superset(const Scene *UNUSED(scene),
+                                         struct ViewLayer *view_layer,
                                          eObjectSet objectSet,
                                          eObRelationTypes includeFilter)
 {

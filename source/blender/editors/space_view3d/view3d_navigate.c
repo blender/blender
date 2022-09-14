@@ -861,6 +861,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  const Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
   Object *ob_eval = BKE_view_layer_active_object_get(view_layer_eval);
   Object *obedit = CTX_data_edit_object(C);
@@ -936,14 +937,15 @@ static int viewselected_exec(bContext *C, wmOperator *op)
   }
   else if (obedit) {
     /* only selected */
-    FOREACH_OBJECT_IN_MODE_BEGIN (view_layer_eval, v3d, obedit->type, obedit->mode, ob_eval_iter) {
+    FOREACH_OBJECT_IN_MODE_BEGIN (
+        scene_eval, view_layer_eval, v3d, obedit->type, obedit->mode, ob_eval_iter) {
       ok |= ED_view3d_minmax_verts(ob_eval_iter, min, max);
     }
     FOREACH_OBJECT_IN_MODE_END;
   }
   else if (ob_eval && (ob_eval->mode & OB_MODE_POSE)) {
     FOREACH_OBJECT_IN_MODE_BEGIN (
-        view_layer_eval, v3d, ob_eval->type, ob_eval->mode, ob_eval_iter) {
+        scene_eval, view_layer_eval, v3d, ob_eval->type, ob_eval->mode, ob_eval_iter) {
       ok |= BKE_pose_minmax(ob_eval_iter, min, max, true, true);
     }
     FOREACH_OBJECT_IN_MODE_END;
@@ -1167,10 +1169,12 @@ static int view_axis_exec(bContext *C, wmOperator *op)
     Object *obact = CTX_data_active_object(C);
     if (obact != NULL) {
       float twmat[3][3];
+      const Scene *scene = CTX_data_scene(C);
       struct ViewLayer *view_layer = CTX_data_view_layer(C);
       Object *obedit = CTX_data_edit_object(C);
       /* same as transform gizmo when normal is set */
-      ED_getTransformOrientationMatrix(view_layer, v3d, obact, obedit, V3D_AROUND_ACTIVE, twmat);
+      ED_getTransformOrientationMatrix(
+          scene, view_layer, v3d, obact, obedit, V3D_AROUND_ACTIVE, twmat);
       align_quat = align_quat_buf;
       mat3_to_quat(align_quat, twmat);
       invert_qt_normalized(align_quat);
@@ -1331,7 +1335,7 @@ static int view_camera_exec(bContext *C, wmOperator *op)
       }
 
       if (v3d->camera == NULL) {
-        v3d->camera = BKE_view_layer_camera_find(view_layer);
+        v3d->camera = BKE_view_layer_camera_find(scene, view_layer);
       }
 
       /* couldn't find any useful camera, bail out */

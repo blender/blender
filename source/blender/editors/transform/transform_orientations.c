@@ -515,7 +515,7 @@ short ED_transform_calc_orientation_from_type_ex(const Scene *scene,
     }
     case V3D_ORIENT_NORMAL: {
       if (obedit || (ob && ob->mode & OB_MODE_POSE)) {
-        ED_getTransformOrientationMatrix(view_layer, v3d, ob, obedit, pivot_point, r_mat);
+        ED_getTransformOrientationMatrix(scene, view_layer, v3d, ob, obedit, pivot_point, r_mat);
         break;
       }
       /* No break we define 'normal' as 'local' in Object mode. */
@@ -528,7 +528,7 @@ short ED_transform_calc_orientation_from_type_ex(const Scene *scene,
            * use the active pones axis for display T33575, this works as expected on a single
            * bone and users who select many bones will understand what's going on and what local
            * means when they start transforming. */
-          ED_getTransformOrientationMatrix(view_layer, v3d, ob, obedit, pivot_point, r_mat);
+          ED_getTransformOrientationMatrix(scene, view_layer, v3d, ob, obedit, pivot_point, r_mat);
         }
         else {
           transform_orientations_create_from_axis(r_mat, UNPACK3(ob->obmat));
@@ -744,7 +744,8 @@ static uint bm_mesh_faces_select_get_n(BMesh *bm, BMVert **elems, const uint n)
 }
 #endif
 
-int getTransformOrientation_ex(ViewLayer *view_layer,
+int getTransformOrientation_ex(const Scene *UNUSED(scene),
+                               ViewLayer *view_layer,
                                const View3D *v3d,
                                struct Object *ob,
                                struct Object *obedit,
@@ -1282,13 +1283,15 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3])
   /* dummy value, not V3D_AROUND_ACTIVE and not V3D_AROUND_LOCAL_ORIGINS */
   short around = V3D_AROUND_CENTER_BOUNDS;
 
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
 
-  return getTransformOrientation_ex(view_layer, v3d, obact, obedit, normal, plane, around);
+  return getTransformOrientation_ex(scene, view_layer, v3d, obact, obedit, normal, plane, around);
 }
 
-void ED_getTransformOrientationMatrix(ViewLayer *view_layer,
+void ED_getTransformOrientationMatrix(const Scene *scene,
+                                      ViewLayer *view_layer,
                                       const View3D *v3d,
                                       Object *ob,
                                       Object *obedit,
@@ -1300,7 +1303,7 @@ void ED_getTransformOrientationMatrix(ViewLayer *view_layer,
 
   int type;
 
-  type = getTransformOrientation_ex(view_layer, v3d, ob, obedit, normal, plane, around);
+  type = getTransformOrientation_ex(scene, view_layer, v3d, ob, obedit, normal, plane, around);
 
   /* Fallback, when the plane can't be calculated. */
   if (ORIENTATION_USE_PLANE(type) && is_zero_v3(plane)) {

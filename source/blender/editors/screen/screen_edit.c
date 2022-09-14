@@ -1164,7 +1164,7 @@ static void screen_set_3dview_camera(Scene *scene,
   BKE_screen_view3d_sync(v3d, scene);
 
   if (!v3d->camera || !BKE_view_layer_base_find(view_layer, v3d->camera)) {
-    v3d->camera = BKE_view_layer_camera_find(view_layer);
+    v3d->camera = BKE_view_layer_camera_find(scene, view_layer);
     // XXX if (screen == curscreen) handle_view3d_lock();
     if (!v3d->camera) {
       ListBase *regionbase;

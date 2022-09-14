@@ -300,9 +300,10 @@ static int gpencil_trace_image_exec(bContext *C, wmOperator *op)
 
   /* Create a new grease pencil object or reuse selected. */
   eGP_TargetObjectMode target = RNA_enum_get(op->ptr, "target");
-  job->ob_gpencil = (target == GP_TARGET_OB_SELECTED) ? BKE_view_layer_non_active_selected_object(
-                                                            CTX_data_view_layer(C), job->v3d) :
-                                                        NULL;
+  job->ob_gpencil = (target == GP_TARGET_OB_SELECTED) ?
+                        BKE_view_layer_non_active_selected_object(
+                            scene, CTX_data_view_layer(C), job->v3d) :
+                        NULL;
 
   if (job->ob_gpencil != NULL) {
     if (job->ob_gpencil->type != OB_GPENCIL) {

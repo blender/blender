@@ -626,7 +626,7 @@ static void txt_add_object(bContext *C,
   int a;
   const float rot[3] = {0.0f, 0.0f, 0.0f};
 
-  obedit = BKE_object_add(bmain, view_layer, OB_FONT, NULL);
+  obedit = BKE_object_add(bmain, scene, view_layer, OB_FONT, NULL);
   base = view_layer->basact;
 
   /* seems to assume view align ? TODO: look into this, could be an operator option. */

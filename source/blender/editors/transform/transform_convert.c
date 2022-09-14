@@ -945,7 +945,11 @@ static void init_TransDataContainers(TransInfo *t,
       /* Pose transform operates on `ob->pose` so don't skip duplicate object-data. */
       params.no_dup_data = (object_mode & OB_MODE_POSE) == 0;
       objects = BKE_view_layer_array_from_objects_in_mode_params(
-          t->view_layer, (t->spacetype == SPACE_VIEW3D) ? t->view : NULL, &objects_len, &params);
+          t->scene,
+          t->view_layer,
+          (t->spacetype == SPACE_VIEW3D) ? t->view : NULL,
+          &objects_len,
+          &params);
       free_objects = true;
     }
 

@@ -315,7 +315,7 @@ static void rna_LayerCollection_exclude_update(Main *bmain, Scene *UNUSED(scene)
   if (!exclude) {
     /* We need to update animation of objects added back to the scene through enabling this view
      * layer. */
-    FOREACH_OBJECT_BEGIN (view_layer, ob) {
+    FOREACH_OBJECT_BEGIN (scene, view_layer, ob) {
       DEG_id_tag_update(&ob->id, ID_RECALC_ANIMATION);
     }
     FOREACH_OBJECT_END;
@@ -347,9 +347,18 @@ static bool rna_LayerCollection_has_objects(LayerCollection *lc)
   return (lc->runtime_flag & LAYER_COLLECTION_HAS_OBJECTS) != 0;
 }
 
-static bool rna_LayerCollection_has_selected_objects(LayerCollection *lc, ViewLayer *view_layer)
+static bool rna_LayerCollection_has_selected_objects(LayerCollection *lc,
+                                                     Main *bmain,
+                                                     ViewLayer *view_layer)
 {
-  return BKE_layer_collection_has_selected_objects(view_layer, lc);
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    LISTBASE_FOREACH (ViewLayer *, scene_view_layer, &scene->view_layers) {
+      if (scene_view_layer == view_layer) {
+        return BKE_layer_collection_has_selected_objects(scene, view_layer, lc);
+      }
+    }
+  }
+  return false;
 }
 
 #else
@@ -442,6 +451,7 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 
   func = RNA_def_function(
       srna, "has_selected_objects", "rna_LayerCollection_has_selected_objects");
+  RNA_def_function_flag(func, FUNC_USE_MAIN);
   RNA_def_function_ui_description(func, "");
   prop = RNA_def_pointer(
       func, "view_layer", "ViewLayer", "", "View layer the layer collection belongs to");

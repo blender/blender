@@ -209,10 +209,11 @@ static int op_generic_value_invoke(bContext *C, wmOperator *op, const wmEvent *e
     return WM_operator_call_notest(C, op);
   }
 
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
   if (objects_len == 0) {
     MEM_freeN(objects);
     return OPERATOR_CANCELLED;

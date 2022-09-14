@@ -2215,7 +2215,7 @@ static int stitch_init_all(bContext *C, wmOperator *op)
   View3D *v3d = CTX_wm_view3d(C);
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      view_layer, v3d, &objects_len);
+      scene, view_layer, v3d, &objects_len);
 
   if (objects_len == 0) {
     MEM_freeN(objects);

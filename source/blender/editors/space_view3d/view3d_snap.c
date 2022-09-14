@@ -69,7 +69,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
     ViewLayer *view_layer = CTX_data_view_layer(C);
     uint objects_len = 0;
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-        view_layer, CTX_wm_view3d(C), &objects_len);
+        scene, view_layer, CTX_wm_view3d(C), &objects_len);
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
       Object *obedit = objects[ob_index];
 
@@ -111,7 +111,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
   else if (OBPOSE_FROM_OBACT(obact)) {
     struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
     uint objects_len = 0;
-    Object **objects_eval = BKE_object_pose_array_get(view_layer_eval, v3d, &objects_len);
+    Object **objects_eval = BKE_object_pose_array_get(scene, view_layer_eval, v3d, &objects_len);
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
       Object *ob_eval = objects_eval[ob_index];
       Object *ob = DEG_get_original_object(ob_eval);
@@ -203,7 +203,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
       BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
       xcs = ED_object_xform_skip_child_container_create();
       ED_object_xform_skip_child_container_item_ensure_from_array(
-          xcs, view_layer, objects, objects_eval_len);
+          xcs, scene, view_layer, objects, objects_eval_len);
       MEM_freeN(objects);
     }
     if (use_transform_data_origin) {
@@ -326,7 +326,7 @@ static bool snap_selected_to_location(bContext *C,
     ViewLayer *view_layer = CTX_data_view_layer(C);
     uint objects_len = 0;
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-        view_layer, v3d, &objects_len);
+        scene, view_layer, v3d, &objects_len);
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
       obedit = objects[ob_index];
 
@@ -376,7 +376,7 @@ static bool snap_selected_to_location(bContext *C,
     struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
     ViewLayer *view_layer = CTX_data_view_layer(C);
     uint objects_len = 0;
-    Object **objects = BKE_object_pose_array_get(view_layer, v3d, &objects_len);
+    Object **objects = BKE_object_pose_array_get(scene, view_layer, v3d, &objects_len);
 
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
       Object *ob = objects[ob_index];
@@ -487,7 +487,7 @@ static bool snap_selected_to_location(bContext *C,
       BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
       xcs = ED_object_xform_skip_child_container_create();
       ED_object_xform_skip_child_container_item_ensure_from_array(
-          xcs, view_layer, objects, objects_len);
+          xcs, scene, view_layer, objects, objects_len);
     }
     if (use_transform_data_origin) {
       BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
@@ -789,7 +789,7 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
     ViewLayer *view_layer = CTX_data_view_layer(C);
     uint objects_len = 0;
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-        view_layer, CTX_wm_view3d(C), &objects_len);
+        scene, view_layer, CTX_wm_view3d(C), &objects_len);
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
       obedit = objects[ob_index];
 

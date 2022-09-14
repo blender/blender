@@ -112,6 +112,7 @@ struct XFormObjectSkipChild_Container;
 struct XFormObjectSkipChild_Container *ED_object_xform_skip_child_container_create(void);
 void ED_object_xform_skip_child_container_item_ensure_from_array(
     struct XFormObjectSkipChild_Container *xcs,
+    const struct Scene *scene,
     struct ViewLayer *view_layer,
     struct Object **objects,
     uint objects_len);
@@ -213,11 +214,15 @@ void ED_object_base_free_and_unlink(struct Main *bmain, struct Scene *scene, str
 void ED_object_base_free_and_unlink_no_indirect_check(struct Main *bmain,
                                                       struct Scene *scene,
                                                       struct Object *ob);
-bool ED_object_base_deselect_all_ex(struct ViewLayer *view_layer,
+bool ED_object_base_deselect_all_ex(const struct Scene *scene,
+                                    struct ViewLayer *view_layer,
                                     struct View3D *v3d,
                                     int action,
                                     bool *r_any_visible);
-bool ED_object_base_deselect_all(struct ViewLayer *view_layer, struct View3D *v3d, int action);
+bool ED_object_base_deselect_all(const struct Scene *scene,
+                                 struct ViewLayer *view_layer,
+                                 struct View3D *v3d,
+                                 int action);
 
 /**
  * Single object duplicate, if `dupflag == 0`, fully linked, else it uses the flags given.
@@ -539,6 +544,7 @@ bool ED_object_modifier_move_to_index(struct ReportList *reports,
 bool ED_object_modifier_convert_psys_to_mesh(struct ReportList *reports,
                                              struct Main *bmain,
                                              struct Depsgraph *depsgraph,
+                                             struct Scene *scene,
                                              struct ViewLayer *view_layer,
                                              struct Object *ob,
                                              struct ModifierData *md);
@@ -662,7 +668,9 @@ void ED_object_check_force_modifiers(struct Main *bmain,
  * If id is not already an Object, try to find an object that uses it as data.
  * Prefers active, then selected, then visible/selectable.
  */
-struct Base *ED_object_find_first_by_data_id(struct ViewLayer *view_layer, struct ID *id);
+struct Base *ED_object_find_first_by_data_id(const struct Scene *scene,
+                                             struct ViewLayer *view_layer,
+                                             struct ID *id);
 
 /**
  * Select and make the target object active in the view layer.

@@ -1281,7 +1281,7 @@ static void select_marker_camera_switch(
     int sel = 0;
 
     if (!extend) {
-      BKE_view_layer_base_deselect_all(view_layer);
+      BKE_view_layer_base_deselect_all(scene, view_layer);
     }
 
     for (marker = markers->first; marker; marker = marker->next) {

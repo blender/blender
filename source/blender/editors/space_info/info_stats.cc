@@ -353,6 +353,7 @@ static void stats_object_sculpt(const Object *ob, SceneStats *stats)
 
 /* Statistics displayed in info header. Called regularly on scene changes. */
 static void stats_update(Depsgraph *depsgraph,
+                         const Scene *scene,
                          ViewLayer *view_layer,
                          View3D *v3d_local,
                          SceneStats *stats)
@@ -364,7 +365,7 @@ static void stats_update(Depsgraph *depsgraph,
 
   if (obedit) {
     /* Edit Mode. */
-    FOREACH_OBJECT_BEGIN (view_layer, ob_iter) {
+    FOREACH_OBJECT_BEGIN (scene, view_layer, ob_iter) {
       if (ob_iter->base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) {
         if (ob_iter->mode & OB_MODE_EDIT) {
           stats_object_edit(ob_iter, stats);
@@ -384,7 +385,7 @@ static void stats_update(Depsgraph *depsgraph,
   }
   else if (ob && (ob->mode & OB_MODE_POSE)) {
     /* Pose Mode. */
-    FOREACH_OBJECT_BEGIN (view_layer, ob_iter) {
+    FOREACH_OBJECT_BEGIN (scene, view_layer, ob_iter) {
       if (ob_iter->base_flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) {
         if (ob_iter->mode & OB_MODE_POSE) {
           stats_object_pose(ob_iter, stats);
@@ -450,7 +451,7 @@ static bool format_stats(
     }
     Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
     *stats_p = (SceneStats *)MEM_mallocN(sizeof(SceneStats), __func__);
-    stats_update(depsgraph, view_layer, v3d_local, *stats_p);
+    stats_update(depsgraph, scene, view_layer, v3d_local, *stats_p);
   }
 
   SceneStats *stats = *stats_p;

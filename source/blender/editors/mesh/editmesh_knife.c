@@ -4102,7 +4102,7 @@ static void knifetool_init(ViewContext *vc,
   kcd->region = vc->region;
 
   kcd->objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      vc->view_layer, vc->v3d, &kcd->objects_len);
+      vc->scene, vc->view_layer, vc->v3d, &kcd->objects_len);
 
   Object *ob;
   BMEditMesh *em;

@@ -123,7 +123,7 @@ void importer_main(Main *bmain,
   }
 
   if (import_params.clear_selection) {
-    BKE_view_layer_base_deselect_all(view_layer);
+    BKE_view_layer_base_deselect_all(scene, view_layer);
   }
   geometry_to_blender_objects(bmain,
                               scene,

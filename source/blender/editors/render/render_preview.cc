@@ -775,10 +775,11 @@ static bool object_preview_is_type_supported(const Object *ob)
 }
 
 static Object *object_preview_camera_create(Main *preview_main,
+                                            Scene *scene,
                                             ViewLayer *view_layer,
                                             Object *preview_object)
 {
-  Object *camera = BKE_object_add(preview_main, view_layer, OB_CAMERA, "Preview Camera");
+  Object *camera = BKE_object_add(preview_main, scene, view_layer, OB_CAMERA, "Preview Camera");
 
   float rotmat[3][3];
   float dummyscale[3];
@@ -817,7 +818,7 @@ static Scene *object_preview_scene_create(const struct ObjectPreviewData *previe
   BKE_collection_object_add(preview_data->pr_main, scene->master_collection, preview_data->object);
 
   Object *camera_object = object_preview_camera_create(
-      preview_data->pr_main, view_layer, preview_data->object);
+      preview_data->pr_main, scene, view_layer, preview_data->object);
 
   scene->camera = camera_object;
   scene->r.xsch = preview_data->sizex;

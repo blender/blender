@@ -103,6 +103,7 @@ void BKE_partdeflect_free(struct PartDeflect *pd);
  * lookup of effectors during evaluation.
  */
 struct ListBase *BKE_effector_relations_create(struct Depsgraph *depsgraph,
+                                               const struct Scene *scene,
                                                struct ViewLayer *view_layer,
                                                struct Collection *collection);
 void BKE_effector_relations_free(struct ListBase *lb);

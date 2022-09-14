@@ -140,6 +140,7 @@ Object **ED_object_array_in_mode_or_selected(bContext *C,
                                              uint *r_objects_len)
 {
   ScrArea *area = CTX_wm_area(C);
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob_active = BKE_view_layer_active_object_get(view_layer);
   ID *id_pin = NULL;
@@ -200,7 +201,7 @@ Object **ED_object_array_in_mode_or_selected(bContext *C,
       params.filter_fn = filter_fn;
       params.filter_userdata = filter_user_data;
       objects = BKE_view_layer_array_from_objects_in_mode_params(
-          view_layer, v3d, r_objects_len, &params);
+          scene, view_layer, v3d, r_objects_len, &params);
     }
     else {
       objects = BKE_view_layer_array_selected_objects(
@@ -362,10 +363,10 @@ static int object_hide_collection_exec(bContext *C, wmOperator *op)
     }
     if (toggle) {
       lc->local_collections_bits ^= v3d->local_collections_uuid;
-      BKE_layer_collection_local_sync(view_layer, v3d);
+      BKE_layer_collection_local_sync(scene, view_layer, v3d);
     }
     else {
-      BKE_layer_collection_isolate_local(view_layer, v3d, lc, extend);
+      BKE_layer_collection_isolate_local(scene, view_layer, v3d, lc, extend);
     }
   }
   else {
@@ -381,6 +382,7 @@ static int object_hide_collection_exec(bContext *C, wmOperator *op)
 
 void ED_collection_hide_menu_draw(const bContext *C, uiLayout *layout)
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   LayerCollection *lc_scene = view_layer->layer_collections.first;
 
@@ -399,7 +401,7 @@ void ED_collection_hide_menu_draw(const bContext *C, uiLayout *layout)
     }
 
     int icon = ICON_NONE;
-    if (BKE_layer_collection_has_selected_objects(view_layer, lc)) {
+    if (BKE_layer_collection_has_selected_objects(scene, view_layer, lc)) {
       icon = ICON_LAYER_ACTIVE;
     }
     else if (lc->runtime_flag & LAYER_COLLECTION_HAS_OBJECTS) {
@@ -867,7 +869,7 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
     ED_object_editmode_exit_ex(bmain, scene, obact, EM_FREEDATA);
 
     if ((obact->mode & mode_flag) == 0) {
-      FOREACH_OBJECT_BEGIN (view_layer, ob) {
+      FOREACH_OBJECT_BEGIN (scene, view_layer, ob) {
         if ((ob != obact) && (ob->type == obact->type)) {
           ED_object_editmode_exit_ex(bmain, scene, ob, EM_FREEDATA);
         }
@@ -963,7 +965,7 @@ static int posemode_exec(bContext *C, wmOperator *op)
   if (is_mode_set) {
     bool ok = ED_object_posemode_exit(C, obact);
     if (ok) {
-      FOREACH_OBJECT_BEGIN (view_layer, ob) {
+      FOREACH_OBJECT_BEGIN (scene, view_layer, ob) {
         if ((ob != obact) && (ob->type == OB_ARMATURE) && (ob->mode & mode_flag)) {
           ED_object_posemode_exit_ex(bmain, ob);
         }

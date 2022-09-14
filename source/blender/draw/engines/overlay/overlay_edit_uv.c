@@ -408,7 +408,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
       draw_ctx->obact->type == OB_MESH) {
     uint objects_len = 0;
     Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
-        draw_ctx->view_layer, NULL, &objects_len, draw_ctx->object_mode);
+        draw_ctx->scene, draw_ctx->view_layer, NULL, &objects_len, draw_ctx->object_mode);
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
       Object *object_eval = DEG_get_evaluated_object(draw_ctx->depsgraph, objects[ob_index]);
       DRW_mesh_batch_cache_validate(object_eval, (Mesh *)object_eval->data);

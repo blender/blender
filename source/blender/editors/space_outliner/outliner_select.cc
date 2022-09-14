@@ -166,7 +166,7 @@ static void do_outliner_item_mode_toggle_generic(bContext *C, TreeViewContext *t
   if (ED_object_mode_set(C, OB_MODE_OBJECT)) {
     Base *base_active = BKE_view_layer_base_find(tvc->view_layer, tvc->obact);
     if (base_active != base) {
-      BKE_view_layer_base_deselect_all(tvc->view_layer);
+      BKE_view_layer_base_deselect_all(tvc->scene, tvc->view_layer);
       BKE_view_layer_base_select_and_set_active(tvc->view_layer, base);
       DEG_id_tag_update(&tvc->scene->id, ID_RECALC_SELECT);
       ED_undo_push(C, "Change Active");
@@ -361,7 +361,7 @@ static void tree_element_object_activate(bContext *C,
       if ((scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) ?
               (ob->mode == OB_MODE_OBJECT) :
               true) {
-        BKE_view_layer_base_deselect_all(view_layer);
+        BKE_view_layer_base_deselect_all(scene, view_layer);
       }
       ED_object_base_select(base, BA_SELECT);
       if (parent_tselem) {
@@ -479,6 +479,7 @@ static void tree_element_posegroup_activate(bContext *C, TreeElement *te, TreeSt
 }
 
 static void tree_element_posechannel_activate(bContext *C,
+                                              const Scene *scene,
                                               ViewLayer *view_layer,
                                               TreeElement *te,
                                               TreeStoreElem *tselem,
@@ -493,7 +494,8 @@ static void tree_element_posechannel_activate(bContext *C,
     if (set != OL_SETSEL_EXTEND) {
       /* Single select forces all other bones to get unselected. */
       uint objects_len = 0;
-      Object **objects = BKE_object_pose_array_get_unique(view_layer, nullptr, &objects_len);
+      Object **objects = BKE_object_pose_array_get_unique(
+          scene, view_layer, nullptr, &objects_len);
 
       for (uint object_index = 0; object_index < objects_len; object_index++) {
         Object *ob_iter = BKE_object_pose_armature_get(objects[object_index]);
@@ -583,6 +585,7 @@ static void tree_element_active_ebone__sel(bContext *C, bArmature *arm, EditBone
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, CTX_data_edit_object(C));
 }
 static void tree_element_ebone_activate(bContext *C,
+                                        const Scene *scene,
                                         ViewLayer *view_layer,
                                         TreeElement *te,
                                         TreeStoreElem *tselem,
@@ -601,7 +604,7 @@ static void tree_element_ebone_activate(bContext *C,
       ob_params.no_dup_data = true;
 
       Base **bases = BKE_view_layer_array_from_bases_in_mode_params(
-          view_layer, nullptr, &bases_len, &ob_params);
+          scene, view_layer, nullptr, &bases_len, &ob_params);
       ED_armature_edit_deselect_all_multi_ex(bases, bases_len);
       MEM_freeN(bases);
 
@@ -648,6 +651,7 @@ static void tree_element_psys_activate(bContext *C, TreeStoreElem *tselem)
 }
 
 static void tree_element_constraint_activate(bContext *C,
+                                             const Scene *scene,
                                              ViewLayer *view_layer,
                                              TreeElement *te,
                                              TreeStoreElem *tselem,
@@ -660,7 +664,7 @@ static void tree_element_constraint_activate(bContext *C,
   while (te) {
     tselem = TREESTORE(te);
     if (tselem->type == TSE_POSE_CHANNEL) {
-      tree_element_posechannel_activate(C, view_layer, te, tselem, set, false);
+      tree_element_posechannel_activate(C, scene, view_layer, te, tselem, set, false);
       return;
     }
     te = te->parent;
@@ -795,7 +799,7 @@ void tree_element_type_active_set(bContext *C,
       tree_element_bone_activate(C, tvc->view_layer, te, tselem, set, recursive);
       break;
     case TSE_EBONE:
-      tree_element_ebone_activate(C, tvc->view_layer, te, tselem, set, recursive);
+      tree_element_ebone_activate(C, tvc->scene, tvc->view_layer, te, tselem, set, recursive);
       break;
     case TSE_MODIFIER:
       tree_element_modifier_activate(C, te, tselem, set);
@@ -809,11 +813,12 @@ void tree_element_type_active_set(bContext *C,
     case TSE_POSE_BASE:
       return;
     case TSE_POSE_CHANNEL:
-      tree_element_posechannel_activate(C, tvc->view_layer, te, tselem, set, recursive);
+      tree_element_posechannel_activate(
+          C, tvc->scene, tvc->view_layer, te, tselem, set, recursive);
       break;
     case TSE_CONSTRAINT_BASE:
     case TSE_CONSTRAINT:
-      tree_element_constraint_activate(C, tvc->view_layer, te, tselem, set);
+      tree_element_constraint_activate(C, tvc->scene, tvc->view_layer, te, tselem, set);
       break;
     case TSE_R_LAYER:
       tree_element_viewlayer_activate(C, te);
@@ -1418,7 +1423,7 @@ static void do_outliner_item_activate_tree_element(bContext *C,
         FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
       }
       else {
-        BKE_view_layer_base_deselect_all(tvc->view_layer);
+        BKE_view_layer_base_deselect_all(tvc->scene, tvc->view_layer);
 
         FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (gr, object) {
           Base *base = BKE_view_layer_base_find(tvc->view_layer, object);

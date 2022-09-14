@@ -128,7 +128,8 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count)
   view_layer->layflag = SCE_LAY_SOLID;
 
   // Camera
-  Object *object_camera = BKE_object_add(freestyle_bmain, view_layer, OB_CAMERA, nullptr);
+  Object *object_camera = BKE_object_add(
+      freestyle_bmain, freestyle_scene, view_layer, OB_CAMERA, nullptr);
 
   Camera *camera = (Camera *)object_camera->data;
   camera->type = CAM_ORTHO;

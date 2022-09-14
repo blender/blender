@@ -824,6 +824,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
                                   wmWindowManager *wm,
                                   wmWindow *win,
                                   Main *bmain,
+                                  const Scene *scene,
                                   ViewLayer *view_layer,
                                   ScrArea *area,
                                   const bool frame_selected,
@@ -856,7 +857,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
       LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
         base->local_view_bits &= ~local_view_bit;
       }
-      FOREACH_BASE_IN_EDIT_MODE_BEGIN (view_layer, v3d, base_iter) {
+      FOREACH_BASE_IN_EDIT_MODE_BEGIN (scene, view_layer, v3d, base_iter) {
         BKE_object_minmax(base_iter->object, min, max, false);
         base_iter->local_view_bits |= local_view_bit;
         ok = true;
@@ -1043,8 +1044,16 @@ static int localview_exec(bContext *C, wmOperator *op)
     changed = true;
   }
   else {
-    changed = view3d_localview_init(
-        depsgraph, wm, win, bmain, view_layer, area, frame_selected, smooth_viewtx, op->reports);
+    changed = view3d_localview_init(depsgraph,
+                                    wm,
+                                    win,
+                                    bmain,
+                                    scene,
+                                    view_layer,
+                                    area,
+                                    frame_selected,
+                                    smooth_viewtx,
+                                    op->reports);
   }
 
   if (changed) {
@@ -1265,7 +1274,7 @@ void ED_view3d_local_collections_reset(struct bContext *C, const bool reset_all)
   else if (reset_all && (do_reset || (local_view_bit != ~(0)))) {
     view3d_local_collections_reset(bmain, ~(0));
     View3D v3d = {.local_collections_uuid = ~(0)};
-    BKE_layer_collection_local_sync(CTX_data_view_layer(C), &v3d);
+    BKE_layer_collection_local_sync(CTX_data_scene(C), CTX_data_view_layer(C), &v3d);
     DEG_id_tag_update(&CTX_data_scene(C)->id, ID_RECALC_BASE_FLAGS);
   }
 }
