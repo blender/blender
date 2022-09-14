@@ -60,12 +60,23 @@ static void rna_Curves_curve_offset_data_begin(CollectionPropertyIterator *iter,
                            NULL);
 }
 
+static float (*get_curves_positions(Curves *curves))[3]
+{
+  return (float(*)[3])CustomData_get_layer_named(
+      &curves->geometry.point_data, CD_PROP_FLOAT3, "position");
+}
+
+static const float (*get_curves_positions_const(const Curves *curves))[3]
+{
+  return (const float(*)[3])CustomData_get_layer_named(
+      &curves->geometry.point_data, CD_PROP_FLOAT3, "position");
+}
+
 static int rna_CurvePoint_index_get_const(const PointerRNA *ptr)
 {
   const Curves *curves = rna_curves(ptr);
   const float(*co)[3] = ptr->data;
-  const float(*positions)[3] = (const float(*)[3])CustomData_get_layer_named(
-      &curves->geometry.point_data, CD_PROP_FLOAT3, "position");
+  const float(*positions)[3] = get_curves_positions_const(curves);
   return (int)(co - positions);
 }
 
@@ -75,13 +86,27 @@ static int rna_Curves_position_data_length(PointerRNA *ptr)
   return curves->geometry.point_num;
 }
 
+int rna_Curves_position_data_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  Curves *curves = rna_curves(ptr);
+  if (index < 0 || index >= curves->geometry.point_num) {
+    return false;
+  }
+  r_ptr->owner_id = &curves->id;
+  r_ptr->type = &RNA_FloatVectorAttributeValue;
+  r_ptr->data = &get_curves_positions(curves)[index];
+  return true;
+}
+
 static void rna_Curves_position_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  const Curves *curves = rna_curves(ptr);
-  const float(*positions)[3] = (const float(*)[3])CustomData_get_layer_named(
-      &curves->geometry.point_data, CD_PROP_FLOAT3, "position");
-  rna_iterator_array_begin(
-      iter, (void *)positions, sizeof(float[3]), curves->geometry.point_num, false, NULL);
+  Curves *curves = rna_curves(ptr);
+  rna_iterator_array_begin(iter,
+                           get_curves_positions(curves),
+                           sizeof(float[3]),
+                           curves->geometry.point_num,
+                           false,
+                           NULL);
 }
 
 static int rna_CurvePoint_index_get(PointerRNA *ptr)
@@ -124,6 +149,18 @@ static void rna_CurvePoint_radius_set(PointerRNA *ptr, float value)
 static char *rna_CurvePoint_path(const PointerRNA *ptr)
 {
   return BLI_sprintfN("points[%d]", rna_CurvePoint_index_get_const(ptr));
+}
+
+int rna_Curves_points_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  Curves *curves = rna_curves(ptr);
+  if (index < 0 || index >= curves->geometry.point_num) {
+    return false;
+  }
+  r_ptr->owner_id = &curves->id;
+  r_ptr->type = &RNA_CurvePoint;
+  r_ptr->data = &get_curves_positions(curves)[index];
+  return true;
 }
 
 static int rna_CurveSlice_index_get_const(const PointerRNA *ptr)
@@ -280,7 +317,7 @@ static void rna_def_curves(BlenderRNA *brna)
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_get",
                                     "rna_Curves_position_data_length",
-                                    NULL,
+                                    "rna_Curves_points_lookup_int",
                                     NULL,
                                     NULL);
   RNA_def_property_ui_text(prop, "Points", "Control points of all curves");
@@ -295,7 +332,7 @@ static void rna_def_curves(BlenderRNA *brna)
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_get",
                                     "rna_Curves_position_data_length",
-                                    NULL,
+                                    "rna_Curves_position_data_lookup_int",
                                     NULL,
                                     NULL);
   RNA_def_property_struct_type(prop, "FloatVectorAttributeValue");
