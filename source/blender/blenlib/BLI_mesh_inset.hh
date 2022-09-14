@@ -26,6 +26,7 @@ public:
   /** The contours to inset; ints are vert indices; contour is on left side of implied edges. */
   Span<Vector<int>> contour;
   float inset_amount;
+  float slope;
   bool need_ids;
 };
 

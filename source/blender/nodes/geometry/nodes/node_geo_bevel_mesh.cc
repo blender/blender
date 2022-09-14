@@ -34,6 +34,16 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
   b.add_input<decl::Float>(N_("Amount")).default_value(1.0f).supports_field();
+  b.add_input<decl::Float>(N_("Slope")).default_value(0.0f).supports_field()
+    .description(N_("Face inset will raise up with this slope"))
+    .make_available([](bNode &node) {
+      node_storage(node).mode = GEO_NODE_BEVEL_MESH_FACES;
+    });
+  b.add_input<decl::Bool>(N_("Use Regions")).default_value(false)
+    .description(N_("Combine adjacent faces into regions and inset regions as a whole"))
+    .make_available([](bNode &node) {
+      node_storage(node).mode = GEO_NODE_BEVEL_MESH_FACES;
+    });
   b.add_output<decl::Geometry>("Mesh");
 }
 
@@ -51,8 +61,13 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static void node_update(bNodeTree *UNUSED(ntree), bNode *UNUSED(node))
+static void node_update(bNodeTree *ntree, bNode *node)
 {
+  const NodeGeometryBevelMesh &storage = node_storage(*node);
+  bNodeSocket *slope_socket = nodeFindSocket(node, SOCK_IN, "Slope");
+  nodeSetSocketAvailability(ntree, slope_socket, storage.mode == GEO_NODE_BEVEL_MESH_FACES);
+  bNodeSocket *use_regions_socket = nodeFindSocket(node, SOCK_IN, "Use Regions");
+  nodeSetSocketAvailability(ntree, use_regions_socket, storage.mode == GEO_NODE_BEVEL_MESH_FACES);
 }
 
 /** MeshTopology encapsulates data needed to answer topological queries about a mesh,
@@ -1591,8 +1606,13 @@ static Mesh *calculate_face_bevel(BevelData &bd,
                                   GeometrySet geometry_set,
                                   const MeshComponent &component,
                                   const IndexMask &to_bevel,
-                                  const VArray<float> amounts)
+                                  const VArray<float> amounts,
+                                  const VArray<float> slopes,
+                                  bool use_regions)
 {
+  if (use_regions) {
+    std::cout << "TODO: Implement use_regions";
+  }
   Span<MPoly> faces = mesh.polys();
   Span<MVert> verts = mesh.verts();
   Span<MLoop> loops = mesh.loops();
@@ -1618,6 +1638,7 @@ static Mesh *calculate_face_bevel(BevelData &bd,
     mi_input.face = mi_faces.as_span();
     mi_input.contour = mi_faces.as_span();
     mi_input.inset_amount = amounts[face_index];
+    mi_input.slope = slopes[face_index];
     meshinset::MeshInset_Result mi_result = meshinset::mesh_inset_calc(mi_input);
     /* Mapping from the result output vert indices to mesh indices. */
     Array<int> mr_vert_to_mesh_vert(mi_result.vert.size());
@@ -1689,19 +1710,23 @@ static Mesh *bevel_mesh_edges(GeometrySet geometry_set,
 static Mesh *bevel_mesh_faces(GeometrySet geometry_set,
                              const MeshComponent &component,
                              const Field<bool> &selection_field,
-                             const Field<float> &amount_field)
+                             const Field<float> &amount_field,
+                             const Field<float> &slope_field,
+                             bool use_regions)
 {
   const Mesh &mesh = *component.get_for_read();
   bke::MeshFieldContext context{mesh, ATTR_DOMAIN_FACE};
   FieldEvaluator evaluator{context, mesh.totpoly};
   evaluator.set_selection(selection_field);
   evaluator.add(amount_field);
+  evaluator.add(slope_field);
   evaluator.evaluate();
   VArray<float> amounts = evaluator.get_evaluated<float>(0);
+  VArray<float> slopes = evaluator.get_evaluated<float>(1);
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
   BevelData bdata(mesh);
-  return calculate_face_bevel(bdata, mesh, geometry_set, component, selection, amounts);
+  return calculate_face_bevel(bdata, mesh, geometry_set, component, selection, amounts, slopes, use_regions);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -1721,10 +1746,16 @@ static void node_geo_exec(GeoNodeExecParams params)
           mesh_out = bevel_mesh_vertices(geometry_set, component, selection_field, amount_field);
           break;
         case GEO_NODE_BEVEL_MESH_EDGES:
-          mesh_out = bevel_mesh_edges(geometry_set, component, selection_field, amount_field);
+          {
+            mesh_out = bevel_mesh_edges(geometry_set, component, selection_field, amount_field);
+          }
           break;
         case GEO_NODE_BEVEL_MESH_FACES:
-          mesh_out = bevel_mesh_faces(geometry_set, component, selection_field, amount_field);
+        {
+          Field<float> slope_field = params.extract_input<Field<float>>("Slope");
+          bool use_regions = params.get_input<bool>("Use Regions");
+          mesh_out = bevel_mesh_faces(geometry_set, component, selection_field, amount_field, slope_field, use_regions);
+        }
           break;
       }
       BLI_assert(BKE_mesh_is_valid(mesh_out));

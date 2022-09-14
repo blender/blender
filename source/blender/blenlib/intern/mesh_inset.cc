@@ -462,6 +462,28 @@ static float3 vertex_normal(const Vert *vert)
   return ans;
 }
 
+/** Analog of BM_vert_calc_shell_factor. */
+static float vertex_shell_factor(Vert *vert)
+{
+  float accum_shell = 0.0f;
+  float accum_angle = 0.0f;
+  Edge e = vert->e;
+  float3 vnorm = vertex_normal(vert);
+  do {
+    if (!e.tri()->is_ghost()) {
+      Edge eprev = e.triangle_pred();
+      float face_angle = angle_v3v3v3(v_src(eprev)->co, v_src(e)->co, v_dst(e)->co);
+      accum_shell += shell_v3v3_normalized_to_dist(vnorm, e.tri()->normal()) * face_angle;
+      accum_angle += face_angle;
+    }
+    e = rot_ccw(e);
+  } while (e != vert->e);
+  if (accum_angle != 0.0f) {
+    return accum_shell / accum_angle;
+  }
+  return 1.0f;
+}
+
 class TriangleMesh {
   Vector<Triangle *> triangles_;
   Vector<Vert *> verts_;
@@ -3186,10 +3208,27 @@ MeshInset_Result mesh_inset_calc(const MeshInset_Input &input)
   TriangleMesh trimesh = triangulate_input(input);
   StraightSkeleton ss(trimesh, input.contour, input.inset_amount);
   ss.compute();
-  Array<Triangle *> remaining_triangles = triangle_set_to_sorted_array(ss.remaining_triangles_set);
-  /* TODO: take in slope and offset arguments and use to adjust position of results in the normal
-   * direction, using ss.vertex_height_map
-   */
+  if (input.slope != 0.0f) {
+    /* Gather all the deltas before applying, as changing height changes the vertex normals. */
+    Array<float3> vco_delta(trimesh.all_verts().size(), float3(0.0f, 0.0f, 0.0f));
+    trimesh.calculate_all_tri_normals();
+    for (int v_index : trimesh.all_verts().index_range()) {
+      Vert *v = trimesh.get_vert_by_index(v_index);
+      if (!v->is_deleted()) {
+        if (ss.vertex_height_map.contains(v->id)) {
+          float h = ss.vertex_height_map.lookup(v->id);
+          if (h != 0.0f) {
+            float shell_factor = vertex_shell_factor(v);
+            vco_delta[v_index] = vertex_normal(v) * shell_factor * h * input.slope;
+          }
+        }
+      }
+    }
+    for (int v_index : trimesh.all_verts().index_range()) {
+      Vert *v = trimesh.get_vert_by_index(v_index);
+      v->co += vco_delta[v->id];
+    }
+  }
   if (dbg_level > 0) {
     trimesh_draw("after ss " + std::to_string(input.inset_amount), trimesh);
     std::cout << trimesh << "\n";
