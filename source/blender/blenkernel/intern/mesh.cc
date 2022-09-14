@@ -346,12 +346,6 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
     }
   }
 
-  if (!BLO_read_data_is_undo(reader)) {
-    BKE_mesh_legacy_convert_flags_to_hide_layers(mesh);
-    BKE_mesh_legacy_convert_mpoly_to_material_indices(mesh);
-    BKE_mesh_legacy_bevel_weight_to_layers(mesh);
-  }
-
   /* We don't expect to load normals from files, since they are derived data. */
   BKE_mesh_normals_tag_dirty(mesh);
   BKE_mesh_assert_normals_dirty_or_calculated(mesh);

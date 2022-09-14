@@ -73,6 +73,7 @@
 #include "BKE_main.h" /* for Main */
 #include "BKE_main_idmap.h"
 #include "BKE_material.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h" /* for tree type defines */
 #include "BKE_object.h"
@@ -3599,6 +3600,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
   blo_do_versions_280(fd, lib, main);
   blo_do_versions_290(fd, lib, main);
   blo_do_versions_300(fd, lib, main);
+  blo_do_versions_400(fd, lib, main);
   blo_do_versions_cycles(fd, lib, main);
 
   /* WATCH IT!!!: pointers from libdata have not been converted yet here! */
