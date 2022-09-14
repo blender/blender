@@ -229,7 +229,7 @@ def main(context, operator):
         elif status & STATUS_ERR_NOT_SELECTED:
             operator.report({'ERROR'}, "Active face not selected")
         else:
-            assert((status & STATUS_ERR_ACTIVE_FACE) != 0)
+            assert status & STATUS_ERR_ACTIVE_FACE != 0
             operator.report({'ERROR'}, "No active face")
 
 

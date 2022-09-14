@@ -72,7 +72,7 @@ class TriMesh:
     @staticmethod
     def _tri_copy_from_object(ob):
         import bmesh
-        assert(ob.type in OBJECTS_TYPES_MESH_COMPATIBLE)
+        assert ob.type in OBJECTS_TYPES_MESH_COMPATIBLE
         bm = bmesh.new()
         bm.from_mesh(ob.to_mesh())
         bmesh.ops.triangulate(bm, faces=bm.faces)
@@ -143,7 +143,7 @@ def mesh_data_lists_from_mesh(me, material_colors):
         i1 = 1
 
         # we only write tris now
-        assert(len(loops_poly) == 3)
+        assert len(loops_poly) == 3
 
         for i2 in range(2, l_len):
             l0 = loops_poly[i0]
@@ -217,7 +217,7 @@ def mesh_data_lists_from_objects(ob_parent, ob_children):
 def write_mesh_to_py(fh, ob, ob_children):
 
     def float_as_byte(f, axis_range):
-        assert(axis_range <= 255)
+        assert axis_range <= 255
         # -1..1 -> 0..255
         f = (f + 1.0) * 0.5
         f = round(f * axis_range)
@@ -238,7 +238,7 @@ def write_mesh_to_py(fh, ob, ob_children):
     if 0:
         # make as large as we can, keeping alignment
         def size_scale_up(size):
-            assert(size != 0)
+            assert size != 0
             while size * 2 <= 255:
                 size *= 2
             return size

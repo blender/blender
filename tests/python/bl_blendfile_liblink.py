@@ -93,9 +93,9 @@ class TestBlendLibLinkSaveLoadBasic(TestBlendLibLinkHelper):
         link_dir = os.path.join(output_lib_path, "Mesh")
         bpy.ops.wm.link(directory=link_dir, filename="LibMesh", instance_object_data=False)
 
-        assert(len(bpy.data.meshes) == 1)
-        assert(len(bpy.data.objects) == 0)
-        assert(len(bpy.data.collections) == 0)  # Scene's master collection is not listed here
+        assert len(bpy.data.meshes) == 1
+        assert len(bpy.data.objects) == 0
+        assert len(bpy.data.collections) == 0  # Scene's master collection is not listed here
 
         orig_data = self.blender_data_to_tuple(bpy.data, "orig_data")
 
@@ -106,8 +106,8 @@ class TestBlendLibLinkSaveLoadBasic(TestBlendLibLinkHelper):
         read_data = self.blender_data_to_tuple(bpy.data, "read_data")
 
         # Since there is no usage of linked mesh, it is lost during save/reload.
-        assert(len(bpy.data.meshes) == 0)
-        assert(orig_data != read_data)
+        assert len(bpy.data.meshes) == 0
+        assert orig_data != read_data
 
         # Simple link of a single ObData with obdata instantiation.
         self.reset_blender()
@@ -115,9 +115,9 @@ class TestBlendLibLinkSaveLoadBasic(TestBlendLibLinkHelper):
         link_dir = os.path.join(output_lib_path, "Mesh")
         bpy.ops.wm.link(directory=link_dir, filename="LibMesh", instance_object_data=True)
 
-        assert(len(bpy.data.meshes) == 1)
-        assert(len(bpy.data.objects) == 1)  # Instance created for the mesh ObData.
-        assert(len(bpy.data.collections) == 0)  # Scene's master collection is not listed here
+        assert len(bpy.data.meshes) == 1
+        assert len(bpy.data.objects) == 1  # Instance created for the mesh ObData.
+        assert len(bpy.data.collections) == 0  # Scene's master collection is not listed here
 
         orig_data = self.blender_data_to_tuple(bpy.data, "orig_data")
 
@@ -126,7 +126,7 @@ class TestBlendLibLinkSaveLoadBasic(TestBlendLibLinkHelper):
 
         read_data = self.blender_data_to_tuple(bpy.data, "read_data")
 
-        assert(orig_data == read_data)
+        assert orig_data == read_data
 
         # Simple link of a single Object.
         self.reset_blender()
@@ -134,9 +134,9 @@ class TestBlendLibLinkSaveLoadBasic(TestBlendLibLinkHelper):
         link_dir = os.path.join(output_lib_path, "Object")
         bpy.ops.wm.link(directory=link_dir, filename="LibMesh")
 
-        assert(len(bpy.data.meshes) == 1)
-        assert(len(bpy.data.objects) == 1)
-        assert(len(bpy.data.collections) == 0)  # Scene's master collection is not listed here
+        assert len(bpy.data.meshes) == 1
+        assert len(bpy.data.objects) == 1
+        assert len(bpy.data.collections) == 0  # Scene's master collection is not listed here
 
         orig_data = self.blender_data_to_tuple(bpy.data, "orig_data")
 
@@ -145,7 +145,7 @@ class TestBlendLibLinkSaveLoadBasic(TestBlendLibLinkHelper):
 
         read_data = self.blender_data_to_tuple(bpy.data, "read_data")
 
-        assert(orig_data == read_data)
+        assert orig_data == read_data
 
         # Simple link of a single Collection, with Empty-instantiation.
         self.reset_blender()
@@ -153,9 +153,9 @@ class TestBlendLibLinkSaveLoadBasic(TestBlendLibLinkHelper):
         link_dir = os.path.join(output_lib_path, "Collection")
         bpy.ops.wm.link(directory=link_dir, filename="LibMesh", instance_collections=True)
 
-        assert(len(bpy.data.meshes) == 1)
-        assert(len(bpy.data.objects) == 2)  # linked object and local empty instancing the collection
-        assert(len(bpy.data.collections) == 1)  # Scene's master collection is not listed here
+        assert len(bpy.data.meshes) == 1
+        assert len(bpy.data.objects) == 2  # linked object and local empty instancing the collection
+        assert len(bpy.data.collections) == 1  # Scene's master collection is not listed here
 
         orig_data = self.blender_data_to_tuple(bpy.data, "orig_data")
 
@@ -164,7 +164,7 @@ class TestBlendLibLinkSaveLoadBasic(TestBlendLibLinkHelper):
 
         read_data = self.blender_data_to_tuple(bpy.data, "read_data")
 
-        assert(orig_data == read_data)
+        assert orig_data == read_data
 
         # Simple link of a single Collection, with ViewLayer-instantiation.
         self.reset_blender()
@@ -172,11 +172,11 @@ class TestBlendLibLinkSaveLoadBasic(TestBlendLibLinkHelper):
         link_dir = os.path.join(output_lib_path, "Collection")
         bpy.ops.wm.link(directory=link_dir, filename="LibMesh", instance_collections=False)
 
-        assert(len(bpy.data.meshes) == 1)
-        assert(len(bpy.data.objects) == 1)
-        assert(len(bpy.data.collections) == 1)  # Scene's master collection is not listed here
+        assert len(bpy.data.meshes) == 1
+        assert len(bpy.data.objects) == 1
+        assert len(bpy.data.collections) == 1  # Scene's master collection is not listed here
         # Linked collection should have been added to the scene's master collection children.
-        assert(bpy.data.collections[0] in set(bpy.data.scenes[0].collection.children))
+        assert bpy.data.collections[0] in set(bpy.data.scenes[0].collection.children)
 
         orig_data = self.blender_data_to_tuple(bpy.data, "orig_data")
 
@@ -185,7 +185,7 @@ class TestBlendLibLinkSaveLoadBasic(TestBlendLibLinkHelper):
 
         read_data = self.blender_data_to_tuple(bpy.data, "read_data")
 
-        assert(orig_data == read_data)
+        assert orig_data == read_data
 
 
 class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
@@ -211,15 +211,15 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
             bpy.data.materials[0].use_fake_user,
         )
 
-        assert(len(bpy.data.materials) == 1)
-        assert(bpy.data.materials[0].library is not None)
-        assert(bpy.data.materials[0].users == 2)  # Fake user is not cleared when linking.
-        assert(len(bpy.data.meshes) == 1)
-        assert(bpy.data.meshes[0].library is None)
-        assert(bpy.data.meshes[0].use_fake_user is False)
-        assert(bpy.data.meshes[0].users == 0)
-        assert(len(bpy.data.objects) == 0)
-        assert(len(bpy.data.collections) == 0)  # Scene's master collection is not listed here
+        assert len(bpy.data.materials) == 1
+        assert bpy.data.materials[0].library is not None
+        assert bpy.data.materials[0].users == 2  # Fake user is not cleared when linking.
+        assert len(bpy.data.meshes) == 1
+        assert bpy.data.meshes[0].library is None
+        assert bpy.data.meshes[0].use_fake_user is False
+        assert bpy.data.meshes[0].users == 0
+        assert len(bpy.data.objects) == 0
+        assert len(bpy.data.collections) == 0  # Scene's master collection is not listed here
 
         # Simple append of a single ObData with obdata instantiation.
         self.reset_blender()
@@ -228,16 +228,16 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
         bpy.ops.wm.append(directory=link_dir, filename="LibMesh",
                           instance_object_data=True, set_fake=False, use_recursive=False, do_reuse_local_id=False)
 
-        assert(len(bpy.data.materials) == 1)
-        assert(bpy.data.materials[0].library is not None)
-        assert(bpy.data.materials[0].users == 2)  # Fake user is not cleared when linking.
-        assert(len(bpy.data.meshes) == 1)
-        assert(bpy.data.meshes[0].library is None)
-        assert(bpy.data.meshes[0].use_fake_user is False)
-        assert(bpy.data.meshes[0].users == 1)
-        assert(len(bpy.data.objects) == 1)  # Instance created for the mesh ObData.
-        assert(bpy.data.objects[0].library is None)
-        assert(len(bpy.data.collections) == 0)  # Scene's master collection is not listed here
+        assert len(bpy.data.materials) == 1
+        assert bpy.data.materials[0].library is not None
+        assert bpy.data.materials[0].users == 2  # Fake user is not cleared when linking.
+        assert len(bpy.data.meshes) == 1
+        assert bpy.data.meshes[0].library is None
+        assert bpy.data.meshes[0].use_fake_user is False
+        assert bpy.data.meshes[0].users == 1
+        assert len(bpy.data.objects) == 1  # Instance created for the mesh ObData.
+        assert bpy.data.objects[0].library is None
+        assert len(bpy.data.collections) == 0  # Scene's master collection is not listed here
 
         # Simple append of a single ObData with fake user.
         self.reset_blender()
@@ -246,15 +246,15 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
         bpy.ops.wm.append(directory=link_dir, filename="LibMesh",
                           instance_object_data=False, set_fake=True, use_recursive=False, do_reuse_local_id=False)
 
-        assert(len(bpy.data.materials) == 1)
-        assert(bpy.data.materials[0].library is not None)
-        assert(bpy.data.materials[0].users == 2)  # Fake user is not cleared when linking.
-        assert(len(bpy.data.meshes) == 1)
-        assert(bpy.data.meshes[0].library is None)
-        assert(bpy.data.meshes[0].use_fake_user is True)
-        assert(bpy.data.meshes[0].users == 1)
-        assert(len(bpy.data.objects) == 0)
-        assert(len(bpy.data.collections) == 0)  # Scene's master collection is not listed here
+        assert len(bpy.data.materials) == 1
+        assert bpy.data.materials[0].library is not None
+        assert bpy.data.materials[0].users == 2  # Fake user is not cleared when linking.
+        assert len(bpy.data.meshes) == 1
+        assert bpy.data.meshes[0].library is None
+        assert bpy.data.meshes[0].use_fake_user is True
+        assert bpy.data.meshes[0].users == 1
+        assert len(bpy.data.objects) == 0
+        assert len(bpy.data.collections) == 0  # Scene's master collection is not listed here
 
         # Simple append of a single Object.
         self.reset_blender()
@@ -263,16 +263,16 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
         bpy.ops.wm.append(directory=link_dir, filename="LibMesh",
                           instance_object_data=False, set_fake=False, use_recursive=False, do_reuse_local_id=False)
 
-        assert(len(bpy.data.materials) == 1)
-        assert(bpy.data.materials[0].library is not None)
-        assert(bpy.data.materials[0].users == 2)  # Fake user is not cleared when linking.
-        assert(len(bpy.data.meshes) == 1)
-        assert(bpy.data.meshes[0].library is None)
-        assert(bpy.data.meshes[0].users == 1)
-        assert(len(bpy.data.objects) == 1)
-        assert(bpy.data.objects[0].library is None)
-        assert(bpy.data.objects[0].users == 1)
-        assert(len(bpy.data.collections) == 0)  # Scene's master collection is not listed here
+        assert len(bpy.data.materials) == 1
+        assert bpy.data.materials[0].library is not None
+        assert bpy.data.materials[0].users == 2  # Fake user is not cleared when linking.
+        assert len(bpy.data.meshes) == 1
+        assert bpy.data.meshes[0].library is None
+        assert bpy.data.meshes[0].users == 1
+        assert len(bpy.data.objects) == 1
+        assert bpy.data.objects[0].library is None
+        assert bpy.data.objects[0].users == 1
+        assert len(bpy.data.collections) == 0  # Scene's master collection is not listed here
 
         # Simple recursive append of a single Object.
         self.reset_blender()
@@ -281,16 +281,16 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
         bpy.ops.wm.append(directory=link_dir, filename="LibMesh",
                           instance_object_data=False, set_fake=False, use_recursive=True, do_reuse_local_id=False)
 
-        assert(len(bpy.data.materials) == 1)
-        assert(bpy.data.materials[0].library is None)
-        assert(bpy.data.materials[0].users == 1)  # Fake user is cleared when appending.
-        assert(len(bpy.data.meshes) == 1)
-        assert(bpy.data.meshes[0].library is None)
-        assert(bpy.data.meshes[0].users == 1)
-        assert(len(bpy.data.objects) == 1)
-        assert(bpy.data.objects[0].library is None)
-        assert(bpy.data.objects[0].users == 1)
-        assert(len(bpy.data.collections) == 0)  # Scene's master collection is not listed here
+        assert len(bpy.data.materials) == 1
+        assert bpy.data.materials[0].library is None
+        assert bpy.data.materials[0].users == 1  # Fake user is cleared when appending.
+        assert len(bpy.data.meshes) == 1
+        assert bpy.data.meshes[0].library is None
+        assert bpy.data.meshes[0].users == 1
+        assert len(bpy.data.objects) == 1
+        assert bpy.data.objects[0].library is None
+        assert bpy.data.objects[0].users == 1
+        assert len(bpy.data.collections) == 0  # Scene's master collection is not listed here
 
         # Simple recursive append of a single Collection.
         self.reset_blender()
@@ -299,17 +299,17 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
         bpy.ops.wm.append(directory=link_dir, filename="LibMesh",
                           instance_object_data=False, set_fake=False, use_recursive=True, do_reuse_local_id=False)
 
-        assert(len(bpy.data.materials) == 1)
-        assert(bpy.data.materials[0].library is None)
-        assert(bpy.data.materials[0].users == 1)  # Fake user is cleared when appending.
-        assert(bpy.data.meshes[0].library is None)
-        assert(bpy.data.meshes[0].users == 1)
-        assert(len(bpy.data.objects) == 1)
-        assert(bpy.data.objects[0].library is None)
-        assert(bpy.data.objects[0].users == 1)
-        assert(len(bpy.data.collections) == 1)  # Scene's master collection is not listed here
-        assert(bpy.data.collections[0].library is None)
-        assert(bpy.data.collections[0].users == 1)
+        assert len(bpy.data.materials) == 1
+        assert bpy.data.materials[0].library is None
+        assert bpy.data.materials[0].users == 1  # Fake user is cleared when appending.
+        assert bpy.data.meshes[0].library is None
+        assert bpy.data.meshes[0].users == 1
+        assert len(bpy.data.objects) == 1
+        assert bpy.data.objects[0].library is None
+        assert bpy.data.objects[0].users == 1
+        assert len(bpy.data.collections) == 1  # Scene's master collection is not listed here
+        assert bpy.data.collections[0].library is None
+        assert bpy.data.collections[0].users == 1
 
 
 class TestBlendLibAppendReuseID(TestBlendLibLinkHelper):
@@ -328,51 +328,51 @@ class TestBlendLibAppendReuseID(TestBlendLibLinkHelper):
         bpy.ops.wm.append(directory=link_dir, filename="LibMesh",
                           instance_object_data=False, set_fake=False, use_recursive=True, do_reuse_local_id=False)
 
-        assert(len(bpy.data.meshes) == 1)
-        assert(bpy.data.meshes[0].library is None)
-        assert(bpy.data.meshes[0].use_fake_user is False)
-        assert(bpy.data.meshes[0].users == 1)
-        assert(bpy.data.meshes[0].library_weak_reference is not None)
-        assert(bpy.data.meshes[0].library_weak_reference.filepath == output_lib_path)
-        assert(bpy.data.meshes[0].library_weak_reference.id_name == "MELibMesh")
-        assert(len(bpy.data.objects) == 1)
+        assert len(bpy.data.meshes) == 1
+        assert bpy.data.meshes[0].library is None
+        assert bpy.data.meshes[0].use_fake_user is False
+        assert bpy.data.meshes[0].users == 1
+        assert bpy.data.meshes[0].library_weak_reference is not None
+        assert bpy.data.meshes[0].library_weak_reference.filepath == output_lib_path
+        assert bpy.data.meshes[0].library_weak_reference.id_name == "MELibMesh"
+        assert len(bpy.data.objects) == 1
         for ob in bpy.data.objects:
-            assert(ob.library is None)
-            assert(ob.library_weak_reference is None)
-        assert(len(bpy.data.collections) == 0)  # Scene's master collection is not listed here
+            assert ob.library is None
+            assert ob.library_weak_reference is None
+        assert len(bpy.data.collections) == 0  # Scene's master collection is not listed here
 
         bpy.ops.wm.append(directory=link_dir, filename="LibMesh",
                           instance_object_data=False, set_fake=False, use_recursive=True, do_reuse_local_id=True)
 
-        assert(len(bpy.data.meshes) == 1)
-        assert(bpy.data.meshes[0].library is None)
-        assert(bpy.data.meshes[0].use_fake_user is False)
-        assert(bpy.data.meshes[0].users == 2)
-        assert(bpy.data.meshes[0].library_weak_reference is not None)
-        assert(bpy.data.meshes[0].library_weak_reference.filepath == output_lib_path)
-        assert(bpy.data.meshes[0].library_weak_reference.id_name == "MELibMesh")
-        assert(len(bpy.data.objects) == 2)
+        assert len(bpy.data.meshes) == 1
+        assert bpy.data.meshes[0].library is None
+        assert bpy.data.meshes[0].use_fake_user is False
+        assert bpy.data.meshes[0].users == 2
+        assert bpy.data.meshes[0].library_weak_reference is not None
+        assert bpy.data.meshes[0].library_weak_reference.filepath == output_lib_path
+        assert bpy.data.meshes[0].library_weak_reference.id_name == "MELibMesh"
+        assert len(bpy.data.objects) == 2
         for ob in bpy.data.objects:
-            assert(ob.library is None)
-            assert(ob.library_weak_reference is None)
-        assert(len(bpy.data.collections) == 0)  # Scene's master collection is not listed here
+            assert ob.library is None
+            assert ob.library_weak_reference is None
+        assert len(bpy.data.collections) == 0  # Scene's master collection is not listed here
 
         bpy.ops.wm.append(directory=link_dir, filename="LibMesh",
                           instance_object_data=False, set_fake=False, use_recursive=True, do_reuse_local_id=False)
 
-        assert(len(bpy.data.meshes) == 2)
-        assert(bpy.data.meshes[0].library_weak_reference is None)
-        assert(bpy.data.meshes[1].library is None)
-        assert(bpy.data.meshes[1].use_fake_user is False)
-        assert(bpy.data.meshes[1].users == 1)
-        assert(bpy.data.meshes[1].library_weak_reference is not None)
-        assert(bpy.data.meshes[1].library_weak_reference.filepath == output_lib_path)
-        assert(bpy.data.meshes[1].library_weak_reference.id_name == "MELibMesh")
-        assert(len(bpy.data.objects) == 3)
+        assert len(bpy.data.meshes) == 2
+        assert bpy.data.meshes[0].library_weak_reference is None
+        assert bpy.data.meshes[1].library is None
+        assert bpy.data.meshes[1].use_fake_user is False
+        assert bpy.data.meshes[1].users == 1
+        assert bpy.data.meshes[1].library_weak_reference is not None
+        assert bpy.data.meshes[1].library_weak_reference.filepath == output_lib_path
+        assert bpy.data.meshes[1].library_weak_reference.id_name == "MELibMesh"
+        assert len(bpy.data.objects) == 3
         for ob in bpy.data.objects:
-            assert(ob.library is None)
-            assert(ob.library_weak_reference is None)
-        assert(len(bpy.data.collections) == 0)  # Scene's master collection is not listed here
+            assert ob.library is None
+            assert ob.library_weak_reference is None
+        assert len(bpy.data.collections) == 0  # Scene's master collection is not listed here
 
 
 class TestBlendLibLibraryReload(TestBlendLibLinkHelper):
@@ -390,9 +390,9 @@ class TestBlendLibLibraryReload(TestBlendLibLinkHelper):
         link_dir = os.path.join(output_lib_path, "Object")
         bpy.ops.wm.link(directory=link_dir, filename="LibMesh")
 
-        assert(len(bpy.data.meshes) == 1)
-        assert(len(bpy.data.objects) == 1)
-        assert(len(bpy.data.collections) == 0)  # Scene's master collection is not listed here
+        assert len(bpy.data.meshes) == 1
+        assert len(bpy.data.objects) == 1
+        assert len(bpy.data.collections) == 0  # Scene's master collection is not listed here
 
         orig_data = self.blender_data_to_tuple(bpy.data, "orig_data")
 
@@ -402,7 +402,7 @@ class TestBlendLibLibraryReload(TestBlendLibLinkHelper):
 
         print(orig_data)
         print(reload_data)
-        assert(orig_data == reload_data)
+        assert orig_data == reload_data
 
 
 class TestBlendLibLibraryRelocate(TestBlendLibLinkHelper):
@@ -420,9 +420,9 @@ class TestBlendLibLibraryRelocate(TestBlendLibLinkHelper):
         link_dir = os.path.join(output_lib_path, "Object")
         bpy.ops.wm.link(directory=link_dir, filename="LibMesh")
 
-        assert(len(bpy.data.meshes) == 1)
-        assert(len(bpy.data.objects) == 1)
-        assert(len(bpy.data.collections) == 0)  # Scene's master collection is not listed here
+        assert len(bpy.data.meshes) == 1
+        assert len(bpy.data.objects) == 1
+        assert len(bpy.data.collections) == 0  # Scene's master collection is not listed here
 
         orig_data = self.blender_data_to_tuple(bpy.data, "orig_data")
 
@@ -436,7 +436,7 @@ class TestBlendLibLibraryRelocate(TestBlendLibLinkHelper):
 
         print(orig_data)
         print(relocate_data)
-        assert(orig_data == relocate_data)
+        assert orig_data == relocate_data
 
 
 class TestBlendLibDataLibrariesLoad(TestBlendLibLinkHelper):
@@ -454,21 +454,21 @@ class TestBlendLibDataLibrariesLoad(TestBlendLibLinkHelper):
         with bpy.data.libraries.load(filepath=output_lib_path) as lib_ctx:
             lib_src, lib_link = lib_ctx
 
-            assert(len(lib_src.meshes) == 1)
-            assert(len(lib_src.objects) == 1)
-            assert(len(lib_src.collections) == 1)
+            assert len(lib_src.meshes) == 1
+            assert len(lib_src.objects) == 1
+            assert len(lib_src.collections) == 1
 
-            assert(len(lib_link.meshes) == 0)
-            assert(len(lib_link.objects) == 0)
-            assert(len(lib_link.collections) == 0)
+            assert len(lib_link.meshes) == 0
+            assert len(lib_link.objects) == 0
+            assert len(lib_link.collections) == 0
 
             lib_link.collections.append(lib_src.collections[0])
 
         # Linking happens when living the context manager.
 
-        assert(len(bpy.data.meshes) == 1)
-        assert(len(bpy.data.objects) == 1)  # This code does no instantiation.
-        assert(len(bpy.data.collections) == 1)
+        assert len(bpy.data.meshes) == 1
+        assert len(bpy.data.objects) == 1  # This code does no instantiation.
+        assert len(bpy.data.collections) == 1
 
 
 TESTS = (

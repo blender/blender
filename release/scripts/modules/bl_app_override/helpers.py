@@ -44,14 +44,14 @@ class AppOverrideState:
         self._ui_ignore_store = None
 
     def _setup_classes(self):
-        assert(self._class_store is None)
+        assert self._class_store is None
         self._class_store = self.class_ignore()
         from bpy.utils import unregister_class
         for cls in self._class_store:
             unregister_class(cls)
 
     def _teardown_classes(self):
-        assert(self._class_store is not None)
+        assert self._class_store is not None
 
         from bpy.utils import register_class
         for cls in self._class_store:

@@ -87,7 +87,7 @@ LANGUAGES = (
 
 # Default context, in py (keep in sync with `BLT_translation.h`)!
 if bpy is not None:
-    assert(bpy.app.translations.contexts.default == "*")
+    assert bpy.app.translations.contexts.default == "*"
 DEFAULT_CONTEXT = "*"
 
 # Name of language file used by Blender to generate translations' menu.

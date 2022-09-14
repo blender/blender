@@ -1477,7 +1477,7 @@ def pyrna2sphinx(basepath):
 
         struct_module_name = struct.module_name
         if USE_ONLY_BUILTIN_RNA_TYPES:
-            assert (struct_module_name == "bpy.types")
+            assert struct_module_name == "bpy.types"
         filepath = os.path.join(basepath, "%s.%s.rst" % (struct_module_name, struct.identifier))
         file = open(filepath, "w", encoding="utf-8")
         fw = file.write
