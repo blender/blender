@@ -97,11 +97,11 @@ static bke::curves::CurvePoint lookup_curve_point(const Span<float> lengths,
   BLI_assert(!cyclic || lengths.size() / resolution >= 2);
   const int last_index = num_curve_points - 1;
   if (sample_length <= 0.0f) {
-    return {0, 1, 0.0f};
+    return {{0, 1}, 0.0f};
   }
   if (sample_length >= lengths.last()) {
-    return cyclic ? bke::curves::CurvePoint{last_index, 0, 1.0} :
-                    bke::curves::CurvePoint{last_index - 1, last_index, 1.0};
+    return cyclic ? bke::curves::CurvePoint{{last_index, 0}, 1.0} :
+                    bke::curves::CurvePoint{{last_index - 1, last_index}, 1.0};
   }
   int eval_index;
   float eval_factor;
@@ -111,7 +111,7 @@ static bke::curves::CurvePoint lookup_curve_point(const Span<float> lengths,
   const int next_index = (index == last_index) ? 0 : index + 1;
   const float parameter = (eval_factor + eval_index) / resolution - index;
 
-  return bke::curves::CurvePoint{index, next_index, parameter};
+  return bke::curves::CurvePoint{{index, next_index}, parameter};
 }
 
 /**
@@ -124,11 +124,11 @@ static bke::curves::CurvePoint lookup_evaluated_point(const Span<float> lengths,
 {
   const int last_index = evaluated_size - 1;
   if (sample_length <= 0.0f) {
-    return {0, 1, 0.0f};
+    return {{0, 1}, 0.0f};
   }
   if (sample_length >= lengths.last()) {
-    return cyclic ? bke::curves::CurvePoint{last_index, 0, 1.0} :
-                    bke::curves::CurvePoint{last_index - 1, last_index, 1.0};
+    return cyclic ? bke::curves::CurvePoint{{last_index, 0}, 1.0} :
+                    bke::curves::CurvePoint{{last_index - 1, last_index}, 1.0};
   }
 
   int eval_index;
@@ -136,7 +136,7 @@ static bke::curves::CurvePoint lookup_evaluated_point(const Span<float> lengths,
   length_parameterize::sample_at_length(lengths, sample_length, eval_index, eval_factor);
 
   const int next_eval_index = (eval_index == last_index) ? 0 : eval_index + 1;
-  return bke::curves::CurvePoint{eval_index, next_eval_index, eval_factor};
+  return bke::curves::CurvePoint{{eval_index, next_eval_index}, eval_factor};
 }
 
 /**
@@ -150,11 +150,11 @@ static bke::curves::CurvePoint lookup_bezier_point(const Span<int> bezier_offset
 {
   const int last_index = num_curve_points - 1;
   if (sample_length <= 0.0f) {
-    return {0, 1, 0.0f};
+    return {{0, 1}, 0.0f};
   }
   if (sample_length >= lengths.last()) {
-    return cyclic ? bke::curves::CurvePoint{last_index, 0, 1.0} :
-                    bke::curves::CurvePoint{last_index - 1, last_index, 1.0};
+    return cyclic ? bke::curves::CurvePoint{{last_index, 0}, 1.0} :
+                    bke::curves::CurvePoint{{last_index - 1, last_index}, 1.0};
   }
   int eval_index;
   float eval_factor;
@@ -170,7 +170,7 @@ static bke::curves::CurvePoint lookup_bezier_point(const Span<int> bezier_offset
   const int segment_resolution = bezier_offsets[left] - prev_offset;
   const float parameter = std::clamp(offset_in_segment / segment_resolution, 0.0f, 1.0f);
 
-  return {left, right, parameter};
+  return {{left, right}, parameter};
 }
 
 Array<bke::curves::CurvePoint, 12> lookup_curve_points(const bke::CurvesGeometry &curves,
@@ -197,7 +197,7 @@ Array<bke::curves::CurvePoint, 12> lookup_curve_points(const bke::CurvesGeometry
 
       const int point_count = curves.points_num_for_curve(curve_i);
       if (curve_i < 0 || point_count == 1) {
-        lookups[lookup_index] = {0, 0, 0.0f};
+        lookups[lookup_index] = {{0, 0}, 0.0f};
         continue;
       }
 
@@ -735,7 +735,7 @@ static void sample_interval_bezier(const Span<float3> src_positions,
           dst_positions,
           dst_handles_l,
           dst_handles_r,
-          {(int)dst_range.first(), (int)(dst_range.first() + 1), parameter});
+          {{(int)dst_range.first(), (int)(dst_range.first() + 1)}, parameter});
     }
     else {
       /* General case, compute the insertion point.  */
