@@ -29,6 +29,7 @@ static void print_import_header(ImportSettings &import_settings)
   fprintf(stderr, "+-- Collada Import parameters------\n");
   fprintf(stderr, "| input file      : %s\n", import_settings.filepath);
   fprintf(stderr, "| use units       : %s\n", (import_settings.import_units) ? "yes" : "no");
+  fprintf(stderr, "| custom normals  : %s\n", (import_settings.custom_normals) ? "yes" : "no");
   fprintf(stderr, "| autoconnect     : %s\n", (import_settings.auto_connect) ? "yes" : "no");
   fprintf(stderr, "+-- Armature Import parameters ----\n");
   fprintf(stderr, "| find bone chains: %s\n", (import_settings.find_chains) ? "yes" : "no");

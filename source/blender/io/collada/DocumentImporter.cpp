@@ -90,8 +90,12 @@ DocumentImporter::DocumentImporter(bContext *C, const ImportSettings *import_set
                         CTX_data_scene(C),
                         view_layer,
                         import_settings),
-      mesh_importer(
-          &unit_converter, &armature_importer, CTX_data_main(C), CTX_data_scene(C), view_layer),
+      mesh_importer(&unit_converter,
+                    import_settings->custom_normals,
+                    &armature_importer,
+                    CTX_data_main(C),
+                    CTX_data_scene(C),
+                    view_layer),
       anim_importer(C, &unit_converter, &armature_importer, CTX_data_scene(C))
 {
 }

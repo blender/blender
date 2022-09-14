@@ -8,6 +8,7 @@
 
 typedef struct ImportSettings {
   bool import_units;
+  bool custom_normals;
   bool find_chains;
   bool auto_connect;
   bool fix_orientation;

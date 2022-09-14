@@ -191,9 +191,14 @@ void VCOLDataWrapper::get_vcol(int v_index, MLoopCol *mloopcol)
   }
 }
 
-MeshImporter::MeshImporter(
-    UnitConverter *unitconv, ArmatureImporter *arm, Main *bmain, Scene *sce, ViewLayer *view_layer)
+MeshImporter::MeshImporter(UnitConverter *unitconv,
+                           bool use_custom_normals,
+                           ArmatureImporter *arm,
+                           Main *bmain,
+                           Scene *sce,
+                           ViewLayer *view_layer)
     : unitconverter(unitconv),
+      use_custom_normals(use_custom_normals),
       m_bmain(bmain),
       scene(sce),
       view_layer(view_layer),
@@ -597,7 +602,9 @@ void MeshImporter::read_lines(COLLADAFW::Mesh *mesh, Mesh *me)
   }
 }
 
-void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
+void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
+                              Mesh *me,
+                              blender::Vector<blender::float3> &loop_normals)
 {
   unsigned int i;
 
@@ -640,7 +647,8 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
     /* If MeshPrimitive is TRIANGLE_FANS we split it into triangles
      * The first triangle-fan vertex will be the first vertex in every triangle
      * XXX The proper function of TRIANGLE_FANS is not tested!!!
-     * XXX In particular the handling of the normal_indices looks very wrong to me */
+     * XXX In particular the handling of the normal_indices is very wrong */
+    /* TODO: UV, vertex color and custom normal support */
     if (collada_meshtype == COLLADAFW::MeshPrimitive::TRIANGLE_FANS) {
       unsigned int grouped_vertex_count = mp->getGroupedVertexElementsCount();
       for (unsigned int group_index = 0; group_index < grouped_vertex_count; group_index++) {
@@ -727,8 +735,21 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
         }
 
         if (mp_has_normals) {
+          /* If it turns out that we have complete custom normals for each MPoly
+           * and we want to use custom normals, this will be overridden. */
           if (!is_flat_face(normal_indices, nor, vcount)) {
             mpoly->flag |= ME_SMOOTH;
+          }
+
+          if (use_custom_normals) {
+            /* Store the custom normals for later application. */
+            float vert_normal[3];
+            unsigned int *cur_normal = normal_indices;
+            for (int k = 0; k < vcount; k++, cur_normal++) {
+              get_vector(vert_normal, nor, *cur_normal, 3);
+              normalize_v3(vert_normal);
+              loop_normals.append(vert_normal);
+            }
           }
         }
 
@@ -872,6 +893,16 @@ std::string *MeshImporter::get_geometry_name(const std::string &mesh_name)
     return &this->mesh_geom_map[mesh_name];
   }
   return nullptr;
+}
+
+static bool bc_has_out_of_bound_indices(Mesh *me)
+{
+  for (const MLoop &loop : me->loops()) {
+    if (loop.v >= me->totvert) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**
@@ -1120,8 +1151,37 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry *geom)
   this->mesh_geom_map[std::string(me->id.name)] = str_geom_id;
 
   read_vertices(mesh, me);
-  read_polys(mesh, me);
+
+  blender::Vector<blender::float3> loop_normals;
+  read_polys(mesh, me, loop_normals);
+
   BKE_mesh_calc_edges(me, false, false);
+
+  /* We must apply custom normals after edges have been calculated, because
+   * BKE_mesh_set_custom_normals()'s internals expect me->medge to be populated
+   * and for the MLoops to have correct edge indices. */
+  if (use_custom_normals && !loop_normals.is_empty()) {
+    /* BKE_mesh_set_custom_normals()'s internals also expect that each MLoop
+     * has a valid vertex index, which may not be the case due to the existing
+     * logic in read_polys(). This check isn't necessary in the no-custom-normals
+     * case because the invalid MLoops get stripped in a later step. */
+    if (bc_has_out_of_bound_indices(me)) {
+      fprintf(stderr, "Can't apply custom normals, encountered invalid loop vert indices!\n");
+    }
+    /* There may be a mismatch in lengths if one or more of the MeshPrimitives in
+     * the Geometry had missing or otherwise invalid normals. */
+    else if (me->totloop != loop_normals.size()) {
+      fprintf(stderr,
+              "Can't apply custom normals, me->totloop != loop_normals.size() (%d != %d)\n",
+              me->totloop,
+              (int)loop_normals.size());
+    }
+    else {
+      BKE_mesh_set_custom_normals(me, reinterpret_cast<float(*)[3]>(loop_normals.data()));
+      me->flag |= ME_AUTOSMOOTH;
+    }
+  }
+
   /* read_lines() must be called after the face edges have been generated.
    * Otherwise the loose edges will be silently deleted again. */
   read_lines(mesh, me);
