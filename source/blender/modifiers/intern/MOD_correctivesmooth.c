@@ -696,7 +696,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
 
     tangent_spaces = MEM_malloc_arrayN(loops_num, sizeof(float[3][3]), __func__);
     tangent_weights = MEM_malloc_arrayN(loops_num, sizeof(float), __func__);
-    tangent_weights_per_vertex = MEM_malloc_arrayN(loops_num, sizeof(float), __func__);
+    tangent_weights_per_vertex = MEM_malloc_arrayN(verts_num, sizeof(float), __func__);
 
     calc_tangent_spaces(
         mesh, vertexCos, tangent_spaces, tangent_weights, tangent_weights_per_vertex);
