@@ -130,25 +130,24 @@ static void mesh_get_boundaries(Mesh *mesh, float *smooth_weights)
   const MEdge *medge = BKE_mesh_edges(mesh);
   const MPoly *mpoly = BKE_mesh_polys(mesh);
   const MLoop *mloop = BKE_mesh_loops(mesh);
-  uint mpoly_num, medge_num, i;
-  ushort *boundaries;
 
-  mpoly_num = (uint)mesh->totpoly;
-  medge_num = (uint)mesh->totedge;
+  const uint mpoly_num = (uint)mesh->totpoly;
+  const uint medge_num = (uint)mesh->totedge;
 
-  boundaries = MEM_calloc_arrayN(medge_num, sizeof(*boundaries), __func__);
+  /* Flag boundary edges so only boundaries are set to 1. */
+  uint8_t *boundaries = MEM_calloc_arrayN(medge_num, sizeof(*boundaries), __func__);
 
-  /* count the number of adjacent faces */
-  for (i = 0; i < mpoly_num; i++) {
+  for (uint i = 0; i < mpoly_num; i++) {
     const MPoly *p = &mpoly[i];
     const int totloop = p->totloop;
     int j;
     for (j = 0; j < totloop; j++) {
-      boundaries[mloop[p->loopstart + j].e]++;
+      uint8_t *e_value = &boundaries[mloop[p->loopstart + j].e];
+      *e_value |= (*e_value) + 1;
     }
   }
 
-  for (i = 0; i < medge_num; i++) {
+  for (uint i = 0; i < medge_num; i++) {
     if (boundaries[i] == 1) {
       smooth_weights[medge[i].v1] = 0.0f;
       smooth_weights[medge[i].v2] = 0.0f;
