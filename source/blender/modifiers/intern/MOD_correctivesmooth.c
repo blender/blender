@@ -52,6 +52,8 @@
 
 #endif
 
+#include "BLI_strict_flags.h"
+
 static void initData(ModifierData *md)
 {
   CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
@@ -62,8 +64,6 @@ static void initData(ModifierData *md)
 
   csmd->delta_cache.deltas = NULL;
 }
-
-#include "BLI_strict_flags.h"
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
