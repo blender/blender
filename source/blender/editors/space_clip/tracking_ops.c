@@ -1535,6 +1535,7 @@ void CLIP_OT_average_tracks(wmOperatorType *ot)
   PropertyRNA *prop;
 
   prop = RNA_def_boolean(ot->srna, "keep_original", 1, "Keep Original", "Keep original tracks");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

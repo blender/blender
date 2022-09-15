@@ -33,6 +33,8 @@
 #include "BKE_report.h"
 #include "BKE_vfont.h"
 
+#include "BLT_translation.h"
+
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
@@ -1964,6 +1966,8 @@ static int set_case_exec(bContext *C, wmOperator *op)
 
 void FONT_OT_case_set(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Set Case";
   ot->description = "Set font case";
@@ -1977,7 +1981,8 @@ void FONT_OT_case_set(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_enum(ot->srna, "case", case_items, CASE_LOWER, "Case", "Lower or upper case");
+  prop = RNA_def_enum(ot->srna, "case", case_items, CASE_LOWER, "Case", "Lower or upper case");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_TEXT);
 }
 
 /** \} */

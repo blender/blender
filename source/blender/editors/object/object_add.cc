@@ -3510,11 +3510,12 @@ void OBJECT_OT_convert(wmOperatorType *ot)
   /* properties */
   ot->prop = RNA_def_enum(
       ot->srna, "target", convert_target_items, OB_MESH, "Target", "Type of object to convert to");
-  RNA_def_boolean(ot->srna,
-                  "keep_original",
-                  false,
-                  "Keep Original",
-                  "Keep original objects instead of replacing them");
+  prop = RNA_def_boolean(ot->srna,
+                         "keep_original",
+                         false,
+                         "Keep Original",
+                         "Keep original objects instead of replacing them");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_OBJECT);
 
   RNA_def_boolean(
       ot->srna,

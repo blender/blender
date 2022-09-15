@@ -2357,6 +2357,7 @@ static void rna_def_window(BlenderRNA *brna)
                                  "rna_Window_screen_set",
                                  NULL,
                                  "rna_Window_screen_assign_poll");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SCREEN);
   RNA_def_property_flag(prop, PROP_NEVER_NULL | PROP_EDITABLE | PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, 0, "rna_workspace_screen_update");
 
