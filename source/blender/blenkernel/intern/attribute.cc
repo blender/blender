@@ -452,12 +452,10 @@ int BKE_id_attribute_data_length(ID *id, CustomDataLayer *layer)
 bool BKE_id_attribute_required(const ID *id, const char *name)
 {
   switch (GS(id->name)) {
-    case ID_PT: {
-      return BKE_pointcloud_customdata_required((const PointCloud *)id, name);
-    }
-    case ID_CV: {
-      return BKE_curves_customdata_required((const Curves *)id, name);
-    }
+    case ID_PT:
+      return BKE_pointcloud_attribute_required((const PointCloud *)id, name);
+    case ID_CV:
+      return BKE_curves_attribute_required((const Curves *)id, name);
     default:
       return false;
   }

@@ -339,7 +339,7 @@ BoundBox *BKE_pointcloud_boundbox_get(Object *ob)
   return ob->runtime.bb;
 }
 
-bool BKE_pointcloud_customdata_required(const PointCloud *UNUSED(pointcloud), const char *name)
+bool BKE_pointcloud_attribute_required(const PointCloud *UNUSED(pointcloud), const char *name)
 {
   return STREQ(name, POINTCLOUD_ATTR_POSITION);
 }
