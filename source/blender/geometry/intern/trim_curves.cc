@@ -41,9 +41,9 @@ typedef enum CurveTypeMask {
  * Create a cyclical iterator for all control points within the interval [start_point, end_point]
  * including any control point at the start or end point.
  *
- * \param start_point Point on the curve that define the starting point of the interval.
- * \param end_point Point on the curve that define the end point of the interval (included).
- * \param points IndexRange for the curve points.
+ * \param start_point: Point on the curve that define the starting point of the interval.
+ * \param end_point: Point on the curve that define the end point of the interval (included).
+ * \param points: #IndexRange for the curve points.
  */
 static bke::curves::IndexRangeCyclic get_range_between_endpoints(
     const bke::curves::CurvePoint start_point,
@@ -359,9 +359,11 @@ static void compute_trim_result_offsets(const bke::CurvesGeometry &src_curves,
   bke::curves::accumulate_counts_to_offsets(dst_curve_offsets);
 }
 
-/* --------------------------------------------------------------------
- * Utility functions.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Utility Functions
+ * \{ */
 
 static void fill_bezier_data(bke::CurvesGeometry &dst_curves, const IndexMask selection)
 {
@@ -415,9 +417,11 @@ static int64_t copy_point_data_between_endpoints(const Span<T> src_data,
   return dst_index;
 }
 
-/* --------------------------------------------------------------------
- * Sampling utilities.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sampling Utilities
+ * \{ */
 
 template<typename T>
 static T interpolate_catmull_rom(const Span<T> src_data,
@@ -459,9 +463,11 @@ static bke::curves::bezier::Insertion knot_insert_bezier(
                                      insertion_point.parameter);
 }
 
-/* --------------------------------------------------------------------
- * Sample single point.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sample Single Point
+ * \{ */
 
 template<typename T>
 static void sample_linear(const Span<T> src_data,
@@ -533,9 +539,11 @@ static void sample_bezier(const Span<float3> src_positions,
   }
 }
 
-/* --------------------------------------------------------------------
- * Sample curve interval (trim).
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sample Curve Interval (Trim)
+ * \{ */
 
 /**
  * Sample source curve data in the interval defined by the points [start_point, end_point].
@@ -758,9 +766,11 @@ static void sample_interval_bezier(const Span<float3> src_positions,
   BLI_assert(dst_index == dst_range.one_after_last());
 }
 
-/* --------------------------------------------------------------------
- * Convert to point curves.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Convert to Point Curves
+ * \{ */
 
 static void convert_point_polygonal_curves(
     const bke::CurvesGeometry &src_curves,
@@ -924,9 +934,11 @@ static void convert_point_evaluated_curves(
   fill_nurbs_data(dst_curves, selection);
 }
 
-/* --------------------------------------------------------------------
- * Trim curves.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Trim Curves
+ * \{ */
 
 static void trim_attribute_linear(const bke::CurvesGeometry &src_curves,
                                   bke::CurvesGeometry &dst_curves,
@@ -1281,5 +1293,7 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
   dst_curves.tag_topology_changed();
   return dst_curves;
 }
+
+/** \} */
 
 }  // namespace blender::geometry

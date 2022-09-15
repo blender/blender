@@ -12,9 +12,9 @@
 
 namespace blender::realtime_compositor {
 
-/* -------------------------------------------------------------------------------------------------
- *  Conversion Operation.
- */
+/* -------------------------------------------------------------------- */
+/** \name Conversion Operation
+ * \{ */
 
 void ConversionOperation::execute()
 {
@@ -79,9 +79,11 @@ SimpleOperation *ConversionOperation::construct_if_needed(Context &context,
   return nullptr;
 }
 
-/* -------------------------------------------------------------------------------------------------
- *  Convert Float To Vector Operation.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Convert Float to Vector Operation
+ * \{ */
 
 ConvertFloatToVectorOperation::ConvertFloatToVectorOperation(Context &context)
     : ConversionOperation(context)
@@ -102,9 +104,11 @@ GPUShader *ConvertFloatToVectorOperation::get_conversion_shader() const
   return shader_manager().get("compositor_convert_float_to_vector");
 }
 
-/* -------------------------------------------------------------------------------------------------
- *  Convert Float To Color Operation.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Convert Float to Color Operation
+ * \{ */
 
 ConvertFloatToColorOperation::ConvertFloatToColorOperation(Context &context)
     : ConversionOperation(context)
@@ -127,9 +131,11 @@ GPUShader *ConvertFloatToColorOperation::get_conversion_shader() const
   return shader_manager().get("compositor_convert_float_to_color");
 }
 
-/* -------------------------------------------------------------------------------------------------
- *  Convert Color To Float Operation.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Convert Color to Float Operation
+ * \{ */
 
 ConvertColorToFloatOperation::ConvertColorToFloatOperation(Context &context)
     : ConversionOperation(context)
@@ -151,9 +157,11 @@ GPUShader *ConvertColorToFloatOperation::get_conversion_shader() const
   return shader_manager().get("compositor_convert_color_to_float");
 }
 
-/* -------------------------------------------------------------------------------------------------
- *  Convert Color To Vector Operation.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Convert Color to Vector Operation
+ * \{ */
 
 ConvertColorToVectorOperation::ConvertColorToVectorOperation(Context &context)
     : ConversionOperation(context)
@@ -175,9 +183,11 @@ GPUShader *ConvertColorToVectorOperation::get_conversion_shader() const
   return shader_manager().get("compositor_convert_color_to_vector");
 }
 
-/* -------------------------------------------------------------------------------------------------
- *  Convert Vector To Float Operation.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Convert Vector to Float Operation
+ * \{ */
 
 ConvertVectorToFloatOperation::ConvertVectorToFloatOperation(Context &context)
     : ConversionOperation(context)
@@ -199,9 +209,11 @@ GPUShader *ConvertVectorToFloatOperation::get_conversion_shader() const
   return shader_manager().get("compositor_convert_vector_to_float");
 }
 
-/* -------------------------------------------------------------------------------------------------
- *  Convert Vector To Color Operation.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Convert Vector to Color Operation
+ * \{ */
 
 ConvertVectorToColorOperation::ConvertVectorToColorOperation(Context &context)
     : ConversionOperation(context)
@@ -221,5 +233,7 @@ GPUShader *ConvertVectorToColorOperation::get_conversion_shader() const
 {
   return shader_manager().get("compositor_convert_vector_to_color");
 }
+
+/** \} */
 
 }  // namespace blender::realtime_compositor

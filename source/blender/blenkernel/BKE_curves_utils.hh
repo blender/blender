@@ -15,9 +15,9 @@
 
 namespace blender::bke::curves {
 
-/* --------------------------------------------------------------------
- * Utility structs.
- */
+/* -------------------------------------------------------------------- */
+/** \name Utility Structs
+ * \{ */
 
 /**
  * Reference to a piecewise segment on a spline curve.
@@ -302,9 +302,9 @@ class IndexRangeCyclic {
 
 /** \} */
 
-/* --------------------------------------------------------------------
- * Utility functions.
- */
+/* -------------------------------------------------------------------- */
+/** \name Utility Functions
+ * \{ */
 
 /**
  * Copy the provided point attribute values between all curves in the #curve_ranges index
