@@ -497,7 +497,7 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_
       for (int j = 0; j < ss->pmap[vertex.i].count; j++) {
         const int poly_index = vert_map->indices[j];
         if (ss->hide_poly && ss->hide_poly[poly_index]) {
-          /* Skip hidden faces conntected to the vertex. */
+          /* Skip hidden faces connected to the vertex. */
           continue;
         }
         ss->face_sets[poly_index] = face_set;

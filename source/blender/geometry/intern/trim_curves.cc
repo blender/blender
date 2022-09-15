@@ -81,8 +81,8 @@ static bke::curves::IndexRangeCyclic get_range_between_endpoints(
  * constant for all curve segments and evaluated curve points are uniformly spaced between the
  * segment endpoints in relation to the curve parameter.
  *
- * \param lengths: Accumulated lenght for the evaluated curve.
- * \param sample_length: Distance along the curve to determine the CurvePoint for.
+ * \param lengths: Accumulated length for the evaluated curve.
+ * \param sample_length: Distance along the curve to determine the #CurvePoint for.
  * \param cyclic: If curve is cyclic.
  * \param resolution: Curve resolution (number of evaluated points per segment).
  * \param num_curve_points: Total number of control points in the curve.
@@ -185,7 +185,7 @@ Array<bke::curves::CurvePoint, 12> lookup_curve_points(const bke::CurvesGeometry
   const VArray<int> resolution = curves.resolution();
   const VArray<int8_t> curve_types = curves.curve_types();
 
-  /* Compute curve lenghts! */
+  /* Compute curve lengths! */
   curves.ensure_evaluated_lengths();
   curves.ensure_evaluated_offsets();
 
@@ -294,7 +294,7 @@ static void determine_copyable_curve_types(const bke::CurvesGeometry &src_curves
 }
 
 /**
- * Determine if a curve is treated as an evaluated curve. Curves which inheretly do not support
+ * Determine if a curve is treated as an evaluated curve. Curves which inherently do not support
  * trimming are discretized (e.g. NURBS).
  */
 static bool copy_as_evaluated_curve(const int8_t src_type, const int8_t dst_type)

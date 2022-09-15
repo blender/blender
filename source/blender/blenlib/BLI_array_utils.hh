@@ -10,14 +10,14 @@
 namespace blender::array_utils {
 
 /**
- * Fill the destination span by copying masked values from the src array. Threaded based on
- * grainsize.
+ * Fill the destination span by copying masked values from the `src` array. Threaded based on
+ * grain-size.
  */
 void copy(const GVArray &src, IndexMask selection, GMutableSpan dst, int64_t grain_size = 4096);
 
 /**
- * Fill the destination span by copying values from the src array. Threaded based on
- * grainsize.
+ * Fill the destination span by copying values from the `src` array. Threaded based on
+ * grain-size.
  */
 template<typename T>
 inline void copy(const Span<T> src,
