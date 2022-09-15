@@ -3751,7 +3751,7 @@ bool CustomData_bmesh_merge(const CustomData *source,
     destold.layers = static_cast<CustomDataLayer *>(MEM_dupallocN(destold.layers));
   }
 
-  if (CustomData_merge(source, dest, mask, alloctype, 0) == false) {
+  if (CustomData_merge_mesh_to_bmesh(source, dest, mask, alloctype, 0) == false) {
     if (destold.layers) {
       MEM_freeN(destold.layers);
     }
