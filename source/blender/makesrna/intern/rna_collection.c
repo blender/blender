@@ -599,6 +599,11 @@ void RNA_def_collections(BlenderRNA *brna)
        0,
        "No Intersection",
        "Include this collection but do not generate intersection lines"},
+      {COLLECTION_LRT_FORCE_INTERSECTION,
+       "FORCE_INTERSECTION",
+       0,
+       "Force Intersection",
+       "Generate intersection lines even with objects that disabled intersection"},
       {0, NULL, 0, NULL, NULL}};
 
   prop = RNA_def_property(srna, "lineart_usage", PROP_ENUM, PROP_NONE);
