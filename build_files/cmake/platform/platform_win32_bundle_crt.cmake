@@ -3,20 +3,22 @@
 # First generate the manifest for tests since it will not need the dependency on the CRT.
 configure_file(${CMAKE_SOURCE_DIR}/release/windows/manifest/blender.exe.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/tests.exe.manifest @ONLY)
 
+# Always detect system libraries, since they are also used by oneAPI.
+# But don't always install them, only for WITH_WINDOWS_BUNDLE_CRT=ON.
+set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
+set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
+set(CMAKE_INSTALL_OPENMP_LIBRARIES ${WITH_OPENMP})
+
+# This sometimes can change when updates are installed and the compiler version
+# changes, so test if it exists and if not, give InstallRequiredSystemLibraries
+# another chance to figure out the path.
+if(MSVC_REDIST_DIR AND NOT EXISTS "${MSVC_REDIST_DIR}")
+  unset(MSVC_REDIST_DIR CACHE)
+endif()
+
+include(InstallRequiredSystemLibraries)
+
 if(WITH_WINDOWS_BUNDLE_CRT)
-  set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
-  set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
-  set(CMAKE_INSTALL_OPENMP_LIBRARIES ${WITH_OPENMP})
-
-  # This sometimes can change when updates are installed and the compiler version
-  # changes, so test if it exists and if not, give InstallRequiredSystemLibraries
-  # another chance to figure out the path.
-  if(MSVC_REDIST_DIR AND NOT EXISTS "${MSVC_REDIST_DIR}")
-    unset(MSVC_REDIST_DIR CACHE)
-  endif()
-
-  include(InstallRequiredSystemLibraries)
-
   # ucrtbase(d).dll cannot be in the manifest, due to the way windows 10 handles
   # redirects for this dll, for details see T88813.
   foreach(lib ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS})

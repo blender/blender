@@ -344,10 +344,10 @@ if(UNIX AND NOT APPLE)
 
 elseif(WIN32)
   if(WITH_PYTHON_MODULE)
-    set(TARGETDIR_BPY $<TARGET_FILE_DIR:blender>)
-    set(TARGETDIR_VER $<TARGET_FILE_DIR:blender>/${BLENDER_VERSION})
+    set(TARGETDIR_BPY ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/bpy)
+    set(TARGETDIR_VER ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/bpy/${BLENDER_VERSION})
     # Important the DLL's are next to `__init__.pyd` otherwise it won't load.
-    set(TARGETDIR_LIB $<TARGET_FILE_DIR:blender>)
+    set(TARGETDIR_LIB ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/bpy)
   else()
     set(TARGETDIR_VER ${BLENDER_VERSION})
     set(TARGETDIR_TEXT .)
