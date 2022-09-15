@@ -8,6 +8,7 @@
 #pragma once
 
 #include "intern/builder/deg_builder.h"
+#include "intern/builder/deg_builder_key.h"
 #include "intern/builder/deg_builder_map.h"
 #include "intern/depsgraph_type.h"
 #include "intern/node/deg_node_id.h"
@@ -56,6 +57,7 @@ struct ComponentNode;
 struct Depsgraph;
 class DepsgraphBuilderCache;
 struct IDNode;
+struct OperationKey;
 struct OperationNode;
 struct TimeSourceNode;
 
@@ -150,6 +152,8 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
                                      OperationCode opcode,
                                      const char *name = "",
                                      int name_tag = -1);
+
+  OperationNode *find_operation_node(const OperationKey &key);
 
   virtual void build_id(ID *id);
 
@@ -259,17 +263,9 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   };
 
  protected:
-  /* Allows to identify an operation which was tagged for update at the time
-   * relations are being updated. We can not reuse operation node pointer
-   * since it will change during dependency graph construction. */
-  struct SavedEntryTag {
-    ID *id_orig;
-    NodeType component_type;
-    OperationCode opcode;
-    string name;
-    int name_tag;
-  };
-  Vector<SavedEntryTag> saved_entry_tags_;
+  /* Entry tags from the previous state of the dependency graph.
+   * Stored before the graph is re-created so that they can be transferred over. */
+  Vector<PersistentOperationKey> saved_entry_tags_;
 
   struct BuilderWalkUserData {
     DepsgraphNodeBuilder *builder;

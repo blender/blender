@@ -104,6 +104,7 @@
 #include "SEQ_sequencer.h"
 
 #include "intern/builder/deg_builder.h"
+#include "intern/builder/deg_builder_key.h"
 #include "intern/builder/deg_builder_rna.h"
 #include "intern/depsgraph.h"
 #include "intern/depsgraph_tag.h"
@@ -342,6 +343,12 @@ OperationNode *DepsgraphNodeBuilder::find_operation_node(
   return find_operation_node(id, comp_type, "", opcode, name, name_tag);
 }
 
+OperationNode *DepsgraphNodeBuilder::find_operation_node(const OperationKey &key)
+{
+  return find_operation_node(
+      key.id, key.component_type, key.component_name, key.opcode, key.name, key.name_tag);
+}
+
 ID *DepsgraphNodeBuilder::get_cow_id(const ID *id_orig) const
 {
   return graph_->get_cow_id(id_orig);
@@ -385,17 +392,8 @@ void DepsgraphNodeBuilder::begin_build()
     id_node->id_cow = nullptr;
   }
 
-  for (OperationNode *op_node : graph_->entry_tags) {
-    ComponentNode *comp_node = op_node->owner;
-    IDNode *id_node = comp_node->owner;
-
-    SavedEntryTag entry_tag;
-    entry_tag.id_orig = id_node->id_orig;
-    entry_tag.component_type = comp_node->type;
-    entry_tag.opcode = op_node->opcode;
-    entry_tag.name = op_node->name;
-    entry_tag.name_tag = op_node->name_tag;
-    saved_entry_tags_.append(entry_tag);
+  for (const OperationNode *op_node : graph_->entry_tags) {
+    saved_entry_tags_.append_as(op_node);
   }
 
   /* Make sure graph has no nodes left from previous state. */
@@ -513,23 +511,15 @@ void DepsgraphNodeBuilder::update_invalid_cow_pointers()
 
 void DepsgraphNodeBuilder::tag_previously_tagged_nodes()
 {
-  for (const SavedEntryTag &entry_tag : saved_entry_tags_) {
-    IDNode *id_node = find_id_node(entry_tag.id_orig);
-    if (id_node == nullptr) {
+  for (const OperationKey &operation_key : saved_entry_tags_) {
+    OperationNode *operation_node = find_operation_node(operation_key);
+    if (operation_node == nullptr) {
       continue;
     }
-    ComponentNode *comp_node = id_node->find_component(entry_tag.component_type);
-    if (comp_node == nullptr) {
-      continue;
-    }
-    OperationNode *op_node = comp_node->find_operation(
-        entry_tag.opcode, entry_tag.name.c_str(), entry_tag.name_tag);
-    if (op_node == nullptr) {
-      continue;
-    }
+
     /* Since the tag is coming from a saved copy of entry tags, this means
      * that originally node was explicitly tagged for user update. */
-    op_node->tag_update(graph_, DEG_UPDATE_SOURCE_USER_EDIT);
+    operation_node->tag_update(graph_, DEG_UPDATE_SOURCE_USER_EDIT);
   }
 }
 
