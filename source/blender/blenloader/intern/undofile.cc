@@ -42,7 +42,7 @@ void BLO_memfile_free(MemFile *memfile)
 {
   MemFileChunk *chunk;
 
-  while ((chunk = BLI_pophead(&memfile->chunks))) {
+  while ((chunk = static_cast<MemFileChunk *>(BLI_pophead(&memfile->chunks)))) {
     if (chunk->is_identical == false) {
       MEM_freeN((void *)chunk->buf);
     }
@@ -59,7 +59,8 @@ void BLO_memfile_merge(MemFile *first, MemFile *second)
       BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
 
   /* First, detect all memchunks in second memfile that are not owned by it. */
-  for (MemFileChunk *sc = second->chunks.first; sc != NULL; sc = sc->next) {
+  for (MemFileChunk *sc = static_cast<MemFileChunk *>(second->chunks.first); sc != nullptr;
+       sc = static_cast<MemFileChunk *>(sc->next)) {
     if (sc->is_identical) {
       BLI_ghash_insert(buffer_to_second_memchunk, (void *)sc->buf, sc);
     }
@@ -67,10 +68,12 @@ void BLO_memfile_merge(MemFile *first, MemFile *second)
 
   /* Now, check all chunks from first memfile (the one we are removing), and if a memchunk owned by
    * it is also used by the second memfile, transfer the ownership. */
-  for (MemFileChunk *fc = first->chunks.first; fc != NULL; fc = fc->next) {
+  for (MemFileChunk *fc = static_cast<MemFileChunk *>(first->chunks.first); fc != nullptr;
+       fc = static_cast<MemFileChunk *>(fc->next)) {
     if (!fc->is_identical) {
-      MemFileChunk *sc = BLI_ghash_lookup(buffer_to_second_memchunk, fc->buf);
-      if (sc != NULL) {
+      MemFileChunk *sc = static_cast<MemFileChunk *>(
+          BLI_ghash_lookup(buffer_to_second_memchunk, fc->buf));
+      if (sc != nullptr) {
         BLI_assert(sc->is_identical);
         sc->is_identical = false;
         fc->is_identical = true;
@@ -81,7 +84,7 @@ void BLO_memfile_merge(MemFile *first, MemFile *second)
     }
   }
 
-  BLI_ghash_free(buffer_to_second_memchunk, NULL, NULL);
+  BLI_ghash_free(buffer_to_second_memchunk, nullptr, nullptr);
 
   BLO_memfile_free(first);
 }
@@ -99,14 +102,16 @@ void BLO_memfile_write_init(MemFileWriteData *mem_data,
 {
   mem_data->written_memfile = written_memfile;
   mem_data->reference_memfile = reference_memfile;
-  mem_data->reference_current_chunk = reference_memfile ? reference_memfile->chunks.first : NULL;
+  mem_data->reference_current_chunk = reference_memfile ? static_cast<MemFileChunk *>(
+                                                              reference_memfile->chunks.first) :
+                                                          nullptr;
 
   /* If we have a reference memfile, we generate a mapping between the session_uuid's of the
    * IDs stored in that previous undo step, and its first matching memchunk. This will allow
    * us to easily find the existing undo memory storage of IDs even when some re-ordering in
    * current Main data-base broke the order matching with the memchunks from previous step.
    */
-  if (reference_memfile != NULL) {
+  if (reference_memfile != nullptr) {
     mem_data->id_session_uuid_mapping = BLI_ghash_new(
         BLI_ghashutil_inthash_p_simple, BLI_ghashutil_intcmp, __func__);
     uint current_session_uuid = MAIN_ID_SESSION_UUID_UNSET;
@@ -129,8 +134,8 @@ void BLO_memfile_write_init(MemFileWriteData *mem_data,
 
 void BLO_memfile_write_finalize(MemFileWriteData *mem_data)
 {
-  if (mem_data->id_session_uuid_mapping != NULL) {
-    BLI_ghash_free(mem_data->id_session_uuid_mapping, NULL, NULL);
+  if (mem_data->id_session_uuid_mapping != nullptr) {
+    BLI_ghash_free(mem_data->id_session_uuid_mapping, nullptr, nullptr);
   }
 }
 
@@ -139,9 +144,10 @@ void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t s
   MemFile *memfile = mem_data->written_memfile;
   MemFileChunk **compchunk_step = &mem_data->reference_current_chunk;
 
-  MemFileChunk *curchunk = MEM_mallocN(sizeof(MemFileChunk), "MemFileChunk");
+  MemFileChunk *curchunk = static_cast<MemFileChunk *>(
+      MEM_mallocN(sizeof(MemFileChunk), "MemFileChunk"));
   curchunk->size = size;
-  curchunk->buf = NULL;
+  curchunk->buf = nullptr;
   curchunk->is_identical = false;
   /* This is unsafe in the sense that an app handler or other code that does not
    * perform an undo push may make changes after the last undo push that
@@ -151,7 +157,7 @@ void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t s
   BLI_addtail(&memfile->chunks, curchunk);
 
   /* we compare compchunk with buf */
-  if (*compchunk_step != NULL) {
+  if (*compchunk_step != nullptr) {
     MemFileChunk *compchunk = *compchunk_step;
     if (compchunk->size == curchunk->size) {
       if (memcmp(compchunk->buf, buf, size) == 0) {
@@ -160,12 +166,12 @@ void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t s
         compchunk->is_identical_future = true;
       }
     }
-    *compchunk_step = compchunk->next;
+    *compchunk_step = static_cast<MemFileChunk *>(compchunk->next);
   }
 
   /* not equal... */
-  if (curchunk->buf == NULL) {
-    char *buf_new = MEM_mallocN(size, "Chunk buffer");
+  if (curchunk->buf == nullptr) {
+    char *buf_new = static_cast<char *>(MEM_mallocN(size, "Chunk buffer"));
     memcpy(buf_new, buf, size);
     curchunk->buf = buf_new;
     memfile->size += size;
@@ -176,12 +182,10 @@ struct Main *BLO_memfile_main_get(struct MemFile *memfile,
                                   struct Main *bmain,
                                   struct Scene **r_scene)
 {
-  struct Main *bmain_undo = NULL;
-  BlendFileData *bfd = BLO_read_from_memfile(bmain,
-                                             BKE_main_blendfile_path(bmain),
-                                             memfile,
-                                             &(const struct BlendFileReadParams){0},
-                                             NULL);
+  struct Main *bmain_undo = nullptr;
+  BlendFileReadParams read_params{};
+  BlendFileData *bfd = BLO_read_from_memfile(
+      bmain, BKE_main_blendfile_path(bmain), memfile, &read_params, nullptr);
 
   if (bfd) {
     bmain_undo = bfd->main;
@@ -226,7 +230,8 @@ bool BLO_memfile_write_file(struct MemFile *memfile, const char *filepath)
     return false;
   }
 
-  for (chunk = memfile->chunks.first; chunk; chunk = chunk->next) {
+  for (chunk = static_cast<MemFileChunk *>(memfile->chunks.first); chunk;
+       chunk = static_cast<MemFileChunk *>(chunk->next)) {
 #ifdef _WIN32
     if ((size_t)write(file, chunk->buf, (uint)chunk->size) != chunk->size)
 #else
@@ -255,7 +260,7 @@ static ssize_t undo_read(FileReader *reader, void *buffer, size_t size)
 
   static size_t seek = SIZE_MAX; /* The current position. */
   static size_t offset = 0;      /* Size of previous chunks. */
-  static MemFileChunk *chunk = NULL;
+  static MemFileChunk *chunk = nullptr;
   size_t chunkoffset, readsize, totread;
 
   undo->memchunk_identical = true;
@@ -265,7 +270,7 @@ static ssize_t undo_read(FileReader *reader, void *buffer, size_t size)
   }
 
   if (seek != (size_t)undo->reader.offset) {
-    chunk = undo->memfile->chunks.first;
+    chunk = static_cast<MemFileChunk *>(undo->memfile->chunks.first);
     seek = 0;
 
     while (chunk) {
@@ -273,7 +278,7 @@ static ssize_t undo_read(FileReader *reader, void *buffer, size_t size)
         break;
       }
       seek += chunk->size;
-      chunk = chunk->next;
+      chunk = static_cast<MemFileChunk *>(chunk->next);
     }
     offset = seek;
     seek = (size_t)undo->reader.offset;
@@ -286,11 +291,11 @@ static ssize_t undo_read(FileReader *reader, void *buffer, size_t size)
       /* First check if it's on the end if current chunk. */
       if (seek - offset == chunk->size) {
         offset += chunk->size;
-        chunk = chunk->next;
+        chunk = static_cast<MemFileChunk *>(chunk->next);
       }
 
       /* Debug, should never happen. */
-      if (chunk == NULL) {
+      if (chunk == nullptr) {
         printf("illegal read, chunk zero\n");
         return 0;
       }
@@ -331,13 +336,13 @@ static void undo_close(FileReader *reader)
 
 FileReader *BLO_memfile_new_filereader(MemFile *memfile, int undo_direction)
 {
-  UndoReader *undo = MEM_callocN(sizeof(UndoReader), __func__);
+  UndoReader *undo = static_cast<UndoReader *>(MEM_callocN(sizeof(UndoReader), __func__));
 
   undo->memfile = memfile;
   undo->undo_direction = undo_direction;
 
   undo->reader.read = undo_read;
-  undo->reader.seek = NULL;
+  undo->reader.seek = nullptr;
   undo->reader.close = undo_close;
 
   return (FileReader *)undo;

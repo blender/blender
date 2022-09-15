@@ -70,7 +70,7 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
   FileData *fd = (FileData *)bh;
   BHead *bhead;
 
-  fprintf(fp, "[\n");
+  fprintf(static_cast<FILE *>(fp), "[\n");
   for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
     if (bhead->code == ENDB) {
       break;
@@ -90,14 +90,14 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
     buf[2] = buf[2] ? buf[2] : ' ';
     buf[3] = buf[3] ? buf[3] : ' ';
 
-    fprintf(fp,
+    fprintf(static_cast<FILE *>(fp),
             "['%.4s', '%s', %d, %ld ],\n",
             buf,
             name,
             bhead->nr,
             (long int)(bhead->len + sizeof(BHead)));
   }
-  fprintf(fp, "]\n");
+  fprintf(static_cast<FILE *>(fp), "]\n");
 }
 
 LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh,
@@ -152,7 +152,8 @@ LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
       if (skip_datablock) {
         continue;
       }
-      struct BLODataBlockInfo *info = MEM_mallocN(sizeof(*info), __func__);
+      struct BLODataBlockInfo *info = static_cast<BLODataBlockInfo *>(
+          MEM_mallocN(sizeof(*info), __func__));
 
       /* Lastly, read asset data from the following blocks. */
       if (asset_meta_data) {
@@ -199,7 +200,8 @@ static BHead *blo_blendhandle_read_preview_rects(FileData *fd,
       bhead = blo_bhead_next(fd, bhead);
       BLI_assert((preview_from_file->w[preview_index] * preview_from_file->h[preview_index] *
                   sizeof(uint)) == bhead->len);
-      result->rect[preview_index] = BLO_library_read_struct(fd, bhead, "PreviewImage Icon Rect");
+      result->rect[preview_index] = static_cast<uint *>(
+          BLO_library_read_struct(fd, bhead, "PreviewImage Icon Rect"));
     }
     else {
       /* This should not be needed, but can happen in 'broken' .blend files,
@@ -227,13 +229,14 @@ PreviewImage *BLO_blendhandle_get_preview_for_id(BlendHandle *bh,
   for (BHead *bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
     if (bhead->code == DATA) {
       if (looking && bhead->SDNAnr == sdna_preview_image) {
-        PreviewImage *preview_from_file = BLO_library_read_struct(fd, bhead, "PreviewImage");
+        PreviewImage *preview_from_file = static_cast<PreviewImage *>(
+            BLO_library_read_struct(fd, bhead, "PreviewImage"));
 
         if (preview_from_file == NULL) {
           break;
         }
 
-        PreviewImage *result = MEM_dupallocN(preview_from_file);
+        PreviewImage *result = static_cast<PreviewImage *>(MEM_dupallocN(preview_from_file));
         bhead = blo_blendhandle_read_preview_rects(fd, bhead, result, preview_from_file);
         MEM_freeN(preview_from_file);
         return result;
@@ -279,7 +282,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *r_
         case ID_SCE: /* fall through */
         case ID_AC:  /* fall through */
         case ID_NT:  /* fall through */
-          new_prv = MEM_callocN(sizeof(PreviewImage), "newpreview");
+          new_prv = static_cast<PreviewImage *>(MEM_callocN(sizeof(PreviewImage), "newpreview"));
           BLI_linklist_prepend(&previews, new_prv);
           tot++;
           looking = 1;
@@ -291,7 +294,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *r_
     else if (bhead->code == DATA) {
       if (looking) {
         if (bhead->SDNAnr == DNA_struct_find_nr(fd->filesdna, "PreviewImage")) {
-          prv = BLO_library_read_struct(fd, bhead, "PreviewImage");
+          prv = static_cast<PreviewImage *>(BLO_library_read_struct(fd, bhead, "PreviewImage"));
 
           if (prv) {
             memcpy(new_prv, prv, sizeof(PreviewImage));
@@ -375,7 +378,8 @@ BlendFileData *BLO_read_from_memory(const void *mem,
 {
   BlendFileData *bfd = NULL;
   FileData *fd;
-  BlendFileReadReport bf_reports = {.reports = reports};
+  BlendFileReadReport bf_reports{};
+  bf_reports.reports = reports;
 
   fd = blo_filedata_from_memory(mem, memsize, &bf_reports);
   if (fd) {
@@ -396,11 +400,12 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain,
   BlendFileData *bfd = NULL;
   FileData *fd;
   ListBase old_mainlist;
-  BlendFileReadReport bf_reports = {.reports = reports};
+  BlendFileReadReport bf_reports{};
+  bf_reports.reports = reports;
 
   fd = blo_filedata_from_memfile(memfile, params, &bf_reports);
   if (fd) {
-    fd->skip_flags = params->skip_flags;
+    fd->skip_flags = eBLOReadSkip(params->skip_flags);
     BLI_strncpy(fd->relabase, filepath, sizeof(fd->relabase));
 
     /* separate libraries from old main */
@@ -411,7 +416,7 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain,
     if ((params->skip_flags & BLO_READ_SKIP_UNDO_OLD_MAIN) == 0) {
       /* Build idmap of old main (we only care about local data here, so we can do that after
        * split_main() call. */
-      blo_make_old_idmap_from_main(fd, old_mainlist.first);
+      blo_make_old_idmap_from_main(fd, static_cast<Main *>(old_mainlist.first));
     }
 
     /* removed packed data from this trick - it's internal data that needs saves */

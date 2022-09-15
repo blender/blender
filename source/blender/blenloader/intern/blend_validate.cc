@@ -45,7 +45,8 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
   ListBase *lbarray[INDEX_ID_MAX];
   int i = set_listbasepointers(bmain, lbarray);
   while (i--) {
-    for (ID *id = lbarray[i]->first; id != NULL; id = id->next) {
+    for (ID *id = static_cast<ID *>(lbarray[i]->first); id != nullptr;
+         id = static_cast<ID *>(id->next)) {
       if (ID_IS_LINKED(id)) {
         is_valid = false;
         BKE_reportf(reports,
@@ -57,18 +58,19 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
     }
   }
 
-  for (Main *curmain = bmain->next; curmain != NULL; curmain = curmain->next) {
+  for (Main *curmain = bmain->next; curmain != nullptr; curmain = curmain->next) {
     Library *curlib = curmain->curlib;
-    if (curlib == NULL) {
-      BKE_report(reports, RPT_ERROR, "Library database with NULL library data-block!");
+    if (curlib == nullptr) {
+      BKE_report(reports, RPT_ERROR, "Library database with nullptr library data-block!");
       continue;
     }
 
     BKE_library_filepath_set(bmain, curlib, curlib->filepath);
-    BlendFileReadReport bf_reports = {.reports = reports};
+    BlendFileReadReport bf_reports{};
+    bf_reports.reports = reports;
     BlendHandle *bh = BLO_blendhandle_from_file(curlib->filepath_abs, &bf_reports);
 
-    if (bh == NULL) {
+    if (bh == nullptr) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "Library ID %s not found at expected path %s!",
@@ -79,8 +81,8 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
 
     i = set_listbasepointers(curmain, lbarray);
     while (i--) {
-      ID *id = lbarray[i]->first;
-      if (id == NULL) {
+      ID *id = static_cast<ID *>(lbarray[i]->first);
+      if (id == nullptr) {
         continue;
       }
 
@@ -96,12 +98,12 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
 
       int totnames = 0;
       LinkNode *names = BLO_blendhandle_get_datablock_names(bh, GS(id->name), false, &totnames);
-      for (; id != NULL; id = id->next) {
+      for (; id != nullptr; id = static_cast<ID *>(id->next)) {
         if (!ID_IS_LINKED(id)) {
           is_valid = false;
           BKE_reportf(reports,
                       RPT_ERROR,
-                      "ID %s has NULL lib pointer while being in library %s!",
+                      "ID %s has nullptr lib pointer while being in library %s!",
                       id->name,
                       curlib->filepath);
           continue;
@@ -120,7 +122,7 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
           }
         }
 
-        if (name == NULL) {
+        if (name == nullptr) {
           is_valid = false;
           BKE_reportf(reports,
                       RPT_ERROR,
@@ -163,7 +165,7 @@ bool BLO_main_validate_shapekeys(Main *bmain, ReportList *reports)
       if (!ID_IS_LINKED(id)) {
         /* We assume lib data is valid... */
         Key *shapekey = BKE_key_from_id(id);
-        if (shapekey != NULL && shapekey->from != id) {
+        if (shapekey != nullptr && shapekey->from != id) {
           is_valid = false;
           BKE_reportf(reports,
                       RPT_ERROR,
@@ -184,7 +186,7 @@ bool BLO_main_validate_shapekeys(Main *bmain, ReportList *reports)
   /* NOTE: #BKE_id_delete also locks `bmain`, so we need to do this loop outside of the lock here.
    */
   LISTBASE_FOREACH_MUTABLE (Key *, shapekey, &bmain->shapekeys) {
-    if (shapekey->from != NULL) {
+    if (shapekey->from != nullptr) {
       continue;
     }
 

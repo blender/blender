@@ -20,7 +20,8 @@ TempLibraryContext *BLO_library_temp_load_id(struct Main *real_main,
                                              const char *idname,
                                              struct ReportList *reports)
 {
-  TempLibraryContext *temp_lib_ctx = MEM_callocN(sizeof(*temp_lib_ctx), __func__);
+  TempLibraryContext *temp_lib_ctx = static_cast<TempLibraryContext *>(
+      MEM_callocN(sizeof(*temp_lib_ctx), __func__));
   temp_lib_ctx->bmain_base = BKE_main_new();
   temp_lib_ctx->bf_reports.reports = reports;
 

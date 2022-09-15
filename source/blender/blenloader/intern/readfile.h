@@ -42,6 +42,7 @@ enum eFileDataFlag {
   /* XXX Unused in practice (checked once but never set). */
   FD_FLAGS_NOT_MY_LIBMAP = 1 << 5,
 };
+ENUM_OPERATORS(eFileDataFlag, FD_FLAGS_NOT_MY_LIBMAP)
 
 /* Disallow since it's 32bit on ms-windows. */
 #ifdef __GNUC__
