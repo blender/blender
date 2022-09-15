@@ -143,7 +143,7 @@ static void mesh_get_boundaries(Mesh *mesh, float *smooth_weights)
     int j;
     for (j = 0; j < totloop; j++) {
       uint8_t *e_value = &boundaries[mloop[p->loopstart + j].e];
-      *e_value |= (*e_value) + (uint8_t)1;
+      *e_value |= (uint8_t)((*e_value) + 1);
     }
   }
 
