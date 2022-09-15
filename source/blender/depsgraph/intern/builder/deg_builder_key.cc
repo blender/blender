@@ -7,20 +7,26 @@
  * Methods for constructing depsgraph
  */
 
-#include "intern/builder/deg_builder_relations.h"
+#include "intern/builder/deg_builder_key.h"
+
+#include "RNA_path.h"
 
 namespace blender::deg {
 
-////////////////////////////////////////////////////////////////////////////////
-/* Time source. */
+/* -------------------------------------------------------------------- */
+/** \name Time source
+ * \{ */
 
 string TimeSourceKey::identifier() const
 {
   return string("TimeSourceKey");
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Component.
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Component
+ * \{ */
 
 string ComponentKey::identifier() const
 {
@@ -35,8 +41,11 @@ string ComponentKey::identifier() const
   return result;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Operation.
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operation
+ * \{ */
 
 string OperationKey::identifier() const
 {
@@ -51,8 +60,11 @@ string OperationKey::identifier() const
   return result;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// RNA path.
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name RNA path
+ * \{ */
 
 RNAPathKey::RNAPathKey(ID *id, const char *path, RNAPointerSource source) : id(id), source(source)
 {
@@ -78,5 +90,7 @@ string RNAPathKey::identifier() const
   const char *prop_name = (prop) ? RNA_property_identifier(prop) : "<No Prop>";
   return string("RnaPathKey(") + "id: " + id_name + ", prop: '" + prop_name + "')";
 }
+
+/** \} */
 
 }  // namespace blender::deg
