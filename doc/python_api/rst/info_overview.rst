@@ -1,8 +1,8 @@
 .. _info_overview:
 
-*******************
-Python API Overview
-*******************
+************
+API Overview
+************
 
 The purpose of this document is to explain how Python and Blender fit together,
 covering some of the functionality that may not be obvious from reading the API references
