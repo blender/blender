@@ -2922,6 +2922,11 @@ static void rna_def_object_lineart(BlenderRNA *brna)
        0,
        "No Intersection",
        "Include this object but do not generate intersection lines"},
+      {OBJECT_LRT_FORCE_INTERSECTION,
+       "FORCE_INTERSECTION",
+       0,
+       "Force Intersection",
+       "Generate intersection lines even with objects that disabled intersection"},
       {0, NULL, 0, NULL, NULL},
   };
 
