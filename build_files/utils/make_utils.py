@@ -9,6 +9,7 @@ import re
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 
 def call(cmd, exit_on_error=True, silent=False):
@@ -101,3 +102,51 @@ def command_missing(command):
         return shutil.which(command) is None
     else:
         return False
+
+
+class BlenderVersion:
+    def __init__(self, version, patch, cycle):
+        # 293 for 2.93.1
+        self.version = version
+        # 1 for 2.93.1
+        self.patch = patch
+        # 'alpha', 'beta', 'release', maybe others.
+        self.cycle = cycle
+
+    def is_release(self) -> bool:
+        return self.cycle == "release"
+
+    def __str__(self) -> str:
+        """Convert to version string.
+
+        >>> str(BlenderVersion(293, 1, "alpha"))
+        '2.93.1-alpha'
+        >>> str(BlenderVersion(327, 0, "release"))
+        '3.27.0'
+        """
+        version_major = self.version // 100
+        version_minor = self.version % 100
+        as_string = f"{version_major}.{version_minor}.{self.patch}"
+        if self.is_release():
+            return as_string
+        return f"{as_string}-{self.cycle}"
+
+def parse_blender_version() -> BlenderVersion:
+    blender_srcdir = Path(__file__).absolute().parent.parent.parent
+    version_path = blender_srcdir / "source/blender/blenkernel/BKE_blender_version.h"
+
+    version_info = {}
+    line_re = re.compile(r"^#define (BLENDER_VERSION[A-Z_]*)\s+([0-9a-z]+)$")
+
+    with version_path.open(encoding="utf-8") as version_file:
+        for line in version_file:
+            match = line_re.match(line.strip())
+            if not match:
+                continue
+            version_info[match.group(1)] = match.group(2)
+
+    return BlenderVersion(
+        int(version_info["BLENDER_VERSION"]),
+        int(version_info["BLENDER_VERSION_PATCH"]),
+        version_info["BLENDER_VERSION_CYCLE"],
+    )
