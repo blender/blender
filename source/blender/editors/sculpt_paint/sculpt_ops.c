@@ -309,6 +309,9 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
   ob->sculpt->mode_type = OB_MODE_SCULPT;
 
+  /* Necessary to make multires displacement immediately visible. */
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+
   BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
 
   /* This function expects a fully evaluated depsgraph. */

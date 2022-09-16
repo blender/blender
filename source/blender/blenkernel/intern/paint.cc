@@ -2042,6 +2042,8 @@ int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
         }
       }
     }
+    /* The evaluated multires CCG must be updated to contain the new data. */
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
     ret |= SCULPT_MASK_LAYER_CALC_LOOP;
   }
@@ -2049,6 +2051,8 @@ int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
   /* Create vertex paint mask layer if there isn't one already. */
   if (!paint_mask) {
     CustomData_add_layer(&me->vdata, CD_PAINT_MASK, CD_SET_DEFAULT, nullptr, me->totvert);
+    /* The evaluated mesh must be updated to contain the new data. */
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     ret |= SCULPT_MASK_LAYER_CALC_VERT;
   }
 
