@@ -52,10 +52,10 @@ static void ui_color_picker_rgb_round(float rgb[3])
    * all color space conversions would be expensive, but for the color picker
    * we can do the extra work. */
   for (int i = 0; i < 3; i++) {
-    if (fabsf(rgb[i]) < 1e-6f) {
+    if (fabsf(rgb[i]) < 5e-5f) {
       rgb[i] = 0.0f;
     }
-    else if (fabsf(1.0f - rgb[i]) < 1e-6f) {
+    else if (fabsf(1.0f - rgb[i]) < 5e-5f) {
       rgb[i] = 1.0f;
     }
   }
