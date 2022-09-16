@@ -7,15 +7,15 @@ import os
 import re
 import platform
 import string
-import setuptools
+import setuptools  # type: ignore
 import sys
 
 from typing import (
     Generator,
-    Tuple,
     List,
     Optional,
     Sequence,
+    Tuple,
 )
 
 
@@ -108,8 +108,12 @@ def main() -> None:
     elif sys.platform == "win32":
         platform_tag = "win_%s" % (platform.machine().lower())
     elif sys.platform == "linux":
-        glibc = os.confstr("CS_GNU_LIBC_VERSION").split()[1].split(".")
-        platform_tag = "manylinux_%s_%s_%s" % (glibc[0], glibc[1], platform.machine().lower())
+        glibc = os.confstr("CS_GNU_LIBC_VERSION")
+        if glibc is None:
+            print("Unable to find \"CS_GNU_LIBC_VERSION\", aborting!")
+            sys.exit(1)
+        glibc = "%s_%s" % tuple(glibc.split()[1].split(".")[:2])
+        platform_tag = "manylinux_%s_%s" % (glibc, platform.machine().lower())
     else:
         print("Unsupported platform %s" % (sys.platform))
         sys.exit(1)
@@ -124,8 +128,8 @@ def main() -> None:
         return paths
 
     # Ensure this wheel is marked platform specific.
-    class BinaryDistribution(setuptools.dist.Distribution):
-        def has_ext_modules(foo):
+    class BinaryDistribution(setuptools.dist.Distribution):  # type: ignore
+        def has_ext_modules(self) -> bool:
             return True
 
     # Build wheel.
