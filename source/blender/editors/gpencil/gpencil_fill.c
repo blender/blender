@@ -549,14 +549,17 @@ static void gpencil_draw_basic_stroke(tGPDfill *tgpf,
   }
 
   if (is_help && tgpf->is_render) {
-    /* Help strokes are for display only and shouldn't render */
+    /* Help strokes are for display only and shouldn't render. */
     return;
   }
   else if (is_help) {
     /* Color help strokes that won't affect fill or render separately from
-     * extended strokes, as they will affect them */
+     * extended strokes, as they will affect them. */
     copy_v4_v4(col, help_col);
-    col[3] = (gps->flag & GP_STROKE_TAG) ? 0.5f : 0.1f;
+
+    /* If there is contact, hide the circles to avoid noise and keep the focus
+     * in the pending gaps. */
+    col[3] = (gps->flag & GP_STROKE_TAG) ? 0.0f : 0.5f;
   }
   else if ((is_extend) && (!tgpf->is_render)) {
     copy_v4_v4(col, extend_col);
