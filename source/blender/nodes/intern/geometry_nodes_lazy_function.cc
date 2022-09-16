@@ -419,7 +419,6 @@ class LazyFunctionForMultiFunctionNode : public LazyFunction {
   const NodeMultiFunctions::Item fn_item_;
   Vector<const ValueOrFieldCPPType *> input_types_;
   Vector<const ValueOrFieldCPPType *> output_types_;
-  Vector<const bNodeSocket *> output_sockets_;
 
  public:
   LazyFunctionForMultiFunctionNode(const bNode &node,
@@ -437,7 +436,6 @@ class LazyFunctionForMultiFunctionNode : public LazyFunction {
     for (const lf::Output &fn_output : outputs_) {
       output_types_.append(dynamic_cast<const ValueOrFieldCPPType *>(fn_output.type));
     }
-    output_sockets_ = r_used_outputs;
   }
 
   void execute_impl(lf::Params &params, const lf::Context &UNUSED(context)) const override
