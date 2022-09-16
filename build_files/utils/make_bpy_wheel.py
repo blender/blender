@@ -1,6 +1,23 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+"""
+Make Python wheel package (`*.whl`) file from Blender built with 'WITH_PYTHON_MODULE_ENABLED'.
+
+Example
+=======
+
+If the "bpy" module was build on Linux using the command:
+
+   make bpy lite
+
+The command to package it as a wheel is:
+
+   ./build_files/utils/make_bpy_wheel.py ../build_linux_bpy_lite/bin --output-dir=./
+
+This will create a `*.whl` file in the current directory.
+"""
+
 import argparse
 import make_utils
 import os
@@ -61,9 +78,38 @@ def cmake_cache_var(filepath_cmake_cache: str, var: str) -> Optional[str]:
 def cmake_cache_var_or_exit(filepath_cmake_cache: str, var: str) -> str:
     value = cmake_cache_var(filepath_cmake_cache, var)
     if value is None:
-        print("Unable to find %r exiting!" % var)
+        sys.stderr.write("Unable to find %r in %r, abort!\n" % (var, filepath_cmake_cache))
         sys.exit(1)
     return value
+
+
+# ------------------------------------------------------------------------------
+# Argument Parser
+
+def argparse_create() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument(
+        "install_dir",
+        metavar='INSTALL_DIR',
+        type=str,
+        help="The installation directory containing the \"bpy\" package.",
+    )
+    parser.add_argument(
+        "--build-dir",
+        metavar='BUILD_DIR',
+        default=None,
+        help="The build directory for accessing 'CMakeCache.txt' (use parent directories of INSTALL_DIR when omitted).",
+        required=False,
+    )
+    parser.add_argument(
+        "--output-dir",
+        metavar='OUTPUT_DIR',
+        default=None,
+        help="The destination directory for the '*.whl' file (use INSTALL_DIR when omitted).",
+        required=False,
+    )
+
+    return parser
 
 
 # ------------------------------------------------------------------------------
@@ -72,21 +118,24 @@ def cmake_cache_var_or_exit(filepath_cmake_cache: str, var: str) -> str:
 def main() -> None:
 
     # Parse arguments.
-    parser = argparse.ArgumentParser(description="Make Python wheel package")
-    parser.add_argument("install_dir")
-    parser.add_argument("--build-dir", default=None)
-    parser.add_argument("--output-dir", default=None)
-    args = parser.parse_args()
+    args = argparse_create().parse_args()
 
     install_dir = os.path.abspath(args.install_dir)
-    build_dir = os.path.abspath(args.build_dir) if args.build_dir else install_dir
     output_dir = os.path.abspath(args.output_dir) if args.output_dir else install_dir
 
-    filepath_cmake_cache = find_dominating_file(build_dir, ("CMakeCache.txt",))
-    if not filepath_cmake_cache:
-        # Should never fail.
-        print("Unable to find CMakeCache.txt in or above %r" % (build_dir))
-        sys.exit(1)
+    if args.build_dir:
+        build_dir = os.path.abspath(args.build_dir)
+        filepath_cmake_cache = os.path.join(build_dir, "CMakeCache.txt")
+        del build_dir
+        if not os.path.exists(filepath_cmake_cache):
+            sys.stderr.write("File not found %r, abort!\n" % filepath_cmake_cache)
+            sys.exit(1)
+    else:
+        filepath_cmake_cache = find_dominating_file(install_dir, ("CMakeCache.txt",))
+        if not filepath_cmake_cache:
+            # Should never fail.
+            sys.stderr.write("Unable to find CMakeCache.txt in or above %r, abort!\n" % install_dir)
+            sys.exit(1)
 
     # Get the major and minor Python version.
     python_version = cmake_cache_var_or_exit(filepath_cmake_cache, "PYTHON_VERSION")
@@ -110,12 +159,12 @@ def main() -> None:
     elif sys.platform == "linux":
         glibc = os.confstr("CS_GNU_LIBC_VERSION")
         if glibc is None:
-            print("Unable to find \"CS_GNU_LIBC_VERSION\", aborting!")
+            sys.stderr.write("Unable to find \"CS_GNU_LIBC_VERSION\", abort!\n")
             sys.exit(1)
         glibc = "%s_%s" % tuple(glibc.split()[1].split(".")[:2])
         platform_tag = "manylinux_%s_%s" % (glibc, platform.machine().lower())
     else:
-        print("Unsupported platform %s" % (sys.platform))
+        sys.stderr.write("Unsupported platform: %s, abort!\n" % (sys.platform))
         sys.exit(1)
 
     os.chdir(install_dir)
