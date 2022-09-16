@@ -19,6 +19,8 @@ from typing import Iterable, TextIO, Optional, Any, Union
 SKIP_NAMES = {
     ".gitignore",
     ".gitmodules",
+    ".gitattributes",
+    ".git-blame-ignore-revs",
     ".arcconfig",
     ".svn",
 }
