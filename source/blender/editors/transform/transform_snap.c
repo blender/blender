@@ -125,15 +125,11 @@ bool activeSnap(const TransInfo *t)
 
 bool activeSnap_SnappingIndividual(const TransInfo *t)
 {
-  if (activeSnap(t) && t->tsnap.mode & SCE_SNAP_MODE_FACE_NEAREST) {
-    return true;
-  }
-
-  if (!t->tsnap.project) {
+  if (!activeSnap(t) || (t->flag & T_NO_PROJECT)) {
     return false;
   }
 
-  if (!activeSnap(t) || (t->flag & T_NO_PROJECT)) {
+  if (!(t->tsnap.project || (t->tsnap.mode & SCE_SNAP_MODE_FACE_NEAREST))) {
     return false;
   }
 
