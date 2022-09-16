@@ -16,6 +16,9 @@
 
 #include "BLT_translation.h"
 
+#define FMT_HEADER_ONLY
+#include <fmt/format.h>
+
 namespace blender::bke {
 
 MeshFieldContext::MeshFieldContext(const Mesh &mesh, const eAttrDomain domain)
@@ -264,9 +267,7 @@ GVArray AttributeFieldInput::get_varray_for_context(const GeometryFieldContext &
 
 std::string AttributeFieldInput::socket_inspection_name() const
 {
-  std::stringstream ss;
-  ss << '"' << name_ << '"' << TIP_(" attribute from geometry");
-  return ss.str();
+  return fmt::format(TIP_("\"{}\" attribute from geometry"), name_);
 }
 
 uint64_t AttributeFieldInput::hash() const
@@ -348,9 +349,7 @@ GVArray AnonymousAttributeFieldInput::get_varray_for_context(const GeometryField
 
 std::string AnonymousAttributeFieldInput::socket_inspection_name() const
 {
-  std::stringstream ss;
-  ss << '"' << debug_name_ << '"' << TIP_(" from ") << producer_name_;
-  return ss.str();
+  return fmt::format(TIP_("\"{}\" from {}"), TIP_(debug_name_.c_str()), producer_name_);
 }
 
 uint64_t AnonymousAttributeFieldInput::hash() const

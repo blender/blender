@@ -29,6 +29,7 @@ set(INC
   ../makesrna
   ../render
   ../windowmanager
+  ../../../extern/fmtlib/include
   ../../../intern/guardedalloc
 
   # dna_type_offsets.h
