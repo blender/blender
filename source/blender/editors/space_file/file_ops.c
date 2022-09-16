@@ -702,7 +702,7 @@ void FILE_OT_select(wmOperatorType *ot)
 /**
  * \returns true if selection has changed
  */
-static bool file_walk_select_selection_set(struct bContext* C,
+static bool file_walk_select_selection_set(struct bContext *C,
                                            wmWindow *win,
                                            ARegion *region,
                                            SpaceFile *sfile,
@@ -1557,7 +1557,8 @@ void FILE_OT_cancel(struct wmOperatorType *ot)
 /** \name Operator Utilities
  * \{ */
 
-void file_sfile_to_operator_ex(bContext* C, Main *bmain, wmOperator *op, SpaceFile *sfile, char *filepath)
+void file_sfile_to_operator_ex(
+    bContext *C, Main *bmain, wmOperator *op, SpaceFile *sfile, char *filepath)
 {
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   PropertyRNA *prop;
