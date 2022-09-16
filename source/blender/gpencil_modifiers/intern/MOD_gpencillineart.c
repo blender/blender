@@ -397,7 +397,12 @@ static void edge_types_panel_draw(const bContext *UNUSED(C), Panel *panel)
   sub = uiLayoutRow(entry, false);
   uiItemR(sub, ptr, "use_light_contour", 0, IFACE_("Light Contour"), ICON_NONE);
 
-  uiItemR(entry, ptr, "use_shadow", 0, CTX_IFACE_(BLT_I18NCONTEXT_ID_GPENCIL, "Cast Shadow"), ICON_NONE);
+  uiItemR(entry,
+          ptr,
+          "use_shadow",
+          0,
+          CTX_IFACE_(BLT_I18NCONTEXT_ID_GPENCIL, "Cast Shadow"),
+          ICON_NONE);
 
   uiItemL(layout, IFACE_("Options"), ICON_NONE);
 

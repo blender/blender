@@ -400,7 +400,7 @@ static void flushTransUVs(TransInfo *t)
 {
   SpaceImage *sima = t->area->spacedata.first;
   const bool use_pixel_round = ((sima->pixel_round_mode != SI_PIXEL_ROUND_DISABLED) &&
-                               (t->state != TRANS_CANCEL));
+                                (t->state != TRANS_CANCEL));
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData2D *td;

@@ -196,7 +196,7 @@ const EnumPropertyItem *rna_enum_attribute_domain_itemf(ID *id,
   int totitem = 0, a;
 
   static EnumPropertyItem mesh_vertex_domain_item = {
-    ATTR_DOMAIN_POINT, "POINT", 0, N_("Vertex"), N_("Attribute per point/vertex")};
+      ATTR_DOMAIN_POINT, "POINT", 0, N_("Vertex"), N_("Attribute per point/vertex")};
 
   for (a = 0; rna_enum_attribute_domain_items[a].identifier; a++) {
     domain_item = &rna_enum_attribute_domain_items[a];
