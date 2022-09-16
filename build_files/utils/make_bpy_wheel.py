@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-Make Python wheel package (`*.whl`) file from Blender built with 'WITH_PYTHON_MODULE_ENABLED'.
+Make Python wheel package (`*.whl`) file from Blender built with 'WITH_PYTHON_MODULE' enabled.
 
 Example
 =======
@@ -98,7 +98,7 @@ def argparse_create() -> argparse.ArgumentParser:
         "--build-dir",
         metavar='BUILD_DIR',
         default=None,
-        help="The build directory for accessing 'CMakeCache.txt' (use parent directories of INSTALL_DIR when omitted).",
+        help="The build directory containing 'CMakeCache.txt' (search parent directories of INSTALL_DIR when omitted).",
         required=False,
     )
     parser.add_argument(
