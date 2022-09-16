@@ -92,10 +92,11 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   int foreach_id_cow_detect_need_for_update_callback(ID *id_cow_self, ID *id_pointer);
 
   IDNode *add_id_node(ID *id);
-  IDNode *find_id_node(ID *id);
+  IDNode *find_id_node(const ID *id);
   TimeSourceNode *add_time_source();
 
   ComponentNode *add_component_node(ID *id, NodeType comp_type, const char *comp_name = "");
+  ComponentNode *find_component_node(const ID *id, NodeType comp_type, const char *comp_name = "");
 
   OperationNode *add_operation_node(ComponentNode *comp_node,
                                     OperationCode opcode,
@@ -137,15 +138,18 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
                           const char *name = "",
                           int name_tag = -1);
 
-  OperationNode *find_operation_node(ID *id,
+  OperationNode *find_operation_node(const ID *id,
                                      NodeType comp_type,
                                      const char *comp_name,
                                      OperationCode opcode,
                                      const char *name = "",
                                      int name_tag = -1);
 
-  OperationNode *find_operation_node(
-      ID *id, NodeType comp_type, OperationCode opcode, const char *name = "", int name_tag = -1);
+  OperationNode *find_operation_node(const ID *id,
+                                     NodeType comp_type,
+                                     OperationCode opcode,
+                                     const char *name = "",
+                                     int name_tag = -1);
 
   virtual void build_id(ID *id);
 
