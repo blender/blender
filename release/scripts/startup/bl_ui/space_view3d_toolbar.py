@@ -1607,6 +1607,10 @@ class VIEW3D_PT_tools_grease_pencil_brush_advanced(View3DPanel, Panel):
 
                 col.separator()
                 row = col.row(align=True)
+                row.prop(gp_settings, "fill_extend_mode")
+
+                col.separator()
+                row = col.row(align=True)
                 row.prop(gp_settings, "extend_stroke_factor")
                 row.prop(
                     gp_settings,

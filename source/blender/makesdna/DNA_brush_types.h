@@ -62,7 +62,7 @@ typedef struct BrushGpencilSettings {
   short fill_leak;
   /* Type of caps: eGPDstroke_Caps. */
   int8_t caps_type;
-  char _pad;
+  char _pad[5];
 
   int flag2;
 
@@ -70,6 +70,8 @@ typedef struct BrushGpencilSettings {
   int fill_simplylvl;
   /** Type of control lines drawing mode. */
   int fill_draw_mode;
+  /** Type of gap filling to use */
+  int fill_extend_mode;
   /** Icon identifier. */
   int icon_id;
 

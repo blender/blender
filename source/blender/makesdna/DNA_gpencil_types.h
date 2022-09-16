@@ -347,6 +347,8 @@ typedef enum eGPDstroke_Flag {
   /* Flag to indicated that the editcurve has been changed and the stroke needs to be updated with
    * the curve data */
   GP_STROKE_NEEDS_CURVE_UPDATE = (1 << 9),
+  /* Flag to indicate that a stroke is used only for help, and will not affect rendering or fill */
+  GP_STROKE_HELP = (1 << 10),
   /* only for use with stroke-buffer (while drawing arrows) */
   GP_STROKE_USE_ARROW_START = (1 << 12),
   /* only for use with stroke-buffer (while drawing arrows) */
