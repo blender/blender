@@ -1140,7 +1140,7 @@ struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf)
 
   struct wmKeyMap *keymap = WM_modalkeymap_find(keyconf, name);
 
-  /* this function is called for each spacetype, only needs to add map once */
+  /* This function is called for each space-type, only needs to add map once. */
   if (!keymap) {
     keymap = WM_modalkeymap_ensure(keyconf, name, modal_items);
   }

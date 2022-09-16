@@ -1556,7 +1556,7 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 /** \} */
 
 /* ------------------------------------------------------------------- */
-/** \name Apply Modifier As Shapekey Operator
+/** \name Apply Modifier As Shape-Key Operator
  * \{ */
 
 static bool modifier_apply_as_shapekey_poll(bContext *C)

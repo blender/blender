@@ -1545,7 +1545,7 @@ void BKE_rigidbody_remove_object(Main *bmain, Scene *scene, Object *ob, const bo
       FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
     }
 
-    /* Relying on usercount of the object should be OK, and it is much cheaper than looping in all
+    /* Relying on user-count of the object should be OK, and it is much cheaper than looping in all
      * collections to check whether the object is already in another one... */
     if (ID_REAL_USERS(&ob->id) == 1) {
       /* Some users seems to find it funny to use a view-layer instancing collection

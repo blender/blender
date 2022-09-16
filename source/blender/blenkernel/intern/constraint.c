@@ -5932,12 +5932,12 @@ static void constraint_copy_data_ex(bConstraint *dst,
       cti->copy_data(dst, src);
     }
 
-    /* Fix usercounts for all referenced data that need it. */
+    /* Fix user-counts for all referenced data that need it. */
     if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
       con_invoke_id_looper(cti, dst, con_fix_copied_refs_cb, NULL);
     }
 
-    /* for proxies we don't want to make extern */
+    /* For proxies we don't want to make external. */
     if (do_extern) {
       /* go over used ID-links for this constraint to ensure that they are valid for proxies */
       con_invoke_id_looper(cti, dst, con_extern_cb, NULL);

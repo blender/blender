@@ -694,7 +694,7 @@ static void ui_item_array(uiLayout *layout,
     else {
       /* Even if 'expand' is false, we expand anyway. */
 
-      /* layout for known array subtypes */
+      /* Layout for known array sub-types. */
       char str[3] = {'\0'};
 
       if (!icon_only && show_text) {

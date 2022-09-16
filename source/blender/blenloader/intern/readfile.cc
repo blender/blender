@@ -2441,7 +2441,7 @@ static int lib_link_main_data_restore_cb(LibraryIDLinkCallbackData *cb_data)
 
   struct IDNameLib_Map *id_map = static_cast<IDNameLib_Map *>(cb_data->user_data);
 
-  /* NOTE: Handling of usercount here is really bad, defining its own system...
+  /* NOTE: Handling of user-count here is really bad, defining its own system...
    * Will have to be refactored at some point, but that is not top priority task for now.
    * And all user-counts are properly recomputed at the end of the undo management code anyway. */
   *id_pointer = static_cast<ID *>(restore_pointer_by_name(
@@ -4777,7 +4777,7 @@ static void read_library_linked_ids(FileData *basefd,
         }
 
         /* `realid` shall never be nullptr - unless some source file/lib is broken
-         * (known case: some directly linked shapekey from a missing lib...). */
+         * (known case: some directly linked shape-key from a missing lib...). */
         // BLI_assert(*realid != nullptr);
 
         /* Now that we have a real ID, replace all pointers to placeholders in

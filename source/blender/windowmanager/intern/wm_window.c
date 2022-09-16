@@ -1281,7 +1281,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
                 state_str = "maximized";
               }
               else if (state == GHOST_kWindowStateFullScreen) {
-                state_str = "fullscreen";
+                state_str = "full-screen";
               }
               else {
                 state_str = "<unknown>";

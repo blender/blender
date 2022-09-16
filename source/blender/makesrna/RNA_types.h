@@ -120,7 +120,7 @@ typedef enum PropertyScaleType {
 
 /**
  * \note Also update enums in bpy_props.c and rna_rna.c when adding items here.
- * Watch it: these values are written to files as part of node socket button subtypes!
+ * Watch it: these values are written to files as part of node socket button sub-types!
  */
 typedef enum PropertySubType {
   PROP_NONE = 0,
@@ -719,7 +719,7 @@ typedef enum StructFlag {
   STRUCT_CONTAINS_DATABLOCK_IDPROPERTIES = (1 << 8),
   /** Added to type-map #BlenderRNA.structs_map */
   STRUCT_PUBLIC_NAMESPACE = (1 << 9),
-  /** All subtypes are added too. */
+  /** All sub-types are added too. */
   STRUCT_PUBLIC_NAMESPACE_INHERIT = (1 << 10),
   /**
    * When the #PointerRNA.owner_id is NULL, this signifies the property should be accessed

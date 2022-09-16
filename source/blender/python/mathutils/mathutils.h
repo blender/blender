@@ -45,7 +45,7 @@ enum {
   PyObject *cb_user; \
   /** Which user funcs do we adhere to, RNA, etc */ \
   unsigned char cb_type; \
-  /** Subtype: location, rotation... \
+  /** Sub-type: location, rotation... \
    * to avoid defining many new functions for every attribute of the same type */ \
   unsigned char cb_subtype; \
   /** Wrapped data type. */ \

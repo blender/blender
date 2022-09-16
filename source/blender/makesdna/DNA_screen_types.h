@@ -477,7 +477,7 @@ typedef struct ARegion {
   short do_draw_paintcursor;
   /** Private, set for indicate drawing overlapped. */
   short overlap;
-  /** Temporary copy of flag settings for clean fullscreen. */
+  /** Temporary copy of flag settings for clean full-screen. */
   short flagfullscreen;
 
   /** Callbacks for this region type. */

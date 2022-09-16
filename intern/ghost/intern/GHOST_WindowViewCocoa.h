@@ -226,7 +226,7 @@
     [super drawRect:rect];
     systemCocoa->handleWindowEvent(GHOST_kEventWindowUpdate, associatedWindow);
 
-    /* For some cases like entering fullscreen we need to redraw immediately
+    /* For some cases like entering full-screen we need to redraw immediately
      * so our window does not show blank during the animation */
     if (associatedWindow->getImmediateDraw())
       systemCocoa->dispatchEvents();

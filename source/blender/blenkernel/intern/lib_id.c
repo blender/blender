@@ -416,7 +416,7 @@ static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
   /* Can happen that we get un-linkable ID here, e.g. with shape-key referring to itself
    * (through drivers)...
    * Just skip it, shape key can only be either indirectly linked, or fully local, period.
-   * And let's curse one more time that stupid useless shapekey ID type! */
+   * And let's curse one more time that stupid useless shape-key ID type! */
   if (*id_pointer && *id_pointer != id_self &&
       BKE_idtype_idcode_is_linkable(GS((*id_pointer)->name))) {
     id_lib_extern(*id_pointer);
@@ -566,7 +566,7 @@ struct IDCopyLibManagementData {
   int flag;
 };
 
-/* Increases usercount as required, and remap self ID pointers. */
+/** Increases user-count as required, and remap self ID pointers. */
 static int id_copy_libmanagement_cb(LibraryIDLinkCallbackData *cb_data)
 {
   ID **id_pointer = cb_data->id_pointer;
@@ -1289,7 +1289,7 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
 
   new_id->flag = (new_id->flag & ~copy_idflag_mask) | (id->flag & copy_idflag_mask);
 
-  /* We do not want any handling of usercount in code duplicating the data here, we do that all
+  /* We do not want any handling of user-count in code duplicating the data here, we do that all
    * at once in id_copy_libmanagement_cb() at the end. */
   const int copy_data_flag = orig_flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
 
@@ -1566,7 +1566,7 @@ void BKE_main_id_refcount_recompute(struct Main *bmain, const bool do_linked_onl
   }
   FOREACH_MAIN_ID_END;
 
-  /* Go over whole Main database to re-generate proper usercounts... */
+  /* Go over whole Main database to re-generate proper user-counts. */
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     BKE_library_foreach_ID_link(bmain,
                                 id,

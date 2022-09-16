@@ -260,7 +260,7 @@ bool SEQ_edit_move_strip_to_meta(Scene *scene,
 
 static void seq_split_set_left_hold_offset(Scene *scene, Sequence *seq, int timeline_frame)
 {
-  /* Adjust within range of extended stillframes before strip. */
+  /* Adjust within range of extended still-frames before strip. */
   if (timeline_frame < seq->start) {
     seq->start = timeline_frame - 1;
     seq->anim_endofs += SEQ_time_strip_length_get(scene, seq) - 1;
@@ -274,7 +274,7 @@ static void seq_split_set_left_hold_offset(Scene *scene, Sequence *seq, int time
     seq->endstill = 0;
     seq->anim_endofs += (seq->start + SEQ_time_strip_length_get(scene, seq)) - timeline_frame;
   }
-  /* Adjust within range of extended stillframes after strip. */
+  /* Adjust within range of extended still-frames after strip. */
   else if ((seq->start + SEQ_time_strip_length_get(scene, seq)) < timeline_frame) {
     seq->endstill = timeline_frame - seq->start - SEQ_time_strip_length_get(scene, seq);
   }
@@ -282,7 +282,7 @@ static void seq_split_set_left_hold_offset(Scene *scene, Sequence *seq, int time
 
 static void seq_split_set_right_hold_offset(Scene *scene, Sequence *seq, int timeline_frame)
 {
-  /* Adjust within range of extended stillframes before strip. */
+  /* Adjust within range of extended still-frames before strip. */
   if (timeline_frame < seq->start) {
     seq->startstill = seq->start - timeline_frame;
   }
@@ -294,7 +294,7 @@ static void seq_split_set_right_hold_offset(Scene *scene, Sequence *seq, int tim
     seq->startstill = 0;
     seq->startofs = 0;
   }
-  /* Adjust within range of extended stillframes after strip. */
+  /* Adjust within range of extended still-frames after strip. */
   else if ((seq->start + SEQ_time_strip_length_get(scene, seq)) < timeline_frame) {
     seq->start = timeline_frame;
     seq->startofs = 0;

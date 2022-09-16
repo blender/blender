@@ -1135,7 +1135,7 @@ char RNA_property_array_item_char(PropertyRNA *prop, int index)
 
 int RNA_property_array_item_index(PropertyRNA *prop, char name)
 {
-  /* Don't use custom property subtypes in RNA path lookup. */
+  /* Don't use custom property sub-types in RNA path lookup. */
   PropertySubType subtype = rna_ensure_property(prop)->subtype;
 
   /* get index based on string name/alias */

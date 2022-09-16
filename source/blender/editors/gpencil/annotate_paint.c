@@ -2346,7 +2346,7 @@ static int annotation_draw_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   return OPERATOR_RUNNING_MODAL;
 }
 
-/* gpencil modal operator stores area, which can be removed while using it (like fullscreen) */
+/* gpencil modal operator stores area, which can be removed while using it (like full-screen). */
 static bool annotation_area_exists(bContext *C, ScrArea *area_test)
 {
   bScreen *screen = CTX_wm_screen(C);
@@ -2698,7 +2698,7 @@ static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *eve
     }
   }
 
-  /* gpencil modal operator stores area, which can be removed while using it (like fullscreen) */
+  /* gpencil modal operator stores area, which can be removed while using it (like full-screen). */
   if (0 == annotation_area_exists(C, p->area)) {
     estate = OPERATOR_CANCELLED;
   }

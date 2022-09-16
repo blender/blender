@@ -365,8 +365,8 @@ void BLI_path_normalize_unc(char *path_16, int maxlen);
 /**
  * Appends a suffix to the string, fitting it before the extension
  *
- * string = Foo.png, suffix = 123, separator = _
- * Foo.png -> Foo_123.png
+ * string = `Foo.png`, suffix = `123`, separator = `_`.
+ * `Foo.png` -> `Foo_123.png`.
  *
  * \param string: original (and final) string
  * \param maxlen: Maximum length of string

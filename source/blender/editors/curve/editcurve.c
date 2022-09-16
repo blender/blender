@@ -1254,7 +1254,7 @@ void ED_curve_editnurb_load(Main *bmain, Object *obedit)
     }
 
     /* We have to pass also new copied nurbs, since we want to restore original curve
-     * (without edited shapekey) on obdata, but *not* on editcurve itself
+     * (without edited shape-key) on obdata, but *not* on editcurve itself
      * (ED_curve_editnurb_load call does not always implies freeing
      * of editcurve, e.g. when called to generate render data). */
     calc_shapeKeys(obedit, &newnurb);
@@ -1298,15 +1298,15 @@ void ED_curve_editnurb_make(Object *obedit)
       BLI_addtail(&editnurb->nurbs, newnu);
     }
 
-    /* animation could be added in editmode even if there was no animdata in
-     * object mode hence we always need CVs index be created */
+    /* Animation could be added in edit-mode even if there was no animdata in
+     * object mode hence we always need CVs index be created. */
     init_editNurb_keyIndex(editnurb, &cu->nurb);
 
     if (actkey) {
       editnurb->shapenr = obedit->shapenr;
-      /* Apply shapekey to new nurbs of editnurb, not those of original curve
+      /* Apply shape-key to new nurbs of editnurb, not those of original curve
        * (and *after* we generated keyIndex), else we do not have valid 'original' data
-       * to properly restore curve when leaving editmode. */
+       * to properly restore curve when leaving edit-mode. */
       BKE_keyblock_convert_to_curve(actkey, cu, &editnurb->nurbs);
     }
   }

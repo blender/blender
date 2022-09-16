@@ -4082,9 +4082,9 @@ void WM_event_fileselect_event(wmWindowManager *wm, void *ophandle, int eventval
  * An appropriate window is either of the following:
  * * A parent window that does not yet contain a modal File Browser. This is determined using
  *   #ED_fileselect_handler_area_find_any_with_op().
- * * A parent window containing a modal File Browser, but in a maximized/fullscreen state. Users
+ * * A parent window containing a modal File Browser, but in a maximized/full-screen state. Users
  *   shouldn't be able to put a temporary screen like the modal File Browser into
- *   maximized/fullscreen state themselves. So this setup indicates that the File Browser was
+ *   maximized/full-screen state themselves. So this setup indicates that the File Browser was
  *   opened using #USER_TEMP_SPACE_DISPLAY_FULLSCREEN.
  *
  * If no appropriate parent window can be found from the context window, return the first

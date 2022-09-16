@@ -1353,7 +1353,7 @@ static void draw_selected_name(
       }
     }
     else if (ELEM(ob->type, OB_MESH, OB_LATTICE, OB_CURVES_LEGACY)) {
-      /* try to display active bone and active shapekey too (if they exist) */
+      /* Try to display active bone and active shape-key too (if they exist). */
 
       if (ob->type == OB_MESH && ob->mode & OB_MODE_WEIGHT_PAINT) {
         Object *armobj = BKE_object_pose_armature_get(ob);

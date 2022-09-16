@@ -992,7 +992,7 @@ typedef struct NodeGlare {
   char _pad1[4];
 } NodeGlare;
 
-/** Tonemap node. */
+/** Tone-map node. */
 typedef struct NodeTonemap {
   float key, offset, gamma;
   float f, m, a, c;

@@ -113,7 +113,7 @@ typedef struct SpaceType {
 
   /* read and write... */
 
-  /* default keymaps to add */
+  /** Default key-maps to add. */
   int keymapflag;
 
 } SpaceType;

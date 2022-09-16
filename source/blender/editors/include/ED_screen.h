@@ -353,8 +353,8 @@ struct ScrArea *ED_screen_state_toggle(struct bContext *C,
                                        struct ScrArea *area,
                                        short state);
 /**
- * Wrapper to open a temporary space either as fullscreen space, or as separate window, as defined
- * by \a display_type.
+ * Wrapper to open a temporary space either as full-screen space, or as separate window,
+ * as defined by \a display_type.
  *
  * \param title: Title to set for the window, if a window is spawned.
  * \param x, y: Position of the window, if a window is spawned.

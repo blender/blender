@@ -942,7 +942,7 @@ bool DirectDrawSurface::isSupported() const
 
   if (isTextureCube() &&
       (header.caps.caps2 & DDSCAPS2_CUBEMAP_ALL_FACES) != DDSCAPS2_CUBEMAP_ALL_FACES) {
-    /* Cubemaps must contain all faces. */
+    /* Cube-maps must contain all faces. */
     return false;
   }
 

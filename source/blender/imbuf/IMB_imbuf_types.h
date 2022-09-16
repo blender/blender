@@ -125,7 +125,7 @@ enum eImbFileType {
 
 typedef struct ImbFormatOptions {
   short flag;
-  /** quality serves dual purpose as quality number for jpeg or compression amount for png */
+  /** Quality serves dual purpose as quality number for JPEG or compression amount for PNG. */
   char quality;
 } ImbFormatOptions;
 

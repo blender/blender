@@ -639,7 +639,7 @@ static bool fcu_test_selected(FCurve *fcu)
   return 0;
 }
 
-/* this function is called on recalcData to apply the transforms applied
+/* This function is called on recalcData to apply the transforms applied
  * to the transdata on to the actual keyframe data
  */
 static void flushTransGraphData(TransInfo *t)

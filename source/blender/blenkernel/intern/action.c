@@ -113,7 +113,7 @@ static void action_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, 
 
     BLI_addtail(&action_dst->curves, fcurve_dst);
 
-    /* Fix group links (kindof bad list-in-list search, but this is the most reliable way). */
+    /* Fix group links (kind of bad list-in-list search, but this is the most reliable way). */
     for (group_dst = action_dst->groups.first, group_src = action_src->groups.first;
          group_dst && group_src;
          group_dst = group_dst->next, group_src = group_src->next) {

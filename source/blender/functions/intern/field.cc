@@ -574,7 +574,7 @@ bool IndexFieldInput::is_equal_to(const fn::FieldNode &other) const
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Fieldnode
+/** \name #FieldNode
  * \{ */
 
 /* Avoid generating the destructor in every translation unit. */
@@ -583,7 +583,7 @@ FieldNode::~FieldNode() = default;
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Fieldoperation
+/** \name #FieldOperation
  * \{ */
 
 FieldOperation::FieldOperation(std::shared_ptr<const MultiFunction> function,
@@ -660,7 +660,7 @@ FieldOperation::FieldOperation(const MultiFunction &function, Vector<GField> inp
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Fieldinput
+/** \name #FieldInput
  * \{ */
 
 FieldInput::FieldInput(const CPPType &type, std::string debug_name)
@@ -678,7 +678,7 @@ FieldInput::~FieldInput() = default;
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Fieldconstant
+/** \name #FieldConstant
  * \{ */
 
 FieldConstant::FieldConstant(const CPPType &type, const void *value)
@@ -714,7 +714,7 @@ GPointer FieldConstant::value() const
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Fieldevaluator
+/** \name #FieldEvaluator
  * \{ */
 
 static IndexMask index_mask_from_selection(const IndexMask full_mask,

@@ -815,7 +815,7 @@ typedef struct EEVEE_EffectsInfo {
   struct GPUTexture *dof_reduce_input_color_tx;
   /* Other */
   float prev_persmat[4][4];
-  /* Size used by all fullscreen buffers using mipmaps. */
+  /* Size used by all full-screen buffers using mipmaps. */
   int hiz_size[2];
   /* Lookdev */
   int sphere_size;

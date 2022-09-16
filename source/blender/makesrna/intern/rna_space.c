@@ -6632,7 +6632,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Title", "Title for the file browser");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-  /* Use BYTESTRING rather than DIRPATH as subtype so UI code doesn't add OT_directory_browse
+  /* Use BYTESTRING rather than DIRPATH as sub-type so UI code doesn't add OT_directory_browse
    * button when displaying this prop in the file browser (it would just open a file browser). That
    * should be the only effective difference between the two. */
   prop = RNA_def_property(srna, "directory", PROP_STRING, PROP_BYTESTRING);

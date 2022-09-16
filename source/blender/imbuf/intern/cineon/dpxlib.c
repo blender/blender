@@ -4,7 +4,7 @@
 /** \file
  * \ingroup imbcineon
  *
- * Dpx image file format library routines.
+ * DPX image file format library routines.
  */
 
 #include "dpxlib.h"

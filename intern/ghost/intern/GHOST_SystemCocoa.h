@@ -79,7 +79,7 @@ class GHOST_SystemCocoa : public GHOST_System {
    * \param state: The state of the window when opened.
    * \param type: The type of drawing context installed in this window.
    * \param glSettings: Misc OpenGL settings.
-   * \param exclusive: Use to show the window ontop and ignore others (used fullscreen).
+   * \param exclusive: Use to show the window on top and ignore others (used full-screen).
    * \param parentWindow: Parent (embedder) window.
    * \return The new window (or 0 if creation failed).
    */

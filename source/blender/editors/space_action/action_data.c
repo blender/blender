@@ -169,7 +169,7 @@ static bool action_new_poll(bContext *C)
     SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
     Object *ob = CTX_data_active_object(C);
 
-    /* For now, actions are only for the active object, and on object and shapekey levels... */
+    /* For now, actions are only for the active object, and on object and shape-key levels... */
     if (saction->mode == SACTCONT_ACTION) {
       /* XXX: This assumes that actions are assigned to the active object in this mode */
       if (ob) {
@@ -460,7 +460,8 @@ static bool action_stash_create_poll(bContext *C)
       Scene *scene = CTX_data_scene(C);
 
       if (!(scene->flag & SCE_NLA_EDIT_ON)) {
-        /* For now, actions are only for the active object, and on object and shapekey levels... */
+        /* For now, actions are only for the active object, and on object and shape-key levels...
+         */
         return ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY);
       }
     }

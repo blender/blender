@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 /**
- * Free (or release) any data used by this shapekey (does not free the key itself).
+ * Free (or release) any data used by this shape-key (does not free the key itself).
  */
 void BKE_key_free_data(struct Key *key);
 void BKE_key_free_nolib(struct Key *key);

@@ -1116,7 +1116,7 @@ static void pchan_clear_rot(bPoseChannel *pchan)
   }
 
   /* Clear also Bendy Bone stuff - Roll is obvious,
-   * but Curve X/Y stuff is also kindof rotational in nature... */
+   * but Curve X/Y stuff is also kind of rotational in nature... */
   pchan->roll1 = 0.0f;
   pchan->roll2 = 0.0f;
 

@@ -112,7 +112,7 @@ enum {
    */
   AZONE_REGION,
   /**
-   * Used when in editor fullscreen draw a corner to return to normal mode.
+   * Used when in editor full-screen draw a corner to return to normal mode.
    */
   AZONE_FULLSCREEN,
   /**

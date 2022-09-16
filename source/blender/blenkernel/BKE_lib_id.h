@@ -117,14 +117,14 @@ void *BKE_id_new_nomain(short type, const char *name);
  */
 enum {
   /* *** Generic options (should be handled by all ID types copying, ID creation, etc.). *** */
-  /** Create datablock outside of any main database -
+  /** Create data-block outside of any main database -
    * similar to 'localize' functions of materials etc. */
   LIB_ID_CREATE_NO_MAIN = 1 << 0,
-  /** Do not affect user refcount of datablocks used by new one
-   * (which also gets zero usercount then).
+  /** Do not affect user refcount of data-blocks used by new one
+   * (which also gets zero user-count then).
    * Implies LIB_ID_CREATE_NO_MAIN. */
   LIB_ID_CREATE_NO_USER_REFCOUNT = 1 << 1,
-  /** Assume given 'newid' already points to allocated memory for whole datablock
+  /** Assume given 'newid' already points to allocated memory for whole data-block
    * (ID + data) - USE WITH CAUTION!
    * Implies LIB_ID_CREATE_NO_MAIN. */
   LIB_ID_CREATE_NO_ALLOCATE = 1 << 2,
@@ -239,12 +239,12 @@ enum {
   /** Do not try to remove freed ID from given Main (passed Main may be NULL). */
   LIB_ID_FREE_NO_MAIN = 1 << 0,
   /**
-   * Do not affect user refcount of datablocks used by freed one.
+   * Do not affect user refcount of data-blocks used by freed one.
    * Implies LIB_ID_FREE_NO_MAIN.
    */
   LIB_ID_FREE_NO_USER_REFCOUNT = 1 << 1,
   /**
-   * Assume freed ID datablock memory is managed elsewhere, do not free it
+   * Assume freed ID data-block memory is managed elsewhere, do not free it
    * (still calls relevant ID type's freeing function though) - USE WITH CAUTION!
    * Implies LIB_ID_FREE_NO_MAIN.
    */
@@ -254,7 +254,7 @@ enum {
   LIB_ID_FREE_NO_DEG_TAG = 1 << 8,
   /** Do not attempt to remove freed ID from UI data/notifiers/... */
   LIB_ID_FREE_NO_UI_USER = 1 << 9,
-  /** Do not remove freed ID's name from a potential runtime namemap. */
+  /** Do not remove freed ID's name from a potential runtime name-map. */
   LIB_ID_FREE_NO_NAMEMAP_REMOVE = 1 << 10,
 };
 
@@ -283,7 +283,7 @@ void BKE_libblock_free_data_py(struct ID *id);
  * \param idv: Pointer to ID to be freed.
  * \param flag: Set of \a LIB_ID_FREE_... flags controlling/overriding usual freeing process,
  * 0 to get default safe behavior.
- * \param use_flag_from_idtag: Still use freeing info flags from given #ID datablock,
+ * \param use_flag_from_idtag: Still use freeing info flags from given #ID data-block,
  * even if some overriding ones are passed in \a flag parameter.
  */
 void BKE_id_free_ex(struct Main *bmain, void *idv, int flag, bool use_flag_from_idtag);
@@ -300,7 +300,7 @@ void BKE_id_free(struct Main *bmain, void *idv);
 
 /**
  * Not really a freeing function by itself,
- * it decrements usercount of given id, and only frees it if it reaches 0.
+ * it decrements user-count of given id, and only frees it if it reaches 0.
  */
 void BKE_id_free_us(struct Main *bmain, void *idv) ATTR_NONNULL();
 
@@ -316,12 +316,12 @@ void BKE_id_delete(struct Main *bmain, void *idv) ATTR_NONNULL();
  *
  * \warning Considered experimental for now, seems to be working OK but this is
  * risky code in a complicated area.
- * \return Number of deleted datablocks.
+ * \return Number of deleted data-blocks.
  */
 size_t BKE_id_multi_tagged_delete(struct Main *bmain) ATTR_NONNULL();
 
 /**
- * Add a 'NO_MAIN' data-block to given main (also sets usercounts of its IDs if needed).
+ * Add a 'NO_MAIN' data-block to given main (also sets user-counts of its IDs if needed).
  */
 void BKE_libblock_management_main_add(struct Main *bmain, void *idv);
 /** Remove a data-block from given main (set it to 'NO_MAIN' status). */

@@ -966,7 +966,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
     patterns[5] = NULL;
   }
 
-  /* add a temporary shapekey layer to store displacements on current geometry */
+  /* Add a temporary shape-key layer to store displacements on current geometry. */
   BM_data_layer_add(bm, &bm->vdata, CD_SHAPEKEY);
 
   bmo_subd_init_shape_info(bm, &params);

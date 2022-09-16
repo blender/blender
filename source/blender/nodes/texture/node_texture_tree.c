@@ -251,7 +251,7 @@ bNodeTreeExec *ntreeTexBeginExecTree(bNodeTree *ntree)
 
   exec = ntreeTexBeginExecTree_internal(&context, ntree, NODE_INSTANCE_KEY_BASE);
 
-  /* XXX this should not be necessary, but is still used for cmp/sha/tex nodes,
+  /* XXX this should not be necessary, but is still used for compositor/shading/texture nodes,
    * which only store the ntree pointer. Should be fixed at some point!
    */
   ntree->execdata = exec;

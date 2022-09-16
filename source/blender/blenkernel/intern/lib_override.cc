@@ -1846,8 +1846,8 @@ static bool lib_override_library_resync(Main *bmain,
         }
       }
       if (reference_id == nullptr) {
-        /* Can happen e.g. when there is a local override of a shapekey, but the matching linked
-         * obdata (mesh etc.) does not have any shapekey anymore. */
+        /* Can happen e.g. when there is a local override of a shape-key, but the matching linked
+         * obdata (mesh etc.) does not have any shape-key anymore. */
         continue;
       }
       BLI_assert(GS(reference_id->name) == GS(id->name));
@@ -3951,7 +3951,7 @@ void BKE_lib_override_library_operations_store_end(
 void BKE_lib_override_library_operations_store_finalize(OverrideLibraryStorage *override_storage)
 {
   /* We cannot just call BKE_main_free(override_storage), not until we have option to make
-   * 'ghost' copies of IDs without increasing usercount of used data-blocks. */
+   * 'ghost' copies of IDs without increasing user-count of used data-blocks. */
   ID *id;
 
   FOREACH_MAIN_ID_BEGIN (override_storage, id) {

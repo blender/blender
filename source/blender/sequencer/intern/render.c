@@ -1352,7 +1352,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
    * find render).
    * However, when called from within the UI (image preview in sequencer)
    * we do want to use scene Render, that way the render result is defined
-   * for display in render/imagewindow
+   * for display in render/image-window
    *
    * Hmm, don't see, why we can't do that all the time,
    * and since G.is_rendering is uhm, gone... (Peter)

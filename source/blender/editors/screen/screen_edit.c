@@ -1275,7 +1275,7 @@ void ED_screen_full_prevspace(bContext *C, ScrArea *area)
   BLI_assert(area->full);
 
   if (area->flag & AREA_FLAG_STACKED_FULLSCREEN) {
-    /* stacked fullscreen -> only go back to previous area and don't toggle out of fullscreen */
+    /* Stacked full-screen -> only go back to previous area and don't toggle out of full-screen. */
     ED_area_prevspace(C, area);
   }
   else {
@@ -1306,8 +1306,8 @@ void ED_screen_full_restore(bContext *C, ScrArea *area)
   bScreen *screen = CTX_wm_screen(C);
   short state = (screen ? screen->state : SCREENMAXIMIZED);
 
-  /* if fullscreen area has a temporary space (such as a file browser or fullscreen render
-   * overlaid on top of an existing setup) then return to the previous space */
+  /* If full-screen area has a temporary space (such as a file browser or full-screen render
+   * overlaid on top of an existing setup) then return to the previous space. */
 
   if (sl->next) {
     if (sl->link_flag & SPACE_FLAG_TYPE_TEMPORARY) {

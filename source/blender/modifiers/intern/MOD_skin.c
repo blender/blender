@@ -1734,7 +1734,7 @@ static void skin_smooth_hulls(BMesh *bm,
     }
   }
 
-  /* Add temporary shapekey layer to store original coordinates */
+  /* Add temporary shape-key layer to store original coordinates. */
   BM_data_layer_add(bm, &bm->vdata, CD_SHAPEKEY);
   skey = CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY) - 1;
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {

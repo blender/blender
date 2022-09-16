@@ -229,7 +229,7 @@ static void sequencer_free(SpaceLink *sl)
   }
 }
 
-/* Spacetype init callback. */
+/* Space-type init callback. */
 static void sequencer_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
 {
 }

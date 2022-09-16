@@ -175,7 +175,7 @@ void ED_area_do_refresh(bContext *C, ScrArea *area)
 }
 
 /**
- * \brief Corner widget use for quitting fullscreen.
+ * \brief Corner widget use for quitting full-screen.
  */
 static void area_draw_azone_fullscreen(
     short UNUSED(x1), short UNUSED(y1), short x2, short y2, float alpha)
@@ -845,7 +845,7 @@ void ED_workspace_status_text(bContext *C, const char *str)
 
 static void area_azone_init(wmWindow *win, const bScreen *screen, ScrArea *area)
 {
-  /* reinitialize entirely, regions and fullscreen add azones too */
+  /* reinitialize entirely, regions and full-screen add azones too */
   BLI_freelistN(&area->actionzones);
 
   if (screen->state != SCREENNORMAL) {
@@ -2578,8 +2578,8 @@ void ED_area_prevspace(bContext *C, ScrArea *area)
     /* no change */
     return;
   }
-  /* If this is a stacked fullscreen, changing to previous area exits it (meaning we're still in a
-   * fullscreen, but not in a stacked one). */
+  /* If this is a stacked full-screen, changing to previous area exits it (meaning we're still in a
+   * full-screen, but not in a stacked one). */
   area->flag &= ~AREA_FLAG_STACKED_FULLSCREEN;
 
   ED_area_tag_redraw(area);

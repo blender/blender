@@ -305,7 +305,7 @@ IDTypeInfo IDType_ID_SCR = {
     .lib_override_apply_post = NULL,
 };
 
-/* ************ Spacetype/regiontype handling ************** */
+/* ************ Space-type/region-type handling ************** */
 
 /* keep global; this has to be accessible outside of windowmanager */
 static ListBase spacetypes = {NULL, NULL};

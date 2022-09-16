@@ -1892,7 +1892,7 @@ static void rna_Node_unregister(Main *UNUSED(bmain), StructRNA *type)
 }
 
 /* Generic internal registration function.
- * Can be used to implement callbacks for registerable RNA node subtypes.
+ * Can be used to implement callbacks for registerable RNA node sub-types.
  */
 static bNodeType *rna_Node_register_base(Main *bmain,
                                          ReportList *reports,

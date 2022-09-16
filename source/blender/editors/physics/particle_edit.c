@@ -3988,7 +3988,7 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
           /* Translate (not rotate) the rest of the hair if its not selected. */
           {
 /* NOLINTNEXTLINE: readability-redundant-preprocessor */
-#  if 0 /* kindof works but looks worse than what's below */
+#  if 0 /* Kind of works but looks worse than what's below. */
 
             /* Move the unselected point on a vector based on the
              * hair direction and the offset */

@@ -2142,7 +2142,7 @@ void do_versions_ipos_to_animato(Main *bmain)
       if (ob->action) {
         action_to_animdata(id, ob->action);
 
-        /* only decrease usercount if this Action isn't now being used by AnimData */
+        /* Only decrease user-count if this Action isn't now being used by AnimData. */
         if (ob->action != adt->action) {
           id_us_min(&ob->action->id);
           ob->action = NULL;
@@ -2246,7 +2246,7 @@ void do_versions_ipos_to_animato(Main *bmain)
       /* Add AnimData block */
       AnimData *adt = BKE_animdata_ensure_id(id);
 
-      /* Convert Shapekey data... */
+      /* Convert Shape-key data... */
       ipo_to_animdata(bmain, id, key->ipo, NULL, NULL, NULL);
 
       if (adt->action) {

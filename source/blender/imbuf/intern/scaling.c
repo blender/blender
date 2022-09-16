@@ -828,7 +828,7 @@ static void q_scale_float(
 }
 
 /**
- * q_scale_linear_interpolation (derived from ppmqscale, http://libdv.sf.net)
+ * q_scale_linear_interpolation (derived from `ppmqscale`, http://libdv.sf.net)
  *
  * q stands for quick _and_ quality :)
  *

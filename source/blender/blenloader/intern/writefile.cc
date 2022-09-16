@@ -1161,7 +1161,7 @@ static bool write_file_handle(Main *mainvar,
 
         /* We only write unused IDs in undo case.
          * NOTE: All Scenes, WindowManagers and WorkSpaces should always be written to disk, so
-         * their usercount should never be nullptr currently. */
+         * their user-count should never be nullptr currently. */
         if (id->us == 0 && !wd->use_memfile) {
           BLI_assert(!ELEM(GS(id->name), ID_SCE, ID_WM, ID_WS));
           continue;
@@ -1176,7 +1176,7 @@ static bool write_file_handle(Main *mainvar,
 
         if (wd->use_memfile) {
           /* Record the changes that happened up to this undo push in
-           * recalc_up_to_undo_push, and clear recalc_after_undo_push again
+           * recalc_up_to_undo_push, and clear `recalc_after_undo_push` again
            * to start accumulating for the next undo push. */
           id->recalc_up_to_undo_push = id->recalc_after_undo_push;
           id->recalc_after_undo_push = 0;

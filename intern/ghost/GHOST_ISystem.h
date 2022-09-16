@@ -281,7 +281,7 @@ class GHOST_ISystem {
                                          const bool stereoVisual) = 0;
 
   /**
-   * Updates the resolution while in fullscreen mode.
+   * Updates the resolution while in full-screen mode.
    * \param setting: The new setting of the display.
    * \param window: Window displayed in full screen.
    *
