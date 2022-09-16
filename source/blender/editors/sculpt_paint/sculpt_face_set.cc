@@ -7,12 +7,16 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <queue>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_bit_vector.hh"
+#include "BLI_function_ref.hh"
 #include "BLI_hash.h"
 #include "BLI_math.h"
+#include "BLI_math_vector.hh"
+#include "BLI_span.hh"
 #include "BLI_task.h"
 
 #include "DNA_brush_types.h"
@@ -22,6 +26,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_brush.h"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
@@ -510,178 +515,100 @@ static EnumPropertyItem prop_sculpt_face_sets_init_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-typedef bool (*face_sets_flood_fill_test)(
-    BMesh *bm, BMFace *from_f, BMEdge *from_e, BMFace *to_f, const float threshold);
+using FaceSetsFloodFillFn = blender::FunctionRef<bool(int from_face, int edge, int to_face)>;
 
-static bool sculpt_face_sets_init_loose_parts_test(BMesh *UNUSED(bm),
-                                                   BMFace *from_f,
-                                                   BMEdge *UNUSED(from_e),
-                                                   BMFace *to_f,
-                                                   const float UNUSED(threshold))
+static void sculpt_face_sets_init_flood_fill(Object *ob, const FaceSetsFloodFillFn &test_fn)
 {
-  return BM_elem_flag_test(from_f, BM_ELEM_HIDDEN) == BM_elem_flag_test(to_f, BM_ELEM_HIDDEN);
-}
-
-static bool sculpt_face_sets_init_normals_test(
-    BMesh *UNUSED(bm), BMFace *from_f, BMEdge *UNUSED(from_e), BMFace *to_f, const float threshold)
-{
-  return fabsf(dot_v3v3(from_f->no, to_f->no)) > threshold;
-}
-
-static bool sculpt_face_sets_init_uv_seams_test(BMesh *UNUSED(bm),
-                                                BMFace *UNUSED(from_f),
-                                                BMEdge *from_e,
-                                                BMFace *UNUSED(to_f),
-                                                const float UNUSED(threshold))
-{
-  return !BM_elem_flag_test(from_e, BM_ELEM_SEAM);
-}
-
-static bool sculpt_face_sets_init_crease_test(
-    BMesh *bm, BMFace *UNUSED(from_f), BMEdge *from_e, BMFace *UNUSED(to_f), const float threshold)
-{
-  return BM_elem_float_data_get(&bm->edata, from_e, CD_CREASE) < threshold;
-}
-
-static bool sculpt_face_sets_init_bevel_weight_test(
-    BMesh *bm, BMFace *UNUSED(from_f), BMEdge *from_e, BMFace *UNUSED(to_f), const float threshold)
-{
-  return BM_elem_float_data_get(&bm->edata, from_e, CD_BWEIGHT) < threshold;
-}
-
-static bool sculpt_face_sets_init_sharp_edges_test(BMesh *UNUSED(bm),
-                                                   BMFace *UNUSED(from_f),
-                                                   BMEdge *from_e,
-                                                   BMFace *UNUSED(to_f),
-                                                   const float UNUSED(threshold))
-{
-  return BM_elem_flag_test(from_e, BM_ELEM_SMOOTH);
-}
-
-static bool sculpt_face_sets_init_face_set_boundary_test(
-    BMesh *bm, BMFace *from_f, BMEdge *UNUSED(from_e), BMFace *to_f, const float UNUSED(threshold))
-{
-  const int cd_face_sets_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
-  return BM_ELEM_CD_GET_INT(from_f, cd_face_sets_offset) ==
-         BM_ELEM_CD_GET_INT(to_f, cd_face_sets_offset);
-}
-
-static void sculpt_face_sets_init_flood_fill(Object *ob,
-                                             face_sets_flood_fill_test test,
-                                             const float threshold)
-{
+  using namespace blender;
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  BMesh *bm;
-  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
-  BMeshCreateParams create_params{};
-  create_params.use_toolflags = true;
-  bm = BM_mesh_create(&allocsize, &create_params);
 
-  BMeshFromMeshParams convert_params{};
-  convert_params.calc_vert_normal = true;
-  convert_params.calc_face_normal = true;
-  BM_mesh_bm_from_me(bm, mesh, &convert_params);
-
-  BLI_bitmap *visited_faces = BLI_BITMAP_NEW(mesh->totpoly, "visited faces");
-  const int totfaces = mesh->totpoly;
+  BitVector<> visited_faces(mesh->totpoly, false);
 
   int *face_sets = ss->face_sets;
 
-  BM_mesh_elem_table_init(bm, BM_FACE);
-  BM_mesh_elem_table_ensure(bm, BM_FACE);
+  const Span<MEdge> edges = mesh->edges();
+  const Span<MPoly> polys = mesh->polys();
+  const Span<MLoop> loops = mesh->loops();
+
+  if (!ss->epmap) {
+    BKE_mesh_edge_poly_map_create(&ss->epmap,
+                                  &ss->epmap_mem,
+                                  edges.data(),
+                                  edges.size(),
+                                  polys.data(),
+                                  polys.size(),
+                                  loops.data(),
+                                  loops.size());
+  }
 
   int next_face_set = 1;
 
-  for (int i = 0; i < totfaces; i++) {
-    if (BLI_BITMAP_TEST(visited_faces, i)) {
+  for (const int i : polys.index_range()) {
+    if (visited_faces[i]) {
       continue;
     }
-    GSQueue *queue;
-    queue = BLI_gsqueue_new(sizeof(int));
+    std::queue<int> queue;
 
     face_sets[i] = next_face_set;
-    BLI_BITMAP_ENABLE(visited_faces, i);
-    BLI_gsqueue_push(queue, &i);
+    visited_faces[i].set(true);
+    queue.push(i);
 
-    while (!BLI_gsqueue_is_empty(queue)) {
-      int from_f;
-      BLI_gsqueue_pop(queue, &from_f);
+    while (!queue.empty()) {
+      const int poly_i = queue.front();
+      const MPoly &poly = polys[poly_i];
+      queue.pop();
 
-      BMFace *f, *f_neighbor;
-      BMEdge *ed;
-      BMIter iter_a, iter_b;
-
-      f = BM_face_at_index(bm, from_f);
-
-      BM_ITER_ELEM (ed, &iter_a, f, BM_EDGES_OF_FACE) {
-        BM_ITER_ELEM (f_neighbor, &iter_b, ed, BM_FACES_OF_EDGE) {
-          if (f_neighbor == f) {
+      for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
+        const int edge_i = loop.e;
+        const Span<int> neighbor_polys(ss->epmap[edge_i].indices, ss->epmap[edge_i].count);
+        for (const int neighbor_i : neighbor_polys) {
+          if (neighbor_i == poly_i) {
             continue;
           }
-          int neighbor_face_index = BM_elem_index_get(f_neighbor);
-          if (BLI_BITMAP_TEST(visited_faces, neighbor_face_index)) {
+          if (visited_faces[neighbor_i]) {
             continue;
           }
-          if (!test(bm, f, ed, f_neighbor, threshold)) {
+          if (!test_fn(poly_i, edge_i, neighbor_i)) {
             continue;
           }
 
-          face_sets[neighbor_face_index] = next_face_set;
-          BLI_BITMAP_ENABLE(visited_faces, neighbor_face_index);
-          BLI_gsqueue_push(queue, &neighbor_face_index);
+          face_sets[neighbor_i] = next_face_set;
+          visited_faces[neighbor_i].set(true);
+          queue.push(neighbor_i);
         }
       }
     }
 
     next_face_set += 1;
-
-    BLI_gsqueue_free(queue);
   }
-
-  MEM_SAFE_FREE(visited_faces);
-
-  BM_mesh_free(bm);
 }
 
 static void sculpt_face_sets_init_loop(Object *ob, const int mode)
 {
+  using namespace blender;
   Mesh *mesh = static_cast<Mesh *>(ob->data);
   SculptSession *ss = ob->sculpt;
-  BMesh *bm;
-  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
-  BMeshCreateParams create_params{};
-  create_params.use_toolflags = true;
-  bm = BM_mesh_create(&allocsize, &create_params);
 
-  BMeshFromMeshParams convert_params{};
-  convert_params.calc_vert_normal = true;
-  convert_params.calc_face_normal = true;
-  BM_mesh_bm_from_me(bm, mesh, &convert_params);
-
-  BMIter iter;
-  BMFace *f;
-
-  const int cd_fmaps_offset = CustomData_get_offset(&bm->pdata, CD_FACEMAP);
-
-  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-    if (mode == SCULPT_FACE_SETS_FROM_MATERIALS) {
-      ss->face_sets[BM_elem_index_get(f)] = (int)(f->mat_nr + 1);
-    }
-    else if (mode == SCULPT_FACE_SETS_FROM_FACE_MAPS) {
-      if (cd_fmaps_offset != -1) {
-        ss->face_sets[BM_elem_index_get(f)] = BM_ELEM_CD_GET_INT(f, cd_fmaps_offset) + 2;
-      }
-      else {
-        ss->face_sets[BM_elem_index_get(f)] = 1;
-      }
+  if (mode == SCULPT_FACE_SETS_FROM_MATERIALS) {
+    const bke::AttributeAccessor attributes = mesh->attributes();
+    const VArraySpan<int> material_indices = attributes.lookup_or_default<int>(
+        "material_index", ATTR_DOMAIN_FACE, 0);
+    for (const int i : IndexRange(mesh->totpoly)) {
+      ss->face_sets[i] = material_indices[i] + 1;
     }
   }
-  BM_mesh_free(bm);
+  else if (mode == SCULPT_FACE_SETS_FROM_FACE_MAPS) {
+    const int *face_maps = static_cast<int *>(CustomData_get_layer(&mesh->pdata, CD_FACEMAP));
+    for (const int i : IndexRange(mesh->totpoly)) {
+      ss->face_sets[i] = face_maps ? face_maps[i] : 1;
+    }
+  }
 }
 
 static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -711,36 +638,76 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
 
   Mesh *mesh = static_cast<Mesh *>(ob->data);
   ss->face_sets = BKE_sculpt_face_sets_ensure(mesh);
+  const bke::AttributeAccessor attributes = mesh->attributes();
 
   switch (mode) {
-    case SCULPT_FACE_SETS_FROM_LOOSE_PARTS:
-      sculpt_face_sets_init_flood_fill(ob, sculpt_face_sets_init_loose_parts_test, threshold);
+    case SCULPT_FACE_SETS_FROM_LOOSE_PARTS: {
+      const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
+          ".hide_poly", ATTR_DOMAIN_FACE, false);
+      sculpt_face_sets_init_flood_fill(
+          ob, [&](const int from_face, const int /*edge*/, const int to_face) {
+            return hide_poly[from_face] == hide_poly[to_face];
+          });
       break;
-    case SCULPT_FACE_SETS_FROM_MATERIALS:
+    }
+    case SCULPT_FACE_SETS_FROM_MATERIALS: {
       sculpt_face_sets_init_loop(ob, SCULPT_FACE_SETS_FROM_MATERIALS);
       break;
-    case SCULPT_FACE_SETS_FROM_NORMALS:
-      sculpt_face_sets_init_flood_fill(ob, sculpt_face_sets_init_normals_test, threshold);
-      break;
-    case SCULPT_FACE_SETS_FROM_UV_SEAMS:
-      sculpt_face_sets_init_flood_fill(ob, sculpt_face_sets_init_uv_seams_test, threshold);
-      break;
-    case SCULPT_FACE_SETS_FROM_CREASES:
-      sculpt_face_sets_init_flood_fill(ob, sculpt_face_sets_init_crease_test, threshold);
-      break;
-    case SCULPT_FACE_SETS_FROM_SHARP_EDGES:
-      sculpt_face_sets_init_flood_fill(ob, sculpt_face_sets_init_sharp_edges_test, threshold);
-      break;
-    case SCULPT_FACE_SETS_FROM_BEVEL_WEIGHT:
-      sculpt_face_sets_init_flood_fill(ob, sculpt_face_sets_init_bevel_weight_test, threshold);
-      break;
-    case SCULPT_FACE_SETS_FROM_FACE_SET_BOUNDARIES:
+    }
+    case SCULPT_FACE_SETS_FROM_NORMALS: {
+      const Span<float3> poly_normals(
+          reinterpret_cast<const float3 *>(BKE_mesh_poly_normals_ensure(mesh)), mesh->totpoly);
       sculpt_face_sets_init_flood_fill(
-          ob, sculpt_face_sets_init_face_set_boundary_test, threshold);
+          ob, [&](const int from_face, const int /*edge*/, const int to_face) -> bool {
+            return std::abs(math::dot(poly_normals[from_face], poly_normals[to_face])) > threshold;
+          });
       break;
-    case SCULPT_FACE_SETS_FROM_FACE_MAPS:
+    }
+    case SCULPT_FACE_SETS_FROM_UV_SEAMS: {
+      const Span<MEdge> edges = mesh->edges();
+      sculpt_face_sets_init_flood_fill(
+          ob, [&](const int /*from_face*/, const int edge, const int /*to_face*/) -> bool {
+            return (edges[edge].flag & ME_SEAM) == 0;
+          });
+      break;
+    }
+    case SCULPT_FACE_SETS_FROM_CREASES: {
+      const Span<MEdge> edges = mesh->edges();
+      sculpt_face_sets_init_flood_fill(
+          ob, [&](const int /*from_face*/, const int edge, const int /*to_face*/) -> bool {
+            return edges[edge].crease / 255.0f < threshold;
+          });
+      break;
+    }
+    case SCULPT_FACE_SETS_FROM_SHARP_EDGES: {
+      const Span<MEdge> edges = mesh->edges();
+      sculpt_face_sets_init_flood_fill(
+          ob, [&](const int /*from_face*/, const int edge, const int /*to_face*/) -> bool {
+            return (edges[edge].flag & ME_SHARP) == 0;
+          });
+      break;
+    }
+    case SCULPT_FACE_SETS_FROM_BEVEL_WEIGHT: {
+      const float *bevel_weights = static_cast<const float *>(
+          CustomData_get_layer(&mesh->edata, CD_BWEIGHT));
+      sculpt_face_sets_init_flood_fill(
+          ob, [&](const int /*from_face*/, const int edge, const int /*to_face*/) -> bool {
+            return bevel_weights ? bevel_weights[edge] / 255.0f < threshold : true;
+          });
+      break;
+    }
+    case SCULPT_FACE_SETS_FROM_FACE_SET_BOUNDARIES: {
+      Array<int> face_sets_copy(Span<int>(ss->face_sets, mesh->totpoly));
+      sculpt_face_sets_init_flood_fill(
+          ob, [&](const int from_face, const int /*edge*/, const int to_face) -> bool {
+            return face_sets_copy[from_face] == face_sets_copy[to_face];
+          });
+      break;
+    }
+    case SCULPT_FACE_SETS_FROM_FACE_MAPS: {
       sculpt_face_sets_init_loop(ob, SCULPT_FACE_SETS_FROM_FACE_MAPS);
       break;
+    }
   }
 
   SCULPT_undo_push_end(ob);
