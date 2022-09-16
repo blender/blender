@@ -1491,14 +1491,6 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
-  /* fill leak size */
-  prop = RNA_def_property(srna, "fill_leak", PROP_INT, PROP_PIXEL);
-  RNA_def_property_int_sdna(prop, NULL, "fill_leak");
-  RNA_def_property_range(prop, 0, 100);
-  RNA_def_property_ui_text(prop, "Leak Size", "Size in pixels to consider the leak closed");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
   /* fill factor size */
   prop = RNA_def_property(srna, "fill_factor", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "fill_factor");

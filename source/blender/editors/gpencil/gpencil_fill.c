@@ -67,6 +67,7 @@
 
 #define LEAK_HORZ 0
 #define LEAK_VERT 1
+#define FILL_LEAK 3.0f
 #define MIN_WINDOW_SIZE 128
 
 /* Set to 1 to debug filling internal image. By default, the value must be 0. */
@@ -1980,7 +1981,7 @@ static tGPDfill *gpencil_session_init_fill(bContext *C, wmOperator *op)
   tgpf->fill_extend_fac = brush->gpencil_settings->fill_extend_fac;
   tgpf->fill_factor = max_ff(GPENCIL_MIN_FILL_FAC,
                              min_ff(brush->gpencil_settings->fill_factor, GPENCIL_MAX_FILL_FAC));
-  tgpf->fill_leak = (int)ceil((float)brush->gpencil_settings->fill_leak * tgpf->fill_factor);
+  tgpf->fill_leak = (int)ceil(FILL_LEAK * tgpf->fill_factor);
 
   int totcol = tgpf->ob->totcol;
 
