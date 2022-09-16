@@ -211,6 +211,28 @@ class LazyFunctionForRerouteNode : public LazyFunction {
 };
 
 /**
+ * Lazy functions for nodes whose type cannot be found. An undefined function just outputs default
+ * values. It's useful to have so other parts of the conversion don't have to care about undefined
+ * nodes.
+ */
+class LazyFunctionForUndefinedNode : public LazyFunction {
+ public:
+  LazyFunctionForUndefinedNode(const bNode &node, Vector<const bNodeSocket *> &r_used_outputs)
+  {
+    debug_name_ = "Undefined";
+    Vector<const bNodeSocket *> dummy_used_inputs;
+    Vector<lf::Input> dummy_inputs;
+    lazy_function_interface_from_node(
+        node, dummy_used_inputs, r_used_outputs, dummy_inputs, outputs_);
+  }
+
+  void execute_impl(lf::Params &params, const lf::Context &UNUSED(context)) const override
+  {
+    params.set_default_remaining_outputs();
+  }
+};
+
+/**
  * Executes a multi-function. If all inputs are single values, the results will also be single
  * values. If any input is a field, the outputs will also be fields.
  */
@@ -773,6 +795,11 @@ struct GeometryNodesLazyFunctionGraphBuilder {
               *bnode);
           if (fn_item.fn != nullptr) {
             this->handle_multi_function_node(*bnode, fn_item);
+            break;
+          }
+          if (node_type == &NodeTypeUndefined) {
+            this->handle_undefined_node(*bnode);
+            break;
           }
           /* Nodes that don't match any of the criteria above are just ignored. */
           break;
@@ -964,6 +991,21 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     }
 
     mapping_->viewer_node_map.add(&bnode, &lf_node);
+  }
+
+  void handle_undefined_node(const bNode &bnode)
+  {
+    Vector<const bNodeSocket *> used_outputs;
+    auto lazy_function = std::make_unique<LazyFunctionForUndefinedNode>(bnode, used_outputs);
+    lf::FunctionNode &lf_node = lf_graph_->add_function(*lazy_function);
+    lf_graph_info_->functions.append(std::move(lazy_function));
+
+    for (const int i : used_outputs.index_range()) {
+      const bNodeSocket &bsocket = *used_outputs[i];
+      lf::OutputSocket &lf_socket = lf_node.output(i);
+      output_socket_map_.add(&bsocket, &lf_socket);
+      mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
+    }
   }
 
   void handle_links()
