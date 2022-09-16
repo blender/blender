@@ -1657,7 +1657,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "fill_extend_mode");
   RNA_def_property_enum_items(prop, rna_enum_gpencil_fill_extend_modes_items);
   RNA_def_property_ui_text(
-      prop, "Gap Closure", "Types of stroke extensions used for closing gaps");
+      prop, "Closure Mode", "Types of stroke extensions used for closing gaps");
   RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 
   /* Number of pixels to dilate fill area. Negative values contract the filled area. */
