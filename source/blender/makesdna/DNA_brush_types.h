@@ -70,7 +70,7 @@ typedef struct BrushGpencilSettings {
   int fill_simplylvl;
   /** Type of control lines drawing mode. */
   int fill_draw_mode;
-  /** Type of gap filling to use */
+  /** Type of gap filling extension to use. */
   int fill_extend_mode;
   /** Icon identifier. */
   int icon_id;
