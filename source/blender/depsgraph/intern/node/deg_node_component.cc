@@ -90,10 +90,11 @@ ComponentNode::~ComponentNode()
 
 string ComponentNode::identifier() const
 {
-  const string idname = this->owner->name;
-  const string typebuf = "" + to_string(static_cast<int>(type)) + ")";
-  return typebuf + name + " : " + idname +
-         "( affects_visible_id: " + (affects_visible_id ? "true" : "false") + ")";
+  const string type_name = type_get_factory(type)->type_name();
+  const string name_part = name[0] ? (string(" '") + name + "'") : "";
+
+  return "[" + type_name + "]" + name_part + " : " +
+         "(affects_visible_id: " + (affects_visible_id ? "true" : "false") + ")";
 }
 
 OperationNode *ComponentNode::find_operation(OperationIDKey key) const
