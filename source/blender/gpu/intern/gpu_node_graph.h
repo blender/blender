@@ -47,6 +47,7 @@ typedef enum {
   GPU_NODE_LINK_IMAGE,
   GPU_NODE_LINK_IMAGE_TILED,
   GPU_NODE_LINK_IMAGE_TILED_MAPPING,
+  GPU_NODE_LINK_IMAGE_SKY,
   GPU_NODE_LINK_OUTPUT,
   GPU_NODE_LINK_UNIFORM,
   GPU_NODE_LINK_DIFFERENTIATE_FLOAT_FN,
@@ -197,6 +198,11 @@ struct GPUTexture **gpu_material_ramp_texture_row_set(struct GPUMaterial *mat,
                                                       int size,
                                                       float *pixels,
                                                       float *row);
+/**
+ * Returns the address of the future pointer to sky_tex
+ */
+struct GPUTexture **gpu_material_sky_texture_layer_set(
+    struct GPUMaterial *mat, int width, int height, const float *pixels, float *layer);
 
 #ifdef __cplusplus
 }

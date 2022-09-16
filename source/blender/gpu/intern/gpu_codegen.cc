@@ -386,6 +386,10 @@ void GPUCodegen::generate_resources()
       const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
       info.sampler(slot++, ImageType::FLOAT_1D_ARRAY, name, Frequency::BATCH);
     }
+    else if (tex->sky) {
+      const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
+      info.sampler(0, ImageType::FLOAT_2D_ARRAY, name, Frequency::BATCH);
+    }
     else if (tex->tiled_mapping_name[0] != '\0') {
       const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
       info.sampler(slot++, ImageType::FLOAT_2D_ARRAY, name, Frequency::BATCH);

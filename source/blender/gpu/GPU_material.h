@@ -162,6 +162,12 @@ GPUNodeLink *GPU_image_tiled(GPUMaterial *mat,
                              struct ImageUser *iuser,
                              eGPUSamplerState sampler_state);
 GPUNodeLink *GPU_image_tiled_mapping(GPUMaterial *mat, struct Image *ima, struct ImageUser *iuser);
+GPUNodeLink *GPU_image_sky(GPUMaterial *mat,
+                           int width,
+                           int height,
+                           const float *pixels,
+                           float *layer,
+                           eGPUSamplerState sampler_state);
 GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *row);
 
 /**
@@ -297,6 +303,7 @@ typedef struct GPUMaterialTexture {
   struct ImageUser iuser;
   bool iuser_available;
   struct GPUTexture **colorband;
+  struct GPUTexture **sky;
   char sampler_name[32];       /* Name of sampler in GLSL. */
   char tiled_mapping_name[32]; /* Name of tile mapping sampler in GLSL. */
   int users;
