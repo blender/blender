@@ -210,8 +210,10 @@ def main() -> None:
         if f.endswith(".whl"):
             # No apparent way to override this ABI version with setuptools, so rename.
             sys_py = "cp%d%d" % (sys.version_info.major, sys.version_info.minor)
+            sys_py_abi = sys_py + sys.abiflags
             blender_py = "cp%d%d" % (python_version_number[0], python_version_number[1])
-            renamed_f = f.replace(sys_py, blender_py)
+
+            renamed_f = f.replace(sys_py_abi, blender_py).replace(sys_py, blender_py)
 
             os.rename(os.path.join(dist_dir, f), os.path.join(output_dir, renamed_f))
 
