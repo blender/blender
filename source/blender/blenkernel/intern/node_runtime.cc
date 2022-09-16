@@ -14,16 +14,12 @@
 
 namespace blender::bke::node_tree_runtime {
 
-void handle_node_tree_output_changed(bNodeTree &tree_cow)
+void preprocess_geometry_node_tree_for_evaluation(bNodeTree &tree_cow)
 {
-  if (tree_cow.type == NTREE_GEOMETRY) {
-    /* Rebuild geometry nodes lazy function graph. */
-    {
-      std::lock_guard lock{tree_cow.runtime->geometry_nodes_lazy_function_graph_info_mutex};
-      tree_cow.runtime->geometry_nodes_lazy_function_graph_info.reset();
-    }
-    blender::nodes::ensure_geometry_nodes_lazy_function_graph(tree_cow);
-  }
+  BLI_assert(tree_cow.type == NTREE_GEOMETRY);
+  /* Rebuild geometry nodes lazy function graph. */
+  tree_cow.runtime->geometry_nodes_lazy_function_graph_info.reset();
+  blender::nodes::ensure_geometry_nodes_lazy_function_graph(tree_cow);
 }
 
 static void double_checked_lock(std::mutex &mutex, bool &data_is_dirty, FunctionRef<void()> fn)

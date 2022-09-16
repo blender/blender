@@ -178,6 +178,9 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
       if (GS(id_orig->name) == ID_OB) {
         flag |= ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY;
       }
+      if (GS(id_orig->name) == ID_NT) {
+        flag |= ID_RECALC_NTREE_OUTPUT;
+      }
     }
     /* Restore recalc flags from original ID, which could possibly contain recalc flags set by
      * an operator and then were carried on by the undo system. */
