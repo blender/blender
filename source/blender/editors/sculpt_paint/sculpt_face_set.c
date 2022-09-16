@@ -517,12 +517,12 @@ typedef bool (*face_sets_flood_fill_test)(
     BMesh *bm, BMFace *from_f, BMEdge *from_e, BMFace *to_f, const float threshold);
 
 static bool sculpt_face_sets_init_loose_parts_test(BMesh *UNUSED(bm),
-                                                   BMFace *UNUSED(from_f),
+                                                   BMFace *from_f,
                                                    BMEdge *UNUSED(from_e),
-                                                   BMFace *UNUSED(to_f),
+                                                   BMFace *to_f,
                                                    const float UNUSED(threshold))
 {
-  return true;
+  return BM_elem_flag_test(from_f, BM_ELEM_HIDDEN) == BM_elem_flag_test(to_f, BM_ELEM_HIDDEN);
 }
 
 static bool sculpt_face_sets_init_normals_test(
