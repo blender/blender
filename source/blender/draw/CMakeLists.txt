@@ -388,7 +388,6 @@ set(GLSL_SRC
   engines/eevee/shaders/volumetric_frag.glsl
   engines/eevee/shaders/volumetric_geom.glsl
   engines/eevee/shaders/volumetric_vert.glsl
-  engines/eevee/shaders/volumetric_resolve_comp.glsl
   engines/eevee/shaders/volumetric_resolve_frag.glsl
   engines/eevee/shaders/volumetric_scatter_frag.glsl
   engines/eevee/shaders/volumetric_integration_frag.glsl

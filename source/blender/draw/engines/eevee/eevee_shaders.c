@@ -133,7 +133,6 @@ static struct {
   struct GPUShader *scatter_with_lights_sh;
   struct GPUShader *volumetric_integration_sh;
   struct GPUShader *volumetric_resolve_sh[2];
-  struct GPUShader *volumetric_resolve_comp_sh[2];
   struct GPUShader *volumetric_accum_sh;
 
   /* Shader strings */
@@ -262,7 +261,6 @@ extern char datatoc_volumetric_frag_glsl[];
 extern char datatoc_volumetric_geom_glsl[];
 extern char datatoc_volumetric_integration_frag_glsl[];
 extern char datatoc_volumetric_lib_glsl[];
-extern char datatoc_volumetric_resolve_comp_glsl[];
 extern char datatoc_volumetric_resolve_frag_glsl[];
 extern char datatoc_volumetric_scatter_frag_glsl[];
 extern char datatoc_volumetric_vert_glsl[];
@@ -903,20 +901,6 @@ struct GPUShader *EEVEE_shaders_volumes_resolve_sh_get(bool accum)
         accum ? "#define VOLUMETRICS_ACCUM\n" SHADER_DEFINES : SHADER_DEFINES);
   }
   return e_data.volumetric_resolve_sh[index];
-}
-
-struct GPUShader *EEVEE_shaders_volumes_resolve_comp_sh_get(bool float_target)
-{
-  const int index = (float_target ? 1 : 0);
-  if (e_data.volumetric_resolve_comp_sh[index] == NULL) {
-    e_data.volumetric_resolve_comp_sh[index] = DRW_shader_create_compute_with_shaderlib(
-        datatoc_volumetric_resolve_comp_glsl,
-        e_data.lib,
-        float_target ? "#define TARGET_IMG_FLOAT\n" SHADER_DEFINES : SHADER_DEFINES,
-        __func__);
-  }
-
-  return e_data.volumetric_resolve_comp_sh[index];
 }
 
 struct GPUShader *EEVEE_shaders_volumes_accum_sh_get()
