@@ -402,9 +402,6 @@ typedef struct AutomaskingSettings {
 
 typedef struct AutomaskingCache {
   AutomaskingSettings settings;
-  /* Precomputed auto-mask factor indexed by vertex, owned by the auto-masking system and
-   * initialized in #SCULPT_automasking_cache_init when needed. */
-  float *factor;
 } AutomaskingCache;
 
 typedef struct FilterCache {
@@ -1273,7 +1270,6 @@ void sculpt_dynamic_topology_disable_with_undo(struct Main *bmain,
 bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *brush);
 
 void SCULPT_dynamic_topology_triangulate(struct BMesh *bm);
-void SCULPT_dyntopo_node_layers_add(struct SculptSession *ss);
 
 enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob);
 
@@ -1849,3 +1845,8 @@ BLI_INLINE bool SCULPT_tool_is_face_sets(int tool)
 #ifdef __cplusplus
 }
 #endif
+
+/* Make SCULPT_ alias to a few blenkernel sculpt methods. */
+
+#define SCULPT_vertex_attr_get BKE_sculpt_vertex_attr_get
+#define SCULPT_face_attr_get BKE_sculpt_face_attr_get

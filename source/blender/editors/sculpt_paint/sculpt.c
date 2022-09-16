@@ -194,9 +194,10 @@ void SCULPT_vertex_normal_get(SculptSession *ss, PBVHVertRef vertex, float no[3]
 
 const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, PBVHVertRef vertex)
 {
-  if (ss->persistent_base) {
-    return ss->persistent_base[BKE_pbvh_vertex_to_index(ss->pbvh, vertex)].co;
+  if (ss->attrs.persistent_co) {
+    return (const float *)SCULPT_vertex_attr_get(vertex, ss->attrs.persistent_co);
   }
+
   return SCULPT_vertex_co_get(ss, vertex);
 }
 
@@ -240,8 +241,8 @@ void SCULPT_vertex_limit_surface_get(SculptSession *ss, PBVHVertRef vertex, floa
 
 void SCULPT_vertex_persistent_normal_get(SculptSession *ss, PBVHVertRef vertex, float no[3])
 {
-  if (ss->persistent_base) {
-    copy_v3_v3(no, ss->persistent_base[vertex.i].no);
+  if (ss->attrs.persistent_no) {
+    copy_v3_v3(no, (float *)SCULPT_vertex_attr_get(vertex, ss->attrs.persistent_no));
     return;
   }
   SCULPT_vertex_normal_get(ss, vertex, no);
@@ -5321,6 +5322,8 @@ void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType up
   if (update_flags & SCULPT_UPDATE_COLOR) {
     BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateColor);
   }
+
+  BKE_sculpt_attributes_destroy_temporary_stroke(ob);
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
     BKE_pbvh_bmesh_after_stroke(ss->pbvh);

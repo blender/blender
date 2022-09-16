@@ -117,24 +117,33 @@ static int sculpt_set_persistent_base_exec(bContext *C, wmOperator *UNUSED(op))
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
 
-  if (!ss) {
+  /* Do not allow in DynTopo just yet. */
+  if (!ss || (ss && ss->bm)) {
     return OPERATOR_FINISHED;
   }
   SCULPT_vertex_random_access_ensure(ss);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 
-  MEM_SAFE_FREE(ss->persistent_base);
+  SculptAttributeParams params = {0};
+  params.permanent = true;
+
+  ss->attrs.persistent_co = BKE_sculpt_attribute_ensure(
+      ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_co), &params);
+  ss->attrs.persistent_no = BKE_sculpt_attribute_ensure(
+      ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_no), &params);
+  ss->attrs.persistent_disp = BKE_sculpt_attribute_ensure(
+      ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, SCULPT_ATTRIBUTE_NAME(persistent_disp), &params);
 
   const int totvert = SCULPT_vertex_count_get(ss);
-  ss->persistent_base = MEM_mallocN(sizeof(SculptPersistentBase) * totvert,
-                                    "layer persistent base");
 
   for (int i = 0; i < totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
-    copy_v3_v3(ss->persistent_base[i].co, SCULPT_vertex_co_get(ss, vertex));
-    SCULPT_vertex_normal_get(ss, vertex, ss->persistent_base[i].no);
-    ss->persistent_base[i].disp = 0.0f;
+    copy_v3_v3((float *)SCULPT_vertex_attr_get(vertex, ss->attrs.persistent_co),
+               SCULPT_vertex_co_get(ss, vertex));
+    SCULPT_vertex_normal_get(
+        ss, vertex, (float *)SCULPT_vertex_attr_get(vertex, ss->attrs.persistent_no));
+    (*(float *)SCULPT_vertex_attr_get(vertex, ss->attrs.persistent_disp)) = 0.0f;
   }
 
   return OPERATOR_FINISHED;

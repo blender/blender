@@ -5546,3 +5546,8 @@ eCustomDataType cpp_type_to_custom_data_type(const blender::CPPType &type)
 /** \} */
 
 }  // namespace blender::bke
+
+size_t CustomData_get_elem_size(CustomDataLayer *layer)
+{
+  return LAYERTYPEINFO[layer->type].size;
+}

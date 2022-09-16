@@ -631,11 +631,12 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
   MEM_freeN(prim_bbc);
 }
 
-PBVH *BKE_pbvh_new(void)
+PBVH *BKE_pbvh_new(PBVHType type)
 {
   PBVH *pbvh = MEM_callocN(sizeof(PBVH), "pbvh");
   pbvh->respect_hide = true;
   pbvh->draw_cache_invalid = true;
+  pbvh->header.type = type;
   return pbvh;
 }
 
