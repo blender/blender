@@ -61,7 +61,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bool is_recursive = BKE_collection_has_object_recursive_instanced(
       collection, const_cast<Object *>(self_object));
   if (is_recursive) {
-    params.error_message_add(NodeWarningType::Error, "Collection contains current object");
+    params.error_message_add(NodeWarningType::Error, TIP_("Collection contains current object"));
     params.set_default_remaining_outputs();
     return;
   }

@@ -19,6 +19,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
+#include "BLT_translation.h"
+
 #include "FN_field.hh"
 
 #include "BLT_translation.h"
@@ -49,8 +51,8 @@ std::ostream &operator<<(std::ostream &stream, const AttributeIDRef &attribute_i
   return stream;
 }
 
-const char *no_procedural_access_message =
-    "This attribute can not be accessed in a procedural context";
+const char *no_procedural_access_message = N_(
+    "This attribute can not be accessed in a procedural context");
 
 bool allow_procedural_attribute_access(StringRef attribute_name)
 {
