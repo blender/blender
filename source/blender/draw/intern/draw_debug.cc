@@ -85,6 +85,9 @@ void DebugDraw::init()
   gpu_draw_buf_.command.instance_first_array = 0;
   gpu_draw_buf_used = false;
 
+  print_col_ = 0;
+  print_row_ = 0;
+
   modelmat_reset();
 }
 
