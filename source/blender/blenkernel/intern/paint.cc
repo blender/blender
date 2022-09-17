@@ -2422,10 +2422,10 @@ static bool sculpt_attribute_create(SculptSession *ss,
           "array "
           "instead.\n",
           __func__);
-      permanent = out->params.permanent = false;
+      permanent = (out->params.permanent = false);
     }
 
-    simple_array = out->params.simple_array = true;
+    simple_array = (out->params.simple_array = true);
   }
 
   BLI_assert(!(simple_array && permanent));
@@ -2789,11 +2789,6 @@ static void sculpt_attribute_update_refs(Object *ob)
   if (ss->pbvh) {
     BKE_pbvh_update_active_vcol(ss->pbvh, me);
   }
-}
-
-bool BKE_paint_uses_channels(ePaintMode mode)
-{
-  return mode == PAINT_MODE_SCULPT;
 }
 
 void BKE_sculpt_attribute_destroy_temporary_all(Object *ob)
