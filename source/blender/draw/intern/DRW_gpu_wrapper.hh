@@ -31,6 +31,10 @@
  *   discarding all data inside it.
  *   Data can be accessed using the [] operator.
  *
+ * `draw::StorageVectorBuffer<T, len>`
+ *   Same as `StorageArrayBuffer` but has a length counter and act like a `blender::Vector` you can
+ *   clear and append to.
+ *
  * `draw::StorageBuffer<T>`
  *   A storage buffer object class inheriting from T.
  *   Data can be accessed just like a normal T object.
@@ -313,8 +317,8 @@ class UniformBuffer : public T, public detail::UniformCommon<T, 1, false> {
 template<
     /** Type of the values stored in this uniform buffer. */
     typename T,
-    /** The number of values that can be stored in this uniform buffer. */
-    int64_t len,
+    /** The number of values that can be stored in this storage buffer at creation. */
+    int64_t len = 16u / sizeof(T),
     /** True if created on device and no memory host memory is allocated. */
     bool device_only = false>
 class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
@@ -357,6 +361,71 @@ class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
     }
     return this->data_[index];
   }
+
+  int64_t size() const
+  {
+    return this->len_;
+  }
+};
+
+template<
+    /** Type of the values stored in this uniform buffer. */
+    typename T,
+    /** The number of values that can be stored in this storage buffer at creation. */
+    int64_t len = 16u / sizeof(T)>
+class StorageVectorBuffer : public StorageArrayBuffer<T, len, false> {
+ private:
+  /* Number of items, not the allocated length. */
+  int64_t item_len_ = 0;
+
+ public:
+  StorageVectorBuffer(const char *name = nullptr) : StorageArrayBuffer<T, len, false>(name){};
+  ~StorageVectorBuffer(){};
+
+  /**
+   * Set item count to zero but does not free memory or resize the buffer.
+   */
+  void clear()
+  {
+    item_len_ = 0;
+  }
+
+  /**
+   * Insert a new element at the end of the vector.
+   * This might cause a reallocation with the capacity is exceeded.
+   *
+   * This is similar to std::vector::push_back.
+   */
+  void append(const T &value)
+  {
+    this->append_as(value);
+  }
+  void append(T &&value)
+  {
+    this->append_as(std::move(value));
+  }
+  template<typename... ForwardT> void append_as(ForwardT &&...value)
+  {
+    if (item_len_ >= this->len_) {
+      size_t size = power_of_2_max_u(item_len_ + 1);
+      this->resize(size);
+    }
+    T *ptr = &this->data_[item_len_++];
+    new (ptr) T(std::forward<ForwardT>(value)...);
+  }
+
+  int64_t size() const
+  {
+    return item_len_;
+  }
+
+  bool is_empty() const
+  {
+    return this->size() == 0;
+  }
+
+  /* Avoid confusion with the other clear. */
+  void clear_to_zero() = delete;
 };
 
 template<
@@ -859,8 +928,7 @@ class TextureFromPool : public Texture, NonMovable {
  * Dummy type to bind texture as image.
  * It is just a GPUTexture in disguise.
  */
-class Image {
-};
+class Image {};
 
 static inline Image *as_image(GPUTexture *tex)
 {
