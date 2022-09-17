@@ -1472,7 +1472,8 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
   Sculpt *sd = data->sd;
   const Brush *brush = data->brush;
 
-  const bool use_persistent_base = !ss->bm && ss->attrs.persistent_co && brush->flag & BRUSH_PERSISTENT;
+  const bool use_persistent_base = !ss->bm && ss->attrs.persistent_co &&
+                                   brush->flag & BRUSH_PERSISTENT;
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;

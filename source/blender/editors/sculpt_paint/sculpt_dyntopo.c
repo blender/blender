@@ -119,7 +119,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   SCULPT_dynamic_topology_triangulate(ss->bm);
 
   BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
-  
+
   /* Make sure the data for existing faces are initialized. */
   if (me->totpoly != ss->bm->totface) {
     BM_mesh_normals_update(ss->bm);

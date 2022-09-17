@@ -56,7 +56,8 @@ const char *no_procedural_access_message =
 
 bool allow_procedural_attribute_access(StringRef attribute_name)
 {
-  return !attribute_name.startswith(".sculpt") && !attribute_name.startswith(".selection") && !attribute_name.startswith(".hide");
+  return !attribute_name.startswith(".sculpt") && !attribute_name.startswith(".selection") &&
+         !attribute_name.startswith(".hide");
 }
 
 static int attribute_data_type_complexity(const eCustomDataType data_type)
