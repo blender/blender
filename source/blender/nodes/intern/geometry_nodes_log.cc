@@ -148,7 +148,9 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
   auto store_logged_value = [&](destruct_ptr<ValueLog> value_log) {
     auto &socket_values = socket.in_out == SOCK_IN ? this->input_socket_values :
                                                      this->output_socket_values;
-    socket_values.append({node.name, socket.identifier, std::move(value_log)});
+    socket_values.append({this->allocator->copy_string(node.name),
+                          this->allocator->copy_string(socket.identifier),
+                          std::move(value_log)});
   };
 
   auto log_generic_value = [&](const CPPType &type, const void *value) {
@@ -194,7 +196,7 @@ void GeoTreeLogger::log_viewer_node(const bNode &viewer_node,
   log->geometry = geometry;
   log->field = field;
   log->geometry.ensure_owns_direct_data();
-  this->viewer_node_logs.append({viewer_node.name, std::move(log)});
+  this->viewer_node_logs.append({this->allocator->copy_string(viewer_node.name), std::move(log)});
 }
 
 void GeoTreeLog::ensure_node_warnings()
@@ -315,11 +317,11 @@ void GeoTreeLog::ensure_used_named_attributes()
     return;
   }
 
-  auto add_attribute = [&](const StringRef node_name,
-                           const StringRef attribute_name,
+  auto add_attribute = [&](const StringRefNull node_name,
+                           const StringRefNull attribute_name,
                            const NamedAttributeUsage &usage) {
-    this->nodes.lookup_or_add_as(node_name).used_named_attributes.lookup_or_add_as(attribute_name,
-                                                                                   usage) |= usage;
+    this->nodes.lookup_or_add_default(node_name).used_named_attributes.lookup_or_add(
+        attribute_name, usage) |= usage;
     this->used_named_attributes.lookup_or_add_as(attribute_name, usage) |= usage;
   };
 

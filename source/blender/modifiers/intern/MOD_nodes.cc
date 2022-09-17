@@ -1760,7 +1760,7 @@ static void internal_dependencies_panel_draw(const bContext *UNUSED(C), Panel *p
   }
 
   tree_log->ensure_used_named_attributes();
-  const Map<std::string, NamedAttributeUsage> &usage_by_attribute =
+  const Map<StringRefNull, NamedAttributeUsage> &usage_by_attribute =
       tree_log->used_named_attributes;
 
   if (usage_by_attribute.is_empty()) {

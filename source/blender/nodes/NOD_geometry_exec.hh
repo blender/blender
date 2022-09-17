@@ -237,13 +237,13 @@ class GeoNodeExecParams {
    * Add an error message displayed at the top of the node when displaying the node tree,
    * and potentially elsewhere in Blender.
    */
-  void error_message_add(const NodeWarningType type, std::string message) const;
+  void error_message_add(const NodeWarningType type, StringRef message) const;
 
   std::string attribute_producer_name() const;
 
   void set_default_remaining_outputs();
 
-  void used_named_attribute(std::string attribute_name, NamedAttributeUsage usage);
+  void used_named_attribute(StringRef attribute_name, NamedAttributeUsage usage);
 
  private:
   /* Utilities for detecting common errors at when using this class. */

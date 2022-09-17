@@ -134,7 +134,8 @@ class LazyFunctionForGeometryNode : public LazyFunction {
     if (geo_eval_log::GeoModifierLog *modifier_log = user_data->modifier_data->eval_log) {
       geo_eval_log::GeoTreeLogger &tree_logger = modifier_log->get_local_tree_logger(
           *user_data->compute_context);
-      tree_logger.node_execution_times.append({node_.name, start_time, end_time});
+      tree_logger.node_execution_times.append(
+          {tree_logger.allocator->copy_string(node_.name), start_time, end_time});
     }
   }
 };
