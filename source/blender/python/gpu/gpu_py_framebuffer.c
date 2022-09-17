@@ -471,7 +471,7 @@ PyDoc_STRVAR(
     "   :type slot: int\n"
     "   :param format: The format that describes the content of a single channel.\n"
     "      Possible values are `FLOAT`, `INT`, `UINT`, `UBYTE`, `UINT_24_8` and `10_11_11_REV`.\n"
-    "   :type type: str\n"
+    "   :type format: str\n"
     "   :arg data: Optional Buffer object to fill with the pixels values.\n"
     "   :type data: :class:`gpu.types.Buffer`\n"
     "   :return: The Buffer with the read pixels.\n"

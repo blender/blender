@@ -282,7 +282,7 @@ PyDoc_STRVAR(
     "\n"
     "   :param format: The format that describes the content of a single item.\n"
     "      Possible values are `FLOAT`, `INT`, `UINT`, `UBYTE`, `UINT_24_8` and `10_11_11_REV`.\n"
-    "   :type type: str\n"
+    "   :type format: str\n"
     "   :arg value: sequence each representing the value to fill.\n"
     "   :type value: sequence of 1, 2, 3 or 4 values\n");
 static PyObject *pygpu_texture_clear(BPyGPUTexture *self, PyObject *args, PyObject *kwds)
