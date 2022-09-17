@@ -285,7 +285,7 @@ typedef struct Mesh {
   struct MVert *mvert DNA_DEPRECATED;
   /** Deprecated array of mesh edges, kept for reading old files, now stored in #CustomData. */
   struct MEdge *medge DNA_DEPRECATED;
-  /** Deprecated "Vertex group" data. Kept for reading old files, now stored in #CustomData.*/
+  /** Deprecated "Vertex group" data. Kept for reading old files, now stored in #CustomData. */
   struct MDeformVert *dvert DNA_DEPRECATED;
   /** Deprecated runtime data for tessellation face UVs and texture, kept for reading old files. */
   struct MTFace *mtface DNA_DEPRECATED;

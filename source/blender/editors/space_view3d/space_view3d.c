@@ -1510,7 +1510,7 @@ static void view3d_header_region_listener(const wmRegionListenerParams *params)
       break;
   }
 
-    /* From topbar, which ones are needed? split per header? */
+    /* From top-bar, which ones are needed? split per header? */
     /* Disable for now, re-enable if needed, or remove - campbell. */
 #if 0
   /* context changes */

@@ -515,7 +515,7 @@ void BVHSpatialSplit::split_reference(const BVHBuild &builder,
                                       int dim,
                                       float pos)
 {
-  /* initialize boundboxes */
+  /* Initialize bounding-boxes. */
   BoundBox left_bounds = BoundBox::empty;
   BoundBox right_bounds = BoundBox::empty;
 

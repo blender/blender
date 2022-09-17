@@ -541,7 +541,7 @@ static void updateDuplicateActionConstraintSettings(
   }
   BLI_freelistN(&ani_curves);
 
-  /* Make deps graph aware of our changes */
+  /* Make depsgraph aware of our changes. */
   DEG_id_tag_update(&act->id, ID_RECALC_ANIMATION_NO_FLUSH);
 }
 

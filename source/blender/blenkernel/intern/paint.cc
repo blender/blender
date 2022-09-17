@@ -2816,7 +2816,7 @@ bool BKE_sculpt_attribute_destroy(Object *ob, SculptAttribute *attr)
 
   BLI_assert(attr->used);
 
-  /* Remove from convienience pointer struct. */
+  /* Remove from convenience pointer struct. */
   SculptAttribute **ptrs = (SculptAttribute **)&ss->attrs;
   int ptrs_num = sizeof(ss->attrs) / sizeof(void *);
 

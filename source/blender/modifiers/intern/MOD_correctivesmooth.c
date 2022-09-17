@@ -412,7 +412,7 @@ static bool calc_tangent_loop(const float v_dir_prev[3],
    * NOTE: while it seems more logical to use `v_dir_prev` & `v_dir_next` as separate X/Y axis
    * (instead of combining them as is done here). It's not necessary as the directions of the
    * axis aren't important as long as the difference between tangent matrices is equivalent.
-   * Some computations can be skipped by combining the the two directions,
+   * Some computations can be skipped by combining the two directions,
    * using the cross product for the 3rd axes. */
   add_v3_v3(r_tspace[0], r_tspace[1]);
   normalize_v3(r_tspace[0]);

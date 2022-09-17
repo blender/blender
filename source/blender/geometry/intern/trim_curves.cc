@@ -728,7 +728,7 @@ static void sample_interval_bezier(const Span<float3> src_positions,
   }
   else {
     /* Trimmed in both ends within the same (and only) segment! Ensure both end points is not a
-     * loop.*/
+     * loop. */
     if (start_point_trimmed && start_point.index == end_point.index &&
         start_point.parameter <= end_point.parameter) {
 

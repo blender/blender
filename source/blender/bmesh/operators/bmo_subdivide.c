@@ -86,7 +86,7 @@ typedef struct SubDPattern {
  *   split the edge only?
  */
 
-/* flags for all elements share a common bitfield space */
+/** Flags for all elements share a common bit-field space. */
 #define SUBD_SPLIT 1
 
 #define EDGE_PERCENT 2

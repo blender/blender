@@ -159,7 +159,7 @@ typedef struct SPHFluidSettings {
   char _pad[6];
 } SPHFluidSettings;
 
-/* fluid->flag */
+/** #SPHFluidSettings.flag */
 #define SPH_VISCOELASTIC_SPRINGS 1
 #define SPH_CURRENT_REST_LENGTH 2
 #define SPH_FAC_REPULSION 4
@@ -168,7 +168,7 @@ typedef struct SPHFluidSettings {
 #define SPH_FAC_VISCOSITY 32
 #define SPH_FAC_REST_LENGTH 64
 
-/* fluid->solver (numerical ID field, not bitfield) */
+/** #SPHFluidSettings.solver (numerical ID field, not bit-field). */
 #define SPH_SOLVER_DDR 0
 #define SPH_SOLVER_CLASSICAL 1
 

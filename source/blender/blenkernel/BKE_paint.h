@@ -538,7 +538,7 @@ typedef struct SculptAttribute {
        : \
        "You misspelled the layer name key")
 
-/* Convienence pointers for standard sculpt attributes. */
+/* Convenience pointers for standard sculpt attributes. */
 
 typedef struct SculptAttributePointers {
   /* Persistent base. */
@@ -728,7 +728,7 @@ typedef struct SculptSession {
    */
   struct SculptAttribute temp_attributes[SCULPT_MAX_ATTRIBUTES];
 
-  /* Convienence SculptAttribute pointers. */
+  /* Convenience #SculptAttribute pointers. */
   SculptAttributePointers attrs;
 
   /**
@@ -753,7 +753,7 @@ void BKE_sculptsession_bm_to_me(struct Object *ob, bool reorder);
 void BKE_sculptsession_bm_to_me_for_render(struct Object *object);
 int BKE_sculptsession_vertex_count(const SculptSession *ss);
 
-/* Ensure an attribute layer exists.*/
+/* Ensure an attribute layer exists. */
 SculptAttribute *BKE_sculpt_attribute_ensure(struct Object *ob,
                                              eAttrDomain domain,
                                              eCustomDataType proptype,
@@ -773,7 +773,7 @@ bool BKE_sculpt_attribute_exists(struct Object *ob,
 
 bool BKE_sculpt_attribute_destroy(struct Object *ob, SculptAttribute *attr);
 
-/* Destroy all attributes and psuedo-attributes created by sculpt mode.*/
+/* Destroy all attributes and pseudo-attributes created by sculpt mode. */
 void BKE_sculpt_attribute_destroy_temporary_all(struct Object *ob);
 
 /* Destroy attributes that were marked as stroke only in SculptAttributeParams. */

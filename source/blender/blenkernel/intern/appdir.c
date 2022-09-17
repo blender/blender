@@ -888,7 +888,7 @@ void BKE_appdir_program_path_init(const char *argv0)
 
 const char *BKE_appdir_program_path(void)
 {
-#ifndef WITH_PYTHON_MODULE /* Default's to empty when building as as Python module. */
+#ifndef WITH_PYTHON_MODULE /* Default's to empty when building as a Python module. */
   BLI_assert(g_app.program_filepath[0]);
 #endif
   return g_app.program_filepath;

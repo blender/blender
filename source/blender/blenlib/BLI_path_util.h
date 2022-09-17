@@ -106,10 +106,10 @@ size_t BLI_path_join(char *__restrict dst, size_t dst_len, const char *path, ...
 const char *BLI_path_basename(const char *path) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 /**
  * Get an element of the path at an index, eg:
- * "/some/path/file.txt" where an index of:
- * - 0 or -3: "some"
- * - 1 or -2: "path"
- * - 2 or -1: "file.txt"
+ * `/some/path/file.txt` where an index of:
+ * - 0 or -3: `some`
+ * - 1 or -2: `path`
+ * - 2 or -1: `file.txt`
  *
  * Ignores multiple slashes at any point in the path (including start/end).
  */

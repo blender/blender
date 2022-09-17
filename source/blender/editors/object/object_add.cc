@@ -3307,7 +3307,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       baseob = BKE_mball_basis_find(scene, ob);
 
       if (ob != baseob) {
-        /* if motherball is converting it would be marked as done later */
+        /* If mother-ball is converting it would be marked as done later. */
         ob->flag |= OB_DONE;
       }
 
