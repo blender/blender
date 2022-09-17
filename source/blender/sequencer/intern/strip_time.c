@@ -169,11 +169,16 @@ void SEQ_time_update_meta_strip_range(const Scene *scene, Sequence *seq_meta)
   seq_meta->len -= seq_meta->anim_startofs;
   seq_meta->len -= seq_meta->anim_endofs;
 
-  seq_update_sound_bounds_recursive(scene, seq_meta);
+  /* Functions `SEQ_time_*_handle_frame_set()` can not be used here, because they are clamped, so
+   * change must be done at once. */
+  seq_meta->startofs = strip_start - seq_meta->start;
+  seq_meta->startdisp = strip_start; /* Only to make files usable in older versions. */
+  seq_meta->endofs = seq_meta->start + SEQ_time_strip_length_get(scene, seq_meta) - strip_end;
+  seq_meta->enddisp = strip_end; /* Only to make files usable in older versions. */
 
-  /* Prevent meta-strip to move in timeline. */
-  SEQ_time_left_handle_frame_set(scene, seq_meta, strip_start);
-  SEQ_time_right_handle_frame_set(scene, seq_meta, strip_end);
+  seq_update_sound_bounds_recursive(scene, seq_meta);
+  SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq_meta));
+  seq_time_update_effects_strip_range(scene, seq_sequence_lookup_effects_by_seq(scene, seq_meta));
 }
 
 void seq_time_effect_range_set(const Scene *scene, Sequence *seq)
@@ -542,6 +547,17 @@ void SEQ_time_right_handle_frame_set(const Scene *scene, Sequence *seq, int val)
 
   seq->endofs = strip_content_end_frame - val;
   seq->enddisp = val; /* Only to make files usable in older versions. */
+
+  SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
+  seq_time_update_effects_strip_range(scene, seq_sequence_lookup_effects_by_seq(scene, seq));
+}
+
+void seq_time_translate_handles(const Scene *scene, Sequence *seq, const int offset)
+{
+  seq->startofs += offset;
+  seq->endofs -= offset;
+  seq->startdisp += offset; /* Only to make files usable in older versions. */
+  seq->enddisp -= offset;   /* Only to make files usable in older versions. */
 
   SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
   seq_time_update_effects_strip_range(scene, seq_sequence_lookup_effects_by_seq(scene, seq));
