@@ -1167,7 +1167,12 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
 #ifdef USE_WIN_ACTIVATE
             else {
               if (keymodifier & g_modifier_table[i].flag) {
-                win->eventstate->modifier |= g_modifier_table[i].flag;
+                for (int side = 0; side < 2; side++) {
+                  if (keymodifier_sided[side] & g_modifier_table[i].flag) {
+                    kdata.key = g_modifier_table[i].ghost_key_pair[side];
+                    wm_event_add_ghostevent(wm, win, GHOST_kEventKeyDown, &kdata);
+                  }
+                }
               }
             }
 #endif
