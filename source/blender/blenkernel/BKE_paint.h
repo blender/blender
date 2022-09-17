@@ -24,7 +24,7 @@
 extern "C" {
 #endif
 
-struct SculptCustomLayer;
+struct SculptAttribute;
 struct MSculptVert;
 struct BMFace;
 struct BMesh;
@@ -59,7 +59,6 @@ struct Scene;
 struct StrokeCache;
 struct SubdivCCG;
 struct Tex;
-struct SculptCustomLayer;
 struct ToolSettings;
 struct UnifiedPaintSettings;
 struct View3D;
@@ -628,7 +627,7 @@ typedef struct SculptArray {
   int *symmetry_pass;
 
   float *smooth_strength;
-  struct SculptCustomLayer *scl_inst, *scl_sym;
+  struct SculptAttribute *scl_inst, *scl_sym;
 } SculptArray;
 
 typedef struct SculptFakeNeighbors {
@@ -643,61 +642,6 @@ typedef struct SculptFakeNeighbors {
 } SculptFakeNeighbors;
 
 /* Session data (mode-specific) */
-
-/* Custom Temporary Attributes */
-
-typedef struct SculptLayerParams {
-  /* Allocate a flat array outside the CustomData system.  Cannot be combined with permanent. */
-  int simple_array : 1;
-
-  /* Do not mark CustomData layer as temporary.  Cannot be combined with simple_array.  Doesn't
-   * work with PBVH_GRIDS.
-   */
-  int permanent : 1;  // cannot be combined with simple_array
-  int nocopy : 1;
-  int nointerp : 1;
-  int stroke_only : 1; /* release layer at end of struct, except for PBVH_BMESH */
-} SculptLayerParams;
-
-typedef struct SculptCustomLayer {
-  eAttrDomain domain;
-  int proptype;
-  SculptLayerParams params;
-
-  char name[MAX_CUSTOMDATA_LAYER_NAME];
-
-  bool is_cdlayer;  // false for multires data
-  void *data;       // only valid for multires and face
-  int elemsize;
-  int cd_offset;                  // for bmesh
-  struct CustomDataLayer *layer;  // not for multires
-  bool from_bmesh;  // note that layers can be fixed arrays but still from a bmesh, e.g. filter
-                    // laplacian smooth
-  bool released;
-  bool ready;
-} SculptCustomLayer;
-
-/* Standard names for sculpt attributes. */
-typedef enum {
-  SCULPT_SCL_FAIRING_MASK,
-  SCULPT_SCL_FAIRING_FADE,
-  SCULPT_SCL_PREFAIRING_CO,
-  SCULPT_SCL_PERS_CO,
-  SCULPT_SCL_PERS_NO,
-  SCULPT_SCL_PERS_DISP,
-  SCULPT_SCL_LAYER_DISP,
-  SCULPT_SCL_LAYER_STROKE_ID,
-  SCULPT_SCL_ORIG_FSETS,
-  SCULPT_SCL_SMOOTH_VEL,
-  SCULPT_SCL_SMOOTH_BDIS,
-  SCULPT_SCL_AUTOMASKING,
-  SCULPT_SCL_LIMIT_SURFACE,
-  SCULPT_SCL_LAYER_MAX,
-} SculptStandardAttr;
-
-#define SCULPT_SCL_GET_NAME(stdattr) ("__" #stdattr)
-
-#define SCULPT_MAX_TEMP_LAYERS 64
 
 typedef struct SculptSession {
   /* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
@@ -911,37 +855,37 @@ typedef struct SculptSession {
   /* This is a fixed-size array so we can pass pointers to its elements
    * to client code. This is important to keep bmesh offsets up to date.
    */
-  struct SculptCustomLayer temp_layers[SCULPT_MAX_TEMP_LAYERS];
+  struct SculptAttribute temp_layers[SCULPT_MAX_TEMP_LAYERS];
 
   /* Convienence SculptCusotmLayer pointers. */
 
   struct {
     /* Persistent base. */
-    SculptCustomLayer *persistent_co;
-    SculptCustomLayer *persistent_no;
-    SculptCustomLayer *persistent_disp;
+    SculptAttribute *persistent_co;
+    SculptAttribute *persistent_no;
+    SculptAttribute *persistent_disp;
 
     /* Fairing. */
-    SculptCustomLayer *fairing_fade;
-    SculptCustomLayer *fairing_mask;
-    SculptCustomLayer *prefairing_co;
+    SculptAttribute *fairing_fade;
+    SculptAttribute *fairing_mask;
+    SculptAttribute *prefairing_co;
 
     /* Automasking. */
-    SculptCustomLayer *automasking_factor;
+    SculptAttribute *automasking_factor;
 
     /* Layer brush. */
-    SculptCustomLayer *layer_disp;
-    SculptCustomLayer *layer_id;
+    SculptAttribute *layer_disp;
+    SculptAttribute *layer_id;
 
     /* Limit Surface */
-    SculptCustomLayer *limit_surface;
+    SculptAttribute *limit_surface;
 
     /* Smooth */
-    SculptCustomLayer *smooth_bdist;
-    SculptCustomLayer *smooth_vel;
+    SculptAttribute *smooth_bdist;
+    SculptAttribute *smooth_vel;
 
     /* Face Sets */
-    SculptCustomLayer *orig_fsets;
+    SculptAttribute *orig_fsets;
   } scl;
 
   bool save_temp_layers;
@@ -978,13 +922,13 @@ void BKE_sculptsession_bmesh_attr_update_internal(struct Object *ob);
 void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me);
 
 void BKE_sculptsession_bmesh_add_layers(struct Object *ob);
-SculptCustomLayer *BKE_sculptsession_attr_layer_get(struct Object *ob,
+SculptAttribute *BKE_sculptsession_attr_layer_get(struct Object *ob,
                                                     eAttrDomain domain,
                                                     int proptype,
                                                     const char *name,
                                                     SculptLayerParams *params,
                                                     bool *r_is_new);
-bool BKE_sculptsession_attr_release_layer(struct Object *ob, SculptCustomLayer *scl);
+bool BKE_sculptsession_attr_release_layer(struct Object *ob, SculptAttribute *scl);
 void BKE_sculptsession_update_attr_refs(struct Object *ob);
 
 int BKE_sculptsession_get_totvert(const SculptSession *ss);
