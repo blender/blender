@@ -218,7 +218,7 @@ class CurvesGeometry : public ::CurvesGeometry {
 
   /**
    * How many evaluated points to create for each segment when evaluating Bezier,
-   * Catmull Rom, and NURBS curves. On the curve domain.
+   * Catmull Rom, and NURBS curves. On the curve domain. Values must be zero or greater.
    */
   VArray<int> resolution() const;
   /** Mutable access to curve resolution. Call #tag_topology_changed after changes. */

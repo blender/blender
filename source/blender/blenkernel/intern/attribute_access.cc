@@ -19,6 +19,8 @@
 #include "BLI_math_vec_types.hh"
 #include "BLI_span.hh"
 
+#include "FN_field.hh"
+
 #include "BLT_translation.h"
 
 #include "CLG_log.h"
@@ -943,6 +945,15 @@ GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_only_span
     return GSpanAttributeWriter{std::move(attribute), false};
   }
   return {};
+}
+
+fn::GField AttributeValidator::validate_field_if_necessary(const fn::GField &field) const
+{
+  if (function) {
+    auto validate_op = fn::FieldOperation::Create(*function, {field});
+    return fn::GField(validate_op);
+  }
+  return field;
 }
 
 Vector<AttributeTransferData> retrieve_attributes_for_transfer(

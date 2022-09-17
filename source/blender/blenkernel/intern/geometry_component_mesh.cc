@@ -14,6 +14,8 @@
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 
+#include "FN_multi_function_builder.hh"
+
 #include "attribute_access_intern.hh"
 
 extern "C" MDeformVert *BKE_object_defgroup_data_create(ID *id);
@@ -1217,6 +1219,13 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                            make_array_write_attribute<int>,
                                            nullptr);
 
+  static const fn::CustomMF_SI_SO<int, int> material_index_clamp{
+      "Material Index Validate",
+      [](int value) {
+        /* Use #short for the maximum since many areas still use that type for indices. */
+        return std::clamp<int>(value, 0, std::numeric_limits<short>::max());
+      },
+      fn::CustomMF_presets::AllSpanOrSingle()};
   static BuiltinCustomDataLayerProvider material_index("material_index",
                                                        ATTR_DOMAIN_FACE,
                                                        CD_PROP_INT32,
@@ -1227,7 +1236,8 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                        face_access,
                                                        make_array_read_attribute<int>,
                                                        make_array_write_attribute<int>,
-                                                       nullptr);
+                                                       nullptr,
+                                                       AttributeValidator{&material_index_clamp});
 
   static BuiltinCustomDataLayerProvider shade_smooth(
       "shade_smooth",
