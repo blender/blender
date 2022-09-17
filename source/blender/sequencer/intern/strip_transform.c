@@ -95,10 +95,7 @@ void SEQ_transform_fix_single_image_seq_offsets(const Scene *scene, Sequence *se
   start = seq->start;
   if (start != left) {
     const int offset = left - start;
-    SEQ_time_left_handle_frame_set(
-        scene, seq, SEQ_time_left_handle_frame_get(scene, seq) - offset);
-    SEQ_time_right_handle_frame_set(
-        scene, seq, SEQ_time_right_handle_frame_get(scene, seq) - offset);
+    seq_time_translate_handles(scene, seq, -offset);
     seq->start += offset;
   }
 }
