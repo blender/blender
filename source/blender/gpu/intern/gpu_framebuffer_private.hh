@@ -74,9 +74,9 @@ class FrameBuffer {
   /** Set of texture attachments to render to. DEPTH and DEPTH_STENCIL are mutually exclusive. */
   GPUAttachment attachments_[GPU_FB_MAX_ATTACHMENT];
   /** Is true if internal representation need to be updated. */
-  bool dirty_attachments_;
+  bool dirty_attachments_ = true;
   /** Size of attachment textures. */
-  int width_, height_;
+  int width_ = 0, height_ = 0;
   /** Debug name. */
   char name_[DEBUG_NAME_LEN];
   /** Frame-buffer state. */
