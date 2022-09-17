@@ -401,7 +401,7 @@ template<typename Mesh> class Mikktspace {
     });
 
     std::stable_partition(triangles.begin(), triangles.end(), [](const Triangle &tri) {
-      return tri.markDegenerate;
+      return !tri.markDegenerate;
     });
   }
 
