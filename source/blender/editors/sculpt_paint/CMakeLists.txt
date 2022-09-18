@@ -21,7 +21,6 @@ set(INC
   ../../../../intern/atomic
   ../../../../intern/clog
   ../../../../intern/eigen
-  ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -37,8 +36,8 @@ set(SRC
   curves_sculpt_ops.cc
   curves_sculpt_pinch.cc
   curves_sculpt_puff.cc
-  curves_sculpt_selection_paint.cc
   curves_sculpt_selection.cc
+  curves_sculpt_selection_paint.cc
   curves_sculpt_slide.cc
   curves_sculpt_smooth.cc
   curves_sculpt_snake_hook.cc
@@ -74,8 +73,8 @@ set(SRC
   sculpt_displacement.h
   sculpt_dyntopo.c
   sculpt_expand.c
-  sculpt_face_set.c
   sculpt_face_set_topology.c
+  sculpt_face_set.cc
   sculpt_filter_color.c
   sculpt_filter_mask.c
   sculpt_filter_mesh.c

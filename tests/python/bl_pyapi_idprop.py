@@ -22,7 +22,7 @@ class TestHelper:
     def setUp(self):
         self._id = bpy.context.scene
         self._id.pop("cycles", None)
-        assert(len(self._id.keys()) == 0)
+        assert len(self._id.keys()) == 0
 
     def tearDown(self):
         for key in list(self._id.keys()):

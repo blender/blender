@@ -30,6 +30,14 @@ GHOST_SystemHandle GHOST_CreateSystem(void)
   return (GHOST_SystemHandle)system;
 }
 
+GHOST_SystemHandle GHOST_CreateSystemBackground(void)
+{
+  GHOST_ISystem::createSystemBackground();
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+
+  return (GHOST_SystemHandle)system;
+}
+
 void GHOST_SystemInitDebug(GHOST_SystemHandle systemhandle, GHOST_Debug debug)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
@@ -861,8 +869,7 @@ void GHOST_putClipboard(const char *buffer, bool selection)
 bool GHOST_setConsoleWindowState(GHOST_TConsoleWindowState action)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
-  /* FIXME: use `bool` instead of int for this value. */
-  return (bool)system->setConsoleWindowState(action);
+  return system->setConsoleWindowState(action);
 }
 
 bool GHOST_UseNativePixels(void)

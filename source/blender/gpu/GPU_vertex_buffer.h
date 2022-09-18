@@ -40,11 +40,19 @@ extern "C" {
 
 typedef enum {
   /* can be extended to support more types */
-  GPU_USAGE_STREAM,
-  GPU_USAGE_STATIC, /* do not keep data in memory */
-  GPU_USAGE_DYNAMIC,
-  GPU_USAGE_DEVICE_ONLY, /* Do not do host->device data transfers. */
+  GPU_USAGE_STREAM = 0,
+  GPU_USAGE_STATIC = 1, /* do not keep data in memory */
+  GPU_USAGE_DYNAMIC = 2,
+  GPU_USAGE_DEVICE_ONLY = 3, /* Do not do host->device data transfers. */
+
+  /** Extended usage flags. */
+  /* Flag for vertex buffers used for textures. Skips additional padding/compaction to ensure
+   * format matches the texture exactly. Can be masked with other properties, and is stripped
+   * during VertBuf::init. */
+  GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY = 1 << 3,
 } GPUUsageType;
+
+ENUM_OPERATORS(GPUUsageType, GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
 
 /** Opaque type hiding blender::gpu::VertBuf. */
 typedef struct GPUVertBuf GPUVertBuf;

@@ -822,7 +822,7 @@ static struct PyModuleDef BPy_BM_utils_module_def = {
     BPy_BM_utils_doc,     /* m_doc */
     0,                    /* m_size */
     BPy_BM_utils_methods, /* m_methods */
-    NULL,                 /* m_reload */
+    NULL,                 /* m_slots */
     NULL,                 /* m_traverse */
     NULL,                 /* m_clear */
     NULL,                 /* m_free */

@@ -33,6 +33,7 @@ void BKE_ntree_update_tag_all(struct bNodeTree *ntree);
 void BKE_ntree_update_tag_node_property(struct bNodeTree *ntree, struct bNode *node);
 void BKE_ntree_update_tag_node_new(struct bNodeTree *ntree, struct bNode *node);
 void BKE_ntree_update_tag_node_removed(struct bNodeTree *ntree);
+void BKE_ntree_update_tag_node_reordered(struct bNodeTree *ntree);
 void BKE_ntree_update_tag_node_mute(struct bNodeTree *ntree, struct bNode *node);
 void BKE_ntree_update_tag_node_internal_link(struct bNodeTree *ntree, struct bNode *node);
 

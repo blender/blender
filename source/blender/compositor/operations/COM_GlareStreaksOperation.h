@@ -16,7 +16,7 @@ class GlareStreaksOperation : public GlareBaseOperation {
   }
 
  protected:
-  void generate_glare(float *data, MemoryBuffer *input_tile, NodeGlare *settings) override;
+  void generate_glare(float *data, MemoryBuffer *input_tile, const NodeGlare *settings) override;
 };
 
 }  // namespace blender::compositor

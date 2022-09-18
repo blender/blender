@@ -601,9 +601,10 @@ static void import_endjob(void *user_data)
   else {
     Base *base;
     LayerCollection *lc;
+    const Scene *scene = data->scene;
     ViewLayer *view_layer = data->view_layer;
 
-    BKE_view_layer_base_deselect_all(view_layer);
+    BKE_view_layer_base_deselect_all(scene, view_layer);
 
     lc = BKE_layer_collection_get_active(view_layer);
 
@@ -616,6 +617,7 @@ static void import_endjob(void *user_data)
     /* Sync the collection, and do view layer operations. */
     BKE_layer_collection_resync_allow();
     BKE_main_collection_sync(data->bmain);
+    BKE_view_layer_synced_ensure(scene, view_layer);
     for (AbcObjectReader *reader : data->readers) {
       Object *ob = reader->object();
       base = BKE_view_layer_base_find(view_layer, ob);
@@ -672,13 +674,7 @@ static void import_freejob(void *user_data)
 
 bool ABC_import(bContext *C,
                 const char *filepath,
-                float scale,
-                bool is_sequence,
-                bool set_frame_range,
-                int sequence_len,
-                int offset,
-                bool validate_meshes,
-                bool always_add_cache_reader,
+                const AlembicImportParams *params,
                 bool as_background_job)
 {
   /* Using new here since MEM_* functions do not call constructor to properly initialize data. */
@@ -691,13 +687,13 @@ bool ABC_import(bContext *C,
   job->import_ok = false;
   BLI_strncpy(job->filename, filepath, 1024);
 
-  job->settings.scale = scale;
-  job->settings.is_sequence = is_sequence;
-  job->settings.set_frame_range = set_frame_range;
-  job->settings.sequence_len = sequence_len;
-  job->settings.sequence_offset = offset;
-  job->settings.validate_meshes = validate_meshes;
-  job->settings.always_add_cache_reader = always_add_cache_reader;
+  job->settings.scale = params->global_scale;
+  job->settings.is_sequence = params->is_sequence;
+  job->settings.set_frame_range = params->set_frame_range;
+  job->settings.sequence_len = params->sequence_len;
+  job->settings.sequence_offset = params->sequence_offset;
+  job->settings.validate_meshes = params->validate_meshes;
+  job->settings.always_add_cache_reader = params->always_add_cache_reader;
   job->error_code = ABC_NO_ERROR;
   job->was_cancelled = false;
   job->archive = nullptr;

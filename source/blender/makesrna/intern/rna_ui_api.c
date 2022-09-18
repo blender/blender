@@ -1808,8 +1808,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 
   func = RNA_def_function(
       srna, "template_colormanaged_view_settings", "uiTemplateColormanagedViewSettings");
-  RNA_def_function_ui_description(
-      func, "Item. A widget to control color managed view settings settings.");
+  RNA_def_function_ui_description(func, "Item. A widget to control color managed view settings.");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   api_ui_item_rna_common(func);
 #  if 0

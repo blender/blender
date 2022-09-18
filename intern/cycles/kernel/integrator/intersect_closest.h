@@ -5,12 +5,12 @@
 
 #include "kernel/camera/projection.h"
 
+#include "kernel/film/light_passes.h"
+
 #include "kernel/integrator/path_state.h"
 #include "kernel/integrator/shadow_catcher.h"
 
 #include "kernel/light/light.h"
-
-#include "kernel/util/differential.h"
 
 #include "kernel/geom/geom.h"
 
@@ -87,7 +87,7 @@ ccl_device_forceinline void integrator_split_shadow_catcher(
     return;
   }
 
-  kernel_write_shadow_catcher_bounce_data(kg, state, render_buffer);
+  film_write_shadow_catcher_bounce_data(kg, state, render_buffer);
 
   /* Mark state as having done a shadow catcher split so that it stops contributing to
    * the shadow catcher matte pass, but keeps contributing to the combined pass. */

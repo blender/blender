@@ -65,11 +65,12 @@ void GLUniformBuf::update(const void *data)
 void GLUniformBuf::bind(int slot)
 {
   if (slot >= GLContext::max_ubo_binds) {
-    fprintf(stderr,
-            "Error: Trying to bind \"%s\" ubo to slot %d which is above the reported limit of %d.",
-            name_,
-            slot,
-            GLContext::max_ubo_binds);
+    fprintf(
+        stderr,
+        "Error: Trying to bind \"%s\" ubo to slot %d which is above the reported limit of %d.\n",
+        name_,
+        slot,
+        GLContext::max_ubo_binds);
     return;
   }
 

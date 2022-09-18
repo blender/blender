@@ -62,6 +62,8 @@ static void extract_lnor_iter_poly_mesh(const MeshRenderData *mr,
                                         const int mp_index,
                                         void *data)
 {
+  const bool hidden = mr->hide_poly && mr->hide_poly[mp_index];
+
   const MLoop *mloop = mr->mloop;
   const int ml_index_end = mp->loopstart + mp->totloop;
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
@@ -78,10 +80,10 @@ static void extract_lnor_iter_poly_mesh(const MeshRenderData *mr,
     }
 
     /* Flag for paint mode overlay.
-     * Only use MR_EXTRACT_MAPPED in edit mode where it is used to display the edge-normals.
+     * Only use origindex in edit mode where it is used to display the edge-normals.
      * In paint mode it will use the un-mapped data to draw the wire-frame. */
-    if (mp->flag & ME_HIDE || (mr->edit_bmesh && mr->extract_type == MR_EXTRACT_MAPPED &&
-                               (mr->v_origindex) && mr->v_origindex[ml->v] == ORIGINDEX_NONE)) {
+    if (hidden ||
+        (mr->edit_bmesh && (mr->v_origindex) && mr->v_origindex[ml->v] == ORIGINDEX_NONE)) {
       lnor_data->w = -1;
     }
     else if (mp->flag & ME_FACE_SEL) {
@@ -185,6 +187,8 @@ static void extract_lnor_hq_iter_poly_mesh(const MeshRenderData *mr,
                                            const int mp_index,
                                            void *data)
 {
+  const bool hidden = mr->hide_poly && mr->hide_poly[mp_index];
+
   const MLoop *mloop = mr->mloop;
   const int ml_index_end = mp->loopstart + mp->totloop;
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
@@ -201,10 +205,10 @@ static void extract_lnor_hq_iter_poly_mesh(const MeshRenderData *mr,
     }
 
     /* Flag for paint mode overlay.
-     * Only use #MR_EXTRACT_MAPPED in edit mode where it is used to display the edge-normals.
+     * Only use origindex in edit mode where it is used to display the edge-normals.
      * In paint mode it will use the un-mapped data to draw the wire-frame. */
-    if (mp->flag & ME_HIDE || (mr->edit_bmesh && mr->extract_type == MR_EXTRACT_MAPPED &&
-                               (mr->v_origindex) && mr->v_origindex[ml->v] == ORIGINDEX_NONE)) {
+    if (hidden ||
+        (mr->edit_bmesh && (mr->v_origindex) && mr->v_origindex[ml->v] == ORIGINDEX_NONE)) {
       lnor_data->w = -1;
     }
     else if (mp->flag & ME_FACE_SEL) {

@@ -686,7 +686,7 @@ static struct PyMethodDef pygpu_framebuffer__tp_methods[] = {
 PyDoc_STRVAR(pygpu_framebuffer__tp_doc,
              ".. class:: GPUFrameBuffer(depth_slot=None, color_slots=None)\n"
              "\n"
-             "   This object gives access to framebuffer functionallities.\n"
+             "   This object gives access to framebuffer functionalities.\n"
              "   When a 'layer' is specified in a argument, a single layer of a 3D or array "
              "texture is attached to the frame-buffer.\n"
              "   For cube map textures, layer is translated into a cube map face.\n"

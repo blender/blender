@@ -12,7 +12,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Vector<GeometrySet> geometries = params.extract_multi_input<GeometrySet>("Geometry");
+  Vector<GeometrySet> geometries = params.extract_input<Vector<GeometrySet>>("Geometry");
   GeometrySet instances_geometry;
   InstancesComponent &instances_component =
       instances_geometry.get_component_for_write<InstancesComponent>();

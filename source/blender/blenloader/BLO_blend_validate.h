@@ -12,6 +12,10 @@
 struct Main;
 struct ReportList;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Check (but do *not* fix) that all linked data-blocks are still valid
  * (i.e. pointing to the right library).
@@ -21,3 +25,7 @@ bool BLO_main_validate_libraries(struct Main *bmain, struct ReportList *reports)
  * * Check (and fix if needed) that shape key's 'from' pointer is valid.
  */
 bool BLO_main_validate_shapekeys(struct Main *bmain, struct ReportList *reports);
+
+#ifdef __cplusplus
+}
+#endif

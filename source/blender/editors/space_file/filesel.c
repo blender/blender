@@ -665,12 +665,17 @@ void ED_fileselect_params_to_userdef(SpaceFile *sfile,
   }
 }
 
-void fileselect_file_set(SpaceFile *sfile, const int index)
+void fileselect_file_set(struct bContext *C, SpaceFile *sfile, const int index)
 {
   const struct FileDirEntry *file = filelist_file(sfile->files, index);
   if (file && file->relpath && file->relpath[0] && !(file->typeflag & FILE_TYPE_DIR)) {
     FileSelectParams *params = ED_fileselect_get_active_params(sfile);
     BLI_strncpy(params->file, file->relpath, FILE_MAXFILE);
+    if (sfile->op) {
+      /* Update the filepath properties of the operator. */
+      Main *bmain = CTX_data_main(C);
+      file_sfile_to_operator(C, bmain, sfile->op, sfile);
+    }
   }
 }
 
@@ -1384,4 +1389,25 @@ ScrArea *ED_fileselect_handler_area_find_any_with_op(const wmWindow *win)
   }
 
   return NULL;
+}
+
+void ED_fileselect_ensure_default_filepath(struct bContext *C,
+                                           struct wmOperator *op,
+                                           const char *extension)
+{
+  if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
+    struct Main *bmain = CTX_data_main(C);
+    char filepath[FILE_MAX];
+    const char *blendfile_path = BKE_main_blendfile_path(bmain);
+
+    if (blendfile_path[0] == '\0') {
+      BLI_strncpy(filepath, DATA_("untitled"), sizeof(filepath));
+    }
+    else {
+      BLI_strncpy(filepath, blendfile_path, sizeof(filepath));
+    }
+
+    BLI_path_extension_replace(filepath, sizeof(filepath), extension);
+    RNA_string_set(op->ptr, "filepath", filepath);
+  }
 }

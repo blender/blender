@@ -28,6 +28,7 @@
 
 #include "BKE_customdata.h"
 #include "BKE_dyntopo.h"
+#include "BKE_paint.h"
 #include "BKE_pbvh.h"
 
 #include "bmesh.h"
@@ -5524,10 +5525,6 @@ static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
 #endif
 }
 
-extern char dyntopo_node_idx_vertex_id[];
-extern char dyntopo_node_idx_face_id[];
-extern char dyntopo_faces_areas_layer_id[];
-
 typedef struct DynTopoState {
   PBVH *pbvh;
   bool is_fake_pbvh;
@@ -5560,15 +5557,18 @@ DynTopoState *BKE_dyntopo_init(BMesh *bm, PBVH *existing_pbvh)
 
   const bool isfake = pbvh != existing_pbvh;
 
-  BMCustomLayerReq vlayers[] = {
-      {CD_PAINT_MASK, NULL, 0},
-      {CD_DYNTOPO_VERT, NULL, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
-      {CD_PROP_INT32, dyntopo_node_idx_vertex_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY}};
+  BMCustomLayerReq vlayers[] = {{CD_PAINT_MASK, NULL, 0},
+                                {CD_DYNTOPO_VERT, NULL, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
+                                {CD_PROP_INT32,
+                                 SCULPT_ATTRIBUTE_NAME(dyntopo_node_id_vertex),
+                                 CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY}};
 
   BMCustomLayerReq flayers[] = {
-      {CD_PROP_FLOAT2, dyntopo_faces_areas_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
+      {CD_PROP_FLOAT2, SCULPT_ATTRIBUTE_NAME(face_areas), CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
       {CD_SCULPT_FACE_SETS, NULL, 0},
-      {CD_PROP_INT32, dyntopo_node_idx_face_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY}};
+      {CD_PROP_INT32,
+       SCULPT_ATTRIBUTE_NAME(dyntopo_node_id_face),
+       CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY}};
 
   BM_data_layers_ensure(bm, &bm->vdata, vlayers, 3);
   BM_data_layers_ensure(bm, &bm->pdata, flayers, 3);
@@ -5578,13 +5578,13 @@ DynTopoState *BKE_dyntopo_init(BMesh *bm, PBVH *existing_pbvh)
   pbvh->header.bm = bm;
 
   pbvh->cd_vert_node_offset = CustomData_get_named_offset(
-      &bm->vdata, CD_PROP_INT32, dyntopo_node_idx_vertex_id);
+      &bm->vdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(dyntopo_node_id_vertex));
 
   pbvh->cd_face_node_offset = CustomData_get_named_offset(
-      &bm->pdata, CD_PROP_INT32, dyntopo_node_idx_face_id);
+      &bm->pdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(dyntopo_node_id_face));
 
   pbvh->cd_face_area = CustomData_get_named_offset(
-      &bm->pdata, CD_PROP_FLOAT2, dyntopo_faces_areas_layer_id);
+      &bm->pdata, CD_PROP_FLOAT2, SCULPT_ATTRIBUTE_NAME(face_areas));
 
   pbvh->cd_sculpt_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);

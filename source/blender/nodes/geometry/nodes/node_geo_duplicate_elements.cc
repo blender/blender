@@ -334,11 +334,10 @@ static void duplicate_curves(GeometrySet &geometry_set,
   geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_CURVE});
   GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
 
-  const CurveComponent &src_component = *geometry_set.get_component_for_read<CurveComponent>();
-  const Curves &curves_id = *src_component.get_for_read();
+  const Curves &curves_id = *geometry_set.get_curves_for_read();
   const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
 
-  GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_CURVE};
+  bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_CURVE};
   FieldEvaluator evaluator{field_context, curves.curves_num()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
@@ -487,7 +486,7 @@ static void copy_stable_id_faces(const Mesh &mesh,
   VArraySpan<int> src{src_attribute.varray.typed<int>()};
   MutableSpan<int> dst = dst_attribute.span.typed<int>();
 
-  Span<MPoly> polys(mesh.mpoly, mesh.totpoly);
+  const Span<MPoly> polys = mesh.polys();
   int loop_index = 0;
   for (const int i_poly : selection.index_range()) {
     const IndexRange range = range_for_offsets_index(poly_offsets, i_poly);
@@ -522,14 +521,13 @@ static void duplicate_faces(GeometrySet &geometry_set,
   }
   geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH});
 
-  const MeshComponent &src_component = *geometry_set.get_component_for_read<MeshComponent>();
-  const Mesh &mesh = *src_component.get_for_read();
-  Span<MVert> verts(mesh.mvert, mesh.totvert);
-  Span<MEdge> edges(mesh.medge, mesh.totedge);
-  Span<MPoly> polys(mesh.mpoly, mesh.totpoly);
-  Span<MLoop> loops(mesh.mloop, mesh.totloop);
+  const Mesh &mesh = *geometry_set.get_mesh_for_read();
+  const Span<MVert> verts = mesh.verts();
+  const Span<MEdge> edges = mesh.edges();
+  const Span<MPoly> polys = mesh.polys();
+  const Span<MLoop> loops = mesh.loops();
 
-  GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_FACE};
+  bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
   FieldEvaluator evaluator(field_context, polys.size());
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
@@ -549,10 +547,10 @@ static void duplicate_faces(GeometrySet &geometry_set,
   offsets[selection.size()] = total_polys;
 
   Mesh *new_mesh = BKE_mesh_new_nomain(total_loops, total_loops, 0, total_loops, total_polys);
-  MutableSpan<MVert> new_verts(new_mesh->mvert, new_mesh->totvert);
-  MutableSpan<MEdge> new_edges(new_mesh->medge, new_mesh->totedge);
-  MutableSpan<MLoop> new_loops(new_mesh->mloop, new_mesh->totloop);
-  MutableSpan<MPoly> new_poly(new_mesh->mpoly, new_mesh->totpoly);
+  MutableSpan<MVert> new_verts = new_mesh->verts_for_write();
+  MutableSpan<MEdge> new_edges = new_mesh->edges_for_write();
+  MutableSpan<MPoly> new_polys = new_mesh->polys_for_write();
+  MutableSpan<MLoop> new_loops = new_mesh->loops_for_write();
 
   Array<int> vert_mapping(new_verts.size());
   Array<int> edge_mapping(new_edges.size());
@@ -565,8 +563,8 @@ static void duplicate_faces(GeometrySet &geometry_set,
 
     const MPoly &source = polys[selection[i_selection]];
     for ([[maybe_unused]] const int i_duplicate : IndexRange(poly_range.size())) {
-      new_poly[poly_index] = source;
-      new_poly[poly_index].loopstart = loop_index;
+      new_polys[poly_index] = source;
+      new_polys[poly_index].loopstart = loop_index;
       for (const int i_loops : IndexRange(source.totloop)) {
         const MLoop &current_loop = loops[source.loopstart + i_loops];
         loop_mapping[loop_index] = source.loopstart + i_loops;
@@ -579,7 +577,7 @@ static void duplicate_faces(GeometrySet &geometry_set,
           new_edges[loop_index].v2 = loop_index + 1;
         }
         else {
-          new_edges[loop_index].v2 = new_poly[poly_index].loopstart;
+          new_edges[loop_index].v2 = new_polys[poly_index].loopstart;
         }
         new_loops[loop_index].v = loop_index;
         new_loops[loop_index].e = loop_index;
@@ -595,22 +593,15 @@ static void duplicate_faces(GeometrySet &geometry_set,
                                   loop_mapping,
                                   offsets,
                                   selection,
-                                  bke::mesh_attributes(mesh),
-                                  bke::mesh_attributes_for_write(*new_mesh));
+                                  mesh.attributes(),
+                                  new_mesh->attributes_for_write());
 
-  copy_stable_id_faces(mesh,
-                       selection,
-                       offsets,
-                       vert_mapping,
-                       bke::mesh_attributes(mesh),
-                       bke::mesh_attributes_for_write(*new_mesh));
+  copy_stable_id_faces(
+      mesh, selection, offsets, vert_mapping, mesh.attributes(), new_mesh->attributes_for_write());
 
   if (attribute_outputs.duplicate_index) {
-    create_duplicate_index_attribute(bke::mesh_attributes_for_write(*new_mesh),
-                                     ATTR_DOMAIN_FACE,
-                                     selection,
-                                     attribute_outputs,
-                                     offsets);
+    create_duplicate_index_attribute(
+        new_mesh->attributes_for_write(), ATTR_DOMAIN_FACE, selection, attribute_outputs, offsets);
   }
 
   geometry_set.replace_mesh(new_mesh);
@@ -691,7 +682,7 @@ static void copy_stable_id_edges(const Mesh &mesh,
     return;
   }
 
-  Span<MEdge> edges(mesh.medge, mesh.totedge);
+  const Span<MEdge> edges = mesh.edges();
 
   VArraySpan<int> src{src_attribute.varray.typed<int>()};
   MutableSpan<int> dst = dst_attribute.span.typed<int>();
@@ -724,12 +715,10 @@ static void duplicate_edges(GeometrySet &geometry_set,
     geometry_set.remove_geometry_during_modify();
     return;
   };
-  const MeshComponent &src_component = *geometry_set.get_component_for_read<MeshComponent>();
-  const Mesh &mesh = *src_component.get_for_read();
-  Span<MVert> verts(mesh.mvert, mesh.totvert);
-  Span<MEdge> edges(mesh.medge, mesh.totedge);
+  const Mesh &mesh = *geometry_set.get_mesh_for_read();
+  const Span<MEdge> edges = mesh.edges();
 
-  GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_EDGE};
+  bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_EDGE};
   FieldEvaluator evaluator{field_context, edges.size()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
@@ -740,8 +729,7 @@ static void duplicate_edges(GeometrySet &geometry_set,
   Array<int> edge_offsets = accumulate_counts_to_offsets(selection, counts);
 
   Mesh *new_mesh = BKE_mesh_new_nomain(edge_offsets.last() * 2, edge_offsets.last(), 0, 0, 0);
-  MutableSpan<MVert> new_verts(new_mesh->mvert, new_mesh->totvert);
-  MutableSpan<MEdge> new_edges(new_mesh->medge, new_mesh->totedge);
+  MutableSpan<MEdge> new_edges = new_mesh->edges_for_write();
 
   Array<int> vert_orig_indices(edge_offsets.last() * 2);
   threading::parallel_for(selection.index_range(), 1024, [&](IndexRange range) {
@@ -774,17 +762,14 @@ static void duplicate_edges(GeometrySet &geometry_set,
                                   vert_orig_indices,
                                   edge_offsets,
                                   selection,
-                                  bke::mesh_attributes(mesh),
-                                  bke::mesh_attributes_for_write(*new_mesh));
+                                  mesh.attributes(),
+                                  new_mesh->attributes_for_write());
 
-  copy_stable_id_edges(mesh,
-                       selection,
-                       edge_offsets,
-                       bke::mesh_attributes(mesh),
-                       bke::mesh_attributes_for_write(*new_mesh));
+  copy_stable_id_edges(
+      mesh, selection, edge_offsets, mesh.attributes(), new_mesh->attributes_for_write());
 
   if (attribute_outputs.duplicate_index) {
-    create_duplicate_index_attribute(bke::mesh_attributes_for_write(*new_mesh),
+    create_duplicate_index_attribute(new_mesh->attributes_for_write(),
                                      ATTR_DOMAIN_EDGE,
                                      selection,
                                      attribute_outputs,
@@ -805,14 +790,13 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
                                    const Field<bool> &selection_field,
                                    const IndexAttributes &attribute_outputs)
 {
-  const CurveComponent &src_component = *geometry_set.get_component_for_read<CurveComponent>();
-  const Curves &src_curves_id = *src_component.get_for_read();
+  const Curves &src_curves_id = *geometry_set.get_curves_for_read();
   const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(src_curves_id.geometry);
   if (src_curves.points_num() == 0) {
     return;
   }
 
-  GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_POINT};
+  bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_POINT};
   FieldEvaluator evaluator{field_context, src_curves.points_num()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
@@ -845,7 +829,7 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
 
   for (const Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
-    GAttributeReader src_attribute = src_component.attributes()->lookup(attribute_id);
+    GAttributeReader src_attribute = src_curves.attributes().lookup(attribute_id);
     if (!src_attribute) {
       continue;
     }
@@ -909,11 +893,10 @@ static void duplicate_points_mesh(GeometrySet &geometry_set,
                                   const Field<bool> &selection_field,
                                   const IndexAttributes &attribute_outputs)
 {
-  const MeshComponent &src_component = *geometry_set.get_component_for_read<MeshComponent>();
   const Mesh &mesh = *geometry_set.get_mesh_for_read();
-  Span<MVert> src_verts(mesh.mvert, mesh.totvert);
+  const Span<MVert> src_verts = mesh.verts();
 
-  GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_POINT};
+  bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_POINT};
   FieldEvaluator evaluator{field_context, src_verts.size()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
@@ -924,7 +907,7 @@ static void duplicate_points_mesh(GeometrySet &geometry_set,
   Array<int> offsets = accumulate_counts_to_offsets(selection, counts);
 
   Mesh *new_mesh = BKE_mesh_new_nomain(offsets.last(), 0, 0, 0, 0);
-  MutableSpan<MVert> dst_verts(new_mesh->mvert, new_mesh->totvert);
+  MutableSpan<MVert> dst_verts = new_mesh->verts_for_write();
 
   threaded_slice_fill(offsets.as_span(), selection, src_verts, dst_verts);
 
@@ -933,14 +916,13 @@ static void duplicate_points_mesh(GeometrySet &geometry_set,
                              ATTR_DOMAIN_POINT,
                              offsets,
                              selection,
-                             bke::mesh_attributes(mesh),
-                             bke::mesh_attributes_for_write(*new_mesh));
+                             mesh.attributes(),
+                             new_mesh->attributes_for_write());
 
-  copy_stable_id_point(
-      offsets, bke::mesh_attributes(mesh), bke::mesh_attributes_for_write(*new_mesh));
+  copy_stable_id_point(offsets, mesh.attributes(), new_mesh->attributes_for_write());
 
   if (attribute_outputs.duplicate_index) {
-    create_duplicate_index_attribute(bke::mesh_attributes_for_write(*new_mesh),
+    create_duplicate_index_attribute(new_mesh->attributes_for_write(),
                                      ATTR_DOMAIN_POINT,
                                      selection,
                                      attribute_outputs,
@@ -961,12 +943,10 @@ static void duplicate_points_pointcloud(GeometrySet &geometry_set,
                                         const Field<bool> &selection_field,
                                         const IndexAttributes &attribute_outputs)
 {
-  const PointCloudComponent &src_points =
-      *geometry_set.get_component_for_read<PointCloudComponent>();
-  const int point_num = src_points.attribute_domain_size(ATTR_DOMAIN_POINT);
+  const PointCloud &src_points = *geometry_set.get_pointcloud_for_read();
 
-  GeometryComponentFieldContext field_context{src_points, ATTR_DOMAIN_POINT};
-  FieldEvaluator evaluator{field_context, point_num};
+  bke::PointCloudFieldContext field_context{src_points};
+  FieldEvaluator evaluator{field_context, src_points.totpoint};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
@@ -982,14 +962,13 @@ static void duplicate_points_pointcloud(GeometrySet &geometry_set,
                              ATTR_DOMAIN_POINT,
                              offsets,
                              selection,
-                             *src_points.attributes(),
-                             bke::pointcloud_attributes_for_write(*pointcloud));
+                             src_points.attributes(),
+                             pointcloud->attributes_for_write());
 
-  copy_stable_id_point(
-      offsets, *src_points.attributes(), bke::pointcloud_attributes_for_write(*pointcloud));
+  copy_stable_id_point(offsets, src_points.attributes(), pointcloud->attributes_for_write());
 
   if (attribute_outputs.duplicate_index) {
-    create_duplicate_index_attribute(bke::pointcloud_attributes_for_write(*pointcloud),
+    create_duplicate_index_attribute(pointcloud->attributes_for_write(),
                                      ATTR_DOMAIN_POINT,
                                      selection,
                                      attribute_outputs,
@@ -1055,7 +1034,7 @@ static void duplicate_instances(GeometrySet &geometry_set,
   const InstancesComponent &src_instances =
       *geometry_set.get_component_for_read<InstancesComponent>();
 
-  GeometryComponentFieldContext field_context{src_instances, ATTR_DOMAIN_INSTANCE};
+  bke::GeometryFieldContext field_context{src_instances, ATTR_DOMAIN_INSTANCE};
   FieldEvaluator evaluator{field_context, src_instances.instances_num()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);

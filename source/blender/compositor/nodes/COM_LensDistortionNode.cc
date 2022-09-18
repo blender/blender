@@ -15,7 +15,7 @@ LensDistortionNode::LensDistortionNode(bNode *editor_node) : Node(editor_node)
 void LensDistortionNode::convert_to_operations(NodeConverter &converter,
                                                const CompositorContext & /*context*/) const
 {
-  bNode *editor_node = this->get_bnode();
+  const bNode *editor_node = this->get_bnode();
   NodeLensDist *data = (NodeLensDist *)editor_node->storage;
   if (data->proj) {
     ProjectorLensDistortionOperation *operation = new ProjectorLensDistortionOperation();

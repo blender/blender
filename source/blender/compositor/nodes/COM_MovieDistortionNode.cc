@@ -15,7 +15,7 @@ MovieDistortionNode::MovieDistortionNode(bNode *editor_node) : Node(editor_node)
 void MovieDistortionNode::convert_to_operations(NodeConverter &converter,
                                                 const CompositorContext &context) const
 {
-  bNode *bnode = this->get_bnode();
+  const bNode *bnode = this->get_bnode();
   MovieClip *clip = (MovieClip *)bnode->id;
 
   NodeInput *input_socket = this->get_input_socket(0);

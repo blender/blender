@@ -414,7 +414,7 @@ ShaderManager *ShaderManager::create(int shadingsystem)
   return manager;
 }
 
-uint ShaderManager::get_attribute_id(ustring name)
+uint64_t ShaderManager::get_attribute_id(ustring name)
 {
   thread_scoped_spin_lock lock(attribute_lock_);
 
@@ -424,14 +424,14 @@ uint ShaderManager::get_attribute_id(ustring name)
   if (it != unique_attribute_id.end())
     return it->second;
 
-  uint id = (uint)ATTR_STD_NUM + unique_attribute_id.size();
+  uint64_t id = ATTR_STD_NUM + unique_attribute_id.size();
   unique_attribute_id[name] = id;
   return id;
 }
 
-uint ShaderManager::get_attribute_id(AttributeStandard std)
+uint64_t ShaderManager::get_attribute_id(AttributeStandard std)
 {
-  return (uint)std;
+  return (uint64_t)std;
 }
 
 int ShaderManager::get_shader_id(Shader *shader, bool smooth)
@@ -684,9 +684,6 @@ uint ShaderManager::get_graph_kernel_features(ShaderGraph *graph)
       BsdfBaseNode *bsdf_node = static_cast<BsdfBaseNode *>(node);
       if (CLOSURE_IS_VOLUME(bsdf_node->get_closure_type())) {
         kernel_features |= KERNEL_FEATURE_NODE_VOLUME;
-      }
-      else if (CLOSURE_IS_PRINCIPLED(bsdf_node->get_closure_type())) {
-        kernel_features |= KERNEL_FEATURE_PRINCIPLED;
       }
     }
     if (node->has_surface_bssrdf()) {

@@ -12,6 +12,8 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
@@ -145,6 +147,7 @@ static void face_to_plane(const Object *ob, BMFace *face, float r_plane[4])
  */
 static int similar_face_select_exec(bContext *C, wmOperator *op)
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   const int type = RNA_enum_get(op->ptr, "type");
@@ -155,7 +158,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
   int tot_faces_selected_all = 0;
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
@@ -618,6 +621,7 @@ static bool edge_data_value_set(BMEdge *edge, const int hflag, int *r_value)
  */
 static int similar_edge_select_exec(bContext *C, wmOperator *op)
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   const int type = RNA_enum_get(op->ptr, "type");
@@ -629,7 +633,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
   int tot_edges_selected_all = 0;
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
@@ -968,6 +972,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
 static int similar_vert_select_exec(bContext *C, wmOperator *op)
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   /* get the type from RNA */
@@ -979,7 +984,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
   int tot_verts_selected_all = 0;
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
@@ -1416,6 +1421,7 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 
   /* properties */
   prop = ot->prop = RNA_def_enum(ot->srna, "type", prop_similar_types, SIMVERT_NORMAL, "Type", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MESH);
   RNA_def_enum_funcs(prop, select_similar_type_itemf);
 
   RNA_def_enum(ot->srna, "compare", prop_similar_compare_types, SIM_CMP_EQ, "Compare", "");

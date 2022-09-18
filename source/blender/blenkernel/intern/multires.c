@@ -73,7 +73,7 @@ typedef enum {
 static void multiresModifier_disp_run(
     DerivedMesh *dm, Mesh *me, DerivedMesh *dm2, DispOp op, CCGElem **oldGridData, int totlvl);
 
-/** Customdata */
+/** Custom-data. */
 
 void multires_customdata_delete(Mesh *me)
 {
@@ -194,6 +194,7 @@ static BLI_bitmap *multires_mdisps_downsample_hidden(const BLI_bitmap *old_hidde
 
 static void multires_output_hidden_to_ccgdm(CCGDerivedMesh *ccgdm, Mesh *me, int level)
 {
+  const MPoly *polys = BKE_mesh_polys(me);
   const MDisps *mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
   BLI_bitmap **grid_hidden = ccgdm->gridHidden;
   int *gridOffset;
@@ -202,7 +203,7 @@ static void multires_output_hidden_to_ccgdm(CCGDerivedMesh *ccgdm, Mesh *me, int
   gridOffset = ccgdm->dm.getGridOffset(&ccgdm->dm);
 
   for (i = 0; i < me->totpoly; i++) {
-    for (j = 0; j < me->mpoly[i].totloop; j++) {
+    for (j = 0; j < polys[i].totloop; j++) {
       int g = gridOffset[i] + j;
       const MDisps *md = &mdisps[g];
       BLI_bitmap *gh = md->hidden;
@@ -476,15 +477,16 @@ void multires_force_external_reload(Object *object)
 static int get_levels_from_disps(Object *ob)
 {
   Mesh *me = ob->data;
+  const MPoly *polys = BKE_mesh_polys(me);
   MDisps *mdisp, *md;
   int i, j, totlvl = 0;
 
   mdisp = CustomData_get_layer(&me->ldata, CD_MDISPS);
 
   for (i = 0; i < me->totpoly; i++) {
-    md = mdisp + me->mpoly[i].loopstart;
+    md = mdisp + polys[i].loopstart;
 
-    for (j = 0; j < me->mpoly[i].totloop; j++, md++) {
+    for (j = 0; j < polys[i].totloop; j++, md++) {
       if (md->totdisp == 0) {
         continue;
       }
@@ -643,6 +645,7 @@ static void multires_grid_paint_mask_downsample(GridPaintMask *gpm, int level)
 static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
 {
   Mesh *me = (Mesh *)ob->data;
+  const MPoly *polys = BKE_mesh_polys(me);
   int levels = mmd->totlvl - lvl;
   MDisps *mdisps;
   GridPaintMask *gpm;
@@ -662,8 +665,8 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
       int i, j;
 
       for (i = 0; i < me->totpoly; i++) {
-        for (j = 0; j < me->mpoly[i].totloop; j++) {
-          int g = me->mpoly[i].loopstart + j;
+        for (j = 0; j < polys[i].totloop; j++) {
+          int g = polys[i].loopstart + j;
           MDisps *mdisp = &mdisps[g];
           float(*disps)[3], (*ndisps)[3], (*hdisps)[3];
           int totdisp = multires_grid_tot[lvl];
@@ -842,7 +845,7 @@ typedef struct MultiresThreadedData {
   CCGKey *key;
   CCGKey *sub_key;
   Subdiv *sd;
-  MPoly *mpoly;
+  const MPoly *mpoly;
   MDisps *mdisps;
   GridPaintMask *grid_paint_mask;
   int *gridOffset;
@@ -952,12 +955,10 @@ Object *multires_dump_grids_bmesh(Object *bmob, BMesh *bm)
 
   me->cd_flag = 0;
 
-  CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, mvert, me->totvert);
-  CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, medge, me->totedge);
-  CustomData_add_layer(&me->ldata, CD_MLOOP, CD_ASSIGN, mloop, me->totloop);
-  CustomData_add_layer(&me->pdata, CD_MPOLY, CD_ASSIGN, mpoly, me->totpoly);
-
-  BKE_mesh_update_customdata_pointers(me, 0);
+  me->mvert = CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, mvert, me->totvert);
+  me->medge = CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, medge, me->totedge);
+  me->mloop = CustomData_add_layer(&me->ldata, CD_MLOOP, CD_ASSIGN, mloop, me->totloop);
+  me->mpoly = CustomData_add_layer(&me->pdata, CD_MPOLY, CD_ASSIGN, mpoly, me->totpoly);
 
   int loopi = 0;
   int outli = 0;
@@ -1299,7 +1300,7 @@ static void multires_disp_run_cb(void *__restrict userdata,
   CCGElem **gridData = tdata->gridData;
   CCGElem **subGridData = tdata->subGridData;
   CCGKey *key = tdata->key;
-  MPoly *mpoly = tdata->mpoly;
+  const MPoly *mpoly = tdata->mpoly;
   MDisps *mdisps = tdata->mdisps;
   GridPaintMask *grid_paint_mask = tdata->grid_paint_mask;
   int *gridOffset = tdata->gridOffset;
@@ -1392,7 +1393,7 @@ static void multiresModifier_disp_run(
   CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
   CCGElem **gridData, **subGridData;
   CCGKey key;
-  MPoly *mpoly = me->mpoly;
+  const MPoly *mpoly = BKE_mesh_polys(me);
   MDisps *mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
   GridPaintMask *grid_paint_mask = NULL;
   int *gridOffset;
@@ -1413,7 +1414,7 @@ static void multiresModifier_disp_run(
 
   if (!mdisps) {
     if (op == CALC_DISPLACEMENTS) {
-      mdisps = CustomData_add_layer(&me->ldata, CD_MDISPS, CD_DEFAULT, NULL, me->totloop);
+      mdisps = CustomData_add_layer(&me->ldata, CD_MDISPS, CD_SET_DEFAULT, NULL, me->totloop);
     }
     else {
       return;
@@ -1940,7 +1941,7 @@ void multires_ensure_external_read(struct Mesh *mesh, int top_level)
 
   MDisps *mdisps = CustomData_get_layer(&mesh->ldata, CD_MDISPS);
   if (mdisps == NULL) {
-    mdisps = CustomData_add_layer(&mesh->ldata, CD_MDISPS, CD_DEFAULT, NULL, mesh->totloop);
+    mdisps = CustomData_add_layer(&mesh->ldata, CD_MDISPS, CD_SET_DEFAULT, NULL, mesh->totloop);
   }
 
   const int totloop = mesh->totloop;

@@ -293,26 +293,28 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
 
   for (int i = 0; i < gpumat_array_len; i++) {
     GPUMaterial *gpumat = gpumat_array[i];
-    if (gpumat) {
-      ListBase gpu_attrs = GPU_material_attributes(gpumat);
-      LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
-        const char *name = gpu_attr->name;
-        eCustomDataType type = static_cast<eCustomDataType>(gpu_attr->type);
-        int layer = -1;
-        std::optional<eAttrDomain> domain;
+    if (gpumat == nullptr) {
+      continue;
+    }
+    ListBase gpu_attrs = GPU_material_attributes(gpumat);
+    LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
+      const char *name = gpu_attr->name;
+      eCustomDataType type = static_cast<eCustomDataType>(gpu_attr->type);
+      int layer = -1;
+      std::optional<eAttrDomain> domain;
 
-        if (gpu_attr->is_default_color) {
-          name = default_color_name.c_str();
-        }
+      if (gpu_attr->is_default_color) {
+        name = default_color_name.c_str();
+      }
 
-        if (type == CD_AUTO_FROM_NAME) {
-          /* We need to deduce what exact layer is used.
-           *
-           * We do it based on the specified name.
-           */
-          if (name[0] != '\0') {
-            layer = CustomData_get_named_layer(cd_ldata, CD_MLOOPUV, name);
-            type = CD_MTFACE;
+      if (type == CD_AUTO_FROM_NAME) {
+        /* We need to deduce what exact layer is used.
+         *
+         * We do it based on the specified name.
+         */
+        if (name[0] != '\0') {
+          layer = CustomData_get_named_layer(cd_ldata, CD_MLOOPUV, name);
+          type = CD_MTFACE;
 
 #if 0 /* Tangents are always from UV's - this will never happen. */
             if (layer == -1) {
@@ -320,88 +322,87 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
               type = CD_TANGENT;
             }
 #endif
-            if (layer == -1) {
-              /* Try to match a generic attribute, we use the first attribute domain with a
-               * matching name. */
-              if (drw_custom_data_match_attribute(cd_vdata, name, &layer, &type)) {
-                domain = ATTR_DOMAIN_POINT;
-              }
-              else if (drw_custom_data_match_attribute(cd_ldata, name, &layer, &type)) {
-                domain = ATTR_DOMAIN_CORNER;
-              }
-              else if (drw_custom_data_match_attribute(cd_pdata, name, &layer, &type)) {
-                domain = ATTR_DOMAIN_FACE;
-              }
-              else if (drw_custom_data_match_attribute(cd_edata, name, &layer, &type)) {
-                domain = ATTR_DOMAIN_EDGE;
-              }
-              else {
-                layer = -1;
-              }
+          if (layer == -1) {
+            /* Try to match a generic attribute, we use the first attribute domain with a
+             * matching name. */
+            if (drw_custom_data_match_attribute(cd_vdata, name, &layer, &type)) {
+              domain = ATTR_DOMAIN_POINT;
             }
-
-            if (layer == -1) {
-              continue;
+            else if (drw_custom_data_match_attribute(cd_ldata, name, &layer, &type)) {
+              domain = ATTR_DOMAIN_CORNER;
             }
-          }
-          else {
-            /* Fall back to the UV layer, which matches old behavior. */
-            type = CD_MTFACE;
-          }
-        }
-
-        switch (type) {
-          case CD_MTFACE: {
-            if (layer == -1) {
-              layer = (name[0] != '\0') ? CustomData_get_named_layer(cd_ldata, CD_MLOOPUV, name) :
-                                          CustomData_get_render_layer(cd_ldata, CD_MLOOPUV);
+            else if (drw_custom_data_match_attribute(cd_pdata, name, &layer, &type)) {
+              domain = ATTR_DOMAIN_FACE;
             }
-            if (layer != -1) {
-              cd_used.uv |= (1 << layer);
-            }
-            break;
-          }
-          case CD_TANGENT: {
-            if (layer == -1) {
-              layer = (name[0] != '\0') ? CustomData_get_named_layer(cd_ldata, CD_MLOOPUV, name) :
-                                          CustomData_get_render_layer(cd_ldata, CD_MLOOPUV);
-
-              /* Only fallback to orco (below) when we have no UV layers, see: T56545 */
-              if (layer == -1 && name[0] != '\0') {
-                layer = CustomData_get_render_layer(cd_ldata, CD_MLOOPUV);
-              }
-            }
-            if (layer != -1) {
-              cd_used.tan |= (1 << layer);
+            else if (drw_custom_data_match_attribute(cd_edata, name, &layer, &type)) {
+              domain = ATTR_DOMAIN_EDGE;
             }
             else {
-              /* no UV layers at all => requesting orco */
-              cd_used.tan_orco = 1;
-              cd_used.orco = 1;
+              layer = -1;
             }
-            break;
           }
 
-          case CD_ORCO: {
-            cd_used.orco = 1;
-            break;
+          if (layer == -1) {
+            continue;
           }
-          case CD_PROP_BYTE_COLOR:
-          case CD_PROP_COLOR:
-          case CD_PROP_FLOAT3:
-          case CD_PROP_BOOL:
-          case CD_PROP_INT8:
-          case CD_PROP_INT32:
-          case CD_PROP_FLOAT:
-          case CD_PROP_FLOAT2: {
-            if (layer != -1 && domain.has_value()) {
-              drw_attributes_add_request(attributes, name, type, layer, *domain);
-            }
-            break;
-          }
-          default:
-            break;
         }
+        else {
+          /* Fall back to the UV layer, which matches old behavior. */
+          type = CD_MTFACE;
+        }
+      }
+
+      switch (type) {
+        case CD_MTFACE: {
+          if (layer == -1) {
+            layer = (name[0] != '\0') ? CustomData_get_named_layer(cd_ldata, CD_MLOOPUV, name) :
+                                        CustomData_get_render_layer(cd_ldata, CD_MLOOPUV);
+          }
+          if (layer != -1) {
+            cd_used.uv |= (1 << layer);
+          }
+          break;
+        }
+        case CD_TANGENT: {
+          if (layer == -1) {
+            layer = (name[0] != '\0') ? CustomData_get_named_layer(cd_ldata, CD_MLOOPUV, name) :
+                                        CustomData_get_render_layer(cd_ldata, CD_MLOOPUV);
+
+            /* Only fallback to orco (below) when we have no UV layers, see: T56545 */
+            if (layer == -1 && name[0] != '\0') {
+              layer = CustomData_get_render_layer(cd_ldata, CD_MLOOPUV);
+            }
+          }
+          if (layer != -1) {
+            cd_used.tan |= (1 << layer);
+          }
+          else {
+            /* no UV layers at all => requesting orco */
+            cd_used.tan_orco = 1;
+            cd_used.orco = 1;
+          }
+          break;
+        }
+
+        case CD_ORCO: {
+          cd_used.orco = 1;
+          break;
+        }
+        case CD_PROP_BYTE_COLOR:
+        case CD_PROP_COLOR:
+        case CD_PROP_FLOAT3:
+        case CD_PROP_BOOL:
+        case CD_PROP_INT8:
+        case CD_PROP_INT32:
+        case CD_PROP_FLOAT:
+        case CD_PROP_FLOAT2: {
+          if (layer != -1 && domain.has_value()) {
+            drw_attributes_add_request(attributes, name, type, layer, *domain);
+          }
+          break;
+        }
+        default:
+          break;
       }
     }
   }
@@ -555,8 +556,7 @@ static bool mesh_batch_cache_valid(Object *object, Mesh *me)
   }
 
   if (object->sculpt && object->sculpt->pbvh) {
-    if (cache->pbvh_is_drawing != BKE_pbvh_is_drawing(object->sculpt->pbvh) ||
-        BKE_pbvh_draw_cache_invalid(object->sculpt->pbvh)) {
+    if (cache->pbvh_is_drawing != BKE_pbvh_is_drawing(object->sculpt->pbvh)) {
       return false;
     }
 
@@ -1508,12 +1508,13 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
   cache->batch_ready |= batch_requested;
 
   bool do_cage = false, do_uvcage = false;
-  if (is_editmode) {
+  if (is_editmode && is_mode_active) {
     Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
     Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob);
 
     do_cage = editmesh_eval_final != editmesh_eval_cage;
-    do_uvcage = !editmesh_eval_final->runtime.is_original;
+    do_uvcage = !(editmesh_eval_final->runtime.is_original_bmesh &&
+                  editmesh_eval_final->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH);
   }
 
   const bool do_subdivision = BKE_subsurf_modifier_has_gpu_subdiv(me);
@@ -1893,6 +1894,7 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
                            ob->obmat,
                            true,
                            false,
+                           do_cage,
                            ts,
                            use_hide);
   }

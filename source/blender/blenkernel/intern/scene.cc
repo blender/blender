@@ -217,7 +217,7 @@ static void scene_init_data(ID *id)
   }
 
   /* Master Collection */
-  scene->master_collection = BKE_collection_master_add();
+  scene->master_collection = BKE_collection_master_add(scene);
 
   BKE_view_layer_add(scene, "ViewLayer", nullptr, VIEWLAYER_ADD_NEW);
 }
@@ -236,7 +236,7 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
 {
   Scene *scene_dst = (Scene *)id_dst;
   const Scene *scene_src = (const Scene *)id_src;
-  /* We never handle usercount here for own data. */
+  /* We never handle user-count here for own data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
   /* We always need allocation of our private ID data. */
   const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
@@ -251,6 +251,7 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
                    (ID *)scene_src->master_collection,
                    (ID **)&scene_dst->master_collection,
                    flag_private_id_data);
+    scene_dst->master_collection->owner_id = &scene_dst->id;
   }
 
   /* View Layers */
@@ -276,6 +277,7 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
                            (void *)(&scene_src->id),
                            &scene_dst->id,
                            ID_REMAP_SKIP_NEVER_NULL_USAGE | ID_REMAP_SKIP_USER_CLEAR);
+    scene_dst->nodetree->owner_id = &scene_dst->id;
   }
 
   if (scene_src->rigidbody_world) {
@@ -804,8 +806,8 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
 
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, view_layer->mat_override, IDWALK_CB_USER);
-
-    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(
           data, base->object, IDWALK_CB_NOP | IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE);
     }
@@ -1062,7 +1064,7 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   BKE_curvemapping_curves_blend_write(writer, &sce->r.mblur_shutter_curve);
 
   LISTBASE_FOREACH (ViewLayer *, view_layer, &sce->view_layers) {
-    BKE_view_layer_blend_write(writer, view_layer);
+    BKE_view_layer_blend_write(writer, sce, view_layer);
   }
 
   if (sce->master_collection) {
@@ -1701,7 +1703,7 @@ constexpr IDTypeInfo get_type_info()
   info.foreach_id = scene_foreach_id;
   info.foreach_cache = scene_foreach_cache;
   info.foreach_path = scene_foreach_path;
-  info.owner_get = nullptr;
+  info.owner_pointer_get = nullptr;
 
   info.blend_write = scene_blend_write;
   info.blend_read_data = scene_blend_read_data;
@@ -2089,7 +2091,8 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 bool BKE_scene_object_find(Scene *scene, Object *ob)
 {
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
-    if (BLI_findptr(&view_layer->object_bases, ob, offsetof(Base, object))) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    if (BLI_findptr(BKE_view_layer_object_bases_get(view_layer), ob, offsetof(Base, object))) {
       return true;
     }
   }
@@ -2099,7 +2102,8 @@ bool BKE_scene_object_find(Scene *scene, Object *ob)
 Object *BKE_scene_object_find_by_name(const Scene *scene, const char *name)
 {
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
-    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       if (STREQ(base->object->id.name + 2, name)) {
         return base->object;
       }
@@ -2120,7 +2124,8 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 
   /* copy layers and flags from bases to objects */
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
-    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       /* collection patch... */
       BKE_scene_object_base_flag_sync_from_base(base);
     }
@@ -2163,7 +2168,8 @@ int BKE_scene_base_iter_next(
       if (iter->phase == F_START) {
         ViewLayer *view_layer = (depsgraph) ? DEG_get_evaluated_view_layer(depsgraph) :
                                               BKE_view_layer_context_active_PLACEHOLDER(*scene);
-        *base = static_cast<Base *>(view_layer->object_bases.first);
+        BKE_view_layer_synced_ensure(*scene, view_layer);
+        *base = static_cast<Base *>(BKE_view_layer_object_bases_get(view_layer)->first);
         if (*base) {
           *ob = (*base)->object;
           iter->phase = F_SCENE;
@@ -2173,8 +2179,10 @@ int BKE_scene_base_iter_next(
           while ((*scene)->set) {
             (*scene) = (*scene)->set;
             ViewLayer *view_layer_set = BKE_view_layer_default_render(*scene);
-            if (view_layer_set->object_bases.first) {
-              *base = static_cast<Base *>(view_layer_set->object_bases.first);
+            BKE_view_layer_synced_ensure(*scene, view_layer_set);
+            ListBase *object_bases = BKE_view_layer_object_bases_get(view_layer_set);
+            if (object_bases->first) {
+              *base = static_cast<Base *>(object_bases->first);
               *ob = (*base)->object;
               iter->phase = F_SCENE;
               break;
@@ -2194,8 +2202,10 @@ int BKE_scene_base_iter_next(
               while ((*scene)->set) {
                 (*scene) = (*scene)->set;
                 ViewLayer *view_layer_set = BKE_view_layer_default_render(*scene);
-                if (view_layer_set->object_bases.first) {
-                  *base = static_cast<Base *>(view_layer_set->object_bases.first);
+                BKE_view_layer_synced_ensure(*scene, view_layer_set);
+                ListBase *object_bases = BKE_view_layer_object_bases_get(view_layer_set);
+                if (object_bases->first) {
+                  *base = static_cast<Base *>(object_bases->first);
                   *ob = (*base)->object;
                   break;
                 }
@@ -2542,9 +2552,11 @@ static bool check_rendered_viewport_visible(Main *bmain)
   return false;
 }
 
-/* TODO(campbell): shouldn't we be able to use 'DEG_get_view_layer' here?
+/* TODO(@campbellbarton): shouldn't we be able to use 'DEG_get_view_layer' here?
  * Currently this is nullptr on load, so don't. */
-static void prepare_mesh_for_viewport_render(Main *bmain, const ViewLayer *view_layer)
+static void prepare_mesh_for_viewport_render(Main *bmain,
+                                             const Scene *scene,
+                                             ViewLayer *view_layer)
 {
   /* This is needed to prepare mesh to be used by the render
    * engine from the viewport rendering. We do loading here
@@ -2554,8 +2566,8 @@ static void prepare_mesh_for_viewport_render(Main *bmain, const ViewLayer *view_
    * This makes it so viewport render engine doesn't need to
    * call loading of the edit data for the mesh objects.
    */
-
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit) {
     Mesh *mesh = static_cast<Mesh *>(obedit->data);
     if ((obedit->type == OB_MESH) &&
@@ -2631,8 +2643,8 @@ static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool on
     /* Uncomment this to check if graph was properly tagged for update. */
     // DEG_debug_graph_relations_validate(depsgraph, bmain, scene);
     /* Flush editing data if needed. */
-    prepare_mesh_for_viewport_render(bmain, view_layer);
-    /* Update all objects: drivers, matrices, #DispList, etc. flags set
+    prepare_mesh_for_viewport_render(bmain, scene, view_layer);
+    /* Update all objects: drivers, matrices, etc. flags set
      * by depsgraph or manual, no layer check here, gets correct flushed. */
     DEG_evaluate_on_refresh(depsgraph);
     /* Update sound system. */
@@ -2707,7 +2719,7 @@ void BKE_scene_graph_update_for_newframe_ex(Depsgraph *depsgraph, const bool cle
     BKE_image_editors_update_frame(bmain, scene->r.cfra);
     BKE_sound_set_cfra(scene->r.cfra);
     DEG_graph_relations_update(depsgraph);
-    /* Update all objects: drivers, matrices, #DispList, etc. flags set
+    /* Update all objects: drivers, matrices, etc. flags set
      * by depsgraph or manual, no layer check here, gets correct flushed.
      *
      * NOTE: Only update for new frame on first iteration. Second iteration is for ensuring user
@@ -2849,8 +2861,10 @@ Base *_setlooper_base_step(Scene **sce_iter, ViewLayer *view_layer, Base *base)
   if ((base == nullptr) && (view_layer != nullptr)) {
     /* First time looping, return the scenes first base. */
     /* For the first loop we should get the layer from workspace when available. */
-    if (view_layer->object_bases.first) {
-      return (Base *)view_layer->object_bases.first;
+    BKE_view_layer_synced_ensure(*sce_iter, view_layer);
+    ListBase *object_bases = BKE_view_layer_object_bases_get(view_layer);
+    if (object_bases->first) {
+      return static_cast<Base *>(object_bases->first);
     }
     /* No base on this scene layer. */
     goto next_set;
@@ -2860,7 +2874,7 @@ Base *_setlooper_base_step(Scene **sce_iter, ViewLayer *view_layer, Base *base)
     /* Reached the end, get the next base in the set. */
     while ((*sce_iter = (*sce_iter)->set)) {
       ViewLayer *view_layer_set = BKE_view_layer_default_render(*sce_iter);
-      base = (Base *)view_layer_set->object_bases.first;
+      base = (Base *)BKE_view_layer_object_bases_get(view_layer_set)->first;
 
       if (base) {
         return base;
@@ -2919,13 +2933,11 @@ bool BKE_scene_uses_cycles_experimental_features(Scene *scene)
   return RNA_enum_get(&cycles_ptr, "feature_set") == CYCLES_FEATURES_EXPERIMENTAL;
 }
 
-void BKE_scene_base_flag_to_objects(ViewLayer *view_layer)
+void BKE_scene_base_flag_to_objects(const Scene *scene, ViewLayer *view_layer)
 {
-  Base *base = static_cast<Base *>(view_layer->object_bases.first);
-
-  while (base) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     BKE_scene_object_base_flag_sync_from_base(base);
-    base = base->next;
   }
 }
 

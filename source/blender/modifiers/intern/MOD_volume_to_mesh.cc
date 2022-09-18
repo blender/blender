@@ -51,7 +51,7 @@ static void initData(ModifierData *md)
   VolumeToMeshModifierData *vmmd = reinterpret_cast<VolumeToMeshModifierData *>(md);
   vmmd->object = nullptr;
   vmmd->threshold = 0.1f;
-  strncpy(vmmd->grid_name, "density", MAX_NAME);
+  STRNCPY(vmmd->grid_name, "density");
   vmmd->adaptivity = 0.0f;
   vmmd->resolution_mode = VOLUME_TO_MESH_RESOLUTION_MODE_GRID;
   vmmd->voxel_amount = 32;
@@ -62,7 +62,7 @@ static void initData(ModifierData *md)
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   VolumeToMeshModifierData *vmmd = reinterpret_cast<VolumeToMeshModifierData *>(md);
-  DEG_add_modifier_to_transform_relation(ctx->node, "Volume to Mesh Modifier");
+  DEG_add_depends_on_transform_relation(ctx->node, "Volume to Mesh Modifier");
   if (vmmd->object) {
     DEG_add_object_relation(
         ctx->node, vmmd->object, DEG_OB_COMP_GEOMETRY, "Volume to Mesh Modifier");

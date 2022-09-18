@@ -67,6 +67,7 @@ set(SRC
   nodes/node_shader_map_range.cc
   nodes/node_shader_mapping.cc
   nodes/node_shader_math.cc
+  nodes/node_shader_mix.cc
   nodes/node_shader_mix_rgb.cc
   nodes/node_shader_mix_shader.cc
   nodes/node_shader_normal.cc
@@ -147,6 +148,22 @@ endif()
 
 if(WITH_FREESTYLE)
   add_definitions(-DWITH_FREESTYLE)
+endif()
+
+if(WITH_TBB)
+  add_definitions(-DWITH_TBB)
+  if(WIN32)
+    # TBB includes Windows.h which will define min/max macros
+    # that will collide with the stl versions.
+    add_definitions(-DNOMINMAX)
+  endif()
+  list(APPEND INC_SYS
+    ${TBB_INCLUDE_DIRS}
+  )
+
+  list(APPEND LIB
+    ${TBB_LIBRARIES}
+  )
 endif()
 
 blender_add_lib(bf_nodes_shader "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

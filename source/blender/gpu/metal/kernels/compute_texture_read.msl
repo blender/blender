@@ -74,7 +74,7 @@ template<> uchar convert_type<uchar>(float val)
 
 template<> uint convert_type<uint>(float val)
 {
-  return uint(val * double(0xFFFFFFFFu));
+  return uint(val * float(0xFFFFFFFFu));
 }
 
 struct TextureReadParams {

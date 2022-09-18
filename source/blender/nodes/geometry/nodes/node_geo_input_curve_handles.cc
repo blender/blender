@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_curves.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_input_curve_handles_cc {
@@ -15,31 +17,27 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Right")).field_source();
 }
 
-class HandlePositionFieldInput final : public GeometryFieldInput {
+class HandlePositionFieldInput final : public bke::CurvesFieldInput {
   Field<bool> relative_;
   bool left_;
 
  public:
   HandlePositionFieldInput(Field<bool> relative, bool left)
-      : GeometryFieldInput(CPPType::get<float3>(), "Handle"), relative_(relative), left_(left)
+      : bke::CurvesFieldInput(CPPType::get<float3>(), "Handle"), relative_(relative), left_(left)
   {
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
+  GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
                                  const eAttrDomain domain,
-                                 IndexMask mask) const final
+                                 const IndexMask mask) const final
   {
-    if (component.type() != GEO_COMPONENT_TYPE_CURVE) {
-      return {};
-    }
-
-    GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
+    bke::CurvesFieldContext field_context{curves, ATTR_DOMAIN_POINT};
     fn::FieldEvaluator evaluator(field_context, &mask);
     evaluator.add(relative_);
     evaluator.evaluate();
     const VArray<bool> relative = evaluator.get_evaluated<bool>(0);
 
-    const AttributeAccessor attributes = *component.attributes();
+    const AttributeAccessor attributes = curves.attributes();
 
     VArray<float3> positions = attributes.lookup_or_default<float3>(
         "position", ATTR_DOMAIN_POINT, {0, 0, 0});
@@ -69,7 +67,7 @@ class HandlePositionFieldInput final : public GeometryFieldInput {
         output[i] = handles[i];
       }
     }
-    return component.attributes()->adapt_domain<float3>(
+    return attributes.adapt_domain<float3>(
         VArray<float3>::ForContainer(std::move(output)), ATTR_DOMAIN_POINT, domain);
   }
 

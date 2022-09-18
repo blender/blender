@@ -1,8 +1,10 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_length_parameterize.hh"
+#include "BLI_task.hh"
 
 #include "BKE_attribute_math.hh"
+#include "BKE_mesh.h"
 #include "BKE_mesh_sample.hh"
 
 #include "GEO_add_curves_on_mesh.hh"
@@ -102,8 +104,8 @@ void interpolate_from_neighbors(const Span<NeighborCurves> neighbors_per_curve,
         }
       }
     }
+    mixer.finalize(range);
   });
-  mixer.finalize();
 }
 
 static void interpolate_position_without_interpolation(
@@ -243,6 +245,8 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   Vector<float2> used_uvs;
 
   /* Find faces that the passed in uvs belong to. */
+  const Span<MVert> surface_verts = inputs.surface->verts();
+  const Span<MLoop> surface_loops = inputs.surface->loops();
   for (const int i : inputs.uvs.index_range()) {
     const float2 &uv = inputs.uvs[i];
     const ReverseUVSampler::Result result = inputs.reverse_uv_sampler->sample(uv);
@@ -255,9 +259,9 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
     looptris.append(&looptri);
     const float3 root_position_su = attribute_math::mix3<float3>(
         result.bary_weights,
-        inputs.surface->mvert[inputs.surface->mloop[looptri.tri[0]].v].co,
-        inputs.surface->mvert[inputs.surface->mloop[looptri.tri[1]].v].co,
-        inputs.surface->mvert[inputs.surface->mloop[looptri.tri[2]].v].co);
+        surface_verts[surface_loops[looptri.tri[0]].v].co,
+        surface_verts[surface_loops[looptri.tri[1]].v].co,
+        surface_verts[surface_loops[looptri.tri[2]].v].co);
     root_positions_cu.append(inputs.transforms->surface_to_curves * root_position_su);
     used_uvs.append(uv);
   }
@@ -275,6 +279,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   /* Grow number of curves first, so that the offsets array can be filled. */
   curves.resize(old_points_num, new_curves_num);
+  const IndexRange new_curves_range = curves.curves_range().drop_front(old_curves_num);
 
   /* Compute new curve offsets. */
   MutableSpan<int> curve_offsets = curves.offsets_for_write();
@@ -289,8 +294,8 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   else {
     new_point_counts_per_curve.fill(inputs.fallback_point_count);
   }
-  for (const int i : IndexRange(added_curves_num)) {
-    curve_offsets[old_curves_num + i + 1] += curve_offsets[old_curves_num + i];
+  for (const int i : new_curves_range) {
+    curve_offsets[i + 1] += curve_offsets[i];
   }
 
   const int new_points_num = curves.offsets().last();
@@ -341,7 +346,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   const VArray<float> curves_selection = curves.selection_curve_float();
   if (curves_selection.is_span()) {
     MutableSpan<float> curves_selection_span = curves.selection_curve_float_for_write();
-    curves_selection_span.drop_front(old_curves_num).fill(1.0f);
+    curves_selection_span.slice(new_curves_range).fill(1.0f);
   }
 
   /* Initialize position attribute. */
@@ -365,10 +370,29 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
                                                inputs.transforms->surface_to_curves_normal);
   }
 
-  /* Set curve types. */
-  MutableSpan<int8_t> types_span = curves.curve_types_for_write();
-  types_span.drop_front(old_curves_num).fill(CURVE_TYPE_CATMULL_ROM);
-  curves.update_curve_types();
+  curves.fill_curve_types(new_curves_range, CURVE_TYPE_CATMULL_ROM);
+
+  /* Explicitly set all other attributes besides those processed above to default values. */
+  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+  Set<std::string> attributes_to_skip{{"position",
+                                       "curve_type",
+                                       "surface_uv_coordinate",
+                                       ".selection_point_float",
+                                       ".selection_curve_float"}};
+  attributes.for_all(
+      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData /*meta_data*/) {
+        if (id.is_named() && attributes_to_skip.contains(id.name())) {
+          return true;
+        }
+        bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
+        const int new_elements_num = attribute.domain == ATTR_DOMAIN_POINT ? new_points_num :
+                                                                             new_curves_num;
+        const CPPType &type = attribute.span.type();
+        GMutableSpan new_data = attribute.span.take_back(new_elements_num);
+        type.fill_assign_n(type.default_value(), new_data.data(), new_data.size());
+        attribute.finish();
+        return true;
+      });
 
   return outputs;
 }

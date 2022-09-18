@@ -566,6 +566,21 @@ class FILEBROWSER_MT_context_menu(FileBrowserMenu, Menu):
         layout.prop_menu_enum(params, "sort_method")
 
 
+class FILEBROWSER_MT_view_pie(Menu):
+    bl_label = "View"
+    bl_idname = "FILEBROWSER_MT_view_pie"
+
+    def draw(self, context):
+        layout = self.layout
+
+        pie = layout.menu_pie()
+        view = context.space_data
+
+        pie.prop_enum(view.params, "display_type", value='LIST_VERTICAL')
+        pie.prop_enum(view.params, "display_type", value='LIST_HORIZONTAL')
+        pie.prop_enum(view.params, "display_type", value='THUMBNAIL')
+
+
 class ASSETBROWSER_PT_display(asset_utils.AssetBrowserPanel, Panel):
     bl_region_type = 'HEADER'
     bl_label = "Display Settings"  # Shows as tooltip in popover
@@ -823,6 +838,7 @@ classes = (
     FILEBROWSER_MT_view,
     FILEBROWSER_MT_select,
     FILEBROWSER_MT_context_menu,
+    FILEBROWSER_MT_view_pie,
     ASSETBROWSER_PT_display,
     ASSETBROWSER_PT_filter,
     ASSETBROWSER_MT_editor_menus,

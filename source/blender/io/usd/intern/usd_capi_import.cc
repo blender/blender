@@ -310,9 +310,10 @@ static void import_endjob(void *customdata)
   else if (data->archive) {
     Base *base;
     LayerCollection *lc;
+    const Scene *scene = data->scene;
     ViewLayer *view_layer = data->view_layer;
 
-    BKE_view_layer_base_deselect_all(view_layer);
+    BKE_view_layer_base_deselect_all(scene, view_layer);
 
     lc = BKE_layer_collection_get_active(view_layer);
 
@@ -332,6 +333,7 @@ static void import_endjob(void *customdata)
     /* Sync the collection, and do view layer operations. */
     BKE_layer_collection_resync_allow();
     BKE_main_collection_sync(data->bmain);
+    BKE_view_layer_synced_ensure(scene, view_layer);
     for (USDPrimReader *reader : data->archive->readers()) {
       if (!reader) {
         continue;

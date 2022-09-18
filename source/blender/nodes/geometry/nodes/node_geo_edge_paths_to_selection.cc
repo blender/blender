@@ -7,9 +7,6 @@
 #include "BLI_set.hh"
 #include "BLI_task.hh"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "node_geometry_util.hh"
 
 #include <set>
@@ -28,6 +25,8 @@ static void edge_paths_to_selection(const Mesh &src_mesh,
                                     const Span<int> next_indices,
                                     MutableSpan<bool> r_selection)
 {
+  const Span<MEdge> edges = src_mesh.edges();
+
   Array<bool> selection(src_mesh.totvert, false);
 
   for (const int start_vert : start_selection) {
@@ -45,8 +44,8 @@ static void edge_paths_to_selection(const Mesh &src_mesh,
     }
   }
 
-  for (const int i : IndexRange(src_mesh.totedge)) {
-    const MEdge &edge = src_mesh.medge[i];
+  for (const int i : edges.index_range()) {
+    const MEdge &edge = edges[i];
     if ((selection[edge.v1] && selection[edge.v2]) &&
         (edge.v1 == next_indices[edge.v2] || edge.v2 == next_indices[edge.v1])) {
       r_selection[i] = true;
@@ -54,36 +53,26 @@ static void edge_paths_to_selection(const Mesh &src_mesh,
   }
 }
 
-class PathToEdgeSelectionFieldInput final : public GeometryFieldInput {
+class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
  private:
   Field<bool> start_vertices_;
   Field<int> next_vertex_;
 
  public:
-  PathToEdgeSelectionFieldInput(Field<bool> start_vertices, Field<int> next_vertex)
-      : GeometryFieldInput(CPPType::get<bool>(), "Edge Selection"),
-        start_vertices_(start_vertices),
+  PathToEdgeSelectionFieldInput(Field<bool> start_verts, Field<int> next_vertex)
+      : bke::MeshFieldInput(CPPType::get<bool>(), "Edge Selection"),
+        start_vertices_(start_verts),
         next_vertex_(next_vertex)
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
+  GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 [[maybe_unused]] IndexMask mask) const final
+                                 const IndexMask /*mask*/) const final
   {
-    if (component.type() != GEO_COMPONENT_TYPE_MESH) {
-      return {};
-    }
-
-    const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-    const Mesh *mesh = mesh_component.get_for_read();
-    if (mesh == nullptr) {
-      return {};
-    }
-
-    GeometryComponentFieldContext context{mesh_component, ATTR_DOMAIN_POINT};
-    fn::FieldEvaluator evaluator{context, mesh_component.attribute_domain_size(ATTR_DOMAIN_POINT)};
+    bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
+    fn::FieldEvaluator evaluator{context, mesh.totvert};
     evaluator.add(next_vertex_);
     evaluator.add(start_vertices_);
     evaluator.evaluate();
@@ -94,12 +83,12 @@ class PathToEdgeSelectionFieldInput final : public GeometryFieldInput {
       return {};
     }
 
-    Array<bool> selection(mesh->totedge, false);
+    Array<bool> selection(mesh.totedge, false);
     MutableSpan<bool> selection_span = selection.as_mutable_span();
 
-    edge_paths_to_selection(*mesh, start_verts, next_vert, selection_span);
+    edge_paths_to_selection(mesh, start_verts, next_vert, selection_span);
 
-    return mesh_component.attributes()->adapt_domain<bool>(
+    return mesh.attributes().adapt_domain<bool>(
         VArray<bool>::ForContainer(std::move(selection)), ATTR_DOMAIN_EDGE, domain);
   }
 
@@ -110,16 +99,21 @@ class PathToEdgeSelectionFieldInput final : public GeometryFieldInput {
 
   bool is_equal_to(const fn::FieldNode &other) const override
   {
-    return dynamic_cast<const PathToEdgeSelectionFieldInput *>(&other) != nullptr;
+    if (const PathToEdgeSelectionFieldInput *other_field =
+            dynamic_cast<const PathToEdgeSelectionFieldInput *>(&other)) {
+      return other_field->start_vertices_ == start_vertices_ &&
+             other_field->next_vertex_ == next_vertex_;
+    }
+    return false;
   }
 };
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Field<bool> start_vertices = params.extract_input<Field<bool>>("Start Vertices");
+  Field<bool> start_verts = params.extract_input<Field<bool>>("Start Vertices");
   Field<int> next_vertex = params.extract_input<Field<int>>("Next Vertex Index");
   Field<bool> selection_field{
-      std::make_shared<PathToEdgeSelectionFieldInput>(start_vertices, next_vertex)};
+      std::make_shared<PathToEdgeSelectionFieldInput>(start_verts, next_vertex)};
   params.set_output("Selection", std::move(selection_field));
 }
 

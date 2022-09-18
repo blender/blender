@@ -364,7 +364,7 @@ static rbCollisionShape *rigidbody_get_shape_convexhull_from_mesh(Object *ob,
 
   if (ob->type == OB_MESH && ob->data) {
     mesh = rigidbody_get_mesh(ob);
-    mvert = (mesh) ? mesh->mvert : NULL;
+    mvert = (mesh) ? BKE_mesh_verts_for_write(mesh) : NULL;
     totvert = (mesh) ? mesh->totvert : 0;
   }
   else {
@@ -390,11 +390,9 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 
   if (ob->type == OB_MESH) {
     Mesh *mesh = NULL;
-    MVert *mvert;
     const MLoopTri *looptri;
     int totvert;
     int tottri;
-    const MLoop *mloop;
 
     mesh = rigidbody_get_mesh(ob);
 
@@ -403,11 +401,11 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
       return NULL;
     }
 
-    mvert = mesh->mvert;
+    const MVert *mvert = BKE_mesh_verts(mesh);
     totvert = mesh->totvert;
     looptri = BKE_mesh_runtime_looptri_ensure(mesh);
     tottri = mesh->runtime.looptris.len;
-    mloop = mesh->mloop;
+    const MLoop *mloop = BKE_mesh_loops(mesh);
 
     /* sanity checking - potential case when no data will be present */
     if ((totvert == 0) || (tottri == 0)) {
@@ -670,21 +668,19 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
     case RB_SHAPE_TRIMESH: {
       if (ob->type == OB_MESH) {
         Mesh *mesh = rigidbody_get_mesh(ob);
-        MVert *mvert;
         const MLoopTri *lt = NULL;
         int totvert, tottri = 0;
-        const MLoop *mloop = NULL;
 
         /* ensure mesh validity, then grab data */
         if (mesh == NULL) {
           return;
         }
 
-        mvert = mesh->mvert;
+        const MVert *mvert = BKE_mesh_verts(mesh);
         totvert = mesh->totvert;
         lt = BKE_mesh_runtime_looptri_ensure(mesh);
         tottri = mesh->runtime.looptris.len;
-        mloop = mesh->mloop;
+        const MLoop *mloop = BKE_mesh_loops(mesh);
 
         if (totvert > 0 && tottri > 0) {
           BKE_mesh_calc_volume(mvert, totvert, lt, tottri, mloop, &volume, NULL);
@@ -746,21 +742,19 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
     case RB_SHAPE_TRIMESH: {
       if (ob->type == OB_MESH) {
         Mesh *mesh = rigidbody_get_mesh(ob);
-        MVert *mvert;
         const MLoopTri *looptri;
         int totvert, tottri;
-        const MLoop *mloop;
 
         /* ensure mesh validity, then grab data */
         if (mesh == NULL) {
           return;
         }
 
-        mvert = mesh->mvert;
+        const MVert *mvert = BKE_mesh_verts(mesh);
         totvert = mesh->totvert;
         looptri = BKE_mesh_runtime_looptri_ensure(mesh);
         tottri = mesh->runtime.looptris.len;
-        mloop = mesh->mloop;
+        const MLoop *mloop = BKE_mesh_loops(mesh);
 
         if (totvert > 0 && tottri > 0) {
           BKE_mesh_calc_volume(mvert, totvert, looptri, tottri, mloop, NULL, r_center);
@@ -1176,6 +1170,9 @@ RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw, const int flag)
 
   if (rbw->effector_weights) {
     rbw_copy->effector_weights = MEM_dupallocN(rbw->effector_weights);
+    if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+      id_us_plus((ID *)rbw->effector_weights->group);
+    }
   }
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
     id_us_plus((ID *)rbw_copy->group);
@@ -1205,9 +1202,9 @@ void BKE_rigidbody_world_groups_relink(RigidBodyWorld *rbw)
 
 void BKE_rigidbody_world_id_loop(RigidBodyWorld *rbw, RigidbodyWorldIDFunc func, void *userdata)
 {
-  func(rbw, (ID **)&rbw->group, userdata, IDWALK_CB_NOP);
-  func(rbw, (ID **)&rbw->constraints, userdata, IDWALK_CB_NOP);
-  func(rbw, (ID **)&rbw->effector_weights->group, userdata, IDWALK_CB_NOP);
+  func(rbw, (ID **)&rbw->group, userdata, IDWALK_CB_USER);
+  func(rbw, (ID **)&rbw->constraints, userdata, IDWALK_CB_USER);
+  func(rbw, (ID **)&rbw->effector_weights->group, userdata, IDWALK_CB_USER);
 
   if (rbw->objects) {
     int i;
@@ -1424,7 +1421,7 @@ static bool rigidbody_add_object_to_scene(Main *bmain, Scene *scene, Object *ob)
 
   if (rbw->group == NULL) {
     rbw->group = BKE_collection_add(bmain, NULL, "RigidBodyWorld");
-    id_fake_user_set(&rbw->group->id);
+    id_us_plus(&rbw->group->id);
   }
 
   /* Add object to rigid body group. */
@@ -1453,7 +1450,7 @@ static bool rigidbody_add_constraint_to_scene(Main *bmain, Scene *scene, Object 
 
   if (rbw->constraints == NULL) {
     rbw->constraints = BKE_collection_add(bmain, NULL, "RigidBodyConstraints");
-    id_fake_user_set(&rbw->constraints->id);
+    id_us_plus(&rbw->constraints->id);
   }
 
   /* Add object to rigid body group. */
@@ -1548,7 +1545,7 @@ void BKE_rigidbody_remove_object(Main *bmain, Scene *scene, Object *ob, const bo
       FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
     }
 
-    /* Relying on usercount of the object should be OK, and it is much cheaper than looping in all
+    /* Relying on user-count of the object should be OK, and it is much cheaper than looping in all
      * collections to check whether the object is already in another one... */
     if (ID_REAL_USERS(&ob->id) == 1) {
       /* Some users seems to find it funny to use a view-layer instancing collection
@@ -1667,14 +1664,16 @@ static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Object *ob, RigidBodyO
     return;
   }
 
+  const Scene *scene = DEG_get_input_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, ob);
   const bool is_selected = base ? (base->flag & BASE_SELECTED) != 0 : false;
 
   if (rbo->shape == RB_SHAPE_TRIMESH && rbo->flag & RBO_FLAG_USE_DEFORM) {
     Mesh *mesh = ob->runtime.mesh_deform_eval;
     if (mesh) {
-      MVert *mvert = mesh->mvert;
+      MVert *mvert = BKE_mesh_verts_for_write(mesh);
       int totvert = mesh->totvert;
       const BoundBox *bb = BKE_object_boundbox_get(ob);
 
@@ -2011,7 +2010,9 @@ static void rigidbody_free_substep_data(ListBase *substep_targets)
 }
 static void rigidbody_update_simulation_post_step(Depsgraph *depsgraph, RigidBodyWorld *rbw)
 {
+  const Scene *scene = DEG_get_input_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
+  BKE_view_layer_synced_ensure(scene, view_layer);
 
   FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (rbw->group, ob) {
     Base *base = BKE_view_layer_base_find(view_layer, ob);

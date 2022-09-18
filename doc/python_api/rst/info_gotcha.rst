@@ -86,7 +86,8 @@ No updates after setting values
 Sometimes you want to modify values from Python and immediately access the updated values, e.g:
 Once changing the objects :class:`bpy.types.Object.location`
 you may want to access its transformation right after from :class:`bpy.types.Object.matrix_world`,
-but this doesn't work as you might expect.
+but this doesn't work as you might expect. There are similar issues with changes to the UI, that
+are covered in the next section.
 
 Consider the calculations that might contribute to the object's final transformation, this includes:
 
@@ -108,6 +109,35 @@ In this case you need to call :class:`bpy.types.ViewLayer.update` after modifyin
 
 Now all dependent data (child objects, modifiers, drivers, etc.)
 have been recalculated and are available to the script within the active view layer.
+
+
+No updates after changing UI context
+------------------------------------
+
+Similar to the previous issue, some changes to the UI  may also not have an immediate effect. For example, setting
+:class:`bpy.types.Window.workspace` doesn't seem to cause an observable effect in the immediately following code
+(:class:`bpy.types.Window.workspace` is still the same), but the UI will in fact reflect the change. Some of the
+properties that behave that way are:
+
+- :class:`bpy.types.Window.workspace`
+- :class:`bpy.types.Window.screen`
+- :class:`bpy.types.Window.scene`
+- :class:`bpy.types.Area.type`
+- :class:`bpy.types.Area.uitype`
+
+Such changes impact the UI, and with that the context (:class:`bpy.context`) quite drastically. This can break
+Blender's context management. So Blender delays this change until after operators have run and just before the UI is
+redrawn, making sure that context can be changed safely.
+
+If you rely on executing code with an updated context this can be worked around by executing the code in a delayed
+fashion as well. Possible options include:
+
+ - :ref:`Modal Operator <modal_operator>`.
+ - :class:`bpy.app.handlers`.
+ - :class:`bpy.app.timer`.
+
+It's also possible to depend on drawing callbacks although these should generally be avoided as failure to draw a
+hidden panel, region, cursor, etc. could cause your script to be unreliable
 
 
 Can I redraw during script execution?

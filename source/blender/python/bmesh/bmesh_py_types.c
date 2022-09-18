@@ -3744,7 +3744,7 @@ static struct PyModuleDef BPy_BM_types_module_def = {
     NULL,          /* m_doc */
     0,             /* m_size */
     NULL,          /* m_methods */
-    NULL,          /* m_reload */
+    NULL,          /* m_slots */
     NULL,          /* m_traverse */
     NULL,          /* m_clear */
     NULL,          /* m_free */
@@ -4405,7 +4405,7 @@ char *BPy_BMElem_StringFromHType(const char htype)
 /* -------------------------------------------------------------------- */
 /* keep at bottom */
 
-/* this function is called on free, it should stay quite fast */
+/* This function is called on free, it should stay quite fast */
 static void bm_dealloc_editmode_warn(BPy_BMesh *self)
 {
   if (self->flag & BPY_BMFLAG_IS_WRAPPED) {

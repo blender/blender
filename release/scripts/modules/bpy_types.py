@@ -793,7 +793,7 @@ class Gizmo(StructRNA):
         vbo = GPUVertBuf(len=len(verts), format=fmt)
         vbo.attr_fill(id=pos_id, data=verts)
         batch = GPUBatch(type=type, buf=vbo)
-        shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR' if dims == 3 else '2D_UNIFORM_COLOR')
+        shader = gpu.shader.from_builtin('UNIFORM_COLOR')
         batch.program_set(shader)
         return (batch, shader)
 
@@ -1074,6 +1074,7 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         - preset_operator_defaults (dict of keyword args)
         """
         import bpy
+        from bpy.app.translations import pgettext_iface as iface_
         ext_valid = getattr(self, "preset_extensions", {".py", ".xml"})
         props_default = getattr(self, "preset_operator_defaults", None)
         add_operator = getattr(self, "preset_add_operator", None)
@@ -1083,7 +1084,8 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
             props_default=props_default,
             filter_ext=lambda ext: ext.lower() in ext_valid,
             add_operator=add_operator,
-            display_name=lambda name: bpy.path.display_name(name, title_case=False)
+            display_name=lambda name: iface_(
+                bpy.path.display_name(name, title_case=False))
         )
 
     @classmethod

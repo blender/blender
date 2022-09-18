@@ -16,9 +16,9 @@
 
 namespace blender::fn {
 
-/* --------------------------------------------------------------------
- * Field Evaluation.
- */
+/* -------------------------------------------------------------------- */
+/** \name Field Evaluation
+ * \{ */
 
 struct FieldTreeInfo {
   /**
@@ -571,16 +571,20 @@ bool IndexFieldInput::is_equal_to(const fn::FieldNode &other) const
   return dynamic_cast<const IndexFieldInput *>(&other) != nullptr;
 }
 
-/* --------------------------------------------------------------------
- * FieldNode.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #FieldNode
+ * \{ */
 
 /* Avoid generating the destructor in every translation unit. */
 FieldNode::~FieldNode() = default;
 
-/* --------------------------------------------------------------------
- * FieldOperation.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #FieldOperation
+ * \{ */
 
 FieldOperation::FieldOperation(std::shared_ptr<const MultiFunction> function,
                                Vector<GField> inputs)
@@ -653,9 +657,11 @@ FieldOperation::FieldOperation(const MultiFunction &function, Vector<GField> inp
   field_inputs_ = combine_field_inputs(inputs_);
 }
 
-/* --------------------------------------------------------------------
- * FieldInput.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #FieldInput
+ * \{ */
 
 FieldInput::FieldInput(const CPPType &type, std::string debug_name)
     : FieldNode(FieldNodeType::Input), type_(&type), debug_name_(std::move(debug_name))
@@ -669,9 +675,11 @@ FieldInput::FieldInput(const CPPType &type, std::string debug_name)
 /* Avoid generating the destructor in every translation unit. */
 FieldInput::~FieldInput() = default;
 
-/* --------------------------------------------------------------------
- * FieldConstant.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #FieldConstant
+ * \{ */
 
 FieldConstant::FieldConstant(const CPPType &type, const void *value)
     : FieldNode(FieldNodeType::Constant), type_(type)
@@ -703,9 +711,11 @@ GPointer FieldConstant::value() const
   return {type_, value_};
 }
 
-/* --------------------------------------------------------------------
- * FieldEvaluator.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #FieldEvaluator
+ * \{ */
 
 static IndexMask index_mask_from_selection(const IndexMask full_mask,
                                            const VArray<bool> &selection,
@@ -799,5 +809,7 @@ IndexMask FieldEvaluator::get_evaluated_selection_as_mask()
   BLI_assert(is_evaluated_);
   return selection_mask_;
 }
+
+/** \} */
 
 }  // namespace blender::fn

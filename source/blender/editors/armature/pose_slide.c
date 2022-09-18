@@ -232,8 +232,11 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
    * and set the relevant transform flags. */
   poseAnim_mapping_get(C, &pso->pfLinks);
 
-  Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
-      CTX_data_view_layer(C), CTX_wm_view3d(C), &pso->objects_len, OB_MODE_POSE);
+  Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(CTX_data_scene(C),
+                                                                           CTX_data_view_layer(C),
+                                                                           CTX_wm_view3d(C),
+                                                                           &pso->objects_len,
+                                                                           OB_MODE_POSE);
   pso->ob_data_array = MEM_callocN(pso->objects_len * sizeof(tPoseSlideObject),
                                    "pose slide objects data");
 
@@ -286,8 +289,10 @@ static void pose_slide_exit(bContext *C, wmOperator *op)
   ED_slider_destroy(C, pso->slider);
 
   /* Hide Bone Overlay. */
-  View3D *v3d = pso->area->spacedata.first;
-  v3d->overlay.flag = pso->overlay_flag;
+  if (pso->area) {
+    View3D *v3d = pso->area->spacedata.first;
+    v3d->overlay.flag = pso->overlay_flag;
+  }
 
   /* Free the temp pchan links and their data. */
   poseAnim_mapping_free(&pso->pfLinks);
@@ -2079,7 +2084,7 @@ static int pose_propagate_exec(bContext *C, wmOperator *op)
   }
 
   /* Updates + notifiers. */
-  FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
+  FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
     poseAnim_mapping_refresh(C, scene, ob);
   }
   FOREACH_OBJECT_IN_MODE_END;

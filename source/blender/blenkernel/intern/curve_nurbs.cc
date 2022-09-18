@@ -4,8 +4,9 @@
  * \ingroup bke
  */
 
-#include "BKE_attribute_math.hh"
+#include "BLI_task.hh"
 
+#include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 
 namespace blender::bke::curves::nurbs {
@@ -192,16 +193,16 @@ static void interpolate_to_evaluated(const BasisCache &basis_cache,
 {
   attribute_math::DefaultMixer<T> mixer{dst};
 
-  for (const int i : dst.index_range()) {
-    Span<float> point_weights = basis_cache.weights.as_span().slice(i * order, order);
-
-    for (const int j : point_weights.index_range()) {
-      const int point_index = (basis_cache.start_indices[i] + j) % src.size();
-      mixer.mix_in(i, src[point_index], point_weights[j]);
+  threading::parallel_for(dst.index_range(), 128, [&](const IndexRange range) {
+    for (const int i : range) {
+      Span<float> point_weights = basis_cache.weights.as_span().slice(i * order, order);
+      for (const int j : point_weights.index_range()) {
+        const int point_index = (basis_cache.start_indices[i] + j) % src.size();
+        mixer.mix_in(i, src[point_index], point_weights[j]);
+      }
     }
-  }
-
-  mixer.finalize();
+    mixer.finalize(range);
+  });
 }
 
 template<typename T>
@@ -213,17 +214,18 @@ static void interpolate_to_evaluated_rational(const BasisCache &basis_cache,
 {
   attribute_math::DefaultMixer<T> mixer{dst};
 
-  for (const int i : dst.index_range()) {
-    Span<float> point_weights = basis_cache.weights.as_span().slice(i * order, order);
+  threading::parallel_for(dst.index_range(), 128, [&](const IndexRange range) {
+    for (const int i : range) {
+      Span<float> point_weights = basis_cache.weights.as_span().slice(i * order, order);
 
-    for (const int j : point_weights.index_range()) {
-      const int point_index = (basis_cache.start_indices[i] + j) % src.size();
-      const float weight = point_weights[j] * control_weights[point_index];
-      mixer.mix_in(i, src[point_index], weight);
+      for (const int j : point_weights.index_range()) {
+        const int point_index = (basis_cache.start_indices[i] + j) % src.size();
+        const float weight = point_weights[j] * control_weights[point_index];
+        mixer.mix_in(i, src[point_index], weight);
+      }
     }
-  }
-
-  mixer.finalize();
+    mixer.finalize(range);
+  });
 }
 
 void interpolate_to_evaluated(const BasisCache &basis_cache,

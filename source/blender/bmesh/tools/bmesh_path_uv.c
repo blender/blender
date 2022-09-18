@@ -65,7 +65,7 @@ static void verttag_add_adjacent_uv(HeapSimple *heap,
                                     const struct BMCalcPathUVParams *params)
 {
   BLI_assert(params->aspect_y != 0.0f);
-  const uint cd_loop_uv_offset = params->cd_loop_uv_offset;
+  const int cd_loop_uv_offset = params->cd_loop_uv_offset;
   const int l_a_index = BM_elem_index_get(l_a);
   const MLoopUV *luv_a = BM_ELEM_CD_GET_VOID_P(l_a, cd_loop_uv_offset);
   const float uv_a[2] = {luv_a->uv[0], luv_a->uv[1] / params->aspect_y};
@@ -225,7 +225,7 @@ static void edgetag_add_adjacent_uv(HeapSimple *heap,
                                     const struct BMCalcPathUVParams *params)
 {
   BLI_assert(params->aspect_y != 0.0f);
-  const uint cd_loop_uv_offset = params->cd_loop_uv_offset;
+  const int cd_loop_uv_offset = params->cd_loop_uv_offset;
   BMLoop *l_a_verts[2] = {l_a, l_a->next};
   const int l_a_index = BM_elem_index_get(l_a);
 
@@ -462,7 +462,7 @@ static void facetag_add_adjacent_uv(HeapSimple *heap,
                                     const float aspect_v2[2],
                                     const struct BMCalcPathUVParams *params)
 {
-  const uint cd_loop_uv_offset = params->cd_loop_uv_offset;
+  const int cd_loop_uv_offset = params->cd_loop_uv_offset;
   const int f_a_index = BM_elem_index_get(f_a);
 
   /* Loop over faces of face, but do so by first looping over loops. */

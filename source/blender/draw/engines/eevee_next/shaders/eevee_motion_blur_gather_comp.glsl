@@ -22,7 +22,7 @@ const int gather_sample_count = 8;
  * target post-fx framebuffer. */
 vec4 motion_blur_sample_velocity(sampler2D velocity_tx, vec2 uv)
 {
-  /* We can load velocity without velocity_resolve() since we resovled during the flatten pass. */
+  /* We can load velocity without velocity_resolve() since we resolved during the flatten pass. */
   vec4 velocity = velocity_unpack(texture(velocity_tx, uv));
   return velocity * vec2(textureSize(velocity_tx, 0)).xyxy * motion_blur_buf.motion_scale.xxyy;
 }

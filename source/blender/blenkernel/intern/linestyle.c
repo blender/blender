@@ -72,6 +72,7 @@ static void linestyle_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const
                    (ID *)linestyle_src->nodetree,
                    (ID **)&linestyle_dst->nodetree,
                    flag_private_id_data);
+    linestyle_dst->nodetree->owner_id = &linestyle_dst->id;
   }
 
   LineStyleModifier *linestyle_modifier;
@@ -748,7 +749,7 @@ IDTypeInfo IDType_ID_LS = {
     .foreach_id = linestyle_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = linestyle_blend_write,
     .blend_read_data = linestyle_blend_read_data,
@@ -2041,9 +2042,7 @@ void BKE_linestyle_default_shader(const bContext *C, FreestyleLineStyle *linesty
 
   BLI_assert(linestyle->nodetree == NULL);
 
-  ntree = ntreeAddTree(NULL, "stroke_shader", "ShaderNodeTree");
-
-  linestyle->nodetree = ntree;
+  ntree = ntreeAddTreeEmbedded(NULL, &linestyle->id, "stroke_shader", "ShaderNodeTree");
 
   uv_along_stroke = nodeAddStaticNode(C, ntree, SH_NODE_UVALONGSTROKE);
   uv_along_stroke->locx = 0.0f;

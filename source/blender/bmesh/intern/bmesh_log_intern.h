@@ -31,6 +31,10 @@
 #  define BMLOG_DEBUG_ARGS_INVOKE
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BMFace;
 struct BMVert;
 struct BMesh;
@@ -313,3 +317,7 @@ void _BM_log_vert_topo_post(BMLog *log, BMVert *v BMLOG_DEBUG_ARGS);
 
 bool BM_log_validate(BMesh *inbm, BMLogEntry *entry, bool is_applied);
 bool BM_log_validate_cur(BMLog *log);
+#ifdef __cplusplus
+}
+#endif
+

@@ -367,7 +367,7 @@ static void do_version_scene_collection_to_collection(Main *bmain, Scene *scene)
   BLI_listbase_clear(&scene->view_layers);
 
   if (!scene->master_collection) {
-    scene->master_collection = BKE_collection_master_add();
+    scene->master_collection = BKE_collection_master_add(scene);
   }
 
   /* Convert scene collections. */
@@ -411,7 +411,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
   /* Since we don't have access to FileData we check the (always valid) first
    * render layer instead. */
   if (!scene->master_collection) {
-    scene->master_collection = BKE_collection_master_add();
+    scene->master_collection = BKE_collection_master_add(scene);
   }
 
   if (scene->view_layers.first) {
@@ -512,12 +512,13 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
       }
     }
 
+    BKE_view_layer_synced_ensure(scene, view_layer);
     /* for convenience set the same active object in all the layers */
     if (scene->basact) {
       view_layer->basact = BKE_view_layer_base_find(view_layer, scene->basact->object);
     }
 
-    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       if ((base->flag & BASE_SELECTABLE) && (base->object->flag & SELECT)) {
         base->flag |= BASE_SELECTED;
       }
@@ -537,13 +538,14 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
       view_layer->flag &= ~VIEW_LAYER_RENDER;
     }
 
+    BKE_view_layer_synced_ensure(scene, view_layer);
     /* convert active base */
     if (scene->basact) {
       view_layer->basact = BKE_view_layer_base_find(view_layer, scene->basact->object);
     }
 
     /* convert selected bases */
-    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       if ((base->flag & BASE_SELECTABLE) && (base->object->flag & SELECT)) {
         base->flag |= BASE_SELECTED;
       }
@@ -1794,10 +1796,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     if (DNA_struct_find(fd->filesdna, "MTexPoly")) {
       for (Mesh *me = bmain->meshes.first; me; me = me->id.next) {
         /* If we have UV's, so this file will have MTexPoly layers too! */
-        if (me->mloopuv != NULL) {
+        if (CustomData_has_layer(&me->ldata, CD_MLOOPUV)) {
           CustomData_update_typemap(&me->pdata);
           CustomData_free_layers(&me->pdata, CD_MTEXPOLY, me->totpoly);
-          BKE_mesh_update_customdata_pointers(me, false);
         }
       }
     }

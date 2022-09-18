@@ -14,6 +14,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "COM_node_operation.hh"
+
 #include "node_composite_util.hh"
 
 /* **************** Keying  ******************** */
@@ -63,6 +65,25 @@ static void node_composit_buts_keying(uiLayout *layout, bContext *UNUSED(C), Poi
   uiItemR(layout, ptr, "blur_post", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
+using namespace blender::realtime_compositor;
+
+class KeyingOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    get_input("Image").pass_through(get_result("Image"));
+    get_result("Matte").allocate_invalid();
+    get_result("Edges").allocate_invalid();
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, DNode node)
+{
+  return new KeyingOperation(context, node);
+}
+
 }  // namespace blender::nodes::node_composite_keying_cc
 
 void register_node_type_cmp_keying()
@@ -77,6 +98,7 @@ void register_node_type_cmp_keying()
   node_type_init(&ntype, file_ns::node_composit_init_keying);
   node_type_storage(
       &ntype, "NodeKeyingData", node_free_standard_storage, node_copy_standard_storage);
+  ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);
 }

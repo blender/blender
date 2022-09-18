@@ -76,7 +76,7 @@ BMesh *SCULPT_dyntopo_empty_bmesh()
 // to sort the edge lists around verts
 
 // from http://rodolphe-vaillant.fr/?e=20
-static float tri_voronoi_area(float p[3], float q[3], float r[3])
+static float tri_voronoi_area(const float p[3], const float q[3], const float r[3])
 {
   float pr[3];
   float pq[3];
@@ -217,14 +217,14 @@ void SCULPT_faces_get_cotangents(SculptSession *ss,
     int i2 = i;
     int i3 = (i + 1) % elem->count;
 
-    MVert *v = ss->mvert + vertex.i;
-    MEdge *e1 = ss->medge + elem->indices[i1];
-    MEdge *e2 = ss->medge + elem->indices[i2];
-    MEdge *e3 = ss->medge + elem->indices[i3];
+    const MVert *v = ss->mvert + vertex.i;
+    const MEdge *e1 = ss->medge + elem->indices[i1];
+    const MEdge *e2 = ss->medge + elem->indices[i2];
+    const MEdge *e3 = ss->medge + elem->indices[i3];
 
-    MVert *v1 = (unsigned int)vertex.i == e1->v1 ? ss->mvert + e1->v2 : ss->mvert + e1->v1;
-    MVert *v2 = (unsigned int)vertex.i == e2->v1 ? ss->mvert + e2->v2 : ss->mvert + e2->v1;
-    MVert *v3 = (unsigned int)vertex.i == e3->v1 ? ss->mvert + e3->v2 : ss->mvert + e3->v1;
+    const MVert *v1 = (unsigned int)vertex.i == e1->v1 ? ss->mvert + e1->v2 : ss->mvert + e1->v1;
+    const MVert *v2 = (unsigned int)vertex.i == e2->v1 ? ss->mvert + e2->v2 : ss->mvert + e2->v1;
+    const MVert *v3 = (unsigned int)vertex.i == e3->v1 ? ss->mvert + e3->v2 : ss->mvert + e3->v1;
 
     float cot1 = cotangent_tri_weight_v3(v1->co, v->co, v2->co);
     float cot2 = cotangent_tri_weight_v3(v3->co, v2->co, v->co);
@@ -378,7 +378,7 @@ void SCULPT_reorder_bmesh(SculptSession *ss)
     ss->active_face = BKE_pbvh_index_to_face(ss->pbvh, actf);
   }
 
-  SCULPT_dyntopo_node_layers_update_offsets(ss, ob);
+  BKE_sculptsession_update_attr_refs(ob);
 
   if (ss->bm_log) {
     BM_log_set_bm(ss->bm, ss->bm_log);
@@ -493,59 +493,6 @@ void SCULPT_pbvh_clear(Object *ob, bool cache_pbvh)
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 }
 
-extern char dyntopo_node_idx_vertex_id[];
-extern char dyntopo_node_idx_face_id[];
-
-void SCULPT_dyntopo_node_layers_update_offsets(SculptSession *ss, Object *ob)
-{
-  BKE_sculptsession_bmesh_attr_update_internal(ob);
-}
-
-/* DEPRECATED */
-bool SCULPT_dyntopo_has_templayer(SculptSession *ss, int type, const char *name)
-{
-  return CustomData_get_named_layer_index(&ss->bm->vdata, type, name) >= 0;
-}
-
-/* DEPRECATED */
-void SCULPT_dyntopo_ensure_templayer(
-    SculptSession *ss, Object *ob, int type, const char *name, bool not_temporary)
-{
-  if (ss->save_temp_layers) {
-    not_temporary = true;
-  }
-
-  int li = CustomData_get_named_layer_index(&ss->bm->vdata, type, name);
-
-  if (li < 0) {
-    BM_data_layer_add_named(ss->bm, &ss->bm->vdata, type, name);
-    SCULPT_update_customdata_refs(ss, ob);
-
-    li = CustomData_get_named_layer_index(&ss->bm->vdata, type, name);
-    ss->bm->vdata.layers[li].flag |= not_temporary ? 0 : CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY;
-  }
-}
-
-/* DEPRECATED */
-int SCULPT_dyntopo_get_templayer(SculptSession *ss, int type, const char *name)
-{
-  int li = CustomData_get_named_layer_index(&ss->bm->vdata, type, name);
-
-  if (li < 0) {
-    return -1;
-  }
-
-  return CustomData_get_n_offset(
-      &ss->bm->vdata, type, li - CustomData_get_layer_index(&ss->bm->vdata, type));
-}
-
-extern char dyntopo_faces_areas_layer_id[];
-
-void SCULPT_dyntopo_node_layers_add(SculptSession *ss, Object *ob)
-{
-  BKE_sculptsession_bmesh_add_layers(ob);
-}
-
 /**
   Syncs customdata layers with internal bmesh, but ignores deleted layers.
 */
@@ -612,20 +559,14 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
     }
   }
 
-  /* destroy non-customdata temporary layers (which are rarely used) */
-  SCULPT_release_attributes(ss, ob, true);
-
-  /* clear all the other temporary layer references, that point to customdata layers*/
-  SCULPT_clear_scl_pointers(ss);
-
   if (!ss->bm || !ss->pbvh || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
     SCULPT_pbvh_clear(ob, false);
   }
   else {
-    /*sculpt session was set up by paint.c. just call SCULPT_update_customdata_refs to be safe*/
-    SCULPT_update_customdata_refs(ss, ob);
+    /* Sculpt session was set up by paint.c, call BKE_sculptsession_update_attr_refs to be safe. */
+    BKE_sculptsession_update_attr_refs(ob);
 
-    /* also check bm_log */
+    /* Also check bm_log. */
     if (!ss->bm_log) {
       ss->bm_log = BM_log_create(ss->bm, ss->cd_sculpt_vert);
     }
@@ -649,11 +590,9 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   const BMAllocTemplate allocsize = {
       .totvert = 2048 * 16, .totface = 2048 * 16, .totloop = 4196 * 16, .totedge = 2048 * 16};
 
-  SCULPT_clear_scl_pointers(ss);
-
-  if (ss->mdyntopo_verts) {
-    MEM_freeN(ss->mdyntopo_verts);
-    ss->mdyntopo_verts = NULL;
+  if (ss->msculptverts) {
+    MEM_freeN(ss->msculptverts);
+    ss->msculptverts = NULL;
   }
 
   if (ss->face_areas) {
@@ -701,9 +640,8 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   SCULPT_dynamic_topology_triangulate(ss, ss->bm);
 #endif
 
-  SCULPT_dyntopo_node_layers_add(ss, ob);
-
   if (ss->pbvh) {
+    BKE_sculptsession_update_attr_refs(ob);
     BKE_pbvh_update_sculpt_verts(ss->pbvh);
   }
 
@@ -711,7 +649,8 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
     SCULPT_ensure_persistent_layers(ss, ob);
   }
 
-  SCULPT_update_customdata_refs(ss, ob);
+  BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
+  BKE_sculptsession_update_attr_refs(ob);
 
   BMIter iter;
   BMEdge *e;
@@ -758,17 +697,18 @@ static void SCULPT_dynamic_topology_disable_ex(
   SCULPT_pbvh_clear(ob, true);
 
   /* destroy non-customdata temporary layers (which are rarely (never?) used for PBVH_BMESH) */
-  SCULPT_release_attributes(ss, ob, true);
-
-  /* free all the other pointers in ss->custom_layers*/
-  SCULPT_clear_scl_pointers(ss);
+  BKE_sculpt_attribute_destroy_temporary_all(ob);
 
   BKE_sculptsession_bm_to_me(ob, true);
 
   /* Sync the visibility to vertices manually as the pmap is still not initialized. */
-  for (int i = 0; i < me->totvert; i++) {
-    me->mvert[i].flag &= ~ME_HIDE;
+  bool *hide_vert = (bool *)CustomData_get_layer_named(&me->vdata, CD_PROP_BOOL, ".hide_vert");
+  if (hide_vert != NULL) {
+    memset(hide_vert, 0, sizeof(bool) * me->totvert);
   }
+
+  BKE_sculpt_attribute_destroy(ob, ss->attrs.dyntopo_node_id_vertex);
+  BKE_sculpt_attribute_destroy(ob, ss->attrs.dyntopo_node_id_face);
 
   /* Clear data. */
   me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
@@ -813,7 +753,7 @@ void sculpt_dynamic_topology_disable_with_undo(Main *bmain,
     /* May be false in background mode. */
     const bool use_undo = G.background ? (ED_undo_stack_get() != NULL) : true;
     if (use_undo) {
-      SCULPT_undo_push_begin(ob, "Dynamic topology disable");
+      SCULPT_undo_push_begin_ex(ob, "Dynamic topology disable");
       SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_END);
     }
     SCULPT_dynamic_topology_disable_ex(bmain, depsgraph, scene, ob, NULL);
@@ -836,7 +776,7 @@ static void sculpt_dynamic_topology_enable_with_undo(Main *bmain,
     /* May be false in background mode. */
     const bool use_undo = G.background ? (ED_undo_stack_get() != NULL) : true;
     if (use_undo) {
-      SCULPT_undo_push_begin(ob, "Dynamic topology enable");
+      SCULPT_undo_push_begin_ex(ob, "Dynamic topology enable");
     }
     SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, scene, ob);
     if (use_undo) {

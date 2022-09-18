@@ -40,7 +40,7 @@ static TrackPositionOperation *create_motion_operation(NodeConverter &converter,
 void TrackPositionNode::convert_to_operations(NodeConverter &converter,
                                               const CompositorContext &context) const
 {
-  bNode *editor_node = this->get_bnode();
+  const bNode *editor_node = this->get_bnode();
   MovieClip *clip = (MovieClip *)editor_node->id;
   NodeTrackPosData *trackpos_data = (NodeTrackPosData *)editor_node->storage;
 

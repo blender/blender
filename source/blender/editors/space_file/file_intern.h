@@ -95,11 +95,15 @@ int file_highlight_set(struct SpaceFile *sfile, struct ARegion *region, int mx, 
  * Use to set the file selector path from some arbitrary source.
  */
 void file_sfile_filepath_set(struct SpaceFile *sfile, const char *filepath);
-void file_sfile_to_operator_ex(struct Main *bmain,
+void file_sfile_to_operator_ex(struct bContext *C,
+                               struct Main *bmain,
                                struct wmOperator *op,
                                struct SpaceFile *sfile,
                                char *filepath);
-void file_sfile_to_operator(struct Main *bmain, struct wmOperator *op, struct SpaceFile *sfile);
+void file_sfile_to_operator(struct bContext *C,
+                            struct Main *bmain,
+                            struct wmOperator *op,
+                            struct SpaceFile *sfile);
 
 void file_operator_to_sfile(struct Main *bmain, struct SpaceFile *sfile, struct wmOperator *op);
 
@@ -113,7 +117,7 @@ void fileselect_refresh_params(struct SpaceFile *sfile);
 /**
  * Sets #FileSelectParams.file (name of selected file)
  */
-void fileselect_file_set(SpaceFile *sfile, int index);
+void fileselect_file_set(struct bContext *C, SpaceFile *sfile, int index);
 bool file_attribute_column_type_enabled(const FileSelectParams *params,
                                         FileAttributeColumnType column);
 /**

@@ -206,7 +206,7 @@ class WaveFunction : public fn::MultiFunction {
 
 static void sh_node_wave_tex_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &node = builder.node();
+  const bNode &node = builder.node();
   NodeTexWave *tex = (NodeTexWave *)node.storage;
   builder.construct_and_set_matching_fn<WaveFunction>(
       tex->wave_type, tex->bands_direction, tex->rings_direction, tex->wave_profile);

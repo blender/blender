@@ -381,7 +381,7 @@ static void rna_MaterialIndex_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 {
   Object *ob = (Object *)ptr->owner_id;
   if (ob && ob->type == OB_GPENCIL) {
-    /* notifying material property in topbar */
+    /* Notifying material property in top-bar. */
     WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, NULL);
   }
 }
@@ -497,12 +497,6 @@ static void rna_Object_dependency_update(Main *bmain, Scene *UNUSED(scene), Poin
 
 void rna_Object_data_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Object *object = (Object *)ptr->data;
-
-  if (object->mode == OB_MODE_SCULPT) {
-    BKE_sculpt_ensure_orig_mesh_data(scene, object);
-  }
-
   rna_Object_internal_update_data_dependency(bmain, scene, ptr);
 }
 
@@ -686,6 +680,11 @@ static bool rna_Object_parent_override_apply(Main *bmain,
 static void rna_Object_parent_type_set(PointerRNA *ptr, int value)
 {
   Object *ob = (Object *)ptr->data;
+
+  /* Skip if type did not change (otherwise we loose parent inverse in ED_object_parent). */
+  if (ob->partype == value) {
+    return;
+  }
 
   ED_object_parent(ob, ob->parent, value, ob->parsubstr);
 }
@@ -2224,7 +2223,7 @@ bool rna_GPencil_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
   return ((Object *)value.owner_id)->type == OB_GPENCIL;
 }
 
-int rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)
+bool rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)
 {
   SculptSession *ss = ((Object *)ptr->owner_id)->sculpt;
   return (ss && ss->bm);

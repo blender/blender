@@ -324,10 +324,9 @@ struct ImBuf *IMB_double_y(struct ImBuf *ibuf1)
 /* pretty much specific functions which converts uchar <-> ushort but assumes
  * ushort range of 255*255 which is more convenient here
  */
-MINLINE void straight_uchar_to_premul_ushort(unsigned short result[4],
-                                             const unsigned char color[4])
+MINLINE void straight_uchar_to_premul_ushort(ushort result[4], const uchar color[4])
 {
-  unsigned short alpha = color[3];
+  ushort alpha = color[3];
 
   result[0] = color[0] * alpha;
   result[1] = color[1] * alpha;
@@ -335,7 +334,7 @@ MINLINE void straight_uchar_to_premul_ushort(unsigned short result[4],
   result[3] = alpha * 256;
 }
 
-MINLINE void premul_ushort_to_straight_uchar(unsigned char *result, const unsigned short color[4])
+MINLINE void premul_ushort_to_straight_uchar(uchar *result, const ushort color[4])
 {
   if (color[3] <= 255) {
     result[0] = unit_ushort_to_uchar(color[0]);
@@ -344,7 +343,7 @@ MINLINE void premul_ushort_to_straight_uchar(unsigned char *result, const unsign
     result[3] = unit_ushort_to_uchar(color[3]);
   }
   else {
-    unsigned short alpha = color[3] / 256;
+    ushort alpha = color[3] / 256;
 
     result[0] = unit_ushort_to_uchar((ushort)(color[0] / alpha * 256));
     result[1] = unit_ushort_to_uchar((ushort)(color[1] / alpha * 256));
@@ -373,25 +372,25 @@ void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
   }
 
   if (do_rect) {
-    unsigned char *cp1, *cp2, *dest;
+    uchar *cp1, *cp2, *dest;
 
-    cp1 = (unsigned char *)ibuf1->rect;
-    dest = (unsigned char *)ibuf2->rect;
+    cp1 = (uchar *)ibuf1->rect;
+    dest = (uchar *)ibuf2->rect;
 
     for (y = ibuf2->y; y > 0; y--) {
       cp2 = cp1 + (ibuf1->x << 2);
       for (x = ibuf2->x; x > 0; x--) {
-        unsigned short p1i[8], p2i[8], desti[4];
+        ushort p1i[8], p2i[8], desti[4];
 
         straight_uchar_to_premul_ushort(p1i, cp1);
         straight_uchar_to_premul_ushort(p2i, cp2);
         straight_uchar_to_premul_ushort(p1i + 4, cp1 + 4);
         straight_uchar_to_premul_ushort(p2i + 4, cp2 + 4);
 
-        desti[0] = ((unsigned int)p1i[0] + p2i[0] + p1i[4] + p2i[4]) >> 2;
-        desti[1] = ((unsigned int)p1i[1] + p2i[1] + p1i[5] + p2i[5]) >> 2;
-        desti[2] = ((unsigned int)p1i[2] + p2i[2] + p1i[6] + p2i[6]) >> 2;
-        desti[3] = ((unsigned int)p1i[3] + p2i[3] + p1i[7] + p2i[7]) >> 2;
+        desti[0] = ((uint)p1i[0] + p2i[0] + p1i[4] + p2i[4]) >> 2;
+        desti[1] = ((uint)p1i[1] + p2i[1] + p1i[5] + p2i[5]) >> 2;
+        desti[2] = ((uint)p1i[2] + p2i[2] + p1i[6] + p2i[6]) >> 2;
+        desti[3] = ((uint)p1i[3] + p2i[3] + p1i[7] + p2i[7]) >> 2;
 
         premul_ushort_to_straight_uchar(dest, desti);
 
@@ -460,12 +459,8 @@ ImBuf *IMB_onehalf(struct ImBuf *ibuf1)
 
 /* q_scale_linear_interpolation helper functions */
 
-static void enlarge_picture_byte(unsigned char *src,
-                                 unsigned char *dst,
-                                 int src_width,
-                                 int src_height,
-                                 int dst_width,
-                                 int dst_height)
+static void enlarge_picture_byte(
+    uchar *src, uchar *dst, int src_width, int src_height, int dst_width, int dst_height)
 {
   double ratiox = (double)(dst_width - 1.0) / (double)(src_width - 1.001);
   double ratioy = (double)(dst_height - 1.0) / (double)(src_height - 1.001);
@@ -477,8 +472,8 @@ static void enlarge_picture_byte(unsigned char *src,
 
   y_src = 0;
   for (y_dst = 0; y_dst < dst_height; y_dst++) {
-    unsigned char *line1 = src + (y_src >> 16) * 4 * src_width;
-    unsigned char *line2 = line1 + 4 * src_width;
+    uchar *line1 = src + (y_src >> 16) * 4 * src_width;
+    uchar *line2 = line1 + 4 * src_width;
     uintptr_t weight1y = 65536 - (y_src & 0xffff);
     uintptr_t weight2y = 65536 - weight1y;
 
@@ -491,7 +486,7 @@ static void enlarge_picture_byte(unsigned char *src,
       uintptr_t weight1x = 65536 - (x_src & 0xffff);
       uintptr_t weight2x = 65536 - weight1x;
 
-      unsigned long x = (x_src >> 16) * 4;
+      ulong x = (x_src >> 16) * 4;
 
       *dst++ = ((((line1[x] * weight1y) >> 16) * weight1x) >> 16) +
                ((((line2[x] * weight2y) >> 16) * weight1x) >> 16) +
@@ -528,19 +523,15 @@ struct scale_outpix_byte {
   uintptr_t weight;
 };
 
-static void shrink_picture_byte(unsigned char *src,
-                                unsigned char *dst,
-                                int src_width,
-                                int src_height,
-                                int dst_width,
-                                int dst_height)
+static void shrink_picture_byte(
+    uchar *src, uchar *dst, int src_width, int src_height, int dst_width, int dst_height)
 {
   double ratiox = (double)(dst_width) / (double)(src_width);
   double ratioy = (double)(dst_height) / (double)(src_height);
   uintptr_t x_src, dx_dst, x_dst;
   uintptr_t y_src, dy_dst, y_dst;
   intptr_t y_counter;
-  unsigned char *dst_begin = dst;
+  uchar *dst_begin = dst;
 
   struct scale_outpix_byte *dst_line1 = NULL;
   struct scale_outpix_byte *dst_line2 = NULL;
@@ -556,7 +547,7 @@ static void shrink_picture_byte(unsigned char *src,
   y_dst = 0;
   y_counter = 65536;
   for (y_src = 0; y_src < src_height; y_src++) {
-    unsigned char *line = src + y_src * 4 * src_width;
+    uchar *line = src + y_src * 4 * src_width;
     uintptr_t weight1y = 65535 - (y_dst & 0xffff);
     uintptr_t weight2y = 65535 - weight1y;
     x_dst = 0;
@@ -643,12 +634,8 @@ static void shrink_picture_byte(unsigned char *src,
   MEM_freeN(dst_line2);
 }
 
-static void q_scale_byte(unsigned char *in,
-                         unsigned char *out,
-                         int in_width,
-                         int in_height,
-                         int dst_width,
-                         int dst_height)
+static void q_scale_byte(
+    uchar *in, uchar *out, int in_width, int in_height, int dst_width, int dst_height)
 {
   if (dst_width > in_width && dst_height > in_height) {
     enlarge_picture_byte(in, out, in_width, in_height, dst_width, dst_height);
@@ -841,7 +828,7 @@ static void q_scale_float(
 }
 
 /**
- * q_scale_linear_interpolation (derived from ppmqscale, http://libdv.sf.net)
+ * q_scale_linear_interpolation (derived from `ppmqscale`, http://libdv.sf.net)
  *
  * q stands for quick _and_ quality :)
  *
@@ -868,12 +855,12 @@ static bool q_scale_linear_interpolation(struct ImBuf *ibuf, int newx, int newy)
   }
 
   if (ibuf->rect) {
-    unsigned char *newrect = MEM_mallocN(sizeof(int) * newx * newy, "q_scale rect");
-    q_scale_byte((unsigned char *)ibuf->rect, newrect, ibuf->x, ibuf->y, newx, newy);
+    uchar *newrect = MEM_mallocN(sizeof(int) * newx * newy, "q_scale rect");
+    q_scale_byte((uchar *)ibuf->rect, newrect, ibuf->x, ibuf->y, newx, newy);
 
     imb_freerectImBuf(ibuf);
     ibuf->mall |= IB_rect;
-    ibuf->rect = (unsigned int *)newrect;
+    ibuf->rect = (uint *)newrect;
   }
   if (ibuf->rect_float) {
     float *newrect = MEM_mallocN(sizeof(float[4]) * newx * newy, "q_scale rectfloat");
@@ -1014,7 +1001,7 @@ static ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
     BLI_assert((uchar *)rect - ((uchar *)ibuf->rect) == rect_size); /* see bug T26502. */
     imb_freerectImBuf(ibuf);
     ibuf->mall |= IB_rect;
-    ibuf->rect = (unsigned int *)_newrect;
+    ibuf->rect = (uint *)_newrect;
   }
   if (do_float) {
     // printf("%ld %ld\n", rectf - ibuf->rect_float, rect_size);
@@ -1156,7 +1143,7 @@ static ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
     BLI_assert((uchar *)rect - ((uchar *)ibuf->rect) == rect_size); /* see bug T26502. */
     imb_freerectImBuf(ibuf);
     ibuf->mall |= IB_rect;
-    ibuf->rect = (unsigned int *)_newrect;
+    ibuf->rect = (uint *)_newrect;
   }
   if (do_float) {
     // printf("%ld %ld\n", rectf - ibuf->rect_float, rect_size);
@@ -1361,7 +1348,7 @@ static ImBuf *scaleupx(struct ImBuf *ibuf, int newx)
   if (do_rect) {
     imb_freerectImBuf(ibuf);
     ibuf->mall |= IB_rect;
-    ibuf->rect = (unsigned int *)_newrect;
+    ibuf->rect = (uint *)_newrect;
   }
   if (do_float) {
     imb_freerectfloatImBuf(ibuf);
@@ -1564,7 +1551,7 @@ static ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
   if (do_rect) {
     imb_freerectImBuf(ibuf);
     ibuf->mall |= IB_rect;
-    ibuf->rect = (unsigned int *)_newrect;
+    ibuf->rect = (uint *)_newrect;
   }
   if (do_float) {
     imb_freerectfloatImBuf(ibuf);
@@ -1641,7 +1628,7 @@ static void scalefast_Z_ImBuf(ImBuf *ibuf, int newx, int newy)
   }
 }
 
-bool IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy)
+bool IMB_scaleImBuf(struct ImBuf *ibuf, uint newx, uint newy)
 {
   BLI_assert_msg(newx > 0 && newy > 0, "Images must be at least 1 on both dimensions!");
 
@@ -1686,11 +1673,11 @@ struct imbufRGBA {
   float r, g, b, a;
 };
 
-bool IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy)
+bool IMB_scalefastImBuf(struct ImBuf *ibuf, uint newx, uint newy)
 {
   BLI_assert_msg(newx > 0 && newy > 0, "Images must be at least 1 on both dimensions!");
 
-  unsigned int *rect, *_newrect, *newrect;
+  uint *rect, *_newrect, *newrect;
   struct imbufRGBA *rectf, *_newrectf, *newrectf;
   int x, y;
   bool do_float = false, do_rect = false;
@@ -1789,23 +1776,23 @@ bool IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy
 typedef struct ScaleTreadInitData {
   ImBuf *ibuf;
 
-  unsigned int newx;
-  unsigned int newy;
+  uint newx;
+  uint newy;
 
-  unsigned char *byte_buffer;
+  uchar *byte_buffer;
   float *float_buffer;
 } ScaleTreadInitData;
 
 typedef struct ScaleThreadData {
   ImBuf *ibuf;
 
-  unsigned int newx;
-  unsigned int newy;
+  uint newx;
+  uint newy;
 
   int start_line;
   int tot_line;
 
-  unsigned char *byte_buffer;
+  uchar *byte_buffer;
   float *float_buffer;
 } ScaleThreadData;
 
@@ -1844,9 +1831,8 @@ static void *do_scale_thread(void *data_v)
       int offset = y * data->newx + x;
 
       if (data->byte_buffer) {
-        unsigned char *pixel = data->byte_buffer + 4 * offset;
-        BLI_bilinear_interpolation_char(
-            (unsigned char *)ibuf->rect, pixel, ibuf->x, ibuf->y, 4, u, v);
+        uchar *pixel = data->byte_buffer + 4 * offset;
+        BLI_bilinear_interpolation_char((uchar *)ibuf->rect, pixel, ibuf->x, ibuf->y, 4, u, v);
       }
 
       if (data->float_buffer) {
@@ -1860,7 +1846,7 @@ static void *do_scale_thread(void *data_v)
   return NULL;
 }
 
-void IMB_scaleImBuf_threaded(ImBuf *ibuf, unsigned int newx, unsigned int newy)
+void IMB_scaleImBuf_threaded(ImBuf *ibuf, uint newx, uint newy)
 {
   BLI_assert_msg(newx > 0 && newy > 0, "Images must be at least 1 on both dimensions!");
 
@@ -1893,7 +1879,7 @@ void IMB_scaleImBuf_threaded(ImBuf *ibuf, unsigned int newx, unsigned int newy)
   if (ibuf->rect) {
     imb_freerectImBuf(ibuf);
     ibuf->mall |= IB_rect;
-    ibuf->rect = (unsigned int *)init_data.byte_buffer;
+    ibuf->rect = (uint *)init_data.byte_buffer;
   }
 
   if (ibuf->rect_float) {

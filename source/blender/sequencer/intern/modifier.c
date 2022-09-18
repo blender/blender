@@ -598,7 +598,7 @@ static void modifier_color_balance_apply(
   ColorBalanceInitData init_data;
 
   if (!ibuf->rect_float && make_float) {
-    imb_addrectfloatImBuf(ibuf);
+    imb_addrectfloatImBuf(ibuf, 4);
   }
 
   init_data.cb = cb;
@@ -1177,7 +1177,7 @@ typedef struct AvgLogLum {
 static void tonemapmodifier_init_data(SequenceModifierData *smd)
 {
   SequencerTonemapModifierData *tmmd = (SequencerTonemapModifierData *)smd;
-  /* Same as tonemap compositor node. */
+  /* Same as tone-map compositor node. */
   tmmd->type = SEQ_TONEMAP_RD_PHOTORECEPTOR;
   tmmd->key = 0.18f;
   tmmd->offset = 1.0f;

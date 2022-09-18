@@ -39,7 +39,7 @@ static void node_float_to_int_label(const bNodeTree *UNUSED(ntree),
   BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
-static const fn::MultiFunction *get_multi_function(bNode &bnode)
+static const fn::MultiFunction *get_multi_function(const bNode &bnode)
 {
   static auto exec_preset = fn::CustomMF_presets::AllSpanOrSingle();
   static fn::CustomMF_SI_SO<float, int> round_fn{

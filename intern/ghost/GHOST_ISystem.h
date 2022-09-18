@@ -120,6 +120,7 @@ class GHOST_ISystem {
    * \return An indication of success.
    */
   static GHOST_TSuccess createSystem();
+  static GHOST_TSuccess createSystemBackground();
 
   /**
    * Disposes the one and only system.
@@ -277,11 +278,10 @@ class GHOST_ISystem {
    */
   virtual GHOST_TSuccess beginFullScreen(const GHOST_DisplaySetting &setting,
                                          GHOST_IWindow **window,
-                                         const bool stereoVisual,
-                                         const bool alphaBackground = 0) = 0;
+                                         const bool stereoVisual) = 0;
 
   /**
-   * Updates the resolution while in fullscreen mode.
+   * Updates the resolution while in full-screen mode.
    * \param setting: The new setting of the display.
    * \param window: Window displayed in full screen.
    *
@@ -437,9 +437,9 @@ class GHOST_ISystem {
   /**
    * Set the Console State
    * \param action: console state
-   * \return current status (1 -visible, 0 - hidden)
+   * \return current status (true: visible, 0: hidden)
    */
-  virtual int setConsoleWindowState(GHOST_TConsoleWindowState action) = 0;
+  virtual bool setConsoleWindowState(GHOST_TConsoleWindowState action) = 0;
 
   /***************************************************************************************
    * Access to clipboard.

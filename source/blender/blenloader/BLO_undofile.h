@@ -61,6 +61,10 @@ typedef struct {
   bool memchunk_identical;
 } UndoReader;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Actually only used `writefile.c`. */
 
 void BLO_memfile_write_init(MemFileWriteData *mem_data,
@@ -101,3 +105,7 @@ extern struct Main *BLO_memfile_main_get(struct MemFile *memfile,
 extern bool BLO_memfile_write_file(struct MemFile *memfile, const char *filepath);
 
 FileReader *BLO_memfile_new_filereader(MemFile *memfile, int undo_direction);
+
+#ifdef __cplusplus
+}
+#endif

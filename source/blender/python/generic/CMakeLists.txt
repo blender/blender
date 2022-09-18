@@ -7,12 +7,11 @@ set(INC
   ../../gpu
   ../../makesdna
   ../../makesrna
-  ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
 )
 
 set(INC_SYS
-  ${GLEW_INCLUDE_PATH}
+  ${Epoxy_INCLUDE_DIRS}
   ${PYTHON_INCLUDE_DIRS}
 )
 
@@ -41,11 +40,9 @@ set(SRC
 )
 
 set(LIB
-  ${GLEW_LIBRARY}
+  ${Epoxy_LIBRARIES}
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
 )
-
-add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_python_ext "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

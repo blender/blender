@@ -31,6 +31,7 @@ struct OBJExportParamsDefault {
     params.path_mode = PATH_REFERENCE_AUTO;
     params.export_triangulated_mesh = false;
     params.export_curves_as_nurbs = false;
+    params.export_pbr_extensions = false;
 
     params.export_object_groups = false;
     params.export_material_groups = false;

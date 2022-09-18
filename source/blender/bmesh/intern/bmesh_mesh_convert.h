@@ -77,7 +77,6 @@ struct BMeshToMeshParams {
 void BM_enter_multires_space(struct Object *ob, struct BMesh *bm, int space);
 
 /**
- *
  * \param bmain: May be NULL in case \a calc_object_remap parameter option is not set.
  */
 void BM_mesh_bm_to_me(struct Main *bmain,

@@ -78,6 +78,12 @@ static void partialvis_update_mesh(Object *ob,
   BKE_pbvh_node_get_verts(pbvh, node, &vert_indices, &mvert);
   paint_mask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
 
+  bool *hide_vert = CustomData_get_layer_named(&me->vdata, CD_PROP_BOOL, ".hide_vert");
+  if (hide_vert == NULL) {
+    hide_vert = CustomData_add_layer_named(
+        &me->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, NULL, me->totvert, ".hide_vert");
+  }
+
   SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
   for (i = 0; i < totvert; i++) {
@@ -86,16 +92,11 @@ static void partialvis_update_mesh(Object *ob,
 
     /* Hide vertex if in the hide volume. */
     if (is_effected(area, planes, v->co, vmask)) {
-      if (action == PARTIALVIS_HIDE) {
-        v->flag |= ME_HIDE;
-      }
-      else {
-        v->flag &= ~ME_HIDE;
-      }
+      hide_vert[vert_indices[i]] = (action == PARTIALVIS_HIDE);
       any_changed = true;
     }
 
-    if (!(v->flag & ME_HIDE)) {
+    if (!hide_vert[vert_indices[i]]) {
       any_visible = true;
     }
   }
@@ -265,7 +266,7 @@ static void partialvis_update_bmesh(Object *ob,
   if (any_changed) {
     BKE_pbvh_node_mark_rebuild_draw(node);
     BKE_pbvh_node_fully_hidden_set(node, !any_visible);
-    BKE_pbvh_node_mark_update_triangulation(node);
+    BKE_pbvh_vert_tag_update_normal_triangulation(node);
   }
 }
 
@@ -349,10 +350,10 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   /* Start undo. */
   switch (action) {
     case PARTIALVIS_HIDE:
-      SCULPT_undo_push_begin(ob, "Hide area");
+      SCULPT_undo_push_begin_ex(ob, "Hide area");
       break;
     case PARTIALVIS_SHOW:
-      SCULPT_undo_push_begin(ob, "Show area");
+      SCULPT_undo_push_begin_ex(ob, "Show area");
       break;
   }
 
@@ -381,9 +382,8 @@ static int hide_show_exec(bContext *C, wmOperator *op)
    * sculpt but it looks wrong when entering editmode otherwise). */
   if (pbvh_type == PBVH_FACES) {
     BKE_mesh_flush_hidden_from_verts(me);
+    BKE_pbvh_update_hide_attributes_from_mesh(pbvh);
   }
-
-  SCULPT_visibility_sync_all_vertex_to_face_sets(ob->sculpt);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
   ED_region_tag_redraw(region);

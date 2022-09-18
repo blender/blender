@@ -268,7 +268,8 @@ same as the Google Test name (i.e. ``suite.testcase``); see also
 cmake_policy(PUSH)
 cmake_policy(SET CMP0057 NEW) # if IN_LIST
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 function(gtest_add_tests)
 
   if(ARGC LESS 1)

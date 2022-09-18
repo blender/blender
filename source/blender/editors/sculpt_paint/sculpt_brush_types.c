@@ -344,7 +344,7 @@ static void do_draw_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], offset, fade);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -466,7 +466,7 @@ static void do_twist_brush_task_cb_ex(void *__restrict userdata,
     add_v3_v3(vd.co, disp);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -549,7 +549,7 @@ static void do_twist_brush_post_smooth_task_cb_ex(void *__restrict userdata,
     add_v3_v3(vd.co, disp);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -718,7 +718,7 @@ static void do_fill_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], val, fade);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -816,7 +816,7 @@ static void do_scrape_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], val, fade);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -932,7 +932,7 @@ static void do_clay_thumb_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], val, fade);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1086,7 +1086,7 @@ static void do_flatten_brush_task_cb_ex(void *__restrict userdata,
       mul_v3_v3fl(proxy[vd.i], val, fade);
 
       if (vd.mvert) {
-        BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+        BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
       }
     }
   }
@@ -1243,7 +1243,7 @@ static void do_clay_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], val, fade);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1382,7 +1382,7 @@ static void do_clay_strips_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], val, fade);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1584,7 +1584,7 @@ static void do_snake_hook_brush_task_cb_ex(void *__restrict userdata,
     }
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1671,7 +1671,7 @@ static void do_thumb_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], cono, fade);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1750,7 +1750,7 @@ static void do_rotate_brush_task_cb_ex(void *__restrict userdata,
     sub_v3_v3(proxy[vd.i], co);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1794,7 +1794,7 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
   const bool is_bmesh = BKE_pbvh_type(ss->pbvh) == PBVH_BMESH;
 
   if (is_bmesh) {
-    use_persistent_base = use_persistent_base && ss->scl.persistent_co;
+    use_persistent_base = use_persistent_base && ss->attrs.persistent_co;
 
 #if 0
     // check if we need to zero displacement factor
@@ -1820,11 +1820,11 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
 #endif
   }
   else {
-    use_persistent_base = use_persistent_base && ss->scl.persistent_co;
+    use_persistent_base = use_persistent_base && ss->attrs.persistent_co;
   }
 
-  SculptCustomLayer *scl_disp = data->scl;
-  SculptCustomLayer *scl_stroke_id = data->scl2;
+  SculptAttribute *scl_disp = data->scl;
+  SculptAttribute *scl_stroke_id = data->scl2;
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
@@ -1844,10 +1844,10 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
     }
 
     if (!use_persistent_base) {
-      int *stroke_id = SCULPT_attr_vertex_data(vd.vertex, scl_stroke_id);
+      int *stroke_id = SCULPT_vertex_attr_get(vd.vertex, scl_stroke_id);
 
       if (*stroke_id != ss->stroke_id) {
-        *((float *)SCULPT_attr_vertex_data(vd.vertex, scl_disp)) = 0.0f;
+        *((float *)SCULPT_vertex_attr_get(vd.vertex, scl_disp)) = 0.0f;
         *stroke_id = ss->stroke_id;
       }
     }
@@ -1865,10 +1865,10 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
     float *disp_factor;
 
     if (use_persistent_base) {
-      disp_factor = (float *)SCULPT_attr_vertex_data(vd.vertex, ss->scl.persistent_disp);
+      disp_factor = (float *)SCULPT_vertex_attr_get(vd.vertex, ss->attrs.persistent_disp);
     }
     else {
-      disp_factor = (float *)SCULPT_attr_vertex_data(vd.vertex, scl_disp);
+      disp_factor = (float *)SCULPT_vertex_attr_get(vd.vertex, scl_disp);
     }
 
     /* When using persistent base, the layer brush (holding Control) invert mode resets the
@@ -1914,7 +1914,7 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
     SCULPT_clip(sd, ss, vd.co, final_co);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1995,14 +1995,16 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
 
 void SCULPT_ensure_persistent_layers(SculptSession *ss, Object *ob)
 {
-  SculptLayerParams params = {.permanent = true, .simple_array = false};
+  SculptAttributeParams params = {.permanent = true, .simple_array = false};
 
-  ss->scl.persistent_co = SCULPT_attr_get_layer(
-      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_CO, &params);
-  ss->scl.persistent_no = SCULPT_attr_get_layer(
-      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_NO, &params);
-  ss->scl.persistent_disp = SCULPT_attr_get_layer(
-      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP, &params);
+  if (!ss->attrs.persistent_co) {
+    ss->attrs.persistent_co = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_co), &params);
+    ss->attrs.persistent_no = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_no), &params);
+    ss->attrs.persistent_disp = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, SCULPT_ATTRIBUTE_NAME(persistent_disp), &params);
+  }
 }
 
 void SCULPT_do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
@@ -2022,20 +2024,28 @@ void SCULPT_do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     SCULPT_ensure_persistent_layers(ss, ob);
   }
 
-  SculptCustomLayer *disp_scl = ss->scl.layer_disp = SCULPT_attr_get_layer(
-      ss,
-      ob,
-      ATTR_DOMAIN_POINT,
-      CD_PROP_FLOAT,
-      SCULPT_SCL_GET_NAME(SCULPT_SCL_LAYER_DISP),
-      &((SculptLayerParams){.permanent = false, .simple_array = false, .stroke_only = true}));
-  SculptCustomLayer *id_scl = ss->scl.layer_id = SCULPT_attr_get_layer(
-      ss,
-      ob,
-      ATTR_DOMAIN_POINT,
-      CD_PROP_INT32,
-      SCULPT_SCL_GET_NAME(SCULPT_SCL_LAYER_STROKE_ID),
-      &((SculptLayerParams){.permanent = false, .simple_array = false, .stroke_only = true}));
+  if (!ss->attrs.layer_disp) {
+    ss->attrs.layer_disp = BKE_sculpt_attribute_ensure(
+        ob,
+        ATTR_DOMAIN_POINT,
+        CD_PROP_FLOAT,
+        SCULPT_ATTRIBUTE_NAME(layer_disp),
+        &((SculptAttributeParams){
+            .permanent = false, .simple_array = false, .stroke_only = true}));
+  }
+
+  if (!ss->attrs.layer_id) {
+    ss->attrs.layer_id = BKE_sculpt_attribute_ensure(
+        ob,
+        ATTR_DOMAIN_POINT,
+        CD_PROP_INT32,
+        SCULPT_ATTRIBUTE_NAME(layer_id),
+        &((SculptAttributeParams){
+            .permanent = false, .simple_array = false, .stroke_only = true}));
+  }
+
+  SculptAttribute *disp_scl = ss->attrs.layer_disp;
+  SculptAttribute *id_scl = ss->attrs.layer_id;
 
   if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
     ss->cache->layer_displacement_factor = disp_scl->data;
@@ -2109,7 +2119,7 @@ static void do_inflate_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3v3(proxy[vd.i], val, ss->cache->scale);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -2168,7 +2178,7 @@ static void do_nudge_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], cono, fade);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -2263,7 +2273,7 @@ static void do_crease_brush_task_cb_ex(void *__restrict userdata,
     add_v3_v3v3(proxy[vd.i], val1, val2);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -2384,7 +2394,7 @@ static void do_pinch_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], disp_center, fade);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -2503,7 +2513,7 @@ static void do_grab_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -2639,7 +2649,7 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
 
     if (dot_v3v3(final_disp, final_disp) > 0.0000001) {
       if (vd.mvert) {
-        BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+        BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
       }
     }
 
@@ -2741,7 +2751,7 @@ static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], offset, fade);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -2812,7 +2822,7 @@ static void do_draw_sharp_brush_task_cb_ex_plane(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], vec, fade * fade * bstrength);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -3070,7 +3080,7 @@ static void do_scene_project_brush_task_cb_ex(void *__restrict userdata,
     add_v3_v3(vd.co, disp);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -3170,7 +3180,7 @@ static void do_topology_slide_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], final_disp, fade);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -3325,7 +3335,7 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
     }
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -3410,7 +3420,7 @@ static void do_fairing_brush_tag_store_task_cb_ex(void *__restrict userdata,
       continue;
     }
 
-    float *prefair = SCULPT_attr_vertex_data(vd.vertex, ss->scl.prefairing_co);
+    float *prefair = SCULPT_vertex_attr_get(vd.vertex, ss->attrs.prefairing_co);
 
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,
@@ -3426,8 +3436,8 @@ static void do_fairing_brush_tag_store_task_cb_ex(void *__restrict userdata,
       continue;
     }
 
-    float *fairing_fade = SCULPT_attr_vertex_data(vd.vertex, ss->scl.fairing_fade);
-    uchar *fairing_mask = SCULPT_attr_vertex_data(vd.vertex, ss->scl.fairing_mask);
+    float *fairing_fade = SCULPT_vertex_attr_get(vd.vertex, ss->attrs.fairing_fade);
+    uchar *fairing_mask = SCULPT_vertex_attr_get(vd.vertex, ss->attrs.fairing_mask);
 
     *fairing_fade = max_ff(fade, *fairing_fade);
     *fairing_mask = true;
@@ -3450,36 +3460,26 @@ void SCULPT_do_fairing_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_face_random_access_ensure(ss);
 
-  SculptLayerParams params = {.permanent = false, .simple_array = true, .stroke_only = true};
+  SculptAttributeParams params = {.permanent = false, .simple_array = true, .stroke_only = true};
 
-  ss->scl.fairing_mask = SCULPT_attr_get_layer(ss,
-                                               ob,
-                                               ATTR_DOMAIN_POINT,
-                                               CD_PROP_BOOL,
-                                               SCULPT_SCL_GET_NAME(SCULPT_SCL_FAIRING_MASK),
-                                               &params);
+  if (!ss->attrs.fairing_mask) {
+    ss->attrs.fairing_mask = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_POINT, CD_PROP_BOOL, SCULPT_ATTRIBUTE_NAME(fairing_mask), &params);
 
-  ss->scl.fairing_fade = SCULPT_attr_get_layer(ss,
-                                               ob,
-                                               ATTR_DOMAIN_POINT,
-                                               CD_PROP_FLOAT,
-                                               SCULPT_SCL_GET_NAME(SCULPT_SCL_FAIRING_FADE),
-                                               &params);
+    ss->attrs.fairing_fade = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, SCULPT_ATTRIBUTE_NAME(fairing_fade), &params);
 
-  ss->scl.prefairing_co = SCULPT_attr_get_layer(ss,
-                                                ob,
-                                                ATTR_DOMAIN_POINT,
-                                                CD_PROP_FLOAT3,
-                                                SCULPT_SCL_GET_NAME(SCULPT_SCL_PREFAIRING_CO),
-                                                &params);
+    ss->attrs.prefairing_co = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(prefairing_co), &params);
+  }
 
   if (SCULPT_stroke_is_main_symmetry_pass(ss->cache)) {
     for (int i = 0; i < totvert; i++) {
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
-      *(uchar *)SCULPT_attr_vertex_data(vertex, ss->scl.fairing_mask) = false;
-      *(float *)SCULPT_attr_vertex_data(vertex, ss->scl.fairing_fade) = 0.0f;
-      copy_v3_v3((float *)SCULPT_attr_vertex_data(vertex, ss->scl.prefairing_co),
+      *(uchar *)SCULPT_vertex_attr_get(vertex, ss->attrs.fairing_mask) = false;
+      *(float *)SCULPT_vertex_attr_get(vertex, ss->attrs.fairing_fade) = 0.0f;
+      copy_v3_v3((float *)SCULPT_vertex_attr_get(vertex, ss->attrs.prefairing_co),
                  SCULPT_vertex_co_get(ss, vertex));
     }
   }
@@ -3507,17 +3507,17 @@ static void do_fairing_brush_displace_task_cb_ex(void *__restrict userdata,
   SculptSession *ss = data->ob->sculpt;
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    if (!*(uchar *)SCULPT_attr_vertex_data(vd.vertex, ss->scl.fairing_mask)) {
+    if (!*(uchar *)SCULPT_vertex_attr_get(vd.vertex, ss->attrs.fairing_mask)) {
       continue;
     }
     float disp[3];
-    sub_v3_v3v3(disp, vd.co, SCULPT_attr_vertex_data(vd.vertex, ss->scl.prefairing_co));
-    mul_v3_fl(disp, *(float *)SCULPT_attr_vertex_data(vd.vertex, ss->scl.fairing_fade));
-    copy_v3_v3(vd.co, SCULPT_attr_vertex_data(vd.vertex, ss->scl.prefairing_co));
+    sub_v3_v3v3(disp, vd.co, SCULPT_vertex_attr_get(vd.vertex, ss->attrs.prefairing_co));
+    mul_v3_fl(disp, *(float *)SCULPT_vertex_attr_get(vd.vertex, ss->attrs.fairing_fade));
+    copy_v3_v3(vd.co, SCULPT_vertex_attr_get(vd.vertex, ss->attrs.prefairing_co));
     add_v3_v3(vd.co, disp);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -3531,20 +3531,20 @@ void SCULPT_fairing_brush_exec_fairing_for_cache(Sculpt *sd, Object *ob)
   Brush *brush = BKE_paint_brush(&sd->paint);
   Mesh *mesh = ob->data;
 
-  if (!ss->scl.fairing_mask) {
+  if (!ss->attrs.fairing_mask) {
     return;
   }
 
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
-      BKE_mesh_prefair_and_fair_vertices(
-          mesh, mvert, ss->scl.fairing_mask->data, MESH_FAIRING_DEPTH_TANGENCY);
+      BKE_mesh_prefair_and_fair_verts(
+          mesh, mvert, ss->attrs.fairing_mask->data, MESH_FAIRING_DEPTH_TANGENCY);
     } break;
     case PBVH_BMESH: {
-      // note that we allocated fairing_mask.data in simple array mode
-      BKE_bmesh_prefair_and_fair_vertices(
-          ss->bm, ss->scl.fairing_mask->data, MESH_FAIRING_DEPTH_TANGENCY);
+      /* Note that we allocated fairing_mask.data in simple array mode. */
+      BKE_bmesh_prefair_and_fair_verts(
+          ss->bm, ss->attrs.fairing_mask->data, MESH_FAIRING_DEPTH_TANGENCY);
     } break;
     case PBVH_GRIDS:
       BLI_assert(false);
@@ -3689,7 +3689,7 @@ static void do_displacement_eraser_brush_task_cb_ex(void *__restrict userdata,
     mul_v3_v3fl(proxy[vd.i], disp, fade);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -3798,7 +3798,7 @@ static void do_displacement_smear_brush_task_cb_ex(void *__restrict userdata,
     interp_v3_v3v3(vd.co, vd.co, new_co, fade);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -4004,7 +4004,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     }
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -4027,10 +4027,13 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd,
 
   /* TODO: use SCULPT_temp_customlayer api */
 
-  /*  vector4, but not a color */
-  SCULPT_dyntopo_ensure_templayer(ss, ob, CD_PROP_COLOR, "_rake_temp", false);
-
-  int cd_temp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_COLOR, "_rake_temp");
+  /*  Set up rake_temp, which is a vector4 (not a color). */
+  if (!ss->attrs.rake_temp) {
+    SculptAttributeParams params = {0};
+    ss->attrs.rake_temp = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_POINT, CD_PROP_COLOR, SCULPT_ATTRIBUTE_NAME(rake_temp), &params);
+  }
+  int cd_temp = ss->attrs.rake_temp->bmesh_cd_offset;
 
 #ifdef SCULPT_DIAGONAL_EDGE_MARKS
   // reset edge flags, single threaded
@@ -4105,7 +4108,7 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd,
   }
 
   for (int i = 0; i < totnode; i++) {
-    BKE_pbvh_node_mark_update_tri_area(nodes[i]);
+    BKE_pbvh_vert_tag_update_normal_tri_area(nodes[i]);
   }
 }
 
@@ -4140,12 +4143,8 @@ static void do_mask_brush_draw_task_cb_ex(void *__restrict userdata,
       (*vd.mask) += fade * bstrength * (*vd.mask);
     }
     *vd.mask = clamp_f(*vd.mask, 0.0f, 1.0f);
-
-    if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
-    }
-    BKE_pbvh_vertex_iter_end;
   }
+  BKE_pbvh_vertex_iter_end;
 }
 
 static void do_mask_brush_draw(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)

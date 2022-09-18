@@ -505,7 +505,7 @@ class CurveComponentLegacy : public GeometryComponent {
 
 /**
  * A geometry component that stores a group of curves, corresponding the #Curves data-block type
- * and the #CurvesGeometry type. Attributes are are stored on the control point domain and the
+ * and the #CurvesGeometry type. Attributes are stored on the control point domain and the
  * curve domain.
  */
 class CurveComponent : public GeometryComponent {

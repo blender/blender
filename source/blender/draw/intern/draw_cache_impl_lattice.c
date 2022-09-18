@@ -27,12 +27,6 @@
 
 #define SELECT 1
 
-/**
- * TODO
- * - 'DispList' is currently not used
- *   (we could avoid using since it will be removed)
- */
-
 static void lattice_batch_cache_clear(Lattice *lt);
 
 /* ---------------------------------------------------------------------- */

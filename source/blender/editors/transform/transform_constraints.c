@@ -177,7 +177,7 @@ static void axisProjection(const TransInfo *t,
                            const float in[3],
                            float out[3])
 {
-  float norm[3], vec[3], factor, angle;
+  float vec[3], factor, angle;
   float t_con_center[3];
 
   if (is_zero_v3(in)) {
@@ -214,7 +214,7 @@ static void axisProjection(const TransInfo *t,
   }
   else {
     float v[3];
-    float norm_center[3];
+    float norm[3], norm_center[3];
     float plane[3];
 
     view_vector_calc(t, t_con_center, norm_center);
@@ -701,12 +701,12 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[])
   }
 }
 
-void setUserConstraint(TransInfo *t, int mode, const char ftext[])
+void setUserConstraint(TransInfo *t, int mode, const char text_[])
 {
   char text[256];
   const short orientation = transform_orientation_or_default(t);
   const char *spacename = transform_orientations_spacename_get(t, orientation);
-  BLI_snprintf(text, sizeof(text), ftext, spacename);
+  BLI_snprintf(text, sizeof(text), text_, spacename);
 
   switch (orientation) {
     case V3D_ORIENT_LOCAL:

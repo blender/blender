@@ -1135,7 +1135,7 @@ char RNA_property_array_item_char(PropertyRNA *prop, int index)
 
 int RNA_property_array_item_index(PropertyRNA *prop, char name)
 {
-  /* Don't use custom property subtypes in RNA path lookup. */
+  /* Don't use custom property sub-types in RNA path lookup. */
   PropertySubType subtype = rna_ensure_property(prop)->subtype;
 
   /* get index based on string name/alias */
@@ -2073,7 +2073,7 @@ static void rna_property_update(
     }
 
 #if 1
-    /* TODO(campbell): Should eventually be replaced entirely by message bus (below)
+    /* TODO(@campbellbarton): Should eventually be replaced entirely by message bus (below)
      * for now keep since COW, bugs are hard to track when we have other missing updates. */
     if (prop->noteflag) {
       WM_main_add_notifier(prop->noteflag, ptr->owner_id);
@@ -4080,6 +4080,20 @@ int RNA_property_collection_lookup_index(PointerRNA *ptr,
   return -1;
 }
 
+bool RNA_property_collection_lookup_int_has_fn(PropertyRNA *prop)
+{
+  BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
+  CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)rna_ensure_property(prop);
+  return cprop->lookupint != NULL;
+}
+
+bool RNA_property_collection_lookup_string_has_fn(PropertyRNA *prop)
+{
+  BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
+  CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)rna_ensure_property(prop);
+  return cprop->lookupstring != NULL;
+}
+
 int RNA_property_collection_lookup_int(PointerRNA *ptr,
                                        PropertyRNA *prop,
                                        int key,
@@ -5332,15 +5346,15 @@ char *RNA_pointer_as_string_id(bContext *C, PointerRNA *ptr)
   return cstring;
 }
 
-static char *rna_pointer_as_string__bldata(Main *bmain, PointerRNA *ptr)
+static char *rna_pointer_as_string__bldata(PointerRNA *ptr)
 {
   if (ptr->type == NULL || ptr->owner_id == NULL) {
     return BLI_strdup("None");
   }
   if (RNA_struct_is_ID(ptr->type)) {
-    return RNA_path_full_ID_py(bmain, ptr->owner_id);
+    return RNA_path_full_ID_py(ptr->owner_id);
   }
-  return RNA_path_full_struct_py(bmain, ptr);
+  return RNA_path_full_struct_py(ptr);
 }
 
 char *RNA_pointer_as_string(bContext *C,
@@ -5355,7 +5369,7 @@ char *RNA_pointer_as_string(bContext *C,
   if ((prop = rna_idproperty_check(&prop_ptr, ptr)) && prop->type != IDP_ID) {
     return RNA_pointer_as_string_id(C, ptr_prop);
   }
-  return rna_pointer_as_string__bldata(CTX_data_main(C), ptr_prop);
+  return rna_pointer_as_string__bldata(ptr_prop);
 }
 
 char *RNA_pointer_as_string_keywords_ex(bContext *C,

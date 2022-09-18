@@ -758,43 +758,42 @@ namespace blender::ed::space_node {
 /**************************** Node Tree Layout *******************************/
 
 static void ui_node_draw_input(
-    uiLayout *layout, bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *input, int depth);
+    uiLayout &layout, bContext &C, bNodeTree &ntree, bNode &node, bNodeSocket &input, int depth);
 
 static void ui_node_draw_node(
-    uiLayout *layout, bContext *C, bNodeTree *ntree, bNode *node, int depth)
+    uiLayout &layout, bContext &C, bNodeTree &ntree, bNode &node, int depth)
 {
-  bNodeSocket *input;
   PointerRNA nodeptr;
 
-  RNA_pointer_create(&ntree->id, &RNA_Node, node, &nodeptr);
+  RNA_pointer_create(&ntree.id, &RNA_Node, &node, &nodeptr);
 
-  if (node->typeinfo->draw_buttons) {
-    if (node->type != NODE_GROUP) {
-      uiLayoutSetPropSep(layout, true);
-      node->typeinfo->draw_buttons(layout, C, &nodeptr);
+  if (node.typeinfo->draw_buttons) {
+    if (node.type != NODE_GROUP) {
+      uiLayoutSetPropSep(&layout, true);
+      node.typeinfo->draw_buttons(&layout, &C, &nodeptr);
     }
   }
 
-  for (input = (bNodeSocket *)node->inputs.first; input; input = input->next) {
-    ui_node_draw_input(layout, C, ntree, node, input, depth + 1);
+  LISTBASE_FOREACH (bNodeSocket *, input, &node.inputs) {
+    ui_node_draw_input(layout, C, ntree, node, *input, depth + 1);
   }
 }
 
 static void ui_node_draw_input(
-    uiLayout *layout, bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *input, int depth)
+    uiLayout &layout, bContext &C, bNodeTree &ntree, bNode &node, bNodeSocket &input, int depth)
 {
   PointerRNA inputptr, nodeptr;
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = uiLayoutGetBlock(&layout);
   uiLayout *row = nullptr;
   bool dependency_loop;
 
-  if (input->flag & SOCK_UNAVAIL) {
+  if (input.flag & SOCK_UNAVAIL) {
     return;
   }
 
   /* to avoid eternal loops on cyclic dependencies */
-  node->flag |= NODE_TEST;
-  bNode *lnode = (input->link) ? input->link->fromnode : nullptr;
+  node.flag |= NODE_TEST;
+  bNode *lnode = (input.link) ? input.link->fromnode : nullptr;
 
   dependency_loop = (lnode && (lnode->flag & NODE_TEST));
   if (dependency_loop) {
@@ -802,10 +801,10 @@ static void ui_node_draw_input(
   }
 
   /* socket RNA pointer */
-  RNA_pointer_create(&ntree->id, &RNA_NodeSocket, input, &inputptr);
-  RNA_pointer_create(&ntree->id, &RNA_Node, node, &nodeptr);
+  RNA_pointer_create(&ntree.id, &RNA_NodeSocket, &input, &inputptr);
+  RNA_pointer_create(&ntree.id, &RNA_Node, &node, &nodeptr);
 
-  row = uiLayoutRow(layout, true);
+  row = uiLayoutRow(&layout, true);
   /* Decorations are added manually here. */
   uiLayoutSetPropDecorate(row, false);
 
@@ -821,8 +820,8 @@ static void ui_node_draw_input(
 
       if (lnode &&
           (lnode->inputs.first || (lnode->typeinfo->draw_buttons && lnode->type != NODE_GROUP))) {
-        int icon = (input->flag & SOCK_COLLAPSED) ? ICON_DISCLOSURE_TRI_RIGHT :
-                                                    ICON_DISCLOSURE_TRI_DOWN;
+        int icon = (input.flag & SOCK_COLLAPSED) ? ICON_DISCLOSURE_TRI_RIGHT :
+                                                   ICON_DISCLOSURE_TRI_DOWN;
         uiItemR(sub, &inputptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", icon);
       }
 
@@ -831,7 +830,7 @@ static void ui_node_draw_input(
 
     sub = uiLayoutRow(sub, true);
     uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
-    uiItemL(sub, IFACE_(input->name), ICON_NONE);
+    uiItemL(sub, IFACE_(input.name), ICON_NONE);
   }
 
   if (dependency_loop) {
@@ -840,28 +839,28 @@ static void ui_node_draw_input(
   }
   else if (lnode) {
     /* input linked to a node */
-    uiTemplateNodeLink(row, C, ntree, node, input);
+    uiTemplateNodeLink(row, &C, &ntree, &node, &input);
     add_dummy_decorator = true;
 
-    if (depth == 0 || !(input->flag & SOCK_COLLAPSED)) {
+    if (depth == 0 || !(input.flag & SOCK_COLLAPSED)) {
       if (depth == 0) {
-        uiItemS(layout);
+        uiItemS(&layout);
       }
 
-      ui_node_draw_node(layout, C, ntree, lnode, depth);
+      ui_node_draw_node(layout, C, ntree, *lnode, depth);
     }
   }
   else {
     uiLayout *sub = uiLayoutRow(row, true);
 
-    uiTemplateNodeLink(sub, C, ntree, node, input);
+    uiTemplateNodeLink(sub, &C, &ntree, &node, &input);
 
-    if (input->flag & SOCK_HIDE_VALUE) {
+    if (input.flag & SOCK_HIDE_VALUE) {
       add_dummy_decorator = true;
     }
     /* input not linked, show value */
     else {
-      switch (input->type) {
+      switch (input.type) {
         case SOCK_VECTOR:
           uiItemS(sub);
           sub = uiLayoutColumn(sub, true);
@@ -876,11 +875,11 @@ static void ui_node_draw_input(
           break;
         case SOCK_STRING: {
           const bNodeTree *node_tree = (const bNodeTree *)nodeptr.owner_id;
-          SpaceNode *snode = CTX_wm_space_node(C);
+          SpaceNode *snode = CTX_wm_space_node(&C);
           if (node_tree->type == NTREE_GEOMETRY && snode != nullptr) {
             /* Only add the attribute search in the node editor, in other places there is not
              * enough context. */
-            node_geometry_add_attribute_search_button(*C, *node, inputptr, *sub);
+            node_geometry_add_attribute_search_button(C, node, inputptr, *sub);
           }
           else {
             uiItemR(sub, &inputptr, "default_value", 0, "", ICON_NONE);
@@ -899,10 +898,10 @@ static void ui_node_draw_input(
     uiItemDecoratorR(split_wrapper.decorate_column, nullptr, nullptr, 0);
   }
 
-  node_socket_add_tooltip(ntree, node, input, row);
+  node_socket_add_tooltip(ntree, node, input, *row);
 
   /* clear */
-  node->flag &= ~NODE_TEST;
+  node.flag &= ~NODE_TEST;
 }
 
 }  // namespace blender::ed::space_node
@@ -924,9 +923,9 @@ void uiTemplateNodeView(
   }
 
   if (input) {
-    ui_node_draw_input(layout, C, ntree, node, input, 0);
+    ui_node_draw_input(*layout, *C, *ntree, *node, *input, 0);
   }
   else {
-    ui_node_draw_node(layout, C, ntree, node, 0);
+    ui_node_draw_node(*layout, *C, *ntree, *node, 0);
   }
 }

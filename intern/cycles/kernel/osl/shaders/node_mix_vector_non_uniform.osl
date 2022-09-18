@@ -1,0 +1,14 @@
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
+
+#include "stdcycles.h"
+
+shader node_mix_vector_non_uniform(int use_clamp = 0,
+                                   vector Factor = 0.5,
+                                   vector A = 0.0,
+                                   vector B = 0.0,
+                                   output vector Result = 0.0)
+{
+  vector t = (use_clamp) ? clamp(Factor, 0.0, 1.0) : Factor;
+  Result = mix(A, B, t);
+}

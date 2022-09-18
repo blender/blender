@@ -102,7 +102,23 @@ VArray<float> get_curves_selection(const Curves &curves_id);
  */
 VArray<float> get_point_selection(const Curves &curves_id);
 
-void move_last_point_and_resample(MutableSpan<float3> positions, const float3 &new_last_position);
+/** See #move_last_point_and_resample. */
+struct MoveAndResampleBuffers {
+  Array<float> orig_lengths;
+  Array<float> new_lengths;
+
+  Array<int> sample_indices;
+  Array<float> sample_factors;
+
+  Array<float3> new_positions;
+};
+
+/**
+ * \param buffer: Reused memory to avoid reallocations when the function is called many times.
+ */
+void move_last_point_and_resample(MoveAndResampleBuffers &buffer,
+                                  MutableSpan<float3> positions,
+                                  const float3 &new_last_position);
 
 class CurvesSculptCommonContext {
  public:

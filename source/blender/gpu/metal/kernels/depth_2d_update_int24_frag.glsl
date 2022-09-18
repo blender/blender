@@ -1,8 +1,4 @@
 
-uniform isampler2D source_data;
-uniform int mip;
-
-in vec2 texCoord_interp;
 
 void main()
 {

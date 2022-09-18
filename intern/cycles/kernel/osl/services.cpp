@@ -18,21 +18,16 @@
 #include "scene/pointcloud.h"
 #include "scene/scene.h"
 
-#include "kernel/osl/closures.h"
 #include "kernel/osl/globals.h"
 #include "kernel/osl/services.h"
-#include "kernel/osl/shader.h"
 
 #include "util/foreach.h"
 #include "util/log.h"
 #include "util/string.h"
 
-// clang-format off
 #include "kernel/device/cpu/compat.h"
 #include "kernel/device/cpu/globals.h"
 #include "kernel/device/cpu/image.h"
-
-#include "kernel/util/differential.h"
 
 #include "kernel/integrator/state.h"
 #include "kernel/integrator/state_flow.h"
@@ -45,10 +40,10 @@
 #include "kernel/camera/projection.h"
 
 #include "kernel/integrator/path_state.h"
-#include "kernel/integrator/shader_eval.h"
+
+#include "kernel/svm/svm.h"
 
 #include "kernel/util/color.h"
-// clang-format on
 
 CCL_NAMESPACE_BEGIN
 
@@ -125,14 +120,14 @@ ustring OSLRenderServices::u_v("v");
 ustring OSLRenderServices::u_empty;
 
 OSLRenderServices::OSLRenderServices(OSL::TextureSystem *texture_system)
-    : texture_system(texture_system)
+    : OSL::RendererServices(texture_system)
 {
 }
 
 OSLRenderServices::~OSLRenderServices()
 {
-  if (texture_system) {
-    VLOG_INFO << "OSL texture system stats:\n" << texture_system->getstats();
+  if (m_texturesys) {
+    VLOG_INFO << "OSL texture system stats:\n" << m_texturesys->getstats();
   }
 }
 
@@ -452,6 +447,7 @@ static bool set_attribute_float2(float2 f[3], TypeDesc type, bool derivatives, v
   return false;
 }
 
+#if 0
 static bool set_attribute_float2(float2 f, TypeDesc type, bool derivatives, void *val)
 {
   float2 fv[3];
@@ -462,6 +458,7 @@ static bool set_attribute_float2(float2 f, TypeDesc type, bool derivatives, void
 
   return set_attribute_float2(fv, type, derivatives, val);
 }
+#endif
 
 static bool set_attribute_float3(float3 f[3], TypeDesc type, bool derivatives, void *val)
 {
@@ -590,6 +587,7 @@ static bool set_attribute_float4(float4 f[3], TypeDesc type, bool derivatives, v
   return false;
 }
 
+#if 0
 static bool set_attribute_float4(float4 f, TypeDesc type, bool derivatives, void *val)
 {
   float4 fv[3];
@@ -600,6 +598,7 @@ static bool set_attribute_float4(float4 f, TypeDesc type, bool derivatives, void
 
   return set_attribute_float4(fv, type, derivatives, val);
 }
+#endif
 
 static bool set_attribute_float(float f[3], TypeDesc type, bool derivatives, void *val)
 {
@@ -741,115 +740,76 @@ static bool set_attribute_matrix(const Transform &tfm, TypeDesc type, void *val)
   return false;
 }
 
-static bool get_primitive_attribute(const KernelGlobalsCPU *kg,
-                                    const ShaderData *sd,
-                                    const OSLGlobals::Attribute &attr,
-                                    const TypeDesc &type,
-                                    bool derivatives,
-                                    void *val)
-{
-  if (attr.type == TypeDesc::TypePoint || attr.type == TypeDesc::TypeVector ||
-      attr.type == TypeDesc::TypeNormal || attr.type == TypeDesc::TypeColor) {
-    float3 fval[3];
-    if (primitive_is_volume_attribute(sd, attr.desc)) {
-      fval[0] = primitive_volume_attribute_float3(kg, sd, attr.desc);
-    }
-    else {
-      memset(fval, 0, sizeof(fval));
-      fval[0] = primitive_surface_attribute_float3(
-          kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
-    }
-    return set_attribute_float3(fval, type, derivatives, val);
-  }
-  else if (attr.type == TypeFloat2) {
-    if (primitive_is_volume_attribute(sd, attr.desc)) {
-      assert(!"Float2 attribute not support for volumes");
-      return false;
-    }
-    else {
-      float2 fval[3];
-      fval[0] = primitive_surface_attribute_float2(
-          kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
-      return set_attribute_float2(fval, type, derivatives, val);
-    }
-  }
-  else if (attr.type == TypeDesc::TypeFloat) {
-    float fval[3];
-    if (primitive_is_volume_attribute(sd, attr.desc)) {
-      memset(fval, 0, sizeof(fval));
-      fval[0] = primitive_volume_attribute_float(kg, sd, attr.desc);
-    }
-    else {
-      fval[0] = primitive_surface_attribute_float(
-          kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
-    }
-    return set_attribute_float(fval, type, derivatives, val);
-  }
-  else if (attr.type == TypeDesc::TypeFloat4 || attr.type == TypeRGBA) {
-    float4 fval[3];
-    if (primitive_is_volume_attribute(sd, attr.desc)) {
-      memset(fval, 0, sizeof(fval));
-      fval[0] = primitive_volume_attribute_float4(kg, sd, attr.desc);
-    }
-    else {
-      fval[0] = primitive_surface_attribute_float4(
-          kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
-    }
-    return set_attribute_float4(fval, type, derivatives, val);
-  }
-  else {
-    return false;
-  }
-}
-
-static bool get_mesh_attribute(const KernelGlobalsCPU *kg,
-                               const ShaderData *sd,
-                               const OSLGlobals::Attribute &attr,
-                               const TypeDesc &type,
-                               bool derivatives,
-                               void *val)
-{
-  if (attr.type == TypeDesc::TypeMatrix) {
-    Transform tfm = primitive_attribute_matrix(kg, sd, attr.desc);
-    return set_attribute_matrix(tfm, type, val);
-  }
-  else {
-    return false;
-  }
-}
-
-static bool get_object_attribute(const OSLGlobals::Attribute &attr,
-                                 TypeDesc type,
+static bool get_object_attribute(const KernelGlobalsCPU *kg,
+                                 ShaderData *sd,
+                                 const AttributeDescriptor &desc,
+                                 const TypeDesc &type,
                                  bool derivatives,
                                  void *val)
 {
-  if (attr.type == TypeDesc::TypePoint || attr.type == TypeDesc::TypeVector ||
-      attr.type == TypeDesc::TypeNormal || attr.type == TypeDesc::TypeColor) {
-    const float *data = (const float *)attr.value.data();
-    return set_attribute_float3(make_float3(data[0], data[1], data[2]), type, derivatives, val);
-  }
-  else if (attr.type == TypeFloat2) {
-    const float *data = (const float *)attr.value.data();
-    return set_attribute_float2(make_float2(data[0], data[1]), type, derivatives, val);
-  }
-  else if (attr.type == TypeDesc::TypeFloat) {
-    const float *data = (const float *)attr.value.data();
-    return set_attribute_float(data[0], type, derivatives, val);
-  }
-  else if (attr.type == TypeRGBA || attr.type == TypeDesc::TypeFloat4) {
-    const float *data = (const float *)attr.value.data();
-    return set_attribute_float4(
-        make_float4(data[0], data[1], data[2], data[3]), type, derivatives, val);
-  }
-  else if (attr.type == type) {
-    size_t datasize = attr.value.datasize();
-
-    memcpy(val, attr.value.data(), datasize);
-    if (derivatives) {
-      memset((char *)val + datasize, 0, datasize * 2);
+  if (desc.type == NODE_ATTR_FLOAT3) {
+    float3 fval[3];
+#ifdef __VOLUME__
+    if (primitive_is_volume_attribute(sd, desc)) {
+      fval[0] = primitive_volume_attribute_float3(kg, sd, desc);
     }
-
-    return true;
+    else
+#endif
+    {
+      memset(fval, 0, sizeof(fval));
+      fval[0] = primitive_surface_attribute_float3(
+          kg, sd, desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+    }
+    return set_attribute_float3(fval, type, derivatives, val);
+  }
+  else if (desc.type == NODE_ATTR_FLOAT2) {
+#ifdef __VOLUME__
+    if (primitive_is_volume_attribute(sd, desc)) {
+      assert(!"Float2 attribute not support for volumes");
+      return false;
+    }
+    else
+#endif
+    {
+      float2 fval[3];
+      fval[0] = primitive_surface_attribute_float2(
+          kg, sd, desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+      return set_attribute_float2(fval, type, derivatives, val);
+    }
+  }
+  else if (desc.type == NODE_ATTR_FLOAT) {
+    float fval[3];
+#ifdef __VOLUME__
+    if (primitive_is_volume_attribute(sd, desc)) {
+      memset(fval, 0, sizeof(fval));
+      fval[0] = primitive_volume_attribute_float(kg, sd, desc);
+    }
+    else
+#endif
+    {
+      fval[0] = primitive_surface_attribute_float(
+          kg, sd, desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+    }
+    return set_attribute_float(fval, type, derivatives, val);
+  }
+  else if (desc.type == NODE_ATTR_FLOAT4 || desc.type == NODE_ATTR_RGBA) {
+    float4 fval[3];
+#ifdef __VOLUME__
+    if (primitive_is_volume_attribute(sd, desc)) {
+      memset(fval, 0, sizeof(fval));
+      fval[0] = primitive_volume_attribute_float4(kg, sd, desc);
+    }
+    else
+#endif
+    {
+      fval[0] = primitive_surface_attribute_float4(
+          kg, sd, desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+    }
+    return set_attribute_float4(fval, type, derivatives, val);
+  }
+  else if (desc.type == NODE_ATTR_MATRIX) {
+    Transform tfm = primitive_attribute_matrix(kg, desc);
+    return set_attribute_matrix(tfm, type, val);
   }
   else {
     return false;
@@ -980,6 +940,7 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg
     float f = ((sd->shader & SHADER_SMOOTH_NORMAL) != 0);
     return set_attribute_float(f, type, derivatives, val);
   }
+#ifdef __HAIR__
   /* Hair Attributes */
   else if (name == u_is_curve) {
     float f = (sd->type & PRIMITIVE_CURVE) != 0;
@@ -997,6 +958,8 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg
     float f = curve_random(kg, sd);
     return set_attribute_float(f, type, derivatives, val);
   }
+#endif
+#ifdef __POINTCLOUD__
   /* point attributes */
   else if (name == u_is_point) {
     float f = (sd->type & PRIMITIVE_POINT) != 0;
@@ -1014,6 +977,7 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg
     float f = point_random(kg, sd);
     return set_attribute_float(f, type, derivatives, val);
   }
+#endif
   else if (name == u_normal_map_normal) {
     if (sd->type & PRIMITIVE_TRIANGLE) {
       float3 f = triangle_smooth_normal_unnormalized(kg, sd, sd->Ng, sd->prim, sd->u, sd->v);
@@ -1024,7 +988,7 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg
     }
   }
   else {
-    return false;
+    return get_background_attribute(kg, sd, name, type, derivatives, val);
   }
 }
 
@@ -1102,8 +1066,9 @@ bool OSLRenderServices::get_background_attribute(const KernelGlobalsCPU *kg,
       ndc[0] = camera_world_to_ndc(kg, sd, sd->P);
 
       if (derivatives) {
-        ndc[1] = camera_world_to_ndc(kg, sd, sd->P + sd->dP.dx) - ndc[0];
-        ndc[2] = camera_world_to_ndc(kg, sd, sd->P + sd->dP.dy) - ndc[0];
+        const differential3 dP = differential_from_compact(sd->Ng, sd->dP);
+        ndc[1] = camera_world_to_ndc(kg, sd, sd->P + dP.dx) - ndc[0];
+        ndc[2] = camera_world_to_ndc(kg, sd, sd->P + dP.dy) - ndc[0];
       }
     }
 
@@ -1131,7 +1096,6 @@ bool OSLRenderServices::get_attribute(
     ShaderData *sd, bool derivatives, ustring object_name, TypeDesc type, ustring name, void *val)
 {
   const KernelGlobalsCPU *kg = sd->osl_globals;
-  int prim_type = 0;
   int object;
 
   /* lookup of attribute on another object */
@@ -1145,44 +1109,18 @@ bool OSLRenderServices::get_attribute(
   }
   else {
     object = sd->object;
-    prim_type = attribute_primitive_type(kg, sd);
-
-    if (object == OBJECT_NONE)
-      return get_background_attribute(kg, sd, name, type, derivatives, val);
   }
 
   /* find attribute on object */
-  object = object * ATTR_PRIM_TYPES + prim_type;
-  OSLGlobals::AttributeMap &attribute_map = kg->osl->attribute_map[object];
-  OSLGlobals::AttributeMap::iterator it = attribute_map.find(name);
-
-  if (it != attribute_map.end()) {
-    const OSLGlobals::Attribute &attr = it->second;
-
-    if (attr.desc.element != ATTR_ELEMENT_OBJECT) {
-      /* triangle and vertex attributes */
-      if (get_primitive_attribute(kg, sd, attr, type, derivatives, val))
-        return true;
-      else
-        return get_mesh_attribute(kg, sd, attr, type, derivatives, val);
-    }
-    else {
-      /* object attribute */
-      return get_object_attribute(attr, type, derivatives, val);
-    }
+  const AttributeDescriptor desc = find_attribute(
+      kg, object, sd->prim, object == sd->object ? sd->type : PRIMITIVE_NONE, name.hash());
+  if (desc.offset != ATTR_STD_NOT_FOUND) {
+    return get_object_attribute(kg, sd, desc, type, derivatives, val);
   }
   else {
     /* not found in attribute, check standard object info */
-    bool is_std_object_attribute = get_object_standard_attribute(
-        kg, sd, name, type, derivatives, val);
-
-    if (is_std_object_attribute)
-      return true;
-
-    return get_background_attribute(kg, sd, name, type, derivatives, val);
+    return get_object_standard_attribute(kg, sd, name, type, derivatives, val);
   }
-
-  return false;
 }
 
 bool OSLRenderServices::get_userdata(
@@ -1209,7 +1147,7 @@ TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(ustring file
   }
 
   /* Get handle from OpenImageIO. */
-  OSL::TextureSystem *ts = texture_system;
+  OSL::TextureSystem *ts = m_texturesys;
   TextureSystem::TextureHandle *handle = ts->get_texture_handle(filename);
   if (handle == NULL) {
     return NULL;
@@ -1231,7 +1169,7 @@ bool OSLRenderServices::good(TextureSystem::TextureHandle *texture_handle)
   OSLTextureHandle *handle = (OSLTextureHandle *)texture_handle;
 
   if (handle->oiio_handle) {
-    OSL::TextureSystem *ts = texture_system;
+    OSL::TextureSystem *ts = m_texturesys;
     return ts->good(handle->oiio_handle);
   }
   else {
@@ -1353,7 +1291,7 @@ bool OSLRenderServices::texture(ustring filename,
     }
     case OSLTextureHandle::OIIO: {
       /* OpenImageIO texture cache. */
-      OSL::TextureSystem *ts = texture_system;
+      OSL::TextureSystem *ts = m_texturesys;
 
       if (handle && handle->oiio_handle) {
         if (texture_thread_info == NULL) {
@@ -1457,7 +1395,7 @@ bool OSLRenderServices::texture3d(ustring filename,
     }
     case OSLTextureHandle::OIIO: {
       /* OpenImageIO texture cache. */
-      OSL::TextureSystem *ts = texture_system;
+      OSL::TextureSystem *ts = m_texturesys;
 
       if (handle && handle->oiio_handle) {
         if (texture_thread_info == NULL) {
@@ -1541,7 +1479,7 @@ bool OSLRenderServices::environment(ustring filename,
                                     ustring *errormessage)
 {
   OSLTextureHandle *handle = (OSLTextureHandle *)texture_handle;
-  OSL::TextureSystem *ts = texture_system;
+  OSL::TextureSystem *ts = m_texturesys;
   bool status = false;
 
   if (handle && handle->oiio_handle) {
@@ -1613,7 +1551,7 @@ bool OSLRenderServices::get_texture_info(OSL::ShaderGlobals *sg,
   }
 
   /* Get texture info from OpenImageIO. */
-  OSL::TextureSystem *ts = texture_system;
+  OSL::TextureSystem *ts = m_texturesys;
   return ts->get_texture_info(filename, subimage, dataname, datatype, data);
 }
 
@@ -1667,8 +1605,8 @@ bool OSLRenderServices::trace(TraceOpt &options,
   /* setup ray */
   Ray ray;
 
-  ray.P = TO_FLOAT3(P);
-  ray.D = TO_FLOAT3(R);
+  ray.P = make_float3(P.x, P.y, P.z);
+  ray.D = make_float3(R.x, R.y, R.z);
   ray.tmin = 0.0f;
   ray.tmax = (options.maxdist == 1.0e30f) ? FLT_MAX : options.maxdist - options.mindist;
   ray.time = sd->time;
@@ -1691,12 +1629,12 @@ bool OSLRenderServices::trace(TraceOpt &options,
 
   /* ray differentials */
   differential3 dP;
-  dP.dx = TO_FLOAT3(dPdx);
-  dP.dy = TO_FLOAT3(dPdy);
+  dP.dx = make_float3(dPdx.x, dPdx.y, dPdx.z);
+  dP.dy = make_float3(dPdy.x, dPdy.y, dPdy.z);
   ray.dP = differential_make_compact(dP);
   differential3 dD;
-  dD.dx = TO_FLOAT3(dRdx);
-  dD.dy = TO_FLOAT3(dRdy);
+  dD.dx = make_float3(dRdx.x, dRdx.y, dRdx.z);
+  dD.dy = make_float3(dRdy.x, dRdy.y, dRdy.z);
   ray.dD = differential_make_compact(dD);
 
   /* allocate trace data */
@@ -1755,11 +1693,13 @@ bool OSLRenderServices::getmessage(OSL::ShaderGlobals *sg,
           return set_attribute_float3(sd->Ng, type, derivatives, val);
         }
         else if (name == u_P) {
-          float3 f[3] = {sd->P, sd->dP.dx, sd->dP.dy};
+          const differential3 dP = differential_from_compact(sd->Ng, sd->dP);
+          float3 f[3] = {sd->P, dP.dx, dP.dy};
           return set_attribute_float3(f, type, derivatives, val);
         }
         else if (name == u_I) {
-          float3 f[3] = {sd->I, sd->dI.dx, sd->dI.dy};
+          const differential3 dI = differential_from_compact(sd->I, sd->dI);
+          float3 f[3] = {sd->I, dI.dx, dI.dy};
           return set_attribute_float3(f, type, derivatives, val);
         }
         else if (name == u_u) {

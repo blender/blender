@@ -33,7 +33,7 @@ void CurveBaseOperation::deinit_execution()
   }
 }
 
-void CurveBaseOperation::set_curve_mapping(CurveMapping *mapping)
+void CurveBaseOperation::set_curve_mapping(const CurveMapping *mapping)
 {
   /* duplicate the curve to avoid glitches while drawing, see bug T32374. */
   if (curve_mapping_) {

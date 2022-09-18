@@ -130,7 +130,7 @@ class _defs_view3d_generic:
             icon="ops.generic.cursor",
             keymap="3D View Tool: Cursor",
             draw_settings=draw_settings,
-            options={'KEYMAP_FALLBACK'},)
+        )
 
     @ToolDef.from_fn
     def cursor_click():
@@ -161,7 +161,7 @@ class _defs_view3d_generic:
             icon="ops.view3d.ruler",
             widget="VIEW3D_GGT_ruler",
             keymap="3D View Tool: Measure",
-            options={'KEYMAP_FALLBACK'},)
+        )
 
 
 class _defs_annotate:
@@ -527,7 +527,7 @@ class _defs_view3d_add:
             widget="VIEW3D_GGT_placement",
             keymap="3D View Tool: Object, Add Primitive",
             draw_settings=draw_settings,
-            options={'KEYMAP_FALLBACK'},)
+        )
 
     @ToolDef.from_fn
     def cone_add():
@@ -550,7 +550,7 @@ class _defs_view3d_add:
             widget="VIEW3D_GGT_placement",
             keymap="3D View Tool: Object, Add Primitive",
             draw_settings=draw_settings,
-            options={'KEYMAP_FALLBACK'},)
+        )
 
     @ToolDef.from_fn
     def cylinder_add():
@@ -572,7 +572,7 @@ class _defs_view3d_add:
             widget="VIEW3D_GGT_placement",
             keymap="3D View Tool: Object, Add Primitive",
             draw_settings=draw_settings,
-            options={'KEYMAP_FALLBACK'},)
+        )
 
     @ToolDef.from_fn
     def uv_sphere_add():
@@ -594,7 +594,7 @@ class _defs_view3d_add:
             widget="VIEW3D_GGT_placement",
             keymap="3D View Tool: Object, Add Primitive",
             draw_settings=draw_settings,
-            options={'KEYMAP_FALLBACK'},)
+        )
 
     @ToolDef.from_fn
     def ico_sphere_add():
@@ -615,7 +615,7 @@ class _defs_view3d_add:
             widget="VIEW3D_GGT_placement",
             keymap="3D View Tool: Object, Add Primitive",
             draw_settings=draw_settings,
-            options={'KEYMAP_FALLBACK'},)
+        )
 
 
 # -----------------------------------------------------------------------------
@@ -1738,7 +1738,7 @@ class _defs_image_generic:
             description=("Set the cursor location, drag to transform"),
             icon="ops.generic.cursor",
             keymap=(),
-            options={'KEYMAP_FALLBACK'},)
+        )
 
     # Currently a place holder so we can switch away from the annotation tool.
     # Falls back to default image editor action.
@@ -1889,7 +1889,7 @@ class _defs_image_uv_sculpt:
                 if brush is None:
                     return
                 radius = brush.size
-            draw_circle_2d(xy, (1.0,) * 4, radius, segments=32)
+            draw_circle_2d(xy, (1.0,) * 4, radius)
 
         return generate_from_enum_ex(context,
             idname_prefix="builtin_brush.",
@@ -2467,7 +2467,7 @@ class _defs_sequencer_generic:
             description=("Set the cursor location, drag to transform"),
             icon="ops.generic.cursor",
             keymap="Sequencer Tool: Cursor",
-            options={'KEYMAP_FALLBACK'},)
+        )
 
     @ToolDef.from_fn
     def blade():

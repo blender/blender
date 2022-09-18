@@ -392,7 +392,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
                                  .do_weighted_smooth = weighted,
                                  .bound_smooth_radius = bound_smooth_radius,
                                  .bevel_smooth_factor = bevel_smooth_fac,
-                                 .bound_scl = bsmooth > 0.0f ? ss->scl.smooth_bdist : NULL}));
+                                 .bound_scl = bsmooth > 0.0f ? ss->attrs.smooth_bdist : NULL}));
 
         sub_v3_v3v3(val, avg, orig_co);
         madd_v3_v3v3fl(val, orig_co, val, fade);
@@ -457,12 +457,10 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         break;
       }
       case MESH_FILTER_SURFACE_SMOOTH: {
-        SculptCustomLayer scl = {.cd_offset = -1,
-                                 .from_bmesh = ss->bm != NULL,
-                                 .elemsize = sizeof(float) * 3,
-                                 .data = ss->filter_cache->surface_smooth_laplacian_disp,
-                                 .is_cdlayer = false,
-                                 .layer = NULL};
+        SculptAttribute scl = {.data_for_bmesh = false,
+                               .elem_size = sizeof(float) * 3,
+                               .data = ss->filter_cache->surface_smooth_laplacian_disp,
+                               .layer = NULL};
 
         SCULPT_surface_smooth_laplacian_step(ss,
                                              disp,
@@ -543,7 +541,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
     }
     copy_v3_v3(vd.co, final_pos);
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
 
     if (do_reproject && ELEM(filter_type,
@@ -558,7 +556,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
   }
   BKE_pbvh_vertex_iter_end;
 
-  BKE_pbvh_node_mark_update_tri_area(node);
+  BKE_pbvh_vert_tag_update_normal_tri_area(node);
   BKE_pbvh_node_mark_update(node);
 }
 
@@ -724,12 +722,10 @@ static void mesh_filter_surface_smooth_displace_task_cb(
       continue;
     }
 
-    SculptCustomLayer scl = {.cd_offset = -1,
-                             .from_bmesh = ss->bm != NULL,
-                             .elemsize = sizeof(float) * 3,
-                             .data = ss->filter_cache->surface_smooth_laplacian_disp,
-                             .is_cdlayer = false,
-                             .layer = NULL};
+    SculptAttribute scl = {.data_for_bmesh = false,
+                           .elem_size = sizeof(float) * 3,
+                           .data = ss->filter_cache->surface_smooth_laplacian_disp,
+                           .layer = NULL};
 
     SCULPT_surface_smooth_displace_step(ss,
                                         vd.co,
@@ -843,7 +839,7 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
     SCULPT_boundary_info_ensure(ob);
   }
 
-  SCULPT_undo_push_begin(ob, "Mesh Filter");
+  SCULPT_undo_push_begin(ob, op);
 
   SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS);
 

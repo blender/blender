@@ -278,19 +278,10 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 
 static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, RenderResult *rr)
 {
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = oglrender->scene;
-  ARegion *region = oglrender->region;
-  View3D *v3d = oglrender->v3d;
-  RegionView3D *rv3d = oglrender->rv3d;
   Object *camera = nullptr;
   int sizex = oglrender->sizex;
   int sizey = oglrender->sizey;
-  const short view_context = (v3d != nullptr);
-  bool draw_sky = (scene->r.alphamode == R_ADDSKY);
-  float *rectf = nullptr;
-  uchar *rect = nullptr;
-  const char *viewname = RE_GetActiveRenderView(oglrender->re);
   ImBuf *ibuf_result = nullptr;
 
   if (oglrender->is_sequencer) {
@@ -301,7 +292,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
     ImBuf *ibuf = oglrender->seq_data.ibufs_arr[oglrender->view_id];
 
     if (ibuf) {
-      ImBuf *out = IMB_dupImBuf(ibuf);
+      ibuf_result = IMB_dupImBuf(ibuf);
       IMB_freeImBuf(ibuf);
       /* OpenGL render is considered to be preview and should be
        * as fast as possible. So currently we're making sure sequencer
@@ -310,25 +301,21 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
        * TODO(sergey): In the case of output to float container (EXR)
        * it actually makes sense to keep float buffer instead.
        */
-      if (out->rect_float != nullptr) {
-        IMB_rect_from_float(out);
-        imb_freerectfloatImBuf(out);
+      if (ibuf_result->rect_float != nullptr) {
+        IMB_rect_from_float(ibuf_result);
+        imb_freerectfloatImBuf(ibuf_result);
       }
-      BLI_assert((oglrender->sizex == ibuf->x) && (oglrender->sizey == ibuf->y));
-      RE_render_result_rect_from_ibuf(rr, out, oglrender->view_id);
-      IMB_freeImBuf(out);
+      BLI_assert((sizex == ibuf->x) && (sizey == ibuf->y));
     }
     else if (gpd) {
       /* If there are no strips, Grease Pencil still needs a buffer to draw on */
-      ImBuf *out = IMB_allocImBuf(oglrender->sizex, oglrender->sizey, 32, IB_rect);
-      RE_render_result_rect_from_ibuf(rr, out, oglrender->view_id);
-      IMB_freeImBuf(out);
+      ibuf_result = IMB_allocImBuf(sizex, sizey, 32, IB_rect);
     }
 
     if (gpd) {
       int i;
       uchar *gp_rect;
-      uchar *render_rect = (uchar *)RE_RenderViewGetById(rr, oglrender->view_id)->rect32;
+      uchar *render_rect = (uchar *)ibuf_result->rect;
 
       DRW_opengl_context_enable();
       GPU_offscreen_bind(oglrender->ofs, true);
@@ -359,10 +346,16 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
   }
   else {
     /* shouldn't suddenly give errors mid-render but possible */
+    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     char err_out[256] = "unknown";
     ImBuf *ibuf_view;
+    bool draw_sky = (scene->r.alphamode == R_ADDSKY);
     const int alpha_mode = (draw_sky) ? R_ADDSKY : R_ALPHAPREMUL;
-    if (view_context) {
+    const char *viewname = RE_GetActiveRenderView(oglrender->re);
+    View3D *v3d = oglrender->v3d;
+
+    if (v3d != nullptr) {
+      ARegion *region = oglrender->region;
       ibuf_view = ED_view3d_draw_offscreen_imbuf(depsgraph,
                                                  scene,
                                                  static_cast<eDrawType>(v3d->shading.type),
@@ -378,7 +371,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
                                                  err_out);
 
       /* for stamp only */
-      if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
+      if (oglrender->rv3d->persp == RV3D_CAMOB && v3d->camera) {
         camera = BKE_camera_multiview_render(oglrender->scene, v3d->camera, viewname);
       }
     }
@@ -388,8 +381,8 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
                                                         nullptr,
                                                         OB_SOLID,
                                                         scene->camera,
-                                                        oglrender->sizex,
-                                                        oglrender->sizey,
+                                                        sizex,
+                                                        sizey,
                                                         IB_rectfloat,
                                                         V3D_OFSDRAW_SHOW_ANNOTATION,
                                                         alpha_mode,
@@ -401,12 +394,6 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 
     if (ibuf_view) {
       ibuf_result = ibuf_view;
-      if (ibuf_view->rect_float) {
-        rectf = ibuf_view->rect_float;
-      }
-      else {
-        rect = (uchar *)ibuf_view->rect;
-      }
     }
     else {
       fprintf(stderr, "%s: failed to get buffer, %s\n", __func__, err_out);
@@ -415,6 +402,14 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 
   if (ibuf_result != nullptr) {
     if ((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW)) {
+      float *rectf = nullptr;
+      uchar *rect = nullptr;
+      if (ibuf_result->rect_float) {
+        rectf = ibuf_result->rect_float;
+      }
+      else {
+        rect = (uchar *)ibuf_result->rect;
+      }
       BKE_image_stamp_buf(scene, camera, nullptr, rect, rectf, rr->rectx, rr->recty, 4);
     }
     RE_render_result_rect_from_ibuf(rr, ibuf_result, oglrender->view_id);

@@ -52,40 +52,40 @@ __forceinline float &float4::operator[](int i)
 }
 #  endif
 
-ccl_device_inline float4 make_float4(float f)
-{
-#  ifdef __KERNEL_SSE__
-  float4 a(_mm_set1_ps(f));
-#  else
-  float4 a = {f, f, f, f};
-#  endif
-  return a;
-}
-
 ccl_device_inline float4 make_float4(float x, float y, float z, float w)
 {
 #  ifdef __KERNEL_SSE__
-  float4 a(_mm_set_ps(w, z, y, x));
+  return float4(_mm_set_ps(w, z, y, x));
 #  else
-  float4 a = {x, y, z, w};
+  return {x, y, z, w};
 #  endif
-  return a;
 }
 
-ccl_device_inline float4 make_float4(const int4 &i)
-{
-#  ifdef __KERNEL_SSE__
-  float4 a(_mm_cvtepi32_ps(i.m128));
-#  else
-  float4 a = {(float)i.x, (float)i.y, (float)i.z, (float)i.w};
-#  endif
-  return a;
-}
-
-ccl_device_inline void print_float4(const char *label, const float4 &a)
-{
-  printf("%s: %.8f %.8f %.8f %.8f\n", label, (double)a.x, (double)a.y, (double)a.z, (double)a.w);
-}
 #endif /* __KERNEL_NATIVE_VECTOR_TYPES__ */
+
+ccl_device_inline float4 make_float4(float f)
+{
+#ifdef __KERNEL_SSE__
+  return float4(_mm_set1_ps(f));
+#else
+  return make_float4(f, f, f, f);
+#endif
+}
+
+ccl_device_inline float4 make_float4(const int4 i)
+{
+#ifdef __KERNEL_SSE__
+  return float4(_mm_cvtepi32_ps(i.m128));
+#else
+  return make_float4((float)i.x, (float)i.y, (float)i.z, (float)i.w);
+#endif
+}
+
+ccl_device_inline void print_float4(ccl_private const char *label, const float4 a)
+{
+#ifdef __KERNEL_PRINTF__
+  printf("%s: %.8f %.8f %.8f %.8f\n", label, (double)a.x, (double)a.y, (double)a.z, (double)a.w);
+#endif
+}
 
 CCL_NAMESPACE_END

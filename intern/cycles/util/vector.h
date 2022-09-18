@@ -10,7 +10,6 @@
 
 #include "util/aligned_malloc.h"
 #include "util/guarded_allocator.h"
-#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 /**
- * Free (or release) any data used by this shapekey (does not free the key itself).
+ * Free (or release) any data used by this shape-key (does not free the key itself).
  */
 void BKE_key_free_data(struct Key *key);
 void BKE_key_free_nolib(struct Key *key);
@@ -47,7 +47,7 @@ void key_curve_normal_weights(float t, float data[4], int type);
 /**
  * Returns key coordinates (+ tilt) when key applied, NULL otherwise.
  *
- * \param obdata if given, also update that geometry with the result of the shape keys evaluation.
+ * \param obdata: if given, also update that geometry with the result of the shape keys evaluation.
  */
 float *BKE_key_evaluate_object_ex(
     struct Object *ob, int *r_totelem, float *arr, size_t arr_size, struct ID *obdata);
@@ -95,6 +95,9 @@ struct KeyBlock *BKE_keyblock_from_key(struct Key *key, int index);
  * Get the appropriate #KeyBlock given a name to search for.
  */
 struct KeyBlock *BKE_keyblock_find_name(struct Key *key, const char name[]);
+
+struct KeyBlock *BKE_keyblock_find_uid(struct Key *key, int uid);
+
 /**
  * \brief copy shape-key attributes, but not key data or name/UID.
  */

@@ -2,22 +2,22 @@
 
 #include "NOD_multi_function.hh"
 
+#include "BKE_node.h"
+#include "BKE_node_runtime.hh"
+
 namespace blender::nodes {
 
-NodeMultiFunctions::NodeMultiFunctions(const DerivedNodeTree &tree)
+NodeMultiFunctions::NodeMultiFunctions(const bNodeTree &tree)
 {
-  for (const NodeTreeRef *tree_ref : tree.used_node_tree_refs()) {
-    bNodeTree *btree = tree_ref->btree();
-    for (const NodeRef *node : tree_ref->nodes()) {
-      bNode *bnode = node->bnode();
-      if (bnode->typeinfo->build_multi_function == nullptr) {
-        continue;
-      }
-      NodeMultiFunctionBuilder builder{*bnode, *btree};
-      bnode->typeinfo->build_multi_function(builder);
-      if (builder.built_fn_ != nullptr) {
-        map_.add_new(bnode, {builder.built_fn_, std::move(builder.owned_built_fn_)});
-      }
+  tree.ensure_topology_cache();
+  for (const bNode *bnode : tree.all_nodes()) {
+    if (bnode->typeinfo->build_multi_function == nullptr) {
+      continue;
+    }
+    NodeMultiFunctionBuilder builder{*bnode, tree};
+    bnode->typeinfo->build_multi_function(builder);
+    if (builder.built_fn_ != nullptr) {
+      map_.add_new(bnode, {builder.built_fn_, std::move(builder.owned_built_fn_)});
     }
   }
 }

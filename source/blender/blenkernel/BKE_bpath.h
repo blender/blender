@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include "BLI_utildefines.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -57,6 +59,7 @@ typedef enum eBPathForeachFlag {
    *  \note Only used by Image IDType currently. */
   BKE_BPATH_FOREACH_PATH_RELOAD_EDITED = (1 << 9),
 } eBPathForeachFlag;
+ENUM_OPERATORS(eBPathForeachFlag, BKE_BPATH_FOREACH_PATH_RELOAD_EDITED)
 
 struct BPathForeachPathData;
 

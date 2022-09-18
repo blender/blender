@@ -71,8 +71,8 @@
 #include "NOD_composite.h"
 #include "NOD_function.h"
 #include "NOD_geometry.h"
+#include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_node_declaration.hh"
-#include "NOD_node_tree_ref.hh"
 #include "NOD_shader.h"
 #include "NOD_socket.h"
 #include "NOD_texture.h"
@@ -104,7 +104,6 @@ using blender::nodes::NodeDeclaration;
 using blender::nodes::OutputFieldDependency;
 using blender::nodes::OutputSocketFieldType;
 using blender::nodes::SocketDeclaration;
-using namespace blender::nodes::node_tree_ref_types;
 
 /* Fallback types for undefined tree, nodes, sockets */
 static bNodeTreeType NodeTreeTypeUndefined;
@@ -120,9 +119,6 @@ static void node_free_node(bNodeTree *ntree, bNode *node);
 static void node_socket_interface_free(bNodeTree *UNUSED(ntree),
                                        bNodeSocket *sock,
                                        const bool do_id_user);
-static void nodeMuteRerouteOutputLinks(struct bNodeTree *ntree,
-                                       struct bNode *node,
-                                       const bool mute);
 
 static void ntree_init_data(ID *id)
 {
@@ -136,7 +132,7 @@ static void ntree_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, c
   bNodeTree *ntree_dst = (bNodeTree *)id_dst;
   const bNodeTree *ntree_src = (const bNodeTree *)id_src;
 
-  /* We never handle usercount here for own data. */
+  /* We never handle user-count here for own data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
 
   ntree_dst->runtime = MEM_new<bNodeTreeRuntime>(__func__);
@@ -330,6 +326,8 @@ static void node_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   bNodeTree *ntree = (bNodeTree *)id;
 
+  BKE_LIB_FOREACHID_PROCESS_ID(data, ntree->owner_id, IDWALK_CB_LOOPBACK);
+
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, ntree->gpd, IDWALK_CB_USER);
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -404,34 +402,19 @@ static void node_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   }
 }
 
-static ID *node_owner_get(Main *bmain, ID *id)
+static ID **node_owner_pointer_get(ID *id)
 {
   if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
-    return id;
+    return NULL;
   }
   /* TODO: Sort this NO_MAIN or not for embedded node trees. See T86119. */
   // BLI_assert((id->tag & LIB_TAG_NO_MAIN) == 0);
 
-  ListBase *lists[] = {&bmain->materials,
-                       &bmain->lights,
-                       &bmain->worlds,
-                       &bmain->textures,
-                       &bmain->scenes,
-                       &bmain->linestyles,
-                       &bmain->simulations,
-                       nullptr};
+  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
+  BLI_assert(ntree->owner_id != NULL);
+  BLI_assert(ntreeFromID(ntree->owner_id) == ntree);
 
-  bNodeTree *ntree = (bNodeTree *)id;
-  for (int i = 0; lists[i] != nullptr; i++) {
-    LISTBASE_FOREACH (ID *, id_iter, lists[i]) {
-      if (ntreeFromID(id_iter) == ntree) {
-        return id_iter;
-      }
-    }
-  }
-
-  BLI_assert_msg(0, "Embedded node tree with no owner. Critical Main inconsistency.");
-  return nullptr;
+  return &ntree->owner_id;
 }
 
 static void write_node_socket_default_value(BlendWriter *writer, bNodeSocket *sock)
@@ -667,8 +650,35 @@ static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
   sock->runtime = MEM_new<bNodeSocketRuntime>(__func__);
 }
 
-void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
+void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
 {
+  /* Special case for this pointer, do not rely on regular `lib_link` process here. Avoids needs
+   * for do_versioning, and ensures coherence of data in any case.
+   *
+   * NOTE: Old versions are very often 'broken' here, just fix it silently in these cases.
+   */
+  if (BLO_read_fileversion_get(reader) > 300) {
+    BLI_assert((ntree->id.flag & LIB_EMBEDDED_DATA) != 0 || owner_id == nullptr);
+  }
+  BLI_assert(owner_id == NULL || owner_id->lib == ntree->id.lib);
+  if (owner_id != nullptr && (ntree->id.flag & LIB_EMBEDDED_DATA) == 0) {
+    /* This is unfortunate, but currently a lot of existing files (including startup ones) have
+     * missing `LIB_EMBEDDED_DATA` flag.
+     *
+     * NOTE: Using do_version is not a solution here, since this code will be called before any
+     * do_version takes place. Keeping it here also ensures future (or unknown existing) similar
+     * bugs won't go easily unnoticed. */
+    if (BLO_read_fileversion_get(reader) > 300) {
+      CLOG_WARN(&LOG,
+                "Fixing root node tree '%s' owned by '%s' missing EMBEDDED tag, please consider "
+                "re-saving your (startup) file",
+                ntree->id.name,
+                owner_id->name);
+    }
+    ntree->id.flag |= LIB_EMBEDDED_DATA;
+  }
+  ntree->owner_id = owner_id;
+
   /* NOTE: writing and reading goes in sync, for speed. */
   ntree->is_updating = false;
   ntree->typeinfo = nullptr;
@@ -830,7 +840,7 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
 static void ntree_blend_read_data(BlendDataReader *reader, ID *id)
 {
   bNodeTree *ntree = (bNodeTree *)id;
-  ntreeBlendReadData(reader, ntree);
+  ntreeBlendReadData(reader, nullptr, ntree);
 }
 
 static void lib_link_node_socket(BlendLibReader *reader, Library *lib, bNodeSocket *sock)
@@ -912,9 +922,9 @@ void ntreeBlendReadLib(struct BlendLibReader *reader, struct bNodeTree *ntree)
   lib_link_node_sockets(reader, lib, &ntree->inputs);
   lib_link_node_sockets(reader, lib, &ntree->outputs);
 
-  /* Set node->typeinfo pointers. This is done in lib linking, after the
+  /* Set `node->typeinfo` pointers. This is done in lib linking, after the
    * first versioning that can change types still without functions that
-   * update the typeinfo pointers. Versioning after lib linking needs
+   * update the `typeinfo` pointers. Versioning after lib linking needs
    * these top be valid. */
   ntreeSetTypes(nullptr, ntree);
 
@@ -1034,7 +1044,7 @@ IDTypeInfo IDType_ID_NT = {
     /* foreach_id */ node_foreach_id,
     /* foreach_cache */ node_foreach_cache,
     /* foreach_path */ node_foreach_path,
-    /* owner_get */ node_owner_get,
+    /* owner_pointer_get */ node_owner_pointer_get,
 
     /* blend_write */ ntree_blend_write,
     /* blend_read_data */ ntree_blend_read_data,
@@ -1071,7 +1081,7 @@ static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType 
 }
 
 /* NOTE: This function is called to initialize node data based on the type.
- * The bNodeType may not be registered at creation time of the node,
+ * The #bNodeType may not be registered at creation time of the node,
  * so this can be delayed until the node type gets registered.
  */
 static void node_init(const struct bContext *C, bNodeTree *ntree, bNode *node)
@@ -1922,6 +1932,9 @@ static void node_socket_free(bNodeSocket *sock, const bool do_id_user)
     }
     MEM_freeN(sock->default_value);
   }
+  if (sock->default_attribute_name) {
+    MEM_freeN(sock->default_attribute_name);
+  }
   MEM_delete(sock->runtime);
 }
 
@@ -2347,102 +2360,11 @@ void nodeRemLink(bNodeTree *ntree, bNodeLink *link)
   }
 }
 
-/* Check if all output links are muted or not. */
-static bool nodeMuteFromSocketLinks(const bNodeTree *ntree, const bNodeSocket *sock)
+void nodeLinkSetMute(bNodeTree *ntree, bNodeLink *link, const bool muted)
 {
-  int tot = 0;
-  int muted = 0;
-  LISTBASE_FOREACH (const bNodeLink *, link, &ntree->links) {
-    if (link->fromsock == sock) {
-      tot++;
-      if (link->flag & NODE_LINK_MUTED) {
-        muted++;
-      }
-    }
-  }
-  return tot == muted;
-}
-
-static void nodeMuteLink(bNodeLink *link)
-{
-  link->flag |= NODE_LINK_MUTED;
-  link->flag |= NODE_LINK_TEST;
-  if (!(link->tosock->flag & SOCK_MULTI_INPUT)) {
-    link->tosock->flag &= ~SOCK_IN_USE;
-  }
-}
-
-static void nodeUnMuteLink(bNodeLink *link)
-{
-  link->flag &= ~NODE_LINK_MUTED;
-  link->flag |= NODE_LINK_TEST;
-  link->tosock->flag |= SOCK_IN_USE;
-}
-
-/* Upstream muting. Always happens when unmuting but checks when muting. O(n^2) algorithm. */
-static void nodeMuteRerouteInputLinks(bNodeTree *ntree, bNode *node, const bool mute)
-{
-  if (node->type != NODE_REROUTE) {
-    return;
-  }
-  if (!mute || nodeMuteFromSocketLinks(ntree, (bNodeSocket *)node->outputs.first)) {
-    bNodeSocket *sock = (bNodeSocket *)node->inputs.first;
-    LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-      if (!(link->flag & NODE_LINK_VALID) || (link->tosock != sock)) {
-        continue;
-      }
-      if (mute) {
-        nodeMuteLink(link);
-      }
-      else {
-        nodeUnMuteLink(link);
-      }
-      nodeMuteRerouteInputLinks(ntree, link->fromnode, mute);
-    }
-  }
-}
-
-/* Downstream muting propagates when reaching reroute nodes. O(n^2) algorithm. */
-static void nodeMuteRerouteOutputLinks(bNodeTree *ntree, bNode *node, const bool mute)
-{
-  if (node->type != NODE_REROUTE) {
-    return;
-  }
-  bNodeSocket *sock;
-  sock = (bNodeSocket *)node->outputs.first;
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    if (!(link->flag & NODE_LINK_VALID) || (link->fromsock != sock)) {
-      continue;
-    }
-    if (mute) {
-      nodeMuteLink(link);
-    }
-    else {
-      nodeUnMuteLink(link);
-    }
-    nodeMuteRerouteOutputLinks(ntree, link->tonode, mute);
-  }
-}
-
-void nodeMuteLinkToggle(bNodeTree *ntree, bNodeLink *link)
-{
-  if (link->tosock) {
-    bool mute = !(link->flag & NODE_LINK_MUTED);
-    if (mute) {
-      nodeMuteLink(link);
-    }
-    else {
-      nodeUnMuteLink(link);
-    }
-    if (link->tonode->type == NODE_REROUTE) {
-      nodeMuteRerouteOutputLinks(ntree, link->tonode, mute);
-    }
-    if (link->fromnode->type == NODE_REROUTE) {
-      nodeMuteRerouteInputLinks(ntree, link->fromnode, mute);
-    }
-  }
-
-  if (ntree) {
+  const bool was_muted = link->flag & NODE_LINK_MUTED;
+  SET_FLAG_FROM_TEST(link->flag, muted, NODE_LINK_MUTED);
+  if (muted != was_muted) {
     BKE_ntree_update_tag_link_mute(ntree, link);
   }
 }
@@ -2657,35 +2579,56 @@ void nodePositionRelative(bNode *from_node,
 
 void nodePositionPropagate(bNode *node)
 {
-  LISTBASE_FOREACH (bNodeSocket *, nsock, &node->inputs) {
-    if (nsock->link != nullptr) {
-      bNodeLink *link = nsock->link;
+  LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+    if (socket->link != nullptr) {
+      bNodeLink *link = socket->link;
       nodePositionRelative(link->fromnode, link->tonode, link->fromsock, link->tosock);
       nodePositionPropagate(link->fromnode);
     }
   }
 }
 
-bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname)
+static bNodeTree *ntreeAddTree_do(
+    Main *bmain, ID *owner_id, const bool is_embedded, const char *name, const char *idname)
 {
   /* trees are created as local trees for compositor, material or texture nodes,
    * node groups and other tree types are created as library data.
    */
-  const bool is_embedded = (bmain == nullptr);
   int flag = 0;
-  if (is_embedded) {
+  if (is_embedded || bmain == nullptr) {
     flag |= LIB_ID_CREATE_NO_MAIN;
   }
   bNodeTree *ntree = (bNodeTree *)BKE_libblock_alloc(bmain, ID_NT, name, flag);
   BKE_libblock_init_empty(&ntree->id);
   if (is_embedded) {
+    BLI_assert(owner_id != NULL);
     ntree->id.flag |= LIB_EMBEDDED_DATA;
+    ntree->owner_id = owner_id;
+    bNodeTree **ntree_owner_ptr = BKE_ntree_ptr_from_id(owner_id);
+    BLI_assert(ntree_owner_ptr != NULL);
+    *ntree_owner_ptr = ntree;
+  }
+  else {
+    BLI_assert(owner_id == NULL);
   }
 
   BLI_strncpy(ntree->idname, idname, sizeof(ntree->idname));
   ntree_set_typeinfo(ntree, ntreeTypeFind(idname));
 
   return ntree;
+}
+
+bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname)
+{
+  return ntreeAddTree_do(bmain, nullptr, false, name, idname);
+}
+
+bNodeTree *ntreeAddTreeEmbedded(Main *UNUSED(bmain),
+                                ID *owner_id,
+                                const char *name,
+                                const char *idname)
+{
+  return ntreeAddTree_do(nullptr, owner_id, true, name, idname);
 }
 
 bNodeTree *ntreeCopyTree_ex(const bNodeTree *ntree, Main *bmain, const bool do_id_user)
@@ -3047,7 +2990,9 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user)
     }
   }
 
-  if (node_has_id) {
+  /* Also update relations for the scene time node, which causes a dependency
+   * on time that users expect to be removed when the node is removed. */
+  if (node_has_id || node->type == GEO_NODE_INPUT_SCENE_TIME) {
     if (bmain != nullptr) {
       DEG_relations_tag_update(bmain);
     }
@@ -3073,6 +3018,9 @@ static void node_socket_interface_free(bNodeTree *UNUSED(ntree),
       socket_id_user_decrement(sock);
     }
     MEM_freeN(sock->default_value);
+  }
+  if (sock->default_attribute_name) {
+    MEM_freeN(sock->default_attribute_name);
   }
   MEM_delete(sock->runtime);
 }
@@ -3376,8 +3324,10 @@ struct bNodeSocket *ntreeAddSocketInterfaceFromSocket(bNodeTree *ntree,
                                                       bNode *from_node,
                                                       bNodeSocket *from_sock)
 {
-  bNodeSocket *iosock = ntreeAddSocketInterface(
-      ntree, static_cast<eNodeSocketInOut>(from_sock->in_out), from_sock->idname, from_sock->name);
+  bNodeSocket *iosock = ntreeAddSocketInterface(ntree,
+                                                static_cast<eNodeSocketInOut>(from_sock->in_out),
+                                                from_sock->idname,
+                                                DATA_(from_sock->name));
   if (iosock) {
     if (iosock->typeinfo->interface_from_socket) {
       iosock->typeinfo->interface_from_socket(ntree, iosock, from_node, from_sock);
@@ -4574,6 +4524,7 @@ static void registerShaderNodes()
   register_node_type_sh_wavelength();
   register_node_type_sh_blackbody();
   register_node_type_sh_mix_rgb();
+  register_node_type_sh_mix();
   register_node_type_sh_valtorgb();
   register_node_type_sh_rgbtobw();
   register_node_type_sh_shadertorgb();

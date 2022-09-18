@@ -294,7 +294,7 @@ void ED_screen_refresh(struct wmWindowManager *wm, struct wmWindow *win);
 void ED_screen_ensure_updated(struct wmWindowManager *wm,
                               struct wmWindow *win,
                               struct bScreen *screen);
-void ED_screen_do_listen(struct bContext *C, struct wmNotifier *note);
+void ED_screen_do_listen(struct bContext *C, const struct wmNotifier *note);
 /**
  * \brief Change the active screen.
  *
@@ -353,8 +353,8 @@ struct ScrArea *ED_screen_state_toggle(struct bContext *C,
                                        struct ScrArea *area,
                                        short state);
 /**
- * Wrapper to open a temporary space either as fullscreen space, or as separate window, as defined
- * by \a display_type.
+ * Wrapper to open a temporary space either as full-screen space, or as separate window,
+ * as defined by \a display_type.
  *
  * \param title: Title to set for the window, if a window is spawned.
  * \param x, y: Position of the window, if a window is spawned.

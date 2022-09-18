@@ -1246,9 +1246,9 @@ struct BassReliefCalcData {
   const float (*vertexNos)[3]; /* vertexs being shrinkwraped */
   int numVerts;
 
-  struct MDeformVert *dvert; /* Pointer to mdeform array */
-  int vgroup;                /* Vertex group num */
-  bool invert_vgroup;        /* invert vertex group influence */
+  const struct MDeformVert *dvert; /* Pointer to mdeform array */
+  int vgroup;                      /* Vertex group num */
+  bool invert_vgroup;              /* invert vertex group influence */
 
   struct Mesh *target; /* mesh we are shrinking to */
 
@@ -2080,7 +2080,7 @@ void bassReliefModifier_deform(BassReliefModifierData *smd,
                                struct Scene *scene,
                                Object *ob,
                                Mesh *mesh,
-                               MDeformVert *dvert,
+                               const MDeformVert *dvert,
                                const int defgrp_index,
                                float (*vertexCos)[3],
                                int numVerts,

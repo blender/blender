@@ -29,7 +29,6 @@ struct DRWSubdivCache;
 
 enum eMRExtractType {
   MR_EXTRACT_BMESH,
-  MR_EXTRACT_MAPPED,
   MR_EXTRACT_MESH,
 };
 
@@ -81,8 +80,12 @@ struct MeshRenderData {
   BMFace *efa_act_uv;
   /* Data created on-demand (usually not for #BMesh based data). */
   MLoopTri *mlooptri;
+  const int *material_indices;
   const float (*vert_normals)[3];
   const float (*poly_normals)[3];
+  const bool *hide_vert;
+  const bool *hide_edge;
+  const bool *hide_poly;
   float (*loop_normals)[3];
   int *lverts, *ledges;
 

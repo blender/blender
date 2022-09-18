@@ -51,13 +51,13 @@ Texture::~Texture()
 #endif
 }
 
-bool Texture::init_1D(int w, int layers, int mips, eGPUTextureFormat format)
+bool Texture::init_1D(int w, int layers, int mip_len, eGPUTextureFormat format)
 {
   w_ = w;
   h_ = layers;
   d_ = 0;
-  int mips_max = 1 + floorf(log2f(w));
-  mipmaps_ = min_ii(mips, mips_max);
+  int mip_len_max = 1 + floorf(log2f(w));
+  mipmaps_ = min_ii(mip_len, mip_len_max);
   format_ = format;
   format_flag_ = to_format_flag(format);
   type_ = (layers > 0) ? GPU_TEXTURE_1D_ARRAY : GPU_TEXTURE_1D;
@@ -67,13 +67,13 @@ bool Texture::init_1D(int w, int layers, int mips, eGPUTextureFormat format)
   return this->init_internal();
 }
 
-bool Texture::init_2D(int w, int h, int layers, int mips, eGPUTextureFormat format)
+bool Texture::init_2D(int w, int h, int layers, int mip_len, eGPUTextureFormat format)
 {
   w_ = w;
   h_ = h;
   d_ = layers;
-  int mips_max = 1 + floorf(log2f(max_ii(w, h)));
-  mipmaps_ = min_ii(mips, mips_max);
+  int mip_len_max = 1 + floorf(log2f(max_ii(w, h)));
+  mipmaps_ = min_ii(mip_len, mip_len_max);
   format_ = format;
   format_flag_ = to_format_flag(format);
   type_ = (layers > 0) ? GPU_TEXTURE_2D_ARRAY : GPU_TEXTURE_2D;
@@ -83,13 +83,13 @@ bool Texture::init_2D(int w, int h, int layers, int mips, eGPUTextureFormat form
   return this->init_internal();
 }
 
-bool Texture::init_3D(int w, int h, int d, int mips, eGPUTextureFormat format)
+bool Texture::init_3D(int w, int h, int d, int mip_len, eGPUTextureFormat format)
 {
   w_ = w;
   h_ = h;
   d_ = d;
-  int mips_max = 1 + floorf(log2f(max_iii(w, h, d)));
-  mipmaps_ = min_ii(mips, mips_max);
+  int mip_len_max = 1 + floorf(log2f(max_iii(w, h, d)));
+  mipmaps_ = min_ii(mip_len, mip_len_max);
   format_ = format;
   format_flag_ = to_format_flag(format);
   type_ = GPU_TEXTURE_3D;
@@ -99,13 +99,13 @@ bool Texture::init_3D(int w, int h, int d, int mips, eGPUTextureFormat format)
   return this->init_internal();
 }
 
-bool Texture::init_cubemap(int w, int layers, int mips, eGPUTextureFormat format)
+bool Texture::init_cubemap(int w, int layers, int mip_len, eGPUTextureFormat format)
 {
   w_ = w;
   h_ = w;
   d_ = max_ii(1, layers) * 6;
-  int mips_max = 1 + floorf(log2f(w));
-  mipmaps_ = min_ii(mips, mips_max);
+  int mip_len_max = 1 + floorf(log2f(w));
+  mipmaps_ = min_ii(mip_len, mip_len_max);
   format_ = format;
   format_flag_ = to_format_flag(format);
   type_ = (layers > 0) ? GPU_TEXTURE_CUBE_ARRAY : GPU_TEXTURE_CUBE;
@@ -237,29 +237,29 @@ static inline GPUTexture *gpu_texture_create(const char *name,
                                              const int h,
                                              const int d,
                                              const eGPUTextureType type,
-                                             int mips,
+                                             int mip_len,
                                              eGPUTextureFormat tex_format,
                                              eGPUDataFormat data_format,
                                              const void *pixels)
 {
-  BLI_assert(mips > 0);
+  BLI_assert(mip_len > 0);
   Texture *tex = GPUBackend::get()->texture_alloc(name);
   bool success = false;
   switch (type) {
     case GPU_TEXTURE_1D:
     case GPU_TEXTURE_1D_ARRAY:
-      success = tex->init_1D(w, h, mips, tex_format);
+      success = tex->init_1D(w, h, mip_len, tex_format);
       break;
     case GPU_TEXTURE_2D:
     case GPU_TEXTURE_2D_ARRAY:
-      success = tex->init_2D(w, h, d, mips, tex_format);
+      success = tex->init_2D(w, h, d, mip_len, tex_format);
       break;
     case GPU_TEXTURE_3D:
-      success = tex->init_3D(w, h, d, mips, tex_format);
+      success = tex->init_3D(w, h, d, mip_len, tex_format);
       break;
     case GPU_TEXTURE_CUBE:
     case GPU_TEXTURE_CUBE_ARRAY:
-      success = tex->init_cubemap(w, d, mips, tex_format);
+      success = tex->init_cubemap(w, d, mip_len, tex_format);
       break;
     default:
       break;
@@ -360,6 +360,13 @@ GPUTexture *GPU_texture_create_compressed_2d(
 
 GPUTexture *GPU_texture_create_from_vertbuf(const char *name, GPUVertBuf *vert)
 {
+#ifndef NDEBUG
+  /* Vertex buffers used for texture buffers must be flagged with:
+   * GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY. */
+  BLI_assert_msg(unwrap(vert)->extended_usage_ & GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY,
+                 "Vertex Buffers used for textures should have usage flag "
+                 "GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY.");
+#endif
   eGPUTextureFormat tex_format = to_texture_format(GPU_vertbuf_get_format(vert));
   Texture *tex = GPUBackend::get()->texture_alloc(name);
 
@@ -639,6 +646,112 @@ void GPU_texture_orig_size_set(GPUTexture *tex_, int w, int h)
 eGPUTextureFormat GPU_texture_format(const GPUTexture *tex)
 {
   return reinterpret_cast<const Texture *>(tex)->format_get();
+}
+
+const char *GPU_texture_format_description(eGPUTextureFormat texture_format)
+{
+  switch (texture_format) {
+    case GPU_RGBA8UI:
+      return "RGBA8UI";
+    case GPU_RGBA8I:
+      return "RGBA8I";
+    case GPU_RGBA8:
+      return "RGBA8";
+    case GPU_RGBA32UI:
+      return "RGBA32UI";
+    case GPU_RGBA32I:
+      return "RGBA32I";
+    case GPU_RGBA32F:
+      return "RGBA32F";
+    case GPU_RGBA16UI:
+      return "RGBA16UI";
+    case GPU_RGBA16I:
+      return "RGBA16I";
+    case GPU_RGBA16F:
+      return "RGBA16F";
+    case GPU_RGBA16:
+      return "RGBA16";
+    case GPU_RG8UI:
+      return "RG8UI";
+    case GPU_RG8I:
+      return "RG8I";
+    case GPU_RG8:
+      return "RG8";
+    case GPU_RG32UI:
+      return "RG32UI";
+    case GPU_RG32I:
+      return "RG32I";
+    case GPU_RG32F:
+      return "RG32F";
+    case GPU_RG16UI:
+      return "RG16UI";
+    case GPU_RG16I:
+      return "RG16I";
+    case GPU_RG16F:
+      return "RG16F";
+    case GPU_RG16:
+      return "RG16";
+    case GPU_R8UI:
+      return "R8UI";
+    case GPU_R8I:
+      return "R8I";
+    case GPU_R8:
+      return "R8";
+    case GPU_R32UI:
+      return "R32UI";
+    case GPU_R32I:
+      return "R32I";
+    case GPU_R32F:
+      return "R32F";
+    case GPU_R16UI:
+      return "R16UI";
+    case GPU_R16I:
+      return "R16I";
+    case GPU_R16F:
+      return "R16F";
+    case GPU_R16:
+      return "R16";
+
+    /* Special formats texture & render-buffer. */
+    case GPU_RGB10_A2:
+      return "RGB10A2";
+    case GPU_R11F_G11F_B10F:
+      return "R11FG11FB10F";
+    case GPU_DEPTH32F_STENCIL8:
+      return "DEPTH32FSTENCIL8";
+    case GPU_DEPTH24_STENCIL8:
+      return "DEPTH24STENCIL8";
+    case GPU_SRGB8_A8:
+      return "SRGB8A8";
+
+    /* Texture only format */
+    case (GPU_RGB16F):
+      return "RGB16F";
+
+    /* Special formats texture only */
+    case GPU_SRGB8_A8_DXT1:
+      return "SRGB8_A8_DXT1";
+    case GPU_SRGB8_A8_DXT3:
+      return "SRGB8_A8_DXT3";
+    case GPU_SRGB8_A8_DXT5:
+      return "SRGB8_A8_DXT5";
+    case GPU_RGBA8_DXT1:
+      return "RGBA8_DXT1";
+    case GPU_RGBA8_DXT3:
+      return "RGBA8_DXT3";
+    case GPU_RGBA8_DXT5:
+      return "RGBA8_DXT5";
+
+    /* Depth Formats */
+    case GPU_DEPTH_COMPONENT32F:
+      return "DEPTH32F";
+    case GPU_DEPTH_COMPONENT24:
+      return "DEPTH24";
+    case GPU_DEPTH_COMPONENT16:
+      return "DEPTH16";
+  }
+  BLI_assert_unreachable();
+  return "";
 }
 
 bool GPU_texture_depth(const GPUTexture *tex)

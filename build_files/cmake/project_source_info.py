@@ -30,6 +30,8 @@ from typing import (
     cast,
 )
 
+import shlex
+
 
 SOURCE_DIR = join(dirname(__file__), "..", "..")
 SOURCE_DIR = normpath(SOURCE_DIR)
@@ -160,7 +162,7 @@ def build_info(
 
         for c in compilers:
             args = args.replace(c, fake_compiler)
-        args = args.split()
+        args = shlex.split(args)
         # end
 
         # remove compiler

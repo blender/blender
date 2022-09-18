@@ -153,10 +153,10 @@ bool deg_iterator_duplis_step(DEGObjectIterData *data)
     if (dob->no_draw) {
       continue;
     }
-    if (obd->type == OB_MBALL) {
+    if (dob->ob_data && GS(dob->ob_data->name) == ID_MB) {
       continue;
     }
-    if (deg_object_hide_original(data->eval_mode, dob->ob, dob)) {
+    if (obd->type != OB_MBALL && deg_object_hide_original(data->eval_mode, dob->ob, dob)) {
       continue;
     }
 
@@ -182,7 +182,7 @@ bool deg_iterator_duplis_step(DEGObjectIterData *data)
     }
 
     /* Duplicated elements shouldn't care whether their original collection is visible or not. */
-    temp_dupli_object->base_flag |= BASE_VISIBLE_DEPSGRAPH;
+    temp_dupli_object->base_flag |= BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT;
 
     int ob_visibility = BKE_object_visibility(temp_dupli_object, data->eval_mode);
     if ((ob_visibility & (OB_VISIBLE_SELF | OB_VISIBLE_PARTICLES)) == 0) {

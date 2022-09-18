@@ -29,7 +29,7 @@ CCL_NAMESPACE_BEGIN
  *
  * Bounding volume hierarchy for ray tracing, when no native acceleration
  * structure is available for the device.
-
+ *
  * We compile different variations of the same BVH traversal function for
  * faster rendering when some types of primitives are not needed, using #includes
  * to work around the lack of C++ templates in OpenCL.

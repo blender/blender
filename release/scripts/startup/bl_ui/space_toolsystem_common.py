@@ -5,6 +5,7 @@ from bpy.types import (
 )
 
 from bpy.app.translations import pgettext_tip as tip_
+from bpy.app.translations import pgettext_iface as iface_
 
 __all__ = (
     "ToolDef",
@@ -234,7 +235,7 @@ class ToolSelectPanelHelper:
     def _icon_value_from_icon_handle(icon_name):
         import os
         if icon_name is not None:
-            assert(type(icon_name) is str)
+            assert type(icon_name) is str
             icon_value = _icon_cache.get(icon_name)
             if icon_value is None:
                 dirname = bpy.utils.system_resource('DATAFILES', path="icons")
@@ -803,7 +804,7 @@ class ToolSelectPanelHelper:
         # Note: we could show 'item.text' here but it makes the layout jitter when switching tools.
         # Add some spacing since the icon is currently assuming regular small icon size.
         if show_tool_icon_always:
-            layout.label(text="    " + item.label, icon_value=icon_value)
+            layout.label(text="    " + iface_(item.label, "Operator"), icon_value=icon_value)
             layout.separator()
         else:
             if context.space_data.show_region_toolbar:
@@ -834,7 +835,7 @@ class ToolSelectPanelHelper:
             row.label(text="Drag:")
             row = split.row()
             row.context_pointer_set("tool", tool)
-            row.popover(panel="TOPBAR_PT_tool_fallback", text=label)
+            row.popover(panel="TOPBAR_PT_tool_fallback", text=iface_(label, "Operator"))
 
         return tool
 

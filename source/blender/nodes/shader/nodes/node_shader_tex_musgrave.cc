@@ -516,7 +516,7 @@ class MusgraveFunction : public fn::MultiFunction {
 
 static void sh_node_musgrave_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &node = builder.node();
+  const bNode &node = builder.node();
   NodeTexMusgrave *tex = (NodeTexMusgrave *)node.storage;
   builder.construct_and_set_matching_fn<MusgraveFunction>(tex->dimensions, tex->musgrave_type);
 }

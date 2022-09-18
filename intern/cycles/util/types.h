@@ -71,6 +71,18 @@ ccl_device_inline bool is_power_of_two(size_t x)
 
 CCL_NAMESPACE_END
 
+/* Device side printf only tested on CUDA, may work on more GPU devices. */
+#if !defined(__KERNEL_GPU__) || defined(__KERNEL_CUDA__)
+#  define __KERNEL_PRINTF__
+#endif
+
+ccl_device_inline void print_float(ccl_private const char *label, const float a)
+{
+#ifdef __KERNEL_PRINTF__
+  printf("%s: %.8f\n", label, (double)a);
+#endif
+}
+
 /* Most GPU APIs matching native vector types, so we only need to implement them for
  * CPU and oneAPI. */
 #if defined(__KERNEL_GPU__) && !defined(__KERNEL_ONEAPI__)
@@ -96,6 +108,8 @@ CCL_NAMESPACE_END
 #include "util/types_float3.h"
 #include "util/types_float4.h"
 #include "util/types_float8.h"
+
+#include "util/types_spectrum.h"
 
 /* Vectorized types implementation. */
 #include "util/types_uchar2_impl.h"

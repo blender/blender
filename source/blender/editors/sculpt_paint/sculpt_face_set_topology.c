@@ -130,7 +130,7 @@ static int sculpt_face_set_by_topology_invoke(bContext *C, wmOperator *op, const
   PBVHNode **nodes;
   int totnode;
   BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
-  SCULPT_undo_push_begin(ob, "face set edit");
+  SCULPT_undo_push_begin(ob, op);
   SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
 
   const PBVHFaceRef initial_poly = ss->active_face;
@@ -160,10 +160,10 @@ static int sculpt_face_set_by_topology_invoke(bContext *C, wmOperator *op, const
   ss->face_set_last_poly = initial_poly;
 
   /* Sync face sets visibility and vertex visibility as now all Face Sets are visible. */
-  SCULPT_visibility_sync_all_face_sets_to_vertices(ob);
+  //SCULPT_visibility_sync_all_face_sets_to_vertices(ob);
 
   for (int i = 0; i < totnode; i++) {
-    BKE_pbvh_node_mark_update_visibility(nodes[i]);
+    BKE_pbvh_vert_tag_update_normal_visibility(nodes[i]);
   }
 
   BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);

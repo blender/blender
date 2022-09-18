@@ -70,7 +70,7 @@ KERNEL_DATA_ARRAY(KernelShader, shaders)
 /* lookup tables */
 KERNEL_DATA_ARRAY(float, lookup_table)
 
-/* sobol */
+/* PMJ sample pattern */
 KERNEL_DATA_ARRAY(float, sample_pattern_lut)
 
 /* image textures */

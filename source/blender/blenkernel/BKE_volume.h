@@ -114,6 +114,7 @@ int BKE_volume_grid_channels(const struct VolumeGrid *grid);
  * Transformation from index space to object space.
  */
 void BKE_volume_grid_transform_matrix(const struct VolumeGrid *grid, float mat[4][4]);
+void BKE_volume_grid_transform_matrix_set(struct VolumeGrid *volume_grid, const float mat[4][4]);
 
 /* Volume Editing
  *
@@ -132,6 +133,11 @@ struct VolumeGrid *BKE_volume_grid_add(struct Volume *volume,
                                        const char *name,
                                        VolumeGridType type);
 void BKE_volume_grid_remove(struct Volume *volume, struct VolumeGrid *grid);
+
+/**
+ * OpenVDB crashes when the determinant of the transform matrix becomes too small.
+ */
+bool BKE_volume_grid_determinant_valid(double determinant);
 
 /* Simplify */
 int BKE_volume_simplify_level(const struct Depsgraph *depsgraph);
@@ -185,6 +191,9 @@ openvdb::GridBase::ConstPtr BKE_volume_grid_openvdb_for_read(const struct Volume
 openvdb::GridBase::Ptr BKE_volume_grid_openvdb_for_write(const struct Volume *volume,
                                                          struct VolumeGrid *grid,
                                                          bool clear);
+
+void BKE_volume_grid_clear_tree(Volume &volume, VolumeGrid &volume_grid);
+void BKE_volume_grid_clear_tree(openvdb::GridBase &grid);
 
 VolumeGridType BKE_volume_grid_type_openvdb(const openvdb::GridBase &grid);
 

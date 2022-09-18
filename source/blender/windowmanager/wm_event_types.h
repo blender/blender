@@ -317,7 +317,7 @@ enum {
 
   /* XXX Those are mixed inside keyboard 'area'! */
   /* System: 0x010x */
-  INPUTCHANGE = 0x0103,   /* Input connected or disconnected, (259). */
+  // INPUTCHANGE = 0x0103,   /* Input connected or disconnected, (259). */ /* UNUSED. */
   WINDEACTIVATE = 0x0104, /* Window is deactivated, focus lost, (260). */
   /* Timer: 0x011x */
   TIMER = 0x0110,         /* Timer event, passed on to all queues (272). */

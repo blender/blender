@@ -101,10 +101,17 @@ static Device *find_best_device(Device *device, DenoiserType type)
     if ((sub_device->info.denoisers & type) == 0) {
       return;
     }
+
     if (!best_device) {
       best_device = sub_device;
     }
     else {
+      /* Prefer a device that can use graphics interop for faster display update. */
+      if (sub_device->should_use_graphics_interop() &&
+          !best_device->should_use_graphics_interop()) {
+        best_device = sub_device;
+      }
+
       /* TODO(sergey): Choose fastest device from available ones. Taking into account performance
        * of the device and data transfer cost. */
     }

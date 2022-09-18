@@ -363,7 +363,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Dash = {
-    /* name */ "Dot Dash",
+    /* name */ N_("Dot Dash"),
     /* structName */ "DashGpencilModifierData",
     /* structSize */ sizeof(DashGpencilModifierData),
     /* type */ eGpencilModifierTypeType_Gpencil,

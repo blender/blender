@@ -41,7 +41,9 @@ struct CryptomatteSession {
   CryptomatteSession() = default;
   CryptomatteSession(const Main *bmain);
   CryptomatteSession(StampData *stamp_data);
+  CryptomatteSession(const ViewLayer *view_layer);
   CryptomatteSession(const Scene *scene);
+  void init(const ViewLayer *view_layer);
 
   blender::bke::cryptomatte::CryptomatteLayer &add_layer(std::string layer_name);
   std::optional<std::string> operator[](float encoded_hash) const;
@@ -54,13 +56,15 @@ struct CryptomatteSession {
 CryptomatteSession::CryptomatteSession(const Main *bmain)
 {
   if (!BLI_listbase_is_empty(&bmain->objects)) {
-    blender::bke::cryptomatte::CryptomatteLayer &objects = add_layer("CryptoObject");
+    blender::bke::cryptomatte::CryptomatteLayer &objects = add_layer(
+        RE_PASSNAME_CRYPTOMATTE_OBJECT);
     LISTBASE_FOREACH (ID *, id, &bmain->objects) {
       objects.add_ID(*id);
     }
   }
   if (!BLI_listbase_is_empty(&bmain->materials)) {
-    blender::bke::cryptomatte::CryptomatteLayer &materials = add_layer("CryptoMaterial");
+    blender::bke::cryptomatte::CryptomatteLayer &materials = add_layer(
+        RE_PASSNAME_CRYPTOMATTE_MATERIAL);
     LISTBASE_FOREACH (ID *, id, &bmain->materials) {
       materials.add_ID(*id);
     }
@@ -83,24 +87,34 @@ CryptomatteSession::CryptomatteSession(StampData *stamp_data)
       false);
 }
 
+CryptomatteSession::CryptomatteSession(const ViewLayer *view_layer)
+{
+  init(view_layer);
+}
+
 CryptomatteSession::CryptomatteSession(const Scene *scene)
 {
-  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
-    eViewLayerCryptomatteFlags cryptoflags = static_cast<eViewLayerCryptomatteFlags>(
-        view_layer->cryptomatte_flag & VIEW_LAYER_CRYPTOMATTE_ALL);
-    if (cryptoflags == 0) {
-      cryptoflags = static_cast<eViewLayerCryptomatteFlags>(VIEW_LAYER_CRYPTOMATTE_ALL);
-    }
+  LISTBASE_FOREACH (const ViewLayer *, view_layer, &scene->view_layers) {
+    init(view_layer);
+  }
+}
 
-    if (cryptoflags & VIEW_LAYER_CRYPTOMATTE_OBJECT) {
-      add_layer(blender::StringRefNull(view_layer->name) + ".CryptoObject");
-    }
-    if (cryptoflags & VIEW_LAYER_CRYPTOMATTE_ASSET) {
-      add_layer(blender::StringRefNull(view_layer->name) + ".CryptoAsset");
-    }
-    if (cryptoflags & VIEW_LAYER_CRYPTOMATTE_MATERIAL) {
-      add_layer(blender::StringRefNull(view_layer->name) + ".CryptoMaterial");
-    }
+void CryptomatteSession::init(const ViewLayer *view_layer)
+{
+  eViewLayerCryptomatteFlags cryptoflags = static_cast<eViewLayerCryptomatteFlags>(
+      view_layer->cryptomatte_flag & VIEW_LAYER_CRYPTOMATTE_ALL);
+  if (cryptoflags == 0) {
+    cryptoflags = static_cast<eViewLayerCryptomatteFlags>(VIEW_LAYER_CRYPTOMATTE_ALL);
+  }
+
+  if (cryptoflags & VIEW_LAYER_CRYPTOMATTE_OBJECT) {
+    add_layer(blender::StringRefNull(view_layer->name) + "." + RE_PASSNAME_CRYPTOMATTE_OBJECT);
+  }
+  if (cryptoflags & VIEW_LAYER_CRYPTOMATTE_ASSET) {
+    add_layer(blender::StringRefNull(view_layer->name) + "." + RE_PASSNAME_CRYPTOMATTE_ASSET);
+  }
+  if (cryptoflags & VIEW_LAYER_CRYPTOMATTE_MATERIAL) {
+    add_layer(blender::StringRefNull(view_layer->name) + "." + RE_PASSNAME_CRYPTOMATTE_MATERIAL);
   }
 }
 
@@ -139,6 +153,12 @@ struct CryptomatteSession *BKE_cryptomatte_init_from_render_result(
 struct CryptomatteSession *BKE_cryptomatte_init_from_scene(const struct Scene *scene)
 {
   CryptomatteSession *session = new CryptomatteSession(scene);
+  return session;
+}
+
+struct CryptomatteSession *BKE_cryptomatte_init_from_view_layer(const struct ViewLayer *view_layer)
+{
+  CryptomatteSession *session = new CryptomatteSession(view_layer);
   return session;
 }
 
@@ -485,11 +505,6 @@ CryptomatteHash::CryptomatteHash(uint32_t hash) : hash(hash)
 {
 }
 
-CryptomatteHash::CryptomatteHash(const char *name, const int name_len)
-{
-  hash = BLI_hash_mm3((const unsigned char *)name, name_len, 0);
-}
-
 CryptomatteHash CryptomatteHash::from_hex_encoded(blender::StringRef hex_encoded)
 {
   CryptomatteHash result(0);
@@ -502,21 +517,6 @@ std::string CryptomatteHash::hex_encoded() const
   std::stringstream encoded;
   encoded << std::setfill('0') << std::setw(sizeof(uint32_t) * 2) << std::hex << hash;
   return encoded.str();
-}
-
-float CryptomatteHash::float_encoded() const
-{
-  uint32_t mantissa = hash & ((1 << 23) - 1);
-  uint32_t exponent = (hash >> 23) & ((1 << 8) - 1);
-  exponent = MAX2(exponent, (uint32_t)1);
-  exponent = MIN2(exponent, (uint32_t)254);
-  exponent = exponent << 23;
-  uint32_t sign = (hash >> 31);
-  sign = sign << 31;
-  uint32_t float_bits = sign | exponent | mantissa;
-  float f;
-  memcpy(&f, &float_bits, sizeof(uint32_t));
-  return f;
 }
 
 std::unique_ptr<CryptomatteLayer> CryptomatteLayer::read_from_manifest(
@@ -623,6 +623,11 @@ const blender::Vector<std::string> &BKE_cryptomatte_layer_names_get(
     const CryptomatteSession &session)
 {
   return session.layer_names;
+}
+
+CryptomatteLayer *BKE_cryptomatte_layer_get(CryptomatteSession &session, StringRef layer_name)
+{
+  return session.layers.lookup_ptr(layer_name);
 }
 
 }  // namespace blender::bke::cryptomatte

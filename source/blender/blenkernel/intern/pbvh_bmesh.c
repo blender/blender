@@ -50,6 +50,7 @@ Topology rake:
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_pbvh.h"
+#include "BKE_paint.h"
 
 #include "GPU_buffers.h"
 
@@ -5590,7 +5591,7 @@ void pbvh_bmesh_cache_test(CacheParams *params, BMesh **r_bm, PBVH **r_pbvh_out)
   const int cd_sculpt_vert = CustomData_get_offset(&bm->vdata, CD_DYNTOPO_VERT);
   BMLog *bmlog = BM_log_create(bm, cd_sculpt_vert);
 
-  PBVH *pbvh = BKE_pbvh_new();
+  PBVH *pbvh = BKE_pbvh_new(PBVH_BMESH);
 
   bm->elem_table_dirty |= BM_VERT | BM_EDGE | BM_FACE;
   bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
@@ -5988,23 +5989,19 @@ void BKE_pbvh_bmesh_from_saved_indices(PBVH *pbvh)
   BLI_array_free(ltable);
 }
 
-extern char dyntopo_node_idx_vertex_id[];
-extern char dyntopo_node_idx_face_id[];
-extern char dyntopo_faces_areas_layer_id[];
-
 static void pbvh_bmesh_fetch_cdrefs(PBVH *pbvh)
 {
   BMesh *bm = pbvh->header.bm;
 
   int idx = CustomData_get_named_layer_index(
-      &bm->vdata, CD_PROP_INT32, dyntopo_node_idx_vertex_id);
+      &bm->vdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(dyntopo_node_id_vertex));
   pbvh->cd_vert_node_offset = bm->vdata.layers[idx].offset;
 
-  idx = CustomData_get_named_layer_index(&bm->pdata, CD_PROP_INT32, dyntopo_node_idx_face_id);
+  idx = CustomData_get_named_layer_index(&bm->pdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(dyntopo_node_id_face));
   pbvh->cd_face_node_offset = bm->pdata.layers[idx].offset;
 
   idx = CustomData_get_named_layer_index(
-      &bm->pdata, CD_PROP_FLOAT2, dyntopo_faces_areas_layer_id);
+      &bm->pdata, CD_PROP_FLOAT2, SCULPT_ATTRIBUTE_NAME(face_areas));
   pbvh->cd_face_area = bm->pdata.layers[idx].offset;
 
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);

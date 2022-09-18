@@ -44,6 +44,7 @@ class StorageBuf {
                      eGPUDataFormat data_format,
                      void *data) = 0;
   virtual void copy_sub(VertBuf *src, uint dst_offset, uint src_offset, uint copy_size) = 0;
+  virtual void read(void *data) = 0;
 };
 
 /* Syntactic sugar. */

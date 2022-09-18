@@ -141,8 +141,10 @@ Object **ED_object_array_in_mode_or_selected(bContext *C,
                                              uint *r_objects_len)
 {
   ScrArea *area = CTX_wm_area(C);
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob_active = OBACT(view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *ob_active = BKE_view_layer_active_object_get(view_layer);
   ID *id_pin = NULL;
   const bool use_objects_in_mode = (ob_active != NULL) &&
                                    (ob_active->mode & (OB_MODE_EDIT | OB_MODE_POSE));
@@ -195,13 +197,13 @@ Object **ED_object_array_in_mode_or_selected(bContext *C,
     /* When in a mode that supports multiple active objects, use "objects in mode"
      * instead of the object's selection. */
     if (use_objects_in_mode) {
-      objects = BKE_view_layer_array_from_objects_in_mode(view_layer,
-                                                          v3d,
-                                                          r_objects_len,
-                                                          {.object_mode = ob_active->mode,
-                                                           .no_dup_data = true,
-                                                           .filter_fn = filter_fn,
-                                                           .filter_userdata = filter_user_data});
+      struct ObjectsInModeParams params = {0};
+      params.object_mode = ob_active->mode;
+      params.no_dup_data = true;
+      params.filter_fn = filter_fn;
+      params.filter_userdata = filter_user_data;
+      objects = BKE_view_layer_array_from_objects_in_mode_params(
+          scene, view_layer, v3d, r_objects_len, &params);
     }
     else {
       objects = BKE_view_layer_array_selected_objects(
@@ -235,7 +237,8 @@ static int object_hide_view_clear_exec(bContext *C, wmOperator *op)
   const bool select = RNA_boolean_get(op->ptr, "select");
   bool changed = false;
 
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     if (base->flag & BASE_HIDDEN) {
       base->flag &= ~BASE_HIDDEN;
       changed = true;
@@ -253,7 +256,7 @@ static int object_hide_view_clear_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BKE_layer_collection_sync(scene, view_layer);
+  BKE_view_layer_need_resync_tag(view_layer);
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_VISIBLE, scene);
@@ -287,8 +290,9 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
   bool changed = false;
 
   /* Hide selected or unselected objects. */
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
-    if (!(base->flag & BASE_VISIBLE_VIEWLAYER)) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
+    if (!(base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT)) {
       continue;
     }
 
@@ -311,7 +315,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BKE_layer_collection_sync(scene, view_layer);
+  BKE_view_layer_need_resync_tag(view_layer);
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_VISIBLE, scene);
@@ -363,10 +367,10 @@ static int object_hide_collection_exec(bContext *C, wmOperator *op)
     }
     if (toggle) {
       lc->local_collections_bits ^= v3d->local_collections_uuid;
-      BKE_layer_collection_local_sync(view_layer, v3d);
+      BKE_layer_collection_local_sync(scene, view_layer, v3d);
     }
     else {
-      BKE_layer_collection_isolate_local(view_layer, v3d, lc, extend);
+      BKE_layer_collection_isolate_local(scene, view_layer, v3d, lc, extend);
     }
   }
   else {
@@ -382,6 +386,7 @@ static int object_hide_collection_exec(bContext *C, wmOperator *op)
 
 void ED_collection_hide_menu_draw(const bContext *C, uiLayout *layout)
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   LayerCollection *lc_scene = view_layer->layer_collections.first;
 
@@ -400,7 +405,7 @@ void ED_collection_hide_menu_draw(const bContext *C, uiLayout *layout)
     }
 
     int icon = ICON_NONE;
-    if (BKE_layer_collection_has_selected_objects(view_layer, lc)) {
+    if (BKE_layer_collection_has_selected_objects(scene, view_layer, lc)) {
       icon = ICON_LAYER_ACTIVE;
     }
     else if (lc->runtime_flag & LAYER_COLLECTION_HAS_OBJECTS) {
@@ -702,14 +707,16 @@ bool ED_object_editmode_free_ex(Main *bmain, Object *obedit)
 
 bool ED_object_editmode_exit_multi_ex(Main *bmain, Scene *scene, ViewLayer *view_layer, int flag)
 {
-  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit == NULL) {
     return false;
   }
   bool changed = false;
   const short obedit_type = obedit->type;
 
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     Object *ob = base->object;
     if ((ob->type == obedit_type) && (ob->mode & OB_MODE_EDIT)) {
       changed |= ED_object_editmode_exit_ex(bmain, scene, base->object, flag);
@@ -846,7 +853,8 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *obact = OBACT(view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *obact = BKE_view_layer_active_object_get(view_layer);
   const int mode_flag = OB_MODE_EDIT;
   const bool is_mode_set = (obact->mode & mode_flag) != 0;
   struct wmMsgBus *mbus = CTX_wm_message_bus(C);
@@ -872,7 +880,7 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
     ED_object_editmode_exit_ex(bmain, scene, obact, EM_FREEDATA);
 
     if ((obact->mode & mode_flag) == 0) {
-      FOREACH_OBJECT_BEGIN (view_layer, ob) {
+      FOREACH_OBJECT_BEGIN (scene, view_layer, ob) {
         if ((ob != obact) && (ob->type == obact->type)) {
           ED_object_editmode_exit_ex(bmain, scene, ob, EM_FREEDATA);
         }
@@ -894,13 +902,13 @@ static bool editmode_toggle_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
 
-  /* covers proxies too */
+  /* Covers liboverrides too. */
   if (ELEM(NULL, ob, ob->data) || ID_IS_LINKED(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob) ||
       ID_IS_OVERRIDE_LIBRARY(ob->data)) {
     return false;
   }
 
-  /* if hidden but in edit mode, we still display */
+  /* If hidden but in edit mode, we still display. */
   if ((ob->visibility_flag & OB_HIDE_VIEWPORT) && !(ob->mode & OB_MODE_EDIT)) {
     return false;
   }
@@ -958,7 +966,8 @@ static int posemode_exec(bContext *C, wmOperator *op)
   }
 
   {
-    Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    Object *obedit = BKE_view_layer_edit_object_get(view_layer);
     if (obact == obedit) {
       ED_object_editmode_exit_ex(bmain, scene, obedit, EM_FREEDATA);
       is_mode_set = false;
@@ -968,7 +977,7 @@ static int posemode_exec(bContext *C, wmOperator *op)
   if (is_mode_set) {
     bool ok = ED_object_posemode_exit(C, obact);
     if (ok) {
-      FOREACH_OBJECT_BEGIN (view_layer, ob) {
+      FOREACH_OBJECT_BEGIN (scene, view_layer, ob) {
         if ((ob != obact) && (ob->type == OB_ARMATURE) && (ob->mode & mode_flag)) {
           ED_object_posemode_exit_ex(bmain, ob);
         }
@@ -1482,8 +1491,10 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 
   /* For modes that only use an active object, don't handle the whole selection. */
   {
+    Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    Object *obact = OBACT(view_layer);
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    Object *obact = BKE_view_layer_active_object_get(view_layer);
     if (obact && ((obact->mode & OB_MODE_ALL_PAINT))) {
       ctx_ob_single_active.ptr.data = obact;
       BLI_addtail(&ctx_objects, &ctx_ob_single_active);
@@ -1555,8 +1566,10 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 
 static bool shade_poll(bContext *C)
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *obact = OBACT(view_layer);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *obact = BKE_view_layer_active_object_get(view_layer);
   if (obact != NULL) {
     /* Doesn't handle edit-data, sculpt dynamic-topology, or their undo systems. */
     if (obact->mode & (OB_MODE_EDIT | OB_MODE_SCULPT) || obact->data == NULL ||

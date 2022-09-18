@@ -432,7 +432,7 @@ static void utile_decref(UndoImageTile *utile)
 /** \name Image Undo Buffer
  * \{ */
 
-typedef struct UndoImageBuf {
+struct UndoImageBuf {
   struct UndoImageBuf *next, *prev;
 
   /**
@@ -454,10 +454,8 @@ typedef struct UndoImageBuf {
   struct {
     short source;
     bool use_float;
-    char gen_type;
   } image_state;
-
-} UndoImageBuf;
+};
 
 static UndoImageBuf *ubuf_from_image_no_tiles(Image *image, const ImBuf *ibuf)
 {
@@ -474,7 +472,6 @@ static UndoImageBuf *ubuf_from_image_no_tiles(Image *image, const ImBuf *ibuf)
       MEM_callocN(sizeof(*ubuf->tiles) * ubuf->tiles_len, __func__));
 
   BLI_strncpy(ubuf->ibuf_name, ibuf->name, sizeof(ubuf->ibuf_name));
-  ubuf->image_state.gen_type = image->gen_type;
   ubuf->image_state.source = image->source;
   ubuf->image_state.use_float = ibuf->rect_float != nullptr;
 
@@ -525,7 +522,7 @@ static void ubuf_ensure_compat_ibuf(const UndoImageBuf *ubuf, ImBuf *ibuf)
   IMB_rect_size_set(ibuf, ubuf->image_dims);
 
   if (ubuf->image_state.use_float) {
-    imb_addrectfloatImBuf(ibuf);
+    imb_addrectfloatImBuf(ibuf, 4);
   }
   else {
     imb_addrectImBuf(ibuf);
@@ -552,7 +549,7 @@ static void ubuf_free(UndoImageBuf *ubuf)
 /** \name Image Undo Handle
  * \{ */
 
-typedef struct UndoImageHandle {
+struct UndoImageHandle {
   struct UndoImageHandle *next, *prev;
 
   /** Each undo handle refers to a single image which may have multiple buffers. */
@@ -567,8 +564,7 @@ typedef struct UndoImageHandle {
    * List of #UndoImageBuf's to support multiple buffers per image.
    */
   ListBase buffers;
-
-} UndoImageHandle;
+};
 
 static void uhandle_restore_list(ListBase *undo_handles, bool use_init)
 {

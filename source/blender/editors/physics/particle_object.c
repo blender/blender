@@ -23,6 +23,7 @@
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
@@ -118,7 +119,8 @@ static int particle_system_remove_exec(bContext *C, wmOperator *UNUSED(op))
    */
   if (mode_orig & OB_MODE_PARTICLE_EDIT) {
     if ((ob->mode & OB_MODE_PARTICLE_EDIT) == 0) {
-      if (view_layer->basact && view_layer->basact->object == ob) {
+      BKE_view_layer_synced_ensure(scene, view_layer);
+      if (BKE_view_layer_active_object_get(view_layer) == ob) {
         WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
       }
     }
@@ -704,7 +706,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   PTCacheEditKey *ekey;
   BVHTreeFromMesh bvhtree = {NULL};
   MFace *mface = NULL, *mf;
-  MEdge *medge = NULL, *me;
+  const MEdge *medge = NULL, *me;
   MVert *mvert;
   Mesh *mesh, *target_mesh;
   int numverts;
@@ -750,7 +752,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   BKE_mesh_tessface_ensure(mesh);
 
   numverts = mesh->totvert;
-  mvert = mesh->mvert;
+  mvert = BKE_mesh_verts_for_write(mesh);
 
   /* convert to global coordinates */
   for (int i = 0; i < numverts; i++) {
@@ -758,11 +760,11 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   }
 
   if (mesh->totface != 0) {
-    mface = mesh->mface;
+    mface = CustomData_get_layer(&mesh->fdata, CD_MFACE);
     BKE_bvhtree_from_mesh_get(&bvhtree, mesh, BVHTREE_FROM_FACES, 2);
   }
   else if (mesh->totedge != 0) {
-    medge = mesh->medge;
+    medge = BKE_mesh_edges(mesh);
     BKE_bvhtree_from_mesh_get(&bvhtree, mesh, BVHTREE_FROM_EDGES, 2);
   }
   else {

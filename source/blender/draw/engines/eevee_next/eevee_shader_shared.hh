@@ -12,20 +12,73 @@
 #  include "BLI_memory_utils.hh"
 #  include "DRW_gpu_wrapper.hh"
 
+#  include "draw_manager.hh"
+#  include "draw_pass.hh"
+
 #  include "eevee_defines.hh"
 
 #  include "GPU_shader_shared.h"
 
 namespace blender::eevee {
 
-using draw::Framebuffer;
-using draw::SwapChain;
-using draw::Texture;
-using draw::TextureFromPool;
+using namespace draw;
+
+constexpr eGPUSamplerState no_filter = GPU_SAMPLER_DEFAULT;
+constexpr eGPUSamplerState with_filter = GPU_SAMPLER_FILTER;
 
 #endif
 
 #define UBO_MIN_MAX_SUPPORTED_SIZE 1 << 14
+
+/* -------------------------------------------------------------------- */
+/** \name Debug Mode
+ * \{ */
+
+/** These are just to make more sense of G.debug_value's values. Reserved range is 1-30. */
+enum eDebugMode : uint32_t {
+  DEBUG_NONE = 0u,
+  /**
+   * Gradient showing light evaluation hot-spots.
+   */
+  DEBUG_LIGHT_CULLING = 1u,
+  /**
+   * Show incorrectly downsample tiles in red.
+   */
+  DEBUG_HIZ_VALIDATION = 2u,
+  /**
+   * Tile-maps to screen. Is also present in other modes.
+   * - Black pixels, no pages allocated.
+   * - Green pixels, pages cached.
+   * - Red pixels, pages allocated.
+   */
+  DEBUG_SHADOW_TILEMAPS = 10u,
+  /**
+   * Random color per pages. Validates page density allocation and sampling.
+   */
+  DEBUG_SHADOW_PAGES = 11u,
+  /**
+   * Outputs random color per tile-map (or tile-map level). Validates tile-maps coverage.
+   * Black means not covered by any tile-maps LOD of the shadow.
+   */
+  DEBUG_SHADOW_LOD = 12u,
+  /**
+   * Outputs white pixels for pages allocated and black pixels for unused pages.
+   * This needs DEBUG_SHADOW_PAGE_ALLOCATION_ENABLED defined in order to work.
+   */
+  DEBUG_SHADOW_PAGE_ALLOCATION = 13u,
+  /**
+   * Outputs the tile-map atlas. Default tile-map is too big for the usual screen resolution.
+   * Try lowering SHADOW_TILEMAP_PER_ROW and SHADOW_MAX_TILEMAP before using this option.
+   */
+  DEBUG_SHADOW_TILE_ALLOCATION = 14u,
+  /**
+   * Visualize linear depth stored in the atlas regions of the active light.
+   * This way, one can check if the rendering, the copying and the shadow sampling functions works.
+   */
+  DEBUG_SHADOW_SHADOW_DEPTH = 15u
+};
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Sampling
@@ -141,6 +194,17 @@ BLI_STATIC_ASSERT_ALIGN(CameraData, 16)
 
 #define FILM_PRECOMP_SAMPLE_MAX 16
 
+enum eFilmWeightLayerIndex : uint32_t {
+  FILM_WEIGHT_LAYER_ACCUMULATION = 0u,
+  FILM_WEIGHT_LAYER_DISTANCE = 1u,
+};
+
+enum ePassStorageType : uint32_t {
+  PASS_STORAGE_COLOR = 0u,
+  PASS_STORAGE_VALUE = 1u,
+  PASS_STORAGE_CRYPTOMATTE = 2u,
+};
+
 struct FilmSample {
   int2 texel;
   float weight;
@@ -197,13 +261,19 @@ struct FilmData {
   int combined_id;
   /** Id of the render-pass to be displayed. -1 for combined. */
   int display_id;
-  /** True if the render-pass to be displayed is from the value accum buffer. */
-  bool1 display_is_value;
+  /** Storage type of the render-pass to be displayed. */
+  ePassStorageType display_storage_type;
   /** True if we bypass the accumulation and directly output the accumulation buffer. */
   bool1 display_only;
   /** Start of AOVs and number of aov. */
   int aov_color_id, aov_color_len;
   int aov_value_id, aov_value_len;
+  /** Start of cryptomatte per layer (-1 if pass is not enabled). */
+  int cryptomatte_object_id;
+  int cryptomatte_asset_id;
+  int cryptomatte_material_id;
+  /** Max number of samples stored per layer (is even number). */
+  int cryptomatte_samples_len;
   /** Settings to render mist pass */
   float mist_scale, mist_bias, mist_exponent;
   /** Scene exposure used for better noise reduction. */
@@ -235,6 +305,17 @@ static inline float film_filter_weight(float filter_radius, float sample_distanc
 #endif
   return weight;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Render passes
+ * \{ */
+
+enum eRenderPassLayerIndex : uint32_t {
+  RENDER_PASS_LAYER_DIFFUSE_LIGHT = 0u,
+  RENDER_PASS_LAYER_SPECULAR_LIGHT = 1u,
+};
 
 /** \} */
 
@@ -346,6 +427,238 @@ BLI_STATIC_ASSERT_ALIGN(MotionBlurTileIndirection, 16)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Depth of field
+ * \{ */
+
+/* 5% error threshold. */
+#define DOF_FAST_GATHER_COC_ERROR 0.05
+#define DOF_GATHER_RING_COUNT 5
+#define DOF_DILATE_RING_COUNT 3
+
+struct DepthOfFieldData {
+  /** Size of the render targets for gather & scatter passes. */
+  int2 extent;
+  /** Size of a pixel in uv space (1.0 / extent). */
+  float2 texel_size;
+  /** Scale factor for anisotropic bokeh. */
+  float2 bokeh_anisotropic_scale;
+  float2 bokeh_anisotropic_scale_inv;
+  /* Correction factor to align main target pixels with the filtered mipmap chain texture. */
+  float2 gather_uv_fac;
+  /** Scatter parameters. */
+  float scatter_coc_threshold;
+  float scatter_color_threshold;
+  float scatter_neighbor_max_color;
+  int scatter_sprite_per_row;
+  /** Number of side the bokeh shape has. */
+  float bokeh_blades;
+  /** Rotation of the bokeh shape. */
+  float bokeh_rotation;
+  /** Multiplier and bias to apply to linear depth to Circle of confusion (CoC). */
+  float coc_mul, coc_bias;
+  /** Maximum absolute allowed Circle of confusion (CoC). Min of computed max and user max. */
+  float coc_abs_max;
+  /** Copy of camera type. */
+  eCameraType camera_type;
+  /** Weights of spatial filtering in stabilize pass. Not array to avoid alignment restriction. */
+  float4 filter_samples_weight;
+  float filter_center_weight;
+  /** Max number of sprite in the scatter pass for each ground. */
+  int scatter_max_rect;
+
+  int _pad0, _pad1;
+};
+BLI_STATIC_ASSERT_ALIGN(DepthOfFieldData, 16)
+
+struct ScatterRect {
+  /** Color and CoC of the 4 pixels the scatter sprite represents. */
+  float4 color_and_coc[4];
+  /** Rect center position in half pixel space. */
+  float2 offset;
+  /** Rect half extent in half pixel space. */
+  float2 half_extent;
+};
+BLI_STATIC_ASSERT_ALIGN(ScatterRect, 16)
+
+/** WORKAROUND(@fclem): This is because this file is included before common_math_lib.glsl. */
+#ifndef M_PI
+#  define EEVEE_PI
+#  define M_PI 3.14159265358979323846 /* pi */
+#endif
+
+static inline float coc_radius_from_camera_depth(DepthOfFieldData dof, float depth)
+{
+  depth = (dof.camera_type != CAMERA_ORTHO) ? 1.0f / depth : depth;
+  return dof.coc_mul * depth + dof.coc_bias;
+}
+
+static inline float regular_polygon_side_length(float sides_count)
+{
+  return 2.0f * sinf(M_PI / sides_count);
+}
+
+/* Returns intersection ratio between the radius edge at theta and the regular polygon edge.
+ * Start first corners at theta == 0. */
+static inline float circle_to_polygon_radius(float sides_count, float theta)
+{
+  /* From Graphics Gems from CryENGINE 3 (Siggraph 2013) by Tiago Sousa (slide
+   * 36). */
+  float side_angle = (2.0f * M_PI) / sides_count;
+  return cosf(side_angle * 0.5f) /
+         cosf(theta - side_angle * floorf((sides_count * theta + M_PI) / (2.0f * M_PI)));
+}
+
+/* Remap input angle to have homogenous spacing of points along a polygon edge.
+ * Expects theta to be in [0..2pi] range. */
+static inline float circle_to_polygon_angle(float sides_count, float theta)
+{
+  float side_angle = (2.0f * M_PI) / sides_count;
+  float halfside_angle = side_angle * 0.5f;
+  float side = floorf(theta / side_angle);
+  /* Length of segment from center to the middle of polygon side. */
+  float adjacent = circle_to_polygon_radius(sides_count, 0.0f);
+
+  /* This is the relative position of the sample on the polygon half side. */
+  float local_theta = theta - side * side_angle;
+  float ratio = (local_theta - halfside_angle) / halfside_angle;
+
+  float halfside_len = regular_polygon_side_length(sides_count) * 0.5f;
+  float opposite = ratio * halfside_len;
+
+  /* NOTE: atan(y_over_x) has output range [-M_PI_2..M_PI_2]. */
+  float final_local_theta = atanf(opposite / adjacent);
+
+  return side * side_angle + final_local_theta;
+}
+
+#ifdef EEVEE_PI
+#  undef M_PI
+#endif
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Light Culling
+ * \{ */
+
+/* Number of items we can cull. Limited by how we store CullingZBin. */
+#define CULLING_MAX_ITEM 65536
+/* Fine grained subdivision in the Z direction. Limited by the LDS in z-binning compute shader. */
+#define CULLING_ZBIN_COUNT 4096
+/* Max tile map resolution per axes. */
+#define CULLING_TILE_RES 16
+
+struct LightCullingData {
+  /** Scale applied to tile pixel coordinates to get target UV coordinate. */
+  float2 tile_to_uv_fac;
+  /** Scale and bias applied to linear Z to get zbin. */
+  float zbin_scale;
+  float zbin_bias;
+  /** Valid item count in the source data array. */
+  uint items_count;
+  /** Items that are processed by the 2.5D culling. */
+  uint local_lights_len;
+  /** Items that are **NOT** processed by the 2.5D culling (i.e: Sun Lights). */
+  uint sun_lights_len;
+  /** Number of items that passes the first culling test. */
+  uint visible_count;
+  /** Extent of one square tile in pixels. */
+  float tile_size;
+  /** Number of tiles on the X/Y axis. */
+  uint tile_x_len;
+  uint tile_y_len;
+  /** Number of word per tile. Depends on the maximum number of lights. */
+  uint tile_word_len;
+};
+BLI_STATIC_ASSERT_ALIGN(LightCullingData, 16)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Lights
+ * \{ */
+
+#define LIGHT_NO_SHADOW -1
+
+enum eLightType : uint32_t {
+  LIGHT_SUN = 0u,
+  LIGHT_POINT = 1u,
+  LIGHT_SPOT = 2u,
+  LIGHT_RECT = 3u,
+  LIGHT_ELLIPSE = 4u
+};
+
+static inline bool is_area_light(eLightType type)
+{
+  return type >= LIGHT_RECT;
+}
+
+struct LightData {
+  /** Normalized object matrix. Last column contains data accessible using the following macros. */
+  float4x4 object_mat;
+  /** Packed data in the last column of the object_mat. */
+#define _area_size_x object_mat[0][3]
+#define _area_size_y object_mat[1][3]
+#define _radius _area_size_x
+#define _spot_mul object_mat[2][3]
+#define _spot_bias object_mat[3][3]
+  /** Aliases for axes. */
+#ifndef USE_GPU_SHADER_CREATE_INFO
+#  define _right object_mat[0]
+#  define _up object_mat[1]
+#  define _back object_mat[2]
+#  define _position object_mat[3]
+#else
+#  define _right object_mat[0].xyz
+#  define _up object_mat[1].xyz
+#  define _back object_mat[2].xyz
+#  define _position object_mat[3].xyz
+#endif
+  /** Influence radius (inverted and squared) adjusted for Surface / Volume power. */
+  float influence_radius_invsqr_surface;
+  float influence_radius_invsqr_volume;
+  /** Maximum influence radius. Used for culling. */
+  float influence_radius_max;
+  /** Index of the shadow struct on CPU. -1 means no shadow. */
+  int shadow_id;
+  /** NOTE: It is ok to use float3 here. A float is declared right after it.
+   * float3 is also aligned to 16 bytes. */
+  float3 color;
+  /** Power depending on shader type. */
+  float diffuse_power;
+  float specular_power;
+  float volume_power;
+  float transmit_power;
+  /** Special radius factor for point lighting. */
+  float radius_squared;
+  /** Light Type. */
+  eLightType type;
+  /** Spot angle tangent. */
+  float spot_tan;
+  /** Spot size. Aligned to size of float2. */
+  float2 spot_size_inv;
+  /** Associated shadow data. Only valid if shadow_id is not LIGHT_NO_SHADOW. */
+  // ShadowData shadow_data;
+};
+BLI_STATIC_ASSERT_ALIGN(LightData, 16)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Hierarchical-Z Buffer
+ * \{ */
+
+struct HiZData {
+  /** Scale factor to remove HiZBuffer padding. */
+  float2 uv_scale;
+
+  float2 _pad0;
+};
+BLI_STATIC_ASSERT_ALIGN(HiZData, 16)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Ray-Tracing
  * \{ */
 
@@ -362,6 +675,34 @@ enum eClosureBits : uint32_t {
   CLOSURE_VOLUME = (1u << 11u),
   CLOSURE_AMBIENT_OCCLUSION = (1u << 12u),
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Subsurface
+ * \{ */
+
+#define SSS_SAMPLE_MAX 64
+#define SSS_BURLEY_TRUNCATE 16.0
+#define SSS_BURLEY_TRUNCATE_CDF 0.9963790093708328
+#define SSS_TRANSMIT_LUT_SIZE 64.0
+#define SSS_TRANSMIT_LUT_RADIUS 1.218
+#define SSS_TRANSMIT_LUT_SCALE ((SSS_TRANSMIT_LUT_SIZE - 1.0) / float(SSS_TRANSMIT_LUT_SIZE))
+#define SSS_TRANSMIT_LUT_BIAS (0.5 / float(SSS_TRANSMIT_LUT_SIZE))
+#define SSS_TRANSMIT_LUT_STEP_RES 64.0
+
+struct SubsurfaceData {
+  /** xy: 2D sample position [-1..1], zw: sample_bounds. */
+  /* NOTE(fclem) Using float4 for alignment. */
+  float4 samples[SSS_SAMPLE_MAX];
+  /** Sample index after which samples are not randomly rotated anymore. */
+  int jitter_threshold;
+  /** Number of samples precomputed in the set. */
+  int sample_len;
+  int _pad0;
+  int _pad1;
+};
+BLI_STATIC_ASSERT_ALIGN(SubsurfaceData, 16)
 
 /** \} */
 
@@ -404,13 +745,24 @@ float4 utility_tx_sample(sampler2DArray util_tx, float2 uv, float layer)
 
 using AOVsInfoDataBuf = draw::StorageBuffer<AOVsInfoData>;
 using CameraDataBuf = draw::UniformBuffer<CameraData>;
+using DepthOfFieldDataBuf = draw::UniformBuffer<DepthOfFieldData>;
+using DepthOfFieldScatterListBuf = draw::StorageArrayBuffer<ScatterRect, 16, true>;
+using DrawIndirectBuf = draw::StorageBuffer<DrawCommand, true>;
 using FilmDataBuf = draw::UniformBuffer<FilmData>;
+using HiZDataBuf = draw::UniformBuffer<HiZData>;
+using LightCullingDataBuf = draw::StorageBuffer<LightCullingData>;
+using LightCullingKeyBuf = draw::StorageArrayBuffer<uint, LIGHT_CHUNK, true>;
+using LightCullingTileBuf = draw::StorageArrayBuffer<uint, LIGHT_CHUNK, true>;
+using LightCullingZbinBuf = draw::StorageArrayBuffer<uint, CULLING_ZBIN_COUNT, true>;
+using LightCullingZdistBuf = draw::StorageArrayBuffer<float, LIGHT_CHUNK, true>;
+using LightDataBuf = draw::StorageArrayBuffer<LightData, LIGHT_CHUNK>;
+using MotionBlurDataBuf = draw::UniformBuffer<MotionBlurData>;
+using MotionBlurTileIndirectionBuf = draw::StorageBuffer<MotionBlurTileIndirection, true>;
 using SamplingDataBuf = draw::StorageBuffer<SamplingData>;
 using VelocityGeometryBuf = draw::StorageArrayBuffer<float4, 16, true>;
 using VelocityIndexBuf = draw::StorageArrayBuffer<VelocityIndex, 16>;
 using VelocityObjectBuf = draw::StorageArrayBuffer<float4x4, 16>;
-using MotionBlurDataBuf = draw::UniformBuffer<MotionBlurData>;
-using MotionBlurTileIndirectionBuf = draw::StorageBuffer<MotionBlurTileIndirection, true>;
+using CryptomatteObjectBuf = draw::StorageArrayBuffer<float2, 16>;
 
 }  // namespace blender::eevee
 #endif

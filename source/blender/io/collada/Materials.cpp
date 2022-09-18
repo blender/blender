@@ -86,7 +86,7 @@ bNodeTree *MaterialNode::prepare_material_nodetree()
     return nullptr;
   }
 
-  material->nodetree = ntreeAddTree(nullptr, "Shader Nodetree", "ShaderNodeTree");
+  ntreeAddTreeEmbedded(nullptr, &material->id, "Shader Nodetree", "ShaderNodeTree");
   material->use_nodes = true;
   ntree = material->nodetree;
   return ntree;

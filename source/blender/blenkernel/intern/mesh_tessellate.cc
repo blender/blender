@@ -282,7 +282,8 @@ static void mesh_recalc_looptri__multi_threaded(const MLoop *mloop,
 {
   struct TessellationUserTLS tls_data_dummy = {nullptr};
 
-  struct TessellationUserData data {};
+  struct TessellationUserData data {
+  };
   data.mloop = mloop;
   data.mpoly = mpoly;
   data.mvert = mvert;

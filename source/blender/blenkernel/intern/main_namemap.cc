@@ -228,7 +228,7 @@ static void main_namemap_populate(UniqueName_Map *name_map, struct Main *bmain, 
 
 /* Get the name map object used for the given Main/ID.
  * Lazily creates and populates the contents of the name map, if ensure_created is true.
- * Note: if the contents are populated, the name of the given ID itself is not added. */
+ * NOTE: if the contents are populated, the name of the given ID itself is not added. */
 static UniqueName_Map *get_namemap_for(Main *bmain, ID *id, bool ensure_created)
 {
   if (id->lib != nullptr) {

@@ -174,7 +174,7 @@ static void extract_edge_fac_finish(const MeshRenderData *mr,
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(_data);
 
-  if (GPU_crappy_amd_driver()) {
+  if (GPU_crappy_amd_driver() || GPU_minimum_per_vertex_stride() > 1) {
     /* Some AMD drivers strangely crash with VBO's with a one byte format.
      * To workaround we reinitialize the VBO with another format and convert
      * all bytes to floats. */
@@ -206,7 +206,7 @@ static GPUVertFormat *get_subdiv_edge_fac_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
-    if (GPU_crappy_amd_driver()) {
+    if (GPU_crappy_amd_driver() || GPU_minimum_per_vertex_stride() > 1) {
       GPU_vertformat_attr_add(&format, "wd", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
     }
     else {
@@ -268,7 +268,7 @@ static void extract_edge_fac_loose_geom_subdiv(const DRWSubdivCache *subdiv_cach
 
   uint offset = subdiv_cache->num_subdiv_loops;
   for (int i = 0; i < loose_geom.edge_len; i++) {
-    if (GPU_crappy_amd_driver()) {
+    if (GPU_crappy_amd_driver() || GPU_minimum_per_vertex_stride() > 1) {
       float loose_edge_fac[2] = {1.0f, 1.0f};
       GPU_vertbuf_update_sub(vbo, offset * sizeof(float), sizeof(loose_edge_fac), loose_edge_fac);
     }

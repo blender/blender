@@ -207,10 +207,11 @@ static void add_effector_evaluation(ListBase **effectors,
 }
 
 ListBase *BKE_effector_relations_create(Depsgraph *depsgraph,
+                                        const Scene *scene,
                                         ViewLayer *view_layer,
                                         Collection *collection)
 {
-  Base *base = BKE_collection_or_layer_objects(view_layer, collection);
+  Base *base = BKE_collection_or_layer_objects(scene, view_layer, collection);
   const bool for_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
   const int base_flag = (for_render) ? BASE_ENABLED_RENDER : BASE_ENABLED_VIEWPORT;
 
@@ -700,9 +701,10 @@ bool get_effector_data(EffectorCache *eff,
   else if (eff->pd && eff->pd->shape == PFIELD_SHAPE_POINTS) {
     /* TODO: hair and points object support */
     const Mesh *me_eval = BKE_object_get_evaluated_mesh(eff->ob);
+    const MVert *verts = BKE_mesh_verts(me_eval);
     const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me_eval);
     if (me_eval != NULL) {
-      copy_v3_v3(efd->loc, me_eval->mvert[*efd->index].co);
+      copy_v3_v3(efd->loc, verts[*efd->index].co);
       copy_v3_v3(efd->nor, vert_normals[*efd->index]);
 
       mul_m4_v3(eff->ob->obmat, efd->loc);

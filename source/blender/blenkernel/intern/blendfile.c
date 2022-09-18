@@ -364,7 +364,7 @@ static void setup_app_data(bContext *C,
     BKE_lib_override_library_main_hierarchy_root_ensure(bmain);
   }
 
-  bmain->recovered = 0;
+  bmain->recovered = false;
 
   /* startup.blend or recovered startup */
   if (is_startup) {
@@ -372,7 +372,7 @@ static void setup_app_data(bContext *C,
   }
   else if (recover) {
     /* In case of autosave or quit.blend, use original filepath instead. */
-    bmain->recovered = 1;
+    bmain->recovered = true;
     STRNCPY(bmain->filepath, bfd->filepath);
   }
 
@@ -453,7 +453,7 @@ static void handle_subversion_warning(Main *main, BlendFileReadReport *reports)
       (main->minversionfile == BLENDER_FILE_VERSION &&
        main->minsubversionfile > BLENDER_FILE_SUBVERSION)) {
     BKE_reportf(reports->reports,
-                RPT_ERROR,
+                RPT_WARNING,
                 "File written by newer Blender binary (%d.%d), expect loss of data!",
                 main->minversionfile,
                 main->minsubversionfile);

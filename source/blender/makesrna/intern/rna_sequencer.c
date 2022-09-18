@@ -324,7 +324,7 @@ static int rna_Sequence_frame_final_end_get(PointerRNA *ptr)
   return SEQ_time_right_handle_frame_get(scene, (Sequence *)ptr->data);
 }
 
-static void rna_Sequence_start_frame_final_set(PointerRNA *ptr, float value)
+static void rna_Sequence_start_frame_final_set(PointerRNA *ptr, int value)
 {
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
@@ -346,7 +346,7 @@ static void rna_Sequence_end_frame_final_set(PointerRNA *ptr, int value)
   SEQ_relations_invalidate_cache_composite(scene, seq);
 }
 
-static void rna_Sequence_start_frame_set(PointerRNA *ptr, int value)
+static void rna_Sequence_start_frame_set(PointerRNA *ptr, float value)
 {
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
@@ -2247,6 +2247,7 @@ static void rna_def_editor(BlenderRNA *brna)
   prop = RNA_def_property(srna, "proxy_storage", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, editing_storage_items);
   RNA_def_property_ui_text(prop, "Proxy Storage", "How to store proxies for this project");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SEQUENCE);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_update_cache");
 
   prop = RNA_def_property(srna, "proxy_dir", PROP_STRING, PROP_DIRPATH);

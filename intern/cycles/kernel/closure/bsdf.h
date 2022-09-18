@@ -103,9 +103,8 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
                                   ccl_private const ShaderClosure *sc,
                                   float randu,
                                   float randv,
-                                  ccl_private float3 *eval,
+                                  ccl_private Spectrum *eval,
                                   ccl_private float3 *omega_in,
-                                  ccl_private differential3 *domega_in,
                                   ccl_private float *pdf)
 {
   /* For curves use the smooth normal, particularly for ribbons the geometric
@@ -115,306 +114,80 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
 
   switch (sc->type) {
     case CLOSURE_BSDF_DIFFUSE_ID:
-      label = bsdf_diffuse_sample(sc,
-                                  Ng,
-                                  sd->I,
-                                  sd->dI.dx,
-                                  sd->dI.dy,
-                                  randu,
-                                  randv,
-                                  eval,
-                                  omega_in,
-                                  &domega_in->dx,
-                                  &domega_in->dy,
-                                  pdf);
+      label = bsdf_diffuse_sample(sc, Ng, sd->I, randu, randv, eval, omega_in, pdf);
       break;
-#ifdef __SVM__
+#if defined(__SVM__) || defined(__OSL__)
     case CLOSURE_BSDF_OREN_NAYAR_ID:
-      label = bsdf_oren_nayar_sample(sc,
-                                     Ng,
-                                     sd->I,
-                                     sd->dI.dx,
-                                     sd->dI.dy,
-                                     randu,
-                                     randv,
-                                     eval,
-                                     omega_in,
-                                     &domega_in->dx,
-                                     &domega_in->dy,
-                                     pdf);
+      label = bsdf_oren_nayar_sample(sc, Ng, sd->I, randu, randv, eval, omega_in, pdf);
       break;
 #  ifdef __OSL__
     case CLOSURE_BSDF_PHONG_RAMP_ID:
-      label = bsdf_phong_ramp_sample(sc,
-                                     Ng,
-                                     sd->I,
-                                     sd->dI.dx,
-                                     sd->dI.dy,
-                                     randu,
-                                     randv,
-                                     eval,
-                                     omega_in,
-                                     &domega_in->dx,
-                                     &domega_in->dy,
-                                     pdf);
+      label = bsdf_phong_ramp_sample(sc, Ng, sd->I, randu, randv, eval, omega_in, pdf);
       break;
     case CLOSURE_BSDF_DIFFUSE_RAMP_ID:
-      label = bsdf_diffuse_ramp_sample(sc,
-                                       Ng,
-                                       sd->I,
-                                       sd->dI.dx,
-                                       sd->dI.dy,
-                                       randu,
-                                       randv,
-                                       eval,
-                                       omega_in,
-                                       &domega_in->dx,
-                                       &domega_in->dy,
-                                       pdf);
+      label = bsdf_diffuse_ramp_sample(sc, Ng, sd->I, randu, randv, eval, omega_in, pdf);
       break;
 #  endif
     case CLOSURE_BSDF_TRANSLUCENT_ID:
-      label = bsdf_translucent_sample(sc,
-                                      Ng,
-                                      sd->I,
-                                      sd->dI.dx,
-                                      sd->dI.dy,
-                                      randu,
-                                      randv,
-                                      eval,
-                                      omega_in,
-                                      &domega_in->dx,
-                                      &domega_in->dy,
-                                      pdf);
+      label = bsdf_translucent_sample(sc, Ng, sd->I, randu, randv, eval, omega_in, pdf);
       break;
     case CLOSURE_BSDF_REFLECTION_ID:
-      label = bsdf_reflection_sample(sc,
-                                     Ng,
-                                     sd->I,
-                                     sd->dI.dx,
-                                     sd->dI.dy,
-                                     randu,
-                                     randv,
-                                     eval,
-                                     omega_in,
-                                     &domega_in->dx,
-                                     &domega_in->dy,
-                                     pdf);
+      label = bsdf_reflection_sample(sc, Ng, sd->I, randu, randv, eval, omega_in, pdf);
       break;
     case CLOSURE_BSDF_REFRACTION_ID:
-      label = bsdf_refraction_sample(sc,
-                                     Ng,
-                                     sd->I,
-                                     sd->dI.dx,
-                                     sd->dI.dy,
-                                     randu,
-                                     randv,
-                                     eval,
-                                     omega_in,
-                                     &domega_in->dx,
-                                     &domega_in->dy,
-                                     pdf);
+      label = bsdf_refraction_sample(sc, Ng, sd->I, randu, randv, eval, omega_in, pdf);
       break;
     case CLOSURE_BSDF_TRANSPARENT_ID:
-      label = bsdf_transparent_sample(sc,
-                                      Ng,
-                                      sd->I,
-                                      sd->dI.dx,
-                                      sd->dI.dy,
-                                      randu,
-                                      randv,
-                                      eval,
-                                      omega_in,
-                                      &domega_in->dx,
-                                      &domega_in->dy,
-                                      pdf);
+      label = bsdf_transparent_sample(sc, Ng, sd->I, randu, randv, eval, omega_in, pdf);
       break;
     case CLOSURE_BSDF_MICROFACET_GGX_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-      label = bsdf_microfacet_ggx_sample(kg,
-                                         sc,
-                                         Ng,
-                                         sd->I,
-                                         sd->dI.dx,
-                                         sd->dI.dy,
-                                         randu,
-                                         randv,
-                                         eval,
-                                         omega_in,
-                                         &domega_in->dx,
-                                         &domega_in->dy,
-                                         pdf);
+      label = bsdf_microfacet_ggx_sample(kg, sc, Ng, sd->I, randu, randv, eval, omega_in, pdf);
       break;
     case CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID:
     case CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID:
-      label = bsdf_microfacet_multi_ggx_sample(kg,
-                                               sc,
-                                               Ng,
-                                               sd->I,
-                                               sd->dI.dx,
-                                               sd->dI.dy,
-                                               randu,
-                                               randv,
-                                               eval,
-                                               omega_in,
-                                               &domega_in->dx,
-                                               &domega_in->dy,
-                                               pdf,
-                                               &sd->lcg_state);
+      label = bsdf_microfacet_multi_ggx_sample(
+          kg, sc, Ng, sd->I, randu, randv, eval, omega_in, pdf, &sd->lcg_state);
       break;
     case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID:
     case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID:
-      label = bsdf_microfacet_multi_ggx_glass_sample(kg,
-                                                     sc,
-                                                     Ng,
-                                                     sd->I,
-                                                     sd->dI.dx,
-                                                     sd->dI.dy,
-                                                     randu,
-                                                     randv,
-                                                     eval,
-                                                     omega_in,
-                                                     &domega_in->dx,
-                                                     &domega_in->dy,
-                                                     pdf,
-                                                     &sd->lcg_state);
+      label = bsdf_microfacet_multi_ggx_glass_sample(
+          kg, sc, Ng, sd->I, randu, randv, eval, omega_in, pdf, &sd->lcg_state);
       break;
     case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
-      label = bsdf_microfacet_beckmann_sample(kg,
-                                              sc,
-                                              Ng,
-                                              sd->I,
-                                              sd->dI.dx,
-                                              sd->dI.dy,
-                                              randu,
-                                              randv,
-                                              eval,
-                                              omega_in,
-                                              &domega_in->dx,
-                                              &domega_in->dy,
-                                              pdf);
+      label = bsdf_microfacet_beckmann_sample(
+          kg, sc, Ng, sd->I, randu, randv, eval, omega_in, pdf);
       break;
     case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
-      label = bsdf_ashikhmin_shirley_sample(sc,
-                                            Ng,
-                                            sd->I,
-                                            sd->dI.dx,
-                                            sd->dI.dy,
-                                            randu,
-                                            randv,
-                                            eval,
-                                            omega_in,
-                                            &domega_in->dx,
-                                            &domega_in->dy,
-                                            pdf);
+      label = bsdf_ashikhmin_shirley_sample(sc, Ng, sd->I, randu, randv, eval, omega_in, pdf);
       break;
     case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID:
-      label = bsdf_ashikhmin_velvet_sample(sc,
-                                           Ng,
-                                           sd->I,
-                                           sd->dI.dx,
-                                           sd->dI.dy,
-                                           randu,
-                                           randv,
-                                           eval,
-                                           omega_in,
-                                           &domega_in->dx,
-                                           &domega_in->dy,
-                                           pdf);
+      label = bsdf_ashikhmin_velvet_sample(sc, Ng, sd->I, randu, randv, eval, omega_in, pdf);
       break;
     case CLOSURE_BSDF_DIFFUSE_TOON_ID:
-      label = bsdf_diffuse_toon_sample(sc,
-                                       Ng,
-                                       sd->I,
-                                       sd->dI.dx,
-                                       sd->dI.dy,
-                                       randu,
-                                       randv,
-                                       eval,
-                                       omega_in,
-                                       &domega_in->dx,
-                                       &domega_in->dy,
-                                       pdf);
+      label = bsdf_diffuse_toon_sample(sc, Ng, sd->I, randu, randv, eval, omega_in, pdf);
       break;
     case CLOSURE_BSDF_GLOSSY_TOON_ID:
-      label = bsdf_glossy_toon_sample(sc,
-                                      Ng,
-                                      sd->I,
-                                      sd->dI.dx,
-                                      sd->dI.dy,
-                                      randu,
-                                      randv,
-                                      eval,
-                                      omega_in,
-                                      &domega_in->dx,
-                                      &domega_in->dy,
-                                      pdf);
+      label = bsdf_glossy_toon_sample(sc, Ng, sd->I, randu, randv, eval, omega_in, pdf);
       break;
     case CLOSURE_BSDF_HAIR_REFLECTION_ID:
-      label = bsdf_hair_reflection_sample(sc,
-                                          Ng,
-                                          sd->I,
-                                          sd->dI.dx,
-                                          sd->dI.dy,
-                                          randu,
-                                          randv,
-                                          eval,
-                                          omega_in,
-                                          &domega_in->dx,
-                                          &domega_in->dy,
-                                          pdf);
+      label = bsdf_hair_reflection_sample(sc, Ng, sd->I, randu, randv, eval, omega_in, pdf);
       break;
     case CLOSURE_BSDF_HAIR_TRANSMISSION_ID:
-      label = bsdf_hair_transmission_sample(sc,
-                                            Ng,
-                                            sd->I,
-                                            sd->dI.dx,
-                                            sd->dI.dy,
-                                            randu,
-                                            randv,
-                                            eval,
-                                            omega_in,
-                                            &domega_in->dx,
-                                            &domega_in->dy,
-                                            pdf);
+      label = bsdf_hair_transmission_sample(sc, Ng, sd->I, randu, randv, eval, omega_in, pdf);
       break;
     case CLOSURE_BSDF_HAIR_PRINCIPLED_ID:
-      label = bsdf_principled_hair_sample(
-          kg, sc, sd, randu, randv, eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
+      label = bsdf_principled_hair_sample(kg, sc, sd, randu, randv, eval, omega_in, pdf);
       break;
-#  ifdef __PRINCIPLED__
     case CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID:
-      label = bsdf_principled_diffuse_sample(sc,
-                                             Ng,
-                                             sd->I,
-                                             sd->dI.dx,
-                                             sd->dI.dy,
-                                             randu,
-                                             randv,
-                                             eval,
-                                             omega_in,
-                                             &domega_in->dx,
-                                             &domega_in->dy,
-                                             pdf);
+      label = bsdf_principled_diffuse_sample(sc, Ng, sd->I, randu, randv, eval, omega_in, pdf);
       break;
     case CLOSURE_BSDF_PRINCIPLED_SHEEN_ID:
-      label = bsdf_principled_sheen_sample(sc,
-                                           Ng,
-                                           sd->I,
-                                           sd->dI.dx,
-                                           sd->dI.dy,
-                                           randu,
-                                           randv,
-                                           eval,
-                                           omega_in,
-                                           &domega_in->dx,
-                                           &domega_in->dy,
-                                           pdf);
+      label = bsdf_principled_sheen_sample(sc, Ng, sd->I, randu, randv, eval, omega_in, pdf);
       break;
-#  endif /* __PRINCIPLED__ */
 #endif
     default:
       label = LABEL_NONE;
@@ -458,7 +231,7 @@ ccl_device
 #else
 ccl_device_inline
 #endif
-    float3
+    Spectrum
     bsdf_eval(KernelGlobals kg,
               ccl_private ShaderData *sd,
               ccl_private const ShaderClosure *sc,
@@ -466,14 +239,14 @@ ccl_device_inline
               const bool is_transmission,
               ccl_private float *pdf)
 {
-  float3 eval = zero_float3();
+  Spectrum eval = zero_spectrum();
 
   if (!is_transmission) {
     switch (sc->type) {
       case CLOSURE_BSDF_DIFFUSE_ID:
         eval = bsdf_diffuse_eval_reflect(sc, sd->I, omega_in, pdf);
         break;
-#ifdef __SVM__
+#if defined(__SVM__) || defined(__OSL__)
       case CLOSURE_BSDF_OREN_NAYAR_ID:
         eval = bsdf_oren_nayar_eval_reflect(sc, sd->I, omega_in, pdf);
         break;
@@ -537,14 +310,12 @@ ccl_device_inline
       case CLOSURE_BSDF_HAIR_TRANSMISSION_ID:
         eval = bsdf_hair_transmission_eval_reflect(sc, sd->I, omega_in, pdf);
         break;
-#  ifdef __PRINCIPLED__
       case CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID:
         eval = bsdf_principled_diffuse_eval_reflect(sc, sd->I, omega_in, pdf);
         break;
       case CLOSURE_BSDF_PRINCIPLED_SHEEN_ID:
         eval = bsdf_principled_sheen_eval_reflect(sc, sd->I, omega_in, pdf);
         break;
-#  endif /* __PRINCIPLED__ */
 #endif
       default:
         break;
@@ -566,7 +337,7 @@ ccl_device_inline
       case CLOSURE_BSDF_DIFFUSE_ID:
         eval = bsdf_diffuse_eval_transmit(sc, sd->I, omega_in, pdf);
         break;
-#ifdef __SVM__
+#if defined(__SVM__) || defined(__OSL__)
       case CLOSURE_BSDF_OREN_NAYAR_ID:
         eval = bsdf_oren_nayar_eval_transmit(sc, sd->I, omega_in, pdf);
         break;
@@ -622,14 +393,12 @@ ccl_device_inline
       case CLOSURE_BSDF_HAIR_TRANSMISSION_ID:
         eval = bsdf_hair_transmission_eval_transmit(sc, sd->I, omega_in, pdf);
         break;
-#  ifdef __PRINCIPLED__
       case CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID:
         eval = bsdf_principled_diffuse_eval_transmit(sc, sd->I, omega_in, pdf);
         break;
       case CLOSURE_BSDF_PRINCIPLED_SHEEN_ID:
         eval = bsdf_principled_sheen_eval_transmit(sc, sd->I, omega_in, pdf);
         break;
-#  endif /* __PRINCIPLED__ */
 #endif
       default:
         break;
@@ -650,7 +419,7 @@ ccl_device_inline
 ccl_device void bsdf_blur(KernelGlobals kg, ccl_private ShaderClosure *sc, float roughness)
 {
   /* TODO: do we want to blur volume closures? */
-#ifdef __SVM__
+#if defined(__SVM__) || defined(__OSL__)
   switch (sc->type) {
     case CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID:
     case CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID:

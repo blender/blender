@@ -141,24 +141,23 @@ class ExtrapolateCurvesEffect : public CurvesEffect {
   {
     MutableSpan<float3> positions_cu = curves.positions_for_write();
     threading::parallel_for(curve_indices.index_range(), 256, [&](const IndexRange range) {
+      MoveAndResampleBuffers resample_buffer;
       for (const int influence_i : range) {
         const int curve_i = curve_indices[influence_i];
         const float move_distance_cu = move_distances_cu[influence_i];
-        const IndexRange curve_points = curves.points_for_curve(curve_i);
-
-        if (curve_points.size() <= 1) {
+        const IndexRange points = curves.points_for_curve(curve_i);
+        if (points.size() <= 1) {
           continue;
         }
 
-        const float3 old_last_pos_cu = positions_cu[curve_points.last()];
+        const float3 old_last_pos_cu = positions_cu[points.last()];
         /* Use some point within the curve rather than the end point to smooth out some random
          * variation. */
-        const float3 direction_reference_point =
-            positions_cu[curve_points[curve_points.size() / 2]];
+        const float3 direction_reference_point = positions_cu[points[points.size() / 2]];
         const float3 direction = math::normalize(old_last_pos_cu - direction_reference_point);
 
         const float3 new_last_pos_cu = old_last_pos_cu + direction * move_distance_cu;
-        move_last_point_and_resample(positions_cu.slice(curve_points), new_last_pos_cu);
+        move_last_point_and_resample(resample_buffer, positions_cu.slice(points), new_last_pos_cu);
       }
     });
   }
@@ -351,7 +350,7 @@ struct CurvesEffectOperationExecutor {
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
     Vector<float4x4> symmetry_brush_transforms_inv;
-    for (const float4x4 brush_transform : symmetry_brush_transforms) {
+    for (const float4x4 &brush_transform : symmetry_brush_transforms) {
       symmetry_brush_transforms_inv.append(brush_transform.inverted());
     }
 

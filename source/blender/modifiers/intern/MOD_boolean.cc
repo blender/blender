@@ -117,7 +117,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
     DEG_add_collection_geometry_relation(ctx->node, col, "Boolean Modifier");
   }
   /* We need own transformation as well. */
-  DEG_add_modifier_to_transform_relation(ctx->node, "Boolean Modifier");
+  DEG_add_depends_on_transform_relation(ctx->node, "Boolean Modifier");
 }
 
 static Mesh *get_quick_mesh(
@@ -144,11 +144,9 @@ static Mesh *get_quick_mesh(
           invert_m4_m4(imat, ob_self->obmat);
           mul_m4_m4m4(omat, imat, ob_operand_ob->obmat);
 
-          const int mverts_len = result->totvert;
-          MVert *mv = result->mvert;
-
-          for (int i = 0; i < mverts_len; i++, mv++) {
-            mul_m4_v3(omat, mv->co);
+          MutableSpan<MVert> verts = result->verts_for_write();
+          for (const int i : verts.index_range()) {
+            mul_m4_v3(omat, verts[i].co);
           }
 
           BKE_mesh_tag_coords_changed(result);
@@ -572,9 +570,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return result;
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *UNUSED(md),
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *UNUSED(md), CustomData_MeshMasks *r_cddata_masks)
 {
   r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
   r_cddata_masks->emask |= CD_MASK_MEDGE;

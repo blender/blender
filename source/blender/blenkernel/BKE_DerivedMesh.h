@@ -141,14 +141,6 @@ struct DerivedMesh {
   void (*copyLoopArray)(DerivedMesh *dm, struct MLoop *r_loop);
   void (*copyPolyArray)(DerivedMesh *dm, struct MPoly *r_poly);
 
-  /** Return a copy of all verts/edges/faces from the derived mesh
-   * it is the caller's responsibility to free the returned pointer
-   */
-  struct MVert *(*dupVertArray)(DerivedMesh *dm);
-  struct MEdge *(*dupEdgeArray)(DerivedMesh *dm);
-  struct MLoop *(*dupLoopArray)(DerivedMesh *dm);
-  struct MPoly *(*dupPolyArray)(DerivedMesh *dm);
-
   /** Return a pointer to the entire array of vert/edge/face custom data
    * from the derived mesh (this gives a pointer to the actual data, not
    * a copy)
@@ -252,11 +244,6 @@ void DM_copy_vert_data(struct DerivedMesh *source,
                        int source_index,
                        int dest_index,
                        int count);
-
-/**
- * Sets up mpolys for a DM based on face iterators in source.
- */
-void DM_DupPolys(DerivedMesh *source, DerivedMesh *target);
 
 /**
  * Ensure the array is large enough.

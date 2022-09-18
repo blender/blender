@@ -42,7 +42,7 @@ def get_root_modules():
     """
     global ROOT_MODULES
     modules = []
-    if not(ROOT_MODULES is None):
+    if not (ROOT_MODULES is None):
         return ROOT_MODULES
     from time import time
     t = time()
@@ -131,7 +131,7 @@ def complete(line):
             if only_modules:
                 return inspect.ismodule(getattr(module, attr))
             else:
-                return not(attr[:2] == '__' and attr[-2:] == '__')
+                return not (attr[:2] == '__' and attr[-2:] == '__')
 
         try:
             m = __import__(mod)

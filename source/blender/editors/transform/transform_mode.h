@@ -117,6 +117,7 @@ void drawEdgeSlide(TransInfo *t);
 void initEdgeSlide_ex(
     TransInfo *t, bool use_double_side, bool use_even, bool flipped, bool use_clamp);
 void initEdgeSlide(TransInfo *t);
+void transform_mode_edge_slide_reproject_input(TransInfo *t);
 
 /* transform_mode_gpopacity.c */
 
@@ -191,3 +192,4 @@ void initTranslation(TransInfo *t);
 void drawVertSlide(TransInfo *t);
 void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped, bool use_clamp);
 void initVertSlide(TransInfo *t);
+void transform_mode_vert_slide_reproject_input(TransInfo *t);

@@ -11,7 +11,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Transform Inverse */
 
-static bool transform_matrix4_gj_inverse(float R[][4], float M[][4])
+static bool projection_matrix4_inverse(float R[][4], float M[][4])
 {
   /* SPDX-License-Identifier: BSD-3-Clause
    * Adapted from code:
@@ -98,7 +98,7 @@ ProjectionTransform projection_inverse(const ProjectionTransform &tfm)
   memcpy(R, &tfmR, sizeof(R));
   memcpy(M, &tfm, sizeof(M));
 
-  if (UNLIKELY(!transform_matrix4_gj_inverse(R, M))) {
+  if (UNLIKELY(!projection_matrix4_inverse(R, M))) {
     return projection_identity();
   }
 

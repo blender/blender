@@ -17,9 +17,14 @@
 #include "BKE_pbvh.h"
 #include "BKE_volume.h"
 
+/* For debug cursor position. */
+#include "WM_api.h"
+#include "wm_window.h"
+
 #include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_screen_types.h"
 
 #include "BLI_alloca.h"
 #include "BLI_hash.h"
@@ -38,6 +43,16 @@
 #include "GPU_uniform_buffer.h"
 
 #include "intern/gpu_codegen.h"
+
+/**
+ * IMPORTANT:
+ * In order to be able to write to the same print buffer sequentially, we add a barrier to allow
+ * multiple shader calls writing to the same buffer.
+ * However, this adds explicit synchronization events which might change the rest of the
+ * application behavior and hide some bugs. If you know you are using shader debug print in only
+ * one shader pass, you can comment this out to remove the aforementioned barrier.
+ */
+#define DISABLE_DEBUG_SHADER_PRINT_BARRIER
 
 /* -------------------------------------------------------------------- */
 /** \name Uniform Buffer Object (DRW_uniformbuffer)
@@ -878,6 +893,17 @@ static void drw_command_draw_procedural(DRWShadingGroup *shgroup,
   cmd->vert_count = vert_count;
 }
 
+static void drw_command_draw_indirect(DRWShadingGroup *shgroup,
+                                      GPUBatch *batch,
+                                      DRWResourceHandle handle,
+                                      GPUStorageBuf *indirect_buf)
+{
+  DRWCommandDrawIndirect *cmd = drw_command_create(shgroup, DRW_CMD_DRAW_INDIRECT);
+  cmd->batch = batch;
+  cmd->handle = handle;
+  cmd->indirect_buf = indirect_buf;
+}
+
 static void drw_command_set_select_id(DRWShadingGroup *shgroup, GPUVertBuf *buf, uint select_id)
 {
   /* Only one can be valid. */
@@ -1005,6 +1031,7 @@ void DRW_shgroup_call_compute_indirect(DRWShadingGroup *shgroup, GPUStorageBuf *
 
   drw_command_compute_indirect(shgroup, indirect_buf);
 }
+
 void DRW_shgroup_barrier(DRWShadingGroup *shgroup, eGPUBarrier type)
 {
   BLI_assert(GPU_compute_shader_support());
@@ -1042,6 +1069,38 @@ void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *shgroup, Object *ob,
 {
   struct GPUBatch *geom = drw_cache_procedural_triangles_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, tri_count * 3);
+}
+
+void DRW_shgroup_call_procedural_indirect(DRWShadingGroup *shgroup,
+                                          GPUPrimType primitive_type,
+                                          Object *ob,
+                                          GPUStorageBuf *indirect_buf)
+{
+  struct GPUBatch *geom = NULL;
+  switch (primitive_type) {
+    case GPU_PRIM_POINTS:
+      geom = drw_cache_procedural_points_get();
+      break;
+    case GPU_PRIM_LINES:
+      geom = drw_cache_procedural_lines_get();
+      break;
+    case GPU_PRIM_TRIS:
+      geom = drw_cache_procedural_triangles_get();
+      break;
+    case GPU_PRIM_TRI_STRIP:
+      geom = drw_cache_procedural_triangle_strips_get();
+      break;
+    default:
+      BLI_assert_msg(0,
+                     "Unsupported primitive type in DRW_shgroup_call_procedural_indirect. Add new "
+                     "one as needed.");
+      break;
+  }
+  if (G.f & G_FLAG_PICKSEL) {
+    drw_command_set_select_id(shgroup, NULL, DST.select_id);
+  }
+  DRWResourceHandle handle = drw_resource_handle(shgroup, ob ? ob->obmat : NULL, ob);
+  drw_command_draw_indirect(shgroup, geom, handle, indirect_buf);
 }
 
 void DRW_shgroup_call_instances(DRWShadingGroup *shgroup,
@@ -1129,28 +1188,15 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd, GPU_PBVH_Buffers *buffers
       DRW_shgroup_uniform_vec3(
           shgrp, "materialDiffuseColor", SCULPT_DEBUG_COLOR(scd->debug_node_nr++), 1);
     }
-#if 0
-    float extramat[4][4], mat[4][4];
-    float *extra = GPU_pbvh_get_extra_matrix(buffers);
 
-    if (extra) {
-      memcpy(extramat, GPU_pbvh_get_extra_matrix(buffers), sizeof(float) * 16);
-      mul_m4_m4m4(mat, scd->ob->obmat, extramat);
-    }
-    else {
-      copy_m4_m4(mat, scd->ob->obmat);
-    }
-    DRW_shgroup_call_obmat(shgrp, geom, mat);
-#else
     /* DRW_shgroup_call_no_cull reuses matrices calculations for all the drawcalls of this
      * object. */
     DRW_shgroup_call_no_cull(shgrp, geom, scd->ob);
-#endif
   }
 }
 
 static void sculpt_debug_cb(
-    void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag, int depth)
+    PBVHNode *node, void *user_data, const float bmin[3], const float bmax[3], PBVHNodeFlags flag)
 {
   int *debug_node_nr = (int *)user_data;
   BoundBox bb;
@@ -1165,12 +1211,10 @@ static void sculpt_debug_cb(
   }
 #else /* Color coded leaf bounds. */
   if (flag & PBVH_Leaf) {
-    float color[4];
+    int color = (*debug_node_nr)++;
+    color += BKE_pbvh_debug_draw_gen_get(node);
 
-    copy_v4_v4(color, SCULPT_DEBUG_COLOR((*debug_node_nr)++));
-    mul_v3_fl(color, 1.0f - fminf((float)depth / 16.0f, 1.0f));
-
-    DRW_debug_bbox(&bb, color);
+    DRW_debug_bbox(&bb, SCULPT_DEBUG_COLOR(color));
   }
 #endif
 }
@@ -1266,7 +1310,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
     DRW_debug_modelmat(scd->ob->obmat);
     BKE_pbvh_draw_debug_cb(
         pbvh,
-        (void (*)(void *d, const float min[3], const float max[3], PBVHNodeFlags f, int depth))
+        (void (*)(PBVHNode * n, void *d, const float min[3], const float max[3], PBVHNodeFlags f))
             sculpt_debug_cb,
         &debug_node_nr);
   }
@@ -1483,6 +1527,27 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
         shgroup, view_ubo_location, DRW_UNIFORM_BLOCK, G_draw.view_ubo, 0, 0, 1);
   }
 
+#ifdef DEBUG
+  int debug_print_location = GPU_shader_get_builtin_ssbo(shader, GPU_STORAGE_BUFFER_DEBUG_PRINT);
+  if (debug_print_location != -1) {
+    GPUStorageBuf *buf = drw_debug_gpu_print_buf_get();
+    drw_shgroup_uniform_create_ex(
+        shgroup, debug_print_location, DRW_UNIFORM_STORAGE_BLOCK, buf, 0, 0, 1);
+#  ifndef DISABLE_DEBUG_SHADER_PRINT_BARRIER
+    /* Add a barrier to allow multiple shader writing to the same buffer. */
+    DRW_shgroup_barrier(shgroup, GPU_BARRIER_SHADER_STORAGE);
+#  endif
+  }
+
+  int debug_draw_location = GPU_shader_get_builtin_ssbo(shader, GPU_STORAGE_BUFFER_DEBUG_VERTS);
+  if (debug_draw_location != -1) {
+    GPUStorageBuf *buf = drw_debug_gpu_draw_buf_get();
+    drw_shgroup_uniform_create_ex(
+        shgroup, debug_draw_location, DRW_UNIFORM_STORAGE_BLOCK, buf, 0, 0, 1);
+    /* NOTE(fclem): No barrier as ordering is not important. */
+  }
+#endif
+
   /* Not supported. */
   BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MODELVIEW_INV) == -1);
   BLI_assert(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MODELVIEW) == -1);
@@ -1566,6 +1631,10 @@ void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, struct GPUMaterial
       /* Color Ramp */
       DRW_shgroup_uniform_texture(grp, tex->sampler_name, *tex->colorband);
     }
+    else if (tex->sky) {
+      /* Sky */
+      DRW_shgroup_uniform_texture_ex(grp, tex->sampler_name, *tex->sky, tex->sampler_state);
+    }
   }
 
   GPUUniformBuf *ubo = GPU_material_uniform_buffer_get(material);
@@ -1573,7 +1642,7 @@ void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, struct GPUMaterial
     DRW_shgroup_uniform_block(grp, GPU_UBO_BLOCK_NAME, ubo);
   }
 
-  GPUUniformAttrList *uattrs = GPU_material_uniform_attributes(material);
+  const GPUUniformAttrList *uattrs = GPU_material_uniform_attributes(material);
   if (uattrs != NULL) {
     int loc = GPU_shader_get_uniform_block_binding(grp->shader, GPU_ATTRIBUTE_UBO_BLOCK_NAME);
     drw_shgroup_uniform_create_ex(grp, loc, DRW_UNIFORM_BLOCK_OBATTRS, uattrs, 0, 0, 1);
@@ -1959,6 +2028,13 @@ DRWView *DRW_view_create(const float viewmat[4][4],
 
   copy_v4_fl4(view->storage.viewcamtexcofac, 1.0f, 1.0f, 0.0f, 0.0f);
 
+  if (DST.draw_ctx.evil_C && DST.draw_ctx.region) {
+    int region_origin[2] = {DST.draw_ctx.region->winrct.xmin, DST.draw_ctx.region->winrct.ymin};
+    struct wmWindow *win = CTX_wm_window(DST.draw_ctx.evil_C);
+    wm_cursor_position_get(win, &view->storage.mouse_pixel[0], &view->storage.mouse_pixel[1]);
+    sub_v2_v2v2_int(view->storage.mouse_pixel, view->storage.mouse_pixel, region_origin);
+  }
+
   DRW_view_update(view, viewmat, winmat, culling_viewmat, culling_winmat);
 
   return view;
@@ -2057,6 +2133,14 @@ void DRW_view_update(DRWView *view,
   draw_frustum_culling_planes_calc(view->storage.persmat, view->frustum_planes);
   draw_frustum_bound_sphere_calc(
       &view->frustum_corners, viewinv, winmat, wininv, &view->frustum_bsphere);
+
+  /* TODO(fclem): Deduplicate. */
+  for (int i = 0; i < 8; i++) {
+    copy_v3_v3(view->storage.frustum_corners[i], view->frustum_corners.vec[i]);
+  }
+  for (int i = 0; i < 6; i++) {
+    copy_v4_v4(view->storage.frustum_planes[i], view->frustum_planes[i]);
+  }
 
 #ifdef DRW_DEBUG_CULLING
   if (G.debug_value != 0) {

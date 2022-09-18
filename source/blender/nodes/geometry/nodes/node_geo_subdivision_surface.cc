@@ -73,7 +73,7 @@ static void write_vertex_creases(Mesh &mesh, const VArray<float> &crease_varray)
   }
   else {
     crease = static_cast<float *>(
-        CustomData_add_layer(&mesh.vdata, CD_CREASE, CD_DEFAULT, nullptr, mesh.totvert));
+        CustomData_add_layer(&mesh.vdata, CD_CREASE, CD_CONSTRUCT, nullptr, mesh.totvert));
   }
   materialize_and_clamp_creases(crease_varray, {crease, mesh.totvert});
 }
@@ -119,21 +119,19 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
 
-    const MeshComponent &mesh_component = *geometry_set.get_component_for_read<MeshComponent>();
-    const int verts_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_POINT);
-    const int edges_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_EDGE);
-    if (verts_num == 0 || edges_num == 0) {
+    const Mesh &mesh = *geometry_set.get_mesh_for_read();
+    if (mesh.totvert == 0 || mesh.totedge == 0) {
       return;
     }
 
-    GeometryComponentFieldContext point_context{mesh_component, ATTR_DOMAIN_POINT};
-    FieldEvaluator point_evaluator(point_context, verts_num);
+    bke::MeshFieldContext point_context{mesh, ATTR_DOMAIN_POINT};
+    FieldEvaluator point_evaluator(point_context, mesh.totvert);
     point_evaluator.add(vertex_crease_field);
     point_evaluator.evaluate();
     const VArray<float> vertex_creases = point_evaluator.get_evaluated<float>(0);
 
-    GeometryComponentFieldContext edge_context{mesh_component, ATTR_DOMAIN_EDGE};
-    FieldEvaluator edge_evaluator(edge_context, edges_num);
+    bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
+    FieldEvaluator edge_evaluator(edge_context, mesh.totedge);
     edge_evaluator.add(edge_crease_field);
     edge_evaluator.evaluate();
     const VArray<float> edge_creases = edge_evaluator.get_evaluated<float>(0);
@@ -162,17 +160,15 @@ static void node_geo_exec(GeoNodeExecParams params)
     subdiv_settings.fvar_linear_interpolation = BKE_subdiv_fvar_interpolation_from_uv_smooth(
         uv_smooth);
 
-    const Mesh &mesh_in = *geometry_set.get_mesh_for_read();
-
     /* Apply subdivision to mesh. */
-    Subdiv *subdiv = BKE_subdiv_update_from_mesh(nullptr, &subdiv_settings, &mesh_in);
+    Subdiv *subdiv = BKE_subdiv_update_from_mesh(nullptr, &subdiv_settings, &mesh);
 
     /* In case of bad topology, skip to input mesh. */
     if (subdiv == nullptr) {
       return;
     }
 
-    Mesh *mesh_out = BKE_subdiv_to_mesh(subdiv, &mesh_settings, &mesh_in);
+    Mesh *mesh_out = BKE_subdiv_to_mesh(subdiv, &mesh_settings, &mesh);
 
     geometry_set.replace_mesh(mesh_out);
 

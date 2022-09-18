@@ -160,7 +160,6 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
   pd->edit_uv.draw_type = sima->dt_uvstretch;
   BLI_listbase_clear(&pd->edit_uv.totals);
   pd->edit_uv.total_area_ratio = 0.0f;
-  pd->edit_uv.total_area_ratio_inv = 0.0f;
 
   /* During engine initialization phase the `sima` isn't locked and
    * we are able to retrieve the needed data.
@@ -280,8 +279,6 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
       DRW_shgroup_uniform_block(pd->edit_uv_stretching_grp, "globalsBlock", G_draw.block_ubo);
       DRW_shgroup_uniform_float(
           pd->edit_uv_stretching_grp, "totalAreaRatio", &pd->edit_uv.total_area_ratio, 1);
-      DRW_shgroup_uniform_float(
-          pd->edit_uv_stretching_grp, "totalAreaRatioInv", &pd->edit_uv.total_area_ratio_inv, 1);
     }
   }
 
@@ -411,7 +408,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
       draw_ctx->obact->type == OB_MESH) {
     uint objects_len = 0;
     Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
-        draw_ctx->view_layer, NULL, &objects_len, draw_ctx->object_mode);
+        draw_ctx->scene, draw_ctx->view_layer, NULL, &objects_len, draw_ctx->object_mode);
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
       Object *object_eval = DEG_get_evaluated_object(draw_ctx->depsgraph, objects[ob_index]);
       DRW_mesh_batch_cache_validate(object_eval, (Mesh *)object_eval->data);
@@ -510,7 +507,6 @@ static void edit_uv_stretching_update_ratios(OVERLAY_Data *vedata)
 
     if (total_area > FLT_EPSILON && total_area_uv > FLT_EPSILON) {
       pd->edit_uv.total_area_ratio = total_area / total_area_uv;
-      pd->edit_uv.total_area_ratio_inv = total_area_uv / total_area;
     }
   }
   BLI_freelistN(&pd->edit_uv.totals);

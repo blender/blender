@@ -52,7 +52,7 @@ static void fn_node_rotate_euler_layout(uiLayout *layout, bContext *UNUSED(C), P
   uiItemR(layout, ptr, "space", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static const fn::MultiFunction *get_multi_function(bNode &bnode)
+static const fn::MultiFunction *get_multi_function(const bNode &bnode)
 {
   static fn::CustomMF_SI_SI_SO<float3, float3, float3> obj_euler_rot{
       "Rotate Euler by Euler/Object", [](const float3 &input, const float3 &rotation) {

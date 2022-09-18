@@ -211,7 +211,7 @@ IDTypeInfo IDType_ID_SO = {
     .foreach_id = NULL,
     .foreach_cache = sound_foreach_cache,
     .foreach_path = sound_foreach_path,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = sound_blend_write,
     .blend_read_data = sound_blend_read_data,
@@ -756,7 +756,7 @@ void BKE_sound_remove_scene_sound(Scene *scene, void *handle)
   AUD_Sequence_remove(scene->sound_scene, handle);
 }
 
-void BKE_sound_mute_scene_sound(void *handle, char mute)
+void BKE_sound_mute_scene_sound(void *handle, bool mute)
 {
   AUD_SequenceEntry_setMuted(handle, mute);
 }
@@ -1346,7 +1346,7 @@ void *BKE_sound_add_scene_sound_defaults(Scene *UNUSED(scene), Sequence *UNUSED(
 void BKE_sound_remove_scene_sound(Scene *UNUSED(scene), void *UNUSED(handle))
 {
 }
-void BKE_sound_mute_scene_sound(void *UNUSED(handle), char UNUSED(mute))
+void BKE_sound_mute_scene_sound(void *UNUSED(handle), bool UNUSED(mute))
 {
 }
 void BKE_sound_move_scene_sound(const Scene *UNUSED(scene),

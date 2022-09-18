@@ -136,7 +136,7 @@ typedef enum {
 
 /* Don't lose comment alignment. */
 /* clang-format off */
-static const unsigned char acceptable[96] = {
+static const uchar acceptable[96] = {
     /* A table of the ASCII chars from space (32) to DEL (127) */
     /*      !    "    #    $    %    &    '    (    )    *    +    ,    -    .    / */
     0x00,0x3F,0x20,0x20,0x28,0x00,0x2C,0x3F,0x3F,0x3F,0x3F,0x2A,0x28,0x3F,0x3F,0x1C,
@@ -176,7 +176,7 @@ static void escape_uri_string(const char *string,
   escaped_string_size -= 1;
 
   for (q = escaped_string, p = string; (*p != '\0') && escaped_string_size; p++) {
-    c = (unsigned char)*p;
+    c = (uchar)*p;
 
     if (!ACCEPTABLE(c)) {
       if (escaped_string_size < 3) {
@@ -227,7 +227,7 @@ static bool uri_from_filename(const char *path, char *uri)
       return 0;
     }
     /* on windows, using always uppercase drive/volume letter in uri */
-    vol[0] = (unsigned char)toupper(path[0]);
+    vol[0] = (uchar)toupper(path[0]);
     vol[1] = ':';
     vol[2] = '\0';
     strcat(orig_uri, vol);
@@ -256,7 +256,7 @@ static bool thumbpathname_from_uri(
 
   if (r_name) {
     char hexdigest[33];
-    unsigned char digest[16];
+    uchar digest[16];
     BLI_hash_md5_buffer(uri, strlen(uri), digest);
     hexdigest[0] = '\0';
     BLI_snprintf(r_name, name_len, "%s.png", BLI_hash_md5_to_hexdigest(digest, hexdigest));

@@ -37,7 +37,7 @@ static void init_source(j_decompress_ptr cinfo);
 static boolean fill_input_buffer(j_decompress_ptr cinfo);
 static void skip_input_data(j_decompress_ptr cinfo, long num_bytes);
 static void term_source(j_decompress_ptr cinfo);
-static void memory_source(j_decompress_ptr cinfo, const unsigned char *buffer, size_t size);
+static void memory_source(j_decompress_ptr cinfo, const uchar *buffer, size_t size);
 static boolean handle_app1(j_decompress_ptr cinfo);
 static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo,
                                    int flags,
@@ -48,7 +48,7 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo,
 static const uchar jpeg_default_quality = 75;
 static uchar ibuf_quality;
 
-bool imb_is_a_jpeg(const unsigned char *mem, const size_t size)
+bool imb_is_a_jpeg(const uchar *mem, const size_t size)
 {
   const char magic[2] = {0xFF, 0xD8};
   if (size < sizeof(magic)) {
@@ -89,7 +89,7 @@ static void jpeg_error(j_common_ptr cinfo)
 
 #if 0
 typedef struct {
-  unsigned char *buffer;
+  uchar *buffer;
   int filled;
 } buffer_struct;
 #endif
@@ -97,7 +97,7 @@ typedef struct {
 typedef struct {
   struct jpeg_source_mgr pub; /* public fields */
 
-  const unsigned char *buffer;
+  const uchar *buffer;
   int size;
   JOCTET terminal[2];
 } my_source_mgr;
@@ -144,7 +144,7 @@ static void term_source(j_decompress_ptr cinfo)
   (void)cinfo; /* unused */
 }
 
-static void memory_source(j_decompress_ptr cinfo, const unsigned char *buffer, size_t size)
+static void memory_source(j_decompress_ptr cinfo, const uchar *buffer, size_t size)
 {
   my_src_ptr src;
 
@@ -205,11 +205,11 @@ static void memory_source(j_decompress_ptr cinfo, const unsigned char *buffer, s
   MAKESTMT(MAKE_BYTE_AVAIL(cinfo, action); bytes_in_buffer--; V = GETJOCTET(*next_input_byte++);)
 
 /* As above, but read two bytes interpreted as an unsigned 16-bit integer.
- * V should be declared unsigned int or perhaps INT32.
+ * V should be declared `uint` or perhaps INT32.
  */
 #define INPUT_2BYTES(cinfo, V, action) \
   MAKESTMT(MAKE_BYTE_AVAIL(cinfo, action); bytes_in_buffer--; \
-           V = ((unsigned int)GETJOCTET(*next_input_byte++)) << 8; \
+           V = ((uint)GETJOCTET(*next_input_byte++)) << 8; \
            MAKE_BYTE_AVAIL(cinfo, action); \
            bytes_in_buffer--; \
            V += GETJOCTET(*next_input_byte++);)
@@ -445,10 +445,7 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo,
   return ibuf;
 }
 
-ImBuf *imb_load_jpeg(const unsigned char *buffer,
-                     size_t size,
-                     int flags,
-                     char colorspace[IM_MAX_SPACE])
+ImBuf *imb_load_jpeg(const uchar *buffer, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
   struct jpeg_decompress_struct _cinfo, *cinfo = &_cinfo;
   struct my_error_mgr jerr;
@@ -521,7 +518,7 @@ struct ImBuf *imb_thumbnail_jpeg(const char *filepath,
   if ((fgetc(infile) == JPEG_MARKER_MSB) && (fgetc(infile) == JPEG_MARKER_SOI) &&
       (fgetc(infile) == JPEG_MARKER_MSB) && (fgetc(infile) == JPEG_MARKER_APP1)) {
     /* This is a JPEG in EXIF format (SOI + APP1), not JFIF (SOI + APP0). */
-    unsigned int i = JPEG_APP1_MAX;
+    uint i = JPEG_APP1_MAX;
     /* All EXIF data is within this 64K header segment. Skip ahead until next SOI for thumbnail. */
     while (!((fgetc(infile) == JPEG_MARKER_MSB) && (fgetc(infile) == JPEG_MARKER_SOI)) &&
            !feof(infile) && i--) {

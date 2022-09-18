@@ -18,6 +18,7 @@
 #include <time.h>
 
 #include "BLI_fileops.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
@@ -56,9 +57,8 @@ static void fillCineonMainHeader(LogImageFile *cineon,
                                                cineon->height *
                                                    getRowLength(cineon->width, cineon->element[0]),
                                            cineon->isMSB);
-  strcpy(header->fileHeader.version, "v4.5");
-  strncpy(header->fileHeader.file_name, filepath, 99);
-  header->fileHeader.file_name[99] = 0;
+  STRNCPY(header->fileHeader.version, "v4.5");
+  STRNCPY(header->fileHeader.file_name, filepath);
   fileClock = time(NULL);
   fileTime = localtime(&fileClock);
   strftime(header->fileHeader.creation_date, 12, "%Y:%m:%d", fileTime);
@@ -93,8 +93,7 @@ static void fillCineonMainHeader(LogImageFile *cineon,
   header->imageHeader.green_primary_y = swap_float(0.0f, cineon->isMSB);
   header->imageHeader.blue_primary_x = swap_float(0.0f, cineon->isMSB);
   header->imageHeader.blue_primary_y = swap_float(0.0f, cineon->isMSB);
-  strncpy(header->imageHeader.label, creator, 199);
-  header->imageHeader.label[199] = 0;
+  STRNCPY(header->imageHeader.label, creator);
   header->imageHeader.interleave = 0;
   header->imageHeader.data_sign = 0;
   header->imageHeader.sense = 0;
@@ -122,13 +121,13 @@ static void fillCineonMainHeader(LogImageFile *cineon,
   /* we leave it blank */
 }
 
-LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t bufferSize)
+LogImageFile *cineonOpen(const uchar *byteStuff, int fromMemory, size_t bufferSize)
 {
   CineonMainHeader header;
   LogImageFile *cineon = (LogImageFile *)MEM_mallocN(sizeof(LogImageFile), __func__);
   const char *filepath = (const char *)byteStuff;
   int i;
-  unsigned int dataOffset;
+  uint dataOffset;
 
   if (cineon == NULL) {
     if (verbose) {
@@ -159,8 +158,8 @@ LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t 
     cineon->memBufferSize = 0;
   }
   else {
-    cineon->memBuffer = (unsigned char *)byteStuff;
-    cineon->memCursor = (unsigned char *)byteStuff;
+    cineon->memBuffer = (uchar *)byteStuff;
+    cineon->memCursor = (uchar *)byteStuff;
     cineon->memBufferSize = bufferSize;
   }
 
@@ -188,7 +187,7 @@ LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t 
   else {
     if (verbose) {
       printf("Cineon: Bad magic number %lu in \"%s\".\n",
-             (unsigned long)header.fileHeader.magic_num,
+             (ulong)header.fileHeader.magic_num,
              byteStuff);
     }
     logImageClose(cineon);
@@ -297,7 +296,7 @@ LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t 
     }
 
     if (cineon->element[i].refHighData == CINEON_UNDEFINED_U32) {
-      cineon->element[i].refHighData = (unsigned int)cineon->element[i].maxValue;
+      cineon->element[i].refHighData = (uint)cineon->element[i].maxValue;
     }
 
     if (cineon->element[i].refLowQuantity == CINEON_UNDEFINED_R32 ||
@@ -354,7 +353,7 @@ LogImageFile *cineonCreate(
 {
   CineonMainHeader header;
   const char *shortFilename = NULL;
-  /* unsigned char pad[6044]; */
+  /* uchar pad[6044]; */
 
   LogImageFile *cineon = (LogImageFile *)MEM_mallocN(sizeof(LogImageFile), __func__);
   if (cineon == NULL) {

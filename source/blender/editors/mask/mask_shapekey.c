@@ -136,9 +136,9 @@ static int mask_shape_key_feather_reset_exec(bContext *C, wmOperator *UNUSED(op)
       MaskLayerShape *mask_layer_shape_reset;
       MaskLayerShape *mask_layer_shape;
 
-      /* get the shapekey of the current state */
+      /* Get the shape-key of the current state. */
       mask_layer_shape_reset = BKE_mask_layer_shape_alloc(mask_layer, frame);
-      /* initialize from mask - as if inseting a keyframe */
+      /* Initialize from mask - as if inserting a keyframe. */
       BKE_mask_layer_shape_from_mask(mask_layer, mask_layer_shape_reset);
 
       for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;

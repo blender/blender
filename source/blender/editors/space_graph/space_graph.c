@@ -224,7 +224,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   if (((sipo->flag & SIPO_NODRAWCURSOR) == 0)) {
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     /* horizontal component of value-cursor (value line before the current frame line) */
     float y = sipo->cursorVal;
@@ -393,7 +393,7 @@ static void graph_buttons_region_draw(const bContext *C, ARegion *region)
 static void graph_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -529,7 +529,7 @@ static void graph_region_message_subscribe(const wmRegionMessageSubscribeParams 
 static void graph_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
   SpaceGraph *sipo = (SpaceGraph *)area->spacedata.first;
 
   /* context changes */
@@ -625,7 +625,7 @@ static void graph_refresh_fcurve_colors(const bContext *C)
    * - we don't include ANIMFILTER_CURVEVISIBLE filter, as that will result in a
    *   mismatch between channel-colors and the drawn curves
    */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS | ANIMFILTER_FCURVESONLY);
   items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* loop over F-Curves, assigning colors */
@@ -810,7 +810,7 @@ void ED_spacetype_ipo(void)
   ARegionType *art;
 
   st->spaceid = SPACE_GRAPH;
-  strncpy(st->name, "Graph", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "Graph");
 
   st->create = graph_create;
   st->free = graph_free;

@@ -484,22 +484,22 @@ static bool hook_op_edit_poll(bContext *C)
   return false;
 }
 
-static Object *add_hook_object_new(Main *bmain, ViewLayer *view_layer, View3D *v3d, Object *obedit)
+static Object *add_hook_object_new(
+    Main *bmain, Scene *scene, ViewLayer *view_layer, View3D *v3d, Object *obedit)
 {
   Base *basedit;
   Object *ob;
-
-  ob = BKE_object_add(bmain, view_layer, OB_EMPTY, NULL);
-
-  basedit = BKE_view_layer_base_find(view_layer, obedit);
-  BLI_assert(view_layer->basact->object == ob);
-
+  ob = BKE_object_add(bmain, scene, view_layer, OB_EMPTY, NULL);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Base *basact = BKE_view_layer_active_base_get(view_layer);
+  BLI_assert(basact->object == ob);
   if (v3d && v3d->localvd) {
-    view_layer->basact->local_view_bits |= v3d->local_view_uuid;
+    basact->local_view_bits |= v3d->local_view_uuid;
   }
 
   /* icky, BKE_object_add sets new base as active.
    * so set it back to the original edit object */
+  basedit = BKE_view_layer_base_find(view_layer, obedit);
   view_layer->basact = basedit;
 
   return ob;
@@ -532,7 +532,7 @@ static int add_hook_object(const bContext *C,
 
   if (mode == OBJECT_ADDHOOK_NEWOB && !ob) {
 
-    ob = add_hook_object_new(bmain, view_layer, v3d, obedit);
+    ob = add_hook_object_new(bmain, scene, view_layer, v3d, obedit);
 
     /* transform cent to global coords for loc */
     mul_v3_m4v3(ob->loc, obedit->obmat, cent);

@@ -114,14 +114,13 @@ static bool object_shape_key_mirror(
 
     if (ob->type == OB_MESH) {
       Mesh *me = ob->data;
-      MVert *mv;
       int i1, i2;
       float *fp1, *fp2;
       float tvec[3];
 
       ED_mesh_mirror_spatial_table_begin(ob, NULL, NULL);
 
-      for (i1 = 0, mv = me->mvert; i1 < me->totvert; i1++, mv++) {
+      for (i1 = 0; i1 < me->totvert; i1++) {
         i2 = mesh_get_x_mirror_vert(ob, NULL, i1, use_topology);
         if (i2 == i1) {
           fp1 = ((float *)kb->data) + i1 * 3;

@@ -68,9 +68,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   tamd->vert_coords_prev = NULL;
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *UNUSED(md),
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *UNUSED(md), CustomData_MeshMasks *r_cddata_masks)
 {
   /* ask for vertexgroups */
   r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
@@ -125,7 +123,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 
     DEG_add_object_relation(ctx->node, amd->object, DEG_OB_COMP_TRANSFORM, "Armature Modifier");
   }
-  DEG_add_modifier_to_transform_relation(ctx->node, "Armature Modifier");
+  DEG_add_depends_on_transform_relation(ctx->node, "Armature Modifier");
 }
 
 static void deformVerts(ModifierData *md,
@@ -211,8 +209,7 @@ static void deformMatrices(ModifierData *md,
                            int verts_num)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(
-      ctx->object, NULL, mesh, NULL, verts_num, false, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
 
   BKE_armature_deform_coords_with_mesh(amd->object,
                                        ctx->object,

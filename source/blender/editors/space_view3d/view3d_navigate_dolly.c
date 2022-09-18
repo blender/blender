@@ -41,7 +41,7 @@ void viewdolly_modal_keymap(wmKeyConfig *keyconf)
 
   wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "View3D Dolly Modal");
 
-  /* this function is called for each spacetype, only needs to add map once */
+  /* This function is called for each space-type, only needs to add map once. */
   if (keymap && keymap->modal_items) {
     return;
   }
@@ -181,6 +181,7 @@ static int viewdolly_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   if (ret & OPERATOR_FINISHED) {
+    ED_view3d_camera_lock_undo_push(op->type->name, vod->v3d, vod->rv3d, C);
     viewops_data_free(C, vod);
     op->customdata = NULL;
   }

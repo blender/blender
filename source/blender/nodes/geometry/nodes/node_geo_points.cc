@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_pointcloud.h"
+#include "DNA_pointcloud_types.h"
 
 #include "BLI_task.hh"
 
@@ -69,10 +70,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<float3> position_field = params.extract_input<Field<float3>>("Position");
   Field<float> radius_field = params.extract_input<Field<float>>("Radius");
 
-  PointCloud *new_point_cloud = BKE_pointcloud_new_nomain(count);
-  GeometrySet geometry_set = GeometrySet::create_with_pointcloud(new_point_cloud);
-  PointCloudComponent &points = geometry_set.get_component_for_write<PointCloudComponent>();
-  MutableAttributeAccessor attributes = *points.attributes_for_write();
+  PointCloud *points = BKE_pointcloud_new_nomain(count);
+  MutableAttributeAccessor attributes = points->attributes_for_write();
   AttributeWriter<float3> output_position = attributes.lookup_or_add_for_write<float3>(
       "position", ATTR_DOMAIN_POINT);
   AttributeWriter<float> output_radii = attributes.lookup_or_add_for_write<float>(
@@ -86,7 +85,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   output_position.finish();
   output_radii.finish();
-  params.set_output("Geometry", std::move(geometry_set));
+  params.set_output("Geometry", GeometrySet::create_with_pointcloud(points));
 }
 
 }  // namespace blender::nodes::node_geo_points_cc

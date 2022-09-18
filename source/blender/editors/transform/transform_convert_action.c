@@ -18,6 +18,7 @@
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
 #include "BKE_key.h"
+#include "BKE_layer.h"
 #include "BKE_mask.h"
 #include "BKE_nla.h"
 
@@ -575,12 +576,14 @@ static void recalcData_actedit(TransInfo *t)
   bAnimListElem *ale;
   int filter;
 
+  BKE_view_layer_synced_ensure(t->scene, t->view_layer);
+
   /* initialize relevant anim-context 'context' data from TransInfo data */
   /* NOTE: sync this with the code in ANIM_animdata_get_context() */
   ac.bmain = CTX_data_main(t->context);
   ac.scene = t->scene;
   ac.view_layer = t->view_layer;
-  ac.obact = OBACT(view_layer);
+  ac.obact = BKE_view_layer_active_object_get(view_layer);
   ac.area = t->area;
   ac.region = t->region;
   ac.sl = (t->area) ? t->area->spacedata.first : NULL;
@@ -901,18 +904,18 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
         if (ELEM(t->frame_side, 'L', 'R')) { /* TFM_TIME_EXTEND */
           /* same as below */
           ED_markers_post_apply_transform(
-              ED_context_get_markers(C), t->scene, t->mode, t->values[0], t->frame_side);
+              ED_context_get_markers(C), t->scene, t->mode, t->values_final[0], t->frame_side);
         }
         else /* TFM_TIME_TRANSLATE */
 #endif
       {
         ED_markers_post_apply_transform(
-            ED_context_get_markers(C), t->scene, t->mode, t->values[0], t->frame_side);
+            ED_context_get_markers(C), t->scene, t->mode, t->values_final[0], t->frame_side);
       }
     }
     else if (t->mode == TFM_TIME_SCALE) {
       ED_markers_post_apply_transform(
-          ED_context_get_markers(C), t->scene, t->mode, t->values[0], t->frame_side);
+          ED_context_get_markers(C), t->scene, t->mode, t->values_final[0], t->frame_side);
     }
   }
 

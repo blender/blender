@@ -157,6 +157,7 @@ namespace multi_function_types {
 using fn::MFContext;
 using fn::MFContextBuilder;
 using fn::MFDataType;
+using fn::MFParamCategory;
 using fn::MFParams;
 using fn::MFParamsBuilder;
 using fn::MFParamType;

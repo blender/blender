@@ -798,7 +798,7 @@ static bool minimize_stretch_init(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
 
   if (!uvedit_have_selection_multi(scene, objects, objects_len, &options)) {
     MEM_freeN(objects);
@@ -1116,7 +1116,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
 
   /* Early exit in case no UVs are selected. */
   if (!uvedit_have_selection_multi(scene, objects, objects_len, &options)) {
@@ -1208,7 +1208,7 @@ static int average_islands_scale_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
 
   if (!uvedit_have_selection_multi(scene, objects, objects_len, &options)) {
     MEM_freeN(objects);
@@ -1714,10 +1714,12 @@ static void uv_map_clip_correct_properties(wmOperatorType *ot)
  * such as "Unwrap" & "Smart UV Projections" will need to handle aspect correction themselves.
  * For now keep using a single aspect for all faces in this case.
  */
-static void uv_map_clip_correct_multi(Object **objects,
-                                      uint objects_len,
-                                      wmOperator *op,
-                                      bool per_face_aspect)
+static void uv_map_clip_correct(const Scene *scene,
+                                Object **objects,
+                                uint objects_len,
+                                wmOperator *op,
+                                bool per_face_aspect,
+                                bool only_selected_uvs)
 {
   BMFace *efa;
   BMLoop *l;
@@ -1754,6 +1756,10 @@ static void uv_map_clip_correct_multi(Object **objects,
           continue;
         }
 
+        if (only_selected_uvs && !uvedit_face_select_test(scene, efa, cd_loop_uv_offset)) {
+          continue;
+        }
+
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
           minmax_v2v2_v2(min, max, luv->uv);
@@ -1764,6 +1770,10 @@ static void uv_map_clip_correct_multi(Object **objects,
       /* clipping and wrapping */
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
         if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+          continue;
+        }
+
+        if (only_selected_uvs && !uvedit_face_select_test(scene, efa, cd_loop_uv_offset)) {
           continue;
         }
 
@@ -1803,6 +1813,10 @@ static void uv_map_clip_correct_multi(Object **objects,
           continue;
         }
 
+        if (only_selected_uvs && !uvedit_face_select_test(scene, efa, cd_loop_uv_offset)) {
+          continue;
+        }
+
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
@@ -1812,11 +1826,6 @@ static void uv_map_clip_correct_multi(Object **objects,
       }
     }
   }
-}
-
-static void uv_map_clip_correct(Object *ob, wmOperator *op)
-{
-  uv_map_clip_correct_multi(&ob, 1, op, true);
 }
 
 /** \} */
@@ -1911,7 +1920,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
 
   UnwrapOptions options = {
       .topology_from_uvs = false,
@@ -2245,6 +2254,12 @@ static int smart_project_exec(bContext *C, wmOperator *op)
   /* May be NULL. */
   View3D *v3d = CTX_wm_view3d(C);
 
+  bool only_selected_uvs = false;
+  if (CTX_wm_space_image(C)) {
+    /* Inside the UV Editor, only project selected UVs. */
+    only_selected_uvs = true;
+  }
+
   const float project_angle_limit = RNA_float_get(op->ptr, "angle_limit");
   const float island_margin = RNA_float_get(op->ptr, "island_margin");
   const float area_weight = RNA_float_get(op->ptr, "area_weight");
@@ -2257,7 +2272,7 @@ static int smart_project_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, v3d, &objects_len);
+      scene, view_layer, v3d, &objects_len);
 
   Object **objects_changed = MEM_mallocN(sizeof(*objects_changed) * objects_len, __func__);
   uint object_changed_len = 0;
@@ -2275,7 +2290,8 @@ static int smart_project_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    const uint cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+    const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+    BLI_assert(cd_loop_uv_offset >= 0);
     ThickFace *thick_faces = MEM_mallocN(sizeof(*thick_faces) * em->bm->totface, __func__);
 
     uint thick_faces_len = 0;
@@ -2283,6 +2299,14 @@ static int smart_project_exec(bContext *C, wmOperator *op)
       if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
         continue;
       }
+
+      if (only_selected_uvs) {
+        if (!uvedit_face_select_test(scene, efa, cd_loop_uv_offset)) {
+          uvedit_face_select_disable(scene, em->bm, efa, cd_loop_uv_offset);
+          continue;
+        }
+      }
+
       thick_faces[thick_faces_len].area = BM_face_calc_area(efa);
       thick_faces[thick_faces_len].efa = efa;
       thick_faces_len++;
@@ -2397,6 +2421,7 @@ static int smart_project_exec(bContext *C, wmOperator *op)
                                      .rotate = true,
                                      /* We could make this optional. */
                                      .rotate_align_axis = 1,
+                                     .only_selected_uvs = true,
                                      .only_selected_faces = true,
                                      .correct_aspect = correct_aspect,
                                      .use_seams = true,
@@ -2404,7 +2429,8 @@ static int smart_project_exec(bContext *C, wmOperator *op)
 
     /* #ED_uvedit_pack_islands_multi only supports `per_face_aspect = false`. */
     const bool per_face_aspect = false;
-    uv_map_clip_correct_multi(objects_changed, object_changed_len, op, per_face_aspect);
+    uv_map_clip_correct(
+        scene, objects_changed, object_changed_len, op, per_face_aspect, only_selected_uvs);
   }
 
   MEM_freeN(objects_changed);
@@ -2511,7 +2537,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
   /* NOTE: objects that aren't touched are set to NULL (to skip clipping). */
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, v3d, &objects_len);
+      scene, view_layer, v3d, &objects_len);
 
   if (use_orthographic) {
     /* Calculate average object position. */
@@ -2606,7 +2632,9 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
   }
 
   if (changed_multi) {
-    uv_map_clip_correct_multi(objects, objects_len, op, true);
+    const bool per_face_aspect = true;
+    const bool only_selected_uvs = false;
+    uv_map_clip_correct(scene, objects, objects_len, op, per_face_aspect, only_selected_uvs);
   }
 
   MEM_freeN(objects);
@@ -2660,12 +2688,13 @@ void UV_OT_project_from_view(wmOperatorType *ot)
 
 static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, v3d, &objects_len);
+      scene, view_layer, v3d, &objects_len);
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     Mesh *me = (Mesh *)obedit->data;
@@ -2766,10 +2795,16 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
   const Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
 
+  bool only_selected_uvs = false;
+  if (CTX_wm_space_image(C)) {
+    /* Inside the UV Editor, only project selected UVs. */
+    only_selected_uvs = true;
+  }
+
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, v3d, &objects_len);
+      scene, view_layer, v3d, &objects_len);
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -2798,6 +2833,13 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
         continue;
       }
 
+      if (only_selected_uvs) {
+        if (!uvedit_face_select_test(scene, efa, cd_loop_uv_offset)) {
+          uvedit_face_select_disable(scene, em->bm, efa, cd_loop_uv_offset);
+          continue;
+        }
+      }
+
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
@@ -2807,7 +2849,8 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
       uv_map_mirror(em, efa);
     }
 
-    uv_map_clip_correct(obedit, op);
+    const bool per_face_aspect = true;
+    uv_map_clip_correct(scene, &obedit, 1, op, per_face_aspect, only_selected_uvs);
 
     DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
@@ -2864,10 +2907,16 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
   const Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
 
+  bool only_selected_uvs = false;
+  if (CTX_wm_space_image(C)) {
+    /* Inside the UV Editor, only project selected UVs. */
+    only_selected_uvs = true;
+  }
+
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, v3d, &objects_len);
+      scene, view_layer, v3d, &objects_len);
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -2896,16 +2945,21 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
         continue;
       }
 
+      if (only_selected_uvs && !uvedit_face_select_test(scene, efa, cd_loop_uv_offset)) {
+        uvedit_face_select_disable(scene, em->bm, efa, cd_loop_uv_offset);
+        continue;
+      }
+
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-
         uv_cylinder_project(luv->uv, l->v->co, center, rotmat);
       }
 
       uv_map_mirror(em, efa);
     }
 
-    uv_map_clip_correct(obedit, op);
+    const bool per_face_aspect = true;
+    uv_map_clip_correct(scene, &obedit, 1, op, per_face_aspect, only_selected_uvs);
 
     DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
@@ -2939,9 +2993,11 @@ void UV_OT_cylinder_project(wmOperatorType *ot)
 /** \name Cube UV Project Operator
  * \{ */
 
-static void uvedit_unwrap_cube_project(BMesh *bm,
+static void uvedit_unwrap_cube_project(const Scene *scene,
+                                       BMesh *bm,
                                        float cube_size,
-                                       bool use_select,
+                                       const bool use_select,
+                                       const bool only_selected_uvs,
                                        const float center[3])
 {
   BMFace *efa;
@@ -2973,6 +3029,10 @@ static void uvedit_unwrap_cube_project(BMesh *bm,
     if (use_select && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
       continue;
     }
+    if (only_selected_uvs && !uvedit_face_select_test(scene, efa, cd_loop_uv_offset)) {
+      uvedit_face_select_disable(scene, bm, efa, cd_loop_uv_offset);
+      continue;
+    }
 
     axis_dominant_v3(&cox, &coy, efa->no);
 
@@ -2989,13 +3049,19 @@ static int cube_project_exec(bContext *C, wmOperator *op)
   const Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
 
+  bool only_selected_uvs = false;
+  if (CTX_wm_space_image(C)) {
+    /* Inside the UV Editor, only cube project selected UVs. */
+    only_selected_uvs = true;
+  }
+
   PropertyRNA *prop_cube_size = RNA_struct_find_property(op->ptr, "cube_size");
   const float cube_size_init = RNA_property_float_get(op->ptr, prop_cube_size);
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, v3d, &objects_len);
+      scene, view_layer, v3d, &objects_len);
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -3031,9 +3097,10 @@ static int cube_project_exec(bContext *C, wmOperator *op)
       }
     }
 
-    uvedit_unwrap_cube_project(em->bm, cube_size, true, center);
+    uvedit_unwrap_cube_project(scene, em->bm, cube_size, true, only_selected_uvs, center);
 
-    uv_map_clip_correct(obedit, op);
+    const bool per_face_aspect = true;
+    uv_map_clip_correct(scene, &obedit, 1, op, per_face_aspect, only_selected_uvs);
 
     DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
@@ -3101,7 +3168,7 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
   /* select all uv loops first - pack parameters needs this to make sure charts are registered */
   ED_uvedit_select_all(bm);
   /* A cube size of 2.0 maps [-1..1] vertex coords to [0.0..1.0] in UV coords. */
-  uvedit_unwrap_cube_project(bm, 2.0, false, NULL);
+  uvedit_unwrap_cube_project(scene, bm, 2.0, false, false, NULL);
   /* Set the margin really quickly before the packing operation. */
   scene->toolsettings->uvcalc_margin = 0.001f;
   uvedit_pack_islands(scene, ob, bm);

@@ -170,7 +170,7 @@ void walk_modal_keymap(wmKeyConfig *keyconf)
 
   wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "View3D Walk Modal");
 
-  /* this function is called for each spacetype, only needs to add map once */
+  /* This function is called for each space-type, only needs to add map once. */
   if (keymap && keymap->modal_items) {
     return;
   }
@@ -335,7 +335,7 @@ static void drawWalkPixel(const struct bContext *UNUSED(C), ARegion *region, voi
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   immUniformThemeColorAlpha(TH_VIEW_OVERLAY, 1.0f);
 
@@ -1386,6 +1386,7 @@ static int walk_modal(bContext *C, wmOperator *op, const wmEvent *event)
   int exit_code;
   bool do_draw = false;
   WalkInfo *walk = op->customdata;
+  View3D *v3d = walk->v3d;
   RegionView3D *rv3d = walk->rv3d;
   Object *walk_object = ED_view3d_cameracontrol_object_get(walk->v3d_camera_control);
 
@@ -1411,6 +1412,9 @@ static int walk_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   if (exit_code != OPERATOR_RUNNING_MODAL) {
     do_draw = true;
+  }
+  if (exit_code == OPERATOR_FINISHED) {
+    ED_view3d_camera_lock_undo_push(op->type->name, v3d, rv3d, C);
   }
 
   if (do_draw) {

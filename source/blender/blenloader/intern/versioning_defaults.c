@@ -45,6 +45,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
@@ -55,6 +56,8 @@
 
 #include "BLO_readfile.h"
 
+#include "BLT_translation.h"
+
 #include "versioning_common.h"
 
 /* Make preferences read-only, use versioning_userdef.c. */
@@ -63,8 +66,9 @@
 static bool blo_is_builtin_template(const char *app_template)
 {
   /* For all builtin templates shipped with Blender. */
-  return (!app_template ||
-          STR_ELEM(app_template, "2D_Animation", "Sculpting", "VFX", "Video_Editing"));
+  return (
+      !app_template ||
+      STR_ELEM(app_template, N_("2D_Animation"), N_("Sculpting"), N_("VFX"), N_("Video_Editing")));
 }
 
 static void blo_update_defaults_screen(bScreen *screen,
@@ -341,7 +345,8 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
 
   /* Correct default startup UV's. */
   Mesh *me = BLI_findstring(&bmain->meshes, "Cube", offsetof(ID, name) + 2);
-  if (me && (me->totloop == 24) && (me->mloopuv != NULL)) {
+  if (me && (me->totloop == 24) && CustomData_has_layer(&me->ldata, CD_MLOOPUV)) {
+    MLoopUV *mloopuv = CustomData_get_layer(&me->ldata, CD_MLOOPUV);
     const float uv_values[24][2] = {
         {0.625, 0.50}, {0.875, 0.50}, {0.875, 0.75}, {0.625, 0.75}, {0.375, 0.75}, {0.625, 0.75},
         {0.625, 1.00}, {0.375, 1.00}, {0.375, 0.00}, {0.625, 0.00}, {0.625, 0.25}, {0.375, 0.25},
@@ -349,7 +354,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
         {0.625, 0.75}, {0.375, 0.75}, {0.375, 0.25}, {0.625, 0.25}, {0.625, 0.50}, {0.375, 0.50},
     };
     for (int i = 0; i < ARRAY_SIZE(uv_values); i++) {
-      copy_v2_v2(me->mloopuv[i].uv, uv_values[i]);
+      copy_v2_v2(mloopuv[i].uv, uv_values[i]);
     }
   }
 
@@ -488,6 +493,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
         if (layout->screen) {
           bScreen *screen = layout->screen;
           if (!STREQ(screen->id.name + 2, workspace->id.name + 2)) {
+            BKE_main_namemap_remove_name(bmain, &screen->id, screen->id.name + 2);
             BLI_strncpy(screen->id.name + 2, workspace->id.name + 2, sizeof(screen->id.name) - 2);
             BLI_libblock_ensure_unique_name(bmain, screen->id.name);
           }
@@ -576,14 +582,14 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   /* Materials */
   for (Material *ma = bmain->materials.first; ma; ma = ma->id.next) {
     /* Update default material to be a bit more rough. */
-    ma->roughness = 0.4f;
+    ma->roughness = 0.5f;
 
     if (ma->nodetree) {
       LISTBASE_FOREACH (bNode *, node, &ma->nodetree->nodes) {
         if (node->type == SH_NODE_BSDF_PRINCIPLED) {
           bNodeSocket *roughness_socket = nodeFindSocket(node, SOCK_IN, "Roughness");
           bNodeSocketValueFloat *roughness_data = roughness_socket->default_value;
-          roughness_data->value = 0.4f;
+          roughness_data->value = 0.5f;
           node->custom2 = SHD_SUBSURFACE_RANDOM_WALK;
           BKE_ntree_update_tag_node_property(ma->nodetree, node);
         }

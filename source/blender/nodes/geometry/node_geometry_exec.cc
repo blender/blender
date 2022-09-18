@@ -4,3 +4,4 @@
 #include "NOD_geometry_exec.hh"
 
 BLI_CPP_TYPE_MAKE(GeometrySet, GeometrySet, CPPTypeFlags::Printable);
+BLI_CPP_TYPE_MAKE(GeometrySetVector, blender::Vector<GeometrySet>, CPPTypeFlags::None);

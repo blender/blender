@@ -19,8 +19,6 @@
 
 #include "CLG_log.h"
 
-#include "glew-mx.h"
-
 #include "gl_context.hh"
 #include "gl_uniform_buffer.hh"
 
@@ -138,8 +136,8 @@ void init_gl_callbacks()
   char msg[256] = "";
   const char format[] = "Successfully hooked OpenGL debug callback using %s";
 
-  if (GLEW_VERSION_4_3 || GLEW_KHR_debug) {
-    SNPRINTF(msg, format, GLEW_VERSION_4_3 ? "OpenGL 4.3" : "KHR_debug extension");
+  if (epoxy_gl_version() >= 43 || epoxy_has_gl_extension("GL_KHR_debug")) {
+    SNPRINTF(msg, format, epoxy_gl_version() >= 43 ? "OpenGL 4.3" : "KHR_debug extension");
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback((GLDEBUGPROC)debug_callback, nullptr);
@@ -151,7 +149,7 @@ void init_gl_callbacks()
                          -1,
                          msg);
   }
-  else if (GLEW_ARB_debug_output) {
+  else if (epoxy_has_gl_extension("GL_ARB_debug_output")) {
     SNPRINTF(msg, format, "ARB_debug_output");
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallbackARB((GLDEBUGPROCARB)debug_callback, nullptr);
@@ -327,7 +325,8 @@ static const char *to_str_suffix(GLenum type)
 
 void object_label(GLenum type, GLuint object, const char *name)
 {
-  if ((G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
+  if ((G.debug & G_DEBUG_GPU) &&
+      (epoxy_gl_version() >= 43 || epoxy_has_gl_extension("GL_KHR_debug"))) {
     char label[64];
     SNPRINTF(label, "%s%s%s", to_str_prefix(type), name, to_str_suffix(type));
     /* Small convenience for caller. */
@@ -365,7 +364,8 @@ namespace blender::gpu {
 
 void GLContext::debug_group_begin(const char *name, int index)
 {
-  if ((G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
+  if ((G.debug & G_DEBUG_GPU) &&
+      (epoxy_gl_version() >= 43 || epoxy_has_gl_extension("GL_KHR_debug"))) {
     /* Add 10 to avoid collision with other indices from other possible callback layers. */
     index += 10;
     glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, index, -1, name);
@@ -374,7 +374,8 @@ void GLContext::debug_group_begin(const char *name, int index)
 
 void GLContext::debug_group_end()
 {
-  if ((G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
+  if ((G.debug & G_DEBUG_GPU) &&
+      (epoxy_gl_version() >= 43 || epoxy_has_gl_extension("GL_KHR_debug"))) {
     glPopDebugGroup();
   }
 }

@@ -1,8 +1,7 @@
 
 /**
  * Dilate motion vector tiles until we covered maximum velocity.
- * Outputs the largest intersecting motion vector in the neighboorhod.
- *
+ * Outputs the largest intersecting motion vector in the neighborhood.
  */
 
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
@@ -20,7 +19,7 @@ MotionRect compute_motion_rect(ivec2 tile, vec2 motion)
 #if DEBUG_BYPASS_DILATION
   return MotionRect(tile, ivec2(1));
 #endif
-  /* Ceil to number of tile touched.*/
+  /* Ceil to number of tile touched. */
   ivec2 point1 = tile + ivec2(sign(motion) * ceil(abs(motion) / float(MOTION_BLUR_TILE_SIZE)));
   ivec2 point2 = tile;
 
@@ -62,7 +61,7 @@ bool is_inside_motion_line(ivec2 tile, MotionLine motion_line)
   /* NOTE: Everything in is tile unit. */
   float dist = point_line_projection_dist(vec2(tile), motion_line.origin, motion_line.normal);
   /* In order to be conservative and for simplicity, we use the tiles bounding circles.
-   * Consider that both the tile and the line have bouding radius of M_SQRT1_2. */
+   * Consider that both the tile and the line have bounding radius of M_SQRT1_2. */
   return abs(dist) < M_SQRT2;
 }
 

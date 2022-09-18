@@ -25,15 +25,23 @@ extern "C" {
  */
 typedef struct MVert {
   float co[3];
-  char flag, bweight;
+  char flag;
+  /**
+   * Deprecated bevel weight storage, now located in #CD_BWEIGHT, except for file read and write.
+   */
+  char bweight_legacy;
   char _pad[2];
 } MVert;
 
 /** #MVert.flag */
+
+#ifdef DNA_DEPRECATED_ALLOW
 enum {
   /*  SELECT = (1 << 0), */
+  /** Deprecated hide status. Now stored in ".hide_vert" attribute. */
   ME_HIDE = (1 << 4),
 };
+#endif
 
 /**
  * Mesh Edges.
@@ -43,7 +51,11 @@ enum {
 typedef struct MEdge {
   /** Un-ordered vertex indices (cannot match). */
   unsigned int v1, v2;
-  char crease, bweight;
+  char crease;
+  /**
+   * Deprecated bevel weight storage, now located in #CD_BWEIGHT, except for file read and write.
+   */
+  char bweight_legacy;
   short flag;
 } MEdge;
 
@@ -52,10 +64,10 @@ enum {
   /*  SELECT = (1 << 0), */
   ME_EDGEDRAW = (1 << 1),
   ME_SEAM = (1 << 2),
+  /** Deprecated hide status. Now stored in ".hide_edge" attribute. */
   /*  ME_HIDE = (1 << 4), */
   ME_EDGERENDER = (1 << 5),
   ME_LOOSEEDGE = (1 << 7),
-  ME_EDGE_TMP_TAG = (1 << 8),
   ME_SHARP = (1 << 9), /* only reason this flag remains a 'short' */
 };
 
@@ -70,7 +82,8 @@ typedef struct MPoly {
   int loopstart;
   /** Keep signed since we need to subtract when getting the previous loop. */
   int totloop;
-  short mat_nr;
+  /** Deprecated material index. Now stored in the "material_index" attribute, but kept for IO. */
+  short mat_nr_legacy;
   char flag, _pad;
 } MPoly;
 
@@ -78,6 +91,7 @@ typedef struct MPoly {
 enum {
   ME_SMOOTH = (1 << 0),
   ME_FACE_SEL = (1 << 1),
+  /** Deprecated hide status. Now stored in ".hide_poly" attribute. */
   /* ME_HIDE = (1 << 4), */
 };
 
@@ -151,8 +165,8 @@ enum {
  *
  * Usage examples:
  * \code{.c}
- * // access original material.
- * short mat_nr = mpoly[lt->poly].mat_nr;
+ * // access polygon attribute value.
+ * T value = polygon_attribute[lt->poly];
  *
  * // access vertex locations.
  * float *vtri_co[3] = {
@@ -352,7 +366,7 @@ typedef struct MDisps {
 
   /**
    * Used for hiding parts of a multires mesh.
-   * Essentially the multires equivalent of #MVert.flag's ME_HIDE bit.
+   * Essentially the multires equivalent of the mesh ".hide_vert" boolean layer.
    *
    * \note This is a bitmap, keep in sync with type used in BLI_bitmap.h
    */

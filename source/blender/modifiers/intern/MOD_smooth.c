@@ -63,9 +63,7 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   return false;
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   SmoothModifierData *smd = (SmoothModifierData *)md;
 
@@ -99,10 +97,10 @@ static void smoothModifier_do(
   const float fac_orig = 1.0f - fac_new;
   const bool invert_vgroup = (smd->flag & MOD_SMOOTH_INVERT_VGROUP) != 0;
 
-  MEdge *medges = mesh->medge;
+  const MEdge *medges = BKE_mesh_edges(mesh);
   const int edges_num = mesh->totedge;
 
-  MDeformVert *dvert;
+  const MDeformVert *dvert;
   int defgrp_index;
   MOD_get_vgroup(ob, mesh, smd->defgrp_name, &dvert, &defgrp_index);
 
@@ -128,7 +126,7 @@ static void smoothModifier_do(
 
     const short flag = smd->flag;
     if (dvert) {
-      MDeformVert *dv = dvert;
+      const MDeformVert *dv = dvert;
       for (int i = 0; i < verts_num; i++, dv++) {
         float *vco_orig = vertexCos[i];
         if (accumulated_vecs_count[i] > 0) {
@@ -190,7 +188,7 @@ static void deformVerts(ModifierData *md,
   Mesh *mesh_src = NULL;
 
   /* mesh_src is needed for vgroups, and taking edges into account. */
-  mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false, false);
+  mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false);
 
   smoothModifier_do(smd, ctx->object, mesh_src, vertexCos, verts_num);
 
@@ -210,9 +208,9 @@ static void deformVertsEM(ModifierData *md,
   Mesh *mesh_src = NULL;
 
   /* mesh_src is needed for vgroups, and taking edges into account. */
-  mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, verts_num, false, false);
+  mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, verts_num, false);
 
-  /* TODO(campbell): use edit-mode data only (remove this line). */
+  /* TODO(@campbellbarton): use edit-mode data only (remove this line). */
   BKE_mesh_wrapper_ensure_mdata(mesh_src);
 
   smoothModifier_do(smd, ctx->object, mesh_src, vertexCos, verts_num);

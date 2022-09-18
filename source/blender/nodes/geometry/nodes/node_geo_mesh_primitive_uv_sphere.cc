@@ -254,7 +254,7 @@ BLI_NOINLINE static void calculate_sphere_corners(MutableSpan<MLoop> loops,
 
 BLI_NOINLINE static void calculate_sphere_uvs(Mesh *mesh, const float segments, const float rings)
 {
-  MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*mesh);
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
   SpanAttributeWriter<float2> uv_attribute = attributes.lookup_or_add_for_write_only_span<float2>(
       "uv_map", ATTR_DOMAIN_CORNER);
@@ -301,10 +301,10 @@ static Mesh *create_uv_sphere_mesh(const float radius, const int segments, const
                                    sphere_corner_total(segments, rings),
                                    sphere_face_total(segments, rings));
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
-  MutableSpan<MVert> verts{mesh->mvert, mesh->totvert};
-  MutableSpan<MLoop> loops{mesh->mloop, mesh->totloop};
-  MutableSpan<MEdge> edges{mesh->medge, mesh->totedge};
-  MutableSpan<MPoly> polys{mesh->mpoly, mesh->totpoly};
+  MutableSpan<MVert> verts = mesh->verts_for_write();
+  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
+  MutableSpan<MLoop> loops = mesh->loops_for_write();
 
   threading::parallel_invoke(
       1024 < segments * rings,

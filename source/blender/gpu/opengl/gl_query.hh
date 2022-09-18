@@ -11,7 +11,7 @@
 
 #include "gpu_query.hh"
 
-#include "glew-mx.h"
+#include <epoxy/gl.h>
 
 namespace blender::gpu {
 

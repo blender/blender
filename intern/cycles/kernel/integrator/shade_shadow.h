@@ -4,7 +4,7 @@
 #pragma once
 
 #include "kernel/integrator/shade_volume.h"
-#include "kernel/integrator/shader_eval.h"
+#include "kernel/integrator/surface_shader.h"
 #include "kernel/integrator/volume_stack.h"
 
 CCL_NAMESPACE_BEGIN
@@ -15,9 +15,9 @@ ccl_device_inline bool shadow_intersections_has_remaining(const uint num_hits)
 }
 
 #ifdef __TRANSPARENT_SHADOWS__
-ccl_device_inline float3 integrate_transparent_surface_shadow(KernelGlobals kg,
-                                                              IntegratorShadowState state,
-                                                              const int hit)
+ccl_device_inline Spectrum integrate_transparent_surface_shadow(KernelGlobals kg,
+                                                                IntegratorShadowState state,
+                                                                const int hit)
 {
   PROFILING_INIT(kg, PROFILING_SHADE_SHADOW_SURFACE);
 
@@ -40,7 +40,7 @@ ccl_device_inline float3 integrate_transparent_surface_shadow(KernelGlobals kg,
 
   /* Evaluate shader. */
   if (!(shadow_sd->flag & SD_HAS_ONLY_VOLUME)) {
-    shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
+    surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
         kg, state, shadow_sd, NULL, PATH_RAY_SHADOW);
   }
 
@@ -50,7 +50,7 @@ ccl_device_inline float3 integrate_transparent_surface_shadow(KernelGlobals kg,
 #  endif
 
   /* Compute transparency from closures. */
-  return shader_bsdf_transparency(kg, shadow_sd);
+  return surface_shader_transparency(kg, shadow_sd);
 }
 
 #  ifdef __VOLUME__
@@ -58,7 +58,7 @@ ccl_device_inline void integrate_transparent_volume_shadow(KernelGlobals kg,
                                                            IntegratorShadowState state,
                                                            const int hit,
                                                            const int num_recorded_hits,
-                                                           ccl_private float3 *ccl_restrict
+                                                           ccl_private Spectrum *ccl_restrict
                                                                throughput)
 {
   PROFILING_INIT(kg, PROFILING_SHADE_SHADOW_VOLUME);
@@ -100,7 +100,7 @@ ccl_device_inline bool integrate_transparent_shadow(KernelGlobals kg,
     if (hit < num_recorded_hits || !shadow_intersections_has_remaining(num_hits)) {
 #  ifdef __VOLUME__
       if (!integrator_state_shadow_volume_stack_is_empty(kg, state)) {
-        float3 throughput = INTEGRATOR_STATE(state, shadow_path, throughput);
+        Spectrum throughput = INTEGRATOR_STATE(state, shadow_path, throughput);
         integrate_transparent_volume_shadow(kg, state, hit, num_recorded_hits, &throughput);
         if (is_zero(throughput)) {
           return true;
@@ -113,8 +113,8 @@ ccl_device_inline bool integrate_transparent_shadow(KernelGlobals kg,
 
     /* Surface shaders. */
     if (hit < num_recorded_hits) {
-      const float3 shadow = integrate_transparent_surface_shadow(kg, state, hit);
-      const float3 throughput = INTEGRATOR_STATE(state, shadow_path, throughput) * shadow;
+      const Spectrum shadow = integrate_transparent_surface_shadow(kg, state, hit);
+      const Spectrum throughput = INTEGRATOR_STATE(state, shadow_path, throughput) * shadow;
       if (is_zero(throughput)) {
         return true;
       }
@@ -165,7 +165,7 @@ ccl_device void integrator_shade_shadow(KernelGlobals kg,
     return;
   }
   else {
-    kernel_accum_light(kg, state, render_buffer);
+    film_write_direct_light(kg, state, render_buffer);
     integrator_shadow_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
     return;
   }

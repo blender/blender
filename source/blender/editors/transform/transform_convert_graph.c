@@ -14,6 +14,7 @@
 
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
+#include "BKE_layer.h"
 #include "BKE_nla.h"
 #include "BKE_report.h"
 
@@ -638,7 +639,7 @@ static bool fcu_test_selected(FCurve *fcu)
   return 0;
 }
 
-/* this function is called on recalcData to apply the transforms applied
+/* This function is called on recalcData to apply the transforms applied
  * to the transdata on to the actual keyframe data
  */
 static void flushTransGraphData(TransInfo *t)
@@ -907,12 +908,14 @@ static void recalcData_graphedit(TransInfo *t)
   bAnimListElem *ale;
   int dosort = 0;
 
+  BKE_view_layer_synced_ensure(t->scene, t->view_layer);
+
   /* initialize relevant anim-context 'context' data from TransInfo data */
   /* NOTE: sync this with the code in ANIM_animdata_get_context() */
   ac.bmain = CTX_data_main(t->context);
   ac.scene = t->scene;
   ac.view_layer = t->view_layer;
-  ac.obact = OBACT(view_layer);
+  ac.obact = BKE_view_layer_active_object_get(view_layer);
   ac.area = t->area;
   ac.region = t->region;
   ac.sl = (t->area) ? t->area->spacedata.first : NULL;

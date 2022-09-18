@@ -497,9 +497,6 @@ void Scene::update_kernel_features()
   if (params.hair_shape == CURVE_THICK) {
     kernel_features |= KERNEL_FEATURE_HAIR_THICK;
   }
-  if (use_motion && camera->use_motion()) {
-    kernel_features |= KERNEL_FEATURE_CAMERA_MOTION;
-  }
 
   /* Figure out whether the scene will use shader ray-trace we need at least
    * one caustic light, one caustic caster and one caustic receiver to use
@@ -519,9 +516,6 @@ void Scene::update_kernel_features()
     if (use_motion) {
       if (object->use_motion() || geom->get_use_motion_blur()) {
         kernel_features |= KERNEL_FEATURE_OBJECT_MOTION;
-      }
-      if (geom->get_use_motion_blur()) {
-        kernel_features |= KERNEL_FEATURE_CAMERA_MOTION;
       }
     }
     if (object->get_is_shadow_catcher()) {
@@ -590,8 +584,6 @@ static void log_kernel_features(const uint features)
 {
   VLOG_INFO << "Requested features:\n";
   VLOG_INFO << "Use BSDF " << string_from_bool(features & KERNEL_FEATURE_NODE_BSDF) << "\n";
-  VLOG_INFO << "Use Principled BSDF " << string_from_bool(features & KERNEL_FEATURE_PRINCIPLED)
-            << "\n";
   VLOG_INFO << "Use Emission " << string_from_bool(features & KERNEL_FEATURE_NODE_EMISSION)
             << "\n";
   VLOG_INFO << "Use Volume " << string_from_bool(features & KERNEL_FEATURE_NODE_VOLUME) << "\n";
@@ -610,8 +602,6 @@ static void log_kernel_features(const uint features)
   VLOG_INFO << "Use Pointclouds " << string_from_bool(features & KERNEL_FEATURE_POINTCLOUD)
             << "\n";
   VLOG_INFO << "Use Object Motion " << string_from_bool(features & KERNEL_FEATURE_OBJECT_MOTION)
-            << "\n";
-  VLOG_INFO << "Use Camera Motion " << string_from_bool(features & KERNEL_FEATURE_CAMERA_MOTION)
             << "\n";
   VLOG_INFO << "Use Baking " << string_from_bool(features & KERNEL_FEATURE_BAKING) << "\n";
   VLOG_INFO << "Use Subsurface " << string_from_bool(features & KERNEL_FEATURE_SUBSURFACE) << "\n";

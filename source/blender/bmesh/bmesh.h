@@ -148,7 +148,7 @@
  *
  * These conventions should be used throughout the bmesh module.
  *
- * - `bmesh_kernel_*()` - Low level API, for primitive functions that others are built ontop of.
+ * - `bmesh_kernel_*()` - Low level API, for primitive functions that others are built on top of.
  * - `bmesh_***()` - Low level API function.
  * - `bm_***()` -     'static' functions, not a part of the API at all,
  *   but use prefix since they operate on BMesh data.

@@ -16,7 +16,6 @@ set(INC
   ../../sequencer
   ../../windowmanager
   ../../../../intern/clog
-  ../../../../intern/glew-mx
   ../../../../intern/atomic
   ../../../../intern/guardedalloc
   # RNA_prototypes.h
@@ -84,7 +83,6 @@ set(SRC
   ../include/ED_transform.h
   ../include/ED_transform_snap_object_context.h
   ../include/ED_transverts.h
-  ../include/ED_types.h
   ../include/ED_undo.h
   ../include/ED_userpref.h
   ../include/ED_util.h

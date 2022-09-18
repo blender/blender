@@ -170,7 +170,7 @@ static void gather_point_data_from_component(GeoNodeExecParams &params,
       "position", ATTR_DOMAIN_POINT, {0, 0, 0});
 
   Field<float> radius_field = params.get_input<Field<float>>("Radius");
-  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
+  bke::GeometryFieldContext field_context{component, ATTR_DOMAIN_POINT};
   const int domain_num = component.attribute_domain_size(ATTR_DOMAIN_POINT);
 
   r_positions.resize(r_positions.size() + domain_num);

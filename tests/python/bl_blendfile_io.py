@@ -33,7 +33,7 @@ class TestBlendFileSaveLoadBasic(TestHelper):
         read_data = self.blender_data_to_tuple(bpy.data, "read_data 1")
 
         # We have orphaned data, which should be removed by file reading, so there should not be equality here.
-        assert(orig_data != read_data)
+        assert orig_data != read_data
 
         bpy.data.orphans_purge()
 
@@ -44,7 +44,7 @@ class TestBlendFileSaveLoadBasic(TestHelper):
 
         read_data = self.blender_data_to_tuple(bpy.data, "read_data 2")
 
-        assert(orig_data == read_data)
+        assert orig_data == read_data
 
 
 TESTS = (

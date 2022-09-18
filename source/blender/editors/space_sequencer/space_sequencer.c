@@ -229,7 +229,7 @@ static void sequencer_free(SpaceLink *sl)
   }
 }
 
-/* Spacetype init callback. */
+/* Space-type init callback. */
 static void sequencer_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
 {
 }
@@ -374,7 +374,7 @@ static SpaceLink *sequencer_duplicate(SpaceLink *sl)
 static void sequencer_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* Context changes. */
   switch (wmn->category) {
@@ -630,7 +630,7 @@ static void sequencer_main_region_view2d_changed(const bContext *C, ARegion *reg
 static void sequencer_main_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* Context changes. */
   switch (wmn->category) {
@@ -862,7 +862,7 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
 static void sequencer_preview_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   WM_gizmomap_tag_refresh(region->gizmo_map);
 
@@ -933,7 +933,7 @@ static void sequencer_buttons_region_draw(const bContext *C, ARegion *region)
 static void sequencer_buttons_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* Context changes. */
   switch (wmn->category) {
@@ -997,7 +997,7 @@ void ED_spacetype_sequencer(void)
   ARegionType *art;
 
   st->spaceid = SPACE_SEQ;
-  strncpy(st->name, "Sequencer", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "Sequencer");
 
   st->create = sequencer_create;
   st->free = sequencer_free;

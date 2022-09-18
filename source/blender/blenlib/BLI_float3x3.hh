@@ -63,6 +63,15 @@ struct float3x3 {
     return result;
   }
 
+  static float3x3 from_scale(const float2 scale)
+  {
+    float3x3 result = zero();
+    result.values[0][0] = scale.x;
+    result.values[1][1] = scale.y;
+    result.values[2][2] = 1.0f;
+    return result;
+  }
+
   static float3x3 from_translation_rotation_scale(const float2 translation,
                                                   float rotation,
                                                   const float2 scale)
@@ -188,6 +197,13 @@ struct float3x3 {
     float3x3 result;
     invert_m3_m3(result.values, values);
     return result;
+  }
+
+  float2 scale_2d() const
+  {
+    float2 scale;
+    mat3_to_size_2d(scale, values);
+    return scale;
   }
 
   friend bool operator==(const float3x3 &a, const float3x3 &b)

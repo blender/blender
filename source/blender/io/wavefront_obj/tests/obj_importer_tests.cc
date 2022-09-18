@@ -8,11 +8,12 @@
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_main.h"
+#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math_base.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_vec_types.hh"
 
 #include "BLO_readfile.h"
@@ -47,7 +48,8 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
   void import_and_check(const char *path,
                         const Expectation *expect,
                         size_t expect_count,
-                        int expect_mat_count)
+                        int expect_mat_count,
+                        int expect_image_count = 0)
   {
     if (!blendfile_load("io_tests/blend_geometry/all_quads.blend")) {
       ADD_FAILURE();
@@ -60,6 +62,8 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
     params.up_axis = IO_AXIS_Y;
     params.validate_meshes = true;
     params.import_vertex_groups = false;
+    params.relative_paths = true;
+    params.clear_selection = true;
 
     std::string obj_path = blender::tests::flags_test_asset_dir() + "/io_tests/obj/" + path;
     strncpy(params.filepath, obj_path.c_str(), FILE_MAX - 1);
@@ -92,8 +96,9 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
         EXPECT_EQ(mesh->totedge, exp.mesh_totedge_or_curve_endp);
         EXPECT_EQ(mesh->totpoly, exp.mesh_totpoly_or_curve_order);
         EXPECT_EQ(mesh->totloop, exp.mesh_totloop_or_curve_cyclic);
-        EXPECT_V3_NEAR(mesh->mvert[0].co, exp.vert_first, 0.0001f);
-        EXPECT_V3_NEAR(mesh->mvert[mesh->totvert - 1].co, exp.vert_last, 0.0001f);
+        const Span<MVert> verts = mesh->verts();
+        EXPECT_V3_NEAR(verts.first().co, exp.vert_first, 0.0001f);
+        EXPECT_V3_NEAR(verts.last().co, exp.vert_last, 0.0001f);
         const float3 *lnors = (const float3 *)(CustomData_get_layer(&mesh->ldata, CD_NORMAL));
         float3 normal_first = lnors != nullptr ? lnors[0] : float3(0, 0, 0);
         EXPECT_V3_NEAR(normal_first, exp.normal_first, 0.0001f);
@@ -132,12 +137,12 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
     DEG_OBJECT_ITER_END;
     EXPECT_EQ(object_index, expect_count);
 
-    /* Count number of materials. */
-    int mat_count = 0;
-    LISTBASE_FOREACH (ID *, id, &bfile->main->materials) {
-      ++mat_count;
-    }
+    /* Check number of materials & textures. */
+    const int mat_count = BLI_listbase_count(&bfile->main->materials);
     EXPECT_EQ(mat_count, expect_mat_count);
+
+    const int ima_count = BLI_listbase_count(&bfile->main->images);
+    EXPECT_EQ(ima_count, expect_image_count);
   }
 };
 
@@ -176,7 +181,7 @@ TEST_F(obj_importer_test, import_cube_o_after_verts)
       {
           "OBSparseTri",
           OB_MESH,
-          6,
+          3,
           3,
           1,
           3,
@@ -288,7 +293,7 @@ TEST_F(obj_importer_test, import_nurbs_mesh)
 {
   Expectation expect[] = {
       {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
-      {"OBTorus Knot",
+      {"OBTorus_Knot",
        OB_MESH,
        108,
        108,
@@ -306,7 +311,55 @@ TEST_F(obj_importer_test, import_materials)
       {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
       {"OBmaterials", OB_MESH, 8, 12, 6, 24, float3(-1, -1, 1), float3(1, -1, -1)},
   };
-  import_and_check("materials.obj", expect, std::size(expect), 4);
+  import_and_check("materials.obj", expect, std::size(expect), 4, 8);
+}
+
+TEST_F(obj_importer_test, import_cubes_with_textures_rel)
+{
+  Expectation expect[] = {
+      {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
+      {"OBCube4Tex",
+       OB_MESH,
+       8,
+       12,
+       6,
+       24,
+       float3(1, 1, -1),
+       float3(-1, -1, 1),
+       float3(0, 1, 0),
+       float2(0.9935f, 0.0020f)},
+      {"OBCubeTexMul",
+       OB_MESH,
+       8,
+       12,
+       6,
+       24,
+       float3(4, -2, -1),
+       float3(2, -4, 1),
+       float3(0, 1, 0),
+       float2(0.9935f, 0.0020f)},
+      {"OBCubeTiledTex",
+       OB_MESH,
+       8,
+       12,
+       6,
+       24,
+       float3(4, 1, -1),
+       float3(2, -1, 1),
+       float3(0, 1, 0),
+       float2(0.9935f, 0.0020f)},
+      {"OBCubeTiledTexFromAnotherFolder",
+       OB_MESH,
+       8,
+       12,
+       6,
+       24,
+       float3(7, 1, -1),
+       float3(5, -1, 1),
+       float3(0, 1, 0),
+       float2(0.9935f, 0.0020f)},
+  };
+  import_and_check("cubes_with_textures_rel.obj", expect, std::size(expect), 4, 4);
 }
 
 TEST_F(obj_importer_test, import_faces_invalid_or_with_holes)

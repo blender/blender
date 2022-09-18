@@ -14,9 +14,6 @@ struct Scene;
 struct SpaceImage;
 struct wmOperatorType;
 
-/* geometric utilities */
-void uv_poly_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy, int len);
-
 /* find nearest */
 
 typedef struct UvNearestHit {

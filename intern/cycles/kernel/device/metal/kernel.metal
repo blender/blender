@@ -180,11 +180,6 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
   }
 #  endif
 
-  if (intersection_skip_self_shadow(payload.self, object, prim)) {
-    /* continue search */
-    return true;
-  }
-
   const float u = barycentrics.x;
   const float v = barycentrics.y;
   int type = 0;
@@ -204,6 +199,11 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
     }
   }
 #  endif
+
+  if (intersection_skip_self_shadow(payload.self, object, prim)) {
+    /* continue search */
+    return true;
+  }
 
 #  ifndef __TRANSPARENT_SHADOWS__
   /* No transparent shadows support compiled in, make opaque. */
@@ -321,7 +321,7 @@ inline TReturnType metalrt_visibility_test(
     constant KernelParamsMetal &launch_params_metal,
     ray_data MetalKernelContext::MetalRTIntersectionPayload &payload,
     const uint object,
-    const uint prim,
+    uint prim,
     const float u)
 {
   TReturnType result;
@@ -345,6 +345,14 @@ inline TReturnType metalrt_visibility_test(
     return result;
   }
 #endif
+
+  if (intersection_type == METALRT_HIT_TRIANGLE) {
+  }
+#  ifdef __HAIR__
+  else {
+    prim = kernel_data_fetch(curve_segments, prim).prim;
+  }
+#  endif
 
   /* Shadow ray early termination. */
   if (visibility & PATH_RAY_SHADOW_OPAQUE) {

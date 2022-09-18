@@ -954,9 +954,9 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
               continue;
             }
 
-            MPoly *mp1 = ss->mpoly + map->indices[0];
-            MPoly *mp2 = ss->mpoly + map->indices[1];
-            MLoop *ml;
+            const MPoly *mp1 = ss->mpoly + map->indices[0];
+            const MPoly *mp2 = ss->mpoly + map->indices[1];
+            const MLoop *ml;
             int ml1 = -1, ml2 = -1;
 
             ml = ss->mloop + mp1->loopstart;
@@ -1643,7 +1643,7 @@ static void do_cloth_brush_solve_simulation_task_cb_ex(
     copy_v3_v3(vd.co, cloth_sim->pos[vd.index]);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -2189,9 +2189,9 @@ SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
     if (SCULPT_has_persistent_base(ss)) {
       SCULPT_ensure_persistent_layers(ss, ob);
 
-      cloth_sim->cd_pers_co = ss->scl.persistent_co->cd_offset;
-      cloth_sim->cd_pers_no = ss->scl.persistent_no->cd_offset;
-      cloth_sim->cd_pers_disp = ss->scl.persistent_disp->cd_offset;
+      cloth_sim->cd_pers_co = ss->attrs.persistent_co->bmesh_cd_offset;
+      cloth_sim->cd_pers_no = ss->attrs.persistent_no->bmesh_cd_offset;
+      cloth_sim->cd_pers_disp = ss->attrs.persistent_disp->bmesh_cd_offset;
     }
     else {
       cloth_sim->cd_pers_co = cloth_sim->cd_pers_no = cloth_sim->cd_pers_disp = -1;
@@ -2829,7 +2829,7 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   /* Needs mask data to be available as it is used when solving the constraints. */
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
-  SCULPT_undo_push_begin(ob, "Cloth filter");
+  SCULPT_undo_push_begin(ob, op);
   SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS);
 
   ss->filter_cache->automasking = SCULPT_automasking_cache_init(sd, NULL, ob);

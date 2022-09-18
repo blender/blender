@@ -867,7 +867,7 @@ uint DDSHeader::d3d9Format() const
   return findD3D9Format(pf.bitcount, pf.rmask, pf.gmask, pf.bmask, pf.amask);
 }
 
-DirectDrawSurface::DirectDrawSurface(unsigned char *mem, uint size) : stream(mem, size), header()
+DirectDrawSurface::DirectDrawSurface(uchar *mem, uint size) : stream(mem, size), header()
 {
   mem_read(stream, header);
 
@@ -942,7 +942,7 @@ bool DirectDrawSurface::isSupported() const
 
   if (isTextureCube() &&
       (header.caps.caps2 & DDSCAPS2_CUBEMAP_ALL_FACES) != DDSCAPS2_CUBEMAP_ALL_FACES) {
-    /* Cubemaps must contain all faces. */
+    /* Cube-maps must contain all faces. */
     return false;
   }
 
@@ -1112,7 +1112,7 @@ void *DirectDrawSurface::readData(uint &rsize)
   uint size = stream.size - header_size;
   rsize = size;
 
-  unsigned char *data = (unsigned char *)malloc(sizeof(*data) * size);
+  uchar *data = (uchar *)malloc(sizeof(*data) * size);
 
   stream.seek(header_size);
   mem_read(stream, data, size);
@@ -1158,7 +1158,7 @@ void DirectDrawSurface::readLinearImage(Image *img)
   for (uint y = 0; y < h; y++) {
     for (uint x = 0; x < w; x++) {
       uint c = 0;
-      mem_read(stream, (unsigned char *)(&c), byteCount);
+      mem_read(stream, (uchar *)(&c), byteCount);
 
       Color32 pixel(0, 0, 0, 0xFF);
       pixel.r = PixelFormat::convert((c & header.pf.rmask) >> rshift, rsize, 8);

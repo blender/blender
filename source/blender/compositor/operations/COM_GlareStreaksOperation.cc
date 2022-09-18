@@ -7,7 +7,7 @@ namespace blender::compositor {
 
 void GlareStreaksOperation::generate_glare(float *data,
                                            MemoryBuffer *input_tile,
-                                           NodeGlare *settings)
+                                           const NodeGlare *settings)
 {
   int x, y, n;
   unsigned int nump = 0;

@@ -318,4 +318,19 @@ class IndexRange {
   Span<int64_t> as_span_internal() const;
 };
 
+struct AlignedIndexRanges {
+  IndexRange prefix;
+  IndexRange aligned;
+  IndexRange suffix;
+};
+
+/**
+ * Split a range into three parts so that the boundaries of the middle part are aligned to some
+ * power of two.
+ *
+ * This can be used when an algorithm can be optimized on aligned indices/memory. The algorithm
+ * then needs a slow path for the beginning and end, and a fast path for the aligned elements.
+ */
+AlignedIndexRanges split_index_range_by_alignment(const IndexRange range, const int64_t alignment);
+
 }  // namespace blender

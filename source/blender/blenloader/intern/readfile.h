@@ -17,6 +17,10 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h" /* for eReportType */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BLI_mmap_file;
 struct BLOCacheStorage;
 struct IDNameLib_Map;
@@ -38,6 +42,7 @@ enum eFileDataFlag {
   /* XXX Unused in practice (checked once but never set). */
   FD_FLAGS_NOT_MY_LIBMAP = 1 << 5,
 };
+ENUM_OPERATORS(eFileDataFlag, FD_FLAGS_NOT_MY_LIBMAP)
 
 /* Disallow since it's 32bit on ms-windows. */
 #ifdef __GNUC__
@@ -207,6 +212,7 @@ void blo_do_versions_270(struct FileData *fd, struct Library *lib, struct Main *
 void blo_do_versions_280(struct FileData *fd, struct Library *lib, struct Main *bmain);
 void blo_do_versions_290(struct FileData *fd, struct Library *lib, struct Main *bmain);
 void blo_do_versions_300(struct FileData *fd, struct Library *lib, struct Main *bmain);
+void blo_do_versions_400(struct FileData *fd, struct Library *lib, struct Main *bmain);
 void blo_do_versions_cycles(struct FileData *fd, struct Library *lib, struct Main *bmain);
 
 void do_versions_after_linking_250(struct Main *bmain);
@@ -224,3 +230,7 @@ void do_versions_after_linking_cycles(struct Main *bmain);
  * but better use that nasty hack in do_version than readfile itself.
  */
 void *blo_read_get_new_globaldata_address(struct FileData *fd, const void *adr);
+
+#ifdef __cplusplus
+}
+#endif

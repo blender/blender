@@ -13,7 +13,6 @@ set(INC
   ../../makesrna
   ../../windowmanager
   ../../../../intern/eigen
-  ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -23,7 +22,7 @@ set(INC
 set(SRC
   uvedit_buttons.c
   uvedit_draw.c
-  uvedit_islands.c
+  uvedit_islands.cc
   uvedit_ops.c
   uvedit_path.c
   uvedit_rip.c

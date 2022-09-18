@@ -14,7 +14,7 @@ MapUVNode::MapUVNode(bNode *editor_node) : Node(editor_node)
 void MapUVNode::convert_to_operations(NodeConverter &converter,
                                       const CompositorContext & /*context*/) const
 {
-  bNode *node = this->get_bnode();
+  const bNode *node = this->get_bnode();
 
   MapUVOperation *operation = new MapUVOperation();
   operation->set_alpha((float)node->custom1);

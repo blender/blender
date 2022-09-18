@@ -52,6 +52,11 @@ void Instance::init(const int2 &output_res,
   drw_view = drw_view_;
   v3d = v3d_;
   rv3d = rv3d_;
+  manager = DRW_manager_get();
+
+  if (assign_if_different(debug_mode, (eDebugMode)G.debug_value)) {
+    sampling.reset();
+  }
 
   info = "";
 
@@ -61,6 +66,7 @@ void Instance::init(const int2 &output_res,
   camera.init();
   film.init(output_res, output_rect);
   velocity.init();
+  depth_of_field.init();
   motion_blur.init();
   main_view.init();
 }
@@ -95,10 +101,14 @@ void Instance::begin_sync()
 {
   materials.begin_sync();
   velocity.begin_sync(); /* NOTE: Also syncs camera. */
+  lights.begin_sync();
+  cryptomatte.begin_sync();
 
   gpencil_engine_enabled = false;
 
+  depth_of_field.sync();
   motion_blur.sync();
+  hiz_buffer.sync();
   pipelines.sync();
   main_view.sync();
   world.sync();
@@ -107,7 +117,7 @@ void Instance::begin_sync()
 
 void Instance::object_sync(Object *ob)
 {
-  const bool is_renderable_type = ELEM(ob->type, OB_CURVES, OB_GPENCIL, OB_MESH);
+  const bool is_renderable_type = ELEM(ob->type, OB_CURVES, OB_GPENCIL, OB_MESH, OB_LAMP);
   const int ob_visibility = DRW_object_visibility_in_active_context(ob);
   const bool partsys_is_visible = (ob_visibility & OB_VISIBLE_PARTICLES) != 0 &&
                                   (ob->type == OB_MESH);
@@ -118,12 +128,16 @@ void Instance::object_sync(Object *ob)
     return;
   }
 
+  /* TODO cleanup. */
+  ObjectRef ob_ref = DRW_object_ref_get(ob);
+  ResourceHandle res_handle = manager->resource_handle(ob_ref);
+
   ObjectHandle &ob_handle = sync.sync_object(ob);
 
   if (partsys_is_visible && ob != DRW_context_state_get()->object_edit) {
     LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
       if (md->type == eModifierType_ParticleSystem) {
-        sync.sync_curves(ob, ob_handle, md);
+        sync.sync_curves(ob, ob_handle, res_handle, md);
       }
     }
   }
@@ -131,22 +145,18 @@ void Instance::object_sync(Object *ob)
   if (object_is_visible) {
     switch (ob->type) {
       case OB_LAMP:
+        lights.sync_light(ob, ob_handle);
         break;
       case OB_MESH:
-      case OB_CURVES_LEGACY:
-      case OB_SURF:
-      case OB_FONT:
-      case OB_MBALL: {
-        sync.sync_mesh(ob, ob_handle);
+        sync.sync_mesh(ob, ob_handle, res_handle, ob_ref);
         break;
-      }
       case OB_VOLUME:
         break;
       case OB_CURVES:
-        sync.sync_curves(ob, ob_handle);
+        sync.sync_curves(ob, ob_handle, res_handle);
         break;
       case OB_GPENCIL:
-        sync.sync_gpencil(ob, ob_handle);
+        sync.sync_gpencil(ob, ob_handle, res_handle);
         break;
       default:
         break;
@@ -170,8 +180,10 @@ void Instance::object_sync_render(void *instance_,
 void Instance::end_sync()
 {
   velocity.end_sync();
+  lights.end_sync();
   sampling.end_sync();
   film.end_sync();
+  cryptomatte.end_sync();
 }
 
 void Instance::render_sync()
@@ -226,10 +238,15 @@ void Instance::render_read_result(RenderLayer *render_layer, const char *view_na
       continue;
     }
 
-    const char *pass_name = Film::pass_to_render_pass_name(pass_type);
-    RenderPass *rp = RE_pass_find_by_name(render_layer, pass_name, view_name);
-    if (rp) {
-      float *result = film.read_pass(pass_type);
+    Vector<std::string> pass_names = Film::pass_to_render_pass_names(pass_type, view_layer);
+    for (int64_t pass_offset : IndexRange(pass_names.size())) {
+      RenderPass *rp = RE_pass_find_by_name(
+          render_layer, pass_names[pass_offset].c_str(), view_name);
+      if (!rp) {
+        continue;
+      }
+      float *result = film.read_pass(pass_type, pass_offset);
+
       if (result) {
         BLI_mutex_lock(&render->update_render_passes_mutex);
         /* WORKAROUND: We use texture read to avoid using a framebuffer to get the render result.
@@ -245,10 +262,13 @@ void Instance::render_read_result(RenderLayer *render_layer, const char *view_na
 
   /* The vector pass is initialized to weird values. Set it to neutral value if not rendered. */
   if ((pass_bits & EEVEE_RENDER_PASS_VECTOR) == 0) {
-    const char *vector_pass_name = Film::pass_to_render_pass_name(EEVEE_RENDER_PASS_VECTOR);
-    RenderPass *vector_rp = RE_pass_find_by_name(render_layer, vector_pass_name, view_name);
-    if (vector_rp) {
-      memset(vector_rp->rect, 0, sizeof(float) * 4 * vector_rp->rectx * vector_rp->recty);
+    for (std::string vector_pass_name :
+         Film::pass_to_render_pass_names(EEVEE_RENDER_PASS_VECTOR, view_layer)) {
+      RenderPass *vector_rp = RE_pass_find_by_name(
+          render_layer, vector_pass_name.c_str(), view_name);
+      if (vector_rp) {
+        memset(vector_rp->rect, 0, sizeof(float) * 4 * vector_rp->rectx * vector_rp->recty);
+      }
     }
   }
 }
@@ -280,6 +300,8 @@ void Instance::render_frame(RenderLayer *render_layer, const char *view_name)
 #endif
   }
 
+  this->film.cryptomatte_sort();
+
   this->render_read_result(render_layer, view_name);
 }
 
@@ -301,6 +323,76 @@ void Instance::draw_viewport(DefaultFramebufferList *dfbl)
     ss << "Compiling Shaders " << materials.queued_shaders_count;
     info = ss.str();
   }
+}
+
+void Instance::store_metadata(RenderResult *render_result)
+{
+  cryptomatte.store_metadata(render_result);
+}
+
+void Instance::update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)
+{
+  RE_engine_register_pass(engine, scene, view_layer, RE_PASSNAME_COMBINED, 4, "RGBA", SOCK_RGBA);
+
+#define CHECK_PASS_LEGACY(name, type, channels, chanid) \
+  if (view_layer->passflag & (SCE_PASS_##name)) { \
+    RE_engine_register_pass( \
+        engine, scene, view_layer, RE_PASSNAME_##name, channels, chanid, type); \
+  } \
+  ((void)0)
+#define CHECK_PASS_EEVEE(name, type, channels, chanid) \
+  if (view_layer->eevee.render_passes & (EEVEE_RENDER_PASS_##name)) { \
+    RE_engine_register_pass( \
+        engine, scene, view_layer, RE_PASSNAME_##name, channels, chanid, type); \
+  } \
+  ((void)0)
+
+  CHECK_PASS_LEGACY(Z, SOCK_FLOAT, 1, "Z");
+  CHECK_PASS_LEGACY(MIST, SOCK_FLOAT, 1, "Z");
+  CHECK_PASS_LEGACY(NORMAL, SOCK_VECTOR, 3, "XYZ");
+  CHECK_PASS_LEGACY(DIFFUSE_DIRECT, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_LEGACY(DIFFUSE_COLOR, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_LEGACY(GLOSSY_DIRECT, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_LEGACY(GLOSSY_COLOR, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_EEVEE(VOLUME_LIGHT, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_LEGACY(EMIT, SOCK_RGBA, 3, "RGB");
+  CHECK_PASS_LEGACY(ENVIRONMENT, SOCK_RGBA, 3, "RGB");
+  /* TODO: CHECK_PASS_LEGACY(SHADOW, SOCK_RGBA, 3, "RGB");
+   * CHECK_PASS_LEGACY(AO, SOCK_RGBA, 3, "RGB");
+   * When available they should be converted from Value textures to RGB. */
+
+  LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
+    if ((aov->flag & AOV_CONFLICT) != 0) {
+      continue;
+    }
+    switch (aov->type) {
+      case AOV_TYPE_COLOR:
+        RE_engine_register_pass(engine, scene, view_layer, aov->name, 4, "RGBA", SOCK_RGBA);
+        break;
+      case AOV_TYPE_VALUE:
+        RE_engine_register_pass(engine, scene, view_layer, aov->name, 1, "X", SOCK_FLOAT);
+        break;
+      default:
+        break;
+    }
+  }
+
+  /* NOTE: Name channels lowercase `rgba` so that compression rules check in OpenEXR DWA code uses
+   * lossless compression. Reportedly this naming is the only one which works good from the
+   * interoperability point of view. Using `xyzw` naming is not portable. */
+  auto register_cryptomatte_passes = [&](eViewLayerCryptomatteFlags cryptomatte_layer,
+                                         eViewLayerEEVEEPassType eevee_pass) {
+    if (view_layer->cryptomatte_flag & cryptomatte_layer) {
+      for (std::string pass_name : Film::pass_to_render_pass_names(eevee_pass, view_layer)) {
+        RE_engine_register_pass(
+            engine, scene, view_layer, pass_name.c_str(), 4, "rgba", SOCK_RGBA);
+      }
+    }
+  };
+  register_cryptomatte_passes(VIEW_LAYER_CRYPTOMATTE_OBJECT, EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT);
+  register_cryptomatte_passes(VIEW_LAYER_CRYPTOMATTE_ASSET, EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET);
+  register_cryptomatte_passes(VIEW_LAYER_CRYPTOMATTE_MATERIAL,
+                              EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL);
 }
 
 /** \} */

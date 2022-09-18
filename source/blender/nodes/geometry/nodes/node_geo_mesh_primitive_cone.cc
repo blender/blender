@@ -255,7 +255,7 @@ int ConeConfig::calculate_total_corners()
   return corner_total;
 }
 
-static void calculate_cone_vertices(const MutableSpan<MVert> &verts, const ConeConfig &config)
+static void calculate_cone_verts(const MutableSpan<MVert> &verts, const ConeConfig &config)
 {
   Array<float2> circle(config.circle_segments);
   const float angle_delta = 2.0f * (M_PI / static_cast<float>(config.circle_segments));
@@ -480,7 +480,7 @@ static void calculate_selection_outputs(Mesh *mesh,
                                         const ConeConfig &config,
                                         ConeAttributeOutputs &attribute_outputs)
 {
-  MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*mesh);
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
   /* Populate "Top" selection output. */
   if (attribute_outputs.top_id) {
@@ -536,7 +536,7 @@ static void calculate_selection_outputs(Mesh *mesh,
  */
 static void calculate_cone_uvs(Mesh *mesh, const ConeConfig &config)
 {
-  MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*mesh);
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
   SpanAttributeWriter<float2> uv_attribute = attributes.lookup_or_add_for_write_only_span<float2>(
       "uv_map", ATTR_DOMAIN_CORNER);
@@ -657,7 +657,7 @@ static Mesh *create_vertex_mesh()
 {
   /* Returns a mesh with a single vertex at the origin. */
   Mesh *mesh = BKE_mesh_new_nomain(1, 0, 0, 0, 0);
-  copy_v3_fl3(mesh->mvert[0].co, 0.0f, 0.0f, 0.0f);
+  copy_v3_fl3(mesh->verts_for_write().first().co, 0.0f, 0.0f, 0.0f);
   return mesh;
 }
 
@@ -689,12 +689,12 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
       config.tot_verts, config.tot_edges, 0, config.tot_corners, config.tot_faces);
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
 
-  MutableSpan<MVert> verts{mesh->mvert, mesh->totvert};
-  MutableSpan<MLoop> loops{mesh->mloop, mesh->totloop};
-  MutableSpan<MEdge> edges{mesh->medge, mesh->totedge};
-  MutableSpan<MPoly> polys{mesh->mpoly, mesh->totpoly};
+  MutableSpan<MVert> verts = mesh->verts_for_write();
+  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
+  MutableSpan<MLoop> loops = mesh->loops_for_write();
 
-  calculate_cone_vertices(verts, config);
+  calculate_cone_verts(verts, config);
   calculate_cone_edges(edges, config);
   calculate_cone_faces(loops, polys, config);
   calculate_cone_uvs(mesh, config);

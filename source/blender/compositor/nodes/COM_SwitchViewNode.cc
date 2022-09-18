@@ -15,7 +15,7 @@ void SwitchViewNode::convert_to_operations(NodeConverter &converter,
 {
   NodeOperationOutput *result;
   const char *view_name = context.get_view_name();
-  bNode *bnode = this->get_bnode();
+  const bNode *bnode = this->get_bnode();
 
   /* get the internal index of the socket with a matching name */
   int nr = BLI_findstringindex(&bnode->inputs, view_name, offsetof(bNodeSocket, name));

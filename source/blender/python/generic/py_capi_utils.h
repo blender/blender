@@ -215,7 +215,6 @@ int PyC_CheckArgs_DeepCopy(PyObject *args);
 
 /* Integer parsing (with overflow checks), -1 on error. */
 /**
- *
  * Comparison with #PyObject_IsTrue
  * ================================
  *

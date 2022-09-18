@@ -6,6 +6,10 @@ Getter/setter functions can be used for boolean, int, float, string and enum pro
 If these callbacks are defined the property will not be stored in the ID properties
 automatically. Instead, the `get` and `set` functions will be called when the property
 is respectively read or written from the API.
+
+.. warning::
+   Remember that these callbacks may be executed in threaded context.
+
 """
 import bpy
 

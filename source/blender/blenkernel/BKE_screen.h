@@ -55,7 +55,7 @@ struct wmWindowManager;
 typedef struct wmSpaceTypeListenerParams {
   struct wmWindow *window;
   struct ScrArea *area;
-  struct wmNotifier *notifier;
+  const struct wmNotifier *notifier;
   const struct Scene *scene;
 } wmSpaceTypeListenerParams;
 
@@ -113,7 +113,7 @@ typedef struct SpaceType {
 
   /* read and write... */
 
-  /* default keymaps to add */
+  /** Default key-maps to add. */
   int keymapflag;
 
 } SpaceType;
@@ -124,7 +124,7 @@ typedef struct wmRegionListenerParams {
   struct wmWindow *window;
   struct ScrArea *area; /* Can be NULL when the region is not part of an area. */
   struct ARegion *region;
-  struct wmNotifier *notifier;
+  const struct wmNotifier *notifier;
   const struct Scene *scene;
 } wmRegionListenerParams;
 

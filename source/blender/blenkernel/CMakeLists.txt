@@ -25,7 +25,6 @@ set(INC
   ../simulation
   ../../../intern/eigen
   ../../../intern/ghost
-  ../../../intern/glew-mx
   ../../../intern/guardedalloc
   ../../../intern/iksolver/extern
   ../../../intern/atomic
@@ -107,6 +106,7 @@ set(SRC
   intern/collision.c
   intern/colorband.c
   intern/colortools.c
+  intern/compute_contexts.cc
   intern/constraint.c
   intern/context.c
   intern/crazyspace.cc
@@ -139,7 +139,7 @@ set(SRC
   intern/editmesh.c
   intern/editmesh_bvh.c
   intern/editmesh_cache.cc
-  intern/editmesh_tangent.c
+  intern/editmesh_tangent.cc
   intern/effect.c
   intern/fcurve.c
   intern/fcurve_cache.c
@@ -154,6 +154,7 @@ set(SRC
   intern/geometry_component_mesh.cc
   intern/geometry_component_pointcloud.cc
   intern/geometry_component_volume.cc
+  intern/geometry_fields.cc
   intern/geometry_set.cc
   intern/geometry_set_instances.cc
   intern/gpencil.c
@@ -201,7 +202,7 @@ set(SRC
   intern/mask_evaluate.c
   intern/mask_rasterize.c
   intern/material.c
-  intern/mball.c
+  intern/mball.cc
   intern/mball_tessellate.c
   intern/mesh.cc
   intern/mesh_boolean_convert.cc
@@ -221,7 +222,7 @@ set(SRC
   intern/mesh_remesh_voxel.cc
   intern/mesh_runtime.cc
   intern/mesh_sample.cc
-  intern/mesh_tangent.c
+  intern/mesh_tangent.cc
   intern/mesh_tessellate.cc
   intern/mesh_validate.cc
   intern/mesh_wrapper.cc
@@ -240,6 +241,7 @@ set(SRC
   intern/multires_versioning.c
   intern/nla.c
   intern/node.cc
+  intern/node_runtime.cc
   intern/node_tree_update.cc
   intern/object.cc
   intern/object_deform.c
@@ -248,9 +250,9 @@ set(SRC
   intern/object_update.c
   intern/ocean.c
   intern/ocean_spectrum.c
-  intern/outliner_treehash.c
+  intern/outliner_treehash.cc
   intern/packedFile.c
-  intern/paint.c
+  intern/paint.cc
   intern/paint_canvas.cc
   intern/paint_toolslots.c
   intern/particle.c
@@ -291,7 +293,7 @@ set(SRC
   intern/subdiv_displacement_multires.c
   intern/subdiv_eval.c
   intern/subdiv_foreach.c
-  intern/subdiv_mesh.c
+  intern/subdiv_mesh.cc
   intern/subdiv_modifier.c
   intern/subdiv_stats.c
   intern/subdiv_topology.c
@@ -363,6 +365,7 @@ set(SRC
   BKE_collision.h
   BKE_colorband.h
   BKE_colortools.h
+  BKE_compute_contexts.hh
   BKE_constraint.h
   BKE_context.h
   BKE_crazyspace.h
@@ -412,6 +415,7 @@ set(SRC
   BKE_image_format.h
   BKE_image_partial_update.hh
   BKE_image_save.h
+  BKE_image_wrappers.hh
   BKE_ipo.h
   BKE_kelvinlet.h
   BKE_key.h
@@ -458,11 +462,12 @@ set(SRC
   BKE_object_deform.h
   BKE_object_facemap.h
   BKE_ocean.h
-  BKE_outliner_treehash.h
+  BKE_outliner_treehash.hh
   BKE_packedFile.h
   BKE_paint.h
   BKE_particle.h
   BKE_pbvh.h
+  BKE_pbvh_pixels.hh
   BKE_pointcache.h
   BKE_pointcloud.h
   BKE_preferences.h
@@ -672,6 +677,10 @@ if(WITH_PYTHON)
   )
   add_definitions(-DWITH_PYTHON)
 
+  if(WITH_PYTHON_MODULE)
+    add_definitions(-DWITH_PYTHON_MODULE)
+  endif()
+
   if(WITH_PYTHON_SAFETY)
     add_definitions(-DWITH_PYTHON_SAFETY)
   endif()
@@ -837,6 +846,8 @@ endif()
 # if(MSVC)
 #    string(APPEND CMAKE_C_FLAGS " /WX")
 # endif()
+
+set(CMAKE_C_FLAGS "-m64 /DNDEBUG -std=gnu1x -g -fno-omit-frame-pointer -Wno-unused-function -Wno-missing-variable-declarations -Wno-unknown-argument -Wno-assign-enum -Wno-enum-enum-conversion -Wno-sign-compare -Wno-reserved-identifier -Wno-unused-parameter -Werror=incompatible-pointer-types -DNDEBUG -Wno-missing-field-initializers -Wno-suggest-destructor-override -Wno-suggest-override -Wno-shadow-field -Wno-c++11-narrowing -Wno-cast-align -Wno-shorten-64-to-32 -Wno-documentation-unknown-command -Wno-unused-function -Wno-unused-variable -Wno-int-to-void-pointer-cast -Wno-nonportable-system-include-path -Wno-unused-parameter -Wno-strict-prototypes -fdiagnostics-absolute-paths -Wno-extra-semi-stmt -Wno-covered-switch-default -Wno-unused-macros -Wno-shadow -Wno-bad-function-cast -Wno-sign-conversion -Wno-missing-noreturn -Wno-implicit-fallthrough -Wno-disabled-macro-expansion -Wno-double-promotion -Wno-cast-qual -Wno-float-equal -Wno-undef -Wno-reserved-id-macro -Wno-zero-as-null-pointer-constant /Zi -Wno-documentation -Wno-implicit-float-conversion -Wno-implicit-int-float-conversion -Wno-pedantic -Wno-implicit-int-conversion -Wno-c++98-compat -Wno-deprecated-declarations -Wno-anon-enum-enum-conversion  -Wno-documentation-deprecated-sync -Wno-language-extension-token  /DWIN32 /D_WINDOWS /W3")
 
 blender_add_lib(bf_blenkernel "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 

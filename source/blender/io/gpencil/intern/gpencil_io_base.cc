@@ -20,6 +20,7 @@
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_scene.h"
@@ -127,13 +128,15 @@ void GpencilIO::prepare_camera_params(Scene *scene, const GpencilIOParams *ipara
 
 void GpencilIO::create_object_list()
 {
+  Scene *scene = CTX_data_scene(params_.C);
   ViewLayer *view_layer = CTX_data_view_layer(params_.C);
 
   float3 camera_z_axis;
   copy_v3_v3(camera_z_axis, rv3d_->viewinv[2]);
   ob_list_.clear();
 
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     Object *object = base->object;
 
     if (object->type != OB_GPENCIL) {
@@ -257,7 +260,7 @@ float GpencilIO::stroke_point_radius_get(bGPDlayer *gpl, bGPDstroke *gps)
 
   /* Radius. */
   bGPDstroke *gps_perimeter = BKE_gpencil_stroke_perimeter_from_view(
-      rv3d_, gpd_, gpl, gps, 3, diff_mat_.values);
+      rv3d_->viewmat, gpd_, gpl, gps, 3, diff_mat_.values, 0.0f);
 
   pt = &gps_perimeter->points[0];
   const float2 screen_ex = gpencil_3D_point_to_2D(&pt->x);

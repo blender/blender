@@ -146,6 +146,11 @@ struct PBVHNode {
   ProxyVertArray proxyverts;
 #endif
   PBVHPixelsNode pixels;
+
+  /* Used to flash colors of updated node bounding boxes in
+   * debug draw mode (when G.debug_value / bpy.app.debug_value is 889).
+   */
+  int debug_draw_gen;
 };
 
 typedef enum {
@@ -180,16 +185,19 @@ struct PBVH {
   struct MeshElemMap *vemap;
   SculptPMap *pmap;
 
-  const struct Mesh *mesh;
+  struct Mesh *mesh;
 
   /* NOTE: Normals are not `const` because they can be updated for drawing by sculpt code. */
   float (*vert_normals)[3];
-
+  bool *hide_vert;
   struct MVert *verts;
   const struct MPoly *mpoly;
+  bool *hide_poly;
+  /** Material indices. Only valid for polygon meshes. */
+  const int *material_indices;
   const struct MLoop *mloop;
   const struct MLoopTri *looptri;
-  struct MSculptVert *mdyntopo_verts;
+  struct MSculptVert *msculptverts;
 
   CustomData *vdata;
   CustomData *ldata;
@@ -369,7 +377,7 @@ BLI_INLINE int pbvh_bmesh_node_index_from_vert(PBVH *pbvh, const BMVert *key)
 {
   const int node_index = BM_ELEM_CD_GET_INT((const BMElem *)key, pbvh->cd_vert_node_offset);
   BLI_assert(node_index != DYNTOPO_NODE_NONE);
-  BLI_assert(node_index < pbvh->totnode);
+  BLI_assert(node_index << pbvh->totnode);
   return node_index;
 }
 

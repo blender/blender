@@ -14,7 +14,7 @@
 #include "outliner_intern.hh"
 #include "tree/tree_iterator.hh"
 
-using namespace blender::ed::outliner;
+namespace blender::ed::outliner {
 
 static void outliner_context_selected_ids_recursive(const SpaceOutliner &space_outliner,
                                                     bContextDataResult *result)
@@ -55,3 +55,5 @@ int /*eContextResult*/ outliner_context(const bContext *C,
 
   return CTX_RESULT_MEMBER_NOT_FOUND;
 }
+
+}  // namespace blender::ed::outliner

@@ -228,7 +228,7 @@ def keyconfig_activate_and_extract_data(
         bpy.ops.preferences.keyconfig_activate(filepath=filepath)
 
         # If called multiple times, something strange is happening.
-        assert(len(args_collected) == 1)
+        assert len(args_collected) == 1
         args, _kw = args_collected[0]
         # Ignore the type check as `temp_fn_argument_extractor` is a generic function
         # which doesn't contain type information of the function being wrapped.

@@ -35,6 +35,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_gpencil.h"
@@ -2463,6 +2464,9 @@ static void gpencil_generate_edgeloops(Object *ob,
   if (me->totedge == 0) {
     return;
   }
+  const Span<MVert> verts = me->verts();
+  const Span<MEdge> edges = me->edges();
+  const Span<MDeformVert> dverts = me->deform_verts();
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me);
 
   /* Arrays for all edge vertices (forward and backward) that form a edge loop.
@@ -2475,15 +2479,15 @@ static void gpencil_generate_edgeloops(Object *ob,
   GpEdge *gp_edges = (GpEdge *)MEM_callocN(sizeof(GpEdge) * me->totedge, __func__);
   GpEdge *gped = nullptr;
   for (int i = 0; i < me->totedge; i++) {
-    MEdge *ed = &me->medge[i];
+    const MEdge *ed = &edges[i];
     gped = &gp_edges[i];
-    MVert *mv1 = &me->mvert[ed->v1];
+    const MVert *mv1 = &verts[ed->v1];
     copy_v3_v3(gped->n1, vert_normals[ed->v1]);
 
     gped->v1 = ed->v1;
     copy_v3_v3(gped->v1_co, mv1->co);
 
-    MVert *mv2 = &me->mvert[ed->v2];
+    const MVert *mv2 = &verts[ed->v2];
     copy_v3_v3(gped->n2, vert_normals[ed->v2]);
     gped->v2 = ed->v2;
     copy_v3_v3(gped->v2_co, mv2->co);
@@ -2539,8 +2543,7 @@ static void gpencil_generate_edgeloops(Object *ob,
         gpf_stroke, MAX2(stroke_mat_index, 0), array_len + 1, thickness * thickness, false);
 
     /* Create dvert data. */
-    MDeformVert *me_dvert = me->dvert;
-    if (use_vgroups && me_dvert) {
+    if (use_vgroups && !dverts.is_empty()) {
       gps_stroke->dvert = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * (array_len + 1),
                                                      "gp_stroke_dverts");
     }
@@ -2549,7 +2552,7 @@ static void gpencil_generate_edgeloops(Object *ob,
     float fpt[3];
     for (int i = 0; i < array_len + 1; i++) {
       int vertex_index = i == 0 ? gp_edges[stroke[0]].v1 : gp_edges[stroke[i - 1]].v2;
-      MVert *mv = &me->mvert[vertex_index];
+      const MVert *mv = &verts[vertex_index];
 
       /* Add segment. */
       bGPDspoint *pt = &gps_stroke->points[i];
@@ -2562,9 +2565,9 @@ static void gpencil_generate_edgeloops(Object *ob,
       pt->strength = 1.0f;
 
       /* Copy vertex groups from mesh. Assuming they already exist in the same order. */
-      if (use_vgroups && me_dvert) {
+      if (use_vgroups && !dverts.is_empty()) {
         MDeformVert *dv = &gps_stroke->dvert[i];
-        MDeformVert *src_dv = &me_dvert[vertex_index];
+        const MDeformVert *src_dv = &dverts[vertex_index];
         dv->totweight = src_dv->totweight;
         dv->dw = (MDeformWeight *)MEM_callocN(sizeof(MDeformWeight) * dv->totweight,
                                               "gp_stroke_dverts_dw");
@@ -2662,6 +2665,8 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
                               const bool use_faces,
                               const bool use_vgroups)
 {
+  using namespace blender;
+  using namespace blender::bke;
   if (ELEM(nullptr, ob_gp, ob_mesh) || (ob_gp->type != OB_GPENCIL) || (ob_gp->data == nullptr)) {
     return false;
   }
@@ -2671,8 +2676,9 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
   /* Use evaluated data to get mesh with all modifiers on top. */
   Object *ob_eval = (Object *)DEG_get_evaluated_object(depsgraph, ob_mesh);
   const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
-  const MPoly *mpoly = me_eval->mpoly;
-  const MLoop *mloop = me_eval->mloop;
+  const Span<MVert> verts = me_eval->verts();
+  const Span<MPoly> polys = me_eval->polys();
+  const Span<MLoop> loops = me_eval->loops();
   int mpoly_len = me_eval->totpoly;
   char element_name[200];
 
@@ -2708,12 +2714,15 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
     bGPDframe *gpf_fill = BKE_gpencil_layer_frame_get(
         gpl_fill, scene->r.cfra + frame_offset, GP_GETFRAME_ADD_NEW);
     int i;
+
+    const VArray<int> mesh_material_indices = me_eval->attributes().lookup_or_default<int>(
+        "material_index", ATTR_DOMAIN_FACE, 0);
     for (i = 0; i < mpoly_len; i++) {
-      const MPoly *mp = &mpoly[i];
+      const MPoly *mp = &polys[i];
 
       /* Find material. */
       int mat_idx = 0;
-      Material *ma = BKE_object_material_get(ob_mesh, mp->mat_nr + 1);
+      Material *ma = BKE_object_material_get(ob_mesh, mesh_material_indices[i] + 1);
       make_element_name(
           ob_mesh->id.name + 2, (ma != nullptr) ? ma->id.name + 2 : "Fill", 64, element_name);
       mat_idx = BKE_gpencil_material_find_index_by_name_prefix(ob_gp, element_name);
@@ -2733,16 +2742,16 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
       gps_fill->flag |= GP_STROKE_CYCLIC;
 
       /* Create dvert data. */
-      MDeformVert *me_dvert = me_eval->dvert;
-      if (use_vgroups && me_dvert) {
+      const Span<MDeformVert> dverts = me_eval->deform_verts();
+      if (use_vgroups && !dverts.is_empty()) {
         gps_fill->dvert = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * mp->totloop,
                                                      "gp_fill_dverts");
       }
 
       /* Add points to strokes. */
       for (int j = 0; j < mp->totloop; j++) {
-        const MLoop *ml = &mloop[mp->loopstart + j];
-        const MVert *mv = &me_eval->mvert[ml->v];
+        const MLoop *ml = &loops[mp->loopstart + j];
+        const MVert *mv = &verts[ml->v];
 
         bGPDspoint *pt = &gps_fill->points[j];
         copy_v3_v3(&pt->x, mv->co);
@@ -2751,9 +2760,9 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
         pt->strength = 1.0f;
 
         /* Copy vertex groups from mesh. Assuming they already exist in the same order. */
-        if (use_vgroups && me_dvert) {
+        if (use_vgroups && !dverts.is_empty()) {
           MDeformVert *dv = &gps_fill->dvert[j];
-          MDeformVert *src_dv = &me_dvert[ml->v];
+          const MDeformVert *src_dv = &dverts[ml->v];
           dv->totweight = src_dv->totweight;
           dv->dw = (MDeformWeight *)MEM_callocN(sizeof(MDeformWeight) * dv->totweight,
                                                 "gp_fill_dverts_dw");
@@ -3409,7 +3418,8 @@ void BKE_gpencil_stroke_join(bGPDstroke *gps_a,
                              bGPDstroke *gps_b,
                              const bool leave_gaps,
                              const bool fit_thickness,
-                             const bool smooth)
+                             const bool smooth,
+                             bool auto_flip)
 {
   bGPDspoint point;
   bGPDspoint *pt;
@@ -3426,52 +3436,54 @@ void BKE_gpencil_stroke_join(bGPDstroke *gps_a,
     return;
   }
 
-  /* define start and end points of each stroke */
-  float start_a[3], start_b[3], end_a[3], end_b[3];
-  pt = &gps_a->points[0];
-  copy_v3_v3(start_a, &pt->x);
+  if (auto_flip) {
+    /* define start and end points of each stroke */
+    float start_a[3], start_b[3], end_a[3], end_b[3];
+    pt = &gps_a->points[0];
+    copy_v3_v3(start_a, &pt->x);
 
-  pt = &gps_a->points[gps_a->totpoints - 1];
-  copy_v3_v3(end_a, &pt->x);
+    pt = &gps_a->points[gps_a->totpoints - 1];
+    copy_v3_v3(end_a, &pt->x);
 
-  pt = &gps_b->points[0];
-  copy_v3_v3(start_b, &pt->x);
+    pt = &gps_b->points[0];
+    copy_v3_v3(start_b, &pt->x);
 
-  pt = &gps_b->points[gps_b->totpoints - 1];
-  copy_v3_v3(end_b, &pt->x);
+    pt = &gps_b->points[gps_b->totpoints - 1];
+    copy_v3_v3(end_b, &pt->x);
 
-  /* Check if need flip strokes. */
-  float dist = len_squared_v3v3(end_a, start_b);
-  bool flip_a = false;
-  bool flip_b = false;
-  float lowest = dist;
+    /* Check if need flip strokes. */
+    float dist = len_squared_v3v3(end_a, start_b);
+    bool flip_a = false;
+    bool flip_b = false;
+    float lowest = dist;
 
-  dist = len_squared_v3v3(end_a, end_b);
-  if (dist < lowest) {
-    lowest = dist;
-    flip_a = false;
-    flip_b = true;
-  }
+    dist = len_squared_v3v3(end_a, end_b);
+    if (dist < lowest) {
+      lowest = dist;
+      flip_a = false;
+      flip_b = true;
+    }
 
-  dist = len_squared_v3v3(start_a, start_b);
-  if (dist < lowest) {
-    lowest = dist;
-    flip_a = true;
-    flip_b = false;
-  }
+    dist = len_squared_v3v3(start_a, start_b);
+    if (dist < lowest) {
+      lowest = dist;
+      flip_a = true;
+      flip_b = false;
+    }
 
-  dist = len_squared_v3v3(start_a, end_b);
-  if (dist < lowest) {
-    lowest = dist;
-    flip_a = true;
-    flip_b = true;
-  }
+    dist = len_squared_v3v3(start_a, end_b);
+    if (dist < lowest) {
+      lowest = dist;
+      flip_a = true;
+      flip_b = true;
+    }
 
-  if (flip_a) {
-    BKE_gpencil_stroke_flip(gps_a);
-  }
-  if (flip_b) {
-    BKE_gpencil_stroke_flip(gps_b);
+    if (flip_a) {
+      BKE_gpencil_stroke_flip(gps_a);
+    }
+    if (flip_b) {
+      BKE_gpencil_stroke_flip(gps_b);
+    }
   }
 
   /* don't visibly link the first and last points? */
@@ -3532,6 +3544,27 @@ void BKE_gpencil_stroke_join(bGPDstroke *gps_a,
       }
     }
   }
+}
+
+void BKE_gpencil_stroke_start_set(bGPDstroke *gps, int start_idx)
+{
+  if ((start_idx < 1) || (start_idx >= gps->totpoints) || (gps->totpoints < 2)) {
+    return;
+  }
+
+  /* Only cyclic strokes. */
+  if ((gps->flag & GP_STROKE_CYCLIC) == 0) {
+    return;
+  }
+
+  bGPDstroke *gps_b = BKE_gpencil_stroke_duplicate(gps, true, false);
+  BKE_gpencil_stroke_trim_points(gps_b, 0, start_idx - 1);
+  BKE_gpencil_stroke_trim_points(gps, start_idx, gps->totpoints - 1);
+
+  /* Join both strokes. */
+  BKE_gpencil_stroke_join(gps, gps_b, false, false, false, false);
+
+  BKE_gpencil_free_stroke(gps_b);
 }
 
 void BKE_gpencil_stroke_copy_to_keyframes(
@@ -3761,8 +3794,8 @@ void BKE_gpencil_stroke_uniform_subdivide(bGPdata *gpd,
   BKE_gpencil_stroke_geometry_update(gpd, gps);
 }
 
-void BKE_gpencil_stroke_to_view_space(RegionView3D *rv3d,
-                                      bGPDstroke *gps,
+void BKE_gpencil_stroke_to_view_space(bGPDstroke *gps,
+                                      float viewmat[4][4],
                                       const float diff_mat[4][4])
 {
   for (int i = 0; i < gps->totpoints; i++) {
@@ -3770,12 +3803,12 @@ void BKE_gpencil_stroke_to_view_space(RegionView3D *rv3d,
     /* Point to parent space. */
     mul_v3_m4v3(&pt->x, diff_mat, &pt->x);
     /* point to view space */
-    mul_m4_v3(rv3d->viewmat, &pt->x);
+    mul_m4_v3(viewmat, &pt->x);
   }
 }
 
-void BKE_gpencil_stroke_from_view_space(RegionView3D *rv3d,
-                                        bGPDstroke *gps,
+void BKE_gpencil_stroke_from_view_space(bGPDstroke *gps,
+                                        float viewinv[4][4],
                                         const float diff_mat[4][4])
 {
   float inverse_diff_mat[4][4];
@@ -3783,7 +3816,7 @@ void BKE_gpencil_stroke_from_view_space(RegionView3D *rv3d,
 
   for (int i = 0; i < gps->totpoints; i++) {
     bGPDspoint *pt = &gps->points[i];
-    mul_v3_m4v3(&pt->x, rv3d->viewinv, &pt->x);
+    mul_v3_m4v3(&pt->x, viewinv, &pt->x);
     mul_m4_v3(inverse_diff_mat, &pt->x);
   }
 }
@@ -3960,6 +3993,7 @@ static ListBase *gpencil_stroke_perimeter_ex(const bGPdata *gpd,
                                              const bGPDlayer *gpl,
                                              const bGPDstroke *gps,
                                              int subdivisions,
+                                             const float thickness_chg,
                                              int *r_num_perimeter_points)
 {
   /* sanity check */
@@ -3968,7 +4002,9 @@ static ListBase *gpencil_stroke_perimeter_ex(const bGPdata *gpd,
   }
 
   float defaultpixsize = 1000.0f / gpd->pixfactor;
+  float ovr_radius = thickness_chg / defaultpixsize / 2.0f;
   float stroke_radius = ((gps->thickness + gpl->line_change) / defaultpixsize) / 2.0f;
+  stroke_radius = max_ff(stroke_radius - ovr_radius, 0.0f);
 
   ListBase *perimeter_right_side = MEM_cnew<ListBase>(__func__);
   ListBase *perimeter_left_side = MEM_cnew<ListBase>(__func__);
@@ -4197,16 +4233,21 @@ static ListBase *gpencil_stroke_perimeter_ex(const bGPdata *gpd,
   return perimeter_list;
 }
 
-bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(struct RegionView3D *rv3d,
+bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(float viewmat[4][4],
                                                    bGPdata *gpd,
                                                    const bGPDlayer *gpl,
                                                    bGPDstroke *gps,
                                                    const int subdivisions,
-                                                   const float diff_mat[4][4])
+                                                   const float diff_mat[4][4],
+                                                   const float thickness_chg)
 {
   if (gps->totpoints == 0) {
     return nullptr;
   }
+
+  float viewinv[4][4];
+  invert_m4_m4(viewinv, viewmat);
+
   /* Duplicate only points and fill data. Weight and Curve are not needed. */
   bGPDstroke *gps_temp = (bGPDstroke *)MEM_dupallocN(gps);
   gps_temp->prev = gps_temp->next = nullptr;
@@ -4231,10 +4272,10 @@ bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(struct RegionView3D *rv3d,
     pt_dst->uv_rot = 0;
   }
 
-  BKE_gpencil_stroke_to_view_space(rv3d, gps_temp, diff_mat);
+  BKE_gpencil_stroke_to_view_space(gps_temp, viewmat, diff_mat);
   int num_perimeter_points = 0;
   ListBase *perimeter_points = gpencil_stroke_perimeter_ex(
-      gpd, gpl, gps_temp, subdivisions, &num_perimeter_points);
+      gpd, gpl, gps_temp, subdivisions, thickness_chg, &num_perimeter_points);
 
   if (num_perimeter_points == 0) {
     return nullptr;
@@ -4254,7 +4295,7 @@ bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(struct RegionView3D *rv3d,
     pt->flag |= GP_SPOINT_SELECT;
   }
 
-  BKE_gpencil_stroke_from_view_space(rv3d, perimeter_stroke, diff_mat);
+  BKE_gpencil_stroke_from_view_space(perimeter_stroke, viewinv, diff_mat);
 
   /* Free temp data. */
   BLI_freelistN(perimeter_points);

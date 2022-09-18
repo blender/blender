@@ -32,7 +32,7 @@
 #include "NOD_composite.h"
 #include "node_composite_util.hh"
 
-#ifdef WITH_COMPOSITOR
+#ifdef WITH_COMPOSITOR_CPU
 #  include "COM_compositor.h"
 #endif
 
@@ -210,7 +210,7 @@ void ntreeCompositExecTree(Scene *scene,
                            int do_preview,
                            const char *view_name)
 {
-#ifdef WITH_COMPOSITOR
+#ifdef WITH_COMPOSITOR_CPU
   COM_execute(rd, scene, ntree, rendering, view_name);
 #else
   UNUSED_VARS(scene, ntree, rd, rendering, view_name);

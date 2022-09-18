@@ -14,7 +14,6 @@ set(INC
   ../../makesdna
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/glew-mx
   ../../../../intern/atomic
   ../../../../intern/guardedalloc
   # RNA_prototypes.h

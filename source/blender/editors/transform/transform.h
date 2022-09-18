@@ -355,10 +355,12 @@ typedef struct MouseInput {
 
   /** Initial mouse position. */
   int imval[2];
-  bool precision;
-  float precision_factor;
+  float imval_unproj[3];
   float center[2];
   float factor;
+  float precision_factor;
+  bool precision;
+
   /** Additional data, if needed by the particular function. */
   void *data;
 
@@ -618,6 +620,9 @@ typedef struct TransInfo {
    * value of the input parameter, except when a constrain is entered. */
   float values_final[4];
 
+  /** Cache safe value for constraints that require iteration or are slow to calculate. */
+  float values_inside_constraints[4];
+
   /* Axis members for modes that use an axis separate from the orientation (rotate & shear). */
 
   /** Primary axis, rotate only uses this. */
@@ -656,6 +661,9 @@ typedef struct TransInfo {
 
   /** Typically for mode settings. */
   TransCustomDataContainer custom;
+
+  /* Needed for sculpt transform. */
+  const char *undo_name;
 } TransInfo;
 
 /** \} */
@@ -755,6 +763,7 @@ void applyMouseInput(struct TransInfo *t,
                      struct MouseInput *mi,
                      const int mval[2],
                      float output[3]);
+void transform_input_update(TransInfo *t, const float fac);
 
 void setCustomPoints(TransInfo *t, MouseInput *mi, const int start[2], const int end[2]);
 void setCustomPointsFromDirection(TransInfo *t, MouseInput *mi, const float dir[2]);
@@ -803,6 +812,7 @@ void calculateCenter2D(TransInfo *t);
 void calculateCenterLocal(TransInfo *t, const float center_global[3]);
 
 void calculateCenter(TransInfo *t);
+void tranformViewUpdate(TransInfo *t);
 
 /* API functions for getting center points */
 void calculateCenterBound(TransInfo *t, float r_center[3]);

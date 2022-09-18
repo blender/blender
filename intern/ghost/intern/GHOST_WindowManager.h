@@ -113,13 +113,13 @@ class GHOST_WindowManager {
   /** The list of windows managed */
   std::vector<GHOST_IWindow *> m_windows;
 
-  /** Window in fullscreen state. There can be only one of this which is not in or window list. */
+  /** Window in full-screen state. There can be only one of this which is not in or window list. */
   GHOST_IWindow *m_fullScreenWindow;
 
   /** The active window. */
   GHOST_IWindow *m_activeWindow;
 
-  /** Window that was active before entering fullscreen state. */
+  /** Window that was active before entering full-screen state. */
   GHOST_IWindow *m_activeWindowBeforeFullScreen;
 
 #ifdef WITH_CXX_GUARDEDALLOC

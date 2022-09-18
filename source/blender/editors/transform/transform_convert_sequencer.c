@@ -708,12 +708,12 @@ static void special_aftertrans_update__sequencer(bContext *UNUSED(C), TransInfo 
     if (t->mode == TFM_SEQ_SLIDE) {
       if (t->frame_side == 'B') {
         ED_markers_post_apply_transform(
-            &t->scene->markers, t->scene, TFM_TIME_TRANSLATE, t->values[0], t->frame_side);
+            &t->scene->markers, t->scene, TFM_TIME_TRANSLATE, t->values_final[0], t->frame_side);
       }
     }
     else if (ELEM(t->frame_side, 'L', 'R')) {
       ED_markers_post_apply_transform(
-          &t->scene->markers, t->scene, TFM_TIME_EXTEND, t->values[0], t->frame_side);
+          &t->scene->markers, t->scene, TFM_TIME_EXTEND, t->values_final[0], t->frame_side);
     }
   }
 }

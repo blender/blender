@@ -177,7 +177,7 @@ static void join_component_type(Span<GeometrySet> src_geometry_sets, GeometrySet
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Vector<GeometrySet> geometry_sets = params.extract_multi_input<GeometrySet>("Geometry");
+  Vector<GeometrySet> geometry_sets = params.extract_input<Vector<GeometrySet>>("Geometry");
 
   GeometrySet geometry_set_result;
   join_component_type<MeshComponent>(geometry_sets, geometry_set_result);

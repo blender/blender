@@ -82,7 +82,6 @@ class Camera {
  private:
   Instance &inst_;
 
-  /** Double buffered to detect changes and have history for re-projection. */
   CameraDataBuf data_;
 
  public:
@@ -111,6 +110,10 @@ class Camera {
   bool is_orthographic() const
   {
     return data_.type == CAMERA_ORTHO;
+  }
+  bool is_perspective() const
+  {
+    return data_.type == CAMERA_PERSP;
   }
   const float3 &position() const
   {

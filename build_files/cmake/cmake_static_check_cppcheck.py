@@ -10,39 +10,76 @@ import tempfile
 from typing import (
     Any,
     List,
+    Tuple,
 )
 
+USE_VERBOSE = (os.environ.get("VERBOSE", None) is not None)
+# Could make configurable.
+USE_VERBOSE_PROGRESS = True
 
-USE_QUIET = (os.environ.get("QUIET", None) is not None)
+CHECKER_BIN = "cppcheck"
 
 CHECKER_IGNORE_PREFIX = [
     "extern",
 ]
 
-CHECKER_BIN = "cppcheck"
+CHECKER_EXCLUDE_SOURCE_FILES = set(os.path.join(*f.split("/")) for f in (
+    # These files hang (taking longer than 5min with v2.8.2 at time of writing).
+    # All other files process in under around 10seconds.
+    "source/blender/editors/space_text/text_format_pov.c",
+    "source/blender/editors/space_text/text_format_pov_ini.c",
+))
 
 CHECKER_ARGS = [
-    # not sure why this is needed, but it is.
-    "-I" + os.path.join(project_source_info.SOURCE_DIR, "extern", "glew", "include"),
-    "--suppress=*:%s/extern/glew/include/GL/glew.h:241" % project_source_info.SOURCE_DIR,
-    "--max-configs=1",  # speeds up execution
-    #  "--check-config", # when includes are missing
-    "--enable=all",  # if you want sixty hundred pedantic suggestions
+    # Speed up execution.
+    # As Blender has many defines, the total number of configurations is large making execution unreasonably slow.
+    # This could be increased but do so with care.
+    "--max-configs=1",
+
+    # Enable this when includes are missing.
+    #  "--check-config",
+
+    # Shows many pedantic issues, some are quite useful.
+    "--enable=all",
+
+    # Also shows useful messages, even if some are false-positives.
+    "--inconclusive",
 
     # Quiet output, otherwise all defines/includes are printed (overly verbose).
     # Only enable this for troubleshooting (if defines are not set as expected for example).
-    "--quiet",
+    *(() if USE_VERBOSE else ("--quiet",))
 
     # NOTE: `--cppcheck-build-dir=<dir>` is added later as a temporary directory.
 ]
 
-if USE_QUIET:
-    CHECKER_ARGS.append("--quiet")
+
+def source_info_filter(
+        source_info: List[Tuple[str, List[str], List[str]]],
+) -> List[Tuple[str, List[str], List[str]]]:
+    source_dir = project_source_info.SOURCE_DIR
+    if not source_dir.endswith(os.sep):
+        source_dir += os.sep
+    source_info_result = []
+    for i, item in enumerate(source_info):
+        c = item[0]
+        if c.startswith(source_dir):
+            c_relative = c[len(source_dir):]
+            if c_relative in CHECKER_EXCLUDE_SOURCE_FILES:
+                CHECKER_EXCLUDE_SOURCE_FILES.remove(c_relative)
+                continue
+        source_info_result.append(item)
+    if CHECKER_EXCLUDE_SOURCE_FILES:
+        sys.stderr.write("Error: exclude file(s) are missing: %r\n" % list(sorted(CHECKER_EXCLUDE_SOURCE_FILES)))
+        sys.exit(1)
+    return source_info_result
 
 
 def cppcheck() -> None:
     source_info = project_source_info.build_info(ignore_prefix_list=CHECKER_IGNORE_PREFIX)
     source_defines = project_source_info.build_defines_as_args()
+
+    # Apply exclusion.
+    source_info = source_info_filter(source_info)
 
     check_commands = []
     for c, inc_dirs, defs in source_info:
@@ -60,7 +97,7 @@ def cppcheck() -> None:
     process_functions = []
 
     def my_process(i: int, c: str, cmd: List[str]) -> subprocess.Popen[Any]:
-        if not USE_QUIET:
+        if USE_VERBOSE_PROGRESS:
             percent = 100.0 * (i / len(check_commands))
             percent_str = "[" + ("%.2f]" % percent).rjust(7) + " %:"
 

@@ -87,6 +87,8 @@ typedef enum eGPDbrush_Flag {
   GP_BRUSH_OCCLUDE_ERASER = (1 << 15),
   /* Post process trim stroke */
   GP_BRUSH_TRIM_STROKE = (1 << 16),
+  /* Post process convert to outline stroke */
+  GP_BRUSH_OUTLINE_STROKE = (1 << 17),
 } eGPDbrush_Flag;
 
 typedef enum eGPDbrush_Flag2 {

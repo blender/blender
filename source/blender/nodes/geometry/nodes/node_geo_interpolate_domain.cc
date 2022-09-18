@@ -83,31 +83,33 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-class InterpolateDomain final : public GeometryFieldInput {
+class InterpolateDomain final : public bke::GeometryFieldInput {
  private:
   GField src_field_;
   eAttrDomain src_domain_;
 
  public:
   InterpolateDomain(GField field, eAttrDomain domain)
-      : GeometryFieldInput(field.cpp_type(), "Interpolate Domain"),
+      : bke::GeometryFieldInput(field.cpp_type(), "Interpolate Domain"),
         src_field_(std::move(field)),
         src_domain_(domain)
   {
   }
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const eAttrDomain domain,
-                                 IndexMask /* mask */) const final
+  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
+                                 IndexMask /*mask*/) const final
   {
-    const GeometryComponentFieldContext context{component, src_domain_};
-    const int64_t src_domain_size = component.attribute_domain_size(src_domain_);
+    const bke::AttributeAccessor attributes = *context.attributes();
+
+    const bke::GeometryFieldContext other_domain_context{
+        context.geometry(), context.type(), src_domain_};
+    const int64_t src_domain_size = attributes.domain_size(src_domain_);
     GArray values(src_field_.cpp_type(), src_domain_size);
-    FieldEvaluator value_evaluator{context, src_domain_size};
+    FieldEvaluator value_evaluator{other_domain_context, src_domain_size};
     value_evaluator.add_with_destination(src_field_, values.as_mutable_span());
     value_evaluator.evaluate();
-    return component.attributes()->adapt_domain(
-        GVArray::ForGArray(std::move(values)), src_domain_, domain);
+    return attributes.adapt_domain(
+        GVArray::ForGArray(std::move(values)), src_domain_, context.domain());
   }
 };
 

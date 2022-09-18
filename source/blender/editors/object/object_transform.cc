@@ -321,7 +321,7 @@ static int object_clear_transform_generic_exec(bContext *C,
     BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
     xcs = ED_object_xform_skip_child_container_create();
     ED_object_xform_skip_child_container_item_ensure_from_array(
-        xcs, view_layer, objects.data(), objects.size());
+        xcs, scene, view_layer, objects.data(), objects.size());
   }
   if (use_transform_data_origin) {
     BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
@@ -1033,7 +1033,9 @@ static int apply_objects_internal(bContext *C,
         zero_v3(ob->rot);
         zero_v3(ob->drot);
         unit_qt(ob->quat);
+        unit_qt(ob->dquat);
         unit_axis_angle(ob->rotAxis, &ob->rotAngle);
+        unit_axis_angle(ob->drotAxis, &ob->drotAngle);
       }
     }
 

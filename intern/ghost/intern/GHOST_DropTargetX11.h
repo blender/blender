@@ -65,14 +65,6 @@ class GHOST_DropTargetX11 {
   void *getURIListGhostData(unsigned char *dropBuffer, int dropBufferSize);
 
   /**
-   * Decode URL (i.e. converts `file:///a%20b/test` to `file:///a b/test`)
-   * \param decodedOut: - buffer for decoded URL.
-   * \param bufferSize: - size of output buffer.
-   * \param encodedIn: - input encoded buffer to be decoded.
-   */
-  void UrlDecode(char *decodedOut, int bufferSize, const char *encodedIn);
-
-  /**
    * Fully decode file URL (i.e. converts `file:///a%20b/test` to `/a b/test`)
    * \param fileUrl: - file path URL to be fully decoded.
    * \return decoded file path (result should be free-d).

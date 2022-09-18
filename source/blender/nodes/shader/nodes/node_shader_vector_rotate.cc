@@ -96,7 +96,7 @@ static float3 sh_node_vector_rotate_euler(const float3 &vector,
   return result + center;
 }
 
-static const fn::MultiFunction *get_multi_function(bNode &node)
+static const fn::MultiFunction *get_multi_function(const bNode &node)
 {
   bool invert = node.custom2;
   const int mode = node.custom1;

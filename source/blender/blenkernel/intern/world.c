@@ -98,6 +98,7 @@ static void world_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
       BKE_id_copy_ex(
           bmain, (ID *)wrld_src->nodetree, (ID **)&wrld_dst->nodetree, flag_private_id_data);
     }
+    wrld_dst->nodetree->owner_id = &wrld_dst->id;
   }
 
   BLI_listbase_clear(&wrld_dst->gpumaterial);
@@ -197,7 +198,7 @@ IDTypeInfo IDType_ID_WO = {
     .foreach_id = world_foreach_id,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = world_blend_write,
     .blend_read_data = world_blend_read_data,

@@ -14,17 +14,17 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void set_material_index_in_component(GeometryComponent &component,
                                             const Field<bool> &selection_field,
-                                            const Field<int> &index_field)
+                                            const Field<int> &index_field,
+                                            const eAttrDomain domain)
 {
-  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_FACE);
+  const int domain_size = component.attribute_domain_size(domain);
   if (domain_size == 0) {
     return;
   }
   MutableAttributeAccessor attributes = *component.attributes_for_write();
-  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_FACE};
+  bke::GeometryFieldContext field_context{component, domain};
 
-  AttributeWriter<int> indices = attributes.lookup_or_add_for_write<int>("material_index",
-                                                                         ATTR_DOMAIN_FACE);
+  AttributeWriter<int> indices = attributes.lookup_or_add_for_write<int>("material_index", domain);
 
   fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.set_selection(selection_field);
@@ -41,8 +41,10 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (geometry_set.has_mesh()) {
-      set_material_index_in_component(
-          geometry_set.get_component_for_write<MeshComponent>(), selection_field, index_field);
+      set_material_index_in_component(geometry_set.get_component_for_write<MeshComponent>(),
+                                      selection_field,
+                                      index_field,
+                                      ATTR_DOMAIN_FACE);
     }
   });
   params.set_output("Geometry", std::move(geometry_set));

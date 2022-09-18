@@ -29,6 +29,7 @@ static void print_import_header(ImportSettings &import_settings)
   fprintf(stderr, "+-- Collada Import parameters------\n");
   fprintf(stderr, "| input file      : %s\n", import_settings.filepath);
   fprintf(stderr, "| use units       : %s\n", (import_settings.import_units) ? "yes" : "no");
+  fprintf(stderr, "| custom normals  : %s\n", (import_settings.custom_normals) ? "yes" : "no");
   fprintf(stderr, "| autoconnect     : %s\n", (import_settings.auto_connect) ? "yes" : "no");
   fprintf(stderr, "+-- Armature Import parameters ----\n");
   fprintf(stderr, "| find bone chains: %s\n", (import_settings.find_chains) ? "yes" : "no");
@@ -57,6 +58,7 @@ int collada_import(bContext *C, ImportSettings *import_settings)
 int collada_export(bContext *C, ExportSettings *export_settings)
 {
   BlenderContext blender_context(C);
+  const Scene *scene = blender_context.get_scene();
   ViewLayer *view_layer = blender_context.get_view_layer();
 
   int includeFilter = OB_REL_NONE;
@@ -72,7 +74,7 @@ int collada_export(bContext *C, ExportSettings *export_settings)
    */
   eObjectSet objectSet = (export_settings->selected) ? OB_SET_SELECTED : OB_SET_ALL;
   export_settings->export_set = BKE_object_relational_superset(
-      view_layer, objectSet, (eObRelationTypes)includeFilter);
+      scene, view_layer, objectSet, (eObRelationTypes)includeFilter);
 
   int export_count = BLI_linklist_count(export_settings->export_set);
 

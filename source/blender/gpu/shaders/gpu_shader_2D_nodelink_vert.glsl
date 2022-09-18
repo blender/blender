@@ -12,10 +12,8 @@
 
 void main(void)
 {
-  /* Define where along the noodle the gradient will starts and ends.
-   * Use 0.25 instead of 0.35-0.65, because of a visual shift issue. */
-  const float start_gradient_threshold = 0.25;
-  const float end_gradient_threshold = 0.55;
+  const float start_gradient_threshold = 0.35;
+  const float end_gradient_threshold = 0.65;
 
 #ifdef USE_INSTANCE
 #  define colStart (colid_doarrow[0] < 3 ? start_color : node_link_data.colors[colid_doarrow[0]])
@@ -39,6 +37,31 @@ void main(void)
   vec4 colStart = node_link_data.colors[1];
   vec4 colEnd = node_link_data.colors[2];
 #endif
+
+  float line_thickness = thickness;
+
+  if (gl_VertexID < MID_VERTEX) {
+    /* Outline pass. */
+    finalColor = colShadow;
+  }
+  else {
+    /* Second pass. */
+    if (uv.x < start_gradient_threshold) {
+      finalColor = colStart;
+    }
+    else if (uv.x > end_gradient_threshold) {
+      finalColor = colEnd;
+    }
+    else {
+      float mixFactor = (uv.x - start_gradient_threshold) /
+                        (end_gradient_threshold - start_gradient_threshold);
+      finalColor = mix(colStart, colEnd, mixFactor);
+    }
+    line_thickness *= 0.65f;
+    if (doMuted) {
+      finalColor[3] = 0.65;
+    }
+  }
 
   /* Parameters for the dashed line. */
   isMainLine = expand.y != 1.0 ? 0 : 1;
@@ -76,35 +99,14 @@ void main(void)
   exp_axis = ModelViewProjectionMatrix[0].xy * exp_axis.xx +
              ModelViewProjectionMatrix[1].xy * exp_axis.yy;
 
-  float expand_dist = (uv.y * 2.0 - 1.0);
+  float expand_dist = line_thickness * (uv.y * 2.0 - 1.0);
   colorGradient = expand_dist;
-
-  if (gl_VertexID < MID_VERTEX) {
-    /* Shadow pass */
-    finalColor = colShadow;
-  }
-  else {
-    /* Second pass */
-    if (uv.x < start_gradient_threshold) {
-      finalColor = colStart;
-    }
-    else if (uv.x > end_gradient_threshold) {
-      finalColor = colEnd;
-    }
-    else {
-      /* Add 0.1 to avoid a visual shift issue. */
-      finalColor = mix(colStart, colEnd, uv.x + 0.1);
-    }
-    expand_dist *= 0.5;
-    if (doMuted) {
-      finalColor[3] = 0.65;
-    }
-  }
+  lineThickness = line_thickness;
 
   finalColor[3] *= dim_factor;
 
   /* Expand into a line */
-  gl_Position.xy += exp_axis * node_link_data.expandSize * expand_dist * thickness;
+  gl_Position.xy += exp_axis * node_link_data.expandSize * expand_dist;
 
   /* If the link is not muted or is not a reroute arrow the points are squashed to the center of
    * the line. Magic numbers are defined in drawnode.c */

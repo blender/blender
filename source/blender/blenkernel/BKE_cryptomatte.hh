@@ -12,6 +12,7 @@
 
 #include "BKE_cryptomatte.h"
 
+#include "BLI_hash_mm3.h"
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
 
@@ -54,10 +55,14 @@ struct CryptomatteHash {
   uint32_t hash;
 
   CryptomatteHash(uint32_t hash);
-  CryptomatteHash(const char *name, int name_len);
-  static CryptomatteHash from_hex_encoded(blender::StringRef hex_encoded);
+  CryptomatteHash(const char *name, int name_len)
+  {
+    hash = BLI_hash_mm3((const unsigned char *)name, name_len, 0);
+  }
 
+  static CryptomatteHash from_hex_encoded(blender::StringRef hex_encoded);
   std::string hex_encoded() const;
+
   /**
    * Convert a cryptomatte hash to a float.
    *
@@ -70,7 +75,20 @@ struct CryptomatteHash {
    *
    * Note that this conversion assumes to be running on a L-endian system.
    */
-  float float_encoded() const;
+  float float_encoded() const
+  {
+    uint32_t mantissa = hash & ((1 << 23) - 1);
+    uint32_t exponent = (hash >> 23) & ((1 << 8) - 1);
+    exponent = MAX2(exponent, (uint32_t)1);
+    exponent = MIN2(exponent, (uint32_t)254);
+    exponent = exponent << 23;
+    uint32_t sign = (hash >> 31);
+    sign = sign << 31;
+    uint32_t float_bits = sign | exponent | mantissa;
+    float f;
+    memcpy(&f, &float_bits, sizeof(uint32_t));
+    return f;
+  }
 };
 
 struct CryptomatteLayer {
@@ -107,6 +125,8 @@ struct CryptomatteStampDataCallbackData {
 
 const blender::Vector<std::string> &BKE_cryptomatte_layer_names_get(
     const CryptomatteSession &session);
+CryptomatteLayer *BKE_cryptomatte_layer_get(CryptomatteSession &session,
+                                            const StringRef layer_name);
 
 struct CryptomatteSessionDeleter {
   void operator()(CryptomatteSession *session)

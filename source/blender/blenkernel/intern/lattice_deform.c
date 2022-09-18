@@ -30,6 +30,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 
@@ -363,7 +364,7 @@ static void lattice_deform_coords_impl(const Object *ob_lattice,
         dvert = ((Lattice *)ob_target->data)->dvert;
       }
       else {
-        dvert = ((Mesh *)ob_target->data)->dvert;
+        dvert = BKE_mesh_deform_verts((Mesh *)ob_target->data);
       }
     }
   }

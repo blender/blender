@@ -4,6 +4,8 @@ import bpy
 from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 
+from bpy.app.translations import contexts as i18n_contexts
+
 
 class BoneButtonsPanel:
     bl_space_type = 'PROPERTIES'
@@ -156,8 +158,8 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
         col.prop(bbone, "bbone_scaleout", text="Scale Out")
 
         col = topcol.column(align=True)
-        col.prop(bbone, "bbone_easein", text="Ease In")
-        col.prop(bbone, "bbone_easeout", text="Out")
+        col.prop(bbone, "bbone_easein", text="Ease In", text_ctxt=i18n_contexts.id_armature)
+        col.prop(bbone, "bbone_easeout", text="Out", text_ctxt=i18n_contexts.id_armature)
         col.prop(bone, "use_scale_easing")
 
         col = topcol.column(align=True)
@@ -177,7 +179,7 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
         row2.prop(bone, "bbone_handle_use_scale_start", index=0, text="X", toggle=True)
         row2.prop(bone, "bbone_handle_use_scale_start", index=1, text="Y", toggle=True)
         row2.prop(bone, "bbone_handle_use_scale_start", index=2, text="Z", toggle=True)
-        split2.prop(bone, "bbone_handle_use_ease_start", text="Ease", toggle=True)
+        split2.prop(bone, "bbone_handle_use_ease_start", text="Ease", text_ctxt=i18n_contexts.id_armature, toggle=True)
         row.label(icon='BLANK1')
 
         col = topcol.column(align=True)
@@ -197,7 +199,7 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
         row2.prop(bone, "bbone_handle_use_scale_end", index=0, text="X", toggle=True)
         row2.prop(bone, "bbone_handle_use_scale_end", index=1, text="Y", toggle=True)
         row2.prop(bone, "bbone_handle_use_scale_end", index=2, text="Z", toggle=True)
-        split2.prop(bone, "bbone_handle_use_ease_end", text="Ease", toggle=True)
+        split2.prop(bone, "bbone_handle_use_ease_end", text="Ease", text_ctxt=i18n_contexts.id_armature, toggle=True)
         row.label(icon='BLANK1')
 
 

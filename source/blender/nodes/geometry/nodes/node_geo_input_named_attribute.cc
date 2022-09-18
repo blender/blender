@@ -88,7 +88,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  params.used_named_attribute(name, eNamedAttrUsage::Read);
+  params.used_named_attribute(name, NamedAttributeUsage::Read);
 
   switch (data_type) {
     case CD_PROP_FLOAT:

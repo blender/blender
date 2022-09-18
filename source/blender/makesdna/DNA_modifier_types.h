@@ -1925,9 +1925,13 @@ enum {
 };
 
 typedef struct CorrectiveSmoothDeltaCache {
-  /* delta's between the original positions and the smoothed positions */
+  /**
+   * Delta's between the original positions and the smoothed positions,
+   * calculated loop-tangent and which is accumulated into the vertex it uses.
+   * (run-time only).
+   */
   float (*deltas)[3];
-  unsigned int totverts;
+  unsigned int deltas_num;
 
   /* Value of settings when creating the cache.
    * These are used to check if the cache should be recomputed. */
@@ -2284,7 +2288,7 @@ typedef struct SurfaceDeformModifierData {
   SDefVert *verts;
   void *_pad1;
   float falloff;
-  /* Number of of vertices on the deformed mesh upon the bind process. */
+  /* Number of vertices on the deformed mesh upon the bind process. */
   unsigned int mesh_verts_num;
   /* Number of vertices in the `verts` array of this modifier. */
   unsigned int bind_verts_num;

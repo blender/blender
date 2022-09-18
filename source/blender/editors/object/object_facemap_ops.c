@@ -53,7 +53,7 @@ void ED_object_facemap_face_add(Object *ob, bFaceMap *fmap, int facenum)
 
     /* if there's is no facemap layer then create one */
     if ((facemap = CustomData_get_layer(&me->pdata, CD_FACEMAP)) == NULL) {
-      facemap = CustomData_add_layer(&me->pdata, CD_FACEMAP, CD_DEFAULT, NULL, me->totpoly);
+      facemap = CustomData_add_layer(&me->pdata, CD_FACEMAP, CD_SET_DEFAULT, NULL, me->totpoly);
     }
 
     facemap[facenum] = fmap_nr;

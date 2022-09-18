@@ -161,7 +161,7 @@ def load_modules():
                     sys.path[:] = sys_path_back
 
                     # check we load what we ask for.
-                    assert(os.path.samefile(mod_imp.__file__, submod_full))
+                    assert os.path.samefile(mod_imp.__file__, submod_full)
 
                     modules.append(mod_imp)
                 except Exception:

@@ -78,9 +78,7 @@ static void freeData(ModifierData *md)
 #endif /* WITH_FLUID */
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   FluidModifierData *fmd = (FluidModifierData *)md;
 
@@ -215,7 +213,7 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
     }
 
     if (fmd->domain->effector_weights) {
-      walk(userData, ob, (ID **)&fmd->domain->effector_weights->group, IDWALK_CB_NOP);
+      walk(userData, ob, (ID **)&fmd->domain->effector_weights->group, IDWALK_CB_USER);
     }
   }
 

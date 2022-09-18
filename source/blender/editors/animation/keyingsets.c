@@ -589,7 +589,7 @@ void ANIM_keyingset_info_unregister(Main *bmain, KeyingSetInfo *ksi)
 
   /* find relevant builtin KeyingSets which use this, and remove them */
   /* TODO: this isn't done now, since unregister is really only used at the moment when we
-   * reload the scripts, which kindof defeats the purpose of "builtin"? */
+   * reload the scripts, which kind of defeats the purpose of "builtin"? */
   for (ks = builtin_keyingsets.first; ks; ks = ksn) {
     ksn = ks->next;
 
@@ -714,7 +714,7 @@ static void anim_keyingset_visit_for_search_impl(const bContext *C,
                                                  void *visit_user_data,
                                                  const bool use_poll)
 {
-  /* Poll requires context.  */
+  /* Poll requires context. */
   if (use_poll && (C == NULL)) {
     return;
   }

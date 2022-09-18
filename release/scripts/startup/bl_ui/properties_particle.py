@@ -2,8 +2,10 @@
 import bpy
 from bpy.types import Panel, Menu
 from rna_prop_ui import PropertyPanel
-from bpy.app.translations import pgettext_iface as iface_
-from bpy.app.translations import contexts as i18n_contexts
+from bpy.app.translations import (
+    contexts as i18n_contexts,
+    pgettext_iface as iface_,
+)
 from bl_ui.utils import PresetPanel
 
 from bl_ui.properties_physics_common import (
@@ -1654,6 +1656,7 @@ class PARTICLE_PT_children_clumping_noise(ParticleButtonsPanel, Panel):
 
 class PARTICLE_PT_children_roughness(ParticleButtonsPanel, Panel):
     bl_label = "Roughness"
+    bl_translation_context = i18n_contexts.id_particlesettings
     bl_parent_id = "PARTICLE_PT_children"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
@@ -1676,7 +1679,7 @@ class PARTICLE_PT_children_roughness(ParticleButtonsPanel, Panel):
         if part.use_roughness_curve:
             sub = col.column()
             sub.template_curve_mapping(part, "roughness_curve")
-            sub.prop(part, "roughness_1", text="Roughness")
+            sub.prop(part, "roughness_1", text=iface_("Roughness", i18n_contexts.id_particlesettings))
             sub.prop(part, "roughness_1_size", text="Size")
         else:
             sub = col.column(align=True)

@@ -628,7 +628,7 @@ static BMElem *bm_log_elem_from_id(BMLog *log, uint id)
 }
 
 /* Get a vertex from its unique ID */
-static BMVert *bm_log_vert_from_id(BMLog *log, uint id)
+ATTR_NO_OPT static BMVert *bm_log_vert_from_id(BMLog *log, uint id)
 {
   if (log->bm->idmap.map && id >= ((unsigned int)log->bm->idmap.map_size)) {
     return NULL;
@@ -3183,7 +3183,7 @@ void _BM_log_edge_topo_post(BMLog *log, BMEdge *e BMLOG_DEBUG_ARGS)
   bm_logstack_pop();
 }
 
-void _BM_log_vert_topo_pre(BMLog *log, BMVert *v BMLOG_DEBUG_ARGS)
+ATTR_NO_OPT void _BM_log_vert_topo_pre(BMLog *log, BMVert *v BMLOG_DEBUG_ARGS)
 {
   bm_logstack_push();
 
@@ -3290,7 +3290,9 @@ void _BM_log_vert_topo_post(BMLog *log, BMVert *v BMLOG_DEBUG_ARGS)
  * vertices original location, then the move record is deleted.
  */
 
-void _BM_log_vert_removed(BMLog *log, BMVert *v, int UNUSED(cd_vert_mask_offset) BMLOG_DEBUG_ARGS)
+ATTR_NO_OPT void _BM_log_vert_removed(BMLog *log,
+                                      BMVert *v,
+                                      int UNUSED(cd_vert_mask_offset) BMLOG_DEBUG_ARGS)
 {
   bm_logstack_push();
 

@@ -43,6 +43,10 @@ void VelocityModule::init()
     step_ = STEP_CURRENT;
     /* Let the main sync loop handle the current step. */
   }
+
+  /* For viewport, only previous motion is supported.
+   * Still bind previous step to avoid undefined behavior. */
+  next_step_ = inst_.is_viewport() ? STEP_PREVIOUS : STEP_NEXT;
 }
 
 static void step_object_sync_render(void *velocity,
@@ -51,7 +55,9 @@ static void step_object_sync_render(void *velocity,
                                     Depsgraph *UNUSED(depsgraph))
 {
   ObjectKey object_key(ob);
-  reinterpret_cast<VelocityModule *>(velocity)->step_object_sync(ob, object_key);
+  /* NOTE: Dummy resource handle since this will not be used for drawing. */
+  ResourceHandle resource_handle(0);
+  reinterpret_cast<VelocityModule *>(velocity)->step_object_sync(ob, object_key, resource_handle);
 }
 
 void VelocityModule::step_sync(eVelocityStep step, float time)
@@ -78,6 +84,7 @@ void VelocityModule::step_camera_sync()
 
 bool VelocityModule::step_object_sync(Object *ob,
                                       ObjectKey &object_key,
+                                      ResourceHandle resource_handle,
                                       int /*IDRecalcFlag*/ recalc)
 {
   bool has_motion = object_has_velocity(ob) || (recalc & ID_RECALC_TRANSFORM);
@@ -89,8 +96,6 @@ bool VelocityModule::step_object_sync(Object *ob,
     return false;
   }
 
-  uint32_t resource_id = DRW_object_resource_id_get(ob);
-
   /* Object motion. */
   /* FIXME(fclem) As we are using original objects pointers, there is a chance the previous
    * object key matches a totally different object if the scene was changed by user or python
@@ -99,7 +104,7 @@ bool VelocityModule::step_object_sync(Object *ob,
    * We live with that until we have a correct way of identifying new objects. */
   VelocityObjectData &vel = velocity_map.lookup_or_add_default(object_key);
   vel.obj.ofs[step_] = object_steps_usage[step_]++;
-  vel.obj.resource_id = resource_id;
+  vel.obj.resource_id = resource_handle.resource_index();
   vel.id = (ID *)ob->data;
   object_steps[step_]->get_or_resize(vel.obj.ofs[step_]) = ob->obmat;
   if (step_ == STEP_CURRENT) {
@@ -257,7 +262,7 @@ void VelocityModule::end_sync()
   uint32_t max_resource_id_ = 0u;
 
   for (Map<ObjectKey, VelocityObjectData>::Item item : velocity_map.items()) {
-    if (item.value.obj.resource_id == (uint)-1) {
+    if (item.value.obj.resource_id == (uint32_t)-1) {
       deleted_obj.append(item.key);
     }
     else {
@@ -273,11 +278,11 @@ void VelocityModule::end_sync()
     inst_.sampling.reset();
   }
 
-  for (auto key : deleted_obj) {
+  for (auto &key : deleted_obj) {
     velocity_map.remove(key);
   }
 
-  indirection_buf.resize(power_of_2_max_u(max_resource_id_ + 1));
+  indirection_buf.resize(ceil_to_multiple_u(max_resource_id_, 128));
 
   /* Avoid uploading more data to the GPU as well as an extra level of
    * indirection on the GPU by copying back offsets the to VelocityIndex. */

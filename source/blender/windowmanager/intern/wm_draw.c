@@ -228,10 +228,9 @@ static void wm_software_cursor_draw_bitmap(const int event_xy[2],
       imm_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   /* Use 3D image for correct display of planar tracked images. */
-  immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_MODULATE_ALPHA);
+  immBindBuiltinProgram(GPU_SHADER_3D_IMAGE);
 
   immBindTexture("image", texture);
-  immUniform1f("alpha", 1.0f);
 
   immBegin(GPU_PRIM_TRI_FAN, 4);
 
@@ -266,7 +265,7 @@ static void wm_software_cursor_draw_crosshair(const int event_xy[2])
   const float unit = max_ff(U.dpi_fac, 1.0f);
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   immUniformColor4f(1, 1, 1, 1);
   {
@@ -898,7 +897,8 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
 
     if (area->flag & AREA_FLAG_ACTIVE_TOOL_UPDATE) {
       if ((1 << area->spacetype) & WM_TOOLSYSTEM_SPACE_MASK) {
-        WM_toolsystem_update_from_context(C, CTX_wm_workspace(C), CTX_data_view_layer(C), area);
+        WM_toolsystem_update_from_context(
+            C, CTX_wm_workspace(C), CTX_data_scene(C), CTX_data_view_layer(C), area);
       }
       area->flag &= ~AREA_FLAG_ACTIVE_TOOL_UPDATE;
     }
@@ -1192,6 +1192,39 @@ static void wm_draw_surface(bContext *C, wmSurface *surface)
 
   /* Avoid interference with window drawable */
   wm_surface_clear_drawable();
+}
+
+uint *WM_window_pixels_read_offscreen(bContext *C, wmWindow *win, int r_size[2])
+{
+  /* NOTE(@campbellbarton): There is a problem reading the windows front-buffer after redrawing
+   * the window in some cases (typically to clear UI elements such as menus or search popup).
+   * With EGL `eglSurfaceAttrib(..)` may support setting the `EGL_SWAP_BEHAVIOR` attribute to
+   * `EGL_BUFFER_PRESERVED` however not all implementations support this.
+   * Requesting the ability with `EGL_SWAP_BEHAVIOR_PRESERVED_BIT` can even cause the EGL context
+   * not to initialize at all.
+   * Confusingly there are some cases where this *does* work, depending on the state of the window
+   * and prior calls to swap-buffers, however ensuring the state exactly as needed to satisfy a
+   * particular GPU back-end is fragile, see T98462.
+   *
+   * So provide an alternative to #WM_window_pixels_read that avoids using the front-buffer. */
+
+  /* Draw into an off-screen buffer and read it's contents. */
+  r_size[0] = WM_window_pixels_x(win);
+  r_size[1] = WM_window_pixels_y(win);
+
+  GPUOffScreen *offscreen = GPU_offscreen_create(r_size[0], r_size[1], false, GPU_RGBA8, NULL);
+  if (UNLIKELY(!offscreen)) {
+    return NULL;
+  }
+
+  const uint rect_len = r_size[0] * r_size[1];
+  uint *rect = MEM_mallocN(sizeof(*rect) * rect_len, __func__);
+  GPU_offscreen_bind(offscreen, false);
+  wm_draw_window_onscreen(C, win, -1);
+  GPU_offscreen_unbind(offscreen, false);
+  GPU_offscreen_read_pixels(offscreen, GPU_DATA_UBYTE, rect);
+  GPU_offscreen_free(offscreen);
+  return rect;
 }
 
 /** \} */

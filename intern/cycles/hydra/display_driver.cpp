@@ -11,7 +11,7 @@
 #include "hydra/render_buffer.h"
 #include "hydra/session.h"
 
-#include <GL/glew.h>
+#include <epoxy/gl.h>
 #include <pxr/imaging/hgiGL/texture.h>
 
 HDCYCLES_NAMESPACE_OPEN_SCOPE

@@ -368,7 +368,7 @@ PBVHNode *BKE_pbvh_get_node(PBVH *pbvh, int node);
 
 /* Building */
 
-PBVH *BKE_pbvh_new(void);
+PBVH *BKE_pbvh_new(PBVHType type);
 /**
  * Do a full rebuild with on Mesh data structure.
  *
@@ -380,7 +380,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
                          const struct MPoly *mpoly,
                          const struct MLoop *mloop,
                          struct MVert *verts,
-                         struct MSculptVert *mdyntopo_verts,
+                         struct MSculptVert *msculptverts,
                          int totvert,
                          struct CustomData *vdata,
                          struct CustomData *ldata,
@@ -421,6 +421,8 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_face_node_offset,
                              const int cd_sculpt_vert,
                              const int cd_face_areas);
+
+void BKE_pbvh_update_bmesh_offsets(PBVH *pbvh, int cd_vert_node_offset, int cd_face_node_offset);
 
 void BKE_pbvh_build_pixels(PBVH *pbvh,
                            struct Mesh *mesh,
@@ -534,11 +536,11 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
                       bool full_render);
 
 void BKE_pbvh_draw_debug_cb(PBVH *pbvh,
-                            void (*draw_fn)(void *user_data,
+                            void (*draw_fn)(PBVHNode *node,
+                                            void *user_data,
                                             const float bmin[3],
                                             const float bmax[3],
-                                            PBVHNodeFlags flag,
-                                            int depth),
+                                            PBVHNodeFlags flag),
                             void *user_data);
 
 /* PBVH Access */
@@ -563,8 +565,6 @@ int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
                               int totgrid,
                               int gridsize);
 
-void BKE_pbvh_sync_face_sets_to_grids(PBVH *pbvh);
-
 /**
  * Multi-res level, only valid for type == #PBVH_GRIDS.
  */
@@ -572,7 +572,7 @@ const struct CCGKey *BKE_pbvh_get_grid_key(const PBVH *pbvh);
 
 struct CCGElem **BKE_pbvh_get_grids(const PBVH *pbvh);
 BLI_bitmap **BKE_pbvh_get_grid_visibility(const PBVH *pbvh);
-int BKE_pbvh_get_grid_num_vertices(const PBVH *pbvh);
+int BKE_pbvh_get_grid_num_verts(const PBVH *pbvh);
 int BKE_pbvh_get_grid_num_faces(const PBVH *pbvh);
 
 /**
@@ -635,18 +635,18 @@ void BKE_pbvh_bmesh_update_all_valence(PBVH *pbvh);
 void BKE_pbvh_bmesh_flag_all_disk_sort(PBVH *pbvh);
 bool BKE_pbvh_bmesh_mark_update_valence(PBVH *pbvh, PBVHVertRef vertex);
 
-/* if pbvh uses a split index buffer, will call BKE_pbvh_node_mark_update_triangulation;
-   otherwise does nothing.  returns true if BKE_pbvh_node_mark_update_triangulation was
+/* if pbvh uses a split index buffer, will call BKE_pbvh_vert_tag_update_normal_triangulation;
+   otherwise does nothing.  returns true if BKE_pbvh_vert_tag_update_normal_triangulation was
    called.*/
 bool BKE_pbvh_node_mark_update_index_buffer(PBVH *pbvh, PBVHNode *node);
-void BKE_pbvh_node_mark_update_triangulation(PBVHNode *node);
+void BKE_pbvh_vert_tag_update_normal_triangulation(PBVHNode *node);
 void BKE_pbvh_node_mark_original_update(PBVHNode *node);
-void BKE_pbvh_node_mark_update_tri_area(PBVHNode *node);
+void BKE_pbvh_vert_tag_update_normal_tri_area(PBVHNode *node);
 void BKE_pbvh_update_all_tri_areas(PBVH *pbvh);
 void BKE_pbvh_node_mark_update(PBVHNode *node);
 void BKE_pbvh_node_mark_update_mask(PBVHNode *node);
 void BKE_pbvh_node_mark_update_color(PBVHNode *node);
-void BKE_pbvh_node_mark_update_visibility(PBVHNode *node);
+void BKE_pbvh_vert_tag_update_normal_visibility(PBVHNode *node);
 void BKE_pbvh_node_mark_rebuild_draw(PBVHNode *node);
 void BKE_pbvh_node_mark_redraw(PBVHNode *node);
 void BKE_pbvh_node_mark_normals_update(PBVHNode *node);
@@ -660,7 +660,7 @@ bool BKE_pbvh_node_fully_unmasked_get(PBVHNode *node);
 void BKE_pbvh_node_mark_curvature_update(PBVHNode *node);
 
 void BKE_pbvh_mark_rebuild_pixels(PBVH *pbvh);
-void BKE_pbvh_vert_mark_update(PBVH *pbvh, PBVHVertRef vertex);
+void BKE_pbvh_vert_tag_update_normal(PBVH *pbvh, PBVHVertRef vertex);
 
 void BKE_pbvh_node_get_grids(PBVH *pbvh,
                              PBVHNode *node,
@@ -718,15 +718,21 @@ void BKE_pbvh_grids_update(PBVH *pbvh,
 void BKE_pbvh_subdiv_ccg_set(PBVH *pbvh, struct SubdivCCG *subdiv_ccg);
 void BKE_pbvh_face_sets_set(PBVH *pbvh, int *face_sets);
 
+/**
+ * If an operation causes the hide status stored in the mesh to change, this must be called
+ * to update the references to those attributes, since they are only added when necessary.
+ */
+void BKE_pbvh_update_hide_attributes_from_mesh(PBVH *pbvh);
+
 void BKE_pbvh_face_sets_color_set(PBVH *pbvh, int seed, int color_default);
 
 void BKE_pbvh_respect_hide_set(PBVH *pbvh, bool respect_hide);
 
 /* Vertex Deformer. */
 
-float (*BKE_pbvh_vert_coords_alloc(struct PBVH *pbvh))[3];
-void BKE_pbvh_vert_coords_apply(struct PBVH *pbvh, const float (*vertCos)[3], int totvert);
-bool BKE_pbvh_is_deformed(struct PBVH *pbvh);
+float (*BKE_pbvh_vert_coords_alloc(PBVH *pbvh))[3];
+void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], int totvert);
+bool BKE_pbvh_is_deformed(PBVH *pbvh);
 
 /* Vertex Iterator. */
 
@@ -763,6 +769,7 @@ typedef struct PBVHVertexIter {
   /* mesh */
   struct MVert *mverts;
   float (*vert_normals)[3];
+  const bool *hide_vert;
   int totvert;
   const int *vert_indices;
   float *vmask;
@@ -830,7 +837,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
         else if (vi.mverts) { \
           vi.mvert = &vi.mverts[vi.vert_indices[vi.gx]]; \
           if (vi.respect_hide) { \
-            vi.visible = !(vi.mvert->flag & ME_HIDE); \
+            vi.visible = !(vi.hide_vert && vi.hide_vert[vi.vert_indices[vi.gx]]); \
             if (mode == PBVH_ITER_UNIQUE && !vi.visible) { \
               continue; \
             } \
@@ -907,12 +914,14 @@ void BKE_pbvh_gather_proxies(PBVH *pbvh, PBVHNode ***r_array, int *r_tot);
  * however this is important to avoid having to recalculate bound-box & sync the buffers to the
  * GPU (which is far more expensive!) See: T47232.
  */
-bool BKE_pbvh_node_vert_update_check_any(PBVH *pbvh, PBVHNode *node);
+bool BKE_pbvh_node_has_vert_with_normal_update_tag(PBVH *pbvh, PBVHNode *node);
 
 // void BKE_pbvh_node_BB_reset(PBVHNode *node);
 // void BKE_pbvh_node_BB_expand(PBVHNode *node, float co[3]);
 
 bool BKE_pbvh_draw_mask(const PBVH *pbvh);
+bool BKE_pbvh_has_mask(const PBVH *pbvh);
+
 void pbvh_show_mask_set(PBVH *pbvh, bool show_mask);
 
 bool BKE_pbvh_draw_face_sets(PBVH *pbvh);
@@ -926,6 +935,10 @@ void BKE_pbvh_parallel_range_settings(struct TaskParallelSettings *settings,
 
 struct MVert *BKE_pbvh_get_verts(const PBVH *pbvh);
 const float (*BKE_pbvh_get_vert_normals(const PBVH *pbvh))[3];
+const bool *BKE_pbvh_get_vert_hide(const PBVH *pbvh);
+bool *BKE_pbvh_get_vert_hide_for_write(PBVH *pbvh);
+
+const bool *BKE_pbvh_get_poly_hide(const PBVH *pbvh);
 
 bool BKE_pbvh_get_color_layer(const struct Mesh *me,
                               CustomDataLayer **r_layer,
@@ -964,6 +977,7 @@ void BKE_pbvh_vertex_color_get(const PBVH *pbvh, PBVHVertRef vertex, float r_col
 
 void BKE_pbvh_ensure_node_loops(PBVH *pbvh);
 bool BKE_pbvh_draw_cache_invalid(const PBVH *pbvh);
+int BKE_pbvh_debug_draw_gen_get(PBVHNode *node);
 
 int BKE_pbvh_get_node_index(PBVH *pbvh, PBVHNode *node);
 int BKE_pbvh_get_node_id(PBVH *pbvh, PBVHNode *node);
@@ -1131,13 +1145,13 @@ typedef struct SculptLayerEntry {
 int BKE_pbvh_do_fset_symmetry(int fset, const int symflag, const float *co);
 bool BKE_pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v);
 
-void BKE_pbvh_update_vert_boundary_faces(int *face_sets,
-                                         struct MVert *mvert,
-                                         struct MEdge *medge,
-                                         struct MLoop *mloop,
-                                         struct MPoly *mpoly,
-                                         struct MSculptVert *mdyntopo_verts,
-                                         struct MeshElemMap *pmap,
+void BKE_pbvh_update_vert_boundary_faces(const int *face_sets,
+                                         const struct MVert *mvert,
+                                         const struct MEdge *medge,
+                                         const struct MLoop *mloop,
+                                         const struct MPoly *mpoly,
+                                         struct MSculptVert *msculptverts,
+                                         const struct MeshElemMap *pmap,
                                          PBVHVertRef vertex);
 void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
                                          struct SubdivCCG *subdiv_ccg,
@@ -1157,9 +1171,6 @@ ATTR_NO_OPT static void MV_ADD_FLAG(MSculptVert *mv, int flag)
 }
 #else
 #  define MV_ADD_FLAG(mv, flag1) (mv)->flag |= (flag1)
-#endif
-#ifdef __cplusplus
-}
 #endif
 
 #if 0
@@ -1276,3 +1287,6 @@ bool BKE_pbvh_pmap_release(SculptPMap *pmap);
 void BKE_pbvh_clear_cache(PBVH *preserve);
 
 void BKE_pbvh_need_full_render_set(PBVH *pbvh, bool state);
+#ifdef __cplusplus
+}
+#endif

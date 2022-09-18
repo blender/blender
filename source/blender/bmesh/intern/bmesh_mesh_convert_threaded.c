@@ -1,4 +1,4 @@
-#if 1
+#if 0
 #  include "DNA_key_types.h"
 #  include "DNA_mesh_types.h"
 #  include "DNA_meshdata_types.h"
@@ -622,7 +622,8 @@ static void me_vert_task(void *__restrict userdata)
   CustomData_free(&me->vdata, me->totvert);
   me->totvert = bm->totvert;
 
-  CustomData_copy(&bm->vdata, &me->vdata, data->mask.vmask | data->extra2, CD_CALLOC, me->totvert);
+  CustomData_copy(
+      &bm->vdata, &me->vdata, data->mask.vmask | data->extra2, CD_SET_DEFAULT, me->totvert);
 
   MVert *mvert = bm->totvert ? MEM_callocN(sizeof(MVert) * bm->totvert, "bm_to_me.vert") : NULL;
   CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, mvert, me->totvert);
@@ -680,7 +681,8 @@ static void me_edge_task(void *__restrict userdata)
   CustomData_free(&me->edata, me->totedge);
   me->totedge = bm->totedge;
 
-  CustomData_copy(&bm->edata, &me->edata, data->mask.emask | data->extra2, CD_CALLOC, me->totvert);
+  CustomData_copy(
+      &bm->edata, &me->edata, data->mask.emask | data->extra2, CD_SET_DEFAULT, me->totvert);
 
   MEdge *medge = bm->totedge ? MEM_callocN(sizeof(MEdge) * bm->totedge, "bm_to_me.edge") : NULL;
   CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, medge, me->totedge);
@@ -730,7 +732,8 @@ static void me_face_task(void *__restrict userdata)
   CustomData_free(&me->pdata, me->totpoly);
   me->totpoly = bm->totface;
 
-  CustomData_copy(&bm->pdata, &me->pdata, data->mask.pmask | data->extra2, CD_CALLOC, me->totpoly);
+  CustomData_copy(
+      &bm->pdata, &me->pdata, data->mask.pmask | data->extra2, CD_SET_DEFAULT, me->totpoly);
 
   mpoly = bm->totface ? MEM_callocN(sizeof(MPoly) * bm->totface, "bm_to_me.poly") : NULL;
   CustomData_add_layer(&me->pdata, CD_MPOLY, CD_ASSIGN, mpoly, me->totpoly);
@@ -739,7 +742,8 @@ static void me_face_task(void *__restrict userdata)
   CustomData_free(&me->ldata, me->totloop);
   me->totloop = bm->totloop;
 
-  CustomData_copy(&bm->ldata, &me->ldata, data->mask.lmask | data->extra2, CD_CALLOC, me->totloop);
+  CustomData_copy(
+      &bm->ldata, &me->ldata, data->mask.lmask | data->extra2, CD_SET_DEFAULT, me->totloop);
 
   mloop = bm->totloop ? MEM_callocN(sizeof(MLoop) * bm->totloop, "bm_to_me.loop") : NULL;
   CustomData_add_layer(&me->ldata, CD_MLOOP, CD_ASSIGN, mloop, me->totloop);

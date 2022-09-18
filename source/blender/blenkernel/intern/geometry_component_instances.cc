@@ -444,8 +444,7 @@ static ComponentAttributeProviders create_attribute_providers_for_instances()
       [](const void *owner) -> int {
         const InstancesComponent &inst = *static_cast<const InstancesComponent *>(owner);
         return inst.instances_num();
-      },
-      nullptr};
+      }};
 
   /**
    * IDs of the instances. They are used for consistency over multiple frames for things like

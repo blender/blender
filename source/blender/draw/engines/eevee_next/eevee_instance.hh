@@ -16,7 +16,11 @@
 #include "DRW_render.h"
 
 #include "eevee_camera.hh"
+#include "eevee_cryptomatte.hh"
+#include "eevee_depth_of_field.hh"
 #include "eevee_film.hh"
+#include "eevee_hizbuffer.hh"
+#include "eevee_light.hh"
 #include "eevee_material.hh"
 #include "eevee_motion_blur.hh"
 #include "eevee_pipeline.hh"
@@ -42,8 +46,12 @@ class Instance {
   SyncModule sync;
   MaterialModule materials;
   PipelineModule pipelines;
+  LightModule lights;
   VelocityModule velocity;
   MotionBlurModule motion_blur;
+  DepthOfField depth_of_field;
+  Cryptomatte cryptomatte;
+  HiZBuffer hiz_buffer;
   Sampling sampling;
   Camera camera;
   Film film;
@@ -53,6 +61,7 @@ class Instance {
 
   /** Input data. */
   Depsgraph *depsgraph;
+  Manager *manager;
   /** Evaluated IDs. */
   Scene *scene;
   ViewLayer *view_layer;
@@ -69,8 +78,10 @@ class Instance {
   /** True if the grease pencil engine might be running. */
   bool gpencil_engine_enabled;
 
-  /* Info string displayed at the top of the render / viewport. */
+  /** Info string displayed at the top of the render / viewport. */
   std::string info = "";
+  /** Debug mode from debug value. */
+  eDebugMode debug_mode = eDebugMode::DEBUG_NONE;
 
  public:
   Instance()
@@ -78,8 +89,12 @@ class Instance {
         sync(*this),
         materials(*this),
         pipelines(*this),
+        lights(*this),
         velocity(*this),
         motion_blur(*this),
+        depth_of_field(*this),
+        cryptomatte(*this),
+        hiz_buffer(*this),
         sampling(*this),
         camera(*this),
         film(*this),
@@ -105,8 +120,11 @@ class Instance {
 
   void render_sync();
   void render_frame(RenderLayer *render_layer, const char *view_name);
+  void store_metadata(RenderResult *render_result);
 
   void draw_viewport(DefaultFramebufferList *dfbl);
+
+  static void update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer);
 
   bool is_viewport() const
   {

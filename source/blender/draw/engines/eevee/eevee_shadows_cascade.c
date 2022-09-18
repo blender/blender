@@ -357,7 +357,7 @@ static void eevee_shadow_cascade_setup(EEVEE_LightsInfo *linfo,
     mul_m4_m4m4(csm_data->shadowmat[c], texcomat, viewprojmat);
 
 #ifdef DEBUG_CSM
-    DRW_debug_m4_as_bbox(viewprojmat, dbg_col, true);
+    DRW_debug_m4_as_bbox(viewprojmat, true, dbg_col);
 #endif
   }
 

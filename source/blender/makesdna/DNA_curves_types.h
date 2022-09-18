@@ -30,6 +30,7 @@ typedef enum CurveType {
   CURVE_TYPE_BEZIER = 2,
   CURVE_TYPE_NURBS = 3,
 } CurveType;
+/* The number of supported curve types. */
 #define CURVE_TYPES_NUM 4
 
 typedef enum HandleType {

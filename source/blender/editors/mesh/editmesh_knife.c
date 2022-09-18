@@ -489,7 +489,7 @@ static void knifetool_draw_visible_distances(const KnifeTool_OpData *kcd)
   wmOrtho2_region_pixelspace(kcd->region);
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   char numstr[256];
   float numstr_size[2];
@@ -629,7 +629,7 @@ static void knifetool_draw_angle(const KnifeTool_OpData *kcd,
 
   uint pos_2d = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* Angle as string. */
   char numstr[256];
@@ -4102,7 +4102,7 @@ static void knifetool_init(ViewContext *vc,
   kcd->region = vc->region;
 
   kcd->objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      vc->view_layer, vc->v3d, &kcd->objects_len);
+      vc->scene, vc->view_layer, vc->v3d, &kcd->objects_len);
 
   Object *ob;
   BMEditMesh *em;
@@ -4300,7 +4300,7 @@ static void knifetool_finish_single_pre(KnifeTool_OpData *kcd, Object *ob)
 }
 
 /**
- * A post version is needed to to delay recalculating tessellation after making cuts.
+ * A post version is needed to delay recalculating tessellation after making cuts.
  * Without this, knife-project can't use the BVH tree to select geometry after a cut, see: T98349.
  */
 static void knifetool_finish_single_post(KnifeTool_OpData *UNUSED(kcd), Object *ob)
@@ -4378,7 +4378,7 @@ wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
 
   wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "Knife Tool Modal Map");
 
-  /* This function is called for each spacetype, only needs to add map once. */
+  /* This function is called for each space-type, only needs to add map once. */
   if (keymap && keymap->modal_items) {
     return NULL;
   }
@@ -4893,12 +4893,13 @@ void MESH_OT_knife_tool(wmOperatorType *ot)
                KNF_MEASUREMENT_NONE,
                "Measurements",
                "Visible distance and angle measurements");
-  RNA_def_enum(ot->srna,
-               "angle_snapping",
-               angle_snapping_items,
-               KNF_CONSTRAIN_ANGLE_MODE_NONE,
-               "Angle Snapping",
-               "Angle snapping mode");
+  prop = RNA_def_enum(ot->srna,
+                      "angle_snapping",
+                      angle_snapping_items,
+                      KNF_CONSTRAIN_ANGLE_MODE_NONE,
+                      "Angle Snapping",
+                      "Angle snapping mode");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MESH);
 
   prop = RNA_def_float(ot->srna,
                        "angle_snapping_increment",

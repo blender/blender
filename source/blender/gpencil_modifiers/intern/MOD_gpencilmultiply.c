@@ -20,6 +20,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
@@ -311,7 +313,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Multiply = {
-    /* name */ "MultipleStrokes",
+    /* name */ N_("MultipleStrokes"),
     /* structName */ "MultiplyGpencilModifierData",
     /* structSize */ sizeof(MultiplyGpencilModifierData),
     /* type */ eGpencilModifierTypeType_Gpencil,

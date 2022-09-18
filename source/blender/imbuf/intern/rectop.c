@@ -21,9 +21,9 @@
 
 #include "MEM_guardedalloc.h"
 
-void IMB_blend_color_byte(unsigned char dst[4],
-                          const unsigned char src1[4],
-                          const unsigned char src2[4],
+void IMB_blend_color_byte(uchar dst[4],
+                          const uchar src1[4],
+                          const uchar src2[4],
                           IMB_BlendMode mode)
 {
   switch (mode) {
@@ -487,17 +487,15 @@ void IMB_rectcpy(ImBuf *dbuf,
                 false);
 }
 
-typedef void (*IMB_blend_func)(unsigned char *dst,
-                               const unsigned char *src1,
-                               const unsigned char *src2);
+typedef void (*IMB_blend_func)(uchar *dst, const uchar *src1, const uchar *src2);
 typedef void (*IMB_blend_func_float)(float *dst, const float *src1, const float *src2);
 
 void IMB_rectblend(ImBuf *dbuf,
                    const ImBuf *obuf,
                    const ImBuf *sbuf,
-                   unsigned short *dmask,
-                   const unsigned short *curvemask,
-                   const unsigned short *texmask,
+                   ushort *dmask,
+                   const ushort *curvemask,
+                   const ushort *texmask,
                    float mask_max,
                    int destx,
                    int desty,
@@ -510,11 +508,11 @@ void IMB_rectblend(ImBuf *dbuf,
                    IMB_BlendMode mode,
                    bool accumulate)
 {
-  unsigned int *drect = NULL, *orect = NULL, *srect = NULL, *dr, * or, *sr;
+  uint *drect = NULL, *orect = NULL, *srect = NULL, *dr, * or, *sr;
   float *drectf = NULL, *orectf = NULL, *srectf = NULL, *drf, *orf, *srf;
-  const unsigned short *cmaskrect = curvemask, *cmr;
-  unsigned short *dmaskrect = dmask, *dmr;
-  const unsigned short *texmaskrect = texmask, *tmr;
+  const ushort *cmaskrect = curvemask, *cmr;
+  ushort *dmaskrect = dmask, *dmr;
+  const ushort *texmaskrect = texmask, *tmr;
   int srcskip, destskip, origskip, x;
   IMB_blend_func func = NULL;
   IMB_blend_func_float func_float = NULL;
@@ -766,7 +764,7 @@ void IMB_rectblend(ImBuf *dbuf,
           if (dmaskrect) {
             dmr = dmaskrect;
             for (x = width; x > 0; x--, dr++, or ++, sr++, dmr++, cmr++) {
-              unsigned char *src = (unsigned char *)sr;
+              uchar *src = (uchar *)sr;
               float mask_lim = mask_max * (*cmr);
 
               if (texmaskrect) {
@@ -786,7 +784,7 @@ void IMB_rectblend(ImBuf *dbuf,
                 mask = min_ff(mask, 65535.0);
 
                 if (mask > *dmr) {
-                  unsigned char mask_src[4];
+                  uchar mask_src[4];
 
                   *dmr = mask;
 
@@ -797,11 +795,11 @@ void IMB_rectblend(ImBuf *dbuf,
                   if (mode == IMB_BLEND_INTERPOLATE) {
                     mask_src[3] = src[3];
                     blend_color_interpolate_byte(
-                        (unsigned char *)dr, (unsigned char *) or, mask_src, mask / 65535.0f);
+                        (uchar *)dr, (uchar *) or, mask_src, mask / 65535.0f);
                   }
                   else {
                     mask_src[3] = divide_round_i(src[3] * mask, 65535);
-                    func((unsigned char *)dr, (unsigned char *) or, mask_src);
+                    func((uchar *)dr, (uchar *) or, mask_src);
                   }
                 }
               }
@@ -811,7 +809,7 @@ void IMB_rectblend(ImBuf *dbuf,
           /* no destination mask buffer, do regular blend with masktexture if present */
           else {
             for (x = width; x > 0; x--, dr++, or ++, sr++, cmr++) {
-              unsigned char *src = (unsigned char *)sr;
+              uchar *src = (uchar *)sr;
               float mask = (float)mask_max * ((float)(*cmr));
 
               if (texmaskrect) {
@@ -821,7 +819,7 @@ void IMB_rectblend(ImBuf *dbuf,
               mask = min_ff(mask, 65535.0);
 
               if (src[3] && (mask > 0.0f)) {
-                unsigned char mask_src[4];
+                uchar mask_src[4];
 
                 mask_src[0] = src[0];
                 mask_src[1] = src[1];
@@ -830,11 +828,11 @@ void IMB_rectblend(ImBuf *dbuf,
                 if (mode == IMB_BLEND_INTERPOLATE) {
                   mask_src[3] = src[3];
                   blend_color_interpolate_byte(
-                      (unsigned char *)dr, (unsigned char *) or, mask_src, mask / 65535.0f);
+                      (uchar *)dr, (uchar *) or, mask_src, mask / 65535.0f);
                 }
                 else {
                   mask_src[3] = divide_round_i(src[3] * mask, 65535);
-                  func((unsigned char *)dr, (unsigned char *) or, mask_src);
+                  func((uchar *)dr, (uchar *) or, mask_src);
                 }
               }
             }
@@ -848,8 +846,8 @@ void IMB_rectblend(ImBuf *dbuf,
         else {
           /* regular blending */
           for (x = width; x > 0; x--, dr++, or ++, sr++) {
-            if (((unsigned char *)sr)[3]) {
-              func((unsigned char *)dr, (unsigned char *) or, (unsigned char *)sr);
+            if (((uchar *)sr)[3]) {
+              func((uchar *)dr, (uchar *) or, (uchar *)sr);
             }
           }
         }
@@ -956,8 +954,8 @@ void IMB_rectblend(ImBuf *dbuf,
 typedef struct RectBlendThreadData {
   ImBuf *dbuf;
   const ImBuf *obuf, *sbuf;
-  unsigned short *dmask;
-  const unsigned short *curvemask, *texmask;
+  ushort *dmask;
+  const ushort *curvemask, *texmask;
   float mask_max;
   int destx, desty, origx, origy;
   int srcx, srcy, width;
@@ -991,9 +989,9 @@ static void rectblend_thread_do(void *data_v, int scanline)
 void IMB_rectblend_threaded(ImBuf *dbuf,
                             const ImBuf *obuf,
                             const ImBuf *sbuf,
-                            unsigned short *dmask,
-                            const unsigned short *curvemask,
-                            const unsigned short *texmask,
+                            ushort *dmask,
+                            const ushort *curvemask,
+                            const ushort *texmask,
                             float mask_max,
                             int destx,
                             int desty,
@@ -1052,7 +1050,7 @@ void IMB_rectfill(ImBuf *drect, const float col[4])
   int num;
 
   if (drect->rect) {
-    unsigned int *rrect = drect->rect;
+    uint *rrect = drect->rect;
     char ccol[4];
 
     ccol[0] = (int)(col[0] * 255);
@@ -1062,7 +1060,7 @@ void IMB_rectfill(ImBuf *drect, const float col[4])
 
     num = drect->x * drect->y;
     for (; num > 0; num--) {
-      *rrect++ = *((unsigned int *)ccol);
+      *rrect++ = *((uint *)ccol);
     }
   }
 
@@ -1106,15 +1104,15 @@ void IMB_rectfill_area_replace(
     return;
   }
 
-  unsigned char col_char[4] = {col[0] * 255, col[1] * 255, col[2] * 255, col[3] * 255};
+  uchar col_char[4] = {col[0] * 255, col[1] * 255, col[2] * 255, col[3] * 255};
 
   for (int y = y1; y < y2; y++) {
     for (int x = x1; x < x2; x++) {
       size_t offset = ((size_t)ibuf->x) * y * 4 + 4 * x;
 
       if (ibuf->rect) {
-        unsigned char *rrect = (unsigned char *)ibuf->rect + offset;
-        memcpy(rrect, &col_char, sizeof(unsigned char) * 4);
+        uchar *rrect = (uchar *)ibuf->rect + offset;
+        memcpy(rrect, &col_char, sizeof(uchar) * 4);
       }
 
       if (ibuf->rect_float) {
@@ -1125,7 +1123,7 @@ void IMB_rectfill_area_replace(
   }
 }
 
-void buf_rectfill_area(unsigned char *rect,
+void buf_rectfill_area(uchar *rect,
                        float *rectf,
                        int width,
                        int height,
@@ -1165,8 +1163,8 @@ void buf_rectfill_area(unsigned char *rect,
   aich = ai / 255.0f;
 
   if (rect) {
-    unsigned char *pixel;
-    unsigned char chr = 0, chg = 0, chb = 0;
+    uchar *pixel;
+    uchar chr = 0, chg = 0, chb = 0;
     float fr = 0, fg = 0, fb = 0;
 
     const int alphaint = unit_float_to_uchar_clamp(a);
@@ -1247,16 +1245,8 @@ void IMB_rectfill_area(ImBuf *ibuf,
   if (!ibuf) {
     return;
   }
-  buf_rectfill_area((unsigned char *)ibuf->rect,
-                    ibuf->rect_float,
-                    ibuf->x,
-                    ibuf->y,
-                    col,
-                    display,
-                    x1,
-                    y1,
-                    x2,
-                    y2);
+  buf_rectfill_area(
+      (uchar *)ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y, col, display, x1, y1, x2, y2);
 }
 
 void IMB_rectfill_alpha(ImBuf *ibuf, const float value)
@@ -1271,8 +1261,8 @@ void IMB_rectfill_alpha(ImBuf *ibuf, const float value)
   }
 
   if (ibuf->rect) {
-    const unsigned char cvalue = value * 255;
-    unsigned char *cbuf = ((unsigned char *)ibuf->rect) + 3;
+    const uchar cvalue = value * 255;
+    uchar *cbuf = ((uchar *)ibuf->rect) + 3;
     for (i = ibuf->x * ibuf->y; i > 0; i--, cbuf += 4) {
       *cbuf = cvalue;
     }

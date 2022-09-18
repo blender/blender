@@ -769,11 +769,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
     build_object(-1, object->parent, DEG_ID_LINKED_INDIRECTLY, is_visible);
   }
   /* Modifiers. */
-  if (object->modifiers.first != nullptr) {
-    BuilderWalkUserData data;
-    data.builder = this;
-    BKE_modifiers_foreach_ID_link(object, modifier_walk, &data);
-  }
+  build_object_modifiers(object);
   /* Grease Pencil Modifiers. */
   if (object->greasepencil_modifiers.first != nullptr) {
     BuilderWalkUserData data;
@@ -875,6 +871,44 @@ void DepsgraphNodeBuilder::build_object_instance_collection(Object *object, bool
   is_parent_collection_visible_ = is_object_visible;
   build_collection(nullptr, object->instance_collection);
   is_parent_collection_visible_ = is_current_parent_collection_visible;
+}
+
+void DepsgraphNodeBuilder::build_object_modifiers(Object *object)
+{
+  if (BLI_listbase_is_empty(&object->modifiers)) {
+    return;
+  }
+
+  const ModifierMode modifier_mode = (graph_->mode == DAG_EVAL_VIEWPORT) ? eModifierMode_Realtime :
+                                                                           eModifierMode_Render;
+
+  IDNode *id_node = find_id_node(&object->id);
+
+  add_operation_node(&object->id,
+                     NodeType::GEOMETRY,
+                     OperationCode::VISIBILITY,
+                     [id_node](::Depsgraph *depsgraph) {
+                       deg_evaluate_object_modifiers_mode_node_visibility(depsgraph, id_node);
+                     });
+
+  LISTBASE_FOREACH (ModifierData *, modifier, &object->modifiers) {
+    OperationNode *modifier_node = add_operation_node(
+        &object->id, NodeType::GEOMETRY, OperationCode::MODIFIER, nullptr, modifier->name);
+
+    /* Mute modifier mode if the modifier is not enabled for the dependency graph mode.
+     * This handles static (non-animated) mode of the modifier. */
+    if ((modifier->mode & modifier_mode) == 0) {
+      modifier_node->flag |= DEPSOP_FLAG_MUTE;
+    }
+
+    if (is_modifier_visibility_animated(object, modifier)) {
+      graph_->has_animated_visibility = true;
+    }
+  }
+
+  BuilderWalkUserData data;
+  data.builder = this;
+  BKE_modifiers_foreach_ID_link(object, modifier_walk, &data);
 }
 
 void DepsgraphNodeBuilder::build_object_data(Object *object)
@@ -1184,12 +1218,16 @@ void DepsgraphNodeBuilder::build_driver_id_property(ID *id, const char *rna_path
   /* Custom properties of bones are placed in their components to improve granularity. */
   if (RNA_struct_is_a(ptr.type, &RNA_PoseBone)) {
     const bPoseChannel *pchan = static_cast<const bPoseChannel *>(ptr.data);
-    ensure_operation_node(
-        id, NodeType::BONE, pchan->name, OperationCode::ID_PROPERTY, nullptr, prop_identifier);
+    ensure_operation_node(ptr.owner_id,
+                          NodeType::BONE,
+                          pchan->name,
+                          OperationCode::ID_PROPERTY,
+                          nullptr,
+                          prop_identifier);
   }
   else {
     ensure_operation_node(
-        id, NodeType::PARAMETERS, OperationCode::ID_PROPERTY, nullptr, prop_identifier);
+        ptr.owner_id, NodeType::PARAMETERS, OperationCode::ID_PROPERTY, nullptr, prop_identifier);
   }
 }
 
@@ -1704,6 +1742,18 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
   build_animdata(&ntree->id);
   /* Output update. */
   add_operation_node(&ntree->id, NodeType::NTREE_OUTPUT, OperationCode::NTREE_OUTPUT);
+  if (ntree->type == NTREE_GEOMETRY) {
+    ID *id_cow = get_cow_id(&ntree->id);
+    add_operation_node(&ntree->id,
+                       NodeType::NTREE_GEOMETRY_PREPROCESS,
+                       OperationCode::NTREE_GEOMETRY_PREPROCESS,
+                       [id_cow](::Depsgraph * /*depsgraph*/) {
+                         bNodeTree *ntree_cow = reinterpret_cast<bNodeTree *>(id_cow);
+                         bke::node_tree_runtime::preprocess_geometry_node_tree_for_evaluation(
+                             *ntree_cow);
+                       });
+  }
+
   /* nodetree's nodes... */
   LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
     build_idproperties(bnode->prop);
@@ -2080,9 +2130,10 @@ void DepsgraphNodeBuilder::build_scene_audio(Scene *scene)
                      });
 }
 
-void DepsgraphNodeBuilder::build_scene_speakers(Scene * /*scene*/, ViewLayer *view_layer)
+void DepsgraphNodeBuilder::build_scene_speakers(Scene *scene, ViewLayer *view_layer)
 {
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     Object *object = base->object;
     if (object->type != OB_SPEAKER || !need_pull_base_into_graph(base)) {
       continue;

@@ -24,6 +24,7 @@
 #include "collada_utils.h"
 
 #include "BLI_edgehash.h"
+#include "BLI_math_vec_types.hh"
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -63,6 +64,7 @@ class VCOLDataWrapper {
 class MeshImporter : public MeshImporterBase {
  private:
   UnitConverter *unitconverter;
+  bool use_custom_normals;
 
   Main *m_bmain;
   Scene *scene;
@@ -80,6 +82,7 @@ class MeshImporter : public MeshImporterBase {
    * (<triangles>, <polylist>, etc.) */
   struct Primitive {
     MPoly *mpoly;
+    int *material_indices;
     unsigned int totpoly;
   };
   typedef std::map<COLLADAFW::MaterialId, std::vector<Primitive>> MaterialIdPrimitiveArrayMap;
@@ -155,7 +158,7 @@ class MeshImporter : public MeshImporterBase {
    *
    * TODO: import uv set names.
    */
-  void read_polys(COLLADAFW::Mesh *mesh, Mesh *me);
+  void read_polys(COLLADAFW::Mesh *mesh, Mesh *me, blender::Vector<blender::float3> &loop_normals);
   /**
    * Read all loose edges.
    * IMPORTANT: This function assumes that all edges from existing
@@ -178,6 +181,7 @@ class MeshImporter : public MeshImporterBase {
 
  public:
   MeshImporter(UnitConverter *unitconv,
+               bool use_custom_normals,
                ArmatureImporter *arm,
                Main *bmain,
                Scene *sce,
@@ -203,7 +207,6 @@ class MeshImporter : public MeshImporterBase {
    *         if the check is positive:
    *             Add the materials of the first user to the geometry
    *             adjust all other users accordingly.
-   *
    */
   void optimize_material_assignements();
 

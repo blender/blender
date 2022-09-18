@@ -233,7 +233,7 @@ SculptBrushTestFn SCULPT_brush_test_init(struct SculptSession *ss,
                                                             SculptBrushTest *test,
                                                             char falloff_shape);
 bool SCULPT_search_sphere_cb(PBVHNode *node, void *data_v);
-void BKE_pbvh_node_mark_update(PBVHNode *node);
+void BKE_pbvh_vert_tag_update_normal(PBVHNode *node);
 
 typedef struct {
   struct Sculpt *sd;

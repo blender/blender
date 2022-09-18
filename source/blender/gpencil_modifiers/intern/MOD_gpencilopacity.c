@@ -279,7 +279,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Opacity = {
-    /* name */ "Opacity",
+    /* name */ N_("Opacity"),
     /* structName */ "OpacityGpencilModifierData",
     /* structSize */ sizeof(OpacityGpencilModifierData),
     /* type */ eGpencilModifierTypeType_Gpencil,

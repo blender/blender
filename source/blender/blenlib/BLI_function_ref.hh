@@ -63,7 +63,6 @@
  *
  *   void some_function(FunctionRef<int()> f);
  *   some_function([]() { return 0; });
- *
  */
 
 #include "BLI_memory_utils.hh"

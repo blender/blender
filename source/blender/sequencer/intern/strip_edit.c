@@ -37,32 +37,32 @@
 #include "SEQ_transform.h"
 #include "SEQ_utils.h"
 
-int SEQ_edit_sequence_swap(Scene *scene, Sequence *seq_a, Sequence *seq_b, const char **error_str)
+bool SEQ_edit_sequence_swap(Scene *scene, Sequence *seq_a, Sequence *seq_b, const char **error_str)
 {
   char name[sizeof(seq_a->name)];
 
   if (SEQ_time_strip_length_get(scene, seq_a) != SEQ_time_strip_length_get(scene, seq_b)) {
     *error_str = N_("Strips must be the same length");
-    return 0;
+    return false;
   }
 
   /* type checking, could be more advanced but disallow sound vs non-sound copy */
   if (seq_a->type != seq_b->type) {
     if (seq_a->type == SEQ_TYPE_SOUND_RAM || seq_b->type == SEQ_TYPE_SOUND_RAM) {
       *error_str = N_("Strips were not compatible");
-      return 0;
+      return false;
     }
 
     /* disallow effects to swap with non-effects strips */
     if ((seq_a->type & SEQ_TYPE_EFFECT) != (seq_b->type & SEQ_TYPE_EFFECT)) {
       *error_str = N_("Strips were not compatible");
-      return 0;
+      return false;
     }
 
     if ((seq_a->type & SEQ_TYPE_EFFECT) && (seq_b->type & SEQ_TYPE_EFFECT)) {
       if (SEQ_effect_get_num_inputs(seq_a->type) != SEQ_effect_get_num_inputs(seq_b->type)) {
         *error_str = N_("Strips must have the same number of inputs");
-        return 0;
+        return false;
       }
     }
   }
@@ -87,27 +87,26 @@ int SEQ_edit_sequence_swap(Scene *scene, Sequence *seq_a, Sequence *seq_b, const
   seq_time_effect_range_set(scene, seq_a);
   seq_time_effect_range_set(scene, seq_b);
 
-  return 1;
+  return true;
 }
 
 static void seq_update_muting_recursive(ListBase *channels,
                                         ListBase *seqbasep,
                                         Sequence *metaseq,
-                                        int mute)
+                                        const bool mute)
 {
   Sequence *seq;
-  int seqmute;
 
   /* For sound we go over full meta tree to update muted state,
    * since sound is played outside of evaluating the imbufs. */
   for (seq = seqbasep->first; seq; seq = seq->next) {
-    seqmute = (mute || SEQ_render_is_muted(channels, seq));
+    bool seqmute = (mute || SEQ_render_is_muted(channels, seq));
 
     if (seq->type == SEQ_TYPE_META) {
       /* if this is the current meta sequence, unmute because
        * all sequences above this were set to mute */
       if (seq == metaseq) {
-        seqmute = 0;
+        seqmute = false;
       }
 
       seq_update_muting_recursive(&seq->channels, &seq->seqbase, metaseq, seqmute);
@@ -127,10 +126,10 @@ void SEQ_edit_update_muting(Editing *ed)
     MetaStack *ms = ed->metastack.last;
 
     if (ms) {
-      seq_update_muting_recursive(&ed->channels, &ed->seqbase, ms->parseq, 1);
+      seq_update_muting_recursive(&ed->channels, &ed->seqbase, ms->parseq, true);
     }
     else {
-      seq_update_muting_recursive(&ed->channels, &ed->seqbase, NULL, 0);
+      seq_update_muting_recursive(&ed->channels, &ed->seqbase, NULL, false);
     }
   }
 }
@@ -261,7 +260,7 @@ bool SEQ_edit_move_strip_to_meta(Scene *scene,
 
 static void seq_split_set_left_hold_offset(Scene *scene, Sequence *seq, int timeline_frame)
 {
-  /* Adjust within range of extended stillframes before strip. */
+  /* Adjust within range of extended still-frames before strip. */
   if (timeline_frame < seq->start) {
     seq->start = timeline_frame - 1;
     seq->anim_endofs += SEQ_time_strip_length_get(scene, seq) - 1;
@@ -275,7 +274,7 @@ static void seq_split_set_left_hold_offset(Scene *scene, Sequence *seq, int time
     seq->endstill = 0;
     seq->anim_endofs += (seq->start + SEQ_time_strip_length_get(scene, seq)) - timeline_frame;
   }
-  /* Adjust within range of extended stillframes after strip. */
+  /* Adjust within range of extended still-frames after strip. */
   else if ((seq->start + SEQ_time_strip_length_get(scene, seq)) < timeline_frame) {
     seq->endstill = timeline_frame - seq->start - SEQ_time_strip_length_get(scene, seq);
   }
@@ -283,7 +282,7 @@ static void seq_split_set_left_hold_offset(Scene *scene, Sequence *seq, int time
 
 static void seq_split_set_right_hold_offset(Scene *scene, Sequence *seq, int timeline_frame)
 {
-  /* Adjust within range of extended stillframes before strip. */
+  /* Adjust within range of extended still-frames before strip. */
   if (timeline_frame < seq->start) {
     seq->startstill = seq->start - timeline_frame;
   }
@@ -295,7 +294,7 @@ static void seq_split_set_right_hold_offset(Scene *scene, Sequence *seq, int tim
     seq->startstill = 0;
     seq->startofs = 0;
   }
-  /* Adjust within range of extended stillframes after strip. */
+  /* Adjust within range of extended still-frames after strip. */
   else if ((seq->start + SEQ_time_strip_length_get(scene, seq)) < timeline_frame) {
     seq->start = timeline_frame;
     seq->startofs = 0;

@@ -11,6 +11,10 @@
 #include "util/math.h"
 #include "util/types.h"
 
+#ifndef __KERNEL_GPU__
+#  include "util/system.h"
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 /* Affine transformation, stored as 4x3 matrix. */
@@ -37,6 +41,12 @@ typedef struct Transform {
 typedef struct DecomposedTransform {
   float4 x, y, z, w;
 } DecomposedTransform;
+
+CCL_NAMESPACE_END
+
+#include "util/transform_inverse.h"
+
+CCL_NAMESPACE_BEGIN
 
 /* Functions */
 
@@ -391,47 +401,28 @@ ccl_device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
 #endif /* defined(__KERNEL_GPU_RAYTRACING__) */
 }
 
+#ifndef __KERNEL_GPU__
+void transform_inverse_cpu_sse41(const Transform &tfm, Transform &itfm);
+void transform_inverse_cpu_avx2(const Transform &tfm, Transform &itfm);
+#endif
+
 ccl_device_inline Transform transform_inverse(const Transform tfm)
 {
-  /* This implementation matches the one in Embree exactly, to ensure consistent
-   * results with the ray intersection of instances. */
-  float3 x = make_float3(tfm.x.x, tfm.y.x, tfm.z.x);
-  float3 y = make_float3(tfm.x.y, tfm.y.y, tfm.z.y);
-  float3 z = make_float3(tfm.x.z, tfm.y.z, tfm.z.z);
-  float3 w = make_float3(tfm.x.w, tfm.y.w, tfm.z.w);
-
-  /* Compute determinant. */
-  float det = dot(x, cross(y, z));
-
-  if (det == 0.0f) {
-    /* Matrix is degenerate (e.g. 0 scale on some axis), ideally we should
-     * never be in this situation, but try to invert it anyway with tweak.
-     *
-     * This logic does not match Embree which would just give an invalid
-     * matrix. A better solution would be to remove this and ensure any object
-     * matrix is valid. */
-    x.x += 1e-8f;
-    y.y += 1e-8f;
-    z.z += 1e-8f;
-
-    det = dot(x, cross(y, z));
-    if (det == 0.0f) {
-      det = FLT_MAX;
-    }
+  /* Optimized transform implementations. */
+#ifndef __KERNEL_GPU__
+  if (system_cpu_support_avx2()) {
+    Transform itfm;
+    transform_inverse_cpu_avx2(tfm, itfm);
+    return itfm;
   }
+  else if (system_cpu_support_sse41()) {
+    Transform itfm;
+    transform_inverse_cpu_sse41(tfm, itfm);
+    return itfm;
+  }
+#endif
 
-  /* Divide adjoint matrix by the determinant to compute inverse of 3x3 matrix. */
-  const float3 inverse_x = cross(y, z) / det;
-  const float3 inverse_y = cross(z, x) / det;
-  const float3 inverse_z = cross(x, y) / det;
-
-  /* Compute translation and fill transform. */
-  Transform itfm;
-  itfm.x = float3_to_float4(inverse_x, -dot(inverse_x, w));
-  itfm.y = float3_to_float4(inverse_y, -dot(inverse_y, w));
-  itfm.z = float3_to_float4(inverse_z, -dot(inverse_z, w));
-
-  return itfm;
+  return transform_inverse_impl(tfm);
 }
 
 ccl_device_inline void transform_compose(ccl_private Transform *tfm,

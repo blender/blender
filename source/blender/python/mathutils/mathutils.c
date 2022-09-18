@@ -710,7 +710,7 @@ void BaseMathObject_dealloc(BaseMathObject *self)
     BaseMathObject_clear(self);
   }
 
-  Py_TYPE(self)->tp_free(self);  // PyObject_DEL(self); /* breaks subtypes. */
+  Py_TYPE(self)->tp_free(self);  // PyObject_DEL(self); /* breaks sub-types. */
 }
 
 /*----------------------------MODULE INIT-------------------------*/
@@ -724,7 +724,7 @@ static struct PyModuleDef M_Mathutils_module_def = {
     M_Mathutils_doc,     /* m_doc */
     0,                   /* m_size */
     M_Mathutils_methods, /* m_methods */
-    NULL,                /* m_reload */
+    NULL,                /* m_slots */
     NULL,                /* m_traverse */
     NULL,                /* m_clear */
     NULL,                /* m_free */

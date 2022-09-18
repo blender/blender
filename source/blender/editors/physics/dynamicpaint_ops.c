@@ -21,6 +21,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_attribute.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_dynamicpaint.h"
@@ -233,7 +234,7 @@ static int output_toggle_exec(bContext *C, wmOperator *op)
         ED_mesh_color_add(ob->data, name, true, true, op->reports);
       }
       else {
-        ED_mesh_color_remove_named(ob->data, name);
+        BKE_id_attribute_remove(ob->data, name, NULL);
       }
     }
     /* Vertex Weight Layer */

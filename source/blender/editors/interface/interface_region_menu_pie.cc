@@ -37,7 +37,7 @@
 #include "ED_screen.h"
 
 #include "interface_intern.h"
-#include "interface_regions_intern.h"
+#include "interface_regions_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Pie Menu

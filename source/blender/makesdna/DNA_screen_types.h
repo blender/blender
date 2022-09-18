@@ -477,7 +477,7 @@ typedef struct ARegion {
   short do_draw_paintcursor;
   /** Private, set for indicate drawing overlapped. */
   short overlap;
-  /** Temporary copy of flag settings for clean fullscreen. */
+  /** Temporary copy of flag settings for clean full-screen. */
   short flagfullscreen;
 
   /** Callbacks for this region type. */
@@ -539,7 +539,7 @@ enum {
 };
 
 #define AREAGRID 4
-#define AREAMINX 32
+#define AREAMINX 29
 #define HEADER_PADDING_Y 6
 #define HEADERY (20 + HEADER_PADDING_Y)
 
@@ -628,7 +628,7 @@ enum {
   /* Bitflags affecting behavior of any kind of sorting. */
   /** Special flag to indicate that order is locked (not user-changeable). */
   UILST_FLT_SORT_LOCK = 1u << 30,
-  /** Special value, bitflag used to reverse order! */
+  /** Special value, bit-flag used to reverse order! */
   UILST_FLT_SORT_REVERSE = 1u << 31,
 };
 

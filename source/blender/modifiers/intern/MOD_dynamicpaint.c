@@ -74,9 +74,7 @@ static void freeData(ModifierData *md)
   dynamicPaint_Modifier_free(pmd);
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 
@@ -158,7 +156,7 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
       walk(userData, ob, (ID **)&surface->brush_group, IDWALK_CB_NOP);
       walk(userData, ob, (ID **)&surface->init_texture, IDWALK_CB_USER);
       if (surface->effector_weights) {
-        walk(userData, ob, (ID **)&surface->effector_weights->group, IDWALK_CB_NOP);
+        walk(userData, ob, (ID **)&surface->effector_weights->group, IDWALK_CB_USER);
       }
     }
   }

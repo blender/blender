@@ -72,7 +72,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
   search_link_ops_for_declarations(params, declaration.inputs().take_front(2));
 
-  if (params.in_out() == SOCK_OUT) {
+  if (params.in_out() == SOCK_IN) {
     const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
         static_cast<eNodeSocketDatatype>(params.other_socket().type));
     if (type && *type != CD_PROP_STRING) {
@@ -98,7 +98,7 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
     return;
   }
 
-  GeometryComponentFieldContext field_context{component, domain};
+  bke::GeometryFieldContext field_context{component, domain};
   const IndexMask mask{IndexMask(domain_size)};
 
   const CPPType &type = field.cpp_type();
@@ -123,7 +123,7 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
     }
   }
   attributes.remove(name);
-  if (attributes.add(name, domain, data_type, bke::AttributeInitMove{buffer})) {
+  if (attributes.add(name, domain, data_type, bke::AttributeInitMoveArray{buffer})) {
     return;
   }
 
@@ -149,7 +149,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  params.used_named_attribute(name, eNamedAttrUsage::Write);
+  params.used_named_attribute(name, NamedAttributeUsage::Write);
 
   const NodeGeometryStoreNamedAttribute &storage = node_storage(params.node());
   const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);

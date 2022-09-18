@@ -22,7 +22,7 @@ void BoxMaskNode::convert_to_operations(NodeConverter &converter,
 
   BoxMaskOperation *operation;
   operation = new BoxMaskOperation();
-  operation->set_data((NodeBoxMask *)this->get_bnode()->storage);
+  operation->set_data((const NodeBoxMask *)this->get_bnode()->storage);
   operation->set_mask_type(this->get_bnode()->custom1);
   converter.add_operation(operation);
 

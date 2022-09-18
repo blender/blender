@@ -952,6 +952,12 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     uiItemS(layout);
   }
 
+  MenuType *mt_idtemplate_liboverride = WM_menutype_find("UI_MT_idtemplate_liboverride", true);
+  if (mt_idtemplate_liboverride && mt_idtemplate_liboverride->poll(C, mt_idtemplate_liboverride)) {
+    uiItemM_ptr(layout, mt_idtemplate_liboverride, IFACE_("Library Override"), ICON_NONE);
+    uiItemS(layout);
+  }
+
   /* Pointer properties and string properties with
    * prop_search support jumping to target object/bone. */
   if (but->rnapoin.data && but->rnaprop) {
@@ -1224,7 +1230,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     }
   }
 
-  MenuType *mt = WM_menutype_find("WM_MT_button_context", true);
+  MenuType *mt = WM_menutype_find("UI_MT_button_context_menu", true);
   if (mt) {
     UI_menutype_draw(C, mt, uiLayoutColumn(layout, false));
   }

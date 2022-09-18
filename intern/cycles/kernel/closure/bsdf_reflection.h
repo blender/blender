@@ -18,35 +18,31 @@ ccl_device int bsdf_reflection_setup(ccl_private MicrofacetBsdf *bsdf)
   return SD_BSDF;
 }
 
-ccl_device float3 bsdf_reflection_eval_reflect(ccl_private const ShaderClosure *sc,
-                                               const float3 I,
-                                               const float3 omega_in,
-                                               ccl_private float *pdf)
+ccl_device Spectrum bsdf_reflection_eval_reflect(ccl_private const ShaderClosure *sc,
+                                                 const float3 I,
+                                                 const float3 omega_in,
+                                                 ccl_private float *pdf)
 {
   *pdf = 0.0f;
-  return make_float3(0.0f, 0.0f, 0.0f);
+  return zero_spectrum();
 }
 
-ccl_device float3 bsdf_reflection_eval_transmit(ccl_private const ShaderClosure *sc,
-                                                const float3 I,
-                                                const float3 omega_in,
-                                                ccl_private float *pdf)
+ccl_device Spectrum bsdf_reflection_eval_transmit(ccl_private const ShaderClosure *sc,
+                                                  const float3 I,
+                                                  const float3 omega_in,
+                                                  ccl_private float *pdf)
 {
   *pdf = 0.0f;
-  return make_float3(0.0f, 0.0f, 0.0f);
+  return zero_spectrum();
 }
 
 ccl_device int bsdf_reflection_sample(ccl_private const ShaderClosure *sc,
                                       float3 Ng,
                                       float3 I,
-                                      float3 dIdx,
-                                      float3 dIdy,
                                       float randu,
                                       float randv,
-                                      ccl_private float3 *eval,
+                                      ccl_private Spectrum *eval,
                                       ccl_private float3 *omega_in,
-                                      ccl_private float3 *domega_in_dx,
-                                      ccl_private float3 *domega_in_dy,
                                       ccl_private float *pdf)
 {
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
@@ -57,18 +53,14 @@ ccl_device int bsdf_reflection_sample(ccl_private const ShaderClosure *sc,
   if (cosNO > 0) {
     *omega_in = (2 * cosNO) * N - I;
     if (dot(Ng, *omega_in) > 0) {
-#ifdef __RAY_DIFFERENTIALS__
-      *domega_in_dx = 2 * dot(N, dIdx) * N - dIdx;
-      *domega_in_dy = 2 * dot(N, dIdy) * N - dIdy;
-#endif
       /* Some high number for MIS. */
       *pdf = 1e6f;
-      *eval = make_float3(1e6f, 1e6f, 1e6f);
+      *eval = make_spectrum(1e6f);
     }
   }
   else {
     *pdf = 0.0f;
-    *eval = make_float3(0.0f, 0.0f, 0.0f);
+    *eval = zero_spectrum();
   }
   return LABEL_REFLECT | LABEL_SINGULAR;
 }

@@ -27,20 +27,20 @@ set(INC
 
   # For *_info.hh includes.
   ../draw/engines/eevee_next
+  ../draw/intern
 
   # For node muting stuff.
   ../nodes
 
   ../../../intern/clog
   ../../../intern/ghost
-  ../../../intern/glew-mx
   ../../../intern/guardedalloc
   ../../../intern/mantaflow/extern
   ../../../intern/atomic
 )
 
 set(INC_SYS
-  ${GLEW_INCLUDE_PATH}
+  ${Epoxy_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -93,12 +93,10 @@ set(SRC
   GPU_debug.h
   GPU_drawlist.h
   GPU_framebuffer.h
-  GPU_glew.h
   GPU_immediate.h
   GPU_immediate_util.h
   GPU_index_buffer.h
   GPU_init_exit.h
-  GPU_legacy_stubs.h
   GPU_material.h
   GPU_matrix.h
   GPU_platform.h
@@ -190,12 +188,16 @@ set(OPENGL_SRC
 
 set(METAL_SRC
   metal/mtl_backend.mm
-  metal/mtl_context.mm
   metal/mtl_command_buffer.mm
+  metal/mtl_context.mm
   metal/mtl_debug.mm
   metal/mtl_framebuffer.mm
+  metal/mtl_index_buffer.mm
   metal/mtl_memory.mm
   metal/mtl_query.mm
+  metal/mtl_shader.mm
+  metal/mtl_shader_generator.mm
+  metal/mtl_shader_interface.mm
   metal/mtl_state.mm
   metal/mtl_texture.mm
   metal/mtl_texture_util.mm
@@ -207,8 +209,16 @@ set(METAL_SRC
   metal/mtl_context.hh
   metal/mtl_debug.hh
   metal/mtl_framebuffer.hh
+  metal/mtl_index_buffer.hh
   metal/mtl_memory.hh
+  metal/mtl_primitive.hh
+  metal/mtl_pso_descriptor_state.hh
   metal/mtl_query.hh
+  metal/mtl_shader.hh
+  metal/mtl_shader_generator.hh
+  metal/mtl_shader_interface.hh
+  metal/mtl_shader_interface_type.hh
+  metal/mtl_shader_shared.h
   metal/mtl_state.hh
   metal/mtl_texture.hh
   metal/mtl_uniform_buffer.hh
@@ -224,16 +234,12 @@ if(WITH_METAL_BACKEND)
 endif()
 
 set(LIB
-  ${BLENDER_GL_LIBRARIES}
+  ${Epoxy_LIBRARIES}
 )
 
-if(NOT WITH_SYSTEM_GLEW)
-  list(APPEND LIB
-    ${BLENDER_GLEW_LIBRARIES}
-  )
-endif()
-
 set(MSL_SRC
+  shaders/metal/mtl_shader_defines.msl
+  shaders/metal/mtl_shader_common.msl
 
   metal/kernels/compute_texture_update.msl
   metal/kernels/compute_texture_read.msl
@@ -266,11 +272,7 @@ set(GLSL_SRC
   shaders/gpu_shader_2D_widget_shadow_frag.glsl
   shaders/gpu_shader_2D_nodelink_frag.glsl
   shaders/gpu_shader_2D_nodelink_vert.glsl
-  shaders/gpu_shader_2D_flat_color_vert.glsl
-  shaders/gpu_shader_2D_line_dashed_uniform_color_vert.glsl
   shaders/gpu_shader_2D_line_dashed_frag.glsl
-  shaders/gpu_shader_2D_smooth_color_vert.glsl
-  shaders/gpu_shader_2D_smooth_color_frag.glsl
   shaders/gpu_shader_2D_image_vert.glsl
   shaders/gpu_shader_2D_image_rect_vert.glsl
   shaders/gpu_shader_2D_image_multi_rect_vert.glsl
@@ -278,7 +280,6 @@ set(GLSL_SRC
   shaders/gpu_shader_image_desaturate_frag.glsl
   shaders/gpu_shader_image_overlays_merge_frag.glsl
   shaders/gpu_shader_image_overlays_stereo_merge_frag.glsl
-  shaders/gpu_shader_image_modulate_alpha_frag.glsl
   shaders/gpu_shader_image_shuffle_color_frag.glsl
   shaders/gpu_shader_image_color_frag.glsl
   shaders/gpu_shader_image_varying_color_frag.glsl
@@ -323,6 +324,59 @@ set(GLSL_SRC
   shaders/common/gpu_shader_common_math_utils.glsl
   shaders/common/gpu_shader_common_mix_rgb.glsl
 
+  shaders/compositor/compositor_alpha_crop.glsl
+  shaders/compositor/compositor_bilateral_blur.glsl
+  shaders/compositor/compositor_blur.glsl
+  shaders/compositor/compositor_bokeh_image.glsl
+  shaders/compositor/compositor_box_mask.glsl
+  shaders/compositor/compositor_convert.glsl
+  shaders/compositor/compositor_despeckle.glsl
+  shaders/compositor/compositor_directional_blur.glsl
+  shaders/compositor/compositor_edge_filter.glsl
+  shaders/compositor/compositor_ellipse_mask.glsl
+  shaders/compositor/compositor_filter.glsl
+  shaders/compositor/compositor_flip.glsl
+  shaders/compositor/compositor_image_crop.glsl
+  shaders/compositor/compositor_morphological_distance.glsl
+  shaders/compositor/compositor_morphological_distance_feather.glsl
+  shaders/compositor/compositor_morphological_distance_threshold.glsl
+  shaders/compositor/compositor_morphological_step.glsl
+  shaders/compositor/compositor_projector_lens_distortion.glsl
+  shaders/compositor/compositor_realize_on_domain.glsl
+  shaders/compositor/compositor_screen_lens_distortion.glsl
+  shaders/compositor/compositor_set_alpha.glsl
+  shaders/compositor/compositor_split_viewer.glsl
+  shaders/compositor/compositor_symmetric_blur.glsl
+  shaders/compositor/compositor_symmetric_separable_blur.glsl
+
+  shaders/compositor/library/gpu_shader_compositor_alpha_over.glsl
+  shaders/compositor/library/gpu_shader_compositor_blur_common.glsl
+  shaders/compositor/library/gpu_shader_compositor_bright_contrast.glsl
+  shaders/compositor/library/gpu_shader_compositor_channel_matte.glsl
+  shaders/compositor/library/gpu_shader_compositor_chroma_matte.glsl
+  shaders/compositor/library/gpu_shader_compositor_color_balance.glsl
+  shaders/compositor/library/gpu_shader_compositor_color_correction.glsl
+  shaders/compositor/library/gpu_shader_compositor_color_matte.glsl
+  shaders/compositor/library/gpu_shader_compositor_color_spill.glsl
+  shaders/compositor/library/gpu_shader_compositor_color_to_luminance.glsl
+  shaders/compositor/library/gpu_shader_compositor_difference_matte.glsl
+  shaders/compositor/library/gpu_shader_compositor_distance_matte.glsl
+  shaders/compositor/library/gpu_shader_compositor_exposure.glsl
+  shaders/compositor/library/gpu_shader_compositor_gamma.glsl
+  shaders/compositor/library/gpu_shader_compositor_hue_correct.glsl
+  shaders/compositor/library/gpu_shader_compositor_hue_saturation_value.glsl
+  shaders/compositor/library/gpu_shader_compositor_invert.glsl
+  shaders/compositor/library/gpu_shader_compositor_luminance_matte.glsl
+  shaders/compositor/library/gpu_shader_compositor_main.glsl
+  shaders/compositor/library/gpu_shader_compositor_map_value.glsl
+  shaders/compositor/library/gpu_shader_compositor_normal.glsl
+  shaders/compositor/library/gpu_shader_compositor_posterize.glsl
+  shaders/compositor/library/gpu_shader_compositor_separate_combine.glsl
+  shaders/compositor/library/gpu_shader_compositor_set_alpha.glsl
+  shaders/compositor/library/gpu_shader_compositor_store_output.glsl
+  shaders/compositor/library/gpu_shader_compositor_texture_utilities.glsl
+  shaders/compositor/library/gpu_shader_compositor_type_conversion.glsl
+
   shaders/material/gpu_shader_material_add_shader.glsl
   shaders/material/gpu_shader_material_ambient_occlusion.glsl
   shaders/material/gpu_shader_material_anisotropic.glsl
@@ -359,6 +413,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_light_path.glsl
   shaders/material/gpu_shader_material_mapping.glsl
   shaders/material/gpu_shader_material_map_range.glsl
+  shaders/material/gpu_shader_material_mix_color.glsl
   shaders/material/gpu_shader_material_mix_shader.glsl
   shaders/material/gpu_shader_material_noise.glsl
   shaders/material/gpu_shader_material_normal.glsl
@@ -420,21 +475,44 @@ set(GLSL_SRC
   GPU_shader_shared_utils.h
 )
 
+set(MTL_BACKEND_GLSL_SRC
+  metal/kernels/compute_texture_update.msl
+  metal/kernels/compute_texture_read.msl
+  metal/kernels/depth_2d_update_float_frag.glsl
+  metal/kernels/depth_2d_update_int24_frag.glsl
+  metal/kernels/depth_2d_update_int32_frag.glsl
+  metal/kernels/depth_2d_update_vert.glsl
+  metal/kernels/gpu_shader_fullscreen_blit_vert.glsl
+  metal/kernels/gpu_shader_fullscreen_blit_frag.glsl
+)
+
+set(MSL_SRC
+  shaders/metal/mtl_shader_defines.msl
+  shaders/metal/mtl_shader_common.msl
+  metal/mtl_shader_shared.h
+)
+
+if(WITH_METAL_BACKEND)
+  list(APPEND GLSL_SRC ${MTL_BACKEND_GLSL_SRC})
+
+  set(MSL_C)
+  foreach(MSL_FILE ${MSL_SRC})
+    data_to_c_simple(${MSL_FILE} MSL_C)
+  endforeach()
+endif()
+
 set(GLSL_C)
 foreach(GLSL_FILE ${GLSL_SRC})
   data_to_c_simple(${GLSL_FILE} GLSL_C)
 endforeach()
 
-
+set(SHADER_C)
+list(APPEND SHADER_C ${GLSL_C})
 if(WITH_METAL_BACKEND)
-  set(MSL_C)
-  foreach(MSL_FILE ${MSL_SRC})
-    data_to_c_simple(${MSL_FILE} MSL_C)
-  endforeach()
-  list(APPEND GLSL_C ${MSL_C})
+  list(APPEND SHADER_C ${MSL_C})
 endif()
 
-blender_add_lib(bf_gpu_shaders "${GLSL_C}" "" "" "")
+blender_add_lib(bf_gpu_shaders "${SHADER_C}" "" "" "")
 
 list(APPEND LIB
   bf_gpu_shaders
@@ -454,7 +532,10 @@ list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
 
 set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/basic/shaders/infos/basic_depth_info.hh
+  ../draw/engines/eevee_next/shaders/infos/eevee_depth_of_field_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_film_info.hh
+  ../draw/engines/eevee_next/shaders/infos/eevee_hiz_info.hh
+  ../draw/engines/eevee_next/shaders/infos/eevee_light_culling_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_material_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_motion_blur_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_velocity_info.hh
@@ -469,8 +550,8 @@ set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/overlay/shaders/infos/overlay_grid_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_outline_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_paint_info.hh
-  ../draw/engines/overlay/shaders/infos/overlay_sculpt_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_sculpt_curves_info.hh
+  ../draw/engines/overlay/shaders/infos/overlay_sculpt_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_volume_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_wireframe_info.hh
   ../draw/engines/select/shaders/infos/select_id_info.hh
@@ -485,6 +566,7 @@ set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/workbench/shaders/infos/workbench_transparent_resolve_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_volume_info.hh
   ../draw/engines/image/shaders/infos/engine_image_info.hh
+  ../draw/intern/shaders/draw_debug_info.hh
   ../draw/intern/shaders/draw_fullscreen_info.hh
   ../draw/intern/shaders/draw_hair_refine_info.hh
   ../draw/intern/shaders/draw_object_infos_info.hh
@@ -494,8 +576,6 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_shader_2D_area_borders_info.hh
   shaders/infos/gpu_shader_2D_checker_info.hh
   shaders/infos/gpu_shader_2D_diag_stripes_info.hh
-  shaders/infos/gpu_shader_2D_flat_color_info.hh
-  shaders/infos/gpu_shader_2D_image_color_info.hh
   shaders/infos/gpu_shader_2D_image_desaturate_color_info.hh
   shaders/infos/gpu_shader_2D_image_info.hh
   shaders/infos/gpu_shader_2D_image_multi_rect_color_info.hh
@@ -507,13 +587,10 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_shader_2D_point_uniform_size_uniform_color_aa_info.hh
   shaders/infos/gpu_shader_2D_point_uniform_size_uniform_color_outline_aa_info.hh
   shaders/infos/gpu_shader_2D_point_varying_size_varying_color_info.hh
-  shaders/infos/gpu_shader_2D_smooth_color_info.hh
-  shaders/infos/gpu_shader_2D_uniform_color_info.hh
   shaders/infos/gpu_shader_2D_widget_info.hh
   shaders/infos/gpu_shader_3D_depth_only_info.hh
   shaders/infos/gpu_shader_3D_flat_color_info.hh
   shaders/infos/gpu_shader_3D_image_info.hh
-  shaders/infos/gpu_shader_3D_image_modulate_alpha_info.hh
   shaders/infos/gpu_shader_3D_point_info.hh
   shaders/infos/gpu_shader_3D_polyline_info.hh
   shaders/infos/gpu_shader_3D_smooth_color_info.hh
@@ -525,7 +602,42 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_shader_simple_lighting_info.hh
   shaders/infos/gpu_shader_text_info.hh
   shaders/infos/gpu_srgb_to_framebuffer_space_info.hh
+
+  shaders/compositor/infos/compositor_alpha_crop_info.hh
+  shaders/compositor/infos/compositor_bilateral_blur_info.hh
+  shaders/compositor/infos/compositor_blur_info.hh
+  shaders/compositor/infos/compositor_bokeh_image_info.hh
+  shaders/compositor/infos/compositor_box_mask_info.hh
+  shaders/compositor/infos/compositor_convert_info.hh
+  shaders/compositor/infos/compositor_despeckle_info.hh
+  shaders/compositor/infos/compositor_directional_blur_info.hh
+  shaders/compositor/infos/compositor_edge_filter_info.hh
+  shaders/compositor/infos/compositor_ellipse_mask_info.hh
+  shaders/compositor/infos/compositor_filter_info.hh
+  shaders/compositor/infos/compositor_flip_info.hh
+  shaders/compositor/infos/compositor_image_crop_info.hh
+  shaders/compositor/infos/compositor_morphological_distance_feather_info.hh
+  shaders/compositor/infos/compositor_morphological_distance_info.hh
+  shaders/compositor/infos/compositor_morphological_distance_threshold_info.hh
+  shaders/compositor/infos/compositor_morphological_step_info.hh
+  shaders/compositor/infos/compositor_projector_lens_distortion_info.hh
+  shaders/compositor/infos/compositor_realize_on_domain_info.hh
+  shaders/compositor/infos/compositor_screen_lens_distortion_info.hh
+  shaders/compositor/infos/compositor_set_alpha_info.hh
+  shaders/compositor/infos/compositor_split_viewer_info.hh
+  shaders/compositor/infos/compositor_symmetric_blur_info.hh
+  shaders/compositor/infos/compositor_symmetric_separable_blur_info.hh
 )
+
+set(SRC_SHADER_CREATE_INFOS_MTL
+  metal/kernels/depth_2d_update_info.hh
+  metal/kernels/gpu_shader_fullscreen_blit_info.hh
+)
+
+if(WITH_METAL_BACKEND)
+  list(APPEND SRC_SHADER_CREATE_INFOS ${SRC_SHADER_CREATE_INFOS_MTL})
+endif()
+
 
 set(SHADER_CREATE_INFOS_CONTENT "")
 foreach(DESCRIPTOR_FILE ${SRC_SHADER_CREATE_INFOS})
@@ -538,8 +650,6 @@ file(GENERATE OUTPUT ${shader_create_info_list_file} CONTENT "${SHADER_CREATE_IN
 if(WITH_MOD_FLUID)
   add_definitions(-DWITH_FLUID)
 endif()
-
-add_definitions(${GL_DEFINITIONS})
 
 if(WITH_IMAGE_DDS)
   add_definitions(-DWITH_DDS)
@@ -574,6 +684,7 @@ if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
   if(APPLE)
     add_executable(shader_builder
       intern/gpu_shader_builder.cc
+      intern/gpu_shader_builder_stubs.cc
       ${shader_create_info_list_file}
       )
 

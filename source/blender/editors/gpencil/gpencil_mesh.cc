@@ -213,7 +213,7 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
   bool newob = false;
 
   if (target == GP_TARGET_OB_SELECTED) {
-    ob_gpencil = BKE_view_layer_non_active_selected_object(CTX_data_view_layer(C), v3d);
+    ob_gpencil = BKE_view_layer_non_active_selected_object(scene, CTX_data_view_layer(C), v3d);
     if (ob_gpencil != nullptr) {
       if (ob_gpencil->type != OB_GPENCIL) {
         BKE_report(op->reports, RPT_WARNING, "Target object not a grease pencil, ignoring!");

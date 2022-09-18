@@ -57,7 +57,7 @@ static void add_instances_from_component(
   VArray<float3> rotations;
   VArray<float3> scales;
 
-  GeometryComponentFieldContext field_context{src_component, domain};
+  bke::GeometryFieldContext field_context{src_component, domain};
   const Field<bool> selection_field = params.get_input<Field<bool>>("Selection");
   fn::FieldEvaluator evaluator{field_context, domain_num};
   evaluator.set_selection(selection_field);
@@ -70,6 +70,9 @@ static void add_instances_from_component(
   evaluator.evaluate();
 
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+  if (selection.is_empty()) {
+    return;
+  }
 
   /* The initial size of the component might be non-zero when this function is called for multiple
    * component types. */

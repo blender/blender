@@ -21,6 +21,8 @@
 #include "common.hh"
 #include "tree_display.hh"
 
+namespace blender::ed::outliner {
+
 /* -------------------------------------------------------------------- */
 /** \name ID Helpers.
  * \{ */
@@ -63,3 +65,5 @@ bool outliner_animdata_test(const AnimData *adt)
   }
   return false;
 }
+
+}  // namespace blender::ed::outliner

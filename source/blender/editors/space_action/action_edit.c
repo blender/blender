@@ -1364,7 +1364,7 @@ static int actkeys_ipo_exec(bContext *C, wmOperator *op)
 
   /* set handle type */
   ANIM_animdata_keyframe_callback(&ac,
-                                  (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE |
+                                  (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                                    ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS |
                                    ANIMFILTER_FCURVESONLY),
                                   ANIM_editkeyframes_ipo(mode));
@@ -1414,7 +1414,7 @@ static int actkeys_easing_exec(bContext *C, wmOperator *op)
 
   /* set handle type */
   ANIM_animdata_keyframe_callback(&ac,
-                                  (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE |
+                                  (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
                                    ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS |
                                    ANIMFILTER_FCURVESONLY),
                                   ANIM_editkeyframes_easing(mode));

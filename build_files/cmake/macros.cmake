@@ -418,6 +418,13 @@ function(blender_add_test_lib
   library_deps
   )
 
+  # Not currently supported for Python module due to different required
+  # Python link flags.
+  if(WITH_PYTHON_MODULE)
+    add_custom_target(${name})
+    return()
+  endif()
+
   add_cc_flags_custom_test(${name} PARENT_SCOPE)
 
   # Otherwise external projects will produce warnings that we cannot fix.
@@ -463,6 +470,13 @@ function(blender_add_test_executable
   includes_sys
   library_deps
   )
+
+  # Not currently supported for Python module due to different required
+  # Python link flags.
+  if(WITH_PYTHON_MODULE)
+    add_custom_target(${name})
+    return()
+  endif()
 
   add_cc_flags_custom_test(${name} PARENT_SCOPE)
 
@@ -1208,16 +1222,8 @@ endmacro()
 
 macro(without_system_libs_begin)
   set(CMAKE_IGNORE_PATH "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES};${CMAKE_SYSTEM_INCLUDE_PATH};${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES};${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES}")
-  if(APPLE)
-    # Avoid searching for headers in frameworks (like Mono), and libraries in LIBDIR.
-    set(CMAKE_FIND_FRAMEWORK NEVER)
-  endif()
 endmacro()
 
 macro(without_system_libs_end)
   unset(CMAKE_IGNORE_PATH)
-  if(APPLE)
-    # FIRST is the default.
-    set(CMAKE_FIND_FRAMEWORK FIRST)
-  endif()
 endmacro()

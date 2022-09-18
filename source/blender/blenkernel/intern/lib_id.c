@@ -59,6 +59,7 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "RNA_access.h"
 
@@ -92,7 +93,7 @@ IDTypeInfo IDType_ID_LINK_PLACEHOLDER = {
     .foreach_id = NULL,
     .foreach_cache = NULL,
     .foreach_path = NULL,
-    .owner_get = NULL,
+    .owner_pointer_get = NULL,
 
     .blend_write = NULL,
     .blend_read_data = NULL,
@@ -415,7 +416,7 @@ static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
   /* Can happen that we get un-linkable ID here, e.g. with shape-key referring to itself
    * (through drivers)...
    * Just skip it, shape key can only be either indirectly linked, or fully local, period.
-   * And let's curse one more time that stupid useless shapekey ID type! */
+   * And let's curse one more time that stupid useless shape-key ID type! */
   if (*id_pointer && *id_pointer != id_self &&
       BKE_idtype_idcode_is_linkable(GS((*id_pointer)->name))) {
     id_lib_extern(*id_pointer);
@@ -565,7 +566,7 @@ struct IDCopyLibManagementData {
   int flag;
 };
 
-/* Increases usercount as required, and remap self ID pointers. */
+/** Increases user-count as required, and remap self ID pointers. */
 static int id_copy_libmanagement_cb(LibraryIDLinkCallbackData *cb_data)
 {
   ID **id_pointer = cb_data->id_pointer;
@@ -706,6 +707,58 @@ ID *BKE_id_copy_for_duplicate(Main *bmain,
      * by `BKE_animdata_duplicate_id_action` as well. */
   }
   return id->newid;
+}
+
+static int foreach_assign_id_to_orig_callback(LibraryIDLinkCallbackData *cb_data)
+{
+  ID **id_p = cb_data->id_pointer;
+
+  if (*id_p) {
+    ID *id = *id_p;
+    *id_p = DEG_get_original_id(id);
+
+    /* If the ID changes increase the user count.
+     *
+     * This means that the reference to evaluated ID has been changed with a reference to the
+     * original ID which implies that the user count of the original ID is increased.
+     *
+     * The evaluated IDs do not maintain their user counter, so do not change it to avoid issues
+     * with the user counter going negative. */
+    if (*id_p != id) {
+      if ((cb_data->cb_flag & IDWALK_CB_USER) != 0) {
+        id_us_plus(*id_p);
+      }
+    }
+  }
+
+  return IDWALK_RET_NOP;
+}
+
+ID *BKE_id_copy_for_use_in_bmain(Main *bmain, const ID *id)
+{
+  ID *newid = BKE_id_copy(bmain, id);
+
+  if (newid == NULL) {
+    return newid;
+  }
+
+  /* Assign ID references directly used by the given ID to their original complementary parts.
+   *
+   * For example, when is called on an evaluated object will assign object->data to its original
+   * pointer, the evaluated object->data will be kept unchanged. */
+  BKE_library_foreach_ID_link(NULL, newid, foreach_assign_id_to_orig_callback, NULL, IDWALK_NOP);
+
+  /* Shape keys reference on evaluated ID is preserved to keep driver paths available, but the key
+   * data is likely to be invalid now due to modifiers, so clear the shape key reference avoiding
+   * any possible shape corruption. */
+  if (DEG_is_evaluated_id(id)) {
+    Key **key_p = BKE_key_from_id_p(newid);
+    if (key_p) {
+      *key_p = NULL;
+    }
+  }
+
+  return newid;
 }
 
 /**
@@ -1236,7 +1289,7 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
 
   new_id->flag = (new_id->flag & ~copy_idflag_mask) | (id->flag & copy_idflag_mask);
 
-  /* We do not want any handling of usercount in code duplicating the data here, we do that all
+  /* We do not want any handling of user-count in code duplicating the data here, we do that all
    * at once in id_copy_libmanagement_cb() at the end. */
   const int copy_data_flag = orig_flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
 
@@ -1513,7 +1566,7 @@ void BKE_main_id_refcount_recompute(struct Main *bmain, const bool do_linked_onl
   }
   FOREACH_MAIN_ID_END;
 
-  /* Go over whole Main database to re-generate proper usercounts... */
+  /* Go over whole Main database to re-generate proper user-counts. */
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     BKE_library_foreach_ID_link(bmain,
                                 id,
@@ -1910,6 +1963,18 @@ bool BKE_id_can_be_asset(const ID *id)
 {
   return !ID_IS_LINKED(id) && !ID_IS_OVERRIDE_LIBRARY(id) &&
          BKE_idtype_idcode_is_linkable(GS(id->name));
+}
+
+ID *BKE_id_owner_get(ID *id)
+{
+  const IDTypeInfo *idtype = BKE_idtype_get_info_from_id(id);
+  if (idtype->owner_pointer_get != NULL) {
+    ID **owner_id_pointer = idtype->owner_pointer_get(id);
+    if (owner_id_pointer != NULL) {
+      return *owner_id_pointer;
+    }
+  }
+  return NULL;
 }
 
 bool BKE_id_is_editable(const Main *bmain, const ID *id)

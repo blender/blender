@@ -428,10 +428,10 @@ void ED_imbuf_sample_draw(const bContext *C, ARegion *region, void *arg_info)
       uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
       const float color[3] = {1, 1, 1};
-      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       immUniformColor3fv(color);
 
-      /* TODO(campbell): lock to pixels. */
+      /* TODO(@campbellbarton): lock to pixels. */
       rctf sample_rect_fl;
       BLI_rctf_init_pt_radius(
           &sample_rect_fl,

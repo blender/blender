@@ -42,4 +42,9 @@ ListBase TreeDisplayDataAPI::buildTree(const TreeSourceData &source_data)
   return tree;
 }
 
+bool TreeDisplayDataAPI::is_lazy_built() const
+{
+  return true;
+}
+
 }  // namespace blender::ed::outliner

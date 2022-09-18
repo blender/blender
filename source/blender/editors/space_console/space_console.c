@@ -121,6 +121,9 @@ static void console_main_region_init(wmWindowManager *wm, ARegion *region)
     region->v2d.cur.ymax = prev_y_min + cur_y_range;
   }
 
+  keymap = WM_keymap_ensure(wm->defaultconf, "View2D Buttons List", 0, 0);
+  WM_event_add_keymap_handler(&region->handlers, keymap);
+
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "Console", SPACE_CONSOLE, 0);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
@@ -155,7 +158,7 @@ static void id_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
   ID *id = WM_drag_get_local_ID(drag, 0);
 
   /* copy drag path to properties */
-  char *text = RNA_path_full_ID_py(G_MAIN, id);
+  char *text = RNA_path_full_ID_py(id);
   RNA_string_set(drop->ptr, "text", text);
   MEM_freeN(text);
 }
@@ -257,7 +260,7 @@ static void console_main_region_listener(const wmRegionListenerParams *params)
 {
   ScrArea *area = params->area;
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   /* context changes */
   switch (wmn->category) {
@@ -286,7 +289,7 @@ void ED_spacetype_console(void)
   ARegionType *art;
 
   st->spaceid = SPACE_CONSOLE;
-  strncpy(st->name, "Console", BKE_ST_MAXNAME);
+  STRNCPY(st->name, "Console");
 
   st->create = console_create;
   st->free = console_free;

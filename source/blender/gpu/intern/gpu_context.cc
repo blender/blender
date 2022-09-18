@@ -56,11 +56,15 @@ static void gpu_backend_discard();
 
 namespace blender::gpu {
 
+int Context::context_counter = 0;
 Context::Context()
 {
   thread_ = pthread_self();
   is_active_ = false;
   matrix_state = GPU_matrix_state_create();
+
+  context_id = Context::context_counter;
+  Context::context_counter++;
 }
 
 Context::~Context()

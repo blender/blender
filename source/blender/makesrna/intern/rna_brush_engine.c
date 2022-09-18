@@ -494,13 +494,11 @@ int rna_BrushChannel_enum_value_get(PointerRNA *ptr)
   return ch->ivalue;
 }
 
-int rna_BrushChannel_enum_value_set(PointerRNA *ptr, int val)
+void rna_BrushChannel_enum_value_set(PointerRNA *ptr, int val)
 {
   BrushChannel *ch = (BrushChannel *)ptr->data;
 
   ch->ivalue = val;
-
-  return 1;
 }
 
 int lookup_icon_id(const char *icon)

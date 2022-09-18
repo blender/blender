@@ -21,6 +21,7 @@ from bpy.props import (
     EnumProperty,
     StringProperty,
 )
+from bpy.app.translations import pgettext_data as data_
 
 
 def _check_axis_conversion(op):
@@ -56,7 +57,7 @@ class ExportHelper:
         if not self.filepath:
             blend_filepath = context.blend_data.filepath
             if not blend_filepath:
-                blend_filepath = "untitled"
+                blend_filepath = data_("untitled")
             else:
                 blend_filepath = os.path.splitext(blend_filepath)[0]
 
@@ -294,7 +295,7 @@ def axis_conversion(from_forward='Y', from_up='Z', to_forward='Y', to_up='Z'):
     for i, axis_lut in enumerate(_axis_convert_lut):
         if value in axis_lut:
             return Matrix(_axis_convert_matrix[i])
-    assert(0)
+    assert 0
 
 
 def axis_conversion_ensure(operator, forward_attr, up_attr):

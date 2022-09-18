@@ -80,7 +80,7 @@ static bool sculpt_and_dynamic_topology_poll(bContext *C)
 /** \name Detail Flood Fill
  * \{ */
 
-static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
+static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Object *ob = CTX_data_active_object(C);
@@ -121,7 +121,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
   bool enable_surface_relax = BRUSHSET_GET_FINAL_INT(
       brush ? brush->channels : NULL, sd->channels, dyntopo_disable_smooth, NULL);
 
-  SCULPT_undo_push_begin(ob, "Dynamic topology flood fill");
+  SCULPT_undo_push_begin(ob, op);
   SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_COORDS);
 
   DyntopoMaskCB mask_cb;

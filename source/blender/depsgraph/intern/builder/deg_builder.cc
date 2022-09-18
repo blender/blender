@@ -13,6 +13,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_layer_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_stack.h"
@@ -95,6 +96,24 @@ bool DepsgraphBuilder::is_object_visibility_animated(const Object *object)
   return cache_->isPropertyAnimated(&object->id, property_id);
 }
 
+bool DepsgraphBuilder::is_modifier_visibility_animated(const Object *object,
+                                                       const ModifierData *modifier)
+{
+  AnimatedPropertyID property_id;
+  if (graph_->mode == DAG_EVAL_VIEWPORT) {
+    property_id = AnimatedPropertyID(
+        &object->id, &RNA_Modifier, (void *)modifier, "show_viewport");
+  }
+  else if (graph_->mode == DAG_EVAL_RENDER) {
+    property_id = AnimatedPropertyID(&object->id, &RNA_Modifier, (void *)modifier, "show_render");
+  }
+  else {
+    BLI_assert_msg(0, "Unknown evaluation mode.");
+    return false;
+  }
+  return cache_->isPropertyAnimated(&object->id, property_id);
+}
+
 bool DepsgraphBuilder::check_pchan_has_bbone(const Object *object, const bPoseChannel *pchan)
 {
   BLI_assert(object->type == OB_ARMATURE);
@@ -158,6 +177,9 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
        * time, which is similar to "ob-visible-change" */
       if (GS(id_orig->name) == ID_OB) {
         flag |= ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY;
+      }
+      if (GS(id_orig->name) == ID_NT) {
+        flag |= ID_RECALC_NTREE_OUTPUT;
       }
     }
     /* Restore recalc flags from original ID, which could possibly contain recalc flags set by

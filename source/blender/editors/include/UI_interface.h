@@ -85,7 +85,7 @@ typedef struct uiViewItemHandle uiViewItemHandle;
 
 /* Separator for text in search menus (right pointing arrow).
  * keep in sync with `string_search.cc`. */
-#define UI_MENU_ARROW_SEP "\xe2\x96\xb6"
+#define UI_MENU_ARROW_SEP "\xe2\x96\xb8"
 
 /* names */
 #define UI_MAX_DRAW_STR 400
@@ -354,7 +354,7 @@ typedef enum {
   UI_BTYPE_LABEL = 20 << 9,
   UI_BTYPE_KEY_EVENT = 24 << 9,
   UI_BTYPE_HSVCUBE = 26 << 9,
-  /** menu (often used in headers), **_MENU /w different draw-type */
+  /** Menu (often used in headers), `*_MENU` with different draw-type. */
   UI_BTYPE_PULLDOWN = 27 << 9,
   UI_BTYPE_ROUNDBOX = 28 << 9,
   UI_BTYPE_COLORBAND = 30 << 9,

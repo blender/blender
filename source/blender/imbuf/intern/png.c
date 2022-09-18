@@ -31,21 +31,21 @@
 #include "IMB_colormanagement_intern.h"
 
 typedef struct PNGReadStruct {
-  const unsigned char *data;
-  unsigned int size;
-  unsigned int seek;
+  const uchar *data;
+  uint size;
+  uint seek;
 } PNGReadStruct;
 
 static void ReadData(png_structp png_ptr, png_bytep data, png_size_t length);
 static void WriteData(png_structp png_ptr, png_bytep data, png_size_t length);
 static void Flush(png_structp png_ptr);
 
-BLI_INLINE unsigned short UPSAMPLE_8_TO_16(const unsigned char _val)
+BLI_INLINE ushort UPSAMPLE_8_TO_16(const uchar _val)
 {
   return (_val << 8) + _val;
 }
 
-bool imb_is_a_png(const unsigned char *mem, size_t size)
+bool imb_is_a_png(const uchar *mem, size_t size)
 {
   const int num_to_check = 8;
   if (size < num_to_check) {
@@ -102,7 +102,7 @@ static float channel_colormanage_noop(float value)
 }
 
 /* wrap to avoid macro calling functions multiple times */
-BLI_INLINE unsigned short ftoshort(float val)
+BLI_INLINE ushort ftoshort(float val)
 {
   return unit_float_to_ushort_clamp(val);
 }
@@ -112,9 +112,9 @@ bool imb_savepng(struct ImBuf *ibuf, const char *filepath, int flags)
   png_structp png_ptr;
   png_infop info_ptr;
 
-  unsigned char *pixels = NULL;
-  unsigned char *from, *to;
-  unsigned short *pixels16 = NULL, *to16;
+  uchar *pixels = NULL;
+  uchar *from, *to;
+  ushort *pixels16 = NULL, *to16;
   float *from_float, from_straight[4];
   png_bytepp row_pointers = NULL;
   int i, bytesperpixel, color_type = PNG_COLOR_TYPE_GRAY;
@@ -169,10 +169,10 @@ bool imb_savepng(struct ImBuf *ibuf, const char *filepath, int flags)
   /* copy image data */
   num_bytes = ((size_t)ibuf->x) * ibuf->y * bytesperpixel;
   if (is_16bit) {
-    pixels16 = MEM_mallocN(num_bytes * sizeof(unsigned short), "png 16bit pixels");
+    pixels16 = MEM_mallocN(num_bytes * sizeof(ushort), "png 16bit pixels");
   }
   else {
-    pixels = MEM_mallocN(num_bytes * sizeof(unsigned char), "png 8bit pixels");
+    pixels = MEM_mallocN(num_bytes * sizeof(uchar), "png 8bit pixels");
   }
   if (pixels == NULL && pixels16 == NULL) {
     printf(
@@ -210,7 +210,7 @@ bool imb_savepng(struct ImBuf *ibuf, const char *filepath, int flags)
     return 0;
   }
 
-  from = (unsigned char *)ibuf->rect;
+  from = (uchar *)ibuf->rect;
   to = pixels;
   from_float = ibuf->rect_float;
   to16 = pixels16;
@@ -453,8 +453,8 @@ bool imb_savepng(struct ImBuf *ibuf, const char *filepath, int flags)
   if (ibuf->ppm[0] > 0.0 && ibuf->ppm[1] > 0.0) {
     png_set_pHYs(png_ptr,
                  info_ptr,
-                 (unsigned int)(ibuf->ppm[0] + 0.5),
-                 (unsigned int)(ibuf->ppm[1] + 0.5),
+                 (uint)(ibuf->ppm[0] + 0.5),
+                 (uint)(ibuf->ppm[1] + 0.5),
                  PNG_RESOLUTION_METER);
   }
 
@@ -468,15 +468,15 @@ bool imb_savepng(struct ImBuf *ibuf, const char *filepath, int flags)
   /* set the individual row-pointers to point at the correct offsets */
   if (is_16bit) {
     for (i = 0; i < ibuf->y; i++) {
-      row_pointers[ibuf->y - 1 - i] = (png_bytep)((unsigned short *)pixels16 +
+      row_pointers[ibuf->y - 1 - i] = (png_bytep)((ushort *)pixels16 +
                                                   (((size_t)i) * ibuf->x) * bytesperpixel);
     }
   }
   else {
     for (i = 0; i < ibuf->y; i++) {
-      row_pointers[ibuf->y - 1 - i] = (png_bytep)((unsigned char *)pixels +
-                                                  (((size_t)i) * ibuf->x) * bytesperpixel *
-                                                      sizeof(unsigned char));
+      row_pointers[ibuf->y - 1 - i] = (png_bytep)((uchar *)pixels + (((size_t)i) * ibuf->x) *
+                                                                        bytesperpixel *
+                                                                        sizeof(uchar));
     }
   }
 
@@ -521,22 +521,22 @@ static void imb_png_error(png_structp UNUSED(png_ptr), png_const_charp message)
   fprintf(stderr, "libpng error: %s\n", message);
 }
 
-ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+ImBuf *imb_loadpng(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
   struct ImBuf *ibuf = NULL;
   png_structp png_ptr;
   png_infop info_ptr;
-  unsigned char *pixels = NULL;
-  unsigned short *pixels16 = NULL;
+  uchar *pixels = NULL;
+  ushort *pixels16 = NULL;
   png_bytepp row_pointers = NULL;
   png_uint_32 width, height;
   int bit_depth, color_type;
   PNGReadStruct ps;
 
-  unsigned char *from, *to;
-  unsigned short *from16;
+  uchar *from, *to;
+  ushort *from16;
   float *to_float;
-  unsigned int channels;
+  uint channels;
 
   if (imb_is_a_png(mem, size) == 0) {
     return NULL;
@@ -646,7 +646,7 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 
   if (ibuf && ((flags & IB_test) == 0)) {
     if (bit_depth == 16) {
-      imb_addrectfloatImBuf(ibuf);
+      imb_addrectfloatImBuf(ibuf, 4);
       png_set_swap(png_ptr);
 
       pixels16 = imb_alloc_pixels(ibuf->x, ibuf->y, channels, sizeof(png_uint_16), "pixels");
@@ -718,7 +718,7 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
     else {
       imb_addrectImBuf(ibuf);
 
-      pixels = imb_alloc_pixels(ibuf->x, ibuf->y, channels, sizeof(unsigned char), "pixels");
+      pixels = imb_alloc_pixels(ibuf->x, ibuf->y, channels, sizeof(uchar), "pixels");
       if (pixels == NULL || ibuf->rect == NULL) {
         printf("Cannot allocate pixels array\n");
         longjmp(png_jmpbuf(png_ptr), 1);
@@ -733,16 +733,16 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 
       /* set the individual row-pointers to point at the correct offsets */
       for (int i = 0; i < ibuf->y; i++) {
-        row_pointers[ibuf->y - 1 - i] = (png_bytep)((unsigned char *)pixels +
-                                                    (((size_t)i) * ibuf->x) * channels *
-                                                        sizeof(unsigned char));
+        row_pointers[ibuf->y - 1 - i] = (png_bytep)((uchar *)pixels + (((size_t)i) * ibuf->x) *
+                                                                          channels *
+                                                                          sizeof(uchar));
       }
 
       png_read_image(png_ptr, row_pointers);
 
       /* copy image data */
 
-      to = (unsigned char *)ibuf->rect;
+      to = (uchar *)ibuf->rect;
       from = pixels;
 
       switch (channels) {

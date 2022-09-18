@@ -273,7 +273,7 @@ static int text_new_exec(bContext *C, wmOperator *UNUSED(op))
   PointerRNA ptr, idptr;
   PropertyRNA *prop;
 
-  text = BKE_text_add(bmain, "Text");
+  text = BKE_text_add(bmain, DATA_("Text"));
 
   /* hook into UI */
   UI_context_active_but_prop_get_templateID(C, &ptr, &prop);

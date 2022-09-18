@@ -72,7 +72,8 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
                                void (*update_cb)(void *, float progress, int *cancel),
                                void *update_cb_data)
 {
-  /* Ensure that the triangulated mesh data is up to data */
+  const Span<MVert> input_verts = input_mesh->verts();
+  const Span<MLoop> input_loops = input_mesh->loops();
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(input_mesh);
   MeshElemMap *epmap = nullptr;
   int *epmem = nullptr;
@@ -90,15 +91,18 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
   MVertTri *verttri = (MVertTri *)MEM_callocN(
       sizeof(*verttri) * BKE_mesh_runtime_looptri_len(input_mesh), "remesh_looptri");
   BKE_mesh_runtime_verttri_from_looptri(
-      verttri, input_mesh->mloop, looptri, BKE_mesh_runtime_looptri_len(input_mesh));
+      verttri, input_loops.data(), looptri, BKE_mesh_runtime_looptri_len(input_mesh));
 
   const int totfaces = BKE_mesh_runtime_looptri_len(input_mesh);
   const int totverts = input_mesh->totvert;
   Array<float3> verts(totverts);
   Array<QuadriflowFace> faces(totfaces);
 
+  int *material_index = (int *)CustomData_get_layer_named(
+      &input_mesh->pdata, CD_PROP_INT32, "material_index");
+
   for (const int i : IndexRange(totverts)) {
-    verts[i] = input_mesh->mvert[i].co;
+    verts[i] = input_verts[i].co;
   }
 
   int *fsets = (int *)CustomData_get_layer(&input_mesh->pdata, CD_SCULPT_FACE_SETS);
@@ -131,14 +135,15 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
       int mat_nr = 0;
 
       for (int k : IndexRange(melem->count)) {
+        int face_index = melem->indices[k];
         MPoly *p = input_mesh->mpoly + melem->indices[k];
 
-        if (k > 0 && p->mat_nr != mat_nr) {
+        if (k > 0 && material_index[face_index] != mat_nr) {
           faces[i].eflag[j] |= QFLOW_CONSTRAINED;
           continue;
         }
 
-        mat_nr = (int)p->mat_nr;
+        mat_nr = material_index[face_index];
 
         if (fsets) {
           int fset2 = fsets[melem->indices[k]];
@@ -191,20 +196,24 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
 
   /* Construct the new output mesh */
   Mesh *mesh = BKE_mesh_new_nomain(qrd.out_totverts, 0, 0, qrd.out_totfaces * 4, qrd.out_totfaces);
+  BKE_mesh_copy_parameters(mesh, input_mesh);
+  MutableSpan<MVert> mesh_verts = mesh->verts_for_write();
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
+  MutableSpan<MLoop> loops = mesh->loops_for_write();
 
   for (const int i : IndexRange(qrd.out_totverts)) {
-    copy_v3_v3(mesh->mvert[i].co, &qrd.out_verts[i * 3]);
+    copy_v3_v3(mesh_verts[i].co, &qrd.out_verts[i * 3]);
   }
 
   for (const int i : IndexRange(qrd.out_totfaces)) {
-    MPoly &poly = mesh->mpoly[i];
+    MPoly &poly = polys[i];
     const int loopstart = i * 4;
     poly.loopstart = loopstart;
     poly.totloop = 4;
-    mesh->mloop[loopstart].v = qrd.out_faces[loopstart];
-    mesh->mloop[loopstart + 1].v = qrd.out_faces[loopstart + 1];
-    mesh->mloop[loopstart + 2].v = qrd.out_faces[loopstart + 2];
-    mesh->mloop[loopstart + 3].v = qrd.out_faces[loopstart + 3];
+    loops[loopstart].v = qrd.out_faces[loopstart];
+    loops[loopstart + 1].v = qrd.out_faces[loopstart + 1];
+    loops[loopstart + 2].v = qrd.out_faces[loopstart + 2];
+    loops[loopstart + 3].v = qrd.out_faces[loopstart + 3];
   }
 
   BKE_mesh_calc_edges(mesh, false, false);
@@ -532,7 +541,8 @@ Mesh *BKE_mesh_remesh_quadriflow(const Mesh *mesh,
 static openvdb::FloatGrid::Ptr remesh_voxel_level_set_create(const Mesh *mesh,
                                                              const float voxel_size)
 {
-  Span<MLoop> mloop{mesh->mloop, mesh->totloop};
+  const Span<MVert> verts = mesh->verts();
+  const Span<MLoop> loops = mesh->loops();
   Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(mesh),
                           BKE_mesh_runtime_looptri_len(mesh)};
 
@@ -540,14 +550,14 @@ static openvdb::FloatGrid::Ptr remesh_voxel_level_set_create(const Mesh *mesh,
   std::vector<openvdb::Vec3I> triangles(looptris.size());
 
   for (const int i : IndexRange(mesh->totvert)) {
-    const float3 co = mesh->mvert[i].co;
+    const float3 co = verts[i].co;
     points[i] = openvdb::Vec3s(co.x, co.y, co.z);
   }
 
   for (const int i : IndexRange(looptris.size())) {
     const MLoopTri &loop_tri = looptris[i];
     triangles[i] = openvdb::Vec3I(
-        mloop[loop_tri.tri[0]].v, mloop[loop_tri.tri[1]].v, mloop[loop_tri.tri[2]].v);
+        loops[loop_tri.tri[0]].v, loops[loop_tri.tri[1]].v, loops[loop_tri.tri[2]].v);
   }
 
   openvdb::math::Transform::Ptr transform = openvdb::math::Transform::createLinearTransform(
@@ -571,34 +581,34 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
 
   Mesh *mesh = BKE_mesh_new_nomain(
       vertices.size(), 0, 0, quads.size() * 4 + tris.size() * 3, quads.size() + tris.size());
-  MutableSpan<MVert> mverts{mesh->mvert, mesh->totvert};
-  MutableSpan<MLoop> mloops{mesh->mloop, mesh->totloop};
-  MutableSpan<MPoly> mpolys{mesh->mpoly, mesh->totpoly};
+  MutableSpan<MVert> mesh_verts = mesh->verts_for_write();
+  MutableSpan<MPoly> mesh_polys = mesh->polys_for_write();
+  MutableSpan<MLoop> mesh_loops = mesh->loops_for_write();
 
-  for (const int i : mverts.index_range()) {
-    copy_v3_v3(mverts[i].co, float3(vertices[i].x(), vertices[i].y(), vertices[i].z()));
+  for (const int i : mesh_verts.index_range()) {
+    copy_v3_v3(mesh_verts[i].co, float3(vertices[i].x(), vertices[i].y(), vertices[i].z()));
   }
 
   for (const int i : IndexRange(quads.size())) {
-    MPoly &poly = mpolys[i];
+    MPoly &poly = mesh_polys[i];
     const int loopstart = i * 4;
     poly.loopstart = loopstart;
     poly.totloop = 4;
-    mloops[loopstart].v = quads[i][0];
-    mloops[loopstart + 1].v = quads[i][3];
-    mloops[loopstart + 2].v = quads[i][2];
-    mloops[loopstart + 3].v = quads[i][1];
+    mesh_loops[loopstart].v = quads[i][0];
+    mesh_loops[loopstart + 1].v = quads[i][3];
+    mesh_loops[loopstart + 2].v = quads[i][2];
+    mesh_loops[loopstart + 3].v = quads[i][1];
   }
 
   const int triangle_loop_start = quads.size() * 4;
   for (const int i : IndexRange(tris.size())) {
-    MPoly &poly = mpolys[quads.size() + i];
+    MPoly &poly = mesh_polys[quads.size() + i];
     const int loopstart = triangle_loop_start + i * 3;
     poly.loopstart = loopstart;
     poly.totloop = 3;
-    mloops[loopstart].v = tris[i][2];
-    mloops[loopstart + 1].v = tris[i][1];
-    mloops[loopstart + 2].v = tris[i][0];
+    mesh_loops[loopstart].v = tris[i][2];
+    mesh_loops[loopstart + 1].v = tris[i][1];
+    mesh_loops[loopstart + 2].v = tris[i][0];
   }
 
   BKE_mesh_calc_edges(mesh, false, false);
@@ -614,18 +624,24 @@ Mesh *BKE_mesh_remesh_voxel(const Mesh *mesh,
 {
 #ifdef WITH_OPENVDB
   openvdb::FloatGrid::Ptr level_set = remesh_voxel_level_set_create(mesh, voxel_size);
-  return remesh_voxel_volume_to_mesh(level_set, isovalue, adaptivity, false);
+  Mesh *result = remesh_voxel_volume_to_mesh(level_set, isovalue, adaptivity, false);
+  BKE_mesh_copy_parameters(result, mesh);
+  return result;
 #else
   UNUSED_VARS(mesh, voxel_size, adaptivity, isovalue);
   return nullptr;
 #endif
 }
 
-void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, Mesh *source)
+void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, const Mesh *source)
 {
   BVHTreeFromMesh bvhtree = {nullptr};
   BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_VERTS, 2);
-  MVert *target_verts = (MVert *)CustomData_get_layer(&target->vdata, CD_MVERT);
+  const MVert *target_verts = (const MVert *)CustomData_get_layer(&target->vdata, CD_MVERT);
+  const float *source_mask = (const float *)CustomData_get_layer(&source->vdata, CD_PAINT_MASK);
+  if (source_mask == nullptr) {
+    return;
+  }
 
   float *target_mask;
   if (CustomData_has_layer(&target->vdata, CD_PAINT_MASK)) {
@@ -633,16 +649,7 @@ void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, Mesh *source)
   }
   else {
     target_mask = (float *)CustomData_add_layer(
-        &target->vdata, CD_PAINT_MASK, CD_CALLOC, nullptr, target->totvert);
-  }
-
-  const float *source_mask;
-  if (CustomData_has_layer(&source->vdata, CD_PAINT_MASK)) {
-    source_mask = (float *)CustomData_get_layer(&source->vdata, CD_PAINT_MASK);
-  }
-  else {
-    source_mask = (float *)CustomData_add_layer(
-        &source->vdata, CD_PAINT_MASK, CD_CALLOC, nullptr, source->totvert);
+        &target->vdata, CD_PAINT_MASK, CD_CONSTRUCT, nullptr, target->totvert);
   }
 
   for (int i = 0; i < target->totvert; i++) {
@@ -734,13 +741,16 @@ void BKE_mesh_remesh_sculpt_array_update(Object *ob, Mesh *target, Mesh *source)
   }
 }
 
-void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, Mesh *source)
+void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source)
 {
-  BVHTreeFromMesh bvhtree = {nullptr};
-
   const MPoly *target_polys = (const MPoly *)CustomData_get_layer(&target->pdata, CD_MPOLY);
   const MVert *target_verts = (const MVert *)CustomData_get_layer(&target->vdata, CD_MVERT);
   const MLoop *target_loops = (const MLoop *)CustomData_get_layer(&target->ldata, CD_MLOOP);
+  const int *source_face_sets = (const int *)CustomData_get_layer(&source->pdata,
+                                                                  CD_SCULPT_FACE_SETS);
+  if (source_face_sets == nullptr) {
+    return;
+  }
 
   int *target_face_sets;
   if (CustomData_has_layer(&target->pdata, CD_SCULPT_FACE_SETS)) {
@@ -748,19 +758,11 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, Mesh *source)
   }
   else {
     target_face_sets = (int *)CustomData_add_layer(
-        &target->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, nullptr, target->totpoly);
-  }
-
-  const int *source_face_sets;
-  if (CustomData_has_layer(&source->pdata, CD_SCULPT_FACE_SETS)) {
-    source_face_sets = (const int *)CustomData_get_layer(&source->pdata, CD_SCULPT_FACE_SETS);
-  }
-  else {
-    source_face_sets = (const int *)CustomData_add_layer(
-        &source->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, nullptr, source->totpoly);
+        &target->pdata, CD_SCULPT_FACE_SETS, CD_CONSTRUCT, nullptr, target->totpoly);
   }
 
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(source);
+  BVHTreeFromMesh bvhtree = {nullptr};
   BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_LOOPTRI, 2);
 
   for (int i = 0; i < target->totpoly; i++) {
@@ -781,7 +783,7 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, Mesh *source)
   free_bvhtree_from_mesh(&bvhtree);
 }
 
-void BKE_remesh_reproject_materials(Mesh *target, Mesh *source)
+void BKE_remesh_reproject_materials(Mesh *target, const Mesh *source)
 {
   BVHTreeFromMesh bvhtree = {nullptr};
   bvhtree.nearest_callback = nullptr;
@@ -793,6 +795,11 @@ void BKE_remesh_reproject_materials(Mesh *target, Mesh *source)
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(source);
   BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_LOOPTRI, 2);
 
+  int *material_index_source = (int *)CustomData_get_layer_named(
+      &source->pdata, CD_PROP_INT32, "material_index");
+  int *material_index = (int *)CustomData_get_layer_named(
+      &target->pdata, CD_PROP_INT32, "material_index");
+
   for (int i = 0; i < target->totpoly; i++) {
     float from_co[3];
     BVHTreeNearest nearest;
@@ -802,7 +809,7 @@ void BKE_remesh_reproject_materials(Mesh *target, Mesh *source)
     BKE_mesh_calc_poly_center(mpoly, &target_loops[mpoly->loopstart], target_verts, from_co);
     BLI_bvhtree_find_nearest(bvhtree.tree, from_co, &nearest, bvhtree.nearest_callback, &bvhtree);
     if (nearest.index != -1) {
-      target->mpoly[i].mat_nr = source->mpoly[looptri[nearest.index].poly].mat_nr;
+      material_index[i] = material_index_source[looptri[nearest.index].poly];
     }
   }
   free_bvhtree_from_mesh(&bvhtree);
@@ -834,7 +841,7 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
       int elem_num = domain == ATTR_DOMAIN_POINT ? target->totvert : target->totloop;
 
       CustomData_add_layer_named(
-          target_cdata, layer->type, CD_CALLOC, nullptr, elem_num, layer->name);
+          target_cdata, layer->type, CD_SET_DEFAULT, nullptr, elem_num, layer->name);
       layer_i = CustomData_get_named_layer_index(target_cdata, layer->type, layer->name);
     }
 

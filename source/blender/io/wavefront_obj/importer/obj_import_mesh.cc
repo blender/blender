@@ -8,7 +8,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_material.h"
@@ -22,6 +22,7 @@
 
 #include "IO_wavefront_obj.h"
 #include "importer_mesh_utils.hh"
+#include "obj_export_mtl.hh"
 #include "obj_import_mesh.hh"
 
 namespace blender::io::obj {
@@ -57,7 +58,7 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
   create_uv_verts(mesh);
   create_normals(mesh);
   create_colors(mesh);
-  create_materials(bmain, materials, created_materials, obj);
+  create_materials(bmain, materials, created_materials, obj, import_params.relative_paths);
 
   if (import_params.validate_meshes || mesh_geometry_.has_invalid_polys_) {
     bool verbose_validate = false;
@@ -68,11 +69,7 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
   }
   transform_object(obj, import_params);
 
-  /* FIXME: after 2.80; `mesh->flag` isn't copied by #BKE_mesh_nomain_to_mesh() */
-  const uint16_t autosmooth = (mesh->flag & ME_AUTOSMOOTH);
-  Mesh *dst = static_cast<Mesh *>(obj->data);
-  BKE_mesh_nomain_to_mesh(mesh, dst, obj, &CD_MASK_EVERYTHING, true);
-  dst->flag |= autosmooth;
+  BKE_mesh_nomain_to_mesh(mesh, static_cast<Mesh *>(obj->data), obj);
 
   /* NOTE: vertex groups have to be created after final mesh is assigned to the object. */
   create_vertex_groups(obj);
@@ -157,28 +154,38 @@ void MeshFromGeometry::fixup_invalid_faces()
 
 void MeshFromGeometry::create_vertices(Mesh *mesh)
 {
-  const int tot_verts_object{mesh_geometry_.get_vertex_count()};
-  for (int i = 0; i < tot_verts_object; ++i) {
-    int vi = mesh_geometry_.vertex_index_min_ + i;
-    if (vi < global_vertices_.vertices.size()) {
-      copy_v3_v3(mesh->mvert[i].co, global_vertices_.vertices[vi]);
+  MutableSpan<MVert> verts = mesh->verts_for_write();
+  /* Go through all the global vertex indices from min to max,
+   * checking which ones are actually and building a global->local
+   * index mapping. Write out the used vertex positions into the Mesh
+   * data. */
+  mesh_geometry_.global_to_local_vertices_.clear();
+  mesh_geometry_.global_to_local_vertices_.reserve(mesh_geometry_.vertices_.size());
+  for (int vi = mesh_geometry_.vertex_index_min_; vi <= mesh_geometry_.vertex_index_max_; ++vi) {
+    BLI_assert(vi >= 0 && vi < global_vertices_.vertices.size());
+    if (!mesh_geometry_.vertices_.contains(vi)) {
+      continue;
     }
-    else {
-      std::cerr << "Vertex index:" << vi
-                << " larger than total vertices:" << global_vertices_.vertices.size() << " ."
-                << std::endl;
-    }
+    int local_vi = (int)mesh_geometry_.global_to_local_vertices_.size();
+    BLI_assert(local_vi >= 0 && local_vi < mesh->totvert);
+    copy_v3_v3(verts[local_vi].co, global_vertices_.vertices[vi]);
+    mesh_geometry_.global_to_local_vertices_.add_new(vi, local_vi);
   }
 }
 
 void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
 {
-  mesh->dvert = nullptr;
+  MutableSpan<MDeformVert> dverts;
   const int64_t total_verts = mesh_geometry_.get_vertex_count();
   if (use_vertex_groups && total_verts && mesh_geometry_.has_vertex_groups_) {
-    mesh->dvert = static_cast<MDeformVert *>(
-        CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_CALLOC, nullptr, total_verts));
+    dverts = mesh->deform_verts_for_write();
   }
+
+  MutableSpan<MPoly> polys = mesh->polys_for_write();
+  MutableSpan<MLoop> loops = mesh->loops_for_write();
+  bke::SpanAttributeWriter<int> material_indices =
+      mesh->attributes_for_write().lookup_or_add_for_write_only_span<int>("material_index",
+                                                                          ATTR_DOMAIN_FACE);
 
   const int64_t tot_face_elems{mesh->totpoly};
   int tot_loop_idx = 0;
@@ -191,40 +198,42 @@ void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
       continue;
     }
 
-    MPoly &mpoly = mesh->mpoly[poly_idx];
+    MPoly &mpoly = polys[poly_idx];
     mpoly.totloop = curr_face.corner_count_;
     mpoly.loopstart = tot_loop_idx;
     if (curr_face.shaded_smooth) {
       mpoly.flag |= ME_SMOOTH;
     }
-    mpoly.mat_nr = curr_face.material_index;
+    material_indices.span[poly_idx] = curr_face.material_index;
     /* Importing obj files without any materials would result in negative indices, which is not
      * supported. */
-    if (mpoly.mat_nr < 0) {
-      mpoly.mat_nr = 0;
+    if (material_indices.span[poly_idx] < 0) {
+      material_indices.span[poly_idx] = 0;
     }
 
     for (int idx = 0; idx < curr_face.corner_count_; ++idx) {
       const PolyCorner &curr_corner = mesh_geometry_.face_corners_[curr_face.start_index_ + idx];
-      MLoop &mloop = mesh->mloop[tot_loop_idx];
+      MLoop &mloop = loops[tot_loop_idx];
       tot_loop_idx++;
-      mloop.v = curr_corner.vert_index - mesh_geometry_.vertex_index_min_;
+      mloop.v = mesh_geometry_.global_to_local_vertices_.lookup_default(curr_corner.vert_index, 0);
 
       /* Setup vertex group data, if needed. */
-      if (!mesh->dvert) {
+      if (dverts.is_empty()) {
         continue;
       }
       const int group_index = curr_face.vertex_group_index;
-      MDeformWeight *dw = BKE_defvert_ensure_index(mesh->dvert + mloop.v, group_index);
+      MDeformWeight *dw = BKE_defvert_ensure_index(&dverts[mloop.v], group_index);
       dw->weight = 1.0f;
     }
   }
+
+  material_indices.finish();
 }
 
 void MeshFromGeometry::create_vertex_groups(Object *obj)
 {
   Mesh *mesh = static_cast<Mesh *>(obj->data);
-  if (mesh->dvert == nullptr) {
+  if (mesh->deform_verts().is_empty()) {
     return;
   }
   for (const std::string &name : mesh_geometry_.group_order_) {
@@ -234,14 +243,16 @@ void MeshFromGeometry::create_vertex_groups(Object *obj)
 
 void MeshFromGeometry::create_edges(Mesh *mesh)
 {
+  MutableSpan<MEdge> edges = mesh->edges_for_write();
+
   const int64_t tot_edges{mesh_geometry_.edges_.size()};
   const int64_t total_verts{mesh_geometry_.get_vertex_count()};
   UNUSED_VARS_NDEBUG(total_verts);
   for (int i = 0; i < tot_edges; ++i) {
     const MEdge &src_edge = mesh_geometry_.edges_[i];
-    MEdge &dst_edge = mesh->medge[i];
-    dst_edge.v1 = src_edge.v1 - mesh_geometry_.vertex_index_min_;
-    dst_edge.v2 = src_edge.v2 - mesh_geometry_.vertex_index_min_;
+    MEdge &dst_edge = edges[i];
+    dst_edge.v1 = mesh_geometry_.global_to_local_vertices_.lookup_default(src_edge.v1, 0);
+    dst_edge.v2 = mesh_geometry_.global_to_local_vertices_.lookup_default(src_edge.v2, 0);
     BLI_assert(dst_edge.v1 < total_verts && dst_edge.v2 < total_verts);
     dst_edge.flag = ME_LOOSEEDGE;
   }
@@ -258,7 +269,7 @@ void MeshFromGeometry::create_uv_verts(Mesh *mesh)
     return;
   }
   MLoopUV *mluv_dst = static_cast<MLoopUV *>(CustomData_add_layer(
-      &mesh->ldata, CD_MLOOPUV, CD_DEFAULT, nullptr, mesh_geometry_.total_loops_));
+      &mesh->ldata, CD_MLOOPUV, CD_SET_DEFAULT, nullptr, mesh_geometry_.total_loops_));
   int tot_loop_idx = 0;
 
   for (const PolyElem &curr_face : mesh_geometry_.face_elements_) {
@@ -277,7 +288,8 @@ void MeshFromGeometry::create_uv_verts(Mesh *mesh)
 static Material *get_or_create_material(Main *bmain,
                                         const std::string &name,
                                         Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
-                                        Map<std::string, Material *> &created_materials)
+                                        Map<std::string, Material *> &created_materials,
+                                        bool relative_paths)
 {
   /* Have we created this material already? */
   Material **found_mat = created_materials.lookup_ptr(name);
@@ -291,9 +303,10 @@ static Material *get_or_create_material(Main *bmain,
   const MTLMaterial &mtl = *materials.lookup_or_add(name, std::make_unique<MTLMaterial>());
 
   Material *mat = BKE_material_add(bmain, name.c_str());
-  ShaderNodetreeWrap mat_wrap{bmain, mtl, mat};
+  id_us_min(&mat->id);
+
   mat->use_nodes = true;
-  mat->nodetree = mat_wrap.get_nodetree();
+  mat->nodetree = create_mtl_node_tree(bmain, mtl, mat, relative_paths);
   BKE_ntree_update_main_tree(bmain, mat->nodetree, nullptr);
 
   created_materials.add_new(name, mat);
@@ -303,14 +316,19 @@ static Material *get_or_create_material(Main *bmain,
 void MeshFromGeometry::create_materials(Main *bmain,
                                         Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
                                         Map<std::string, Material *> &created_materials,
-                                        Object *obj)
+                                        Object *obj,
+                                        bool relative_paths)
 {
   for (const std::string &name : mesh_geometry_.material_order_) {
-    Material *mat = get_or_create_material(bmain, name, materials, created_materials);
+    Material *mat = get_or_create_material(
+        bmain, name, materials, created_materials, relative_paths);
     if (mat == nullptr) {
       continue;
     }
     BKE_object_material_assign_single_obdata(bmain, obj, mat, obj->totcol + 1);
+  }
+  if (obj->totcol > 0) {
+    obj->actcol = 1;
   }
 }
 
@@ -318,6 +336,10 @@ void MeshFromGeometry::create_normals(Mesh *mesh)
 {
   /* No normal data: nothing to do. */
   if (global_vertices_.vertex_normals.is_empty()) {
+    return;
+  }
+  /* Custom normals can only be stored on face corners. */
+  if (mesh_geometry_.total_loops_ == 0) {
     return;
   }
 

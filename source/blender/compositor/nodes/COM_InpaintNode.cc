@@ -15,7 +15,7 @@ void InpaintNode::convert_to_operations(NodeConverter &converter,
                                         const CompositorContext & /*context*/) const
 {
 
-  bNode *editor_node = this->get_bnode();
+  const bNode *editor_node = this->get_bnode();
 
   /* if (editor_node->custom1 == CMP_NODE_INPAINT_SIMPLE) { */
   if (true) {

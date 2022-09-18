@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "kernel/util/color.h"
+
 CCL_NAMESPACE_BEGIN
 
 #ifdef __OSL__
@@ -42,10 +44,10 @@ ccl_device int bsdf_phong_ramp_setup(ccl_private PhongRampBsdf *bsdf)
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device float3 bsdf_phong_ramp_eval_reflect(ccl_private const ShaderClosure *sc,
-                                               const float3 I,
-                                               const float3 omega_in,
-                                               ccl_private float *pdf)
+ccl_device Spectrum bsdf_phong_ramp_eval_reflect(ccl_private const ShaderClosure *sc,
+                                                 const float3 I,
+                                                 const float3 omega_in,
+                                                 ccl_private float *pdf)
 {
   ccl_private const PhongRampBsdf *bsdf = (ccl_private const PhongRampBsdf *)sc;
   float m_exponent = bsdf->exponent;
@@ -61,11 +63,11 @@ ccl_device float3 bsdf_phong_ramp_eval_reflect(ccl_private const ShaderClosure *
       float common = 0.5f * M_1_PI_F * cosp;
       float out = cosNI * (m_exponent + 2) * common;
       *pdf = (m_exponent + 1) * common;
-      return bsdf_phong_ramp_get_color(bsdf->colors, cosp) * out;
+      return rgb_to_spectrum(bsdf_phong_ramp_get_color(bsdf->colors, cosp) * out);
     }
   }
   *pdf = 0.0f;
-  return make_float3(0.0f, 0.0f, 0.0f);
+  return zero_spectrum();
 }
 
 ccl_device float3 bsdf_phong_ramp_eval_transmit(ccl_private const ShaderClosure *sc,
@@ -80,14 +82,10 @@ ccl_device float3 bsdf_phong_ramp_eval_transmit(ccl_private const ShaderClosure 
 ccl_device int bsdf_phong_ramp_sample(ccl_private const ShaderClosure *sc,
                                       float3 Ng,
                                       float3 I,
-                                      float3 dIdx,
-                                      float3 dIdy,
                                       float randu,
                                       float randv,
-                                      ccl_private float3 *eval,
+                                      ccl_private Spectrum *eval,
                                       ccl_private float3 *omega_in,
-                                      ccl_private float3 *domega_in_dx,
-                                      ccl_private float3 *domega_in_dy,
                                       ccl_private float *pdf)
 {
   ccl_private const PhongRampBsdf *bsdf = (ccl_private const PhongRampBsdf *)sc;
@@ -97,12 +95,6 @@ ccl_device int bsdf_phong_ramp_sample(ccl_private const ShaderClosure *sc,
   if (cosNO > 0) {
     // reflect the view vector
     float3 R = (2 * cosNO) * bsdf->N - I;
-
-#  ifdef __RAY_DIFFERENTIALS__
-    *domega_in_dx = (2 * dot(bsdf->N, dIdx)) * bsdf->N - dIdx;
-    *domega_in_dy = (2 * dot(bsdf->N, dIdy)) * bsdf->N - dIdy;
-#  endif
-
     float3 T, B;
     make_orthonormals(R, &T, &B);
     float phi = M_2PI_F * randu;
@@ -119,12 +111,12 @@ ccl_device int bsdf_phong_ramp_sample(ccl_private const ShaderClosure *sc,
         float common = 0.5f * M_1_PI_F * cosp;
         *pdf = (m_exponent + 1) * common;
         float out = cosNI * (m_exponent + 2) * common;
-        *eval = bsdf_phong_ramp_get_color(bsdf->colors, cosp) * out;
+        *eval = rgb_to_spectrum(bsdf_phong_ramp_get_color(bsdf->colors, cosp) * out);
       }
     }
   }
   else {
-    *eval = make_float3(0.0f, 0.0f, 0.0f);
+    *eval = zero_spectrum();
     *pdf = 0.0f;
   }
   return LABEL_REFLECT | LABEL_GLOSSY;

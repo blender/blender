@@ -112,6 +112,8 @@ struct SlideOperationExecutor {
 
   Object *surface_ob_eval_ = nullptr;
   Mesh *surface_eval_ = nullptr;
+  Span<MVert> surface_verts_eval_;
+  Span<MLoop> surface_loops_eval_;
   Span<MLoopTri> surface_looptris_eval_;
   VArraySpan<float2> surface_uv_map_eval_;
   BVHTreeFromMesh surface_bvh_eval_;
@@ -149,6 +151,12 @@ struct SlideOperationExecutor {
       report_missing_uv_map_on_original_surface(stroke_extension.reports);
       return;
     }
+    if (curves_orig_->surface_uv_coords().is_empty()) {
+      BKE_report(stroke_extension.reports,
+                 RPT_WARNING,
+                 TIP_("Curves do not have surface attachment information"));
+      return;
+    }
     const StringRefNull uv_map_name = curves_id_orig_->surface_uv_map;
 
     curves_sculpt_ = ctx_.scene->toolsettings->curves_sculpt;
@@ -172,8 +180,8 @@ struct SlideOperationExecutor {
     }
     surface_looptris_orig_ = {BKE_mesh_runtime_looptri_ensure(surface_orig_),
                               BKE_mesh_runtime_looptri_len(surface_orig_)};
-    surface_uv_map_orig_ =
-        bke::mesh_attributes(*surface_orig_).lookup<float2>(uv_map_name, ATTR_DOMAIN_CORNER);
+    surface_uv_map_orig_ = surface_orig_->attributes().lookup<float2>(uv_map_name,
+                                                                      ATTR_DOMAIN_CORNER);
     if (surface_uv_map_orig_.is_empty()) {
       report_missing_uv_map_on_original_surface(stroke_extension.reports);
       return;
@@ -199,8 +207,10 @@ struct SlideOperationExecutor {
     }
     surface_looptris_eval_ = {BKE_mesh_runtime_looptri_ensure(surface_eval_),
                               BKE_mesh_runtime_looptri_len(surface_eval_)};
-    surface_uv_map_eval_ =
-        bke::mesh_attributes(*surface_eval_).lookup<float2>(uv_map_name, ATTR_DOMAIN_CORNER);
+    surface_verts_eval_ = surface_eval_->verts();
+    surface_loops_eval_ = surface_eval_->loops();
+    surface_uv_map_eval_ = surface_eval_->attributes().lookup<float2>(uv_map_name,
+                                                                      ATTR_DOMAIN_CORNER);
     if (surface_uv_map_eval_.is_empty()) {
       report_missing_uv_map_on_evaluated_surface(stroke_extension.reports);
       return;
@@ -313,8 +323,8 @@ struct SlideOperationExecutor {
   {
     const float4x4 brush_transform_inv = brush_transform.inverted();
 
-    const Span<MVert> verts_orig_su{surface_orig_->mvert, surface_orig_->totvert};
-    const Span<MLoop> loops_orig{surface_orig_->mloop, surface_orig_->totloop};
+    const Span<MVert> verts_orig_su = surface_orig_->verts();
+    const Span<MLoop> loops_orig = surface_orig_->loops();
 
     MutableSpan<float3> positions_orig_cu = curves_orig_->positions_for_write();
     MutableSpan<float2> surface_uv_coords = curves_orig_->surface_uv_coords_for_write();
@@ -377,7 +387,7 @@ struct SlideOperationExecutor {
         /* Compute the uv of the new surface position on the evaluated mesh. */
         const MLoopTri &looptri_eval = surface_looptris_eval_[looptri_index_eval];
         const float3 bary_weights_eval = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
-            *surface_eval_, looptri_eval, hit_pos_eval_su);
+            surface_verts_eval_, surface_loops_eval_, looptri_eval, hit_pos_eval_su);
         const float2 uv = attribute_math::mix3(bary_weights_eval,
                                                surface_uv_map_eval_[looptri_eval.tri[0]],
                                                surface_uv_map_eval_[looptri_eval.tri[1]],

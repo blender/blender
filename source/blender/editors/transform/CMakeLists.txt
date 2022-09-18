@@ -15,7 +15,6 @@ set(INC
   ../../render
   ../../sequencer
   ../../windowmanager
-  ../../../../intern/glew-mx
   ../../../../intern/atomic
   ../../../../intern/guardedalloc
   # RNA_prototypes.h

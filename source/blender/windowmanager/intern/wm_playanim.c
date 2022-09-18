@@ -482,7 +482,7 @@ static void draw_display_buffer(PlayState *ps, ImBuf *ibuf)
   GPU_texture_bind(texture, 0);
 
   if (!glsl_used) {
-    immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_COLOR);
     immUniformColor3f(1.0f, 1.0f, 1.0f);
   }
 
@@ -601,7 +601,7 @@ static void playanim_toscreen(
 
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor3ub(0, 255, 0);
 
     immBegin(GPU_PRIM_LINES, 2);
@@ -1353,7 +1353,7 @@ static void playanim_window_open(const char *title, int posx, int posy, int size
                                          posy,
                                          sizex,
                                          sizey,
-                                         /* could optionally start fullscreen */
+                                         /* Could optionally start full-screen. */
                                          GHOST_kWindowStateNormal,
                                          false,
                                          GHOST_kDrawingContextTypeOpenGL,
@@ -1807,20 +1807,21 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   AUD_Sound_free(source);
   source = NULL;
 #endif
+
   /* we still miss freeing a lot!,
    * but many areas could skip initialization too for anim play */
 
-  GPU_shader_free_builtin_shaders();
-
-  if (g_WS.gpu_context) {
-    GPU_context_active_set(g_WS.gpu_context);
-    GPU_context_discard(g_WS.gpu_context);
-    g_WS.gpu_context = NULL;
-  }
+  IMB_exit();
+  DEG_free_node_types();
 
   BLF_exit();
 
-  GPU_exit();
+  if (g_WS.gpu_context) {
+    GPU_context_active_set(g_WS.gpu_context);
+    GPU_exit();
+    GPU_context_discard(g_WS.gpu_context);
+    g_WS.gpu_context = NULL;
+  }
 
   GHOST_DisposeWindow(g_WS.ghost_system, g_WS.ghost_window);
 
@@ -1829,9 +1830,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
     BLI_strncpy(filepath, ps.dropped_file, sizeof(filepath));
     return filepath;
   }
-
-  IMB_exit();
-  DEG_free_node_types();
 
   totblock = MEM_get_memory_blocks_in_use();
   if (totblock != 0) {

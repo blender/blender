@@ -160,19 +160,19 @@ typedef struct {
 
 typedef struct SculptSmoothArgs {
   float projection, slide_fset, bound_smooth;
-  SculptCustomLayer *bound_scl;
+  SculptAttribute *bound_scl;
   bool do_origco : 1;
   bool do_weighted_smooth : 1;
   bool preserve_fset_boundaries : 1;
   float bound_smooth_radius;  // if 0, ss->cache->radius will be used
   float vel_smooth_fac;
-  SculptCustomLayer *vel_scl;
+  SculptAttribute *vel_scl;
   float bevel_smooth_factor;
 } SculptSmoothArgs;
 
 typedef struct {
   GSQueue *queue;
-  BLI_bitmap *visited_vertices;
+  BLI_bitmap *visited_verts;
 } SculptFloodFill;
 
 typedef enum eBoundaryAutomaskMode {
@@ -259,9 +259,6 @@ typedef struct SculptUndoNode {
   bool geometry_clear_pbvh;
   SculptUndoNodeGeometry geometry_original;
   SculptUndoNodeGeometry geometry_modified;
-
-  /* Geometry at the bmesh enter moment. */
-  SculptUndoNodeGeometry geometry_bmesh_enter;
 
   /* pivot */
   float pivot_pos[3];
@@ -423,7 +420,7 @@ typedef struct SculptThreadedTaskData {
 
   float smooth_projection;
   float rake_projection;
-  SculptCustomLayer *scl, *scl2;
+  SculptAttribute *scl, *scl2;
   bool do_origco;
   float *brush_color;
 
@@ -515,10 +512,6 @@ typedef struct AutomaskingSettings {
 
 typedef struct AutomaskingCache {
   AutomaskingSettings settings;
-  /* Precomputed auto-mask factor indexed by vertex, owned by the auto-masking system and
-   * initialized in #SCULPT_automasking_cache_init when needed. */
-  // float *factor;
-  SculptCustomLayer *factorlayer;
 } AutomaskingCache;
 
 typedef enum eSculptGradientType {
@@ -1314,9 +1307,13 @@ void SCULPT_connected_components_ensure(Object *ob);
 
 void SCULPT_vertex_visible_set(SculptSession *ss, PBVHVertRef vertex, bool visible);
 bool SCULPT_vertex_visible_get(SculptSession *ss, PBVHVertRef vertex);
+bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef vertex);
+bool SCULPT_vertex_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex);
 
-void SCULPT_visibility_sync_all_face_sets_to_vertices(struct Object *ob);
-void SCULPT_visibility_sync_all_vertex_to_face_sets(struct SculptSession *ss);
+void SCULPT_face_visibility_all_invert(SculptSession *ss);
+void SCULPT_face_visibility_all_set(SculptSession *ss, bool visible);
+
+void SCULPT_visibility_sync_all_from_faces(struct Object *ob);
 
 /** \} */
 
@@ -1351,11 +1348,6 @@ bool SCULPT_vertex_has_unique_face_set(const SculptSession *ss, PBVHVertRef vert
 int SCULPT_face_set_next_available_get(SculptSession *ss);
 
 void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visible);
-bool SCULPT_vertex_all_face_sets_visible_get(const SculptSession *ss, PBVHVertRef vertex);
-bool SCULPT_vertex_any_face_set_visible_get(SculptSession *ss, PBVHVertRef vertex);
-
-void SCULPT_face_sets_visibility_invert(SculptSession *ss);
-void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool visible);
 
 int SCULPT_face_set_get(SculptSession *ss, PBVHFaceRef face);
 int SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset);
@@ -1363,7 +1355,6 @@ int SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset);
 int SCULPT_face_set_original_get(SculptSession *ss, PBVHFaceRef face);
 
 int SCULPT_face_set_flag_get(SculptSession *ss, PBVHFaceRef face, char flag);
-int SCULPT_face_set_flag_set(SculptSession *ss, PBVHFaceRef face, char flag, bool state);
 
 /** \} */
 
@@ -1632,8 +1623,6 @@ void sculpt_dynamic_topology_disable_with_undo(struct Main *bmain,
 bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *brush);
 
 void SCULPT_dynamic_topology_triangulate(struct SculptSession *ss, struct BMesh *bm);
-void SCULPT_dyntopo_node_layers_add(struct SculptSession *ss, Object *ob);
-void SCULPT_dyntopo_node_layers_update_offsets(SculptSession *ss, Object *ob);
 void SCULPT_dynamic_topology_sync_layers(Object *ob, struct Mesh *me);
 
 enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob);
@@ -1673,7 +1662,7 @@ void SCULPT_automasking_step_update(struct AutomaskingCache *automasking,
 void SCULPT_boundary_automasking_init(Object *ob,
                                       eBoundaryAutomaskMode mode,
                                       int propagation_steps,
-                                      SculptCustomLayer *factorlayer);
+                                      SculptAttribute *factorlayer);
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1863,7 +1852,7 @@ void SCULPT_do_smooth_brush(
 void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
                                           float *disp,
                                           const float co[3],
-                                          struct SculptCustomLayer *scl,
+                                          struct SculptAttribute *scl,
                                           const PBVHVertRef v_index,
                                           const float origco[3],
                                           const float alpha,
@@ -1873,7 +1862,7 @@ void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
 
 void SCULPT_surface_smooth_displace_step(SculptSession *ss,
                                          float *co,
-                                         struct SculptCustomLayer *scl,
+                                         struct SculptAttribute *scl,
                                          const PBVHVertRef v_index,
                                          const float beta,
                                          const float fade);
@@ -1923,10 +1912,17 @@ SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node, SculptUndoType type);
 SculptUndoNode *SCULPT_undo_get_first_node(void);
 
 /**
- * NOTE: `name` must match operator name for
- * redo panels to work.
+ * Pushes an undo step using the operator name. This is necessary for
+ * redo panels to work; operators that do not support that may use
+ * #SCULPT_undo_push_begin_ex instead if so desired.
  */
-void SCULPT_undo_push_begin(struct Object *ob, const char *name);
+void SCULPT_undo_push_begin(struct Object *ob, const struct wmOperator *op);
+
+/**
+ * NOTE: #SCULPT_undo_push_begin is preferred since `name`
+ * must match operator name for redo panels to work.
+ */
+void SCULPT_undo_push_begin_ex(struct Object *ob, const char *name);
 void SCULPT_undo_push_end(struct Object *ob);
 void SCULPT_undo_push_end_ex(struct Object *ob, const bool use_nested_undo);
 
@@ -2364,125 +2360,7 @@ struct BMesh *SCULPT_dyntopo_empty_bmesh();
  * > 0.0f*/
 void SCULPT_bound_smooth_ensure(SculptSession *ss, struct Object *ob);
 
-/* -------------------------------------------------------------------- */
-/** \name Sculpt Custom Attribute API
- *
-API for custom (usually temporary) attributes.
-Vertices and faces are supported.
-
-Access per element data with SCULPT_attr_vertex_data and SCULPT_attr_face_data:.
-
-    float *f = SCULPT_attr_vertex_data(sculpt_vertex, &scl1);
-
-Layers that are reused by different parts of the sculpt code
-should be cached in SculptSession->custom_layers, the entries of which
-map to the SculptStandardAttr enum in BKE_paint.h.
-
-These layers will not be created for you, though once they exist they won't
-be pruned until the user exits sculpt mode.  To use:
-
-    if (!ss->custom_layers[SCULPT_SCL_FAIRING_MASK]) {
-      ss->custom_layers[SCULPT_SCL_FAIRING_MASK] = MEM_callocN(sizeof(SculptLayerRef),
-"SculptLayerRef"); SCULPT_attr_get_layer(ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT,
-"_sculpt_fairing_mask", ss->custom_layers[SCULPT_SCL_FAIRING_MASK], params);
-    }
-
-Note that SCULPT_attr_get_layer will automatically update the customdata
-offsets for all non-NULL entries in ss->custom_layers automatically.
-
-TODO: prune CD_TEMPORARY layers on sculpt mode exit if PBVH_FACES is active;
-      in this case the layers are stored in the original meshes's CustomData
-      structs and will remain there until the user saves/loads the file.
- * \{ */
-
-/** returns true if layer was successfully created */
-bool SCULPT_attr_ensure_layer(SculptSession *ss,
-                              Object *ob,
-                              eAttrDomain domain,
-                              int proptype,
-                              const char *name,
-                              SculptLayerParams *params);
-
-SculptCustomLayer *SCULPT_attr_get_layer(SculptSession *ss,
-                                         Object *ob,
-                                         eAttrDomain domain,
-                                         int proptype,
-                                         const char *name,
-                                         SculptLayerParams *params);
-
-bool SCULPT_attr_release_layer(SculptSession *ss, struct Object *ob, SculptCustomLayer *scl);
-bool SCULPT_attr_has_layer(SculptSession *ss, eAttrDomain domain, int proptype, const char *name);
-
-/** updates all entries (e.g. customdata offsets) in ss->custom_layers */
-void SCULPT_update_customdata_refs(SculptSession *ss, Object *ob);
-
-/** Calls MEM_freeN on all entries in ss->custom_layers then
- * sets the whole array to nullptrs; note that no customdata
- * layer is actually freed */
-void SCULPT_clear_scl_pointers(SculptSession *ss);
-
-static inline void *SCULPT_attr_vertex_data(const PBVHVertRef vertex, const SculptCustomLayer *scl)
-{
-  if (scl->data) {
-    char *p = (char *)scl->data;
-    int idx = (int)vertex.i;
-
-    if (scl->from_bmesh) {
-      BMElem *v = (BMElem *)vertex.i;
-      idx = v->head.index;
-    }
-
-    return p + scl->elemsize * (int)idx;
-  }
-  else {
-    BMElem *v = (BMElem *)vertex.i;
-    return BM_ELEM_CD_GET_VOID_P(v, scl->cd_offset);
-  }
-
-  return NULL;
-}
-
-// arg, duplicate functions!
-static inline void *SCULPT_attr_face_data(const PBVHFaceRef vertex, const SculptCustomLayer *scl)
-{
-  if (scl->data) {
-    char *p = (char *)scl->data;
-    int idx = (int)vertex.i;
-
-    if (scl->from_bmesh) {
-      BMElem *v = (BMElem *)vertex.i;
-      idx = v->head.index;
-    }
-
-    return p + scl->elemsize * (int)idx;
-  }
-  else {
-    BMElem *v = (BMElem *)vertex.i;
-    return BM_ELEM_CD_GET_VOID_P(v, scl->cd_offset);
-  }
-
-  return NULL;
-}
-
-void SCULPT_release_attributes(SculptSession *ss, struct Object *ob, bool non_customdata_only);
 /** \} */
-
-/*
-
-DEPRECATED in favor of SCULPT_attr_ensure_layer
-which works with all three PBVH types
-
-Ensure a named temporary layer exists, creating it if necassary.
-The layer will be marked with CD_FLAG_TEMPORARY.
-*/
-void SCULPT_dyntopo_ensure_templayer(
-    SculptSession *ss, struct Object *ob, int type, const char *name, bool not_temporary);
-
-bool SCULPT_dyntopo_has_templayer(SculptSession *ss, int type, const char *name);
-
-/* Get a named temporary vertex customdata layer offset, if it exists.  If not
-  -1 is returned.*/
-int SCULPT_dyntopo_get_templayer(SculptSession *ss, int type, const char *name);
 
 int SCULPT_get_tool(const SculptSession *ss, const struct Brush *br);
 
@@ -2616,6 +2494,23 @@ BLI_INLINE bool SCULPT_tool_is_paint(int tool)
 {
   return ELEM(tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR);
 }
+
+BLI_INLINE bool SCULPT_tool_is_mask(int tool)
+{
+  return ELEM(tool, SCULPT_TOOL_MASK);
+}
+
+BLI_INLINE bool SCULPT_tool_is_face_sets(int tool)
+{
+  return ELEM(tool, SCULPT_TOOL_DRAW_FACE_SETS);
+}
+
+/* Make SCULPT_ alias to a few blenkernel sculpt methods. */
+
+#define SCULPT_vertex_attr_get BKE_sculpt_vertex_attr_get
+#define SCULPT_face_attr_get BKE_sculpt_face_attr_get
+
+SculptAttribute *SCULPT_stroke_id_attribute_ensure(struct Object *ob);
 
 #ifdef __cplusplus
 }

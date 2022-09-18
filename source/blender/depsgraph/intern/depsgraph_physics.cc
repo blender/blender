@@ -174,7 +174,7 @@ ListBase *build_effector_relations(Depsgraph *graph, Collection *collection)
   ID *collection_id = object_id_safe(collection);
   return hash->lookup_or_add_cb(collection_id, [&]() {
     ::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph *>(graph);
-    return BKE_effector_relations_create(depsgraph, graph->view_layer, collection);
+    return BKE_effector_relations_create(depsgraph, graph->scene, graph->view_layer, collection);
   });
 }
 

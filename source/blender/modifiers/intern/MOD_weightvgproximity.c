@@ -330,9 +330,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   twmd->cmap_curve = BKE_curvemapping_copy(wmd->cmap_curve);
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
 
@@ -401,7 +399,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 
   if (need_transform_relation) {
-    DEG_add_modifier_to_transform_relation(ctx->node, "WeightVGProximity Modifier");
+    DEG_add_depends_on_transform_relation(ctx->node, "WeightVGProximity Modifier");
   }
 }
 
@@ -423,7 +421,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   BLI_assert(mesh != NULL);
 
   WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
-  MDeformVert *dvert = NULL;
   MDeformWeight **dw, **tdw;
   float(*v_cos)[3] = NULL; /* The vertices coordinates. */
   Object *ob = ctx->object;
@@ -475,12 +472,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     return mesh;
   }
 
-  dvert = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MDEFORMVERT, verts_num);
+  MDeformVert *dvert = BKE_mesh_deform_verts_for_write(mesh);
   /* Ultimate security check. */
   if (!dvert) {
     return mesh;
   }
-  mesh->dvert = dvert;
 
   /* Find out which vertices to work on (all vertices in vgroup), and get their relevant weight. */
   tidx = MEM_malloc_arrayN(verts_num, sizeof(int), "WeightVGProximity Modifier, tidx");
@@ -640,7 +636,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   TIMEIT_END(perf);
 #endif
 
-  mesh->runtime.is_original = false;
+  mesh->runtime.is_original_bmesh = false;
 
   /* Return the vgroup-modified mesh. */
   return mesh;

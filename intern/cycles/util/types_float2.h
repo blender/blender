@@ -20,7 +20,8 @@ struct float2 {
 };
 
 ccl_device_inline float2 make_float2(float x, float y);
-ccl_device_inline void print_float2(const char *label, const float2 &a);
 #endif /* __KERNEL_NATIVE_VECTOR_TYPES__ */
+
+ccl_device_inline void print_float2(ccl_private const char *label, const float2 a);
 
 CCL_NAMESPACE_END

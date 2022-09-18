@@ -49,7 +49,7 @@ std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name,
 std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name, ID *id);
 
 /**
- * \brief Allocate a new IDProperty of type IDP_ARRAY and subtype IDP_INT.
+ * \brief Allocate a new IDProperty of type IDP_ARRAY and sub-type IDP_INT.
  *
  * \param values: The values will be copied into the IDProperty.
  */
@@ -57,14 +57,14 @@ std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name,
                                                       Span<int32_t> values);
 
 /**
- * \brief Allocate a new IDProperty of type IDP_ARRAY and subtype IDP_FLOAT.
+ * \brief Allocate a new IDProperty of type IDP_ARRAY and sub-type IDP_FLOAT.
  *
  * \param values: The values will be copied into the IDProperty.
  */
 std::unique_ptr<IDProperty, IDPropertyDeleter> create(StringRefNull prop_name, Span<float> values);
 
 /**
- * \brief Allocate a new IDProperty of type IDP_ARRAY and subtype IDP_DOUBLE.
+ * \brief Allocate a new IDProperty of type IDP_ARRAY and sub-type IDP_DOUBLE.
  *
  * \param values: The values will be copied into the IDProperty.
  */

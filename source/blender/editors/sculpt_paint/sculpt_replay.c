@@ -798,7 +798,7 @@ void SCULPT_replay_make_cube(struct bContext *C, int steps)
   BKE_pbvh_free(ss->pbvh);
   ss->pbvh = NULL;
 
-  SCULPT_dyntopo_node_layers_update_offsets(ss, ob);
+  //XXX call BKE_sculptsession_update_attr_refs here?
 
   /* Redraw. */
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -850,7 +850,7 @@ void SCULPT_replay(struct bContext *C)
   log->is_playing = true;
   float last_dyntopo_t = 0.0f;
 
-  SCULPT_undo_push_begin(ob, "Replay");
+  SCULPT_undo_push_begin_ex(ob, "Replay");
 
   if (!have_cache) {
     ED_view3d_viewcontext_init(C, &vc, depsgraph);

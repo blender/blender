@@ -392,7 +392,7 @@ ccl_device_forceinline bool mnee_compute_constraint_derivatives(
 /* Invert (block) constraint derivative matrix and solve linear system so we can map dh back to dx:
  *  dh / dx = A
  *  dx = inverse(A) x dh
- *  to use for specular specular manifold walk
+ *  to use for specular manifold walk
  * (See for example http://faculty.washington.edu/finlayso/ebook/algebraic/advanced/LUtri.htm
  *  for block tridiagonal matrix based linear system solve) */
 ccl_device_forceinline bool mnee_solve_matrix_h_to_x(int vertex_count,
@@ -634,9 +634,9 @@ mnee_sample_bsdf_dh(ClosureType type, float alpha_x, float alpha_y, float sample
  * We assume here that the pdf (in half-vector measure) is the same as
  * the one calculation when sampling the microfacet normals from the
  * specular chain above: this allows us to simplify the bsdf weight */
-ccl_device_forceinline float3 mnee_eval_bsdf_contribution(ccl_private ShaderClosure *closure,
-                                                          float3 wi,
-                                                          float3 wo)
+ccl_device_forceinline Spectrum mnee_eval_bsdf_contribution(ccl_private ShaderClosure *closure,
+                                                            float3 wi,
+                                                            float3 wo)
 {
   ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)closure;
 
@@ -807,7 +807,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
   float3 wo = normalize_len(vertices[0].p - sd->P, &wo_len);
 
   /* Initialize throughput and evaluate receiver bsdf * |n.wo|. */
-  shader_bsdf_eval(kg, sd, wo, false, throughput, ls->shader);
+  surface_shader_bsdf_eval(kg, sd, wo, false, throughput, ls->shader);
 
   /* Update light sample with new position / direct.ion
    * and keep pdf in vertex area measure */
@@ -835,7 +835,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
                                                              1;
   INTEGRATOR_STATE_WRITE(state, path, bounce) = bounce + vertex_count;
 
-  float3 light_eval = light_sample_shader_eval(kg, state, sd_mnee, ls, sd->time);
+  Spectrum light_eval = light_sample_shader_eval(kg, state, sd_mnee, ls, sd->time);
   bsdf_eval_mul(throughput, light_eval / ls->pdf);
 
   /* Generalized geometry term. */
@@ -913,7 +913,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
     INTEGRATOR_STATE_WRITE(state, path, bounce) = bounce + 1 + vi;
 
     /* Evaluate shader nodes at solution vi. */
-    shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
+    surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
         kg, state, sd_mnee, NULL, PATH_RAY_DIFFUSE, true);
 
     /* Set light looking dir. */
@@ -924,7 +924,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
     /* Evaluate product term inside eq.6 at solution interface. vi
      * divided by corresponding sampled pdf:
      * fr(vi)_do / pdf_dh(vi) x |do/dh| x |n.wo / n.h| */
-    float3 bsdf_contribution = mnee_eval_bsdf_contribution(v.bsdf, wi, wo);
+    Spectrum bsdf_contribution = mnee_eval_bsdf_contribution(v.bsdf, wi, wo);
     bsdf_eval_mul(throughput, bsdf_contribution);
   }
 
@@ -1006,7 +1006,7 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
         return 0;
 
       /* Last bool argument is the MNEE flag (for TINY_MAX_CLOSURE cap in kernel_shader.h). */
-      shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
+      surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
           kg, state, sd_mnee, NULL, PATH_RAY_DIFFUSE, true);
 
       /* Get and sample refraction bsdf */
@@ -1033,10 +1033,12 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
           float2 h = zero_float2();
           if (microfacet_bsdf->alpha_x > 0.f && microfacet_bsdf->alpha_y > 0.f) {
             /* Sample transmissive microfacet bsdf. */
-            float bsdf_u, bsdf_v;
-            path_state_rng_2D(kg, rng_state, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
-            h = mnee_sample_bsdf_dh(
-                bsdf->type, microfacet_bsdf->alpha_x, microfacet_bsdf->alpha_y, bsdf_u, bsdf_v);
+            const float2 bsdf_uv = path_state_rng_2D(kg, rng_state, PRNG_SURFACE_BSDF);
+            h = mnee_sample_bsdf_dh(bsdf->type,
+                                    microfacet_bsdf->alpha_x,
+                                    microfacet_bsdf->alpha_y,
+                                    bsdf_uv.x,
+                                    bsdf_uv.y);
           }
 
           /* Setup differential geometry on vertex. */

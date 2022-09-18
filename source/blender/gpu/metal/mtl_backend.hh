@@ -16,7 +16,6 @@ namespace blender::gpu {
 class Batch;
 class DrawList;
 class FrameBuffer;
-class IndexBuf;
 class QueryPool;
 class Shader;
 class UniformBuf;
@@ -40,7 +39,7 @@ class MTLBackend : public GPUBackend {
     MTLBackend::platform_exit();
   }
 
-  void delete_resources()
+  void delete_resources() override
   {
     /* Delete any resources with context active. */
   }

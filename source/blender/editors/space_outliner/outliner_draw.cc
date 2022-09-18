@@ -74,8 +74,7 @@
 #include "tree/tree_element_rna.hh"
 #include "tree/tree_iterator.hh"
 
-using namespace blender;
-using namespace blender::ed::outliner;
+namespace blender::ed::outliner {
 
 /* -------------------------------------------------------------------- */
 /** \name Tree Size Functions
@@ -285,8 +284,9 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
         DEG_id_tag_update(&ob_iter->id, ID_RECALC_COPY_ON_WRITE);
       }
       else {
+        BKE_view_layer_synced_ensure(scene, view_layer);
         Base *base_iter = BKE_view_layer_base_find(view_layer, ob_iter);
-        /* Child can be in a collection excluded from viewlayer. */
+        /* Child can be in a collection excluded from view-layer. */
         if (base_iter == nullptr) {
           continue;
         }
@@ -302,7 +302,7 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
     DEG_relations_tag_update(bmain);
   }
   else {
-    BKE_layer_collection_sync(scene, view_layer);
+    BKE_view_layer_need_resync_tag(view_layer);
     DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   }
 }
@@ -349,6 +349,7 @@ static void outliner_base_or_object_pointer_create(
     RNA_id_pointer_create(&ob->id, ptr);
   }
   else {
+    BKE_view_layer_synced_ensure(scene, view_layer);
     Base *base = BKE_view_layer_base_find(view_layer, ob);
     RNA_pointer_create(&scene->id, &RNA_ObjectBase, base, ptr);
   }
@@ -701,7 +702,6 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           if (ob->type == OB_MBALL) {
             DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
           }
-          DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
         default:
@@ -732,6 +732,8 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           lib->id.tag &= ~LIB_TAG_MISSING;
         }
       }
+
+      DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
     }
     else {
       switch (tselem->type) {
@@ -740,6 +742,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           bDeformGroup *vg = static_cast<bDeformGroup *>(te->directdata);
           BKE_object_defgroup_unique_name(vg, ob);
           WM_msg_publish_rna_prop(mbus, &ob->id, vg, VertexGroup, name);
+          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
         case TSE_NLA_ACTION: {
@@ -747,6 +750,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           BKE_main_namemap_remove_name(bmain, &act->id, oldname);
           BLI_libblock_ensure_unique_name(bmain, act->id.name);
           WM_msg_publish_rna_prop(mbus, &act->id, &act->id, ID, name);
+          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
         case TSE_EBONE: {
@@ -761,6 +765,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
             ED_armature_bone_rename(bmain, arm, oldname, newname);
             WM_msg_publish_rna_prop(mbus, &arm->id, ebone, EditBone, name);
             WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
+            DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
           }
           break;
         }
@@ -782,6 +787,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           ED_armature_bone_rename(bmain, arm, oldname, newname);
           WM_msg_publish_rna_prop(mbus, &arm->id, bone, Bone, name);
           WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
+          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
         case TSE_POSE_CHANNEL: {
@@ -804,6 +810,8 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           ED_armature_bone_rename(bmain, static_cast<bArmature *>(ob->data), oldname, newname);
           WM_msg_publish_rna_prop(mbus, &arm->id, pchan->bone, Bone, name);
           WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
+          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
+          DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
         case TSE_POSEGRP: {
@@ -818,6 +826,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
                          sizeof(grp->name));
           WM_msg_publish_rna_prop(mbus, &ob->id, grp, ActionGroup, name);
           WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
         case TSE_GP_LAYER: {
@@ -834,6 +843,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           WM_msg_publish_rna_prop(mbus, &gpd->id, gpl, GPencilLayer, info);
           DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
           WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, gpd);
+          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
         case TSE_R_LAYER: {
@@ -849,6 +859,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           BKE_view_layer_rename(bmain, scene, view_layer, newname);
           WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, ViewLayer, name);
           WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
+          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
         case TSE_LAYER_COLLECTION: {
@@ -858,6 +869,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           BLI_libblock_ensure_unique_name(bmain, collection->id.name);
           WM_msg_publish_rna_prop(mbus, &collection->id, &collection->id, ID, name);
           WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
+          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
       }
@@ -1136,6 +1148,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
         RNA_id_pointer_create(&ob->id, &ptr);
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_HIDE) {
+          BKE_view_layer_synced_ensure(scene, view_layer);
           Base *base = (te->directdata) ? (Base *)te->directdata :
                                           BKE_view_layer_base_find(view_layer, ob);
           if (base) {
@@ -1804,18 +1817,17 @@ static void outliner_draw_overrides_rna_buts(uiBlock *block,
     if (!outliner_is_element_in_view(te, &region->v2d)) {
       continue;
     }
-    if (tselem->type != TSE_LIBRARY_OVERRIDE) {
+    TreeElementOverridesProperty *override_elem = tree_element_cast<TreeElementOverridesProperty>(
+        te);
+    if (!override_elem) {
       continue;
     }
 
-    TreeElementOverridesProperty &override_elem = *tree_element_cast<TreeElementOverridesProperty>(
-        te);
-
-    if (!override_elem.is_rna_path_valid) {
+    if (!override_elem->is_rna_path_valid) {
       uiBut *but = uiDefBut(block,
                             UI_BTYPE_LABEL,
                             0,
-                            override_elem.rna_path.c_str(),
+                            override_elem->rna_path.c_str(),
                             x + pad_x,
                             te->ys + pad_y,
                             item_max_width,
@@ -1830,8 +1842,28 @@ static void outliner_draw_overrides_rna_buts(uiBlock *block,
       continue;
     }
 
-    PointerRNA *ptr = &override_elem.override_rna_ptr;
-    PropertyRNA *prop = &override_elem.override_rna_prop;
+    if (const TreeElementOverridesPropertyOperation *override_op_elem =
+            tree_element_cast<TreeElementOverridesPropertyOperation>(te)) {
+      StringRefNull op_label = override_op_elem->getOverrideOperationLabel();
+      uiDefBut(block,
+               UI_BTYPE_LABEL,
+               0,
+               op_label.c_str(),
+               x + pad_x,
+               te->ys + pad_y,
+               item_max_width,
+               item_height,
+               nullptr,
+               0,
+               0,
+               0,
+               0,
+               "");
+      continue;
+    }
+
+    PointerRNA *ptr = &override_elem->override_rna_ptr;
+    PropertyRNA *prop = &override_elem->override_rna_prop;
     const PropertyType prop_type = RNA_property_type(prop);
 
     uiBut *auto_but = uiDefAutoButR(block,
@@ -1929,7 +1961,7 @@ static void outliner_draw_separator(ARegion *region, const int x)
   GPU_line_width(1.0f);
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColorShadeAlpha(TH_BACK, -15, -200);
 
   immBegin(GPU_PRIM_LINES, 2);
@@ -2825,10 +2857,20 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
     data.icon = tree_element_get_icon_from_id(tselem->id);
   }
 
+  if (!te->abstract_element) {
+    /* Pass */
+  }
+  else if (auto icon = te->abstract_element->getIcon()) {
+    data.icon = *icon;
+  }
+
   return data;
 }
 
-static void tselem_draw_icon(uiBlock *block,
+/**
+ * \return true if the element has an icon that was drawn, false if it doesn't have an icon.
+ */
+static bool tselem_draw_icon(uiBlock *block,
                              int xmax,
                              float x,
                              float y,
@@ -2839,7 +2881,7 @@ static void tselem_draw_icon(uiBlock *block,
 {
   TreeElementIcon data = tree_element_get_icon(tselem, te);
   if (data.icon == 0) {
-    return;
+    return false;
   }
 
   const bool is_collection = outliner_is_collection_tree_element(te);
@@ -2863,7 +2905,7 @@ static void tselem_draw_icon(uiBlock *block,
                         0.0f,
                         btheme->collection_color[collection->color_tag].color,
                         true);
-        return;
+        return true;
       }
     }
 
@@ -2895,6 +2937,8 @@ static void tselem_draw_icon(uiBlock *block,
                  alpha,
                  (data.drag_id && ID_IS_LINKED(data.drag_id)) ? data.drag_id->lib->filepath : "");
   }
+
+  return true;
 }
 
 /**
@@ -3089,6 +3133,7 @@ static void outliner_draw_iconrow(bContext *C,
                 TSE_GP_LAYER,
                 TSE_LIBRARY_OVERRIDE_BASE,
                 TSE_LIBRARY_OVERRIDE,
+                TSE_LIBRARY_OVERRIDE_OPERATION,
                 TSE_BONE,
                 TSE_EBONE,
                 TSE_POSE_CHANNEL,
@@ -3171,10 +3216,12 @@ static bool element_should_draw_faded(const TreeViewContext *tvc,
       case ID_OB: {
         const Object *ob = (const Object *)tselem->id;
         /* Lookup in view layer is logically const as it only checks a cache. */
+        BKE_view_layer_synced_ensure(tvc->scene, tvc->view_layer);
         const Base *base = (te->directdata) ? (const Base *)te->directdata :
                                               BKE_view_layer_base_find(
                                                   (ViewLayer *)tvc->view_layer, (Object *)ob);
-        const bool is_visible = (base != nullptr) && (base->flag & BASE_VISIBLE_VIEWLAYER);
+        const bool is_visible = (base != nullptr) &&
+                                (base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT);
         if (!is_visible) {
           return true;
         }
@@ -3238,6 +3285,7 @@ static void outliner_draw_tree_element(bContext *C,
     if (tselem->type == TSE_SOME_ID) {
       if (te->idcode == ID_OB) {
         Object *ob = (Object *)tselem->id;
+        BKE_view_layer_synced_ensure(tvc->scene, tvc->view_layer);
         Base *base = (te->directdata) ? (Base *)te->directdata :
                                         BKE_view_layer_base_find(tvc->view_layer, ob);
         const bool is_selected = (base != nullptr) && ((base->flag & BASE_SELECTED) != 0);
@@ -3293,7 +3341,7 @@ static void outliner_draw_tree_element(bContext *C,
       /* Scene collection in view layer can't expand/collapse. */
     }
     else if (te->subtree.first || ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_SCE)) ||
-             (te->flag & TE_LAZY_CLOSED)) {
+             (te->flag & TE_PRETEND_HAS_CHILDREN)) {
       /* Open/close icon, only when sub-levels, except for scene. */
       int icon_x = startx;
 
@@ -3314,15 +3362,15 @@ static void outliner_draw_tree_element(bContext *C,
     offsx += UI_UNIT_X;
 
     /* Data-type icon. */
-    if (!(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM, TSE_ID_BASE))) {
-      tselem_draw_icon(block,
-                       xmax,
-                       (float)startx + offsx,
-                       (float)*starty,
-                       tselem,
-                       te,
-                       (tselem->flag & TSE_HIGHLIGHTED_ICON) ? alpha_fac + 0.5f : alpha_fac,
-                       true);
+    if (!(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM, TSE_ID_BASE)) &&
+        tselem_draw_icon(block,
+                         xmax,
+                         (float)startx + offsx,
+                         (float)*starty,
+                         tselem,
+                         te,
+                         (tselem->flag & TSE_HIGHLIGHTED_ICON) ? alpha_fac + 0.5f : alpha_fac,
+                         true)) {
       offsx += UI_UNIT_X + 4 * ufac;
     }
     else {
@@ -3509,7 +3557,7 @@ static void outliner_draw_hierarchy_lines(SpaceOutliner *space_outliner,
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   uchar col[4];
 
-  immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);
@@ -3540,7 +3588,7 @@ static void outliner_draw_struct_marks(ARegion *region,
       if (tselem->type == TSE_RNA_STRUCT) {
         GPUVertFormat *format = immVertexFormat();
         uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-        immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+        immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
         immThemeColorShadeAlpha(TH_BACK, -15, -200);
         immRecti(pos, 0, *starty + 1, (int)region->v2d.cur.xmax, *starty + UI_UNIT_Y - 1);
         immUnbindProgram();
@@ -3553,7 +3601,7 @@ static void outliner_draw_struct_marks(ARegion *region,
       if (tselem->type == TSE_RNA_STRUCT) {
         GPUVertFormat *format = immVertexFormat();
         uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-        immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+        immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
         immThemeColorShadeAlpha(TH_BACK, -15, -200);
 
         immBegin(GPU_PRIM_LINES, 2);
@@ -3658,7 +3706,7 @@ static void outliner_draw_highlights(ARegion *region,
   GPU_blend(GPU_BLEND_ALPHA);
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   outliner_draw_highlights(pos,
                            region,
                            space_outliner,
@@ -3759,7 +3807,7 @@ static void outliner_back(ARegion *region)
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   float col_alternating[4];
   UI_GetThemeColor4fv(TH_ROW_ALTERNATE, col_alternating);
@@ -3951,3 +3999,5 @@ void draw_outliner(const bContext *C)
 }
 
 /** \} */
+
+}  // namespace blender::ed::outliner

@@ -29,10 +29,8 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
 {
   const InstancesComponent &instances = *geometry_set.get_component_for_read<InstancesComponent>();
 
-  GeometryComponentFieldContext field_context{instances, ATTR_DOMAIN_INSTANCE};
-  const int domain_size = instances.instances_num();
-
-  fn::FieldEvaluator evaluator{field_context, domain_size};
+  const bke::InstancesFieldContext context{instances};
+  fn::FieldEvaluator evaluator{context, instances.instances_num()};
   evaluator.set_selection(std::move(selection_field));
   evaluator.add(std::move(position_field));
   evaluator.add(std::move(radius_field));
@@ -47,8 +45,7 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
   geometry_set.replace_pointcloud(pointcloud);
 
-  bke::MutableAttributeAccessor point_attributes = bke::pointcloud_attributes_for_write(
-      *pointcloud);
+  bke::MutableAttributeAccessor point_attributes = pointcloud->attributes_for_write();
 
   bke::SpanAttributeWriter<float3> point_positions =
       point_attributes.lookup_or_add_for_write_only_span<float3>("position", ATTR_DOMAIN_POINT);

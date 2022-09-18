@@ -22,7 +22,7 @@ static void fn_node_input_bool_layout(uiLayout *layout, bContext *UNUSED(C), Poi
 
 static void fn_node_input_bool_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &bnode = builder.node();
+  const bNode &bnode = builder.node();
   NodeInputBool *node_storage = static_cast<NodeInputBool *>(bnode.storage);
   builder.construct_and_set_matching_fn<fn::CustomMF_Constant<bool>>(node_storage->boolean);
 }

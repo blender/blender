@@ -3,6 +3,7 @@
 
 import argparse
 import os
+import pathlib
 import shlex
 import shutil
 import subprocess
@@ -99,6 +100,26 @@ if inside_blender:
         sys.exit(1)
 
 
+def get_gpu_device_type(blender):
+    command = [
+        blender,
+        "-noaudio",
+        "--background"
+        "--factory-startup",
+        "--python",
+        str(pathlib.Path(__file__).parent / "gpu_info.py")
+    ]
+    try:
+        completed_process = subprocess.run(command, stdout=subprocess.PIPE)
+        for line in completed_process.stdout.read_text():
+            if line.startswith("GPU_DEVICE_TYPE:"):
+                vendor = line.split(':')[1]
+                return vendor
+    except BaseException as e:
+        return None
+    return None
+
+
 def get_arguments(filepath, output_filepath):
     return [
         "--background",
@@ -134,10 +155,16 @@ def main():
     idiff = args.idiff[0]
     output_dir = args.outdir[0]
 
+    gpu_device_type = get_gpu_device_type(blender)
+    reference_override_dir = None
+    if gpu_device_type == "AMD":
+        reference_override_dir = "eevee_renders/amd"
+
     from modules import render_report
     report = render_report.Report("Eevee", output_dir, idiff)
     report.set_pixelated(True)
     report.set_reference_dir("eevee_renders")
+    report.set_reference_override_dir(reference_override_dir)
     report.set_compare_engine('cycles', 'CPU')
 
     test_dir_name = Path(test_dir).name

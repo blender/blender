@@ -806,7 +806,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
                          !DRW_state_is_image_render();
 
   /* First get materials for this mesh. */
-  if (ELEM(ob->type, OB_MESH, OB_SURF, OB_MBALL)) {
+  if (ELEM(ob->type, OB_MESH, OB_SURF)) {
     const int materials_len = DRW_cache_object_material_count_get(ob);
 
     EeveeMaterialCache *matcache = BLI_array_alloca(matcache, materials_len);

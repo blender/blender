@@ -167,6 +167,27 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
   if (use_transparency) {
     flag |= GPU_MATFLAG_TRANSPARENT;
   }
+  if (use_clear) {
+    flag |= GPU_MATFLAG_CLEARCOAT;
+  }
+
+  /* Ref. T98190: Defines are optimizations for old compilers.
+   * Might become unnecessary with EEVEE-Next. */
+  if (use_diffuse == false && use_refract == false && use_clear == true) {
+    flag |= GPU_MATFLAG_PRINCIPLED_CLEARCOAT;
+  }
+  else if (use_diffuse == false && use_refract == false && use_clear == false) {
+    flag |= GPU_MATFLAG_PRINCIPLED_METALLIC;
+  }
+  else if (use_diffuse == true && use_refract == false && use_clear == false) {
+    flag |= GPU_MATFLAG_PRINCIPLED_DIELECTRIC;
+  }
+  else if (use_diffuse == false && use_refract == true && use_clear == false) {
+    flag |= GPU_MATFLAG_PRINCIPLED_GLASS;
+  }
+  else {
+    flag |= GPU_MATFLAG_PRINCIPLED_ANY;
+  }
 
   if (use_subsurf) {
     bNodeSocket *socket = (bNodeSocket *)BLI_findlink(&node->original->inputs, 2);

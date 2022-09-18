@@ -37,14 +37,14 @@ void BM_mesh_elem_toolflags_ensure(BMesh *bm);
 void BM_mesh_elem_toolflags_clear(BMesh *bm);
 
 struct BMeshCreateParams {
-  uint create_unique_ids : 1;
-  uint id_elem_mask : 4;  // which element types to make unique ids for
-  uint id_map : 1;        // maintain an id to element lookup table
-  uint use_toolflags : 1;
-  uint no_reuse_ids : 1;  // do not reuse IDs; a GHash will be used internally instead of a lookup
+  bool create_unique_ids : 1;
+  int id_elem_mask : 4;  // which element types to make unique ids for
+  bool id_map : 1;        // maintain an id to element lookup table
+  bool use_toolflags : 1;
+  bool no_reuse_ids : 1;  // do not reuse IDs; a GHash will be used internally instead of a lookup
                           // array
-  uint temporary_ids : 1;
-  uint copy_all_layers : 1;  // used by BM_mesh_copy_ex
+  bool temporary_ids : 1;
+  bool copy_all_layers : 1;  // used by BM_mesh_copy_ex
 };
 
 // used to temporary save/restore element IDs

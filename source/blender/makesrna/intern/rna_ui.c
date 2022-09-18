@@ -440,7 +440,7 @@ static PointerRNA rna_Panel_custom_data_get(PointerRNA *ptr)
 }
 
 /* UIList */
-static unsigned int rna_UIList_filter_const_FILTER_ITEM_get(PointerRNA *UNUSED(ptr))
+static int rna_UIList_filter_const_FILTER_ITEM_get(PointerRNA *UNUSED(ptr))
 {
   return UILST_FLT_ITEM;
 }

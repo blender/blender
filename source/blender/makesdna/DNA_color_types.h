@@ -21,6 +21,9 @@ extern "C" {
 
 #define CM_TOT 4
 
+#define GPU_SKY_WIDTH 512
+#define GPU_SKY_HEIGHT 128
+
 typedef struct CurveMapPoint {
   float x, y;
   /** Shorty for result lookup. */

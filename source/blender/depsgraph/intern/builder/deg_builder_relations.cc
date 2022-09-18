@@ -239,13 +239,8 @@ DepsgraphRelationBuilder::DepsgraphRelationBuilder(Main *bmain,
 {
 }
 
-TimeSourceNode *DepsgraphRelationBuilder::get_node(const TimeSourceKey &key) const
+TimeSourceNode *DepsgraphRelationBuilder::get_node(const TimeSourceKey & /*key*/) const
 {
-  if (key.id) {
-    /* XXX TODO */
-    return nullptr;
-  }
-
   return graph_->time_source;
 }
 
@@ -298,12 +293,13 @@ bool DepsgraphRelationBuilder::has_node(const OperationKey &key) const
   return find_node(key) != nullptr;
 }
 
-void DepsgraphRelationBuilder::add_modifier_to_transform_relation(const DepsNodeHandle *handle,
-                                                                  const char *description)
+void DepsgraphRelationBuilder::add_depends_on_transform_relation(const DepsNodeHandle *handle,
+                                                                 const char *description)
 {
   IDNode *id_node = handle->node->owner->owner;
   ID *id = id_node->id_orig;
-  ComponentKey geometry_key(id, NodeType::GEOMETRY);
+  const OperationKey geometry_key(
+      id, NodeType::GEOMETRY, OperationCode::MODIFIER, handle->node->name.c_str());
   /* Wire up the actual relation. */
   add_depends_on_transform_relation(id, geometry_key, description);
 }
@@ -723,11 +719,7 @@ void DepsgraphRelationBuilder::build_object(Object *object)
   }
 
   /* Modifiers. */
-  if (object->modifiers.first != nullptr) {
-    BuilderWalkUserData data;
-    data.builder = this;
-    BKE_modifiers_foreach_ID_link(object, modifier_walk, &data);
-  }
+  build_object_modifiers(object);
 
   /* Grease Pencil Modifiers. */
   if (object->greasepencil_modifiers.first != nullptr) {
@@ -873,6 +865,63 @@ void DepsgraphRelationBuilder::build_object_layer_component_relations(Object *ob
   OperationKey synchronize_key(
       &object->id, NodeType::SYNCHRONIZATION, OperationCode::SYNCHRONIZE_TO_ORIGINAL);
   add_relation(object_from_layer_exit_key, synchronize_key, "Synchronize to Original");
+}
+
+void DepsgraphRelationBuilder::build_object_modifiers(Object *object)
+{
+  if (BLI_listbase_is_empty(&object->modifiers)) {
+    return;
+  }
+
+  const OperationKey eval_init_key(
+      &object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_INIT);
+  const OperationKey eval_key(&object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
+
+  const ComponentKey object_visibility_key(&object->id, NodeType::VISIBILITY);
+  const OperationKey modifier_visibility_key(
+      &object->id, NodeType::GEOMETRY, OperationCode::VISIBILITY);
+  add_relation(modifier_visibility_key,
+               object_visibility_key,
+               "modifier -> object visibility",
+               RELATION_NO_VISIBILITY_CHANGE);
+
+  add_relation(modifier_visibility_key, eval_key, "modifier visibility -> geometry eval");
+
+  ModifierUpdateDepsgraphContext ctx = {};
+  ctx.scene = scene_;
+  ctx.object = object;
+
+  OperationKey previous_key = eval_init_key;
+  LISTBASE_FOREACH (ModifierData *, modifier, &object->modifiers) {
+    const OperationKey modifier_key(
+        &object->id, NodeType::GEOMETRY, OperationCode::MODIFIER, modifier->name);
+
+    /* Relation for the modifier stack chain. */
+    add_relation(previous_key, modifier_key, "Modifier");
+
+    const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)modifier->type);
+    if (mti->updateDepsgraph) {
+      const BuilderStack::ScopedEntry stack_entry = stack_.trace(*modifier);
+
+      DepsNodeHandle handle = create_node_handle(modifier_key);
+      ctx.node = reinterpret_cast<::DepsNodeHandle *>(&handle);
+      mti->updateDepsgraph(modifier, &ctx);
+    }
+
+    /* Time dependency. */
+    if (BKE_modifier_depends_ontime(scene_, modifier)) {
+      const TimeSourceKey time_src_key;
+      add_relation(time_src_key, modifier_key, "Time Source -> Modifier");
+    }
+
+    previous_key = modifier_key;
+  }
+  add_relation(previous_key, eval_key, "modifier stack order");
+
+  /* Build IDs referenced by the modifiers. */
+  BuilderWalkUserData data;
+  data.builder = this;
+  BKE_modifiers_foreach_ID_link(object, modifier_walk, &data);
 }
 
 void DepsgraphRelationBuilder::build_object_data(Object *object)
@@ -1674,6 +1723,11 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
   if (GS(id_ptr->name) == ID_NT) {
     ComponentKey ntree_output_key(id_ptr, NodeType::NTREE_OUTPUT);
     add_relation(driver_key, ntree_output_key, "Drivers -> NTree Output");
+    if (reinterpret_cast<bNodeTree *>(id_ptr)->type == NTREE_GEOMETRY) {
+      OperationKey ntree_geo_preprocess_key(
+          id, NodeType::NTREE_GEOMETRY_PREPROCESS, OperationCode::NTREE_GEOMETRY_PREPROCESS);
+      add_relation(driver_key, ntree_geo_preprocess_key, "Drivers -> NTree Geo Preprocess");
+    }
   }
 }
 
@@ -1816,18 +1870,20 @@ void DepsgraphRelationBuilder::build_driver_id_property(ID *id, const char *rna_
   if (RNA_struct_is_a(ptr.type, &RNA_PoseBone)) {
     const bPoseChannel *pchan = static_cast<const bPoseChannel *>(ptr.data);
     id_property_key = OperationKey(
-        id, NodeType::BONE, pchan->name, OperationCode::ID_PROPERTY, prop_identifier);
+        ptr.owner_id, NodeType::BONE, pchan->name, OperationCode::ID_PROPERTY, prop_identifier);
     /* Create relation from the parameters component so that tagging armature for parameters update
      * properly propagates updates to all properties on bones and deeper (if needed). */
-    OperationKey parameters_init_key(id, NodeType::PARAMETERS, OperationCode::PARAMETERS_ENTRY);
+    OperationKey parameters_init_key(
+        ptr.owner_id, NodeType::PARAMETERS, OperationCode::PARAMETERS_ENTRY);
     add_relation(
         parameters_init_key, id_property_key, "Init -> ID Property", RELATION_CHECK_BEFORE_ADD);
   }
   else {
     id_property_key = OperationKey(
-        id, NodeType::PARAMETERS, OperationCode::ID_PROPERTY, prop_identifier);
+        ptr.owner_id, NodeType::PARAMETERS, OperationCode::ID_PROPERTY, prop_identifier);
   }
-  OperationKey parameters_exit_key(id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EXIT);
+  OperationKey parameters_exit_key(
+      ptr.owner_id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EXIT);
   add_relation(
       id_property_key, parameters_exit_key, "ID Property -> Done", RELATION_CHECK_BEFORE_ADD);
 }
@@ -1977,7 +2033,6 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 
 void DepsgraphRelationBuilder::build_particle_systems(Object *object)
 {
-  TimeSourceKey time_src_key;
   OperationKey obdata_ubereval_key(&object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
   OperationKey eval_init_key(
       &object->id, NodeType::PARTICLE_SYSTEM, OperationCode::PARTICLE_SYSTEM_INIT);
@@ -2167,7 +2222,7 @@ void DepsgraphRelationBuilder::build_shapekeys(Key *key)
  * ==========================
  *
  * The evaluation of geometry on objects is as follows:
- * - The actual evaluated of the derived geometry (e.g. Mesh, DispList)
+ * - The actual evaluated of the derived geometry (e.g. #Mesh, #Curves, etc.)
  *   occurs in the Geometry component of the object which references this.
  *   This includes modifiers, and the temporary "ubereval" for geometry.
  *   Therefore, each user of a piece of shared geometry data ends up evaluating
@@ -2199,26 +2254,6 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
    * evaluated prior to Scene's CoW is ready. */
   OperationKey scene_key(&scene_->id, NodeType::PARAMETERS, OperationCode::SCENE_EVAL);
   add_relation(scene_key, obdata_ubereval_key, "CoW Relation", RELATION_FLAG_NO_FLUSH);
-  /* Modifiers */
-  if (object->modifiers.first != nullptr) {
-    ModifierUpdateDepsgraphContext ctx = {};
-    ctx.scene = scene_;
-    ctx.object = object;
-    LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-      const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
-      if (mti->updateDepsgraph) {
-        const BuilderStack::ScopedEntry stack_entry = stack_.trace(*md);
-
-        DepsNodeHandle handle = create_node_handle(obdata_ubereval_key);
-        ctx.node = reinterpret_cast<::DepsNodeHandle *>(&handle);
-        mti->updateDepsgraph(md, &ctx);
-      }
-      if (BKE_modifier_depends_ontime(scene_, md)) {
-        TimeSourceKey time_src_key;
-        add_relation(time_src_key, obdata_ubereval_key, "Time Source -> Modifier");
-      }
-    }
-  }
   /* Grease Pencil Modifiers. */
   if (object->greasepencil_modifiers.first != nullptr) {
     ModifierUpdateDepsgraphContext ctx = {};
@@ -2262,9 +2297,9 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
   if (ELEM(object->type, OB_MESH, OB_CURVES_LEGACY, OB_LATTICE)) {
     // add geometry collider relations
   }
-  /* Make sure uber update is the last in the dependencies. */
-  if (object->type != OB_ARMATURE) {
-    /* Armatures does no longer require uber node. */
+  /* Make sure uber update is the last in the dependencies.
+   * Only do it here unless there are modifiers. This avoids transitive relations. */
+  if (BLI_listbase_is_empty(&object->modifiers)) {
     OperationKey obdata_ubereval_key(
         &object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
     add_relation(geom_init_key, obdata_ubereval_key, "Object Geometry UberEval");
@@ -2581,6 +2616,16 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
   build_animdata(&ntree->id);
   build_parameters(&ntree->id);
   OperationKey ntree_output_key(&ntree->id, NodeType::NTREE_OUTPUT, OperationCode::NTREE_OUTPUT);
+  OperationKey ntree_geo_preprocess_key(
+      &ntree->id, NodeType::NTREE_GEOMETRY_PREPROCESS, OperationCode::NTREE_GEOMETRY_PREPROCESS);
+  if (ntree->type == NTREE_GEOMETRY) {
+    OperationKey ntree_cow_key(&ntree->id, NodeType::COPY_ON_WRITE, OperationCode::COPY_ON_WRITE);
+    add_relation(ntree_cow_key, ntree_geo_preprocess_key, "COW -> Preprocess");
+    add_relation(ntree_geo_preprocess_key,
+                 ntree_output_key,
+                 "Preprocess -> Output",
+                 RELATION_FLAG_NO_FLUSH);
+  }
   /* nodetree's nodes... */
   LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
     build_idproperties(bnode->prop);
@@ -2657,6 +2702,12 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
        * the output). Currently, we lack the infrastructure to check for these cases efficiently.
        * That can be added later. */
       add_relation(group_output_key, ntree_output_key, "Group Node");
+      if (group_ntree->type == NTREE_GEOMETRY) {
+        OperationKey group_preprocess_key(&group_ntree->id,
+                                          NodeType::NTREE_GEOMETRY_PREPROCESS,
+                                          OperationCode::NTREE_GEOMETRY_PREPROCESS);
+        add_relation(group_preprocess_key, ntree_geo_preprocess_key, "Group Node Preprocess");
+      }
     }
     else {
       BLI_assert_msg(0, "Unknown ID type used for node");
@@ -2673,6 +2724,9 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
   if (check_id_has_anim_component(&ntree->id)) {
     ComponentKey animation_key(&ntree->id, NodeType::ANIMATION);
     add_relation(animation_key, ntree_output_key, "NTree Shading Parameters");
+    if (ntree->type == NTREE_GEOMETRY) {
+      add_relation(animation_key, ntree_geo_preprocess_key, "NTree Animation -> Preprocess");
+    }
   }
 }
 
@@ -3020,9 +3074,10 @@ void DepsgraphRelationBuilder::build_scene_audio(Scene *scene)
   }
 }
 
-void DepsgraphRelationBuilder::build_scene_speakers(Scene * /*scene*/, ViewLayer *view_layer)
+void DepsgraphRelationBuilder::build_scene_speakers(Scene *scene, ViewLayer *view_layer)
 {
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     Object *object = base->object;
     if (object->type != OB_SPEAKER || !need_pull_base_into_graph(base)) {
       continue;
@@ -3097,7 +3152,6 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
     return;
   }
 
-  TimeSourceKey time_source_key;
   OperationKey copy_on_write_key(id_orig, NodeType::COPY_ON_WRITE, OperationCode::COPY_ON_WRITE);
   /* XXX: This is a quick hack to make Alt-A to work. */
   // add_relation(time_source_key, copy_on_write_key, "Fluxgate capacitor hack");

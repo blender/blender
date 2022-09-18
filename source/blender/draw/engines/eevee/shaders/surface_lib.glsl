@@ -97,11 +97,12 @@ GlobalData init_globals(void)
   GlobalData surf;
 
 #  if defined(WORLD_BACKGROUND) || defined(PROBE_CAPTURE)
-  surf.P = transform_direction(ViewMatrixInverse, viewCameraVec(viewPosition));
-  surf.N = surf.Ng = -surf.P;
+  surf.P = transform_direction(ViewMatrixInverse, -viewCameraVec(viewPosition));
+  surf.N = surf.Ng = surf.Ni = -surf.P;
   surf.ray_length = 0.0;
 #  else
   surf.P = worldPosition;
+  surf.Ni = worldNormal;
   surf.N = safe_normalize(worldNormal);
   surf.Ng = safe_normalize(cross(dFdx(surf.P), dFdy(surf.P)));
   surf.ray_length = distance(surf.P, cameraPos);
@@ -109,6 +110,7 @@ GlobalData init_globals(void)
   surf.barycentric_coords = vec2(0.0);
   surf.barycentric_dists = vec3(0.0);
   surf.N = (FrontFacing) ? surf.N : -surf.N;
+  surf.Ni = (FrontFacing) ? surf.Ni : -surf.Ni;
 #  ifdef HAIR_SHADER
   vec3 V = cameraVec(surf.P);
   /* Shade as a cylinder. */
@@ -123,7 +125,7 @@ GlobalData init_globals(void)
     cos_theta = hairThickTime / hairThickness;
   }
   float sin_theta = sqrt(max(0.0, 1.0 - cos_theta * cos_theta));
-  surf.N = safe_normalize(worldNormal * sin_theta + B * cos_theta);
+  surf.N = surf.Ni = safe_normalize(worldNormal * sin_theta + B * cos_theta);
   surf.curve_T = -hairTangent;
   /* Costly, but follows cycles per pixel tangent space (not following curve shape). */
   surf.curve_B = cross(V, surf.curve_T);

@@ -4,6 +4,9 @@
  * \ingroup spoutliner
  */
 
+#include <string>
+#include <string_view>
+
 #include "DNA_anim_types.h"
 #include "DNA_listBase.h"
 #include "DNA_space_types.h"
@@ -17,6 +20,7 @@
 #include "tree_element_driver.hh"
 #include "tree_element_gpencil_layer.hh"
 #include "tree_element_id.hh"
+#include "tree_element_label.hh"
 #include "tree_element_nla.hh"
 #include "tree_element_overrides.hh"
 #include "tree_element_rna.hh"
@@ -52,6 +56,8 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
   switch (type) {
     case TSE_SOME_ID:
       return TreeElementID::createFromID(legacy_te, *static_cast<ID *>(idv));
+    case TSE_GENERIC_LABEL:
+      return std::make_unique<TreeElementLabel>(legacy_te, static_cast<const char *>(idv));
     case TSE_ANIM_DATA:
       return std::make_unique<TreeElementAnimData>(legacy_te,
                                                    *static_cast<IdAdtTemplate *>(idv)->adt);
@@ -75,6 +81,9 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
       return std::make_unique<TreeElementOverridesBase>(legacy_te, *static_cast<ID *>(idv));
     case TSE_LIBRARY_OVERRIDE:
       return std::make_unique<TreeElementOverridesProperty>(
+          legacy_te, *static_cast<TreeElementOverridesData *>(idv));
+    case TSE_LIBRARY_OVERRIDE_OPERATION:
+      return std::make_unique<TreeElementOverridesPropertyOperation>(
           legacy_te, *static_cast<TreeElementOverridesData *>(idv));
     case TSE_RNA_STRUCT:
       return std::make_unique<TreeElementRNAStruct>(legacy_te, *static_cast<PointerRNA *>(idv));
@@ -101,6 +110,22 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
 StringRefNull AbstractTreeElement::getWarning() const
 {
   return "";
+}
+
+std::optional<BIFIconID> AbstractTreeElement::getIcon() const
+{
+  return {};
+}
+
+void AbstractTreeElement::print_path()
+{
+  std::string path = legacy_te_.name;
+
+  for (TreeElement *parent = legacy_te_.parent; parent; parent = parent->parent) {
+    path = parent->name + std::string_view("/") + path;
+  }
+
+  std::cout << path << std::endl;
 }
 
 void AbstractTreeElement::uncollapse_by_default(TreeElement *legacy_te)

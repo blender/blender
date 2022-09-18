@@ -46,6 +46,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+using blender::Span;
+
 Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(BMEditMesh *em,
                                                  const CustomData_MeshMasks *cd_mask_extra,
                                                  const float (*vert_coords)[3],
@@ -61,7 +63,7 @@ Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(BMEditMesh *em,
   }
 
   /* Use edit-mesh directly where possible. */
-  me->runtime.is_original = true;
+  me->runtime.is_original_bmesh = true;
 
   me->edit_mesh = static_cast<BMEditMesh *>(MEM_dupallocN(em));
   me->edit_mesh->is_shallow_copy = true;
@@ -133,7 +135,7 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
         EditMeshData *edit_data = me->runtime.edit_data;
         if (edit_data->vertexCos) {
           BKE_mesh_vert_coords_apply(me, edit_data->vertexCos);
-          me->runtime.is_original = false;
+          me->runtime.is_original_bmesh = false;
         }
         break;
       }
@@ -195,9 +197,9 @@ void BKE_mesh_wrapper_vert_coords_copy(const Mesh *me,
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD: {
       BLI_assert(vert_coords_len <= me->totvert);
-      const MVert *mvert = me->mvert;
+      const Span<MVert> verts = me->verts();
       for (int i = 0; i < vert_coords_len; i++) {
-        copy_v3_v3(vert_coords[i], mvert[i].co);
+        copy_v3_v3(vert_coords[i], verts[i].co);
       }
       return;
     }
@@ -233,9 +235,9 @@ void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *me,
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD: {
       BLI_assert(vert_coords_len == me->totvert);
-      const MVert *mvert = me->mvert;
+      const Span<MVert> verts = me->verts();
       for (int i = 0; i < vert_coords_len; i++) {
-        mul_v3_m4v3(vert_coords[i], mat, mvert[i].co);
+        mul_v3_m4v3(vert_coords[i], mat, verts[i].co);
       }
       return;
     }
@@ -343,7 +345,7 @@ static Mesh *mesh_wrapper_ensure_subdivision(Mesh *me)
   if (use_clnors) {
     float(*lnors)[3] = static_cast<float(*)[3]>(
         CustomData_get_layer(&subdiv_mesh->ldata, CD_NORMAL));
-    BLI_assert(lnors != NULL);
+    BLI_assert(lnors != nullptr);
     BKE_mesh_set_custom_normals(subdiv_mesh, lnors);
     CustomData_set_layer_flag(&me->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
     CustomData_set_layer_flag(&subdiv_mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);

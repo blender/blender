@@ -479,8 +479,8 @@ void gpu::MTLTexture::update_sub(
     int expected_dst_bytes_per_pixel = get_mtl_format_bytesize(destination_format);
     int destination_num_channels = get_mtl_format_num_components(destination_format);
 
-    /* Prepare specialisation struct (For texture update routine). */
-    TextureUpdateRoutineSpecialisation compute_specialisation_kernel = {
+    /* Prepare specialization struct (For texture update routine). */
+    TextureUpdateRoutineSpecialisation compute_specialization_kernel = {
         tex_data_format_to_msl_type_str(type),              /* INPUT DATA FORMAT */
         tex_data_format_to_msl_texture_template_type(type), /* TEXTURE DATA FORMAT */
         num_channels,
@@ -620,7 +620,7 @@ void gpu::MTLTexture::update_sub(
           /* Use Compute Based update. */
           if (type_ == GPU_TEXTURE_1D) {
             id<MTLComputePipelineState> pso = texture_update_1d_get_kernel(
-                compute_specialisation_kernel);
+                compute_specialization_kernel);
             TextureUpdateParams params = {mip,
                                           {extent[0], 1, 1},
                                           {offset[0], 0, 0},
@@ -637,7 +637,7 @@ void gpu::MTLTexture::update_sub(
           }
           else if (type_ == GPU_TEXTURE_1D_ARRAY) {
             id<MTLComputePipelineState> pso = texture_update_1d_array_get_kernel(
-                compute_specialisation_kernel);
+                compute_specialization_kernel);
             TextureUpdateParams params = {mip,
                                           {extent[0], extent[1], 1},
                                           {offset[0], offset[1], 0},
@@ -694,7 +694,7 @@ void gpu::MTLTexture::update_sub(
           /* Use Compute texture update. */
           if (type_ == GPU_TEXTURE_2D) {
             id<MTLComputePipelineState> pso = texture_update_2d_get_kernel(
-                compute_specialisation_kernel);
+                compute_specialization_kernel);
             TextureUpdateParams params = {mip,
                                           {extent[0], extent[1], 1},
                                           {offset[0], offset[1], 0},
@@ -712,7 +712,7 @@ void gpu::MTLTexture::update_sub(
           }
           else if (type_ == GPU_TEXTURE_2D_ARRAY) {
             id<MTLComputePipelineState> pso = texture_update_2d_array_get_kernel(
-                compute_specialisation_kernel);
+                compute_specialization_kernel);
             TextureUpdateParams params = {mip,
                                           {extent[0], extent[1], extent[2]},
                                           {offset[0], offset[1], offset[2]},
@@ -752,7 +752,7 @@ void gpu::MTLTexture::update_sub(
         }
         else {
           id<MTLComputePipelineState> pso = texture_update_3d_get_kernel(
-              compute_specialisation_kernel);
+              compute_specialization_kernel);
           TextureUpdateParams params = {mip,
                                         {extent[0], extent[1], extent[2]},
                                         {offset[0], offset[1], offset[2]},
@@ -1216,7 +1216,7 @@ void gpu::MTLTexture::read_internal(int mip,
   destination_buffer_host_ptr = (void *)((uint8_t *)([destination_buffer contents]) +
                                          destination_offset);
 
-  /* Prepare specialisation struct (For non-trivial texture read routine). */
+  /* Prepare specialization struct (For non-trivial texture read routine). */
   int depth_format_mode = 0;
   if (is_depth_format) {
     depth_format_mode = 1;
@@ -1236,7 +1236,7 @@ void gpu::MTLTexture::read_internal(int mip,
     }
   }
 
-  TextureReadRoutineSpecialisation compute_specialisation_kernel = {
+  TextureReadRoutineSpecialisation compute_specialization_kernel = {
       tex_data_format_to_msl_texture_template_type(data_format), /* TEXTURE DATA TYPE */
       tex_data_format_to_msl_type_str(desired_output_format),    /* OUTPUT DATA TYPE */
       num_channels,                                              /* TEXTURE COMPONENT COUNT */
@@ -1283,7 +1283,7 @@ void gpu::MTLTexture::read_internal(int mip,
           id<MTLComputeCommandEncoder> compute_encoder =
               ctx->main_command_buffer.ensure_begin_compute_encoder();
           id<MTLComputePipelineState> pso = texture_read_2d_get_kernel(
-              compute_specialisation_kernel);
+              compute_specialization_kernel);
           TextureReadParams params = {
               mip,
               {width, height, 1},
@@ -1339,7 +1339,7 @@ void gpu::MTLTexture::read_internal(int mip,
           id<MTLComputeCommandEncoder> compute_encoder =
               ctx->main_command_buffer.ensure_begin_compute_encoder();
           id<MTLComputePipelineState> pso = texture_read_2d_array_get_kernel(
-              compute_specialisation_kernel);
+              compute_specialization_kernel);
           TextureReadParams params = {
               mip,
               {width, height, depth},

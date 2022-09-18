@@ -286,9 +286,72 @@ static void applyRotationValue(TransInfo *t,
   }
 }
 
+static bool uv_rotation_in_clip_bounds_test(const TransInfo *t, const float angle)
+{
+  const float cos_angle = cosf(angle);
+  const float sin_angle = sinf(angle);
+  const float *center = t->center_global;
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    TransData *td = tc->data;
+    for (int i = 0; i < tc->data_len; i++, td++) {
+      if (td->flag & TD_SKIP) {
+        continue;
+      }
+      if (td->factor < 1.0f) {
+        continue; /* Proportional edit, will get picked up in next phase. */
+      }
+
+      float uv[2];
+      sub_v2_v2v2(uv, td->iloc, center);
+      float pr[2];
+      pr[0] = cos_angle * uv[0] + sin_angle * uv[1];
+      pr[1] = -sin_angle * uv[0] + cos_angle * uv[1];
+      add_v2_v2(pr, center);
+      /* TODO: UDIM support. */
+      if (pr[0] < 0.0f || 1.0f < pr[0]) {
+        return false;
+      }
+      if (pr[1] < 0.0f || 1.0f < pr[1]) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+static bool clip_uv_transform_rotate(const TransInfo *t, float *vec, float *vec_inside_bounds)
+{
+  float angle = vec[0];
+  if (uv_rotation_in_clip_bounds_test(t, angle)) {
+    vec_inside_bounds[0] = angle; /* Store for next iteration. */
+    return false;                 /* Nothing to do. */
+  }
+  float angle_inside_bounds = vec_inside_bounds[0];
+  if (!uv_rotation_in_clip_bounds_test(t, angle_inside_bounds)) {
+    return false; /* No known way to fix, may as well rotate anyway. */
+  }
+  const int max_i = 32; /* Limit iteration, mainly for debugging. */
+  for (int i = 0; i < max_i; i++) {
+    /* Binary search. */
+    const float angle_mid = (angle_inside_bounds + angle) / 2.0f;
+    if (angle_mid == angle_inside_bounds || angle_mid == angle) {
+      break; /* float precision reached. */
+    }
+    if (uv_rotation_in_clip_bounds_test(t, angle_mid)) {
+      angle_inside_bounds = angle_mid;
+    }
+    else {
+      angle = angle_mid;
+    }
+  }
+
+  vec_inside_bounds[0] = angle_inside_bounds; /* Store for next iteration. */
+  vec[0] = angle_inside_bounds;               /* Update rotation angle. */
+  return true;
+}
+
 static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
 {
-  char str[UI_MAX_DRAW_STR];
   float axis_final[3];
   float final = t->values[0] + t->values_modal_offset[0];
 
@@ -313,13 +376,27 @@ static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
 
   t->values_final[0] = final;
 
-  headerRotation(t, str, sizeof(str), final);
-
   const bool is_large_rotation = hasNumInput(&t->num);
   applyRotationValue(t, final, axis_final, is_large_rotation);
 
+  if (t->flag & T_CLIP_UV) {
+    if (clip_uv_transform_rotate(t, t->values_final, t->values_inside_constraints)) {
+      applyRotationValue(t, t->values_final[0], axis_final, is_large_rotation);
+    }
+
+    /* In proportional edit it can happen that */
+    /* vertices in the radius of the brush end */
+    /* outside the clipping area               */
+    /* XXX HACK - dg */
+    if (t->flag & T_PROP_EDIT) {
+      clipUVData(t);
+    }
+  }
+
   recalcData(t);
 
+  char str[UI_MAX_DRAW_STR];
+  headerRotation(t, str, sizeof(str), t->values_final[0]);
   ED_area_status_text(t->area, str);
 }
 

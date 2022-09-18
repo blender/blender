@@ -18,6 +18,9 @@ struct IDNode;
  * restriction flags. */
 void deg_evaluate_object_node_visibility(::Depsgraph *depsgraph, IDNode *id_node);
 
+/* Update node visibility flags based on actual modifiers mode flags. */
+void deg_evaluate_object_modifiers_mode_node_visibility(::Depsgraph *depsgraph, IDNode *id_node);
+
 /* Flush both static and dynamic visibility flags from leaves up to the roots, making it possible
  * to know whether a node has affect on something (potentially) visible. */
 void deg_graph_flush_visibility_flags(Depsgraph *graph);

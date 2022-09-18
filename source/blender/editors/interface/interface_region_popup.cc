@@ -31,7 +31,7 @@
 #include "ED_screen.h"
 
 #include "interface_intern.h"
-#include "interface_regions_intern.h"
+#include "interface_regions_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Utility Functions
@@ -397,7 +397,7 @@ static void ui_block_region_draw(const bContext *C, ARegion *region)
 static void ui_block_region_popup_window_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
-  wmNotifier *wmn = params->notifier;
+  const wmNotifier *wmn = params->notifier;
 
   switch (wmn->category) {
     case NC_WINDOW: {

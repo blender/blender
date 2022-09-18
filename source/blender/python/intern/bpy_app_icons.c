@@ -166,7 +166,7 @@ static struct PyModuleDef M_AppIcons_module_def = {
     NULL,               /* m_doc */
     0,                  /* m_size */
     M_AppIcons_methods, /* m_methods */
-    NULL,               /* m_reload */
+    NULL,               /* m_slots */
     NULL,               /* m_traverse */
     NULL,               /* m_clear */
     NULL,               /* m_free */

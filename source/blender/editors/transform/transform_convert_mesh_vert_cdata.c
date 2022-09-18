@@ -84,7 +84,9 @@ static void createTransMeshVertCData(bContext *UNUSED(C), TransInfo *t)
 
     int cd_offset = -1;
     if (t->mode == TFM_BWEIGHT) {
-      BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_VERT_BWEIGHT);
+      if (!CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {
+        BM_data_layer_add(bm, &bm->vdata, CD_BWEIGHT);
+      }
       cd_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
     }
     else {

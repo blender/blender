@@ -177,14 +177,12 @@ static bool seq_proxy_get_fname(Scene *scene,
 
   BLI_snprintf(name,
                PROXY_MAXFILE,
-               "%s/images/%d/%s_proxy%s",
+               "%s/images/%d/%s_proxy%s.jpg",
                dir,
                proxy_size_number,
                SEQ_render_give_stripelem(scene, seq, timeline_frame)->name,
                suffix);
   BLI_path_abs(name, BKE_main_blendfile_path_from_global());
-  strcat(name, ".jpg");
-
   return true;
 }
 

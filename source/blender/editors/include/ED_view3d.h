@@ -711,7 +711,7 @@ bool ED_view3d_win_to_segment_clipped(const struct Depsgraph *depsgraph,
                                       float r_ray_start[3],
                                       float r_ray_end[3],
                                       bool do_clip_planes);
-void ED_view3d_ob_project_mat_get(const struct RegionView3D *v3d,
+void ED_view3d_ob_project_mat_get(const struct RegionView3D *rv3d,
                                   const struct Object *ob,
                                   float r_pmat[4][4]);
 void ED_view3d_ob_project_mat_get_from_obmat(const struct RegionView3D *rv3d,
@@ -950,7 +950,7 @@ int view3d_opengl_select_with_id_filter(struct ViewContext *vc,
                                         eV3DSelectObjectFilter select_filter,
                                         uint select_id);
 
-/* view3d_select.c */
+/* view3d_select.cc */
 
 float ED_view3d_select_dist_px(void);
 void ED_view3d_viewcontext_init(struct bContext *C,
@@ -1171,7 +1171,7 @@ void ED_view3d_camera_lock_init(const struct Depsgraph *depsgraph,
  *
  * Apply the 3D Viewport transformation back to the camera object.
  *
- * \return true if the camera is moved.
+ * \return true if the camera (or one of it's parents) was moved.
  */
 bool ED_view3d_camera_lock_sync(const struct Depsgraph *depsgraph,
                                 struct View3D *v3d,
@@ -1195,6 +1195,36 @@ bool ED_view3d_camera_lock_autokey(struct View3D *v3d,
                                    bool do_translate);
 
 void ED_view3d_lock_clear(struct View3D *v3d);
+
+/**
+ * Check if creating an undo step should be performed if the viewport moves.
+ * \return true if #ED_view3d_camera_lock_undo_push would do an undo push.
+ */
+bool ED_view3d_camera_lock_undo_test(const View3D *v3d,
+                                     const RegionView3D *rv3d,
+                                     struct bContext *C);
+
+/**
+ * Create an undo step when the camera is locked to the view.
+ * \param str: The name of the undo step (typically #wmOperatorType.name should be used).
+ *
+ * \return true when the call to push an undo step was made.
+ */
+bool ED_view3d_camera_lock_undo_push(const char *str,
+                                     const View3D *v3d,
+                                     const struct RegionView3D *rv3d,
+                                     struct bContext *C);
+
+/**
+ * A version of #ED_view3d_camera_lock_undo_push that performs a grouped undo push.
+ *
+ * \note use for actions that are likely to be repeated such as mouse wheel to zoom,
+ * where adding a separate undo step each time isn't desirable.
+ */
+bool ED_view3d_camera_lock_undo_grouped_push(const char *str,
+                                             const View3D *v3d,
+                                             const struct RegionView3D *rv3d,
+                                             struct bContext *C);
 
 #define VIEW3D_MARGIN 1.4f
 #define VIEW3D_DIST_FALLBACK 1.0f

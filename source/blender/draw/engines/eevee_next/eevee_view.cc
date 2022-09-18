@@ -102,6 +102,8 @@ void ShadingView::render()
 
   update_view();
 
+  inst_.hiz_buffer.set_dirty();
+
   DRW_stats_group_start(name_);
   DRW_view_set_active(render_view_);
 
@@ -116,7 +118,10 @@ void ShadingView::render()
   GPU_framebuffer_bind(combined_fb_);
   GPU_framebuffer_clear_color_depth(combined_fb_, clear_color, 1.0f);
 
-  inst_.pipelines.world.render();
+  inst_.pipelines.world.render(render_view_new_);
+
+  /* TODO(fclem): Move it after the first prepass (and hiz update) once pipeline is stabilized. */
+  inst_.lights.set_view(render_view_new_, extent_);
 
   // inst_.pipelines.deferred.render(
   //     render_view_, rt_buffer_opaque_, rt_buffer_refract_, depth_tx_, combined_tx_);
@@ -125,15 +130,16 @@ void ShadingView::render()
 
   // inst_.lookdev.render_overlay(view_fb_);
 
-  inst_.pipelines.forward.render(
-      render_view_, prepass_fb_, combined_fb_, rbufs.depth_tx, rbufs.combined_tx);
+  inst_.pipelines.forward.render(render_view_new_, prepass_fb_, combined_fb_, rbufs.combined_tx);
 
-  // inst_.lights.debug_draw(view_fb_);
-  // inst_.shadows.debug_draw(view_fb_);
+  inst_.lights.debug_draw(render_view_new_, combined_fb_);
+  inst_.hiz_buffer.debug_draw(render_view_new_, combined_fb_);
 
   GPUTexture *combined_final_tx = render_postfx(rbufs.combined_tx);
 
   inst_.film.accumulate(sub_view_, combined_final_tx);
+
+  // inst_.shadows.debug_draw();
 
   rbufs.release();
   postfx_tx_.release();
@@ -143,7 +149,7 @@ void ShadingView::render()
 
 GPUTexture *ShadingView::render_postfx(GPUTexture *input_tx)
 {
-  if (/*!dof_.postfx_enabled() &&*/ !inst_.motion_blur.postfx_enabled()) {
+  if (!inst_.depth_of_field.postfx_enabled() && !inst_.motion_blur.postfx_enabled()) {
     return input_tx;
   }
   postfx_tx_.acquire(extent_, GPU_RGBA16F);
@@ -151,8 +157,8 @@ GPUTexture *ShadingView::render_postfx(GPUTexture *input_tx)
   GPUTexture *output_tx = postfx_tx_;
 
   /* Swapping is done internally. Actual output is set to the next input. */
-  // dof_.render(depth_tx_, &input_tx, &output_tx);
-  inst_.motion_blur.render(&input_tx, &output_tx);
+  inst_.depth_of_field.render(render_view_new_, &input_tx, &output_tx, dof_buffer_);
+  inst_.motion_blur.render(render_view_new_, &input_tx, &output_tx);
 
   return input_tx;
 }
@@ -176,13 +182,12 @@ void ShadingView::update_view()
   window_translate_m4(winmat.ptr(), winmat.ptr(), UNPACK2(jitter));
   DRW_view_update_sub(sub_view_, viewmat.ptr(), winmat.ptr());
 
-  /* FIXME(fclem): The offset may be is noticeably large and the culling might make object pop
+  /* FIXME(fclem): The offset may be noticeably large and the culling might make object pop
    * out of the blurring radius. To fix this, use custom enlarged culling matrix. */
-  // dof_.jitter_apply(winmat, viewmat);
+  inst_.depth_of_field.jitter_apply(winmat, viewmat);
   DRW_view_update_sub(render_view_, viewmat.ptr(), winmat.ptr());
 
-  // inst_.lightprobes.set_view(render_view_, extent_);
-  // inst_.lights.set_view(render_view_, extent_, !inst_.use_scene_lights());
+  render_view_new_.sync(viewmat, winmat);
 }
 
 /** \} */

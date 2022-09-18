@@ -191,6 +191,35 @@ class RENDER_PT_eevee_next_motion_blur(RenderButtonsPanel, Panel):
         col.prop(props, "motion_blur_steps", text="Steps")
 
 
+class RENDER_PT_motion_blur_curve(RenderButtonsPanel, Panel):
+    bl_label = "Shutter Curve"
+    bl_parent_id = "RENDER_PT_eevee_next_motion_blur"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        scene = context.scene
+        rd = scene.render
+        layout.active = rd.use_motion_blur
+
+        col = layout.column()
+
+        col.template_curve_mapping(rd, "motion_blur_shutter_curve")
+
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.operator("render.shutter_curve_preset", icon='SMOOTHCURVE', text="").shape = 'SMOOTH'
+        row.operator("render.shutter_curve_preset", icon='SPHERECURVE', text="").shape = 'ROUND'
+        row.operator("render.shutter_curve_preset", icon='ROOTCURVE', text="").shape = 'ROOT'
+        row.operator("render.shutter_curve_preset", icon='SHARPCURVE', text="").shape = 'SHARP'
+        row.operator("render.shutter_curve_preset", icon='LINCURVE', text="").shape = 'LINE'
+        row.operator("render.shutter_curve_preset", icon='NOCURVE', text="").shape = 'MAX'
+
+
 class RENDER_PT_eevee_depth_of_field(RenderButtonsPanel, Panel):
     bl_label = "Depth of Field"
     bl_options = {'DEFAULT_CLOSED'}
@@ -212,6 +241,32 @@ class RENDER_PT_eevee_depth_of_field(RenderButtonsPanel, Panel):
         col.prop(props, "bokeh_neighbor_max")
         col.prop(props, "bokeh_denoise_fac")
         col.prop(props, "use_bokeh_high_quality_slight_defocus")
+        col.prop(props, "use_bokeh_jittered")
+
+        col = layout.column()
+        col.active = props.use_bokeh_jittered
+        col.prop(props, "bokeh_overblur")
+
+
+class RENDER_PT_eevee_next_depth_of_field(RenderButtonsPanel, Panel):
+    bl_label = "Depth of Field"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        scene = context.scene
+        props = scene.eevee
+
+        col = layout.column()
+        col.prop(props, "bokeh_max_size")
+        col.prop(props, "bokeh_threshold")
+        col.prop(props, "bokeh_neighbor_max")
         col.prop(props, "use_bokeh_jittered")
 
         col = layout.column()
@@ -768,12 +823,16 @@ class RENDER_PT_simplify_greasepencil(RenderButtonsPanel, Panel, GreasePencilSim
 classes = (
     RENDER_PT_context,
     RENDER_PT_eevee_sampling,
+    RENDER_PT_eevee_next_sampling,
     RENDER_PT_eevee_ambient_occlusion,
     RENDER_PT_eevee_bloom,
     RENDER_PT_eevee_depth_of_field,
+    RENDER_PT_eevee_next_depth_of_field,
     RENDER_PT_eevee_subsurface_scattering,
     RENDER_PT_eevee_screen_space_reflections,
     RENDER_PT_eevee_motion_blur,
+    RENDER_PT_eevee_next_motion_blur,
+    RENDER_PT_motion_blur_curve,
     RENDER_PT_eevee_volumetric,
     RENDER_PT_eevee_volumetric_lighting,
     RENDER_PT_eevee_volumetric_shadows,
@@ -783,10 +842,8 @@ classes = (
     RENDER_PT_eevee_indirect_lighting,
     RENDER_PT_eevee_indirect_lighting_display,
     RENDER_PT_eevee_film,
-
-    RENDER_PT_eevee_next_sampling,
-    RENDER_PT_eevee_next_motion_blur,
     RENDER_PT_eevee_next_film,
+
 
     RENDER_PT_gpencil,
     RENDER_PT_opengl_sampling,

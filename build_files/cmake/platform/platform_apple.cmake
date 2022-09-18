@@ -21,8 +21,24 @@ function(print_found_status
   endif()
 endfunction()
 
+# Utility to install precompiled shared libraries.
+macro(add_bundled_libraries library)
+  if(EXISTS ${LIBDIR})
+    set(_library_dir ${LIBDIR}/${library}/lib)
+    file(GLOB _all_library_versions ${_library_dir}/*\.dylib*)
+    list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_all_library_versions})
+    list(APPEND PLATFORM_BUNDLED_LIBRARY_DIRS ${_library_dir})
+    unset(_all_library_versions)
+    unset(_library_dir)
+ endif()
+endmacro()
+
 # ------------------------------------------------------------------------
 # Find system provided libraries.
+
+# Avoid searching for headers since this would otherwise override our lib
+# directory as well as PYTHON_ROOT_DIR.
+set(CMAKE_FIND_FRAMEWORK NEVER)
 
 # Find system ZLIB, not the pre-compiled one supplied with OpenCollada.
 set(ZLIB_ROOT /usr)
@@ -61,6 +77,11 @@ else()
 endif()
 if(NOT EXISTS "${LIBDIR}/")
   message(FATAL_ERROR "Mac OSX requires pre-compiled libs at: '${LIBDIR}'")
+endif()
+
+# Optionally use system Python if PYTHON_ROOT_DIR is specified.
+if(WITH_PYTHON AND (WITH_PYTHON_MODULE AND PYTHON_ROOT_DIR))
+  find_package(PythonLibsUnix REQUIRED)
 endif()
 
 # Prefer lib directory paths
@@ -111,34 +132,8 @@ if(WITH_CODEC_SNDFILE)
   unset(_sndfile_VORBISENC_LIBRARY)
 endif()
 
-if(WITH_PYTHON)
-  # Use precompiled libraries by default.
-  set(PYTHON_VERSION 3.10)
-  if(NOT WITH_PYTHON_MODULE AND NOT WITH_PYTHON_FRAMEWORK)
-    # Normally cached but not since we include them with blender.
-    set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}")
-    set(PYTHON_EXECUTABLE "${LIBDIR}/python/bin/python${PYTHON_VERSION}")
-    set(PYTHON_LIBRARY ${LIBDIR}/python/lib/libpython${PYTHON_VERSION}.a)
-    set(PYTHON_LIBPATH "${LIBDIR}/python/lib/python${PYTHON_VERSION}")
-  else()
-    # Module must be compiled against Python framework.
-    set(_py_framework "/Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}")
-    set(PYTHON_INCLUDE_DIR "${_py_framework}/include/python${PYTHON_VERSION}")
-    set(PYTHON_EXECUTABLE "${_py_framework}/bin/python${PYTHON_VERSION}")
-    set(PYTHON_LIBPATH "${_py_framework}/lib/python${PYTHON_VERSION}")
-    unset(_py_framework)
-  endif()
-
-  # uncached vars
-  set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
-  set(PYTHON_LIBRARIES  "${PYTHON_LIBRARY}")
-
-  # needed for Audaspace, numpy is installed into python site-packages
-  set(PYTHON_NUMPY_INCLUDE_DIRS "${PYTHON_LIBPATH}/site-packages/numpy/core/include")
-
-  if(NOT EXISTS "${PYTHON_EXECUTABLE}")
-    message(FATAL_ERROR "Python executable missing: ${PYTHON_EXECUTABLE}")
-  endif()
+if(WITH_PYTHON AND NOT (WITH_PYTHON_MODULE AND PYTHON_ROOT_DIR))
+  find_package(PythonLibsUnix REQUIRED)
 endif()
 
 if(WITH_FFTW3)
@@ -201,11 +196,6 @@ if(WITH_JACK)
   string(APPEND PLATFORM_LINKFLAGS " -F/Library/Frameworks -weak_framework jackmp")
 endif()
 
-if(WITH_PYTHON_MODULE OR WITH_PYTHON_FRAMEWORK)
-  # force cmake to link right framework
-  string(APPEND PLATFORM_LINKFLAGS " /Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}/Python")
-endif()
-
 if(WITH_OPENCOLLADA)
   find_package(OpenCOLLADA)
   find_library(PCRE_LIBRARIES NAMES pcre HINTS ${LIBDIR}/opencollada/lib)
@@ -225,6 +215,9 @@ if(WITH_SDL)
     string(APPEND PLATFORM_LINKFLAGS " -framework CoreHaptics")
   endif()
 endif()
+
+set(EPOXY_ROOT_DIR ${LIBDIR}/epoxy)
+find_package(Epoxy REQUIRED)
 
 set(PNG_ROOT ${LIBDIR}/png)
 find_package(PNG REQUIRED)
@@ -412,6 +405,7 @@ if(WITH_OPENMP)
     set(OpenMP_LIBRARY_DIR "${LIBDIR}/openmp/lib/")
     set(OpenMP_LINKER_FLAGS "-L'${OpenMP_LIBRARY_DIR}' -lomp")
     set(OpenMP_LIBRARY "${OpenMP_LIBRARY_DIR}/libomp.dylib")
+    add_bundled_libraries(openmp)
   endif()
 endif()
 
@@ -445,6 +439,9 @@ find_package(Zstd REQUIRED)
 if(EXISTS ${LIBDIR})
   without_system_libs_end()
 endif()
+
+# Restore to default.
+set(CMAKE_FIND_FRAMEWORK FIRST)
 
 # ---------------------------------------------------------------------
 # Set compiler and linker flags.
@@ -501,17 +498,27 @@ if(WITH_COMPILER_CCACHE)
   endif()
 endif()
 
-# For binaries that are built but not installed (also not distributed) (datatoc,
-# makesdna, tests, etc.), we add an rpath to the OpenMP library dir through
-# CMAKE_BUILD_RPATH. This avoids having to make many copies of the dylib next to each binary.
-#
-# For the installed Python module and installed Blender executable, CMAKE_INSTALL_RPATH
-# is modified to find the dylib in an adjacent folder. Install step puts the libraries there.
-set(CMAKE_SKIP_BUILD_RPATH FALSE)
-list(APPEND CMAKE_BUILD_RPATH "${OpenMP_LIBRARY_DIR}")
+if(WITH_COMPILER_ASAN)
+  list(APPEND PLATFORM_BUNDLED_LIBRARIES ${COMPILER_ASAN_LIBRARY})
+endif()
 
-set(CMAKE_SKIP_INSTALL_RPATH FALSE)
-list(APPEND CMAKE_INSTALL_RPATH "@loader_path/../Resources/${BLENDER_VERSION}/lib")
+if(PLATFORM_BUNDLED_LIBRARIES)
+  # For the installed Python module and installed Blender executable, we set the
+  # rpath to the location where install step will copy the shared libraries.
+  set(CMAKE_SKIP_INSTALL_RPATH FALSE)
+  if(WITH_PYTHON_MODULE)
+    list(APPEND CMAKE_INSTALL_RPATH "@loader_path/lib")
+  else()
+    list(APPEND CMAKE_INSTALL_RPATH "@loader_path/../Resources/lib")
+  endif()
+
+  # For binaries that are built but not installed (like makesdan or tests), we add
+  # the original directory of all shared libraries to the rpath. This is needed because
+  # these can be in different folders, and because the build and install folder may be
+  # different.
+  set(CMAKE_SKIP_BUILD_RPATH FALSE)
+  list(APPEND CMAKE_BUILD_RPATH ${PLATFORM_BUNDLED_LIBRARY_DIRS})
+endif()
 
 # Same as `CFBundleIdentifier` in Info.plist.
 set(CMAKE_XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.blenderfoundation.blender")

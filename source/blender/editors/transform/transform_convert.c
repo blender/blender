@@ -940,15 +940,16 @@ static void init_TransDataContainers(TransInfo *t,
 
     bool free_objects = false;
     if (objects == NULL) {
-      objects = BKE_view_layer_array_from_objects_in_mode(
+      struct ObjectsInModeParams params = {0};
+      params.object_mode = object_mode;
+      /* Pose transform operates on `ob->pose` so don't skip duplicate object-data. */
+      params.no_dup_data = (object_mode & OB_MODE_POSE) == 0;
+      objects = BKE_view_layer_array_from_objects_in_mode_params(
+          t->scene,
           t->view_layer,
           (t->spacetype == SPACE_VIEW3D) ? t->view : NULL,
           &objects_len,
-          {
-              .object_mode = object_mode,
-              /* Pose transform operates on `ob->pose` so don't skip duplicate object-data. */
-              .no_dup_data = (object_mode & OB_MODE_POSE) == 0,
-          });
+          &params);
       free_objects = true;
     }
 
@@ -1000,7 +1001,8 @@ static void init_TransDataContainers(TransInfo *t,
 static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj_armature)
 {
   ViewLayer *view_layer = t->view_layer;
-  Object *ob = OBACT(view_layer);
+  BKE_view_layer_synced_ensure(t->scene, t->view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   /* if tests must match recalcData for correct updates */
   if (t->options & CTX_CURSOR) {
@@ -1143,8 +1145,8 @@ void createTransData(bContext *C, TransInfo *t)
     init_TransDataContainers(t, ob_armature, &ob_armature, 1);
   }
   else {
-    ViewLayer *view_layer = t->view_layer;
-    Object *ob = OBACT(view_layer);
+    BKE_view_layer_synced_ensure(t->scene, t->view_layer);
+    Object *ob = BKE_view_layer_active_object_get(t->view_layer);
     init_TransDataContainers(t, ob, NULL, 0);
   }
 

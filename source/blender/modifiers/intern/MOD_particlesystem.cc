@@ -87,9 +87,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   tpsmd->totdmvert = tpsmd->totdmedge = tpsmd->totdmface = 0;
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
 
@@ -119,8 +117,7 @@ static void deformVerts(ModifierData *md,
   }
 
   if (mesh_src == nullptr) {
-    mesh_src = MOD_deform_mesh_eval_get(
-        ctx->object, nullptr, nullptr, vertexCos, verts_num, false, true);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, nullptr, vertexCos, verts_num, true);
     if (mesh_src == nullptr) {
       return;
     }

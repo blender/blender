@@ -181,7 +181,7 @@ typedef struct bKinematicConstraint {
   float orientweight;
   /** CopyPose: for target-less IK. */
   float grabtarget[3];
-  /** Subtype of IK constraint: eConstraint_IK_Type. */
+  /** Sub-type of IK constraint: #eConstraint_IK_Type. */
   short type;
   /** Distance: how to limit in relation to clamping sphere: LIMITDIST_... */
   short mode;

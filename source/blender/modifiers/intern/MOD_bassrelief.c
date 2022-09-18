@@ -70,8 +70,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(BassReliefModifierData), modifier);
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
+static void requiredDataMask(ModifierData *md,
                              CustomData_MeshMasks *r_cddata_masks)
 {
   BassReliefModifierData *smd = (BassReliefModifierData *)md;
@@ -187,7 +186,7 @@ static Mesh *modifyMeshDebug(struct ModifierData *md,
   struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 
   CustomData_duplicate_referenced_layers(&mesh->vdata, mesh->totvert);
-  BKE_mesh_update_customdata_pointers(mesh, false);
+  //XXX BKE_mesh_update_customdata_pointers(mesh, false);
 
   MPropCol *colors[MAX_BASSRELIEF_DEBUG_COLORS];
   char name[MAX_CUSTOMDATA_LAYER_NAME];
@@ -209,7 +208,7 @@ static Mesh *modifyMeshDebug(struct ModifierData *md,
     swmd->rayShrinkRatio = 1.0f;
   }
 
-  struct MDeformVert *dvert = NULL;
+  const struct MDeformVert *dvert = NULL;
   int defgrp_index = -1;
   if (swmd->vgroup_name[0] != '\0') {
     MOD_get_vgroup(ctx->object, mesh, swmd->vgroup_name, &dvert, &defgrp_index);
@@ -249,7 +248,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
     DEG_add_collection_geometry_relation(ctx->node, smd->collection, "Bass Relief Modifier");
   }
 
-  DEG_add_modifier_to_transform_relation(ctx->node, "Bass Relief Modifier");
+  DEG_add_depends_on_transform_relation(ctx->node, "Bass Relief Modifier");
 }
 
 static bool dependsOnNormals(ModifierData *md)

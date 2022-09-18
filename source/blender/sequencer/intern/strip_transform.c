@@ -84,7 +84,7 @@ bool SEQ_transform_seqbase_isolated_sel_check(ListBase *seqbase)
 
 void SEQ_transform_fix_single_image_seq_offsets(const Scene *scene, Sequence *seq)
 {
-  int left, start, offset;
+  int left, start;
   if (!SEQ_transform_single_image_check(seq)) {
     return;
   }
@@ -94,11 +94,8 @@ void SEQ_transform_fix_single_image_seq_offsets(const Scene *scene, Sequence *se
   left = SEQ_time_left_handle_frame_get(scene, seq);
   start = seq->start;
   if (start != left) {
-    offset = left - start;
-    SEQ_time_left_handle_frame_set(
-        scene, seq, SEQ_time_left_handle_frame_get(scene, seq) - offset);
-    SEQ_time_right_handle_frame_set(
-        scene, seq, SEQ_time_right_handle_frame_get(scene, seq) - offset);
+    const int offset = left - start;
+    seq_time_translate_handles(scene, seq, -offset);
     seq->start += offset;
   }
 }
@@ -146,10 +143,7 @@ void SEQ_transform_translate_sequence(Scene *evil_scene, Sequence *seq, int delt
       SEQ_transform_translate_sequence(evil_scene, seq_child, delta);
     }
     /* Move meta start/end points. */
-    SEQ_time_left_handle_frame_set(
-        evil_scene, seq, SEQ_time_left_handle_frame_get(evil_scene, seq) + delta);
-    SEQ_time_right_handle_frame_set(
-        evil_scene, seq, SEQ_time_right_handle_frame_get(evil_scene, seq) + delta);
+    seq_time_translate_handles(evil_scene, seq, delta);
   }
   else { /* All other strip types. */
     seq->start += delta;

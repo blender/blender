@@ -47,9 +47,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(lmd, DNA_struct_default_get(LatticeModifierData), modifier);
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   LatticeModifierData *lmd = (LatticeModifierData *)md;
 
@@ -87,7 +85,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
     DEG_add_object_relation(ctx->node, lmd->object, DEG_OB_COMP_GEOMETRY, "Lattice Modifier");
     DEG_add_object_relation(ctx->node, lmd->object, DEG_OB_COMP_TRANSFORM, "Lattice Modifier");
   }
-  DEG_add_modifier_to_transform_relation(ctx->node, "Lattice Modifier");
+  DEG_add_depends_on_transform_relation(ctx->node, "Lattice Modifier");
 }
 
 static void deformVerts(ModifierData *md,
@@ -98,7 +96,7 @@ static void deformVerts(ModifierData *md,
 {
   LatticeModifierData *lmd = (LatticeModifierData *)md;
   struct Mesh *mesh_src = MOD_deform_mesh_eval_get(
-      ctx->object, NULL, mesh, NULL, verts_num, false, false);
+      ctx->object, NULL, mesh, NULL, verts_num, false);
 
   MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
 

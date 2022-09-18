@@ -20,6 +20,8 @@
 #include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"
 
+#include "RNA_access.h"
+
 #include "node_util.h"
 
 void geo_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);
@@ -34,7 +36,8 @@ void transform_mesh(Mesh &mesh,
                     const float3 rotation,
                     const float3 scale);
 
-void transform_geometry_set(GeometrySet &geometry,
+void transform_geometry_set(GeoNodeExecParams &params,
+                            GeometrySet &geometry,
                             const float4x4 &transform,
                             const Depsgraph &depsgraph);
 

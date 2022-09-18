@@ -33,6 +33,7 @@
 
 /* ngon version wip, based on BM_uv_vert_map_create */
 UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *mpoly,
+                                       const bool *hide_poly,
                                        const MLoop *mloop,
                                        const MLoopUV *mloopuv,
                                        uint totpoly,
@@ -55,7 +56,7 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *mpoly,
   /* generate UvMapVert array */
   mp = mpoly;
   for (a = 0; a < totpoly; a++, mp++) {
-    if (!selected || (!(mp->flag & ME_HIDE) && (mp->flag & ME_FACE_SEL))) {
+    if (!selected || (!(hide_poly && hide_poly[a]) && (mp->flag & ME_FACE_SEL))) {
       totuv += mp->totloop;
     }
   }
@@ -78,7 +79,7 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *mpoly,
 
   mp = mpoly;
   for (a = 0; a < totpoly; a++, mp++) {
-    if (!selected || (!(mp->flag & ME_HIDE) && (mp->flag & ME_FACE_SEL))) {
+    if (!selected || (!(hide_poly && hide_poly[a]) && (mp->flag & ME_FACE_SEL))) {
       float(*tf_uv)[2] = NULL;
 
       if (use_winding) {
@@ -1285,13 +1286,13 @@ static bool mesh_check_island_boundary_uv(const MPoly *UNUSED(mp),
   return (me->flag & ME_SEAM) != 0;
 }
 
-static bool mesh_calc_islands_loop_poly_uv(MVert *UNUSED(verts),
+static bool mesh_calc_islands_loop_poly_uv(const MVert *UNUSED(verts),
                                            const int UNUSED(totvert),
-                                           MEdge *edges,
+                                           const MEdge *edges,
                                            const int totedge,
-                                           MPoly *polys,
+                                           const MPoly *polys,
                                            const int totpoly,
-                                           MLoop *loops,
+                                           const MLoop *loops,
                                            const int totloop,
                                            const MLoopUV *luvs,
                                            MeshIslandStore *r_island_store)
@@ -1382,16 +1383,13 @@ static bool mesh_calc_islands_loop_poly_uv(MVert *UNUSED(verts),
     }
 
     for (p_idx = 0; p_idx < totpoly; p_idx++) {
-      MPoly *mp;
-
       if (poly_groups[p_idx] != grp_idx) {
         continue;
       }
-
-      mp = &polys[p_idx];
+      const MPoly *mp = &polys[p_idx];
       poly_indices[num_pidx++] = p_idx;
       for (l_idx = mp->loopstart, pl_idx = 0; pl_idx < mp->totloop; l_idx++, pl_idx++) {
-        MLoop *ml = &loops[l_idx];
+        const MLoop *ml = &loops[l_idx];
         loop_indices[num_lidx++] = l_idx;
         if (num_edge_borders && BLI_BITMAP_TEST(edge_borders, ml->e) &&
             (edge_border_count[ml->e] < 2)) {
@@ -1435,13 +1433,13 @@ static bool mesh_calc_islands_loop_poly_uv(MVert *UNUSED(verts),
   return true;
 }
 
-bool BKE_mesh_calc_islands_loop_poly_edgeseam(MVert *verts,
+bool BKE_mesh_calc_islands_loop_poly_edgeseam(const MVert *verts,
                                               const int totvert,
-                                              MEdge *edges,
+                                              const MEdge *edges,
                                               const int totedge,
-                                              MPoly *polys,
+                                              const MPoly *polys,
                                               const int totpoly,
-                                              MLoop *loops,
+                                              const MLoop *loops,
                                               const int totloop,
                                               MeshIslandStore *r_island_store)
 {

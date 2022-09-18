@@ -85,16 +85,19 @@ void WM_toolsystem_ref_sync_from_context(struct Main *bmain,
 
 void WM_toolsystem_init(struct bContext *C);
 
-int WM_toolsystem_mode_from_spacetype(struct ViewLayer *view_layer,
+int WM_toolsystem_mode_from_spacetype(const struct Scene *scene,
+                                      struct ViewLayer *view_layer,
                                       struct ScrArea *area,
                                       int space_type);
-bool WM_toolsystem_key_from_context(struct ViewLayer *view_layer,
+bool WM_toolsystem_key_from_context(const struct Scene *scene,
+                                    struct ViewLayer *view_layer,
                                     struct ScrArea *area,
                                     bToolKey *tkey);
 
 void WM_toolsystem_update_from_context_view3d(struct bContext *C);
 void WM_toolsystem_update_from_context(struct bContext *C,
                                        struct WorkSpace *workspace,
+                                       const struct Scene *scene,
                                        struct ViewLayer *view_layer,
                                        struct ScrArea *area);
 
@@ -145,6 +148,7 @@ void WM_toolsystem_ref_properties_init_for_keymap(struct bToolRef *tref,
 void WM_toolsystem_refresh_active(struct bContext *C);
 
 void WM_toolsystem_refresh_screen_area(struct WorkSpace *workspace,
+                                       const struct Scene *scene,
                                        struct ViewLayer *view_layer,
                                        struct ScrArea *area);
 void WM_toolsystem_refresh_screen_window(struct wmWindow *win);

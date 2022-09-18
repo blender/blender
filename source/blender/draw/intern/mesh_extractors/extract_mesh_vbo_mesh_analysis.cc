@@ -259,7 +259,8 @@ static void statvis_calc_thickness(const MeshRenderData *mr, float *r_thickness)
 }
 
 struct BVHTree_OverlapData {
-  const Mesh *me;
+  const MVert *verts;
+  const MLoop *loops;
   const MLoopTri *mlooptri;
   float epsilon;
 };
@@ -267,7 +268,6 @@ struct BVHTree_OverlapData {
 static bool bvh_overlap_cb(void *userdata, int index_a, int index_b, int UNUSED(thread))
 {
   struct BVHTree_OverlapData *data = static_cast<struct BVHTree_OverlapData *>(userdata);
-  const Mesh *me = data->me;
 
   const MLoopTri *tri_a = &data->mlooptri[index_a];
   const MLoopTri *tri_b = &data->mlooptri[index_b];
@@ -276,12 +276,12 @@ static bool bvh_overlap_cb(void *userdata, int index_a, int index_b, int UNUSED(
     return false;
   }
 
-  const float *tri_a_co[3] = {me->mvert[me->mloop[tri_a->tri[0]].v].co,
-                              me->mvert[me->mloop[tri_a->tri[1]].v].co,
-                              me->mvert[me->mloop[tri_a->tri[2]].v].co};
-  const float *tri_b_co[3] = {me->mvert[me->mloop[tri_b->tri[0]].v].co,
-                              me->mvert[me->mloop[tri_b->tri[1]].v].co,
-                              me->mvert[me->mloop[tri_b->tri[2]].v].co};
+  const float *tri_a_co[3] = {data->verts[data->loops[tri_a->tri[0]].v].co,
+                              data->verts[data->loops[tri_a->tri[1]].v].co,
+                              data->verts[data->loops[tri_a->tri[2]].v].co};
+  const float *tri_b_co[3] = {data->verts[data->loops[tri_b->tri[0]].v].co,
+                              data->verts[data->loops[tri_b->tri[1]].v].co,
+                              data->verts[data->loops[tri_b->tri[2]].v].co};
   float ix_pair[2][3];
   int verts_shared = 0;
 
@@ -342,7 +342,8 @@ static void statvis_calc_intersect(const MeshRenderData *mr, float *r_intersect)
     BVHTree *tree = BKE_bvhtree_from_mesh_get(&treeData, mr->me, BVHTREE_FROM_LOOPTRI, 4);
 
     struct BVHTree_OverlapData data = {nullptr};
-    data.me = mr->me;
+    data.verts = mr->mvert;
+    data.loops = mr->mloop;
     data.mlooptri = mr->mlooptri;
     data.epsilon = BLI_bvhtree_get_epsilon(tree);
 

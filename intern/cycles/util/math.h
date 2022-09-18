@@ -595,26 +595,26 @@ ccl_device_inline void make_orthonormals(const float3 N,
 
 /* Color division */
 
-ccl_device_inline float3 safe_invert_color(float3 a)
+ccl_device_inline Spectrum safe_invert_color(Spectrum a)
 {
-  float x, y, z;
+  FOREACH_SPECTRUM_CHANNEL (i) {
+    GET_SPECTRUM_CHANNEL(a, i) = (GET_SPECTRUM_CHANNEL(a, i) != 0.0f) ?
+                                     1.0f / GET_SPECTRUM_CHANNEL(a, i) :
+                                     0.0f;
+  }
 
-  x = (a.x != 0.0f) ? 1.0f / a.x : 0.0f;
-  y = (a.y != 0.0f) ? 1.0f / a.y : 0.0f;
-  z = (a.z != 0.0f) ? 1.0f / a.z : 0.0f;
-
-  return make_float3(x, y, z);
+  return a;
 }
 
-ccl_device_inline float3 safe_divide_color(float3 a, float3 b)
+ccl_device_inline Spectrum safe_divide_color(Spectrum a, Spectrum b)
 {
-  float x, y, z;
+  FOREACH_SPECTRUM_CHANNEL (i) {
+    GET_SPECTRUM_CHANNEL(a, i) = (GET_SPECTRUM_CHANNEL(b, i) != 0.0f) ?
+                                     GET_SPECTRUM_CHANNEL(a, i) / GET_SPECTRUM_CHANNEL(b, i) :
+                                     0.0f;
+  }
 
-  x = (b.x != 0.0f) ? a.x / b.x : 0.0f;
-  y = (b.y != 0.0f) ? a.y / b.y : 0.0f;
-  z = (b.z != 0.0f) ? a.z / b.z : 0.0f;
-
-  return make_float3(x, y, z);
+  return a;
 }
 
 ccl_device_inline float3 safe_divide_even_color(float3 a, float3 b)
@@ -886,16 +886,16 @@ ccl_device_inline float2 map_to_tube(const float3 co)
 
 ccl_device_inline float2 map_to_sphere(const float3 co)
 {
-  float l = len(co);
+  float l = dot(co, co);
   float u, v;
   if (l > 0.0f) {
     if (UNLIKELY(co.x == 0.0f && co.y == 0.0f)) {
       u = 0.0f; /* Otherwise domain error. */
     }
     else {
-      u = (1.0f - atan2f(co.x, co.y) / M_PI_F) / 2.0f;
+      u = (0.5f - atan2f(co.x, co.y) * M_1_2PI_F);
     }
-    v = 1.0f - safe_acosf(co.z / l) / M_PI_F;
+    v = 1.0f - safe_acosf(co.z / sqrtf(l)) * M_1_PI_F;
   }
   else {
     u = v = 0.0f;

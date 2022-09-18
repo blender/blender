@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include "glew-mx.h"
-
 #include "GPU_batch.h"
 #include "gl_shader_interface.hh"
 

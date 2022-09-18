@@ -6,7 +6,6 @@
 
 #include "GHOST_WindowSDL.h"
 #include "SDL_mouse.h"
-#include "glew-mx.h"
 
 #include "GHOST_ContextSDL.h"
 

@@ -38,7 +38,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "render_types.h"
 #include "texture_common.h"
 
 #include "RE_texture.h"
