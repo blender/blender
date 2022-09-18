@@ -7,7 +7,6 @@
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_pointcloud.h"
-#include "BKE_spline.hh"
 
 #include "GEO_resample_curves.hh"
 
