@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
+#include "BLI_array_utils.hh"
 #include "BLI_devirtualize_parameters.hh"
 #include "BLI_set.hh"
 #include "BLI_task.hh"
@@ -17,19 +18,6 @@
 #include "GEO_mesh_to_curve.hh"
 
 namespace blender::geometry {
-
-template<typename T>
-static void copy_with_map(const VArray<T> &src, Span<int> map, MutableSpan<T> dst)
-{
-  devirtualize_varray(src, [&](const auto &src) {
-    threading::parallel_for(map.index_range(), 1024, [&](const IndexRange range) {
-      for (const int i : range) {
-        const int vert_index = map[i];
-        dst[i] = src[vert_index];
-      }
-    });
-  });
-}
 
 bke::CurvesGeometry create_curve_from_vert_indices(const Mesh &mesh,
                                                    const Span<int> vert_indices,
@@ -71,7 +59,7 @@ bke::CurvesGeometry create_curve_from_vert_indices(const Mesh &mesh,
       using T = decltype(dummy);
       bke::SpanAttributeWriter<T> attribute =
           curves_attributes.lookup_or_add_for_write_only_span<T>(attribute_id, ATTR_DOMAIN_POINT);
-      copy_with_map<T>(mesh_attribute.typed<T>(), vert_indices, attribute.span);
+      array_utils::gather<T>(mesh_attribute.typed<T>(), vert_indices, attribute.span);
       attribute.finish();
     });
   }
