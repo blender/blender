@@ -220,8 +220,11 @@ void GHOST_EventPrinter::getKeyString(GHOST_TKey key, char str[32]) const
       case GHOST_kKeyRightAlt:
         tstr = "RightAlt";
         break;
-      case GHOST_kKeyOS:
-        tstr = "OS";
+      case GHOST_kKeyLeftOS:
+        tstr = "LeftOS";
+        break;
+      case GHOST_kKeyRightOS:
+        tstr = "RightOS";
         break;
       case GHOST_kKeyApp:
         tstr = "App";

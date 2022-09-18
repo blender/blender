@@ -4733,7 +4733,8 @@ static int convert_key(GHOST_TKey key)
       return EVT_LEFTCTRLKEY;
     case GHOST_kKeyRightControl:
       return EVT_RIGHTCTRLKEY;
-    case GHOST_kKeyOS:
+    case GHOST_kKeyLeftOS:
+    case GHOST_kKeyRightOS:
       return EVT_OSKEY;
     case GHOST_kKeyLeftAlt:
       return EVT_LEFTALTKEY;

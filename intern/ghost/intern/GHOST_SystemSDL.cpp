@@ -161,7 +161,8 @@ GHOST_TSuccess GHOST_SystemSDL::getModifierKeys(GHOST_ModifierKeys &keys) const
   keys.set(GHOST_kModifierKeyRightControl, (mod & KMOD_RCTRL) != 0);
   keys.set(GHOST_kModifierKeyLeftAlt, (mod & KMOD_LALT) != 0);
   keys.set(GHOST_kModifierKeyRightAlt, (mod & KMOD_RALT) != 0);
-  keys.set(GHOST_kModifierKeyOS, (mod & (KMOD_LGUI | KMOD_RGUI)) != 0);
+  keys.set(GHOST_kModifierKeyLeftOS, (mod & KMOD_LGUI) != 0);
+  keys.set(GHOST_kModifierKeyRightOS, (mod & KMOD_RGUI) != 0);
 
   return GHOST_kSuccess;
 }
@@ -219,8 +220,8 @@ static GHOST_TKey convertSDLKey(SDL_Scancode key)
       GXMAP(type, SDL_SCANCODE_RCTRL, GHOST_kKeyRightControl);
       GXMAP(type, SDL_SCANCODE_LALT, GHOST_kKeyLeftAlt);
       GXMAP(type, SDL_SCANCODE_RALT, GHOST_kKeyRightAlt);
-      GXMAP(type, SDL_SCANCODE_LGUI, GHOST_kKeyOS);
-      GXMAP(type, SDL_SCANCODE_RGUI, GHOST_kKeyOS);
+      GXMAP(type, SDL_SCANCODE_LGUI, GHOST_kKeyLeftOS);
+      GXMAP(type, SDL_SCANCODE_RGUI, GHOST_kKeyRightOS);
       GXMAP(type, SDL_SCANCODE_APPLICATION, GHOST_kKeyApp);
 
       GXMAP(type, SDL_SCANCODE_INSERT, GHOST_kKeyInsert);

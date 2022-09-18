@@ -137,7 +137,9 @@ static const struct {
     {KM_ALT,
      {GHOST_kKeyLeftAlt, GHOST_kKeyRightAlt},
      {GHOST_kModifierKeyLeftAlt, GHOST_kModifierKeyRightAlt}},
-    {KM_OSKEY, {GHOST_kKeyOS, GHOST_kKeyOS}, {GHOST_kModifierKeyOS, GHOST_kModifierKeyOS}},
+    {KM_OSKEY,
+     {GHOST_kKeyLeftOS, GHOST_kKeyRightOS},
+     {GHOST_kModifierKeyLeftOS, GHOST_kModifierKeyRightOS}},
 };
 
 enum ModSide {

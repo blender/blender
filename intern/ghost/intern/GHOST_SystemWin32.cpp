@@ -456,14 +456,11 @@ GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys &keys) cons
   down = HIBYTE(::GetKeyState(VK_RCONTROL)) != 0;
   keys.set(GHOST_kModifierKeyRightControl, down);
 
-  bool lwindown = HIBYTE(::GetKeyState(VK_LWIN)) != 0;
-  bool rwindown = HIBYTE(::GetKeyState(VK_RWIN)) != 0;
-  if (lwindown || rwindown) {
-    keys.set(GHOST_kModifierKeyOS, true);
-  }
-  else {
-    keys.set(GHOST_kModifierKeyOS, false);
-  }
+  down = HIBYTE(::GetKeyState(VK_LWIN)) != 0;
+  keys.set(GHOST_kModifierKeyLeftOS, down);
+  down = HIBYTE(::GetKeyState(VK_RWIN)) != 0;
+  keys.set(GHOST_kModifierKeyRightOS, down);
+
   return GHOST_kSuccess;
 }
 
@@ -751,8 +748,10 @@ GHOST_TKey GHOST_SystemWin32::convertKey(short vKey, short scanCode, short exten
         key = (extend) ? GHOST_kKeyRightAlt : GHOST_kKeyLeftAlt;
         break;
       case VK_LWIN:
+        key = GHOST_kKeyLeftOS;
+        break;
       case VK_RWIN:
-        key = GHOST_kKeyOS;
+        key = GHOST_kKeyRightOS;
         break;
       case VK_APPS:
         key = GHOST_kKeyApp;
