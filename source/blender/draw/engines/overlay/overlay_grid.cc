@@ -31,6 +31,7 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
   float *zplane_axes = pd->grid.zplane_axes;
   float grid_steps[SI_GRID_STEPS_LEN] = {
       0.001f, 0.01f, 0.1f, 1.0f, 10.0f, 100.0f, 1000.0f, 10000.0f};
+  float grid_steps_y[SI_GRID_STEPS_LEN] = {0.0f}; /* When zero, use value from grid_steps. */
   OVERLAY_GridBits grid_flag = OVERLAY_GridBits(0), zneg_flag = OVERLAY_GridBits(0),
                    zpos_flag = OVERLAY_GridBits(0);
   grid->line_size = max_ff(0.0f, U.pixelsize - 1.0f) * 0.5f;
@@ -68,7 +69,7 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
     }
 
     grid->zoom_factor = ED_space_image_zoom_level(v2d, SI_GRID_STEPS_LEN);
-    ED_space_image_grid_steps(sima, grid_steps, SI_GRID_STEPS_LEN);
+    ED_space_image_grid_steps(sima, grid_steps, grid_steps_y, SI_GRID_STEPS_LEN);
   }
   else {
     /* SPACE_VIEW3D */
@@ -197,6 +198,7 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
   /* Convert to UBO alignment. */
   for (int i = 0; i < SI_GRID_STEPS_LEN; i++) {
     grid->steps[i][0] = grid_steps[i];
+    grid->steps[i][1] = (grid_steps_y[i] != 0.0f) ? grid_steps_y[i] : grid_steps[i];
   }
   pd->grid.grid_flag = grid_flag;
   pd->grid.zneg_flag = zneg_flag;

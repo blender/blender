@@ -112,7 +112,8 @@ static SpaceLink *image_create(const ScrArea *UNUSED(area), const Scene *UNUSED(
   simage->tile_grid_shape[0] = 1;
   simage->tile_grid_shape[1] = 1;
 
-  simage->custom_grid_subdiv = 10;
+  simage->custom_grid_subdiv[0] = 10;
+  simage->custom_grid_subdiv[1] = 10;
 
   /* header */
   region = MEM_callocN(sizeof(ARegion), "header for image");

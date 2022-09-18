@@ -32,7 +32,8 @@ struct wmWindowManager;
 
 float ED_space_image_zoom_level(const struct View2D *v2d, int grid_dimension);
 void ED_space_image_grid_steps(struct SpaceImage *sima,
-                               float grid_steps[SI_GRID_STEPS_LEN],
+                               float grid_steps_x[SI_GRID_STEPS_LEN],
+                               float grid_steps_y[SI_GRID_STEPS_LEN],
                                int grid_dimension);
 /**
  * Calculate the increment snapping value for UV/image editor based on the zoom factor

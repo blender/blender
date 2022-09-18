@@ -1719,11 +1719,17 @@ static void initSnapSpatial(TransInfo *t, float r_snap[2])
     int grid_size = SI_GRID_STEPS_LEN;
     float zoom_factor = ED_space_image_zoom_level(v2d, grid_size);
     float grid_steps[SI_GRID_STEPS_LEN];
+    float grid_steps_y[SI_GRID_STEPS_LEN];
 
-    ED_space_image_grid_steps(sima, grid_steps, grid_size);
+    ED_space_image_grid_steps(sima, grid_steps, grid_steps_y, grid_size);
     /* Snapping value based on what type of grid is used (adaptive-subdividing or custom-grid). */
     r_snap[0] = ED_space_image_increment_snap_value(grid_size, grid_steps, zoom_factor);
     r_snap[1] = r_snap[0] / 2.0f;
+
+    /* TODO: Implement snapping for custom grid sizes with `grid_steps[0] != grid_steps_y[0]`.
+     * r_snap_y[0] = ED_space_image_increment_snap_value(grid_size, grid_steps_y, zoom_factor);
+     * r_snap_y[1] = r_snap_y[0] / 2.0f;
+     */
   }
   else if (t->spacetype == SPACE_CLIP) {
     r_snap[0] = 0.125f;

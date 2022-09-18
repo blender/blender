@@ -1236,11 +1236,10 @@ typedef struct SpaceImage {
 
   int tile_grid_shape[2];
   /**
-   * UV editor custom-grid. Value of `N` will produce `NxN` grid.
+   * UV editor custom-grid. Value of `{M,N}` will produce `MxN` grid.
    * Use when #SI_CUSTOM_GRID is set.
    */
-  int custom_grid_subdiv;
-  char _pad3[4];
+  int custom_grid_subdiv[2];
 
   MaskSpaceInfo mask_info;
   SpaceImageOverlay overlay;

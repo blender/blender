@@ -2401,11 +2401,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
               }
               break;
             }
-            case SPACE_IMAGE: {
-              SpaceImage *sima = (SpaceImage *)sl;
-              sima->custom_grid_subdiv = 10;
-              break;
-            }
           }
         }
       }
@@ -3423,6 +3418,22 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       if (face_sets) {
         for (int i = 0; i < mesh->totpoly; i++) {
           face_sets[i] = abs(face_sets[i]);
+        }
+      }
+    }
+
+    /* Custom grids in UV Editor have separate X and Y divisions. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          switch (sl->spacetype) {
+            case SPACE_IMAGE: {
+              SpaceImage *sima = (SpaceImage *)sl;
+              sima->custom_grid_subdiv[0] = 10;
+              sima->custom_grid_subdiv[1] = 10;
+              break;
+            }
+          }
         }
       }
     }
