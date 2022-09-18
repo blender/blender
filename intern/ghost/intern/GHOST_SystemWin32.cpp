@@ -1136,12 +1136,18 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
   GHOST_TKey key = system->hardKey(raw, &key_down);
   GHOST_EventKey *event;
 
+  /* NOTE(@campbellbarton): key repeat in WIN32 also applies to modifier-keys.
+   * Check for this case and filter out modifier-repeat.
+   * Typically keyboard events are *not* filtered as part of GHOST's event handling.
+   * As other GHOST back-ends don't have the behavior, it's simplest not to send them through.
+   * Ideally it would be possible to check the key-map for keys that repeat but this doesn't look
+   * to be supported. */
   bool is_repeat = false;
   bool is_repeated_modifier = false;
   if (key_down) {
     if (system->m_keycode_last_repeat_key == vk) {
       is_repeat = true;
-      is_repeated_modifier = (key >= GHOST_kKeyLeftShift && key <= GHOST_kKeyRightAlt);
+      is_repeated_modifier = GHOST_KEY_IS_MODIFIER(key);
     }
     system->m_keycode_last_repeat_key = vk;
   }
