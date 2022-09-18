@@ -399,8 +399,8 @@ inline AttributeValidator lookup_validator(const void * /*owner*/,
   if (!attribute_id.is_named()) {
     return {};
   }
-  const auto &builtin_providers = providers.builtin_attribute_providers();
-  const BuiltinAttributeProvider *provider = builtin_providers.lookup_as(attribute_id.name());
+  const BuiltinAttributeProvider *provider =
+      providers.builtin_attribute_providers().lookup_default_as(attribute_id.name(), nullptr);
   if (!provider) {
     return {};
   }
