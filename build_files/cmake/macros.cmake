@@ -418,13 +418,6 @@ function(blender_add_test_lib
   library_deps
   )
 
-  # Not currently supported for Python module due to different required
-  # Python link flags.
-  if(WITH_PYTHON_MODULE)
-    add_custom_target(${name})
-    return()
-  endif()
-
   add_cc_flags_custom_test(${name} PARENT_SCOPE)
 
   # Otherwise external projects will produce warnings that we cannot fix.
@@ -470,13 +463,6 @@ function(blender_add_test_executable
   includes_sys
   library_deps
   )
-
-  # Not currently supported for Python module due to different required
-  # Python link flags.
-  if(WITH_PYTHON_MODULE)
-    add_custom_target(${name})
-    return()
-  endif()
 
   add_cc_flags_custom_test(${name} PARENT_SCOPE)
 

@@ -1272,6 +1272,11 @@ endif()
 
 if(WITH_PYTHON_MODULE)
   add_definitions(-DPy_ENABLE_SHARED)
+  # Not currently supported due to different required Python link flags.
+  if(WITH_GTESTS)
+    message(STATUS "GTests not compatible with Python module, disabling WITH_GTESTS")
+    set(WITH_GTESTS OFF)
+  endif()
 endif()
 
 
