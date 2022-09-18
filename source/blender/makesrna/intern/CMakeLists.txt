@@ -185,10 +185,33 @@ set(SRC
 )
 
 set(INC
-  ../../../../intern/clog
-
-  # Needed for defaults forward declarations.
+  .
+  ..
+  ../../blenfont
+  ../../blenkernel
+  ../../blenlib
   ../../blenloader
+  ../../blentranslation
+  ../../bmesh
+  ../../depsgraph
+  ../../draw
+  ../../gpu
+  ../../ikplugin
+  ../../imbuf
+  ../../makesdna
+  ../../modifiers
+  ../../nodes/
+  ../../sequencer
+  ../../simulation
+  ../../windowmanager
+  ../../editors/include
+  ../../render
+  ../../../../intern/clog
+  ../../../../intern/cycles/blender
+  ../../../../intern/atomic
+  ../../../../intern/guardedalloc
+  ../../../../intern/memutil
+  ../../../../intern/mantaflow/extern
 
   ${CMAKE_BINARY_DIR}/source/blender/makesdna/intern
 
@@ -369,38 +392,12 @@ if(WITH_GMP)
 endif()
 
 # Build makesrna executable
-blender_include_dirs(
-  .
-  ..
-  ../../blenfont
-  ../../blenkernel
-  ../../blenlib
-  ../../blentranslation
-  ../../bmesh
-  ../../depsgraph
-  ../../draw
-  ../../gpu
-  ../../ikplugin
-  ../../imbuf
-  ../../makesdna
-  ../../modifiers
-  ../../nodes/
-  ../../sequencer
-  ../../simulation
-  ../../windowmanager
-  ../../editors/include
-  ../../render
-  ../../../../intern/cycles/blender
-  ../../../../intern/atomic
-  ../../../../intern/guardedalloc
-  ../../../../intern/memutil
-  ../../../../intern/mantaflow/extern
-)
-
 add_cc_flags_custom_test(makesrna)
 
 add_executable(makesrna ${SRC} ${SRC_RNA_INC} ${SRC_DNA_INC})
 setup_platform_linker_flags(makesrna)
+blender_target_include_dirs(makesrna ${INC})
+blender_target_include_dirs_sys(makesrna ${INC_SYS})
 
 target_link_libraries(makesrna bf_dna)
 target_link_libraries(makesrna bf_dna_blenlib)

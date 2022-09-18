@@ -7,6 +7,7 @@ endif()
 
 set(INC
   .
+  ..
   # ../blenkernel  # don't add this back!
   ../makesdna
   ../../../intern/atomic

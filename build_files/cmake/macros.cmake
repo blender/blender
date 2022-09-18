@@ -134,12 +134,11 @@ endfunction()
 
 # Nicer makefiles with -I/1/foo/ instead of -I/1/2/3/../../foo/
 # use it instead of include_directories()
-function(blender_include_dirs
-  includes
-  )
+function(absolute_include_dirs
+  includes_absolute)
 
   set(_ALL_INCS "")
-  foreach(_INC ${ARGV})
+  foreach(_INC ${ARGN})
     get_filename_component(_ABS_INC ${_INC} ABSOLUTE)
     list(APPEND _ALL_INCS ${_ABS_INC})
     # for checking for invalid includes, disable for regular use
@@ -147,22 +146,24 @@ function(blender_include_dirs
     #   message(FATAL_ERROR "Include not found: ${_ABS_INC}/")
     # endif()
   endforeach()
-  include_directories(${_ALL_INCS})
+
+  set(${includes_absolute} ${_ALL_INCS} PARENT_SCOPE)
 endfunction()
 
-function(blender_include_dirs_sys
-  includes
+function(blender_target_include_dirs
+  name
   )
 
-  set(_ALL_INCS "")
-  foreach(_INC ${ARGV})
-    get_filename_component(_ABS_INC ${_INC} ABSOLUTE)
-    list(APPEND _ALL_INCS ${_ABS_INC})
-    # if(NOT EXISTS "${_ABS_INC}/")
-    #   message(FATAL_ERROR "Include not found: ${_ABS_INC}/")
-    # endif()
-  endforeach()
-  include_directories(SYSTEM ${_ALL_INCS})
+  absolute_include_dirs(_ALL_INCS ${ARGN})
+  target_include_directories(${name} PRIVATE ${_ALL_INCS})
+endfunction()
+
+function(blender_target_include_dirs_sys
+  name
+  )
+
+  absolute_include_dirs(_ALL_INCS ${ARGN})
+  target_include_directories(${name} SYSTEM PRIVATE ${_ALL_INCS})
 endfunction()
 
 # Set include paths for header files included with "*.h" syntax.
@@ -268,12 +269,10 @@ function(blender_add_lib__impl
 
   # message(STATUS "Configuring library ${name}")
 
-  # include_directories(${includes})
-  # include_directories(SYSTEM ${includes_sys})
-  blender_include_dirs("${includes}")
-  blender_include_dirs_sys("${includes_sys}")
-
   add_library(${name} ${sources})
+
+  blender_target_include_dirs(${name} ${includes})
+  blender_target_include_dirs_sys(${name} ${includes_sys})
 
   # On Windows certain libraries have two sets of binaries: one for debug builds and one for
   # release builds. The root of this requirement goes into ABI, I believe, but that's outside
@@ -434,11 +433,11 @@ function(blender_add_test_lib
     ${CMAKE_SOURCE_DIR}/extern/gtest/include
     ${CMAKE_SOURCE_DIR}/extern/gmock/include
   )
-  add_definitions(-DBLENDER_GFLAGS_NAMESPACE=${GFLAGS_NAMESPACE})
-  add_definitions(${GFLAGS_DEFINES})
-  add_definitions(${GLOG_DEFINES})
 
   blender_add_lib__impl(${name} "${sources}" "${includes}" "${includes_sys}" "${library_deps}")
+
+  target_compile_definitions(${name} PRIVATE ${GFLAGS_DEFINES})
+  target_compile_definitions(${name} PRIVATE ${GLOG_DEFINES})
 
   set_property(GLOBAL APPEND PROPERTY BLENDER_TEST_LIBS ${name})
 
@@ -469,15 +468,15 @@ function(blender_add_test_executable
   ## Otherwise external projects will produce warnings that we cannot fix.
   remove_strict_flags()
 
-  include_directories(${includes})
-  include_directories(${includes_sys})
-
   BLENDER_SRC_GTEST_EX(
     NAME ${name}
     SRC "${sources}"
     EXTRA_LIBS "${library_deps}"
     SKIP_ADD_TEST
   )
+
+  blender_target_include_dirs(${name}_test ${includes})
+  blender_target_include_dirs_sys(${name}_test ${includes_sys})
 
   blender_add_test_suite(
     TARGET ${name}_test
@@ -513,6 +512,11 @@ function(setup_platform_linker_flags
   set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS " ${PLATFORM_LINKFLAGS}")
   set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS_RELEASE " ${PLATFORM_LINKFLAGS_RELEASE}")
   set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS_DEBUG " ${PLATFORM_LINKFLAGS_DEBUG}")
+
+  get_target_property(target_type ${target} TYPE)
+  if (target_type STREQUAL "EXECUTABLE")
+    set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS " ${PLATFORM_LINKFLAGS_EXECUTABLE}")
+  endif()
 endfunction()
 
 # Platform specific libraries for targets.
