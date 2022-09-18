@@ -169,13 +169,13 @@ macro(cycles_install_libraries target)
         FILES
         ${TBB_ROOT_DIR}/bin/tbb_debug${CMAKE_SHARED_LIBRARY_SUFFIX}
         ${OPENVDB_ROOT_DIR}/bin/openvdb_d${CMAKE_SHARED_LIBRARY_SUFFIX}
-        DESTINATION $<TARGET_FILE_DIR:${target}>)
+        DESTINATION ${CMAKE_INSTALL_PREFIX})
     else()
       install(
         FILES
         ${TBB_ROOT_DIR}/bin/tbb${CMAKE_SHARED_LIBRARY_SUFFIX}
         ${OPENVDB_ROOT_DIR}/bin/openvdb${CMAKE_SHARED_LIBRARY_SUFFIX}
-        DESTINATION $<TARGET_FILE_DIR:${target}>)
+        DESTINATION ${CMAKE_INSTALL_PREFIX})
     endif()
   endif()
 endmacro()
