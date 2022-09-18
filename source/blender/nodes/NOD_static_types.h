@@ -352,6 +352,7 @@ DefNode(GeometryNode, GEO_NODE_JOIN_GEOMETRY, 0, "JOIN_GEOMETRY", JoinGeometry, 
 DefNode(GeometryNode, GEO_NODE_MATERIAL_SELECTION, 0, "MATERIAL_SELECTION", MaterialSelection, "Material Selection", "Provide a selection of faces that use the specified material")
 DefNode(GeometryNode, GEO_NODE_MERGE_BY_DISTANCE, def_geo_merge_by_distance,"MERGE_BY_DISTANCE", MergeByDistance, "Merge by Distance", "Merge vertices or points within a given distance")
 DefNode(GeometryNode, GEO_NODE_MESH_BOOLEAN, def_geo_boolean, "MESH_BOOLEAN", MeshBoolean, "Mesh Boolean", "Cut, subtract, or join multiple mesh inputs")
+DefNode(GeometryNode, GEO_NODE_MESH_FACE_SET_BOUNDARIES, 0, "MESH_FACE_SET_BOUNDARIES", MeshFaceSetBoundaries, "Face Set Boundaries", "Find edges on the boundaries between face sets")
 DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_CIRCLE, def_geo_mesh_circle, "MESH_PRIMITIVE_CIRCLE", MeshCircle, "Mesh Circle", "Generate a circular ring of edges")
 DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_CONE, def_geo_mesh_cone, "MESH_PRIMITIVE_CONE",MeshCone, "Cone", "Generate a cone mesh")
 DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_CUBE, 0, "MESH_PRIMITIVE_CUBE",MeshCube, "Cube", "Generate a cuboid mesh with variable side lengths and subdivisions")

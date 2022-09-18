@@ -4748,6 +4748,7 @@ static void registerGeometryNodes()
   register_node_type_geo_material_replace();
   register_node_type_geo_material_selection();
   register_node_type_geo_merge_by_distance();
+  register_node_type_geo_mesh_face_set_boundaries();
   register_node_type_geo_mesh_primitive_circle();
   register_node_type_geo_mesh_primitive_cone();
   register_node_type_geo_mesh_primitive_cube();
