@@ -548,7 +548,7 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
 
   static const fn::CustomMF_SI_SO<int, int> resolution_clamp{
       "Resolution Validate",
-      [](int value) { return std::max<int>(value, 0); },
+      [](int value) { return std::max<int>(value, 1); },
       fn::CustomMF_presets::AllSpanOrSingle()};
   static BuiltinCustomDataLayerProvider resolution("resolution",
                                                    ATTR_DOMAIN_CURVE,
