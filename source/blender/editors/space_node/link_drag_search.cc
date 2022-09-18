@@ -214,7 +214,7 @@ static void link_drag_search_exec_fn(bContext *C, void *arg1, void *arg2)
   bNode *new_node = new_nodes.first();
 
   new_node->locx = storage.cursor.x / UI_DPI_FAC;
-  new_node->locy = storage.cursor.y / UI_DPI_FAC + 20 * UI_DPI_FAC;
+  new_node->locy = storage.cursor.y / UI_DPI_FAC + 20;
   if (storage.in_out() == SOCK_IN) {
     new_node->locx -= new_node->width;
   }
