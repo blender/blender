@@ -1595,6 +1595,11 @@ typedef struct NodeGeometryUVUnwrap {
   uint8_t method;
 } NodeGeometryUVUnwrap;
 
+typedef struct NodeGeometryDistributePointsInVolume {
+  /* GeometryNodePointDistributeVolumeMode. */
+  uint8_t mode;
+} NodeGeometryDistributePointsInVolume;
+
 typedef struct NodeFunctionCompare {
   /* NodeCompareOperation */
   int8_t operation;
@@ -2175,6 +2180,11 @@ typedef enum GeometryNodeTriangulateQuads {
   GEO_NODE_TRIANGULATE_QUAD_SHORTEDGE = 3,
   GEO_NODE_TRIANGULATE_QUAD_LONGEDGE = 4,
 } GeometryNodeTriangulateQuads;
+
+typedef enum GeometryNodeDistributePointsInVolumeMode {
+  GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM = 0,
+  GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID = 1,
+} GeometryNodeDistributePointsInVolumeMode;
 
 typedef enum GeometryNodeDistributePointsOnFacesMode {
   GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_RANDOM = 0,

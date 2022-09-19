@@ -9614,6 +9614,31 @@ static void def_geo_extrude_mesh(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_geo_distribute_points_in_volume(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  static const EnumPropertyItem mode_items[] = {
+      {GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM,
+       "DENSITY_RANDOM",
+       0,
+       "Random",
+       "Distribute points randomly inside of the volume"},
+      {GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID,
+       "DENSITY_GRID",
+       0,
+       "Grid",
+       "Distribute the points in a grid pattern inside of the volume"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryDistributePointsInVolume", "storage");
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, mode_items);
+  RNA_def_property_ui_text(prop, "Distribution Method", "Method to use for scattering points");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
 static void def_geo_distribute_points_on_faces(StructRNA *srna)
 {
   PropertyRNA *prop;

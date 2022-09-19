@@ -241,6 +241,7 @@ def point_node_items(context):
     space = context.space_data
     if not space:
         return
+    yield NodeItem("GeometryNodeDistributePointsInVolume")
     yield NodeItem("GeometryNodeDistributePointsOnFaces")
     yield NodeItem("GeometryNodePoints")
     yield NodeItem("GeometryNodePointsToVertices")

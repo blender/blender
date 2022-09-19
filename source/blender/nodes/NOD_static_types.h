@@ -305,6 +305,7 @@ DefNode(GeometryNode, GEO_NODE_CURVE_TO_MESH, 0, "CURVE_TO_MESH", CurveToMesh, "
 DefNode(GeometryNode, GEO_NODE_CURVE_TO_POINTS, def_geo_curve_to_points, "CURVE_TO_POINTS", CurveToPoints, "Curve to Points", "Generate a point cloud by sampling positions along curves")
 DefNode(GeometryNode, GEO_NODE_DEFORM_CURVES_ON_SURFACE, 0, "DEFORM_CURVES_ON_SURFACE", DeformCurvesOnSurface, "Deform Curves on Surface", "Translate and rotate curves based on changes between the object's original and evaluated surface mesh")
 DefNode(GeometryNode, GEO_NODE_DELETE_GEOMETRY, def_geo_delete_geometry, "DELETE_GEOMETRY", DeleteGeometry, "Delete Geometry", "Remove selected elements of a geometry")
+DefNode(GeometryNode, GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME, def_geo_distribute_points_in_volume, "DISTRIBUTE_POINTS_IN_VOLUME", DistributePointsInVolume, "Distribute Points In Volume", "Generate points inside a volume")
 DefNode(GeometryNode, GEO_NODE_DISTRIBUTE_POINTS_ON_FACES, def_geo_distribute_points_on_faces, "DISTRIBUTE_POINTS_ON_FACES", DistributePointsOnFaces, "Distribute Points on Faces", "Generate points spread out on the surface of a mesh")
 DefNode(GeometryNode, GEO_NODE_DUAL_MESH, 0, "DUAL_MESH", DualMesh, "Dual Mesh", "Convert Faces into vertices and vertices into faces")
 DefNode(GeometryNode, GEO_NODE_DUPLICATE_ELEMENTS, def_geo_duplicate_elements, "DUPLICATE_ELEMENTS", DuplicateElements, "Duplicate Elements", "Generate an arbitrary number copies of each selected input element")
