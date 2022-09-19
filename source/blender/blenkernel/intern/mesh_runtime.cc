@@ -280,10 +280,10 @@ void BKE_mesh_tag_coords_changed_uniformly(Mesh *mesh)
   BKE_mesh_tag_coords_changed(mesh);
   /* The normals didn't change, since all verts moved by the same amount. */
   if (!vert_normals_were_dirty) {
-    BKE_mesh_poly_normals_clear_dirty(mesh);
+    BKE_mesh_vertex_normals_clear_dirty(mesh);
   }
   if (!poly_normals_were_dirty) {
-    BKE_mesh_vertex_normals_clear_dirty(mesh);
+    BKE_mesh_poly_normals_clear_dirty(mesh);
   }
 }
 
