@@ -24,6 +24,7 @@ set(INC
 
 
 set(SRC
+  add_node_search.cc
   drawnode.cc
   link_drag_search.cc
   node_add.cc

@@ -5,7 +5,12 @@
 
 #include "DNA_space_types.h"
 
+#include "BKE_asset.h"
 #include "BKE_context.h"
+#include "BKE_idprop.h"
+#include "BKE_lib_id.h"
+#include "BKE_node_tree_update.h"
+#include "BKE_screen.h"
 
 #include "NOD_socket_search_link.hh"
 
@@ -15,6 +20,9 @@
 
 #include "WM_api.h"
 
+#include "DEG_depsgraph_build.h"
+
+#include "ED_asset.h"
 #include "ED_node.h"
 
 #include "node_intern.hh"
@@ -29,12 +37,27 @@ struct LinkDragSearchStorage {
   float2 cursor;
   Vector<SocketLinkOperation> search_link_ops;
   char search[256];
+  bool update_items_tag = true;
 
   eNodeSocketInOut in_out() const
   {
     return static_cast<eNodeSocketInOut>(from_socket.in_out);
   }
 };
+
+static void link_drag_search_listen_fn(const wmRegionListenerParams *params, void *arg)
+{
+  LinkDragSearchStorage &storage = *static_cast<LinkDragSearchStorage *>(arg);
+  const wmNotifier *wmn = params->notifier;
+
+  switch (wmn->category) {
+    case NC_ASSET:
+      if (wmn->data == ND_ASSET_LIST_READING) {
+        storage.update_items_tag = true;
+      }
+      break;
+  }
+}
 
 static void add_reroute_node_fn(nodes::LinkSearchOpParams &params)
 {
@@ -112,11 +135,137 @@ static void add_existing_group_input_fn(nodes::LinkSearchOpParams &params,
 }
 
 /**
+ * \note This could use #search_link_ops_for_socket_templates, but we have to store the inputs and
+ * outputs as IDProperties for assets because of asset indexing, so that's all we have without
+ * loading the file.
+ */
+static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
+                                               const bNodeSocket &socket,
+                                               const AssetLibraryReference &library_ref,
+                                               const AssetHandle asset,
+                                               Vector<SocketLinkOperation> &search_link_ops)
+{
+  const AssetMetaData &asset_data = *ED_asset_handle_get_metadata(&asset);
+  const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&asset_data, "type");
+  if (tree_type == nullptr || IDP_Int(tree_type) != node_tree.type) {
+    return;
+  }
+
+  const bNodeTreeType &node_tree_type = *node_tree.typeinfo;
+  const eNodeSocketInOut in_out = socket.in_out == SOCK_OUT ? SOCK_IN : SOCK_OUT;
+
+  const IDProperty *sockets = BKE_asset_metadata_idprop_find(
+      &asset_data, in_out == SOCK_IN ? "inputs" : "outputs");
+
+  int weight = -1;
+  Set<StringRef> socket_names;
+  LISTBASE_FOREACH (IDProperty *, socket_property, &sockets->data.group) {
+    if (socket_property->type != IDP_STRING) {
+      continue;
+    }
+    const char *socket_idname = IDP_String(socket_property);
+    const bNodeSocketType *socket_type = nodeSocketTypeFind(socket_idname);
+    if (socket_type == nullptr) {
+      continue;
+    }
+    eNodeSocketDatatype from = (eNodeSocketDatatype)socket.type;
+    eNodeSocketDatatype to = (eNodeSocketDatatype)socket_type->type;
+    if (socket.in_out == SOCK_OUT) {
+      std::swap(from, to);
+    }
+    if (node_tree_type.validate_link && !node_tree_type.validate_link(from, to)) {
+      continue;
+    }
+    if (!socket_names.add(socket_property->name)) {
+      /* See comment in #search_link_ops_for_declarations. */
+      continue;
+    }
+
+    const StringRef asset_name = ED_asset_handle_get_name(&asset);
+    const StringRef socket_name = socket_property->name;
+
+    search_link_ops.append(
+        {asset_name + " " + UI_MENU_ARROW_SEP + socket_name,
+         [library_ref, asset, socket_property, in_out](nodes::LinkSearchOpParams &params) {
+           Main &bmain = *CTX_data_main(&params.C);
+
+           bNode &node = params.add_node(params.node_tree.typeinfo->group_idname);
+           node.flag &= ~NODE_OPTIONS;
+
+           node.id = asset::get_local_id_from_asset_or_append_and_reuse(bmain, library_ref, asset);
+           id_us_plus(node.id);
+           BKE_ntree_update_tag_node_property(&params.node_tree, &node);
+           DEG_relations_tag_update(&bmain);
+
+           /* Create the inputs and outputs on the new node. */
+           node.typeinfo->group_update_func(&params.node_tree, &node);
+
+           bNodeSocket *new_node_socket = bke::node_find_enabled_socket(
+               node, in_out, socket_property->name);
+           if (new_node_socket != nullptr) {
+             /* Rely on the way #nodeAddLink switches in/out if necessary. */
+             nodeAddLink(&params.node_tree, &params.node, &params.socket, &node, new_node_socket);
+           }
+         },
+         weight});
+
+    weight--;
+  }
+}
+
+static void gather_search_link_ops_for_asset_library(const bContext &C,
+                                                     const bNodeTree &node_tree,
+                                                     const bNodeSocket &socket,
+                                                     const AssetLibraryReference &library_ref,
+                                                     const bool skip_local,
+                                                     Vector<SocketLinkOperation> &search_link_ops)
+{
+  AssetFilterSettings filter_settings{};
+  filter_settings.id_types = FILTER_ID_NT;
+
+  ED_assetlist_storage_fetch(&library_ref, &C);
+  ED_assetlist_ensure_previews_job(&library_ref, &C);
+  ED_assetlist_iterate(library_ref, [&](AssetHandle asset) {
+    if (!ED_asset_filter_matches_asset(&filter_settings, &asset)) {
+      return true;
+    }
+    if (skip_local && ED_asset_handle_get_local_id(&asset) != nullptr) {
+      return true;
+    }
+    search_link_ops_for_asset_metadata(node_tree, socket, library_ref, asset, search_link_ops);
+    return true;
+  });
+}
+
+static void gather_search_link_ops_for_all_assets(const bContext &C,
+                                                  const bNodeTree &node_tree,
+                                                  const bNodeSocket &socket,
+                                                  Vector<SocketLinkOperation> &search_link_ops)
+{
+  int i;
+  LISTBASE_FOREACH_INDEX (const bUserAssetLibrary *, asset_library, &U.asset_libraries, i) {
+    AssetLibraryReference library_ref{};
+    library_ref.custom_library_index = i;
+    library_ref.type = ASSET_LIBRARY_CUSTOM;
+    /* Skip local assets to avoid duplicates when the asset is part of the local file library. */
+    gather_search_link_ops_for_asset_library(
+        C, node_tree, socket, library_ref, true, search_link_ops);
+  }
+
+  AssetLibraryReference library_ref{};
+  library_ref.custom_library_index = -1;
+  library_ref.type = ASSET_LIBRARY_LOCAL;
+  gather_search_link_ops_for_asset_library(
+      C, node_tree, socket, library_ref, false, search_link_ops);
+}
+
+/**
  * Call the callback to gather compatible socket connections for all node types, and the operations
  * that will actually make the connections. Also add some custom operations like connecting a group
  * output node.
  */
-static void gather_socket_link_operations(bNodeTree &node_tree,
+static void gather_socket_link_operations(const bContext &C,
+                                          bNodeTree &node_tree,
                                           const bNodeSocket &socket,
                                           Vector<SocketLinkOperation> &search_link_ops)
 {
@@ -156,15 +305,20 @@ static void gather_socket_link_operations(bNodeTree &node_tree,
       weight--;
     }
   }
+
+  gather_search_link_ops_for_all_assets(C, node_tree, socket, search_link_ops);
 }
 
-static void link_drag_search_update_fn(const bContext *UNUSED(C),
-                                       void *arg,
-                                       const char *str,
-                                       uiSearchItems *items,
-                                       const bool is_first)
+static void link_drag_search_update_fn(
+    const bContext *C, void *arg, const char *str, uiSearchItems *items, const bool is_first)
 {
   LinkDragSearchStorage &storage = *static_cast<LinkDragSearchStorage *>(arg);
+  if (storage.update_items_tag) {
+    bNodeTree *node_tree = CTX_wm_space_node(C)->edittree;
+    storage.search_link_ops.clear();
+    gather_socket_link_operations(*C, *node_tree, storage.from_socket, storage.search_link_ops);
+    storage.update_items_tag = false;
+  }
 
   StringSearch *search = BLI_string_search_new();
 
@@ -245,9 +399,6 @@ static uiBlock *create_search_popup_block(bContext *C, ARegion *region, void *ar
 {
   LinkDragSearchStorage &storage = *(LinkDragSearchStorage *)arg_op;
 
-  bNodeTree &node_tree = *CTX_wm_space_node(C)->edittree;
-  gather_socket_link_operations(node_tree, storage.from_socket, storage.search_link_ops);
-
   uiBlock *block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
@@ -265,6 +416,7 @@ static uiBlock *create_search_popup_block(bContext *C, ARegion *region, void *ar
                               0,
                               "");
   UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
+  UI_but_func_search_set_listen(but, link_drag_search_listen_fn);
   UI_but_func_search_set(but,
                          nullptr,
                          link_drag_search_update_fn,
