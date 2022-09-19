@@ -58,7 +58,6 @@ batch = batch_for_shader(
 
 
 def draw():
-    shader.bind()
     matrix = bpy.context.region_data.perspective_matrix
     shader.uniform_float("u_ViewProjectionMatrix", matrix)
     shader.uniform_float("u_Scale", 10)

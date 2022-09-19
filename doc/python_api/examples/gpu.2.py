@@ -41,7 +41,6 @@ batch = batch_for_shader(shader, 'TRIS', {"position": coords})
 
 
 def draw():
-    shader.bind()
     matrix = bpy.context.region_data.perspective_matrix
     shader.uniform_float("viewProjectionMatrix", matrix)
     shader.uniform_float("brightness", 0.5)
