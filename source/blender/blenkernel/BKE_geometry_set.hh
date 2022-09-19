@@ -464,7 +464,7 @@ class PointCloudComponent : public GeometryComponent {
 };
 
 /**
- * A geometry component that stores a group of curves, corresponding the #Curves data-block type
+ * A geometry component that stores a group of curves, corresponding the #Curves data-block
  * and the #CurvesGeometry type. Attributes are stored on the control point domain and the
  * curve domain.
  */
@@ -474,10 +474,9 @@ class CurveComponent : public GeometryComponent {
   GeometryOwnershipType ownership_ = GeometryOwnershipType::Owned;
 
   /**
-   * Curve data necessary to hold the draw cache for rendering, consistent over multiple redraws.
-   * This is necessary because Blender assumes that objects evaluate to an object data type, and
-   * we use #CurveEval rather than #Curve here. It also allows us to mostly reuse the same
-   * batch cache implementation.
+   * Because rendering #Curves isn't fully working yet, we must provide a #Curve for the render
+   * engine and depsgraph object iterator in some cases. This allows using the old curve rendering
+   * even when the new curve data structure is used.
    */
   mutable Curve *curve_for_render_ = nullptr;
   mutable std::mutex curve_for_render_mutex_;
