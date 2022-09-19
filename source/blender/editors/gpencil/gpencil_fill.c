@@ -661,8 +661,7 @@ static void gpencil_draw_basic_stroke(tGPDfill *tgpf,
     col[3] = (gps->flag & GP_STROKE_TAG) ? 0.0f : 0.5f;
   }
   else if ((is_extend) && (!tgpf->is_render)) {
-    if ((gps->flag & GP_STROKE_COLLIDE) || (tgpf->fill_extend_mode == GP_FILL_EMODE_RADIUS))
-      {
+    if ((gps->flag & GP_STROKE_COLLIDE) || (tgpf->fill_extend_mode == GP_FILL_EMODE_RADIUS)) {
       copy_v4_v4(col, extend_col);
     }
     else {
