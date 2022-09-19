@@ -252,9 +252,9 @@ class IndexRange {
   }
 
   /**
-   * Returns a new range, that contains the intersection of the current one with the given range.
-   * Returns empty range is no intersection exists.
-   * Returned range is always a valid slice of this range.
+   * Returns a new IndexRange that contains the intersection of the current one with the given
+   * range. Returns empty range if there are no overlapping indices. The returned range is always
+   * a valid slice of this range.
    */
   constexpr IndexRange intersect(IndexRange other) const
   {
