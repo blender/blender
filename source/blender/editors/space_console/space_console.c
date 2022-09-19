@@ -121,12 +121,13 @@ static void console_main_region_init(wmWindowManager *wm, ARegion *region)
     region->v2d.cur.ymax = prev_y_min + cur_y_range;
   }
 
-  keymap = WM_keymap_ensure(wm->defaultconf, "View2D Buttons List", 0, 0);
-  WM_event_add_keymap_handler(&region->handlers, keymap);
-
   /* own keymap */
   keymap = WM_keymap_ensure(wm->defaultconf, "Console", SPACE_CONSOLE, 0);
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+
+  /* Include after "Console" so cursor motion keys such as "Home" isn't overridden. */
+  keymap = WM_keymap_ensure(wm->defaultconf, "View2D Buttons List", 0, 0);
+  WM_event_add_keymap_handler(&region->handlers, keymap);
 
   /* add drop boxes */
   lb = WM_dropboxmap_find("Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);
