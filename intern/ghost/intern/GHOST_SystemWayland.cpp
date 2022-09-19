@@ -86,10 +86,6 @@ static void output_handle_done(void *data, struct wl_output *wl_output);
 static bool use_gnome_confine_hack = false;
 #endif
 
-#define XKB_STATE_MODS_ALL \
-  (enum xkb_state_component)(XKB_STATE_MODS_DEPRESSED | XKB_STATE_MODS_LATCHED | \
-                             XKB_STATE_MODS_LOCKED | XKB_STATE_MODS_EFFECTIVE)
-
 /* -------------------------------------------------------------------- */
 /** \name Inline Event Codes
  *
@@ -2163,7 +2159,8 @@ static void keyboard_handle_enter(void *data,
      * modifiers will be compared against the seat state,
      * only enabling modifiers that were previously disabled. */
 
-    const xkb_mod_mask_t state = xkb_state_serialize_mods(seat->xkb_state, XKB_STATE_MODS_ALL);
+    const xkb_mod_mask_t state = xkb_state_serialize_mods(seat->xkb_state,
+                                                          XKB_STATE_MODS_DEPRESSED);
     uint32_t *key;
     WL_ARRAY_FOR_EACH (key, keys) {
       const xkb_keycode_t key_code = *key + EVDEV_OFFSET;
@@ -3052,7 +3049,7 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
 
   /* NOTE: XKB doesn't differentiate between left/right modifiers
    * for it's internal modifier state storage. */
-  const xkb_mod_mask_t state = xkb_state_serialize_mods(seat->xkb_state, XKB_STATE_MODS_ALL);
+  const xkb_mod_mask_t state = xkb_state_serialize_mods(seat->xkb_state, XKB_STATE_MODS_DEPRESSED);
 
 #define MOD_TEST(state, mod) ((mod != XKB_MOD_INVALID) && (state & (1 << mod)))
 
