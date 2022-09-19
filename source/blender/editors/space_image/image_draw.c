@@ -601,18 +601,18 @@ void ED_space_image_grid_steps(SpaceImage *sima,
   }
 }
 
-float ED_space_image_increment_snap_value(const int grid_dimesnions,
+float ED_space_image_increment_snap_value(const int grid_dimensions,
                                           const float grid_steps[SI_GRID_STEPS_LEN],
                                           const float zoom_factor)
 {
   /* Small offset on each grid_steps[] so that snapping value doesn't change until grid lines are
    * significantly visible.
-   * `Offset = 3/4 * (grid_steps[i] - (grid_steps[i] / grid_dimesnsions))`
+   * `Offset = 3/4 * (grid_steps[i] - (grid_steps[i] / grid_dimensions))`
    *
    * Refer `grid_frag.glsl` to find out when grid lines actually start appearing */
 
   for (int step = 0; step < SI_GRID_STEPS_LEN; step++) {
-    float offset = (3.0f / 4.0f) * (grid_steps[step] - (grid_steps[step] / grid_dimesnions));
+    float offset = (3.0f / 4.0f) * (grid_steps[step] - (grid_steps[step] / grid_dimensions));
 
     if ((grid_steps[step] - offset) > zoom_factor) {
       return grid_steps[step];

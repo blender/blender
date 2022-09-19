@@ -39,7 +39,7 @@ void ED_space_image_grid_steps(struct SpaceImage *sima,
  * The code in here (except the offset part) is used in `grid_frag.glsl` (see `grid_res`) for
  * drawing the grid overlay for the UV/Image editor.
  */
-float ED_space_image_increment_snap_value(int grid_dimesnions,
+float ED_space_image_increment_snap_value(int grid_dimensions,
                                           const float grid_steps[SI_GRID_STEPS_LEN],
                                           float zoom_factor);
 
