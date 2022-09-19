@@ -6,7 +6,7 @@
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
-#include <string.h>
+#include <cstring>
 
 #include "CLG_log.h"
 
@@ -86,39 +86,40 @@ static IDProperty *idproperty_find_ui_container(IDProperty *idprop_group)
       return prop;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 static void version_idproperty_move_data_int(IDPropertyUIDataInt *ui_data,
                                              const IDProperty *prop_ui_data)
 {
   IDProperty *min = IDP_GetPropertyFromGroup(prop_ui_data, "min");
-  if (min != NULL) {
+  if (min != nullptr) {
     ui_data->min = ui_data->soft_min = IDP_coerce_to_int_or_zero(min);
   }
   IDProperty *max = IDP_GetPropertyFromGroup(prop_ui_data, "max");
-  if (max != NULL) {
+  if (max != nullptr) {
     ui_data->max = ui_data->soft_max = IDP_coerce_to_int_or_zero(max);
   }
   IDProperty *soft_min = IDP_GetPropertyFromGroup(prop_ui_data, "soft_min");
-  if (soft_min != NULL) {
+  if (soft_min != nullptr) {
     ui_data->soft_min = IDP_coerce_to_int_or_zero(soft_min);
     ui_data->soft_min = MIN2(ui_data->soft_min, ui_data->min);
   }
   IDProperty *soft_max = IDP_GetPropertyFromGroup(prop_ui_data, "soft_max");
-  if (soft_max != NULL) {
+  if (soft_max != nullptr) {
     ui_data->soft_max = IDP_coerce_to_int_or_zero(soft_max);
     ui_data->soft_max = MAX2(ui_data->soft_max, ui_data->max);
   }
   IDProperty *step = IDP_GetPropertyFromGroup(prop_ui_data, "step");
-  if (step != NULL) {
+  if (step != nullptr) {
     ui_data->step = IDP_coerce_to_int_or_zero(soft_max);
   }
   IDProperty *default_value = IDP_GetPropertyFromGroup(prop_ui_data, "default");
-  if (default_value != NULL) {
+  if (default_value != nullptr) {
     if (default_value->type == IDP_ARRAY) {
       if (default_value->subtype == IDP_INT) {
-        ui_data->default_array = MEM_malloc_arrayN(default_value->len, sizeof(int), __func__);
+        ui_data->default_array = static_cast<int *>(
+            MEM_malloc_arrayN(default_value->len, sizeof(int), __func__));
         memcpy(ui_data->default_array, IDP_Array(default_value), sizeof(int) * default_value->len);
         ui_data->default_array_len = default_value->len;
       }
@@ -133,45 +134,47 @@ static void version_idproperty_move_data_float(IDPropertyUIDataFloat *ui_data,
                                                const IDProperty *prop_ui_data)
 {
   IDProperty *min = IDP_GetPropertyFromGroup(prop_ui_data, "min");
-  if (min != NULL) {
+  if (min != nullptr) {
     ui_data->min = ui_data->soft_min = IDP_coerce_to_double_or_zero(min);
   }
   IDProperty *max = IDP_GetPropertyFromGroup(prop_ui_data, "max");
-  if (max != NULL) {
+  if (max != nullptr) {
     ui_data->max = ui_data->soft_max = IDP_coerce_to_double_or_zero(max);
   }
   IDProperty *soft_min = IDP_GetPropertyFromGroup(prop_ui_data, "soft_min");
-  if (soft_min != NULL) {
+  if (soft_min != nullptr) {
     ui_data->soft_min = IDP_coerce_to_double_or_zero(soft_min);
     ui_data->soft_min = MAX2(ui_data->soft_min, ui_data->min);
   }
   IDProperty *soft_max = IDP_GetPropertyFromGroup(prop_ui_data, "soft_max");
-  if (soft_max != NULL) {
+  if (soft_max != nullptr) {
     ui_data->soft_max = IDP_coerce_to_double_or_zero(soft_max);
     ui_data->soft_max = MIN2(ui_data->soft_max, ui_data->max);
   }
   IDProperty *step = IDP_GetPropertyFromGroup(prop_ui_data, "step");
-  if (step != NULL) {
+  if (step != nullptr) {
     ui_data->step = IDP_coerce_to_float_or_zero(step);
   }
   IDProperty *precision = IDP_GetPropertyFromGroup(prop_ui_data, "precision");
-  if (precision != NULL) {
+  if (precision != nullptr) {
     ui_data->precision = IDP_coerce_to_int_or_zero(precision);
   }
   IDProperty *default_value = IDP_GetPropertyFromGroup(prop_ui_data, "default");
-  if (default_value != NULL) {
+  if (default_value != nullptr) {
     if (default_value->type == IDP_ARRAY) {
       const int array_len = default_value->len;
       ui_data->default_array_len = array_len;
       if (default_value->subtype == IDP_FLOAT) {
-        ui_data->default_array = MEM_malloc_arrayN(array_len, sizeof(double), __func__);
-        const float *old_default_array = IDP_Array(default_value);
+        ui_data->default_array = static_cast<double *>(
+            MEM_malloc_arrayN(array_len, sizeof(double), __func__));
+        const float *old_default_array = static_cast<const float *>(IDP_Array(default_value));
         for (int i = 0; i < ui_data->default_array_len; i++) {
           ui_data->default_array[i] = (double)old_default_array[i];
         }
       }
       else if (default_value->subtype == IDP_DOUBLE) {
-        ui_data->default_array = MEM_malloc_arrayN(array_len, sizeof(double), __func__);
+        ui_data->default_array = static_cast<double *>(
+            MEM_malloc_arrayN(array_len, sizeof(double), __func__));
         memcpy(ui_data->default_array, IDP_Array(default_value), sizeof(double) * array_len);
       }
     }
@@ -185,25 +188,26 @@ static void version_idproperty_move_data_string(IDPropertyUIDataString *ui_data,
                                                 const IDProperty *prop_ui_data)
 {
   IDProperty *default_value = IDP_GetPropertyFromGroup(prop_ui_data, "default");
-  if (default_value != NULL && default_value->type == IDP_STRING) {
+  if (default_value != nullptr && default_value->type == IDP_STRING) {
     ui_data->default_value = BLI_strdup(IDP_String(default_value));
   }
 }
 
 static void version_idproperty_ui_data(IDProperty *idprop_group)
 {
-  if (idprop_group == NULL) { /* NULL check here to reduce verbosity of calls to this function. */
+  if (idprop_group ==
+      nullptr) { /* nullptr check here to reduce verbosity of calls to this function. */
     return;
   }
 
   IDProperty *ui_container = idproperty_find_ui_container(idprop_group);
-  if (ui_container == NULL) {
+  if (ui_container == nullptr) {
     return;
   }
 
   LISTBASE_FOREACH (IDProperty *, prop, &idprop_group->data.group) {
     IDProperty *prop_ui_data = IDP_GetPropertyFromGroup(ui_container, prop->name);
-    if (prop_ui_data == NULL) {
+    if (prop_ui_data == nullptr) {
       continue;
     }
 
@@ -214,7 +218,7 @@ static void version_idproperty_ui_data(IDProperty *idprop_group)
     IDPropertyUIData *ui_data = IDP_ui_data_ensure(prop);
 
     IDProperty *subtype = IDP_GetPropertyFromGroup(prop_ui_data, "subtype");
-    if (subtype != NULL && subtype->type == IDP_STRING) {
+    if (subtype != nullptr && subtype->type == IDP_STRING) {
       const char *subtype_string = IDP_String(subtype);
       int result = PROP_NONE;
       RNA_enum_value_from_id(rna_enum_property_subtype_items, subtype_string, &result);
@@ -222,7 +226,7 @@ static void version_idproperty_ui_data(IDProperty *idprop_group)
     }
 
     IDProperty *description = IDP_GetPropertyFromGroup(prop_ui_data, "description");
-    if (description != NULL && description->type == IDP_STRING) {
+    if (description != nullptr && description->type == IDP_STRING) {
       ui_data->description = BLI_strdup(IDP_String(description));
     }
 
@@ -318,7 +322,7 @@ static void do_versions_idproperty_ui_data(Main *bmain)
     }
 
     /* Object post bones. */
-    if (ob->type == OB_ARMATURE && ob->pose != NULL) {
+    if (ob->type == OB_ARMATURE && ob->pose != nullptr) {
       LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
         version_idproperty_ui_data(pchan->prop);
       }
@@ -327,7 +331,7 @@ static void do_versions_idproperty_ui_data(Main *bmain)
 
   /* Sequences. */
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    if (scene->ed != NULL) {
+    if (scene->ed != nullptr) {
       do_versions_idproperty_seq_recursive(&scene->ed->seqbase);
     }
   }
@@ -343,7 +347,7 @@ static void sort_linked_ids(Main *bmain)
       if (ID_IS_LINKED(id)) {
         BLI_remlink(lb, id);
         BLI_addtail(&temp_list, id);
-        id_sort_by_name(&temp_list, id, NULL);
+        id_sort_by_name(&temp_list, id, nullptr);
       }
     }
     BLI_movelisttolist(lb, &temp_list);
@@ -356,9 +360,9 @@ static void assert_sorted_ids(Main *bmain)
 #ifndef NDEBUG
   ListBase *lb;
   FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
-    ID *id_prev = NULL;
+    ID *id_prev = nullptr;
     LISTBASE_FOREACH (ID *, id, lb) {
-      if (id_prev == NULL) {
+      if (id_prev == nullptr) {
         continue;
       }
       BLI_assert(id_prev->lib != id->lib || BLI_strcasecmp(id_prev->name, id->name) < 0);
@@ -399,7 +403,7 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if (seq->type == SEQ_TYPE_SPEED) {
       SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
-      const char *substr = NULL;
+      const char *substr = nullptr;
       float globalSpeed = v->globalSpeed;
       if (seq->flag & SEQ_USE_EFFECT_DEFAULT_FADE) {
         if (globalSpeed == 1.0f) {
@@ -433,7 +437,8 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
       v->flags &= ~(SEQ_SPEED_INTEGRATE | SEQ_SPEED_COMPRESS_IPO_Y);
 
       if (substr || globalSpeed != 1.0f) {
-        FCurve *fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "speed_factor", 0, NULL);
+        FCurve *fcu = id_data_find_fcurve(
+            &scene->id, seq, &RNA_Sequence, "speed_factor", 0, nullptr);
         if (fcu) {
           if (globalSpeed != 1.0f) {
             for (int i = 0; i < fcu->totvert; i++) {
@@ -489,7 +494,7 @@ static bNodeLink *find_connected_link(bNodeTree *ntree, bNodeSocket *in_socket)
       return link;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 static void add_realize_instances_before_socket(bNodeTree *ntree,
@@ -498,7 +503,7 @@ static void add_realize_instances_before_socket(bNodeTree *ntree,
 {
   BLI_assert(geometry_socket->type == SOCK_GEOMETRY);
   bNodeLink *link = find_connected_link(ntree, geometry_socket);
-  if (link == NULL) {
+  if (link == nullptr) {
     return;
   }
 
@@ -507,13 +512,17 @@ static void add_realize_instances_before_socket(bNodeTree *ntree,
     return;
   }
 
-  bNode *realize_node = nodeAddStaticNode(NULL, ntree, GEO_NODE_REALIZE_INSTANCES);
+  bNode *realize_node = nodeAddStaticNode(nullptr, ntree, GEO_NODE_REALIZE_INSTANCES);
   realize_node->parent = node->parent;
   realize_node->locx = node->locx - 100;
   realize_node->locy = node->locy;
-  nodeAddLink(ntree, link->fromnode, link->fromsock, realize_node, realize_node->inputs.first);
+  nodeAddLink(ntree,
+              link->fromnode,
+              link->fromsock,
+              realize_node,
+              static_cast<bNodeSocket *>(realize_node->inputs.first));
   link->fromnode = realize_node;
-  link->fromsock = realize_node->outputs.first;
+  link->fromsock = static_cast<bNodeSocket *>(realize_node->outputs.first);
 }
 
 /**
@@ -537,7 +546,7 @@ static void version_geometry_nodes_add_realize_instance_nodes(bNodeTree *ntree)
              GEO_NODE_REPLACE_MATERIAL,
              GEO_NODE_SUBDIVIDE_MESH,
              GEO_NODE_TRIANGULATE)) {
-      bNodeSocket *geometry_socket = node->inputs.first;
+      bNodeSocket *geometry_socket = static_cast<bNodeSocket *>(node->inputs.first);
       add_realize_instances_before_socket(ntree, node, geometry_socket);
     }
     /* Also realize instances for the profile input of the curve to mesh node. */
@@ -560,33 +569,65 @@ static bNodeTree *add_realize_node_tree(Main *bmain)
   ntreeAddSocketInterface(node_tree, SOCK_IN, "NodeSocketGeometry", "Geometry");
   ntreeAddSocketInterface(node_tree, SOCK_OUT, "NodeSocketGeometry", "Geometry");
 
-  bNode *group_input = nodeAddStaticNode(NULL, node_tree, NODE_GROUP_INPUT);
+  bNode *group_input = nodeAddStaticNode(nullptr, node_tree, NODE_GROUP_INPUT);
   group_input->locx = -400.0f;
-  bNode *group_output = nodeAddStaticNode(NULL, node_tree, NODE_GROUP_OUTPUT);
+  bNode *group_output = nodeAddStaticNode(nullptr, node_tree, NODE_GROUP_OUTPUT);
   group_output->locx = 500.0f;
   group_output->flag |= NODE_DO_OUTPUT;
 
-  bNode *join = nodeAddStaticNode(NULL, node_tree, GEO_NODE_JOIN_GEOMETRY);
+  bNode *join = nodeAddStaticNode(nullptr, node_tree, GEO_NODE_JOIN_GEOMETRY);
   join->locx = group_output->locx - 175.0f;
   join->locy = group_output->locy;
-  bNode *conv = nodeAddStaticNode(NULL, node_tree, GEO_NODE_POINTS_TO_VERTICES);
+  bNode *conv = nodeAddStaticNode(nullptr, node_tree, GEO_NODE_POINTS_TO_VERTICES);
   conv->locx = join->locx - 175.0f;
   conv->locy = join->locy - 70.0;
-  bNode *separate = nodeAddStaticNode(NULL, node_tree, GEO_NODE_SEPARATE_COMPONENTS);
+  bNode *separate = nodeAddStaticNode(nullptr, node_tree, GEO_NODE_SEPARATE_COMPONENTS);
   separate->locx = join->locx - 350.0f;
   separate->locy = join->locy + 50.0f;
-  bNode *realize = nodeAddStaticNode(NULL, node_tree, GEO_NODE_REALIZE_INSTANCES);
+  bNode *realize = nodeAddStaticNode(nullptr, node_tree, GEO_NODE_REALIZE_INSTANCES);
   realize->locx = separate->locx - 200.0f;
   realize->locy = join->locy;
 
-  nodeAddLink(node_tree, group_input, group_input->outputs.first, realize, realize->inputs.first);
-  nodeAddLink(node_tree, realize, realize->outputs.first, separate, separate->inputs.first);
-  nodeAddLink(node_tree, conv, conv->outputs.first, join, join->inputs.first);
-  nodeAddLink(node_tree, separate, BLI_findlink(&separate->outputs, 3), join, join->inputs.first);
-  nodeAddLink(node_tree, separate, BLI_findlink(&separate->outputs, 1), conv, conv->inputs.first);
-  nodeAddLink(node_tree, separate, BLI_findlink(&separate->outputs, 2), join, join->inputs.first);
-  nodeAddLink(node_tree, separate, separate->outputs.first, join, join->inputs.first);
-  nodeAddLink(node_tree, join, join->outputs.first, group_output, group_output->inputs.first);
+  nodeAddLink(node_tree,
+              group_input,
+              static_cast<bNodeSocket *>(group_input->outputs.first),
+              realize,
+              static_cast<bNodeSocket *>(realize->inputs.first));
+  nodeAddLink(node_tree,
+              realize,
+              static_cast<bNodeSocket *>(realize->outputs.first),
+              separate,
+              static_cast<bNodeSocket *>(separate->inputs.first));
+  nodeAddLink(node_tree,
+              conv,
+              static_cast<bNodeSocket *>(conv->outputs.first),
+              join,
+              static_cast<bNodeSocket *>(join->inputs.first));
+  nodeAddLink(node_tree,
+              separate,
+              static_cast<bNodeSocket *>(BLI_findlink(&separate->outputs, 3)),
+              join,
+              static_cast<bNodeSocket *>(join->inputs.first));
+  nodeAddLink(node_tree,
+              separate,
+              static_cast<bNodeSocket *>(BLI_findlink(&separate->outputs, 1)),
+              conv,
+              static_cast<bNodeSocket *>(conv->inputs.first));
+  nodeAddLink(node_tree,
+              separate,
+              static_cast<bNodeSocket *>(BLI_findlink(&separate->outputs, 2)),
+              join,
+              static_cast<bNodeSocket *>(join->inputs.first));
+  nodeAddLink(node_tree,
+              separate,
+              static_cast<bNodeSocket *>(separate->outputs.first),
+              join,
+              static_cast<bNodeSocket *>(join->inputs.first));
+  nodeAddLink(node_tree,
+              join,
+              static_cast<bNodeSocket *>(join->outputs.first),
+              group_output,
+              static_cast<bNodeSocket *>(group_output->inputs.first));
 
   LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
     nodeSetSelected(node, false);
@@ -602,7 +643,7 @@ static void seq_speed_factor_fix_rna_path(Sequence *seq, ListBase *fcurves)
   BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
   char *path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].pitch", name_esc);
   FCurve *fcu = BKE_fcurve_find(fcurves, path, 0);
-  if (fcu != NULL) {
+  if (fcu != nullptr) {
     MEM_freeN(fcu->rna_path);
     fcu->rna_path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].speed_factor", name_esc);
   }
@@ -611,7 +652,7 @@ static void seq_speed_factor_fix_rna_path(Sequence *seq, ListBase *fcurves)
 
 static bool seq_speed_factor_set(Sequence *seq, void *user_data)
 {
-  const Scene *scene = user_data;
+  const Scene *scene = static_cast<const Scene *>(user_data);
   if (seq->type == SEQ_TYPE_SOUND_RAM) {
     /* Move `pitch` animation to `speed_factor` */
     if (scene->adt && scene->adt->action) {
@@ -655,7 +696,7 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 13)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (scene->ed != NULL) {
+      if (scene->ed != nullptr) {
         do_versions_sequencer_speed_effect_recursive(scene, &scene->ed->seqbase);
       }
     }
@@ -669,24 +710,24 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       ToolSettings *tool_settings = scene->toolsettings;
       ImagePaintSettings *imapaint = &tool_settings->imapaint;
-      if (imapaint->canvas != NULL &&
+      if (imapaint->canvas != nullptr &&
           ELEM(imapaint->canvas->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
-        imapaint->canvas = NULL;
+        imapaint->canvas = nullptr;
       }
-      if (imapaint->stencil != NULL &&
+      if (imapaint->stencil != nullptr &&
           ELEM(imapaint->stencil->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
-        imapaint->stencil = NULL;
+        imapaint->stencil = nullptr;
       }
-      if (imapaint->clone != NULL &&
+      if (imapaint->clone != nullptr &&
           ELEM(imapaint->clone->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
-        imapaint->clone = NULL;
+        imapaint->clone = nullptr;
       }
     }
 
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      if (brush->clone.image != NULL &&
+      if (brush->clone.image != nullptr &&
           ELEM(brush->clone.image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
-        brush->clone.image = NULL;
+        brush->clone.image = nullptr;
       }
     }
   }
@@ -745,20 +786,20 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 35)) {
     /* Add a new modifier to realize instances from previous modifiers.
      * Previously that was done automatically by geometry nodes. */
-    bNodeTree *realize_instances_node_tree = NULL;
+    bNodeTree *realize_instances_node_tree = nullptr;
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       LISTBASE_FOREACH_MUTABLE (ModifierData *, md, &ob->modifiers) {
         if (md->type != eModifierType_Nodes) {
           continue;
         }
-        if (md->next == NULL) {
+        if (md->next == nullptr) {
           break;
         }
         if (md->next->type == eModifierType_Nodes) {
           continue;
         }
         NodesModifierData *nmd = (NodesModifierData *)md;
-        if (nmd->node_group == NULL) {
+        if (nmd->node_group == nullptr) {
           continue;
         }
 
@@ -766,7 +807,7 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
         STRNCPY(new_nmd->modifier.name, "Realize Instances 2.93 Legacy");
         BKE_modifier_unique_name(&ob->modifiers, &new_nmd->modifier);
         BLI_insertlinkafter(&ob->modifiers, md, new_nmd);
-        if (realize_instances_node_tree == NULL) {
+        if (realize_instances_node_tree == nullptr) {
           realize_instances_node_tree = add_realize_node_tree(bmain);
         }
         new_nmd->node_group = realize_instances_node_tree;
@@ -779,7 +820,7 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
       if (ntree->type == NTREE_GEOMETRY) {
         LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
           if (node->type == GEO_NODE_BOUNDING_BOX) {
-            bNodeSocket *geometry_socket = node->inputs.first;
+            bNodeSocket *geometry_socket = static_cast<bNodeSocket *>(node->inputs.first);
             add_realize_instances_before_socket(ntree, node, geometry_socket);
           }
         }
@@ -792,7 +833,7 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
       ID *id;
       FOREACH_MAIN_ID_BEGIN (bmain, id) {
         AnimData *adt = BKE_animdata_from_id(id);
-        if (adt == NULL) {
+        if (adt == nullptr) {
           continue;
         }
         LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
@@ -825,7 +866,7 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
 
   if (!MAIN_VERSION_ATLEAST(bmain, 302, 14)) {
     /* Sequencer channels region. */
-    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype != SPACE_SEQ) {
@@ -843,7 +884,7 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
           ARegion *timeline_region = BKE_region_find_in_listbase_by_type(regionbase,
                                                                          RGN_TYPE_WINDOW);
 
-          if (timeline_region == NULL) {
+          if (timeline_region == nullptr) {
             continue;
           }
 
@@ -857,7 +898,7 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
   if (!MAIN_VERSION_ATLEAST(bmain, 303, 5)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       Editing *ed = SEQ_editing_get(scene);
-      if (ed == NULL) {
+      if (ed == nullptr) {
         continue;
       }
       SEQ_for_each_callback(&ed->seqbase, seq_speed_factor_set, scene);
@@ -882,7 +923,7 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
           const bool is_first_space = sl == area->spacedata.first;
           ListBase *regionbase = is_first_space ? &area->regionbase : &sl->regionbase;
           ARegion *region = BKE_region_find_in_listbase_by_type(regionbase, RGN_TYPE_UI);
-          if (region == NULL) {
+          if (region == nullptr) {
             continue;
           }
 
@@ -937,7 +978,7 @@ static bool replace_bbone_len_scale_rnapath(char **p_old_path, int *p_index)
 {
   char *old_path = *p_old_path;
 
-  if (old_path == NULL) {
+  if (old_path == nullptr) {
     return false;
   }
 
@@ -977,7 +1018,7 @@ static void do_version_bbone_len_scale_fcurve_fix(FCurve *fcu)
   if (fcu->driver) {
     LISTBASE_FOREACH (DriverVar *, dvar, &fcu->driver->variables) {
       DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
-        replace_bbone_len_scale_rnapath(&dtar->rna_path, NULL);
+        replace_bbone_len_scale_rnapath(&dtar->rna_path, nullptr);
       }
       DRIVER_TARGETS_LOOPER_END;
     }
@@ -1016,7 +1057,7 @@ static void do_version_constraints_spline_ik_joint_bindings(ListBase *lb)
   LISTBASE_FOREACH (bConstraint *, con, lb) {
     if (con->type == CONSTRAINT_TYPE_SPLINEIK) {
       bSplineIKConstraint *data = (bSplineIKConstraint *)con->data;
-      if (data->points == NULL) {
+      if (data->points == nullptr) {
         data->numpoints = 0;
       }
     }
@@ -1040,7 +1081,7 @@ static bNodeSocket *do_version_replace_float_size_with_vector(bNodeTree *ntree,
 static bool seq_transform_origin_set(Sequence *seq, void *UNUSED(user_data))
 {
   StripTransform *transform = seq->strip->transform;
-  if (seq->strip->transform != NULL) {
+  if (seq->strip->transform != nullptr) {
     transform->origin[0] = transform->origin[1] = 0.5f;
   }
   return true;
@@ -1049,7 +1090,7 @@ static bool seq_transform_origin_set(Sequence *seq, void *UNUSED(user_data))
 static bool seq_transform_filter_set(Sequence *seq, void *UNUSED(user_data))
 {
   StripTransform *transform = seq->strip->transform;
-  if (seq->strip->transform != NULL) {
+  if (seq->strip->transform != nullptr) {
     transform->filter = SEQ_TRANSFORM_FILTER_BILINEAR;
   }
   return true;
@@ -1079,7 +1120,7 @@ static void do_version_subsurface_methods(bNode *node)
 
 static void version_geometry_nodes_add_attribute_input_settings(NodesModifierData *nmd)
 {
-  if (nmd->settings.properties == NULL) {
+  if (nmd->settings.properties == nullptr) {
     return;
   }
   /* Before versioning the properties, make sure it hasn't been done already. */
@@ -1239,7 +1280,7 @@ static void version_geometry_nodes_set_position_node_offset(bNodeTree *ntree)
       /* The offset socket didn't exist in the file yet. */
       return;
     }
-    bNodeSocket *old_offset_socket = BLI_findlink(&node->inputs, 3);
+    bNodeSocket *old_offset_socket = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 3));
     if (old_offset_socket->type == SOCK_VECTOR) {
       /* Versioning happened already. */
       return;
@@ -1257,7 +1298,8 @@ static void version_geometry_nodes_set_position_node_offset(bNodeTree *ntree)
     if (!STREQ(link->tosock->identifier, "Position")) {
       continue;
     }
-    bNodeSocket *old_offset_socket = BLI_findlink(&link->tonode->inputs, 3);
+    bNodeSocket *old_offset_socket = static_cast<bNodeSocket *>(
+        BLI_findlink(&link->tonode->inputs, 3));
     /* This assumes that the offset is not linked to something else. That seems to be a reasonable
      * assumption, because the node is probably only ever used in one or the other mode. */
     const bool offset_enabled =
@@ -1273,7 +1315,7 @@ static void version_geometry_nodes_set_position_node_offset(bNodeTree *ntree)
     if (node->type != GEO_NODE_SET_POSITION) {
       continue;
     }
-    bNodeSocket *old_offset_socket = BLI_findlink(&node->inputs, 3);
+    bNodeSocket *old_offset_socket = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 3));
     nodeRemoveSocket(ntree, node, old_offset_socket);
   }
 }
@@ -1325,14 +1367,16 @@ static void version_liboverride_rnacollections_insertion_object_constraints(
     if (opop->operation != IDOVERRIDE_LIBRARY_OP_INSERT_AFTER) {
       continue;
     }
-    bConstraint *constraint_anchor = BLI_listbase_string_or_index_find(constraints,
-                                                                       opop->subitem_local_name,
-                                                                       offsetof(bConstraint, name),
-                                                                       opop->subitem_local_index);
-    bConstraint *constraint_src = constraint_anchor != NULL ? constraint_anchor->next :
-                                                              constraints->first;
+    bConstraint *constraint_anchor = static_cast<bConstraint *>(
+        BLI_listbase_string_or_index_find(constraints,
+                                          opop->subitem_local_name,
+                                          offsetof(bConstraint, name),
+                                          opop->subitem_local_index));
+    bConstraint *constraint_src = constraint_anchor != nullptr ?
+                                      constraint_anchor->next :
+                                      static_cast<bConstraint *>(constraints->first);
 
-    if (constraint_src == NULL) {
+    if (constraint_src == nullptr) {
       /* Invalid case, just remove that override property operation. */
       CLOG_ERROR(&LOG, "Could not find source constraint in stored override data");
       BKE_lib_override_library_property_operation_delete(op, opop);
@@ -1352,18 +1396,21 @@ static void version_liboverride_rnacollections_insertion_object(Object *object)
   IDOverrideLibraryProperty *op;
 
   op = BKE_lib_override_library_property_find(liboverride, "modifiers");
-  if (op != NULL) {
+  if (op != nullptr) {
     LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
       if (opop->operation != IDOVERRIDE_LIBRARY_OP_INSERT_AFTER) {
         continue;
       }
-      ModifierData *mod_anchor = BLI_listbase_string_or_index_find(&object->modifiers,
-                                                                   opop->subitem_local_name,
-                                                                   offsetof(ModifierData, name),
-                                                                   opop->subitem_local_index);
-      ModifierData *mod_src = mod_anchor != NULL ? mod_anchor->next : object->modifiers.first;
+      ModifierData *mod_anchor = static_cast<ModifierData *>(
+          BLI_listbase_string_or_index_find(&object->modifiers,
+                                            opop->subitem_local_name,
+                                            offsetof(ModifierData, name),
+                                            opop->subitem_local_index));
+      ModifierData *mod_src = mod_anchor != nullptr ?
+                                  mod_anchor->next :
+                                  static_cast<ModifierData *>(object->modifiers.first);
 
-      if (mod_src == NULL) {
+      if (mod_src == nullptr) {
         /* Invalid case, just remove that override property operation. */
         CLOG_ERROR(&LOG, "Could not find source modifier in stored override data");
         BKE_lib_override_library_property_operation_delete(op, opop);
@@ -1378,21 +1425,22 @@ static void version_liboverride_rnacollections_insertion_object(Object *object)
   }
 
   op = BKE_lib_override_library_property_find(liboverride, "grease_pencil_modifiers");
-  if (op != NULL) {
+  if (op != nullptr) {
     LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
       if (opop->operation != IDOVERRIDE_LIBRARY_OP_INSERT_AFTER) {
         continue;
       }
-      GpencilModifierData *gp_mod_anchor = BLI_listbase_string_or_index_find(
-          &object->greasepencil_modifiers,
-          opop->subitem_local_name,
-          offsetof(GpencilModifierData, name),
-          opop->subitem_local_index);
-      GpencilModifierData *gp_mod_src = gp_mod_anchor != NULL ?
+      GpencilModifierData *gp_mod_anchor = static_cast<GpencilModifierData *>(
+          BLI_listbase_string_or_index_find(&object->greasepencil_modifiers,
+                                            opop->subitem_local_name,
+                                            offsetof(GpencilModifierData, name),
+                                            opop->subitem_local_index));
+      GpencilModifierData *gp_mod_src = gp_mod_anchor != nullptr ?
                                             gp_mod_anchor->next :
-                                            object->greasepencil_modifiers.first;
+                                            static_cast<GpencilModifierData *>(
+                                                object->greasepencil_modifiers.first);
 
-      if (gp_mod_src == NULL) {
+      if (gp_mod_src == nullptr) {
         /* Invalid case, just remove that override property operation. */
         CLOG_ERROR(&LOG, "Could not find source GP modifier in stored override data");
         BKE_lib_override_library_property_operation_delete(op, opop);
@@ -1407,18 +1455,18 @@ static void version_liboverride_rnacollections_insertion_object(Object *object)
   }
 
   op = BKE_lib_override_library_property_find(liboverride, "constraints");
-  if (op != NULL) {
+  if (op != nullptr) {
     version_liboverride_rnacollections_insertion_object_constraints(&object->constraints, op);
   }
 
-  if (object->pose != NULL) {
+  if (object->pose != nullptr) {
     LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
       char rna_path[26 + (sizeof(pchan->name) * 2) + 1];
       char name_esc[sizeof(pchan->name) * 2];
       BLI_str_escape(name_esc, pchan->name, sizeof(name_esc));
       SNPRINTF(rna_path, "pose.bones[\"%s\"].constraints", name_esc);
       op = BKE_lib_override_library_property_find(liboverride, rna_path);
-      if (op != NULL) {
+      if (op != nullptr) {
         version_liboverride_rnacollections_insertion_object_constraints(&pchan->constraints, op);
       }
     }
@@ -1428,7 +1476,7 @@ static void version_liboverride_rnacollections_insertion_object(Object *object)
 static void version_liboverride_rnacollections_insertion_animdata(ID *id)
 {
   AnimData *anim_data = BKE_animdata_from_id(id);
-  if (anim_data == NULL) {
+  if (anim_data == nullptr) {
     return;
   }
 
@@ -1436,7 +1484,7 @@ static void version_liboverride_rnacollections_insertion_animdata(ID *id)
   IDOverrideLibraryProperty *op;
 
   op = BKE_lib_override_library_property_find(liboverride, "animation_data.nla_tracks");
-  if (op != NULL) {
+  if (op != nullptr) {
     LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
       if (opop->operation != IDOVERRIDE_LIBRARY_OP_INSERT_AFTER) {
         continue;
@@ -1446,7 +1494,7 @@ static void version_liboverride_rnacollections_insertion_animdata(ID *id)
        *
        * This makes things simple here. */
       opop->subitem_reference_name = opop->subitem_local_name;
-      opop->subitem_local_name = NULL;
+      opop->subitem_local_name = nullptr;
       opop->subitem_reference_index = opop->subitem_local_index;
       opop->subitem_local_index++;
     }
@@ -1735,9 +1783,9 @@ static void version_fix_image_format_copy(Main *bmain, ImageFormatData *format)
     }
 
     /* Remove any invalid curves with missing data. */
-    if (format->view_settings.curve_mapping->cm[0].curve == NULL) {
+    if (format->view_settings.curve_mapping->cm[0].curve == nullptr) {
       BKE_curvemapping_free(format->view_settings.curve_mapping);
-      format->view_settings.curve_mapping = NULL;
+      format->view_settings.curve_mapping = nullptr;
       format->view_settings.flag &= ~COLORMANAGE_VIEW_USE_CURVES;
     }
   }
@@ -1778,7 +1826,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     if (!DNA_struct_elem_find(fd->filesdna, "bPoseChannel", "float", "custom_scale_xyz[3]")) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-        if (ob->pose == NULL) {
+        if (ob->pose == nullptr) {
           continue;
         }
         LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
@@ -1798,7 +1846,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
                                                                    &sl->regionbase;
             ARegion *new_sidebar = do_versions_add_region_if_not_found(
                 regionbase, RGN_TYPE_UI, "sidebar for spreadsheet", RGN_TYPE_FOOTER);
-            if (new_sidebar != NULL) {
+            if (new_sidebar != nullptr) {
               new_sidebar->alignment = RGN_ALIGN_RIGHT;
               new_sidebar->flag |= RGN_FLAG_HIDDEN;
             }
@@ -1864,7 +1912,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
 
-      BKE_animdata_main_cb(bmain, do_version_bbone_len_scale_animdata_cb, NULL);
+      BKE_animdata_main_cb(bmain, do_version_bbone_len_scale_animdata_cb, nullptr);
     }
   }
 
@@ -1941,7 +1989,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 8)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (scene->master_collection != NULL) {
+      if (scene->master_collection != nullptr) {
         BLI_strncpy(scene->master_collection->id.name + 2,
                     BKE_SCENE_COLLECTION_NAME,
                     sizeof(scene->master_collection->id.name) - 2);
@@ -2138,7 +2186,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 19)) {
     /* Disable Fade Inactive Overlay by default as it is redundant after introducing flash on
      * mode transfer. */
-    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_VIEW3D) {
@@ -2209,7 +2257,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 23)) {
-    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_FILE) {
@@ -2253,8 +2301,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       SequencerToolSettings *sequencer_tool_settings = SEQ_tool_settings_ensure(scene);
       sequencer_tool_settings->pivot_point = V3D_AROUND_CENTER_MEDIAN;
 
-      if (scene->ed != NULL) {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_transform_origin_set, NULL);
+      if (scene->ed != nullptr) {
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_transform_origin_set, nullptr);
       }
     }
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
@@ -2366,12 +2414,12 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 31)) {
     /* Swap header with the tool header so the regular header is always on the edge. */
-    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
                                                                  &sl->regionbase;
-          ARegion *region_tool = NULL, *region_head = NULL;
+          ARegion *region_tool = nullptr, *region_head = nullptr;
           int region_tool_index = -1, region_head_index = -1, i;
           LISTBASE_FOREACH_INDEX (ARegion *, region, regionbase, i) {
             if (region->regiontype == RGN_TYPE_TOOL_HEADER) {
@@ -2392,8 +2440,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     /* Set strip color tags to SEQUENCE_COLOR_NONE. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (scene->ed != NULL) {
-        SEQ_for_each_callback(&scene->ed->seqbase, do_versions_sequencer_color_tags, NULL);
+      if (scene->ed != nullptr) {
+        SEQ_for_each_callback(&scene->ed->seqbase, do_versions_sequencer_color_tags, nullptr);
       }
     }
 
@@ -2411,14 +2459,15 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     /* Set defaults for new color balance modifier parameters. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (scene->ed != NULL) {
-        SEQ_for_each_callback(&scene->ed->seqbase, do_versions_sequencer_color_balance_sop, NULL);
+      if (scene->ed != nullptr) {
+        SEQ_for_each_callback(
+            &scene->ed->seqbase, do_versions_sequencer_color_balance_sop, nullptr);
       }
     }
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 33)) {
-    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           switch (sl->spacetype) {
@@ -2528,7 +2577,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
         if (node->type == GEO_NODE_VIEWER) {
-          if (node->storage == NULL) {
+          if (node->storage == nullptr) {
             NodeGeometryViewer *data = (NodeGeometryViewer *)MEM_callocN(
                 sizeof(NodeGeometryViewer), __func__);
             data->data_type = CD_PROP_FLOAT;
@@ -2625,7 +2674,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
        * It was possible to save .blend file with incorrect state of meta strip
        * range. The root cause is expected to be fixed, but need to ensure files
        * with invalid meta strip range are corrected. */
-      if (ed != NULL) {
+      if (ed != nullptr) {
         SEQ_for_each_callback(&ed->seqbase, version_fix_seq_meta_range, scene);
       }
     }
@@ -2663,7 +2712,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
         /* Convert float compare into a more general compare node. */
         if (node->type == FN_NODE_COMPARE) {
-          if (node->storage == NULL) {
+          if (node->storage == nullptr) {
             NodeFunctionCompare *data = (NodeFunctionCompare *)MEM_callocN(
                 sizeof(NodeFunctionCompare), __func__);
             data->data_type = SOCK_FLOAT;
@@ -2707,8 +2756,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
         if (node->type == SH_NODE_MAP_RANGE) {
-          if (node->storage == NULL) {
-            NodeMapRange *data = MEM_callocN(sizeof(NodeMapRange), __func__);
+          if (node->storage == nullptr) {
+            NodeMapRange *data = MEM_cnew<NodeMapRange>(__func__);
             data->clamp = node->custom1;
             data->data_type = CD_PROP_FLOAT;
             data->interpolation_type = node->custom2;
@@ -2738,7 +2787,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     /* Initialize the bone wireframe opacity setting. */
     if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "bone_wire_alpha")) {
-      for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
             if (sl->spacetype == SPACE_VIEW3D) {
@@ -2781,8 +2830,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 302, 2)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (scene->ed != NULL) {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_transform_filter_set, NULL);
+      if (scene->ed != nullptr) {
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_transform_filter_set, nullptr);
       }
     }
   }
@@ -2874,7 +2923,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
       for (int step = 0; step < 2; step++) {
-        CustomDataLayer *actlayer = NULL;
+        CustomDataLayer *actlayer = nullptr;
 
         int vact1, vact2;
 
@@ -2933,14 +2982,14 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       if (brush->ob_mode != OB_MODE_SCULPT_CURVES) {
         continue;
       }
-      if (brush->curves_sculpt_settings != NULL) {
+      if (brush->curves_sculpt_settings != nullptr) {
         continue;
       }
-      brush->curves_sculpt_settings = MEM_callocN(sizeof(BrushCurvesSculptSettings), __func__);
+      brush->curves_sculpt_settings = MEM_cnew<BrushCurvesSculptSettings>(__func__);
       brush->curves_sculpt_settings->add_amount = 1;
     }
 
-    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_OUTLINER) {
@@ -2954,7 +3003,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 302, 9)) {
     /* Sequencer channels region. */
-    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype != SPACE_SEQ) {
@@ -2979,7 +3028,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
           ARegion *timeline_region = BKE_region_find_in_listbase_by_type(regionbase,
                                                                          RGN_TYPE_WINDOW);
-          if (timeline_region != NULL) {
+          if (timeline_region != nullptr) {
             timeline_region->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
           }
         }
@@ -2989,11 +3038,11 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     /* Initialize channels. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       Editing *ed = SEQ_editing_get(scene);
-      if (ed == NULL) {
+      if (ed == nullptr) {
         continue;
       }
       SEQ_channels_ensure(&ed->channels);
-      SEQ_for_each_callback(&scene->ed->seqbase, seq_meta_channels_ensure, NULL);
+      SEQ_for_each_callback(&scene->ed->seqbase, seq_meta_channels_ensure, nullptr);
 
       ed->displayed_channels = &ed->channels;
 
@@ -3008,7 +3057,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 302, 10)) {
-    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype != SPACE_FILE) {
@@ -3039,7 +3088,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     /* Rebuild active/render color attribute references. */
     LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
       for (int step = 0; step < 2; step++) {
-        CustomDataLayer *actlayer = NULL;
+        CustomDataLayer *actlayer = nullptr;
 
         int vact1, vact2;
 
@@ -3108,9 +3157,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       if (ntree->type == NTREE_GEOMETRY) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           if (node->type == GEO_NODE_MERGE_BY_DISTANCE) {
-            if (node->storage == NULL) {
-              NodeGeometryMergeByDistance *data = MEM_callocN(sizeof(NodeGeometryMergeByDistance),
-                                                              __func__);
+            if (node->storage == nullptr) {
+              NodeGeometryMergeByDistance *data = MEM_cnew<NodeGeometryMergeByDistance>(__func__);
               data->mode = GEO_NODE_MERGE_BY_DISTANCE_MODE_ALL;
               node->storage = data;
             }
@@ -3143,7 +3191,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       BrushCurvesSculptSettings *settings = brush->curves_sculpt_settings;
-      if (settings == NULL) {
+      if (settings == nullptr) {
         continue;
       }
       if (settings->curve_length == 0.0f) {
@@ -3177,7 +3225,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     /* UDIM Packing. */
     if (!DNA_struct_elem_find(fd->filesdna, "ImagePackedFile", "int", "tile_number")) {
-      for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
+      LISTBASE_FOREACH (Image *, ima, &bmain->images) {
         int view;
         LISTBASE_FOREACH_INDEX (ImagePackedFile *, imapf, &ima->packedfiles, view) {
           imapf->view = view;
@@ -3189,8 +3237,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     /* Merge still offsets into start/end offsets. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       Editing *ed = SEQ_editing_get(scene);
-      if (ed != NULL) {
-        SEQ_for_each_callback(&ed->seqbase, version_merge_still_offsets, NULL);
+      if (ed != nullptr) {
+        SEQ_for_each_callback(&ed->seqbase, version_merge_still_offsets, nullptr);
       }
     }
 
@@ -3296,7 +3344,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 303, 5)) {
     /* Fix for T98925 - remove channels region, that was initialized in incorrect editor types. */
-    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (ELEM(sl->spacetype, SPACE_ACTION, SPACE_CLIP, SPACE_GRAPH, SPACE_NLA, SPACE_SEQ)) {
@@ -3349,8 +3397,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     /* Image generation information transferred to tiles. */
     if (!DNA_struct_elem_find(fd->filesdna, "ImageTile", "int", "gen_x")) {
-      for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
-        for (ImageTile *tile = ima->tiles.first; tile; tile = tile->next) {
+      LISTBASE_FOREACH (Image *, ima, &bmain->images) {
+        LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
           tile->gen_x = ima->gen_x;
           tile->gen_y = ima->gen_y;
           tile->gen_type = ima->gen_type;
