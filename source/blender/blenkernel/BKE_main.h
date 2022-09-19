@@ -113,8 +113,10 @@ typedef struct Main {
   char filepath[1024];               /* 1024 = FILE_MAX */
   short versionfile, subversionfile; /* see BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION */
   short minversionfile, minsubversionfile;
-  uint64_t build_commit_timestamp; /* commit's timestamp from buildinfo */
-  char build_hash[16];             /* hash from buildinfo */
+  /** Commit timestamp from `buildinfo`. */
+  uint64_t build_commit_timestamp;
+  /** Commit Hash from `buildinfo`. */
+  char build_hash[16];
   /** Indicate the #Main.filepath (file) is the recovered one. */
   bool recovered;
   /** All current ID's exist in the last memfile undo step. */

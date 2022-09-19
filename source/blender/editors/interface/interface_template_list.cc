@@ -767,7 +767,7 @@ static void ui_template_list_layout_draw(const bContext *C,
         uiItemL(col, "", ICON_NONE);
       }
 
-      /* add scrollbar */
+      /* Add scroll-bar. */
       if (items->tot_items > visual_info.visual_items) {
         uiLayoutColumn(row, false);
         uiDefButI(block,
@@ -916,7 +916,7 @@ static void ui_template_list_layout_draw(const bContext *C,
         uiItemL(subrow, "", ICON_NONE);
       }
 
-      /* add scrollbar */
+      /* Add scroll-bar. */
       if (items->tot_items > visual_info.visual_items) {
         /* col = */ uiLayoutColumn(row, false);
         uiDefButI(block,
@@ -940,7 +940,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       box = uiLayoutListBox(layout, ui_list, &input_data->active_dataptr, input_data->activeprop);
       /* For grip button. */
       glob = uiLayoutColumn(box, true);
-      /* For scrollbar. */
+      /* For scroll-bar. */
       row = uiLayoutRow(glob, false);
 
       const bool show_names = (flags & UI_TEMPLATE_LIST_NO_NAMES) == 0;

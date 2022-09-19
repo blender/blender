@@ -8,7 +8,7 @@
 #include "GHOST_System.h"
 
 #include <chrono>
-#include <cstdio> /* just for printf */
+#include <cstdio> /* Just for #printf. */
 
 #include "GHOST_DisplayManager.h"
 #include "GHOST_EventManager.h"

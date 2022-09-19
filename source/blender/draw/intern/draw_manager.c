@@ -1504,7 +1504,7 @@ void DRW_draw_callbacks_post_scene(void)
 
     DRW_draw_region_info();
 
-    /* annotations - temporary drawing buffer (screenspace) */
+    /* Annotations - temporary drawing buffer (screen-space). */
     /* XXX: Or should we use a proper draw/overlay engine for this case? */
     if (((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) && (do_annotations)) {
       GPU_depth_test(GPU_DEPTH_NONE);

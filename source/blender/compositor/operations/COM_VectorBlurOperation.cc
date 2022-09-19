@@ -190,7 +190,10 @@ struct ZSpan {
   float clipcrop;
 };
 
-/* each zbuffer has coordinates transformed to local rect coordinates, so we can simply clip */
+/**
+ * Each Z-buffer has coordinates transformed to local rectangle coordinates,
+ * so we can simply clip.
+ */
 void zbuf_alloc_span(ZSpan *zspan, int rectx, int recty, float clipcrop)
 {
   memset(zspan, 0, sizeof(ZSpan));
@@ -528,7 +531,7 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove)
     }
   }
 
-  /* last: pixels with 0 we fill in zbuffer, with 1 we skip for mask */
+  /* last: pixels with 0 we fill in Z-buffer, with 1 we skip for mask */
   for (y = 2; y < ysize; y++) {
     /* setup rows */
     row1 = rectmove + (y - 2) * xsize;

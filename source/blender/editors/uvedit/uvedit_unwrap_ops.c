@@ -1834,7 +1834,7 @@ static void uv_map_clip_correct(const Scene *scene,
 /** \name UV Unwrap Operator
  * \{ */
 
-/* Assumes UV Map exists, doesn't run update funcs. */
+/* Assumes UV Map exists, doesn't run update functions. */
 static void uvedit_unwrap(const Scene *scene,
                           Object *obedit,
                           const UnwrapOptions *options,

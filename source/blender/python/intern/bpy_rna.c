@@ -4074,7 +4074,7 @@ static void pyrna_dir_members_rna(PyObject *list, PointerRNA *ptr)
 {
   const char *idname;
 
-  /* For looping over attrs and funcs. */
+  /* For looping over attributes and functions. */
   PointerRNA tptr;
   PropertyRNA *iterprop;
 
@@ -5937,7 +5937,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
       len = RNA_property_array_length(ptr, prop);
     }
 
-    /* Resolve the array from a new pytype. */
+    /* Resolve the array from a new Python type. */
 
     /* TODO(Kazanbas): make multi-dimensional sequences here. */
 
@@ -8735,10 +8735,10 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
     else if (ret_len == 1) {
       err = pyrna_py_to_prop(&funcptr, pret_single, retdata_single, ret, "");
 
-      /* when calling operator funcs only gives Function.result with
-       * no line number since the func has finished calling on error,
-       * re-raise the exception with more info since it would be slow to
-       * create prefix on every call (when there are no errors) */
+      /* When calling operator functions only gives `Function.result` with  no line number
+       * since the function has finished calling on error, re-raise the exception with more
+       * information since it would be slow to create prefix on every call
+       * (when there are no errors). */
       if (err == -1) {
         PyC_Err_Format_Prefix(PyExc_RuntimeError,
                               "class %.200s, function %.200s: incompatible return value ",

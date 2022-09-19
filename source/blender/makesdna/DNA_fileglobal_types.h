@@ -29,9 +29,9 @@ typedef struct FileGlobal {
 
   int fileflags;
   int globalf;
-  /** Commit timestamp from buildinfo. */
+  /** Commit timestamp from `buildinfo`. */
   uint64_t build_commit_timestamp;
-  /** Hash from buildinfo. */
+  /** Hash from `buildinfo`. */
   char build_hash[16];
   /** File path where this was saved, for recover (1024 = FILE_MAX). */
   char filepath[1024];

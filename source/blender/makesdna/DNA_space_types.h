@@ -1636,7 +1636,7 @@ enum {
 typedef struct ConsoleLine {
   struct ConsoleLine *next, *prev;
 
-  /* keep these 3 vars so as to share free, realloc funcs */
+  /* Keep these 3 vars so as to share free, realloc functions. */
   /** Allocated length. */
   int len_alloc;
   /** Real len - strlen(). */

@@ -1283,9 +1283,8 @@ static void trackto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
     cob->matrix[2][1] = 0;
     cob->matrix[2][2] = size[2];
 
-    /* targetmat[2] instead of ownermat[2] is passed to vectomat
-     * for backwards compatibility it seems... (Aligorith)
-     */
+    /* NOTE(@joshualung): `targetmat[2]` instead of `ownermat[2]` is passed to #vectomat
+     * for backwards compatibility it seems. */
     sub_v3_v3v3(vec, cob->matrix[3], ct->matrix[3]);
     vectomat(
         vec, ct->matrix[2], (short)data->reserved1, (short)data->reserved2, data->flags, totmat);

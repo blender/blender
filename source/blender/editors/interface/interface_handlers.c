@@ -959,7 +959,7 @@ static void ui_apply_but_undo(uiBut *but)
     str = "";
   }
 
-  /* delayed, after all other funcs run, popups are closed, etc */
+  /* Delayed, after all other functions run, popups are closed, etc. */
   uiAfterFunc *after = ui_afterfunc_new();
   BLI_strncpy(after->undostr, str, min_zz(str_len_clip + 1, sizeof(after->undostr)));
 }
@@ -991,7 +991,7 @@ static void ui_apply_but_autokey(bContext *C, uiBut *but)
 
 static void ui_apply_but_funcs_after(bContext *C)
 {
-  /* copy to avoid recursive calls */
+  /* Copy to avoid recursive calls. */
   ListBase funcs = UIAfterFuncs;
   BLI_listbase_clear(&UIAfterFuncs);
 

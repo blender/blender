@@ -3585,7 +3585,7 @@ static void rna_difference_matte_t2_set(PointerRNA *ptr, float value)
   chroma->t2 = value;
 }
 
-/* Button Set Funcs for Matte Nodes */
+/* Button Set Functions for Matte Nodes */
 static void rna_Matte_t1_set(PointerRNA *ptr, float value)
 {
   bNode *node = (bNode *)ptr->data;

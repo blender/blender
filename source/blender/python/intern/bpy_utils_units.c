@@ -90,7 +90,7 @@ static PyObject *py_structseq_from_strings(PyTypeObject *py_type,
   const char **str_iter;
   PyStructSequence_Field *desc;
 
-  /* initialize array */
+  /* Initialize array. */
   /* We really populate the contexts' fields here! */
   for (str_iter = str_items, desc = py_sseq_desc->fields; *str_iter; str_iter++, desc++) {
     desc->name = (char *)*str_iter;
@@ -101,7 +101,7 @@ static PyObject *py_structseq_from_strings(PyTypeObject *py_type,
 
   PyStructSequence_InitType(py_type, py_sseq_desc);
 
-  /* initialize pytype */
+  /* Initialize the Python type. */
   py_struct_seq = PyStructSequence_New(py_type);
   BLI_assert(py_struct_seq != NULL);
 

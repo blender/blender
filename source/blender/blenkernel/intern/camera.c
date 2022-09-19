@@ -350,7 +350,7 @@ void BKE_camera_params_from_view3d(CameraParams *params,
     /* orthographic view */
     float sensor_size = BKE_camera_sensor_size(
         params->sensor_fit, params->sensor_x, params->sensor_y);
-    /* Halve, otherwise too extreme low zbuffer quality. */
+    /* Halve, otherwise too extreme low Z-buffer quality. */
     params->clip_end *= 0.5f;
     params->clip_start = -params->clip_end;
 
@@ -401,7 +401,7 @@ void BKE_camera_params_compute_viewplane(
   pixsize *= params->zoom;
 
   /* compute view plane:
-   * fully centered, zbuffer fills in jittered between -.5 and +.5 */
+   * Fully centered, Z-buffer fills in jittered between `-.5` and `+.5`. */
   viewplane.xmin = -0.5f * (float)winx;
   viewplane.ymin = -0.5f * params->ycor * (float)winy;
   viewplane.xmax = 0.5f * (float)winx;

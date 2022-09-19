@@ -26,7 +26,8 @@
 #include "sequencer.h"
 #include "strip_time.h"
 
-/* Unlike _update_sound_ funcs, these ones take info from audaspace to update sequence length! */
+/* Unlike _update_sound_ functions,
+ * these ones take info from audaspace to update sequence length! */
 #ifdef WITH_AUDASPACE
 static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, ListBase *seqbase)
 {

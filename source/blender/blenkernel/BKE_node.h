@@ -477,7 +477,7 @@ struct bNodeTree *ntreeAddTreeEmbedded(struct Main *bmain,
                                        const char *name,
                                        const char *idname);
 
-/* copy/free funcs, need to manage ID users */
+/* Copy/free functions, need to manage ID users. */
 
 /**
  * Free (or release) any data used by this node-tree.

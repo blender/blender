@@ -657,10 +657,10 @@ static void bmesh_find_doubles_common(BMesh *bm,
     for (int i = 0; i < verts_len; i++) {
       BMVert *v_check = verts[i];
       if (duplicates[i] == -1) {
-        /* nop (others can use as target) */
+        /* NOP (others can use as target). */
       }
       else if (duplicates[i] == i) {
-        /* keep (others can use as target) */
+        /* Keep (others can use as target). */
       }
       else {
         BMVert *v_other = verts[duplicates[i]];

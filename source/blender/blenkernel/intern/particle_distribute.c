@@ -453,7 +453,7 @@ static int distribute_binary_search(const float *sum, int n, float value)
   return low;
 }
 
-/* the max number if calls to rng_* funcs within psys_thread_distribute_particle
+/* the max number if calls to rng_* functions within psys_thread_distribute_particle
  * be sure to keep up to date if this changes */
 #define PSYS_RND_DIST_SKIP 3
 

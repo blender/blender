@@ -42,7 +42,7 @@
 #define FACE_IN_STACK (1 << 2)
 
 /* -------------------------------------------------------------------- */
-/* Specialized Utility Funcs */
+/* Specialized Utility Functions */
 
 #ifndef NDEBUG
 static uint bm_verts_tag_count(BMesh *bm)
@@ -291,7 +291,7 @@ static void bm_edge_subdiv_as_loop(
 }
 
 /* -------------------------------------------------------------------- */
-/* LoopPair Cache (struct and util funcs) */
+/* LoopPair Cache (struct and utilities functions) */
 
 /**
  * Use for finding spline handle direction from surrounding faces.

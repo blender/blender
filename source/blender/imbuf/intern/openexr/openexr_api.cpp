@@ -1498,7 +1498,7 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
     bool ok = false;
 
     if (len == 2) {
-      /* some multilayers are using two-letter channels name,
+      /* Some multi-layers are using two-letter channels name,
        * like, MX or NZ, which is basically has structure of
        *   <pass_prefix><component>
        *

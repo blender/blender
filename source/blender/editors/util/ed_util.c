@@ -54,7 +54,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-/* ********* general editor util funcs, not BKE stuff please! ********* */
+/* ********* general editor util functions, not BKE stuff please! ********* */
 
 void ED_editors_init_for_undo(Main *bmain)
 {

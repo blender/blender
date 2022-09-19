@@ -401,7 +401,7 @@ typedef struct ImageFormatData {
 
   /** R_IMF_PLANES_BW, R_IMF_PLANES_RGB, R_IMF_PLANES_RGBA. */
   char planes;
-  /** Generic options for all image types, alpha zbuffer. */
+  /** Generic options for all image types, alpha Z-buffer. */
   char flag;
 
   /** (0 - 100), eg: JPEG quality. */

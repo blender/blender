@@ -28,8 +28,8 @@
 
 #  include "BLI_string.h"
 
-/* Only for BLI_strncpy_wchar_from_utf8,
- * should replace with py funcs but too late in release now. */
+/* Only for #BLI_strncpy_wchar_from_utf8,
+ * should replace with Python functions but too late in release now. */
 #  include "BLI_string_utf8.h"
 #endif
 

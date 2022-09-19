@@ -2005,7 +2005,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
     BLI_mempool_destroy(queue_pool);
   }
 
-  /* Unmark nodes */
+  /* Unmark nodes. */
   for (int n = 0; n < pbvh->totnode; n++) {
     PBVHNode *node = &pbvh->nodes[n];
 

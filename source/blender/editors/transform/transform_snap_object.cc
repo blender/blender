@@ -572,7 +572,7 @@ static void iter_snap_objects(SnapObjectContext *sctx,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Ray Cast Funcs
+/** \name Ray Cast Functions
  * \{ */
 
 /* Store all ray-hits
@@ -1195,7 +1195,7 @@ static bool raycastObjects(SnapObjectContext *sctx,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Surface Snap Funcs
+/** \name Surface Snap Functions
  * \{ */
 
 struct NearestWorldObjUserData {

@@ -355,7 +355,7 @@ typedef enum ParameterFlag {
   /**
    * This allows for non-breaking API updates,
    * when adding non-critical new parameter to a callback function.
-   * This way, old py code defining funcs without that parameter would still work.
+   * This way, old Python code defining functions without that parameter would still work.
    * WARNING: any parameter after the first PYFUNC_OPTIONAL one will be considered as optional!
    * \note only for input parameters!
    */

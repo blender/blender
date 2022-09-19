@@ -4317,7 +4317,7 @@ static void do_circle_select_pose__doSelectBone(void *userData,
   bool is_point_done = false;
   int points_proj_tot = 0;
 
-  /* project head location to screenspace */
+  /* Project head location to screen-space. */
   if (screen_co_a[0] != IS_CLIPPED) {
     points_proj_tot++;
     if (pchan_circle_doSelectJoint(data, pchan, screen_co_a)) {
@@ -4325,7 +4325,7 @@ static void do_circle_select_pose__doSelectBone(void *userData,
     }
   }
 
-  /* project tail location to screenspace */
+  /* Project tail location to screen-space. */
   if (screen_co_b[0] != IS_CLIPPED) {
     points_proj_tot++;
     if (pchan_circle_doSelectJoint(data, pchan, screen_co_b)) {
@@ -4431,7 +4431,7 @@ static void do_circle_select_armature__doSelectBone(void *userData,
   bool is_edge_done = false;
   int points_proj_tot = 0;
 
-  /* project head location to screenspace */
+  /* Project head location to screen-space. */
   if (screen_co_a[0] != IS_CLIPPED) {
     points_proj_tot++;
     if (armature_circle_doSelectJoint(data, ebone, screen_co_a, true)) {
@@ -4439,7 +4439,7 @@ static void do_circle_select_armature__doSelectBone(void *userData,
     }
   }
 
-  /* project tail location to screenspace */
+  /* Project tail location to screen-space. */
   if (screen_co_b[0] != IS_CLIPPED) {
     points_proj_tot++;
     if (armature_circle_doSelectJoint(data, ebone, screen_co_b, false)) {

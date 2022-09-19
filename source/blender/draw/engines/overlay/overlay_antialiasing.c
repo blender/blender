@@ -34,8 +34,8 @@
  *  - Works without geometry shader.
  *  - Can inflate line thickness.
  *  - Coverage is very close to perfect and can even be filtered (Blackman-Harris, gaussian).
- *  - Wires can "bleed" / overlap non-line objects since the filter is in screenspace.
- *  - Only uses one additional lightweight fullscreen buffer (compared to MSAA/SMAA).
+ *  - Wires can "bleed" / overlap non-line objects since the filter is in screen-space.
+ *  - Only uses one additional lightweight full-screen buffer (compared to MSAA/SMAA).
  *  - No convergence time (compared to TAA).
  */
 

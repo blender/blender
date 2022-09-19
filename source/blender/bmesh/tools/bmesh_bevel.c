@@ -7083,7 +7083,7 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
     }
   }
 
-  /* Fix UVs along end edge joints. A nop unless other side built already. */
+  /* Fix UVs along end edge joints. A NOP unless other side built already. */
   /* TODO: If some seam, may want to do selective merge. */
   if (!bv1->any_seam && bv1->vmesh->mesh_kind == M_NONE) {
     bev_merge_end_uvs(bm, bv1, e1);

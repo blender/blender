@@ -3859,7 +3859,7 @@ static void outliner_update_viewable_area(ARegion *region,
   int sizex = outliner_width(space_outliner, tree_width, right_column_width);
   int sizey = tree_height;
 
-  /* Extend size to allow for horizontal scrollbar and extra offset. */
+  /* Extend size to allow for horizontal scroll-bar and extra offset. */
   sizey += V2D_SCROLL_HEIGHT + OL_Y_OFFSET;
 
   UI_view2d_totRect_set(&region->v2d, sizex, sizey);

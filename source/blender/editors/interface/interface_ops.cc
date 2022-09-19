@@ -1635,7 +1635,7 @@ static void UI_OT_jump_to_target_button(wmOperatorType *ot)
 #ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
-/* EditSource Utility funcs and operator,
+/* EditSource Utility functions and operator,
  * NOTE: this includes utility functions and button matching checks. */
 
 struct uiEditSourceStore {
@@ -1847,7 +1847,7 @@ static void UI_OT_editsource(wmOperatorType *ot)
  * \{ */
 
 /**
- * EditTranslation utility funcs and operator,
+ * EditTranslation utility functions and operator.
  *
  * \note this includes utility functions and button matching checks.
  * this only works in conjunction with a Python operator!

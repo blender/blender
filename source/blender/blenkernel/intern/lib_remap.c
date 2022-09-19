@@ -817,7 +817,7 @@ void BKE_libblock_relink_ex(
     Main *bmain, void *idv, void *old_idv, void *new_idv, const short remap_flags)
 {
 
-  /* Should be able to replace all _relink() funcs (constraints, rigidbody, etc.) ? */
+  /* Should be able to replace all _relink() functions (constraints, rigidbody, etc.) ? */
 
   ID *id = idv;
   ID *old_id = old_idv;

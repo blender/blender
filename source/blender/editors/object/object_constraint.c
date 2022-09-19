@@ -297,10 +297,9 @@ static void test_constraint(
   if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
     bKinematicConstraint *data = con->data;
 
-    /* bad: we need a separate set of checks here as poletarget is
-     * optional... otherwise poletarget must exist too or else
-     * the constraint is deemed invalid
-     */
+    /* Bad: we need a separate set of checks here as pole-target is optional...
+     * otherwise pole-target must exist too or else the constraint is deemed invalid. */
+
     /* default IK check ... */
     if (BKE_object_exists_check(bmain, data->tar) == 0) {
       data->tar = NULL;

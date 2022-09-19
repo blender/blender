@@ -791,8 +791,8 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
             /* 2D rotate by 90d while adding.
              *  (x, y) = (y, -x)
              *
-             * accumulate the screenspace normal in 2D,
-             * with screenspace edge length weighting the result. */
+             * Accumulate the screen-space normal in 2D,
+             * with screen-space edge length weighting the result. */
             if (line_point_side_v2(co1, co2, mval_f) >= 0.0f) {
               nor[0] += (co1[1] - co2[1]);
               nor[1] += -(co1[0] - co2[0]);

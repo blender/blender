@@ -285,7 +285,7 @@ void BKE_ptcache_ids_from_object(struct ListBase *lb,
                                  struct Scene *scene,
                                  int duplis);
 
-/****************** Query funcs ****************************/
+/****************** Query functions ****************************/
 
 /**
  * Check whether object has a point cache.
