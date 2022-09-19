@@ -303,6 +303,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 
   const bool export_blendshapes = RNA_boolean_get(op->ptr, "export_blendshapes");
 
+  const bool export_blender_metadata = RNA_boolean_get(op->ptr, "export_blender_metadata");
+
   struct USDExportParams params = {RNA_int_get(op->ptr, "start"),
                                    RNA_int_get(op->ptr, "end"),
                                    export_animation,
@@ -359,7 +361,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
                                    xform_op_mode,
                                    fix_skel_root,
                                    overwrite_textures,
-                                   export_blendshapes};
+                                   export_blendshapes,
+                                   export_blender_metadata};
 
   /* Take some defaults from the scene, if not specified explicitly. */
   Scene *scene = CTX_data_scene(C);
@@ -424,6 +427,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
 
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Attributes:"), ICON_NONE);
+  uiItemR(box, ptr, "export_blender_metadata", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "export_custom_properties", 0, NULL, ICON_NONE);
   if (RNA_boolean_get(ptr, "export_custom_properties")) {
     uiItemR(box, ptr, "add_properties_namespace", 0, NULL, ICON_NONE);
@@ -517,6 +521,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   uiItemL(box, IFACE_("Experimental:"), ICON_NONE);
   uiItemR(box, ptr, "use_instancing", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "fix_skel_root", 0, NULL, ICON_NONE);
+
 }
 
 static bool wm_usd_export_check(bContext *UNUSED(C), wmOperator *op)
@@ -915,6 +920,12 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                   "Relative Paths",
                   "Use relative paths to reference external files (i.e. textures, volumes) in "
                   "USD, otherwise use absolute paths");
+
+  RNA_def_boolean(ot->srna,
+                  "export_blender_metadata",
+                  true,
+                  "Export Blender Metadata",
+                  "Write Blender-specific information to the Stage's customLayerData");
 }
 
 /* ====== USD Import ====== */

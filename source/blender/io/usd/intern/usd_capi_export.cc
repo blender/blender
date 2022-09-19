@@ -288,6 +288,25 @@ static void export_startjob(void *customdata,
   usd_stage->GetRootLayer()->SetDocumentation(std::string("Blender v") +
                                               BKE_blender_version_string());
 
+  /* Add any Blender-specific custom export data */
+  if (data->params.export_blender_metadata && strlen(data->bmain->filepath)) {
+    auto root_layer = usd_stage->GetRootLayer();
+    char full_path[1024];
+    strcpy(full_path, data->bmain->filepath);
+
+    // make all paths uniformly unix-like
+    BLI_str_replace_char(full_path + 2, SEP, ALTSEP);
+
+    char basename[128];
+    strcpy(basename, BLI_path_basename(full_path));
+    BLI_split_dir_part(full_path, full_path, 1024);
+
+    pxr::VtDictionary custom_data;
+    custom_data.SetValueAtPath(std::string("sourceFilename"), pxr::VtValue(basename));
+    custom_data.SetValueAtPath(std::string("sourceDirPath"), pxr::VtValue(full_path));
+    root_layer->SetCustomLayerData(custom_data);
+  }
+
   /* Set up the stage for animated data. */
   if (data->params.export_animation) {
     usd_stage->SetTimeCodesPerSecond(FPS);

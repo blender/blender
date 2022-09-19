@@ -121,6 +121,7 @@ struct USDExportParams {
   bool fix_skel_root;
   bool overwrite_textures;
   bool export_blendshapes;
+  bool export_blender_metadata;
 };
 
 struct USDImportParams {
