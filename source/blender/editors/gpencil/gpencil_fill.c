@@ -283,6 +283,99 @@ static void extrapolate_points_by_length(bGPDspoint *a,
   add_v3_v3v3(r_point, &b->x, ab);
 }
 
+/* Cut the extended lines if collide. */
+static void gpencil_cut_extensions(tGPDfill *tgpf, const int gpl_active_index)
+{
+  bGPdata *gpd = tgpf->gpd;
+  Brush *brush = tgpf->brush;
+  BrushGpencilSettings *brush_settings = brush->gpencil_settings;
+
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    if (gpl->flag & GP_LAYER_HIDE) {
+      continue;
+    }
+
+    /* Decide if the strokes of layers are included or not depending on the layer mode. */
+    const int gpl_index = BLI_findindex(&gpd->layers, gpl);
+    bool skip = skip_layer_check(brush_settings->fill_layer_mode, gpl_active_index, gpl_index);
+    if (skip) {
+      continue;
+    }
+
+    bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, tgpf->active_cfra, GP_GETFRAME_USE_PREV);
+    if (gpf == NULL) {
+      continue;
+    }
+    int size = BLI_listbase_count(&gpf->strokes);
+    if (size == 0) {
+      continue;
+    }
+
+    float diff_mat[4][4];
+    BKE_gpencil_layer_transform_matrix_get(tgpf->depsgraph, tgpf->ob, gpl, diff_mat);
+    /* Save all extend strokes in array.*/
+    int tot_idx = 0;
+    bGPDstroke **gps_array = MEM_callocN(sizeof(bGPDstroke *) * size, __func__);
+
+    LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+      if ((gps->flag & (GP_STROKE_NOFILL | GP_STROKE_TAG)) == 0) {
+        continue;
+      }
+      gps_array[tot_idx] = gps;
+      tot_idx++;
+    }
+
+    /* Compare all strokes. */
+    for (int i = 0; i < tot_idx; i++) {
+      bGPDstroke *gps_a = gps_array[i];
+
+      bGPDspoint pt2;
+      float a1xy[2], a2xy[2];
+      float b1xy[2], b2xy[2];
+
+      /* First stroke. */
+      bGPDspoint *pt = &gps_a->points[0];
+      gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+      gpencil_point_to_xy_fl(&tgpf->gsc, gps_a, &pt2, &a1xy[0], &a1xy[1]);
+
+      pt = &gps_a->points[1];
+      gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+      gpencil_point_to_xy_fl(&tgpf->gsc, gps_a, &pt2, &a2xy[0], &a2xy[1]);
+      bGPDspoint *extreme_a = &gps_a->points[1];
+
+      /* Loop all strokes. */
+      for (int z = 0; z < tot_idx; z++) {
+        bGPDstroke *gps_b = gps_array[z];
+        if (i == z) {
+          continue;
+        }
+        pt = &gps_b->points[0];
+        gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+        gpencil_point_to_xy_fl(&tgpf->gsc, gps_b, &pt2, &b1xy[0], &b1xy[1]);
+
+        pt = &gps_b->points[1];
+        gpencil_point_to_parent_space(pt, diff_mat, &pt2);
+        gpencil_point_to_xy_fl(&tgpf->gsc, gps_b, &pt2, &b2xy[0], &b2xy[1]);
+        bGPDspoint *extreme_b = &gps_b->points[1];
+
+        /* Check if extensions collide and cut the overlength. */
+        if (isect_seg_seg_v2_simple(a1xy, a2xy, b1xy, b2xy)) {
+          float intersection[2];
+          isect_line_line_v2_point(a1xy, a2xy, b1xy, b2xy, intersection);
+          float intersection3D[3];
+          gpencil_point_xy_to_3d(&tgpf->gsc, tgpf->scene, intersection, intersection3D);
+          copy_v3_v3(&extreme_a->x, intersection3D);
+          copy_v3_v3(&extreme_b->x, intersection3D);
+          gps_a->flag |= GP_STROKE_COLLIDE;
+          gps_b->flag |= GP_STROKE_COLLIDE;
+        }
+      }
+    }
+
+    MEM_SAFE_FREE(gps_array);
+  }
+}
+
 /* Loop all layers create stroke extensions. */
 static void gpencil_create_extensions(tGPDfill *tgpf)
 {
@@ -483,6 +576,11 @@ static void gpencil_create_extensions(tGPDfill *tgpf)
   }
 
   BLI_gset_free(connected_endpoints, NULL);
+
+  /* Cut overlength strokes. */
+  if (tgpf->fill_extend_mode == GP_FILL_EMODE_EXTEND) {
+    gpencil_cut_extensions(tgpf, gpl_active_index);
+  }
 }
 
 static void gpencil_update_extend(tGPDfill *tgpf)
@@ -563,7 +661,13 @@ static void gpencil_draw_basic_stroke(tGPDfill *tgpf,
     col[3] = (gps->flag & GP_STROKE_TAG) ? 0.0f : 0.5f;
   }
   else if ((is_extend) && (!tgpf->is_render)) {
-    copy_v4_v4(col, extend_col);
+    if ((gps->flag & GP_STROKE_COLLIDE) || (tgpf->fill_extend_mode == GP_FILL_EMODE_RADIUS))
+      {
+      copy_v4_v4(col, extend_col);
+    }
+    else {
+      copy_v4_v4(col, help_col);
+    }
   }
   else {
     copy_v4_v4(col, ink);
