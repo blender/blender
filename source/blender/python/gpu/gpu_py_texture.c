@@ -280,7 +280,7 @@ PyDoc_STRVAR(
     "\n"
     "   Fill texture with specific value.\n"
     "\n"
-    "   :param format: The format that describes the content of a single item.\n"
+    "   :arg format: The format that describes the content of a single item.\n"
     "      Possible values are `FLOAT`, `INT`, `UINT`, `UBYTE`, `UINT_24_8` and `10_11_11_REV`.\n"
     "   :type format: str\n"
     "   :arg value: sequence each representing the value to fill.\n"

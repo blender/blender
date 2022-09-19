@@ -180,7 +180,7 @@ PyDoc_STRVAR(pygpu_IndexBuf__tp_doc,
              "   :arg type: The primitive type this index buffer is composed of.\n"
              "      Possible values are `POINTS`, `LINES`, `TRIS` and `LINE_STRIP_ADJ`.\n"
              "   :type type: str\n"
-             "   :param seq: Indices this index buffer will contain.\n"
+             "   :arg seq: Indices this index buffer will contain.\n"
              "      Whether a 1D or 2D sequence is required depends on the type.\n"
              "      Optionally the sequence can support the buffer protocol.\n"
              "   :type seq: 1D or 2D sequence\n");

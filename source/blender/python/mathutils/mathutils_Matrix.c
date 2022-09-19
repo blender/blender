@@ -3321,8 +3321,7 @@ PyDoc_STRVAR(
     "   This object gives access to Matrices in Blender, supporting square and rectangular\n"
     "   matrices from 2x2 up to 4x4.\n"
     "\n"
-    "   :param rows: Sequence of rows.\n"
-    "      When omitted, a 4x4 identity matrix is constructed.\n"
+    "   :arg rows: Sequence of rows. When omitted, a 4x4 identity matrix is constructed.\n"
     "   :type rows: 2d number sequence\n");
 PyTypeObject matrix_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "Matrix", /*tp_name*/

@@ -29,7 +29,7 @@ RE_DEF_COMPLETE = re.compile(
 def reduce_newlines(text):
     """Reduces multiple newlines to a single newline.
 
-    :param text: text with multiple newlines
+    :arg text: text with multiple newlines
     :type text: str
     :returns: text with single newlines
     :rtype: str
@@ -43,7 +43,7 @@ def reduce_newlines(text):
 def reduce_spaces(text):
     """Reduces multiple whitespaces to a single space.
 
-    :param text: text with multiple spaces
+    :arg text: text with multiple spaces
     :type text: str
     :returns: text with single spaces
     :rtype: str
@@ -57,7 +57,7 @@ def reduce_spaces(text):
 def get_doc(obj):
     """Get the doc string or comments for an object.
 
-    :param object: object
+    :arg object: object
     :returns: doc string
     :rtype: str
 
@@ -71,11 +71,11 @@ def get_doc(obj):
 def get_argspec(func, *, strip_self=True, doc=None, source=None):
     """Get argument specifications.
 
-    :param strip_self: strip `self` from argspec
+    :arg strip_self: strip `self` from argspec
     :type strip_self: bool
-    :param doc: doc string of func (optional)
+    :arg doc: doc string of func (optional)
     :type doc: str
-    :param source: source code of func (optional)
+    :arg source: source code of func (optional)
     :type source: str
     :returns: argument specification
     :rtype: str
@@ -131,11 +131,11 @@ def get_argspec(func, *, strip_self=True, doc=None, source=None):
 def complete(line, cursor, namespace):
     """Complete callable with calltip.
 
-    :param line: incomplete text line
+    :arg line: incomplete text line
     :type line: str
-    :param cursor: current character position
+    :arg cursor: current character position
     :type cursor: int
-    :param namespace: namespace
+    :arg namespace: namespace
     :type namespace: dict
     :returns: (matches, world, scrollback)
     :rtype: (list of str, str, str)

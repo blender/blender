@@ -76,7 +76,7 @@ def module_list(path):
     Return the list containing the names of the modules available in
     the given folder.
 
-    :param path: folder path
+    :arg path: folder path
     :type path: str
     :returns: modules
     :rtype: list
@@ -107,7 +107,7 @@ def complete(line):
     """
     Returns a list containing the completion possibilities for an import line.
 
-    :param line:
+    :arg line:
 
         incomplete line which contains an import statement::
 

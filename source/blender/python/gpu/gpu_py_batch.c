@@ -127,7 +127,7 @@ PyDoc_STRVAR(pygpu_batch_vertbuf_add_doc,
 "   vertex buffer for vertex positions and vertex normals.\n"
 "   Current a batch can have at most " STRINGIFY(GPU_BATCH_VBO_MAX_LEN) " vertex buffers.\n"
 "\n"
-"   :param buf: The vertex buffer that will be added to the batch.\n"
+"   :arg buf: The vertex buffer that will be added to the batch.\n"
 "   :type buf: :class:`gpu.types.GPUVertBuf`\n"
 );
 static PyObject *pygpu_batch_vertbuf_add(BPyGPUBatch *self, BPyGPUVertBuf *py_buf)
@@ -171,7 +171,7 @@ PyDoc_STRVAR(
     "   This function does not need to be called when you always\n"
     "   set the shader when calling :meth:`gpu.types.GPUBatch.draw`.\n"
     "\n"
-    "   :param program: The program/shader the batch will use in future draw calls.\n"
+    "   :arg program: The program/shader the batch will use in future draw calls.\n"
     "   :type program: :class:`gpu.types.GPUShader`\n");
 static PyObject *pygpu_batch_program_set(BPyGPUBatch *self, BPyGPUShader *py_shader)
 {
@@ -209,7 +209,7 @@ PyDoc_STRVAR(pygpu_batch_draw_doc,
              "\n"
              "   Run the drawing program with the parameters assigned to the batch.\n"
              "\n"
-             "   :param program: Program that performs the drawing operations.\n"
+             "   :arg program: Program that performs the drawing operations.\n"
              "      If ``None`` is passed, the last program set to this batch will run.\n"
              "   :type program: :class:`gpu.types.GPUShader`\n");
 static PyObject *pygpu_batch_draw(BPyGPUBatch *self, PyObject *args)
