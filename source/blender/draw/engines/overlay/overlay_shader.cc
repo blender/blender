@@ -11,7 +11,7 @@
 
 #include "UI_resources.h"
 
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 typedef struct OVERLAY_Shaders {
   GPUShader *antialiasing;
@@ -106,7 +106,7 @@ typedef struct OVERLAY_Shaders {
 
 static struct {
   OVERLAY_Shaders sh_data[GPU_SHADER_CFG_LEN];
-} e_data = {{{NULL}}};
+} e_data = {{{nullptr}}};
 
 GPUShader *OVERLAY_shader_antialiasing(void)
 {
@@ -162,7 +162,7 @@ GPUShader *OVERLAY_shader_edit_mesh_edge(bool use_flat_interp)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   GPUShader **sh = use_flat_interp ? &sh_data->edit_mesh_edge_flat : &sh_data->edit_mesh_edge;
-  if (*sh == NULL) {
+  if (*sh == nullptr) {
     *sh = GPU_shader_create_from_info_name(
         draw_ctx->sh_cfg ?
             (use_flat_interp ? "overlay_edit_mesh_edge_flat_clipped" :
@@ -486,7 +486,7 @@ GPUShader *OVERLAY_shader_extra_wire(bool use_object, bool is_select)
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   GPUShader **sh = (is_select) ? &sh_data->extra_wire_select : &sh_data->extra_wire[use_object];
   if (!*sh) {
-    const char *info_name = NULL;
+    const char *info_name = nullptr;
     if (draw_ctx->sh_cfg) {
       if (is_select) {
         info_name = "overlay_extra_wire_select_clipped";
@@ -996,7 +996,7 @@ GPUShader *OVERLAY_shader_edit_uv_tiled_image_borders_get(void)
 
 /** \} */
 
-static OVERLAY_InstanceFormats g_formats = {NULL};
+static OVERLAY_InstanceFormats g_formats = {nullptr};
 
 OVERLAY_InstanceFormats *OVERLAY_shader_instance_formats_get(void)
 {

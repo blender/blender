@@ -17,7 +17,7 @@
 
 #include "ED_view3d.h"
 
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 #include "draw_common.h"
 #include "draw_manager_text.h"
@@ -30,22 +30,22 @@ void OVERLAY_edit_gpencil_cache_init(OVERLAY_Data *vedata)
   DRWShadingGroup *grp;
 
   /* Default: Display nothing. */
-  pd->edit_gpencil_points_grp = NULL;
-  pd->edit_gpencil_wires_grp = NULL;
-  psl->edit_gpencil_ps = NULL;
+  pd->edit_gpencil_points_grp = nullptr;
+  pd->edit_gpencil_wires_grp = nullptr;
+  psl->edit_gpencil_ps = nullptr;
 
-  pd->edit_gpencil_curve_handle_grp = NULL;
-  pd->edit_gpencil_curve_points_grp = NULL;
-  psl->edit_gpencil_curve_ps = NULL;
+  pd->edit_gpencil_curve_handle_grp = nullptr;
+  pd->edit_gpencil_curve_points_grp = nullptr;
+  psl->edit_gpencil_curve_ps = nullptr;
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   View3D *v3d = draw_ctx->v3d;
   Object *ob = draw_ctx->obact;
-  bGPdata *gpd = ob ? (bGPdata *)ob->data : NULL;
+  bGPdata *gpd = ob ? (bGPdata *)ob->data : nullptr;
   Scene *scene = draw_ctx->scene;
   ToolSettings *ts = scene->toolsettings;
 
-  if (gpd == NULL || ob->type != OB_GPENCIL) {
+  if (gpd == nullptr || ob->type != OB_GPENCIL) {
     return;
   }
 
@@ -169,14 +169,14 @@ void OVERLAY_edit_gpencil_cache_init(OVERLAY_Data *vedata)
     sh = OVERLAY_shader_edit_gpencil_guide_point();
     grp = DRW_shgroup_create(sh, psl->edit_gpencil_gizmos_ps);
 
-    if (gpd->runtime.cp_points != NULL) {
+    if (gpd->runtime.cp_points != nullptr) {
       for (int i = 0; i < gpd->runtime.tot_cp_points; i++) {
         bGPDcontrolpoint *cp = &gpd->runtime.cp_points[i];
         grp = DRW_shgroup_create_sub(grp);
         DRW_shgroup_uniform_vec3_copy(grp, "pPosition", &cp->x);
         DRW_shgroup_uniform_float_copy(grp, "pSize", cp->size * 0.8f * G_draw.block.size_pixel);
         DRW_shgroup_uniform_vec4_copy(grp, "pColor", cp->color);
-        DRW_shgroup_call_procedural_points(grp, NULL, 1);
+        DRW_shgroup_call_procedural_points(grp, nullptr, 1);
       }
     }
 
@@ -187,7 +187,7 @@ void OVERLAY_edit_gpencil_cache_init(OVERLAY_Data *vedata)
         DRW_shgroup_uniform_vec3_copy(grp, "pPosition", ts->gp_sculpt.guide.location);
       }
       else if (ts->gp_sculpt.guide.reference_point == GP_GUIDE_REF_OBJECT &&
-               ts->gp_sculpt.guide.reference_object != NULL) {
+               ts->gp_sculpt.guide.reference_object != nullptr) {
         UI_GetThemeColor4fv(TH_GIZMO_SECONDARY, color);
         DRW_shgroup_uniform_vec3_copy(grp, "pPosition", ts->gp_sculpt.guide.reference_object->loc);
       }
@@ -197,7 +197,7 @@ void OVERLAY_edit_gpencil_cache_init(OVERLAY_Data *vedata)
       }
       DRW_shgroup_uniform_vec4_copy(grp, "pColor", color);
       DRW_shgroup_uniform_float_copy(grp, "pSize", 8.0f * G_draw.block.size_pixel);
-      DRW_shgroup_call_procedural_points(grp, NULL, 1);
+      DRW_shgroup_call_procedural_points(grp, nullptr, 1);
     }
   }
 }
@@ -210,12 +210,12 @@ void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
   DRWShadingGroup *grp;
 
   /* Default: Display nothing. */
-  psl->gpencil_canvas_ps = NULL;
+  psl->gpencil_canvas_ps = nullptr;
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   View3D *v3d = draw_ctx->v3d;
   Object *ob = draw_ctx->obact;
-  bGPdata *gpd = ob ? (bGPdata *)ob->data : NULL;
+  bGPdata *gpd = ob ? (bGPdata *)ob->data : nullptr;
   Scene *scene = draw_ctx->scene;
   ToolSettings *ts = scene->toolsettings;
   const View3DCursor *cursor = &scene->cursor;
@@ -223,7 +223,7 @@ void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
   pd->edit_curve.show_handles = v3d->overlay.handle_display != CURVE_HANDLE_NONE;
   pd->edit_curve.handle_display = v3d->overlay.handle_display;
 
-  if (gpd == NULL || ob->type != OB_GPENCIL) {
+  if (gpd == nullptr || ob->type != OB_GPENCIL) {
     return;
   }
 
@@ -234,7 +234,7 @@ void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
   const bool grid_xray = (v3d->gp_flag & V3D_GP_SHOW_GRID_XRAY);
 
   if (show_grid && show_overlays) {
-    const char *grid_unit = NULL;
+    const char *grid_unit = nullptr;
     float mat[4][4];
     float col_grid[4];
     float size[2];
@@ -247,7 +247,7 @@ void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
 
     /* Rotate and scale except align to cursor. */
     bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
-    if (gpl != NULL) {
+    if (gpl != nullptr) {
       if (ts->gp_sculpt.lock_axis != GP_LOCKAXIS_CURSOR) {
         float matrot[3][3];
         copy_m3_m4(matrot, gpl->layer_mat);
@@ -267,12 +267,14 @@ void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
       case GP_LOCKAXIS_Z:
         /* Default. */
         break;
-      case GP_LOCKAXIS_CURSOR:
-        loc_eul_size_to_mat4(mat, cursor->location, cursor->rotation_euler, (float[3]){1, 1, 1});
+      case GP_LOCKAXIS_CURSOR: {
+        const float3 size_vec = {1.0f, 1.0f, 1.0f};
+        loc_eul_size_to_mat4(mat, cursor->location, cursor->rotation_euler, size_vec);
         break;
+      }
       case GP_LOCKAXIS_VIEW:
         /* view aligned */
-        DRW_view_viewmat_get(NULL, viewinv, true);
+        DRW_view_viewmat_get(nullptr, viewinv, true);
         copy_v3_v3(mat[0], viewinv[0]);
         copy_v3_v3(mat[1], viewinv[1]);
         break;
@@ -289,10 +291,11 @@ void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
 
     translate_m4(mat, gpd->grid.offset[0], gpd->grid.offset[1], 0.0f);
     mul_v2_v2fl(size, gpd->grid.scale, 2.0f * ED_scene_grid_scale(scene, &grid_unit));
-    rescale_m4(mat, (float[3]){size[0], size[1], 0.0f});
+    const float3 scale_vec = {size[0], size[1], 0.0f};
+    rescale_m4(mat, scale_vec);
 
     /* Apply layer loc transform, except cursor mode. */
-    if ((gpl != NULL) && (ts->gpencil_v3d_align & GP_PROJECT_CURSOR) == 0) {
+    if ((gpl != nullptr) && (ts->gpencil_v3d_align & GP_PROJECT_CURSOR) == 0) {
       add_v3_v3(mat[3], gpl->layer_mat[3]);
     }
 
@@ -312,7 +315,7 @@ void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_uniform_vec3_copy(grp, "yAxis", mat[1]);
     DRW_shgroup_uniform_vec3_copy(grp, "origin", mat[3]);
     DRW_shgroup_uniform_int_copy(grp, "halfLineCount", line_count / 2);
-    DRW_shgroup_call_procedural_lines(grp, NULL, line_count);
+    DRW_shgroup_call_procedural_lines(grp, nullptr, line_count);
   }
 }
 
@@ -368,12 +371,12 @@ static void overlay_gpencil_draw_stroke_color_name(bGPDlayer *UNUSED(gpl),
 {
   Object *ob = (Object *)thunk;
   Material *ma = BKE_object_material_get_eval(ob, gps->mat_nr + 1);
-  if (ma == NULL) {
+  if (ma == nullptr) {
     return;
   }
   MaterialGPencilStyle *gp_style = ma->gp_style;
   /* skip stroke if it doesn't have any valid data */
-  if ((gps->points == NULL) || (gps->totpoints < 1) || (gp_style == NULL)) {
+  if ((gps->points == nullptr) || (gps->totpoints < 1) || (gp_style == nullptr)) {
     return;
   }
   /* check if the color is visible */
@@ -389,7 +392,7 @@ static void overlay_gpencil_draw_stroke_color_name(bGPDlayer *UNUSED(gpl),
         const DRWContextState *draw_ctx = DRW_context_state_get();
         ViewLayer *view_layer = draw_ctx->view_layer;
 
-        int theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
+        int theme_id = DRW_object_wire_theme_get(ob, view_layer, nullptr);
         uchar color[4];
         UI_GetThemeColor4ubv(theme_id, color);
 
@@ -417,7 +420,7 @@ static void OVERLAY_gpencil_color_names(Object *ob)
   int cfra = DEG_get_ctime(draw_ctx->depsgraph);
 
   BKE_gpencil_visible_stroke_advanced_iter(
-      NULL, ob, NULL, overlay_gpencil_draw_stroke_color_name, ob, false, cfra);
+      nullptr, ob, nullptr, overlay_gpencil_draw_stroke_color_name, ob, false, cfra);
 }
 
 void OVERLAY_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob)
@@ -426,7 +429,7 @@ void OVERLAY_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob)
   View3D *v3d = draw_ctx->v3d;
 
   bGPdata *gpd = (bGPdata *)ob->data;
-  if (gpd == NULL) {
+  if (gpd == nullptr) {
     return;
   }
 

@@ -10,7 +10,7 @@
 
 #include "ED_view3d.h"
 
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 void OVERLAY_fade_init(OVERLAY_Data *UNUSED(vedata))
 {

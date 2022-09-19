@@ -13,7 +13,7 @@
 #include "PIL_time.h"
 #include "UI_resources.h"
 
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 void OVERLAY_mode_transfer_cache_init(OVERLAY_Data *vedata)
 {

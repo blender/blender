@@ -15,7 +15,7 @@
 
 #include "ED_particle.h"
 
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Edit Particles
@@ -64,7 +64,7 @@ void OVERLAY_edit_particle_cache_populate(OVERLAY_Data *vedata, Object *ob)
    */
   Object *ob_orig = DEG_get_original_object(ob);
   PTCacheEdit *edit = PE_create_current(draw_ctx->depsgraph, scene_orig, ob_orig);
-  if (edit == NULL) {
+  if (edit == nullptr) {
     /* Happens when trying to edit particles in EMITTER mode without
      * having them cached.
      */
@@ -73,14 +73,14 @@ void OVERLAY_edit_particle_cache_populate(OVERLAY_Data *vedata, Object *ob)
   /* NOTE: We need to pass evaluated particle system, which we need
    * to find first.
    */
-  ParticleSystem *psys = ob->particlesystem.first;
+  ParticleSystem *psys = static_cast<ParticleSystem *>(ob->particlesystem.first);
   LISTBASE_FOREACH (ParticleSystem *, psys_orig, &ob_orig->particlesystem) {
     if (PE_get_current_from_psys(psys_orig) == edit) {
       break;
     }
     psys = psys->next;
   }
-  if (psys == NULL) {
+  if (psys == nullptr) {
     printf("Error getting evaluated particle system for edit.\n");
     return;
   }
@@ -88,17 +88,17 @@ void OVERLAY_edit_particle_cache_populate(OVERLAY_Data *vedata, Object *ob)
   struct GPUBatch *geom;
   {
     geom = DRW_cache_particles_get_edit_strands(ob, psys, edit, pd->edit_particle.use_weight);
-    DRW_shgroup_call(pd->edit_particle_strand_grp, geom, NULL);
+    DRW_shgroup_call(pd->edit_particle_strand_grp, geom, nullptr);
   }
 
   if (pd->edit_particle.select_mode == SCE_SELECT_POINT) {
     geom = DRW_cache_particles_get_edit_inner_points(ob, psys, edit);
-    DRW_shgroup_call(pd->edit_particle_point_grp, geom, NULL);
+    DRW_shgroup_call(pd->edit_particle_point_grp, geom, nullptr);
   }
 
   if (ELEM(pd->edit_particle.select_mode, SCE_SELECT_POINT, SCE_SELECT_END)) {
     geom = DRW_cache_particles_get_edit_tip_points(ob, psys, edit);
-    DRW_shgroup_call(pd->edit_particle_point_grp, geom, NULL);
+    DRW_shgroup_call(pd->edit_particle_point_grp, geom, nullptr);
   }
 }
 
@@ -165,7 +165,7 @@ void OVERLAY_particle_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
     if (!ELEM(draw_as, PART_DRAW_NOT, PART_DRAW_OB, PART_DRAW_GR)) {
       struct GPUBatch *geom = DRW_cache_particles_get_dots(ob, psys);
-      struct GPUBatch *shape = NULL;
+      struct GPUBatch *shape = nullptr;
       DRWShadingGroup *grp;
 
       /* TODO(fclem): Here would be a good place for preemptive culling. */
@@ -173,7 +173,7 @@ void OVERLAY_particle_cache_populate(OVERLAY_Data *vedata, Object *ob)
       /* NOTE(fclem): Is color even useful in our modern context? */
       Material *ma = BKE_object_material_get_eval(ob, part->omat);
       float color[4] = {0.6f, 0.6f, 0.6f, part->draw_size};
-      if (ma != NULL) {
+      if (ma != nullptr) {
         copy_v3_v3(color, &ma->r);
       }
 
@@ -182,7 +182,7 @@ void OVERLAY_particle_cache_populate(OVERLAY_Data *vedata, Object *ob)
         case PART_DRAW_DOT:
           grp = DRW_shgroup_create_sub(pd->particle_dots_grp);
           DRW_shgroup_uniform_vec4_copy(grp, "color", color);
-          DRW_shgroup_call(grp, geom, NULL);
+          DRW_shgroup_call(grp, geom, nullptr);
           break;
         case PART_DRAW_AXIS:
         case PART_DRAW_CIRC:
@@ -190,7 +190,7 @@ void OVERLAY_particle_cache_populate(OVERLAY_Data *vedata, Object *ob)
           grp = DRW_shgroup_create_sub(pd->particle_shapes_grp);
           DRW_shgroup_uniform_vec4_copy(grp, "color", color);
           shape = DRW_cache_particles_get_prim(draw_as);
-          DRW_shgroup_call_instances_with_attrs(grp, NULL, shape, geom);
+          DRW_shgroup_call_instances_with_attrs(grp, nullptr, shape, geom);
           break;
       }
     }

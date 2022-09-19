@@ -13,7 +13,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 /* Check if the given object is rendered (partially) transparent */
 static bool paint_object_is_rendered_transparent(View3D *v3d, Object *ob)
@@ -31,7 +31,7 @@ static bool paint_object_is_rendered_transparent(View3D *v3d, Object *ob)
     }
     if (ob && ob->type == OB_MESH && ob->data &&
         v3d->shading.color_type == V3D_SHADING_MATERIAL_COLOR) {
-      Mesh *me = ob->data;
+      Mesh *me = static_cast<Mesh *>(ob->data);
       for (int i = 0; i < me->totcol; i++) {
         Material *mat = BKE_object_material_get_eval(ob, i + 1);
         if (mat && mat->a < 1.0f) {
@@ -74,8 +74,8 @@ void OVERLAY_paint_cache_init(OVERLAY_Data *vedata)
   const bool draw_contours = !is_edit_mode &&
                              (pd->overlay.wpaint_flag & V3D_OVERLAY_WPAINT_CONTOURS) != 0;
   float opacity = 0.0f;
-  pd->paint_depth_grp = NULL;
-  psl->paint_depth_ps = NULL;
+  pd->paint_depth_grp = nullptr;
+  psl->paint_depth_ps = nullptr;
 
   switch (pd->ctx_mode) {
     case CTX_MODE_POSE:
@@ -130,14 +130,14 @@ void OVERLAY_paint_cache_init(OVERLAY_Data *vedata)
     case CTX_MODE_PAINT_TEXTURE: {
       const ImagePaintSettings *imapaint = &draw_ctx->scene->toolsettings->imapaint;
       const bool mask_enabled = imapaint->flag & IMAGEPAINT_PROJECT_LAYER_STENCIL &&
-                                imapaint->stencil != NULL;
+                                imapaint->stencil != nullptr;
 
       opacity = mask_enabled ? pd->overlay.texture_paint_mode_opacity : 0.0f;
       if (opacity > 0.0f) {
         state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_ALPHA;
         DRW_PASS_CREATE(psl->paint_color_ps, state | pd->clipping_state);
 
-        GPUTexture *tex = BKE_image_get_gpu_texture(imapaint->stencil, NULL, NULL);
+        GPUTexture *tex = BKE_image_get_gpu_texture(imapaint->stencil, nullptr, nullptr);
 
         const bool mask_premult = (imapaint->stencil->alpha_mode == IMA_ALPHA_PREMUL);
         const bool mask_inverted = (imapaint->flag & IMAGEPAINT_PROJECT_LAYER_STENCIL_INV) != 0;
@@ -158,8 +158,8 @@ void OVERLAY_paint_cache_init(OVERLAY_Data *vedata)
   }
 
   if (opacity <= 0.0f) {
-    psl->paint_color_ps = NULL;
-    pd->paint_surf_grp = NULL;
+    psl->paint_color_ps = nullptr;
+    pd->paint_surf_grp = nullptr;
   }
 
   {
@@ -167,7 +167,8 @@ void OVERLAY_paint_cache_init(OVERLAY_Data *vedata)
     DRW_PASS_CREATE(psl->paint_overlay_ps, state | pd->clipping_state);
     sh = OVERLAY_shader_paint_face();
     pd->paint_face_grp = grp = DRW_shgroup_create(sh, psl->paint_overlay_ps);
-    DRW_shgroup_uniform_vec4_copy(grp, "color", (float[4]){1.0f, 1.0f, 1.0f, 0.2f});
+    const float4 color = {1.0f, 1.0f, 1.0f, 0.2f};
+    DRW_shgroup_uniform_vec4_copy(grp, "color", color);
     DRW_shgroup_state_enable(grp, DRW_STATE_BLEND_ALPHA);
 
     sh = OVERLAY_shader_paint_wire();
@@ -190,9 +191,9 @@ void OVERLAY_paint_cache_init(OVERLAY_Data *vedata)
 void OVERLAY_paint_texture_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  struct GPUBatch *geom = NULL;
+  struct GPUBatch *geom = nullptr;
 
-  const Mesh *me_orig = DEG_get_original_object(ob)->data;
+  const Mesh *me_orig = static_cast<Mesh *>(DEG_get_original_object(ob)->data);
   const bool use_face_sel = (me_orig->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
   if (pd->paint_surf_grp) {
@@ -209,9 +210,9 @@ void OVERLAY_paint_texture_cache_populate(OVERLAY_Data *vedata, Object *ob)
 void OVERLAY_paint_vertex_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  struct GPUBatch *geom = NULL;
+  struct GPUBatch *geom = nullptr;
 
-  const Mesh *me_orig = DEG_get_original_object(ob)->data;
+  const Mesh *me_orig = static_cast<Mesh *>(DEG_get_original_object(ob)->data);
   const bool is_edit_mode = (pd->ctx_mode == CTX_MODE_EDIT_MESH);
   const bool use_wire = !is_edit_mode && (pd->overlay.paint_flag & V3D_OVERLAY_PAINT_WIRE);
   const bool use_face_sel = !is_edit_mode && (me_orig->editflag & ME_EDIT_PAINT_FACE_SEL);

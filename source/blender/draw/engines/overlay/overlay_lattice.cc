@@ -7,7 +7,7 @@
 
 #include "DRW_render.h"
 
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 void OVERLAY_edit_lattice_cache_init(OVERLAY_Data *vedata)
 {

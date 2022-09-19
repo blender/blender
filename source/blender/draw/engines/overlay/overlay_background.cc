@@ -10,7 +10,7 @@
 #include "UI_resources.h"
 
 #include "draw_manager_text.h"
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 void OVERLAY_background_cache_init(OVERLAY_Data *vedata)
 {
@@ -20,7 +20,7 @@ void OVERLAY_background_cache_init(OVERLAY_Data *vedata)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Scene *scene = draw_ctx->scene;
   const RegionView3D *rv3d = draw_ctx->rv3d;
-  const BoundBox *bb = rv3d ? rv3d->clipbb : NULL;
+  const BoundBox *bb = rv3d ? rv3d->clipbb : nullptr;
   const View3D *v3d = draw_ctx->v3d;
   bool draw_clipping_bounds = (pd->clipping_state != 0);
 
@@ -80,7 +80,7 @@ void OVERLAY_background_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
     DRW_shgroup_uniform_vec4_copy(grp, "colorOverride", color_override);
     DRW_shgroup_uniform_int_copy(grp, "bgType", background_type);
-    DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
+    DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
   }
 
   if (draw_clipping_bounds) {
@@ -93,10 +93,10 @@ void OVERLAY_background_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_uniform_vec3(grp, "boundbox", &bb->vec[0][0], 8);
 
     struct GPUBatch *cube = DRW_cache_cube_get();
-    DRW_shgroup_call(grp, cube, NULL);
+    DRW_shgroup_call(grp, cube, nullptr);
   }
   else {
-    psl->clipping_frustum_ps = NULL;
+    psl->clipping_frustum_ps = nullptr;
   }
 }
 

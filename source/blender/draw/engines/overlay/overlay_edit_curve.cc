@@ -9,7 +9,7 @@
 
 #include "DNA_curve_types.h"
 
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 void OVERLAY_edit_curve_cache_init(OVERLAY_Data *vedata)
 {
@@ -65,7 +65,7 @@ void OVERLAY_edit_curve_cache_populate(OVERLAY_Data *vedata, Object *ob)
   bool draw_normals = (pd->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_NORMALS) != 0;
   bool do_xray = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
 
-  Curve *cu = ob->data;
+  Curve *cu = static_cast<Curve *>(ob->data);
   struct GPUBatch *geom;
 
   geom = DRW_cache_curve_edge_wire_get(ob);

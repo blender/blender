@@ -15,7 +15,7 @@
 
 #include "ED_mball.h"
 
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 void OVERLAY_metaball_cache_init(OVERLAY_Data *vedata)
 {
@@ -27,7 +27,8 @@ void OVERLAY_metaball_cache_init(OVERLAY_Data *vedata)
 #define BUF_INSTANCE DRW_shgroup_call_buffer_instance
 
   for (int i = 0; i < 2; i++) {
-    DRWState infront_state = (DRW_state_is_select() && (i == 1)) ? DRW_STATE_IN_FRONT_SELECT : 0;
+    DRWState infront_state = (DRW_state_is_select() && (i == 1)) ? DRW_STATE_IN_FRONT_SELECT :
+                                                                   DRWState(0);
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
     DRW_PASS_CREATE(psl->metaball_ps[i], state | pd->clipping_state | infront_state);
 
@@ -57,7 +58,7 @@ void OVERLAY_edit_metaball_cache_populate(OVERLAY_Data *vedata, Object *ob)
   const bool do_in_front = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
   const bool is_select = DRW_state_is_select();
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  MetaBall *mb = ob->data;
+  MetaBall *mb = static_cast<MetaBall *>(ob->data);
 
   const float *color;
   const float *col_radius = G_draw.block.color_mball_radius;
@@ -103,7 +104,7 @@ void OVERLAY_metaball_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   const bool do_in_front = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  MetaBall *mb = ob->data;
+  MetaBall *mb = static_cast<MetaBall *>(ob->data);
   const DRWContextState *draw_ctx = DRW_context_state_get();
 
   float *color;

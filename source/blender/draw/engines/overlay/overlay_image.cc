@@ -23,7 +23,7 @@
 
 #include "IMB_imbuf_types.h"
 
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 void OVERLAY_image_init(OVERLAY_Data *vedata)
 {
@@ -99,10 +99,10 @@ static eStereoViews camera_background_images_stereo_eye(const Scene *scene, cons
   }
   if (v3d->stereo3d_camera != STEREO_3D_ID) {
     /* show only left or right camera */
-    return v3d->stereo3d_camera;
+    return eStereoViews(v3d->stereo3d_camera);
   }
 
-  return v3d->multiview_eye;
+  return eStereoViews(v3d->multiview_eye);
 }
 
 static void camera_background_images_stereo_setup(const Scene *scene,
@@ -130,8 +130,8 @@ static struct GPUTexture *image_camera_background_texture_get(CameraBGImage *bgp
   void *lock;
   Image *image = bgpic->ima;
   ImageUser *iuser = &bgpic->iuser;
-  MovieClip *clip = NULL;
-  GPUTexture *tex = NULL;
+  MovieClip *clip = nullptr;
+  GPUTexture *tex = nullptr;
   Scene *scene = draw_ctx->scene;
   float aspect_x, aspect_y;
   int width, height;
@@ -140,9 +140,9 @@ static struct GPUTexture *image_camera_background_texture_get(CameraBGImage *bgp
   *r_use_view_transform = false;
 
   switch (bgpic->source) {
-    case CAM_BGIMG_SOURCE_IMAGE:
-      if (image == NULL) {
-        return NULL;
+    case CAM_BGIMG_SOURCE_IMAGE: {
+      if (image == nullptr) {
+        return nullptr;
       }
       *r_use_alpha_premult = (image->alpha_mode == IMA_ALPHA_PREMUL);
       *r_use_view_transform = (image->flag & IMA_VIEW_AS_RENDER) != 0;
@@ -150,33 +150,34 @@ static struct GPUTexture *image_camera_background_texture_get(CameraBGImage *bgp
       BKE_image_user_frame_calc(image, iuser, ctime);
       if (image->source == IMA_SRC_SEQUENCE && !(iuser->flag & IMA_USER_FRAME_IN_RANGE)) {
         /* Frame is out of range, don't show. */
-        return NULL;
+        return nullptr;
       }
 
       camera_background_images_stereo_setup(scene, draw_ctx->v3d, image, iuser);
 
       iuser->scene = draw_ctx->scene;
       ImBuf *ibuf = BKE_image_acquire_ibuf(image, iuser, &lock);
-      if (ibuf == NULL) {
+      if (ibuf == nullptr) {
         BKE_image_release_ibuf(image, ibuf, lock);
-        iuser->scene = NULL;
-        return NULL;
+        iuser->scene = nullptr;
+        return nullptr;
       }
       width = ibuf->x;
       height = ibuf->y;
       tex = BKE_image_get_gpu_texture(image, iuser, ibuf);
       BKE_image_release_ibuf(image, ibuf, lock);
-      iuser->scene = NULL;
+      iuser->scene = nullptr;
 
-      if (tex == NULL) {
-        return NULL;
+      if (tex == nullptr) {
+        return nullptr;
       }
 
       aspect_x = bgpic->ima->aspx;
       aspect_y = bgpic->ima->aspy;
       break;
+    }
 
-    case CAM_BGIMG_SOURCE_MOVIE:
+    case CAM_BGIMG_SOURCE_MOVIE: {
       if (bgpic->flag & CAM_BGIMG_FLAG_CAMERACLIP) {
         if (scene->camera) {
           clip = BKE_object_movieclip_get(scene, scene->camera, true);
@@ -186,14 +187,14 @@ static struct GPUTexture *image_camera_background_texture_get(CameraBGImage *bgp
         clip = bgpic->clip;
       }
 
-      if (clip == NULL) {
-        return NULL;
+      if (clip == nullptr) {
+        return nullptr;
       }
 
       BKE_movieclip_user_set_frame(&bgpic->cuser, ctime);
       tex = BKE_movieclip_get_gpu_texture(clip, &bgpic->cuser);
-      if (tex == NULL) {
-        return NULL;
+      if (tex == nullptr) {
+        return nullptr;
       }
 
       aspect_x = clip->aspx;
@@ -205,10 +206,11 @@ static struct GPUTexture *image_camera_background_texture_get(CameraBGImage *bgp
       /* Save for freeing. */
       BLI_addtail(&pd->bg_movie_clips, BLI_genericNodeN(clip));
       break;
+    }
 
     default:
       /* Unsupported type. */
-      return NULL;
+      return nullptr;
   }
 
   *r_aspect = (width * aspect_x) / (height * aspect_y);
@@ -219,7 +221,7 @@ static void OVERLAY_image_free_movieclips_textures(OVERLAY_Data *data)
 {
   /* Free Movie clip textures after rendering */
   LinkData *link;
-  while ((link = BLI_pophead(&data->stl->pd->bg_movie_clips))) {
+  while ((link = static_cast<LinkData *>(BLI_pophead(&data->stl->pd->bg_movie_clips)))) {
     MovieClip *clip = (MovieClip *)link->data;
     BKE_movieclip_free_gputexture(clip);
     MEM_freeN(link);
@@ -299,7 +301,7 @@ void OVERLAY_image_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const View3D *v3d = draw_ctx->v3d;
   const Scene *scene = draw_ctx->scene;
-  Camera *cam = ob->data;
+  Camera *cam = static_cast<Camera *>(ob->data);
 
   const bool show_frame = BKE_object_empty_image_frame_is_visible_in_view3d(ob, draw_ctx->rv3d);
 
@@ -333,7 +335,7 @@ void OVERLAY_image_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
       /* Alpha is clamped just below 1.0 to fix background images to interfere with foreground
        * images. Without this a background image with 1.0 will be rendered on top of a transparent
        * foreground image due to the different blending modes they use. */
-      const float color_premult_alpha[4] = {1.0f, 1.0f, 1.0f, MIN2(bgpic->alpha, 0.999999)};
+      const float color_premult_alpha[4] = {1.0f, 1.0f, 1.0f, std::min(bgpic->alpha, 0.999999f)};
 
       DRWPass *pass = is_foreground ? (use_view_transform ? psl->image_foreground_scene_ps :
                                                             psl->image_foreground_ps) :
@@ -358,8 +360,8 @@ void OVERLAY_image_empty_cache_populate(OVERLAY_Data *vedata, Object *ob)
   OVERLAY_PassList *psl = vedata->psl;
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const RegionView3D *rv3d = draw_ctx->rv3d;
-  GPUTexture *tex = NULL;
-  Image *ima = ob->data;
+  GPUTexture *tex = nullptr;
+  Image *ima = static_cast<Image *>(ob->data);
   float mat[4][4];
 
   const bool show_frame = BKE_object_empty_image_frame_is_visible_in_view3d(ob, rv3d);
@@ -375,10 +377,10 @@ void OVERLAY_image_empty_cache_populate(OVERLAY_Data *vedata, Object *ob)
     /* Calling 'BKE_image_get_size' may free the texture. Get the size from 'tex' instead,
      * see: T59347 */
     int size[2] = {0};
-    if (ima != NULL) {
+    if (ima != nullptr) {
       ImageUser iuser = *ob->iuser;
       camera_background_images_stereo_setup(draw_ctx->scene, draw_ctx->v3d, ima, &iuser);
-      tex = BKE_image_get_gpu_texture(ima, &iuser, NULL);
+      tex = BKE_image_get_gpu_texture(ima, &iuser, nullptr);
       if (tex) {
         size[0] = GPU_texture_orig_width(tex);
         size[1] = GPU_texture_orig_height(tex);
@@ -388,7 +390,7 @@ void OVERLAY_image_empty_cache_populate(OVERLAY_Data *vedata, Object *ob)
     CLAMP_MIN(size[1], 1);
 
     float image_aspect[2];
-    overlay_image_calc_aspect(ob->data, size, image_aspect);
+    overlay_image_calc_aspect(ima, size, image_aspect);
 
     copy_m4_m4(mat, ob->obmat);
     mul_v3_fl(mat[0], image_aspect[0] * 0.5f * ob->empty_drawsize);
@@ -399,7 +401,7 @@ void OVERLAY_image_empty_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
   /* Use the actual depth if we are doing depth tests to determine the distance to the object */
   char depth_mode = DRW_state_is_depth() ? OB_EMPTY_IMAGE_DEPTH_DEFAULT : ob->empty_image_depth;
-  DRWPass *pass = NULL;
+  DRWPass *pass = nullptr;
   if ((ob->dtx & OB_DRAW_IN_FRONT) != 0) {
     /* Object In Front overrides image empty depth mode. */
     pass = psl->image_empties_front_ps;
@@ -479,7 +481,7 @@ void OVERLAY_image_draw(OVERLAY_Data *vedata)
   DRW_draw_pass(psl->image_empties_ps);
   DRW_draw_pass(psl->image_empties_blend_ps);
 
-  DRW_view_set_active(NULL);
+  DRW_view_set_active(nullptr);
 }
 
 void OVERLAY_image_in_front_draw(OVERLAY_Data *vedata)
@@ -492,7 +494,7 @@ void OVERLAY_image_in_front_draw(OVERLAY_Data *vedata)
   DRW_draw_pass(psl->image_empties_front_ps);
   DRW_draw_pass(psl->image_foreground_ps);
 
-  DRW_view_set_active(NULL);
+  DRW_view_set_active(nullptr);
 
   OVERLAY_image_free_movieclips_textures(vedata);
 }

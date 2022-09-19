@@ -8,7 +8,7 @@
 #include "DRW_render.h"
 
 #include "draw_cache_impl.h"
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
@@ -56,7 +56,7 @@ void OVERLAY_sculpt_cache_populate(OVERLAY_Data *vedata, Object *ob)
     DRW_shgroup_call_sculpt(pd->sculpt_mask_grp, ob, false, true);
   }
   else {
-    sculpt_overlays = DRW_mesh_batch_cache_get_sculpt_overlays(ob->data);
+    sculpt_overlays = DRW_mesh_batch_cache_get_sculpt_overlays(static_cast<Mesh *>(ob->data));
     if (sculpt_overlays) {
       DRW_shgroup_call(pd->sculpt_mask_grp, sculpt_overlays, ob);
     }

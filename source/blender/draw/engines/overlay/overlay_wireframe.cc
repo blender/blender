@@ -27,7 +27,7 @@
 
 #include "ED_view3d.h"
 
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 void OVERLAY_wireframe_init(OVERLAY_Data *vedata)
 {
@@ -43,7 +43,7 @@ void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata)
   OVERLAY_TextureList *txl = vedata->txl;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  DRWShadingGroup *grp = NULL;
+  DRWShadingGroup *grp = nullptr;
 
   View3DShading *shading = &draw_ctx->v3d->shading;
 
@@ -112,7 +112,7 @@ void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata)
       pd->wires_hair_grp[1][use_coloring] = pd->wires_hair_grp[0][use_coloring];
     }
     pd->wires_sculpt_grp[1] = pd->wires_sculpt_grp[0];
-    psl->wireframe_xray_ps = NULL;
+    psl->wireframe_xray_ps = nullptr;
   }
 }
 
@@ -125,11 +125,11 @@ static void wireframe_hair_cache_populate(OVERLAY_Data *vedata, Object *ob, Part
   DupliObject *dupli_object = DRW_object_get_dupli(ob);
 
   float dupli_mat[4][4];
-  if ((dupli_parent != NULL) && (dupli_object != NULL)) {
+  if ((dupli_parent != nullptr) && (dupli_object != nullptr)) {
     if (dupli_object->type & OB_DUPLICOLLECTION) {
       unit_m4(dupli_mat);
       Collection *collection = dupli_parent->instance_collection;
-      if (collection != NULL) {
+      if (collection != nullptr) {
         sub_v3_v3(dupli_mat[3], collection->instance_offset);
       }
       mul_m4_m4m4(dupli_mat, dupli_parent->obmat, dupli_mat);
@@ -144,7 +144,7 @@ static void wireframe_hair_cache_populate(OVERLAY_Data *vedata, Object *ob, Part
     unit_m4(dupli_mat);
   }
 
-  struct GPUBatch *hairs = DRW_cache_particles_get_hair(ob, psys, NULL);
+  struct GPUBatch *hairs = DRW_cache_particles_get_hair(ob, psys, nullptr);
 
   const bool use_coloring = true;
   DRWShadingGroup *shgrp = DRW_shgroup_create_sub(pd->wires_hair_grp[is_xray][use_coloring]);
@@ -167,7 +167,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
   bool is_mesh_verts_only = false;
   if (is_mesh) {
     /* TODO: Should be its own function. */
-    Mesh *me = ob->data;
+    Mesh *me = static_cast<Mesh *>(ob->data);
     if (is_edit_mode) {
       BLI_assert(me->edit_mesh);
       Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
@@ -184,7 +184,9 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
                                                 (ob->dtx & OB_DRAWWIRE) || (ob->dt == OB_WIRE));
 
   if (use_wire && pd->wireframe_mode && ob->particlesystem.first) {
-    for (ParticleSystem *psys = ob->particlesystem.first; psys != NULL; psys = psys->next) {
+    for (ParticleSystem *psys = static_cast<ParticleSystem *>(ob->particlesystem.first);
+         psys != nullptr;
+         psys = psys->next) {
       if (!DRW_object_is_visible_psys_in_active_context(ob, psys)) {
         continue;
       }
@@ -201,7 +203,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
     float *color;
     DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
 
-    struct GPUBatch *geom = NULL;
+    struct GPUBatch *geom = nullptr;
     switch (ob->type) {
       case OB_CURVES_LEGACY:
         geom = DRW_cache_curve_edge_wire_get(ob);
@@ -251,7 +253,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
     bool draw_as_points = true;
     if (ob->type == OB_VOLUME) {
       /* Volume object as points exception. */
-      Volume *volume = ob->data;
+      Volume *volume = static_cast<Volume *>(ob->data);
       draw_as_points = volume->display.wireframe_type == VOLUME_WIREFRAME_POINTS;
     }
 
@@ -268,12 +270,12 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
     }
   }
 
-  DRWShadingGroup *shgrp = NULL;
-  struct GPUBatch *geom = NULL;
+  DRWShadingGroup *shgrp = nullptr;
+  struct GPUBatch *geom = nullptr;
 
   /* Don't do that in edit Mesh mode, unless there is a modifier preview. */
   if (use_wire && (!is_mesh || (!is_edit_mode || has_edit_mesh_cage))) {
-    const bool is_sculpt_mode = ((ob->mode & OB_MODE_SCULPT) != 0) && (ob->sculpt != NULL);
+    const bool is_sculpt_mode = ((ob->mode & OB_MODE_SCULPT) != 0) && (ob->sculpt != nullptr);
     const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d) &&
                                  !DRW_state_is_image_render();
     const bool is_instance = (ob->base_flag & BASE_FROM_DUPLI);
@@ -343,7 +345,7 @@ void OVERLAY_wireframe_draw(OVERLAY_Data *data)
   DRW_view_set_active(pd->view_wires);
   DRW_draw_pass(psl->wireframe_ps);
 
-  DRW_view_set_active(NULL);
+  DRW_view_set_active(nullptr);
 }
 
 void OVERLAY_wireframe_in_front_draw(OVERLAY_Data *data)
@@ -355,6 +357,6 @@ void OVERLAY_wireframe_in_front_draw(OVERLAY_Data *data)
     DRW_view_set_active(pd->view_wires);
     DRW_draw_pass(psl->wireframe_xray_ps);
 
-    DRW_view_set_active(NULL);
+    DRW_view_set_active(nullptr);
   }
 }

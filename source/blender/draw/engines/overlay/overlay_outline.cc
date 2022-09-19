@@ -16,14 +16,14 @@
 
 #include "UI_resources.h"
 
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 /* Returns the normal plane in NDC space. */
 static void gpencil_depth_plane(Object *ob, float r_plane[4])
 {
   /* TODO: put that into private data. */
   float viewinv[4][4];
-  DRW_view_viewmat_get(NULL, viewinv, true);
+  DRW_view_viewmat_get(nullptr, viewinv, true);
   float *camera_z_axis = viewinv[2];
   float *camera_pos = viewinv[3];
 
@@ -47,7 +47,7 @@ static void gpencil_depth_plane(Object *ob, float r_plane[4])
   /* BBox center in world space. */
   copy_v3_v3(center, mat[3]);
   /* View Vector. */
-  if (DRW_view_is_persp_get(NULL)) {
+  if (DRW_view_is_persp_get(nullptr)) {
     /* BBox center to camera vector. */
     sub_v3_v3v3(r_plane, camera_pos, mat[3]);
   }
@@ -78,8 +78,8 @@ void OVERLAY_outline_init(OVERLAY_Data *vedata)
 
   if (DRW_state_is_fbo()) {
     /* TODO: only alloc if needed. */
-    DRW_texture_ensure_fullscreen_2d(&txl->temp_depth_tx, GPU_DEPTH24_STENCIL8, 0);
-    DRW_texture_ensure_fullscreen_2d(&txl->outlines_id_tx, GPU_R16UI, 0);
+    DRW_texture_ensure_fullscreen_2d(&txl->temp_depth_tx, GPU_DEPTH24_STENCIL8, DRWTextureFlag(0));
+    DRW_texture_ensure_fullscreen_2d(&txl->outlines_id_tx, GPU_R16UI, DRWTextureFlag(0));
 
     GPU_framebuffer_ensure_config(
         &fbl->outlines_prepass_fb,
@@ -109,7 +109,7 @@ void OVERLAY_outline_cache_init(OVERLAY_Data *vedata)
   OVERLAY_TextureList *txl = vedata->txl;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-  DRWShadingGroup *grp = NULL;
+  DRWShadingGroup *grp = nullptr;
 
   const float outline_width = UI_GetThemeValuef(TH_OUTLINE_WIDTH);
   const bool do_expand = (U.pixelsize > 1.0) || (outline_width > 2.0f);
@@ -161,7 +161,7 @@ void OVERLAY_outline_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_uniform_texture_ref(grp, "sceneDepth", &dtxl->depth);
     DRW_shgroup_uniform_texture_ref(grp, "outlineDepth", &txl->temp_depth_tx);
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
-    DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
+    DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
   }
 }
 
@@ -240,18 +240,17 @@ static void OVERLAY_outline_gpencil(OVERLAY_PrivateData *pd, Object *ob)
     return;
   }
 
-  iterData iter = {
-      .ob = ob,
-      .stroke_grp = pd->outlines_gpencil_grp,
-      .fill_grp = DRW_shgroup_create_sub(pd->outlines_gpencil_grp),
-      .cfra = pd->cfra,
-  };
+  iterData iter{};
+  iter.ob = ob;
+  iter.stroke_grp = pd->outlines_gpencil_grp;
+  iter.fill_grp = DRW_shgroup_create_sub(pd->outlines_gpencil_grp);
+  iter.cfra = pd->cfra;
 
   if (gpd->draw_mode == GP_DRAWMODE_2D) {
     gpencil_depth_plane(ob, iter.plane);
   }
 
-  BKE_gpencil_visible_stroke_advanced_iter(NULL,
+  BKE_gpencil_visible_stroke_advanced_iter(nullptr,
                                            ob,
                                            gpencil_layer_cache_populate,
                                            gpencil_stroke_cache_populate,
@@ -263,7 +262,7 @@ static void OVERLAY_outline_gpencil(OVERLAY_PrivateData *pd, Object *ob)
 static void OVERLAY_outline_volume(OVERLAY_PrivateData *pd, Object *ob)
 {
   struct GPUBatch *geom = DRW_cache_volume_selection_surface_get(ob);
-  if (geom == NULL) {
+  if (geom == nullptr) {
     return;
   }
 
@@ -274,7 +273,7 @@ static void OVERLAY_outline_volume(OVERLAY_PrivateData *pd, Object *ob)
 static void OVERLAY_outline_curves(OVERLAY_PrivateData *pd, Object *ob)
 {
   DRWShadingGroup *shgroup = pd->outlines_curves_grp;
-  DRW_shgroup_curves_create_sub(ob, shgroup, NULL);
+  DRW_shgroup_curves_create_sub(ob, shgroup, nullptr);
 }
 
 void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
@@ -285,7 +284,7 @@ void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   const DRWContextState *draw_ctx = DRW_context_state_get();
   struct GPUBatch *geom;
-  DRWShadingGroup *shgroup = NULL;
+  DRWShadingGroup *shgroup = nullptr;
   const bool draw_outline = ob->dt > OB_BOUNDBOX;
 
   /* Early exit: outlines of bounding boxes are not drawn. */
@@ -326,7 +325,7 @@ void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
                                             DRW_object_axis_orthogonal_to_view(ob, flat_axis));
 
     if (pd->xray_enabled_and_not_wire || is_flat_object_viewed_from_side) {
-      geom = DRW_cache_object_edge_detection_get(ob, NULL);
+      geom = DRW_cache_object_edge_detection_get(ob, nullptr);
     }
     else {
       geom = DRW_cache_object_surface_get(ob);
@@ -359,7 +358,7 @@ void OVERLAY_outline_draw(OVERLAY_Data *vedata)
   OVERLAY_PassList *psl = vedata->psl;
   const float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-  bool do_outlines = psl->outlines_prepass_ps != NULL &&
+  bool do_outlines = psl->outlines_prepass_ps != nullptr &&
                      !DRW_pass_is_empty(psl->outlines_prepass_ps);
 
   if (DRW_state_is_fbo() && do_outlines) {

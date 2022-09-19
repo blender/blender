@@ -8,7 +8,7 @@
 #include "BKE_paint.h"
 #include "DRW_render.h"
 
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 void OVERLAY_facing_init(OVERLAY_Data *UNUSED(vedata))
 {

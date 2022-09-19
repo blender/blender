@@ -9,7 +9,7 @@
 #include "DRW_render.h"
 #include "GPU_shader.h"
 
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 void OVERLAY_volume_cache_init(OVERLAY_Data *vedata)
 {
@@ -25,8 +25,8 @@ void OVERLAY_volume_cache_init(OVERLAY_Data *vedata)
     pd->volume_selection_surface_grp = grp;
   }
   else {
-    psl->volume_ps = NULL;
-    pd->volume_selection_surface_grp = NULL;
+    psl->volume_ps = nullptr;
+    pd->volume_selection_surface_grp = nullptr;
   }
 }
 
@@ -37,7 +37,7 @@ void OVERLAY_volume_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
   if (is_select) {
     struct GPUBatch *geom = DRW_cache_volume_selection_surface_get(ob);
-    if (geom != NULL) {
+    if (geom != nullptr) {
       DRW_shgroup_call(pd->volume_selection_surface_grp, geom, ob);
     }
   }

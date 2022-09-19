@@ -20,7 +20,7 @@
 
 #include "draw_manager_text.h"
 
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 void OVERLAY_motion_path_cache_init(OVERLAY_Data *vedata)
 {
@@ -63,7 +63,7 @@ static GPUVertBuf *mpath_vbo_get(bMotionPath *mpath)
 static GPUBatch *mpath_batch_line_get(bMotionPath *mpath)
 {
   if (!mpath->batch_line) {
-    mpath->batch_line = GPU_batch_create(GPU_PRIM_LINE_STRIP, mpath_vbo_get(mpath), NULL);
+    mpath->batch_line = GPU_batch_create(GPU_PRIM_LINE_STRIP, mpath_vbo_get(mpath), nullptr);
   }
   return mpath->batch_line;
 }
@@ -71,7 +71,7 @@ static GPUBatch *mpath_batch_line_get(bMotionPath *mpath)
 static GPUBatch *mpath_batch_points_get(bMotionPath *mpath)
 {
   if (!mpath->batch_points) {
-    mpath->batch_points = GPU_batch_create(GPU_PRIM_POINTS, mpath_vbo_get(mpath), NULL);
+    mpath->batch_points = GPU_batch_create(GPU_PRIM_POINTS, mpath_vbo_get(mpath), nullptr);
   }
   return mpath->batch_points;
 }
@@ -143,7 +143,7 @@ static void motion_path_cache(OVERLAY_Data *vedata,
     DRW_shgroup_uniform_bool_copy(grp, "selected", selected);
     DRW_shgroup_uniform_vec3_copy(grp, "customColor", color);
     /* Only draw the required range. */
-    DRW_shgroup_call_range(grp, NULL, mpath_batch_line_get(mpath), start_index, len);
+    DRW_shgroup_call_range(grp, nullptr, mpath_batch_line_get(mpath), start_index, len);
   }
 
   /* Draw points. */
@@ -155,7 +155,7 @@ static void motion_path_cache(OVERLAY_Data *vedata,
     DRW_shgroup_uniform_bool_copy(grp, "showKeyFrames", show_keyframes);
     DRW_shgroup_uniform_vec3_copy(grp, "customColor", color);
     /* Only draw the required range. */
-    DRW_shgroup_call_range(grp, NULL, mpath_batch_points_get(mpath), start_index, len);
+    DRW_shgroup_call_range(grp, nullptr, mpath_batch_points_get(mpath), start_index, len);
   }
 
   /* Draw frame numbers at each frame-step value. */
@@ -208,7 +208,7 @@ void OVERLAY_motion_path_cache_populate(OVERLAY_Data *vedata, Object *ob)
   }
 
   if (ob->mpath) {
-    motion_path_cache(vedata, ob, NULL, &ob->avs, ob->mpath);
+    motion_path_cache(vedata, ob, nullptr, &ob->avs, ob->mpath);
   }
 }
 

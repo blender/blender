@@ -13,7 +13,7 @@
 
 #include "DNA_curve_types.h"
 
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 void OVERLAY_edit_text_cache_init(OVERLAY_Data *vedata)
 {
@@ -83,7 +83,7 @@ static void v2_quad_corners_to_mat4(const float corners[4][2], float r_mat[4][4]
 static void edit_text_cache_populate_select(OVERLAY_Data *vedata, Object *ob)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  const Curve *cu = ob->data;
+  const Curve *cu = static_cast<Curve *>(ob->data);
   EditFont *ef = cu->editfont;
   float final_mat[4][4], box[4][2];
   struct GPUBatch *geom = DRW_cache_quad_get();
@@ -128,7 +128,7 @@ static void edit_text_cache_populate_select(OVERLAY_Data *vedata, Object *ob)
 static void edit_text_cache_populate_cursor(OVERLAY_Data *vedata, Object *ob)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  const Curve *cu = ob->data;
+  const Curve *cu = static_cast<Curve *>(ob->data);
   EditFont *edit_font = cu->editfont;
   float(*cursor)[2] = edit_font->textcurs;
   float mat[4][4];
@@ -143,7 +143,7 @@ static void edit_text_cache_populate_cursor(OVERLAY_Data *vedata, Object *ob)
 static void edit_text_cache_populate_boxes(OVERLAY_Data *vedata, Object *ob)
 {
   OVERLAY_ExtraCallBuffers *cb = OVERLAY_extra_call_buffer_get(vedata, ob);
-  const Curve *cu = ob->data;
+  const Curve *cu = static_cast<Curve *>(ob->data);
 
   for (int i = 0; i < cu->totbox; i++) {
     TextBox *tb = &cu->tb[i];

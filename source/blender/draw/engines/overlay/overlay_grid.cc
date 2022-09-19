@@ -17,7 +17,7 @@
 
 #include "UI_resources.h"
 
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 BLI_STATIC_ASSERT(SI_GRID_STEPS_LEN == OVERLAY_GRID_STEPS_LEN, "")
 
@@ -31,10 +31,11 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
   float *zplane_axes = pd->grid.zplane_axes;
   float grid_steps[SI_GRID_STEPS_LEN] = {
       0.001f, 0.01f, 0.1f, 1.0f, 10.0f, 100.0f, 1000.0f, 10000.0f};
-  OVERLAY_GridBits grid_flag = 0, zneg_flag = 0, zpos_flag = 0;
+  OVERLAY_GridBits grid_flag = OVERLAY_GridBits(0), zneg_flag = OVERLAY_GridBits(0),
+                   zpos_flag = OVERLAY_GridBits(0);
   grid->line_size = max_ff(0.0f, U.pixelsize - 1.0f) * 0.5f;
   /* Default, nothing is drawn. */
-  pd->grid.grid_flag = pd->grid.zneg_flag = pd->grid.zpos_flag = 0;
+  pd->grid.grid_flag = pd->grid.zneg_flag = pd->grid.zpos_flag = OVERLAY_GridBits(0);
 
   if (pd->space_type == SPACE_IMAGE) {
     SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
@@ -88,10 +89,10 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
 
     float viewinv[4][4], wininv[4][4];
     float viewmat[4][4], winmat[4][4];
-    DRW_view_winmat_get(NULL, winmat, false);
-    DRW_view_winmat_get(NULL, wininv, true);
-    DRW_view_viewmat_get(NULL, viewmat, false);
-    DRW_view_viewmat_get(NULL, viewinv, true);
+    DRW_view_winmat_get(nullptr, winmat, false);
+    DRW_view_winmat_get(nullptr, wininv, true);
+    DRW_view_viewmat_get(nullptr, viewmat, false);
+    DRW_view_viewmat_get(nullptr, viewinv, true);
 
     /* If perspective view or non-axis aligned view. */
     if (winmat[3][3] == 0.0f || rv3d->view == RV3D_VIEW_USER) {
@@ -211,13 +212,13 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *ved)
   OVERLAY_PassList *psl = ved->psl;
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
-  psl->grid_ps = NULL;
+  psl->grid_ps = nullptr;
 
   if ((pd->grid.grid_flag == 0 && pd->grid.zpos_flag == 0) || !DRW_state_is_fbo()) {
     return;
   }
 
-  if (ved->instance->grid_ubo == NULL) {
+  if (ved->instance->grid_ubo == nullptr) {
     ved->instance->grid_ubo = GPU_uniformbuf_create(sizeof(OVERLAY_GridData));
   }
   GPU_uniformbuf_update(ved->instance->grid_ubo, &pd->grid_data);
@@ -257,21 +258,21 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *ved)
     DRW_shgroup_uniform_int_copy(grp, "grid_flag", pd->grid.zneg_flag);
     DRW_shgroup_uniform_vec3_copy(grp, "plane_axes", pd->grid.zplane_axes);
     if (pd->grid.zneg_flag & SHOW_AXIS_Z) {
-      DRW_shgroup_call(grp, geom, NULL);
+      DRW_shgroup_call(grp, geom, nullptr);
     }
 
     grp = DRW_shgroup_create_sub(grp);
     DRW_shgroup_uniform_int_copy(grp, "grid_flag", pd->grid.grid_flag);
     DRW_shgroup_uniform_vec3_copy(grp, "plane_axes", pd->grid.grid_axes);
     if (pd->grid.grid_flag) {
-      DRW_shgroup_call(grp, geom, NULL);
+      DRW_shgroup_call(grp, geom, nullptr);
     }
 
     grp = DRW_shgroup_create_sub(grp);
     DRW_shgroup_uniform_int_copy(grp, "grid_flag", pd->grid.zpos_flag);
     DRW_shgroup_uniform_vec3_copy(grp, "plane_axes", pd->grid.zplane_axes);
     if (pd->grid.zpos_flag & SHOW_AXIS_Z) {
-      DRW_shgroup_call(grp, geom, NULL);
+      DRW_shgroup_call(grp, geom, nullptr);
     }
   }
 

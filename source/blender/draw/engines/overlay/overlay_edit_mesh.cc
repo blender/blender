@@ -18,7 +18,7 @@
 #include "draw_cache_impl.h"
 #include "draw_manager_text.h"
 
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 #define OVERLAY_EDIT_TEXT \
   (V3D_OVERLAY_EDIT_EDGE_LEN | V3D_OVERLAY_EDIT_FACE_AREA | V3D_OVERLAY_EDIT_FACE_ANG | \
@@ -45,9 +45,9 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
   OVERLAY_PassList *psl = vedata->psl;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   OVERLAY_ShadingData *shdata = &pd->shdata;
-  DRWShadingGroup *grp = NULL;
-  GPUShader *sh = NULL;
-  DRWState state = 0;
+  DRWShadingGroup *grp = nullptr;
+  GPUShader *sh = nullptr;
+  DRWState state = DRWState(0);
 
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
@@ -109,7 +109,7 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
   {
     /* Normals */
     state = DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL |
-            (pd->edit_mesh.do_zbufclip ? DRW_STATE_BLEND_ALPHA : 0);
+            (pd->edit_mesh.do_zbufclip ? DRW_STATE_BLEND_ALPHA : DRWState(0));
     DRW_PASS_CREATE(psl->edit_mesh_normals_ps, state | pd->clipping_state);
 
     sh = OVERLAY_shader_edit_mesh_normal();
@@ -204,7 +204,7 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
       DRW_shgroup_state_enable(grp, DRW_STATE_WRITE_DEPTH);
     }
     else {
-      pd->edit_mesh_facedots_grp[i] = NULL;
+      pd->edit_mesh_facedots_grp[i] = nullptr;
     }
   }
 }
@@ -234,24 +234,24 @@ static void overlay_edit_mesh_add_ob_to_pass(OVERLAY_PrivateData *pd, Object *ob
                                       pd->edit_mesh_faces_grp[in_front];
   skin_roots_shgrp = pd->edit_mesh_skin_roots_grp[in_front];
 
-  geom_edges = DRW_mesh_batch_cache_get_edit_edges(ob->data);
-  geom_tris = DRW_mesh_batch_cache_get_edit_triangles(ob->data);
+  geom_edges = DRW_mesh_batch_cache_get_edit_edges(me);
+  geom_tris = DRW_mesh_batch_cache_get_edit_triangles(me);
   DRW_shgroup_call_no_cull(edge_shgrp, geom_edges, ob);
   DRW_shgroup_call_no_cull(face_shgrp, geom_tris, ob);
 
   if (pd->edit_mesh.select_vert) {
-    geom_verts = DRW_mesh_batch_cache_get_edit_vertices(ob->data);
+    geom_verts = DRW_mesh_batch_cache_get_edit_vertices(me);
     DRW_shgroup_call_no_cull(vert_shgrp, geom_verts, ob);
 
     if (has_skin_roots) {
       circle = DRW_cache_circle_get();
-      skin_roots = DRW_mesh_batch_cache_get_edit_skin_roots(ob->data);
+      skin_roots = DRW_mesh_batch_cache_get_edit_skin_roots(me);
       DRW_shgroup_call_instances_with_attrs(skin_roots_shgrp, ob, circle, skin_roots);
     }
   }
 
   if (fdot_shgrp) {
-    geom_fcenter = DRW_mesh_batch_cache_get_edit_facedots(ob->data);
+    geom_fcenter = DRW_mesh_batch_cache_get_edit_facedots(me);
     DRW_shgroup_call_no_cull(fdot_shgrp, geom_fcenter, ob);
   }
 }
@@ -259,7 +259,7 @@ static void overlay_edit_mesh_add_ob_to_pass(OVERLAY_PrivateData *pd, Object *ob
 void OVERLAY_edit_mesh_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  struct GPUBatch *geom = NULL;
+  struct GPUBatch *geom = nullptr;
 
   bool draw_as_solid = (ob->dt > OB_WIRE);
   bool do_in_front = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
@@ -283,16 +283,17 @@ void OVERLAY_edit_mesh_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
   if (vnormals_do || lnormals_do || fnormals_do) {
     struct GPUBatch *normal_geom = DRW_cache_normal_arrow_get();
+    Mesh *me = static_cast<Mesh *>(ob->data);
     if (vnormals_do) {
-      geom = DRW_mesh_batch_cache_get_edit_vnors(ob->data);
+      geom = DRW_mesh_batch_cache_get_edit_vnors(me);
       DRW_shgroup_call_instances_with_attrs(pd->edit_mesh_normals_grp, ob, normal_geom, geom);
     }
     if (lnormals_do) {
-      geom = DRW_mesh_batch_cache_get_edit_lnors(ob->data);
+      geom = DRW_mesh_batch_cache_get_edit_lnors(me);
       DRW_shgroup_call_instances_with_attrs(pd->edit_mesh_normals_grp, ob, normal_geom, geom);
     }
     if (fnormals_do) {
-      geom = DRW_mesh_batch_cache_get_edit_facedots(ob->data);
+      geom = DRW_mesh_batch_cache_get_edit_facedots(me);
       DRW_shgroup_call_instances_with_attrs(pd->edit_mesh_normals_grp, ob, normal_geom, geom);
     }
   }
@@ -351,7 +352,7 @@ void OVERLAY_edit_mesh_draw(OVERLAY_Data *vedata)
     DRW_view_set_active(pd->view_edit_faces_cage);
     DRW_draw_pass(psl->edit_mesh_faces_cage_ps[NOT_IN_FRONT]);
 
-    DRW_view_set_active(NULL);
+    DRW_view_set_active(nullptr);
 
     GPU_framebuffer_bind(fbl->overlay_in_front_fb);
     GPU_framebuffer_clear_depth(fbl->overlay_in_front_fb, 1.0f);
@@ -372,7 +373,7 @@ void OVERLAY_edit_mesh_draw(OVERLAY_Data *vedata)
     }
 
     if (!DRW_pass_is_empty(psl->edit_mesh_depth_ps[IN_FRONT])) {
-      DRW_view_set_active(NULL);
+      DRW_view_set_active(nullptr);
       DRW_draw_pass(psl->edit_mesh_depth_ps[IN_FRONT]);
     }
 

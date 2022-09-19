@@ -43,7 +43,7 @@
 
 #include "ED_screen.h"
 
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 void OVERLAY_antialiasing_init(OVERLAY_Data *vedata)
 {
@@ -55,7 +55,8 @@ void OVERLAY_antialiasing_init(OVERLAY_Data *vedata)
   /* Small texture which will have very small impact on render-time. */
   if (txl->dummy_depth_tx == NULL) {
     const float pixel[1] = {1.0f};
-    txl->dummy_depth_tx = DRW_texture_create_2d(1, 1, GPU_DEPTH_COMPONENT24, 0, pixel);
+    txl->dummy_depth_tx = DRW_texture_create_2d(
+        1, 1, GPU_DEPTH_COMPONENT24, DRWTextureFlag(0), pixel);
   }
 
   if (!DRW_state_is_fbo()) {
@@ -72,7 +73,7 @@ void OVERLAY_antialiasing_init(OVERLAY_Data *vedata)
 
   if (pd->antialiasing.enabled) {
     DRW_texture_ensure_fullscreen_2d(&txl->overlay_color_tx, GPU_SRGB8_A8, DRW_TEX_FILTER);
-    DRW_texture_ensure_fullscreen_2d(&txl->overlay_line_tx, GPU_RGBA8, 0);
+    DRW_texture_ensure_fullscreen_2d(&txl->overlay_line_tx, GPU_RGBA8, DRWTextureFlag(0));
 
     color_tex = txl->overlay_color_tx;
     line_tex = txl->overlay_line_tx;
@@ -177,7 +178,7 @@ void OVERLAY_antialiasing_cache_finish(OVERLAY_Data *vedata)
   const bool do_wireframe = pd->antialiasing.do_depth_copy ||
                             pd->antialiasing.do_depth_infront_copy;
   if (pd->xray_enabled || do_wireframe) {
-    DRW_texture_ensure_fullscreen_2d(&txl->temp_depth_tx, GPU_DEPTH24_STENCIL8, 0);
+    DRW_texture_ensure_fullscreen_2d(&txl->temp_depth_tx, GPU_DEPTH24_STENCIL8, DRWTextureFlag(0));
   }
 }
 

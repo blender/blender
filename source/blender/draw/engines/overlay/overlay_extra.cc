@@ -38,7 +38,7 @@
 
 #include "ED_view3d.h"
 
-#include "overlay_private.h"
+#include "overlay_private.hh"
 
 #include "draw_common.h"
 #include "draw_manager_text.h"
@@ -79,7 +79,8 @@ void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
     OVERLAY_ExtraCallBuffers *cb = &pd->extra_call_buffers[i];
     DRWPass **p_extra_ps = &psl->extra_ps[i];
 
-    DRWState infront_state = (DRW_state_is_select() && (i == 1)) ? DRW_STATE_IN_FRONT_SELECT : 0;
+    DRWState infront_state = (DRW_state_is_select() && (i == 1)) ? DRW_STATE_IN_FRONT_SELECT :
+                                                                   DRWState(0);
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
     DRW_PASS_CREATE(*p_extra_ps, state | pd->clipping_state | infront_state);
 
@@ -352,7 +353,7 @@ static void OVERLAY_bounds(OVERLAY_ExtraCallBuffers *cb,
 
   const BoundBox *bb = BKE_object_boundbox_get(ob);
   BoundBox bb_local;
-  if (bb == NULL) {
+  if (bb == nullptr) {
     const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
     BKE_boundbox_init_from_minmax(&bb_local, min, max);
     bb = &bb_local;
@@ -443,17 +444,17 @@ static void OVERLAY_collision(OVERLAY_ExtraCallBuffers *cb, Object *ob, const fl
 
 static void OVERLAY_texture_space(OVERLAY_ExtraCallBuffers *cb, Object *ob, const float *color)
 {
-  if (ob->data == NULL) {
+  if (ob->data == nullptr) {
     return;
   }
 
-  ID *ob_data = ob->data;
-  float *texcoloc = NULL;
-  float *texcosize = NULL;
+  ID *ob_data = static_cast<ID *>(ob->data);
+  float *texcoloc = nullptr;
+  float *texcosize = nullptr;
 
   switch (GS(ob_data->name)) {
     case ID_ME:
-      BKE_mesh_texspace_get_reference((Mesh *)ob_data, NULL, &texcoloc, &texcosize);
+      BKE_mesh_texspace_get_reference((Mesh *)ob_data, nullptr, &texcoloc, &texcosize);
       break;
     case ID_CU_LEGACY: {
       Curve *cu = (Curve *)ob_data;
@@ -480,7 +481,7 @@ static void OVERLAY_texture_space(OVERLAY_ExtraCallBuffers *cb, Object *ob, cons
 
   float mat[4][4];
 
-  if (texcoloc != NULL && texcosize != NULL) {
+  if (texcoloc != nullptr && texcosize != nullptr) {
     size_to_mat4(mat, texcosize);
     copy_v3_v3(mat[3], texcoloc);
   }
@@ -495,10 +496,10 @@ static void OVERLAY_texture_space(OVERLAY_ExtraCallBuffers *cb, Object *ob, cons
 
 static void OVERLAY_forcefield(OVERLAY_ExtraCallBuffers *cb, Object *ob, ViewLayer *view_layer)
 {
-  int theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
+  int theme_id = DRW_object_wire_theme_get(ob, view_layer, nullptr);
   float *color = DRW_color_background_blend_get(theme_id);
   PartDeflect *pd = ob->pd;
-  Curve *cu = (ob->type == OB_CURVES_LEGACY) ? ob->data : NULL;
+  Curve *cu = (ob->type == OB_CURVES_LEGACY) ? static_cast<Curve *>(ob->data) : nullptr;
 
   union {
     float mat[4][4];
@@ -529,12 +530,12 @@ static void OVERLAY_forcefield(OVERLAY_ExtraCallBuffers *cb, Object *ob, ViewLay
       if (cu && (cu->flag & CU_PATH) && ob->runtime.curve_cache->anim_path_accum_length) {
         instdata.size_x = instdata.size_y = instdata.size_z = pd->f_strength;
         float pos[4];
-        BKE_where_on_path(ob, 0.0f, pos, NULL, NULL, NULL, NULL);
+        BKE_where_on_path(ob, 0.0f, pos, nullptr, nullptr, nullptr, nullptr);
         copy_v3_v3(instdata.pos, ob->obmat[3]);
         translate_m4(instdata.mat, pos[0], pos[1], pos[2]);
         DRW_buffer_add_entry(cb->field_curve, color, &instdata);
 
-        BKE_where_on_path(ob, 1.0f, pos, NULL, NULL, NULL, NULL);
+        BKE_where_on_path(ob, 1.0f, pos, nullptr, nullptr, nullptr, nullptr);
         copy_v3_v3(instdata.pos, ob->obmat[3]);
         translate_m4(instdata.mat, pos[0], pos[1], pos[2]);
         DRW_buffer_add_entry(cb->field_sphere_limit, color, &instdata);
@@ -600,7 +601,7 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   ViewLayer *view_layer = draw_ctx->view_layer;
 
-  Light *la = ob->data;
+  Light *la = static_cast<Light *>(ob->data);
   float *color_p;
   DRW_object_wire_theme_get(ob, view_layer, &color_p);
   /* Remove the alpha. */
@@ -644,7 +645,8 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
   else if (la->type == LA_SPOT) {
     /* Previous implementation was using the clipend distance as cone size.
      * We cannot do this anymore so we use a fixed size of 10. (see T72871) */
-    rescale_m4(instdata.mat, (float[3]){10.0f, 10.0f, 10.0f});
+    const float3 scale_vec = {10.0f, 10.0f, 10.0f};
+    rescale_m4(instdata.mat, scale_vec);
     /* For cycles and eevee the spot attenuation is
      * y = (1/(1 + x^2) - a)/((1 - a) b)
      * We solve the case where spot attenuation y = 1 and y = 0
@@ -756,7 +758,7 @@ void OVERLAY_lightprobe_cache_populate(OVERLAY_Data *vedata, Object *ob)
         uint cell_count = prb->grid_resolution_x * prb->grid_resolution_y * prb->grid_resolution_z;
         DRWShadingGroup *grp = DRW_shgroup_create_sub(vedata->stl->pd->extra_grid_grp);
         DRW_shgroup_uniform_mat4_copy(grp, "gridModelMatrix", instdata.mat);
-        DRW_shgroup_call_procedural_points(grp, NULL, cell_count);
+        DRW_shgroup_call_procedural_points(grp, nullptr, cell_count);
       }
       break;
     case LIGHTPROBE_TYPE_PLANAR:
@@ -849,7 +851,7 @@ static void camera_view3d_reconstruction(
   const bool is_select = DRW_state_is_select();
 
   MovieClip *clip = BKE_object_movieclip_get(scene, ob, false);
-  if (clip == NULL) {
+  if (clip == nullptr) {
     return;
   }
 
@@ -985,7 +987,7 @@ static float camera_offaxis_shiftx_get(Scene *scene,
                                        const OVERLAY_CameraInstanceData *instdata,
                                        bool right_eye)
 {
-  Camera *cam = ob->data;
+  Camera *cam = static_cast<Camera *>(ob->data);
   if (cam->stereo.convergence_mode == CAM_S3D_OFFAXIS) {
     const char *viewnames[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
     const float shiftx = BKE_camera_multiview_shift_x(&scene->r, ob, viewnames[right_eye]);
@@ -1007,7 +1009,7 @@ static void camera_stereoscopy_extra(OVERLAY_ExtraCallBuffers *cb,
                                      const OVERLAY_CameraInstanceData *instdata)
 {
   OVERLAY_CameraInstanceData stereodata = *instdata;
-  Camera *cam = ob->data;
+  Camera *cam = static_cast<Camera *>(ob->data);
   const bool is_select = DRW_state_is_select();
   const char *viewnames[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
 
@@ -1111,7 +1113,7 @@ void OVERLAY_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
   Scene *scene = draw_ctx->scene;
   RegionView3D *rv3d = draw_ctx->rv3d;
 
-  Camera *cam = ob->data;
+  Camera *cam = static_cast<Camera *>(ob->data);
   Object *camera_object = DEG_get_evaluated_object(draw_ctx->depsgraph, v3d->camera);
   const bool is_select = DRW_state_is_select();
   const bool is_active = (ob == camera_object);
@@ -1257,7 +1259,7 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
   }
 
   /* Drawing the hook lines. */
-  for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+  for (ModifierData *md = static_cast<ModifierData *>(ob->modifiers.first); md; md = md->next) {
     if (md->type == eModifierType_Hook) {
       HookModifierData *hmd = (HookModifierData *)md;
       float center[3];
@@ -1286,14 +1288,14 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
     bConstraintOb *cob;
     ListBase *list = &ob->constraints;
 
-    cob = BKE_constraints_make_evalob(depsgraph, scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
+    cob = BKE_constraints_make_evalob(depsgraph, scene, ob, nullptr, CONSTRAINT_OBTYPE_OBJECT);
 
-    for (curcon = list->first; curcon; curcon = curcon->next) {
+    for (curcon = static_cast<bConstraint *>(list->first); curcon; curcon = curcon->next) {
       if (ELEM(curcon->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_OBJECTSOLVER)) {
         /* special case for object solver and follow track constraints because they don't fill
          * constraint targets properly (design limitation -- scene is needed for their target
          * but it can't be accessed from get_targets callback) */
-        Object *camob = NULL;
+        Object *camob = nullptr;
 
         if (curcon->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
           bFollowTrackConstraint *data = (bFollowTrackConstraint *)curcon->data;
@@ -1310,14 +1312,14 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
       }
       else {
         const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(curcon);
-        ListBase targets = {NULL, NULL};
+        ListBase targets = {nullptr, nullptr};
 
         if ((curcon->ui_expand_flag & (1 << 0)) && BKE_constraint_targets_get(curcon, &targets)) {
           bConstraintTarget *ct;
 
           BKE_constraint_custom_object_space_init(cob, curcon);
 
-          for (ct = targets.first; ct; ct = ct->next) {
+          for (ct = static_cast<bConstraintTarget *>(targets.first); ct; ct = ct->next) {
             /* calculate target's matrix */
             if (ct->flag & CONSTRAINT_TAR_CUSTOM_SPACE) {
               copy_m4_m4(ct->matrix, cob->space_obj_world_matrix);
@@ -1394,7 +1396,7 @@ static void OVERLAY_volume_extra(OVERLAY_ExtraCallBuffers *cb,
 
   if (fds->axis_slice_method == AXIS_SLICE_SINGLE) {
     float viewinv[4][4];
-    DRW_view_viewmat_get(NULL, viewinv, true);
+    DRW_view_viewmat_get(nullptr, viewinv, true);
 
     const int axis = (fds->slice_axis == SLICE_AXIS_AUTO) ? axis_dominant_v3_single(viewinv[2]) :
                                                             fds->slice_axis - 1;
@@ -1527,7 +1529,7 @@ void OVERLAY_extra_cache_populate(OVERLAY_Data *vedata, Object *ob)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   ViewLayer *view_layer = draw_ctx->view_layer;
   Scene *scene = draw_ctx->scene;
-  ModifierData *md = NULL;
+  ModifierData *md = nullptr;
 
   const bool is_select_mode = DRW_state_is_select();
   const bool is_paint_mode = (draw_ctx->object_mode &
@@ -1551,7 +1553,7 @@ void OVERLAY_extra_cache_populate(OVERLAY_Data *vedata, Object *ob)
   const bool draw_volume = !from_dupli &&
                            (md = BKE_modifiers_findby_type(ob, eModifierType_Fluid)) &&
                            (BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) &&
-                           (((FluidModifierData *)md)->domain != NULL) &&
+                           (((FluidModifierData *)md)->domain != nullptr) &&
                            (scene->r.cfra >=
                             (((FluidModifierData *)md)->domain->cache_frame_start)) &&
                            (scene->r.cfra <= (((FluidModifierData *)md)->domain->cache_frame_end));
@@ -1585,7 +1587,7 @@ void OVERLAY_extra_cache_populate(OVERLAY_Data *vedata, Object *ob)
     if (draw_texspace) {
       OVERLAY_texture_space(cb, ob, color);
     }
-    if (ob->rigidbody_object != NULL) {
+    if (ob->rigidbody_object != nullptr) {
       OVERLAY_collision(cb, ob, color);
     }
     if (ob->dtx & OB_AXIS) {
