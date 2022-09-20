@@ -907,6 +907,8 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 #  endif
 
+  static char name_mem[256];
+
   prop = RNA_def_property(srna, "channels", PROP_COLLECTION, 0);
   RNA_def_property_collection_sdna(prop, NULL, "channels", NULL);
   RNA_def_property_struct_type(prop, "BrushChannel");
@@ -914,7 +916,7 @@ static void rna_def_sculpt(BlenderRNA *brna)
   // RNA_def_property_clear_flag(prop, PROP_PTR_NO_OWNERSHIP);
   RNA_def_property_override_flag(
       prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY | PROPOVERRIDE_LIBRARY_INSERTION);
-  RNA_def_brush_channelset(brna, prop, "Unified");
+  RNA_def_brush_channelset(brna, prop, "Unified", name_mem);
 
   prop = RNA_def_property(srna, "radial_symmetry", PROP_INT, PROP_XYZ);
   RNA_def_property_int_sdna(prop, NULL, "radial_symm");

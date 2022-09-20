@@ -2221,8 +2221,22 @@ void BKE_sculpt_update_object_for_edit(
   sculpt_update_object(depsgraph, ob_orig, ob_eval, need_pmap, is_paint_tool);
 }
 
-int *BKE_sculpt_face_sets_ensure(Mesh *mesh)
+int *BKE_sculpt_face_sets_ensure(Object *ob)
 {
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
+  SculptSession *ss = ob->sculpt;
+
+  if (ss && ss->bm) {
+    if (CustomData_has_layer(&ss->bm->pdata, CD_SCULPT_FACE_SETS)) {
+      return nullptr;
+    }
+
+    BM_data_layer_add(ss->bm, &ss->bm->pdata, CD_SCULPT_FACE_SETS);
+    BKE_sculptsession_update_attr_refs(ob);
+
+    return nullptr;
+  }
+
   using namespace blender;
   using namespace blender::bke;
   if (CustomData_has_layer(&mesh->pdata, CD_SCULPT_FACE_SETS)) {

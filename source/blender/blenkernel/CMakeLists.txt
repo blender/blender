@@ -847,8 +847,6 @@ endif()
 #    string(APPEND CMAKE_C_FLAGS " /WX")
 # endif()
 
-set(CMAKE_C_FLAGS "-m64 /DNDEBUG -std=gnu1x -g -fno-omit-frame-pointer -Wno-unused-function -Wno-missing-variable-declarations -Wno-unknown-argument -Wno-assign-enum -Wno-enum-enum-conversion -Wno-sign-compare -Wno-reserved-identifier -Wno-unused-parameter -Werror=incompatible-pointer-types -DNDEBUG -Wno-missing-field-initializers -Wno-suggest-destructor-override -Wno-suggest-override -Wno-shadow-field -Wno-c++11-narrowing -Wno-cast-align -Wno-shorten-64-to-32 -Wno-documentation-unknown-command -Wno-unused-function -Wno-unused-variable -Wno-int-to-void-pointer-cast -Wno-nonportable-system-include-path -Wno-unused-parameter -Wno-strict-prototypes -fdiagnostics-absolute-paths -Wno-extra-semi-stmt -Wno-covered-switch-default -Wno-unused-macros -Wno-shadow -Wno-bad-function-cast -Wno-sign-conversion -Wno-missing-noreturn -Wno-implicit-fallthrough -Wno-disabled-macro-expansion -Wno-double-promotion -Wno-cast-qual -Wno-float-equal -Wno-undef -Wno-reserved-id-macro -Wno-zero-as-null-pointer-constant /Zi -Wno-documentation -Wno-implicit-float-conversion -Wno-implicit-int-float-conversion -Wno-pedantic -Wno-implicit-int-conversion -Wno-c++98-compat -Wno-deprecated-declarations -Wno-anon-enum-enum-conversion  -Wno-documentation-deprecated-sync -Wno-language-extension-token  /DWIN32 /D_WINDOWS /W3")
-
 blender_add_lib(bf_blenkernel "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 # Needed so we can use dna_type_offsets.h for defaults initialization.

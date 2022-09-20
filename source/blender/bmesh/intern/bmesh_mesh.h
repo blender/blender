@@ -38,7 +38,7 @@ void BM_mesh_elem_toolflags_clear(BMesh *bm);
 
 struct BMeshCreateParams {
   bool create_unique_ids : 1;
-  int id_elem_mask : 4;  // which element types to make unique ids for
+  int id_elem_mask : 8;  // which element types to make unique ids for
   bool id_map : 1;        // maintain an id to element lookup table
   bool use_toolflags : 1;
   bool no_reuse_ids : 1;  // do not reuse IDs; a GHash will be used internally instead of a lookup

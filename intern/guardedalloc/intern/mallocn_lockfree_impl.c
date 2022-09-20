@@ -111,12 +111,12 @@ void MEM_lockfree_freeN(void *vmemh)
   }
 
   MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
+  MEM_UNPOISON_MEMHEAD(vmemh);
+
   size_t len = MEMHEAD_LEN(memh);
 
   atomic_sub_and_fetch_u(&totblock, 1);
   atomic_sub_and_fetch_z(&mem_in_use, len);
-
-  MEM_UNPOISON_MEMHEAD(vmemh);
 
   if (UNLIKELY(malloc_debug_memset && len)) {
     memset(memh + 1, 255, len);

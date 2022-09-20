@@ -49,8 +49,8 @@ Topology rake:
 #include "BKE_ccg.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_pbvh.h"
 #include "BKE_paint.h"
+#include "BKE_pbvh.h"
 
 #include "GPU_buffers.h"
 
@@ -3684,7 +3684,7 @@ static void pbvh_bmesh_balance_tree(PBVH *pbvh)
   MEM_SAFE_FREE(depthmap);
 }
 
-static void pbvh_bmesh_join_nodes(PBVH *bvh)
+ATTR_NO_OPT static void pbvh_bmesh_join_nodes(PBVH *bvh)
 {
   if (bvh->totnode < 2) {
     return;
@@ -5997,7 +5997,8 @@ static void pbvh_bmesh_fetch_cdrefs(PBVH *pbvh)
       &bm->vdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(dyntopo_node_id_vertex));
   pbvh->cd_vert_node_offset = bm->vdata.layers[idx].offset;
 
-  idx = CustomData_get_named_layer_index(&bm->pdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(dyntopo_node_id_face));
+  idx = CustomData_get_named_layer_index(
+      &bm->pdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(dyntopo_node_id_face));
   pbvh->cd_face_node_offset = bm->pdata.layers[idx].offset;
 
   idx = CustomData_get_named_layer_index(

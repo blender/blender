@@ -763,26 +763,25 @@ void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visibl
       BMIter iter;
       BMFace *f;
 
+      if (!ss->attrs.hide_poly) {
+        return;
+      }
+
+      int cd_hide_poly = ss->attrs.hide_poly->bmesh_cd_offset;
+
       BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
         int fset = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
         int node = BM_ELEM_CD_GET_INT(f, ss->cd_face_node_offset);
 
-        if (abs(fset) != face_set) {
+        if (fset != face_set) {
           continue;
         }
 
-        if (visible) {
-          fset = abs(fset);
-        }
-        else {
-          fset = -abs(fset);
-        }
+        BM_ELEM_CD_SET_BOOL(f, cd_hide_poly, !visible);
 
         if (node != DYNTOPO_NODE_NONE) {
           BKE_pbvh_vert_tag_update_normal_triangulation(BKE_pbvh_node_from_index(ss->pbvh, node));
         }
-
-        BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, fset);
       }
       break;
     }
@@ -8614,7 +8613,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
   }
   if (SCULPT_tool_is_face_sets(brush->sculpt_tool)) {
     Mesh *mesh = BKE_object_get_original_mesh(ob);
-    ss->face_sets = BKE_sculpt_face_sets_ensure(mesh);
+    ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
   }
 
   stroke = paint_stroke_new(C,

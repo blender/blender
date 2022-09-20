@@ -659,15 +659,17 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
   BKE_curvemapping_init(brush->curve);
 
   /* Threaded loop over nodes. */
-  SculptFaceSetDrawData data = {.sd = sd,
-                                .ob = ob,
-                                .brush = brush,
-                                .nodes = nodes,
-                                .faceset = abs(ss->cache->paint_face_set),
-                                .use_fset_curve = false,
-                                .use_fset_strength = true,
-                                .bstrength = ss->cache->bstrength,
-                                .count = 1};
+  SculptFaceSetDrawData data;
+
+  data.sd = sd;
+  data.ob = ob;
+  data.brush = brush;
+  data.nodes = nodes;
+  data.faceset = abs(ss->cache->paint_face_set);
+  data.use_fset_curve = false;
+  data.use_fset_strength = true;
+  data.bstrength = ss->cache->bstrength;
+  data.count = 1;
 
   bool threaded = true;
 
@@ -2650,7 +2652,11 @@ SculptFaceSetIslands *SCULPT_face_set_islands_get(SculptSession *ss, int fset)
         faces.size(), sizeof(PBVHFaceRef), __func__);
     memcpy((void *)cfaces, (void *)faces.data(), sizeof(PBVHFaceRef) * faces.size());
 
-    SculptFaceSetIsland island = {.faces = cfaces, .totface = faces.size()};
+    SculptFaceSetIsland island;
+
+    island.faces = cfaces;
+    island.totface = faces.size();
+
     islands.append(island);
   }
 

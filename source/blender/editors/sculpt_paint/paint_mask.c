@@ -779,7 +779,7 @@ static void sculpt_gesture_init_face_set_properties(SculptGestureContext *sgcont
   struct Mesh *mesh = BKE_mesh_from_object(sgcontext->vc.obact);
   sgcontext->operation = MEM_callocN(sizeof(SculptGestureFaceSetOperation), "Face Set Operation");
 
-  sgcontext->ss->face_sets = BKE_sculpt_face_sets_ensure(mesh);
+  sgcontext->ss->face_sets = BKE_sculpt_face_sets_ensure(sgcontext->vc.obact);
 
   SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
                                                           sgcontext->operation;

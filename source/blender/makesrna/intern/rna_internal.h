@@ -150,7 +150,8 @@ void RNA_def_brush(struct BlenderRNA *brna);
 void RNA_def_brush_engine(struct BlenderRNA *brna);
 void RNA_def_brush_channelset(struct BlenderRNA *brna,
                               struct PropertyRNA *cprop,
-                              const char *type_prefix);
+                              const char *type_prefix,
+                              char name_mem[256]);
 void RNA_def_cachefile(struct BlenderRNA *brna);
 void RNA_def_camera(struct BlenderRNA *brna);
 void RNA_def_cloth(struct BlenderRNA *brna);

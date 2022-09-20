@@ -678,6 +678,10 @@ uint BM_log_face_id_get(BMLog *log, BMFace *f)
 /* Get a face from its unique ID */
 static BMFace *bm_log_face_from_id(BMLog *log, uint id)
 {
+  if (log->bm->idmap.map && id >= ((unsigned int)log->bm->idmap.map_size)) {
+    return NULL;
+  }
+
   return (BMFace *)BM_ELEM_FROM_ID(log->bm, id);
 }
 
@@ -1032,7 +1036,7 @@ static void bm_log_edges_unmake_pre(
   }
 }
 
-static void bm_log_faces_unmake_pre(
+ATTR_NO_OPT static void bm_log_faces_unmake_pre(
     BMesh *bm, BMLog *log, GHash *faces, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   GHashIterator gh_iter;
@@ -1314,7 +1318,7 @@ static void bm_log_edges_restore(
   }
 }
 
-static void bm_log_faces_restore(
+ATTR_NO_OPT static void bm_log_faces_restore(
     BMesh *bm, BMLog *log, GHash *faces, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   GHashIterator gh_iter;

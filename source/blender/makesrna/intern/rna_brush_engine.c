@@ -1064,20 +1064,18 @@ void RNA_def_brush_channel(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 }
 
-void RNA_def_brush_channelset(BlenderRNA *brna, PropertyRNA *cprop, const char *type_prefix)
+void RNA_def_brush_channelset(BlenderRNA *brna, PropertyRNA *cprop, const char *type_prefix, char type_mem[256])
 {
   StructRNA *srna;
   PropertyRNA *prop;
   FunctionRNA *func;
   PropertyRNA *parm;
 
-  char buf[256], *name;
-  sprintf(buf, "%sBrushChannels", type_prefix);
-  name = strdup(buf);
+  sprintf(type_mem, "%sBrushChannels", type_prefix);
 
-  RNA_def_property_srna(cprop, name);
+  RNA_def_property_srna(cprop, type_mem);
 
-  srna = RNA_def_struct(brna, name, NULL);
+  srna = RNA_def_struct(brna, type_mem, NULL);
   RNA_def_struct_sdna(srna, "BrushChannelSet");
   RNA_def_struct_ui_text(srna, "Brush Channels", "Collection of brush channels");
 
