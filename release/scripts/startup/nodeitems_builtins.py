@@ -261,8 +261,9 @@ def node_group_items(context):
 
     yield NodeItemCustom(draw=group_tools_draw)
 
-    yield NodeItem("NodeGroupInput", poll=group_input_output_item_poll)
-    yield NodeItem("NodeGroupOutput", poll=group_input_output_item_poll)
+    if group_input_output_item_poll(context):
+        yield NodeItem("NodeGroupInput")
+        yield NodeItem("NodeGroupOutput")
 
     ntree = space.edit_tree
     if not ntree:
