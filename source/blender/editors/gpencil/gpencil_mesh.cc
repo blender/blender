@@ -315,7 +315,7 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
           LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
             if ((gps->flag & GP_STROKE_TAG) == 0) {
               ED_gpencil_stroke_reproject(
-                  depsgraph, &gsc, sctx, gpl, gpf, gps, project_type, false);
+                  depsgraph, &gsc, sctx, gpl, gpf, gps, project_type, false, 0.0f);
               gps->flag |= GP_STROKE_TAG;
             }
           }

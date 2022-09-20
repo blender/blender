@@ -1038,7 +1038,8 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
                                  bGPDframe *gpf,
                                  bGPDstroke *gps,
                                  const eGP_ReprojectModes mode,
-                                 const bool keep_original)
+                                 const bool keep_original,
+                                 const float offset)
 {
   ToolSettings *ts = gsc->scene->toolsettings;
   ARegion *region = gsc->region;
@@ -1156,7 +1157,13 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
                                                &depth,
                                                &location[0],
                                                &normal[0])) {
-        copy_v3_v3(&pt->x, location);
+        /* Apply offset over surface. */
+        float normal_vector[3];
+        sub_v3_v3v3(normal_vector, ray_start, location);
+        normalize_v3(normal_vector);
+        mul_v3_fl(normal_vector, offset);
+
+        add_v3_v3v3(&pt->x, location, normal_vector);
       }
       else {
         /* Default to planar */

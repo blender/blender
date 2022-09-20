@@ -327,7 +327,7 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
           /* Reproject stroke. */
           if (project_type != GP_REPROJECT_KEEP) {
             ED_gpencil_stroke_reproject(
-                depsgraph, &gsc, sctx, gpl_dst, gpf_dst, gps, project_type, false);
+                depsgraph, &gsc, sctx, gpl_dst, gpf_dst, gps, project_type, false, 0.0f);
           }
           else {
             BKE_gpencil_stroke_geometry_update(gpd_dst, gps);
