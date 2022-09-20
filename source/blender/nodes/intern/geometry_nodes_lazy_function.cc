@@ -1371,9 +1371,10 @@ GeometryNodesLazyFunctionGraphInfo::~GeometryNodesLazyFunctionGraphInfo()
   }
 }
 
-static void add_thread_id_debug_message(const GeometryNodesLazyFunctionGraphInfo &lf_graph_info,
-                                        const lf::FunctionNode &node,
-                                        const lf::Context &context)
+[[maybe_unused]] static void add_thread_id_debug_message(
+    const GeometryNodesLazyFunctionGraphInfo &lf_graph_info,
+    const lf::FunctionNode &node,
+    const lf::Context &context)
 {
   static std::atomic<int> thread_id_source = 0;
   static thread_local const int thread_id = thread_id_source.fetch_add(1);
