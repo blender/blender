@@ -67,6 +67,7 @@ inline void execute_lazy_function_eagerly_impl(
   (
       [&]() {
         constexpr size_t I = InIndices;
+        /* Use `typedef` instead of `using` to work around a compiler bug. */
         typedef Inputs T;
         const CPPType &type = CPPType::get<T>();
         input_pointers[I] = {type, &std::get<I>(inputs)};
@@ -75,6 +76,7 @@ inline void execute_lazy_function_eagerly_impl(
   (
       [&]() {
         constexpr size_t I = OutIndices;
+        /* Use `typedef` instead of `using` to work around a compiler bug. */
         typedef Outputs T;
         const CPPType &type = CPPType::get<T>();
         output_pointers[I] = {type, std::get<I>(outputs)};
