@@ -49,10 +49,10 @@
 #include "PIL_time.h"
 #ifdef DEBUG_TIME
 #  include "PIL_time_utildefines.h"
+
 #endif
 
-/* minor optimization, calculate this inline */
-#define USE_TANGENT_CALC_INLINE
+#include "BLI_strict_flags.h"
 
 static void initData(ModifierData *md)
 {
@@ -64,8 +64,6 @@ static void initData(ModifierData *md)
 
   csmd->delta_cache.deltas = NULL;
 }
-
-#include "BLI_strict_flags.h"
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
@@ -79,7 +77,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   }
 
   tcsmd->delta_cache.deltas = NULL;
-  tcsmd->delta_cache.totverts = 0;
+  tcsmd->delta_cache.deltas_num = 0;
 }
 
 static void freeBind(CorrectiveSmoothModifierData *csmd)
@@ -96,9 +94,7 @@ static void freeData(ModifierData *md)
   freeBind(csmd);
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
 
@@ -134,25 +130,24 @@ static void mesh_get_boundaries(Mesh *mesh, float *smooth_weights)
   const MEdge *medge = BKE_mesh_edges(mesh);
   const MPoly *mpoly = BKE_mesh_polys(mesh);
   const MLoop *mloop = BKE_mesh_loops(mesh);
-  uint mpoly_num, medge_num, i;
-  ushort *boundaries;
 
-  mpoly_num = (uint)mesh->totpoly;
-  medge_num = (uint)mesh->totedge;
+  const uint mpoly_num = (uint)mesh->totpoly;
+  const uint medge_num = (uint)mesh->totedge;
 
-  boundaries = MEM_calloc_arrayN(medge_num, sizeof(*boundaries), __func__);
+  /* Flag boundary edges so only boundaries are set to 1. */
+  uint8_t *boundaries = MEM_calloc_arrayN(medge_num, sizeof(*boundaries), __func__);
 
-  /* count the number of adjacent faces */
-  for (i = 0; i < mpoly_num; i++) {
+  for (uint i = 0; i < mpoly_num; i++) {
     const MPoly *p = &mpoly[i];
     const int totloop = p->totloop;
     int j;
     for (j = 0; j < totloop; j++) {
-      boundaries[mloop[p->loopstart + j].e]++;
+      uint8_t *e_value = &boundaries[mloop[p->loopstart + j].e];
+      *e_value |= (uint8_t)((*e_value) + 1);
     }
   }
 
-  for (i = 0; i < medge_num; i++) {
+  for (uint i = 0; i < medge_num; i++) {
     if (boundaries[i] == 1) {
       smooth_weights[medge[i].v1] = 0.0f;
       smooth_weights[medge[i].v2] = 0.0f;
@@ -393,68 +388,60 @@ static void smooth_verts(CorrectiveSmoothModifierData *csmd,
 }
 
 /**
- * finalize after accumulation.
+ * Calculate an orthogonal 3x3 matrix from 2 edge vectors.
+ * \return false if this loop should be ignored (have zero influence).
  */
-static void calc_tangent_ortho(float ts[3][3])
+static bool calc_tangent_loop(const float v_dir_prev[3],
+                              const float v_dir_next[3],
+                              float r_tspace[3][3])
 {
-  float v_tan_a[3], v_tan_b[3];
-  float t_vec_a[3], t_vec_b[3];
+  if (UNLIKELY(compare_v3v3(v_dir_prev, v_dir_next, FLT_EPSILON * 10.0f))) {
+    /* As there are no weights, the value doesn't matter just initialize it. */
+    unit_m3(r_tspace);
+    return false;
+  }
 
-  normalize_v3(ts[2]);
+  copy_v3_v3(r_tspace[0], v_dir_prev);
+  copy_v3_v3(r_tspace[1], v_dir_next);
 
-  copy_v3_v3(v_tan_a, ts[0]);
-  copy_v3_v3(v_tan_b, ts[1]);
+  cross_v3_v3v3(r_tspace[2], v_dir_prev, v_dir_next);
+  normalize_v3(r_tspace[2]);
 
-  cross_v3_v3v3(ts[1], ts[2], v_tan_a);
-  mul_v3_fl(ts[1], dot_v3v3(ts[1], v_tan_b) < 0.0f ? -1.0f : 1.0f);
+  /* Make orthogonal using `r_tspace[2]` as a basis.
+   *
+   * NOTE: while it seems more logical to use `v_dir_prev` & `v_dir_next` as separate X/Y axis
+   * (instead of combining them as is done here). It's not necessary as the directions of the
+   * axis aren't important as long as the difference between tangent matrices is equivalent.
+   * Some computations can be skipped by combining the two directions,
+   * using the cross product for the 3rd axes. */
+  add_v3_v3(r_tspace[0], r_tspace[1]);
+  normalize_v3(r_tspace[0]);
+  cross_v3_v3v3(r_tspace[1], r_tspace[2], r_tspace[0]);
 
-  /* Orthogonalize tangent. */
-  mul_v3_v3fl(t_vec_a, ts[2], dot_v3v3(ts[2], v_tan_a));
-  sub_v3_v3v3(ts[0], v_tan_a, t_vec_a);
-
-  /* Orthogonalize bi-tangent. */
-  mul_v3_v3fl(t_vec_a, ts[2], dot_v3v3(ts[2], ts[1]));
-  mul_v3_v3fl(t_vec_b, ts[0], dot_v3v3(ts[0], ts[1]) / dot_v3v3(v_tan_a, v_tan_a));
-  sub_v3_v3(ts[1], t_vec_a);
-  sub_v3_v3(ts[1], t_vec_b);
-
-  normalize_v3(ts[0]);
-  normalize_v3(ts[1]);
+  return true;
 }
 
 /**
- * accumulate edge-vectors from all polys.
+ * \param r_tangent_spaces: Loop aligned array of tangents.
+ * \param r_tangent_weights: Loop aligned array of weights (may be NULL).
+ * \param r_tangent_weights_per_vertex: Vertex aligned array, accumulating weights for each loop
+ * (may be NULL).
  */
-static void calc_tangent_loop_accum(const float v_dir_prev[3],
-                                    const float v_dir_next[3],
-                                    float r_tspace[3][3])
-{
-  add_v3_v3v3(r_tspace[1], v_dir_prev, v_dir_next);
-
-  if (compare_v3v3(v_dir_prev, v_dir_next, FLT_EPSILON * 10.0f) == false) {
-    const float weight = fabsf(acosf(dot_v3v3(v_dir_next, v_dir_prev)));
-    float nor[3];
-
-    cross_v3_v3v3(nor, v_dir_prev, v_dir_next);
-    normalize_v3(nor);
-
-    cross_v3_v3v3(r_tspace[0], r_tspace[1], nor);
-
-    mul_v3_fl(nor, weight);
-    /* accumulate weighted normals */
-    add_v3_v3(r_tspace[2], nor);
-  }
-}
-
-static void calc_tangent_spaces(Mesh *mesh, float (*vertexCos)[3], float (*r_tangent_spaces)[3][3])
+static void calc_tangent_spaces(const Mesh *mesh,
+                                const float (*vertexCos)[3],
+                                float (*r_tangent_spaces)[3][3],
+                                float *r_tangent_weights,
+                                float *r_tangent_weights_per_vertex)
 {
   const uint mpoly_num = (uint)mesh->totpoly;
-#ifndef USE_TANGENT_CALC_INLINE
-  const uint mvert_num = (uint)dm->getNumVerts(dm);
-#endif
+  const uint mvert_num = (uint)mesh->totvert;
   const MPoly *mpoly = BKE_mesh_polys(mesh);
   const MLoop *mloop = BKE_mesh_loops(mesh);
   uint i;
+
+  if (r_tangent_weights_per_vertex != NULL) {
+    copy_vn_fl(r_tangent_weights_per_vertex, (int)mvert_num, 0.0f);
+  }
 
   for (i = 0; i < mpoly_num; i++) {
     const MPoly *mp = &mpoly[i];
@@ -471,7 +458,8 @@ static void calc_tangent_spaces(Mesh *mesh, float (*vertexCos)[3], float (*r_tan
     normalize_v3(v_dir_prev);
 
     for (; l_next != l_term; l_prev = l_curr, l_curr = l_next, l_next++) {
-      float(*ts)[3] = r_tangent_spaces[l_curr->v];
+      uint l_index = (uint)(l_curr - mloop);
+      float(*ts)[3] = r_tangent_spaces[l_index];
 
       /* re-use the previous value */
 #if 0
@@ -481,19 +469,22 @@ static void calc_tangent_spaces(Mesh *mesh, float (*vertexCos)[3], float (*r_tan
       sub_v3_v3v3(v_dir_next, vertexCos[l_curr->v], vertexCos[l_next->v]);
       normalize_v3(v_dir_next);
 
-      calc_tangent_loop_accum(v_dir_prev, v_dir_next, ts);
+      if (calc_tangent_loop(v_dir_prev, v_dir_next, ts)) {
+        if (r_tangent_weights != NULL) {
+          const float weight = fabsf(acosf(dot_v3v3(v_dir_next, v_dir_prev)));
+          r_tangent_weights[l_index] = weight;
+          r_tangent_weights_per_vertex[l_curr->v] += weight;
+        }
+      }
+      else {
+        if (r_tangent_weights != NULL) {
+          r_tangent_weights[l_index] = 0;
+        }
+      }
 
       copy_v3_v3(v_dir_prev, v_dir_next);
     }
   }
-
-  /* do inline */
-#ifndef USE_TANGENT_CALC_INLINE
-  for (i = 0; i < mvert_num; i++) {
-    float(*ts)[3] = r_tangent_spaces[i];
-    calc_tangent_ortho(ts);
-  }
-#endif
 }
 
 static void store_cache_settings(CorrectiveSmoothModifierData *csmd)
@@ -524,38 +515,42 @@ static void calc_deltas(CorrectiveSmoothModifierData *csmd,
                         const float (*rest_coords)[3],
                         uint verts_num)
 {
+  const MLoop *mloop = BKE_mesh_loops(mesh);
+  const uint loops_num = (uint)mesh->totloop;
+
   float(*smooth_vertex_coords)[3] = MEM_dupallocN(rest_coords);
   float(*tangent_spaces)[3][3];
-  uint i;
 
-  tangent_spaces = MEM_calloc_arrayN(verts_num, sizeof(float[3][3]), __func__);
+  uint l_index;
 
-  if (csmd->delta_cache.totverts != verts_num) {
+  tangent_spaces = MEM_malloc_arrayN(loops_num, sizeof(float[3][3]), __func__);
+
+  if (csmd->delta_cache.deltas_num != loops_num) {
     MEM_SAFE_FREE(csmd->delta_cache.deltas);
   }
 
   /* allocate deltas if they have not yet been allocated, otherwise we will just write over them */
   if (!csmd->delta_cache.deltas) {
-    csmd->delta_cache.totverts = verts_num;
-    csmd->delta_cache.deltas = MEM_malloc_arrayN(verts_num, sizeof(float[3]), __func__);
+    csmd->delta_cache.deltas_num = loops_num;
+    csmd->delta_cache.deltas = MEM_malloc_arrayN(loops_num, sizeof(float[3]), __func__);
   }
 
   smooth_verts(csmd, mesh, dvert, defgrp_index, smooth_vertex_coords, verts_num);
 
-  calc_tangent_spaces(mesh, smooth_vertex_coords, tangent_spaces);
+  calc_tangent_spaces(mesh, smooth_vertex_coords, tangent_spaces, NULL, NULL);
 
-  for (i = 0; i < verts_num; i++) {
-    float imat[3][3], delta[3];
+  copy_vn_fl(&csmd->delta_cache.deltas[0][0], (int)loops_num * 3, 0.0f);
 
-#ifdef USE_TANGENT_CALC_INLINE
-    calc_tangent_ortho(tangent_spaces[i]);
-#endif
+  for (l_index = 0; l_index < loops_num; l_index++) {
+    const int v_index = (int)mloop[l_index].v;
+    float delta[3];
+    sub_v3_v3v3(delta, rest_coords[v_index], smooth_vertex_coords[v_index]);
 
-    sub_v3_v3v3(delta, rest_coords[i], smooth_vertex_coords[i]);
-    if (UNLIKELY(!invert_m3_m3(imat, tangent_spaces[i]))) {
-      transpose_m3_m3(imat, tangent_spaces[i]);
+    float imat[3][3];
+    if (UNLIKELY(!invert_m3_m3(imat, tangent_spaces[l_index]))) {
+      transpose_m3_m3(imat, tangent_spaces[l_index]);
     }
-    mul_v3_m3v3(csmd->delta_cache.deltas[i], imat, delta);
+    mul_v3_m3v3(csmd->delta_cache.deltas[l_index], imat, delta);
   }
 
   MEM_freeN(tangent_spaces);
@@ -577,6 +572,9 @@ static void correctivesmooth_modifier_do(ModifierData *md,
       !cache_settings_equal(csmd) ||
       ((csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_ORCO) &&
        (((ID *)ob->data)->recalc & ID_RECALC_ALL));
+
+  const MLoop *mloop = BKE_mesh_loops(mesh);
+  const uint loops_num = (uint)mesh->totloop;
 
   bool use_only_smooth = (csmd->flag & MOD_CORRECTIVESMOOTH_ONLY_SMOOTH) != 0;
   const MDeformVert *dvert = NULL;
@@ -640,7 +638,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
   }
 
   /* check to see if our deltas are still valid */
-  if (!csmd->delta_cache.deltas || (csmd->delta_cache.totverts != verts_num) ||
+  if (!csmd->delta_cache.deltas || (csmd->delta_cache.deltas_num != loops_num) ||
       force_delta_cache_update) {
     const float(*rest_coords)[3];
     bool is_rest_coords_alloc = false;
@@ -688,27 +686,38 @@ static void correctivesmooth_modifier_do(ModifierData *md,
   smooth_verts(csmd, mesh, dvert, defgrp_index, vertexCos, verts_num);
 
   {
-    uint i;
+    uint l_index;
 
     float(*tangent_spaces)[3][3];
+    float *tangent_weights;
+
+    float *tangent_weights_per_vertex;
     const float scale = csmd->scale;
-    /* calloc, since values are accumulated */
-    tangent_spaces = MEM_calloc_arrayN(verts_num, sizeof(float[3][3]), __func__);
 
-    calc_tangent_spaces(mesh, vertexCos, tangent_spaces);
+    tangent_spaces = MEM_malloc_arrayN(loops_num, sizeof(float[3][3]), __func__);
+    tangent_weights = MEM_malloc_arrayN(loops_num, sizeof(float), __func__);
+    tangent_weights_per_vertex = MEM_malloc_arrayN(verts_num, sizeof(float), __func__);
 
-    for (i = 0; i < verts_num; i++) {
+    calc_tangent_spaces(
+        mesh, vertexCos, tangent_spaces, tangent_weights, tangent_weights_per_vertex);
+
+    for (l_index = 0; l_index < loops_num; l_index++) {
+      const uint v_index = mloop[l_index].v;
+      const float weight = tangent_weights[l_index] / tangent_weights_per_vertex[v_index];
+      if (UNLIKELY(!(weight > 0.0f))) {
+        /* Catches zero & divide by zero. */
+        continue;
+      }
+
       float delta[3];
-
-#ifdef USE_TANGENT_CALC_INLINE
-      calc_tangent_ortho(tangent_spaces[i]);
-#endif
-
-      mul_v3_m3v3(delta, tangent_spaces[i], csmd->delta_cache.deltas[i]);
-      madd_v3_v3fl(vertexCos[i], delta, scale);
+      mul_v3_m3v3(delta, tangent_spaces[l_index], csmd->delta_cache.deltas[l_index]);
+      mul_v3_fl(delta, weight);
+      madd_v3_v3fl(vertexCos[v_index], delta, scale);
     }
 
     MEM_freeN(tangent_spaces);
+    MEM_freeN(tangent_weights);
+    MEM_freeN(tangent_weights_per_vertex);
   }
 
 #ifdef DEBUG_TIME
@@ -720,7 +729,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
   /* when the modifier fails to execute */
 error:
   MEM_SAFE_FREE(csmd->delta_cache.deltas);
-  csmd->delta_cache.totverts = 0;
+  csmd->delta_cache.deltas_num = 0;
 }
 
 static void deformVerts(ModifierData *md,
@@ -829,7 +838,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 
   /* runtime only */
   csmd->delta_cache.deltas = NULL;
-  csmd->delta_cache.totverts = 0;
+  csmd->delta_cache.deltas_num = 0;
 }
 
 ModifierTypeInfo modifierType_CorrectiveSmooth = {

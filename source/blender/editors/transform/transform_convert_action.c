@@ -576,6 +576,8 @@ static void recalcData_actedit(TransInfo *t)
   bAnimListElem *ale;
   int filter;
 
+  BKE_view_layer_synced_ensure(t->scene, t->view_layer);
+
   /* initialize relevant anim-context 'context' data from TransInfo data */
   /* NOTE: sync this with the code in ANIM_animdata_get_context() */
   ac.bmain = CTX_data_main(t->context);

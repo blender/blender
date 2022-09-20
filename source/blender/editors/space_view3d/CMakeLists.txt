@@ -75,7 +75,7 @@ set(LIB
 )
 
 if(WITH_PYTHON)
-  blender_include_dirs(../../python)
+  list(APPEND INC ../../python)
   add_definitions(-DWITH_PYTHON)
 endif()
 

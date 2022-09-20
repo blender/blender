@@ -1571,6 +1571,19 @@ static int rna_Mesh_vertex_normals_length(PointerRNA *ptr)
   return mesh->totvert;
 }
 
+int rna_Mesh_vertex_normals_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  if (index < 0 || index >= mesh->totvert) {
+    return false;
+  }
+  /* Casting away const is okay because this RNA type doesn't allow changing the value. */
+  r_ptr->owner_id = (ID *)&mesh->id;
+  r_ptr->type = &RNA_MeshNormalValue;
+  r_ptr->data = (float *)BKE_mesh_vertex_normals_ensure(mesh)[index];
+  return true;
+}
+
 static void rna_Mesh_poly_normals_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
@@ -1582,6 +1595,19 @@ static int rna_Mesh_poly_normals_length(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
   return mesh->totpoly;
+}
+
+int rna_Mesh_poly_normals_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  const Mesh *mesh = rna_mesh(ptr);
+  if (index < 0 || index >= mesh->totpoly) {
+    return false;
+  }
+  /* Casting away const is okay because this RNA type doesn't allow changing the value. */
+  r_ptr->owner_id = (ID *)&mesh->id;
+  r_ptr->type = &RNA_MeshNormalValue;
+  r_ptr->data = (float *)BKE_mesh_poly_normals_ensure(mesh)[index];
+  return true;
 }
 
 static char *rna_MeshUVLoop_path(const PointerRNA *ptr)
@@ -3462,7 +3488,7 @@ static void rna_def_mesh(BlenderRNA *brna)
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_get",
                                     "rna_Mesh_vertex_normals_length",
-                                    NULL,
+                                    "rna_Mesh_vertex_normals_lookup_int",
                                     NULL,
                                     NULL);
 
@@ -3479,7 +3505,7 @@ static void rna_def_mesh(BlenderRNA *brna)
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_get",
                                     "rna_Mesh_poly_normals_length",
-                                    NULL,
+                                    "rna_Mesh_poly_normals_lookup_int",
                                     NULL,
                                     NULL);
 

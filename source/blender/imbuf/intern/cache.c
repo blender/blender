@@ -167,7 +167,7 @@ void imb_tile_cache_tile_free(ImBuf *ibuf, int tx, int ty)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Init/Exit
+/** \name Initialize/Exit
  * \{ */
 
 static void imb_thread_cache_init(ImThreadTileCache *cache)

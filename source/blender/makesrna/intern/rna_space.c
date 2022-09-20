@@ -1529,7 +1529,7 @@ static void rna_SpaceView3D_use_local_collections_update(bContext *C, PointerRNA
   View3D *v3d = (View3D *)ptr->data;
 
   if (ED_view3d_local_collections_set(bmain, v3d)) {
-    BKE_layer_collection_local_sync(view_layer, v3d);
+    BKE_layer_collection_local_sync(scene, view_layer, v3d);
     DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   }
 }
@@ -1673,7 +1673,9 @@ static bool rna_SpaceImageEditor_show_uvedit_get(PointerRNA *ptr)
   Object *obedit = NULL;
   wmWindow *win = ED_screen_window_find(screen, G_MAIN->wm.first);
   if (win != NULL) {
+    Scene *scene = WM_window_get_active_scene(win);
     ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+    BKE_view_layer_synced_ensure(scene, view_layer);
     obedit = BKE_view_layer_edit_object_get(view_layer);
   }
   return ED_space_image_show_uvedit(sima, obedit);
@@ -1686,7 +1688,9 @@ static bool rna_SpaceImageEditor_show_maskedit_get(PointerRNA *ptr)
   Object *obedit = NULL;
   wmWindow *win = ED_screen_window_find(screen, G_MAIN->wm.first);
   if (win != NULL) {
+    Scene *scene = WM_window_get_active_scene(win);
     ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+    BKE_view_layer_synced_ensure(scene, view_layer);
     obedit = BKE_view_layer_edit_object_get(view_layer);
   }
   return ED_space_image_check_show_maskedit(sima, obedit);
@@ -1879,6 +1883,15 @@ static void rna_SpaceUVEditor_tile_grid_shape_set(PointerRNA *ptr, const int *va
   int clamp[2] = {10, 100};
   for (int i = 0; i < 2; i++) {
     data->tile_grid_shape[i] = CLAMPIS(values[i], 1, clamp[i]);
+  }
+}
+
+static void rna_SpaceUVEditor_custom_grid_subdiv_set(PointerRNA *ptr, const int *values)
+{
+  SpaceImage *data = (SpaceImage *)(ptr->data);
+
+  for (int i = 0; i < 2; i++) {
+    data->custom_grid_subdiv[i] = CLAMPIS(values[i], 1, 5000);
   }
 }
 
@@ -2184,9 +2197,11 @@ static void rna_SpaceDopeSheetEditor_action_set(PointerRNA *ptr,
 static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
 {
   SpaceAction *saction = (SpaceAction *)(ptr->data);
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Main *bmain = CTX_data_main(C);
 
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obact = BKE_view_layer_active_object_get(view_layer);
   if (obact == NULL) {
     return;
@@ -2259,7 +2274,9 @@ static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
 {
   SpaceAction *saction = (SpaceAction *)(ptr->data);
   ScrArea *area = CTX_wm_area(C);
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obact = BKE_view_layer_active_object_get(view_layer);
 
   /* special exceptions for ShapeKey Editor mode */
@@ -3523,10 +3540,10 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
-  static const EnumPropertyItem pixel_snap_mode_items[] = {
-      {SI_PIXEL_SNAP_DISABLED, "DISABLED", 0, "Disabled", "Don't snap to pixels"},
-      {SI_PIXEL_SNAP_CORNER, "CORNER", 0, "Corner", "Snap to pixel corners"},
-      {SI_PIXEL_SNAP_CENTER, "CENTER", 0, "Center", "Snap to pixel centers"},
+  static const EnumPropertyItem pixel_round_mode_items[] = {
+      {SI_PIXEL_ROUND_DISABLED, "DISABLED", 0, "Disabled", "Don't round to pixels"},
+      {SI_PIXEL_ROUND_CORNER, "CORNER", 0, "Corner", "Round to pixel corners"},
+      {SI_PIXEL_ROUND_CENTER, "CENTER", 0, "Center", "Round to pixel centers"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -3603,9 +3620,12 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Custom Grid", "Use a grid with a user-defined number of steps");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
-  prop = RNA_def_property(srna, "custom_grid_subdivisions", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "custom_grid_subdivisions", PROP_INT, PROP_XYZ);
   RNA_def_property_int_sdna(prop, NULL, "custom_grid_subdiv");
+  RNA_def_property_array(prop, 2);
+  RNA_def_property_int_default(prop, 10);
   RNA_def_property_range(prop, 1, 5000);
+  RNA_def_property_int_funcs(prop, NULL, "rna_SpaceUVEditor_custom_grid_subdiv_set", NULL);
   RNA_def_property_ui_text(
       prop, "Dynamic Grid Size", "Number of grid units in UV space that make one UV Unit");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
@@ -3616,11 +3636,9 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "UV Opacity", "Opacity of UV overlays");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
-  /* TODO: move edge and face drawing options here from `G.f`. */
-
-  prop = RNA_def_property(srna, "pixel_snap_mode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, pixel_snap_mode_items);
-  RNA_def_property_ui_text(prop, "Snap to Pixels", "Snap UVs to pixels while editing");
+  prop = RNA_def_property(srna, "pixel_round_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, pixel_round_mode_items);
+  RNA_def_property_ui_text(prop, "Round to Pixels", "Round UVs to pixels while editing");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
   prop = RNA_def_property(srna, "lock_bounds", PROP_BOOLEAN, PROP_NONE);
@@ -3990,6 +4008,7 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
   prop = RNA_def_property(srna, "cavity_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, cavity_type_items);
   RNA_def_property_ui_text(prop, "Cavity Type", "Way to display the cavity shading");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_VIEW3D);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, NULL);
 
   prop = RNA_def_property(srna, "curvature_ridge_factor", PROP_FLOAT, PROP_FACTOR);
@@ -6625,7 +6644,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Title", "Title for the file browser");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-  /* Use BYTESTRING rather than DIRPATH as subtype so UI code doesn't add OT_directory_browse
+  /* Use BYTESTRING rather than DIRPATH as sub-type so UI code doesn't add OT_directory_browse
    * button when displaying this prop in the file browser (it would just open a file browser). That
    * should be the only effective difference between the two. */
   prop = RNA_def_property(srna, "directory", PROP_STRING, PROP_BYTESTRING);

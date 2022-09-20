@@ -22,6 +22,7 @@
 #include "BLI_range.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
@@ -856,8 +857,9 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
               immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
           immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-          /* just draw a semi-shaded rect spanning the width of the viewable area if there's data,
-           * and a second darker rect within which we draw keyframe indicator dots if there's data
+          /* just draw a semi-shaded rect spanning the width of the viewable area, based on if
+           * there's data and the action's extrapolation mode. Draw a second darker rect within
+           * which we draw keyframe indicator dots if there's data.
            */
           GPU_blend(GPU_BLEND_ALPHA);
 
@@ -869,8 +871,26 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
           /* draw slightly shifted up for greater separation from standard channels,
            * but also slightly shorter for some more contrast when viewing the strips
            */
-          immRectf(
-              pos, v2d->cur.xmin, ymin + NLACHANNEL_SKIP, v2d->cur.xmax, ymax - NLACHANNEL_SKIP);
+          switch (adt->act_extendmode) {
+            case NLASTRIP_EXTEND_HOLD: {
+              immRectf(pos,
+                       v2d->cur.xmin,
+                       ymin + NLACHANNEL_SKIP,
+                       v2d->cur.xmax,
+                       ymax - NLACHANNEL_SKIP);
+              break;
+            }
+            case NLASTRIP_EXTEND_HOLD_FORWARD: {
+              float r_start;
+              float r_end;
+              BKE_action_get_frame_range(ale->data, &r_start, &r_end);
+
+              immRectf(pos, r_end, ymin + NLACHANNEL_SKIP, v2d->cur.xmax, ymax - NLACHANNEL_SKIP);
+              break;
+            }
+            case NLASTRIP_EXTEND_NOTHING:
+              break;
+          }
 
           immUnbindProgram();
 

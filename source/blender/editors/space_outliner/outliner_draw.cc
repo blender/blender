@@ -284,6 +284,7 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
         DEG_id_tag_update(&ob_iter->id, ID_RECALC_COPY_ON_WRITE);
       }
       else {
+        BKE_view_layer_synced_ensure(scene, view_layer);
         Base *base_iter = BKE_view_layer_base_find(view_layer, ob_iter);
         /* Child can be in a collection excluded from view-layer. */
         if (base_iter == nullptr) {
@@ -301,7 +302,7 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
     DEG_relations_tag_update(bmain);
   }
   else {
-    BKE_layer_collection_sync(scene, view_layer);
+    BKE_view_layer_need_resync_tag(view_layer);
     DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   }
 }
@@ -348,6 +349,7 @@ static void outliner_base_or_object_pointer_create(
     RNA_id_pointer_create(&ob->id, ptr);
   }
   else {
+    BKE_view_layer_synced_ensure(scene, view_layer);
     Base *base = BKE_view_layer_base_find(view_layer, ob);
     RNA_pointer_create(&scene->id, &RNA_ObjectBase, base, ptr);
   }
@@ -1146,6 +1148,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
         RNA_id_pointer_create(&ob->id, &ptr);
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_HIDE) {
+          BKE_view_layer_synced_ensure(scene, view_layer);
           Base *base = (te->directdata) ? (Base *)te->directdata :
                                           BKE_view_layer_base_find(view_layer, ob);
           if (base) {
@@ -3213,6 +3216,7 @@ static bool element_should_draw_faded(const TreeViewContext *tvc,
       case ID_OB: {
         const Object *ob = (const Object *)tselem->id;
         /* Lookup in view layer is logically const as it only checks a cache. */
+        BKE_view_layer_synced_ensure(tvc->scene, tvc->view_layer);
         const Base *base = (te->directdata) ? (const Base *)te->directdata :
                                               BKE_view_layer_base_find(
                                                   (ViewLayer *)tvc->view_layer, (Object *)ob);
@@ -3281,6 +3285,7 @@ static void outliner_draw_tree_element(bContext *C,
     if (tselem->type == TSE_SOME_ID) {
       if (te->idcode == ID_OB) {
         Object *ob = (Object *)tselem->id;
+        BKE_view_layer_synced_ensure(tvc->scene, tvc->view_layer);
         Base *base = (te->directdata) ? (Base *)te->directdata :
                                         BKE_view_layer_base_find(tvc->view_layer, ob);
         const bool is_selected = (base != nullptr) && ((base->flag & BASE_SELECTED) != 0);
@@ -3854,7 +3859,7 @@ static void outliner_update_viewable_area(ARegion *region,
   int sizex = outliner_width(space_outliner, tree_width, right_column_width);
   int sizey = tree_height;
 
-  /* Extend size to allow for horizontal scrollbar and extra offset. */
+  /* Extend size to allow for horizontal scroll-bar and extra offset. */
   sizey += V2D_SCROLL_HEIGHT + OL_Y_OFFSET;
 
   UI_view2d_totRect_set(&region->v2d, sizex, sizey);

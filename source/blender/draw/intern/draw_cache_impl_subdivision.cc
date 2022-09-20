@@ -635,17 +635,9 @@ void draw_subdiv_cache_free(DRWSubdivCache *cache)
      SUBDIV_COARSE_FACE_FLAG_ACTIVE | SUBDIV_COARSE_FACE_FLAG_HIDDEN) \
     << SUBDIV_COARSE_FACE_FLAG_OFFSET)
 
-static uint32_t compute_coarse_face_flag(BMFace *f, BMFace *efa_act)
+static uint32_t compute_coarse_face_flag_bm(BMFace *f, BMFace *efa_act)
 {
-  if (f == nullptr) {
-    /* May happen during mapped extraction. */
-    return 0;
-  }
-
   uint32_t flag = 0;
-  if (BM_elem_flag_test(f, BM_ELEM_SMOOTH)) {
-    flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
-  }
   if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
     flag |= SUBDIV_COARSE_FACE_FLAG_SELECT;
   }
@@ -655,8 +647,7 @@ static uint32_t compute_coarse_face_flag(BMFace *f, BMFace *efa_act)
   if (f == efa_act) {
     flag |= SUBDIV_COARSE_FACE_FLAG_ACTIVE;
   }
-  const int loopstart = BM_elem_index_get(f->l_first);
-  return (uint)(loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
+  return flag;
 }
 
 static void draw_subdiv_cache_extra_coarse_face_data_bm(BMesh *bm,
@@ -668,7 +659,12 @@ static void draw_subdiv_cache_extra_coarse_face_data_bm(BMesh *bm,
 
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     const int index = BM_elem_index_get(f);
-    flags_data[index] = compute_coarse_face_flag(f, efa_act);
+    uint32_t flag = compute_coarse_face_flag_bm(f, efa_act);
+    if (BM_elem_flag_test(f, BM_ELEM_SMOOTH)) {
+      flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
+    }
+    const int loopstart = BM_elem_index_get(f->l_first);
+    flags_data[index] = (uint)(loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
   }
 }
 
@@ -702,9 +698,16 @@ static void draw_subdiv_cache_extra_coarse_face_data_mapped(Mesh *mesh,
     return;
   }
 
-  for (int i = 0; i < mesh->totpoly; i++) {
+  const Span<MPoly> polys = mesh->polys();
+  for (const int i : polys.index_range()) {
     BMFace *f = bm_original_face_get(mr, i);
-    flags_data[i] = compute_coarse_face_flag(f, mr->efa_act);
+    /* Selection and hiding from bmesh. */
+    uint32_t flag = (f) ? compute_coarse_face_flag_bm(f, mr->efa_act) : 0;
+    /* Smooth from mesh. */
+    if ((polys[i].flag & ME_SMOOTH) != 0) {
+      flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
+    }
+    flags_data[i] = (uint)(polys[i].loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
   }
 }
 

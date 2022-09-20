@@ -3986,6 +3986,7 @@ static int gpencil_strokes_reproject_exec(bContext *C, wmOperator *op)
 
 void GPENCIL_OT_reproject(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
   static const EnumPropertyItem reproject_type[] = {
       {GP_REPROJECT_FRONT, "FRONT", 0, "Front", "Reproject the strokes using the X-Z plane"},
       {GP_REPROJECT_SIDE, "SIDE", 0, "Side", "Reproject the strokes using the Y-Z plane"},
@@ -4031,12 +4032,13 @@ void GPENCIL_OT_reproject(wmOperatorType *ot)
   ot->prop = RNA_def_enum(
       ot->srna, "type", reproject_type, GP_REPROJECT_VIEW, "Projection Type", "");
 
-  RNA_def_boolean(
+  prop = RNA_def_boolean(
       ot->srna,
       "keep_original",
       0,
       "Keep Original",
       "Keep original strokes and create a copy before reprojecting instead of reproject them");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
 }
 
 static int gpencil_recalc_geometry_exec(bContext *C, wmOperator *UNUSED(op))

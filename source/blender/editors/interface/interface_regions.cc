@@ -45,6 +45,6 @@ void ui_region_temp_remove(bContext *C, bScreen *screen, ARegion *region)
   }
 
   ED_region_exit(C, region);
-  BKE_area_region_free(nullptr, region); /* nullptr: no spacetype */
+  BKE_area_region_free(nullptr, region); /* nullptr: no space-type. */
   BLI_freelinkN(&screen->regionbase, region);
 }

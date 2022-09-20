@@ -320,7 +320,7 @@ bool ED_uvedit_center_from_pivot_ex(SpaceImage *sima,
       if (r_has_select != NULL) {
         uint objects_len = 0;
         Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-            view_layer, ((View3D *)NULL), &objects_len);
+            scene, view_layer, ((View3D *)NULL), &objects_len);
         *r_has_select = uvedit_select_is_any_selected_multi(scene, objects, objects_len);
         MEM_freeN(objects);
       }
@@ -329,7 +329,7 @@ bool ED_uvedit_center_from_pivot_ex(SpaceImage *sima,
     default: {
       uint objects_len = 0;
       Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-          view_layer, ((View3D *)NULL), &objects_len);
+          scene, view_layer, ((View3D *)NULL), &objects_len);
       changed = ED_uvedit_center_multi(scene, objects, objects_len, r_center, mode);
       MEM_freeN(objects);
       if (r_has_select != NULL) {
@@ -565,7 +565,7 @@ static void uv_weld_align(bContext *C, eUVWeldAlign tool)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)NULL), &objects_len);
 
   if (tool == UV_ALIGN_AUTO) {
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -695,7 +695,7 @@ static int uv_remove_doubles_to_selected(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)NULL), &objects_len);
 
   bool *changed = MEM_callocN(sizeof(bool) * objects_len, "uv_remove_doubles_selected.changed");
 
@@ -839,7 +839,7 @@ static int uv_remove_doubles_to_unselected(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)NULL), &objects_len);
 
   /* Calculate max possible number of kdtree nodes. */
   int uv_maxlen = 0;
@@ -1047,7 +1047,7 @@ static int uv_snap_cursor_exec(bContext *C, wmOperator *op)
 
       uint objects_len = 0;
       Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-          view_layer, ((View3D *)NULL), &objects_len);
+          scene, view_layer, ((View3D *)NULL), &objects_len);
       changed = uv_snap_cursor_to_selection(scene, objects, objects_len, sima);
       MEM_freeN(objects);
       break;
@@ -1255,7 +1255,7 @@ static int uv_snap_selection_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)NULL), &objects_len);
 
   if (target == 2) {
     float center[2];
@@ -1348,7 +1348,7 @@ static int uv_pin_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)NULL), &objects_len);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
@@ -1450,7 +1450,7 @@ static int uv_hide_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)NULL), &objects_len);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
@@ -1622,7 +1622,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)NULL), &objects_len);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
@@ -1838,7 +1838,7 @@ static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)NULL), &objects_len);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
@@ -1943,7 +1943,7 @@ static int uv_mark_seam_exec(bContext *C, wmOperator *op)
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      view_layer, ((View3D *)NULL), &objects_len);
+      scene, view_layer, ((View3D *)NULL), &objects_len);
 
   bool changed = false;
 

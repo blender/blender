@@ -20,6 +20,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_nla.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -129,7 +130,8 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, int channel_index, 
         else {
           /* deselect all */
           /* TODO: should this deselect all other types of channels too? */
-          LISTBASE_FOREACH (Base *, b, &view_layer->object_bases) {
+          BKE_view_layer_synced_ensure(ac->scene, view_layer);
+          LISTBASE_FOREACH (Base *, b, BKE_view_layer_object_bases_get(view_layer)) {
             ED_object_base_select(b, BA_DESELECT);
             if (b->object->adt) {
               b->object->adt->flag &= ~(ADT_UI_SELECTED | ADT_UI_ACTIVE);

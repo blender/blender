@@ -230,7 +230,7 @@ typedef void (*BKE_pbvh_SearchNearestCallback)(PBVHNode *node, void *data, float
 
 /* Building */
 
-PBVH *BKE_pbvh_new(void);
+PBVH *BKE_pbvh_new(PBVHType type);
 /**
  * Do a full rebuild with on Mesh data structure.
  *
@@ -267,6 +267,8 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           struct BMLog *log,
                           int cd_vert_node_offset,
                           int cd_face_node_offset);
+
+void BKE_pbvh_update_bmesh_offsets(PBVH *pbvh, int cd_vert_node_offset, int cd_face_node_offset);
 
 void BKE_pbvh_build_pixels(PBVH *pbvh,
                            struct Mesh *mesh,
@@ -379,8 +381,6 @@ int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
                               const int *grid_indices,
                               int totgrid,
                               int gridsize);
-
-void BKE_pbvh_sync_face_sets_to_grids(PBVH *pbvh);
 
 /**
  * Multi-res level, only valid for type == #PBVH_GRIDS.

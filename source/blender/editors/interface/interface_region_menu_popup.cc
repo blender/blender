@@ -322,7 +322,7 @@ uiPopupBlockHandle *ui_popup_menu_create(
 
   uiPopupMenu *pup = MEM_cnew<uiPopupMenu>(__func__);
   pup->block = UI_block_begin(C, nullptr, __func__, UI_EMBOSS_PULLDOWN);
-  pup->block->flag |= UI_BLOCK_NUMSELECT; /* default menus to numselect */
+  pup->block->flag |= UI_BLOCK_NUMSELECT; /* Default menus to numeric-selection. */
   pup->layout = UI_block_layout(
       pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, UI_MENU_PADDING, style);
   pup->slideout = but ? ui_block_is_menu(but->block) : false;

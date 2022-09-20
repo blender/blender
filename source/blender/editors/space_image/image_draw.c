@@ -585,34 +585,35 @@ float ED_space_image_zoom_level(const View2D *v2d, const int grid_dimension)
 }
 
 void ED_space_image_grid_steps(SpaceImage *sima,
-                               float grid_steps[SI_GRID_STEPS_LEN],
+                               float grid_steps_x[SI_GRID_STEPS_LEN],
+                               float grid_steps_y[SI_GRID_STEPS_LEN],
                                const int grid_dimension)
 {
-  if (sima->flag & SI_CUSTOM_GRID) {
-    for (int step = 0; step < SI_GRID_STEPS_LEN; step++) {
-      grid_steps[step] = powf(1, step) * (1.0f / ((float)sima->custom_grid_subdiv));
+  const int flag = sima->flag;
+  for (int step = 0; step < SI_GRID_STEPS_LEN; step++) {
+    if (flag & SI_CUSTOM_GRID) {
+      grid_steps_x[step] = 1.0f / sima->custom_grid_subdiv[0];
+      grid_steps_y[step] = 1.0f / sima->custom_grid_subdiv[1];
     }
-  }
-  else {
-    for (int step = 0; step < SI_GRID_STEPS_LEN; step++) {
-      grid_steps[step] = powf(grid_dimension, step) *
-                         (1.0f / (powf(grid_dimension, SI_GRID_STEPS_LEN)));
+    else {
+      grid_steps_x[step] = powf(grid_dimension, step - SI_GRID_STEPS_LEN);
+      grid_steps_y[step] = powf(grid_dimension, step - SI_GRID_STEPS_LEN);
     }
   }
 }
 
-float ED_space_image_increment_snap_value(const int grid_dimesnions,
+float ED_space_image_increment_snap_value(const int grid_dimensions,
                                           const float grid_steps[SI_GRID_STEPS_LEN],
                                           const float zoom_factor)
 {
   /* Small offset on each grid_steps[] so that snapping value doesn't change until grid lines are
    * significantly visible.
-   * `Offset = 3/4 * (grid_steps[i] - (grid_steps[i] / grid_dimesnsions))`
+   * `Offset = 3/4 * (grid_steps[i] - (grid_steps[i] / grid_dimensions))`
    *
    * Refer `grid_frag.glsl` to find out when grid lines actually start appearing */
 
   for (int step = 0; step < SI_GRID_STEPS_LEN; step++) {
-    float offset = (3.0f / 4.0f) * (grid_steps[step] - (grid_steps[step] / grid_dimesnions));
+    float offset = (3.0f / 4.0f) * (grid_steps[step] - (grid_steps[step] / grid_dimensions));
 
     if ((grid_steps[step] - offset) > zoom_factor) {
       return grid_steps[step];

@@ -70,9 +70,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   twmd->curfalloff = BKE_curvemapping_copy(wmd->curfalloff);
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
 

@@ -1353,7 +1353,7 @@ static void playanim_window_open(const char *title, int posx, int posy, int size
                                          posy,
                                          sizex,
                                          sizey,
-                                         /* could optionally start fullscreen */
+                                         /* Could optionally start full-screen. */
                                          GHOST_kWindowStateNormal,
                                          false,
                                          GHOST_kDrawingContextTypeOpenGL,

@@ -1545,7 +1545,7 @@ void BKE_rigidbody_remove_object(Main *bmain, Scene *scene, Object *ob, const bo
       FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
     }
 
-    /* Relying on usercount of the object should be OK, and it is much cheaper than looping in all
+    /* Relying on user-count of the object should be OK, and it is much cheaper than looping in all
      * collections to check whether the object is already in another one... */
     if (ID_REAL_USERS(&ob->id) == 1) {
       /* Some users seems to find it funny to use a view-layer instancing collection
@@ -1664,7 +1664,9 @@ static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Object *ob, RigidBodyO
     return;
   }
 
+  const Scene *scene = DEG_get_input_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, ob);
   const bool is_selected = base ? (base->flag & BASE_SELECTED) != 0 : false;
 
@@ -2008,7 +2010,9 @@ static void rigidbody_free_substep_data(ListBase *substep_targets)
 }
 static void rigidbody_update_simulation_post_step(Depsgraph *depsgraph, RigidBodyWorld *rbw)
 {
+  const Scene *scene = DEG_get_input_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
+  BKE_view_layer_synced_ensure(scene, view_layer);
 
   FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (rbw->group, ob) {
     Base *base = BKE_view_layer_base_find(view_layer, ob);

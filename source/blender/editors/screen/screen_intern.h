@@ -53,7 +53,7 @@ typedef enum eScreenAxis {
 /* area.c */
 
 /**
- * we swap spaces for fullscreen to keep all allocated data area vertices were set
+ * We swap spaces for full-screen to keep all allocated data area vertices were set.
  */
 void ED_area_data_copy(ScrArea *area_dst, ScrArea *area_src, bool do_free);
 void ED_area_data_swap(ScrArea *area_dst, ScrArea *area_src);

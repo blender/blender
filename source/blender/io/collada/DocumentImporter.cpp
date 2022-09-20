@@ -90,8 +90,12 @@ DocumentImporter::DocumentImporter(bContext *C, const ImportSettings *import_set
                         CTX_data_scene(C),
                         view_layer,
                         import_settings),
-      mesh_importer(
-          &unit_converter, &armature_importer, CTX_data_main(C), CTX_data_scene(C), view_layer),
+      mesh_importer(&unit_converter,
+                    import_settings->custom_normals,
+                    &armature_importer,
+                    CTX_data_main(C),
+                    CTX_data_scene(C),
+                    view_layer),
       anim_importer(C, &unit_converter, &armature_importer, CTX_data_scene(C))
 {
 }
@@ -116,7 +120,7 @@ bool DocumentImporter::import()
   loader.registerExtraDataCallbackHandler(ehandler);
 
   /* deselect all to select new objects */
-  BKE_view_layer_base_deselect_all(view_layer);
+  BKE_view_layer_base_deselect_all(CTX_data_scene(mContext), view_layer);
 
   std::string mFilename = std::string(this->import_settings->filepath);
   const std::string encodedFilename = bc_url_encode(mFilename);

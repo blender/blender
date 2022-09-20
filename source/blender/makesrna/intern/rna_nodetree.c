@@ -1892,7 +1892,7 @@ static void rna_Node_unregister(Main *UNUSED(bmain), StructRNA *type)
 }
 
 /* Generic internal registration function.
- * Can be used to implement callbacks for registerable RNA node subtypes.
+ * Can be used to implement callbacks for registerable RNA node sub-types.
  */
 static bNodeType *rna_Node_register_base(Main *bmain,
                                          ReportList *reports,
@@ -3585,7 +3585,7 @@ static void rna_difference_matte_t2_set(PointerRNA *ptr, float value)
   chroma->t2 = value;
 }
 
-/* Button Set Funcs for Matte Nodes */
+/* Button Set Functions for Matte Nodes */
 static void rna_Matte_t1_set(PointerRNA *ptr, float value)
 {
   bNode *node = (bNode *)ptr->data;
@@ -9633,6 +9633,31 @@ static void def_geo_bevel_mesh(StructRNA *srna)
   RNA_def_property_enum_default(prop, GEO_NODE_BEVEL_MESH_FACES);
   RNA_def_property_ui_text(prop, "Mode", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_geo_distribute_points_in_volume(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  static const EnumPropertyItem mode_items[] = {
+      {GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM,
+       "DENSITY_RANDOM",
+       0,
+       "Random",
+       "Distribute points randomly inside of the volume"},
+      {GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID,
+       "DENSITY_GRID",
+       0,
+       "Grid",
+       "Distribute the points in a grid pattern inside of the volume"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryDistributePointsInVolume", "storage");
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, mode_items);
+  RNA_def_property_ui_text(prop, "Distribution Method", "Method to use for scattering points");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
 static void def_geo_distribute_points_on_faces(StructRNA *srna)

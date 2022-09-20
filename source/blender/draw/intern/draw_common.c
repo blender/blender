@@ -280,10 +280,11 @@ int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool is_edit = (draw_ctx->object_mode & OB_MODE_EDIT) && (ob->mode & OB_MODE_EDIT);
-  const bool active = view_layer->basact &&
-                      ((ob->base_flag & BASE_FROM_DUPLI) ?
-                           (DRW_object_get_dupli_parent(ob) == view_layer->basact->object) :
-                           (view_layer->basact->object == ob));
+  BKE_view_layer_synced_ensure(draw_ctx->scene, view_layer);
+  const Base *base = BKE_view_layer_active_base_get(view_layer);
+  const bool active = base && ((ob->base_flag & BASE_FROM_DUPLI) ?
+                                   (DRW_object_get_dupli_parent(ob) == base->object) :
+                                   (base->object == ob));
 
   /* confusing logic here, there are 2 methods of setting the color
    * 'colortab[colindex]' and 'theme_id', colindex overrides theme_id.

@@ -141,11 +141,11 @@ class ExtrapolateCurvesEffect : public CurvesEffect {
   {
     MutableSpan<float3> positions_cu = curves.positions_for_write();
     threading::parallel_for(curve_indices.index_range(), 256, [&](const IndexRange range) {
+      MoveAndResampleBuffers resample_buffer;
       for (const int influence_i : range) {
         const int curve_i = curve_indices[influence_i];
         const float move_distance_cu = move_distances_cu[influence_i];
         const IndexRange points = curves.points_for_curve(curve_i);
-
         if (points.size() <= 1) {
           continue;
         }
@@ -157,7 +157,7 @@ class ExtrapolateCurvesEffect : public CurvesEffect {
         const float3 direction = math::normalize(old_last_pos_cu - direction_reference_point);
 
         const float3 new_last_pos_cu = old_last_pos_cu + direction * move_distance_cu;
-        move_last_point_and_resample(positions_cu.slice(points), new_last_pos_cu);
+        move_last_point_and_resample(resample_buffer, positions_cu.slice(points), new_last_pos_cu);
       }
     });
   }

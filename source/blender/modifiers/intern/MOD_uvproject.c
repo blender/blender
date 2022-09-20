@@ -52,9 +52,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(umd, DNA_struct_default_get(UVProjectModifierData), modifier);
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *UNUSED(md),
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *UNUSED(md), CustomData_MeshMasks *r_cddata_masks)
 {
   /* ask for UV coordinates */
   r_cddata_masks->lmask |= CD_MASK_MLOOPUV;

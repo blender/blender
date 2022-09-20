@@ -188,6 +188,7 @@ struct SnakeHookOperatorExecutor {
     const float brush_radius_sq_re = pow2f(brush_radius_re);
 
     threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {
+      MoveAndResampleBuffers resample_buffer;
       for (const int curve_i : curves_range) {
         const IndexRange points = curves_->points_for_curve(curve_i);
         const int last_point_i = points.last();
@@ -221,8 +222,8 @@ struct SnakeHookOperatorExecutor {
         const float3 translation_orig = deformation.translation_from_deformed_to_original(
             last_point_i, translation_eval);
 
-        move_last_point_and_resample(positions_cu.slice(points),
-                                     positions_cu[last_point_i] + translation_orig);
+        const float3 last_point_cu = positions_cu[last_point_i] + translation_orig;
+        move_last_point_and_resample(resample_buffer, positions_cu.slice(points), last_point_cu);
       }
     });
   }
@@ -268,6 +269,7 @@ struct SnakeHookOperatorExecutor {
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
 
     threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {
+      MoveAndResampleBuffers resample_buffer;
       for (const int curve_i : curves_range) {
         const IndexRange points = curves_->points_for_curve(curve_i);
         const int last_point_i = points.last();
@@ -289,8 +291,8 @@ struct SnakeHookOperatorExecutor {
         const float3 translation_orig = deformation.translation_from_deformed_to_original(
             last_point_i, translation_eval);
 
-        move_last_point_and_resample(positions_cu.slice(points),
-                                     positions_cu[last_point_i] + translation_orig);
+        const float3 last_point_cu = positions_cu[last_point_i] + translation_orig;
+        move_last_point_and_resample(resample_buffer, positions_cu.slice(points), last_point_cu);
       }
     });
   }

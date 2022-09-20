@@ -708,7 +708,8 @@ struct ExrHandle {
   ListBase channels; /* flattened out, ExrChannel */
   ListBase layers;   /* hierarchical, pointing in end to ExrChannel */
 
-  int num_half_channels; /* used during filr save, allows faster temporary buffers allocation */
+  /** Used during file save, allows faster temporary buffers allocation. */
+  int num_half_channels;
 };
 
 /* flattened out channel */
@@ -1462,7 +1463,7 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
   const char *end = name + strlen(name);
   const char *token;
 
-  /* some multilayers have the combined buffer with names A B G R saved */
+  /* Some multi-layers have the combined buffer with names A B G R saved. */
   if (name[1] == 0) {
     echan->chan_id = BLI_toupper_ascii(name[0]);
     layname[0] = '\0';
@@ -1497,7 +1498,7 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
     bool ok = false;
 
     if (len == 2) {
-      /* some multilayers are using two-letter channels name,
+      /* Some multi-layers are using two-letter channels name,
        * like, MX or NZ, which is basically has structure of
        *   <pass_prefix><component>
        *

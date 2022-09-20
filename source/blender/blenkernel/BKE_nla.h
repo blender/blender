@@ -7,7 +7,7 @@
  * \ingroup bke
  */
 
-/* temp constant defined for these funcs only... */
+/** Temp constant defined for these functions only. */
 #define NLASTRIP_MIN_LEN_THRESH 0.1f
 
 #ifdef __cplusplus

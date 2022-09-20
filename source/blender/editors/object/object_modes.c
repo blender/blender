@@ -190,7 +190,10 @@ bool ED_object_mode_compat_set(bContext *C, Object *ob, eObjectMode mode, Report
 bool ED_object_mode_set_ex(bContext *C, eObjectMode mode, bool use_undo, ReportList *reports)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   if (ob == NULL) {
     return (mode == OB_MODE_OBJECT);
@@ -327,9 +330,11 @@ static void ed_object_posemode_set_for_weight_paint_ex(bContext *C,
                                                        const bool is_mode_set)
 {
   View3D *v3d = CTX_wm_view3d(C);
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   if (ob_arm != NULL) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
     const Base *base_arm = BKE_view_layer_base_find(view_layer, ob_arm);
     if (base_arm && BASE_VISIBLE(v3d, base_arm)) {
       if (is_mode_set) {
@@ -464,8 +469,9 @@ static bool object_transfer_mode_to_base(bContext *C, wmOperator *op, Base *base
 
   if (ED_object_mode_set_ex(C, OB_MODE_OBJECT, true, op->reports)) {
     Object *ob_dst_orig = DEG_get_original_object(ob_dst);
+    BKE_view_layer_synced_ensure(scene, view_layer);
     Base *base = BKE_view_layer_base_find(view_layer, ob_dst_orig);
-    BKE_view_layer_base_deselect_all(view_layer);
+    BKE_view_layer_base_deselect_all(scene, view_layer);
     BKE_view_layer_base_select_and_set_active(view_layer, base);
     DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
 

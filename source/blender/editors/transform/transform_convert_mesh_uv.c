@@ -399,8 +399,8 @@ static void createTransUVs(bContext *C, TransInfo *t)
 static void flushTransUVs(TransInfo *t)
 {
   SpaceImage *sima = t->area->spacedata.first;
-  const bool use_pixel_snap = ((sima->pixel_snap_mode != SI_PIXEL_SNAP_DISABLED) &&
-                               (t->state != TRANS_CANCEL));
+  const bool use_pixel_round = ((sima->pixel_round_mode != SI_PIXEL_ROUND_DISABLED) &&
+                                (t->state != TRANS_CANCEL));
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData2D *td;
@@ -410,7 +410,7 @@ static void flushTransUVs(TransInfo *t)
     aspect_inv[0] = 1.0f / t->aspect[0];
     aspect_inv[1] = 1.0f / t->aspect[1];
 
-    if (use_pixel_snap) {
+    if (use_pixel_round) {
       int size_i[2];
       ED_space_image_get_size(sima, &size_i[0], &size_i[1]);
       size[0] = size_i[0];
@@ -422,16 +422,16 @@ static void flushTransUVs(TransInfo *t)
       td->loc2d[0] = td->loc[0] * aspect_inv[0];
       td->loc2d[1] = td->loc[1] * aspect_inv[1];
 
-      if (use_pixel_snap) {
+      if (use_pixel_round) {
         td->loc2d[0] *= size[0];
         td->loc2d[1] *= size[1];
 
-        switch (sima->pixel_snap_mode) {
-          case SI_PIXEL_SNAP_CENTER:
+        switch (sima->pixel_round_mode) {
+          case SI_PIXEL_ROUND_CENTER:
             td->loc2d[0] = roundf(td->loc2d[0] - 0.5f) + 0.5f;
             td->loc2d[1] = roundf(td->loc2d[1] - 0.5f) + 0.5f;
             break;
-          case SI_PIXEL_SNAP_CORNER:
+          case SI_PIXEL_ROUND_CORNER:
             td->loc2d[0] = roundf(td->loc2d[0]);
             td->loc2d[1] = roundf(td->loc2d[1]);
             break;

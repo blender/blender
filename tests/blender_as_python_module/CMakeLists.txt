@@ -12,4 +12,4 @@ function(add_blender_as_python_module_test testname testscript)
   )
 endfunction()
 
-add_blender_as_python_module_test(import_bpy ${CMAKE_CURRENT_LIST_DIR}/import_bpy.py)
+add_blender_as_python_module_test(import_bpy ${CMAKE_CURRENT_LIST_DIR}/import_bpy.py ${CMAKE_INSTALL_PREFIX_WITH_CONFIG})

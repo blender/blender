@@ -53,7 +53,7 @@ static void memarena_buf_free_all(struct MemBuf *mb)
   while (mb != NULL) {
     struct MemBuf *mb_next = mb->next;
 
-    /* Unpoison memory because MEM_freeN might overwrite it. */
+    /* Unpoison memory because #MEM_freeN might overwrite it. */
     BLI_asan_unpoison(mb, (uint)MEM_allocN_len(mb));
 
     MEM_freeN(mb);

@@ -252,6 +252,37 @@ PointCloud *BKE_pointcloud_new_nomain(const int totpoint)
   return pointcloud;
 }
 
+void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src,
+                                         PointCloud *pointcloud_dst,
+                                         bool take_ownership)
+{
+  BLI_assert(pointcloud_src->id.tag & LIB_TAG_NO_MAIN);
+
+  eCDAllocType alloctype = CD_DUPLICATE;
+
+  if (take_ownership) {
+    bool has_any_referenced_layers = CustomData_has_referenced(&pointcloud_src->pdata);
+
+    if (!has_any_referenced_layers) {
+      alloctype = CD_ASSIGN;
+    }
+  }
+
+  CustomData_free(&pointcloud_dst->pdata, pointcloud_dst->totpoint);
+
+  const int totpoint = pointcloud_dst->totpoint = pointcloud_src->totpoint;
+  CustomData_copy(
+      &pointcloud_src->pdata, &pointcloud_dst->pdata, CD_MASK_ALL, alloctype, totpoint);
+
+  if (take_ownership) {
+    if (alloctype == CD_ASSIGN) {
+      /* Free the CustomData but keep the layers. */
+      CustomData_free_typemask(&pointcloud_src->pdata, pointcloud_src->totpoint, 0);
+    }
+    BKE_id_free(nullptr, pointcloud_src);
+  }
+}
+
 static std::optional<blender::bounds::MinMaxResult<float3>> point_cloud_bounds(
     const PointCloud &pointcloud)
 {
@@ -308,7 +339,7 @@ BoundBox *BKE_pointcloud_boundbox_get(Object *ob)
   return ob->runtime.bb;
 }
 
-bool BKE_pointcloud_customdata_required(const PointCloud *UNUSED(pointcloud), const char *name)
+bool BKE_pointcloud_attribute_required(const PointCloud *UNUSED(pointcloud), const char *name)
 {
   return STREQ(name, POINTCLOUD_ATTR_POSITION);
 }

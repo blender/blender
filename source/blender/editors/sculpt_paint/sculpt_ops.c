@@ -117,24 +117,33 @@ static int sculpt_set_persistent_base_exec(bContext *C, wmOperator *UNUSED(op))
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
 
-  if (!ss) {
+  /* Do not allow in DynTopo just yet. */
+  if (!ss || (ss && ss->bm)) {
     return OPERATOR_FINISHED;
   }
   SCULPT_vertex_random_access_ensure(ss);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 
-  MEM_SAFE_FREE(ss->persistent_base);
+  SculptAttributeParams params = {0};
+  params.permanent = true;
+
+  ss->attrs.persistent_co = BKE_sculpt_attribute_ensure(
+      ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_co), &params);
+  ss->attrs.persistent_no = BKE_sculpt_attribute_ensure(
+      ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_ATTRIBUTE_NAME(persistent_no), &params);
+  ss->attrs.persistent_disp = BKE_sculpt_attribute_ensure(
+      ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, SCULPT_ATTRIBUTE_NAME(persistent_disp), &params);
 
   const int totvert = SCULPT_vertex_count_get(ss);
-  ss->persistent_base = MEM_mallocN(sizeof(SculptPersistentBase) * totvert,
-                                    "layer persistent base");
 
   for (int i = 0; i < totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
-    copy_v3_v3(ss->persistent_base[i].co, SCULPT_vertex_co_get(ss, vertex));
-    SCULPT_vertex_normal_get(ss, vertex, ss->persistent_base[i].no);
-    ss->persistent_base[i].disp = 0.0f;
+    copy_v3_v3((float *)SCULPT_vertex_attr_get(vertex, ss->attrs.persistent_co),
+               SCULPT_vertex_co_get(ss, vertex));
+    SCULPT_vertex_normal_get(
+        ss, vertex, (float *)SCULPT_vertex_attr_get(vertex, ss->attrs.persistent_no));
+    (*(float *)SCULPT_vertex_attr_get(vertex, ss->attrs.persistent_disp)) = 0.0f;
   }
 
   return OPERATOR_FINISHED;
@@ -300,7 +309,11 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
   ob->sculpt->mode_type = OB_MODE_SCULPT;
 
-  BKE_sculpt_ensure_orig_mesh_data(ob);
+  /* Trigger evaluation of modifier stack to ensure
+   * multires modifier sets .runtime.ccg in
+   * the evaluated mesh.
+   */
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
   BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
 
@@ -421,6 +434,7 @@ void ED_object_sculptmode_enter(struct bContext *C, Depsgraph *depsgraph, Report
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, false, reports);
 }
@@ -473,6 +487,7 @@ void ED_object_sculptmode_exit(bContext *C, Depsgraph *depsgraph)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   ED_object_sculptmode_exit_ex(bmain, depsgraph, scene, ob);
 }
@@ -485,6 +500,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   const int mode_flag = OB_MODE_SCULPT;
   const bool is_mode_set = (ob->mode & mode_flag) != 0;

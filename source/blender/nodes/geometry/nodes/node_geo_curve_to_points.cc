@@ -4,8 +4,11 @@
 #include "BLI_task.hh"
 #include "BLI_timeit.hh"
 
+#include "DNA_pointcloud_types.h"
+
 #include "BKE_pointcloud.h"
-#include "BKE_spline.hh"
+
+#include "GEO_resample_curves.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -62,9 +65,9 @@ static void node_update(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, length_socket, mode == GEO_NODE_CURVE_RESAMPLE_LENGTH);
 }
 
-static void curve_create_default_rotation_attribute(Span<float3> tangents,
-                                                    Span<float3> normals,
-                                                    MutableSpan<float3> rotations)
+static void fill_rotation_attribute(const Span<float3> tangents,
+                                    const Span<float3> normals,
+                                    MutableSpan<float3> rotations)
 {
   threading::parallel_for(IndexRange(rotations.size()), 512, [&](IndexRange range) {
     for (const int i : range) {
@@ -74,239 +77,30 @@ static void curve_create_default_rotation_attribute(Span<float3> tangents,
   });
 }
 
-static Array<int> calculate_spline_point_offsets(GeoNodeExecParams &params,
-                                                 const GeometryNodeCurveResampleMode mode,
-                                                 const CurveEval &curve,
-                                                 const Span<SplinePtr> splines)
+static PointCloud *pointcloud_from_curves(bke::CurvesGeometry curves,
+                                          const AttributeIDRef &tangent_id,
+                                          const AttributeIDRef &normal_id,
+                                          const AttributeIDRef &rotation_id)
 {
-  const int size = curve.splines().size();
-  switch (mode) {
-    case GEO_NODE_CURVE_RESAMPLE_COUNT: {
-      const int count = params.get_input<int>("Count");
-      if (count < 1) {
-        return {0};
-      }
-      Array<int> offsets(size + 1);
-      int offset = 0;
-      for (const int i : IndexRange(size)) {
-        offsets[i] = offset;
-        if (splines[i]->evaluated_points_num() > 0) {
-          offset += count;
-        }
-      }
-      offsets.last() = offset;
-      return offsets;
-    }
-    case GEO_NODE_CURVE_RESAMPLE_LENGTH: {
-      /* Don't allow asymptotic count increase for low resolution values. */
-      const float resolution = std::max(params.get_input<float>("Length"), 0.0001f);
-      Array<int> offsets(size + 1);
-      int offset = 0;
-      for (const int i : IndexRange(size)) {
-        offsets[i] = offset;
-        if (splines[i]->evaluated_points_num() > 0) {
-          offset += splines[i]->length() / resolution + 1;
-        }
-      }
-      offsets.last() = offset;
-      return offsets;
-    }
-    case GEO_NODE_CURVE_RESAMPLE_EVALUATED: {
-      return curve.evaluated_point_offsets();
-    }
-  }
-  BLI_assert_unreachable();
-  return {0};
-}
+  PointCloud *pointcloud = BKE_pointcloud_new_nomain(0);
+  pointcloud->totpoint = curves.points_num();
 
-/**
- * \note Relies on the fact that all attributes on point clouds are stored contiguously.
- */
-static GMutableSpan ensure_point_attribute(PointCloudComponent &points,
-                                           const AttributeIDRef &attribute_id,
-                                           const eCustomDataType data_type)
-{
-  GAttributeWriter attribute = points.attributes_for_write()->lookup_or_add_for_write(
-      attribute_id, ATTR_DOMAIN_POINT, data_type);
-  GMutableSpan span = attribute.varray.get_internal_span();
-  attribute.finish();
-  return span;
-}
-
-template<typename T>
-static MutableSpan<T> ensure_point_attribute(PointCloudComponent &points,
-                                             const AttributeIDRef &attribute_id)
-{
-  AttributeWriter<T> attribute = points.attributes_for_write()->lookup_or_add_for_write<T>(
-      attribute_id, ATTR_DOMAIN_POINT);
-  MutableSpan<T> span = attribute.varray.get_internal_span();
-  attribute.finish();
-  return span;
-}
-
-namespace {
-struct AnonymousAttributeIDs {
-  StrongAnonymousAttributeID tangent_id;
-  StrongAnonymousAttributeID normal_id;
-  StrongAnonymousAttributeID rotation_id;
-};
-
-struct ResultAttributes {
-  MutableSpan<float3> positions;
-  MutableSpan<float> radii;
-
-  Map<AttributeIDRef, GMutableSpan> point_attributes;
-
-  MutableSpan<float3> tangents;
-  MutableSpan<float3> normals;
-  MutableSpan<float3> rotations;
-};
-}  // namespace
-
-static ResultAttributes create_attributes_for_transfer(PointCloudComponent &points,
-                                                       const CurveEval &curve,
-                                                       const AnonymousAttributeIDs &attributes)
-{
-  ResultAttributes outputs;
-
-  outputs.positions = ensure_point_attribute<float3>(points, "position");
-  outputs.radii = ensure_point_attribute<float>(points, "radius");
-
-  if (attributes.tangent_id) {
-    outputs.tangents = ensure_point_attribute<float3>(points, attributes.tangent_id.get());
-  }
-  if (attributes.normal_id) {
-    outputs.normals = ensure_point_attribute<float3>(points, attributes.normal_id.get());
-  }
-  if (attributes.rotation_id) {
-    outputs.rotations = ensure_point_attribute<float3>(points, attributes.rotation_id.get());
+  if (rotation_id) {
+    MutableAttributeAccessor attributes = curves.attributes_for_write();
+    const VArraySpan<float3> tangents = attributes.lookup<float3>(tangent_id, ATTR_DOMAIN_POINT);
+    const VArraySpan<float3> normals = attributes.lookup<float3>(normal_id, ATTR_DOMAIN_POINT);
+    SpanAttributeWriter<float3> rotations = attributes.lookup_or_add_for_write_only_span<float3>(
+        rotation_id, ATTR_DOMAIN_POINT);
+    fill_rotation_attribute(tangents, normals, rotations.span);
+    rotations.finish();
   }
 
-  /* Because of the invariants of the curve component, we use the attributes of the first spline
-   * as a representative for the attribute meta data all splines. Attributes from the spline domain
-   * are handled separately. */
-  curve.splines().first()->attributes.foreach_attribute(
-      [&](const AttributeIDRef &id, const AttributeMetaData &meta_data) {
-        if (id.should_be_kept()) {
-          outputs.point_attributes.add_new(
-              id, ensure_point_attribute(points, id, meta_data.data_type));
-        }
-        return true;
-      },
-      ATTR_DOMAIN_POINT);
+  /* Move the curve point custom data to the pointcloud, to avoid any copying. */
+  CustomData_free(&pointcloud->pdata, pointcloud->totpoint);
+  pointcloud->pdata = curves.point_data;
+  CustomData_reset(&curves.point_data);
 
-  return outputs;
-}
-
-/**
- * TODO: For non-poly splines, this has double copies that could be avoided as part
- * of a general look at optimizing uses of #Spline::interpolate_to_evaluated.
- */
-static void copy_evaluated_point_attributes(const Span<SplinePtr> splines,
-                                            const Span<int> offsets,
-                                            ResultAttributes &data)
-{
-  threading::parallel_for(splines.index_range(), 64, [&](IndexRange range) {
-    for (const int i : range) {
-      const Spline &spline = *splines[i];
-      const int offset = offsets[i];
-      const int size = offsets[i + 1] - offsets[i];
-
-      data.positions.slice(offset, size).copy_from(spline.evaluated_positions());
-      spline.interpolate_to_evaluated(spline.radii()).materialize(data.radii.slice(offset, size));
-
-      for (const Map<AttributeIDRef, GMutableSpan>::Item item : data.point_attributes.items()) {
-        const AttributeIDRef attribute_id = item.key;
-        const GMutableSpan dst = item.value;
-
-        BLI_assert(spline.attributes.get_for_read(attribute_id));
-        GSpan spline_span = *spline.attributes.get_for_read(attribute_id);
-
-        spline.interpolate_to_evaluated(spline_span).materialize(dst.slice(offset, size).data());
-      }
-
-      if (!data.tangents.is_empty()) {
-        data.tangents.slice(offset, size).copy_from(spline.evaluated_tangents());
-      }
-      if (!data.normals.is_empty()) {
-        data.normals.slice(offset, size).copy_from(spline.evaluated_normals());
-      }
-    }
-  });
-}
-
-static void copy_uniform_sample_point_attributes(const Span<SplinePtr> splines,
-                                                 const Span<int> offsets,
-                                                 ResultAttributes &data)
-{
-  threading::parallel_for(splines.index_range(), 64, [&](IndexRange range) {
-    for (const int i : range) {
-      const Spline &spline = *splines[i];
-      const int offset = offsets[i];
-      const int num = offsets[i + 1] - offsets[i];
-      if (num == 0) {
-        continue;
-      }
-
-      const Array<float> uniform_samples = spline.sample_uniform_index_factors(num);
-
-      spline.sample_with_index_factors<float3>(
-          spline.evaluated_positions(), uniform_samples, data.positions.slice(offset, num));
-      spline.sample_with_index_factors<float>(spline.interpolate_to_evaluated(spline.radii()),
-                                              uniform_samples,
-                                              data.radii.slice(offset, num));
-
-      for (const Map<AttributeIDRef, GMutableSpan>::Item item : data.point_attributes.items()) {
-        const AttributeIDRef attribute_id = item.key;
-        const GMutableSpan dst = item.value;
-
-        BLI_assert(spline.attributes.get_for_read(attribute_id));
-        GSpan spline_span = *spline.attributes.get_for_read(attribute_id);
-
-        spline.sample_with_index_factors(
-            spline.interpolate_to_evaluated(spline_span), uniform_samples, dst.slice(offset, num));
-      }
-
-      if (!data.tangents.is_empty()) {
-        Span<float3> src_tangents = spline.evaluated_tangents();
-        MutableSpan<float3> sampled_tangents = data.tangents.slice(offset, num);
-        spline.sample_with_index_factors<float3>(src_tangents, uniform_samples, sampled_tangents);
-        for (float3 &vector : sampled_tangents) {
-          vector = math::normalize(vector);
-        }
-      }
-
-      if (!data.normals.is_empty()) {
-        Span<float3> src_normals = spline.evaluated_normals();
-        MutableSpan<float3> sampled_normals = data.normals.slice(offset, num);
-        spline.sample_with_index_factors<float3>(src_normals, uniform_samples, sampled_normals);
-        for (float3 &vector : sampled_normals) {
-          vector = math::normalize(vector);
-        }
-      }
-    }
-  });
-}
-
-static void copy_spline_domain_attributes(const CurveEval &curve,
-                                          const Span<int> offsets,
-                                          PointCloudComponent &points)
-{
-  curve.attributes.foreach_attribute(
-      [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
-        const GSpan curve_attribute = *curve.attributes.get_for_read(attribute_id);
-        const CPPType &type = curve_attribute.type();
-        const GMutableSpan dst = ensure_point_attribute(points, attribute_id, meta_data.data_type);
-
-        for (const int i : curve.splines().index_range()) {
-          const int offset = offsets[i];
-          const int num = offsets[i + 1] - offsets[i];
-          type.fill_assign_n(curve_attribute[i], dst[offset], num);
-        }
-
-        return true;
-      },
-      ATTR_DOMAIN_CURVE);
+  return pointcloud;
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -315,73 +109,96 @@ static void node_geo_exec(GeoNodeExecParams params)
   const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)storage.mode;
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
 
-  AnonymousAttributeIDs attribute_outputs;
-  attribute_outputs.tangent_id = StrongAnonymousAttributeID("Tangent");
-  attribute_outputs.normal_id = StrongAnonymousAttributeID("Normal");
-  attribute_outputs.rotation_id = StrongAnonymousAttributeID("Rotation");
-
   GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
 
-  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (!geometry_set.has_curves()) {
-      geometry_set.remove_geometry_during_modify();
-      return;
+  StrongAnonymousAttributeID tangent_anonymous_id;
+  StrongAnonymousAttributeID normal_anonymous_id;
+  StrongAnonymousAttributeID rotation_anonymous_id;
+  const bool rotation_required = params.output_is_required("Rotation");
+  if (params.output_is_required("Tangent") || rotation_required) {
+    tangent_anonymous_id = StrongAnonymousAttributeID("Tangent");
+  }
+  if (params.output_is_required("Normal") || rotation_required) {
+    normal_anonymous_id = StrongAnonymousAttributeID("Normal");
+  }
+  if (rotation_required) {
+    rotation_anonymous_id = StrongAnonymousAttributeID("Rotation");
+  }
+
+  geometry::ResampleCurvesOutputAttributeIDs resample_attributes;
+  resample_attributes.tangent_id = tangent_anonymous_id.get();
+  resample_attributes.normal_id = normal_anonymous_id.get();
+
+  switch (mode) {
+    case GEO_NODE_CURVE_RESAMPLE_COUNT: {
+      Field<int> count = params.extract_input<Field<int>>("Count");
+      geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
+        if (const Curves *src_curves_id = geometry.get_curves_for_read()) {
+          const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(
+              src_curves_id->geometry);
+          bke::CurvesGeometry dst_curves = geometry::resample_to_count(
+              src_curves, fn::make_constant_field<bool>(true), count, resample_attributes);
+          PointCloud *pointcloud = pointcloud_from_curves(std::move(dst_curves),
+                                                          resample_attributes.tangent_id,
+                                                          resample_attributes.normal_id,
+                                                          rotation_anonymous_id.get());
+          geometry.remove_geometry_during_modify();
+          geometry.replace_pointcloud(pointcloud);
+        }
+      });
+      break;
     }
-    const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
-        *geometry_set.get_curves_for_read());
-    const Span<SplinePtr> splines = curve->splines();
-    curve->assert_valid_point_attributes();
-
-    const Array<int> offsets = calculate_spline_point_offsets(params, mode, *curve, splines);
-    const int total_num = offsets.last();
-    if (total_num == 0) {
-      geometry_set.remove_geometry_during_modify();
-      return;
+    case GEO_NODE_CURVE_RESAMPLE_LENGTH: {
+      Field<float> length = params.extract_input<Field<float>>("Length");
+      geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
+        if (const Curves *src_curves_id = geometry.get_curves_for_read()) {
+          const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(
+              src_curves_id->geometry);
+          bke::CurvesGeometry dst_curves = geometry::resample_to_length(
+              src_curves, fn::make_constant_field<bool>(true), length, resample_attributes);
+          PointCloud *pointcloud = pointcloud_from_curves(std::move(dst_curves),
+                                                          resample_attributes.tangent_id,
+                                                          resample_attributes.normal_id,
+                                                          rotation_anonymous_id.get());
+          geometry.remove_geometry_during_modify();
+          geometry.replace_pointcloud(pointcloud);
+        }
+      });
+      break;
     }
-
-    geometry_set.replace_pointcloud(BKE_pointcloud_new_nomain(total_num));
-    PointCloudComponent &points = geometry_set.get_component_for_write<PointCloudComponent>();
-    ResultAttributes point_attributes = create_attributes_for_transfer(
-        points, *curve, attribute_outputs);
-
-    switch (mode) {
-      case GEO_NODE_CURVE_RESAMPLE_COUNT:
-      case GEO_NODE_CURVE_RESAMPLE_LENGTH:
-        copy_uniform_sample_point_attributes(splines, offsets, point_attributes);
-        break;
-      case GEO_NODE_CURVE_RESAMPLE_EVALUATED:
-        copy_evaluated_point_attributes(splines, offsets, point_attributes);
-        break;
-    }
-
-    copy_spline_domain_attributes(*curve, offsets, points);
-
-    if (!point_attributes.rotations.is_empty()) {
-      curve_create_default_rotation_attribute(
-          point_attributes.tangents, point_attributes.normals, point_attributes.rotations);
-    }
-
-    geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_POINT_CLOUD});
-  });
+    case GEO_NODE_CURVE_RESAMPLE_EVALUATED:
+      geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
+        if (const Curves *src_curves_id = geometry.get_curves_for_read()) {
+          const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(
+              src_curves_id->geometry);
+          bke::CurvesGeometry dst_curves = geometry::resample_to_evaluated(
+              src_curves, fn::make_constant_field<bool>(true), resample_attributes);
+          PointCloud *pointcloud = pointcloud_from_curves(std::move(dst_curves),
+                                                          resample_attributes.tangent_id,
+                                                          resample_attributes.normal_id,
+                                                          rotation_anonymous_id.get());
+          geometry.remove_geometry_during_modify();
+          geometry.replace_pointcloud(pointcloud);
+        }
+      });
+      break;
+  }
 
   params.set_output("Points", std::move(geometry_set));
-  if (attribute_outputs.tangent_id) {
-    params.set_output(
-        "Tangent",
-        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.tangent_id),
-                                                     params.attribute_producer_name()));
+  if (tangent_anonymous_id) {
+    params.set_output("Tangent",
+                      AnonymousAttributeFieldInput::Create<float3>(
+                          std::move(tangent_anonymous_id), params.attribute_producer_name()));
   }
-  if (attribute_outputs.normal_id) {
-    params.set_output(
-        "Normal",
-        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.normal_id),
-                                                     params.attribute_producer_name()));
+  if (normal_anonymous_id) {
+    params.set_output("Normal",
+                      AnonymousAttributeFieldInput::Create<float3>(
+                          std::move(normal_anonymous_id), params.attribute_producer_name()));
   }
-  if (attribute_outputs.rotation_id) {
-    params.set_output(
-        "Rotation",
-        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.rotation_id),
-                                                     params.attribute_producer_name()));
+  if (rotation_anonymous_id) {
+    params.set_output("Rotation",
+                      AnonymousAttributeFieldInput::Create<float3>(
+                          std::move(rotation_anonymous_id), params.attribute_producer_name()));
   }
 }
 

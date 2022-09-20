@@ -26,7 +26,6 @@
 struct Curves;
 struct Collection;
 struct Curve;
-struct CurveEval;
 struct Mesh;
 struct Object;
 struct PointCloud;
@@ -465,46 +464,7 @@ class PointCloudComponent : public GeometryComponent {
 };
 
 /**
- * Legacy runtime-only curves type.
- * These curves are stored differently than other geometry components, because the data structure
- * used here does not correspond exactly to the #Curve DNA data structure. A #CurveEval is stored
- * here instead, though the component does give access to a #Curve for interfacing with render
- * engines and other areas of Blender that expect to use a data-block with an #ID.
- */
-class CurveComponentLegacy : public GeometryComponent {
- private:
-  CurveEval *curve_ = nullptr;
-  GeometryOwnershipType ownership_ = GeometryOwnershipType::Owned;
-
- public:
-  CurveComponentLegacy();
-  ~CurveComponentLegacy();
-  GeometryComponent *copy() const override;
-
-  void clear();
-  bool has_curve() const;
-  /**
-   * Clear the component and replace it with the new curve.
-   */
-  void replace(CurveEval *curve, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
-  CurveEval *release();
-
-  const CurveEval *get_for_read() const;
-  CurveEval *get_for_write();
-
-  bool is_empty() const final;
-
-  bool owns_direct_data() const override;
-  void ensure_owns_direct_data() override;
-
-  std::optional<blender::bke::AttributeAccessor> attributes() const final;
-  std::optional<blender::bke::MutableAttributeAccessor> attributes_for_write() final;
-
-  static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_CURVE;
-};
-
-/**
- * A geometry component that stores a group of curves, corresponding the #Curves data-block type
+ * A geometry component that stores a group of curves, corresponding the #Curves data-block
  * and the #CurvesGeometry type. Attributes are stored on the control point domain and the
  * curve domain.
  */
@@ -514,10 +474,9 @@ class CurveComponent : public GeometryComponent {
   GeometryOwnershipType ownership_ = GeometryOwnershipType::Owned;
 
   /**
-   * Curve data necessary to hold the draw cache for rendering, consistent over multiple redraws.
-   * This is necessary because Blender assumes that objects evaluate to an object data type, and
-   * we use #CurveEval rather than #Curve here. It also allows us to mostly reuse the same
-   * batch cache implementation.
+   * Because rendering #Curves isn't fully working yet, we must provide a #Curve for the render
+   * engine and depsgraph object iterator in some cases. This allows using the old curve rendering
+   * even when the new curve data structure is used.
    */
   mutable Curve *curve_for_render_ = nullptr;
   mutable std::mutex curve_for_render_mutex_;

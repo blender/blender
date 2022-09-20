@@ -26,11 +26,14 @@
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_vfont.h"
+
+#include "BLT_translation.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -619,18 +622,19 @@ static void txt_add_object(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Curve *cu;
   Object *obedit;
-  Base *base;
+  Object *object;
   const struct TextLine *tmp;
   int nchars = 0, nbytes = 0;
   char *s;
   int a;
   const float rot[3] = {0.0f, 0.0f, 0.0f};
 
-  obedit = BKE_object_add(bmain, view_layer, OB_FONT, NULL);
-  base = view_layer->basact;
+  obedit = BKE_object_add(bmain, scene, view_layer, OB_FONT, NULL);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  object = BKE_view_layer_active_object_get(view_layer);
 
   /* seems to assume view align ? TODO: look into this, could be an operator option. */
-  ED_object_base_init_transform_on_add(base->object, NULL, rot);
+  ED_object_base_init_transform_on_add(object, NULL, rot);
 
   BKE_object_where_is_calc(depsgraph, scene, obedit);
 
@@ -1962,6 +1966,8 @@ static int set_case_exec(bContext *C, wmOperator *op)
 
 void FONT_OT_case_set(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Set Case";
   ot->description = "Set font case";
@@ -1975,7 +1981,8 @@ void FONT_OT_case_set(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_enum(ot->srna, "case", case_items, CASE_LOWER, "Case", "Lower or upper case");
+  prop = RNA_def_enum(ot->srna, "case", case_items, CASE_LOWER, "Case", "Lower or upper case");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_TEXT);
 }
 
 /** \} */

@@ -368,6 +368,11 @@ void GPU_framebuffer_config_array(GPUFrameBuffer *gpu_fb,
   }
 }
 
+void GPU_framebuffer_default_size(GPUFrameBuffer *gpu_fb, int width, int height)
+{
+  unwrap(gpu_fb)->size_set(width, height);
+}
+
 /* ---------- Viewport & Scissor Region ----------- */
 
 void GPU_framebuffer_viewport_set(GPUFrameBuffer *gpu_fb, int x, int y, int width, int height)

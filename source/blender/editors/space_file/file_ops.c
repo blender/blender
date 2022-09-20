@@ -213,7 +213,7 @@ static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
     else {
       retval = FILE_SELECT_FILE;
     }
-    fileselect_file_set(sfile, selected_idx);
+    fileselect_file_set(C, sfile, selected_idx);
   }
   return retval;
 }
@@ -484,7 +484,7 @@ static int file_box_select_modal(bContext *C, wmOperator *op, const wmEvent *eve
   else {
     params->highlight_file = -1;
     params->sel_first = params->sel_last = -1;
-    fileselect_file_set(sfile, params->active_file);
+    fileselect_file_set(C, sfile, params->active_file);
     file_select_deselect_all(sfile, FILE_SEL_HIGHLIGHTED);
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
   }
@@ -702,7 +702,8 @@ void FILE_OT_select(wmOperatorType *ot)
 /**
  * \returns true if selection has changed
  */
-static bool file_walk_select_selection_set(wmWindow *win,
+static bool file_walk_select_selection_set(struct bContext *C,
+                                           wmWindow *win,
                                            ARegion *region,
                                            SpaceFile *sfile,
                                            const int direction,
@@ -808,7 +809,7 @@ static bool file_walk_select_selection_set(wmWindow *win,
   }
 
   BLI_assert(IN_RANGE(active, -1, numfiles));
-  fileselect_file_set(sfile, params->active_file);
+  fileselect_file_set(C, sfile, params->active_file);
 
   /* ensure newly selected file is inside viewbounds */
   file_ensure_inside_viewbounds(region, sfile, params->active_file);
@@ -889,7 +890,8 @@ static bool file_walk_select_do(bContext *C,
     }
   }
 
-  return file_walk_select_selection_set(win,
+  return file_walk_select_selection_set(C,
+                                        win,
                                         region,
                                         sfile,
                                         direction,
@@ -1555,7 +1557,8 @@ void FILE_OT_cancel(struct wmOperatorType *ot)
 /** \name Operator Utilities
  * \{ */
 
-void file_sfile_to_operator_ex(Main *bmain, wmOperator *op, SpaceFile *sfile, char *filepath)
+void file_sfile_to_operator_ex(
+    bContext *C, Main *bmain, wmOperator *op, SpaceFile *sfile, char *filepath)
 {
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   PropertyRNA *prop;
@@ -1569,14 +1572,27 @@ void file_sfile_to_operator_ex(Main *bmain, wmOperator *op, SpaceFile *sfile, ch
     }
   }
 
+  char value[FILE_MAX];
   if ((prop = RNA_struct_find_property(op->ptr, "filename"))) {
+    RNA_property_string_get(op->ptr, prop, value);
     RNA_property_string_set(op->ptr, prop, params->file);
+    if (RNA_property_update_check(prop) && !STREQ(params->file, value)) {
+      RNA_property_update(C, op->ptr, prop);
+    }
   }
   if ((prop = RNA_struct_find_property(op->ptr, "directory"))) {
+    RNA_property_string_get(op->ptr, prop, value);
     RNA_property_string_set(op->ptr, prop, params->dir);
+    if (RNA_property_update_check(prop) && !STREQ(params->dir, value)) {
+      RNA_property_update(C, op->ptr, prop);
+    }
   }
   if ((prop = RNA_struct_find_property(op->ptr, "filepath"))) {
+    RNA_property_string_get(op->ptr, prop, value);
     RNA_property_string_set(op->ptr, prop, filepath);
+    if (RNA_property_update_check(prop) && !STREQ(filepath, value)) {
+      RNA_property_update(C, op->ptr, prop);
+    }
   }
 
   /* some ops have multiple files to select */
@@ -1630,11 +1646,11 @@ void file_sfile_to_operator_ex(Main *bmain, wmOperator *op, SpaceFile *sfile, ch
     }
   }
 }
-void file_sfile_to_operator(Main *bmain, wmOperator *op, SpaceFile *sfile)
+void file_sfile_to_operator(bContext *C, Main *bmain, wmOperator *op, SpaceFile *sfile)
 {
   char filepath_dummy[FILE_MAX];
 
-  file_sfile_to_operator_ex(bmain, op, sfile, filepath_dummy);
+  file_sfile_to_operator_ex(C, bmain, op, sfile, filepath_dummy);
 }
 
 void file_operator_to_sfile(Main *bmain, SpaceFile *sfile, wmOperator *op)
@@ -1695,7 +1711,7 @@ void file_draw_check_ex(bContext *C, ScrArea *area)
   if (op) { /* fail on reload */
     if (op->type->check) {
       Main *bmain = CTX_data_main(C);
-      file_sfile_to_operator(bmain, op, sfile);
+      file_sfile_to_operator(C, bmain, op, sfile);
 
       /* redraw */
       if (op->type->check(C, op)) {
@@ -1789,7 +1805,7 @@ static bool file_execute(bContext *C, SpaceFile *sfile)
 
     sfile->op = NULL;
 
-    file_sfile_to_operator_ex(bmain, op, sfile, filepath);
+    file_sfile_to_operator_ex(C, bmain, op, sfile, filepath);
 
     if (BLI_exists(params->dir)) {
       fsmenu_insert_entry(fsmenu,
@@ -2254,7 +2270,7 @@ static int filepath_drop_exec(bContext *C, wmOperator *op)
     file_sfile_filepath_set(sfile, filepath);
 
     if (sfile->op) {
-      file_sfile_to_operator(bmain, sfile->op, sfile);
+      file_sfile_to_operator(C, bmain, sfile->op, sfile);
       file_draw_check(C);
     }
 

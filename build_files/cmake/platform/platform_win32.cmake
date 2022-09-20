@@ -504,11 +504,15 @@ if(WITH_JACK)
 endif()
 
 if(WITH_PYTHON)
-  set(PYTHON_VERSION 3.10) # CACHE STRING)
+  # Cache version for make_bpy_wheel.py to detect.
+  unset(PYTHON_VERSION CACHE)
+  set(PYTHON_VERSION "3.10" CACHE STRING "Python version")
 
   string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
   set(PYTHON_LIBRARY ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/libs/python${_PYTHON_VERSION_NO_DOTS}.lib)
   set(PYTHON_LIBRARY_DEBUG ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/libs/python${_PYTHON_VERSION_NO_DOTS}_d.lib)
+
+  set(PYTHON_EXECUTABLE ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python$<$<CONFIG:Debug>:_d>.exe)
 
   set(PYTHON_INCLUDE_DIR ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/include)
   set(PYTHON_NUMPY_INCLUDE_DIRS ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/lib/site-packages/numpy/core/include)
@@ -763,7 +767,7 @@ if(WITH_TBB)
 endif()
 
 # used in many places so include globally, like OpenGL
-blender_include_dirs_sys("${PTHREADS_INCLUDE_DIRS}")
+include_directories(SYSTEM "${PTHREADS_INCLUDE_DIRS}")
 
 set(WINTAB_INC ${LIBDIR}/wintab/include)
 

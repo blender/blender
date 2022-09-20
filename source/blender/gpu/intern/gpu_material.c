@@ -41,11 +41,17 @@
 
 /* Structs */
 #define MAX_COLOR_BAND 128
+#define MAX_GPU_SKIES 8
 
 typedef struct GPUColorBandBuilder {
   float pixels[MAX_COLOR_BAND][CM_TABLE + 1][4];
   int current_layer;
 } GPUColorBandBuilder;
+
+typedef struct GPUSkyBuilder {
+  float pixels[MAX_GPU_SKIES][GPU_SKY_WIDTH * GPU_SKY_HEIGHT][4];
+  int current_layer;
+} GPUSkyBuilder;
 
 struct GPUMaterial {
   /* Contains GPUShader and source code for deferred compilation.
@@ -73,6 +79,10 @@ struct GPUMaterial {
   GPUTexture *coba_tex;
   /** Builder for coba_tex. */
   GPUColorBandBuilder *coba_builder;
+  /** 2D Texture array containing all sky textures. */
+  GPUTexture *sky_tex;
+  /** Builder for sky_tex. */
+  GPUSkyBuilder *sky_builder;
   /* Low level node graph(s). Also contains resources needed by the material. */
   GPUNodeGraph graph;
 
@@ -97,6 +107,35 @@ struct GPUMaterial {
 };
 
 /* Functions */
+
+GPUTexture **gpu_material_sky_texture_layer_set(
+    GPUMaterial *mat, int width, int height, const float *pixels, float *row)
+{
+  /* In order to put all sky textures into one 2D array texture,
+   * we need them to be the same size. */
+  BLI_assert(width == GPU_SKY_WIDTH);
+  BLI_assert(height == GPU_SKY_HEIGHT);
+  UNUSED_VARS_NDEBUG(width, height);
+
+  if (mat->sky_builder == NULL) {
+    mat->sky_builder = MEM_mallocN(sizeof(GPUSkyBuilder), "GPUSkyBuilder");
+    mat->sky_builder->current_layer = 0;
+  }
+
+  int layer = mat->sky_builder->current_layer;
+  *row = (float)layer;
+
+  if (*row == MAX_GPU_SKIES) {
+    printf("Too many sky textures in shader!\n");
+  }
+  else {
+    float *dst = (float *)mat->sky_builder->pixels[layer];
+    memcpy(dst, pixels, sizeof(float) * GPU_SKY_WIDTH * GPU_SKY_HEIGHT * 4);
+    mat->sky_builder->current_layer += 1;
+  }
+
+  return &mat->sky_tex;
+}
 
 GPUTexture **gpu_material_ramp_texture_row_set(GPUMaterial *mat,
                                                int size,
@@ -143,6 +182,24 @@ static void gpu_material_ramp_texture_build(GPUMaterial *mat)
   mat->coba_builder = NULL;
 }
 
+static void gpu_material_sky_texture_build(GPUMaterial *mat)
+{
+  if (mat->sky_builder == NULL) {
+    return;
+  }
+
+  mat->sky_tex = GPU_texture_create_2d_array("mat_sky",
+                                             GPU_SKY_WIDTH,
+                                             GPU_SKY_HEIGHT,
+                                             mat->sky_builder->current_layer,
+                                             1,
+                                             GPU_RGBA32F,
+                                             (float *)mat->sky_builder->pixels);
+
+  MEM_freeN(mat->sky_builder);
+  mat->sky_builder = NULL;
+}
+
 void GPU_material_free_single(GPUMaterial *material)
 {
   bool do_free = atomic_sub_and_fetch_uint32(&material->refcount, 1) == 0;
@@ -160,6 +217,9 @@ void GPU_material_free_single(GPUMaterial *material)
   }
   if (material->coba_tex != NULL) {
     GPU_texture_free(material->coba_tex);
+  }
+  if (material->sky_tex != NULL) {
+    GPU_texture_free(material->sky_tex);
   }
   if (material->sss_profile != NULL) {
     GPU_uniformbuf_free(material->sss_profile);
@@ -684,6 +744,7 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
   ntreeGPUMaterialNodes(localtree, mat);
 
   gpu_material_ramp_texture_build(mat);
+  gpu_material_sky_texture_build(mat);
 
   {
     /* Create source code and search pass cache for an already compiled version. */

@@ -742,7 +742,7 @@ static void view3d_ob_drop_copy_external_asset(bContext *UNUSED(C), wmDrag *drag
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  BKE_view_layer_base_deselect_all(view_layer);
+  BKE_view_layer_base_deselect_all(scene, view_layer);
 
   ID *id = WM_drag_asset_id_import(asset_drag, FILE_AUTOSELECT);
 
@@ -752,6 +752,7 @@ static void view3d_ob_drop_copy_external_asset(bContext *UNUSED(C), wmDrag *drag
 
   RNA_int_set(drop->ptr, "session_uuid", id->session_uuid);
 
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, (Object *)id);
   if (base != NULL) {
     BKE_view_layer_base_select_and_set_active(view_layer, base);
@@ -791,7 +792,7 @@ static void view3d_collection_drop_copy_external_asset(bContext *UNUSED(C),
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  BKE_view_layer_base_deselect_all(view_layer);
+  BKE_view_layer_base_deselect_all(scene, view_layer);
 
   ID *id = WM_drag_asset_id_import(asset_drag, FILE_AUTOSELECT);
   Collection *collection = (Collection *)id;
@@ -804,6 +805,7 @@ static void view3d_collection_drop_copy_external_asset(bContext *UNUSED(C),
 
   /* Make an object active, just use the first one in the collection. */
   CollectionObject *cobject = collection->gobject.first;
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = cobject ? BKE_view_layer_base_find(view_layer, cobject->ob) : NULL;
   if (base) {
     BLI_assert((base->flag & BASE_SELECTABLE) && (base->flag & BASE_ENABLED_VIEWPORT));
@@ -1404,7 +1406,9 @@ static void view3d_main_region_message_subscribe(const wmRegionMessageSubscribeP
   WM_msg_subscribe_rna_anon_type(mbus, SceneDisplay, &msg_sub_value_region_tag_redraw);
   WM_msg_subscribe_rna_anon_type(mbus, ObjectDisplay, &msg_sub_value_region_tag_redraw);
 
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obact = BKE_view_layer_active_object_get(view_layer);
   if (obact != NULL) {
     switch (obact->mode) {
@@ -1439,7 +1443,9 @@ static void view3d_main_region_cursor(wmWindow *win, ScrArea *area, ARegion *reg
     return;
   }
 
+  Scene *scene = WM_window_get_active_scene(win);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit) {
     WM_cursor_set(win, WM_CURSOR_EDIT);
@@ -1504,7 +1510,7 @@ static void view3d_header_region_listener(const wmRegionListenerParams *params)
       break;
   }
 
-    /* From topbar, which ones are needed? split per header? */
+    /* From top-bar, which ones are needed? split per header? */
     /* Disable for now, re-enable if needed, or remove - campbell. */
 #if 0
   /* context changes */
@@ -1888,11 +1894,14 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
      * without showing the object.
      *
      * See T85532 for alternatives that were considered. */
+    const Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    if (view_layer->basact) {
-      Object *ob = view_layer->basact->object;
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    Base *base = BKE_view_layer_active_base_get(view_layer);
+    if (base) {
+      Object *ob = base->object;
       /* if hidden but in edit mode, we still display, can happen with animation */
-      if ((view_layer->basact->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) != 0 ||
+      if ((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) != 0 ||
           (ob->mode != OB_MODE_OBJECT)) {
         CTX_data_id_pointer_set(result, &ob->id);
       }

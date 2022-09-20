@@ -101,16 +101,16 @@ typedef struct bAnimContext {
 /* Main Data container types */
 typedef enum eAnimCont_Types {
   ANIMCONT_NONE = 0,      /* invalid or no data */
-  ANIMCONT_ACTION = 1,    /* action (bAction) */
-  ANIMCONT_SHAPEKEY = 2,  /* shapekey (Key) */
+  ANIMCONT_ACTION = 1,    /* action (#bAction) */
+  ANIMCONT_SHAPEKEY = 2,  /* shape-key (#Key) */
   ANIMCONT_GPENCIL = 3,   /* grease pencil (screen) */
-  ANIMCONT_DOPESHEET = 4, /* dopesheet (bDopesheet) */
-  ANIMCONT_FCURVES = 5,   /* animation F-Curves (bDopesheet) */
-  ANIMCONT_DRIVERS = 6,   /* drivers (bDopesheet) */
-  ANIMCONT_NLA = 7,       /* nla (bDopesheet) */
-  ANIMCONT_CHANNEL = 8,   /* animation channel (bAnimListElem) */
-  ANIMCONT_MASK = 9,      /* mask dopesheet */
-  ANIMCONT_TIMELINE = 10, /* "timeline" editor (bDopeSheet) */
+  ANIMCONT_DOPESHEET = 4, /* dope-sheet (#bDopesheet) */
+  ANIMCONT_FCURVES = 5,   /* animation F-Curves (#bDopesheet) */
+  ANIMCONT_DRIVERS = 6,   /* drivers (#bDopesheet) */
+  ANIMCONT_NLA = 7,       /* NLA (#bDopesheet) */
+  ANIMCONT_CHANNEL = 8,   /* animation channel (#bAnimListElem) */
+  ANIMCONT_MASK = 9,      /* mask dope-sheet */
+  ANIMCONT_TIMELINE = 10, /* "timeline" editor (#bDopeSheet) */
 } eAnimCont_Types;
 
 /** \} */

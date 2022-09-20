@@ -639,6 +639,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
                                  (params->orientation_index - 1) :
                                  BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
 
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);
   if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
@@ -753,7 +754,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
     invert_m4_m4(obedit->imat, obedit->obmat); \
     uint objects_len = 0; \
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode( \
-        view_layer, CTX_wm_view3d(C), &objects_len); \
+        scene, view_layer, CTX_wm_view3d(C), &objects_len); \
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) { \
       Object *ob_iter = objects[ob_index]; \
       const bool use_mat_local = (ob_iter != obedit);
@@ -941,7 +942,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
     invert_m4_m4(ob->imat, ob->obmat);
 
     uint objects_len = 0;
-    Object **objects = BKE_object_pose_array_get(view_layer, v3d, &objects_len);
+    Object **objects = BKE_object_pose_array_get(scene, view_layer, v3d, &objects_len);
 
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
       Object *ob_iter = objects[ob_index];
@@ -1014,13 +1015,14 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
   else {
 
     /* we need the one selected object, if its not active */
-    base = view_layer->basact;
-    ob = BKE_view_layer_active_object_get(view_layer);
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    base = BKE_view_layer_active_base_get(view_layer);
+    ob = base ? base->object : NULL;
     if (base && ((base->flag & BASE_SELECTED) == 0)) {
       ob = NULL;
     }
 
-    for (base = view_layer->object_bases.first; base; base = base->next) {
+    for (base = BKE_view_layer_object_bases_get(view_layer)->first; base; base = base->next) {
       if (!BASE_SELECTED_EDITABLE(v3d, base)) {
         continue;
       }
@@ -1103,6 +1105,7 @@ static void gizmo_prepare_mat(const bContext *C,
           /* pass */
         }
         else {
+          BKE_view_layer_synced_ensure(scene, view_layer);
           Object *ob = BKE_view_layer_active_object_get(view_layer);
           if (ob != NULL) {
             if ((ob->mode & OB_MODE_ALL_SCULPT) && ob->sculpt) {

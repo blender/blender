@@ -44,7 +44,7 @@ typedef struct ScanFillVertLink {
   ScanFillEdge *edge_first, *edge_last;
 } ScanFillVertLink;
 
-/* local funcs */
+/* Local functions. */
 
 #define SF_EPSILON 0.00003f
 #define SF_EPSILON_SQ (SF_EPSILON * SF_EPSILON)

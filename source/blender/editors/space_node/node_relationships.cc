@@ -2312,10 +2312,10 @@ static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
 /**
  * Modal handler for insert offset animation
  */
-static int node_insert_offset_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int node_insert_offset_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-  NodeInsertOfsData *iofsd = snode->runtime->iofsd;
+  NodeInsertOfsData *iofsd = static_cast<NodeInsertOfsData *>(op->customdata);
   bool redraw = false;
 
   if (!snode || event->type != TIMER || iofsd == nullptr ||
@@ -2355,7 +2355,6 @@ static int node_insert_offset_modal(bContext *C, wmOperator *UNUSED(op), const w
       node->anim_init_locx = node->anim_ofsx = 0.0f;
     }
 
-    snode->runtime->iofsd = nullptr;
     MEM_freeN(iofsd);
 
     return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
@@ -2370,6 +2369,8 @@ static int node_insert_offset_invoke(bContext *C, wmOperator *op, const wmEvent 
 {
   const SpaceNode *snode = CTX_wm_space_node(C);
   NodeInsertOfsData *iofsd = snode->runtime->iofsd;
+  snode->runtime->iofsd = nullptr;
+  op->customdata = iofsd;
 
   if (!iofsd || !iofsd->insert) {
     return OPERATOR_CANCELLED;
@@ -2476,6 +2477,7 @@ void ED_node_link_insert(Main *bmain, ScrArea *area)
 
   /* Set up insert offset data, it needs stuff from here. */
   if ((snode->flag & SNODE_SKIP_INSOFFSET) == 0) {
+    BLI_assert(snode->runtime->iofsd == nullptr);
     NodeInsertOfsData *iofsd = MEM_cnew<NodeInsertOfsData>(__func__);
 
     iofsd->insert = node_to_insert;

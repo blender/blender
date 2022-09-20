@@ -6321,6 +6321,13 @@ void UI_but_func_search_set_tooltip(uiBut *but, uiButSearchTooltipFn tooltip_fn)
   but_search->item_tooltip_fn = tooltip_fn;
 }
 
+void UI_but_func_search_set_listen(uiBut *but, uiButSearchListenFn listen_fn)
+{
+  uiButSearch *but_search = (uiButSearch *)but;
+  BLI_assert(but->type == UI_BTYPE_SEARCH_MENU);
+  but_search->listen_fn = listen_fn;
+}
+
 void UI_but_func_search_set_results_are_suggestions(uiBut *but, const bool value)
 {
   uiButSearch *but_search = (uiButSearch *)but;

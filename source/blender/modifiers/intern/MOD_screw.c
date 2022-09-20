@@ -41,6 +41,8 @@
 #include "MOD_modifiertypes.h"
 #include "MOD_ui_common.h"
 
+#include "BLI_strict_flags.h"
+
 static void initData(ModifierData *md)
 {
   ScrewModifierData *ltmd = (ScrewModifierData *)md;
@@ -49,8 +51,6 @@ static void initData(ModifierData *md)
 
   MEMCPY_STRUCT_AFTER(ltmd, DNA_struct_default_get(ScrewModifierData), modifier);
 }
-
-#include "BLI_strict_flags.h"
 
 /** Used for gathering edge connectivity. */
 typedef struct ScrewVertConnect {

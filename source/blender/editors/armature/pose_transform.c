@@ -491,13 +491,14 @@ void POSE_OT_armature_apply(wmOperatorType *ot)
 /* set the current pose as the restpose */
 static int pose_visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
 
   /* Needed to ensure #bPoseChannel.pose_mat are up to date. */
   CTX_data_ensure_evaluated_depsgraph(C);
 
-  FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
+  FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
     const bArmature *arm = ob->data;
 
     int chanbase_len = BLI_listbase_count(&ob->pose->chanbase);
@@ -1115,7 +1116,7 @@ static void pchan_clear_rot(bPoseChannel *pchan)
   }
 
   /* Clear also Bendy Bone stuff - Roll is obvious,
-   * but Curve X/Y stuff is also kindof rotational in nature... */
+   * but Curve X/Y stuff is also kind of rotational in nature... */
   pchan->roll1 = 0.0f;
   pchan->roll2 = 0.0f;
 
@@ -1168,7 +1169,7 @@ static int pose_clear_transform_generic_exec(bContext *C,
   /* only clear relevant transforms for selected bones */
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
-  FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob_iter) {
+  FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob_iter) {
     /* XXX: UGLY HACK (for auto-key + clear transforms). */
     Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_iter);
     ListBase dsources = {NULL, NULL};
@@ -1347,7 +1348,7 @@ static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
       depsgraph, (float)scene->r.cfra);
   const bool only_select = RNA_boolean_get(op->ptr, "only_selected");
 
-  FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
+  FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
     if ((ob->adt) && (ob->adt->action)) {
       /* XXX: this is just like this to avoid contaminating anything else;
        * just pose values should change, so this should be fine

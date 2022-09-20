@@ -1905,6 +1905,9 @@ static void lineart_load_tri_task(void *__restrict userdata,
   if (ob_info->usage == OBJECT_LRT_INTERSECTION_ONLY) {
     tri->flags |= LRT_TRIANGLE_INTERSECTION_ONLY;
   }
+  else if (ob_info->usage == OBJECT_LRT_FORCE_INTERSECTION) {
+    tri->flags |= LRT_TRIANGLE_FORCE_INTERSECTION;
+  }
   else if (ob_info->usage == OBJECT_LRT_NO_INTERSECTION ||
            ob_info->usage == OBJECT_LRT_OCCLUSION_ONLY) {
     tri->flags |= LRT_TRIANGLE_NO_INTERSECTION;
@@ -2252,7 +2255,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
       }
 
       if (usage == OBJECT_LRT_INHERIT || usage == OBJECT_LRT_INCLUDE ||
-          usage == OBJECT_LRT_NO_INTERSECTION) {
+          usage == OBJECT_LRT_NO_INTERSECTION || usage == OBJECT_LRT_FORCE_INTERSECTION) {
         lineart_add_edge_to_array_thread(ob_info, la_edge);
       }
 
@@ -2281,7 +2284,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
       la_edge->edge_identifier = LRT_EDGE_IDENTIFIER(ob_info, la_edge);
       BLI_addtail(&la_edge->segments, la_seg);
       if (usage == OBJECT_LRT_INHERIT || usage == OBJECT_LRT_INCLUDE ||
-          usage == OBJECT_LRT_NO_INTERSECTION) {
+          usage == OBJECT_LRT_NO_INTERSECTION || usage == OBJECT_LRT_FORCE_INTERSECTION) {
         lineart_add_edge_to_array_thread(ob_info, la_edge);
         if (shadow_eln) {
           LineartEdge *shadow_e = lineart_find_matching_edge(shadow_eln, la_edge->edge_identifier);
@@ -2382,6 +2385,8 @@ static int lineart_usage_check(Collection *c, Object *ob, bool is_render)
             return OBJECT_LRT_INTERSECTION_ONLY;
           case COLLECTION_LRT_NO_INTERSECTION:
             return OBJECT_LRT_NO_INTERSECTION;
+          case COLLECTION_LRT_FORCE_INTERSECTION:
+            return OBJECT_LRT_FORCE_INTERSECTION;
         }
         return OBJECT_LRT_INHERIT;
       }
@@ -3410,10 +3415,11 @@ static void lineart_triangle_intersect_in_bounding_area(LineartTriangle *tri,
     }
     tt->testing_e[th->thread_id] = (LineartEdge *)tri;
 
-    if ((testing_triangle->flags & LRT_TRIANGLE_NO_INTERSECTION) ||
-        ((testing_triangle->flags & LRT_TRIANGLE_INTERSECTION_ONLY) &&
-         (tri->flags & LRT_TRIANGLE_INTERSECTION_ONLY))) {
-      continue;
+    if (!((testing_triangle->flags | tri->flags) & LRT_TRIANGLE_FORCE_INTERSECTION)) {
+      if ((testing_triangle->flags & LRT_TRIANGLE_NO_INTERSECTION) ||
+          (testing_triangle->flags & tri->flags & LRT_TRIANGLE_INTERSECTION_ONLY)) {
+        continue;
+      }
     }
 
     double *RG0 = testing_triangle->v[0]->gloc, *RG1 = testing_triangle->v[1]->gloc,
@@ -4535,14 +4541,8 @@ static void lineart_add_triangles_worker(TaskPool *__restrict UNUSED(pool), Line
           _dir_control++;
           for (co = x1; co <= x2; co++) {
             for (r = y1; r <= y2; r++) {
-              lineart_bounding_area_link_triangle(ld,
-                                                  &ld->qtree.initials[r * ld->qtree.count_x + co],
-                                                  tri,
-                                                  0,
-                                                  1,
-                                                  0,
-                                                  (!(tri->flags & LRT_TRIANGLE_NO_INTERSECTION)),
-                                                  th);
+              lineart_bounding_area_link_triangle(
+                  ld, &ld->qtree.initials[r * ld->qtree.count_x + co], tri, 0, 1, 0, 1, th);
             }
           }
         } /* Else throw away. */

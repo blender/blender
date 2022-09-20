@@ -2247,7 +2247,7 @@ static void minimum_twist_between_two_points(BevPoint *current_point, BevPoint *
 
 static void make_bevel_list_3D_minimum_twist(BevList *bl)
 {
-  BevPoint *bevp2, *bevp1, *bevp0; /* standard for all make_bevel_list_3D_* funcs */
+  BevPoint *bevp2, *bevp1, *bevp0; /* Standard for all make_bevel_list_3D_* functions. */
   int nr;
   float q[4];
 
@@ -2358,7 +2358,7 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
 
 static void make_bevel_list_3D_tangent(BevList *bl)
 {
-  BevPoint *bevp2, *bevp1, *bevp0; /* standard for all make_bevel_list_3D_* funcs */
+  BevPoint *bevp2, *bevp1, *bevp0; /* Standard for all make_bevel_list_3D_* functions. */
   int nr;
 
   float bevp0_tan[3];

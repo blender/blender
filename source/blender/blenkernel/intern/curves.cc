@@ -263,7 +263,7 @@ BoundBox *BKE_curves_boundbox_get(Object *ob)
   return ob->runtime.bb;
 }
 
-bool BKE_curves_customdata_required(const Curves *UNUSED(curves), const char *name)
+bool BKE_curves_attribute_required(const Curves *UNUSED(curves), const char *name)
 {
   return STREQ(name, ATTR_POSITION);
 }

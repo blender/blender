@@ -1177,7 +1177,7 @@ typedef struct AvgLogLum {
 static void tonemapmodifier_init_data(SequenceModifierData *smd)
 {
   SequencerTonemapModifierData *tmmd = (SequencerTonemapModifierData *)smd;
-  /* Same as tonemap compositor node. */
+  /* Same as tone-map compositor node. */
   tmmd->type = SEQ_TONEMAP_RD_PHOTORECEPTOR;
   tmmd->key = 0.18f;
   tmmd->offset = 1.0f;

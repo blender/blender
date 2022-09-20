@@ -19,9 +19,9 @@ extern "C" {
 typedef struct View2D {
   /** Tot - area that data can be drawn in; cur - region of tot that is visible in viewport. */
   rctf tot, cur;
-  /** Vert - vertical scrollbar region; hor - horizontal scrollbar region. */
+  /** Vert - vertical scroll-bar region; hor - horizontal scroll-bar region. */
   rcti vert, hor;
-  /** Mask - region (in screenspace) within which 'cur' can be viewed. */
+  /** Mask - region (in screen-space) within which 'cur' can be viewed. */
   rcti mask;
 
   /** Min/max sizes of 'cur' rect (only when keepzoom not set). */
@@ -29,7 +29,7 @@ typedef struct View2D {
   /** Allowable zoom factor range (only when (keepzoom & V2D_LIMITZOOM)) is set. */
   float minzoom, maxzoom;
 
-  /** Scroll - scrollbars to display (bit-flag). */
+  /** Scroll - scroll-bars to display (bit-flag). */
   short scroll;
   /** Scroll_ui - temp settings used for UI drawing of scrollers. */
   short scroll_ui;
@@ -56,7 +56,7 @@ typedef struct View2D {
   short around;
 
   /* Usually set externally (as in, not in view2d files). */
-  /** Alpha of vertical and horizontal scrollbars (range is [0, 255]). */
+  /** Alpha of vertical and horizontal scroll-bars (range is [0, 255]). */
   char alpha_vert, alpha_hor;
   char _pad[6];
 
@@ -124,11 +124,11 @@ enum {
 
 /** Scroller flags for View2D (#View2D.scroll). */
 enum {
-  /* left scrollbar */
+  /* Left scroll-bar. */
   V2D_SCROLL_LEFT = (1 << 0),
   V2D_SCROLL_RIGHT = (1 << 1),
   V2D_SCROLL_VERTICAL = (V2D_SCROLL_LEFT | V2D_SCROLL_RIGHT),
-  /* horizontal scrollbar */
+  /* Horizontal scroll-bar. */
   V2D_SCROLL_TOP = (1 << 2),
   V2D_SCROLL_BOTTOM = (1 << 3),
   /* UNUSED                    = (1 << 4), */
@@ -137,11 +137,11 @@ enum {
   V2D_SCROLL_VERTICAL_HANDLES = (1 << 5),
   /* display horizontal scale handles */
   V2D_SCROLL_HORIZONTAL_HANDLES = (1 << 6),
-  /* induce hiding of scrollbars - set by region drawing in response to size of region */
+  /* Induce hiding of scroll-bar - set by region drawing in response to size of region. */
   V2D_SCROLL_VERTICAL_HIDE = (1 << 7),
   V2D_SCROLL_HORIZONTAL_HIDE = (1 << 8),
-  /* scrollbar extends beyond its available window -
-   * set when calculating scrollbars for drawing */
+  /* Scroll-bar extends beyond its available window -
+   * set when calculating scroll-bar for drawing */
   V2D_SCROLL_VERTICAL_FULLR = (1 << 9),
   V2D_SCROLL_HORIZONTAL_FULLR = (1 << 10),
 };

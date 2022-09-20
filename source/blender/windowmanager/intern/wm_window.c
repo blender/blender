@@ -120,6 +120,36 @@ static struct WMInitStruct {
 };
 
 /* -------------------------------------------------------------------- */
+/** \name Modifier Constants
+ * \{ */
+
+static const struct {
+  uint8_t flag;
+  GHOST_TKey ghost_key_pair[2];
+  GHOST_TModifierKey ghost_mask_pair[2];
+} g_modifier_table[] = {
+    {KM_SHIFT,
+     {GHOST_kKeyLeftShift, GHOST_kKeyRightShift},
+     {GHOST_kModifierKeyLeftShift, GHOST_kModifierKeyRightShift}},
+    {KM_CTRL,
+     {GHOST_kKeyLeftControl, GHOST_kKeyRightControl},
+     {GHOST_kModifierKeyLeftControl, GHOST_kModifierKeyRightControl}},
+    {KM_ALT,
+     {GHOST_kKeyLeftAlt, GHOST_kKeyRightAlt},
+     {GHOST_kModifierKeyLeftAlt, GHOST_kModifierKeyRightAlt}},
+    {KM_OSKEY,
+     {GHOST_kKeyLeftOS, GHOST_kKeyRightOS},
+     {GHOST_kModifierKeyLeftOS, GHOST_kModifierKeyRightOS}},
+};
+
+enum ModSide {
+  MOD_SIDE_LEFT = 0,
+  MOD_SIDE_RIGHT = 1,
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Window Open & Close
  * \{ */
 
@@ -969,43 +999,18 @@ void wm_cursor_position_get(wmWindow *win, int *r_x, int *r_y)
   wm_cursor_position_from_ghost_client_coords(win, r_x, r_y);
 }
 
-typedef enum {
-  SHIFT = 's',
-  CONTROL = 'c',
-  ALT = 'a',
-  OS = 'C',
-} modifierKeyType;
-
 /** Check if specified modifier key type is pressed. */
-static bool query_qual(modifierKeyType qual)
+static uint8_t wm_ghost_modifier_query(const enum ModSide side)
 {
-  GHOST_TModifierKey left, right;
-  switch (qual) {
-    case SHIFT:
-      left = GHOST_kModifierKeyLeftShift;
-      right = GHOST_kModifierKeyRightShift;
-      break;
-    case CONTROL:
-      left = GHOST_kModifierKeyLeftControl;
-      right = GHOST_kModifierKeyRightControl;
-      break;
-    case OS:
-      left = right = GHOST_kModifierKeyOS;
-      break;
-    case ALT:
-    default:
-      left = GHOST_kModifierKeyLeftAlt;
-      right = GHOST_kModifierKeyRightAlt;
-      break;
+  uint8_t result = 0;
+  for (int i = 0; i < ARRAY_SIZE(g_modifier_table); i++) {
+    bool val = false;
+    GHOST_GetModifierKeyState(g_system, g_modifier_table[i].ghost_mask_pair[side], &val);
+    if (val) {
+      result |= g_modifier_table[i].flag;
+    }
   }
-
-  bool val = false;
-  GHOST_GetModifierKeyState(g_system, left, &val);
-  if (!val) {
-    GHOST_GetModifierKeyState(g_system, right, &val);
-  }
-
-  return val;
+  return result;
 }
 
 static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool activate)
@@ -1127,80 +1132,56 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
         win->active = 0; /* XXX */
         break;
       case GHOST_kEventWindowActivate: {
-        const int keymodifier = ((query_qual(SHIFT) ? KM_SHIFT : 0) |
-                                 (query_qual(CONTROL) ? KM_CTRL : 0) |
-                                 (query_qual(ALT) ? KM_ALT : 0) | (query_qual(OS) ? KM_OSKEY : 0));
 
         /* No context change! C->wm->windrawable is drawable, or for area queues. */
         wm->winactive = win;
 
         win->active = 1;
+
         /* bad ghost support for modifier keys... so on activate we set the modifiers again */
 
-        /* TODO: This is not correct since a modifier may be held when a window is activated...
-         * better solve this at ghost level. attempted fix r54450 but it caused bug T34255.
-         *
-         * For now don't send GHOST_kEventKeyDown events, just set the 'eventstate'.
-         */
-        GHOST_TEventKeyData kdata = {
-            .key = GHOST_kKeyUnknown,
-            .utf8_buf = {'\0'},
-            .is_repeat = false,
+        const uint8_t keymodifier_sided[2] = {
+            wm_ghost_modifier_query(MOD_SIDE_LEFT),
+            wm_ghost_modifier_query(MOD_SIDE_RIGHT),
         };
-        if (win->eventstate->modifier & KM_SHIFT) {
-          if ((keymodifier & KM_SHIFT) == 0) {
-            kdata.key = GHOST_kKeyLeftShift;
-            wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata);
-          }
-        }
+        const uint8_t keymodifier = keymodifier_sided[0] | keymodifier_sided[1];
+        const uint8_t keymodifier_eventstate = win->eventstate->modifier;
+        if (keymodifier != keymodifier_eventstate) {
+          GHOST_TEventKeyData kdata = {
+              .key = GHOST_kKeyUnknown,
+              .utf8_buf = {'\0'},
+              .is_repeat = false,
+          };
+          for (int i = 0; i < ARRAY_SIZE(g_modifier_table); i++) {
+            if (keymodifier_eventstate & g_modifier_table[i].flag) {
+              if ((keymodifier & g_modifier_table[i].flag) == 0) {
+                for (int side = 0; side < 2; side++) {
+                  if ((keymodifier_sided[side] & g_modifier_table[i].flag) == 0) {
+                    kdata.key = g_modifier_table[i].ghost_key_pair[side];
+                    wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata);
+                    /* Only ever send one release event
+                     * (currently releasing multiple isn't needed and only confuses logic). */
+                    break;
+                  }
+                }
+              }
+            }
 #ifdef USE_WIN_ACTIVATE
-        else {
-          if (keymodifier & KM_SHIFT) {
-            win->eventstate->modifier |= KM_SHIFT;
-          }
-        }
-#endif
-        if (win->eventstate->modifier & KM_CTRL) {
-          if ((keymodifier & KM_CTRL) == 0) {
-            kdata.key = GHOST_kKeyLeftControl;
-            wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata);
-          }
-        }
-#ifdef USE_WIN_ACTIVATE
-        else {
-          if (keymodifier & KM_CTRL) {
-            win->eventstate->modifier |= KM_CTRL;
-          }
-        }
-#endif
-        if (win->eventstate->modifier & KM_ALT) {
-          if ((keymodifier & KM_ALT) == 0) {
-            kdata.key = GHOST_kKeyLeftAlt;
-            wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata);
-          }
-        }
-#ifdef USE_WIN_ACTIVATE
-        else {
-          if (keymodifier & KM_ALT) {
-            win->eventstate->modifier |= KM_ALT;
-          }
-        }
-#endif
-        if (win->eventstate->modifier & KM_OSKEY) {
-          if ((keymodifier & KM_OSKEY) == 0) {
-            kdata.key = GHOST_kKeyOS;
-            wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, &kdata);
-          }
-        }
-#ifdef USE_WIN_ACTIVATE
-        else {
-          if (keymodifier & KM_OSKEY) {
-            win->eventstate->modifier |= KM_OSKEY;
-          }
-        }
+            else {
+              if (keymodifier & g_modifier_table[i].flag) {
+                for (int side = 0; side < 2; side++) {
+                  if (keymodifier_sided[side] & g_modifier_table[i].flag) {
+                    kdata.key = g_modifier_table[i].ghost_key_pair[side];
+                    wm_event_add_ghostevent(wm, win, GHOST_kEventKeyDown, &kdata);
+                  }
+                }
+              }
+            }
 #endif
 
 #undef USE_WIN_ACTIVATE
+          }
+        }
 
         /* keymodifier zero, it hangs on hotkeys that open windows otherwise */
         win->eventstate->keymodifier = 0;
@@ -1281,7 +1262,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
                 state_str = "maximized";
               }
               else if (state == GHOST_kWindowStateFullScreen) {
-                state_str = "fullscreen";
+                state_str = "full-screen";
               }
               else {
                 state_str = "<unknown>";

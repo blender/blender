@@ -589,7 +589,7 @@ extern "C" {
 
 /** Performs `offsetof(typeof(data), member) + sizeof((data)->member)` for non-gcc compilers. */
 #define OFFSETOF_STRUCT_AFTER(_struct, _member) \
-  ((((const char *)&((_struct)->_member)) - ((const char *)(_struct))) + \
+  ((size_t)(((const char *)&((_struct)->_member)) - ((const char *)(_struct))) + \
    sizeof((_struct)->_member))
 
 /**

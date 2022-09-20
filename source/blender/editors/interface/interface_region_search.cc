@@ -10,6 +10,7 @@
 #include <cstdarg>
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
 
 #include "DNA_ID.h"
 #include "MEM_guardedalloc.h"
@@ -86,6 +87,10 @@ struct uiSearchboxData {
    * Used so we can show leading text to menu items less prominently (not related to 'use_sep').
    */
   const char *sep_string;
+
+  /* Owned by uiButSearch */
+  void *search_arg;
+  uiButSearchListenFn search_listener;
 };
 
 #define SEARCH_ITEMS 10
@@ -689,6 +694,14 @@ static void ui_searchbox_region_free_fn(ARegion *region)
   region->regiondata = nullptr;
 }
 
+static void ui_searchbox_region_listen_fn(const wmRegionListenerParams *params)
+{
+  uiSearchboxData *data = static_cast<uiSearchboxData *>(params->region->regiondata);
+  if (data->search_listener) {
+    data->search_listener(params, data->search_arg);
+  }
+}
+
 static ARegion *ui_searchbox_create_generic_ex(bContext *C,
                                                ARegion *butregion,
                                                uiButSearch *search_but,
@@ -707,11 +720,14 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
   memset(&type, 0, sizeof(ARegionType));
   type.draw = ui_searchbox_region_draw_fn;
   type.free = ui_searchbox_region_free_fn;
+  type.listener = ui_searchbox_region_listen_fn;
   type.regionid = RGN_TYPE_TEMPORARY;
   region->type = &type;
 
   /* Create search-box data. */
   uiSearchboxData *data = MEM_cnew<uiSearchboxData>(__func__);
+  data->search_arg = search_but->arg;
+  data->search_listener = search_but->listen_fn;
 
   /* Set font, get the bounding-box. */
   data->fstyle = style->widget; /* copy struct */

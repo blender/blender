@@ -532,6 +532,7 @@ typedef struct ARegion *(*uiButSearchTooltipFn)(struct bContext *C,
                                                 const struct rcti *item_rect,
                                                 void *arg,
                                                 void *active);
+typedef void (*uiButSearchListenFn)(const struct wmRegionListenerParams *params, void *arg);
 
 /* Must return allocated string. */
 typedef char *(*uiButToolTipFunc)(struct bContext *C, void *argN, const char *tip);
@@ -1659,6 +1660,7 @@ void UI_but_func_search_set(uiBut *but,
                             void *active);
 void UI_but_func_search_set_context_menu(uiBut *but, uiButSearchContextMenuFn context_menu_fn);
 void UI_but_func_search_set_tooltip(uiBut *but, uiButSearchTooltipFn tooltip_fn);
+void UI_but_func_search_set_listen(uiBut *but, uiButSearchListenFn listen_fn);
 /**
  * \param search_sep_string: when not NULL, this string is used as a separator,
  * showing the icon and highlighted text after the last instance of this string.

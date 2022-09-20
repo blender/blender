@@ -812,7 +812,7 @@ static void do_allEdgeDetection(unsigned int t,
       if (!limask[a]) {  /* If the inner mask is empty. */
         if (lomask[a]) { /* If the outer mask is full. */
           /*
-           * Next we test all 4 directions around the current pixel: next/prev/up/down
+           * Next we test all 4 directions around the current pixel: next/previous/up/down
            * The test ensures that the outer mask is empty and that the inner mask
            * is also empty. If both conditions are true for any one of the 4 adjacent pixels
            * then the current pixel is counted as being a true outer edge pixel.
@@ -882,7 +882,7 @@ static void do_adjacentEdgeDetection(unsigned int t,
       if (!limask[a]) {  /* If the inner mask is empty. */
         if (lomask[a]) { /* If the outer mask is full. */
           /*
-           * Next we test all 4 directions around the current pixel: next/prev/up/down
+           * Next we test all 4 directions around the current pixel: next/previous/up/down
            * The test ensures that the outer mask is empty and that the inner mask
            * is also empty. If both conditions are true for any one of the 4 adjacent pixels
            * then the current pixel is counted as being a true outer edge pixel.

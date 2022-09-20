@@ -129,6 +129,7 @@ def mesh_node_items(context):
     yield NodeItem("GeometryNodeInputMeshEdgeVertices")
     yield NodeItem("GeometryNodeInputMeshFaceArea")
     yield NodeItem("GeometryNodeInputMeshFaceNeighbors")
+    yield NodeItem("GeometryNodeMeshFaceSetBoundaries")
     yield NodeItem("GeometryNodeInputMeshFaceIsPlanar")
     yield NodeItem("GeometryNodeInputShadeSmooth")
     yield NodeItem("GeometryNodeInputMeshIsland")
@@ -241,6 +242,7 @@ def point_node_items(context):
     space = context.space_data
     if not space:
         return
+    yield NodeItem("GeometryNodeDistributePointsInVolume")
     yield NodeItem("GeometryNodeDistributePointsOnFaces")
     yield NodeItem("GeometryNodePoints")
     yield NodeItem("GeometryNodePointsToVertices")

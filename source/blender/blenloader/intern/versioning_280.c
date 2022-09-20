@@ -512,12 +512,13 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
       }
     }
 
+    BKE_view_layer_synced_ensure(scene, view_layer);
     /* for convenience set the same active object in all the layers */
     if (scene->basact) {
       view_layer->basact = BKE_view_layer_base_find(view_layer, scene->basact->object);
     }
 
-    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       if ((base->flag & BASE_SELECTABLE) && (base->object->flag & SELECT)) {
         base->flag |= BASE_SELECTED;
       }
@@ -537,13 +538,14 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
       view_layer->flag &= ~VIEW_LAYER_RENDER;
     }
 
+    BKE_view_layer_synced_ensure(scene, view_layer);
     /* convert active base */
     if (scene->basact) {
       view_layer->basact = BKE_view_layer_base_find(view_layer, scene->basact->object);
     }
 
     /* convert selected bases */
-    LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       if ((base->flag & BASE_SELECTABLE) && (base->object->flag & SELECT)) {
         base->flag |= BASE_SELECTED;
       }

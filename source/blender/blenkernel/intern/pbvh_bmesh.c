@@ -1863,6 +1863,12 @@ static void pbvh_bmesh_create_nodes_fast_recursive(
 
 /***************************** Public API *****************************/
 
+void BKE_pbvh_update_bmesh_offsets(PBVH *pbvh, int cd_vert_node_offset, int cd_face_node_offset)
+{
+  pbvh->cd_vert_node_offset = cd_vert_node_offset;
+  pbvh->cd_face_node_offset = cd_face_node_offset;
+}
+
 void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           BMesh *bm,
                           bool smooth_shading,
@@ -1870,8 +1876,6 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           const int cd_vert_node_offset,
                           const int cd_face_node_offset)
 {
-  pbvh->cd_vert_node_offset = cd_vert_node_offset;
-  pbvh->cd_face_node_offset = cd_face_node_offset;
   pbvh->header.bm = bm;
 
   BKE_pbvh_bmesh_detail_size_set(pbvh, 0.75);
@@ -1881,6 +1885,8 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
   /* TODO: choose leaf limit better */
   pbvh->leaf_limit = 100;
+
+  BKE_pbvh_update_bmesh_offsets(pbvh, cd_vert_node_offset, cd_face_node_offset);
 
   if (smooth_shading) {
     pbvh->flags |= PBVH_DYNTOPO_SMOOTH_SHADING;
@@ -1999,7 +2005,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
     BLI_mempool_destroy(queue_pool);
   }
 
-  /* Unmark nodes */
+  /* Unmark nodes. */
   for (int n = 0; n < pbvh->totnode; n++) {
     PBVHNode *node = &pbvh->nodes[n];
 

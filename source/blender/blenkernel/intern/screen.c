@@ -305,7 +305,7 @@ IDTypeInfo IDType_ID_SCR = {
     .lib_override_apply_post = NULL,
 };
 
-/* ************ Spacetype/regiontype handling ************** */
+/* ************ Space-type/region-type handling ************** */
 
 /* keep global; this has to be accessible outside of windowmanager */
 static ListBase spacetypes = {NULL, NULL};
@@ -1662,7 +1662,7 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
       LISTBASE_FOREACH_MUTABLE (ConsoleLine *, cl, &sconsole->history) {
         BLO_read_data_address(reader, &cl->line);
         if (cl->line) {
-          /* the allocted length is not written, so reset here */
+          /* The allocated length is not written, so reset here. */
           cl->len_alloc = cl->len + 1;
         }
         else {

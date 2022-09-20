@@ -136,7 +136,7 @@ bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
     return false;
   }
 
-  /* Reduce usercount for current action. */
+  /* Reduce user-count for current action. */
   if (adt->action) {
     id_us_min((ID *)adt->action);
   }
@@ -287,11 +287,11 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
 
   /* make a copy of action - at worst, user has to delete copies... */
   if (do_action) {
-    /* Recursive copy of 'real' IDs is a bit hairy. Even if do not want to deal with usercount
-     *  when copying ID's data itself, we still need to do so with sub-IDs, since those will not be
-     * handled by later 'update usercounts of used IDs' code as used e.g. at end of
-     * BKE_id_copy_ex().
-     * So in case we do copy the ID and its sub-IDs in bmain, silence the 'no usercount' flag for
+    /* Recursive copy of 'real' IDs is a bit hairy. Even if do not want to deal with user-count
+     * when copying ID's data itself, we still need to do so with sub-IDs, since those will not be
+     * handled by later 'update user-counts of used IDs' code as used e.g. at end of
+     * #BKE_id_copy_ex().
+     * So in case we do copy the ID and its sub-IDs in bmain, silence the 'no user-count' flag for
      * the sub-IDs copying.
      * NOTE: This is a bit weak, as usually when it comes to recursive ID copy. Should work for
      * now, but we may have to revisit this at some point and add a proper extra flag to deal with

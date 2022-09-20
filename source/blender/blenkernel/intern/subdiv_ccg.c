@@ -2043,6 +2043,11 @@ void BKE_subdiv_ccg_grid_hidden_ensure(SubdivCCG *subdiv_ccg, int grid_index)
   subdiv_ccg->grid_hidden[grid_index] = BLI_BITMAP_NEW(key.grid_area, __func__);
 }
 
+void BKE_subdiv_ccg_grid_hidden_free(SubdivCCG *subdiv_ccg, int grid_index)
+{
+  MEM_SAFE_FREE(subdiv_ccg->grid_hidden[grid_index]);
+}
+
 static void subdiv_ccg_coord_to_ptex_coord(const SubdivCCG *subdiv_ccg,
                                            const SubdivCCGCoord *coord,
                                            int *r_ptex_face_index,

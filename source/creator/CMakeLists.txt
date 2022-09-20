@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright 2006 Blender Foundation. All rights reserved.
 
-blender_include_dirs(
+set(INC
   ../../intern/clog
   ../../intern/guardedalloc
   ../blender/blenkernel
@@ -35,17 +35,17 @@ if(WITH_TBB)
 endif()
 
 if(WIN32)
-  blender_include_dirs(../../intern/utfconv)
+  list(APPEND INC ../../intern/utfconv)
 endif()
 
 if(WITH_LIBMV)
-  blender_include_dirs(../../intern/libmv)
+  list(APPEND INC ../../intern/libmv)
   add_definitions(-DWITH_LIBMV)
 endif()
 
 if(WITH_CYCLES)
   if(WITH_CYCLES_LOGGING)
-    blender_include_dirs(../../intern/cycles/blender)
+    list(APPEND INC ../../intern/cycles/blender)
     add_definitions(-DWITH_CYCLES_LOGGING)
   endif()
 endif()
@@ -55,7 +55,7 @@ if(WITH_CODEC_FFMPEG)
 endif()
 
 if(WITH_TBB)
-  blender_include_dirs(${TBB_INCLUDE_DIRS})
+  list(APPEND INC ${TBB_INCLUDE_DIRS})
   if(WIN32)
     # For `pragma` that links `tbbmalloc_proxy.lib`.
     link_directories(${LIBDIR}/tbb/lib)
@@ -64,7 +64,7 @@ endif()
 
 
 if(WITH_PYTHON)
-  blender_include_dirs(../blender/python)
+  list(APPEND INC ../blender/python)
   add_definitions(-DWITH_PYTHON)
 
   if(WITH_PYTHON_SECURITY)
@@ -78,19 +78,19 @@ endif()
 
 if(WITH_SDL)
   if(WITH_SDL_DYNLOAD)
-    blender_include_dirs(../../extern/sdlew/include)
+    list(APPEND INC ../../extern/sdlew/include)
     add_definitions(-DWITH_SDL_DYNLOAD)
   endif()
   add_definitions(-DWITH_SDL)
 endif()
 
 if(WITH_BINRELOC)
-  blender_include_dirs(${BINRELOC_INCLUDE_DIRS})
+  list(APPEND INC ${BINRELOC_INCLUDE_DIRS})
   add_definitions(-DWITH_BINRELOC)
 endif()
 
 if(WITH_FREESTYLE)
-  blender_include_dirs(../blender/freestyle)
+  list(APPEND INC ../blender/freestyle)
   add_definitions(-DWITH_FREESTYLE)
 endif()
 
@@ -99,7 +99,7 @@ if(WITH_XR_OPENXR)
 endif()
 
 if(WITH_GMP)
-  blender_include_dirs(${GMP_INCLUDE_DIRS})
+  list(APPEND INC ${GMP_INCLUDE_DIRS})
   add_definitions(-DWITH_GMP)
 endif()
 
@@ -344,10 +344,10 @@ if(UNIX AND NOT APPLE)
 
 elseif(WIN32)
   if(WITH_PYTHON_MODULE)
-    set(TARGETDIR_BPY $<TARGET_FILE_DIR:blender>)
-    set(TARGETDIR_VER $<TARGET_FILE_DIR:blender>/${BLENDER_VERSION})
+    set(TARGETDIR_BPY ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/bpy)
+    set(TARGETDIR_VER ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/bpy/${BLENDER_VERSION})
     # Important the DLL's are next to `__init__.pyd` otherwise it won't load.
-    set(TARGETDIR_LIB $<TARGET_FILE_DIR:blender>)
+    set(TARGETDIR_LIB ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/bpy)
   else()
     set(TARGETDIR_VER ${BLENDER_VERSION})
     set(TARGETDIR_TEXT .)
@@ -410,6 +410,7 @@ if(WITH_PYTHON)
     DESTINATION ${TARGETDIR_VER}
     PATTERN ".git" EXCLUDE
     PATTERN ".gitignore" EXCLUDE
+    PATTERN ".github" EXCLUDE
     PATTERN ".arcconfig" EXCLUDE
     PATTERN "__pycache__" EXCLUDE
     PATTERN "${ADDON_EXCLUDE_CONDITIONAL}" EXCLUDE
@@ -1284,6 +1285,7 @@ if(DEFINED PLATFORM_SYMBOLS_MAP)
   set_target_properties(blender PROPERTIES LINK_DEPENDS ${PLATFORM_SYMBOLS_MAP})
 endif()
 
+blender_target_include_dirs(blender ${INC})
 
 # -----------------------------------------------------------------------------
 # USD registry.

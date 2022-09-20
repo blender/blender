@@ -21,6 +21,8 @@
 #include "BKE_attribute.h"
 #include "BKE_customdata.h"
 
+#include "BLT_translation.h"
+
 #include "WM_types.h"
 
 const EnumPropertyItem rna_enum_attribute_type_items[] = {
@@ -194,7 +196,7 @@ const EnumPropertyItem *rna_enum_attribute_domain_itemf(ID *id,
   int totitem = 0, a;
 
   static EnumPropertyItem mesh_vertex_domain_item = {
-      ATTR_DOMAIN_POINT, "POINT", 0, "Vertex", "Attribute per point/vertex"};
+      ATTR_DOMAIN_POINT, "POINT", 0, N_("Vertex"), N_("Attribute per point/vertex")};
 
   for (a = 0; rna_enum_attribute_domain_items[a].identifier; a++) {
     domain_item = &rna_enum_attribute_domain_items[a];
@@ -319,6 +321,36 @@ static void rna_ByteColorAttributeValue_color_set(PointerRNA *ptr, const float *
 {
   MLoopCol *mlcol = (MLoopCol *)ptr->data;
   linearrgb_to_srgb_uchar4(&mlcol->r, values);
+}
+
+static void rna_ByteColorAttributeValue_color_srgb_get(PointerRNA *ptr, float *values)
+{
+  MLoopCol *col = (MLoopCol *)ptr->data;
+  values[0] = col->r / 255.0f;
+  values[1] = col->g / 255.0f;
+  values[2] = col->b / 255.0f;
+  values[3] = col->a / 255.0f;
+}
+
+static void rna_ByteColorAttributeValue_color_srgb_set(PointerRNA *ptr, const float *values)
+{
+  MLoopCol *col = (MLoopCol *)ptr->data;
+  col->r = round_fl_to_uchar_clamp(values[0] * 255.0f);
+  col->g = round_fl_to_uchar_clamp(values[1] * 255.0f);
+  col->b = round_fl_to_uchar_clamp(values[2] * 255.0f);
+  col->a = round_fl_to_uchar_clamp(values[3] * 255.0f);
+}
+
+static void rna_FloatColorAttributeValue_color_srgb_get(PointerRNA *ptr, float *values)
+{
+  MPropCol *col = (MPropCol *)ptr->data;
+  linearrgb_to_srgb_v4(values, col->color);
+}
+
+static void rna_FloatColorAttributeValue_color_srgb_set(PointerRNA *ptr, const float *values)
+{
+  MPropCol *col = (MPropCol *)ptr->data;
+  srgb_to_linearrgb_v4(col->color, values);
 }
 
 /* Int8 Attribute. */
@@ -715,6 +747,16 @@ static void rna_def_attribute_float_color(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "color");
   RNA_def_property_array(prop, 4);
   RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
+
+  prop = RNA_def_property(srna, "color_srgb", PROP_FLOAT, PROP_COLOR);
+  RNA_def_property_ui_text(prop, "Color", "RGBA color in sRGB color space");
+  RNA_def_property_float_sdna(prop, NULL, "color");
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_float_funcs(prop,
+                               "rna_FloatColorAttributeValue_color_srgb_get",
+                               "rna_FloatColorAttributeValue_color_srgb_set",
+                               NULL);
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
 }
 
 static void rna_def_attribute_byte_color(BlenderRNA *brna)
@@ -755,6 +797,16 @@ static void rna_def_attribute_byte_color(BlenderRNA *brna)
                                "rna_ByteColorAttributeValue_color_set",
                                NULL);
   RNA_def_property_ui_text(prop, "Color", "RGBA color in scene linear color space");
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
+
+  prop = RNA_def_property(srna, "color_srgb", PROP_FLOAT, PROP_COLOR);
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_float_funcs(prop,
+                               "rna_ByteColorAttributeValue_color_srgb_get",
+                               "rna_ByteColorAttributeValue_color_srgb_set",
+                               NULL);
+  RNA_def_property_ui_text(prop, "Color", "RGBA color in sRGB color space");
   RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
 }
 

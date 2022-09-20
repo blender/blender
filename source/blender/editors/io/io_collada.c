@@ -693,6 +693,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
   int min_chain_length;
 
   int keep_bind_info;
+  int custom_normals;
   ImportSettings import_settings;
 
   if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
@@ -702,6 +703,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 
   /* Options panel */
   import_units = RNA_boolean_get(op->ptr, "import_units");
+  custom_normals = RNA_boolean_get(op->ptr, "custom_normals");
   find_chains = RNA_boolean_get(op->ptr, "find_chains");
   auto_connect = RNA_boolean_get(op->ptr, "auto_connect");
   fix_orientation = RNA_boolean_get(op->ptr, "fix_orientation");
@@ -714,6 +716,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 
   import_settings.filepath = filename;
   import_settings.import_units = import_units != 0;
+  import_settings.custom_normals = custom_normals != 0;
   import_settings.auto_connect = auto_connect != 0;
   import_settings.find_chains = find_chains != 0;
   import_settings.fix_orientation = fix_orientation != 0;
@@ -741,6 +744,7 @@ static void uiCollada_importSettings(uiLayout *layout, PointerRNA *imfptr)
   uiItemL(box, IFACE_("Import Data Options"), ICON_MESH_DATA);
 
   uiItemR(box, imfptr, "import_units", 0, NULL, ICON_NONE);
+  uiItemR(box, imfptr, "custom_normals", 0, NULL, ICON_NONE);
 
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Armature Options"), ICON_ARMATURE_DATA);
@@ -790,6 +794,12 @@ void WM_OT_collada_import(wmOperatorType *ot)
                   "Import Units",
                   "If disabled match import to Blender's current Unit settings, "
                   "otherwise use the settings from the Imported scene");
+
+  RNA_def_boolean(ot->srna,
+                  "custom_normals",
+                  1,
+                  "Custom Normals",
+                  "Import custom normals, if available (otherwise Blender will compute them)");
 
   RNA_def_boolean(ot->srna,
                   "fix_orientation",

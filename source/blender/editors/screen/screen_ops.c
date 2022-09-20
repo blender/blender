@@ -859,7 +859,7 @@ static AZone *area_actionzone_refresh_xy(ScrArea *area, const int xy[2], const b
         /* Check if we even have scroll bars. */
         if (((az->direction == AZ_SCROLL_HOR) && !(scroll_flag & V2D_SCROLL_HORIZONTAL)) ||
             ((az->direction == AZ_SCROLL_VERT) && !(scroll_flag & V2D_SCROLL_VERTICAL))) {
-          /* no scrollbars, do nothing. */
+          /* No scroll-bars, do nothing. */
         }
         else if (test_only) {
           if (isect_value != 0) {
@@ -3267,7 +3267,7 @@ static int screen_maximize_area_exec(bContext *C, wmOperator *op)
 
   BLI_assert(!screen->temp);
 
-  /* search current screen for 'fullscreen' areas */
+  /* search current screen for 'full-screen' areas */
   /* prevents restoring info header, when mouse is over it */
   LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
     if (area_iter->full) {

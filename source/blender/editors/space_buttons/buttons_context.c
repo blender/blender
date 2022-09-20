@@ -155,7 +155,8 @@ static bool buttons_context_path_collection(const bContext *C,
   /* if we have a view layer, use the view layer's active collection */
   if (buttons_context_path_view_layer(path, window)) {
     ViewLayer *view_layer = path->ptr[path->len - 1].data;
-    Collection *c = view_layer->active_collection->collection;
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    Collection *c = BKE_view_layer_active_collection_get(view_layer)->collection;
 
     /* Do not show collection tab for master collection. */
     if (c == scene->master_collection) {
@@ -209,7 +210,7 @@ static bool buttons_context_path_object(ButsContextPath *path)
   }
 
   ViewLayer *view_layer = ptr->data;
-  Object *ob = (view_layer->basact) ? view_layer->basact->object : NULL;
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   if (ob) {
     RNA_id_pointer_create(&ob->id, &path->ptr[path->len]);
@@ -642,7 +643,9 @@ static bool buttons_context_path(
 static bool buttons_shading_context(const bContext *C, int mainb)
 {
   wmWindow *window = CTX_wm_window(C);
+  const Scene *scene = WM_window_get_active_scene(window);
   ViewLayer *view_layer = WM_window_get_active_view_layer(window);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   if (ELEM(mainb, BCONTEXT_MATERIAL, BCONTEXT_WORLD, BCONTEXT_TEXTURE)) {
@@ -658,7 +661,9 @@ static bool buttons_shading_context(const bContext *C, int mainb)
 static int buttons_shading_new_context(const bContext *C, int flag)
 {
   wmWindow *window = CTX_wm_window(C);
+  const Scene *scene = WM_window_get_active_scene(window);
   ViewLayer *view_layer = WM_window_get_active_view_layer(window);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   if (flag & (1 << BCONTEXT_MATERIAL)) {

@@ -16,6 +16,7 @@
 #include "NOD_multi_function.hh"
 #include "NOD_node_declaration.hh"
 
+#include "BLI_lazy_threading.hh"
 #include "BLI_map.hh"
 
 #include "DNA_ID.h"
@@ -134,7 +135,8 @@ class LazyFunctionForGeometryNode : public LazyFunction {
     if (geo_eval_log::GeoModifierLog *modifier_log = user_data->modifier_data->eval_log) {
       geo_eval_log::GeoTreeLogger &tree_logger = modifier_log->get_local_tree_logger(
           *user_data->compute_context);
-      tree_logger.node_execution_times.append({node_.name, start_time, end_time});
+      tree_logger.node_execution_times.append(
+          {tree_logger.allocator->copy_string(node_.name), start_time, end_time});
     }
   }
 };
@@ -207,6 +209,28 @@ class LazyFunctionForRerouteNode : public LazyFunction {
     const CPPType &type = *inputs_[0].type;
     type.move_construct(input_value, output_value);
     params.output_set(0);
+  }
+};
+
+/**
+ * Lazy functions for nodes whose type cannot be found. An undefined function just outputs default
+ * values. It's useful to have so other parts of the conversion don't have to care about undefined
+ * nodes.
+ */
+class LazyFunctionForUndefinedNode : public LazyFunction {
+ public:
+  LazyFunctionForUndefinedNode(const bNode &node, Vector<const bNodeSocket *> &r_used_outputs)
+  {
+    debug_name_ = "Undefined";
+    Vector<const bNodeSocket *> dummy_used_inputs;
+    Vector<lf::Input> dummy_inputs;
+    lazy_function_interface_from_node(
+        node, dummy_used_inputs, r_used_outputs, dummy_inputs, outputs_);
+  }
+
+  void execute_impl(lf::Params &params, const lf::Context &UNUSED(context)) const override
+  {
+    params.set_default_remaining_outputs();
   }
 };
 
@@ -419,7 +443,6 @@ class LazyFunctionForMultiFunctionNode : public LazyFunction {
   const NodeMultiFunctions::Item fn_item_;
   Vector<const ValueOrFieldCPPType *> input_types_;
   Vector<const ValueOrFieldCPPType *> output_types_;
-  Vector<const bNodeSocket *> output_sockets_;
 
  public:
   LazyFunctionForMultiFunctionNode(const bNode &node,
@@ -437,7 +460,6 @@ class LazyFunctionForMultiFunctionNode : public LazyFunction {
     for (const lf::Output &fn_output : outputs_) {
       output_types_.append(dynamic_cast<const ValueOrFieldCPPType *>(fn_output.type));
     }
-    output_sockets_ = r_used_outputs;
   }
 
   void execute_impl(lf::Params &params, const lf::Context &UNUSED(context)) const override
@@ -538,6 +560,7 @@ class LazyFunctionForViewerNode : public LazyFunction {
 class LazyFunctionForGroupNode : public LazyFunction {
  private:
   const bNode &group_node_;
+  bool has_many_nodes_ = false;
   std::optional<GeometryNodesLazyFunctionLogger> lf_logger_;
   std::optional<GeometryNodesLazyFunctionSideEffectProvider> lf_side_effect_provider_;
   std::optional<lf::GraphExecutor> graph_executor_;
@@ -555,6 +578,8 @@ class LazyFunctionForGroupNode : public LazyFunction {
 
     bNodeTree *group_btree = reinterpret_cast<bNodeTree *>(group_node_.id);
     BLI_assert(group_btree != nullptr);
+
+    has_many_nodes_ = lf_graph_info.num_inline_nodes_approximate > 1000;
 
     Vector<const lf::OutputSocket *> graph_inputs;
     for (const lf::OutputSocket *socket : lf_graph_info.mapping.group_input_sockets) {
@@ -586,6 +611,12 @@ class LazyFunctionForGroupNode : public LazyFunction {
   {
     GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
     BLI_assert(user_data != nullptr);
+
+    if (has_many_nodes_) {
+      /* If the called node group has many nodes, it's likely that executing it takes a while even
+       * if every individual node is very small. */
+      lazy_threading::send_hint();
+    }
 
     /* The compute context changes when entering a node group. */
     bke::NodeGroupComputeContext compute_context{user_data->compute_context, group_node_.name};
@@ -678,6 +709,7 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     this->add_default_inputs();
 
     lf_graph_->update_node_indices();
+    lf_graph_info_->num_inline_nodes_approximate += lf_graph_->nodes().size();
   }
 
  private:
@@ -775,6 +807,11 @@ struct GeometryNodesLazyFunctionGraphBuilder {
               *bnode);
           if (fn_item.fn != nullptr) {
             this->handle_multi_function_node(*bnode, fn_item);
+            break;
+          }
+          if (node_type == &NodeTypeUndefined) {
+            this->handle_undefined_node(*bnode);
+            break;
           }
           /* Nodes that don't match any of the criteria above are just ignored. */
           break;
@@ -889,6 +926,8 @@ struct GeometryNodesLazyFunctionGraphBuilder {
       mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
     }
     mapping_->group_node_map.add(&bnode, &lf_node);
+    lf_graph_info_->num_inline_nodes_approximate +=
+        group_lf_graph_info->num_inline_nodes_approximate;
   }
 
   void handle_geometry_node(const bNode &bnode)
@@ -966,6 +1005,21 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     }
 
     mapping_->viewer_node_map.add(&bnode, &lf_node);
+  }
+
+  void handle_undefined_node(const bNode &bnode)
+  {
+    Vector<const bNodeSocket *> used_outputs;
+    auto lazy_function = std::make_unique<LazyFunctionForUndefinedNode>(bnode, used_outputs);
+    lf::FunctionNode &lf_node = lf_graph_->add_function(*lazy_function);
+    lf_graph_info_->functions.append(std::move(lazy_function));
+
+    for (const int i : used_outputs.index_range()) {
+      const bNodeSocket &bsocket = *used_outputs[i];
+      lf::OutputSocket &lf_socket = lf_node.output(i);
+      output_socket_map_.add(&bsocket, &lf_socket);
+      mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
+    }
   }
 
   void handle_links()
@@ -1314,6 +1368,54 @@ GeometryNodesLazyFunctionGraphInfo::~GeometryNodesLazyFunctionGraphInfo()
 {
   for (GMutablePointer &p : this->values_to_destruct) {
     p.destruct();
+  }
+}
+
+static void add_thread_id_debug_message(const GeometryNodesLazyFunctionGraphInfo &lf_graph_info,
+                                        const lf::FunctionNode &node,
+                                        const lf::Context &context)
+{
+  static std::atomic<int> thread_id_source = 0;
+  static thread_local const int thread_id = thread_id_source.fetch_add(1);
+  static thread_local const std::string thread_id_str = "Thread: " + std::to_string(thread_id);
+
+  GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
+  BLI_assert(user_data != nullptr);
+  if (user_data->modifier_data->eval_log == nullptr) {
+    return;
+  }
+  geo_eval_log::GeoTreeLogger &tree_logger =
+      user_data->modifier_data->eval_log->get_local_tree_logger(*user_data->compute_context);
+
+  /* Find corresponding node based on the socket mapping. */
+  auto check_sockets = [&](const Span<const lf::Socket *> lf_sockets) {
+    for (const lf::Socket *lf_socket : lf_sockets) {
+      const Span<const bNodeSocket *> bsockets =
+          lf_graph_info.mapping.bsockets_by_lf_socket_map.lookup(lf_socket);
+      if (!bsockets.is_empty()) {
+        const bNodeSocket &bsocket = *bsockets[0];
+        const bNode &bnode = bsocket.owner_node();
+        tree_logger.debug_messages.append(
+            {tree_logger.allocator->copy_string(bnode.name), thread_id_str});
+        return true;
+      }
+    }
+    return false;
+  };
+
+  if (check_sockets(node.inputs().cast<const lf::Socket *>())) {
+    return;
+  }
+  check_sockets(node.outputs().cast<const lf::Socket *>());
+}
+
+void GeometryNodesLazyFunctionLogger::log_before_node_execute(const lf::FunctionNode &node,
+                                                              const lf::Params &UNUSED(params),
+                                                              const lf::Context &context) const
+{
+  /* Enable this to see the threads that invoked a node. */
+  if constexpr (false) {
+    add_thread_id_debug_message(lf_graph_info_, node, context);
   }
 }
 

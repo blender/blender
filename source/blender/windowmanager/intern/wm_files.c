@@ -1783,7 +1783,7 @@ static bool wm_file_write(bContext *C,
   /* NOTE: Ideally we would call `WM_redraw_windows` here to remove any open menus.
    * But we can crash if saving from a script, see T92704 & T97627.
    * Just checking `!G.background && BLI_thread_is_main()` is not sufficient to fix this.
-   * Additionally some some EGL configurations don't support reading the front-buffer
+   * Additionally some EGL configurations don't support reading the front-buffer
    * immediately after drawing, see: T98462. In that case off-screen drawing is necessary. */
 
   /* don't forget not to return without! */
@@ -1838,7 +1838,7 @@ static bool wm_file_write(bContext *C,
   ED_editors_flush_edits(bmain);
 
   /* XXX(ton): temp solution to solve bug, real fix coming. */
-  bmain->recovered = 0;
+  bmain->recovered = false;
 
   if (BLO_write_file(bmain,
                      filepath,

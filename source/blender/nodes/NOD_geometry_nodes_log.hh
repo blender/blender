@@ -169,37 +169,37 @@ using TimePoint = Clock::time_point;
 class GeoTreeLogger {
  public:
   std::optional<ComputeContextHash> parent_hash;
-  std::optional<std::string> group_node_name;
+  std::optional<StringRefNull> group_node_name;
   Vector<ComputeContextHash> children_hashes;
 
   LinearAllocator<> *allocator = nullptr;
 
   struct WarningWithNode {
-    std::string node_name;
+    StringRefNull node_name;
     NodeWarning warning;
   };
   struct SocketValueLog {
-    std::string node_name;
-    std::string socket_identifier;
+    StringRefNull node_name;
+    StringRefNull socket_identifier;
     destruct_ptr<ValueLog> value;
   };
   struct NodeExecutionTime {
-    std::string node_name;
+    StringRefNull node_name;
     TimePoint start;
     TimePoint end;
   };
   struct ViewerNodeLogWithNode {
-    std::string node_name;
+    StringRefNull node_name;
     destruct_ptr<ViewerNodeLog> viewer_log;
   };
   struct AttributeUsageWithNode {
-    std::string node_name;
-    std::string attribute_name;
+    StringRefNull node_name;
+    StringRefNull attribute_name;
     NamedAttributeUsage usage;
   };
   struct DebugMessage {
-    std::string node_name;
-    std::string message;
+    StringRefNull node_name;
+    StringRefNull message;
   };
 
   Vector<WarningWithNode> node_warnings;
@@ -235,12 +235,12 @@ class GeoNodeLog {
    */
   std::chrono::nanoseconds run_time{0};
   /** Maps from socket identifiers to their values. */
-  Map<std::string, ValueLog *> input_values_;
-  Map<std::string, ValueLog *> output_values_;
+  Map<StringRefNull, ValueLog *> input_values_;
+  Map<StringRefNull, ValueLog *> output_values_;
   /** Maps from attribute name to their usage flags. */
-  Map<std::string, NamedAttributeUsage> used_named_attributes;
+  Map<StringRefNull, NamedAttributeUsage> used_named_attributes;
   /** Messages that are used for debugging purposes during development. */
-  Vector<std::string> debug_messages;
+  Vector<StringRefNull> debug_messages;
 
   GeoNodeLog();
   ~GeoNodeLog();
@@ -269,12 +269,12 @@ class GeoTreeLog {
   bool reduced_debug_messages_ = false;
 
  public:
-  Map<std::string, GeoNodeLog> nodes;
-  Map<std::string, ViewerNodeLog *, 0> viewer_node_logs;
+  Map<StringRefNull, GeoNodeLog> nodes;
+  Map<StringRefNull, ViewerNodeLog *, 0> viewer_node_logs;
   Vector<NodeWarning> all_warnings;
   std::chrono::nanoseconds run_time_sum{0};
   Vector<const GeometryAttributeInfo *> existing_attributes;
-  Map<std::string, NamedAttributeUsage> used_named_attributes;
+  Map<StringRefNull, NamedAttributeUsage> used_named_attributes;
 
   GeoTreeLog(GeoModifierLog *modifier_log, Vector<GeoTreeLogger *> tree_loggers);
   ~GeoTreeLog();

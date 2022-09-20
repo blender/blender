@@ -216,7 +216,8 @@ struct ListBase BKE_collection_object_cache_get(struct Collection *collection);
 ListBase BKE_collection_object_cache_instanced_get(struct Collection *collection);
 void BKE_collection_object_cache_free(struct Collection *collection);
 
-struct Base *BKE_collection_or_layer_objects(const struct ViewLayer *view_layer,
+struct Base *BKE_collection_or_layer_objects(const struct Scene *scene,
+                                             struct ViewLayer *view_layer,
                                              struct Collection *collection);
 
 /* Editing. */
@@ -239,7 +240,8 @@ const char *BKE_collection_ui_name_get(struct Collection *collection);
  * Select all the objects in this Collection (and its nested collections) for this ViewLayer.
  * Return true if any object was selected.
  */
-bool BKE_collection_objects_select(struct ViewLayer *view_layer,
+bool BKE_collection_objects_select(const struct Scene *scene,
+                                   struct ViewLayer *view_layer,
                                    struct Collection *collection,
                                    bool deselect);
 

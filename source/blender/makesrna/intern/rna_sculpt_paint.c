@@ -165,6 +165,7 @@ static void rna_ParticleEdit_redo(bContext *C, PointerRNA *UNUSED(ptr))
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
 
@@ -185,6 +186,7 @@ static void rna_ParticleEdit_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   if (ob) {
@@ -215,7 +217,9 @@ static const EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C,
                                                            PropertyRNA *UNUSED(prop),
                                                            bool *UNUSED(r_free))
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 #  if 0
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -374,6 +378,7 @@ static void rna_Sculpt_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   if (ob) {
@@ -389,12 +394,13 @@ static void rna_Sculpt_update(bContext *C, PointerRNA *UNUSED(ptr))
 
 static void rna_Sculpt_ShowMask_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
+  Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *object = BKE_view_layer_active_object_get(view_layer);
   if (object == NULL || object->sculpt == NULL) {
     return;
   }
-  Scene *scene = CTX_data_scene(C);
   Sculpt *sd = scene->toolsettings->sculpt;
   object->sculpt->show_mask = ((sd->flags & SCULPT_HIDE_MASK) == 0);
   if (object->sculpt->pbvh != NULL) {
@@ -488,6 +494,7 @@ static void rna_ImaPaint_mode_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   if (ob && ob->type == OB_MESH) {
@@ -505,6 +512,7 @@ static void rna_ImaPaint_stencil_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   if (ob && ob->type == OB_MESH) {
@@ -524,6 +532,7 @@ static void rna_ImaPaint_canvas_update(bContext *C, PointerRNA *UNUSED(ptr))
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   bScreen *screen;
   Image *ima = scene->toolsettings->imapaint.canvas;

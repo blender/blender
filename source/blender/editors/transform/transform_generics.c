@@ -176,6 +176,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 {
   Scene *sce = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(sce, view_layer);
   Object *obact = BKE_view_layer_active_object_get(view_layer);
   const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
   ToolSettings *ts = CTX_data_tool_settings(C);
@@ -333,6 +334,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
   else if (t->spacetype == SPACE_IMAGE) {
     SpaceImage *sima = area->spacedata.first;
+    BKE_view_layer_synced_ensure(t->scene, t->view_layer);
     if (ED_space_image_show_uvedit(sima, BKE_view_layer_active_object_get(t->view_layer))) {
       /* UV transform */
     }
@@ -1066,8 +1068,8 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
     }
   }
   else if (t->options & CTX_POSE_BONE) {
-    ViewLayer *view_layer = t->view_layer;
-    Object *ob = BKE_view_layer_active_object_get(view_layer);
+    BKE_view_layer_synced_ensure(t->scene, t->view_layer);
+    Object *ob = BKE_view_layer_active_object_get(t->view_layer);
     if (ED_object_calc_active_center_for_posemode(ob, select_only, r_center)) {
       mul_m4_v3(ob->obmat, r_center);
       return true;
@@ -1083,11 +1085,10 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
   }
   else {
     /* object mode */
-    ViewLayer *view_layer = t->view_layer;
-    Object *ob = BKE_view_layer_active_object_get(view_layer);
-    Base *base = view_layer->basact;
-    if (ob && ((!select_only) || ((base->flag & BASE_SELECTED) != 0))) {
-      copy_v3_v3(r_center, ob->obmat[3]);
+    BKE_view_layer_synced_ensure(t->scene, t->view_layer);
+    Base *base = BKE_view_layer_active_base_get(t->view_layer);
+    if (base && ((!select_only) || ((base->flag & BASE_SELECTED) != 0))) {
+      copy_v3_v3(r_center, base->object->obmat[3]);
       return true;
     }
   }
@@ -1464,6 +1465,7 @@ Object *transform_object_deform_pose_armature_get(const TransInfo *t, Object *ob
    * Lines below just check is also visible. */
   Object *ob_armature = BKE_modifiers_is_deformed_by_armature(ob);
   if (ob_armature && ob_armature->mode & OB_MODE_POSE) {
+    BKE_view_layer_synced_ensure(t->scene, t->view_layer);
     Base *base_arm = BKE_view_layer_base_find(t->view_layer, ob_armature);
     if (base_arm) {
       View3D *v3d = t->view;

@@ -81,7 +81,7 @@ static void vfont_copy_data(Main *UNUSED(bmain),
 {
   VFont *vfont_dst = (VFont *)id_dst;
 
-  /* We never handle usercount here for own data. */
+  /* We never handle user-count here for own data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
 
   /* Just to be sure, should not have any value actually after reading time. */

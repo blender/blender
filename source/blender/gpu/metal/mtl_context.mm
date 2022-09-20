@@ -201,8 +201,9 @@ id<MTLRenderCommandEncoder> MTLContext::ensure_begin_render_pass()
   /* Ensure command buffer workload submissions are optimal --
    * Though do not split a batch mid-IMM recording. */
   /* TODO(Metal): Add IMM Check once MTLImmediate has been implemented. */
-  if (this->main_command_buffer.do_break_submission()/*&&
-      !((MTLImmediate *)(this->imm))->imm_is_recording()*/) {
+  if (this->main_command_buffer.do_break_submission()
+      // && !((MTLImmediate *)(this->imm))->imm_is_recording()
+  ) {
     this->flush();
   }
 

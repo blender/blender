@@ -62,7 +62,7 @@ typedef enum {
 static void multiresModifier_disp_run(
     DerivedMesh *dm, Mesh *me, DerivedMesh *dm2, DispOp op, CCGElem **oldGridData, int totlvl);
 
-/** Customdata */
+/** Custom-data. */
 
 void multires_customdata_delete(Mesh *me)
 {

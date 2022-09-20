@@ -297,18 +297,6 @@ GPUShader *DRW_shader_create_with_lib_ex(const char *vert,
   return sh;
 }
 
-GPUShader *DRW_shader_create_compute_with_shaderlib(const char *comp,
-                                                    const DRWShaderLibrary *lib,
-                                                    const char *defines,
-                                                    const char *name)
-{
-  char *comp_with_lib = DRW_shader_library_create_shader_string(lib, comp);
-  GPUShader *sh = GPU_shader_create_compute(comp_with_lib, NULL, defines, name);
-  MEM_SAFE_FREE(comp_with_lib);
-
-  return sh;
-}
-
 GPUShader *DRW_shader_create_with_shaderlib_ex(const char *vert,
                                                const char *geom,
                                                const char *frag,

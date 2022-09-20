@@ -856,7 +856,7 @@ GHOST_TSuccess GHOST_SystemCocoa::setMouseCursorPosition(int32_t x, int32_t y)
 
 GHOST_TSuccess GHOST_SystemCocoa::getModifierKeys(GHOST_ModifierKeys &keys) const
 {
-  keys.set(GHOST_kModifierKeyOS, (m_modifierMask & NSEventModifierFlagCommand) ? true : false);
+  keys.set(GHOST_kModifierKeyLeftOS, (m_modifierMask & NSEventModifierFlagCommand) ? true : false);
   keys.set(GHOST_kModifierKeyLeftAlt, (m_modifierMask & NSEventModifierFlagOption) ? true : false);
   keys.set(GHOST_kModifierKeyLeftShift,
            (m_modifierMask & NSEventModifierFlagShift) ? true : false);
@@ -1020,7 +1020,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
                                  (modifiers & NSEventModifierFlagCommand) ? GHOST_kEventKeyDown :
                                                                             GHOST_kEventKeyUp,
                                  window,
-                                 GHOST_kKeyOS,
+                                 GHOST_kKeyLeftOS,
                                  false));
   }
 
@@ -1123,6 +1123,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
     case GHOST_kEventDraggingEntered:
     case GHOST_kEventDraggingUpdated:
     case GHOST_kEventDraggingExited:
+      window->clientToScreenIntern(mouseX, mouseY, mouseX, mouseY);
       pushEvent(new GHOST_EventDragnDrop(
           getMilliSeconds(), eventType, draggedObjectType, window, mouseX, mouseY, NULL));
       break;
@@ -1331,6 +1332,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
           return GHOST_kFailure;
           break;
       }
+
+      window->clientToScreenIntern(mouseX, mouseY, mouseX, mouseY);
       pushEvent(new GHOST_EventDragnDrop(
           getMilliSeconds(), eventType, draggedObjectType, window, mouseX, mouseY, eventData));
 
@@ -1898,7 +1901,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
             [event timestamp] * 1000,
             (modifiers & NSEventModifierFlagCommand) ? GHOST_kEventKeyDown : GHOST_kEventKeyUp,
             window,
-            GHOST_kKeyOS,
+            GHOST_kKeyLeftOS,
             false));
       }
 

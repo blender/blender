@@ -639,7 +639,7 @@ static bool fcu_test_selected(FCurve *fcu)
   return 0;
 }
 
-/* this function is called on recalcData to apply the transforms applied
+/* This function is called on recalcData to apply the transforms applied
  * to the transdata on to the actual keyframe data
  */
 static void flushTransGraphData(TransInfo *t)
@@ -907,6 +907,8 @@ static void recalcData_graphedit(TransInfo *t)
 
   bAnimListElem *ale;
   int dosort = 0;
+
+  BKE_view_layer_synced_ensure(t->scene, t->view_layer);
 
   /* initialize relevant anim-context 'context' data from TransInfo data */
   /* NOTE: sync this with the code in ANIM_animdata_get_context() */

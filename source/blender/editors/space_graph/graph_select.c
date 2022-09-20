@@ -585,7 +585,7 @@ static bool box_select_graphkeys(bAnimContext *ac,
   initialize_box_select_key_editing_data(
       sipo, incl_handles, mode, ac, data, &scaled_rectf, &ked, &mapping_flag);
 
-  /* Get beztriple editing/validation funcs. */
+  /* Get beztriple editing/validation functions. */
   const KeyframeEditFunc select_cb = ANIM_editkeyframes_select(selectmode);
   const KeyframeEditFunc ok_cb = ANIM_editkeyframes_ok(mode);
 
@@ -1145,7 +1145,7 @@ static void markers_selectkeys_between(bAnimContext *ac)
   min -= 0.5f;
   max += 0.5f;
 
-  /* get editing funcs + data */
+  /* Get editing functions + data. */
   ok_cb = ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
   select_cb = ANIM_editkeyframes_select(SELECT_ADD);
 

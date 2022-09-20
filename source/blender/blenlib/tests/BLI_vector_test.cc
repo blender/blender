@@ -416,7 +416,7 @@ TEST(vector, Remove)
   vec.remove(1);
   EXPECT_TRUE(std::equal(vec.begin(), vec.end(), Span<int>({2}).begin()));
   vec.remove(0);
-  EXPECT_TRUE(std::equal(vec.begin(), vec.end(), Span<int>({}).begin()));
+  EXPECT_EQ(vec.begin(), vec.end());
 }
 
 TEST(vector, ExtendSmallVector)

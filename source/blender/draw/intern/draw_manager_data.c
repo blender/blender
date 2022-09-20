@@ -1631,6 +1631,10 @@ void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, struct GPUMaterial
       /* Color Ramp */
       DRW_shgroup_uniform_texture(grp, tex->sampler_name, *tex->colorband);
     }
+    else if (tex->sky) {
+      /* Sky */
+      DRW_shgroup_uniform_texture_ex(grp, tex->sampler_name, *tex->sky, tex->sampler_state);
+    }
   }
 
   GPUUniformBuf *ubo = GPU_material_uniform_buffer_get(material);

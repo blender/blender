@@ -1523,7 +1523,7 @@ static void project_face_seams_init(const ProjPaintState *ps,
 static void screen_px_from_ortho(const float uv[2],
                                  const float v1co[3],
                                  const float v2co[3],
-                                 const float v3co[3], /* Screenspace coords */
+                                 const float v3co[3], /* Screen-space coords */
                                  const float uv1co[2],
                                  const float uv2co[2],
                                  const float uv3co[2],
@@ -6042,6 +6042,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
   int orig_brush_size;
   IDProperty *idgroup;
   IDProperty *view_data = NULL;
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   bool uvs, mat, tex;
 

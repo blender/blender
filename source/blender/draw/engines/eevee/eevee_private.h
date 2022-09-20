@@ -815,7 +815,7 @@ typedef struct EEVEE_EffectsInfo {
   struct GPUTexture *dof_reduce_input_color_tx;
   /* Other */
   float prev_persmat[4][4];
-  /* Size used by all fullscreen buffers using mipmaps. */
+  /* Size used by all full-screen buffers using mipmaps. */
   int hiz_size[2];
   /* Lookdev */
   int sphere_size;
@@ -1261,7 +1261,6 @@ struct GPUShader *EEVEE_shaders_volumes_scatter_sh_get(void);
 struct GPUShader *EEVEE_shaders_volumes_scatter_with_lights_sh_get(void);
 struct GPUShader *EEVEE_shaders_volumes_integration_sh_get(void);
 struct GPUShader *EEVEE_shaders_volumes_resolve_sh_get(bool accum);
-struct GPUShader *EEVEE_shaders_volumes_resolve_comp_sh_get(bool float_target);
 struct GPUShader *EEVEE_shaders_volumes_accum_sh_get(void);
 struct GPUShader *EEVEE_shaders_ggx_lut_sh_get(void);
 struct GPUShader *EEVEE_shaders_ggx_refraction_lut_sh_get(void);

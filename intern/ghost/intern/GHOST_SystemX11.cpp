@@ -1065,7 +1065,8 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         case GHOST_kKeyLeftShift:
         case GHOST_kKeyRightControl:
         case GHOST_kKeyLeftControl:
-        case GHOST_kKeyOS:
+        case GHOST_kKeyLeftOS:
+        case GHOST_kKeyRightOS:
         case GHOST_kKey0:
         case GHOST_kKey1:
         case GHOST_kKey2:
@@ -1600,9 +1601,10 @@ GHOST_TSuccess GHOST_SystemX11::getModifierKeys(GHOST_ModifierKeys &keys) const
   keys.set(GHOST_kModifierKeyLeftAlt, ((m_keyboard_vector[alt_l >> 3] >> (alt_l & 7)) & 1) != 0);
   keys.set(GHOST_kModifierKeyRightAlt, ((m_keyboard_vector[alt_r >> 3] >> (alt_r & 7)) & 1) != 0);
   /* super (windows) - only one GHOST-kModifierKeyOS, so mapping to either */
-  keys.set(GHOST_kModifierKeyOS,
-           (((m_keyboard_vector[super_l >> 3] >> (super_l & 7)) & 1) ||
-            ((m_keyboard_vector[super_r >> 3] >> (super_r & 7)) & 1)) != 0);
+  keys.set(GHOST_kModifierKeyLeftOS,
+           ((m_keyboard_vector[super_l >> 3] >> (super_l & 7)) & 1) != 0);
+  keys.set(GHOST_kModifierKeyRightOS,
+           ((m_keyboard_vector[super_r >> 3] >> (super_r & 7)) & 1) != 0);
 
   return GHOST_kSuccess;
 }
@@ -1818,8 +1820,8 @@ static GHOST_TKey ghost_key_from_keysym(const KeySym key)
       GXMAP(type, XK_Control_R, GHOST_kKeyRightControl);
       GXMAP(type, XK_Alt_L, GHOST_kKeyLeftAlt);
       GXMAP(type, XK_Alt_R, GHOST_kKeyRightAlt);
-      GXMAP(type, XK_Super_L, GHOST_kKeyOS);
-      GXMAP(type, XK_Super_R, GHOST_kKeyOS);
+      GXMAP(type, XK_Super_L, GHOST_kKeyLeftOS);
+      GXMAP(type, XK_Super_R, GHOST_kKeyRightOS);
 
       GXMAP(type, XK_Insert, GHOST_kKeyInsert);
       GXMAP(type, XK_Delete, GHOST_kKeyDelete);

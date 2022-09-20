@@ -328,7 +328,7 @@ typedef enum eIDPropertyUIDataType {
   IDP_UI_DATA_TYPE_UNSUPPORTED = -1,
   /** IDP_INT or IDP_ARRAY with subtype IDP_INT. */
   IDP_UI_DATA_TYPE_INT = 0,
-  /** IDP_FLOAT and IDP_DOUBLE or IDP_ARRAY properties with a float or double subtypes. */
+  /** IDP_FLOAT and IDP_DOUBLE or IDP_ARRAY properties with a float or double sub-types. */
   IDP_UI_DATA_TYPE_FLOAT = 1,
   /** IDP_STRING properties. */
   IDP_UI_DATA_TYPE_STRING = 2,

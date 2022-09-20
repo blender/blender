@@ -485,6 +485,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
       /* XXX how to deal with lock? */
       SpaceImage *sima = (SpaceImage *)t->area->spacedata.first;
       if (sima->lock) {
+        BKE_view_layer_synced_ensure(t->scene, t->view_layer);
         WM_event_add_notifier(
             C, NC_GEOM | ND_DATA, BKE_view_layer_edit_object_get(t->view_layer)->data);
       }
@@ -1478,6 +1479,7 @@ static void drawTransformPixel(const struct bContext *C, ARegion *region, void *
   if (region == t->region) {
     Scene *scene = t->scene;
     ViewLayer *view_layer = t->view_layer;
+    BKE_view_layer_synced_ensure(scene, view_layer);
     Object *ob = BKE_view_layer_active_object_get(view_layer);
 
     /* draw auto-key-framing hint in the corner
@@ -1538,6 +1540,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     if (!(t->options & CTX_NO_PET)) {
       if ((prop = RNA_struct_find_property(op->ptr, "use_proportional_edit")) &&
           !RNA_property_is_set(op->ptr, prop)) {
+        BKE_view_layer_synced_ensure(t->scene, t->view_layer);
         const Object *obact = BKE_view_layer_active_object_get(t->view_layer);
 
         if (t->spacetype == SPACE_GRAPH) {
@@ -1716,11 +1719,17 @@ static void initSnapSpatial(TransInfo *t, float r_snap[2])
     int grid_size = SI_GRID_STEPS_LEN;
     float zoom_factor = ED_space_image_zoom_level(v2d, grid_size);
     float grid_steps[SI_GRID_STEPS_LEN];
+    float grid_steps_y[SI_GRID_STEPS_LEN];
 
-    ED_space_image_grid_steps(sima, grid_steps, grid_size);
+    ED_space_image_grid_steps(sima, grid_steps, grid_steps_y, grid_size);
     /* Snapping value based on what type of grid is used (adaptive-subdividing or custom-grid). */
     r_snap[0] = ED_space_image_increment_snap_value(grid_size, grid_steps, zoom_factor);
     r_snap[1] = r_snap[0] / 2.0f;
+
+    /* TODO: Implement snapping for custom grid sizes with `grid_steps[0] != grid_steps_y[0]`.
+     * r_snap_y[0] = ED_space_image_increment_snap_value(grid_size, grid_steps_y, zoom_factor);
+     * r_snap_y[1] = r_snap_y[0] / 2.0f;
+     */
   }
   else if (t->spacetype == SPACE_CLIP) {
     r_snap[0] = 0.125f;

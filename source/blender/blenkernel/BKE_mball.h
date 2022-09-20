@@ -88,7 +88,7 @@ void BKE_mball_translate(struct MetaBall *mb, const float offset[3]);
  */
 struct MetaElem *BKE_mball_element_add(struct MetaBall *mb, int type);
 
-/* *** select funcs *** */
+/* *** Select functions *** */
 
 int BKE_mball_select_count(const struct MetaBall *mb);
 int BKE_mball_select_count_multi(struct Base **bases, int bases_len);

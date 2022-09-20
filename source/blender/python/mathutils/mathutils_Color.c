@@ -1102,7 +1102,7 @@ PyDoc_STRVAR(
     "   the OpenColorIO configuration. The notable exception is user interface theming colors, "
     "   which are in sRGB color space.\n"
     "\n"
-    "   :param rgb: (r, g, b) color values\n"
+    "   :arg rgb: (r, g, b) color values\n"
     "   :type rgb: 3d vector\n");
 PyTypeObject color_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "Color", /* tp_name */

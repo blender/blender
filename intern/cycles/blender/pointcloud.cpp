@@ -224,27 +224,24 @@ static void export_pointcloud_motion(PointCloud *pointcloud,
   const int num_points = pointcloud->num_points();
   float3 *mP = attr_mP->data_float3() + motion_step * num_points;
   bool have_motion = false;
-  int num_motion_points = 0;
   const array<float3> &pointcloud_points = pointcloud->get_points();
 
+  const int b_points_num = b_pointcloud.points.length();
   BL::FloatVectorAttribute b_attr_position = find_position_attribute(b_pointcloud);
   std::optional<BL::FloatAttribute> b_attr_radius = find_radius_attribute(b_pointcloud);
 
-  for (int i = 0; i < num_points; i++) {
-    if (num_motion_points < num_points) {
-      const float3 co = get_float3(b_attr_position.data[i].vector());
-      const float radius = b_attr_radius ? b_attr_radius->data[i].value() : 0.0f;
-      float3 P = co;
-      P.w = radius;
-      mP[num_motion_points] = P;
-      have_motion = have_motion || (P != pointcloud_points[num_motion_points]);
-      num_motion_points++;
-    }
+  for (int i = 0; i < std::min(num_points, b_points_num); i++) {
+    const float3 co = get_float3(b_attr_position.data[i].vector());
+    const float radius = b_attr_radius ? b_attr_radius->data[i].value() : 0.0f;
+    float3 P = co;
+    P.w = radius;
+    mP[i] = P;
+    have_motion = have_motion || (P != pointcloud_points[i]);
   }
 
   /* In case of new attribute, we verify if there really was any motion. */
   if (new_attribute) {
-    if (num_motion_points != num_points || !have_motion) {
+    if (b_points_num != num_points || !have_motion) {
       pointcloud->attributes.remove(ATTR_STD_MOTION_VERTEX_POSITION);
     }
     else if (motion_step > 0) {

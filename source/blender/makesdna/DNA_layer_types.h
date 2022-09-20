@@ -35,8 +35,8 @@ typedef enum eViewLayerEEVEEPassType {
   EEVEE_RENDER_PASS_BLOOM = (1 << 14),
   EEVEE_RENDER_PASS_AOV = (1 << 15),
   /*
-   * TODO(jbakker): Clean up confliting bits after EEVEE has been removed.
-   * EEVEE_RENDER_PASS_CRYPTOMATTE is for EEVEE, EEVEE_RENDER_PASS_CRYTPOMATTE_* are for
+   * TODO(@jbakker): Clean up conflicting bits after EEVEE has been removed.
+   * #EEVEE_RENDER_PASS_CRYPTOMATTE is for EEVEE, `EEVEE_RENDER_PASS_CRYTPOMATTE_*` are for
    * EEVEE-Next.
    */
   EEVEE_RENDER_PASS_CRYPTOMATTE = (1 << 16),
@@ -273,6 +273,7 @@ enum {
   VIEW_LAYER_RENDER = (1 << 0),
   /* VIEW_LAYER_DEPRECATED  = (1 << 1), */
   VIEW_LAYER_FREESTYLE = (1 << 2),
+  VIEW_LAYER_OUT_OF_SYNC = (1 << 3),
 };
 
 /****************************** Deprecated ******************************/

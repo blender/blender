@@ -87,11 +87,11 @@ BLI_INLINE void clamp_rctf_to_rcti(rcti *dst, const rctf *src)
  * \{ */
 
 /**
- * helper to allow scrollbars to dynamically hide
- * - returns a copy of the scrollbar settings with the flags to display
- *   horizontal/vertical scrollbars removed
- * - input scroll value is the v2d->scroll var
- * - hide flags are set per region at drawtime
+ * Helper to allow scroll-bars to dynamically hide:
+ * - Returns a copy of the scroll-bar settings with the flags to display
+ *   horizontal/vertical scroll-bars removed.
+ * - Input scroll value is the v2d->scroll var.
+ * - Hide flags are set per region at draw-time.
  */
 static int view2d_scroll_mapped(int scroll)
 {
@@ -115,7 +115,7 @@ void UI_view2d_mask_from_win(const View2D *v2d, rcti *r_mask)
 /**
  * Called each time #View2D.cur changes, to dynamically update masks.
  *
- * \param mask_scroll: Optionally clamp scrollbars by this region.
+ * \param mask_scroll: Optionally clamp scroll-bars by this region.
  */
 static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
 {
@@ -177,7 +177,7 @@ static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
 
     /* Currently, all regions that have vertical scale handles,
      * also have the scrubbing area at the top.
-     * So the scrollbar has to move down a bit. */
+     * So the scroll-bar has to move down a bit. */
     if (scroll & V2D_SCROLL_VERTICAL_HANDLES) {
       v2d->vert.ymax -= UI_TIME_SCRUB_MARGIN_Y;
     }
@@ -377,7 +377,7 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
   rctf *cur, *tot;
 
   /* use mask as size of region that View2D resides in, as it takes into account
-   * scrollbars already - keep in sync with zoomx/zoomy in view_zoomstep_apply_ex! */
+   * scroll-bars already - keep in sync with zoomx/zoomy in #view_zoomstep_apply_ex! */
   winx = (float)(BLI_rcti_size_x(&v2d->mask) + 1);
   winy = (float)(BLI_rcti_size_y(&v2d->mask) + 1);
 
@@ -1326,8 +1326,8 @@ struct View2DScrollers {
   /* focus bubbles */
   /* focus bubbles */
   /* focus bubbles */
-  int vert_min, vert_max; /* vertical scrollbar */
-  int hor_min, hor_max;   /* horizontal scrollbar */
+  int vert_min, vert_max; /* vertical scroll-bar */
+  int hor_min, hor_max;   /* horizontal scroll-bar */
 
   /** Exact size of slider backdrop. */
   rcti hor, vert;
@@ -1380,7 +1380,7 @@ void UI_view2d_scrollers_calc(View2D *v2d,
   r_scrollers->hor = hor;
 
   /* scroller 'buttons':
-   * - These should always remain within the visible region of the scrollbar
+   * - These should always remain within the visible region of the scroll-bar
    * - They represent the region of 'tot' that is visible in 'cur'
    */
 
@@ -1473,14 +1473,14 @@ void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_
 
   uchar scrollers_back_color[4];
 
-  /* Color for scrollbar backs */
+  /* Color for scroll-bar backs. */
   UI_GetThemeColor4ubv(TH_BACK, scrollers_back_color);
 
   /* make copies of rects for less typing */
   vert = scrollers.vert;
   hor = scrollers.hor;
 
-  /* horizontal scrollbar */
+  /* Horizontal scroll-bar. */
   if (scroll & V2D_SCROLL_HORIZONTAL) {
     uiWidgetColors wcol = btheme->tui.wcol_scroll;
     /* 0..255 -> min...1 */
@@ -1515,7 +1515,7 @@ void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_
     UI_draw_widget_scroll(&wcol, &hor, &slider, state);
   }
 
-  /* vertical scrollbar */
+  /* Vertical scroll-bar. */
   if (scroll & V2D_SCROLL_VERTICAL) {
     uiWidgetColors wcol = btheme->tui.wcol_scroll;
     rcti slider;
@@ -2100,12 +2100,22 @@ void UI_view2d_text_cache_draw(ARegion *region)
       col_pack_prev = v2s->col.pack;
     }
 
-    BLF_enable(font_id, BLF_CLIPPING);
-    BLF_clipping(
-        font_id, v2s->rect.xmin - 4, v2s->rect.ymin - 4, v2s->rect.xmax + 4, v2s->rect.ymax + 4);
-    BLF_draw_default(
-        v2s->rect.xmin + xofs, v2s->rect.ymin + yofs, 0.0f, v2s->str, BLF_DRAW_STR_DUMMY_MAX);
-    BLF_disable(font_id, BLF_CLIPPING);
+    /* Don't use clipping if `v2s->rect` is not set. */
+    if (BLI_rcti_size_x(&v2s->rect) == 0 && BLI_rcti_size_y(&v2s->rect) == 0) {
+      BLF_draw_default((float)(v2s->mval[0] + xofs),
+                       (float)(v2s->mval[1] + yofs),
+                       0.0,
+                       v2s->str,
+                       BLF_DRAW_STR_DUMMY_MAX);
+    }
+    else {
+      BLF_enable(font_id, BLF_CLIPPING);
+      BLF_clipping(
+          font_id, v2s->rect.xmin - 4, v2s->rect.ymin - 4, v2s->rect.xmax + 4, v2s->rect.ymax + 4);
+      BLF_draw_default(
+          v2s->rect.xmin + xofs, v2s->rect.ymin + yofs, 0.0f, v2s->str, BLF_DRAW_STR_DUMMY_MAX);
+      BLF_disable(font_id, BLF_CLIPPING);
+    }
   }
   g_v2d_strings = nullptr;
 

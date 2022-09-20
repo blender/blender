@@ -456,14 +456,11 @@ GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys &keys) cons
   down = HIBYTE(::GetKeyState(VK_RCONTROL)) != 0;
   keys.set(GHOST_kModifierKeyRightControl, down);
 
-  bool lwindown = HIBYTE(::GetKeyState(VK_LWIN)) != 0;
-  bool rwindown = HIBYTE(::GetKeyState(VK_RWIN)) != 0;
-  if (lwindown || rwindown) {
-    keys.set(GHOST_kModifierKeyOS, true);
-  }
-  else {
-    keys.set(GHOST_kModifierKeyOS, false);
-  }
+  down = HIBYTE(::GetKeyState(VK_LWIN)) != 0;
+  keys.set(GHOST_kModifierKeyLeftOS, down);
+  down = HIBYTE(::GetKeyState(VK_RWIN)) != 0;
+  keys.set(GHOST_kModifierKeyRightOS, down);
+
   return GHOST_kSuccess;
 }
 
@@ -751,8 +748,10 @@ GHOST_TKey GHOST_SystemWin32::convertKey(short vKey, short scanCode, short exten
         key = (extend) ? GHOST_kKeyRightAlt : GHOST_kKeyLeftAlt;
         break;
       case VK_LWIN:
+        key = GHOST_kKeyLeftOS;
+        break;
       case VK_RWIN:
-        key = GHOST_kKeyOS;
+        key = GHOST_kKeyRightOS;
         break;
       case VK_APPS:
         key = GHOST_kKeyApp;
@@ -1137,12 +1136,18 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
   GHOST_TKey key = system->hardKey(raw, &key_down);
   GHOST_EventKey *event;
 
+  /* NOTE(@campbellbarton): key repeat in WIN32 also applies to modifier-keys.
+   * Check for this case and filter out modifier-repeat.
+   * Typically keyboard events are *not* filtered as part of GHOST's event handling.
+   * As other GHOST back-ends don't have the behavior, it's simplest not to send them through.
+   * Ideally it would be possible to check the key-map for keys that repeat but this doesn't look
+   * to be supported. */
   bool is_repeat = false;
   bool is_repeated_modifier = false;
   if (key_down) {
     if (system->m_keycode_last_repeat_key == vk) {
       is_repeat = true;
-      is_repeated_modifier = (key >= GHOST_kKeyLeftShift && key <= GHOST_kKeyRightAlt);
+      is_repeated_modifier = GHOST_KEY_MODIFIER_CHECK(key);
     }
     system->m_keycode_last_repeat_key = vk;
   }

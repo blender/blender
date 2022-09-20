@@ -54,22 +54,19 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-/* ********* general editor util funcs, not BKE stuff please! ********* */
+/* ********* general editor util functions, not BKE stuff please! ********* */
 
 void ED_editors_init_for_undo(Main *bmain)
 {
   wmWindowManager *wm = bmain->wm.first;
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    Scene *scene = WM_window_get_active_scene(win);
     ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-    Base *base = view_layer->basact;
-    if (base != NULL) {
-      Object *ob = base->object;
-      if (ob->mode & OB_MODE_TEXTURE_PAINT) {
-        Scene *scene = WM_window_get_active_scene(win);
-
-        BKE_texpaint_slots_refresh_object(scene, ob);
-        ED_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
-      }
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    Object *ob = BKE_view_layer_active_object_get(view_layer);
+    if (ob && (ob->mode & OB_MODE_TEXTURE_PAINT)) {
+      BKE_texpaint_slots_refresh_object(scene, ob);
+      ED_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
     }
   }
 }

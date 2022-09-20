@@ -207,6 +207,7 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
   (
       /* Setup information for all parameters. */
       [&] {
+        /* Use `typedef` instead of `using` to work around a compiler bug. */
         typedef ParamTags ParamTag;
         typedef typename ParamTag::base_type T;
         [[maybe_unused]] ArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
@@ -282,6 +283,7 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
     (
         /* Destruct values that have been materialized before. */
         [&] {
+          /* Use `typedef` instead of `using` to work around a compiler bug. */
           typedef ParamTags ParamTag;
           typedef typename ParamTag::base_type T;
           [[maybe_unused]] ArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
@@ -298,6 +300,7 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
   (
       /* Destruct buffers for single value inputs. */
       [&] {
+        /* Use `typedef` instead of `using` to work around a compiler bug. */
         typedef ParamTags ParamTag;
         typedef typename ParamTag::base_type T;
         [[maybe_unused]] ArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
@@ -347,6 +350,7 @@ template<typename... ParamTags> class CustomMF : public MultiFunction {
     (
         /* Get all parameters from #params and store them in #retrieved_params. */
         [&]() {
+          /* Use `typedef` instead of `using` to work around a compiler bug. */
           typedef typename TagsSequence::template at_index<I> ParamTag;
           typedef typename ParamTag::base_type T;
 
@@ -402,6 +406,7 @@ template<typename... ParamTags> class CustomMF : public MultiFunction {
     (
         /* Loop over all parameter types and add an entry for each in the signature. */
         [&] {
+          /* Use `typedef` instead of `using` to work around a compiler bug. */
           typedef typename TagsSequence::template at_index<I> ParamTag;
           signature.add(ParamTag(), "");
         }(),

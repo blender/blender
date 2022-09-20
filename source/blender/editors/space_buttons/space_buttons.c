@@ -603,7 +603,7 @@ static void buttons_navigation_bar_region_draw(const bContext *C, ARegion *regio
   }
 
   ED_region_panels_layout(C, region);
-  /* ED_region_panels_layout adds vertical scrollbars, we don't want them. */
+  /* #ED_region_panels_layout adds vertical scroll-bars, we don't want them. */
   region->v2d.scroll &= ~V2D_SCROLL_VERTICAL;
   ED_region_panels_draw(C, region);
 }

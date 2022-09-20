@@ -1741,14 +1741,19 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
   /* Animation, */
   build_animdata(&ntree->id);
   /* Output update. */
-  ID *id_cow = get_cow_id(&ntree->id);
-  add_operation_node(&ntree->id,
-                     NodeType::NTREE_OUTPUT,
-                     OperationCode::NTREE_OUTPUT,
-                     [id_cow](::Depsgraph * /*depsgraph*/) {
-                       bNodeTree *ntree_cow = reinterpret_cast<bNodeTree *>(id_cow);
-                       bke::node_tree_runtime::handle_node_tree_output_changed(*ntree_cow);
-                     });
+  add_operation_node(&ntree->id, NodeType::NTREE_OUTPUT, OperationCode::NTREE_OUTPUT);
+  if (ntree->type == NTREE_GEOMETRY) {
+    ID *id_cow = get_cow_id(&ntree->id);
+    add_operation_node(&ntree->id,
+                       NodeType::NTREE_GEOMETRY_PREPROCESS,
+                       OperationCode::NTREE_GEOMETRY_PREPROCESS,
+                       [id_cow](::Depsgraph * /*depsgraph*/) {
+                         bNodeTree *ntree_cow = reinterpret_cast<bNodeTree *>(id_cow);
+                         bke::node_tree_runtime::preprocess_geometry_node_tree_for_evaluation(
+                             *ntree_cow);
+                       });
+  }
+
   /* nodetree's nodes... */
   LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
     build_idproperties(bnode->prop);
@@ -2125,9 +2130,10 @@ void DepsgraphNodeBuilder::build_scene_audio(Scene *scene)
                      });
 }
 
-void DepsgraphNodeBuilder::build_scene_speakers(Scene * /*scene*/, ViewLayer *view_layer)
+void DepsgraphNodeBuilder::build_scene_speakers(Scene *scene, ViewLayer *view_layer)
 {
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     Object *object = base->object;
     if (object->type != OB_SPEAKER || !need_pull_base_into_graph(base)) {
       continue;

@@ -609,6 +609,7 @@ Object *ED_object_add_type_with_obdata(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   {
+    BKE_view_layer_synced_ensure(scene, view_layer);
     Object *obedit = BKE_view_layer_edit_object_get(view_layer);
     if (obedit != nullptr) {
       ED_object_editmode_exit_ex(bmain, scene, obedit, EM_FREEDATA);
@@ -619,17 +620,18 @@ Object *ED_object_add_type_with_obdata(bContext *C,
   Object *ob;
   if (obdata != nullptr) {
     BLI_assert(type == BKE_object_obdata_to_type(obdata));
-    ob = BKE_object_add_for_data(bmain, view_layer, type, name, obdata, true);
+    ob = BKE_object_add_for_data(bmain, scene, view_layer, type, name, obdata, true);
     const short *materials_len_p = BKE_id_material_len_p(obdata);
     if (materials_len_p && *materials_len_p > 0) {
       BKE_object_materials_test(bmain, ob, static_cast<ID *>(ob->data));
     }
   }
   else {
-    ob = BKE_object_add(bmain, view_layer, type, name);
+    ob = BKE_object_add(bmain, scene, view_layer, type, name);
   }
 
-  Base *ob_base_act = view_layer->basact;
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Base *ob_base_act = BKE_view_layer_active_base_get(view_layer);
   /* While not getting a valid base is not a good thing, it can happen in convoluted corner cases,
    * better not crash on it in releases. */
   BLI_assert(ob_base_act != nullptr);
@@ -990,6 +992,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
   }
 
   bool newob = false;
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit == nullptr || obedit->type != OB_MBALL) {
     obedit = ED_object_add_type(C, OB_MBALL, nullptr, loc, rot, true, local_view_bits);
@@ -1099,6 +1102,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
 
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -2534,6 +2538,7 @@ static void make_object_duplilist_real(bContext *C,
     }
 
     BKE_collection_object_add_from(bmain, scene, base->object, ob_dst);
+    BKE_view_layer_synced_ensure(scene, view_layer);
     Base *base_dst = BKE_view_layer_base_find(view_layer, ob_dst);
     BLI_assert(base_dst != nullptr);
 
@@ -2831,6 +2836,7 @@ static Base *duplibase_for_convert(
   DEG_id_tag_update(&obn->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
   BKE_collection_object_add_from(bmain, scene, ob, obn);
 
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Base *basen = BKE_view_layer_base_find(view_layer, obn);
   ED_object_base_select(basen, BA_SELECT);
   ED_object_base_select(base, BA_DESELECT);
@@ -3301,7 +3307,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       baseob = BKE_mball_basis_find(scene, ob);
 
       if (ob != baseob) {
-        /* if motherball is converting it would be marked as done later */
+        /* If mother-ball is converting it would be marked as done later. */
         ob->flag |= OB_DONE;
       }
 
@@ -3443,9 +3449,13 @@ static int object_convert_exec(bContext *C, wmOperator *op)
     ED_object_base_activate(C, basact);
     view_layer->basact = basact;
   }
-  else if (view_layer->basact->object->flag & OB_DONE) {
-    WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, view_layer->basact->object);
-    WM_event_add_notifier(C, NC_OBJECT | ND_DATA, view_layer->basact->object);
+  else {
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    Object *object = BKE_view_layer_active_object_get(view_layer);
+    if (object->flag & OB_DONE) {
+      WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, object);
+      WM_event_add_notifier(C, NC_OBJECT | ND_DATA, object);
+    }
   }
 
   DEG_relations_tag_update(bmain);
@@ -3500,11 +3510,12 @@ void OBJECT_OT_convert(wmOperatorType *ot)
   /* properties */
   ot->prop = RNA_def_enum(
       ot->srna, "target", convert_target_items, OB_MESH, "Target", "Type of object to convert to");
-  RNA_def_boolean(ot->srna,
-                  "keep_original",
-                  false,
-                  "Keep Original",
-                  "Keep original objects instead of replacing them");
+  prop = RNA_def_boolean(ot->srna,
+                         "keep_original",
+                         false,
+                         "Keep Original",
+                         "Keep original objects instead of replacing them");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_OBJECT);
 
   RNA_def_boolean(
       ot->srna,
@@ -3572,6 +3583,7 @@ static Base *object_add_duplicate_internal(Main *bmain,
     }
     DEG_id_tag_update(&obn->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
+    BKE_view_layer_synced_ensure(scene, view_layer);
     base = BKE_view_layer_base_find(view_layer, ob);
     if ((base != nullptr) && (base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT)) {
       BKE_collection_object_add_from(bmain, scene, ob, obn);
@@ -3581,6 +3593,7 @@ static Base *object_add_duplicate_internal(Main *bmain,
       BKE_collection_object_add(bmain, layer_collection->collection, obn);
     }
 
+    BKE_view_layer_synced_ensure(scene, view_layer);
     basen = BKE_view_layer_base_find(view_layer, obn);
     if (base != nullptr && basen != nullptr) {
       basen->local_view_bits = base->local_view_bits;
@@ -3682,7 +3695,8 @@ static int duplicate_exec(bContext *C, wmOperator *op)
     ED_object_base_select(base, BA_DESELECT);
 
     /* new object will become active */
-    if (view_layer->basact == base) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    if (BKE_view_layer_active_base_get(view_layer) == base) {
       ob_new_active = ob_new;
     }
   }
@@ -3700,6 +3714,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
   for (const auto &item : source_bases_new_objects) {
     Object *ob_new = item.second;
     Base *base_source = item.first;
+    BKE_view_layer_synced_ensure(scene, view_layer);
     Base *base_new = BKE_view_layer_base_find(view_layer, ob_new);
     if (base_new == nullptr) {
       continue;
@@ -3811,7 +3826,7 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
 
   /* object_add_duplicate_internal() doesn't deselect other objects, unlike object_add_common() or
    * BKE_view_layer_base_deselect_all(). */
-  ED_object_base_deselect_all(view_layer, nullptr, SEL_DESELECT);
+  ED_object_base_deselect_all(scene, view_layer, nullptr, SEL_DESELECT);
   ED_object_base_select(basen, BA_SELECT);
   ED_object_base_activate(C, basen);
 
@@ -3888,12 +3903,14 @@ void OBJECT_OT_add_named(wmOperatorType *ot)
 static int object_transform_to_mouse_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   Object *ob = reinterpret_cast<Object *>(
       WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_OB));
 
   if (!ob) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
     ob = BKE_view_layer_active_object_get(view_layer);
   }
 

@@ -381,7 +381,7 @@ static void rna_MaterialIndex_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 {
   Object *ob = (Object *)ptr->owner_id;
   if (ob && ob->type == OB_GPENCIL) {
-    /* notifying material property in topbar */
+    /* Notifying material property in top-bar. */
     WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, NULL);
   }
 }
@@ -497,12 +497,6 @@ static void rna_Object_dependency_update(Main *bmain, Scene *UNUSED(scene), Poin
 
 void rna_Object_data_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Object *object = (Object *)ptr->data;
-
-  if (object->mode == OB_MODE_SCULPT) {
-    BKE_sculpt_ensure_orig_mesh_data(object);
-  }
-
   rna_Object_internal_update_data_dependency(bmain, scene, ptr);
 }
 
@@ -2928,6 +2922,11 @@ static void rna_def_object_lineart(BlenderRNA *brna)
        0,
        "No Intersection",
        "Include this object but do not generate intersection lines"},
+      {OBJECT_LRT_FORCE_INTERSECTION,
+       "FORCE_INTERSECTION",
+       0,
+       "Force Intersection",
+       "Generate intersection lines even with objects that disabled intersection"},
       {0, NULL, 0, NULL, NULL},
   };
 

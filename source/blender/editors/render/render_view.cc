@@ -74,7 +74,7 @@ static ScrArea *find_area_showing_r_result(bContext *C, Scene *scene, wmWindow *
   ScrArea *area = nullptr;
   SpaceImage *sima;
 
-  /* find an imagewindow showing render result */
+  /* find an image-window showing render result */
   for (*win = static_cast<wmWindow *>(wm->windows.first); *win; *win = (*win)->next) {
     if (WM_window_get_active_scene(*win) == scene) {
       const bScreen *screen = WM_window_get_active_screen(*win);
@@ -102,7 +102,7 @@ static ScrArea *find_area_image_empty(bContext *C)
   ScrArea *area;
   SpaceImage *sima;
 
-  /* find an imagewindow showing render result */
+  /* find an image-window showing render result */
   for (area = static_cast<ScrArea *>(screen->areabase.first); area; area = area->next) {
     if (area->spacetype == SPACE_IMAGE) {
       sima = static_cast<SpaceImage *>(area->spacedata.first);

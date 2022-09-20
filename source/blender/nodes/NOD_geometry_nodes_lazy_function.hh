@@ -124,6 +124,11 @@ struct GeometryNodesLazyFunctionGraphInfo {
    * Mappings between the lazy-function graph and the #bNodeTree.
    */
   GeometryNodeLazyFunctionGraphMapping mapping;
+  /**
+   * Approximate number of nodes in the graph if all sub-graphs were inlined.
+   * This can be used as a simple heuristic for the complexity of the node group.
+   */
+  int num_inline_nodes_approximate = 0;
 
   GeometryNodesLazyFunctionGraphInfo();
   ~GeometryNodesLazyFunctionGraphInfo();
@@ -148,6 +153,9 @@ class GeometryNodesLazyFunctionLogger : public fn::lazy_function::GraphExecutor:
   void dump_when_input_is_set_twice(const lf::InputSocket &target_socket,
                                     const lf::OutputSocket &from_socket,
                                     const lf::Context &context) const override;
+  void log_before_node_execute(const lf::FunctionNode &node,
+                               const lf::Params &params,
+                               const lf::Context &context) const override;
 };
 
 /**

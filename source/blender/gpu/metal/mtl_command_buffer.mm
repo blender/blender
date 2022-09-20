@@ -498,7 +498,7 @@ bool MTLCommandBufferManager::insert_memory_barrier(eGPUBarrier barrier_bits,
         /* Rendering. */
         case MTL_RENDER_COMMAND_ENCODER: {
           /* Currently flagging both stages -- can use bits above to filter on stage type --
-           * though full barrier is safe for now*/
+           * though full barrier is safe for now. */
           MTLRenderStages before_stage_flags = 0;
           MTLRenderStages after_stage_flags = 0;
           if (before_stages & GPU_BARRIER_STAGE_VERTEX &&

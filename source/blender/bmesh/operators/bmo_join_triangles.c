@@ -22,7 +22,9 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
-/* assumes edges are validated before reaching this poin */
+/**
+ * \note Assumes edges are validated before reaching this point.
+ */
 static float quad_calc_error(const float v1[3],
                              const float v2[3],
                              const float v3[3],

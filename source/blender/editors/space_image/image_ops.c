@@ -941,7 +941,7 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
   if (ED_space_image_show_uvedit(sima, obedit)) {
     uint objects_len = 0;
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-        view_layer, ((View3D *)NULL), &objects_len);
+        scene, view_layer, ((View3D *)NULL), &objects_len);
     bool success = ED_uvedit_minmax_multi(scene, objects, objects_len, min, max);
     MEM_freeN(objects);
     if (!success) {

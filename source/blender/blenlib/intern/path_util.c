@@ -466,8 +466,8 @@ void BLI_path_rel(char *file, const char *relfile)
 #ifdef WIN32
   if (BLI_strnlen(relfile, 3) > 2 && !BLI_path_is_abs(relfile)) {
     char *ptemp;
-    /* fix missing volume name in relative base,
-     * can happen with old recent-files.txt files */
+    /* Fix missing volume name in relative base,
+     * can happen with old `recent-files.txt` files. */
     BLI_windows_get_default_root_dir(temp);
     ptemp = &temp[2];
     if (!ELEM(relfile[0], '\\', '/')) {

@@ -130,9 +130,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 }
 
 #ifdef WITH_OCEANSIM
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   OceanModifierData *omd = (OceanModifierData *)md;
 
@@ -141,8 +139,7 @@ static void requiredDataMask(Object *UNUSED(ob),
   }
 }
 #else  /* WITH_OCEANSIM */
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *UNUSED(md),
+static void requiredDataMask(ModifierData *UNUSED(md),
                              CustomData_MeshMasks *UNUSED(r_cddata_masks))
 {
 }
@@ -595,7 +592,7 @@ static void spray_panel_draw_header(const bContext *UNUSED(C), Panel *panel)
 
   row = uiLayoutRow(layout, false);
   uiLayoutSetActive(row, use_foam);
-  uiItemR(row, ptr, "use_spray", 0, IFACE_("Spray"), ICON_NONE);
+  uiItemR(row, ptr, "use_spray", 0, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Spray"), ICON_NONE);
 }
 
 static void spray_panel_draw(const bContext *UNUSED(C), Panel *panel)

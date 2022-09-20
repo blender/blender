@@ -118,12 +118,18 @@ typedef enum eGPDbrush_Flag2 {
   GP_BRUSH_USE_UV_RAND_PRESS = (1 << 11),
 } eGPDbrush_Flag2;
 
-/* BrushGpencilSettings->gp_fill_draw_mode */
+/* BrushGpencilSettings->fill_draw_mode */
 typedef enum eGP_FillDrawModes {
   GP_FILL_DMODE_BOTH = 0,
   GP_FILL_DMODE_STROKE = 1,
   GP_FILL_DMODE_CONTROL = 2,
 } eGP_FillDrawModes;
+
+/* BrushGpencilSettings->fill_extend_mode */
+typedef enum eGP_FillExtendModes {
+  GP_FILL_EMODE_RADIUS = 0,
+  GP_FILL_EMODE_EXTEND = 1,
+} eGP_FillExtendModes;
 
 /* BrushGpencilSettings->fill_layer_mode */
 typedef enum eGP_FillLayerModes {

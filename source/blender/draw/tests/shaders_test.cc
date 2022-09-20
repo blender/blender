@@ -17,7 +17,7 @@
 #include "engines/eevee/eevee_private.h"
 #include "engines/gpencil/gpencil_engine.h"
 #include "engines/image/image_private.hh"
-#include "engines/overlay/overlay_private.h"
+#include "engines/overlay/overlay_private.hh"
 #include "engines/workbench/workbench_private.h"
 #include "intern/draw_shader.h"
 
@@ -360,8 +360,6 @@ static void test_eevee_glsl_shaders_static()
   EXPECT_NE(EEVEE_shaders_volumes_integration_sh_get(), nullptr);
   EXPECT_NE(EEVEE_shaders_volumes_resolve_sh_get(false), nullptr);
   EXPECT_NE(EEVEE_shaders_volumes_resolve_sh_get(true), nullptr);
-  EXPECT_NE(EEVEE_shaders_volumes_resolve_comp_sh_get(false), nullptr);
-  EXPECT_NE(EEVEE_shaders_volumes_resolve_comp_sh_get(true), nullptr);
   EXPECT_NE(EEVEE_shaders_volumes_accum_sh_get(), nullptr);
   EXPECT_NE(EEVEE_shaders_studiolight_probe_sh_get(), nullptr);
   EXPECT_NE(EEVEE_shaders_studiolight_background_sh_get(), nullptr);

@@ -774,9 +774,9 @@ PyDoc_STRVAR(
     "\n"
     "   .. seealso:: `Euler angles <https://en.wikipedia.org/wiki/Euler_angles>`__ on Wikipedia.\n"
     "\n"
-    "   :param angles: Three angles, in radians.\n"
+    "   :arg angles: Three angles, in radians.\n"
     "   :type angles: 3d vector\n"
-    "   :param order: Optional order of the angles, a permutation of ``XYZ``.\n"
+    "   :arg order: Optional order of the angles, a permutation of ``XYZ``.\n"
     "   :type order: str\n");
 PyTypeObject euler_Type = {
     PyVarObject_HEAD_INIT(NULL, 0) "Euler", /* tp_name */

@@ -125,12 +125,15 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
   };
 
   {
+    const Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
     View3D *v3d = CTX_wm_view3d(C);
-    if (((gz_ele->bases)) == NULL || (gz_ele->bases[0] != view_layer->basact)) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    if (((gz_ele->bases)) == NULL ||
+        (gz_ele->bases[0] != BKE_view_layer_active_base_get(view_layer))) {
       MEM_SAFE_FREE(gz_ele->bases);
       gz_ele->bases = BKE_view_layer_array_from_bases_in_edit_mode(
-          view_layer, v3d, &gz_ele->bases_len);
+          scene, view_layer, v3d, &gz_ele->bases_len);
     }
   }
 
@@ -351,12 +354,15 @@ static int gizmo_preselect_edgering_test_select(bContext *C, wmGizmo *gz, const 
   };
 
   {
+    const Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
     View3D *v3d = CTX_wm_view3d(C);
-    if (((gz_ring->bases)) == NULL || (gz_ring->bases[0] != view_layer->basact)) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    if (((gz_ring->bases)) == NULL ||
+        (gz_ring->bases[0] != BKE_view_layer_active_base_get(view_layer))) {
       MEM_SAFE_FREE(gz_ring->bases);
       gz_ring->bases = BKE_view_layer_array_from_bases_in_edit_mode(
-          view_layer, v3d, &gz_ring->bases_len);
+          scene, view_layer, v3d, &gz_ring->bases_len);
     }
   }
 
@@ -488,6 +494,7 @@ void ED_view3d_gizmo_mesh_preselect_get_active(bContext *C,
                                                Base **r_base,
                                                BMElem **r_ele)
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   const int object_index = RNA_int_get(gz->ptr, "object_index");
@@ -498,7 +505,7 @@ void ED_view3d_gizmo_mesh_preselect_get_active(bContext *C,
   {
     uint bases_len;
     Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(
-        view_layer, CTX_wm_view3d(C), &bases_len);
+        scene, view_layer, CTX_wm_view3d(C), &bases_len);
     if (object_index < bases_len) {
       base = bases[object_index];
       obedit = base->object;

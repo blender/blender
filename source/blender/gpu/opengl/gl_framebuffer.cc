@@ -207,6 +207,11 @@ void GLFrameBuffer::update_attachments()
     this->size_set(size[0], size[1]);
     srgb_ = (GPU_texture_format(attach.tex) == GPU_SRGB8_A8);
   }
+  else {
+    /* Empty frame-buffer. */
+    glFramebufferParameteri(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_WIDTH, width_);
+    glFramebufferParameteri(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_HEIGHT, height_);
+  }
 
   dirty_attachments_ = false;
 

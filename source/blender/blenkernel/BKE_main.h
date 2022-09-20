@@ -113,28 +113,30 @@ typedef struct Main {
   char filepath[1024];               /* 1024 = FILE_MAX */
   short versionfile, subversionfile; /* see BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION */
   short minversionfile, minsubversionfile;
-  uint64_t build_commit_timestamp; /* commit's timestamp from buildinfo */
-  char build_hash[16];             /* hash from buildinfo */
+  /** Commit timestamp from `buildinfo`. */
+  uint64_t build_commit_timestamp;
+  /** Commit Hash from `buildinfo`. */
+  char build_hash[16];
   /** Indicate the #Main.filepath (file) is the recovered one. */
-  char recovered;
+  bool recovered;
   /** All current ID's exist in the last memfile undo step. */
-  char is_memfile_undo_written;
+  bool is_memfile_undo_written;
   /**
    * An ID needs its data to be flushed back.
    * use "needs_flush_to_id" in edit data to flag data which needs updating.
    */
-  char is_memfile_undo_flush_needed;
+  bool is_memfile_undo_flush_needed;
   /**
    * Indicates that next memfile undo step should not allow reusing old bmain when re-read, but
    * instead do a complete full re-read/update from stored memfile.
    */
-  char use_memfile_full_barrier;
+  bool use_memfile_full_barrier;
 
   /**
    * When linking, disallow creation of new data-blocks.
    * Make sure we don't do this by accident, see T76738.
    */
-  char is_locked_for_linking;
+  bool is_locked_for_linking;
 
   BlendThumbnail *blen_thumb;
 

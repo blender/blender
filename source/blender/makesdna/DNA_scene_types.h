@@ -401,12 +401,12 @@ typedef struct ImageFormatData {
 
   /** R_IMF_PLANES_BW, R_IMF_PLANES_RGB, R_IMF_PLANES_RGBA. */
   char planes;
-  /** Generic options for all image types, alpha zbuffer. */
+  /** Generic options for all image types, alpha Z-buffer. */
   char flag;
 
-  /** (0 - 100), eg: jpeg quality. */
+  /** (0 - 100), eg: JPEG quality. */
   char quality;
-  /** (0 - 100), eg: png compression. */
+  /** (0 - 100), eg: PNG compression. */
   char compress;
 
   /* --- format specific --- */
@@ -1500,12 +1500,12 @@ typedef struct ToolSettings {
   /* Transform */
   char transform_pivot_point;
   char transform_flag;
-  /** Snap elements (per spacetype), #eSnapMode. */
+  /** Snap elements (per space-type), #eSnapMode. */
   char _pad1[1];
   short snap_mode;
   char snap_node_mode;
   char snap_uv_mode;
-  /** Generic flags (per spacetype), #eSnapFlag. */
+  /** Generic flags (per space-type), #eSnapFlag. */
   short snap_flag;
   short snap_flag_node;
   short snap_flag_seq;

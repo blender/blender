@@ -57,7 +57,7 @@ static void metadata_panel_context_draw(const bContext *C, Panel *panel)
   SpaceClip *space_clip = CTX_wm_space_clip(C);
   /* NOTE: This might not be exactly the same image buffer as shown in the
    * clip editor itself, since that might be coming from proxy, or being
-   * postprocessed (stabilized or undistored).
+   * postprocessed (stabilized or undistorted).
    * Ideally we need to query metadata from an original image or movie without
    * reading actual pixels to speed up the process. */
   ImBuf *ibuf = ED_space_clip_get_buffer(space_clip);

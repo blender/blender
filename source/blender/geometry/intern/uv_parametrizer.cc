@@ -22,11 +22,11 @@
 /* Utils */
 
 #define param_assert(condition) \
-  if (!(condition)) { /*printf("Assertion %s:%d\n", __FILE__, __LINE__); abort();*/ \
+  if (!(condition)) { /* `printf("Assertion %s:%d\n", __FILE__, __LINE__); abort();` */ \
   } \
   (void)0
 #define param_warning(message) \
-  {/*printf("Warning %s:%d: %s\n", __FILE__, __LINE__, message);*/}(void)0
+  {/* `printf("Warning %s:%d: %s\n", __FILE__, __LINE__, message);` */}(void)0
 
 /* Special Purpose Hash */
 

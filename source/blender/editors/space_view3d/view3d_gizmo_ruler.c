@@ -421,6 +421,7 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
         Scene *scene = DEG_get_input_scene(depsgraph);
         ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
         RegionView3D *rv3d = ruler_info->region->regiondata;
+        BKE_view_layer_synced_ensure(scene, view_layer);
         Object *ob = BKE_view_layer_active_object_get(view_layer);
         Object *obedit = OBEDIT_FROM_OBACT(ob);
 

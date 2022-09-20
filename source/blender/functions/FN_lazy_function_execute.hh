@@ -41,6 +41,7 @@ class BasicParams : public Params {
   bool output_was_set_impl(const int index) const override;
   ValueUsage get_output_usage_impl(const int index) const override;
   void set_input_unused_impl(const int index) override;
+  bool try_enable_multi_threading_impl() override;
 };
 
 namespace detail {
@@ -67,7 +68,8 @@ inline void execute_lazy_function_eagerly_impl(
   (
       [&]() {
         constexpr size_t I = InIndices;
-        using T = Inputs;
+        /* Use `typedef` instead of `using` to work around a compiler bug. */
+        typedef Inputs T;
         const CPPType &type = CPPType::get<T>();
         input_pointers[I] = {type, &std::get<I>(inputs)};
       }(),
@@ -75,7 +77,8 @@ inline void execute_lazy_function_eagerly_impl(
   (
       [&]() {
         constexpr size_t I = OutIndices;
-        using T = Outputs;
+        /* Use `typedef` instead of `using` to work around a compiler bug. */
+        typedef Outputs T;
         const CPPType &type = CPPType::get<T>();
         output_pointers[I] = {type, std::get<I>(outputs)};
       }(),

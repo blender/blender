@@ -1439,7 +1439,7 @@ static bool check_valid_compositing_camera(Scene *scene, Object *camera_override
       if (node->type == CMP_NODE_R_LAYERS && (node->flag & NODE_MUTED) == 0) {
         Scene *sce = node->id ? (Scene *)node->id : scene;
         if (sce->camera == nullptr) {
-          sce->camera = BKE_view_layer_camera_find(BKE_view_layer_default_render(sce));
+          sce->camera = BKE_view_layer_camera_find(sce, BKE_view_layer_default_render(sce));
         }
         if (sce->camera == nullptr) {
           /* all render layers nodes need camera */
@@ -1497,7 +1497,7 @@ static int check_valid_camera(Scene *scene, Object *camera_override, ReportList 
   const char *err_msg = "No camera found in scene \"%s\"";
 
   if (camera_override == nullptr && scene->camera == nullptr) {
-    scene->camera = BKE_view_layer_camera_find(BKE_view_layer_default_render(scene));
+    scene->camera = BKE_view_layer_camera_find(scene, BKE_view_layer_default_render(scene));
   }
 
   if (!check_valid_camera_multiview(scene, scene->camera, reports)) {
@@ -1511,7 +1511,8 @@ static int check_valid_camera(Scene *scene, Object *camera_override, ReportList 
             (seq->scene != nullptr)) {
           if (!seq->scene_camera) {
             if (!seq->scene->camera &&
-                !BKE_view_layer_camera_find(BKE_view_layer_default_render(seq->scene))) {
+                !BKE_view_layer_camera_find(seq->scene,
+                                            BKE_view_layer_default_render(seq->scene))) {
               /* camera could be unneeded due to composite nodes */
               Object *override = (seq->scene == scene) ? camera_override : nullptr;
 

@@ -682,7 +682,8 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
 
   em_setup_viewcontext(C, &vc);
   copy_v2_v2_int(vc.mval, event->mval);
-  Base *basact = vc.view_layer->basact;
+  BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
+  Base *basact = BKE_view_layer_active_base_get(vc.view_layer);
   BMEditMesh *em = vc.em;
 
   view3d_operator_needs_opengl(C);
@@ -690,7 +691,8 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
   {
     int base_index = -1;
     uint bases_len = 0;
-    Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(vc.view_layer, vc.v3d, &bases_len);
+    Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(
+        vc.scene, vc.view_layer, vc.v3d, &bases_len);
     if (EDBM_unified_findnearest(&vc, bases, bases_len, &base_index, &eve, &eed, &efa)) {
       basact = bases[base_index];
       ED_view3d_viewcontext_init_object(&vc, basact->object);
@@ -735,7 +737,8 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
     return OPERATOR_PASS_THROUGH;
   }
 
-  if (vc.view_layer->basact != basact) {
+  BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
+  if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
     ED_object_base_activate(C, basact);
   }
 
@@ -817,7 +820,7 @@ static int edbm_shortest_path_select_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      view_layer, CTX_wm_view3d(C), &objects_len);
+      scene, view_layer, CTX_wm_view3d(C), &objects_len);
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);

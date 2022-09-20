@@ -641,7 +641,7 @@ static void do_graph_region_driver_buttons(bContext *C, void *id_v, int event)
       ID *id = id_v;
       AnimData *adt = BKE_animdata_from_id(id);
 
-      /* rebuild depsgraph for the new deps, and ensure COW copies get flushed. */
+      /* Rebuild depsgraph for the new dependencies, and ensure COW copies get flushed. */
       DEG_relations_tag_update(bmain);
       DEG_id_tag_update_ex(bmain, id, ID_RECALC_COPY_ON_WRITE);
       if (adt != NULL) {

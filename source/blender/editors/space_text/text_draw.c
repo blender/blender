@@ -925,12 +925,12 @@ static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *scroll, rcti *b
     hlstart = (lhlstart * pix_available) / ltexth;
     hlend = (lhlend * pix_available) / ltexth;
 
-    /* The scrollbar is non-linear sized. */
+    /* The scroll-bar is non-linear sized. */
     if (pix_bardiff > 0) {
       /* the start of the highlight is in the current viewport */
       if (st->runtime.viewlines && lhlstart >= st->top &&
           lhlstart <= st->top + st->runtime.viewlines) {
-        /* Speed the progression of the start of the highlight through the scrollbar. */
+        /* Speed the progression of the start of the highlight through the scroll-bar. */
         hlstart = (((pix_available - pix_bardiff) * lhlstart) / ltexth) +
                   (pix_bardiff * (lhlstart - st->top) / st->runtime.viewlines);
       }
@@ -951,7 +951,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *scroll, rcti *b
       /* the end of the highlight is in the current viewport */
       if (st->runtime.viewlines && lhlend >= st->top &&
           lhlend <= st->top + st->runtime.viewlines) {
-        /* Speed the progression of the end of the highlight through the scrollbar. */
+        /* Speed the progression of the end of the highlight through the scroll-bar. */
         hlend = (((pix_available - pix_bardiff) * lhlend) / ltexth) +
                 (pix_bardiff * (lhlend - st->top) / st->runtime.viewlines);
       }
@@ -994,7 +994,7 @@ static void draw_textscroll(const SpaceText *st, rcti *scroll, rcti *back)
   float col[4];
   float rad;
 
-  /* background so highlights don't go behind the scrollbar */
+  /* Background so highlights don't go behind the scroll-bar. */
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);

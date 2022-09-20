@@ -1283,9 +1283,8 @@ static void trackto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
     cob->matrix[2][1] = 0;
     cob->matrix[2][2] = size[2];
 
-    /* targetmat[2] instead of ownermat[2] is passed to vectomat
-     * for backwards compatibility it seems... (Aligorith)
-     */
+    /* NOTE(@joshualung): `targetmat[2]` instead of `ownermat[2]` is passed to #vectomat
+     * for backwards compatibility it seems. */
     sub_v3_v3v3(vec, cob->matrix[3], ct->matrix[3]);
     vectomat(
         vec, ct->matrix[2], (short)data->reserved1, (short)data->reserved2, data->flags, totmat);
@@ -5932,12 +5931,12 @@ static void constraint_copy_data_ex(bConstraint *dst,
       cti->copy_data(dst, src);
     }
 
-    /* Fix usercounts for all referenced data that need it. */
+    /* Fix user-counts for all referenced data that need it. */
     if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
       con_invoke_id_looper(cti, dst, con_fix_copied_refs_cb, NULL);
     }
 
-    /* for proxies we don't want to make extern */
+    /* For proxies we don't want to make external. */
     if (do_extern) {
       /* go over used ID-links for this constraint to ensure that they are valid for proxies */
       con_invoke_id_looper(cti, dst, con_extern_cb, NULL);

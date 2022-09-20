@@ -50,7 +50,7 @@ void ED_spacetype_spreadsheet(void);
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Spacetype Static Data
+/** \name Space-type Static Data
  * Calls for instancing and freeing space-type static data called in #WM_init_exit
  * \{ */
 

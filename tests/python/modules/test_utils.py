@@ -46,8 +46,8 @@ class AbstractBlenderRunnerTest(unittest.TestCase):
 
         Returns Blender's stdout + stderr combined into one string.
 
-        :param filepath: taken relative to self.testdir.
-        :param timeout: in seconds
+        :arg filepath: taken relative to self.testdir.
+        :arg timeout: in seconds
         """
 
         assert self.blender, "Path to Blender binary is to be set in setUpClass()"

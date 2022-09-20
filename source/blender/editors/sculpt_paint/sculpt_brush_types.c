@@ -1472,7 +1472,8 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
   Sculpt *sd = data->sd;
   const Brush *brush = data->brush;
 
-  const bool use_persistent_base = ss->persistent_base && brush->flag & BRUSH_PERSISTENT;
+  const bool use_persistent_base = !ss->bm && ss->attrs.persistent_co &&
+                                   brush->flag & BRUSH_PERSISTENT;
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
@@ -1503,7 +1504,7 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
     const int vi = vd.index;
     float *disp_factor;
     if (use_persistent_base) {
-      disp_factor = &ss->persistent_base[vi].disp;
+      disp_factor = (float *)SCULPT_vertex_attr_get(vd.vertex, ss->attrs.persistent_disp);
     }
     else {
       disp_factor = &ss->cache->layer_displacement_factor[vi];

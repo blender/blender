@@ -366,26 +366,6 @@ int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
   return totquad;
 }
 
-void BKE_pbvh_sync_face_sets_to_grids(PBVH *pbvh)
-{
-  const int gridsize = pbvh->gridkey.grid_size;
-  for (int i = 0; i < pbvh->totgrid; i++) {
-    BLI_bitmap *gh = pbvh->grid_hidden[i];
-    const int face_index = BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, i);
-    if (!gh && pbvh->face_sets[face_index] < 0) {
-      gh = pbvh->grid_hidden[i] = BLI_BITMAP_NEW(pbvh->gridkey.grid_area,
-                                                 "partialvis_update_grids");
-    }
-    if (gh) {
-      for (int y = 0; y < gridsize; y++) {
-        for (int x = 0; x < gridsize; x++) {
-          BLI_BITMAP_SET(gh, y * gridsize + x, pbvh->face_sets[face_index] < 0);
-        }
-      }
-    }
-  }
-}
-
 static void build_grid_leaf_node(PBVH *pbvh, PBVHNode *node)
 {
   int totquads = BKE_pbvh_count_grid_quads(
@@ -651,11 +631,12 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
   MEM_freeN(prim_bbc);
 }
 
-PBVH *BKE_pbvh_new(void)
+PBVH *BKE_pbvh_new(PBVHType type)
 {
   PBVH *pbvh = MEM_callocN(sizeof(PBVH), "pbvh");
   pbvh->respect_hide = true;
   pbvh->draw_cache_invalid = true;
+  pbvh->header.type = type;
   return pbvh;
 }
 
@@ -3218,7 +3199,7 @@ const bool *BKE_pbvh_get_vert_hide(const PBVH *pbvh)
 
 const bool *BKE_pbvh_get_poly_hide(const PBVH *pbvh)
 {
-  BLI_assert(pbvh->header.type == PBVH_FACES);
+  BLI_assert(ELEM(pbvh->header.type, PBVH_FACES, PBVH_GRIDS));
   return pbvh->hide_poly;
 }
 

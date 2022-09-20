@@ -4082,9 +4082,9 @@ void WM_event_fileselect_event(wmWindowManager *wm, void *ophandle, int eventval
  * An appropriate window is either of the following:
  * * A parent window that does not yet contain a modal File Browser. This is determined using
  *   #ED_fileselect_handler_area_find_any_with_op().
- * * A parent window containing a modal File Browser, but in a maximized/fullscreen state. Users
+ * * A parent window containing a modal File Browser, but in a maximized/full-screen state. Users
  *   shouldn't be able to put a temporary screen like the modal File Browser into
- *   maximized/fullscreen state themselves. So this setup indicates that the File Browser was
+ *   maximized/full-screen state themselves. So this setup indicates that the File Browser was
  *   opened using #USER_TEMP_SPACE_DISPLAY_FULLSCREEN.
  *
  * If no appropriate parent window can be found from the context window, return the first
@@ -4733,7 +4733,8 @@ static int convert_key(GHOST_TKey key)
       return EVT_LEFTCTRLKEY;
     case GHOST_kKeyRightControl:
       return EVT_RIGHTCTRLKEY;
-    case GHOST_kKeyOS:
+    case GHOST_kKeyLeftOS:
+    case GHOST_kKeyRightOS:
       return EVT_OSKEY;
     case GHOST_kKeyLeftAlt:
       return EVT_LEFTALTKEY;
@@ -5929,11 +5930,12 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
     bToolRef *tref = nullptr;
     if ((region->regiontype == RGN_TYPE_WINDOW) &&
         ((1 << area->spacetype) & WM_TOOLSYSTEM_SPACE_MASK)) {
+      const Scene *scene = WM_window_get_active_scene(win);
       ViewLayer *view_layer = WM_window_get_active_view_layer(win);
       WorkSpace *workspace = WM_window_get_active_workspace(win);
       bToolKey tkey{};
       tkey.space_type = area->spacetype;
-      tkey.mode = WM_toolsystem_mode_from_spacetype(view_layer, area, area->spacetype);
+      tkey.mode = WM_toolsystem_mode_from_spacetype(scene, view_layer, area, area->spacetype);
       tref = WM_toolsystem_ref_find(workspace, &tkey);
     }
     wm_event_cursor_store(&cd->state, win->eventstate, area->spacetype, region->regiontype, tref);

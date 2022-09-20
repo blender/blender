@@ -787,7 +787,7 @@ bool SIM_hair_volume_solve_divergence(HairGrid *grid,
             vert->density, target_density, target_strength);
 
         /* B vector contains the finite difference approximation of the velocity divergence.
-         * NOTE: according to the discretized Navier-Stokes equation the rhs vector
+         * NOTE: according to the discretized Navier-Stokes equation the RHS vector
          * and resulting pressure gradient should be multiplied by the (inverse) density;
          * however, this is already included in the weighting of hair velocities on the grid!
          */

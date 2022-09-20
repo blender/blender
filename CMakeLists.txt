@@ -1097,7 +1097,7 @@ if(WITH_CPU_SIMD)
   if(SUPPORT_NEON_BUILD)
     # Neon
     if(SSE2NEON_FOUND)
-      blender_include_dirs_sys("${SSE2NEON_INCLUDE_DIRS}")
+      include_directories(SYSTEM "${SSE2NEON_INCLUDE_DIRS}")
       add_definitions(-DWITH_SSE2NEON)
     endif()
   else()
@@ -1271,7 +1271,11 @@ endif()
 # Configure Python
 
 if(WITH_PYTHON_MODULE)
-  add_definitions(-DPy_ENABLE_SHARED)
+  # Not currently supported due to different required Python link flags.
+  if(WITH_GTESTS)
+    message(STATUS "GTests not compatible with Python module, disabling WITH_GTESTS")
+    set(WITH_GTESTS OFF)
+  endif()
 endif()
 
 

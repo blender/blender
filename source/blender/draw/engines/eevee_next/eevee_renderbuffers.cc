@@ -5,7 +5,7 @@
 /** \file
  * \ingroup eevee
  *
- * A film is a fullscreen buffer (usually at output extent)
+ * A film is a full-screen buffer (usually at output extent)
  * that will be able to accumulate sample in any distorted camera_type
  * using a pixel filter.
  *

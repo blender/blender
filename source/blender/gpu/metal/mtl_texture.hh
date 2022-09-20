@@ -247,7 +247,7 @@ class MTLTexture : public Texture {
   void mip_range_set(int min, int max) override;
   void *read(int mip, eGPUDataFormat type) override;
 
-  /* Remove once no longer required -- will just return 0 for now in MTL path*/
+  /* Remove once no longer required -- will just return 0 for now in MTL path. */
   uint gl_bindcode_get() const override;
 
   bool texture_is_baked();
@@ -357,9 +357,9 @@ class MTLTexture : public Texture {
    */
   struct TextureUpdateParams {
     int mip_index;
-    int extent[3];          /* Width, Height, Slice on 2D Array tex*/
-    int offset[3];          /* Width, Height, Slice on 2D Array tex*/
-    uint unpack_row_length; /* Number of pixels between bytes in input data */
+    int extent[3];          /* Width, Height, Slice on 2D Array tex. */
+    int offset[3];          /* Width, Height, Slice on 2D Array tex. */
+    uint unpack_row_length; /* Number of pixels between bytes in input data. */
   };
 
   id<MTLComputePipelineState> texture_update_1d_get_kernel(
@@ -383,7 +383,7 @@ class MTLTexture : public Texture {
   /* Depth texture updates are not directly supported with Blit operations, similarly, we cannot
    * use a compute shader to write to depth, so we must instead render to a depth target.
    * These processes use vertex/fragment shaders to render texture data from an intermediate
-   * source, in order to prime the depth buffer*/
+   * source, in order to prime the depth buffer. */
   GPUShader *depth_2d_update_sh_get(DepthTextureUpdateRoutineSpecialisation specialization);
 
   void update_sub_depth_2d(
@@ -392,8 +392,8 @@ class MTLTexture : public Texture {
   /* Texture Read function utilities -- Follows a similar mechanism to the updating routines */
   struct TextureReadParams {
     int mip_index;
-    int extent[3]; /* Width, Height, Slice on 2D Array tex*/
-    int offset[3]; /* Width, Height, Slice on 2D Array tex*/
+    int extent[3]; /* Width, Height, Slice on 2D Array tex. */
+    int offset[3]; /* Width, Height, Slice on 2D Array tex. */
   };
 
   id<MTLComputePipelineState> texture_read_1d_get_kernel(

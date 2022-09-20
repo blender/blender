@@ -88,45 +88,6 @@ void SCULPT_pbvh_clear(Object *ob)
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 }
 
-void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
-{
-  int cd_node_layer_index;
-
-  char node_vertex_id[] = "_dyntopo_vnode_id";
-  char node_face_id[] = "_dyntopo_fnode_id";
-
-  cd_node_layer_index = CustomData_get_named_layer_index(
-      &ss->bm->vdata, CD_PROP_INT32, node_vertex_id);
-
-  if (cd_node_layer_index == -1) {
-    BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_INT32, node_vertex_id);
-    cd_node_layer_index = CustomData_get_named_layer_index(
-        &ss->bm->vdata, CD_PROP_INT32, node_vertex_id);
-  }
-
-  ss->cd_vert_node_offset = CustomData_get_n_offset(
-      &ss->bm->vdata,
-      CD_PROP_INT32,
-      cd_node_layer_index - CustomData_get_layer_index(&ss->bm->vdata, CD_PROP_INT32));
-
-  ss->bm->vdata.layers[cd_node_layer_index].flag |= CD_FLAG_TEMPORARY;
-
-  cd_node_layer_index = CustomData_get_named_layer_index(
-      &ss->bm->pdata, CD_PROP_INT32, node_face_id);
-  if (cd_node_layer_index == -1) {
-    BM_data_layer_add_named(ss->bm, &ss->bm->pdata, CD_PROP_INT32, node_face_id);
-    cd_node_layer_index = CustomData_get_named_layer_index(
-        &ss->bm->pdata, CD_PROP_INT32, node_face_id);
-  }
-
-  ss->cd_face_node_offset = CustomData_get_n_offset(
-      &ss->bm->pdata,
-      CD_PROP_INT32,
-      cd_node_layer_index - CustomData_get_layer_index(&ss->bm->pdata, CD_PROP_INT32));
-
-  ss->bm->pdata.layers[cd_node_layer_index].flag |= CD_FLAG_TEMPORARY;
-}
-
 void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
@@ -156,8 +117,9 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
                          .active_shapekey = ob->shapenr,
                      }));
   SCULPT_dynamic_topology_triangulate(ss->bm);
+
   BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
-  SCULPT_dyntopo_node_layers_add(ss);
+
   /* Make sure the data for existing faces are initialized. */
   if (me->totpoly != ss->bm->totface) {
     BM_mesh_normals_update(ss->bm);
@@ -184,6 +146,9 @@ static void SCULPT_dynamic_topology_disable_ex(
 {
   SculptSession *ss = ob->sculpt;
   Mesh *me = ob->data;
+
+  BKE_sculpt_attribute_destroy(ob, ss->attrs.dyntopo_node_id_vertex);
+  BKE_sculpt_attribute_destroy(ob, ss->attrs.dyntopo_node_id_face);
 
   SCULPT_pbvh_clear(ob);
 

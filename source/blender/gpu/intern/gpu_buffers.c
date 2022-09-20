@@ -406,7 +406,7 @@ void GPU_pbvh_mesh_buffers_update(PBVHGPUFormat *vbo_id,
 
         uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
         if (show_face_sets) {
-          const int fset = abs(sculpt_face_sets[lt->poly]);
+          const int fset = sculpt_face_sets[lt->poly];
           /* Skip for the default color Face Set to render it white. */
           if (fset != face_sets_color_default) {
             BKE_paint_face_set_overlay_color_get(fset, face_sets_color_seed, face_set_color);
@@ -766,7 +766,7 @@ void GPU_pbvh_grid_buffers_update(PBVHGPUFormat *vbo_id,
       if (show_face_sets && subdiv_ccg && sculpt_face_sets) {
         const int face_index = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, grid_index);
 
-        const int fset = abs(sculpt_face_sets[face_index]);
+        const int fset = sculpt_face_sets[face_index];
         /* Skip for the default color Face Set to render it white. */
         if (fset != face_sets_color_default) {
           BKE_paint_face_set_overlay_color_get(fset, face_sets_color_seed, face_set_color);

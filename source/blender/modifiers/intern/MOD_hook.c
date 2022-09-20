@@ -68,9 +68,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   thmd->indexar = MEM_dupallocN(hmd->indexar);
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   HookModifierData *hmd = (HookModifierData *)md;
 

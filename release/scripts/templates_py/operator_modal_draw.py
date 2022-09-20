@@ -19,7 +19,6 @@ def draw_callback_px(self, context):
     gpu.state.blend_set('ALPHA')
     gpu.state.line_width_set(2.0)
     batch = batch_for_shader(shader, 'LINE_STRIP', {"pos": self.mouse_path})
-    shader.bind()
     shader.uniform_float("color", (0.0, 0.0, 0.0, 0.5))
     batch.draw(shader)
 

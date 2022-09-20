@@ -47,7 +47,7 @@ GPU_SHADER_CREATE_INFO(gpencil_geometry)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Fullscreen shaders
+/** \name Full-Screen Shaders
  * \{ */
 
 GPU_SHADER_CREATE_INFO(gpencil_layer_blend)

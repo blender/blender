@@ -634,7 +634,7 @@ void BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
 
 /**
  * \return True if the deformed curve control point data should be implicitly
- * converted directly to a mesh, or false if it can be left as curve data via #CurveEval.
+ * converted directly to a mesh, or false if it can be left as curve data via the #Curves type.
  */
 static bool do_curve_implicit_mesh_conversion(const Curve *curve,
                                               ModifierData *first_modifier,

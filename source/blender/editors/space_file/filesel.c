@@ -665,12 +665,17 @@ void ED_fileselect_params_to_userdef(SpaceFile *sfile,
   }
 }
 
-void fileselect_file_set(SpaceFile *sfile, const int index)
+void fileselect_file_set(struct bContext *C, SpaceFile *sfile, const int index)
 {
   const struct FileDirEntry *file = filelist_file(sfile->files, index);
   if (file && file->relpath && file->relpath[0] && !(file->typeflag & FILE_TYPE_DIR)) {
     FileSelectParams *params = ED_fileselect_get_active_params(sfile);
     BLI_strncpy(params->file, file->relpath, FILE_MAXFILE);
+    if (sfile->op) {
+      /* Update the filepath properties of the operator. */
+      Main *bmain = CTX_data_main(C);
+      file_sfile_to_operator(C, bmain, sfile->op, sfile);
+    }
   }
 }
 
@@ -1041,7 +1046,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *region)
     layout->attribute_column_header_h = 0;
     layout->offset_top = layout->attribute_column_header_h;
     layout->height = (int)(BLI_rctf_size_y(&v2d->cur) - 2 * layout->tile_border_y);
-    /* Padding by full scrollbar H is too much, can overlap tile border Y. */
+    /* Padding by full scroll-bar H is too much, can overlap tile border Y. */
     layout->rows = (layout->height - V2D_SCROLL_HEIGHT + layout->tile_border_y) /
                    (layout->tile_h + 2 * layout->tile_border_y);
     layout->tile_w = VERTLIST_MAJORCOLUMN_WIDTH;

@@ -99,8 +99,10 @@ static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmGizmoGroupType *UN
     return false;
   }
 
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Base *base = view_layer->basact;
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Base *base = BKE_view_layer_active_base_get(view_layer);
   if (base && BASE_SELECTABLE(v3d, base)) {
     Object *ob = base->object;
     if (ob->type == OB_EMPTY) {
@@ -132,7 +134,9 @@ static void WIDGETGROUP_empty_image_refresh(const bContext *C, wmGizmoGroup *gzg
 {
   struct EmptyImageWidgetGroup *igzgroup = gzgroup->customdata;
   wmGizmo *gz = igzgroup->gizmo;
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   copy_m4_m4(gz->matrix_basis, ob->obmat);

@@ -706,7 +706,9 @@ static void rna_GPencil_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UN
 static void rna_Gpencil_extend_selection(bContext *C, PointerRNA *UNUSED(ptr))
 {
   /* Extend selection to all points in all selected strokes. */
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   if ((ob) && (ob->type == OB_GPENCIL)) {
     bGPdata *gpd = (bGPdata *)ob->data;
@@ -1862,13 +1864,17 @@ static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const bool *valu
     /* Update select mode in all the workspaces in mesh edit mode. */
     wmWindowManager *wm = G_MAIN->wm.first;
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+      const Scene *scene = WM_window_get_active_scene(win);
       ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-
-      if (view_layer && view_layer->basact) {
-        Mesh *me = BKE_mesh_from_object(view_layer->basact->object);
-        if (me && me->edit_mesh && me->edit_mesh->selectmode != flag) {
-          me->edit_mesh->selectmode = flag;
-          EDBM_selectmode_set(me->edit_mesh);
+      if (view_layer) {
+        BKE_view_layer_synced_ensure(scene, view_layer);
+        Object *object = BKE_view_layer_active_object_get(view_layer);
+        if (object) {
+          Mesh *me = BKE_mesh_from_object(object);
+          if (me && me->edit_mesh && me->edit_mesh->selectmode != flag) {
+            me->edit_mesh->selectmode = flag;
+            EDBM_selectmode_set(me->edit_mesh);
+          }
         }
       }
     }
@@ -1877,11 +1883,14 @@ static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const bool *valu
 
 static void rna_Scene_editmesh_select_mode_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Mesh *me = NULL;
 
-  if (view_layer->basact) {
-    me = BKE_mesh_from_object(view_layer->basact->object);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *object = BKE_view_layer_active_object_get(view_layer);
+  if (object) {
+    me = BKE_mesh_from_object(object);
     if (me && me->edit_mesh == NULL) {
       me = NULL;
     }
@@ -2220,11 +2229,14 @@ static char *rna_SequencerToolSettings_path(const PointerRNA *UNUSED(ptr))
 /* generic function to recalc geometry */
 static void rna_EditMesh_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Mesh *me = NULL;
 
-  if (view_layer->basact) {
-    me = BKE_mesh_from_object(view_layer->basact->object);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *object = BKE_view_layer_active_object_get(view_layer);
+  if (object) {
+    me = BKE_mesh_from_object(object);
     if (me && me->edit_mesh == NULL) {
       me = NULL;
     }
@@ -2248,7 +2260,9 @@ static char *rna_MeshStatVis_path(const PointerRNA *UNUSED(ptr))
  * given its own notifier. */
 static void rna_Scene_update_active_object_data(bContext *C, PointerRNA *UNUSED(ptr))
 {
+  const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   if (ob) {

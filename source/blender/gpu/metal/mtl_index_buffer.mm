@@ -138,7 +138,7 @@ void MTLIndexBuf::update_sub(uint32_t start, uint32_t len, const void *data)
   BLI_assert(ibo_ != nullptr);
 
   /* Otherwise, we will inject a data update, using staged data, into the command stream.
-   * Stage update contents in temporary buffer*/
+   * Stage update contents in temporary buffer. */
   MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
   BLI_assert(ctx);
   MTLTemporaryBuffer range = ctx->get_scratchbuffer_manager().scratch_buffer_allocate_range(len);

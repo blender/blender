@@ -70,7 +70,7 @@ class GpencilIO {
   float stroke_color_[4], fill_color_[4];
 
   /* Geometry functions. */
-  /** Convert to screenspace. */
+  /** Convert to screen-space. */
   bool gpencil_3D_point_to_screen_space(const float3 co, float2 &r_co);
   /** Convert to render space. */
   float2 gpencil_3D_point_to_render_space(const float3 co);

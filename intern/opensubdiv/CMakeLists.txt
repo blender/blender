@@ -110,7 +110,6 @@ if(WITH_GTESTS AND WITH_OPENSUBDIV)
 
   add_definitions(${GFLAGS_DEFINES})
   add_definitions(${GLOG_DEFINES})
-  add_definitions(-DBLENDER_GFLAGS_NAMESPACE=${GFLAGS_NAMESPACE})
 
   blender_add_test_executable(opensubdiv_mesh_topology_test "internal/topology/mesh_topology_test.cc" "${INC}" "${INC_SYS}" "${LIB};bf_intern_opensubdiv")
 endif()

@@ -15,9 +15,9 @@
 
 namespace blender::bke::curves {
 
-/* --------------------------------------------------------------------
- * Utility structs.
- */
+/* -------------------------------------------------------------------- */
+/** \name Utility Structs
+ * \{ */
 
 /**
  * Reference to a piecewise segment on a spline curve.
@@ -37,7 +37,7 @@ struct CurveSegment {
 /**
  * Reference to a point on a piecewise curve (spline).
  *
- * Tracks indices of the neighbouring control/evaluated point pair associated with the segment
+ * Tracks indices of the neighboring control/evaluated point pair associated with the segment
  * in which the point resides. Referenced point within the segment is defined by a
  * normalized parameter in the range [0, 1].
  */
@@ -75,7 +75,7 @@ class IndexRangeCyclic {
   int64_t start_ = 0;
   int64_t end_ = 0;
   /* Index for the start and end of the entire iterable range which contains the iterated range
-   * (e.g. the point range for an indiviudal spline/curve within the entire Curves point domain).
+   * (e.g. the point range for an individual spline/curve within the entire Curves point domain).
    */
   int64_t range_start_ = 0;
   int64_t range_end_ = 0;
@@ -302,9 +302,9 @@ class IndexRangeCyclic {
 
 /** \} */
 
-/* --------------------------------------------------------------------
- * Utility functions.
- */
+/* -------------------------------------------------------------------- */
+/** \name Utility Functions
+ * \{ */
 
 /**
  * Copy the provided point attribute values between all curves in the #curve_ranges index
@@ -326,8 +326,8 @@ void copy_point_data(const CurvesGeometry &src_curves,
 template<typename T>
 void copy_point_data(const CurvesGeometry &src_curves,
                      const CurvesGeometry &dst_curves,
-                     const IndexMask src_curve_selection,
-                     const Span<T> src,
+                     IndexMask src_curve_selection,
+                     Span<T> src,
                      MutableSpan<T> dst)
 {
   copy_point_data(src_curves, dst_curves, src_curve_selection, GSpan(src), GMutableSpan(dst));
@@ -340,11 +340,25 @@ void fill_points(const CurvesGeometry &curves,
 
 template<typename T>
 void fill_points(const CurvesGeometry &curves,
-                 const IndexMask curve_selection,
+                 IndexMask curve_selection,
                  const T &value,
                  MutableSpan<T> dst)
 {
   fill_points(curves, curve_selection, &value, dst);
+}
+
+void fill_points(const CurvesGeometry &curves,
+                 Span<IndexRange> curve_ranges,
+                 GPointer value,
+                 GMutableSpan dst);
+
+template<typename T>
+void fill_points(const CurvesGeometry &curves,
+                 Span<IndexRange> curve_ranges,
+                 const T &value,
+                 MutableSpan<T> dst)
+{
+  fill_points(curves, curve_ranges, &value, dst);
 }
 
 /**

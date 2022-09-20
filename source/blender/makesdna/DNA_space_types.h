@@ -1218,7 +1218,7 @@ typedef struct SpaceImage {
 
   char pin;
 
-  char pixel_snap_mode;
+  char pixel_round_mode;
 
   char lock;
   /** UV draw type. */
@@ -1236,11 +1236,10 @@ typedef struct SpaceImage {
 
   int tile_grid_shape[2];
   /**
-   * UV editor custom-grid. Value of `N` will produce `NxN` grid.
+   * UV editor custom-grid. Value of `{M,N}` will produce `MxN` grid.
    * Use when #SI_CUSTOM_GRID is set.
    */
-  int custom_grid_subdiv;
-  char _pad3[4];
+  int custom_grid_subdiv[2];
 
   MaskSpaceInfo mask_info;
   SpaceImageOverlay overlay;
@@ -1260,12 +1259,12 @@ typedef enum eSpaceImage_UVDT_Stretch {
   SI_UVDT_STRETCH_AREA = 1,
 } eSpaceImage_UVDT_Stretch;
 
-/** #SpaceImage.pixel_snap_mode */
-typedef enum eSpaceImage_PixelSnapMode {
-  SI_PIXEL_SNAP_DISABLED = 0,
-  SI_PIXEL_SNAP_CENTER = 1,
-  SI_PIXEL_SNAP_CORNER = 2,
-} eSpaceImage_Snap_Mode;
+/** #SpaceImage.pixel_round_mode */
+typedef enum eSpaceImage_PixelRoundMode {
+  SI_PIXEL_ROUND_DISABLED = 0,
+  SI_PIXEL_ROUND_CENTER = 1,
+  SI_PIXEL_ROUND_CORNER = 2,
+} eSpaceImage_Round_Mode;
 
 /** #SpaceImage.mode */
 typedef enum eSpaceImage_Mode {
@@ -1636,7 +1635,7 @@ enum {
 typedef struct ConsoleLine {
   struct ConsoleLine *next, *prev;
 
-  /* keep these 3 vars so as to share free, realloc funcs */
+  /* Keep these 3 vars so as to share free, realloc functions. */
   /** Allocated length. */
   int len_alloc;
   /** Real len - strlen(). */

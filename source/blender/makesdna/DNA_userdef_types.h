@@ -581,7 +581,6 @@ typedef struct bUserAssetLibrary {
 typedef struct SolidLight {
   int flag;
   float smooth;
-  char _pad0[8];
   float col[4], spec[4], vec[4];
 } SolidLight;
 

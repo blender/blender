@@ -144,7 +144,47 @@ void node_tex_sky_hosekwilkie(vec3 co,
   color = vec4(dot(xyz_to_r, xyz), dot(xyz_to_g, xyz), dot(xyz_to_b, xyz), 1);
 }
 
-void node_tex_sky_nishita(vec3 co, out vec4 color)
+void node_tex_sky_nishita(vec3 co,
+                          float sun_rotation,
+                          vec3 xyz_to_r,
+                          vec3 xyz_to_g,
+                          vec3 xyz_to_b,
+                          sampler2DArray ima,
+                          float layer,
+                          out vec4 color)
 {
-  color = vec4(1.0);
+  vec3 spherical = sky_spherical_coordinates(co);
+
+  vec3 xyz;
+  if (co.z < -0.4) {
+    /* too far below the horizon, just return black */
+    color = vec4(0, 0, 0, 1);
+  }
+  else {
+    /* evaluate longitudinal position on the map */
+    float x = (spherical.y + M_PI + sun_rotation) / M_2PI;
+    if (x > 1.0) {
+      x -= 1.0;
+    }
+
+    float fade;
+    float y;
+    if (co.z < 0.0) {
+      /* we're below the horizon, so extend the map by blending from values at the horizon
+       * to zero according to a cubic falloff */
+      fade = 1.0 + co.z * 2.5;
+      fade = fade * fade * fade;
+      y = 0.0;
+    }
+    else {
+      /* we're above the horizon, so compute the lateral position by inverting the remapped
+       * coordinates that are preserve to have more detail near the horizon. */
+      fade = 1.0;
+      y = sqrt((M_PI_2 - spherical.x) / M_PI_2);
+    }
+
+    /* look up color in the precomputed map and convert to RGB */
+    xyz = fade * texture(ima, vec3(x, y, layer)).rgb;
+    color = vec4(dot(xyz_to_r, xyz), dot(xyz_to_g, xyz), dot(xyz_to_b, xyz), 1);
+  }
 }

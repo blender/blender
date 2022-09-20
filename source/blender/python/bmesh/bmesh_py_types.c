@@ -4273,10 +4273,10 @@ char *BPy_BMElem_StringFromHType(const char htype)
 /* -------------------------------------------------------------------- */
 /* keep at bottom */
 
-/* this function is called on free, it should stay quite fast */
+/* This function is called on free, it should stay quite fast */
 static void bm_dealloc_editmode_warn(BPy_BMesh *self)
 {
   if (self->flag & BPY_BMFLAG_IS_WRAPPED) {
-    /* currently nop - this works without warnings now */
+    /* Currently NOP - this works without warnings now. */
   }
 }

@@ -477,7 +477,7 @@ struct bNodeTree *ntreeAddTreeEmbedded(struct Main *bmain,
                                        const char *name,
                                        const char *idname);
 
-/* copy/free funcs, need to manage ID users */
+/* Copy/free functions, need to manage ID users. */
 
 /**
  * Free (or release) any data used by this node-tree.
@@ -1526,6 +1526,8 @@ struct TexResult;
 #define GEO_NODE_INPUT_SHORTEST_EDGE_PATHS 1168
 #define GEO_NODE_EDGE_PATHS_TO_CURVES 1169
 #define GEO_NODE_EDGE_PATHS_TO_SELECTION 1170
+#define GEO_NODE_MESH_FACE_SET_BOUNDARIES 1171
+#define GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME 1172
 
 /** \} */
 

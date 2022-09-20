@@ -8,7 +8,9 @@
  */
 
 #include "BLI_bitmap.h"
+#include "BLI_compiler_compat.h"
 #include "BLI_utildefines.h"
+
 #include "DNA_brush_enums.h"
 #include "DNA_object_enums.h"
 
@@ -485,6 +487,74 @@ typedef struct SculptFakeNeighbors {
 
 /* Session data (mode-specific) */
 
+/* Custom Temporary Attributes */
+
+typedef struct SculptAttributeParams {
+  /* Allocate a flat array outside the CustomData system.  Cannot be combined with permanent. */
+  int simple_array : 1;
+
+  /* Do not mark CustomData layer as temporary.  Cannot be combined with simple_array.  Doesn't
+   * work with PBVH_GRIDS.
+   */
+  int permanent : 1;   /* Cannot be combined with simple_array. */
+  int stroke_only : 1; /* Release layer at end of struct */
+} SculptAttributeParams;
+
+typedef struct SculptAttribute {
+  /* Domain, data type and name */
+  eAttrDomain domain;
+  eCustomDataType proptype;
+  char name[MAX_CUSTOMDATA_LAYER_NAME];
+
+  /* Source layer on mesh/bmesh, if any. */
+  struct CustomDataLayer *layer;
+
+  /* Data stored as flat array. */
+  void *data;
+  int elem_size, elem_num;
+  bool data_for_bmesh; /* Temporary data store as array outside of bmesh. */
+
+  /* Data stored per BMesh element. */
+  int bmesh_cd_offset;
+
+  /* Sculpt usage */
+  SculptAttributeParams params;
+
+  /* Used to keep track of which preallocated SculptAttribute instances
+   * inside of SculptSession.temp_attribute are used.
+   */
+  bool used;
+} SculptAttribute;
+
+#define SCULPT_MAX_ATTRIBUTES 64
+
+/* Get a standard attribute name.  Key must match up with a member
+ * of SculptAttributePointers.
+ */
+
+#define SCULPT_ATTRIBUTE_NAME(key) \
+  (offsetof(SculptAttributePointers, key) >= 0 ? /* Spellcheck name. */ \
+       (".sculpt_" #key)                         /* Make name. */ \
+       : \
+       "You misspelled the layer name key")
+
+/* Convenience pointers for standard sculpt attributes. */
+
+typedef struct SculptAttributePointers {
+  /* Persistent base. */
+  SculptAttribute *persistent_co;
+  SculptAttribute *persistent_no;
+  SculptAttribute *persistent_disp;
+
+  /* Precomputed auto-mask factor indexed by vertex, owned by the auto-masking system and
+   * initialized in #SCULPT_automasking_cache_init when needed. */
+  SculptAttribute *automasking_factor;
+
+  /* BMesh */
+  SculptAttribute *dyntopo_node_id_vertex;
+  SculptAttribute *dyntopo_node_id_face;
+} SculptAttributePointers;
+
 typedef struct SculptSession {
   /* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
   struct { /* Special handling for multires meshes */
@@ -529,18 +599,20 @@ typedef struct SculptSession {
   /* Mesh Face Sets */
   /* Total number of polys of the base mesh. */
   int totfaces;
-  /* Face sets store its visibility in the sign of the integer, using the absolute value as the
-   * Face Set ID. Positive IDs are visible, negative IDs are hidden.
-   * The 0 ID is not used by the tools or the visibility system, it is just used when creating new
+
+  /* The 0 ID is not used by the tools or the visibility system, it is just used when creating new
    * geometry (the trim tool, for example) to detect which geometry was just added, so it can be
    * assigned a valid Face Set after creation. Tools are not intended to run with Face Sets IDs set
    * to 0. */
   int *face_sets;
+  /**
+   * A reference to the ".hide_poly" attribute, to store whether (base) polygons are hidden.
+   * May be null.
+   */
+  bool *hide_poly;
 
   /* BMesh for dynamic topology sculpting */
   struct BMesh *bm;
-  int cd_vert_node_offset;
-  int cd_face_node_offset;
   bool bm_smooth_shading;
   /* Undo/redo log for dynamic topology sculpting */
   struct BMLog *bm_log;
@@ -572,7 +644,8 @@ typedef struct SculptSession {
   int active_face_index;
   int active_grid_index;
 
-  /* When active, the cursor draws with faded colors, indicating that there is an action enabled.
+  /* When active, the cursor draws with faded colors, indicating that there is an action
+   * enabled.
    */
   bool draw_faded_cursor;
   float cursor_radius;
@@ -581,8 +654,10 @@ typedef struct SculptSession {
   float cursor_sampled_normal[3];
   float cursor_view_normal[3];
 
-  /* For Sculpt trimming gesture tools, initial ray-cast data from the position of the mouse when
-   * the gesture starts (intersection with the surface and if they ray hit the surface or not). */
+  /* For Sculpt trimming gesture tools, initial ray-cast data from the position of the mouse
+   * when
+   * the gesture starts (intersection with the surface and if they ray hit the surface or not).
+   */
   float gesture_initial_location[3];
   float gesture_initial_normal[3];
   bool gesture_initial_hit;
@@ -602,10 +677,6 @@ typedef struct SculptSession {
 
   /* Boundary Brush Preview */
   SculptBoundary *boundary_preview;
-
-  /* Mesh State Persistence */
-  /* This is freed with the PBVH, so it is always in sync with the mesh. */
-  SculptPersistentBase *persistent_base;
 
   SculptVertexInfo vertex_info;
   SculptFakeNeighbors fake_neighbors;
@@ -652,6 +723,14 @@ typedef struct SculptSession {
    */
   char needs_flush_to_id;
 
+  /* This is a fixed-size array so we can pass pointers to its elements
+   * to client code. This is important to keep bmesh offsets up to date.
+   */
+  struct SculptAttribute temp_attributes[SCULPT_MAX_ATTRIBUTES];
+
+  /* Convenience #SculptAttribute pointers. */
+  SculptAttributePointers attrs;
+
   /**
    * Some tools follows the shading chosen by the last used tool canvas.
    * When not set the viewport shading color would be used.
@@ -672,6 +751,75 @@ void BKE_sculptsession_free_deformMats(struct SculptSession *ss);
 void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss);
 void BKE_sculptsession_bm_to_me(struct Object *ob, bool reorder);
 void BKE_sculptsession_bm_to_me_for_render(struct Object *object);
+int BKE_sculptsession_vertex_count(const SculptSession *ss);
+
+/* Ensure an attribute layer exists. */
+SculptAttribute *BKE_sculpt_attribute_ensure(struct Object *ob,
+                                             eAttrDomain domain,
+                                             eCustomDataType proptype,
+                                             const char *name,
+                                             const SculptAttributeParams *params);
+
+/* Returns nullptr if attribute does not exist. */
+SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
+                                          eAttrDomain domain,
+                                          eCustomDataType proptype,
+                                          const char *name);
+
+bool BKE_sculpt_attribute_exists(struct Object *ob,
+                                 eAttrDomain domain,
+                                 eCustomDataType proptype,
+                                 const char *name);
+
+bool BKE_sculpt_attribute_destroy(struct Object *ob, SculptAttribute *attr);
+
+/* Destroy all attributes and pseudo-attributes created by sculpt mode. */
+void BKE_sculpt_attribute_destroy_temporary_all(struct Object *ob);
+
+/* Destroy attributes that were marked as stroke only in SculptAttributeParams. */
+void BKE_sculpt_attributes_destroy_temporary_stroke(struct Object *ob);
+
+BLI_INLINE void *BKE_sculpt_vertex_attr_get(const PBVHVertRef vertex, const SculptAttribute *attr)
+{
+  if (attr->data) {
+    char *p = (char *)attr->data;
+    int idx = (int)vertex.i;
+
+    if (attr->data_for_bmesh) {
+      BMElem *v = (BMElem *)vertex.i;
+      idx = v->head.index;
+    }
+
+    return p + attr->elem_size * (int)idx;
+  }
+  else {
+    BMElem *v = (BMElem *)vertex.i;
+    return BM_ELEM_CD_GET_VOID_P(v, attr->bmesh_cd_offset);
+  }
+
+  return NULL;
+}
+
+BLI_INLINE void *BKE_sculpt_face_attr_get(const PBVHFaceRef vertex, const SculptAttribute *attr)
+{
+  if (attr->data) {
+    char *p = (char *)attr->data;
+    int idx = (int)vertex.i;
+
+    if (attr->data_for_bmesh) {
+      BMElem *v = (BMElem *)vertex.i;
+      idx = v->head.index;
+    }
+
+    return p + attr->elem_size * (int)idx;
+  }
+  else {
+    BMElem *v = (BMElem *)vertex.i;
+    return BM_ELEM_CD_GET_VOID_P(v, attr->bmesh_cd_offset);
+  }
+
+  return NULL;
+}
 
 /**
  * Create new color layer on object if it doesn't have one and if experimental feature set has
@@ -697,6 +845,12 @@ void BKE_sculpt_update_object_after_eval(struct Depsgraph *depsgraph, struct Obj
 struct MultiresModifierData *BKE_sculpt_multires_active(const struct Scene *scene,
                                                         struct Object *ob);
 int *BKE_sculpt_face_sets_ensure(struct Mesh *mesh);
+/**
+ * Create the attribute used to store face visibility and retrieve its data.
+ * Note that changes to the face visibility have to be propagated to other domains
+ * (see #SCULPT_visibility_sync_all_from_faces).
+ */
+bool *BKE_sculpt_hide_poly_ensure(struct Mesh *mesh);
 int BKE_sculpt_mask_layers_ensure(struct Object *ob, struct MultiresModifierData *mmd);
 void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene);
 
@@ -704,31 +858,8 @@ struct PBVH *BKE_sculpt_object_pbvh_ensure(struct Depsgraph *depsgraph, struct O
 
 void BKE_sculpt_bvh_update_from_ccg(struct PBVH *pbvh, struct SubdivCCG *subdiv_ccg);
 
-/**
- * This ensure that all elements in the mesh (both vertices and grids) have their visibility
- * updated according to the face sets.
- */
-void BKE_sculpt_sync_face_set_visibility(struct Mesh *mesh, struct SubdivCCG *subdiv_ccg);
-
-/**
- * Individual function to sync the Face Set visibility to mesh and grids.
- */
-void BKE_sculpt_sync_face_sets_visibility_to_base_mesh(struct Mesh *mesh);
-void BKE_sculpt_sync_face_sets_visibility_to_grids(struct Mesh *mesh,
-                                                   struct SubdivCCG *subdiv_ccg);
-
-/**
- * If a face set layer exists, initialize its visibility (sign) from the mesh's hidden values.
- */
-void BKE_sculpt_face_sets_update_from_base_mesh_visibility(struct Mesh *mesh);
-
-/**
- * Makes sculpt data consistent with other data on the mesh.
- *
- * \note IDs are expected to be original ones here, and calling code should ensure it updates its
- * depsgraph properly after calling this function if it needs up-to-date evaluated data.
- */
-void BKE_sculpt_ensure_orig_mesh_data(struct Object *object);
+void BKE_sculpt_ensure_orig_mesh_data(struct Scene *scene, struct Object *object);
+void BKE_sculpt_sync_face_visibility_to_grids(struct Mesh *mesh, struct SubdivCCG *subdiv_ccg);
 
 /**
  * Test if PBVH can be used directly for drawing, which is faster than

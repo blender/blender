@@ -377,7 +377,7 @@ BLI_INLINE ft_pix blf_kerning(FontBLF *font, const GlyphBLF *g_prev, const Glyph
     FT_Vector delta = {KERNING_ENTRY_UNSET};
 
     /* Get unscaled kerning value from our cache if ASCII. */
-    if ((g_prev->c < KERNING_CACHE_TABLE_SIZE) && (g->c < GLYPH_ASCII_TABLE_SIZE)) {
+    if ((g_prev->c < KERNING_CACHE_TABLE_SIZE) && (g->c < KERNING_CACHE_TABLE_SIZE)) {
       delta.x = font->kerning_cache->ascii_table[g->c][g_prev->c];
     }
 
@@ -388,7 +388,7 @@ BLI_INLINE ft_pix blf_kerning(FontBLF *font, const GlyphBLF *g_prev, const Glyph
     }
 
     /* If ASCII we save this value to our cache for quicker access next time. */
-    if ((g_prev->c < KERNING_CACHE_TABLE_SIZE) && (g->c < GLYPH_ASCII_TABLE_SIZE)) {
+    if ((g_prev->c < KERNING_CACHE_TABLE_SIZE) && (g->c < KERNING_CACHE_TABLE_SIZE)) {
       font->kerning_cache->ascii_table[g->c][g_prev->c] = (int)delta.x;
     }
 

@@ -114,7 +114,9 @@ using blender::StringRef;
 using blender::StringRefNull;
 using blender::Vector;
 using blender::bke::AttributeMetaData;
+using blender::bke::AttributeValidator;
 using blender::fn::Field;
+using blender::fn::FieldOperation;
 using blender::fn::GField;
 using blender::fn::ValueOrField;
 using blender::fn::ValueOrFieldCPPType;
@@ -1046,13 +1048,15 @@ static Vector<OutputAttributeToStore> compute_attributes_to_store(
       blender::fn::FieldEvaluator field_evaluator{field_context, domain_size};
       for (const OutputAttributeInfo &output_info : outputs_info) {
         const CPPType &type = output_info.field.cpp_type();
+        const AttributeValidator validator = attributes.lookup_validator(output_info.name);
         OutputAttributeToStore store{
             component_type,
             domain,
             output_info.name,
             GMutableSpan{
                 type, MEM_malloc_arrayN(domain_size, type.size(), __func__), domain_size}};
-        field_evaluator.add_with_destination(output_info.field, store.data);
+        GField field = validator.validate_field_if_necessary(output_info.field);
+        field_evaluator.add_with_destination(std::move(field), store.data);
         attributes_to_store.append(store);
       }
       field_evaluator.evaluate();
@@ -1760,7 +1764,7 @@ static void internal_dependencies_panel_draw(const bContext *UNUSED(C), Panel *p
   }
 
   tree_log->ensure_used_named_attributes();
-  const Map<std::string, NamedAttributeUsage> &usage_by_attribute =
+  const Map<StringRefNull, NamedAttributeUsage> &usage_by_attribute =
       tree_log->used_named_attributes;
 
   if (usage_by_attribute.is_empty()) {
@@ -1886,9 +1890,7 @@ static void freeData(ModifierData *md)
   clear_runtime_data(nmd);
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *UNUSED(md),
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *UNUSED(md), CustomData_MeshMasks *r_cddata_masks)
 {
   /* We don't know what the node tree will need. If there are vertex groups, it is likely that the
    * node tree wants to access them. */

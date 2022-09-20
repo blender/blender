@@ -73,9 +73,7 @@ static void initData(ModifierData *md)
   dtmd->flags = MOD_DATATRANSFER_OBSRC_TRANSFORM;
 }
 
-static void requiredDataMask(Object *UNUSED(ob),
-                             ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
 

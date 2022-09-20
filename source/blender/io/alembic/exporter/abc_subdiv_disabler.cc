@@ -14,6 +14,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_layer.h"
 #include "BKE_modifier.h"
 
 namespace blender::io::alembic {
@@ -34,7 +35,8 @@ void SubdivModifierDisabler::disable_modifiers()
   Scene *scene = DEG_get_input_scene(depsgraph_);
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph_);
 
-  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     Object *object = base->object;
 
     if (object->type != OB_MESH) {

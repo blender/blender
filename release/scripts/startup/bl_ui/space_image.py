@@ -402,7 +402,7 @@ class IMAGE_MT_uvs(Menu):
         layout.menu("IMAGE_MT_uvs_mirror")
         layout.menu("IMAGE_MT_uvs_snap")
 
-        layout.prop_menu_enum(uv, "pixel_snap_mode")
+        layout.prop_menu_enum(uv, "pixel_round_mode")
         layout.prop(uv, "lock_bounds")
 
         layout.separator()
@@ -1537,9 +1537,12 @@ class IMAGE_PT_overlay_guides(Panel):
             row = col.row(align=True)
             sub = row.row(align=True)
             sub.prop(uvedit, "use_custom_grid", text="")
-            sub = sub.row(align=True)
-            sub.active = uvedit.use_custom_grid
-            sub.prop(uvedit, "custom_grid_subdivisions", text="")
+            if uvedit.use_custom_grid:
+                row = layout.row()
+                row.use_property_split = True
+                row.use_property_decorate = False
+                sub = sub.row(align=True)
+                sub.prop(uvedit, "custom_grid_subdivisions", text="")
 
             row = layout.row()
             row.use_property_split = True

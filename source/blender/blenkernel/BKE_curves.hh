@@ -218,7 +218,7 @@ class CurvesGeometry : public ::CurvesGeometry {
 
   /**
    * How many evaluated points to create for each segment when evaluating Bezier,
-   * Catmull Rom, and NURBS curves. On the curve domain.
+   * Catmull Rom, and NURBS curves. On the curve domain. Values must be one or greater.
    */
   VArray<int> resolution() const;
   /** Mutable access to curve resolution. Call #tag_topology_changed after changes. */
@@ -709,7 +709,7 @@ void interpolate_to_evaluated(const GSpan src,
                               const Span<int> evaluated_offsets,
                               GMutableSpan dst);
 
-void calculate_basis(const float parameter, float r_weights[4]);
+void calculate_basis(const float parameter, float4 &r_weights);
 
 /**
  * Interpolate the control point values for the given parameter on the piecewise segment.
@@ -720,22 +720,15 @@ void calculate_basis(const float parameter, float r_weights[4]);
 template<typename T>
 T interpolate(const T &a, const T &b, const T &c, const T &d, const float parameter)
 {
-  float n[4];
+  BLI_assert(0.0f <= parameter && parameter <= 1.0f);
+  float4 n;
   calculate_basis(parameter, n);
-  /* TODO: Use DefaultMixer or other generic mixing in the basis evaluation function to simplify
-   * supporting more types. */
-  if constexpr (!is_same_any_v<T, float, float2, float3, float4, int8_t, int, int64_t>) {
-    T return_value;
-    attribute_math::DefaultMixer<T> mixer({&return_value, 1});
-    mixer.mix_in(0, a, n[0] * 0.5f);
-    mixer.mix_in(0, b, n[1] * 0.5f);
-    mixer.mix_in(0, c, n[2] * 0.5f);
-    mixer.mix_in(0, d, n[3] * 0.5f);
-    mixer.finalize();
-    return return_value;
+  if constexpr (is_same_any_v<T, float, float2, float3>) {
+    /* Save multiplications by adjusting weights after mix. */
+    return 0.5f * attribute_math::mix4<T>(n, a, b, c, d);
   }
   else {
-    return 0.5f * (a * n[0] + b * n[1] + c * n[2] + d * n[3]);
+    return attribute_math::mix4<T>(n * 0.5f, a, b, c, d);
   }
 }
 

@@ -1163,8 +1163,9 @@ static void screen_set_3dview_camera(Scene *scene,
   /* fix any cameras that are used in the 3d view but not in the scene */
   BKE_screen_view3d_sync(v3d, scene);
 
+  BKE_view_layer_synced_ensure(scene, view_layer);
   if (!v3d->camera || !BKE_view_layer_base_find(view_layer, v3d->camera)) {
-    v3d->camera = BKE_view_layer_camera_find(view_layer);
+    v3d->camera = BKE_view_layer_camera_find(scene, view_layer);
     // XXX if (screen == curscreen) handle_view3d_lock();
     if (!v3d->camera) {
       ListBase *regionbase;
@@ -1274,7 +1275,7 @@ void ED_screen_full_prevspace(bContext *C, ScrArea *area)
   BLI_assert(area->full);
 
   if (area->flag & AREA_FLAG_STACKED_FULLSCREEN) {
-    /* stacked fullscreen -> only go back to previous area and don't toggle out of fullscreen */
+    /* Stacked full-screen -> only go back to previous area and don't toggle out of full-screen. */
     ED_area_prevspace(C, area);
   }
   else {
@@ -1305,8 +1306,8 @@ void ED_screen_full_restore(bContext *C, ScrArea *area)
   bScreen *screen = CTX_wm_screen(C);
   short state = (screen ? screen->state : SCREENMAXIMIZED);
 
-  /* if fullscreen area has a temporary space (such as a file browser or fullscreen render
-   * overlaid on top of an existing setup) then return to the previous space */
+  /* If full-screen area has a temporary space (such as a file browser or full-screen render
+   * overlaid on top of an existing setup) then return to the previous space. */
 
   if (sl->next) {
     if (sl->link_flag & SPACE_FLAG_TYPE_TEMPORARY) {

@@ -236,7 +236,7 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
     ViewLayer *view_layer = CTX_data_view_layer(C);
     uint objects_len = 0;
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-        view_layer, NULL, &objects_len);
+        scene, view_layer, NULL, &objects_len);
     if (ED_uvedit_minmax_multi(scene, objects, objects_len, r_min, r_max)) {
       has_select = true;
     }

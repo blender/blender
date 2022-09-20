@@ -280,8 +280,8 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
     }
 
     /* Now we can safely mark that ID as not being in Main database anymore. */
-    /* NOTE: This needs to be done in a separate loop than above, otherwise some usercounts of
-     * deleted IDs may not be properly decreased by the remappings (since `NO_MAIN` ID usercounts
+    /* NOTE: This needs to be done in a separate loop than above, otherwise some user-counts of
+     * deleted IDs may not be properly decreased by the remappings (since `NO_MAIN` ID user-counts
      * is never affected). */
     for (ID *id = tagged_deleted_ids.first; id; id = id->next) {
       id->tag |= LIB_TAG_NO_MAIN;

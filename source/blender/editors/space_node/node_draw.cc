@@ -1770,7 +1770,7 @@ struct NodeExtraInfoRow {
 };
 
 struct NamedAttributeTooltipArg {
-  Map<std::string, geo_log::NamedAttributeUsage> usage_by_attribute;
+  Map<StringRefNull, geo_log::NamedAttributeUsage> usage_by_attribute;
 };
 
 static char *named_attribute_tooltip(bContext *UNUSED(C), void *argN, const char *UNUSED(tip))
@@ -1824,7 +1824,7 @@ static char *named_attribute_tooltip(bContext *UNUSED(C), void *argN, const char
 }
 
 static NodeExtraInfoRow row_from_used_named_attribute(
-    const Map<std::string, geo_log::NamedAttributeUsage> &usage_by_attribute_name)
+    const Map<StringRefNull, geo_log::NamedAttributeUsage> &usage_by_attribute_name)
 {
   const int attributes_num = usage_by_attribute_name.size();
 

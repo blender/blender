@@ -102,20 +102,6 @@ if(WITH_BULLET)
   add_definitions(-DWITH_BULLET)
 endif()
 
-if(WITH_PYTHON)
-  list(APPEND INC
-    ../python
-  )
-  list(APPEND INC_SYS
-    ${PYTHON_INCLUDE_DIRS}
-  )
-  list(APPEND LIB
-    ${PYTHON_LINKFLAGS}
-    ${PYTHON_LIBRARIES}
-  )
-  add_definitions(-DWITH_PYTHON)
-endif()
-
 if(WITH_TBB)
   list(APPEND INC_SYS
     ${TBB_INCLUDE_DIRS}
