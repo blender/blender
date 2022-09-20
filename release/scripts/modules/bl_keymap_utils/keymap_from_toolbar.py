@@ -173,7 +173,7 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
                     mode = context.active_object.mode
                     # See: BKE_paint_get_tool_prop_id_from_paintmode
                     if space_type == 'IMAGE_EDITOR':
-                        if context.space_data.ui_mode == 'PAINT':
+                        if context.space_data.mode == 'PAINT':
                             attr = "image_tool"
                         else:
                             attr = None
@@ -200,7 +200,7 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
                             properties=kmi_hack_brush_select_properties,
                             include={'KEYBOARD'},
                         )[1]
-                    elif mode in {'PARTICLE_EDIT', 'SCULPT_GPENCIL'}:
+                    elif mode in {'EDIT', 'PARTICLE_EDIT', 'SCULPT_GPENCIL'}:
                         # Doesn't use brushes
                         pass
                     else:
