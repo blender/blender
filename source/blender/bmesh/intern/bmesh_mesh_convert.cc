@@ -980,30 +980,14 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
     CustomData_copy_mesh_to_bmesh(&bm->pdata, &me->pdata, mask.pmask, CD_SET_DEFAULT, me->totpoly);
   }
 
-  MutableSpan<MVert> mvert;
-  MutableSpan<MEdge> medge;
-  MutableSpan<MPoly> mpoly;
-  MutableSpan<MLoop> mloop;
-  if (me->totvert > 0) {
-    mvert = {static_cast<MVert *>(
-                 CustomData_add_layer(&me->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, me->totvert)),
-             me->totvert};
-  }
-  if (me->totedge > 0) {
-    medge = {static_cast<MEdge *>(
-                 CustomData_add_layer(&me->edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, me->totedge)),
-             me->totedge};
-  }
-  if (me->totpoly > 0) {
-    mpoly = {static_cast<MPoly *>(
-                 CustomData_add_layer(&me->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, me->totpoly)),
-             me->totpoly};
-  }
-  if (me->totloop > 0) {
-    mloop = {static_cast<MLoop *>(
-                 CustomData_add_layer(&me->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, me->totloop)),
-             me->totloop};
-  }
+  CustomData_add_layer(&me->vdata, CD_MVERT, CD_SET_DEFAULT, nullptr, me->totvert);
+  CustomData_add_layer(&me->edata, CD_MEDGE, CD_SET_DEFAULT, nullptr, me->totedge);
+  CustomData_add_layer(&me->ldata, CD_MLOOP, CD_SET_DEFAULT, nullptr, me->totloop);
+  CustomData_add_layer(&me->pdata, CD_MPOLY, CD_SET_DEFAULT, nullptr, me->totpoly);
+  MutableSpan<MVert> mvert = me->verts_for_write();
+  MutableSpan<MEdge> medge = me->edges_for_write();
+  MutableSpan<MPoly> mpoly = me->polys_for_write();
+  MutableSpan<MLoop> mloop = me->loops_for_write();
 
   bool need_hide_vert = false;
   bool need_hide_edge = false;
