@@ -294,7 +294,8 @@ class Triangle {
 
   /* Our algorithm cares about which edges are original edges
    * (i.e., not triangulation edges). */
-  void mark_orig(int pos) {
+  void mark_orig(int pos)
+  {
     flags_ |= (TORIG0 << pos);
     Edge en = neighbor_[pos];
     if (!en.is_null()) {
@@ -351,11 +352,6 @@ void set_mutual_neighbors(Triangle *t1, int pos1, Edge e2)
   t1->neighbor_[pos1] = e2;
   Triangle *t2 = e2.tri();
   t2->neighbor_[e2.tri_edge_index()] = Edge(t1, pos1);
-}
-
-static bool triangle_id_less(const Triangle *a, const Triangle *b)
-{
-  return a->id() < b->id();
 }
 
 /** Return the vertex at the source end of \a e. */
@@ -448,14 +444,13 @@ static float3 vertex_normal(const Vert *vert)
   Edge ecur = e0;
   do {
     Triangle *tri = ecur.tri();
-    if (tri->is_ghost()) {
-      continue;
+    if (!tri->is_ghost()) {
+      Edge eprev = ecur.triangle_pred();
+      float3 din = math::normalize(vert->co - v_src(eprev)->co);
+      float3 dout = math::normalize(v_dst(ecur)->co - vert->co);
+      float fac = saacos(-math::dot(din, dout));
+      ans = ans + fac * tri->normal();
     }
-    Edge eprev = ecur.triangle_pred();
-    float3 din = math::normalize(vert->co - v_src(eprev)->co);
-    float3 dout = math::normalize(v_dst(ecur)->co - vert->co);
-    float fac = saacos(-math::dot(din, dout));
-    ans = ans + fac * tri->normal();
     ecur = rot_ccw(ecur);
   } while (ecur != e0);
   ans = math::normalize(ans);
@@ -1101,17 +1096,6 @@ static Vector<Vector<Edge>> init_contour_inset(TriangleMesh &trimesh, Span<Vecto
       contour_edges.append(e);
     }
   }
-  return ans;
-}
-
-static Array<Triangle *> triangle_set_to_sorted_array(const Set<Triangle *> tri_set)
-{
-  Array<Triangle *> ans(tri_set.size());
-  int i = 0;
-  for (Triangle *tri : tri_set) {
-    ans[i++] = tri;
-  }
-  std::sort(ans.begin(), ans.end(), triangle_id_less);
   return ans;
 }
 
@@ -3016,8 +3000,10 @@ static Vector<Vector<Edge>> find_cycle_partition(const Vector<Edge> &edges)
   return ans;
 }
 
-/** Find and append the faces inside the wavefront cycle \a contour and append them to \a out_faces.  */
-static void append_interior_faces_for_cycle(Vector<Vector<int>> &out_faces, const Vector<Edge> contour)
+/** Find and append the faces inside the wavefront cycle \a contour and append them to \a
+ * out_faces.  */
+static void append_interior_faces_for_cycle(Vector<Vector<int>> &out_faces,
+                                            const Vector<Edge> contour)
 {
   constexpr int dbg_level = 0;
   if (dbg_level > 0) {
