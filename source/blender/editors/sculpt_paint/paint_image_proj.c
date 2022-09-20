@@ -1233,12 +1233,12 @@ static VertSeam *find_adjacent_seam(const ProjPaintState *ps,
     LISTBASE_CIRCULAR_BACKWARD_END(VertSeam *, vert_seams, adjacent, seam);
   }
   else {
-    LISTBASE_CIRCULAR_FORWARD_BEGIN (vert_seams, adjacent, seam) {
+    LISTBASE_CIRCULAR_FORWARD_BEGIN (VertSeam *, vert_seams, adjacent, seam) {
       if ((adjacent->normal_cw != seam->normal_cw) && cmp_uv(adjacent->uv, seam->uv)) {
         break;
       }
     }
-    LISTBASE_CIRCULAR_FORWARD_END(vert_seams, adjacent, seam);
+    LISTBASE_CIRCULAR_FORWARD_END(VertSeam *, vert_seams, adjacent, seam);
   }
 
   BLI_assert(adjacent);

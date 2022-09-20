@@ -300,7 +300,7 @@ set(SRC
   intern/volume.cc
   intern/volume_render.cc
   intern/volume_to_mesh.cc
-  intern/workspace.c
+  intern/workspace.cc
   intern/world.c
   intern/writeavi.c
 

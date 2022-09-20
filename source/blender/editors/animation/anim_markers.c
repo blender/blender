@@ -1255,14 +1255,14 @@ static int select_timeline_marker_frame(ListBase *markers,
       deselect_markers(markers);
     }
 
-    LISTBASE_CIRCULAR_FORWARD_BEGIN (markers, marker, marker_cycle_selected) {
+    LISTBASE_CIRCULAR_FORWARD_BEGIN (TimeMarker *, markers, marker, marker_cycle_selected) {
       /* this way a not-extend select will always give 1 selected marker */
       if (marker->frame == frame) {
         marker->flag ^= SELECT;
         break;
       }
     }
-    LISTBASE_CIRCULAR_FORWARD_END(markers, marker, marker_cycle_selected);
+    LISTBASE_CIRCULAR_FORWARD_END(TimeMarker *, markers, marker, marker_cycle_selected);
   }
 
   return ret_val;
