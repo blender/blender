@@ -16,6 +16,7 @@
 #include "NOD_multi_function.hh"
 #include "NOD_node_declaration.hh"
 
+#include "BLI_lazy_threading.hh"
 #include "BLI_map.hh"
 
 #include "DNA_ID.h"
@@ -559,6 +560,7 @@ class LazyFunctionForViewerNode : public LazyFunction {
 class LazyFunctionForGroupNode : public LazyFunction {
  private:
   const bNode &group_node_;
+  bool has_many_nodes_ = false;
   std::optional<GeometryNodesLazyFunctionLogger> lf_logger_;
   std::optional<GeometryNodesLazyFunctionSideEffectProvider> lf_side_effect_provider_;
   std::optional<lf::GraphExecutor> graph_executor_;
@@ -576,6 +578,8 @@ class LazyFunctionForGroupNode : public LazyFunction {
 
     bNodeTree *group_btree = reinterpret_cast<bNodeTree *>(group_node_.id);
     BLI_assert(group_btree != nullptr);
+
+    has_many_nodes_ = lf_graph_info.num_inline_nodes_approximate > 1000;
 
     Vector<const lf::OutputSocket *> graph_inputs;
     for (const lf::OutputSocket *socket : lf_graph_info.mapping.group_input_sockets) {
@@ -607,6 +611,12 @@ class LazyFunctionForGroupNode : public LazyFunction {
   {
     GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
     BLI_assert(user_data != nullptr);
+
+    if (has_many_nodes_) {
+      /* If the called node group has many nodes, it's likely that executing it takes a while even
+       * if every individual node is very small. */
+      lazy_threading::send_hint();
+    }
 
     /* The compute context changes when entering a node group. */
     bke::NodeGroupComputeContext compute_context{user_data->compute_context, group_node_.name};
@@ -699,6 +709,7 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     this->add_default_inputs();
 
     lf_graph_->update_node_indices();
+    lf_graph_info_->num_inline_nodes_approximate += lf_graph_->nodes().size();
   }
 
  private:
@@ -915,6 +926,8 @@ struct GeometryNodesLazyFunctionGraphBuilder {
       mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
     }
     mapping_->group_node_map.add(&bnode, &lf_node);
+    lf_graph_info_->num_inline_nodes_approximate +=
+        group_lf_graph_info->num_inline_nodes_approximate;
   }
 
   void handle_geometry_node(const bNode &bnode)
@@ -1355,6 +1368,54 @@ GeometryNodesLazyFunctionGraphInfo::~GeometryNodesLazyFunctionGraphInfo()
 {
   for (GMutablePointer &p : this->values_to_destruct) {
     p.destruct();
+  }
+}
+
+static void add_thread_id_debug_message(const GeometryNodesLazyFunctionGraphInfo &lf_graph_info,
+                                        const lf::FunctionNode &node,
+                                        const lf::Context &context)
+{
+  static std::atomic<int> thread_id_source = 0;
+  static thread_local const int thread_id = thread_id_source.fetch_add(1);
+  static thread_local const std::string thread_id_str = "Thread: " + std::to_string(thread_id);
+
+  GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
+  BLI_assert(user_data != nullptr);
+  if (user_data->modifier_data->eval_log == nullptr) {
+    return;
+  }
+  geo_eval_log::GeoTreeLogger &tree_logger =
+      user_data->modifier_data->eval_log->get_local_tree_logger(*user_data->compute_context);
+
+  /* Find corresponding node based on the socket mapping. */
+  auto check_sockets = [&](const Span<const lf::Socket *> lf_sockets) {
+    for (const lf::Socket *lf_socket : lf_sockets) {
+      const Span<const bNodeSocket *> bsockets =
+          lf_graph_info.mapping.bsockets_by_lf_socket_map.lookup(lf_socket);
+      if (!bsockets.is_empty()) {
+        const bNodeSocket &bsocket = *bsockets[0];
+        const bNode &bnode = bsocket.owner_node();
+        tree_logger.debug_messages.append(
+            {tree_logger.allocator->copy_string(bnode.name), thread_id_str});
+        return true;
+      }
+    }
+    return false;
+  };
+
+  if (check_sockets(node.inputs().cast<const lf::Socket *>())) {
+    return;
+  }
+  check_sockets(node.outputs().cast<const lf::Socket *>());
+}
+
+void GeometryNodesLazyFunctionLogger::log_before_node_execute(const lf::FunctionNode &node,
+                                                              const lf::Params &UNUSED(params),
+                                                              const lf::Context &context) const
+{
+  /* Enable this to see the threads that invoked a node. */
+  if constexpr (false) {
+    add_thread_id_debug_message(lf_graph_info_, node, context);
   }
 }
 

@@ -85,6 +85,7 @@ set(SRC
   intern/kdtree_3d.c
   intern/kdtree_4d.c
   intern/lasso_2d.c
+  intern/lazy_threading.cc
   intern/length_parameterize.cc
   intern/listbase.c
   intern/math_base.c

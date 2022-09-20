@@ -41,6 +41,7 @@ class BasicParams : public Params {
   bool output_was_set_impl(const int index) const override;
   ValueUsage get_output_usage_impl(const int index) const override;
   void set_input_unused_impl(const int index) override;
+  bool try_enable_multi_threading_impl() override;
 };
 
 namespace detail {
