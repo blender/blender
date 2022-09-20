@@ -998,7 +998,6 @@ static void obstacles_from_mesh(Object *coll_ob,
                                 float dt)
 {
   if (fes->mesh) {
-    Mesh *me = NULL;
     const MLoopTri *looptri;
     BVHTreeFromMesh tree_data = {NULL};
     int numverts, i;
@@ -1006,12 +1005,10 @@ static void obstacles_from_mesh(Object *coll_ob,
     float *vert_vel = NULL;
     bool has_velocity = false;
 
-    me = BKE_mesh_copy_for_eval(fes->mesh, true);
+    Mesh *me = BKE_mesh_copy_for_eval(fes->mesh, false);
+    MVert *verts = BKE_mesh_verts_for_write(me);
 
     int min[3], max[3], res[3];
-
-    /* Duplicate vertices to modify. */
-    MVert *verts = MEM_dupallocN(BKE_mesh_verts(me));
 
     const MLoop *mloop = BKE_mesh_loops(me);
     looptri = BKE_mesh_runtime_looptri_ensure(me);
@@ -1097,7 +1094,6 @@ static void obstacles_from_mesh(Object *coll_ob,
     if (vert_vel) {
       MEM_freeN(vert_vel);
     }
-    MEM_SAFE_FREE(verts);
     BKE_id_free(NULL, me);
   }
 }
@@ -2074,10 +2070,8 @@ static void emit_from_mesh(
 
     /* Copy mesh for thread safety as we modify it.
      * Main issue is its VertArray being modified, then replaced and freed. */
-    Mesh *me = BKE_mesh_copy_for_eval(ffs->mesh, true);
-
-    /* Duplicate vertices to modify. */
-    MVert *verts = MEM_dupallocN(BKE_mesh_verts(me));
+    Mesh *me = BKE_mesh_copy_for_eval(ffs->mesh, false);
+    MVert *verts = BKE_mesh_verts_for_write(me);
 
     const MLoop *mloop = BKE_mesh_loops(me);
     const MLoopTri *mlooptri = BKE_mesh_runtime_looptri_ensure(me);
@@ -2102,7 +2096,8 @@ static void emit_from_mesh(
 
     /* Transform mesh vertices to domain grid space for fast lookups.
      * This is valid because the mesh is copied above. */
-    float(*vert_normals)[3] = MEM_dupallocN(BKE_mesh_vertex_normals_ensure(me));
+    BKE_mesh_vertex_normals_ensure(me);
+    float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(me);
     for (i = 0; i < numverts; i++) {
       /* Vertex position. */
       mul_m4_v3(flow_ob->obmat, verts[i].co);
@@ -2178,8 +2173,6 @@ static void emit_from_mesh(
     if (vert_vel) {
       MEM_freeN(vert_vel);
     }
-    MEM_SAFE_FREE(verts);
-    MEM_SAFE_FREE(vert_normals);
     BKE_id_free(NULL, me);
   }
 }
