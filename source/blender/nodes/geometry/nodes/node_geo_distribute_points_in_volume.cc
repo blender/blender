@@ -183,11 +183,10 @@ static void geo_node_distribute_points_in_volume_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set_in = params.extract_input<GeometrySet>("Volume");
 
+#ifdef WITH_OPENVDB
   const NodeGeometryDistributePointsInVolume &storage = node_storage(params.node());
   const GeometryNodeDistributePointsInVolumeMode mode =
       static_cast<GeometryNodeDistributePointsInVolumeMode>(storage.mode);
-
-#ifdef WITH_OPENVDB
 
   float density;
   int seed;
@@ -258,9 +257,11 @@ static void geo_node_distribute_points_in_volume_exec(GeoNodeExecParams params)
 
   params.set_output("Points", std::move(geometry_set_in));
 
-#else  /* WITH_OPENVDB */
-  params.error_message_add(NodeWarningType::Error, TIP_("Blender is compiled without OpenVDB"));
-#endif /* !WITH_OPENVDB */
+#else
+  params.set_default_remaining_outputs();
+  params.error_message_add(NodeWarningType::Error,
+                           TIP_("Disabled, Blender was compiled without OpenVDB"));
+#endif
 }
 }  // namespace blender::nodes
 

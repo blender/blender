@@ -149,7 +149,6 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
   GeometrySet geometry_set(params.extract_input<GeometrySet>("Mesh"));
-
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (geometry_set.has_mesh()) {
       Volume *volume = create_volume_from_mesh(*geometry_set.get_mesh_for_read(), params);
@@ -159,9 +158,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   });
   params.set_output("Volume", std::move(geometry_set));
 #else
+  params.set_default_remaining_outputs();
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without OpenVDB"));
-  params.set_default_remaining_outputs();
   return;
 #endif
 }

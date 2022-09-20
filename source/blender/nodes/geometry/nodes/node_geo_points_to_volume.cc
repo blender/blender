@@ -231,17 +231,16 @@ static void initialize_volume_component_from_points(GeoNodeExecParams &params,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Points");
-
 #ifdef WITH_OPENVDB
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Points");
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     initialize_volume_component_from_points(params, geometry_set);
   });
   params.set_output("Volume", std::move(geometry_set));
 #else
+  params.set_default_remaining_outputs();
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without OpenVDB"));
-  params.set_default_remaining_outputs();
 #endif
 }
 

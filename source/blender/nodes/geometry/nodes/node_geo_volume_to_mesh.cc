@@ -187,20 +187,19 @@ static Mesh *create_mesh_from_volume(GeometrySet &geometry_set, GeoNodeExecParam
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Volume");
-
 #ifdef WITH_OPENVDB
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Volume");
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     Mesh *mesh = create_mesh_from_volume(geometry_set, params);
     geometry_set.replace_mesh(mesh);
     geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH});
   });
+  params.set_output("Mesh", std::move(geometry_set));
 #else
+  params.set_default_remaining_outputs();
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without OpenVDB"));
 #endif
-
-  params.set_output("Mesh", std::move(geometry_set));
 }
 
 }  // namespace blender::nodes::node_geo_volume_to_mesh_cc
