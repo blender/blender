@@ -720,7 +720,14 @@ void BKE_gpencil_prepare_eval_data(Depsgraph *depsgraph, Scene *scene, Object *o
       do_parent = true;
       break;
     }
-    if ((!is_zero_v3(gpl->location)) || (!is_zero_v3(gpl->rotation)) || (!is_one_v3(gpl->scale))) {
+
+    /* Only do layer transformations for non-zero or animated transforms. */
+    bool transformed = ((!is_zero_v3(gpl->location)) || (!is_zero_v3(gpl->rotation)) ||
+                        (!is_one_v3(gpl->scale)));
+    float tmp_mat[4][4];
+    loc_eul_size_to_mat4(tmp_mat, gpl->location, gpl->rotation, gpl->scale);
+    transformed |= !equals_m4m4(gpl->layer_mat, tmp_mat);
+    if (transformed) {
       do_transform = true;
       break;
     }
