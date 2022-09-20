@@ -1448,7 +1448,7 @@ static int graphkeys_expo_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_extrapolation_type(wmOperatorType *ot)
 {
   /* Identifiers */
-  ot->name = "Set Keyframe Extrapolation";
+  ot->name = "Set F-Curve Extrapolation";
   ot->idname = "GRAPH_OT_extrapolation_type";
   ot->description = "Set extrapolation mode for selected F-Curves";
 
