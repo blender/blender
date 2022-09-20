@@ -80,7 +80,7 @@
 /** Max value for phi initialization */
 #define PHI_MAX 9999.0f
 
-static void BKE_fluid_modifier_reset_ex(struct FluidModifierData *fmd, bool need_lock);
+static void fluid_modifier_reset_ex(struct FluidModifierData *fmd, bool need_lock);
 
 #ifdef WITH_FLUID
 // #define DEBUG_PRINT
@@ -482,7 +482,7 @@ static void update_final_gravity(FluidDomainSettings *fds, Scene *scene)
   mul_v3_fl(fds->gravity_final, fds->effector_weights->global_gravity);
 }
 
-static bool BKE_fluid_modifier_init(
+static bool fluid_modifier_init(
     FluidModifierData *fmd, Depsgraph *depsgraph, Object *ob, Scene *scene, Mesh *me)
 {
   int scene_framenr = (int)DEG_get_ctime(depsgraph);
@@ -3622,15 +3622,15 @@ static void manta_guiding(
   BLI_mutex_unlock(&object_update_lock);
 }
 
-static void BKE_fluid_modifier_processFlow(FluidModifierData *fmd,
-                                           Depsgraph *depsgraph,
-                                           Scene *scene,
-                                           Object *ob,
-                                           Mesh *me,
-                                           const int scene_framenr)
+static void fluid_modifier_processFlow(FluidModifierData *fmd,
+                                       Depsgraph *depsgraph,
+                                       Scene *scene,
+                                       Object *ob,
+                                       Mesh *me,
+                                       const int scene_framenr)
 {
   if (scene_framenr >= fmd->time) {
-    BKE_fluid_modifier_init(fmd, depsgraph, ob, scene, me);
+    fluid_modifier_init(fmd, depsgraph, ob, scene, me);
   }
 
   if (fmd->flow) {
@@ -3645,19 +3645,19 @@ static void BKE_fluid_modifier_processFlow(FluidModifierData *fmd,
   }
   else if (scene_framenr < fmd->time) {
     fmd->time = scene_framenr;
-    BKE_fluid_modifier_reset_ex(fmd, false);
+    fluid_modifier_reset_ex(fmd, false);
   }
 }
 
-static void BKE_fluid_modifier_processEffector(FluidModifierData *fmd,
-                                               Depsgraph *depsgraph,
-                                               Scene *scene,
-                                               Object *ob,
-                                               Mesh *me,
-                                               const int scene_framenr)
+static void fluid_modifier_processEffector(FluidModifierData *fmd,
+                                           Depsgraph *depsgraph,
+                                           Scene *scene,
+                                           Object *ob,
+                                           Mesh *me,
+                                           const int scene_framenr)
 {
   if (scene_framenr >= fmd->time) {
-    BKE_fluid_modifier_init(fmd, depsgraph, ob, scene, me);
+    fluid_modifier_init(fmd, depsgraph, ob, scene, me);
   }
 
   if (fmd->effector) {
@@ -3672,16 +3672,16 @@ static void BKE_fluid_modifier_processEffector(FluidModifierData *fmd,
   }
   else if (scene_framenr < fmd->time) {
     fmd->time = scene_framenr;
-    BKE_fluid_modifier_reset_ex(fmd, false);
+    fluid_modifier_reset_ex(fmd, false);
   }
 }
 
-static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
-                                             Depsgraph *depsgraph,
-                                             Scene *scene,
-                                             Object *ob,
-                                             Mesh *me,
-                                             const int scene_framenr)
+static void fluid_modifier_processDomain(FluidModifierData *fmd,
+                                         Depsgraph *depsgraph,
+                                         Scene *scene,
+                                         Object *ob,
+                                         Mesh *me,
+                                         const int scene_framenr)
 {
   FluidDomainSettings *fds = fmd->domain;
   Object *guide_parent = NULL;
@@ -3727,7 +3727,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
 
   /* Reset fluid if no fluid present. Also resets active fields. */
   if (!fds->fluid) {
-    BKE_fluid_modifier_reset_ex(fmd, false);
+    fluid_modifier_reset_ex(fmd, false);
   }
 
   /* Ensure cache directory is not relative. */
@@ -3755,12 +3755,12 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
     if (pid.cache->flag & PTCACHE_OUTDATED) {
       BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
       BKE_fluid_cache_free_all(fds, ob);
-      BKE_fluid_modifier_reset_ex(fmd, false);
+      fluid_modifier_reset_ex(fmd, false);
     }
   }
 
   /* Fluid domain init must not fail in order to continue modifier evaluation. */
-  if (!fds->fluid && !BKE_fluid_modifier_init(fmd, depsgraph, ob, scene, me)) {
+  if (!fds->fluid && !fluid_modifier_init(fmd, depsgraph, ob, scene, me)) {
     CLOG_ERROR(&LOG, "Fluid initialization failed. Should not happen!");
     return;
   }
@@ -4088,19 +4088,19 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
   fmd->time = scene_framenr;
 }
 
-static void BKE_fluid_modifier_process(
+static void fluid_modifier_process(
     FluidModifierData *fmd, Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *me)
 {
   const int scene_framenr = (int)DEG_get_ctime(depsgraph);
 
   if (fmd->type & MOD_FLUID_TYPE_FLOW) {
-    BKE_fluid_modifier_processFlow(fmd, depsgraph, scene, ob, me, scene_framenr);
+    fluid_modifier_processFlow(fmd, depsgraph, scene, ob, me, scene_framenr);
   }
   else if (fmd->type & MOD_FLUID_TYPE_EFFEC) {
-    BKE_fluid_modifier_processEffector(fmd, depsgraph, scene, ob, me, scene_framenr);
+    fluid_modifier_processEffector(fmd, depsgraph, scene, ob, me, scene_framenr);
   }
   else if (fmd->type & MOD_FLUID_TYPE_DOMAIN) {
-    BKE_fluid_modifier_processDomain(fmd, depsgraph, scene, ob, me, scene_framenr);
+    fluid_modifier_processDomain(fmd, depsgraph, scene, ob, me, scene_framenr);
   }
 }
 
@@ -4118,7 +4118,7 @@ struct Mesh *BKE_fluid_modifier_do(
       BLI_rw_mutex_lock(fmd->domain->fluid_mutex, THREAD_LOCK_WRITE);
     }
 
-    BKE_fluid_modifier_process(fmd, depsgraph, scene, ob, me);
+    fluid_modifier_process(fmd, depsgraph, scene, ob, me);
 
     if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
       BLI_rw_mutex_unlock(fmd->domain->fluid_mutex);
@@ -4693,7 +4693,7 @@ void BKE_fluid_fields_sanitize(FluidDomainSettings *settings)
  * Use for versioning, even when fluids are disabled.
  * \{ */
 
-static void BKE_fluid_modifier_freeDomain(FluidModifierData *fmd)
+static void fluid_modifier_freeDomain(FluidModifierData *fmd)
 {
   if (fmd->domain) {
     if (fmd->domain->fluid) {
@@ -4722,7 +4722,7 @@ static void BKE_fluid_modifier_freeDomain(FluidModifierData *fmd)
   }
 }
 
-static void BKE_fluid_modifier_freeFlow(FluidModifierData *fmd)
+static void fluid_modifier_freeFlow(FluidModifierData *fmd)
 {
   if (fmd->flow) {
     if (fmd->flow->mesh) {
@@ -4739,7 +4739,7 @@ static void BKE_fluid_modifier_freeFlow(FluidModifierData *fmd)
   }
 }
 
-static void BKE_fluid_modifier_freeEffector(FluidModifierData *fmd)
+static void fluid_modifier_freeEffector(FluidModifierData *fmd)
 {
   if (fmd->effector) {
     if (fmd->effector->mesh) {
@@ -4756,7 +4756,7 @@ static void BKE_fluid_modifier_freeEffector(FluidModifierData *fmd)
   }
 }
 
-static void BKE_fluid_modifier_reset_ex(struct FluidModifierData *fmd, bool need_lock)
+static void fluid_modifier_reset_ex(struct FluidModifierData *fmd, bool need_lock)
 {
   if (!fmd) {
     return;
@@ -4796,7 +4796,7 @@ static void BKE_fluid_modifier_reset_ex(struct FluidModifierData *fmd, bool need
 
 void BKE_fluid_modifier_reset(struct FluidModifierData *fmd)
 {
-  BKE_fluid_modifier_reset_ex(fmd, true);
+  fluid_modifier_reset_ex(fmd, true);
 }
 
 void BKE_fluid_modifier_free(FluidModifierData *fmd)
@@ -4805,9 +4805,9 @@ void BKE_fluid_modifier_free(FluidModifierData *fmd)
     return;
   }
 
-  BKE_fluid_modifier_freeDomain(fmd);
-  BKE_fluid_modifier_freeFlow(fmd);
-  BKE_fluid_modifier_freeEffector(fmd);
+  fluid_modifier_freeDomain(fmd);
+  fluid_modifier_freeFlow(fmd);
+  fluid_modifier_freeEffector(fmd);
 }
 
 void BKE_fluid_modifier_create_type_data(struct FluidModifierData *fmd)
@@ -4818,7 +4818,7 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *fmd)
 
   if (fmd->type & MOD_FLUID_TYPE_DOMAIN) {
     if (fmd->domain) {
-      BKE_fluid_modifier_freeDomain(fmd);
+      fluid_modifier_freeDomain(fmd);
     }
 
     fmd->domain = DNA_struct_default_alloc(FluidDomainSettings);
@@ -4850,7 +4850,7 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *fmd)
   }
   else if (fmd->type & MOD_FLUID_TYPE_FLOW) {
     if (fmd->flow) {
-      BKE_fluid_modifier_freeFlow(fmd);
+      fluid_modifier_freeFlow(fmd);
     }
 
     fmd->flow = DNA_struct_default_alloc(FluidFlowSettings);
@@ -4858,7 +4858,7 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *fmd)
   }
   else if (fmd->type & MOD_FLUID_TYPE_EFFEC) {
     if (fmd->effector) {
-      BKE_fluid_modifier_freeEffector(fmd);
+      fluid_modifier_freeEffector(fmd);
     }
 
     fmd->effector = DNA_struct_default_alloc(FluidEffectorSettings);
