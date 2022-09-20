@@ -88,6 +88,7 @@ class NLA_MT_view(Menu):
         st = context.space_data
 
         layout.prop(st, "show_region_ui")
+        layout.prop(st, "show_region_hud")
         layout.separator()
 
         layout.prop(st, "use_realtime_update")

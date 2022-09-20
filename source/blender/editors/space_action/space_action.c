@@ -905,5 +905,8 @@ void ED_spacetype_action(void)
 
   action_buttons_register(art);
 
+  art = ED_area_type_hud(st->spaceid);
+  BLI_addhead(&st->regiontypes, art);
+
   BKE_spacetype_register(st);
 }
