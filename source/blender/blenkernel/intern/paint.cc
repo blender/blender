@@ -1315,13 +1315,22 @@ void paint_update_brush_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, f
   }
 }
 
+static bool paint_rake_rotation_active(const MTex &mtex)
+{
+  return mtex.tex && mtex.brush_angle_mode & MTEX_ANGLE_RAKE;
+}
+
+static bool paint_rake_rotation_active(const Brush &brush)
+{
+  return paint_rake_rotation_active(brush.mtex) || paint_rake_rotation_active(brush.mask_mtex);
+}
+
 bool paint_calculate_rake_rotation(UnifiedPaintSettings *ups,
                                    Brush *brush,
                                    const float mouse_pos[2])
 {
   bool ok = false;
-  if ((brush->mtex.brush_angle_mode & MTEX_ANGLE_RAKE) ||
-      (brush->mask_mtex.brush_angle_mode & MTEX_ANGLE_RAKE)) {
+  if (paint_rake_rotation_active(*brush)) {
     const float r = RAKE_THRESHHOLD;
     float rotation;
 
