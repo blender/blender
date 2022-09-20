@@ -1280,7 +1280,7 @@ static void pbvh_bmesh_vert_remove(PBVH *pbvh, BMVert *v)
   BM_FACES_OF_VERT_ITER_END;
 }
 
-static void pbvh_bmesh_face_remove(
+ATTR_NO_OPT static void pbvh_bmesh_face_remove(
     PBVH *pbvh, BMFace *f, bool log_face, bool check_verts, bool ensure_ownership_transfer)
 {
   PBVHNode *f_node = pbvh_bmesh_node_from_face(pbvh, f);

@@ -300,15 +300,18 @@ Mesh *BKE_mesh_remesh_instant_meshes(const Mesh *input_mesh,
   std::vector<RemeshEdge> edges;
   const float(*normals)[3] = BKE_mesh_vertex_normals_ensure(input_mesh);
 
+  const MVert *input_mvert = input_mesh->verts();
+  const MEdge *input_medge = input_mesh->edges();
+
   for (int i : IndexRange(totverts)) {
-    copy_v3_v3(verts[i].co, input_mesh->mvert[i].co);
+    copy_v3_v3(verts[i].co, input_mvert[i].co);
     copy_v3_v3(verts[i].no, normals[i]);
   }
 
   int *fsets = (int *)CustomData_get_layer(&input_mesh->pdata, CD_SCULPT_FACE_SETS);
 
   for (const int i : IndexRange(input_mesh->totedge)) {
-    MEdge *me = input_mesh->medge + i;
+    const MEdge *me = input_medge + i;
     MeshElemMap *mep = epmap + i;
 
     bool ok = mep->count == 1;
@@ -346,7 +349,7 @@ Mesh *BKE_mesh_remesh_instant_meshes(const Mesh *input_mesh,
         copy_v3_v3(d2, dirs[me->v2].color);
 
         // edge vec
-        sub_v3_v3v3(vec, input_mesh->mvert[me->v2].co, input_mesh->mvert[me->v1].co);
+        sub_v3_v3v3(vec, input_mvert[me->v2].co, input_mvert[me->v1].co);
         normalize_v3(vec);
 
         // build edge normal
@@ -421,8 +424,13 @@ Mesh *BKE_mesh_remesh_instant_meshes(const Mesh *input_mesh,
 
   float(*newNormals)[3] = BKE_mesh_vertex_normals_for_write(mesh);
 
+  MVert *mesh_mvert = mesh->verts_for_write();
+  MEdge *mesh_medge = mesh->edges_for_write();
+  MLoop *mesh_mloop = mesh->loops_for_write();
+  MPoly *mesh_mpoly = mesh->polys_for_write();
+
   for (int i : IndexRange(remesh.totoutvert)) {
-    MVert *mv = mesh->mvert + i;
+    MVert *mv = mesh_mvert + i;
     RemeshVertex *v = remesh.outverts + i;
 
     copy_v3_v3(mv->co, v->co);
@@ -435,11 +443,11 @@ Mesh *BKE_mesh_remesh_instant_meshes(const Mesh *input_mesh,
   }
 
   int li = 0;
-  MLoop *ml = mesh->mloop;
+  MLoop *ml = mesh_mloop;
 
   for (int i : IndexRange(remesh.totoutface)) {
     RemeshOutFace *f = remesh.outfaces + i;
-    MPoly *mp = mesh->mpoly + i;
+    MPoly *mp = mesh_mpoly + i;
 
     mp->loopstart = li;
     mp->totloop = f->totvert;

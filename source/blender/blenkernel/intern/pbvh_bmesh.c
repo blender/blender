@@ -230,11 +230,11 @@ ATTR_NO_OPT void pbvh_bmesh_pbvh_bmesh_check_nodes(PBVH *pbvh)
 /****************************** Building ******************************/
 
 /* Update node data after splitting */
-static void pbvh_bmesh_node_finalize(PBVH *pbvh,
-                                     const int node_index,
-                                     const int cd_vert_node_offset,
-                                     const int cd_face_node_offset,
-                                     bool add_orco)
+ATTR_NO_OPT static void pbvh_bmesh_node_finalize(PBVH *pbvh,
+                                                 const int node_index,
+                                                 const int cd_vert_node_offset,
+                                                 const int cd_face_node_offset,
+                                                 bool add_orco)
 {
   PBVHNode *n = &pbvh->nodes[node_index];
   bool has_visible = false;
@@ -2218,17 +2218,17 @@ void BKE_pbvh_update_sculpt_verts(PBVH *pbvh)
 }
 
 /* Build a PBVH from a BMesh */
-void BKE_pbvh_build_bmesh(PBVH *pbvh,
-                          struct Mesh *me,
-                          BMesh *bm,
-                          bool smooth_shading,
-                          BMLog *log,
-                          const int cd_vert_node_offset,
-                          const int cd_face_node_offset,
-                          const int cd_sculpt_vert,
-                          const int cd_face_areas,
-                          bool fast_draw,
-                          bool update_sculptverts)
+ATTR_NO_OPT void BKE_pbvh_build_bmesh(PBVH *pbvh,
+                                      struct Mesh *me,
+                                      BMesh *bm,
+                                      bool smooth_shading,
+                                      BMLog *log,
+                                      const int cd_vert_node_offset,
+                                      const int cd_face_node_offset,
+                                      const int cd_sculpt_vert,
+                                      const int cd_face_areas,
+                                      bool fast_draw,
+                                      bool update_sculptverts)
 {
   // coalese_pbvh(pbvh, bm);
 

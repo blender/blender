@@ -532,6 +532,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   if (ss->pbvh) {
     if (ss->pmap) {
       BKE_pbvh_pmap_release(ss->pmap);
+      ss->pmap = NULL;
     }
 
     /* Remove existing pbvh so we can free it ourselves. */

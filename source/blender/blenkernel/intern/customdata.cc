@@ -2818,21 +2818,39 @@ void CustomData_free_typemask(CustomData *data, const int totelem, eCustomDataMa
   CustomData_reset(data);
 }
 
-static void customData_update_offsets(CustomData *data)
+ATTR_NO_OPT static void customData_update_offsets(CustomData *data)
 {
   const LayerTypeInfo *typeInfo;
   int offset = 0;
 
   // sort by alignment
-  int aligns[] = {16, 8, 12, 6, 4, 2, 1};
+  int aligns[] = {16, 8, 4, 2, 1};
   BLI_bitmap *donemap = BLI_BITMAP_NEW_ALLOCA(data->totlayer);
+  int alignment = 0;
 
   // do large structs first
   for (int j = 0; j < data->totlayer; j++) {
     typeInfo = layerType_getInfo(data->layers[j].type);
-    if (typeInfo->size > 16 || typeInfo->size == 10) {
-      int size = (int)typeInfo->size;
+    int size = (int)typeInfo->size;
 
+    /* Float vectors get 4-byte alignment. */
+    if (ELEM(data->layers[j].type, CD_PROP_COLOR, CD_PROP_FLOAT2, CD_PROP_FLOAT3)) {
+      alignment = 4;
+    }
+    else if (size > 4) {
+      alignment = 8;
+    }
+    else if (size > 2) {
+      alignment = 4;
+    }
+    else if (size > 1) {
+      alignment = 2;
+    }
+    else {
+      alignment = 1;
+    }
+
+    if (size > 16 || size == 10) {
       BLI_BITMAP_SET(donemap, j, true);
 
       // align to 8-byte boundary
@@ -2862,7 +2880,7 @@ static void customData_update_offsets(CustomData *data)
       typeInfo = layerType_getInfo(data->layers[j].type);
       int size = (int)typeInfo->size;
 
-      if (i < ARRAY_SIZE(aligns) && typeInfo->size != aligns[i]) {
+      if (i < ARRAY_SIZE(aligns) && (size % aligns[i]) != 0) {
         continue;
       }
 
@@ -2872,6 +2890,11 @@ static void customData_update_offsets(CustomData *data)
 
       BLI_BITMAP_SET(donemap, j, true);
 
+      int align2 = aligns[i] - (offset % aligns[i]);
+      if (align2 != aligns[i]) {
+        offset += align2;
+      }
+
       data->layers[j].offset = offset;
       offset += size;
 
@@ -2879,6 +2902,10 @@ static void customData_update_offsets(CustomData *data)
       offset += BM_ASAN_PAD;
 #endif
     }
+  }
+
+  if (offset % alignment != 0) {
+    offset += alignment - (offset % alignment);
   }
 
   data->totsize = offset;

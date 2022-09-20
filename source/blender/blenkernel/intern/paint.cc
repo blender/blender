@@ -1549,6 +1549,7 @@ void BKE_sculptsession_free(Object *ob)
 
     if (!ss->pbvh) {
       BKE_pbvh_pmap_release(ss->pmap);
+      ss->pmap = NULL;
     }
 
     sculptsession_free_pbvh(ob);
@@ -2536,12 +2537,13 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
 
     BKE_mesh_recalc_looptri(
         loops.data(), polys.data(), verts.data(), me->totloop, me->totpoly, looptri);
+    BKE_sculptsession_check_sculptverts(ss, pbvh, me->totvert);
 
     BKE_pbvh_build_mesh(pbvh,
                         me,
-                        me->mpoly,
-                        me->mloop,
-                        me->mvert,
+                        me->polys().data(),
+                        me->loops().data(),
+                        me->verts_for_write().data(),
                         ss->msculptverts,
                         me->totvert,
                         &me->vdata,
@@ -3120,7 +3122,21 @@ static int sculpt_attr_elem_count_get(Object *ob, eAttrDomain domain)
 
   switch (domain) {
     case ATTR_DOMAIN_POINT:
-      return BKE_sculptsession_vertex_count(ss);
+      /* Cannot rely on prescence of ss->pbvh. */
+
+      if (ss->bm) {
+        return ss->bm->totvert;
+      }
+      else if (ss->subdiv_ccg) {
+        CCGKey key;
+        BKE_subdiv_ccg_key_top_level(&key, ss->subdiv_ccg);
+        return ss->subdiv_ccg->num_grids * key.grid_area;
+      }
+      else {
+        Mesh *me = BKE_object_get_original_mesh(ob);
+
+        return me->totvert;
+      }
       break;
     case ATTR_DOMAIN_FACE:
       return ss->totfaces;
@@ -3185,7 +3201,7 @@ static bool sculpt_attribute_create(SculptSession *ss,
     return true;
   }
 
-  switch (BKE_pbvh_type(ss->pbvh)) {
+  switch (pbvhtype) {
     case PBVH_BMESH: {
       CustomData *cdata = NULL;
       out->data_for_bmesh = true;
@@ -3478,6 +3494,16 @@ static void sculptsession_bmesh_add_layers(Object *ob)
   ss->attrs.sculpt_vert = sculpt_attribute_ensure_ex(
       ob, ATTR_DOMAIN_POINT, CD_DYNTOPO_VERT, "", &params, PBVH_BMESH, false);
 
+  if (!ss->attrs.face_areas) {
+    ss->attrs.face_areas = sculpt_attribute_ensure_ex(ob,
+                                                      ATTR_DOMAIN_FACE,
+                                                      CD_PROP_FLOAT,
+                                                      SCULPT_ATTRIBUTE_NAME(face_areas),
+                                                      &params,
+                                                      PBVH_BMESH,
+                                                      false);
+  }
+
   ss->attrs.dyntopo_node_id_vertex = sculpt_attribute_ensure_ex(
       ob,
       ATTR_DOMAIN_POINT,
@@ -3603,6 +3629,10 @@ void BKE_sculpt_attribute_destroy_temporary_all(Object *ob)
 
 bool BKE_sculpt_attribute_destroy(Object *ob, SculptAttribute *attr)
 {
+  if (!attr || !attr->used) {
+    return false;
+  }
+
   SculptSession *ss = ob->sculpt;
   eAttrDomain domain = attr->domain;
 

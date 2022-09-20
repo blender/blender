@@ -489,7 +489,7 @@ static void mempool_chunk_free(BLI_mempool_chunk *mpchunk, BLI_mempool *pool)
   BLI_asan_safe_free(mpchunk);
 }
 
-static void mempool_chunk_free_all(BLI_mempool_chunk *mpchunk, BLI_mempool *pool)
+ATTR_NO_OPT static void mempool_chunk_free_all(BLI_mempool_chunk *mpchunk, BLI_mempool *pool)
 {
   BLI_mempool_chunk *mpchunk_next;
 
@@ -931,7 +931,10 @@ void BLI_mempool_as_array(BLI_mempool *pool, void *data)
 
 void *BLI_mempool_as_arrayN(BLI_mempool *pool, const char *allocstr)
 {
+  mempool_unpoison(pool);
   char *data = MEM_malloc_arrayN((size_t)pool->totused, pool->esize, allocstr);
+  mempool_poison(pool);
+
   BLI_mempool_as_array(pool, data);
   return data;
 }

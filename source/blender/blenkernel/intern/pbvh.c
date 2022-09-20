@@ -625,7 +625,7 @@ void BKE_pbvh_set_sculpt_verts(PBVH *pbvh, MSculptVert *sverts)
   pbvh->msculptverts = sverts;
 }
 
-void BKE_pbvh_build_mesh(PBVH *pbvh,
+ATTR_NO_OPT void BKE_pbvh_build_mesh(PBVH *pbvh,
                          Mesh *mesh,
                          const MPoly *mpoly,
                          const MLoop *mloop,
@@ -643,6 +643,10 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
 {
   BBC *prim_bbc = NULL;
   BB cb;
+
+  if (pbvh->pmap != pmap) {
+    BKE_pbvh_pmap_aquire(pmap);
+  }
 
   pbvh->pmap = pmap;
   pbvh->face_areas = face_areas;
@@ -5163,7 +5167,11 @@ bool BKE_pbvh_pmap_release(SculptPMap *pmap)
 
   pmap->refcount--;
 
-  if (pmap->refcount == 0) {
+  //if (pmap->refcount < 0) {
+  //  printf("%s: error!\n", __func__);
+  //}
+
+  if (1 && pmap->refcount == 0) {
     MEM_SAFE_FREE(pmap->pmap);
     MEM_SAFE_FREE(pmap->pmap_mem);
     MEM_SAFE_FREE(pmap);
