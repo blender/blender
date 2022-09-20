@@ -617,7 +617,7 @@ static float *sculpt_expand_boundary_topology_falloff_create(Object *ob, const P
 
     for (int i = 0; i < boundary->verts_num; i++) {
       BLI_gsqueue_push(queue, &boundary->verts[i]);
-      BLI_BITMAP_ENABLE(visited_verts, boundary->verts_i[i]);
+      BLI_BITMAP_ENABLE(visited_verts, BKE_pbvh_vertex_to_index(ss->pbvh, boundary->verts[i]));
     }
     SCULPT_boundary_data_free(boundary);
   }

@@ -417,7 +417,6 @@ typedef struct SculptBoundaryPreviewEdge {
 typedef struct SculptBoundary {
   /* Vertex indices of the active boundary. */
   PBVHVertRef *verts;
-  int *verts_i;
   int verts_capacity;
   int verts_num;
 

@@ -1408,6 +1408,7 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
     return OPERATOR_CANCELLED;
   }
 
+  ss->face_sets = BKE_sculpt_face_sets_ensure(BKE_mesh_from_object(ob));
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
 
   /* Update the current active Face Set and Vertex as the operator can be used directly from the
