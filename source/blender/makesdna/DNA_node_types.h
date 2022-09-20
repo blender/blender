@@ -505,6 +505,7 @@ typedef struct bNodeLink {
 
 #ifdef __cplusplus
   bool is_muted() const;
+  bool is_available() const;
 #endif
 
 } bNodeLink;
@@ -655,12 +656,12 @@ typedef struct bNodeTree {
   /**
    * Cached toposort of all nodes. If there are cycles, the returned array is not actually a
    * toposort. However, if a connected component does not contain a cycle, this component is sorted
-   * correctly. Use #has_link_cycle to check for cycles.
+   * correctly. Use #has_available_link_cycle to check for cycles.
    */
   blender::Span<const bNode *> toposort_left_to_right() const;
   blender::Span<const bNode *> toposort_right_to_left() const;
   /** True when there are any cycles in the node tree. */
-  bool has_link_cycle() const;
+  bool has_available_link_cycle() const;
   /**
    * True when there are nodes or sockets in the node tree that don't use a known type. This can
    * happen when nodes don't exist in the current Blender version that existed in the version where

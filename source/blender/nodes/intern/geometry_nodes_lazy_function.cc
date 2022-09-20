@@ -1044,10 +1044,10 @@ struct GeometryNodesLazyFunctionGraphBuilder {
       if (link->is_muted()) {
         continue;
       }
-      const bNodeSocket &to_bsocket = *link->tosock;
-      if (!to_bsocket.is_available()) {
+      if (!link->is_available()) {
         continue;
       }
+      const bNodeSocket &to_bsocket = *link->tosock;
       const CPPType *to_type = get_socket_cpp_type(to_bsocket);
       if (to_type == nullptr) {
         continue;
@@ -1258,7 +1258,7 @@ const GeometryNodesLazyFunctionGraphInfo *ensure_geometry_nodes_lazy_function_gr
     const bNodeTree &btree)
 {
   btree.ensure_topology_cache();
-  if (btree.has_link_cycle()) {
+  if (btree.has_available_link_cycle()) {
     return nullptr;
   }
 
