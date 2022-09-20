@@ -770,6 +770,39 @@ if(WITH_GHOST_WAYLAND)
     endif()
 
     pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
+
+    # When using dynamic loading, headers generated
+    # from older versions of `wayland-scanner` aren't compatible.
+    if(WITH_GHOST_WAYLAND_DYNLOAD)
+      execute_process(
+        COMMAND ${WAYLAND_SCANNER} --version
+        # The version is written to the `stderr`.
+        ERROR_VARIABLE _wayland_scanner_out
+        ERROR_STRIP_TRAILING_WHITESPACE
+      )
+      if(NOT "${_wayland_scanner_out}" STREQUAL "")
+        string(
+          REGEX REPLACE
+          "^wayland-scanner[ \t]+([0-9]+)\.([0-9]+).*"
+          "\\1.\\2"
+          _wayland_scanner_ver
+          "${_wayland_scanner_out}"
+        )
+        if("${_wayland_scanner_ver}" VERSION_LESS "1.20")
+          message(
+            FATAL_ERROR
+            "Found ${WAYLAND_SCANNER} version \"${_wayland_scanner_ver}\", "
+            "the minimum version is 1.20!"
+          )
+        endif()
+        unset(_wayland_scanner_ver)
+      else()
+        message(WARNING "Unable to access the version from ${WAYLAND_SCANNER}, continuing.")
+      endif()
+      unset(_wayland_scanner_out)
+    endif()
+    # End wayland-scanner version check.
+
   endif()
 endif()
 
