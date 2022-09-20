@@ -908,6 +908,16 @@ static void write_fn_to_attribute(blender::bke::MutableAttributeAccessor attribu
   }
 }
 
+static void assert_bmesh_has_no_mesh_only_attributes(BMesh &bm)
+{
+  (void)bm; /* Unused in the release builds. */
+
+  /* The "hide" attributes are stored as flags on #BMesh. */
+  BLI_assert(CustomData_get_layer_named(&bm.vdata, CD_PROP_BOOL, ".hide_vert") == nullptr);
+  BLI_assert(CustomData_get_layer_named(&bm.edata, CD_PROP_BOOL, ".hide_edge") == nullptr);
+  BLI_assert(CustomData_get_layer_named(&bm.pdata, CD_PROP_BOOL, ".hide_poly") == nullptr);
+}
+
 static void convert_bmesh_hide_flags_to_mesh_attributes(BMesh &bm,
                                                         const bool need_hide_vert,
                                                         const bool need_hide_edge,
@@ -916,9 +926,7 @@ static void convert_bmesh_hide_flags_to_mesh_attributes(BMesh &bm,
 {
   using namespace blender;
   /* The "hide" attributes are stored as flags on #BMesh. */
-  BLI_assert(CustomData_get_layer_named(&bm.vdata, CD_PROP_BOOL, ".hide_vert") == nullptr);
-  BLI_assert(CustomData_get_layer_named(&bm.edata, CD_PROP_BOOL, ".hide_edge") == nullptr);
-  BLI_assert(CustomData_get_layer_named(&bm.pdata, CD_PROP_BOOL, ".hide_poly") == nullptr);
+  assert_bmesh_has_no_mesh_only_attributes(bm);
 
   if (!(need_hide_vert || need_hide_edge || need_hide_poly)) {
     return;
@@ -1206,8 +1214,12 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   BKE_mesh_runtime_clear_geometry(me);
 }
 
+/* NOTE: The function is called from multiple threads with the same input BMesh and different
+ * mesh objects. */
 void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *cd_mask_extra)
 {
+  using namespace blender;
+
   /* Must be an empty mesh. */
   BLI_assert(me->totvert == 0);
   BLI_assert(cd_mask_extra == nullptr || (cd_mask_extra->vmask & CD_MASK_SHAPEKEY) == 0);
@@ -1248,17 +1260,15 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
 
   const int cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
 
-  bool need_hide_vert = false;
-  bool need_hide_edge = false;
-  bool need_hide_poly = false;
-  bool need_material_index = false;
-
   /* Clear normals on the mesh completely, since the original vertex and polygon count might be
    * different than the BMesh's. */
   BKE_mesh_clear_derived_normals(me);
 
   me->runtime.deformed_only = true;
 
+  bke::MutableAttributeAccessor mesh_attributes = me->attributes_for_write();
+
+  bke::SpanAttributeWriter<bool> hide_vert_attribute;
   BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
     MVert *mv = &mvert[i];
 
@@ -1268,13 +1278,18 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
 
     mv->flag = BM_vert_flag_to_mflag(eve);
     if (BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-      need_hide_vert = true;
+      if (!hide_vert_attribute) {
+        hide_vert_attribute = mesh_attributes.lookup_or_add_for_write_only_span<bool>(
+            ".hide_vert", ATTR_DOMAIN_POINT);
+      }
+      hide_vert_attribute.span[i] = true;
     }
 
     CustomData_from_bmesh_block(&bm->vdata, &me->vdata, eve->head.data, i);
   }
   bm->elem_index_dirty &= ~BM_VERT;
 
+  bke::SpanAttributeWriter<bool> hide_edge_attribute;
   BM_ITER_MESH_INDEX (eed, &iter, bm, BM_EDGES_OF_MESH, i) {
     MEdge *med = &medge[i];
 
@@ -1285,7 +1300,11 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
 
     med->flag = BM_edge_flag_to_mflag(eed);
     if (BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-      need_hide_edge = true;
+      if (!hide_edge_attribute) {
+        hide_edge_attribute = mesh_attributes.lookup_or_add_for_write_only_span<bool>(
+            ".hide_edge", ATTR_DOMAIN_EDGE);
+      }
+      hide_edge_attribute.span[i] = true;
     }
 
     /* Handle this differently to editmode switching,
@@ -1305,6 +1324,8 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   bm->elem_index_dirty &= ~BM_EDGE;
 
   j = 0;
+  bke::SpanAttributeWriter<int> material_index_attribute;
+  bke::SpanAttributeWriter<bool> hide_poly_attribute;
   BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
     BMLoop *l_iter;
     BMLoop *l_first;
@@ -1315,12 +1336,20 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
     mp->totloop = efa->len;
     mp->flag = BM_face_flag_to_mflag(efa);
     if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-      need_hide_poly = true;
+      if (!hide_poly_attribute) {
+        hide_poly_attribute = mesh_attributes.lookup_or_add_for_write_only_span<bool>(
+            ".hide_poly", ATTR_DOMAIN_FACE);
+      }
+      hide_poly_attribute.span[i] = true;
     }
 
     mp->loopstart = j;
     if (efa->mat_nr != 0) {
-      need_material_index = true;
+      if (!material_index_attribute) {
+        material_index_attribute = mesh_attributes.lookup_or_add_for_write_only_span<int>(
+            "material_index", ATTR_DOMAIN_FACE);
+      }
+      material_index_attribute.span[i] = efa->mat_nr;
     }
 
     l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
@@ -1339,16 +1368,21 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   }
   bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP);
 
-  if (need_material_index) {
-    BM_mesh_elem_table_ensure(bm, BM_FACE);
-    write_fn_to_attribute<int>(
-        me->attributes_for_write(), "material_index", ATTR_DOMAIN_FACE, true, [&](const int i) {
-          return static_cast<int>(BM_face_at_index(bm, i)->mat_nr);
-        });
+  if (material_index_attribute) {
+    material_index_attribute.finish();
   }
 
-  convert_bmesh_hide_flags_to_mesh_attributes(
-      *bm, need_hide_vert, need_hide_edge, need_hide_poly, *me);
+  assert_bmesh_has_no_mesh_only_attributes(*bm);
+
+  if (hide_vert_attribute) {
+    hide_vert_attribute.finish();
+  }
+  if (hide_edge_attribute) {
+    hide_edge_attribute.finish();
+  }
+  if (hide_poly_attribute) {
+    hide_poly_attribute.finish();
+  }
 
   me->cd_flag = BM_mesh_cd_flag_from_bmesh(bm);
 }
