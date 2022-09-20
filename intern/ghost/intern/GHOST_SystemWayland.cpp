@@ -263,6 +263,15 @@ struct GWL_SeatStateKeyboard {
   struct wl_surface *wl_surface = nullptr;
 };
 
+/**
+ * Store held keys (only modifiers), could store other keys in the future.
+ *
+ * Needed as #GWL_Seat.xkb_state doesn't store which modifier keys are held.
+ */
+struct WGL_KeyboardDepressedState {
+  int16_t mods[GHOST_KEY_MODIFIER_NUM] = {0};
+};
+
 struct GWL_Seat {
   GHOST_SystemWayland *system = nullptr;
 
@@ -309,6 +318,9 @@ struct GWL_Seat {
    * If number-lock is not supported by the key-map, this is set to NULL.
    */
   struct xkb_state *xkb_state_empty_with_numlock = nullptr;
+
+  /** Keys held matching `xkb_state`. */
+  struct WGL_KeyboardDepressedState key_depressed;
 
   /**
    * Cache result of `xkb_keymap_mod_get_index`
@@ -854,6 +866,78 @@ static wl_buffer *ghost_wl_buffer_create_for_image(struct wl_shm *shm,
   }
   return buffer;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Private Keyboard Depressed Key Tracking
+ *
+ * Don't track physical key-codes because there may be multiple keyboards connected.
+ * Instead, count the number of #GHOST_kKey are pressed.
+ * This may seem susceptible to bugs with sticky-keys however XKB works this way internally.
+ * \{ */
+
+static CLG_LogRef LOG_WL_KEYBOARD_DEPRESSED_STATE = {"ghost.wl.keyboard.depressed"};
+#define LOG (&LOG_WL_KEYBOARD_DEPRESSED_STATE)
+
+static void keyboard_depressed_state_reset(GWL_Seat *seat)
+{
+  for (int i = 0; i < GHOST_KEY_MODIFIER_NUM; i++) {
+    seat->key_depressed.mods[i] = 0;
+  }
+}
+
+static void keyboard_depressed_state_key_event(GWL_Seat *seat,
+                                               const GHOST_TKey gkey,
+                                               const GHOST_TEventType etype)
+{
+  if (GHOST_KEY_MODIFIER_CHECK(gkey)) {
+    const int index = GHOST_KEY_MODIFIER_TO_INDEX(gkey);
+    int16_t &value = seat->key_depressed.mods[index];
+    if (etype == GHOST_kEventKeyUp) {
+      value -= 1;
+      if (UNLIKELY(value < 0)) {
+        CLOG_WARN(LOG, "modifier (%d) has negative keys held (%d)!", index, value);
+        value = 0;
+      }
+    }
+    else {
+      value += 1;
+    }
+  }
+}
+
+static void keyboard_depressed_state_push_events_from_change(
+    GWL_Seat *seat, const WGL_KeyboardDepressedState &key_depressed_prev)
+{
+  GHOST_IWindow *win = ghost_wl_surface_user_data(seat->keyboard.wl_surface);
+  GHOST_SystemWayland *system = seat->system;
+
+  /* Separate key up and down into separate passes so key down events always come after key up.
+   * Do this so users of GHOST can use the last pressed or released modifier to check
+   * if the modifier is held instead of counting modifiers pressed as is done here,
+   * this isn't perfect but works well enough in practice. */
+  for (int i = 0; i < GHOST_KEY_MODIFIER_NUM; i++) {
+    for (int d = seat->key_depressed.mods[i] - key_depressed_prev.mods[i]; d < 0; d++) {
+      const GHOST_TKey gkey = GHOST_KEY_MODIFIER_FROM_INDEX(i);
+      seat->system->pushEvent(
+          new GHOST_EventKey(system->getMilliSeconds(), GHOST_kEventKeyUp, win, gkey, false));
+
+      CLOG_INFO(LOG, 2, "modifier (%d) up", i);
+    }
+  }
+
+  for (int i = 0; i < GHOST_KEY_MODIFIER_NUM; i++) {
+    for (int d = seat->key_depressed.mods[i] - key_depressed_prev.mods[i]; d > 0; d--) {
+      const GHOST_TKey gkey = GHOST_KEY_MODIFIER_FROM_INDEX(i);
+      seat->system->pushEvent(
+          new GHOST_EventKey(system->getMilliSeconds(), GHOST_kEventKeyDown, win, gkey, false));
+      CLOG_INFO(LOG, 2, "modifier (%d) down", i);
+    }
+  }
+}
+
+#undef LOG
 
 /** \} */
 
@@ -2130,6 +2214,8 @@ static void keyboard_handle_keymap(void *data,
   seat->xkb_keymap_mod_index.num = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_NUM);
   seat->xkb_keymap_mod_index.logo = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_LOGO);
 
+  keyboard_depressed_state_reset(seat);
+
   xkb_keymap_unref(keymap);
 }
 
@@ -2154,49 +2240,23 @@ static void keyboard_handle_enter(void *data,
   seat->keyboard.serial = serial;
   seat->keyboard.wl_surface = wl_surface;
 
-  if (keys->size != 0) {
-    /* If there are any keys held when activating the window,
-     * modifiers will be compared against the seat state,
-     * only enabling modifiers that were previously disabled. */
+  /* If there are any keys held when activating the window,
+   * modifiers will be compared against the seat state,
+   * only enabling modifiers that were previously disabled. */
+  WGL_KeyboardDepressedState key_depressed_prev = seat->key_depressed;
+  keyboard_depressed_state_reset(seat);
 
-    const xkb_mod_mask_t state = xkb_state_serialize_mods(seat->xkb_state,
-                                                          XKB_STATE_MODS_DEPRESSED);
-    uint32_t *key;
-    WL_ARRAY_FOR_EACH (key, keys) {
-      const xkb_keycode_t key_code = *key + EVDEV_OFFSET;
-      const xkb_keysym_t sym = xkb_state_key_get_one_sym(seat->xkb_state, key_code);
-      GHOST_TKey gkey = GHOST_kKeyUnknown;
-
-#define MOD_TEST(state, mod) ((mod != XKB_MOD_INVALID) && (state & (1 << mod)))
-#define MOD_TEST_CASE(xkb_key, ghost_key, mod_index) \
-  case xkb_key: \
-    if (!MOD_TEST(state, seat->xkb_keymap_mod_index.mod_index)) { \
-      gkey = ghost_key; \
-    } \
-    break
-
-      switch (sym) {
-        MOD_TEST_CASE(XKB_KEY_Shift_L, GHOST_kKeyLeftShift, shift);
-        MOD_TEST_CASE(XKB_KEY_Shift_R, GHOST_kKeyRightShift, shift);
-        MOD_TEST_CASE(XKB_KEY_Control_L, GHOST_kKeyLeftControl, ctrl);
-        MOD_TEST_CASE(XKB_KEY_Control_R, GHOST_kKeyRightControl, ctrl);
-        MOD_TEST_CASE(XKB_KEY_Alt_L, GHOST_kKeyLeftAlt, alt);
-        MOD_TEST_CASE(XKB_KEY_Alt_R, GHOST_kKeyRightAlt, alt);
-        MOD_TEST_CASE(XKB_KEY_Super_L, GHOST_kKeyLeftOS, logo);
-        MOD_TEST_CASE(XKB_KEY_Super_R, GHOST_kKeyRightOS, logo);
-      }
-
-#undef MOD_TEST
-#undef MOD_TEST_CASE
-
-      if (gkey != GHOST_kKeyUnknown) {
-        GHOST_IWindow *win = ghost_wl_surface_user_data(wl_surface);
-        GHOST_SystemWayland *system = seat->system;
-        seat->system->pushEvent(
-            new GHOST_EventKey(system->getMilliSeconds(), GHOST_kEventKeyDown, win, gkey, false));
-      }
+  uint32_t *key;
+  WL_ARRAY_FOR_EACH (key, keys) {
+    const xkb_keycode_t key_code = *key + EVDEV_OFFSET;
+    const xkb_keysym_t sym = xkb_state_key_get_one_sym(seat->xkb_state, key_code);
+    const GHOST_TKey gkey = xkb_map_gkey_or_scan_code(sym, *key);
+    if (gkey != GHOST_kKeyUnknown) {
+      keyboard_depressed_state_key_event(seat, gkey, GHOST_kEventKeyDown);
     }
   }
+
+  keyboard_depressed_state_push_events_from_change(seat, key_depressed_prev);
 }
 
 /**
@@ -2369,6 +2429,8 @@ static void keyboard_handle_key(void *data,
   }
 
   seat->data_source_serial = serial;
+
+  keyboard_depressed_state_key_event(seat, gkey, etype);
 
   if (wl_surface *wl_surface_focus = seat->keyboard.wl_surface) {
     GHOST_IWindow *win = ghost_wl_surface_user_data(wl_surface_focus);
@@ -3045,33 +3107,66 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
 
   GWL_Seat *seat = d->seats[0];
 
-  bool val;
+  bool val, val_l, val_r;
 
-  /* NOTE: XKB doesn't differentiate between left/right modifiers
-   * for it's internal modifier state storage. */
   const xkb_mod_mask_t state = xkb_state_serialize_mods(seat->xkb_state, XKB_STATE_MODS_DEPRESSED);
 
 #define MOD_TEST(state, mod) ((mod != XKB_MOD_INVALID) && (state & (1 << mod)))
 
+  /* Use local #WGL_KeyboardDepressedState to check which key is pressed.
+   * Use XKB as the source of truth, if there is any discrepancy. */
+#define MOD_VALIDATE(mod_string) \
+  if (val) { \
+    if (!(val_l || val_r)) { \
+      CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE, \
+                "modifier (%s) state is inconsistent (held keys do not match XKB)", \
+                mod_string); \
+      val_l = true; /* Set one because XKB should have priority. */ \
+    } \
+  } \
+  else { \
+    if (val_l || val_r) { \
+      CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE, \
+                "modifier (%s) state is inconsistent (released keys do not match XKB)", \
+                mod_string); \
+      val_l = false; \
+      val_r = false; \
+    } \
+  } \
+  ((void)0)
+
   val = MOD_TEST(state, seat->xkb_keymap_mod_index.shift);
-  keys.set(GHOST_kModifierKeyLeftShift, val);
-  keys.set(GHOST_kModifierKeyRightShift, val);
+  val_l = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyLeftShift)] > 0;
+  val_r = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyRightShift)] > 0;
+  MOD_VALIDATE("Shift");
+  keys.set(GHOST_kModifierKeyLeftShift, val_l);
+  keys.set(GHOST_kModifierKeyRightShift, val_r);
 
   val = MOD_TEST(state, seat->xkb_keymap_mod_index.alt);
-  keys.set(GHOST_kModifierKeyLeftAlt, val);
-  keys.set(GHOST_kModifierKeyRightAlt, val);
+  val_l = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyLeftAlt)] > 0;
+  val_r = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyRightAlt)] > 0;
+  MOD_VALIDATE("Alt");
+  keys.set(GHOST_kModifierKeyLeftAlt, val_l);
+  keys.set(GHOST_kModifierKeyRightAlt, val_r);
 
   val = MOD_TEST(state, seat->xkb_keymap_mod_index.ctrl);
-  keys.set(GHOST_kModifierKeyLeftControl, val);
-  keys.set(GHOST_kModifierKeyRightControl, val);
+  val_l = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyLeftControl)] > 0;
+  val_r = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyRightControl)] > 0;
+  MOD_VALIDATE("Control");
+  keys.set(GHOST_kModifierKeyLeftControl, val_l);
+  keys.set(GHOST_kModifierKeyRightControl, val_r);
 
   val = MOD_TEST(state, seat->xkb_keymap_mod_index.logo);
-  keys.set(GHOST_kModifierKeyLeftOS, val);
-  keys.set(GHOST_kModifierKeyRightOS, val);
+  val_l = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyLeftOS)] > 0;
+  val_r = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyRightOS)] > 0;
+  MOD_VALIDATE("OS");
+  keys.set(GHOST_kModifierKeyLeftOS, val_l);
+  keys.set(GHOST_kModifierKeyRightOS, val_r);
 
   val = MOD_TEST(state, seat->xkb_keymap_mod_index.num);
   keys.set(GHOST_kModifierKeyNum, val);
 
+#undef MOD_VALIDATE
 #undef MOD_TEST
 
   return GHOST_kSuccess;

@@ -1147,7 +1147,7 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
   if (key_down) {
     if (system->m_keycode_last_repeat_key == vk) {
       is_repeat = true;
-      is_repeated_modifier = GHOST_KEY_IS_MODIFIER(key);
+      is_repeated_modifier = GHOST_KEY_MODIFIER_CHECK(key);
     }
     system->m_keycode_last_repeat_key = vk;
   }

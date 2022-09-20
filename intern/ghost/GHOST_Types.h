@@ -321,7 +321,8 @@ typedef enum {
   GHOST_kKeyBackslash = 0x5C,
   GHOST_kKeyAccentGrave = '`',
 
-  /* Modifiers: See #GHOST_KEY_IS_MODIFIER. */
+#define _GHOST_KEY_MODIFIER_MIN GHOST_kKeyLeftShift
+  /* Modifiers: See #GHOST_KEY_MODIFIER_CHECK. */
   GHOST_kKeyLeftShift = 0x100,
   GHOST_kKeyRightShift,
   GHOST_kKeyLeftControl,
@@ -330,7 +331,7 @@ typedef enum {
   GHOST_kKeyRightAlt,
   GHOST_kKeyLeftOS, /* Command key on Apple, Windows key(s) on Windows. */
   GHOST_kKeyRightOS,
-  /* End modifiers. */
+#define _GHOST_KEY_MODIFIER_MAX GHOST_kKeyRightOS
 
   GHOST_kKeyGrLess, /* German PC only! */
   GHOST_kKeyApp,    /* Also known as menu key. */
@@ -405,7 +406,11 @@ typedef enum {
   GHOST_kKeyMediaLast
 } GHOST_TKey;
 
-#define GHOST_KEY_IS_MODIFIER(key) (key >= GHOST_kKeyLeftShift && key <= GHOST_kKeyRightOS);
+#define GHOST_KEY_MODIFIER_NUM ((_GHOST_KEY_MODIFIER_MAX - _GHOST_KEY_MODIFIER_MIN) + 1)
+#define GHOST_KEY_MODIFIER_TO_INDEX(key) ((unsigned int)(key)-_GHOST_KEY_MODIFIER_MIN)
+#define GHOST_KEY_MODIFIER_FROM_INDEX(key) \
+  (GHOST_TKey)(((unsigned int)(key) + _GHOST_KEY_MODIFIER_MIN))
+#define GHOST_KEY_MODIFIER_CHECK(key) (GHOST_KEY_MODIFIER_TO_INDEX(key) < GHOST_KEY_MODIFIER_NUM)
 
 typedef enum {
   /** Grab not set. */
