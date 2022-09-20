@@ -54,7 +54,7 @@ class OUTLINER_HT_header(Header):
                 icon='FILTER',
             )
 
-        if display_mode in {'LIBRARIES' 'ORPHAN_DATA'}:
+        if display_mode in {'LIBRARIES', 'ORPHAN_DATA'}:
             row.prop(space, "use_filter_id_type", text="", icon='FILTER')
             sub = row.row(align=True)
             sub.active = space.use_filter_id_type
