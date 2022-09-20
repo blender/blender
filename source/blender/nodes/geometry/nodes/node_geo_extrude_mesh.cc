@@ -132,6 +132,9 @@ static CustomData &get_customdata(Mesh &mesh, const eAttrDomain domain)
   }
 }
 
+/**
+ * \note The result may be an empty span.
+ */
 static MutableSpan<int> get_orig_index_layer(Mesh &mesh, const eAttrDomain domain)
 {
   const bke::AttributeAccessor attributes = mesh.attributes();
@@ -295,6 +298,9 @@ static void extrude_mesh_vertices(Mesh &mesh,
 
   MutableSpan<int> vert_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT);
   vert_orig_indices.slice(new_vert_range).fill(ORIGINDEX_NONE);
+
+  MutableSpan<int> new_edge_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE);
+  new_edge_orig_indices.slice(new_edge_range).fill(ORIGINDEX_NONE);
 
   if (attribute_outputs.top_id) {
     save_selection_as_attribute(
@@ -630,6 +636,9 @@ static void extrude_mesh_edges(Mesh &mesh,
   MutableSpan<int> edge_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE);
   edge_orig_indices.slice(connect_edge_range).fill(ORIGINDEX_NONE);
   edge_orig_indices.slice(duplicate_edge_range).fill(ORIGINDEX_NONE);
+
+  MutableSpan<int> poly_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE);
+  poly_orig_indices.slice(new_poly_range).fill(ORIGINDEX_NONE);
 
   if (attribute_outputs.top_id) {
     save_selection_as_attribute(
