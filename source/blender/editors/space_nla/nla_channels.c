@@ -480,7 +480,7 @@ void NLA_OT_action_pushdown(wmOperatorType *ot)
                          "Index of NLA action channel to perform pushdown operation on",
                          0,
                          INT_MAX);
-  RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
+  RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 /* ******************** Action Unlink ******************************** */
