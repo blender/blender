@@ -53,6 +53,9 @@ ccl_device_inline ccl_private ShaderClosure *bsdf_alloc(ccl_private ShaderData *
 {
   kernel_assert(isfinite_safe(weight));
 
+  /* No negative weights allowed. */
+  weight = max(weight, zero_float3());
+
   const float sample_weight = fabsf(average(weight));
 
   /* Use comparison this way to help dealing with non-finite weight: if the average is not finite
