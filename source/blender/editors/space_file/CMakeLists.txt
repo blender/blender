@@ -29,6 +29,7 @@ set(SRC
   file_utils.c
   filelist.cc
   filesel.c
+  folder_history.cc
   fsmenu.c
   space_file.c
 

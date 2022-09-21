@@ -185,6 +185,19 @@ void file_on_reload_callback_register(struct SpaceFile *sfile,
                                       onReloadFn callback,
                                       onReloadFnData custom_data);
 
+/* folder_history.cc */
+
+/* not listbase itself */
+void folderlist_free(struct ListBase *folderlist);
+void folderlist_popdir(struct ListBase *folderlist, char *dir);
+void folderlist_pushdir(struct ListBase *folderlist, const char *dir);
+const char *folderlist_peeklastdir(struct ListBase *folderlist);
+int folderlist_clear_next(struct SpaceFile *sfile);
+
+void folder_history_list_ensure_for_active_browse_mode(struct SpaceFile *sfile);
+void folder_history_list_free(struct SpaceFile *sfile);
+struct ListBase folder_history_list_duplicate(struct ListBase *listbase);
+
 /* file_panels.c */
 
 void file_tool_props_region_panels_register(struct ARegionType *art);
