@@ -160,7 +160,7 @@ static void add_node_search_update_fn(
 {
   AddNodeSearchStorage &storage = *static_cast<AddNodeSearchStorage *>(arg);
   if (storage.update_items_tag) {
-    bNodeTree *node_tree = CTX_wm_space_node(C)->nodetree;
+    bNodeTree *node_tree = CTX_wm_space_node(C)->edittree;
     storage.search_add_items.clear();
     gather_add_node_operations(*C, *node_tree, storage.search_add_items);
     storage.update_items_tag = false;
