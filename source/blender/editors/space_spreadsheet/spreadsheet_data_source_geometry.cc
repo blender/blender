@@ -271,6 +271,9 @@ IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) c
 {
   std::lock_guard lock{mutex_};
   const IndexMask full_range(this->tot_rows());
+  if (full_range.is_empty()) {
+    return full_range;
+  }
 
   switch (component_->type()) {
     case GEO_COMPONENT_TYPE_MESH: {
