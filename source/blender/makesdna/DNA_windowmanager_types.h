@@ -307,7 +307,22 @@ typedef struct wmWindow {
    */
   short pie_event_type_last;
 
-  /** Storage for event system. */
+  /**
+   * Storage for event system.
+   *
+   * For the most part this is storage for `wmEvent.xy` & `wmEvent.modifiers`.
+   * newly added key/button events copy the cursor location and modifier state stored here.
+   *
+   * It's also convenient at times to be able to pass this as if it's a regular event.
+   *
+   * - This is not simply the current event being handled.
+   *   The type and value is always set to the last press/release events
+   *   otherwise cursor motion would always clear these values.
+   *
+   * - The value of `eventstate->modifiers` is set from the last pressed/released modifier key.
+   *   This has the down side that the modifier value will be incorrect if users hold both
+   *   left/right modifiers then release one. See note in #wm_event_add_ghostevent for details.
+   */
   struct wmEvent *eventstate;
   /** Keep the last handled event in `event_queue` here (owned and must be freed). */
   struct wmEvent *event_last_handled;
