@@ -269,7 +269,8 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
 
       attribs.clear();
       attribs.reserve(40);
-      makeAttribList(attribs, m_stereoVisual, needAlpha, softwareGL, increasedSamplerLimit);
+      makeAttribList(
+          attribs, m_coreProfile, m_stereoVisual, needAlpha, softwareGL, increasedSamplerLimit);
 
       pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&attribs[0]];
       if (pixelFormat == nil) {
