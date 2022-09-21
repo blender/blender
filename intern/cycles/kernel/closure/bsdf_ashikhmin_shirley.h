@@ -137,9 +137,11 @@ ccl_device int bsdf_ashikhmin_shirley_sample(ccl_private const ShaderClosure *sc
                                              float randv,
                                              ccl_private Spectrum *eval,
                                              ccl_private float3 *omega_in,
-                                             ccl_private float *pdf)
+                                             ccl_private float *pdf,
+                                             ccl_private float2 *sampled_roughness)
 {
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
+  *sampled_roughness = make_float2(bsdf->alpha_x, bsdf->alpha_y);
   float3 N = bsdf->N;
   int label = LABEL_REFLECT | LABEL_GLOSSY;
 

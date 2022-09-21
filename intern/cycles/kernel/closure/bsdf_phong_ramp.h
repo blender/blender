@@ -79,6 +79,11 @@ ccl_device float3 bsdf_phong_ramp_eval_transmit(ccl_private const ShaderClosure 
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
+ccl_device_inline float phong_ramp_exponent_to_roughness(float exponent)
+{
+  return sqrt(1.0f / ((exponent + 2.0f) / 2.0f));
+}
+
 ccl_device int bsdf_phong_ramp_sample(ccl_private const ShaderClosure *sc,
                                       float3 Ng,
                                       float3 I,
@@ -86,11 +91,14 @@ ccl_device int bsdf_phong_ramp_sample(ccl_private const ShaderClosure *sc,
                                       float randv,
                                       ccl_private Spectrum *eval,
                                       ccl_private float3 *omega_in,
-                                      ccl_private float *pdf)
+                                      ccl_private float *pdf,
+                                      ccl_private float2 *sampled_roughness)
 {
   ccl_private const PhongRampBsdf *bsdf = (ccl_private const PhongRampBsdf *)sc;
   float cosNO = dot(bsdf->N, I);
   float m_exponent = bsdf->exponent;
+  const float m_roughness = phong_ramp_exponent_to_roughness(m_exponent);
+  *sampled_roughness = make_float2(m_roughness, m_roughness);
 
   if (cosNO > 0) {
     // reflect the view vector

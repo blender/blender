@@ -267,7 +267,9 @@ ccl_device int surface_shader_bsdf_sample_closure(KernelGlobals kg,
                                                   const float2 rand_bsdf,
                                                   ccl_private BsdfEval *bsdf_eval,
                                                   ccl_private float3 *omega_in,
-                                                  ccl_private float *pdf)
+                                                  ccl_private float *pdf,
+                                                  ccl_private float2 *sampled_roughness,
+                                                  ccl_private float *eta)
 {
   /* BSSRDF should already have been handled elsewhere. */
   kernel_assert(CLOSURE_IS_BSDF(sc->type));
@@ -276,7 +278,8 @@ ccl_device int surface_shader_bsdf_sample_closure(KernelGlobals kg,
   Spectrum eval = zero_spectrum();
 
   *pdf = 0.0f;
-  label = bsdf_sample(kg, sd, sc, rand_bsdf.x, rand_bsdf.y, &eval, omega_in, pdf);
+  label = bsdf_sample(
+      kg, sd, sc, rand_bsdf.x, rand_bsdf.y, &eval, omega_in, pdf, sampled_roughness, eta);
 
   if (*pdf != 0.0f) {
     bsdf_eval_init(bsdf_eval, sc->type, eval * sc->weight);

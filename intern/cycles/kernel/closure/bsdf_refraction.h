@@ -43,10 +43,13 @@ ccl_device int bsdf_refraction_sample(ccl_private const ShaderClosure *sc,
                                       float randv,
                                       ccl_private Spectrum *eval,
                                       ccl_private float3 *omega_in,
-                                      ccl_private float *pdf)
+                                      ccl_private float *pdf,
+                                      ccl_private float *eta)
 {
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
   float m_eta = bsdf->ior;
+
+  *eta = 1.0f / m_eta;
   float3 N = bsdf->N;
 
   float3 R, T;

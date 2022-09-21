@@ -541,12 +541,18 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals kg,
                                           float randv,
                                           ccl_private Spectrum *eval,
                                           ccl_private float3 *omega_in,
-                                          ccl_private float *pdf)
+                                          ccl_private float *pdf,
+                                          ccl_private float2 *sampled_roughness,
+                                          ccl_private float *eta)
 {
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
   float alpha_x = bsdf->alpha_x;
   float alpha_y = bsdf->alpha_y;
   bool m_refractive = bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
+
+  *sampled_roughness = make_float2(alpha_x, alpha_y);
+  *eta = m_refractive ? 1.0f / bsdf->ior : bsdf->ior;
+
   float3 N = bsdf->N;
   int label;
 
@@ -952,7 +958,9 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
                                                float randv,
                                                ccl_private Spectrum *eval,
                                                ccl_private float3 *omega_in,
-                                               ccl_private float *pdf)
+                                               ccl_private float *pdf,
+                                               ccl_private float2 *sampled_roughness,
+                                               ccl_private float *eta)
 {
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
   float alpha_x = bsdf->alpha_x;
@@ -960,6 +968,9 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
   bool m_refractive = bsdf->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
   float3 N = bsdf->N;
   int label;
+
+  *sampled_roughness = make_float2(alpha_x, alpha_y);
+  *eta = m_refractive ? 1.0f / bsdf->ior : bsdf->ior;
 
   float cosNO = dot(N, I);
   if (cosNO > 0) {

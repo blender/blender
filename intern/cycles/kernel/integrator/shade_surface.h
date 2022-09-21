@@ -357,8 +357,18 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   float3 bsdf_omega_in ccl_optional_struct_init;
   int label;
 
-  label = surface_shader_bsdf_sample_closure(
-      kg, sd, sc, rand_bsdf, &bsdf_eval, &bsdf_omega_in, &bsdf_pdf);
+  float2 bsdf_sampled_roughness = make_float2(1.0f, 1.0f);
+  float bsdf_eta = 1.0f;
+
+  label = surface_shader_bsdf_sample_closure(kg,
+                                             sd,
+                                             sc,
+                                             rand_bsdf,
+                                             &bsdf_eval,
+                                             &bsdf_omega_in,
+                                             &bsdf_pdf,
+                                             &bsdf_sampled_roughness,
+                                             &bsdf_eta);
 
   if (bsdf_pdf == 0.0f || bsdf_eval_is_zero(&bsdf_eval)) {
     return LABEL_NONE;
