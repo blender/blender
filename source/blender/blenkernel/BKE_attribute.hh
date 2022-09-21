@@ -692,6 +692,8 @@ class MutableAttributeAccessor : public AttributeAccessor {
    * The "only" in the name indicates that the caller should not read existing values from the
    * span. If the attribute is not stored as span internally, the existing values won't be copied
    * over to the span.
+   *
+   * For trivial types, the values in a newly created attribute will not be initialized.
    */
   GSpanAttributeWriter lookup_or_add_for_write_only_span(const AttributeIDRef &attribute_id,
                                                          const eAttrDomain domain,
