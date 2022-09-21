@@ -3114,7 +3114,7 @@ static int filelist_readjob_list_lib(const char *root,
   }
 
   /* Open the library file. */
-  BlendFileReadReport bf_reports = {.reports = NULL};
+  BlendFileReadReport bf_reports{};
   libfiledata = BLO_blendhandle_from_file(dir, &bf_reports);
   if (libfiledata == NULL) {
     return 0;
@@ -3460,7 +3460,8 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
   td_dir->dir = BLI_strdup(dir);
 
   /* Init the file indexer. */
-  FileIndexer indexer_runtime = {.callbacks = filelist->indexer};
+  FileIndexer indexer_runtime{};
+  indexer_runtime.callbacks = filelist->indexer;
   if (indexer_runtime.callbacks->init_user_data) {
     indexer_runtime.user_data = indexer_runtime.callbacks->init_user_data(dir, sizeof(dir));
   }
