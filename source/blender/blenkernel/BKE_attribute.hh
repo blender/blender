@@ -264,7 +264,9 @@ template<typename T> struct SpanAttributeWriter {
    */
   void finish()
   {
-    this->span.save();
+    if (this->span.varray()) {
+      this->span.save();
+    }
     if (this->tag_modified_fn) {
       this->tag_modified_fn();
     }
@@ -339,7 +341,9 @@ struct GSpanAttributeWriter {
 
   void finish()
   {
-    this->span.save();
+    if (this->span.varray()) {
+      this->span.save();
+    }
     if (this->tag_modified_fn) {
       this->tag_modified_fn();
     }

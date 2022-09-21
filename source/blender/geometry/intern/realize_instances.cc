@@ -782,9 +782,7 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
     dst_attribute.finish();
   }
   positions.finish();
-  if (point_ids) {
-    point_ids.finish();
-  }
+  point_ids.finish();
 }
 
 /** \} */
@@ -1107,12 +1105,8 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   for (GSpanAttributeWriter &dst_attribute : dst_attribute_writers) {
     dst_attribute.finish();
   }
-  if (vertex_ids) {
-    vertex_ids.finish();
-  }
-  if (material_indices) {
-    material_indices.finish();
-  }
+  vertex_ids.finish();
+  material_indices.finish();
 }
 
 /** \} */
@@ -1406,19 +1400,11 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
   for (GSpanAttributeWriter &dst_attribute : dst_attribute_writers) {
     dst_attribute.finish();
   }
-  if (point_ids) {
-    point_ids.finish();
-  }
-  if (radius) {
-    radius.finish();
-  }
-  if (resolution) {
-    resolution.finish();
-  }
-  if (all_curves_info.create_handle_postion_attributes) {
-    handle_left.finish();
-    handle_right.finish();
-  }
+  point_ids.finish();
+  radius.finish();
+  resolution.finish();
+  handle_left.finish();
+  handle_right.finish();
 }
 
 /** \} */

@@ -1368,21 +1368,12 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   }
   bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP);
 
-  if (material_index_attribute) {
-    material_index_attribute.finish();
-  }
-
   assert_bmesh_has_no_mesh_only_attributes(*bm);
 
-  if (hide_vert_attribute) {
-    hide_vert_attribute.finish();
-  }
-  if (hide_edge_attribute) {
-    hide_edge_attribute.finish();
-  }
-  if (hide_poly_attribute) {
-    hide_poly_attribute.finish();
-  }
+  material_index_attribute.finish();
+  hide_vert_attribute.finish();
+  hide_edge_attribute.finish();
+  hide_poly_attribute.finish();
 
   me->cd_flag = BM_mesh_cd_flag_from_bmesh(bm);
 }

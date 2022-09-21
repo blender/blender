@@ -382,13 +382,8 @@ BLI_NOINLINE static void compute_attribute_outputs(const Mesh &mesh,
   }
 
   ids.finish();
-
-  if (normals) {
-    normals.finish();
-  }
-  if (rotations) {
-    rotations.finish();
-  }
+  normals.finish();
+  rotations.finish();
 }
 
 static Array<float> calc_full_density_factors_with_selection(const Mesh &mesh,
