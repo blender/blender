@@ -320,7 +320,7 @@ static int vertex_color_brightness_contrast_exec(bContext *C, wmOperator *op)
     /*
      * The algorithm is by Werner D. Streidt
      * (http://visca.com/ffactory/archives/5-99/msg00021.html)
-     * Extracted of OpenCV demhist.c
+     * Extracted of OpenCV `demhist.c`.
      */
     if (contrast > 0) {
       gain = 1.0f - delta * 2.0f;

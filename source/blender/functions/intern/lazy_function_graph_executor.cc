@@ -7,7 +7,7 @@
  * - Allow spreading the work over an arbitrary number of threads efficiently.
  *
  * This executor makes use of `FN_lazy_threading.hh` to enable multi-threading only when it seems
- * benefitial. It operates in two modes: single- and multi-threaded. The use of a task pool and
+ * beneficial. It operates in two modes: single- and multi-threaded. The use of a task pool and
  * locks is avoided in single-threaded mode. Once multi-threading is enabled the executor starts
  * using both. It is not possible to switch back from multi-threaded to single-threaded mode.
  *

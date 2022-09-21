@@ -77,19 +77,19 @@ void BKE_libblock_runtime_reset_remapping_status(struct ID *id) ATTR_NONNULL(1);
 /* *** ID's session_uuid management. *** */
 
 /**
- * When an ID's uuid is of that value, it is unset/invalid (e.g. for runtime IDs, etc.).
+ * When an ID's UUID is of that value, it is unset/invalid (e.g. for runtime IDs, etc.).
  */
 #define MAIN_ID_SESSION_UUID_UNSET 0
 
 /**
- * Generate a session-wise uuid for the given \a id.
+ * Generate a session-wise UUID for the given \a id.
  *
  * \note "session-wise" here means while editing a given .blend file. Once a new .blend file is
- * loaded or created, undo history is cleared/reset, and so is the uuid counter.
+ * loaded or created, undo history is cleared/reset, and so is the UUID counter.
  */
 void BKE_lib_libblock_session_uuid_ensure(struct ID *id);
 /**
- * Re-generate a new session-wise uuid for the given \a id.
+ * Re-generate a new session-wise UUID for the given \a id.
  *
  * \warning This has a few very specific use-cases, no other usage is expected currently:
  *   - To handle UI-related data-blocks that are kept across new file reading, when we do keep
@@ -150,7 +150,7 @@ enum {
   LIB_ID_COPY_NO_PREVIEW = 1 << 17,
   /** Copy runtime data caches. */
   LIB_ID_COPY_CACHES = 1 << 18,
-  /** Don't copy id->adt, used by ID data-block localization routines. */
+  /** Don't copy `id->adt`, used by ID data-block localization routines. */
   LIB_ID_COPY_NO_ANIMDATA = 1 << 19,
   /** Mesh: Reference CD data layers instead of doing real copy - USE WITH CAUTION! */
   LIB_ID_COPY_CD_REFERENCE = 1 << 20,

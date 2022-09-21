@@ -245,7 +245,7 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
 
   BLI_listbase_clear(&ob_dst->modifiers);
   BLI_listbase_clear(&ob_dst->greasepencil_modifiers);
-  /* NOTE: Also takes care of softbody and particle systems copying. */
+  /* NOTE: Also takes care of soft-body and particle systems copying. */
   BKE_object_modifier_stack_copy(ob_dst, ob_src, true, flag_subdata);
 
   BLI_listbase_clear((ListBase *)&ob_dst->drawdata);
@@ -396,7 +396,7 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->mat[i], IDWALK_CB_USER);
   }
 
-  /* Note that ob->gpd is deprecated, so no need to handle it here. */
+  /* Note that `ob->gpd` is deprecated, so no need to handle it here. */
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->instance_collection, IDWALK_CB_USER);
 
   if (object->pd) {
@@ -736,9 +736,9 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
     BLO_read_data_address(reader, &sb->shared);
     if (sb->shared == nullptr) {
       /* Link deprecated caches if they exist, so we can use them for versioning.
-       * We should only do this when sb->shared == nullptr, because those pointers
+       * We should only do this when `sb->shared == nullptr`, because those pointers
        * are always set (for compatibility with older Blenders). We mustn't link
-       * the same pointcache twice. */
+       * the same point-cache twice. */
       BKE_ptcache_blend_read_data(reader, &sb->ptcaches, &sb->pointcache, false);
     }
     else {
@@ -1141,7 +1141,7 @@ static void object_lib_override_apply_post(ID *id_dst, ID *id_src)
    * This code is a workaround this to check all point-caches from both source and destination
    * objects in parallel, and transfer those flags when it makes sense.
    *
-   * This allows to keep baked caches across liboverrides applies.
+   * This allows to keep baked caches across lib-overrides applies.
    *
    * NOTE: This is fairly hackish and weak, but so is the point-cache system as its whole. A more
    * robust solution would be e.g. to have a specific RNA entry point to deal with such cases
@@ -1170,7 +1170,7 @@ static void object_lib_override_apply_post(ID *id_dst, ID *id_src)
          point_cache_dst != nullptr;
          point_cache_dst = point_cache_dst->next,
         point_cache_src = (point_cache_src != nullptr) ? point_cache_src->next : nullptr) {
-      /* Always force updating info about caches of applied liboverrides. */
+      /* Always force updating info about caches of applied lib-overrides. */
       point_cache_dst->flag |= PTCACHE_FLAG_INFO_DIRTY;
       if (point_cache_src == nullptr || !STREQ(point_cache_dst->name, point_cache_src->name)) {
         continue;
@@ -1300,10 +1300,10 @@ void BKE_object_free_modifiers(Object *ob, const int flag)
   while ((gp_md = (GpencilModifierData *)BLI_pophead(&ob->greasepencil_modifiers))) {
     BKE_gpencil_modifier_free_ex(gp_md, flag);
   }
-  /* particle modifiers were freed, so free the particlesystems as well */
+  /* Particle modifiers were freed, so free the particle-systems as well. */
   BKE_object_free_particlesystems(ob);
 
-  /* same for softbody */
+  /* Same for soft-body */
   BKE_object_free_softbody(ob);
 
   /* modifiers may have stored data in the DM cache */
@@ -1448,11 +1448,11 @@ static bool object_modifier_type_copy_check(ModifierType md_type)
 }
 
 /**
- * Find a `psys` matching given `psys_src` in `ob_dst` (i.e. sharing the same ParticleSettings ID),
- * or add one, and return valid `psys` from `ob_dst`.
+ * Find a `psys` matching given `psys_src` in `ob_dst`
+ * (i.e. sharing the same #ParticleSettings ID), or add one, and return valid `psys` from `ob_dst`.
  *
  * \note Order handling is fairly weak here. This code assumes that it is called **before** the
- * modifier using the psys is actually copied, and that this copied modifier will be added at the
+ * modifier using the `psys` is actually copied, and that this copied modifier will be added at the
  * end of the stack. That way we can be sure that the particle modifier will be before the one
  * using its particle system in the stack.
  */
@@ -2484,8 +2484,8 @@ void BKE_object_copy_particlesystems(Object *ob_dst, const Object *ob_src, const
 
 static void copy_object_pose(Object *obn, const Object *ob, const int flag)
 {
-  /* NOTE: need to clear obn->pose pointer first,
-   * so that BKE_pose_copy_data works (otherwise there's a crash) */
+  /* NOTE: need to clear `obn->pose` pointer first,
+   * so that #BKE_pose_copy_data works (otherwise there's a crash) */
   obn->pose = nullptr;
   BKE_pose_copy_data_ex(&obn->pose, ob->pose, flag, true); /* true = copy constraints */
 
@@ -2916,7 +2916,7 @@ void BKE_object_rot_to_mat3(const Object *ob, float mat[3][3], bool use_drot)
     axis_angle_to_mat3(dmat, ob->drotAxis, ob->drotAngle);
   }
   else {
-    /* quats are normalized before use to eliminate scaling issues */
+    /* Quaternions are normalized before use to eliminate scaling issues. */
     float tquat[4];
 
     normalize_qt_qt(tquat, ob->quat);
@@ -2952,7 +2952,7 @@ void BKE_object_mat3_to_rot(Object *ob, float mat[3][3], bool use_compat)
       float quat[4];
       float dquat[4];
 
-      /* without drot we could apply 'mat' directly */
+      /* Without `drot` we could apply 'mat' directly. */
       mat3_normalized_to_quat(quat, mat);
       axis_angle_to_quat(dquat, ob->drotAxis, ob->drotAngle);
       invert_qt_normalized(dquat);
@@ -2965,12 +2965,12 @@ void BKE_object_mat3_to_rot(Object *ob, float mat[3][3], bool use_compat)
       float quat[4];
       float dquat[4];
 
-      /* without drot we could apply 'mat' directly */
+      /* Without `drot` we could apply 'mat' directly. */
       mat3_normalized_to_quat(quat, mat);
       eulO_to_quat(dquat, ob->drot, ob->rotmode);
       invert_qt_normalized(dquat);
       mul_qt_qtqt(quat, dquat, quat);
-      /* end drot correction */
+      /* End `drot` correction. */
 
       if (use_compat) {
         quat_to_compatible_eulO(ob->rot, ob->rot, ob->rotmode, quat);
@@ -3131,12 +3131,11 @@ static bool ob_parcurve(Object *ob, Object *par, float r_mat[4][4])
     return false;
   }
 
-  /* ctime is now a proper var setting of Curve which gets set by Animato like any other var
+  /* `ctime` is now a proper var setting of Curve which gets set by Animato like any other var
    * that's animated, but this will only work if it actually is animated.
    *
    * We divide the curve-time calculated in the previous step by the length of the path,
-   * to get a time factor, which then gets clamped to lie within 0.0 - 1.0 range.
-   */
+   * to get a time factor, which then gets clamped to lie within 0.0 - 1.0 range. */
   if (cu->pathlen) {
     ctime = cu->ctime / cu->pathlen;
   }
@@ -3415,7 +3414,7 @@ static void solve_parenting(
   mul_m4_m4m4(r_obmat, tmat, locmat);
 
   if (r_originmat) {
-    /* usable originmat */
+    /* Usable `r_originmat`. */
     copy_m3_m4(r_originmat, tmat);
   }
 
@@ -4096,7 +4095,7 @@ bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
     }
     else {
       Object temp_ob = blender::dna::shallow_copy(*dob->ob);
-      /* Do not modify the original boundbox. */
+      /* Do not modify the original bounding-box. */
       temp_ob.runtime.bb = nullptr;
       BKE_object_replace_data_on_shallow_copy(&temp_ob, dob->ob_data);
       const BoundBox *bb = BKE_object_boundbox_get(&temp_ob);
@@ -4149,7 +4148,7 @@ void BKE_object_foreach_display_point(Object *ob,
                                       void (*func_cb)(const float[3], void *),
                                       void *user_data)
 {
-  /* TODO: pointcloud and curves object support */
+  /* TODO: point-cloud and curves object support. */
   const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
   float3 co;
 
@@ -4298,7 +4297,7 @@ void BKE_object_handle_update_ex(Depsgraph *depsgraph,
        * is evaluated on the rebuilt pose, otherwise we get incorrect poses
        * on file load */
       if (ob->pose == nullptr || (ob->pose->flag & POSE_RECALC)) {
-        /* No need to pass bmain here, we assume we do not need to rebuild DEG from here... */
+        /* No need to pass `bmain` here, we assume we do not need to rebuild DEG from here. */
         BKE_pose_rebuild(nullptr, ob, (bArmature *)ob->data, true);
       }
     }
@@ -5449,8 +5448,7 @@ bool BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
           depsgraph, scene, ob->track, false, recursion, frame, type);
     }
 
-    /* skip subframe if object is parented
-     * to vertex of a dynamic paint canvas */
+    /* Skip sub-frame if object is parented to vertex of a dynamic paint canvas. */
     if (no_update && (ELEM(ob->partype, PARVERT1, PARVERT3))) {
       return false;
     }
@@ -5481,8 +5479,7 @@ bool BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
   if (update_mesh) {
     BKE_animsys_evaluate_animdata(
         &ob->id, ob->adt, &anim_eval_context, ADT_RECALC_ANIM, flush_to_original);
-    /* ignore cache clear during subframe updates
-     * to not mess up cache validity */
+    /* Ignore cache clear during sub-frame updates to not mess up cache validity. */
     object_cacheIgnoreClear(ob, 1);
     BKE_object_handle_update(depsgraph, scene, ob);
     object_cacheIgnoreClear(ob, 0);

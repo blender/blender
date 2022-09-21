@@ -259,7 +259,7 @@ eFileAttributes BLI_file_attributes(const char *path)
 #ifndef __APPLE__
 bool BLI_file_alias_target(const char *filepath,
                            /* This parameter can only be `const` on Linux since
-                            * redirections are not supported there.
+                            * redirection is not supported there.
                             * NOLINTNEXTLINE: readability-non-const-parameter. */
                            char r_targetpath[/*FILE_MAXDIR*/])
 {
