@@ -18,6 +18,8 @@ ccl_device_inline void integrate_light(KernelGlobals kg,
   Intersection isect ccl_optional_struct_init;
   integrator_state_read_isect(kg, state, &isect);
 
+  guiding_record_light_surface_segment(kg, state, &isect);
+
   float3 ray_P = INTEGRATOR_STATE(state, ray, P);
   const float3 ray_D = INTEGRATOR_STATE(state, ray, D);
   const float ray_time = INTEGRATOR_STATE(state, ray, time);
@@ -66,6 +68,7 @@ ccl_device_inline void integrate_light(KernelGlobals kg,
   }
 
   /* Write to render buffer. */
+  guiding_record_surface_emission(kg, state, light_eval, mis_weight);
   film_write_surface_emission(kg, state, light_eval, mis_weight, render_buffer, ls.group);
 }
 

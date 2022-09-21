@@ -118,6 +118,9 @@ macro(cycles_external_libraries_append libraries)
   if(WITH_ALEMBIC)
     list(APPEND ${libraries} ${ALEMBIC_LIBRARIES})
   endif()
+  if(WITH_PATH_GUIDING)
+    target_link_libraries(${target} ${OPENPGL_LIBRARIES})
+  endif()
 
   list(APPEND ${libraries}
     ${OPENIMAGEIO_LIBRARIES}

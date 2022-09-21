@@ -4,11 +4,15 @@
 #pragma once
 
 #include "integrator/denoiser.h"
+#include "integrator/guiding.h"
 #include "integrator/pass_accessor.h"
 #include "integrator/path_trace_work.h"
 #include "integrator/work_balancer.h"
+
 #include "session/buffers.h"
+
 #include "util/function.h"
+#include "util/guiding.h"
 #include "util/thread.h"
 #include "util/unique_ptr.h"
 #include "util/vector.h"
@@ -88,6 +92,10 @@ class PathTrace {
   /* Set parameters used for adaptive sampling.
    * Use this to configure the adaptive sampler before rendering any samples. */
   void set_adaptive_sampling(const AdaptiveSampling &adaptive_sampling);
+
+  /* Set the parameters for guiding.
+   * Use to setup the guiding structures before each rendering iteration.*/
+  void set_guiding_params(const GuidingParams &params, const bool reset);
 
   /* Sets output driver for render buffer output. */
   void set_output_driver(unique_ptr<OutputDriver> driver);
@@ -205,6 +213,15 @@ class PathTrace {
   void write_tile_buffer(const RenderWork &render_work);
   void finalize_full_buffer_on_disk(const RenderWork &render_work);
 
+  /* Updates/initializes the guiding structures after a rendering iteration.
+   * The structures are updated using the training data/samples generated during the previous
+   * rendering iteration */
+  void guiding_update_structures();
+
+  /* Prepares the per-kernel thread related guiding structures (e.g., PathSegmentStorage,
+   * pointers to the global Field and SegmentStorage)*/
+  void guiding_prepare_structures();
+
   /* Get number of samples in the current state of the render buffers. */
   int get_num_samples_in_buffer();
 
@@ -264,6 +281,22 @@ class PathTrace {
 
   /* Denoiser device descriptor which holds the denoised big tile for multi-device workloads. */
   unique_ptr<PathTraceWork> big_tile_denoise_work_;
+
+#ifdef WITH_PATH_GUIDING
+  /* Guiding related attributes */
+  GuidingParams guiding_params_;
+
+  /* The guiding field which holds the representation of the incident radiance field for the
+   * complete scene. */
+  unique_ptr<openpgl::cpp::Field> guiding_field_;
+
+  /* The storage container which holds the training data/samples generated during the last
+   * rendering iteration. */
+  unique_ptr<openpgl::cpp::SampleStorage> guiding_sample_data_storage_;
+
+  /* The number of already performed training iterations for the guiding field.*/
+  int guiding_update_count = 0;
+#endif
 
   /* State which is common for all the steps of the render work.
    * Is brought up to date in the `render()` call and is accessed from all the steps involved into

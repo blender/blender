@@ -413,6 +413,22 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
   integrator->set_direct_light_sampling_type(direct_light_sampling_type);
 #endif
 
+  integrator->set_use_guiding(get_boolean(cscene, "use_guiding"));
+  integrator->set_use_surface_guiding(get_boolean(cscene, "use_surface_guiding"));
+  integrator->set_use_volume_guiding(get_boolean(cscene, "use_volume_guiding"));
+  integrator->set_guiding_training_samples(get_int(cscene, "guiding_training_samples"));
+
+  if (use_developer_ui) {
+    integrator->set_deterministic_guiding(get_boolean(cscene, "use_deterministic_guiding"));
+    integrator->set_surface_guiding_probability(get_float(cscene, "surface_guiding_probability"));
+    integrator->set_volume_guiding_probability(get_float(cscene, "volume_guiding_probability"));
+    integrator->set_use_guiding_direct_light(get_boolean(cscene, "use_guiding_direct_light"));
+    integrator->set_use_guiding_mis_weights(get_boolean(cscene, "use_guiding_mis_weights"));
+    GuidingDistributionType guiding_distribution_type = (GuidingDistributionType)get_enum(
+        cscene, "guiding_distribution_type", GUIDING_NUM_TYPES, GUIDING_TYPE_PARALLAX_AWARE_VMM);
+    integrator->set_guiding_distribution_type(guiding_distribution_type);
+  }
+
   DenoiseParams denoise_params = get_denoise_params(b_scene, b_view_layer, background);
 
   /* No denoising support for vertex color baking, vertices packed into image
@@ -736,6 +752,17 @@ void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_v
     b_engine.add_pass("Denoising Depth", 1, "Z", b_view_layer.name().c_str());
     pass_add(scene, PASS_DENOISING_DEPTH, "Denoising Depth", PassMode::NOISY);
   }
+
+#ifdef WITH_CYCLES_DEBUG
+  b_engine.add_pass("Guiding Color", 3, "RGB", b_view_layer.name().c_str());
+  pass_add(scene, PASS_GUIDING_COLOR, "Guiding Color", PassMode::NOISY);
+
+  b_engine.add_pass("Guiding Probability", 1, "X", b_view_layer.name().c_str());
+  pass_add(scene, PASS_GUIDING_PROBABILITY, "Guiding Probability", PassMode::NOISY);
+
+  b_engine.add_pass("Guiding Average Roughness", 1, "X", b_view_layer.name().c_str());
+  pass_add(scene, PASS_GUIDING_AVG_ROUGHNESS, "Guiding Average Roughness", PassMode::NOISY);
+#endif
 
   /* Custom AOV passes. */
   BL::ViewLayer::aovs_iterator b_aov_iter;

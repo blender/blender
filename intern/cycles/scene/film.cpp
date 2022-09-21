@@ -200,6 +200,10 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
   kfilm->pass_shadow_catcher_sample_count = PASS_UNUSED;
   kfilm->pass_shadow_catcher_matte = PASS_UNUSED;
 
+  kfilm->pass_guiding_color = PASS_UNUSED;
+  kfilm->pass_guiding_probability = PASS_UNUSED;
+  kfilm->pass_guiding_avg_roughness = PASS_UNUSED;
+
   bool have_cryptomatte = false;
   bool have_aov_color = false;
   bool have_aov_value = false;
@@ -381,6 +385,15 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
           kfilm->pass_aov_value = kfilm->pass_stride;
           have_aov_value = true;
         }
+        break;
+      case PASS_GUIDING_COLOR:
+        kfilm->pass_guiding_color = kfilm->pass_stride;
+        break;
+      case PASS_GUIDING_PROBABILITY:
+        kfilm->pass_guiding_probability = kfilm->pass_stride;
+        break;
+      case PASS_GUIDING_AVG_ROUGHNESS:
+        kfilm->pass_guiding_avg_roughness = kfilm->pass_stride;
         break;
       default:
         assert(false);

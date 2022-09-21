@@ -15,6 +15,7 @@
 
 #include "util/debug.h"
 #include "util/foreach.h"
+#include "util/guiding.h"
 #include "util/log.h"
 #include "util/md5.h"
 #include "util/opengl.h"
@@ -1007,6 +1008,15 @@ void *CCL_python_module_init()
   PyModule_AddStringConstant(mod, "osl_version", "unknown");
   PyModule_AddStringConstant(mod, "osl_version_string", "unknown");
 #endif
+
+  if (ccl::guiding_supported()) {
+    PyModule_AddObject(mod, "with_path_guiding", Py_True);
+    Py_INCREF(Py_True);
+  }
+  else {
+    PyModule_AddObject(mod, "with_path_guiding", Py_False);
+    Py_INCREF(Py_False);
+  }
 
 #ifdef WITH_EMBREE
   PyModule_AddObject(mod, "with_embree", Py_True);

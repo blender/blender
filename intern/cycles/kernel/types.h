@@ -79,6 +79,9 @@ CCL_NAMESPACE_BEGIN
 #  ifdef WITH_OSL
 #    define __OSL__
 #  endif
+#  ifdef WITH_PATH_GUIDING
+#    define __PATH_GUIDING__
+#  endif
 #  define __VOLUME_RECORD_ALL__
 #endif /* !__KERNEL_GPU__ */
 
@@ -146,12 +149,14 @@ enum PathTraceDimension {
   PRNG_SURFACE_BSDF = 3,
   PRNG_SURFACE_AO = 4,
   PRNG_SURFACE_BEVEL = 5,
+  PRNG_SURFACE_BSDF_GUIDING = 6,
   /* Volume */
   PRNG_VOLUME_PHASE = 3,
   PRNG_VOLUME_PHASE_CHANNEL = 4,
   PRNG_VOLUME_SCATTER_DISTANCE = 5,
   PRNG_VOLUME_OFFSET = 6,
   PRNG_VOLUME_SHADE_OFFSET = 7,
+  PRNG_VOLUME_PHASE_GUIDING = 8,
 
   /* Subsurface random walk bounces */
   PRNG_SUBSURFACE_BSDF = 0,
@@ -387,6 +392,14 @@ typedef enum PassType {
   PASS_SHADOW_CATCHER_SAMPLE_COUNT,
   PASS_SHADOW_CATCHER_MATTE,
 
+  /* Guiding related debug rendering passes */
+  /* The estimated sample color from the PathSegmentStorage. If everything is integrated correctly
+   * the output should be similar to PASS_COMBINED. */
+  PASS_GUIDING_COLOR,
+  /* The guiding probability at the first bounce. */
+  PASS_GUIDING_PROBABILITY,
+  /* The avg. roughness at the first bounce. */
+  PASS_GUIDING_AVG_ROUGHNESS,
   PASS_CATEGORY_DATA_END = 63,
 
   PASS_BAKE_PRIMITIVE,
@@ -454,6 +467,16 @@ typedef enum LightType {
   LIGHT_SPOT,
   LIGHT_TRIANGLE
 } LightType;
+
+/* Guiding Distribution Type */
+
+typedef enum GuidingDistributionType {
+  GUIDING_TYPE_PARALLAX_AWARE_VMM = 0,
+  GUIDING_TYPE_DIRECTIONAL_QUAD_TREE = 1,
+  GUIDING_TYPE_VMM = 2,
+
+  GUIDING_NUM_TYPES,
+} GuidingDistributionType;
 
 /* Camera Type */
 
@@ -1502,6 +1525,9 @@ enum KernelFeatureFlag : uint32_t {
 
   /* MNEE. */
   KERNEL_FEATURE_MNEE = (1U << 25U),
+
+  /* Path guiding. */
+  KERNEL_FEATURE_PATH_GUIDING = (1U << 26U),
 };
 
 /* Shader node feature mask, to specialize shader evaluation for kernels. */

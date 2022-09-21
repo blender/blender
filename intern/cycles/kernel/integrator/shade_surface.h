@@ -9,6 +9,7 @@
 
 #include "kernel/integrator/mnee.h"
 
+#include "kernel/integrator/guiding.h"
 #include "kernel/integrator/path_state.h"
 #include "kernel/integrator/subsurface.h"
 #include "kernel/integrator/surface_shader.h"
@@ -101,7 +102,7 @@ ccl_device_forceinline bool integrate_surface_holdout(KernelGlobals kg,
 }
 
 ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
-                                                       ConstIntegratorState state,
+                                                       IntegratorState state,
                                                        ccl_private const ShaderData *sd,
                                                        ccl_global float *ccl_restrict
                                                            render_buffer)
@@ -128,6 +129,7 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
     mis_weight = light_sample_mis_weight_forward(kg, bsdf_pdf, pdf);
   }
 
+  guiding_record_surface_emission(kg, state, L, mis_weight);
   film_write_surface_emission(
       kg, state, L, mis_weight, render_buffer, object_lightgroup(kg, sd->object));
 }
@@ -210,7 +212,7 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
     }
 
     /* Evaluate BSDF. */
-    const float bsdf_pdf = surface_shader_bsdf_eval(kg, sd, ls.D, &bsdf_eval, ls.shader);
+    const float bsdf_pdf = surface_shader_bsdf_eval(kg, state, sd, ls.D, &bsdf_eval, ls.shader);
     bsdf_eval_mul(&bsdf_eval, light_eval / ls.pdf);
 
     if (ls.shader & SHADER_USE_MIS) {
@@ -258,8 +260,8 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   /* Copy state from main path to shadow path. */
   uint32_t shadow_flag = INTEGRATOR_STATE(state, path, flag);
   shadow_flag |= (is_light) ? PATH_RAY_SHADOW_FOR_LIGHT : 0;
-  const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput) *
-                              bsdf_eval_sum(&bsdf_eval);
+  const Spectrum unlit_throughput = INTEGRATOR_STATE(state, path, throughput);
+  const Spectrum throughput = unlit_throughput * bsdf_eval_sum(&bsdf_eval);
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
     PackedSpectrum pass_diffuse_weight;
@@ -329,6 +331,11 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
       shadow_state, shadow_path, lightgroup) = (ls.type != LIGHT_BACKGROUND) ?
                                                    ls.group + 1 :
                                                    kernel_data.background.lightgroup + 1;
+#ifdef __PATH_GUIDING__
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, unlit_throughput) = unlit_throughput;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, path_segment) = INTEGRATOR_STATE(
+      state, guiding, path_segment);
+#endif
 }
 
 /* Path tracing: bounce off or through surface with new direction. */
@@ -354,7 +361,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
 #endif
 
   /* BSDF closure, sample direction. */
-  float bsdf_pdf;
+  float bsdf_pdf = 0.0f, unguided_bsdf_pdf = 0.0f;
   BsdfEval bsdf_eval ccl_optional_struct_init;
   float3 bsdf_omega_in ccl_optional_struct_init;
   int label;
@@ -362,18 +369,44 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   float2 bsdf_sampled_roughness = make_float2(1.0f, 1.0f);
   float bsdf_eta = 1.0f;
 
-  label = surface_shader_bsdf_sample_closure(kg,
-                                             sd,
-                                             sc,
-                                             rand_bsdf,
-                                             &bsdf_eval,
-                                             &bsdf_omega_in,
-                                             &bsdf_pdf,
-                                             &bsdf_sampled_roughness,
-                                             &bsdf_eta);
+#if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
+  if (kernel_data.integrator.use_surface_guiding) {
+    label = surface_shader_bsdf_guided_sample_closure(kg,
+                                                      state,
+                                                      sd,
+                                                      sc,
+                                                      rand_bsdf,
+                                                      &bsdf_eval,
+                                                      &bsdf_omega_in,
+                                                      &bsdf_pdf,
+                                                      &unguided_bsdf_pdf,
+                                                      &bsdf_sampled_roughness,
+                                                      &bsdf_eta);
 
-  if (bsdf_pdf == 0.0f || bsdf_eval_is_zero(&bsdf_eval)) {
-    return LABEL_NONE;
+    if (bsdf_pdf == 0.0f || bsdf_eval_is_zero(&bsdf_eval)) {
+      return LABEL_NONE;
+    }
+
+    INTEGRATOR_STATE_WRITE(state, path, unguided_throughput) *= bsdf_pdf / unguided_bsdf_pdf;
+  }
+  else
+#endif
+  {
+    label = surface_shader_bsdf_sample_closure(kg,
+                                               sd,
+                                               sc,
+                                               rand_bsdf,
+                                               &bsdf_eval,
+                                               &bsdf_omega_in,
+                                               &bsdf_pdf,
+                                               &bsdf_sampled_roughness,
+                                               &bsdf_eta);
+
+    if (bsdf_pdf == 0.0f || bsdf_eval_is_zero(&bsdf_eval)) {
+      return LABEL_NONE;
+    }
+
+    unguided_bsdf_pdf = bsdf_pdf;
   }
 
   if (label & LABEL_TRANSPARENT) {
@@ -393,9 +426,8 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   }
 
   /* Update throughput. */
-  Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
-  throughput *= bsdf_eval_sum(&bsdf_eval) / bsdf_pdf;
-  INTEGRATOR_STATE_WRITE(state, path, throughput) = throughput;
+  const Spectrum bsdf_weight = bsdf_eval_sum(&bsdf_eval) / bsdf_pdf;
+  INTEGRATOR_STATE_WRITE(state, path, throughput) *= bsdf_weight;
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
     if (INTEGRATOR_STATE(state, path, bounce) == 0) {
@@ -410,10 +442,21 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   if (!(label & LABEL_TRANSPARENT)) {
     INTEGRATOR_STATE_WRITE(state, path, mis_ray_pdf) = bsdf_pdf;
     INTEGRATOR_STATE_WRITE(state, path, min_ray_pdf) = fminf(
-        bsdf_pdf, INTEGRATOR_STATE(state, path, min_ray_pdf));
+        unguided_bsdf_pdf, INTEGRATOR_STATE(state, path, min_ray_pdf));
   }
 
   path_state_next(kg, state, label);
+
+  guiding_record_surface_bounce(kg,
+                                state,
+                                sd,
+                                bsdf_weight,
+                                bsdf_pdf,
+                                sd->N,
+                                normalize(bsdf_omega_in),
+                                bsdf_sampled_roughness,
+                                bsdf_eta);
+
   return label;
 }
 
@@ -435,14 +478,15 @@ ccl_device_forceinline int integrate_surface_volume_only_bounce(IntegratorState 
 ccl_device_forceinline bool integrate_surface_terminate(IntegratorState state,
                                                         const uint32_t path_flag)
 {
-  const float probability = (path_flag & PATH_RAY_TERMINATE_ON_NEXT_SURFACE) ?
-                                0.0f :
-                                INTEGRATOR_STATE(state, path, continuation_probability);
-  if (probability == 0.0f) {
+  const float continuation_probability = (path_flag & PATH_RAY_TERMINATE_ON_NEXT_SURFACE) ?
+                                             0.0f :
+                                             INTEGRATOR_STATE(
+                                                 state, path, continuation_probability);
+  if (continuation_probability == 0.0f) {
     return true;
   }
-  else if (probability != 1.0f) {
-    INTEGRATOR_STATE_WRITE(state, path, throughput) /= probability;
+  else if (continuation_probability != 1.0f) {
+    INTEGRATOR_STATE_WRITE(state, path, throughput) /= continuation_probability;
   }
 
   return false;
@@ -550,6 +594,8 @@ ccl_device bool integrate_surface(KernelGlobals kg,
 #ifdef __VOLUME__
   if (!(sd.flag & SD_HAS_ONLY_VOLUME)) {
 #endif
+    guiding_record_surface_segment(kg, state, &sd);
+
 #ifdef __SUBSURFACE__
     /* Can skip shader evaluation for BSSRDF exit point without bump mapping. */
     if (!(path_flag & PATH_RAY_SUBSURFACE) || ((sd.flag & SD_HAS_BSSRDF_BUMP)))
@@ -615,6 +661,10 @@ ccl_device bool integrate_surface(KernelGlobals kg,
     RNGState rng_state;
     path_state_rng_load(state, &rng_state);
 
+#if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
+    surface_shader_prepare_guiding(kg, state, &sd, &rng_state);
+    guiding_write_debug_passes(kg, state, &sd, render_buffer);
+#endif
     /* Direct light. */
     PROFILING_EVENT(PROFILING_SHADE_SURFACE_DIRECT_LIGHT);
     integrate_surface_direct_light<node_feature_mask>(kg, state, &sd, &rng_state);
