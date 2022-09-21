@@ -181,7 +181,6 @@ static void point_scatter_density_grid(const openvdb::FloatGrid &grid,
 
 static void geo_node_distribute_points_in_volume_exec(GeoNodeExecParams params)
 {
-#ifdef WITH_OPENVDB
   GeometrySet geometry_set_in = params.extract_input<GeometrySet>("Volume");
 
 #ifdef WITH_OPENVDB
