@@ -960,8 +960,8 @@ void nodeLabel(const struct bNodeTree *ntree, const struct bNode *node, char *la
  */
 const char *nodeSocketLabel(const struct bNodeSocket *sock);
 
-bool nodeGroupPoll(struct bNodeTree *nodetree,
-                   struct bNodeTree *grouptree,
+bool nodeGroupPoll(const struct bNodeTree *nodetree,
+                   const struct bNodeTree *grouptree,
                    const char **r_disabled_hint);
 
 /**
