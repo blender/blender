@@ -7060,6 +7060,7 @@ static void def_cmp_output_file(BlenderRNA *brna, StructRNA *srna)
   prop = RNA_def_property(srna, "base_path", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_sdna(prop, NULL, "base_path");
   RNA_def_property_ui_text(prop, "Base Path", "Base output path for the image");
+  RNA_def_property_flag(prop, PROP_PATH_OUTPUT);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "active_input_index", PROP_INT, PROP_NONE);

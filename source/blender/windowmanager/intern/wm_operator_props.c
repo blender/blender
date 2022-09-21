@@ -120,16 +120,14 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
     RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   }
 
-  if (action == FILE_SAVE) {
-    /* NOTE: this is only used to check if we should highlight the filename area red when the
-     * filepath is an existing file. */
-    prop = RNA_def_boolean(ot->srna,
-                           "check_existing",
-                           true,
-                           "Check Existing",
-                           "Check and warn on overwriting existing files");
-    RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-  }
+  /* NOTE: this is only used to check if we should highlight the filename area red when the
+   * filepath is an existing file. */
+  prop = RNA_def_boolean(ot->srna,
+                         "check_existing",
+                         action == FILE_SAVE,
+                         "Check Existing",
+                         "Check and warn on overwriting existing files");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(
       ot->srna, "filter_blender", (filter & FILE_TYPE_BLENDER) != 0, "Filter .blend files", "");
