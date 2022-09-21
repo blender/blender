@@ -181,9 +181,9 @@ static void point_scatter_density_grid(const openvdb::FloatGrid &grid,
 
 static void geo_node_distribute_points_in_volume_exec(GeoNodeExecParams params)
 {
-  GeometrySet geometry_set_in = params.extract_input<GeometrySet>("Volume");
-
 #ifdef WITH_OPENVDB
+  GeometrySet geometry_set = params.extract_input<GeometrySet>("Volume");
+
   const NodeGeometryDistributePointsInVolume &storage = node_storage(params.node());
   const GeometryNodeDistributePointsInVolumeMode mode =
       static_cast<GeometryNodeDistributePointsInVolumeMode>(storage.mode);
@@ -192,7 +192,6 @@ static void geo_node_distribute_points_in_volume_exec(GeoNodeExecParams params)
   int seed;
   float3 spacing{0, 0, 0};
   float threshold;
-
   if (mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM) {
     density = params.extract_input<float>("Density");
     seed = params.extract_input<int>("Seed");
@@ -202,7 +201,7 @@ static void geo_node_distribute_points_in_volume_exec(GeoNodeExecParams params)
     threshold = params.extract_input<float>("Threshold");
   }
 
-  geometry_set_in.modify_geometry_sets([&](GeometrySet &geometry_set) {
+  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (!geometry_set.has_volume()) {
       geometry_set.keep_only({GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_INSTANCES});
       return;
@@ -252,10 +251,10 @@ static void geo_node_distribute_points_in_volume_exec(GeoNodeExecParams params)
     point_radii.finish();
 
     geometry_set.replace_pointcloud(pointcloud);
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_INSTANCES});
+    geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_POINT_CLOUD});
   });
 
-  params.set_output("Points", std::move(geometry_set_in));
+  params.set_output("Points", std::move(geometry_set));
 
 #else
   params.set_default_remaining_outputs();
