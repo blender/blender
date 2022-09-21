@@ -706,7 +706,9 @@ class MutableAttributeAccessor : public AttributeAccessor {
   SpanAttributeWriter<T> lookup_or_add_for_write_only_span(const AttributeIDRef &attribute_id,
                                                            const eAttrDomain domain)
   {
-    AttributeWriter<T> attribute = this->lookup_or_add_for_write<T>(attribute_id, domain);
+    AttributeWriter<T> attribute = this->lookup_or_add_for_write<T>(
+        attribute_id, domain, AttributeInitConstruct());
+
     if (attribute) {
       return SpanAttributeWriter<T>{std::move(attribute), false};
     }

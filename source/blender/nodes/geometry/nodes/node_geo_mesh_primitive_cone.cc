@@ -485,7 +485,7 @@ static void calculate_selection_outputs(Mesh *mesh,
   /* Populate "Top" selection output. */
   if (attribute_outputs.top_id) {
     const bool face = !config.top_is_point && config.fill_type != GEO_NODE_MESH_CIRCLE_FILL_NONE;
-    SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_only_span<bool>(
+    SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
         attribute_outputs.top_id.get(), face ? ATTR_DOMAIN_FACE : ATTR_DOMAIN_POINT);
 
     if (config.top_is_point) {
@@ -501,7 +501,7 @@ static void calculate_selection_outputs(Mesh *mesh,
   if (attribute_outputs.bottom_id) {
     const bool face = !config.bottom_is_point &&
                       config.fill_type != GEO_NODE_MESH_CIRCLE_FILL_NONE;
-    SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_only_span<bool>(
+    SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
         attribute_outputs.bottom_id.get(), face ? ATTR_DOMAIN_FACE : ATTR_DOMAIN_POINT);
 
     if (config.bottom_is_point) {
@@ -518,7 +518,7 @@ static void calculate_selection_outputs(Mesh *mesh,
 
   /* Populate "Side" selection output. */
   if (attribute_outputs.side_id) {
-    SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_only_span<bool>(
+    SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
         attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE);
 
     selection.span.slice(config.side_faces_start, config.side_faces_len).fill(true);
