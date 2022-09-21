@@ -13,7 +13,7 @@ def _configure_argument_parser():
                         action='store_true')
     parser.add_argument("--cycles-device",
                         help="Set the device to use for Cycles, overriding user preferences and the scene setting."
-                             "Valid options are 'CPU', 'CUDA', 'OPTIX', 'HIP' or 'METAL'."
+                             "Valid options are 'CPU', 'CUDA', 'OPTIX', 'HIP', 'ONEAPI', or 'METAL'."
                              "Additionally, you can append '+CPU' to any GPU type for hybrid rendering.",
                         default=None)
     return parser
