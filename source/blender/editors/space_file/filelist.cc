@@ -7,11 +7,11 @@
 
 /* global includes */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #include <sys/stat.h>
-#include <time.h>
 
 #ifndef WIN32
 #  include <unistd.h>
@@ -90,14 +90,14 @@ void folderlist_popdir(struct ListBase *folderlist, char *dir)
 {
   const char *prev_dir;
   struct FolderList *folder;
-  folder = folderlist->last;
+  folder = static_cast<FolderList *>(folderlist->last);
 
   if (folder) {
     /* remove the current directory */
     MEM_freeN(folder->foldername);
     BLI_freelinkN(folderlist, folder);
 
-    folder = folderlist->last;
+    folder = static_cast<FolderList *>(folderlist->last);
     if (folder) {
       prev_dir = folder->foldername;
       BLI_strncpy(dir, prev_dir, FILE_MAXDIR);
@@ -113,7 +113,7 @@ void folderlist_pushdir(ListBase *folderlist, const char *dir)
   }
 
   struct FolderList *folder, *previous_folder;
-  previous_folder = folderlist->last;
+  previous_folder = static_cast<FolderList *>(folderlist->last);
 
   /* check if already exists */
   if (previous_folder && previous_folder->foldername) {
@@ -123,7 +123,7 @@ void folderlist_pushdir(ListBase *folderlist, const char *dir)
   }
 
   /* create next folder element */
-  folder = MEM_mallocN(sizeof(*folder), __func__);
+  folder = MEM_new<FolderList>(__func__);
   folder->foldername = BLI_strdup(dir);
 
   /* add it to the end of the list */
@@ -138,7 +138,7 @@ const char *folderlist_peeklastdir(ListBase *folderlist)
     return NULL;
   }
 
-  folder = folderlist->last;
+  folder = static_cast<FolderList *>(folderlist->last);
   return folder->foldername;
 }
 
@@ -154,7 +154,7 @@ int folderlist_clear_next(struct SpaceFile *sfile)
 
   /* if previous_folder, next_folder or refresh_folder operators are executed
    * it doesn't clear folder_next */
-  folder = sfile->folders_prev->last;
+  folder = static_cast<FolderList *>(sfile->folders_prev->last);
   if ((!folder) || (BLI_path_cmp(folder->foldername, params->dir) == 0)) {
     return 0;
   }
@@ -166,8 +166,7 @@ int folderlist_clear_next(struct SpaceFile *sfile)
 void folderlist_free(ListBase *folderlist)
 {
   if (folderlist) {
-    FolderList *folder;
-    for (folder = folderlist->first; folder; folder = folder->next) {
+    LISTBASE_FOREACH (FolderList *, folder, folderlist) {
       MEM_freeN(folder->foldername);
     }
     BLI_freelistN(folderlist);
@@ -180,8 +179,8 @@ static ListBase folderlist_duplicate(ListBase *folderlist)
 
   BLI_duplicatelist(&folderlistn, folderlist);
 
-  for (FolderList *folder = folderlistn.first; folder; folder = folder->next) {
-    folder->foldername = MEM_dupallocN(folder->foldername);
+  LISTBASE_FOREACH (FolderList *, folder, &folderlistn) {
+    folder->foldername = (char *)MEM_dupallocN(folder->foldername);
   }
   return folderlistn;
 }
@@ -201,10 +200,10 @@ static FileFolderHistory *folder_history_find(const SpaceFile *sfile, eFileBrows
 
 void folder_history_list_ensure_for_active_browse_mode(SpaceFile *sfile)
 {
-  FileFolderHistory *history = folder_history_find(sfile, sfile->browse_mode);
+  FileFolderHistory *history = folder_history_find(sfile, (eFileBrowse_Mode)sfile->browse_mode);
 
   if (!history) {
-    history = MEM_callocN(sizeof(*history), __func__);
+    history = MEM_cnew<FileFolderHistory>(__func__);
     history->browse_mode = sfile->browse_mode;
     BLI_addtail(&sfile->folder_histories, history);
   }
@@ -238,7 +237,7 @@ ListBase folder_history_list_duplicate(ListBase *listbase)
   ListBase histories = {NULL};
 
   LISTBASE_FOREACH (FileFolderHistory *, history, listbase) {
-    FileFolderHistory *history_new = MEM_dupallocN(history);
+    FileFolderHistory *history_new = static_cast<FileFolderHistory *>(MEM_dupallocN(history));
     history_new->folders_prev = folderlist_duplicate(&history->folders_prev);
     history_new->folders_next = folderlist_duplicate(&history->folders_next);
     BLI_addtail(&histories, history_new);
@@ -249,13 +248,12 @@ ListBase folder_history_list_duplicate(ListBase *listbase)
 
 /* ------------------FILELIST------------------------ */
 
-typedef struct FileListInternEntry {
-  struct FileListInternEntry *next, *prev;
+struct FileListInternEntry {
+  FileListInternEntry *next, *prev;
 
   FileUID uid;
 
-  /** eFileSel_File_Types */
-  int typeflag;
+  eFileSel_File_Types typeflag;
   /** ID type, in case typeflag has FILE_TYPE_BLENDERLIB set. */
   int blentype;
 
@@ -287,18 +285,18 @@ typedef struct FileListInternEntry {
   /** Defined in BLI_fileops.h */
   eFileAttributes attributes;
   BLI_stat_t st;
-} FileListInternEntry;
+};
 
-typedef struct FileListIntern {
+struct FileListIntern {
   /** FileListInternEntry items. */
   ListBase entries;
   FileListInternEntry **filtered;
 
   FileUID curr_uid; /* Used to generate UID during internal listing. */
-} FileListIntern;
+};
 
 #define FILELIST_ENTRYCACHESIZE_DEFAULT 1024 /* Keep it a power of two! */
-typedef struct FileListEntryCache {
+struct FileListEntryCache {
   size_t size; /* The size of the cache... */
 
   int flags;
@@ -327,7 +325,7 @@ typedef struct FileListEntryCache {
    * previews either in `previews_pool` or `previews_done`. #filelist_cache_previews_update() makes
    * previews in `preview_done` ready for display, so the counter is decremented there. */
   int previews_todo_count;
-} FileListEntryCache;
+};
 
 /** #FileListCache.flags */
 enum {
@@ -335,21 +333,21 @@ enum {
   FLC_PREVIEWS_ACTIVE = 1 << 1,
 };
 
-typedef struct FileListEntryPreview {
+struct FileListEntryPreview {
   char filepath[FILE_MAX];
   uint flags;
   int index;
   int attributes; /* from FileDirEntry. */
   int icon_id;
-} FileListEntryPreview;
+};
 
 /* Dummy wrapper around FileListEntryPreview to ensure we do not access freed memory when freeing
  * tasks' data (see T74609). */
-typedef struct FileListEntryPreviewTaskData {
+struct FileListEntryPreviewTaskData {
   FileListEntryPreview *preview;
-} FileListEntryPreviewTaskData;
+};
 
-typedef struct FileListFilter {
+struct FileListFilter {
   uint64_t filter;
   uint64_t filter_id;
   char filter_glob[FILE_MAXFILE];
@@ -357,7 +355,7 @@ typedef struct FileListFilter {
   short flags;
 
   FileAssetCatalogFilterSettingsHandle *asset_catalog_filter;
-} FileListFilter;
+};
 
 /** #FileListFilter.flags */
 enum {
@@ -369,13 +367,13 @@ enum {
 };
 
 struct FileListReadJob;
-typedef struct FileList {
+struct FileList {
   FileDirEntryArr filelist;
 
   eFileSelectType type;
   /* The library this list was created for. Stored here so we know when to re-read. */
   AssetLibraryReference *asset_library_ref;
-  struct AssetLibrary *asset_library; /* Non-owning pointer. */
+  AssetLibrary *asset_library; /* Non-owning pointer. */
 
   short flags;
 
@@ -386,11 +384,11 @@ typedef struct FileList {
   /**
    * File indexer to use. Attribute is always set.
    */
-  const struct FileIndexerType *indexer;
+  const FileIndexerType *indexer;
 
-  struct FileListIntern filelist_intern;
+  FileListIntern filelist_intern;
 
-  struct FileListEntryCache filelist_cache;
+  FileListEntryCache filelist_cache;
 
   /* We need to keep those info outside of actual filelist items,
    * because those are no more persistent
@@ -403,7 +401,7 @@ typedef struct FileList {
   short max_recursion;
   short recursion_level;
 
-  struct BlendHandle *libfiledata;
+  BlendHandle *libfiledata;
 
   /* Set given path as root directory,
    * if last bool is true may change given string in place to a valid value.
@@ -419,7 +417,7 @@ typedef struct FileList {
   void (*prepare_filter_fn)(const struct FileList *, FileListFilter *);
 
   short tags; /* FileListTags */
-} FileList;
+};
 
 /** #FileList.flags */
 enum {
@@ -459,23 +457,23 @@ enum {
 
 static ImBuf *gSpecialFileImages[SPECIAL_IMG_MAX];
 
-static void filelist_readjob_main(struct FileListReadJob *job_params,
+static void filelist_readjob_main(FileListReadJob *job_params,
                                   short *stop,
                                   short *do_update,
                                   float *progress);
-static void filelist_readjob_lib(struct FileListReadJob *job_params,
+static void filelist_readjob_lib(FileListReadJob *job_params,
                                  short *stop,
                                  short *do_update,
                                  float *progress);
-static void filelist_readjob_dir(struct FileListReadJob *job_params,
+static void filelist_readjob_dir(FileListReadJob *job_params,
                                  short *stop,
                                  short *do_update,
                                  float *progress);
-static void filelist_readjob_asset_library(struct FileListReadJob *job_params,
+static void filelist_readjob_asset_library(FileListReadJob *job_params,
                                            short *stop,
                                            short *do_update,
                                            float *progress);
-static void filelist_readjob_main_assets(struct FileListReadJob *job_params,
+static void filelist_readjob_main_assets(FileListReadJob *job_params,
                                          short *stop,
                                          short *do_update,
                                          float *progress);
@@ -493,7 +491,7 @@ struct FileSortData {
   bool inverted;
 };
 
-static int compare_apply_inverted(int val, const struct FileSortData *sort_data)
+static int compare_apply_inverted(int val, const FileSortData *sort_data)
 {
   return sort_data->inverted ? -val : val;
 }
@@ -602,9 +600,9 @@ static int compare_direntry_generic(const FileListInternEntry *entry1,
 
 static int compare_name(void *user_data, const void *a1, const void *a2)
 {
-  const FileListInternEntry *entry1 = a1;
-  const FileListInternEntry *entry2 = a2;
-  const struct FileSortData *sort_data = user_data;
+  const FileListInternEntry *entry1 = static_cast<const FileListInternEntry *>(a1);
+  const FileListInternEntry *entry2 = static_cast<const FileListInternEntry *>(a2);
+  const FileSortData *sort_data = static_cast<const FileSortData *>(user_data);
 
   int ret;
   if ((ret = compare_direntry_generic(entry1, entry2))) {
@@ -616,9 +614,9 @@ static int compare_name(void *user_data, const void *a1, const void *a2)
 
 static int compare_date(void *user_data, const void *a1, const void *a2)
 {
-  const FileListInternEntry *entry1 = a1;
-  const FileListInternEntry *entry2 = a2;
-  const struct FileSortData *sort_data = user_data;
+  const FileListInternEntry *entry1 = static_cast<const FileListInternEntry *>(a1);
+  const FileListInternEntry *entry2 = static_cast<const FileListInternEntry *>(a2);
+  const FileSortData *sort_data = static_cast<const FileSortData *>(user_data);
   int64_t time1, time2;
 
   int ret;
@@ -640,9 +638,9 @@ static int compare_date(void *user_data, const void *a1, const void *a2)
 
 static int compare_size(void *user_data, const void *a1, const void *a2)
 {
-  const FileListInternEntry *entry1 = a1;
-  const FileListInternEntry *entry2 = a2;
-  const struct FileSortData *sort_data = user_data;
+  const FileListInternEntry *entry1 = static_cast<const FileListInternEntry *>(a1);
+  const FileListInternEntry *entry2 = static_cast<const FileListInternEntry *>(a2);
+  const FileSortData *sort_data = static_cast<const FileSortData *>(user_data);
   uint64_t size1, size2;
   int ret;
 
@@ -664,9 +662,9 @@ static int compare_size(void *user_data, const void *a1, const void *a2)
 
 static int compare_extension(void *user_data, const void *a1, const void *a2)
 {
-  const FileListInternEntry *entry1 = a1;
-  const FileListInternEntry *entry2 = a2;
-  const struct FileSortData *sort_data = user_data;
+  const FileListInternEntry *entry1 = static_cast<const FileListInternEntry *>(a1);
+  const FileListInternEntry *entry2 = static_cast<const FileListInternEntry *>(a2);
+  const FileSortData *sort_data = static_cast<const FileSortData *>(user_data);
   int ret;
 
   if ((ret = compare_direntry_generic(entry1, entry2))) {
@@ -720,7 +718,7 @@ static int compare_extension(void *user_data, const void *a1, const void *a2)
 void filelist_sort(struct FileList *filelist)
 {
   if (filelist->flags & FL_NEED_SORTING) {
-    void *sort_cb = NULL;
+    int (*sort_cb)(void *, const void *, const void *) = nullptr;
 
     switch (filelist->sort) {
       case FILE_SORT_ALPHA:
@@ -740,10 +738,10 @@ void filelist_sort(struct FileList *filelist)
         BLI_assert(0);
         break;
     }
-    BLI_listbase_sort_r(
-        &filelist->filelist_intern.entries,
-        sort_cb,
-        &(struct FileSortData){.inverted = (filelist->flags & FL_SORT_INVERT) != 0});
+
+    FileSortData sort_data{0};
+    sort_data.inverted = (filelist->flags & FL_SORT_INVERT) != 0;
+    BLI_listbase_sort_r(&filelist->filelist_intern.entries, sort_cb, &sort_data);
 
     filelist_tag_needs_filtering(filelist);
     filelist->flags &= ~FL_NEED_SORTING;
@@ -1062,7 +1060,7 @@ void filelist_filter(FileList *filelist)
 {
   int num_filtered = 0;
   const int num_files = filelist->filelist.entries_num;
-  FileListInternEntry **filtered_tmp, *file;
+  FileListInternEntry **filtered_tmp;
 
   if (ELEM(filelist->filelist.entries_num, FILEDIR_NBR_ENTRIES_UNSET, 0)) {
     return;
@@ -1087,10 +1085,11 @@ void filelist_filter(FileList *filelist)
     filelist->prepare_filter_fn(filelist, &filelist->filter_data);
   }
 
-  filtered_tmp = MEM_mallocN(sizeof(*filtered_tmp) * (size_t)num_files, __func__);
+  filtered_tmp = static_cast<FileListInternEntry **>(
+      MEM_mallocN(sizeof(*filtered_tmp) * (size_t)num_files, __func__));
 
   /* Filter remap & count how many files are left after filter in a single loop. */
-  for (file = filelist->filelist_intern.entries.first; file; file = file->next) {
+  LISTBASE_FOREACH (FileListInternEntry *, file, &filelist->filelist_intern.entries) {
     if (filelist->filter_fn(file, filelist->filelist.root, &filelist->filter_data)) {
       filtered_tmp[num_filtered++] = file;
     }
@@ -1099,8 +1098,8 @@ void filelist_filter(FileList *filelist)
   if (filelist->filelist_intern.filtered) {
     MEM_freeN(filelist->filelist_intern.filtered);
   }
-  filelist->filelist_intern.filtered = MEM_mallocN(
-      sizeof(*filelist->filelist_intern.filtered) * (size_t)num_filtered, __func__);
+  filelist->filelist_intern.filtered = static_cast<FileListInternEntry **>(
+      MEM_mallocN(sizeof(*filelist->filelist_intern.filtered) * (size_t)num_filtered, __func__));
   memcpy(filelist->filelist_intern.filtered,
          filtered_tmp,
          sizeof(*filelist->filelist_intern.filtered) * (size_t)num_filtered);
@@ -1228,8 +1227,7 @@ void filelist_setlibrary(FileList *filelist, const AssetLibraryReference *asset_
   }
 
   if (!filelist->asset_library_ref) {
-    filelist->asset_library_ref = MEM_mallocN(sizeof(*filelist->asset_library_ref),
-                                              "filelist asset library");
+    filelist->asset_library_ref = MEM_new<AssetLibraryReference>("filelist asset library");
     *filelist->asset_library_ref = *asset_library_ref;
 
     filelist->flags |= FL_FORCE_RESET;
@@ -1335,7 +1333,7 @@ static int filelist_geticon_ex(const FileDirEntry *file,
                                const bool is_main,
                                const bool ignore_libdir)
 {
-  const eFileSel_File_Types typeflag = file->typeflag;
+  const eFileSel_File_Types typeflag = (eFileSel_File_Types)file->typeflag;
 
   if ((typeflag & FILE_TYPE_DIR) &&
       !(ignore_libdir && (typeflag & (FILE_TYPE_BLENDERLIB | FILE_TYPE_BLENDER)))) {
@@ -1581,10 +1579,7 @@ static void filelist_intern_entry_free(FileListInternEntry *entry)
 
 static void filelist_intern_free(FileListIntern *filelist_intern)
 {
-  FileListInternEntry *entry, *entry_next;
-
-  for (entry = filelist_intern->entries.first; entry; entry = entry_next) {
-    entry_next = entry->next;
+  LISTBASE_FOREACH_MUTABLE (FileListInternEntry *, entry, &filelist_intern->entries) {
     filelist_intern_entry_free(entry);
   }
   BLI_listbase_clear(&filelist_intern->entries);
@@ -1614,11 +1609,14 @@ static int filelist_intern_free_main_files(FileListIntern *filelist_intern)
 
 static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdata)
 {
-  FileListEntryCache *cache = BLI_task_pool_user_data(pool);
-  FileListEntryPreviewTaskData *preview_taskdata = taskdata;
+  FileListEntryCache *cache = static_cast<FileListEntryCache *>(BLI_task_pool_user_data(pool));
+  FileListEntryPreviewTaskData *preview_taskdata = static_cast<FileListEntryPreviewTaskData *>(
+      taskdata);
   FileListEntryPreview *preview = preview_taskdata->preview;
 
-  ThumbSource source = 0;
+  /* XXX #THB_SOURCE_IMAGE for "historic" reasons. The case of an undefined source should be
+   * handled better. */
+  ThumbSource source = THB_SOURCE_IMAGE;
 
   //  printf("%s: Start (%d)...\n", __func__, threadid);
 
@@ -1662,7 +1660,8 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
 
 static void filelist_cache_preview_freef(TaskPool *__restrict UNUSED(pool), void *taskdata)
 {
-  FileListEntryPreviewTaskData *preview_taskdata = taskdata;
+  FileListEntryPreviewTaskData *preview_taskdata = static_cast<FileListEntryPreviewTaskData *>(
+      taskdata);
 
   /* In case the preview wasn't moved to the "done" queue yet. */
   if (preview_taskdata->preview) {
@@ -1689,7 +1688,8 @@ static void filelist_cache_previews_clear(FileListEntryCache *cache)
     BLI_task_pool_cancel(cache->previews_pool);
 
     FileListEntryPreview *preview;
-    while ((preview = BLI_thread_queue_pop_timeout(cache->previews_done, 0))) {
+    while ((preview = static_cast<FileListEntryPreview *>(
+                BLI_thread_queue_pop_timeout(cache->previews_done, 0)))) {
       // printf("%s: DONE %d - %s - %p\n", __func__, preview->index, preview->path,
       // preview->img);
       if (preview->icon_id) {
@@ -1749,7 +1749,7 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
   filelist_cache_preview_ensure_running(cache);
   entry->flags |= FILE_ENTRY_PREVIEW_LOADING;
 
-  FileListEntryPreview *preview = MEM_mallocN(sizeof(*preview), __func__);
+  FileListEntryPreview *preview = MEM_new<FileListEntryPreview>(__func__);
   preview->index = index;
   preview->flags = entry->typeflag;
   preview->attributes = entry->attributes;
@@ -1775,8 +1775,8 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
     }
     // printf("%s: %d - %s\n", __func__, preview->index, preview->filepath);
 
-    FileListEntryPreviewTaskData *preview_taskdata = MEM_mallocN(sizeof(*preview_taskdata),
-                                                                 __func__);
+    FileListEntryPreviewTaskData *preview_taskdata = MEM_new<FileListEntryPreviewTaskData>(
+        __func__);
     preview_taskdata->preview = preview;
     BLI_task_pool_push(cache->previews_pool,
                        filelist_cache_preview_runf,
@@ -1793,11 +1793,12 @@ static void filelist_cache_init(FileListEntryCache *cache, size_t cache_size)
 
   cache->block_cursor = cache->block_start_index = cache->block_center_index =
       cache->block_end_index = 0;
-  cache->block_entries = MEM_mallocN(sizeof(*cache->block_entries) * cache_size, __func__);
+  cache->block_entries = static_cast<FileDirEntry **>(
+      MEM_mallocN(sizeof(*cache->block_entries) * cache_size, __func__));
 
   cache->misc_entries = BLI_ghash_ptr_new_ex(__func__, cache_size);
-  cache->misc_entries_indices = MEM_mallocN(sizeof(*cache->misc_entries_indices) * cache_size,
-                                            __func__);
+  cache->misc_entries_indices = static_cast<int *>(
+      MEM_mallocN(sizeof(*cache->misc_entries_indices) * cache_size, __func__));
   copy_vn_i(cache->misc_entries_indices, cache_size, -1);
   cache->misc_cursor = 0;
 
@@ -1815,8 +1816,6 @@ static void filelist_cache_init(FileListEntryCache *cache, size_t cache_size)
 
 static void filelist_cache_free(FileListEntryCache *cache)
 {
-  FileDirEntry *entry, *entry_next;
-
   if (!(cache->flags & FLC_IS_INIT)) {
     return;
   }
@@ -1830,8 +1829,7 @@ static void filelist_cache_free(FileListEntryCache *cache)
 
   BLI_ghash_free(cache->uids, NULL, NULL);
 
-  for (entry = cache->cached_entries.first; entry; entry = entry_next) {
-    entry_next = entry->next;
+  LISTBASE_FOREACH_MUTABLE (FileDirEntry *, entry, &cache->cached_entries) {
     filelist_entry_free(entry);
   }
   BLI_listbase_clear(&cache->cached_entries);
@@ -1839,8 +1837,6 @@ static void filelist_cache_free(FileListEntryCache *cache)
 
 static void filelist_cache_clear(FileListEntryCache *cache, size_t new_size)
 {
-  FileDirEntry *entry, *entry_next;
-
   if (!(cache->flags & FLC_IS_INIT)) {
     return;
   }
@@ -1850,14 +1846,14 @@ static void filelist_cache_clear(FileListEntryCache *cache, size_t new_size)
   cache->block_cursor = cache->block_start_index = cache->block_center_index =
       cache->block_end_index = 0;
   if (new_size != cache->size) {
-    cache->block_entries = MEM_reallocN(cache->block_entries,
-                                        sizeof(*cache->block_entries) * new_size);
+    cache->block_entries = static_cast<FileDirEntry **>(
+        MEM_reallocN(cache->block_entries, sizeof(*cache->block_entries) * new_size));
   }
 
   BLI_ghash_clear_ex(cache->misc_entries, NULL, NULL, new_size);
   if (new_size != cache->size) {
-    cache->misc_entries_indices = MEM_reallocN(cache->misc_entries_indices,
-                                               sizeof(*cache->misc_entries_indices) * new_size);
+    cache->misc_entries_indices = static_cast<int *>(MEM_reallocN(
+        cache->misc_entries_indices, sizeof(*cache->misc_entries_indices) * new_size));
   }
   copy_vn_i(cache->misc_entries_indices, new_size, -1);
 
@@ -1865,8 +1861,7 @@ static void filelist_cache_clear(FileListEntryCache *cache, size_t new_size)
 
   cache->size = new_size;
 
-  for (entry = cache->cached_entries.first; entry; entry = entry_next) {
-    entry_next = entry->next;
+  LISTBASE_FOREACH_MUTABLE (FileDirEntry *, entry, &cache->cached_entries) {
     filelist_entry_free(entry);
   }
   BLI_listbase_clear(&cache->cached_entries);
@@ -1874,7 +1869,7 @@ static void filelist_cache_clear(FileListEntryCache *cache, size_t new_size)
 
 FileList *filelist_new(short type)
 {
-  FileList *p = MEM_callocN(sizeof(*p), __func__);
+  FileList *p = MEM_cnew<FileList>(__func__);
 
   filelist_cache_init(&p->filelist_cache, FILELIST_ENTRYCACHESIZE_DEFAULT);
 
@@ -1891,7 +1886,7 @@ void filelist_settype(FileList *filelist, short type)
     return;
   }
 
-  filelist->type = type;
+  filelist->type = (eFileSelectType)type;
   filelist->tags = 0;
   filelist->indexer = &file_indexer_noop;
   switch (filelist->type) {
@@ -2181,7 +2176,7 @@ static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int in
   FileListEntryCache *cache = &filelist->filelist_cache;
   FileDirEntry *ret;
 
-  ret = MEM_callocN(sizeof(*ret), __func__);
+  ret = MEM_cnew<FileDirEntry>(__func__);
 
   ret->size = (uint64_t)entry->st.st_size;
   ret->time = (int64_t)entry->st.st_mtime;
@@ -2240,7 +2235,8 @@ FileDirEntry *filelist_file_ex(struct FileList *filelist, const int index, const
     return cache->block_entries[idx];
   }
 
-  if ((ret = BLI_ghash_lookup(cache->misc_entries, POINTER_FROM_INT(index)))) {
+  if ((ret = static_cast<FileDirEntry *>(
+           BLI_ghash_lookup(cache->misc_entries, POINTER_FROM_INT(index))))) {
     return ret;
   }
 
@@ -2253,7 +2249,8 @@ FileDirEntry *filelist_file_ex(struct FileList *filelist, const int index, const
   /* Else, we have to add new entry to 'misc' cache - and possibly make room for it first! */
   ret = filelist_file_create_entry(filelist, index);
   old_index = cache->misc_entries_indices[cache->misc_cursor];
-  if ((old = BLI_ghash_popkey(cache->misc_entries, POINTER_FROM_INT(old_index), NULL))) {
+  if ((old = static_cast<FileDirEntry *>(
+           BLI_ghash_popkey(cache->misc_entries, POINTER_FROM_INT(old_index), NULL)))) {
     BLI_ghash_remove(cache->uids, POINTER_FROM_UINT(old->uid), NULL, NULL);
     filelist_file_release_entry(filelist, old);
   }
@@ -2371,7 +2368,8 @@ static bool filelist_file_cache_block_create(FileList *filelist,
       FileDirEntry *entry;
 
       /* That entry might have already been requested and stored in misc cache... */
-      if ((entry = BLI_ghash_popkey(cache->misc_entries, POINTER_FROM_INT(idx), NULL)) == NULL) {
+      if ((entry = static_cast<FileDirEntry *>(
+               BLI_ghash_popkey(cache->misc_entries, POINTER_FROM_INT(idx), NULL))) == NULL) {
         entry = filelist_file_create_entry(filelist, idx);
         BLI_ghash_insert(cache->uids, POINTER_FROM_UINT(entry->uid), entry);
       }
@@ -2660,7 +2658,8 @@ bool filelist_cache_previews_update(FileList *filelist)
   //  printf("%s: Update Previews...\n", __func__);
 
   while (!BLI_thread_queue_is_empty(cache->previews_done)) {
-    FileListEntryPreview *preview = BLI_thread_queue_pop(cache->previews_done);
+    FileListEntryPreview *preview = static_cast<FileListEntryPreview *>(
+        BLI_thread_queue_pop(cache->previews_done));
     FileDirEntry *entry;
 
     /* Paranoid (should never happen currently
@@ -3050,8 +3049,8 @@ static int filelist_readjob_list_dir(const char *root,
         continue;
       }
 
-      entry = MEM_callocN(sizeof(*entry), __func__);
-      entry->relpath = MEM_dupallocN(files[i].relname);
+      entry = MEM_cnew<FileListInternEntry>(__func__);
+      entry->relpath = static_cast<char *>(MEM_dupallocN(files[i].relname));
       entry->st = files[i].s;
 
       BLI_join_dirfile(full_path, FILE_MAX, root, entry->relpath);
@@ -3069,14 +3068,14 @@ static int filelist_readjob_list_dir(const char *root,
 
       /* Is this a file that points to another file? */
       if (entry->attributes & FILE_ATTR_ALIAS) {
-        entry->redirection_path = MEM_callocN(FILE_MAXDIR, __func__);
+        entry->redirection_path = MEM_cnew_array<char>(FILE_MAXDIR, __func__);
         if (BLI_file_alias_target(full_path, entry->redirection_path)) {
           if (BLI_is_dir(entry->redirection_path)) {
             entry->typeflag = FILE_TYPE_DIR;
             BLI_path_slash_ensure(entry->redirection_path);
           }
           else {
-            entry->typeflag = ED_path_extension_type(entry->redirection_path);
+            entry->typeflag = (eFileSel_File_Types)ED_path_extension_type(entry->redirection_path);
           }
           target = entry->redirection_path;
 #ifdef WIN32
@@ -3101,7 +3100,7 @@ static int filelist_readjob_list_dir(const char *root,
           }
         }
         else {
-          entry->typeflag = ED_path_extension_type(target);
+          entry->typeflag = (eFileSel_File_Types)ED_path_extension_type(target);
           if (filter_glob[0] && BLI_path_extension_check_glob(target, filter_glob)) {
             entry->typeflag |= FILE_TYPE_OPERATOR;
           }
@@ -3124,6 +3123,8 @@ static int filelist_readjob_list_dir(const char *root,
 }
 
 typedef enum ListLibOptions {
+  LIST_LIB_OPTION_NONE = 0,
+
   /* Will read both the groups + actual ids from the library. Reduces the amount of times that
    * a library needs to be opened. */
   LIST_LIB_RECURSIVE = (1 << 0),
@@ -3134,11 +3135,12 @@ typedef enum ListLibOptions {
   /* Add given root as result. */
   LIST_LIB_ADD_PARENT = (1 << 2),
 } ListLibOptions;
+ENUM_OPERATORS(ListLibOptions, LIST_LIB_ADD_PARENT);
 
 static FileListInternEntry *filelist_readjob_list_lib_group_create(const int idcode,
                                                                    const char *group_name)
 {
-  FileListInternEntry *entry = MEM_callocN(sizeof(*entry), __func__);
+  FileListInternEntry *entry = MEM_cnew<FileListInternEntry>(__func__);
   entry->relpath = BLI_strdup(group_name);
   entry->typeflag |= FILE_TYPE_BLENDERLIB | FILE_TYPE_DIR;
   entry->blentype = idcode;
@@ -3151,7 +3153,7 @@ static void filelist_readjob_list_lib_add_datablock(ListBase *entries,
                                                     const int idcode,
                                                     const char *group_name)
 {
-  FileListInternEntry *entry = MEM_callocN(sizeof(*entry), __func__);
+  FileListInternEntry *entry = MEM_cnew<FileListInternEntry>(__func__);
   if (prefix_relpath_with_group_name) {
     entry->relpath = BLI_sprintfN("%s/%s", group_name, datablock_info->name);
   }
@@ -3175,7 +3177,7 @@ static void filelist_readjob_list_lib_add_datablocks(ListBase *entries,
                                                      const char *group_name)
 {
   for (LinkNode *ln = datablock_infos; ln; ln = ln->next) {
-    struct BLODataBlockInfo *datablock_info = ln->link;
+    struct BLODataBlockInfo *datablock_info = static_cast<BLODataBlockInfo *>(ln->link);
     filelist_readjob_list_lib_add_datablock(
         entries, datablock_info, prefix_relpath_with_group_name, idcode, group_name);
   }
@@ -3199,7 +3201,7 @@ static void filelist_readjob_list_lib_add_from_indexer_entries(
 
 static FileListInternEntry *filelist_readjob_list_lib_navigate_to_parent_entry_create(void)
 {
-  FileListInternEntry *entry = MEM_callocN(sizeof(*entry), __func__);
+  FileListInternEntry *entry = MEM_cnew<FileListInternEntry>(__func__);
   entry->relpath = BLI_strdup(FILENAME_PARENT);
   entry->typeflag |= (FILE_TYPE_BLENDERLIB | FILE_TYPE_DIR);
   return entry;
@@ -3310,7 +3312,7 @@ static int filelist_readjob_list_lib(const char *root,
     group_len = BLI_linklist_count(groups);
 
     for (LinkNode *ln = groups; ln; ln = ln->next) {
-      const char *group_name = ln->link;
+      const char *group_name = static_cast<char *>(ln->link);
       const int idcode = groupname_to_code(group_name);
       FileListInternEntry *group_entry = filelist_readjob_list_lib_group_create(idcode,
                                                                                 group_name);
@@ -3615,7 +3617,7 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
   int dirs_done_count = 0, dirs_todo_count = 1;
 
   todo_dirs = BLI_stack_new(sizeof(*td_dir), __func__);
-  td_dir = BLI_stack_push_r(todo_dirs);
+  td_dir = static_cast<TodoDir *>(BLI_stack_push_r(todo_dirs));
   td_dir->level = 1;
 
   BLI_strncpy(dir, filelist->filelist.root, sizeof(dir));
@@ -3631,7 +3633,6 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
   }
 
   while (!BLI_stack_is_empty(todo_dirs) && !(*stop)) {
-    FileListInternEntry *entry;
     int entries_num = 0;
 
     char *subdir;
@@ -3639,7 +3640,7 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
     int recursion_level;
     bool skip_currpar;
 
-    td_dir = BLI_stack_peek(todo_dirs);
+    td_dir = static_cast<TodoDir *>(BLI_stack_peek(todo_dirs));
     subdir = td_dir->dir;
     recursion_level = td_dir->level;
     skip_currpar = (recursion_level > 1);
@@ -3657,7 +3658,7 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
 
     bool is_lib = false;
     if (do_lib) {
-      ListLibOptions list_lib_options = 0;
+      ListLibOptions list_lib_options = LIST_LIB_OPTION_NONE;
       if (!skip_currpar) {
         list_lib_options |= LIST_LIB_ADD_PARENT;
       }
@@ -3684,7 +3685,7 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
           subdir, &entries, filter_glob, do_lib, job_params->main_name, skip_currpar);
     }
 
-    for (entry = entries.first; entry; entry = entry->next) {
+    LISTBASE_FOREACH (FileListInternEntry *, entry, &entries) {
       entry->uid = filelist_uid_generate(filelist);
 
       /* When loading entries recursive, the rel_path should be relative from the root dir.
@@ -3701,7 +3702,7 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
         /* We have a directory we want to list, add it to todo list! */
         BLI_join_dirfile(dir, sizeof(dir), root, entry->relpath);
         BLI_path_normalize_dir(job_params->main_name, dir);
-        td_dir = BLI_stack_push_r(todo_dirs);
+        td_dir = static_cast<TodoDir *>(BLI_stack_push_r(todo_dirs));
         td_dir->level = recursion_level + 1;
         td_dir->dir = BLI_strdup(dir);
         dirs_todo_count++;
@@ -3727,7 +3728,7 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
   /* If we were interrupted by stop, stack may not be empty and we need to free
    * pending dir paths. */
   while (!BLI_stack_is_empty(todo_dirs)) {
-    td_dir = BLI_stack_peek(todo_dirs);
+    td_dir = static_cast<TodoDir *>(BLI_stack_peek(todo_dirs));
     MEM_freeN(td_dir->dir);
     BLI_stack_discard(todo_dirs);
   }
@@ -3831,7 +3832,7 @@ static void filelist_readjob_main_assets_add_items(FileListReadJob *job_params,
 
     const char *id_code_name = BKE_idtype_idcode_to_name(GS(id_iter->name));
 
-    entry = MEM_callocN(sizeof(*entry), __func__);
+    entry = MEM_cnew<FileListInternEntry>(__func__);
     entry->relpath = BLI_strdup(id_code_name);
     entry->name = id_iter->name + 2;
     entry->free_name = false;
@@ -3935,7 +3936,7 @@ static bool filelist_readjob_is_partial_read(const FileListReadJob *read_job)
  */
 static void filelist_readjob_startjob(void *flrjv, short *stop, short *do_update, float *progress)
 {
-  FileListReadJob *flrj = flrjv;
+  FileListReadJob *flrj = static_cast<FileListReadJob *>(flrjv);
 
   //  printf("START filelist reading (%d files, main thread: %d)\n",
   //         flrj->filelist->filelist.entries_num, BLI_thread_is_main());
@@ -3944,7 +3945,7 @@ static void filelist_readjob_startjob(void *flrjv, short *stop, short *do_update
 
   BLI_assert((flrj->tmp_filelist == NULL) && flrj->filelist);
 
-  flrj->tmp_filelist = MEM_dupallocN(flrj->filelist);
+  flrj->tmp_filelist = static_cast<FileList *>(MEM_dupallocN(flrj->filelist));
 
   BLI_listbase_clear(&flrj->tmp_filelist->filelist.entries);
   flrj->tmp_filelist->filelist.entries_num = FILEDIR_NBR_ENTRIES_UNSET;
@@ -3976,7 +3977,7 @@ static void filelist_readjob_startjob(void *flrjv, short *stop, short *do_update
  */
 static void filelist_readjob_update(void *flrjv)
 {
-  FileListReadJob *flrj = flrjv;
+  FileListReadJob *flrj = static_cast<FileListReadJob *>(flrjv);
   FileListIntern *fl_intern = &flrj->filelist->filelist_intern;
   ListBase new_entries = {NULL};
   int entries_num, new_entries_num = 0;
@@ -4019,7 +4020,7 @@ static void filelist_readjob_update(void *flrjv)
 
 static void filelist_readjob_endjob(void *flrjv)
 {
-  FileListReadJob *flrj = flrjv;
+  FileListReadJob *flrj = static_cast<FileListReadJob *>(flrjv);
 
   /* In case there would be some dangling update... */
   filelist_readjob_update(flrjv);
@@ -4030,7 +4031,7 @@ static void filelist_readjob_endjob(void *flrjv)
 
 static void filelist_readjob_free(void *flrjv)
 {
-  FileListReadJob *flrj = flrjv;
+  FileListReadJob *flrj = static_cast<FileListReadJob *>(flrjv);
 
   //  printf("END filelist reading (%d files)\n", flrj->filelist->filelist.entries_num);
 
@@ -4060,7 +4061,7 @@ void filelist_readjob_start(FileList *filelist, const int space_notifier, const 
   }
 
   /* prepare job data */
-  flrj = MEM_callocN(sizeof(*flrj), __func__);
+  flrj = MEM_cnew<FileListReadJob>(__func__);
   flrj->filelist = filelist;
   flrj->current_main = bmain;
   BLI_strncpy(flrj->main_name, BKE_main_blendfile_path(bmain), sizeof(flrj->main_name));
