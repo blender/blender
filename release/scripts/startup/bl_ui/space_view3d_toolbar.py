@@ -483,68 +483,68 @@ class SelectPaintSlotHelper:
 
         have_image = False
 
-        match getattr(mode_settings, self.canvas_source_attr_name):
-            case 'MATERIAL':
-                if len(ob.material_slots) > 1:
-                    layout.template_list(
-                        "MATERIAL_UL_matslots", "layers",
-                        ob, "material_slots",
-                        ob, "active_material_index", rows=2,
-                    )
-                mat = ob.active_material
-                if mat and mat.texture_paint_images:
-                    row = layout.row()
-                    row.template_list(
-                        "TEXTURE_UL_texpaintslots", "",
-                        mat, "texture_paint_slots",
-                        mat, "paint_active_slot", rows=2,
-                    )
-
-                    if mat.texture_paint_slots:
-                        slot = mat.texture_paint_slots[mat.paint_active_slot]
-                    else:
-                        slot = None
-
-                    have_image = slot is not None
-                else:
-                    row = layout.row()
-
-                    box = row.box()
-                    box.label(text="No Textures")
-
-                sub = row.column(align=True)
-                sub.operator_menu_enum("paint.add_texture_paint_slot", "type", icon='ADD', text="")
-
-            case 'IMAGE':
-                mesh = ob.data
-                uv_text = mesh.uv_layers.active.name if mesh.uv_layers.active else ""
-                layout.template_ID(mode_settings, self.canvas_image_attr_name, new="image.new", open="image.open")
-                if settings.missing_uvs:
-                    layout.operator("paint.add_simple_uvs", icon='ADD', text="Add UVs")
-                else:
-                    layout.menu("VIEW3D_MT_tools_projectpaint_uvlayer", text=uv_text, translate=False)
-                have_image = getattr(settings, self.canvas_image_attr_name) is not None
-
-                self.draw_image_interpolation(layout=layout, mode_settings=mode_settings)
-
-            case 'COLOR_ATTRIBUTE':
-                mesh = ob.data
-
+        canvas_source = getattr(mode_settings, self.canvas_source_attr_name)
+        if canvas_source == 'MATERIAL':
+            if len(ob.material_slots) > 1:
+                layout.template_list(
+                    "MATERIAL_UL_matslots", "layers",
+                    ob, "material_slots",
+                    ob, "active_material_index", rows=2,
+                )
+            mat = ob.active_material
+            if mat and mat.texture_paint_images:
                 row = layout.row()
-                col = row.column()
-                col.template_list(
-                    "MESH_UL_color_attributes_selector",
-                    "color_attributes",
-                    mesh,
-                    "color_attributes",
-                    mesh.color_attributes,
-                    "active_color_index",
-                    rows=3,
+                row.template_list(
+                    "TEXTURE_UL_texpaintslots", "",
+                    mat, "texture_paint_slots",
+                    mat, "paint_active_slot", rows=2,
                 )
 
-                col = row.column(align=True)
-                col.operator("geometry.color_attribute_add", icon='ADD', text="")
-                col.operator("geometry.color_attribute_remove", icon='REMOVE', text="")
+                if mat.texture_paint_slots:
+                    slot = mat.texture_paint_slots[mat.paint_active_slot]
+                else:
+                    slot = None
+
+                have_image = slot is not None
+            else:
+                row = layout.row()
+
+                box = row.box()
+                box.label(text="No Textures")
+
+            sub = row.column(align=True)
+            sub.operator_menu_enum("paint.add_texture_paint_slot", "type", icon='ADD', text="")
+
+        elif canvas_source == 'IMAGE':
+            mesh = ob.data
+            uv_text = mesh.uv_layers.active.name if mesh.uv_layers.active else ""
+            layout.template_ID(mode_settings, self.canvas_image_attr_name, new="image.new", open="image.open")
+            if settings.missing_uvs:
+                layout.operator("paint.add_simple_uvs", icon='ADD', text="Add UVs")
+            else:
+                layout.menu("VIEW3D_MT_tools_projectpaint_uvlayer", text=uv_text, translate=False)
+            have_image = getattr(settings, self.canvas_image_attr_name) is not None
+
+            self.draw_image_interpolation(layout=layout, mode_settings=mode_settings)
+
+        elif canvas_source == 'COLOR_ATTRIBUTE':
+            mesh = ob.data
+
+            row = layout.row()
+            col = row.column()
+            col.template_list(
+                "MESH_UL_color_attributes_selector",
+                "color_attributes",
+                mesh,
+                "color_attributes",
+                mesh.color_attributes,
+                "active_color_index",
+                rows=3,
+            )
+
+            col = row.column(align=True)
+            col.operator("geometry.color_attribute_add", icon='ADD', text="")
+            col.operator("geometry.color_attribute_remove", icon='REMOVE', text="")
 
         if settings.missing_uvs:
             layout.separator()

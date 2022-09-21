@@ -389,7 +389,9 @@ static const bool secure_opcodes[255] = {
     OK_OP(BINARY_TRUE_DIVIDE),
     OK_OP(INPLACE_FLOOR_DIVIDE),
     OK_OP(INPLACE_TRUE_DIVIDE),
+#if PY_VERSION_HEX >= 0x030a0000 /* Python3.9 doesn't support. */
     OK_OP(GET_LEN),
+#endif
     OK_OP(INPLACE_ADD),
     OK_OP(INPLACE_SUBTRACT),
     OK_OP(INPLACE_MULTIPLY),
@@ -407,7 +409,9 @@ static const bool secure_opcodes[255] = {
     OK_OP(INPLACE_OR),
     OK_OP(LIST_TO_TUPLE),
     OK_OP(RETURN_VALUE),
+#if PY_VERSION_HEX >= 0x030a0000 /* Python3.9 doesn't support. */
     OK_OP(ROT_N),
+#endif
     OK_OP(BUILD_TUPLE),
     OK_OP(BUILD_LIST),
     OK_OP(BUILD_SET),
