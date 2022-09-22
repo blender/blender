@@ -1319,6 +1319,8 @@ typedef enum eSpaceImage_Flag {
   SI_SHOW_R = (1 << 27),
   SI_SHOW_G = (1 << 28),
   SI_SHOW_B = (1 << 29),
+
+  SI_GRID_OVER_IMAGE = (1 << 30),
 } eSpaceImage_Flag;
 
 typedef enum eSpaceImageOverlay_Flag {

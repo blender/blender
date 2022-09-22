@@ -51,6 +51,9 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
                                                  true;
     if (background_enabled) {
       grid_flag = GRID_BACK | PLANE_IMAGE;
+      if (sima->flag & SI_GRID_OVER_IMAGE) {
+        grid_flag = PLANE_IMAGE;
+      }
     }
 
     const bool draw_grid = is_uv_edit || !ED_space_image_has_buffer(sima);

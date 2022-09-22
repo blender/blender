@@ -1531,6 +1531,14 @@ class IMAGE_PT_overlay_guides(Panel):
 
         if overlay.show_grid_background:
             layout.use_property_split = True
+
+            col = layout.column(align=False, heading="Grid Over Image")
+            col.use_property_decorate = False
+            row = col.row(align=True)
+            sub = row.row(align=True)
+            sub.prop(uvedit, "show_grid_over_image", text="")
+            sub.active = context.space_data.image is not None
+
             col = layout.column(align=False, heading="Fixed Subdivisions")
             col.use_property_decorate = False
 
