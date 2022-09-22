@@ -1346,7 +1346,9 @@ bool blf_ensure_face(FontBLF *font)
     if (font->mem) {
       err = FT_New_Memory_Face(font->ft_lib, font->mem, (FT_Long)font->mem_size, 0, &font->face);
     }
-    font->face->generic.data = font;
+    if (!err) {
+      font->face->generic.data = font;
+    }
     BLI_mutex_unlock(&ft_lib_mutex);
   }
 
