@@ -329,10 +329,8 @@ struct GWL_Seat {
    */
   struct {
     xkb_mod_index_t shift; /* #XKB_MOD_NAME_SHIFT */
-    xkb_mod_index_t caps;  /* #XKB_MOD_NAME_CAPS */
     xkb_mod_index_t ctrl;  /* #XKB_MOD_NAME_CTRL */
     xkb_mod_index_t alt;   /* #XKB_MOD_NAME_ALT */
-    xkb_mod_index_t num;   /* #XKB_MOD_NAME_NUM */
     xkb_mod_index_t logo;  /* #XKB_MOD_NAME_LOGO */
   } xkb_keymap_mod_index;
 
@@ -2208,10 +2206,8 @@ static void keyboard_handle_keymap(void *data,
   }
 
   seat->xkb_keymap_mod_index.shift = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_SHIFT);
-  seat->xkb_keymap_mod_index.caps = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_CAPS);
   seat->xkb_keymap_mod_index.ctrl = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_CTRL);
   seat->xkb_keymap_mod_index.alt = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_ALT);
-  seat->xkb_keymap_mod_index.num = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_NUM);
   seat->xkb_keymap_mod_index.logo = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_LOGO);
 
   keyboard_depressed_state_reset(seat);
@@ -3162,9 +3158,6 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
   MOD_VALIDATE("OS");
   keys.set(GHOST_kModifierKeyLeftOS, val_l);
   keys.set(GHOST_kModifierKeyRightOS, val_r);
-
-  val = MOD_TEST(state, seat->xkb_keymap_mod_index.num);
-  keys.set(GHOST_kModifierKeyNum, val);
 
 #undef MOD_VALIDATE
 #undef MOD_TEST
