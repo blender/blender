@@ -132,6 +132,7 @@ set(SRC
   nodes/node_geo_scale_instances.cc
   nodes/node_geo_separate_components.cc
   nodes/node_geo_separate_geometry.cc
+  nodes/node_geo_self_object.cc
   nodes/node_geo_set_curve_handles.cc
   nodes/node_geo_set_curve_radius.cc
   nodes/node_geo_set_curve_tilt.cc

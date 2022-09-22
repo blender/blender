@@ -382,6 +382,7 @@ DefNode(GeometryNode, GEO_NODE_SCALE_ELEMENTS, def_geo_scale_elements, "SCALE_EL
 DefNode(GeometryNode, GEO_NODE_SCALE_INSTANCES, 0, "SCALE_INSTANCES", ScaleInstances, "Scale Instances", "Scale geometry instances in local or global space")
 DefNode(GeometryNode, GEO_NODE_SEPARATE_COMPONENTS, 0, "SEPARATE_COMPONENTS",SeparateComponents, "Separate Components","Split a geometry into a separate output for each type of data in the geometry")
 DefNode(GeometryNode, GEO_NODE_SEPARATE_GEOMETRY, def_geo_separate_geometry,"SEPARATE_GEOMETRY", SeparateGeometry, "Separate Geometry", "Split a geometry into two geometry outputs based on a selection")
+DefNode(GeometryNode, GEO_NODE_SELF_OBJECT, 0, "SELF_OBJECT", SelfObject, "Self Object", "Retrieve the object that contains the geometry nodes modifier currently being executed")
 DefNode(GeometryNode, GEO_NODE_SET_CURVE_HANDLES, def_geo_curve_set_handle_positions, "SET_CURVE_HANDLES", SetCurveHandlePositions, "Set Handle Positions", "Set the positions for the handles of Bézier curves")
 DefNode(GeometryNode, GEO_NODE_SET_CURVE_RADIUS, 0, "SET_CURVE_RADIUS", SetCurveRadius, "Set Curve Radius", "Set the radius of the curve at each control point")
 DefNode(GeometryNode, GEO_NODE_SET_CURVE_TILT, 0, "SET_CURVE_TILT", SetCurveTilt, "Set Curve Tilt", "Set the tilt angle at each curve control point")

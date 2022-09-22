@@ -123,6 +123,7 @@ void register_node_type_geo_scale_instances(void);
 void register_node_type_geo_select_by_handle_type(void);
 void register_node_type_geo_separate_components(void);
 void register_node_type_geo_separate_geometry(void);
+void register_node_type_geo_self_object(void);
 void register_node_type_geo_set_curve_handles(void);
 void register_node_type_geo_set_curve_radius(void);
 void register_node_type_geo_set_curve_tilt(void);
