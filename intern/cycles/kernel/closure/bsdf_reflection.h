@@ -18,19 +18,10 @@ ccl_device int bsdf_reflection_setup(ccl_private MicrofacetBsdf *bsdf)
   return SD_BSDF;
 }
 
-ccl_device Spectrum bsdf_reflection_eval_reflect(ccl_private const ShaderClosure *sc,
-                                                 const float3 I,
-                                                 const float3 omega_in,
-                                                 ccl_private float *pdf)
-{
-  *pdf = 0.0f;
-  return zero_spectrum();
-}
-
-ccl_device Spectrum bsdf_reflection_eval_transmit(ccl_private const ShaderClosure *sc,
-                                                  const float3 I,
-                                                  const float3 omega_in,
-                                                  ccl_private float *pdf)
+ccl_device Spectrum bsdf_reflection_eval(ccl_private const ShaderClosure *sc,
+                                         const float3 I,
+                                         const float3 omega_in,
+                                         ccl_private float *pdf)
 {
   *pdf = 0.0f;
   return zero_spectrum();

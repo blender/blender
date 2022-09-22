@@ -108,13 +108,6 @@ ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
 }
 
 /* BSDF */
-
-ccl_device_inline bool surface_shader_is_transmission(ccl_private const ShaderData *sd,
-                                                      const float3 omega_in)
-{
-  return dot(sd->N, omega_in) < 0.0f;
-}
-
 ccl_device_forceinline bool _surface_shader_exclude(ClosureType type, uint light_shader_flags)
 {
   if (!(light_shader_flags & SHADER_EXCLUDE_ANY)) {
@@ -141,7 +134,6 @@ ccl_device_forceinline bool _surface_shader_exclude(ClosureType type, uint light
 ccl_device_inline float _surface_shader_bsdf_eval_mis(KernelGlobals kg,
                                                       ccl_private ShaderData *sd,
                                                       const float3 omega_in,
-                                                      const bool is_transmission,
                                                       ccl_private const ShaderClosure *skip_sc,
                                                       ccl_private BsdfEval *result_eval,
                                                       float sum_pdf,
@@ -160,7 +152,7 @@ ccl_device_inline float _surface_shader_bsdf_eval_mis(KernelGlobals kg,
     if (CLOSURE_IS_BSDF_OR_BSSRDF(sc->type)) {
       if (CLOSURE_IS_BSDF(sc->type) && !_surface_shader_exclude(sc->type, light_shader_flags)) {
         float bsdf_pdf = 0.0f;
-        Spectrum eval = bsdf_eval(kg, sd, sc, omega_in, is_transmission, &bsdf_pdf);
+        Spectrum eval = bsdf_eval(kg, sd, sc, omega_in, &bsdf_pdf);
 
         if (bsdf_pdf != 0.0f) {
           bsdf_eval_accum(result_eval, sc->type, eval * sc->weight);
@@ -184,14 +176,13 @@ ccl_device_inline
     surface_shader_bsdf_eval(KernelGlobals kg,
                              ccl_private ShaderData *sd,
                              const float3 omega_in,
-                             const bool is_transmission,
                              ccl_private BsdfEval *bsdf_eval,
                              const uint light_shader_flags)
 {
   bsdf_eval_init(bsdf_eval, CLOSURE_NONE_ID, zero_spectrum());
 
   return _surface_shader_bsdf_eval_mis(
-      kg, sd, omega_in, is_transmission, NULL, bsdf_eval, 0.0f, 0.0f, light_shader_flags);
+      kg, sd, omega_in, NULL, bsdf_eval, 0.0f, 0.0f, light_shader_flags);
 }
 
 /* Randomly sample a BSSRDF or BSDF proportional to ShaderClosure.sample_weight. */
@@ -285,10 +276,9 @@ ccl_device int surface_shader_bsdf_sample_closure(KernelGlobals kg,
     bsdf_eval_init(bsdf_eval, sc->type, eval * sc->weight);
 
     if (sd->num_closure > 1) {
-      const bool is_transmission = surface_shader_is_transmission(sd, *omega_in);
       float sweight = sc->sample_weight;
       *pdf = _surface_shader_bsdf_eval_mis(
-          kg, sd, *omega_in, is_transmission, sc, bsdf_eval, *pdf * sweight, sweight, 0);
+          kg, sd, *omega_in, sc, bsdf_eval, *pdf * sweight, sweight, 0);
     }
   }
 

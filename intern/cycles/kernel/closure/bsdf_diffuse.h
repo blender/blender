@@ -26,10 +26,10 @@ ccl_device int bsdf_diffuse_setup(ccl_private DiffuseBsdf *bsdf)
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device Spectrum bsdf_diffuse_eval_reflect(ccl_private const ShaderClosure *sc,
-                                              const float3 I,
-                                              const float3 omega_in,
-                                              ccl_private float *pdf)
+ccl_device Spectrum bsdf_diffuse_eval(ccl_private const ShaderClosure *sc,
+                                      const float3 I,
+                                      const float3 omega_in,
+                                      ccl_private float *pdf)
 {
   ccl_private const DiffuseBsdf *bsdf = (ccl_private const DiffuseBsdf *)sc;
   float3 N = bsdf->N;
@@ -37,15 +37,6 @@ ccl_device Spectrum bsdf_diffuse_eval_reflect(ccl_private const ShaderClosure *s
   float cos_pi = fmaxf(dot(N, omega_in), 0.0f) * M_1_PI_F;
   *pdf = cos_pi;
   return make_spectrum(cos_pi);
-}
-
-ccl_device Spectrum bsdf_diffuse_eval_transmit(ccl_private const ShaderClosure *sc,
-                                               const float3 I,
-                                               const float3 omega_in,
-                                               ccl_private float *pdf)
-{
-  *pdf = 0.0f;
-  return zero_spectrum();
 }
 
 ccl_device int bsdf_diffuse_sample(ccl_private const ShaderClosure *sc,
@@ -81,19 +72,10 @@ ccl_device int bsdf_translucent_setup(ccl_private DiffuseBsdf *bsdf)
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device Spectrum bsdf_translucent_eval_reflect(ccl_private const ShaderClosure *sc,
-                                                  const float3 I,
-                                                  const float3 omega_in,
-                                                  ccl_private float *pdf)
-{
-  *pdf = 0.0f;
-  return zero_spectrum();
-}
-
-ccl_device Spectrum bsdf_translucent_eval_transmit(ccl_private const ShaderClosure *sc,
-                                                   const float3 I,
-                                                   const float3 omega_in,
-                                                   ccl_private float *pdf)
+ccl_device Spectrum bsdf_translucent_eval(ccl_private const ShaderClosure *sc,
+                                          const float3 I,
+                                          const float3 omega_in,
+                                          ccl_private float *pdf)
 {
   ccl_private const DiffuseBsdf *bsdf = (ccl_private const DiffuseBsdf *)sc;
   float3 N = bsdf->N;

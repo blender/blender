@@ -69,7 +69,11 @@ ccl_device_inline float bsdf_get_roughness_squared(ccl_private const ShaderClosu
  * Yining Karl Li and Brent Burley. */
 ccl_device_inline float bump_shadowing_term(float3 Ng, float3 N, float3 I)
 {
-  float g = safe_divide(dot(Ng, I), dot(N, I) * dot(Ng, N));
+  const float cosNI = dot(N, I);
+  if (cosNI < 0.0f) {
+    Ng = -Ng;
+  }
+  float g = safe_divide(dot(Ng, I), cosNI * dot(Ng, N));
 
   /* If the incoming light is on the unshadowed side, return full brightness. */
   if (g >= 1.0f) {
@@ -96,6 +100,12 @@ ccl_device_inline float shift_cos_in(float cos_in, const float frequency_multipl
   const float angle = fast_acosf(cos_in);
   const float val = max(cosf(angle * frequency_multiplier), 0.0f) / cos_in;
   return val;
+}
+
+ccl_device_inline bool bsdf_is_transmission(ccl_private const ShaderClosure *sc,
+                                            const float3 omega_in)
+{
+  return dot(sc->N, omega_in) < 0.0f;
 }
 
 ccl_device_inline int bsdf_sample(KernelGlobals kg,
@@ -264,11 +274,12 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
     const float frequency_multiplier =
         kernel_data_fetch(objects, sd->object).shadow_terminator_shading_offset;
     if (frequency_multiplier > 1.0f) {
-      *eval *= shift_cos_in(dot(*omega_in, sc->N), frequency_multiplier);
+      const float cosNI = dot(*omega_in, sc->N);
+      *eval *= shift_cos_in(cosNI, frequency_multiplier);
     }
     if (label & LABEL_DIFFUSE) {
       if (!isequal(sc->N, sd->N)) {
-        *eval *= bump_shadowing_term((label & LABEL_TRANSMIT) ? -sd->N : sd->N, sc->N, *omega_in);
+        *eval *= bump_shadowing_term(sd->N, sc->N, *omega_in);
       }
     }
   }
@@ -491,7 +502,7 @@ ccl_device_inline int bsdf_label(const KernelGlobals kg,
       label = LABEL_TRANSMIT | LABEL_GLOSSY;
       break;
     case CLOSURE_BSDF_HAIR_PRINCIPLED_ID:
-      if (is_transmission)
+      if (bsdf_is_transmission(sc, omega_in))
         label = LABEL_TRANSMIT | LABEL_GLOSSY;
       else
         label = LABEL_REFLECT | LABEL_GLOSSY;
@@ -531,179 +542,104 @@ ccl_device_inline
               ccl_private ShaderData *sd,
               ccl_private const ShaderClosure *sc,
               const float3 omega_in,
-              const bool is_transmission,
               ccl_private float *pdf)
 {
   Spectrum eval = zero_spectrum();
 
-  if (!is_transmission) {
-    switch (sc->type) {
-      case CLOSURE_BSDF_DIFFUSE_ID:
-        eval = bsdf_diffuse_eval_reflect(sc, sd->I, omega_in, pdf);
-        break;
+  switch (sc->type) {
+    case CLOSURE_BSDF_DIFFUSE_ID:
+      eval = bsdf_diffuse_eval(sc, sd->I, omega_in, pdf);
+      break;
 #if defined(__SVM__) || defined(__OSL__)
-      case CLOSURE_BSDF_OREN_NAYAR_ID:
-        eval = bsdf_oren_nayar_eval_reflect(sc, sd->I, omega_in, pdf);
-        break;
+    case CLOSURE_BSDF_OREN_NAYAR_ID:
+      eval = bsdf_oren_nayar_eval(sc, sd->I, omega_in, pdf);
+      break;
 #  ifdef __OSL__
-      case CLOSURE_BSDF_PHONG_RAMP_ID:
-        eval = bsdf_phong_ramp_eval_reflect(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_DIFFUSE_RAMP_ID:
-        eval = bsdf_diffuse_ramp_eval_reflect(sc, sd->I, omega_in, pdf);
-        break;
+    case CLOSURE_BSDF_PHONG_RAMP_ID:
+      eval = bsdf_phong_ramp_eval(sc, sd->I, omega_in, pdf);
+      break;
+    case CLOSURE_BSDF_DIFFUSE_RAMP_ID:
+      eval = bsdf_diffuse_ramp_eval(sc, sd->I, omega_in, pdf);
+      break;
 #  endif
-      case CLOSURE_BSDF_TRANSLUCENT_ID:
-        eval = bsdf_translucent_eval_reflect(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_REFLECTION_ID:
-        eval = bsdf_reflection_eval_reflect(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_REFRACTION_ID:
-        eval = bsdf_refraction_eval_reflect(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_TRANSPARENT_ID:
-        eval = bsdf_transparent_eval_reflect(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_MICROFACET_GGX_ID:
-      case CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID:
-      case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
-      case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-        eval = bsdf_microfacet_ggx_eval_reflect(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID:
-      case CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID:
-        eval = bsdf_microfacet_multi_ggx_eval_reflect(sc, sd->I, omega_in, pdf, &sd->lcg_state);
-        break;
-      case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID:
-      case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID:
-        eval = bsdf_microfacet_multi_ggx_glass_eval_reflect(
-            sc, sd->I, omega_in, pdf, &sd->lcg_state);
-        break;
-      case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
-      case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
-        eval = bsdf_microfacet_beckmann_eval_reflect(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
-        eval = bsdf_ashikhmin_shirley_eval_reflect(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID:
-        eval = bsdf_ashikhmin_velvet_eval_reflect(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_DIFFUSE_TOON_ID:
-        eval = bsdf_diffuse_toon_eval_reflect(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_GLOSSY_TOON_ID:
-        eval = bsdf_glossy_toon_eval_reflect(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_HAIR_PRINCIPLED_ID:
-        eval = bsdf_principled_hair_eval(kg, sd, sc, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_HAIR_REFLECTION_ID:
-        eval = bsdf_hair_reflection_eval_reflect(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_HAIR_TRANSMISSION_ID:
-        eval = bsdf_hair_transmission_eval_reflect(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID:
-        eval = bsdf_principled_diffuse_eval_reflect(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_PRINCIPLED_SHEEN_ID:
-        eval = bsdf_principled_sheen_eval_reflect(sc, sd->I, omega_in, pdf);
-        break;
+    case CLOSURE_BSDF_TRANSLUCENT_ID:
+      eval = bsdf_translucent_eval(sc, sd->I, omega_in, pdf);
+      break;
+    case CLOSURE_BSDF_REFLECTION_ID:
+      eval = bsdf_reflection_eval(sc, sd->I, omega_in, pdf);
+      break;
+    case CLOSURE_BSDF_REFRACTION_ID:
+      eval = bsdf_refraction_eval(sc, sd->I, omega_in, pdf);
+      break;
+    case CLOSURE_BSDF_TRANSPARENT_ID:
+      eval = bsdf_transparent_eval(sc, sd->I, omega_in, pdf);
+      break;
+    case CLOSURE_BSDF_MICROFACET_GGX_ID:
+    case CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID:
+    case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
+    case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
+      eval = bsdf_microfacet_ggx_eval(sc, sd->I, omega_in, pdf);
+      break;
+    case CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID:
+    case CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID:
+      eval = bsdf_microfacet_multi_ggx_eval(sc, sd->I, omega_in, pdf, &sd->lcg_state);
+      break;
+    case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID:
+    case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID:
+      eval = bsdf_microfacet_multi_ggx_glass_eval(sc, sd->I, omega_in, pdf, &sd->lcg_state);
+      break;
+    case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
+    case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
+      eval = bsdf_microfacet_beckmann_eval(sc, sd->I, omega_in, pdf);
+      break;
+    case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
+      eval = bsdf_ashikhmin_shirley_eval(sc, sd->I, omega_in, pdf);
+      break;
+    case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID:
+      eval = bsdf_ashikhmin_velvet_eval(sc, sd->I, omega_in, pdf);
+      break;
+    case CLOSURE_BSDF_DIFFUSE_TOON_ID:
+      eval = bsdf_diffuse_toon_eval(sc, sd->I, omega_in, pdf);
+      break;
+    case CLOSURE_BSDF_GLOSSY_TOON_ID:
+      eval = bsdf_glossy_toon_eval(sc, sd->I, omega_in, pdf);
+      break;
+    case CLOSURE_BSDF_HAIR_PRINCIPLED_ID:
+      eval = bsdf_principled_hair_eval(kg, sd, sc, omega_in, pdf);
+      break;
+    case CLOSURE_BSDF_HAIR_REFLECTION_ID:
+      eval = bsdf_hair_reflection_eval(sc, sd->I, omega_in, pdf);
+      break;
+    case CLOSURE_BSDF_HAIR_TRANSMISSION_ID:
+      eval = bsdf_hair_transmission_eval(sc, sd->I, omega_in, pdf);
+      break;
+    case CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID:
+      eval = bsdf_principled_diffuse_eval(sc, sd->I, omega_in, pdf);
+      break;
+    case CLOSURE_BSDF_PRINCIPLED_SHEEN_ID:
+      eval = bsdf_principled_sheen_eval(sc, sd->I, omega_in, pdf);
+      break;
 #endif
-      default:
-        break;
-    }
-    if (CLOSURE_IS_BSDF_DIFFUSE(sc->type)) {
-      if (!isequal(sc->N, sd->N)) {
-        eval *= bump_shadowing_term(sd->N, sc->N, omega_in);
-      }
-    }
-    /* Shadow terminator offset. */
-    const float frequency_multiplier =
-        kernel_data_fetch(objects, sd->object).shadow_terminator_shading_offset;
-    if (frequency_multiplier > 1.0f) {
-      eval *= shift_cos_in(dot(omega_in, sc->N), frequency_multiplier);
+    default:
+      break;
+  }
+
+  if (CLOSURE_IS_BSDF_DIFFUSE(sc->type)) {
+    if (!isequal(sc->N, sd->N)) {
+      eval *= bump_shadowing_term(sd->N, sc->N, omega_in);
     }
   }
-  else {
-    switch (sc->type) {
-      case CLOSURE_BSDF_DIFFUSE_ID:
-        eval = bsdf_diffuse_eval_transmit(sc, sd->I, omega_in, pdf);
-        break;
-#if defined(__SVM__) || defined(__OSL__)
-      case CLOSURE_BSDF_OREN_NAYAR_ID:
-        eval = bsdf_oren_nayar_eval_transmit(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_TRANSLUCENT_ID:
-        eval = bsdf_translucent_eval_transmit(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_REFLECTION_ID:
-        eval = bsdf_reflection_eval_transmit(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_REFRACTION_ID:
-        eval = bsdf_refraction_eval_transmit(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_TRANSPARENT_ID:
-        eval = bsdf_transparent_eval_transmit(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_MICROFACET_GGX_ID:
-      case CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID:
-      case CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID:
-      case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-        eval = bsdf_microfacet_ggx_eval_transmit(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID:
-      case CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID:
-        eval = bsdf_microfacet_multi_ggx_eval_transmit(sc, sd->I, omega_in, pdf, &sd->lcg_state);
-        break;
-      case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID:
-      case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID:
-        eval = bsdf_microfacet_multi_ggx_glass_eval_transmit(
-            sc, sd->I, omega_in, pdf, &sd->lcg_state);
-        break;
-      case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
-      case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
-        eval = bsdf_microfacet_beckmann_eval_transmit(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
-        eval = bsdf_ashikhmin_shirley_eval_transmit(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID:
-        eval = bsdf_ashikhmin_velvet_eval_transmit(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_DIFFUSE_TOON_ID:
-        eval = bsdf_diffuse_toon_eval_transmit(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_GLOSSY_TOON_ID:
-        eval = bsdf_glossy_toon_eval_transmit(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_HAIR_PRINCIPLED_ID:
-        eval = bsdf_principled_hair_eval(kg, sd, sc, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_HAIR_REFLECTION_ID:
-        eval = bsdf_hair_reflection_eval_transmit(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_HAIR_TRANSMISSION_ID:
-        eval = bsdf_hair_transmission_eval_transmit(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID:
-        eval = bsdf_principled_diffuse_eval_transmit(sc, sd->I, omega_in, pdf);
-        break;
-      case CLOSURE_BSDF_PRINCIPLED_SHEEN_ID:
-        eval = bsdf_principled_sheen_eval_transmit(sc, sd->I, omega_in, pdf);
-        break;
-#endif
-      default:
-        break;
-    }
-    if (CLOSURE_IS_BSDF_DIFFUSE(sc->type)) {
-      if (!isequal(sc->N, sd->N)) {
-        eval *= bump_shadowing_term(-sd->N, sc->N, omega_in);
-      }
+
+  /* Shadow terminator offset. */
+  const float frequency_multiplier =
+      kernel_data_fetch(objects, sd->object).shadow_terminator_shading_offset;
+  if (frequency_multiplier > 1.0f) {
+    const float cosNI = dot(omega_in, sc->N);
+    if (cosNI >= 0.0f) {
+      eval *= shift_cos_in(cosNI, frequency_multiplier);
     }
   }
+
 #ifdef WITH_CYCLES_DEBUG
   kernel_assert(*pdf >= 0.0f);
   kernel_assert(eval.x >= 0.0f && eval.y >= 0.0f && eval.z >= 0.0f);
