@@ -555,6 +555,7 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_armature_envelope_solid_vert.glsl
   engines/overlay/shaders/overlay_armature_shape_outline_geom.glsl
   engines/overlay/shaders/overlay_armature_shape_outline_vert.glsl
+  engines/overlay/shaders/overlay_armature_shape_outline_vert_no_geom.glsl
   engines/overlay/shaders/overlay_armature_shape_solid_frag.glsl
   engines/overlay/shaders/overlay_armature_shape_solid_vert.glsl
   engines/overlay/shaders/overlay_armature_shape_wire_vert.glsl
@@ -572,6 +573,7 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_depth_only_vert.glsl
   engines/overlay/shaders/overlay_edit_curve_handle_geom.glsl
   engines/overlay/shaders/overlay_edit_curve_handle_vert.glsl
+  engines/overlay/shaders/overlay_edit_curve_handle_vert_no_geom.glsl
   engines/overlay/shaders/overlay_edit_curve_point_vert.glsl
   engines/overlay/shaders/overlay_edit_curve_wire_vert.glsl
   engines/overlay/shaders/overlay_edit_gpencil_canvas_vert.glsl
@@ -587,6 +589,7 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_edit_mesh_normal_vert.glsl
   engines/overlay/shaders/overlay_edit_mesh_skin_root_vert.glsl
   engines/overlay/shaders/overlay_edit_mesh_vert.glsl
+  engines/overlay/shaders/overlay_edit_mesh_vert_no_geom.glsl
   engines/overlay/shaders/overlay_edit_particle_point_vert.glsl
   engines/overlay/shaders/overlay_edit_particle_strand_vert.glsl
   engines/overlay/shaders/overlay_edit_uv_edges_frag.glsl
@@ -619,6 +622,7 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_motion_path_line_frag.glsl
   engines/overlay/shaders/overlay_motion_path_line_geom.glsl
   engines/overlay/shaders/overlay_motion_path_line_vert.glsl
+  engines/overlay/shaders/overlay_motion_path_line_vert_no_geom.glsl
   engines/overlay/shaders/overlay_motion_path_point_vert.glsl
   engines/overlay/shaders/overlay_outline_detect_frag.glsl
   engines/overlay/shaders/overlay_outline_prepass_curves_vert.glsl

@@ -183,6 +183,9 @@ GPU_SHADER_INTERFACE_INFO(overlay_motion_path_line_iface, "interp")
     .flat(Type::VEC2, "ss_pos")
     .smooth(Type::VEC4, "color");
 
+GPU_SHADER_INTERFACE_INFO(overlay_motion_path_line_no_geom_iface, "interp")
+    .smooth(Type::VEC4, "color");
+
 GPU_SHADER_CREATE_INFO(overlay_motion_path_line)
     .do_static_compilation(true)
     .vertex_in(0, Type::VEC3, "pos")
@@ -199,9 +202,26 @@ GPU_SHADER_CREATE_INFO(overlay_motion_path_line)
     .fragment_source("overlay_motion_path_line_frag.glsl")
     .additional_info("draw_view", "draw_globals");
 
+GPU_SHADER_CREATE_INFO(overlay_motion_path_line_no_geom)
+    .do_static_compilation(true)
+    .vertex_in(0, Type::VEC3, "pos")
+    .push_constant(Type::IVEC4, "mpathLineSettings")
+    .push_constant(Type::BOOL, "selected")
+    .push_constant(Type::VEC3, "customColor")
+    .push_constant(Type::INT, "lineThickness") /* In pixels. */
+    .vertex_out(overlay_motion_path_line_no_geom_iface)
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("overlay_motion_path_line_vert_no_geom.glsl")
+    .fragment_source("overlay_motion_path_line_frag.glsl")
+    .additional_info("draw_view", "draw_globals");
+
 GPU_SHADER_CREATE_INFO(overlay_motion_path_line_clipped)
     .do_static_compilation(true)
     .additional_info("overlay_motion_path_line", "drw_clipped");
+
+GPU_SHADER_CREATE_INFO(overlay_motion_path_line_clipped_no_geom)
+    .do_static_compilation(true)
+    .additional_info("overlay_motion_path_line_no_geom", "drw_clipped");
 
 GPU_SHADER_INTERFACE_INFO(overlay_motion_path_point_iface, "").flat(Type::VEC4, "finalColor");
 

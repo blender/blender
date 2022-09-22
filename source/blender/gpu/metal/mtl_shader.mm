@@ -539,6 +539,7 @@ void MTLShader::push_constant_bindstate_mark_dirty(bool is_dirty)
 {
   push_constant_modified_ = is_dirty;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
