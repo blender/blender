@@ -168,7 +168,7 @@ void OVERLAY_paint_cache_init(OVERLAY_Data *vedata)
     sh = OVERLAY_shader_paint_face();
     pd->paint_face_grp = grp = DRW_shgroup_create(sh, psl->paint_overlay_ps);
     const float4 color = {1.0f, 1.0f, 1.0f, 0.2f};
-    DRW_shgroup_uniform_vec4_copy(grp, "color", color);
+    DRW_shgroup_uniform_vec4_copy(grp, "ucolor", color);
     DRW_shgroup_state_enable(grp, DRW_STATE_BLEND_ALPHA);
 
     sh = OVERLAY_shader_paint_wire();

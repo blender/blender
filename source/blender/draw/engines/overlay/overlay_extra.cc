@@ -195,23 +195,23 @@ void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
       DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 
       grp_sub = DRW_shgroup_create_sub(grp);
-      DRW_shgroup_uniform_vec4_copy(grp_sub, "color", G_draw.block.color_active);
+      DRW_shgroup_uniform_vec4_copy(grp_sub, "ucolor", G_draw.block.color_active);
       cb->center_active = BUF_POINT(grp_sub, format);
 
       grp_sub = DRW_shgroup_create_sub(grp);
-      DRW_shgroup_uniform_vec4_copy(grp_sub, "color", G_draw.block.color_select);
+      DRW_shgroup_uniform_vec4_copy(grp_sub, "ucolor", G_draw.block.color_select);
       cb->center_selected = BUF_POINT(grp_sub, format);
 
       grp_sub = DRW_shgroup_create_sub(grp);
-      DRW_shgroup_uniform_vec4_copy(grp_sub, "color", G_draw.block.color_deselect);
+      DRW_shgroup_uniform_vec4_copy(grp_sub, "ucolor", G_draw.block.color_deselect);
       cb->center_deselected = BUF_POINT(grp_sub, format);
 
       grp_sub = DRW_shgroup_create_sub(grp);
-      DRW_shgroup_uniform_vec4_copy(grp_sub, "color", G_draw.block.color_library_select);
+      DRW_shgroup_uniform_vec4_copy(grp_sub, "ucolor", G_draw.block.color_library_select);
       cb->center_selected_lib = BUF_POINT(grp_sub, format);
 
       grp_sub = DRW_shgroup_create_sub(grp);
-      DRW_shgroup_uniform_vec4_copy(grp_sub, "color", G_draw.block.color_library);
+      DRW_shgroup_uniform_vec4_copy(grp_sub, "ucolor", G_draw.block.color_library);
       cb->center_deselected_lib = BUF_POINT(grp_sub, format);
     }
   }

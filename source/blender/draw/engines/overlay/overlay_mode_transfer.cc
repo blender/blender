@@ -100,7 +100,7 @@ void OVERLAY_mode_transfer_cache_populate(OVERLAY_Data *vedata, Object *ob)
     UI_GetThemeColor3fv(TH_VERTEX_SELECT, color);
     color[3] = mode_transfer_alpha_for_animation_time_get(animation_time);
     srgb_to_linearrgb_v4(color, color);
-    DRW_shgroup_uniform_vec4_copy(mode_transfer_grp[i], "color", color);
+    DRW_shgroup_uniform_vec4_copy(mode_transfer_grp[i], "ucolor", color);
   }
 
   if (!pd->use_in_front) {

@@ -37,7 +37,7 @@ void OVERLAY_edit_text_cache_init(OVERLAY_Data *vedata)
 
     sh = OVERLAY_shader_uniform_color();
     pd->edit_text_wire_grp[i] = grp = DRW_shgroup_create(sh, psl->edit_text_wire_ps[i]);
-    DRW_shgroup_uniform_vec4_copy(grp, "color", G_draw.block.color_wire);
+    DRW_shgroup_uniform_vec4_copy(grp, "ucolor", G_draw.block.color_wire);
   }
   {
     /* Cursor (text caret). */
@@ -45,14 +45,14 @@ void OVERLAY_edit_text_cache_init(OVERLAY_Data *vedata)
     DRW_PASS_CREATE(psl->edit_text_cursor_ps, state | pd->clipping_state);
     sh = OVERLAY_shader_uniform_color();
     pd->edit_text_cursor_grp = grp = DRW_shgroup_create(sh, psl->edit_text_cursor_ps);
-    DRW_shgroup_uniform_vec4(grp, "color", pd->edit_text.cursor_color, 1);
+    DRW_shgroup_uniform_vec4(grp, "ucolor", pd->edit_text.cursor_color, 1);
 
     /* Selection boxes. */
     state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA;
     DRW_PASS_CREATE(psl->edit_text_selection_ps, state | pd->clipping_state);
     sh = OVERLAY_shader_uniform_color();
     pd->edit_text_selection_grp = grp = DRW_shgroup_create(sh, psl->edit_text_selection_ps);
-    DRW_shgroup_uniform_vec4(grp, "color", pd->edit_text.selection_color, 1);
+    DRW_shgroup_uniform_vec4(grp, "ucolor", pd->edit_text.selection_color, 1);
 
     /* Highlight text within selection boxes. */
     state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA | DRW_STATE_DEPTH_GREATER_EQUAL |

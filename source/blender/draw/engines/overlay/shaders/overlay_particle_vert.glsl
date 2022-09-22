@@ -16,7 +16,7 @@ vec3 rotate(vec3 vec, vec4 quat)
 void main()
 {
   /* Drawsize packed in alpha. */
-  float draw_size = color.a;
+  float draw_size = ucolor.a;
 
   vec3 world_pos = part_pos;
 
@@ -43,7 +43,7 @@ void main()
     finalColor = vec4(clamp(pos * 10000.0, 0.0, 1.0), 1.0);
   }
   else if (part_val < 0.0) {
-    finalColor = vec4(color.rgb, 1.0);
+    finalColor = vec4(ucolor.rgb, 1.0);
   }
   else {
     finalColor = vec4(texture(weightTex, part_val).rgb, 1.0);

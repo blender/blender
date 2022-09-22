@@ -140,11 +140,11 @@ void OVERLAY_armature_cache_init(OVERLAY_Data *vedata)
 
     pd->armature_bone_select_act_grp = grp = DRW_shgroup_create(sh, psl->armature_bone_select_ps);
     float4 color = {0.0f, 0.0f, 0.0f, alpha};
-    DRW_shgroup_uniform_vec4_copy(grp, "color", color);
+    DRW_shgroup_uniform_vec4_copy(grp, "ucolor", color);
 
     pd->armature_bone_select_grp = grp = DRW_shgroup_create(sh, psl->armature_bone_select_ps);
     color = {0.0f, 0.0f, 0.0f, powf(alpha, 4)};
-    DRW_shgroup_uniform_vec4_copy(grp, "color", color);
+    DRW_shgroup_uniform_vec4_copy(grp, "ucolor", color);
   }
 
   for (int i = 0; i < 2; i++) {

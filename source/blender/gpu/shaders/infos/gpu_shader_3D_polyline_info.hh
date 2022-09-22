@@ -9,7 +9,7 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_INTERFACE_INFO(gpu_shader_3D_polyline_iface, "interp")
-    .smooth(Type::VEC4, "color")
+    .smooth(Type::VEC4, "final_color")
     .smooth(Type::FLOAT, "clip")
     .no_perspective(Type::FLOAT, "smoothline");
 
