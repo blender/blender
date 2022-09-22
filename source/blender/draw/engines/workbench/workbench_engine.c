@@ -29,6 +29,8 @@
 
 #include "ED_paint.h"
 
+#include "GPU_context.h"
+
 #include "workbench_engine.h"
 #include "workbench_private.h"
 
@@ -36,6 +38,7 @@
 
 void workbench_engine_init(void *ved)
 {
+  GPU_render_begin();
   WORKBENCH_Data *vedata = ved;
   WORKBENCH_StorageList *stl = vedata->stl;
   WORKBENCH_TextureList *txl = vedata->txl;
@@ -64,6 +67,7 @@ void workbench_engine_init(void *ved)
   workbench_dof_engine_init(vedata);
   workbench_antialiasing_engine_init(vedata);
   workbench_volume_engine_init(vedata);
+  GPU_render_end();
 }
 
 void workbench_cache_init(void *ved)

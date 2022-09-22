@@ -580,6 +580,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
 
   if (ghostwin) {
     win->gpuctx = GPU_context_create(ghostwin, NULL);
+    GPU_render_begin();
 
     /* needed so we can detect the graphics card below */
     GPU_init();
@@ -621,6 +622,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
     GPU_clear_color(0.55f, 0.55f, 0.55f, 1.0f);
 
     // GHOST_SetWindowState(ghostwin, GHOST_kWindowStateModified);
+    GPU_render_end();
   }
   else {
     wm_window_set_drawable(wm, prev_windrawable, false);
@@ -1504,6 +1506,7 @@ static bool wm_window_timer(const bContext *C)
 void wm_window_process_events(const bContext *C)
 {
   BLI_assert(BLI_thread_is_main());
+  GPU_render_begin();
 
   bool has_event = GHOST_ProcessEvents(g_system, false); /* `false` is no wait. */
 
@@ -1516,6 +1519,7 @@ void wm_window_process_events(const bContext *C)
    * processing/dispatching but also handling. */
   has_event |= wm_xr_events_handle(CTX_wm_manager(C));
 #endif
+  GPU_render_end();
 
   /* When there is no event, sleep 5 milliseconds not to use too much CPU when idle.
    *

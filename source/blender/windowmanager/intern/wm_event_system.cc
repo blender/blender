@@ -56,6 +56,8 @@
 #include "ED_util.h"
 #include "ED_view3d.h"
 
+#include "GPU_context.h"
+
 #include "RNA_access.h"
 
 #include "UI_interface.h"
@@ -484,11 +486,15 @@ static void wm_event_execute_timers(bContext *C)
 
 void wm_event_do_notifiers(bContext *C)
 {
+  /* Ensure insiude render boundary. */
+  GPU_render_begin();
+
   /* Run the timer before assigning `wm` in the unlikely case a timer loads a file, see T80028. */
   wm_event_execute_timers(C);
 
   wmWindowManager *wm = CTX_wm_manager(C);
   if (wm == nullptr) {
+    GPU_render_end();
     return;
   }
 
@@ -691,6 +697,8 @@ void wm_event_do_notifiers(bContext *C)
 
   /* Auto-run warning. */
   wm_test_autorun_warning(C);
+
+  GPU_render_end();
 }
 
 static bool wm_event_always_pass(const wmEvent *event)
