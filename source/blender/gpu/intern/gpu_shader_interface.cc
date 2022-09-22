@@ -22,8 +22,8 @@ ShaderInterface::ShaderInterface() = default;
 ShaderInterface::~ShaderInterface()
 {
   /* Free memory used by name_buffer. */
-  MEM_freeN(name_buffer_);
-  MEM_freeN(inputs_);
+  MEM_SAFE_FREE(name_buffer_);
+  MEM_SAFE_FREE(inputs_);
 }
 
 static void sort_input_list(MutableSpan<ShaderInput> dst)

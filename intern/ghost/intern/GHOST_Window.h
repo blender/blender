@@ -72,7 +72,7 @@ class GHOST_Window : public GHOST_IWindow {
    * Returns indication as to whether the window is valid.
    * \return The validity of the window.
    */
-  virtual bool getValid() const
+  virtual bool getValid() const override
   {
     return m_context != NULL;
   }
@@ -81,15 +81,15 @@ class GHOST_Window : public GHOST_IWindow {
    * Returns the associated OS object/handle
    * \return The associated OS object/handle
    */
-  virtual void *getOSWindow() const;
+  virtual void *getOSWindow() const override;
 
   /**
    * Returns the current cursor shape.
    * \return The current cursor shape.
    */
-  inline GHOST_TStandardCursor getCursorShape() const;
+  inline GHOST_TStandardCursor getCursorShape() const override;
 
-  inline bool isDialog() const
+  inline bool isDialog() const override
   {
     return false;
   }
@@ -99,7 +99,7 @@ class GHOST_Window : public GHOST_IWindow {
    * \param cursorShape: The new cursor shape type id.
    * \return Indication of success.
    */
-  GHOST_TSuccess setCursorShape(GHOST_TStandardCursor cursorShape);
+  GHOST_TSuccess setCursorShape(GHOST_TStandardCursor cursorShape) override;
 
   /**
    * Set the shape of the cursor to a custom cursor.
@@ -115,15 +115,15 @@ class GHOST_Window : public GHOST_IWindow {
                                       int sizey,
                                       int hotX,
                                       int hotY,
-                                      bool canInvertColor);
+                                      bool canInvertColor) override;
 
-  GHOST_TSuccess getCursorBitmap(GHOST_CursorBitmapRef *bitmap);
+  GHOST_TSuccess getCursorBitmap(GHOST_CursorBitmapRef *bitmap) override;
 
   /**
    * Returns the visibility state of the cursor.
    * \return The visibility state of the cursor.
    */
-  inline bool getCursorVisibility() const;
+  inline bool getCursorVisibility() const override;
   inline GHOST_TGrabCursorMode getCursorGrabMode() const;
   inline bool getCursorGrabModeIsWarp() const;
   inline GHOST_TAxisFlag getCursorGrabAxis() const;
@@ -136,7 +136,7 @@ class GHOST_Window : public GHOST_IWindow {
    * \param visible: The new visibility state of the cursor.
    * \return Indication of success.
    */
-  GHOST_TSuccess setCursorVisibility(bool visible);
+  GHOST_TSuccess setCursorVisibility(bool visible) override;
 
   /**
    * Sets the cursor grab.
@@ -146,28 +146,28 @@ class GHOST_Window : public GHOST_IWindow {
   GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode mode,
                                GHOST_TAxisFlag wrap_axis,
                                GHOST_Rect *bounds,
-                               int32_t mouse_ungrab_xy[2]);
+                               int32_t mouse_ungrab_xy[2]) override;
 
   /**
    * Gets the cursor grab region, if unset the window is used.
    * reset when grab is disabled.
    */
-  GHOST_TSuccess getCursorGrabBounds(GHOST_Rect &bounds);
+  GHOST_TSuccess getCursorGrabBounds(GHOST_Rect &bounds) override;
 
   void getCursorGrabState(GHOST_TGrabCursorMode &mode,
                           GHOST_TAxisFlag &axis_flag,
                           GHOST_Rect &bounds,
-                          bool &use_software_cursor);
+                          bool &use_software_cursor) override;
   /**
    * Return true when a software cursor should be used.
    */
-  bool getCursorGrabUseSoftwareDisplay();
+  bool getCursorGrabUseSoftwareDisplay() override;
 
   /**
    * Sets the progress bar value displayed in the window/application icon
    * \param progress: The progress percentage (0.0 to 1.0).
    */
-  virtual GHOST_TSuccess setProgressBar(float /*progress*/)
+  virtual GHOST_TSuccess setProgressBar(float /*progress*/) override
   {
     return GHOST_kFailure;
   }
@@ -175,7 +175,7 @@ class GHOST_Window : public GHOST_IWindow {
   /**
    * Hides the progress bar in the icon
    */
-  virtual GHOST_TSuccess endProgressBar()
+  virtual GHOST_TSuccess endProgressBar() override
   {
     return GHOST_kFailure;
   }
@@ -185,43 +185,43 @@ class GHOST_Window : public GHOST_IWindow {
    * \param interval: The swap interval to use.
    * \return A boolean success indicator.
    */
-  GHOST_TSuccess setSwapInterval(int interval);
+  GHOST_TSuccess setSwapInterval(int interval) override;
 
   /**
    * Gets the current swap interval for #swapBuffers.
    * \return An integer.
    */
-  GHOST_TSuccess getSwapInterval(int &intervalOut);
+  GHOST_TSuccess getSwapInterval(int &intervalOut) override;
 
   /**
    * Tells if the ongoing drag'n'drop object can be accepted upon mouse drop
    */
-  void setAcceptDragOperation(bool canAccept);
+  void setAcceptDragOperation(bool canAccept) override;
 
   /**
    * Returns acceptance of the dropped object
    * Usually called by the "object dropped" event handling function
    */
-  bool canAcceptDragOperation() const;
+  bool canAcceptDragOperation() const override;
 
   /**
    * Sets the window "modified" status, indicating unsaved changes
    * \param isUnsavedChanges: Unsaved changes or not.
    * \return Indication of success.
    */
-  virtual GHOST_TSuccess setModifiedState(bool isUnsavedChanges);
+  virtual GHOST_TSuccess setModifiedState(bool isUnsavedChanges) override;
 
   /**
    * Gets the window "modified" status, indicating unsaved changes
    * \return True if there are unsaved changes
    */
-  virtual bool getModifiedState();
+  virtual bool getModifiedState() override;
 
   /**
    * Returns the type of drawing context used in this window.
    * \return The current type of drawing context.
    */
-  inline GHOST_TDrawingContextType getDrawingContextType();
+  inline GHOST_TDrawingContextType getDrawingContextType() override;
 
   /**
    * Tries to install a rendering context in this window.
@@ -230,19 +230,19 @@ class GHOST_Window : public GHOST_IWindow {
    * \param type: The type of rendering context installed.
    * \return Indication as to whether installation has succeeded.
    */
-  GHOST_TSuccess setDrawingContextType(GHOST_TDrawingContextType type);
+  GHOST_TSuccess setDrawingContextType(GHOST_TDrawingContextType type) override;
 
   /**
    * Swaps front and back buffers of a window.
    * \return A boolean success indicator.
    */
-  virtual GHOST_TSuccess swapBuffers();
+  virtual GHOST_TSuccess swapBuffers() override;
 
   /**
    * Activates the drawing context of this window.
    * \return A boolean success indicator.
    */
-  virtual GHOST_TSuccess activateDrawingContext();
+  virtual GHOST_TSuccess activateDrawingContext() override;
 
   /**
    * Updates the drawing context of this window. Needed
@@ -252,16 +252,22 @@ class GHOST_Window : public GHOST_IWindow {
   GHOST_TSuccess updateDrawingContext();
 
   /**
-   * Gets the OpenGL frame-buffer associated with the window's contents.
-   * \return The ID of an OpenGL frame-buffer object.
+   * Get the drawing context associated with this window.
+   *\return Pointer to the context object.
    */
-  virtual unsigned int getDefaultFramebuffer();
+  GHOST_Context *getContext();
+
+  /**
+   * Gets the OpenGL framebuffer associated with the window's contents.
+   * \return The ID of an OpenGL framebuffer object.
+   */
+  virtual unsigned int getDefaultFramebuffer() override;
 
   /**
    * Returns the window user data.
    * \return The window user data.
    */
-  inline GHOST_TUserDataPtr getUserData() const
+  inline GHOST_TUserDataPtr getUserData() const override
   {
     return m_userData;
   }
@@ -270,12 +276,12 @@ class GHOST_Window : public GHOST_IWindow {
    * Changes the window user data.
    * \param userData: The window user data.
    */
-  void setUserData(const GHOST_TUserDataPtr userData)
+  void setUserData(const GHOST_TUserDataPtr userData) override
   {
     m_userData = userData;
   }
 
-  float getNativePixelSize(void)
+  float getNativePixelSize(void) override
   {
     if (m_nativePixelSize > 0.0f)
       return m_nativePixelSize;
@@ -286,18 +292,18 @@ class GHOST_Window : public GHOST_IWindow {
    * Returns the recommended DPI for this window.
    * \return The recommended DPI for this window.
    */
-  virtual inline uint16_t getDPIHint()
+  virtual inline uint16_t getDPIHint() override
   {
     return 96;
   }
 
 #ifdef WITH_INPUT_IME
-  virtual void beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed)
+  virtual void beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed) override
   {
     /* do nothing temporarily if not in windows */
   }
 
-  virtual void endIME()
+  virtual void endIME() override
   {
     /* do nothing temporarily if not in windows */
   }

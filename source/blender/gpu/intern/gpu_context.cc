@@ -94,7 +94,7 @@ Context *Context::get()
 
 /* -------------------------------------------------------------------- */
 
-GPUContext *GPU_context_create(void *ghost_window)
+GPUContext *GPU_context_create(void *ghost_window, void *ghost_context)
 {
   {
     std::scoped_lock lock(backend_users_mutex);
@@ -105,7 +105,7 @@ GPUContext *GPU_context_create(void *ghost_window)
     num_backend_users++;
   }
 
-  Context *ctx = GPUBackend::get()->context_alloc(ghost_window);
+  Context *ctx = GPUBackend::get()->context_alloc(ghost_window, ghost_context);
 
   GPU_context_active_set(wrap(ctx));
   return wrap(ctx);
@@ -216,6 +216,9 @@ void GPU_render_step()
 /** \name Backend selection
  * \{ */
 
+/* NOTE: To enable Metal API, we need to temporarily change this to `GPU_BACKEND_METAL`.
+ * Until a global switch is added, Metal also needs to be enabled in GHOST_ContextCGL:
+ * `m_useMetalForRendering = true`. */
 static const eGPUBackendType g_backend_type = GPU_BACKEND_OPENGL;
 static GPUBackend *g_backend = nullptr;
 

@@ -579,7 +579,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
                                                    glSettings);
 
   if (ghostwin) {
-    win->gpuctx = GPU_context_create(ghostwin);
+    win->gpuctx = GPU_context_create(ghostwin, NULL);
 
     /* needed so we can detect the graphics card below */
     GPU_init();

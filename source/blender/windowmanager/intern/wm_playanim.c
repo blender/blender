@@ -1549,7 +1549,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   // GHOST_ActivateWindowDrawingContext(g_WS.ghost_window);
 
   /* initialize OpenGL immediate mode */
-  g_WS.gpu_context = GPU_context_create(g_WS.ghost_window);
+  g_WS.gpu_context = GPU_context_create(g_WS.ghost_window, NULL);
   GPU_init();
 
   /* initialize the font */

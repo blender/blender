@@ -8,8 +8,11 @@
 
 #include "gpu_backend.hh"
 #include "mtl_backend.hh"
+#include "mtl_batch.hh"
 #include "mtl_context.hh"
+#include "mtl_drawlist.hh"
 #include "mtl_framebuffer.hh"
+#include "mtl_immediate.hh"
 #include "mtl_index_buffer.hh"
 #include "mtl_query.hh"
 #include "mtl_shader.hh"
@@ -37,21 +40,21 @@ void MTLBackend::samplers_update(){
     /* Placeholder -- Handled in MTLContext. */
 };
 
-Context *MTLBackend::context_alloc(void *ghost_window)
+Context *MTLBackend::context_alloc(void *ghost_window, void *ghost_context)
 {
-  return new MTLContext(ghost_window);
+  return new MTLContext(ghost_window, ghost_context);
 };
 
 Batch *MTLBackend::batch_alloc()
 {
-  /* TODO(Metal): Implement MTLBatch. */
-  return nullptr;
+  /* TODO(Metal): Full MTLBatch implementation. */
+  return new MTLBatch();
 };
 
 DrawList *MTLBackend::drawlist_alloc(int list_length)
 {
-  /* TODO(Metal): Implement MTLDrawList. */
-  return nullptr;
+  /* TODO(Metal): Full MTLDrawList implementation. */
+  return new MTLDrawList(list_length);
 };
 
 FrameBuffer *MTLBackend::framebuffer_alloc(const char *name)

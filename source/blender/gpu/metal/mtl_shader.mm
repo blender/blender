@@ -129,6 +129,7 @@ MTLShader::~MTLShader()
 
   if (shd_builder_ != nullptr) {
     delete shd_builder_;
+    shd_builder_ = nullptr;
   }
 }
 
@@ -209,6 +210,7 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
 
       /* Release temporary compilation resources. */
       delete shd_builder_;
+      shd_builder_ = nullptr;
       return false;
     }
   }
@@ -279,6 +281,7 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
 
           /* Release temporary compilation resources. */
           delete shd_builder_;
+          shd_builder_ = nullptr;
           return false;
         }
       }
@@ -324,6 +327,7 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
 
   /* Release temporary compilation resources. */
   delete shd_builder_;
+  shd_builder_ = nullptr;
   return true;
 }
 
@@ -535,28 +539,6 @@ void MTLShader::push_constant_bindstate_mark_dirty(bool is_dirty)
 {
   push_constant_modified_ = is_dirty;
 }
-
-void MTLShader::vertformat_from_shader(GPUVertFormat *format) const
-{
-  GPU_vertformat_clear(format);
-
-  const MTLShaderInterface *mtl_interface = static_cast<const MTLShaderInterface *>(interface);
-  for (const uint attr_id : IndexRange(mtl_interface->get_total_attributes())) {
-    const MTLShaderInputAttribute &attr = mtl_interface->get_attribute(attr_id);
-
-    /* Extract type parameters from Metal type. */
-    GPUVertCompType comp_type = comp_type_from_vert_format(attr.format);
-    uint comp_len = comp_count_from_vert_format(attr.format);
-    GPUVertFetchMode fetch_mode = fetchmode_from_vert_format(attr.format);
-
-    GPU_vertformat_attr_add(format,
-                            mtl_interface->get_name_at_offset(attr.name_offset),
-                            comp_type,
-                            comp_len,
-                            fetch_mode);
-  }
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1167,6 +1149,7 @@ void MTLShader::ssbo_vertex_fetch_bind_attribute(const MTLSSBOAttribute &ssbo_at
   MTLShaderInterface *mtl_interface = this->get_interface();
   BLI_assert(ssbo_attr.mtl_attribute_index >= 0 &&
              ssbo_attr.mtl_attribute_index < mtl_interface->get_total_attributes());
+  UNUSED_VARS_NDEBUG(mtl_interface);
 
   /* Update bind-mask to verify this attribute has been used. */
   BLI_assert((ssbo_vertex_attribute_bind_mask_ & (1 << ssbo_attr.mtl_attribute_index)) ==

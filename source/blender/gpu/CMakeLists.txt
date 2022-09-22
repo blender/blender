@@ -192,6 +192,7 @@ set(METAL_SRC
   metal/mtl_context.mm
   metal/mtl_debug.mm
   metal/mtl_framebuffer.mm
+  metal/mtl_immediate.mm
   metal/mtl_index_buffer.mm
   metal/mtl_memory.mm
   metal/mtl_query.mm
@@ -205,11 +206,14 @@ set(METAL_SRC
   metal/mtl_vertex_buffer.mm
 
   metal/mtl_backend.hh
+  metal/mtl_batch.hh
   metal/mtl_capabilities.hh
   metal/mtl_common.hh
   metal/mtl_context.hh
   metal/mtl_debug.hh
+  metal/mtl_drawlist.hh
   metal/mtl_framebuffer.hh
+  metal/mtl_immediate.hh
   metal/mtl_index_buffer.hh
   metal/mtl_memory.hh
   metal/mtl_primitive.hh
