@@ -123,6 +123,69 @@ static bool use_gnome_confine_hack = false;
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Modifier Table
+ *
+ * Convenient access to modifier key values, allow looping over modifier keys.
+ * \{ */
+
+enum {
+  MOD_INDEX_SHIFT = 0,
+  MOD_INDEX_ALT = 1,
+  MOD_INDEX_CTRL = 2,
+  MOD_INDEX_OS = 3,
+};
+#define MOD_INDEX_NUM (MOD_INDEX_OS + 1)
+
+struct GWL_ModifierInfo {
+  /** Only for printing messages. */
+  const char *display_name;
+  const char *xkb_id;
+  GHOST_TKey key_l, key_r;
+  GHOST_TModifierKey mod_l, mod_r;
+};
+
+static const GWL_ModifierInfo g_modifier_info_table[MOD_INDEX_NUM] = {
+    [MOD_INDEX_SHIFT] =
+        {
+            .display_name = "Shift",
+            .xkb_id = XKB_MOD_NAME_SHIFT,
+            .key_l = GHOST_kKeyLeftShift,
+            .key_r = GHOST_kKeyRightShift,
+            .mod_l = GHOST_kModifierKeyLeftShift,
+            .mod_r = GHOST_kModifierKeyRightShift,
+        },
+    [MOD_INDEX_ALT] =
+        {
+            .display_name = "Alt",
+            .xkb_id = XKB_MOD_NAME_ALT,
+            .key_l = GHOST_kKeyLeftAlt,
+            .key_r = GHOST_kKeyRightAlt,
+            .mod_l = GHOST_kModifierKeyLeftAlt,
+            .mod_r = GHOST_kModifierKeyRightAlt,
+        },
+    [MOD_INDEX_CTRL] =
+        {
+            .display_name = "Control",
+            .xkb_id = XKB_MOD_NAME_CTRL,
+            .key_l = GHOST_kKeyLeftControl,
+            .key_r = GHOST_kKeyRightControl,
+            .mod_l = GHOST_kModifierKeyLeftControl,
+            .mod_r = GHOST_kModifierKeyRightControl,
+        },
+    [MOD_INDEX_OS] =
+        {
+            .display_name = "OS",
+            .xkb_id = XKB_MOD_NAME_LOGO,
+            .key_l = GHOST_kKeyLeftOS,
+            .key_r = GHOST_kKeyRightOS,
+            .mod_l = GHOST_kModifierKeyLeftOS,
+            .mod_r = GHOST_kModifierKeyRightOS,
+        },
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Private Types & Defines
  * \{ */
 
@@ -327,12 +390,7 @@ struct GWL_Seat {
    * so every time a modifier is accessed a string lookup isn't required.
    * Be sure to check for #XKB_MOD_INVALID before using.
    */
-  struct {
-    xkb_mod_index_t shift; /* #XKB_MOD_NAME_SHIFT */
-    xkb_mod_index_t ctrl;  /* #XKB_MOD_NAME_CTRL */
-    xkb_mod_index_t alt;   /* #XKB_MOD_NAME_ALT */
-    xkb_mod_index_t logo;  /* #XKB_MOD_NAME_LOGO */
-  } xkb_keymap_mod_index;
+  xkb_mod_index_t xkb_keymap_mod_index[MOD_INDEX_NUM];
 
   struct {
     /** Key repetition in character per second. */
@@ -2205,10 +2263,10 @@ static void keyboard_handle_keymap(void *data,
     }
   }
 
-  seat->xkb_keymap_mod_index.shift = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_SHIFT);
-  seat->xkb_keymap_mod_index.ctrl = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_CTRL);
-  seat->xkb_keymap_mod_index.alt = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_ALT);
-  seat->xkb_keymap_mod_index.logo = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_LOGO);
+  for (int i = 0; i < MOD_INDEX_NUM; i++) {
+    const GWL_ModifierInfo &mod_info = g_modifier_info_table[i];
+    seat->xkb_keymap_mod_index[i] = xkb_keymap_mod_get_index(keymap, mod_info.xkb_id);
+  }
 
   keyboard_depressed_state_reset(seat);
 
@@ -3103,64 +3161,43 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
 
   GWL_Seat *seat = d->seats[0];
 
-  bool val, val_l, val_r;
-
   const xkb_mod_mask_t state = xkb_state_serialize_mods(seat->xkb_state, XKB_STATE_MODS_DEPRESSED);
-
-#define MOD_TEST(state, mod) ((mod != XKB_MOD_INVALID) && (state & (1 << mod)))
 
   /* Use local #WGL_KeyboardDepressedState to check which key is pressed.
    * Use XKB as the source of truth, if there is any discrepancy. */
-#define MOD_VALIDATE(mod_string) \
-  if (val) { \
-    if (!(val_l || val_r)) { \
-      CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE, \
-                "modifier (%s) state is inconsistent (held keys do not match XKB)", \
-                mod_string); \
-      val_l = true; /* Set one because XKB should have priority. */ \
-    } \
-  } \
-  else { \
-    if (val_l || val_r) { \
-      CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE, \
-                "modifier (%s) state is inconsistent (released keys do not match XKB)", \
-                mod_string); \
-      val_l = false; \
-      val_r = false; \
-    } \
-  } \
-  ((void)0)
+  for (int i = 0; i < MOD_INDEX_NUM; i++) {
+    if (UNLIKELY(seat->xkb_keymap_mod_index[i] == XKB_MOD_INVALID)) {
+      continue;
+    }
+    const GWL_ModifierInfo &mod_info = g_modifier_info_table[i];
+    const bool val = (state & (1 << seat->xkb_keymap_mod_index[i])) != 0;
+    bool val_l = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(mod_info.key_l)] > 0;
+    bool val_r = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(mod_info.key_r)] > 0;
 
-  val = MOD_TEST(state, seat->xkb_keymap_mod_index.shift);
-  val_l = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyLeftShift)] > 0;
-  val_r = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyRightShift)] > 0;
-  MOD_VALIDATE("Shift");
-  keys.set(GHOST_kModifierKeyLeftShift, val_l);
-  keys.set(GHOST_kModifierKeyRightShift, val_r);
+    /* This shouldn't be needed, but guard against any possibility of modifiers being stuck.
+     * Warn so if this happens it can be investigated. */
+    if (val) {
+      if (UNLIKELY(!(val_l || val_r))) {
+        CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE,
+                  "modifier (%s) state is inconsistent (held keys do not match XKB)",
+                  mod_info.display_name);
+        /* Picking the left is arbitrary. */
+        val_l = true;
+      }
+    }
+    else {
+      if (UNLIKELY(val_l || val_r)) {
+        CLOG_WARN(&LOG_WL_KEYBOARD_DEPRESSED_STATE,
+                  "modifier (%s) state is inconsistent (released keys do not match XKB)",
+                  mod_info.display_name);
+        val_l = false;
+        val_r = false;
+      }
+    }
 
-  val = MOD_TEST(state, seat->xkb_keymap_mod_index.alt);
-  val_l = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyLeftAlt)] > 0;
-  val_r = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyRightAlt)] > 0;
-  MOD_VALIDATE("Alt");
-  keys.set(GHOST_kModifierKeyLeftAlt, val_l);
-  keys.set(GHOST_kModifierKeyRightAlt, val_r);
-
-  val = MOD_TEST(state, seat->xkb_keymap_mod_index.ctrl);
-  val_l = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyLeftControl)] > 0;
-  val_r = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyRightControl)] > 0;
-  MOD_VALIDATE("Control");
-  keys.set(GHOST_kModifierKeyLeftControl, val_l);
-  keys.set(GHOST_kModifierKeyRightControl, val_r);
-
-  val = MOD_TEST(state, seat->xkb_keymap_mod_index.logo);
-  val_l = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyLeftOS)] > 0;
-  val_r = seat->key_depressed.mods[GHOST_KEY_MODIFIER_TO_INDEX(GHOST_kKeyRightOS)] > 0;
-  MOD_VALIDATE("OS");
-  keys.set(GHOST_kModifierKeyLeftOS, val_l);
-  keys.set(GHOST_kModifierKeyRightOS, val_r);
-
-#undef MOD_VALIDATE
-#undef MOD_TEST
+    keys.set(mod_info.mod_l, val_l);
+    keys.set(mod_info.mod_r, val_r);
+  }
 
   return GHOST_kSuccess;
 }
