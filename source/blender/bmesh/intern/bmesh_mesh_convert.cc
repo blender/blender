@@ -908,7 +908,7 @@ static void write_fn_to_attribute(blender::bke::MutableAttributeAccessor attribu
   }
 }
 
-static void assert_bmesh_has_no_mesh_only_attributes(BMesh &bm)
+static void assert_bmesh_has_no_mesh_only_attributes(const BMesh &bm)
 {
   (void)bm; /* Unused in the release builds. */
 
