@@ -200,7 +200,7 @@ class MTLTexture : public Texture {
     TEXTURE_VIEW_SWIZZLE_DIRTY = (1 << 0),
     TEXTURE_VIEW_MIP_DIRTY = (1 << 1)
   };
-  id<MTLTexture> mip_swizzle_view_;
+  id<MTLTexture> mip_swizzle_view_ = nil;
   char tex_swizzle_mask_[4];
   MTLTextureSwizzleChannels mtl_swizzle_mask_;
   bool mip_range_dirty_ = false;
@@ -216,7 +216,6 @@ class MTLTexture : public Texture {
   /* VBO. */
   MTLVertBuf *vert_buffer_;
   id<MTLBuffer> vert_buffer_mtl_;
-  int vert_buffer_offset_;
 
   /* Core parameters and sub-resources. */
   eGPUTextureUsage gpu_image_usage_flags_;
@@ -254,6 +253,14 @@ class MTLTexture : public Texture {
   const char *get_name()
   {
     return name_;
+  }
+
+  id<MTLBuffer> get_vertex_buffer() const
+  {
+    if (resource_mode_ == MTL_TEXTURE_MODE_VBO) {
+      return vert_buffer_mtl_;
+    }
+    return nil;
   }
 
  protected:
@@ -323,8 +330,6 @@ class MTLTexture : public Texture {
             int width,
             int height);
   GPUFrameBuffer *get_blit_framebuffer(uint dst_slice, uint dst_mip);
-
-  MEM_CXX_CLASS_ALLOC_FUNCS("gpu::MTLTexture")
 
   /* Texture Update function Utilities. */
   /* Metal texture updating does not provide the same range of functionality for type conversion
@@ -415,6 +420,8 @@ class MTLTexture : public Texture {
 
   /* fullscreen blit utilities. */
   GPUShader *fullscreen_blit_sh_get();
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("MTLTexture")
 };
 
 /* Utility */

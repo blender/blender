@@ -14,6 +14,7 @@
 #include "mtl_query.hh"
 #include "mtl_shader.hh"
 #include "mtl_uniform_buffer.hh"
+#include "mtl_vertex_buffer.hh"
 
 #include "gpu_capabilities_private.hh"
 #include "gpu_platform_private.hh"
@@ -94,8 +95,7 @@ StorageBuf *MTLBackend::storagebuf_alloc(int size, GPUUsageType usage, const cha
 
 VertBuf *MTLBackend::vertbuf_alloc()
 {
-  /* TODO(Metal): Implement MTLVertBuf. */
-  return nullptr;
+  return new MTLVertBuf();
 }
 
 void MTLBackend::render_begin()
