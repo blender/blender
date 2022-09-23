@@ -252,6 +252,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
       BKE_mesh_legacy_convert_hide_layers_to_flags(mesh);
       BKE_mesh_legacy_convert_material_indices_to_mpoly(mesh);
       BKE_mesh_legacy_bevel_weight_from_layers(mesh);
+      BKE_mesh_legacy_face_set_from_generic(mesh);
       /* When converting to the old mesh format, don't save redundant attributes. */
       names_to_skip.add_multiple_new({".hide_vert", ".hide_edge", ".hide_poly", "material_index"});
 

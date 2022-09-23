@@ -180,7 +180,7 @@ static void SCULPT_dynamic_topology_disable_ex(
     BKE_sculptsession_bm_to_me(ob, true);
 
     /* Reset Face Sets as they are no longer valid. */
-    CustomData_free_layers(&me->pdata, CD_SCULPT_FACE_SETS, me->totpoly);
+    CustomData_free_layer_named(&me->pdata, ".sculpt_face_set", me->totpoly);
     me->face_sets_color_default = 1;
 
     /* Sync the visibility to vertices manually as the pmap is still not initialized. */

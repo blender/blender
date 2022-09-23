@@ -1967,7 +1967,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     {sizeof(short[4][3]), "", 0, nullptr, nullptr, nullptr, nullptr, layerSwap_flnor, nullptr},
     /* 41: CD_CUSTOMLOOPNORMAL */
     {sizeof(short[2]), "vec2s", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
-    /* 42: CD_SCULPT_FACE_SETS */
+    /* 42: CD_SCULPT_FACE_SETS */ /* DEPRECATED */
     {sizeof(int), "", 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 43: CD_LOCATION */
     {sizeof(float[3]), "vec3f", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
@@ -2127,8 +2127,7 @@ const CustomData_MeshMasks CD_MASK_MESH = {
     /* emask */ (CD_MASK_MEDGE | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL | CD_MASK_BWEIGHT),
     /* fmask */ 0,
     /* pmask */
-    (CD_MASK_MPOLY | CD_MASK_FACEMAP | CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL |
-     CD_MASK_SCULPT_FACE_SETS),
+    (CD_MASK_MPOLY | CD_MASK_FACEMAP | CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL),
     /* lmask */
     (CD_MASK_MLOOP | CD_MASK_MDISPS | CD_MASK_MLOOPUV | CD_MASK_CUSTOMLOOPNORMAL |
      CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
@@ -2140,8 +2139,7 @@ const CustomData_MeshMasks CD_MASK_DERIVEDMESH = {
     /* emask */ (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_EDGE | CD_MASK_BWEIGHT | CD_MASK_PROP_ALL),
     /* fmask */ (CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE | CD_MASK_PREVIEW_MCOL | CD_MASK_TANGENT),
     /* pmask */
-    (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_PROP_ALL |
-     CD_MASK_SCULPT_FACE_SETS),
+    (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_PROP_ALL),
     /* lmask */
     (CD_MASK_MLOOPUV | CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_PREVIEW_MLOOPCOL |
      CD_MASK_ORIGSPACE_MLOOP | CD_MASK_PROP_ALL), /* XXX MISSING CD_MASK_MLOOPTANGENT ? */
@@ -2152,7 +2150,7 @@ const CustomData_MeshMasks CD_MASK_BMESH = {
     /* emask */ (CD_MASK_BWEIGHT | CD_MASK_CREASE | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
     /* fmask */ 0,
     /* pmask */
-    (CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_PROP_ALL | CD_MASK_SCULPT_FACE_SETS),
+    (CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_PROP_ALL),
     /* lmask */
     (CD_MASK_MDISPS | CD_MASK_MLOOPUV | CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_GRID_PAINT_MASK |
      CD_MASK_PROP_ALL),
@@ -2171,7 +2169,7 @@ const CustomData_MeshMasks CD_MASK_EVERYTHING = {
      CD_MASK_PROP_ALL),
     /* pmask */
     (CD_MASK_MPOLY | CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_FACEMAP |
-     CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL | CD_MASK_SCULPT_FACE_SETS),
+     CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL),
     /* lmask */
     (CD_MASK_MLOOP | CD_MASK_BM_ELEM_PYPTR | CD_MASK_MDISPS | CD_MASK_NORMAL | CD_MASK_MLOOPUV |
      CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_MLOOPTANGENT | CD_MASK_PREVIEW_MLOOPCOL |

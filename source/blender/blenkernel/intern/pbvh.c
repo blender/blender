@@ -1326,16 +1326,17 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
       case PBVH_FACES: {
         /* Pass vertices separately because they may be not be the same as the mesh's vertices,
          * and pass normals separately because they are managed by the PBVH. */
-        GPU_pbvh_mesh_buffers_update(pbvh->vbo_id,
-                                     node->draw_buffers,
-                                     pbvh->mesh,
-                                     pbvh->verts,
-                                     CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK),
-                                     CustomData_get_layer(pbvh->pdata, CD_SCULPT_FACE_SETS),
-                                     pbvh->face_sets_color_seed,
-                                     pbvh->face_sets_color_default,
-                                     update_flags,
-                                     pbvh->vert_normals);
+        GPU_pbvh_mesh_buffers_update(
+            pbvh->vbo_id,
+            node->draw_buffers,
+            pbvh->mesh,
+            pbvh->verts,
+            CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK),
+            CustomData_get_layer_named(pbvh->pdata, CD_PROP_INT32, ".sculpt_face_set"),
+            pbvh->face_sets_color_seed,
+            pbvh->face_sets_color_default,
+            update_flags,
+            pbvh->vert_normals);
         break;
       }
       case PBVH_BMESH:
@@ -3135,9 +3136,9 @@ bool pbvh_has_face_sets(PBVH *pbvh)
 {
   switch (pbvh->header.type) {
     case PBVH_GRIDS:
-      return (pbvh->pdata && CustomData_get_layer(pbvh->pdata, CD_SCULPT_FACE_SETS));
     case PBVH_FACES:
-      return (pbvh->pdata && CustomData_get_layer(pbvh->pdata, CD_SCULPT_FACE_SETS));
+      return pbvh->pdata &&
+             CustomData_get_layer_named(pbvh->pdata, CD_PROP_INT32, ".sculpt_face_set") != NULL;
     case PBVH_BMESH:
       return false;
   }

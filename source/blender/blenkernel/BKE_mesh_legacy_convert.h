@@ -18,6 +18,15 @@ struct Mesh;
 struct MFace;
 
 /**
+ * Move face sets to the legacy type from a generic type.
+ */
+void BKE_mesh_legacy_face_set_from_generic(struct Mesh *mesh);
+/**
+ * Copy face sets to the generic data type from the legacy type.
+ */
+void BKE_mesh_legacy_face_set_to_generic(struct Mesh *mesh);
+
+/**
  * Copy bevel weights from separate layers into vertices and edges.
  */
 void BKE_mesh_legacy_bevel_weight_from_layers(struct Mesh *mesh);

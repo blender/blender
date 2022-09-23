@@ -209,7 +209,7 @@ static int geometry_extract_apply(bContext *C,
   /* Remove the Face Sets as they need to be recreated when entering Sculpt Mode in the new object.
    * TODO(pablodobarro): In the future we can try to preserve them from the original mesh. */
   Mesh *new_ob_mesh = new_ob->data;
-  CustomData_free_layers(&new_ob_mesh->pdata, CD_SCULPT_FACE_SETS, new_ob_mesh->totpoly);
+  CustomData_free_layer_named(&new_ob_mesh->pdata, ".sculpt_face_set", new_ob_mesh->totpoly);
 
   /* Remove the mask from the new object so it can be sculpted directly after extracting. */
   CustomData_free_layers(&new_ob_mesh->vdata, CD_PAINT_MASK, new_ob_mesh->totvert);
@@ -268,7 +268,8 @@ static void geometry_extract_tag_face_set(BMesh *bm, GeometryExtractParams *para
   const int tag_face_set_id = params->active_face_set;
 
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
-  const int cd_face_sets_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
+  const int cd_face_sets_offset = CustomData_get_offset_named(
+      &bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
   BMFace *f;
   BMIter iter;
@@ -561,7 +562,8 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
 
   if (ob->mode == OB_MODE_SCULPT) {
     SculptSession *ss = ob->sculpt;
-    ss->face_sets = CustomData_get_layer(&((Mesh *)ob->data)->pdata, CD_SCULPT_FACE_SETS);
+    ss->face_sets = CustomData_get_layer_named(
+        &((Mesh *)ob->data)->pdata, CD_PROP_INT32, ".sculpt_face_set");
     if (ss->face_sets) {
       /* Assign a new Face Set ID to the new faces created by the slice operation. */
       const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(ob->data);

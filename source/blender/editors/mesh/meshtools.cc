@@ -308,7 +308,8 @@ static void mesh_join_offset_face_sets_ID(const Mesh *mesh, int *face_set_offset
     return;
   }
 
-  int *face_sets = (int *)CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+  int *face_sets = (int *)CustomData_get_layer_named(
+      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set");
   if (!face_sets) {
     return;
   }

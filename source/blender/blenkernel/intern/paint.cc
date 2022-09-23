@@ -1739,7 +1739,8 @@ static void sculpt_update_object(
 
   /* Sculpt Face Sets. */
   if (use_face_sets) {
-    ss->face_sets = static_cast<int *>(CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS));
+    ss->face_sets = static_cast<int *>(
+        CustomData_get_layer_named(&me->pdata, CD_PROP_INT32, ".sculpt_face_set"));
   }
   else {
     ss->face_sets = nullptr;
@@ -1966,22 +1967,17 @@ int *BKE_sculpt_face_sets_ensure(Mesh *mesh)
 {
   using namespace blender;
   using namespace blender::bke;
-  if (CustomData_has_layer(&mesh->pdata, CD_SCULPT_FACE_SETS)) {
-    return static_cast<int *>(CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS));
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  if (!attributes.contains(".sculpt_face_set")) {
+    SpanAttributeWriter<int> face_sets = attributes.lookup_or_add_for_write_only_span<int>(
+        ".sculpt_face_set", ATTR_DOMAIN_FACE);
+    face_sets.span.fill(1);
+    mesh->face_sets_color_default = 1;
+    face_sets.finish();
   }
 
-  const AttributeAccessor attributes = mesh->attributes_for_write();
-  const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
-      ".hide_poly", ATTR_DOMAIN_FACE, false);
-
-  MutableSpan<int> face_sets = {
-      static_cast<int *>(CustomData_add_layer(
-          &mesh->pdata, CD_SCULPT_FACE_SETS, CD_CONSTRUCT, nullptr, mesh->totpoly)),
-      mesh->totpoly};
-
-  face_sets.fill(1);
-  mesh->face_sets_color_default = 1;
-  return face_sets.data();
+  return static_cast<int *>(
+      CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, ".sculpt_face_set"));
 }
 
 bool *BKE_sculpt_hide_poly_ensure(Mesh *mesh)

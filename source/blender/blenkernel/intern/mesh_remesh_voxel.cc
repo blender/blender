@@ -24,6 +24,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_bvhutils.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
@@ -318,23 +319,27 @@ void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, const Mesh *source)
 
 void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source)
 {
+  using namespace blender;
+  using namespace blender::bke;
+  const AttributeAccessor src_attributes = source->attributes();
+  MutableAttributeAccessor dst_attributes = target->attributes_for_write();
   const MPoly *target_polys = (const MPoly *)CustomData_get_layer(&target->pdata, CD_MPOLY);
   const MVert *target_verts = (const MVert *)CustomData_get_layer(&target->vdata, CD_MVERT);
   const MLoop *target_loops = (const MLoop *)CustomData_get_layer(&target->ldata, CD_MLOOP);
-  const int *source_face_sets = (const int *)CustomData_get_layer(&source->pdata,
-                                                                  CD_SCULPT_FACE_SETS);
-  if (source_face_sets == nullptr) {
+
+  const VArray<int> src_face_sets = src_attributes.lookup<int>(".sculpt_face_set",
+                                                               ATTR_DOMAIN_FACE);
+  if (!src_face_sets) {
+    return;
+  }
+  SpanAttributeWriter<int> dst_face_sets = dst_attributes.lookup_or_add_for_write_only_span<int>(
+      ".sculpt_face_set", ATTR_DOMAIN_FACE);
+  if (!dst_face_sets) {
     return;
   }
 
-  int *target_face_sets;
-  if (CustomData_has_layer(&target->pdata, CD_SCULPT_FACE_SETS)) {
-    target_face_sets = (int *)CustomData_get_layer(&target->pdata, CD_SCULPT_FACE_SETS);
-  }
-  else {
-    target_face_sets = (int *)CustomData_add_layer(
-        &target->pdata, CD_SCULPT_FACE_SETS, CD_CONSTRUCT, nullptr, target->totpoly);
-  }
+  const VArraySpan<int> src(src_face_sets);
+  MutableSpan<int> dst = dst_face_sets.span;
 
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(source);
   BVHTreeFromMesh bvhtree = {nullptr};
@@ -349,13 +354,14 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source)
     BKE_mesh_calc_poly_center(mpoly, &target_loops[mpoly->loopstart], target_verts, from_co);
     BLI_bvhtree_find_nearest(bvhtree.tree, from_co, &nearest, bvhtree.nearest_callback, &bvhtree);
     if (nearest.index != -1) {
-      target_face_sets[i] = source_face_sets[looptri[nearest.index].poly];
+      dst[i] = src[looptri[nearest.index].poly];
     }
     else {
-      target_face_sets[i] = 1;
+      dst[i] = 1;
     }
   }
   free_bvhtree_from_mesh(&bvhtree);
+  dst_face_sets.finish();
 }
 
 void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
