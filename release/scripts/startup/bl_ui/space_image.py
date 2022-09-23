@@ -537,10 +537,12 @@ class IMAGE_MT_pivot_pie(Menu):
         layout = self.layout
         pie = layout.menu_pie()
 
-        pie.prop_enum(context.space_data, "pivot_point", value='CENTER')
-        pie.prop_enum(context.space_data, "pivot_point", value='CURSOR')
-        pie.prop_enum(context.space_data, "pivot_point", value='INDIVIDUAL_ORIGINS')
-        pie.prop_enum(context.space_data, "pivot_point", value='MEDIAN')
+        sima = context.space_data
+
+        pie.prop_enum(sima, "pivot_point", value='CENTER')
+        pie.prop_enum(sima, "pivot_point", value='CURSOR')
+        pie.prop_enum(sima, "pivot_point", value='INDIVIDUAL_ORIGINS')
+        pie.prop_enum(sima, "pivot_point", value='MEDIAN')
 
 
 class IMAGE_MT_uvs_snap_pie(Menu):
@@ -1537,7 +1539,7 @@ class IMAGE_PT_overlay_guides(Panel):
             row = col.row(align=True)
             sub = row.row(align=True)
             sub.prop(uvedit, "show_grid_over_image", text="")
-            sub.active = context.space_data.image is not None
+            sub.active = sima.image is not None
 
             col = layout.column(align=False, heading="Fixed Subdivisions")
             col.use_property_decorate = False
