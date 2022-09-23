@@ -193,6 +193,18 @@ static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
       v2d->hor = *mask_scroll;
       v2d->hor.ymin = v2d->hor.ymax - scroll_height;
     }
+
+    /* adjust vertical scroller if there's a horizontal scroller, to leave corner free */
+    if (scroll & V2D_SCROLL_VERTICAL) {
+      if (scroll & V2D_SCROLL_BOTTOM) {
+        /* on bottom edge of region */
+        v2d->vert.ymin = v2d->hor.ymax;
+      }
+      else if (scroll & V2D_SCROLL_TOP) {
+        /* on upper edge of region */
+        v2d->vert.ymax = v2d->hor.ymin;
+      }
+    }
   }
 }
 
@@ -250,7 +262,6 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
       /* tot rect has strictly regulated placement, and must only occur in +/- quadrant */
       v2d->align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_POS_Y);
       v2d->keeptot = V2D_KEEPTOT_STRICT;
-      v2d->keepofs = (V2D_KEEPOFS_X | V2D_KEEPOFS_Y);
       tot_changed = do_init;
 
       /* scroller settings are currently not set here... that is left for regions... */
@@ -267,7 +278,6 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
       /* tot rect has strictly regulated placement, and must only occur in +/+ quadrant */
       v2d->align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_NEG_Y);
       v2d->keeptot = V2D_KEEPTOT_STRICT;
-      v2d->keepofs = (V2D_KEEPOFS_X | V2D_KEEPOFS_Y);
       tot_changed = do_init;
 
       /* scroller settings are currently not set here... that is left for regions... */
@@ -485,7 +495,7 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
   }
 
   /* check if we should restore aspect ratio (if view size changed) */
-  if (v2d->keepzoom & V2D_KEEPASPECT && !(v2d->keeptot == V2D_KEEPTOT_STRICT)) {
+  if (v2d->keepzoom & V2D_KEEPASPECT) {
     bool do_x = false, do_y = false, do_cur;
     float curRatio, winRatio;
 
@@ -524,12 +534,53 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
     /* do_win = do_y; */ /* UNUSED */
 
     if (do_cur) {
-      /* portrait window: correct for x */
-      width = height / winRatio;
+      if ((v2d->keeptot == V2D_KEEPTOT_STRICT) && (winx != v2d->oldwinx)) {
+        /* Special exception for Outliner (and later channel-lists):
+         * - The view may be moved left to avoid contents
+         *   being pushed out of view when view shrinks.
+         * - The keeptot code will make sure cur->xmin will not be less than tot->xmin
+         *   (which cannot be allowed).
+         * - width is not adjusted for changed ratios here.
+         */
+        if (winx < v2d->oldwinx) {
+          const float temp = v2d->oldwinx - winx;
+
+          cur->xmin -= temp;
+          cur->xmax -= temp;
+
+          /* width does not get modified, as keepaspect here is just set to make
+           * sure visible area adjusts to changing view shape!
+           */
+        }
+      }
+      else {
+        /* portrait window: correct for x */
+        width = height / winRatio;
+      }
     }
     else {
-      /* landscape window: correct for y */
-      height = width * winRatio;
+      if ((v2d->keeptot == V2D_KEEPTOT_STRICT) && (winy != v2d->oldwiny)) {
+        /* special exception for Outliner (and later channel-lists):
+         * - Currently, no actions need to be taken here...
+         */
+
+        if (winy < v2d->oldwiny) {
+          const float temp = v2d->oldwiny - winy;
+
+          if (v2d->align & V2D_ALIGN_NO_NEG_Y) {
+            cur->ymin -= temp;
+            cur->ymax -= temp;
+          }
+          else { /* Assume V2D_ALIGN_NO_POS_Y or combination */
+            cur->ymin += temp;
+            cur->ymax += temp;
+          }
+        }
+      }
+      else {
+        /* landscape window: correct for y */
+        height = width * winRatio;
+      }
     }
 
     /* store region size for next time */
