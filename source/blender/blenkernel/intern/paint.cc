@@ -2640,7 +2640,10 @@ SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
   SculptAttribute *attr = sculpt_get_cached_layer(ss, domain, proptype, name);
 
   if (attr) {
-    sculpt_attr_update(ob, attr);
+    if (sculpt_attr_update(ob, attr)) {
+      sculpt_attribute_update_refs(ob);
+    }
+
     return attr;
   }
 
