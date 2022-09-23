@@ -10,6 +10,7 @@
 #pragma once
 
 #include "BLI_iterator.h"
+#include "BLI_utildefines.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -132,17 +133,20 @@ bool DEG_is_fully_evaluated(const struct Depsgraph *depsgraph);
 /** \name DEG object iterators
  * \{ */
 
-enum {
+typedef enum DegIterFlag {
   DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY = (1 << 0),
   DEG_ITER_OBJECT_FLAG_LINKED_INDIRECTLY = (1 << 1),
   DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET = (1 << 2),
   DEG_ITER_OBJECT_FLAG_VISIBLE = (1 << 3),
   DEG_ITER_OBJECT_FLAG_DUPLI = (1 << 4),
-};
+} DegIterFlag;
+ENUM_OPERATORS(DegIterFlag, DEG_ITER_OBJECT_FLAG_DUPLI)
 
 typedef struct DEGObjectIterSettings {
   struct Depsgraph *depsgraph;
   /**
+   * Bitfield of the #DegIterFlag.
+   *
    * NOTE: Be careful with DEG_ITER_OBJECT_FLAG_LINKED_INDIRECTLY objects.
    * Although they are available they have no overrides (collection_properties)
    * and will crash if you try to access it.
