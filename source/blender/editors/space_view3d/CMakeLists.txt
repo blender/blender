@@ -27,7 +27,7 @@ set(INC
 
 set(SRC
   drawobject.c
-  space_view3d.c
+  space_view3d.cc
   view3d_buttons.c
   view3d_camera_control.c
   view3d_cursor_snap.c

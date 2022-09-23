@@ -206,7 +206,7 @@ void VIEW3D_OT_snap_cursor_to_active(struct wmOperatorType *ot);
 
 void VIEW3D_OT_interactive_add(struct wmOperatorType *ot);
 
-/* space_view3d.c */
+/* space_view3d.cc */
 
 extern const char *view3d_context_dir[]; /* doc access */
 
