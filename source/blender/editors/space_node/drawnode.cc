@@ -1604,12 +1604,19 @@ static void calculate_inner_link_bezier_points(std::array<float2, 4> &points)
     points[2] = math::interpolate(points[0], points[3], 2.0f / 3.0f);
   }
   else {
-    const float dist = curving * 0.1f * math::distance(points[0].x, points[3].x);
+    const float dist_x = math::distance(points[0].x, points[3].x);
+    const float dist_y = math::distance(points[0].y, points[3].y);
 
-    points[1].x = points[0].x + dist;
+    /* Reduce the handle offset when the link endpoints are close to horizontal. */
+    const float slope = safe_divide(dist_y, dist_x);
+    const float clamp_factor = math::min(1.0f, slope * (4.5f - 0.25f * float(curving)));
+
+    const float handle_offset = curving * 0.1f * dist_x * clamp_factor;
+
+    points[1].x = points[0].x + handle_offset;
     points[1].y = points[0].y;
 
-    points[2].x = points[3].x - dist;
+    points[2].x = points[3].x - handle_offset;
     points[2].y = points[3].y;
   }
 }
