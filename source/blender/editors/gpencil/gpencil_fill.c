@@ -429,7 +429,7 @@ static void gpencil_create_extensions(tGPDfill *tgpf)
       float tan2[3];
       float d1;
       float d2;
-      float total_length = 0.f;
+      float total_length = 0.0f;
       for (int i = 1; i < gps->totpoints; i++) {
         if (i > 1) {
           copy_v3_v3(tan1, tan2);
@@ -448,7 +448,7 @@ static void gpencil_create_extensions(tGPDfill *tgpf)
           sub_v3_v3v3(curvature, tan2, tan1);
           float k = normalize_v3(curvature);
           k /= min_ff(d1, d2);
-          float radius = 1.f / k;
+          float radius = 1.0f / k;
           /*
            * The smaller the radius of curvature, the sharper the corner.
            * The thicker the line, the larger the radius of curvature it

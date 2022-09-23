@@ -914,7 +914,7 @@ static void SCULPT_CURVES_OT_select_grow(wmOperatorType *ot)
                        "Distance",
                        "By how much to grow the selection",
                        -10.0f,
-                       10.f);
+                       10.0f);
   RNA_def_property_subtype(prop, PROP_DISTANCE);
 }
 
