@@ -203,7 +203,7 @@ GPU_SHADER_CREATE_INFO(overlay_motion_path_line)
     .additional_info("draw_view", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_motion_path_line_no_geom)
-    .do_static_compilation(true)
+    // .do_static_compilation(true) /* TODO fix on GL */
     .vertex_in(0, Type::VEC3, "pos")
     .push_constant(Type::IVEC4, "mpathLineSettings")
     .push_constant(Type::BOOL, "selected")
@@ -220,7 +220,7 @@ GPU_SHADER_CREATE_INFO(overlay_motion_path_line_clipped)
     .additional_info("overlay_motion_path_line", "drw_clipped");
 
 GPU_SHADER_CREATE_INFO(overlay_motion_path_line_clipped_no_geom)
-    .do_static_compilation(true)
+    // .do_static_compilation(true) /* TODO fix on GL */
     .additional_info("overlay_motion_path_line_no_geom", "drw_clipped");
 
 GPU_SHADER_INTERFACE_INFO(overlay_motion_path_point_iface, "").flat(Type::VEC4, "finalColor");
