@@ -617,10 +617,11 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
 static ListBase *cloth_brush_collider_cache_create(Object *object, Depsgraph *depsgraph)
 {
   ListBase *cache = NULL;
-  DEG_OBJECT_ITER_BEGIN (depsgraph,
-                         ob,
-                         DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY | DEG_ITER_OBJECT_FLAG_VISIBLE |
-                             DEG_ITER_OBJECT_FLAG_DUPLI) {
+  DEGObjectIterSettings deg_iter_settings = {};
+  deg_iter_settings.depsgraph = depsgraph;
+  deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY | DEG_ITER_OBJECT_FLAG_VISIBLE |
+                            DEG_ITER_OBJECT_FLAG_DUPLI;
+  DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
     if (STREQ(object->id.name, ob->id.name)) {
       continue;
     }

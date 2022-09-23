@@ -89,11 +89,12 @@ filter_supported_objects(Depsgraph *depsgraph, const OBJExportParams &export_par
 {
   Vector<std::unique_ptr<OBJMesh>> r_exportable_meshes;
   Vector<std::unique_ptr<OBJCurve>> r_exportable_nurbs;
-  const int deg_objects_visibility_flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
-                                           DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
-                                           DEG_ITER_OBJECT_FLAG_VISIBLE |
-                                           DEG_ITER_OBJECT_FLAG_DUPLI;
-  DEG_OBJECT_ITER_BEGIN (depsgraph, object, deg_objects_visibility_flags) {
+  DEGObjectIterSettings deg_iter_settings{};
+  deg_iter_settings.depsgraph = depsgraph;
+  deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                            DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
+                            DEG_ITER_OBJECT_FLAG_DUPLI;
+  DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, object) {
     if (export_params.export_selected_objects && !(object->base_flag & BASE_SELECTED)) {
       continue;
     }

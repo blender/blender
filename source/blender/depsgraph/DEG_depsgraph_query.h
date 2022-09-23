@@ -140,7 +140,25 @@ enum {
   DEG_ITER_OBJECT_FLAG_DUPLI = (1 << 4),
 };
 
+typedef struct DEGObjectIterSettings {
+  struct Depsgraph *depsgraph;
+  /**
+   * NOTE: Be careful with DEG_ITER_OBJECT_FLAG_LINKED_INDIRECTLY objects.
+   * Although they are available they have no overrides (collection_properties)
+   * and will crash if you try to access it.
+   */
+  uint32_t flags;
+} DEGObjectIterSettings;
+
+/**
+ * Flags to to get objects for draw manager and final render.
+ */
+#define DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS \
+  DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY | DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | \
+      DEG_ITER_OBJECT_FLAG_VISIBLE | DEG_ITER_OBJECT_FLAG_DUPLI
+
 typedef struct DEGObjectIterData {
+  DEGObjectIterSettings *settings;
   struct Depsgraph *graph;
   int flag;
 
@@ -174,16 +192,12 @@ void DEG_iterator_objects_begin(struct BLI_Iterator *iter, DEGObjectIterData *da
 void DEG_iterator_objects_next(struct BLI_Iterator *iter);
 void DEG_iterator_objects_end(struct BLI_Iterator *iter);
 
-/**
- * NOTE: Be careful with DEG_ITER_OBJECT_FLAG_LINKED_INDIRECTLY objects.
- * Although they are available they have no overrides (collection_properties)
- * and will crash if you try to access it.
- */
-#define DEG_OBJECT_ITER_BEGIN(graph_, instance_, flag_) \
+#define DEG_OBJECT_ITER_BEGIN(settings_, instance_) \
   { \
     DEGObjectIterData data_ = { \
-        graph_, \
-        flag_, \
+        (settings_), \
+        (settings_)->depsgraph, \
+        (int)(settings_)->flags, \
     }; \
 \
     ITER_BEGIN (DEG_iterator_objects_begin, \
@@ -197,18 +211,6 @@ void DEG_iterator_objects_end(struct BLI_Iterator *iter);
   ITER_END; \
   } \
   ((void)0)
-
-/**
- * Depsgraph objects iterator for draw manager and final render
- */
-#define DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN(graph_, instance_) \
-  DEG_OBJECT_ITER_BEGIN (graph_, \
-                         instance_, \
-                         DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY | \
-                             DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE | \
-                             DEG_ITER_OBJECT_FLAG_DUPLI)
-
-#define DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END DEG_OBJECT_ITER_END
 
 /** \} */
 

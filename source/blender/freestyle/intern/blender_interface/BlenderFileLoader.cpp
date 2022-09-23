@@ -63,11 +63,12 @@ NodeGroup *BlenderFileLoader::Load()
   int id = 0;
   const eEvaluationMode eval_mode = DEG_get_mode(_depsgraph);
 
-  DEG_OBJECT_ITER_BEGIN (_depsgraph,
-                         ob,
-                         DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
-                             DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
-                             DEG_ITER_OBJECT_FLAG_DUPLI) {
+  DEGObjectIterSettings deg_iter_settings{};
+  deg_iter_settings.depsgraph = _depsgraph;
+  deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                            DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
+                            DEG_ITER_OBJECT_FLAG_DUPLI;
+  DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
     if (_pRenderMonitor && _pRenderMonitor->testBreak()) {
       break;
     }

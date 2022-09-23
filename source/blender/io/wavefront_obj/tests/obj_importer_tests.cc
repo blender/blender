@@ -72,12 +72,13 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
 
     depsgraph_create(DAG_EVAL_VIEWPORT);
 
-    const int deg_objects_visibility_flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
-                                             DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
-                                             DEG_ITER_OBJECT_FLAG_VISIBLE |
-                                             DEG_ITER_OBJECT_FLAG_DUPLI;
+    DEGObjectIterSettings deg_iter_settings{};
+    deg_iter_settings.depsgraph = depsgraph;
+    deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                              DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
+                              DEG_ITER_OBJECT_FLAG_DUPLI;
     size_t object_index = 0;
-    DEG_OBJECT_ITER_BEGIN (depsgraph, object, deg_objects_visibility_flags) {
+    DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, object) {
       if (object_index >= expect_count) {
         ADD_FAILURE();
         break;

@@ -311,12 +311,13 @@ static void make_child_duplis(const DupliContext *ctx,
     /* FIXME: using a mere counter to generate a 'persistent' dupli id is very weak. One possible
      * better solution could be to use `session_uuid` of ID's instead? */
     int persistent_dupli_id = 0;
+    DEGObjectIterSettings deg_iter_settings{};
+    deg_iter_settings.depsgraph = ctx->depsgraph;
     /* NOTE: this set of flags ensure we only iterate over objects that have a base in either the
      * current scene, or the set (background) scene. */
-    int deg_objects_visibility_flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
-                                       DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET;
-
-    DEG_OBJECT_ITER_BEGIN (ctx->depsgraph, ob, deg_objects_visibility_flags) {
+    deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                              DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET;
+    DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
       if ((ob != ctx->obedit) && is_child(ob, parent)) {
         DupliContext pctx;
         if (copy_dupli_context(&pctx, ctx, ctx->object, nullptr, persistent_dupli_id)) {

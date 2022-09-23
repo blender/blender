@@ -410,10 +410,13 @@ static void stats_update(Depsgraph *depsgraph,
   else {
     /* Objects. */
     GSet *objects_gset = BLI_gset_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
-    DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN (depsgraph, ob_iter) {
+    DEGObjectIterSettings deg_iter_settings = {};
+    deg_iter_settings.depsgraph = depsgraph;
+    deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
+    DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob_iter) {
       stats_object(ob_iter, v3d_local, stats, objects_gset);
     }
-    DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
+    DEG_OBJECT_ITER_END;
     BLI_gset_free(objects_gset, nullptr);
   }
 }

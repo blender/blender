@@ -2607,9 +2607,13 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
     flags |= DEG_ITER_OBJECT_FLAG_DUPLI;
   }
 
+  DEGObjectIterSettings deg_iter_settings = {};
+  deg_iter_settings.depsgraph = depsgraph;
+  deg_iter_settings.flags = flags;
+
   /* XXX(@Yiming): Temporary solution, this iterator is technically unsafe to use *during*
    * depsgraph evaluation, see D14997 for detailed explanations. */
-  DEG_OBJECT_ITER_BEGIN (depsgraph, ob, flags) {
+  DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
 
     obindex++;
 
