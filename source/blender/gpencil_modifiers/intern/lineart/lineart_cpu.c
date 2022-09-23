@@ -1908,8 +1908,7 @@ static void lineart_load_tri_task(void *__restrict userdata,
   else if (ob_info->usage == OBJECT_LRT_FORCE_INTERSECTION) {
     tri->flags |= LRT_TRIANGLE_FORCE_INTERSECTION;
   }
-  else if (ob_info->usage == OBJECT_LRT_NO_INTERSECTION ||
-           ob_info->usage == OBJECT_LRT_OCCLUSION_ONLY) {
+  else if (ELEM(ob_info->usage, OBJECT_LRT_NO_INTERSECTION, OBJECT_LRT_OCCLUSION_ONLY)) {
     tri->flags |= LRT_TRIANGLE_NO_INTERSECTION;
   }
 
@@ -2254,8 +2253,11 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
         }
       }
 
-      if (usage == OBJECT_LRT_INHERIT || usage == OBJECT_LRT_INCLUDE ||
-          usage == OBJECT_LRT_NO_INTERSECTION || usage == OBJECT_LRT_FORCE_INTERSECTION) {
+      if (ELEM(usage,
+               OBJECT_LRT_INHERIT,
+               OBJECT_LRT_INCLUDE,
+               OBJECT_LRT_NO_INTERSECTION,
+               OBJECT_LRT_FORCE_INTERSECTION)) {
         lineart_add_edge_to_array_thread(ob_info, la_edge);
       }
 
@@ -2283,8 +2285,11 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
       la_edge->object_ref = orig_ob;
       la_edge->edge_identifier = LRT_EDGE_IDENTIFIER(ob_info, la_edge);
       BLI_addtail(&la_edge->segments, la_seg);
-      if (usage == OBJECT_LRT_INHERIT || usage == OBJECT_LRT_INCLUDE ||
-          usage == OBJECT_LRT_NO_INTERSECTION || usage == OBJECT_LRT_FORCE_INTERSECTION) {
+      if (ELEM(usage,
+               OBJECT_LRT_INHERIT,
+               OBJECT_LRT_INCLUDE,
+               OBJECT_LRT_NO_INTERSECTION,
+               OBJECT_LRT_FORCE_INTERSECTION)) {
         lineart_add_edge_to_array_thread(ob_info, la_edge);
         if (shadow_eln) {
           LineartEdge *shadow_e = lineart_find_matching_edge(shadow_eln, la_edge->edge_identifier);

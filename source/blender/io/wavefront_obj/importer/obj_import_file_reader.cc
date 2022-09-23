@@ -103,7 +103,7 @@ static void geom_add_mrgb_colors(const char *p, const char *end, GlobalVertices 
   while (p + mrgb_length <= end) {
     uint32_t value = 0;
     std::from_chars_result res = std::from_chars(p, p + mrgb_length, value, 16);
-    if (res.ec == std::errc::invalid_argument || res.ec == std::errc::result_out_of_range) {
+    if (ELEM(res.ec, std::errc::invalid_argument, std::errc::result_out_of_range)) {
       return;
     }
     unsigned char srgb[4];

@@ -114,7 +114,7 @@ void *GHOST_DropTargetX11::getURIListGhostData(unsigned char *dropBuffer, int dr
 
   /* Count total number of file paths in buffer. */
   for (int i = 0; i <= dropBufferSize; i++) {
-    if (dropBuffer[i] == 0 || dropBuffer[i] == '\n' || dropBuffer[i] == '\r') {
+    if (ELEM(dropBuffer[i], 0, '\n', '\r')) {
       if (curLength) {
         totPaths++;
         curLength = 0;
@@ -131,7 +131,7 @@ void *GHOST_DropTargetX11::getURIListGhostData(unsigned char *dropBuffer, int dr
 
   curLength = 0;
   for (int i = 0; i <= dropBufferSize; i++) {
-    if (dropBuffer[i] == 0 || dropBuffer[i] == '\n' || dropBuffer[i] == '\r') {
+    if (ELEM(dropBuffer[i], 0, '\n', '\r')) {
       if (curLength) {
         char *curPath = (char *)malloc(curLength + 1);
         char *decodedPath;
@@ -182,7 +182,7 @@ void *GHOST_DropTargetX11::getGhostData(Atom dropType,
       data = decodedPath;
     }
   }
-  else if (dropType == dndTypePlainText || dropType == dndTypeOctetStream) {
+  else if (ELEM(dropType, dndTypePlainText, dndTypeOctetStream)) {
     m_draggedObjectType = GHOST_kDragnDropTypeString;
     data = tmpBuffer;
     needsFree = false;

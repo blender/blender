@@ -123,7 +123,7 @@ static Image *load_texture_image(Main *bmain, const MTLTexMap &tex_map, bool rel
   /* Try replacing underscores with spaces. */
   std::string no_underscore_path{no_quote_path};
   std::replace(no_underscore_path.begin(), no_underscore_path.end(), '_', ' ');
-  if (no_underscore_path != no_quote_path && no_underscore_path != tex_path) {
+  if (!ELEM(no_underscore_path, no_quote_path, tex_path)) {
     image = load_image_at_path(bmain, no_underscore_path, relative_paths);
     if (image != nullptr) {
       return image;

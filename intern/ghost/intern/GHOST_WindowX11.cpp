@@ -217,7 +217,7 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
    * So, m_post_init indicate that we need wait for the MapNotify
    * event and then set the Window state to the m_post_state.
    */
-  else if ((state != GHOST_kWindowStateNormal) && (state != GHOST_kWindowStateMinimized)) {
+  else if (!ELEM(state, GHOST_kWindowStateNormal, GHOST_kWindowStateMinimized)) {
     m_post_init = True;
     m_post_state = state;
   }

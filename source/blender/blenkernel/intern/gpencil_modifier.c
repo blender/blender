@@ -677,7 +677,7 @@ static void copy_frame_to_eval_cb(bGPDlayer *gpl,
    * - When the frame is the layer's active frame (already handled in
    * gpencil_copy_visible_frames_to_eval).
    */
-  if (gpf == NULL || gpf == gpl->actframe) {
+  if (ELEM(gpf, NULL, gpl->actframe)) {
     return;
   }
 

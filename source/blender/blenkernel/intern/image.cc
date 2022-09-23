@@ -5148,7 +5148,7 @@ bool BKE_image_has_alpha(Image *image)
   const int planes = (ibuf ? ibuf->planes : 0);
   BKE_image_release_ibuf(image, ibuf, lock);
 
-  if (planes == 32 || planes == 16) {
+  if (ELEM(planes, 32, 16)) {
     return true;
   }
 
