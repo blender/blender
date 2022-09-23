@@ -1605,7 +1605,7 @@ uint16_t GHOST_WindowX11::getDPIHint()
 
       int success = XrmGetResource(xrdb, "Xft.dpi", "Xft.Dpi", &type, &val);
       if (success && type) {
-        if (strcmp(type, "String") == 0) {
+        if (STREQ(type, "String")) {
           return atoi((char *)val.addr);
         }
       }

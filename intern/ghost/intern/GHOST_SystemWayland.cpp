@@ -2931,24 +2931,24 @@ static void global_handle_add(void *data,
   bool found = true;
 
   struct GWL_Display *display = static_cast<struct GWL_Display *>(data);
-  if (!strcmp(interface, wl_compositor_interface.name)) {
+  if (STREQ(interface, wl_compositor_interface.name)) {
     display->compositor = static_cast<wl_compositor *>(
         wl_registry_bind(wl_registry, name, &wl_compositor_interface, 3));
   }
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   /* Pass. */
 #else
-  else if (!strcmp(interface, xdg_wm_base_interface.name)) {
+  else if (STREQ(interface, xdg_wm_base_interface.name)) {
     display->xdg_shell = static_cast<xdg_wm_base *>(
         wl_registry_bind(wl_registry, name, &xdg_wm_base_interface, 1));
     xdg_wm_base_add_listener(display->xdg_shell, &shell_listener, nullptr);
   }
-  else if (!strcmp(interface, zxdg_decoration_manager_v1_interface.name)) {
+  else if (STREQ(interface, zxdg_decoration_manager_v1_interface.name)) {
     display->xdg_decoration_manager = static_cast<zxdg_decoration_manager_v1 *>(
         wl_registry_bind(wl_registry, name, &zxdg_decoration_manager_v1_interface, 1));
   }
 #endif /* !WITH_GHOST_WAYLAND_LIBDECOR. */
-  else if (!strcmp(interface, zxdg_output_manager_v1_interface.name)) {
+  else if (STREQ(interface, zxdg_output_manager_v1_interface.name)) {
     display->xdg_output_manager = static_cast<zxdg_output_manager_v1 *>(
         wl_registry_bind(wl_registry, name, &zxdg_output_manager_v1_interface, 2));
     for (GWL_Output *output : display->outputs) {
@@ -2957,7 +2957,7 @@ static void global_handle_add(void *data,
       zxdg_output_v1_add_listener(output->xdg_output, &xdg_output_listener, output);
     }
   }
-  else if (!strcmp(interface, wl_output_interface.name)) {
+  else if (STREQ(interface, wl_output_interface.name)) {
     GWL_Output *output = new GWL_Output;
     output->wl_output = static_cast<wl_output *>(
         wl_registry_bind(wl_registry, name, &wl_output_interface, 2));
@@ -2973,7 +2973,7 @@ static void global_handle_add(void *data,
       zxdg_output_v1_add_listener(output->xdg_output, &xdg_output_listener, output);
     }
   }
-  else if (!strcmp(interface, wl_seat_interface.name)) {
+  else if (STREQ(interface, wl_seat_interface.name)) {
     GWL_Seat *seat = new GWL_Seat;
     seat->system = display->system;
     seat->xkb_context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
@@ -2983,23 +2983,23 @@ static void global_handle_add(void *data,
     display->seats.push_back(seat);
     wl_seat_add_listener(seat->wl_seat, &seat_listener, seat);
   }
-  else if (!strcmp(interface, wl_shm_interface.name)) {
+  else if (STREQ(interface, wl_shm_interface.name)) {
     display->shm = static_cast<wl_shm *>(
         wl_registry_bind(wl_registry, name, &wl_shm_interface, 1));
   }
-  else if (!strcmp(interface, wl_data_device_manager_interface.name)) {
+  else if (STREQ(interface, wl_data_device_manager_interface.name)) {
     display->data_device_manager = static_cast<wl_data_device_manager *>(
         wl_registry_bind(wl_registry, name, &wl_data_device_manager_interface, 3));
   }
-  else if (!strcmp(interface, zwp_tablet_manager_v2_interface.name)) {
+  else if (STREQ(interface, zwp_tablet_manager_v2_interface.name)) {
     display->tablet_manager = static_cast<zwp_tablet_manager_v2 *>(
         wl_registry_bind(wl_registry, name, &zwp_tablet_manager_v2_interface, 1));
   }
-  else if (!strcmp(interface, zwp_relative_pointer_manager_v1_interface.name)) {
+  else if (STREQ(interface, zwp_relative_pointer_manager_v1_interface.name)) {
     display->relative_pointer_manager = static_cast<zwp_relative_pointer_manager_v1 *>(
         wl_registry_bind(wl_registry, name, &zwp_relative_pointer_manager_v1_interface, 1));
   }
-  else if (!strcmp(interface, zwp_pointer_constraints_v1_interface.name)) {
+  else if (STREQ(interface, zwp_pointer_constraints_v1_interface.name)) {
     display->pointer_constraints = static_cast<zwp_pointer_constraints_v1 *>(
         wl_registry_bind(wl_registry, name, &zwp_pointer_constraints_v1_interface, 1));
   }
