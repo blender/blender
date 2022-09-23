@@ -24,6 +24,8 @@
 
 #include "node_util.h"
 
+struct BVHTreeFromMesh;
+
 void geo_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);
 bool geo_node_poll_default(struct bNodeType *ntype,
                            struct bNodeTree *ntree,
@@ -77,6 +79,13 @@ void separate_geometry(GeometrySet &geometry_set,
                        GeometryNodeDeleteGeometryMode mode,
                        const Field<bool> &selection_field,
                        bool &r_is_error);
+
+void get_closest_in_bvhtree(BVHTreeFromMesh &tree_data,
+                            const VArray<float3> &positions,
+                            const IndexMask mask,
+                            const MutableSpan<int> r_indices,
+                            const MutableSpan<float> r_distances_sq,
+                            const MutableSpan<float3> r_positions);
 
 std::optional<eCustomDataType> node_data_type_to_custom_data_type(eNodeSocketDatatype type);
 std::optional<eCustomDataType> node_socket_to_custom_data_type(const bNodeSocket &socket);

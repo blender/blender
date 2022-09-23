@@ -2199,18 +2199,6 @@ static const EnumPropertyItem *rna_GeometryNodeAttributeType_type_with_socket_it
                               generic_attribute_type_supported_with_socket);
 }
 
-static bool transfer_attribute_type_supported(const EnumPropertyItem *item)
-{
-  return ELEM(
-      item->value, CD_PROP_FLOAT, CD_PROP_FLOAT3, CD_PROP_COLOR, CD_PROP_BOOL, CD_PROP_INT32);
-}
-static const EnumPropertyItem *rna_NodeGeometryTransferAttribute_type_itemf(
-    bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
-{
-  *r_free = true;
-  return itemf_function_check(rna_enum_attribute_type_items, transfer_attribute_type_supported);
-}
-
 static bool attribute_statistic_type_supported(const EnumPropertyItem *item)
 {
   return ELEM(item->value, CD_PROP_FLOAT, CD_PROP_FLOAT3);
@@ -10424,50 +10412,53 @@ static void def_geo_curve_trim(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
-static void def_geo_transfer_attribute(StructRNA *srna)
+static void def_geo_sample_index(StructRNA *srna)
 {
-  static EnumPropertyItem mapping_items[] = {
-      {GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED,
-       "NEAREST_FACE_INTERPOLATED",
-       0,
-       "Nearest Face Interpolated",
-       "Transfer the attribute from the nearest face on a surface (loose points and edges are "
-       "ignored)"},
-      {GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST,
-       "NEAREST",
-       0,
-       "Nearest",
-       "Transfer the element from the nearest element (using face and edge centers for the "
-       "distance computation)"},
-      {GEO_NODE_ATTRIBUTE_TRANSFER_INDEX,
-       "INDEX",
-       0,
-       "Index",
-       "Transfer the data from the element with the corresponding index in the target geometry"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   PropertyRNA *prop;
 
-  RNA_def_struct_sdna_from(srna, "NodeGeometryTransferAttribute", "storage");
-
-  prop = RNA_def_property(srna, "mapping", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "mode");
-  RNA_def_property_enum_items(prop, mapping_items);
-  RNA_def_property_ui_text(prop, "Mapping", "Mapping between geometries");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+  RNA_def_struct_sdna_from(srna, "NodeGeometrySampleIndex", "storage");
 
   prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_attribute_type_items);
-  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_NodeGeometryTransferAttribute_type_itemf");
+  RNA_def_property_enum_funcs(
+      prop, NULL, NULL, "rna_GeometryNodeAttributeType_type_with_socket_itemf");
   RNA_def_property_enum_default(prop, CD_PROP_FLOAT);
-  RNA_def_property_ui_text(prop, "Data Type", "The type for the source and result data");
+  RNA_def_property_ui_text(prop, "Data Type", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 
   prop = RNA_def_property(srna, "domain", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_attribute_domain_items);
   RNA_def_property_enum_default(prop, ATTR_DOMAIN_POINT);
-  RNA_def_property_ui_text(prop, "Domain", "The domain to use on the target geometry");
+  RNA_def_property_ui_text(prop, "Domain", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "clamp", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(prop,
+                           "Clamp",
+                           "Clamp the indices to the size of the attribute domain instead of "
+                           "outputting a default value for invalid indices");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_geo_sample_nearest_surface(StructRNA *srna)
+{
+  PropertyRNA *prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, rna_enum_attribute_type_items);
+  RNA_def_property_enum_funcs(
+      prop, NULL, NULL, "rna_GeometryNodeAttributeType_type_with_socket_itemf");
+  RNA_def_property_enum_default(prop, CD_PROP_FLOAT);
+  RNA_def_property_ui_text(prop, "Data Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
+static void def_geo_sample_nearest(StructRNA *srna)
+{
+  PropertyRNA *prop = RNA_def_property(srna, "domain", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom2");
+  RNA_def_property_enum_items(prop, rna_enum_attribute_domain_only_mesh_items);
+  RNA_def_property_enum_default(prop, ATTR_DOMAIN_POINT);
+  RNA_def_property_ui_text(prop, "Domain", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

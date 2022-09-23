@@ -1512,6 +1512,15 @@ typedef struct NodeGeometryTransferAttribute {
   char _pad[1];
 } NodeGeometryTransferAttribute;
 
+typedef struct NodeGeometrySampleIndex {
+  /* eCustomDataType. */
+  int8_t data_type;
+  /* eAttrDomain. */
+  int8_t domain;
+  int8_t clamp;
+  char _pad[1];
+} NodeGeometrySampleIndex;
+
 typedef struct NodeGeometryRaycast {
   /* GeometryNodeRaycastMapMode. */
   uint8_t mapping;

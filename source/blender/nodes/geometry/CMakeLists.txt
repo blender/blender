@@ -128,6 +128,9 @@ set(SRC
   nodes/node_geo_realize_instances.cc
   nodes/node_geo_remove_attribute.cc
   nodes/node_geo_rotate_instances.cc
+  nodes/node_geo_sample_index.cc
+  nodes/node_geo_sample_nearest_surface.cc
+  nodes/node_geo_sample_nearest.cc
   nodes/node_geo_scale_elements.cc
   nodes/node_geo_scale_instances.cc
   nodes/node_geo_separate_components.cc
@@ -149,7 +152,6 @@ set(SRC
   nodes/node_geo_string_to_curves.cc
   nodes/node_geo_subdivision_surface.cc
   nodes/node_geo_switch.cc
-  nodes/node_geo_transfer_attribute.cc
   nodes/node_geo_transform.cc
   nodes/node_geo_translate_instances.cc
   nodes/node_geo_triangulate.cc

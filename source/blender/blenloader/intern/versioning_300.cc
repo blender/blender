@@ -1791,6 +1791,147 @@ static void version_fix_image_format_copy(Main *bmain, ImageFormatData *format)
   }
 }
 
+static void version_geometry_nodes_replace_transfer_attribute_node(bNodeTree *ntree)
+{
+  using namespace blender;
+  /* Otherwise `ntree->typeInfo` is null. */
+  ntreeSetTypes(NULL, ntree);
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
+    if (node->type != GEO_NODE_TRANSFER_ATTRIBUTE_DEPRECATED) {
+      continue;
+    }
+    bNodeSocket *old_geometry_socket = nodeFindSocket(node, SOCK_IN, "Source");
+    const NodeGeometryTransferAttribute *storage = (const NodeGeometryTransferAttribute *)
+                                                       node->storage;
+    switch (storage->mode) {
+      case GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED: {
+        bNode *sample_nearest_surface = nodeAddStaticNode(
+            NULL, ntree, GEO_NODE_SAMPLE_NEAREST_SURFACE);
+        sample_nearest_surface->parent = node->parent;
+        sample_nearest_surface->custom1 = storage->data_type;
+        sample_nearest_surface->locx = node->locx;
+        sample_nearest_surface->locy = node->locy;
+        static auto socket_remap = []() {
+          Map<std::string, std::string> map;
+          map.add_new("Attribute", "Value_Vector");
+          map.add_new("Attribute_001", "Value_Float");
+          map.add_new("Attribute_002", "Value_Color");
+          map.add_new("Attribute_003", "Value_Bool");
+          map.add_new("Attribute_004", "Value_Int");
+          map.add_new("Source", "Mesh");
+          map.add_new("Source Position", "Sample Position");
+          return map;
+        }();
+        node_tree_relink_with_socket_id_map(*ntree, *node, *sample_nearest_surface, socket_remap);
+        break;
+      }
+      case GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST: {
+        /* These domains weren't supported by the index transfer mode, but were selectable. */
+        const eAttrDomain domain = ELEM(storage->domain, ATTR_DOMAIN_INSTANCE, ATTR_DOMAIN_CURVE) ?
+                                       ATTR_DOMAIN_POINT :
+                                       eAttrDomain(storage->domain);
+
+        /* Use a sample index node to retrieve the data with this node's index output. */
+        bNode *sample_index = nodeAddStaticNode(NULL, ntree, GEO_NODE_SAMPLE_INDEX);
+        NodeGeometrySampleIndex *sample_storage = static_cast<NodeGeometrySampleIndex *>(
+            sample_index->storage);
+        sample_storage->data_type = storage->data_type;
+        sample_storage->domain = domain;
+        sample_index->parent = node->parent;
+        sample_index->locx = node->locx + 25.0f;
+        sample_index->locy = node->locy;
+        if (old_geometry_socket->link) {
+          nodeAddLink(ntree,
+                      old_geometry_socket->link->fromnode,
+                      old_geometry_socket->link->fromsock,
+                      sample_index,
+                      nodeFindSocket(sample_index, SOCK_IN, "Geometry"));
+        }
+
+        bNode *sample_nearest = nodeAddStaticNode(NULL, ntree, GEO_NODE_SAMPLE_NEAREST);
+        sample_nearest->parent = node->parent;
+        sample_nearest->custom1 = storage->data_type;
+        sample_nearest->custom2 = domain;
+        sample_nearest->locx = node->locx - 25.0f;
+        sample_nearest->locy = node->locy;
+        if (old_geometry_socket->link) {
+          nodeAddLink(ntree,
+                      old_geometry_socket->link->fromnode,
+                      old_geometry_socket->link->fromsock,
+                      sample_nearest,
+                      nodeFindSocket(sample_nearest, SOCK_IN, "Geometry"));
+        }
+        static auto sample_nearest_remap = []() {
+          Map<std::string, std::string> map;
+          map.add_new("Source Position", "Sample Position");
+          return map;
+        }();
+        node_tree_relink_with_socket_id_map(*ntree, *node, *sample_nearest, sample_nearest_remap);
+
+        static auto sample_index_remap = []() {
+          Map<std::string, std::string> map;
+          map.add_new("Attribute", "Value_Vector");
+          map.add_new("Attribute_001", "Value_Float");
+          map.add_new("Attribute_002", "Value_Color");
+          map.add_new("Attribute_003", "Value_Bool");
+          map.add_new("Attribute_004", "Value_Int");
+          map.add_new("Source Position", "Sample Position");
+          return map;
+        }();
+        node_tree_relink_with_socket_id_map(*ntree, *node, *sample_index, sample_index_remap);
+
+        nodeAddLink(ntree,
+                    sample_nearest,
+                    nodeFindSocket(sample_nearest, SOCK_OUT, "Index"),
+                    sample_index,
+                    nodeFindSocket(sample_index, SOCK_IN, "Index"));
+        break;
+      }
+      case GEO_NODE_ATTRIBUTE_TRANSFER_INDEX: {
+        bNode *sample_index = nodeAddStaticNode(NULL, ntree, GEO_NODE_SAMPLE_INDEX);
+        NodeGeometrySampleIndex *sample_storage = static_cast<NodeGeometrySampleIndex *>(
+            sample_index->storage);
+        sample_storage->data_type = storage->data_type;
+        sample_storage->domain = storage->domain;
+        sample_storage->clamp = 1;
+        sample_index->parent = node->parent;
+        sample_index->locx = node->locx;
+        sample_index->locy = node->locy;
+        const bool index_was_linked = nodeFindSocket(node, SOCK_IN, "Index")->link != nullptr;
+        static auto socket_remap = []() {
+          Map<std::string, std::string> map;
+          map.add_new("Attribute", "Value_Vector");
+          map.add_new("Attribute_001", "Value_Float");
+          map.add_new("Attribute_002", "Value_Color");
+          map.add_new("Attribute_003", "Value_Bool");
+          map.add_new("Attribute_004", "Value_Int");
+          map.add_new("Source", "Geometry");
+          map.add_new("Index", "Index");
+          return map;
+        }();
+        node_tree_relink_with_socket_id_map(*ntree, *node, *sample_index, socket_remap);
+
+        if (!index_was_linked) {
+          /* Add an index input node, since the new node doesn't use an implicit input. */
+          bNode *index = nodeAddStaticNode(NULL, ntree, GEO_NODE_INPUT_INDEX);
+          index->parent = node->parent;
+          index->locx = node->locx - 25.0f;
+          index->locy = node->locy - 25.0f;
+          nodeAddLink(ntree,
+                      index,
+                      nodeFindSocket(index, SOCK_OUT, "Index"),
+                      sample_index,
+                      nodeFindSocket(sample_index, SOCK_IN, "Index"));
+        }
+        break;
+      }
+    }
+    /* The storage must be feeed manually because the node type isn't defined anymore. */
+    MEM_freeN(node->storage);
+    nodeRemoveNode(NULL, ntree, node, false);
+  }
+}
+
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
@@ -2803,7 +2944,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             ntree, GEO_NODE_INPUT_MESH_EDGE_ANGLE, "Angle", "Unsigned Angle");
         version_node_output_socket_name(
             ntree, GEO_NODE_INPUT_MESH_ISLAND, "Index", "Island Index");
-        version_node_input_socket_name(ntree, GEO_NODE_TRANSFER_ATTRIBUTE, "Target", "Source");
+        version_node_input_socket_name(
+            ntree, GEO_NODE_TRANSFER_ATTRIBUTE_DEPRECATED, "Target", "Source");
       }
     }
   }
@@ -3405,12 +3547,10 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     /* Convert mix rgb node to new mix node and add storage. */
-    {
-      FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-        versioning_replace_legacy_mix_rgb_node(ntree);
-      }
-      FOREACH_NODETREE_END;
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      versioning_replace_legacy_mix_rgb_node(ntree);
     }
+    FOREACH_NODETREE_END;
 
     /* Face sets no longer store whether the corresponding face is hidden. */
     LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
@@ -3437,5 +3577,13 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    /* Split the transfer attribute node into multiple smaller nodes. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_geometry_nodes_replace_transfer_attribute_node(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 }

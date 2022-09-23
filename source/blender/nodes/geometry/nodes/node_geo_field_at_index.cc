@@ -128,7 +128,7 @@ class FieldAtIndex final : public bke::GeometryFieldInput {
       threading::parallel_for(mask.index_range(), 1024, [&](const IndexRange range) {
         for (const int i : mask.slice(range)) {
           const int index = indices[i];
-          if (index >= 0 && index < src_values.size()) {
+          if (src_values.index_range().contains(index)) {
             dst_array[i] = src_values[index];
           }
           else {

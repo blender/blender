@@ -4800,6 +4800,9 @@ static void registerGeometryNodes()
   register_node_type_geo_realize_instances();
   register_node_type_geo_remove_attribute();
   register_node_type_geo_rotate_instances();
+  register_node_type_geo_sample_index();
+  register_node_type_geo_sample_nearest_surface();
+  register_node_type_geo_sample_nearest();
   register_node_type_geo_scale_elements();
   register_node_type_geo_scale_instances();
   register_node_type_geo_separate_components();
@@ -4821,7 +4824,6 @@ static void registerGeometryNodes()
   register_node_type_geo_string_to_curves();
   register_node_type_geo_subdivision_surface();
   register_node_type_geo_switch();
-  register_node_type_geo_transfer_attribute();
   register_node_type_geo_transform();
   register_node_type_geo_translate_instances();
   register_node_type_geo_triangulate();
