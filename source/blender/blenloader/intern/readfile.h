@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <stdio.h> /* Include header using off_t before poisoning it below. */
+
 #ifdef WIN32
 #  include "BLI_winstuff.h"
 #endif
