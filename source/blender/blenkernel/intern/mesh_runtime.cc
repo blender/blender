@@ -154,7 +154,7 @@ void BKE_mesh_runtime_looptri_recalc(Mesh *mesh)
   const Span<MPoly> polys = mesh->polys();
   const Span<MLoop> loops = mesh->loops();
 
-  if (BKE_mesh_poly_normals_are_dirty(mesh)) {
+  if (!BKE_mesh_poly_normals_are_dirty(mesh)) {
     BKE_mesh_recalc_looptri_with_normals(loops.data(),
                                          polys.data(),
                                          verts.data(),
