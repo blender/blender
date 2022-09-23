@@ -154,12 +154,23 @@ void BKE_mesh_runtime_looptri_recalc(Mesh *mesh)
   const Span<MPoly> polys = mesh->polys();
   const Span<MLoop> loops = mesh->loops();
 
-  BKE_mesh_recalc_looptri(loops.data(),
-                          polys.data(),
-                          verts.data(),
-                          mesh->totloop,
-                          mesh->totpoly,
-                          mesh->runtime.looptris.array_wip);
+  if (BKE_mesh_poly_normals_are_dirty(mesh)) {
+    BKE_mesh_recalc_looptri_with_normals(loops.data(),
+                                         polys.data(),
+                                         verts.data(),
+                                         mesh->totloop,
+                                         mesh->totpoly,
+                                         mesh->runtime.looptris.array_wip,
+                                         BKE_mesh_poly_normals_ensure(mesh));
+  }
+  else {
+    BKE_mesh_recalc_looptri(loops.data(),
+                            polys.data(),
+                            verts.data(),
+                            mesh->totloop,
+                            mesh->totpoly,
+                            mesh->runtime.looptris.array_wip);
+  }
 
   BLI_assert(mesh->runtime.looptris.array == nullptr);
   atomic_cas_ptr((void **)&mesh->runtime.looptris.array,

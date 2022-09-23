@@ -18,6 +18,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_cache.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 
 #include "GPU_batch.h"
 
@@ -329,28 +330,10 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
                                       const eMRIterType iter_type,
                                       const eMRDataType data_flag)
 {
-  Mesh *me = mr->me;
   if (mr->extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
     if ((iter_type & MR_ITER_LOOPTRI) || (data_flag & MR_DATA_LOOPTRI)) {
-      /* NOTE(@campbellbarton): It's possible to skip allocating tessellation,
-       * the tessellation can be calculated as part of the iterator, see: P2188.
-       * The overall advantage is small (around 1%), so keep this as-is. */
-      mr->mlooptri = static_cast<MLoopTri *>(
-          MEM_mallocN(sizeof(*mr->mlooptri) * mr->tri_len, "MR_DATATYPE_LOOPTRI"));
-      if (mr->poly_normals != nullptr) {
-        BKE_mesh_recalc_looptri_with_normals(mr->mloop,
-                                             mr->mpoly,
-                                             mr->mvert,
-                                             me->totloop,
-                                             me->totpoly,
-                                             mr->mlooptri,
-                                             mr->poly_normals);
-      }
-      else {
-        BKE_mesh_recalc_looptri(
-            mr->mloop, mr->mpoly, mr->mvert, me->totloop, me->totpoly, mr->mlooptri);
-      }
+      mr->mlooptri = BKE_mesh_runtime_looptri_ensure(mr->me);
     }
   }
   else {
@@ -605,7 +588,6 @@ MeshRenderData *mesh_render_data_create(Object *object,
 
 void mesh_render_data_free(MeshRenderData *mr)
 {
-  MEM_SAFE_FREE(mr->mlooptri);
   MEM_SAFE_FREE(mr->loop_normals);
 
   /* Loose geometry are owned by #MeshBufferCache. */
