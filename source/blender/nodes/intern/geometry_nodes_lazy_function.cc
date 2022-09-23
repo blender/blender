@@ -142,7 +142,7 @@ class LazyFunctionForGeometryNode : public LazyFunction {
 };
 
 /**
- * Used to gather all inputs of a multi-input socket. A separate node is necessary, because
+ * Used to gather all inputs of a multi-input socket. A separate node is necessary because
  * multi-inputs are not supported in lazy-function graphs.
  */
 class LazyFunctionForMultiInput : public LazyFunction {
@@ -173,7 +173,7 @@ class LazyFunctionForMultiInput : public LazyFunction {
     base_type_->to_static_type_tag<GeometrySet, ValueOrField<std::string>>([&](auto type_tag) {
       using T = typename decltype(type_tag)::type;
       if constexpr (std::is_void_v<T>) {
-        /* This type is not support in this node for now. */
+        /* This type is not supported in this node for now. */
         BLI_assert_unreachable();
       }
       else {
