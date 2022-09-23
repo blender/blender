@@ -300,10 +300,14 @@ static void rna_Depsgraph_objects_begin(CollectionPropertyIterator *iter, Pointe
 {
   iter->internal.custom = MEM_callocN(sizeof(BLI_Iterator), __func__);
   DEGObjectIterData *data = MEM_callocN(sizeof(DEGObjectIterData), __func__);
+  DEGObjectIterSettings *deg_iter_settings = MEM_callocN(sizeof(DEGObjectIterSettings), __func__);
+  deg_iter_settings->depsgraph = (Depsgraph *)ptr->data;
+  deg_iter_settings->flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY | DEG_ITER_OBJECT_FLAG_VISIBLE |
+                             DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET;
 
-  data->graph = (Depsgraph *)ptr->data;
-  data->flag = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY | DEG_ITER_OBJECT_FLAG_VISIBLE |
-               DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET;
+  data->settings = deg_iter_settings;
+  data->graph = deg_iter_settings->depsgraph;
+  data->flag = deg_iter_settings->flags;
 
   ((BLI_Iterator *)iter->internal.custom)->valid = true;
   DEG_iterator_objects_begin(iter->internal.custom, data);
@@ -318,7 +322,9 @@ static void rna_Depsgraph_objects_next(CollectionPropertyIterator *iter)
 
 static void rna_Depsgraph_objects_end(CollectionPropertyIterator *iter)
 {
+  DEGObjectIterData *data = (DEGObjectIterData *)((BLI_Iterator *)iter->internal.custom)->data;
   DEG_iterator_objects_end(iter->internal.custom);
+  MEM_freeN(data->settings);
   MEM_freeN(((BLI_Iterator *)iter->internal.custom)->data);
   MEM_freeN(iter->internal.custom);
 }
