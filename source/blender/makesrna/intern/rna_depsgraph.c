@@ -355,11 +355,16 @@ static void rna_Depsgraph_object_instances_begin(CollectionPropertyIterator *ite
 {
   RNA_Depsgraph_Instances_Iterator *di_it = iter->internal.custom = MEM_callocN(sizeof(*di_it),
                                                                                 __func__);
+  DEGObjectIterSettings *deg_iter_settings = MEM_callocN(sizeof(DEGObjectIterSettings), __func__);
+  deg_iter_settings->depsgraph = (Depsgraph *)ptr->data;
+  deg_iter_settings->flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                             DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
+                             DEG_ITER_OBJECT_FLAG_DUPLI;
 
   DEGObjectIterData *data = &di_it->deg_data[0];
-  data->graph = (Depsgraph *)ptr->data;
-  data->flag = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY | DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
-               DEG_ITER_OBJECT_FLAG_VISIBLE | DEG_ITER_OBJECT_FLAG_DUPLI;
+  data->settings = deg_iter_settings;
+  data->graph = deg_iter_settings->depsgraph;
+  data->flag = deg_iter_settings->flags;
 
   di_it->iterators[0].iter.valid = true;
   DEG_iterator_objects_begin(&di_it->iterators[0].iter, data);
@@ -398,6 +403,11 @@ static void rna_Depsgraph_object_instances_end(CollectionPropertyIterator *iter)
                                                 iter->internal.custom;
   for (int i = 0; i < ARRAY_SIZE(di_it->iterators); i++) {
     RNA_DepsgraphIterator *di = &di_it->iterators[i];
+    DEGObjectIterData *data = &di_it->deg_data[i];
+    if (i == 0) {
+      /* Is shared between both iterators. */
+      MEM_freeN(data->settings);
+    }
     DEG_iterator_objects_end(&di->iter);
 
 #  ifdef WITH_PYTHON
