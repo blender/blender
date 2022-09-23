@@ -127,8 +127,8 @@ typedef enum eGP_FillDrawModes {
 
 /* BrushGpencilSettings->fill_extend_mode */
 typedef enum eGP_FillExtendModes {
-  GP_FILL_EMODE_RADIUS = 0,
-  GP_FILL_EMODE_EXTEND = 1,
+  GP_FILL_EMODE_EXTEND = 0,
+  GP_FILL_EMODE_RADIUS = 1,
 } eGP_FillExtendModes;
 
 /* BrushGpencilSettings->fill_layer_mode */

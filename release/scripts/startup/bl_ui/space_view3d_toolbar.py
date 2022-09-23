@@ -1889,10 +1889,8 @@ class VIEW3D_PT_tools_grease_pencil_brush_gap_closure(View3DPanel, Panel):
 
         col.prop(gp_settings, "extend_stroke_factor", text="Size")
         row = col.row(align=True)
-        row.enabled = gp_settings.extend_stroke_factor > 0
         row.prop(gp_settings, "fill_extend_mode", text="Mode")
         row = col.row(align=True)
-        row.enabled = gp_settings.extend_stroke_factor > 0
         row.prop(gp_settings, "show_fill_extend", text="Visual Aids")
 
 
