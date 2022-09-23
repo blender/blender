@@ -6,7 +6,6 @@
  * Mimics old style opengl immediate mode drawing.
  */
 
-
 #pragma once
 
 #include "MEM_guardedalloc.h"

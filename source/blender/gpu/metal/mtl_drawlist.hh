@@ -21,11 +21,19 @@ namespace gpu {
  */
 class MTLDrawList : public DrawList {
  public:
-  MTLDrawList(int length) {}
-  ~MTLDrawList() {}
+  MTLDrawList(int length)
+  {
+  }
+  ~MTLDrawList()
+  {
+  }
 
-  void append(GPUBatch *batch, int i_first, int i_count) override {}
-  void submit() override {}
+  void append(GPUBatch *batch, int i_first, int i_count) override
+  {
+  }
+  void submit() override
+  {
+  }
 
   MEM_CXX_CLASS_ALLOC_FUNCS("MTLDrawList");
 };

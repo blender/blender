@@ -115,7 +115,8 @@ void MTLImmediate::end()
 
       /* Disable Indexed rendering in SSBO vertex fetch. */
       int uniform_ssbo_use_indexed = active_mtl_shader->uni_ssbo_uses_indexed_rendering;
-      BLI_assert_msg(uniform_ssbo_use_indexed != -1, "Expected valid uniform location for ssbo_uses_indexed_rendering.");
+      BLI_assert_msg(uniform_ssbo_use_indexed != -1,
+                     "Expected valid uniform location for ssbo_uses_indexed_rendering.");
       int uses_indexed_rendering = 0;
       active_mtl_shader->uniform_int(uniform_ssbo_use_indexed, 1, 1, &uses_indexed_rendering);
     }
@@ -206,7 +207,7 @@ void MTLImmediate::end()
       /* SSBO Vertex Fetch Attribute bind. */
       if (active_mtl_shader->get_uses_ssbo_vertex_fetch()) {
         BLI_assert_msg(mtl_shader_attribute.buffer_index == 0,
-                   "All attributes should be in buffer index zero");
+                       "All attributes should be in buffer index zero");
         MTLSSBOAttribute ssbo_attr(
             mtl_shader_attribute.index,
             mtl_shader_attribute.buffer_index,
