@@ -78,9 +78,10 @@ Signal Handlers
    to cancel a render and a crash log is not written in the event of a crash.
 
 Startup and Preferences
-   When the ``bpy`` module loads, the file is not empty as you might expect,
-   there is a default cube, camera and light. If you wish to start from a blank file use:
-   ``bpy.ops.wm.read_factory_settings(use_empty=True)``.
+   When the ``bpy`` module loads it contains the default startup scene
+   (instead of an "empty" blend-file as you might expect), so there is a default cube, camera and light.
+
+   If you wish to start from an empty file use: ``bpy.ops.wm.read_factory_settings(use_empty=True)``.
 
    The users startup and preferences are ignored to prevent your local configuration from impacting scripts behavior.
    The Python module behaves as if ``--factory-startup`` was passed as a command line argument.
@@ -101,9 +102,10 @@ Limitations
 Most constraints of Blender as an application still apply:
 
 Reloading Unsupported
-   Reloading via ``importlib.reload`` will raise an exception instead of reloading and resetting the module.
+   Reloading the ``bpy`` module via ``importlib.reload`` will raise an exception
+   instead of reloading and resetting the module.
 
-   The operator ``bpy.ops.wm.read_factory_settings()`` can be used to reset the internal state.
+   Instead, the operator ``bpy.ops.wm.read_factory_settings()`` can be used to reset the internal state.
 
 Single Blend File Restriction
    Only a single ``.blend`` file can be edited at a time.
