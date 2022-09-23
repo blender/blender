@@ -159,29 +159,19 @@ static IndexMask get_selected_indices(const Mesh &mesh,
                                       Vector<int64_t> &indices)
 {
   using namespace blender;
-  const Span<MVert> verts = mesh.verts();
-  const Span<MPoly> polys = mesh.polys();
-
-  bke::AttributeAccessor attributes = mesh.attributes();
+  const bke::AttributeAccessor attributes = mesh.attributes();
 
   if (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) {
-    const VArray<bool> selection = attributes.adapt_domain(
-        VArray<bool>::ForFunc(polys.size(),
-                              [&](const int i) { return polys[i].flag & ME_FACE_SEL; }),
-        ATTR_DOMAIN_FACE,
-        domain);
-
+    const VArray<bool> selection = attributes.lookup_or_default<bool>(
+        ".select_poly", ATTR_DOMAIN_FACE, false);
     return index_mask_ops::find_indices_from_virtual_array(
-        IndexMask(attributes.domain_size(domain)), selection, 4096, indices);
+        selection.index_range(), selection, 4096, indices);
   }
   if (mesh.editflag & ME_EDIT_PAINT_VERT_SEL) {
-    const VArray<bool> selection = attributes.adapt_domain(
-        VArray<bool>::ForFunc(verts.size(), [&](const int i) { return verts[i].flag & SELECT; }),
-        ATTR_DOMAIN_POINT,
-        domain);
-
+    const VArray<bool> selection = attributes.lookup_or_default<bool>(
+        ".select_vert", ATTR_DOMAIN_POINT, false);
     return index_mask_ops::find_indices_from_virtual_array(
-        IndexMask(attributes.domain_size(domain)), selection, 4096, indices);
+        selection.index_range(), selection, 4096, indices);
   }
   return IndexMask(attributes.domain_size(domain));
 }

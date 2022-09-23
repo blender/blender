@@ -1265,7 +1265,6 @@ static void customdata_weld(
           no[1] += mv_src_no[1];
           no[2] += mv_src_no[2];
 #endif
-          flag |= mv_src->flag;
         }
       }
       else if (type == CD_MEDGE) {
@@ -1316,8 +1315,6 @@ static void customdata_weld(
       mv_no[1] = (short)no[1];
       mv_no[2] = (short)no[2];
 #endif
-
-      mv->flag = (char)flag;
     }
     else if (type == CD_MEDGE) {
       MEdge *me = &((MEdge *)layer_dst->data)[dest_index];

@@ -1137,8 +1137,6 @@ static void subdiv_mesh_vertex_of_loose_edge(const SubdivForeachContext *foreach
                                                is_simple,
                                                u,
                                                subdiv_vertex->co);
-  /* Reset flags and such. */
-  subdiv_vertex->flag = 0;
 }
 
 /** \} */

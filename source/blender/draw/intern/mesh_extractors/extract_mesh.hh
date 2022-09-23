@@ -86,6 +86,9 @@ struct MeshRenderData {
   const bool *hide_vert;
   const bool *hide_edge;
   const bool *hide_poly;
+  const bool *select_vert;
+  const bool *select_edge;
+  const bool *select_poly;
   float (*loop_normals)[3];
   int *lverts, *ledges;
 

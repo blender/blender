@@ -21,6 +21,7 @@
 
 static void version_mesh_legacy_to_struct_of_array_format(Mesh &mesh)
 {
+  BKE_mesh_legacy_convert_flags_to_selection_layers(&mesh);
   BKE_mesh_legacy_convert_flags_to_hide_layers(&mesh);
   BKE_mesh_legacy_convert_mpoly_to_material_indices(&mesh);
   BKE_mesh_legacy_bevel_weight_to_layers(&mesh);

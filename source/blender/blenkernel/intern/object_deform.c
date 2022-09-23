@@ -163,14 +163,14 @@ bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_sele
     }
     else {
       if (BKE_mesh_deform_verts(me)) {
-        const MVert *mv;
+        const bool *select_vert = (const bool *)CustomData_get_layer_named(
+            &me->vdata, CD_PROP_BOOL, ".select_vert");
         int i;
 
-        mv = BKE_mesh_verts(me);
         dv = BKE_mesh_deform_verts_for_write(me);
 
-        for (i = 0; i < me->totvert; i++, mv++, dv++) {
-          if (dv->dw && (!use_selection || (mv->flag & SELECT))) {
+        for (i = 0; i < me->totvert; i++, dv++) {
+          if (dv->dw && (!use_selection || (select_vert && select_vert[i]))) {
             MDeformWeight *dw = BKE_defvert_find_index(dv, def_nr);
             BKE_defvert_remove_group(dv, dw); /* dw can be NULL */
             changed = true;

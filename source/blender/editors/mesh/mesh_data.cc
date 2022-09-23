@@ -1134,6 +1134,7 @@ void ED_mesh_update(Mesh *mesh, bContext *C, bool calc_edges, bool calc_edges_lo
 
 static void mesh_add_verts(Mesh *mesh, int len)
 {
+  using namespace blender;
   if (len == 0) {
     return;
   }
@@ -1152,17 +1153,18 @@ static void mesh_add_verts(Mesh *mesh, int len)
 
   BKE_mesh_runtime_clear_cache(mesh);
 
-  const int old_vertex_num = mesh->totvert;
   mesh->totvert = totvert;
 
-  MutableSpan<MVert> verts = mesh->verts_for_write();
-  for (MVert &vert : verts.drop_front(old_vertex_num)) {
-    vert.flag = SELECT;
-  }
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
+      ".select_vert", ATTR_DOMAIN_POINT);
+  select_vert.span.take_back(len).fill(true);
+  select_vert.finish();
 }
 
 static void mesh_add_edges(Mesh *mesh, int len)
 {
+  using namespace blender;
   CustomData edata;
   int totedge;
 
@@ -1185,13 +1187,18 @@ static void mesh_add_edges(Mesh *mesh, int len)
 
   BKE_mesh_runtime_clear_cache(mesh);
 
-  const int old_edges_num = mesh->totedge;
   mesh->totedge = totedge;
 
   MutableSpan<MEdge> edges = mesh->edges_for_write();
-  for (MEdge &edge : edges.drop_front(old_edges_num)) {
-    edge.flag = ME_EDGEDRAW | ME_EDGERENDER | SELECT;
+  for (MEdge &edge : edges.take_back(len)) {
+    edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
   }
+
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter<bool> select_edge = attributes.lookup_or_add_for_write_span<bool>(
+      ".select_edge", ATTR_DOMAIN_EDGE);
+  select_edge.span.take_back(len).fill(true);
+  select_edge.finish();
 }
 
 static void mesh_add_loops(Mesh *mesh, int len)
@@ -1223,6 +1230,7 @@ static void mesh_add_loops(Mesh *mesh, int len)
 
 static void mesh_add_polys(Mesh *mesh, int len)
 {
+  using namespace blender;
   CustomData pdata;
   int totpoly;
 
@@ -1245,13 +1253,13 @@ static void mesh_add_polys(Mesh *mesh, int len)
 
   BKE_mesh_runtime_clear_cache(mesh);
 
-  const int old_polys_num = mesh->totpoly;
   mesh->totpoly = totpoly;
 
-  MutableSpan<MPoly> polys = mesh->polys_for_write();
-  for (MPoly &poly : polys.drop_front(old_polys_num)) {
-    poly.flag = ME_FACE_SEL;
-  }
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(
+      ".select_poly", ATTR_DOMAIN_FACE);
+  select_poly.span.take_back(len).fill(true);
+  select_poly.finish();
 }
 
 /* -------------------------------------------------------------------- */

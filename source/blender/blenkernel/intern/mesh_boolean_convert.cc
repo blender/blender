@@ -375,14 +375,10 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
  * `mv` is in `dest_mesh` with index `mv_index`.
  * The `orig_mv` vertex came from Mesh `orig_me` and had index `index_in_orig_me` there. */
 static void copy_vert_attributes(Mesh *dest_mesh,
-                                 MVert *mv,
-                                 const MVert *orig_mv,
                                  const Mesh *orig_me,
                                  int mv_index,
                                  int index_in_orig_me)
 {
-  mv->flag = orig_mv->flag;
-
   /* For all layers in the orig mesh, copy the layer information. */
   CustomData *target_cd = &dest_mesh->vdata;
   const CustomData *source_cd = &orig_me->vdata;
@@ -723,14 +719,14 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
   MutableSpan<MVert> verts = result->verts_for_write();
   for (int vi : im->vert_index_range()) {
     const Vert *v = im->vert(vi);
-    MVert *mv = &verts[vi];
-    copy_v3fl_v3db(mv->co, v->co);
     if (v->orig != NO_INDEX) {
       const Mesh *orig_me;
       int index_in_orig_me;
-      const MVert *orig_mv = mim.input_mvert_for_orig_index(v->orig, &orig_me, &index_in_orig_me);
-      copy_vert_attributes(result, mv, orig_mv, orig_me, vi, index_in_orig_me);
+      mim.input_mvert_for_orig_index(v->orig, &orig_me, &index_in_orig_me);
+      copy_vert_attributes(result, orig_me, vi, index_in_orig_me);
     }
+    MVert *mv = &verts[vi];
+    copy_v3fl_v3db(mv->co, v->co);
   }
 
   /* Set the loopstart and totloop for each output poly,

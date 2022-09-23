@@ -68,6 +68,7 @@ using blender::BitVector;
 using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
+using blender::StringRef;
 using blender::VArray;
 using blender::Vector;
 
@@ -248,12 +249,19 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     Set<std::string> names_to_skip;
     if (!BLO_write_is_undo(writer)) {
       BKE_mesh_legacy_convert_hide_layers_to_flags(mesh);
+      BKE_mesh_legacy_convert_selection_layers_to_flags(mesh);
       BKE_mesh_legacy_convert_material_indices_to_mpoly(mesh);
       BKE_mesh_legacy_bevel_weight_from_layers(mesh);
       BKE_mesh_legacy_face_set_from_generic(mesh);
       BKE_mesh_legacy_edge_crease_from_layers(mesh);
       /* When converting to the old mesh format, don't save redundant attributes. */
-      names_to_skip.add_multiple_new({".hide_vert", ".hide_edge", ".hide_poly", "material_index"});
+      names_to_skip.add_multiple_new({".hide_vert",
+                                      ".hide_edge",
+                                      ".hide_poly",
+                                      "material_index",
+                                      ".select_vert",
+                                      ".select_edge",
+                                      ".select_poly"});
 
       /* Set deprecated mesh data pointers for forward compatibility. */
       mesh->mvert = const_cast<MVert *>(mesh->verts().data());
@@ -689,7 +697,6 @@ static int customdata_compare(
         case CD_PROP_BOOL: {
           const bool *l1_data = (bool *)l1->data;
           const bool *l2_data = (bool *)l2->data;
-
           for (int i = 0; i < total_length; i++) {
             if (l1_data[i] != l2_data[i]) {
               return MESHCMP_ATTRIBUTE_VALUE_MISMATCH;
@@ -1638,39 +1645,46 @@ void BKE_mesh_mselect_clear(Mesh *me)
 
 void BKE_mesh_mselect_validate(Mesh *me)
 {
+  using namespace blender;
+  using namespace blender::bke;
   MSelect *mselect_src, *mselect_dst;
   int i_src, i_dst;
 
   if (me->totselect == 0) {
     return;
   }
-  const Span<MVert> verts = me->verts();
-  const Span<MEdge> edges = me->edges();
-  const Span<MPoly> polys = me->polys();
 
   mselect_src = me->mselect;
   mselect_dst = (MSelect *)MEM_malloc_arrayN(
       (me->totselect), sizeof(MSelect), "Mesh selection history");
 
+  const AttributeAccessor attributes = me->attributes();
+  const VArray<bool> select_vert = attributes.lookup_or_default<bool>(
+      ".select_vert", ATTR_DOMAIN_POINT, false);
+  const VArray<bool> select_edge = attributes.lookup_or_default<bool>(
+      ".select_edge", ATTR_DOMAIN_EDGE, false);
+  const VArray<bool> select_poly = attributes.lookup_or_default<bool>(
+      ".select_poly", ATTR_DOMAIN_FACE, false);
+
   for (i_src = 0, i_dst = 0; i_src < me->totselect; i_src++) {
     int index = mselect_src[i_src].index;
     switch (mselect_src[i_src].type) {
       case ME_VSEL: {
-        if (verts[index].flag & SELECT) {
+        if (select_vert[index]) {
           mselect_dst[i_dst] = mselect_src[i_src];
           i_dst++;
         }
         break;
       }
       case ME_ESEL: {
-        if (edges[index].flag & SELECT) {
+        if (select_edge[index]) {
           mselect_dst[i_dst] = mselect_src[i_src];
           i_dst++;
         }
         break;
       }
       case ME_FSEL: {
-        if (polys[index].flag & SELECT) {
+        if (select_poly[index]) {
           mselect_dst[i_dst] = mselect_src[i_src];
           i_dst++;
         }

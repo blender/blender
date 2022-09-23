@@ -203,10 +203,13 @@ static void envelope_bone_weighting(Object *ob,
     use_mask = true;
   }
 
+  const bool *select_vert = (const bool *)CustomData_get_layer_named(
+      &mesh->vdata, CD_PROP_BOOL, ".select_vert");
+
   /* for each vertex in the mesh */
-  const MVert *mesh_verts = BKE_mesh_verts(mesh);
   for (int i = 0; i < mesh->totvert; i++) {
-    if (use_mask && !(mesh_verts[i].flag & SELECT)) {
+
+    if (use_mask && !(select_vert && select_vert[i])) {
       continue;
     }
 

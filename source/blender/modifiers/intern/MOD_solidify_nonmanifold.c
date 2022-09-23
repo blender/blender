@@ -2006,7 +2006,6 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
           if (g->new_vert != MOD_SOLIDIFY_EMPTY_TAG) {
             CustomData_copy_data(&mesh->vdata, &result->vdata, (int)i, (int)g->new_vert, 1);
             copy_v3_v3(mvert[g->new_vert].co, g->co);
-            mvert[g->new_vert].flag = orig_mvert[i].flag;
           }
         }
       }

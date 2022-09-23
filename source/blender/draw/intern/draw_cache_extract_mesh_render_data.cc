@@ -569,6 +569,13 @@ MeshRenderData *mesh_render_data_create(Object *object,
         CustomData_get_layer_named(&me->edata, CD_PROP_BOOL, ".hide_edge"));
     mr->hide_poly = static_cast<const bool *>(
         CustomData_get_layer_named(&me->pdata, CD_PROP_BOOL, ".hide_poly"));
+
+    mr->select_vert = static_cast<const bool *>(
+        CustomData_get_layer_named(&me->vdata, CD_PROP_BOOL, ".select_vert"));
+    mr->select_edge = static_cast<const bool *>(
+        CustomData_get_layer_named(&me->edata, CD_PROP_BOOL, ".select_edge"));
+    mr->select_poly = static_cast<const bool *>(
+        CustomData_get_layer_named(&me->pdata, CD_PROP_BOOL, ".select_poly"));
   }
   else {
     /* #BMesh */

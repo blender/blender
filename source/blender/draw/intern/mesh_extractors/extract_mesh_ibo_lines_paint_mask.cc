@@ -37,7 +37,7 @@ static void extract_lines_paint_mask_init(const MeshRenderData *mr,
 
 static void extract_lines_paint_mask_iter_poly_mesh(const MeshRenderData *mr,
                                                     const MPoly *mp,
-                                                    const int UNUSED(mp_index),
+                                                    const int mp_index,
                                                     void *_data)
 {
   MeshExtract_LinePaintMask_Data *data = static_cast<MeshExtract_LinePaintMask_Data *>(_data);
@@ -52,7 +52,7 @@ static void extract_lines_paint_mask_iter_poly_mesh(const MeshRenderData *mr,
 
       const int ml_index_last = mp->totloop + mp->loopstart - 1;
       const int ml_index_other = (ml_index == ml_index_last) ? mp->loopstart : (ml_index + 1);
-      if (mp->flag & ME_FACE_SEL) {
+      if (mr->select_poly && mr->select_poly[mp_index]) {
         if (BLI_BITMAP_TEST_AND_SET_ATOMIC(data->select_map, e_index)) {
           /* Hide edge as it has more than 2 selected loop. */
           GPU_indexbuf_set_line_restart(&data->elb, e_index);
@@ -110,6 +110,8 @@ static void extract_lines_paint_mask_iter_subdiv_mesh(const DRWSubdivCache *subd
   int *subdiv_loop_edge_index = (int *)GPU_vertbuf_get_data(subdiv_cache->edges_orig_index);
   int *subdiv_loop_subdiv_edge_index = subdiv_cache->subdiv_loop_subdiv_edge_index;
 
+  const int coarse_quad_index = coarse_quad - mr->mpoly;
+
   uint start_loop_idx = subdiv_quad_index * 4;
   uint end_loop_idx = (subdiv_quad_index + 1) * 4;
   for (uint loop_idx = start_loop_idx; loop_idx < end_loop_idx; loop_idx++) {
@@ -124,7 +126,7 @@ static void extract_lines_paint_mask_iter_subdiv_mesh(const DRWSubdivCache *subd
             ((mr->e_origindex) && (mr->e_origindex[coarse_edge_index] == ORIGINDEX_NONE)))) {
         const uint ml_index_other = (loop_idx == (end_loop_idx - 1)) ? start_loop_idx :
                                                                        loop_idx + 1;
-        if (coarse_quad->flag & ME_FACE_SEL) {
+        if (mr->select_poly && mr->select_poly[coarse_quad_index]) {
           if (BLI_BITMAP_TEST_AND_SET_ATOMIC(data->select_map, coarse_edge_index)) {
             /* Hide edge as it has more than 2 selected loop. */
             GPU_indexbuf_set_line_restart(&data->elb, subdiv_edge_index);

@@ -818,103 +818,88 @@ void BKE_mesh_flush_hidden_from_polys(Mesh *me)
   hide_edge.finish();
 }
 
-void BKE_mesh_flush_select_from_polys_ex(MVert *mvert,
-                                         const int totvert,
-                                         const MLoop *mloop,
-                                         MEdge *medge,
-                                         const int totedge,
-                                         const MPoly *mpoly,
-                                         const int totpoly)
-{
-  MVert *mv;
-  MEdge *med;
-  const MPoly *mp;
-
-  int i = totvert;
-  for (mv = mvert; i--; mv++) {
-    mv->flag &= (char)~SELECT;
-  }
-
-  i = totedge;
-  for (med = medge; i--; med++) {
-    med->flag &= ~SELECT;
-  }
-
-  i = totpoly;
-  for (mp = mpoly; i--; mp++) {
-    /* Assume if its selected its not hidden and none of its verts/edges are hidden
-     * (a common assumption). */
-    if (mp->flag & ME_FACE_SEL) {
-      const MLoop *ml;
-      int j;
-      j = mp->totloop;
-      for (ml = &mloop[mp->loopstart]; j--; ml++) {
-        mvert[ml->v].flag |= SELECT;
-        medge[ml->e].flag |= SELECT;
-      }
-    }
-  }
-}
 void BKE_mesh_flush_select_from_polys(Mesh *me)
 {
-  BKE_mesh_flush_select_from_polys_ex(me->verts_for_write().data(),
-                                      me->totvert,
-                                      me->loops().data(),
-                                      me->edges_for_write().data(),
-                                      me->totedge,
-                                      me->polys().data(),
-                                      me->totpoly);
+  using namespace blender::bke;
+  MutableAttributeAccessor attributes = me->attributes_for_write();
+  const VArray<bool> select_poly = attributes.lookup_or_default<bool>(
+      ".select_poly", ATTR_DOMAIN_FACE, false);
+  if (select_poly.is_single() && !select_poly.get_internal_single()) {
+    attributes.remove(".select_vert");
+    attributes.remove(".select_edge");
+    return;
+  }
+  SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_only_span<bool>(
+      ".select_vert", ATTR_DOMAIN_POINT);
+  SpanAttributeWriter<bool> select_edge = attributes.lookup_or_add_for_write_only_span<bool>(
+      ".select_edge", ATTR_DOMAIN_EDGE);
+
+  /* Use generic domain interpolation to read the polygon attribute on the other domains.
+   * Assume selected faces are not hidden and none of their vertices/edges are hidden. */
+  attributes.lookup_or_default<bool>(".select_poly", ATTR_DOMAIN_POINT, false)
+      .materialize(select_vert.span);
+  attributes.lookup_or_default<bool>(".select_poly", ATTR_DOMAIN_EDGE, false)
+      .materialize(select_edge.span);
+
+  select_vert.finish();
+  select_edge.finish();
 }
 
-static void mesh_flush_select_from_verts(const Span<MVert> verts,
+static void mesh_flush_select_from_verts(const Span<MEdge> edges,
+                                         const Span<MPoly> polys,
                                          const Span<MLoop> loops,
                                          const VArray<bool> &hide_edge,
                                          const VArray<bool> &hide_poly,
-                                         MutableSpan<MEdge> edges,
-                                         MutableSpan<MPoly> polys)
+                                         const VArray<bool> &select_vert,
+                                         MutableSpan<bool> select_edge,
+                                         MutableSpan<bool> select_poly)
 {
+  /* Select visible edges that have both of their vertices selected. */
   for (const int i : edges.index_range()) {
     if (!hide_edge[i]) {
-      MEdge &edge = edges[i];
-      if ((verts[edge.v1].flag & SELECT) && (verts[edge.v2].flag & SELECT)) {
-        edge.flag |= SELECT;
-      }
-      else {
-        edge.flag &= ~SELECT;
-      }
+      const MEdge &edge = edges[i];
+      select_edge[i] = select_vert[edge.v1] && select_vert[edge.v2];
     }
   }
 
+  /* Select visible faces that have all of their vertices selected. */
   for (const int i : polys.index_range()) {
-    if (hide_poly[i]) {
-      continue;
-    }
-    MPoly &poly = polys[i];
-    bool all_verts_selected = true;
-    for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
-      if (!(verts[loop.v].flag & SELECT)) {
-        all_verts_selected = false;
-      }
-    }
-    if (all_verts_selected) {
-      poly.flag |= ME_FACE_SEL;
-    }
-    else {
-      poly.flag &= (char)~ME_FACE_SEL;
+    if (!hide_poly[i]) {
+      const MPoly &poly = polys[i];
+      const Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
+      select_poly[i] = std::all_of(poly_loops.begin(), poly_loops.end(), [&](const MLoop &loop) {
+        return select_vert[loop.v];
+      });
     }
   }
 }
 
 void BKE_mesh_flush_select_from_verts(Mesh *me)
 {
-  const blender::bke::AttributeAccessor attributes = me->attributes();
+  using namespace blender::bke;
+  MutableAttributeAccessor attributes = me->attributes_for_write();
+  const VArray<bool> select_vert = attributes.lookup_or_default<bool>(
+      ".select_vert", ATTR_DOMAIN_POINT, false);
+  if (select_vert.is_single() && !select_vert.get_internal_single()) {
+    attributes.remove(".select_edge");
+    attributes.remove(".select_poly");
+    return;
+  }
+  SpanAttributeWriter<bool> select_edge = attributes.lookup_or_add_for_write_only_span<bool>(
+      ".select_edge", ATTR_DOMAIN_EDGE);
+  SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_only_span<bool>(
+      ".select_poly", ATTR_DOMAIN_FACE);
   mesh_flush_select_from_verts(
-      me->verts(),
+      me->edges(),
+      me->polys(),
       me->loops(),
       attributes.lookup_or_default<bool>(".hide_edge", ATTR_DOMAIN_EDGE, false),
       attributes.lookup_or_default<bool>(".hide_poly", ATTR_DOMAIN_FACE, false),
-      me->edges_for_write(),
-      me->polys_for_write());
+      select_vert,
+      select_edge.span,
+      select_poly.span);
+  select_edge.finish();
+  select_poly.finish();
 }
 
 /** \} */
