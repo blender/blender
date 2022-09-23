@@ -119,7 +119,6 @@ static void make_edges_mdata_extend(Mesh &mesh)
       BLI_edgehashIterator_getKey(ehi, &medge->v1, &medge->v2);
       BLI_edgehashIterator_setValue(ehi, POINTER_FROM_UINT(e_index));
 
-      medge->crease = 0;
       medge->flag = ME_EDGEDRAW | ME_EDGERENDER;
     }
     BLI_edgehashIterator_free(ehi);
@@ -1328,7 +1327,6 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
   BLI_listbase_clear(&mesh_src->vertex_group_names);
 
   BKE_mesh_copy_parameters(mesh_dst, mesh_src);
-  mesh_dst->cd_flag = mesh_src->cd_flag;
 
   /* For original meshes, shape key data is stored in the #Key data-block, so it
    * must be moved from the storage in #CustomData layers used for evaluation. */

@@ -27,21 +27,11 @@
 
 #  include "BLI_dynstr.h"
 
-static void mesh_debug_info_from_cd_flag(const Mesh *me, DynStr *dynstr)
-{
-  BLI_dynstr_append(dynstr, "'cd_flag': {");
-  if (me->cd_flag & ME_CDFLAG_EDGE_CREASE) {
-    BLI_dynstr_append(dynstr, "'EDGE_CREASE', ");
-  }
-  BLI_dynstr_append(dynstr, "},\n");
-}
-
 char *BKE_mesh_debug_info(const Mesh *me)
 {
   DynStr *dynstr = BLI_dynstr_new();
   char *ret;
 
-  const char *indent4 = "    ";
   const char *indent8 = "        ";
 
   BLI_dynstr_append(dynstr, "{\n");
@@ -74,9 +64,6 @@ char *BKE_mesh_debug_info(const Mesh *me)
   BLI_dynstr_append(dynstr, "    'tessface_layers': (\n");
   CustomData_debug_info_from_layers(&me->fdata, indent8, dynstr);
   BLI_dynstr_append(dynstr, "    ),\n");
-
-  BLI_dynstr_append(dynstr, indent4);
-  mesh_debug_info_from_cd_flag(me, dynstr);
 
   BLI_dynstr_append(dynstr, "}\n");
 

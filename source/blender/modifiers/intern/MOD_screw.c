@@ -444,7 +444,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   for (i = 0; i < totedge; i++, med_orig++, med_new++) {
     med_new->v1 = med_orig->v1;
     med_new->v2 = med_orig->v2;
-    med_new->crease = med_orig->crease;
     med_new->flag = med_orig->flag & ~ME_LOOSEEDGE;
 
     /* Tag #MVert as not loose. */
@@ -1064,7 +1063,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
           med_new->v1 = i1;
           med_new->v2 = i2;
           med_new->flag = med_new_firstloop->flag;
-          med_new->crease = med_new_firstloop->crease;
           med_new++;
         }
         i1 += totvert;
@@ -1092,7 +1090,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     med_new->v1 = i1;
     med_new->v2 = i2;
     med_new->flag = med_new_firstloop->flag & ~ME_LOOSEEDGE;
-    med_new->crease = med_new_firstloop->crease;
     med_new++;
   }
 

@@ -110,57 +110,6 @@ using blender::MutableSpan;
 using blender::Span;
 using blender::StringRef;
 
-void BM_mesh_cd_flag_ensure(BMesh *bm, Mesh *mesh, const char cd_flag)
-{
-  const char cd_flag_all = BM_mesh_cd_flag_from_bmesh(bm) | cd_flag;
-  BM_mesh_cd_flag_apply(bm, cd_flag_all);
-  if (mesh) {
-    mesh->cd_flag = cd_flag_all;
-  }
-}
-
-void BM_mesh_cd_flag_apply(BMesh *bm, const char cd_flag)
-{
-  /* CustomData_bmesh_init_pool() must run first */
-  BLI_assert(bm->vdata.totlayer == 0 || bm->vdata.pool != nullptr);
-  BLI_assert(bm->edata.totlayer == 0 || bm->edata.pool != nullptr);
-  BLI_assert(bm->pdata.totlayer == 0 || bm->pdata.pool != nullptr);
-
-  if (cd_flag & ME_CDFLAG_VERT_CREASE) {
-    if (!CustomData_has_layer(&bm->vdata, CD_CREASE)) {
-      BM_data_layer_add(bm, &bm->vdata, CD_CREASE);
-    }
-  }
-  else {
-    if (CustomData_has_layer(&bm->vdata, CD_CREASE)) {
-      BM_data_layer_free(bm, &bm->vdata, CD_CREASE);
-    }
-  }
-
-  if (cd_flag & ME_CDFLAG_EDGE_CREASE) {
-    if (!CustomData_has_layer(&bm->edata, CD_CREASE)) {
-      BM_data_layer_add(bm, &bm->edata, CD_CREASE);
-    }
-  }
-  else {
-    if (CustomData_has_layer(&bm->edata, CD_CREASE)) {
-      BM_data_layer_free(bm, &bm->edata, CD_CREASE);
-    }
-  }
-}
-
-char BM_mesh_cd_flag_from_bmesh(BMesh *bm)
-{
-  char cd_flag = 0;
-  if (CustomData_has_layer(&bm->vdata, CD_CREASE)) {
-    cd_flag |= ME_CDFLAG_VERT_CREASE;
-  }
-  if (CustomData_has_layer(&bm->edata, CD_CREASE)) {
-    cd_flag |= ME_CDFLAG_EDGE_CREASE;
-  }
-  return cd_flag;
-}
-
 /* Static function for alloc (duplicate in modifiers_bmesh.c) */
 static BMFace *bm_face_create_from_mpoly(BMesh &bm,
                                          Span<MLoop> loops,
@@ -310,13 +259,9 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     CustomData_bmesh_init_pool(&bm->ldata, me->totloop, BM_LOOP);
     CustomData_bmesh_init_pool(&bm->pdata, me->totpoly, BM_FACE);
   }
-  BM_mesh_cd_flag_apply(bm, me->cd_flag | (is_new ? 0 : BM_mesh_cd_flag_from_bmesh(bm)));
 
   /* Only copy these values over if the source mesh is flagged to be using them.
    * Even if `bm` has these layers, they may have been added from another mesh, when `!is_new`. */
-  const int cd_edge_crease_offset = (me->cd_flag & ME_CDFLAG_EDGE_CREASE) ?
-                                        CustomData_get_offset(&bm->edata, CD_CREASE) :
-                                        -1;
   const int cd_shape_key_offset = tot_shape_keys ? CustomData_get_offset(&bm->vdata, CD_SHAPEKEY) :
                                                    -1;
   const int cd_shape_keyindex_offset = is_new && (tot_shape_keys || params->add_key_index) ?
@@ -394,10 +339,6 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
 
     /* Copy Custom Data */
     CustomData_to_bmesh_block(&me->edata, &bm->edata, i, &e->head.data, true);
-
-    if (cd_edge_crease_offset != -1) {
-      BM_ELEM_CD_SET_FLOAT(e, cd_edge_crease_offset, (float)medge[i].crease / 255.0f);
-    }
   }
   if (is_new) {
     bm->elem_index_dirty &= ~BM_EDGE; /* Added in order, clear dirty flag. */
@@ -957,7 +898,6 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   BMIter iter;
   int i, j;
 
-  const int cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
   const int cd_shape_keyindex_offset = CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX);
 
   const int ototvert = me->totvert;
@@ -1006,8 +946,6 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
    * different than the BMesh's. */
   BKE_mesh_clear_derived_normals(me);
 
-  me->cd_flag = BM_mesh_cd_flag_from_bmesh(bm);
-
   i = 0;
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
     copy_v3_v3(mvert[i].co, v->co);
@@ -1044,10 +982,6 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
     CustomData_from_bmesh_block(&bm->edata, &me->edata, e->head.data, i);
 
     bmesh_quick_edgedraw_flag(&medge[i], e);
-
-    if (cd_edge_crease_offset != -1) {
-      medge[i].crease = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(e, cd_edge_crease_offset);
-    }
 
     i++;
     BM_CHECK_ELEMENT(e);
@@ -1258,8 +1192,6 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   MLoop *mloop = loops.data();
   unsigned int i, j;
 
-  const int cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
-
   /* Clear normals on the mesh completely, since the original vertex and polygon count might be
    * different than the BMesh's. */
   BKE_mesh_clear_derived_normals(me);
@@ -1313,10 +1245,6 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
       if (eed->l && eed->l == eed->l->radial_next) {
         med->flag |= ME_EDGEDRAW;
       }
-    }
-
-    if (cd_edge_crease_offset != -1) {
-      med->crease = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eed, cd_edge_crease_offset);
     }
 
     CustomData_from_bmesh_block(&bm->edata, &me->edata, eed->head.data, i);
@@ -1374,6 +1302,4 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   hide_vert_attribute.finish();
   hide_edge_attribute.finish();
   hide_poly_attribute.finish();
-
-  me->cd_flag = BM_mesh_cd_flag_from_bmesh(bm);
 }

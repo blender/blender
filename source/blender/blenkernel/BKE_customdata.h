@@ -634,8 +634,7 @@ enum {
                      CD_SHAPEKEY, /* Not available as real CD layer in non-bmesh context. */
 
   /* Edges. */
-  CD_FAKE_SEAM = CD_FAKE | 100,         /* UV seam flag for edges. */
-  CD_FAKE_CREASE = CD_FAKE | CD_CREASE, /* *sigh*. */
+  CD_FAKE_SEAM = CD_FAKE | 100, /* UV seam flag for edges. */
 
   /* Multiple types of mesh elements... */
   CD_FAKE_UV = CD_FAKE |

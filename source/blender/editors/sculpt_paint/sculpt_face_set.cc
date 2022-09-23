@@ -673,10 +673,11 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
       break;
     }
     case SCULPT_FACE_SETS_FROM_CREASES: {
-      const Span<MEdge> edges = mesh->edges();
+      const float *creases = static_cast<const float *>(
+          CustomData_get_layer(&mesh->edata, CD_CREASE));
       sculpt_face_sets_init_flood_fill(
           ob, [&](const int /*from_face*/, const int edge, const int /*to_face*/) -> bool {
-            return edges[edge].crease / 255.0f < threshold;
+            return creases[edge] < threshold;
           });
       break;
     }

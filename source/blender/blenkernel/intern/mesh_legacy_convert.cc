@@ -1006,6 +1006,44 @@ void BKE_mesh_legacy_bevel_weight_to_layers(Mesh *mesh)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Edge Crease Conversion
+ * \{ */
+
+void BKE_mesh_legacy_edge_crease_from_layers(Mesh *mesh)
+{
+  using namespace blender;
+  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  if (const float *creases = static_cast<const float *>(
+          CustomData_get_layer(&mesh->edata, CD_CREASE))) {
+    mesh->cd_flag |= ME_CDFLAG_EDGE_CREASE;
+    for (const int i : edges.index_range()) {
+      edges[i].crease_legacy = std::clamp(creases[i], 0.0f, 1.0f) * 255.0f;
+    }
+  }
+  else {
+    mesh->cd_flag &= ~ME_CDFLAG_EDGE_CREASE;
+    for (const int i : edges.index_range()) {
+      edges[i].crease_legacy = 0;
+    }
+  }
+}
+
+void BKE_mesh_legacy_edge_crease_to_layers(Mesh *mesh)
+{
+  using namespace blender;
+  const Span<MEdge> edges = mesh->edges();
+  if (mesh->cd_flag & ME_CDFLAG_EDGE_CREASE) {
+    float *creases = static_cast<float *>(
+        CustomData_add_layer(&mesh->edata, CD_CREASE, CD_CONSTRUCT, nullptr, edges.size()));
+    for (const int i : edges.index_range()) {
+      creases[i] = edges[i].crease_legacy / 255.0f;
+    }
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Hide Attribute and Legacy Flag Conversion
  * \{ */
 

@@ -150,7 +150,6 @@ static MEdge new_edge(const int v1, const int v2)
   MEdge edge;
   edge.v1 = v1;
   edge.v2 = v2;
-  edge.crease = 0;
   edge.flag = (ME_EDGEDRAW | ME_EDGERENDER);
   return edge;
 }
@@ -160,7 +159,6 @@ static MEdge new_loose_edge(const int v1, const int v2)
   MEdge edge;
   edge.v1 = v1;
   edge.v2 = v2;
-  edge.crease = 0;
   edge.flag = ME_LOOSEEDGE;
   return edge;
 }

@@ -990,6 +990,126 @@ void MESH_OT_customdata_bevel_weight_edge_clear(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/* Edge crease. */
+
+static int mesh_customdata_crease_edge_state(bContext *C)
+{
+  const Object *ob = ED_object_context(C);
+
+  if (ob && ob->type == OB_MESH) {
+    const Mesh *mesh = static_cast<Mesh *>(ob->data);
+    if (!ID_IS_LINKED(mesh)) {
+      const CustomData *data = GET_CD_DATA(mesh, edata);
+      return CustomData_has_layer(data, CD_CREASE);
+    }
+  }
+  return -1;
+}
+
+static bool mesh_customdata_crease_edge_add_poll(bContext *C)
+{
+  return mesh_customdata_crease_edge_state(C) == 0;
+}
+
+static int mesh_customdata_crease_edge_add_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  return mesh_customdata_add_exec__internal(C, BM_EDGE, CD_CREASE);
+}
+
+void MESH_OT_customdata_crease_edge_add(wmOperatorType *ot)
+{
+  ot->name = "Add Edge Crease";
+  ot->idname = "MESH_OT_customdata_crease_edge_add";
+  ot->description = "Add an edge crease layer";
+
+  ot->exec = mesh_customdata_crease_edge_add_exec;
+  ot->poll = mesh_customdata_crease_edge_add_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static bool mesh_customdata_crease_edge_clear_poll(bContext *C)
+{
+  return mesh_customdata_crease_edge_state(C) == 1;
+}
+
+static int mesh_customdata_crease_edge_clear_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  return mesh_customdata_clear_exec__internal(C, BM_EDGE, CD_CREASE);
+}
+
+void MESH_OT_customdata_crease_edge_clear(wmOperatorType *ot)
+{
+  ot->name = "Clear Edge Crease";
+  ot->idname = "MESH_OT_customdata_crease_edge_clear";
+  ot->description = "Clear the edge crease layer";
+
+  ot->exec = mesh_customdata_crease_edge_clear_exec;
+  ot->poll = mesh_customdata_crease_edge_clear_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* Vertex crease. */
+
+static int mesh_customdata_crease_vertex_state(bContext *C)
+{
+  const Object *object = ED_object_context(C);
+
+  if (object && object->type == OB_MESH) {
+    const Mesh *mesh = static_cast<Mesh *>(object->data);
+    if (!ID_IS_LINKED(mesh)) {
+      const CustomData *data = GET_CD_DATA(mesh, vdata);
+      return CustomData_has_layer(data, CD_CREASE);
+    }
+  }
+  return -1;
+}
+
+static bool mesh_customdata_crease_vertex_add_poll(bContext *C)
+{
+  return mesh_customdata_crease_vertex_state(C) == 0;
+}
+
+static int mesh_customdata_crease_vertex_add_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  return mesh_customdata_add_exec__internal(C, BM_VERT, CD_CREASE);
+}
+
+void MESH_OT_customdata_crease_vertex_add(wmOperatorType *ot)
+{
+  ot->name = "Add Vertex Crease";
+  ot->idname = "MESH_OT_customdata_crease_vertex_add";
+  ot->description = "Add a vertex crease layer";
+
+  ot->exec = mesh_customdata_crease_vertex_add_exec;
+  ot->poll = mesh_customdata_crease_vertex_add_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static bool mesh_customdata_crease_vertex_clear_poll(bContext *C)
+{
+  return (mesh_customdata_crease_vertex_state(C) == 1);
+}
+
+static int mesh_customdata_crease_vertex_clear_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  return mesh_customdata_clear_exec__internal(C, BM_VERT, CD_CREASE);
+}
+
+void MESH_OT_customdata_crease_vertex_clear(wmOperatorType *ot)
+{
+  ot->name = "Clear Vertex Crease";
+  ot->idname = "MESH_OT_customdata_crease_vertex_clear";
+  ot->description = "Clear the vertex crease layer";
+
+  ot->exec = mesh_customdata_crease_vertex_clear_exec;
+  ot->poll = mesh_customdata_crease_vertex_clear_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /************************** Add Geometry Layers *************************/
 
 void ED_mesh_update(Mesh *mesh, bContext *C, bool calc_edges, bool calc_edges_loose)

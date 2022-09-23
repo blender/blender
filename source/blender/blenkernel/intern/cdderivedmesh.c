@@ -206,7 +206,6 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
    * but only if the original mesh had its deformed_only flag correctly set
    * (which isn't generally the case). */
   dm->deformedOnly = 1;
-  dm->cd_flag = mesh->cd_flag;
 
   CustomData_merge(&mesh->vdata, &dm->vertData, cddata_masks.vmask, alloctype, mesh->totvert);
   CustomData_merge(&mesh->edata, &dm->edgeData, cddata_masks.emask, alloctype, mesh->totedge);

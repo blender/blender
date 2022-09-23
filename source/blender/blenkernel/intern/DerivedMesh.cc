@@ -240,8 +240,6 @@ void DM_from_template(DerivedMesh *dm,
   CustomData_copy(&source->loopData, &dm->loopData, mask->lmask, CD_SET_DEFAULT, numLoops);
   CustomData_copy(&source->polyData, &dm->polyData, mask->pmask, CD_SET_DEFAULT, numPolys);
 
-  dm->cd_flag = source->cd_flag;
-
   dm->type = type;
   dm->numVertData = numVerts;
   dm->numEdgeData = numEdges;

@@ -518,9 +518,11 @@ static bool subdiv_mesh_topology_info(const SubdivForeachContext *foreach_contex
                                       const int *UNUSED(subdiv_polygon_offset))
 {
   /* Multi-resolution grid data will be applied or become invalid after subdivision,
-   * so don't try to preserve it and use memory. */
+   * so don't try to preserve it and use memory. Crease values should also not be interpolated. */
   CustomData_MeshMasks mask = CD_MASK_EVERYTHING;
   mask.lmask &= ~CD_MASK_MULTIRES_GRIDS;
+  mask.vmask &= ~CD_MASK_CREASE;
+  mask.emask &= ~CD_MASK_CREASE;
 
   SubdivMeshContext *subdiv_context = static_cast<SubdivMeshContext *>(foreach_context->user_data);
   subdiv_context->subdiv_mesh = BKE_mesh_new_nomain_from_template_ex(
@@ -790,7 +792,7 @@ static void subdiv_copy_edge_data(SubdivMeshContext *ctx,
 {
   const int subdiv_edge_index = subdiv_edge - ctx->subdiv_edges;
   if (coarse_edge == nullptr) {
-    subdiv_edge->crease = 0;
+    /* TODO: Ensure crease layer isn't copied to result. */
     subdiv_edge->flag = 0;
     if (!ctx->settings->use_optimal_display) {
       subdiv_edge->flag |= ME_EDGERENDER;

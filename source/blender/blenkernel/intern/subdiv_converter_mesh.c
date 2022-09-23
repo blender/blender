@@ -41,6 +41,8 @@ typedef struct ConverterStorage {
 
   /* CustomData layer for vertex sharpnesses. */
   const float *cd_vertex_crease;
+  /* CustomData layer for edge sharpness. */
+  const float *cd_edge_crease;
   /* Indexed by loop index, value denotes index of face-varying vertex
    * which corresponds to the UV coordinate.
    */
@@ -157,12 +159,11 @@ static float get_edge_sharpness(const OpenSubdiv_Converter *converter, int manif
     return 10.0f;
   }
 #endif
-  if (!storage->settings.use_creases) {
+  if (!storage->settings.use_creases || storage->cd_edge_crease == NULL) {
     return 0.0f;
   }
   const int edge_index = storage->manifold_edge_index_reverse[manifold_edge_index];
-  const MEdge *medge = storage->edges;
-  return BKE_subdiv_crease_to_sharpness_char(medge[edge_index].crease);
+  return BKE_subdiv_crease_to_sharpness_f(storage->cd_edge_crease[edge_index]);
 }
 
 static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter,
@@ -398,6 +399,7 @@ static void init_user_data(OpenSubdiv_Converter *converter,
   user_data->polys = BKE_mesh_polys(mesh);
   user_data->loops = BKE_mesh_loops(mesh);
   user_data->cd_vertex_crease = CustomData_get_layer(&mesh->vdata, CD_CREASE);
+  user_data->cd_edge_crease = CustomData_get_layer(&mesh->edata, CD_CREASE);
   user_data->loop_uv_indices = NULL;
   initialize_manifold_indices(user_data);
   converter->user_data = user_data;

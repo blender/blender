@@ -507,8 +507,6 @@ void BM_mesh_copy_init_customdata_from_mesh_array(BMesh *bm_dst,
     allocsize = &bm_mesh_allocsize_default;
   }
 
-  char cd_flag = 0;
-
   for (int i = 0; i < me_src_array_len; i++) {
     const Mesh *me_src = me_src_array[i];
     if (i == 0) {
@@ -531,18 +529,12 @@ void BM_mesh_copy_init_customdata_from_mesh_array(BMesh *bm_dst,
       CustomData_merge_mesh_to_bmesh(
           &me_src->pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_SET_DEFAULT, 0);
     }
-
-    cd_flag |= me_src->cd_flag;
   }
-
-  cd_flag |= BM_mesh_cd_flag_from_bmesh(bm_dst);
 
   CustomData_bmesh_init_pool(&bm_dst->vdata, allocsize->totvert, BM_VERT);
   CustomData_bmesh_init_pool(&bm_dst->edata, allocsize->totedge, BM_EDGE);
   CustomData_bmesh_init_pool(&bm_dst->ldata, allocsize->totloop, BM_LOOP);
   CustomData_bmesh_init_pool(&bm_dst->pdata, allocsize->totface, BM_FACE);
-
-  BM_mesh_cd_flag_apply(bm_dst, cd_flag);
 }
 
 void BM_mesh_copy_init_customdata_from_mesh(BMesh *bm_dst,

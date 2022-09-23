@@ -102,9 +102,6 @@ static void join_mesh_single(Depsgraph *depsgraph,
   MPoly *mpoly = *mpoly_pp;
 
   if (me->totvert) {
-    /* merge customdata flag */
-    ((Mesh *)ob_dst->data)->cd_flag |= me->cd_flag;
-
     /* standard data */
     CustomData_merge(&me->vdata, vdata, CD_MASK_MESH.vmask, CD_SET_DEFAULT, totvert);
     CustomData_copy_data_named(&me->vdata, vdata, 0, *vertofs, me->totvert);

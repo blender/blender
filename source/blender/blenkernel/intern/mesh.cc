@@ -148,8 +148,6 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
     mesh_tessface_clear_intern(mesh_dst, false);
   }
 
-  mesh_dst->cd_flag = mesh_src->cd_flag;
-
   mesh_dst->edit_mesh = nullptr;
 
   mesh_dst->mselect = (MSelect *)MEM_dupallocN(mesh_dst->mselect);
@@ -253,6 +251,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
       BKE_mesh_legacy_convert_material_indices_to_mpoly(mesh);
       BKE_mesh_legacy_bevel_weight_from_layers(mesh);
       BKE_mesh_legacy_face_set_from_generic(mesh);
+      BKE_mesh_legacy_edge_crease_from_layers(mesh);
       /* When converting to the old mesh format, don't save redundant attributes. */
       names_to_skip.add_multiple_new({".hide_vert", ".hide_edge", ".hide_poly", "material_index"});
 
@@ -1018,7 +1017,6 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
   me_dst->totloop = loops_len;
   me_dst->totpoly = polys_len;
 
-  me_dst->cd_flag = me_src->cd_flag;
   BKE_mesh_copy_parameters_for_eval(me_dst, me_src);
 
   CustomData_copy(&me_src->vdata, &me_dst->vdata, mask.vmask, CD_SET_DEFAULT, verts_len);
@@ -1620,7 +1618,7 @@ void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh)
         break;
       }
     }
-    if (edge.crease != 0) {
+    if (edge.crease_legacy != 0) {
       mesh->cd_flag |= ME_CDFLAG_EDGE_CREASE;
       if (mesh->cd_flag & ME_CDFLAG_EDGE_BWEIGHT) {
         break;

@@ -903,8 +903,6 @@ static void read_vertex_creases(Mesh *mesh,
 
     vertex_crease_data[idx] = (*sharpnesses)[i];
   }
-
-  mesh->cd_flag |= ME_CDFLAG_VERT_CREASE;
 }
 
 static void read_edge_creases(Mesh *mesh,
@@ -917,6 +915,9 @@ static void read_edge_creases(Mesh *mesh,
 
   MutableSpan<MEdge> edges = mesh->edges_for_write();
   EdgeHash *edge_hash = BLI_edgehash_new_ex(__func__, edges.size());
+
+  float *creases = static_cast<float *>(
+      CustomData_add_layer(&mesh->edata, CD_CREASE, CD_SET_DEFAULT, nullptr, edges.size()));
 
   for (const int i : edges.index_range()) {
     MEdge *edge = &edges[i];
@@ -939,13 +940,11 @@ static void read_edge_creases(Mesh *mesh,
     }
 
     if (edge) {
-      edge->crease = unit_float_to_uchar_clamp((*sharpnesses)[s]);
+      creases[edge - edges.data()] = unit_float_to_uchar_clamp((*sharpnesses)[s]);
     }
   }
 
   BLI_edgehash_free(edge_hash, nullptr);
-
-  mesh->cd_flag |= ME_CDFLAG_EDGE_CREASE;
 }
 
 /* ************************************************************************** */
