@@ -1139,7 +1139,11 @@ inline blender::MutableSpan<MLoop> Mesh::loops_for_write()
 
 inline blender::Span<MDeformVert> Mesh::deform_verts() const
 {
-  return {BKE_mesh_deform_verts(this), this->totvert};
+  const MDeformVert *dverts = BKE_mesh_deform_verts(this);
+  if (!dverts) {
+    return {};
+  }
+  return {dverts, this->totvert};
 }
 inline blender::MutableSpan<MDeformVert> Mesh::deform_verts_for_write()
 {
