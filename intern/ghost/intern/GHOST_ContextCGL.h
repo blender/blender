@@ -93,7 +93,7 @@ class GHOST_ContextCGL : public GHOST_Context {
 
   /**
    * Returns a texture that Metal code can use as a render target. The current
-   * contents of this texture will be composited on top of the framebuffer
+   * contents of this texture will be composited on top of the frame-buffer
    * each time `swapBuffers` is called.
    */
   id<MTLTexture> metalOverlayTexture();
@@ -134,7 +134,7 @@ class GHOST_ContextCGL : public GHOST_Context {
   /** The virtualized default frame-buffer. */
   unsigned int m_defaultFramebuffer;
 
-  /** The virtualized default framebuffer's texture */
+  /** The virtualized default frame-buffer's texture. */
   /**
    * Texture that you can render into with Metal. The texture will be
    * composited on top of `m_defaultFramebufferMetalTexture` whenever

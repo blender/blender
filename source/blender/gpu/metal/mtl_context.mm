@@ -37,7 +37,7 @@ namespace blender::gpu {
 /* Global memory manager. */
 MTLBufferPool MTLContext::global_memory_manager;
 
-/* Swapchain and latency management. */
+/* Swap-chain and latency management. */
 std::atomic<int> MTLContext::max_drawables_in_flight = 0;
 std::atomic<int64_t> MTLContext::avg_drawable_latency_us = 0;
 int64_t MTLContext::frame_latency[MTL_FRAME_AVERAGE_COUNT] = {0};
@@ -92,7 +92,7 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
       default_fbo_gputexture_ = new gpu::MTLTexture(
           "MTL_BACKBUFFER", GPU_RGBA16F, GPU_TEXTURE_2D, default_fbo_mtltexture_);
 
-      /* Update framebuffers with new texture attachments */
+      /* Update frame-buffers with new texture attachments. */
       mtl_front_left->add_color_attachment(default_fbo_gputexture_, 0, 0, 0);
       mtl_back_left->add_color_attachment(default_fbo_gputexture_, 0, 0, 0);
 #ifndef NDEBUG
@@ -147,7 +147,7 @@ MTLContext::MTLContext(void *ghost_window, void *ghost_context)
   /* Init debug. */
   debug::mtl_debug_init();
 
-  /* Initialise Renderpass and Framebuffer State */
+  /* Initialize Render-pass and Frame-buffer State. */
   this->back_left = nullptr;
 
   /* Initialize command buffer state. */
@@ -164,7 +164,7 @@ MTLContext::MTLContext(void *ghost_window, void *ghost_context)
   null_buffer_ = nil;
   null_attribute_buffer_ = nil;
 
-  /* Zero-initialise MTL Textures. */
+  /* Zero-initialize MTL textures. */
   default_fbo_mtltexture_ = nil;
   default_fbo_gputexture_ = nullptr;
 
@@ -821,7 +821,7 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
 
     /* Matrix Bindings. */
     /* This is now called upon shader bind. We may need to re-evaluate this though,
-     * as was done here to ensure uniform changes beween draws were tracked.
+     * as was done here to ensure uniform changes between draws were tracked.
      * NOTE(Metal): We may be able to remove this. */
     GPU_matrix_bind(reinterpret_cast<struct GPUShader *>(
         static_cast<Shader *>(this->pipeline_state.active_shader)));
@@ -869,7 +869,7 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
         scissor.width = this->pipeline_state.scissor_width;
         scissor.height = this->pipeline_state.scissor_height;
 
-        /* Some scissor assignments exceed the bounds of the viewport due to implictly added
+        /* Some scissor assignments exceed the bounds of the viewport due to implicitly added
          * padding to the width/height - Clamp width/height. */
         BLI_assert(scissor.x >= 0 && scissor.x < render_fb->get_width());
         BLI_assert(scissor.y >= 0 && scissor.y < render_fb->get_height());
@@ -899,7 +899,7 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
 
     /* State: Face winding. */
     if (this->pipeline_state.dirty_flags & MTL_PIPELINE_STATE_FRONT_FACING_FLAG) {
-      /* We nede to invert the face winding in Metal, to account for the inverted-Y coordinate
+      /* We need to invert the face winding in Metal, to account for the inverted-Y coordinate
        * system. */
       MTLWinding winding = (this->pipeline_state.front_face == GPU_CLOCKWISE) ?
                                MTLWindingClockwise :
@@ -909,7 +909,7 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
                                           ~MTL_PIPELINE_STATE_FRONT_FACING_FLAG);
     }
 
-    /* State: cullmode. */
+    /* State: cull-mode. */
     if (this->pipeline_state.dirty_flags & MTL_PIPELINE_STATE_CULLMODE_FLAG) {
 
       MTLCullMode mode = MTLCullModeNone;
@@ -960,7 +960,7 @@ bool MTLContext::ensure_uniform_buffer_bindings(
   const MTLShaderUniformBlock &push_constant_block = shader_interface->get_push_constant_block();
   if (push_constant_block.size > 0) {
 
-    /* Fetch uniform buffer base binding index from pipeline_state_instance - Terhe buffer index
+    /* Fetch uniform buffer base binding index from pipeline_state_instance - There buffer index
      * will be offset by the number of bound VBOs. */
     uint32_t block_size = push_constant_block.size;
     uint32_t buffer_index = pipeline_state_instance->base_uniform_buffer_index +
@@ -1267,10 +1267,10 @@ void MTLContext::ensure_texture_bindings(
 
         /* Generate or Fetch argument buffer sampler configuration.
          * NOTE(Metal): we need to base sampler counts off of the maximal texture
-         * index. This is not the most optimal, but in practise, not a use-case
+         * index. This is not the most optimal, but in practice, not a use-case
          * when argument buffers are required.
          * This is because with explicit texture indices, the binding indices
-         * should match across draws, to allow the high-level to optimise bindpoints. */
+         * should match across draws, to allow the high-level to optimize bind-points. */
         gpu::MTLBuffer *encoder_buffer = nullptr;
         this->samplers_.num_samplers = shader_interface->get_max_texture_index() + 1;
 
@@ -1624,7 +1624,7 @@ id<MTLSamplerState> MTLContext::get_default_sampler_state()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Swapchain management and Metal presentation.
+/** \name Swap-chain management and Metal presentation.
  * \{ */
 
 void present(MTLRenderPassDescriptor *blit_descriptor,
@@ -1636,7 +1636,7 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
   MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
   BLI_assert(ctx);
 
-  /* Flush any oustanding work. */
+  /* Flush any outstanding work. */
   ctx->flush();
 
   /* Always pace CPU to maximum of 3 drawables in flight.
@@ -1660,8 +1660,8 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
     PIL_sleep_ms(2);
   }
 
-  /* Present is submitted in its own CMD Buffer to enusure drawable reference released as early as
-   * possible. This command buffer is separate as it does not utilise the global state
+  /* Present is submitted in its own CMD Buffer to ensure drawable reference released as early as
+   * possible. This command buffer is separate as it does not utilize the global state
    * for rendering as the main context does. */
   id<MTLCommandBuffer> cmdbuf = [ctx->queue commandBuffer];
   MTLCommandBufferManager::num_active_cmd_bufs++;

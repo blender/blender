@@ -258,8 +258,8 @@ class GHOST_Window : public GHOST_IWindow {
   GHOST_Context *getContext();
 
   /**
-   * Gets the OpenGL framebuffer associated with the window's contents.
-   * \return The ID of an OpenGL framebuffer object.
+   * Gets the OpenGL frame-buffer associated with the window's contents.
+   * \return The ID of an OpenGL frame-buffer object.
    */
   virtual unsigned int getDefaultFramebuffer() override;
 

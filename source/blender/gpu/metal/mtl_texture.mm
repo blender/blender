@@ -174,7 +174,7 @@ id<MTLTexture> gpu::MTLTexture::get_metal_handle()
   if (resource_mode_ == MTL_TEXTURE_MODE_VBO) {
     id<MTLBuffer> buf = vert_buffer_->get_metal_buffer();
 
-    /* Source vertex buffer has been re-generated, require re-initialisation. */
+    /* Source vertex buffer has been re-generated, require re-initialization. */
     if (buf != vert_buffer_mtl_) {
       MTL_LOG_INFO(
           "MTLTexture '%p' using MTL_TEXTURE_MODE_VBO requires re-generation due to updated "
@@ -183,7 +183,7 @@ id<MTLTexture> gpu::MTLTexture::get_metal_handle()
       /* Clear state. */
       this->reset();
 
-      /* Re-initialise. */
+      /* Re-initialize. */
       this->init_internal(wrap(vert_buffer_));
 
       /* Update for assertion check below. */
@@ -191,7 +191,7 @@ id<MTLTexture> gpu::MTLTexture::get_metal_handle()
     }
 
     /* Ensure buffer is valid.
-     * Fetchvert buffer handle directly in-case it changed above. */
+     * Fetch-vert buffer handle directly in-case it changed above. */
     BLI_assert(vert_buffer_mtl_ != nil);
     BLI_assert(vert_buffer_->get_metal_buffer() == vert_buffer_mtl_);
   }

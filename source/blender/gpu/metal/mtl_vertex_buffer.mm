@@ -58,7 +58,7 @@ void MTLVertBuf::duplicate_data(VertBuf *dst_)
   MTLVertBuf *src = this;
   MTLVertBuf *dst = static_cast<MTLVertBuf *>(dst_);
 
-  /* Ensure buffer has been initialised. */
+  /* Ensure buffer has been initialized. */
   src->bind();
 
   if (src->vbo_) {
@@ -206,7 +206,7 @@ void MTLVertBuf::bind()
 
     if (prev_flag & GPU_VERTBUF_DATA_UPLOADED) {
 
-      /* Fetch active econtext. */
+      /* Fetch active context. */
       MTLContext *ctx = MTLContext::get();
       BLI_assert(ctx);
 

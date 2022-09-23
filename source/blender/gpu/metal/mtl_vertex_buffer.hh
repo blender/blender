@@ -38,7 +38,7 @@ class MTLVertBuf : public VertBuf {
   /** Whether existing allocation has been submitted for use by the GPU. */
   bool contents_in_flight_ = false;
 
-  /* Fetch Metal buffer and offset into allocation if ncessary.
+  /* Fetch Metal buffer and offset into allocation if necessary.
    * Access limited to friend classes. */
   id<MTLBuffer> get_metal_buffer()
   {

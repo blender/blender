@@ -458,7 +458,7 @@ int BLI_string_search_query(StringSearch *search, const char *query, void ***r_d
     if (score == found_scores[0] && !query_str.is_empty()) {
       /* Sort items with best score by length. Shorter items are more likely the ones you are
        * looking for. This also ensures that exact matches will be at the top, even if the query is
-       * a substring of another item. */
+       * a sub-string of another item. */
       std::sort(indices.begin(), indices.end(), [&](int a, int b) {
         return search->items[a].length < search->items[b].length;
       });

@@ -1442,7 +1442,7 @@ void IMB_exr_close(void *handle)
 
 /* ********* */
 
-/* get a substring from the end of the name, separated by '.' */
+/** Get a sub-string from the end of the name, separated by '.'. */
 static int imb_exr_split_token(const char *str, const char *end, const char **token)
 {
   const char delims[] = {'.', '\0'};

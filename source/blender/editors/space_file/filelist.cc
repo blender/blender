@@ -227,7 +227,7 @@ struct FileList {
    * because those are no more persistent
    * (only generated on demand, and freed as soon as possible).
    * Persistent part (mere list of paths + stat info)
-   * is kept as small as possible, and filebrowser-agnostic.
+   * is kept as small as possible, and file-browser agnostic.
    */
   GHash *selection_state;
 

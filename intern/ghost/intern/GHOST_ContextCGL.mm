@@ -57,7 +57,7 @@ GHOST_ContextCGL::GHOST_ContextCGL(bool stereoVisual,
       m_defaultFramebuffer(0),
       m_debug(false)
 {
-  /* Init Metal Swapchain. */
+  /* Initialize Metal Swap-chain. */
   current_swapchain_index = 0;
   for (int i = 0; i < METAL_SWAPCHAIN_SIZE; i++) {
     m_defaultFramebufferMetalTexture[i].texture = nil;
@@ -94,7 +94,7 @@ GHOST_ContextCGL::GHOST_ContextCGL(bool stereoVisual,
     }
   }
 
-  /* Initialise swapinterval. */
+  /* Initialize swap-interval. */
   mtl_SwapInterval = 60;
 }
 
@@ -302,7 +302,7 @@ GHOST_TSuccess GHOST_ContextCGL::updateDrawingContext()
 
 id<MTLTexture> GHOST_ContextCGL::metalOverlayTexture()
 {
-  /* Increment Swapchain - Only needed if context is requesting a new texture */
+  /* Increment Swap-chain - Only needed if context is requesting a new texture */
   current_swapchain_index = (current_swapchain_index + 1) % METAL_SWAPCHAIN_SIZE;
 
   /* Ensure backing texture is ready for current swapchain index */
@@ -409,7 +409,7 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
         pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:&attribs[0]];
         if (pixelFormat == nil) {
           /* If pixel format creation fails when testing increased sampler limit,
-           * attempt intialisation again with feature disabled, otherwise, fail. */
+           * attempt initialization again with feature disabled, otherwise, fail. */
           if (increasedSamplerLimit) {
             increasedSamplerLimit = false;
             continue;
@@ -594,7 +594,7 @@ void GHOST_ContextCGL::metalInit()
     }
 
     /* Create a render pipeline to composite things rendered with Metal on top
-     * of the framebuffer contents. Uses the same vertex and fragment shader
+     * of the frame-buffer contents. Uses the same vertex and fragment shader
      * as the blit above, but with alpha blending enabled. */
     desc.label = @"Metal Overlay";
     desc.colorAttachments[0].blendingEnabled = YES;

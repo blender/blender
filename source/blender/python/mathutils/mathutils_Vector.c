@@ -3304,7 +3304,7 @@ PyObject *Vector_CreatePyObject(const float *vec, const int vec_num, PyTypeObjec
     self->vec = vec_alloc;
     self->vec_num = vec_num;
 
-    /* init callbacks as NULL */
+    /* Initialize callbacks as NULL. */
     self->cb_user = NULL;
     self->cb_type = self->cb_subtype = 0;
 
@@ -3339,7 +3339,7 @@ PyObject *Vector_CreatePyObject_wrap(float *vec, const int vec_num, PyTypeObject
   if (self) {
     self->vec_num = vec_num;
 
-    /* init callbacks as NULL */
+    /* Initialize callbacks as NULL. */
     self->cb_user = NULL;
     self->cb_type = self->cb_subtype = 0;
 

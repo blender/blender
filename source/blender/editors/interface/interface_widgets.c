@@ -197,16 +197,16 @@ static void color_mul_hsl_v3(uchar ch[3], float h_factor, float s_factor, float 
  * \{ */
 
 /**
- * - in: roundbox codes for corner types and radius
- * - return: array of `[size][2][x, y]` points, the edges of the roundbox, + UV coords
+ * - in: `roundbox` codes for corner types and radius
+ * - return: array of `[size][2][x, y]` points, the edges of the `roundbox`, + UV coords
  *
- * - draw black box with alpha 0 on exact button boundbox
- * - for every AA step:
+ * - Draw black box with alpha 0 on exact button bounding-box.
+ * - For every AA step:
  *    - draw the inner part for a round filled box, with color blend codes or texture coords
  *    - draw outline in outline color
  *    - draw outer part, bottom half, extruded 1 pixel to bottom, for emboss shadow
  *    - draw extra decorations
- * - draw background color box with alpha 1 on exact button boundbox
+ * - Draw background color box with alpha 1 on exact button bounding-box.
  */
 
 /* fill this struct with polygon info to draw AA'ed */
@@ -693,7 +693,7 @@ static void round_box__edges(
 {
   float vec[WIDGET_CURVE_RESOLU][2], veci[WIDGET_CURVE_RESOLU][2];
   const float minx = rect->xmin, miny = rect->ymin, maxx = rect->xmax, maxy = rect->ymax;
-  const float minxi = minx + U.pixelsize; /* boundbox inner */
+  const float minxi = minx + U.pixelsize; /* Bounding-box inner. */
   const float maxxi = maxx - U.pixelsize;
   const float minyi = miny + U.pixelsize;
   const float maxyi = maxy - U.pixelsize;

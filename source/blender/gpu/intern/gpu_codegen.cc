@@ -245,7 +245,7 @@ class GPUCodegen {
   ListBase ubo_inputs_ = {nullptr, nullptr};
   GPUInput *cryptomatte_input_ = nullptr;
 
-  /** Cache paramters for complexity heuristic. */
+  /** Cache parameters for complexity heuristic. */
   uint nodes_total_ = 0;
   uint textures_total_ = 0;
   uint uniforms_total_ = 0;
@@ -459,7 +459,7 @@ void GPUCodegen::generate_library()
   GPUCodegenCreateInfo &info = *create_info;
 
   void *value;
-  /* Iterate over libraries. We need to keep this struct intact incase
+  /* Iterate over libraries. We need to keep this struct intact in case
    * it is required for the optimization an pass. */
   GHashIterator *ihash = BLI_ghashIterator_new((GHash *)graph.used_libraries);
   while (!BLI_ghashIterator_done(ihash)) {
@@ -694,7 +694,7 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
 
     /** Cache lookup: Reuse shaders already compiled.
      * NOTE: We only perform cache look-up for non-optimized shader
-     * graphs, as baked constant data amongst other optimizations will generate too many
+     * graphs, as baked constant data among other optimizations will generate too many
      * shader source permutations, with minimal re-usability. */
     pass_hash = gpu_pass_cache_lookup(codegen.hash_get());
 
@@ -750,7 +750,7 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
     pass->compiled = false;
     /* Only flag pass optimization hint if this is the first generated pass for a material.
      * Optimized passes cannot be optimized further, even if the heuristic is still not
-     * favourable. */
+     * favorable. */
     pass->should_optimize = (!optimize_graph) && codegen.should_optimize_heuristic();
 
     codegen.create_info = nullptr;

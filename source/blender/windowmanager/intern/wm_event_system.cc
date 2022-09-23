@@ -486,7 +486,7 @@ static void wm_event_execute_timers(bContext *C)
 
 void wm_event_do_notifiers(bContext *C)
 {
-  /* Ensure insiude render boundary. */
+  /* Ensure inside render boundary. */
   GPU_render_begin();
 
   /* Run the timer before assigning `wm` in the unlikely case a timer loads a file, see T80028. */

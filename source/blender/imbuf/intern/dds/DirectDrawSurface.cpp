@@ -872,8 +872,8 @@ DirectDrawSurface::DirectDrawSurface(uchar *mem, uint size) : stream(mem, size),
   mem_read(stream, header);
 
   /* Some ATI2 compressed normal maps do not have their
-   * normal flag set, so force it here (the original nvtt don't do
-   * this, but the decompressor has a -forcenormal flag). */
+   * normal flag set, so force it here (the original `nvtt` don't do
+   * this, but the decompressor has a `-forcenormal` flag). */
   if (header.pf.fourcc == FOURCC_ATI2) {
     header.setNormalFlag(true);
   }

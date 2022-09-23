@@ -49,7 +49,7 @@ uchar *MTLImmediate::begin()
 
 void MTLImmediate::end()
 {
-  /* Ensure we're between a imm::begin/imm:end pair. */
+  /* Ensure we're between a `imm::begin` / `imm:end` pair. */
   BLI_assert(has_begun_);
   BLI_assert(prim_type != GPU_PRIM_NONE);
 
@@ -187,7 +187,7 @@ void MTLImmediate::end()
         /* Some conversions are NOT valid, e.g. Int4 to Float4
          * - In this case, we need to implement a conversion routine inside the shader.
          * - This is handled using the format_conversion_mode flag
-         * - This flag is passed into the PSO as a function specialisation,
+         * - This flag is passed into the PSO as a function specialization,
          *   and will generate an appropriate conversion function when reading the vertex attribute
          *   value into local shader storage.
          *   (If no explicit conversion is needed, the function specialize to a pass-through). */
@@ -359,7 +359,7 @@ void MTLImmediate::end()
           }
 
           /* Submit draw call with modified vertex count, which reflects vertices per primitive
-           * defined in the USE_SSBO_VERTEX_FETCH pragma. */
+           * defined in the USE_SSBO_VERTEX_FETCH `pragma`. */
           int num_input_primitives = gpu_get_prim_count_from_type(vertex_count, this->prim_type);
           int output_num_verts = num_input_primitives *
                                  active_mtl_shader->get_ssbo_vertex_fetch_output_num_verts();

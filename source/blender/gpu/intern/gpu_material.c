@@ -45,13 +45,13 @@
 #define MAX_COLOR_BAND 128
 #define MAX_GPU_SKIES 8
 
-/** Whether the optimized variant of the GPUPass should be created asynchronously.
+/** Whether the optimized variant of the #GPUPass should be created asynchronously.
  * Usage of this depends on whether there are possible threading challenges of doing so.
  * Currently, the overhead of GPU_generate_pass is relatively small in comparison to shader
  * compilation, though this option exists in case any potential scenarios for material graph
  * optimization cause a slow down on the main thread.
  *
- * NOTE: The actual shader program for the optimized pass will alwaysbe compiled asynchronously,
+ * NOTE: The actual shader program for the optimized pass will always be compiled asynchronously,
  * this flag controls whether shader node graph source serialization happens on the compilation
  * worker thread. */
 #define ASYNC_OPTIMIZED_PASS_CREATION 0
@@ -67,8 +67,8 @@ typedef struct GPUSkyBuilder {
 } GPUSkyBuilder;
 
 struct GPUMaterial {
-  /* Contains GPUShader and source code for deferred compilation.
-   * Can be shared between similar material (i.e: sharing same nodetree topology). */
+  /* Contains #GPUShader and source code for deferred compilation.
+   * Can be shared between similar material (i.e: sharing same node-tree topology). */
   GPUPass *pass;
   /* Optimized GPUPass, situationally compiled after initial pass for optimal realtime performance.
    * This shader variant bakes dynamic uniform data as constant. This variant will not use

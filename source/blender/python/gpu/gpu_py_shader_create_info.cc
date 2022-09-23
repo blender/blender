@@ -1014,7 +1014,7 @@ static struct PyMethodDef pygpu_shader_info__tp_methods[] = {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name GPUShaderCreateInfo Init
+/** \name GPUShaderCreateInfo Initialization
  * \{ */
 
 static PyObject *pygpu_shader_info__tp_new(PyTypeObject *UNUSED(type),

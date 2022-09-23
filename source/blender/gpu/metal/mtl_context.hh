@@ -577,7 +577,7 @@ class MTLContext : public Context {
   friend class MTLRenderPassState;
 
  public:
-  /* Swapchain and latency management. */
+  /* Swap-chain and latency management. */
   static std::atomic<int> max_drawables_in_flight;
   static std::atomic<int64_t> avg_drawable_latency_us;
   static int64_t frame_latency[MTL_FRAME_AVERAGE_COUNT];
@@ -591,7 +591,7 @@ class MTLContext : public Context {
   id<MTLDevice> device = nil;
 
 #ifndef NDEBUG
-  /* Label for Context debug name assignemnt. */
+  /* Label for Context debug name assignment. */
   NSString *label = nil;
 #endif
 
@@ -606,7 +606,7 @@ class MTLContext : public Context {
   /* Parent Context. */
   GHOST_ContextCGL *ghost_context_;
 
-  /* Render Passes and Framebuffers. */
+  /* Render Passes and Frame-buffers. */
   id<MTLTexture> default_fbo_mtltexture_ = nil;
   gpu::MTLTexture *default_fbo_gputexture_ = nullptr;
 
@@ -637,7 +637,7 @@ class MTLContext : public Context {
   gpu::MTLBuffer *visibility_buffer_ = nullptr;
   bool visibility_is_dirty_ = false;
 
-  /* Null buffers for empty/unintialized bindings.
+  /* Null buffers for empty/uninitialized bindings.
    * Null attribute buffer follows default attribute format of OpenGL Backend. */
   id<MTLBuffer> null_buffer_;           /* All zero's. */
   id<MTLBuffer> null_attribute_buffer_; /* Value float4(0.0,0.0,0.0,1.0). */
@@ -783,7 +783,7 @@ class MTLContext : public Context {
     return MTLContext::global_memory_manager;
   }
 
-  /* Swapchain and latency management. */
+  /* Swap-chain and latency management. */
   static void latency_resolve_average(int64_t frame_latency_us)
   {
     int64_t avg = 0;

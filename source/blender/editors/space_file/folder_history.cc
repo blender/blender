@@ -23,7 +23,9 @@
 
 #include "file_intern.h"
 
-/* ----------------- FOLDERLIST (previous/next) -------------- */
+/* -------------------------------------------------------------------- */
+/** \name FOLDERLIST (previous/next)
+ * \{ */
 
 typedef struct FolderList {
   struct FolderList *next, *prev;
@@ -47,7 +49,7 @@ void folderlist_popdir(struct ListBase *folderlist, char *dir)
       BLI_strncpy(dir, prev_dir, FILE_MAXDIR);
     }
   }
-  /* delete the folder next or use setdir directly before PREVIOUS OP */
+  /* Delete the folder next or use set-directory directly before PREVIOUS OP. */
 }
 
 void folderlist_pushdir(ListBase *folderlist, const char *dir)
@@ -129,7 +131,11 @@ static ListBase folderlist_duplicate(ListBase *folderlist)
   return folderlistn;
 }
 
-/* ----------------- Folder-History (wraps/owns file list above) -------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Folder-History (wraps/owns file list above)
+ * \{ */
 
 static FileFolderHistory *folder_history_find(const SpaceFile *sfile, eFileBrowse_Mode browse_mode)
 {
@@ -189,3 +195,5 @@ ListBase folder_history_list_duplicate(ListBase *listbase)
 
   return histories;
 }
+
+/** \} */
