@@ -36,7 +36,7 @@ if(WITH_CYCLES_NATIVE_ONLY)
   )
 
   if(NOT MSVC)
-    ADD_CHECK_CXX_COMPILER_FLAG(CMAKE_CXX_FLAGS _has_march_native "-march=native")
+    add_check_cxx_compiler_flag(CMAKE_CXX_FLAGS _has_march_native "-march=native")
     if(_has_march_native)
       set(CYCLES_KERNEL_FLAGS "-march=native")
     else()
@@ -45,18 +45,18 @@ if(WITH_CYCLES_NATIVE_ONLY)
     unset(_has_march_native)
   else()
     if(NOT MSVC_NATIVE_ARCH_FLAGS)
-        TRY_RUN(
-            arch_run_result
-            arch_compile_result
-            ${CMAKE_CURRENT_BINARY_DIR}/
-            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc_arch_flags.c
-            COMPILE_OUTPUT_VARIABLE arch_compile_output
-            RUN_OUTPUT_VARIABLE arch_run_output
-        )
-        if(arch_compile_result AND "${arch_run_result}" EQUAL "0")
-            string(STRIP ${arch_run_output} arch_run_output)
-            set(MSVC_NATIVE_ARCH_FLAGS ${arch_run_output} CACHE STRING "MSVC Native architecture flags")
-        endif()
+      try_run(
+        arch_run_result
+        arch_compile_result
+        ${CMAKE_CURRENT_BINARY_DIR}/
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc_arch_flags.c
+        COMPILE_OUTPUT_VARIABLE arch_compile_output
+        RUN_OUTPUT_VARIABLE arch_run_output
+      )
+      if(arch_compile_result AND "${arch_run_result}" EQUAL "0")
+        string(STRIP ${arch_run_output} arch_run_output)
+        set(MSVC_NATIVE_ARCH_FLAGS ${arch_run_output} CACHE STRING "MSVC Native architecture flags")
+      endif()
     endif()
     set(CYCLES_KERNEL_FLAGS "${MSVC_NATIVE_ARCH_FLAGS}")
   endif()
@@ -364,7 +364,7 @@ endif()
 
 # Warnings
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-  ADD_CHECK_CXX_COMPILER_FLAG(CMAKE_CXX_FLAGS _has_no_error_unused_macros "-Wno-error=unused-macros")
+  add_check_cxx_compiler_flag(CMAKE_CXX_FLAGS _has_no_error_unused_macros "-Wno-error=unused-macros")
   unset(_has_no_error_unused_macros)
 endif()
 

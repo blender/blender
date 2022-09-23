@@ -1089,7 +1089,7 @@ function(CONFIGURE_ATOMIC_LIB_IF_NEEDED)
   endif()
 endfunction()
 
-CONFIGURE_ATOMIC_LIB_IF_NEEDED()
+configure_atomic_lib_if_needed()
 
 if(PLATFORM_BUNDLED_LIBRARIES)
   # For the installed Python module and installed Blender executable, we set the

@@ -381,7 +381,7 @@ function(blender_add_test_suite)
   cmake_parse_arguments(ARGS "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
   # Figure out the release dir, as some tests need files from there.
-  GET_BLENDER_TEST_INSTALL_DIR(TEST_INSTALL_DIR)
+  get_blender_test_install_dir(TEST_INSTALL_DIR)
   if(APPLE)
     set(_test_release_dir ${TEST_INSTALL_DIR}/Blender.app/Contents/Resources/${BLENDER_VERSION})
   else()
@@ -424,10 +424,10 @@ function(blender_add_test_lib
 
   # This duplicates logic that's also in GTestTesting.cmake, macro BLENDER_SRC_GTEST_EX.
   # TODO(Sybren): deduplicate after the general approach in D7649 has been approved.
-  LIST(APPEND includes
+  list(APPEND includes
     ${CMAKE_SOURCE_DIR}/tests/gtests
   )
-  LIST(APPEND includes_sys
+  list(APPEND includes_sys
     ${GLOG_INCLUDE_DIRS}
     ${GFLAGS_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/extern/gtest/include
@@ -468,7 +468,7 @@ function(blender_add_test_executable
   ## Otherwise external projects will produce warnings that we cannot fix.
   remove_strict_flags()
 
-  BLENDER_SRC_GTEST_EX(
+  blender_src_gtest_ex(
     NAME ${name}
     SRC "${sources}"
     EXTRA_LIBS "${library_deps}"
@@ -764,7 +764,7 @@ function(ADD_CHECK_C_COMPILER_FLAG
 
   include(CheckCCompilerFlag)
 
-  CHECK_C_COMPILER_FLAG("${_FLAG}" "${_CACHE_VAR}")
+  check_c_compiler_flag("${_FLAG}" "${_CACHE_VAR}")
   if(${_CACHE_VAR})
     # message(STATUS "Using CFLAG: ${_FLAG}")
     set(${_CFLAGS} "${${_CFLAGS}} ${_FLAG}" PARENT_SCOPE)
@@ -781,7 +781,7 @@ function(ADD_CHECK_CXX_COMPILER_FLAG
 
   include(CheckCXXCompilerFlag)
 
-  CHECK_CXX_COMPILER_FLAG("${_FLAG}" "${_CACHE_VAR}")
+  check_cxx_compiler_flag("${_FLAG}" "${_CACHE_VAR}")
   if(${_CACHE_VAR})
     # message(STATUS "Using CXXFLAG: ${_FLAG}")
     set(${_CXXFLAGS} "${${_CXXFLAGS}} ${_FLAG}" PARENT_SCOPE)
@@ -799,9 +799,11 @@ function(get_blender_version)
   # - BLENDER_VERSION_PATCH
   # - BLENDER_VERSION_CYCLE (alpha, beta, rc, release)
 
-  # So cmake depends on BKE_blender.h, beware of inf-loops!
-  CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/source/blender/blenkernel/BKE_blender_version.h
-                 ${CMAKE_BINARY_DIR}/source/blender/blenkernel/BKE_blender_version.h.done)
+  # So CMAKE depends on `BKE_blender.h`, beware of infinite-loops!
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/source/blender/blenkernel/BKE_blender_version.h
+    ${CMAKE_BINARY_DIR}/source/blender/blenkernel/BKE_blender_version.h.done
+  )
 
   file(STRINGS ${CMAKE_SOURCE_DIR}/source/blender/blenkernel/BKE_blender_version.h _contents REGEX "^#define[ \t]+BLENDER_.*$")
 
