@@ -403,31 +403,6 @@ float data_transfer_interp_float_do(const int mix_mode,
   return interpf(val_ret, val_dst, mix_factor);
 }
 
-static void data_transfer_interp_char(const CustomDataTransferLayerMap *laymap,
-                                      void *dest,
-                                      const void **sources,
-                                      const float *weights,
-                                      const int count,
-                                      const float mix_factor)
-{
-  const char **data_src = (const char **)sources;
-  char *data_dst = (char *)dest;
-
-  const int mix_mode = laymap->mix_mode;
-  float val_src = 0.0f;
-  const float val_dst = (float)(*data_dst) / 255.0f;
-
-  for (int i = count; i--;) {
-    val_src += ((float)(*data_src[i]) / 255.0f) * weights[i];
-  }
-
-  val_src = data_transfer_interp_float_do(mix_mode, val_dst, val_src, mix_factor);
-
-  CLAMP(val_src, 0.0f, 1.0f);
-
-  *data_dst = (char)(val_src * 255.0f);
-}
-
 /* Helpers to match sources and destinations data layers
  * (also handles 'conversions' in CD_FAKE cases). */
 
