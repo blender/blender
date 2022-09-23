@@ -969,7 +969,7 @@ void DRW_cache_free_old_batches(Main *bmain)
 
       /* TODO(fclem): This is not optimal since it iter over all dupli instances.
        * In this case only the source object should be tagged. */
-      DEGObjectIterSettings deg_iter_settings = {};
+      DEGObjectIterSettings deg_iter_settings = {0};
       deg_iter_settings.depsgraph = depsgraph;
       deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
       DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
@@ -1692,7 +1692,7 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
     if (do_populate_loop) {
       DST.dupli_origin = NULL;
       DST.dupli_origin_data = NULL;
-      DEGObjectIterSettings deg_iter_settings = {};
+      DEGObjectIterSettings deg_iter_settings = {0};
       deg_iter_settings.depsgraph = depsgraph;
       deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
       DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
@@ -1847,7 +1847,7 @@ bool DRW_render_check_grease_pencil(Depsgraph *depsgraph)
     return false;
   }
 
-  DEGObjectIterSettings deg_iter_settings = {};
+  DEGObjectIterSettings deg_iter_settings = {0};
   deg_iter_settings.depsgraph = depsgraph;
   deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
   DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
@@ -2060,7 +2060,7 @@ void DRW_render_object_iter(
                                                0;
   DST.dupli_origin = NULL;
   DST.dupli_origin_data = NULL;
-  DEGObjectIterSettings deg_iter_settings = {};
+  DEGObjectIterSettings deg_iter_settings = {0};
   deg_iter_settings.depsgraph = depsgraph;
   deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
   DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
@@ -2207,7 +2207,7 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
 
     /* Only iterate over objects when overlay uses object data. */
     if (do_populate_loop) {
-      DEGObjectIterSettings deg_iter_settings = {};
+      DEGObjectIterSettings deg_iter_settings = {0};
       deg_iter_settings.depsgraph = depsgraph;
       deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
       DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
@@ -2494,7 +2494,7 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
       bool filter_exclude = false;
       DST.dupli_origin = NULL;
       DST.dupli_origin_data = NULL;
-      DEGObjectIterSettings deg_iter_settings = {};
+      DEGObjectIterSettings deg_iter_settings = {0};
       deg_iter_settings.depsgraph = depsgraph;
       deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
       DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
@@ -2659,7 +2659,7 @@ static void drw_draw_depth_loop_impl(struct Depsgraph *depsgraph,
     const int object_type_exclude_viewport = v3d->object_type_exclude_viewport;
     DST.dupli_origin = NULL;
     DST.dupli_origin_data = NULL;
-    DEGObjectIterSettings deg_iter_settings = {};
+    DEGObjectIterSettings deg_iter_settings = {0};
     deg_iter_settings.depsgraph = DST.draw_ctx.depsgraph;
     deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
     DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {

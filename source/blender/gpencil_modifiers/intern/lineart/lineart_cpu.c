@@ -2607,7 +2607,7 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
     flags |= DEG_ITER_OBJECT_FLAG_DUPLI;
   }
 
-  DEGObjectIterSettings deg_iter_settings = {};
+  DEGObjectIterSettings deg_iter_settings = {0};
   deg_iter_settings.depsgraph = depsgraph;
   deg_iter_settings.flags = flags;
 
