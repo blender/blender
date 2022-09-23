@@ -1558,6 +1558,11 @@ GVArray CurvesGeometry::adapt_domain(const GVArray &varray,
   if (from == to) {
     return varray;
   }
+  if (varray.is_single()) {
+    BUFFER_FOR_CPP_TYPE_VALUE(varray.type(), value);
+    varray.get_internal_single(value);
+    return GVArray::ForSingle(varray.type(), this->attributes().domain_size(to), value);
+  }
 
   if (from == ATTR_DOMAIN_POINT && to == ATTR_DOMAIN_CURVE) {
     return adapt_curve_domain_point_to_curve(*this, varray);
