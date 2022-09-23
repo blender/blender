@@ -192,7 +192,7 @@ void folderlist_free(struct ListBase *folderlist);
 void folderlist_popdir(struct ListBase *folderlist, char *dir);
 void folderlist_pushdir(struct ListBase *folderlist, const char *dir);
 const char *folderlist_peeklastdir(struct ListBase *folderlist);
-int folderlist_clear_next(struct SpaceFile *sfile);
+bool folderlist_clear_next(struct SpaceFile *sfile);
 
 void folder_history_list_ensure_for_active_browse_mode(struct SpaceFile *sfile);
 void folder_history_list_free(struct SpaceFile *sfile);
