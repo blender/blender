@@ -13,6 +13,7 @@
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
+#include "BKE_main.h"
 #include "BKE_node_tree_update.h"
 #include "BKE_screen.h"
 
@@ -95,7 +96,7 @@ static void search_items_for_asset_metadata(const bNodeTree &node_tree,
 static void gather_search_items_for_asset_library(const bContext &C,
                                                   const bNodeTree &node_tree,
                                                   const AssetLibraryReference &library_ref,
-                                                  const bool skip_local,
+                                                  Set<std::string> &r_added_assets,
                                                   Vector<AddNodeItem> &search_items)
 {
   AssetFilterSettings filter_settings{};
@@ -107,7 +108,8 @@ static void gather_search_items_for_asset_library(const bContext &C,
     if (!ED_asset_filter_matches_asset(&filter_settings, &asset)) {
       return true;
     }
-    if (skip_local && ED_asset_handle_get_local_id(&asset) != nullptr) {
+    if (!r_added_assets.add(ED_asset_handle_get_name(&asset))) {
+      /* If an asset with the same name has already been added, skip this. */
       return true;
     }
     search_items_for_asset_metadata(node_tree, library_ref, asset, search_items);
@@ -117,6 +119,7 @@ static void gather_search_items_for_asset_library(const bContext &C,
 
 static void gather_search_items_for_all_assets(const bContext &C,
                                                const bNodeTree &node_tree,
+                                               Set<std::string> &r_added_assets,
                                                Vector<AddNodeItem> &search_items)
 {
   int i;
@@ -125,13 +128,45 @@ static void gather_search_items_for_all_assets(const bContext &C,
     library_ref.custom_library_index = i;
     library_ref.type = ASSET_LIBRARY_CUSTOM;
     /* Skip local assets to avoid duplicates when the asset is part of the local file library. */
-    gather_search_items_for_asset_library(C, node_tree, library_ref, true, search_items);
+    gather_search_items_for_asset_library(C, node_tree, library_ref, r_added_assets, search_items);
   }
 
   AssetLibraryReference library_ref{};
   library_ref.custom_library_index = -1;
   library_ref.type = ASSET_LIBRARY_LOCAL;
-  gather_search_items_for_asset_library(C, node_tree, library_ref, false, search_items);
+  gather_search_items_for_asset_library(C, node_tree, library_ref, r_added_assets, search_items);
+}
+
+static void gather_search_items_for_node_groups(const bContext &C,
+                                                const bNodeTree &node_tree,
+                                                const Set<std::string> &local_assets,
+                                                Vector<AddNodeItem> &search_items)
+{
+  const StringRef group_node_id = node_tree.typeinfo->group_idname;
+
+  Main &bmain = *CTX_data_main(&C);
+  LISTBASE_FOREACH (bNodeTree *, node_group, &bmain.nodetrees) {
+    if (node_group->typeinfo->group_idname != group_node_id) {
+      continue;
+    }
+    if (local_assets.contains(node_group->id.name)) {
+      continue;
+    }
+    if (!nodeGroupPoll(&node_tree, node_group, nullptr)) {
+      continue;
+    }
+    AddNodeItem item{};
+    item.ui_name = node_group->id.name + 2;
+    item.identifier = node_tree.typeinfo->group_idname;
+    item.after_add_fn = [node_group](const bContext &C, bNodeTree &node_tree, bNode &node) {
+      Main &bmain = *CTX_data_main(&C);
+      node.id = &node_group->id;
+      id_us_plus(node.id);
+      BKE_ntree_update_tag_node_property(&node_tree, &node);
+      DEG_relations_tag_update(&bmain);
+    };
+    search_items.append(std::move(item));
+  }
 }
 
 static void gather_add_node_operations(const bContext &C,
@@ -152,7 +187,12 @@ static void gather_add_node_operations(const bContext &C,
   }
   NODE_TYPES_END;
 
-  gather_search_items_for_all_assets(C, node_tree, r_search_items);
+  /* Use a set to avoid adding items for node groups that are also assets. Using data-block
+   * names is a crutch, since different assets may have the same name. However, an alternative
+   * using #ED_asset_handle_get_local_id didn't work in this case. */
+  Set<std::string> added_assets;
+  gather_search_items_for_all_assets(C, node_tree, added_assets, r_search_items);
+  gather_search_items_for_node_groups(C, node_tree, added_assets, r_search_items);
 }
 
 static void add_node_search_update_fn(
