@@ -572,7 +572,7 @@ static void gpencil_cut_extensions(tGPDfill *tgpf)
           copy_v3_v3(&extreme_a->x, intersection3D);
           copy_v3_v3(&extreme_b->x, intersection3D);
           set_stroke_collide(gps_a, gps_b, connection_dist);
-          continue;
+          break;
         }
         /* Check if extensions cross. */
         if (isect_seg_seg_v2_simple(a1xy, a2xy, b1xy, b2xy)) {
@@ -583,19 +583,20 @@ static void gpencil_cut_extensions(tGPDfill *tgpf)
           copy_v3_v3(&extreme_a->x, intersection3D);
           copy_v3_v3(&extreme_b->x, intersection3D);
           set_stroke_collide(gps_a, gps_b, connection_dist);
-          continue;
+         break;
         }
         /* Check if extension extreme is near of the origin of any other extension. */
         if (len_squared_v2v2(a2xy, b1xy) <= gap_pixsize_sq) {
           gpencil_point_xy_to_3d(&tgpf->gsc, tgpf->scene, b1xy, &extreme_a->x);
           mul_m4_v3(inv_mat, &extreme_a->x);
           set_stroke_collide(gps_a, gps_b, connection_dist);
-          continue;
+          break;
         }
         if (len_squared_v2v2(a1xy, b2xy) <= gap_pixsize_sq) {
           gpencil_point_xy_to_3d(&tgpf->gsc, tgpf->scene, a1xy, &extreme_b->x);
           mul_m4_v3(inv_mat, &extreme_b->x);
           set_stroke_collide(gps_a, gps_b, connection_dist);
+          break;
         }
       }
     }
