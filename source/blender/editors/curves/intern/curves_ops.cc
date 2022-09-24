@@ -232,8 +232,7 @@ static void try_convert_single_object(Object &curves_ob,
   BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh); });
 
   const Span<float3> positions_cu = curves.positions();
-  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&surface_me),
-                                BKE_mesh_runtime_looptri_len(&surface_me)};
+  const Span<MLoopTri> looptris = surface_me.looptris();
 
   if (looptris.is_empty()) {
     *r_could_not_convert_some_curves = true;
@@ -545,8 +544,7 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
   const Mesh &surface_mesh = *static_cast<const Mesh *>(surface_ob.data);
   const Span<MVert> verts = surface_mesh.verts();
   const Span<MLoop> loops = surface_mesh.loops();
-  const Span<MLoopTri> surface_looptris = {BKE_mesh_runtime_looptri_ensure(&surface_mesh),
-                                           BKE_mesh_runtime_looptri_len(&surface_mesh)};
+  const Span<MLoopTri> surface_looptris = surface_mesh.looptris();
   VArraySpan<float2> surface_uv_map;
   if (curves_id.surface_uv_map != nullptr) {
     const bke::AttributeAccessor surface_attributes = surface_mesh.attributes();

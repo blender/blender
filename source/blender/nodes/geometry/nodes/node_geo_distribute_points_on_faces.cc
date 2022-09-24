@@ -107,8 +107,7 @@ static void sample_mesh_surface(const Mesh &mesh,
 {
   const Span<MVert> verts = mesh.verts();
   const Span<MLoop> loops = mesh.loops();
-  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
-                                BKE_mesh_runtime_looptri_len(&mesh)};
+  const Span<MLoopTri> looptris = mesh.looptris();
 
   for (const int looptri_index : looptris.index_range()) {
     const MLoopTri &looptri = looptris[looptri_index];
@@ -204,8 +203,7 @@ BLI_NOINLINE static void update_elimination_mask_based_on_density_factors(
     const Span<int> looptri_indices,
     const MutableSpan<bool> elimination_mask)
 {
-  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
-                                BKE_mesh_runtime_looptri_len(&mesh)};
+  const Span<MLoopTri> looptris = mesh.looptris();
   for (const int i : bary_coords.index_range()) {
     if (elimination_mask[i]) {
       continue;
@@ -352,8 +350,7 @@ BLI_NOINLINE static void compute_attribute_outputs(const Mesh &mesh,
 
   const Span<MVert> verts = mesh.verts();
   const Span<MLoop> loops = mesh.loops();
-  const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&mesh),
-                                BKE_mesh_runtime_looptri_len(&mesh)};
+  const Span<MLoopTri> looptris = mesh.looptris();
 
   for (const int i : bary_coords.index_range()) {
     const int looptri_index = looptri_indices[i];

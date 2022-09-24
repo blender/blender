@@ -112,6 +112,13 @@ void BKE_mesh_runtime_clear_cache(Mesh *mesh)
   BKE_mesh_clear_derived_normals(mesh);
 }
 
+blender::Span<MLoopTri> Mesh::looptris() const
+{
+  const MLoopTri *looptris = BKE_mesh_runtime_looptri_ensure(this);
+  const int num_looptris = BKE_mesh_runtime_looptri_len(this);
+  return {looptris, num_looptris};
+}
+
 /**
  * Ensure the array is large enough
  *

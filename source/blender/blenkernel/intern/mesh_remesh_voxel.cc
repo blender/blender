@@ -194,8 +194,7 @@ static openvdb::FloatGrid::Ptr remesh_voxel_level_set_create(const Mesh *mesh,
 {
   const Span<MVert> verts = mesh->verts();
   const Span<MLoop> loops = mesh->loops();
-  Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(mesh),
-                          BKE_mesh_runtime_looptri_len(mesh)};
+  const Span<MLoopTri> looptris = mesh->looptris();
 
   std::vector<openvdb::Vec3s> points(mesh->totvert);
   std::vector<openvdb::Vec3I> triangles(looptris.size());
