@@ -45,7 +45,7 @@ int BLF_set_default(void)
 {
   ASSERT_DEFAULT_SET;
 
-  BLF_size(global_font_default, global_font_size);
+  BLF_size(global_font_default, global_font_size * U.dpi_fac);
 
   return global_font_default;
 }
