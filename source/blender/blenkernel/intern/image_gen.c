@@ -355,7 +355,7 @@ static void checker_board_text(
   char text[3] = {'A', '1', '\0'};
   const int mono = blf_mono_font_render;
 
-  BLF_size(mono, 54.0f, 72); /* hard coded size! */
+  BLF_size(mono, 54.0f); /* hard coded size! */
 
   /* OCIO_TODO: using NULL as display will assume using sRGB display
    *            this is correct since currently generated images are assumed to be in sRGB space,

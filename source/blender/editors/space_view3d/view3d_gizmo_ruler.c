@@ -647,7 +647,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
   GPU_line_width(1.0f);
 
   BLF_enable(blf_mono_font, BLF_ROTATION);
-  BLF_size(blf_mono_font, 14.0f * U.pixelsize, U.dpi);
+  BLF_size(blf_mono_font, 14.0f * U.dpi_fac);
   BLF_rotation(blf_mono_font, 0.0f);
 
   UI_GetThemeColor3ubv(TH_TEXT, color_text);

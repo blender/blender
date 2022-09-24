@@ -1343,7 +1343,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
   BLF_enable(fontid, BLF_ROTATION);
   BLF_rotation(fontid, M_PI_2);
   ui_fontscale(&fstyle_points, aspect);
-  BLF_size(fontid, fstyle_points * U.pixelsize, U.dpi);
+  BLF_size(fontid, fstyle_points * U.dpi_fac);
 
   /* Check the region type supports categories to avoid an assert
    * for showing 3D view panels in the properties space. */

@@ -495,7 +495,7 @@ static void knifetool_draw_visible_distances(const KnifeTool_OpData *kcd)
   float numstr_size[2];
   float posit[2];
   const float bg_margin = 4.0f * U.dpi_fac;
-  const float font_size = 14.0f * U.pixelsize;
+  const float font_size = 14.0f;
   const int distance_precision = 4;
 
   /* Calculate distance and convert to string. */
@@ -516,7 +516,7 @@ static void knifetool_draw_visible_distances(const KnifeTool_OpData *kcd)
   }
 
   BLF_enable(blf_mono_font, BLF_ROTATION);
-  BLF_size(blf_mono_font, font_size, U.dpi);
+  BLF_size(blf_mono_font, font_size * U.dpi_fac);
   BLF_rotation(blf_mono_font, 0.0f);
   BLF_width_and_height(blf_mono_font, numstr, sizeof(numstr), &numstr_size[0], &numstr_size[1]);
 
@@ -565,7 +565,7 @@ static void knifetool_draw_angle(const KnifeTool_OpData *kcd,
   const float arc_size = 64.0f * U.dpi_fac;
   const float bg_margin = 4.0f * U.dpi_fac;
   const float cap_size = 4.0f * U.dpi_fac;
-  const float font_size = 14.0f * U.pixelsize;
+  const float font_size = 14.0f;
   const int angle_precision = 3;
 
   /* Angle arc in 3d space. */
@@ -646,7 +646,7 @@ static void knifetool_draw_angle(const KnifeTool_OpData *kcd,
   }
 
   BLF_enable(blf_mono_font, BLF_ROTATION);
-  BLF_size(blf_mono_font, font_size, U.dpi);
+  BLF_size(blf_mono_font, font_size * U.dpi_fac);
   BLF_rotation(blf_mono_font, 0.0f);
   BLF_width_and_height(blf_mono_font, numstr, sizeof(numstr), &numstr_size[0], &numstr_size[1]);
 

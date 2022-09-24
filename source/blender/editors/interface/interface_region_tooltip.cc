@@ -254,7 +254,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
 
       UI_fontstyle_set(&fstyle_mono);
       /* XXX: needed because we don't have mono in 'U.uifonts'. */
-      BLF_size(fstyle_mono.uifont_id, fstyle_mono.points * U.pixelsize, U.dpi);
+      BLF_size(fstyle_mono.uifont_id, fstyle_mono.points * U.dpi_fac);
       rgb_float_to_uchar(drawcol, tip_colors[static_cast<int>(field->format.color_id)]);
       UI_fontstyle_draw(&fstyle_mono, &bbox, field->text, UI_TIP_STR_MAX, drawcol, &fs_params);
     }
@@ -1133,7 +1133,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
     int font_id;
 
     if (field->format.style == uiTooltipFormat::Style::Mono) {
-      BLF_size(blf_mono_font, data->fstyle.points * U.pixelsize, U.dpi);
+      BLF_size(blf_mono_font, data->fstyle.points * U.dpi_fac);
       font_id = blf_mono_font;
     }
     else {

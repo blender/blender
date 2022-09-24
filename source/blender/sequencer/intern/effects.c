@@ -3348,7 +3348,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   }
 
   /* set before return */
-  BLF_size(font, proxy_size_comp * data->text_size, 72);
+  BLF_size(font, proxy_size_comp * data->text_size);
 
   const int font_flags = BLF_WORD_WRAP | /* Always allow wrapping. */
                          ((data->flag & SEQ_TEXT_BOLD) ? BLF_BOLD : 0) |

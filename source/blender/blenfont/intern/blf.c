@@ -63,8 +63,6 @@ int BLF_init(void)
     global_font[i] = NULL;
   }
 
-  BLF_default_dpi(72);
-
   return blf_font_init();
 }
 
@@ -361,12 +359,12 @@ void BLF_position(int fontid, float x, float y, float z)
   }
 }
 
-void BLF_size(int fontid, float size, int dpi)
+void BLF_size(int fontid, float size)
 {
   FontBLF *font = blf_get(fontid);
 
   if (font) {
-    blf_font_size(font, size, dpi);
+    blf_font_size(font, size);
   }
 }
 
@@ -912,7 +910,6 @@ void BLF_state_print(int fontid)
     printf("fontid %d %p\n", fontid, (void *)font);
     printf("  name:    '%s'\n", font->name);
     printf("  size:     %f\n", font->size);
-    printf("  dpi:      %u\n", font->dpi);
     printf("  pos:      %d %d %d\n", UNPACK3(font->pos));
     printf("  aspect:   (%d) %.6f %.6f %.6f\n",
            (font->flags & BLF_ROTATION) != 0,

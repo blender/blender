@@ -1999,7 +1999,7 @@ void BKE_image_stamp_buf(Scene *scene,
   }
 
   /* set before return */
-  BLF_size(mono, scene->r.stamp_font_id, 72);
+  BLF_size(mono, scene->r.stamp_font_id);
   BLF_wordwrap(mono, width - (BUFF_MARGIN_X * 2));
 
   BLF_buffer(mono, rectf, rect, width, height, channels, display);

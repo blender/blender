@@ -69,7 +69,7 @@ void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size);
 
 void BLF_aspect(int fontid, float x, float y, float z);
 void BLF_position(int fontid, float x, float y, float z);
-void BLF_size(int fontid, float size, int dpi);
+void BLF_size(int fontid, float size);
 
 /* Goal: small but useful color API. */
 
@@ -303,7 +303,6 @@ void BLF_thumb_preview(const char *filepath,
 
 /* blf_default.c */
 
-void BLF_default_dpi(int dpi);
 void BLF_default_size(float size);
 void BLF_default_set(int fontid);
 /**

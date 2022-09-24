@@ -503,27 +503,22 @@ void WM_window_set_dpi(const wmWindow *win)
    * while Windows and Linux use DPI 96. GHOST assumes a default 96 so we
    * remap the DPI to Blender's convention. */
   auto_dpi *= GHOST_GetNativePixelSize(win->ghostwin);
-  int dpi = auto_dpi * U.ui_scale * (72.0 / 96.0f);
+  U.dpi = auto_dpi * U.ui_scale * (72.0 / 96.0f);
 
   /* Automatically set larger pixel size for high DPI. */
-  int pixelsize = max_ii(1, (int)(dpi / 64));
+  int pixelsize = max_ii(1, (int)(U.dpi / 64));
   /* User adjustment for pixel size. */
   pixelsize = max_ii(1, pixelsize + U.ui_line_width);
 
   /* Set user preferences globals for drawing, and for forward compatibility. */
   U.pixelsize = pixelsize;
-  U.dpi = dpi / pixelsize;
   U.virtual_pixel = (pixelsize == 1) ? VIRTUAL_PIXEL_NATIVE : VIRTUAL_PIXEL_DOUBLE;
-  U.dpi_fac = ((U.pixelsize * (float)U.dpi) / 72.0f);
+  U.dpi_fac = U.dpi / 72.0f;
   U.inv_dpi_fac = 1.0f / U.dpi_fac;
 
-  /* Set user preferences globals for drawing, and for forward compatibility. */
-  U.widget_unit = (U.pixelsize * U.dpi * 20 + 36) / 72;
-  /* If line thickness differs from scaling factor then adjustments need to be made */
-  U.widget_unit += 2 * ((int)U.pixelsize - (int)U.dpi_fac);
-
-  /* update font drawing */
-  BLF_default_dpi(U.pixelsize * U.dpi);
+  /* Widget unit is 20 pixels at 1X scale. This consists of 18 user-scaled units plus
+   *  left and right borders of line-width (pixelsize). */
+  U.widget_unit = (int)roundf(18.0f * U.dpi_fac) + (2 * pixelsize);
 }
 
 static void wm_window_update_eventstate(wmWindow *win)

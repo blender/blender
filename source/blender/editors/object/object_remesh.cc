@@ -357,7 +357,7 @@ static void voxel_size_edit_draw(const bContext *C, ARegion *UNUSED(ar), void *a
 
   GPU_matrix_push();
   GPU_matrix_mul(cd->text_mat);
-  BLF_size(fontid, 10.0f * fstyle_points, U.dpi);
+  BLF_size(fontid, 10.0f * fstyle_points * U.dpi_fac);
   BLF_color3f(fontid, 1.0f, 1.0f, 1.0f);
   BLF_width_and_height(fontid, str, strdrawlen, &strwidth, &strheight);
   BLF_position(fontid, -0.5f * strwidth, -0.5f * strheight, 0.0f);
