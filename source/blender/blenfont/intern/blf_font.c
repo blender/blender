@@ -1146,38 +1146,6 @@ void blf_font_draw_buffer__wrap(FontBLF *font,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Text Evaluation: Count Missing Characters
- * \{ */
-
-int blf_font_count_missing_chars(FontBLF *font,
-                                 const char *str,
-                                 const size_t str_len,
-                                 int *r_tot_chars)
-{
-  int missing = 0;
-  size_t i = 0;
-
-  *r_tot_chars = 0;
-  while (i < str_len) {
-    uint c;
-
-    if ((c = str[i]) < GLYPH_ASCII_TABLE_SIZE) {
-      i++;
-    }
-    else {
-      c = BLI_str_utf8_as_unicode_step(str, str_len, &i);
-      if (blf_get_char_index(font, c) == 0) {
-        missing++;
-      }
-    }
-    (*r_tot_chars)++;
-  }
-  return missing;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Font Query: Attributes
  * \{ */
 

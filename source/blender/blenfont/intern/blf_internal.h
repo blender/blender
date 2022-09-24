@@ -149,11 +149,6 @@ void blf_font_boundbox_foreach_glyph(struct FontBLF *font,
                                      void *user_data,
                                      struct ResultBLF *r_info);
 
-int blf_font_count_missing_chars(struct FontBLF *font,
-                                 const char *str,
-                                 size_t str_len,
-                                 int *r_tot_chars);
-
 void blf_font_free(struct FontBLF *font);
 
 struct GlyphCacheBLF *blf_glyph_cache_acquire(struct FontBLF *font);

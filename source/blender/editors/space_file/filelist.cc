@@ -1642,9 +1642,6 @@ static void filelist_cache_init(FileListEntryCache *cache, size_t cache_size)
   cache->flags = FLC_IS_INIT;
 
   cache->previews_todo_count = 0;
-
-  /* We cannot translate from non-main thread, so init translated strings once from here. */
-  IMB_thumb_ensure_translations();
 }
 
 static void filelist_cache_free(FileListEntryCache *cache)

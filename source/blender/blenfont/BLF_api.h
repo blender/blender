@@ -290,16 +290,8 @@ void BLF_dir_free(char **dirs, int count) ATTR_NONNULL();
  *
  * \note called from a thread, so it bypasses the normal BLF_* api (which isn't thread-safe).
  */
-void BLF_thumb_preview(const char *filepath,
-                       const char **draw_str,
-                       const char **i18n_draw_str,
-                       unsigned char draw_str_lines,
-                       const float font_color[4],
-                       int font_size,
-                       unsigned char *buf,
-                       int w,
-                       int h,
-                       int channels) ATTR_NONNULL();
+bool BLF_thumb_preview(const char *filename, unsigned char *buf, int w, int h, int channels)
+    ATTR_NONNULL();
 
 /* blf_default.c */
 
