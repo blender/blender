@@ -2553,12 +2553,10 @@ static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
 
     if (cdata) {
       int layer_index = CustomData_get_named_layer_index(cdata, attr->proptype, attr->name);
+      bad = layer_index == -1;
 
-      if (layer_index != -1 && attr->data_for_bmesh) {
+      if (ss->bm) {
         attr->bmesh_cd_offset = cdata->layers[layer_index].offset;
-      }
-      else {
-        bad = true;
       }
     }
   }
