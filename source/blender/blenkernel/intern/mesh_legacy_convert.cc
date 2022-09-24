@@ -930,6 +930,7 @@ void BKE_mesh_legacy_face_set_from_generic(Mesh *mesh)
       layer.type = CD_SCULPT_FACE_SETS;
     }
   }
+  CustomData_update_typemap(&mesh->pdata);
 }
 
 void BKE_mesh_legacy_face_set_to_generic(Mesh *mesh)
@@ -941,6 +942,7 @@ void BKE_mesh_legacy_face_set_to_generic(Mesh *mesh)
       layer.type = CD_PROP_INT32;
     }
   }
+  CustomData_update_typemap(&mesh->pdata);
 }
 
 /** \} */
