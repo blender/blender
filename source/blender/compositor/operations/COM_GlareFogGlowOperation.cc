@@ -75,8 +75,8 @@ static void FHT(fREAL *data, uint M, uint inverse)
         fREAL *data_nbd = &data_n[bd];
         fREAL *data_bd = &data[bd];
         for (k = bl; k < len; k += istep) {
-          t1 = fc * (double)data_n[k] + fs * (double)data_nbd[k];
-          t2 = fs * (double)data_n[k] - fc * (double)data_nbd[k];
+          t1 = fc * double(data_n[k]) + fs * double(data_nbd[k]);
+          t2 = fs * double(data_n[k]) - fc * double(data_nbd[k]);
           data_n[k] = data[k] - t1;
           data_nbd[k] = data_bd[k] - t2;
           data[k] += t1;
@@ -360,14 +360,14 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
         /* Data again transposed, so in order again. */
 
         /* Overlap-add result. */
-        for (y = 0; y < (int)h2; y++) {
+        for (y = 0; y < int(h2); y++) {
           const int yy = ybl * ybsz + y - hh;
           if ((yy < 0) || (yy >= image_height)) {
             continue;
           }
           fp = &data2[y * w2];
           colp = (fRGB *)&rdst->get_buffer()[yy * image_width * COM_DATA_TYPE_COLOR_CHANNELS];
-          for (x = 0; x < (int)w2; x++) {
+          for (x = 0; x < int(w2); x++) {
             const int xx = xbl * xbsz + x - hw;
             if ((xx < 0) || (xx >= image_width)) {
               continue;
@@ -405,12 +405,12 @@ void GlareFogGlowOperation::generate_glare(float *data,
   BLI_rcti_init(&kernel_rect, 0, sz, 0, sz);
   ckrn = new MemoryBuffer(DataType::Color, kernel_rect);
 
-  scale = 0.25f * sqrtf((float)(sz * sz));
+  scale = 0.25f * sqrtf(float(sz * sz));
 
   for (y = 0; y < sz; y++) {
-    v = 2.0f * (y / (float)sz) - 1.0f;
+    v = 2.0f * (y / float(sz)) - 1.0f;
     for (x = 0; x < sz; x++) {
-      u = 2.0f * (x / (float)sz) - 1.0f;
+      u = 2.0f * (x / float(sz)) - 1.0f;
       r = (u * u + v * v) * scale;
       d = -sqrtf(sqrtf(sqrtf(r))) * 9.0f;
       fcol[0] = expf(d * cs_r);
@@ -419,7 +419,7 @@ void GlareFogGlowOperation::generate_glare(float *data,
       /* Linear window good enough here, visual result counts, not scientific analysis:
        * `w = (1.0f-fabs(u))*(1.0f-fabs(v));`
        * actually, Hanning window is ok, `cos^2` for some reason is slower. */
-      w = (0.5f + 0.5f * cosf(u * (float)M_PI)) * (0.5f + 0.5f * cosf(v * (float)M_PI));
+      w = (0.5f + 0.5f * cosf(u * float(M_PI))) * (0.5f + 0.5f * cosf(v * float(M_PI)));
       mul_v3_fl(fcol, w);
       ckrn->write_pixel(x, y, fcol);
     }

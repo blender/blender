@@ -289,7 +289,7 @@ class ValueAllocator : NonCopyable, NonMovable {
       }
     }
 
-    Stack<VariableValue *> &stack = variable_value_free_lists_[(int)value->type];
+    Stack<VariableValue *> &stack = variable_value_free_lists_[int(value->type)];
     stack.push(value);
   }
 
@@ -297,7 +297,7 @@ class ValueAllocator : NonCopyable, NonMovable {
   template<typename T, typename... Args> T *obtain(Args &&...args)
   {
     static_assert(std::is_base_of_v<VariableValue, T>);
-    Stack<VariableValue *> &stack = variable_value_free_lists_[(int)T::static_type];
+    Stack<VariableValue *> &stack = variable_value_free_lists_[int(T::static_type)];
     if (stack.is_empty()) {
       void *buffer = linear_allocator_.allocate(sizeof(T), alignof(T));
       return new (buffer) T(std::forward<Args>(args)...);

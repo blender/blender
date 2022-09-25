@@ -81,10 +81,10 @@ void MovieDistortionOperation::execute_pixel_sampled(float output[4],
   if (distortion_ != nullptr) {
     /* float overscan = 0.0f; */
     const float pixel_aspect = pixel_aspect_;
-    const float w = (float)this->get_width() /* / (1 + overscan) */;
-    const float h = (float)this->get_height() /* / (1 + overscan) */;
-    const float aspx = w / (float)calibration_width_;
-    const float aspy = h / (float)calibration_height_;
+    const float w = float(this->get_width()) /* / (1 + overscan) */;
+    const float h = float(this->get_height()) /* / (1 + overscan) */;
+    const float aspx = w / float(calibration_width_);
+    const float aspy = h / float(calibration_height_);
     float in[2];
     float out[2];
 
@@ -143,10 +143,10 @@ void MovieDistortionOperation::update_memory_buffer_partial(MemoryBuffer *output
 
   /* `float overscan = 0.0f;` */
   const float pixel_aspect = pixel_aspect_;
-  const float w = (float)this->get_width() /* `/ (1 + overscan)` */;
-  const float h = (float)this->get_height() /* `/ (1 + overscan)` */;
-  const float aspx = w / (float)calibration_width_;
-  const float aspy = h / (float)calibration_height_;
+  const float w = float(this->get_width()) /* `/ (1 + overscan)` */;
+  const float h = float(this->get_height()) /* `/ (1 + overscan)` */;
+  const float aspx = w / float(calibration_width_);
+  const float aspy = h / float(calibration_height_);
   float xy[2];
   float distorted_xy[2];
   for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {

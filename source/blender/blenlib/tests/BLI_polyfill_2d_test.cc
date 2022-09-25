@@ -94,10 +94,10 @@ static void test_polyfill_topology(const float /*poly*/[][2],
       const uint v2 = tris[i][(j + 1) % 3];
       void **p = BLI_edgehash_lookup_p(edgehash, v1, v2);
       if (p) {
-        *p = (void *)((intptr_t)*p + (intptr_t)1);
+        *p = (void *)(intptr_t(*p) + intptr_t(1));
       }
       else {
-        BLI_edgehash_insert(edgehash, v1, v2, (void *)(intptr_t)1);
+        BLI_edgehash_insert(edgehash, v1, v2, (void *)intptr_t(1));
       }
     }
   }

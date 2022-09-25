@@ -519,8 +519,8 @@ static void uilist_prepare(uiList *ui_list,
 
   int activei_row;
   if (columns > 1) {
-    dyn_data->height = (int)ceil((double)items->tot_items / (double)columns);
-    activei_row = (int)floor((double)items->active_item_idx / (double)columns);
+    dyn_data->height = int(ceil(double(items->tot_items) / double(columns)));
+    activei_row = int(floor(double(items->active_item_idx) / double(columns)));
   }
   else {
     dyn_data->height = items->tot_items;
@@ -567,8 +567,8 @@ static void uilist_resize_update_cb(bContext *C, void *arg1, void *UNUSED(arg2))
   uiListDyn *dyn_data = ui_list->dyn_data;
 
   /* This way we get diff in number of additional items to show (positive) or hide (negative). */
-  const int diff = round_fl_to_int((float)(dyn_data->resize - dyn_data->resize_prev) /
-                                   (float)UI_UNIT_Y);
+  const int diff = round_fl_to_int(float(dyn_data->resize - dyn_data->resize_prev) /
+                                   float(UI_UNIT_Y));
 
   if (diff != 0) {
     ui_list->list_grip += diff;

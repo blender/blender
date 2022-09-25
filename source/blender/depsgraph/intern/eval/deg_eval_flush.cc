@@ -235,7 +235,7 @@ void flush_editors_id_update(Depsgraph *graph, const DEGEditorUpdateContext *upd
                      EVAL,
                      "Accumulated recalc bits for %s: %u\n",
                      id_orig->name,
-                     (uint)id_cow->recalc);
+                     uint(id_cow->recalc));
 
     /* Inform editors. Only if the data-block is being evaluated a second
      * time, to distinguish between user edits and initial evaluation when

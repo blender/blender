@@ -710,13 +710,13 @@ float bc_get_property(Bone *bone, std::string key, float def)
   if (property) {
     switch (property->type) {
       case IDP_INT:
-        result = (float)(IDP_Int(property));
+        result = float(IDP_Int(property));
         break;
       case IDP_FLOAT:
-        result = (float)(IDP_Float(property));
+        result = float(IDP_Float(property));
         break;
       case IDP_DOUBLE:
-        result = (float)(IDP_Double(property));
+        result = float(IDP_Double(property));
         break;
       default:
         result = def;
@@ -1008,9 +1008,9 @@ void bc_create_restpose_mat(BCExportSettings &export_settings,
 void bc_sanitize_v3(float v[3], int precision)
 {
   for (int i = 0; i < 3; i++) {
-    double val = (double)v[i];
+    double val = double(v[i]);
     val = double_round(val, precision);
-    v[i] = (float)val;
+    v[i] = float(val);
   }
 }
 
@@ -1339,7 +1339,7 @@ bool bc_get_float_from_shader(bNode *shader, double &val, std::string nodeid)
   bNodeSocket *socket = nodeFindSocket(shader, SOCK_IN, nodeid.c_str());
   if (socket) {
     bNodeSocketValueFloat *ref = (bNodeSocketValueFloat *)socket->default_value;
-    val = (double)ref->value;
+    val = double(ref->value);
     return true;
   }
   return false;

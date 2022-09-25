@@ -42,7 +42,7 @@ void CustomMF_GenericConstant::call(IndexMask mask,
 
 uint64_t CustomMF_GenericConstant::hash() const
 {
-  return type_.hash_or_fallback(value_, (uintptr_t)this);
+  return type_.hash_or_fallback(value_, uintptr_t(this));
 }
 
 bool CustomMF_GenericConstant::equals(const MultiFunction &other) const

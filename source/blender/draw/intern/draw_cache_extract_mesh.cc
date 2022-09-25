@@ -204,7 +204,7 @@ BLI_INLINE void extract_init(const MeshRenderData *mr,
     run_data.buffer = mesh_extract_buffer_get(extractor, mbuflist);
     run_data.data_offset = data_offset;
     extractor->init(mr, cache, run_data.buffer, POINTER_OFFSET(data_stack, data_offset));
-    data_offset += (uint32_t)extractor->data_size;
+    data_offset += uint32_t(extractor->data_size);
   }
 }
 

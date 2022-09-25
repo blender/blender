@@ -243,7 +243,7 @@ void WXFace::ComputeCenter()
        ++wv) {
     center += (*wv)->GetVertex();
   }
-  center /= (float)iVertexList.size();
+  center /= float(iVertexList.size());
   setCenter(center);
 }
 
@@ -270,7 +270,7 @@ WFace *WXShape::MakeFace(vector<WVertex *> &iVertexList,
        ++wv) {
     center += (*wv)->GetVertex();
   }
-  center /= (float)iVertexList.size();
+  center /= float(iVertexList.size());
   ((WXFace *)face)->setCenter(center);
 
   return face;

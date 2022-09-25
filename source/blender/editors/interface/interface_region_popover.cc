@@ -146,8 +146,8 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
       ui_block_to_window_fl(handle->ctx_region, pup->but->block, &center[0], &center[1]);
       /* These variables aren't used for popovers,
        * we could add new variables if there is a conflict. */
-      block->bounds_offset[0] = (int)center[0];
-      block->bounds_offset[1] = (int)center[1];
+      block->bounds_offset[0] = int(center[0]);
+      block->bounds_offset[1] = int(center[1]);
       copy_v2_v2_int(handle->prev_bounds_offset, block->bounds_offset);
     }
     else {
@@ -245,7 +245,7 @@ uiPopupBlockHandle *ui_popover_panel_create(
     /* Scale width by changes to Text Style point size. */
     const int text_points_max = MAX2(style->widget.points, style->widgetlabel.points);
     pup->ui_size_x = ui_units_x * U.widget_unit *
-                     (text_points_max / (float)UI_DEFAULT_TEXT_POINTS);
+                     (text_points_max / float(UI_DEFAULT_TEXT_POINTS));
   }
 
   pup->menu_func = menu_func;

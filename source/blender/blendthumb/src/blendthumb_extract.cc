@@ -103,7 +103,7 @@ static bool file_seek(FileReader *file, size_t len)
   blender::Array<char> dummy_data(dummy_data_size);
   while (len > 0) {
     const size_t len_chunk = std::min(len, dummy_data_size);
-    if ((size_t)file->read(file, dummy_data.data(), len_chunk) != len_chunk) {
+    if (size_t(file->read(file, dummy_data.data(), len_chunk)) != len_chunk) {
       return false;
     }
     len -= len_chunk;

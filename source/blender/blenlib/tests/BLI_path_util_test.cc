@@ -651,7 +651,7 @@ TEST(path_util, PathRelPath)
     abs_path_in[FILE_MAX - 1] = '\0';
     abs_path_out[0] = '/';
     abs_path_out[1] = '/';
-    for (int i = 2; i < FILE_MAX - ((int)ref_path_in_len - 1); i++) {
+    for (int i = 2; i < FILE_MAX - (int(ref_path_in_len) - 1); i++) {
       abs_path_out[i] = 'A';
     }
     abs_path_out[FILE_MAX - (ref_path_in_len - 1)] = '\0';

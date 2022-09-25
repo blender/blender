@@ -355,7 +355,7 @@ bool Grid::initInfiniteRay(const Vec3r &orig, const Vec3r &dir, unsigned timesta
   BBox<Vec3r> box(boxMin, boxMax);
   if (box.inside(orig)) {
     for (uint i = 0; i < 3; i++) {
-      _current_cell[i] = (uint)floor((orig[i] - _orig[i]) / _cell_size[i]);
+      _current_cell[i] = uint(floor((orig[i] - _orig[i]) / _cell_size[i]));
       // soc unused - unsigned u = _current_cell[i];
       _pt[i] = orig[i] - _orig[i] - _current_cell[i] * _cell_size[i];
     }

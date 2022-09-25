@@ -246,7 +246,7 @@ static void voxel_size_parallel_lines_draw(uint pos3d,
                                            const float spacing)
 {
   const float total_len = len_v3v3(initial_co, end_co);
-  const int tot_lines = (int)(total_len / spacing);
+  const int tot_lines = int(total_len / spacing);
   const int tot_lines_half = (tot_lines / 2) + 1;
   float spacing_dir[3], lines_start[3];
   float line_dir[3];
@@ -261,7 +261,7 @@ static void voxel_size_parallel_lines_draw(uint pos3d,
 
   mid_v3_v3v3(lines_start, initial_co, end_co);
 
-  immBegin(GPU_PRIM_LINES, (uint)tot_lines_half * 2);
+  immBegin(GPU_PRIM_LINES, uint(tot_lines_half) * 2);
   for (int i = 0; i < tot_lines_half; i++) {
     float line_start[3];
     float line_end[3];
@@ -274,7 +274,7 @@ static void voxel_size_parallel_lines_draw(uint pos3d,
 
   mul_v3_fl(spacing_dir, -1.0f);
 
-  immBegin(GPU_PRIM_LINES, (uint)(tot_lines_half - 1) * 2);
+  immBegin(GPU_PRIM_LINES, uint(tot_lines_half - 1) * 2);
   for (int i = 1; i < tot_lines_half; i++) {
     float line_start[3];
     float line_end[3];
@@ -320,7 +320,7 @@ static void voxel_size_edit_draw(const bContext *C, ARegion *UNUSED(ar), void *a
   GPU_line_width(1.0f);
 
   const float total_len = len_v3v3(cd->preview_plane[0], cd->preview_plane[1]);
-  const int tot_lines = (int)(total_len / cd->voxel_size);
+  const int tot_lines = int(total_len / cd->voxel_size);
 
   /* Smooth-step to reduce the alpha of the grid as the line number increases. */
   const float a = VOXEL_SIZE_EDIT_MAX_GRIDS_LINES * 0.1f;
@@ -346,7 +346,7 @@ static void voxel_size_edit_draw(const bContext *C, ARegion *UNUSED(ar), void *a
   UnitSettings *unit = &scene->unit;
   BKE_unit_value_as_string(str,
                            VOXEL_SIZE_EDIT_MAX_STR_LEN,
-                           (double)(cd->voxel_size * unit->scale_length),
+                           double(cd->voxel_size * unit->scale_length),
                            -3,
                            B_UNIT_LENGTH,
                            unit,

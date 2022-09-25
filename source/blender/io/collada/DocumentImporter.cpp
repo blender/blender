@@ -241,7 +241,7 @@ void DocumentImporter::finish()
 
   if (!libnode_ob.empty()) {
 
-    fprintf(stderr, "| Cleanup: free %d library nodes\n", (int)libnode_ob.size());
+    fprintf(stderr, "| Cleanup: free %d library nodes\n", int(libnode_ob.size()));
     /* free all library_nodes */
     std::vector<Object *>::iterator it;
     for (it = libnode_ob.begin(); it != libnode_ob.end(); it++) {
@@ -434,7 +434,7 @@ Object *DocumentImporter::create_instance_node(Object *source_ob,
       Object *new_child = nullptr;
       if (inodes.getCount()) { /* \todo loop through instance nodes */
         const COLLADAFW::UniqueId &id = inodes[0]->getInstanciatedObjectId();
-        fprintf(stderr, "Doing %d child nodes\n", (int)node_map.count(id));
+        fprintf(stderr, "Doing %d child nodes\n", int(node_map.count(id)));
         new_child = create_instance_node(
             object_map.find(id)->second, node_map[id], child_node, sce, is_library_node);
       }
@@ -869,7 +869,7 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
           double ymag = 2 * camera->getYMag().getValue();
           double aspect = camera->getAspectRatio().getValue();
           double xmag = aspect * ymag;
-          cam->ortho_scale = (float)xmag;
+          cam->ortho_scale = float(xmag);
         } break;
         case CAM_PERSP:
         default: {
@@ -890,7 +890,7 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
     case COLLADAFW::Camera::X_AND_Y: {
       switch (cam->type) {
         case CAM_ORTHO:
-          cam->ortho_scale = (float)camera->getXMag().getValue() * 2;
+          cam->ortho_scale = float(camera->getXMag().getValue()) * 2;
           break;
         case CAM_PERSP:
         default: {
@@ -903,7 +903,7 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
     case COLLADAFW::Camera::SINGLE_Y: {
       switch (cam->type) {
         case CAM_ORTHO:
-          cam->ortho_scale = (float)camera->getYMag().getValue();
+          cam->ortho_scale = float(camera->getYMag().getValue());
           break;
         case CAM_PERSP:
         default: {

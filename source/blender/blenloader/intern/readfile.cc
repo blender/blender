@@ -193,7 +193,7 @@ typedef struct BHeadN {
   struct BHead bhead;
 } BHeadN;
 
-#define BHEADN_FROM_BHEAD(bh) ((BHeadN *)POINTER_OFFSET(bh, -(int)offsetof(BHeadN, bhead)))
+#define BHEADN_FROM_BHEAD(bh) ((BHeadN *)POINTER_OFFSET(bh, -int(offsetof(BHeadN, bhead))))
 
 /**
  * We could change this in the future, for now it's simplest if only data is delayed
@@ -475,7 +475,7 @@ static void split_libdata(ListBase *lb_src, Main **lib_main_array, const uint li
     idnext = static_cast<ID *>(id->next);
 
     if (id->lib) {
-      if (((uint)id->lib->temp_index < lib_main_array_len) &&
+      if ((uint(id->lib->temp_index) < lib_main_array_len) &&
           /* this check should never fail, just in case 'id->lib' is a dangling pointer. */
           (lib_main_array[id->lib->temp_index]->curlib == id->lib)) {
         Main *mainvar = lib_main_array[id->lib->temp_index];
@@ -591,7 +591,7 @@ static void read_file_bhead_idname_map_create(FileData *fd)
     if (code_prev != bhead->code) {
       code_prev = bhead->code;
       is_link = blo_bhead_is_id_valid_type(bhead) ?
-                    BKE_idtype_idcode_is_linkable((short)code_prev) :
+                    BKE_idtype_idcode_is_linkable(short(code_prev)) :
                     false;
     }
 
@@ -608,7 +608,7 @@ static void read_file_bhead_idname_map_create(FileData *fd)
     if (code_prev != bhead->code) {
       code_prev = bhead->code;
       is_link = blo_bhead_is_id_valid_type(bhead) ?
-                    BKE_idtype_idcode_is_linkable((short)code_prev) :
+                    BKE_idtype_idcode_is_linkable(short(code_prev)) :
                     false;
     }
 
@@ -738,7 +738,7 @@ static void bh4_from_bh8(BHead *bhead, BHead8 *bhead8, bool do_endian_swap)
     /* this patch is to avoid `intptr_t` being read from not-eight aligned positions
      * is necessary on any modern 64bit architecture) */
     memcpy(&old, &bhead8->old, 8);
-    bhead4->old = (int)(old >> 3);
+    bhead4->old = int(old >> 3);
 
     bhead4->SDNAnr = bhead8->SDNAnr;
     bhead4->nr = bhead8->nr;
@@ -862,7 +862,7 @@ static BHeadN *get_bhead(FileData *fd)
 #endif
       else {
         new_bhead = static_cast<BHeadN *>(
-            MEM_mallocN(sizeof(BHeadN) + (size_t)bhead.len, "new_bhead"));
+            MEM_mallocN(sizeof(BHeadN) + size_t(bhead.len), "new_bhead"));
         if (new_bhead) {
           new_bhead->next = new_bhead->prev = nullptr;
 #ifdef USE_BHEAD_READ_ON_DEMAND
@@ -872,7 +872,7 @@ static BHeadN *get_bhead(FileData *fd)
           new_bhead->is_memchunk_identical = false;
           new_bhead->bhead = bhead;
 
-          readsize = fd->file->read(fd->file, new_bhead + 1, (size_t)bhead.len);
+          readsize = fd->file->read(fd->file, new_bhead + 1, size_t(bhead.len));
 
           if (readsize != bhead.len) {
             fd->is_eof = true;
@@ -966,7 +966,7 @@ static bool blo_bhead_read_data(FileData *fd, BHead *thisblock, void *buf)
     success = false;
   }
   else {
-    if (fd->file->read(fd->file, buf, (size_t)new_bhead->bhead.len) != new_bhead->bhead.len) {
+    if (fd->file->read(fd->file, buf, size_t(new_bhead->bhead.len)) != new_bhead->bhead.len) {
       success = false;
     }
     if (fd->flags & FD_FLAGS_IS_MEMFILE) {

@@ -32,13 +32,13 @@ namespace Freestyle {
 
 #define MUL(x, y, z) \
   { \
-    long l = (long)(x) * (long)(y); \
+    long l = long(x) * long(y); \
     (z)[0] = LOW(l); \
     (z)[1] = HIGH(l); \
   } \
   ((void)0)
 
-#define CARRY(x, y) ((ulong)((long)(x) + (long)(y)) > MASK)
+#define CARRY(x, y) (ulong(long(x) + long(y)) > MASK)
 #define ADDEQU(x, y, z) (z = CARRY(x, (y)), x = LOW(x + (y)))
 #define SET3(x, x0, x1, x2) ((x)[0] = (x0), (x)[1] = (x1), (x)[2] = (x2))
 #if 0  // XXX, unused

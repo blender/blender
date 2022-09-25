@@ -715,7 +715,7 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
                   XK_Super_R,
               };
 
-              for (int i = 0; i < (int)ARRAY_SIZE(modifiers); i++) {
+              for (int i = 0; i < int(ARRAY_SIZE(modifiers)); i++) {
                 KeyCode kc = XKeysymToKeycode(m_display, modifiers[i]);
                 if (kc != 0 && ((xevent.xkeymap.key_vector[kc >> 3] >> (kc & 7)) & 1) != 0) {
                   pushEvent(new GHOST_EventKey(getMilliSeconds(),
@@ -845,14 +845,14 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       }
       else {
         if (m_keycode_last_repeat_key == xke->keycode) {
-          m_keycode_last_repeat_key = (uint)-1;
+          m_keycode_last_repeat_key = uint(-1);
         }
       }
     }
   }
   else if (xe->type == EnterNotify) {
     /* We can't tell how the key state changed, clear it to avoid stuck keys. */
-    m_keycode_last_repeat_key = (uint)-1;
+    m_keycode_last_repeat_key = uint(-1);
   }
 
 #ifdef USE_XINPUT_HOTPLUG
@@ -1193,7 +1193,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         int i = 0;
         while (true) {
           /* Search character boundary. */
-          if ((uchar)utf8_buf[i++] > 0x7f) {
+          if (uchar(utf8_buf[i++]) > 0x7f) {
             for (; i < len; ++i) {
               c = utf8_buf[i];
               if (c < 0x80 || c > 0xbf) {
@@ -1523,7 +1523,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
      ((void)(val = data->axis_data[axis - axis_first]), true))
 
           if (AXIS_VALUE_GET(2, axis_value)) {
-            window->GetTabletData().Pressure = axis_value / ((float)xtablet.PressureLevels);
+            window->GetTabletData().Pressure = axis_value / float(xtablet.PressureLevels);
           }
 
           /* NOTE(@broken): the (short) cast and the & 0xffff is bizarre and unexplained anywhere,
@@ -1535,12 +1535,12 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
            * I don't think we need to cast to short here, but do not have a device to check this.
            */
           if (AXIS_VALUE_GET(3, axis_value)) {
-            window->GetTabletData().Xtilt = (short)(axis_value & 0xffff) /
-                                            ((float)xtablet.XtiltLevels);
+            window->GetTabletData().Xtilt = short(axis_value & 0xffff) /
+                                            float(xtablet.XtiltLevels);
           }
           if (AXIS_VALUE_GET(4, axis_value)) {
-            window->GetTabletData().Ytilt = (short)(axis_value & 0xffff) /
-                                            ((float)xtablet.YtiltLevels);
+            window->GetTabletData().Ytilt = short(axis_value & 0xffff) /
+                                            float(xtablet.YtiltLevels);
           }
 
 #  undef AXIS_VALUE_GET
@@ -1897,7 +1897,7 @@ static GHOST_TKey ghost_key_from_keysym(const KeySym key)
 
 #undef GXMAP
 
-#define MAKE_ID(a, b, c, d) ((int)(d) << 24 | (int)(c) << 16 | (b) << 8 | (a))
+#define MAKE_ID(a, b, c, d) (int(d) << 24 | int(c) << 16 | (b) << 8 | (a))
 
 static GHOST_TKey ghost_key_from_keycode(const XkbDescPtr xkb_descr, const KeyCode keycode)
 {
@@ -2020,7 +2020,7 @@ void GHOST_SystemX11::getClipboard_xcout(const XEvent *evt,
                          win,
                          m_atom.XCLIP_OUT,
                          0,
-                         (long)pty_size,
+                         long(pty_size),
                          False,
                          AnyPropertyType,
                          &pty_type,
@@ -2106,7 +2106,7 @@ void GHOST_SystemX11::getClipboard_xcout(const XEvent *evt,
                          win,
                          m_atom.XCLIP_OUT,
                          0,
-                         (long)pty_size,
+                         long(pty_size),
                          False,
                          AnyPropertyType,
                          &pty_type,
@@ -2363,10 +2363,10 @@ class DialogData {
   bool isInsideButton(XEvent &e, uint button_num)
   {
     return (
-        (e.xmotion.y > (int)(height - padding_y - button_height)) &&
-        (e.xmotion.y < (int)(height - padding_y)) &&
-        (e.xmotion.x > (int)(width - (padding_x + button_width) * button_num)) &&
-        (e.xmotion.x < (int)(width - padding_x - (padding_x + button_width) * (button_num - 1))));
+        (e.xmotion.y > int(height - padding_y - button_height)) &&
+        (e.xmotion.y < int(height - padding_y)) &&
+        (e.xmotion.x > int(width - (padding_x + button_width) * button_num)) &&
+        (e.xmotion.x < int(width - padding_x - (padding_x + button_width) * (button_num - 1))));
   }
 };
 
@@ -2383,7 +2383,7 @@ static void split(const char *text, const char *seps, char ***str, int *count)
   free(data);
 
   data = strdup(text);
-  *str = (char **)malloc((size_t)(*count) * sizeof(char *));
+  *str = (char **)malloc(size_t(*count) * sizeof(char *));
   for (i = 0, tok = strtok(data, seps); tok != nullptr; tok = strtok(nullptr, seps), i++) {
     (*str)[i] = strdup(tok);
   }
@@ -2440,7 +2440,7 @@ GHOST_TSuccess GHOST_SystemX11::showMessageBox(const char *title,
                     8,
                     PropModeReplace,
                     (const unsigned char *)title,
-                    (int)strlen(title));
+                    int(strlen(title)));
 
     XChangeProperty(
         m_display, window, winType, XA_ATOM, 32, PropModeReplace, (unsigned char *)&typeDialog, 1);

@@ -56,7 +56,7 @@
 #include "interface_regions_intern.hh"
 
 #define UI_TIP_PAD_FAC 1.3f
-#define UI_TIP_PADDING (int)(UI_TIP_PAD_FAC * UI_UNIT_Y)
+#define UI_TIP_PADDING int(UI_TIP_PAD_FAC * UI_UNIT_Y)
 #define UI_TIP_MAXWIDTH 600
 
 #define UI_TIP_STR_MAX 1024

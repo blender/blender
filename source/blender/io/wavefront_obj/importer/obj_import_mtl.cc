@@ -356,7 +356,7 @@ static void add_image_textures(Main *bmain,
                                bool relative_paths)
 {
   float node_locy = node_locy_top;
-  for (int key = 0; key < (int)MTLTexMapType::Count; ++key) {
+  for (int key = 0; key < int(MTLTexMapType::Count); ++key) {
     const MTLTexMap &value = mtl_mat.texture_maps[key];
     if (!value.is_valid()) {
       /* No Image texture node of this map type can be added to this material. */
@@ -375,7 +375,7 @@ static void add_image_textures(Main *bmain,
 
     /* Add normal map node if needed. */
     bNode *normal_map = nullptr;
-    if (key == (int)MTLTexMapType::Normal) {
+    if (key == int(MTLTexMapType::Normal)) {
       normal_map = add_node(ntree, SH_NODE_NORMAL_MAP, node_locx_normalmap, node_locy);
       const float bump = std::max(0.0f, mtl_mat.normal_strength);
       set_property_of_socket(SOCK_FLOAT, "Strength", {bump}, normal_map);
@@ -396,7 +396,7 @@ static void add_image_textures(Main *bmain,
       link_sockets(ntree, image_node, "Color", normal_map, "Color");
       link_sockets(ntree, normal_map, "Normal", bsdf, "Normal");
     }
-    else if (key == (int)MTLTexMapType::Alpha) {
+    else if (key == int(MTLTexMapType::Alpha)) {
       link_sockets(ntree, image_node, "Alpha", bsdf, tex_map_type_to_socket_id[key]);
       mat->blend_method = MA_BM_BLEND;
     }

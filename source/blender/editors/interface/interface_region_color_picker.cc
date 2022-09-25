@@ -542,7 +542,7 @@ static void ui_block_colorpicker(uiBlock *block,
                  UI_UNIT_Y,
                  &colormode,
                  0.0,
-                 (float)PICKER_TYPE_RGB,
+                 float(PICKER_TYPE_RGB),
                  0,
                  0,
                  "");

@@ -2859,8 +2859,8 @@ static void viewer_border_corner_to_backdrop(SpaceNode *snode,
   float bufx = backdrop_width * snode->zoom;
   float bufy = backdrop_height * snode->zoom;
 
-  *fx = (bufx > 0.0f ? ((float)x - 0.5f * region->winx - snode->xof) / bufx + 0.5f : 0.0f);
-  *fy = (bufy > 0.0f ? ((float)y - 0.5f * region->winy - snode->yof) / bufy + 0.5f : 0.0f);
+  *fx = (bufx > 0.0f ? (float(x) - 0.5f * region->winx - snode->xof) / bufx + 0.5f : 0.0f);
+  *fy = (bufy > 0.0f ? (float(y) - 0.5f * region->winy - snode->yof) / bufy + 0.5f : 0.0f);
 }
 
 static int viewer_border_exec(bContext *C, wmOperator *op)

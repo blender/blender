@@ -1396,7 +1396,7 @@ void BKE_mesh_material_remap(Mesh *me, const uint *remap, uint remap_len)
 {
   using namespace blender;
   using namespace blender::bke;
-  const short remap_len_short = (short)remap_len;
+  const short remap_len_short = short(remap_len);
 
 #define MAT_NR_REMAP(n) \
   if (n < remap_len_short) { \
@@ -1832,7 +1832,7 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh,
    * only in case auto-smooth is enabled. */
   const bool use_split_normals = (r_lnors_spacearr != nullptr) ||
                                  ((mesh->flag & ME_AUTOSMOOTH) != 0);
-  const float split_angle = (mesh->flag & ME_AUTOSMOOTH) != 0 ? mesh->smoothresh : (float)M_PI;
+  const float split_angle = (mesh->flag & ME_AUTOSMOOTH) != 0 ? mesh->smoothresh : float(M_PI);
 
   /* may be nullptr */
   clnors = (short(*)[2])CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);

@@ -112,7 +112,7 @@ static void pbvh_vertex_color_get(const PBVH &pbvh, PBVHVertRef vertex, float r_
     }
 
     if (count) {
-      mul_v4_fl(r_color, 1.0f / (float)count);
+      mul_v4_fl(r_color, 1.0f / float(count));
     }
   }
   else {

@@ -83,7 +83,7 @@ struct ParticleList {
 
   size_t size() const
   {
-    return (size_t)positions.size();
+    return size_t(positions.size());
   }
 
   void getPos(size_t n, openvdb::Vec3R &xyz) const

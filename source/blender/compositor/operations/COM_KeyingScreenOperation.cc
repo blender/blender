@@ -152,9 +152,9 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::build_voronoi_t
         else {
           uchar *rrgb = (uchar *)pattern_ibuf->rect;
 
-          site->color[0] += srgb_to_linearrgb((float)rrgb[4 * j + 0] / 255.0f);
-          site->color[1] += srgb_to_linearrgb((float)rrgb[4 * j + 1] / 255.0f);
-          site->color[2] += srgb_to_linearrgb((float)rrgb[4 * j + 2] / 255.0f);
+          site->color[0] += srgb_to_linearrgb(float(rrgb[4 * j + 0]) / 255.0f);
+          site->color[1] += srgb_to_linearrgb(float(rrgb[4 * j + 1]) / 255.0f);
+          site->color[2] += srgb_to_linearrgb(float(rrgb[4 * j + 2]) / 255.0f);
         }
       }
 
@@ -204,11 +204,11 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::build_voronoi_t
       minmax_v2v2_v2(min, max, b->co);
       minmax_v2v2_v2(min, max, c->co);
 
-      rect->xmin = (int)min[0];
-      rect->ymin = (int)min[1];
+      rect->xmin = int(min[0]);
+      rect->ymin = int(min[1]);
 
-      rect->xmax = (int)max[0] + 1;
-      rect->ymax = (int)max[1] + 1;
+      rect->xmax = int(max[0]) + 1;
+      rect->ymax = int(max[1]) + 1;
     }
   }
 
@@ -311,7 +311,7 @@ void KeyingScreenOperation::execute_pixel(float output[4], int x, int y, void *d
     TriangulationData *triangulation = cached_triangulation_;
     TileData *tile_data = (TileData *)data;
     int i;
-    float co[2] = {(float)x, (float)y};
+    float co[2] = {float(x), float(y)};
 
     for (i = 0; i < tile_data->triangles_total; i++) {
       int triangle_idx = tile_data->triangles[i];
@@ -356,7 +356,7 @@ void KeyingScreenOperation::update_memory_buffer_partial(MemoryBuffer *output,
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     copy_v4_v4(it.out, COM_COLOR_BLACK);
 
-    const float co[2] = {(float)it.x, (float)it.y};
+    const float co[2] = {float(it.x), float(it.y)};
     for (int i = 0; i < num_triangles; i++) {
       const int triangle_idx = triangles[i];
       const rcti *rect = &triangulation->triangles_AABB[triangle_idx];

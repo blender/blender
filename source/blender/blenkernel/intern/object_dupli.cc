@@ -211,7 +211,7 @@ static DupliObject *make_dupli(
 
   if (dob->persistent_id[0] != INT_MAX) {
     for (i = 0; i < MAX_DUPLI_RECUR; i++) {
-      dob->random_id = BLI_hash_int_2d(dob->random_id, (uint)dob->persistent_id[i]);
+      dob->random_id = BLI_hash_int_2d(dob->random_id, uint(dob->persistent_id[i]));
     }
   }
   else {
@@ -727,7 +727,7 @@ static void make_duplis_font(const DupliContext *ctx)
     /* XXX That G.main is *really* ugly, but not sure what to do here.
      * Definitively don't think it would be safe to put back `Main *bmain` pointer
      * in #DupliContext as done in 2.7x? */
-    ob = find_family_object(G.main, cu->family, family_len, (uint)text[a], family_gh);
+    ob = find_family_object(G.main, cu->family, family_len, uint(text[a]), family_gh);
 
     if (is_eval_curve) {
       /* Workaround for the above hack. */
@@ -953,7 +953,7 @@ static void get_dupliface_transform_from_coords(Span<float3> coords,
   for (const float3 &coord : coords) {
     location += coord;
   }
-  location *= 1.0f / (float)coords.size();
+  location *= 1.0f / float(coords.size());
 
   /* Rotation. */
   float quat[4];
@@ -964,7 +964,7 @@ static void get_dupliface_transform_from_coords(Span<float3> coords,
   /* Scale. */
   float scale;
   if (use_scale) {
-    const float area = area_poly_v3((const float(*)[3])coords.data(), (uint)coords.size());
+    const float area = area_poly_v3((const float(*)[3])coords.data(), uint(coords.size()));
     scale = sqrtf(area) * scale_fac;
   }
   else {
@@ -1094,7 +1094,7 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
     DupliObject *dob = face_dupli_from_mesh(
         fdd->params.ctx, inst_ob, child_imat, a, use_scale, scale_fac, mp, loopstart, mvert);
 
-    const float w = 1.0f / (float)mp->totloop;
+    const float w = 1.0f / float(mp->totloop);
     if (orco) {
       for (int j = 0; j < mp->totloop; j++) {
         madd_v3_v3fl(dob->orco, orco[loopstart[j].v], w);
@@ -1134,7 +1134,7 @@ static void make_child_duplis_faces_from_editmesh(const DupliContext *ctx,
         fdd->params.ctx, inst_ob, child_imat, a, use_scale, scale_fac, f, vert_coords);
 
     if (fdd->has_orco) {
-      const float w = 1.0f / (float)f->len;
+      const float w = 1.0f / float(f->len);
       BMLoop *l_first, *l_iter;
       l_iter = l_first = BM_FACE_FIRST_LOOP(f);
       do {
@@ -1294,7 +1294,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
       totpart = psys->totcached;
     }
 
-    RNG *rng = BLI_rng_new_srandom(31415926u + (uint)psys->seed);
+    RNG *rng = BLI_rng_new_srandom(31415926u + uint(psys->seed));
 
     psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
 

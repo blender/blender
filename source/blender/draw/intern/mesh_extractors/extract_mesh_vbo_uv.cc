@@ -146,7 +146,7 @@ static void extract_uv_init_subdiv(const DRWSubdivCache *subdiv_cache,
   int pack_layer_index = 0;
   for (int i = 0; i < MAX_MTFACE; i++) {
     if (uv_layers & (1 << i)) {
-      const int offset = (int)subdiv_cache->num_subdiv_loops * pack_layer_index++;
+      const int offset = int(subdiv_cache->num_subdiv_loops) * pack_layer_index++;
       draw_subdiv_extract_uvs(subdiv_cache, vbo, i, offset);
     }
   }

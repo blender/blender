@@ -144,7 +144,7 @@ static Curves *create_point_circle_curve(
 
   /* Get the radius from the center-point to p1. */
   const float r = math::distance(p1, center);
-  const float theta_step = ((2 * M_PI) / (float)resolution);
+  const float theta_step = ((2 * M_PI) / float(resolution));
   for (const int i : IndexRange(resolution)) {
 
     /* Formula for a circle around a point and 2 unit vectors perpendicular

@@ -161,7 +161,7 @@ void BLI_rng_shuffle_bitmap(struct RNG *rng, BLI_bitmap *bitmap, uint bits_num)
 
 void BLI_rng_skip(RNG *rng, int n)
 {
-  rng->rng.skip((uint)n);
+  rng->rng.skip(uint(n));
 }
 
 /***/
@@ -239,7 +239,7 @@ RNG_THREAD_ARRAY *BLI_rng_threaded_new()
                                                              "random_array");
 
   for (i = 0; i < BLENDER_MAX_THREADS; i++) {
-    BLI_rng_srandom(&rngarr->rng_tab[i], (uint)clock());
+    BLI_rng_srandom(&rngarr->rng_tab[i], uint(clock()));
   }
 
   return rngarr;
@@ -283,7 +283,7 @@ BLI_INLINE double halton_ex(double invprimes, double *offset)
 
 void BLI_halton_1d(uint prime, double offset, int n, double *r)
 {
-  const double invprime = 1.0 / (double)prime;
+  const double invprime = 1.0 / double(prime);
 
   *r = 0.0;
 
@@ -294,7 +294,7 @@ void BLI_halton_1d(uint prime, double offset, int n, double *r)
 
 void BLI_halton_2d(const uint prime[2], double offset[2], int n, double *r)
 {
-  const double invprimes[2] = {1.0 / (double)prime[0], 1.0 / (double)prime[1]};
+  const double invprimes[2] = {1.0 / double(prime[0]), 1.0 / double(prime[1])};
 
   r[0] = r[1] = 0.0;
 
@@ -308,7 +308,7 @@ void BLI_halton_2d(const uint prime[2], double offset[2], int n, double *r)
 void BLI_halton_3d(const uint prime[3], double offset[3], int n, double *r)
 {
   const double invprimes[3] = {
-      1.0 / (double)prime[0], 1.0 / (double)prime[1], 1.0 / (double)prime[2]};
+      1.0 / double(prime[0]), 1.0 / double(prime[1]), 1.0 / double(prime[2])};
 
   r[0] = r[1] = r[2] = 0.0;
 
@@ -321,7 +321,7 @@ void BLI_halton_3d(const uint prime[3], double offset[3], int n, double *r)
 
 void BLI_halton_2d_sequence(const uint prime[2], double offset[2], int n, double *r)
 {
-  const double invprimes[2] = {1.0 / (double)prime[0], 1.0 / (double)prime[1]};
+  const double invprimes[2] = {1.0 / double(prime[0]), 1.0 / double(prime[1])};
 
   for (int s = 0; s < n; s++) {
     for (int i = 0; i < 2; i++) {
@@ -355,7 +355,7 @@ void BLI_hammersley_1d(uint n, double *r)
 void BLI_hammersley_2d_sequence(uint n, double *r)
 {
   for (uint s = 0; s < n; s++) {
-    r[s * 2 + 0] = (double)(s + 0.5) / (double)n;
+    r[s * 2 + 0] = double(s + 0.5) / double(n);
     r[s * 2 + 1] = radical_inverse(s);
   }
 }
@@ -377,12 +377,12 @@ int RandomNumberGenerator::round_probabilistic(float x)
   BLI_assert(x >= 0.0f);
   const float round_up_probability = fractf(x);
   const bool round_up = round_up_probability > this->get_float();
-  return (int)x + (int)round_up;
+  return int(x) + int(round_up);
 }
 
 float2 RandomNumberGenerator::get_unit_float2()
 {
-  float a = (float)(M_PI * 2.0) * this->get_float();
+  float a = float(M_PI * 2.0) * this->get_float();
   return {cosf(a), sinf(a)};
 }
 
@@ -391,7 +391,7 @@ float3 RandomNumberGenerator::get_unit_float3()
   float z = (2.0f * this->get_float()) - 1.0f;
   float r = 1.0f - z * z;
   if (r > 0.0f) {
-    float a = (float)(M_PI * 2.0) * this->get_float();
+    float a = float(M_PI * 2.0) * this->get_float();
     r = sqrtf(r);
     float x = r * cosf(a);
     float y = r * sinf(a);

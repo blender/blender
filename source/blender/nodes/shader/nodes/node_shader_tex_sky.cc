@@ -189,12 +189,12 @@ static int node_shader_gpu_tex_sky(GPUMaterial *mat,
     /* Pass sky_state->configs[3][9] as 3*(vec4+vec4)+vec3 */
     float config_x07[8], config_y07[8], config_z07[8], config_xyz8[3];
     for (int i = 0; i < 8; ++i) {
-      config_x07[i] = (float)sky_state->configs[0][i];
-      config_y07[i] = (float)sky_state->configs[1][i];
-      config_z07[i] = (float)sky_state->configs[2][i];
+      config_x07[i] = float(sky_state->configs[0][i]);
+      config_y07[i] = float(sky_state->configs[1][i]);
+      config_z07[i] = float(sky_state->configs[2][i]);
     }
     for (int i = 0; i < 3; ++i) {
-      config_xyz8[i] = (float)sky_state->configs[i][8];
+      config_xyz8[i] = float(sky_state->configs[i][8]);
     }
     float radiance[3];
     for (int i = 0; i < 3; i++) {

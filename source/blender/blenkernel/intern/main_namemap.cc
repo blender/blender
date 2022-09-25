@@ -62,7 +62,7 @@ static bool id_name_final_build(char *name, char *base_name, size_t base_name_le
 
     /* Code above may have generated invalid utf-8 string, due to raw truncation.
      * Ensure we get a valid one now. */
-    base_name_len -= (size_t)BLI_str_utf8_invalid_strip(base_name, base_name_len);
+    base_name_len -= size_t(BLI_str_utf8_invalid_strip(base_name, base_name_len));
 
     /* Also truncate orig name, and start the whole check again. */
     name[base_name_len] = '\0';

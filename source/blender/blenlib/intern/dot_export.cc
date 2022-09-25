@@ -93,7 +93,7 @@ void Graph::set_random_cluster_bgcolors()
 
 void Cluster::set_random_cluster_bgcolors()
 {
-  float hue = rand() / (float)RAND_MAX;
+  float hue = rand() / float(RAND_MAX);
   float staturation = 0.3f;
   float value = 0.8f;
   this->attributes.set("bgcolor", color_attr_from_hsv(hue, staturation, value));
@@ -227,7 +227,7 @@ void Attributes::export__as_bracket_list(std::stringstream &ss) const
 
 void Node::export__as_id(std::stringstream &ss) const
 {
-  ss << '"' << (uintptr_t)this << '"';
+  ss << '"' << uintptr_t(this) << '"';
 }
 
 void Node::export__as_declaration(std::stringstream &ss) const

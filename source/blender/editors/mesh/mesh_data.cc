@@ -161,9 +161,9 @@ static void mesh_uv_reset_array(float **fuv, const int len)
     /* Make sure we ignore 2-sided faces. */
   }
   else if (len > 2) {
-    float fac = 0.0f, dfac = 1.0f / (float)len;
+    float fac = 0.0f, dfac = 1.0f / float(len);
 
-    dfac *= (float)M_PI * 2.0f;
+    dfac *= float(M_PI) * 2.0f;
 
     for (int i = 0; i < len; i++) {
       fuv[i][0] = 0.5f * sinf(fac) + 0.5f;

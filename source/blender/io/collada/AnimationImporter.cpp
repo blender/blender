@@ -55,7 +55,7 @@ void AnimationImporter::add_bezt(FCurve *fcu,
                                  float value,
                                  eBezTriple_Interpolation ipo)
 {
-  // float fps = (float)FPS;
+  // float fps = float(FPS);
   BezTriple bez;
   memset(&bez, 0, sizeof(BezTriple));
   bez.vec[1][0] = frame;
@@ -72,7 +72,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
   COLLADAFW::FloatOrDoubleArray &input = curve->getInputValues();
   COLLADAFW::FloatOrDoubleArray &output = curve->getOutputValues();
 
-  float fps = (float)FPS;
+  float fps = float(FPS);
   size_t dim = curve->getOutDimension();
   uint i;
 
@@ -141,7 +141,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
     default:
       fprintf(stderr,
               "Output dimension of %d is not yet supported (animation id = %s)\n",
-              (int)dim,
+              int(dim),
               curve->getOriginalId().c_str());
   }
 }
@@ -262,7 +262,7 @@ AnimationImporter::~AnimationImporter()
   }
 
   if (!unused_curves.empty()) {
-    fprintf(stderr, "removed %d unused curves\n", (int)unused_curves.size());
+    fprintf(stderr, "removed %d unused curves\n", int(unused_curves.size()));
   }
 }
 
@@ -530,7 +530,7 @@ void AnimationImporter::Assign_transform_animations(
               binding->animationClass == COLLADAFW::AnimationList::POSITION_XYZ);
 
   if (!((!xyz && curves->size() == 1) || (xyz && curves->size() == 3) || is_matrix)) {
-    fprintf(stderr, "expected %d curves, got %d\n", xyz ? 3 : 1, (int)curves->size());
+    fprintf(stderr, "expected %d curves, got %d\n", xyz ? 3 : 1, int(curves->size()));
     return;
   }
 
@@ -1536,7 +1536,7 @@ void AnimationImporter::find_frames_old(std::vector<float> *frames,
               }
             }
             else {
-              fprintf(stderr, "expected %d curves, got %d\n", xyz ? 3 : 1, (int)curves.size());
+              fprintf(stderr, "expected %d curves, got %d\n", xyz ? 3 : 1, int(curves.size()));
             }
           }
         }
@@ -1934,7 +1934,7 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm,
 
       if (type == COLLADAFW::Transformation::ROTATE) {
         if (curves.size() != 1) {
-          fprintf(stderr, "expected 1 curve, got %d\n", (int)curves.size());
+          fprintf(stderr, "expected 1 curve, got %d\n", int(curves.size()));
           return false;
         }
 
@@ -1946,7 +1946,7 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm,
 
         COLLADABU::Math::Vector3 &axis = ((COLLADAFW::Rotate *)tm)->getRotationAxis();
 
-        float ax[3] = {(float)axis[0], (float)axis[1], (float)axis[2]};
+        float ax[3] = {float(axis[0]), float(axis[1]), float(axis[2])};
         float angle = evaluate_fcurve(curves[0], fra);
         axis_angle_to_mat4(mat, ax, angle);
 
@@ -1957,10 +1957,10 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm,
 
         if ((!is_xyz && curves.size() != 1) || (is_xyz && curves.size() != 3)) {
           if (is_xyz) {
-            fprintf(stderr, "%s: expected 3 curves, got %d\n", path, (int)curves.size());
+            fprintf(stderr, "%s: expected 3 curves, got %d\n", path, int(curves.size()));
           }
           else {
-            fprintf(stderr, "%s: expected 1 curve, got %d\n", path, (int)curves.size());
+            fprintf(stderr, "%s: expected 1 curve, got %d\n", path, int(curves.size()));
           }
           return false;
         }
@@ -1989,7 +1989,7 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm,
         /* for now, of matrix animation,
          * support only the case when all values are packed into one animation */
         if (curves.size() != 16) {
-          fprintf(stderr, "%s: expected 16 curves, got %d\n", path, (int)curves.size());
+          fprintf(stderr, "%s: expected 16 curves, got %d\n", path, int(curves.size()));
           return false;
         }
 

@@ -33,7 +33,7 @@ const char *tex_map_type_to_socket_id[] = {
     "Alpha",
     "Normal",
 };
-BLI_STATIC_ASSERT(ARRAY_SIZE(tex_map_type_to_socket_id) == (int)MTLTexMapType::Count,
+BLI_STATIC_ASSERT(ARRAY_SIZE(tex_map_type_to_socket_id) == int(MTLTexMapType::Count),
                   "array size mismatch");
 
 /**
@@ -312,12 +312,12 @@ static void store_image_textures(const bNode *bsdf_node,
    * - finding "Strength" property of the node for `-bm` option.
    */
 
-  for (int key = 0; key < (int)MTLTexMapType::Count; ++key) {
+  for (int key = 0; key < int(MTLTexMapType::Count); ++key) {
     MTLTexMap &value = r_mtl_mat.texture_maps[key];
     Vector<const bNodeSocket *> linked_sockets;
     const bNode *normal_map_node{nullptr};
 
-    if (key == (int)MTLTexMapType::Normal) {
+    if (key == int(MTLTexMapType::Normal)) {
       /* Find sockets linked to destination "Normal" socket in P-BSDF node. */
       linked_sockets_to_dest_id(bsdf_node, *node_tree, "Normal", linked_sockets);
       /* Among the linked sockets, find Normal Map shader node. */
@@ -328,7 +328,7 @@ static void store_image_textures(const bNode *bsdf_node,
     }
     else {
       /* Skip emission map if emission strength is zero. */
-      if (key == (int)MTLTexMapType::Emission) {
+      if (key == int(MTLTexMapType::Emission)) {
         float emission_strength = 0.0f;
         copy_property_from_node(
             SOCK_FLOAT, bsdf_node, "Emission Strength", {&emission_strength, 1});

@@ -122,9 +122,9 @@ class ImageFieldsFunction : public fn::MultiFunction {
 
   static float frac(const float x, int *ix)
   {
-    const int i = (int)x - ((x < 0.0f) ? 1 : 0);
+    const int i = int(x) - ((x < 0.0f) ? 1 : 0);
     *ix = i;
-    return x - (float)i;
+    return x - float(i);
   }
 
   static float4 image_cubic_texture_lookup(const ImBuf *ibuf,
@@ -135,8 +135,8 @@ class ImageFieldsFunction : public fn::MultiFunction {
     const int width = ibuf->x;
     const int height = ibuf->y;
     int pix, piy, nix, niy;
-    const float tx = frac(px * (float)width - 0.5f, &pix);
-    const float ty = frac(py * (float)height - 0.5f, &piy);
+    const float tx = frac(px * float(width) - 0.5f, &pix);
+    const float ty = frac(py * float(height) - 0.5f, &piy);
     int ppix, ppiy, nnix, nniy;
 
     switch (extension) {
@@ -215,8 +215,8 @@ class ImageFieldsFunction : public fn::MultiFunction {
     const int width = ibuf->x;
     const int height = ibuf->y;
     int pix, piy, nix, niy;
-    const float nfx = frac(px * (float)width - 0.5f, &pix);
-    const float nfy = frac(py * (float)height - 0.5f, &piy);
+    const float nfx = frac(px * float(width) - 0.5f, &pix);
+    const float nfy = frac(py * float(height) - 0.5f, &piy);
 
     switch (extension) {
       case SHD_IMAGE_EXTENSION_CLIP: {
@@ -257,8 +257,8 @@ class ImageFieldsFunction : public fn::MultiFunction {
     const int width = ibuf->x;
     const int height = ibuf->y;
     int ix, iy;
-    const float tx = frac(px * (float)width, &ix);
-    const float ty = frac(py * (float)height, &iy);
+    const float tx = frac(px * float(width), &ix);
+    const float ty = frac(py * float(height), &iy);
 
     switch (extension) {
       case SHD_IMAGE_EXTENSION_REPEAT: {

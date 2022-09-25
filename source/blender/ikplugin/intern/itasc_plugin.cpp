@@ -761,7 +761,7 @@ static void copypose_error(const iTaSC::ConstraintValues *values,
     for (i = 0, error = 0.0, value = values->values; i < values->number; i++, value++) {
       error += KDL::sqr(value->y - value->yd);
     }
-    iktarget->blenderConstraint->lin_error = (float)KDL::sqrt(error);
+    iktarget->blenderConstraint->lin_error = float(KDL::sqrt(error));
     values++;
   }
   if (iktarget->controlType & iTaSC::CopyPose::CTL_ROTATION) {
@@ -769,7 +769,7 @@ static void copypose_error(const iTaSC::ConstraintValues *values,
     for (i = 0, error = 0.0, value = values->values; i < values->number; i++, value++) {
       error += KDL::sqr(value->y - value->yd);
     }
-    iktarget->blenderConstraint->rot_error = (float)KDL::sqrt(error);
+    iktarget->blenderConstraint->rot_error = float(KDL::sqrt(error));
     values++;
   }
 }
@@ -829,7 +829,7 @@ static void distance_error(const iTaSC::ConstraintValues *values,
                            uint _nvalues,
                            IK_Target *iktarget)
 {
-  iktarget->blenderConstraint->lin_error = (float)(values->values[0].y - values->values[0].yd);
+  iktarget->blenderConstraint->lin_error = float(values->values[0].y - values->values[0].yd);
 }
 
 static bool joint_callback(const iTaSC::Timestamp &timestamp,

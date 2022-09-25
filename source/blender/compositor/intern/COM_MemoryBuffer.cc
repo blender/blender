@@ -266,7 +266,7 @@ void MemoryBuffer::copy_from(const uchar *src,
     const float *row_end = to_elem + width * this->elem_stride;
     while (to_elem < row_end) {
       for (int i = 0; i < elem_size; i++) {
-        to_elem[i] = ((float)from_elem[i]) * (1.0f / 255.0f);
+        to_elem[i] = float(from_elem[i]) * (1.0f / 255.0f);
       }
       to_elem += this->elem_stride;
       from_elem += elem_stride;
@@ -427,7 +427,7 @@ void MemoryBuffer::read_elem_filtered(
 
   const float deriv[2][2] = {{dx[0], dx[1]}, {dy[0], dy[1]}};
 
-  float inv_width = 1.0f / (float)this->get_width(), inv_height = 1.0f / (float)this->get_height();
+  float inv_width = 1.0f / float(this->get_width()), inv_height = 1.0f / float(this->get_height());
   /* TODO(sergey): Render pipeline uses normalized coordinates and derivatives,
    * but compositor uses pixel space. For now let's just divide the values and
    * switch compositor to normalized space for EWA later.
@@ -463,8 +463,8 @@ void MemoryBuffer::readEWA(float *result, const float uv[2], const float derivat
   }
   else {
     BLI_assert(datatype_ == DataType::Color);
-    float inv_width = 1.0f / (float)this->get_width(),
-          inv_height = 1.0f / (float)this->get_height();
+    float inv_width = 1.0f / float(this->get_width()),
+          inv_height = 1.0f / float(this->get_height());
     /* TODO(sergey): Render pipeline uses normalized coordinates and derivatives,
      * but compositor uses pixel space. For now let's just divide the values and
      * switch compositor to normalized space for EWA later.

@@ -843,8 +843,7 @@ static int node_circleselect_exec(bContext *C, wmOperator *op)
   int x, y, radius;
   float2 offset;
 
-  float zoom = (float)(BLI_rcti_size_x(&region->winrct)) /
-               (float)(BLI_rctf_size_x(&region->v2d.cur));
+  float zoom = float(BLI_rcti_size_x(&region->winrct)) / float(BLI_rctf_size_x(&region->v2d.cur));
 
   const eSelectOp sel_op = ED_select_op_modal(
       (eSelectOp)RNA_enum_get(op->ptr, "mode"),
@@ -867,7 +866,7 @@ static int node_circleselect_exec(bContext *C, wmOperator *op)
         /* Frame nodes are selectable by their borders (including their whole rect - as for other
          * nodes - would prevent selection of _only_ other nodes inside that frame. */
         rctf frame_inside = node_frame_rect_inside(*node);
-        const float radius_adjusted = (float)radius / zoom;
+        const float radius_adjusted = float(radius) / zoom;
         BLI_rctf_pad(&frame_inside, -2.0f * radius_adjusted, -2.0f * radius_adjusted);
         if (BLI_rctf_isect_circle(&node->totr, offset, radius_adjusted) &&
             !BLI_rctf_isect_circle(&frame_inside, offset, radius_adjusted)) {

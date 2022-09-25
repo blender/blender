@@ -445,7 +445,7 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
         stringstream ss;
         ss << "Freestyle: Visibility computations " << (100 * count / vedges.size()) << "%";
         iRenderMonitor->setInfo(ss.str());
-        iRenderMonitor->progress((float)count / vedges.size());
+        iRenderMonitor->progress(float(count) / vedges.size());
       }
       count++;
     }
@@ -607,7 +607,7 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
 #endif
     // occludee --
     if (!wFaces.empty()) {
-      if (wFaces.size() <= (float)nSamples / 2.0f) {
+      if (wFaces.size() <= float(nSamples) / 2.0f) {
         (*ve)->setaShape(nullptr);
       }
       else {
@@ -623,7 +623,7 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
     stringstream ss;
     ss << "Freestyle: Visibility computations " << (100 * count / vedges.size()) << "%";
     iRenderMonitor->setInfo(ss.str());
-    iRenderMonitor->progress((float)count / vedges.size());
+    iRenderMonitor->progress(float(count) / vedges.size());
   }
 }
 
@@ -796,7 +796,7 @@ static void computeDetailedVisibility(ViewMap *ioViewMap,
 #endif
     // occludee --
     if (!wFaces.empty()) {
-      if (wFaces.size() <= (float)nSamples / 2.0f) {
+      if (wFaces.size() <= float(nSamples) / 2.0f) {
         (*ve)->setaShape(nullptr);
       }
       else {
@@ -1668,7 +1668,7 @@ void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, real epsilo
 #endif
     // occludee --
     if (!aFaces.empty()) {
-      if (aFaces.size() <= (float)nSamples / 2.0f) {
+      if (aFaces.size() <= float(nSamples) / 2.0f) {
         (*ve)->setaShape(nullptr);
       }
       else {

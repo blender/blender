@@ -495,10 +495,10 @@ static void gather_realize_tasks_for_instances(GatherTasksInfo &gather_info,
     uint32_t local_instance_id = 0;
     if (gather_info.create_id_attribute_on_any_component) {
       if (stored_instance_ids.is_empty()) {
-        local_instance_id = (uint32_t)i;
+        local_instance_id = uint32_t(i);
       }
       else {
-        local_instance_id = (uint32_t)stored_instance_ids[i];
+        local_instance_id = uint32_t(stored_instance_ids[i]);
       }
     }
     const uint32_t instance_id = noise::hash(base_instance_context.id, local_instance_id);

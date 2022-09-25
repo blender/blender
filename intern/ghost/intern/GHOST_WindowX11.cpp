@@ -442,7 +442,7 @@ void GHOST_WindowX11::refreshXInputDevices()
       }
     }
 
-    XSelectExtensionEvent(m_display, m_window, xevents.data(), (int)xevents.size());
+    XSelectExtensionEvent(m_display, m_window, xevents.data(), int(xevents.size()));
   }
 }
 
@@ -899,7 +899,7 @@ GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
   bool is_max, is_full, is_motif_full;
 
   cur_state = getState();
-  if (state == (int)cur_state) {
+  if (state == int(cur_state)) {
     return GHOST_kSuccess;
   }
 

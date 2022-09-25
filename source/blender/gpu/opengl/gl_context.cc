@@ -191,11 +191,11 @@ void GLSharedOrphanLists::orphans_clear()
 
   lists_mutex.lock();
   if (!buffers.is_empty()) {
-    glDeleteBuffers((uint)buffers.size(), buffers.data());
+    glDeleteBuffers(uint(buffers.size()), buffers.data());
     buffers.clear();
   }
   if (!textures.is_empty()) {
-    glDeleteTextures((uint)textures.size(), textures.data());
+    glDeleteTextures(uint(textures.size()), textures.data());
     textures.clear();
   }
   lists_mutex.unlock();
@@ -208,11 +208,11 @@ void GLContext::orphans_clear()
 
   lists_mutex_.lock();
   if (!orphaned_vertarrays_.is_empty()) {
-    glDeleteVertexArrays((uint)orphaned_vertarrays_.size(), orphaned_vertarrays_.data());
+    glDeleteVertexArrays(uint(orphaned_vertarrays_.size()), orphaned_vertarrays_.data());
     orphaned_vertarrays_.clear();
   }
   if (!orphaned_framebuffers_.is_empty()) {
-    glDeleteFramebuffers((uint)orphaned_framebuffers_.size(), orphaned_framebuffers_.data());
+    glDeleteFramebuffers(uint(orphaned_framebuffers_.size()), orphaned_framebuffers_.data());
     orphaned_framebuffers_.clear();
   }
   lists_mutex_.unlock();

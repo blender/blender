@@ -1636,8 +1636,8 @@ bool BKE_volume_grid_bounds(openvdb::GridBase::ConstPtr grid, float3 &r_min, flo
 
   openvdb::BBoxd bbox = grid->transform().indexToWorld(coordbbox);
 
-  r_min = float3((float)bbox.min().x(), (float)bbox.min().y(), (float)bbox.min().z());
-  r_max = float3((float)bbox.max().x(), (float)bbox.max().y(), (float)bbox.max().z());
+  r_min = float3(float(bbox.min().x()), float(bbox.min().y()), float(bbox.min().z()));
+  r_max = float3(float(bbox.max().x()), float(bbox.max().y()), float(bbox.max().z()));
 
   return true;
 }

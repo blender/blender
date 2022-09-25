@@ -64,7 +64,7 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *mpoly,
   }
 
   vmap = (UvVertMap *)MEM_callocN(sizeof(*vmap), "UvVertMap");
-  buf = vmap->buf = (UvMapVert *)MEM_callocN(sizeof(*vmap->buf) * (size_t)totuv, "UvMapVert");
+  buf = vmap->buf = (UvMapVert *)MEM_callocN(sizeof(*vmap->buf) * size_t(totuv), "UvMapVert");
   vmap->vert = (UvMapVert **)MEM_callocN(sizeof(*vmap->vert) * totvert, "UvMapVert*");
   if (use_winding) {
     winding = static_cast<bool *>(MEM_callocN(sizeof(*winding) * totpoly, "winding"));
@@ -81,13 +81,13 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *mpoly,
       float(*tf_uv)[2] = NULL;
 
       if (use_winding) {
-        tf_uv = (float(*)[2])BLI_buffer_reinit_data(&tf_uv_buf, vec2f, (size_t)mp->totloop);
+        tf_uv = (float(*)[2])BLI_buffer_reinit_data(&tf_uv_buf, vec2f, size_t(mp->totloop));
       }
 
       nverts = mp->totloop;
 
       for (i = 0; i < nverts; i++) {
-        buf->loop_of_poly_index = (ushort)i;
+        buf->loop_of_poly_index = ushort(i);
         buf->poly_index = a;
         buf->separate = 0;
         buf->next = vmap->vert[mloop[mp->loopstart + i].v];
@@ -101,7 +101,7 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *mpoly,
       }
 
       if (use_winding) {
-        winding[a] = cross_poly_v2(tf_uv, (uint)nverts) > 0;
+        winding[a] = cross_poly_v2(tf_uv, uint(nverts)) > 0;
       }
     }
   }
@@ -196,11 +196,11 @@ static void mesh_vert_poly_or_loop_map_create(MeshElemMap **r_map,
                                               int totloop,
                                               const bool do_loops)
 {
-  MeshElemMap *map = MEM_cnew_array<MeshElemMap>((size_t)totvert, __func__);
+  MeshElemMap *map = MEM_cnew_array<MeshElemMap>(size_t(totvert), __func__);
   int *indices, *index_iter;
   int i, j;
 
-  indices = static_cast<int *>(MEM_mallocN(sizeof(int) * (size_t)totloop, __func__));
+  indices = static_cast<int *>(MEM_mallocN(sizeof(int) * size_t(totloop), __func__));
   index_iter = indices;
 
   /* Count number of polys for each vertex */
@@ -268,8 +268,8 @@ void BKE_mesh_vert_looptri_map_create(MeshElemMap **r_map,
                                       const MLoop *mloop,
                                       const int UNUSED(totloop))
 {
-  MeshElemMap *map = MEM_cnew_array<MeshElemMap>((size_t)totvert, __func__);
-  int *indices = static_cast<int *>(MEM_mallocN(sizeof(int) * (size_t)totlooptri * 3, __func__));
+  MeshElemMap *map = MEM_cnew_array<MeshElemMap>(size_t(totvert), __func__);
+  int *indices = static_cast<int *>(MEM_mallocN(sizeof(int) * size_t(totlooptri) * 3, __func__));
   int *index_step;
   const MLoopTri *mlt;
   int i;
@@ -306,8 +306,8 @@ void BKE_mesh_vert_looptri_map_create(MeshElemMap **r_map,
 void BKE_mesh_vert_edge_map_create(
     MeshElemMap **r_map, int **r_mem, const MEdge *medge, int totvert, int totedge)
 {
-  MeshElemMap *map = MEM_cnew_array<MeshElemMap>((size_t)totvert, __func__);
-  int *indices = static_cast<int *>(MEM_mallocN(sizeof(int[2]) * (size_t)totedge, __func__));
+  MeshElemMap *map = MEM_cnew_array<MeshElemMap>(size_t(totvert), __func__);
+  int *indices = static_cast<int *>(MEM_mallocN(sizeof(int[2]) * size_t(totedge), __func__));
   int *i_pt = indices;
 
   int i;
@@ -345,8 +345,8 @@ void BKE_mesh_vert_edge_map_create(
 void BKE_mesh_vert_edge_vert_map_create(
     MeshElemMap **r_map, int **r_mem, const MEdge *medge, int totvert, int totedge)
 {
-  MeshElemMap *map = MEM_cnew_array<MeshElemMap>((size_t)totvert, __func__);
-  int *indices = static_cast<int *>(MEM_mallocN(sizeof(int[2]) * (size_t)totedge, __func__));
+  MeshElemMap *map = MEM_cnew_array<MeshElemMap>(size_t(totvert), __func__);
+  int *indices = static_cast<int *>(MEM_mallocN(sizeof(int[2]) * size_t(totedge), __func__));
   int *i_pt = indices;
 
   int i;
@@ -370,8 +370,8 @@ void BKE_mesh_vert_edge_vert_map_create(
   for (i = 0; i < totedge; i++) {
     const uint v[2] = {medge[i].v1, medge[i].v2};
 
-    map[v[0]].indices[map[v[0]].count] = (int)v[1];
-    map[v[1]].indices[map[v[1]].count] = (int)v[0];
+    map[v[0]].indices[map[v[0]].count] = int(v[1]);
+    map[v[1]].indices[map[v[1]].count] = int(v[0]);
 
     map[v[0]].count++;
     map[v[1]].count++;
@@ -390,8 +390,8 @@ void BKE_mesh_edge_loop_map_create(MeshElemMap **r_map,
                                    const MLoop *mloop,
                                    const int totloop)
 {
-  MeshElemMap *map = MEM_cnew_array<MeshElemMap>((size_t)totedge, __func__);
-  int *indices = static_cast<int *>(MEM_mallocN(sizeof(int) * (size_t)totloop * 2, __func__));
+  MeshElemMap *map = MEM_cnew_array<MeshElemMap>(size_t(totedge), __func__);
+  int *indices = static_cast<int *>(MEM_mallocN(sizeof(int) * size_t(totloop) * 2, __func__));
   int *index_step;
   const MPoly *mp;
   int i;
@@ -443,8 +443,8 @@ void BKE_mesh_edge_poly_map_create(MeshElemMap **r_map,
                                    const MLoop *mloop,
                                    const int totloop)
 {
-  MeshElemMap *map = MEM_cnew_array<MeshElemMap>((size_t)totedge, __func__);
-  int *indices = static_cast<int *>(MEM_mallocN(sizeof(int) * (size_t)totloop, __func__));
+  MeshElemMap *map = MEM_cnew_array<MeshElemMap>(size_t(totedge), __func__);
+  int *indices = static_cast<int *>(MEM_mallocN(sizeof(int) * size_t(totloop), __func__));
   int *index_step;
   const MPoly *mp;
   int i;
@@ -488,8 +488,8 @@ void BKE_mesh_origindex_map_create(MeshElemMap **r_map,
                                    const int *final_origindex,
                                    const int totfinal)
 {
-  MeshElemMap *map = MEM_cnew_array<MeshElemMap>((size_t)totsource, __func__);
-  int *indices = static_cast<int *>(MEM_mallocN(sizeof(int) * (size_t)totfinal, __func__));
+  MeshElemMap *map = MEM_cnew_array<MeshElemMap>(size_t(totsource), __func__);
+  int *indices = static_cast<int *>(MEM_mallocN(sizeof(int) * size_t(totfinal), __func__));
   int *index_step;
   int i;
 
@@ -530,8 +530,8 @@ void BKE_mesh_origindex_map_create_looptri(MeshElemMap **r_map,
                                            const MLoopTri *looptri,
                                            const int looptri_num)
 {
-  MeshElemMap *map = MEM_cnew_array<MeshElemMap>((size_t)mpoly_num, __func__);
-  int *indices = static_cast<int *>(MEM_mallocN(sizeof(int) * (size_t)looptri_num, __func__));
+  MeshElemMap *map = MEM_cnew_array<MeshElemMap>(size_t(mpoly_num), __func__);
+  int *indices = static_cast<int *>(MEM_mallocN(sizeof(int) * size_t(looptri_num), __func__));
   int *index_step;
   int i;
 
@@ -662,7 +662,7 @@ static void poly_edge_loop_islands_calc(const MEdge *medge,
       mp = &mpoly[poly];
       for (ml = &mloop[mp->loopstart], j = mp->totloop; j--; ml++) {
         /* loop over poly users */
-        const int me_idx = (int)ml->e;
+        const int me_idx = int(ml->e);
         const MEdge *me = &medge[me_idx];
         const MeshElemMap *map_ele = &edge_poly_map[me_idx];
         const int *p = map_ele->indices;
@@ -1097,7 +1097,7 @@ static bool mesh_calc_islands_loop_poly_uv(const MVert *UNUSED(verts),
             (edge_border_count[ml->e] < 2)) {
           edge_border_count[ml->e]++;
           if (edge_border_count[ml->e] == 2) {
-            edge_innercut_indices[num_einnercuts++] = (int)ml->e;
+            edge_innercut_indices[num_einnercuts++] = int(ml->e);
           }
         }
       }

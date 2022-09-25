@@ -80,8 +80,8 @@ void UI_view2d_edge_pan_init(bContext *C,
   vpd->enabled = false;
 
   /* Calculate translation factor, based on size of view. */
-  const float winx = (float)(BLI_rcti_size_x(&vpd->region->winrct) + 1);
-  const float winy = (float)(BLI_rcti_size_y(&vpd->region->winrct) + 1);
+  const float winx = float(BLI_rcti_size_x(&vpd->region->winrct) + 1);
+  const float winy = float(BLI_rcti_size_y(&vpd->region->winrct) + 1);
   vpd->facx = (BLI_rctf_size_x(&vpd->v2d->cur)) / winx;
   vpd->facy = (BLI_rctf_size_y(&vpd->v2d->cur)) / winy;
 
@@ -165,16 +165,16 @@ static float edge_pan_speed(View2DEdgePanData *vpd,
   /* Apply a fade in to the speed based on a start time delay. */
   const double start_time = x_dir ? vpd->edge_pan_start_time_x : vpd->edge_pan_start_time_y;
   const float delay_factor = vpd->delay > 0.01f ?
-                                 smootherstep(vpd->delay, (float)(current_time - start_time)) :
+                                 smootherstep(vpd->delay, float(current_time - start_time)) :
                                  1.0f;
 
   /* Zoom factor increases speed when zooming in and decreases speed when zooming out. */
-  const float zoomx = (float)(BLI_rcti_size_x(&region->winrct) + 1) /
+  const float zoomx = float(BLI_rcti_size_x(&region->winrct) + 1) /
                       BLI_rctf_size_x(&region->v2d.cur);
   const float zoom_factor = 1.0f + CLAMPIS(vpd->zoom_influence, 0.0f, 1.0f) * (zoomx - 1.0f);
 
   return distance_factor * delay_factor * zoom_factor * vpd->max_speed * U.widget_unit *
-         (float)U.dpi_fac;
+         float(U.dpi_fac);
 }
 
 static void edge_pan_apply_delta(bContext *C, View2DEdgePanData *vpd, float dx, float dy)
@@ -252,15 +252,15 @@ void UI_view2d_edge_pan_apply(bContext *C, View2DEdgePanData *vpd, const int xy[
   edge_pan_manage_delay_timers(vpd, pan_dir_x, pan_dir_y, current_time);
 
   /* Calculate the delta since the last time the operator was called. */
-  const float dtime = (float)(current_time - vpd->edge_pan_last_time);
+  const float dtime = float(current_time - vpd->edge_pan_last_time);
   float dx = 0.0f, dy = 0.0f;
   if (pan_dir_x != 0) {
     const float speed = edge_pan_speed(vpd, xy[0], true, current_time);
-    dx = dtime * speed * (float)pan_dir_x;
+    dx = dtime * speed * float(pan_dir_x);
   }
   if (pan_dir_y != 0) {
     const float speed = edge_pan_speed(vpd, xy[1], false, current_time);
-    dy = dtime * speed * (float)pan_dir_y;
+    dy = dtime * speed * float(pan_dir_y);
   }
   vpd->edge_pan_last_time = current_time;
 

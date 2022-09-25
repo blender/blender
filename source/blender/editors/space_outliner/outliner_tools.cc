@@ -118,7 +118,7 @@ static void get_element_operation_type(
     *datalevel = tselem->type;
   }
   else {
-    const int idcode = (int)GS(tselem->id->name);
+    const int idcode = int(GS(tselem->id->name));
     bool is_standard_id = false;
     switch ((ID_Type)idcode) {
       case ID_SCE:

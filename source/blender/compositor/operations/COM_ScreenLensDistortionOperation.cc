@@ -40,8 +40,8 @@ void ScreenLensDistortionOperation::set_dispersion(float dispersion)
 
 void ScreenLensDistortionOperation::init_data()
 {
-  cx_ = 0.5f * (float)get_width();
-  cy_ = 0.5f * (float)get_height();
+  cx_ = 0.5f * float(get_width());
+  cy_ = 0.5f * float(get_height());
 
   switch (execution_model_) {
     case eExecutionModel::FullFrame: {
@@ -72,8 +72,8 @@ void ScreenLensDistortionOperation::init_execution()
   input_program_ = this->get_input_socket_reader(0);
   this->init_mutex();
 
-  uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
-  rng_seed ^= (uint)POINTER_AS_INT(input_program_);
+  uint rng_seed = uint(PIL_check_seconds_timer_i() & UINT_MAX);
+  rng_seed ^= uint(POINTER_AS_INT(input_program_));
   rng_ = BLI_rng_new(rng_seed);
 }
 
@@ -147,8 +147,8 @@ void ScreenLensDistortionOperation::accumulate(const MemoryBuffer *buffer,
   float color[4];
 
   float dsf = len_v2v2(delta[a], delta[b]) + 1.0f;
-  int ds = jitter_ ? (dsf < 4.0f ? 2 : (int)sqrtf(dsf)) : (int)dsf;
-  float sd = 1.0f / (float)ds;
+  int ds = jitter_ ? (dsf < 4.0f ? 2 : int(sqrtf(dsf))) : int(dsf);
+  float sd = 1.0f / float(ds);
 
   float k4 = k4_[a];
   float dk4 = dk4_[a];
@@ -178,7 +178,7 @@ void ScreenLensDistortionOperation::accumulate(const MemoryBuffer *buffer,
 void ScreenLensDistortionOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
   MemoryBuffer *buffer = (MemoryBuffer *)data;
-  float xy[2] = {(float)x, (float)y};
+  float xy[2] = {float(x), float(y)};
   float uv[2];
   get_uv(xy, uv);
   float uv_dot = len_squared_v2(uv);
@@ -196,13 +196,13 @@ void ScreenLensDistortionOperation::execute_pixel(float output[4], int x, int y,
     accumulate(buffer, 1, 2, uv_dot, uv, delta, sum, count);
 
     if (count[0]) {
-      output[0] = 2.0f * sum[0] / (float)count[0];
+      output[0] = 2.0f * sum[0] / float(count[0]);
     }
     if (count[1]) {
-      output[1] = 2.0f * sum[1] / (float)count[1];
+      output[1] = 2.0f * sum[1] / float(count[1]);
     }
     if (count[2]) {
-      output[2] = 2.0f * sum[2] / (float)count[2];
+      output[2] = 2.0f * sum[2] / float(count[2]);
     }
 
     /* set alpha */
@@ -485,7 +485,7 @@ void ScreenLensDistortionOperation::update_memory_buffer_partial(MemoryBuffer *o
 {
   const MemoryBuffer *input_image = inputs[0];
   for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
-    float xy[2] = {(float)it.x, (float)it.y};
+    float xy[2] = {float(it.x), float(it.y)};
     float uv[2];
     get_uv(xy, uv);
     const float uv_dot = len_squared_v2(uv);
@@ -505,13 +505,13 @@ void ScreenLensDistortionOperation::update_memory_buffer_partial(MemoryBuffer *o
     accumulate(input_image, 1, 2, uv_dot, uv, delta, sum, count);
 
     if (count[0]) {
-      it.out[0] = 2.0f * sum[0] / (float)count[0];
+      it.out[0] = 2.0f * sum[0] / float(count[0]);
     }
     if (count[1]) {
-      it.out[1] = 2.0f * sum[1] / (float)count[1];
+      it.out[1] = 2.0f * sum[1] / float(count[1]);
     }
     if (count[2]) {
-      it.out[2] = 2.0f * sum[2] / (float)count[2];
+      it.out[2] = 2.0f * sum[2] / float(count[2]);
     }
 
     /* Set alpha. */

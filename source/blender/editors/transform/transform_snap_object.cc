@@ -1293,7 +1293,7 @@ static bool nearest_world_tree(SnapObjectContext *UNUSED(sctx),
   *r_dist_sq = dist_sq;
 
   /* scale to make `snap_face_nearest_steps` steps */
-  float step_scale_factor = 1.0f / max_ff(1.0f, (float)params->face_nearest_steps);
+  float step_scale_factor = 1.0f / max_ff(1.0f, float(params->face_nearest_steps));
   mul_v3_fl(delta_local, step_scale_factor);
 
   float co_local[3];

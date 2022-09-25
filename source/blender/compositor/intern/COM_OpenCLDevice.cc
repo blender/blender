@@ -187,8 +187,8 @@ void OpenCLDevice::COM_cl_enqueue_range(cl_kernel kernel, MemoryBuffer *output_m
 {
   cl_int error;
   const size_t size[] = {
-      (size_t)output_memory_buffer->get_width(),
-      (size_t)output_memory_buffer->get_height(),
+      size_t(output_memory_buffer->get_width()),
+      size_t(output_memory_buffer->get_height()),
   };
 
   error = clEnqueueNDRangeKernel(queue_, kernel, 2, nullptr, size, nullptr, 0, nullptr, nullptr);

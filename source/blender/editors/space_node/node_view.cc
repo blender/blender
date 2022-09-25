@@ -464,9 +464,9 @@ bool ED_space_node_get_position(
   /* map the mouse coords to the backdrop image space */
   float bufx = ibuf->x * snode->zoom;
   float bufy = ibuf->y * snode->zoom;
-  fpos[0] = (bufx > 0.0f ? ((float)mval[0] - 0.5f * region->winx - snode->xof) / bufx + 0.5f :
+  fpos[0] = (bufx > 0.0f ? (float(mval[0]) - 0.5f * region->winx - snode->xof) / bufx + 0.5f :
                            0.0f);
-  fpos[1] = (bufy > 0.0f ? ((float)mval[1] - 0.5f * region->winy - snode->yof) / bufy + 0.5f :
+  fpos[1] = (bufy > 0.0f ? (float(mval[1]) - 0.5f * region->winy - snode->yof) / bufy + 0.5f :
                            0.0f);
 
   BKE_image_release_ibuf(ima, ibuf, lock);
@@ -498,13 +498,13 @@ bool ED_space_node_color_sample(
   /* map the mouse coords to the backdrop image space */
   bufx = ibuf->x * snode->zoom;
   bufy = ibuf->y * snode->zoom;
-  fx = (bufx > 0.0f ? ((float)mval[0] - 0.5f * region->winx - snode->xof) / bufx + 0.5f : 0.0f);
-  fy = (bufy > 0.0f ? ((float)mval[1] - 0.5f * region->winy - snode->yof) / bufy + 0.5f : 0.0f);
+  fx = (bufx > 0.0f ? (float(mval[0]) - 0.5f * region->winx - snode->xof) / bufx + 0.5f : 0.0f);
+  fy = (bufy > 0.0f ? (float(mval[1]) - 0.5f * region->winy - snode->yof) / bufy + 0.5f : 0.0f);
 
   if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
     const float *fp;
     uchar *cp;
-    int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
+    int x = int(fx * ibuf->x), y = int(fy * ibuf->y);
 
     CLAMP(x, 0, ibuf->x - 1);
     CLAMP(y, 0, ibuf->y - 1);
@@ -555,15 +555,15 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
   /* map the mouse coords to the backdrop image space */
   bufx = ibuf->x * snode->zoom;
   bufy = ibuf->y * snode->zoom;
-  fx = (bufx > 0.0f ? ((float)event->mval[0] - 0.5f * region->winx - snode->xof) / bufx + 0.5f :
+  fx = (bufx > 0.0f ? (float(event->mval[0]) - 0.5f * region->winx - snode->xof) / bufx + 0.5f :
                       0.0f);
-  fy = (bufy > 0.0f ? ((float)event->mval[1] - 0.5f * region->winy - snode->yof) / bufy + 0.5f :
+  fy = (bufy > 0.0f ? (float(event->mval[1]) - 0.5f * region->winy - snode->yof) / bufy + 0.5f :
                       0.0f);
 
   if (fx >= 0.0f && fy >= 0.0f && fx < 1.0f && fy < 1.0f) {
     const float *fp;
     uchar *cp;
-    int x = (int)(fx * ibuf->x), y = (int)(fy * ibuf->y);
+    int x = int(fx * ibuf->x), y = int(fy * ibuf->y);
 
     CLAMP(x, 0, ibuf->x - 1);
     CLAMP(y, 0, ibuf->y - 1);
@@ -584,10 +584,10 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
       info->col[2] = cp[2];
       info->col[3] = cp[3];
 
-      info->colf[0] = (float)cp[0] / 255.0f;
-      info->colf[1] = (float)cp[1] / 255.0f;
-      info->colf[2] = (float)cp[2] / 255.0f;
-      info->colf[3] = (float)cp[3] / 255.0f;
+      info->colf[0] = float(cp[0]) / 255.0f;
+      info->colf[1] = float(cp[1]) / 255.0f;
+      info->colf[2] = float(cp[2]) / 255.0f;
+      info->colf[3] = float(cp[3]) / 255.0f;
 
       copy_v4_v4(info->linearcol, info->colf);
       IMB_colormanagement_colorspace_to_scene_linear_v4(

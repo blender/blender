@@ -68,7 +68,7 @@ static OVERLAY_UVLineStyle edit_uv_line_style_from_space_image(const SpaceImage 
 static GPUTexture *edit_uv_mask_texture(
     Mask *mask, const int width, const int height_, const float aspx, const float aspy)
 {
-  const int height = (float)height_ * (aspy / aspx);
+  const int height = float(height_) * (aspy / aspx);
   MaskRasterHandle *handle;
   float *buffer = static_cast<float *>(MEM_mallocN(sizeof(float) * height * width, __func__));
 
@@ -308,8 +308,8 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
     LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
       const int tile_x = ((tile->tile_number - 1001) % 10);
       const int tile_y = ((tile->tile_number - 1001) / 10);
-      obmat[3][1] = (float)tile_y;
-      obmat[3][0] = (float)tile_x;
+      obmat[3][1] = float(tile_y);
+      obmat[3][0] = float(tile_x);
       DRW_shgroup_call_obmat(grp, geom, obmat);
     }
     /* Only mark active border when overlays are enabled. */
@@ -318,8 +318,8 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
       ImageTile *active_tile = static_cast<ImageTile *>(
           BLI_findlink(&image->tiles, image->active_tile_index));
       if (active_tile) {
-        obmat[3][0] = (float)((active_tile->tile_number - 1001) % 10);
-        obmat[3][1] = (float)((active_tile->tile_number - 1001) / 10);
+        obmat[3][0] = float((active_tile->tile_number - 1001) % 10);
+        obmat[3][1] = float((active_tile->tile_number - 1001) / 10);
         grp = DRW_shgroup_create(sh, psl->edit_uv_tiled_image_borders_ps);
         DRW_shgroup_uniform_vec4_copy(grp, "color", selected_color);
         DRW_shgroup_call_obmat(grp, geom, obmat);

@@ -87,8 +87,8 @@ void TransformReader::dae_rotate_to_mat4(COLLADAFW::Transformation *tm, float m[
 {
   COLLADAFW::Rotate *ro = (COLLADAFW::Rotate *)tm;
   COLLADABU::Math::Vector3 &axis = ro->getRotationAxis();
-  const float angle = (float)DEG2RAD(ro->getRotationAngle());
-  const float ax[] = {(float)axis[0], (float)axis[1], (float)axis[2]};
+  const float angle = float(DEG2RAD(ro->getRotationAngle()));
+  const float ax[] = {float(axis[0]), float(axis[1]), float(axis[2])};
 #if 0
   float quat[4];
   axis_angle_to_quat(quat, axis, angle);
@@ -104,15 +104,15 @@ void TransformReader::dae_translate_to_mat4(COLLADAFW::Transformation *tm, float
 
   unit_m4(m);
 
-  m[3][0] = (float)t[0];
-  m[3][1] = (float)t[1];
-  m[3][2] = (float)t[2];
+  m[3][0] = float(t[0]);
+  m[3][1] = float(t[1]);
+  m[3][2] = float(t[2]);
 }
 
 void TransformReader::dae_scale_to_mat4(COLLADAFW::Transformation *tm, float m[4][4])
 {
   COLLADABU::Math::Vector3 &s = ((COLLADAFW::Scale *)tm)->getScale();
-  float size[3] = {(float)s[0], (float)s[1], (float)s[2]};
+  float size[3] = {float(s[0]), float(s[1]), float(s[2])};
   size_to_mat4(m, size);
 }
 

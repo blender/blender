@@ -388,9 +388,9 @@ static void zbuf_fill_in_rgba(
 
   xx1 = (x0 * v1[0] + y0 * v1[1]) / z0 + v1[2];
 
-  zxd = -(double)x0 / (double)z0;
-  zyd = -(double)y0 / (double)z0;
-  zy0 = ((double)my2) * zyd + (double)xx1;
+  zxd = -double(x0) / double(z0);
+  zyd = -double(y0) / double(z0);
+  zy0 = double(my2) * zyd + double(xx1);
 
   /* start-offset in rect */
   rectx = zspan->rectx;
@@ -422,13 +422,13 @@ static void zbuf_fill_in_rgba(
     }
 
     if (sn2 >= sn1) {
-      zverg = (double)sn1 * zxd + zy0;
+      zverg = double(sn1) * zxd + zy0;
       rz = rectzofs + sn1;
       rp = rectpofs + sn1;
       x = sn2 - sn1;
 
       while (x >= 0) {
-        if (zverg < (double)*rz) {
+        if (zverg < double(*rz)) {
           *rz = zverg;
           *rp = *col;
         }
@@ -593,15 +593,15 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
   const float *dimg, *dz, *ro;
   float *rectvz, *dvz, *dvec1, *dvec2, *dz1, *dz2, *rectz;
   float *minvecbufrect = nullptr, *rectweight, *rw, *rectmax, *rm;
-  float maxspeedsq = (float)nbd->maxspeed * nbd->maxspeed;
+  float maxspeedsq = float(nbd->maxspeed) * nbd->maxspeed;
   int y, x, step, maxspeed = nbd->maxspeed, samples = nbd->samples;
   int tsktsk = 0;
   static int firsttime = 1;
   char *rectmove, *dm;
 
   zbuf_alloc_span(&zspan, xsize, ysize, 1.0f);
-  zspan.zmulx = ((float)xsize) / 2.0f;
-  zspan.zmuly = ((float)ysize) / 2.0f;
+  zspan.zmulx = float(xsize) / 2.0f;
+  zspan.zmuly = float(ysize) / 2.0f;
   zspan.zofsx = 0.0f;
   zspan.zofsy = 0.0f;
 
@@ -630,7 +630,7 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
 
   /* Min speed? then copy speed-buffer to recalculate speed vectors. */
   if (nbd->minspeed) {
-    float minspeed = (float)nbd->minspeed;
+    float minspeed = float(nbd->minspeed);
     float minspeedsq = minspeed * minspeed;
 
     minvecbufrect = (float *)MEM_callocN(sizeof(float[4]) * xsize * ysize, "minspeed buf");
@@ -729,7 +729,7 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
         if (maxspeed) {
           float speedsq = dvz[0] * dvz[0] + dvz[1] * dvz[1];
           if (speedsq > maxspeedsq) {
-            speedsq = (float)maxspeed / sqrtf(speedsq);
+            speedsq = float(maxspeed) / sqrtf(speedsq);
             dvz[0] *= speedsq;
             dvz[1] *= speedsq;
           }
@@ -779,7 +779,7 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
   /* accumulate */
   samples /= 2;
   for (step = 1; step <= samples; step++) {
-    float speedfac = 0.5f * nbd->fac * (float)step / (float)(samples + 1);
+    float speedfac = 0.5f * nbd->fac * float(step) / float(samples + 1);
     int side;
 
     for (side = 0; side < 2; side++) {
@@ -867,7 +867,7 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
               col.alpha = 0.0f;
             }
             else {
-              col.alpha = ((float)*dm) / 255.0f;
+              col.alpha = float(*dm) / 255.0f;
             }
             col.colpoin = dimg;
 
@@ -885,7 +885,7 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
        * we don't know what is behind it so we don't do that. this hack
        * overestimates the contribution of foreground pixels but looks a
        * bit better without a sudden cutoff. */
-      blendfac = ((samples - step) / (float)samples);
+      blendfac = ((samples - step) / float(samples));
       /* Smooth-step to make it look a bit nicer as well. */
       blendfac = 3.0f * pow(blendfac, 2.0f) - 2.0f * pow(blendfac, 3.0f);
 

@@ -802,7 +802,7 @@ void RE_engine_frame_set(RenderEngine *engine, int frame, float subframe)
   DEG_ids_clear_recalc(engine->depsgraph, false);
 
   Render *re = engine->re;
-  double cfra = (double)frame + (double)subframe;
+  double cfra = double(frame) + double(subframe);
 
   CLAMP(cfra, MINAFRAME, MAXFRAME);
   BKE_scene_frame_set(re->scene, cfra);

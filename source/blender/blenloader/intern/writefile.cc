@@ -685,7 +685,7 @@ static void writestruct_at_address_nr(
   }
 
   mywrite(wd, &bh, sizeof(BHead));
-  mywrite(wd, data, (size_t)bh.len);
+  mywrite(wd, data, size_t(bh.len));
 }
 
 static void writestruct_nr(
@@ -709,14 +709,14 @@ static void writedata(WriteData *wd, int filecode, size_t len, const void *adr)
   }
 
   /* align to 4 (writes uninitialized bytes in some cases) */
-  len = (len + 3) & ~((size_t)3);
+  len = (len + 3) & ~size_t(3);
 
   /* init BHead */
   bh.code = filecode;
   bh.old = adr;
   bh.nr = 1;
   bh.SDNAnr = 0;
-  bh.len = (int)len;
+  bh.len = int(len);
 
   mywrite(wd, &bh, sizeof(BHead));
   mywrite(wd, adr, len);

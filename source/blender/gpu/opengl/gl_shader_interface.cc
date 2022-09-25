@@ -295,7 +295,7 @@ GLShaderInterface::GLShaderInterface(GLuint program)
     enabled_attr_mask_ |= (1 << input->location);
 
     /* Used in `GPU_shader_get_attribute_info`. */
-    attr_types_[input->location] = (uint8_t)gpu_type_from_gl_type(type);
+    attr_types_[input->location] = uint8_t(gpu_type_from_gl_type(type));
   }
 
   /* Uniform Blocks */
@@ -457,7 +457,7 @@ GLShaderInterface::GLShaderInterface(GLuint program, const shader::ShaderCreateI
       enabled_attr_mask_ |= (1 << input->location);
 
       /* Used in `GPU_shader_get_attribute_info`. */
-      attr_types_[input->location] = (uint8_t)attr.type;
+      attr_types_[input->location] = uint8_t(attr.type);
     }
 
     input++;

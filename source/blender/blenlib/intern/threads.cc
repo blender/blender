@@ -293,7 +293,7 @@ int BLI_system_thread_count()
 #ifdef WIN32
     SYSTEM_INFO info;
     GetSystemInfo(&info);
-    t = (int)info.dwNumberOfProcessors;
+    t = int(info.dwNumberOfProcessors);
 #else
 #  ifdef __APPLE__
     int mib[2];
@@ -304,7 +304,7 @@ int BLI_system_thread_count()
     len = sizeof(t);
     sysctl(mib, 2, &t, &len, nullptr, 0);
 #  else
-    t = (int)sysconf(_SC_NPROCESSORS_ONLN);
+    t = int(sysconf(_SC_NPROCESSORS_ONLN));
 #  endif
 #endif
   }

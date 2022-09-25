@@ -1288,7 +1288,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         }
         else { /* #V3D_AROUND_CENTER_MEDIAN. */
           if (em->bm->totvert) {
-            const float total_div = 1.0f / (float)em->bm->totvert;
+            const float total_div = 1.0f / float(em->bm->totvert);
             BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
               madd_v3_v3fl(cent, eve->co, total_div);
             }
@@ -2079,7 +2079,7 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
 
   if (event->type == MOUSEMOVE || is_translate_init) {
     const ViewDepths *depths = xfd->depths;
-    if (depths && ((uint)event->mval[0] < depths->w) && ((uint)event->mval[1] < depths->h)) {
+    if (depths && (uint(event->mval[0]) < depths->w) && (uint(event->mval[1]) < depths->h)) {
       float depth_fl = 1.0f;
       ED_view3d_depth_read_cached(depths, event->mval, 0, &depth_fl);
       float location_world[3];

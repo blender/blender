@@ -227,16 +227,16 @@ float2 GpencilIO::gpencil_3D_point_to_render_space(const float3 co)
 
   float2 r_co;
   mul_v2_project_m4_v3(&r_co.x, persmat_, &parent_co.x);
-  r_co.x = (r_co.x + 1.0f) / 2.0f * (float)render_x_;
-  r_co.y = (r_co.y + 1.0f) / 2.0f * (float)render_y_;
+  r_co.x = (r_co.x + 1.0f) / 2.0f * float(render_x_);
+  r_co.y = (r_co.y + 1.0f) / 2.0f * float(render_y_);
 
   /* Invert X axis. */
   if (invert_axis_[0]) {
-    r_co.x = (float)render_x_ - r_co.x;
+    r_co.x = float(render_x_) - r_co.x;
   }
   /* Invert Y axis. */
   if (invert_axis_[1]) {
-    r_co.y = (float)render_y_ - r_co.y;
+    r_co.y = float(render_y_) - r_co.y;
   }
 
   return r_co;
@@ -244,7 +244,7 @@ float2 GpencilIO::gpencil_3D_point_to_render_space(const float3 co)
 
 float2 GpencilIO::gpencil_3D_point_to_2D(const float3 co)
 {
-  const bool is_camera = (bool)(rv3d_->persp == RV3D_CAMOB);
+  const bool is_camera = bool(rv3d_->persp == RV3D_CAMOB);
   if (is_camera) {
     return gpencil_3D_point_to_render_space(co);
   }
@@ -292,9 +292,9 @@ void GpencilIO::prepare_stroke_export_colors(Object *ob, bGPDstroke *gps)
     avg_opacity_ += pt.strength;
   }
 
-  mul_v4_v4fl(avg_color, avg_color, 1.0f / (float)gps->totpoints);
+  mul_v4_v4fl(avg_color, avg_color, 1.0f / float(gps->totpoints));
   interp_v3_v3v3(stroke_color_, stroke_color_, avg_color, avg_color[3]);
-  avg_opacity_ /= (float)gps->totpoints;
+  avg_opacity_ /= float(gps->totpoints);
 
   /* Fill color. */
   copy_v4_v4(fill_color_, gp_style->fill_rgba);

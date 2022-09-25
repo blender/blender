@@ -274,7 +274,7 @@ TEST(string, Utf8InvalidBytes)
   for (int i = 0; utf8_invalid_tests[i][0] != nullptr; i++) {
     const char *tst = utf8_invalid_tests[i][0];
     const char *tst_stripped = utf8_invalid_tests[i][1];
-    const int errors_num = (int)utf8_invalid_tests[i][2][0];
+    const int errors_num = int(utf8_invalid_tests[i][2][0]);
 
     char buff[80];
     memcpy(buff, tst, sizeof(buff));
@@ -352,13 +352,13 @@ template<size_t Size> void utf8_as_char32_test_at_buffer_size()
     /* Offset trailing bytes up and down in steps of 1, 2, 4 .. etc. */
     if (Size > 1) {
       for (int mul = 1; mul < 256; mul *= 2) {
-        for (int ofs = 1; ofs < (int)Size; ofs++) {
-          utf8_src[ofs] = (char)(i + (ofs * mul));
+        for (int ofs = 1; ofs < int(Size); ofs++) {
+          utf8_src[ofs] = char(i + (ofs * mul));
         }
         utf8_as_char32_test_compare<Size>(utf8_src);
 
-        for (int ofs = 1; ofs < (int)Size; ofs++) {
-          utf8_src[ofs] = (char)(i - (ofs * mul));
+        for (int ofs = 1; ofs < int(Size); ofs++) {
+          utf8_src[ofs] = char(i - (ofs * mul));
         }
         utf8_as_char32_test_compare<Size>(utf8_src);
       }

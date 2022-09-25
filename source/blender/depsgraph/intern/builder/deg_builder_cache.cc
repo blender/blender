@@ -59,8 +59,8 @@ bool operator==(const AnimatedPropertyID &a, const AnimatedPropertyID &b)
 
 uint64_t AnimatedPropertyID::hash() const
 {
-  uintptr_t ptr1 = (uintptr_t)data;
-  uintptr_t ptr2 = (uintptr_t)property_rna;
+  uintptr_t ptr1 = uintptr_t(data);
+  uintptr_t ptr2 = uintptr_t(property_rna);
   return uint64_t(((ptr1 >> 4) * 33) ^ (ptr2 >> 4));
 }
 

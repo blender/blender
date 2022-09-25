@@ -182,7 +182,7 @@ void ui_but_pie_dir(RadialDirection dir, float vec[2])
 
   BLI_assert(dir != UI_RADIAL_NONE);
 
-  angle = DEG2RADF((float)ui_radial_dir_to_angle[dir]);
+  angle = DEG2RADF(float(ui_radial_dir_to_angle[dir]));
   vec[0] = cosf(angle);
   vec[1] = sinf(angle);
 }

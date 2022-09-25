@@ -413,7 +413,7 @@ static char convert_keyboard_event_to_ascii(const SDL_KeyboardEvent &sdl_sub_evt
       }
     }
   }
-  return (char)sym;
+  return char(sym);
 }
 
 /**

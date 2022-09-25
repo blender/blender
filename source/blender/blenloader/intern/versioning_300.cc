@@ -169,7 +169,7 @@ static void version_idproperty_move_data_float(IDPropertyUIDataFloat *ui_data,
             MEM_malloc_arrayN(array_len, sizeof(double), __func__));
         const float *old_default_array = static_cast<const float *>(IDP_Array(default_value));
         for (int i = 0; i < ui_data->default_array_len; i++) {
-          ui_data->default_array[i] = (double)old_default_array[i];
+          ui_data->default_array[i] = double(old_default_array[i]);
         }
       }
       else if (default_value->subtype == IDP_DOUBLE) {
@@ -412,9 +412,9 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
         else {
           v->speed_control_type = SEQ_SPEED_MULTIPLY;
           v->speed_fader = globalSpeed *
-                           ((float)seq->seq1->len /
-                            max_ff((float)(SEQ_time_right_handle_frame_get(scene, seq->seq1) -
-                                           seq->seq1->start),
+                           (float(seq->seq1->len) /
+                            max_ff(float(SEQ_time_right_handle_frame_get(scene, seq->seq1) -
+                                         seq->seq1->start),
                                    1.0f));
         }
       }
@@ -430,7 +430,7 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
       }
       else {
         v->speed_control_type = SEQ_SPEED_FRAME_NUMBER;
-        v->speed_fader_frame_number = (int)(seq->speed_fader * globalSpeed);
+        v->speed_fader_frame_number = int(seq->speed_fader * globalSpeed);
         substr = "speed_frame_number";
       }
 

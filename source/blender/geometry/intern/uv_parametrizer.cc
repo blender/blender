@@ -195,7 +195,7 @@ static int PHashSizes[] = {
     1048583, 2097169, 4194319, 8388617, 16777259, 33554467, 67108879, 134217757, 268435459,
 };
 
-#define PHASH_hash(ph, item) (((uintptr_t)(item)) % ((uint)(ph)->cursize))
+#define PHASH_hash(ph, item) (uintptr_t(item) % ((uint)(ph)->cursize))
 #define PHASH_edge(v1, v2) (((v1) < (v2)) ? ((v1)*39) ^ ((v2)*31) : ((v1)*31) ^ ((v2)*39))
 
 static PHash *phash_new(PHashLink **list, int sizehint)
@@ -319,7 +319,7 @@ static void fix_large_angle(const float v_fix[3],
                             float *r_a1,
                             float *r_a2)
 {
-  const float max_angle = (float)M_PI * (179.0f / 180.0f);
+  const float max_angle = float(M_PI) * (179.0f / 180.0f);
   const float fix_amount = *r_fix - max_angle;
   if (fix_amount < 0.0f) {
     return; /* angle is reasonable, i.e. less than 179 degrees. */
@@ -4218,7 +4218,7 @@ void GEO_uv_parametrizer_pack(ParamHandle *handle,
      * ...Without using the area running pack multiple times also gives a bad feedback loop.
      * multiply by 0.1 so the margin value from the UI can be from
      * 0.0 to 1.0 but not give a massive margin */
-    margin = (margin * (float)area) * 0.1f;
+    margin = (margin * float(area)) * 0.1f;
     unpacked = 0;
     for (i = 0; i < handle->ncharts; i++) {
       chart = handle->charts[i];

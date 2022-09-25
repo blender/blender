@@ -63,7 +63,7 @@ static void extract_fdots_pos_iter_poly_bm(const MeshRenderData *mr,
   do {
     add_v3_v3(co, bm_vert_co_get(mr, l_iter->v));
   } while ((l_iter = l_iter->next) != l_first);
-  mul_v3_fl(co, 1.0f / (float)f->len);
+  mul_v3_fl(co, 1.0f / float(f->len));
 }
 
 static void extract_fdots_pos_iter_poly_mesh(const MeshRenderData *mr,
@@ -95,7 +95,7 @@ static void extract_fdots_pos_iter_poly_mesh(const MeshRenderData *mr,
   }
 
   if (!mr->use_subsurf_fdots) {
-    mul_v3_fl(co, 1.0f / (float)mp->totloop);
+    mul_v3_fl(co, 1.0f / float(mp->totloop));
   }
 }
 

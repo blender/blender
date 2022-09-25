@@ -1764,7 +1764,7 @@ static void nodelink_batch_init()
 
     /* curve strip */
     for (int i = 0; i < LINK_RESOL; i++) {
-      uv[0] = 255 * (i / (float)(LINK_RESOL - 1));
+      uv[0] = 255 * (i / float(LINK_RESOL - 1));
       uv[1] = 0;
       set_nodelink_vertex(vbo, uv_id, pos_id, expand_id, v++, uv, pos, exp);
       uv[1] = 255;

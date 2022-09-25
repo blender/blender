@@ -207,7 +207,7 @@ bool BKE_curveprofile_remove_point(CurveProfile *profile, CurveProfilePoint *poi
   CurveProfilePoint *new_path = (CurveProfilePoint *)MEM_mallocN(
       sizeof(CurveProfilePoint) * profile->path_len, __func__);
 
-  int i_delete = (int)(point - profile->path);
+  int i_delete = int(point - profile->path);
   BLI_assert(i_delete > 0);
 
   /* Copy the before and after the deleted point. */
@@ -379,8 +379,8 @@ static void curveprofile_build_supports(CurveProfile *profile)
   point_init(&profile->path[0], 1.0f, 0.0f, 0, HD_VECT, HD_VECT);
   point_init(&profile->path[1], 1.0f, 0.5f, 0, HD_VECT, HD_VECT);
   for (int i = 1; i < n - 2; i++) {
-    const float x = 1.0f - (0.5f * (1.0f - cosf((float)(i / (float)(n - 3)) * M_PI_2)));
-    const float y = 0.5f + 0.5f * sinf((float)((i / (float)(n - 3)) * M_PI_2));
+    const float x = 1.0f - (0.5f * (1.0f - cosf(float(i / float(n - 3)) * M_PI_2)));
+    const float y = 0.5f + 0.5f * sinf(float((i / float(n - 3)) * M_PI_2));
     point_init(&profile->path[i], x, y, 0, HD_AUTO, HD_AUTO);
   }
   point_init(&profile->path[n - 2], 0.5f, 1.0f, 0, HD_VECT, HD_VECT);
@@ -408,8 +408,8 @@ static void curveprofile_build_steps(CurveProfile *profile)
   for (int i = 0; i < n; i++) {
     int step_x = (i + 1) / 2;
     int step_y = i / 2;
-    const float x = 1.0f - ((float)(2 * step_x) / n_steps_x);
-    const float y = (float)(2 * step_y) / n_steps_y;
+    const float x = 1.0f - (float(2 * step_x) / n_steps_x);
+    const float y = float(2 * step_y) / n_steps_y;
     point_init(&profile->path[i], x, y, 0, HD_VECT, HD_VECT);
   }
 }

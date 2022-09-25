@@ -374,7 +374,7 @@ static void node_foreach_cache(ID *id,
   if (nodetree->type == NTREE_COMPOSIT) {
     LISTBASE_FOREACH (bNode *, node, &nodetree->nodes) {
       if (node->type == CMP_NODE_MOVIEDISTORTION) {
-        key.offset_in_ID = (size_t)BLI_ghashutil_strhash_p(node->name);
+        key.offset_in_ID = size_t(BLI_ghashutil_strhash_p(node->name));
         function_callback(id, &key, (void **)&node->storage, 0, user_data);
       }
     }

@@ -754,7 +754,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
     if (G.debug & G_DEBUG_FREESTYLE) {
       printf("Warning: Object %s contains %lu degenerated triangle%s (strokes may be incorrect)\n",
              name,
-             (ulong)detriList.size(),
+             ulong(detriList.size()),
              (detriList.size() > 1) ? "s" : "");
     }
   }

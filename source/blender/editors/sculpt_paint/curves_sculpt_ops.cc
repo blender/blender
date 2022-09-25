@@ -1093,7 +1093,7 @@ static void min_distance_edit_draw(bContext *C, int UNUSED(x), int UNUSED(y), vo
   GPU_scissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 
   /* Draw the brush circle. */
-  GPU_matrix_translate_2f((float)op_data.initial_mouse.x, (float)op_data.initial_mouse.y);
+  GPU_matrix_translate_2f(float(op_data.initial_mouse.x), float(op_data.initial_mouse.y));
 
   GPUVertFormat *format = immVertexFormat();
   uint pos2d = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);

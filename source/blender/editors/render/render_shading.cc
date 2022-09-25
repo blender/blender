@@ -534,7 +534,7 @@ static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
   Material ***matar_object = &ob->mat;
 
   Material **matar = static_cast<Material **>(
-      MEM_callocN(sizeof(*matar) * (size_t)ob->totcol, __func__));
+      MEM_callocN(sizeof(*matar) * size_t(ob->totcol), __func__));
   for (int i = ob->totcol; i--;) {
     matar[i] = ob->matbits[i] ? (*matar_object)[i] : (*matar_obdata)[i];
   }

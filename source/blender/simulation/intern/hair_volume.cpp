@@ -39,7 +39,7 @@ static float I[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 
 BLI_INLINE int floor_int(float value)
 {
-  return value > 0.0f ? (int)value : ((int)value) - 1;
+  return value > 0.0f ? int(value) : int(value) - 1;
 }
 
 BLI_INLINE float floor_mod(float value)
@@ -68,7 +68,7 @@ struct HairGrid {
 };
 
 #define HAIR_GRID_INDEX_AXIS(vec, res, gmin, scale, axis) \
-  (min_ii(max_ii((int)((vec[axis] - gmin[axis]) * scale), 0), res[axis] - 2))
+  (min_ii(max_ii(int((vec[axis] - gmin[axis]) * scale), 0), res[axis] - 2))
 
 BLI_INLINE int hair_grid_offset(const float vec[3],
                                 const int res[3],
@@ -92,9 +92,9 @@ BLI_INLINE int hair_grid_interp_weights(
   k = HAIR_GRID_INDEX_AXIS(vec, res, gmin, scale, 2);
   offset = i + (j + k * res[1]) * res[0];
 
-  uvw[0] = (vec[0] - gmin[0]) * scale - (float)i;
-  uvw[1] = (vec[1] - gmin[1]) * scale - (float)j;
-  uvw[2] = (vec[2] - gmin[2]) * scale - (float)k;
+  uvw[0] = (vec[0] - gmin[0]) * scale - float(i);
+  uvw[1] = (vec[1] - gmin[1]) * scale - float(j);
+  uvw[2] = (vec[2] - gmin[2]) * scale - float(k);
 
 #if 0
   BLI_assert(0.0f <= uvw[0] && uvw[0] <= 1.0001f);
@@ -327,14 +327,14 @@ BLI_INLINE int hair_grid_weights(
   uvw[1] = (vec[1] - gmin[1]) * scale;
   uvw[2] = (vec[2] - gmin[2]) * scale;
 
-  weights[0] = dist_tent_v3f3(uvw, (float)i, (float)j, (float)k);
-  weights[1] = dist_tent_v3f3(uvw, (float)(i + 1), (float)j, (float)k);
-  weights[2] = dist_tent_v3f3(uvw, (float)i, (float)(j + 1), (float)k);
-  weights[3] = dist_tent_v3f3(uvw, (float)(i + 1), (float)(j + 1), (float)k);
-  weights[4] = dist_tent_v3f3(uvw, (float)i, (float)j, (float)(k + 1));
-  weights[5] = dist_tent_v3f3(uvw, (float)(i + 1), (float)j, (float)(k + 1));
-  weights[6] = dist_tent_v3f3(uvw, (float)i, (float)(j + 1), (float)(k + 1));
-  weights[7] = dist_tent_v3f3(uvw, (float)(i + 1), (float)(j + 1), (float)(k + 1));
+  weights[0] = dist_tent_v3f3(uvw, float(i), float(j), float(k));
+  weights[1] = dist_tent_v3f3(uvw, float(i + 1), float(j), float(k));
+  weights[2] = dist_tent_v3f3(uvw, float(i), float(j + 1), float(k));
+  weights[3] = dist_tent_v3f3(uvw, float(i + 1), float(j + 1), float(k));
+  weights[4] = dist_tent_v3f3(uvw, float(i), float(j), float(k + 1));
+  weights[5] = dist_tent_v3f3(uvw, float(i + 1), float(j), float(k + 1));
+  weights[6] = dist_tent_v3f3(uvw, float(i), float(j + 1), float(k + 1));
+  weights[7] = dist_tent_v3f3(uvw, float(i + 1), float(j + 1), float(k + 1));
 
   // BLI_assert(fabsf(weights_sum(weights) - 1.0f) < 0.0001f);
 
@@ -646,7 +646,7 @@ void SIM_hair_volume_add_segment(HairGrid *grid,
     float x[3], v[3];
     int i, j, k;
 
-    float f = (float)s / (float)(num_samples - 1);
+    float f = float(s) / float(num_samples - 1);
     interp_v3_v3v3(x, x2, x3, f);
     interp_v3_v3v3(v, v2, v3, f);
 
@@ -660,7 +660,7 @@ void SIM_hair_volume_add_segment(HairGrid *grid,
     for (k = kmin; k <= kmax; k++) {
       for (j = jmin; j <= jmax; j++) {
         for (i = imin; i <= imax; i++) {
-          float loc[3] = {(float)i, (float)j, (float)k};
+          float loc[3] = {float(i), float(j), float(k)};
           HairGridVert *vert = grid->verts + i * stride[0] + j * stride[1] + k * stride[2];
 
           hair_volume_eval_grid_vertex_sample(vert, loc, radius, dist_scale, x, v);
@@ -884,7 +884,7 @@ bool SIM_hair_volume_solve_divergence(HairGrid *grid,
           for (n = 0; n < neighbors_lo; n++) {
             A.insert(neighbor_lo_index[n], u) = -1.0f;
           }
-          A.insert(u, u) = (float)non_solid_neighbors;
+          A.insert(u, u) = float(non_solid_neighbors);
           for (n = 0; n < neighbors_hi; n++) {
             A.insert(neighbor_hi_index[n], u) = -1.0f;
           }
@@ -1139,8 +1139,8 @@ HairGrid *SIM_hair_volume_create_vertex_grid(float cellsize,
       resmax[i] = resmin[i] + MAX_HAIR_GRID_RES;
     }
 
-    gmin_margin[i] = (float)resmin[i] * cellsize;
-    gmax_margin[i] = (float)resmax[i] * cellsize;
+    gmin_margin[i] = float(resmin[i]) * cellsize;
+    gmax_margin[i] = float(resmax[i]) * cellsize;
   }
   size = hair_grid_size(res);
 

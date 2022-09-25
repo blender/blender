@@ -29,10 +29,10 @@ using namespace Geometry;
 SteerableViewMap::SteerableViewMap(uint nbOrientations)
 {
   _nbOrientations = nbOrientations;
-  _bound = cos(M_PI / (float)_nbOrientations);
+  _bound = cos(M_PI / float(_nbOrientations));
   for (uint i = 0; i < _nbOrientations; ++i) {
-    _directions.emplace_back(cos((float)i * M_PI / (float)_nbOrientations),
-                             sin((float)i * M_PI / (float)_nbOrientations));
+    _directions.emplace_back(cos(float(i) * M_PI / float(_nbOrientations)),
+                             sin(float(i) * M_PI / float(_nbOrientations)));
   }
   Build();
 }
@@ -101,7 +101,7 @@ double SteerableViewMap::ComputeWeight(const Vec2d &dir, unsigned i)
     dotp = 1.0;
   }
 
-  return cos((float)_nbOrientations / 2.0 * acos(dotp));
+  return cos(float(_nbOrientations) / 2.0 * acos(dotp));
 }
 
 double *SteerableViewMap::AddFEdge(FEdge *iFEdge)
@@ -246,7 +246,7 @@ void SteerableViewMap::saveSteerableViewMap() const
 
       for (int y = 0; y < oh; ++y) {    // soc
         for (int x = 0; x < ow; ++x) {  // soc
-          int c = (int)(coeff * _imagesPyramids[i]->pixel(x, y, j));
+          int c = int(coeff * _imagesPyramids[i]->pixel(x, y, j));
           if (c > 255) {
             c = 255;
           }

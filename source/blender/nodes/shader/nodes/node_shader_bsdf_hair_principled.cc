@@ -44,7 +44,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR);
   b.add_input<decl::Float>(N_("IOR")).default_value(1.55f).min(0.0f).max(1000.0f);
   b.add_input<decl::Float>(N_("Offset"))
-      .default_value(2.0f * ((float)M_PI) / 180.0f)
+      .default_value(2.0f * float(M_PI) / 180.0f)
       .min(-M_PI_2)
       .max(M_PI_2)
       .subtype(PROP_ANGLE);

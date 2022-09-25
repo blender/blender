@@ -222,7 +222,7 @@ static void vertex_interpolation_init(const SubdivMeshContext *ctx,
     vertex_interpolation->vertex_data_storage_allocated = true;
     /* Interpolate center of poly right away, it stays unchanged for all
      * ptex faces. */
-    const float weight = 1.0f / (float)coarse_poly->totloop;
+    const float weight = 1.0f / float(coarse_poly->totloop);
     blender::Array<float, 32> weights(coarse_poly->totloop);
     blender::Array<int, 32> indices(coarse_poly->totloop);
     for (int i = 0; i < coarse_poly->totloop; i++) {
@@ -355,7 +355,7 @@ static void loop_interpolation_init(const SubdivMeshContext *ctx,
     loop_interpolation->loop_data_storage_allocated = true;
     /* Interpolate center of poly right away, it stays unchanged for all
      * ptex faces. */
-    const float weight = 1.0f / (float)coarse_poly->totloop;
+    const float weight = 1.0f / float(coarse_poly->totloop);
     blender::Array<float, 32> weights(coarse_poly->totloop);
     blender::Array<int, 32> indices(coarse_poly->totloop);
     for (int i = 0; i < coarse_poly->totloop; i++) {

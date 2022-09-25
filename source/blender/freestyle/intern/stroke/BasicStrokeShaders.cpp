@@ -80,11 +80,11 @@ int IncreasingThicknessShader::shade(Stroke &stroke) const
   for (i = 0, v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd(); v != vend;
        ++v, ++i) {
     float t;
-    if (i < (float)n / 2.0f) {
-      t = (1.0 - (float)i / (float)n) * _ThicknessMin + (float)i / (float)n * _ThicknessMax;
+    if (i < float(n) / 2.0f) {
+      t = (1.0 - float(i) / float(n)) * _ThicknessMin + float(i) / float(n) * _ThicknessMax;
     }
     else {
-      t = (1.0 - (float)i / (float)n) * _ThicknessMax + (float)i / (float)n * _ThicknessMin;
+      t = (1.0 - float(i) / float(n)) * _ThicknessMax + float(i) / float(n) * _ThicknessMin;
     }
     v->attribute().setThickness(t / 2.0, t / 2.0);
   }
@@ -102,11 +102,11 @@ int ConstrainedIncreasingThicknessShader::shade(Stroke &stroke) const
     // XXX Why not using an if/else here? Else, if last condition is true, everything else is
     // computed for nothing!
     float t;
-    if (i < (float)n / 2.0f) {
-      t = (1.0 - (float)i / (float)n) * _ThicknessMin + (float)i / (float)n * maxT;
+    if (i < float(n) / 2.0f) {
+      t = (1.0 - float(i) / float(n)) * _ThicknessMin + float(i) / float(n) * maxT;
     }
     else {
-      t = (1.0 - (float)i / (float)n) * maxT + (float)i / (float)n * _ThicknessMin;
+      t = (1.0 - float(i) / float(n)) * maxT + float(i) / float(n) * _ThicknessMin;
     }
     v->attribute().setThickness(t / 2.0, t / 2.0);
     if (i == n - 1) {
@@ -157,13 +157,13 @@ static const unsigned NB_VALUE_NOISE = 512;
 ThicknessNoiseShader::ThicknessNoiseShader()
 {
   _amplitude = 1.0f;
-  _scale = 1.0f / 2.0f / (float)NB_VALUE_NOISE;
+  _scale = 1.0f / 2.0f / float(NB_VALUE_NOISE);
 }
 
 ThicknessNoiseShader::ThicknessNoiseShader(float iAmplitude, float iPeriod)
 {
   _amplitude = iAmplitude;
-  _scale = 1.0f / iPeriod / (float)NB_VALUE_NOISE;
+  _scale = 1.0f / iPeriod / float(NB_VALUE_NOISE);
 }
 
 int ThicknessNoiseShader::shade(Stroke &stroke) const
@@ -213,8 +213,8 @@ int IncreasingColorShader::shade(Stroke &stroke) const
   for (yo = 0, v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd(); v != vend;
        ++v, ++yo) {
     for (int i = 0; i < 4; ++i) {
-      newcolor[i] = (1.0 - (float)yo / (float)n) * _colorMin[i] +
-                    (float)yo / (float)n * _colorMax[i];
+      newcolor[i] = (1.0 - float(yo) / float(n)) * _colorMin[i] +
+                    float(yo) / float(n) * _colorMax[i];
     }
     v->attribute().setColor(newcolor[0], newcolor[1], newcolor[2]);
     v->attribute().setAlpha(newcolor[3]);
@@ -243,13 +243,13 @@ int MaterialColorShader::shade(Stroke &stroke) const
 ColorNoiseShader::ColorNoiseShader()
 {
   _amplitude = 1.0f;
-  _scale = 1.0f / 2.0f / (float)NB_VALUE_NOISE;
+  _scale = 1.0f / 2.0f / float(NB_VALUE_NOISE);
 }
 
 ColorNoiseShader::ColorNoiseShader(float iAmplitude, float iPeriod)
 {
   _amplitude = iAmplitude;
-  _scale = 1.0f / iPeriod / (float)NB_VALUE_NOISE;
+  _scale = 1.0f / iPeriod / float(NB_VALUE_NOISE);
 }
 
 int ColorNoiseShader::shade(Stroke &stroke) const
@@ -467,7 +467,7 @@ int BezierCurveShader::shade(Stroke &stroke) const
 
   vector<StrokeAttribute>::iterator a = attributes.begin(), aend = attributes.end();
   int index = 0;
-  int index1 = (int)floor((float)originalSize / 2.0);
+  int index1 = int(floor(float(originalSize) / 2.0));
   int index2 = index1 + nExtraVertex;
   for (it = stroke.strokeVerticesBegin(), itend = stroke.strokeVerticesEnd();
        (it != itend) && (a != aend);
@@ -666,7 +666,7 @@ int TipRemoverShader::shade(Stroke &stroke) const
   // Resample so that our new stroke have the same number of vertices than before
   stroke.Resample(originalSize);
 
-  if ((int)stroke.strokeVerticesSize() != originalSize) {  // soc
+  if (int(stroke.strokeVerticesSize()) != originalSize) {  // soc
     cerr << "Warning: resampling problem" << endl;
   }
 

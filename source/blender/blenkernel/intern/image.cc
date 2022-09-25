@@ -256,7 +256,7 @@ static void image_foreach_cache(ID *id,
   function_callback(id, &key, (void **)&image->rr, 0, user_data);
 
   LISTBASE_FOREACH (RenderSlot *, slot, &image->renderslots) {
-    key.offset_in_ID = (size_t)BLI_ghashutil_strhash_p(slot->name);
+    key.offset_in_ID = size_t(BLI_ghashutil_strhash_p(slot->name));
     function_callback(id, &key, (void **)&slot->render, 0, user_data);
   }
 }
@@ -846,8 +846,8 @@ int BKE_image_get_tile_from_pos(Image *ima, const float uv[2], float r_uv[2], fl
     return 0;
   }
 
-  int ix = (int)uv[0];
-  int iy = (int)uv[1];
+  int ix = int(uv[0]);
+  int iy = int(uv[1]);
   int tile_number = 1001 + 10 * iy + ix;
 
   if (BKE_image_get_tile(ima, tile_number) == nullptr) {
@@ -1534,14 +1534,14 @@ void BKE_image_print_memlist(Main *bmain)
     totsize += image_mem_size(ima);
   }
 
-  printf("\ntotal image memory len: %.3f MB\n", (double)totsize / (double)(1024 * 1024));
+  printf("\ntotal image memory len: %.3f MB\n", double(totsize) / double(1024 * 1024));
 
   for (ima = static_cast<Image *>(bmain->images.first); ima;
        ima = static_cast<Image *>(ima->id.next)) {
     size = image_mem_size(ima);
 
     if (size) {
-      printf("%s len: %.3f MB\n", ima->id.name + 2, (double)size / (double)(1024 * 1024));
+      printf("%s len: %.3f MB\n", ima->id.name + 2, double(size) / double(1024 * 1024));
     }
   }
 }
@@ -1967,7 +1967,7 @@ void BKE_image_stamp_buf(Scene *scene,
    * for now though this is only used for renders which use scene settings */
 
 #define TEXT_SIZE_CHECK(str, w, h) \
-  ((str[0]) && ((void)(h = h_fixed), (w = (int)BLF_width(mono, str, sizeof(str)))))
+  ((str[0]) && ((void)(h = h_fixed), (w = int(BLF_width(mono, str, sizeof(str))))))
 
   /* must enable BLF_WORD_WRAP before using */
 #define TEXT_SIZE_CHECK_WORD_WRAP(str, w, h) \
@@ -5187,8 +5187,8 @@ void BKE_image_get_size_fl(Image *image, ImageUser *iuser, float r_size[2])
   int width, height;
   BKE_image_get_size(image, iuser, &width, &height);
 
-  r_size[0] = (float)width;
-  r_size[1] = (float)height;
+  r_size[0] = float(width);
+  r_size[1] = float(height);
 }
 
 void BKE_image_get_aspect(Image *image, float *r_aspx, float *r_aspy)

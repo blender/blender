@@ -169,7 +169,7 @@ static void render_layer_allocate_pass(RenderResult *rr, RenderPass *rp)
     return;
   }
 
-  const size_t rectsize = ((size_t)rr->rectx) * rr->recty * rp->channels;
+  const size_t rectsize = size_t(rr->rectx) * rr->recty * rp->channels;
   rp->rect = MEM_cnew_array<float>(rectsize, rp->name);
 
   if (STREQ(rp->name, RE_PASSNAME_VECTOR)) {
@@ -780,7 +780,7 @@ static void do_merge_tile(
   copylen = tilex = rrpart->rectx;
   tiley = rrpart->recty;
 
-  ofs = (((size_t)rrpart->tilerect.ymin) * rr->rectx + rrpart->tilerect.xmin);
+  ofs = (size_t(rrpart->tilerect.ymin) * rr->rectx + rrpart->tilerect.xmin);
   target += pixsize * ofs;
 
   copylen *= sizeof(float) * pixsize;

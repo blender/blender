@@ -664,7 +664,7 @@ static void draw_subdiv_cache_extra_coarse_face_data_bm(BMesh *bm,
       flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
     }
     const int loopstart = BM_elem_index_get(f->l_first);
-    flags_data[index] = (uint)(loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
+    flags_data[index] = uint(loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
   }
 }
 
@@ -684,7 +684,7 @@ static void draw_subdiv_cache_extra_coarse_face_data_mesh(const MeshRenderData *
     if (mr->hide_poly && mr->hide_poly[i]) {
       flag |= SUBDIV_COARSE_FACE_FLAG_HIDDEN;
     }
-    flags_data[i] = (uint)(polys[i].loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
+    flags_data[i] = uint(polys[i].loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
   }
 }
 
@@ -707,7 +707,7 @@ static void draw_subdiv_cache_extra_coarse_face_data_mapped(Mesh *mesh,
     if ((polys[i].flag & ME_SMOOTH) != 0) {
       flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
     }
-    flags_data[i] = (uint)(polys[i].loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
+    flags_data[i] = uint(polys[i].loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
   }
 }
 
@@ -828,10 +828,10 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
 
   /* Set topology information only if we have loops. */
   if (num_loops != 0) {
-    cache->num_subdiv_edges = (uint)num_edges;
-    cache->num_subdiv_loops = (uint)num_loops;
-    cache->num_subdiv_verts = (uint)num_verts;
-    cache->num_subdiv_quads = (uint)num_polys;
+    cache->num_subdiv_edges = uint(num_edges);
+    cache->num_subdiv_loops = uint(num_loops);
+    cache->num_subdiv_verts = uint(num_verts);
+    cache->num_subdiv_quads = uint(num_polys);
     cache->subdiv_polygon_offset = static_cast<int *>(MEM_dupallocN(subdiv_polygon_offset));
   }
 
@@ -2137,7 +2137,7 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
   const bool is_simple = subdiv_cache->subdiv->settings.is_simple;
   const int resolution = subdiv_cache->resolution;
   const int resolution_1 = resolution - 1;
-  const float inv_resolution_1 = 1.0f / (float)resolution_1;
+  const float inv_resolution_1 = 1.0f / float(resolution_1);
   const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
 
   const int num_subdivided_edge = coarse_loose_edge_len *

@@ -379,7 +379,7 @@ BLI_INLINE float noise_grad(uint32_t hash, float x, float y, float z, float w)
 
 BLI_INLINE float floor_fraction(float x, int &i)
 {
-  i = (int)x - ((x < 0) ? 1 : 0);
+  i = int(x) - ((x < 0) ? 1 : 0);
   return x - i;
 }
 
@@ -729,7 +729,7 @@ float musgrave_fBm(const float co,
   const float pwHL = std::pow(lacunarity, -H);
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
-  for (int i = 0; i < (int)octaves; i++) {
+  for (int i = 0; i < int(octaves); i++) {
     value += perlin_signed(p) * pwr;
     pwr *= pwHL;
     p *= lacunarity;
@@ -754,7 +754,7 @@ float musgrave_multi_fractal(const float co,
   const float pwHL = std::pow(lacunarity, -H);
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
-  for (int i = 0; i < (int)octaves; i++) {
+  for (int i = 0; i < int(octaves); i++) {
     value *= (pwr * perlin_signed(p) + 1.0f);
     pwr *= pwHL;
     p *= lacunarity;
@@ -783,7 +783,7 @@ float musgrave_hetero_terrain(const float co,
   float value = offset + perlin_signed(p);
   p *= lacunarity;
 
-  for (int i = 1; i < (int)octaves; i++) {
+  for (int i = 1; i < int(octaves); i++) {
     float increment = (perlin_signed(p) + offset) * pwr * value;
     value += increment;
     pwr *= pwHL;
@@ -815,7 +815,7 @@ float musgrave_hybrid_multi_fractal(const float co,
 
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
-  for (int i = 0; (weight > 0.001f) && (i < (int)octaves); i++) {
+  for (int i = 0; (weight > 0.001f) && (i < int(octaves)); i++) {
     if (weight > 1.0f) {
       weight = 1.0f;
     }
@@ -857,7 +857,7 @@ float musgrave_ridged_multi_fractal(const float co,
 
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
-  for (int i = 1; i < (int)octaves; i++) {
+  for (int i = 1; i < int(octaves); i++) {
     p *= lacunarity;
     weight = CLAMPIS(signal * gain, 0.0f, 1.0f);
     signal = offset - std::abs(perlin_signed(p));
@@ -883,7 +883,7 @@ float musgrave_fBm(const float2 co,
   const float pwHL = std::pow(lacunarity, -H);
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
-  for (int i = 0; i < (int)octaves; i++) {
+  for (int i = 0; i < int(octaves); i++) {
     value += perlin_signed(p) * pwr;
     pwr *= pwHL;
     p *= lacunarity;
@@ -908,7 +908,7 @@ float musgrave_multi_fractal(const float2 co,
   const float pwHL = std::pow(lacunarity, -H);
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
-  for (int i = 0; i < (int)octaves; i++) {
+  for (int i = 0; i < int(octaves); i++) {
     value *= (pwr * perlin_signed(p) + 1.0f);
     pwr *= pwHL;
     p *= lacunarity;
@@ -938,7 +938,7 @@ float musgrave_hetero_terrain(const float2 co,
 
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
-  for (int i = 1; i < (int)octaves; i++) {
+  for (int i = 1; i < int(octaves); i++) {
     float increment = (perlin_signed(p) + offset) * pwr * value;
     value += increment;
     pwr *= pwHL;
@@ -970,7 +970,7 @@ float musgrave_hybrid_multi_fractal(const float2 co,
 
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
-  for (int i = 0; (weight > 0.001f) && (i < (int)octaves); i++) {
+  for (int i = 0; (weight > 0.001f) && (i < int(octaves)); i++) {
     if (weight > 1.0f) {
       weight = 1.0f;
     }
@@ -1012,7 +1012,7 @@ float musgrave_ridged_multi_fractal(const float2 co,
 
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
-  for (int i = 1; i < (int)octaves; i++) {
+  for (int i = 1; i < int(octaves); i++) {
     p *= lacunarity;
     weight = CLAMPIS(signal * gain, 0.0f, 1.0f);
     signal = offset - std::abs(perlin_signed(p));
@@ -1039,7 +1039,7 @@ float musgrave_fBm(const float3 co,
 
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
-  for (int i = 0; i < (int)octaves; i++) {
+  for (int i = 0; i < int(octaves); i++) {
     value += perlin_signed(p) * pwr;
     pwr *= pwHL;
     p *= lacunarity;
@@ -1065,7 +1065,7 @@ float musgrave_multi_fractal(const float3 co,
 
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
-  for (int i = 0; i < (int)octaves; i++) {
+  for (int i = 0; i < int(octaves); i++) {
     value *= (pwr * perlin_signed(p) + 1.0f);
     pwr *= pwHL;
     p *= lacunarity;
@@ -1095,7 +1095,7 @@ float musgrave_hetero_terrain(const float3 co,
 
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
-  for (int i = 1; i < (int)octaves; i++) {
+  for (int i = 1; i < int(octaves); i++) {
     float increment = (perlin_signed(p) + offset) * pwr * value;
     value += increment;
     pwr *= pwHL;
@@ -1127,7 +1127,7 @@ float musgrave_hybrid_multi_fractal(const float3 co,
 
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
-  for (int i = 0; (weight > 0.001f) && (i < (int)octaves); i++) {
+  for (int i = 0; (weight > 0.001f) && (i < int(octaves)); i++) {
     if (weight > 1.0f) {
       weight = 1.0f;
     }
@@ -1169,7 +1169,7 @@ float musgrave_ridged_multi_fractal(const float3 co,
 
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
-  for (int i = 1; i < (int)octaves; i++) {
+  for (int i = 1; i < int(octaves); i++) {
     p *= lacunarity;
     weight = CLAMPIS(signal * gain, 0.0f, 1.0f);
     signal = offset - std::abs(perlin_signed(p));
@@ -1196,7 +1196,7 @@ float musgrave_fBm(const float4 co,
 
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
-  for (int i = 0; i < (int)octaves; i++) {
+  for (int i = 0; i < int(octaves); i++) {
     value += perlin_signed(p) * pwr;
     pwr *= pwHL;
     p *= lacunarity;
@@ -1222,7 +1222,7 @@ float musgrave_multi_fractal(const float4 co,
 
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
-  for (int i = 0; i < (int)octaves; i++) {
+  for (int i = 0; i < int(octaves); i++) {
     value *= (pwr * perlin_signed(p) + 1.0f);
     pwr *= pwHL;
     p *= lacunarity;
@@ -1252,7 +1252,7 @@ float musgrave_hetero_terrain(const float4 co,
 
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
-  for (int i = 1; i < (int)octaves; i++) {
+  for (int i = 1; i < int(octaves); i++) {
     float increment = (perlin_signed(p) + offset) * pwr * value;
     value += increment;
     pwr *= pwHL;
@@ -1284,7 +1284,7 @@ float musgrave_hybrid_multi_fractal(const float4 co,
 
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
-  for (int i = 0; (weight > 0.001f) && (i < (int)octaves); i++) {
+  for (int i = 0; (weight > 0.001f) && (i < int(octaves)); i++) {
     if (weight > 1.0f) {
       weight = 1.0f;
     }
@@ -1326,7 +1326,7 @@ float musgrave_ridged_multi_fractal(const float4 co,
 
   const float octaves = CLAMPIS(octaves_unclamped, 0.0f, 15.0f);
 
-  for (int i = 1; i < (int)octaves; i++) {
+  for (int i = 1; i < int(octaves); i++) {
     p *= lacunarity;
     weight = CLAMPIS(signal * gain, 0.0f, 1.0f);
     signal = offset - std::abs(perlin_signed(p));

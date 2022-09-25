@@ -21,7 +21,7 @@ namespace blender::geometry {
 /** \name Curve Enums
  * \{ */
 
-#define CURVE_TYPE_AS_MASK(curve_type) ((CurveTypeMask)(1 << (int)(curve_type)))
+#define CURVE_TYPE_AS_MASK(curve_type) ((CurveTypeMask)(1 << int(curve_type)))
 
 typedef enum CurveTypeMask {
   CURVE_TYPE_MASK_CATMULL_ROM = (1 << 0),
@@ -165,7 +165,7 @@ static bke::curves::CurvePoint lookup_bezier_point(const Span<int> bezier_offset
   const int left = offset - bezier_offsets.begin();
   const int right = left == last_index ? 0 : left + 1;
 
-  const int prev_offset = left == 0 ? 0 : bezier_offsets[(int64_t)left - 1];
+  const int prev_offset = left == 0 ? 0 : bezier_offsets[int64_t(left) - 1];
   const float offset_in_segment = eval_factor + eval_index - prev_offset;
   const int segment_resolution = bezier_offsets[left] - prev_offset;
   const float parameter = std::clamp(offset_in_segment / segment_resolution, 0.0f, 1.0f);
@@ -267,13 +267,13 @@ Array<bke::curves::CurvePoint, 12> lookup_curve_points(const bke::CurvesGeometry
  * Determine curve type(s) for the copied curves given the supported set of types and knot modes.
  * If a curve type is not supported the default type is set.
  */
-static void determine_copyable_curve_types(const bke::CurvesGeometry &src_curves,
-                                           bke::CurvesGeometry &dst_curves,
-                                           const IndexMask selection,
-                                           const IndexMask selection_inverse,
-                                           const CurveTypeMask supported_curve_type_mask,
-                                           const int8_t default_curve_type = (int8_t)
-                                               CURVE_TYPE_POLY)
+static void determine_copyable_curve_types(
+    const bke::CurvesGeometry &src_curves,
+    bke::CurvesGeometry &dst_curves,
+    const IndexMask selection,
+    const IndexMask selection_inverse,
+    const CurveTypeMask supported_curve_type_mask,
+    const int8_t default_curve_type = int8_t(CURVE_TYPE_POLY))
 {
   const VArray<int8_t> src_curve_types = src_curves.curve_types();
   const VArray<int8_t> src_knot_modes = src_curves.nurbs_knots_modes();
@@ -332,7 +332,7 @@ static void compute_trim_result_offsets(const bke::CurvesGeometry &src_curves,
       src_point_count = src_curves.evaluated_points_for_curve(curve_i).size();
     }
     else {
-      src_point_count = (int64_t)src_curves.points_num_for_curve(curve_i);
+      src_point_count = int64_t(src_curves.points_num_for_curve(curve_i));
     }
     BLI_assert(src_point_count > 0);
 
@@ -376,8 +376,8 @@ static void fill_bezier_data(bke::CurvesGeometry &dst_curves, const IndexMask se
     threading::parallel_for(selection.index_range(), 4096, [&](const IndexRange range) {
       for (const int64_t curve_i : selection.slice(range)) {
         const IndexRange points = dst_curves.points_for_curve(curve_i);
-        handle_types_right.slice(points).fill((int8_t)BEZIER_HANDLE_FREE);
-        handle_types_left.slice(points).fill((int8_t)BEZIER_HANDLE_FREE);
+        handle_types_right.slice(points).fill(int8_t(BEZIER_HANDLE_FREE));
+        handle_types_left.slice(points).fill(int8_t(BEZIER_HANDLE_FREE));
         handle_positions_left.slice(points).fill({0.0f, 0.0f, 0.0f});
         handle_positions_right.slice(points).fill({0.0f, 0.0f, 0.0f});
       }
@@ -743,7 +743,7 @@ static void sample_interval_bezier(const Span<float3> src_positions,
           dst_positions,
           dst_handles_l,
           dst_handles_r,
-          {{(int)dst_range.first(), (int)(dst_range.first() + 1)}, parameter});
+          {{int(dst_range.first()), int(dst_range.first() + 1)}, parameter});
     }
     else {
       /* General case, compute the insertion point.  */

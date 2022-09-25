@@ -479,7 +479,7 @@ PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
 
   if (prv && force_update) {
     const char *prv_deferred_data = (char *)PRV_DEFERRED_DATA(prv);
-    if (((int)prv_deferred_data[0] == source) && STREQ(&prv_deferred_data[1], filepath)) {
+    if ((int(prv_deferred_data[0]) == source) && STREQ(&prv_deferred_data[1], filepath)) {
       /* If same filepath, no need to re-allocate preview, just clear it up. */
       BKE_previewimg_clear(prv);
     }

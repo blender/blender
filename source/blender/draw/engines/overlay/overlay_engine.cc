@@ -50,7 +50,7 @@ static void OVERLAY_engine_init(void *vedata)
   }
 
   OVERLAY_PrivateData *pd = stl->pd;
-  pd->space_type = v3d != nullptr ? (int)SPACE_VIEW3D : draw_ctx->space_data->spacetype;
+  pd->space_type = v3d != nullptr ? int(SPACE_VIEW3D) : draw_ctx->space_data->spacetype;
 
   if (pd->space_type == SPACE_IMAGE) {
     const SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;

@@ -407,8 +407,8 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
             bvhtree.tree, target_verts[i].co, &nearest, bvhtree.nearest_callback, &bvhtree);
 
         if (nearest.index != -1) {
-          memcpy(POINTER_OFFSET(target_data, (size_t)i * data_size),
-                 POINTER_OFFSET(source_data, (size_t)nearest.index * data_size),
+          memcpy(POINTER_OFFSET(target_data, size_t(i) * data_size),
+                 POINTER_OFFSET(source_data, size_t(nearest.index) * data_size),
                  data_size);
         }
       }
@@ -469,11 +469,11 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
                           source_loops->count,
                           target_loops->indices[0]);
 
-        void *elem = POINTER_OFFSET(target_data, (size_t)target_loops->indices[0] * data_size);
+        void *elem = POINTER_OFFSET(target_data, size_t(target_loops->indices[0]) * data_size);
 
         /* Copy to rest of target loops. */
         for (int j = 1; j < target_loops->count; j++) {
-          memcpy(POINTER_OFFSET(target_data, (size_t)target_loops->indices[j] * data_size),
+          memcpy(POINTER_OFFSET(target_data, size_t(target_loops->indices[j]) * data_size),
                  elem,
                  data_size);
         }
@@ -586,7 +586,7 @@ struct Mesh *BKE_mesh_remesh_voxel_fix_poles(const Mesh *mesh)
         BMVert *vert = BM_edge_other_vert(ed, v);
         add_v3_v3(co, vert->co);
       }
-      mul_v3_fl(co, 1.0f / (float)BM_vert_edge_count(v));
+      mul_v3_fl(co, 1.0f / float(BM_vert_edge_count(v)));
       mid_v3_v3v3(v->co, v->co, co);
     }
   }

@@ -778,7 +778,7 @@ static void view3d_collection_drop_copy_local_id(bContext *UNUSED(C),
                                                  wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID(drag, ID_GR);
-  RNA_int_set(drop->ptr, "session_uuid", (int)id->session_uuid);
+  RNA_int_set(drop->ptr, "session_uuid", int(id->session_uuid));
 }
 
 /* Mostly the same logic as #view3d_ob_drop_copy_external_asset(), just different enough to make
@@ -803,7 +803,7 @@ static void view3d_collection_drop_copy_external_asset(bContext *UNUSED(C),
   DEG_relations_tag_update(CTX_data_main(C));
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
-  RNA_int_set(drop->ptr, "session_uuid", (int)id->session_uuid);
+  RNA_int_set(drop->ptr, "session_uuid", int(id->session_uuid));
 
   /* Make an object active, just use the first one in the collection. */
   CollectionObject *cobject = static_cast<CollectionObject *>(collection->gobject.first);

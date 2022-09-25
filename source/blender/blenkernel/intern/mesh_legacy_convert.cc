@@ -110,24 +110,24 @@ static void bm_corners_to_loops_ex(ID *id,
       BLI_assert(fd->totdisp == 0);
     }
     else {
-      const int side = (int)sqrtf((float)(fd->totdisp / corners));
+      const int side = int(sqrtf(float(fd->totdisp / corners)));
       const int side_sq = side * side;
 
       for (int i = 0; i < tot; i++, disps += side_sq, ld++) {
         ld->totdisp = side_sq;
-        ld->level = (int)(logf((float)side - 1.0f) / (float)M_LN2) + 1;
+        ld->level = int(logf(float(side) - 1.0f) / float(M_LN2)) + 1;
 
         if (ld->disps) {
           MEM_freeN(ld->disps);
         }
 
         ld->disps = (float(*)[3])MEM_malloc_arrayN(
-            (size_t)side_sq, sizeof(float[3]), "converted loop mdisps");
+            size_t(side_sq), sizeof(float[3]), "converted loop mdisps");
         if (fd->disps) {
-          memcpy(ld->disps, disps, (size_t)side_sq * sizeof(float[3]));
+          memcpy(ld->disps, disps, size_t(side_sq) * sizeof(float[3]));
         }
         else {
-          memset(ld->disps, 0, (size_t)side_sq * sizeof(float[3]));
+          memset(ld->disps, 0, size_t(side_sq) * sizeof(float[3]));
         }
       }
     }
@@ -212,7 +212,7 @@ static void convert_mfaces_to_mpolys(ID *id,
     CustomData_external_read(fdata, id, CD_MASK_MDISPS, totface_i);
   }
 
-  eh = BLI_edgehash_new_ex(__func__, (uint)totedge_i);
+  eh = BLI_edgehash_new_ex(__func__, uint(totedge_i));
 
   /* build edge hash */
   me = medge;
@@ -609,15 +609,15 @@ static int mesh_tessface_calc(CustomData *fdata,
    * if all faces are triangles it will be correct, `quads == 2x` allocations. */
   /* Take care since memory is _not_ zeroed so be sure to initialize each field. */
   mface_to_poly_map = (int *)MEM_malloc_arrayN(
-      (size_t)looptri_num, sizeof(*mface_to_poly_map), __func__);
-  mface = (MFace *)MEM_malloc_arrayN((size_t)looptri_num, sizeof(*mface), __func__);
-  lindices = (uint(*)[4])MEM_malloc_arrayN((size_t)looptri_num, sizeof(*lindices), __func__);
+      size_t(looptri_num), sizeof(*mface_to_poly_map), __func__);
+  mface = (MFace *)MEM_malloc_arrayN(size_t(looptri_num), sizeof(*mface), __func__);
+  lindices = (uint(*)[4])MEM_malloc_arrayN(size_t(looptri_num), sizeof(*lindices), __func__);
 
   mface_index = 0;
   mp = mpoly;
   for (poly_index = 0; poly_index < totpoly; poly_index++, mp++) {
-    const uint mp_loopstart = (uint)mp->loopstart;
-    const uint mp_totloop = (uint)mp->totloop;
+    const uint mp_loopstart = uint(mp->loopstart);
+    const uint mp_totloop = uint(mp->totloop);
     uint l1, l2, l3, l4;
     uint *lidx;
     if (mp_totloop < 3) {
@@ -701,8 +701,8 @@ static int mesh_tessface_calc(CustomData *fdata,
         arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
       }
 
-      tris = (uint(*)[3])BLI_memarena_alloc(arena, sizeof(*tris) * (size_t)totfilltri);
-      projverts = (float(*)[2])BLI_memarena_alloc(arena, sizeof(*projverts) * (size_t)mp_totloop);
+      tris = (uint(*)[3])BLI_memarena_alloc(arena, sizeof(*tris) * size_t(totfilltri));
+      projverts = (float(*)[2])BLI_memarena_alloc(arena, sizeof(*projverts) * size_t(mp_totloop));
 
       zero_v3(normal);
 
@@ -774,9 +774,9 @@ static int mesh_tessface_calc(CustomData *fdata,
 
   /* Not essential but without this we store over-allocated memory in the #CustomData layers. */
   if (LIKELY(looptri_num != totface)) {
-    mface = (MFace *)MEM_reallocN(mface, sizeof(*mface) * (size_t)totface);
+    mface = (MFace *)MEM_reallocN(mface, sizeof(*mface) * size_t(totface));
     mface_to_poly_map = (int *)MEM_reallocN(mface_to_poly_map,
-                                            sizeof(*mface_to_poly_map) * (size_t)totface);
+                                            sizeof(*mface_to_poly_map) * size_t(totface));
   }
 
   CustomData_add_layer(fdata, CD_MFACE, CD_ASSIGN, mface, totface);

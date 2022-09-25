@@ -184,8 +184,8 @@ void SphericalGrid::reorganizeCells()
 
 void SphericalGrid::getCellCoordinates(const Vec3r &point, unsigned &x, unsigned &y)
 {
-  x = min(_cellsX - 1, (unsigned)floor(max((double)0.0f, point[0] - _cellOrigin[0]) / _cellSize));
-  y = min(_cellsY - 1, (unsigned)floor(max((double)0.0f, point[1] - _cellOrigin[1]) / _cellSize));
+  x = min(_cellsX - 1, (unsigned)floor(max(double(0.0f), point[0] - _cellOrigin[0]) / _cellSize));
+  y = min(_cellsY - 1, (unsigned)floor(max(double(0.0f), point[1] - _cellOrigin[1]) / _cellSize));
 }
 
 SphericalGrid::Cell *SphericalGrid::findCell(const Vec3r &point)

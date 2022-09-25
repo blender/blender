@@ -140,9 +140,9 @@ void BCMatrix::sanitize(Matrix &mat, int precision)
 {
   for (auto &row : mat) {
     for (float &cell : row) {
-      double val = (double)cell;
+      double val = double(cell);
       val = double_round(val, precision);
-      cell = (float)val;
+      cell = float(val);
     }
   }
 }

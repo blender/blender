@@ -171,8 +171,8 @@ static void view_angle_limits_init(NormalAnglePrecalc *a, float angle, bool do_m
     a->angle_inner = a->angle = angle;
   }
 
-  a->angle_inner *= (float)(M_PI_2 / 90);
-  a->angle *= (float)(M_PI_2 / 90);
+  a->angle_inner *= float(M_PI_2 / 90);
+  a->angle *= float(M_PI_2 / 90);
   a->angle_range = a->angle - a->angle_inner;
 
   if (a->angle_range <= 0.0f) {
@@ -894,7 +894,7 @@ static void do_weight_paint_vertex_single(
       else {
         /* dv and dv_mirr are the same */
         int totweight_prev = dv_mirr->totweight;
-        int dw_offset = (int)(dw - dv_mirr->dw);
+        int dw_offset = int(dw - dv_mirr->dw);
         dw_mirr = BKE_defvert_ensure_index(dv_mirr, vgroup_mirr);
 
         /* if we added another, get our old one back */
@@ -2128,7 +2128,7 @@ static void do_wpaint_brush_smear_task_cb_ex(void *__restrict userdata,
               }
 
               do_weight_paint_vertex(
-                  data->vp, data->ob, data->wpi, v_index, final_alpha, (float)weight_final);
+                  data->vp, data->ob, data->wpi, v_index, final_alpha, float(weight_final));
             }
           }
         }
@@ -2282,7 +2282,7 @@ static void calculate_average_weight(SculptThreadedTaskData *data,
   }
   if (accum_len != 0) {
     accum_weight /= accum_len;
-    data->strength = (float)accum_weight;
+    data->strength = float(accum_weight);
   }
 
   MEM_SAFE_FREE(data->custom_data); /* 'accum' */

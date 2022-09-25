@@ -287,7 +287,7 @@ void ED_object_rotation_from_quat(float rot[3], const float viewquat[4], const c
     }
     case 'Y': {
       quat_to_eul(rot, viewquat);
-      rot[0] -= (float)M_PI_2;
+      rot[0] -= float(M_PI_2);
       break;
     }
     case 'Z': {

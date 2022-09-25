@@ -432,7 +432,7 @@ static void node_update_basis(const bContext &C,
     float aspect = 1.0f;
 
     if (node.preview_xsize && node.preview_ysize) {
-      aspect = (float)node.preview_ysize / (float)node.preview_xsize;
+      aspect = float(node.preview_ysize) / float(node.preview_xsize);
     }
 
     dy -= NODE_DYS / 2;
@@ -597,7 +597,7 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   float hiddenrad = HIDDEN_RAD;
   float tot = MAX2(totin, totout);
   if (tot > 4) {
-    hiddenrad += 5.0f * (float)(tot - 4);
+    hiddenrad += 5.0f * float(tot - 4);
   }
 
   node.totr.xmin = loc.x;
@@ -606,7 +606,7 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   node.totr.ymin = node.totr.ymax - 2 * hiddenrad;
 
   /* Output sockets. */
-  float rad = (float)M_PI / (1.0f + (float)totout);
+  float rad = float(M_PI) / (1.0f + float(totout));
   float drad = rad;
 
   LISTBASE_FOREACH (bNodeSocket *, socket, &node.outputs) {
@@ -619,7 +619,7 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   }
 
   /* Input sockets. */
-  rad = drad = -(float)M_PI / (1.0f + (float)totin);
+  rad = drad = -float(M_PI) / (1.0f + float(totin));
 
   LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
     if (!nodeSocketIsHidden(socket)) {
@@ -1293,20 +1293,20 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 {
   float xrect = BLI_rctf_size_x(prv);
   float yrect = BLI_rctf_size_y(prv);
-  float xscale = xrect / ((float)preview->xsize);
-  float yscale = yrect / ((float)preview->ysize);
+  float xscale = xrect / float(preview->xsize);
+  float yscale = yrect / float(preview->ysize);
   float scale;
 
   /* Uniform scale and offset. */
   rctf draw_rect = *prv;
   if (xscale < yscale) {
-    float offset = 0.5f * (yrect - ((float)preview->ysize) * xscale);
+    float offset = 0.5f * (yrect - float(preview->ysize) * xscale);
     draw_rect.ymin += offset;
     draw_rect.ymax -= offset;
     scale = xscale;
   }
   else {
-    float offset = 0.5f * (xrect - ((float)preview->xsize) * yscale);
+    float offset = 0.5f * (xrect - float(preview->xsize) * yscale);
     draw_rect.xmin += offset;
     draw_rect.xmax -= offset;
     scale = yscale;
@@ -1930,8 +1930,8 @@ static void node_draw_extra_info_row(const bNode &node,
                                  UI_BTYPE_BUT,
                                  0,
                                  extra_info_row.icon,
-                                 (int)but_icon_left,
-                                 (int)(rect.ymin + row * (20.0f * U.dpi_fac)),
+                                 int(but_icon_left),
+                                 int(rect.ymin + row * (20.0f * U.dpi_fac)),
                                  but_icon_width,
                                  UI_UNIT_Y,
                                  nullptr,
@@ -1956,10 +1956,10 @@ static void node_draw_extra_info_row(const bNode &node,
                              UI_BTYPE_LABEL,
                              0,
                              extra_info_row.text.c_str(),
-                             (int)but_text_left,
-                             (int)(rect.ymin + row * (20.0f * U.dpi_fac)),
-                             (short)but_text_width,
-                             (short)NODE_DY,
+                             int(but_text_left),
+                             int(rect.ymin + row * (20.0f * U.dpi_fac)),
+                             short(but_text_width),
+                             short(NODE_DY),
                              nullptr,
                              0,
                              0,
@@ -2195,10 +2195,10 @@ static void node_draw_basis(const bContext &C,
                         UI_BTYPE_LABEL,
                         0,
                         showname,
-                        (int)(rct.xmin + NODE_MARGIN_X + 0.4f),
-                        (int)(rct.ymax - NODE_DY),
-                        (short)(iconofs - rct.xmin - (18.0f * U.dpi_fac)),
-                        (short)NODE_DY,
+                        int(rct.xmin + NODE_MARGIN_X + 0.4f),
+                        int(rct.ymax - NODE_DY),
+                        short(iconofs - rct.xmin - (18.0f * U.dpi_fac)),
+                        short(NODE_DY),
                         nullptr,
                         0,
                         0,
@@ -2425,8 +2425,8 @@ static void node_draw_hidden(const bContext &C,
                         showname,
                         round_fl_to_int(rct.xmin + NODE_MARGIN_X),
                         round_fl_to_int(centy - NODE_DY * 0.5f),
-                        (short)(BLI_rctf_size_x(&rct) - ((18.0f + 12.0f) * U.dpi_fac)),
-                        (short)NODE_DY,
+                        short(BLI_rctf_size_x(&rct) - ((18.0f + 12.0f) * U.dpi_fac)),
+                        short(NODE_DY),
                         nullptr,
                         0,
                         0,
@@ -2722,7 +2722,7 @@ static void frame_node_draw_label(const bNodeTree &ntree,
   UI_GetThemeColorBlendShade3ubv(TH_TEXT, color_id, 0.4f, 10, color);
   BLF_color3ubv(fontid, color);
 
-  const float margin = (float)(NODE_DY / 4);
+  const float margin = float(NODE_DY / 4);
   const float width = BLF_width(fontid, label, sizeof(label));
   const float ascender = BLF_ascender(fontid);
   const int label_height = ((margin / aspect) + (ascender * aspect));
@@ -2866,7 +2866,7 @@ static void reroute_node_draw(
                                 x,
                                 y,
                                 width,
-                                (short)NODE_DY,
+                                short(NODE_DY),
                                 nullptr,
                                 0,
                                 0,
@@ -3013,7 +3013,7 @@ static void snode_setup_v2d(SpaceNode &snode, ARegion &region, const float2 &cen
   UI_view2d_view_ortho(&v2d);
 
   /* Aspect + font, set each time. */
-  snode.runtime->aspect = BLI_rctf_size_x(&v2d.cur) / (float)region.winx;
+  snode.runtime->aspect = BLI_rctf_size_x(&v2d.cur) / float(region.winx);
   // XXX snode->curfont = uiSetCurFont_ext(snode->aspect);
 }
 

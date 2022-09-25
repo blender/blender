@@ -1123,7 +1123,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 VIEW_LAYER_RENDER,
                                 0,
                                 ICON_RESTRICT_RENDER_OFF,
-                                (int)(region->v2d.cur.xmax - restrict_offsets.render),
+                                int(region->v2d.cur.xmax - restrict_offsets.render),
                                 te->ys,
                                 UI_UNIT_X,
                                 UI_UNIT_Y,
@@ -1158,7 +1158,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                     UI_BTYPE_ICON_TOGGLE,
                                     0,
                                     0,
-                                    (int)(region->v2d.cur.xmax - restrict_offsets.hide),
+                                    int(region->v2d.cur.xmax - restrict_offsets.hide),
                                     te->ys,
                                     UI_UNIT_X,
                                     UI_UNIT_Y,
@@ -1185,7 +1185,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   UI_BTYPE_ICON_TOGGLE,
                                   0,
                                   0,
-                                  (int)(region->v2d.cur.xmax - restrict_offsets.select),
+                                  int(region->v2d.cur.xmax - restrict_offsets.select),
                                   te->ys,
                                   UI_UNIT_X,
                                   UI_UNIT_Y,
@@ -1210,7 +1210,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   UI_BTYPE_ICON_TOGGLE,
                                   0,
                                   0,
-                                  (int)(region->v2d.cur.xmax - restrict_offsets.viewport),
+                                  int(region->v2d.cur.xmax - restrict_offsets.viewport),
                                   te->ys,
                                   UI_UNIT_X,
                                   UI_UNIT_Y,
@@ -1235,7 +1235,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   UI_BTYPE_ICON_TOGGLE,
                                   0,
                                   0,
-                                  (int)(region->v2d.cur.xmax - restrict_offsets.render),
+                                  int(region->v2d.cur.xmax - restrict_offsets.render),
                                   te->ys,
                                   UI_UNIT_X,
                                   UI_UNIT_Y,
@@ -1266,7 +1266,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   UI_BTYPE_ICON_TOGGLE,
                                   0,
                                   0,
-                                  (int)(region->v2d.cur.xmax - restrict_offsets.hide),
+                                  int(region->v2d.cur.xmax - restrict_offsets.hide),
                                   te->ys,
                                   UI_UNIT_X,
                                   UI_UNIT_Y,
@@ -1295,7 +1295,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   UI_BTYPE_ICON_TOGGLE,
                                   0,
                                   0,
-                                  (int)(region->v2d.cur.xmax - restrict_offsets.viewport),
+                                  int(region->v2d.cur.xmax - restrict_offsets.viewport),
                                   te->ys,
                                   UI_UNIT_X,
                                   UI_UNIT_Y,
@@ -1318,7 +1318,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   UI_BTYPE_ICON_TOGGLE,
                                   0,
                                   0,
-                                  (int)(region->v2d.cur.xmax - restrict_offsets.render),
+                                  int(region->v2d.cur.xmax - restrict_offsets.render),
                                   te->ys,
                                   UI_UNIT_X,
                                   UI_UNIT_Y,
@@ -1350,7 +1350,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   UI_BTYPE_ICON_TOGGLE,
                                   0,
                                   0,
-                                  (int)(region->v2d.cur.xmax - restrict_offsets.viewport),
+                                  int(region->v2d.cur.xmax - restrict_offsets.viewport),
                                   te->ys,
                                   UI_UNIT_X,
                                   UI_UNIT_Y,
@@ -1374,7 +1374,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 BONE_UNSELECTABLE,
                                 0,
                                 ICON_RESTRICT_SELECT_OFF,
-                                (int)(region->v2d.cur.xmax - restrict_offsets.select),
+                                int(region->v2d.cur.xmax - restrict_offsets.select),
                                 te->ys,
                                 UI_UNIT_X,
                                 UI_UNIT_Y,
@@ -1400,7 +1400,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 BONE_HIDDEN_A,
                                 0,
                                 ICON_RESTRICT_VIEW_OFF,
-                                (int)(region->v2d.cur.xmax - restrict_offsets.viewport),
+                                int(region->v2d.cur.xmax - restrict_offsets.viewport),
                                 te->ys,
                                 UI_UNIT_X,
                                 UI_UNIT_Y,
@@ -1422,7 +1422,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 BONE_UNSELECTABLE,
                                 0,
                                 ICON_RESTRICT_SELECT_OFF,
-                                (int)(region->v2d.cur.xmax - restrict_offsets.select),
+                                int(region->v2d.cur.xmax - restrict_offsets.select),
                                 te->ys,
                                 UI_UNIT_X,
                                 UI_UNIT_Y,
@@ -1448,7 +1448,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 GP_LAYER_HIDE,
                                 0,
                                 ICON_HIDE_OFF,
-                                (int)(region->v2d.cur.xmax - restrict_offsets.hide),
+                                int(region->v2d.cur.xmax - restrict_offsets.hide),
                                 te->ys,
                                 UI_UNIT_X,
                                 UI_UNIT_Y,
@@ -1469,7 +1469,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 GP_LAYER_LOCKED,
                                 0,
                                 ICON_UNLOCKED,
-                                (int)(region->v2d.cur.xmax - restrict_offsets.select),
+                                int(region->v2d.cur.xmax - restrict_offsets.select),
                                 te->ys,
                                 UI_UNIT_X,
                                 UI_UNIT_Y,
@@ -1501,7 +1501,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                       UI_BTYPE_ICON_TOGGLE,
                                       0,
                                       0,
-                                      (int)(region->v2d.cur.xmax) - restrict_offsets.enable,
+                                      int(region->v2d.cur.xmax) - restrict_offsets.enable,
                                       te->ys,
                                       UI_UNIT_X,
                                       UI_UNIT_Y,
@@ -1521,7 +1521,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                       UI_BTYPE_ICON_TOGGLE,
                                       0,
                                       0,
-                                      (int)(region->v2d.cur.xmax - restrict_offsets.hide),
+                                      int(region->v2d.cur.xmax - restrict_offsets.hide),
                                       te->ys,
                                       UI_UNIT_X,
                                       UI_UNIT_Y,
@@ -1550,7 +1550,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                       UI_BTYPE_ICON_TOGGLE,
                                       0,
                                       0,
-                                      (int)(region->v2d.cur.xmax - restrict_offsets.holdout),
+                                      int(region->v2d.cur.xmax - restrict_offsets.holdout),
                                       te->ys,
                                       UI_UNIT_X,
                                       UI_UNIT_Y,
@@ -1580,7 +1580,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                   UI_BTYPE_ICON_TOGGLE,
                   0,
                   0,
-                  (int)(region->v2d.cur.xmax - restrict_offsets.indirect_only),
+                  int(region->v2d.cur.xmax - restrict_offsets.indirect_only),
                   te->ys,
                   UI_UNIT_X,
                   UI_UNIT_Y,
@@ -1612,7 +1612,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                     UI_BTYPE_ICON_TOGGLE,
                                     0,
                                     0,
-                                    (int)(region->v2d.cur.xmax - restrict_offsets.viewport),
+                                    int(region->v2d.cur.xmax - restrict_offsets.viewport),
                                     te->ys,
                                     UI_UNIT_X,
                                     UI_UNIT_Y,
@@ -1649,7 +1649,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                     UI_BTYPE_ICON_TOGGLE,
                                     0,
                                     0,
-                                    (int)(region->v2d.cur.xmax - restrict_offsets.render),
+                                    int(region->v2d.cur.xmax - restrict_offsets.render),
                                     te->ys,
                                     UI_UNIT_X,
                                     UI_UNIT_Y,
@@ -1684,7 +1684,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                     UI_BTYPE_ICON_TOGGLE,
                                     0,
                                     0,
-                                    (int)(region->v2d.cur.xmax - restrict_offsets.select),
+                                    int(region->v2d.cur.xmax - restrict_offsets.select),
                                     te->ys,
                                     UI_UNIT_X,
                                     UI_UNIT_Y,
@@ -1759,7 +1759,7 @@ static void outliner_draw_userbuts(uiBlock *block,
                   UI_BTYPE_BUT,
                   1,
                   buf,
-                  (int)(region->v2d.cur.xmax - OL_TOG_USER_BUTS_USERS),
+                  int(region->v2d.cur.xmax - OL_TOG_USER_BUTS_USERS),
                   te->ys,
                   UI_UNIT_X,
                   UI_UNIT_Y,
@@ -1782,7 +1782,7 @@ static void outliner_draw_userbuts(uiBlock *block,
                           LIB_FAKEUSER,
                           1,
                           ICON_FAKE_USER_OFF,
-                          (int)(region->v2d.cur.xmax - OL_TOG_USER_BUTS_STATUS),
+                          int(region->v2d.cur.xmax - OL_TOG_USER_BUTS_STATUS),
                           te->ys,
                           UI_UNIT_X,
                           UI_UNIT_Y,
@@ -2093,7 +2093,7 @@ static void outliner_buttons(const bContext *C,
                 UI_UNIT_Y - 1,
                 (void *)te->name,
                 1.0,
-                (float)len,
+                float(len),
                 0,
                 0,
                 "");
@@ -2367,7 +2367,7 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
   /* TODO(sergey): Casting to short here just to handle ID_NLA which is
    * NOT inside of IDType enum.
    */
-  switch ((short)GS(id->name)) {
+  switch (short(GS(id->name))) {
     case ID_SCE:
       return ICON_SCENE_DATA;
     case ID_ME:
@@ -2952,16 +2952,16 @@ static void outliner_draw_iconrow_number(const uiFontStyle *fstyle,
 {
   const float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
   float ufac = 0.25f * UI_UNIT_X;
-  float offset_x = (float)offsx + UI_UNIT_X * 0.35f;
+  float offset_x = float(offsx) + UI_UNIT_X * 0.35f;
   rctf rect{};
   BLI_rctf_init(&rect,
                 offset_x + ufac,
                 offset_x + UI_UNIT_X - ufac,
-                (float)ys - UI_UNIT_Y * 0.2f + ufac,
-                (float)ys - UI_UNIT_Y * 0.2f + UI_UNIT_Y - ufac);
+                float(ys) - UI_UNIT_Y * 0.2f + ufac,
+                float(ys) - UI_UNIT_Y * 0.2f + UI_UNIT_Y - ufac);
 
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  UI_draw_roundbox_aa(&rect, true, (float)UI_UNIT_Y / 2.0f - ufac, color);
+  UI_draw_roundbox_aa(&rect, true, float(UI_UNIT_Y) / 2.0f - ufac, color);
 
   /* Now the numbers. */
   uchar text_col[4];
@@ -2981,7 +2981,7 @@ static void outliner_draw_iconrow_number(const uiFontStyle *fstyle,
   }
   UI_fontstyle_draw_simple(&fstyle_small,
                            (offset_x + ufac + UI_UNIT_X * (2 - num_digits) * 0.12f),
-                           (float)ys - UI_UNIT_Y * 0.095f + ufac,
+                           float(ys) - UI_UNIT_Y * 0.095f + ufac,
                            number_text,
                            text_col);
   UI_fontstyle_set(fstyle);
@@ -3038,10 +3038,10 @@ static void outliner_draw_iconrow_doit(uiBlock *block,
       icon_border[3] = 0.3f;
     }
 
-    outliner_draw_active_indicator((float)*offsx,
-                                   (float)ys,
-                                   (float)*offsx + UI_UNIT_X,
-                                   (float)ys + UI_UNIT_Y,
+    outliner_draw_active_indicator(float(*offsx),
+                                   float(ys),
+                                   float(*offsx) + UI_UNIT_X,
+                                   float(ys) + UI_UNIT_Y,
                                    icon_color,
                                    icon_border);
   }
@@ -3049,10 +3049,10 @@ static void outliner_draw_iconrow_doit(uiBlock *block,
   if (tselem->flag & TSE_HIGHLIGHTED_ICON) {
     alpha_fac += 0.5;
   }
-  tselem_draw_icon(block, xmax, (float)*offsx, (float)ys, tselem, te, alpha_fac, false);
+  tselem_draw_icon(block, xmax, float(*offsx), float(ys), tselem, te, alpha_fac, false);
   te->xs = *offsx;
   te->ys = ys;
-  te->xend = (short)*offsx + UI_UNIT_X;
+  te->xend = short(*offsx) + UI_UNIT_X;
 
   if (num_elements > 1) {
     outliner_draw_iconrow_number(fstyle, *offsx, ys, num_elements);
@@ -3327,10 +3327,10 @@ static void outliner_draw_tree_element(bContext *C,
 
     /* Active circle. */
     if (active != OL_DRAWSEL_NONE) {
-      outliner_draw_active_indicator((float)startx + offsx + UI_UNIT_X,
-                                     (float)*starty,
-                                     (float)startx + offsx + 2.0f * UI_UNIT_X,
-                                     (float)*starty + UI_UNIT_Y,
+      outliner_draw_active_indicator(float(startx) + offsx + UI_UNIT_X,
+                                     float(*starty),
+                                     float(startx) + offsx + 2.0f * UI_UNIT_X,
+                                     float(*starty) + UI_UNIT_Y,
                                      icon_bgcolor,
                                      icon_border);
 
@@ -3347,14 +3347,14 @@ static void outliner_draw_tree_element(bContext *C,
 
       /* Icons a bit higher. */
       if (TSELEM_OPEN(tselem, space_outliner)) {
-        UI_icon_draw_alpha((float)icon_x + 2 * ufac,
-                           (float)*starty + 1 * ufac,
+        UI_icon_draw_alpha(float(icon_x) + 2 * ufac,
+                           float(*starty) + 1 * ufac,
                            ICON_DISCLOSURE_TRI_DOWN,
                            alpha_fac);
       }
       else {
-        UI_icon_draw_alpha((float)icon_x + 2 * ufac,
-                           (float)*starty + 1 * ufac,
+        UI_icon_draw_alpha(float(icon_x) + 2 * ufac,
+                           float(*starty) + 1 * ufac,
                            ICON_DISCLOSURE_TRI_RIGHT,
                            alpha_fac);
       }
@@ -3365,8 +3365,8 @@ static void outliner_draw_tree_element(bContext *C,
     if (!(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM, TSE_ID_BASE)) &&
         tselem_draw_icon(block,
                          xmax,
-                         (float)startx + offsx,
-                         (float)*starty,
+                         float(startx) + offsx,
+                         float(*starty),
                          tselem,
                          te,
                          (tselem->flag & TSE_HIGHLIGHTED_ICON) ? alpha_fac + 0.5f : alpha_fac,
@@ -3383,7 +3383,7 @@ static void outliner_draw_tree_element(bContext *C,
       const BIFIconID lib_icon = (BIFIconID)UI_icon_from_library(tselem->id);
       if (lib_icon != ICON_NONE) {
         UI_icon_draw_alpha(
-            (float)startx + offsx + 2 * ufac, (float)*starty + 2 * ufac, lib_icon, alpha_fac);
+            float(startx) + offsx + 2 * ufac, float(*starty) + 2 * ufac, lib_icon, alpha_fac);
         offsx += UI_UNIT_X + 4 * ufac;
       }
     }
@@ -3399,7 +3399,7 @@ static void outliner_draw_tree_element(bContext *C,
       UI_fontstyle_draw_simple(fstyle, startx + offsx, *starty + 5 * ufac, te->name, text_color);
     }
 
-    offsx += (int)(UI_UNIT_X + UI_fontstyle_string_width(fstyle, te->name));
+    offsx += int(UI_UNIT_X + UI_fontstyle_string_width(fstyle, te->name));
 
     /* Closed item, we draw the icons, not when it's a scene, or master-server list though. */
     if (!TSELEM_OPEN(tselem, space_outliner)) {
@@ -3590,7 +3590,7 @@ static void outliner_draw_struct_marks(ARegion *region,
         uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
         immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
         immThemeColorShadeAlpha(TH_BACK, -15, -200);
-        immRecti(pos, 0, *starty + 1, (int)region->v2d.cur.xmax, *starty + UI_UNIT_Y - 1);
+        immRecti(pos, 0, *starty + 1, int(region->v2d.cur.xmax), *starty + UI_UNIT_Y - 1);
         immUnbindProgram();
       }
     }
@@ -3636,16 +3636,16 @@ static void outliner_draw_highlights(uint pos,
     /* Selection status. */
     if ((tselem->flag & TSE_ACTIVE) && (tselem->flag & TSE_SELECTED)) {
       immUniformColor4fv(col_active);
-      immRecti(pos, 0, start_y, (int)region->v2d.cur.xmax, start_y + UI_UNIT_Y);
+      immRecti(pos, 0, start_y, int(region->v2d.cur.xmax), start_y + UI_UNIT_Y);
     }
     else if (tselem->flag & TSE_SELECTED) {
       immUniformColor4fv(col_selection);
-      immRecti(pos, 0, start_y, (int)region->v2d.cur.xmax, start_y + UI_UNIT_Y);
+      immRecti(pos, 0, start_y, int(region->v2d.cur.xmax), start_y + UI_UNIT_Y);
     }
 
     /* Highlights. */
     if (tselem->flag & (TSE_DRAG_ANY | TSE_HIGHLIGHTED | TSE_SEARCHMATCH)) {
-      const int end_x = (int)region->v2d.cur.xmax;
+      const int end_x = int(region->v2d.cur.xmax);
 
       if (tselem->flag & TSE_DRAG_ANY) {
         /* Drag and drop highlight. */
@@ -3749,19 +3749,19 @@ static void outliner_draw_tree(bContext *C,
 
   if (space_outliner->outlinevis == SO_DATA_API) {
     /* struct marks */
-    starty = (int)region->v2d.tot.ymax - UI_UNIT_Y - OL_Y_OFFSET;
+    starty = int(region->v2d.tot.ymax) - UI_UNIT_Y - OL_Y_OFFSET;
     outliner_draw_struct_marks(region, space_outliner, &space_outliner->tree, &starty);
   }
 
   /* Draw highlights before hierarchy. */
-  starty = (int)region->v2d.tot.ymax - UI_UNIT_Y - OL_Y_OFFSET;
+  starty = int(region->v2d.tot.ymax) - UI_UNIT_Y - OL_Y_OFFSET;
   startx = 0;
   outliner_draw_highlights(region, space_outliner, startx, &starty);
 
   /* Set scissor so tree elements or lines can't overlap restriction icons. */
   int scissor[4] = {0};
   if (right_column_width > 0.0f) {
-    int mask_x = BLI_rcti_size_x(&region->v2d.mask) - (int)right_column_width + 1;
+    int mask_x = BLI_rcti_size_x(&region->v2d.mask) - int(right_column_width) + 1;
     CLAMP_MIN(mask_x, 0);
 
     GPU_scissor_get(scissor);
@@ -3769,12 +3769,12 @@ static void outliner_draw_tree(bContext *C,
   }
 
   /* Draw hierarchy lines for collections and object children. */
-  starty = (int)region->v2d.tot.ymax - OL_Y_OFFSET;
+  starty = int(region->v2d.tot.ymax) - OL_Y_OFFSET;
   startx = columns_offset + UI_UNIT_X / 2 - (U.pixelsize + 1) / 2;
   outliner_draw_hierarchy_lines(space_outliner, &space_outliner->tree, startx, &starty);
 
   /* Items themselves. */
-  starty = (int)region->v2d.tot.ymax - UI_UNIT_Y - OL_Y_OFFSET;
+  starty = int(region->v2d.tot.ymax) - UI_UNIT_Y - OL_Y_OFFSET;
   startx = columns_offset;
   LISTBASE_FOREACH (TreeElement *, te, &space_outliner->tree) {
     outliner_draw_tree_element(C,
@@ -3801,7 +3801,7 @@ static void outliner_back(ARegion *region)
 {
   int ystart;
 
-  ystart = (int)region->v2d.tot.ymax;
+  ystart = int(region->v2d.tot.ymax);
   ystart = UI_UNIT_Y * (ystart / (UI_UNIT_Y)) - OL_Y_OFFSET;
 
   GPUVertFormat *format = immVertexFormat();
@@ -3815,7 +3815,7 @@ static void outliner_back(ARegion *region)
 
   const float x1 = 0.0f, x2 = region->v2d.cur.xmax;
   float y1 = ystart, y2;
-  int tot = (int)floor(ystart - region->v2d.cur.ymin + 2 * UI_UNIT_Y) / (2 * UI_UNIT_Y);
+  int tot = int(floor(ystart - region->v2d.cur.ymin + 2 * UI_UNIT_Y)) / (2 * UI_UNIT_Y);
 
   if (tot > 0) {
     immBegin(GPU_PRIM_TRIS, 6 * tot);

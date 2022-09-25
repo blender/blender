@@ -233,7 +233,7 @@ bool BLO_memfile_write_file(struct MemFile *memfile, const char *filepath)
   for (chunk = static_cast<MemFileChunk *>(memfile->chunks.first); chunk;
        chunk = static_cast<MemFileChunk *>(chunk->next)) {
 #ifdef _WIN32
-    if ((size_t)write(file, chunk->buf, (uint)chunk->size) != chunk->size)
+    if ((size_t)write(file, chunk->buf, uint(chunk->size)) != chunk->size)
 #else
     if ((size_t)write(file, chunk->buf, chunk->size) != chunk->size)
 #endif

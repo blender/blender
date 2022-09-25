@@ -33,7 +33,7 @@ void MaskOperation::init_execution()
     }
     else {
       /* make a throw away copy of the mask */
-      const float frame = (float)frame_number_ - frame_shutter_;
+      const float frame = float(frame_number_) - frame_shutter_;
       const float frame_step = (frame_shutter_ * 2.0f) / raster_mask_handle_tot_;
       float frame_iter = frame;
 

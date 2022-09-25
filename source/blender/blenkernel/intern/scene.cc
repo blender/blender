@@ -137,7 +137,7 @@ static void scene_init_data(ID *id)
 
   scene->toolsettings = DNA_struct_default_alloc(ToolSettings);
 
-  scene->toolsettings->autokey_mode = (uchar)U.autokey_mode;
+  scene->toolsettings->autokey_mode = uchar(U.autokey_mode);
 
   /* Grease pencil multi-frame falloff curve. */
   scene->toolsettings->gp_sculpt.cur_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
@@ -156,9 +156,9 @@ static void scene_init_data(ID *id)
 
   scene->unit.system = USER_UNIT_METRIC;
   scene->unit.scale_length = 1.0f;
-  scene->unit.length_unit = (uchar)BKE_unit_base_of_type_get(USER_UNIT_METRIC, B_UNIT_LENGTH);
-  scene->unit.mass_unit = (uchar)BKE_unit_base_of_type_get(USER_UNIT_METRIC, B_UNIT_MASS);
-  scene->unit.time_unit = (uchar)BKE_unit_base_of_type_get(USER_UNIT_METRIC, B_UNIT_TIME);
+  scene->unit.length_unit = uchar(BKE_unit_base_of_type_get(USER_UNIT_METRIC, B_UNIT_LENGTH));
+  scene->unit.mass_unit = uchar(BKE_unit_base_of_type_get(USER_UNIT_METRIC, B_UNIT_MASS));
+  scene->unit.time_unit = uchar(BKE_unit_base_of_type_get(USER_UNIT_METRIC, B_UNIT_TIME));
   scene->unit.temperature_unit = (uchar)BKE_unit_base_of_type_get(USER_UNIT_METRIC,
                                                                   B_UNIT_TEMPERATURE);
 
@@ -880,7 +880,7 @@ static bool seq_foreach_path_callback(Sequence *seq, void *user_data)
     }
     else if ((seq->type == SEQ_TYPE_IMAGE) && se) {
       /* NOTE: An option not to loop over all strips could be useful? */
-      uint len = (uint)MEM_allocN_len(se) / (uint)sizeof(*se);
+      uint len = uint(MEM_allocN_len(se)) / uint(sizeof(*se));
       uint i;
 
       if (bpath_data->flag & BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE) {
@@ -1005,10 +1005,10 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   if (sce->r.avicodecdata) {
     BLO_write_struct(writer, AviCodecData, sce->r.avicodecdata);
     if (sce->r.avicodecdata->lpFormat) {
-      BLO_write_raw(writer, (size_t)sce->r.avicodecdata->cbFormat, sce->r.avicodecdata->lpFormat);
+      BLO_write_raw(writer, size_t(sce->r.avicodecdata->cbFormat), sce->r.avicodecdata->lpFormat);
     }
     if (sce->r.avicodecdata->lpParms) {
-      BLO_write_raw(writer, (size_t)sce->r.avicodecdata->cbParms, sce->r.avicodecdata->lpParms);
+      BLO_write_raw(writer, size_t(sce->r.avicodecdata->cbParms), sce->r.avicodecdata->lpParms);
     }
   }
 
@@ -1207,8 +1207,8 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
       intptr_t seqbase_offset;
       intptr_t channels_offset;
 
-      seqbase_offset = ((intptr_t) & (temp.seqbase)) - ((intptr_t)&temp);
-      channels_offset = ((intptr_t) & (temp.channels)) - ((intptr_t)&temp);
+      seqbase_offset = intptr_t(&(temp).seqbase) - intptr_t(&temp);
+      channels_offset = intptr_t(&(temp).channels) - intptr_t(&temp);
 
       /* seqbase root pointer */
       if (ed->seqbasep == old_seqbasep) {
@@ -1326,7 +1326,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
 
       /* make sure simulation starts from the beginning after loading file */
       if (rbw->pointcache) {
-        rbw->ltime = (float)rbw->pointcache->startframe;
+        rbw->ltime = float(rbw->pointcache->startframe);
       }
     }
     else {
@@ -1340,7 +1340,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
 
       /* make sure simulation starts from the beginning after loading file */
       if (rbw->shared->pointcache) {
-        rbw->ltime = (float)rbw->shared->pointcache->startframe;
+        rbw->ltime = float(rbw->shared->pointcache->startframe);
       }
     }
     rbw->objects = nullptr;
@@ -2426,7 +2426,7 @@ void BKE_scene_frame_set(Scene *scene, float frame)
 {
   double intpart;
   scene->r.subframe = modf((double)frame, &intpart);
-  scene->r.cfra = (int)intpart;
+  scene->r.cfra = int(intpart);
 }
 
 /* -------------------------------------------------------------------- */

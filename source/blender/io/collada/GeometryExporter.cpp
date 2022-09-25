@@ -64,7 +64,7 @@ void GeometryExporter::operator()(Object *ob)
 
   exportedGeometry.insert(geom_id);
 
-  bool has_color = (bool)CustomData_has_layer(&me->fdata, CD_MCOL);
+  bool has_color = bool(CustomData_has_layer(&me->fdata, CD_MCOL));
 
   create_normals(nor, norind, me);
 
@@ -77,7 +77,7 @@ void GeometryExporter::operator()(Object *ob)
   /* writes <source> for normal coords */
   createNormalsSource(geom_id, me, nor);
 
-  bool has_uvs = (bool)CustomData_has_layer(&me->ldata, CD_MLOOPUV);
+  bool has_uvs = bool(CustomData_has_layer(&me->ldata, CD_MLOOPUV));
 
   /* writes <source> for uv coords if mesh has uv coords */
   if (has_uvs) {
@@ -147,7 +147,7 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
 
   exportedGeometry.insert(geom_id);
 
-  bool has_color = (bool)CustomData_has_layer(&me->fdata, CD_MCOL);
+  bool has_color = bool(CustomData_has_layer(&me->fdata, CD_MCOL));
 
   create_normals(nor, norind, me);
 
@@ -160,7 +160,7 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
   /* writes <source> for normal coords */
   createNormalsSource(geom_id, me, nor);
 
-  bool has_uvs = (bool)CustomData_has_layer(&me->ldata, CD_MLOOPUV);
+  bool has_uvs = bool(CustomData_has_layer(&me->ldata, CD_MLOOPUV));
 
   /* writes <source> for uv coords if mesh has uv coords */
   if (has_uvs) {
@@ -585,7 +585,7 @@ void GeometryExporter::createNormalsSource(std::string geom_id, Mesh *me, std::v
   COLLADASW::FloatSourceF source(mSW);
   source.setId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::NORMAL));
   source.setArrayId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::NORMAL) + ARRAY_ID_SUFFIX);
-  source.setAccessorCount((ulong)nor.size());
+  source.setAccessorCount(ulong(nor.size()));
   source.setAccessorStride(3);
   COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
   param.push_back("X");

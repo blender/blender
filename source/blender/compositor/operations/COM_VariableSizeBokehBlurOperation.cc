@@ -61,7 +61,7 @@ void *VariableSizeBokehBlurOperation::initialize_tile_data(rcti *rect)
   const float max_dim = MAX2(this->get_width(), this->get_height());
   const float scalar = do_size_scale_ ? (max_dim / 100.0f) : 1.0f;
 
-  data->max_blur_scalar = (int)(data->size->get_max_value(rect2) * scalar);
+  data->max_blur_scalar = int(data->size->get_max_value(rect2) * scalar);
   CLAMP(data->max_blur_scalar, 1.0f, max_blur_);
   return data;
 }
@@ -106,8 +106,8 @@ void VariableSizeBokehBlurOperation::execute_pixel(float output[4], int x, int y
 #else
   int minx = MAX2(x - max_blur_scalar, 0);
   int miny = MAX2(y - max_blur_scalar, 0);
-  int maxx = MIN2(x + max_blur_scalar, (int)get_width());
-  int maxy = MIN2(y + max_blur_scalar, (int)get_height());
+  int maxx = MIN2(x + max_blur_scalar, int(get_width()));
+  int maxy = MIN2(y + max_blur_scalar, int(get_height()));
 #endif
   {
     input_size_buffer->read_no_check(temp_size, x, y);
@@ -134,10 +134,10 @@ void VariableSizeBokehBlurOperation::execute_pixel(float output[4], int x, int y
               float dx = nx - x;
               if (size > fabsf(dx) && size > fabsf(dy)) {
                 float uv[2] = {
-                    (float)(COM_BLUR_BOKEH_PIXELS / 2) +
-                        (dx / size) * (float)((COM_BLUR_BOKEH_PIXELS / 2) - 1),
-                    (float)(COM_BLUR_BOKEH_PIXELS / 2) +
-                        (dy / size) * (float)((COM_BLUR_BOKEH_PIXELS / 2) - 1),
+                    float(COM_BLUR_BOKEH_PIXELS / 2) +
+                        (dx / size) * float((COM_BLUR_BOKEH_PIXELS / 2) - 1),
+                    float(COM_BLUR_BOKEH_PIXELS / 2) +
+                        (dy / size) * float((COM_BLUR_BOKEH_PIXELS / 2) - 1),
                 };
                 input_bokeh_buffer->read(bokeh, uv[0], uv[1]);
                 madd_v4_v4v4(color_accum, bokeh, &input_program_float_buffer[offset_color_nx_ny]);
@@ -185,7 +185,7 @@ void VariableSizeBokehBlurOperation::execute_opencl(
   const float max_dim = MAX2(get_width(), get_height());
   cl_float scalar = do_size_scale_ ? (max_dim / 100.0f) : 1.0f;
 
-  max_blur = (cl_int)min_ff(size_memory_buffer->get_max_value() * scalar, (float)max_blur_);
+  max_blur = (cl_int)min_ff(size_memory_buffer->get_max_value() * scalar, float(max_blur_));
 
   device->COM_cl_attach_memory_buffer_to_kernel_parameter(
       defocus_kernel, 0, -1, cl_mem_to_clean_up, input_memory_buffers, input_program_);
@@ -358,10 +358,10 @@ static void blur_pixel(int x, int y, PixelData &p)
 
       /* XXX: There is no way to ensure bokeh input is an actual bokeh with #COM_BLUR_BOKEH_PIXELS
        * size, anything may be connected. Use the real input size and remove asserts? */
-      const float u = (float)(COM_BLUR_BOKEH_PIXELS / 2) +
-                      (dx / size) * (float)((COM_BLUR_BOKEH_PIXELS / 2) - 1);
-      const float v = (float)(COM_BLUR_BOKEH_PIXELS / 2) +
-                      (dy / size) * (float)((COM_BLUR_BOKEH_PIXELS / 2) - 1);
+      const float u = float(COM_BLUR_BOKEH_PIXELS / 2) +
+                      (dx / size) * float((COM_BLUR_BOKEH_PIXELS / 2) - 1);
+      const float v = float(COM_BLUR_BOKEH_PIXELS / 2) +
+                      (dy / size) * float((COM_BLUR_BOKEH_PIXELS / 2) - 1);
       float bokeh[4];
       p.bokeh_input->read_elem_checked(u, v, bokeh);
       madd_v4_v4v4(p.color_accum, bokeh, color);

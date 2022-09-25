@@ -52,20 +52,20 @@ static void update_curve_mask(CurveMaskCache *curve_mask_cache,
                               const float cursor_position[2])
 {
   BLI_assert(curve_mask_cache->curve_mask != nullptr);
-  int offset = (int)floorf(diameter / 2.0f);
+  int offset = int(floorf(diameter / 2.0f));
   int clamped_radius = max_ff(radius, 1.0);
 
   ushort *m = curve_mask_cache->curve_mask;
 
   const int aa_samples = aa_samples_per_texel_axis(brush, radius);
-  const float aa_offset = 1.0f / (2.0f * (float)aa_samples);
-  const float aa_step = 1.0f / (float)aa_samples;
+  const float aa_offset = 1.0f / (2.0f * float(aa_samples));
+  const float aa_step = 1.0f / float(aa_samples);
 
   float bpos[2];
   bpos[0] = cursor_position[0] - floorf(cursor_position[0]) + offset;
   bpos[1] = cursor_position[1] - floorf(cursor_position[1]) + offset;
 
-  float weight_factor = 65535.0f / (float)(aa_samples * aa_samples);
+  float weight_factor = 65535.0f / float(aa_samples * aa_samples);
 
   for (int y = 0; y < diameter; y++) {
     for (int x = 0; x < diameter; x++, m++) {
@@ -87,7 +87,7 @@ static void update_curve_mask(CurveMaskCache *curve_mask_cache,
         }
         pixel_xy[0] += aa_step;
       }
-      *m = (ushort)(total_weight * weight_factor);
+      *m = ushort(total_weight * weight_factor);
     }
   }
 }

@@ -274,13 +274,13 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
         mloop[0].v = startvert + index[0];
         mloop[1].v = startvert + index[2];
         mloop[2].v = startvert + index[1];
-        mpoly->loopstart = (int)(mloop - loops.data());
+        mpoly->loopstart = int(mloop - loops.data());
         mpoly->totloop = 3;
         material_indices.span[mpoly - polys.data()] = dl->col;
 
         if (mloopuv) {
           for (int i = 0; i < 3; i++, mloopuv++) {
-            mloopuv->uv[0] = (mloop[i].v - startvert) / (float)(dl->nr - 1);
+            mloopuv->uv[0] = (mloop[i].v - startvert) / float(dl->nr - 1);
             mloopuv->uv[1] = 0.0f;
           }
         }
@@ -334,7 +334,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
           mloop[1].v = p3;
           mloop[2].v = p4;
           mloop[3].v = p2;
-          mpoly->loopstart = (int)(mloop - loops.data());
+          mpoly->loopstart = int(mloop - loops.data());
           mpoly->totloop = 4;
           material_indices.span[mpoly - polys.data()] = dl->col;
 
@@ -357,8 +357,8 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
               /* find uv based on vertex index into grid array */
               int v = mloop[i].v - startvert;
 
-              mloopuv->uv[0] = (v / dl->nr) / (float)orco_sizev;
-              mloopuv->uv[1] = (v % dl->nr) / (float)orco_sizeu;
+              mloopuv->uv[0] = (v / dl->nr) / float(orco_sizev);
+              mloopuv->uv[1] = (v % dl->nr) / float(orco_sizeu);
 
               /* cyclic correction */
               if ((ELEM(i, 1, 2)) && mloopuv->uv[0] == 0.0f) {
@@ -1133,11 +1133,11 @@ static void add_shapekey_layers(Mesh *mesh_dest, Mesh *mesh_src)
                  mesh_src->totvert,
                  kb->name,
                  kb->totelem);
-      array = (float *)MEM_calloc_arrayN((size_t)mesh_src->totvert, sizeof(float[3]), __func__);
+      array = (float *)MEM_calloc_arrayN(size_t(mesh_src->totvert), sizeof(float[3]), __func__);
     }
     else {
-      array = (float *)MEM_malloc_arrayN((size_t)mesh_src->totvert, sizeof(float[3]), __func__);
-      memcpy(array, kb->data, sizeof(float[3]) * (size_t)mesh_src->totvert);
+      array = (float *)MEM_malloc_arrayN(size_t(mesh_src->totvert), sizeof(float[3]), __func__);
+      memcpy(array, kb->data, sizeof(float[3]) * size_t(mesh_src->totvert));
     }
 
     CustomData_add_layer_named(

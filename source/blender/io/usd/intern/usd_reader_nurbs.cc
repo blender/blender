@@ -33,7 +33,7 @@ static bool set_knots(const pxr::VtDoubleArray &knots, float *&nu_knots)
   nu_knots = static_cast<float *>(MEM_callocN(num_knots * sizeof(float), __func__));
 
   for (size_t i = 0; i < num_knots; i++) {
-    nu_knots[i] = (float)knots[i];
+    nu_knots[i] = float(knots[i]);
   }
 
   return true;
@@ -141,9 +141,9 @@ void USDNurbsReader::read_curve_sample(Curve *cu, const double motionSampleTime)
     BPoint *bp = nu->bp;
 
     for (int j = 0; j < nu->pntsu; j++, bp++, idx++) {
-      bp->vec[0] = (float)usdPoints[idx][0];
-      bp->vec[1] = (float)usdPoints[idx][1];
-      bp->vec[2] = (float)usdPoints[idx][2];
+      bp->vec[0] = float(usdPoints[idx][0]);
+      bp->vec[1] = float(usdPoints[idx][1]);
+      bp->vec[2] = float(usdPoints[idx][2]);
       bp->vec[3] = weight;
       bp->f1 = SELECT;
       bp->weight = weight;

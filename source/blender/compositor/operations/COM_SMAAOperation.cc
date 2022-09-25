@@ -65,7 +65,7 @@ static void sample_bilinear_vertical(T *reader, int x, int y, float yoffset, flo
 {
   float iy = floorf(yoffset);
   float fy = yoffset - iy;
-  y += (int)iy;
+  y += int(iy);
 
   float color00[4], color01[4];
 
@@ -83,7 +83,7 @@ static void sample_bilinear_horizontal(T *reader, int x, int y, float xoffset, f
 {
   float ix = floorf(xoffset);
   float fx = xoffset - ix;
-  x += (int)ix;
+  x += int(ix);
 
   float color00[4], color10[4];
 
@@ -113,12 +113,12 @@ static inline const float *areatex_sample_internal(const float *areatex, int x, 
 static void area(int d1, int d2, int e1, int e2, float weights[2])
 {
   /* The areas texture is compressed  quadratically: */
-  float x = (float)(SMAA_AREATEX_MAX_DISTANCE * e1) + sqrtf((float)d1);
-  float y = (float)(SMAA_AREATEX_MAX_DISTANCE * e2) + sqrtf((float)d2);
+  float x = float(SMAA_AREATEX_MAX_DISTANCE * e1) + sqrtf(float(d1));
+  float y = float(SMAA_AREATEX_MAX_DISTANCE * e2) + sqrtf(float(d2));
 
   float ix = floorf(x), iy = floorf(y);
   float fx = x - ix, fy = y - iy;
-  int X = (int)ix, Y = (int)iy;
+  int X = int(ix), Y = int(iy);
 
   const float *weights00 = areatex_sample_internal(areatex, X + 0, Y + 0);
   const float *weights10 = areatex_sample_internal(areatex, X + 1, Y + 0);

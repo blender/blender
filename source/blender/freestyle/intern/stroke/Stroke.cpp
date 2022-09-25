@@ -486,11 +486,11 @@ void Stroke::setLength(float iLength)
 
 float Stroke::ComputeSampling(int iNVertices)
 {
-  if (iNVertices <= (int)_Vertices.size()) {  // soc
+  if (iNVertices <= int(_Vertices.size())) {  // soc
     return _sampling;
   }
 
-  float sampling = _Length / (float)(iNVertices - _Vertices.size() + 1);
+  float sampling = _Length / float(iNVertices - _Vertices.size() + 1);
   return sampling;
 }
 
@@ -542,8 +542,8 @@ int Stroke::Resample(int iNPoints)
     Vec2r b((next)->getPoint());
     Vec2r vec_tmp(b - a);
     real norm_var = vec_tmp.norm();
-    int numberOfPointsToAdd = (int)floor(NPointsToAdd * norm_var / _Length);
-    float csampling = norm_var / (float)(numberOfPointsToAdd + 1);
+    int numberOfPointsToAdd = int(floor(NPointsToAdd * norm_var / _Length));
+    float csampling = norm_var / float(numberOfPointsToAdd + 1);
     strokeSegments.emplace_back(it, next, norm_var, numberOfPointsToAdd, csampling);
     N += numberOfPointsToAdd;
     meanlength += norm_var;
@@ -551,7 +551,7 @@ int Stroke::Resample(int iNPoints)
     ++it;
     ++next;
   }
-  meanlength /= (float)nsegments;
+  meanlength /= float(nsegments);
 
   // if we don't have enough points let's resample finer some segments
   bool checkEveryone = false;
@@ -571,7 +571,7 @@ int Stroke::Resample(int iNPoints)
         }
         // resample
         s->_n = s->_n + 1;
-        s->_sampling = s->_length / (float)(s->_n + 1);
+        s->_sampling = s->_length / float(s->_n + 1);
         s->_resampled = resampled = true;
         N++;
         if (N == NPointsToAdd) {

@@ -1138,7 +1138,7 @@ void GLShader::uniform_int(int location, int comp_len, int array_size, const int
 
 int GLShader::program_handle_get() const
 {
-  return (int)this->shader_program_;
+  return int(this->shader_program_);
 }
 
 /** \} */

@@ -67,8 +67,8 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
     grid->distance = 1.0f;
     copy_v3_fl3(grid->size, 1.0f, 1.0f, 1.0f);
     if (is_uv_edit) {
-      grid->size[0] = (float)sima->tile_grid_shape[0];
-      grid->size[1] = (float)sima->tile_grid_shape[1];
+      grid->size[0] = float(sima->tile_grid_shape[0]);
+      grid->size[1] = float(sima->tile_grid_shape[1]);
     }
 
     grid->zoom_factor = ED_space_image_zoom_level(v2d, SI_GRID_STEPS_LEN);
@@ -122,9 +122,9 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
       }
     }
 
-    grid_axes[0] = (float)((grid_flag & (PLANE_XZ | PLANE_XY)) != 0);
-    grid_axes[1] = (float)((grid_flag & (PLANE_YZ | PLANE_XY)) != 0);
-    grid_axes[2] = (float)((grid_flag & (PLANE_YZ | PLANE_XZ)) != 0);
+    grid_axes[0] = float((grid_flag & (PLANE_XZ | PLANE_XY)) != 0);
+    grid_axes[1] = float((grid_flag & (PLANE_YZ | PLANE_XY)) != 0);
+    grid_axes[2] = float((grid_flag & (PLANE_YZ | PLANE_XZ)) != 0);
 
     /* Z axis if needed */
     if (((rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO)) && show_axis_z) {
@@ -156,9 +156,9 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
         zneg_flag |= CLIP_ZPOS;
       }
 
-      zplane_axes[0] = (float)((zpos_flag & (PLANE_XZ | PLANE_XY)) != 0);
-      zplane_axes[1] = (float)((zpos_flag & (PLANE_YZ | PLANE_XY)) != 0);
-      zplane_axes[2] = (float)((zpos_flag & (PLANE_YZ | PLANE_XZ)) != 0);
+      zplane_axes[0] = float((zpos_flag & (PLANE_XZ | PLANE_XY)) != 0);
+      zplane_axes[1] = float((zpos_flag & (PLANE_YZ | PLANE_XY)) != 0);
+      zplane_axes[2] = float((zpos_flag & (PLANE_YZ | PLANE_XZ)) != 0);
     }
     else {
       zneg_flag = zpos_flag = CLIP_ZNEG | CLIP_ZPOS;

@@ -177,7 +177,7 @@ class WhiteNoiseFunction : public fn::MultiFunction {
 static void sh_node_noise_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const bNode &node = builder.node();
-  builder.construct_and_set_matching_fn<WhiteNoiseFunction>((int)node.custom1);
+  builder.construct_and_set_matching_fn<WhiteNoiseFunction>(int(node.custom1));
 }
 
 }  // namespace blender::nodes::node_shader_tex_white_noise_cc

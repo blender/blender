@@ -145,7 +145,7 @@ std::optional<std::string> USDVolumeWriter::construct_vdb_file_path(const Volume
   BLI_strncpy(vdb_file_name, volume->id.name + 2, FILE_MAXFILE);
   const pxr::UsdTimeCode timecode = get_export_time_code();
   if (!timecode.IsDefault()) {
-    const int frame = (int)timecode.GetValue();
+    const int frame = int(timecode.GetValue());
     const int num_frame_digits = frame == 0 ? 1 : integer_digits_i(abs(frame));
     BLI_path_frame(vdb_file_name, frame, num_frame_digits);
   }

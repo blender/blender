@@ -39,7 +39,7 @@ void PreviewOperation::init_execution()
 {
   input_ = get_input_socket_reader(0);
 
-  if (this->get_width() == (uint)preview_->xsize && this->get_height() == (uint)preview_->ysize) {
+  if (this->get_width() == uint(preview_->xsize) && this->get_height() == uint(preview_->ysize)) {
     output_buffer_ = preview_->rect;
   }
 
@@ -124,10 +124,10 @@ void PreviewOperation::determine_canvas(const rcti &UNUSED(preferred_area), rcti
   divider_ = 0.0f;
   if (width > 0 && height > 0) {
     if (width > height) {
-      divider_ = (float)COM_PREVIEW_SIZE / (width);
+      divider_ = float(COM_PREVIEW_SIZE) / (width);
     }
     else {
-      divider_ = (float)COM_PREVIEW_SIZE / (height);
+      divider_ = float(COM_PREVIEW_SIZE) / (height);
     }
   }
   width = width * divider_;

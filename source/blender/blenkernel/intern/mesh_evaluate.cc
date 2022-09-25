@@ -150,7 +150,7 @@ static void mesh_calc_ngon_center(const MPoly *mpoly,
                                   const MVert *mvert,
                                   float cent[3])
 {
-  const float w = 1.0f / (float)mpoly->totloop;
+  const float w = 1.0f / float(mpoly->totloop);
 
   zero_v3(cent);
 
@@ -190,7 +190,7 @@ float BKE_mesh_calc_poly_area(const MPoly *mpoly, const MLoop *loopstart, const 
   }
 
   const MLoop *l_iter = loopstart;
-  float(*vertexcos)[3] = (float(*)[3])BLI_array_alloca(vertexcos, (size_t)mpoly->totloop);
+  float(*vertexcos)[3] = (float(*)[3])BLI_array_alloca(vertexcos, size_t(mpoly->totloop));
 
   /* pack vertex cos into an array for area_poly_v3 */
   for (int i = 0; i < mpoly->totloop; i++, l_iter++) {
@@ -198,7 +198,7 @@ float BKE_mesh_calc_poly_area(const MPoly *mpoly, const MLoop *loopstart, const 
   }
 
   /* finally calculate the area */
-  float area = area_poly_v3((const float(*)[3])vertexcos, (uint)mpoly->totloop);
+  float area = area_poly_v3((const float(*)[3])vertexcos, uint(mpoly->totloop));
 
   return area;
 }
@@ -221,7 +221,7 @@ float BKE_mesh_calc_poly_uv_area(const MPoly *mpoly, const MLoopUV *uv_array)
 
   int i, l_iter = mpoly->loopstart;
   float area;
-  float(*vertexcos)[2] = (float(*)[2])BLI_array_alloca(vertexcos, (size_t)mpoly->totloop);
+  float(*vertexcos)[2] = (float(*)[2])BLI_array_alloca(vertexcos, size_t(mpoly->totloop));
 
   /* pack vertex cos into an array for area_poly_v2 */
   for (i = 0; i < mpoly->totloop; i++, l_iter++) {
@@ -229,7 +229,7 @@ float BKE_mesh_calc_poly_uv_area(const MPoly *mpoly, const MLoopUV *uv_array)
   }
 
   /* finally calculate the area */
-  area = area_poly_v2(vertexcos, (uint)mpoly->totloop);
+  area = area_poly_v2(vertexcos, uint(mpoly->totloop));
 
   return area;
 }
@@ -407,7 +407,7 @@ bool BKE_mesh_center_median(const Mesh *me, float r_cent[3])
   }
   /* otherwise we get NAN for 0 verts */
   if (me->totvert) {
-    mul_v3_fl(r_cent, 1.0f / (float)me->totvert);
+    mul_v3_fl(r_cent, 1.0f / float(me->totvert));
   }
   return (me->totvert != 0);
 }
@@ -428,7 +428,7 @@ bool BKE_mesh_center_median_from_polys(const Mesh *me, float r_cent[3])
   }
   /* otherwise we get NAN for 0 verts */
   if (me->totpoly) {
-    mul_v3_fl(r_cent, 1.0f / (float)tot);
+    mul_v3_fl(r_cent, 1.0f / float(tot));
   }
   return (me->totpoly != 0);
 }
@@ -638,7 +638,7 @@ void BKE_mesh_mdisp_flip(MDisps *md, const bool use_loop_mdisp_flip)
     return;
   }
 
-  const int sides = (int)sqrt(md->totdisp);
+  const int sides = int(sqrt(md->totdisp));
   float(*co)[3] = md->disps;
 
   for (int x = 0; x < sides; x++) {
@@ -922,9 +922,9 @@ void BKE_mesh_calc_relative_deform(const MPoly *mpoly,
   const MPoly *mp;
   int i;
 
-  int *vert_accum = (int *)MEM_calloc_arrayN((size_t)totvert, sizeof(*vert_accum), __func__);
+  int *vert_accum = (int *)MEM_calloc_arrayN(size_t(totvert), sizeof(*vert_accum), __func__);
 
-  memset(vert_cos_new, '\0', sizeof(*vert_cos_new) * (size_t)totvert);
+  memset(vert_cos_new, '\0', sizeof(*vert_cos_new) * size_t(totvert));
 
   for (i = 0, mp = mpoly; i < totpoly; i++, mp++) {
     const MLoop *loopstart = mloop + mp->loopstart;
@@ -952,7 +952,7 @@ void BKE_mesh_calc_relative_deform(const MPoly *mpoly,
 
   for (i = 0; i < totvert; i++) {
     if (vert_accum[i]) {
-      mul_v3_fl(vert_cos_new[i], 1.0f / (float)vert_accum[i]);
+      mul_v3_fl(vert_cos_new[i], 1.0f / float(vert_accum[i]));
     }
     else {
       copy_v3_v3(vert_cos_new[i], vert_cos_org[i]);

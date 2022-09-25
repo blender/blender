@@ -947,7 +947,7 @@ static int sculpt_face_sets_change_visibility_invoke(bContext *C,
   /* Update the active vertex and Face Set using the cursor position to avoid relying on the paint
    * cursor updates. */
   SculptCursorGeometryInfo sgi;
-  const float mval_fl[2] = {(float)event->mval[0], (float)event->mval[1]};
+  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
 
@@ -1416,7 +1416,7 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
   /* Update the current active Face Set and Vertex as the operator can be used directly from the
    * tool without brush cursor. */
   SculptCursorGeometryInfo sgi;
-  const float mval_fl[2] = {(float)event->mval[0], (float)event->mval[1]};
+  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   if (!SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false)) {
     /* The cursor is not over the mesh. Cancel to avoid editing the last updated Face Set ID. */
     return OPERATOR_CANCELLED;

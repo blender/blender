@@ -143,7 +143,7 @@ inline void RotateOperation::ensure_degree()
 
     double rad;
     if (do_degree2_rad_conversion_) {
-      rad = DEG2RAD((double)degree[0]);
+      rad = DEG2RAD(double(degree[0]));
     }
     else {
       rad = degree[0];

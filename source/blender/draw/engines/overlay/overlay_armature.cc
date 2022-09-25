@@ -416,7 +416,7 @@ static float encode_2f_to_float(float a, float b)
 {
   CLAMP(a, 0.0f, 1.0f);
   CLAMP(b, 0.0f, 2.0f); /* Can go up to 2. Needed for wire size. */
-  return (float)((int)(a * 255) | ((int)(b * 255) << 8));
+  return float(int(a * 255) | (int(b * 255) << 8));
 }
 
 void OVERLAY_bone_instance_data_set_color_hint(BoneInstanceData *data, const float hint_color[4])
@@ -941,11 +941,11 @@ static void cp_shade_color3ub(uchar cp[3], const int offset)
 {
   int r, g, b;
 
-  r = offset + (int)cp[0];
+  r = offset + int(cp[0]);
   CLAMP(r, 0, 255);
-  g = offset + (int)cp[1];
+  g = offset + int(cp[1]);
   CLAMP(g, 0, 255);
-  b = offset + (int)cp[2];
+  b = offset + int(cp[2]);
   CLAMP(b, 0, 255);
 
   cp[0] = r;

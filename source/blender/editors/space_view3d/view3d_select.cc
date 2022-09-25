@@ -2246,7 +2246,7 @@ static Base *mouse_select_object_center(ViewContext *vc, Base *startbase, const 
   BKE_view_layer_synced_ensure(scene, view_layer);
   Base *oldbasact = BKE_view_layer_active_base_get(view_layer);
 
-  const float mval_fl[2] = {(float)mval[0], (float)mval[1]};
+  const float mval_fl[2] = {float(mval[0]), float(mval[1])};
   float dist = ED_view3d_select_dist_px() * 1.3333f;
   Base *basact = nullptr;
 
@@ -4068,7 +4068,7 @@ static bool mesh_circle_select(ViewContext *vc,
   if (use_zbuf) {
     if (esel->select_bitmap == nullptr) {
       esel->select_bitmap = DRW_select_buffer_bitmap_from_circle(
-          vc->depsgraph, vc->region, vc->v3d, mval, (int)(rad + 1.0f), nullptr);
+          vc->depsgraph, vc->region, vc->v3d, mval, int(rad + 1.0f), nullptr);
     }
   }
 
@@ -4144,7 +4144,7 @@ static bool paint_facesel_circle_select(ViewContext *vc,
   {
     EditSelectBuf_Cache *esel = static_cast<EditSelectBuf_Cache *>(wm_userdata->data);
     esel->select_bitmap = DRW_select_buffer_bitmap_from_circle(
-        vc->depsgraph, vc->region, vc->v3d, mval, (int)(rad + 1.0f), nullptr);
+        vc->depsgraph, vc->region, vc->v3d, mval, int(rad + 1.0f), nullptr);
     if (esel->select_bitmap != nullptr) {
       changed |= edbm_backbuf_check_and_select_faces_obmode(me, esel, sel_op);
       MEM_freeN(esel->select_bitmap);
@@ -4206,7 +4206,7 @@ static bool paint_vertsel_circle_select(ViewContext *vc,
   if (use_zbuf) {
     EditSelectBuf_Cache *esel = static_cast<EditSelectBuf_Cache *>(wm_userdata->data);
     esel->select_bitmap = DRW_select_buffer_bitmap_from_circle(
-        vc->depsgraph, vc->region, vc->v3d, mval, (int)(rad + 1.0f), nullptr);
+        vc->depsgraph, vc->region, vc->v3d, mval, int(rad + 1.0f), nullptr);
     if (esel->select_bitmap != nullptr) {
       changed |= edbm_backbuf_check_and_select_verts_obmode(me, esel, sel_op);
       MEM_freeN(esel->select_bitmap);
@@ -4770,16 +4770,16 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
       obedit = vc.obedit;
 
       if (obedit) {
-        obedit_circle_select(C, &vc, wm_userdata, sel_op, mval, (float)radius);
+        obedit_circle_select(C, &vc, wm_userdata, sel_op, mval, float(radius));
       }
       else if (BKE_paint_select_face_test(obact)) {
-        paint_facesel_circle_select(&vc, wm_userdata, sel_op, mval, (float)radius);
+        paint_facesel_circle_select(&vc, wm_userdata, sel_op, mval, float(radius));
       }
       else if (BKE_paint_select_vert_test(obact)) {
-        paint_vertsel_circle_select(&vc, wm_userdata, sel_op, mval, (float)radius);
+        paint_vertsel_circle_select(&vc, wm_userdata, sel_op, mval, float(radius));
       }
       else if (obact->mode & OB_MODE_POSE) {
-        pose_circle_select(&vc, sel_op, mval, (float)radius);
+        pose_circle_select(&vc, sel_op, mval, float(radius));
         ED_outliner_select_sync_from_pose_bone_tag(C);
       }
       else {
@@ -4789,7 +4789,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
     FOREACH_OBJECT_IN_MODE_END;
   }
   else if (obact && (obact->mode & OB_MODE_PARTICLE_EDIT)) {
-    if (PE_circle_select(C, wm_userdata, sel_op, mval, (float)radius)) {
+    if (PE_circle_select(C, wm_userdata, sel_op, mval, float(radius))) {
       return OPERATOR_FINISHED;
     }
     return OPERATOR_CANCELLED;
@@ -4798,7 +4798,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   else {
-    if (object_circle_select(&vc, sel_op, mval, (float)radius)) {
+    if (object_circle_select(&vc, sel_op, mval, float(radius))) {
       DEG_id_tag_update(&vc.scene->id, ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, vc.scene);
 

@@ -192,7 +192,7 @@ static void gpencil_layer_cache_populate(bGPDlayer *gpl,
   DRWShadingGroup *grp = iter->stroke_grp = DRW_shgroup_create_sub(iter->stroke_grp);
   DRW_shgroup_uniform_bool_copy(grp, "gpStrokeOrder3d", is_stroke_order_3d);
   DRW_shgroup_uniform_float_copy(grp, "gpThicknessScale", object_scale);
-  DRW_shgroup_uniform_float_copy(grp, "gpThicknessOffset", (float)gpl->line_change);
+  DRW_shgroup_uniform_float_copy(grp, "gpThicknessOffset", float(gpl->line_change));
   DRW_shgroup_uniform_float_copy(grp, "gpThicknessWorldScale", thickness_scale);
   DRW_shgroup_uniform_vec4_copy(grp, "gpDepthPlane", iter->plane);
 }

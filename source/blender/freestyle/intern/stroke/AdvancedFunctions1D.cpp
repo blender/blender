@@ -38,7 +38,7 @@ int GetSteerableViewMapDensityF1D::operator()(Interface1D &inter)
     }
     Vec2r m((i0D.getProjectedX() + i0Dnext.getProjectedX()) / 2.0,
             (i0D.getProjectedY() + i0Dnext.getProjectedY()) / 2.0);
-    values.push_back(svm->readSteerableViewMapPixel(nSVM, _level, (int)m[0], (int)m[1]));
+    values.push_back(svm->readSteerableViewMapPixel(nSVM, _level, int(m[0]), int(m[1])));
     ++it;
     ++itnext;
   }

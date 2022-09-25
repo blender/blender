@@ -2185,26 +2185,26 @@ static bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
   /* Account for rare case of when these keys are used as the 'type' not as modifiers. */
   if (kmi->shift != KM_ANY) {
     const bool shift = (winevent->modifier & KM_SHIFT) != 0;
-    if ((shift != (bool)kmi->shift) &&
+    if ((shift != bool(kmi->shift)) &&
         !ELEM(winevent->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY)) {
       return false;
     }
   }
   if (kmi->ctrl != KM_ANY) {
     const bool ctrl = (winevent->modifier & KM_CTRL) != 0;
-    if (ctrl != (bool)kmi->ctrl && !ELEM(winevent->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY)) {
+    if (ctrl != bool(kmi->ctrl) && !ELEM(winevent->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY)) {
       return false;
     }
   }
   if (kmi->alt != KM_ANY) {
     const bool alt = (winevent->modifier & KM_ALT) != 0;
-    if (alt != (bool)kmi->alt && !ELEM(winevent->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY)) {
+    if (alt != bool(kmi->alt) && !ELEM(winevent->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY)) {
       return false;
     }
   }
   if (kmi->oskey != KM_ANY) {
     const bool oskey = (winevent->modifier & KM_OSKEY) != 0;
-    if ((oskey != (bool)kmi->oskey) && (winevent->type != EVT_OSKEY)) {
+    if ((oskey != bool(kmi->oskey)) && (winevent->type != EVT_OSKEY)) {
       return false;
     }
   }
@@ -4678,16 +4678,16 @@ void WM_event_add_mousemove(wmWindow *win)
 static int convert_key(GHOST_TKey key)
 {
   if (key >= GHOST_kKeyA && key <= GHOST_kKeyZ) {
-    return (EVT_AKEY + ((int)key - GHOST_kKeyA));
+    return (EVT_AKEY + (int(key) - GHOST_kKeyA));
   }
   if (key >= GHOST_kKey0 && key <= GHOST_kKey9) {
-    return (EVT_ZEROKEY + ((int)key - GHOST_kKey0));
+    return (EVT_ZEROKEY + (int(key) - GHOST_kKey0));
   }
   if (key >= GHOST_kKeyNumpad0 && key <= GHOST_kKeyNumpad9) {
-    return (EVT_PAD0 + ((int)key - GHOST_kKeyNumpad0));
+    return (EVT_PAD0 + (int(key) - GHOST_kKeyNumpad0));
   }
   if (key >= GHOST_kKeyF1 && key <= GHOST_kKeyF24) {
-    return (EVT_F1KEY + ((int)key - GHOST_kKeyF1));
+    return (EVT_F1KEY + (int(key) - GHOST_kKeyF1));
   }
 
   switch (key) {
@@ -4830,7 +4830,7 @@ static int convert_key(GHOST_TKey key)
 #endif
   }
 
-  CLOG_WARN(WM_LOG_EVENTS, "unknown event type %d from ghost", (int)key);
+  CLOG_WARN(WM_LOG_EVENTS, "unknown event type %d from ghost", int(key));
   return EVENT_NONE;
 }
 
@@ -4943,7 +4943,7 @@ void WM_event_tablet_data_default_set(wmTabletData *tablet_data)
 void wm_tablet_data_from_ghost(const GHOST_TabletData *tablet_data, wmTabletData *wmtab)
 {
   if ((tablet_data != nullptr) && tablet_data->Active != GHOST_kTabletModeNone) {
-    wmtab->active = (int)tablet_data->Active;
+    wmtab->active = int(tablet_data->Active);
     wmtab->pressure = wm_pressure_curve(tablet_data->Pressure);
     wmtab->x_tilt = tablet_data->Xtilt;
     wmtab->y_tilt = tablet_data->Ytilt;
@@ -5470,7 +5470,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
          * special handling of Latin1 when building without UTF8 support.
          * Avoid regressions by adding this conversions, it should eventually be removed. */
         if ((event.utf8_buf[0] >= 0x80) && (event.utf8_buf[1] == '\0')) {
-          const uint c = (uint)event.utf8_buf[0];
+          const uint c = uint(event.utf8_buf[0]);
           int utf8_buf_len = BLI_str_utf8_from_unicode(c, event.utf8_buf, sizeof(event.utf8_buf));
           CLOG_ERROR(WM_LOG_EVENTS,
                      "ghost detected non-ASCII single byte character '%u', converting to utf8 "
@@ -5484,7 +5484,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         if (BLI_str_utf8_size(event.utf8_buf) == -1) {
           CLOG_ERROR(WM_LOG_EVENTS,
                      "ghost detected an invalid unicode character '%d'",
-                     (int)(uchar)event.utf8_buf[0]);
+                     int(uchar(event.utf8_buf[0])));
           event.utf8_buf[0] = '\0';
         }
       }

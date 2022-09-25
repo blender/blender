@@ -539,7 +539,7 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
     /* Logic matches behavior from #param_pack,
      * use area so multiply the margin by the area to give
      * predictable results not dependent on UV scale. */
-    margin = (margin * (float)area) * 0.1f;
+    margin = (margin * float(area)) * 0.1f;
     for (int i = 0; i < island_list_len; i++) {
       struct FaceIsland *island = island_array[i];
       BoxPack *box = &boxarray[i];

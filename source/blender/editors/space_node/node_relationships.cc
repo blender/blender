@@ -2323,7 +2323,7 @@ static int node_insert_offset_modal(bContext *C, wmOperator *op, const wmEvent *
     return OPERATOR_PASS_THROUGH;
   }
 
-  const float duration = (float)iofsd->anim_timer->duration;
+  const float duration = float(iofsd->anim_timer->duration);
 
   /* handle animation - do this before possibly aborting due to duration, since
    * main thread might be so busy that node hasn't reached final position yet */

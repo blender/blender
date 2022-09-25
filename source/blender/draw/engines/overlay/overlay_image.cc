@@ -135,7 +135,7 @@ static struct GPUTexture *image_camera_background_texture_get(CameraBGImage *bgp
   Scene *scene = draw_ctx->scene;
   float aspect_x, aspect_y;
   int width, height;
-  int ctime = (int)DEG_get_ctime(draw_ctx->depsgraph);
+  int ctime = int(DEG_get_ctime(draw_ctx->depsgraph));
   *r_use_alpha_premult = false;
   *r_use_view_transform = false;
 

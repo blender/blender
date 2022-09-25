@@ -77,9 +77,9 @@ class NodeTexChecker : public fn::MultiFunction {
       /* Avoid precision issues on unit coordinates. */
       const float3 p = (vector[i] * scale[i] + 0.000001f) * 0.999999f;
 
-      const int xi = abs((int)(floorf(p.x)));
-      const int yi = abs((int)(floorf(p.y)));
-      const int zi = abs((int)(floorf(p.z)));
+      const int xi = abs(int(floorf(p.x)));
+      const int yi = abs(int(floorf(p.y)));
+      const int zi = abs(int(floorf(p.z)));
 
       r_fac[i] = ((xi % 2 == yi % 2) == (zi % 2)) ? 1.0f : 0.0f;
     }

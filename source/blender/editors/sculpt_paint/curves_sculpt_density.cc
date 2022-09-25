@@ -642,7 +642,7 @@ struct DensitySubtractOperationExecutor {
      * strength. */
     Array<bool> allow_remove_curve(curves_->curves_num(), false);
     threading::parallel_for(curves_->curves_range(), 512, [&](const IndexRange range) {
-      RandomNumberGenerator rng((int)(PIL_check_seconds_timer() * 1000000.0));
+      RandomNumberGenerator rng(int(PIL_check_seconds_timer() * 1000000.0));
 
       for (const int curve_i : range) {
         if (curves_to_delete[curve_i]) {
@@ -731,7 +731,7 @@ struct DensitySubtractOperationExecutor {
      * strength. */
     Array<bool> allow_remove_curve(curves_->curves_num(), false);
     threading::parallel_for(curves_->curves_range(), 512, [&](const IndexRange range) {
-      RandomNumberGenerator rng((int)(PIL_check_seconds_timer() * 1000000.0));
+      RandomNumberGenerator rng(int(PIL_check_seconds_timer() * 1000000.0));
 
       for (const int curve_i : range) {
         if (curves_to_delete[curve_i]) {

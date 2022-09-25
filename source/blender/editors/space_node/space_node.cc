@@ -672,14 +672,14 @@ static void node_group_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *d
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
 
-  RNA_int_set(drop->ptr, "session_uuid", (int)id->session_uuid);
+  RNA_int_set(drop->ptr, "session_uuid", int(id->session_uuid));
 }
 
 static void node_id_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
 
-  RNA_int_set(drop->ptr, "session_uuid", (int)id->session_uuid);
+  RNA_int_set(drop->ptr, "session_uuid", int(id->session_uuid));
 }
 
 static void node_id_path_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
@@ -687,7 +687,7 @@ static void node_id_path_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox 
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
 
   if (id) {
-    RNA_int_set(drop->ptr, "session_uuid", (int)id->session_uuid);
+    RNA_int_set(drop->ptr, "session_uuid", int(id->session_uuid));
     RNA_struct_property_unset(drop->ptr, "filepath");
   }
   else if (drag->path[0]) {

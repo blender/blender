@@ -44,7 +44,7 @@
 #include "interface_intern.h"
 #include "interface_regions_intern.hh"
 
-#define MENU_BORDER (int)(0.3f * U.widget_unit)
+#define MENU_BORDER int(0.3f * U.widget_unit)
 
 /* -------------------------------------------------------------------- */
 /** \name Search Box Creation

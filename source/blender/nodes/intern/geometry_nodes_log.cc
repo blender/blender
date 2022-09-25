@@ -35,8 +35,8 @@ FieldInfoLog::FieldInfoLog(const GField &field) : type(field.cpp_type())
 
   std::sort(
       field_inputs.begin(), field_inputs.end(), [](const FieldInput &a, const FieldInput &b) {
-        const int index_a = (int)a.category();
-        const int index_b = (int)b.category();
+        const int index_a = int(a.category());
+        const int index_b = int(b.category());
         if (index_a == index_b) {
           return a.socket_inspection_name().size() < b.socket_inspection_name().size();
         }

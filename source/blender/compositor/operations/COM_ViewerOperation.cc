@@ -264,7 +264,7 @@ void ViewerOperation::clear_display_buffer()
     return;
   }
 
-  size_t buf_bytes = (size_t)ibuf_->y * ibuf_->x * COM_DATA_TYPE_COLOR_CHANNELS * sizeof(float);
+  size_t buf_bytes = size_t(ibuf_->y) * ibuf_->x * COM_DATA_TYPE_COLOR_CHANNELS * sizeof(float);
   if (buf_bytes > 0) {
     memset(output_buffer_, 0, buf_bytes);
     rcti display_area;

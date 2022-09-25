@@ -133,10 +133,10 @@ void ui_block_to_region_fl(const ARegion *region, uiBlock *block, float *r_x, fl
     gy += block->panel->ofsy;
   }
 
-  *r_x = ((float)getsizex) * (0.5f + 0.5f * (gx * block->winmat[0][0] + gy * block->winmat[1][0] +
-                                             block->winmat[3][0]));
-  *r_y = ((float)getsizey) * (0.5f + 0.5f * (gx * block->winmat[0][1] + gy * block->winmat[1][1] +
-                                             block->winmat[3][1]));
+  *r_x = float(getsizex) * (0.5f + 0.5f * (gx * block->winmat[0][0] + gy * block->winmat[1][0] +
+                                           block->winmat[3][0]));
+  *r_y = float(getsizey) * (0.5f + 0.5f * (gx * block->winmat[0][1] + gy * block->winmat[1][1] +
+                                           block->winmat[3][1]));
 }
 
 void ui_block_to_window_fl(const ARegion *region, uiBlock *block, float *r_x, float *r_y)
@@ -153,8 +153,8 @@ void ui_block_to_window(const ARegion *region, uiBlock *block, int *r_x, int *r_
 
   ui_block_to_window_fl(region, block, &fx, &fy);
 
-  *r_x = (int)lround(fx);
-  *r_y = (int)lround(fy);
+  *r_x = int(lround(fx));
+  *r_y = int(lround(fy));
 }
 
 void ui_block_to_region_rctf(const ARegion *region,
@@ -195,13 +195,13 @@ void ui_window_to_block_fl(const ARegion *region, uiBlock *block, float *r_x, fl
   const int sx = region->winrct.xmin;
   const int sy = region->winrct.ymin;
 
-  const float a = 0.5f * ((float)getsizex) * block->winmat[0][0];
-  const float b = 0.5f * ((float)getsizex) * block->winmat[1][0];
-  const float c = 0.5f * ((float)getsizex) * (1.0f + block->winmat[3][0]);
+  const float a = 0.5f * float(getsizex) * block->winmat[0][0];
+  const float b = 0.5f * float(getsizex) * block->winmat[1][0];
+  const float c = 0.5f * float(getsizex) * (1.0f + block->winmat[3][0]);
 
-  const float d = 0.5f * ((float)getsizey) * block->winmat[0][1];
-  const float e = 0.5f * ((float)getsizey) * block->winmat[1][1];
-  const float f = 0.5f * ((float)getsizey) * (1.0f + block->winmat[3][1]);
+  const float d = 0.5f * float(getsizey) * block->winmat[0][1];
+  const float e = 0.5f * float(getsizey) * block->winmat[1][1];
+  const float f = 0.5f * float(getsizey) * (1.0f + block->winmat[3][1]);
 
   const float px = *r_x - sx;
   const float py = *r_y - sy;
@@ -232,8 +232,8 @@ void ui_window_to_block(const ARegion *region, uiBlock *block, int *r_x, int *r_
 
   ui_window_to_block_fl(region, block, &fx, &fy);
 
-  *r_x = (int)lround(fx);
-  *r_y = (int)lround(fy);
+  *r_x = int(lround(fx));
+  *r_y = int(lround(fy));
 }
 
 void ui_window_to_region(const ARegion *region, int *r_x, int *r_y)
@@ -279,8 +279,8 @@ static void ui_update_flexible_spacing(const ARegion *region, uiBlock *block)
 
   rcti rect;
   ui_but_to_pixelrect(&rect, region, block, static_cast<const uiBut *>(block->buttons.last));
-  const float buttons_width = (float)rect.xmax + UI_HEADER_OFFSET;
-  const float region_width = (float)region->sizex * U.dpi_fac;
+  const float buttons_width = float(rect.xmax) + UI_HEADER_OFFSET;
+  const float region_width = float(region->sizex) * U.dpi_fac;
 
   if (region_width <= buttons_width) {
     return;
@@ -296,7 +296,7 @@ static void ui_update_flexible_spacing(const ARegion *region, uiBlock *block)
   }
 
   const float view_scale_x = UI_view2d_scale_get_x(&region->v2d);
-  const float segment_width = region_width / (float)sepr_flex_len;
+  const float segment_width = region_width / float(sepr_flex_len);
   float offset = 0, remaining_space = region_width - buttons_width;
   int i = 0;
   LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
@@ -502,8 +502,8 @@ static void ui_block_bounds_calc_centered(wmWindow *window, uiBlock *block)
 static void ui_block_bounds_calc_centered_pie(uiBlock *block)
 {
   const int xy[2] = {
-      (int)block->pie_data.pie_center_spawned[0],
-      (int)block->pie_data.pie_center_spawned[1],
+      int(block->pie_data.pie_center_spawned[0]),
+      int(block->pie_data.pie_center_spawned[1]),
   };
 
   UI_block_translate(block, xy[0], xy[1]);
@@ -682,7 +682,7 @@ static int ui_but_calc_float_precision(uiBut *but, double value)
     return 0;
   }
 
-  int prec = (int)ui_but_get_float_precision(but);
+  int prec = int(ui_but_get_float_precision(but));
 
   /* first check for various special cases:
    * * If button is radians, we want additional precision (see T39861).
@@ -1411,7 +1411,7 @@ static bool ui_but_event_property_operator_string(const bContext *C,
              ui_def_but_rna__menu,
              ui_def_but_rna__panel_type,
              ui_def_but_rna__menu_type)) {
-      prop_enum_value = (int)but->hardmin;
+      prop_enum_value = int(but->hardmin);
       ptr = &but_parent->rnapoin;
       prop = but_parent->rnaprop;
       prop_enum_value_ok = true;
@@ -1804,7 +1804,7 @@ static void ui_but_predefined_extra_operator_icons_add(uiBut *but)
         return;
       }
     }
-    ui_but_extra_operator_icon_add_ptr(but, optype, WM_OP_INVOKE_DEFAULT, (int)icon);
+    ui_but_extra_operator_icon_add_ptr(but, optype, WM_OP_INVOKE_DEFAULT, int(icon));
   }
 }
 
@@ -1853,7 +1853,7 @@ static void ui_but_validate(const uiBut *but)
     uiButNumber *number_but = (uiButNumber *)but;
 
     if (ELEM(but->pointype, UI_BUT_POIN_CHAR, UI_BUT_POIN_SHORT, UI_BUT_POIN_INT)) {
-      BLI_assert((int)number_but->step_size > 0);
+      BLI_assert(int(number_but->step_size) > 0);
     }
   }
 }
@@ -2165,7 +2165,7 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
         but->type, UI_BTYPE_TOGGLE_N, UI_BTYPE_ICON_TOGGLE_N, UI_BTYPE_CHECKBOX_N);
     int lvalue;
     UI_GET_BUT_VALUE_INIT(but, *value);
-    lvalue = (int)*value;
+    lvalue = int(*value);
     if (UI_BITBUT_TEST(lvalue, (but->bitnr))) {
       is_push = state;
     }
@@ -2187,7 +2187,7 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
       case UI_BTYPE_ICON_TOGGLE:
       case UI_BTYPE_CHECKBOX:
         UI_GET_BUT_VALUE_INIT(but, *value);
-        if (*value != (double)but->hardmin) {
+        if (*value != double(but->hardmin)) {
           is_push = true;
         }
         break;
@@ -2220,12 +2220,12 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
         UI_GET_BUT_VALUE_INIT(but, *value);
         /* support for rna enum buts */
         if (but->rnaprop && (RNA_property_flag(but->rnaprop) & PROP_ENUM_FLAG)) {
-          if ((int)*value & (int)but->hardmax) {
+          if (int(*value) & int(but->hardmax)) {
             is_push = true;
           }
         }
         else {
-          if (*value == (double)but->hardmax) {
+          if (*value == double(but->hardmax)) {
             is_push = true;
           }
         }
@@ -2246,7 +2246,7 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
   }
 
   if ((but->drawflag & UI_BUT_CHECKBOX_INVERT) && (is_push != -1)) {
-    is_push = !((bool)is_push);
+    is_push = !bool(is_push);
   }
   return is_push;
 }
@@ -2315,9 +2315,9 @@ void ui_but_v3_get(uiBut *but, float vec[3])
   }
   else if (but->pointype == UI_BUT_POIN_CHAR) {
     const char *cp = (char *)but->poin;
-    vec[0] = ((float)cp[0]) / 255.0f;
-    vec[1] = ((float)cp[1]) / 255.0f;
-    vec[2] = ((float)cp[2]) / 255.0f;
+    vec[0] = float(cp[0]) / 255.0f;
+    vec[1] = float(cp[1]) / 255.0f;
+    vec[2] = float(cp[2]) / 255.0f;
   }
   else if (but->pointype == UI_BUT_POIN_FLOAT) {
     const float *fp = (float *)but->poin;
@@ -2363,9 +2363,9 @@ void ui_but_v3_set(uiBut *but, const float vec[3])
   }
   else if (but->pointype == UI_BUT_POIN_CHAR) {
     char *cp = (char *)but->poin;
-    cp[0] = (char)lround(vec[0] * 255.0f);
-    cp[1] = (char)lround(vec[1] * 255.0f);
-    cp[2] = (char)lround(vec[2] * 255.0f);
+    cp[0] = char(lround(vec[0] * 255.0f));
+    cp[1] = char(lround(vec[1] * 255.0f));
+    cp[2] = char(lround(vec[2] * 255.0f));
   }
   else if (but->pointype == UI_BUT_POIN_FLOAT) {
     float *fp = (float *)but->poin;
@@ -2572,10 +2572,10 @@ void ui_but_value_set(uiBut *but, double value)
           break;
         case PROP_INT:
           if (RNA_property_array_check(prop)) {
-            RNA_property_int_set_index(&but->rnapoin, prop, but->rnaindex, (int)value);
+            RNA_property_int_set_index(&but->rnapoin, prop, but->rnaindex, int(value));
           }
           else {
-            RNA_property_int_set(&but->rnapoin, prop, (int)value);
+            RNA_property_int_set(&but->rnapoin, prop, int(value));
           }
           break;
         case PROP_FLOAT:
@@ -2588,7 +2588,7 @@ void ui_but_value_set(uiBut *but, double value)
           break;
         case PROP_ENUM:
           if (RNA_property_flag(prop) & PROP_ENUM_FLAG) {
-            int ivalue = (int)value;
+            int ivalue = int(value);
             /* toggle for enum/flag buttons */
             ivalue ^= RNA_property_enum_get(&but->rnapoin, prop);
             RNA_property_enum_set(&but->rnapoin, prop, ivalue);
@@ -2621,7 +2621,7 @@ void ui_but_value_set(uiBut *but, double value)
       value = round_db_to_int_clamp(value);
     }
     else if (but->pointype == UI_BUT_POIN_FLOAT) {
-      float fval = (float)value;
+      float fval = float(value);
       if (fval >= -0.00001f && fval <= 0.00001f) {
         /* prevent negative zero */
         fval = 0.0f;
@@ -2634,16 +2634,16 @@ void ui_but_value_set(uiBut *but, double value)
       value = *but->editval = value;
     }
     else if (but->pointype == UI_BUT_POIN_CHAR) {
-      value = *((char *)but->poin) = (char)value;
+      value = *((char *)but->poin) = char(value);
     }
     else if (but->pointype == UI_BUT_POIN_SHORT) {
-      value = *((short *)but->poin) = (short)value;
+      value = *((short *)but->poin) = short(value);
     }
     else if (but->pointype == UI_BUT_POIN_INT) {
-      value = *((int *)but->poin) = (int)value;
+      value = *((int *)but->poin) = int(value);
     }
     else if (but->pointype == UI_BUT_POIN_FLOAT) {
-      value = *((float *)but->poin) = (float)value;
+      value = *((float *)but->poin) = float(value);
     }
   }
 
@@ -2721,7 +2721,7 @@ static void ui_get_but_string_unit(
   /* Use precision override? */
   if (float_precision == -1) {
     /* Sanity checks */
-    precision = (int)ui_but_get_float_precision(but);
+    precision = int(ui_but_get_float_precision(but));
     if (precision > UI_PRECISION_FLOAT_MAX) {
       precision = UI_PRECISION_FLOAT_MAX;
     }
@@ -2763,7 +2763,7 @@ static float ui_get_but_step_unit(uiBut *but, float step_default)
 
   BLI_assert(step > 0.0);
 
-  step_final = (step / scale_unit) / (double)UI_PRECISION_FLOAT_SCALE;
+  step_final = (step / scale_unit) / double(UI_PRECISION_FLOAT_SCALE);
 
   if (step == step_unit) {
     /* Logic here is to scale by the original 'step_orig'
@@ -2775,7 +2775,7 @@ static float ui_get_but_step_unit(uiBut *but, float step_default)
     step_final *= step_orig;
   }
 
-  return (float)step_final;
+  return float(step_final);
 }
 
 void ui_but_string_get_ex(uiBut *but,
@@ -2904,7 +2904,7 @@ void ui_but_string_get_ex(uiBut *but,
       }
     }
     else {
-      BLI_snprintf(str, maxlen, "%d", (int)value);
+      BLI_snprintf(str, maxlen, "%d", int(value));
     }
   }
 }
@@ -3211,10 +3211,10 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
     }
 
     /* not that we use hard limits here */
-    if (value < (double)but->hardmin) {
+    if (value < double(but->hardmin)) {
       value = but->hardmin;
     }
-    if (value > (double)but->hardmax) {
+    if (value > double(but->hardmax)) {
       value = but->hardmax;
     }
 
@@ -3307,8 +3307,8 @@ void ui_but_range_set_soft(uiBut *but)
       if (is_array) {
         int value_range[2];
         RNA_property_int_get_array_range(&but->rnapoin, but->rnaprop, value_range);
-        value_min = (double)value_range[0];
-        value_max = (double)value_range[1];
+        value_min = double(value_range[0]);
+        value_max = double(value_range[1]);
       }
       else {
         value_min = value_max = ui_but_value_get(but);
@@ -3319,8 +3319,8 @@ void ui_but_range_set_soft(uiBut *but)
       float fmin, fmax, fstep, fprecision;
 
       RNA_property_float_ui_range(&but->rnapoin, but->rnaprop, &fmin, &fmax, &fstep, &fprecision);
-      softmin = (fmin == -FLT_MAX) ? (float)-1e4 : fmin;
-      softmax = (fmax == FLT_MAX) ? (float)1e4 : fmax;
+      softmin = (fmin == -FLT_MAX) ? float(-1e4) : fmin;
+      softmax = (fmax == FLT_MAX) ? float(1e4) : fmax;
       // step = fstep;           /* UNUSED */
       // precision = fprecision; /* UNUSED */
 
@@ -3328,8 +3328,8 @@ void ui_but_range_set_soft(uiBut *but)
       if (is_array && !(subtype == PROP_COLOR && but->rnaindex == 3)) {
         float value_range[2];
         RNA_property_float_get_array_range(&but->rnapoin, but->rnaprop, value_range);
-        value_min = (double)value_range[0];
-        value_max = (double)value_range[1];
+        value_min = double(value_range[0]);
+        value_max = double(value_range[1]);
       }
       else {
         value_min = value_max = ui_but_value_get(but);
@@ -3348,8 +3348,8 @@ void ui_but_range_set_soft(uiBut *but)
         softmin = soft_range_round_down(value_min, softmin);
       }
 
-      if (softmin < (double)but->hardmin) {
-        softmin = (double)but->hardmin;
+      if (softmin < double(but->hardmin)) {
+        softmin = double(but->hardmin);
       }
     }
     if (value_max - 1e-10 > softmax) {
@@ -3360,7 +3360,7 @@ void ui_but_range_set_soft(uiBut *but)
         softmax = soft_range_round_up(value_max, softmax);
       }
 
-      if (softmax > (double)but->hardmax) {
+      if (softmax > double(but->hardmax)) {
         softmax = but->hardmax;
       }
     }
@@ -3810,7 +3810,7 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
         ui_but_build_drawstr_float(but, value);
       }
       else {
-        ui_but_build_drawstr_int(but, (int)value);
+        ui_but_build_drawstr_int(but, int(value));
       }
       break;
 
@@ -3843,7 +3843,7 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
       }
       else {
         UI_GET_BUT_VALUE_INIT(but, value);
-        str = WM_key_event_string((short)value, false);
+        str = WM_key_event_string(short(value), false);
       }
       BLI_snprintf(but->drawstr, UI_MAX_DRAW_STR, "%s%s", but->str, str);
       break;
@@ -4573,7 +4573,7 @@ static uiBut *ui_def_but_rna(uiBlock *block,
       value = RNA_property_enum_get(ptr, prop);
     }
     else {
-      value = (int)max;
+      value = int(max);
     }
 
     const int i = RNA_enum_from_value(item, value);
@@ -5938,7 +5938,7 @@ void UI_but_unit_type_set(uiBut *but, const int unit_type)
 
 int UI_but_unit_type_get(const uiBut *but)
 {
-  const int ownUnit = (int)but->unit_type;
+  const int ownUnit = int(but->unit_type);
 
   /* own unit define always takes precedence over RNA provided, allowing for overriding
    * default value provided in RNA in a few special cases (i.e. Active Keyframe in Graph Edit)
@@ -6663,8 +6663,8 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
         /* enum property */
         ptr = &but->rnapoin;
         prop = but->rnaprop;
-        value = (ELEM(but->type, UI_BTYPE_ROW, UI_BTYPE_TAB)) ? (int)but->hardmax :
-                                                                (int)ui_but_value_get(but);
+        value = (ELEM(but->type, UI_BTYPE_ROW, UI_BTYPE_TAB)) ? int(but->hardmax) :
+                                                                int(ui_but_value_get(but));
       }
       else if (but->optype) {
         PointerRNA *opptr = UI_but_operator_ptr_get(but);

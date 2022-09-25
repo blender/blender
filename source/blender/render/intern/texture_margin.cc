@@ -245,8 +245,8 @@ class TextureMarginMap {
 
             for (int i = 0; i < maxPolygonSteps; i++) {
               /* Force to pixel grid. */
-              int nx = (int)round(destX);
-              int ny = (int)round(destY);
+              int nx = int(round(destX));
+              int ny = int(round(destY));
               uint32_t polygon_from_map = get_pixel(nx, ny);
               if (other_poly == polygon_from_map) {
                 found_pixel_in_polygon = true;
@@ -562,8 +562,8 @@ static void generate_margin(ImBuf *ibuf,
        * our intersection tests where a pixel gets in between 2 faces or the middle of a quad,
        * camera aligned quads also have this problem but they are less common.
        * Add a small offset to the UVs, fixes bug T18685. */
-      vec[a][0] = (uv[0] - uv_offset[0]) * (float)ibuf->x - (0.5f + 0.001f);
-      vec[a][1] = (uv[1] - uv_offset[1]) * (float)ibuf->y - (0.5f + 0.002f);
+      vec[a][0] = (uv[0] - uv_offset[0]) * float(ibuf->x) - (0.5f + 0.001f);
+      vec[a][1] = (uv[1] - uv_offset[1]) * float(ibuf->y) - (0.5f + 0.002f);
     }
 
     /* NOTE: we need the top bit for the dijkstra distance map. */

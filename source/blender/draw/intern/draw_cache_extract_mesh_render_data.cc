@@ -349,7 +349,7 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
 {
   Mesh *me = mr->me;
   const bool is_auto_smooth = (me->flag & ME_AUTOSMOOTH) != 0;
-  const float split_angle = is_auto_smooth ? me->smoothresh : (float)M_PI;
+  const float split_angle = is_auto_smooth ? me->smoothresh : float(M_PI);
 
   if (mr->extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */

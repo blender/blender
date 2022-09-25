@@ -311,7 +311,7 @@ static void SCULPT_boundary_automasking_init(Object *ob,
     if (edge_distance[i] == EDGE_DISTANCE_INF) {
       continue;
     }
-    const float p = 1.0f - ((float)edge_distance[i] / (float)propagation_steps);
+    const float p = 1.0f - (float(edge_distance[i]) / float(propagation_steps));
     const float edge_boundary_automask = pow2f(p);
 
     *(float *)SCULPT_vertex_attr_get(

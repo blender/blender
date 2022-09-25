@@ -165,7 +165,7 @@ class PixelPointer {
  public:
   void init_pixel_pointer(const ImBuf *image_buffer, int x, int y)
   {
-    const size_t offset = (y * (size_t)image_buffer->x + x) * NumChannels;
+    const size_t offset = (y * size_t(image_buffer->x) + x) * NumChannels;
 
     if constexpr (std::is_same_v<StorageType, float>) {
       pointer = image_buffer->rect_float + offset;
@@ -235,7 +235,7 @@ class WrapRepeatUV : public BaseUVWrapping {
   float modify_u(const ImBuf *source_buffer, float u) override
 
   {
-    int x = (int)floor(u);
+    int x = int(floor(u));
     x = x % source_buffer->x;
     if (x < 0) {
       x += source_buffer->x;
@@ -245,7 +245,7 @@ class WrapRepeatUV : public BaseUVWrapping {
 
   float modify_v(const ImBuf *source_buffer, float v) override
   {
-    int y = (int)floor(v);
+    int y = int(floor(v));
     y = y % source_buffer->y;
     if (y < 0) {
       y += source_buffer->y;
@@ -349,8 +349,8 @@ class Sampler {
     BLI_STATIC_ASSERT(std::is_same_v<StorageType, float>);
 
     /* ImBuf in must have a valid rect or rect_float, assume this is already checked */
-    int x1 = (int)(u);
-    int y1 = (int)(v);
+    int x1 = int(u);
+    int y1 = int(v);
 
     /* Break when sample outside image is requested. */
     if (x1 < 0 || x1 >= source->x || y1 < 0 || y1 >= source->y) {
@@ -360,7 +360,7 @@ class Sampler {
       return;
     }
 
-    const size_t offset = ((size_t)source->x * y1 + x1) * NumChannels;
+    const size_t offset = (size_t(source->x) * y1 + x1) * NumChannels;
     const float *dataF = source->rect_float + offset;
     for (int i = 0; i < NumChannels; i++) {
       r_sample[i] = dataF[i];

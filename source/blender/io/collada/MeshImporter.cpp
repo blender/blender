@@ -1172,7 +1172,7 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry *geom)
       fprintf(stderr,
               "Can't apply custom normals, me->totloop != loop_normals.size() (%d != %d)\n",
               me->totloop,
-              (int)loop_normals.size());
+              int(loop_normals.size()));
     }
     else {
       BKE_mesh_set_custom_normals(me, reinterpret_cast<float(*)[3]>(loop_normals.data()));

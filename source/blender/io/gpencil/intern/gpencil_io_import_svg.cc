@@ -93,8 +93,8 @@ bool GpencilImporterSVG::read()
     /* Check frame. */
     bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, cfra_, GP_GETFRAME_ADD_NEW);
     /* Create materials. */
-    bool is_stroke = (bool)shape->stroke.type;
-    bool is_fill = (bool)shape->fill.type;
+    bool is_stroke = bool(shape->stroke.type);
+    bool is_fill = bool(shape->fill.type);
     if ((!is_stroke) && (!is_fill)) {
       is_stroke = true;
     }
@@ -148,11 +148,11 @@ void GpencilImporterSVG::create_stroke(bGPdata *gpd,
                                        const int32_t mat_index,
                                        const float matrix[4][4])
 {
-  const bool is_stroke = (bool)shape->stroke.type;
-  const bool is_fill = (bool)shape->fill.type;
+  const bool is_stroke = bool(shape->stroke.type);
+  const bool is_fill = bool(shape->fill.type);
 
   const int edges = params_.resolution;
-  const float step = 1.0f / (float)(edges - 1);
+  const float step = 1.0f / float(edges - 1);
 
   const int totpoints = (path->npts / 3) * params_.resolution;
 
@@ -221,10 +221,10 @@ static void unpack_nano_color(const uint pack, float r_col[4])
   rgb_u[2] = ((pack) >> 16) & 0xFF;
   rgb_u[3] = ((pack) >> 24) & 0xFF;
 
-  r_col[0] = (float)rgb_u[0] / 255.0f;
-  r_col[1] = (float)rgb_u[1] / 255.0f;
-  r_col[2] = (float)rgb_u[2] / 255.0f;
-  r_col[3] = (float)rgb_u[3] / 255.0f;
+  r_col[0] = float(rgb_u[0]) / 255.0f;
+  r_col[1] = float(rgb_u[1]) / 255.0f;
+  r_col[2] = float(rgb_u[2]) / 255.0f;
+  r_col[3] = float(rgb_u[3]) / 255.0f;
 }
 
 void GpencilImporterSVG::convert_color(const int32_t color, float r_linear_rgba[4])

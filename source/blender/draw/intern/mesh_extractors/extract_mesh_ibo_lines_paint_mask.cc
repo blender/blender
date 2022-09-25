@@ -115,8 +115,8 @@ static void extract_lines_paint_mask_iter_subdiv_mesh(const DRWSubdivCache *subd
   uint start_loop_idx = subdiv_quad_index * 4;
   uint end_loop_idx = (subdiv_quad_index + 1) * 4;
   for (uint loop_idx = start_loop_idx; loop_idx < end_loop_idx; loop_idx++) {
-    const uint coarse_edge_index = (uint)subdiv_loop_edge_index[loop_idx];
-    const uint subdiv_edge_index = (uint)subdiv_loop_subdiv_edge_index[loop_idx];
+    const uint coarse_edge_index = uint(subdiv_loop_edge_index[loop_idx]);
+    const uint subdiv_edge_index = uint(subdiv_loop_subdiv_edge_index[loop_idx]);
 
     if (coarse_edge_index == -1u) {
       GPU_indexbuf_set_line_restart(&data->elb, subdiv_edge_index);

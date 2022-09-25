@@ -2031,7 +2031,7 @@ int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
           const MLoop *l = &loops[p->loopstart + j];
           avg += paint_mask[l->v];
         }
-        avg /= (float)p->totloop;
+        avg /= float(p->totloop);
 
         /* fill in multires mask corner */
         for (j = 0; j < p->totloop; j++) {

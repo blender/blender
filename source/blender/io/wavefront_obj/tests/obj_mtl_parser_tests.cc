@@ -67,7 +67,7 @@ class obj_mtl_parser_test : public testing::Test {
       EXPECT_NEAR(exp.cc_roughness, got.cc_roughness, tol);
       EXPECT_NEAR(exp.aniso, got.aniso, tol);
       EXPECT_NEAR(exp.aniso_rot, got.aniso_rot, tol);
-      for (int key = 0; key < (int)MTLTexMapType::Count; key++) {
+      for (int key = 0; key < int(MTLTexMapType::Count); key++) {
         const MTLTexMap &exp_tex = exp.texture_maps[key];
         const MTLTexMap &got_tex = got.texture_maps[key];
         EXPECT_STREQ(exp_tex.image_path.c_str(), got_tex.image_path.c_str());

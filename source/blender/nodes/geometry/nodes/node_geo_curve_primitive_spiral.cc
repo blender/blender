@@ -43,9 +43,9 @@ static Curves *create_spiral_curve(const float rotations,
                                    const bool direction)
 {
   const int totalpoints = std::max(int(resolution * rotations), 1);
-  const float delta_radius = (end_radius - start_radius) / (float)totalpoints;
-  const float delta_height = height / (float)totalpoints;
-  const float delta_theta = (M_PI * 2 * rotations) / (float)totalpoints *
+  const float delta_radius = (end_radius - start_radius) / float(totalpoints);
+  const float delta_height = height / float(totalpoints);
+  const float delta_theta = (M_PI * 2 * rotations) / float(totalpoints) *
                             (direction ? 1.0f : -1.0f);
 
   Curves *curves_id = bke::curves_new_nomain_single(totalpoints + 1, CURVE_TYPE_POLY);

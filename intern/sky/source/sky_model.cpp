@@ -120,8 +120,8 @@ static void ArHosekSkyModel_CookConfiguration(ArHosekSkyModel_Dataset dataset,
 {
   const double *elev_matrix;
 
-  int int_turbidity = (int)turbidity;
-  double turbidity_rem = turbidity - (double)int_turbidity;
+  int int_turbidity = int(turbidity);
+  double turbidity_rem = turbidity - double(int_turbidity);
 
   solar_elevation = pow(solar_elevation / (MATH_PI / 2.0), (1.0 / 3.0));
 
@@ -195,8 +195,8 @@ static double ArHosekSkyModel_CookRadianceConfiguration(ArHosekSkyModel_Radiance
 {
   const double *elev_matrix;
 
-  int int_turbidity = (int)turbidity;
-  double turbidity_rem = turbidity - (double)int_turbidity;
+  int int_turbidity = int(turbidity);
+  double turbidity_rem = turbidity - double(int_turbidity);
   double res;
   solar_elevation = pow(solar_elevation / (MATH_PI / 2.0), (1.0 / 3.0));
 
@@ -274,7 +274,7 @@ double SKY_arhosekskymodel_radiance(SKY_ArHosekSkyModelState *state,
                                     double gamma,
                                     double wavelength)
 {
-  int low_wl = (int)((wavelength - 320.0) / 40.0);
+  int low_wl = int((wavelength - 320.0) / 40.0);
 
   if (low_wl < 0 || low_wl >= 11) {
     return 0.0;

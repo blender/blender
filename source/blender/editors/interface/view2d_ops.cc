@@ -127,8 +127,8 @@ static void view_pan_init(bContext *C, wmOperator *op)
   vpd->v2d = &vpd->region->v2d;
 
   /* calculate translation factor - based on size of view */
-  const float winx = (float)(BLI_rcti_size_x(&vpd->region->winrct) + 1);
-  const float winy = (float)(BLI_rcti_size_y(&vpd->region->winrct) + 1);
+  const float winx = float(BLI_rcti_size_x(&vpd->region->winrct) + 1);
+  const float winy = float(BLI_rcti_size_y(&vpd->region->winrct) + 1);
   vpd->facx = (BLI_rctf_size_x(&vpd->v2d->cur)) / winx;
   vpd->facy = (BLI_rctf_size_y(&vpd->v2d->cur)) / winy;
 
@@ -712,7 +712,7 @@ static void view_zoomstep_apply_ex(bContext *C,
       if (vzd->zoom_to_mouse_pos) {
         /* get zoom fac the same way as in
          * ui_view2d_curRect_validate_resize - better keep in sync! */
-        const float zoomx = (float)(BLI_rcti_size_x(&v2d->mask) + 1) / BLI_rctf_size_x(&v2d->cur);
+        const float zoomx = float(BLI_rcti_size_x(&v2d->mask) + 1) / BLI_rctf_size_x(&v2d->cur);
 
         /* only move view to mouse if zoom fac is inside minzoom/maxzoom */
         if (((v2d->keepzoom & V2D_LIMITZOOM) == 0) ||
@@ -747,7 +747,7 @@ static void view_zoomstep_apply_ex(bContext *C,
       if (vzd->zoom_to_mouse_pos) {
         /* get zoom fac the same way as in
          * ui_view2d_curRect_validate_resize - better keep in sync! */
-        const float zoomy = (float)(BLI_rcti_size_y(&v2d->mask) + 1) / BLI_rctf_size_y(&v2d->cur);
+        const float zoomy = float(BLI_rcti_size_y(&v2d->mask) + 1) / BLI_rctf_size_y(&v2d->cur);
 
         /* only move view to mouse if zoom fac is inside minzoom/maxzoom */
         if (((v2d->keepzoom & V2D_LIMITZOOM) == 0) ||
@@ -958,7 +958,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
    * never uses the "Continuous" zoom method, and the 'timer' is not initialized. */
   if ((U.viewzoom == USER_ZOOM_CONTINUE) && vzd->timer) { /* XXX store this setting as RNA prop? */
     const double time = PIL_check_seconds_timer();
-    const float time_step = (float)(time - vzd->timer_lastdraw);
+    const float time_step = float(time - vzd->timer_lastdraw);
 
     dx *= time_step * 5.0f;
     dy *= time_step * 5.0f;

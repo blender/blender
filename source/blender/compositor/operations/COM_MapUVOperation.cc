@@ -124,7 +124,7 @@ void MapUVOperation::pixel_transform(const float xy[2],
     num++;
   }
   if (num > 0) {
-    float numinv = 1.0f / (float)num;
+    float numinv = 1.0f / float(num);
     r_deriv[0][0] *= numinv;
     r_deriv[1][0] *= numinv;
   }
@@ -141,7 +141,7 @@ void MapUVOperation::pixel_transform(const float xy[2],
     num++;
   }
   if (num > 0) {
-    float numinv = 1.0f / (float)num;
+    float numinv = 1.0f / float(num);
     r_deriv[0][1] *= numinv;
     r_deriv[1][1] *= numinv;
   }
@@ -217,7 +217,7 @@ void MapUVOperation::update_memory_buffer_partial(MemoryBuffer *output,
 {
   const MemoryBuffer *input_image = inputs[IMAGE_INPUT_INDEX];
   for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
-    float xy[2] = {(float)it.x, (float)it.y};
+    float xy[2] = {float(it.x), float(it.y)};
     float uv[2];
     float deriv[2][2];
     float alpha;

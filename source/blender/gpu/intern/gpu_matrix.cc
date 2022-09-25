@@ -429,7 +429,7 @@ void GPU_matrix_frustum_set(
 
 void GPU_matrix_perspective_set(float fovy, float aspect, float near, float far)
 {
-  float half_height = tanf(fovy * (float)(M_PI / 360.0)) * near;
+  float half_height = tanf(fovy * float(M_PI / 360.0)) * near;
   float half_width = half_height * aspect;
   GPU_matrix_frustum_set(-half_width, +half_width, -half_height, +half_height, near, far);
 }
@@ -669,13 +669,13 @@ BLI_STATIC_ASSERT(GPU_PY_MATRIX_STACK_LEN + 1 == MATRIX_STACK_DEPTH, "define mis
 int GPU_matrix_stack_level_get_model_view()
 {
   GPUMatrixState *state = Context::get()->matrix_state;
-  return (int)state->model_view_stack.top;
+  return int(state->model_view_stack.top);
 }
 
 int GPU_matrix_stack_level_get_projection()
 {
   GPUMatrixState *state = Context::get()->matrix_state;
-  return (int)state->projection_stack.top;
+  return int(state->projection_stack.top);
 }
 
 /** \} */

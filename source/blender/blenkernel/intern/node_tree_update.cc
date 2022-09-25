@@ -1432,7 +1432,7 @@ class NodeTreeMainUpdater {
         }
         /* When the hashes for the linked sockets are ready, combine them into a hash for the input
          * socket. */
-        const uint64_t socket_ptr = (uintptr_t)&socket;
+        const uint64_t socket_ptr = uintptr_t(&socket);
         uint32_t socket_hash = noise::hash(socket_ptr, socket_ptr >> 32);
         for (const bNodeSocket *origin_socket : socket.logically_linked_sockets()) {
           const uint32_t origin_socket_hash = *hash_by_socket_id[origin_socket->index_in_tree()];
@@ -1457,7 +1457,7 @@ class NodeTreeMainUpdater {
         }
         /* When all input socket hashes have been computed, combine them into a hash for the output
          * socket. */
-        const uint64_t socket_ptr = (uintptr_t)&socket;
+        const uint64_t socket_ptr = uintptr_t(&socket);
         uint32_t socket_hash = noise::hash(socket_ptr, socket_ptr >> 32);
         for (const bNodeSocket *input_socket : node.input_sockets()) {
           if (input_socket->is_available()) {

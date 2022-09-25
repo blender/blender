@@ -230,7 +230,7 @@ static void select_linked_tfaces_with_seams(Mesh *me, const uint index, const bo
   bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(
       ".select_poly", ATTR_DOMAIN_FACE);
 
-  if (index != (uint)-1) {
+  if (index != uint(-1)) {
     /* only put face under cursor in array */
     const MPoly &poly = polys[index];
     BKE_mesh_poly_edgebitmap_insert(edge_tag, &poly, &loops[poly.loopstart]);
@@ -295,7 +295,7 @@ static void select_linked_tfaces_with_seams(Mesh *me, const uint index, const bo
 
 void paintface_select_linked(bContext *C, Object *ob, const int mval[2], const bool select)
 {
-  uint index = (uint)-1;
+  uint index = uint(-1);
 
   Mesh *me = BKE_mesh_from_object(ob);
   if (me == nullptr || me->totpoly == 0) {
@@ -451,7 +451,7 @@ bool paintface_mouse_select(bContext *C,
   }
 
   if (found) {
-    me->act_face = (int)index;
+    me->act_face = int(index);
 
     switch (params->sel_op) {
       case SEL_OP_SET:

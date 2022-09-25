@@ -257,7 +257,7 @@ bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
   }
 
   if (m_buttonMask == 0) {
-    m_buttonMask = (int)~(UINT_MAX << m_buttonCount);
+    m_buttonMask = int(~(UINT_MAX << m_buttonCount));
   }
 
 #ifdef DEBUG_NDOF_BUTTONS

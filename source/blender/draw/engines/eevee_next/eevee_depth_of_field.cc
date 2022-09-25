@@ -637,8 +637,8 @@ void DepthOfField::render(View &view,
           /* Do not step over any unvisited tile. */
           int max_multiplier = dilation_radius + 1;
 
-          int ring_count = min_ii(DOF_DILATE_RING_COUNT, ceilf(remainder / (float)max_multiplier));
-          int multiplier = min_ii(max_multiplier, floorf(remainder / (float)ring_count));
+          int ring_count = min_ii(DOF_DILATE_RING_COUNT, ceilf(remainder / float(max_multiplier)));
+          int multiplier = min_ii(max_multiplier, floorf(remainder / float(ring_count)));
 
           dilation_radius += ring_count * multiplier;
 

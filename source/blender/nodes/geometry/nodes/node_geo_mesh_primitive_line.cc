@@ -153,7 +153,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         mesh = create_line_mesh(start, float3(0), count);
       }
       else {
-        const float3 delta = total_delta / (float)(count - 1);
+        const float3 delta = total_delta / float(count - 1);
         mesh = create_line_mesh(start, delta, count);
       }
     }

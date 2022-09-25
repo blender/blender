@@ -345,7 +345,7 @@ void extract_normalized_words(StringRef str,
                               LinearAllocator<> &allocator,
                               Vector<StringRef, 64> &r_words)
 {
-  const uint32_t unicode_space = (uint32_t)' ';
+  const uint32_t unicode_space = uint32_t(' ');
   const uint32_t unicode_right_triangle = UI_MENU_ARROW_SEP_UNICODE;
 
   BLI_assert(unicode_space == BLI_str_utf8_as_unicode(" "));
@@ -418,7 +418,7 @@ void BLI_string_search_add(StringSearch *search,
   StringRef str_ref{str};
   string_search::extract_normalized_words(str_ref, search->allocator, words);
   search->items.append({search->allocator.construct_array_copy(words.as_span()),
-                        (int)str_ref.size(),
+                        int(str_ref.size()),
                         user_data,
                         weight});
 }

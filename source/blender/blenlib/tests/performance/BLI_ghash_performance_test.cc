@@ -270,7 +270,7 @@ static void randint_ghash_tests(GHash *ghash, const char *id, const uint count)
 {
   printf("\n========== STARTING %s ==========\n", id);
 
-  uint *data = (uint *)MEM_mallocN(sizeof(*data) * (size_t)count, __func__);
+  uint *data = (uint *)MEM_mallocN(sizeof(*data) * size_t(count), __func__);
   uint *dt;
   uint i;
 
@@ -379,7 +379,7 @@ static void int4_ghash_tests(GHash *ghash, const char *id, const uint count)
 {
   printf("\n========== STARTING %s ==========\n", id);
 
-  void *data_v = MEM_mallocN(sizeof(uint[4]) * (size_t)count, __func__);
+  void *data_v = MEM_mallocN(sizeof(uint[4]) * size_t(count), __func__);
   uint(*data)[4] = (uint(*)[4])data_v;
   uint(*dt)[4];
   uint i, j;
@@ -485,7 +485,7 @@ TEST(ghash, Int2NoHash50000000)
 
 static void multi_small_ghash_tests_one(GHash *ghash, RNG *rng, const uint count)
 {
-  uint *data = (uint *)MEM_mallocN(sizeof(*data) * (size_t)count, __func__);
+  uint *data = (uint *)MEM_mallocN(sizeof(*data) * size_t(count), __func__);
   uint *dt;
   uint i;
 

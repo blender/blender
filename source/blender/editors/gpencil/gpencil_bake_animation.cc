@@ -119,7 +119,7 @@ static void animdata_keyframe_list_get(ListBase *ob_list,
         /* Keyframe number is x value of point. */
         if ((bezt->f2 & SELECT) || (!only_selected)) {
           /* Insert only one key for each keyframe number. */
-          int key = (int)bezt->vec[1][0];
+          int key = int(bezt->vec[1][0]);
           if (!BLI_ghash_haskey(r_keyframes, POINTER_FROM_INT(key))) {
             BLI_ghash_insert(r_keyframes, POINTER_FROM_INT(key), POINTER_FROM_INT(key));
           }
@@ -243,7 +243,7 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
   }
 
   /* Loop all frame range. */
-  int oldframe = (int)DEG_get_ctime(depsgraph);
+  int oldframe = int(DEG_get_ctime(depsgraph));
   int key = -1;
 
   /* Get list of keyframes. */

@@ -1210,7 +1210,7 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], uint dist_px,
     *r_index = DRW_select_buffer_sample_point(vc.depsgraph, vc.region, vc.v3d, mval);
   }
 
-  if ((*r_index) == 0 || (*r_index) > (uint)me->totpoly) {
+  if ((*r_index) == 0 || (*r_index) > uint(me->totpoly)) {
     return false;
   }
 
@@ -1267,7 +1267,7 @@ bool ED_mesh_pick_face_vert(
     int v_idx_best = ORIGINDEX_NONE;
 
     /* find the vert closest to 'mval' */
-    const float mval_f[2] = {(float)mval[0], (float)mval[1]};
+    const float mval_f[2] = {float(mval[0]), float(mval[1])};
     float len_best = FLT_MAX;
 
     const Span<MVert> verts = me_eval->verts();
@@ -1379,7 +1379,7 @@ bool ED_mesh_pick_vert(
       *r_index = DRW_select_buffer_sample_point(vc.depsgraph, vc.region, vc.v3d, mval);
     }
 
-    if ((*r_index) == 0 || (*r_index) > (uint)me->totvert) {
+    if ((*r_index) == 0 || (*r_index) > uint(me->totvert)) {
       return false;
     }
 
@@ -1395,7 +1395,7 @@ bool ED_mesh_pick_vert(
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
     /* find the vert closest to 'mval' */
-    const float mval_f[2] = {(float)mval[0], (float)mval[1]};
+    const float mval_f[2] = {float(mval[0]), float(mval[1])};
 
     VertPickData data = {nullptr};
 

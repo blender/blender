@@ -309,7 +309,7 @@ static short get_filter_expand_flag(const bContext *UNUSED(C), Panel *panel)
   PointerRNA *filter_ptr = UI_panel_custom_data_get(panel);
   SpreadsheetRowFilter *filter = (SpreadsheetRowFilter *)filter_ptr->data;
 
-  return (short)filter->flag & SPREADSHEET_ROW_FILTER_UI_EXPAND;
+  return short(filter->flag) & SPREADSHEET_ROW_FILTER_UI_EXPAND;
 }
 
 static void set_filter_expand_flag(const bContext *UNUSED(C), Panel *panel, short expand_flag)

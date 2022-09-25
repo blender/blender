@@ -436,8 +436,8 @@ inline void ExecutionGroup::determine_chunk_rect(rcti *r_rect,
   else {
     const uint minx = x_chunk * chunk_size_ + viewer_border_.xmin;
     const uint miny = y_chunk * chunk_size_ + viewer_border_.ymin;
-    const uint width = MIN2((uint)viewer_border_.xmax, width_);
-    const uint height = MIN2((uint)viewer_border_.ymax, height_);
+    const uint width = MIN2(uint(viewer_border_.xmax), width_);
+    const uint height = MIN2(uint(viewer_border_.ymax), height_);
     BLI_rcti_init(r_rect,
                   MIN2(minx, width_),
                   MIN2(minx + chunk_size_, width),
@@ -480,14 +480,14 @@ bool ExecutionGroup::schedule_area_when_possible(ExecutionSystem *graph, rcti *a
   int maxx = min_ii(area->xmax - viewer_border_.xmin, viewer_border_.xmax - viewer_border_.xmin);
   int miny = max_ii(area->ymin - viewer_border_.ymin, 0);
   int maxy = min_ii(area->ymax - viewer_border_.ymin, viewer_border_.ymax - viewer_border_.ymin);
-  int minxchunk = minx / (int)chunk_size_;
-  int maxxchunk = (maxx + (int)chunk_size_ - 1) / (int)chunk_size_;
-  int minychunk = miny / (int)chunk_size_;
-  int maxychunk = (maxy + (int)chunk_size_ - 1) / (int)chunk_size_;
+  int minxchunk = minx / int(chunk_size_);
+  int maxxchunk = (maxx + int(chunk_size_) - 1) / int(chunk_size_);
+  int minychunk = miny / int(chunk_size_);
+  int maxychunk = (maxy + int(chunk_size_) - 1) / int(chunk_size_);
   minxchunk = max_ii(minxchunk, 0);
   minychunk = max_ii(minychunk, 0);
-  maxxchunk = min_ii(maxxchunk, (int)x_chunks_len_);
-  maxychunk = min_ii(maxychunk, (int)y_chunks_len_);
+  maxxchunk = min_ii(maxxchunk, int(x_chunks_len_));
+  maxychunk = min_ii(maxychunk, int(y_chunks_len_));
 
   bool result = true;
   for (indexx = minxchunk; indexx < maxxchunk; indexx++) {
@@ -516,10 +516,10 @@ bool ExecutionGroup::schedule_chunk_when_possible(ExecutionSystem *graph,
                                                   const int chunk_x,
                                                   const int chunk_y)
 {
-  if (chunk_x < 0 || chunk_x >= (int)x_chunks_len_) {
+  if (chunk_x < 0 || chunk_x >= int(x_chunks_len_)) {
     return true;
   }
-  if (chunk_y < 0 || chunk_y >= (int)y_chunks_len_) {
+  if (chunk_y < 0 || chunk_y >= int(y_chunks_len_)) {
     return true;
   }
 

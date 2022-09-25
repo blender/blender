@@ -841,7 +841,7 @@ static void layerCopyValue_mloopcol(const void *source,
     /* Modes that do a full copy or nothing. */
     if (ELEM(mixmode, CDT_MIX_REPLACE_ABOVE_THRESHOLD, CDT_MIX_REPLACE_BELOW_THRESHOLD)) {
       /* TODO: Check for a real valid way to get 'factor' value of our dest color? */
-      const float f = ((float)m2->r + (float)m2->g + (float)m2->b) / 3.0f;
+      const float f = (float(m2->r) + float(m2->g) + float(m2->b)) / 3.0f;
       if (mixmode == CDT_MIX_REPLACE_ABOVE_THRESHOLD && f < mixfactor) {
         return; /* Do Nothing! */
       }
@@ -876,10 +876,10 @@ static void layerCopyValue_mloopcol(const void *source,
 
     blend_color_interpolate_byte(dst, dst, tmp_col, mixfactor);
 
-    m2->r = (char)dst[0];
-    m2->g = (char)dst[1];
-    m2->b = (char)dst[2];
-    m2->a = (char)dst[3];
+    m2->r = char(dst[0]);
+    m2->g = char(dst[1]);
+    m2->b = char(dst[2]);
+    m2->a = char(dst[3]);
   }
 }
 
@@ -901,10 +901,10 @@ static void layerMultiply_mloopcol(void *data, const float fac)
 {
   MLoopCol *m = static_cast<MLoopCol *>(data);
 
-  m->r = (float)m->r * fac;
-  m->g = (float)m->g * fac;
-  m->b = (float)m->b * fac;
-  m->a = (float)m->a * fac;
+  m->r = float(m->r) * fac;
+  m->g = float(m->g) * fac;
+  m->b = float(m->b) * fac;
+  m->a = float(m->a) * fac;
 }
 
 static void layerAdd_mloopcol(void *data1, const void *data2)
@@ -3119,7 +3119,7 @@ static void *customData_duplicate_referenced_layer_index(CustomData *data,
 
     if (typeInfo->copy) {
       void *dst_data = MEM_malloc_arrayN(
-          (size_t)totelem, typeInfo->size, "CD duplicate ref layer");
+          size_t(totelem), typeInfo->size, "CD duplicate ref layer");
       typeInfo->copy(layer->data, dst_data, totelem);
       layer->data = dst_data;
     }
@@ -3250,7 +3250,7 @@ void CustomData_copy_elements(const int type,
     typeInfo->copy(src_data_ofs, dst_data_ofs, count);
   }
   else {
-    memcpy(dst_data_ofs, src_data_ofs, (size_t)count * typeInfo->size);
+    memcpy(dst_data_ofs, src_data_ofs, size_t(count) * typeInfo->size);
   }
 }
 
@@ -3269,8 +3269,8 @@ void CustomData_copy_data_layer(const CustomData *source,
 
   typeInfo = layerType_getInfo(source->layers[src_layer_index].type);
 
-  const size_t src_offset = (size_t)src_index * typeInfo->size;
-  const size_t dst_offset = (size_t)dst_index * typeInfo->size;
+  const size_t src_offset = size_t(src_index) * typeInfo->size;
+  const size_t dst_offset = size_t(dst_index) * typeInfo->size;
 
   if (!count || !src_data || !dst_data) {
     if (count && !(src_data == nullptr && dst_data == nullptr)) {
@@ -3290,7 +3290,7 @@ void CustomData_copy_data_layer(const CustomData *source,
   else {
     memcpy(POINTER_OFFSET(dst_data, dst_offset),
            POINTER_OFFSET(src_data, src_offset),
-           (size_t)count * typeInfo->size);
+           size_t(count) * typeInfo->size);
   }
 }
 
@@ -3379,7 +3379,7 @@ void CustomData_free_elem(CustomData *data, const int index, const int count)
       const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[i].type);
 
       if (typeInfo->free) {
-        size_t offset = (size_t)index * typeInfo->size;
+        size_t offset = size_t(index) * typeInfo->size;
 
         typeInfo->free(POINTER_OFFSET(data->layers[i].data, offset), count, typeInfo->size);
       }
@@ -3415,7 +3415,7 @@ void CustomData_interp(const CustomData *source,
   if (weights == nullptr) {
     default_weights = (count > SOURCE_BUF_SIZE) ?
                           static_cast<float *>(
-                              MEM_mallocN(sizeof(*weights) * (size_t)count, __func__)) :
+                              MEM_mallocN(sizeof(*weights) * size_t(count), __func__)) :
                           default_weights_buf;
     copy_vn_fl(default_weights, count, 1.0f / count);
     weights = default_weights;
@@ -3446,7 +3446,7 @@ void CustomData_interp(const CustomData *source,
       void *src_data = source->layers[src_i].data;
 
       for (int j = 0; j < count; j++) {
-        sources[j] = POINTER_OFFSET(src_data, (size_t)src_indices[j] * typeInfo->size);
+        sources[j] = POINTER_OFFSET(src_data, size_t(src_indices[j]) * typeInfo->size);
       }
 
       typeInfo->interp(
@@ -3454,7 +3454,7 @@ void CustomData_interp(const CustomData *source,
           weights,
           sub_weights,
           count,
-          POINTER_OFFSET(dest->layers[dest_i].data, (size_t)dest_index * typeInfo->size));
+          POINTER_OFFSET(dest->layers[dest_i].data, size_t(dest_index) * typeInfo->size));
 
       /* if there are multiple source & dest layers of the same type,
        * we don't want to copy all source layers to the same dest, so
@@ -3478,7 +3478,7 @@ void CustomData_swap_corners(CustomData *data, const int index, const int *corne
     const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[i].type);
 
     if (typeInfo->swap) {
-      const size_t offset = (size_t)index * typeInfo->size;
+      const size_t offset = size_t(index) * typeInfo->size;
 
       typeInfo->swap(POINTER_OFFSET(data->layers[i].data, offset), corner_indices);
     }
@@ -3523,7 +3523,7 @@ void *CustomData_get(const CustomData *data, const int index, const int type)
   }
 
   /* get the offset of the desired element */
-  const size_t offset = (size_t)index * layerType_getInfo(type)->size;
+  const size_t offset = size_t(index) * layerType_getInfo(type)->size;
 
   return POINTER_OFFSET(data->layers[layer_index].data, offset);
 }
@@ -3538,7 +3538,7 @@ void *CustomData_get_n(const CustomData *data, const int type, const int index, 
     return nullptr;
   }
 
-  const size_t offset = (size_t)index * layerType_getInfo(type)->size;
+  const size_t offset = size_t(index) * layerType_getInfo(type)->size;
   return POINTER_OFFSET(data->layers[layer_index + n].data, offset);
 }
 

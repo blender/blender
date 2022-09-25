@@ -96,7 +96,7 @@ float ImagePyramid::pixel(int x, int y, int level)
   else {
     P2 = P1;
   }
-  return (1.0f / (float)(1 << (2 * level))) * (C * P1 + D * P2);
+  return (1.0f / float(1 << (2 * level))) * (C * P1 + D * P2);
 }
 
 int ImagePyramid::width(int level)

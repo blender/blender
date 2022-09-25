@@ -216,7 +216,7 @@ static void geom_add_polygon(Geometry *geom,
       fprintf(stderr,
               "Invalid vertex index %i (valid range [0, %zu)), ignoring face\n",
               corner.vert_index,
-              (size_t)global_vertices.vertices.size());
+              size_t(global_vertices.vertices.size()));
       face_valid = false;
     }
     else {
@@ -228,7 +228,7 @@ static void geom_add_polygon(Geometry *geom,
         fprintf(stderr,
                 "Invalid UV index %i (valid range [0, %zu)), ignoring face\n",
                 corner.uv_vert_index,
-                (size_t)global_vertices.uv_vertices.size());
+                size_t(global_vertices.uv_vertices.size()));
         face_valid = false;
       }
     }
@@ -244,7 +244,7 @@ static void geom_add_polygon(Geometry *geom,
         fprintf(stderr,
                 "Invalid normal index %i (valid range [0, %zu)), ignoring face\n",
                 corner.vertex_normal_index,
-                (size_t)global_vertices.vertex_normals.size());
+                size_t(global_vertices.vertex_normals.size()));
         face_valid = false;
       }
     }
@@ -485,7 +485,7 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
 
     /* Parse the buffer (until last newline) that we have so far,
      * line by line. */
-    StringRef buffer_str{buffer.data(), (int64_t)last_nl};
+    StringRef buffer_str{buffer.data(), int64_t(last_nl)};
     while (!buffer_str.is_empty()) {
       StringRef line = read_next_line(buffer_str);
       const char *p = line.begin(), *end = line.end();
@@ -768,7 +768,7 @@ void MTLParser::parse_and_store(Map<string, std::unique_ptr<MTLMaterial>> &r_mat
 
   MTLMaterial *material = nullptr;
 
-  StringRef buffer_str{(const char *)buffer, (int64_t)buffer_len};
+  StringRef buffer_str{(const char *)buffer, int64_t(buffer_len)};
   while (!buffer_str.is_empty()) {
     const StringRef line = read_next_line(buffer_str);
     const char *p = line.begin(), *end = line.end();
