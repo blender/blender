@@ -805,6 +805,17 @@ class Vector {
   }
 
   /**
+   * Remove all values for which the given predicate is true.
+   *
+   * This is similar to std::erase_if.
+   */
+  template<typename Predicate> void remove_if(Predicate &&predicate)
+  {
+    end_ = std::remove_if(this->begin(), this->end(), predicate);
+    UPDATE_VECTOR_SIZE(this);
+  }
+
+  /**
    * Do a linear search to find the value in the vector.
    * When found, return the first index, otherwise return -1.
    */

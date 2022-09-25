@@ -128,6 +128,19 @@ TEST(vector_set, RemoveContained)
   EXPECT_EQ(set.size(), 0);
 }
 
+TEST(vector_set, RemoveIf)
+{
+  VectorSet<int64_t> set;
+  for (const int64_t i : IndexRange(100)) {
+    set.add(i * i);
+  }
+  set.remove_if([](const int64_t key) { return key % 2 == 0; });
+  EXPECT_EQ(set.size(), 50);
+  for (const int64_t i : IndexRange(100)) {
+    EXPECT_EQ(set.contains(i * i), i % 2 == 1);
+  }
+}
+
 TEST(vector_set, AddMultipleTimes)
 {
   VectorSet<int> set;

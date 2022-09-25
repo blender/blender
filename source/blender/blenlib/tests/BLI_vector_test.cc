@@ -419,6 +419,15 @@ TEST(vector, Remove)
   EXPECT_EQ(vec.begin(), vec.end());
 }
 
+TEST(vector, RemoveIf)
+{
+  Vector<int> vec = {1, 2, 3, 4, 5, 6, 7, 8};
+  vec.remove_if([](const int x) { return x % 2 == 0; });
+  const Vector<int> expected_vec = {1, 3, 5, 7};
+  EXPECT_EQ(vec.size(), expected_vec.size());
+  EXPECT_EQ_ARRAY(vec.data(), expected_vec.data(), size_t(vec.size()));
+}
+
 TEST(vector, ExtendSmallVector)
 {
   Vector<int> a = {2, 3, 4};
