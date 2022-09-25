@@ -31,7 +31,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>(N_("Attribute"), "Attribute_003").hide_value().supports_field();
   b.add_input<decl::Int>(N_("Attribute"), "Attribute_004").hide_value().supports_field();
 
-  b.add_input<decl::Vector>(N_("Source Position")).implicit_field();
+  b.add_input<decl::Vector>(N_("Source Position")).implicit_field(implicit_field_inputs::position);
   b.add_input<decl::Vector>(N_("Ray Direction"))
       .default_value({0.0f, 0.0f, -1.0f})
       .supports_field();

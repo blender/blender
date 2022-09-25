@@ -1188,69 +1188,26 @@ struct GeometryNodesLazyFunctionGraphBuilder {
   bool try_add_implicit_input(const bNodeSocket &input_bsocket, lf::InputSocket &input_lf_socket)
   {
     const bNode &bnode = input_bsocket.owner_node();
-    const NodeDeclaration *node_declaration = bnode.declaration();
-    if (node_declaration == nullptr) {
+    const SocketDeclaration *socket_decl = input_bsocket.runtime->declaration;
+    if (socket_decl == nullptr) {
       return false;
     }
-    const SocketDeclaration &socket_declaration =
-        *node_declaration->inputs()[input_bsocket.index()];
-    if (socket_declaration.input_field_type() != InputSocketFieldType::Implicit) {
+    if (socket_decl->input_field_type() != InputSocketFieldType::Implicit) {
       return false;
     }
+    const ImplicitInputValueFn *implicit_input_fn = socket_decl->implicit_input_fn();
+    if (implicit_input_fn == nullptr) {
+      return false;
+    }
+    std::function<void(void *)> init_fn = [&bnode, implicit_input_fn](void *r_value) {
+      (*implicit_input_fn)(bnode, r_value);
+    };
     const CPPType &type = input_lf_socket.type();
-    std::function<void(void *)> init_fn = this->get_implicit_input_init_function(bnode,
-                                                                                 input_bsocket);
-    if (!init_fn) {
-      return false;
-    }
-
     auto lazy_function = std::make_unique<LazyFunctionForImplicitInput>(type, std::move(init_fn));
     lf::Node &lf_node = lf_graph_->add_function(*lazy_function);
     lf_graph_info_->functions.append(std::move(lazy_function));
     lf_graph_->add_link(lf_node.output(0), input_lf_socket);
     return true;
-  }
-
-  std::function<void(void *)> get_implicit_input_init_function(const bNode &bnode,
-                                                               const bNodeSocket &bsocket)
-  {
-    const bNodeSocketType &socket_type = *bsocket.typeinfo;
-    if (socket_type.type == SOCK_VECTOR) {
-      if (bnode.type == GEO_NODE_SET_CURVE_HANDLES) {
-        StringRef side = ((NodeGeometrySetCurveHandlePositions *)bnode.storage)->mode ==
-                                 GEO_NODE_CURVE_HANDLE_LEFT ?
-                             "handle_left" :
-                             "handle_right";
-        return [side](void *r_value) {
-          new (r_value) ValueOrField<float3>(bke::AttributeFieldInput::Create<float3>(side));
-        };
-      }
-      else if (bnode.type == GEO_NODE_EXTRUDE_MESH) {
-        return [](void *r_value) {
-          new (r_value)
-              ValueOrField<float3>(Field<float3>(std::make_shared<bke::NormalFieldInput>()));
-        };
-      }
-      else {
-        return [](void *r_value) {
-          new (r_value) ValueOrField<float3>(bke::AttributeFieldInput::Create<float3>("position"));
-        };
-      }
-    }
-    else if (socket_type.type == SOCK_INT) {
-      if (ELEM(bnode.type, FN_NODE_RANDOM_VALUE, GEO_NODE_INSTANCE_ON_POINTS)) {
-        return [](void *r_value) {
-          new (r_value)
-              ValueOrField<int>(Field<int>(std::make_shared<bke::IDAttributeFieldInput>()));
-        };
-      }
-      else {
-        return [](void *r_value) {
-          new (r_value) ValueOrField<int>(Field<int>(std::make_shared<fn::IndexFieldInput>()));
-        };
-      }
-    }
-    return {};
   }
 };
 

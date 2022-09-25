@@ -25,7 +25,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Scale"), "Scale").default_value(1.0f).min(0.0f).supports_field();
   b.add_input<decl::Vector>(N_("Center"))
       .subtype(PROP_TRANSLATION)
-      .implicit_field()
+      .implicit_field(implicit_field_inputs::position)
       .description(N_("Origin of the scaling for each element. If multiple elements are "
                       "connected, their center is averaged"));
   b.add_input<decl::Vector>(N_("Axis"))

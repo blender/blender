@@ -24,7 +24,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Image>(N_("Image")).hide_label();
   b.add_input<decl::Vector>(N_("Vector"))
-      .implicit_field()
+      .implicit_field(implicit_field_inputs::position)
       .description("Texture coordinates from 0 to 1");
   b.add_input<decl::Int>(N_("Frame")).min(0).max(MAXFRAMEF);
   b.add_output<decl::Color>(N_("Color")).no_muted_links().dependent_field();
