@@ -4275,7 +4275,7 @@ void WM_event_modal_handler_region_replace(wmWindow *win,
        * it needs to keep old region stored in handler, so don't change it. */
       if ((handler->context.region == old_region) && (handler->is_fileselect == false)) {
         handler->context.region = new_region;
-        handler->context.region_type = new_region ? new_region->regiontype : (int)RGN_TYPE_WINDOW;
+        handler->context.region_type = new_region ? new_region->regiontype : int(RGN_TYPE_WINDOW);
       }
     }
   }

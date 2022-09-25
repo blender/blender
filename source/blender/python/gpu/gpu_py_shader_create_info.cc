@@ -35,9 +35,9 @@ using blender::gpu::shader::Qualifier;
     "      - ``READ``\n" \
     "      - ``WRITE``\n"
 static const struct PyC_FlagSet pygpu_qualifiers[] = {
-    {(int)Qualifier::NO_RESTRICT, "NO_RESTRICT"},
-    {(int)Qualifier::READ, "READ"},
-    {(int)Qualifier::WRITE, "WRITE"},
+    {int(Qualifier::NO_RESTRICT), "NO_RESTRICT"},
+    {int(Qualifier::READ), "READ"},
+    {int(Qualifier::WRITE), "WRITE"},
     {0, nullptr},
 };
 #endif

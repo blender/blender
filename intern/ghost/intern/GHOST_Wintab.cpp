@@ -331,7 +331,7 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
     out.y = pkt.pkY;
 
     if (m_maxPressure > 0) {
-      out.tabletData.Pressure = (float)pkt.pkNormalPressure / (float)m_maxPressure;
+      out.tabletData.Pressure = float(pkt.pkNormalPressure) / float(m_maxPressure);
     }
 
     if ((m_maxAzimuth > 0) && (m_maxAltitude > 0)) {
@@ -351,15 +351,15 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
       ORIENTATION ort = pkt.pkOrientation;
 
       /* Convert raw fixed point data to radians. */
-      float altRad = (float)((fabs((float)ort.orAltitude) / (float)m_maxAltitude) * M_PI_2);
-      float azmRad = (float)(((float)ort.orAzimuth / (float)m_maxAzimuth) * M_PI * 2.0);
+      float altRad = float((fabs(float(ort.orAltitude)) / float(m_maxAltitude)) * M_PI_2);
+      float azmRad = float((float(ort.orAzimuth) / float(m_maxAzimuth)) * M_PI * 2.0);
 
       /* Find length of the stylus' projected vector on the XY plane. */
       float vecLen = cos(altRad);
 
       /* From there calculate X and Y components based on azimuth. */
       out.tabletData.Xtilt = sin(azmRad) * vecLen;
-      out.tabletData.Ytilt = (float)(sin(M_PI_2 - azmRad) * vecLen);
+      out.tabletData.Ytilt = float(sin(M_PI_2 - azmRad) * vecLen);
     }
 
     out.time = pkt.pkTime;

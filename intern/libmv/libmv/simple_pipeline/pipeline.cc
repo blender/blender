@@ -180,7 +180,7 @@ void InternalCompleteReconstruction(
          << " reconstructed markers for track " << track;
       if (reconstructed_markers.size() >= 2) {
         CompleteReconstructionLogProgress(update_callback,
-                                          (double)tot_resects / (max_image));
+                                          double(tot_resects) / (max_image));
         if (PipelineRoutines::Intersect(reconstructed_markers,
                                         reconstruction)) {
           num_intersects++;
@@ -192,7 +192,7 @@ void InternalCompleteReconstruction(
     }
     if (num_intersects) {
       CompleteReconstructionLogProgress(
-          update_callback, (double)tot_resects / (max_image), "Bundling...");
+          update_callback, double(tot_resects) / (max_image), "Bundling...");
       PipelineRoutines::Bundle(tracks, reconstruction);
       LG << "Ran Bundle() after intersections.";
     }
@@ -218,7 +218,7 @@ void InternalCompleteReconstruction(
          << " reconstructed markers for image " << image;
       if (reconstructed_markers.size() >= 5) {
         CompleteReconstructionLogProgress(update_callback,
-                                          (double)tot_resects / (max_image));
+                                          double(tot_resects) / (max_image));
         if (PipelineRoutines::Resect(
                 reconstructed_markers, reconstruction, false)) {
           num_resects++;
@@ -231,7 +231,7 @@ void InternalCompleteReconstruction(
     }
     if (num_resects) {
       CompleteReconstructionLogProgress(
-          update_callback, (double)tot_resects / (max_image), "Bundling...");
+          update_callback, double(tot_resects) / (max_image), "Bundling...");
       PipelineRoutines::Bundle(tracks, reconstruction);
     }
     LG << "Did " << num_resects << " resects.";
@@ -254,7 +254,7 @@ void InternalCompleteReconstruction(
     }
     if (reconstructed_markers.size() >= 5) {
       CompleteReconstructionLogProgress(update_callback,
-                                        (double)tot_resects / (max_image));
+                                        double(tot_resects) / (max_image));
       if (PipelineRoutines::Resect(
               reconstructed_markers, reconstruction, true)) {
         num_resects++;
@@ -266,7 +266,7 @@ void InternalCompleteReconstruction(
   }
   if (num_resects) {
     CompleteReconstructionLogProgress(
-        update_callback, (double)tot_resects / (max_image), "Bundling...");
+        update_callback, double(tot_resects) / (max_image), "Bundling...");
     PipelineRoutines::Bundle(tracks, reconstruction);
   }
 }

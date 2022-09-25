@@ -2470,7 +2470,7 @@ GHOST_TSuccess GHOST_SystemX11::showMessageBox(const char *title,
                     dialog_data.padding_x,
                     dialog_data.padding_x + (i + 1) * dialog_data.line_height,
                     text_splitted[i],
-                    (int)strlen(text_splitted[i]));
+                    int(strlen(text_splitted[i])));
       }
       dialog_data.drawButton(m_display, window, buttonBorderGC, buttonGC, 1, continue_label);
       if (strlen(link)) {

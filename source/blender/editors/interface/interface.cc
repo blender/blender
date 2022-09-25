@@ -3740,10 +3740,10 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
     case UI_BTYPE_NUM_SLIDER:
       if (validate) {
         UI_GET_BUT_VALUE_INIT(but, value);
-        if (value < (double)but->hardmin) {
+        if (value < double(but->hardmin)) {
           ui_but_value_set(but, but->hardmin);
         }
-        else if (value > (double)but->hardmax) {
+        else if (value > double(but->hardmax)) {
           ui_but_value_set(but, but->hardmax);
         }
 

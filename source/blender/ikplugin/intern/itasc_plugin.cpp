@@ -1483,7 +1483,7 @@ static IK_Scene *convert_tree(
   }
   /* set the weight */
   e_matrix &Wq = arm->getWq();
-  assert(Wq.cols() == (int)weights.size());
+  assert(Wq.cols() == int(weights.size()));
   for (int q = 0; q < Wq.cols(); q++) {
     Wq(q, q) = weights[q];
   }
@@ -1826,9 +1826,9 @@ static void execute_scene(struct Depsgraph *depsgraph,
     }
     if (joint->getType() == KDL::Joint::TransY) {
       /* stretch bones have a TY joint, compute the scale */
-      scale = (float)(q[0] / q_rest[0]);
+      scale = float(q[0] / q_rest[0]);
       /* the length is the joint itself */
-      length = (float)q[0];
+      length = float(q[0]);
     }
     else {
       scale = 1.0f;

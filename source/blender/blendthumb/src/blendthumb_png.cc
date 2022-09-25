@@ -110,7 +110,7 @@ std::optional<blender::Vector<uint8_t>> blendthumb_create_png_data_from_thumb(
         0x00, /* Filter method. */
         0x00, /* Interlace method. */
     });
-    BLI_assert((size_t)ihdr_data.size() == ihdr_data_final_size);
+    BLI_assert(size_t(ihdr_data.size()) == ihdr_data_final_size);
   }
 
   /* Join it all together to create a PNG image. */
@@ -135,7 +135,7 @@ std::optional<blender::Vector<uint8_t>> blendthumb_create_png_data_from_thumb(
     png_chunk_create(png_buf, MAKE_ID('I', 'D', 'A', 'T'), image_data);
     png_chunk_create(png_buf, MAKE_ID('I', 'E', 'N', 'D'), {});
 
-    BLI_assert((size_t)png_buf.size() == png_buf_final_size);
+    BLI_assert(size_t(png_buf.size()) == png_buf_final_size);
   }
 
   return png_buf;

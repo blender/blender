@@ -623,8 +623,8 @@ static void poly_edge_loop_islands_calc(const MEdge *medge,
         &edge_poly_map, &edge_poly_mem, medge, totedge, mpoly, totpoly, mloop, totloop);
   }
 
-  poly_groups = static_cast<int *>(MEM_callocN(sizeof(int) * (size_t)totpoly, __func__));
-  poly_stack = static_cast<int *>(MEM_mallocN(sizeof(int) * (size_t)totpoly, __func__));
+  poly_groups = static_cast<int *>(MEM_callocN(sizeof(int) * size_t(totpoly), __func__));
+  poly_stack = static_cast<int *>(MEM_mallocN(sizeof(int) * size_t(totpoly), __func__));
 
   while (true) {
     int poly;
@@ -838,7 +838,7 @@ void BKE_mesh_loop_islands_init(MeshIslandStore *island_store,
   island_store->item_type = item_type;
   island_store->items_to_islands_num = items_num;
   island_store->items_to_islands = static_cast<int *>(
-      BLI_memarena_alloc(mem, sizeof(*island_store->items_to_islands) * (size_t)items_num));
+      BLI_memarena_alloc(mem, sizeof(*island_store->items_to_islands) * size_t(items_num)));
 
   island_store->island_type = island_type;
   island_store->islands_num_alloc = MISLAND_DEFAULT_BUFSIZE;
@@ -890,7 +890,7 @@ void BKE_mesh_loop_islands_add(MeshIslandStore *island_store,
 
   MeshElemMap *isld, *innrcut;
   const int curr_island_idx = island_store->islands_num++;
-  const size_t curr_num_islands = (size_t)island_store->islands_num;
+  const size_t curr_num_islands = size_t(island_store->islands_num);
   int i = item_num;
 
   while (i--) {
@@ -916,17 +916,17 @@ void BKE_mesh_loop_islands_add(MeshIslandStore *island_store,
       BLI_memarena_alloc(mem, sizeof(*isld)));
   isld->count = num_island_items;
   isld->indices = static_cast<int *>(
-      BLI_memarena_alloc(mem, sizeof(*isld->indices) * (size_t)num_island_items));
-  memcpy(isld->indices, island_item_indices, sizeof(*isld->indices) * (size_t)num_island_items);
+      BLI_memarena_alloc(mem, sizeof(*isld->indices) * size_t(num_island_items)));
+  memcpy(isld->indices, island_item_indices, sizeof(*isld->indices) * size_t(num_island_items));
 
   island_store->innercuts[curr_island_idx] = innrcut = static_cast<MeshElemMap *>(
       BLI_memarena_alloc(mem, sizeof(*innrcut)));
   innrcut->count = num_innercut_items;
   innrcut->indices = static_cast<int *>(
-      BLI_memarena_alloc(mem, sizeof(*innrcut->indices) * (size_t)num_innercut_items));
+      BLI_memarena_alloc(mem, sizeof(*innrcut->indices) * size_t(num_innercut_items)));
   memcpy(innrcut->indices,
          innercut_item_indices,
-         sizeof(*innrcut->indices) * (size_t)num_innercut_items);
+         sizeof(*innrcut->indices) * size_t(num_innercut_items));
 }
 
 /* TODO: I'm not sure edge seam flag is enough to define UV islands?
@@ -1066,22 +1066,22 @@ static bool mesh_calc_islands_loop_poly_uv(const MVert *UNUSED(verts),
 
   if (num_edge_borders) {
     edge_border_count = static_cast<char *>(
-        MEM_mallocN(sizeof(*edge_border_count) * (size_t)totedge, __func__));
+        MEM_mallocN(sizeof(*edge_border_count) * size_t(totedge), __func__));
     edge_innercut_indices = static_cast<int *>(
-        MEM_mallocN(sizeof(*edge_innercut_indices) * (size_t)num_edge_borders, __func__));
+        MEM_mallocN(sizeof(*edge_innercut_indices) * size_t(num_edge_borders), __func__));
   }
 
   poly_indices = static_cast<int *>(
-      MEM_mallocN(sizeof(*poly_indices) * (size_t)totpoly, __func__));
+      MEM_mallocN(sizeof(*poly_indices) * size_t(totpoly), __func__));
   loop_indices = static_cast<int *>(
-      MEM_mallocN(sizeof(*loop_indices) * (size_t)totloop, __func__));
+      MEM_mallocN(sizeof(*loop_indices) * size_t(totloop), __func__));
 
   /* NOTE: here we ignore '0' invalid group - this should *never* happen in this case anyway? */
   for (grp_idx = 1; grp_idx <= num_poly_groups; grp_idx++) {
     num_pidx = num_lidx = 0;
     if (num_edge_borders) {
       num_einnercuts = 0;
-      memset(edge_border_count, 0, sizeof(*edge_border_count) * (size_t)totedge);
+      memset(edge_border_count, 0, sizeof(*edge_border_count) * size_t(totedge));
     }
 
     for (p_idx = 0; p_idx < totpoly; p_idx++) {

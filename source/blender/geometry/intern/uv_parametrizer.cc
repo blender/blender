@@ -195,7 +195,7 @@ static int PHashSizes[] = {
     1048583, 2097169, 4194319, 8388617, 16777259, 33554467, 67108879, 134217757, 268435459,
 };
 
-#define PHASH_hash(ph, item) (uintptr_t(item) % ((uint)(ph)->cursize))
+#define PHASH_hash(ph, item) (uintptr_t(item) % (uint((ph)->cursize)))
 #define PHASH_edge(v1, v2) (((v1) < (v2)) ? ((v1)*39) ^ ((v2)*31) : ((v1)*31) ^ ((v2)*39))
 
 static PHash *phash_new(PHashLink **list, int sizehint)
@@ -1903,7 +1903,7 @@ static bool p_collapse_allowed_geometric(PEdge *edge, PEdge *pair)
 
   if (p_vert_interior(oldv)) {
     /* HLSCM criterion: angular defect smaller than threshold. */
-    if (fabsf(angulardefect) > (float)(M_PI * 30.0 / 180.0)) {
+    if (fabsf(angulardefect) > float(M_PI * 30.0 / 180.0)) {
       return false;
     }
   }
@@ -2465,7 +2465,7 @@ static float p_abf_compute_gradient(PAbfSystem *sys, PChart *chart)
 
     norm += galpha1 * galpha1 + galpha2 * galpha2 + galpha3 * galpha3;
 
-    gtriangle = sys->alpha[e1->u.id] + sys->alpha[e2->u.id] + sys->alpha[e3->u.id] - (float)M_PI;
+    gtriangle = sys->alpha[e1->u.id] + sys->alpha[e2->u.id] + sys->alpha[e3->u.id] - float(M_PI);
     sys->bTriangle[f->u.id] = -gtriangle;
     norm += gtriangle * gtriangle;
   }
@@ -2696,8 +2696,8 @@ static bool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
       /* clamp */
       PEdge *e = f->edge;
       do {
-        if (sys->alpha[e->u.id] > (float)M_PI) {
-          sys->alpha[e->u.id] = (float)M_PI;
+        if (sys->alpha[e->u.id] > float(M_PI)) {
+          sys->alpha[e->u.id] = float(M_PI);
         }
         else if (sys->alpha[e->u.id] < 0.0f) {
           sys->alpha[e->u.id] = 0.0f;
@@ -2706,8 +2706,8 @@ static bool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
     }
 
     for (int i = 0; i < ninterior; i++) {
-      sys->lambdaPlanar[i] += (float)EIG_linear_solver_variable_get(context, 0, i);
-      sys->lambdaLength[i] += (float)EIG_linear_solver_variable_get(context, 0, ninterior + i);
+      sys->lambdaPlanar[i] += float(EIG_linear_solver_variable_get(context, 0, i));
+      sys->lambdaLength[i] += float(EIG_linear_solver_variable_get(context, 0, ninterior + i));
     }
   }
 
@@ -2780,7 +2780,7 @@ static bool p_chart_abf_solve(PChart *chart)
         e = e->next->next->pair;
       } while (e && (e != v->edge));
 
-      scale = (anglesum == 0.0f) ? 0.0f : 2.0f * (float)M_PI / anglesum;
+      scale = (anglesum == 0.0f) ? 0.0f : 2.0f * float(M_PI) / anglesum;
 
       e = v->edge;
       do {
@@ -3409,7 +3409,7 @@ static void p_chart_stretch_minimize(PChart *chart, RNG *rng)
 
     trusted_radius /= 2 * nedges;
 
-    random_angle = BLI_rng_get_float(rng) * 2.0f * (float)M_PI;
+    random_angle = BLI_rng_get_float(rng) * 2.0f * float(M_PI);
     dir[0] = trusted_radius * cosf(random_angle);
     dir[1] = trusted_radius * sinf(random_angle);
 
@@ -3588,7 +3588,7 @@ static float p_chart_minimum_area_angle(PChart *chart)
     p2 = points[i];
     p3 = (i == npoints - 1) ? points[0] : points[i + 1];
 
-    angles[i] = (float)M_PI - p_vec2_angle(p1->uv, p2->uv, p3->uv);
+    angles[i] = float(M_PI) - p_vec2_angle(p1->uv, p2->uv, p3->uv);
 
     if (points[i]->uv[1] < miny) {
       miny = points[i]->uv[1];
@@ -3628,7 +3628,7 @@ static float p_chart_minimum_area_angle(PChart *chart)
   minarea = 1e10;
   minangle = 0.0;
 
-  while (rotated <= (float)M_PI_2) { /* INVESTIGATE: how far to rotate? */
+  while (rotated <= float(M_PI_2)) { /* INVESTIGATE: how far to rotate? */
     /* rotate with the smallest angle */
     i_min = 0;
     mina = 1e10;
@@ -3675,8 +3675,8 @@ static float p_chart_minimum_area_angle(PChart *chart)
   }
 
   /* try keeping rotation as small as possible */
-  if (minangle > (float)M_PI_4) {
-    minangle -= (float)M_PI_2;
+  if (minangle > float(M_PI_4)) {
+    minangle -= float(M_PI_2);
   }
 
   MEM_freeN(angles);
@@ -3869,9 +3869,9 @@ static void p_add_ngon(ParamHandle *handle,
   Heap *heap = handle->polyfill_heap;
   uint nfilltri = nverts - 2;
   uint(*tris)[3] = static_cast<uint(*)[3]>(
-      BLI_memarena_alloc(arena, sizeof(*tris) * (size_t)nfilltri));
+      BLI_memarena_alloc(arena, sizeof(*tris) * size_t(nfilltri)));
   float(*projverts)[2] = static_cast<float(*)[2]>(
-      BLI_memarena_alloc(arena, sizeof(*projverts) * (size_t)nverts));
+      BLI_memarena_alloc(arena, sizeof(*projverts) * size_t(nverts)));
 
   /* Calc normal, flipped: to get a positive 2d cross product. */
   float normal[3];
@@ -4209,7 +4209,7 @@ void GEO_uv_parametrizer_pack(ParamHandle *handle,
     box->index = i; /* Warning this index skips chart->has_pins boxes. */
 
     if (margin > 0.0f) {
-      area += (double)sqrtf(box->w * box->h);
+      area += double(sqrtf(box->w * box->h));
     }
   }
 
@@ -4342,7 +4342,7 @@ void GEO_uv_parametrizer_average(ParamHandle *phandle,
         /* Compute correction transform. */
         float t[2][2];
         t[0][0] = scale_factor_u;
-        t[1][0] = clamp_f((float)(scale_cross / weight_sum), -0.5f, 0.5f);
+        t[1][0] = clamp_f(float(scale_cross / weight_sum), -0.5f, 0.5f);
         t[0][1] = 0;
         t[1][1] = 1.0f / scale_factor_u;
 

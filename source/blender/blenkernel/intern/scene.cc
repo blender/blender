@@ -2425,7 +2425,7 @@ float BKE_scene_frame_get(const Scene *scene)
 void BKE_scene_frame_set(Scene *scene, float frame)
 {
   double intpart;
-  scene->r.subframe = modf((double)frame, &intpart);
+  scene->r.subframe = modf(double(frame), &intpart);
   scene->r.cfra = int(intpart);
 }
 
@@ -2997,7 +2997,7 @@ double BKE_scene_unit_scale(const UnitSettings *unit, const int unit_type, doubl
     case B_UNIT_LENGTH:
     case B_UNIT_VELOCITY:
     case B_UNIT_ACCELERATION:
-      return value * (double)unit->scale_length;
+      return value * double(unit->scale_length);
     case B_UNIT_AREA:
     case B_UNIT_POWER:
       return value * pow(unit->scale_length, 2);

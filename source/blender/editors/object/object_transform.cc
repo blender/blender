@@ -2101,7 +2101,7 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
       }
 #endif
 
-      double depth = (double)depth_fl;
+      double depth = double(depth_fl);
       if ((depth > depths->depth_range[0]) && (depth < depths->depth_range[1])) {
         xfd->prev.depth = depth_fl;
         xfd->prev.is_depth_valid = true;

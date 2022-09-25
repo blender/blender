@@ -551,7 +551,7 @@ static SDL_Cursor *getStandardCursorShape(GHOST_TStandardCursor shape)
         sdl_std_cursor_HEIGHT_##name, \
         (sdl_std_cursor_WIDTH_##name + (sdl_std_cursor_HOT_X_##name)) - 1, \
         (sdl_std_cursor_HEIGHT_##name + (sdl_std_cursor_HOT_Y_##name)) - 1); \
-    assert(sdl_std_cursor_array[(int)ind] != nullptr); \
+    assert(sdl_std_cursor_array[int(ind)] != nullptr); \
   } \
   (void)0
 

@@ -1583,10 +1583,10 @@ void UI_view2d_smooth_view(const bContext *C,
     if (changed) {
       sms.orig_cur = v2d->cur;
 
-      sms.time_allowed = (double)smooth_viewtx / 1000.0;
+      sms.time_allowed = double(smooth_viewtx) / 1000.0;
 
       /* scale the time allowed the change in view */
-      sms.time_allowed *= (double)fac;
+      sms.time_allowed *= double(fac);
 
       /* keep track of running timer! */
       if (v2d->sms == nullptr) {

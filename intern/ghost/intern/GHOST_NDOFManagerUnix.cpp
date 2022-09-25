@@ -86,8 +86,8 @@ bool GHOST_NDOFManagerUnix::processEvents()
         case SPNAV_EVENT_MOTION: {
           /* convert to blender view coords */
           uint64_t now = m_system.getMilliSeconds();
-          const int t[3] = {(int)e.motion.x, (int)e.motion.y, (int)-e.motion.z};
-          const int r[3] = {(int)-e.motion.rx, (int)-e.motion.ry, (int)e.motion.rz};
+          const int t[3] = {int(e.motion.x), int(e.motion.y), int(-e.motion.z)};
+          const int r[3] = {int(-e.motion.rx), int(-e.motion.ry), int(e.motion.rz)};
 
           updateTranslation(t, now);
           updateRotation(r, now);

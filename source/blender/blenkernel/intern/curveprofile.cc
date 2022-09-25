@@ -1048,13 +1048,13 @@ void BKE_curveprofile_evaluate_length_portion(const CurveProfile *profile,
 
 #ifdef DEBUG_CURVEPROFILE_EVALUATE
   printf("CURVEPROFILE EVALUATE\n");
-  printf("  length portion input: %f\n", (double)length_portion);
-  printf("  requested path length: %f\n", (double)requested_length);
-  printf("  distance to next point: %f\n", (double)distance_to_next_point);
-  printf("  length travelled: %f\n", (double)length_travelled);
-  printf("  lerp-factor: %f\n", (double)lerp_factor);
-  printf("  ith point (%f, %f)\n", (double)profile->path[i].x, (double)profile->path[i].y);
-  printf("  next point(%f, %f)\n", (double)profile->path[i + 1].x, (double)profile->path[i + 1].y);
+  printf("  length portion input: %f\n", double(length_portion));
+  printf("  requested path length: %f\n", double(requested_length));
+  printf("  distance to next point: %f\n", double(distance_to_next_point));
+  printf("  length travelled: %f\n", double(length_travelled));
+  printf("  lerp-factor: %f\n", double(lerp_factor));
+  printf("  ith point (%f, %f)\n", double(profile->path[i].x), double(profile->path[i].y));
+  printf("  next point(%f, %f)\n", double(profile->path[i + 1].x), double(profile->path[i + 1].y));
 #endif
 
   *x_out = interpf(profile->table[i].x, profile->table[i + 1].x, lerp_factor);

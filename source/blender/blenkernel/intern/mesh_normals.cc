@@ -1670,12 +1670,12 @@ void BKE_mesh_normals_loop_split(const MVert *mverts,
    * to retrieve the real value later in code).
    * Note also that loose edges always have both values set to 0! */
   int(*edge_to_loops)[2] = (int(*)[2])MEM_calloc_arrayN(
-      (size_t)numEdges, sizeof(*edge_to_loops), __func__);
+      size_t(numEdges), sizeof(*edge_to_loops), __func__);
 
   /* Simple mapping from a loop to its polygon index. */
   int *loop_to_poly = r_loop_to_poly ? r_loop_to_poly :
                                        (int *)MEM_malloc_arrayN(
-                                           (size_t)numLoops, sizeof(*loop_to_poly), __func__);
+                                           size_t(numLoops), sizeof(*loop_to_poly), __func__);
 
   /* When using custom loop normals, disable the angle feature! */
   const bool check_angle = (split_angle < (float)M_PI) && (clnors_data == nullptr);
@@ -1779,8 +1779,8 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
    * So better to keep some simplicity here, and just call #BKE_mesh_normals_loop_split() twice! */
   MLoopNorSpaceArray lnors_spacearr = {nullptr};
   BitVector<> done_loops(numLoops, false);
-  float(*lnors)[3] = (float(*)[3])MEM_calloc_arrayN((size_t)numLoops, sizeof(*lnors), __func__);
-  int *loop_to_poly = (int *)MEM_malloc_arrayN((size_t)numLoops, sizeof(int), __func__);
+  float(*lnors)[3] = (float(*)[3])MEM_calloc_arrayN(size_t(numLoops), sizeof(*lnors), __func__);
+  int *loop_to_poly = (int *)MEM_malloc_arrayN(size_t(numLoops), sizeof(int), __func__);
   /* In this case we always consider split nors as ON,
    * and do not want to use angle to define smooth fans! */
   const bool use_split_normals = true;
@@ -2056,7 +2056,7 @@ static void mesh_set_custom_normals(Mesh *mesh, float (*r_custom_nors)[3], const
 
   clnors = (short(*)[2])CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);
   if (clnors != nullptr) {
-    memset(clnors, 0, sizeof(*clnors) * (size_t)numloops);
+    memset(clnors, 0, sizeof(*clnors) * size_t(numloops));
   }
   else {
     clnors = (short(*)[2])CustomData_add_layer(
@@ -2099,7 +2099,7 @@ void BKE_mesh_normals_loop_to_vertex(const int numVerts,
                                      float (*r_vert_clnors)[3])
 {
   int *vert_loops_count = (int *)MEM_calloc_arrayN(
-      (size_t)numVerts, sizeof(*vert_loops_count), __func__);
+      size_t(numVerts), sizeof(*vert_loops_count), __func__);
 
   copy_vn_fl((float *)r_vert_clnors, 3 * numVerts, 0.0f);
 

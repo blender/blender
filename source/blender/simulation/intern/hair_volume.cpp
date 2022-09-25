@@ -448,12 +448,12 @@ BLI_INLINE void hair_volume_add_segment_2D(HairGrid *grid,
 
   HairGridVert *vert_j = vert + jmin * stride_j;
   float loc_j[3] = {loc[0], loc[1], loc[2]};
-  loc_j[axis_j] += (float)jmin;
+  loc_j[axis_j] += float(jmin);
   for (j = jmin; j <= jmax; j++, vert_j += stride_j, loc_j[axis_j] += 1.0f) {
 
     HairGridVert *vert_k = vert_j + kmin * stride_k;
     float loc_k[3] = {loc_j[0], loc_j[1], loc_j[2]};
-    loc_k[axis_k] += (float)kmin;
+    loc_k[axis_k] += float(kmin);
     for (k = kmin; k <= kmax; k++, vert_k += stride_k, loc_k[axis_k] += 1.0f) {
 
       hair_volume_eval_grid_vertex(vert_k, loc_k, radius, dist_scale, x2, v2, x3, v3);
@@ -542,7 +542,7 @@ void SIM_hair_volume_add_segment(HairGrid *grid,
     float shift1, shift2; /* fraction of a full cell shift [0.0, 1.0) */
     int jmin, jmax, kmin, kmax;
 
-    h = CLAMPIS((float)i, start0, end0);
+    h = CLAMPIS(float(i), start0, end0);
 
     shift1 = start1 + (h - start0) * inc1;
     shift2 = start2 + (h - start0) * inc2;
@@ -565,7 +565,7 @@ void SIM_hair_volume_add_segment(HairGrid *grid,
     }
 
     vert0 = grid->verts + i * stride0;
-    loc0[axis0] = (float)i;
+    loc0[axis0] = float(i);
     loc0[axis1] = 0.0f;
     loc0[axis2] = 0.0f;
 
@@ -802,9 +802,9 @@ bool SIM_hair_volume_solve_divergence(HairGrid *grid,
           float col[3];
           float fac;
 
-          loc[0] = (float)(i - 1);
-          loc[1] = (float)(j - 1);
-          loc[2] = (float)(k - 1);
+          loc[0] = float(i - 1);
+          loc[1] = float(j - 1);
+          loc[2] = float(k - 1);
           grid_to_world(grid, wloc, loc);
 
           if (divergence > 0.0f) {
@@ -968,9 +968,9 @@ bool SIM_hair_volume_solve_divergence(HairGrid *grid,
             float col[3];
             float fac;
 
-            loc[0] = (float)(i - 1);
-            loc[1] = (float)(j - 1);
-            loc[2] = (float)(k - 1);
+            loc[0] = float(i - 1);
+            loc[1] = float(j - 1);
+            loc[2] = float(k - 1);
             grid_to_world(grid, wloc, loc);
 
             float pressure = p[u];
@@ -1078,7 +1078,7 @@ void SIM_hair_volume_vertex_grid_filter_box(HairVertexGrid *grid, int kernel_siz
   }
 
   tot = kernel_size * 2 + 1;
-  invD = 1.0f / (float)(tot * tot * tot);
+  invD = 1.0f / float(tot * tot * tot);
 
   /* clear values for convolution */
   for (i = 0; i < size; i++) {

@@ -1464,19 +1464,19 @@ void DirectDrawSurface::printInfo() const
   if (header.pf.fourcc != 0) {
     /* Display fourcc code even when DDPF_FOURCC flag not set. */
     printf("\tFourCC: '%c%c%c%c' (0x%.8X)\n",
-           (int)((header.pf.fourcc >> 0) & 0xFF),
-           (int)((header.pf.fourcc >> 8) & 0xFF),
-           (int)((header.pf.fourcc >> 16) & 0xFF),
-           (int)((header.pf.fourcc >> 24) & 0xFF),
+           int((header.pf.fourcc >> 0) & 0xFF),
+           int((header.pf.fourcc >> 8) & 0xFF),
+           int((header.pf.fourcc >> 16) & 0xFF),
+           int((header.pf.fourcc >> 24) & 0xFF),
            header.pf.fourcc);
   }
 
   if ((header.pf.flags & DDPF_FOURCC) && (header.pf.bitcount != 0)) {
     printf("\tSwizzle: '%c%c%c%c' (0x%.8X)\n",
-           (int)(header.pf.bitcount >> 0) & 0xFF,
-           (int)(header.pf.bitcount >> 8) & 0xFF,
-           (int)(header.pf.bitcount >> 16) & 0xFF,
-           (int)(header.pf.bitcount >> 24) & 0xFF,
+           int(header.pf.bitcount >> 0) & 0xFF,
+           int(header.pf.bitcount >> 8) & 0xFF,
+           int(header.pf.bitcount >> 16) & 0xFF,
+           int(header.pf.bitcount >> 24) & 0xFF,
            header.pf.bitcount);
   }
   else {

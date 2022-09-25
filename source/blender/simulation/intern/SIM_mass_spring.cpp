@@ -1029,8 +1029,8 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
         for (i = 0; i < size; i++) {
           float x[3], v[3], gvel[3], gvel_smooth[3], gdensity;
 
-          madd_v3_v3v3fl(x, offset, a, (float)i / (float)(size - 1));
-          madd_v3_v3fl(x, b, (float)j / (float)(size - 1));
+          madd_v3_v3v3fl(x, offset, a, float(i) / float(size - 1));
+          madd_v3_v3fl(x, b, float(j) / float(size - 1));
           zero_v3(v);
 
           SIM_hair_volume_grid_interpolate(grid, x, &gdensity, gvel, gvel_smooth, NULL, NULL);
@@ -1237,7 +1237,7 @@ static void cloth_record_result(ClothModifierData *clmd, ImplicitSolverResult *r
 
     sres->min_iterations = min_ii(sres->min_iterations, result->iterations);
     sres->max_iterations = max_ii(sres->max_iterations, result->iterations);
-    sres->avg_iterations += (float)result->iterations * dt;
+    sres->avg_iterations += float(result->iterations) * dt;
   }
   else {
     /* error only makes sense for successful iterations */
@@ -1247,7 +1247,7 @@ static void cloth_record_result(ClothModifierData *clmd, ImplicitSolverResult *r
     }
 
     sres->min_iterations = sres->max_iterations = result->iterations;
-    sres->avg_iterations += (float)result->iterations * dt;
+    sres->avg_iterations += float(result->iterations) * dt;
   }
 
   sres->status |= result->status;

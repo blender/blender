@@ -4278,7 +4278,7 @@ void CustomData_bmesh_interp(CustomData *data,
   float *default_weights = nullptr;
   if (weights == nullptr) {
     default_weights = (count > SOURCE_BUF_SIZE) ?
-                          (float *)MEM_mallocN(sizeof(*weights) * (size_t)count, __func__) :
+                          (float *)MEM_mallocN(sizeof(*weights) * size_t(count), __func__) :
                           default_weights_buf;
     copy_vn_fl(default_weights, count, 1.0f / count);
     weights = default_weights;
@@ -4341,7 +4341,7 @@ void CustomData_to_bmesh_block(const CustomData *source,
       void *dest_data = POINTER_OFFSET(*dest_block, offset);
 
       const LayerTypeInfo *typeInfo = layerType_getInfo(dest->layers[dest_i].type);
-      const size_t src_offset = (size_t)src_index * typeInfo->size;
+      const size_t src_offset = size_t(src_index) * typeInfo->size;
 
       if (typeInfo->copy) {
         typeInfo->copy(POINTER_OFFSET(src_data, src_offset), dest_data, 1);
@@ -4393,7 +4393,7 @@ void CustomData_from_bmesh_block(const CustomData *source,
       int offset = source->layers[src_i].offset;
       const void *src_data = POINTER_OFFSET(src_block, offset);
       void *dst_data = POINTER_OFFSET(dest->layers[dest_i].data,
-                                      (size_t)dest_index * typeInfo->size);
+                                      size_t(dest_index) * typeInfo->size);
 
       if (typeInfo->copy) {
         typeInfo->copy(src_data, dst_data, 1);
@@ -4998,13 +4998,13 @@ static bool check_bit_flag(const void *data, const size_t data_size, const uint6
 {
   switch (data_size) {
     case 1:
-      return ((*((uint8_t *)data) & ((uint8_t)flag)) != 0);
+      return ((*((uint8_t *)data) & uint8_t(flag)) != 0);
     case 2:
-      return ((*((uint16_t *)data) & ((uint16_t)flag)) != 0);
+      return ((*((uint16_t *)data) & uint16_t(flag)) != 0);
     case 4:
-      return ((*((uint32_t *)data) & ((uint32_t)flag)) != 0);
+      return ((*((uint32_t *)data) & uint32_t(flag)) != 0);
     case 8:
-      return ((*((uint64_t *)data) & ((uint64_t)flag)) != 0);
+      return ((*((uint64_t *)data) & uint64_t(flag)) != 0);
     default:
       // CLOG_ERROR(&LOG, "Unknown flags-container size (%zu)", datasize);
       return false;
@@ -5047,7 +5047,7 @@ static void customdata_data_transfer_interp_generic(const CustomDataTransferLaye
   else {
     const LayerTypeInfo *type_info = layerType_getInfo(data_type);
 
-    data_size = (size_t)type_info->size;
+    data_size = size_t(type_info->size);
     interp_cd = type_info->interp;
     copy_cd = type_info->copy;
   }
@@ -5200,7 +5200,7 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap,
     const LayerTypeInfo *type_info = layerType_getInfo(data_type);
 
     /* NOTE: we can use 'fake' CDLayers for crease :/. */
-    data_size = (size_t)type_info->size;
+    data_size = size_t(type_info->size);
     data_step = laymap->elem_size ? laymap->elem_size : data_size;
     data_offset = laymap->data_offset;
   }
@@ -5219,13 +5219,13 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap,
 
     if (tmp_data_src) {
       if (UNLIKELY(sources_num > tmp_buff_size)) {
-        tmp_buff_size = (size_t)sources_num;
+        tmp_buff_size = size_t(sources_num);
         tmp_data_src = (const void **)MEM_reallocN((void *)tmp_data_src,
                                                    sizeof(*tmp_data_src) * tmp_buff_size);
       }
 
       for (int j = 0; j < sources_num; j++) {
-        const size_t src_idx = (size_t)mapit->indices_src[j];
+        const size_t src_idx = size_t(mapit->indices_src[j]);
         tmp_data_src[j] = POINTER_OFFSET(data_src, (data_step * src_idx) + data_offset);
       }
     }

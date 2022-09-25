@@ -37,7 +37,7 @@ void GHOST_URL_decode(char *buf_dst, int buf_dst_size, const char *buf_src)
       case STATE_SEARCH: {
         if (buf_src[i] != '%') {
           strncat(buf_dst, &buf_src[i], 1);
-          assert((int)strlen(buf_dst) < buf_dst_size);
+          assert(int(strlen(buf_dst)) < buf_dst_size);
           break;
         }
 
@@ -71,7 +71,7 @@ void GHOST_URL_decode(char *buf_dst, int buf_dst_size, const char *buf_src)
         sscanf(temp_num_buf, "%x", &ascii_character);
 
         /* Ensure we aren't going to overflow. */
-        assert((int)strlen(buf_dst) < buf_dst_size);
+        assert(int(strlen(buf_dst)) < buf_dst_size);
 
         /* Concatenate this character onto the output. */
         strncat(buf_dst, (char *)&ascii_character, 1);

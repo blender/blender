@@ -233,9 +233,9 @@ bool BLO_memfile_write_file(struct MemFile *memfile, const char *filepath)
   for (chunk = static_cast<MemFileChunk *>(memfile->chunks.first); chunk;
        chunk = static_cast<MemFileChunk *>(chunk->next)) {
 #ifdef _WIN32
-    if ((size_t)write(file, chunk->buf, uint(chunk->size)) != chunk->size)
+    if (size_t(write(file, chunk->buf, uint(chunk->size))) != chunk->size)
 #else
-    if ((size_t)write(file, chunk->buf, chunk->size) != chunk->size)
+    if (size_t(write(file, chunk->buf, chunk->size)) != chunk->size)
 #endif
     {
       break;
@@ -269,19 +269,19 @@ static ssize_t undo_read(FileReader *reader, void *buffer, size_t size)
     return 0;
   }
 
-  if (seek != (size_t)undo->reader.offset) {
+  if (seek != size_t(undo->reader.offset)) {
     chunk = static_cast<MemFileChunk *>(undo->memfile->chunks.first);
     seek = 0;
 
     while (chunk) {
-      if (seek + chunk->size > (size_t)undo->reader.offset) {
+      if (seek + chunk->size > size_t(undo->reader.offset)) {
         break;
       }
       seek += chunk->size;
       chunk = static_cast<MemFileChunk *>(chunk->next);
     }
     offset = seek;
-    seek = (size_t)undo->reader.offset;
+    seek = size_t(undo->reader.offset);
   }
 
   if (chunk) {
@@ -323,7 +323,7 @@ static ssize_t undo_read(FileReader *reader, void *buffer, size_t size)
                                                                       chunk->is_identical_future;
     } while (totread < size);
 
-    return (ssize_t)totread;
+    return ssize_t(totread);
   }
 
   return 0;

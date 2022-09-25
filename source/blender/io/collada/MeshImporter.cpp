@@ -102,7 +102,7 @@ void WVDataWrapper::print()
       COLLADAFW::ArrayPrimitiveType<double> *values = mVData->getDoubleValues();
       if (values->getCount()) {
         for (int i = 0; i < values->getCount(); i += 2) {
-          fprintf(stderr, "%.1f, %.1f\n", (float)(*values)[i], (float)(*values)[i + 1]);
+          fprintf(stderr, "%.1f, %.1f\n", float((*values)[i]), float((*values)[i + 1]));
         }
       }
     } break;
@@ -133,8 +133,8 @@ void UVDataWrapper::getUV(int uv_index, float *uv)
       if (values->empty()) {
         return;
       }
-      uv[0] = (float)(*values)[uv_index * stride];
-      uv[1] = (float)(*values)[uv_index * stride + 1];
+      uv[0] = float((*values)[uv_index * stride]);
+      uv[1] = float((*values)[uv_index * stride + 1]);
 
     } break;
     case COLLADAFW::MeshVertexData::DATA_TYPE_UNKNOWN:
@@ -832,10 +832,10 @@ void MeshImporter::get_vector(float v[3], COLLADAFW::MeshVertexData &arr, int i,
         return;
       }
 
-      v[0] = (float)(*values)[i++];
-      v[1] = (float)(*values)[i++];
+      v[0] = float((*values)[i++]);
+      v[1] = float((*values)[i++]);
       if (stride >= 3) {
-        v[2] = (float)(*values)[i];
+        v[2] = float((*values)[i]);
       }
       else {
         v[2] = 0.0f;

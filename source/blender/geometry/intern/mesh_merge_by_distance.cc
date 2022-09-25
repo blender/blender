@@ -1280,10 +1280,10 @@ static void customdata_weld(
       else if (CustomData_layer_has_math(dest, dest_i)) {
         const int size = CustomData_sizeof(type);
         void *dst_data = dest->layers[dest_i].data;
-        void *v_dst = POINTER_OFFSET(dst_data, (size_t)dest_index * size);
+        void *v_dst = POINTER_OFFSET(dst_data, size_t(dest_index) * size);
         for (j = 0; j < count; j++) {
           CustomData_data_add(
-              type, v_dst, POINTER_OFFSET(src_data, (size_t)src_indices[j] * size));
+              type, v_dst, POINTER_OFFSET(src_data, size_t(src_indices[j]) * size));
         }
       }
       else {
@@ -1326,7 +1326,7 @@ static void customdata_weld(
     else if (CustomData_layer_has_math(dest, dest_i)) {
       const int size = CustomData_sizeof(type);
       void *dst_data = layer_dst->data;
-      void *v_dst = POINTER_OFFSET(dst_data, (size_t)dest_index * size);
+      void *v_dst = POINTER_OFFSET(dst_data, size_t(dest_index) * size);
       CustomData_data_multiply(type, v_dst, fac);
     }
   }
@@ -1630,7 +1630,7 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
     const float dist_sq = len_squared_v3(edgedir);
     if (dist_sq <= merge_dist_sq) {
       float influence = (v2_cluster->merged_verts + 1) /
-                        (float)(v1_cluster->merged_verts + v2_cluster->merged_verts + 2);
+                        float(v1_cluster->merged_verts + v2_cluster->merged_verts + 2);
       madd_v3_v3fl(v1_cluster->co, edgedir, influence);
 
       v1_cluster->merged_verts += v2_cluster->merged_verts + 1;

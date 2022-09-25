@@ -1256,7 +1256,7 @@ static bool write_file_handle(Main *mainvar,
    *
    * Note that we *borrow* the pointer to 'DNAstr',
    * so writing each time uses the same address and doesn't cause unnecessary undo overhead. */
-  writedata(wd, DNA1, (size_t)wd->sdna->data_len, wd->sdna->data);
+  writedata(wd, DNA1, size_t(wd->sdna->data_len), wd->sdna->data);
 
   /* end of file */
   memset(&bhead, 0, sizeof(BHead));
@@ -1575,32 +1575,32 @@ int BLO_get_struct_id_by_name(BlendWriter *writer, const char *struct_name)
 
 void BLO_write_int32_array(BlendWriter *writer, uint num, const int32_t *data_ptr)
 {
-  BLO_write_raw(writer, sizeof(int32_t) * (size_t)num, data_ptr);
+  BLO_write_raw(writer, sizeof(int32_t) * size_t(num), data_ptr);
 }
 
 void BLO_write_uint32_array(BlendWriter *writer, uint num, const uint32_t *data_ptr)
 {
-  BLO_write_raw(writer, sizeof(uint32_t) * (size_t)num, data_ptr);
+  BLO_write_raw(writer, sizeof(uint32_t) * size_t(num), data_ptr);
 }
 
 void BLO_write_float_array(BlendWriter *writer, uint num, const float *data_ptr)
 {
-  BLO_write_raw(writer, sizeof(float) * (size_t)num, data_ptr);
+  BLO_write_raw(writer, sizeof(float) * size_t(num), data_ptr);
 }
 
 void BLO_write_double_array(BlendWriter *writer, uint num, const double *data_ptr)
 {
-  BLO_write_raw(writer, sizeof(double) * (size_t)num, data_ptr);
+  BLO_write_raw(writer, sizeof(double) * size_t(num), data_ptr);
 }
 
 void BLO_write_pointer_array(BlendWriter *writer, uint num, const void *data_ptr)
 {
-  BLO_write_raw(writer, sizeof(void *) * (size_t)num, data_ptr);
+  BLO_write_raw(writer, sizeof(void *) * size_t(num), data_ptr);
 }
 
 void BLO_write_float3_array(BlendWriter *writer, uint num, const float *data_ptr)
 {
-  BLO_write_raw(writer, sizeof(float[3]) * (size_t)num, data_ptr);
+  BLO_write_raw(writer, sizeof(float[3]) * size_t(num), data_ptr);
 }
 
 void BLO_write_string(BlendWriter *writer, const char *data_ptr)

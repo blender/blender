@@ -2008,8 +2008,8 @@ static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int in
 
   ret = MEM_cnew<FileDirEntry>(__func__);
 
-  ret->size = (uint64_t)entry->st.st_size;
-  ret->time = (int64_t)entry->st.st_mtime;
+  ret->size = uint64_t(entry->st.st_size);
+  ret->time = int64_t(entry->st.st_mtime);
 
   ret->relpath = BLI_strdup(entry->relpath);
   if (entry->free_name) {

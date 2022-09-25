@@ -341,7 +341,7 @@ void printLastError(void)
                     (LPTSTR)&s,
                     0,
                     NULL)) {
-    printf("\nLastError: (%d) %s\n", (int)err, s);
+    printf("\nLastError: (%d) %s\n", int(err), s);
     LocalFree(s);
   }
 }
