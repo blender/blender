@@ -658,7 +658,7 @@ static bool node_ima_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent 
 {
   if (drag->type == WM_DRAG_PATH) {
     /* rule might not work? */
-    return (ELEM(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE));
+    return ELEM(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE);
   }
   return WM_drag_is_ID_type(drag, ID_IM);
 }

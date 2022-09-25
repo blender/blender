@@ -685,7 +685,7 @@ const char *node_cmp_rlayers_sock_to_pass(int sock_index)
   }
   const char *name = cmp_node_rlayers_out[sock_index].name;
   /* Exception for alpha, which is derived from Combined. */
-  return (STREQ(name, "Alpha")) ? RE_PASSNAME_COMBINED : name;
+  return STREQ(name, "Alpha") ? RE_PASSNAME_COMBINED : name;
 }
 
 namespace blender::nodes::node_composite_render_layer_cc {

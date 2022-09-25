@@ -109,7 +109,7 @@ struct GPUSource {
       }
       if ((source.find("drw_debug_") != StringRef::not_found) &&
           /* Avoid these two files where it makes no sense to add the dependency. */
-          (!ELEM(filename, "common_debug_draw_lib.glsl", "draw_debug_draw_display_vert.glsl"))) {
+          !ELEM(filename, "common_debug_draw_lib.glsl", "draw_debug_draw_display_vert.glsl")) {
         builtins |= shader::BuiltinBits::USE_DEBUG_DRAW;
       }
       check_no_quotes();
@@ -140,7 +140,7 @@ struct GPUSource {
         if constexpr (check_whole_word) {
           /* Fix false positive if something has "enum" as suffix. */
           char previous_char = input[offset - 1];
-          if (!(ELEM(previous_char, '\n', '\t', ' ', ':', '(', ','))) {
+          if (!ELEM(previous_char, '\n', '\t', ' ', ':', '(', ',')) {
             offset += (reversed) ? -1 : 1;
             continue;
           }

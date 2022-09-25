@@ -34,7 +34,7 @@ static int extrapolate9(float *E0,
   do { \
     *DST = *SRC; \
   } while (0)
-  if ((!PEQ(B, H)) && (!PEQ(D, F))) {
+  if (!PEQ(B, H) && !PEQ(D, F)) {
     if (PEQ(D, B)) {
       PCPY(E0, D);
     }

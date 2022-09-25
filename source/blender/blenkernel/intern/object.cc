@@ -1402,15 +1402,15 @@ ModifierData *BKE_object_active_modifier(const Object *ob)
 
 bool BKE_object_supports_modifiers(const Object *ob)
 {
-  return (ELEM(ob->type,
-               OB_MESH,
-               OB_CURVES,
-               OB_CURVES_LEGACY,
-               OB_SURF,
-               OB_FONT,
-               OB_LATTICE,
-               OB_POINTCLOUD,
-               OB_VOLUME));
+  return ELEM(ob->type,
+              OB_MESH,
+              OB_CURVES,
+              OB_CURVES_LEGACY,
+              OB_SURF,
+              OB_FONT,
+              OB_LATTICE,
+              OB_POINTCLOUD,
+              OB_VOLUME);
 }
 
 bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
@@ -5450,7 +5450,7 @@ bool BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
     }
 
     /* Skip sub-frame if object is parented to vertex of a dynamic paint canvas. */
-    if (no_update && (ELEM(ob->partype, PARVERT1, PARVERT3))) {
+    if (no_update && ELEM(ob->partype, PARVERT1, PARVERT3)) {
       return false;
     }
 

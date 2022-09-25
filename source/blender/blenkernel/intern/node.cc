@@ -1417,8 +1417,8 @@ void nodeUnregisterType(bNodeType *nt)
 bool nodeTypeUndefined(const bNode *node)
 {
   return (node->typeinfo == &NodeTypeUndefined) ||
-         ((ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) && node->id &&
-          ID_IS_LINKED(node->id) && (node->id->tag & LIB_TAG_MISSING));
+         (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id && ID_IS_LINKED(node->id) &&
+          (node->id->tag & LIB_TAG_MISSING));
 }
 
 GHashIterator *nodeTypeGetIterator()

@@ -435,7 +435,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
 
     /* Only buttons that can be edited as text. */
     const bool use_activate_init = ((prop == prop_activate_init) &&
-                                    (ELEM(type, PROP_STRING, PROP_INT, PROP_FLOAT)));
+                                    ELEM(type, PROP_STRING, PROP_INT, PROP_FLOAT));
 
     if (use_activate_init) {
       uiLayoutSetActivateInit(col, true);

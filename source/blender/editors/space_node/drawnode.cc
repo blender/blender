@@ -938,7 +938,7 @@ static void node_texture_buts_proc(uiLayout *layout, bContext *UNUSED(C), Pointe
       uiItemR(
           row, &tex_ptr, "noise_basis_2", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
       row = uiLayoutRow(col, false);
-      uiLayoutSetActive(row, !(ELEM(tex->stype, TEX_BAND, TEX_RING)));
+      uiLayoutSetActive(row, !ELEM(tex->stype, TEX_BAND, TEX_RING));
       uiItemR(row, &tex_ptr, "noise_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
       break;
 

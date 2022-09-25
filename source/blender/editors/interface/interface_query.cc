@@ -84,7 +84,7 @@ bool ui_but_is_interactive_ex(const uiBut *but, const bool labeledit, const bool
     return false;
   }
   if ((but->type == UI_BTYPE_TEXT) &&
-      (ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS)) && !labeledit) {
+      ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS) && !labeledit) {
     return false;
   }
   if ((but->type == UI_BTYPE_LISTROW) && labeledit) {
@@ -103,7 +103,7 @@ bool UI_but_is_utf8(const uiBut *but)
 {
   if (but->rnaprop) {
     const int subtype = RNA_property_subtype(but->rnaprop);
-    return !(ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME, PROP_BYTESTRING));
+    return !ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME, PROP_BYTESTRING);
   }
   return !(but->flag & UI_BUT_NO_UTF8);
 }

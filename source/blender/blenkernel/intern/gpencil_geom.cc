@@ -2629,7 +2629,7 @@ static int gpencil_material_find_index_by_name(Object *ob, const char *name)
 {
   for (int i = 0; i < ob->totcol; i++) {
     Material *ma = BKE_object_material_get(ob, i + 1);
-    if ((ma != nullptr) && (ma->gp_style != nullptr) && (STREQ(ma->id.name + 2, name))) {
+    if ((ma != nullptr) && (ma->gp_style != nullptr) && STREQ(ma->id.name + 2, name)) {
       return i;
     }
   }

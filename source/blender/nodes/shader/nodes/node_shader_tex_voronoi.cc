@@ -173,7 +173,7 @@ static void node_shader_update_tex_voronoi(bNodeTree *ntree, bNode *node)
                             outWSock,
                             storage.feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
                                 storage.feature != SHD_VORONOI_N_SPHERE_RADIUS &&
-                                (ELEM(storage.dimensions, 1, 4)));
+                                ELEM(storage.dimensions, 1, 4));
   nodeSetSocketAvailability(ntree, outRadiusSock, storage.feature == SHD_VORONOI_N_SPHERE_RADIUS);
 }
 

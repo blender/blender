@@ -1289,7 +1289,7 @@ void ViewMapBuilder::computeCusps(ViewMap *ioViewMap)
     if (_pRenderMonitor && _pRenderMonitor->testBreak()) {
       break;
     }
-    if ((!((*ve)->getNature() & Nature::SILHOUETTE)) || (!((*ve)->fedgeA()->isSmooth()))) {
+    if (!((*ve)->getNature() & Nature::SILHOUETTE) || !((*ve)->fedgeA()->isSmooth())) {
       continue;
     }
     FEdge *fe = (*ve)->fedgeA();
@@ -2313,8 +2313,8 @@ struct silhouette_binary_rule : public binary_rule<segment, segment> {
     FEdge *f1 = s1.edge();
     FEdge *f2 = s2.edge();
 
-    if ((!(((f1)->getNature() & Nature::SILHOUETTE) || ((f1)->getNature() & Nature::BORDER))) &&
-        (!(((f2)->getNature() & Nature::SILHOUETTE) || ((f2)->getNature() & Nature::BORDER)))) {
+    if (!(((f1)->getNature() & Nature::SILHOUETTE) || ((f1)->getNature() & Nature::BORDER)) &&
+        !(((f2)->getNature() & Nature::SILHOUETTE) || ((f2)->getNature() & Nature::BORDER))) {
       return false;
     }
 

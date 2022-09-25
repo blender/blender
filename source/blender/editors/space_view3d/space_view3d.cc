@@ -632,7 +632,7 @@ static bool view3d_ima_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
   }
   if (drag->type == WM_DRAG_PATH) {
     /* rule might not work? */
-    return (ELEM(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE));
+    return ELEM(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE);
   }
 
   return WM_drag_is_ID_type(drag, ID_IM);

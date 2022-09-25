@@ -126,8 +126,8 @@
 /* ********* my write, buffered writing with minimum size chunks ************ */
 
 /* Use optimal allocation since blocks of this size are kept in memory for undo. */
-#define MEM_BUFFER_SIZE (MEM_SIZE_OPTIMAL(1 << 17)) /* 128kb */
-#define MEM_CHUNK_SIZE (MEM_SIZE_OPTIMAL(1 << 15))  /* ~32kb */
+#define MEM_BUFFER_SIZE MEM_SIZE_OPTIMAL(1 << 17) /* 128kb */
+#define MEM_CHUNK_SIZE MEM_SIZE_OPTIMAL(1 << 15)  /* ~32kb */
 
 #define ZSTD_BUFFER_SIZE (1 << 21) /* 2mb */
 #define ZSTD_CHUNK_SIZE (1 << 20)  /* 1mb */

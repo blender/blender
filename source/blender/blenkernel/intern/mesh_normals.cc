@@ -835,7 +835,7 @@ struct LoopSplitTaskDataCommon {
 #define INDEX_UNSET INT_MIN
 #define INDEX_INVALID -1
 /* See comment about edge_to_loops below. */
-#define IS_EDGE_SHARP(_e2l) (ELEM((_e2l)[1], INDEX_UNSET, INDEX_INVALID))
+#define IS_EDGE_SHARP(_e2l) ELEM((_e2l)[1], INDEX_UNSET, INDEX_INVALID)
 
 static void mesh_edges_sharp_tag(LoopSplitTaskDataCommon *data,
                                  const bool check_angle,

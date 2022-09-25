@@ -422,9 +422,9 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
 
         const UVSample &sample = uv_primvars[layer_idx];
 
-        if (!(ELEM(sample.interpolation,
-                   pxr::UsdGeomTokens->faceVarying,
-                   pxr::UsdGeomTokens->vertex))) {
+        if (!ELEM(sample.interpolation,
+                  pxr::UsdGeomTokens->faceVarying,
+                  pxr::UsdGeomTokens->vertex)) {
           std::cerr << "WARNING: unexpected interpolation type " << sample.interpolation
                     << " for uv " << layer->name << std::endl;
           continue;
@@ -865,7 +865,7 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
 
         pxr::TfToken interp = p.GetInterpolation();
 
-        if (!(ELEM(interp, pxr::UsdGeomTokens->faceVarying, pxr::UsdGeomTokens->vertex))) {
+        if (!ELEM(interp, pxr::UsdGeomTokens->faceVarying, pxr::UsdGeomTokens->vertex)) {
           continue;
         }
 

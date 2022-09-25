@@ -593,14 +593,14 @@ int Stroke::Resample(int iNPoints)
   for (vector<StrokeSegment>::iterator s = strokeSegments.begin(), send = strokeSegments.end();
        s != send;
        ++s) {
-    newVertices.push_back(&(*(s->_begin)));
+    newVertices.push_back(&*(s->_begin));
     if (s->_sampling < _sampling) {
       _sampling = s->_sampling;
     }
 
     t = s->_sampling / s->_length;
     for (int i = 0; i < s->_n; ++i) {
-      newVertex = new StrokeVertex(&(*(s->_begin)), &(*(s->_end)), t);
+      newVertex = new StrokeVertex(&*(s->_begin), &*(s->_end), t);
       newVertices.push_back(newVertex);
       t += s->_sampling / s->_length;
     }

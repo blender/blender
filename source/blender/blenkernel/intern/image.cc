@@ -2986,7 +2986,7 @@ static void image_free_tile(Image *ima, ImageTile *tile)
   for (int i = 0; i < TEXTARGET_COUNT; i++) {
     /* Only two textures depends on all tiles, so if this is a secondary tile we can keep the other
      * two. */
-    if (tile != ima->tiles.first && !(ELEM(i, TEXTARGET_2D_ARRAY, TEXTARGET_TILE_MAPPING))) {
+    if (tile != ima->tiles.first && !ELEM(i, TEXTARGET_2D_ARRAY, TEXTARGET_TILE_MAPPING)) {
       continue;
     }
 

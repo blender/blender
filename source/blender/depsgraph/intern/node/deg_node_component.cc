@@ -54,7 +54,7 @@ string ComponentNode::OperationIDKey::identifier() const
 
 bool ComponentNode::OperationIDKey::operator==(const OperationIDKey &other) const
 {
-  return (opcode == other.opcode) && (STREQ(name, other.name)) && (name_tag == other.name_tag);
+  return (opcode == other.opcode) && STREQ(name, other.name) && (name_tag == other.name_tag);
 }
 
 uint64_t ComponentNode::OperationIDKey::hash() const

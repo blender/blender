@@ -585,7 +585,7 @@ wmDragAsset *WM_drag_get_asset_data(const wmDrag *drag, int idcode)
   }
 
   wmDragAsset *asset_drag = static_cast<wmDragAsset *>(drag->poin);
-  return (ELEM(idcode, 0, asset_drag->id_type)) ? asset_drag : nullptr;
+  return ELEM(idcode, 0, asset_drag->id_type) ? asset_drag : nullptr;
 }
 
 AssetMetaData *WM_drag_get_asset_meta_data(const wmDrag *drag, int idcode)
