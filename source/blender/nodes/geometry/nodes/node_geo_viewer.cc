@@ -61,7 +61,7 @@ static eNodeSocketDatatype custom_data_type_to_socket_type(const eCustomDataType
 static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryViewer &storage = node_storage(*node);
-  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
+  const eCustomDataType data_type = eCustomDataType(storage.data_type);
   const eNodeSocketDatatype socket_type = custom_data_type_to_socket_type(data_type);
 
   LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {

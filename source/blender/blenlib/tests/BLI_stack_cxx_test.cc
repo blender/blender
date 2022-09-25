@@ -118,19 +118,19 @@ TEST(stack, PushPopMany)
   Stack<int> stack;
   for (int i = 0; i < 1000; i++) {
     stack.push(i);
-    EXPECT_EQ(stack.size(), static_cast<uint>(i + 1));
+    EXPECT_EQ(stack.size(), uint(i + 1));
   }
   for (int i = 999; i > 50; i--) {
     EXPECT_EQ(stack.pop(), i);
-    EXPECT_EQ(stack.size(), static_cast<uint>(i));
+    EXPECT_EQ(stack.size(), uint(i));
   }
   for (int i = 51; i < 5000; i++) {
     stack.push(i);
-    EXPECT_EQ(stack.size(), static_cast<uint>(i + 1));
+    EXPECT_EQ(stack.size(), uint(i + 1));
   }
   for (int i = 4999; i >= 0; i--) {
     EXPECT_EQ(stack.pop(), i);
-    EXPECT_EQ(stack.size(), static_cast<uint>(i));
+    EXPECT_EQ(stack.size(), uint(i));
   }
 }
 

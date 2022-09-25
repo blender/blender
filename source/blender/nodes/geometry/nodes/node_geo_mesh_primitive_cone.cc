@@ -754,7 +754,7 @@ static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *vertices_socket = (bNodeSocket *)node->inputs.first;
+  bNodeSocket *vertices_socket = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *rings_socket = vertices_socket->next;
   bNodeSocket *fill_subdiv_socket = rings_socket->next;
 

@@ -168,7 +168,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   grid->transform().postTranslate(
       openvdb::math::Vec3<float>(bounds_min.x, bounds_min.y, bounds_min.z));
 
-  Volume *volume = (Volume *)BKE_id_new_nomain(ID_VO, nullptr);
+  Volume *volume = reinterpret_cast<Volume *>(BKE_id_new_nomain(ID_VO, nullptr));
   BKE_volume_init_grids(volume);
 
   BKE_volume_grid_add_vdb(*volume, "density", std::move(grid));

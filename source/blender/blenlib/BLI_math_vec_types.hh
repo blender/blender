@@ -74,28 +74,28 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
   explicit vec_base(uint value)
   {
     for (int i = 0; i < Size; i++) {
-      (*this)[i] = static_cast<T>(value);
+      (*this)[i] = T(value);
     }
   }
 
   explicit vec_base(int value)
   {
     for (int i = 0; i < Size; i++) {
-      (*this)[i] = static_cast<T>(value);
+      (*this)[i] = T(value);
     }
   }
 
   explicit vec_base(float value)
   {
     for (int i = 0; i < Size; i++) {
-      (*this)[i] = static_cast<T>(value);
+      (*this)[i] = T(value);
     }
   }
 
   explicit vec_base(double value)
   {
     for (int i = 0; i < Size; i++) {
-      (*this)[i] = static_cast<T>(value);
+      (*this)[i] = T(value);
     }
   }
 
@@ -126,53 +126,42 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
   /** Mixed scalar-vector constructors. */
 
   template<typename U, BLI_ENABLE_IF_VEC(Size, == 3)>
-  constexpr vec_base(const vec_base<U, 2> &xy, T z)
-      : vec_base(static_cast<T>(xy.x), static_cast<T>(xy.y), z)
+  constexpr vec_base(const vec_base<U, 2> &xy, T z) : vec_base(T(xy.x), T(xy.y), z)
   {
   }
 
   template<typename U, BLI_ENABLE_IF_VEC(Size, == 3)>
-  constexpr vec_base(T x, const vec_base<U, 2> &yz)
-      : vec_base(x, static_cast<T>(yz.x), static_cast<T>(yz.y))
+  constexpr vec_base(T x, const vec_base<U, 2> &yz) : vec_base(x, T(yz.x), T(yz.y))
   {
   }
 
   template<typename U, BLI_ENABLE_IF_VEC(Size, == 4)>
-  vec_base(vec_base<U, 3> xyz, T w)
-      : vec_base(
-            static_cast<T>(xyz.x), static_cast<T>(xyz.y), static_cast<T>(xyz.z), static_cast<T>(w))
+  vec_base(vec_base<U, 3> xyz, T w) : vec_base(T(xyz.x), T(xyz.y), T(xyz.z), T(w))
   {
   }
 
   template<typename U, BLI_ENABLE_IF_VEC(Size, == 4)>
-  vec_base(T x, vec_base<U, 3> yzw)
-      : vec_base(
-            static_cast<T>(x), static_cast<T>(yzw.x), static_cast<T>(yzw.y), static_cast<T>(yzw.z))
+  vec_base(T x, vec_base<U, 3> yzw) : vec_base(T(x), T(yzw.x), T(yzw.y), T(yzw.z))
   {
   }
 
   template<typename U, typename V, BLI_ENABLE_IF_VEC(Size, == 4)>
-  vec_base(vec_base<U, 2> xy, vec_base<V, 2> zw)
-      : vec_base(
-            static_cast<T>(xy.x), static_cast<T>(xy.y), static_cast<T>(zw.x), static_cast<T>(zw.y))
+  vec_base(vec_base<U, 2> xy, vec_base<V, 2> zw) : vec_base(T(xy.x), T(xy.y), T(zw.x), T(zw.y))
   {
   }
 
   template<typename U, BLI_ENABLE_IF_VEC(Size, == 4)>
-  vec_base(vec_base<U, 2> xy, T z, T w)
-      : vec_base(static_cast<T>(xy.x), static_cast<T>(xy.y), static_cast<T>(z), static_cast<T>(w))
+  vec_base(vec_base<U, 2> xy, T z, T w) : vec_base(T(xy.x), T(xy.y), T(z), T(w))
   {
   }
 
   template<typename U, BLI_ENABLE_IF_VEC(Size, == 4)>
-  vec_base(T x, vec_base<U, 2> yz, T w)
-      : vec_base(static_cast<T>(x), static_cast<T>(yz.x), static_cast<T>(yz.y), static_cast<T>(w))
+  vec_base(T x, vec_base<U, 2> yz, T w) : vec_base(T(x), T(yz.x), T(yz.y), T(w))
   {
   }
 
   template<typename U, BLI_ENABLE_IF_VEC(Size, == 4)>
-  vec_base(T x, T y, vec_base<U, 2> zw)
-      : vec_base(static_cast<T>(x), static_cast<T>(y), static_cast<T>(zw.x), static_cast<T>(zw.y))
+  vec_base(T x, T y, vec_base<U, 2> zw) : vec_base(T(x), T(y), T(zw.x), T(zw.y))
   {
   }
 
@@ -182,7 +171,7 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
   explicit vec_base(const vec_base<U, OtherSize> &other)
   {
     for (int i = 0; i < Size; i++) {
-      (*this)[i] = static_cast<T>(other[i]);
+      (*this)[i] = T(other[i]);
     }
   }
 
@@ -214,7 +203,7 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
   template<typename U> explicit vec_base(const vec_base<U, Size> &vec)
   {
     for (int i = 0; i < Size; i++) {
-      (*this)[i] = static_cast<T>(vec[i]);
+      (*this)[i] = T(vec[i]);
     }
   }
 

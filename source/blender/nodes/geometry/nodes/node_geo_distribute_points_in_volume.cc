@@ -65,10 +65,10 @@ static void node_distribute_points_in_volume_init(bNodeTree *UNUSED(ntree), bNod
 static void node_distribute_points_in_volume_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryDistributePointsInVolume &storage = node_storage(*node);
-  GeometryNodeDistributePointsInVolumeMode mode =
-      static_cast<GeometryNodeDistributePointsInVolumeMode>(storage.mode);
+  GeometryNodeDistributePointsInVolumeMode mode = GeometryNodeDistributePointsInVolumeMode(
+      storage.mode);
 
-  bNodeSocket *sock_density = ((bNodeSocket *)(node->inputs.first))->next;
+  bNodeSocket *sock_density = static_cast<bNodeSocket *>(node->inputs.first)->next;
   bNodeSocket *sock_seed = sock_density->next;
   bNodeSocket *sock_spacing = sock_seed->next;
   bNodeSocket *sock_threshold = sock_spacing->next;
@@ -185,8 +185,8 @@ static void geo_node_distribute_points_in_volume_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Volume");
 
   const NodeGeometryDistributePointsInVolume &storage = node_storage(params.node());
-  const GeometryNodeDistributePointsInVolumeMode mode =
-      static_cast<GeometryNodeDistributePointsInVolumeMode>(storage.mode);
+  const GeometryNodeDistributePointsInVolumeMode mode = GeometryNodeDistributePointsInVolumeMode(
+      storage.mode);
 
   float density;
   int seed;

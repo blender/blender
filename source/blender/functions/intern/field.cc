@@ -744,7 +744,7 @@ int FieldEvaluator::add(GField field, GVArray *varray_ptr)
   dst_varrays_.append(nullptr);
   output_pointer_infos_.append(OutputPointerInfo{
       varray_ptr, [](void *dst, const GVArray &varray, ResourceScope &UNUSED(scope)) {
-        *(GVArray *)dst = varray;
+        *static_cast<GVArray *>(dst) = varray;
       }});
   return field_index;
 }

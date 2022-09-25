@@ -75,12 +75,12 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const GeometryNodeCurvePrimitiveCircleMode mode = (GeometryNodeCurvePrimitiveCircleMode)
                                                         storage.mode;
 
-  bNodeSocket *start_socket = ((bNodeSocket *)node->inputs.first)->next;
+  bNodeSocket *start_socket = static_cast<bNodeSocket *>(node->inputs.first)->next;
   bNodeSocket *middle_socket = start_socket->next;
   bNodeSocket *end_socket = middle_socket->next;
   bNodeSocket *radius_socket = end_socket->next;
 
-  bNodeSocket *center_socket = ((bNodeSocket *)node->outputs.first)->next;
+  bNodeSocket *center_socket = static_cast<bNodeSocket *>(node->outputs.first)->next;
 
   nodeSetSocketAvailability(
       ntree, start_socket, mode == GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS);

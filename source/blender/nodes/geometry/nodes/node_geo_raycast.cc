@@ -70,9 +70,9 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryRaycast &storage = node_storage(*node);
-  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
+  const eCustomDataType data_type = eCustomDataType(storage.data_type);
 
-  bNodeSocket *socket_vector = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
+  bNodeSocket *socket_vector = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 1));
   bNodeSocket *socket_float = socket_vector->next;
   bNodeSocket *socket_color4f = socket_float->next;
   bNodeSocket *socket_boolean = socket_color4f->next;
@@ -84,7 +84,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, socket_boolean, data_type == CD_PROP_BOOL);
   nodeSetSocketAvailability(ntree, socket_int32, data_type == CD_PROP_INT32);
 
-  bNodeSocket *out_socket_vector = (bNodeSocket *)BLI_findlink(&node->outputs, 4);
+  bNodeSocket *out_socket_vector = static_cast<bNodeSocket *>(BLI_findlink(&node->outputs, 4));
   bNodeSocket *out_socket_float = out_socket_vector->next;
   bNodeSocket *out_socket_color4f = out_socket_float->next;
   bNodeSocket *out_socket_boolean = out_socket_color4f->next;
@@ -386,8 +386,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet target = params.extract_input<GeometrySet>("Target Geometry");
   const NodeGeometryRaycast &storage = node_storage(params.node());
-  const GeometryNodeRaycastMapMode mapping = (GeometryNodeRaycastMapMode)storage.mapping;
-  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
+  const GeometryNodeRaycastMapMode mapping = GeometryNodeRaycastMapMode(storage.mapping);
+  const eCustomDataType data_type = eCustomDataType(storage.data_type);
 
   if (target.is_empty()) {
     params.set_default_remaining_outputs();

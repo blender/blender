@@ -128,7 +128,7 @@ template<typename Func> inline void ResourceScope::add_destruct_call(Func func)
 {
   void *buffer = allocator_.allocate(sizeof(Func), alignof(Func));
   new (buffer) Func(std::move(func));
-  this->add(buffer, [](void *data) { (*(Func *)data)(); });
+  this->add(buffer, [](void *data) { (*static_cast<Func *>(data))(); });
 }
 
 /**

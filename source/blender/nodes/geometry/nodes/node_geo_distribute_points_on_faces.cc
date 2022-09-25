@@ -69,8 +69,8 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 
 static void node_point_distribute_points_on_faces_update(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *sock_distance_min = (bNodeSocket *)BLI_findlink(&node->inputs, 2);
-  bNodeSocket *sock_density_max = (bNodeSocket *)sock_distance_min->next;
+  bNodeSocket *sock_distance_min = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 2));
+  bNodeSocket *sock_density_max = static_cast<bNodeSocket *>(sock_distance_min->next);
   bNodeSocket *sock_density = sock_density_max->next;
   bNodeSocket *sock_density_factor = sock_density->next;
   nodeSetSocketAvailability(ntree,
@@ -511,8 +511,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
 
-  const GeometryNodeDistributePointsOnFacesMode method =
-      static_cast<GeometryNodeDistributePointsOnFacesMode>(params.node().custom1);
+  const GeometryNodeDistributePointsOnFacesMode method = GeometryNodeDistributePointsOnFacesMode(
+      params.node().custom1);
 
   const int seed = params.get_input<int>("Seed") * 5383843;
   const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");

@@ -292,7 +292,7 @@ class ImageFieldsFunction : public fn::MultiFunction {
         1, "Color");
     MutableSpan<float> r_alpha = params.uninitialized_single_output_if_required<float>(2, "Alpha");
 
-    MutableSpan<float4> color_data{(float4 *)r_color.data(), r_color.size()};
+    MutableSpan<float4> color_data{reinterpret_cast<float4 *>(r_color.data()), r_color.size()};
 
     /* Sample image texture. */
     switch (interpolation_) {

@@ -48,7 +48,7 @@ static void geometry_node_tree_get_from_context(const bContext *C,
   }
 
   if (md->type == eModifierType_Nodes) {
-    NodesModifierData *nmd = (NodesModifierData *)md;
+    const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
     if (nmd->node_group != nullptr) {
       *r_from = &ob->id;
       *r_id = &ob->id;

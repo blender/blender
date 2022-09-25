@@ -42,7 +42,7 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  const eCustomDataType data_type = static_cast<eCustomDataType>(node->custom2);
+  const eCustomDataType data_type = eCustomDataType(node->custom2);
 
   bNodeSocket *sock_in_float = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *sock_in_int = sock_in_float->next;
@@ -135,8 +135,8 @@ static StringRefNull identifier_suffix(eCustomDataType data_type)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const bNode &node = params.node();
-  const eAttrDomain domain = static_cast<eAttrDomain>(node.custom1);
-  const eCustomDataType data_type = static_cast<eCustomDataType>(node.custom2);
+  const eAttrDomain domain = eAttrDomain(node.custom1);
+  const eCustomDataType data_type = eCustomDataType(node.custom2);
 
   attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
     using T = decltype(dummy);

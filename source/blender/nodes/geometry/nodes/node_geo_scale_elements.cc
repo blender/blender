@@ -56,8 +56,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *center_socket = scale_float_socket->next;
   bNodeSocket *axis_socket = center_socket->next;
 
-  const GeometryNodeScaleElementsMode mode = static_cast<GeometryNodeScaleElementsMode>(
-      node->custom2);
+  const GeometryNodeScaleElementsMode mode = GeometryNodeScaleElementsMode(node->custom2);
   const bool use_single_axis = mode == GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS;
 
   nodeSetSocketAvailability(ntree, axis_socket, use_single_axis);
@@ -405,9 +404,8 @@ static void scale_edges_on_axis(Mesh &mesh, const AxisScaleFields &fields)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const bNode &node = params.node();
-  const eAttrDomain domain = static_cast<eAttrDomain>(node.custom1);
-  const GeometryNodeScaleElementsMode scale_mode = static_cast<GeometryNodeScaleElementsMode>(
-      node.custom2);
+  const eAttrDomain domain = eAttrDomain(node.custom1);
+  const GeometryNodeScaleElementsMode scale_mode = GeometryNodeScaleElementsMode(node.custom2);
 
   GeometrySet geometry = params.extract_input<GeometrySet>("Geometry");
 

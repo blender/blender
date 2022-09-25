@@ -87,13 +87,13 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeAccumulateField &storage = node_storage(*node);
-  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
+  const eCustomDataType data_type = eCustomDataType(storage.data_type);
 
-  bNodeSocket *sock_in_vector = (bNodeSocket *)node->inputs.first;
+  bNodeSocket *sock_in_vector = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *sock_in_float = sock_in_vector->next;
   bNodeSocket *sock_in_int = sock_in_float->next;
 
-  bNodeSocket *sock_out_vector = (bNodeSocket *)node->outputs.first;
+  bNodeSocket *sock_out_vector = static_cast<bNodeSocket *>(node->outputs.first);
   bNodeSocket *sock_out_float = sock_out_vector->next;
   bNodeSocket *sock_out_int = sock_out_float->next;
 
@@ -373,8 +373,8 @@ template<typename T> std::string identifier_suffix()
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeAccumulateField &storage = node_storage(params.node());
-  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
-  const eAttrDomain source_domain = static_cast<eAttrDomain>(storage.domain);
+  const eCustomDataType data_type = eCustomDataType(storage.data_type);
+  const eAttrDomain source_domain = eAttrDomain(storage.domain);
 
   Field<int> group_index_field = params.extract_input<Field<int>>("Group Index");
   attribute_math::convert_to_static_type(data_type, [&](auto dummy) {

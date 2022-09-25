@@ -211,8 +211,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<float3> position_field = params.extract_input<Field<float3>>("Source Position");
 
   auto proximity_fn = std::make_unique<ProximityFunction>(
-      std::move(geometry_set_target),
-      static_cast<GeometryNodeProximityTargetType>(storage.target_element));
+      std::move(geometry_set_target), GeometryNodeProximityTargetType(storage.target_element));
   auto proximity_op = std::make_shared<FieldOperation>(
       FieldOperation(std::move(proximity_fn), {std::move(position_field)}));
 

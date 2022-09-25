@@ -49,9 +49,9 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryStoreNamedAttribute &storage = node_storage(*node);
-  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
+  const eCustomDataType data_type = eCustomDataType(storage.data_type);
 
-  bNodeSocket *socket_geometry = (bNodeSocket *)node->inputs.first;
+  bNodeSocket *socket_geometry = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *socket_name = socket_geometry->next;
   bNodeSocket *socket_vector = socket_name->next;
   bNodeSocket *socket_float = socket_vector->next;
@@ -75,7 +75,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
   if (params.in_out() == SOCK_IN) {
     const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
-        static_cast<eNodeSocketDatatype>(params.other_socket().type));
+        eNodeSocketDatatype(params.other_socket().type));
     if (type && *type != CD_PROP_STRING) {
       /* The input and output sockets have the same name. */
       params.add_item(IFACE_("Value"), [type](LinkSearchOpParams &params) {
@@ -155,8 +155,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.used_named_attribute(name, NamedAttributeUsage::Write);
 
   const NodeGeometryStoreNamedAttribute &storage = node_storage(params.node());
-  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
-  const eAttrDomain domain = static_cast<eAttrDomain>(storage.domain);
+  const eCustomDataType data_type = eCustomDataType(storage.data_type);
+  const eAttrDomain domain = eAttrDomain(storage.domain);
 
   GField field;
   switch (data_type) {

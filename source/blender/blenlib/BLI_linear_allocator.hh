@@ -161,7 +161,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
     void *pointer_buffer = this->allocate(element_amount * sizeof(void *), alignof(void *));
     void *elements_buffer = this->allocate(element_amount * element_size, element_alignment);
 
-    MutableSpan<void *> pointers((void **)pointer_buffer, element_amount);
+    MutableSpan<void *> pointers(static_cast<void **>(pointer_buffer), element_amount);
     void *next_element_buffer = elements_buffer;
     for (int64_t i : IndexRange(element_amount)) {
       pointers[i] = next_element_buffer;

@@ -65,7 +65,7 @@ static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *count_socket = (bNodeSocket *)node->inputs.first;
+  bNodeSocket *count_socket = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *resolution_socket = count_socket->next;
   bNodeSocket *start_socket = resolution_socket->next;
   bNodeSocket *end_and_offset_socket = start_socket->next;
@@ -97,7 +97,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     return;
   }
   else if (params.node_tree().typeinfo->validate_link(
-               static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_FLOAT)) {
+               eNodeSocketDatatype(params.other_socket().type), SOCK_FLOAT)) {
     params.add_item(IFACE_("Count"), [](LinkSearchOpParams &params) {
       bNode &node = params.add_node("GeometryNodeMeshLine");
       node_storage(node).mode = GEO_NODE_MESH_LINE_MODE_OFFSET;

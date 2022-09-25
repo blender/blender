@@ -50,9 +50,9 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryAttributeCapture &storage = node_storage(*node);
-  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
+  const eCustomDataType data_type = eCustomDataType(storage.data_type);
 
-  bNodeSocket *socket_value_geometry = (bNodeSocket *)node->inputs.first;
+  bNodeSocket *socket_value_geometry = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *socket_value_vector = socket_value_geometry->next;
   bNodeSocket *socket_value_float = socket_value_vector->next;
   bNodeSocket *socket_value_color4f = socket_value_float->next;
@@ -65,7 +65,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, socket_value_boolean, data_type == CD_PROP_BOOL);
   nodeSetSocketAvailability(ntree, socket_value_int32, data_type == CD_PROP_INT32);
 
-  bNodeSocket *out_socket_value_geometry = (bNodeSocket *)node->outputs.first;
+  bNodeSocket *out_socket_value_geometry = static_cast<bNodeSocket *>(node->outputs.first);
   bNodeSocket *out_socket_value_vector = out_socket_value_geometry->next;
   bNodeSocket *out_socket_value_float = out_socket_value_vector->next;
   bNodeSocket *out_socket_value_color4f = out_socket_value_float->next;
@@ -165,8 +165,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   const NodeGeometryAttributeCapture &storage = node_storage(params.node());
-  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
-  const eAttrDomain domain = static_cast<eAttrDomain>(storage.domain);
+  const eCustomDataType data_type = eCustomDataType(storage.data_type);
+  const eAttrDomain domain = eAttrDomain(storage.domain);
 
   const std::string output_identifier = "Attribute" + identifier_suffix(data_type);
 

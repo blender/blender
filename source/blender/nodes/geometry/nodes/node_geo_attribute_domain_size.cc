@@ -42,7 +42,7 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *point_socket = (bNodeSocket *)node->outputs.first;
+  bNodeSocket *point_socket = static_cast<bNodeSocket *>(node->outputs.first);
   bNodeSocket *edge_socket = point_socket->next;
   bNodeSocket *face_socket = edge_socket->next;
   bNodeSocket *face_corner_socket = face_socket->next;

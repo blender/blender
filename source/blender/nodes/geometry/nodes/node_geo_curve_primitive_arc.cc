@@ -106,7 +106,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const NodeGeometryCurvePrimitiveArc &storage = node_storage(*node);
   const GeometryNodeCurvePrimitiveArcMode mode = (GeometryNodeCurvePrimitiveArcMode)storage.mode;
 
-  bNodeSocket *start_socket = ((bNodeSocket *)node->inputs.first)->next;
+  bNodeSocket *start_socket = static_cast<bNodeSocket *>(node->inputs.first)->next;
   bNodeSocket *middle_socket = start_socket->next;
   bNodeSocket *end_socket = middle_socket->next;
 
@@ -116,7 +116,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
   bNodeSocket *offset_angle_socket = sweep_angle_socket->next;
 
-  bNodeSocket *center_out_socket = ((bNodeSocket *)node->outputs.first)->next;
+  bNodeSocket *center_out_socket = static_cast<bNodeSocket *>(node->outputs.first)->next;
   bNodeSocket *normal_out_socket = center_out_socket->next;
   bNodeSocket *radius_out_socket = normal_out_socket->next;
 
