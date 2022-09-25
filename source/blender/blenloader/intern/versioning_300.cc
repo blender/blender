@@ -1926,7 +1926,7 @@ static void version_geometry_nodes_replace_transfer_attribute_node(bNodeTree *nt
         break;
       }
     }
-    /* The storage must be feeed manually because the node type isn't defined anymore. */
+    /* The storage must be freed manually because the node type isn't defined anymore. */
     MEM_freeN(node->storage);
     nodeRemoveNode(NULL, ntree, node, false);
   }

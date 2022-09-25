@@ -563,7 +563,7 @@ static bNode *ntree_shader_copy_branch(bNodeTree *ntree,
                                        void (*callback)(bNode *node, int user_data),
                                        int user_data)
 {
-  /* Init tmp flag. */
+  /* Initialize `tmp_flag`. */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     node->tmp_flag = -1;
   }

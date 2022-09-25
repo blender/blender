@@ -353,7 +353,7 @@ static void gpencil_strokes_array_size(tGPDfill *tgpf)
   }
 }
 
-/* Load all strokes to be procesed by extend lines. */
+/** Load all strokes to be processed by extend lines. */
 static void gpencil_load_array_strokes(tGPDfill *tgpf)
 {
   Object *ob = tgpf->ob;
@@ -563,7 +563,7 @@ static void gpencil_cut_extensions(tGPDfill *tgpf)
         bGPDspoint *extreme_b = &gps_b->points[1];
 
         /* Check if extreme points are near. This case is when the
-         * extendend lines are colinear or parallel and close together. */
+         * extended lines are co-linear or parallel and close together. */
         const float gap_pixsize_sq = 25.0f;
         float intersection3D[3];
         if (len_squared_v2v2(a2xy, b2xy) <= gap_pixsize_sq) {
@@ -583,7 +583,7 @@ static void gpencil_cut_extensions(tGPDfill *tgpf)
           copy_v3_v3(&extreme_a->x, intersection3D);
           copy_v3_v3(&extreme_b->x, intersection3D);
           set_stroke_collide(gps_a, gps_b, connection_dist);
-         break;
+          break;
         }
         /* Check if extension extreme is near of the origin of any other extension. */
         if (len_squared_v2v2(a2xy, b1xy) <= gap_pixsize_sq) {
@@ -2806,7 +2806,7 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
         /* Clean temp strokes. */
         stroke_array_free(tgpf);
 
-        /* Toogle mode */
+        /* Toggle mode. */
         if (tgpf->fill_extend_mode == GP_FILL_EMODE_EXTEND) {
           tgpf->fill_extend_mode = GP_FILL_EMODE_RADIUS;
         }

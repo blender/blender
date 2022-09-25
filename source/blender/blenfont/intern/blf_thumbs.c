@@ -14,7 +14,7 @@
 
 #include FT_FREETYPE_H
 #include FT_ADVANCES_H        /* For FT_Get_Advance */
-#include FT_TRUETYPE_IDS_H    /* Codepoint coverage constants. */
+#include FT_TRUETYPE_IDS_H    /* Code-point coverage constants. */
 #include FT_TRUETYPE_TABLES_H /* For TT_OS2 */
 
 #include "BLI_listbase.h"

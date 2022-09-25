@@ -145,9 +145,9 @@ ENUM_OPERATORS(DegIterFlag, DEG_ITER_OBJECT_FLAG_DUPLI)
 typedef struct DEGObjectIterSettings {
   struct Depsgraph *depsgraph;
   /**
-   * Bitfield of the #DegIterFlag.
+   * Bit-field of the #DegIterFlag.
    *
-   * NOTE: Be careful with DEG_ITER_OBJECT_FLAG_LINKED_INDIRECTLY objects.
+   * NOTE: Be careful with #DEG_ITER_OBJECT_FLAG_LINKED_INDIRECTLY objects.
    * Although they are available they have no overrides (collection_properties)
    * and will crash if you try to access it.
    */

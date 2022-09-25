@@ -178,9 +178,9 @@ void ED_view3d_init_mats_rv3d_gl(const struct Object *ob, struct RegionView3D *r
 {
   ED_view3d_init_mats_rv3d(ob, rv3d);
 
-  /* we have to multiply instead of loading viewmatob to make
-   * it work with duplis using displists, otherwise it will
-   * override the dupli-matrix */
+  /* We have to multiply instead of loading `viewmatob` to make
+   * it work with duplis using display-lists, otherwise it will
+   * override the dupli-matrix. */
   GPU_matrix_mul(ob->obmat);
 }
 
@@ -1929,7 +1929,7 @@ static void view3d_id_remap_v3d_ob_centers(View3D *v3d, const struct IDRemapper 
 {
   if (BKE_id_remapper_apply(mappings, (ID **)&v3d->ob_center, ID_REMAP_APPLY_DEFAULT) ==
       ID_REMAP_RESULT_SOURCE_UNASSIGNED) {
-    /* Otherwise, bonename may remain valid...
+    /* Otherwise, bone-name may remain valid...
      * We could be smart and check this, too? */
     v3d->ob_center_bone[0] = '\0';
   }
