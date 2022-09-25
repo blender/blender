@@ -644,7 +644,7 @@ TEST(vector, OveralignedValues)
   Vector<AlignedBuffer<1, 512>, 2> vec;
   for (int i = 0; i < 100; i++) {
     vec.append({});
-    EXPECT_EQ((uintptr_t)&vec.last() % 512, 0);
+    EXPECT_EQ(uintptr_t(&vec.last()) % 512, 0);
   }
 }
 

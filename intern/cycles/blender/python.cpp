@@ -534,7 +534,7 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
           socket_type = "NodeSocketBool";
           data_type = BL::NodeSocket::type_BOOLEAN;
           if (param->validdefault) {
-            default_boolean = (bool)param->idefault[0];
+            default_boolean = bool(param->idefault[0]);
           }
         }
         else {

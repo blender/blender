@@ -2241,7 +2241,7 @@ static void draw_armature_edit(ArmatureDrawContext *ctx)
        eBone = eBone->next, index += 0x10000) {
     if (eBone->layer & arm->layer) {
       if ((eBone->flag & BONE_HIDDEN_A) == 0) {
-        const int select_id = is_select ? index : (uint)-1;
+        const int select_id = is_select ? index : uint(-1);
         const short constflag = 0;
 
         /* catch exception for bone with hidden parent */
@@ -2378,7 +2378,7 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
                                (arm->flag & ARM_POSEMODE) && (bone->flag & BONE_SELECTED) &&
                                ((ob->base_flag & BASE_FROM_DUPLI) == 0) &&
                                (pchan->ikflag & (BONE_IK_XLIMIT | BONE_IK_ZLIMIT));
-        const int select_id = is_pose_select ? index : (uint)-1;
+        const int select_id = is_pose_select ? index : uint(-1);
         const short constflag = pchan->constflag;
 
         pchan_draw_data_init(pchan);

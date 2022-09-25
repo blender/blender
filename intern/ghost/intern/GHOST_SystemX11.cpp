@@ -1152,7 +1152,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
           }
 
           if (ELEM(status, XLookupChars, XLookupBoth)) {
-            if ((unsigned char)utf8_buf[0] >= 32) { /* not an ascii control character */
+            if (uchar(utf8_buf[0]) >= 32) { /* not an ascii control character */
               /* do nothing for now, this is valid utf8 */
             }
             else {
@@ -1165,7 +1165,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
           }
           else {
             printf("Bad keycode lookup. Keysym 0x%x Status: %s\n",
-                   (unsigned int)key_sym,
+                   uint(key_sym),
                    (status == XLookupNone   ? "XLookupNone" :
                     status == XLookupKeySym ? "XLookupKeySym" :
                                               "Unknown status"));

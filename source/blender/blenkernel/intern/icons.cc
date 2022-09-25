@@ -971,8 +971,8 @@ struct Icon_Geom *BKE_icon_geom_from_memory(uchar *data, size_t data_len)
   p += 4;
 
   struct Icon_Geom *geom = (struct Icon_Geom *)MEM_mallocN(sizeof(*geom), __func__);
-  geom->coords_range[0] = (int)*p++;
-  geom->coords_range[1] = (int)*p++;
+  geom->coords_range[0] = int(*p++);
+  geom->coords_range[1] = int(*p++);
   /* x, y ignored for now */
   p += 2;
 

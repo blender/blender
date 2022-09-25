@@ -562,7 +562,7 @@ GHOST_TKey GHOST_SystemWin32::processSpecialKey(short vKey, short scanCode) cons
     return key;
   }
 
-  char ch = (char)MapVirtualKeyA(vKey, MAPVK_VK_TO_CHAR);
+  char ch = char(MapVirtualKeyA(vKey, MAPVK_VK_TO_CHAR));
   switch (ch) {
     case u'\"':
     case u'\'':
@@ -1747,10 +1747,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           break;
         }
         case WM_XBUTTONDOWN: {
-          if ((short)HIWORD(wParam) == XBUTTON1) {
+          if (short(HIWORD(wParam)) == XBUTTON1) {
             event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskButton4);
           }
-          else if ((short)HIWORD(wParam) == XBUTTON2) {
+          else if (short(HIWORD(wParam)) == XBUTTON2) {
             event = processButtonEvent(GHOST_kEventButtonDown, window, GHOST_kButtonMaskButton5);
           }
           break;
@@ -1768,10 +1768,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           break;
         }
         case WM_XBUTTONUP: {
-          if ((short)HIWORD(wParam) == XBUTTON1) {
+          if (short(HIWORD(wParam)) == XBUTTON1) {
             event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskButton4);
           }
-          else if ((short)HIWORD(wParam) == XBUTTON2) {
+          else if (short(HIWORD(wParam)) == XBUTTON2) {
             event = processButtonEvent(GHOST_kEventButtonUp, window, GHOST_kButtonMaskButton5);
           }
           break;
