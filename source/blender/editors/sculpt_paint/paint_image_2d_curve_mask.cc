@@ -70,11 +70,11 @@ static void update_curve_mask(CurveMaskCache *curve_mask_cache,
   for (int y = 0; y < diameter; y++) {
     for (int x = 0; x < diameter; x++, m++) {
       float pixel_xy[2];
-      pixel_xy[0] = static_cast<float>(x) + aa_offset;
+      pixel_xy[0] = float(x) + aa_offset;
       float total_weight = 0;
 
       for (int i = 0; i < aa_samples; i++) {
-        pixel_xy[1] = static_cast<float>(y) + aa_offset;
+        pixel_xy[1] = float(y) + aa_offset;
         for (int j = 0; j < aa_samples; j++) {
           const float len = len_v2v2(pixel_xy, bpos);
           const int sample_index = min_ii((len / clamped_radius) * CurveSamplesBaseLen,

@@ -344,7 +344,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
   VectorSet<Curves *> unique_curves = curves::get_unique_editable_curves(*C);
 
   const int seed = RNA_int_get(op->ptr, "seed");
-  RandomNumberGenerator rng{static_cast<uint32_t>(seed)};
+  RandomNumberGenerator rng{uint32_t(seed)};
 
   const bool partial = RNA_boolean_get(op->ptr, "partial");
   const bool constant_per_curve = RNA_boolean_get(op->ptr, "constant_per_curve");

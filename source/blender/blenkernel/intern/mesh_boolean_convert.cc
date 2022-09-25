@@ -114,7 +114,7 @@ class MeshesToIMeshInfo {
  * input `Mesh` that contained the `MVert` that it came from. */
 int MeshesToIMeshInfo::input_mesh_for_imesh_vert(int imesh_v) const
 {
-  int n = static_cast<int>(mesh_vert_offset.size());
+  int n = int(mesh_vert_offset.size());
   for (int i = 0; i < n - 1; ++i) {
     if (imesh_v < mesh_vert_offset[i + 1]) {
       return i;
@@ -127,7 +127,7 @@ int MeshesToIMeshInfo::input_mesh_for_imesh_vert(int imesh_v) const
  * return the index of the input `Mesh` that contained the `MVert` that it came from. */
 int MeshesToIMeshInfo::input_mesh_for_imesh_edge(int imesh_e) const
 {
-  int n = static_cast<int>(mesh_edge_offset.size());
+  int n = int(mesh_edge_offset.size());
   for (int i = 0; i < n - 1; ++i) {
     if (imesh_e < mesh_edge_offset[i + 1]) {
       return i;
@@ -140,7 +140,7 @@ int MeshesToIMeshInfo::input_mesh_for_imesh_edge(int imesh_e) const
  * input `Mesh` that contained the `MPoly` that it came from. */
 int MeshesToIMeshInfo::input_mesh_for_imesh_face(int imesh_f) const
 {
-  int n = static_cast<int>(mesh_poly_offset.size());
+  int n = int(mesh_poly_offset.size());
   for (int i = 0; i < n - 1; ++i) {
     if (imesh_f < mesh_poly_offset[i + 1]) {
       return i;
@@ -831,7 +831,7 @@ Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
         return mi;
       }
     }
-    return static_cast<int>(mim.mesh_poly_offset.size()) - 1;
+    return int(mim.mesh_poly_offset.size()) - 1;
   };
   IMesh m_out = boolean_mesh(m_in,
                              static_cast<BoolOpType>(boolean_mode),

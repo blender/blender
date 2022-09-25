@@ -520,7 +520,7 @@ static void layerInterp_propInt(const void **sources,
     const float src = *static_cast<const int *>(sources[i]);
     result += src * weight;
   }
-  const int rounded_result = static_cast<int>(round(result));
+  const int rounded_result = int(round(result));
   *static_cast<int *>(dest) = rounded_result;
 }
 

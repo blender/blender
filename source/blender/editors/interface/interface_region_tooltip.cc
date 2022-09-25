@@ -109,8 +109,7 @@ struct uiTooltipData {
 
 #define UI_TIP_LC_MAX 6
 
-BLI_STATIC_ASSERT(UI_TIP_LC_MAX == static_cast<int>(uiTooltipFormat::ColorID::Alert) + 1,
-                  "invalid lc-max");
+BLI_STATIC_ASSERT(UI_TIP_LC_MAX == int(uiTooltipFormat::ColorID::Alert) + 1, "invalid lc-max");
 BLI_STATIC_ASSERT(sizeof(uiTooltipFormat) <= sizeof(int), "oversize");
 
 static uiTooltipField *text_field_add_only(uiTooltipData *data)
@@ -168,12 +167,12 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
   uchar drawcol[4] = {0, 0, 0, 255}; /* to store color in while drawing (alpha is always 255) */
 
   /* The color from the theme. */
-  float *main_color = tip_colors[static_cast<int>(uiTooltipFormat::ColorID::Main)];
-  float *value_color = tip_colors[static_cast<int>(uiTooltipFormat::ColorID::Value)];
-  float *active_color = tip_colors[static_cast<int>(uiTooltipFormat::ColorID::Active)];
-  float *normal_color = tip_colors[static_cast<int>(uiTooltipFormat::ColorID::Normal)];
-  float *python_color = tip_colors[static_cast<int>(uiTooltipFormat::ColorID::Python)];
-  float *alert_color = tip_colors[static_cast<int>(uiTooltipFormat::ColorID::Alert)];
+  float *main_color = tip_colors[int(uiTooltipFormat::ColorID::Main)];
+  float *value_color = tip_colors[int(uiTooltipFormat::ColorID::Value)];
+  float *active_color = tip_colors[int(uiTooltipFormat::ColorID::Active)];
+  float *normal_color = tip_colors[int(uiTooltipFormat::ColorID::Normal)];
+  float *python_color = tip_colors[int(uiTooltipFormat::ColorID::Python)];
+  float *alert_color = tip_colors[int(uiTooltipFormat::ColorID::Alert)];
 
   float background_color[3];
 
@@ -224,7 +223,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
       fs_params.word_wrap = true;
 
       /* Draw header and active data (is done here to be able to change color). */
-      rgb_float_to_uchar(drawcol, tip_colors[static_cast<int>(uiTooltipFormat::ColorID::Main)]);
+      rgb_float_to_uchar(drawcol, tip_colors[int(uiTooltipFormat::ColorID::Main)]);
       UI_fontstyle_set(&data->fstyle);
       UI_fontstyle_draw(&data->fstyle, &bbox, field->text, UI_TIP_STR_MAX, drawcol, &fs_params);
 
@@ -235,8 +234,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
         bbox.xmin += xofs;
         bbox.ymax -= yofs;
 
-        rgb_float_to_uchar(drawcol,
-                           tip_colors[static_cast<int>(uiTooltipFormat::ColorID::Active)]);
+        rgb_float_to_uchar(drawcol, tip_colors[int(uiTooltipFormat::ColorID::Active)]);
         UI_fontstyle_draw(
             &data->fstyle, &bbox, field->text_suffix, UI_TIP_STR_MAX, drawcol, &fs_params);
 
@@ -255,7 +253,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
       UI_fontstyle_set(&fstyle_mono);
       /* XXX: needed because we don't have mono in 'U.uifonts'. */
       BLF_size(fstyle_mono.uifont_id, fstyle_mono.points * U.dpi_fac);
-      rgb_float_to_uchar(drawcol, tip_colors[static_cast<int>(field->format.color_id)]);
+      rgb_float_to_uchar(drawcol, tip_colors[int(field->format.color_id)]);
       UI_fontstyle_draw(&fstyle_mono, &bbox, field->text, UI_TIP_STR_MAX, drawcol, &fs_params);
     }
     else {
@@ -265,7 +263,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
       fs_params.word_wrap = true;
 
       /* Draw remaining data. */
-      rgb_float_to_uchar(drawcol, tip_colors[static_cast<int>(field->format.color_id)]);
+      rgb_float_to_uchar(drawcol, tip_colors[int(field->format.color_id)]);
       UI_fontstyle_set(&data->fstyle);
       UI_fontstyle_draw(&data->fstyle, &bbox, field->text, UI_TIP_STR_MAX, drawcol, &fs_params);
     }

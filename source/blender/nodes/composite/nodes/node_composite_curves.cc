@@ -80,8 +80,7 @@ class TimeCurveOperation : public NodeOperation {
     if (get_start_time() == get_end_time()) {
       return 0.0f;
     }
-    return static_cast<float>(frame_number - get_start_time()) /
-           static_cast<float>(get_end_time() - get_start_time());
+    return float(frame_number - get_start_time()) / float(get_end_time() - get_start_time());
   }
 };
 

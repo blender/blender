@@ -163,7 +163,7 @@ static bool int8_to_bool(const int8_t &a)
 }
 static int int8_to_int(const int8_t &a)
 {
-  return static_cast<int>(a);
+  return int(a);
 }
 static float int8_to_float(const int8_t &a)
 {
@@ -192,7 +192,7 @@ static float bool_to_float(const bool &a)
 }
 static int8_t bool_to_int8(const bool &a)
 {
-  return static_cast<int8_t>(a);
+  return int8_t(a);
 }
 static int32_t bool_to_int(const bool &a)
 {

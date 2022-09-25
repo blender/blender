@@ -164,7 +164,7 @@ static void geom_add_edge(Geometry *geom,
   edge_v1 += edge_v1 < 0 ? r_global_vertices.vertices.size() : -1;
   edge_v2 += edge_v2 < 0 ? r_global_vertices.vertices.size() : -1;
   BLI_assert(edge_v1 >= 0 && edge_v2 >= 0);
-  geom->edges_.append({static_cast<uint>(edge_v1), static_cast<uint>(edge_v2)});
+  geom->edges_.append({uint(edge_v1), uint(edge_v2)});
   geom->track_vertex_index(edge_v1);
   geom->track_vertex_index(edge_v2);
 }

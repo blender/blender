@@ -354,7 +354,7 @@ CustomDataLayer *BKE_id_attribute_search(ID *id,
   get_domains(id, info);
 
   for (eAttrDomain domain = ATTR_DOMAIN_POINT; domain < ATTR_DOMAIN_NUM;
-       domain = static_cast<eAttrDomain>((static_cast<int>(domain)) + 1)) {
+       domain = static_cast<eAttrDomain>((int(domain)) + 1)) {
     if (!(domain_mask & ATTR_DOMAIN_AS_MASK(domain))) {
       continue;
     }

@@ -258,7 +258,7 @@ int ConeConfig::calculate_total_corners()
 static void calculate_cone_verts(const MutableSpan<MVert> &verts, const ConeConfig &config)
 {
   Array<float2> circle(config.circle_segments);
-  const float angle_delta = 2.0f * (M_PI / static_cast<float>(config.circle_segments));
+  const float angle_delta = 2.0f * (M_PI / float(config.circle_segments));
   float angle = 0.0f;
   for (const int i : IndexRange(config.circle_segments)) {
     circle[i].x = std::cos(angle);
@@ -275,8 +275,7 @@ static void calculate_cone_verts(const MutableSpan<MVert> &verts, const ConeConf
 
   /* Top fill including the outer edge of the fill. */
   if (!config.top_is_point) {
-    const float top_fill_radius_delta = config.radius_top /
-                                        static_cast<float>(config.fill_segments);
+    const float top_fill_radius_delta = config.radius_top / float(config.fill_segments);
     for (const int i : IndexRange(config.fill_segments)) {
       const float top_fill_radius = top_fill_radius_delta * (i + 1);
       for (const int j : IndexRange(config.circle_segments)) {
@@ -289,8 +288,8 @@ static void calculate_cone_verts(const MutableSpan<MVert> &verts, const ConeConf
 
   /* Rings along the side. */
   const float side_radius_delta = (config.radius_bottom - config.radius_top) /
-                                  static_cast<float>(config.side_segments);
-  const float height_delta = 2.0f * config.height / static_cast<float>(config.side_segments);
+                                  float(config.side_segments);
+  const float height_delta = 2.0f * config.height / float(config.side_segments);
   for (const int i : IndexRange(config.side_segments - 1)) {
     const float ring_radius = config.radius_top + (side_radius_delta * (i + 1));
     const float ring_height = config.height - (height_delta * (i + 1));
@@ -303,8 +302,7 @@ static void calculate_cone_verts(const MutableSpan<MVert> &verts, const ConeConf
 
   /* Bottom fill including the outer edge of the fill. */
   if (!config.bottom_is_point) {
-    const float bottom_fill_radius_delta = config.radius_bottom /
-                                           static_cast<float>(config.fill_segments);
+    const float bottom_fill_radius_delta = config.radius_bottom / float(config.fill_segments);
     for (const int i : IndexRange(config.fill_segments)) {
       const float bottom_fill_radius = config.radius_bottom - (i * bottom_fill_radius_delta);
       for (const int j : IndexRange(config.circle_segments)) {
@@ -544,7 +542,7 @@ static void calculate_cone_uvs(Mesh *mesh, const ConeConfig &config)
 
   Array<float2> circle(config.circle_segments);
   float angle = 0.0f;
-  const float angle_delta = 2.0f * M_PI / static_cast<float>(config.circle_segments);
+  const float angle_delta = 2.0f * M_PI / float(config.circle_segments);
   for (const int i : IndexRange(config.circle_segments)) {
     circle[i].x = std::cos(angle) * 0.225f;
     circle[i].y = std::sin(angle) * 0.225f;
@@ -556,9 +554,8 @@ static void calculate_cone_uvs(Mesh *mesh, const ConeConfig &config)
   /* Left circle of the UV representing the top fill or top cone tip. */
   if (config.top_is_point || config.fill_type != GEO_NODE_MESH_CIRCLE_FILL_NONE) {
     const float2 center_left(0.25f, 0.25f);
-    const float radius_factor_delta = 1.0f / (config.top_is_point ?
-                                                  static_cast<float>(config.side_segments) :
-                                                  static_cast<float>(config.fill_segments));
+    const float radius_factor_delta = 1.0f / (config.top_is_point ? float(config.side_segments) :
+                                                                    float(config.fill_segments));
     const int left_circle_segment_count = config.top_is_point ? config.side_segments :
                                                                 config.fill_segments;
 
@@ -595,8 +592,8 @@ static void calculate_cone_uvs(Mesh *mesh, const ConeConfig &config)
   if (!config.top_is_point && !config.bottom_is_point) {
     /* Mesh is a truncated cone or cylinder. The sides are unwrapped into a rectangle. */
     const float bottom = (config.fill_type == GEO_NODE_MESH_CIRCLE_FILL_NONE) ? 0.0f : 0.5f;
-    const float x_delta = 1.0f / static_cast<float>(config.circle_segments);
-    const float y_delta = (1.0f - bottom) / static_cast<float>(config.side_segments);
+    const float x_delta = 1.0f / float(config.circle_segments);
+    const float y_delta = (1.0f - bottom) / float(config.side_segments);
 
     for (const int i : IndexRange(config.side_segments)) {
       for (const int j : IndexRange(config.circle_segments)) {
@@ -612,8 +609,8 @@ static void calculate_cone_uvs(Mesh *mesh, const ConeConfig &config)
   if (config.bottom_is_point || config.fill_type != GEO_NODE_MESH_CIRCLE_FILL_NONE) {
     const float2 center_right(0.75f, 0.25f);
     const float radius_factor_delta = 1.0f / (config.bottom_is_point ?
-                                                  static_cast<float>(config.side_segments) :
-                                                  static_cast<float>(config.fill_segments));
+                                                  float(config.side_segments) :
+                                                  float(config.fill_segments));
     const int right_circle_segment_count = config.bottom_is_point ? config.side_segments :
                                                                     config.fill_segments;
 
@@ -679,7 +676,7 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
     if (config.height == 0.0f) {
       return create_vertex_mesh();
     }
-    const float z_delta = -2.0f * config.height / static_cast<float>(config.side_segments);
+    const float z_delta = -2.0f * config.height / float(config.side_segments);
     const float3 start(0.0f, 0.0f, config.height);
     const float3 delta(0.0f, 0.0f, z_delta);
     return create_line_mesh(start, delta, config.tot_verts);

@@ -144,7 +144,7 @@ void GLVertBuf::wrap_handle(uint64_t handle)
   BLI_assert(vbo_id_ == 0);
   BLI_assert(glIsBuffer(static_cast<uint>(handle)));
   is_wrapper_ = true;
-  vbo_id_ = static_cast<uint>(handle);
+  vbo_id_ = uint(handle);
   /* We assume the data is already on the device, so no need to allocate or send it. */
   flag = GPU_VERTBUF_DATA_UPLOADED;
 }

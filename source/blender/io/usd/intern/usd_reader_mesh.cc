@@ -275,7 +275,7 @@ void USDMeshReader::read_object_data(Main *bmain, const double motionSampleTime)
 
 bool USDMeshReader::valid() const
 {
-  return static_cast<bool>(mesh_prim_);
+  return bool(mesh_prim_);
 }
 
 bool USDMeshReader::topology_changed(const Mesh *existing_mesh, const double motionSampleTime)
@@ -601,7 +601,7 @@ void USDMeshReader::process_normals_vertex_varying(Mesh *mesh)
 
   MutableSpan vert_normals{(float3 *)BKE_mesh_vertex_normals_for_write(mesh), mesh->totvert};
   BLI_STATIC_ASSERT(sizeof(normals_[0]) == sizeof(float3), "Expected float3 normals size");
-  vert_normals.copy_from({(float3 *)normals_.data(), static_cast<int64_t>(normals_.size())});
+  vert_normals.copy_from({(float3 *)normals_.data(), int64_t(normals_.size())});
   BKE_mesh_vertex_normals_clear_dirty(mesh);
 }
 

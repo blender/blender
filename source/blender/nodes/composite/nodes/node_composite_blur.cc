@@ -346,7 +346,7 @@ class BlurOperation : public NodeOperation {
 
     Domain domain = compute_domain();
     if (get_extend_bounds()) {
-      domain.size.x += static_cast<int>(math::ceil(compute_blur_radius().x)) * 2;
+      domain.size.x += int(math::ceil(compute_blur_radius().x)) * 2;
     }
 
     /* We allocate an output image of a transposed size, that is, with a height equivalent to the

@@ -36,12 +36,12 @@ OpenVDBMeshAdapter::OpenVDBMeshAdapter(const Mesh &mesh, float4x4 transform)
 
 size_t OpenVDBMeshAdapter::polygonCount() const
 {
-  return static_cast<size_t>(looptris_.size());
+  return size_t(looptris_.size());
 }
 
 size_t OpenVDBMeshAdapter::pointCount() const
 {
-  return static_cast<size_t>(verts_.size());
+  return size_t(verts_.size());
 }
 
 size_t OpenVDBMeshAdapter::vertexCount(size_t UNUSED(polygon_index)) const

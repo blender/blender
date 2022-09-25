@@ -335,9 +335,8 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
     char text[16];
     LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
       BLI_snprintf(text, 5, "%d", tile->tile_number);
-      float tile_location[3] = {static_cast<float>((tile->tile_number - 1001) % 10),
-                                static_cast<float>((tile->tile_number - 1001) / 10),
-                                0.0f};
+      float tile_location[3] = {
+          float((tile->tile_number - 1001) % 10), float((tile->tile_number - 1001) / 10), 0.0f};
       DRW_text_cache_add(
           dt, tile_location, text, strlen(text), 10, 10, DRW_TEXT_CACHE_GLOBALSPACE, color);
     }
@@ -372,8 +371,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
 
       float size_image[2];
       BKE_image_get_size_fl(image, nullptr, size_image);
-      float size_stencil_image[2] = {static_cast<float>(stencil_ibuf->x),
-                                     static_cast<float>(stencil_ibuf->y)};
+      float size_stencil_image[2] = {float(stencil_ibuf->x), float(stencil_ibuf->y)};
 
       float obmat[4][4];
       unit_m4(obmat);

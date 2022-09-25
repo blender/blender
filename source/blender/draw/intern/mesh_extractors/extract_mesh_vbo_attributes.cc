@@ -285,7 +285,7 @@ static void extract_attr_init(
 
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
 
-  init_vbo_for_attribute(*mr, vbo, request, false, static_cast<uint32_t>(mr->loop_len));
+  init_vbo_for_attribute(*mr, vbo, request, false, uint32_t(mr->loop_len));
 
   /* TODO(@kevindietrich): float3 is used for scalar attributes as the implicit conversion done by
    * OpenGL to vec4 for a scalar `s` will produce a `vec4(s, 0, 0, 1)`. However, following the
@@ -340,7 +340,7 @@ static void extract_attr_init_subdiv(const DRWSubdivCache *subdiv_cache,
   GPUVertFormat coarse_format = {0};
   GPU_vertformat_attr_add(&coarse_format, "data", GPU_COMP_F32, dimensions, GPU_FETCH_FLOAT);
   GPU_vertbuf_init_with_format_ex(src_data, &coarse_format, GPU_USAGE_STATIC);
-  GPU_vertbuf_data_alloc(src_data, static_cast<uint32_t>(coarse_mesh->totloop));
+  GPU_vertbuf_data_alloc(src_data, uint32_t(coarse_mesh->totloop));
 
   switch (request.cd_type) {
     case CD_PROP_BOOL:
@@ -379,7 +379,7 @@ static void extract_attr_init_subdiv(const DRWSubdivCache *subdiv_cache,
   draw_subdiv_interp_custom_data(subdiv_cache,
                                  src_data,
                                  dst_buffer,
-                                 static_cast<int>(dimensions),
+                                 int(dimensions),
                                  0,
                                  ELEM(request.cd_type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR));
 

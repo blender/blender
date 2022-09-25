@@ -393,7 +393,7 @@ class DilateErodeOperation : public NodeOperation {
   /* See the discussion in the implementation for more information. */
   int get_morphological_distance_threshold_radius()
   {
-    return static_cast<int>(math::ceil(get_inset())) + math::abs(get_distance());
+    return int(math::ceil(get_inset())) + math::abs(get_distance());
   }
 
   /* ----------------------------------------

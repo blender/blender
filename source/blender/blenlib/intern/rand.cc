@@ -72,7 +72,7 @@ void BLI_rng_srandom(RNG *rng, uint seed)
 
 void BLI_rng_get_char_n(RNG *rng, char *bytes, size_t bytes_len)
 {
-  rng->rng.get_bytes(blender::MutableSpan(bytes, static_cast<int64_t>(bytes_len)));
+  rng->rng.get_bytes(blender::MutableSpan(bytes, int64_t(bytes_len)));
 }
 
 int BLI_rng_get_int(RNG *rng)
@@ -441,7 +441,7 @@ float3 RandomNumberGenerator::get_triangle_sample_3d(float3 v1, float3 v2, float
 void RandomNumberGenerator::get_bytes(MutableSpan<char> r_bytes)
 {
   constexpr int64_t mask_bytes = 2;
-  constexpr int64_t rand_stride = static_cast<int64_t>(sizeof(x_)) - mask_bytes;
+  constexpr int64_t rand_stride = int64_t(sizeof(x_)) - mask_bytes;
 
   int64_t last_len = 0;
   int64_t trim_len = r_bytes.size();

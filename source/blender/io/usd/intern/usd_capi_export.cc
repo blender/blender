@@ -96,8 +96,7 @@ static void export_startjob(void *customdata,
   }
 
   usd_stage->SetMetadata(pxr::UsdGeomTokens->upAxis, pxr::VtValue(pxr::UsdGeomTokens->z));
-  usd_stage->SetMetadata(pxr::UsdGeomTokens->metersPerUnit,
-                         static_cast<double>(scene->unit.scale_length));
+  usd_stage->SetMetadata(pxr::UsdGeomTokens->metersPerUnit, double(scene->unit.scale_length));
   usd_stage->GetRootLayer()->SetDocumentation(std::string("Blender v") +
                                               BKE_blender_version_string());
 
@@ -120,7 +119,7 @@ static void export_startjob(void *customdata,
       }
 
       /* Update the scene for the next frame to render. */
-      scene->r.cfra = static_cast<int>(frame);
+      scene->r.cfra = int(frame);
       scene->r.subframe = frame - scene->r.cfra;
       BKE_scene_graph_update_for_newframe(data->depsgraph);
 

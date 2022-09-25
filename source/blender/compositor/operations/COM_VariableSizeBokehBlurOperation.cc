@@ -390,7 +390,7 @@ void VariableSizeBokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *
 
   const float max_dim = MAX2(this->get_width(), this->get_height());
   p.scalar = do_size_scale_ ? (max_dim / 100.0f) : 1.0f;
-  p.max_blur_scalar = static_cast<int>(max_size * p.scalar);
+  p.max_blur_scalar = int(max_size * p.scalar);
   CLAMP(p.max_blur_scalar, 1, max_blur_);
 
   for (BuffersIterator<float> it = output->iterate_with({p.image_input, p.size_input}, area);

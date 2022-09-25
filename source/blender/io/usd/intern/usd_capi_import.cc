@@ -230,7 +230,7 @@ static void import_startjob(void *customdata, short *stop, short *do_update, flo
   *data->do_update = true;
   *data->progress = 0.2f;
 
-  const float size = static_cast<float>(archive->readers().size());
+  const float size = float(archive->readers().size());
   size_t i = 0;
 
   /* Sort readers by name: when creating a lot of objects in Blender,

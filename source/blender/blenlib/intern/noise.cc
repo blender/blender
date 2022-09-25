@@ -150,7 +150,7 @@ uint32_t hash_float(float4 k)
 
 BLI_INLINE float uint_to_float_01(uint32_t k)
 {
-  return static_cast<float>(k) / static_cast<float>(0xFFFFFFFFu);
+  return float(k) / float(0xFFFFFFFFu);
 }
 
 float hash_to_float(uint32_t kx)
@@ -536,7 +536,7 @@ template<typename T> float perlin_fractal_template(T position, float octaves, fl
   float maxamp = 0.0f;
   float sum = 0.0f;
   octaves = CLAMPIS(octaves, 0.0f, 15.0f);
-  int n = static_cast<int>(octaves);
+  int n = int(octaves);
   for (int i = 0; i <= n; i++) {
     float t = perlin(fscale * position);
     sum += t * amp;

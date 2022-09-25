@@ -110,7 +110,7 @@ class ExtractorRunDatas : public Vector<ExtractorRunData> {
   uint iter_types_len() const
   {
     const eMRIterType iter_type = iter_types();
-    uint bits = static_cast<uint>(iter_type);
+    uint bits = uint(iter_type);
     return count_bits_i(bits);
   }
 

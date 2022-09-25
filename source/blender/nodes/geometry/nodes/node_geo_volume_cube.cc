@@ -75,8 +75,7 @@ class Grid3DFieldContext : public FieldContext {
 
   int64_t points_num() const
   {
-    return static_cast<int64_t>(resolution_.x) * static_cast<int64_t>(resolution_.y) *
-           static_cast<int64_t>(resolution_.z);
+    return int64_t(resolution_.x) * int64_t(resolution_.y) * int64_t(resolution_.z);
   }
 
   GVArray get_varray_for_input(const FieldInput &field_input,

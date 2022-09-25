@@ -404,7 +404,7 @@ void SMAABlendingWeightCalculationOperation::init_execution()
 void SMAABlendingWeightCalculationOperation::set_corner_rounding(float rounding)
 {
   /* UI values are between 0 and 1 for simplicity but algorithm expects values between 0 and 100 */
-  corner_rounding_ = static_cast<int>(scalenorm(0, 100, rounding));
+  corner_rounding_ = int(scalenorm(0, 100, rounding));
 }
 
 void SMAABlendingWeightCalculationOperation::execute_pixel(float output[4],

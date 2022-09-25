@@ -48,7 +48,7 @@ ComponentNode::OperationIDKey::OperationIDKey(OperationCode opcode, const char *
 
 string ComponentNode::OperationIDKey::identifier() const
 {
-  const string codebuf = to_string(static_cast<int>(opcode));
+  const string codebuf = to_string(int(opcode));
   return "OperationIDKey(" + codebuf + ", " + name + ")";
 }
 
@@ -59,7 +59,7 @@ bool ComponentNode::OperationIDKey::operator==(const OperationIDKey &other) cons
 
 uint64_t ComponentNode::OperationIDKey::hash() const
 {
-  const int opcode_as_int = static_cast<int>(opcode);
+  const int opcode_as_int = int(opcode);
   return BLI_ghashutil_combine_hash(
       name_tag,
       BLI_ghashutil_combine_hash(BLI_ghashutil_uinthash(opcode_as_int),

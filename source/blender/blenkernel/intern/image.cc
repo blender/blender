@@ -867,8 +867,8 @@ void BKE_image_get_tile_uv(const Image *ima, const int tile_number, float r_uv[2
   }
   else {
     const int tile_index = tile_number - 1001;
-    r_uv[0] = static_cast<float>(tile_index % 10);
-    r_uv[1] = static_cast<float>(tile_index / 10);
+    r_uv[0] = float(tile_index % 10);
+    r_uv[1] = float(tile_index / 10);
   }
 }
 

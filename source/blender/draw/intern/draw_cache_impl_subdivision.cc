@@ -368,7 +368,7 @@ MINLINE CompressedPatchCoord make_patch_coord(int ptex_face_index, float u, floa
 {
   CompressedPatchCoord patch_coord = {
       ptex_face_index,
-      (static_cast<uint>(u * 65535.0f) << 16) | static_cast<uint>(v * 65535.0f),
+      (uint(u * 65535.0f) << 16) | uint(v * 65535.0f),
   };
   return patch_coord;
 }
@@ -1295,7 +1295,7 @@ static void drw_subdiv_compute_dispatch(const DRWSubdivCache *cache,
                                         uint total_dispatch_size,
                                         const bool has_sculpt_mask = false)
 {
-  const uint max_res_x = static_cast<uint>(GPU_max_work_group_count(0));
+  const uint max_res_x = uint(GPU_max_work_group_count(0));
 
   const uint dispatch_size = get_dispatch_size(total_dispatch_size);
   uint dispatch_rx = dispatch_size;
@@ -2231,13 +2231,13 @@ void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cac
 
 blender::Span<DRWSubdivLooseEdge> draw_subdiv_cache_get_loose_edges(const DRWSubdivCache *cache)
 {
-  return {cache->loose_geom.edges, static_cast<int64_t>(cache->loose_geom.edge_len)};
+  return {cache->loose_geom.edges, int64_t(cache->loose_geom.edge_len)};
 }
 
 blender::Span<DRWSubdivLooseVertex> draw_subdiv_cache_get_loose_verts(const DRWSubdivCache *cache)
 {
   return {cache->loose_geom.verts + cache->loose_geom.edge_len * 2,
-          static_cast<int64_t>(cache->loose_geom.vert_len)};
+          int64_t(cache->loose_geom.vert_len)};
 }
 
 static OpenSubdiv_EvaluatorCache *g_evaluator_cache = nullptr;

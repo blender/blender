@@ -117,7 +117,7 @@ void USDNurbsReader::read_curve_sample(Curve *cu, const double motionSampleTime)
     nu->pntsv = 1;
 
     if (i < orders.size()) {
-      nu->orderu = static_cast<short>(orders[i]);
+      nu->orderu = short(orders[i]);
     }
     else {
       nu->orderu = 4;
