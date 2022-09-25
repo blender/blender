@@ -118,10 +118,7 @@ int BLF_draw_mono(int fontid, const char *str, size_t str_len, int cwidth) ATTR_
 
 typedef bool (*BLF_GlyphBoundsFn)(const char *str,
                                   size_t str_step_ofs,
-                                  const struct rcti *glyph_step_bounds,
-                                  int glyph_advance_x,
-                                  const struct rcti *glyph_bounds,
-                                  const int glyph_bearing[2],
+                                  const struct rcti *bounds,
                                   void *user_data);
 
 /**
@@ -132,17 +129,27 @@ typedef bool (*BLF_GlyphBoundsFn)(const char *str,
  *
  * \note The font position, clipping, matrix and rotation are not applied.
  */
-void BLF_boundbox_foreach_glyph_ex(int fontid,
-                                   const char *str,
-                                   size_t str_len,
-                                   BLF_GlyphBoundsFn user_fn,
-                                   void *user_data,
-                                   struct ResultBLF *r_info) ATTR_NONNULL(2);
 void BLF_boundbox_foreach_glyph(int fontid,
                                 const char *str,
                                 size_t str_len,
                                 BLF_GlyphBoundsFn user_fn,
                                 void *user_data) ATTR_NONNULL(2);
+
+/**
+ * Get the byte offset within a string, selected by mouse at a horizontal location.
+ */
+size_t BLF_str_offset_from_cursor_position(int fontid,
+                                           const char *str,
+                                           size_t str_len,
+                                           int location_x);
+
+/**
+ * Return bounds of the glyph rect at the string offset.
+ */
+bool BLF_str_offset_to_glyph_bounds(int fontid,
+                                    const char *str,
+                                    size_t str_offset,
+                                    struct rcti *glyph_bounds);
 
 /**
  * Get the string byte offset that fits within a given width.

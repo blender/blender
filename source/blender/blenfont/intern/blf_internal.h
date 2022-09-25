@@ -141,13 +141,19 @@ void blf_font_boundbox_foreach_glyph(struct FontBLF *font,
                                      size_t str_len,
                                      bool (*user_fn)(const char *str,
                                                      size_t str_step_ofs,
-                                                     const struct rcti *glyph_step_bounds,
-                                                     int glyph_advance_x,
-                                                     const struct rcti *glyph_bounds,
-                                                     const int glyph_bearing[2],
+                                                     const struct rcti *bounds,
                                                      void *user_data),
-                                     void *user_data,
-                                     struct ResultBLF *r_info);
+                                     void *user_data);
+
+size_t blf_str_offset_from_cursor_position(struct FontBLF *font,
+                                           const char *str,
+                                           size_t str_len,
+                                           int location_x);
+
+void blf_str_offset_to_glyph_bounds(struct FontBLF *font,
+                                    const char *str,
+                                    size_t str_offset,
+                                    struct rcti *glyph_bounds);
 
 void blf_font_free(struct FontBLF *font);
 

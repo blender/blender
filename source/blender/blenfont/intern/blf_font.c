@@ -901,24 +901,22 @@ float blf_font_fixed_width(FontBLF *font)
   return width;
 }
 
-static void blf_font_boundbox_foreach_glyph_ex(FontBLF *font,
-                                               GlyphCacheBLF *gc,
-                                               const char *str,
-                                               const size_t str_len,
-                                               BLF_GlyphBoundsFn user_fn,
-                                               void *user_data,
-                                               struct ResultBLF *r_info,
-                                               ft_pix pen_y)
+void blf_font_boundbox_foreach_glyph(FontBLF *font,
+                                     const char *str,
+                                     const size_t str_len,
+                                     BLF_GlyphBoundsFn user_fn,
+                                     void *user_data)
 {
   GlyphBLF *g, *g_prev = NULL;
   ft_pix pen_x = 0;
   size_t i = 0, i_curr;
-  rcti gbox_px;
 
   if (str_len == 0 || str[0] == 0) {
     /* early output. */
     return;
   }
+
+  GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
 
   while ((i < str_len) && str[i]) {
     i_curr = i;
@@ -928,44 +926,88 @@ static void blf_font_boundbox_foreach_glyph_ex(FontBLF *font,
       continue;
     }
     pen_x += blf_kerning(font, g_prev, g);
-    const ft_pix pen_x_next = ft_pix_round_advance(pen_x, g->advance_x);
 
-    gbox_px.xmin = ft_pix_to_int_floor(pen_x);
-    gbox_px.xmax = ft_pix_to_int_ceil(pen_x_next);
-    gbox_px.ymin = ft_pix_to_int_floor(pen_y);
-    gbox_px.ymax = gbox_px.ymin - g->dims[1];
-    const int advance_x_px = gbox_px.xmax - gbox_px.xmin;
+    rcti bounds;
+    bounds.xmin = ft_pix_to_int_floor(pen_x) + ft_pix_to_int_floor(g->box_xmin);
+    bounds.xmax = ft_pix_to_int_floor(pen_x) + ft_pix_to_int_ceil(g->box_xmax);
+    bounds.ymin = ft_pix_to_int_floor(g->box_ymin);
+    bounds.ymax = ft_pix_to_int_ceil(g->box_ymax);
 
-    pen_x = pen_x_next;
-
-    rcti box_px;
-    box_px.xmin = ft_pix_to_int_floor(g->box_xmin);
-    box_px.xmax = ft_pix_to_int_ceil(g->box_xmax);
-    box_px.ymin = ft_pix_to_int_floor(g->box_ymin);
-    box_px.ymax = ft_pix_to_int_ceil(g->box_ymax);
-
-    if (user_fn(str, i_curr, &gbox_px, advance_x_px, &box_px, g->pos, user_data) == false) {
+    if (user_fn(str, i_curr, &bounds, user_data) == false) {
       break;
     }
-
+    pen_x = ft_pix_round_advance(pen_x, g->advance_x);
     g_prev = g;
   }
 
-  if (r_info) {
-    r_info->lines = 1;
-    r_info->width = ft_pix_to_int(pen_x);
-  }
-}
-void blf_font_boundbox_foreach_glyph(FontBLF *font,
-                                     const char *str,
-                                     const size_t str_len,
-                                     BLF_GlyphBoundsFn user_fn,
-                                     void *user_data,
-                                     struct ResultBLF *r_info)
-{
-  GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
-  blf_font_boundbox_foreach_glyph_ex(font, gc, str, str_len, user_fn, user_data, r_info, 0);
   blf_glyph_cache_release(font);
+}
+
+typedef struct CursorPositionForeachGlyph_Data {
+  /** Horizontal position to test. */
+  int location_x;
+  /** Write the character offset here. */
+  size_t r_offset;
+} CursorPositionForeachGlyph_Data;
+
+static bool blf_cursor_position_foreach_glyph(const char *UNUSED(str),
+                                              const size_t str_step_ofs,
+                                              const rcti *bounds,
+                                              void *user_data)
+{
+  CursorPositionForeachGlyph_Data *data = user_data;
+  if (data->location_x < (bounds->xmin + bounds->xmax) / 2) {
+    data->r_offset = str_step_ofs;
+    return false;
+  }
+  return true;
+}
+
+size_t blf_str_offset_from_cursor_position(struct FontBLF *font,
+                                           const char *str,
+                                           size_t str_len,
+                                           int location_x)
+{
+  CursorPositionForeachGlyph_Data data = {
+      .location_x = location_x,
+      .r_offset = (size_t)-1,
+  };
+  blf_font_boundbox_foreach_glyph(font, str, str_len, blf_cursor_position_foreach_glyph, &data);
+  if (data.r_offset == (size_t)-1) {
+    data.r_offset = BLI_strnlen(str, str_len);
+  }
+  return data.r_offset;
+}
+
+typedef struct StrOffsetToGlyphBounds_Data {
+  size_t str_offset;
+  rcti bounds;
+} StrOffsetToGlyphBounds_Data;
+
+static bool blf_str_offset_foreach_glyph(const char *UNUSED(str),
+                                         const size_t str_step_ofs,
+                                         const rcti *bounds,
+                                         void *user_data)
+{
+  StrOffsetToGlyphBounds_Data *data = user_data;
+  if (data->str_offset == str_step_ofs) {
+    data->bounds = *bounds;
+    return false;
+  }
+  return true;
+}
+
+void blf_str_offset_to_glyph_bounds(struct FontBLF *font,
+                                    const char *str,
+                                    size_t str_offset,
+                                    rcti *glyph_bounds)
+{
+  StrOffsetToGlyphBounds_Data data = {
+      .str_offset = str_offset,
+      .bounds = {0},
+  };
+  blf_font_boundbox_foreach_glyph(font, str, str_offset + 1, blf_str_offset_foreach_glyph, &data);
+  *glyph_bounds = data.bounds;
 }
 
 /** \} */

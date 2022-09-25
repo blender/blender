@@ -563,16 +563,10 @@ int BLF_draw_mono(int fontid, const char *str, const size_t str_len, int cwidth)
   return columns;
 }
 
-void BLF_boundbox_foreach_glyph_ex(int fontid,
-                                   const char *str,
-                                   size_t str_len,
-                                   BLF_GlyphBoundsFn user_fn,
-                                   void *user_data,
-                                   struct ResultBLF *r_info)
+void BLF_boundbox_foreach_glyph(
+    int fontid, const char *str, size_t str_len, BLF_GlyphBoundsFn user_fn, void *user_data)
 {
   FontBLF *font = blf_get(fontid);
-
-  BLF_RESULT_CHECK_INIT(r_info);
 
   if (font) {
     if (font->flags & BLF_WORD_WRAP) {
@@ -580,15 +574,34 @@ void BLF_boundbox_foreach_glyph_ex(int fontid,
       BLI_assert(0);
     }
     else {
-      blf_font_boundbox_foreach_glyph(font, str, str_len, user_fn, user_data, r_info);
+      blf_font_boundbox_foreach_glyph(font, str, str_len, user_fn, user_data);
     }
   }
 }
 
-void BLF_boundbox_foreach_glyph(
-    int fontid, const char *str, const size_t str_len, BLF_GlyphBoundsFn user_fn, void *user_data)
+size_t BLF_str_offset_from_cursor_position(int fontid,
+                                           const char *str,
+                                           size_t str_len,
+                                           int location_x)
 {
-  BLF_boundbox_foreach_glyph_ex(fontid, str, str_len, user_fn, user_data, NULL);
+  FontBLF *font = blf_get(fontid);
+  if (font) {
+    return blf_str_offset_from_cursor_position(font, str, str_len, location_x);
+  }
+  return 0;
+}
+
+bool BLF_str_offset_to_glyph_bounds(int fontid,
+                                    const char *str,
+                                    size_t str_offset,
+                                    rcti *glyph_bounds)
+{
+  FontBLF *font = blf_get(fontid);
+  if (font) {
+    blf_str_offset_to_glyph_bounds(font, str, str_offset, glyph_bounds);
+    return true;
+  }
+  return false;
 }
 
 size_t BLF_width_to_strlen(
