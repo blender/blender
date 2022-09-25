@@ -43,6 +43,7 @@ extern "C" {
 /* Information about a mesh and BVH tree. */
 typedef struct BassReliefTreeData {
   Mesh *mesh;
+  const MPoly *mpoly;
 
   BVHTree *bvh;
   BVHTreeFromMesh treeData;

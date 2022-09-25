@@ -95,7 +95,7 @@ int SCULPT_face_set_get(SculptSession *ss, PBVHFaceRef face)
 }
 
 // returns previous face set
-int SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset)
+ATTR_NO_OPT int SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset)
 {
   int ret = 0;
 
@@ -116,8 +116,6 @@ int SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset)
 
   return ret;
 }
-
-const char orig_faceset_attr_name[] = "_sculpt_original_fsets";
 
 void SCULPT_face_check_origdata(SculptSession *ss, PBVHFaceRef face)
 {
@@ -656,6 +654,7 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
   SculptSession *ss = ob->sculpt;
   Brush *brush = ss->cache->brush ? ss->cache->brush : BKE_paint_brush(&sd->paint);
 
+  BKE_sculpt_face_sets_ensure(ob);
   BKE_curvemapping_init(brush->curve);
 
   /* Threaded loop over nodes. */
@@ -1153,6 +1152,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
   const int mode = RNA_enum_get(op->ptr, "mode");
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
+  BKE_sculpt_face_sets_ensure(ob);
 
   PBVH *pbvh = ob->sculpt->pbvh;
   PBVHNode **nodes;
@@ -1200,6 +1200,10 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
   }
 
   SCULPT_undo_push_end(ob);
+
+  for (int i = 0; i < totnode; i++) {
+    BKE_pbvh_node_mark_redraw(nodes[i]);
+  }
 
   BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
 
@@ -1313,7 +1317,9 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+  BKE_sculpt_face_sets_ensure(ob);
 
+  const int cd_hide_poly = ss->attrs.hide_poly ? ss->attrs.hide_poly->bmesh_cd_offset : -1;
   const int tot_vert = SCULPT_vertex_count_get(ss);
   const int mode = RNA_enum_get(op->ptr, "mode");
   const int active_face_set = SCULPT_active_face_set_get(ss);
@@ -1353,7 +1359,7 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
       BMFace *f;
 
       BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
-        if (BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset) <= 0) {
+        if (cd_hide_poly != -1 && BM_ELEM_CD_GET_BOOL(f, cd_hide_poly)) {
           hidden_vertex = true;
           break;
         }
@@ -1361,7 +1367,7 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
     }
     else {
       for (int i = 0; i < ss->totfaces; i++) {
-        if (ss->face_sets[i] <= 0) {
+        if (ss->hide_poly && ss->hide_poly[i]) {
           hidden_vertex = true;
           break;
         }

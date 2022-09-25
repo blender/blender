@@ -70,8 +70,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(BassReliefModifierData), modifier);
 }
 
-static void requiredDataMask(ModifierData *md,
-                             CustomData_MeshMasks *r_cddata_masks)
+static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   BassReliefModifierData *smd = (BassReliefModifierData *)md;
 
@@ -186,7 +185,7 @@ static Mesh *modifyMeshDebug(struct ModifierData *md,
   struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 
   CustomData_duplicate_referenced_layers(&mesh->vdata, mesh->totvert);
-  //XXX BKE_mesh_update_customdata_pointers(mesh, false);
+  // XXX BKE_mesh_update_customdata_pointers(mesh, false);
 
   MPropCol *colors[MAX_BASSRELIEF_DEBUG_COLORS];
   char name[MAX_CUSTOMDATA_LAYER_NAME];
@@ -198,8 +197,10 @@ static Mesh *modifyMeshDebug(struct ModifierData *md,
 
   float(*cos)[3] = MEM_malloc_arrayN(mesh->totvert, sizeof(float) * 3, __func__);
 
+  const MVert *mvert = BKE_mesh_verts(mesh);
+
   for (int i = 0; i < mesh->totvert; i++) {
-    copy_v3_v3(cos[i], mesh->mvert[i].co);
+    copy_v3_v3(cos[i], mvert[i].co);
   }
 
   BassReliefModifierData *swmd = (BassReliefModifierData *)md;
@@ -217,8 +218,9 @@ static Mesh *modifyMeshDebug(struct ModifierData *md,
   bassReliefModifier_deform(
       swmd, ctx, scene, ctx->object, mesh, dvert, defgrp_index, cos, mesh->totvert, colors);
 
+  mvert = BKE_mesh_verts(mesh);
   for (int i = 0; i < mesh->totvert; i++) {
-    copy_v3_v3(mesh->mvert[i].co, cos[i]);
+    copy_v3_v3((float *)mvert[i].co, cos[i]);
   }
 
   // BKE_mesh_calc_normals(mesh);

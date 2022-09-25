@@ -476,6 +476,7 @@ void SCULPT_pbvh_clear(Object *ob, bool cache_pbvh)
 
   /* Clear out any existing DM and PBVH. */
   if (ss->pbvh) {
+#ifdef WITH_PBVH_CACHE
     if (cache_pbvh) {
       BKE_pbvh_set_cached(ob, ss->pbvh);
     }
@@ -483,6 +484,9 @@ void SCULPT_pbvh_clear(Object *ob, bool cache_pbvh)
       BKE_pbvh_cache_remove(ss->pbvh);
       BKE_pbvh_free(ss->pbvh);
     }
+#else
+    BKE_pbvh_free(ss->pbvh);
+#endif
 
     ss->pbvh = NULL;
   }
@@ -523,23 +527,22 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   SculptSession *ss = ob->sculpt;
   Mesh *me = ob->data;
 
-  void BKE_pbvh_clear_cache(PBVH * preserve);
-
   customdata_strip_templayers(&me->vdata, me->totvert);
   customdata_strip_templayers(&me->pdata, me->totpoly);
 
-  /* clear any non-dyntopo PBVH cache */
   if (ss->pbvh) {
     if (ss->pmap) {
       BKE_pbvh_pmap_release(ss->pmap);
       ss->pmap = NULL;
     }
 
+#ifdef WITH_PBVH_CACHE
     /* Remove existing pbvh so we can free it ourselves. */
     BKE_pbvh_cache_remove(ss->pbvh);
 
     /* Free any other pbvhs */
     BKE_pbvh_clear_cache(NULL);
+#endif
   }
 
   if (ss->bm) {
@@ -548,9 +551,12 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 
     if (!ok) {
       /* Ensure ss->pbvh is in the cache so it can be destroyed in BKE_pbvh_free_bmesh. */
+
+#ifdef WITH_PBVH_CACHE
       if (ss->pbvh) {
         BKE_pbvh_set_cached(ob, ss->pbvh);
       }
+#endif
 
       /* Destroy all cached PBVHs with this bmesh. */
       BKE_pbvh_free_bmesh(NULL, ss->bm);
@@ -575,7 +581,12 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
     return;
   }
 
+#ifdef WITH_PBVH_CACHE
   PBVH *pbvh = BKE_pbvh_get_or_free_cached(ob, BKE_object_get_original_mesh(ob), PBVH_BMESH);
+#else
+  PBVH *pbvh = NULL;
+#endif
+
   if (pbvh) {
     BMesh *bm = BKE_pbvh_get_bmesh(pbvh);
 
@@ -646,12 +657,17 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
     BKE_pbvh_update_sculpt_verts(ss->pbvh);
   }
 
-  if (SCULPT_has_persistent_base(ss)) {
+  if (ss->pbvh && SCULPT_has_persistent_base(ss)) {
     SCULPT_ensure_persistent_layers(ss, ob);
   }
 
-  BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
-  BKE_sculptsession_update_attr_refs(ob);
+  if (!CustomData_has_layer(&ss->bm->vdata, CD_PAINT_MASK)) {
+    BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
+  }
+
+  if (ss->pbvh) {
+    BKE_sculptsession_update_attr_refs(ob);
+  }
 
   BMIter iter;
   BMEdge *e;
@@ -695,8 +711,6 @@ static void SCULPT_dynamic_topology_disable_ex(
   SculptSession *ss = ob->sculpt;
   Mesh *me = ob->data;
 
-  SCULPT_pbvh_clear(ob, true);
-
   /* destroy non-customdata temporary layers (which are rarely (never?) used for PBVH_BMESH) */
   BKE_sculpt_attribute_destroy_temporary_all(ob);
 
@@ -707,9 +721,6 @@ static void SCULPT_dynamic_topology_disable_ex(
   if (hide_vert != NULL) {
     memset(hide_vert, 0, sizeof(bool) * me->totvert);
   }
-
-  BKE_sculpt_attribute_destroy(ob, ss->attrs.dyntopo_node_id_vertex);
-  BKE_sculpt_attribute_destroy(ob, ss->attrs.dyntopo_node_id_face);
 
   /* Clear data. */
   me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
@@ -725,6 +736,8 @@ static void SCULPT_dynamic_topology_disable_ex(
     // BM_mesh_free(ss->bm);
     ss->bm = NULL;
   }
+
+  SCULPT_pbvh_clear(ob, true);
 
   BKE_particlesystem_reset_all(ob);
   BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_OUTDATED);

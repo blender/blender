@@ -85,8 +85,7 @@ static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
                                                    eCustomDataType proptype,
                                                    const char *name,
                                                    const SculptAttributeParams *params,
-                                                   PBVHType pbvhtype,
-                                                   bool flat_array_for_bmesh);
+                                                   PBVHType pbvhtype);
 static void sculptsession_bmesh_add_layers(Object *ob);
 
 using blender::MutableSpan;
@@ -1462,6 +1461,7 @@ static void sculptsession_free_pbvh(Object *object)
   }
 
   if (ss->pbvh) {
+#ifdef WITH_PBVH_CACHE
     if (ss->needs_pbvh_rebuild) {
       if (ss->pmap) {
         BKE_pbvh_pmap_release(ss->pmap);
@@ -1474,7 +1474,14 @@ static void sculptsession_free_pbvh(Object *object)
     else {
       BKE_pbvh_set_cached(object, ss->pbvh);
     }
+#else
+    if (ss->pmap) {
+      BKE_pbvh_pmap_release(ss->pmap);
+      ss->pmap = NULL;
+    }
 
+    BKE_pbvh_free(ss->pbvh);
+#endif
     ss->needs_pbvh_rebuild = false;
     ss->pbvh = NULL;
   }
@@ -2233,6 +2240,15 @@ int *BKE_sculpt_face_sets_ensure(Object *ob)
     }
 
     BM_data_layer_add(ss->bm, &ss->bm->pdata, CD_SCULPT_FACE_SETS);
+
+    const int cd_faceset_offset = CustomData_get_offset(&ss->bm->pdata, CD_SCULPT_FACE_SETS);
+
+    BMIter iter;
+    BMFace *f;
+    BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+      BM_ELEM_CD_SET_INT(f, cd_faceset_offset, 1);
+    }
+
     BKE_sculptsession_update_attr_refs(ob);
 
     return nullptr;
@@ -2241,21 +2257,24 @@ int *BKE_sculpt_face_sets_ensure(Object *ob)
   using namespace blender;
   using namespace blender::bke;
   if (CustomData_has_layer(&mesh->pdata, CD_SCULPT_FACE_SETS)) {
-    return static_cast<int *>(CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS));
+    ss->face_sets = static_cast<int *>(CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS));
+    return ss->face_sets;
   }
 
   const AttributeAccessor attributes = mesh->attributes_for_write();
-  const VArray<bool> hide_poly = attributes.lookup_or_default<bool>(
-      ".hide_poly", ATTR_DOMAIN_FACE, false);
 
   MutableSpan<int> face_sets = {
       static_cast<int *>(CustomData_add_layer(
           &mesh->pdata, CD_SCULPT_FACE_SETS, CD_CONSTRUCT, nullptr, mesh->totpoly)),
       mesh->totpoly};
 
+  sculpt_attribute_update_refs(ob);
+
   face_sets.fill(1);
   mesh->face_sets_color_default = 1;
-  return face_sets.data();
+  ss->face_sets = face_sets.data();
+
+  return ss->face_sets;
 }
 
 bool *BKE_sculpt_hide_poly_ensure(Object *ob)
@@ -2459,7 +2478,12 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob, bool update_sculptverts
 {
   Mesh *me = BKE_object_get_original_mesh(ob);
 
+#ifdef WITH_PBVH_CACHE
   PBVH *pbvh = BKE_pbvh_get_or_free_cached(ob, me, PBVH_BMESH);
+#else
+  PBVH *pbvh = nullptr;
+#endif
+
   if (!pbvh) {
     pbvh = ob->sculpt->pbvh = BKE_pbvh_new(PBVH_BMESH);
     BKE_pbvh_set_bmesh(pbvh, ob->sculpt->bm);
@@ -2503,7 +2527,9 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob, bool update_sculptverts
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
   pbvh_show_face_sets_set(pbvh, false);
 
+#ifdef WITH_PBVH_CACHE
   BKE_pbvh_set_cached(ob, pbvh);
+#endif
 
   return pbvh;
 }
@@ -2514,7 +2540,11 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
   Mesh *me = BKE_object_get_original_mesh(ob);
   const int looptris_num = poly_to_tri_count(me->totpoly, me->totloop);
 
+#ifdef WITH_PBVH_CACHE
   PBVH *pbvh = BKE_pbvh_get_or_free_cached(ob, me, PBVH_FACES);
+#else
+  PBVH *pbvh = nullptr;
+#endif
 
   if (!ss->pmap && pbvh) {
     ss->pmap = BKE_pbvh_get_pmap(pbvh);
@@ -2577,7 +2607,9 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool
     MEM_freeN(v_cos);
   }
 
+#ifdef WITH_PBVH_CACHE
   BKE_pbvh_set_cached(ob, pbvh);
+#endif
 
   return pbvh;
 }
@@ -2590,7 +2622,11 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
   BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
 
   Mesh *base_mesh = BKE_mesh_from_object(ob);
+#ifdef WITH_PBVH_CACHE
   PBVH *pbvh = BKE_pbvh_get_or_free_cached(ob, base_mesh, PBVH_GRIDS);
+#else
+  PBVH *pbvh = nullptr;
+#endif
 
   int totgridfaces = base_mesh->totpoly * (key.grid_size - 1) * (key.grid_size - 1);
   MEM_SAFE_FREE(ss->face_areas);
@@ -2639,7 +2675,9 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
   pbvh_show_face_sets_set(pbvh, ob->sculpt->show_face_sets);
 
+#ifdef WITH_PBVH_CACHE
   BKE_pbvh_set_cached(ob, pbvh);
+#endif
 
   return pbvh;
 }
@@ -2681,6 +2719,7 @@ static void init_sculptvert_layer_faces(SculptSession *ss, PBVH *pbvh, int totve
     copy_v3_v3(mv->origco, ss->mvert[i].co);
 
     BKE_pbvh_update_vert_boundary_faces(ss->face_sets,
+                                        ss->hide_poly,
                                         ss->mvert,
                                         ss->medge,
                                         ss->mloop,
@@ -2776,7 +2815,12 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 
     if (is_dyntopo) {
       /* check if the pbvh cache has a valid bmesh */
+#  ifdef WITH_PBVH_CACHE
       pbvh = BKE_pbvh_get_or_free_cached(ob, mesh_orig, PBVH_BMESH);
+#  else
+      pbvh = nullptr;
+#  endif
+
       BMesh *bm = NULL;
 
       if (pbvh) {
@@ -3154,8 +3198,7 @@ static bool sculpt_attribute_create(SculptSession *ss,
                                     const char *name,
                                     SculptAttribute *out,
                                     const SculptAttributeParams *params,
-                                    PBVHType pbvhtype,
-                                    bool flat_array_for_bmesh)
+                                    PBVHType pbvhtype)
 {
   Mesh *me = BKE_object_get_original_mesh(ob);
 
@@ -3168,10 +3211,10 @@ static bool sculpt_attribute_create(SculptSession *ss,
   BLI_strncpy_utf8(out->name, name, sizeof(out->name));
 
   /* Force non-CustomData simple_array mode if not PBVH_FACES. */
-  if (pbvhtype == PBVH_GRIDS || (pbvhtype == PBVH_BMESH && flat_array_for_bmesh)) {
+  if (pbvhtype == PBVH_GRIDS) {
     if (permanent) {
       printf(
-          "%s: error: tried to make permanent customdata in multires or bmesh mode; will make "
+          "%s: error: tried to make permanent customdata in multires; will make "
           "local "
           "array "
           "instead.\n",
@@ -3303,7 +3346,7 @@ static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
     if (cdata) {
       int layer_index = CustomData_get_named_layer_index(cdata, attr->proptype, attr->name);
 
-      if (layer_index != -1 && attr->data_for_bmesh) {
+      if (layer_index != -1) {
         attr->bmesh_cd_offset = cdata->layers[layer_index].offset;
       }
       else {
@@ -3320,8 +3363,7 @@ static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
                             attr->name,
                             attr,
                             &attr->params,
-                            BKE_pbvh_type(ss->pbvh),
-                            true);
+                            BKE_pbvh_type(ss->pbvh));
   }
 
   return bad;
@@ -3389,7 +3431,10 @@ SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
   SculptAttribute *attr = sculpt_get_cached_layer(ss, domain, proptype, name);
 
   if (attr) {
-    sculpt_attr_update(ob, attr);
+    if (sculpt_attr_update(ob, attr)) {
+      sculpt_attribute_update_refs(ob);
+    }
+
     return attr;
   }
 
@@ -3436,8 +3481,7 @@ static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
                                                    eCustomDataType proptype,
                                                    const char *name,
                                                    const SculptAttributeParams *params,
-                                                   PBVHType pbvhtype,
-                                                   bool flat_array_for_bmesh)
+                                                   PBVHType pbvhtype)
 {
   SculptSession *ss = ob->sculpt;
   SculptAttribute *attr = BKE_sculpt_attribute_get(ob, domain, proptype, name);
@@ -3449,8 +3493,7 @@ static SculptAttribute *sculpt_attribute_ensure_ex(Object *ob,
   attr = sculpt_alloc_attr(ss);
 
   /* Create attribute. */
-  sculpt_attribute_create(
-      ss, ob, domain, proptype, name, attr, params, pbvhtype, flat_array_for_bmesh);
+  sculpt_attribute_create(ss, ob, domain, proptype, name, attr, params, pbvhtype);
   sculpt_attribute_update_refs(ob);
 
   return attr;
@@ -3465,7 +3508,7 @@ SculptAttribute *BKE_sculpt_attribute_ensure(Object *ob,
   SculptAttributeParams temp_params = *params;
 
   return sculpt_attribute_ensure_ex(
-      ob, domain, proptype, name, &temp_params, BKE_pbvh_type(ob->sculpt->pbvh), true);
+      ob, domain, proptype, name, &temp_params, BKE_pbvh_type(ob->sculpt->pbvh));
 }
 
 static void sculptsession_bmesh_attr_update_internal(Object *ob)
@@ -3492,16 +3535,15 @@ static void sculptsession_bmesh_add_layers(Object *ob)
   SculptAttributeParams params = {0};
 
   ss->attrs.sculpt_vert = sculpt_attribute_ensure_ex(
-      ob, ATTR_DOMAIN_POINT, CD_DYNTOPO_VERT, "", &params, PBVH_BMESH, false);
+      ob, ATTR_DOMAIN_POINT, CD_DYNTOPO_VERT, "", &params, PBVH_BMESH);
 
   if (!ss->attrs.face_areas) {
     ss->attrs.face_areas = sculpt_attribute_ensure_ex(ob,
                                                       ATTR_DOMAIN_FACE,
-                                                      CD_PROP_FLOAT,
+                                                      CD_PROP_FLOAT2,
                                                       SCULPT_ATTRIBUTE_NAME(face_areas),
                                                       &params,
-                                                      PBVH_BMESH,
-                                                      false);
+                                                      PBVH_BMESH);
   }
 
   ss->attrs.dyntopo_node_id_vertex = sculpt_attribute_ensure_ex(
@@ -3510,8 +3552,7 @@ static void sculptsession_bmesh_add_layers(Object *ob)
       CD_PROP_INT32,
       SCULPT_ATTRIBUTE_NAME(dyntopo_node_id_vertex),
       &params,
-      PBVH_BMESH,
-      false);
+      PBVH_BMESH);
 
   ss->attrs.dyntopo_node_id_face = sculpt_attribute_ensure_ex(
       ob,
@@ -3519,8 +3560,7 @@ static void sculptsession_bmesh_add_layers(Object *ob)
       CD_PROP_INT32,
       SCULPT_ATTRIBUTE_NAME(dyntopo_node_id_face),
       &params,
-      PBVH_BMESH,
-      false);
+      PBVH_BMESH);
 }
 
 void BKE_sculpt_attributes_destroy_temporary_stroke(Object *ob)
@@ -3560,7 +3600,7 @@ static void update_bmesh_offsets(Mesh *me, SculptSession *ss)
   }
 
   ss->cd_vert_mask_offset = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
-  ss->cd_faceset_offset = CustomData_get_offset(&ss->bm->vdata, CD_SCULPT_FACE_SETS);
+  ss->cd_faceset_offset = CustomData_get_offset(&ss->bm->pdata, CD_SCULPT_FACE_SETS);
 
   if (ss->attrs.face_areas) {
     ss->cd_face_areas = ss->attrs.face_areas->bmesh_cd_offset;

@@ -1837,22 +1837,24 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
         }
       }
 
-      int fset = BKE_pbvh_do_fset_symmetry(
-          BM_ELEM_CD_GET_INT(e->l->f, cd_faceset_offset), bound_symmetry, v2->co);
-
       if (e->l->f->len > 3) {
         newflag |= SCULPTVERT_NEED_TRIANGULATE;
       }
 
-      bool ok = true;
-      for (int i = 0; i < BLI_array_len(fsets); i++) {
-        if (fsets[i] == fset) {
-          ok = false;
-        }
-      }
+      if (cd_faceset_offset != -1) {
+        int fset = BKE_pbvh_do_fset_symmetry(
+            BM_ELEM_CD_GET_INT(e->l->f, cd_faceset_offset), bound_symmetry, v2->co);
 
-      if (ok) {
-        BLI_array_append(fsets, fset);
+        bool ok = true;
+        for (int i = 0; i < BLI_array_len(fsets); i++) {
+          if (fsets[i] == fset) {
+            ok = false;
+          }
+        }
+
+        if (ok) {
+          BLI_array_append(fsets, fset);
+        }
       }
 
       // also check e->l->radial_next, in case we are not manifold
@@ -1865,19 +1867,21 @@ void bke_pbvh_update_vert_boundary(int cd_sculpt_vert,
         curv += th;
         totcurv += 1.0f;
 
-        // fset = abs(BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset));
-        int fset2 = BKE_pbvh_do_fset_symmetry(
-            BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset), bound_symmetry, v2->co);
+        if (cd_faceset_offset != -1) {
+          // fset = abs(BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset));
+          int fset2 = BKE_pbvh_do_fset_symmetry(
+              BM_ELEM_CD_GET_INT(e->l->radial_next->f, cd_faceset_offset), bound_symmetry, v2->co);
 
-        bool ok2 = true;
-        for (int i = 0; i < BLI_array_len(fsets); i++) {
-          if (fsets[i] == fset2) {
-            ok2 = false;
+          bool ok2 = true;
+          for (int i = 0; i < BLI_array_len(fsets); i++) {
+            if (fsets[i] == fset2) {
+              ok2 = false;
+            }
           }
-        }
 
-        if (ok2) {
-          BLI_array_append(fsets, fset2);
+          if (ok2) {
+            BLI_array_append(fsets, fset2);
+          }
         }
 
         if (e->l->radial_next->f->len > 3) {
@@ -2284,7 +2288,7 @@ ATTR_NO_OPT void BKE_pbvh_build_bmesh(PBVH *pbvh,
     BMLoop *l_iter = l_first;
 
     // check for currupted faceset
-    if (BM_ELEM_CD_GET_INT(f, pbvh->cd_faceset_offset) == 0) {
+    if (pbvh->cd_faceset_offset != -1 && BM_ELEM_CD_GET_INT(f, pbvh->cd_faceset_offset) == 0) {
       BM_ELEM_CD_SET_INT(f, pbvh->cd_faceset_offset, 1);
     }
 

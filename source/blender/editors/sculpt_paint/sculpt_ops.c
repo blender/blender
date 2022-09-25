@@ -398,8 +398,10 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   /* This function expects a fully evaluated depsgraph. */
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 
+  BKE_sculptsession_update_attr_refs(ob);
+
   SculptSession *ss = ob->sculpt;
-  if (ss->face_sets) {
+  if (ss->face_sets || (ss->bm && ss->cd_faceset_offset != -1)) {
     /* Here we can detect geometry that was just added to Sculpt Mode as it has the
      * SCULPT_FACE_SET_NONE assigned, so we can create a new Face Set for it. */
     /* In sculpt mode all geometry that is assigned to SCULPT_FACE_SET_NONE is considered as not
@@ -410,10 +412,16 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
     /* TODO(pablodp606): Based on this we can improve the UX in future tools for creating new
      * objects, like moving the transform pivot position to the new area or masking existing
      * geometry. */
+
+    SCULPT_face_random_access_ensure(ss);
     const int new_face_set = SCULPT_face_set_next_available_get(ss);
+
     for (int i = 0; i < ss->totfaces; i++) {
-      if (ss->face_sets[i] == SCULPT_FACE_SET_NONE) {
-        ss->face_sets[i] = new_face_set;
+      PBVHFaceRef face = BKE_pbvh_index_to_face(ss->pbvh, i);
+
+      int fset = SCULPT_face_set_get(ss, face);
+      if (fset == SCULPT_FACE_SET_NONE) {
+        SCULPT_face_set_set(ss, face, new_face_set);
       }
     }
   }

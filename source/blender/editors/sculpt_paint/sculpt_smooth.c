@@ -1038,15 +1038,15 @@ void vec_transform(float r_dir2[3], float no[3], int bits)
  * Naturally converges to a quad-like structure. Builds a simple cross
  * field combining either mesh curvature principle direction or
    stroke direction, and edge boundaries. */
-void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
-                                        float avg[3],
-                                        float direction[3],
-                                        BMVert *v,
-                                        float projection,
-                                        bool check_fsets,
-                                        int cd_temp,
-                                        int cd_sculpt_vert,
-                                        bool do_origco)
+ATTR_NO_OPT void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
+                                                    float avg[3],
+                                                    float direction[3],
+                                                    BMVert *v,
+                                                    float projection,
+                                                    bool check_fsets,
+                                                    int cd_temp,
+                                                    int cd_sculpt_vert,
+                                                    bool do_origco)
 {
   float avg_co[3] = {0.0f, 0.0f, 0.0f};
   float tot_co = 0.0f;

@@ -152,7 +152,7 @@ struct ReliefOptimizer {
                   const float (*nos)[3],
                   const MVert *mvert_,
                   int totvert_,
-                  MEdge *medge_,
+                  const MEdge *medge_,
                   int totedge_,
                   MPropCol *_debugColors[MAX_BASSRELIEF_DEBUG_COLORS],
                   const MLoopTri *_mlooptri,
@@ -1241,7 +1241,7 @@ struct BassReliefCalcData {
 
   struct Object *ob; /* object we are applying shrinkwrap to */
 
-  struct MVert *vert;    /* Array of verts being projected (to fetch normals or other data) */
+  const struct MVert *vert;    /* Array of verts being projected (to fetch normals or other data) */
   float (*vertexCos)[3]; /* vertexs being shrinkwraped */
   const float (*vertexNos)[3]; /* vertexs being shrinkwraped */
   int numVerts;
@@ -1299,6 +1299,7 @@ bool BKE_bassrelief_init_tree(
   }
 
   data->mesh = mesh;
+  data->mpoly = mesh->polys().data();
 
   if (mesh->totpoly <= 0) {
     return false;
@@ -1942,7 +1943,7 @@ ATTR_NO_OPT void BKE_bassrelief_compute_smooth_normal(const struct BassReliefTre
   const MLoopTri *tri = &treeData->looptri[looptri_idx];
 
   /* Interpolate smooth normals if enabled. */
-  if ((tree->mesh->mpoly[tri->poly].flag & ME_SMOOTH) != 0) {
+  if ((tree->mpoly[tri->poly].flag & ME_SMOOTH) != 0) {
     const MVert *verts[] = {
         &treeData->vert[treeData->loop[tri->tri[0]].v],
         &treeData->vert[treeData->loop[tri->tri[1]].v],
@@ -2122,7 +2123,7 @@ void bassReliefModifier_deform(BassReliefModifierData *smd,
 
   if (mesh != nullptr) {
     /* Setup arrays to get vertexs positions, normals and deform weights */
-    calc.vert = mesh->mvert;
+    calc.vert = mesh->verts().data();
   }
 
   if (!calc.ropt && (smd->shrinkOpts & MOD_BASSRELIEF_OPTIMIZE)) {
@@ -2131,14 +2132,14 @@ void bassReliefModifier_deform(BassReliefModifierData *smd,
 
     calc.ropt = new ReliefOptimizer(vertexCos,
                                     calc.vertexNos,
-                                    mesh->mvert,
+                                    mesh->verts().data(),
                                     mesh->totvert,
-                                    mesh->medge,
+                                    mesh->edges().data(),
                                     mesh->totedge,
                                     calc.debugColors,
                                     mlooptri,
                                     totlooptri,
-                                    mesh->mloop,
+                                    mesh->loops().data(),
                                     smd->detailScale,
                                     smd->boundSmoothFalloff,
                                     smd->boundSmoothSteps);

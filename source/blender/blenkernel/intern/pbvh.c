@@ -626,20 +626,20 @@ void BKE_pbvh_set_sculpt_verts(PBVH *pbvh, MSculptVert *sverts)
 }
 
 ATTR_NO_OPT void BKE_pbvh_build_mesh(PBVH *pbvh,
-                         Mesh *mesh,
-                         const MPoly *mpoly,
-                         const MLoop *mloop,
-                         MVert *verts,
-                         MSculptVert *msculptverts,
-                         int totvert,
-                         struct CustomData *vdata,
-                         struct CustomData *ldata,
-                         struct CustomData *pdata,
-                         const MLoopTri *looptri,
-                         int looptri_num,
-                         bool fast_draw,
-                         float *face_areas,
-                         SculptPMap *pmap)
+                                     Mesh *mesh,
+                                     const MPoly *mpoly,
+                                     const MLoop *mloop,
+                                     MVert *verts,
+                                     MSculptVert *msculptverts,
+                                     int totvert,
+                                     struct CustomData *vdata,
+                                     struct CustomData *ldata,
+                                     struct CustomData *pdata,
+                                     const MLoopTri *looptri,
+                                     int looptri_num,
+                                     bool fast_draw,
+                                     float *face_areas,
+                                     SculptPMap *pmap)
 {
   BBC *prim_bbc = NULL;
   BB cb;
@@ -778,7 +778,9 @@ PBVH *BKE_pbvh_new(PBVHType type)
 
 void BKE_pbvh_free(PBVH *pbvh)
 {
+#ifdef WITH_PBVH_CACHE
   BKE_pbvh_cache_remove(pbvh);
+#endif
 
   for (int i = 0; i < pbvh->totnode; i++) {
     PBVHNode *node = &pbvh->nodes[i];
@@ -4252,7 +4254,7 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
       for (int i = 0; i < (int)node->totprim; i++) {
         const MLoopTri *lt = &pbvh->looptri[node->prim_indices[i]];
 
-        if (pbvh->face_sets[lt->poly] < 0) {
+        if (pbvh->hide_poly && pbvh->hide_poly[lt->poly]) {
           /* Skip hidden faces. */
           continue;
         }
@@ -4263,7 +4265,7 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
       for (int i = 0; i < (int)node->totprim; i++) {
         const MLoopTri *lt = &pbvh->looptri[node->prim_indices[i]];
 
-        if (pbvh->face_sets[lt->poly] < 0) {
+        if (pbvh->hide_poly && pbvh->hide_poly[lt->poly]) {
           /* Skip hidden faces. */
           continue;
         }
@@ -4379,7 +4381,7 @@ void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
     const MPoly *mp = pbvh->mpoly + map->indices[i];
     const MLoop *ml = pbvh->mloop + mp->loopstart;
 
-    if (pbvh->face_sets[map->indices[i]] < 0) {
+    if (pbvh->hide_poly && pbvh->hide_poly[map->indices[i]]) {
       /* Skip connectivity from hidden faces. */
       continue;
     }
@@ -4640,6 +4642,7 @@ void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
 }
 
 void BKE_pbvh_update_vert_boundary_faces(const int *face_sets,
+                                         const bool *hide_poly,
                                          const MVert *mvert,
                                          const MEdge *medge,
                                          const MLoop *mloop,
@@ -4687,13 +4690,10 @@ void BKE_pbvh_update_vert_boundary_faces(const int *face_sets,
       }
     }
 
-    int fset = face_sets ? abs(face_sets[f_i]) : -1;
+    int fset = face_sets ? abs(face_sets[f_i]) : 1;
 
-    if (fset > 0) {
+    if (!hide_poly || !hide_poly[f_i]) {
       visible = true;
-    }
-    else {
-      fset = -fset;
     }
 
     if (i > 0 && fset != last_fset) {
@@ -4943,9 +4943,11 @@ void BKE_pbvh_invalidate_cache(Object *ob)
 
   PBVH *pbvh = BLI_ghash_lookup(cached_pbvhs, key);
 
+#ifdef WITH_PBVH_CACHE
   if (pbvh) {
     BKE_pbvh_cache_remove(pbvh);
   }
+#endif
 }
 
 PBVH *BKE_pbvh_get_or_free_cached(Object *ob, Mesh *me, PBVHType pbvh_type)
@@ -5022,7 +5024,9 @@ void BKE_pbvh_set_cached(Object *ob, PBVH *pbvh)
     BLI_ghash_insert(cached_pbvhs, BLI_strdup(key), pbvh);
   }
 
+#ifdef WITH_PBVH_CACHE
   BKE_pbvh_cache(BKE_object_get_original_mesh(ob_orig), pbvh);
+#endif
 }
 
 struct SculptPMap *BKE_pbvh_get_pmap(PBVH *pbvh)
@@ -5167,7 +5171,7 @@ bool BKE_pbvh_pmap_release(SculptPMap *pmap)
 
   pmap->refcount--;
 
-  //if (pmap->refcount < 0) {
+  // if (pmap->refcount < 0) {
   //  printf("%s: error!\n", __func__);
   //}
 

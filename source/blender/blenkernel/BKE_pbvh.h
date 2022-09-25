@@ -88,6 +88,8 @@ typedef struct PBVHTriBuf {
   float min[3], max[3];
 } PBVHTriBuf;
 
+//#define WITH_PBVH_CACHE
+
 struct BMLog;
 struct BMesh;
 struct BMVert;
@@ -1146,6 +1148,7 @@ int BKE_pbvh_do_fset_symmetry(int fset, const int symflag, const float *co);
 bool BKE_pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v);
 
 void BKE_pbvh_update_vert_boundary_faces(const int *face_sets,
+                                         const bool *hide_poly,
                                          const struct MVert *mvert,
                                          const struct MEdge *medge,
                                          const struct MLoop *mloop,
@@ -1267,10 +1270,14 @@ bool BKE_pbvh_cache_is_valid(const struct Object *ob,
                              const struct Mesh *me,
                              const PBVH *pbvh,
                              int pbvh_type);
+
+#ifdef WITH_PBVH_CACHE
 bool BKE_pbvh_cache(const struct Mesh *me, PBVH *pbvh);
 PBVH *BKE_pbvh_get_or_free_cached(struct Object *ob, struct Mesh *me, PBVHType pbvh_type);
 void BKE_pbvh_invalidate_cache(struct Object *ob);
 void BKE_pbvh_set_cached(struct Object *ob, PBVH *pbvh);
+#endif
+
 void BKE_pbvh_set_face_areas(PBVH *pbvh, float *face_areas);
 void BKE_pbvh_set_sculpt_verts(PBVH *pbvh, struct MSculptVert *sverts);
 void BKE_pbvh_set_pmap(PBVH *pbvh, SculptPMap *pmap);
@@ -1287,6 +1294,7 @@ bool BKE_pbvh_pmap_release(SculptPMap *pmap);
 void BKE_pbvh_clear_cache(PBVH *preserve);
 
 void BKE_pbvh_need_full_render_set(PBVH *pbvh, bool state);
+
 #ifdef __cplusplus
 }
 #endif

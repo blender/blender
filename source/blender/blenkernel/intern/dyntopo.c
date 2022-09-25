@@ -1362,7 +1362,10 @@ void BKE_pbvh_bmesh_remove_vertex(PBVH *pbvh, BMVert *v, bool log_vert)
   }
 }
 
-ATTR_NO_OPT void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool force_tree_walk)
+ATTR_NO_OPT void BKE_pbvh_bmesh_add_face(PBVH *pbvh,
+                                         struct BMFace *f,
+                                         bool log_face,
+                                         bool force_tree_walk)
 {
   bm_logstack_push();
 
@@ -4743,6 +4746,12 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
         }
 
         if (!e || bm_elem_is_free((BMElem *)e, BM_EDGE)) {
+          break;
+        }
+
+        if (bm_elem_is_free((BMElem *)e->v1, BM_VERT) ||
+            bm_elem_is_free((BMElem *)e->v2, BM_VERT)) {
+          printf("%s: error!\n");
           break;
         }
 

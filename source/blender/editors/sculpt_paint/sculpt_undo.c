@@ -2450,9 +2450,11 @@ static void sculpt_undo_push_begin_ex(Object *ob, const char *name, bool no_firs
     }
   }
 
+#ifdef WITH_PBVH_CACHE
   if (ss->pbvh) {
     BKE_pbvh_set_cached(ob, ss->pbvh);
   }
+#endif
 }
 
 void SCULPT_undo_push_begin_ex(Object *ob, const char *name)

@@ -1307,6 +1307,10 @@ bool SCULPT_vertex_has_unique_face_set(const SculptSession *ss, PBVHVertRef vert
 
 int SCULPT_face_set_next_available_get(SculptSession *ss)
 {
+  if (ss->cd_faceset_offset == -1) {
+    return 0;
+  }
+
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
     case PBVH_GRIDS: {
@@ -1331,7 +1335,7 @@ int SCULPT_face_set_next_available_get(SculptSession *ss)
       }
 
       BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
-        int fset = abs(BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset));
+        int fset = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
         if (fset > next_face_set) {
           next_face_set = fset;
         }
@@ -2019,6 +2023,7 @@ static void grids_update_boundary_flags(const SculptSession *ss, PBVHVertRef ver
 static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertRef vertex)
 {
   BKE_pbvh_update_vert_boundary_faces(ss->face_sets,
+                                      ss->hide_poly,
                                       ss->mvert,
                                       ss->medge,
                                       ss->mloop,
@@ -4967,6 +4972,11 @@ static float sculpt_topology_automasking_mask_cb(PBVHVertRef vertex, void *vdata
   return 1.0f - SCULPT_vertex_mask_get(state->ss, vertex);
 }
 
+static float sculpt_null_mask_cb(PBVHVertRef vertex, void *vdata)
+{
+  return 1.0f;
+}
+
 bool SCULPT_dyntopo_automasking_init(const SculptSession *ss,
                                      Sculpt *sd,
                                      const Brush *br,
@@ -4994,8 +5004,8 @@ bool SCULPT_dyntopo_automasking_init(const SculptSession *ss,
       return true;
     }
     else {
-      *r_mask_cb = NULL;
       *r_mask_cb_data = NULL;
+      *r_mask_cb = sculpt_null_mask_cb;
       return false;
     }
   }
@@ -8984,42 +8994,37 @@ void SCULPT_boundary_info_ensure(Object *object)
 {
   SculptSession *ss = object->sculpt;
 
-  // PBVH_BMESH now handles boundaries itself
-  if (ss->bm) {
+  /* PBVH_BMESH now handles boundaries itself. */
+  if (ss->bm || ss->vertex_info.boundary) {
     return;
   }
-  else {
-    if (ss->vertex_info.boundary) {
-      return;
-    }
 
-    Mesh *base_mesh = BKE_mesh_from_object(object);
-    const MEdge *edges = BKE_mesh_edges(base_mesh);
-    const MPoly *polys = BKE_mesh_polys(base_mesh);
-    const MLoop *loops = BKE_mesh_loops(base_mesh);
+  Mesh *base_mesh = BKE_mesh_from_object(object);
+  const MEdge *edges = BKE_mesh_edges(base_mesh);
+  const MPoly *polys = BKE_mesh_polys(base_mesh);
+  const MLoop *loops = BKE_mesh_loops(base_mesh);
 
-    ss->vertex_info.boundary = BLI_BITMAP_NEW(base_mesh->totvert, "Boundary info");
-    int *adjacent_faces_edge_count = MEM_calloc_arrayN(
-        base_mesh->totedge, sizeof(int), "Adjacent face edge count");
+  ss->vertex_info.boundary = BLI_BITMAP_NEW(base_mesh->totvert, "Boundary info");
+  int *adjacent_faces_edge_count = MEM_calloc_arrayN(
+      base_mesh->totedge, sizeof(int), "Adjacent face edge count");
 
-    for (int p = 0; p < base_mesh->totpoly; p++) {
-      const MPoly *poly = &polys[p];
-      for (int l = 0; l < poly->totloop; l++) {
-        const MLoop *loop = &loops[l + poly->loopstart];
-        adjacent_faces_edge_count[loop->e]++;
-      }
-
-      for (int e = 0; e < base_mesh->totedge; e++) {
-        if (adjacent_faces_edge_count[e] < 2) {
-          const MEdge *edge = &edges[e];
-          BLI_BITMAP_SET(ss->vertex_info.boundary, edge->v1, true);
-          BLI_BITMAP_SET(ss->vertex_info.boundary, edge->v2, true);
-        }
-
-        MEM_freeN(adjacent_faces_edge_count);
-      }
+  for (int p = 0; p < base_mesh->totpoly; p++) {
+    const MPoly *poly = &polys[p];
+    for (int l = 0; l < poly->totloop; l++) {
+      const MLoop *loop = &loops[l + poly->loopstart];
+      adjacent_faces_edge_count[loop->e]++;
     }
   }
+
+  for (int e = 0; e < base_mesh->totedge; e++) {
+    if (adjacent_faces_edge_count[e] < 2) {
+      const MEdge *edge = &edges[e];
+      BLI_BITMAP_SET(ss->vertex_info.boundary, edge->v1, true);
+      BLI_BITMAP_SET(ss->vertex_info.boundary, edge->v2, true);
+    }
+  }
+
+  MEM_freeN(adjacent_faces_edge_count);
 }
 
 void SCULPT_fake_neighbors_ensure(Sculpt *sd, Object *ob, const float max_dist)
@@ -9445,7 +9450,7 @@ SculptAttribute *SCULPT_stroke_id_attribute_ensure(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
 
-  if (ss->attrs.stroke_id) {
+  if (!ss->attrs.stroke_id) {
     SculptAttributeParams params = {0};
 
     ss->attrs.stroke_id = BKE_sculpt_attribute_ensure(

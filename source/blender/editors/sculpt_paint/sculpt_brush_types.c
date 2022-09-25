@@ -4033,6 +4033,7 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd,
     ss->attrs.rake_temp = BKE_sculpt_attribute_ensure(
         ob, ATTR_DOMAIN_POINT, CD_PROP_COLOR, SCULPT_ATTRIBUTE_NAME(rake_temp), &params);
   }
+
   int cd_temp = ss->attrs.rake_temp->bmesh_cd_offset;
 
 #ifdef SCULPT_DIAGONAL_EDGE_MARKS

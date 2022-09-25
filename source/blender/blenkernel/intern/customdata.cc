@@ -2826,7 +2826,7 @@ ATTR_NO_OPT static void customData_update_offsets(CustomData *data)
   // sort by alignment
   int aligns[] = {16, 8, 4, 2, 1};
   BLI_bitmap *donemap = BLI_BITMAP_NEW_ALLOCA(data->totlayer);
-  int alignment = 0;
+  int alignment = 1;
 
   // do large structs first
   for (int j = 0; j < data->totlayer; j++) {
@@ -2835,22 +2835,23 @@ ATTR_NO_OPT static void customData_update_offsets(CustomData *data)
 
     /* Float vectors get 4-byte alignment. */
     if (ELEM(data->layers[j].type, CD_PROP_COLOR, CD_PROP_FLOAT2, CD_PROP_FLOAT3)) {
-      alignment = 4;
+      alignment = max_ii(alignment, 4);
     }
     else if (size > 4) {
-      alignment = 8;
+      alignment = max_ii(alignment, 8);
     }
     else if (size > 2) {
-      alignment = 4;
+      alignment = max_ii(alignment, 4);
     }
     else if (size > 1) {
-      alignment = 2;
+      alignment = max_ii(alignment, 2);
     }
     else {
-      alignment = 1;
+      alignment = max_ii(alignment, 1);
     }
 
-    if (size > 16 || size == 10) {
+    /* Detect large structures */
+    if (size > 8) {
       BLI_BITMAP_SET(donemap, j, true);
 
       // align to 8-byte boundary

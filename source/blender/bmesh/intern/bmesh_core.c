@@ -29,6 +29,12 @@
 
 #include <stdarg.h>
 
+#if 0
+#ifdef NDEBUG
+#  undef NDEBUG
+#endif
+#endif
+
 /* use so valgrinds memcheck alerts us when undefined index is used.
  * TESTING ONLY! */
 // #define USE_DEBUG_INDEX_MEMCHECK
@@ -778,7 +784,7 @@ int bmesh_elem_check(void *element, const char htype)
  * low level function, only frees the vert,
  * doesn't change or adjust surrounding geometry
  */
-static void bm_kill_only_vert(BMesh *bm, BMVert *v)
+void bm_kill_only_vert(BMesh *bm, BMVert *v)
 {
   bm->totvert--;
   bm->elem_index_dirty |= BM_VERT;
@@ -2054,7 +2060,7 @@ static char *get_err_str(int err)
   return buf;
 }
 
-void bm_local_obj_free(char *str, char *fixed)
+static void bm_local_obj_free(char *str, char *fixed)
 {
   if (str != fixed) {
     MEM_freeN(str);
@@ -2063,7 +2069,7 @@ void bm_local_obj_free(char *str, char *fixed)
 
 #define LOCAL_OBJ_SIZE 512
 
-static char *obj_append_line(char *line, char *str, char *fixed, int *size, int *i)
+static char *obj_append_line(const char *line, char *str, char *fixed, int *size, int *i)
 {
   int len = (int)strlen(line);
 
@@ -2788,14 +2794,15 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
 
       /* kill face */
       while (f->l_first) {
-        BMLoop *l = f->l_first;
+        BMLoop *l2 = f->l_first;
 
-        l->prev->next = l->next;
-        f->l_first = l->next;
+        l2->prev->next = l2->next;
+        l2->next->prev = l2->prev;
+        f->l_first = l2->next;
 
-        bm_kill_only_loop(bm, l);
+        bm_kill_only_loop(bm, l2);
 
-        if (f->l_first == l) {
+        if (f->l_first == l2) {
           f->l_first = NULL;
         }
       }
