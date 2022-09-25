@@ -415,7 +415,7 @@ static void gpencil_load_array_strokes(tGPDfill *tgpf)
       /* Create the extension strokes only for Lines. */
       if (tgpf->fill_extend_mode == GP_FILL_EMODE_EXTEND) {
         /* Extend start. */
-        bGPDspoint *pt0 = &gps->points[1];
+        // bGPDspoint *pt0 = &gps->points[1]; /* UNUSED. */
         bGPDspoint *pt1 = &gps->points[0];
         stroke->gps_ext_a = BKE_gpencil_stroke_new(gps->mat_nr, 2, gps->thickness);
         stroke->gps_ext_a->flag |= GP_STROKE_NOFILL | GP_STROKE_TAG;
@@ -432,7 +432,7 @@ static void gpencil_load_array_strokes(tGPDfill *tgpf)
         pt->pressure = 1.0f;
 
         /* Extend end. */
-        pt0 = &gps->points[gps->totpoints - 2];
+        // pt0 = &gps->points[gps->totpoints - 2]; /* UNUSED. */
         pt1 = &gps->points[gps->totpoints - 1];
         stroke->gps_ext_b = BKE_gpencil_stroke_new(gps->mat_nr, 2, gps->thickness);
         stroke->gps_ext_b->flag |= GP_STROKE_NOFILL | GP_STROKE_TAG;
