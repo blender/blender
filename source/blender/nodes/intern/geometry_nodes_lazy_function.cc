@@ -535,6 +535,12 @@ class LazyFunctionForViewerNode : public LazyFunction {
   {
     GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
     BLI_assert(user_data != nullptr);
+    if (user_data->modifier_data == nullptr) {
+      return;
+    }
+    if (user_data->modifier_data->eval_log == nullptr) {
+      return;
+    }
 
     GeometrySet geometry = params.extract_input<GeometrySet>(0);
 
