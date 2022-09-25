@@ -373,7 +373,7 @@ int BezierCurveShader::shade(Stroke &stroke) const
   ++v;
   for (vend = stroke.strokeVerticesEnd(); v != vend; ++v) {
     if (!((fabs(v->x() - (previous)->x()) < M_EPSILON) &&
-          ((fabs(v->y() - (previous)->y()) < M_EPSILON)))) {
+          (fabs(v->y() - (previous)->y()) < M_EPSILON))) {
       data.emplace_back(v->x(), v->y());
     }
     previous = v;
@@ -395,7 +395,7 @@ int BezierCurveShader::shade(Stroke &stroke) const
     p = segmentsVertices.begin();
     ++p;
     for (pend = segmentsVertices.end(); p != pend; ++p) {
-      CurveVertices.push_back((*p));
+      CurveVertices.push_back(*p);
     }
   }
 
@@ -660,7 +660,7 @@ int TipRemoverShader::shade(Stroke &stroke) const
 
   vector<StrokeVertex *>::iterator sv, svend;
   for (sv = verticesToRemove.begin(), svend = verticesToRemove.end(); sv != svend; ++sv) {
-    stroke.RemoveVertex((*sv));
+    stroke.RemoveVertex(*sv);
   }
 
   // Resample so that our new stroke have the same number of vertices than before

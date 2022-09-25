@@ -183,7 +183,7 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
 
   /* Better remap to NULL than not remapping at all,
    * then we can handle it as a regular remap-to-NULL case. */
-  if ((cb_flag & IDWALK_CB_NEVER_SELF)) {
+  if (cb_flag & IDWALK_CB_NEVER_SELF) {
     id_remapper_options |= ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF;
   }
 

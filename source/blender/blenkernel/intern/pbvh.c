@@ -2168,8 +2168,8 @@ bool ray_face_intersection_tri(const float ray_start[3],
                                float *depth)
 {
   float depth_test;
-  if ((isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t1, t2, &depth_test, NULL) &&
-       (depth_test < *depth))) {
+  if (isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t1, t2, &depth_test, NULL) &&
+      (depth_test < *depth)) {
     *depth = depth_test;
     return true;
   }
@@ -2214,12 +2214,12 @@ bool ray_face_nearest_quad(const float ray_start[3],
   float dist_sq_test;
   float co[3], depth_test;
 
-  if (((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
-            ray_start, ray_normal, t0, t1, t2, co, &depth_test)) < *dist_sq)) {
+  if ((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
+           ray_start, ray_normal, t0, t1, t2, co, &depth_test)) < *dist_sq) {
     *dist_sq = dist_sq_test;
     *depth = depth_test;
-    if (((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
-              ray_start, ray_normal, t0, t2, t3, co, &depth_test)) < *dist_sq)) {
+    if ((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
+             ray_start, ray_normal, t0, t2, t3, co, &depth_test)) < *dist_sq) {
       *dist_sq = dist_sq_test;
       *depth = depth_test;
     }
@@ -2240,8 +2240,8 @@ bool ray_face_nearest_tri(const float ray_start[3],
   float dist_sq_test;
   float co[3], depth_test;
 
-  if (((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
-            ray_start, ray_normal, t0, t1, t2, co, &depth_test)) < *dist_sq)) {
+  if ((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
+           ray_start, ray_normal, t0, t1, t2, co, &depth_test)) < *dist_sq) {
     *dist_sq = dist_sq_test;
     *depth = depth_test;
     return true;

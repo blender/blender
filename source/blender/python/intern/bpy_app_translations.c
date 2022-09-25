@@ -424,7 +424,7 @@ static PyObject *app_translations_contexts_make(void)
   }
 
 #define SetObjString(item) \
-  PyStructSequence_SET_ITEM(translations_contexts, pos++, PyUnicode_FromString((item)))
+  PyStructSequence_SET_ITEM(translations_contexts, pos++, PyUnicode_FromString(item))
 #define SetObjNone() \
   PyStructSequence_SET_ITEM(translations_contexts, pos++, Py_INCREF_RET(Py_None))
 

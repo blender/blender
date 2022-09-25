@@ -745,7 +745,7 @@ static bool seq_foreach_member_id_cb(Sequence *seq, void *user_data)
   { \
     CHECK_TYPE(&((_id_super)->id), ID *); \
     BKE_lib_query_foreachid_process((_data), (ID **)&(_id_super), (_cb_flag)); \
-    if (BKE_lib_query_foreachid_iter_stop((_data))) { \
+    if (BKE_lib_query_foreachid_iter_stop(_data)) { \
       return false; \
     } \
   } \

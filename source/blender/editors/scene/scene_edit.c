@@ -333,7 +333,7 @@ static const EnumPropertyItem *scene_new_sequencer_enum_itemf(bContext *C,
   else {
     Scene *scene = CTX_data_scene(C);
     Sequence *seq = SEQ_select_active_get(scene);
-    if ((seq && (seq->type == SEQ_TYPE_SCENE) && (seq->scene != NULL))) {
+    if (seq && (seq->type == SEQ_TYPE_SCENE) && (seq->scene != NULL)) {
       has_scene_or_no_context = true;
     }
   }

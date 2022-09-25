@@ -375,7 +375,7 @@ static void stats_update(Depsgraph *depsgraph,
         else {
           /* Skip hidden objects in local view that are not in edit-mode,
            * an exception for edit-mode, in most other modes these would be considered hidden. */
-          if ((v3d_local && !BKE_object_is_visible_in_viewport(v3d_local, ob_iter))) {
+          if (v3d_local && !BKE_object_is_visible_in_viewport(v3d_local, ob_iter)) {
             continue;
           }
         }
@@ -394,7 +394,7 @@ static void stats_update(Depsgraph *depsgraph,
         }
         else {
           /* See comment for edit-mode. */
-          if ((v3d_local && !BKE_object_is_visible_in_viewport(v3d_local, ob_iter))) {
+          if (v3d_local && !BKE_object_is_visible_in_viewport(v3d_local, ob_iter)) {
             continue;
           }
         }

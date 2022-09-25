@@ -641,7 +641,7 @@ static bool view3d_ima_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
 static bool view3d_ima_bg_is_camera_view(bContext *C)
 {
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  if ((rv3d && (rv3d->persp == RV3D_CAMOB))) {
+  if (rv3d && (rv3d->persp == RV3D_CAMOB)) {
     View3D *v3d = CTX_wm_view3d(C);
     if (v3d && v3d->camera && v3d->camera->type == OB_CAMERA) {
       return true;

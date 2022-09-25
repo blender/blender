@@ -57,7 +57,7 @@ void ViewEdgeXBuilder::BuildViewEdges(WXShape *iWShape,
   WXFace *wxf;
   for (wf = wfaces.begin(), wfend = wfaces.end(); wf != wfend; wf++) {
     wxf = dynamic_cast<WXFace *>(*wf);
-    if (false == ((wxf))->hasSmoothEdges()) {  // does it contain at least one smooth edge ?
+    if (false == (wxf)->hasSmoothEdges()) {  // does it contain at least one smooth edge ?
       continue;
     }
     // parse all smooth layers:
@@ -68,7 +68,7 @@ void ViewEdgeXBuilder::BuildViewEdges(WXShape *iWShape,
       if (!(*sl)->hasSmoothEdge()) {
         continue;
       }
-      if (stopSmoothViewEdge((*sl))) {  // has it been parsed already ?
+      if (stopSmoothViewEdge(*sl)) {  // has it been parsed already ?
         continue;
       }
       // here we know that we're dealing with a face layer that has not been processed yet and that

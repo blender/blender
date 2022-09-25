@@ -173,8 +173,8 @@ struct GeomCleanerHasher {
   inline size_t operator()(const Vec3r &p) const
   {
     size_t res = ((unsigned long)(p[0] * _MUL)) % _MOD;
-    res = ((res + (unsigned long)(p[1]) * _MUL)) % _MOD;
-    return ((res + (unsigned long)(p[2]) * _MUL)) % _MOD;
+    res = (res + (unsigned long)(p[1]) * _MUL) % _MOD;
+    return (res + (unsigned long)(p[2]) * _MUL) % _MOD;
   }
 #undef _MUL
 #undef _MOD

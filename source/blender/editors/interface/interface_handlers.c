@@ -6152,7 +6152,7 @@ static bool ui_numedit_but_UNITVEC(
      * do this in "angle" space - this gives increments of same size */
     for (int i = 0; i < 3; i++) {
       angle = asinf(fp[i]);
-      angle_snap = roundf((angle / snap_steps_angle)) * snap_steps_angle;
+      angle_snap = roundf(angle / snap_steps_angle) * snap_steps_angle;
       fp[i] = sinf(angle_snap);
     }
     normalize_v3(fp);

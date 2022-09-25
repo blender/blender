@@ -2387,7 +2387,7 @@ static int wm_handler_operator_call(bContext *C,
       /* When the window changes the modal modifier may have loaded a new blend file
        * (the `system_demo_mode` add-on does this), so we have to assume the event,
        * operator, area, region etc have all been freed. */
-      if ((CTX_wm_window(C) == win)) {
+      if (CTX_wm_window(C) == win) {
 
         wm_event_modalkeymap_end(event, &event_backup);
 

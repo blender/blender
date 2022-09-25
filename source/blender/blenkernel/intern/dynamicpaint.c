@@ -1762,7 +1762,7 @@ bool dynamicPaint_resetSurface(const Scene *scene, DynamicPaintSurface *surface)
 static bool dynamicPaint_checkSurfaceData(const Scene *scene, DynamicPaintSurface *surface)
 {
   if (!surface->data ||
-      ((dynamicPaint_surfaceNumOfPoints(surface) != surface->data->total_points))) {
+      (dynamicPaint_surfaceNumOfPoints(surface) != surface->data->total_points)) {
     return dynamicPaint_resetSurface(scene, surface);
   }
   return true;

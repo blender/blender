@@ -369,7 +369,7 @@ float3 OBJMesh::calc_poly_normal(const int poly_index) const
 static float round_float_to_n_digits(const float f, int round_digits)
 {
   float scale = powf(10.0, round_digits);
-  return ceilf((scale * f - 0.49999999f)) / scale;
+  return ceilf(scale * f - 0.49999999f) / scale;
 }
 
 static float3 round_float3_to_n_digits(const float3 &v, int round_digits)

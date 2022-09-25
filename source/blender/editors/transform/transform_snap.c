@@ -809,7 +809,7 @@ static void initSnappingMode(TransInfo *t)
             (bool (*)(BMVert *, void *))BM_elem_cb_check_hflag_disabled,
             bm_edge_is_snap_target,
             bm_face_is_snap_target,
-            POINTER_FROM_UINT((BM_ELEM_SELECT | BM_ELEM_HIDDEN)));
+            POINTER_FROM_UINT(BM_ELEM_SELECT | BM_ELEM_HIDDEN));
       }
       else {
         /* Ignore hidden geometry in the general case. */

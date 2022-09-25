@@ -760,7 +760,7 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
   dm = rectmove;
   dvec1 = vecbufrect;
   for (x = xsize * ysize; x > 0; x--, dm++, dvec1 += 4) {
-    if ((dvec1[0] != 0.0f || dvec1[1] != 0.0f || dvec1[2] != 0.0f || dvec1[3] != 0.0f)) {
+    if (dvec1[0] != 0.0f || dvec1[1] != 0.0f || dvec1[2] != 0.0f || dvec1[3] != 0.0f) {
       *dm = 255;
     }
   }

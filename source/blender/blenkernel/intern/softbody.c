@@ -750,10 +750,10 @@ static void build_bps_springlist(Object *ob)
     }
     /* scan for attached inner springs */
     for (b = sb->totspring, bs = sb->bspring; b > 0; b--, bs++) {
-      if (((sb->totpoint - a) == bs->v1)) {
+      if ((sb->totpoint - a) == bs->v1) {
         add_bp_springlist(bp, sb->totspring - b);
       }
-      if (((sb->totpoint - a) == bs->v2)) {
+      if ((sb->totpoint - a) == bs->v2) {
         add_bp_springlist(bp, sb->totspring - b);
       }
     } /* For springs. */

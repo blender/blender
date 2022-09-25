@@ -221,7 +221,7 @@ void node_group_update(struct bNodeTree *ntree, struct bNode *node)
   if (node->id == nullptr) {
     nodeRemoveAllSockets(ntree, node);
   }
-  else if ((ID_IS_LINKED(node->id) && (node->id->tag & LIB_TAG_MISSING))) {
+  else if (ID_IS_LINKED(node->id) && (node->id->tag & LIB_TAG_MISSING)) {
     /* Missing data-block, leave sockets unchanged so that when it comes back
      * the links remain valid. */
   }

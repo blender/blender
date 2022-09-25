@@ -32,10 +32,10 @@ static const char *euler_order_str(EulerObject *self)
 
 short euler_order_from_string(const char *str, const char *error_prefix)
 {
-  if ((str[0] && str[1] && str[2] && str[3] == '\0')) {
+  if (str[0] && str[1] && str[2] && str[3] == '\0') {
 
 #ifdef __LITTLE_ENDIAN__
-#  define MAKE_ID3(a, b, c) (((a)) | ((b) << 8) | ((c) << 16))
+#  define MAKE_ID3(a, b, c) ((a) | ((b) << 8) | ((c) << 16))
 #else
 #  define MAKE_ID3(a, b, c) (((a) << 24) | ((b) << 16) | ((c) << 8))
 #endif

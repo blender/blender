@@ -215,7 +215,7 @@ struct anim_index *IMB_indexer_open(const char *name)
     return NULL;
   }
 
-  if (((ENDIAN_ORDER == B_ENDIAN) != (header[8] == 'V'))) {
+  if ((ENDIAN_ORDER == B_ENDIAN) != (header[8] == 'V')) {
     for (i = 0; i < idx->num_entries; i++) {
       BLI_endian_switch_int32(&idx->entries[i].frameno);
       BLI_endian_switch_uint64(&idx->entries[i].seek_pos);

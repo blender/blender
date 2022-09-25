@@ -147,7 +147,7 @@ static void bridge_loop_pair(BMesh *bm,
   }
 
   if (use_merge) {
-    BLI_assert((el_store_a_len == el_store_b_len));
+    BLI_assert(el_store_a_len == el_store_b_len);
   }
 
   if (el_store_a_len != el_store_b_len) {

@@ -987,7 +987,7 @@ void filelist_setfilter_options(FileList *filelist,
         filelist->filter_data.filter_glob, filter_glob, sizeof(filelist->filter_data.filter_glob));
     update = true;
   }
-  if ((BLI_strcmp_ignore_pad(filelist->filter_data.filter_search, filter_search, '*') != 0)) {
+  if (BLI_strcmp_ignore_pad(filelist->filter_data.filter_search, filter_search, '*') != 0) {
     BLI_strncpy_ensure_pad(filelist->filter_data.filter_search,
                            filter_search,
                            '*',

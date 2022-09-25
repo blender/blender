@@ -1646,7 +1646,7 @@ openvdb::GridBase::ConstPtr BKE_volume_grid_shallow_transform(openvdb::GridBase:
                                                               const blender::float4x4 &transform)
 {
   openvdb::math::Transform::Ptr grid_transform = grid->transform().copy();
-  grid_transform->postMult(openvdb::Mat4d(((float *)transform.values)));
+  grid_transform->postMult(openvdb::Mat4d((float *)transform.values));
 
   /* Create a transformed grid. The underlying tree is shared. */
   return grid->copyGridReplacingTransform(grid_transform);

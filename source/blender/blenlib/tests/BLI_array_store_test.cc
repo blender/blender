@@ -607,7 +607,7 @@ static void testbuffer_list_state_random_data(ListBase *lb,
         MUTATE_TOTAL,
       };
 
-      switch ((BLI_rng_get_uint(rng) % MUTATE_TOTAL)) {
+      switch (BLI_rng_get_uint(rng) % MUTATE_TOTAL) {
         case MUTATE_NOP: {
           break;
         }

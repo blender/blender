@@ -21,7 +21,7 @@ namespace blender::geometry {
 /** \name Curve Enums
  * \{ */
 
-#define CURVE_TYPE_AS_MASK(curve_type) ((CurveTypeMask)((1 << (int)(curve_type))))
+#define CURVE_TYPE_AS_MASK(curve_type) ((CurveTypeMask)(1 << (int)(curve_type)))
 
 typedef enum CurveTypeMask {
   CURVE_TYPE_MASK_CATMULL_ROM = (1 << 0),

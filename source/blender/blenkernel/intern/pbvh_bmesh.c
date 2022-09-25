@@ -883,7 +883,7 @@ static void long_edge_queue_edge_add_recursive(
     return;
   }
 
-  if ((l_edge->radial_next != l_edge)) {
+  if (l_edge->radial_next != l_edge) {
     /* How much longer we need to be to consider for subdividing
      * (avoids subdividing faces which are only *slightly* skinny) */
 #  define EVEN_EDGELEN_THRESHOLD 1.2f

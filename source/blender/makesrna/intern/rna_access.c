@@ -3620,7 +3620,7 @@ void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop)
 
   BLI_assert(RNA_property_type(prop) == PROP_POINTER);
 
-  if ((/*idprop=*/rna_idproperty_check(&prop, ptr))) {
+  if (/*idprop=*/rna_idproperty_check(&prop, ptr)) {
     /* already exists */
   }
   else if (prop->flag & PROP_IDPROPERTY) {
@@ -5951,7 +5951,7 @@ void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
 
   if (iter->valid) {
     iter->size = rna_parameter_size(iter->parm);
-    iter->data = (((char *)iter->parms->data)); /* +iter->offset, always 0 */
+    iter->data = ((char *)iter->parms->data); /* +iter->offset, always 0 */
   }
 }
 

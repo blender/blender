@@ -374,8 +374,8 @@ float data_transfer_interp_float_do(const int mix_mode,
 {
   float val_ret;
 
-  if (((mix_mode == CDT_MIX_REPLACE_ABOVE_THRESHOLD && (val_dst < mix_factor)) ||
-       (mix_mode == CDT_MIX_REPLACE_BELOW_THRESHOLD && (val_dst > mix_factor)))) {
+  if ((mix_mode == CDT_MIX_REPLACE_ABOVE_THRESHOLD && (val_dst < mix_factor)) ||
+      (mix_mode == CDT_MIX_REPLACE_BELOW_THRESHOLD && (val_dst > mix_factor))) {
     return val_dst; /* Do not affect destination. */
   }
 

@@ -3029,7 +3029,7 @@ void SCULPT_calc_brush_plane(
 int SCULPT_plane_trim(const StrokeCache *cache, const Brush *brush, const float val[3])
 {
   return (!(brush->flag & BRUSH_PLANE_TRIM) ||
-          ((dot_v3v3(val, val) <= cache->radius_squared * cache->plane_trim_squared)));
+          (dot_v3v3(val, val) <= cache->radius_squared * cache->plane_trim_squared));
 }
 
 int SCULPT_plane_point_side(const float co[3], const float plane[4])

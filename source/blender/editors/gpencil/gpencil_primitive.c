@@ -677,8 +677,8 @@ static void gpencil_primitive_circle(tGPDprimitive *tgpi, tGPspoint *points2D)
 
   center[0] = tgpi->start[0] + ((tgpi->end[0] - tgpi->start[0]) / 2.0f);
   center[1] = tgpi->start[1] + ((tgpi->end[1] - tgpi->start[1]) / 2.0f);
-  radius[0] = fabsf(((tgpi->end[0] - tgpi->start[0]) / 2.0f));
-  radius[1] = fabsf(((tgpi->end[1] - tgpi->start[1]) / 2.0f));
+  radius[0] = fabsf((tgpi->end[0] - tgpi->start[0]) / 2.0f);
+  radius[1] = fabsf((tgpi->end[1] - tgpi->start[1]) / 2.0f);
 
   for (int i = tgpi->tot_stored_edges; i < totpoints; i++) {
     tGPspoint *p2d = &points2D[i];

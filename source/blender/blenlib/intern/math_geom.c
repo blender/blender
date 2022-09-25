@@ -527,7 +527,7 @@ float dist_signed_squared_to_corner_v3v3v3(const float p[3],
 
   cross_v3_v3v3(axis, dir_a, dir_b);
 
-  if ((len_squared_v3(axis) < FLT_EPSILON)) {
+  if (len_squared_v3(axis) < FLT_EPSILON) {
     copy_v3_v3(axis, axis_ref);
   }
   else if (dot_v3v3(axis, axis_ref) < 0.0f) {
@@ -2208,7 +2208,7 @@ bool isect_planes_v3_fn(
         int i_test;
         for (i_test = 0; i_test < planes_len; i_test++) {
           const float *np_test = planes[i_test];
-          if (((dot_v3v3(np_test, co_test) + np_test[3]) > eps_isect)) {
+          if ((dot_v3v3(np_test, co_test) + np_test[3]) > eps_isect) {
             /* For low epsilon values the point could intersect its own plane. */
             if (!ELEM(i_test, i, j, k)) {
               break;

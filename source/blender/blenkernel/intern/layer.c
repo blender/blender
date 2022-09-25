@@ -1022,7 +1022,7 @@ static void layer_collection_objects_sync(ViewLayer *view_layer,
       if ((layer_restrict & LAYER_COLLECTION_HIDE) == 0) {
         base->flag_from_collection |= BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT;
       }
-      if (((collection_restrict & COLLECTION_HIDE_SELECT) == 0)) {
+      if ((collection_restrict & COLLECTION_HIDE_SELECT) == 0) {
         base->flag_from_collection |= BASE_SELECTABLE;
       }
     }

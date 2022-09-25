@@ -1490,7 +1490,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
     ViewLayer *view_layer = CTX_data_view_layer(C);
     BKE_view_layer_synced_ensure(scene, view_layer);
     Object *obact = BKE_view_layer_active_object_get(view_layer);
-    if (obact && ((obact->mode & OB_MODE_ALL_PAINT))) {
+    if (obact && (obact->mode & OB_MODE_ALL_PAINT)) {
       ctx_ob_single_active.ptr.data = obact;
       BLI_addtail(&ctx_objects, &ctx_ob_single_active);
     }

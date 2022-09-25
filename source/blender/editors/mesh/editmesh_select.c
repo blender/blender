@@ -3226,7 +3226,7 @@ static void select_linked_delimit_begin(BMesh *bm, int delimit)
     BMEdge *e;
 
     BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-      const bool is_walk_ok = ((select_linked_delimit_test(e, delimit, &delimit_data) == false));
+      const bool is_walk_ok = (select_linked_delimit_test(e, delimit, &delimit_data) == false);
 
       BMO_edge_flag_set(bm, e, BMO_ELE_TAG, is_walk_ok);
     }

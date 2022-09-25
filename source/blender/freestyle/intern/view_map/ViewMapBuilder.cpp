@@ -595,7 +595,7 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
     for (set<ViewShape *>::iterator o = foundOccluders.begin(), oend = foundOccluders.end();
          o != oend;
          ++o) {
-      (*ve)->AddOccluder((*o));
+      (*ve)->AddOccluder(*o);
     }
 #if LOGGING
     if (_global.debug & G_DEBUG_FREESTYLE) {
@@ -786,7 +786,7 @@ static void computeDetailedVisibility(ViewMap *ioViewMap,
     for (set<ViewShape *>::iterator o = foundOccluders.begin(), oend = foundOccluders.end();
          o != oend;
          ++o) {
-      (*ve)->AddOccluder((*o));
+      (*ve)->AddOccluder(*o);
     }
 #if LOGGING
     if (_global.debug & G_DEBUG_FREESTYLE) {
@@ -925,7 +925,7 @@ static void computeFastVisibility(ViewMap *ioViewMap, G &grid, real epsilon)
     for (set<ViewShape *>::iterator o = foundOccluders.begin(), oend = foundOccluders.end();
          o != oend;
          ++o) {
-      (*ve)->AddOccluder((*o));
+      (*ve)->AddOccluder(*o);
     }
 
     // occludee --
@@ -1658,7 +1658,7 @@ void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, real epsilo
     // occluders --
     for (set<ViewShape *>::iterator o = occluders.begin(), oend = occluders.end(); o != oend;
          ++o) {
-      (*ve)->AddOccluder((*o));
+      (*ve)->AddOccluder(*o);
     }
 #if LOGGING
     if (_global.debug & G_DEBUG_FREESTYLE) {

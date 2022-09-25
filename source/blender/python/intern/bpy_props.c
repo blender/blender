@@ -394,7 +394,7 @@ static int bpy_prop_array_length_parse(PyObject *o, void *p)
 
   if (PyLong_CheckExact(o)) {
     int size;
-    if (((size = PyLong_AsLong(o)) == -1)) {
+    if ((size = PyLong_AsLong(o)) == -1) {
       PyErr_Format(
           PyExc_ValueError, "expected number or sequence of numbers, got %s", Py_TYPE(o)->tp_name);
       return 0;
@@ -427,7 +427,7 @@ static int bpy_prop_array_length_parse(PyObject *o, void *p)
     PyObject **seq_items = PySequence_Fast_ITEMS(seq_fast);
     for (int i = 0; i < seq_len; i++) {
       int size;
-      if (((size = PyLong_AsLong(seq_items[i])) == -1)) {
+      if ((size = PyLong_AsLong(seq_items[i])) == -1) {
         Py_DECREF(seq_fast);
         PyErr_Format(PyExc_ValueError,
                      "expected number in sequence, got %s at index %d",

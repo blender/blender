@@ -2740,7 +2740,7 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   }
 
   /* get type, initial, min, and max values of the property */
-  switch ((rc->type = RNA_property_type(rc->prop))) {
+  switch (rc->type = RNA_property_type(rc->prop)) {
     case PROP_INT: {
       int value, min, max, step;
 

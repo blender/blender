@@ -203,7 +203,7 @@ BLI_INLINE float wval_screen(float weight, float paintval, float fac)
     return weight;
   }
   mfac = 1.0f - fac;
-  temp = max_ff(1.0f - (((1.0f - weight) * (1.0f - paintval))), 0);
+  temp = max_ff(1.0f - ((1.0f - weight) * (1.0f - paintval)), 0);
   return mfac * weight + temp * fac;
 }
 BLI_INLINE float wval_hardlight(float weight, float paintval, float fac)

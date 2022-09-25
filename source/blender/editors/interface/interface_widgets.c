@@ -1371,7 +1371,7 @@ static void widget_draw_icon(
       alpha = 0.75f;
     }
   }
-  else if ((but->type == UI_BTYPE_LABEL)) {
+  else if (but->type == UI_BTYPE_LABEL) {
     /* extra feature allows more alpha blending */
     if (but->a1 == 1.0f) {
       alpha *= but->a2;
@@ -1422,7 +1422,7 @@ static void widget_draw_icon(
     if (ui_but_drag_is_draggable(but) && (but->flag & UI_ACTIVE)) {
       UI_icon_draw_ex(xs, ys, icon, aspect, 1.25f, 0.0f, color, has_theme);
     }
-    else if ((but->flag & (UI_ACTIVE | UI_SELECT | UI_SELECT_DRAW))) {
+    else if (but->flag & (UI_ACTIVE | UI_SELECT | UI_SELECT_DRAW)) {
       UI_icon_draw_ex(xs, ys, icon, aspect, alpha, 0.0f, color, has_theme);
     }
     else if (!((but->icon != ICON_NONE) && UI_but_is_tool(but))) {

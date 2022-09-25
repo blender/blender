@@ -1527,7 +1527,7 @@ static int object_select_menu_exec(bContext *C, wmOperator *op)
     changed = true;
   }
 
-  if ((oldbasact != basact)) {
+  if (oldbasact != basact) {
     ED_object_base_activate(C, basact);
   }
 

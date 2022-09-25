@@ -770,7 +770,7 @@ void gpencil_point_3d_to_xy(const GP_SpaceConversion *gsc,
   float xyval[2];
 
   /* sanity checks */
-  BLI_assert((gsc->area->spacetype == SPACE_VIEW3D));
+  BLI_assert(gsc->area->spacetype == SPACE_VIEW3D);
 
   if (flag & GP_STROKE_3DSPACE) {
     if (ED_view3d_project_float_global(region, pt, xyval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {

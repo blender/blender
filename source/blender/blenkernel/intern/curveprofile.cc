@@ -379,7 +379,7 @@ static void curveprofile_build_supports(CurveProfile *profile)
   point_init(&profile->path[0], 1.0f, 0.0f, 0, HD_VECT, HD_VECT);
   point_init(&profile->path[1], 1.0f, 0.5f, 0, HD_VECT, HD_VECT);
   for (int i = 1; i < n - 2; i++) {
-    const float x = 1.0f - (0.5f * (1.0f - cosf((float)((i / (float)(n - 3))) * M_PI_2)));
+    const float x = 1.0f - (0.5f * (1.0f - cosf((float)(i / (float)(n - 3)) * M_PI_2)));
     const float y = 0.5f + 0.5f * sinf((float)((i / (float)(n - 3)) * M_PI_2));
     point_init(&profile->path[i], x, y, 0, HD_AUTO, HD_AUTO);
   }

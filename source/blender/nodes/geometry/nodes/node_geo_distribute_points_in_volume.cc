@@ -99,7 +99,7 @@ class PositionsVDBWrapper {
 
   void add(const openvdb::Vec3R &pos)
   {
-    vector_.append((float3((float)pos[0], (float)pos[1], (float)pos[2]) + offset_fix_));
+    vector_.append(float3((float)pos[0], (float)pos[1], (float)pos[2]) + offset_fix_);
   }
 };
 

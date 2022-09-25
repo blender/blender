@@ -330,7 +330,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
     }
 
     while ((BLI_heap_is_empty(eheap) == false) &&
-           (BLI_heap_node_value((enode_top = BLI_heap_top(eheap))) < angle_limit_cos_neg)) {
+           (BLI_heap_node_value(enode_top = BLI_heap_top(eheap)) < angle_limit_cos_neg)) {
       BMFace *f_new = NULL;
       BMEdge *e;
 

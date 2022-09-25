@@ -1177,7 +1177,7 @@ static PyObject *Quaternion_mul(PyObject *q1, PyObject *q2)
     }
   }
   else if (quat1) { /* QUAT * FLOAT */
-    if ((((scalar = PyFloat_AsDouble(q2)) == -1.0f && PyErr_Occurred()) == 0)) {
+    if (((scalar = PyFloat_AsDouble(q2)) == -1.0f && PyErr_Occurred()) == 0) {
       return quat_mul_float(quat1, scalar);
     }
   }

@@ -1743,14 +1743,14 @@ static void gpencil_stroke_eraser_dostroke(tGPsdata *p,
 
             /* 2) Tag any point with overly low influence for removal in the next pass */
             if ((inf1 > 0.0f) &&
-                (((pt1->pressure < cull_thresh) || (p->flags & GP_PAINTFLAG_HARD_ERASER) ||
-                  (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_HARD)))) {
+                ((pt1->pressure < cull_thresh) || (p->flags & GP_PAINTFLAG_HARD_ERASER) ||
+                 (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_HARD))) {
               pt1->flag |= GP_SPOINT_TAG;
               do_cull = true;
             }
             if ((inf1 > 2.0f) &&
-                (((pt2->pressure < cull_thresh) || (p->flags & GP_PAINTFLAG_HARD_ERASER) ||
-                  (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_HARD)))) {
+                ((pt2->pressure < cull_thresh) || (p->flags & GP_PAINTFLAG_HARD_ERASER) ||
+                 (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_HARD))) {
               pt2->flag |= GP_SPOINT_TAG;
               do_cull = true;
             }

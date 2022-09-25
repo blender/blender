@@ -55,7 +55,7 @@ static bool path_test_extension(const char *str, const char *ext)
 static void endian_switch_uint32(uint *val)
 {
   uint tval = *val;
-  *val = ((tval >> 24)) | ((tval << 8) & 0x00ff0000) | ((tval >> 8) & 0x0000ff00) | ((tval << 24));
+  *val = (tval >> 24) | ((tval << 8) & 0x00ff0000) | ((tval >> 8) & 0x0000ff00) | (tval << 24);
 }
 
 static const char *path_slash_rfind(const char *string)

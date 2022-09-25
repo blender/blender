@@ -1220,7 +1220,7 @@ static void knife_bvh_init(KnifeTool_OpData *kcd)
 
   /* Test Function. */
   bool (*test_fn)(BMFace *);
-  if ((kcd->only_select && kcd->cut_through)) {
+  if (kcd->only_select && kcd->cut_through) {
     test_fn = knife_bm_face_is_select;
   }
   else {
@@ -2068,7 +2068,7 @@ static bool knife_add_single_cut__is_linehit_outside_face(BMFace *f,
       return true;
     }
   }
-  else if ((lh->kfe && lh->kfe->e)) {
+  else if (lh->kfe && lh->kfe->e) {
     BMLoop *l; /* side-of-edge */
     if ((l = BM_face_edge_share_loop(f, lh->kfe->e)) &&
         (BM_loop_point_side_of_edge_test(l, co) < 0.0f)) {

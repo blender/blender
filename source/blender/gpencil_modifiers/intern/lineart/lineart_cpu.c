@@ -1397,7 +1397,7 @@ void lineart_main_discard_out_of_frame_edges(LineartData *ld)
   LISTBASE_FOREACH (LineartElementLinkNode *, eln, &ld->geom.line_buffer_pointers) {
     e = (LineartEdge *)eln->pointer;
     for (i = 0; i < eln->element_count; i++) {
-      if ((LRT_VERT_OUT_OF_BOUND(e[i].v1) && LRT_VERT_OUT_OF_BOUND(e[i].v2))) {
+      if (LRT_VERT_OUT_OF_BOUND(e[i].v1) && LRT_VERT_OUT_OF_BOUND(e[i].v2)) {
         e[i].flags = LRT_EDGE_FLAG_CHAIN_PICKED;
       }
     }

@@ -47,8 +47,7 @@ static int mathutils_array_parse_fast(float *array,
   i = size;
   do {
     i--;
-    if (((array[i] = PyFloat_AsDouble((item = value_fast_items[i]))) == -1.0f) &&
-        PyErr_Occurred()) {
+    if (((array[i] = PyFloat_AsDouble(item = value_fast_items[i])) == -1.0f) && PyErr_Occurred()) {
       PyErr_Format(PyExc_TypeError,
                    "%.200s: sequence index %d expected a number, "
                    "found '%.200s' type, ",
@@ -317,7 +316,7 @@ int mathutils_int_array_parse(int *array, int array_dim, PyObject *value, const 
   i = size;
   while (i > 0) {
     i--;
-    if (((array[i] = PyC_Long_AsI32((item = value_fast_items[i]))) == -1) && PyErr_Occurred()) {
+    if (((array[i] = PyC_Long_AsI32(item = value_fast_items[i])) == -1) && PyErr_Occurred()) {
       PyErr_Format(PyExc_TypeError, "%.200s: sequence index %d expected an int", error_prefix, i);
       size = -1;
       break;

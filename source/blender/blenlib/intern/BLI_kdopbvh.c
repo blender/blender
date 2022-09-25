@@ -386,12 +386,12 @@ static void refit_kdop_hull(const BVHTree *tree, BVHNode *node, int start, int e
     /* for all Axes. */
     for (axis_iter = tree->start_axis; axis_iter < tree->stop_axis; axis_iter++) {
       newmin = node_bv[(2 * axis_iter)];
-      if ((newmin < bv[(2 * axis_iter)])) {
+      if (newmin < bv[(2 * axis_iter)]) {
         bv[(2 * axis_iter)] = newmin;
       }
 
       newmax = node_bv[(2 * axis_iter) + 1];
-      if ((newmax > bv[(2 * axis_iter) + 1])) {
+      if (newmax > bv[(2 * axis_iter) + 1]) {
         bv[(2 * axis_iter) + 1] = newmax;
       }
     }

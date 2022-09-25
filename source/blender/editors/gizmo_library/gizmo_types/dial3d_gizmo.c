@@ -106,9 +106,9 @@ static void dial_geom_draw(const float color[4],
   UNUSED_VARS(gz, axis_modal_mat, clip_plane);
   wm_gizmo_geometryinfo_draw(&wm_gizmo_geom_data_dial, select, color);
 #else
-  const bool filled = ((draw_options & (select ? (ED_GIZMO_DIAL_DRAW_FLAG_FILL |
-                                                  ED_GIZMO_DIAL_DRAW_FLAG_FILL_SELECT) :
-                                                 ED_GIZMO_DIAL_DRAW_FLAG_FILL)));
+  const bool filled = (draw_options & (select ? (ED_GIZMO_DIAL_DRAW_FLAG_FILL |
+                                                 ED_GIZMO_DIAL_DRAW_FLAG_FILL_SELECT) :
+                                                ED_GIZMO_DIAL_DRAW_FLAG_FILL));
 
   GPUVertFormat *format = immVertexFormat();
   /* NOTE(Metal): Prefer using 3D coordinates with 3D shader, even if rendering 2D gizmo's. */

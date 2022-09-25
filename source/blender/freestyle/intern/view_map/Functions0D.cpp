@@ -105,14 +105,14 @@ void getOccludersF0D(Interface0DIterator &it, set<ViewShape *> &oOccluders)
   occluder_container::const_iterator oitend = ve1->occluders_end();
 
   for (; oit != oitend; ++oit) {
-    oOccluders.insert((*oit));
+    oOccluders.insert(*oit);
   }
 
   if (ve2 != nullptr) {
     oit = ve2->occluders_begin();
     oitend = ve2->occluders_end();
     for (; oit != oitend; ++oit) {
-      oOccluders.insert((*oit));
+      oOccluders.insert(*oit);
     }
   }
 }
@@ -355,7 +355,7 @@ int GetOccludersF0D::operator()(Interface0DIterator &iter)
   // vsOccluders.insert(vsOccluders.begin(), occluders.begin(), occluders.end());
   for (set<ViewShape *>::iterator it = occluders.begin(), itend = occluders.end(); it != itend;
        ++it) {
-    result.push_back((*it));
+    result.push_back(*it);
   }
   return 0;
 }

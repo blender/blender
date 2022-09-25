@@ -2789,7 +2789,7 @@ static bool vertex_group_vert_poll_ex(bContext *C,
     return false;
   }
 
-  if (ob_type_flag && (((1 << ob->type) & ob_type_flag)) == 0) {
+  if (ob_type_flag && ((1 << ob->type) & ob_type_flag) == 0) {
     return false;
   }
 

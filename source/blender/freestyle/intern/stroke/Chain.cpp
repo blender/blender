@@ -120,7 +120,7 @@ void Chain::push_viewedge_front(ViewEdge *iViewEdge, bool orientation)
   }
   do {
     current = (*v)->point2d();
-    Curve::push_vertex_front((*v));
+    Curve::push_vertex_front(*v);
     //_Length += (current - previous).norm();
     previous = current;
     if (orientation) {

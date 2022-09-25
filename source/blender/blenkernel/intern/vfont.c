@@ -1194,7 +1194,7 @@ static bool vfont_to_curve(Object *ob,
           /* pass */
         }
 
-        if ((mem[j] != '\n') && ((chartransdata[j].dobreak != 0))) {
+        if ((mem[j] != '\n') && (chartransdata[j].dobreak != 0)) {
           if (mem[i] == ' ') {
             struct TempLineInfo *li;
 
