@@ -420,8 +420,8 @@ void FEdgeXDetector::ProcessRidgeFace(WXFace *iFace)
   WXFaceLayer *flayer = new WXFaceLayer(iFace, Nature::RIDGE | Nature::VALLEY, false);
   iFace->AddSmoothLayer(flayer);
 
-  unsigned int numVertices = iFace->numberOfVertices();
-  for (unsigned int i = 0; i < numVertices; ++i) {
+  uint numVertices = iFace->numberOfVertices();
+  for (uint i = 0; i < numVertices; ++i) {
     WVertex *wv = iFace->GetVertex(i);
     WXVertex *wxv = dynamic_cast<WXVertex *>(wv);
     flayer->PushDotP(wxv->curvatures()->K1);
@@ -570,8 +570,8 @@ void FEdgeXDetector::ProcessSuggestiveContourFace(WXFace *iFace)
   WXFaceLayer *faceLayer = new WXFaceLayer(iFace, Nature::SUGGESTIVE_CONTOUR, true);
   iFace->AddSmoothLayer(faceLayer);
 
-  unsigned int numVertices = iFace->numberOfVertices();
-  for (unsigned int i = 0; i < numVertices; ++i) {
+  uint numVertices = iFace->numberOfVertices();
+  for (uint i = 0; i < numVertices; ++i) {
     WVertex *wv = iFace->GetVertex(i);
     WXVertex *wxv = dynamic_cast<WXVertex *>(wv);
     faceLayer->PushDotP(wxv->curvatures()->Kr);
@@ -626,7 +626,7 @@ void FEdgeXDetector::postProcessSuggestiveContourFace(WXFace *iFace)
   GeomUtils::intersection_test res;
   real kr(0), kr1(0), kr2(0), t;
 
-  for (unsigned int i = 0; i < vertices_nb; ++i) {
+  for (uint i = 0; i < vertices_nb; ++i) {
     v = (WXVertex *)(iFace->GetVertex(i));
 
     // v is a singular vertex, skip it.

@@ -121,7 +121,7 @@ static PyObject *FrsNoise_turbulence1(BPy_FrsNoise *self, PyObject *args, PyObje
 {
   static const char *kwlist[] = {"v", "freq", "amp", "oct", nullptr};
   float f1, f2, f3;
-  unsigned int i = 4;
+  uint i = 4;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "fff|I", (char **)kwlist, &f1, &f2, &f3, &i)) {
     return nullptr;
@@ -150,7 +150,7 @@ static PyObject *FrsNoise_turbulence2(BPy_FrsNoise *self, PyObject *args, PyObje
   static const char *kwlist[] = {"v", "freq", "amp", "oct", nullptr};
   PyObject *obj1;
   float f2, f3;
-  unsigned int i = 4;
+  uint i = 4;
   Vec2f vec;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "Off|I", (char **)kwlist, &obj1, &f2, &f3, &i)) {
@@ -186,7 +186,7 @@ static PyObject *FrsNoise_turbulence3(BPy_FrsNoise *self, PyObject *args, PyObje
   static const char *kwlist[] = {"v", "freq", "amp", "oct", nullptr};
   PyObject *obj1;
   float f2, f3;
-  unsigned int i = 4;
+  uint i = 4;
   Vec3f vec;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "Off|I", (char **)kwlist, &obj1, &f2, &f3, &i)) {

@@ -235,7 +235,7 @@ void depsgraph_tag_to_component_opcode(const ID *id,
 }
 
 void id_tag_update_ntree_special(
-    Main *bmain, Depsgraph *graph, ID *id, unsigned int flags, eUpdateSource update_source)
+    Main *bmain, Depsgraph *graph, ID *id, uint flags, eUpdateSource update_source)
 {
   bNodeTree *ntree = ntreeFromID(id);
   if (ntree == nullptr) {
@@ -418,13 +418,13 @@ string stringify_append_bit(const string &str, IDRecalcFlag tag)
   return result;
 }
 
-string stringify_update_bitfield(unsigned int flags)
+string stringify_update_bitfield(uint flags)
 {
   if (flags == 0) {
     return "LEGACY_0";
   }
   string result;
-  unsigned int current_flag = flags;
+  uint current_flag = flags;
   /* Special cases to avoid ALL flags form being split into
    * individual bits. */
   if ((current_flag & ID_RECALC_PSYS_ALL) == ID_RECALC_PSYS_ALL) {
@@ -460,7 +460,7 @@ int deg_recalc_flags_for_legacy_zero()
                            ID_RECALC_SOURCE | ID_RECALC_EDITORS);
 }
 
-int deg_recalc_flags_effective(Depsgraph *graph, unsigned int flags)
+int deg_recalc_flags_effective(Depsgraph *graph, uint flags)
 {
   if (graph != nullptr) {
     if (!graph->is_active) {
@@ -531,7 +531,7 @@ void graph_tag_ids_for_visible_update(Depsgraph *graph)
        * No need bother with it to tag or anything. */
       continue;
     }
-    unsigned int flags = 0;
+    uint flags = 0;
     if (!deg::deg_copy_on_write_is_expanded(id_node->id_cow)) {
       flags |= ID_RECALC_COPY_ON_WRITE;
       if (do_time) {
@@ -625,7 +625,7 @@ NodeType geometry_tag_to_component(const ID *id)
   return NodeType::UNDEFINED;
 }
 
-void id_tag_update(Main *bmain, ID *id, unsigned int flags, eUpdateSource update_source)
+void id_tag_update(Main *bmain, ID *id, uint flags, eUpdateSource update_source)
 {
   graph_id_tag_update(bmain, nullptr, id, flags, update_source);
   for (deg::Depsgraph *depsgraph : deg::get_all_registered_graphs(bmain)) {
@@ -638,7 +638,7 @@ void id_tag_update(Main *bmain, ID *id, unsigned int flags, eUpdateSource update
 }
 
 void graph_id_tag_update(
-    Main *bmain, Depsgraph *graph, ID *id, unsigned int flags, eUpdateSource update_source)
+    Main *bmain, Depsgraph *graph, ID *id, uint flags, eUpdateSource update_source)
 {
   const int debug_flags = (graph != nullptr) ? DEG_debug_flags_get((::Depsgraph *)graph) : G.debug;
   if (graph != nullptr && graph->is_evaluating) {
@@ -676,7 +676,7 @@ void graph_id_tag_update(
   if (update_source == DEG_UPDATE_SOURCE_USER_EDIT) {
     id->recalc |= deg_recalc_flags_effective(graph, flags);
   }
-  unsigned int current_flag = flags;
+  uint current_flag = flags;
   while (current_flag != 0) {
     IDRecalcFlag tag = (IDRecalcFlag)(1 << bitscan_forward_clear_uint(&current_flag));
     graph_id_tag_update_single_flag(bmain, graph, id, id_node, tag, update_source);
@@ -770,12 +770,12 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
 
 /* Data-Based Tagging. */
 
-void DEG_id_tag_update(ID *id, unsigned int flags)
+void DEG_id_tag_update(ID *id, uint flags)
 {
   DEG_id_tag_update_ex(G.main, id, flags);
 }
 
-void DEG_id_tag_update_ex(Main *bmain, ID *id, unsigned int flags)
+void DEG_id_tag_update_ex(Main *bmain, ID *id, uint flags)
 {
   if (id == nullptr) {
     /* Ideally should not happen, but old depsgraph allowed this. */
@@ -787,7 +787,7 @@ void DEG_id_tag_update_ex(Main *bmain, ID *id, unsigned int flags)
 void DEG_graph_id_tag_update(struct Main *bmain,
                              struct Depsgraph *depsgraph,
                              struct ID *id,
-                             unsigned int flags)
+                             uint flags)
 {
   deg::Depsgraph *graph = (deg::Depsgraph *)depsgraph;
   deg::graph_id_tag_update(bmain, graph, id, flags, deg::DEG_UPDATE_SOURCE_USER_EDIT);

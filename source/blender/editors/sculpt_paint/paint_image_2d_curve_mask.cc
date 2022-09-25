@@ -55,7 +55,7 @@ static void update_curve_mask(CurveMaskCache *curve_mask_cache,
   int offset = (int)floorf(diameter / 2.0f);
   int clamped_radius = max_ff(radius, 1.0);
 
-  unsigned short *m = curve_mask_cache->curve_mask;
+  ushort *m = curve_mask_cache->curve_mask;
 
   const int aa_samples = aa_samples_per_texel_axis(brush, radius);
   const float aa_offset = 1.0f / (2.0f * (float)aa_samples);
@@ -87,7 +87,7 @@ static void update_curve_mask(CurveMaskCache *curve_mask_cache,
         }
         pixel_xy[0] += aa_step;
       }
-      *m = (unsigned short)(total_weight * weight_factor);
+      *m = (ushort)(total_weight * weight_factor);
     }
   }
 }
@@ -140,8 +140,7 @@ static void curve_mask_free(CurveMaskCache *curve_mask_cache)
 static void curve_mask_allocate(CurveMaskCache *curve_mask_cache, const int diameter)
 {
   const size_t curve_mask_size = diameter_to_curve_mask_size(diameter);
-  curve_mask_cache->curve_mask = static_cast<unsigned short *>(
-      MEM_mallocN(curve_mask_size, __func__));
+  curve_mask_cache->curve_mask = static_cast<ushort *>(MEM_mallocN(curve_mask_size, __func__));
   curve_mask_cache->curve_mask_size = curve_mask_size;
 }
 

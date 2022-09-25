@@ -158,8 +158,8 @@ static bool wm_window_timer(const bContext *C);
 
 void wm_get_screensize(int *r_width, int *r_height)
 {
-  unsigned int uiwidth;
-  unsigned int uiheight;
+  uint uiwidth;
+  uint uiheight;
 
   GHOST_GetMainDisplayDimensions(g_system, &uiwidth, &uiheight);
   *r_width = uiwidth;
@@ -168,8 +168,8 @@ void wm_get_screensize(int *r_width, int *r_height)
 
 void wm_get_desktopsize(int *r_width, int *r_height)
 {
-  unsigned int uiwidth;
-  unsigned int uiheight;
+  uint uiwidth;
+  uint uiheight;
 
   GHOST_GetAllDisplayDimensions(g_system, &uiwidth, &uiheight);
   *r_width = uiwidth;

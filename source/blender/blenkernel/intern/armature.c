@@ -698,7 +698,7 @@ void BKE_armature_refresh_layer_used(struct Depsgraph *depsgraph, struct bArmatu
 bool bone_autoside_name(
     char name[MAXBONENAME], int UNUSED(strip_number), short axis, float head, float tail)
 {
-  unsigned int len;
+  uint len;
   char basename[MAXBONENAME] = "";
   char extension[5] = "";
 

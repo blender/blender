@@ -646,7 +646,7 @@ static void layerCopy_mdisps(const void *source, void *dest, const int count)
   for (int i = 0; i < count; i++) {
     if (s[i].disps) {
       d[i].disps = static_cast<float(*)[3]>(MEM_dupallocN(s[i].disps));
-      d[i].hidden = static_cast<unsigned int *>(MEM_dupallocN(s[i].hidden));
+      d[i].hidden = static_cast<uint *>(MEM_dupallocN(s[i].hidden));
     }
     else {
       d[i].disps = nullptr;
@@ -832,7 +832,7 @@ static void layerCopyValue_mloopcol(const void *source,
 {
   const MLoopCol *m1 = static_cast<const MLoopCol *>(source);
   MLoopCol *m2 = static_cast<MLoopCol *>(dest);
-  unsigned char tmp_col[4];
+  uchar tmp_col[4];
 
   if (ELEM(mixmode,
            CDT_MIX_NOMIX,
@@ -855,8 +855,8 @@ static void layerCopyValue_mloopcol(const void *source,
     m2->a = m1->a;
   }
   else { /* Modes that support 'real' mix factor. */
-    unsigned char src[4] = {m1->r, m1->g, m1->b, m1->a};
-    unsigned char dst[4] = {m2->r, m2->g, m2->b, m2->a};
+    uchar src[4] = {m1->r, m1->g, m1->b, m1->a};
+    uchar dst[4] = {m2->r, m2->g, m2->b, m2->a};
 
     if (mixmode == CDT_MIX_MIX) {
       blend_color_mix_byte(tmp_col, dst, src);

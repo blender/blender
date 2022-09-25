@@ -510,8 +510,8 @@ void InverseSearchRadiusOperation::deinit_execution()
   input_radius_ = nullptr;
 }
 
-void InverseSearchRadiusOperation::determine_resolution(unsigned int resolution[2],
-                                                        unsigned int preferred_resolution[2])
+void InverseSearchRadiusOperation::determine_resolution(uint resolution[2],
+                                                        uint preferred_resolution[2])
 {
   NodeOperation::determine_resolution(resolution, preferred_resolution);
   resolution[0] = resolution[0] / DIVIDER;

@@ -200,7 +200,7 @@ static PyObject *ViewShape_vertices_get(BPy_ViewShape *self, void *UNUSED(closur
   vector<ViewVertex *> vertices = self->vs->vertices();
   vector<ViewVertex *>::iterator it;
   PyObject *py_vertices = PyList_New(vertices.size());
-  unsigned int i = 0;
+  uint i = 0;
 
   for (it = vertices.begin(); it != vertices.end(); it++) {
     PyList_SET_ITEM(py_vertices, i++, Any_BPy_ViewVertex_from_ViewVertex(*(*it)));
@@ -219,7 +219,7 @@ static int ViewShape_vertices_set(BPy_ViewShape *self, PyObject *value, void *UN
   }
 
   v.reserve(PyList_GET_SIZE(value));
-  for (unsigned int i = 0; i < PyList_GET_SIZE(value); i++) {
+  for (uint i = 0; i < PyList_GET_SIZE(value); i++) {
     item = PyList_GET_ITEM(value, i);
     if (BPy_ViewVertex_Check(item)) {
       v.push_back(((BPy_ViewVertex *)item)->vv);
@@ -243,7 +243,7 @@ static PyObject *ViewShape_edges_get(BPy_ViewShape *self, void *UNUSED(closure))
   vector<ViewEdge *> edges = self->vs->edges();
   vector<ViewEdge *>::iterator it;
   PyObject *py_edges = PyList_New(edges.size());
-  unsigned int i = 0;
+  uint i = 0;
 
   for (it = edges.begin(); it != edges.end(); it++) {
     PyList_SET_ITEM(py_edges, i++, BPy_ViewEdge_from_ViewEdge(*(*it)));

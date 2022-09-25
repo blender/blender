@@ -188,9 +188,9 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
   const bool do_uvs = (mloopuvs && uvs && uvs_indices);
   const bool do_uvs_per_loop = do_uvs && mesh_data.uv_scope == ABC_UV_SCOPE_LOOP;
   BLI_assert(!do_uvs || mesh_data.uv_scope != ABC_UV_SCOPE_NONE);
-  unsigned int loop_index = 0;
-  unsigned int rev_loop_index = 0;
-  unsigned int uv_index = 0;
+  uint loop_index = 0;
+  uint rev_loop_index = 0;
+  uint uv_index = 0;
   bool seen_invalid_geometry = false;
 
   for (int i = 0; i < face_counts->size(); i++) {

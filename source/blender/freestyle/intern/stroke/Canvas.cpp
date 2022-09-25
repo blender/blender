@@ -91,7 +91,7 @@ void Canvas::Draw()
   preDraw();
   TimeStamp *timestamp = TimeStamp::instance();
 
-  for (unsigned int i = 0; i < _StyleModules.size(); ++i) {
+  for (uint i = 0; i < _StyleModules.size(); ++i) {
     _current_sm = _StyleModules[i];
 
     if (i < _Layers.size() && _Layers[i]) {
@@ -184,7 +184,7 @@ void Canvas::InsertStyleModule(unsigned index, StyleModule *iStyleModule)
 
 void Canvas::RemoveStyleModule(unsigned index)
 {
-  unsigned int i = 0;
+  uint i = 0;
   if (!_StyleModules.empty()) {
     for (deque<StyleModule *>::iterator s = _StyleModules.begin(), send = _StyleModules.end();
          s != send;
@@ -257,17 +257,17 @@ void Canvas::setModified(unsigned index, bool iMod)
 
 void Canvas::resetModified(bool iMod /* = false */)
 {
-  unsigned int size = _StyleModules.size();
-  for (unsigned int i = 0; i < size; ++i) {
+  uint size = _StyleModules.size();
+  for (uint i = 0; i < size; ++i) {
     setModified(i, iMod);
   }
 }
 
 void Canvas::causalStyleModules(vector<unsigned> &vec, unsigned index)
 {
-  unsigned int size = _StyleModules.size();
+  uint size = _StyleModules.size();
 
-  for (unsigned int i = index; i < size; ++i) {
+  for (uint i = index; i < size; ++i) {
     if (_StyleModules[i]->getCausal()) {
       vec.push_back(i);
     }
@@ -276,7 +276,7 @@ void Canvas::causalStyleModules(vector<unsigned> &vec, unsigned index)
 
 void Canvas::Render(const StrokeRenderer *iRenderer)
 {
-  for (unsigned int i = 0; i < _StyleModules.size(); ++i) {
+  for (uint i = 0; i < _StyleModules.size(); ++i) {
     if (!_StyleModules[i]->getDisplayed() || !_Layers[i]) {
       continue;
     }
@@ -286,7 +286,7 @@ void Canvas::Render(const StrokeRenderer *iRenderer)
 
 void Canvas::RenderBasic(const StrokeRenderer *iRenderer)
 {
-  for (unsigned int i = 0; i < _StyleModules.size(); ++i) {
+  for (uint i = 0; i < _StyleModules.size(); ++i) {
     if (!_StyleModules[i]->getDisplayed() || !_Layers[i]) {
       continue;
     }
@@ -294,10 +294,7 @@ void Canvas::RenderBasic(const StrokeRenderer *iRenderer)
   }
 }
 
-void Canvas::loadMap(const char *iFileName,
-                     const char *iMapName,
-                     unsigned int iNbLevels,
-                     float iSigma)
+void Canvas::loadMap(const char *iFileName, const char *iMapName, uint iNbLevels, float iSigma)
 {
   // check whether this map was already loaded:
   if (!_maps.empty()) {

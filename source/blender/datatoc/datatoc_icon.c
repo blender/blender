@@ -158,9 +158,8 @@ static bool write_png(const char *name, const uint *pixels, const int width, con
 
   /* set the individual row-pointers to point at the correct offsets */
   for (i = 0; i < height; i++) {
-    row_pointers[height - 1 - i] = (png_bytep)(((const unsigned char *)pixels) +
-                                               (i * width) * bytesperpixel *
-                                                   sizeof(unsigned char));
+    row_pointers[height - 1 - i] = (png_bytep)(((const uchar *)pixels) +
+                                               (i * width) * bytesperpixel * sizeof(uchar));
   }
 
   /* write out the entire image data in one call */

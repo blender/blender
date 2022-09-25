@@ -579,7 +579,7 @@ typedef struct CameraViewFrameData {
   float dist_vals[CAMERA_VIEWFRAME_NUM_PLANES];   /* distance (signed) */
   float camera_no[3];
   float z_range[2];
-  unsigned int tot;
+  uint tot;
 
   bool do_zrange;
 

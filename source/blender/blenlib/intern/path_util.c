@@ -121,7 +121,7 @@ int BLI_path_sequence_decode(const char *string, char *head, char *tail, ushort 
 }
 
 void BLI_path_sequence_encode(
-    char *string, const char *head, const char *tail, unsigned short numlen, int pic)
+    char *string, const char *head, const char *tail, ushort numlen, int pic)
 {
   sprintf(string, "%s%.*d%s", head, numlen, MAX2(0, pic), tail);
 }

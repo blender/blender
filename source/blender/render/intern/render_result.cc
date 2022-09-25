@@ -654,8 +654,8 @@ static int order_render_passes(const void *a, const void *b)
   /* 1 if `a` is after `b`. */
   RenderPass *rpa = (RenderPass *)a;
   RenderPass *rpb = (RenderPass *)b;
-  unsigned int passtype_a = passtype_from_name(rpa->name);
-  unsigned int passtype_b = passtype_from_name(rpb->name);
+  uint passtype_a = passtype_from_name(rpa->name);
+  uint passtype_b = passtype_from_name(rpb->name);
 
   /* Render passes with default type always go first. */
   if (passtype_b && !passtype_a) {
@@ -1026,7 +1026,7 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
   RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
   /* if not exists, BKE_imbuf_write makes one */
-  ibuf->rect = (unsigned int *)rv->rect32;
+  ibuf->rect = (uint *)rv->rect32;
   ibuf->rect_float = rv->rectf;
   ibuf->zbuf_float = rv->rectz;
 
@@ -1112,7 +1112,7 @@ void render_result_rect_fill_zero(RenderResult *rr, const int view_id)
 }
 
 void render_result_rect_get_pixels(RenderResult *rr,
-                                   unsigned int *rect,
+                                   uint *rect,
                                    int rectx,
                                    int recty,
                                    const ColorManagedViewSettings *view_settings,
@@ -1125,14 +1125,8 @@ void render_result_rect_get_pixels(RenderResult *rr,
     memcpy(rect, rv->rect32, sizeof(int) * rr->rectx * rr->recty);
   }
   else if (rv && rv->rectf) {
-    IMB_display_buffer_transform_apply((unsigned char *)rect,
-                                       rv->rectf,
-                                       rr->rectx,
-                                       rr->recty,
-                                       4,
-                                       view_settings,
-                                       display_settings,
-                                       true);
+    IMB_display_buffer_transform_apply(
+        (uchar *)rect, rv->rectf, rr->rectx, rr->recty, 4, view_settings, display_settings, true);
   }
   else {
     /* else fill with black */

@@ -97,7 +97,7 @@ struct UniqueName_Key {
  *   one larger.
  */
 struct UniqueName_Value {
-  static constexpr unsigned max_exact_tracking = 1024;
+  static constexpr uint max_exact_tracking = 1024;
   BLI_BITMAP_DECLARE(mask, max_exact_tracking);
   int max_value = 0;
 

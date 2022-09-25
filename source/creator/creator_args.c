@@ -1901,7 +1901,7 @@ static int arg_handle_python_exit_code_set(int argc, const char **argv, void *UN
       return 1;
     }
 
-    app_state.exit_code_on_error.python = (unsigned char)exit_code;
+    app_state.exit_code_on_error.python = (uchar)exit_code;
     return 1;
   }
   printf("\nError: you must specify an exit code number '%s'.\n", arg_id);

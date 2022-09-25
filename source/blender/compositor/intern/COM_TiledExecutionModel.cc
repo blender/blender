@@ -23,7 +23,7 @@ TiledExecutionModel::TiledExecutionModel(CompositorContext &context,
   const bNodeTree *node_tree = context.get_bnodetree();
   node_tree->stats_draw(node_tree->sdh, TIP_("Compositing | Determining resolution"));
 
-  unsigned int resolution[2];
+  uint resolution[2];
   for (ExecutionGroup *group : groups_) {
     resolution[0] = 0;
     resolution[1] = 0;
@@ -45,7 +45,7 @@ TiledExecutionModel::TiledExecutionModel(CompositorContext &context,
 
 static void update_read_buffer_offset(Span<NodeOperation *> operations)
 {
-  unsigned int order = 0;
+  uint order = 0;
   for (NodeOperation *operation : operations) {
     if (operation->get_flags().is_read_buffer_operation) {
       ReadBufferOperation *read_operation = (ReadBufferOperation *)operation;

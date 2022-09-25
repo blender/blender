@@ -123,12 +123,8 @@ void seq_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, bool make_float)
        * However, this might also have negative effect by adding weird
        * artifacts which will then not happen in final render.
        */
-      IMB_colormanagement_transform_byte_threaded((unsigned char *)ibuf->rect,
-                                                  ibuf->x,
-                                                  ibuf->y,
-                                                  ibuf->channels,
-                                                  from_colorspace,
-                                                  to_colorspace);
+      IMB_colormanagement_transform_byte_threaded(
+          (uchar *)ibuf->rect, ibuf->x, ibuf->y, ibuf->channels, from_colorspace, to_colorspace);
     }
     else {
       /* We perform conversion to a float buffer so we don't worry about
@@ -136,7 +132,7 @@ void seq_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, bool make_float)
        */
       imb_addrectfloatImBuf(ibuf, 4);
       IMB_colormanagement_transform_from_byte_threaded(ibuf->rect_float,
-                                                       (unsigned char *)ibuf->rect,
+                                                       (uchar *)ibuf->rect,
                                                        ibuf->x,
                                                        ibuf->y,
                                                        ibuf->channels,

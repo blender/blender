@@ -19,7 +19,7 @@
 /* Only change if we need to update the previews in the on-disk cache. */
 #define FONT_THUMB_VERSION "1.0.0"
 
-struct ImBuf *IMB_thumb_load_font(const char *filename, unsigned int x, unsigned int y)
+struct ImBuf *IMB_thumb_load_font(const char *filename, uint x, uint y)
 {
   struct ImBuf *ibuf = IMB_allocImBuf(x, y, 32, IB_rect | IB_metadata);
 
@@ -27,8 +27,7 @@ struct ImBuf *IMB_thumb_load_font(const char *filename, unsigned int x, unsigned
   const float col[4] = {1.0f, 1.0f, 1.0f, 0.0f};
   IMB_rectfill(ibuf, col);
 
-  if (!BLF_thumb_preview(
-          filename, (unsigned char *)ibuf->rect, ibuf->x, ibuf->y, ibuf->channels)) {
+  if (!BLF_thumb_preview(filename, (uchar *)ibuf->rect, ibuf->x, ibuf->y, ibuf->channels)) {
     IMB_freeImBuf(ibuf);
     ibuf = NULL;
   }
@@ -38,7 +37,7 @@ struct ImBuf *IMB_thumb_load_font(const char *filename, unsigned int x, unsigned
 
 bool IMB_thumb_load_font_get_hash(char *r_hash)
 {
-  unsigned char digest[16];
+  uchar digest[16];
   BLI_hash_md5_buffer(FONT_THUMB_VERSION, sizeof(FONT_THUMB_VERSION), digest);
   r_hash[0] = '\0';
   BLI_hash_md5_to_hexdigest(digest, r_hash);

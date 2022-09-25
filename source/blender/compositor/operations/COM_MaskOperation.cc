@@ -52,7 +52,7 @@ void MaskOperation::init_execution()
         }
       }
 
-      for (unsigned int i = 0; i < raster_mask_handle_tot_; i++) {
+      for (uint i = 0; i < raster_mask_handle_tot_; i++) {
         raster_mask_handles_[i] = BKE_maskrasterize_handle_new();
 
         /* re-eval frame info */
@@ -76,7 +76,7 @@ void MaskOperation::init_execution()
 
 void MaskOperation::deinit_execution()
 {
-  for (unsigned int i = 0; i < raster_mask_handle_tot_; i++) {
+  for (uint i = 0; i < raster_mask_handle_tot_; i++) {
     if (raster_mask_handles_[i]) {
       BKE_maskrasterize_handle_free(raster_mask_handles_[i]);
       raster_mask_handles_[i] = nullptr;
@@ -118,7 +118,7 @@ void MaskOperation::execute_pixel_sampled(float output[4],
     /* In case loop below fails. */
     output[0] = 0.0f;
 
-    for (unsigned int i = 0; i < raster_mask_handle_tot_; i++) {
+    for (uint i = 0; i < raster_mask_handle_tot_; i++) {
       if (raster_mask_handles_[i]) {
         output[0] += BKE_maskrasterize_handle_sample(raster_mask_handles_[i], xy);
       }

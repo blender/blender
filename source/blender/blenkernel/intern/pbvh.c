@@ -234,8 +234,7 @@ void pbvh_grow_nodes(PBVH *pbvh, int totnode)
 
 /* Add a vertex to the map, with a positive value for unique vertices and
  * a negative value for additional vertices */
-static int map_insert_vert(
-    PBVH *pbvh, GHash *map, unsigned int *face_verts, unsigned int *uniq_verts, int vertex)
+static int map_insert_vert(PBVH *pbvh, GHash *map, uint *face_verts, uint *uniq_verts, int vertex)
 {
   void *key, **value_p;
 
@@ -1023,7 +1022,7 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
   float(*vnors)[3] = data->vnors;
 
   if (node->flag & PBVH_UpdateNormals) {
-    unsigned int mpoly_prev = UINT_MAX;
+    uint mpoly_prev = UINT_MAX;
     float fn[3];
 
     const int *faces = node->prim_indices;
@@ -1031,7 +1030,7 @@ static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
 
     for (int i = 0; i < totface; i++) {
       const MLoopTri *lt = &pbvh->looptri[faces[i]];
-      const unsigned int vtri[3] = {
+      const uint vtri[3] = {
           pbvh->mloop[lt->tri[0]].v,
           pbvh->mloop[lt->tri[1]].v,
           pbvh->mloop[lt->tri[2]].v,

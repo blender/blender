@@ -102,18 +102,15 @@ void *FastGaussianBlurOperation::initialize_tile_data(rcti *rect)
   return iirgaus_;
 }
 
-void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
-                                          float sigma,
-                                          unsigned int chan,
-                                          unsigned int xy)
+void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src, float sigma, uint chan, uint xy)
 {
   BLI_assert(!src->is_a_single_elem());
   double q, q2, sc, cf[4], tsM[9], tsu[3], tsv[3];
   double *X, *Y, *W;
-  const unsigned int src_width = src->get_width();
-  const unsigned int src_height = src->get_height();
-  unsigned int x, y, src_dim_max;
-  unsigned int i;
+  const uint src_width = src->get_width();
+  const uint src_height = src->get_height();
+  uint x, y, src_dim_max;
+  uint i;
   float *buffer = src->get_buffer();
   const uint8_t num_channels = src->get_num_channels();
 

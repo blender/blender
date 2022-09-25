@@ -325,7 +325,7 @@ void WM_event_add_notifier(const bContext *C, uint type, void *reference)
   WM_event_add_notifier_ex(CTX_wm_manager(C), CTX_wm_window(C), type, reference);
 }
 
-void WM_main_add_notifier(unsigned int type, void *reference)
+void WM_main_add_notifier(uint type, void *reference)
 {
   Main *bmain = G_MAIN;
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
@@ -5484,7 +5484,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         if (BLI_str_utf8_size(event.utf8_buf) == -1) {
           CLOG_ERROR(WM_LOG_EVENTS,
                      "ghost detected an invalid unicode character '%d'",
-                     (int)(unsigned char)event.utf8_buf[0]);
+                     (int)(uchar)event.utf8_buf[0]);
           event.utf8_buf[0] = '\0';
         }
       }

@@ -273,7 +273,7 @@ void BlenderFileLoader::addTriangle(struct LoaderState *ls,
 #if 0
   float len;
 #endif
-  unsigned int i, j;
+  uint i, j;
   IndexedFaceSet::FaceEdgeMark marks = 0;
 
   // initialize the bounding box by the first vertex
@@ -549,7 +549,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
       copy_v3_v3(n3, facenormal);
     }
 
-    unsigned int numTris = countClippedFaces(v1, v2, v3, clip);
+    uint numTris = countClippedFaces(v1, v2, v3, clip);
     if (numTris == 0) {
       continue;
     }
@@ -578,7 +578,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
     }
     else {
       // find if the Blender material is already in the list
-      unsigned int i = 0;
+      uint i = 0;
       bool found = false;
 
       for (vector<Material *>::iterator it = meshMaterials.begin(), itend = meshMaterials.end();
@@ -624,22 +624,22 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   // We might have several times the same vertex. We want a clean
   // shape with no real-vertex. Here, we are making a cleaning pass.
   float *cleanVertices = nullptr;
-  unsigned int cvSize;
-  unsigned int *cleanVIndices = nullptr;
+  uint cvSize;
+  uint *cleanVIndices = nullptr;
 
   GeomCleaner::CleanIndexedVertexArray(
       vertices, vSize, VIndices, viSize, &cleanVertices, &cvSize, &cleanVIndices);
 
   float *cleanNormals = nullptr;
-  unsigned int cnSize;
-  unsigned int *cleanNIndices = nullptr;
+  uint cnSize;
+  uint *cleanNIndices = nullptr;
 
   GeomCleaner::CleanIndexedVertexArray(
       normals, nSize, NIndices, niSize, &cleanNormals, &cnSize, &cleanNIndices);
 
   // format materials array
   FrsMaterial **marray = new FrsMaterial *[meshFrsMaterials.size()];
-  unsigned int mindex = 0;
+  uint mindex = 0;
   for (vector<FrsMaterial>::iterator m = meshFrsMaterials.begin(), mend = meshFrsMaterials.end();
        m != mend;
        ++m) {
@@ -695,7 +695,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
 
     detri.v = zero;
     detri.n = 0;
-    for (unsigned int j = 0; j < viSize; j += 3) {
+    for (uint j = 0; j < viSize; j += 3) {
       if (i == j) {
         continue;
       }
@@ -754,7 +754,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
     if (G.debug & G_DEBUG_FREESTYLE) {
       printf("Warning: Object %s contains %lu degenerated triangle%s (strokes may be incorrect)\n",
              name,
-             (long unsigned int)detriList.size(),
+             (ulong)detriList.size(),
              (detriList.size() > 1) ? "s" : "");
     }
   }

@@ -354,7 +354,7 @@ static void cleanup_textline(TextLine *tl)
  * used for load and reload (unlike txt_insert_buf)
  * assumes all fields are empty
  */
-static void text_from_buf(Text *text, const unsigned char *buffer, const int len)
+static void text_from_buf(Text *text, const uchar *buffer, const int len)
 {
   int i, llen, lines_count;
 
@@ -419,7 +419,7 @@ static void text_from_buf(Text *text, const unsigned char *buffer, const int len
 
 bool BKE_text_reload(Text *text)
 {
-  unsigned char *buffer;
+  uchar *buffer;
   size_t buffer_len;
   char filepath_abs[FILE_MAX];
   BLI_stat_t st;
@@ -459,7 +459,7 @@ Text *BKE_text_load_ex(Main *bmain,
                        const char *relbase,
                        const bool is_internal)
 {
-  unsigned char *buffer;
+  uchar *buffer;
   size_t buffer_len;
   Text *ta;
   char filepath_abs[FILE_MAX];
@@ -1088,16 +1088,16 @@ void txt_move_eof(Text *text, const bool sel)
   }
 }
 
-void txt_move_toline(Text *text, unsigned int line, const bool sel)
+void txt_move_toline(Text *text, uint line, const bool sel)
 {
   txt_move_to(text, line, 0, sel);
 }
 
-void txt_move_to(Text *text, unsigned int line, unsigned int ch, const bool sel)
+void txt_move_to(Text *text, uint line, uint ch, const bool sel)
 {
   TextLine **linep;
   int *charp;
-  unsigned int i;
+  uint i;
 
   if (sel) {
     txt_curs_sel(text, &linep, &charp);
@@ -1118,8 +1118,8 @@ void txt_move_to(Text *text, unsigned int line, unsigned int ch, const bool sel)
       break;
     }
   }
-  if (ch > (unsigned int)((*linep)->len)) {
-    ch = (unsigned int)((*linep)->len);
+  if (ch > (uint)((*linep)->len)) {
+    ch = (uint)((*linep)->len);
   }
   *charp = ch;
 

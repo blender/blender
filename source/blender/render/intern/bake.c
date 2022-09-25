@@ -456,7 +456,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
   TriTessFace *triangles;
 
   /* calculate normal for each polygon only once */
-  unsigned int mpoly_prev = UINT_MAX;
+  uint mpoly_prev = UINT_MAX;
   float no[3];
 
   const MVert *verts = BKE_mesh_verts(me);

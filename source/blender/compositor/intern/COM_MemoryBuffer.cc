@@ -133,8 +133,8 @@ MemoryBuffer *MemoryBuffer::inflate() const
 float MemoryBuffer::get_max_value() const
 {
   float result = buffer_[0];
-  const unsigned int size = this->buffer_len();
-  unsigned int i;
+  const uint size = this->buffer_len();
+  uint i;
 
   const float *fp_src = buffer_;
 

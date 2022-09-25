@@ -106,7 +106,7 @@ static void geom_add_mrgb_colors(const char *p, const char *end, GlobalVertices 
     if (ELEM(res.ec, std::errc::invalid_argument, std::errc::result_out_of_range)) {
       return;
     }
-    unsigned char srgb[4];
+    uchar srgb[4];
     srgb[0] = (value >> 16) & 0xFF;
     srgb[1] = (value >> 8) & 0xFF;
     srgb[2] = value & 0xFF;

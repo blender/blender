@@ -484,7 +484,7 @@ struct ImageCacheKey {
   int index;
 };
 
-static unsigned int imagecache_hashhash(const void *key_v)
+static uint imagecache_hashhash(const void *key_v)
 {
   const ImageCacheKey *key = static_cast<const ImageCacheKey *>(key_v);
   return key->index;
@@ -1080,7 +1080,7 @@ struct ImageFillData {
   short gen_type;
   uint width;
   uint height;
-  unsigned char *rect;
+  uchar *rect;
   float *rect_float;
   float fill_color[4];
 };
@@ -1093,7 +1093,7 @@ static void image_buf_fill_isolated(void *usersata_v)
   const uint width = usersata->width;
   const uint height = usersata->height;
 
-  unsigned char *rect = usersata->rect;
+  uchar *rect = usersata->rect;
   float *rect_float = usersata->rect_float;
 
   switch (gen_type) {
@@ -1112,7 +1112,7 @@ static void image_buf_fill_isolated(void *usersata_v)
 static ImBuf *add_ibuf_for_tile(Image *ima, ImageTile *tile)
 {
   ImBuf *ibuf;
-  unsigned char *rect = nullptr;
+  uchar *rect = nullptr;
   float *rect_float = nullptr;
   float fill_color[4];
 
@@ -1152,7 +1152,7 @@ static ImBuf *add_ibuf_for_tile(Image *ima, ImageTile *tile)
     }
 
     if (ibuf != nullptr) {
-      rect = (unsigned char *)ibuf->rect;
+      rect = (uchar *)ibuf->rect;
       IMB_colormanagement_assign_rect_colorspace(ibuf, ima->colorspace_settings.name);
     }
 
@@ -1183,8 +1183,8 @@ static ImBuf *add_ibuf_for_tile(Image *ima, ImageTile *tile)
 }
 
 Image *BKE_image_add_generated(Main *bmain,
-                               unsigned int width,
-                               unsigned int height,
+                               uint width,
+                               uint height,
                                const char *name,
                                int depth,
                                int floatbuf,
@@ -1943,7 +1943,7 @@ static void stampdata_from_template(StampData *stamp_data,
 void BKE_image_stamp_buf(Scene *scene,
                          Object *camera,
                          const StampData *stamp_data_template,
-                         unsigned char *rect,
+                         uchar *rect,
                          float *rectf,
                          int width,
                          int height,
@@ -2524,7 +2524,7 @@ bool BKE_imbuf_alpha_test(ImBuf *ibuf)
     }
   }
   else if (ibuf->rect) {
-    unsigned char *buf = (unsigned char *)ibuf->rect;
+    uchar *buf = (uchar *)ibuf->rect;
     for (tot = ibuf->x * ibuf->y; tot--; buf += 4) {
       if (buf[3] != 255) {
         return true;
@@ -4101,7 +4101,7 @@ static ImBuf *load_image_single(Image *ima,
     LISTBASE_FOREACH (ImagePackedFile *, imapf, &ima->packedfiles) {
       if (imapf->view == view_id && imapf->tile_number == tile_number) {
         if (imapf->packedfile) {
-          ibuf = IMB_ibImageFromMemory((unsigned char *)imapf->packedfile->data,
+          ibuf = IMB_ibImageFromMemory((uchar *)imapf->packedfile->data,
                                        imapf->packedfile->size,
                                        flag,
                                        ima->colorspace_settings.name,
@@ -4291,7 +4291,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
   Render *re;
   RenderView *rv;
   float *rectf, *rectz;
-  unsigned int *rect;
+  uint *rect;
   float dither;
   int channels, layer, pass;
   ImBuf *ibuf;
@@ -4350,12 +4350,12 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
 
   /* this gives active layer, composite or sequence result */
   if (rv == nullptr) {
-    rect = (unsigned int *)rres.rect32;
+    rect = (uint *)rres.rect32;
     rectf = rres.rectf;
     rectz = rres.rectz;
   }
   else {
-    rect = (unsigned int *)rv->rect32;
+    rect = (uint *)rv->rect32;
     rectf = rv->rectf;
     rectz = rv->rectz;
   }
@@ -5120,7 +5120,7 @@ void BKE_image_user_file_path_ex(const Main *bmain,
 
   if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_TILED)) {
     char head[FILE_MAX], tail[FILE_MAX];
-    unsigned short numlen;
+    ushort numlen;
 
     int index;
     if (ima->source == IMA_SRC_SEQUENCE) {
@@ -5204,13 +5204,13 @@ void BKE_image_get_aspect(Image *image, float *r_aspx, float *r_aspy)
   }
 }
 
-unsigned char *BKE_image_get_pixels_for_frame(struct Image *image, int frame, int tile)
+uchar *BKE_image_get_pixels_for_frame(struct Image *image, int frame, int tile)
 {
   ImageUser iuser;
   BKE_imageuser_default(&iuser);
   void *lock;
   ImBuf *ibuf;
-  unsigned char *pixels = nullptr;
+  uchar *pixels = nullptr;
 
   iuser.framenr = frame;
   iuser.tile = tile;
@@ -5218,10 +5218,10 @@ unsigned char *BKE_image_get_pixels_for_frame(struct Image *image, int frame, in
   ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
 
   if (ibuf) {
-    pixels = (unsigned char *)ibuf->rect;
+    pixels = (uchar *)ibuf->rect;
 
     if (pixels) {
-      pixels = static_cast<unsigned char *>(MEM_dupallocN(pixels));
+      pixels = static_cast<uchar *>(MEM_dupallocN(pixels));
     }
 
     BKE_image_release_ibuf(image, ibuf, lock);

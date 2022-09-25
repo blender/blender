@@ -659,7 +659,7 @@ static void build_pict_list_ex(
     int fp_framenr;
     struct {
       char head[FILE_MAX], tail[FILE_MAX];
-      unsigned short digits;
+      ushort digits;
     } fp_decoded;
 
     char filepath[FILE_MAX];

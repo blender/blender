@@ -56,7 +56,7 @@ OpenCLDevice::~OpenCLDevice()
 
 void OpenCLDevice::execute(WorkPackage *work_package)
 {
-  const unsigned int chunk_number = work_package->chunk_number;
+  const uint chunk_number = work_package->chunk_number;
   ExecutionGroup *execution_group = work_package->execution_group;
 
   MemoryBuffer **input_buffers = execution_group->get_input_buffers_opencl(chunk_number);

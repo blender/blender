@@ -108,8 +108,8 @@ void lineart_register_shadow_cuts(LineartData *ld, LineartEdge *e, LineartEdge *
           (e->v1->fbcoord[3] - la1 * (e->v1->fbcoord[3] - e->v2->fbcoord[3]));
     la2 = la2 * e->v2->fbcoord[3] /
           (e->v1->fbcoord[3] - la2 * (e->v1->fbcoord[3] - e->v2->fbcoord[3]));
-    unsigned char shadow_bits = (es->occlusion != 0) ? LRT_SHADOW_MASK_SHADED :
-                                                       LRT_SHADOW_MASK_ILLUMINATED;
+    uchar shadow_bits = (es->occlusion != 0) ? LRT_SHADOW_MASK_SHADED :
+                                               LRT_SHADOW_MASK_ILLUMINATED;
 
     if (lineart_contour_viewed_from_dark_side(ld, e) &&
         shadow_bits == LRT_SHADOW_MASK_ILLUMINATED) {

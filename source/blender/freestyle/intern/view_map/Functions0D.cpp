@@ -319,7 +319,7 @@ int QuantitativeInvisibilityF0D::operator()(Interface0DIterator &iter)
 {
   ViewEdge *ve1, *ve2;
   getViewEdges(iter, ve1, ve2);
-  unsigned int qi1, qi2;
+  uint qi1, qi2;
   qi1 = ve1->qi();
   if (ve2 != nullptr) {
     qi2 = ve2->qi();

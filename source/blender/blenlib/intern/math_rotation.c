@@ -1477,7 +1477,7 @@ void compatible_eul(float eul[3], const float oldrot[3])
   const float pi_x2 = (2.0f * (float)M_PI);
 
   float deul[3];
-  unsigned int i;
+  uint i;
 
   /* correct differences of about 360 degrees first */
   for (i = 0; i < 3; i++) {

@@ -2184,7 +2184,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             if (smd->bind_verts_num && smd->verts) {
               smd->mesh_verts_num = smd->bind_verts_num;
 
-              for (unsigned int i = 0; i < smd->bind_verts_num; i++) {
+              for (uint i = 0; i < smd->bind_verts_num; i++) {
                 smd->verts[i].vertex_idx = i;
               }
             }

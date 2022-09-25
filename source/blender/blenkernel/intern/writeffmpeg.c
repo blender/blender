@@ -425,7 +425,7 @@ static AVRational calc_time_base(uint den, double num, int codec_id)
 
   /* Calculate the precision of the initial floating point number. */
   if (num > 1.0) {
-    const uint num_integer_bits = log2_floor_u((unsigned int)num);
+    const uint num_integer_bits = log2_floor_u((uint)num);
 
     /* Formula for calculating the epsilon value: (power of two range) / (pow mantissa bits)
      * For example, a float has 23 mantissa bits and the float value 3.5f as a pow2 range of

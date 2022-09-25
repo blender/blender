@@ -60,7 +60,7 @@ using Vector3 = float[3];
 using Vector4 = float[4];
 struct IK_Target;
 using ErrorCallback = void (*)(const iTaSC::ConstraintValues *values,
-                               unsigned int nvalues,
+                               uint nvalues,
                                IK_Target *iktarget);
 
 /* one structure for each target in the scene */
@@ -75,7 +75,7 @@ struct IK_Target {
   ErrorCallback errorCallback;
   std::string targetName;
   std::string constraintName;
-  unsigned short controlType;
+  ushort controlType;
   short channel;      /* index in IK channel array of channel on which this target is defined */
   short ee;           /* end effector number */
   bool simulation;    /* true when simulation mode is used (update feedback) */
@@ -704,7 +704,7 @@ static bool base_callback(const iTaSC::Timestamp &timestamp,
 
 static bool copypose_callback(const iTaSC::Timestamp &timestamp,
                               iTaSC::ConstraintValues *const _values,
-                              unsigned int _nvalues,
+                              uint _nvalues,
                               void *_param)
 {
   IK_Target *iktarget = (IK_Target *)_param;
@@ -749,7 +749,7 @@ static bool copypose_callback(const iTaSC::Timestamp &timestamp,
 }
 
 static void copypose_error(const iTaSC::ConstraintValues *values,
-                           unsigned int nvalues,
+                           uint nvalues,
                            IK_Target *iktarget)
 {
   iTaSC::ConstraintSingleValue *value;
@@ -776,7 +776,7 @@ static void copypose_error(const iTaSC::ConstraintValues *values,
 
 static bool distance_callback(const iTaSC::Timestamp &timestamp,
                               iTaSC::ConstraintValues *const _values,
-                              unsigned int _nvalues,
+                              uint _nvalues,
                               void *_param)
 {
   IK_Target *iktarget = (IK_Target *)_param;
@@ -826,7 +826,7 @@ static bool distance_callback(const iTaSC::Timestamp &timestamp,
 }
 
 static void distance_error(const iTaSC::ConstraintValues *values,
-                           unsigned int _nvalues,
+                           uint _nvalues,
                            IK_Target *iktarget)
 {
   iktarget->blenderConstraint->lin_error = (float)(values->values[0].y - values->values[0].yd);
@@ -834,7 +834,7 @@ static void distance_error(const iTaSC::ConstraintValues *values,
 
 static bool joint_callback(const iTaSC::Timestamp &timestamp,
                            iTaSC::ConstraintValues *const _values,
-                           unsigned int _nvalues,
+                           uint _nvalues,
                            void *_param)
 {
   IK_Channel *ikchan = (IK_Channel *)_param;
@@ -909,7 +909,7 @@ static bool joint_callback(const iTaSC::Timestamp &timestamp,
       break;
   }
   if (dof >= 0) {
-    for (unsigned int i = 0; i < _nvalues; i++, dof++) {
+    for (uint i = 0; i < _nvalues; i++, dof++) {
       _values[i].values[0].yd = ikchan->jointValue[dof];
       _values[i].alpha = chan->ikrotweight;
       _values[i].feedback = ikparam->feedback;
@@ -1139,7 +1139,7 @@ static IK_Scene *convert_tree(
   KDL::Frame initPose;
   Bone *bone;
   int a, numtarget;
-  unsigned int t;
+  uint t;
   float length;
   bool ret = true;
   double *rot;
@@ -1512,7 +1512,7 @@ static IK_Scene *convert_tree(
     iktarget->bldepsgraph = depsgraph;
     condata = (bKinematicConstraint *)iktarget->blenderConstraint->data;
     pchan = tree->pchan[iktarget->channel];
-    unsigned int controltype, bone_count;
+    uint controltype, bone_count;
     double bone_length;
     float mat[4][4];
 

@@ -1051,7 +1051,7 @@ void Controller::displayDensityCurves(int x, int y)
     return;
   }
 
-  unsigned int i, j;
+  uint i, j;
   using densityCurve = vector<Vec3r>;
   vector<densityCurve> curves(svm->getNumberOfOrientations() + 1);
   vector<densityCurve> curvesDirection(svm->getNumberOfPyramidLevels());

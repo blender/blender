@@ -354,8 +354,8 @@ bool Grid::initInfiniteRay(const Vec3r &orig, const Vec3r &dir, unsigned timesta
   Vec3r boxMax(_orig + _size);
   BBox<Vec3r> box(boxMin, boxMax);
   if (box.inside(orig)) {
-    for (unsigned int i = 0; i < 3; i++) {
-      _current_cell[i] = (unsigned int)floor((orig[i] - _orig[i]) / _cell_size[i]);
+    for (uint i = 0; i < 3; i++) {
+      _current_cell[i] = (uint)floor((orig[i] - _orig[i]) / _cell_size[i]);
       // soc unused - unsigned u = _current_cell[i];
       _pt[i] = orig[i] - _orig[i] - _current_cell[i] * _cell_size[i];
     }
@@ -366,7 +366,7 @@ bool Grid::initInfiniteRay(const Vec3r &orig, const Vec3r &dir, unsigned timesta
     if (GeomUtils::intersectRayBBox(orig, _ray_dir, boxMin, boxMax, 0, _t_end, tmin, tmax)) {
       BLI_assert(tmin != -1.0);
       Vec3r newOrig = orig + tmin * _ray_dir;
-      for (unsigned int i = 0; i < 3; i++) {
+      for (uint i = 0; i < 3; i++) {
         _current_cell[i] = (unsigned)floor((newOrig[i] - _orig[i]) / _cell_size[i]);
         if (_current_cell[i] == _cells_nb[i]) {
           _current_cell[i] = _cells_nb[i] - 1;

@@ -423,7 +423,7 @@ VFont *BKE_vfont_builtin_get(void)
   return BKE_vfont_load(G_MAIN, FO_BUILTIN_NAME);
 }
 
-static VChar *find_vfont_char(VFontData *vfd, unsigned int character)
+static VChar *find_vfont_char(VFontData *vfd, uint character)
 {
   return BLI_ghash_lookup(vfd->characters, POINTER_FROM_UINT(character));
 }
@@ -494,7 +494,7 @@ static void build_underline(Curve *cu,
 
 void BKE_vfont_build_char(Curve *cu,
                           ListBase *nubase,
-                          unsigned int character,
+                          uint character,
                           CharInfo *info,
                           float ofsx,
                           float ofsy,

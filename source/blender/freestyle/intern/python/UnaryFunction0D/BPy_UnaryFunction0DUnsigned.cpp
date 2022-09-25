@@ -64,7 +64,7 @@ static int UnaryFunction0DUnsigned___init__(BPy_UnaryFunction0DUnsigned *self,
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist)) {
     return -1;
   }
-  self->uf0D_unsigned = new UnaryFunction0D<unsigned int>();
+  self->uf0D_unsigned = new UnaryFunction0D<uint>();
   self->uf0D_unsigned->py_uf0D = (PyObject *)self;
   return 0;
 }
@@ -93,7 +93,7 @@ static PyObject *UnaryFunction0DUnsigned___call__(BPy_UnaryFunction0DUnsigned *s
     return nullptr;
   }
 
-  if (typeid(*(self->uf0D_unsigned)) == typeid(UnaryFunction0D<unsigned int>)) {
+  if (typeid(*(self->uf0D_unsigned)) == typeid(UnaryFunction0D<uint>)) {
     PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
     return nullptr;
   }

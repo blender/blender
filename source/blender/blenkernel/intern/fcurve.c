@@ -1308,7 +1308,7 @@ void BKE_fcurve_handles_recalc(FCurve *fcu)
 void testhandles_fcurve(FCurve *fcu, eBezTriple_Flag sel_flag, const bool use_handle)
 {
   BezTriple *bezt;
-  unsigned int a;
+  uint a;
 
   /* Only beztriples have handles (bpoints don't though). */
   if (ELEM(NULL, fcu, fcu->bezt)) {

@@ -178,7 +178,7 @@ static Mathutils_Callback FEdgeSharp_mathutils_cb = {
     FEdgeSharp_mathutils_set_index,
 };
 
-static unsigned char FEdgeSharp_mathutils_cb_index = -1;
+static uchar FEdgeSharp_mathutils_cb_index = -1;
 
 void FEdgeSharp_mathutils_register_callback()
 {
@@ -250,7 +250,7 @@ static int FEdgeSharp_material_index_right_set(BPy_FEdgeSharp *self,
                                                PyObject *value,
                                                void *UNUSED(closure))
 {
-  unsigned int i = PyLong_AsUnsignedLong(value);
+  uint i = PyLong_AsUnsignedLong(value);
   if (PyErr_Occurred()) {
     return -1;
   }
@@ -272,7 +272,7 @@ static int FEdgeSharp_material_index_left_set(BPy_FEdgeSharp *self,
                                               PyObject *value,
                                               void *UNUSED(closure))
 {
-  unsigned int i = PyLong_AsUnsignedLong(value);
+  uint i = PyLong_AsUnsignedLong(value);
   if (PyErr_Occurred()) {
     return -1;
   }

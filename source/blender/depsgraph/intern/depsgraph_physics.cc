@@ -32,7 +32,7 @@ namespace deg = blender::deg;
 
 /*************************** Evaluation Query API *****************************/
 
-static ePhysicsRelationType modifier_to_relation_type(unsigned int modifier_type)
+static ePhysicsRelationType modifier_to_relation_type(uint modifier_type)
 {
   switch (modifier_type) {
     case eModifierType_Collision:
@@ -72,7 +72,7 @@ ListBase *DEG_get_effector_relations(const Depsgraph *graph, Collection *collect
 
 ListBase *DEG_get_collision_relations(const Depsgraph *graph,
                                       Collection *collection,
-                                      unsigned int modifier_type)
+                                      uint modifier_type)
 {
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
   const ePhysicsRelationType type = modifier_to_relation_type(modifier_type);
@@ -91,7 +91,7 @@ ListBase *DEG_get_collision_relations(const Depsgraph *graph,
 void DEG_add_collision_relations(DepsNodeHandle *handle,
                                  Object *object,
                                  Collection *collection,
-                                 unsigned int modifier_type,
+                                 uint modifier_type,
                                  DEG_CollobjFilterFunction filter_function,
                                  const char *name)
 {
@@ -178,9 +178,7 @@ ListBase *build_effector_relations(Depsgraph *graph, Collection *collection)
   });
 }
 
-ListBase *build_collision_relations(Depsgraph *graph,
-                                    Collection *collection,
-                                    unsigned int modifier_type)
+ListBase *build_collision_relations(Depsgraph *graph, Collection *collection, uint modifier_type)
 {
   const ePhysicsRelationType type = modifier_to_relation_type(modifier_type);
   Map<const ID *, ListBase *> *hash = graph->physics_relations[type];

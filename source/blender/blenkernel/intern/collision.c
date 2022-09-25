@@ -67,7 +67,7 @@ void collision_move_object(CollisionModifierData *collmd,
                            const float prevstep,
                            const bool moving_bvh)
 {
-  unsigned int i = 0;
+  uint i = 0;
 
   /* the collider doesn't move this frame */
   if (collmd->is_static) {

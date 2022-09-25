@@ -342,9 +342,7 @@ static void *studiolight_multilayer_addlayer(void *base, const char *UNUSED(laye
 /* Convert a multilayer pass to ImBuf channel 4 float buffer.
  * NOTE: Parameter rect will become invalid. Do not use rect after calling this
  * function */
-static float *studiolight_multilayer_convert_pass(ImBuf *ibuf,
-                                                  float *rect,
-                                                  const unsigned int channels)
+static float *studiolight_multilayer_convert_pass(ImBuf *ibuf, float *rect, const uint channels)
 {
   if (channels == 4) {
     return rect;

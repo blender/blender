@@ -687,7 +687,7 @@ std::string AnimationExporter::collada_interpolation_source(const BCAnimationCur
   std::vector<float> frames;
   curve.get_frames(frames);
 
-  for (unsigned int i = 0; i < curve.sample_count(); i++) {
+  for (uint i = 0; i < curve.sample_count(); i++) {
     float frame = frames[i];
     int ipo = curve.get_interpolation_type(frame);
     if (ipo == BEZT_IPO_BEZ) {

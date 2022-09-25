@@ -68,7 +68,7 @@ float normal_quad_v3(
   return normalize_v3(n);
 }
 
-float normal_poly_v3(float n[3], const float verts[][3], unsigned int nr)
+float normal_poly_v3(float n[3], const float verts[][3], uint nr)
 {
   cross_poly_v3(n, verts, nr);
   return normalize_v3(n);
@@ -122,14 +122,14 @@ float area_tri_signed_v3(const float v1[3],
   return area;
 }
 
-float area_poly_v3(const float verts[][3], unsigned int nr)
+float area_poly_v3(const float verts[][3], uint nr)
 {
   float n[3];
   cross_poly_v3(n, verts, nr);
   return len_v3(n) * 0.5f;
 }
 
-float area_squared_poly_v3(const float verts[][3], unsigned int nr)
+float area_squared_poly_v3(const float verts[][3], uint nr)
 {
   float n[3];
 
@@ -138,9 +138,9 @@ float area_squared_poly_v3(const float verts[][3], unsigned int nr)
   return len_squared_v3(n);
 }
 
-float cross_poly_v2(const float verts[][2], unsigned int nr)
+float cross_poly_v2(const float verts[][2], uint nr)
 {
-  unsigned int a;
+  uint a;
   float cross;
   const float *co_curr, *co_prev;
 
@@ -157,11 +157,11 @@ float cross_poly_v2(const float verts[][2], unsigned int nr)
   return cross;
 }
 
-void cross_poly_v3(float n[3], const float verts[][3], unsigned int nr)
+void cross_poly_v3(float n[3], const float verts[][3], uint nr)
 {
   const float *v_prev = verts[nr - 1];
   const float *v_curr = verts[0];
-  unsigned int i;
+  uint i;
 
   zero_v3(n);
 
@@ -171,17 +171,17 @@ void cross_poly_v3(float n[3], const float verts[][3], unsigned int nr)
   }
 }
 
-float area_poly_v2(const float verts[][2], unsigned int nr)
+float area_poly_v2(const float verts[][2], uint nr)
 {
   return fabsf(0.5f * cross_poly_v2(verts, nr));
 }
 
-float area_poly_signed_v2(const float verts[][2], unsigned int nr)
+float area_poly_signed_v2(const float verts[][2], uint nr)
 {
   return (0.5f * cross_poly_v2(verts, nr));
 }
 
-float area_squared_poly_v2(const float verts[][2], unsigned int nr)
+float area_squared_poly_v2(const float verts[][2], uint nr)
 {
   float area = area_poly_signed_v2(verts, nr);
   return area * area;
@@ -1458,12 +1458,12 @@ int isect_line_sphere_v2(const float l1[2],
 
 bool isect_point_poly_v2(const float pt[2],
                          const float verts[][2],
-                         const unsigned int nr,
+                         const uint nr,
                          const bool UNUSED(use_holes))
 {
   /* Keep in sync with #isect_point_poly_v2_int. */
 
-  unsigned int i, j;
+  uint i, j;
   bool isect = false;
   for (i = 0, j = nr - 1; i < nr; j = i++) {
     if (((verts[i][1] > pt[1]) != (verts[j][1] > pt[1])) &&
@@ -1477,12 +1477,12 @@ bool isect_point_poly_v2(const float pt[2],
 }
 bool isect_point_poly_v2_int(const int pt[2],
                              const int verts[][2],
-                             const unsigned int nr,
+                             const uint nr,
                              const bool UNUSED(use_holes))
 {
   /* Keep in sync with #isect_point_poly_v2. */
 
-  unsigned int i, j;
+  uint i, j;
   bool isect = false;
   for (i = 0, j = nr - 1; i < nr; j = i++) {
     if (((verts[i][1] > pt[1]) != (verts[j][1] > pt[1])) &&

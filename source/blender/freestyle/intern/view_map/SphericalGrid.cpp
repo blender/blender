@@ -146,8 +146,8 @@ void SphericalGrid::assignCells(OccluderSource & /*source*/,
 
 void SphericalGrid::distributePolygons(OccluderSource &source)
 {
-  unsigned long nFaces = 0;
-  unsigned long nKeptFaces = 0;
+  ulong nFaces = 0;
+  ulong nKeptFaces = 0;
 
   for (source.begin(); source.isValid(); source.next()) {
     OccluderData *occluder = nullptr;

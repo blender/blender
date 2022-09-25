@@ -1187,7 +1187,7 @@ void SIM_hair_volume_grid_geometry(
 #if 0
 static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd,
                                                        lfVector *lX,
-                                                       unsigned int numverts)
+                                                       uint numverts)
 {
   int res = hair_grid_res;
   int size = hair_grid_size(res);
@@ -1197,7 +1197,7 @@ static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd,
   float gmin[3], gmax[3], scale[3];
   /* 2.0f is an experimental value that seems to give good results */
   float collfac = 2.0f * clmd->sim_parms->collider_friction;
-  unsigned int v = 0;
+  uint v = 0;
   int i = 0;
 
   hair_volume_get_boundbox(lX, numverts, gmin, gmax);

@@ -473,7 +473,7 @@ static bool image_save_single(ReportList *reports,
   }
   /* individual multiview images */
   else if (imf->views_format == R_IMF_VIEWS_INDIVIDUAL) {
-    unsigned char planes = ibuf->planes;
+    uchar planes = ibuf->planes;
     const int totviews = (rr ? BLI_listbase_count(&rr->views) : BLI_listbase_count(&ima->views));
 
     if (!is_exr_rr) {
@@ -543,7 +543,7 @@ static bool image_save_single(ReportList *reports,
     else {
       ImBuf *ibuf_stereo[2] = {nullptr};
 
-      unsigned char planes = ibuf->planes;
+      uchar planes = ibuf->planes;
       const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
 
       /* we need to get the specific per-view buffers */

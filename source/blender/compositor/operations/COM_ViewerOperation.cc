@@ -60,7 +60,7 @@ void ViewerOperation::deinit_execution()
   output_buffer_ = nullptr;
 }
 
-void ViewerOperation::execute_region(rcti *rect, unsigned int /*tile_number*/)
+void ViewerOperation::execute_region(rcti *rect, uint /*tile_number*/)
 {
   float *buffer = output_buffer_;
   float *depthbuffer = depth_buffer_;

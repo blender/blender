@@ -61,7 +61,7 @@ static blender::Vector<uint8_t> filtered_rows_from_thumb(const Thumbnail *thumb)
 
 static std::optional<blender::Vector<uint8_t>> zlib_compress(const blender::Vector<uint8_t> &data)
 {
-  unsigned long uncompressed_size = data.size();
+  ulong uncompressed_size = data.size();
   uLongf compressed_size = compressBound(uncompressed_size);
 
   blender::Vector<uint8_t> compressed(compressed_size, 0x00);

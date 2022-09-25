@@ -117,7 +117,7 @@ static BVHTree *bvhtree_build_from_cloth(ClothModifierData *clmd, float epsilon)
 
 void bvhtree_update_from_cloth(ClothModifierData *clmd, bool moving, bool self)
 {
-  unsigned int i = 0;
+  uint i = 0;
   Cloth *cloth = clmd->clothObject;
   BVHTree *bvhtree;
   ClothVertex *verts = cloth->verts;
@@ -252,7 +252,7 @@ static int do_step_cloth(
   Cloth *cloth;
   ListBase *effectors = NULL;
   MVert *mvert;
-  unsigned int i = 0;
+  uint i = 0;
   int ret = 0;
   bool vert_mass_changed = false;
 
@@ -576,7 +576,7 @@ void cloth_free_modifier_extern(ClothModifierData *clmd)
  */
 static void cloth_to_object(Object *ob, ClothModifierData *clmd, float (*vertexCos)[3])
 {
-  unsigned int i = 0;
+  uint i = 0;
   Cloth *cloth = clmd->clothObject;
 
   if (clmd->clothObject) {
@@ -825,8 +825,8 @@ static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mes
 {
   const MLoop *mloop = BKE_mesh_loops(mesh);
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh);
-  const unsigned int mvert_num = mesh->totvert;
-  const unsigned int looptri_num = mesh->runtime.looptris.len;
+  const uint mvert_num = mesh->totvert;
+  const uint looptri_num = mesh->runtime.looptris.len;
 
   /* Allocate our vertices. */
   clmd->clothObject->mvert_num = mvert_num;
@@ -884,7 +884,7 @@ BLI_INLINE void spring_verts_ordered_set(ClothSpring *spring, int v0, int v1)
   }
 }
 
-static void cloth_free_edgelist(LinkNodePair *edgelist, unsigned int mvert_num)
+static void cloth_free_edgelist(LinkNodePair *edgelist, uint mvert_num)
 {
   if (edgelist) {
     for (uint i = 0; i < mvert_num; i++) {

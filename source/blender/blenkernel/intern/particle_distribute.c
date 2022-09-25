@@ -480,7 +480,7 @@ static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, i
      * map to equal-colored parts of a texture */
     for (int i = 0; i < ctx->mesh->totface; i++, mface++) {
       if (ELEM(pa->num, mface->v1, mface->v2, mface->v3, mface->v4)) {
-        unsigned int *vert = &mface->v1;
+        uint *vert = &mface->v1;
 
         for (int j = 0; j < 4; j++, vert++) {
           if (*vert == pa->num) {

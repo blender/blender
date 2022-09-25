@@ -41,7 +41,7 @@ typedef struct ScanFillIsect {
 #define EFLAG_SET(eed, val) \
   { \
     CHECK_TYPE(eed, ScanFillEdge *); \
-    (eed)->user_flag = (eed)->user_flag | (unsigned int)val; \
+    (eed)->user_flag = (eed)->user_flag | (uint)val; \
   } \
   (void)0
 #if 0
@@ -56,7 +56,7 @@ typedef struct ScanFillIsect {
 #define VFLAG_SET(eve, val) \
   { \
     CHECK_TYPE(eve, ScanFillVert *); \
-    (eve)->user_flag = (eve)->user_flag | (unsigned int)val; \
+    (eve)->user_flag = (eve)->user_flag | (uint)val; \
   } \
   (void)0
 #if 0
@@ -130,7 +130,7 @@ static int edge_isect_ls_sort_cb(void *thunk, const void *def_a_ptr, const void 
 }
 
 static ScanFillEdge *edge_step(PolyInfo *poly_info,
-                               const unsigned short poly_nr,
+                               const ushort poly_nr,
                                ScanFillVert *v_prev,
                                ScanFillVert *v_curr,
                                ScanFillEdge *e_curr)
@@ -158,7 +158,7 @@ static ScanFillEdge *edge_step(PolyInfo *poly_info,
 
 static bool scanfill_preprocess_self_isect(ScanFillContext *sf_ctx,
                                            PolyInfo *poly_info,
-                                           const unsigned short poly_nr,
+                                           const ushort poly_nr,
                                            ListBase *filledgebase)
 {
   PolyInfo *pi = &poly_info[poly_nr];

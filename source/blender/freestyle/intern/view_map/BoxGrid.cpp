@@ -127,7 +127,7 @@ void BoxGrid::assignCells(OccluderSource & /*source*/,
        ++f) {
     if ((*f)->isInImage()) {
       Vec3r point = transform((*f)->center3d());
-      unsigned int i, j;
+      uint i, j;
       getCellCoordinates(point, i, j);
       if (_cells[i * _cellsY + j] == nullptr) {
         // This is an uninitialized cell
@@ -149,8 +149,8 @@ void BoxGrid::assignCells(OccluderSource & /*source*/,
 
 void BoxGrid::distributePolygons(OccluderSource &source)
 {
-  unsigned long nFaces = 0;
-  unsigned long nKeptFaces = 0;
+  ulong nFaces = 0;
+  ulong nKeptFaces = 0;
 
   for (source.begin(); source.isValid(); source.next()) {
     OccluderData *occluder = nullptr;
@@ -194,7 +194,7 @@ void BoxGrid::getCellCoordinates(const Vec3r &point, unsigned &x, unsigned &y)
 
 BoxGrid::Cell *BoxGrid::findCell(const Vec3r &point)
 {
-  unsigned int x, y;
+  uint x, y;
   getCellCoordinates(point, x, y);
   return _cells[x * _cellsY + y];
 }

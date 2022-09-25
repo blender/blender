@@ -1232,7 +1232,7 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   MutableSpan<MPoly> mpoly = me->polys_for_write();
   MutableSpan<MLoop> loops = me->loops_for_write();
   MLoop *mloop = loops.data();
-  unsigned int i, j;
+  uint i, j;
 
   /* Clear normals on the mesh completely, since the original vertex and polygon count might be
    * different than the BMesh's. */

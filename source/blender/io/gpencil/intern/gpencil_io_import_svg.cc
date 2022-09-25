@@ -212,9 +212,9 @@ void GpencilImporterSVG::create_stroke(bGPdata *gpd,
 }
 
 /* Unpack internal NanoSVG color. */
-static void unpack_nano_color(const unsigned int pack, float r_col[4])
+static void unpack_nano_color(const uint pack, float r_col[4])
 {
-  unsigned char rgb_u[4];
+  uchar rgb_u[4];
 
   rgb_u[0] = ((pack) >> 0) & 0xFF;
   rgb_u[1] = ((pack) >> 8) & 0xFF;

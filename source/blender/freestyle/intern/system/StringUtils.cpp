@@ -21,7 +21,7 @@ void getPathName(const string &path, const string &base, vector<string> &pathnam
 
   pathnames.push_back(base);
 
-  for (unsigned int pos = 0, sep = path.find(Config::PATH_SEP, pos); pos < size;
+  for (uint pos = 0, sep = path.find(Config::PATH_SEP, pos); pos < size;
        pos = sep + 1, sep = path.find(Config::PATH_SEP, pos)) {
     if (sep == (unsigned)string::npos) {
       sep = size;

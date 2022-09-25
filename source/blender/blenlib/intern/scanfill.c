@@ -33,9 +33,9 @@
 
 /* local types */
 typedef struct PolyFill {
-  unsigned int edges, verts;
+  uint edges, verts;
   float min_xy[2], max_xy[2];
-  unsigned short nr;
+  ushort nr;
   bool f;
 } PolyFill;
 
@@ -304,9 +304,7 @@ static bool addedgetoscanvert(ScanFillVertLink *sc, ScanFillEdge *eed)
   return true;
 }
 
-static ScanFillVertLink *addedgetoscanlist(ScanFillVertLink *scdata,
-                                           ScanFillEdge *eed,
-                                           unsigned int len)
+static ScanFillVertLink *addedgetoscanlist(ScanFillVertLink *scdata, ScanFillEdge *eed, uint len)
 {
   /* inserts edge at correct location in ScanFillVertLink list */
   /* returns sc when edge already exists */
@@ -428,10 +426,7 @@ static void testvertexnearedge(ScanFillContext *sf_ctx)
   }
 }
 
-static void splitlist(ScanFillContext *sf_ctx,
-                      ListBase *tempve,
-                      ListBase *temped,
-                      unsigned short nr)
+static void splitlist(ScanFillContext *sf_ctx, ListBase *tempve, ListBase *temped, ushort nr)
 {
   /* Everything is in temp-list, write only poly nr to fill-list. */
   ScanFillVert *eve, *eve_next;
@@ -457,14 +452,14 @@ static void splitlist(ScanFillContext *sf_ctx,
   }
 }
 
-static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
+static uint scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 {
   ScanFillVertLink *scdata;
   ScanFillVertLink *sc = NULL, *sc1;
   ScanFillVert *eve, *v1, *v2, *v3;
   ScanFillEdge *eed, *eed_next, *ed1, *ed2, *ed3;
-  unsigned int a, b, verts, maxface, totface;
-  const unsigned short nr = pf->nr;
+  uint a, b, verts, maxface, totface;
+  const ushort nr = pf->nr;
   bool twoconnected = false;
 
   /* PRINTS */

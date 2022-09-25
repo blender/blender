@@ -108,7 +108,7 @@ static pthread_mutex_t _colormanage_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _fftw_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _view3d_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t mainid;
-static unsigned int thread_levels = 0; /* threads can be invoked inside threads */
+static uint thread_levels = 0; /* threads can be invoked inside threads */
 static int threads_override_num = 0;
 
 /* just a max for security reasons */
@@ -153,7 +153,7 @@ void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int t
     }
   }
 
-  unsigned int level = atomic_fetch_and_add_u(&thread_levels, 1);
+  uint level = atomic_fetch_and_add_u(&thread_levels, 1);
   if (level == 0) {
 #ifdef USE_APPLE_OMP_FIX
     /* Workaround for Apple gcc 4.2.1 OMP vs background thread bug,
@@ -524,7 +524,7 @@ void BLI_rw_mutex_free(ThreadRWMutex *mutex)
 struct TicketMutex {
   pthread_cond_t cond;
   pthread_mutex_t mutex;
-  unsigned int queue_head, queue_tail;
+  uint queue_head, queue_tail;
 };
 
 TicketMutex *BLI_ticket_mutex_alloc()
@@ -547,7 +547,7 @@ void BLI_ticket_mutex_free(TicketMutex *ticket)
 
 void BLI_ticket_mutex_lock(TicketMutex *ticket)
 {
-  unsigned int queue_me;
+  uint queue_me;
 
   pthread_mutex_lock(&ticket->mutex);
   queue_me = ticket->queue_tail++;

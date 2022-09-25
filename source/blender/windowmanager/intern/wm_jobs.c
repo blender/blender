@@ -104,7 +104,7 @@ struct wmJob {
   /** Only start job after specified time delay */
   double start_delay_time;
   /** The notifier event timers should send */
-  unsigned int note, endnote;
+  uint note, endnote;
 
   /* internal */
   const void *owner;
@@ -336,7 +336,7 @@ void WM_jobs_customdata_set(wmJob *wm_job, void *customdata, void (*free)(void *
   }
 }
 
-void WM_jobs_timer(wmJob *wm_job, double timestep, unsigned int note, unsigned int endnote)
+void WM_jobs_timer(wmJob *wm_job, double timestep, uint note, uint endnote)
 {
   wm_job->timestep = timestep;
   wm_job->note = note;

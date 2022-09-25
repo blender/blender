@@ -263,7 +263,7 @@ static int uniform_attr_sort_cmp(const void *a, const void *b)
   return (attr_a->use_dupli && !attr_b->use_dupli);
 }
 
-static unsigned int uniform_attr_list_hash(const void *key)
+static uint uniform_attr_list_hash(const void *key)
 {
   const GPUUniformAttrList *attrs = key;
   return attrs->hash_code;

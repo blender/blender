@@ -83,10 +83,10 @@
 #define BUCKET_PIXELS_PER_CELL 4
 
 #define SF_EDGE_IS_BOUNDARY 0xff
-#define SF_KEYINDEX_TEMP_ID ((unsigned int)-1)
+#define SF_KEYINDEX_TEMP_ID ((uint)-1)
 
-#define TRI_TERMINATOR_ID ((unsigned int)-1)
-#define TRI_VERT ((unsigned int)-1)
+#define TRI_TERMINATOR_ID ((uint)-1)
+#define TRI_VERT ((uint)-1)
 
 /* for debugging add... */
 #ifndef NDEBUG
@@ -127,9 +127,7 @@ static void rotate_point_v2(
   r_p[1] = p_new[1] + cent[1];
 }
 
-BLI_INLINE unsigned int clampis_uint(const unsigned int v,
-                                     const unsigned int min,
-                                     const unsigned int max)
+BLI_INLINE uint clampis_uint(const uint v, const uint min, const uint max)
 {
   return v < min ? min : (v > max ? max : v);
 }
@@ -156,19 +154,19 @@ static ScanFillVert *scanfill_vert_add_v2_with_depth(ScanFillContext *sf_ctx,
 /* internal use only */
 typedef struct MaskRasterLayer {
   /* geometry */
-  unsigned int face_tot;
-  unsigned int (*face_array)[4]; /* access coords tri/quad */
-  float (*face_coords)[3];       /* xy, z 0-1 (1.0 == filled) */
+  uint face_tot;
+  uint (*face_array)[4];   /* access coords tri/quad */
+  float (*face_coords)[3]; /* xy, z 0-1 (1.0 == filled) */
 
   /* 2d bounds (to quickly skip bucket lookup) */
   rctf bounds;
 
   /* buckets */
-  unsigned int **buckets_face;
+  uint **buckets_face;
   /* cache divide and subtract */
   float buckets_xy_scalar[2]; /* (1.0 / (buckets_width + FLT_EPSILON)) * buckets_x */
-  unsigned int buckets_x;
-  unsigned int buckets_y;
+  uint buckets_x;
+  uint buckets_y;
 
   /* copied direct from #MaskLayer.--- */
   /* blending options */
@@ -181,12 +179,12 @@ typedef struct MaskRasterLayer {
 
 typedef struct MaskRasterSplineInfo {
   /* body of the spline */
-  unsigned int vertex_offset;
-  unsigned int vertex_total;
+  uint vertex_offset;
+  uint vertex_total;
 
   /* capping for non-filled, non cyclic splines */
-  unsigned int vertex_total_cap_head;
-  unsigned int vertex_total_cap_tail;
+  uint vertex_total_cap_head;
+  uint vertex_total_cap_tail;
 
   bool is_cyclic;
 } MaskRasterSplineInfo;
@@ -196,7 +194,7 @@ typedef struct MaskRasterSplineInfo {
  */
 struct MaskRasterHandle {
   MaskRasterLayer *layers;
-  unsigned int layers_tot;
+  uint layers_tot;
 
   /* 2d bounds (to quickly skip bucket lookup) */
   rctf bounds;
@@ -217,7 +215,7 @@ MaskRasterHandle *BKE_maskrasterize_handle_new(void)
 
 void BKE_maskrasterize_handle_free(MaskRasterHandle *mr_handle)
 {
-  const unsigned int layers_tot = mr_handle->layers_tot;
+  const uint layers_tot = mr_handle->layers_tot;
   MaskRasterLayer *layer = mr_handle->layers;
 
   for (uint i = 0; i < layers_tot; i++, layer++) {
@@ -231,10 +229,10 @@ void BKE_maskrasterize_handle_free(MaskRasterHandle *mr_handle)
     }
 
     if (layer->buckets_face) {
-      const unsigned int bucket_tot = layer->buckets_x * layer->buckets_y;
-      unsigned int bucket_index;
+      const uint bucket_tot = layer->buckets_x * layer->buckets_y;
+      uint bucket_index;
       for (bucket_index = 0; bucket_index < bucket_tot; bucket_index++) {
-        unsigned int *face_index = layer->buckets_face[bucket_index];
+        uint *face_index = layer->buckets_face[bucket_index];
         if (face_index) {
           MEM_freeN(face_index);
         }
@@ -250,15 +248,15 @@ void BKE_maskrasterize_handle_free(MaskRasterHandle *mr_handle)
 
 static void maskrasterize_spline_differentiate_point_outset(float (*diff_feather_points)[2],
                                                             float (*diff_points)[2],
-                                                            const unsigned int tot_diff_point,
+                                                            const uint tot_diff_point,
                                                             const float ofs,
                                                             const bool do_test)
 {
-  unsigned int k_prev = tot_diff_point - 2;
-  unsigned int k_curr = tot_diff_point - 1;
-  unsigned int k_next = 0;
+  uint k_prev = tot_diff_point - 2;
+  uint k_curr = tot_diff_point - 1;
+  uint k_next = 0;
 
-  unsigned int k;
+  uint k;
 
   float d_prev[2];
   float d_next[2];
@@ -320,14 +318,14 @@ static void maskrasterize_spline_differentiate_point_outset(float (*diff_feather
  *   are to any of the triangle edges.
  */
 static bool layer_bucket_isect_test(const MaskRasterLayer *layer,
-                                    unsigned int face_index,
-                                    const unsigned int bucket_x,
-                                    const unsigned int bucket_y,
+                                    uint face_index,
+                                    const uint bucket_x,
+                                    const uint bucket_y,
                                     const float bucket_size_x,
                                     const float bucket_size_y,
                                     const float bucket_max_rad_squared)
 {
-  unsigned int *face = layer->face_array[face_index];
+  uint *face = layer->face_array[face_index];
   float(*cos)[3] = layer->face_coords;
 
   const float xmin = layer->bounds.xmin + (bucket_size_x * (float)bucket_x);
@@ -403,8 +401,8 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
   const float bucket_dim_x = BLI_rctf_size_x(&layer->bounds);
   const float bucket_dim_y = BLI_rctf_size_y(&layer->bounds);
 
-  layer->buckets_x = (unsigned int)((bucket_dim_x / pixel_size) / (float)BUCKET_PIXELS_PER_CELL);
-  layer->buckets_y = (unsigned int)((bucket_dim_y / pixel_size) / (float)BUCKET_PIXELS_PER_CELL);
+  layer->buckets_x = (uint)((bucket_dim_x / pixel_size) / (float)BUCKET_PIXELS_PER_CELL);
+  layer->buckets_y = (uint)((bucket_dim_y / pixel_size) / (float)BUCKET_PIXELS_PER_CELL);
 
   //      printf("bucket size %ux%u\n", layer->buckets_x, layer->buckets_y);
 
@@ -422,14 +420,14 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
                                  FLT_EPSILON;
     const float bucket_max_rad_squared = bucket_max_rad * bucket_max_rad;
 
-    unsigned int *face = &layer->face_array[0][0];
+    uint *face = &layer->face_array[0][0];
     float(*cos)[3] = layer->face_coords;
 
-    const unsigned int bucket_tot = layer->buckets_x * layer->buckets_y;
+    const uint bucket_tot = layer->buckets_x * layer->buckets_y;
     LinkNode **bucketstore = MEM_callocN(bucket_tot * sizeof(LinkNode *), __func__);
-    unsigned int *bucketstore_tot = MEM_callocN(bucket_tot * sizeof(unsigned int), __func__);
+    uint *bucketstore_tot = MEM_callocN(bucket_tot * sizeof(uint), __func__);
 
-    unsigned int face_index;
+    uint face_index;
 
     for (face_index = 0; face_index < layer->face_tot; face_index++, face += 4) {
       float xmin;
@@ -468,17 +466,13 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
         CLAMP(ymax, 0.0f, 1.0f);
 
         {
-          unsigned int xi_min = (unsigned int)((xmin - layer->bounds.xmin) *
-                                               layer->buckets_xy_scalar[0]);
-          unsigned int xi_max = (unsigned int)((xmax - layer->bounds.xmin) *
-                                               layer->buckets_xy_scalar[0]);
-          unsigned int yi_min = (unsigned int)((ymin - layer->bounds.ymin) *
-                                               layer->buckets_xy_scalar[1]);
-          unsigned int yi_max = (unsigned int)((ymax - layer->bounds.ymin) *
-                                               layer->buckets_xy_scalar[1]);
+          uint xi_min = (uint)((xmin - layer->bounds.xmin) * layer->buckets_xy_scalar[0]);
+          uint xi_max = (uint)((xmax - layer->bounds.xmin) * layer->buckets_xy_scalar[0]);
+          uint yi_min = (uint)((ymin - layer->bounds.ymin) * layer->buckets_xy_scalar[1]);
+          uint yi_max = (uint)((ymax - layer->bounds.ymin) * layer->buckets_xy_scalar[1]);
           void *face_index_void = POINTER_FROM_UINT(face_index);
 
-          unsigned int xi, yi;
+          uint xi, yi;
 
           /* this should _almost_ never happen but since it can in extreme cases,
            * we have to clamp the values or we overrun the buffer and crash */
@@ -496,7 +490,7 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
           }
 
           for (yi = yi_min; yi <= yi_max; yi++) {
-            unsigned int bucket_index = (layer->buckets_x * yi) + xi_min;
+            uint bucket_index = (layer->buckets_x * yi) + xi_min;
             for (xi = xi_min; xi <= xi_max; xi++, bucket_index++) {
               /* correct but do in outer loop */
               // unsigned int bucket_index = (layer->buckets_x * yi) + xi;
@@ -528,13 +522,12 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 
     if (1) {
       /* now convert linknodes into arrays for faster per pixel access */
-      unsigned int **buckets_face = MEM_mallocN(bucket_tot * sizeof(*buckets_face), __func__);
-      unsigned int bucket_index;
+      uint **buckets_face = MEM_mallocN(bucket_tot * sizeof(*buckets_face), __func__);
+      uint bucket_index;
 
       for (bucket_index = 0; bucket_index < bucket_tot; bucket_index++) {
         if (bucketstore_tot[bucket_index]) {
-          unsigned int *bucket = MEM_mallocN(
-              (bucketstore_tot[bucket_index] + 1) * sizeof(unsigned int), __func__);
+          uint *bucket = MEM_mallocN((bucketstore_tot[bucket_index] + 1) * sizeof(uint), __func__);
           LinkNode *bucket_node;
 
           buckets_face[bucket_index] = bucket;

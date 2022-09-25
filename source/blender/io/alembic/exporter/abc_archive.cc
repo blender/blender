@@ -136,7 +136,7 @@ static TimeSamplingPtr create_time_sampling(double scene_fps,
 
 static void get_frames(double scene_fps,
                        const AlembicExportParams &params,
-                       unsigned int nr_of_samples,
+                       uint nr_of_samples,
                        std::set<double> &r_frames)
 {
   /* Get one set of shutter samples, then add those around each frame to export. */

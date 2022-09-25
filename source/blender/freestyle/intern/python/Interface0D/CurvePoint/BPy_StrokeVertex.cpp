@@ -206,7 +206,7 @@ static Mathutils_Callback StrokeVertex_mathutils_cb = {
     StrokeVertex_mathutils_set_index,
 };
 
-static unsigned char StrokeVertex_mathutils_cb_index = -1;
+static uchar StrokeVertex_mathutils_cb_index = -1;
 
 void StrokeVertex_mathutils_register_callback()
 {

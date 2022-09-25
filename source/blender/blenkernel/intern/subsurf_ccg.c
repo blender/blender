@@ -340,8 +340,8 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
     get_face_uv_map_vert(vmap, mpoly, ml, i, fverts);
 
     for (j = 0, j_next = nverts - 1; j < nverts; j_next = j++) {
-      unsigned int v0 = POINTER_AS_UINT(fverts[j_next]);
-      unsigned int v1 = POINTER_AS_UINT(fverts[j]);
+      uint v0 = POINTER_AS_UINT(fverts[j_next]);
+      uint v1 = POINTER_AS_UINT(fverts[j]);
 
       if (BLI_edgeset_add(eset, v0, v1)) {
         CCGEdge *e, *orige = ccgSubSurf_getFaceEdge(origf, j_next);
@@ -892,7 +892,7 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
   int totvert, totedge, totface;
   int gridSize = ccgSubSurf_getGridSize(ss);
   int edgeSize = ccgSubSurf_getEdgeSize(ss);
-  unsigned int i = 0;
+  uint i = 0;
 
   CCG_key_top_level(&key, ss);
 
@@ -960,7 +960,7 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
   int totedge, totface;
   int gridSize = ccgSubSurf_getGridSize(ss);
   int edgeSize = ccgSubSurf_getEdgeSize(ss);
-  unsigned int i = 0;
+  uint i = 0;
   short *edgeFlags = ccgdm->edgeFlags;
   const short ed_interior_flag = ccgdm->drawInteriorEdges ? (ME_EDGEDRAW | ME_EDGERENDER) : 0;
 

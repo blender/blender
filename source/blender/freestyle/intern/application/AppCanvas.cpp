@@ -89,7 +89,7 @@ void AppCanvas::init()
 
 void AppCanvas::postDraw()
 {
-  for (unsigned int i = 0; i < _StyleModules.size(); i++) {
+  for (uint i = 0; i < _StyleModules.size(); i++) {
     if (!_StyleModules[i]->getDisplayed() || !_Layers[i]) {
       continue;
     }

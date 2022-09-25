@@ -21,12 +21,9 @@
 
 /* implementation */
 
-void *avi_converter_from_avi_rgb(AviMovie *movie,
-                                 int stream,
-                                 unsigned char *buffer,
-                                 const size_t *size)
+void *avi_converter_from_avi_rgb(AviMovie *movie, int stream, uchar *buffer, const size_t *size)
 {
-  unsigned char *buf;
+  uchar *buf;
   AviBitmapInfoHeader *bi;
   short bits = 32;
 
@@ -38,24 +35,24 @@ void *avi_converter_from_avi_rgb(AviMovie *movie,
   }
 
   if (bits == 16) {
-    unsigned short *pxl;
-    unsigned char *to;
+    ushort *pxl;
+    uchar *to;
 #ifdef __BIG_ENDIAN__
-    unsigned char *pxla;
+    uchar *pxla;
 #endif
 
     buf = imb_alloc_pixels(
-        movie->header->Height, movie->header->Width, 3, sizeof(unsigned char), "fromavirgbbuf");
+        movie->header->Height, movie->header->Width, 3, sizeof(uchar), "fromavirgbbuf");
 
     if (buf) {
       size_t y = movie->header->Height;
       to = buf;
 
       while (y--) {
-        pxl = (unsigned short *)(buffer + y * movie->header->Width * 2);
+        pxl = (ushort *)(buffer + y * movie->header->Width * 2);
 
 #ifdef __BIG_ENDIAN__
-        pxla = (unsigned char *)pxl;
+        pxla = (uchar *)pxl;
 #endif
 
         size_t x = movie->header->Width;
@@ -82,7 +79,7 @@ void *avi_converter_from_avi_rgb(AviMovie *movie,
   }
 
   buf = imb_alloc_pixels(
-      movie->header->Height, movie->header->Width, 3, sizeof(unsigned char), "fromavirgbbuf");
+      movie->header->Height, movie->header->Width, 3, sizeof(uchar), "fromavirgbbuf");
 
   if (buf) {
     size_t rowstride = movie->header->Width * 3;
@@ -110,9 +107,9 @@ void *avi_converter_from_avi_rgb(AviMovie *movie,
   return buf;
 }
 
-void *avi_converter_to_avi_rgb(AviMovie *movie, int stream, unsigned char *buffer, size_t *size)
+void *avi_converter_to_avi_rgb(AviMovie *movie, int stream, uchar *buffer, size_t *size)
 {
-  unsigned char *buf;
+  uchar *buf;
 
   (void)stream; /* unused */
 

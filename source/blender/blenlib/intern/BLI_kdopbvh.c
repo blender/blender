@@ -58,7 +58,7 @@
 /** \name Struct Definitions
  * \{ */
 
-typedef unsigned char axis_t;
+typedef uchar axis_t;
 
 typedef struct BVHNode {
   struct BVHNode **children;

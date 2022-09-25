@@ -52,7 +52,7 @@ void RenderLayersProg::init_execution()
 
 void RenderLayersProg::do_interpolation(float output[4], float x, float y, PixelSampler sampler)
 {
-  unsigned int offset;
+  uint offset;
   int width = this->get_width(), height = this->get_height();
 
   int ix = x, iy = y;
@@ -328,7 +328,7 @@ void RenderLayersDepthProg::execute_pixel_sampled(float output[4],
     output[0] = 10e10f;
   }
   else {
-    unsigned int offset = (iy * this->get_width() + ix);
+    uint offset = (iy * this->get_width() + ix);
     output[0] = input_buffer[offset];
   }
 }

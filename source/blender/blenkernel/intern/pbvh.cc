@@ -63,7 +63,7 @@ template<typename T> void to_float(const T &src, float dst[4]);
 
 template<> void to_float(const MLoopCol &src, float dst[4])
 {
-  rgba_uchar_to_float(dst, reinterpret_cast<const unsigned char *>(&src));
+  rgba_uchar_to_float(dst, reinterpret_cast<const uchar *>(&src));
   srgb_to_linearrgb_v3_v3(dst, dst);
 }
 template<> void to_float(const MPropCol &src, float dst[4])
@@ -78,7 +78,7 @@ template<> void from_float(const float src[4], MLoopCol &dst)
   float temp[4];
   linearrgb_to_srgb_v3_v3(temp, src);
   temp[3] = src[3];
-  rgba_float_to_uchar(reinterpret_cast<unsigned char *>(&dst), temp);
+  rgba_float_to_uchar(reinterpret_cast<uchar *>(&dst), temp);
 }
 template<> void from_float(const float src[4], MPropCol &dst)
 {

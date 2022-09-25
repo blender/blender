@@ -314,7 +314,7 @@ static void armature_vert_task_with_dvert(const ArmatureUserdata *data,
   if (use_dverts && dvert && dvert->totweight) { /* use weight groups ? */
     const MDeformWeight *dw = dvert->dw;
     int deformed = 0;
-    unsigned int j;
+    uint j;
     for (j = dvert->totweight; j != 0; j--, dw++) {
       const uint index = dw->def_nr;
       if (index < data->defbase_len && (pchan = data->pchan_from_defbase[index])) {

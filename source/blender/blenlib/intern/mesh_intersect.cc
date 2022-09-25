@@ -2032,10 +2032,10 @@ static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
   }
   /* Project along negative face normal so (x,y) can be used in 2d. */ float axis_mat[3][3];
   float(*projverts)[2];
-  unsigned int(*tris)[3];
+  uint(*tris)[3];
   const int totfilltri = flen - 2;
   /* Prepare projected vertices and array to receive triangles in tessellation. */
-  tris = static_cast<unsigned int(*)[3]>(MEM_malloc_arrayN(totfilltri, sizeof(*tris), __func__));
+  tris = static_cast<uint(*)[3]>(MEM_malloc_arrayN(totfilltri, sizeof(*tris), __func__));
   projverts = static_cast<float(*)[2]>(MEM_malloc_arrayN(flen, sizeof(*projverts), __func__));
   axis_dominant_v3_to_m3_negate(axis_mat, no);
   for (int j = 0; j < flen; ++j) {
@@ -2047,7 +2047,7 @@ static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
   /* Put tessellation triangles into Face form. Record original edges where they exist. */
   Array<Face *> ans(totfilltri);
   for (int t = 0; t < totfilltri; ++t) {
-    unsigned int *tri = tris[t];
+    uint *tri = tris[t];
     int eo[3];
     const Vert *v[3];
     for (int k = 0; k < 3; k++) {

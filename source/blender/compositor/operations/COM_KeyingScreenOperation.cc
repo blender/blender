@@ -150,7 +150,7 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::build_voronoi_t
           add_v3_v3(site->color, &pattern_ibuf->rect_float[4 * j]);
         }
         else {
-          unsigned char *rrgb = (unsigned char *)pattern_ibuf->rect;
+          uchar *rrgb = (uchar *)pattern_ibuf->rect;
 
           site->color[0] += srgb_to_linearrgb((float)rrgb[4 * j + 0] / 255.0f);
           site->color[1] += srgb_to_linearrgb((float)rrgb[4 * j + 1] / 255.0f);

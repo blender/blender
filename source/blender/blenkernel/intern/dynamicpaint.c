@@ -212,13 +212,13 @@ typedef struct PaintBakeData {
 typedef struct PaintUVPoint {
   /* Pixel / mesh data */
   /** tri index on domain derived mesh */
-  unsigned int tri_index;
-  unsigned int pixel_index;
+  uint tri_index;
+  uint pixel_index;
   /* vertex indexes */
-  unsigned int v1, v2, v3;
+  uint v1, v2, v3;
 
   /** If this pixel isn't uv mapped to any face, but its neighboring pixel is. */
-  unsigned int neighbor_pixel;
+  uint neighbor_pixel;
 } PaintUVPoint;
 
 typedef struct ImgSeqFormatData {
@@ -514,7 +514,7 @@ static void scene_setSubframe(Scene *scene, float subframe)
 
 static int surface_getBrushFlags(DynamicPaintSurface *surface, Depsgraph *depsgraph)
 {
-  unsigned int numobjects;
+  uint numobjects;
   Object **objects = BKE_collision_objects_create(
       depsgraph, NULL, surface->brush_group, &numobjects, eModifierType_DynamicPaint);
 
@@ -1496,7 +1496,7 @@ static void dynamic_paint_set_init_color_tex_to_vcol_cb(
 
   for (int j = 3; j--;) {
     TexResult texres = {0};
-    const unsigned int vert = mloop[mlooptri[i].tri[j]].v;
+    const uint vert = mloop[mlooptri[i].tri[j]].v;
 
     /* remap to [-1.0, 1.0] */
     uv[0] = mloopuv[mlooptri[i].tri[j]].uv[0] * 2.0f - 1.0f;
@@ -1569,7 +1569,7 @@ static void dynamic_paint_set_init_color_vcol_to_imseq_cb(
 
   /* collect color values */
   for (int j = 3; j--;) {
-    rgba_uchar_to_float(colors[j], (const unsigned char *)&mloopcol[mlooptri[tri_idx].tri[j]].r);
+    rgba_uchar_to_float(colors[j], (const uchar *)&mloopcol[mlooptri[tri_idx].tri[j]].r);
   }
 
   /* interpolate final color */
@@ -1669,7 +1669,7 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
       }
 
       for (int i = 0; i < totloop; i++) {
-        rgba_uchar_to_float(pPoint[mloop[i].v].color, (const unsigned char *)&col[i].r);
+        rgba_uchar_to_float(pPoint[mloop[i].v].color, (const uchar *)&col[i].r);
       }
     }
     else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
@@ -1698,7 +1698,7 @@ void dynamicPaint_clearSurface(const Scene *scene, DynamicPaintSurface *surface)
 {
   PaintSurfaceData *sData = surface->data;
   if (sData && sData->type_data) {
-    unsigned int data_size;
+    uint data_size;
 
     if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
       data_size = sizeof(PaintPoint);
@@ -1862,7 +1862,7 @@ static void dynamic_paint_apply_surface_vpaint_cb(void *__restrict userdata,
     /* save layer data to output layer */
     /* apply color */
     if (mloopcol) {
-      rgba_float_to_uchar((unsigned char *)&mloopcol[l_index].r, fcolor[v_index]);
+      rgba_float_to_uchar((uchar *)&mloopcol[l_index].r, fcolor[v_index]);
     }
     /* apply wetness */
     if (mloopcol_wet) {

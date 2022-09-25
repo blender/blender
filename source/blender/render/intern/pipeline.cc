@@ -475,7 +475,7 @@ void RE_ReleaseResultImage(Render *re)
   }
 }
 
-void RE_ResultGet32(Render *re, unsigned int *rect)
+void RE_ResultGet32(Render *re, uint *rect)
 {
   RenderResult rres;
   const int view_id = BKE_scene_multiview_view_id_get(&re->r, re->viewname);
@@ -491,10 +491,7 @@ void RE_ResultGet32(Render *re, unsigned int *rect)
   RE_ReleaseResultImageViews(re, &rres);
 }
 
-void RE_AcquiredResultGet32(Render *re,
-                            RenderResult *result,
-                            unsigned int *rect,
-                            const int view_id)
+void RE_AcquiredResultGet32(Render *re, RenderResult *result, uint *rect, const int view_id)
 {
   render_result_rect_get_pixels(result,
                                 rect,
@@ -1241,7 +1238,7 @@ static void renderresult_stampinfo(Render *re)
     BKE_image_stamp_buf(re->scene,
                         ob_camera_eval,
                         (re->r.stamp & R_STAMP_STRIPMETA) ? rres.stamp_data : nullptr,
-                        (unsigned char *)rres.rect32,
+                        (uchar *)rres.rect32,
                         rres.rectf,
                         rres.rectx,
                         rres.recty,

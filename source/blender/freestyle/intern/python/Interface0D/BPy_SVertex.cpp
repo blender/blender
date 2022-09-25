@@ -251,7 +251,7 @@ static Mathutils_Callback SVertex_mathutils_cb = {
     SVertex_mathutils_set_index,
 };
 
-static unsigned char SVertex_mathutils_cb_index = -1;
+static uchar SVertex_mathutils_cb_index = -1;
 
 void SVertex_mathutils_register_callback()
 {
@@ -338,7 +338,7 @@ static PyObject *SVertex_normals_get(BPy_SVertex *self, void *UNUSED(closure))
   set<Vec3r> normals = self->sv->normals();
   set<Vec3r>::iterator it;
   py_normals = PyList_New(normals.size());
-  unsigned int i = 0;
+  uint i = 0;
 
   for (it = normals.begin(); it != normals.end(); it++) {
     Vec3r v(*it);

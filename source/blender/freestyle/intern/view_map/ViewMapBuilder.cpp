@@ -1003,11 +1003,11 @@ static void computeVeryFastVisibility(ViewMap *ioViewMap, G &grid, real epsilon)
   }
 }
 
-void ViewMapBuilder::BuildGrid(WingedEdge &we, const BBox<Vec3r> &bbox, unsigned int sceneNumFaces)
+void ViewMapBuilder::BuildGrid(WingedEdge &we, const BBox<Vec3r> &bbox, uint sceneNumFaces)
 {
   _Grid->clear();
   Vec3r size;
-  for (unsigned int i = 0; i < 3; i++) {
+  for (uint i = 0; i < 3; i++) {
     size[i] = fabs(bbox.getMax()[i] - bbox.getMin()[i]);
     // let make the grid 1/10 bigger to avoid numerical errors while computing triangles/cells
     // intersections.
@@ -1032,7 +1032,7 @@ ViewMap *ViewMapBuilder::BuildViewMap(WingedEdge &we,
                                       visibility_algo iAlgo,
                                       real epsilon,
                                       const BBox<Vec3r> &bbox,
-                                      unsigned int sceneNumFaces)
+                                      uint sceneNumFaces)
 {
   _ViewMap = new ViewMap;
   _currentId = 1;
@@ -1435,7 +1435,7 @@ void ViewMapBuilder::ComputeDetailedVisibility(ViewMap *ioViewMap,
 void ViewMapBuilder::ComputeEdgesVisibility(ViewMap *ioViewMap,
                                             WingedEdge &we,
                                             const BBox<Vec3r> &bbox,
-                                            unsigned int sceneNumFaces,
+                                            uint sceneNumFaces,
                                             visibility_algo iAlgo,
                                             real epsilon)
 {
@@ -2270,7 +2270,7 @@ struct less_SVertex2D {
   {
     Vec3r A = x->point2D();
     Vec3r B = y->point2D();
-    for (unsigned int i = 0; i < 3; i++) {
+    for (uint i = 0; i < 3; i++) {
       if (fabs(A[i] - B[i]) < epsilon) {
         continue;
       }

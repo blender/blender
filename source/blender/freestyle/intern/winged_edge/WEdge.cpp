@@ -500,7 +500,7 @@ WShape::WShape(WShape &iBrother)
   for (v = _VertexList.begin(); v != vend; ++v) {
     const vector<WEdge *> &vedgeList = (*v)->GetEdges();
     vector<WEdge *> newvedgelist;
-    unsigned int i;
+    uint i;
     for (i = 0; i < vedgeList.size(); i++) {
       WEdge *current = vedgeList[i];
       edgedata *currentvedata = (edgedata *)current->userdata;
@@ -536,11 +536,11 @@ WShape::WShape(WShape &iBrother)
 
   fend = _FaceList.end();
   for (f = _FaceList.begin(); f != fend; ++f) {
-    unsigned int i;
+    uint i;
     const vector<WOEdge *> &oedgeList = (*f)->getEdgeList();
     vector<WOEdge *> newoedgelist;
 
-    unsigned int n = oedgeList.size();
+    uint n = oedgeList.size();
     for (i = 0; i < n; i++) {
       WOEdge *current = oedgeList[i];
       oedgedata *currentoedata = (oedgedata *)current->userdata;

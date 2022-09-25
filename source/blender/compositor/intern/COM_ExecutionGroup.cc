@@ -126,7 +126,7 @@ void ExecutionGroup::init_work_packages()
   work_packages_.clear();
   if (chunks_len_ != 0) {
     work_packages_.resize(chunks_len_);
-    for (unsigned int index = 0; index < chunks_len_; index++) {
+    for (uint index = 0; index < chunks_len_; index++) {
       work_packages_[index].type = eWorkPackageType::Tile;
       work_packages_[index].state = eWorkPackageState::NotScheduled;
       work_packages_[index].execution_group = this;
@@ -138,7 +138,7 @@ void ExecutionGroup::init_work_packages()
 
 void ExecutionGroup::init_read_buffer_operations()
 {
-  unsigned int max_offset = 0;
+  uint max_offset = 0;
   for (NodeOperation *operation : operations_) {
     if (operation->get_flags().is_read_buffer_operation) {
       ReadBufferOperation *read_operation = static_cast<ReadBufferOperation *>(operation);
@@ -167,7 +167,7 @@ void ExecutionGroup::deinit_execution()
   bTree_ = nullptr;
 }
 
-void ExecutionGroup::determine_resolution(unsigned int resolution[2])
+void ExecutionGroup::determine_resolution(uint resolution[2])
 {
   NodeOperation *operation = this->get_output_operation();
   resolution[0] = operation->get_width();
@@ -193,9 +193,9 @@ void ExecutionGroup::init_number_of_chunks()
   }
 }
 
-blender::Array<unsigned int> ExecutionGroup::get_execution_order() const
+blender::Array<uint> ExecutionGroup::get_execution_order() const
 {
-  blender::Array<unsigned int> chunk_order(chunks_len_);
+  blender::Array<uint> chunk_order(chunks_len_);
   for (int chunk_index = 0; chunk_index < chunks_len_; chunk_index++) {
     chunk_order[chunk_index] = chunk_index;
   }
@@ -218,7 +218,7 @@ blender::Array<unsigned int> ExecutionGroup::get_execution_order() const
   switch (order_type) {
     case ChunkOrdering::Random: {
       static blender::RandomNumberGenerator rng;
-      blender::MutableSpan<unsigned int> span = chunk_order.as_mutable_span();
+      blender::MutableSpan<uint> span = chunk_order.as_mutable_span();
       /* Shuffle twice to make it more random. */
       rng.shuffle(span);
       rng.shuffle(span);
@@ -243,12 +243,12 @@ blender::Array<unsigned int> ExecutionGroup::get_execution_order() const
       break;
     }
     case ChunkOrdering::RuleOfThirds: {
-      unsigned int tx = border_width / 6;
-      unsigned int ty = border_height / 6;
-      unsigned int mx = border_width / 2;
-      unsigned int my = border_height / 2;
-      unsigned int bx = mx + 2 * tx;
-      unsigned int by = my + 2 * ty;
+      uint tx = border_width / 6;
+      uint ty = border_height / 6;
+      uint mx = border_width / 2;
+      uint my = border_height / 2;
+      uint bx = mx + 2 * tx;
+      uint by = my + 2 * ty;
       float addition = chunks_len_ / COM_RULE_OF_THIRDS_DIVIDER;
 
       ChunkOrderHotspot hotspots[9]{
@@ -300,21 +300,21 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
   if (chunks_len_ == 0) {
     return;
   } /** \note Early break out. */
-  unsigned int chunk_index;
+  uint chunk_index;
 
   execution_start_time_ = PIL_check_seconds_timer();
 
   chunks_finished_ = 0;
   bTree_ = bTree;
 
-  blender::Array<unsigned int> chunk_order = get_execution_order();
+  blender::Array<uint> chunk_order = get_execution_order();
 
   DebugInfo::execution_group_started(this);
   DebugInfo::graphviz(graph);
 
   bool breaked = false;
   bool finished = false;
-  unsigned int start_index = 0;
+  uint start_index = 0;
   const int max_number_evaluated = BLI_system_thread_count() * 2;
 
   while (!finished && !breaked) {
@@ -399,7 +399,7 @@ void ExecutionGroup::finalize_chunk_execution(int chunk_number, MemoryBuffer **m
 
   atomic_add_and_fetch_u(&chunks_finished_, 1);
   if (memory_buffers) {
-    for (unsigned int index = 0; index < max_read_buffer_offset_; index++) {
+    for (uint index = 0; index < max_read_buffer_offset_; index++) {
       MemoryBuffer *buffer = memory_buffers[index];
       if (buffer) {
         if (buffer->is_temporarily()) {
@@ -424,8 +424,8 @@ void ExecutionGroup::finalize_chunk_execution(int chunk_number, MemoryBuffer **m
 }
 
 inline void ExecutionGroup::determine_chunk_rect(rcti *r_rect,
-                                                 const unsigned int x_chunk,
-                                                 const unsigned int y_chunk) const
+                                                 const uint x_chunk,
+                                                 const uint y_chunk) const
 {
   const int border_width = BLI_rcti_size_x(&viewer_border_);
   const int border_height = BLI_rcti_size_y(&viewer_border_);
@@ -434,10 +434,10 @@ inline void ExecutionGroup::determine_chunk_rect(rcti *r_rect,
     BLI_rcti_init(r_rect, viewer_border_.xmin, border_width, viewer_border_.ymin, border_height);
   }
   else {
-    const unsigned int minx = x_chunk * chunk_size_ + viewer_border_.xmin;
-    const unsigned int miny = y_chunk * chunk_size_ + viewer_border_.ymin;
-    const unsigned int width = MIN2((unsigned int)viewer_border_.xmax, width_);
-    const unsigned int height = MIN2((unsigned int)viewer_border_.ymax, height_);
+    const uint minx = x_chunk * chunk_size_ + viewer_border_.xmin;
+    const uint miny = y_chunk * chunk_size_ + viewer_border_.ymin;
+    const uint width = MIN2((uint)viewer_border_.xmax, width_);
+    const uint height = MIN2((uint)viewer_border_.ymax, height_);
     BLI_rcti_init(r_rect,
                   MIN2(minx, width_),
                   MIN2(minx + chunk_size_, width),
@@ -446,10 +446,10 @@ inline void ExecutionGroup::determine_chunk_rect(rcti *r_rect,
   }
 }
 
-void ExecutionGroup::determine_chunk_rect(rcti *r_rect, const unsigned int chunk_number) const
+void ExecutionGroup::determine_chunk_rect(rcti *r_rect, const uint chunk_number) const
 {
-  const unsigned int y_chunk = chunk_number / x_chunks_len_;
-  const unsigned int x_chunk = chunk_number - (y_chunk * x_chunks_len_);
+  const uint y_chunk = chunk_number / x_chunks_len_;
+  const uint x_chunk = chunk_number - (y_chunk * x_chunks_len_);
   determine_chunk_rect(r_rect, x_chunk, y_chunk);
 }
 
@@ -501,7 +501,7 @@ bool ExecutionGroup::schedule_area_when_possible(ExecutionSystem *graph, rcti *a
   return result;
 }
 
-bool ExecutionGroup::schedule_chunk(unsigned int chunk_number)
+bool ExecutionGroup::schedule_chunk(uint chunk_number)
 {
   WorkPackage &work_package = work_packages_[chunk_number];
   if (work_package.state == eWorkPackageState::NotScheduled) {

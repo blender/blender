@@ -66,7 +66,7 @@
 #include "ExportSettings.h"
 #include "collada_utils.h"
 
-float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray &array, unsigned int index)
+float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray &array, uint index)
 {
   if (index >= array.getValuesCount()) {
     return 0.0f;

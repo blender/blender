@@ -215,7 +215,7 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
   }
 }
 
-unsigned int BLI_filelist_dir_contents(const char *dirname, struct direntry **r_filelist)
+uint BLI_filelist_dir_contents(const char *dirname, struct direntry **r_filelist)
 {
   struct BuildDirCtx dir_ctx;
 

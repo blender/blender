@@ -342,9 +342,9 @@ void USDMeshReader::read_mpolys(Mesh *mesh)
 
 void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bool load_uvs)
 {
-  unsigned int loop_index = 0;
-  unsigned int rev_loop_index = 0;
-  unsigned int uv_index = 0;
+  uint loop_index = 0;
+  uint rev_loop_index = 0;
+  uint uv_index = 0;
 
   const CustomData *ldata = &mesh->ldata;
 

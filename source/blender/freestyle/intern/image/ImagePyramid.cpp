@@ -54,9 +54,9 @@ float ImagePyramid::pixel(int x, int y, int level)
   if (0 == level) {
     return img->pixel(x, y);
   }
-  unsigned int i = 1 << level;
-  unsigned int sx = x >> level;
-  unsigned int sy = y >> level;
+  uint i = 1 << level;
+  uint sx = x >> level;
+  uint sy = y >> level;
   if (sx >= img->width()) {
     sx = img->width() - 1;
   }
@@ -141,12 +141,12 @@ void GaussianPyramid::BuildPyramid(GrayImage *level0, unsigned nbLevels)
   unsigned w = pLevel->width();
   unsigned h = pLevel->height();
   if (nbLevels != 0) {
-    for (unsigned int i = 0; i < nbLevels; ++i) {  // soc
+    for (uint i = 0; i < nbLevels; ++i) {  // soc
       w = pLevel->width() >> 1;
       h = pLevel->height() >> 1;
       GrayImage *img = new GrayImage(w, h);
-      for (unsigned int y = 0; y < h; ++y) {
-        for (unsigned int x = 0; x < w; ++x) {
+      for (uint y = 0; y < h; ++y) {
+        for (uint x = 0; x < w; ++x) {
           float v = gf.getSmoothedPixel<GrayImage>(pLevel, 2 * x, 2 * y);
           img->setPixel(x, y, v);
         }
@@ -160,8 +160,8 @@ void GaussianPyramid::BuildPyramid(GrayImage *level0, unsigned nbLevels)
       w = pLevel->width() >> 1;
       h = pLevel->height() >> 1;
       GrayImage *img = new GrayImage(w, h);
-      for (unsigned int y = 0; y < h; ++y) {
-        for (unsigned int x = 0; x < w; ++x) {
+      for (uint y = 0; y < h; ++y) {
+        for (uint x = 0; x < w; ++x) {
           float v = gf.getSmoothedPixel<GrayImage>(pLevel, 2 * x, 2 * y);
           img->setPixel(x, y, v);
         }

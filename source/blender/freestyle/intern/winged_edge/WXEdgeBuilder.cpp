@@ -30,7 +30,7 @@ void WXEdgeBuilder::visitIndexedFaceSet(IndexedFaceSet &ifs)
 void WXEdgeBuilder::buildWVertices(WShape &shape, const float *vertices, unsigned vsize)
 {
   WXVertex *vertex;
-  for (unsigned int i = 0; i < vsize; i += 3) {
+  for (uint i = 0; i < vsize; i += 3) {
     vertex = new WXVertex(Vec3f(vertices[i], vertices[i + 1], vertices[i + 2]));
     vertex->setId(i / 3);
     shape.AddVertex(vertex);

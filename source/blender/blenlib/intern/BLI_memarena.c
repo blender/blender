@@ -38,7 +38,7 @@ struct MemBuf {
 };
 
 struct MemArena {
-  unsigned char *curbuf;
+  uchar *curbuf;
   const char *name;
   struct MemBuf *bufs;
 
@@ -106,9 +106,9 @@ void BLI_memarena_free(MemArena *ma)
 /** Align alloc'ed memory (needed if `align > 8`). */
 static void memarena_curbuf_align(MemArena *ma)
 {
-  unsigned char *tmp;
+  uchar *tmp;
 
-  tmp = (unsigned char *)PADUP((intptr_t)ma->curbuf, (int)ma->align);
+  tmp = (uchar *)PADUP((intptr_t)ma->curbuf, (int)ma->align);
   ma->cursize -= (size_t)(tmp - ma->curbuf);
   ma->curbuf = tmp;
 }

@@ -171,7 +171,7 @@ static void subdiv_ccg_eval_grid_element_limit(CCGEvalGridsData *data,
                                                const int ptex_face_index,
                                                const float u,
                                                const float v,
-                                               unsigned char *element)
+                                               uchar *element)
 {
   Subdiv *subdiv = data->subdiv;
   SubdivCCG *subdiv_ccg = data->subdiv_ccg;
@@ -195,7 +195,7 @@ static void subdiv_ccg_eval_grid_element_mask(CCGEvalGridsData *data,
                                               const int ptex_face_index,
                                               const float u,
                                               const float v,
-                                              unsigned char *element)
+                                              uchar *element)
 {
   SubdivCCG *subdiv_ccg = data->subdiv_ccg;
   if (!subdiv_ccg->has_mask) {
@@ -214,7 +214,7 @@ static void subdiv_ccg_eval_grid_element(CCGEvalGridsData *data,
                                          const int ptex_face_index,
                                          const float u,
                                          const float v,
-                                         unsigned char *element)
+                                         uchar *element)
 {
   subdiv_ccg_eval_grid_element_limit(data, ptex_face_index, u, v, element);
   subdiv_ccg_eval_grid_element_mask(data, ptex_face_index, u, v, element);
@@ -232,7 +232,7 @@ static void subdiv_ccg_eval_regular_grid(CCGEvalGridsData *data, const int face_
   const SubdivCCGFace *face = &faces[face_index];
   for (int corner = 0; corner < face->num_grids; corner++) {
     const int grid_index = face->start_grid_index + corner;
-    unsigned char *grid = (unsigned char *)subdiv_ccg->grids[grid_index];
+    uchar *grid = (uchar *)subdiv_ccg->grids[grid_index];
     for (int y = 0; y < grid_size; y++) {
       const float grid_v = y * grid_size_1_inv;
       for (int x = 0; x < grid_size; x++) {
@@ -264,7 +264,7 @@ static void subdiv_ccg_eval_special_grid(CCGEvalGridsData *data, const int face_
   for (int corner = 0; corner < face->num_grids; corner++) {
     const int grid_index = face->start_grid_index + corner;
     const int ptex_face_index = data->face_ptex_offset[face_index] + corner;
-    unsigned char *grid = (unsigned char *)subdiv_ccg->grids[grid_index];
+    uchar *grid = (uchar *)subdiv_ccg->grids[grid_index];
     for (int y = 0; y < grid_size; y++) {
       const float u = 1.0f - (y * grid_size_1_inv);
       for (int x = 0; x < grid_size; x++) {

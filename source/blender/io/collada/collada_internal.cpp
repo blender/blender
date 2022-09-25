@@ -153,7 +153,7 @@ void UnitConverter::calculate_scale(Scene &sce)
  * The COLLADA spec also allows additional chars for member access ('.'), these
  * must obviously be removed too, otherwise they would be heavily misinterpreted.
  */
-const unsigned char translate_start_name_map[256] = {
+const uchar translate_start_name_map[256] = {
 
     95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,
     95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,
@@ -172,7 +172,7 @@ const unsigned char translate_start_name_map[256] = {
     242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255,
 };
 
-const unsigned char translate_name_map[256] = {
+const uchar translate_name_map[256] = {
 
     95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,
     95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,  95,
@@ -212,16 +212,16 @@ std::string translate_id(const std::string &id)
   }
 
   std::string id_translated = id;
-  id_translated[0] = translate_start_name_map[(unsigned int)id_translated[0]];
-  for (unsigned int i = 1; i < id_translated.size(); i++) {
-    id_translated[i] = translate_name_map[(unsigned int)id_translated[i]];
+  id_translated[0] = translate_start_name_map[(uint)id_translated[0]];
+  for (uint i = 1; i < id_translated.size(); i++) {
+    id_translated[i] = translate_name_map[(uint)id_translated[i]];
   }
   /* It's so much workload now, the if () should speed up things. */
   if (id_translated != id) {
     /* Search duplicates. */
     map_string_list::iterator iter = global_id_map.find(id_translated);
     if (iter != global_id_map.end()) {
-      unsigned int i = 0;
+      uint i = 0;
       bool found = false;
       for (i = 0; i < iter->second.size(); i++) {
         if (id == iter->second[i]) {

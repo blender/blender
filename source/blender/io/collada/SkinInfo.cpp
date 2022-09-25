@@ -77,7 +77,7 @@ void SkinInfo::transfer_int_array_data_const(const COLLADAFW::IntValuesArray &sr
 void SkinInfo::transfer_uint_array_data_const(const COLLADAFW::UIntValuesArray &src,
                                               COLLADAFW::UIntValuesArray &dest)
 {
-  dest.setData((unsigned int *)src.getData(), src.getCount());
+  dest.setData((uint *)src.getData(), src.getCount());
   dest.yieldOwnerShip();
 }
 
@@ -90,7 +90,7 @@ void SkinInfo::borrow_skin_controller_data(const COLLADAFW::SkinControllerData *
 
   /* cannot transfer data for FloatOrDoubleArray, copy values manually */
   const COLLADAFW::FloatOrDoubleArray &weight = skin->getWeights();
-  for (unsigned int i = 0; i < weight.getValuesCount(); i++) {
+  for (uint i = 0; i < weight.getValuesCount(); i++) {
     weights.push_back(bc_get_float_value(weight, i));
   }
 
@@ -118,7 +118,7 @@ void SkinInfo::set_controller(const COLLADAFW::SkinController *co)
 
   /* fill in joint UIDs */
   const COLLADAFW::UniqueIdArray &joint_uids = co->getJoints();
-  for (unsigned int i = 0; i < joint_uids.getCount(); i++) {
+  for (uint i = 0; i < joint_uids.getCount(); i++) {
     joint_data[i].joint_uid = joint_uids[i];
 
     /* store armature pointer */
@@ -181,7 +181,7 @@ bool SkinInfo::uses_joint_or_descendant(COLLADAFW::Node *node)
   }
 
   COLLADAFW::NodePointerArray &children = node->getChildNodes();
-  for (unsigned int i = 0; i < children.getCount(); i++) {
+  for (uint i = 0; i < children.getCount(); i++) {
     if (uses_joint_or_descendant(children[i])) {
       return true;
     }
@@ -254,9 +254,9 @@ void SkinInfo::link_armature(bContext *C,
    *
    * get def group by index with BLI_findlink */
 
-  for (unsigned int vertex = 0, weight = 0; vertex < joints_per_vertex.getCount(); vertex++) {
+  for (uint vertex = 0, weight = 0; vertex < joints_per_vertex.getCount(); vertex++) {
 
-    unsigned int limit = weight + joints_per_vertex[vertex];
+    uint limit = weight + joints_per_vertex[vertex];
     for (; weight < limit; weight++) {
       int joint = joint_indices[weight], joint_weight = weight_indices[weight];
 
@@ -319,7 +319,7 @@ bool SkinInfo::find_node_in_tree(COLLADAFW::Node *node, COLLADAFW::Node *tree_ro
   }
 
   COLLADAFW::NodePointerArray &children = tree_root->getChildNodes();
-  for (unsigned int i = 0; i < children.getCount(); i++) {
+  for (uint i = 0; i < children.getCount(); i++) {
     if (find_node_in_tree(node, children[i])) {
       return true;
     }

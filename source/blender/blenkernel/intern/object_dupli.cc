@@ -211,7 +211,7 @@ static DupliObject *make_dupli(
 
   if (dob->persistent_id[0] != INT_MAX) {
     for (i = 0; i < MAX_DUPLI_RECUR; i++) {
-      dob->random_id = BLI_hash_int_2d(dob->random_id, (unsigned int)dob->persistent_id[i]);
+      dob->random_id = BLI_hash_int_2d(dob->random_id, (uint)dob->persistent_id[i]);
     }
   }
   else {
@@ -649,7 +649,7 @@ static const DupliGenerator gen_dupli_verts = {
  * \{ */
 
 static Object *find_family_object(
-    Main *bmain, const char *family, size_t family_len, unsigned int ch, GHash *family_gh)
+    Main *bmain, const char *family, size_t family_len, uint ch, GHash *family_gh)
 {
   void *ch_key = POINTER_FROM_UINT(ch);
 
@@ -727,7 +727,7 @@ static void make_duplis_font(const DupliContext *ctx)
     /* XXX That G.main is *really* ugly, but not sure what to do here.
      * Definitively don't think it would be safe to put back `Main *bmain` pointer
      * in #DupliContext as done in 2.7x? */
-    ob = find_family_object(G.main, cu->family, family_len, (unsigned int)text[a], family_gh);
+    ob = find_family_object(G.main, cu->family, family_len, (uint)text[a], family_gh);
 
     if (is_eval_curve) {
       /* Workaround for the above hack. */
@@ -1294,7 +1294,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
       totpart = psys->totcached;
     }
 
-    RNG *rng = BLI_rng_new_srandom(31415926u + (unsigned int)psys->seed);
+    RNG *rng = BLI_rng_new_srandom(31415926u + (uint)psys->seed);
 
     psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
 

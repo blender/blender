@@ -153,7 +153,7 @@ static std::string get_image_filepath(const bNode *tex_node)
 
   if (tex_image->source == IMA_SRC_SEQUENCE) {
     char head[FILE_MAX], tail[FILE_MAX];
-    unsigned short numlen;
+    ushort numlen;
     int framenr = static_cast<NodeTexImage *>(tex_node->storage)->iuser.framenr;
     BLI_path_sequence_decode(path, head, tail, &numlen);
     BLI_path_sequence_encode(path, head, tail, numlen, framenr);

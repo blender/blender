@@ -61,12 +61,12 @@ struct Cloth;
 /* DEFINITIONS */
 typedef float lfVector[3];
 typedef struct fmatrix3x3 {
-  float m[3][3];     /* 3x3 matrix */
-  unsigned int c, r; /* column and row number */
+  float m[3][3]; /* 3x3 matrix */
+  uint c, r;     /* column and row number */
   // int pinned; /* is this vertex allowed to move? */
-  float n1, n2, n3;    /* three normal vectors for collision constrains */
-  unsigned int vcount; /* vertex count */
-  unsigned int scount; /* spring count */
+  float n1, n2, n3; /* three normal vectors for collision constrains */
+  uint vcount;      /* vertex count */
+  uint scount;      /* spring count */
 } fmatrix3x3;
 
 ///////////////////////////
@@ -120,7 +120,7 @@ DO_INLINE void print_lfvector(float (*fLongVector)[3], unsigned int verts)
 #  endif
 
 /* create long vector */
-DO_INLINE lfVector *create_lfvector(unsigned int verts)
+DO_INLINE lfVector *create_lfvector(uint verts)
 {
   /* TODO: check if memory allocation was successful */
   return (lfVector *)MEM_callocN(verts * sizeof(lfVector), "cloth_implicit_alloc_vector");
@@ -135,30 +135,27 @@ DO_INLINE void del_lfvector(float (*fLongVector)[3])
   }
 }
 /* copy long vector */
-DO_INLINE void cp_lfvector(float (*to)[3], float (*from)[3], unsigned int verts)
+DO_INLINE void cp_lfvector(float (*to)[3], float (*from)[3], uint verts)
 {
   memcpy(to, from, verts * sizeof(lfVector));
 }
 /* init long vector with float[3] */
-DO_INLINE void init_lfvector(float (*fLongVector)[3], const float vector[3], unsigned int verts)
+DO_INLINE void init_lfvector(float (*fLongVector)[3], const float vector[3], uint verts)
 {
-  unsigned int i = 0;
+  uint i = 0;
   for (i = 0; i < verts; i++) {
     copy_v3_v3(fLongVector[i], vector);
   }
 }
 /* zero long vector with float[3] */
-DO_INLINE void zero_lfvector(float (*to)[3], unsigned int verts)
+DO_INLINE void zero_lfvector(float (*to)[3], uint verts)
 {
   memset(to, 0.0f, verts * sizeof(lfVector));
 }
 /* Multiply long vector with scalar. */
-DO_INLINE void mul_lfvectorS(float (*to)[3],
-                             float (*fLongVector)[3],
-                             float scalar,
-                             unsigned int verts)
+DO_INLINE void mul_lfvectorS(float (*to)[3], float (*fLongVector)[3], float scalar, uint verts)
 {
-  unsigned int i = 0;
+  uint i = 0;
 
   for (i = 0; i < verts; i++) {
     mul_fvector_S(to[i], fLongVector[i], scalar);
@@ -166,20 +163,15 @@ DO_INLINE void mul_lfvectorS(float (*to)[3],
 }
 /* Multiply long vector with scalar.
  * `A -= B * float` */
-DO_INLINE void submul_lfvectorS(float (*to)[3],
-                                float (*fLongVector)[3],
-                                float scalar,
-                                unsigned int verts)
+DO_INLINE void submul_lfvectorS(float (*to)[3], float (*fLongVector)[3], float scalar, uint verts)
 {
-  unsigned int i = 0;
+  uint i = 0;
   for (i = 0; i < verts; i++) {
     VECSUBMUL(to[i], fLongVector[i], scalar);
   }
 }
 /* dot product for big vector */
-DO_INLINE float dot_lfvector(float (*fLongVectorA)[3],
-                             float (*fLongVectorB)[3],
-                             unsigned int verts)
+DO_INLINE float dot_lfvector(float (*fLongVectorA)[3], float (*fLongVectorB)[3], uint verts)
 {
   long i = 0;
   float temp = 0.0;
@@ -197,22 +189,19 @@ DO_INLINE float dot_lfvector(float (*fLongVectorA)[3],
 DO_INLINE void add_lfvector_lfvector(float (*to)[3],
                                      float (*fLongVectorA)[3],
                                      float (*fLongVectorB)[3],
-                                     unsigned int verts)
+                                     uint verts)
 {
-  unsigned int i = 0;
+  uint i = 0;
 
   for (i = 0; i < verts; i++) {
     add_v3_v3v3(to[i], fLongVectorA[i], fLongVectorB[i]);
   }
 }
 /* `A = B + C * float` -> for big vector. */
-DO_INLINE void add_lfvector_lfvectorS(float (*to)[3],
-                                      float (*fLongVectorA)[3],
-                                      float (*fLongVectorB)[3],
-                                      float bS,
-                                      unsigned int verts)
+DO_INLINE void add_lfvector_lfvectorS(
+    float (*to)[3], float (*fLongVectorA)[3], float (*fLongVectorB)[3], float bS, uint verts)
 {
-  unsigned int i = 0;
+  uint i = 0;
 
   for (i = 0; i < verts; i++) {
     VECADDS(to[i], fLongVectorA[i], fLongVectorB[i], bS);
@@ -224,22 +213,19 @@ DO_INLINE void add_lfvectorS_lfvectorS(float (*to)[3],
                                        float aS,
                                        float (*fLongVectorB)[3],
                                        float bS,
-                                       unsigned int verts)
+                                       uint verts)
 {
-  unsigned int i = 0;
+  uint i = 0;
 
   for (i = 0; i < verts; i++) {
     VECADDSS(to[i], fLongVectorA[i], aS, fLongVectorB[i], bS);
   }
 }
 /* `A = B - C * float` -> for big vector. */
-DO_INLINE void sub_lfvector_lfvectorS(float (*to)[3],
-                                      float (*fLongVectorA)[3],
-                                      float (*fLongVectorB)[3],
-                                      float bS,
-                                      unsigned int verts)
+DO_INLINE void sub_lfvector_lfvectorS(
+    float (*to)[3], float (*fLongVectorA)[3], float (*fLongVectorB)[3], float bS, uint verts)
 {
-  unsigned int i = 0;
+  uint i = 0;
   for (i = 0; i < verts; i++) {
     VECSUBS(to[i], fLongVectorA[i], fLongVectorB[i], bS);
   }
@@ -248,9 +234,9 @@ DO_INLINE void sub_lfvector_lfvectorS(float (*to)[3],
 DO_INLINE void sub_lfvector_lfvector(float (*to)[3],
                                      float (*fLongVectorA)[3],
                                      float (*fLongVectorB)[3],
-                                     unsigned int verts)
+                                     uint verts)
 {
-  unsigned int i = 0;
+  uint i = 0;
 
   for (i = 0; i < verts; i++) {
     sub_v3_v3v3(to[i], fLongVectorA[i], fLongVectorB[i]);
@@ -539,7 +525,7 @@ BLI_INLINE void init_fmatrix(fmatrix3x3 *matrix, int r, int c)
 }
 
 /* create big matrix */
-DO_INLINE fmatrix3x3 *create_bfmatrix(unsigned int verts, unsigned int springs)
+DO_INLINE fmatrix3x3 *create_bfmatrix(uint verts, uint springs)
 {
   /* TODO: check if memory allocation was successful */
   fmatrix3x3 *temp = (fmatrix3x3 *)MEM_callocN(sizeof(fmatrix3x3) * (verts + springs),
@@ -575,7 +561,7 @@ DO_INLINE void cp_bfmatrix(fmatrix3x3 *to, fmatrix3x3 *from)
 /* slow in parallel */
 DO_INLINE void init_bfmatrix(fmatrix3x3 *matrix, float m3[3][3])
 {
-  unsigned int i;
+  uint i;
 
   for (i = 0; i < matrix[0].vcount + matrix[0].scount; i++) {
     cp_fmatrix(matrix[i].m, m3);
@@ -586,7 +572,7 @@ DO_INLINE void init_bfmatrix(fmatrix3x3 *matrix, float m3[3][3])
 /* slow in parallel */
 DO_INLINE void initdiag_bfmatrix(fmatrix3x3 *matrix, float m3[3][3])
 {
-  unsigned int i, j;
+  uint i, j;
   float tmatrix[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 
   for (i = 0; i < matrix[0].vcount; i++) {
@@ -601,7 +587,7 @@ DO_INLINE void initdiag_bfmatrix(fmatrix3x3 *matrix, float m3[3][3])
 /* STATUS: verified */
 DO_INLINE void mul_bfmatrix_lfvector(float (*to)[3], fmatrix3x3 *from, lfVector *fLongVector)
 {
-  unsigned int vcount = from[0].vcount;
+  uint vcount = from[0].vcount;
   lfVector *temp = create_lfvector(vcount);
 
   zero_lfvector(to, vcount);
@@ -610,7 +596,7 @@ DO_INLINE void mul_bfmatrix_lfvector(float (*to)[3], fmatrix3x3 *from, lfVector 
   {
 #  pragma omp section
     {
-      for (unsigned int i = from[0].vcount; i < from[0].vcount + from[0].scount; i++) {
+      for (uint i = from[0].vcount; i < from[0].vcount + from[0].scount; i++) {
         /* This is the lower triangle of the sparse matrix,
          * therefore multiplication occurs with transposed submatrices. */
         muladd_fmatrixT_fvector(to[from[i].c], from[i].m, fLongVector[from[i].r]);
@@ -618,7 +604,7 @@ DO_INLINE void mul_bfmatrix_lfvector(float (*to)[3], fmatrix3x3 *from, lfVector 
     }
 #  pragma omp section
     {
-      for (unsigned int i = 0; i < from[0].vcount + from[0].scount; i++) {
+      for (uint i = 0; i < from[0].vcount + from[0].scount; i++) {
         muladd_fmatrix_fvector(temp[from[i].r], from[i].m, fLongVector[from[i].c]);
       }
     }
@@ -634,7 +620,7 @@ DO_INLINE void mul_bfmatrix_lfvector(float (*to)[3], fmatrix3x3 *from, lfVector 
 DO_INLINE void subadd_bfmatrixS_bfmatrixS(
     fmatrix3x3 *to, fmatrix3x3 *from, float aS, fmatrix3x3 *matrix, float bS)
 {
-  unsigned int i = 0;
+  uint i = 0;
 
   /* process diagonal elements */
   for (i = 0; i < matrix[0].vcount + matrix[0].scount; i++) {
@@ -757,7 +743,7 @@ BLI_INLINE void root_to_world_m3(Implicit_Data *data,
 
 DO_INLINE void filter(lfVector *V, fmatrix3x3 *S)
 {
-  unsigned int i = 0;
+  uint i = 0;
 
   for (i = 0; i < S[0].vcount; i++) {
     mul_m3_v3(S[i].m, V[S[i].r]);
@@ -842,10 +828,10 @@ static int cg_filtered(lfVector *ldV,
                        ImplicitSolverResult *result)
 {
   /* Solves for unknown X in equation AX=B */
-  unsigned int conjgrad_loopcount = 0, conjgrad_looplimit = 100;
+  uint conjgrad_loopcount = 0, conjgrad_looplimit = 100;
   float conjgrad_epsilon = 0.01f;
 
-  unsigned int numverts = lA[0].vcount;
+  uint numverts = lA[0].vcount;
   lfVector *fB = create_lfvector(numverts);
   lfVector *AdV = create_lfvector(numverts);
   lfVector *r = create_lfvector(numverts);
@@ -1137,7 +1123,7 @@ static int cg_filtered_pre(lfVector *dv,
 
 bool SIM_mass_spring_solve_velocities(Implicit_Data *data, float dt, ImplicitSolverResult *result)
 {
-  unsigned int numverts = data->dFdV[0].vcount;
+  uint numverts = data->dFdV[0].vcount;
 
   lfVector *dFdXmV = create_lfvector(numverts);
   zero_lfvector(data->dV, numverts);

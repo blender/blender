@@ -117,7 +117,7 @@ static int blf_search_available(void)
   return -1;
 }
 
-bool BLF_has_glyph(int fontid, unsigned int unicode)
+bool BLF_has_glyph(int fontid, uint unicode)
 {
   FontBLF *font = blf_get(fontid);
   if (font) {
@@ -174,7 +174,7 @@ int BLF_load_unique(const char *name)
   return i;
 }
 
-void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size)
+void BLF_metrics_attach(int fontid, uchar *mem, int mem_size)
 {
   FontBLF *font = blf_get(fontid);
 
@@ -183,7 +183,7 @@ void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size)
   }
 }
 
-int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size)
+int BLF_load_mem(const char *name, const uchar *mem, int mem_size)
 {
   int i = blf_search(name);
   if (i >= 0) {
@@ -193,7 +193,7 @@ int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size)
   return BLF_load_mem_unique(name, mem, mem_size);
 }
 
-int BLF_load_mem_unique(const char *name, const unsigned char *mem, int mem_size)
+int BLF_load_mem_unique(const char *name, const uchar *mem, int mem_size)
 {
   /*
    * Don't search in the cache, make a new object font!
@@ -379,7 +379,7 @@ void BLF_blur(int fontid, int size)
 }
 #endif
 
-void BLF_color4ubv(int fontid, const unsigned char rgba[4])
+void BLF_color4ubv(int fontid, const uchar rgba[4])
 {
   FontBLF *font = blf_get(fontid);
 
@@ -391,7 +391,7 @@ void BLF_color4ubv(int fontid, const unsigned char rgba[4])
   }
 }
 
-void BLF_color3ubv_alpha(int fontid, const unsigned char rgb[3], unsigned char alpha)
+void BLF_color3ubv_alpha(int fontid, const uchar rgb[3], uchar alpha)
 {
   FontBLF *font = blf_get(fontid);
 
@@ -403,13 +403,12 @@ void BLF_color3ubv_alpha(int fontid, const unsigned char rgb[3], unsigned char a
   }
 }
 
-void BLF_color3ubv(int fontid, const unsigned char rgb[3])
+void BLF_color3ubv(int fontid, const uchar rgb[3])
 {
   BLF_color3ubv_alpha(fontid, rgb, 255);
 }
 
-void BLF_color4ub(
-    int fontid, unsigned char r, unsigned char g, unsigned char b, unsigned char alpha)
+void BLF_color4ub(int fontid, uchar r, uchar g, uchar b, uchar alpha)
 {
   FontBLF *font = blf_get(fontid);
 
@@ -421,7 +420,7 @@ void BLF_color4ub(
   }
 }
 
-void BLF_color3ub(int fontid, unsigned char r, unsigned char g, unsigned char b)
+void BLF_color3ub(int fontid, uchar r, uchar g, uchar b)
 {
   FontBLF *font = blf_get(fontid);
 
@@ -814,7 +813,7 @@ void BLF_shadow_offset(int fontid, int x, int y)
 
 void BLF_buffer(int fontid,
                 float *fbuf,
-                unsigned char *cbuf,
+                uchar *cbuf,
                 int w,
                 int h,
                 int nch,

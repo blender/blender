@@ -22,10 +22,8 @@
 
 #include "avi_mjpeg.h"
 
-static void jpegmemdestmgr_build(j_compress_ptr cinfo, unsigned char *buffer, size_t bufsize);
-static void jpegmemsrcmgr_build(j_decompress_ptr dinfo,
-                                const unsigned char *buffer,
-                                size_t bufsize);
+static void jpegmemdestmgr_build(j_compress_ptr cinfo, uchar *buffer, size_t bufsize);
+static void jpegmemsrcmgr_build(j_decompress_ptr dinfo, const uchar *buffer, size_t bufsize);
 
 static size_t numbytes;
 
@@ -215,11 +213,7 @@ static void std_huff_tables(j_decompress_ptr dinfo)
                  sizeof(val_ac_chrominance));
 }
 
-static int Decode_JPEG(unsigned char *inBuffer,
-                       unsigned char *outBuffer,
-                       unsigned int width,
-                       unsigned int height,
-                       size_t bufsize)
+static int Decode_JPEG(uchar *inBuffer, uchar *outBuffer, uint width, uint height, size_t bufsize)
 {
   struct jpeg_decompress_struct dinfo;
   struct jpeg_error_mgr jerr;
@@ -272,16 +266,12 @@ static int Decode_JPEG(unsigned char *inBuffer,
   return 1;
 }
 
-static void Compress_JPEG(int quality,
-                          unsigned char *outbuffer,
-                          const unsigned char *inBuffer,
-                          int width,
-                          int height,
-                          size_t bufsize)
+static void Compress_JPEG(
+    int quality, uchar *outbuffer, const uchar *inBuffer, int width, int height, size_t bufsize)
 {
   struct jpeg_compress_struct cinfo;
   struct jpeg_error_mgr jerr;
-  unsigned char marker[60];
+  uchar marker[60];
 
   cinfo.err = jpeg_std_error(&jerr);
   jpeg_create_compress(&cinfo);
@@ -339,7 +329,7 @@ static void Compress_JPEG(int quality,
   jpeg_destroy_compress(&cinfo);
 }
 
-static void interlace(unsigned char *to, unsigned char *from, int width, int height)
+static void interlace(uchar *to, uchar *from, int width, int height)
 {
   size_t i, rowstride = width * 3;
 

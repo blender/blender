@@ -880,8 +880,8 @@ static bool seq_foreach_path_callback(Sequence *seq, void *user_data)
     }
     else if ((seq->type == SEQ_TYPE_IMAGE) && se) {
       /* NOTE: An option not to loop over all strips could be useful? */
-      unsigned int len = (unsigned int)MEM_allocN_len(se) / (unsigned int)sizeof(*se);
-      unsigned int i;
+      uint len = (uint)MEM_allocN_len(se) / (uint)sizeof(*se);
+      uint i;
 
       if (bpath_data->flag & BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE) {
         /* only operate on one path */
@@ -3315,10 +3315,10 @@ struct DepsgraphKey {
    */
 };
 
-static unsigned int depsgraph_key_hash(const void *key_v)
+static uint depsgraph_key_hash(const void *key_v)
 {
   const DepsgraphKey *key = static_cast<const DepsgraphKey *>(key_v);
-  unsigned int hash = BLI_ghashutil_ptrhash(key->view_layer);
+  uint hash = BLI_ghashutil_ptrhash(key->view_layer);
   /* TODO(sergey): Include hash from other fields in the key. */
   return hash;
 }

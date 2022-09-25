@@ -566,9 +566,9 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
 
 ImBuf *BKE_previewimg_to_imbuf(PreviewImage *prv, const int size)
 {
-  const unsigned int w = prv->w[size];
-  const unsigned int h = prv->h[size];
-  const unsigned int *rect = prv->rect[size];
+  const uint w = prv->w[size];
+  const uint h = prv->h[size];
+  const uint *rect = prv->rect[size];
 
   ImBuf *ima = nullptr;
 

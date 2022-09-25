@@ -68,7 +68,7 @@ IndexedFaceSet::IndexedFaceSet(float *iVertices,
     _FrsMaterials = nullptr;
     if (iMaterials) {
       _FrsMaterials = new FrsMaterial *[_MSize];
-      for (unsigned int i = 0; i < _MSize; ++i) {
+      for (uint i = 0; i < _MSize; ++i) {
         _FrsMaterials[i] = new FrsMaterial(*(iMaterials[i]));
       }
     }
@@ -161,7 +161,7 @@ IndexedFaceSet::IndexedFaceSet(const IndexedFaceSet &iBrother) : Rep(iBrother)
   _MSize = iBrother.msize();
   if (_MSize) {
     _FrsMaterials = new FrsMaterial *[_MSize];
-    for (unsigned int i = 0; i < _MSize; ++i) {
+    for (uint i = 0; i < _MSize; ++i) {
       _FrsMaterials[i] = new FrsMaterial(*(iBrother._FrsMaterials[i]));
     }
   }
@@ -224,7 +224,7 @@ IndexedFaceSet::~IndexedFaceSet()
   }
 
   if (nullptr != _FrsMaterials) {
-    for (unsigned int i = 0; i < _MSize; ++i) {
+    for (uint i = 0; i < _MSize; ++i) {
       delete _FrsMaterials[i];
     }
     delete[] _FrsMaterials;
@@ -290,7 +290,7 @@ void IndexedFaceSet::ComputeBBox()
   // parse all the coordinates to find the Xmax, YMax, ZMax
   float *v = _Vertices;
 
-  for (unsigned int i = 0; i < (_VSize / 3); ++i) {
+  for (uint i = 0; i < (_VSize / 3); ++i) {
     if (*v > XMax) {
       XMax = *v;
     }

@@ -87,7 +87,7 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *mpoly,
       nverts = mp->totloop;
 
       for (i = 0; i < nverts; i++) {
-        buf->loop_of_poly_index = (unsigned short)i;
+        buf->loop_of_poly_index = (ushort)i;
         buf->poly_index = a;
         buf->separate = 0;
         buf->next = vmap->vert[mloop[mp->loopstart + i].v];

@@ -65,7 +65,7 @@ static bool cloth_get_pressure_weights(ClothModifierData *clmd,
     Cloth *cloth = clmd->clothObject;
     ClothVertex *verts = cloth->verts;
 
-    for (unsigned int j = 0; j < 3; j++) {
+    for (uint j = 0; j < 3; j++) {
       r_weights[j] = verts[vt->tri[j]].pressure_factor;
 
       /* Skip the entire triangle if it has a zero weight. */
@@ -84,10 +84,10 @@ static void cloth_calc_pressure_gradient(ClothModifierData *clmd,
 {
   Cloth *cloth = clmd->clothObject;
   Implicit_Data *data = cloth->implicit;
-  unsigned int mvert_num = cloth->mvert_num;
+  uint mvert_num = cloth->mvert_num;
   float pt[3];
 
-  for (unsigned int i = 0; i < mvert_num; i++) {
+  for (uint i = 0; i < mvert_num; i++) {
     SIM_mass_spring_get_position(data, i, pt);
     r_vertex_pressure[i] = dot_v3v3(pt, gradient_vector);
   }
@@ -107,7 +107,7 @@ static float cloth_calc_volume(ClothModifierData *clmd)
     return 0.0f;
   }
 
-  for (unsigned int i = 0; i < cloth->primitive_num; i++) {
+  for (uint i = 0; i < cloth->primitive_num; i++) {
     const MVertTri *vt = &tri[i];
 
     if (cloth_get_pressure_weights(clmd, vt, weights)) {
@@ -135,7 +135,7 @@ static float cloth_calc_rest_volume(ClothModifierData *clmd)
     return 0.0f;
   }
 
-  for (unsigned int i = 0; i < cloth->primitive_num; i++) {
+  for (uint i = 0; i < cloth->primitive_num; i++) {
     const MVertTri *vt = &tri[i];
 
     if (cloth_get_pressure_weights(clmd, vt, weights)) {
@@ -159,7 +159,7 @@ static float cloth_calc_average_pressure(ClothModifierData *clmd, const float *v
   float total_force = 0;
   float total_area = 0;
 
-  for (unsigned int i = 0; i < cloth->primitive_num; i++) {
+  for (uint i = 0; i < cloth->primitive_num; i++) {
     const MVertTri *vt = &tri[i];
 
     if (cloth_get_pressure_weights(clmd, vt, weights)) {
@@ -181,7 +181,7 @@ int SIM_cloth_solver_init(Object *UNUSED(ob), ClothModifierData *clmd)
   ClothVertex *verts = cloth->verts;
   const float ZERO[3] = {0.0f, 0.0f, 0.0f};
   Implicit_Data *id;
-  unsigned int i, nondiag;
+  uint i, nondiag;
 
   nondiag = cloth_count_nondiag_blocks(cloth);
   cloth->implicit = id = SIM_mass_spring_solver_create(cloth->mvert_num, nondiag);
@@ -216,7 +216,7 @@ void SIM_cloth_solver_set_positions(ClothModifierData *clmd)
 {
   Cloth *cloth = clmd->clothObject;
   ClothVertex *verts = cloth->verts;
-  unsigned int mvert_num = cloth->mvert_num, i;
+  uint mvert_num = cloth->mvert_num, i;
   ClothHairData *cloth_hairdata = clmd->hairdata;
   Implicit_Data *id = cloth->implicit;
 
@@ -552,7 +552,7 @@ static void hair_get_boundbox(ClothModifierData *clmd, float gmin[3], float gmax
 {
   Cloth *cloth = clmd->clothObject;
   Implicit_Data *data = cloth->implicit;
-  unsigned int mvert_num = cloth->mvert_num;
+  uint mvert_num = cloth->mvert_num;
   int i;
 
   INIT_MINMAX(gmin, gmax);
@@ -570,11 +570,11 @@ static void cloth_calc_force(
   Cloth *cloth = clmd->clothObject;
   ClothSimSettings *parms = clmd->sim_parms;
   Implicit_Data *data = cloth->implicit;
-  unsigned int i = 0;
+  uint i = 0;
   float drag = clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
   float gravity[3] = {0.0f, 0.0f, 0.0f};
   const MVertTri *tri = cloth->tri;
-  unsigned int mvert_num = cloth->mvert_num;
+  uint mvert_num = cloth->mvert_num;
   ClothVertex *vert;
 
 #ifdef CLOTH_FORCE_GRAVITY
@@ -1263,11 +1263,11 @@ int SIM_cloth_solve(
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   const bool is_hair = (clmd->hairdata != nullptr);
 
-  unsigned int i = 0;
+  uint i = 0;
   float step = 0.0f, tf = clmd->sim_parms->timescale;
   Cloth *cloth = clmd->clothObject;
   ClothVertex *verts = cloth->verts /*, *cv*/;
-  unsigned int mvert_num = cloth->mvert_num;
+  uint mvert_num = cloth->mvert_num;
   float dt = clmd->sim_parms->dt * clmd->sim_parms->timescale;
   Implicit_Data *id = cloth->implicit;
 

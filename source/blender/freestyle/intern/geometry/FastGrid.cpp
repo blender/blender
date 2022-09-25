@@ -20,7 +20,7 @@ void FastGrid::clear()
     return;
   }
 
-  for (unsigned int i = 0; i < _cells_size; i++) {
+  for (uint i = 0; i < _cells_size; i++) {
     if (_cells[i]) {
       delete _cells[i];
     }

@@ -730,7 +730,7 @@ typedef struct EdgeQueue {
 
   const float *view_normal;
 #ifdef USE_EDGEQUEUE_FRONTFACE
-  unsigned int use_view_normal : 1;
+  uint use_view_normal : 1;
 #endif
 } EdgeQueue;
 

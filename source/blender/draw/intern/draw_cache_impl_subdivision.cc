@@ -361,14 +361,14 @@ static GPUVertFormat *get_subdiv_vertex_format()
 struct CompressedPatchCoord {
   int ptex_face_index;
   /* UV coordinate encoded as u << 16 | v, where u and v are quantized on 16-bits. */
-  unsigned int encoded_uv;
+  uint encoded_uv;
 };
 
 MINLINE CompressedPatchCoord make_patch_coord(int ptex_face_index, float u, float v)
 {
   CompressedPatchCoord patch_coord = {
       ptex_face_index,
-      (static_cast<unsigned int>(u * 65535.0f) << 16) | static_cast<unsigned int>(v * 65535.0f),
+      (static_cast<uint>(u * 65535.0f) << 16) | static_cast<uint>(v * 65535.0f),
   };
   return patch_coord;
 }

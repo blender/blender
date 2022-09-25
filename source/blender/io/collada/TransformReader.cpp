@@ -33,7 +33,7 @@ void TransformReader::get_node_mat(float mat[4][4],
 
   unit_m4(mat);
 
-  for (unsigned int i = 0; i < node->getTransformations().getCount(); i++) {
+  for (uint i = 0; i < node->getTransformations().getCount(); i++) {
 
     COLLADAFW::Transformation *tm = node->getTransformations()[i];
     COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
