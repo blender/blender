@@ -7,6 +7,7 @@
 
 #include "graph/node.h"
 #include "scene/background.h"
+#include "scene/bake.h"
 #include "scene/film.h"
 #include "scene/integrator.h"
 #include "scene/scene.h"
@@ -367,7 +368,9 @@ void TileManager::update(const BufferParams &params, const Scene *scene)
     node_to_image_spec_atttributes(
         &write_state_.image_spec, &denoise_params, ATTR_DENOISE_SOCKET_PREFIX);
 
-    if (adaptive_sampling.use) {
+    /* Not adaptive sampling overscan yet for baking, would need overscan also
+     * for buffers read from the output driver. */
+    if (adaptive_sampling.use && !scene->bake_manager->get_baking()) {
       overscan_ = 4;
     }
     else {
