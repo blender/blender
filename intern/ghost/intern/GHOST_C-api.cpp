@@ -745,7 +745,7 @@ GHOST_TSuccess GHOST_InvalidateWindow(GHOST_WindowHandle windowhandle)
 
 void GHOST_SetMultitouchGestures(GHOST_SystemHandle systemhandle, const bool use)
 {
-  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+  GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
   return system->setMultitouchGestures(use);
 }
 
