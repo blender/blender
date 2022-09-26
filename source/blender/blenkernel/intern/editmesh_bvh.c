@@ -551,7 +551,7 @@ static bool bmbvh_overlap_cb(void *userdata, int index_a, int index_b, int UNUSE
 
 BVHTreeOverlap *BKE_bmbvh_overlap(const BMBVHTree *bmtree_a,
                                   const BMBVHTree *bmtree_b,
-                                  unsigned int *r_overlap_tot)
+                                  uint *r_overlap_tot)
 {
   struct BMBVHTree_OverlapData data;
 
@@ -572,7 +572,7 @@ static bool bmbvh_overlap_self_cb(void *userdata, int index_a, int index_b, int 
   return false;
 }
 
-BVHTreeOverlap *BKE_bmbvh_overlap_self(const BMBVHTree *bmtree, unsigned int *r_overlap_tot)
+BVHTreeOverlap *BKE_bmbvh_overlap_self(const BMBVHTree *bmtree, uint *r_overlap_tot)
 {
   struct BMBVHTree_OverlapData data;
 

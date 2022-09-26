@@ -917,7 +917,7 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...)
   va_start(ap, frame_num);
 
   for (stream = 0; stream < movie->header->Streams; stream++) {
-    unsigned int tbuf = 0;
+    uint tbuf = 0;
 
     format = va_arg(ap, AviFormat);
     buffer = va_arg(ap, void *);

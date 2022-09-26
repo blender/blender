@@ -191,7 +191,7 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src, float sigma, uint c
     Y[L - 1] = cf[0] * W[L - 1] + cf[1] * tsv[0] + cf[2] * tsv[1] + cf[3] * tsv[2]; \
     Y[L - 2] = cf[0] * W[L - 2] + cf[1] * Y[L - 1] + cf[2] * tsv[0] + cf[3] * tsv[1]; \
     Y[L - 3] = cf[0] * W[L - 3] + cf[1] * Y[L - 2] + cf[2] * Y[L - 1] + cf[3] * tsv[0]; \
-    /* 'i != UINT_MAX' is really 'i >= 0', but necessary for unsigned int wrapping */ \
+    /* `i != UINT_MAX` is really `i >= 0`, but necessary for `uint` wrapping. */ \
     for (i = L - 4; i != UINT_MAX; i--) { \
       Y[i] = cf[0] * W[i] + cf[1] * Y[i + 1] + cf[2] * Y[i + 2] + cf[3] * Y[i + 3]; \
     } \

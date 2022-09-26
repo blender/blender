@@ -110,9 +110,9 @@ static void print_fvector(float m3[3])
 /* long float vector float (*)[3] */
 ///////////////////////////
 /* print long vector on console: for debug output */
-DO_INLINE void print_lfvector(float (*fLongVector)[3], unsigned int verts)
+DO_INLINE void print_lfvector(float (*fLongVector)[3], uint verts)
 {
-  unsigned int i = 0;
+  uint i = 0;
   for (i = 0; i < verts; i++) {
     print_fvector(fLongVector[i]);
   }
@@ -257,7 +257,7 @@ static void print_fmatrix(float m3[3][3])
 static void print_sparse_matrix(fmatrix3x3 *m)
 {
   if (m) {
-    unsigned int i;
+    uint i;
     for (i = 0; i < m[0].vcount + m[0].scount; i++) {
       printf("%d:\n", i);
       print_fmatrix(m[i].m);
@@ -360,7 +360,7 @@ DO_INLINE float det_fmatrix(float m[3][3])
 
 DO_INLINE void inverse_fmatrix(float to[3][3], float from[3][3])
 {
-  unsigned int i, j;
+  uint i, j;
   float d;
 
   if ((d = det_fmatrix(from)) == 0) {
@@ -510,7 +510,7 @@ BLI_INLINE void madd_m3_m3fl(float r[3][3], const float m[3][3], float f)
 #  if 0
 static void print_bfmatrix(fmatrix3x3 *m3)
 {
-  unsigned int i = 0;
+  uint i = 0;
 
   for (i = 0; i < m3[0].vcount + m3[0].scount; i++) {
     print_fmatrix(m3[i].m);
@@ -756,11 +756,11 @@ DO_INLINE void filter(lfVector *V, fmatrix3x3 *S)
 static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S)
 {
   /* Solves for unknown X in equation AX=B */
-  unsigned int conjgrad_loopcount = 0, conjgrad_looplimit = 100;
+  uint conjgrad_loopcount = 0, conjgrad_looplimit = 100;
   float conjgrad_epsilon = 0.0001f /* , conjgrad_lasterror=0 */ /* UNUSED */;
   lfVector *q, *d, *tmp, *r;
   float s, starget, a, s_prev;
-  unsigned int numverts = lA[0].vcount;
+  uint numverts = lA[0].vcount;
   q = create_lfvector(numverts);
   d = create_lfvector(numverts);
   tmp = create_lfvector(numverts);
@@ -919,7 +919,7 @@ static int cg_filtered(lfVector *ldV,
 /* block diagonalizer */
 DO_INLINE void BuildPPinv(fmatrix3x3 *lA, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 {
-  unsigned int i = 0;
+  uint i = 0;
 
   /* Take only the diagonal blocks of A */
   // #pragma omp parallel for private(i) if (lA[0].vcount > CLOTH_OPENMP_LIMIT)
@@ -940,7 +940,7 @@ static int cg_filtered_pre(lfVector *dv,
                            fmatrix3x3 *P,
                            fmatrix3x3 *Pinv)
 {
-  unsigned int numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit = 100;
+  uint numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit = 100;
   float delta0 = 0, deltaNew = 0, deltaOld = 0, alpha = 0;
   float conjgrad_epsilon = 0.0001;  /* 0.2 is dt for steps=5 */
   lfVector *r = create_lfvector(numverts);
@@ -1018,7 +1018,7 @@ static int cg_filtered_pre(lfVector *dv,
                            fmatrix3x3 *Pinv,
                            fmatrix3x3 *bigI)
 {
-  unsigned int numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit = 100;
+  uint numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit = 100;
   float delta0 = 0, deltaNew = 0, deltaOld = 0, alpha = 0, tol = 0;
   lfVector *r = create_lfvector(numverts);
   lfVector *p = create_lfvector(numverts);

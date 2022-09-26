@@ -708,9 +708,9 @@ static void rna_MeshLoopTriangle_normal_get(PointerRNA *ptr, float *values)
   MLoopTri *lt = (MLoopTri *)ptr->data;
   const MVert *verts = BKE_mesh_verts(me);
   const MLoop *loops = BKE_mesh_loops(me);
-  unsigned int v1 = loops[lt->tri[0]].v;
-  unsigned int v2 = loops[lt->tri[1]].v;
-  unsigned int v3 = loops[lt->tri[2]].v;
+  uint v1 = loops[lt->tri[0]].v;
+  uint v2 = loops[lt->tri[1]].v;
+  uint v3 = loops[lt->tri[2]].v;
 
   normal_tri_v3(values, verts[v1].co, verts[v2].co, verts[v3].co);
 }
@@ -739,9 +739,9 @@ static float rna_MeshLoopTriangle_area_get(PointerRNA *ptr)
   MLoopTri *lt = (MLoopTri *)ptr->data;
   const MVert *verts = BKE_mesh_verts(me);
   const MLoop *loops = BKE_mesh_loops(me);
-  unsigned int v1 = loops[lt->tri[0]].v;
-  unsigned int v2 = loops[lt->tri[1]].v;
-  unsigned int v3 = loops[lt->tri[2]].v;
+  uint v1 = loops[lt->tri[0]].v;
+  uint v2 = loops[lt->tri[1]].v;
+  uint v3 = loops[lt->tri[2]].v;
   return area_tri_v3(verts[v1].co, verts[v2].co, verts[v3].co);
 }
 
@@ -1377,7 +1377,7 @@ static void rna_MeshPoly_vertices_get(PointerRNA *ptr, int *values)
   MPoly *mp = (MPoly *)ptr->data;
   const MLoop *loops = BKE_mesh_loops(me);
   const MLoop *ml = &loops[mp->loopstart];
-  unsigned int i;
+  uint i;
   for (i = mp->totloop; i > 0; i--, values++, ml++) {
     *values = ml->v;
   }
@@ -1390,7 +1390,7 @@ static void rna_MeshPoly_vertices_set(PointerRNA *ptr, const int *values)
   MLoop *loops = BKE_mesh_loops_for_write(me);
 
   MLoop *ml = &loops[mp->loopstart];
-  unsigned int i;
+  uint i;
   for (i = mp->totloop; i > 0; i--, values++, ml++) {
     ml->v = *values;
   }

@@ -2396,21 +2396,21 @@ ImBuf *BKE_tracking_distortion_exec(MovieDistortion *distortion,
   else {
     if (undistort) {
       libmv_cameraIntrinsicsUndistortByte(distortion->intrinsics,
-                                          (unsigned char *)ibuf->rect,
+                                          (uchar *)ibuf->rect,
                                           ibuf->x,
                                           ibuf->y,
                                           overscan,
                                           ibuf->channels,
-                                          (unsigned char *)resibuf->rect);
+                                          (uchar *)resibuf->rect);
     }
     else {
       libmv_cameraIntrinsicsDistortByte(distortion->intrinsics,
-                                        (unsigned char *)ibuf->rect,
+                                        (uchar *)ibuf->rect,
                                         ibuf->x,
                                         ibuf->y,
                                         overscan,
                                         ibuf->channels,
-                                        (unsigned char *)resibuf->rect);
+                                        (uchar *)resibuf->rect);
     }
   }
 
@@ -2693,7 +2693,7 @@ ImBuf *BKE_tracking_sample_pattern(int frame_width,
                                  &warped_position_y);
   }
   else {
-    libmv_samplePlanarPatchByte((unsigned char *)search_ibuf->rect,
+    libmv_samplePlanarPatchByte((uchar *)search_ibuf->rect,
                                 search_ibuf->x,
                                 search_ibuf->y,
                                 4,
@@ -2702,7 +2702,7 @@ ImBuf *BKE_tracking_sample_pattern(int frame_width,
                                 num_samples_x,
                                 num_samples_y,
                                 mask,
-                                (unsigned char *)pattern_ibuf->rect,
+                                (uchar *)pattern_ibuf->rect,
                                 &warped_position_x,
                                 &warped_position_y);
   }
@@ -2868,7 +2868,7 @@ ImBuf *BKE_tracking_get_plane_imbuf(const ImBuf *frame_ibuf,
                                  &warped_position_y);
   }
   else {
-    libmv_samplePlanarPatchByte((unsigned char *)frame_ibuf->rect,
+    libmv_samplePlanarPatchByte((uchar *)frame_ibuf->rect,
                                 frame_ibuf->x,
                                 frame_ibuf->y,
                                 4,
@@ -2877,7 +2877,7 @@ ImBuf *BKE_tracking_get_plane_imbuf(const ImBuf *frame_ibuf,
                                 num_samples_x,
                                 num_samples_y,
                                 NULL,
-                                (unsigned char *)plane_ibuf->rect,
+                                (uchar *)plane_ibuf->rect,
                                 &warped_position_x,
                                 &warped_position_y);
   }

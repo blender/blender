@@ -348,7 +348,7 @@ static void make_cb_table_float_sop(
 static void color_balance_byte_byte(
     StripColorBalance *cb_, uchar *rect, uchar *mask_rect, int width, int height, float mul)
 {
-  // unsigned char cb_tab[3][256];
+  // uchar cb_tab[3][256];
   uchar *cp = rect;
   uchar *e = cp + width * 4 * height;
   uchar *m = mask_rect;
@@ -986,9 +986,9 @@ typedef struct BrightContrastThreadData {
 
 static void brightcontrast_apply_threaded(int width,
                                           int height,
-                                          unsigned char *rect,
+                                          uchar *rect,
                                           float *rect_float,
-                                          unsigned char *mask_rect,
+                                          uchar *mask_rect,
                                           const float *mask_rect_float,
                                           void *data_v)
 {
@@ -1022,14 +1022,14 @@ static void brightcontrast_apply_threaded(int width,
       int pixel_index = (y * width + x) * 4;
 
       if (rect) {
-        unsigned char *pixel = rect + pixel_index;
+        uchar *pixel = rect + pixel_index;
 
         for (c = 0; c < 3; c++) {
           i = (float)pixel[c] / 255.0f;
           v = a * i + b;
 
           if (mask_rect) {
-            unsigned char *m = mask_rect + pixel_index;
+            uchar *m = mask_rect + pixel_index;
             float t = (float)m[c] / 255.0f;
 
             v = (float)pixel[c] / 255.0f * (1.0f - t) + v * t;
@@ -1088,9 +1088,9 @@ static SequenceModifierTypeInfo seqModifier_BrightContrast = {
 
 static void maskmodifier_apply_threaded(int width,
                                         int height,
-                                        unsigned char *rect,
+                                        uchar *rect,
                                         float *rect_float,
-                                        unsigned char *mask_rect,
+                                        uchar *mask_rect,
                                         const float *mask_rect_float,
                                         void *UNUSED(data_v))
 {
@@ -1109,9 +1109,9 @@ static void maskmodifier_apply_threaded(int width,
       int pixel_index = (y * width + x) * 4;
 
       if (rect) {
-        unsigned char *pixel = rect + pixel_index;
-        unsigned char *mask_pixel = mask_rect + pixel_index;
-        unsigned char mask = min_iii(mask_pixel[0], mask_pixel[1], mask_pixel[2]);
+        uchar *pixel = rect + pixel_index;
+        uchar *mask_pixel = mask_rect + pixel_index;
+        uchar mask = min_iii(mask_pixel[0], mask_pixel[1], mask_pixel[2]);
 
         /* byte buffer is straight, so only affect on alpha itself,
          * this is the only way to alpha-over byte strip after
@@ -1186,9 +1186,9 @@ static void tonemapmodifier_init_data(SequenceModifierData *smd)
 
 static void tonemapmodifier_apply_threaded_simple(int width,
                                                   int height,
-                                                  unsigned char *rect,
+                                                  uchar *rect,
                                                   float *rect_float,
-                                                  unsigned char *mask_rect,
+                                                  uchar *mask_rect,
                                                   const float *mask_rect_float,
                                                   void *data_v)
 {
@@ -1245,9 +1245,9 @@ static void tonemapmodifier_apply_threaded_simple(int width,
 
 static void tonemapmodifier_apply_threaded_photoreceptor(int width,
                                                          int height,
-                                                         unsigned char *rect,
+                                                         uchar *rect,
                                                          float *rect_float,
-                                                         unsigned char *mask_rect,
+                                                         uchar *mask_rect,
                                                          const float *mask_rect_float,
                                                          void *data_v)
 {
@@ -1315,7 +1315,7 @@ static void tonemapmodifier_apply(struct SequenceModifierData *smd, ImBuf *ibuf,
   float lsum = 0.0f;
   int p = ibuf->x * ibuf->y;
   float *fp = ibuf->rect_float;
-  unsigned char *cp = (unsigned char *)ibuf->rect;
+  uchar *cp = (uchar *)ibuf->rect;
   float avl, maxl = -FLT_MAX, minl = FLT_MAX;
   const float sc = 1.0f / p;
   float Lav = 0.0f;

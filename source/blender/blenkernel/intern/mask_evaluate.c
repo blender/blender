@@ -565,9 +565,9 @@ static float (
 /** only called from #BKE_mask_spline_feather_differentiated_points_with_resolution() ! */
 static float (*mask_spline_feather_differentiated_points_with_resolution__double(
     MaskSpline *spline,
-    const unsigned int resol,
+    const uint resol,
     const bool do_feather_isect,
-    unsigned int *r_tot_feather_point))[2]
+    uint *r_tot_feather_point))[2]
 {
   MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
@@ -704,11 +704,11 @@ static float (*mask_spline_feather_differentiated_points_with_resolution__double
   return feather;
 }
 
-float (*BKE_mask_spline_feather_differentiated_points_with_resolution(
-    MaskSpline *spline,
-    const unsigned int resol,
-    const bool do_feather_isect,
-    unsigned int *r_tot_feather_point))[2]
+float (
+    *BKE_mask_spline_feather_differentiated_points_with_resolution(MaskSpline *spline,
+                                                                   const uint resol,
+                                                                   const bool do_feather_isect,
+                                                                   uint *r_tot_feather_point))[2]
 {
   switch (spline->offset_mode) {
     case MASK_SPLINE_OFFSET_EVEN:
@@ -768,14 +768,11 @@ float (*BKE_mask_spline_feather_points(MaskSpline *spline, int *r_tot_feather_po
   return feather;
 }
 
-float *BKE_mask_point_segment_feather_diff(MaskSpline *spline,
-                                           MaskSplinePoint *point,
-                                           int width,
-                                           int height,
-                                           unsigned int *r_tot_feather_point)
+float *BKE_mask_point_segment_feather_diff(
+    MaskSpline *spline, MaskSplinePoint *point, int width, int height, uint *r_tot_feather_point)
 {
   float *feather, *fp;
-  unsigned int resol = BKE_mask_spline_feather_resolution(spline, width, height);
+  uint resol = BKE_mask_spline_feather_resolution(spline, width, height);
 
   feather = fp = MEM_callocN(2 * resol * sizeof(float), "mask point spline feather diff points");
 
@@ -796,11 +793,8 @@ float *BKE_mask_point_segment_feather_diff(MaskSpline *spline,
   return feather;
 }
 
-float *BKE_mask_point_segment_diff(MaskSpline *spline,
-                                   MaskSplinePoint *point,
-                                   int width,
-                                   int height,
-                                   unsigned int *r_tot_diff_point)
+float *BKE_mask_point_segment_diff(
+    MaskSpline *spline, MaskSplinePoint *point, int width, int height, uint *r_tot_diff_point)
 {
   MaskSplinePoint *points_array = BKE_mask_spline_point_array_from_point(spline, point);
 

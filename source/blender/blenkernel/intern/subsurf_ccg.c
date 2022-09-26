@@ -327,7 +327,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
     int nverts = mp->totloop;
     int j, j_next;
     CCGFace *origf = ccgSubSurf_getFace(origss, POINTER_FROM_INT(i));
-    /* unsigned int *fv = &mp->v1; */
+    /* uint *fv = &mp->v1; */
     MLoop *ml = mloop + mp->loopstart;
 
 #ifdef USE_DYNSIZE

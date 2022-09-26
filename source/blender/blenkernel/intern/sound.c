@@ -556,7 +556,7 @@ static void sound_load_audio(Main *bmain, bSound *sound, bool free_waveform)
 
     /* but we need a packed file then */
     if (pf) {
-      sound->handle = AUD_Sound_bufferFile((unsigned char *)pf->data, pf->size);
+      sound->handle = AUD_Sound_bufferFile((uchar *)pf->data, pf->size);
     }
     else {
       /* or else load it from disk */

@@ -536,7 +536,7 @@ void draw_seq_strip_thumbnail(View2D *v2d,
     if (seq->flag & SEQ_OVERLAP) {
       GPU_blend(GPU_BLEND_ALPHA);
       if (ibuf->rect) {
-        unsigned char *buf = (unsigned char *)ibuf->rect;
+        uchar *buf = (uchar *)ibuf->rect;
         for (int pixel = ibuf->x * ibuf->y; pixel--; buf += 4) {
           buf[3] = OVERLAP_ALPHA;
         }

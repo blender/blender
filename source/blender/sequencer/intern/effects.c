@@ -2272,9 +2272,9 @@ static ImBuf *do_glow_effect(const SeqRenderData *context,
                         fac,
                         context->rectx,
                         context->recty,
-                        (unsigned char *)ibuf1->rect,
+                        (uchar *)ibuf1->rect,
                         NULL,
-                        (unsigned char *)out->rect);
+                        (uchar *)out->rect);
   }
 
   return out;
@@ -2336,13 +2336,13 @@ static ImBuf *do_solid_color(const SeqRenderData *context,
   int y = out->y;
 
   if (out->rect) {
-    unsigned char color[4];
+    uchar color[4];
     color[0] = cv->col[0] * 255;
     color[1] = cv->col[1] * 255;
     color[2] = cv->col[2] * 255;
     color[3] = 255;
 
-    unsigned char *rect = (unsigned char *)out->rect;
+    uchar *rect = (uchar *)out->rect;
 
     for (int i = 0; i < y; i++) {
       for (int j = 0; j < x; j++) {
@@ -2728,7 +2728,7 @@ static void do_overdrop_effect(const SeqRenderData *context,
     do_alphaover_effect_float(fac, x, y, rect1, rect2, rect_out);
   }
   else {
-    unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
+    uchar *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
     slice_get_byte_buffers(
         context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
@@ -2818,8 +2818,8 @@ static void do_gaussian_blur_effect_byte_x(Sequence *seq,
                                            int y,
                                            int frame_width,
                                            int UNUSED(frame_height),
-                                           const unsigned char *rect,
-                                           unsigned char *out)
+                                           const uchar *rect,
+                                           uchar *out)
 {
 #define INDEX(_x, _y) (((_y) * (x) + (_x)) * 4)
   GaussianBlurVars *data = seq->effectdata;
@@ -2868,8 +2868,8 @@ static void do_gaussian_blur_effect_byte_y(Sequence *seq,
                                            int y,
                                            int UNUSED(frame_width),
                                            int frame_height,
-                                           const unsigned char *rect,
-                                           unsigned char *out)
+                                           const uchar *rect,
+                                           uchar *out)
 {
 #define INDEX(_x, _y) (((_y) * (x) + (_x)) * 4)
   GaussianBlurVars *data = seq->effectdata;
@@ -3015,7 +3015,7 @@ static void do_gaussian_blur_effect_x_cb(const SeqRenderData *context,
                                     rect_out);
   }
   else {
-    unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
+    uchar *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
     slice_get_byte_buffers(
         context, ibuf, NULL, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
@@ -3026,7 +3026,7 @@ static void do_gaussian_blur_effect_x_cb(const SeqRenderData *context,
                                    total_lines,
                                    context->rectx,
                                    context->recty,
-                                   (unsigned char *)ibuf->rect,
+                                   (uchar *)ibuf->rect,
                                    rect_out);
   }
 }
@@ -3054,7 +3054,7 @@ static void do_gaussian_blur_effect_y_cb(const SeqRenderData *context,
                                     rect_out);
   }
   else {
-    unsigned char *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
+    uchar *rect1 = NULL, *rect2 = NULL, *rect_out = NULL;
 
     slice_get_byte_buffers(
         context, ibuf, NULL, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
@@ -3065,7 +3065,7 @@ static void do_gaussian_blur_effect_y_cb(const SeqRenderData *context,
                                    total_lines,
                                    context->rectx,
                                    context->recty,
-                                   (unsigned char *)ibuf->rect,
+                                   (uchar *)ibuf->rect,
                                    rect_out);
   }
 }
@@ -3341,8 +3341,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   /* use max width to enable newlines only */
   BLF_wordwrap(font, (data->wrap_width != 0.0f) ? data->wrap_width * width : -1);
 
-  BLF_buffer(
-      font, out->rect_float, (unsigned char *)out->rect, width, height, out->channels, display);
+  BLF_buffer(font, out->rect_float, (uchar *)out->rect, width, height, out->channels, display);
 
   line_height = BLF_height_max(font);
 

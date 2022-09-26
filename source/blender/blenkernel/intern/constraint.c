@@ -2855,7 +2855,7 @@ static void actcon_get_tarmat(struct Depsgraph *depsgraph,
         axis = data->type - 20;
       }
 
-      BLI_assert((unsigned int)axis < 3);
+      BLI_assert((uint)axis < 3);
 
       /* Target defines the animation */
       s = (vec[axis] - data->min) / (data->max - data->min);

@@ -1216,10 +1216,7 @@ static void hair_collision(void *__restrict userdata,
   }
 }
 
-static void add_collision_object(ListBase *relations,
-                                 Object *ob,
-                                 int level,
-                                 unsigned int modifier_type)
+static void add_collision_object(ListBase *relations, Object *ob, int level, uint modifier_type)
 {
   /* only get objects with collision modifier */
   ModifierData *cmd = BKE_modifiers_findby_type(ob, modifier_type);
@@ -1246,7 +1243,7 @@ static void add_collision_object(ListBase *relations,
 
 ListBase *BKE_collision_relations_create(Depsgraph *depsgraph,
                                          Collection *collection,
-                                         unsigned int modifier_type)
+                                         uint modifier_type)
 {
   const Scene *scene = DEG_get_input_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
@@ -1276,8 +1273,8 @@ void BKE_collision_relations_free(ListBase *relations)
 Object **BKE_collision_objects_create(Depsgraph *depsgraph,
                                       Object *self,
                                       Collection *collection,
-                                      unsigned int *numcollobj,
-                                      unsigned int modifier_type)
+                                      uint *numcollobj,
+                                      uint modifier_type)
 {
   ListBase *relations = DEG_get_collision_relations(depsgraph, collection, modifier_type);
 
@@ -1549,7 +1546,7 @@ int cloth_bvh_collision(
   ClothVertex *verts = NULL;
   int ret = 0, ret2 = 0;
   Object **collobjs = NULL;
-  unsigned int numcollobj = 0;
+  uint numcollobj = 0;
   uint *coll_counts_obj = NULL;
   BVHTreeOverlap **overlap_obj = NULL;
   uint coll_count_self = 0;

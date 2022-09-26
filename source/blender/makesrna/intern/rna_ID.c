@@ -1140,7 +1140,7 @@ static void rna_ImagePreview_size_set(PointerRNA *ptr, const int *values, enum e
   BKE_previewimg_clear_single(prv_img, size);
 
   if (values[0] && values[1]) {
-    prv_img->rect[size] = MEM_callocN(values[0] * values[1] * sizeof(unsigned int), "prv_rect");
+    prv_img->rect[size] = MEM_callocN(values[0] * values[1] * sizeof(uint), "prv_rect");
 
     prv_img->w[size] = values[0];
     prv_img->h[size] = values[1];
@@ -1178,7 +1178,7 @@ static void rna_ImagePreview_pixels_get(PointerRNA *ptr, int *values, enum eIcon
 
   BKE_previewimg_ensure(prv_img, size);
 
-  memcpy(values, prv_img->rect[size], prv_img->w[size] * prv_img->h[size] * sizeof(unsigned int));
+  memcpy(values, prv_img->rect[size], prv_img->w[size] * prv_img->h[size] * sizeof(uint));
 }
 
 static void rna_ImagePreview_pixels_set(PointerRNA *ptr, const int *values, enum eIconSizes size)
@@ -1190,7 +1190,7 @@ static void rna_ImagePreview_pixels_set(PointerRNA *ptr, const int *values, enum
     BLI_assert(prv_img == BKE_previewimg_id_ensure(id));
   }
 
-  memcpy(prv_img->rect[size], values, prv_img->w[size] * prv_img->h[size] * sizeof(unsigned int));
+  memcpy(prv_img->rect[size], values, prv_img->w[size] * prv_img->h[size] * sizeof(uint));
   prv_img->flag[size] |= PRV_USER_EDITED;
 }
 
@@ -1201,7 +1201,7 @@ static int rna_ImagePreview_pixels_float_get_length(const PointerRNA *ptr,
   ID *id = ptr->owner_id;
   PreviewImage *prv_img = (PreviewImage *)ptr->data;
 
-  BLI_assert(sizeof(unsigned int) == 4);
+  BLI_assert(sizeof(uint) == 4);
 
   if (id != NULL) {
     BLI_assert(prv_img == BKE_previewimg_id_ensure(id));
@@ -1219,11 +1219,11 @@ static void rna_ImagePreview_pixels_float_get(PointerRNA *ptr, float *values, en
   ID *id = ptr->owner_id;
   PreviewImage *prv_img = (PreviewImage *)ptr->data;
 
-  unsigned char *data = (unsigned char *)prv_img->rect[size];
+  uchar *data = (uchar *)prv_img->rect[size];
   const size_t len = prv_img->w[size] * prv_img->h[size] * 4;
   size_t i;
 
-  BLI_assert(sizeof(unsigned int) == 4);
+  BLI_assert(sizeof(uint) == 4);
 
   if (id != NULL) {
     BLI_assert(prv_img == BKE_previewimg_id_ensure(id));
@@ -1243,11 +1243,11 @@ static void rna_ImagePreview_pixels_float_set(PointerRNA *ptr,
   ID *id = ptr->owner_id;
   PreviewImage *prv_img = (PreviewImage *)ptr->data;
 
-  unsigned char *data = (unsigned char *)prv_img->rect[size];
+  uchar *data = (uchar *)prv_img->rect[size];
   const size_t len = prv_img->w[size] * prv_img->h[size] * 4;
   size_t i;
 
-  BLI_assert(sizeof(unsigned int) == 4);
+  BLI_assert(sizeof(uint) == 4);
 
   if (id != NULL) {
     BLI_assert(prv_img == BKE_previewimg_id_ensure(id));

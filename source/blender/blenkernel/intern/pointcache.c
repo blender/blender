@@ -1951,9 +1951,9 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
 
     if (pf->flag & PTCACHE_TYPEFLAG_COMPRESS) {
       for (i = 0; i < BPHYS_TOT_DATA; i++) {
-        unsigned int out_len = pm->totpoint * ptcache_data_size[i];
+        uint out_len = pm->totpoint * ptcache_data_size[i];
         if (pf->data_types & (1 << i)) {
-          ptcache_file_compressed_read(pf, (unsigned char *)(pm->data[i]), out_len);
+          ptcache_file_compressed_read(pf, (uchar *)(pm->data[i]), out_len);
         }
       }
     }
@@ -1974,22 +1974,21 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
   }
 
   if (!error && pf->flag & PTCACHE_TYPEFLAG_EXTRADATA) {
-    unsigned int extratype = 0;
+    uint extratype = 0;
 
-    while (ptcache_file_read(pf, &extratype, 1, sizeof(unsigned int))) {
+    while (ptcache_file_read(pf, &extratype, 1, sizeof(uint))) {
       PTCacheExtra *extra = MEM_callocN(sizeof(PTCacheExtra), "Pointcache extradata");
 
       extra->type = extratype;
 
-      ptcache_file_read(pf, &extra->totdata, 1, sizeof(unsigned int));
+      ptcache_file_read(pf, &extra->totdata, 1, sizeof(uint));
 
       extra->data = MEM_callocN(extra->totdata * ptcache_extra_datasize[extra->type],
                                 "Pointcache extradata->data");
 
       if (pf->flag & PTCACHE_TYPEFLAG_COMPRESS) {
-        ptcache_file_compressed_read(pf,
-                                     (unsigned char *)(extra->data),
-                                     extra->totdata * ptcache_extra_datasize[extra->type]);
+        ptcache_file_compressed_read(
+            pf, (uchar *)(extra->data), extra->totdata * ptcache_extra_datasize[extra->type]);
       }
       else {
         ptcache_file_read(pf, extra->data, extra->totdata, ptcache_extra_datasize[extra->type]);
@@ -2016,7 +2015,7 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
 static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
 {
   PTCacheFile *pf = NULL;
-  unsigned int i, error = 0;
+  uint i, error = 0;
 
   BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_FRAME, pm->frame);
 
@@ -2050,11 +2049,10 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
     if (pid->cache->compression) {
       for (i = 0; i < BPHYS_TOT_DATA; i++) {
         if (pm->data[i]) {
-          unsigned int in_len = pm->totpoint * ptcache_data_size[i];
-          unsigned char *out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len) * 4,
-                                                            "pointcache_lzo_buffer");
+          uint in_len = pm->totpoint * ptcache_data_size[i];
+          uchar *out = (uchar *)MEM_callocN(LZO_OUT_LEN(in_len) * 4, "pointcache_lzo_buffer");
           ptcache_file_compressed_write(
-              pf, (unsigned char *)(pm->data[i]), in_len, out, pid->cache->compression);
+              pf, (uchar *)(pm->data[i]), in_len, out, pid->cache->compression);
           MEM_freeN(out);
         }
       }
@@ -2083,15 +2081,14 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
         continue;
       }
 
-      ptcache_file_write(pf, &extra->type, 1, sizeof(unsigned int));
-      ptcache_file_write(pf, &extra->totdata, 1, sizeof(unsigned int));
+      ptcache_file_write(pf, &extra->type, 1, sizeof(uint));
+      ptcache_file_write(pf, &extra->totdata, 1, sizeof(uint));
 
       if (pid->cache->compression) {
-        unsigned int in_len = extra->totdata * ptcache_extra_datasize[extra->type];
-        unsigned char *out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len) * 4,
-                                                          "pointcache_lzo_buffer");
+        uint in_len = extra->totdata * ptcache_extra_datasize[extra->type];
+        uchar *out = (uchar *)MEM_callocN(LZO_OUT_LEN(in_len) * 4, "pointcache_lzo_buffer");
         ptcache_file_compressed_write(
-            pf, (unsigned char *)(extra->data), in_len, out, pid->cache->compression);
+            pf, (uchar *)(extra->data), in_len, out, pid->cache->compression);
         MEM_freeN(out);
       }
       else {
@@ -2531,7 +2528,7 @@ static int ptcache_write_needed(PTCacheID *pid, int cfra, int *overwrite)
 
   return 0;
 }
-int BKE_ptcache_write(PTCacheID *pid, unsigned int cfra)
+int BKE_ptcache_write(PTCacheID *pid, uint cfra)
 {
   PointCache *cache = pid->cache;
   if (!pid->totpoint) {
@@ -2583,10 +2580,10 @@ int BKE_ptcache_write(PTCacheID *pid, unsigned int cfra)
 
 /* Clears & resets. */
 
-void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
+void BKE_ptcache_id_clear(PTCacheID *pid, int mode, uint cfra)
 {
-  unsigned int len; /* store the length of the string */
-  unsigned int sta, end;
+  uint len; /* store the length of the string */
+  uint sta, end;
 
   /* mode is same as fopen's modes */
   DIR *dir;
@@ -2808,8 +2805,8 @@ void BKE_ptcache_id_time(
   }
 
   if (cache->cached_frames == NULL && cache->endframe > cache->startframe) {
-    unsigned int sta = cache->startframe;
-    unsigned int end = cache->endframe;
+    uint sta = cache->startframe;
+    uint end = cache->endframe;
 
     cache->cached_frames_len = cache->endframe - cache->startframe + 1;
     cache->cached_frames = MEM_callocN(sizeof(char) * cache->cached_frames_len,
@@ -2822,7 +2819,7 @@ void BKE_ptcache_id_time(
       char path[MAX_PTCACHE_PATH];
       char filepath[MAX_PTCACHE_FILE];
       char ext[MAX_PTCACHE_PATH];
-      unsigned int len; /* store the length of the string */
+      uint len; /* store the length of the string */
 
       ptcache_path(pid, path);
 

@@ -343,7 +343,7 @@ static void interlace(uchar *to, uchar *from, int width, int height)
   }
 }
 
-static void deinterlace(int odd, unsigned char *to, unsigned char *from, int width, int height)
+static void deinterlace(int odd, uchar *to, uchar *from, int width, int height)
 {
   size_t i, rowstride = width * 3;
 
@@ -357,20 +357,17 @@ static void deinterlace(int odd, unsigned char *to, unsigned char *from, int wid
   }
 }
 
-void *avi_converter_from_mjpeg(AviMovie *movie,
-                               int stream,
-                               unsigned char *buffer,
-                               const size_t *size)
+void *avi_converter_from_mjpeg(AviMovie *movie, int stream, uchar *buffer, const size_t *size)
 {
   int deint;
-  unsigned char *buf;
+  uchar *buf;
 
   (void)stream; /* unused */
 
   buf = imb_alloc_pixels(movie->header->Height,
                          movie->header->Width,
                          3,
-                         sizeof(unsigned char),
+                         sizeof(uchar),
                          "avi.avi_converter_from_mjpeg 1");
   if (!buf) {
     return NULL;
@@ -384,7 +381,7 @@ void *avi_converter_from_mjpeg(AviMovie *movie,
     buffer = imb_alloc_pixels(movie->header->Height,
                               movie->header->Width,
                               3,
-                              sizeof(unsigned char),
+                              sizeof(uchar),
                               "avi.avi_converter_from_mjpeg 2");
     if (buffer) {
       interlace(buffer, buf, movie->header->Width, movie->header->Height);
@@ -397,9 +394,9 @@ void *avi_converter_from_mjpeg(AviMovie *movie,
   return buf;
 }
 
-void *avi_converter_to_mjpeg(AviMovie *movie, int stream, unsigned char *buffer, size_t *size)
+void *avi_converter_to_mjpeg(AviMovie *movie, int stream, uchar *buffer, size_t *size)
 {
-  unsigned char *buf;
+  uchar *buf;
   size_t bufsize = *size;
 
   numbytes = 0;
@@ -408,7 +405,7 @@ void *avi_converter_to_mjpeg(AviMovie *movie, int stream, unsigned char *buffer,
   buf = imb_alloc_pixels(movie->header->Height,
                          movie->header->Width,
                          3,
-                         sizeof(unsigned char),
+                         sizeof(uchar),
                          "avi.avi_converter_to_mjpeg 1");
   if (!buf) {
     return NULL;
@@ -431,7 +428,7 @@ void *avi_converter_to_mjpeg(AviMovie *movie, int stream, unsigned char *buffer,
     buf = imb_alloc_pixels(movie->header->Height,
                            movie->header->Width,
                            3,
-                           sizeof(unsigned char),
+                           sizeof(uchar),
                            "avi.avi_converter_to_mjpeg 1");
 
     if (buf) {
@@ -478,7 +475,7 @@ static void jpegmemdestmgr_term_destination(j_compress_ptr cinfo)
   MEM_freeN(cinfo->dest);
 }
 
-static void jpegmemdestmgr_build(j_compress_ptr cinfo, unsigned char *buffer, size_t bufsize)
+static void jpegmemdestmgr_build(j_compress_ptr cinfo, uchar *buffer, size_t bufsize)
 {
   cinfo->dest = MEM_mallocN(sizeof(*(cinfo->dest)), "avi.jpegmemdestmgr_build");
 
@@ -501,7 +498,7 @@ static void jpegmemsrcmgr_init_source(j_decompress_ptr dinfo)
 
 static boolean jpegmemsrcmgr_fill_input_buffer(j_decompress_ptr dinfo)
 {
-  unsigned char *buf = (unsigned char *)dinfo->src->next_input_byte - 2;
+  uchar *buf = (uchar *)dinfo->src->next_input_byte - 2;
 
   /* if we get called, must have run out of data */
   WARNMS(dinfo, JWRN_JPEG_EOF);
@@ -532,9 +529,7 @@ static void jpegmemsrcmgr_term_source(j_decompress_ptr dinfo)
   MEM_freeN(dinfo->src);
 }
 
-static void jpegmemsrcmgr_build(j_decompress_ptr dinfo,
-                                const unsigned char *buffer,
-                                size_t bufsize)
+static void jpegmemsrcmgr_build(j_decompress_ptr dinfo, const uchar *buffer, size_t bufsize)
 {
   dinfo->src = MEM_mallocN(sizeof(*(dinfo->src)), "avi.jpegmemsrcmgr_build");
 

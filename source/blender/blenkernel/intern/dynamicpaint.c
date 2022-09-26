@@ -2512,7 +2512,7 @@ static void dynamic_paint_find_island_border(const DynamicPaintCreateUVSurfaceDa
   const MLoopTri *mlooptri = data->mlooptri;
   const MLoopUV *mloopuv = data->mloopuv;
 
-  const unsigned int *loop_idx = mlooptri[tri_index].tri;
+  const uint *loop_idx = mlooptri[tri_index].tri;
 
   /* Enumerate all edges of the triangle, rotating the vertex list accordingly. */
   for (int edge_idx = 0; edge_idx < 3; edge_idx++) {
@@ -2566,7 +2566,7 @@ static void dynamic_paint_find_island_border(const DynamicPaintCreateUVSurfaceDa
         continue;
       }
 
-      const unsigned int *other_loop_idx = mlooptri[lt_index].tri;
+      const uint *other_loop_idx = mlooptri[lt_index].tri;
 
       /* Check edges for match, looping in the same order as the outer loop. */
       for (int j = 0; j < 3; j++) {
@@ -5339,12 +5339,12 @@ static void dynamic_paint_effect_drip_cb(void *__restrict userdata,
       float dir_factor, a_factor;
       const float speed_scale = eff_scale * force[index * 4 + 3] / bNeighs[n_idx].dist;
 
-      const unsigned int n_trgt = (unsigned int)n_target[n_idx];
+      const uint n_trgt = (uint)n_target[n_idx];
 
       /* Sort of spinlock, but only for given ePoint.
        * Since the odds a same ePoint is modified at the same time by several threads is very low,
        * this is much more efficient than a global spin lock. */
-      const unsigned int epointlock_idx = n_trgt / 8;
+      const uint epointlock_idx = n_trgt / 8;
       const uint8_t epointlock_bitmask = 1 << (n_trgt & 7); /* 7 == 0b111 */
       while (atomic_fetch_and_or_uint8(&point_locks[epointlock_idx], epointlock_bitmask) &
              epointlock_bitmask) {
@@ -5391,7 +5391,7 @@ static void dynamic_paint_effect_drip_cb(void *__restrict userdata,
   }
 
   {
-    const unsigned int ppointlock_idx = index / 8;
+    const uint ppointlock_idx = index / 8;
     const uint8_t ppointlock_bitmask = 1 << (index & 7); /* 7 == 0b111 */
     while (atomic_fetch_and_or_uint8(&point_locks[ppointlock_idx], ppointlock_bitmask) &
            ppointlock_bitmask) {
@@ -6063,10 +6063,8 @@ static bool dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
     /* Init bdata */
     bData->bNormal = (struct PaintBakeNormal *)MEM_mallocN(
         sData->total_points * sizeof(struct PaintBakeNormal), "Dynamic Paint step data");
-    bData->s_pos = MEM_mallocN(sData->total_points * sizeof(unsigned int),
-                               "Dynamic Paint bData s_pos");
-    bData->s_num = MEM_mallocN(sData->total_points * sizeof(unsigned int),
-                               "Dynamic Paint bData s_num");
+    bData->s_pos = MEM_mallocN(sData->total_points * sizeof(uint), "Dynamic Paint bData s_pos");
+    bData->s_num = MEM_mallocN(sData->total_points * sizeof(uint), "Dynamic Paint bData s_num");
     bData->realCoord = (struct Vec3f *)MEM_mallocN(surface_totalSamples(surface) * sizeof(Vec3f),
                                                    "Dynamic Paint point coords");
     bData->prev_verts = MEM_mallocN(canvasNumOfVerts * sizeof(MVert),
@@ -6189,7 +6187,7 @@ static int dynamicPaint_doStep(Depsgraph *depsgraph,
    * Loop through surface's target paint objects and do painting
    */
   {
-    unsigned int numobjects;
+    uint numobjects;
     Object **objects = BKE_collision_objects_create(
         depsgraph, NULL, surface->brush_group, &numobjects, eModifierType_DynamicPaint);
 

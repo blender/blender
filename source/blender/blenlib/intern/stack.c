@@ -151,7 +151,7 @@ void BLI_stack_pop_n(BLI_Stack *stack, void *dst, uint n)
   }
 }
 
-void BLI_stack_pop_n_reverse(BLI_Stack *stack, void *dst, unsigned int n)
+void BLI_stack_pop_n_reverse(BLI_Stack *stack, void *dst, uint n)
 {
   BLI_assert(n <= BLI_stack_count(stack));
 

@@ -1628,7 +1628,7 @@ wmTimer *WM_event_add_timer(wmWindowManager *wm, wmWindow *win, int event_type, 
 
 wmTimer *WM_event_add_timer_notifier(wmWindowManager *wm,
                                      wmWindow *win,
-                                     unsigned int type,
+                                     uint type,
                                      double timestep)
 {
   wmTimer *wt = MEM_callocN(sizeof(wmTimer), "window timer");

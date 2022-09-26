@@ -465,7 +465,7 @@ static void rna_Struct_property_tags_begin(CollectionPropertyIterator *iter, Poi
   /* here ptr->data should always be the same as iter->parent.type */
   StructRNA *srna = (StructRNA *)ptr->data;
   const EnumPropertyItem *tag_defines = RNA_struct_property_tag_defines(srna);
-  unsigned int tag_count = tag_defines ? RNA_enum_items_count(tag_defines) : 0;
+  uint tag_count = tag_defines ? RNA_enum_items_count(tag_defines) : 0;
 
   rna_iterator_array_begin(
       iter, (void *)tag_defines, sizeof(EnumPropertyItem), tag_count, 0, NULL);

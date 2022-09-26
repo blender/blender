@@ -790,13 +790,13 @@ static void cast_primitive_type(const eSDNA_Type old_type,
         *new_data = (char)old_value_i;
         break;
       case SDNA_TYPE_UCHAR:
-        *((unsigned char *)new_data) = (unsigned char)old_value_i;
+        *((uchar *)new_data) = (uchar)old_value_i;
         break;
       case SDNA_TYPE_SHORT:
         *((short *)new_data) = (short)old_value_i;
         break;
       case SDNA_TYPE_USHORT:
-        *((unsigned short *)new_data) = (unsigned short)old_value_i;
+        *((ushort *)new_data) = (ushort)old_value_i;
         break;
       case SDNA_TYPE_INT:
         *((int *)new_data) = (int)old_value_i;

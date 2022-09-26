@@ -1294,15 +1294,15 @@ ImBuf *seq_render_mask(const SeqRenderData *context,
   else {
     /* pixels */
     const float *fp_src;
-    unsigned char *ub_dst;
+    uchar *ub_dst;
 
     ibuf = IMB_allocImBuf(context->rectx, context->recty, 32, IB_rect);
 
     fp_src = maskbuf;
-    ub_dst = (unsigned char *)ibuf->rect;
+    ub_dst = (uchar *)ibuf->rect;
     i = context->rectx * context->recty;
     while (--i) {
-      ub_dst[0] = ub_dst[1] = ub_dst[2] = (unsigned char)(*fp_src * 255.0f); /* already clamped */
+      ub_dst[0] = ub_dst[1] = ub_dst[2] = (uchar)(*fp_src * 255.0f); /* already clamped */
       ub_dst[3] = 255;
 
       fp_src += 1;
@@ -1447,7 +1447,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
     BKE_render_resolution(&scene->r, false, &width, &height);
     const char *viewname = BKE_scene_multiview_render_view_name_get(&scene->r, context->view_id);
 
-    unsigned int draw_flags = V3D_OFSDRAW_NONE;
+    uint draw_flags = V3D_OFSDRAW_NONE;
     draw_flags |= (use_gpencil) ? V3D_OFSDRAW_SHOW_ANNOTATION : 0;
     draw_flags |= (context->scene->r.seq_flag & R_SEQ_OVERRIDE_SCENE_SETTINGS) ?
                       V3D_OFSDRAW_OVERRIDE_SCENE_SETTINGS :

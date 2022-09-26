@@ -1329,7 +1329,7 @@ static void deformVert(void *__restrict userdata,
   const SDefDeformData *const data = (SDefDeformData *)userdata;
   const SDefBind *sdbind = data->bind_verts[index].binds;
   const int sdbind_num = data->bind_verts[index].binds_num;
-  const unsigned int vertex_idx = data->bind_verts[index].vertex_idx;
+  const uint vertex_idx = data->bind_verts[index].vertex_idx;
   float *const vertexCos = data->vertexCos[vertex_idx];
   float norm[3], temp[3], offset[3];
 

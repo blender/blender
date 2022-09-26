@@ -1953,9 +1953,7 @@ bool BKE_gpencil_material_index_used(bGPdata *gpd, int index)
   return false;
 }
 
-void BKE_gpencil_material_remap(struct bGPdata *gpd,
-                                const unsigned int *remap,
-                                unsigned int remap_len)
+void BKE_gpencil_material_remap(struct bGPdata *gpd, const uint *remap, uint remap_len)
 {
   const short remap_len_short = (short)remap_len;
 

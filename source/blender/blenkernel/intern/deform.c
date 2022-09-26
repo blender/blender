@@ -865,7 +865,7 @@ int BKE_defvert_find_shared(const MDeformVert *dvert_a, const MDeformVert *dvert
 {
   if (dvert_a->totweight && dvert_b->totweight) {
     MDeformWeight *dw = dvert_a->dw;
-    unsigned int i;
+    uint i;
 
     for (i = dvert_a->totweight; i != 0; i--, dw++) {
       if (dw->weight > 0.0f && BKE_defvert_find_weight(dvert_b, dw->def_nr) > 0.0f) {

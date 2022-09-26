@@ -202,9 +202,9 @@ int BLI_convexhull_2d(const float (*points)[2], const int n, int r_points[])
 /** \name Utility Convex-Hull Functions
  * \{ */
 
-float BLI_convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], unsigned int n)
+float BLI_convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], uint n)
 {
-  unsigned int i, i_prev;
+  uint i, i_prev;
   float area_best = FLT_MAX;
   float dvec_best[2]; /* best angle, delay atan2 */
 
@@ -218,7 +218,7 @@ float BLI_convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], unsigned in
     if (normalize_v2(dvec) != 0.0f) {
       /* rotation matrix */
       float min[2] = {FLT_MAX, FLT_MAX}, max[2] = {-FLT_MAX, -FLT_MAX};
-      unsigned int j;
+      uint j;
       float area;
 
       for (j = 0; j < n; j++) {
@@ -249,7 +249,7 @@ float BLI_convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], unsigned in
   return (area_best != FLT_MAX) ? atan2f(dvec_best[0], dvec_best[1]) : 0.0f;
 }
 
-float BLI_convexhull_aabb_fit_points_2d(const float (*points)[2], unsigned int n)
+float BLI_convexhull_aabb_fit_points_2d(const float (*points)[2], uint n)
 {
   int *index_map;
   int points_hull_num;
@@ -269,7 +269,7 @@ float BLI_convexhull_aabb_fit_points_2d(const float (*points)[2], unsigned int n
       copy_v2_v2(points_hull[j], points[index_map[j]]);
     }
 
-    angle = BLI_convexhull_aabb_fit_hull_2d(points_hull, (unsigned int)points_hull_num);
+    angle = BLI_convexhull_aabb_fit_hull_2d(points_hull, (uint)points_hull_num);
     MEM_freeN(points_hull);
   }
   else {

@@ -418,7 +418,7 @@ VFontData *BKE_vfontdata_copy(const VFontData *vfont_src, const int UNUSED(flag)
   return vfont_dst;
 }
 
-VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, unsigned long character)
+VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, ulong character)
 {
   VChar *che = NULL;
 

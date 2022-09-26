@@ -1115,7 +1115,7 @@ static float BLI_cellNoiseU(float x, float y, float z)
   int xi = (int)(floor(x));
   int yi = (int)(floor(y));
   int zi = (int)(floor(z));
-  unsigned int n = xi + yi * 1301 + zi * 314159;
+  uint n = xi + yi * 1301 + zi * 314159;
   n ^= (n << 13);
   return ((float)(n * (n * n * 15731 + 789221) + 1376312589) / 4294967296.0f);
 }

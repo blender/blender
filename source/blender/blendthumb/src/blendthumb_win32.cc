@@ -172,10 +172,10 @@ IFACEMETHODIMP CBlendThumb::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_ALPHATYPE 
   *pdwAlpha = WTSAT_ARGB;
 
   /* Scale up the thumbnail if required. */
-  if ((unsigned)thumb.width < cx && (unsigned)thumb.height < cx) {
+  if (uint(thumb.width) < cx && uint(thumb.height) < cx) {
     float scale = 1.0f / (std::max(thumb.width, thumb.height) / float(cx));
-    LONG NewWidth = (LONG)(thumb.width * scale);
-    LONG NewHeight = (LONG)(thumb.height * scale);
+    LONG NewWidth = LONG(thumb.width * scale);
+    LONG NewHeight = LONG(thumb.height * scale);
 
     IWICImagingFactory *pImgFac;
     hr = CoCreateInstance(

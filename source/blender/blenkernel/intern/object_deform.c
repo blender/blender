@@ -613,7 +613,7 @@ bool *BKE_object_defgroup_selected_get(Object *ob, int defbase_tot, int *r_dg_fl
 {
   bool *dg_selection = MEM_mallocN(defbase_tot * sizeof(bool), __func__);
   bDeformGroup *defgroup;
-  unsigned int i;
+  uint i;
   Object *armob = BKE_object_pose_armature_get(ob);
   (*r_dg_flags_sel_tot) = 0;
 
@@ -700,7 +700,7 @@ void BKE_object_defgroup_mirror_selection(struct Object *ob,
   const ListBase *defbase = BKE_object_defgroup_list(ob);
 
   bDeformGroup *defgroup;
-  unsigned int i;
+  uint i;
   int i_mirr;
 
   for (i = 0, defgroup = defbase->first; i < defbase_tot && defgroup;

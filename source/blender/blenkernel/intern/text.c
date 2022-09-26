@@ -1757,7 +1757,7 @@ void txt_duplicate_line(Text *text)
 
 void txt_delete_char(Text *text)
 {
-  unsigned int c = '\n';
+  uint c = '\n';
 
   if (!text->curl) {
     return;
@@ -1805,7 +1805,7 @@ void txt_delete_word(Text *text)
 
 void txt_backspace_char(Text *text)
 {
-  unsigned int c = '\n';
+  uint c = '\n';
 
   if (!text->curl) {
     return;
@@ -1873,7 +1873,7 @@ static void txt_convert_tab_to_spaces(Text *text)
   txt_insert_buf(text, sb, strlen(sb));
 }
 
-static bool txt_add_char_intern(Text *text, unsigned int add, bool replace_tabs)
+static bool txt_add_char_intern(Text *text, uint add, bool replace_tabs)
 {
   char *tmp, ch[BLI_UTF8_MAX];
   size_t add_len;
@@ -1916,12 +1916,12 @@ static bool txt_add_char_intern(Text *text, unsigned int add, bool replace_tabs)
   return 1;
 }
 
-bool txt_add_char(Text *text, unsigned int add)
+bool txt_add_char(Text *text, uint add)
 {
   return txt_add_char_intern(text, add, (text->flags & TXT_TABSTOSPACES) != 0);
 }
 
-bool txt_add_raw_char(Text *text, unsigned int add)
+bool txt_add_raw_char(Text *text, uint add)
 {
   return txt_add_char_intern(text, add, 0);
 }
@@ -1932,9 +1932,9 @@ void txt_delete_selected(Text *text)
   txt_make_dirty(text);
 }
 
-bool txt_replace_char(Text *text, unsigned int add)
+bool txt_replace_char(Text *text, uint add)
 {
-  unsigned int del;
+  uint del;
   size_t del_size = 0, add_size;
   char ch[BLI_UTF8_MAX];
 
@@ -2361,12 +2361,12 @@ bool text_check_identifier_nodigit(const char ch)
 }
 
 #ifndef WITH_PYTHON
-int text_check_identifier_unicode(const unsigned int ch)
+int text_check_identifier_unicode(const uint ch)
 {
-  return (ch < 255 && text_check_identifier((unsigned int)ch));
+  return (ch < 255 && text_check_identifier((uint)ch));
 }
 
-int text_check_identifier_nodigit_unicode(const unsigned int ch)
+int text_check_identifier_nodigit_unicode(const uint ch)
 {
   return (ch < 255 && text_check_identifier_nodigit((char)ch));
 }

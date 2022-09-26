@@ -1686,7 +1686,7 @@ static void layer_collection_local_visibility_unset_recursive(LayerCollection *l
 static void layer_collection_local_sync(const Scene *scene,
                                         ViewLayer *view_layer,
                                         LayerCollection *layer_collection,
-                                        const unsigned short local_collections_uuid,
+                                        const ushort local_collections_uuid,
                                         bool visible)
 {
   if ((layer_collection->local_collections_bits & local_collections_uuid) == 0) {
@@ -1718,7 +1718,7 @@ void BKE_layer_collection_local_sync(const Scene *scene, ViewLayer *view_layer, 
     return;
   }
 
-  const unsigned short local_collections_uuid = v3d->local_collections_uuid;
+  const ushort local_collections_uuid = v3d->local_collections_uuid;
 
   /* Reset flags and set the bases visible by default. */
   BKE_view_layer_synced_ensure(scene, view_layer);

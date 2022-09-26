@@ -454,7 +454,7 @@ int BLI_str_utf8_size(const char *p)
   /* NOTE: uses glib functions but not from GLIB. */
 
   int mask = 0, len;
-  const unsigned char c = (unsigned char)*p;
+  const uchar c = (uchar)*p;
 
   UTF8_COMPUTE(c, mask, len, -1);
 
@@ -466,7 +466,7 @@ int BLI_str_utf8_size(const char *p)
 int BLI_str_utf8_size_safe(const char *p)
 {
   int mask = 0, len;
-  const unsigned char c = (unsigned char)*p;
+  const uchar c = (uchar)*p;
 
   UTF8_COMPUTE(c, mask, len, 1);
 
@@ -482,7 +482,7 @@ uint BLI_str_utf8_as_unicode(const char *p)
   int i, len;
   uint mask = 0;
   uint result;
-  const unsigned char c = (unsigned char)*p;
+  const uchar c = (uchar)*p;
 
   UTF8_COMPUTE(c, mask, len, -1);
   if (UNLIKELY(len == -1)) {
@@ -500,7 +500,7 @@ uint BLI_str_utf8_as_unicode_step_or_error(const char *__restrict p,
   int i, len;
   uint mask = 0;
   uint result;
-  const unsigned char c = (unsigned char)*(p += *index);
+  const uchar c = (uchar) * (p += *index);
 
   BLI_assert(*index < p_len);
   BLI_assert(c != '\0');

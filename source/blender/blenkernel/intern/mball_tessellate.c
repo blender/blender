@@ -1076,7 +1076,7 @@ static void closest_latice(int r[3], const float pos[3], const float size)
 /**
  * Find at most 26 cubes to start polygonization from.
  */
-static void find_first_points(PROCESS *process, const unsigned int em)
+static void find_first_points(PROCESS *process, const uint em)
 {
   const MetaElem *ml;
   int center[3], lbn[3], rtf[3], it[3], dir[3], add[3];
@@ -1164,7 +1164,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
   MetaBall *mb;
   const MetaElem *ml;
   float obinv[4][4], obmat[4][4];
-  unsigned int i;
+  uint i;
   int obnr, zero_size = 0;
   char obname[MAX_ID_NAME];
   SceneBaseIter iter;

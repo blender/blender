@@ -1505,7 +1505,7 @@ static bool vfont_to_curve(Object *ob,
 
     ct = chartransdata;
     for (i = 0; i < slen; i++) {
-      unsigned int cha = (unsigned int)mem[i];
+      uint cha = (uint)mem[i];
       info = &(custrinfo[i]);
 
       if ((cu->overflow == CU_OVERFLOW_TRUNCATE) && (ob && ob->mode != OB_MODE_EDIT) &&

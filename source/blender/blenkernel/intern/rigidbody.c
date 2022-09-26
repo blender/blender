@@ -2261,7 +2261,7 @@ void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime
 
     /* write cache for current frame */
     BKE_ptcache_validate(cache, (int)ctime);
-    BKE_ptcache_write(&pid, (unsigned int)ctime);
+    BKE_ptcache_write(&pid, (uint)ctime);
 
     rbw->ltime = ctime;
   }

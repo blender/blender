@@ -915,7 +915,7 @@ bool BKE_ocean_init(struct Ocean *o,
       /* This ensures we get a value tied to the surface location, avoiding dramatic surface
        * change with changing resolution.
        * Explicitly cast to signed int first to ensure consistent behavior on all processors,
-       * since behavior of float to unsigned int cast is undefined in C. */
+       * since behavior of `float` to `uint` cast is undefined in C. */
       const int hash_x = o->_kx[i] * 360.0f;
       const int hash_z = o->_kz[j] * 360.0f;
       int new_seed = seed + BLI_hash_int_2d(hash_x, hash_z);

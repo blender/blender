@@ -283,8 +283,7 @@ static const char32_t *blf_get_sample_text(FT_Face face)
   return sample;
 }
 
-bool BLF_thumb_preview(
-    const char *filename, unsigned char *buf, int w, int h, int UNUSED(channels))
+bool BLF_thumb_preview(const char *filename, uchar *buf, int w, int h, int UNUSED(channels))
 {
   /* Use own FT_Library and direct FreeType calls as this is called from multiple threads. */
   FT_Library ft_lib = NULL;

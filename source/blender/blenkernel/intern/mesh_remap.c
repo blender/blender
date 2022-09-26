@@ -1050,7 +1050,7 @@ static void mesh_island_to_astar_graph_edge_process(MeshIslandStore *islands,
                                                     const bool is_edge_innercut,
                                                     const int *poly_island_index_map,
                                                     float (*poly_centers)[3],
-                                                    unsigned char *poly_status)
+                                                    uchar *poly_status)
 {
   int *poly_island_indices = BLI_array_alloca(poly_island_indices,
                                               (size_t)edge_to_poly_map[edge_idx].count);
@@ -1114,7 +1114,7 @@ static void mesh_island_to_astar_graph(MeshIslandStore *islands,
   BLI_bitmap *done_edges = BLI_BITMAP_NEW(numedges, __func__);
 
   const int node_num = islands ? island_poly_map->count : numpolys;
-  unsigned char *poly_status = MEM_callocN(sizeof(*poly_status) * (size_t)node_num, __func__);
+  uchar *poly_status = MEM_callocN(sizeof(*poly_status) * (size_t)node_num, __func__);
   float(*poly_centers)[3];
 
   int pidx_isld;

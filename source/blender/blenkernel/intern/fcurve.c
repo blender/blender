@@ -1368,7 +1368,7 @@ void sort_time_fcurve(FCurve *fcu)
 
 bool test_time_fcurve(FCurve *fcu)
 {
-  unsigned int a;
+  uint a;
 
   /* Sanity checks. */
   if (fcu == NULL) {
@@ -1778,7 +1778,7 @@ static float fcurve_eval_keyframes_interpolate(FCurve *fcu, BezTriple *bezts, fl
 {
   const float eps = 1.e-8f;
   BezTriple *bezt, *prevbezt;
-  unsigned int a;
+  uint a;
 
   /* Evaltime occurs somewhere in the middle of the curve. */
   bool exact = false;

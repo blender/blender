@@ -736,17 +736,17 @@ static void bchunk_list_fill_from_array(const BArrayInfo *info,
 
 BLI_INLINE uint hash_data_single(const uchar p)
 {
-  return ((HASH_INIT << 5) + HASH_INIT) + (unsigned int)(*((signed char *)&p));
+  return ((HASH_INIT << 5) + HASH_INIT) + (uint)(*((signed char *)&p));
 }
 
 /* hash bytes, from BLI_ghashutil_strhash_n */
 static uint hash_data(const uchar *key, size_t n)
 {
   const signed char *p;
-  unsigned int h = HASH_INIT;
+  uint h = HASH_INIT;
 
   for (p = (const signed char *)key; n--; p++) {
-    h = ((h << 5) + h) + (unsigned int)*p;
+    h = (uint)((h << 5) + h) + (uint)*p;
   }
 
   return h;

@@ -174,7 +174,7 @@ BLI_INLINE void bicubic_interpolation(const uchar *byte_buffer,
           vector_from_float(float_data, data, components);
         }
         else {
-          const unsigned char *byte_data = byte_buffer + width * y1 * components + components * x1;
+          const uchar *byte_data = byte_buffer + width * y1 * components + components * x1;
 
           vector_from_byte(byte_data, data, components);
         }
@@ -669,7 +669,7 @@ void BLI_ewa_filter(const int width,
     for (u = u1; u <= u2; u++) {
       if (Q < (float)(EWA_MAXIDX + 1)) {
         float tc[4];
-        const float wt = EWA_WTS[(Q < 0.0f) ? 0 : (unsigned int)Q];
+        const float wt = EWA_WTS[(Q < 0.0f) ? 0 : (uint)Q];
         read_pixel_cb(userdata, u, v, tc);
         madd_v3_v3fl(result, tc, wt);
         result[3] += use_alpha ? tc[3] * wt : 0.0f;

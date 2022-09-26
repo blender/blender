@@ -1148,7 +1148,7 @@ static void cloth_update_springs(ClothModifierData *clmd)
 /* Update rest verts, for dynamically deformable cloth */
 static void cloth_update_verts(Object *ob, ClothModifierData *clmd, Mesh *mesh)
 {
-  unsigned int i = 0;
+  uint i = 0;
   const MVert *mvert = BKE_mesh_verts(mesh);
   ClothVertex *verts = clmd->clothObject->verts;
 
@@ -1180,9 +1180,9 @@ static void cloth_update_spring_lengths(ClothModifierData *clmd, Mesh *mesh)
 {
   Cloth *cloth = clmd->clothObject;
   LinkNode *search = cloth->springs;
-  unsigned int struct_springs = 0;
-  unsigned int i = 0;
-  unsigned int mvert_num = (unsigned int)mesh->totvert;
+  uint struct_springs = 0;
+  uint i = 0;
+  uint mvert_num = (uint)mesh->totvert;
   float shrink_factor;
 
   clmd->sim_parms->avg_spring_len = 0.0f;
@@ -1373,12 +1373,12 @@ BLI_INLINE bool cloth_bend_set_poly_vert_array(int **poly, int len, const MLoop 
 }
 
 static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
-                                               unsigned int v_idx,
+                                               uint v_idx,
                                                RNG *rng,
                                                float max_length,
                                                float max_diversion,
                                                bool check_normal,
-                                               unsigned int *r_tar_v_idx)
+                                               uint *r_tar_v_idx)
 {
   float co[3], no[3], new_co[3];
   float radius;
@@ -1415,7 +1415,7 @@ static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
   BLI_bvhtree_ray_cast(
       treedata->tree, new_co, no, radius, &rayhit, treedata->raycast_callback, treedata);
 
-  unsigned int vert_idx = -1;
+  uint vert_idx = -1;
   const MLoop *mloop = treedata->loop;
   const MLoopTri *lt = NULL;
 
@@ -1429,7 +1429,7 @@ static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
     lt = &treedata->looptri[rayhit.index];
 
     for (int i = 0; i < 3; i++) {
-      unsigned int tmp_vert_idx = mloop[lt->tri[i]].v;
+      uint tmp_vert_idx = mloop[lt->tri[i]].v;
       if (tmp_vert_idx == v_idx) {
         /* We managed to hit ourselves. */
         return false;
@@ -1453,10 +1453,10 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
 {
   Cloth *cloth = clmd->clothObject;
   ClothSpring *spring = NULL, *tspring = NULL, *tspring2 = NULL;
-  unsigned int struct_springs = 0, shear_springs = 0, bend_springs = 0, struct_springs_real = 0;
-  unsigned int mvert_num = (unsigned int)mesh->totvert;
-  unsigned int numedges = (unsigned int)mesh->totedge;
-  unsigned int numpolys = (unsigned int)mesh->totpoly;
+  uint struct_springs = 0, shear_springs = 0, bend_springs = 0, struct_springs_real = 0;
+  uint mvert_num = (uint)mesh->totvert;
+  uint numedges = (uint)mesh->totedge;
+  uint numpolys = (uint)mesh->totpoly;
   float shrink_factor;
   const MEdge *medge = BKE_mesh_edges(mesh);
   const MPoly *mpoly = BKE_mesh_polys(mesh);
@@ -1499,7 +1499,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
 
   if (use_internal_springs && numpolys > 0) {
     BVHTreeFromMesh treedata = {NULL};
-    unsigned int tar_v_idx;
+    uint tar_v_idx;
     Mesh *tmp_mesh = NULL;
     RNG *rng;
 

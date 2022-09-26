@@ -2696,7 +2696,7 @@ bool isect_sweeping_sphere_tri_v3(const float p1[3],
     z = x + y - (a * c - b * b);
 
     if (z <= 0.0f && (x >= 0.0f && y >= 0.0f)) {
-      //(((unsigned int)z)& ~(((unsigned int)x)|((unsigned int)y))) & 0x80000000) {
+      //(((uint)z)& ~(((uint)x)|((uint)y))) & 0x80000000) {
       *r_lambda = t0;
       copy_v3_v3(ipoint, point);
       return true;
@@ -5803,10 +5803,10 @@ bool is_quad_convex_v2(const float v1[2], const float v2[2], const float v3[2], 
   return (isect_seg_seg_v2(v1, v3, v2, v4) > 0);
 }
 
-bool is_poly_convex_v2(const float verts[][2], unsigned int nr)
+bool is_poly_convex_v2(const float verts[][2], uint nr)
 {
-  unsigned int sign_flag = 0;
-  unsigned int a;
+  uint sign_flag = 0;
+  uint a;
   const float *co_curr, *co_prev;
   float dir_curr[2], dir_prev[2];
 

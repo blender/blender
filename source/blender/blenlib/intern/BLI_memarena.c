@@ -209,7 +209,7 @@ void BLI_memarena_merge(MemArena *ma_dst, MemArena *ma_src)
 void BLI_memarena_clear(MemArena *ma)
 {
   if (ma->bufs) {
-    unsigned char *curbuf_prev;
+    uchar *curbuf_prev;
     size_t curbuf_used;
 
     if (ma->bufs->next) {

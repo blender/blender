@@ -1098,8 +1098,8 @@ void BKE_curvemapping_evaluate_premulRGBF(const CurveMapping *cumap,
 }
 
 void BKE_curvemapping_evaluate_premulRGB(const CurveMapping *cumap,
-                                         unsigned char vecout_byte[3],
-                                         const unsigned char vecin_byte[3])
+                                         uchar vecout_byte[3],
+                                         const uchar vecin_byte[3])
 {
   float vecin[3], vecout[3];
 
@@ -1368,7 +1368,7 @@ void BKE_histogram_update_sample_line(Histogram *hist,
 {
   int i, x, y;
   const float *fp;
-  unsigned char *cp;
+  uchar *cp;
 
   int x1 = roundf(hist->co[0][0] * ibuf->x);
   int x2 = roundf(hist->co[1][0] * ibuf->x);
@@ -1432,7 +1432,7 @@ void BKE_histogram_update_sample_line(Histogram *hist,
         hist->data_a[i] = rgba[3];
       }
       else if (ibuf->rect) {
-        cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
+        cp = (uchar *)(ibuf->rect + y * ibuf->x + x);
         hist->data_luma[i] = (float)IMB_colormanagement_get_luminance_byte(cp) / 255.0f;
         hist->data_r[i] = (float)cp[0] / 255.0f;
         hist->data_g[i] = (float)cp[1] / 255.0f;
@@ -1452,16 +1452,16 @@ typedef struct ScopesUpdateData {
   Scopes *scopes;
   const ImBuf *ibuf;
   struct ColormanageProcessor *cm_processor;
-  const unsigned char *display_buffer;
+  const uchar *display_buffer;
   const int ycc_mode;
 } ScopesUpdateData;
 
 typedef struct ScopesUpdateDataChunk {
-  unsigned int bin_lum[256];
-  unsigned int bin_r[256];
-  unsigned int bin_g[256];
-  unsigned int bin_b[256];
-  unsigned int bin_a[256];
+  uint bin_lum[256];
+  uint bin_r[256];
+  uint bin_g[256];
+  uint bin_b[256];
+  uint bin_a[256];
   float min[3], max[3];
 } ScopesUpdateDataChunk;
 
@@ -1474,20 +1474,20 @@ static void scopes_update_cb(void *__restrict userdata,
   Scopes *scopes = data->scopes;
   const ImBuf *ibuf = data->ibuf;
   struct ColormanageProcessor *cm_processor = data->cm_processor;
-  const unsigned char *display_buffer = data->display_buffer;
+  const uchar *display_buffer = data->display_buffer;
   const int ycc_mode = data->ycc_mode;
 
   ScopesUpdateDataChunk *data_chunk = tls->userdata_chunk;
-  unsigned int *bin_lum = data_chunk->bin_lum;
-  unsigned int *bin_r = data_chunk->bin_r;
-  unsigned int *bin_g = data_chunk->bin_g;
-  unsigned int *bin_b = data_chunk->bin_b;
-  unsigned int *bin_a = data_chunk->bin_a;
+  uint *bin_lum = data_chunk->bin_lum;
+  uint *bin_r = data_chunk->bin_r;
+  uint *bin_g = data_chunk->bin_g;
+  uint *bin_b = data_chunk->bin_b;
+  uint *bin_a = data_chunk->bin_a;
   float *min = data_chunk->min;
   float *max = data_chunk->max;
 
   const float *rf = NULL;
-  const unsigned char *rc = NULL;
+  const uchar *rc = NULL;
   const int rows_per_sample_line = ibuf->y / scopes->sample_lines;
   const int savedlines = y / rows_per_sample_line;
   const bool do_sample_line = (savedlines < scopes->sample_lines) &&
@@ -1571,16 +1571,16 @@ static void scopes_update_reduce(const void *__restrict UNUSED(userdata),
   ScopesUpdateDataChunk *join_chunk = chunk_join;
   const ScopesUpdateDataChunk *data_chunk = chunk;
 
-  unsigned int *bin_lum = join_chunk->bin_lum;
-  unsigned int *bin_r = join_chunk->bin_r;
-  unsigned int *bin_g = join_chunk->bin_g;
-  unsigned int *bin_b = join_chunk->bin_b;
-  unsigned int *bin_a = join_chunk->bin_a;
-  const unsigned int *bin_lum_c = data_chunk->bin_lum;
-  const unsigned int *bin_r_c = data_chunk->bin_r;
-  const unsigned int *bin_g_c = data_chunk->bin_g;
-  const unsigned int *bin_b_c = data_chunk->bin_b;
-  const unsigned int *bin_a_c = data_chunk->bin_a;
+  uint *bin_lum = join_chunk->bin_lum;
+  uint *bin_r = join_chunk->bin_r;
+  uint *bin_g = join_chunk->bin_g;
+  uint *bin_b = join_chunk->bin_b;
+  uint *bin_a = join_chunk->bin_a;
+  const uint *bin_lum_c = data_chunk->bin_lum;
+  const uint *bin_r_c = data_chunk->bin_r;
+  const uint *bin_g_c = data_chunk->bin_g;
+  const uint *bin_b_c = data_chunk->bin_b;
+  const uint *bin_a_c = data_chunk->bin_a;
 
   const float *min = data_chunk->min;
   const float *max = data_chunk->max;
@@ -1609,9 +1609,9 @@ void BKE_scopes_update(Scopes *scopes,
                        const ColorManagedDisplaySettings *display_settings)
 {
   int a;
-  unsigned int nl, na, nr, ng, nb;
+  uint nl, na, nr, ng, nb;
   double divl, diva, divr, divg, divb;
-  const unsigned char *display_buffer = NULL;
+  const uchar *display_buffer = NULL;
   int ycc_mode = -1;
   void *cache_handle = NULL;
   struct ColormanageProcessor *cm_processor = NULL;
@@ -1696,7 +1696,7 @@ void BKE_scopes_update(Scopes *scopes,
     cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
   }
   else {
-    display_buffer = (const unsigned char *)IMB_display_buffer_acquire(
+    display_buffer = (const uchar *)IMB_display_buffer_acquire(
         ibuf, view_settings, display_settings, &cache_handle);
   }
 
