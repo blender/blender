@@ -1558,9 +1558,9 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 import sys
                 col.label(text="Requires Intel GPU with Xe-HPG architecture", icon='BLANK1')
                 if sys.platform.startswith("win"):
-                    col.label(text="and Windows driver version 101.3268 or newer", icon='BLANK1')
+                    col.label(text="and Windows driver version 101.3430 or newer", icon='BLANK1')
                 elif sys.platform.startswith("linux"):
-                    col.label(text="and Linux driver version xx.xx.23570 or newer", icon='BLANK1')
+                    col.label(text="and Linux driver version xx.xx.23904 or newer", icon='BLANK1')
             elif device_type == 'METAL':
                 col.label(text="Requires Apple Silicon with macOS 12.2 or newer", icon='BLANK1')
                 col.label(text="or AMD with macOS 12.3 or newer", icon='BLANK1')
