@@ -684,7 +684,7 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
       prop = RNA_def_boolean(ot->srna, "use_snap_nonedit", true, "Target: Include Non-Edited", "");
       RNA_def_property_flag(prop, PROP_HIDDEN);
       prop = RNA_def_boolean(
-          ot->srna, "use_snap_selectable", true, "Target: Exclude Non-Selectable", "");
+          ot->srna, "use_snap_selectable", false, "Target: Exclude Non-Selectable", "");
       RNA_def_property_flag(prop, PROP_HIDDEN);
 
       prop = RNA_def_float_vector(

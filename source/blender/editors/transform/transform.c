@@ -1578,7 +1578,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     }
   }
 
-  /* Save sanpping settings. */
+  /* Save snapping settings. */
   if (prop = RNA_struct_find_property(op->ptr, "snap")) {
     RNA_property_boolean_set(op->ptr, prop, (t->modifiers & MOD_SNAP) != 0);
 
