@@ -666,16 +666,21 @@ static void image_init(Image *ima, short source, short type)
   ima->stereo3d_format = MEM_cnew<Stereo3dFormat>("Image Stereo Format");
 }
 
-static Image *image_alloc(Main *bmain, const char *name, short source, short type)
+static Image *image_alloc_ex(Main *bmain, const char *name, short source, short type, int flag)
 {
   Image *ima;
 
-  ima = static_cast<Image *>(BKE_libblock_alloc(bmain, ID_IM, name, 0));
+  ima = static_cast<Image *>(BKE_libblock_alloc(bmain, ID_IM, name, flag));
   if (ima) {
     image_init(ima, source, type);
   }
 
   return ima;
+}
+
+static Image *image_alloc(Main *bmain, const char *name, short source, short type)
+{
+  return image_alloc_ex(bmain, name, source, type, 0);
 }
 
 /**
@@ -1006,7 +1011,7 @@ void BKE_image_alpha_mode_from_extension(Image *image)
   image->alpha_mode = BKE_image_alpha_mode_from_extension_ex(image->filepath);
 }
 
-Image *BKE_image_load(Main *bmain, const char *filepath)
+Image *BKE_image_load_ex(Main *bmain, const char *filepath, int flag)
 {
   Image *ima;
   int file;
@@ -1026,7 +1031,7 @@ Image *BKE_image_load(Main *bmain, const char *filepath)
     close(file);
   }
 
-  ima = image_alloc(bmain, BLI_path_basename(filepath), IMA_SRC_FILE, IMA_TYPE_IMAGE);
+  ima = image_alloc_ex(bmain, BLI_path_basename(filepath), IMA_SRC_FILE, IMA_TYPE_IMAGE, flag);
   STRNCPY(ima->filepath, filepath);
 
   if (BLI_path_extension_check_array(filepath, imb_ext_movie)) {
@@ -1036,6 +1041,11 @@ Image *BKE_image_load(Main *bmain, const char *filepath)
   image_init_color_management(ima);
 
   return ima;
+}
+
+Image *BKE_image_load(Main *bmain, const char *filepath)
+{
+  return BKE_image_load_ex(bmain, filepath, 0);
 }
 
 Image *BKE_image_load_exists_ex(Main *bmain, const char *filepath, bool *r_exists)

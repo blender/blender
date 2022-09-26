@@ -165,6 +165,7 @@ void BKE_image_alpha_mode_from_extension(struct Image *image);
 /**
  * Returns a new image or NULL if it can't load.
  */
+struct Image *BKE_image_load_ex(struct Main *bmain, const char *filepath, int flag);
 struct Image *BKE_image_load(struct Main *bmain, const char *filepath);
 /**
  * Returns existing Image when filename/type is same.

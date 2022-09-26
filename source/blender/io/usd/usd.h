@@ -45,6 +45,16 @@ typedef enum eUSDXformOpMode {
   USD_XFORM_OP_MAT = 2,
 } eUSDXformOpMode;
 
+typedef enum eUSDZTextureDownscaleSize {
+  USD_TEXTURE_SIZE_CUSTOM = -1,
+  USD_TEXTURE_SIZE_KEEP = 0,
+  USD_TEXTURE_SIZE_256  = 256,
+  USD_TEXTURE_SIZE_512  = 512,
+  USD_TEXTURE_SIZE_1024 = 1024,
+  USD_TEXTURE_SIZE_2048 = 2048,
+  USD_TEXTURE_SIZE_4096 = 4096
+} eUSDZTextureDownscaleSize;
+
 static const USD_global_forward_axis USD_DEFAULT_FORWARD = USD_GLOBAL_FORWARD_MINUS_Z;
 static const USD_global_up_axis USD_DEFAULT_UP = USD_GLOBAL_UP_Y;
 
@@ -121,6 +131,9 @@ struct USDExportParams {
   bool fix_skel_root;
   bool overwrite_textures;
   bool export_blendshapes;
+  eUSDZTextureDownscaleSize usdz_downscale_size;
+  int usdz_downscale_custom_size;
+  bool usdz_is_arkit;
   bool export_blender_metadata;
 };
 

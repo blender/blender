@@ -152,6 +152,17 @@ const EnumPropertyItem rna_enum_usd_attr_import_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem prop_usdz_downscale_size[] = {
+    {USD_TEXTURE_SIZE_KEEP, "KEEP", 0, "Keep", "Keep all current texture sizes"},
+    {USD_TEXTURE_SIZE_256,  "256", 0, "256", "Resize to a maximum of 256 pixels"},
+    {USD_TEXTURE_SIZE_512,  "512", 0, "512", "Resize to a maximum of 512 pixels"},
+    {USD_TEXTURE_SIZE_1024, "1024", 0, "1024", "Resize to a maximum of 1024 pixels"},
+    {USD_TEXTURE_SIZE_2048, "2048", 0, "2048", "Resize to a maximum of 256 pixels"},
+    {USD_TEXTURE_SIZE_4096, "4096", 0, "4096", "Resize to a maximum of 256 pixels"},
+    {USD_TEXTURE_SIZE_CUSTOM, "CUSTOM", 0, "Custom", "Specify a custom size"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 /* Stored in the wmOperator's customdata field to indicate it should run as a background job.
  * This is set when the operator is invoked, and not set when it is only executed. */
 enum { AS_BACKGROUND_JOB = 1 };
@@ -303,6 +314,12 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 
   const bool export_blendshapes = RNA_boolean_get(op->ptr, "export_blendshapes");
 
+  const eUSDZTextureDownscaleSize usdz_downscale_size = RNA_enum_get(op->ptr, "usdz_downscale_size");
+
+  const int usdz_downscale_custom_size = RNA_int_get(op->ptr, "usdz_downscale_custom_size");
+
+  const bool usdz_is_arkit = RNA_boolean_get(op->ptr, "usdz_is_arkit");
+
   const bool export_blender_metadata = RNA_boolean_get(op->ptr, "export_blender_metadata");
 
   struct USDExportParams params = {RNA_int_get(op->ptr, "start"),
@@ -362,6 +379,9 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
                                    fix_skel_root,
                                    overwrite_textures,
                                    export_blendshapes,
+                                   usdz_downscale_size,
+                                   usdz_downscale_custom_size,
+                                   usdz_is_arkit,
                                    export_blender_metadata};
 
   /* Take some defaults from the scene, if not specified explicitly. */
@@ -474,6 +494,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
 
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Conversion:"), ICON_ORIENTATION_GLOBAL);
+  uiItemR(box, ptr, "usdz_is_arkit", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "convert_orientation", 0, NULL, ICON_NONE);
 
   if (RNA_boolean_get(ptr, "convert_orientation")) {
@@ -510,7 +531,13 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     uiItemR(box, ptr, "export_textures", 0, NULL, ICON_NONE);
     if (RNA_boolean_get(ptr, "export_textures")) {
       uiItemR(box, ptr, "overwrite_textures", 0, NULL, ICON_NONE);
-    }    
+    }
+
+    //!TODO: add custom size int
+    uiItemR(box, ptr, "usdz_downscale_size", 0, NULL, ICON_NONE);
+    if (RNA_enum_get(ptr, "usdz_downscale_size") == USD_TEXTURE_SIZE_CUSTOM) {
+      uiItemR(box, ptr, "usdz_downscale_custom_size", 0, NULL, ICON_NONE);
+    }
   }
 
   box = uiLayoutBox(layout);
@@ -529,7 +556,7 @@ static bool wm_usd_export_check(bContext *UNUSED(C), wmOperator *op)
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
 
-  if (!BLI_path_extension_check_n(filepath, ".usd", ".usda", ".usdc", NULL)) {
+  if (!BLI_path_extension_check_n(filepath, ".usd", ".usda", ".usdc", ".usdz", NULL)) {
     BLI_path_extension_ensure(filepath, FILE_MAX, ".usdc");
     RNA_string_set(op->ptr, "filepath", filepath);
     return true;
@@ -920,6 +947,29 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                   "Relative Paths",
                   "Use relative paths to reference external files (i.e. textures, volumes) in "
                   "USD, otherwise use absolute paths");
+
+  RNA_def_enum(ot->srna,
+               "usdz_downscale_size",
+               prop_usdz_downscale_size,
+               DAG_EVAL_VIEWPORT,
+               "USDZ Texture Downsampling",
+               "Choose a maximum size for all exported textures");
+
+  RNA_def_int(ot->srna,
+              "usdz_downscale_custom_size",
+              128,
+              128, 16384,
+              "USDZ Custom Downscale Size",
+              "Custom size for downscaling exported textures",
+              128,
+              8192
+              );
+
+  RNA_def_boolean(ot->srna,
+                  "usdz_is_arkit",
+                  false,
+                  "Create ARKit Asset",
+                  "Export USDZ files as ARKit Assets");
 
   RNA_def_boolean(ot->srna,
                   "export_blender_metadata",

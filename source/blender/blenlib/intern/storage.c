@@ -56,6 +56,22 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+bool BLI_change_working_dir(char *dir)
+{
+  if (!BLI_is_dir(dir)) {
+    return false;
+  }
+#if defined(WIN32)
+  wchar_t wdir[FILE_MAX];
+  if (conv_utf_8_to_16(dir, wdir, ARRAY_SIZE(wdir)) != 0) {
+    return false;
+  }
+  return _wchdir(wdir) == 0;
+#else
+  return chdir(dir) == 0;
+#endif
+}
+
 char *BLI_current_working_dir(char *dir, const size_t maxncpy)
 {
 #if defined(WIN32)

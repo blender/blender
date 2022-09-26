@@ -16,6 +16,7 @@
 #include <pxr/usd/usdGeom/scope.h>
 #include <pxr/usd/usdGeom/tokens.h>
 #include <pxr/usd/usdGeom/xformCommonAPI.h>
+#include <pxr/usd/usdUtils/dependencies.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -31,6 +32,10 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
+#include "BKE_image.h"
+#include "BKE_image_save.h"
+#include "BKE_image_format.h"
+#include "BKE_lib_id.h"
 
 #include "BLI_fileops.h"
 #include "BLI_math_matrix.h"
@@ -46,12 +51,15 @@
 namespace blender::io::usd {
 
 struct ExportJobData {
+  Scene *scene;
   ViewLayer *view_layer;
   Main *bmain;
   Depsgraph *depsgraph;
   wmWindowManager *wm;
 
   char filepath[FILE_MAX];
+  char usdz_filepath[FILE_MAX];
+  bool is_usdz_export;
   USDExportParams params;
 
   short *stop;
@@ -193,9 +201,123 @@ static void ensure_root_prim(pxr::UsdStageRefPtr stage, const USDExportParams &p
 static void report_job_duration(const ExportJobData *data)
 {
   timeit::Nanoseconds duration = timeit::Clock::now() - data->start_time;
-  std::cout << "USD export of '" << data->filepath << "' took ";
+  const char *export_filepath = data->is_usdz_export ? data->usdz_filepath : data->filepath;
+  std::cout << "USD export of '" << export_filepath << "' took ";
   timeit::print_duration(duration);
   std::cout << '\n';
+}
+
+static void process_usdz_textures(const ExportJobData *data, const char *path) {
+  const eUSDZTextureDownscaleSize enum_value = data->params.usdz_downscale_size;
+  if (enum_value == USD_TEXTURE_SIZE_KEEP) {
+    return;
+  }
+
+  int image_size = (
+      (enum_value == USD_TEXTURE_SIZE_CUSTOM ? data->params.usdz_downscale_custom_size : enum_value)
+  );
+
+  image_size = image_size < 128 ? 128 : image_size;
+
+  char texture_path[4096];
+  BLI_strcpy_rlen(texture_path, path);
+  BLI_path_append(texture_path, 4096, "textures");
+  BLI_path_slash_ensure(texture_path);
+
+  struct direntry *entries;
+  unsigned int num_files = BLI_filelist_dir_contents(texture_path, &entries);
+
+  for (int index = 0; index < num_files; index++) {
+    /* We can skip checking extensions as this folder is only created
+     * when we're doing a USDZ export. */
+    if (!BLI_is_dir(entries[index].path)) {
+      Image *im = BKE_image_load_ex(data->bmain, entries[index].path, LIB_ID_CREATE_NO_MAIN);
+      if (!im) {
+        std::cerr << "-- Unable to open file for downscaling: " << entries[index].path << std::endl;
+        continue;
+      }
+
+      int width, height;
+      BKE_image_get_size(im, NULL, &width, &height);
+      const int longest = width >= height ? width : height;
+      const float scale = 1.0 / ((float)longest / (float)image_size);
+
+      if (longest > image_size) {
+        const int width_adjusted  = (float)width * scale;
+        const int height_adjusted = (float)height * scale;
+        BKE_image_scale(im, width_adjusted, height_adjusted);
+
+        ImageSaveOptions opts;
+
+        if (BKE_image_save_options_init(&opts, data->bmain, data->scene, im, NULL, false, false)) {
+          bool result = BKE_image_save(NULL, data->bmain, im, NULL, &opts);
+          if (!result) {
+            std::cerr << "-- Unable to resave " << data->filepath << " (new size: "
+                      << width_adjusted << "x" << height_adjusted << ")" << std::endl;
+          }
+          else {
+            std::cout << "Downscaled " << entries[index].path << " to "
+                      << width_adjusted << "x" << height_adjusted << std::endl;
+          }
+        }
+
+        BKE_image_save_options_free(&opts);
+      }
+
+      /* Make sure to free the image so it doesn't stick
+       * around in the library of the open file. */
+      BKE_id_free(data->bmain, (void*)im);
+    }
+  }
+
+  BLI_filelist_free(entries, num_files);
+}
+
+static bool perform_usdz_conversion(const ExportJobData *data)
+{
+  char usdc_temp_dir[FILE_MAX], usdc_file[FILE_MAX];
+  BLI_split_dirfile(data->filepath, usdc_temp_dir, usdc_file, FILE_MAX, FILE_MAX);
+
+  char usdz_file[FILE_MAX];
+  BLI_split_file_part(data->usdz_filepath, usdz_file, FILE_MAX);
+
+  char original_working_dir[FILE_MAX];
+  BLI_current_working_dir(original_working_dir, FILE_MAX);
+  BLI_change_working_dir(usdc_temp_dir);
+
+  process_usdz_textures(data, usdc_temp_dir);
+
+  if (data->params.usdz_is_arkit) {
+    std::cout << "USDZ Export: Creating ARKit Asset" << std::endl;
+    pxr::UsdUtilsCreateNewARKitUsdzPackage(pxr::SdfAssetPath(usdc_file), usdz_file);
+  }
+  else {
+    pxr::UsdUtilsCreateNewUsdzPackage(pxr::SdfAssetPath(usdc_file), usdz_file);
+  }
+  BLI_change_working_dir(original_working_dir);
+
+  char usdz_temp_dirfile[FILE_MAX];
+  BLI_join_dirfile(usdz_temp_dirfile, FILE_MAX, usdc_temp_dir, usdz_file);
+
+  int result = 0;
+  if (BLI_exists(data->usdz_filepath)) {
+    result = BLI_delete(data->usdz_filepath, false, false);
+    if (result != 0) {
+      WM_reportf(
+          RPT_ERROR, "USD Export: Unable to delete existing usdz file %s", data->usdz_filepath);
+      return false;
+    }
+  }
+  result = BLI_rename(usdz_temp_dirfile, data->usdz_filepath);
+  if (result != 0) {
+    WM_reportf(RPT_ERROR,
+               "USD Export: Couldn't move new usdz file from temporary location %s to %s",
+               usdz_temp_dirfile,
+               data->usdz_filepath);
+    return false;
+  }
+
+  return true;
 }
 
 static void export_startjob(void *customdata,
@@ -382,6 +504,12 @@ static void export_startjob(void *customdata,
 
   usd_stage->GetRootLayer()->Save();
 
+  if (data->is_usdz_export) {
+    if (!perform_usdz_conversion(data)) {
+      return;
+    }
+  }
+
   /* Finish up by going back to the keyframe that was current before we started. */
   if (scene->r.cfra != orig_frame) {
     scene->r.cfra = orig_frame;
@@ -400,6 +528,16 @@ static void export_endjob(void *customdata)
 
   DEG_graph_free(data->depsgraph);
 
+  if (data->is_usdz_export && BLI_exists(data->filepath))
+  {
+    char dir[FILE_MAX];
+    BLI_split_dir_part(data->filepath, dir, FILE_MAX);
+    char usdc_temp_dir[FILE_MAX];
+    BLI_path_join(usdc_temp_dir, FILE_MAX, BKE_tempdir_session(), "USDZ", SEP_STR, NULL);
+    BLI_assert(BLI_strcasecmp(dir, usdc_temp_dir) == 0);
+    BLI_delete(usdc_temp_dir, true, true);
+  }
+
   MEM_freeN(data->params.default_prim_path);
   MEM_freeN(data->params.root_prim_path);
   MEM_freeN(data->params.material_prim_path);
@@ -415,6 +553,25 @@ static void export_endjob(void *customdata)
 
 }  // namespace blender::io::usd
 
+/* To create a usdz file, we must first create a .usd/a/c file and then covert it to .usdz. The
+ * temporary files will be created in Blender's temporary session storage. The .usdz file will then
+ * copied to job->usdz_filepath. */
+static void create_temp_path_for_usdz_export(const char *filepath,
+                                             blender::io::usd::ExportJobData *job)
+{
+  char file[FILE_MAX];
+  BLI_split_file_part(filepath, file, FILE_MAX);
+  char *usdc_file = BLI_str_replaceN(file, ".usdz", ".usdc");
+
+  char usdc_temp_filepath[FILE_MAX];
+  BLI_path_join(usdc_temp_filepath, FILE_MAX, BKE_tempdir_session(), "USDZ", usdc_file, NULL);
+
+  BLI_strncpy(job->filepath, usdc_temp_filepath, strlen(usdc_temp_filepath) + 1);
+  BLI_strncpy(job->usdz_filepath, filepath, strlen(filepath) + 1);
+
+  MEM_freeN(usdc_file);
+}
+
 bool USD_export(bContext *C,
                 const char *filepath,
                 const USDExportParams *params,
@@ -428,10 +585,18 @@ bool USD_export(bContext *C,
   blender::io::usd::ExportJobData *job = static_cast<blender::io::usd::ExportJobData *>(
       MEM_mallocN(sizeof(blender::io::usd::ExportJobData), "ExportJobData"));
 
+  job->scene = scene;
   job->bmain = CTX_data_main(C);
   job->wm = CTX_wm_manager(C);
   job->export_ok = false;
-  BLI_strncpy(job->filepath, filepath, sizeof(job->filepath));
+  job->is_usdz_export = false;
+  if (BLI_path_extension_check_n(filepath, ".usd", ".usda", ".usdc", NULL)) {
+    BLI_strncpy(job->filepath, filepath, sizeof(job->filepath));
+  }
+  else if (BLI_path_extension_check_n(filepath, ".usdz")) {
+    create_temp_path_for_usdz_export(filepath, job);
+    job->is_usdz_export = true;
+  }
 
   job->depsgraph = DEG_graph_new(job->bmain, scene, view_layer, params->evaluation_mode);
   job->params = *params;
