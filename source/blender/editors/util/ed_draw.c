@@ -484,6 +484,7 @@ float ED_slider_factor_get(struct tSlider *slider)
 
 void ED_slider_factor_set(struct tSlider *slider, const float factor)
 {
+  slider->raw_factor = factor;
   slider->factor = factor;
   if (!slider->overshoot) {
     slider->factor = clamp_f(slider->factor, 0, 1);
