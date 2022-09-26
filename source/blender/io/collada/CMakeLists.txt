@@ -122,9 +122,4 @@ if(WITH_BUILDINFO)
   add_definitions(-DWITH_BUILDINFO)
 endif()
 
-if(CMAKE_COMPILER_IS_GNUCXX)
-  # COLLADAFWArray.h gives error with gcc 4.5
-  string(APPEND CMAKE_CXX_FLAGS " -fpermissive")
-endif()
-
 blender_add_lib(bf_collada "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
