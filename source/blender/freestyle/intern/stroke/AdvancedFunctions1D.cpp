@@ -19,7 +19,7 @@ int GetSteerableViewMapDensityF1D::operator()(Interface1D &inter)
   Interface0DIterator itnext = it;
   ++itnext;
   FEdge *fe;
-  unsigned nSVM;
+  uint nSVM;
   vector<float> values;
 
   while (!itnext.isEnd()) {
@@ -45,7 +45,7 @@ int GetSteerableViewMapDensityF1D::operator()(Interface1D &inter)
 
   float res, res_tmp;
   vector<float>::iterator v = values.begin(), vend = values.end();
-  unsigned size = 1;
+  uint size = 1;
   switch (_integration) {
     case MIN:
       res = *v;

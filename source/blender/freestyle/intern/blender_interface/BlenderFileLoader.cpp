@@ -436,7 +436,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
 
   // We count the number of triangles after the clipping by the near and far view
   // planes is applied (NOTE: mesh vertices are in the camera coordinate system).
-  unsigned numFaces = 0;
+  uint numFaces = 0;
   float v1[3], v2[3], v3[3];
   float n1[3], n2[3], n3[3], facenormal[3];
   int clip[3];
@@ -471,16 +471,16 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   NodeGroup *currentMesh = new NodeGroup;
   NodeShape *shape = new NodeShape;
 
-  unsigned vSize = 3 * 3 * numFaces;
+  uint vSize = 3 * 3 * numFaces;
   float *vertices = new float[vSize];
-  unsigned nSize = vSize;
+  uint nSize = vSize;
   float *normals = new float[nSize];
-  unsigned *numVertexPerFaces = new unsigned[numFaces];
+  uint *numVertexPerFaces = new uint[numFaces];
   vector<Material *> meshMaterials;
   vector<FrsMaterial> meshFrsMaterials;
 
   IndexedFaceSet::TRIANGLES_STYLE *faceStyle = new IndexedFaceSet::TRIANGLES_STYLE[numFaces];
-  unsigned i;
+  uint i;
   for (i = 0; i < numFaces; i++) {
     faceStyle[i] = IndexedFaceSet::TRIANGLES;
     numVertexPerFaces[i] = 3;
@@ -488,11 +488,11 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
 
   IndexedFaceSet::FaceEdgeMark *faceEdgeMarks = new IndexedFaceSet::FaceEdgeMark[numFaces];
 
-  unsigned viSize = 3 * numFaces;
-  unsigned *VIndices = new unsigned[viSize];
-  unsigned niSize = viSize;
-  unsigned *NIndices = new unsigned[niSize];
-  unsigned *MIndices = new unsigned[viSize];  // Material Indices
+  uint viSize = 3 * numFaces;
+  uint *VIndices = new uint[viSize];
+  uint niSize = viSize;
+  uint *NIndices = new uint[niSize];
+  uint *MIndices = new uint[viSize];  // Material Indices
 
   struct LoaderState ls;
   ls.pv = vertices;
@@ -662,7 +662,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   // addressed later in WShape::MakeFace().
   vector<detri_t> detriList;
   Vec3r zero(0.0, 0.0, 0.0);
-  unsigned vi0, vi1, vi2;
+  uint vi0, vi1, vi2;
   for (i = 0; i < viSize; i += 3) {
     detri_t detri;
     vi0 = cleanVIndices[i];

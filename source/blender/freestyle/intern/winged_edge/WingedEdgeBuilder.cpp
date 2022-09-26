@@ -94,7 +94,7 @@ bool WingedEdgeBuilder::buildWShape(WShape &shape, IndexedFaceSet &ifs)
   vector<FrsMaterial> frs_materials;
   if (ifs.msize()) {
     const FrsMaterial *const *mats = ifs.frs_materials();
-    for (unsigned i = 0; i < ifs.msize(); ++i) {
+    for (uint i = 0; i < ifs.msize(); ++i) {
       frs_materials.push_back(*(mats[i]));
     }
     shape.setFrsMaterials(frs_materials);
@@ -228,7 +228,7 @@ bool WingedEdgeBuilder::buildWShape(WShape &shape, IndexedFaceSet &ifs)
   return true;
 }
 
-void WingedEdgeBuilder::buildWVertices(WShape &shape, const float *vertices, unsigned vsize)
+void WingedEdgeBuilder::buildWVertices(WShape &shape, const float *vertices, uint vsize)
 {
   WVertex *vertex;
   for (uint i = 0; i < vsize; i += 3) {
@@ -243,15 +243,15 @@ void WingedEdgeBuilder::buildTriangleStrip(const float * /*vertices*/,
                                            vector<FrsMaterial> & /*iMaterials*/,
                                            const float *texCoords,
                                            const IndexedFaceSet::FaceEdgeMark *iFaceEdgeMarks,
-                                           const unsigned *vindices,
-                                           const unsigned *nindices,
-                                           const unsigned *mindices,
-                                           const unsigned *tindices,
-                                           const unsigned nvertices)
+                                           const uint *vindices,
+                                           const uint *nindices,
+                                           const uint *mindices,
+                                           const uint *tindices,
+                                           const uint nvertices)
 {
-  unsigned nDoneVertices = 2;  // number of vertices already treated
-  unsigned nTriangle = 0;      // number of the triangle currently being treated
-  // int nVertex = 0;            // vertex number
+  uint nDoneVertices = 2; /* Number of vertices already treated. */
+  uint nTriangle = 0;     /* Number of the triangle currently being treated. */
+  // int nVertex = 0;        /* Vertex number. */
 
   WShape *currentShape = _current_wshape;  // the current shape being built
   vector<WVertex *> triangleVertices;
@@ -340,11 +340,11 @@ void WingedEdgeBuilder::buildTriangleFan(const float * /*vertices*/,
                                          vector<FrsMaterial> & /*iMaterials*/,
                                          const float * /*texCoords*/,
                                          const IndexedFaceSet::FaceEdgeMark * /*iFaceEdgeMarks*/,
-                                         const unsigned * /*vindices*/,
-                                         const unsigned * /*nindices*/,
-                                         const unsigned * /*mindices*/,
-                                         const unsigned * /*tindices*/,
-                                         const unsigned /*nvertices*/)
+                                         const uint * /*vindices*/,
+                                         const uint * /*nindices*/,
+                                         const uint * /*mindices*/,
+                                         const uint * /*tindices*/,
+                                         const uint /*nvertices*/)
 {
   // Nothing to be done
 }
@@ -354,11 +354,11 @@ void WingedEdgeBuilder::buildTriangles(const float * /*vertices*/,
                                        vector<FrsMaterial> & /*iMaterials*/,
                                        const float *texCoords,
                                        const IndexedFaceSet::FaceEdgeMark *iFaceEdgeMarks,
-                                       const unsigned *vindices,
-                                       const unsigned *nindices,
-                                       const unsigned *mindices,
-                                       const unsigned *tindices,
-                                       const unsigned nvertices)
+                                       const uint *vindices,
+                                       const uint *nindices,
+                                       const uint *mindices,
+                                       const uint *tindices,
+                                       const uint nvertices)
 {
   WShape *currentShape = _current_wshape;  // the current shape begin built
   vector<WVertex *> triangleVertices;
@@ -405,7 +405,7 @@ void WingedEdgeBuilder::buildTriangles(const float * /*vertices*/,
 }
 
 void WingedEdgeBuilder::transformVertices(const float *vertices,
-                                          unsigned vsize,
+                                          uint vsize,
                                           const Matrix44r &transform,
                                           float *res)
 {
@@ -424,7 +424,7 @@ void WingedEdgeBuilder::transformVertices(const float *vertices,
 }
 
 void WingedEdgeBuilder::transformNormals(const float *normals,
-                                         unsigned nsize,
+                                         uint nsize,
                                          const Matrix44r &transform,
                                          float *res)
 {

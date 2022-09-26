@@ -69,7 +69,7 @@ static void normalize3(float v[3])
   v[2] = v[2] / s;
 }
 
-float Noise::turbulence1(float arg, float freq, float amp, unsigned oct)
+float Noise::turbulence1(float arg, float freq, float amp, uint oct)
 {
   float t;
   float vec;
@@ -81,7 +81,7 @@ float Noise::turbulence1(float arg, float freq, float amp, unsigned oct)
   return t;
 }
 
-float Noise::turbulence2(Vec2f &v, float freq, float amp, unsigned oct)
+float Noise::turbulence2(Vec2f &v, float freq, float amp, uint oct)
 {
   float t;
   Vec2f vec;
@@ -94,7 +94,7 @@ float Noise::turbulence2(Vec2f &v, float freq, float amp, unsigned oct)
   return t;
 }
 
-float Noise::turbulence3(Vec3f &v, float freq, float amp, unsigned oct)
+float Noise::turbulence3(Vec3f &v, float freq, float amp, uint oct)
 {
   float t;
   Vec3f vec;

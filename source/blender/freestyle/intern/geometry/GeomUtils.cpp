@@ -10,7 +10,7 @@
 namespace Freestyle::GeomUtils {
 
 // This internal procedure is defined below.
-bool intersect2dSegPoly(Vec2r *seg, Vec2r *poly, unsigned n);
+bool intersect2dSegPoly(Vec2r *seg, Vec2r *poly, uint n);
 
 bool intersect2dSeg2dArea(const Vec2r &min, const Vec2r &max, const Vec2r &A, const Vec2r &B)
 {
@@ -739,7 +739,7 @@ void fromCameraToWorld(const Vec3r &p, Vec3r &q, const real model_view_matrix[4]
 
 #define PERP(u, v) ((u)[0] * (v)[1] - (u)[1] * (v)[0])  // 2D perp product
 
-inline bool intersect2dSegPoly(Vec2r *seg, Vec2r *poly, unsigned n)
+inline bool intersect2dSegPoly(Vec2r *seg, Vec2r *poly, uint n)
 {
   if (seg[0] == seg[1]) {
     return false;

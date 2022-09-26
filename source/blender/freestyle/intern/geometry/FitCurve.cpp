@@ -273,7 +273,7 @@ static Vector2 BezierII(int degree, Vector2 *V, double t)
   Vector2 *Vtemp; /* Local copy of control points */
 
   /* Copy array */
-  Vtemp = (Vector2 *)malloc((unsigned)((degree + 1) * sizeof(Vector2)));
+  Vtemp = (Vector2 *)malloc(uint((degree + 1) * sizeof(Vector2)));
   for (i = 0; i <= degree; i++) {
     Vtemp[i] = V[i];
   }
@@ -376,7 +376,7 @@ static double *ChordLengthParameterize(Vector2 *d, int first, int last)
   int i;
   double *u; /* Parameterization */
 
-  u = (double *)malloc((unsigned)(last - first + 1) * sizeof(double));
+  u = (double *)malloc(uint(last - first + 1) * sizeof(double));
 
   u[0] = 0.0;
   for (i = first + 1; i <= last; i++) {

@@ -202,7 +202,7 @@ int Curvature2DAngleF0D::operator()(Interface0DIterator &iter)
 {
   Interface0DIterator tmp1 = iter, tmp2 = iter;
   ++tmp2;
-  unsigned count = 1;
+  uint count = 1;
   while ((!tmp1.isBegin()) && (count < 3)) {
     --tmp1;
     ++count;

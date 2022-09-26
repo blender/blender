@@ -186,10 +186,10 @@ void BoxGrid::reorganizeCells()
   }
 }
 
-void BoxGrid::getCellCoordinates(const Vec3r &point, unsigned &x, unsigned &y)
+void BoxGrid::getCellCoordinates(const Vec3r &point, uint &x, uint &y)
 {
-  x = min(_cellsX - 1, (unsigned)floor(max(double(0.0f), point[0] - _cellOrigin[0]) / _cellSize));
-  y = min(_cellsY - 1, (unsigned)floor(max(double(0.0f), point[1] - _cellOrigin[1]) / _cellSize));
+  x = min(_cellsX - 1, uint(floor(max(double(0.0f), point[0] - _cellOrigin[0]) / _cellSize)));
+  y = min(_cellsY - 1, uint(floor(max(double(0.0f), point[1] - _cellOrigin[1]) / _cellSize)));
 }
 
 BoxGrid::Cell *BoxGrid::findCell(const Vec3r &point)

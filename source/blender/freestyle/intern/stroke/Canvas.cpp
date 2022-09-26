@@ -169,9 +169,9 @@ void Canvas::PushBackStyleModule(StyleModule *iStyleModule)
   _Layers.push_back(layer);
 }
 
-void Canvas::InsertStyleModule(unsigned index, StyleModule *iStyleModule)
+void Canvas::InsertStyleModule(uint index, StyleModule *iStyleModule)
 {
-  unsigned size = _StyleModules.size();
+  uint size = _StyleModules.size();
   StrokeLayer *layer = new StrokeLayer();
   if ((_StyleModules.empty()) || (index == size)) {
     _StyleModules.push_back(iStyleModule);
@@ -182,7 +182,7 @@ void Canvas::InsertStyleModule(unsigned index, StyleModule *iStyleModule)
   _Layers.insert(_Layers.begin() + index, layer);
 }
 
-void Canvas::RemoveStyleModule(unsigned index)
+void Canvas::RemoveStyleModule(uint index)
 {
   uint i = 0;
   if (!_StyleModules.empty()) {
@@ -216,7 +216,7 @@ void Canvas::RemoveStyleModule(unsigned index)
   }
 }
 
-void Canvas::SwapStyleModules(unsigned i1, unsigned i2)
+void Canvas::SwapStyleModules(uint i1, uint i2)
 {
   StyleModule *tmp;
   tmp = _StyleModules[i1];
@@ -229,9 +229,9 @@ void Canvas::SwapStyleModules(unsigned i1, unsigned i2)
   _Layers[i2] = tmp2;
 }
 
-void Canvas::ReplaceStyleModule(unsigned index, StyleModule *iStyleModule)
+void Canvas::ReplaceStyleModule(uint index, StyleModule *iStyleModule)
 {
-  unsigned i = 0;
+  uint i = 0;
   for (deque<StyleModule *>::iterator s = _StyleModules.begin(), send = _StyleModules.end();
        s != send;
        ++s, ++i) {
@@ -245,12 +245,12 @@ void Canvas::ReplaceStyleModule(unsigned index, StyleModule *iStyleModule)
   }
 }
 
-void Canvas::setVisible(unsigned index, bool iVisible)
+void Canvas::setVisible(uint index, bool iVisible)
 {
   _StyleModules[index]->setDisplayed(iVisible);
 }
 
-void Canvas::setModified(unsigned index, bool iMod)
+void Canvas::setModified(uint index, bool iMod)
 {
   _StyleModules[index]->setModified(iMod);
 }
@@ -263,7 +263,7 @@ void Canvas::resetModified(bool iMod /* = false */)
   }
 }
 
-void Canvas::causalStyleModules(vector<unsigned> &vec, unsigned index)
+void Canvas::causalStyleModules(vector<uint> &vec, uint index)
 {
   uint size = _StyleModules.size();
 

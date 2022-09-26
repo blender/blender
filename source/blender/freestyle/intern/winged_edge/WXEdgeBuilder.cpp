@@ -27,7 +27,7 @@ void WXEdgeBuilder::visitIndexedFaceSet(IndexedFaceSet &ifs)
   // ifs.setId(shape->GetId());
 }
 
-void WXEdgeBuilder::buildWVertices(WShape &shape, const float *vertices, unsigned vsize)
+void WXEdgeBuilder::buildWVertices(WShape &shape, const float *vertices, uint vsize)
 {
   WXVertex *vertex;
   for (uint i = 0; i < vsize; i += 3) {

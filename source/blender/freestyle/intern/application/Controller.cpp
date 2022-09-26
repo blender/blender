@@ -919,7 +919,7 @@ Render *Controller::RenderStrokes(Render *re, bool render)
   return freestyle_render;
 }
 
-void Controller::InsertStyleModule(unsigned index, const char *iFileName)
+void Controller::InsertStyleModule(uint index, const char *iFileName)
 {
   if (!BLI_path_extension_check(iFileName, ".py")) {
     cerr << "Error: Cannot load \"" << string(iFileName) << "\", unknown extension" << endl;
@@ -930,13 +930,13 @@ void Controller::InsertStyleModule(unsigned index, const char *iFileName)
   _Canvas->InsertStyleModule(index, sm);
 }
 
-void Controller::InsertStyleModule(unsigned index, const char *iName, const char *iBuffer)
+void Controller::InsertStyleModule(uint index, const char *iName, const char *iBuffer)
 {
   StyleModule *sm = new BufferedStyleModule(iBuffer, iName, _inter);
   _Canvas->InsertStyleModule(index, sm);
 }
 
-void Controller::InsertStyleModule(unsigned index, const char *iName, struct Text *iText)
+void Controller::InsertStyleModule(uint index, const char *iName, struct Text *iText)
 {
   StyleModule *sm = new BlenderStyleModule(iText, iName, _inter);
   _Canvas->InsertStyleModule(index, sm);
@@ -947,7 +947,7 @@ void Controller::AddStyleModule(const char * /*iFileName*/)
   //_pStyleWindow->Add(iFileName);
 }
 
-void Controller::RemoveStyleModule(unsigned index)
+void Controller::RemoveStyleModule(uint index)
 {
   _Canvas->RemoveStyleModule(index);
 }
@@ -957,34 +957,34 @@ void Controller::Clear()
   _Canvas->Clear();
 }
 
-void Controller::ReloadStyleModule(unsigned index, const char *iFileName)
+void Controller::ReloadStyleModule(uint index, const char *iFileName)
 {
   StyleModule *sm = new StyleModule(iFileName, _inter);
   _Canvas->ReplaceStyleModule(index, sm);
 }
 
-void Controller::SwapStyleModules(unsigned i1, unsigned i2)
+void Controller::SwapStyleModules(uint i1, uint i2)
 {
   _Canvas->SwapStyleModules(i1, i2);
 }
 
-void Controller::toggleLayer(unsigned index, bool iDisplay)
+void Controller::toggleLayer(uint index, bool iDisplay)
 {
   _Canvas->setVisible(index, iDisplay);
 }
 
-void Controller::setModified(unsigned index, bool iMod)
+void Controller::setModified(uint index, bool iMod)
 {
   //_pStyleWindow->setModified(index, iMod);
   _Canvas->setModified(index, iMod);
   updateCausalStyleModules(index + 1);
 }
 
-void Controller::updateCausalStyleModules(unsigned index)
+void Controller::updateCausalStyleModules(uint index)
 {
-  vector<unsigned> vec;
+  vector<uint> vec;
   _Canvas->causalStyleModules(vec, index);
-  for (vector<unsigned>::const_iterator it = vec.begin(); it != vec.end(); it++) {
+  for (vector<uint>::const_iterator it = vec.begin(); it != vec.end(); it++) {
     //_pStyleWindow->setModified(*it, true);
     _Canvas->setModified(*it, true);
   }
@@ -1057,8 +1057,8 @@ void Controller::displayDensityCurves(int x, int y)
   vector<densityCurve> curvesDirection(svm->getNumberOfPyramidLevels());
 
   // collect the curves values
-  unsigned nbCurves = svm->getNumberOfOrientations() + 1;
-  unsigned nbPoints = svm->getNumberOfPyramidLevels();
+  uint nbCurves = svm->getNumberOfOrientations() + 1;
+  uint nbPoints = svm->getNumberOfPyramidLevels();
   if (!nbPoints) {
     return;
   }

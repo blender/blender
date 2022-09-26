@@ -42,9 +42,9 @@ void SceneHash::visitNodeCamera(NodeCamera &cam)
 void SceneHash::visitIndexedFaceSet(IndexedFaceSet &ifs)
 {
   const float *v = ifs.vertices();
-  const unsigned n = ifs.vsize();
+  const uint n = ifs.vsize();
 
-  for (unsigned i = 0; i < n; i++) {
+  for (uint i = 0; i < n; i++) {
     adler32((uchar *)&v[i], sizeof(v[i]));
   }
 }

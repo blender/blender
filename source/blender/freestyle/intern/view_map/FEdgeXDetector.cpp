@@ -618,7 +618,7 @@ void FEdgeXDetector::postProcessSuggestiveContourFace(WXFace *iFace)
   // Compute the derivative value at each vertex of the face, and add it in a vector.
   vector<real> kr_derivatives;
 
-  unsigned vertices_nb = iFace->numberOfVertices();
+  uint vertices_nb = iFace->numberOfVertices();
   WXVertex *v, *opposite_vertex_a, *opposite_vertex_b;
   WXFace *wxf;
   WOEdge *opposite_edge;

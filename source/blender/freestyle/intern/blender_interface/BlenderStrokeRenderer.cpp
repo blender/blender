@@ -189,7 +189,7 @@ float BlenderStrokeRenderer::get_stroke_vertex_z() const
 
 uint BlenderStrokeRenderer::get_stroke_mesh_id() const
 {
-  unsigned mesh_id = _mesh_id;
+  uint mesh_id = _mesh_id;
   BlenderStrokeRenderer *self = const_cast<BlenderStrokeRenderer *>(this);
   self->_mesh_id--;
   return mesh_id;

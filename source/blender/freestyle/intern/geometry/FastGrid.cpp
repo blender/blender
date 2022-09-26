@@ -32,7 +32,7 @@ void FastGrid::clear()
   Grid::clear();
 }
 
-void FastGrid::configure(const Vec3r &orig, const Vec3r &size, unsigned nb)
+void FastGrid::configure(const Vec3r &orig, const Vec3r &size, uint nb)
 {
   Grid::configure(orig, size, nb);
   _cells_size = _cells_nb[0] * _cells_nb[1] * _cells_nb[2];

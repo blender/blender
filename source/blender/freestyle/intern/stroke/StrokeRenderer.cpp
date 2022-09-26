@@ -69,12 +69,12 @@ void TextureManager::load()
   _hasLoadedTextures = true;
 }
 
-unsigned TextureManager::getBrushTextureIndex(string name, Stroke::MediumType iType)
+uint TextureManager::getBrushTextureIndex(string name, Stroke::MediumType iType)
 {
   BrushTexture bt(name, iType);
   brushesMap::iterator b = _brushesMap.find(bt);
   if (b == _brushesMap.end()) {
-    unsigned texId = loadBrush(name, iType);
+    uint texId = loadBrush(name, iType);
     _brushesMap[bt] = texId;
     return texId;
     // XXX!

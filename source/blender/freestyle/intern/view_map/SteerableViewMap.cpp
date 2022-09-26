@@ -91,7 +91,7 @@ void SteerableViewMap::Reset()
   Build();
 }
 
-double SteerableViewMap::ComputeWeight(const Vec2d &dir, unsigned i)
+double SteerableViewMap::ComputeWeight(const Vec2d &dir, uint i)
 {
   double dotp = fabs(dir * _directions[i]);
   if (dotp < _bound) {
@@ -106,8 +106,8 @@ double SteerableViewMap::ComputeWeight(const Vec2d &dir, unsigned i)
 
 double *SteerableViewMap::AddFEdge(FEdge *iFEdge)
 {
-  unsigned i;
-  unsigned id = iFEdge->getId().getFirst();
+  uint i;
+  uint id = iFEdge->getId().getFirst();
   map<uint, double *>::iterator o = _mapping.find(id);
   if (o != _mapping.end()) {
     return (*o).second;
@@ -131,7 +131,7 @@ double *SteerableViewMap::AddFEdge(FEdge *iFEdge)
   return res;
 }
 
-unsigned SteerableViewMap::getSVMNumber(Vec2f dir)
+uint SteerableViewMap::getSVMNumber(Vec2f dir)
 {
   // soc unsigned res = 0;
   real norm = dir.norm();
@@ -140,7 +140,7 @@ unsigned SteerableViewMap::getSVMNumber(Vec2f dir)
   }
   dir /= norm;
   double maxw = 0.0f;
-  unsigned winner = _nbOrientations + 1;
+  uint winner = _nbOrientations + 1;
   for (uint i = 0; i < _nbOrientations; ++i) {
     double w = ComputeWeight(dir, i);
     if (w > maxw) {
@@ -151,14 +151,14 @@ unsigned SteerableViewMap::getSVMNumber(Vec2f dir)
   return winner;
 }
 
-unsigned SteerableViewMap::getSVMNumber(unsigned id)
+uint SteerableViewMap::getSVMNumber(uint id)
 {
   map<uint, double *>::iterator o = _mapping.find(id);
   if (o != _mapping.end()) {
     double *wvalues = (*o).second;
     double maxw = 0.0;
-    unsigned winner = _nbOrientations + 1;
-    for (unsigned i = 0; i < _nbOrientations; ++i) {
+    uint winner = _nbOrientations + 1;
+    for (uint i = 0; i < _nbOrientations; ++i) {
       double w = wvalues[i];
       if (w > maxw) {
         maxw = w;
@@ -172,7 +172,7 @@ unsigned SteerableViewMap::getSVMNumber(unsigned id)
 
 void SteerableViewMap::buildImagesPyramids(GrayImage **steerableBases,
                                            bool copy,
-                                           unsigned iNbLevels,
+                                           uint iNbLevels,
                                            float iSigma)
 {
   for (uint i = 0; i <= _nbOrientations; ++i) {
@@ -188,7 +188,7 @@ void SteerableViewMap::buildImagesPyramids(GrayImage **steerableBases,
   }
 }
 
-float SteerableViewMap::readSteerableViewMapPixel(unsigned iOrientation, int iLevel, int x, int y)
+float SteerableViewMap::readSteerableViewMapPixel(uint iOrientation, int iLevel, int x, int y)
 {
   ImagePyramid *pyramid = _imagesPyramids[iOrientation];
   if (!pyramid) {

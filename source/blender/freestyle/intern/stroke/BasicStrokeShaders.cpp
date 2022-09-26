@@ -152,7 +152,7 @@ int LengthDependingThicknessShader::shade(Stroke &stroke) const
   return 0;
 }
 
-static const unsigned NB_VALUE_NOISE = 512;
+static const uint NB_VALUE_NOISE = 512;
 
 ThicknessNoiseShader::ThicknessNoiseShader()
 {

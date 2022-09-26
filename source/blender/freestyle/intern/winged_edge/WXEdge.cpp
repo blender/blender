@@ -64,7 +64,7 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
   bool ok = false;
   vector<int> cuspEdgesIndices;
   int indexStart, indexEnd;
-  unsigned nedges = _pWXFace->numberOfEdges();
+  uint nedges = _pWXFace->numberOfEdges();
   if (_nNullDotP == nedges) {
     _pSmoothEdge = nullptr;
     return _pSmoothEdge;
@@ -118,8 +118,8 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
       _pSmoothEdge = nullptr;
       return nullptr;
     }
-    unsigned index0 = Get0VertexIndex();  // retrieve the 0 vertex index
-    unsigned nedges = _pWXFace->numberOfEdges();
+    uint index0 = Get0VertexIndex();  // retrieve the 0 vertex index
+    uint nedges = _pWXFace->numberOfEdges();
     if (_DotP[cuspEdgesIndices[0]] > 0.0f) {
       woea = _pWXFace->GetOEdge(cuspEdgesIndices[0]);
       woeb = _pWXFace->GetOEdge(index0);
@@ -257,7 +257,7 @@ void WXFace::ComputeCenter()
 
 WFace *WXShape::MakeFace(vector<WVertex *> &iVertexList,
                          vector<bool> &iFaceEdgeMarksList,
-                         unsigned iMaterialIndex)
+                         uint iMaterialIndex)
 {
   WFace *face = WShape::MakeFace(iVertexList, iFaceEdgeMarksList, iMaterialIndex);
   if (!face) {
@@ -280,7 +280,7 @@ WFace *WXShape::MakeFace(vector<WVertex *> &iVertexList,
                          vector<Vec3f> &iNormalsList,
                          vector<Vec2f> &iTexCoordsList,
                          vector<bool> &iFaceEdgeMarksList,
-                         unsigned iMaterialIndex)
+                         uint iMaterialIndex)
 {
   WFace *face = WShape::MakeFace(
       iVertexList, iNormalsList, iTexCoordsList, iFaceEdgeMarksList, iMaterialIndex);

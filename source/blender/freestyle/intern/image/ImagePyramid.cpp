@@ -109,13 +109,13 @@ int ImagePyramid::height(int level)
   return _levels[level]->height();
 }
 
-GaussianPyramid::GaussianPyramid(const GrayImage &level0, unsigned nbLevels, float iSigma)
+GaussianPyramid::GaussianPyramid(const GrayImage &level0, uint nbLevels, float iSigma)
 {
   _sigma = iSigma;
   BuildPyramid(level0, nbLevels);
 }
 
-GaussianPyramid::GaussianPyramid(GrayImage *level0, unsigned nbLevels, float iSigma)
+GaussianPyramid::GaussianPyramid(GrayImage *level0, uint nbLevels, float iSigma)
 {
   _sigma = iSigma;
   BuildPyramid(level0, nbLevels);
@@ -126,20 +126,20 @@ GaussianPyramid::GaussianPyramid(const GaussianPyramid &iBrother) : ImagePyramid
   _sigma = iBrother._sigma;
 }
 
-void GaussianPyramid::BuildPyramid(const GrayImage &level0, unsigned nbLevels)
+void GaussianPyramid::BuildPyramid(const GrayImage &level0, uint nbLevels)
 {
   GrayImage *pLevel = new GrayImage(level0);
   BuildPyramid(pLevel, nbLevels);
 }
 
-void GaussianPyramid::BuildPyramid(GrayImage *level0, unsigned nbLevels)
+void GaussianPyramid::BuildPyramid(GrayImage *level0, uint nbLevels)
 {
   GrayImage *pLevel = level0;
   _levels.push_back(pLevel);
   GaussianFilter gf(_sigma);
   // build the nbLevels:
-  unsigned w = pLevel->width();
-  unsigned h = pLevel->height();
+  uint w = pLevel->width();
+  uint h = pLevel->height();
   if (nbLevels != 0) {
     for (uint i = 0; i < nbLevels; ++i) {  // soc
       w = pLevel->width() >> 1;

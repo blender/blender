@@ -71,7 +71,7 @@ int CalligraphicShader::shade(Stroke &ioStroke) const
 //
 /////////////////////////////////////////
 
-static const unsigned NB_VALUE_NOISE = 512;
+static const uint NB_VALUE_NOISE = 512;
 
 SpatialNoiseShader::SpatialNoiseShader(
     float iAmount, float ixScale, int nbOctave, bool smooth, bool pureRandom)

@@ -79,7 +79,7 @@ real PseudoNoise::smoothNoise(real x)
   return (x0 * y0 + x1 * y1 + x2 * y2 + x3 * y3) / (y0 + y1 + y2 + y3);
 }
 
-real PseudoNoise::turbulenceSmooth(real x, unsigned nbOctave)
+real PseudoNoise::turbulenceSmooth(real x, uint nbOctave)
 {
   real y = 0;
   real k = 1.0;
@@ -90,7 +90,7 @@ real PseudoNoise::turbulenceSmooth(real x, unsigned nbOctave)
   return y;
 }
 
-real PseudoNoise::turbulenceLinear(real x, unsigned nbOctave)
+real PseudoNoise::turbulenceLinear(real x, uint nbOctave)
 {
   real y = 0;
   real k = 1.0;

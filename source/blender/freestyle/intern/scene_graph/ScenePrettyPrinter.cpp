@@ -73,7 +73,7 @@ VISIT(VertexRep)
 void ScenePrettyPrinter::visitIndexedFaceSet(IndexedFaceSet &ifs)
 {
   const float *vertices = ifs.vertices();
-  unsigned vsize = ifs.vsize();
+  uint vsize = ifs.vsize();
 
   _ofs << _space << "IndexedFaceSet" << endl;
   const float *p = vertices;

@@ -451,7 +451,7 @@ WShape *WFace::getShape()
  *                                *
  **********************************/
 
-unsigned WShape::_SceneCurrentId = 0;
+uint WShape::_SceneCurrentId = 0;
 
 WShape *WShape::duplicate()
 {
@@ -585,7 +585,7 @@ WShape::WShape(WShape &iBrother)
 
 WFace *WShape::MakeFace(vector<WVertex *> &iVertexList,
                         vector<bool> &iFaceEdgeMarksList,
-                        unsigned iMaterial)
+                        uint iMaterial)
 {
   // allocate the new face
   WFace *face = instanciateFace();
@@ -601,7 +601,7 @@ WFace *WShape::MakeFace(vector<WVertex *> &iVertexList,
                         vector<Vec3f> &iNormalsList,
                         vector<Vec2f> &iTexCoordsList,
                         vector<bool> &iFaceEdgeMarksList,
-                        unsigned iMaterial)
+                        uint iMaterial)
 {
   // allocate the new face
   WFace *face = MakeFace(iVertexList, iFaceEdgeMarksList, iMaterial);
@@ -620,7 +620,7 @@ WFace *WShape::MakeFace(vector<WVertex *> &iVertexList,
 
 WFace *WShape::MakeFace(vector<WVertex *> &iVertexList,
                         vector<bool> &iFaceEdgeMarksList,
-                        unsigned iMaterial,
+                        uint iMaterial,
                         WFace *face)
 {
   int id = _FaceList.size();
