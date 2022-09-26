@@ -329,8 +329,7 @@ bool BCAnimationCurve::is_transform_curve() const
 bool BCAnimationCurve::is_rotation_curve() const
 {
   std::string channel_type = this->get_channel_type();
-  return (channel_type == "rotation" || channel_type == "rotation_euler" ||
-          channel_type == "rotation_quaternion");
+  return ELEM(channel_type, "rotation", "rotation_euler", "rotation_quaternion");
 }
 
 float BCAnimationCurve::get_value(const float frame)

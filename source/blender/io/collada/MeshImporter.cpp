@@ -284,7 +284,7 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)
     const char *type_str = bc_primTypeToStr(type);
 
     /* OpenCollada passes POLYGONS type for <polylist> */
-    if (type == COLLADAFW::MeshPrimitive::POLYLIST || type == COLLADAFW::MeshPrimitive::POLYGONS) {
+    if (ELEM(type, COLLADAFW::MeshPrimitive::POLYLIST, COLLADAFW::MeshPrimitive::POLYGONS)) {
 
       COLLADAFW::Polygons *mpvc = (COLLADAFW::Polygons *)mp;
       COLLADAFW::Polygons::VertexCountArray &vca = mpvc->getGroupedVerticesVertexCountArray();
@@ -324,8 +324,9 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)
       /* TODO: Add Checker for line syntax here */
     }
 
-    else if (type != COLLADAFW::MeshPrimitive::TRIANGLES &&
-             type != COLLADAFW::MeshPrimitive::TRIANGLE_FANS) {
+    else if (!ELEM(type,
+                   COLLADAFW::MeshPrimitive::TRIANGLES,
+                   COLLADAFW::MeshPrimitive::TRIANGLE_FANS)) {
       fprintf(stderr, "ERROR: Primitive type %s is not supported.\n", type_str);
       return false;
     }
@@ -688,9 +689,10 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
       }
     }
 
-    if (collada_meshtype == COLLADAFW::MeshPrimitive::POLYLIST ||
-        collada_meshtype == COLLADAFW::MeshPrimitive::POLYGONS ||
-        collada_meshtype == COLLADAFW::MeshPrimitive::TRIANGLES) {
+    if (ELEM(collada_meshtype,
+             COLLADAFW::MeshPrimitive::POLYLIST,
+             COLLADAFW::MeshPrimitive::POLYGONS,
+             COLLADAFW::MeshPrimitive::TRIANGLES)) {
       COLLADAFW::Polygons *mpvc = (COLLADAFW::Polygons *)mp;
       uint start_index = 0;
 

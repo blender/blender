@@ -87,7 +87,7 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
       ASSERT_STREQ(object->id.name, exp.name.c_str());
       EXPECT_EQ(object->type, exp.type);
       EXPECT_V3_NEAR(object->loc, float3(0, 0, 0), 0.0001f);
-      if (strcmp(object->id.name, "OBCube") != 0) {
+      if (!STREQ(object->id.name, "OBCube")) {
         EXPECT_V3_NEAR(object->rot, float3(M_PI_2, 0, 0), 0.0001f);
       }
       EXPECT_V3_NEAR(object->scale, float3(1, 1, 1), 0.0001f);

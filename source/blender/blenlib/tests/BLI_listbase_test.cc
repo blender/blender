@@ -222,7 +222,7 @@ static bool testsort_listbase_array_str_cmp(ListBase *lb, char **arr, int arr_nu
 
   link_step = (LinkData *)lb->first;
   for (i = 0; i < arr_num; i++) {
-    if (strcmp(arr[i], (char *)link_step->data) != 0) {
+    if (!STREQ(arr[i], (char *)link_step->data)) {
       return false;
     }
     link_step = link_step->next;
@@ -241,7 +241,7 @@ static bool testsort_listbase_sort_is_stable(ListBase *lb, bool forward)
 
   link_step = (LinkData *)lb->first;
   while (link_step && link_step->next) {
-    if (strcmp((const char *)link_step->data, (const char *)link_step->next->data) == 0) {
+    if (STREQ((const char *)link_step->data, (const char *)link_step->next->data)) {
       if ((link_step < link_step->next) != forward) {
         return false;
       }

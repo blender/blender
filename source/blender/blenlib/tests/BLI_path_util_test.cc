@@ -466,7 +466,7 @@ TEST(path_util, PathFrameStrip)
 #define PATH_EXTENSION_CHECK(input_path, input_ext, expect_ext) \
   { \
     const bool ret = BLI_path_extension_check(input_path, input_ext); \
-    if (strcmp(input_ext, expect_ext) == 0) { \
+    if (STREQ(input_ext, expect_ext)) { \
       EXPECT_TRUE(ret); \
     } \
     else { \

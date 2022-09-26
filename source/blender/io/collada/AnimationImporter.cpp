@@ -525,9 +525,9 @@ void AnimationImporter::Assign_transform_animations(
   bool is_rotation = tm_type == COLLADAFW::Transformation::ROTATE;
 
   /* to check if the no of curves are valid */
-  bool xyz = ((tm_type == COLLADAFW::Transformation::TRANSLATE ||
-               tm_type == COLLADAFW::Transformation::SCALE) &&
-              binding->animationClass == COLLADAFW::AnimationList::POSITION_XYZ);
+  bool xyz =
+      (ELEM(tm_type, COLLADAFW::Transformation::TRANSLATE, COLLADAFW::Transformation::SCALE) &&
+       binding->animationClass == COLLADAFW::AnimationList::POSITION_XYZ);
 
   if (!((!xyz && curves->size() == 1) || (xyz && curves->size() == 3) || is_matrix)) {
     fprintf(stderr, "expected %d curves, got %d\n", xyz ? 3 : 1, int(curves->size()));
@@ -1510,8 +1510,9 @@ void AnimationImporter::find_frames_old(std::vector<float> *frames,
           /* for each AnimationBinding get the fcurves which animate the transform */
           for (uint j = 0; j < bindings.getCount(); j++) {
             std::vector<FCurve *> &curves = curve_map[bindings[j].animation];
-            bool xyz = ((nodeTmType == COLLADAFW::Transformation::TRANSLATE ||
-                         nodeTmType == COLLADAFW::Transformation::SCALE) &&
+            bool xyz = (ELEM(nodeTmType,
+                             COLLADAFW::Transformation::TRANSLATE,
+                             COLLADAFW::Transformation::SCALE) &&
                         bindings[j].animationClass == COLLADAFW::AnimationList::POSITION_XYZ);
 
             if ((!xyz && curves.size() == 1) || (xyz && curves.size() == 3) || is_matrix) {
@@ -1883,8 +1884,11 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm,
   const COLLADAFW::UniqueId &listid = tm->getAnimationList();
   COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
 
-  if (type != COLLADAFW::Transformation::ROTATE && type != COLLADAFW::Transformation::SCALE &&
-      type != COLLADAFW::Transformation::TRANSLATE && type != COLLADAFW::Transformation::MATRIX) {
+  if (!ELEM(type,
+            COLLADAFW::Transformation::ROTATE,
+            COLLADAFW::Transformation::SCALE,
+            COLLADAFW::Transformation::TRANSLATE,
+            COLLADAFW::Transformation::MATRIX)) {
     fprintf(stderr, "animation of transformation %d is not supported yet\n", type);
     return false;
   }

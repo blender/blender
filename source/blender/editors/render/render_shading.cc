@@ -1131,7 +1131,7 @@ static int view_layer_add_lightgroup_exec(bContext *C, wmOperator *op)
     /* Ensure that there are no dots in the name. */
     BLI_str_replace_char(name, '.', '_');
     LISTBASE_FOREACH (ViewLayerLightgroup *, lightgroup, &view_layer->lightgroups) {
-      if (strcmp(lightgroup->name, name) == 0) {
+      if (STREQ(lightgroup->name, name)) {
         return OPERATOR_CANCELLED;
       }
     }
