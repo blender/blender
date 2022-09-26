@@ -1869,7 +1869,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     /* 29: CD_BWEIGHT */
     {sizeof(MFloatProperty), "MFloatProperty", 1, nullptr, nullptr, nullptr, layerInterp_bweight},
     /* 30: CD_CREASE */
-    {sizeof(float), "", 0, N_("SubSurfCrease"), nullptr, nullptr, layerInterp_propFloat},
+    {sizeof(float), "", 0, nullptr, nullptr, nullptr, layerInterp_propFloat},
     /* 31: CD_ORIGSPACE_MLOOP */
     {sizeof(OrigSpaceLoop),
      "OrigSpaceLoop",
