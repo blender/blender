@@ -300,7 +300,7 @@ static void extract_edit_data_iter_subdiv_mesh(const DRWSubdivCache *subdiv_cach
                                                uint subdiv_quad_index,
                                                const MPoly *coarse_quad)
 {
-  const int coarse_quad_index = static_cast<int>(coarse_quad - mr->mpoly);
+  const int coarse_quad_index = int(coarse_quad - mr->mpoly);
   BMFace *coarse_quad_bm = bm_original_face_get(mr, coarse_quad_index);
   extract_edit_data_iter_subdiv_bm(subdiv_cache, mr, _data, subdiv_quad_index, coarse_quad_bm);
 }

@@ -1318,7 +1318,7 @@ static void drw_subdiv_compute_dispatch(const DRWSubdivCache *cache,
   /* X and Y dimensions may have different limits so the above computation may not be right, but
    * even with the standard 64k minimum on all dimensions we still have a lot of room. Therefore,
    * we presume it all fits. */
-  BLI_assert(dispatch_ry < static_cast<uint>(GPU_max_work_group_count(1)));
+  BLI_assert(dispatch_ry < uint(GPU_max_work_group_count(1)));
 
   draw_subdiv_ubo_update_and_bind(
       cache, shader, src_offset, dst_offset, total_dispatch_size, has_sculpt_mask);

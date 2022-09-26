@@ -320,7 +320,7 @@ GHOST_TSuccess GHOST_ContextGLX::getSwapInterval(int &intervalOut)
 
     ::glXQueryDrawable(m_display, m_window, GLX_SWAP_INTERVAL_EXT, &interval);
 
-    intervalOut = static_cast<int>(interval);
+    intervalOut = int(interval);
 
     return GHOST_kSuccess;
   }

@@ -4667,7 +4667,7 @@ static bool object_circle_select(ViewContext *vc,
   View3D *v3d = vc->v3d;
 
   const float radius_squared = rad * rad;
-  const float mval_fl[2] = {static_cast<float>(mval[0]), static_cast<float>(mval[1])};
+  const float mval_fl[2] = {float(mval[0]), float(mval[1])};
 
   bool changed = false;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {

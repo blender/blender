@@ -28,8 +28,8 @@ struct MTLVertexAttributeDescriptorPSO {
 
   uint64_t hash() const
   {
-    return (uint64_t)((uint64_t)this->format ^ (this->offset << 4) ^ (this->buffer_index << 8) ^
-                      (this->format_conversion_mode << 12));
+    return uint64_t((uint64_t(this->format) ^ (this->offset << 4) ^ (this->buffer_index << 8) ^
+                     (this->format_conversion_mode << 12)));
   }
 };
 
@@ -46,8 +46,7 @@ struct MTLVertexBufferLayoutDescriptorPSO {
 
   uint64_t hash() const
   {
-    return (uint64_t)((uint64_t)this->step_function ^ (this->step_rate << 4) ^
-                      (this->stride << 8));
+    return uint64_t(uint64_t(this->step_function) ^ (this->step_rate << 4) ^ (this->stride << 8));
   }
 };
 
@@ -217,31 +216,30 @@ struct MTLRenderPipelineStateDescriptor {
      * has collisions. */
 
     uint64_t hash = this->vertex_descriptor.hash();
-    hash ^= (uint64_t)this->num_color_attachments << 16;     /* up to 6 (3 bits). */
-    hash ^= (uint64_t)this->depth_attachment_format << 18;   /* up to 555 (9 bits). */
-    hash ^= (uint64_t)this->stencil_attachment_format << 20; /* up to 555 (9 bits). */
-    hash ^= (uint64_t)(*(
-        (uint64_t *)&this->vertex_descriptor.prim_topology_class)); /* Up to 3 (2 bits). */
+    hash ^= uint64_t(this->num_color_attachments) << 16;     /* up to 6 (3 bits). */
+    hash ^= uint64_t(this->depth_attachment_format) << 18;   /* up to 555 (9 bits). */
+    hash ^= uint64_t(this->stencil_attachment_format) << 20; /* up to 555 (9 bits). */
+    hash ^= uint64_t(
+        *((uint64_t *)&this->vertex_descriptor.prim_topology_class)); /* Up to 3 (2 bits). */
 
     /* Only include elements in Hash if they are needed - avoids variable null assignments
      * influencing hash. */
     if (this->num_color_attachments > 0) {
-      hash ^= (uint64_t)this->color_write_mask << 22;        /* 4 bit bit-mask. */
-      hash ^= (uint64_t)this->alpha_blend_op << 26;          /* Up to 4 (3 bits). */
-      hash ^= (uint64_t)this->rgb_blend_op << 29;            /* Up to 4 (3 bits). */
-      hash ^= (uint64_t)this->dest_alpha_blend_factor << 32; /* Up to 18 (5 bits). */
-      hash ^= (uint64_t)this->dest_rgb_blend_factor << 37;   /* Up to 18 (5 bits). */
-      hash ^= (uint64_t)this->src_alpha_blend_factor << 42;  /* Up to 18 (5 bits). */
-      hash ^= (uint64_t)this->src_rgb_blend_factor << 47;    /* Up to 18 (5 bits). */
+      hash ^= uint64_t(this->color_write_mask) << 22;        /* 4 bit bit-mask. */
+      hash ^= uint64_t(this->alpha_blend_op) << 26;          /* Up to 4 (3 bits). */
+      hash ^= uint64_t(this->rgb_blend_op) << 29;            /* Up to 4 (3 bits). */
+      hash ^= uint64_t(this->dest_alpha_blend_factor) << 32; /* Up to 18 (5 bits). */
+      hash ^= uint64_t(this->dest_rgb_blend_factor) << 37;   /* Up to 18 (5 bits). */
+      hash ^= uint64_t(this->src_alpha_blend_factor) << 42;  /* Up to 18 (5 bits). */
+      hash ^= uint64_t(this->src_rgb_blend_factor) << 47;    /* Up to 18 (5 bits). */
     }
 
     for (const uint c : IndexRange(GPU_FB_MAX_COLOR_ATTACHMENT)) {
-      hash ^= (uint64_t)this->color_attachment_format[c] << (c + 52);  // up to 555 (9 bits)
+      hash ^= uint64_t(this->color_attachment_format[c]) << (c + 52); /* Up to 555 (9 bits). */
     }
 
-    hash |= (uint64_t)((this->blending_enabled && (this->num_color_attachments > 0)) ? 1 : 0)
-            << 62;
-    hash ^= (uint64_t)this->point_size;
+    hash |= uint64_t((this->blending_enabled && (this->num_color_attachments > 0)) ? 1 : 0) << 62;
+    hash ^= uint64_t(this->point_size);
 
     return hash;
   }

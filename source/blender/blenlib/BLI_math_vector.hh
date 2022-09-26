@@ -366,7 +366,7 @@ template<typename T, BLI_ENABLE_IF((is_math_float_type<T>))>
 inline vec_base<T, 3> cross_poly(Span<vec_base<T, 3>> poly)
 {
   /* Newell's Method. */
-  int nv = static_cast<int>(poly.size());
+  int nv = int(poly.size());
   if (nv < 3) {
     return vec_base<T, 3>(0, 0, 0);
   }

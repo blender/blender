@@ -372,7 +372,7 @@ template<size_t Size, size_t Alignment> class AlignedBuffer {
  */
 template<typename T, int64_t Size = 1> class TypedBuffer {
  private:
-  BLI_NO_UNIQUE_ADDRESS AlignedBuffer<sizeof(T) * (size_t)Size, alignof(T)> buffer_;
+  BLI_NO_UNIQUE_ADDRESS AlignedBuffer<sizeof(T) * size_t(Size), alignof(T)> buffer_;
 
  public:
   operator T *()

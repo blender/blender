@@ -980,7 +980,7 @@ void ED_imapaint_bucket_fill(struct bContext *C,
 
     ED_image_undo_push_begin(op->type->name, PAINT_MODE_TEXTURE_2D);
 
-    const float mouse_init[2] = {static_cast<float>(mouse[0]), static_cast<float>(mouse[1])};
+    const float mouse_init[2] = {float(mouse[0]), float(mouse[1])};
     paint_2d_bucket_fill(C, color, nullptr, mouse_init, nullptr, nullptr);
 
     ED_image_undo_push_end();

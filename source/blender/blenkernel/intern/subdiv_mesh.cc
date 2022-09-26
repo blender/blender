@@ -1084,8 +1084,7 @@ static void subdiv_mesh_vertex_of_loose_edge_interpolate(SubdivMeshContext *ctx,
   BLI_assert(u > 0.0f);
   BLI_assert(u < 1.0f);
   const float interpolation_weights[2] = {1.0f - u, u};
-  const int coarse_vertex_indices[2] = {static_cast<int>(coarse_edge->v1),
-                                        static_cast<int>(coarse_edge->v2)};
+  const int coarse_vertex_indices[2] = {int(coarse_edge->v1), int(coarse_edge->v2)};
   CustomData_interp(&coarse_mesh->vdata,
                     &subdiv_mesh->vdata,
                     coarse_vertex_indices,

@@ -1866,7 +1866,7 @@ struct XFormAxisData {
 static void object_transform_axis_target_calc_depth_init(XFormAxisData *xfd, const int mval[2])
 {
   float view_co_a[3], view_co_b[3];
-  const float2 mval_fl = {static_cast<float>(mval[0]), static_cast<float>(mval[1])};
+  const float2 mval_fl = {float(mval[0]), float(mval[1])};
   ED_view3d_win_to_ray(xfd->vc.region, mval_fl, view_co_a, view_co_b);
   add_v3_v3(view_co_b, view_co_a);
   float center[3] = {0.0f};

@@ -1130,7 +1130,7 @@ static void do_fillGradientBuffer(uint rw,
         dmin = ud;             /* Set a new minimum equal to the new lower value. */
       }
     }
-    odist = (float)(dmin); /* Cast outer min to a float. */
+    odist = float(dmin); /* Cast outer min to a float. */
     rsf = odist * 0.5f;
     rsl = *(uint *)&odist;         /* Use some peculiar properties of the way bits are stored. */
     rsl = 0x5f3759df - (rsl >> 1); /* In floats vs. uints to compute an approximate. */
@@ -1151,7 +1151,7 @@ static void do_fillGradientBuffer(uint rw,
     }
 
     /* Cast inner min to a float. */
-    idist = (float)(dmin);
+    idist = float(dmin);
     rsf = idist * 0.5f;
     rsl = *(uint *)&idist;
 

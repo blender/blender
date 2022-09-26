@@ -297,7 +297,7 @@ class CPPType : NonCopyable, NonMovable {
    */
   bool pointer_has_valid_alignment(const void *ptr) const
   {
-    return ((uintptr_t)ptr & alignment_mask_) == 0;
+    return (uintptr_t(ptr) & alignment_mask_) == 0;
   }
 
   bool pointer_can_point_to_instance(const void *ptr) const

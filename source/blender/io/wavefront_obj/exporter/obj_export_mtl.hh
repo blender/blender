@@ -49,11 +49,11 @@ struct MTLTexMap {
 struct MTLMaterial {
   const MTLTexMap &tex_map_of_type(MTLTexMapType key) const
   {
-    return texture_maps[(int)key];
+    return texture_maps[int(key)];
   }
   MTLTexMap &tex_map_of_type(MTLTexMapType key)
   {
-    return texture_maps[(int)key];
+    return texture_maps[int(key)];
   }
 
   std::string name;
@@ -76,7 +76,7 @@ struct MTLMaterial {
   float aniso_rot{-1.0f};       /* `anisor` */
 
   int illum_mode{-1};
-  MTLTexMap texture_maps[(int)MTLTexMapType::Count];
+  MTLTexMap texture_maps[int(MTLTexMapType::Count)];
   /* Only used for Normal Map node: `map_Bump`. */
   float normal_strength{-1.0f};
 };

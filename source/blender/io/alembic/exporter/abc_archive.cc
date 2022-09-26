@@ -130,7 +130,7 @@ static TimeSamplingPtr create_time_sampling(double scene_fps,
 
   get_shutter_samples(scene_fps, params, nr_of_samples, true, samples);
 
-  TimeSamplingType ts(static_cast<uint32_t>(samples.size()), 1.0 / scene_fps);
+  TimeSamplingType ts(uint32_t(samples.size()), 1.0 / scene_fps);
   return TimeSamplingPtr(new TimeSampling(ts, samples));  // NOLINT: modernize-make-shared
 }
 

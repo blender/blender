@@ -917,7 +917,7 @@ template<typename Key> class StdUnorderedSetWrapper {
 
   bool remove(const Key &key)
   {
-    return (bool)set_.erase(key);
+    return bool(set_.erase(key));
   }
 
   void remove_contained(const Key &key)

@@ -585,7 +585,7 @@ inline std::ostream &operator<<(std::ostream &stream, StringRef ref)
 
 inline std::ostream &operator<<(std::ostream &stream, StringRefNull ref)
 {
-  stream << std::string(ref.data(), (size_t)ref.size());
+  stream << std::string(ref.data(), size_t(ref.size()));
   return stream;
 }
 
@@ -611,7 +611,7 @@ constexpr bool operator==(StringRef a, StringRef b)
     /* This also avoids passing null to the call below, which would results in an ASAN warning. */
     return true;
   }
-  return STREQLEN(a.data(), b.data(), (size_t)a.size());
+  return STREQLEN(a.data(), b.data(), size_t(a.size()));
 }
 
 constexpr bool operator!=(StringRef a, StringRef b)

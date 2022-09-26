@@ -403,7 +403,7 @@ class PassSortable : public PassMain {
   {
     int64_t index = sub_passes_.append_and_get_index(
         PassBase(name, draw_commands_buf_, sub_passes_, shader_));
-    headers_.append({Type::SubPass, static_cast<uint>(index)});
+    headers_.append({Type::SubPass, uint(index)});
     sorting_values_.append(sorting_value);
     return sub_passes_[index];
   }
@@ -442,7 +442,7 @@ namespace detail {
 template<class T> inline command::Undetermined &PassBase<T>::create_command(command::Type type)
 {
   int64_t index = commands_.append_and_get_index({});
-  headers_.append({type, static_cast<uint>(index)});
+  headers_.append({type, uint(index)});
   return commands_[index];
 }
 
@@ -452,7 +452,7 @@ inline void PassBase<T>::clear(eGPUFrameBufferBits planes,
                                float depth,
                                uint8_t stencil)
 {
-  create_command(command::Type::Clear).clear = {(uint8_t)planes, stencil, depth, color};
+  create_command(command::Type::Clear).clear = {uint8_t(planes), stencil, depth, color};
 }
 
 template<class T> inline GPUBatch *PassBase<T>::procedural_batch_get(GPUPrimType primitive)
@@ -477,7 +477,7 @@ template<class T> inline PassBase<T> &PassBase<T>::sub(const char *name)
 {
   int64_t index = sub_passes_.append_and_get_index(
       PassBase(name, draw_commands_buf_, sub_passes_, shader_));
-  headers_.append({command::Type::SubPass, static_cast<uint>(index)});
+  headers_.append({command::Type::SubPass, uint(index)});
   return sub_passes_[index];
 }
 

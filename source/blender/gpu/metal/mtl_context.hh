@@ -352,7 +352,7 @@ struct MTLSamplerArray {
   {
     uint32_t hash = this->num_samplers;
     for (int i = 0; i < this->num_samplers; i++) {
-      hash ^= (uint32_t)this->mtl_sampler_flags[i] << (i % 3);
+      hash ^= uint32_t(this->mtl_sampler_flags[i]) << (i % 3);
     }
     return hash;
   }

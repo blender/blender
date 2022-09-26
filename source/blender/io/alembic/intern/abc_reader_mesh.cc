@@ -133,7 +133,7 @@ static void read_mverts_interp(MVert *mverts,
     const Imath::V3f &floor_pos = (*positions)[i];
     const Imath::V3f &ceil_pos = (*ceil_positions)[i];
 
-    interp_v3_v3v3(tmp, floor_pos.getValue(), ceil_pos.getValue(), static_cast<float>(weight));
+    interp_v3_v3v3(tmp, floor_pos.getValue(), ceil_pos.getValue(), float(weight));
     copy_zup_from_yup(mvert.co, tmp);
   }
 }
@@ -448,7 +448,7 @@ static void read_velocity(const V3fArraySamplePtr &velocities,
                           const CDStreamConfig &config,
                           const float velocity_scale)
 {
-  const int num_velocity_vectors = static_cast<int>(velocities->size());
+  const int num_velocity_vectors = int(velocities->size());
   if (num_velocity_vectors != config.mesh->totvert) {
     /* Files containing videogrammetry data may be malformed and export velocity data on missing
      * frames (most likely by copying the last valid data). */

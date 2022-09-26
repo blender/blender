@@ -1396,8 +1396,7 @@ ARegion *UI_tooltip_create_from_gizmo(bContext *C, wmGizmo *gz)
 {
   wmWindow *win = CTX_wm_window(C);
   const float aspect = 1.0f;
-  float init_position[2] = {static_cast<float>(win->eventstate->xy[0]),
-                            static_cast<float>(win->eventstate->xy[1])};
+  float init_position[2] = {float(win->eventstate->xy[0]), float(win->eventstate->xy[1])};
 
   uiTooltipData *data = ui_tooltip_data_from_gizmo(C, gz);
   if (data == nullptr) {

@@ -1314,7 +1314,7 @@ template<typename Key, typename Value> class StdUnorderedMapWrapper {
 
   bool remove(const Key &key)
   {
-    return (bool)map_.erase(key);
+    return bool(map_.erase(key));
   }
 
   Value &lookup(const Key &key)

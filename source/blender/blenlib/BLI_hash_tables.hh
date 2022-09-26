@@ -225,17 +225,17 @@ template<typename Pointer> struct PointerKeyInfo {
 
   static bool is_empty(Pointer pointer)
   {
-    return (uintptr_t)pointer == UINTPTR_MAX;
+    return uintptr_t(pointer) == UINTPTR_MAX;
   }
 
   static bool is_removed(Pointer pointer)
   {
-    return (uintptr_t)pointer == UINTPTR_MAX - 1;
+    return uintptr_t(pointer) == UINTPTR_MAX - 1;
   }
 
   static bool is_not_empty_or_removed(Pointer pointer)
   {
-    return (uintptr_t)pointer < UINTPTR_MAX - 1;
+    return uintptr_t(pointer) < UINTPTR_MAX - 1;
   }
 };
 

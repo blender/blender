@@ -40,12 +40,12 @@ typedef enum GPUAttachmentType : int {
 
 inline constexpr GPUAttachmentType operator-(GPUAttachmentType a, int b)
 {
-  return static_cast<GPUAttachmentType>(static_cast<int>(a) - b);
+  return static_cast<GPUAttachmentType>(int(a) - b);
 }
 
 inline constexpr GPUAttachmentType operator+(GPUAttachmentType a, int b)
 {
-  return static_cast<GPUAttachmentType>(static_cast<int>(a) + b);
+  return static_cast<GPUAttachmentType>(int(a) + b);
 }
 
 inline GPUAttachmentType &operator++(GPUAttachmentType &a)

@@ -144,8 +144,8 @@ static void export_startjob(void *customdata,
       }
 
       /* Update the scene for the next frame to render. */
-      scene->r.cfra = static_cast<int>(frame);
-      scene->r.subframe = static_cast<float>(frame - scene->r.cfra);
+      scene->r.cfra = int(frame);
+      scene->r.subframe = float(frame - scene->r.cfra);
       BKE_scene_graph_update_for_newframe(data->depsgraph);
 
       CLOG_INFO(&LOG, 2, "Exporting frame %.2f", frame);
