@@ -25,12 +25,10 @@ typedef struct GPUPass GPUPass;
 GPUPass *GPU_generate_pass(GPUMaterial *material,
                            struct GPUNodeGraph *graph,
                            GPUCodegenCallbackFn finalize_source_cb,
-                           void *thunk,
-                           bool optimize_graph);
+                           void *thunk);
 GPUShader *GPU_pass_shader_get(GPUPass *pass);
 bool GPU_pass_compile(GPUPass *pass, const char *shname);
 void GPU_pass_release(GPUPass *pass);
-bool GPU_pass_should_optimize(GPUPass *pass);
 
 /* Module */
 

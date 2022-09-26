@@ -257,14 +257,6 @@ struct GPUShader *GPU_material_get_shader(GPUMaterial *material);
 const char *GPU_material_get_name(GPUMaterial *material);
 
 /**
- * Material Optimization.
- * \note Compiles optimal version of shader graph, populating mat->optimized_pass.
- * This operation should always be deferred until existing compilations have completed.
- * Default un-optimized materials will still exist for interactive material editing performance.
- */
-void GPU_material_optimize(GPUMaterial *mat);
-
-/**
  * Return can be NULL if it's a world material.
  */
 struct Material *GPU_material_get_material(GPUMaterial *material);
