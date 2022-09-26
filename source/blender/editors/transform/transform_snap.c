@@ -723,19 +723,13 @@ static eSnapTargetSelect snap_target_select_from_spacetype(TransInfo *t)
 
   eSnapTargetSelect ret = SCE_SNAP_TARGET_ALL;
 
-  bool use_snap_active = (t->tsnap.target_select & SCE_SNAP_TARGET_NOT_ACTIVE) == 0;
-  bool use_snap_edit = (t->tsnap.target_select & SCE_SNAP_TARGET_NOT_EDITED) == 0;
-  bool use_snap_nonedit = (t->tsnap.target_select & SCE_SNAP_TARGET_NOT_NONEDITED) == 0;
-  bool use_snap_selectable_only = (t->tsnap.target_select & SCE_SNAP_TARGET_ONLY_SELECTABLE) != 0;
+  /* `t->tsnap.target_select` not initialized yet. */
+  BLI_assert(t->tsnap.target_select == SCE_SNAP_TARGET_ALL);
 
   if (ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE) && !(t->options & CTX_CAMERA)) {
     if (base_act && (base_act->object->mode & OB_MODE_PARTICLE_EDIT)) {
       /* Particles edit mode. */
       return ret;
-    }
-
-    if (use_snap_selectable_only) {
-      ret |= SCE_SNAP_TARGET_ONLY_SELECTABLE;
     }
 
     if (t->options & (CTX_GPENCIL_STROKES | CTX_CURSOR | CTX_OBMODE_XFORM_OBDATA)) {
@@ -755,15 +749,6 @@ static eSnapTargetSelect snap_target_select_from_spacetype(TransInfo *t)
         if ((t->flag & T_PROP_EDIT) != 0) {
           /* Exclude editmesh when using proportional edit */
           ret |= SCE_SNAP_TARGET_NOT_EDITED;
-        }
-        if (!use_snap_active) {
-          ret |= SCE_SNAP_TARGET_NOT_ACTIVE;
-        }
-        if (!use_snap_edit) {
-          ret |= SCE_SNAP_TARGET_NOT_EDITED;
-        }
-        if (!use_snap_nonedit) {
-          ret |= SCE_SNAP_TARGET_NOT_NONEDITED;
         }
       }
       else if (ELEM(obedit_type, OB_ARMATURE, OB_CURVES_LEGACY, OB_SURF, OB_LATTICE, OB_MBALL)) {

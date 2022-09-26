@@ -1578,40 +1578,59 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     }
   }
 
-  if (t->flag & T_MODAL) {
-    /* do we check for parameter? */
-    if (transformModeUseSnap(t)) {
-      if (!(t->modifiers & MOD_SNAP) != !(t->tsnap.flag & SCE_SNAP)) {
-        /* Type is #eSnapFlag, but type must match various snap attributes in #ToolSettings. */
-        short *snap_flag_ptr;
+  /* Save sanpping settings. */
+  if (prop = RNA_struct_find_property(op->ptr, "snap")) {
+    RNA_property_boolean_set(op->ptr, prop, (t->modifiers & MOD_SNAP) != 0);
 
-        wmMsgParams_RNA msg_key_params = {{0}};
-        RNA_pointer_create(&t->scene->id, &RNA_ToolSettings, ts, &msg_key_params.ptr);
+    if (prop = RNA_struct_find_property(op->ptr, "snap_elements")) {
+      RNA_property_enum_set(op->ptr, prop, t->tsnap.mode);
+      RNA_boolean_set(op->ptr, "use_snap_project", t->tsnap.project);
+      RNA_enum_set(op->ptr, "snap_target", t->tsnap.source_select);
 
-        if (t->spacetype == SPACE_NODE) {
-          snap_flag_ptr = &ts->snap_flag_node;
-          msg_key_params.prop = &rna_ToolSettings_use_snap_node;
-        }
-        else if (t->spacetype == SPACE_IMAGE) {
-          snap_flag_ptr = &ts->snap_uv_flag;
-          msg_key_params.prop = &rna_ToolSettings_use_snap_uv;
-        }
-        else if (t->spacetype == SPACE_SEQ) {
-          snap_flag_ptr = &ts->snap_flag_seq;
-          msg_key_params.prop = &rna_ToolSettings_use_snap_sequencer;
-        }
-        else {
-          snap_flag_ptr = &ts->snap_flag;
-          msg_key_params.prop = &rna_ToolSettings_use_snap;
-        }
+      eSnapTargetSelect target = t->tsnap.target_select;
+      RNA_boolean_set(op->ptr, "use_snap_self", (target & SCE_SNAP_TARGET_NOT_ACTIVE) != 0);
+      RNA_boolean_set(op->ptr, "use_snap_edit", (target & SCE_SNAP_TARGET_NOT_EDITED) != 0);
+      RNA_boolean_set(op->ptr, "use_snap_nonedit", (target & SCE_SNAP_TARGET_NOT_NONEDITED) != 0);
+      RNA_boolean_set(
+          op->ptr, "use_snap_selectable", (target & SCE_SNAP_TARGET_ONLY_SELECTABLE) != 0);
+    }
 
-        if (t->modifiers & MOD_SNAP) {
-          *snap_flag_ptr |= SCE_SNAP;
+    /* Update `ToolSettings` for properties that change during modal. */
+    if (t->flag & T_MODAL) {
+      /* Do we check for parameter? */
+      if (transformModeUseSnap(t)) {
+        if (!(t->modifiers & MOD_SNAP) != !(t->tsnap.flag & SCE_SNAP)) {
+          /* Type is #eSnapFlag, but type must match various snap attributes in #ToolSettings. */
+          short *snap_flag_ptr;
+
+          wmMsgParams_RNA msg_key_params = {{0}};
+          RNA_pointer_create(&t->scene->id, &RNA_ToolSettings, ts, &msg_key_params.ptr);
+
+          if (t->spacetype == SPACE_NODE) {
+            snap_flag_ptr = &ts->snap_flag_node;
+            msg_key_params.prop = &rna_ToolSettings_use_snap_node;
+          }
+          else if (t->spacetype == SPACE_IMAGE) {
+            snap_flag_ptr = &ts->snap_uv_flag;
+            msg_key_params.prop = &rna_ToolSettings_use_snap_uv;
+          }
+          else if (t->spacetype == SPACE_SEQ) {
+            snap_flag_ptr = &ts->snap_flag_seq;
+            msg_key_params.prop = &rna_ToolSettings_use_snap_sequencer;
+          }
+          else {
+            snap_flag_ptr = &ts->snap_flag;
+            msg_key_params.prop = &rna_ToolSettings_use_snap;
+          }
+
+          if (t->modifiers & MOD_SNAP) {
+            *snap_flag_ptr |= SCE_SNAP;
+          }
+          else {
+            *snap_flag_ptr &= ~SCE_SNAP;
+          }
+          WM_msg_publish_rna_params(t->mbus, &msg_key_params);
         }
-        else {
-          *snap_flag_ptr &= ~SCE_SNAP;
-        }
-        WM_msg_publish_rna_params(t->mbus, &msg_key_params);
       }
     }
   }
