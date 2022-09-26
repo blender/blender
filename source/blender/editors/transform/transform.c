@@ -1579,10 +1579,10 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
   }
 
   /* Save snapping settings. */
-  if (prop = RNA_struct_find_property(op->ptr, "snap")) {
+  if ((prop = RNA_struct_find_property(op->ptr, "snap"))) {
     RNA_property_boolean_set(op->ptr, prop, (t->modifiers & MOD_SNAP) != 0);
 
-    if (prop = RNA_struct_find_property(op->ptr, "snap_elements")) {
+    if ((prop = RNA_struct_find_property(op->ptr, "snap_elements"))) {
       RNA_property_enum_set(op->ptr, prop, t->tsnap.mode);
       RNA_boolean_set(op->ptr, "use_snap_project", t->tsnap.project);
       RNA_enum_set(op->ptr, "snap_target", t->tsnap.source_select);
