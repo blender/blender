@@ -660,7 +660,7 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
       }
 
       /* dispatch event to XIM server */
-      if ((XFilterEvent(&xevent, (Window) nullptr) == True)) {
+      if (XFilterEvent(&xevent, (Window) nullptr) == True) {
         /* do nothing now, the event is consumed by XIM. */
         continue;
       }
@@ -673,7 +673,7 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
       }
       else if (xevent.type == KeyPress) {
         if ((xevent.xkey.keycode == m_last_release_keycode) &&
-            ((xevent.xkey.time <= m_last_release_time))) {
+            (xevent.xkey.time <= m_last_release_time)) {
           continue;
         }
       }

@@ -3141,7 +3141,7 @@ bool GHOST_SystemWayland::processEvents(bool waitForEvent)
     wl_display_roundtrip(d->display);
   }
 
-  if ((getEventManager()->getNumEvents() > 0)) {
+  if (getEventManager()->getNumEvents() > 0) {
     any_processed = true;
   }
 
@@ -3219,7 +3219,7 @@ GHOST_TSuccess GHOST_SystemWayland::getButtons(GHOST_Buttons &buttons) const
 
 char *GHOST_SystemWayland::getClipboard(bool /*selection*/) const
 {
-  char *clipboard = static_cast<char *>(malloc((selection.size() + 1)));
+  char *clipboard = static_cast<char *>(malloc(selection.size() + 1));
   memcpy(clipboard, selection.data(), selection.size() + 1);
   return clipboard;
 }
@@ -3656,12 +3656,12 @@ static void cursor_visible_set(GWL_Seat *seat,
   if (set_mode == CURSOR_VISIBLE_ALWAYS_SET) {
     /* Pass. */
   }
-  else if ((set_mode == CURSOR_VISIBLE_ONLY_SHOW)) {
+  else if (set_mode == CURSOR_VISIBLE_ONLY_SHOW) {
     if (!use_visible) {
       return;
     }
   }
-  else if ((set_mode == CURSOR_VISIBLE_ONLY_HIDE)) {
+  else if (set_mode == CURSOR_VISIBLE_ONLY_HIDE) {
     if (use_visible) {
       return;
     }

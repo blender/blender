@@ -1703,7 +1703,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
       }
       case EVT_PADPLUSKEY:
       case WHEELUPMOUSE: {
-        if ((event->val != KM_RELEASE)) {
+        if (event->val != KM_RELEASE) {
           tgpi->tot_edges = tgpi->tot_edges + 1;
           CLAMP(tgpi->tot_edges, tgpi->type == GP_STROKE_BOX ? 1 : MIN_EDGES, MAX_EDGES);
           RNA_int_set(op->ptr, "edges", tgpi->tot_edges);
@@ -1713,7 +1713,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
       }
       case EVT_PADMINUS:
       case WHEELDOWNMOUSE: {
-        if ((event->val != KM_RELEASE)) {
+        if (event->val != KM_RELEASE) {
           tgpi->tot_edges = tgpi->tot_edges - 1;
           CLAMP(tgpi->tot_edges, tgpi->type == GP_STROKE_BOX ? 1 : MIN_EDGES, MAX_EDGES);
           RNA_int_set(op->ptr, "edges", tgpi->tot_edges);
@@ -1723,7 +1723,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
       }
       case EVT_FKEY: /* brush thickness/ brush strength */
       {
-        if ((event->val == KM_PRESS)) {
+        if (event->val == KM_PRESS) {
           if (event->modifier & KM_SHIFT) {
             tgpi->prev_flag = tgpi->flag;
             tgpi->flag = IN_BRUSH_STRENGTH;
@@ -1869,7 +1869,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
     }
     case EVT_PADPLUSKEY:
     case WHEELUPMOUSE: {
-      if ((event->val != KM_RELEASE)) {
+      if (event->val != KM_RELEASE) {
         tgpi->tot_edges = tgpi->tot_edges + 1;
         CLAMP(tgpi->tot_edges, tgpi->type == GP_STROKE_BOX ? 1 : MIN_EDGES, MAX_EDGES);
         RNA_int_set(op->ptr, "edges", tgpi->tot_edges);
@@ -1881,7 +1881,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
     }
     case EVT_PADMINUS:
     case WHEELDOWNMOUSE: {
-      if ((event->val != KM_RELEASE)) {
+      if (event->val != KM_RELEASE) {
         tgpi->tot_edges = tgpi->tot_edges - 1;
         CLAMP(tgpi->tot_edges, tgpi->type == GP_STROKE_BOX ? 1 : MIN_EDGES, MAX_EDGES);
         RNA_int_set(op->ptr, "edges", tgpi->tot_edges);
@@ -1893,7 +1893,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
     }
     case EVT_GKEY: /* grab mode */
     {
-      if ((event->val == KM_PRESS)) {
+      if (event->val == KM_PRESS) {
         tgpi->flag = IN_MOVE;
         WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
       }
@@ -1901,7 +1901,7 @@ static int gpencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *e
     }
     case EVT_FKEY: /* brush thickness/ brush strength */
     {
-      if ((event->val == KM_PRESS)) {
+      if (event->val == KM_PRESS) {
         if (event->modifier & KM_SHIFT) {
           tgpi->prev_flag = tgpi->flag;
           tgpi->flag = IN_BRUSH_STRENGTH;

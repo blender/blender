@@ -2714,7 +2714,7 @@ uint filelist_entry_select_set(const FileList *filelist,
   BLI_assert(entry);
   BLI_assert(ELEM(check, CHECK_DIRS, CHECK_FILES, CHECK_ALL));
 
-  if (((check == CHECK_ALL)) || ((check == CHECK_DIRS) && (entry->typeflag & FILE_TYPE_DIR)) ||
+  if ((check == CHECK_ALL) || ((check == CHECK_DIRS) && (entry->typeflag & FILE_TYPE_DIR)) ||
       ((check == CHECK_FILES) && !(entry->typeflag & FILE_TYPE_DIR))) {
     switch (select) {
       case FILE_SEL_REMOVE:
@@ -2775,7 +2775,7 @@ uint filelist_entry_select_get(FileList *filelist, FileDirEntry *entry, FileChec
   BLI_assert(entry);
   BLI_assert(ELEM(check, CHECK_DIRS, CHECK_FILES, CHECK_ALL));
 
-  if (((check == CHECK_ALL)) || ((check == CHECK_DIRS) && (entry->typeflag & FILE_TYPE_DIR)) ||
+  if ((check == CHECK_ALL) || ((check == CHECK_DIRS) && (entry->typeflag & FILE_TYPE_DIR)) ||
       ((check == CHECK_FILES) && !(entry->typeflag & FILE_TYPE_DIR))) {
     /* Default NULL pointer if not found is fine here! */
     return POINTER_AS_UINT(

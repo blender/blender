@@ -3716,7 +3716,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
        *   is essential for ensuring that they can quickly return to that view.
        */
     }
-    else if ((!ELEM(p->paintmode, GP_PAINTMODE_ERASER, GP_PAINTMODE_SET_CP))) {
+    else if (!ELEM(p->paintmode, GP_PAINTMODE_ERASER, GP_PAINTMODE_SET_CP)) {
       gpencil_guide_event_handling(C, op, event, p);
       estate = OPERATOR_RUNNING_MODAL;
     }

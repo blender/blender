@@ -1658,8 +1658,8 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
       orient_type_set = orient_type_curr;
     }
 
-    if (((prop = RNA_struct_find_property(op->ptr, "orient_matrix_type")) &&
-         !RNA_property_is_set(op->ptr, prop))) {
+    if ((prop = RNA_struct_find_property(op->ptr, "orient_matrix_type")) &&
+        !RNA_property_is_set(op->ptr, prop)) {
       /* Set the first time to register on redo. */
       RNA_property_enum_set(op->ptr, prop, orient_type_set);
       RNA_float_set_array(op->ptr, "orient_matrix", &t->spacemtx[0][0]);

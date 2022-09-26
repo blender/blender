@@ -2325,7 +2325,7 @@ void RE_RenderAnim(Render *re,
         if (is_movie == false && do_write_file) {
           if (rd.mode & R_TOUCH) {
             if (!is_multiview_name) {
-              if ((BLI_file_size(name) == 0)) {
+              if (BLI_file_size(name) == 0) {
                 /* BLI_exists(name) is implicit */
                 BLI_delete(name, false, false);
               }
@@ -2340,7 +2340,7 @@ void RE_RenderAnim(Render *re,
 
                 BKE_scene_multiview_filepath_get(srv, name, filepath);
 
-                if ((BLI_file_size(filepath) == 0)) {
+                if (BLI_file_size(filepath) == 0) {
                   /* BLI_exists(filepath) is implicit */
                   BLI_delete(filepath, false, false);
                 }

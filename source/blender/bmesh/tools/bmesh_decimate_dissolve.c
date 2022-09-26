@@ -451,7 +451,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
     }
 
     while ((BLI_heap_is_empty(vheap) == false) &&
-           (BLI_heap_node_value((vnode_top = BLI_heap_top(vheap))) < angle_limit)) {
+           (BLI_heap_node_value(vnode_top = BLI_heap_top(vheap)) < angle_limit)) {
       BMEdge *e_new = NULL;
       BMVert *v;
 

@@ -1022,7 +1022,7 @@ bool ArmatureImporter::get_joint_bind_mat(float m[4][4], COLLADAFW::Node *joint)
   bool found = false;
   for (it = skin_by_data_uid.begin(); it != skin_by_data_uid.end(); it++) {
     SkinInfo &skin = it->second;
-    if ((found = skin.get_joint_inv_bind_matrix(m, joint))) {
+    if (found = skin.get_joint_inv_bind_matrix(m, joint)) {
       invert_m4(m);
       break;
     }

@@ -195,7 +195,7 @@ static int PHashSizes[] = {
     1048583, 2097169, 4194319, 8388617, 16777259, 33554467, 67108879, 134217757, 268435459,
 };
 
-#define PHASH_hash(ph, item) (uintptr_t(item) % (uint((ph)->cursize)))
+#define PHASH_hash(ph, item) (uintptr_t(item) % uint((ph)->cursize))
 #define PHASH_edge(v1, v2) (((v1) < (v2)) ? ((v1)*39) ^ ((v2)*31) : ((v1)*31) ^ ((v2)*39))
 
 static PHash *phash_new(PHashLink **list, int sizehint)
@@ -3061,7 +3061,7 @@ static void p_chart_lscm_begin(PChart *chart, bool live, bool abf)
     }
   }
 
-  if ((live && (!select || !deselect))) {
+  if (live && (!select || !deselect)) {
     chart->u.lscm.context = nullptr;
   }
   else {

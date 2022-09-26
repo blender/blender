@@ -5588,7 +5588,7 @@ static int gpencil_cutter_lasso_select(bContext *C,
 
   /* Select points */
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    if ((gpl->flag & GP_LAYER_LOCKED) || ((gpl->flag & GP_LAYER_HIDE))) {
+    if ((gpl->flag & GP_LAYER_LOCKED) || (gpl->flag & GP_LAYER_HIDE)) {
       continue;
     }
 

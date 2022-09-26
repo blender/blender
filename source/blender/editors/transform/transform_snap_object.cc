@@ -3461,7 +3461,7 @@ static eSnapMode transform_snap_context_project_view3d_mixed_impl(SnapObjectCont
         copy_v3_v3(r_face_nor, no);
       }
 
-      if ((snap_to_flag & SCE_SNAP_MODE_FACE_RAYCAST)) {
+      if (snap_to_flag & SCE_SNAP_MODE_FACE_RAYCAST) {
         retval = SCE_SNAP_MODE_FACE_RAYCAST;
 
         copy_v3_v3(r_loc, loc);

@@ -4173,7 +4173,7 @@ static bool project_paint_check_face_sel(const ProjPaintState *ps,
     int orig_index;
 
     if ((face_lookup->index_mp_to_orig != NULL) &&
-        (((orig_index = (face_lookup->index_mp_to_orig[lt->poly]))) != ORIGINDEX_NONE)) {
+        ((orig_index = (face_lookup->index_mp_to_orig[lt->poly])) != ORIGINDEX_NONE)) {
       return face_lookup->select_poly_orig && face_lookup->select_poly_orig[orig_index];
     }
     return ps->select_poly_eval && ps->select_poly_eval[lt->poly];

@@ -805,7 +805,7 @@ static void hash_array_from_cref(const BArrayInfo *info,
 static void hash_accum(hash_key *hash_array, const size_t hash_array_len, size_t iter_steps)
 {
   /* _very_ unlikely, can happen if you select a chunk-size of 1 for example. */
-  if (UNLIKELY((iter_steps > hash_array_len))) {
+  if (UNLIKELY(iter_steps > hash_array_len)) {
     iter_steps = hash_array_len;
   }
 
@@ -1403,7 +1403,7 @@ BArrayStore *BLI_array_store_create(uint stride, uint chunk_count)
   /* Triangle number, identifying now much read-ahead we need:
    * https://en.wikipedia.org/wiki/Triangular_number (+ 1) */
   bs->info.accum_read_ahead_len =
-      (uint)((((bs->info.accum_steps * (bs->info.accum_steps + 1))) / 2) + 1);
+      (uint)(((bs->info.accum_steps * (bs->info.accum_steps + 1)) / 2) + 1);
   bs->info.accum_read_ahead_bytes = bs->info.accum_read_ahead_len * stride;
 #else
   bs->info.accum_read_ahead_bytes = BCHUNK_HASH_LEN * stride;

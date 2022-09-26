@@ -1040,7 +1040,7 @@ static int gizmo_ruler_modal(bContext *C,
   const bool do_snap = !(tweak_flag & WM_GIZMO_TWEAK_SNAP);
 #endif
   const bool do_thickness = tweak_flag & WM_GIZMO_TWEAK_PRECISE;
-  if ((ruler_info->drag_state_prev.do_thickness != do_thickness)) {
+  if (ruler_info->drag_state_prev.do_thickness != do_thickness) {
     do_cursor_update = true;
   }
 

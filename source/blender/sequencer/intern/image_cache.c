@@ -703,8 +703,7 @@ void seq_cache_thumbnail_cleanup(Scene *scene, rctf *view_area_safe)
 
     const int frame_index = key->timeline_frame - SEQ_time_left_handle_frame_get(scene, key->seq);
     const int frame_step = SEQ_render_thumbnails_guaranteed_set_frame_step_get(scene, key->seq);
-    const int relative_base_frame = round_fl_to_int((frame_index / (float)frame_step)) *
-                                    frame_step;
+    const int relative_base_frame = round_fl_to_int(frame_index / (float)frame_step) * frame_step;
     const int nearest_guaranted_absolute_frame = relative_base_frame +
                                                  SEQ_time_left_handle_frame_get(scene, key->seq);
 

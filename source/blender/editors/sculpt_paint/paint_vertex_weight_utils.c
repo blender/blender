@@ -258,7 +258,7 @@ BLI_INLINE float wval_exclusion(float weight, float paintval, float fac)
     return weight;
   }
   mfac = 1.0f - fac;
-  temp = 0.5f - ((2.0f * (weight - 0.5f) * (paintval - 0.5f)));
+  temp = 0.5f - (2.0f * (weight - 0.5f) * (paintval - 0.5f));
   return temp * fac + weight * mfac;
 }
 

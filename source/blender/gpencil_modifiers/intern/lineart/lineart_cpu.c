@@ -5255,12 +5255,12 @@ static void lineart_gpencil_generate(LineartCache *cache,
     if (shaodow_selection) {
       if (ec->shadow_mask_bits != LRT_SHADOW_MASK_UNDEFINED) {
         /* TODO(@Yiming): Give a behavior option for how to display undefined shadow info. */
-        if ((shaodow_selection == LRT_SHADOW_FILTER_ILLUMINATED &&
-             (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_ILLUMINATED)))) {
+        if (shaodow_selection == LRT_SHADOW_FILTER_ILLUMINATED &&
+            (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_ILLUMINATED))) {
           continue;
         }
-        if ((shaodow_selection == LRT_SHADOW_FILTER_SHADED &&
-             (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_SHADED)))) {
+        if (shaodow_selection == LRT_SHADOW_FILTER_SHADED &&
+            (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_SHADED))) {
           continue;
         }
         if (shaodow_selection == LRT_SHADOW_FILTER_ILLUMINATED_ENCLOSED_SHAPES) {
@@ -5326,7 +5326,7 @@ static void lineart_gpencil_generate(LineartCache *cache,
     if (source_vgname && vgname) {
       Object *eval_ob = DEG_get_evaluated_object(depsgraph, ec->object_ref);
       int gpdg = -1;
-      if ((match_output || (gpdg = BKE_object_defgroup_name_index(gpencil_object, vgname)) >= 0)) {
+      if (match_output || (gpdg = BKE_object_defgroup_name_index(gpencil_object, vgname)) >= 0) {
         if (eval_ob && eval_ob->type == OB_MESH) {
           int dindex = 0;
           Mesh *me = BKE_object_get_evaluated_mesh(eval_ob);

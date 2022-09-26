@@ -9553,8 +9553,8 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
   else if (val == KM_PRESS) {
     if ((ELEM(type, EVT_UPARROWKEY, EVT_DOWNARROWKEY, EVT_LEFTARROWKEY, EVT_RIGHTARROWKEY) &&
          (event->modifier & (KM_SHIFT | KM_CTRL | KM_ALT | KM_OSKEY)) == 0) ||
-        ((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && (event->modifier & KM_CTRL) &&
-          (event->modifier & (KM_SHIFT | KM_ALT | KM_OSKEY)) == 0))) {
+        (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && (event->modifier & KM_CTRL) &&
+         (event->modifier & (KM_SHIFT | KM_ALT | KM_OSKEY)) == 0)) {
       const int value_orig = RNA_property_int_get(&listbox->rnapoin, listbox->rnaprop);
       int value, min, max;
 

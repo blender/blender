@@ -6285,7 +6285,7 @@ static void find_bevel_edge_order(BMesh *bm, BevVert *bv, BMEdge *first_bme)
     BMLoop *l;
     BM_ITER_ELEM (l, &iter, bme, BM_LOOPS_OF_EDGE) {
       BMFace *f = l->f;
-      if ((l->prev->e == bme2 || l->next->e == bme2)) {
+      if (l->prev->e == bme2 || l->next->e == bme2) {
         if (!bestf || l->v == bv->v) {
           bestf = f;
         }
