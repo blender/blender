@@ -1534,6 +1534,23 @@ class USERPREF_PT_input_mouse(InputPanel, CenterAlignMixIn, Panel):
         flow.prop(inputs, "move_threshold")
 
 
+class USERPREF_PT_input_touchpad(InputPanel, CenterAlignMixIn, Panel):
+    bl_label = "Touchpad"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        import sys
+        return  sys.platform[:3] == "win" or sys.platform == "darwin"
+
+    def draw_centered(self, context, layout):
+        prefs = context.preferences
+        inputs = prefs.inputs
+
+        col = layout.column()
+        col.prop(inputs, "use_multitouch_gestures")
+
+
 class USERPREF_PT_input_tablet(InputPanel, CenterAlignMixIn, Panel):
     bl_label = "Tablet"
 
@@ -2411,6 +2428,7 @@ classes = (
     USERPREF_PT_input_keyboard,
     USERPREF_PT_input_mouse,
     USERPREF_PT_input_tablet,
+    USERPREF_PT_input_touchpad,
     USERPREF_PT_input_ndof,
     USERPREF_PT_navigation_orbit,
     USERPREF_PT_navigation_zoom,

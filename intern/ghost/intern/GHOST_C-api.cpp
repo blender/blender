@@ -743,6 +743,12 @@ GHOST_TSuccess GHOST_InvalidateWindow(GHOST_WindowHandle windowhandle)
   return window->invalidate();
 }
 
+void GHOST_SetMultitouchGestures(GHOST_SystemHandle systemhandle, const bool use)
+{
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+  return system->setMultitouchGestures(use);
+}
+
 void GHOST_SetTabletAPI(GHOST_SystemHandle systemhandle, GHOST_TTabletAPI api)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;

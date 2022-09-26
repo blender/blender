@@ -240,6 +240,12 @@ class GHOST_System : public GHOST_ISystem {
   GHOST_TSuccess getButtonState(GHOST_TButton mask, bool &isDown) const;
 
   /**
+   * Enable multitouch gestures if supported.
+   * \param use: Enable or disable.
+   */
+  void setMultitouchGestures(const bool use);
+
+  /**
    * Set which tablet API to use. Only affects Windows, other platforms have a single API.
    * \param api: Enum indicating which API to use.
    */
@@ -401,6 +407,9 @@ class GHOST_System : public GHOST_ISystem {
 
   /** Settings of the display before the display went full-screen. */
   GHOST_DisplaySetting m_preFullScreenSetting;
+
+  /* Use multitouch gestures? */
+  bool m_multitouchGestures;
 
   /** Which tablet API to use. */
   GHOST_TTabletAPI m_tabletAPI;

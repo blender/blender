@@ -462,8 +462,8 @@ static void wm_init_userdef(Main *bmain)
   /* Update the temporary directory from the preferences or fallback to the system default. */
   BKE_tempdir_init(U.tempdir);
 
-  /* Update tablet API preference. */
-  WM_init_tablet_api();
+  /* Update input device preference. */
+  WM_init_input_devices();
 
   BLO_sanitize_experimental_features_userpref_blend(&U);
 }

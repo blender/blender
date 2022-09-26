@@ -741,6 +741,13 @@ extern unsigned int GHOST_GetContextDefaultOpenGLFramebuffer(GHOST_ContextHandle
 extern unsigned int GHOST_GetDefaultOpenGLFramebuffer(GHOST_WindowHandle windowhandle);
 
 /**
+ * Use multitouch gestures if supported.
+ * \param systemhandle: The handle to the system.
+ * \param use: Enable or disable.
+ */
+extern void GHOST_SetMultitouchGestures(GHOST_SystemHandle systemhandle, const bool use);
+
+/**
  * Set which tablet API to use. Only affects Windows, other platforms have a single API.
  * \param systemhandle: The handle to the system.
  * \param api: Enum indicating which API to use.

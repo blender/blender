@@ -421,6 +421,12 @@ class GHOST_ISystem {
   virtual GHOST_TSuccess getButtonState(GHOST_TButton mask, bool &isDown) const = 0;
 
   /**
+   * Enable multitouch gestures if supported.
+   * \param use: Enable or disable.
+   */
+  virtual void setMultitouchGestures(const bool use) = 0;
+
+  /**
    * Set which tablet API to use. Only affects Windows, other platforms have a single API.
    * \param api: Enum indicating which API to use.
    */

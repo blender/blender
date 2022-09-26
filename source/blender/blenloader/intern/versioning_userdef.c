@@ -535,7 +535,7 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(280, 44)) {
-    userdef->uiflag &= ~(USER_UIFLAG_UNUSED_0 | USER_UIFLAG_UNUSED_1);
+    userdef->uiflag &= ~(USER_NO_MULTITOUCH_GESTURES | USER_UIFLAG_UNUSED_1);
     userdef->uiflag2 &= ~(USER_UIFLAG2_UNUSED_0);
     userdef->gp_settings &= ~(GP_PAINT_UNUSED_0);
   }
