@@ -1034,7 +1034,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
     float *result_edge_crease = NULL;
     if (crease_rim || crease_outer || crease_inner) {
-      result_edge_crease = (float *)CustomData_get_layer(&result->edata, CD_CREASE);
+      result_edge_crease = (float *)CustomData_add_layer(
+          &result->edata, CD_CREASE, CD_SET_DEFAULT, NULL, result->totedge);
     }
 
     /* add faces & edges */
