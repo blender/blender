@@ -1190,8 +1190,6 @@ macro(openmp_delayload
     if(WITH_OPENMP)
       if(MSVC_CLANG)
         set(OPENMP_DLL_NAME "libomp")
-      elseif(MSVC_VERSION EQUAL 1800)
-        set(OPENMP_DLL_NAME "vcomp120")
       else()
         set(OPENMP_DLL_NAME "vcomp140")
       endif()

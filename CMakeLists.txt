@@ -112,6 +112,25 @@ enable_testing()
 
 
 # -----------------------------------------------------------------------------
+# Test Compiler Support
+#
+# Keep in sync with: https://wiki.blender.org/wiki/Building_Blender
+
+if(CMAKE_COMPILER_IS_GNUCC)
+  if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "9.3.1")
+    message(FATAL_ERROR "The minimum supported version of GCC is 9.3.1")
+  endif()
+elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
+  if(CMAKE_COMPILER_IS_GNUCC AND ("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "8.0"))
+    message(FATAL_ERROR "The minimum supported version of CLANG is 8.0")
+  endif()
+elseif(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+  if(MSVC_VERSION VERSION_LESS "1928")
+    message(FATAL_ERROR "The minimum supported version of MSVC is 2019 (16.9.16)")
+  endif()
+endif()
+
+# -----------------------------------------------------------------------------
 # Test Compiler/Library Features
 
 include(build_files/cmake/have_features.cmake)
@@ -1428,22 +1447,13 @@ if(CMAKE_COMPILER_IS_GNUCC)
   add_check_c_compiler_flag(C_WARNINGS C_WARN_NO_NULL -Wnonnull)
   add_check_c_compiler_flag(C_WARNINGS C_WARN_ABSOLUTE_VALUE -Wabsolute-value)
 
-  # gcc 4.2 gives annoying warnings on every file with this
-  if(NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "4.3")
-    add_check_c_compiler_flag(C_WARNINGS C_WARN_UNINITIALIZED -Wuninitialized)
-    add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_UNINITIALIZED -Wuninitialized)
-  endif()
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_UNINITIALIZED -Wuninitialized)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_UNINITIALIZED -Wuninitialized)
 
-  # versions before gcc4.6 give many BLI_math warnings
-  if(NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "4.6")
-    add_check_c_compiler_flag(C_WARNINGS C_WARN_REDUNDANT_DECLS       -Wredundant-decls)
-    add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_REDUNDANT_DECLS -Wredundant-decls)
-  endif()
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_REDUNDANT_DECLS       -Wredundant-decls)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_REDUNDANT_DECLS -Wredundant-decls)
 
-  # versions before gcc4.8 include global name-space.
-  if(NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "4.8")
-    add_check_c_compiler_flag(C_WARNINGS C_WARN_SHADOW -Wshadow)
-  endif()
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_SHADOW -Wshadow)
 
   # disable because it gives warnings for printf() & friends.
   # add_check_c_compiler_flag(C_WARNINGS C_WARN_DOUBLE_PROMOTION -Wdouble-promotion -Wno-error=double-promotion)
@@ -1470,11 +1480,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
   add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_FORMAT_SIGN -Wformat-signedness)
   add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_RESTRICT -Wrestrict)
   add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_SUGGEST_OVERRIDE  -Wno-suggest-override)
-
-  # gcc 4.2 gives annoying warnings on every file with this
-  if(NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "4.3")
-    add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_UNINITIALIZED -Wuninitialized)
-  endif()
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_UNINITIALIZED -Wuninitialized)
 
   # causes too many warnings
   if(NOT APPLE)
@@ -1483,11 +1489,8 @@ if(CMAKE_COMPILER_IS_GNUCC)
   endif()
 
   # Use 'ATTR_FALLTHROUGH' macro to suppress.
-  if(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "7.0"))
-    add_check_c_compiler_flag(C_WARNINGS C_WARN_IMPLICIT_FALLTHROUGH -Wimplicit-fallthrough=5)
-    add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_IMPLICIT_FALLTHROUGH -Wimplicit-fallthrough=5)
-  endif()
-
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_IMPLICIT_FALLTHROUGH -Wimplicit-fallthrough=5)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_IMPLICIT_FALLTHROUGH -Wimplicit-fallthrough=5)
 
   # ---------------------
   # Suppress Strict Flags
@@ -1517,9 +1520,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
   add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_VARIABLE     -Wno-unused-variable)
   add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_VARIABLE     -Wno-uninitialized)
 
-  if(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "7.0"))
-    add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_IMPLICIT_FALLTHROUGH    -Wno-implicit-fallthrough)
-  endif()
+  add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_IMPLICIT_FALLTHROUGH    -Wno-implicit-fallthrough)
 
   if(NOT APPLE)
     add_check_c_compiler_flag(C_REMOVE_STRICT_FLAGS C_WARN_NO_ERROR_UNUSED_BUT_SET_VARIABLE -Wno-error=unused-but-set-variable)
@@ -1609,6 +1610,8 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "MSVC")
     "/w34062"  # switch statement contains 'default' but no 'case' labels
     "/w34115"  # 'type' : named type definition in parentheses
     "/w34189"  # local variable is initialized but not referenced
+    # see https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/c5038?view=vs-2017
+    "/w35038"  # order of initialization in c++ constructors
     # disable:
     "/wd4018"  # signed/unsigned mismatch
     "/wd4146"  # unary minus operator applied to unsigned type, result still unsigned
@@ -1629,11 +1632,6 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "MSVC")
     "/we4133"  # incompatible pointer types
     "/we4431"  # missing type specifier - int assumed
   )
-
-  if(MSVC_VERSION GREATER_EQUAL 1911)
-    # see https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/c5038?view=vs-2017
-    string(APPEND _WARNINGS " /w35038") # order of initialization in c++ constructors
-  endif()
 
   string(REPLACE ";" " " _WARNINGS "${_WARNINGS}")
   set(C_WARNINGS "${_WARNINGS}")
@@ -1686,7 +1684,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Make MSVC properly report the value of the __cplusplus preprocessor macro
 # Available MSVC 15.7 (1914) and up, without this it reports 199711L regardless
 # of the C++ standard chosen above.
-if(MSVC AND MSVC_VERSION GREATER 1913)
+if(MSVC)
   string(APPEND CMAKE_CXX_FLAGS " /Zc:__cplusplus")
 endif()
 

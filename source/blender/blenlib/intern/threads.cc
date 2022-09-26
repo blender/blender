@@ -37,17 +37,6 @@
 
 #include "atomic_ops.h"
 
-#if defined(__APPLE__) && defined(_OPENMP) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2) && \
-    !defined(__clang__)
-#  define USE_APPLE_OMP_FIX
-#endif
-
-#ifdef USE_APPLE_OMP_FIX
-/* ************** libgomp (Apple gcc 4.2.1) TLS bug workaround *************** */
-extern pthread_key_t gomp_tls_key;
-static void *thread_tls_data;
-#endif
-
 /**
  * Basic Thread Control API
  * ========================
@@ -153,15 +142,7 @@ void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int t
     }
   }
 
-  uint level = atomic_fetch_and_add_u(&thread_levels, 1);
-  if (level == 0) {
-#ifdef USE_APPLE_OMP_FIX
-    /* Workaround for Apple gcc 4.2.1 OMP vs background thread bug,
-     * we copy GOMP thread local storage pointer to setting it again
-     * inside the thread that we start. */
-    thread_tls_data = pthread_getspecific(gomp_tls_key);
-#endif
-  }
+  atomic_fetch_and_add_u(&thread_levels, 1);
 }
 
 int BLI_available_threads(ListBase *threadbase)
@@ -194,13 +175,6 @@ int BLI_threadpool_available_thread_index(ListBase *threadbase)
 static void *tslot_thread_start(void *tslot_p)
 {
   ThreadSlot *tslot = (ThreadSlot *)tslot_p;
-
-#ifdef USE_APPLE_OMP_FIX
-  /* Workaround for Apple gcc 4.2.1 OMP vs background thread bug,
-   * set GOMP thread local storage pointer which was copied beforehand */
-  pthread_setspecific(gomp_tls_key, thread_tls_data);
-#endif
-
   return tslot->do_thread(tslot->callerdata);
 }
 

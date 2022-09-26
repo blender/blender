@@ -106,8 +106,7 @@
 /* Copied from BLI_utils... */
 /* C++ can't use _Static_assert, expects static_assert() but c++0x only,
  * Coverity also errors out. */
-#if (!defined(__cplusplus)) && (!defined(__COVERITY__)) && \
-    (defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 406)) /* gcc4.6+ only */
+#if (!defined(__cplusplus)) && (!defined(__COVERITY__)) && (defined(__GNUC__)) /* GCC only. */
 #  define ATOMIC_STATIC_ASSERT(a, msg) __extension__ _Static_assert(a, msg);
 #else
 /* Code adapted from http://www.pixelbeat.org/programming/gcc/static_assert.html */

@@ -25,7 +25,7 @@
 #endif
 
 /* never returns NULL */
-#if (__GNUC__ * 100 + __GNUC_MINOR__) >= 409 /* gcc4.9+ only */
+#ifdef __GNUC__
 #  define ATTR_RETURNS_NONNULL __attribute__((returns_nonnull))
 #else
 #  define ATTR_RETURNS_NONNULL
@@ -39,14 +39,14 @@
 #endif
 
 /* hint to treat any non-null function return value cannot alias any other pointer */
-#if (defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 403))
+#ifdef __GNUC__
 #  define ATTR_MALLOC __attribute__((malloc))
 #else
 #  define ATTR_MALLOC
 #endif
 
 /* the function return value points to memory (2 args for 'size * tot') */
-#if (defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 403))
+#ifdef __GNUC__
 #  define ATTR_ALLOC_SIZE(args...) __attribute__((alloc_size(args)))
 #else
 #  define ATTR_ALLOC_SIZE(...)
@@ -69,7 +69,7 @@
 
 /* Use to suppress '-Wimplicit-fallthrough' (in place of 'break'). */
 #ifndef ATTR_FALLTHROUGH
-#  if defined(__GNUC__) && (__GNUC__ >= 7) /* gcc7.0+ only */
+#  ifdef __GNUC__
 #    define ATTR_FALLTHROUGH __attribute__((fallthrough))
 #  else
 #    define ATTR_FALLTHROUGH ((void)0)

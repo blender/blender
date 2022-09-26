@@ -26,11 +26,6 @@ if(NOT DEFINED LIBDIR)
     else()
       set(WITH_LIBC_MALLOC_HOOK_WORKAROUND True)
     endif()
-
-    if(CMAKE_COMPILER_IS_GNUCC AND
-       CMAKE_C_COMPILER_VERSION VERSION_LESS 9.3)
-      message(FATAL_ERROR "GCC version must be at least 9.3 for precompiled libraries, found ${CMAKE_C_COMPILER_VERSION}")
-    endif()
   endif()
 
   # Avoid namespace pollustion.

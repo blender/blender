@@ -6,12 +6,8 @@
 #include "testing/testing.h"
 
 #ifdef __GNUC__
-#  if (__GNUC__ * 100 + __GNUC_MINOR__) >= 406 /* gcc4.6+ only */
-#    pragma GCC diagnostic error "-Wsign-compare"
-#  endif
-#  if (__GNUC__ * 100 + __GNUC_MINOR__) >= 408
-#    pragma GCC diagnostic error "-Wsign-conversion"
-#  endif
+#  pragma GCC diagnostic error "-Wsign-compare"
+#  pragma GCC diagnostic error "-Wsign-conversion"
 #endif
 
 /* -------------------------------------------------------------------- */
