@@ -467,7 +467,7 @@ void GHOST_XrControllerModel::loadControllerModel(XrSession session)
                             std::string *p2,
                             int p3,
                             int p4,
-                            const unsigned char *p5,
+                            const uchar *p5,
                             int p6,
                             void *user_pointer) -> bool {
       (void)img;

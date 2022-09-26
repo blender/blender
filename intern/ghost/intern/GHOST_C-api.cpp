@@ -722,14 +722,14 @@ GHOST_TSuccess GHOST_ReleaseOpenGLContext(GHOST_ContextHandle contexthandle)
   return context->releaseDrawingContext();
 }
 
-unsigned int GHOST_GetContextDefaultOpenGLFramebuffer(GHOST_ContextHandle contexthandle)
+uint GHOST_GetContextDefaultOpenGLFramebuffer(GHOST_ContextHandle contexthandle)
 {
   GHOST_IContext *context = (GHOST_IContext *)contexthandle;
 
   return context->getDefaultFramebuffer();
 }
 
-unsigned int GHOST_GetDefaultOpenGLFramebuffer(GHOST_WindowHandle windowhandle)
+uint GHOST_GetDefaultOpenGLFramebuffer(GHOST_WindowHandle windowhandle)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
@@ -1125,8 +1125,7 @@ void *GHOST_XrGetActionCustomdata(GHOST_XrContextHandle xr_contexthandle,
   return 0;
 }
 
-unsigned int GHOST_XrGetActionCount(GHOST_XrContextHandle xr_contexthandle,
-                                    const char *action_set_name)
+uint GHOST_XrGetActionCount(GHOST_XrContextHandle xr_contexthandle, const char *action_set_name)
 {
   GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
   GHOST_XrSession *xr_session = xr_context->getSession();

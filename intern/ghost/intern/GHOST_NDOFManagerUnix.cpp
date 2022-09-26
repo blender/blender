@@ -31,7 +31,7 @@ GHOST_NDOFManagerUnix::GHOST_NDOFManagerUnix(GHOST_System &sys)
     if (command_output) {
       char line[MAX_LINE_LENGTH] = {0};
       while (fgets(line, MAX_LINE_LENGTH, command_output)) {
-        unsigned short vendor_id = 0, product_id = 0;
+        ushort vendor_id = 0, product_id = 0;
         if (sscanf(line, "Bus %*d Device %*d: ID %hx:%hx", &vendor_id, &product_id) == 2) {
           if (setDevice(vendor_id, product_id)) {
             break; /* stop looking once the first 3D mouse is found */

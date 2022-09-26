@@ -97,7 +97,7 @@ GHOST_Context *GHOST_Window::getContext()
   return m_context;
 }
 
-unsigned int GHOST_Window::getDefaultFramebuffer()
+uint GHOST_Window::getDefaultFramebuffer()
 {
   return (m_context) ? m_context->getDefaultFramebuffer() : 0;
 }

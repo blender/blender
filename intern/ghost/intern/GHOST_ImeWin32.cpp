@@ -270,7 +270,7 @@ void GHOST_ImeWin32::GetCaret(HIMC imm_context, LPARAM lparam, ImeComposition *c
   else if (IsLanguage(IMELANG_CHINESE)) {
     int clause_size = ImmGetCompositionStringW(imm_context, GCS_COMPCLAUSE, NULL, 0);
     if (clause_size) {
-      static std::vector<unsigned long> clauses;
+      static std::vector<ulong> clauses;
       clause_size = clause_size / sizeof(clauses[0]);
       clauses.resize(clause_size);
       ImmGetCompositionStringW(

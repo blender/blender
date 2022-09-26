@@ -25,14 +25,14 @@ using DecodeState_e = enum DecodeState_e {
 
 void GHOST_URL_decode(char *buf_dst, int buf_dst_size, const char *buf_src)
 {
-  const unsigned int buf_src_len = strlen(buf_src);
+  const uint buf_src_len = strlen(buf_src);
   DecodeState_e state = STATE_SEARCH;
-  unsigned int ascii_character;
+  uint ascii_character;
   char temp_num_buf[3] = {0};
 
   memset(buf_dst, 0, buf_dst_size);
 
-  for (unsigned int i = 0; i < buf_src_len; i++) {
+  for (uint i = 0; i < buf_src_len; i++) {
     switch (state) {
       case STATE_SEARCH: {
         if (buf_src[i] != '%') {

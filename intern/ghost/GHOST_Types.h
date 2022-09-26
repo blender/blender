@@ -11,6 +11,12 @@
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
+#else
+/* Convenience unsigned abbreviations (#WITH_CXX_GUARDEDALLOC defines these). */
+typedef unsigned int uint;
+typedef unsigned short ushort;
+typedef unsigned long ulong;
+typedef unsigned char uchar;
 #endif
 
 #if defined(WITH_CXX_GUARDEDALLOC) && defined(__cplusplus)

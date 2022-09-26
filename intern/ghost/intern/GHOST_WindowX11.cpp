@@ -14,6 +14,7 @@
 #include "GHOST_Debug.h"
 #include "GHOST_IconX11.h"
 #include "GHOST_SystemX11.h"
+#include "GHOST_Types.h"
 #include "GHOST_WindowX11.h"
 #include "GHOST_utildefines.h"
 
@@ -140,7 +141,7 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
     return;
   }
 
-  unsigned int xattributes_valuemask = 0;
+  uint xattributes_valuemask = 0;
 
   XSetWindowAttributes xattributes;
   memset(&xattributes, 0, sizeof(xattributes));
@@ -202,7 +203,7 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
                     XA_ATOM,
                     32,
                     PropModeReplace,
-                    (unsigned char *)atoms,
+                    (uchar *)atoms,
                     count);
     m_post_init = False;
   }
@@ -300,7 +301,7 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
                     XA_CARDINAL,
                     32,
                     PropModeReplace,
-                    (unsigned char *)BLENDER_ICONS_WM_X11,
+                    (uchar *)BLENDER_ICONS_WM_X11,
                     ARRAY_SIZE(BLENDER_ICONS_WM_X11));
   }
 
@@ -308,14 +309,8 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
   {
     Atom _NET_WM_PID = XInternAtom(m_display, "_NET_WM_PID", False);
     pid_t pid = getpid();
-    XChangeProperty(m_display,
-                    m_window,
-                    _NET_WM_PID,
-                    XA_CARDINAL,
-                    32,
-                    PropModeReplace,
-                    (unsigned char *)&pid,
-                    1);
+    XChangeProperty(
+        m_display, m_window, _NET_WM_PID, XA_CARDINAL, 32, PropModeReplace, (uchar *)&pid, 1);
   }
 
   /* set the hostname (WM_CLIENT_MACHINE) */
@@ -399,7 +394,7 @@ bool GHOST_WindowX11::createX11_XIC()
   if (!m_xic)
     return false;
 
-  unsigned long fevent;
+  ulong fevent;
   XGetICValues(m_xic, XNFilterEvents, &fevent, nullptr);
   XSelectInput(m_display,
                m_window,
@@ -462,14 +457,8 @@ void GHOST_WindowX11::setTitle(const char *title)
 {
   Atom name = XInternAtom(m_display, "_NET_WM_NAME", 0);
   Atom utf8str = XInternAtom(m_display, "UTF8_STRING", 0);
-  XChangeProperty(m_display,
-                  m_window,
-                  name,
-                  utf8str,
-                  8,
-                  PropModeReplace,
-                  (const unsigned char *)title,
-                  strlen(title));
+  XChangeProperty(
+      m_display, m_window, name, utf8str, 8, PropModeReplace, (const uchar *)title, strlen(title));
 
   /* This should convert to valid x11 string
    * and getTitle would need matching change */
@@ -499,7 +488,7 @@ void GHOST_WindowX11::getClientBounds(GHOST_Rect &bounds) const
 {
   Window root_return;
   int x_return, y_return;
-  unsigned int w_return, h_return, border_w_return, depth_return;
+  uint w_return, h_return, border_w_return, depth_return;
   int32_t screen_x, screen_y;
 
   XGetGeometry(m_display,
@@ -523,7 +512,7 @@ void GHOST_WindowX11::getClientBounds(GHOST_Rect &bounds) const
 GHOST_TSuccess GHOST_WindowX11::setClientWidth(uint32_t width)
 {
   XWindowChanges values;
-  unsigned int value_mask = CWWidth;
+  uint value_mask = CWWidth;
   values.width = width;
   XConfigureWindow(m_display, m_window, value_mask, &values);
 
@@ -533,7 +522,7 @@ GHOST_TSuccess GHOST_WindowX11::setClientWidth(uint32_t width)
 GHOST_TSuccess GHOST_WindowX11::setClientHeight(uint32_t height)
 {
   XWindowChanges values;
-  unsigned int value_mask = CWHeight;
+  uint value_mask = CWHeight;
   values.height = height;
   XConfigureWindow(m_display, m_window, value_mask, &values);
   return GHOST_kSuccess;
@@ -542,7 +531,7 @@ GHOST_TSuccess GHOST_WindowX11::setClientHeight(uint32_t height)
 GHOST_TSuccess GHOST_WindowX11::setClientSize(uint32_t width, uint32_t height)
 {
   XWindowChanges values;
-  unsigned int value_mask = CWWidth | CWHeight;
+  uint value_mask = CWWidth | CWHeight;
   values.width = width;
   values.height = height;
   XConfigureWindow(m_display, m_window, value_mask, &values);
@@ -586,7 +575,7 @@ GHOST_TSuccess GHOST_WindowX11::setDialogHints(GHOST_WindowX11 *parentWindow)
                   XA_ATOM,
                   32,
                   PropModeReplace,
-                  (unsigned char *)&atom_dialog,
+                  (uchar *)&atom_dialog,
                   1);
   XSetTransientForHint(m_display, m_window, parentWindow->m_window);
 
@@ -603,7 +592,7 @@ GHOST_TSuccess GHOST_WindowX11::setDialogHints(GHOST_WindowX11 *parentWindow)
                   m_system->m_atom._MOTIF_WM_HINTS,
                   32,
                   PropModeReplace,
-                  (unsigned char *)&hints,
+                  (uchar *)&hints,
                   4);
 
   return GHOST_kSuccess;
@@ -638,7 +627,7 @@ int GHOST_WindowX11::icccmGetState() const
     CARD32 state;
     XID icon;
   } * prop_ret;
-  unsigned long bytes_after, num_ret;
+  ulong bytes_after, num_ret;
   Atom type_ret;
   int ret, format_ret;
   CARD32 st;
@@ -655,7 +644,7 @@ int GHOST_WindowX11::icccmGetState() const
                            &format_ret,
                            &num_ret,
                            &bytes_after,
-                           ((unsigned char **)&prop_ret));
+                           ((uchar **)&prop_ret));
   if ((ret == Success) && (prop_ret != nullptr) && (num_ret == 2)) {
     st = prop_ret->state;
   }
@@ -702,7 +691,7 @@ void GHOST_WindowX11::netwmMaximized(bool set)
 bool GHOST_WindowX11::netwmIsMaximized() const
 {
   Atom *prop_ret;
-  unsigned long bytes_after, num_ret, i;
+  ulong bytes_after, num_ret, i;
   Atom type_ret;
   bool st;
   int format_ret, ret, count;
@@ -720,7 +709,7 @@ bool GHOST_WindowX11::netwmIsMaximized() const
                            &format_ret,
                            &num_ret,
                            &bytes_after,
-                           (unsigned char **)&prop_ret);
+                           (uchar **)&prop_ret);
   if ((ret == Success) && (prop_ret) && (format_ret == 32)) {
     count = 0;
     for (i = 0; i < num_ret; i++) {
@@ -775,7 +764,7 @@ void GHOST_WindowX11::netwmFullScreen(bool set)
 bool GHOST_WindowX11::netwmIsFullScreen() const
 {
   Atom *prop_ret;
-  unsigned long bytes_after, num_ret, i;
+  ulong bytes_after, num_ret, i;
   Atom type_ret;
   bool st;
   int format_ret, ret;
@@ -793,7 +782,7 @@ bool GHOST_WindowX11::netwmIsFullScreen() const
                            &format_ret,
                            &num_ret,
                            &bytes_after,
-                           (unsigned char **)&prop_ret);
+                           (uchar **)&prop_ret);
   if ((ret == Success) && (prop_ret) && (format_ret == 32)) {
     for (i = 0; i < num_ret; i++) {
       if (prop_ret[i] == m_system->m_atom._NET_WM_STATE_FULLSCREEN) {
@@ -827,14 +816,14 @@ void GHOST_WindowX11::motifFullScreen(bool set)
                   m_system->m_atom._MOTIF_WM_HINTS,
                   32,
                   PropModeReplace,
-                  (unsigned char *)&hints,
+                  (uchar *)&hints,
                   4);
 }
 
 bool GHOST_WindowX11::motifIsFullScreen() const
 {
   MotifWmHints *prop_ret;
-  unsigned long bytes_after, num_ret;
+  ulong bytes_after, num_ret;
   Atom type_ret;
   bool state;
   int format_ret, st;
@@ -852,7 +841,7 @@ bool GHOST_WindowX11::motifIsFullScreen() const
                           &format_ret,
                           &num_ret,
                           &bytes_after,
-                          (unsigned char **)&prop_ret);
+                          (uchar **)&prop_ret);
   if ((st == Success) && prop_ret) {
     if (prop_ret->flags & MWM_HINTS_DECORATIONS) {
       if (!prop_ret->decorations) {
@@ -1055,7 +1044,7 @@ bool GHOST_WindowX11::isDialog() const
   Atom atom_dialog = XInternAtom(m_display, "_NET_WM_WINDOW_TYPE_DIALOG", False);
 
   Atom *prop_ret;
-  unsigned long bytes_after, num_ret;
+  ulong bytes_after, num_ret;
   Atom type_ret;
   bool st;
   int format_ret, ret;
@@ -1073,7 +1062,7 @@ bool GHOST_WindowX11::isDialog() const
                            &format_ret,
                            &num_ret,
                            &bytes_after,
-                           (unsigned char **)&prop_ret);
+                           (uchar **)&prop_ret);
   if ((ret == Success) && (prop_ret) && (format_ret == 32)) {
     if (prop_ret[0] == atom_dialog) {
       st = True;
@@ -1127,7 +1116,7 @@ void GHOST_WindowX11::validate()
 
 GHOST_WindowX11::~GHOST_WindowX11()
 {
-  std::map<unsigned int, Cursor>::iterator it = m_standard_cursors.begin();
+  std::map<uint, Cursor>::iterator it = m_standard_cursors.begin();
   for (; it != m_standard_cursors.end(); ++it) {
     XFreeCursor(m_display, it->second);
   }
@@ -1308,7 +1297,7 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
 
 GHOST_TSuccess GHOST_WindowX11::getStandardCursor(GHOST_TStandardCursor g_cursor, Cursor &xcursor)
 {
-  unsigned int xcursor_id;
+  uint xcursor_id;
 
   switch (g_cursor) {
     case GHOST_kStandardCursorHelp:
@@ -1546,7 +1535,7 @@ GHOST_TSuccess GHOST_WindowX11::beginFullScreen() const
   {
     Window root_return;
     int x_return, y_return;
-    unsigned int w_return, h_return, border_w_return, depth_return;
+    uint w_return, h_return, border_w_return, depth_return;
 
     XGetGeometry(m_display,
                  m_window,

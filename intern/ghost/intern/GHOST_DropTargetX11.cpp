@@ -107,7 +107,7 @@ char *GHOST_DropTargetX11::FileUrlDecode(char *fileUrl)
   return nullptr;
 }
 
-void *GHOST_DropTargetX11::getURIListGhostData(unsigned char *dropBuffer, int dropBufferSize)
+void *GHOST_DropTargetX11::getURIListGhostData(uchar *dropBuffer, int dropBufferSize)
 {
   GHOST_TStringArray *strArray = nullptr;
   int totPaths = 0, curLength = 0;
@@ -157,12 +157,10 @@ void *GHOST_DropTargetX11::getURIListGhostData(unsigned char *dropBuffer, int dr
   return strArray;
 }
 
-void *GHOST_DropTargetX11::getGhostData(Atom dropType,
-                                        unsigned char *dropBuffer,
-                                        int dropBufferSize)
+void *GHOST_DropTargetX11::getGhostData(Atom dropType, uchar *dropBuffer, int dropBufferSize)
 {
   void *data = nullptr;
-  unsigned char *tmpBuffer = (unsigned char *)malloc(dropBufferSize + 1);
+  uchar *tmpBuffer = (uchar *)malloc(dropBufferSize + 1);
   bool needsFree = true;
 
   /* Ensure nil-terminator. */
@@ -201,7 +199,7 @@ void *GHOST_DropTargetX11::getGhostData(Atom dropType,
 bool GHOST_DropTargetX11::GHOST_HandleClientMessage(XEvent *event)
 {
   Atom dropType;
-  unsigned char *dropBuffer;
+  uchar *dropBuffer;
   int dropBufferSize, dropX, dropY;
 
   if (xdnd_get_drop(m_system->getXDisplay(),
