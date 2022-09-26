@@ -105,6 +105,9 @@ All instructions on how to use this code are in the accompanying header file.
 #  define ALLOC(_struct) ((_struct *)malloc(sizeof(_struct)))
 #endif
 
+/* Not defined on all platforms (macOS & WIN32). */
+typedef unsigned int uint;
+
 // internal definitions
 
 typedef const double *ArHosekSkyModel_Dataset;
