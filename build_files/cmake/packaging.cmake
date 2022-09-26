@@ -48,7 +48,7 @@ if(MSVC)
   else()
     set(PACKAGE_ARCH windows32)
   endif()
-else(MSVC)
+else()
   set(PACKAGE_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 endif()
 
