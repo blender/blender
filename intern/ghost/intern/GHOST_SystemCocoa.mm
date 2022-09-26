@@ -1681,7 +1681,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
       /* we assume phases are only set for gestures from trackpad or magic
        * mouse events. note that using tablet at the same time may not work
        * since this is a static variable */
-      if (phase == NSEventPhaseBegan)
+      if (phase == NSEventPhaseBegan && m_multitouchGestures)
         m_multiTouchScroll = true;
       else if (phase == NSEventPhaseEnded)
         m_multiTouchScroll = false;

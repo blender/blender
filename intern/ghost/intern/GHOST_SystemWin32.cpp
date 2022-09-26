@@ -2124,7 +2124,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           /* The DM_POINTERHITTEST message is sent to a window, when pointer input is first
            * detected, in order to determine the most probable input target for Direct
            * Manipulation. */
-          window->onPointerHitTest(wParam);
+          if (system->m_multitouchGestures) {
+            window->onPointerHitTest(wParam);
+          }
           break;
       }
     }
