@@ -61,6 +61,7 @@ void register_node_type_geo_field_at_index(void);
 void register_node_type_geo_flip_faces(void);
 void register_node_type_geo_geometry_to_instance(void);
 void register_node_type_geo_image_texture(void);
+void register_node_type_geo_input_control_point_neighbors(void);
 void register_node_type_geo_input_curve_handles(void);
 void register_node_type_geo_input_curve_tilt(void);
 void register_node_type_geo_input_id(void);

@@ -71,6 +71,7 @@ set(SRC
   nodes/node_geo_flip_faces.cc
   nodes/node_geo_geometry_to_instance.cc
   nodes/node_geo_image_texture.cc
+  nodes/node_geo_input_control_point_neighbors.cc
   nodes/node_geo_input_curve_handles.cc
   nodes/node_geo_input_curve_tilt.cc
   nodes/node_geo_input_id.cc
