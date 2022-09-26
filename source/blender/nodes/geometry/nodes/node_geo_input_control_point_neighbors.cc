@@ -2,9 +2,9 @@
 
 #include "BLI_task.hh"
 
-#include "node_geometry_util.hh"
-
 #include "BKE_curves.hh"
+
+#include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_input_control_point_neighbors_cc {
 
@@ -25,7 +25,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Int>(N_("Point Index"))
       .field_source()
       .description(N_("The index of the control point plus the offset within the entire "
-                      "curves object"));
+                      "curves data-block"));
 }
 
 static int apply_offset_in_cyclic_range(const IndexRange range,
@@ -53,33 +53,34 @@ static Array<int> build_parent_curves(const bke::CurvesGeometry &curves)
 
 class ControlPointNeighborFieldInput final : public bke::CurvesFieldInput {
  private:
-  Field<int> index_;
-  Field<int> offset_;
+  const Field<int> index_;
+  const Field<int> offset_;
 
  public:
   ControlPointNeighborFieldInput(Field<int> index, Field<int> offset)
-      : CurvesFieldInput(CPPType::get<int>(), "Control Point Neighbors node"),
-        index_(index),
-        offset_(offset)
+      : CurvesFieldInput(CPPType::get<int>(), "Control Point Neighbors"),
+        index_(std::move(index)),
+        offset_(std::move(offset))
   {
     category_ = Category::Generated;
   }
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
                                  const eAttrDomain domain,
-                                 IndexMask mask) const final
+                                 const IndexMask mask) const final
   {
     const VArray<bool> cyclic = curves.cyclic();
     const Array<int> parent_curves = build_parent_curves(curves);
-    bke::CurvesFieldContext context{curves, domain};
+
+    const bke::CurvesFieldContext context{curves, domain};
     fn::FieldEvaluator evaluator{context, &mask};
     evaluator.add(index_);
     evaluator.add(offset_);
     evaluator.evaluate();
     const VArray<int> indices = evaluator.get_evaluated<int>(0);
     const VArray<int> offsets = evaluator.get_evaluated<int>(1);
-    Array<int> output(curves.points_num());
 
+    Array<int> output(mask.min_array_size());
     for (const int i_selection : mask) {
       const int i_point = std::clamp(indices[i_selection], 0, curves.points_num() - 1);
       const int i_curve = parent_curves[i_point];
@@ -91,7 +92,7 @@ class ControlPointNeighborFieldInput final : public bke::CurvesFieldInput {
             curve_points, i_point, offsets[i_selection]);
         continue;
       }
-      output[i_selection] = std::clamp(offset_point, 0, int(curves.points_num() - 1));
+      output[i_selection] = std::clamp(offset_point, 0, curves.points_num() - 1);
     }
 
     return VArray<int>::ForContainer(std::move(output));
@@ -100,12 +101,14 @@ class ControlPointNeighborFieldInput final : public bke::CurvesFieldInput {
 
 class OffsetValidFieldInput final : public bke::CurvesFieldInput {
  private:
-  Field<int> index_;
-  Field<int> offset_;
+  const Field<int> index_;
+  const Field<int> offset_;
 
  public:
   OffsetValidFieldInput(Field<int> index, Field<int> offset)
-      : CurvesFieldInput(CPPType::get<bool>(), "Offset Valid"), index_(index), offset_(offset)
+      : CurvesFieldInput(CPPType::get<bool>(), "Offset Valid"),
+        index_(std::move(index)),
+        offset_(std::move(offset))
   {
     category_ = Category::Generated;
   }
@@ -114,24 +117,25 @@ class OffsetValidFieldInput final : public bke::CurvesFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask mask) const final
   {
-    bke::CurvesFieldContext context{curves, ATTR_DOMAIN_POINT};
+    const VArray<bool> cyclic = curves.cyclic();
+    const Array<int> parent_curves = build_parent_curves(curves);
+
+    const bke::CurvesFieldContext context{curves, domain};
     fn::FieldEvaluator evaluator{context, &mask};
     evaluator.add(index_);
     evaluator.add(offset_);
     evaluator.evaluate();
     const VArray<int> indices = evaluator.get_evaluated<int>(0);
     const VArray<int> offsets = evaluator.get_evaluated<int>(1);
-    Array<int> parent_curves = build_parent_curves(curves);
-    VArray<bool> cyclic = curves.cyclic();
-    Array<bool> output(curves.points_num());
 
+    Array<bool> output(mask.min_array_size());
     for (const int i_selection : mask) {
       const int i_point = indices[i_selection];
-
       if (!curves.points_range().contains(i_point)) {
         output[i_selection] = false;
         continue;
       }
+
       const int i_curve = parent_curves[i_point];
       const IndexRange curve_points = curves.points_for_curve(i_curve);
       if (cyclic[i_curve]) {
@@ -157,7 +161,6 @@ static void node_geo_exec(GeoNodeExecParams params)
     Field<bool> valid_field{std::make_shared<OffsetValidFieldInput>(index, offset)};
     params.set_output("Is Valid Offset", std::move(valid_field));
   }
-  params.set_default_remaining_outputs();
 }
 
 }  // namespace blender::nodes::node_geo_input_control_point_neighbors_cc
