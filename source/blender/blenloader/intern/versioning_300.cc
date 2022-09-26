@@ -3519,19 +3519,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     BKE_main_namemap_validate_and_fix(bmain);
   }
-
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
-
+  if (!MAIN_VERSION_ATLEAST(bmain, 304, 1)) {
     /* Image generation information transferred to tiles. */
     if (!DNA_struct_elem_find(fd->filesdna, "ImageTile", "int", "gen_x")) {
       LISTBASE_FOREACH (Image *, ima, &bmain->images) {
@@ -3585,5 +3573,18 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }
