@@ -26,7 +26,7 @@ if(WIN32)
     )
   endif()
 
-else(WIN32)
+else()
 
   function(harvest from to)
     set(pattern "")
