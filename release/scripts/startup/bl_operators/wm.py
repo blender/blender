@@ -2518,6 +2518,7 @@ class WM_OT_batch_rename(Operator):
             ('BONE', "Bones", ""),
             ('NODE', "Nodes", ""),
             ('SEQUENCE_STRIP', "Sequence Strips", ""),
+            ('ACTION_CLIP', "Action Clips", ""),
         ),
         description="Type of data to rename",
     )
@@ -2689,6 +2690,30 @@ class WM_OT_batch_rename(Operator):
                     [id for id in bpy.data.materials if id.library is None],
                     "name",
                     iface_("Material(s)"),
+                )
+            elif data_type == "ACTION_CLIP":
+                data = (
+                    (
+                        # Outliner.
+                        tuple(set(
+                            action for id in context.selected_ids
+                            if (((animation_data := id.animation_data) is not None) and
+                                ((action := animation_data.action) is not None) and
+                                (action.library is None))
+                        ))
+                        if space_type == 'OUTLINER' else
+                        # 3D View (default).
+                        tuple(set(
+                            action for ob in context.selected_objects
+                            if (((animation_data := ob.animation_data) is not None) and
+                                ((action := animation_data.action) is not None) and
+                                (action.library is None))
+                        ))
+                    )
+                    if only_selected else
+                    [id for id in bpy.data.actions if id.library is None],
+                    "name",
+                    iface_("Action(s)"),
                 )
             elif data_type in object_data_type_attrs_map.keys():
                 attr, descr, ty = object_data_type_attrs_map[data_type]
