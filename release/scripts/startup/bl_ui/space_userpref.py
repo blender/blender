@@ -1541,7 +1541,7 @@ class USERPREF_PT_input_touchpad(InputPanel, CenterAlignMixIn, Panel):
     @classmethod
     def poll(cls, context):
         import sys
-        return  sys.platform[:3] == "win" or sys.platform == "darwin"
+        return sys.platform[:3] == "win" or sys.platform == "darwin"
 
     def draw_centered(self, context, layout):
         prefs = context.preferences

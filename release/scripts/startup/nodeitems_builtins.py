@@ -39,14 +39,15 @@ class TextureNodeCategory(SortedNodeCategory):
         return (context.space_data.type == 'NODE_EDITOR' and
                 context.space_data.tree_type == 'TextureNodeTree')
 
-# menu entry for node group tools
+
+# Menu entry for node group tools.
 def group_tools_draw(_self, layout, _context):
     layout.operator("node.group_make")
     layout.operator("node.group_ungroup")
     layout.separator()
 
 
-# maps node tree type to group node type
+# Maps node tree type to group node type.
 node_tree_group_type = {
     'CompositorNodeTree': 'CompositorNodeGroup',
     'ShaderNodeTree': 'ShaderNodeGroup',

@@ -6,6 +6,7 @@ from bpy.app.translations import (
     contexts as i18n_contexts,
 )
 
+
 def add_node_type(layout, node_type, *, label=None):
     """Add a node type to a menu."""
     bl_rna = bpy.types.Node.bl_rna_get_subclass(node_type)
@@ -33,6 +34,7 @@ def draw_node_group_add_menu(context, layout):
 
     if node_tree:
         from nodeitems_builtins import node_tree_group_type
+
         def contains_group(nodetree, group):
             if nodetree == group:
                 return True
@@ -42,9 +44,12 @@ def draw_node_group_add_menu(context, layout):
                         return True
             return False
 
-        groups = [group for group in context.blend_data.node_groups if group.bl_idname == node_tree.bl_idname and
-                                                                    not contains_group(group, node_tree) and
-                                                                    not group.name.startswith('.')]
+        groups = [
+            group for group in context.blend_data.node_groups
+            if (group.bl_idname == node_tree.bl_idname and
+                not contains_group(group, node_tree) and
+                not group.name.startswith('.'))
+        ]
         if groups:
             layout.separator()
             for group in groups:
