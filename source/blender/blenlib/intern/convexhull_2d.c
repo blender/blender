@@ -173,8 +173,8 @@ int BLI_convexhull_2d(const float (*points)[2], const int n, int r_points[])
     }
     return n;
   }
-  struct PointRef *points_ref = MEM_mallocN(sizeof(*points_ref) * n, __func__);
-  float(*points_sort)[2] = MEM_mallocN(sizeof(*points_sort) * n, __func__);
+  struct PointRef *points_ref = MEM_mallocN(sizeof(*points_ref) * (size_t)n, __func__);
+  float(*points_sort)[2] = MEM_mallocN(sizeof(*points_sort) * (size_t)n, __func__);
 
   for (int i = 0; i < n; i++) {
     points_ref[i].pt = points[i];
@@ -256,14 +256,15 @@ static float BLI_convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int 
 
 float BLI_convexhull_aabb_fit_points_2d(const float (*points)[2], int n)
 {
+  BLI_assert(n >= 0);
   float angle = 0.0f;
 
-  int *index_map = MEM_mallocN(sizeof(*index_map) * n, __func__);
+  int *index_map = MEM_mallocN(sizeof(*index_map) * (size_t)n, __func__);
 
   int points_hull_num = BLI_convexhull_2d(points, n, index_map);
 
   if (points_hull_num > 1) {
-    float(*points_hull)[2] = MEM_mallocN(sizeof(*points_hull) * points_hull_num, __func__);
+    float(*points_hull)[2] = MEM_mallocN(sizeof(*points_hull) * (size_t)points_hull_num, __func__);
     for (int j = 0; j < points_hull_num; j++) {
       copy_v2_v2(points_hull[j], points[index_map[j]]);
     }
