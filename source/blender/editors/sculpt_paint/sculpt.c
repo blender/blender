@@ -791,10 +791,9 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
   iter->capacity = SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
   iter->neighbors = iter->neighbors_fixed;
   iter->neighbor_indices = iter->neighbor_indices_fixed;
-  const bool *hide_poly = BKE_pbvh_get_vert_hide(ss->pbvh);
 
   for (int i = 0; i < vert_map->count; i++) {
-    if (hide_poly && hide_poly[vert_map->indices[i]]) {
+    if (ss->hide_poly && ss->hide_poly[vert_map->indices[i]]) {
       /* Skip connectivity from hidden faces. */
       continue;
     }
