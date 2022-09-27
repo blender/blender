@@ -262,6 +262,18 @@
     .mode = 0, \
     .sfra = 1, \
     .efra = 250, \
+    .segments = NULL, \
+    .segments_len = 1, \
+    .segment_active_index = 0, \
+  }
+
+  #define _DNA_DEFAULT_TimeGpencilModifierSegment \
+  { \
+    .name = "", \
+    .seg_start = 1, \
+    .seg_end = 2, \
+    .seg_mode = 0, \
+    .seg_repeat = 1, \
   }
 
 #define _DNA_DEFAULT_TintGpencilModifierData \

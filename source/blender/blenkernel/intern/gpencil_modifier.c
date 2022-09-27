@@ -904,6 +904,11 @@ void BKE_gpencil_modifier_blend_write(BlendWriter *writer, ListBase *modbase)
       BLO_write_struct_array(
           writer, DashGpencilModifierSegment, gpmd->segments_len, gpmd->segments);
     }
+    else if (md->type == eGpencilModifierType_Time) {
+      TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)md;
+      BLO_write_struct_array(
+          writer, TimeGpencilModifierSegment, gpmd->segments_len, gpmd->segments);
+    }
   }
 }
 
@@ -988,6 +993,13 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
       BLO_read_data_address(reader, &gpmd->segments);
       for (int i = 0; i < gpmd->segments_len; i++) {
         gpmd->segments[i].dmd = gpmd;
+      }
+    }
+    else if (md->type == eGpencilModifierType_Time) {
+      TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)md;
+      BLO_read_data_address(reader, &gpmd->segments);
+      for (int i = 0; i < gpmd->segments_len; i++) {
+        gpmd->segments[i].gpmd = gpmd;
       }
     }
     if (md->type == eGpencilModifierType_Shrinkwrap) {

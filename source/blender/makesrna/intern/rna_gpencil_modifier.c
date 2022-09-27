@@ -201,7 +201,19 @@ static const EnumPropertyItem rna_enum_time_mode_items[] = {
     {GP_TIME_MODE_NORMAL, "NORMAL", 0, "Regular", "Apply offset in usual animation direction"},
     {GP_TIME_MODE_REVERSE, "REVERSE", 0, "Reverse", "Apply offset in reverse animation direction"},
     {GP_TIME_MODE_FIX, "FIX", 0, "Fixed Frame", "Keep frame and do not change with time"},
-    {GP_TIME_MODE_PINGPONG, "PINGPONG", 0, "Ping Pong", "Loop back and forth"},
+    {GP_TIME_MODE_PINGPONG, "PINGPONG", 0, "Ping Pong", "Loop back and forth starting in reverse"},
+    {GP_TIME_MODE_CHAIN, "CHAIN", 0, "Chain", "List of chained animation segments"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static const EnumPropertyItem rna_enum_time_seg_mode_items[] = {
+    {GP_TIME_SEG_MODE_NORMAL, "NORMAL", 0, "Regular", "Apply offset in usual animation direction"},
+    {GP_TIME_SEG_MODE_REVERSE,
+     "REVERSE",
+     0,
+     "Reverse",
+     "Apply offset in reverse animation direction"},
+    {GP_TIME_SEG_MODE_PINGPONG, "PINGPONG", 0, "Ping Pong", "Loop back and forth"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -791,7 +803,32 @@ static void rna_GpencilDash_segments_begin(CollectionPropertyIterator *iter, Poi
       iter, dmd->segments, sizeof(DashGpencilModifierSegment), dmd->segments_len, false, NULL);
 }
 
+static void rna_GpencilTime_segments_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)ptr->data;
+  rna_iterator_array_begin(
+      iter, gpmd->segments, sizeof(TimeGpencilModifierSegment), gpmd->segments_len, false, NULL);
+}
+
+static char *rna_TimeGpencilModifierSegment_path(const PointerRNA *ptr)
+{
+  TimeGpencilModifierSegment *ds = (TimeGpencilModifierSegment *)ptr->data;
+
+  TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)ds->gpmd;
+
+  BLI_assert(gpmd != NULL);
+
+  char name_esc[sizeof(gpmd->modifier.name) * 2];
+  BLI_str_escape(name_esc, gpmd->modifier.name, sizeof(name_esc));
+
+  char ds_name_esc[sizeof(ds->name) * 2];
+  BLI_str_escape(ds_name_esc, ds->name, sizeof(ds_name_esc));
+
+  return BLI_sprintfN("grease_pencil_modifiers[\"%s\"].segments[\"%s\"]", name_esc, ds_name_esc);
+}
+
 static char *rna_DashGpencilModifierSegment_path(const PointerRNA *ptr)
+
 {
   const DashGpencilModifierSegment *ds = (DashGpencilModifierSegment *)ptr->data;
 
@@ -819,6 +856,17 @@ static bool dash_segment_name_exists_fn(void *arg, const char *name)
   return false;
 }
 
+static bool time_segment_name_exists_fn(void *arg, const char *name)
+{
+  const TimeGpencilModifierData *gpmd = (const TimeGpencilModifierData *)arg;
+  for (int i = 0; i < gpmd->segments_len; i++) {
+    if (STREQ(gpmd->segments[i].name, name) && gpmd->segments[i].name != name) {
+      return true;
+    }
+  }
+  return false;
+}
+
 static void rna_DashGpencilModifierSegment_name_set(PointerRNA *ptr, const char *value)
 {
   DashGpencilModifierSegment *ds = ptr->data;
@@ -834,6 +882,29 @@ static void rna_DashGpencilModifierSegment_name_set(PointerRNA *ptr, const char 
 
   char name_esc[sizeof(ds->dmd->modifier.name) * 2];
   BLI_str_escape(name_esc, ds->dmd->modifier.name, sizeof(name_esc));
+
+  char prefix[36 + sizeof(name_esc) + 1];
+  SNPRINTF(prefix, "grease_pencil_modifiers[\"%s\"].segments", name_esc);
+
+  /* Fix all the animation data which may link to this. */
+  BKE_animdata_fix_paths_rename_all(NULL, prefix, oldname, ds->name);
+}
+
+static void rna_TimeGpencilModifierSegment_name_set(PointerRNA *ptr, const char *value)
+{
+  TimeGpencilModifierSegment *ds = ptr->data;
+
+  char oldname[sizeof(ds->name)];
+  BLI_strncpy(oldname, ds->name, sizeof(ds->name));
+
+  BLI_strncpy_utf8(ds->name, value, sizeof(ds->name));
+
+  BLI_assert(ds->gpmd != NULL);
+  BLI_uniquename_cb(
+      time_segment_name_exists_fn, ds->gpmd, "Segment", '.', ds->name, sizeof(ds->name));
+
+  char name_esc[sizeof(ds->gpmd->modifier.name) * 2];
+  BLI_str_escape(name_esc, ds->gpmd->modifier.name, sizeof(name_esc));
 
   char prefix[36 + sizeof(name_esc) + 1];
   SNPRINTF(prefix, "grease_pencil_modifiers[\"%s\"].segments", name_esc);
@@ -1718,6 +1789,38 @@ static void rna_def_modifier_gpenciltime(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
+  srna = RNA_def_struct(brna, "TimeGpencilModifierSegment", NULL);
+  RNA_def_struct_ui_text(srna, "Time Modifier Segment", "Configuration for a single dash segment");
+  RNA_def_struct_sdna(srna, "TimeGpencilModifierSegment");
+  RNA_def_struct_path_func(srna, "rna_TimeGpencilModifierSegment_path");
+
+  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Name", "Name of the dash segment");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+  RNA_def_property_string_funcs(prop, NULL, NULL, "rna_TimeGpencilModifierSegment_name_set");
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER | NA_RENAME, NULL);
+  RNA_def_struct_name_property(srna, prop);
+
+  prop = RNA_def_property(srna, "seg_start", PROP_INT, PROP_NONE);
+  RNA_def_property_range(prop, 0, INT16_MAX);
+  RNA_def_property_ui_text(prop, "Frame Start", "First frame of the segment");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "seg_end", PROP_INT, PROP_NONE);
+  RNA_def_property_range(prop, 0, INT16_MAX);
+  RNA_def_property_ui_text(prop, "End", "Last frame of the segment");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "seg_repeat", PROP_INT, PROP_NONE);
+  RNA_def_property_range(prop, 0, INT16_MAX);
+  RNA_def_property_ui_text(prop, "Repeat", "Number of cycle repeats");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "seg_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "seg_mode");
+  RNA_def_property_enum_items(prop, rna_enum_time_seg_mode_items);
+  RNA_def_property_ui_text(prop, "Mode", "");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   srna = RNA_def_struct(brna, "TimeGpencilModifier", "GpencilModifier");
   RNA_def_struct_ui_text(srna, "Time Offset Modifier", "Time offset modifier");
@@ -1725,6 +1828,24 @@ static void rna_def_modifier_gpenciltime(BlenderRNA *brna)
   RNA_def_struct_ui_icon(srna, ICON_MOD_TIME);
 
   RNA_define_lib_overridable(true);
+
+  prop = RNA_def_property(srna, "segments", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "TimeGpencilModifierSegment");
+  RNA_def_property_collection_sdna(prop, NULL, "segments", NULL);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_GpencilTime_segments_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    NULL);
+  RNA_def_property_ui_text(prop, "Segments", "");
+
+  prop = RNA_def_property(srna, "segment_active_index", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Active Dash Segment Index", "Active index in the segment list");
 
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "mode");

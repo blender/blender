@@ -202,8 +202,18 @@ typedef enum eThickGpencil_Flag {
   GP_THICK_WEIGHT_FACTOR = (1 << 7),
 } eThickGpencil_Flag;
 
+typedef struct TimeGpencilModifierSegment {
+  char name[64];
+  /* For path reference. */
+  struct TimeGpencilModifierData *gpmd;
+  int seg_start;
+  int seg_end;
+  int seg_mode;
+  int seg_repeat;
+} TimeGpencilModifierSegment;
 typedef struct TimeGpencilModifierData {
   GpencilModifierData modifier;
+  struct Material *material;
   /** Layer name. */
   char layername[64];
   /** Custom index for passes. */
@@ -216,7 +226,13 @@ typedef struct TimeGpencilModifierData {
   int mode;
   /** Start and end frame for custom range. */
   int sfra, efra;
+
   char _pad[4];
+
+  TimeGpencilModifierSegment *segments;
+  int segments_len;
+  int segment_active_index;
+
 } TimeGpencilModifierData;
 
 typedef enum eTimeGpencil_Flag {
@@ -231,7 +247,14 @@ typedef enum eTimeGpencil_Mode {
   GP_TIME_MODE_REVERSE = 1,
   GP_TIME_MODE_FIX = 2,
   GP_TIME_MODE_PINGPONG = 3,
+  GP_TIME_MODE_CHAIN = 4,
 } eTimeGpencil_Mode;
+
+typedef enum eTimeGpencil_Seg_Mode {
+  GP_TIME_SEG_MODE_NORMAL = 0,
+  GP_TIME_SEG_MODE_REVERSE = 1,
+  GP_TIME_SEG_MODE_PINGPONG = 2,
+} eTimeGpencil_Seg_Mode;
 
 typedef enum eModifyColorGpencil_Flag {
   GP_MODIFY_COLOR_BOTH = 0,
