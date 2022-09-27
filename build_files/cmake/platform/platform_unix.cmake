@@ -727,75 +727,78 @@ if(WITH_GHOST_WAYLAND)
     set(WITH_GHOST_WAYLAND OFF)
   endif()
 
-  if(WITH_GHOST_WAYLAND_DBUS)
-    pkg_check_modules(dbus REQUIRED dbus-1)
-  endif()
+  if(WITH_GHOST_WAYLAND)
+    if(WITH_GHOST_WAYLAND_DBUS)
+      pkg_check_modules(dbus REQUIRED dbus-1)
+    endif()
 
-  if(WITH_GHOST_WAYLAND_LIBDECOR)
-    pkg_check_modules(libdecor REQUIRED libdecor-0>=0.1)
-  endif()
+    if(WITH_GHOST_WAYLAND_LIBDECOR)
+      pkg_check_modules(libdecor REQUIRED libdecor-0>=0.1)
+    endif()
 
-  list(APPEND PLATFORM_LINKLIBS
-    ${xkbcommon_LINK_LIBRARIES}
-  )
-
-  if(NOT WITH_GHOST_WAYLAND_DYNLOAD)
     list(APPEND PLATFORM_LINKLIBS
-      ${wayland-client_LINK_LIBRARIES}
-      ${wayland-egl_LINK_LIBRARIES}
-      ${wayland-cursor_LINK_LIBRARIES}
+      ${xkbcommon_LINK_LIBRARIES}
     )
-  endif()
 
-  if(WITH_GHOST_WAYLAND_DBUS)
-    list(APPEND PLATFORM_LINKLIBS
-      ${dbus_LINK_LIBRARIES}
-    )
-    add_definitions(-DWITH_GHOST_WAYLAND_DBUS)
-  endif()
-
-  if(WITH_GHOST_WAYLAND_LIBDECOR)
     if(NOT WITH_GHOST_WAYLAND_DYNLOAD)
       list(APPEND PLATFORM_LINKLIBS
-        ${libdecor_LIBRARIES}
+        ${wayland-client_LINK_LIBRARIES}
+        ${wayland-egl_LINK_LIBRARIES}
+        ${wayland-cursor_LINK_LIBRARIES}
       )
     endif()
-    add_definitions(-DWITH_GHOST_WAYLAND_LIBDECOR)
-  endif()
 
-  pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
-
-  # When using dynamic loading, headers generated
-  # from older versions of `wayland-scanner` aren't compatible.
-  if(WITH_GHOST_WAYLAND_DYNLOAD)
-    execute_process(
-      COMMAND ${WAYLAND_SCANNER} --version
-      # The version is written to the `stderr`.
-      ERROR_VARIABLE _wayland_scanner_out
-      ERROR_STRIP_TRAILING_WHITESPACE
-    )
-    if(NOT "${_wayland_scanner_out}" STREQUAL "")
-      string(
-        REGEX REPLACE
-        "^wayland-scanner[ \t]+([0-9]+)\.([0-9]+).*"
-        "\\1.\\2"
-        _wayland_scanner_ver
-        "${_wayland_scanner_out}"
+    if(WITH_GHOST_WAYLAND_DBUS)
+      list(APPEND PLATFORM_LINKLIBS
+        ${dbus_LINK_LIBRARIES}
       )
-      if("${_wayland_scanner_ver}" VERSION_LESS "1.20")
-        message(
-          FATAL_ERROR
-          "Found ${WAYLAND_SCANNER} version \"${_wayland_scanner_ver}\", "
-          "the minimum version is 1.20!"
+      add_definitions(-DWITH_GHOST_WAYLAND_DBUS)
+    endif()
+
+    if(WITH_GHOST_WAYLAND_LIBDECOR)
+      if(NOT WITH_GHOST_WAYLAND_DYNLOAD)
+        list(APPEND PLATFORM_LINKLIBS
+          ${libdecor_LIBRARIES}
         )
       endif()
-      unset(_wayland_scanner_ver)
-    else()
-      message(WARNING "Unable to access the version from ${WAYLAND_SCANNER}, continuing.")
+      add_definitions(-DWITH_GHOST_WAYLAND_LIBDECOR)
     endif()
-    unset(_wayland_scanner_out)
+
+    pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
+
+    # When using dynamic loading, headers generated
+    # from older versions of `wayland-scanner` aren't compatible.
+    if(WITH_GHOST_WAYLAND_DYNLOAD)
+      execute_process(
+        COMMAND ${WAYLAND_SCANNER} --version
+        # The version is written to the `stderr`.
+        ERROR_VARIABLE _wayland_scanner_out
+        ERROR_STRIP_TRAILING_WHITESPACE
+      )
+      if(NOT "${_wayland_scanner_out}" STREQUAL "")
+        string(
+          REGEX REPLACE
+          "^wayland-scanner[ \t]+([0-9]+)\.([0-9]+).*"
+          "\\1.\\2"
+          _wayland_scanner_ver
+          "${_wayland_scanner_out}"
+        )
+        if("${_wayland_scanner_ver}" VERSION_LESS "1.20")
+          message(
+            FATAL_ERROR
+            "Found ${WAYLAND_SCANNER} version \"${_wayland_scanner_ver}\", "
+            "the minimum version is 1.20!"
+          )
+        endif()
+        unset(_wayland_scanner_ver)
+      else()
+        message(WARNING "Unable to access the version from ${WAYLAND_SCANNER}, continuing.")
+      endif()
+      unset(_wayland_scanner_out)
+    endif()
+    # End wayland-scanner version check.
+
   endif()
-  # End wayland-scanner version check.
 endif()
 
 if(WITH_GHOST_X11)
