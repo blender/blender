@@ -458,6 +458,12 @@ set(WL_PROTOCOLS_URI https://gitlab.freedesktop.org/wayland/wayland-protocols/-/
 set(WL_PROTOCOLS_HASH af5ca07e13517cdbab33504492cef54a)
 set(WL_PROTOCOLS_HASH_TYPE MD5)
 
+set(WAYLAND_VERSION 1.21.0)
+set(WAYLAND_FILE wayland-${WAYLAND_VERSION}.tar.xz)
+set(WAYLAND_URI https://wayland.freedesktop.org/releases/wayland-${WAYLAND_VERSION}.tar.xz)
+set(WAYLAND_HASH f2653a2293bcd882d756c6a83d278903)
+set(WAYLAND_HASH_TYPE MD5)
+
 set(ISPC_VERSION v1.17.0)
 set(ISPC_URI https://github.com/ispc/ispc/archive/${ISPC_VERSION}.tar.gz)
 set(ISPC_HASH 4f476a3109332a77fe839a9014c60ca9)

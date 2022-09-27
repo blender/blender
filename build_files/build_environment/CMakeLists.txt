@@ -170,6 +170,8 @@ if(UNIX AND NOT APPLE)
   include(cmake/libglu.cmake)
   include(cmake/mesa.cmake)
   include(cmake/wayland_protocols.cmake)
+  # Can be removed when the build-bot upgrades to v1.20.x or newer.
+  include(cmake/wayland.cmake)
 endif()
 
 include(cmake/harvest.cmake)

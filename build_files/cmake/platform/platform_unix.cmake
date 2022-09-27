@@ -764,7 +764,11 @@ if(WITH_GHOST_WAYLAND)
       add_definitions(-DWITH_GHOST_WAYLAND_LIBDECOR)
     endif()
 
-    pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
+    if(EXISTS "${LIBDIR}/wayland/bin/wayland-scanner")
+      set(WAYLAND_SCANNER "${LIBDIR}/wayland/bin/wayland-scanner")
+    else()
+      pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
+    endif()
 
     # When using dynamic loading, headers generated
     # from older versions of `wayland-scanner` aren't compatible.
