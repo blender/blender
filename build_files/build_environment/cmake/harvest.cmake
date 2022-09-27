@@ -117,7 +117,8 @@ else()
     harvest(xml2/lib xml2/lib "*.a")
 
     harvest(wayland-protocols/share/wayland-protocols wayland-protocols/share/wayland-protocols/ "*.xml")
-    harvest(wayland/bin wayland/bin "wayland-scanner")
+    # DISABLED: (see D16074).
+    # harvest(wayland/bin wayland/bin "wayland-scanner")
   else()
     harvest(blosc/lib openvdb/lib "*.a")
     harvest(xml2/lib opencollada/lib "*.a")
