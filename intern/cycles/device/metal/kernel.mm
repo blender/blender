@@ -308,26 +308,29 @@ MetalKernelPipeline *ShaderCache::get_best_pipeline(DeviceKernel kernel, const M
 
 bool MetalKernelPipeline::should_use_binary_archive() const
 {
-  if (auto str = getenv("CYCLES_METAL_DISABLE_BINARY_ARCHIVES")) {
-    if (atoi(str) != 0) {
-      /* Don't archive if we have opted out by env var. */
-      return false;
+  /* Issues with binary archives in older macOS versions. */
+  if (@available(macOS 13.0, *)) {
+    if (auto str = getenv("CYCLES_METAL_DISABLE_BINARY_ARCHIVES")) {
+      if (atoi(str) != 0) {
+        /* Don't archive if we have opted out by env var. */
+        return false;
+      }
     }
-  }
 
-  if (pso_type == PSO_GENERIC) {
-    /* Archive the generic kernels. */
-    return true;
-  }
+    if (pso_type == PSO_GENERIC) {
+      /* Archive the generic kernels. */
+      return true;
+    }
 
-  if (device_kernel >= DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND &&
-      device_kernel <= DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW) {
-    /* Archive all shade kernels - they take a long time to compile. */
-    return true;
-  }
+    if (device_kernel >= DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND &&
+        device_kernel <= DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW) {
+      /* Archive all shade kernels - they take a long time to compile. */
+      return true;
+    }
 
-  /* The remaining kernels are all fast to compile. They may get cached by the system shader cache,
-   * but will be quick to regenerate if not. */
+    /* The remaining kernels are all fast to compile. They may get cached by the system shader cache,
+     * but will be quick to regenerate if not. */
+  }
   return false;
 }
 
