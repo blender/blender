@@ -266,7 +266,7 @@ static int remapTime(struct GpencilModifierData *md,
 }
 
 static void segment_list_item(struct uiList *UNUSED(ui_list),
-                              struct bContext *UNUSED(C),
+                              const struct bContext *UNUSED(C),
                               struct uiLayout *layout,
                               struct PointerRNA *UNUSED(idataptr),
                               struct PointerRNA *itemptr,
@@ -313,7 +313,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   if (mode == GP_TIME_MODE_CHAIN) {
 
-    uiLayout *row = uiLayoutRow(layout, false);
+    row = uiLayoutRow(layout, false);
     uiLayoutSetPropSep(row, false);
 
     uiTemplateList(row,
@@ -331,7 +331,7 @@ static void panel_draw(const bContext *C, Panel *panel)
                    1,
                    UI_TEMPLATE_LIST_FLAG_NONE);
 
-    uiLayout *col = uiLayoutColumn(row, false);
+    col = uiLayoutColumn(row, false);
     uiLayoutSetContextPointer(col, "modifier", ptr);
 
     uiLayout *sub = uiLayoutColumn(col, true);
