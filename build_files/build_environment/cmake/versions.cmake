@@ -460,7 +460,7 @@ set(WL_PROTOCOLS_HASH_TYPE MD5)
 
 set(WAYLAND_VERSION 1.21.0)
 set(WAYLAND_FILE wayland-${WAYLAND_VERSION}.tar.xz)
-set(WAYLAND_URI https://wayland.freedesktop.org/releases/wayland-${WAYLAND_VERSION}.tar.xz)
+set(WAYLAND_URI https://gitlab.freedesktop.org/wayland/wayland/-/releases/1.21.0/downloads/wayland-${WAYLAND_VERSION}.tar.xz)
 set(WAYLAND_HASH f2653a2293bcd882d756c6a83d278903)
 set(WAYLAND_HASH_TYPE MD5)
 

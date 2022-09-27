@@ -171,8 +171,7 @@ if(UNIX AND NOT APPLE)
   include(cmake/mesa.cmake)
   include(cmake/wayland_protocols.cmake)
   # Can be removed when the build-bot upgrades to v1.20.x or newer.
-  # DISABLED: (see D16074).
-  # include(cmake/wayland.cmake)
+  include(cmake/wayland.cmake)
 endif()
 
 include(cmake/harvest.cmake)
