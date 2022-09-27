@@ -361,8 +361,10 @@ static void update_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image
     return;
   }
 
-  uv_islands::MeshData mesh_data(
-      pbvh->looptri, pbvh->totprim, pbvh->totvert, pbvh->mloop, ldata_uv);
+  uv_islands::MeshData mesh_data({pbvh->looptri, pbvh->totprim},
+                                 {pbvh->mloop, pbvh->totprim},
+                                 pbvh->totvert,
+                                 {ldata_uv, pbvh->totprim});
   uv_islands::UVIslands islands(mesh_data);
 
   uv_islands::UVIslandsMask uv_masks;
@@ -385,7 +387,7 @@ static void update_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image
   islands.extend_borders(uv_masks);
   update_geom_primitives(*pbvh, mesh_data);
 
-  UVPrimitiveLookup uv_primitive_lookup(mesh_data.looptri_len, islands);
+  UVPrimitiveLookup uv_primitive_lookup(mesh_data.looptris.size(), islands);
 
   EncodePixelsUserData user_data;
   user_data.pbvh = pbvh;
