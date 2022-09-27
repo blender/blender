@@ -444,7 +444,7 @@ bool SCULPT_vertex_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex)
       if (!ss->hide_poly) {
         return true;
       }
-      MeshElemMap *vert_map = &ss->pmap[vertex.i];
+      const MeshElemMap *vert_map = &ss->pmap[vertex.i];
       for (int j = 0; j < ss->pmap[vertex.i].count; j++) {
         if (!ss->hide_poly[vert_map->indices[j]]) {
           return true;
@@ -467,8 +467,8 @@ bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef ve
       if (!ss->hide_poly) {
         return true;
       }
-      MeshElemMap *vert_map = &ss->pmap[vertex.i];
-      for (int j = 0; j < ss->pmap[vertex.i].count; j++) {
+      const MeshElemMap *vert_map = &ss->pmap[vertex.i];
+      for (int j = 0; j < vert_map->count; j++) {
         if (ss->hide_poly[vert_map->indices[j]]) {
           return false;
         }
@@ -495,8 +495,8 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       BLI_assert(ss->face_sets != NULL);
-      MeshElemMap *vert_map = &ss->pmap[vertex.i];
-      for (int j = 0; j < ss->pmap[vertex.i].count; j++) {
+      const MeshElemMap *vert_map = &ss->pmap[vertex.i];
+      for (int j = 0; j < vert_map->count; j++) {
         const int poly_index = vert_map->indices[j];
         if (ss->hide_poly && ss->hide_poly[poly_index]) {
           /* Skip hidden faces connected to the vertex. */
@@ -530,9 +530,9 @@ int SCULPT_vertex_face_set_get(SculptSession *ss, PBVHVertRef vertex)
       if (!ss->face_sets) {
         return SCULPT_FACE_SET_NONE;
       }
-      MeshElemMap *vert_map = &ss->pmap[vertex.i];
+      const MeshElemMap *vert_map = &ss->pmap[vertex.i];
       int face_set = 0;
-      for (int i = 0; i < ss->pmap[vertex.i].count; i++) {
+      for (int i = 0; i < vert_map->count; i++) {
         if (ss->face_sets[vert_map->indices[i]] > face_set) {
           face_set = abs(ss->face_sets[vert_map->indices[i]]);
         }
@@ -561,8 +561,8 @@ bool SCULPT_vertex_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_
       if (!ss->face_sets) {
         return face_set == SCULPT_FACE_SET_NONE;
       }
-      MeshElemMap *vert_map = &ss->pmap[vertex.i];
-      for (int i = 0; i < ss->pmap[vertex.i].count; i++) {
+      const MeshElemMap *vert_map = &ss->pmap[vertex.i];
+      for (int i = 0; i < vert_map->count; i++) {
         if (ss->face_sets[vert_map->indices[i]] == face_set) {
           return true;
         }
@@ -613,9 +613,9 @@ static bool sculpt_check_unique_face_set_in_base_mesh(SculptSession *ss, int ind
   if (!ss->face_sets) {
     return true;
   }
-  MeshElemMap *vert_map = &ss->pmap[index];
+  const MeshElemMap *vert_map = &ss->pmap[index];
   int face_set = -1;
-  for (int i = 0; i < ss->pmap[index].count; i++) {
+  for (int i = 0; i < vert_map->count; i++) {
     if (face_set == -1) {
       face_set = ss->face_sets[vert_map->indices[i]];
     }
@@ -634,9 +634,9 @@ static bool sculpt_check_unique_face_set_in_base_mesh(SculptSession *ss, int ind
  */
 static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(SculptSession *ss, int v1, int v2)
 {
-  MeshElemMap *vert_map = &ss->pmap[v1];
+  const MeshElemMap *vert_map = &ss->pmap[v1];
   int p1 = -1, p2 = -1;
-  for (int i = 0; i < ss->pmap[v1].count; i++) {
+  for (int i = 0; i < vert_map->count; i++) {
     const MPoly *p = &ss->mpoly[vert_map->indices[i]];
     for (int l = 0; l < p->totloop; l++) {
       const MLoop *loop = &ss->mloop[p->loopstart + l];
@@ -785,7 +785,7 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
                                               PBVHVertRef vertex,
                                               SculptVertexNeighborIter *iter)
 {
-  MeshElemMap *vert_map = &ss->pmap[vertex.i];
+  const MeshElemMap *vert_map = &ss->pmap[vertex.i];
   iter->size = 0;
   iter->num_duplicates = 0;
   iter->capacity = SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
@@ -793,7 +793,7 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
   iter->neighbor_indices = iter->neighbor_indices_fixed;
   const bool *hide_poly = BKE_pbvh_get_vert_hide(ss->pbvh);
 
-  for (int i = 0; i < ss->pmap[vertex.i].count; i++) {
+  for (int i = 0; i < vert_map->count; i++) {
     if (hide_poly && hide_poly[vert_map->indices[i]]) {
       /* Skip connectivity from hidden faces. */
       continue;
