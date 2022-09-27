@@ -388,7 +388,7 @@ static int compare_direntry_generic(const FileListInternEntry *entry1,
   if (entry1->typeflag & FILE_TYPE_DIR) {
     if (entry2->typeflag & FILE_TYPE_DIR) {
       /* If both entries are tagged as dirs, we make a 'sub filter' that shows first the real dirs,
-       * then libs (.blend files), then categories in libs. */
+       * then libraries (.blend files), then categories in libraries. */
       if (entry1->typeflag & FILE_TYPE_BLENDERLIB) {
         if (!(entry2->typeflag & FILE_TYPE_BLENDERLIB)) {
           return 1;
@@ -2922,7 +2922,7 @@ static int filelist_readjob_list_dir(const char *root,
 
       if (!(entry->typeflag & FILE_TYPE_DIR)) {
         if (do_lib && BLO_has_bfile_extension(target)) {
-          /* If we are considering .blend files as libs, promote them to directory status. */
+          /* If we are considering .blend files as libraries, promote them to directory status. */
           entry->typeflag = FILE_TYPE_BLENDER;
           /* prevent current file being used as acceptable dir */
           if (BLI_path_cmp(main_name, target) != 0) {

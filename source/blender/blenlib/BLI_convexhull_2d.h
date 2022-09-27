@@ -18,7 +18,7 @@ extern "C" {
  * \param r_points: An array of the convex hull vertex indices (max is n).
  * \return The number of indices in r_points.
  *
- * \note Performance is O(n.log(n)), same as qsort.
+ * \note Performance is `O(n.log(n))`, same as `qsort`.
  *
  */
 int BLI_convexhull_2d(const float (*points)[2], int n, int r_points[/* n */]);

@@ -174,7 +174,7 @@ class DeviceQueue {
   /* Accumulated execution time for combinations of kernels launched together. */
   map<DeviceKernelMask, double> stats_kernel_time_;
   /* If it is true, then a performance statistics in the debugging logs will have focus on kernels
-   * and an explicitqueue synchronization will be added after each kernel execution. */
+   * and an explicit queue synchronization will be added after each kernel execution. */
   bool is_per_kernel_performance_;
 };
 

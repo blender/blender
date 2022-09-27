@@ -117,7 +117,7 @@ struct ID *BKE_lib_override_library_create_from_id(struct Main *bmain,
 /**
  * Create overridden local copies of all tagged data-blocks in given Main.
  *
- * \note Set `id->newid` of overridden libs with newly created overrides,
+ * \note Set `id->newid` of overridden libraries with newly created overrides,
  * caller is responsible to clean those pointers before/after usage as needed.
  *
  * \note By default, it will only remap newly created local overriding data-blocks between

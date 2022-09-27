@@ -12,8 +12,10 @@
 /* XXX(@campbellbarton): temp feature. */
 #define DURIAN_CAMERA_SWITCH
 
-/* check for cyclic set-scene,
- * libs can cause this case which is normally prevented, see (T#####) */
+/**
+ * Check for cyclic set-scene.
+ * Libraries can cause this case which is normally prevented, see (T42009).
+ */
 #define USE_SETSCENE_CHECK
 
 #include "DNA_ID.h"

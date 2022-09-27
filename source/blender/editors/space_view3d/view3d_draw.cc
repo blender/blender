@@ -2246,7 +2246,7 @@ void view3d_depths_rect_create(ARegion *region, rcti *rect, ViewDepths *r_d)
   }
 }
 
-/* NOTE: with nouveau drivers the glReadPixels() is very slow. T24339. */
+/* NOTE: with NOUVEAU drivers the #glReadPixels() is very slow. T24339. */
 static ViewDepths *view3d_depths_create(ARegion *region)
 {
   ViewDepths *d = MEM_cnew<ViewDepths>("ViewDepths");

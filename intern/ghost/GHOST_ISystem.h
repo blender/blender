@@ -422,7 +422,7 @@ class GHOST_ISystem {
   virtual GHOST_TSuccess getButtonState(GHOST_TButton mask, bool &isDown) const = 0;
 
   /**
-   * Enable multitouch gestures if supported.
+   * Enable multi-touch gestures if supported.
    * \param use: Enable or disable.
    */
   virtual void setMultitouchGestures(const bool use) = 0;

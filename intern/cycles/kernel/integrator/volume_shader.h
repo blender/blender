@@ -111,8 +111,8 @@ ccl_device_inline void volume_shader_prepare_guiding(KernelGlobals kg,
   const float volume_guiding_probability = kernel_data.integrator.volume_guiding_probability;
   float rand_phase_guiding = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_PHASE_GUIDING);
 
-  /* If we have more than one ohase function we select one random based on its
-   * sample weight to caclulate the product distribution for guiding. */
+  /* If we have more than one phase function we select one random based on its
+   * sample weight to calculate the product distribution for guiding. */
   int phase_id = 0;
   float phase_weight = 1.0f;
 

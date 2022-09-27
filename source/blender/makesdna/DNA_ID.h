@@ -471,7 +471,7 @@ typedef struct Library {
    */
   char filepath_abs[1024];
 
-  /** Set for indirectly linked libs, used in the outliner and while reading. */
+  /** Set for indirectly linked libraries, used in the outliner and while reading. */
   struct Library *parent;
 
   struct PackedFile *packedfile;

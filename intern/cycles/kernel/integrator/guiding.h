@@ -298,7 +298,7 @@ ccl_device_forceinline void guiding_record_volume_emission(KernelGlobals kg,
 /* Adds a pseudo path vertex/segment when intersecting a virtual light source.
  * (e.g., area, sphere, or disk light). This call is often followed
  * a call of guiding_record_surface_emission, if the intersected light source
- * emits light in the direction of tha path. */
+ * emits light in the direction of the path. */
 ccl_device_forceinline void guiding_record_light_surface_segment(
     KernelGlobals kg, IntegratorState state, ccl_private const Intersection *ccl_restrict isect)
 {
