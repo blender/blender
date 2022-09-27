@@ -27,7 +27,7 @@ using namespace blender::bke::mesh_surface_sample;
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Mesh")).supported_type({GEO_COMPONENT_TYPE_MESH});
+  b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
 
   b.add_input<decl::Float>(N_("Value"), "Value_Float").hide_value().supports_field();
   b.add_input<decl::Int>(N_("Value"), "Value_Int").hide_value().supports_field();
