@@ -33,8 +33,13 @@ GHOST_ISystem *GHOST_ISystem::m_system = nullptr;
 
 GHOST_TBacktraceFn GHOST_ISystem::m_backtrace_fn = nullptr;
 
-GHOST_TSuccess GHOST_ISystem::createSystem()
+GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose)
 {
+  /* When GHOST fails to start, report the back-ends that were attempted.
+   * A Verbose argument could be supported in printing isn't always desired. */
+  const char *backends_attempted[8] = {nullptr};
+  int backends_attempted_num = 0;
+
   GHOST_TSuccess success;
   if (!m_system) {
 
@@ -52,15 +57,23 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
     /* Pass. */
 #elif defined(WITH_GHOST_X11) && defined(WITH_GHOST_WAYLAND)
     /* Special case, try Wayland, fall back to X11. */
-    try {
-      m_system = has_wayland_libraries ? new GHOST_SystemWayland() : nullptr;
+    if (has_wayland_libraries) {
+      backends_attempted[backends_attempted_num++] = "WAYLAND";
+      try {
+        m_system = new GHOST_SystemWayland();
+      }
+      catch (const std::runtime_error &) {
+        delete m_system;
+        m_system = nullptr;
+      }
     }
-    catch (const std::runtime_error &) {
-      delete m_system;
+    else {
       m_system = nullptr;
     }
+
     if (!m_system) {
       /* Try to fallback to X11. */
+      backends_attempted[backends_attempted_num++] = "X11";
       try {
         m_system = new GHOST_SystemX11();
       }
@@ -70,6 +83,7 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
       }
     }
 #elif defined(WITH_GHOST_X11)
+    backends_attempted[backends_attempted_num++] = "X11";
     try {
       m_system = new GHOST_SystemX11();
     }
@@ -78,14 +92,21 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
       m_system = nullptr;
     }
 #elif defined(WITH_GHOST_WAYLAND)
-    try {
-      m_system = has_wayland_libraries ? new GHOST_SystemWayland() : nullptr;
+    if (has_wayland_libraries) {
+      backends_attempted[backends_attempted_num++] = "WAYLAND";
+      try {
+        m_system = new GHOST_SystemWayland();
+      }
+      catch (const std::runtime_error &) {
+        delete m_system;
+        m_system = nullptr;
+      }
     }
-    catch (const std::runtime_error &) {
-      delete m_system;
+    else {
       m_system = nullptr;
     }
 #elif defined(WITH_GHOST_SDL)
+    backends_attempted[backends_attempted_num++] = "SDL";
     try {
       m_system = new GHOST_SystemSDL();
     }
@@ -94,10 +115,24 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
       m_system = nullptr;
     }
 #elif defined(WIN32)
+    backends_attempted[backends_attempted_num++] = "WIN32";
     m_system = new GHOST_SystemWin32();
 #elif defined(__APPLE__)
+    backends_attempted[backends_attempted_num++] = "COCOA";
     m_system = new GHOST_SystemCocoa();
 #endif
+
+    if ((m_system == nullptr) && verbose) {
+      fprintf(stderr, "GHOST: failed to initialize display for back-end(s): [");
+      for (int i = 0; i < backends_attempted_num; i++) {
+        if (i != 0) {
+          fprintf(stderr, ", ");
+        }
+        fprintf(stderr, "'%s'", backends_attempted[i]);
+      }
+      fprintf(stderr, "]\n");
+    }
+
     success = m_system != nullptr ? GHOST_kSuccess : GHOST_kFailure;
   }
   else {
@@ -115,7 +150,7 @@ GHOST_TSuccess GHOST_ISystem::createSystemBackground()
   if (!m_system) {
 #if !defined(WITH_HEADLESS)
     /* Try to create a off-screen render surface with the graphical systems. */
-    success = createSystem();
+    success = createSystem(false);
     if (success) {
       return success;
     }

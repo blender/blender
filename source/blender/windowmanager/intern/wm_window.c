@@ -1546,6 +1546,13 @@ void wm_ghost_init(bContext *C)
 
   g_system = GHOST_CreateSystem();
 
+  if (UNLIKELY(g_system == NULL)) {
+    /* GHOST will have reported the back-ends that failed to load. */
+    fprintf(stderr, "GHOST: unable to initialize, exiting!\n");
+    /* This will leak memory, it's preferable to crashing. */
+    exit(1);
+  }
+
   GHOST_Debug debug = {0};
   if (G.debug & G_DEBUG_GHOST) {
     debug.flags |= GHOST_kDebugDefault;
