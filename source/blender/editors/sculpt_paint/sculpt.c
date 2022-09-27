@@ -799,7 +799,7 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
       continue;
     }
     const MPoly *p = &ss->mpoly[vert_map->indices[i]];
-    uint f_adj_v[2];
+    int f_adj_v[2];
     if (poly_get_adj_loops_from_vert(p, ss->mloop, vertex.i, f_adj_v) != -1) {
       for (int j = 0; j < ARRAY_SIZE(f_adj_v); j += 1) {
         if (f_adj_v[j] != vertex.i) {

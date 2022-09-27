@@ -1459,7 +1459,7 @@ void BKE_mesh_auto_smooth_flag_set(Mesh *me,
   }
 }
 
-int poly_find_loop_from_vert(const MPoly *poly, const MLoop *loopstart, uint vert)
+int poly_find_loop_from_vert(const MPoly *poly, const MLoop *loopstart, int vert)
 {
   for (int j = 0; j < poly->totloop; j++, loopstart++) {
     if (loopstart->v == vert) {
@@ -1470,7 +1470,7 @@ int poly_find_loop_from_vert(const MPoly *poly, const MLoop *loopstart, uint ver
   return -1;
 }
 
-int poly_get_adj_loops_from_vert(const MPoly *poly, const MLoop *mloop, uint vert, uint r_adj[2])
+int poly_get_adj_loops_from_vert(const MPoly *poly, const MLoop *mloop, int vert, int r_adj[2])
 {
   int corner = poly_find_loop_from_vert(poly, &mloop[poly->loopstart], vert);
 
