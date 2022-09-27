@@ -25,6 +25,9 @@ typedef enum eStrCursorJumpDirection {
 bool BLI_str_cursor_step_next_utf8(const char *str, size_t maxlen, int *pos);
 bool BLI_str_cursor_step_prev_utf8(const char *str, size_t maxlen, int *pos);
 
+bool BLI_str_cursor_step_next_utf32(const char32_t *str, size_t maxlen, int *pos);
+bool BLI_str_cursor_step_prev_utf32(const char32_t *str, size_t maxlen, int *pos);
+
 void BLI_str_cursor_step_utf8(const char *str,
                               size_t maxlen,
                               int *pos,
