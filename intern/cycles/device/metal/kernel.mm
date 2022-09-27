@@ -328,8 +328,8 @@ bool MetalKernelPipeline::should_use_binary_archive() const
       return true;
     }
 
-    /* The remaining kernels are all fast to compile. They may get cached by the system shader cache,
-     * but will be quick to regenerate if not. */
+    /* The remaining kernels are all fast to compile. They may get cached by the system shader
+     * cache, but will be quick to regenerate if not. */
   }
   return false;
 }

@@ -439,7 +439,6 @@ TEST(string, StrCursorStepNextUtf32Simple)
   EXPECT_FALSE(BLI_str_cursor_step_next_utf32(simple, len, &pos));
 }
 
-
 /* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_cursor_step_next_utf32_allcombining
  * \{ */
@@ -857,7 +856,7 @@ TEST(string, StrCursorStepPrevUtf8Invalid)
   const size_t len = 8;
   int pos = 8;
   EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(invalid, len, &pos) && pos == 5);
-  pos= 7;
+  pos = 7;
   EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(invalid, len, &pos) && pos == 5);
   pos = 6;
   EXPECT_TRUE(BLI_str_cursor_step_prev_utf8(invalid, len, &pos) && pos == 5);
