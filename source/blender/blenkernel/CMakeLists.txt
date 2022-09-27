@@ -254,6 +254,7 @@ set(SRC
   intern/pointcache.c
   intern/pointcloud.cc
   intern/preferences.c
+  intern/project_settings.cc
   intern/report.c
   intern/rigidbody.c
   intern/scene.cc
@@ -452,6 +453,7 @@ set(SRC
   BKE_pointcache.h
   BKE_pointcloud.h
   BKE_preferences.h
+  BKE_project_settings.hh
   BKE_report.h
   BKE_rigidbody.h
   BKE_scene.h
@@ -843,6 +845,7 @@ if(WITH_GTESTS)
     intern/lib_id_remapper_test.cc
     intern/lib_id_test.cc
     intern/lib_remap_test.cc
+    intern/project_settings_test.cc
     intern/tracking_test.cc
   )
   set(TEST_INC
