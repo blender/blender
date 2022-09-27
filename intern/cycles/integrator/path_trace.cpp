@@ -1314,6 +1314,9 @@ void PathTrace::set_guiding_params(const GuidingParams &guiding_params, const bo
       guiding_field_->Reset();
     }
   }
+#else
+  (void)guiding_params;
+  (void)reset;
 #endif
 }
 
