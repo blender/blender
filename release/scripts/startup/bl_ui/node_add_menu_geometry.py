@@ -14,7 +14,6 @@ class NODE_MT_geometry_node_GEO_ATTRIBUTE(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeCaptureAttribute")
         node_add_menu.add_node_type(layout, "GeometryNodeAttributeDomainSize")
         node_add_menu.add_node_type(layout, "GeometryNodeAttributeStatistic")
-        node_add_menu.add_node_type(layout, "GeometryNodeAttributeTransfer")
         node_add_menu.add_node_type(layout, "GeometryNodeRemoveAttribute")
         node_add_menu.add_node_type(layout, "GeometryNodeStoreNamedAttribute")
 
