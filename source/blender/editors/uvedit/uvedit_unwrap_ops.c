@@ -2421,7 +2421,7 @@ static int smart_project_exec(bContext *C, wmOperator *op)
                                      .rotate = true,
                                      /* We could make this optional. */
                                      .rotate_align_axis = 1,
-                                     .only_selected_uvs = true,
+                                     .only_selected_uvs = only_selected_uvs,
                                      .only_selected_faces = true,
                                      .correct_aspect = correct_aspect,
                                      .use_seams = true,
