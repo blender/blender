@@ -302,6 +302,7 @@ SDNA_DEFAULT_DECL_STRUCT(MultiplyGpencilModifierData);
 SDNA_DEFAULT_DECL_STRUCT(NoiseGpencilModifierData);
 SDNA_DEFAULT_DECL_STRUCT(OffsetGpencilModifierData);
 SDNA_DEFAULT_DECL_STRUCT(OpacityGpencilModifierData);
+SDNA_DEFAULT_DECL_STRUCT(OutlineGpencilModifierData);
 SDNA_DEFAULT_DECL_STRUCT(SimplifyGpencilModifierData);
 SDNA_DEFAULT_DECL_STRUCT(SmoothGpencilModifierData);
 SDNA_DEFAULT_DECL_STRUCT(SubdivGpencilModifierData);
@@ -542,6 +543,7 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL(NoiseGpencilModifierData),
     SDNA_DEFAULT_DECL(OffsetGpencilModifierData),
     SDNA_DEFAULT_DECL(OpacityGpencilModifierData),
+    SDNA_DEFAULT_DECL(OutlineGpencilModifierData),
     SDNA_DEFAULT_DECL(SimplifyGpencilModifierData),
     SDNA_DEFAULT_DECL(SmoothGpencilModifierData),
     SDNA_DEFAULT_DECL(SubdivGpencilModifierData),

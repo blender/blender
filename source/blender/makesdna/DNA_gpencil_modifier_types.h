@@ -47,6 +47,7 @@ typedef enum GpencilModifierType {
   eGpencilModifierType_WeightAngle = 23,
   eGpencilModifierType_Shrinkwrap = 24,
   eGpencilModifierType_Envelope = 25,
+  eGpencilModifierType_Outline = 26,
   /* Keep last. */
   NUM_GREASEPENCIL_MODIFIER_TYPES,
 } GpencilModifierType;
@@ -312,6 +313,38 @@ typedef enum eOpacityGpencil_Flag {
   GP_OPACITY_NORMALIZE = (1 << 7),
   GP_OPACITY_WEIGHT_FACTOR = (1 << 8),
 } eOpacityGpencil_Flag;
+
+typedef struct OutlineGpencilModifierData {
+  GpencilModifierData modifier;
+  /** Target stroke origin. */
+  struct Object *object;
+  /** Material for filtering. */
+  struct Material *material;
+  /** Layer name. */
+  char layername[64];
+  /** Custom index for passes. */
+  int pass_index;
+  /** Flags. */
+  int flag;
+  /** Thickness. */
+  int thickness;
+  /** Sample Length. */
+  float sample_length;
+  /** Subdivisions. */
+  int subdiv;
+  /** Custom index for passes. */
+  int layer_pass;
+  /** Material for outline. */
+  struct Material *outline_material;
+} OutlineGpencilModifierData;
+
+typedef enum eOutlineGpencil_Flag {
+  GP_OUTLINE_INVERT_LAYER = (1 << 0),
+  GP_OUTLINE_INVERT_PASS = (1 << 1),
+  GP_OUTLINE_INVERT_LAYERPASS = (1 << 2),
+  GP_OUTLINE_INVERT_MATERIAL = (1 << 3),
+  GP_OUTLINE_KEEP_SHAPE = (1 << 4),
+} eOutlineGpencil_Flag;
 
 typedef struct ArrayGpencilModifierData {
   GpencilModifierData modifier;

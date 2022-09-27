@@ -172,6 +172,19 @@
     .curve_intensity = NULL, \
   }
 
+#define _DNA_DEFAULT_OutlineGpencilModifierData \
+  { \
+    .material = NULL, \
+    .layername = "", \
+    .pass_index = 0, \
+    .flag = GP_OUTLINE_KEEP_SHAPE, \
+    .thickness = 1, \
+    .sample_length = 0.0f, \
+    .subdiv = 3, \
+    .layer_pass = 0, \
+    .outline_material = NULL, \
+  }
+
 #define _DNA_DEFAULT_SimplifyGpencilModifierData \
   { \
     .material = NULL, \
