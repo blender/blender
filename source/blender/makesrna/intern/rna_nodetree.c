@@ -12663,6 +12663,7 @@ static void rna_def_nodetree(BlenderRNA *brna)
   RNA_def_property_int_funcs(
       prop, "rna_NodeTree_active_input_get", "rna_NodeTree_active_input_set", NULL);
   RNA_def_property_ui_text(prop, "Active Input", "Index of the active input");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_NODE, NULL);
 
   prop = RNA_def_property(srna, "outputs", PROP_COLLECTION, PROP_NONE);
@@ -12676,6 +12677,7 @@ static void rna_def_nodetree(BlenderRNA *brna)
   RNA_def_property_int_funcs(
       prop, "rna_NodeTree_active_output_get", "rna_NodeTree_active_output_set", NULL);
   RNA_def_property_ui_text(prop, "Active Output", "Index of the active output");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_NODE, NULL);
 
   /* exposed as a function for runtime interface type properties */
