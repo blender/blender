@@ -5,81 +5,102 @@
 #include "BKE_project_settings.hh"
 
 #include "BLI_fileops.h"
+#include "BLI_function_ref.hh"
 
 #include "testing/testing.h"
 
 namespace blender::bke::tests {
 
 class ProjectSettingsTest : public testing::Test {
+  struct ProjectDirectoryRAIIWrapper {
+    std::string project_path_;
+
+    ProjectDirectoryRAIIWrapper(StringRefNull project_path)
+    {
+      /** Assert would be preferable but that would only run in debug builds, and #ASSERT_TRUE()
+       * doesn't support printing a message. */
+      if (BLI_exists(project_path.c_str())) {
+        throw std::runtime_error("Can't execute test, temporary path '" + project_path +
+                                 "' already exists");
+      }
+
+      BLI_dir_create_recursive(project_path.c_str());
+      if (!BLI_exists(project_path.c_str())) {
+        throw std::runtime_error("Can't execute test, failed to create path '" + project_path +
+                                 "'");
+      }
+      project_path_ = project_path;
+    }
+
+    ~ProjectDirectoryRAIIWrapper()
+    {
+      if (!project_path_.empty()) {
+        BLI_delete(project_path_.c_str(), true, true);
+      }
+    }
+  };
+
  public:
-  std::string temp_project_root_path_;
-
-  void TearDown() override
+  /* Run the test on multiple paths or variations of the same path. Useful to test things like
+   * unicode paths, with or without trailing slash, etc. */
+  void test_foreach_project_path(FunctionRef<void(StringRefNull)> fn)
   {
-    if (!temp_project_root_path_.empty()) {
-      BLI_delete(temp_project_root_path_.c_str(), true, true);
-      temp_project_root_path_ = "";
-    }
-  }
+    std::vector<StringRefNull> subpaths = {
+        "temporary-project-root",
+        "test-temporary-unicode-dir-Ružena/temporary-project-root",
+        /* Same but with trailing slash. */
+        "test-temporary-unicode-dir-Ružena/temporary-project-root/",
+    };
 
-  StringRefNull create_temp_project_path()
-  {
     BKE_tempdir_init("");
+
     const std::string tempdir = BKE_tempdir_session();
-    temp_project_root_path_ = tempdir + "test-temporary-project-root";
-
-    /** Assert would be preferable but that would only run in debug builds, and #ASSERT_TRUE()
-     * doesn't support printing a message. */
-    if (BLI_exists(temp_project_root_path_.c_str())) {
-      throw std::runtime_error("Can't execute test, temporary path '" + temp_project_root_path_ +
-                               "' already exists");
+    for (StringRefNull subpath : subpaths) {
+      ProjectDirectoryRAIIWrapper temp_project_path(tempdir + subpath);
+      fn(temp_project_path.project_path_);
     }
-
-    BLI_dir_create_recursive(temp_project_root_path_.c_str());
-    if (!BLI_exists(temp_project_root_path_.c_str())) {
-      throw std::runtime_error("Can't execute test, failed to create path '" +
-                               temp_project_root_path_ + "'");
-    }
-    return temp_project_root_path_;
   }
 };
 
 TEST_F(ProjectSettingsTest, create)
 {
-  StringRefNull project_path = create_temp_project_path();
-
-  if (!ProjectSettings::create_settings_directory(project_path)) {
-    /* Not a regular test failure, this may fail if there is a permission issue for example. */
-    FAIL() << "Failed to create project directory in '" << project_path << "', check permissions";
-  }
-  std::string project_settings_dir = project_path + "/" + ProjectSettings::SETTINGS_DIRNAME;
-  EXPECT_TRUE(BLI_exists(project_settings_dir.c_str()))
-      << project_settings_dir + " was not created";
+  test_foreach_project_path([](StringRefNull project_path) {
+    if (!ProjectSettings::create_settings_directory(project_path)) {
+      /* Not a regular test failure, this may fail if there is a permission issue for example. */
+      FAIL() << "Failed to create project directory in '" << project_path
+             << "', check permissions";
+    }
+    std::string project_settings_dir = project_path + "/" + ProjectSettings::SETTINGS_DIRNAME;
+    EXPECT_TRUE(BLI_exists(project_settings_dir.c_str()))
+        << project_settings_dir + " was not created";
+  });
 }
 
 /* Load the project by pointing to the project root directory (as opposed to the .blender_project
  * directory). */
-TEST_F(ProjectSettingsTest, load_project_root)
+TEST_F(ProjectSettingsTest, load_from_project_root_path)
 {
-  StringRefNull project_path = create_temp_project_path();
-  ProjectSettings::create_settings_directory(project_path);
+  test_foreach_project_path([](StringRefNull project_path) {
+    ProjectSettings::create_settings_directory(project_path);
 
-  std::unique_ptr project_settings = ProjectSettings::load_from_disk(project_path);
-  EXPECT_NE(project_settings, nullptr);
-  EXPECT_EQ(project_settings->project_root_path(), project_path);
+    std::unique_ptr project_settings = ProjectSettings::load_from_disk(project_path);
+    EXPECT_NE(project_settings, nullptr);
+    EXPECT_EQ(project_settings->project_root_path(), project_path);
+  });
 }
 
-/* Load the project by pointing to the .blender_project directory (ass opposed to the project root
+/* Load the project by pointing to the .blender_project directory (as opposed to the project root
  * directory). */
-TEST_F(ProjectSettingsTest, load_project_settings_dir)
+TEST_F(ProjectSettingsTest, load_from_project_settings_path)
 {
-  StringRefNull project_path = create_temp_project_path();
-  ProjectSettings::create_settings_directory(project_path);
+  test_foreach_project_path([](StringRefNull project_path) {
+    ProjectSettings::create_settings_directory(project_path);
 
-  std::unique_ptr project_settings = ProjectSettings::load_from_disk(
-      project_path + "/" + ProjectSettings::SETTINGS_DIRNAME);
-  EXPECT_NE(project_settings, nullptr);
-  EXPECT_EQ(project_settings->project_root_path(), project_path);
+    std::unique_ptr project_settings = ProjectSettings::load_from_disk(
+        project_path + "/" + ProjectSettings::SETTINGS_DIRNAME);
+    EXPECT_NE(project_settings, nullptr);
+    EXPECT_EQ(project_settings->project_root_path(), project_path);
+  });
 }
 
 }  // namespace blender::bke::tests
