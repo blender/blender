@@ -2792,8 +2792,9 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
   const bool is_inverted = (is_brush_inv && (event->modifier & KM_CTRL) == 0) ||
                            (!is_brush_inv && (event->modifier & KM_CTRL) != 0);
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(tgpf->gpd);
-  const bool do_extend = (tgpf->flag & GP_BRUSH_FILL_SHOW_EXTENDLINES);
-  const bool help_lines = ((tgpf->flag & GP_BRUSH_FILL_SHOW_HELPLINES) || (do_extend));
+  const bool extend_lines = (tgpf->fill_extend_fac > 0.0f);
+  const bool show_extend = (tgpf->flag & GP_BRUSH_FILL_SHOW_EXTENDLINES);
+  const bool help_lines = ((tgpf->flag & GP_BRUSH_FILL_SHOW_HELPLINES) || (show_extend));
   int estate = OPERATOR_RUNNING_MODAL;
 
   switch (event->type) {
@@ -2862,7 +2863,7 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
               int step = ((float)i / (float)total) * 100.0f;
               WM_cursor_time(win, step);
 
-              if (do_extend) {
+              if (extend_lines) {
                 gpencil_update_extend(tgpf);
               }
 
@@ -2893,7 +2894,7 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
                 loop_limit++;
               }
 
-              if (do_extend) {
+              if (extend_lines) {
                 gpencil_delete_temp_stroke_extension(tgpf, true);
               }
 
@@ -2922,13 +2923,13 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
           estate = OPERATOR_CANCELLED;
         }
       }
-      else if (do_extend) {
+      else if (extend_lines) {
         gpencil_update_extend(tgpf);
       }
       tgpf->oldkey = event->type;
       break;
     case EVT_SKEY:
-      if ((do_extend) && (event->val == KM_PRESS)) {
+      if ((show_extend) && (event->val == KM_PRESS)) {
         /* Clean temp strokes. */
         stroke_array_free(tgpf);
 
@@ -2944,7 +2945,7 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
       }
       break;
     case EVT_DKEY:
-      if ((do_extend) && (event->val == KM_PRESS)) {
+      if ((show_extend) && (event->val == KM_PRESS)) {
         tgpf->flag ^= GP_BRUSH_FILL_STROKE_COLLIDE;
         /* Clean temp strokes. */
         stroke_array_free(tgpf);
