@@ -14,6 +14,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
+#include "BKE_gpencil.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_remap.h"
 #include "BKE_node.h"
@@ -26,6 +27,8 @@
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
+
+#include "BLO_read_write.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -1011,6 +1014,81 @@ static void node_space_subtype_item_extend(bContext *C, EnumPropertyItem **item,
   }
 }
 
+static void node_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
+{
+  SpaceNode *snode = (SpaceNode *)sl;
+
+  if (snode->gpd) {
+    BLO_read_data_address(reader, &snode->gpd);
+    BKE_gpencil_blend_read_data(reader, snode->gpd);
+  }
+
+  BLO_read_list(reader, &snode->treepath);
+  snode->edittree = nullptr;
+  snode->runtime = nullptr;
+}
+
+static void node_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+{
+  SpaceNode *snode = (SpaceNode *)sl;
+
+  /* node tree can be stored locally in id too, link this first */
+  BLO_read_id_address(reader, parent_id->lib, &snode->id);
+  BLO_read_id_address(reader, parent_id->lib, &snode->from);
+
+  bNodeTree *ntree = snode->id ? ntreeFromID(snode->id) : nullptr;
+  if (ntree) {
+    snode->nodetree = ntree;
+  }
+  else {
+    BLO_read_id_address(reader, parent_id->lib, &snode->nodetree);
+  }
+
+  bNodeTreePath *path;
+  for (path = static_cast<bNodeTreePath *>(snode->treepath.first); path; path = path->next) {
+    if (path == snode->treepath.first) {
+      /* first nodetree in path is same as snode->nodetree */
+      path->nodetree = snode->nodetree;
+    }
+    else {
+      BLO_read_id_address(reader, parent_id->lib, &path->nodetree);
+    }
+
+    if (!path->nodetree) {
+      break;
+    }
+  }
+
+  /* remaining path entries are invalid, remove */
+  bNodeTreePath *path_next;
+  for (; path; path = path_next) {
+    path_next = path->next;
+
+    BLI_remlink(&snode->treepath, path);
+    MEM_freeN(path);
+  }
+
+  /* edittree is just the last in the path,
+   * set this directly since the path may have been shortened above */
+  if (snode->treepath.last) {
+    path = static_cast<bNodeTreePath *>(snode->treepath.last);
+    snode->edittree = path->nodetree;
+  }
+  else {
+    snode->edittree = nullptr;
+  }
+}
+
+static void node_blend_write(BlendWriter *writer, SpaceLink *sl)
+{
+  SpaceNode *snode = (SpaceNode *)sl;
+  BLO_write_struct(writer, SpaceNode, snode);
+
+  LISTBASE_FOREACH (bNodeTreePath *, path, &snode->treepath) {
+    BLO_write_struct(writer, bNodeTreePath, path);
+  }
+}
+
 }  // namespace blender::ed::space_node
 
 void ED_spacetype_node()
@@ -1038,6 +1116,9 @@ void ED_spacetype_node()
   st->space_subtype_item_extend = node_space_subtype_item_extend;
   st->space_subtype_get = node_space_subtype_get;
   st->space_subtype_set = node_space_subtype_set;
+  st->blend_read_data = node_blend_read_data;
+  st->blend_read_lib = node_blend_read_lib;
+  st->blend_write = node_blend_write;
 
   /* regions: main window */
   art = MEM_cnew<ARegionType>("spacetype node region");

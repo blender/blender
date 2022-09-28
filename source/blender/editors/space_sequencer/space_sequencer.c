@@ -44,6 +44,8 @@
 #include "UI_interface.h"
 #include "UI_view2d.h"
 
+#include "BLO_read_write.h"
+
 #include "IMB_imbuf.h"
 
 /* Only for cursor drawing. */
@@ -991,6 +993,47 @@ static void sequencer_channel_region_draw(const bContext *C, ARegion *region)
   draw_channels(C, region);
 }
 
+static void sequencer_blend_read_data(BlendDataReader *UNUSED(reader), SpaceLink *sl)
+{
+  SpaceSeq *sseq = (SpaceSeq *)sl;
+
+  /* grease pencil data is not a direct data and can't be linked from direct_link*
+   * functions, it should be linked from lib_link* functions instead
+   *
+   * otherwise it'll lead to lost grease data on open because it'll likely be
+   * read from file after all other users of grease pencil and newdataadr would
+   * simple return NULL here (sergey)
+   */
+#if 0
+    if (sseq->gpd) {
+      sseq->gpd = newdataadr(fd, sseq->gpd);
+      BKE_gpencil_blend_read_data(fd, sseq->gpd);
+    }
+#endif
+  sseq->scopes.reference_ibuf = NULL;
+  sseq->scopes.zebra_ibuf = NULL;
+  sseq->scopes.waveform_ibuf = NULL;
+  sseq->scopes.sep_waveform_ibuf = NULL;
+  sseq->scopes.vector_ibuf = NULL;
+  sseq->scopes.histogram_ibuf = NULL;
+  memset(&sseq->runtime, 0x0, sizeof(sseq->runtime));
+}
+
+static void sequencer_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+{
+  SpaceSeq *sseq = (SpaceSeq *)sl;
+
+  /* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
+   * so fingers crossed this works fine!
+   */
+  BLO_read_id_address(reader, parent_id->lib, &sseq->gpd);
+}
+
+static void sequencer_blend_write(BlendWriter *writer, SpaceLink *sl)
+{
+  BLO_write_struct(writer, SpaceSeq, sl);
+}
+
 void ED_spacetype_sequencer(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype sequencer");
@@ -1011,6 +1054,9 @@ void ED_spacetype_sequencer(void)
   st->refresh = sequencer_refresh;
   st->listener = sequencer_listener;
   st->id_remap = sequencer_id_remap;
+  st->blend_read_data = sequencer_blend_read_data;
+  st->blend_read_lib = sequencer_blend_read_lib;
+  st->blend_write = sequencer_blend_write;
 
   /* Create regions: */
   /* Main window. */

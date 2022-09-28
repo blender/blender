@@ -21,6 +21,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "BLO_read_write.h"
+
 #include "DEG_depsgraph_query.h"
 
 #include "RNA_access.h"
@@ -613,6 +615,97 @@ static void spreadsheet_right_region_listener(const wmRegionListenerParams *UNUS
 {
 }
 
+static void spreadsheet_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
+{
+  SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
+
+  sspreadsheet->runtime = nullptr;
+  BLO_read_list(reader, &sspreadsheet->row_filters);
+  LISTBASE_FOREACH (SpreadsheetRowFilter *, row_filter, &sspreadsheet->row_filters) {
+    BLO_read_data_address(reader, &row_filter->value_string);
+  }
+  BLO_read_list(reader, &sspreadsheet->columns);
+  LISTBASE_FOREACH (SpreadsheetColumn *, column, &sspreadsheet->columns) {
+    BLO_read_data_address(reader, &column->id);
+    BLO_read_data_address(reader, &column->id->name);
+    /* While the display name is technically runtime data, it is loaded here, otherwise the row
+     * filters might not now their type if their region draws before the main region.
+     * This would ideally be cleared here. */
+    BLO_read_data_address(reader, &column->display_name);
+  }
+
+  BLO_read_list(reader, &sspreadsheet->context_path);
+  LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
+    switch (context->type) {
+      case SPREADSHEET_CONTEXT_NODE: {
+        SpreadsheetContextNode *node_context = (SpreadsheetContextNode *)context;
+        BLO_read_data_address(reader, &node_context->node_name);
+        break;
+      }
+      case SPREADSHEET_CONTEXT_MODIFIER: {
+        SpreadsheetContextModifier *modifier_context = (SpreadsheetContextModifier *)context;
+        BLO_read_data_address(reader, &modifier_context->modifier_name);
+        break;
+      }
+      case SPREADSHEET_CONTEXT_OBJECT: {
+        break;
+      }
+    }
+  }
+}
+
+static void spreadsheet_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+{
+  SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
+  LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
+    if (context->type == SPREADSHEET_CONTEXT_OBJECT) {
+      BLO_read_id_address(reader, parent_id->lib, &((SpreadsheetContextObject *)context)->object);
+    }
+  }
+}
+
+static void spreadsheet_blend_write(BlendWriter *writer, SpaceLink *sl)
+{
+  BLO_write_struct(writer, SpaceSpreadsheet, sl);
+  SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
+
+  LISTBASE_FOREACH (SpreadsheetRowFilter *, row_filter, &sspreadsheet->row_filters) {
+    BLO_write_struct(writer, SpreadsheetRowFilter, row_filter);
+    BLO_write_string(writer, row_filter->value_string);
+  }
+
+  LISTBASE_FOREACH (SpreadsheetColumn *, column, &sspreadsheet->columns) {
+    BLO_write_struct(writer, SpreadsheetColumn, column);
+    BLO_write_struct(writer, SpreadsheetColumnID, column->id);
+    BLO_write_string(writer, column->id->name);
+    /* While the display name is technically runtime data, we write it here, otherwise the row
+     * filters might not now their type if their region draws before the main region.
+     * This would ideally be cleared here. */
+    BLO_write_string(writer, column->display_name);
+  }
+  LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
+    switch (context->type) {
+      case SPREADSHEET_CONTEXT_OBJECT: {
+        SpreadsheetContextObject *object_context = (SpreadsheetContextObject *)context;
+        BLO_write_struct(writer, SpreadsheetContextObject, object_context);
+        break;
+      }
+      case SPREADSHEET_CONTEXT_MODIFIER: {
+        SpreadsheetContextModifier *modifier_context = (SpreadsheetContextModifier *)context;
+        BLO_write_struct(writer, SpreadsheetContextModifier, modifier_context);
+        BLO_write_string(writer, modifier_context->modifier_name);
+        break;
+      }
+      case SPREADSHEET_CONTEXT_NODE: {
+        SpreadsheetContextNode *node_context = (SpreadsheetContextNode *)context;
+        BLO_write_struct(writer, SpreadsheetContextNode, node_context);
+        BLO_write_string(writer, node_context->node_name);
+        break;
+      }
+    }
+  }
+}
+
 void ED_spacetype_spreadsheet()
 {
   SpaceType *st = MEM_cnew<SpaceType>("spacetype spreadsheet");
@@ -628,6 +721,9 @@ void ED_spacetype_spreadsheet()
   st->operatortypes = spreadsheet_operatortypes;
   st->keymap = spreadsheet_keymap;
   st->id_remap = spreadsheet_id_remap;
+  st->blend_read_data = spreadsheet_blend_read_data;
+  st->blend_read_lib = spreadsheet_blend_read_lib;
+  st->blend_write = spreadsheet_blend_write;
 
   /* regions: main window */
   art = MEM_cnew<ARegionType>("spacetype spreadsheet region");

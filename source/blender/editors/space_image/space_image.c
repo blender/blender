@@ -50,6 +50,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "BLO_read_write.h"
+
 #include "DRW_engine.h"
 
 #include "image_intern.h"
@@ -1026,6 +1028,46 @@ static void image_space_subtype_item_extend(bContext *UNUSED(C),
   RNA_enum_items_add(item, totitem, rna_enum_space_image_mode_items);
 }
 
+static void image_blend_read_data(BlendDataReader *UNUSED(reader), SpaceLink *sl)
+{
+  SpaceImage *sima = (SpaceImage *)sl;
+
+  sima->iuser.scene = NULL;
+  sima->scopes.waveform_1 = NULL;
+  sima->scopes.waveform_2 = NULL;
+  sima->scopes.waveform_3 = NULL;
+  sima->scopes.vecscope = NULL;
+  sima->scopes.ok = 0;
+
+  /* WARNING: gpencil data is no longer stored directly in sima after 2.5
+   * so sacrifice a few old files for now to avoid crashes with new files!
+   * committed: r28002 */
+#if 0
+    sima->gpd = newdataadr(fd, sima->gpd);
+    if (sima->gpd) {
+      BKE_gpencil_blend_read_data(fd, sima->gpd);
+    }
+#endif
+}
+
+static void image_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+{
+  SpaceImage *sima = (SpaceImage *)sl;
+
+  BLO_read_id_address(reader, parent_id->lib, &sima->image);
+  BLO_read_id_address(reader, parent_id->lib, &sima->mask_info.mask);
+
+  /* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
+   * so fingers crossed this works fine!
+   */
+  BLO_read_id_address(reader, parent_id->lib, &sima->gpd);
+}
+
+static void image_blend_write(BlendWriter *writer, SpaceLink *sl)
+{
+  BLO_write_struct(writer, SpaceImage, sl);
+}
+
 /**************************** spacetype *****************************/
 
 void ED_spacetype_image(void)
@@ -1051,6 +1093,9 @@ void ED_spacetype_image(void)
   st->space_subtype_item_extend = image_space_subtype_item_extend;
   st->space_subtype_get = image_space_subtype_get;
   st->space_subtype_set = image_space_subtype_set;
+  st->blend_read_data = image_blend_read_data;
+  st->blend_read_lib = image_blend_read_lib;
+  st->blend_write = image_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype image region");

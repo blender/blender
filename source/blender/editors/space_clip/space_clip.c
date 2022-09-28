@@ -49,6 +49,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "BLO_read_write.h"
+
 #include "RNA_access.h"
 
 #include "clip_intern.h" /* own include */
@@ -1245,6 +1247,27 @@ static void clip_id_remap(ScrArea *UNUSED(area),
   BKE_id_remapper_apply(mappings, (ID **)&sclip->mask_info.mask, ID_REMAP_APPLY_ENSURE_REAL);
 }
 
+static void clip_blend_read_data(BlendDataReader *UNUSED(reader), SpaceLink *sl)
+{
+  SpaceClip *sclip = (SpaceClip *)sl;
+
+  sclip->scopes.track_search = NULL;
+  sclip->scopes.track_preview = NULL;
+  sclip->scopes.ok = 0;
+}
+
+static void clip_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+{
+  SpaceClip *sclip = (SpaceClip *)sl;
+  BLO_read_id_address(reader, parent_id->lib, &sclip->clip);
+  BLO_read_id_address(reader, parent_id->lib, &sclip->mask_info.mask);
+}
+
+static void clip_blend_write(BlendWriter *writer, SpaceLink *sl)
+{
+  BLO_write_struct(writer, SpaceClip, sl);
+}
+
 void ED_spacetype_clip(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype clip");
@@ -1265,6 +1288,9 @@ void ED_spacetype_clip(void)
   st->dropboxes = clip_dropboxes;
   st->refresh = clip_refresh;
   st->id_remap = clip_id_remap;
+  st->blend_read_data = clip_blend_read_data;
+  st->blend_read_lib = clip_blend_read_lib;
+  st->blend_write = clip_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype clip region");

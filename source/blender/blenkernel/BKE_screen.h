@@ -108,6 +108,23 @@ typedef struct SpaceType {
   void (*space_subtype_set)(struct ScrArea *area, int value);
   void (*space_subtype_item_extend)(struct bContext *C, EnumPropertyItem **item, int *totitem);
 
+  /**
+   * Update pointers for all structs directly owned by this space.
+   */
+  void (*blend_read_data)(struct BlendDataReader *reader, struct SpaceLink *space_link);
+
+  /**
+   * Update pointers to other id data blocks.
+   */
+  void (*blend_read_lib)(struct BlendLibReader *reader,
+                         struct ID *parent_id,
+                         struct SpaceLink *space_link);
+
+  /**
+   * Write all structs that should be saved in a .blend file.
+   */
+  void (*blend_write)(struct BlendWriter *writer, struct SpaceLink *space_link);
+
   /* region type definitions */
   ListBase regiontypes;
 

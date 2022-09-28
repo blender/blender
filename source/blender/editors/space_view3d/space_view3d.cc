@@ -5,6 +5,9 @@
  * \ingroup spview3d
  */
 
+/* Allow using deprecated functionality for .blend file I/O. */
+#define DNA_DEPRECATED_ALLOW
+
 #include <stdio.h>
 #include <string.h>
 
@@ -29,6 +32,7 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
+#include "BKE_gpencil.h"
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_lattice.h"
@@ -66,6 +70,8 @@
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "BLO_read_write.h"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
@@ -1976,6 +1982,53 @@ static void view3d_id_remap(ScrArea *area, SpaceLink *slink, const struct IDRema
   }
 }
 
+static void view3d_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
+{
+  View3D *v3d = (View3D *)sl;
+
+  memset(&v3d->runtime, 0x0, sizeof(v3d->runtime));
+
+  if (v3d->gpd) {
+    BLO_read_data_address(reader, &v3d->gpd);
+    BKE_gpencil_blend_read_data(reader, v3d->gpd);
+  }
+  BLO_read_data_address(reader, &v3d->localvd);
+
+  /* render can be quite heavy, set to solid on load */
+  if (v3d->shading.type == OB_RENDER) {
+    v3d->shading.type = OB_SOLID;
+  }
+  v3d->shading.prev_type = OB_SOLID;
+
+  BKE_screen_view3d_shading_blend_read_data(reader, &v3d->shading);
+
+  BKE_screen_view3d_do_versions_250(v3d, &sl->regionbase);
+}
+
+static void view3d_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+{
+  View3D *v3d = (View3D *)sl;
+
+  BLO_read_id_address(reader, parent_id->lib, &v3d->camera);
+  BLO_read_id_address(reader, parent_id->lib, &v3d->ob_center);
+
+  if (v3d->localvd) {
+    BLO_read_id_address(reader, parent_id->lib, &v3d->localvd->camera);
+  }
+}
+
+static void view3d_blend_write(BlendWriter *writer, SpaceLink *sl)
+{
+  View3D *v3d = (View3D *)sl;
+  BLO_write_struct(writer, View3D, v3d);
+
+  if (v3d->localvd) {
+    BLO_write_struct(writer, View3D, v3d->localvd);
+  }
+
+  BKE_screen_view3d_shading_blend_write(writer, &v3d->shading);
+}
+
 void ED_spacetype_view3d(void)
 {
   SpaceType *st = MEM_cnew<SpaceType>("spacetype view3d");
@@ -1997,6 +2050,9 @@ void ED_spacetype_view3d(void)
   st->gizmos = view3d_widgets;
   st->context = view3d_context;
   st->id_remap = view3d_id_remap;
+  st->blend_read_data = view3d_blend_read_data;
+  st->blend_read_lib = view3d_blend_read_lib;
+  st->blend_write = view3d_blend_write;
 
   /* regions: main window */
   art = MEM_cnew<ARegionType>("spacetype view3d main region");
