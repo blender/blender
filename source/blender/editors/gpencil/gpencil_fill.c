@@ -2681,9 +2681,12 @@ static bool gpencil_find_and_mark_empty_areas(tGPDfill *tgpf)
     get_pixel(ibuf, i, rgba);
     if (rgba[3] == 0.0f) {
       set_pixel(ibuf, i, blue_col);
+      BKE_image_release_ibuf(tgpf->ima, ibuf, NULL);
       return true;
     }
   }
+
+  BKE_image_release_ibuf(tgpf->ima, ibuf, NULL);
   return false;
 }
 
