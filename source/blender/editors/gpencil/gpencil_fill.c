@@ -887,7 +887,7 @@ static bool gpencil_stroke_is_drawable(tGPDfill *tgpf, bGPDstroke *gps)
   const bool is_collide = (gps->flag & GP_STROKE_COLLIDE) != 0;
 
   if (is_line_mode && only_collide && tgpf->is_render && !is_collide) {
-    return;
+    return false;
   }
 
   if ((!show_help) && (show_extend)) {
