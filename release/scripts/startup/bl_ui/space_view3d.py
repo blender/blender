@@ -3298,7 +3298,8 @@ class VIEW3D_MT_mask(Menu):
 
         layout.separator()
 
-        props = layout.operator("sculpt.dirty_mask", text='Dirty Mask')
+        props = layout.operator("sculpt.mask_from_cavity", text="Mask From Cavity")
+        props.use_automask_settings = False
 
         layout.separator()
 
@@ -5494,6 +5495,8 @@ class VIEW3D_MT_sculpt_automasking_pie(Menu):
         pie.prop(sculpt, "use_automasking_face_sets", text="Face Sets")
         pie.prop(sculpt, "use_automasking_boundary_edges", text="Mesh Boundary")
         pie.prop(sculpt, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
+        pie.prop(sculpt, "use_automasking_cavity", text="Cavity")
+        pie.prop(sculpt, "use_automasking_cavity_inverted", text="Cavity (Inverted)")
 
 
 class VIEW3D_MT_sculpt_face_sets_edit_pie(Menu):

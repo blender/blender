@@ -52,6 +52,7 @@ struct Palette;
 struct PaletteColor;
 struct Scene;
 struct StrokeCache;
+struct Sculpt;
 struct SubdivCCG;
 struct Tex;
 struct ToolSettings;
@@ -473,6 +474,11 @@ typedef struct SculptBoundary {
   } twist;
 } SculptBoundary;
 
+typedef struct CavityMaskData {
+  float factor;
+  int stroke_id;
+} CavityMaskData;
+
 typedef struct SculptFakeNeighbors {
   bool use_fake_neighbors;
 
@@ -552,6 +558,9 @@ typedef struct SculptAttributePointers {
   /* BMesh */
   SculptAttribute *dyntopo_node_id_vertex;
   SculptAttribute *dyntopo_node_id_face;
+
+  SculptAttribute *stroke_id;
+  SculptAttribute *cavity;
 } SculptAttributePointers;
 
 typedef struct SculptSession {
@@ -743,6 +752,9 @@ typedef struct SculptSession {
    */
   char *last_paint_canvas_key;
 
+  uchar stroke_id;
+  int last_automasking_settings_hash;
+  uchar last_cavity_stroke_id;
 } SculptSession;
 
 void BKE_sculptsession_free(struct Object *ob);
@@ -900,6 +912,8 @@ bool BKE_paint_canvas_image_get(struct PaintModeSettings *settings,
                                 struct ImageUser **r_image_user);
 int BKE_paint_canvas_uvmap_layer_index_get(const struct PaintModeSettings *settings,
                                            struct Object *ob);
+void BKE_sculpt_check_cavity_curves(struct Sculpt *sd);
+struct CurveMapping *BKE_sculpt_default_cavity_curve(void);
 
 #ifdef __cplusplus
 }

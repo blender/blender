@@ -943,7 +943,21 @@ def brush_settings_advanced(layout, context, brush, popover=False):
         # boundary edges/face sets automasking
         col.prop(brush, "use_automasking_boundary_edges", text="Mesh Boundary")
         col.prop(brush, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
+        col.prop(brush, "use_automasking_cavity", text="Cavity")
+        col.prop(brush, "use_automasking_cavity_inverted", text="Cavity (Inverted)")
+
+        col.separator()
         col.prop(brush, "automasking_boundary_edges_propagation_steps")
+
+        if brush.use_automasking_cavity or brush.use_automasking_cavity_inverted:
+            col.separator()
+
+            col.prop(brush, "automasking_cavity_factor", text="Cavity Factor")
+            col.prop(brush, "automasking_cavity_blur_steps", text="Cavity Blur")
+            col.prop(brush, "use_automasking_custom_cavity_curve", text="Use Curve")
+
+            if brush.use_automasking_custom_cavity_curve:
+                col.template_curve_mapping(brush, "automasking_cavity_curve")
 
         layout.separator()
 

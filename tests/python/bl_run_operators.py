@@ -83,7 +83,7 @@ op_blacklist = (
     "object.voxel_remesh",
     "mesh.paint_mask_slice",
     "paint.mask_flood_fill",
-    "sculpt.dirty_mask",
+    "sculpt.mask_from_cavity",
     # TODO: use empty temp dir to avoid behavior depending on local setup.
     "view3d.pastebuffer",
     # Needs active window.

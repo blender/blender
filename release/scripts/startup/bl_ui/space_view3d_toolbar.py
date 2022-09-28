@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-from bpy.types import Menu, Panel, UIList
+from bpy.types import Menu, Panel, UIList, WindowManager
 from bl_ui.properties_grease_pencil_common import (
     GreasePencilSculptAdvancedPanel,
     GreasePencilDisplayPanel,
@@ -939,7 +939,6 @@ class VIEW3D_PT_sculpt_voxel_remesh(Panel, View3DPaintPanel):
 
         layout.operator("object.voxel_remesh", text="Remesh")
 
-
 # TODO, move to space_view3d.py
 class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
@@ -967,10 +966,33 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.separator()
 
         col = layout.column(heading="Auto-Masking", align=True)
+
         col.prop(sculpt, "use_automasking_topology", text="Topology")
         col.prop(sculpt, "use_automasking_face_sets", text="Face Sets")
         col.prop(sculpt, "use_automasking_boundary_edges", text="Mesh Boundary")
         col.prop(sculpt, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
+        col.prop(sculpt, "use_automasking_cavity", text="Cavity")
+        col.prop(sculpt, "use_automasking_cavity_inverted", text="Cavity (Inverted)")
+
+        col.separator()
+        col.prop(sculpt.brush, "automasking_boundary_edges_propagation_steps")
+
+        if sculpt.use_automasking_cavity or sculpt.use_automasking_cavity_inverted:
+            col.separator()
+
+            col2 = col.column()
+            props = col2.operator("sculpt.mask_from_cavity", text="Mask From Cavity")
+            props.use_automask_settings = True
+
+            col2 = col.column()
+            
+            col2.prop(sculpt, "automasking_cavity_factor", text="Cavity Factor")
+            col2.prop(sculpt, "automasking_cavity_blur_steps", text="Cavity Blur")
+            
+            col2.prop(sculpt, "use_automasking_custom_cavity_curve", text="Use Curve")
+
+            if sculpt.use_automasking_custom_cavity_curve:
+                col2.template_curve_mapping(sculpt, "automasking_cavity_curve")
 
 
 class VIEW3D_PT_sculpt_options_gravity(Panel, View3DPaintPanel):

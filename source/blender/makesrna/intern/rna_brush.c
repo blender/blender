@@ -92,6 +92,19 @@ static const EnumPropertyItem rna_enum_brush_texture_slot_map_texture_mode_items
 #endif
 
 /* clang-format off */
+/* Note: we don't actually turn these into a single enum bitmask property,
+ * instead we construct individual boolean properties. */
+const EnumPropertyItem RNA_automasking_flags[] = {
+  {BRUSH_AUTOMASKING_TOPOLOGY, "use_automasking_topology", 0,"Topology", "Affect only vertices connected to the active vertex under the brush"},
+  {BRUSH_AUTOMASKING_FACE_SETS, "use_automasking_face_sets", 0,"Face Sets", "Affect only vertices that share Face Sets with the active vertex"},
+  {BRUSH_AUTOMASKING_BOUNDARY_EDGES, "use_automasking_boundary_edges", 0,"Mesh Boundary Auto-Masking", "Do not affect non manifold boundary edges"},
+  {BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS, "use_automasking_boundary_face_sets", 0,"Face Sets Boundary Automasking", "Do not affect vertices that belong to a Face Set boundary"},
+  {BRUSH_AUTOMASKING_CAVITY_NORMAL, "use_automasking_cavity", 0,"Cavity Mask", "Do not affect vertices on peaks, based on the surface curvature"},
+  {BRUSH_AUTOMASKING_CAVITY_INVERTED, "use_automasking_cavity_inverted", 0,"Inverted Cavity Mask", "Do not affect vertices within crevices, based on the surface curvature"},
+  {BRUSH_AUTOMASKING_CAVITY_USE_CURVE, "use_automasking_custom_cavity_curve", 0,"Custom Cavity Curve", "Use custom curve"},
+  {0, NULL, 0, NULL, NULL}
+};
+
 const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_DRAW, "DRAW", ICON_BRUSH_SCULPT_DRAW, "Draw", ""},
     {SCULPT_TOOL_DRAW_SHARP, "DRAW_SHARP", ICON_BRUSH_SCULPT_DRAW, "Draw Sharp", ""},
@@ -1082,6 +1095,32 @@ static const EnumPropertyItem *rna_BrushTextureSlot_map_mode_itemf(bContext *C,
   return rna_enum_brush_texture_slot_map_texture_mode_items;
 
 #  undef rna_enum_brush_texture_slot_map_sculpt_mode_items
+}
+
+static void rna_Brush_automasking_invert_cavity_set(PointerRNA *ptr, bool val)
+{
+  Brush *brush = (Brush *)ptr->data;
+
+  if (val) {
+    brush->automasking_flags &= ~BRUSH_AUTOMASKING_CAVITY_NORMAL;
+    brush->automasking_flags |= BRUSH_AUTOMASKING_CAVITY_INVERTED;
+  }
+  else {
+    brush->automasking_flags &= ~BRUSH_AUTOMASKING_CAVITY_INVERTED;
+  }
+}
+
+static void rna_Brush_automasking_cavity_set(PointerRNA *ptr, bool val)
+{
+  Brush *brush = (Brush *)ptr->data;
+
+  if (val) {
+    brush->automasking_flags &= ~BRUSH_AUTOMASKING_CAVITY_INVERTED;
+    brush->automasking_flags |= BRUSH_AUTOMASKING_CAVITY_NORMAL;
+  }
+  else {
+    brush->automasking_flags &= ~BRUSH_AUTOMASKING_CAVITY_NORMAL;
+  }
 }
 
 #else
@@ -3192,32 +3231,44 @@ static void rna_def_brush(BlenderRNA *brna)
       "When locked keep using the plane origin of surface where stroke was initiated");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-  prop = RNA_def_property(srna, "use_automasking_topology", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_TOPOLOGY);
-  RNA_def_property_ui_text(prop,
-                           "Topology Auto-Masking",
-                           "Affect only vertices connected to the active vertex under the brush");
+  const EnumPropertyItem *entry = RNA_automasking_flags;
+  do {
+    prop = RNA_def_property(srna, entry->identifier, PROP_BOOLEAN, PROP_NONE);
+    RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", entry->value);
+    RNA_def_property_ui_text(prop, entry->name, entry->description);
+
+    if (entry->value == BRUSH_AUTOMASKING_CAVITY_NORMAL) {
+      RNA_def_property_boolean_funcs(prop, NULL, "rna_Brush_automasking_cavity_set");
+    }
+    else if (entry->value == BRUSH_AUTOMASKING_CAVITY_INVERTED) {
+      RNA_def_property_boolean_funcs(prop, NULL, "rna_Brush_automasking_invert_cavity_set");
+    }
+
+    RNA_def_property_update(prop, 0, "rna_Brush_update");
+  } while ((++entry)->identifier);
+
+  
+  prop = RNA_def_property(srna, "automasking_cavity_factor", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "automasking_cavity_factor");
+  RNA_def_property_ui_text(prop, "Cavity Factor", "The contrast of the cavity mask");
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
+  RNA_def_property_range(prop, 0.0f, 5.0f);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-  prop = RNA_def_property(srna, "use_automasking_face_sets", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_FACE_SETS);
-  RNA_def_property_ui_text(prop,
-                           "Face Sets Auto-Masking",
-                           "Affect only vertices that share Face Sets with the active vertex");
+  prop = RNA_def_property(srna, "automasking_cavity_blur_steps", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "automasking_cavity_blur_steps");
+  RNA_def_property_ui_text(prop, "Blur Steps", "The number of times the cavity mask is blurred.");
+  RNA_def_property_range(prop, 0.0f, 25.0f);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-  prop = RNA_def_property(srna, "use_automasking_boundary_edges", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_BOUNDARY_EDGES);
-  RNA_def_property_ui_text(
-      prop, "Mesh Boundary Auto-Masking", "Do not affect non manifold boundary edges");
-  RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-  prop = RNA_def_property(srna, "use_automasking_boundary_face_sets", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(
-      prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS);
-  RNA_def_property_ui_text(prop,
-                           "Face Sets Boundary Automasking",
-                           "Do not affect vertices that belong to a Face Set boundary");
+  prop = RNA_def_property(srna, "automasking_cavity_curve", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, NULL, "automasking_cavity_curve");
+  RNA_def_property_struct_type(prop, "CurveMapping");
+  RNA_def_property_ui_text(prop, "Cavity Curve", "Curve used for the sensitivity");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_scene_spacing", PROP_ENUM, PROP_NONE);

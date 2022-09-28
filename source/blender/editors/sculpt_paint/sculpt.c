@@ -3364,6 +3364,8 @@ static void do_brush_action(Sculpt *sd,
       /* Initialize auto-masking cache. */
       if (SCULPT_is_automasking_enabled(sd, ss, brush)) {
         ss->cache->automasking = SCULPT_automasking_cache_init(sd, brush, ob);
+        ss->last_automasking_settings_hash = SCULPT_automasking_settings_hash(
+            ob, ss->cache->automasking);
       }
       /* Initialize surface smooth cache. */
       if ((brush->sculpt_tool == SCULPT_TOOL_SMOOTH) &&
@@ -3544,6 +3546,11 @@ static void do_brush_action(Sculpt *sd,
 
   if (sculpt_brush_use_topology_rake(ss, brush)) {
     SCULPT_bmesh_topology_rake(sd, ob, nodes, totnode, brush->topology_rake_factor);
+  }
+
+  if (!SCULPT_tool_can_reuse_cavity_mask(brush->sculpt_tool) || (ss->cache->supports_gravity && sd->gravity_factor > 0.0f)) {
+    /* Clear cavity mask cache. */
+    ss->last_automasking_settings_hash = 0;
   }
 
   /* The cloth brush adds the gravity as a regular force and it is processed in the solver. */
@@ -4234,6 +4241,8 @@ static void sculpt_update_cache_invariants(
 
   ss->cache = cache;
 
+  cache->stroke_id = ss->stroke_id;
+
   /* Set scaling adjustment. */
   max_scale = 0.0f;
   for (int i = 0; i < 3; i++) {
@@ -4336,6 +4345,10 @@ static void sculpt_update_cache_invariants(
 
   /* Make copies of the mesh vertex locations and normals for some tools. */
   if (brush->flag & BRUSH_ANCHORED) {
+    cache->original = true;
+  }
+
+  if (SCULPT_automasking_needs_original(sd, brush)) {
     cache->original = true;
   }
 
@@ -5398,6 +5411,8 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
       SCULPT_undo_push_begin_ex(ob, sculpt_tool_name(sd));
     }
 
+    SCULPT_stroke_id_next(ob);
+
     return true;
   }
   return false;
@@ -5994,6 +6009,26 @@ void SCULPT_fake_neighbors_free(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   sculpt_pose_fake_neighbors_free(ss);
+}
+
+void SCULPT_stroke_id_next(Object *ob)
+{
+  /* Manually wrap in int32 space to avoid tripping up undefined behavior
+   * sanitizers.
+   */
+  ob->sculpt->stroke_id = (uchar)(((int)ob->sculpt->stroke_id + 1) & 255);
+}
+
+void SCULPT_stroke_id_ensure(Object *ob)
+{
+  SculptSession *ss = ob->sculpt;
+
+  if (!ss->attrs.stroke_id) {
+    SculptAttributeParams params = {0};
+
+    ss->attrs.stroke_id = BKE_sculpt_attribute_ensure(
+        ob, ATTR_DOMAIN_POINT, CD_PROP_INT8, SCULPT_ATTRIBUTE_NAME(stroke_id), &params);
+  }
 }
 
 /** \} */

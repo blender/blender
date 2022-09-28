@@ -2089,6 +2089,9 @@ void BKE_sculpt_toolsettings_data_ensure(Scene *scene)
   if (!sd->paint.tile_offset[2]) {
     sd->paint.tile_offset[2] = 1.0f;
   }
+  if (!sd->automasking_cavity_curve || !sd->automasking_cavity_curve_op) {
+    BKE_sculpt_check_cavity_curves(sd);
+  }
 }
 
 static bool check_sculpt_object_deformed(Object *object, const bool for_construction)

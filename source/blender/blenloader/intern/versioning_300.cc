@@ -3337,6 +3337,14 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!DNA_struct_elem_find(fd->filesdna, "Sculpt", "float", "automasking_cavity_factor")) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->toolsettings && scene->toolsettings->sculpt) {
+        scene->toolsettings->sculpt->automasking_cavity_factor = 0.5f;
+      }
+    }
+  }
+
   if (!MAIN_VERSION_ATLEAST(bmain, 302, 14)) {
     /* Compensate for previously wrong squared distance. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
@@ -3519,6 +3527,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     BKE_main_namemap_validate_and_fix(bmain);
   }
+
   if (!MAIN_VERSION_ATLEAST(bmain, 304, 1)) {
     /* Image generation information transferred to tiles. */
     if (!DNA_struct_elem_find(fd->filesdna, "ImageTile", "int", "gen_x")) {
@@ -3573,6 +3582,13 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 304, 2)) {
+    /* Initialize brush curves sculpt settings. */
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      brush->automasking_cavity_factor = 0.5f;
+    }
   }
 
   /**

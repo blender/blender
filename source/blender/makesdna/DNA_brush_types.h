@@ -388,6 +388,11 @@ typedef struct Brush {
 
   struct BrushGpencilSettings *gpencil_settings;
   struct BrushCurvesSculptSettings *curves_sculpt_settings;
+
+  int automasking_cavity_blur_steps;
+  float automasking_cavity_factor;
+  
+  struct CurveMapping *automasking_cavity_curve;
 } Brush;
 
 /* Struct to hold palette colors for sorting. */

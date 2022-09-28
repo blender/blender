@@ -2102,6 +2102,8 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   SculptSession *ss = ob->sculpt;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
+  SCULPT_stroke_id_next(ob);
+
   /* Create and configure the Expand Cache. */
   ss->expand_cache = MEM_callocN(sizeof(ExpandCache), "expand cache");
   sculpt_expand_cache_initial_config_set(C, op, ss->expand_cache);
