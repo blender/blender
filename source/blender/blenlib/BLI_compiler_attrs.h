@@ -46,7 +46,7 @@
 #endif
 
 /* the function return value points to memory (2 args for 'size * tot') */
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(__clang__)
 #  define ATTR_ALLOC_SIZE(args...) __attribute__((alloc_size(args)))
 #else
 #  define ATTR_ALLOC_SIZE(...)
