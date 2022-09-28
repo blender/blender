@@ -153,6 +153,7 @@ static BPyGPUBuffer *pygpu_buffer_make_from_data(PyObject *parent,
   if (parent) {
     Py_INCREF(parent);
     buffer->parent = parent;
+    BLI_assert(!PyObject_GC_IsTracked((PyObject *)buffer));
     PyObject_GC_Track(buffer);
   }
   return buffer;
@@ -422,6 +423,11 @@ static PyObject *pygpu_buffer__tp_new(PyTypeObject *UNUSED(type), PyObject *args
   return (PyObject *)buffer;
 }
 
+static int pygpu_buffer__tp_is_gc(BPyGPUBuffer *self)
+{
+  return self->parent != NULL;
+}
+
 /* BPyGPUBuffer sequence methods */
 
 static int pygpu_buffer__sq_length(BPyGPUBuffer *self)
@@ -677,6 +683,7 @@ PyTypeObject BPyGPU_BufferType = {
     .tp_methods = pygpu_buffer__tp_methods,
     .tp_getset = pygpu_buffer_getseters,
     .tp_new = pygpu_buffer__tp_new,
+    .tp_is_gc = (inquiry)pygpu_buffer__tp_is_gc,
 };
 
 static size_t pygpu_buffer_calc_size(const int format,

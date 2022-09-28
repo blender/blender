@@ -183,6 +183,7 @@ static PyObject *bpy_rna_data_context_enter(BPy_DataContext *self)
 
   self->data_rna = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
 
+  BLI_assert(!PyObject_GC_IsTracked((PyObject *)self));
   PyObject_GC_Track(self);
 
   return (PyObject *)self->data_rna;

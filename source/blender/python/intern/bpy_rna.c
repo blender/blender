@@ -1174,6 +1174,7 @@ static void pyrna_struct_reference_set(BPy_StructRNA *self, PyObject *reference)
   if (reference) {
     self->reference = reference;
     Py_INCREF(reference);
+    BLI_assert(!PyObject_GC_IsTracked((PyObject *)self));
     PyObject_GC_Track(self);
   }
 }
