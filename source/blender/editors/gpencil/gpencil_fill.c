@@ -2712,6 +2712,9 @@ static bool gpencil_do_frame_fill(tGPDfill *tgpf, const bool is_inverted)
         gpencil_invert_image(tgpf);
         while (gpencil_find_and_mark_empty_areas(tgpf)) {
           gpencil_boundaryfill_area(tgpf);
+          if (FILL_DEBUG) {
+            break;
+          }
         }
       }
 
