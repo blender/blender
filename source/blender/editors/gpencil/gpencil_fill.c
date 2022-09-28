@@ -2793,8 +2793,9 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
                            (!is_brush_inv && (event->modifier & KM_CTRL) != 0);
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(tgpf->gpd);
   const bool extend_lines = (tgpf->fill_extend_fac > 0.0f);
-  const bool show_extend = (tgpf->flag & GP_BRUSH_FILL_SHOW_EXTENDLINES);
-  const bool help_lines = ((tgpf->flag & GP_BRUSH_FILL_SHOW_HELPLINES) || (show_extend));
+  const bool show_extend = ((tgpf->flag & GP_BRUSH_FILL_SHOW_EXTENDLINES) && !is_inverted);
+  const bool help_lines = (((tgpf->flag & GP_BRUSH_FILL_SHOW_HELPLINES) || show_extend) &&
+                           !is_inverted);
   int estate = OPERATOR_RUNNING_MODAL;
 
   switch (event->type) {
