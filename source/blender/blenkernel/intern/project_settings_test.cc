@@ -6,72 +6,106 @@
 
 #include "BLI_fileops.h"
 #include "BLI_function_ref.hh"
+#include "BLI_path_util.h"
 
 #include "testing/testing.h"
 
 namespace blender::bke::tests {
 
 class ProjectSettingsTest : public testing::Test {
+  /* RAII helper to delete the created directories reliably after testing or on errors. */
   struct ProjectDirectoryRAIIWrapper {
     std::string project_path_;
+    /* Path with OS preferred slashes ('/' on Unix, '\' on Windows). Important for some file
+     * operations. */
+    std::string native_project_path_;
+    std::string base_path_;
 
-    ProjectDirectoryRAIIWrapper(StringRefNull project_path)
+    ProjectDirectoryRAIIWrapper(StringRefNull base_path, StringRefNull relative_project_path)
     {
+      BLI_assert_msg(ELEM(base_path.back(), SEP, ALTSEP),
+                     "Expected base_path to have trailing slash");
+      std::string project_path = base_path + relative_project_path;
+
+      native_project_path_ = project_path;
+      BLI_path_slash_native(native_project_path_.data());
+
       /** Assert would be preferable but that would only run in debug builds, and #ASSERT_TRUE()
        * doesn't support printing a message. */
-      if (BLI_exists(project_path.c_str())) {
+      if (BLI_exists(native_project_path_.c_str())) {
         throw std::runtime_error("Can't execute test, temporary path '" + project_path +
                                  "' already exists");
       }
 
-      BLI_dir_create_recursive(project_path.c_str());
-      if (!BLI_exists(project_path.c_str())) {
-        throw std::runtime_error("Can't execute test, failed to create path '" + project_path +
-                                 "'");
+      BLI_dir_create_recursive(native_project_path_.c_str());
+      if (!BLI_exists(native_project_path_.c_str())) {
+        throw std::runtime_error("Can't execute test, failed to create path '" +
+                                 native_project_path_ + "'");
       }
+
+      base_path_ = base_path;
       project_path_ = project_path;
+      BLI_assert(StringRef{&project_path_[base_path.size()]} == relative_project_path);
     }
 
     ~ProjectDirectoryRAIIWrapper()
     {
       if (!project_path_.empty()) {
-        BLI_delete(project_path_.c_str(), true, true);
+        /* Cut the path off at the first slash after the base path, so we delete the directory
+         * created for the test. */
+        const size_t first_slash_pos = native_project_path_.find_first_of(SEP, base_path_.size());
+        std::string path_to_delete = native_project_path_;
+        if (first_slash_pos != std::string::npos) {
+          path_to_delete.erase(first_slash_pos);
+        }
+        BLI_delete(path_to_delete.c_str(), true, true);
+        BLI_assert(!BLI_exists(native_project_path_.c_str()));
       }
     }
   };
 
  public:
   /* Run the test on multiple paths or variations of the same path. Useful to test things like
-   * unicode paths, with or without trailing slash, etc. */
-  void test_foreach_project_path(FunctionRef<void(StringRefNull)> fn)
+   * unicode paths, with or without trailing slash, non-native slashes, etc. The callback gets both
+   * the unmodified path (possibly with non-native slashes), and the path converted to native
+   * slashes passed. Call functions under test with the former, and use the latter to check the
+   * results with BLI_fileops.h functions */
+  void test_foreach_project_path(FunctionRef<void(StringRefNull /* project_path */,
+                                                  StringRefNull /* project_path_native */)> fn)
   {
     std::vector<StringRefNull> subpaths = {
         "temporary-project-root",
-        "test-temporary-unicode-dir-Ružena/temporary-project-root",
+        "test-temporary-unicode-dir-новый/temporary-project-root",
         /* Same but with trailing slash. */
-        "test-temporary-unicode-dir-Ružena/temporary-project-root/",
+        "test-temporary-unicode-dir-новый/temporary-project-root/",
+        /* Windows style slash. */
+        "test-temporary-unicode-dir-новый\\temporary-project-root",
+        /* Windows style trailing slash. */
+        "test-temporary-unicode-dir-новый\\temporary-project-root\\",
     };
 
     BKE_tempdir_init("");
 
     const std::string tempdir = BKE_tempdir_session();
     for (StringRefNull subpath : subpaths) {
-      ProjectDirectoryRAIIWrapper temp_project_path(tempdir + subpath);
-      fn(temp_project_path.project_path_);
+      ProjectDirectoryRAIIWrapper temp_project_path(tempdir, subpath);
+      fn(temp_project_path.project_path_, temp_project_path.native_project_path_);
     }
   }
 };
 
 TEST_F(ProjectSettingsTest, create)
 {
-  test_foreach_project_path([](StringRefNull project_path) {
+  test_foreach_project_path([](StringRefNull project_path, StringRefNull project_path_native) {
     if (!ProjectSettings::create_settings_directory(project_path)) {
       /* Not a regular test failure, this may fail if there is a permission issue for example. */
       FAIL() << "Failed to create project directory in '" << project_path
              << "', check permissions";
     }
-    std::string project_settings_dir = project_path + "/" + ProjectSettings::SETTINGS_DIRNAME;
-    EXPECT_TRUE(BLI_exists(project_settings_dir.c_str()))
+    std::string project_settings_dir = project_path_native + SEP_STR +
+                                       ProjectSettings::SETTINGS_DIRNAME;
+    EXPECT_TRUE(BLI_exists(project_settings_dir.c_str()) &&
+                BLI_is_dir(project_settings_dir.c_str()))
         << project_settings_dir + " was not created";
   });
 }
@@ -80,12 +114,12 @@ TEST_F(ProjectSettingsTest, create)
  * directory). */
 TEST_F(ProjectSettingsTest, load_from_project_root_path)
 {
-  test_foreach_project_path([](StringRefNull project_path) {
+  test_foreach_project_path([](StringRefNull project_path, StringRefNull project_path_native) {
     ProjectSettings::create_settings_directory(project_path);
 
     std::unique_ptr project_settings = ProjectSettings::load_from_disk(project_path);
     EXPECT_NE(project_settings, nullptr);
-    EXPECT_EQ(project_settings->project_root_path(), project_path);
+    EXPECT_EQ(project_settings->project_root_path(), project_path_native);
   });
 }
 
@@ -93,13 +127,13 @@ TEST_F(ProjectSettingsTest, load_from_project_root_path)
  * directory). */
 TEST_F(ProjectSettingsTest, load_from_project_settings_path)
 {
-  test_foreach_project_path([](StringRefNull project_path) {
+  test_foreach_project_path([](StringRefNull project_path, StringRefNull project_path_native) {
     ProjectSettings::create_settings_directory(project_path);
 
     std::unique_ptr project_settings = ProjectSettings::load_from_disk(
-        project_path + "/" + ProjectSettings::SETTINGS_DIRNAME);
+        project_path + SEP_STR + ProjectSettings::SETTINGS_DIRNAME);
     EXPECT_NE(project_settings, nullptr);
-    EXPECT_EQ(project_settings->project_root_path(), project_path);
+    EXPECT_EQ(project_settings->project_root_path(), project_path_native);
   });
 }
 

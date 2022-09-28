@@ -13,6 +13,7 @@
 namespace blender::bke {
 
 class ProjectSettings {
+  /* Path to the project root using slashes in the OS native format. */
   std::string project_root_path_;
 
  public:
@@ -21,6 +22,7 @@ class ProjectSettings {
   /**
    * Initializes a blender project by creating a .blender_project directory at the given \a
    * project_root_path.
+   * Both Unix and Windows style slashes are allowed.
    * \return True if the settings directory was created, or already existed. False on failure.
    */
   static auto create_settings_directory(StringRef project_root_path) -> bool;
@@ -28,6 +30,7 @@ class ProjectSettings {
   /**
    * Read project settings from the given \a project_path, which may be either a project root
    * directory or the .blender_project directory.
+   * Both Unix and Windows style slashes are allowed.
    * \return The read project settings or null in case of failure.
    */
   static auto load_from_disk [[nodiscard]] (StringRef project_path)
