@@ -156,6 +156,11 @@ def with_osl():
     return _cycles.with_osl
 
 
+def with_path_guiding():
+    import _cycles
+    return _cycles.with_path_guiding
+
+
 def system_info():
     import _cycles
     return _cycles.system_info()

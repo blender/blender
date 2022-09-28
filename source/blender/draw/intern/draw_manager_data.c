@@ -5,7 +5,11 @@
  * \ingroup draw
  */
 
+#include "DRW_pbvh.h"
+
+#include "draw_attributes.h"
 #include "draw_manager.h"
+#include "draw_pbvh.h"
 
 #include "BKE_curve.h"
 #include "BKE_duplilist.h"
@@ -32,12 +36,12 @@
 #include "BLI_listbase.h"
 #include "BLI_memblock.h"
 #include "BLI_mempool.h"
+#include "BLI_math_bits.h"
 
 #ifdef DRW_DEBUG_CULLING
 #  include "BLI_math_bits.h"
 #endif
 
-#include "GPU_buffers.h"
 #include "GPU_capabilities.h"
 #include "GPU_material.h"
 #include "GPU_uniform_buffer.h"
@@ -1144,6 +1148,8 @@ typedef struct DRWSculptCallbackData {
   bool fast_mode; /* Set by draw manager. Do not init. */
 
   int debug_node_nr;
+  PBVHAttrReq *attrs;
+  int attrs_num;
 } DRWSculptCallbackData;
 
 #define SCULPT_DEBUG_COLOR(id) (sculpt_debug_colors[id % 9])
@@ -1159,22 +1165,28 @@ static float sculpt_debug_colors[9][4] = {
     {0.7f, 0.2f, 1.0f, 1.0f},
 };
 
-static void sculpt_draw_cb(DRWSculptCallbackData *scd, GPU_PBVH_Buffers *buffers)
+static void sculpt_draw_cb(DRWSculptCallbackData *scd,
+                           PBVHBatches *batches,
+                           PBVH_GPU_Args *pbvh_draw_args)
 {
-  if (!buffers) {
+  if (!batches) {
     return;
   }
 
-  /* Meh... use_mask is a bit misleading here. */
-  if (scd->use_mask && !GPU_pbvh_buffers_has_overlays(buffers)) {
-    return;
+  int primcount;
+  GPUBatch *geom;
+
+  if (!scd->use_wire) {
+    geom = DRW_pbvh_tris_get(batches, scd->attrs, scd->attrs_num, pbvh_draw_args, &primcount);
+  }
+  else {
+    geom = DRW_pbvh_lines_get(batches, scd->attrs, scd->attrs_num, pbvh_draw_args, &primcount);
   }
 
-  GPUBatch *geom = GPU_pbvh_buffers_batch_get(buffers, scd->fast_mode, scd->use_wire);
   short index = 0;
 
   if (scd->use_mats) {
-    index = GPU_pbvh_buffers_material_index_get(buffers);
+    index = drw_pbvh_material_index_get(batches);
     if (index >= scd->num_shading_groups) {
       index = 0;
     }
@@ -1298,9 +1310,11 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
                    update_only_visible,
                    &update_frustum,
                    &draw_frustum,
-                   (void (*)(void *, GPU_PBVH_Buffers *))sculpt_draw_cb,
+                   (void (*)(void *, PBVHBatches *, PBVH_GPU_Args *))sculpt_draw_cb,
                    scd,
-                   scd->use_mats);
+                   scd->use_mats,
+                   scd->attrs,
+                   scd->attrs_num);
 
   if (SCULPT_DEBUG_BUFFERS) {
     int debug_node_nr = 0;
@@ -1313,7 +1327,13 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
   }
 }
 
-void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup, Object *ob, bool use_wire, bool use_mask)
+void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
+                             Object *ob,
+                             bool use_wire,
+                             bool use_mask,
+                             bool use_fset,
+                             bool use_color,
+                             bool use_uv)
 {
   DRWSculptCallbackData scd = {
       .ob = ob,
@@ -1323,13 +1343,115 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup, Object *ob, bool use_wire
       .use_mats = false,
       .use_mask = use_mask,
   };
+
+  PBVHAttrReq attrs[16];
+  int attrs_num = 0;
+
+  memset(attrs, 0, sizeof(attrs));
+
+  attrs[attrs_num++].type = CD_PBVH_CO_TYPE;
+  attrs[attrs_num++].type = CD_PBVH_NO_TYPE;
+
+  if (use_mask) {
+    attrs[attrs_num++].type = CD_PBVH_MASK_TYPE;
+  }
+
+  if (use_fset) {
+    attrs[attrs_num++].type = CD_PBVH_FSET_TYPE;
+  }
+
+  Mesh *me = BKE_object_get_original_mesh(ob);
+
+  if (use_color) {
+    CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
+
+    if (layer) {
+      eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
+
+      attrs[attrs_num].type = layer->type;
+      attrs[attrs_num].domain = domain;
+
+      BLI_strncpy(attrs[attrs_num].name, layer->name, sizeof(attrs[attrs_num].name));
+      attrs_num++;
+    }
+  }
+
+  if (use_uv) {
+    int layer_i = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPUV);
+    if (layer_i != -1) {
+      CustomDataLayer *layer = me->ldata.layers + layer_i;
+
+      attrs[attrs_num].type = CD_MLOOPUV;
+      attrs[attrs_num].domain = ATTR_DOMAIN_CORNER;
+      BLI_strncpy(attrs[attrs_num].name, layer->name, sizeof(attrs[attrs_num].name));
+
+      attrs_num++;
+    }
+  }
+
+  scd.attrs = attrs;
+  scd.attrs_num = attrs_num;
+
   drw_sculpt_generate_calls(&scd);
 }
 
 void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
+                                            GPUMaterial **gpumats,
                                             int num_shgroups,
                                             Object *ob)
 {
+  DRW_Attributes draw_attrs;
+  DRW_MeshCDMask cd_needed;
+
+  if (gpumats) {
+    DRW_mesh_get_attributes(ob, (Mesh *)ob->data, gpumats, num_shgroups, &draw_attrs, &cd_needed);
+  }
+  else {
+    memset(&draw_attrs, 0, sizeof(draw_attrs));
+    memset(&cd_needed, 0, sizeof(cd_needed));
+  }
+
+  int attrs_num = 2 + draw_attrs.num_requests;
+
+  /* UV maps are not in attribute requests. */
+  attrs_num += count_bits_i(cd_needed.uv);
+
+  PBVHAttrReq *attrs = BLI_array_alloca(attrs, attrs_num);
+
+  memset(attrs, 0, sizeof(PBVHAttrReq) * attrs_num);
+  int attrs_i = 0;
+
+  attrs[attrs_i++].type = CD_PBVH_CO_TYPE;
+  attrs[attrs_i++].type = CD_PBVH_NO_TYPE;
+
+  for (int i = 0; i < draw_attrs.num_requests; i++) {
+    DRW_AttributeRequest *req = draw_attrs.requests + i;
+
+    attrs[attrs_i].type = req->cd_type;
+    attrs[attrs_i].domain = req->domain;
+    BLI_strncpy(attrs[attrs_i].name, req->attribute_name, sizeof(attrs->name));
+    attrs_i++;
+  }
+
+  /* UV maps are not in attribute requests. */
+  Mesh *me = (Mesh *)ob->data;
+
+  for (uint i = 0; i < 32; i++) {
+    if (cd_needed.uv & (1 << i)) {
+      int layer_i = CustomData_get_layer_index_n(&me->ldata, CD_MLOOPUV, i);
+      CustomDataLayer *layer = layer_i != -1 ? me->ldata.layers + layer_i : NULL;
+
+      if (layer) {
+        attrs[attrs_i].type = CD_MLOOPUV;
+        attrs[attrs_i].domain = ATTR_DOMAIN_CORNER;
+        BLI_strncpy(attrs[attrs_i].name, layer->name, sizeof(attrs->name));
+        attrs_i++;
+      }
+    }
+  }
+
+  attrs_num = attrs_i;
+
   DRWSculptCallbackData scd = {
       .ob = ob,
       .shading_groups = shgroups,
@@ -1337,6 +1459,8 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
       .use_wire = false,
       .use_mats = true,
       .use_mask = false,
+      .attrs = attrs,
+      .attrs_num = attrs_num,
   };
   drw_sculpt_generate_calls(&scd);
 }

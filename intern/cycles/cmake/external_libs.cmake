@@ -104,6 +104,10 @@ if(CYCLES_STANDALONE_REPOSITORY)
   else()
     unset(_cycles_lib_dir)
   endif()
+else()
+  if(EXISTS ${LIBDIR})
+    set(_cycles_lib_dir ${LIBDIR})
+  endif()
 endif()
 
 ###########################################################################
@@ -266,6 +270,31 @@ if(CYCLES_STANDALONE_REPOSITORY AND WITH_CYCLES_OSL)
     find_package(OSL REQUIRED)
     find_package(LLVM REQUIRED)
     find_package(Clang REQUIRED)
+  endif()
+endif()
+
+###########################################################################
+# OpenPGL
+###########################################################################
+
+if(WITH_CYCLES_PATH_GUIDING)
+  if(EXISTS ${_cycles_lib_dir})
+    set(openpgl_DIR ${_cycles_lib_dir}/openpgl/lib/cmake/openpgl)
+  endif()
+
+  find_package(openpgl QUIET)
+  if(openpgl_FOUND)
+    if(WIN32)
+      get_target_property(OPENPGL_LIBRARIES_RELEASE openpgl::openpgl LOCATION_RELEASE)
+      get_target_property(OPENPGL_LIBRARIES_DEBUG openpgl::openpgl LOCATION_DEBUG)
+      set(OPENPGL_LIBRARIES optimized ${OPENPGL_LIBRARIES_RELEASE} debug ${OPENPGL_LIBRARIES_DEBUG})
+    else()
+      get_target_property(OPENPGL_LIBRARIES openpgl::openpgl LOCATION)
+    endif()
+    get_target_property(OPENPGL_INCLUDE_DIR openpgl::openpgl INTERFACE_INCLUDE_DIRECTORIES)
+  else()
+    set(WITH_CYCLES_PATH_GUIDING OFF)
+    message(STATUS "OpenPGL not found, disabling WITH_CYCLES_PATH_GUIDING")
   endif()
 endif()
 

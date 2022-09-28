@@ -14,6 +14,8 @@
 #include "BLI_string.h"
 
 #include "BKE_attribute.h"
+#include "BKE_attribute.hh"
+#include "BKE_mesh.h"
 
 #include "draw_attributes.h"
 #include "draw_subdivision.h"
@@ -432,6 +434,40 @@ constexpr MeshExtract create_extractor_attr(ExtractInitFn fn, ExtractInitSubdivF
   return extractor;
 }
 
+static void extract_mesh_attr_viewer_init(const MeshRenderData *mr,
+                                          MeshBatchCache *UNUSED(cache),
+                                          void *buf,
+                                          void *UNUSED(tls_data))
+{
+  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "attribute_value", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  }
+
+  GPU_vertbuf_init_with_format(vbo, &format);
+  GPU_vertbuf_data_alloc(vbo, mr->loop_len);
+  MutableSpan<ColorGeometry4f> attr{static_cast<ColorGeometry4f *>(GPU_vertbuf_get_data(vbo)),
+                                    mr->loop_len};
+
+  const StringRefNull attr_name = ".viewer";
+  const bke::AttributeAccessor attributes = mr->me->attributes();
+  attributes
+      .lookup_or_default<ColorGeometry4f>(attr_name, ATTR_DOMAIN_CORNER, {1.0f, 0.0f, 1.0f, 1.0f})
+      .materialize(attr);
+}
+
+constexpr MeshExtract create_extractor_attr_viewer()
+{
+  MeshExtract extractor = {nullptr};
+  extractor.init = extract_mesh_attr_viewer_init;
+  extractor.data_type = MR_DATA_NONE;
+  extractor.data_size = 0;
+  extractor.use_threading = false;
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.attr_viewer);
+  return extractor;
+}
+
 /** \} */
 
 }  // namespace blender::draw
@@ -457,3 +493,5 @@ const MeshExtract extract_attr[GPU_MAX_ATTR] = {
     CREATE_EXTRACTOR_ATTR(13),
     CREATE_EXTRACTOR_ATTR(14),
 };
+
+const MeshExtract extract_attr_viewer = blender::draw::create_extractor_attr_viewer();

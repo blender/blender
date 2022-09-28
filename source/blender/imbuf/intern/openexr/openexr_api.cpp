@@ -73,15 +73,6 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
-
-/* The following prevents a linking error in debug mode for MSVC using the libs in SVN. */
-#if defined(WITH_OPENEXR) && defined(_WIN32) && defined(DEBUG) && _MSC_VER < 1900
-_CRTIMP void __cdecl _invalid_parameter_noinfo(void)
-{
-}
-#endif
-}
 #include "BLI_blenlib.h"
 #include "BLI_fileops.h"
 #include "BLI_math_color.h"

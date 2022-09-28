@@ -285,6 +285,12 @@ template<typename T> class AccumulateFieldInput final : public bke::GeometryFiel
     }
     return false;
   }
+
+  std::optional<eAttrDomain> preferred_domain(
+      const GeometryComponent & /*component*/) const override
+  {
+    return source_domain_;
+  }
 };
 
 template<typename T> class TotalFieldInput final : public bke::GeometryFieldInput {
@@ -354,6 +360,11 @@ template<typename T> class TotalFieldInput final : public bke::GeometryFieldInpu
              source_domain_ == other_field->source_domain_;
     }
     return false;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const GeometryComponent & /*component*/) const
+  {
+    return source_domain_;
   }
 };
 

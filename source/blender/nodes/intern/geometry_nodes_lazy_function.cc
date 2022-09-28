@@ -543,19 +543,53 @@ class LazyFunctionForViewerNode : public LazyFunction {
     }
 
     GeometrySet geometry = params.extract_input<GeometrySet>(0);
+    const NodeGeometryViewer *storage = static_cast<NodeGeometryViewer *>(bnode_.storage);
 
-    GField field;
     if (use_field_input_) {
       const void *value_or_field = params.try_get_input_data_ptr(1);
       BLI_assert(value_or_field != nullptr);
       const ValueOrFieldCPPType &value_or_field_type = static_cast<const ValueOrFieldCPPType &>(
           *inputs_[1].type);
-      field = value_or_field_type.as_field(value_or_field);
+      GField field = value_or_field_type.as_field(value_or_field);
+      const eAttrDomain domain = eAttrDomain(storage->domain);
+      const StringRefNull viewer_attribute_name = ".viewer";
+      if (domain == ATTR_DOMAIN_INSTANCE) {
+        if (geometry.has_instances()) {
+          GeometryComponent &component = geometry.get_component_for_write(
+              GEO_COMPONENT_TYPE_INSTANCES);
+          bke::try_capture_field_on_geometry(
+              component, viewer_attribute_name, ATTR_DOMAIN_INSTANCE, field);
+        }
+      }
+      else {
+        geometry.modify_geometry_sets([&](GeometrySet &geometry) {
+          for (const GeometryComponentType type : {GEO_COMPONENT_TYPE_MESH,
+                                                   GEO_COMPONENT_TYPE_POINT_CLOUD,
+                                                   GEO_COMPONENT_TYPE_CURVE}) {
+            if (geometry.has(type)) {
+              GeometryComponent &component = geometry.get_component_for_write(type);
+              eAttrDomain used_domain = domain;
+              if (used_domain == ATTR_DOMAIN_AUTO) {
+                if (const std::optional<eAttrDomain> detected_domain =
+                        bke::try_detect_field_domain(component, field)) {
+                  used_domain = *detected_domain;
+                }
+                else {
+                  used_domain = type == GEO_COMPONENT_TYPE_MESH ? ATTR_DOMAIN_CORNER :
+                                                                  ATTR_DOMAIN_POINT;
+                }
+              }
+              bke::try_capture_field_on_geometry(
+                  component, viewer_attribute_name, used_domain, field);
+            }
+          }
+        });
+      }
     }
 
     geo_eval_log::GeoTreeLogger &tree_logger =
         user_data->modifier_data->eval_log->get_local_tree_logger(*user_data->compute_context);
-    tree_logger.log_viewer_node(bnode_, geometry, field);
+    tree_logger.log_viewer_node(bnode_, std::move(geometry));
   }
 };
 

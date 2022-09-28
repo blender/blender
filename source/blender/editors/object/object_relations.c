@@ -2214,7 +2214,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
     CTX_DATA_END;
   }
 
-  BKE_library_make_local(bmain, NULL, NULL, true, false); /* NULL is all libs */
+  BKE_library_make_local(bmain, NULL, NULL, true, false); /* NULL is all libraries. */
 
   WM_event_add_notifier(C, NC_WINDOW, NULL);
   return OPERATOR_FINISHED;

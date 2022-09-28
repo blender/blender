@@ -697,6 +697,18 @@ int BaseMathObject_clear(BaseMathObject *self)
   return 0;
 }
 
+/** Only to validate assumptions when debugging. */
+#ifndef NDEBUG
+static bool BaseMathObject_is_tracked(BaseMathObject *self)
+{
+  PyObject *cb_user = self->cb_user;
+  self->cb_user = (void *)(uintptr_t)-1;
+  bool is_tracked = PyObject_GC_IsTracked((PyObject *)self);
+  self->cb_user = cb_user;
+  return is_tracked;
+}
+#endif /* NDEBUG */
+
 void BaseMathObject_dealloc(BaseMathObject *self)
 {
   /* only free non wrapped */
@@ -705,11 +717,46 @@ void BaseMathObject_dealloc(BaseMathObject *self)
   }
 
   if (self->cb_user) {
+    BLI_assert(BaseMathObject_is_tracked(self) == true);
     PyObject_GC_UnTrack(self);
     BaseMathObject_clear(self);
   }
+  else if (!BaseMathObject_CheckExact(self)) {
+    /* Sub-classed types get an extra track (in Pythons internal `subtype_dealloc` function). */
+    BLI_assert(BaseMathObject_is_tracked(self) == true);
+    PyObject_GC_UnTrack(self);
+    BLI_assert(BaseMathObject_is_tracked(self) == false);
+  }
 
   Py_TYPE(self)->tp_free(self);  // PyObject_DEL(self); /* breaks sub-types. */
+}
+
+int BaseMathObject_is_gc(BaseMathObject *self)
+{
+  return self->cb_user != NULL;
+}
+
+PyObject *_BaseMathObject_new_impl(PyTypeObject *root_type, PyTypeObject *base_type)
+{
+  PyObject *obj;
+  if (ELEM(base_type, NULL, root_type)) {
+    obj = _PyObject_GC_New(root_type);
+    if (obj) {
+      BLI_assert(BaseMathObject_is_tracked((BaseMathObject *)obj) == false);
+    }
+  }
+  else {
+    /* Calls Generic allocation function which always tracks
+     * (because `root_type` is flagged for GC). */
+    obj = base_type->tp_alloc(base_type, 0);
+    if (obj) {
+      BLI_assert(BaseMathObject_is_tracked((BaseMathObject *)obj) == true);
+      PyObject_GC_UnTrack(obj);
+      BLI_assert(BaseMathObject_is_tracked((BaseMathObject *)obj) == false);
+    }
+  }
+
+  return obj;
 }
 
 /*----------------------------MODULE INIT-------------------------*/

@@ -3586,5 +3586,18 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_VIEW3D) {
+            View3D *v3d = (View3D *)sl;
+            v3d->flag2 |= V3D_SHOW_VIEWER;
+            v3d->overlay.flag |= V3D_OVERLAY_VIEWER_ATTRIBUTE;
+            v3d->overlay.viewer_attribute_opacity = 0.8f;
+          }
+        }
+      }
+    }
   }
 }

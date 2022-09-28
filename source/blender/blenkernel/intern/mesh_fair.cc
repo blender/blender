@@ -26,6 +26,7 @@
 #include "MEM_guardedalloc.h"
 #include "eigen_capi.h"
 
+using blender::Array;
 using blender::Map;
 using blender::MutableSpan;
 using blender::Span;
@@ -220,12 +221,7 @@ class MeshFairingContext : public FairingContext {
       }
     }
 
-    loop_to_poly_map_.reserve(mesh->totloop);
-    for (int i = 0; i < mesh->totpoly; i++) {
-      for (int l = 0; l < mpoly_[i].totloop; l++) {
-        loop_to_poly_map_[l + mpoly_[i].loopstart] = i;
-      }
-    }
+    loop_to_poly_map_ = blender::mesh_topology::build_corner_to_poly_map(mpoly_, mloop_.size());
   }
 
   ~MeshFairingContext() override
@@ -259,7 +255,7 @@ class MeshFairingContext : public FairingContext {
   Span<MLoop> mloop_;
   Span<MPoly> mpoly_;
   Span<MEdge> medge_;
-  Vector<int> loop_to_poly_map_;
+  Array<int> loop_to_poly_map_;
 };
 
 class BMeshFairingContext : public FairingContext {

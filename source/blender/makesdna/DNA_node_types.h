@@ -1598,6 +1598,8 @@ typedef struct NodeGeometryImageTexture {
 typedef struct NodeGeometryViewer {
   /* eCustomDataType. */
   int8_t data_type;
+  /* eAttrDomain. */
+  int8_t domain;
 } NodeGeometryViewer;
 
 typedef struct NodeGeometryUVUnwrap {

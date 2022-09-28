@@ -87,56 +87,6 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-static void try_capture_field_on_geometry(GeometryComponent &component,
-                                          const StringRef name,
-                                          const eAttrDomain domain,
-                                          const GField &field,
-                                          std::atomic<bool> &r_failure)
-{
-  MutableAttributeAccessor attributes = *component.attributes_for_write();
-  const int domain_size = attributes.domain_size(domain);
-  if (domain_size == 0) {
-    return;
-  }
-
-  bke::GeometryFieldContext field_context{component, domain};
-  const IndexMask mask{IndexMask(domain_size)};
-
-  const CPPType &type = field.cpp_type();
-  const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(type);
-  const bke::AttributeValidator validator = attributes.lookup_validator(name);
-
-  /* Could avoid allocating a new buffer if:
-   * - We are writing to an attribute that exists already with the correct domain and type.
-   * - The field does not depend on that attribute (we can't easily check for that yet). */
-  void *buffer = MEM_mallocN(type.size() * domain_size, __func__);
-
-  fn::FieldEvaluator evaluator{field_context, &mask};
-  evaluator.add_with_destination(validator.validate_field_if_necessary(field),
-                                 GMutableSpan{type, buffer, domain_size});
-  evaluator.evaluate();
-
-  if (GAttributeWriter attribute = attributes.lookup_for_write(name)) {
-    if (attribute.domain == domain && attribute.varray.type() == type) {
-      attribute.varray.set_all(buffer);
-      attribute.finish();
-      type.destruct_n(buffer, domain_size);
-      MEM_freeN(buffer);
-      return;
-    }
-  }
-  attributes.remove(name);
-  if (attributes.add(name, domain, data_type, bke::AttributeInitMoveArray{buffer})) {
-    return;
-  }
-
-  /* If the name corresponds to a builtin attribute, removing the attribute might fail if
-   * it's required, and adding the attribute might fail if the domain or type is incorrect. */
-  type.destruct_n(buffer, domain_size);
-  MEM_freeN(buffer);
-  r_failure = true;
-}
-
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
@@ -192,7 +142,9 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (geometry_set.has_instances()) {
       GeometryComponent &component = geometry_set.get_component_for_write(
           GEO_COMPONENT_TYPE_INSTANCES);
-      try_capture_field_on_geometry(component, name, domain, field, failure);
+      if (!bke::try_capture_field_on_geometry(component, name, domain, field)) {
+        failure.store(true);
+      }
     }
   }
   else {
@@ -201,7 +153,9 @@ static void node_geo_exec(GeoNodeExecParams params)
            {GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE}) {
         if (geometry_set.has(type)) {
           GeometryComponent &component = geometry_set.get_component_for_write(type);
-          try_capture_field_on_geometry(component, name, domain, field, failure);
+          if (!bke::try_capture_field_on_geometry(component, name, domain, field)) {
+            failure.store(true);
+          }
         }
       }
     });

@@ -36,10 +36,6 @@ endmacro()
 # ------------------------------------------------------------------------
 # Find system provided libraries.
 
-# Avoid searching for headers since this would otherwise override our lib
-# directory as well as PYTHON_ROOT_DIR.
-set(CMAKE_FIND_FRAMEWORK NEVER)
-
 # Find system ZLIB, not the pre-compiled one supplied with OpenCollada.
 set(ZLIB_ROOT /usr)
 find_package(ZLIB REQUIRED)
@@ -78,6 +74,10 @@ endif()
 if(NOT EXISTS "${LIBDIR}/")
   message(FATAL_ERROR "Mac OSX requires pre-compiled libs at: '${LIBDIR}'")
 endif()
+
+# Avoid searching for headers since this would otherwise override our lib
+# directory as well as PYTHON_ROOT_DIR.
+set(CMAKE_FIND_FRAMEWORK NEVER)
 
 # Optionally use system Python if PYTHON_ROOT_DIR is specified.
 if(WITH_PYTHON AND (WITH_PYTHON_MODULE AND PYTHON_ROOT_DIR))

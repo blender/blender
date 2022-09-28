@@ -1156,7 +1156,7 @@ PyTypeObject color_Type = {
     NULL,                                                          /* tp_alloc */
     Color_new,                                                     /* tp_new */
     NULL,                                                          /* tp_free */
-    NULL,                                                          /* tp_is_gc */
+    (inquiry)BaseMathObject_is_gc,                                 /* tp_is_gc */
     NULL,                                                          /* tp_bases */
     NULL,                                                          /* tp_mro */
     NULL,                                                          /* tp_cache */
@@ -1235,6 +1235,7 @@ PyObject *Color_CreatePyObject_cb(PyObject *cb_user, uchar cb_type, uchar cb_sub
     self->cb_user = cb_user;
     self->cb_type = cb_type;
     self->cb_subtype = cb_subtype;
+    BLI_assert(!PyObject_GC_IsTracked((PyObject *)self));
     PyObject_GC_Track(self);
   }
 

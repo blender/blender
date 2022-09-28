@@ -87,6 +87,11 @@ class PlanarFieldInput final : public bke::MeshFieldInput {
   {
     return dynamic_cast<const PlanarFieldInput *>(&other) != nullptr;
   }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_FACE;
+  }
 };
 
 static void geo_node_exec(GeoNodeExecParams params)

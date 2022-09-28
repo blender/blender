@@ -109,18 +109,17 @@ ccl_device int bsdf_principled_diffuse_setup(ccl_private PrincipledDiffuseBsdf *
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device Spectrum bsdf_principled_diffuse_eval_reflect(ccl_private const ShaderClosure *sc,
-                                                         const float3 I,
-                                                         const float3 omega_in,
-                                                         ccl_private float *pdf)
+ccl_device Spectrum bsdf_principled_diffuse_eval(ccl_private const ShaderClosure *sc,
+                                                 const float3 I,
+                                                 const float3 omega_in,
+                                                 ccl_private float *pdf)
 {
   ccl_private const PrincipledDiffuseBsdf *bsdf = (ccl_private const PrincipledDiffuseBsdf *)sc;
-
-  float3 N = bsdf->N;
-  float3 V = I;         // outgoing
-  float3 L = omega_in;  // incoming
+  const float3 N = bsdf->N;
 
   if (dot(N, omega_in) > 0.0f) {
+    const float3 V = I;         // outgoing
+    const float3 L = omega_in;  // incoming
     *pdf = fmaxf(dot(N, omega_in), 0.0f) * M_1_PI_F;
     return bsdf_principled_diffuse_compute_brdf(bsdf, N, V, L, pdf);
   }
@@ -128,15 +127,6 @@ ccl_device Spectrum bsdf_principled_diffuse_eval_reflect(ccl_private const Shade
     *pdf = 0.0f;
     return zero_spectrum();
   }
-}
-
-ccl_device Spectrum bsdf_principled_diffuse_eval_transmit(ccl_private const ShaderClosure *sc,
-                                                          const float3 I,
-                                                          const float3 omega_in,
-                                                          ccl_private float *pdf)
-{
-  *pdf = 0.0f;
-  return zero_spectrum();
 }
 
 ccl_device int bsdf_principled_diffuse_sample(ccl_private const ShaderClosure *sc,

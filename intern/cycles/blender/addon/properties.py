@@ -179,6 +179,12 @@ enum_view3d_shading_render_pass = (
     ('SAMPLE_COUNT', "Sample Count", "Per-pixel number of samples"),
 )
 
+enum_guiding_distribution = (
+    ('PARALLAX_AWARE_VMM', "Parallax-Aware VMM", "Use Parallax-aware von Mises-Fisher models as directional distribution", 0),
+    ('DIRECTIONAL_QUAD_TREE', "Directional Quad Tree", "Use Directional Quad Trees as directional distribution", 1),
+    ('VMM', "VMM", "Use von Mises-Fisher models as directional distribution", 2),
+)
+
 
 def enum_openimagedenoise_denoiser(self, context):
     import _cycles
@@ -358,7 +364,9 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     preview_samples: IntProperty(
         name="Viewport Samples",
         description="Number of samples to render in the viewport, unlimited if 0",
-        min=0, max=(1 << 24),
+        min=0,
+        soft_min=1,
+        max=(1 << 24),
         default=1024,
     )
 
@@ -505,6 +513,78 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         "to reduce noise at the cost of accuracy",
         min=0.0, max=10.0,
         default=1.0,
+    )
+
+    use_guiding: BoolProperty(
+        name="Guiding",
+        description="Use path guiding for sampling paths. Path guiding incrementally "
+        "learns the light distribution of the scene and guides path into directions "
+        "with high direct and indirect light contributions",
+        default=False,
+    )
+
+    use_deterministic_guiding: BoolProperty(
+        name="Deterministic",
+        description="Makes path guiding deterministic which means renderings will be"
+        "reproducible with the same pixel values every time. This feature slows down"
+        "training",
+        default=True,
+    )
+
+    guiding_distribution_type: EnumProperty(
+        name="Guiding Distribution Type",
+        description="Type of representation for the guiding distribution",
+        items=enum_guiding_distribution,
+        default='PARALLAX_AWARE_VMM',
+    )
+
+    use_surface_guiding: BoolProperty(
+        name="Surface Guiding",
+        description="Use guiding when sampling directions on a surface",
+        default=True,
+    )
+
+    surface_guiding_probability: FloatProperty(
+        name="Surface Guiding Probability",
+        description="The probability of guiding a direction on a surface",
+        min=0.0, max=1.0,
+        default=0.5,
+    )
+
+    use_volume_guiding: BoolProperty(
+        name="Volume Guiding",
+        description="Use guiding when sampling directions inside a volume",
+        default=True,
+    )
+
+    guiding_training_samples: IntProperty(
+        name="Training Samples",
+        description="The maximum number of samples used for training path guiding. "
+        "Higher samples lead to more accurate guiding, however may also unnecessarily slow "
+        "down rendering once guiding is accurate enough. "
+        "A value 0 will continue training until the last sample",
+        min=0,
+        soft_min=1,
+        default=128,
+    )
+
+    volume_guiding_probability: FloatProperty(
+        name="Volume Guiding Probability",
+        description="The probability of guiding a direction inside a volume",
+        min=0.0, max=1.0,
+        default=0.5,
+    )
+
+    use_guiding_direct_light: BoolProperty(
+        name="Guide Direct Light",
+        description="Consider the contribution of directly visible light sources during guiding",
+        default=True,
+    )
+
+    use_guiding_mis_weights: BoolProperty(
+        name="Use MIS Weights",
+        description="Use the MIS weight to weight the contribution of directly visible light sources during guiding",
+        default=True,
     )
 
     max_bounces: IntProperty(

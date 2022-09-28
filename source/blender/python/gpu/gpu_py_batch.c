@@ -111,6 +111,7 @@ static PyObject *pygpu_batch__tp_new(PyTypeObject *UNUSED(type), PyObject *args,
     Py_INCREF(py_indexbuf);
   }
 
+  BLI_assert(!PyObject_GC_IsTracked((PyObject *)ret));
   PyObject_GC_Track(ret);
 #endif
 
@@ -273,6 +274,11 @@ static int pygpu_batch__tp_clear(BPyGPUBatch *self)
   return 0;
 }
 
+static int pygpu_batch__tp_is_gc(BPyGPUBatch *self)
+{
+  return self->references != NULL;
+}
+
 #endif
 
 static void pygpu_batch__tp_dealloc(BPyGPUBatch *self)
@@ -313,6 +319,7 @@ PyTypeObject BPyGPUBatch_Type = {
     .tp_doc = pygpu_batch__tp_doc,
     .tp_traverse = (traverseproc)pygpu_batch__tp_traverse,
     .tp_clear = (inquiry)pygpu_batch__tp_clear,
+    .tp_is_gc = (inquiry)pygpu_batch__tp_is_gc,
 #else
     .tp_flags = Py_TPFLAGS_DEFAULT,
 #endif

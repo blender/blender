@@ -41,6 +41,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "BLO_read_write.h"
+
 #include "GPU_framebuffer.h"
 #include "file_indexer.h"
 #include "file_intern.h" /* own include */
@@ -986,6 +988,52 @@ static void file_id_remap(ScrArea *area, SpaceLink *sl, const struct IDRemapper 
   file_reset_filelist_showing_main_data(area, sfile);
 }
 
+static void file_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
+{
+  SpaceFile *sfile = (SpaceFile *)sl;
+
+  /* this sort of info is probably irrelevant for reloading...
+   * plus, it isn't saved to files yet!
+   */
+  sfile->folders_prev = sfile->folders_next = NULL;
+  BLI_listbase_clear(&sfile->folder_histories);
+  sfile->files = NULL;
+  sfile->layout = NULL;
+  sfile->op = NULL;
+  sfile->previews_timer = NULL;
+  sfile->tags = 0;
+  sfile->runtime = NULL;
+  BLO_read_data_address(reader, &sfile->params);
+  BLO_read_data_address(reader, &sfile->asset_params);
+  if (sfile->params) {
+    sfile->params->rename_id = NULL;
+  }
+  if (sfile->asset_params) {
+    sfile->asset_params->base_params.rename_id = NULL;
+  }
+}
+
+static void file_blend_read_lib(BlendLibReader *UNUSED(reader),
+                                ID *UNUSED(parent_id),
+                                SpaceLink *sl)
+{
+  SpaceFile *sfile = (SpaceFile *)sl;
+  sfile->tags |= FILE_TAG_REBUILD_MAIN_FILES;
+}
+
+static void file_blend_write(BlendWriter *writer, SpaceLink *sl)
+{
+  SpaceFile *sfile = (SpaceFile *)sl;
+
+  BLO_write_struct(writer, SpaceFile, sl);
+  if (sfile->params) {
+    BLO_write_struct(writer, FileSelectParams, sfile->params);
+  }
+  if (sfile->asset_params) {
+    BLO_write_struct(writer, FileAssetSelectParams, sfile->asset_params);
+  }
+}
+
 void ED_spacetype_file(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype file");
@@ -1009,6 +1057,9 @@ void ED_spacetype_file(void)
   st->space_subtype_set = file_space_subtype_set;
   st->context = file_context;
   st->id_remap = file_id_remap;
+  st->blend_read_data = file_blend_read_data;
+  st->blend_read_lib = file_blend_read_lib;
+  st->blend_write = file_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype file region");

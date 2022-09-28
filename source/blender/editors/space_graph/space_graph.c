@@ -45,6 +45,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "BLO_read_write.h"
+
 #include "graph_intern.h" /* own include */
 
 /* ******************** default callbacks for ipo space ***************** */
@@ -804,6 +806,42 @@ static void graph_space_subtype_item_extend(bContext *UNUSED(C),
   RNA_enum_items_add(item, totitem, rna_enum_space_graph_mode_items);
 }
 
+static void graph_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
+{
+  SpaceGraph *sipo = (SpaceGraph *)sl;
+
+  BLO_read_data_address(reader, &sipo->ads);
+  memset(&sipo->runtime, 0x0, sizeof(sipo->runtime));
+}
+
+static void graph_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+{
+  SpaceGraph *sipo = (SpaceGraph *)sl;
+  bDopeSheet *ads = sipo->ads;
+
+  if (ads) {
+    BLO_read_id_address(reader, parent_id->lib, &ads->source);
+    BLO_read_id_address(reader, parent_id->lib, &ads->filter_grp);
+  }
+}
+
+static void graph_blend_write(BlendWriter *writer, SpaceLink *sl)
+{
+  SpaceGraph *sipo = (SpaceGraph *)sl;
+  ListBase tmpGhosts = sipo->runtime.ghost_curves;
+
+  /* temporarily disable ghost curves when saving */
+  BLI_listbase_clear(&sipo->runtime.ghost_curves);
+
+  BLO_write_struct(writer, SpaceGraph, sl);
+  if (sipo->ads) {
+    BLO_write_struct(writer, bDopeSheet, sipo->ads);
+  }
+
+  /* reenable ghost curves */
+  sipo->runtime.ghost_curves = tmpGhosts;
+}
+
 void ED_spacetype_ipo(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype ipo");
@@ -824,6 +862,9 @@ void ED_spacetype_ipo(void)
   st->space_subtype_item_extend = graph_space_subtype_item_extend;
   st->space_subtype_get = graph_space_subtype_get;
   st->space_subtype_set = graph_space_subtype_set;
+  st->blend_read_data = graph_blend_read_data;
+  st->blend_read_lib = graph_blend_read_lib;
+  st->blend_write = graph_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");

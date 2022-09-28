@@ -26,6 +26,9 @@
 #include "kernel/osl/globals.h"
 // clang-format on
 
+#include "util/guiding.h"
+#include "util/unique_ptr.h"
+
 CCL_NAMESPACE_BEGIN
 
 class CPUDevice : public Device {
@@ -41,6 +44,9 @@ class CPUDevice : public Device {
 #ifdef WITH_EMBREE
   RTCScene embree_scene = NULL;
   RTCDevice embree_device;
+#endif
+#ifdef WITH_PATH_GUIDING
+  mutable unique_ptr<openpgl::cpp::Device> guiding_device;
 #endif
 
   CPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_);
@@ -71,6 +77,8 @@ class CPUDevice : public Device {
   void tex_free(device_texture &mem);
 
   void build_bvh(BVH *bvh, Progress &progress, bool refit) override;
+
+  void *get_guiding_device() const override;
 
   virtual void get_cpu_kernel_thread_globals(
       vector<CPUKernelThreadGlobals> &kernel_thread_globals) override;

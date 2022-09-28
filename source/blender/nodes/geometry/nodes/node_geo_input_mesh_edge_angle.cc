@@ -95,6 +95,11 @@ class AngleFieldInput final : public bke::MeshFieldInput {
   {
     return dynamic_cast<const AngleFieldInput *>(&other) != nullptr;
   }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_EDGE;
+  }
 };
 
 class SignedAngleFieldInput final : public bke::MeshFieldInput {
@@ -161,6 +166,11 @@ class SignedAngleFieldInput final : public bke::MeshFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     return dynamic_cast<const SignedAngleFieldInput *>(&other) != nullptr;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_EDGE;
   }
 };
 

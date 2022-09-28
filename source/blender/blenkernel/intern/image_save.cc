@@ -798,8 +798,10 @@ bool BKE_image_render_write_exr(ReportList *reports,
   LISTBASE_FOREACH (RenderLayer *, rl, &rr->layers) {
     /* Skip other render layers if requested. */
     if (!multi_layer && nr != layer) {
+      nr++;
       continue;
     }
+    nr++;
 
     LISTBASE_FOREACH (RenderPass *, rp, &rl->passes) {
       /* Skip non-RGBA and Z passes if not using multi layer. */

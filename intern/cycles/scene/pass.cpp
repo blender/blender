@@ -96,6 +96,12 @@ const NodeEnum *Pass::get_type_enum()
 
     pass_type_enum.insert("bake_primitive", PASS_BAKE_PRIMITIVE);
     pass_type_enum.insert("bake_differential", PASS_BAKE_DIFFERENTIAL);
+
+#ifdef WITH_CYCLES_DEBUG
+    pass_type_enum.insert("guiding_color", PASS_GUIDING_COLOR);
+    pass_type_enum.insert("guiding_probability", PASS_GUIDING_PROBABILITY);
+    pass_type_enum.insert("guiding_avg_roughness", PASS_GUIDING_AVG_ROUGHNESS);
+#endif
   }
 
   return &pass_type_enum;
@@ -340,6 +346,15 @@ PassInfo Pass::get_info(const PassType type, const bool include_albedo, const bo
     case PASS_NUM:
       LOG(DFATAL) << "Unexpected pass type is used " << type;
       pass_info.num_components = 0;
+      break;
+    case PASS_GUIDING_COLOR:
+      pass_info.num_components = 3;
+      break;
+    case PASS_GUIDING_PROBABILITY:
+      pass_info.num_components = 1;
+      break;
+    case PASS_GUIDING_AVG_ROUGHNESS:
+      pass_info.num_components = 1;
       break;
   }
 

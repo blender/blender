@@ -587,8 +587,20 @@ GPU_SHADER_CREATE_INFO(overlay_uniform_color)
     .fragment_source("overlay_uniform_color_frag.glsl")
     .additional_info("draw_mesh");
 
+GPU_SHADER_CREATE_INFO(overlay_uniform_color_pointcloud)
+    .do_static_compilation(true)
+    .push_constant(Type::VEC4, "ucolor")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("overlay_pointcloud_only_vert.glsl")
+    .fragment_source("overlay_uniform_color_frag.glsl")
+    .additional_info("draw_pointcloud");
+
 GPU_SHADER_CREATE_INFO(overlay_uniform_color_clipped)
     .do_static_compilation(true)
     .additional_info("overlay_depth_only", "drw_clipped");
+
+GPU_SHADER_CREATE_INFO(overlay_uniform_color_pointcloud_clipped)
+    .do_static_compilation(true)
+    .additional_info("overlay_uniform_color_pointcloud", "drw_clipped");
 
 /** \} */

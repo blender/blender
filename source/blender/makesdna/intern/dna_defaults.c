@@ -302,12 +302,14 @@ SDNA_DEFAULT_DECL_STRUCT(MultiplyGpencilModifierData);
 SDNA_DEFAULT_DECL_STRUCT(NoiseGpencilModifierData);
 SDNA_DEFAULT_DECL_STRUCT(OffsetGpencilModifierData);
 SDNA_DEFAULT_DECL_STRUCT(OpacityGpencilModifierData);
+SDNA_DEFAULT_DECL_STRUCT(OutlineGpencilModifierData);
 SDNA_DEFAULT_DECL_STRUCT(SimplifyGpencilModifierData);
 SDNA_DEFAULT_DECL_STRUCT(SmoothGpencilModifierData);
 SDNA_DEFAULT_DECL_STRUCT(SubdivGpencilModifierData);
 SDNA_DEFAULT_DECL_STRUCT(TextureGpencilModifierData);
 SDNA_DEFAULT_DECL_STRUCT(ThickGpencilModifierData);
 SDNA_DEFAULT_DECL_STRUCT(TimeGpencilModifierData);
+SDNA_DEFAULT_DECL_STRUCT(TimeGpencilModifierSegment);
 SDNA_DEFAULT_DECL_STRUCT(TintGpencilModifierData);
 SDNA_DEFAULT_DECL_STRUCT(WeightProxGpencilModifierData);
 SDNA_DEFAULT_DECL_STRUCT(WeightAngleGpencilModifierData);
@@ -542,6 +544,7 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL(NoiseGpencilModifierData),
     SDNA_DEFAULT_DECL(OffsetGpencilModifierData),
     SDNA_DEFAULT_DECL(OpacityGpencilModifierData),
+    SDNA_DEFAULT_DECL(OutlineGpencilModifierData),
     SDNA_DEFAULT_DECL(SimplifyGpencilModifierData),
     SDNA_DEFAULT_DECL(SmoothGpencilModifierData),
     SDNA_DEFAULT_DECL(SubdivGpencilModifierData),
@@ -549,6 +552,7 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL(ThickGpencilModifierData),
     SDNA_DEFAULT_DECL(TimeGpencilModifierData),
     SDNA_DEFAULT_DECL(TintGpencilModifierData),
+    SDNA_DEFAULT_DECL(TimeGpencilModifierSegment),
     SDNA_DEFAULT_DECL(WeightAngleGpencilModifierData),
     SDNA_DEFAULT_DECL(WeightProxGpencilModifierData),
     SDNA_DEFAULT_DECL(LineartGpencilModifierData),

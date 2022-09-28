@@ -106,33 +106,6 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-static void try_capture_field_on_geometry(GeometryComponent &component,
-                                          const AttributeIDRef &attribute_id,
-                                          const eAttrDomain domain,
-                                          const GField &field)
-{
-  const int domain_size = component.attribute_domain_size(domain);
-  if (domain_size == 0) {
-    return;
-  }
-  bke::GeometryFieldContext field_context{component, domain};
-  MutableAttributeAccessor attributes = *component.attributes_for_write();
-  const IndexMask mask{IndexMask(domain_size)};
-
-  const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(field.cpp_type());
-  GAttributeWriter output_attribute = attributes.lookup_or_add_for_write(
-      attribute_id, domain, data_type);
-  if (!output_attribute) {
-    return;
-  }
-
-  fn::FieldEvaluator evaluator{field_context, &mask};
-  evaluator.add_with_destination(field, output_attribute.varray);
-  evaluator.evaluate();
-
-  output_attribute.finish();
-}
-
 static StringRefNull identifier_suffix(eCustomDataType data_type)
 {
   switch (data_type) {
@@ -206,7 +179,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (geometry_set.has_instances()) {
       GeometryComponent &component = geometry_set.get_component_for_write(
           GEO_COMPONENT_TYPE_INSTANCES);
-      try_capture_field_on_geometry(component, anonymous_id.get(), domain, field);
+      bke::try_capture_field_on_geometry(component, anonymous_id.get(), domain, field);
     }
   }
   else {
@@ -217,7 +190,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       for (const GeometryComponentType type : types) {
         if (geometry_set.has(type)) {
           GeometryComponent &component = geometry_set.get_component_for_write(type);
-          try_capture_field_on_geometry(component, anonymous_id.get(), domain, field);
+          bke::try_capture_field_on_geometry(component, anonymous_id.get(), domain, field);
         }
       }
     });

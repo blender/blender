@@ -3114,7 +3114,7 @@ void ntreeSetOutput(bNodeTree *ntree)
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->typeinfo->nclass == NODE_CLASS_OUTPUT) {
       /* we need a check for which output node should be tagged like this, below an exception */
-      if (node->type == CMP_NODE_OUTPUT_FILE) {
+      if (ELEM(node->type, CMP_NODE_OUTPUT_FILE, GEO_NODE_VIEWER)) {
         continue;
       }
 
@@ -3125,8 +3125,8 @@ void ntreeSetOutput(bNodeTree *ntree)
           if (ntree->type == NTREE_COMPOSIT) {
             /* same type, exception for viewer */
             if (tnode->type == node->type ||
-                (ELEM(tnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER, GEO_NODE_VIEWER) &&
-                 ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER, GEO_NODE_VIEWER))) {
+                (ELEM(tnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER) &&
+                 ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))) {
               if (tnode->flag & NODE_DO_OUTPUT) {
                 output++;
                 if (output > 1) {
@@ -4728,6 +4728,8 @@ static void registerGeometryNodes()
   register_node_type_geo_curve_subdivide();
   register_node_type_geo_curve_to_mesh();
   register_node_type_geo_curve_to_points();
+  register_node_type_geo_curve_topology_curve_of_point();
+  register_node_type_geo_curve_topology_points_of_curve();
   register_node_type_geo_curve_trim();
   register_node_type_geo_deform_curves_on_surface();
   register_node_type_geo_delete_geometry();
@@ -4743,6 +4745,7 @@ static void registerGeometryNodes()
   register_node_type_geo_flip_faces();
   register_node_type_geo_geometry_to_instance();
   register_node_type_geo_image_texture();
+  register_node_type_geo_input_control_point_neighbors();
   register_node_type_geo_input_curve_handles();
   register_node_type_geo_input_curve_tilt();
   register_node_type_geo_input_id();
@@ -4791,6 +4794,13 @@ static void registerGeometryNodes()
   register_node_type_geo_mesh_to_curve();
   register_node_type_geo_mesh_to_points();
   register_node_type_geo_mesh_to_volume();
+  register_node_type_geo_mesh_topology_offset_corner_in_face();
+  register_node_type_geo_mesh_topology_corners_of_face();
+  register_node_type_geo_mesh_topology_corners_of_vertex();
+  register_node_type_geo_mesh_topology_edges_of_corner();
+  register_node_type_geo_mesh_topology_edges_of_vertex();
+  register_node_type_geo_mesh_topology_face_of_corner();
+  register_node_type_geo_mesh_topology_vertex_of_corner();
   register_node_type_geo_object_info();
   register_node_type_geo_points_to_vertices();
   register_node_type_geo_points_to_volume();

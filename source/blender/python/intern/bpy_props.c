@@ -307,6 +307,7 @@ static PyObject *bpy_prop_deferred_data_CreatePyObject(PyObject *fn, PyObject *k
     Py_INCREF(kw);
   }
   self->kw = kw;
+  BLI_assert(!PyObject_GC_IsTracked((PyObject *)self));
   PyObject_GC_Track(self);
   return (PyObject *)self;
 }

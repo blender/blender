@@ -5,6 +5,9 @@
  * \ingroup spview3d
  */
 
+/* Allow using deprecated functionality for .blend file I/O. */
+#define DNA_DEPRECATED_ALLOW
+
 #include <stdio.h>
 #include <string.h>
 
@@ -29,6 +32,7 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
+#include "BKE_gpencil.h"
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_lattice.h"
@@ -40,6 +44,7 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_viewer_path.h"
 #include "BKE_workspace.h"
 
 #include "ED_object.h"
@@ -49,6 +54,7 @@
 #include "ED_space_api.h"
 #include "ED_transform.h"
 #include "ED_undo.h"
+#include "ED_viewer_path.hh"
 
 #include "GPU_matrix.h"
 
@@ -66,6 +72,8 @@
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "BLO_read_write.h"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
@@ -316,6 +324,8 @@ static void view3d_free(SpaceLink *sl)
     IDP_FreeProperty(vd->shading.prop);
     vd->shading.prop = nullptr;
   }
+
+  BKE_viewer_path_clear(&vd->viewer_path);
 }
 
 /* spacetype; init callback */
@@ -353,6 +363,8 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
   if (v3dn->shading.prop) {
     v3dn->shading.prop = IDP_CopyProperty(v3do->shading.prop);
   }
+
+  BKE_viewer_path_copy(&v3dn->viewer_path, &v3do->viewer_path);
 
   /* copy or clear inside new stuff */
 
@@ -1313,6 +1325,16 @@ static void view3d_main_region_listener(const wmRegionListenerParams *params)
       /* In case the region displays workspace settings. */
       ED_region_tag_redraw(region);
       break;
+    case NC_VIEWER_PATH: {
+      if (v3d->flag2 & V3D_SHOW_VIEWER) {
+        ViewLayer *view_layer = WM_window_get_active_view_layer(window);
+        if (Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer)) {
+          ED_render_view3d_update(depsgraph, window, area, true);
+        }
+        ED_region_tag_redraw(region);
+      }
+      break;
+    }
   }
 }
 
@@ -1974,6 +1996,60 @@ static void view3d_id_remap(ScrArea *area, SpaceLink *slink, const struct IDRema
     /* Object centers in local-view aren't used, see: T52663 */
     view3d_id_remap_v3d(area, slink, view3d->localvd, mappings, true);
   }
+  BKE_viewer_path_id_remap(&view3d->viewer_path, mappings);
+}
+
+static void view3d_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
+{
+  View3D *v3d = (View3D *)sl;
+
+  memset(&v3d->runtime, 0x0, sizeof(v3d->runtime));
+
+  if (v3d->gpd) {
+    BLO_read_data_address(reader, &v3d->gpd);
+    BKE_gpencil_blend_read_data(reader, v3d->gpd);
+  }
+  BLO_read_data_address(reader, &v3d->localvd);
+
+  /* render can be quite heavy, set to solid on load */
+  if (v3d->shading.type == OB_RENDER) {
+    v3d->shading.type = OB_SOLID;
+  }
+  v3d->shading.prev_type = OB_SOLID;
+
+  BKE_screen_view3d_shading_blend_read_data(reader, &v3d->shading);
+
+  BKE_screen_view3d_do_versions_250(v3d, &sl->regionbase);
+
+  BKE_viewer_path_blend_read_data(reader, &v3d->viewer_path);
+}
+
+static void view3d_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+{
+  View3D *v3d = (View3D *)sl;
+
+  BLO_read_id_address(reader, parent_id->lib, &v3d->camera);
+  BLO_read_id_address(reader, parent_id->lib, &v3d->ob_center);
+
+  if (v3d->localvd) {
+    BLO_read_id_address(reader, parent_id->lib, &v3d->localvd->camera);
+  }
+
+  BKE_viewer_path_blend_read_lib(reader, parent_id->lib, &v3d->viewer_path);
+}
+
+static void view3d_blend_write(BlendWriter *writer, SpaceLink *sl)
+{
+  View3D *v3d = (View3D *)sl;
+  BLO_write_struct(writer, View3D, v3d);
+
+  if (v3d->localvd) {
+    BLO_write_struct(writer, View3D, v3d->localvd);
+  }
+
+  BKE_screen_view3d_shading_blend_write(writer, &v3d->shading);
+
+  BKE_viewer_path_blend_write(writer, &v3d->viewer_path);
 }
 
 void ED_spacetype_view3d(void)
@@ -1997,6 +2073,9 @@ void ED_spacetype_view3d(void)
   st->gizmos = view3d_widgets;
   st->context = view3d_context;
   st->id_remap = view3d_id_remap;
+  st->blend_read_data = view3d_blend_read_data;
+  st->blend_read_lib = view3d_blend_read_lib;
+  st->blend_write = view3d_blend_write;
 
   /* regions: main window */
   art = MEM_cnew<ARegionType>("spacetype view3d main region");

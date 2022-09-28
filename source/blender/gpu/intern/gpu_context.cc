@@ -195,7 +195,11 @@ void GPU_render_begin()
 {
   GPUBackend *backend = GPUBackend::get();
   BLI_assert(backend);
-  backend->render_begin();
+  /* WORKAROUND: Currently a band-aid for the heist production. Has no side effect for GL backend
+   * but should be fixed for Metal. */
+  if (backend) {
+    backend->render_begin();
+  }
 }
 void GPU_render_end()
 {

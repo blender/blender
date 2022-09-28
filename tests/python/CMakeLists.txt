@@ -677,6 +677,11 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
       list(APPEND render_tests denoise)
     endif()
 
+    # Disabled until new OpenGL version with deterministic results.
+    #if(WITH_CYCLES_PATH_GUIDING)
+    #  list(APPEND render_tests guiding)
+    #endif()
+
     if(WITH_OPENGL_RENDER_TESTS)
       list(APPEND render_tests grease_pencil)
     endif()

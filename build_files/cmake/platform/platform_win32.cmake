@@ -74,27 +74,6 @@ add_definitions(-DWIN32)
 add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
-# Minimum MSVC Version
-if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
-  if(MSVC_VERSION EQUAL 1800)
-    set(_min_ver "18.0.31101")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${_min_ver})
-      message(FATAL_ERROR
-        "Visual Studio 2013 (Update 4, ${_min_ver}) required, "
-        "found (${CMAKE_CXX_COMPILER_VERSION})")
-    endif()
-  endif()
-  if(MSVC_VERSION EQUAL 1900)
-    set(_min_ver "19.0.24210")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${_min_ver})
-      message(FATAL_ERROR
-        "Visual Studio 2015 (Update 3, ${_min_ver}) required, "
-        "found (${CMAKE_CXX_COMPILER_VERSION})")
-    endif()
-  endif()
-endif()
-unset(_min_ver)
-
 # needed for some MSVC installations
 # 4099 : PDB 'filename' was not found with 'object/library'
 string(APPEND CMAKE_EXE_LINKER_FLAGS " /SAFESEH:NO /ignore:4099")
@@ -158,7 +137,7 @@ endif()
 
 
 # C++ standards conformace (/permissive-) is available on msvc 15.5 (1912) and up
-if(MSVC_VERSION GREATER 1911 AND NOT MSVC_CLANG)
+if(NOT MSVC_CLANG)
   string(APPEND CMAKE_CXX_FLAGS " /permissive-")
   # Two-phase name lookup does not place nicely with OpenMP yet, so disable for now
   string(APPEND CMAKE_CXX_FLAGS " /Zc:twoPhase-")
@@ -218,7 +197,7 @@ unset(SYMBOL_FORMAT)
 unset(SYMBOL_FORMAT_RELEASE)
 
 # JMC is available on msvc 15.8 (1915) and up
-if(MSVC_VERSION GREATER 1914 AND NOT MSVC_CLANG)
+if(NOT MSVC_CLANG)
   string(APPEND CMAKE_CXX_FLAGS_DEBUG " /JMC")
 endif()
 
@@ -251,9 +230,6 @@ if(NOT DEFINED LIBDIR)
   elseif(MSVC_VERSION GREATER 1919)
     message(STATUS "Visual Studio 2019 detected.")
     set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/${LIBDIR_BASE}_vc15)
-  elseif(MSVC_VERSION GREATER 1909)
-    message(STATUS "Visual Studio 2017 detected.")
-    set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/${LIBDIR_BASE}_vc15)
   endif()
 else()
   message(STATUS "Using pre-compiled LIBDIR: ${LIBDIR}")
@@ -264,10 +240,8 @@ endif()
 
 include(platform_old_libs_update)
 
-if(CMAKE_GENERATOR MATCHES "^Visual Studio.+" AND # Only supported in the VS IDE
-   MSVC_VERSION GREATER_EQUAL 1924            AND # Supported for 16.4+
-   WITH_CLANG_TIDY                                # And Clang Tidy needs to be on
-  )
+# Only supported in the VS IDE & Clang Tidy needs to be on.
+if(CMAKE_GENERATOR MATCHES "^Visual Studio.+" AND WITH_CLANG_TIDY)
   set(CMAKE_VS_GLOBALS
     "RunCodeAnalysis=false"
     "EnableMicrosoftCodeAnalysis=false"
@@ -278,8 +252,7 @@ endif()
 
 # Mark libdir as system headers with a lower warn level, to resolve some warnings
 # that we have very little control over
-if(MSVC_VERSION GREATER_EQUAL 1914 AND # Available with 15.7+
-   NOT MSVC_CLANG                  AND # But not for clang
+if(NOT MSVC_CLANG                  AND # Available with MSVC 15.7+ but not for CLANG.
    NOT WITH_WINDOWS_SCCACHE        AND # And not when sccache is enabled
    NOT VS_CLANG_TIDY)                  # Clang-tidy does not like these options
   add_compile_options(/experimental:external /external:templates- /external:I "${LIBDIR}" /external:W0)

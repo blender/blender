@@ -162,7 +162,8 @@ class DeviceQueue {
 
   /* Implementations call these from the corresponding methods to generate debugging logs. */
   void debug_init_execution();
-  void debug_enqueue(DeviceKernel kernel, const int work_size);
+  void debug_enqueue_begin(DeviceKernel kernel, const int work_size);
+  void debug_enqueue_end();
   void debug_synchronize();
   string debug_active_kernels();
 
@@ -172,6 +173,9 @@ class DeviceQueue {
   double last_sync_time_;
   /* Accumulated execution time for combinations of kernels launched together. */
   map<DeviceKernelMask, double> stats_kernel_time_;
+  /* If it is true, then a performance statistics in the debugging logs will have focus on kernels
+   * and an explicit queue synchronization will be added after each kernel execution. */
+  bool is_per_kernel_performance_;
 };
 
 CCL_NAMESPACE_END

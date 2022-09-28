@@ -2261,7 +2261,7 @@ void blo_do_versions_key_uidgen(Key *key)
 
 #ifdef USE_SETSCENE_CHECK
 /**
- * A version of #BKE_scene_validate_setscene with special checks for linked libs.
+ * A version of #BKE_scene_validate_setscene with special checks for linked libraries.
  */
 static bool scene_validate_setscene__liblink(Scene *sce, const int totscene)
 {
@@ -2515,6 +2515,17 @@ static void lib_link_window_scene_data_restore(wmWindow *win, Scene *scene, View
   }
 }
 
+static void lib_link_restore_viewer_path(struct IDNameLib_Map *id_map, ViewerPath *viewer_path)
+{
+  LISTBASE_FOREACH (ViewerPathElem *, elem, &viewer_path->path) {
+    if (elem->type == VIEWER_PATH_ELEM_TYPE_ID) {
+      auto typed_elem = reinterpret_cast<IDViewerPathElem *>(elem);
+      typed_elem->id = static_cast<ID *>(
+          restore_pointer_by_name(id_map, (ID *)typed_elem->id, USER_IGNORE));
+    }
+  }
+}
+
 static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
                                               Main *newmain,
                                               WorkSpaceLayout *layout)
@@ -2532,6 +2543,8 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
               restore_pointer_by_name(id_map, (ID *)v3d->camera, USER_REAL));
           v3d->ob_center = static_cast<Object *>(
               restore_pointer_by_name(id_map, (ID *)v3d->ob_center, USER_REAL));
+
+          lib_link_restore_viewer_path(id_map, &v3d->viewer_path);
         }
         else if (sl->spacetype == SPACE_GRAPH) {
           SpaceGraph *sipo = (SpaceGraph *)sl;
@@ -2741,14 +2754,7 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
         }
         else if (sl->spacetype == SPACE_SPREADSHEET) {
           SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
-
-          LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
-            if (context->type == SPREADSHEET_CONTEXT_OBJECT) {
-              SpreadsheetContextObject *object_context = (SpreadsheetContextObject *)context;
-              object_context->object = static_cast<Object *>(
-                  restore_pointer_by_name(id_map, (ID *)object_context->object, USER_IGNORE));
-            }
-          }
+          lib_link_restore_viewer_path(id_map, &sspreadsheet->viewer_path);
         }
       }
     }
@@ -2770,6 +2776,7 @@ void blo_lib_link_restore(Main *oldmain,
     }
     workspace->pin_scene = static_cast<Scene *>(
         restore_pointer_by_name(id_map, (ID *)workspace->pin_scene, USER_IGNORE));
+    lib_link_restore_viewer_path(id_map, &workspace->viewer_path);
   }
 
   LISTBASE_FOREACH (wmWindow *, win, &curwm->windows) {
@@ -2904,7 +2911,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
   else {
     LISTBASE_FOREACH (Library *, lib, &main->libraries) {
       /* Libraries store both relative and abs paths, recreate relative paths,
-       * relative to the blend file since indirectly linked libs will be
+       * relative to the blend file since indirectly linked libraries will be
        * relative to their direct linked library. */
       if (BLI_path_is_rel(lib->filepath)) { /* if this is relative to begin with? */
         BLI_strncpy(lib->filepath, lib->filepath_abs, sizeof(lib->filepath));
@@ -3151,7 +3158,7 @@ static bool read_libblock_is_identical(FileData *fd, BHead *bhead)
 /* For undo, restore matching library datablock from the old main. */
 static bool read_libblock_undo_restore_library(FileData *fd, Main *main, const ID *id)
 {
-  /* In undo case, most libs and linked data should be kept as is from previous state
+  /* In undo case, most libraries and linked data should be kept as is from previous state
    * (see BLO_read_from_memfile).
    * However, some needed by the snapshot being read may have been removed in previous one,
    * and would go missing.
@@ -4586,7 +4593,7 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
   /* make main consistent */
   BLO_expand_main(*fd, mainl);
 
-  /* do this when expand found other libs */
+  /* Do this when expand found other libraries. */
   read_libraries(*fd, (*fd)->mainlist);
 
   curlib = mainl->curlib;

@@ -33,6 +33,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_geometry_set.hh"
+#include "BKE_viewer_path.h"
 
 #include "FN_field.hh"
 
@@ -156,7 +157,6 @@ class GeometryInfoLog : public ValueLog {
 class ViewerNodeLog {
  public:
   GeometrySet geometry;
-  GField field;
 };
 
 using Clock = std::chrono::steady_clock;
@@ -214,7 +214,7 @@ class GeoTreeLogger {
   ~GeoTreeLogger();
 
   void log_value(const bNode &node, const bNodeSocket &socket, GPointer value);
-  void log_viewer_node(const bNode &viewer_node, const GeometrySet &geometry, const GField &field);
+  void log_viewer_node(const bNode &viewer_node, GeometrySet geometry);
 };
 
 /**
@@ -333,8 +333,7 @@ class GeoModifierLog {
    * Utility accessor to logged data.
    */
   static GeoTreeLog *get_tree_log_for_node_editor(const SpaceNode &snode);
-  static const ViewerNodeLog *find_viewer_node_log_for_spreadsheet(
-      const SpaceSpreadsheet &sspreadsheet);
+  static const ViewerNodeLog *find_viewer_node_log_for_path(const ViewerPath &viewer_path);
 };
 
 }  // namespace blender::nodes::geo_eval_log

@@ -16,6 +16,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_buffer.h"
 #include "BLI_math.h"
+#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
@@ -551,6 +552,41 @@ void BKE_mesh_origindex_map_create_looptri(MeshElemMap **r_map,
   *r_map = map;
   *r_mem = indices;
 }
+
+namespace blender::mesh_topology {
+
+Array<int> build_corner_to_poly_map(const Span<MPoly> polys, const int loops_num)
+{
+  Array<int> map(loops_num);
+  threading::parallel_for(polys.index_range(), 1024, [&](IndexRange range) {
+    for (const int64_t poly_i : range) {
+      const MPoly &poly = polys[poly_i];
+      map.as_mutable_span().slice(poly.loopstart, poly.totloop).fill(int(poly_i));
+    }
+  });
+  return map;
+}
+
+Array<Vector<int>> build_vert_to_edge_map(const Span<MEdge> edges, const int verts_num)
+{
+  Array<Vector<int>> map(verts_num);
+  for (const int64_t i : edges.index_range()) {
+    map[edges[i].v1].append(int(i));
+    map[edges[i].v2].append(int(i));
+  }
+  return map;
+}
+
+Array<Vector<int>> build_vert_to_corner_map(const Span<MLoop> loops, const int verts_num)
+{
+  Array<Vector<int>> map(verts_num);
+  for (const int64_t i : loops.index_range()) {
+    map[loops[i].v].append(int(i));
+  }
+  return map;
+}
+
+}  // namespace blender::mesh_topology
 
 /** \} */
 

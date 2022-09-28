@@ -55,6 +55,11 @@ class FaceAreaFieldInput final : public bke::MeshFieldInput {
   {
     return dynamic_cast<const FaceAreaFieldInput *>(&other) != nullptr;
   }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_FACE;
+  }
 };
 
 static void node_geo_exec(GeoNodeExecParams params)

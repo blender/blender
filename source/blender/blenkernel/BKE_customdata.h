@@ -450,6 +450,7 @@ int CustomData_get_stencil_layer(const struct CustomData *data, int type);
  * if no such active layer is defined.
  */
 const char *CustomData_get_active_layer_name(const struct CustomData *data, int type);
+const char *CustomData_get_render_layer_name(const struct CustomData *data, int type);
 
 /**
  * Returns name of the default layer of the given type or NULL

@@ -108,6 +108,11 @@ class HandleTypeFieldInput final : public bke::CurvesFieldInput {
     }
     return false;
   }
+
+  std::optional<eAttrDomain> preferred_domain(const CurvesGeometry & /*curves*/) const
+  {
+    return ATTR_DOMAIN_POINT;
+  }
 };
 
 static void node_geo_exec(GeoNodeExecParams params)

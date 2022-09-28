@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 if(WIN32)
-  # cmake for windows
+  # CMAKE for MS-Windows.
   set(JPEG_EXTRA_ARGS
     -DNASM=${NASM_PATH}
     -DWITH_JPEG8=ON
@@ -33,8 +33,8 @@ if(WIN32)
     )
   endif()
 
-else(WIN32)
-  # cmake for unix
+else()
+  # CMAKE for UNIX.
   set(JPEG_EXTRA_ARGS
     -DWITH_JPEG8=ON
     -DENABLE_STATIC=ON

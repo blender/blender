@@ -694,6 +694,16 @@ bool drw_engine_data_engines_data_validate(GPUViewport *viewport, void **engine_
 void drw_engine_data_cache_release(GPUViewport *viewport);
 void drw_engine_data_free(GPUViewport *viewport);
 
+struct DRW_Attributes;
+struct DRW_MeshCDMask;
+struct GPUMaterial;
+void DRW_mesh_get_attributes(struct Object *object,
+                             struct Mesh *me,
+                             struct GPUMaterial **gpumat_array,
+                             int gpumat_array_len,
+                             struct DRW_Attributes *r_attrs,
+                             struct DRW_MeshCDMask *r_cd_needed);
+
 void DRW_manager_begin_sync(void);
 void DRW_manager_end_sync(void);
 

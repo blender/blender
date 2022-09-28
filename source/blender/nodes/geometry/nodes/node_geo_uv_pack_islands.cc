@@ -118,6 +118,11 @@ class PackIslandsFieldInput final : public bke::MeshFieldInput {
   {
     return construct_uv_gvarray(mesh, selection_field, uv_field, rotate, margin, domain);
   }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_CORNER;
+  }
 };
 
 static void node_geo_exec(GeoNodeExecParams params)

@@ -24,6 +24,7 @@
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
+#include "BKE_viewer_path.h"
 #include "BKE_workspace.h"
 
 #include "DNA_object_types.h"
@@ -61,6 +62,7 @@ static void workspace_free_data(ID *id)
   }
 
   MEM_SAFE_FREE(workspace->status_text);
+  BKE_viewer_path_clear(&workspace->viewer_path);
 }
 
 static void workspace_foreach_id(ID *id, LibraryForeachIDData *data)
@@ -72,6 +74,8 @@ static void workspace_foreach_id(ID *id, LibraryForeachIDData *data)
   LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, layout->screen, IDWALK_CB_USER);
   }
+
+  BKE_viewer_path_foreach_id(data, &workspace->viewer_path);
 }
 
 static void workspace_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -89,6 +93,8 @@ static void workspace_blend_write(BlendWriter *writer, ID *id, const void *id_ad
       IDP_BlendWrite(writer, tref->properties);
     }
   }
+
+  BKE_viewer_path_blend_write(writer, &workspace->viewer_path);
 }
 
 static void workspace_blend_read_data(BlendDataReader *reader, ID *id)
@@ -115,6 +121,8 @@ static void workspace_blend_read_data(BlendDataReader *reader, ID *id)
   workspace->status_text = nullptr;
 
   id_us_ensure_real(&workspace->id);
+
+  BKE_viewer_path_blend_read_data(reader, &workspace->viewer_path);
 }
 
 static void workspace_blend_read_lib(BlendLibReader *reader, ID *id)
@@ -164,6 +172,8 @@ static void workspace_blend_read_lib(BlendLibReader *reader, ID *id)
       BKE_workspace_layout_remove(bmain, workspace, layout);
     }
   }
+
+  BKE_viewer_path_blend_read_lib(reader, id->lib, &workspace->viewer_path);
 }
 
 static void workspace_blend_read_expand(BlendExpander *expander, ID *id)

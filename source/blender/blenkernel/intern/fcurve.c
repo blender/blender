@@ -2382,7 +2382,7 @@ void BKE_fcurve_blend_write(BlendWriter *writer, ListBase *fcurves)
 
 void BKE_fcurve_blend_read_data(BlendDataReader *reader, ListBase *fcurves)
 {
-  /* link F-Curve data to F-Curve again (non ID-libs) */
+  /* Link F-Curve data to F-Curve again (non ID-libraries). */
   LISTBASE_FOREACH (FCurve *, fcu, fcurves) {
     /* curve data */
     BLO_read_data_address(reader, &fcu->bezt);

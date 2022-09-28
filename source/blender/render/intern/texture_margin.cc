@@ -14,6 +14,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -44,7 +45,7 @@ class TextureMarginMap {
   /** Maps UV-edges to their corresponding UV-edge. */
   Vector<int> loop_adjacency_map_;
   /** Maps UV-edges to their corresponding polygon. */
-  Vector<int> loop_to_poly_map_;
+  Array<int> loop_to_poly_map_;
 
   int w_, h_;
   float uv_offset_[2];
@@ -289,13 +290,8 @@ class TextureMarginMap {
 
   void build_tables()
   {
-    loop_to_poly_map_.resize(totloop_);
-    for (int i = 0; i < totpoly_; i++) {
-      for (int j = 0; j < mpoly_[i].totloop; j++) {
-        int l = j + mpoly_[i].loopstart;
-        loop_to_poly_map_[l] = i;
-      }
-    }
+    loop_to_poly_map_ = blender::mesh_topology::build_corner_to_poly_map({mpoly_, totpoly_},
+                                                                         totloop_);
 
     loop_adjacency_map_.resize(totloop_, -1);
 

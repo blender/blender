@@ -15,7 +15,7 @@ message("BuildMode = ${BUILD_MODE}")
 
 if(BUILD_MODE STREQUAL "Debug")
   set(LIBDIR ${CMAKE_CURRENT_BINARY_DIR}/Debug)
-else(BUILD_MODE STREQUAL "Debug")
+else()
   set(LIBDIR ${CMAKE_CURRENT_BINARY_DIR}/Release)
 endif()
 

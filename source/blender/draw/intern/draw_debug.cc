@@ -319,8 +319,8 @@ template<> void DebugDraw::print_value<uint4>(const uint4 &value)
 /* -------------------------------------------------------------------- */
 /** \name Internals
  *
- * IMPORTANT: All of these are copied from the shader libs (common_debug_draw_lib.glsl &
- * common_debug_print_lib.glsl). They need to be kept in sync to write the same data.
+ * IMPORTANT: All of these are copied from the shader libraries (`common_debug_draw_lib.glsl` &
+ * `common_debug_print_lib.glsl`). They need to be kept in sync to write the same data.
  * \{ */
 
 void DebugDraw::draw_line(float3 v1, float3 v2, uint color)

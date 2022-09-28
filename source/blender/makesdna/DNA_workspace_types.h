@@ -10,6 +10,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_asset_types.h"
+#include "DNA_viewer_path_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -143,6 +144,13 @@ typedef struct WorkSpace {
   /** Workspace-wide active asset library, for asset UIs to use (e.g. asset view UI template). The
    * Asset Browser has its own and doesn't use this. */
   AssetLibraryReference asset_library_ref;
+
+  /**
+   * Ground truth for the currently active viewer node. When a viewer node is activated its path is
+   * set here. Editors can check here for which node is active (currently the node editor,
+   * spreadsheet and viewport do this).
+   */
+  ViewerPath viewer_path;
 } WorkSpace;
 
 /**

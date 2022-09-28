@@ -10,6 +10,11 @@
 #include "BLI_utildefines.h"
 
 #ifdef __cplusplus
+#  include "BLI_span.hh"
+#  include "DNA_customdata_types.h"
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -17,10 +22,13 @@ struct CustomData;
 struct Mesh;
 struct MFace;
 
+#ifdef __cplusplus
+
 /**
  * Move face sets to the legacy type from a generic type.
  */
-void BKE_mesh_legacy_face_set_from_generic(struct Mesh *mesh);
+void BKE_mesh_legacy_face_set_from_generic(
+    Mesh *mesh, blender::MutableSpan<CustomDataLayer> poly_layers_to_write);
 /**
  * Copy face sets to the generic data type from the legacy type.
  */
@@ -73,6 +81,8 @@ void BKE_mesh_legacy_convert_material_indices_to_mpoly(struct Mesh *mesh);
  * Only add the attribute when the indices are not all zero.
  */
 void BKE_mesh_legacy_convert_mpoly_to_material_indices(struct Mesh *mesh);
+
+#endif
 
 /**
  * Recreate #MFace Tessellation.

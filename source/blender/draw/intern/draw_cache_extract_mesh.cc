@@ -640,6 +640,7 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   for (int i = 0; i < GPU_MAX_ATTR; i++) {
     EXTRACT_ADD_REQUESTED(vbo, attr[i]);
   }
+  EXTRACT_ADD_REQUESTED(vbo, attr_viewer);
 
   EXTRACT_ADD_REQUESTED(ibo, tris);
   if (DRW_ibo_requested(mbuflist->ibo.lines_loose)) {

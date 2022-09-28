@@ -19,6 +19,7 @@
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
 #include "BKE_studiolight.h"
+#include "BKE_viewer_path.h"
 
 #include "ED_asset.h"
 #include "ED_spreadsheet.h"
@@ -3279,57 +3280,19 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext *UN
   return item_array;
 }
 
-static SpreadsheetContext *rna_SpaceSpreadsheet_context_path_append(SpaceSpreadsheet *sspreadsheet,
-                                                                    int type)
+static StructRNA *rna_viewer_path_elem_refine(PointerRNA *ptr)
 {
-  SpreadsheetContext *context = ED_spreadsheet_context_new(type);
-  BLI_addtail(&sspreadsheet->context_path, context);
-  ED_spreadsheet_context_path_update_tag(sspreadsheet);
-  WM_main_add_notifier(NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
-  return context;
-}
-
-static void rna_SpaceSpreadsheet_context_path_clear(SpaceSpreadsheet *sspreadsheet)
-{
-  ED_spreadsheet_context_path_clear(sspreadsheet);
-  ED_spreadsheet_context_path_update_tag(sspreadsheet);
-  WM_main_add_notifier(NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
-}
-
-static StructRNA *rna_spreadsheet_context_refine(PointerRNA *ptr)
-{
-  SpreadsheetContext *context = ptr->data;
-  switch (context->type) {
-    case SPREADSHEET_CONTEXT_OBJECT:
-      return &RNA_SpreadsheetContextObject;
-    case SPREADSHEET_CONTEXT_MODIFIER:
-      return &RNA_SpreadsheetContextModifier;
-    case SPREADSHEET_CONTEXT_NODE:
-      return &RNA_SpreadsheetContextNode;
+  ViewerPathElem *elem = ptr->data;
+  switch (elem->type) {
+    case VIEWER_PATH_ELEM_TYPE_ID:
+      return &RNA_IDViewerPathElem;
+    case VIEWER_PATH_ELEM_TYPE_MODIFIER:
+      return &RNA_ModifierViewerPathElem;
+    case VIEWER_PATH_ELEM_TYPE_NODE:
+      return &RNA_NodeViewerPathElem;
   }
   BLI_assert_unreachable();
   return NULL;
-}
-
-static void rna_spreadsheet_context_update(Main *UNUSED(bmain),
-                                           Scene *UNUSED(scene),
-                                           PointerRNA *ptr)
-{
-  bScreen *screen = (bScreen *)ptr->owner_id;
-  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-    SpaceLink *sl = area->spacedata.first;
-    if (sl->spacetype == SPACE_SPREADSHEET) {
-      SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
-      ED_spreadsheet_context_path_update_tag(sspreadsheet);
-    }
-  }
-}
-
-static void rna_SpaceSpreadsheet_context_path_guess(SpaceSpreadsheet *sspreadsheet, bContext *C)
-{
-  ED_spreadsheet_context_path_guess(C, sspreadsheet);
-  ED_spreadsheet_context_path_update_tag(sspreadsheet);
-  WM_main_add_notifier(NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
 }
 
 static void rna_FileAssetSelectParams_catalog_id_get(PointerRNA *ptr, char *value)
@@ -4456,6 +4419,20 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
+  prop = RNA_def_property(srna, "show_viewer_attribute", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_VIEWER_ATTRIBUTE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Viewer Node", "Show attribute overlay for active viewer node");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+  prop = RNA_def_property(srna, "viewer_attribute_opacity", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "overlay.viewer_attribute_opacity");
+  RNA_def_property_ui_text(
+      prop, "Viewer Attribute Opacity", "Opacity of the attribute that is currently visualized");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
   prop = RNA_def_property(srna, "show_paint_wire", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.paint_flag", V3D_OVERLAY_PAINT_WIRE);
   RNA_def_property_ui_text(prop, "Show Wire", "Use wireframe display in painting modes");
@@ -5106,6 +5083,11 @@ static void rna_def_space_view3d(BlenderRNA *brna)
       prop, "rna_SpaceView3D_icon_from_show_object_viewport_get", NULL, NULL);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Visibility Icon", "");
+
+  prop = RNA_def_property(srna, "show_viewer", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_VIEWER);
+  RNA_def_property_ui_text(prop, "Show Viewer", "Display non-final geometry from viewer nodes");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, NULL);
 
   /* Nested Structs */
   prop = RNA_def_property(srna, "shading", PROP_POINTER, PROP_NONE);
@@ -7883,93 +7865,77 @@ static void rna_def_spreadsheet_row_filter(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
 }
 
-static const EnumPropertyItem spreadsheet_context_type_items[] = {
-    {SPREADSHEET_CONTEXT_OBJECT, "OBJECT", ICON_NONE, "Object", ""},
-    {SPREADSHEET_CONTEXT_MODIFIER, "MODIFIER", ICON_NONE, "Modifier", ""},
-    {SPREADSHEET_CONTEXT_NODE, "NODE", ICON_NONE, "Node", ""},
+static const EnumPropertyItem viewer_path_elem_type_items[] = {
+    {VIEWER_PATH_ELEM_TYPE_ID, "ID", ICON_NONE, "ID", ""},
+    {VIEWER_PATH_ELEM_TYPE_MODIFIER, "MODIFIER", ICON_NONE, "Modifier", ""},
+    {VIEWER_PATH_ELEM_TYPE_NODE, "NODE", ICON_NONE, "Node", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
-static void rna_def_space_spreadsheet_context(BlenderRNA *brna)
+static void rna_def_viewer_path_elem(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
 
-  srna = RNA_def_struct(brna, "SpreadsheetContext", NULL);
-  RNA_def_struct_ui_text(srna, "Spreadsheet Context", "Element of spreadsheet context path");
-  RNA_def_struct_refine_func(srna, "rna_spreadsheet_context_refine");
+  srna = RNA_def_struct(brna, "ViewerPathElem", NULL);
+  RNA_def_struct_ui_text(srna, "Viewer Path Element", "Element of a viewer path");
+  RNA_def_struct_refine_func(srna, "rna_viewer_path_elem_refine");
 
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, spreadsheet_context_type_items);
-  RNA_def_property_ui_text(prop, "Type", "Type of the context");
+  RNA_def_property_enum_items(prop, viewer_path_elem_type_items);
+  RNA_def_property_ui_text(prop, "Type", "Type of the path element");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
-  rna_def_space_generic_show_region_toggles(srna,
-                                            (1 << RGN_TYPE_CHANNELS) | (1 << RGN_TYPE_FOOTER));
 }
 
-static void rna_def_space_spreadsheet_context_object(BlenderRNA *brna)
+static void rna_def_id_viewer_path_elem(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
 
-  srna = RNA_def_struct(brna, "SpreadsheetContextObject", "SpreadsheetContext");
+  srna = RNA_def_struct(brna, "IDViewerPathElem", "ViewerPathElem");
 
-  prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "Object");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, "rna_spreadsheet_context_update");
+  prop = RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);
+  RNA_def_property_ui_text(prop, "ID", "");
 }
 
-static void rna_def_space_spreadsheet_context_modifier(BlenderRNA *brna)
+static void rna_def_modifier_viewer_path_elem(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
 
-  srna = RNA_def_struct(brna, "SpreadsheetContextModifier", "SpreadsheetContext");
+  srna = RNA_def_struct(brna, "ModifierViewerPathElem", "ViewerPathElem");
 
   prop = RNA_def_property(srna, "modifier_name", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(prop, "Modifier Name", "");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, "rna_spreadsheet_context_update");
 }
 
-static void rna_def_space_spreadsheet_context_node(BlenderRNA *brna)
+static void rna_def_node_viewer_path_elem(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
 
-  srna = RNA_def_struct(brna, "SpreadsheetContextNode", "SpreadsheetContext");
+  srna = RNA_def_struct(brna, "NodeViewerPathElem", "ViewerPathElem");
 
   prop = RNA_def_property(srna, "node_name", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(prop, "Node Name", "");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, "rna_spreadsheet_context_update");
 }
 
-static void rna_def_space_spreadsheet_context_path(BlenderRNA *brna, PropertyRNA *cprop)
+static void rna_def_viewer_path(BlenderRNA *brna)
 {
   StructRNA *srna;
-  PropertyRNA *parm;
-  FunctionRNA *func;
+  PropertyRNA *prop;
 
-  RNA_def_property_srna(cprop, "SpreadsheetContextPath");
-  srna = RNA_def_struct(brna, "SpreadsheetContextPath", NULL);
-  RNA_def_struct_sdna(srna, "SpaceSpreadsheet");
+  rna_def_viewer_path_elem(brna);
+  rna_def_id_viewer_path_elem(brna);
+  rna_def_modifier_viewer_path_elem(brna);
+  rna_def_node_viewer_path_elem(brna);
 
-  func = RNA_def_function(srna, "append", "rna_SpaceSpreadsheet_context_path_append");
-  RNA_def_function_ui_description(func, "Append a context path element");
-  parm = RNA_def_property(func, "type", PROP_ENUM, PROP_NONE);
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  RNA_def_property_enum_items(parm, spreadsheet_context_type_items);
-  parm = RNA_def_pointer(
-      func, "context", "SpreadsheetContext", "", "Newly created context path element");
-  RNA_def_function_return(func, parm);
+  srna = RNA_def_struct(brna, "ViewerPath", NULL);
+  RNA_def_struct_ui_text(srna, "Viewer Path", "Path to data that is viewed");
 
-  func = RNA_def_function(srna, "clear", "rna_SpaceSpreadsheet_context_path_clear");
-  RNA_def_function_ui_description(func, "Clear entire context path");
-
-  func = RNA_def_function(srna, "guess", "rna_SpaceSpreadsheet_context_path_guess");
-  RNA_def_function_ui_description(func, "Guess the context path from the current context");
-  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  prop = RNA_def_property(srna, "path", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "ViewerPathElem");
+  RNA_def_property_ui_text(prop, "Viewer Path", NULL);
 }
 
 static void rna_def_space_spreadsheet(BlenderRNA *brna)
@@ -7996,11 +7962,6 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
-  rna_def_space_spreadsheet_context(brna);
-  rna_def_space_spreadsheet_context_object(brna);
-  rna_def_space_spreadsheet_context_modifier(brna);
-  rna_def_space_spreadsheet_context_node(brna);
-
   srna = RNA_def_struct(brna, "SpaceSpreadsheet", "Space");
   RNA_def_struct_ui_text(srna, "Space Spreadsheet", "Spreadsheet space data");
 
@@ -8017,15 +7978,14 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Use Filter", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
 
-  prop = RNA_def_property(srna, "display_context_path_collapsed", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "display_viewer_path_collapsed", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SPREADSHEET_FLAG_CONTEXT_PATH_COLLAPSED);
   RNA_def_property_ui_text(prop, "Display Context Path Collapsed", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
 
-  prop = RNA_def_property(srna, "context_path", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_struct_type(prop, "SpreadsheetContext");
-  RNA_def_property_ui_text(prop, "Context Path", "Context path to the data being displayed");
-  rna_def_space_spreadsheet_context_path(brna, prop);
+  prop = RNA_def_property(srna, "viewer_path", PROP_POINTER, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop, "Viewer Path", "Path to the data that is displayed in the spreadsheet");
 
   prop = RNA_def_property(srna, "show_only_selected", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "filter_flag", SPREADSHEET_FILTER_SELECTED_ONLY);
@@ -8073,6 +8033,7 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
 void RNA_def_space(BlenderRNA *brna)
 {
   rna_def_space(brna);
+  rna_def_viewer_path(brna);
   rna_def_space_image(brna);
   rna_def_space_sequencer(brna);
   rna_def_space_text(brna);

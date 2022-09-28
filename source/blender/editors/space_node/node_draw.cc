@@ -60,6 +60,7 @@
 #include "ED_node.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_viewer_path.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.h"
@@ -94,6 +95,14 @@ extern void ui_draw_dropshadow(
  * This is passed to many functions which draw the node editor.
  */
 struct TreeDrawContext {
+  /**
+   * Whether a viewer node is active in geometry nodes can not be determined by a flag on the node
+   * alone. That's because if the node group with the viewer is used multiple times, it's only
+   * active in one of these cases.
+   * The active node is cached here to avoid doing the more expensive check for every viewer node
+   * in the tree.
+   */
+  const bNode *active_geometry_nodes_viewer = nullptr;
   /**
    * Geometry nodes logs various data during execution. The logged data that corresponds to the
    * currently drawn node tree can be retrieved from the log below.
@@ -639,15 +648,19 @@ static void node_update_hidden(bNode &node, uiBlock &block)
                                node.totr.ymax);
 }
 
-static int node_get_colorid(const bNode &node)
+static int node_get_colorid(TreeDrawContext &tree_draw_ctx, const bNode &node)
 {
   const int nclass = (node.typeinfo->ui_class == nullptr) ? node.typeinfo->nclass :
                                                             node.typeinfo->ui_class(&node);
   switch (nclass) {
     case NODE_CLASS_INPUT:
       return TH_NODE_INPUT;
-    case NODE_CLASS_OUTPUT:
+    case NODE_CLASS_OUTPUT: {
+      if (node.type == GEO_NODE_VIEWER) {
+        return &node == tree_draw_ctx.active_geometry_nodes_viewer ? TH_NODE_OUTPUT : TH_NODE;
+      }
       return (node.flag & NODE_DO_OUTPUT) ? TH_NODE_OUTPUT : TH_NODE;
+    }
     case NODE_CLASS_CONVERTER:
       return TH_NODE_CONVERTER;
     case NODE_CLASS_OP_COLOR:
@@ -2055,7 +2068,7 @@ static void node_draw_basis(const bContext &C,
 
   const rctf &rct = node.totr;
   float color[4];
-  int color_id = node_get_colorid(node);
+  int color_id = node_get_colorid(tree_draw_ctx, node);
 
   GPU_line_width(1.0f);
 
@@ -2151,6 +2164,29 @@ static void node_draw_basis(const bContext &C,
                  0,
                  0,
                  "");
+    UI_block_emboss_set(&block, UI_EMBOSS);
+  }
+  if (node.type == GEO_NODE_VIEWER) {
+    const bool is_active = &node == tree_draw_ctx.active_geometry_nodes_viewer;
+    iconofs -= iconbutw;
+    UI_block_emboss_set(&block, UI_EMBOSS_NONE);
+    uiBut *but = uiDefIconBut(&block,
+                              UI_BTYPE_BUT,
+                              0,
+                              is_active ? ICON_HIDE_OFF : ICON_HIDE_ON,
+                              iconofs,
+                              rct.ymax - NODE_DY,
+                              iconbutw,
+                              UI_UNIT_Y,
+                              nullptr,
+                              0,
+                              0,
+                              0,
+                              0,
+                              "");
+    /* Selection implicitly activates the node. */
+    const char *operator_idname = is_active ? "NODE_OT_deactivate_viewer" : "NODE_OT_select";
+    UI_but_func_set(but, node_toggle_button_cb, &node, (void *)operator_idname);
     UI_block_emboss_set(&block, UI_EMBOSS);
   }
 
@@ -2341,7 +2377,7 @@ static void node_draw_hidden(const bContext &C,
   float scale;
   UI_view2d_scale_get(&v2d, &scale, nullptr);
 
-  const int color_id = node_get_colorid(node);
+  const int color_id = node_get_colorid(tree_draw_ctx, node);
 
   node_draw_extra_info_panel(tree_draw_ctx, snode, node, block);
 
@@ -2698,7 +2734,8 @@ static void node_update_nodetree(const bContext &C,
   }
 }
 
-static void frame_node_draw_label(const bNodeTree &ntree,
+static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
+                                  const bNodeTree &ntree,
                                   const bNode &node,
                                   const SpaceNode &snode)
 {
@@ -2717,7 +2754,7 @@ static void frame_node_draw_label(const bNodeTree &ntree,
   BLF_size(fontid, MIN2(24.0f, font_size) * U.dpi_fac);
 
   /* title color */
-  int color_id = node_get_colorid(node);
+  int color_id = node_get_colorid(tree_draw_ctx, node);
   uchar color[3];
   UI_GetThemeColorBlendShade3ubv(TH_TEXT, color_id, 0.4f, 10, color);
   BLF_color3ubv(fontid, color);
@@ -2831,7 +2868,7 @@ static void frame_node_draw(const bContext &C,
   }
 
   /* label and text */
-  frame_node_draw_label(ntree, node, snode);
+  frame_node_draw_label(tree_draw_ctx, ntree, node, snode);
 
   node_draw_extra_info_panel(tree_draw_ctx, snode, node, block);
 
@@ -3036,6 +3073,9 @@ static void draw_nodetree(const bContext &C,
       tree_draw_ctx.geo_tree_log->ensure_node_warnings();
       tree_draw_ctx.geo_tree_log->ensure_node_run_time();
     }
+    WorkSpace *workspace = CTX_wm_workspace(&C);
+    tree_draw_ctx.active_geometry_nodes_viewer = viewer_path::find_geometry_nodes_viewer(
+        workspace->viewer_path, *snode);
   }
 
   node_update_nodetree(C, tree_draw_ctx, ntree, nodes, blocks);

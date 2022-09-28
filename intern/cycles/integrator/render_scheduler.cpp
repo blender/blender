@@ -45,6 +45,11 @@ void RenderScheduler::set_denoiser_params(const DenoiseParams &params)
   denoiser_params_ = params;
 }
 
+void RenderScheduler::set_limit_samples_per_update(const int limit_samples)
+{
+  limit_samples_per_update_ = limit_samples;
+}
+
 void RenderScheduler::set_adaptive_sampling(const AdaptiveSampling &adaptive_sampling)
 {
   adaptive_sampling_ = adaptive_sampling;
@@ -760,7 +765,13 @@ int RenderScheduler::calculate_num_samples_per_update() const
 
   const double update_interval_in_seconds = guess_display_update_interval_in_seconds();
 
-  return max(int(num_samples_in_second * update_interval_in_seconds), 1);
+  int num_samples_per_update = max(int(num_samples_in_second * update_interval_in_seconds), 1);
+
+  if (limit_samples_per_update_) {
+    num_samples_per_update = min(limit_samples_per_update_, num_samples_per_update);
+  }
+
+  return num_samples_per_update;
 }
 
 int RenderScheduler::get_start_sample_to_path_trace() const
@@ -808,7 +819,7 @@ int RenderScheduler::get_num_samples_to_path_trace() const
     return 1;
   }
 
-  const int num_samples_per_update = calculate_num_samples_per_update();
+  int num_samples_per_update = calculate_num_samples_per_update();
   const int path_trace_start_sample = get_start_sample_to_path_trace();
 
   /* Round number of samples to a power of two, so that division of path states into tiles goes in

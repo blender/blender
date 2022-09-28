@@ -31,10 +31,10 @@ ccl_device int bsdf_ashikhmin_velvet_setup(ccl_private VelvetBsdf *bsdf)
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device Spectrum bsdf_ashikhmin_velvet_eval_reflect(ccl_private const ShaderClosure *sc,
-                                                       const float3 I,
-                                                       const float3 omega_in,
-                                                       ccl_private float *pdf)
+ccl_device Spectrum bsdf_ashikhmin_velvet_eval(ccl_private const ShaderClosure *sc,
+                                               const float3 I,
+                                               const float3 omega_in,
+                                               ccl_private float *pdf)
 {
   ccl_private const VelvetBsdf *bsdf = (ccl_private const VelvetBsdf *)sc;
   float m_invsigma2 = bsdf->invsigma2;
@@ -42,46 +42,37 @@ ccl_device Spectrum bsdf_ashikhmin_velvet_eval_reflect(ccl_private const ShaderC
 
   float cosNO = dot(N, I);
   float cosNI = dot(N, omega_in);
-  if (cosNO > 0 && cosNI > 0) {
-    float3 H = normalize(omega_in + I);
-
-    float cosNH = dot(N, H);
-    float cosHO = fabsf(dot(I, H));
-
-    if (!(fabsf(cosNH) < 1.0f - 1e-5f && cosHO > 1e-5f)) {
-      *pdf = 0.0f;
-      return zero_spectrum();
-    }
-    float cosNHdivHO = cosNH / cosHO;
-    cosNHdivHO = fmaxf(cosNHdivHO, 1e-5f);
-
-    float fac1 = 2 * fabsf(cosNHdivHO * cosNO);
-    float fac2 = 2 * fabsf(cosNHdivHO * cosNI);
-
-    float sinNH2 = 1 - cosNH * cosNH;
-    float sinNH4 = sinNH2 * sinNH2;
-    float cotangent2 = (cosNH * cosNH) / sinNH2;
-
-    float D = expf(-cotangent2 * m_invsigma2) * m_invsigma2 * M_1_PI_F / sinNH4;
-    float G = fminf(1.0f, fminf(fac1, fac2));  // TODO: derive G from D analytically
-
-    float out = 0.25f * (D * G) / cosNO;
-
-    *pdf = 0.5f * M_1_PI_F;
-    return make_spectrum(out);
+  if (!(cosNO > 0 && cosNI > 0)) {
+    *pdf = 0.0f;
+    return zero_spectrum();
   }
 
-  *pdf = 0.0f;
-  return zero_spectrum();
-}
+  float3 H = normalize(omega_in + I);
 
-ccl_device Spectrum bsdf_ashikhmin_velvet_eval_transmit(ccl_private const ShaderClosure *sc,
-                                                        const float3 I,
-                                                        const float3 omega_in,
-                                                        ccl_private float *pdf)
-{
-  *pdf = 0.0f;
-  return zero_spectrum();
+  float cosNH = dot(N, H);
+  float cosHO = fabsf(dot(I, H));
+
+  if (!(fabsf(cosNH) < 1.0f - 1e-5f && cosHO > 1e-5f)) {
+    *pdf = 0.0f;
+    return zero_spectrum();
+  }
+  float cosNHdivHO = cosNH / cosHO;
+  cosNHdivHO = fmaxf(cosNHdivHO, 1e-5f);
+
+  float fac1 = 2 * fabsf(cosNHdivHO * cosNO);
+  float fac2 = 2 * fabsf(cosNHdivHO * cosNI);
+
+  float sinNH2 = 1 - cosNH * cosNH;
+  float sinNH4 = sinNH2 * sinNH2;
+  float cotangent2 = (cosNH * cosNH) / sinNH2;
+
+  float D = expf(-cotangent2 * m_invsigma2) * m_invsigma2 * M_1_PI_F / sinNH4;
+  float G = fminf(1.0f, fminf(fac1, fac2));  // TODO: derive G from D analytically
+
+  float out = 0.25f * (D * G) / cosNO;
+
+  *pdf = 0.5f * M_1_PI_F;
+  return make_spectrum(out);
 }
 
 ccl_device int bsdf_ashikhmin_velvet_sample(ccl_private const ShaderClosure *sc,
@@ -101,41 +92,42 @@ ccl_device int bsdf_ashikhmin_velvet_sample(ccl_private const ShaderClosure *sc,
   // distribution over the hemisphere
   sample_uniform_hemisphere(N, randu, randv, omega_in, pdf);
 
-  if (dot(Ng, *omega_in) > 0) {
-    float3 H = normalize(*omega_in + I);
-
-    float cosNI = dot(N, *omega_in);
-    float cosNO = dot(N, I);
-    float cosNH = dot(N, H);
-    float cosHO = fabsf(dot(I, H));
-
-    if (fabsf(cosNO) > 1e-5f && fabsf(cosNH) < 1.0f - 1e-5f && cosHO > 1e-5f) {
-      float cosNHdivHO = cosNH / cosHO;
-      cosNHdivHO = fmaxf(cosNHdivHO, 1e-5f);
-
-      float fac1 = 2 * fabsf(cosNHdivHO * cosNO);
-      float fac2 = 2 * fabsf(cosNHdivHO * cosNI);
-
-      float sinNH2 = 1 - cosNH * cosNH;
-      float sinNH4 = sinNH2 * sinNH2;
-      float cotangent2 = (cosNH * cosNH) / sinNH2;
-
-      float D = expf(-cotangent2 * m_invsigma2) * m_invsigma2 * M_1_PI_F / sinNH4;
-      float G = fminf(1.0f, fminf(fac1, fac2));  // TODO: derive G from D analytically
-
-      float power = 0.25f * (D * G) / cosNO;
-
-      *eval = make_spectrum(power);
-    }
-    else {
-      *pdf = 0.0f;
-      *eval = zero_spectrum();
-    }
-  }
-  else {
+  if (!(dot(Ng, *omega_in) > 0)) {
     *pdf = 0.0f;
     *eval = zero_spectrum();
+    return LABEL_NONE;
   }
+
+  float3 H = normalize(*omega_in + I);
+
+  float cosNI = dot(N, *omega_in);
+  float cosNO = dot(N, I);
+  float cosNH = dot(N, H);
+  float cosHO = fabsf(dot(I, H));
+
+  if (!(fabsf(cosNO) > 1e-5f && fabsf(cosNH) < 1.0f - 1e-5f && cosHO > 1e-5f)) {
+    *pdf = 0.0f;
+    *eval = zero_spectrum();
+    return LABEL_NONE;
+  }
+
+  float cosNHdivHO = cosNH / cosHO;
+  cosNHdivHO = fmaxf(cosNHdivHO, 1e-5f);
+
+  float fac1 = 2 * fabsf(cosNHdivHO * cosNO);
+  float fac2 = 2 * fabsf(cosNHdivHO * cosNI);
+
+  float sinNH2 = 1 - cosNH * cosNH;
+  float sinNH4 = sinNH2 * sinNH2;
+  float cotangent2 = (cosNH * cosNH) / sinNH2;
+
+  float D = expf(-cotangent2 * m_invsigma2) * m_invsigma2 * M_1_PI_F / sinNH4;
+  float G = fminf(1.0f, fminf(fac1, fac2));  // TODO: derive G from D analytically
+
+  float power = 0.25f * (D * G) / cosNO;
+
+  *eval = make_spectrum(power);
+
   return LABEL_REFLECT | LABEL_DIFFUSE;
 }
 

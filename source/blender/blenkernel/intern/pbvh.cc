@@ -29,8 +29,6 @@
 
 #include "PIL_time.h"
 
-#include "GPU_buffers.h"
-
 #include "bmesh.h"
 
 #include "atomic_ops.h"

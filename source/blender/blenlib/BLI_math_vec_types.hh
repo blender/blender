@@ -556,6 +556,11 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
   }
 };
 
+using char3 = blender::vec_base<int8_t, 3>;
+
+using uchar3 = blender::vec_base<uint8_t, 3>;
+using uchar4 = blender::vec_base<uint8_t, 4>;
+
 using int2 = vec_base<int32_t, 2>;
 using int3 = vec_base<int32_t, 3>;
 using int4 = vec_base<int32_t, 4>;
@@ -564,7 +569,11 @@ using uint2 = vec_base<uint32_t, 2>;
 using uint3 = vec_base<uint32_t, 3>;
 using uint4 = vec_base<uint32_t, 4>;
 
+using short3 = blender::vec_base<int16_t, 3>;
+
 using ushort2 = vec_base<uint16_t, 2>;
+using ushort3 = blender::vec_base<uint16_t, 3>;
+using ushort4 = blender::vec_base<uint16_t, 4>;
 
 using float2 = vec_base<float, 2>;
 using float3 = vec_base<float, 3>;

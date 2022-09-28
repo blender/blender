@@ -36,7 +36,7 @@ class CPUKernelThreadGlobals : public KernelGlobalsCPU {
   void stop_profiling();
 
  protected:
-  void reset_runtime_memory();
+  void clear_runtime_pointers();
 
   Profiler &cpu_profiler_;
 };
