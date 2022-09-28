@@ -135,6 +135,9 @@ struct USDExportParams {
   int usdz_downscale_custom_size;
   bool usdz_is_arkit;
   bool export_blender_metadata;
+  bool triangulate_meshes;
+  int quad_method;
+  int ngon_method;
 };
 
 struct USDImportParams {
@@ -171,6 +174,7 @@ struct USDImportParams {
   bool create_background_shader;
   eUSDMtlNameCollisionMode mtl_name_collision_mode;
   eUSDAttrImportMode attr_import_mode;
+  bool triangulate_meshes;
 };
 
 /* The USD_export takes a as_background_job parameter, and returns a boolean.

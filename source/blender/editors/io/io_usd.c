@@ -320,6 +320,11 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 
   const bool usdz_is_arkit = RNA_boolean_get(op->ptr, "usdz_is_arkit");
 
+  const bool triangulate_meshes = RNA_boolean_get(op->ptr, "triangulate_meshes");
+
+  const int quad_method = RNA_enum_get(op->ptr, "quad_method");
+  const int ngon_method = RNA_enum_get(op->ptr, "ngon_method");
+
   const bool export_blender_metadata = RNA_boolean_get(op->ptr, "export_blender_metadata");
 
   struct USDExportParams params = {RNA_int_get(op->ptr, "start"),
@@ -382,7 +387,10 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
                                    usdz_downscale_size,
                                    usdz_downscale_custom_size,
                                    usdz_is_arkit,
-                                   export_blender_metadata};
+                                   export_blender_metadata,
+                                   triangulate_meshes,
+                                   quad_method,
+                                   ngon_method};
 
   /* Take some defaults from the scene, if not specified explicitly. */
   Scene *scene = CTX_data_scene(C);
@@ -471,6 +479,13 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     uiItemR(box, ptr, "export_face_maps", 0, NULL, ICON_NONE);
     uiItemR(box, ptr, "export_uvmaps", 0, NULL, ICON_NONE);
     uiItemR(box, ptr, "export_normals", 0, NULL, ICON_NONE);
+
+    uiItemR(box, ptr, "triangulate_meshes", 0, NULL, ICON_NONE);
+
+    uiLayout *sub = uiLayoutColumn(box, false);
+    uiLayoutSetActive(sub, RNA_boolean_get(ptr, "triangulate_meshes"));
+    uiItemR(sub, ptr, "quad_method", 0, IFACE_("Method Quads"), ICON_NONE);
+    uiItemR(sub, ptr, "ngon_method", 0, IFACE_("Polygons"), ICON_NONE);
   }
 
   box = uiLayoutBox(layout);
@@ -533,7 +548,6 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
       uiItemR(box, ptr, "overwrite_textures", 0, NULL, ICON_NONE);
     }
 
-    //!TODO: add custom size int
     uiItemR(box, ptr, "usdz_downscale_size", 0, NULL, ICON_NONE);
     if (RNA_enum_get(ptr, "usdz_downscale_size") == USD_TEXTURE_SIZE_CUSTOM) {
       uiItemR(box, ptr, "usdz_downscale_custom_size", 0, NULL, ICON_NONE);
@@ -548,7 +562,6 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   uiItemL(box, IFACE_("Experimental:"), ICON_NONE);
   uiItemR(box, ptr, "use_instancing", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "fix_skel_root", 0, NULL, ICON_NONE);
-
 }
 
 static bool wm_usd_export_check(bContext *UNUSED(C), wmOperator *op)
@@ -976,6 +989,26 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                   true,
                   "Export Blender Metadata",
                   "Write Blender-specific information to the Stage's customLayerData");
+
+  RNA_def_boolean(ot->srna,
+                  "triangulate_meshes",
+                  false,
+                  "Triangulate Meshes",
+                  "Triangulate meshes during export");
+
+  RNA_def_enum(ot->srna,
+               "quad_method",
+               rna_enum_modifier_triangulate_quad_method_items,
+               MOD_TRIANGULATE_QUAD_SHORTEDGE,
+               "Quad Method",
+               "Method for splitting the quads into triangles");
+
+  RNA_def_enum(ot->srna,
+               "ngon_method",
+               rna_enum_modifier_triangulate_ngon_method_items,
+               MOD_TRIANGULATE_NGON_BEAUTY,
+               "N-gon Method",
+               "Method for splitting the n-gons into triangles");
 }
 
 /* ====== USD Import ====== */
