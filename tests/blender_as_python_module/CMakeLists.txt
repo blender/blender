@@ -10,6 +10,14 @@ function(add_blender_as_python_module_test testname testscript)
     NAME ${testname}
     COMMAND ${TEST_PYTHON_EXE} ${testscript} ${ARGN}
   )
+
+  # On macOS, asan library must be loaded early.
+  if(APPLE AND WITH_COMPILER_ASAN)
+    set_tests_properties(
+      ${testname}
+      PROPERTIES ENVIRONMENT DYLD_INSERT_LIBRARIES=${COMPILER_ASAN_LIBRARY}
+    )
+  endif()
 endfunction()
 
 add_blender_as_python_module_test(import_bpy ${CMAKE_CURRENT_LIST_DIR}/import_bpy.py ${CMAKE_INSTALL_PREFIX_WITH_CONFIG})
