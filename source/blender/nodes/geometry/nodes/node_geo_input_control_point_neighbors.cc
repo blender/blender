@@ -6,6 +6,24 @@
 
 #include "node_geometry_util.hh"
 
+namespace blender::nodes {
+
+ int apply_offset_in_cyclic_range(const IndexRange range,
+                                        const int start_index,
+                                        const int offset)
+{
+  BLI_assert(range.contains(start_index));
+  const int start_in_range = start_index - range.first();
+  const int offset_in_range = start_in_range + offset;
+  const int mod_offset = offset_in_range % range.size();
+  if (mod_offset >= 0) {
+    return range[mod_offset];
+  }
+  return range.last(-(mod_offset + 1));
+}
+
+}  // namespace blender::nodes
+
 namespace blender::nodes::node_geo_input_control_point_neighbors_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -28,29 +46,6 @@ static void node_declare(NodeDeclarationBuilder &b)
                       "curves data-block"));
 }
 
-static int apply_offset_in_cyclic_range(const IndexRange range,
-                                        const int start_index,
-                                        const int offset)
-{
-  BLI_assert(range.contains(start_index));
-  const int start_in_range = start_index - range.first();
-  const int offset_in_range = start_in_range + offset;
-  const int mod_offset = offset_in_range % range.size();
-  if (mod_offset >= 0) {
-    return range[mod_offset];
-  }
-  return range.last(-(mod_offset + 1));
-}
-
-static Array<int> build_parent_curves(const bke::CurvesGeometry &curves)
-{
-  Array<int> parent_curves(curves.points_num());
-  for (const int i : curves.curves_range()) {
-    parent_curves.as_mutable_span().slice(curves.points_for_curve(i)).fill(i);
-  }
-  return parent_curves;
-}
-
 class ControlPointNeighborFieldInput final : public bke::CurvesFieldInput {
  private:
   const Field<int> index_;
@@ -70,7 +65,7 @@ class ControlPointNeighborFieldInput final : public bke::CurvesFieldInput {
                                  const IndexMask mask) const final
   {
     const VArray<bool> cyclic = curves.cyclic();
-    const Array<int> parent_curves = build_parent_curves(curves);
+    const Array<int> parent_curves = curves.point_to_curve_map();
 
     const bke::CurvesFieldContext context{curves, domain};
     fn::FieldEvaluator evaluator{context, &mask};
@@ -118,7 +113,7 @@ class OffsetValidFieldInput final : public bke::CurvesFieldInput {
                                  const IndexMask mask) const final
   {
     const VArray<bool> cyclic = curves.cyclic();
-    const Array<int> parent_curves = build_parent_curves(curves);
+    const Array<int> parent_curves = curves.point_to_curve_map();
 
     const bke::CurvesFieldContext context{curves, domain};
     fn::FieldEvaluator evaluator{context, &mask};

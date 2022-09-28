@@ -4728,6 +4728,8 @@ static void registerGeometryNodes()
   register_node_type_geo_curve_subdivide();
   register_node_type_geo_curve_to_mesh();
   register_node_type_geo_curve_to_points();
+  register_node_type_geo_curve_topology_curve_of_point();
+  register_node_type_geo_curve_topology_points_of_curve();
   register_node_type_geo_curve_trim();
   register_node_type_geo_deform_curves_on_surface();
   register_node_type_geo_delete_geometry();
@@ -4792,6 +4794,13 @@ static void registerGeometryNodes()
   register_node_type_geo_mesh_to_curve();
   register_node_type_geo_mesh_to_points();
   register_node_type_geo_mesh_to_volume();
+  register_node_type_geo_mesh_topology_offset_corner_in_face();
+  register_node_type_geo_mesh_topology_corners_of_face();
+  register_node_type_geo_mesh_topology_corners_of_vertex();
+  register_node_type_geo_mesh_topology_edges_of_corner();
+  register_node_type_geo_mesh_topology_edges_of_vertex();
+  register_node_type_geo_mesh_topology_face_of_corner();
+  register_node_type_geo_mesh_topology_vertex_of_corner();
   register_node_type_geo_object_info();
   register_node_type_geo_points_to_vertices();
   register_node_type_geo_points_to_volume();

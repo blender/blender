@@ -557,6 +557,15 @@ IndexMask CurvesGeometry::indices_for_curve_type(const CurveType type,
       this->curve_types(), this->curve_type_counts(), type, selection, r_indices);
 }
 
+Array<int> CurvesGeometry::point_to_curve_map() const
+{
+  Array<int> map(this->points_num());
+  for (const int i : this->curves_range()) {
+    map.as_mutable_span().slice(this->points_for_curve(i)).fill(i);
+  }
+  return map;
+}
+
 void CurvesGeometry::ensure_nurbs_basis_cache() const
 {
   if (!this->runtime->nurbs_basis_cache_dirty) {

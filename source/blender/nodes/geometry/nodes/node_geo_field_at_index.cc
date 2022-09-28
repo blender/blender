@@ -11,6 +11,63 @@
 
 #include "NOD_socket_search_link.hh"
 
+namespace blender::nodes {
+
+FieldAtIndexInput::FieldAtIndexInput(Field<int> index_field,
+                                     GField value_field,
+                                     eAttrDomain value_field_domain)
+    : bke::GeometryFieldInput(value_field.cpp_type(), "Field at Index"),
+      index_field_(std::move(index_field)),
+      value_field_(std::move(value_field)),
+      value_field_domain_(value_field_domain)
+{
+}
+
+GVArray FieldAtIndexInput::get_varray_for_context(const bke::GeometryFieldContext &context,
+                                                  const IndexMask mask) const
+{
+  const std::optional<AttributeAccessor> attributes = context.attributes();
+  if (!attributes) {
+    return {};
+  }
+
+  const bke::GeometryFieldContext value_field_context{
+      context.geometry(), context.type(), value_field_domain_};
+  FieldEvaluator value_evaluator{value_field_context,
+                                 attributes->domain_size(value_field_domain_)};
+  value_evaluator.add(value_field_);
+  value_evaluator.evaluate();
+  const GVArray &values = value_evaluator.get_evaluated(0);
+
+  FieldEvaluator index_evaluator{context, &mask};
+  index_evaluator.add(index_field_);
+  index_evaluator.evaluate();
+  const VArray<int> indices = index_evaluator.get_evaluated<int>(0);
+
+  GVArray output_array;
+  attribute_math::convert_to_static_type(*type_, [&](auto dummy) {
+    using T = decltype(dummy);
+    Array<T> dst_array(mask.min_array_size());
+    VArray<T> src_values = values.typed<T>();
+    threading::parallel_for(mask.index_range(), 1024, [&](const IndexRange range) {
+      for (const int i : mask.slice(range)) {
+        const int index = indices[i];
+        if (src_values.index_range().contains(index)) {
+          dst_array[i] = src_values[index];
+        }
+        else {
+          dst_array[i] = {};
+        }
+      }
+    });
+    output_array = VArray<T>::ForContainer(std::move(dst_array));
+  });
+
+  return output_array;
+}
+
+}  // namespace blender::nodes
+
 namespace blender::nodes::node_geo_field_at_index_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -89,66 +146,6 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-class FieldAtIndex final : public bke::GeometryFieldInput {
- private:
-  Field<int> index_field_;
-  GField value_field_;
-  eAttrDomain value_field_domain_;
-
- public:
-  FieldAtIndex(Field<int> index_field, GField value_field, eAttrDomain value_field_domain)
-      : bke::GeometryFieldInput(value_field.cpp_type(), "Field at Index"),
-        index_field_(std::move(index_field)),
-        value_field_(std::move(value_field)),
-        value_field_domain_(value_field_domain)
-  {
-  }
-
-  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
-                                 const IndexMask mask) const final
-  {
-    const bke::GeometryFieldContext value_field_context{
-        context.geometry(), context.type(), value_field_domain_};
-    FieldEvaluator value_evaluator{value_field_context,
-                                   context.attributes()->domain_size(value_field_domain_)};
-    value_evaluator.add(value_field_);
-    value_evaluator.evaluate();
-    const GVArray &values = value_evaluator.get_evaluated(0);
-
-    FieldEvaluator index_evaluator{context, &mask};
-    index_evaluator.add(index_field_);
-    index_evaluator.evaluate();
-    const VArray<int> indices = index_evaluator.get_evaluated<int>(0);
-
-    GVArray output_array;
-    attribute_math::convert_to_static_type(*type_, [&](auto dummy) {
-      using T = decltype(dummy);
-      Array<T> dst_array(mask.min_array_size());
-      VArray<T> src_values = values.typed<T>();
-      threading::parallel_for(mask.index_range(), 1024, [&](const IndexRange range) {
-        for (const int i : mask.slice(range)) {
-          const int index = indices[i];
-          if (src_values.index_range().contains(index)) {
-            dst_array[i] = src_values[index];
-          }
-          else {
-            dst_array[i] = {};
-          }
-        }
-      });
-      output_array = VArray<T>::ForContainer(std::move(dst_array));
-    });
-
-    return output_array;
-  }
-
-  std::optional<eAttrDomain> preferred_domain(
-      const GeometryComponent & /*component*/) const override
-  {
-    return value_field_domain_;
-  }
-};
-
 static StringRefNull identifier_suffix(eCustomDataType data_type)
 {
   switch (data_type) {
@@ -179,8 +176,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     using T = decltype(dummy);
     static const std::string identifier = "Value_" + identifier_suffix(data_type);
     Field<T> value_field = params.extract_input<Field<T>>(identifier);
-    Field<T> output_field{
-        std::make_shared<FieldAtIndex>(std::move(index_field), std::move(value_field), domain)};
+    Field<T> output_field{std::make_shared<FieldAtIndexInput>(
+        std::move(index_field), std::move(value_field), domain)};
     params.set_output(identifier, std::move(output_field));
   });
 }

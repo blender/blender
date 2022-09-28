@@ -208,6 +208,8 @@ class CurvesGeometry : public ::CurvesGeometry {
                                    IndexMask selection,
                                    Vector<int64_t> &r_indices) const;
 
+  Array<int> point_to_curve_map() const;
+
   Span<float3> positions() const;
   MutableSpan<float3> positions_for_write();
 
