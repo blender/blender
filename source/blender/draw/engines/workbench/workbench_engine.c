@@ -102,7 +102,11 @@ static void workbench_cache_sculpt_populate(WORKBENCH_PrivateData *wpd,
   const bool use_single_drawcall = !ELEM(color_type, V3D_SHADING_MATERIAL_COLOR);
   if (use_single_drawcall) {
     DRWShadingGroup *grp = workbench_material_setup(wpd, ob, ob->actcol, color_type, NULL);
-    DRW_shgroup_call_sculpt(grp, ob, false, false);
+
+    bool use_color = color_type == V3D_SHADING_VERTEX_COLOR;
+    bool use_uv = color_type == V3D_SHADING_TEXTURE_COLOR;
+
+    DRW_shgroup_call_sculpt(grp, ob, false, false, false, use_color, use_uv);
   }
   else {
     const int materials_len = DRW_cache_object_material_count_get(ob);
@@ -110,7 +114,7 @@ static void workbench_cache_sculpt_populate(WORKBENCH_PrivateData *wpd,
     for (int i = 0; i < materials_len; i++) {
       shgrps[i] = workbench_material_setup(wpd, ob, i + 1, color_type, NULL);
     }
-    DRW_shgroup_call_sculpt_with_materials(shgrps, materials_len, ob);
+    DRW_shgroup_call_sculpt_with_materials(shgrps, NULL, materials_len, ob);
   }
 }
 

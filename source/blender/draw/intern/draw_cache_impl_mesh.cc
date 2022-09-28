@@ -62,6 +62,7 @@
 #include "draw_subdivision.h"
 
 #include "draw_cache_impl.h" /* own include */
+#include "draw_manager.h"
 
 #include "mesh_extractors/extract_mesh.hh"
 
@@ -979,6 +980,27 @@ GPUBatch *DRW_mesh_batch_cache_get_edit_mesh_analysis(Mesh *me)
   MeshBatchCache *cache = mesh_batch_cache_get(me);
   mesh_batch_cache_add_request(cache, MBC_EDIT_MESH_ANALYSIS);
   return DRW_batch_request(&cache->batch.edit_mesh_analysis);
+}
+
+void DRW_mesh_get_attributes(Object *object,
+                             Mesh *me,
+                             struct GPUMaterial **gpumat_array,
+                             int gpumat_array_len,
+                             DRW_Attributes *r_attrs,
+                             DRW_MeshCDMask *r_cd_needed)
+{
+  DRW_Attributes attrs_needed;
+  drw_attributes_clear(&attrs_needed);
+  DRW_MeshCDMask cd_needed = mesh_cd_calc_used_gpu_layers(
+      object, me, gpumat_array, gpumat_array_len, &attrs_needed);
+
+  if (r_attrs) {
+    *r_attrs = attrs_needed;
+  }
+
+  if (r_cd_needed) {
+    *r_cd_needed = cd_needed;
+  }
 }
 
 GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(Object *object,

@@ -191,6 +191,7 @@ struct GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(struct Object *object,
                                                           struct Mesh *me,
                                                           struct GPUMaterial **gpumat_array,
                                                           uint gpumat_array_len);
+
 struct GPUBatch **DRW_mesh_batch_cache_get_surface_texpaint(struct Object *object,
                                                             struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_surface_texpaint_single(struct Object *object,

@@ -47,7 +47,6 @@ set(SRC
   intern/gpu_batch.cc
   intern/gpu_batch_presets.c
   intern/gpu_batch_utils.c
-  intern/gpu_buffers.c
   intern/gpu_capabilities.cc
   intern/gpu_codegen.cc
   intern/gpu_compute.cc
@@ -84,7 +83,6 @@ set(SRC
   GPU_batch.h
   GPU_batch_presets.h
   GPU_batch_utils.h
-  GPU_buffers.h
   GPU_capabilities.h
   GPU_common.h
   GPU_common_types.h
