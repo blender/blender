@@ -107,7 +107,6 @@ bool nla_panel_context(const bContext *C,
         found = 1;
         break;
       }
-      case ANIMTYPE_NLAACTION:
       case ANIMTYPE_SCENE: /* Top-Level Widgets doubling up as datablocks */
       case ANIMTYPE_OBJECT:
       case ANIMTYPE_DSMAT: /* Datablock AnimData Expanders */
@@ -158,6 +157,11 @@ bool nla_panel_context(const bContext *C,
         }
         break;
       }
+      /* Don't set a pointer for NLA Actions.
+       * This will break the dependency graph for the context menu.
+       */
+      case ANIMTYPE_NLAACTION:
+        break;
     }
 
     if (found > 0) {
