@@ -1632,6 +1632,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "MSVC")
     "/we4013"  # 'function' undefined; assuming extern returning int
     "/we4133"  # incompatible pointer types
     "/we4431"  # missing type specifier - int assumed
+    "/we4033"  # 'function' must return a value
   )
 
   string(REPLACE ";" " " _WARNINGS "${_WARNINGS}")
