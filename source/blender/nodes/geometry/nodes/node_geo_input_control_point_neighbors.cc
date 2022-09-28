@@ -8,9 +8,7 @@
 
 namespace blender::nodes {
 
- int apply_offset_in_cyclic_range(const IndexRange range,
-                                        const int start_index,
-                                        const int offset)
+int apply_offset_in_cyclic_range(const IndexRange range, const int start_index, const int offset)
 {
   BLI_assert(range.contains(start_index));
   const int start_in_range = start_index - range.first();

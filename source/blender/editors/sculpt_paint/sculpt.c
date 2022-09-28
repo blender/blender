@@ -3548,7 +3548,8 @@ static void do_brush_action(Sculpt *sd,
     SCULPT_bmesh_topology_rake(sd, ob, nodes, totnode, brush->topology_rake_factor);
   }
 
-  if (!SCULPT_tool_can_reuse_cavity_mask(brush->sculpt_tool) || (ss->cache->supports_gravity && sd->gravity_factor > 0.0f)) {
+  if (!SCULPT_tool_can_reuse_cavity_mask(brush->sculpt_tool) ||
+      (ss->cache->supports_gravity && sd->gravity_factor > 0.0f)) {
     /* Clear cavity mask cache. */
     ss->last_automasking_settings_hash = 0;
   }

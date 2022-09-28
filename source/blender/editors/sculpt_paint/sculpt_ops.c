@@ -1242,8 +1242,24 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
                   "Use Automask Settings",
                   "Use default settings from Options panel in sculpt mode.");
 
-  RNA_def_float(ot->srna, "factor", 0.5f, 0.0f, 5.0f, "Cavity Factor", "The contrast of the cavity mask", 0.0f, 1.0f);
-  RNA_def_int(ot->srna, "blur_steps", 2, 0, 25, "Cavity Blur", "The number of times the cavity mask is blurred", 0, 25);
+  RNA_def_float(ot->srna,
+                "factor",
+                0.5f,
+                0.0f,
+                5.0f,
+                "Cavity Factor",
+                "The contrast of the cavity mask",
+                0.0f,
+                1.0f);
+  RNA_def_int(ot->srna,
+              "blur_steps",
+              2,
+              0,
+              25,
+              "Cavity Blur",
+              "The number of times the cavity mask is blurred",
+              0,
+              25);
   RNA_def_boolean(ot->srna, "use_curve", false, "Use Curve", "");
 
   RNA_def_boolean(ot->srna, "invert", false, "Cavity (Inverted)", "");

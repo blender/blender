@@ -141,8 +141,7 @@ static bool SCULPT_automasking_needs_factors_cache(const Sculpt *sd, const Brush
   return false;
 }
 
-static float sculpt_cavity_calc_factor(AutomaskingCache *automasking,
-                                       float factor)
+static float sculpt_cavity_calc_factor(AutomaskingCache *automasking, float factor)
 {
   float sign = signf(factor);
 
@@ -323,14 +322,14 @@ int SCULPT_automasking_settings_hash(Object *ob, AutomaskingCache *automasking)
 
   if (automasking->settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
     hash = BLI_hash_int_2d(hash, automasking->settings.cavity_blur_steps);
-    hash = BLI_hash_int_2d(hash, *reinterpret_cast<uint*>(&automasking->settings.cavity_factor));
+    hash = BLI_hash_int_2d(hash, *reinterpret_cast<uint *>(&automasking->settings.cavity_factor));
 
     if (automasking->settings.cavity_curve) {
       CurveMap *cm = automasking->settings.cavity_curve->cm;
 
       for (int i = 0; i < cm->totpoint; i++) {
-        hash = BLI_hash_int_2d(hash, *reinterpret_cast<uint*>(&cm->curve[i].x));
-        hash = BLI_hash_int_2d(hash, *reinterpret_cast<uint*>(&cm->curve[i].y));
+        hash = BLI_hash_int_2d(hash, *reinterpret_cast<uint *>(&cm->curve[i].x));
+        hash = BLI_hash_int_2d(hash, *reinterpret_cast<uint *>(&cm->curve[i].y));
         hash = BLI_hash_int_2d(hash, (uint)cm->curve[i].flag);
         hash = BLI_hash_int_2d(hash, (uint)cm->curve[i].shorty);
       }

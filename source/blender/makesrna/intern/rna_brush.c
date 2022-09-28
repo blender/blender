@@ -3247,7 +3247,6 @@ static void rna_def_brush(BlenderRNA *brna)
     RNA_def_property_update(prop, 0, "rna_Brush_update");
   } while ((++entry)->identifier);
 
-  
   prop = RNA_def_property(srna, "automasking_cavity_factor", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "automasking_cavity_factor");
   RNA_def_property_ui_text(prop, "Cavity Factor", "The contrast of the cavity mask");

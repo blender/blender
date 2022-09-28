@@ -939,6 +939,7 @@ class VIEW3D_PT_sculpt_voxel_remesh(Panel, View3DPaintPanel):
 
         layout.operator("object.voxel_remesh", text="Remesh")
 
+
 # TODO, move to space_view3d.py
 class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
@@ -985,10 +986,10 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
             props.use_automask_settings = True
 
             col2 = col.column()
-            
+
             col2.prop(sculpt, "automasking_cavity_factor", text="Cavity Factor")
             col2.prop(sculpt, "automasking_cavity_blur_steps", text="Cavity Blur")
-            
+
             col2.prop(sculpt, "use_automasking_custom_cavity_curve", text="Use Curve")
 
             if sculpt.use_automasking_custom_cavity_curve:

@@ -34,9 +34,9 @@
 #include "BLI_hash.h"
 #include "BLI_link_utils.h"
 #include "BLI_listbase.h"
+#include "BLI_math_bits.h"
 #include "BLI_memblock.h"
 #include "BLI_mempool.h"
-#include "BLI_math_bits.h"
 
 #ifdef DRW_DEBUG_CULLING
 #  include "BLI_math_bits.h"
