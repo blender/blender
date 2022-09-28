@@ -823,6 +823,9 @@ static void node_region_listener(const wmRegionListenerParams *params)
         ED_region_tag_redraw(region);
       }
       break;
+    case NC_VIEWER_PATH:
+      ED_region_tag_redraw(region);
+      break;
   }
 }
 

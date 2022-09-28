@@ -44,6 +44,7 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_options_toggle);
   WM_operatortype_append(NODE_OT_hide_socket_toggle);
   WM_operatortype_append(NODE_OT_node_copy_color);
+  WM_operatortype_append(NODE_OT_deactivate_viewer);
 
   WM_operatortype_append(NODE_OT_duplicate);
   WM_operatortype_append(NODE_OT_delete);
@@ -135,6 +136,7 @@ void ED_operatormacros_node()
   mot = WM_operatortype_macro_define(ot, "NODE_OT_select");
   RNA_boolean_set(mot->ptr, "extend", false);
   RNA_boolean_set(mot->ptr, "socket_select", true);
+  RNA_boolean_set(mot->ptr, "clear_viewer", true);
   WM_operatortype_macro_define(ot, "NODE_OT_link_viewer");
 
   ot = WM_operatortype_append_macro("NODE_OT_translate_attach",

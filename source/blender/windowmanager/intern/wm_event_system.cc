@@ -632,6 +632,7 @@ void wm_event_do_notifiers(bContext *C)
                win->screen->id.name + 2,
                note->category);
 #  endif
+        ED_workspace_do_listen(C, note);
         ED_screen_do_listen(C, note);
 
         LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {

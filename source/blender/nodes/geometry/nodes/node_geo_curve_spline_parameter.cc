@@ -280,6 +280,11 @@ class IndexOnSplineFieldInput final : public bke::CurvesFieldInput {
   {
     return dynamic_cast<const IndexOnSplineFieldInput *>(&other) != nullptr;
   }
+
+  std::optional<eAttrDomain> preferred_domain(const CurvesGeometry & /*curves*/) const
+  {
+    return ATTR_DOMAIN_POINT;
+  }
 };
 
 static void node_geo_exec(GeoNodeExecParams params)

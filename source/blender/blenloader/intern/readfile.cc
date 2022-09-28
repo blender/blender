@@ -2515,6 +2515,17 @@ static void lib_link_window_scene_data_restore(wmWindow *win, Scene *scene, View
   }
 }
 
+static void lib_link_restore_viewer_path(struct IDNameLib_Map *id_map, ViewerPath *viewer_path)
+{
+  LISTBASE_FOREACH (ViewerPathElem *, elem, &viewer_path->path) {
+    if (elem->type == VIEWER_PATH_ELEM_TYPE_ID) {
+      auto typed_elem = reinterpret_cast<IDViewerPathElem *>(elem);
+      typed_elem->id = static_cast<ID *>(
+          restore_pointer_by_name(id_map, (ID *)typed_elem->id, USER_IGNORE));
+    }
+  }
+}
+
 static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
                                               Main *newmain,
                                               WorkSpaceLayout *layout)
@@ -2532,6 +2543,8 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
               restore_pointer_by_name(id_map, (ID *)v3d->camera, USER_REAL));
           v3d->ob_center = static_cast<Object *>(
               restore_pointer_by_name(id_map, (ID *)v3d->ob_center, USER_REAL));
+
+          lib_link_restore_viewer_path(id_map, &v3d->viewer_path);
         }
         else if (sl->spacetype == SPACE_GRAPH) {
           SpaceGraph *sipo = (SpaceGraph *)sl;
@@ -2741,14 +2754,7 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
         }
         else if (sl->spacetype == SPACE_SPREADSHEET) {
           SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
-
-          LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
-            if (context->type == SPREADSHEET_CONTEXT_OBJECT) {
-              SpreadsheetContextObject *object_context = (SpreadsheetContextObject *)context;
-              object_context->object = static_cast<Object *>(
-                  restore_pointer_by_name(id_map, (ID *)object_context->object, USER_IGNORE));
-            }
-          }
+          lib_link_restore_viewer_path(id_map, &sspreadsheet->viewer_path);
         }
       }
     }
@@ -2770,6 +2776,7 @@ void blo_lib_link_restore(Main *oldmain,
     }
     workspace->pin_scene = static_cast<Scene *>(
         restore_pointer_by_name(id_map, (ID *)workspace->pin_scene, USER_IGNORE));
+    lib_link_restore_viewer_path(id_map, &workspace->viewer_path);
   }
 
   LISTBASE_FOREACH (wmWindow *, win, &curwm->windows) {

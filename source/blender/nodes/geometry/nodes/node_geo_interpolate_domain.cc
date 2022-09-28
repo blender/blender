@@ -111,6 +111,12 @@ class InterpolateDomain final : public bke::GeometryFieldInput {
     return attributes.adapt_domain(
         GVArray::ForGArray(std::move(values)), src_domain_, context.domain());
   }
+
+  std::optional<eAttrDomain> preferred_domain(
+      const GeometryComponent & /*component*/) const override
+  {
+    return src_domain_;
+  }
 };
 
 static StringRefNull identifier_suffix(eCustomDataType data_type)

@@ -201,6 +201,7 @@ set(SRC
   engines/overlay/overlay_sculpt.cc
   engines/overlay/overlay_sculpt_curves.cc
   engines/overlay/overlay_shader.cc
+  engines/overlay/overlay_viewer_attribute.cc
   engines/overlay/overlay_volume.cc
   engines/overlay/overlay_wireframe.cc
 
@@ -645,12 +646,18 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_particle_vert.glsl
   engines/overlay/shaders/overlay_point_varying_color_frag.glsl
   engines/overlay/shaders/overlay_point_varying_color_varying_outline_aa_frag.glsl
+  engines/overlay/shaders/overlay_pointcloud_only_vert.glsl
   engines/overlay/shaders/overlay_sculpt_curves_selection_frag.glsl
   engines/overlay/shaders/overlay_sculpt_curves_selection_vert.glsl
   engines/overlay/shaders/overlay_sculpt_mask_frag.glsl
   engines/overlay/shaders/overlay_sculpt_mask_vert.glsl
   engines/overlay/shaders/overlay_uniform_color_frag.glsl
   engines/overlay/shaders/overlay_varying_color.glsl
+  engines/overlay/shaders/overlay_viewer_attribute_curve_vert.glsl
+  engines/overlay/shaders/overlay_viewer_attribute_curves_vert.glsl
+  engines/overlay/shaders/overlay_viewer_attribute_frag.glsl
+  engines/overlay/shaders/overlay_viewer_attribute_mesh_vert.glsl
+  engines/overlay/shaders/overlay_viewer_attribute_pointcloud_vert.glsl
   engines/overlay/shaders/overlay_volume_gridlines_vert.glsl
   engines/overlay/shaders/overlay_volume_velocity_vert.glsl
   engines/overlay/shaders/overlay_wireframe_frag.glsl

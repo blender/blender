@@ -28,6 +28,7 @@ set(SRC
   ed_util.c
   ed_util_imbuf.c
   ed_util_ops.cc
+  ed_viewer_path.cc
   gizmo_utils.c
   numinput.c
   select_utils.c

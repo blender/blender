@@ -55,6 +55,7 @@
 #include "ED_screen_types.h"
 #include "ED_transform.h"
 #include "ED_view3d_offscreen.h"
+#include "ED_viewer_path.hh"
 
 #include "DEG_depsgraph_query.h"
 
@@ -1294,7 +1295,7 @@ static void draw_viewport_name(ARegion *region, View3D *v3d, int xoffset, int *y
  * frame-number, collection, object name, bone name (if available), marker name (if available).
  */
 static void draw_selected_name(
-    Scene *scene, ViewLayer *view_layer, Object *ob, int xoffset, int *yoffset)
+    const View3D *v3d, Scene *scene, ViewLayer *view_layer, Object *ob, int xoffset, int *yoffset)
 {
   const int cfra = scene->r.cfra;
   const char *msg_pin = " (Pinned)";
@@ -1409,6 +1410,12 @@ static void draw_selected_name(
     s += sprintf(s, " <%s>", markern);
   }
 
+  if (v3d->flag2 & V3D_SHOW_VIEWER) {
+    if (!BLI_listbase_is_empty(&v3d->viewer_path.path)) {
+      s += sprintf(s, IFACE_(" (Viewer)"));
+    }
+  }
+
   BLF_enable(font_id, BLF_SHADOW);
   BLF_shadow(font_id, 5, float4{0.0f, 0.0f, 0.0f, 1.0f});
   BLF_shadow_offset(font_id, 1, -1);
@@ -1502,7 +1509,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
     if (U.uiflag & USER_DRAWVIEWINFO) {
       BKE_view_layer_synced_ensure(scene, view_layer);
       Object *ob = BKE_view_layer_active_object_get(view_layer);
-      draw_selected_name(scene, view_layer, ob, xoffset, &yoffset);
+      draw_selected_name(v3d, scene, view_layer, ob, xoffset, &yoffset);
     }
 
     if (v3d->gridflag & (V3D_SHOW_FLOOR | V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_Z)) {
@@ -1558,11 +1565,23 @@ RenderEngineType *ED_view3d_engine_type(const Scene *scene, int drawtype)
   return type;
 }
 
+static void view3d_update_viewer_path(const bContext *C)
+{
+  View3D *v3d = CTX_wm_view3d(C);
+  WorkSpace *workspace = CTX_wm_workspace(C);
+  /* Always use viewer path from workspace, pinning is not supported currently. */
+  if (!BKE_viewer_path_equal(&v3d->viewer_path, &workspace->viewer_path)) {
+    BKE_viewer_path_clear(&v3d->viewer_path);
+    BKE_viewer_path_copy(&v3d->viewer_path, &workspace->viewer_path);
+  }
+}
+
 void view3d_main_region_draw(const bContext *C, ARegion *region)
 {
   Main *bmain = CTX_data_main(C);
   View3D *v3d = CTX_wm_view3d(C);
 
+  view3d_update_viewer_path(C);
   view3d_draw_view(C, region);
 
   DRW_cache_free_old_subdiv();

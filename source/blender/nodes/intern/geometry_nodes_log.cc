@@ -6,11 +6,14 @@
 #include "BKE_compute_contexts.hh"
 #include "BKE_curves.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_viewer_path.h"
 
 #include "FN_field_cpp_type.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_space_types.h"
+
+#include "ED_viewer_path.hh"
 
 namespace blender::nodes::geo_eval_log {
 
@@ -188,13 +191,10 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
   }
 }
 
-void GeoTreeLogger::log_viewer_node(const bNode &viewer_node,
-                                    const GeometrySet &geometry,
-                                    const GField &field)
+void GeoTreeLogger::log_viewer_node(const bNode &viewer_node, GeometrySet geometry)
 {
   destruct_ptr<ViewerNodeLog> log = this->allocator->construct<ViewerNodeLog>();
-  log->geometry = geometry;
-  log->field = field;
+  log->geometry = std::move(geometry);
   log->geometry.ensure_owns_direct_data();
   this->viewer_node_logs.append({this->allocator->copy_string(viewer_node.name), std::move(log)});
 }
@@ -545,29 +545,17 @@ GeoTreeLog *GeoModifierLog::get_tree_log_for_node_editor(const SpaceNode &snode)
   return &modifier_log->get_tree_log(compute_context_builder.hash());
 }
 
-const ViewerNodeLog *GeoModifierLog::find_viewer_node_log_for_spreadsheet(
-    const SpaceSpreadsheet &sspreadsheet)
+const ViewerNodeLog *GeoModifierLog::find_viewer_node_log_for_path(const ViewerPath &viewer_path)
 {
-  Vector<const SpreadsheetContext *> context_path = sspreadsheet.context_path;
-  if (context_path.size() < 3) {
+  const std::optional<ed::viewer_path::ViewerPathForGeometryNodesViewer> parsed_path =
+      ed::viewer_path::parse_geometry_nodes_viewer(viewer_path);
+  if (!parsed_path.has_value()) {
     return nullptr;
   }
-  if (context_path[0]->type != SPREADSHEET_CONTEXT_OBJECT) {
-    return nullptr;
-  }
-  if (context_path[1]->type != SPREADSHEET_CONTEXT_MODIFIER) {
-    return nullptr;
-  }
-  const SpreadsheetContextObject *object_context =
-      reinterpret_cast<const SpreadsheetContextObject *>(context_path[0]);
-  const SpreadsheetContextModifier *modifier_context =
-      reinterpret_cast<const SpreadsheetContextModifier *>(context_path[1]);
-  if (object_context->object == nullptr) {
-    return nullptr;
-  }
+  const Object *object = parsed_path->object;
   NodesModifierData *nmd = nullptr;
-  LISTBASE_FOREACH (ModifierData *, md, &object_context->object->modifiers) {
-    if (STREQ(md->name, modifier_context->modifier_name)) {
+  LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+    if (md->name == parsed_path->modifier_name) {
       if (md->type == eModifierType_Nodes) {
         nmd = reinterpret_cast<NodesModifierData *>(md);
       }
@@ -583,27 +571,16 @@ const ViewerNodeLog *GeoModifierLog::find_viewer_node_log_for_spreadsheet(
       static_cast<nodes::geo_eval_log::GeoModifierLog *>(nmd->runtime_eval_log);
 
   ComputeContextBuilder compute_context_builder;
-  compute_context_builder.push<bke::ModifierComputeContext>(modifier_context->modifier_name);
-  for (const SpreadsheetContext *context : context_path.as_span().drop_front(2).drop_back(1)) {
-    if (context->type != SPREADSHEET_CONTEXT_NODE) {
-      return nullptr;
-    }
-    const SpreadsheetContextNode &node_context = *reinterpret_cast<const SpreadsheetContextNode *>(
-        context);
-    compute_context_builder.push<bke::NodeGroupComputeContext>(node_context.node_name);
+  compute_context_builder.push<bke::ModifierComputeContext>(parsed_path->modifier_name);
+  for (const StringRef group_node_name : parsed_path->group_node_names) {
+    compute_context_builder.push<bke::NodeGroupComputeContext>(group_node_name);
   }
   const ComputeContextHash context_hash = compute_context_builder.hash();
   nodes::geo_eval_log::GeoTreeLog &tree_log = modifier_log->get_tree_log(context_hash);
   tree_log.ensure_viewer_node_logs();
 
-  const SpreadsheetContext *last_context = context_path.last();
-  if (last_context->type != SPREADSHEET_CONTEXT_NODE) {
-    return nullptr;
-  }
-  const SpreadsheetContextNode &last_node_context =
-      *reinterpret_cast<const SpreadsheetContextNode *>(last_context);
   const ViewerNodeLog *viewer_log = tree_log.viewer_node_logs.lookup_default(
-      last_node_context.node_name, nullptr);
+      parsed_path->viewer_node_name, nullptr);
   return viewer_log;
 }
 

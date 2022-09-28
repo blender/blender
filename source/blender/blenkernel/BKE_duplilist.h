@@ -16,6 +16,8 @@ struct ListBase;
 struct Object;
 struct ParticleSystem;
 struct Scene;
+struct ViewerPath;
+struct GeomerySet;
 
 /* ---------------------------------------------------- */
 /* Dupli-Geometry */
@@ -26,6 +28,13 @@ struct Scene;
 struct ListBase *object_duplilist(struct Depsgraph *depsgraph,
                                   struct Scene *sce,
                                   struct Object *ob);
+/**
+ * \return a #ListBase of #DupliObject for the preview geometry referenced by the #ViewerPath.
+ */
+struct ListBase *object_duplilist_preview(struct Depsgraph *depsgraph,
+                                          struct Scene *scene,
+                                          struct Object *ob,
+                                          const struct ViewerPath *viewer_path);
 void free_object_duplilist(struct ListBase *lb);
 
 typedef struct DupliObject {
@@ -39,6 +48,10 @@ typedef struct DupliObject {
 
   short type; /* from Object.transflag */
   char no_draw;
+  /* If this dupli object is belongs to a preview, this is non-null. */
+  const struct GeometrySet *preview_base_geometry;
+  /* Index of the top-level instance this dupli is part of or -1 when unused. */
+  int preview_instance_index;
 
   /* Persistent identifier for a dupli object, for inter-frame matching of
    * objects with motion blur, or inter-update matching for syncing. */

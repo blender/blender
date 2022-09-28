@@ -160,6 +160,11 @@ class UnwrapFieldInput final : public bke::MeshFieldInput {
   {
     return construct_uv_gvarray(mesh, selection, seam, fill_holes, margin, method, domain);
   }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_CORNER;
+  }
 };
 
 static void node_geo_exec(GeoNodeExecParams params)

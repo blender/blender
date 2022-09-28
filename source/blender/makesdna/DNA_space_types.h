@@ -22,6 +22,7 @@
 #include "DNA_vec_types.h"
 /* Hum ... Not really nice... but needed for spacebuts. */
 #include "DNA_view2d_types.h"
+#include "DNA_viewer_path_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -1888,32 +1889,6 @@ typedef struct SpreadsheetColumn {
   char *display_name;
 } SpreadsheetColumn;
 
-/**
- * An item in SpaceSpreadsheet.context_path.
- * This is a bases struct for the structs below.
- */
-typedef struct SpreadsheetContext {
-  struct SpreadsheetContext *next, *prev;
-  /* eSpaceSpreadsheet_ContextType. */
-  int type;
-  char _pad[4];
-} SpreadsheetContext;
-
-typedef struct SpreadsheetContextObject {
-  SpreadsheetContext base;
-  struct Object *object;
-} SpreadsheetContextObject;
-
-typedef struct SpreadsheetContextModifier {
-  SpreadsheetContext base;
-  char *modifier_name;
-} SpreadsheetContextModifier;
-
-typedef struct SpreadsheetContextNode {
-  SpreadsheetContext base;
-  char *node_name;
-} SpreadsheetContextNode;
-
 typedef struct SpaceSpreadsheet {
   SpaceLink *next, *prev;
   /** Storage of regions for inactive spaces. */
@@ -1930,12 +1905,11 @@ typedef struct SpaceSpreadsheet {
   ListBase row_filters;
 
   /**
-   * List of #SpreadsheetContext.
-   * This is a path to the data that is displayed in the spreadsheet.
-   * It can be set explicitly by an action of the user (e.g. clicking the preview icon in a
-   * geometry node) or it can be derived from context automatically based on some heuristic.
+   * Context that is currently displayed in the editor. This is usually a either a single object
+   * (in original/evaluated mode) or path to a viewer node. This is retrieved from the workspace
+   * but can be pinned so that it stays constant even when the active node changes.
    */
-  ListBase context_path;
+  ViewerPath viewer_path;
 
   /* eSpaceSpreadsheet_FilterFlag. */
   uint8_t filter_flag;

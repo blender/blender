@@ -10,6 +10,7 @@
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_spreadsheet.h"
+#include "ED_viewer_path.hh"
 
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -34,7 +35,6 @@
 
 #include "BLF_api.h"
 
-#include "spreadsheet_context.hh"
 #include "spreadsheet_data_source_geometry.hh"
 #include "spreadsheet_dataset_draw.hh"
 #include "spreadsheet_intern.hh"
@@ -107,9 +107,7 @@ static void spreadsheet_free(SpaceLink *sl)
   LISTBASE_FOREACH_MUTABLE (SpreadsheetColumn *, column, &sspreadsheet->columns) {
     spreadsheet_column_free(column);
   }
-  LISTBASE_FOREACH_MUTABLE (SpreadsheetContext *, context, &sspreadsheet->context_path) {
-    spreadsheet_context_free(context);
-  }
+  BKE_viewer_path_clear(&sspreadsheet->viewer_path);
 }
 
 static void spreadsheet_init(wmWindowManager *UNUSED(wm), ScrArea *area)
@@ -143,11 +141,7 @@ static SpaceLink *spreadsheet_duplicate(SpaceLink *sl)
     BLI_addtail(&sspreadsheet_new->columns, new_column);
   }
 
-  BLI_listbase_clear(&sspreadsheet_new->context_path);
-  LISTBASE_FOREACH_MUTABLE (SpreadsheetContext *, src_context, &sspreadsheet_old->context_path) {
-    SpreadsheetContext *new_context = spreadsheet_context_copy(src_context);
-    BLI_addtail(&sspreadsheet_new->context_path, new_context);
-  }
+  BKE_viewer_path_copy(&sspreadsheet_new->viewer_path, &sspreadsheet_old->viewer_path);
 
   return (SpaceLink *)sspreadsheet_new;
 }
@@ -163,19 +157,7 @@ static void spreadsheet_id_remap(ScrArea *UNUSED(area),
                                  const IDRemapper *mappings)
 {
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)slink;
-  LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
-    if (context->type != SPREADSHEET_CONTEXT_OBJECT) {
-      continue;
-    }
-    SpreadsheetContextObject *object_context = (SpreadsheetContextObject *)context;
-
-    if (object_context->object != nullptr && GS(object_context->object->id.name) != ID_OB) {
-      object_context->object = nullptr;
-      continue;
-    }
-
-    BKE_id_remapper_apply(mappings, ((ID **)&object_context->object), ID_REMAP_APPLY_DEFAULT);
-  }
+  BKE_viewer_path_id_remap(&sspreadsheet->viewer_path, mappings);
 }
 
 static void spreadsheet_main_region_init(wmWindowManager *wm, ARegion *region)
@@ -201,54 +183,105 @@ static void spreadsheet_main_region_init(wmWindowManager *wm, ARegion *region)
 
 ID *ED_spreadsheet_get_current_id(const struct SpaceSpreadsheet *sspreadsheet)
 {
-  if (BLI_listbase_is_empty(&sspreadsheet->context_path)) {
+  if (BLI_listbase_is_empty(&sspreadsheet->viewer_path.path)) {
     return nullptr;
   }
-  SpreadsheetContext *root_context = (SpreadsheetContext *)sspreadsheet->context_path.first;
-  if (root_context->type != SPREADSHEET_CONTEXT_OBJECT) {
+  ViewerPathElem *root_context = static_cast<ViewerPathElem *>(
+      sspreadsheet->viewer_path.path.first);
+  if (root_context->type != VIEWER_PATH_ELEM_TYPE_ID) {
     return nullptr;
   }
-  SpreadsheetContextObject *object_context = (SpreadsheetContextObject *)root_context;
-  return (ID *)object_context->object;
+  IDViewerPathElem *id_elem = reinterpret_cast<IDViewerPathElem *>(root_context);
+  return id_elem->id;
 }
 
-/* Check if the pinned context still exists. If it doesn't try to find a new context. */
-static void update_pinned_context_path_if_outdated(const bContext *C)
+static void view_active_object(const bContext *C, SpaceSpreadsheet *sspreadsheet)
 {
+  BKE_viewer_path_clear(&sspreadsheet->viewer_path);
+  Object *ob = CTX_data_active_object(C);
+  if (ob == nullptr) {
+    return;
+  }
+  IDViewerPathElem *id_elem = BKE_viewer_path_elem_new_id();
+  id_elem->id = &ob->id;
+  BLI_addtail(&sspreadsheet->viewer_path.path, id_elem);
+  ED_area_tag_redraw(CTX_wm_area(C));
+}
+
+static void spreadsheet_update_context(const bContext *C)
+{
+  using blender::ed::viewer_path::ViewerPathForGeometryNodesViewer;
+
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  Main *bmain = CTX_data_main(C);
-  if (!ED_spreadsheet_context_path_exists(bmain, sspreadsheet)) {
-    ED_spreadsheet_context_path_guess(C, sspreadsheet);
-    if (ED_spreadsheet_context_path_update_tag(sspreadsheet)) {
-      ED_area_tag_redraw(CTX_wm_area(C));
+  Object *active_object = CTX_data_active_object(C);
+  Object *context_object = blender::ed::viewer_path::parse_object_only(sspreadsheet->viewer_path);
+  switch (eSpaceSpreadsheet_ObjectEvalState(sspreadsheet->object_eval_state)) {
+    case SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL:
+    case SPREADSHEET_OBJECT_EVAL_STATE_EVALUATED: {
+      if (sspreadsheet->flag & SPREADSHEET_FLAG_PINNED) {
+        if (context_object == nullptr) {
+          /* Object is not available anymore, so clear the pinning. */
+          sspreadsheet->flag &= ~SPREADSHEET_FLAG_PINNED;
+        }
+        else {
+          /* The object is still pinned, do nothing. */
+          break;
+        }
+      }
+      else {
+        if (active_object != context_object) {
+          /* The active object has changed, so view the new active object. */
+          view_active_object(C, sspreadsheet);
+        }
+        else {
+          /* Nothing changed. */
+          break;
+        }
+      }
+      break;
     }
-  }
+    case SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE: {
+      WorkSpace *workspace = CTX_wm_workspace(C);
+      if (sspreadsheet->flag & SPREADSHEET_FLAG_PINNED) {
+        const std::optional<ViewerPathForGeometryNodesViewer> parsed_path =
+            blender::ed::viewer_path::parse_geometry_nodes_viewer(sspreadsheet->viewer_path);
+        if (parsed_path.has_value()) {
+          if (blender::ed::viewer_path::exists_geometry_nodes_viewer(*parsed_path)) {
+            /* The pinned path is still valid, do nothing. */
+            break;
+          }
+          else {
+            /* The pinned path does not exist anymore, clear pinning. */
+            sspreadsheet->flag &= ~SPREADSHEET_FLAG_PINNED;
+          }
+        }
+        else {
+          /* Unknown pinned path, clear pinning. */
+          sspreadsheet->flag &= ~SPREADSHEET_FLAG_PINNED;
+        }
+      }
+      /* Now try to update the viewer path from the workspace. */
+      const std::optional<ViewerPathForGeometryNodesViewer> workspace_parsed_path =
+          blender::ed::viewer_path::parse_geometry_nodes_viewer(workspace->viewer_path);
+      if (workspace_parsed_path.has_value()) {
+        if (BKE_viewer_path_equal(&sspreadsheet->viewer_path, &workspace->viewer_path)) {
+          /* Nothing changed. */
+          break;
+        }
+        else {
+          /* Update the viewer path from the workspace. */
+          BKE_viewer_path_clear(&sspreadsheet->viewer_path);
+          BKE_viewer_path_copy(&sspreadsheet->viewer_path, &workspace->viewer_path);
+        }
+      }
+      else {
+        /* No active viewer node, change back to showing evaluated active object. */
+        sspreadsheet->object_eval_state = SPREADSHEET_OBJECT_EVAL_STATE_EVALUATED;
+        view_active_object(C, sspreadsheet);
+      }
 
-  if (BLI_listbase_is_empty(&sspreadsheet->context_path)) {
-    /* Don't pin empty context_path, that could be annoying. */
-    sspreadsheet->flag &= ~SPREADSHEET_FLAG_PINNED;
-  }
-}
-
-static void update_context_path_from_context(const bContext *C)
-{
-  SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  if (!ED_spreadsheet_context_path_is_active(C, sspreadsheet)) {
-    ED_spreadsheet_context_path_guess(C, sspreadsheet);
-    if (ED_spreadsheet_context_path_update_tag(sspreadsheet)) {
-      ED_area_tag_redraw(CTX_wm_area(C));
+      break;
     }
-  }
-}
-
-void spreadsheet_update_context_path(const bContext *C)
-{
-  SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  if (sspreadsheet->flag & SPREADSHEET_FLAG_PINNED) {
-    update_pinned_context_path_if_outdated(C);
-  }
-  else {
-    update_context_path_from_context(C);
   }
 }
 
@@ -390,7 +423,7 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   sspreadsheet->runtime->cache.set_all_unused();
-  spreadsheet_update_context_path(C);
+  spreadsheet_update_context(C);
 
   std::unique_ptr<DataSource> data_source = get_data_source(C);
   if (!data_source) {
@@ -439,6 +472,7 @@ static void spreadsheet_main_region_listener(const wmRegionListenerParams *param
 {
   ARegion *region = params->region;
   const wmNotifier *wmn = params->notifier;
+  SpaceSpreadsheet *sspreadsheet = static_cast<SpaceSpreadsheet *>(params->area->spacedata.first);
 
   switch (wmn->category) {
     case NC_SCENE: {
@@ -467,6 +501,12 @@ static void spreadsheet_main_region_listener(const wmRegionListenerParams *param
       ED_region_tag_redraw(region);
       break;
     }
+    case NC_VIEWER_PATH: {
+      if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE) {
+        ED_region_tag_redraw(region);
+      }
+      break;
+    }
   }
 }
 
@@ -477,7 +517,7 @@ static void spreadsheet_header_region_init(wmWindowManager *UNUSED(wm), ARegion 
 
 static void spreadsheet_header_region_draw(const bContext *C, ARegion *region)
 {
-  spreadsheet_update_context_path(C);
+  spreadsheet_update_context(C);
   ED_region_header(C, region);
 }
 
@@ -489,6 +529,7 @@ static void spreadsheet_header_region_listener(const wmRegionListenerParams *par
 {
   ARegion *region = params->region;
   const wmNotifier *wmn = params->notifier;
+  SpaceSpreadsheet *sspreadsheet = static_cast<SpaceSpreadsheet *>(params->area->spacedata.first);
 
   switch (wmn->category) {
     case NC_SCENE: {
@@ -513,6 +554,12 @@ static void spreadsheet_header_region_listener(const wmRegionListenerParams *par
     }
     case NC_GEOM: {
       ED_region_tag_redraw(region);
+      break;
+    }
+    case NC_VIEWER_PATH: {
+      if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE) {
+        ED_region_tag_redraw(region);
+      }
       break;
     }
   }
@@ -593,7 +640,7 @@ static void spreadsheet_dataset_region_listener(const wmRegionListenerParams *pa
 
 static void spreadsheet_dataset_region_draw(const bContext *C, ARegion *region)
 {
-  spreadsheet_update_context_path(C);
+  spreadsheet_update_context(C);
   ED_region_panels(C, region);
 }
 
@@ -634,34 +681,13 @@ static void spreadsheet_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
     BLO_read_data_address(reader, &column->display_name);
   }
 
-  BLO_read_list(reader, &sspreadsheet->context_path);
-  LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
-    switch (context->type) {
-      case SPREADSHEET_CONTEXT_NODE: {
-        SpreadsheetContextNode *node_context = (SpreadsheetContextNode *)context;
-        BLO_read_data_address(reader, &node_context->node_name);
-        break;
-      }
-      case SPREADSHEET_CONTEXT_MODIFIER: {
-        SpreadsheetContextModifier *modifier_context = (SpreadsheetContextModifier *)context;
-        BLO_read_data_address(reader, &modifier_context->modifier_name);
-        break;
-      }
-      case SPREADSHEET_CONTEXT_OBJECT: {
-        break;
-      }
-    }
-  }
+  BKE_viewer_path_blend_read_data(reader, &sspreadsheet->viewer_path);
 }
 
 static void spreadsheet_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
 {
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
-  LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
-    if (context->type == SPREADSHEET_CONTEXT_OBJECT) {
-      BLO_read_id_address(reader, parent_id->lib, &((SpreadsheetContextObject *)context)->object);
-    }
-  }
+  BKE_viewer_path_blend_read_lib(reader, parent_id->lib, &sspreadsheet->viewer_path);
 }
 
 static void spreadsheet_blend_write(BlendWriter *writer, SpaceLink *sl)
@@ -683,27 +709,8 @@ static void spreadsheet_blend_write(BlendWriter *writer, SpaceLink *sl)
      * This would ideally be cleared here. */
     BLO_write_string(writer, column->display_name);
   }
-  LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
-    switch (context->type) {
-      case SPREADSHEET_CONTEXT_OBJECT: {
-        SpreadsheetContextObject *object_context = (SpreadsheetContextObject *)context;
-        BLO_write_struct(writer, SpreadsheetContextObject, object_context);
-        break;
-      }
-      case SPREADSHEET_CONTEXT_MODIFIER: {
-        SpreadsheetContextModifier *modifier_context = (SpreadsheetContextModifier *)context;
-        BLO_write_struct(writer, SpreadsheetContextModifier, modifier_context);
-        BLO_write_string(writer, modifier_context->modifier_name);
-        break;
-      }
-      case SPREADSHEET_CONTEXT_NODE: {
-        SpreadsheetContextNode *node_context = (SpreadsheetContextNode *)context;
-        BLO_write_struct(writer, SpreadsheetContextNode, node_context);
-        BLO_write_string(writer, node_context->node_name);
-        break;
-      }
-    }
-  }
+
+  BKE_viewer_path_blend_write(writer, &sspreadsheet->viewer_path);
 }
 
 void ED_spacetype_spreadsheet()

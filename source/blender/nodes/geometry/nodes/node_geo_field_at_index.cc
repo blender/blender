@@ -141,6 +141,12 @@ class FieldAtIndex final : public bke::GeometryFieldInput {
 
     return output_array;
   }
+
+  std::optional<eAttrDomain> preferred_domain(
+      const GeometryComponent & /*component*/) const override
+  {
+    return value_field_domain_;
+  }
 };
 
 static StringRefNull identifier_suffix(eCustomDataType data_type)

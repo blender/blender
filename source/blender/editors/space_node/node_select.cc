@@ -23,13 +23,14 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_node_runtime.hh"
+#include "BKE_node_tree_update.h"
 #include "BKE_workspace.h"
 
 #include "ED_node.h" /* own include */
 #include "ED_screen.h"
 #include "ED_select_utils.h"
-#include "ED_spreadsheet.h"
 #include "ED_view3d.h"
+#include "ED_viewer_path.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -644,6 +645,15 @@ static bool node_mouse_select(bContext *C,
     }
   }
 
+  if (RNA_boolean_get(op->ptr, "clear_viewer")) {
+    if (node == nullptr) {
+      /* Disable existing active viewer. */
+      WorkSpace *workspace = CTX_wm_workspace(C);
+      BKE_viewer_path_clear(&workspace->viewer_path);
+      WM_event_add_notifier(C, NC_VIEWER_PATH, nullptr);
+    }
+  }
+
   if (!(changed || found)) {
     return false;
   }
@@ -655,7 +665,7 @@ static bool node_mouse_select(bContext *C,
     ED_node_set_active(&bmain, &snode, snode.edittree, node, &active_texture_changed);
   }
   else if (node != nullptr && node->type == GEO_NODE_VIEWER) {
-    ED_spreadsheet_context_paths_set_geometry_node(&bmain, &snode, node);
+    viewer_path::activate_geometry_node(bmain, snode, *node);
   }
   ED_node_set_active_viewer_key(&snode);
   node_sort(*snode.edittree);
@@ -731,6 +741,12 @@ void NODE_OT_select(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 
   RNA_def_boolean(ot->srna, "socket_select", false, "Socket Select", "");
+
+  RNA_def_boolean(ot->srna,
+                  "clear_viewer",
+                  false,
+                  "Clear Viewer",
+                  "Deactivate geometry nodes viewer when clicking in empty space");
 }
 
 /** \} */

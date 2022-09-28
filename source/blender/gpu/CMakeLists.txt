@@ -550,6 +550,7 @@ set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/gpencil/shaders/infos/gpencil_vfx_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_antialiasing_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_armature_info.hh
+  ../draw/engines/overlay/shaders/infos/overlay_viewer_attribute_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_background_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_edit_mode_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_extra_info.hh

@@ -254,6 +254,7 @@ static void test_overlay_glsl_shaders()
     EXPECT_NE(OVERLAY_shader_motion_path_line(), nullptr);
     EXPECT_NE(OVERLAY_shader_motion_path_vert(), nullptr);
     EXPECT_NE(OVERLAY_shader_uniform_color(), nullptr);
+    EXPECT_NE(OVERLAY_shader_uniform_color_pointcloud(), nullptr);
     EXPECT_NE(OVERLAY_shader_outline_prepass(false), nullptr);
     EXPECT_NE(OVERLAY_shader_outline_prepass(true), nullptr);
     EXPECT_NE(OVERLAY_shader_outline_prepass_curves(), nullptr);
@@ -272,6 +273,10 @@ static void test_overlay_glsl_shaders()
     EXPECT_NE(OVERLAY_shader_particle_shape(), nullptr);
     EXPECT_NE(OVERLAY_shader_sculpt_mask(), nullptr);
     EXPECT_NE(OVERLAY_shader_sculpt_curves_selection(), nullptr);
+    EXPECT_NE(OVERLAY_shader_viewer_attribute_curve(), nullptr);
+    EXPECT_NE(OVERLAY_shader_viewer_attribute_curves(), nullptr);
+    EXPECT_NE(OVERLAY_shader_viewer_attribute_mesh(), nullptr);
+    EXPECT_NE(OVERLAY_shader_viewer_attribute_pointcloud(), nullptr);
     EXPECT_NE(OVERLAY_shader_volume_velocity(false, false), nullptr);
     EXPECT_NE(OVERLAY_shader_volume_velocity(false, true), nullptr);
     EXPECT_NE(OVERLAY_shader_volume_velocity(true, false), nullptr);

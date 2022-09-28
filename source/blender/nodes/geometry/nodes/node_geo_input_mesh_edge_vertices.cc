@@ -73,6 +73,11 @@ class EdgeVerticesFieldInput final : public bke::MeshFieldInput {
     }
     return false;
   }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_EDGE;
+  }
 };
 
 static VArray<float3> construct_edge_positions_gvarray(const Mesh &mesh,
@@ -126,6 +131,11 @@ class EdgePositionFieldInput final : public bke::MeshFieldInput {
       return vertex_ == other_field->vertex_;
     }
     return false;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_EDGE;
   }
 };
 

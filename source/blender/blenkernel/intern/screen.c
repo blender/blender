@@ -46,6 +46,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_node.h"
 #include "BKE_screen.h"
+#include "BKE_viewer_path.h"
 #include "BKE_workspace.h"
 
 #include "BLO_read_write.h"
@@ -97,6 +98,7 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
         if (v3d->localvd) {
           BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, v3d->localvd->camera, IDWALK_CB_NOP);
         }
+        BKE_viewer_path_foreach_id(data, &v3d->viewer_path);
         break;
       }
       case SPACE_GRAPH: {
@@ -197,12 +199,7 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
       }
       case SPACE_SPREADSHEET: {
         SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
-        LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
-          if (context->type == SPREADSHEET_CONTEXT_OBJECT) {
-            BKE_LIB_FOREACHID_PROCESS_IDSUPER(
-                data, ((SpreadsheetContextObject *)context)->object, IDWALK_CB_NOP);
-          }
-        }
+        BKE_viewer_path_foreach_id(data, &sspreadsheet->viewer_path);
         break;
       }
       default:

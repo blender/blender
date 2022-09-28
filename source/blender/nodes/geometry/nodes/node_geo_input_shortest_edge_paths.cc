@@ -143,6 +143,11 @@ class ShortestEdgePathsNextVertFieldInput final : public bke::MeshFieldInput {
     }
     return false;
   }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_POINT;
+  }
 };
 
 class ShortestEdgePathsCostFieldInput final : public bke::MeshFieldInput {
@@ -205,6 +210,11 @@ class ShortestEdgePathsCostFieldInput final : public bke::MeshFieldInput {
       return other_field->end_selection_ == end_selection_ && other_field->cost_ == cost_;
     }
     return false;
+  }
+
+  std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const override
+  {
+    return ATTR_DOMAIN_POINT;
   }
 };
 
