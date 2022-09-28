@@ -8,17 +8,6 @@
  * used by mesh sculpt mode.
  */
 
-/* Disable optimization for a function (for debugging use only!)*/
-#ifdef __clang__
-#  define ATTR_NO_OPT __attribute__((optnone))
-#elif defined(_MSC_VER)
-#  define ATTR_NO_OPT __pragma(optimize("", off))
-#elif defined(__GNUC__)
-#  define ATTR_NO_OPT __attribute__((optimize("O0")))
-#else
-#  define ATTR_NO_OPT
-#endif
-
 #include <limits.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -48,9 +37,9 @@
 #include "DRW_engine.h"
 #include "DRW_pbvh.h"
 
+#include "bmesh.h"
 #include "draw_pbvh.h"
 #include "gpu_private.h"
-#include "bmesh.h"
 
 #define MAX_PBVH_BATCH_KEY 512
 #define MAX_PBVH_VBOS 16
@@ -493,7 +482,6 @@ struct PBVHBatches {
     }
   }
 
-  ATTR_NO_OPT
   void fill_vbo_faces(PBVHVbo &vbo, PBVH_GPU_Args *args)
   {
     int totvert = args->totprim * 3;
