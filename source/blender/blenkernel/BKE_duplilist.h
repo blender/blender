@@ -17,7 +17,7 @@ struct Object;
 struct ParticleSystem;
 struct Scene;
 struct ViewerPath;
-struct GeomerySet;
+struct GeometrySet;
 
 /* ---------------------------------------------------- */
 /* Dupli-Geometry */
