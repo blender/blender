@@ -558,10 +558,10 @@ struct PBVHBatches {
 
           foreach_faces(
               [&](int /*buffer_i*/, int /*tri_i*/, int /*vertex_i*/, const MLoopTri *tri) {
-                if (last_poly != tri->poly && args->face_sets) {
+                if (last_poly != tri->poly) {
                   last_poly = tri->poly;
 
-                  const int fset = abs(face_sets[tri->poly]);
+                  const int fset = face_sets[tri->poly];
 
                   if (fset != args->face_sets_color_default) {
                     BKE_paint_face_set_overlay_color_get(

@@ -248,6 +248,12 @@ void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
+  if (ss->pbvh) {
+    Mesh *mesh = BKE_mesh_from_object(ob);
+    BKE_pbvh_face_sets_color_set(
+        ss->pbvh, mesh->face_sets_color_seed, mesh->face_sets_color_default);
+  }
+
   BKE_curvemapping_init(brush->curve);
 
   /* Threaded loop over nodes. */
