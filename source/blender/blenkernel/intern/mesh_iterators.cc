@@ -36,13 +36,13 @@ void BKE_mesh_foreach_mapped_vert(
     void *userData,
     MeshForeachFlag flag)
 {
-  if (mesh->edit_mesh != NULL && mesh->runtime.edit_data != NULL) {
+  if (mesh->edit_mesh != nullptr && mesh->runtime.edit_data != nullptr) {
     BMEditMesh *em = mesh->edit_mesh;
     BMesh *bm = em->bm;
     BMIter iter;
     BMVert *eve;
     int i;
-    if (mesh->runtime.edit_data->vertexCos != NULL) {
+    if (mesh->runtime.edit_data->vertexCos != nullptr) {
       const float(*vertexCos)[3] = mesh->runtime.edit_data->vertexCos;
       const float(*vertexNos)[3];
       if (flag & MESH_FOREACH_USE_NORMAL) {
@@ -50,30 +50,30 @@ void BKE_mesh_foreach_mapped_vert(
         vertexNos = mesh->runtime.edit_data->vertexNos;
       }
       else {
-        vertexNos = NULL;
+        vertexNos = nullptr;
       }
       BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
-        const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? vertexNos[i] : NULL;
+        const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? vertexNos[i] : nullptr;
         func(userData, i, vertexCos[i], no);
       }
     }
     else {
       BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
-        const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? eve->no : NULL;
+        const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? eve->no : nullptr;
         func(userData, i, eve->co, no);
       }
     }
   }
   else {
     const MVert *mv = BKE_mesh_verts(mesh);
-    const int *index = CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX);
+    const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX));
     const float(*vert_normals)[3] = (flag & MESH_FOREACH_USE_NORMAL) ?
                                         BKE_mesh_vertex_normals_ensure(mesh) :
-                                        NULL;
+                                        nullptr;
 
     if (index) {
       for (int i = 0; i < mesh->totvert; i++, mv++) {
-        const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? vert_normals[i] : NULL;
+        const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? vert_normals[i] : nullptr;
         const int orig = *index++;
         if (orig == ORIGINDEX_NONE) {
           continue;
@@ -83,7 +83,7 @@ void BKE_mesh_foreach_mapped_vert(
     }
     else {
       for (int i = 0; i < mesh->totvert; i++, mv++) {
-        const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? vert_normals[i] : NULL;
+        const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? vert_normals[i] : nullptr;
         func(userData, i, mv->co, no);
       }
     }
@@ -96,13 +96,13 @@ void BKE_mesh_foreach_mapped_edge(
     void (*func)(void *userData, int index, const float v0co[3], const float v1co[3]),
     void *userData)
 {
-  if (mesh->edit_mesh != NULL && mesh->runtime.edit_data) {
+  if (mesh->edit_mesh != nullptr && mesh->runtime.edit_data) {
     BMEditMesh *em = mesh->edit_mesh;
     BMesh *bm = em->bm;
     BMIter iter;
     BMEdge *eed;
     int i;
-    if (mesh->runtime.edit_data->vertexCos != NULL) {
+    if (mesh->runtime.edit_data->vertexCos != nullptr) {
       const float(*vertexCos)[3] = mesh->runtime.edit_data->vertexCos;
       BM_mesh_elem_index_ensure(bm, BM_VERT);
 
@@ -122,7 +122,7 @@ void BKE_mesh_foreach_mapped_edge(
   else {
     const MVert *mv = BKE_mesh_verts(mesh);
     const MEdge *med = BKE_mesh_edges(mesh);
-    const int *index = CustomData_get_layer(&mesh->edata, CD_ORIGINDEX);
+    const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->edata, CD_ORIGINDEX));
 
     if (index) {
       for (int i = 0; i < mesh->totedge; i++, med++) {
@@ -154,7 +154,7 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
   /* We can't use dm->getLoopDataLayout(dm) here,
    * we want to always access dm->loopData, EditDerivedBMesh would
    * return loop data from bmesh itself. */
-  if (mesh->edit_mesh != NULL && mesh->runtime.edit_data) {
+  if (mesh->edit_mesh != nullptr && mesh->runtime.edit_data) {
     BMEditMesh *em = mesh->edit_mesh;
     BMesh *bm = em->bm;
     BMIter iter;
@@ -164,8 +164,9 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
 
     /* XXX: investigate using EditMesh data. */
     const float(*lnors)[3] = (flag & MESH_FOREACH_USE_NORMAL) ?
-                                 CustomData_get_layer(&mesh->ldata, CD_NORMAL) :
-                                 NULL;
+                                 static_cast<const float(*)[3]>(
+                                     CustomData_get_layer(&mesh->ldata, CD_NORMAL)) :
+                                 nullptr;
 
     int f_idx;
 
@@ -178,21 +179,24 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
       do {
         const BMVert *eve = l_iter->v;
         const int v_idx = BM_elem_index_get(eve);
-        const float *no = lnors ? *lnors++ : NULL;
+        const float *no = lnors ? *lnors++ : nullptr;
         func(userData, v_idx, f_idx, vertexCos ? vertexCos[v_idx] : eve->co, no);
       } while ((l_iter = l_iter->next) != l_first);
     }
   }
   else {
     const float(*lnors)[3] = (flag & MESH_FOREACH_USE_NORMAL) ?
-                                 CustomData_get_layer(&mesh->ldata, CD_NORMAL) :
-                                 NULL;
+                                 static_cast<const float(*)[3]>(
+                                     CustomData_get_layer(&mesh->ldata, CD_NORMAL)) :
+                                 nullptr;
 
     const MVert *mv = BKE_mesh_verts(mesh);
     const MLoop *ml = BKE_mesh_loops(mesh);
     const MPoly *mp = BKE_mesh_polys(mesh);
-    const int *v_index = CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX);
-    const int *f_index = CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX);
+    const int *v_index = static_cast<const int *>(
+        CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX));
+    const int *f_index = static_cast<const int *>(
+        CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX));
     int p_idx, i;
 
     if (v_index || f_index) {
@@ -200,7 +204,7 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
         for (i = 0; i < mp->totloop; i++, ml++) {
           const int v_idx = v_index ? v_index[ml->v] : ml->v;
           const int f_idx = f_index ? f_index[p_idx] : p_idx;
-          const float *no = lnors ? *lnors++ : NULL;
+          const float *no = lnors ? *lnors++ : nullptr;
           if (ELEM(ORIGINDEX_NONE, v_idx, f_idx)) {
             continue;
           }
@@ -213,7 +217,7 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
         for (i = 0; i < mp->totloop; i++, ml++) {
           const int v_idx = ml->v;
           const int f_idx = p_idx;
-          const float *no = lnors ? *lnors++ : NULL;
+          const float *no = lnors ? *lnors++ : nullptr;
           func(userData, v_idx, f_idx, mv[ml->v].co, no);
         }
       }
@@ -227,7 +231,7 @@ void BKE_mesh_foreach_mapped_face_center(
     void *userData,
     MeshForeachFlag flag)
 {
-  if (mesh->edit_mesh != NULL && mesh->runtime.edit_data != NULL) {
+  if (mesh->edit_mesh != nullptr && mesh->runtime.edit_data != nullptr) {
     BMEditMesh *em = mesh->edit_mesh;
     BMesh *bm = em->bm;
     const float(*polyCos)[3];
@@ -241,10 +245,10 @@ void BKE_mesh_foreach_mapped_face_center(
 
     if (flag & MESH_FOREACH_USE_NORMAL) {
       BKE_editmesh_cache_ensure_poly_normals(em, mesh->runtime.edit_data);
-      polyNos = mesh->runtime.edit_data->polyNos; /* maybe NULL */
+      polyNos = mesh->runtime.edit_data->polyNos; /* maybe nullptr */
     }
     else {
-      polyNos = NULL;
+      polyNos = nullptr;
     }
 
     if (polyNos) {
@@ -255,7 +259,7 @@ void BKE_mesh_foreach_mapped_face_center(
     }
     else {
       BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
-        const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? efa->no : NULL;
+        const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? efa->no : nullptr;
         func(userData, i, polyCos[i], no);
       }
     }
@@ -266,8 +270,8 @@ void BKE_mesh_foreach_mapped_face_center(
     const MLoop *loops = BKE_mesh_loops(mesh);
     const MLoop *ml;
     float _no_buf[3];
-    float *no = (flag & MESH_FOREACH_USE_NORMAL) ? _no_buf : NULL;
-    const int *index = CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX);
+    float *no = (flag & MESH_FOREACH_USE_NORMAL) ? _no_buf : nullptr;
+    const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX));
 
     if (index) {
       for (int i = 0; i < mesh->totpoly; i++, mp++) {
@@ -311,10 +315,10 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
   const MVert *mv;
   const float(*vert_normals)[3] = (flag & MESH_FOREACH_USE_NORMAL) ?
                                       BKE_mesh_vertex_normals_ensure(mesh) :
-                                      NULL;
-  const int *index = CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX);
+                                      nullptr;
+  const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX));
   const BLI_bitmap *facedot_tags = mesh->runtime.subsurf_face_dot_tags;
-  BLI_assert(facedot_tags != NULL);
+  BLI_assert(facedot_tags != nullptr);
 
   if (index) {
     for (int i = 0; i < mesh->totpoly; i++, mp++) {
@@ -329,7 +333,7 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
           func(userData,
                orig,
                mv->co,
-               (flag & MESH_FOREACH_USE_NORMAL) ? vert_normals[ml->v] : NULL);
+               (flag & MESH_FOREACH_USE_NORMAL) ? vert_normals[ml->v] : nullptr);
         }
       }
     }
@@ -340,7 +344,10 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
       for (int j = 0; j < mp->totloop; j++, ml++) {
         mv = &verts[ml->v];
         if (BLI_BITMAP_TEST(facedot_tags, ml->v)) {
-          func(userData, i, mv->co, (flag & MESH_FOREACH_USE_NORMAL) ? vert_normals[ml->v] : NULL);
+          func(userData,
+               i,
+               mv->co,
+               (flag & MESH_FOREACH_USE_NORMAL) ? vert_normals[ml->v] : nullptr);
         }
       }
     }
@@ -349,10 +356,10 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
 
 /* Helpers based on above foreach loopers> */
 
-typedef struct MappedVCosData {
+struct MappedVCosData {
   float (*vertexcos)[3];
   BLI_bitmap *vertex_visit;
-} MappedVCosData;
+};
 
 static void get_vertexcos__mapFunc(void *user_data,
                                    int index,

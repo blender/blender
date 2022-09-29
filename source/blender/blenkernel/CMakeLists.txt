@@ -125,7 +125,7 @@ set(SRC
   intern/displist.cc
   intern/dynamicpaint.c
   intern/editlattice.c
-  intern/editmesh.c
+  intern/editmesh.cc
   intern/editmesh_bvh.c
   intern/editmesh_cache.cc
   intern/editmesh_tangent.cc
@@ -199,7 +199,7 @@ set(SRC
   intern/mesh_debug.cc
   intern/mesh_evaluate.cc
   intern/mesh_fair.cc
-  intern/mesh_iterators.c
+  intern/mesh_iterators.cc
   intern/mesh_legacy_convert.cc
   intern/mesh_mapping.cc
   intern/mesh_merge.c

@@ -1311,7 +1311,7 @@ void ED_view3d_draw_bgpic_test(const struct Scene *scene,
                                bool do_foreground,
                                bool do_camera_frame);
 
-/* view3d_gizmo_preselect_type.c */
+/* view3d_gizmo_preselect_type.cc */
 
 void ED_view3d_gizmo_mesh_preselect_get_active(struct bContext *C,
                                                struct wmGizmo *gz,

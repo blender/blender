@@ -92,7 +92,7 @@ set(SRC
   intern/MOD_volume_displace.cc
   intern/MOD_volume_to_mesh.cc
   intern/MOD_warp.c
-  intern/MOD_wave.c
+  intern/MOD_wave.cc
   intern/MOD_weighted_normal.c
   intern/MOD_weightvg_util.c
   intern/MOD_weightvgedit.c

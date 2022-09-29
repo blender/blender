@@ -38,7 +38,7 @@
 #include "draw_manager_text.h"
 #include "intern/bmesh_polygon.h"
 
-typedef struct ViewCachedString {
+struct ViewCachedString {
   float vec[3];
   union {
     uchar ub[4];
@@ -51,20 +51,20 @@ typedef struct ViewCachedString {
 
   /* str is allocated past the end */
   char str[0];
-} ViewCachedString;
+};
 
-typedef struct DRWTextStore {
+struct DRWTextStore {
   BLI_memiter *cache_strings;
-} DRWTextStore;
+};
 
 DRWTextStore *DRW_text_cache_create(void)
 {
-  DRWTextStore *dt = MEM_callocN(sizeof(*dt), __func__);
+  DRWTextStore *dt = MEM_cnew<DRWTextStore>(__func__);
   dt->cache_strings = BLI_memiter_create(1 << 14); /* 16kb */
   return dt;
 }
 
-void DRW_text_cache_destroy(struct DRWTextStore *dt)
+void DRW_text_cache_destroy(DRWTextStore *dt)
 {
   BLI_memiter_destroy(dt->cache_strings);
   MEM_freeN(dt);
@@ -90,7 +90,8 @@ void DRW_text_cache_add(DRWTextStore *dt,
     alloc_len = str_len + 1;
   }
 
-  vos = BLI_memiter_alloc(dt->cache_strings, sizeof(ViewCachedString) + alloc_len);
+  vos = static_cast<ViewCachedString *>(
+      BLI_memiter_alloc(dt->cache_strings, sizeof(ViewCachedString) + alloc_len));
 
   copy_v3_v3(vos->vec, co);
   copy_v4_v4_uchar(vos->col.ub, col);
@@ -128,7 +129,7 @@ static void drw_text_cache_draw_ex(DRWTextStore *dt, ARegion *region)
   BLF_size(font_id, style->widget.points * U.dpi_fac);
 
   BLI_memiter_iter_init(dt->cache_strings, &it);
-  while ((vos = BLI_memiter_iter_step(&it))) {
+  while ((vos = static_cast<ViewCachedString *>(BLI_memiter_iter_step(&it)))) {
     if (vos->sco[0] != IS_CLIPPED) {
       if (col_pack_prev != vos->col.pack) {
         BLF_color4ubv(font_id, vos->col.ub);
@@ -147,16 +148,16 @@ static void drw_text_cache_draw_ex(DRWTextStore *dt, ARegion *region)
   GPU_matrix_projection_set(original_proj);
 }
 
-void DRW_text_cache_draw(DRWTextStore *dt, ARegion *region, struct View3D *v3d)
+void DRW_text_cache_draw(DRWTextStore *dt, ARegion *region, View3D *v3d)
 {
   ViewCachedString *vos;
   if (v3d) {
-    RegionView3D *rv3d = region->regiondata;
+    RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
     int tot = 0;
     /* project first and test */
     BLI_memiter_handle it;
     BLI_memiter_iter_init(dt->cache_strings, &it);
-    while ((vos = BLI_memiter_iter_step(&it))) {
+    while ((vos = static_cast<ViewCachedString *>(BLI_memiter_iter_step(&it)))) {
       if (ED_view3d_project_short_ex(
               region,
               (vos->flag & DRW_TEXT_CACHE_GLOBALSPACE) ? rv3d->persmat : rv3d->persmatob,
@@ -192,10 +193,10 @@ void DRW_text_cache_draw(DRWTextStore *dt, ARegion *region, struct View3D *v3d)
     BLI_memiter_iter_init(dt->cache_strings, &it);
     View2D *v2d = &region->v2d;
     float viewmat[4][4];
-    rctf region_space = {0.0f, region->winx, 0.0f, region->winy};
+    rctf region_space = {0.0f, float(region->winx), 0.0f, float(region->winy)};
     BLI_rctf_transform_calc_m4_pivot_min(&v2d->cur, &region_space, viewmat);
 
-    while ((vos = BLI_memiter_iter_step(&it))) {
+    while ((vos = static_cast<ViewCachedString *>(BLI_memiter_iter_step(&it)))) {
       float p[3];
       copy_v3_v3(p, vos->vec);
       mul_m4_v3(viewmat, p);
@@ -216,9 +217,9 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
   /* Do not use ascii when using non-default unit system, some unit chars are utf8 (micro, square,
    * etc.). See bug T36090.
    */
-  struct DRWTextStore *dt = DRW_text_cache_ensure();
+  DRWTextStore *dt = DRW_text_cache_ensure();
   const short txt_flag = DRW_TEXT_CACHE_GLOBALSPACE;
-  Mesh *me = ob->data;
+  Mesh *me = static_cast<Mesh *>(ob->data);
   BMEditMesh *em = me->edit_mesh;
   float v1[3], v2[3], v3[3], vmid[3], fvec[3];
   char numstr[32]; /* Stores the measurement display text here */
@@ -232,8 +233,9 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
   float clip_planes[4][4];
   /* allow for displaying shape keys and deform mods */
   BMIter iter;
-  const float(*vert_coords)[3] = (me->runtime.edit_data ? me->runtime.edit_data->vertexCos : NULL);
-  const bool use_coords = (vert_coords != NULL);
+  const float(*vert_coords)[3] = (me->runtime.edit_data ? me->runtime.edit_data->vertexCos :
+                                                          nullptr);
+  const bool use_coords = (vert_coords != nullptr);
 
   /* when 2 or more edge-info options are enabled, space apart */
   short edge_tex_count = 0;
@@ -334,7 +336,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
     UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGEANG, col);
 
-    const float(*poly_normals)[3] = NULL;
+    const float(*poly_normals)[3] = nullptr;
     if (use_coords) {
       BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
       BKE_editmesh_cache_ensure_poly_normals(em, me->runtime.edit_data);
@@ -410,7 +412,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
     UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
 
     int i, n;
-    BMFace *f = NULL;
+    BMFace *f = nullptr;
     /* Alternative to using `poly_to_tri_count(i, BM_elem_index_get(f->l_first))`
      * without having to add an extra loop. */
     int looptri_index = 0;

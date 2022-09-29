@@ -92,7 +92,7 @@ set(SRC
   intern/draw_manager_exec.c
   intern/draw_manager_profiling.c
   intern/draw_manager_shader.c
-  intern/draw_manager_text.c
+  intern/draw_manager_text.cc
   intern/draw_manager_texture.c
   intern/draw_pbvh.cc
   intern/draw_select_buffer.c
