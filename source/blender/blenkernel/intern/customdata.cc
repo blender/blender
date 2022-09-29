@@ -3135,7 +3135,6 @@ static void *customData_duplicate_referenced_layer_index(CustomData *data,
 
 void *CustomData_duplicate_referenced_layer(CustomData *data, const int type, const int totelem)
 {
-  /* get the layer index of the first layer of type */
   int layer_index = CustomData_get_active_layer_index(data, type);
 
   return customData_duplicate_referenced_layer_index(data, layer_index, totelem);
@@ -3187,7 +3186,6 @@ void CustomData_duplicate_referenced_layers(CustomData *data, const int totelem)
 
 bool CustomData_is_referenced_layer(CustomData *data, const int type)
 {
-  /* get the layer index of the first layer of type */
   int layer_index = CustomData_get_active_layer_index(data, type);
   if (layer_index == -1) {
     return false;
@@ -3515,36 +3513,26 @@ void CustomData_swap(CustomData *data, const int index_a, const int index_b)
 void *CustomData_get(const CustomData *data, const int index, const int type)
 {
   BLI_assert(index >= 0);
-
-  /* get the layer index of the active layer of type */
-  int layer_index = CustomData_get_active_layer_index(data, type);
-  if (layer_index == -1) {
+  void *layer_data = CustomData_get_layer(data, type);
+  if (!layer_data) {
     return nullptr;
   }
-
-  /* get the offset of the desired element */
-  const size_t offset = size_t(index) * layerType_getInfo(type)->size;
-
-  return POINTER_OFFSET(data->layers[layer_index].data, offset);
+  return POINTER_OFFSET(layer_data, size_t(index) * layerType_getInfo(type)->size);
 }
 
 void *CustomData_get_n(const CustomData *data, const int type, const int index, const int n)
 {
-  BLI_assert(index >= 0 && n >= 0);
-
-  /* get the layer index of the first layer of type */
-  int layer_index = data->typemap[type];
-  if (layer_index == -1) {
+  BLI_assert(index >= 0);
+  void *layer_data = CustomData_get_layer_n(data, type, n);
+  if (!layer_data) {
     return nullptr;
   }
 
-  const size_t offset = size_t(index) * layerType_getInfo(type)->size;
-  return POINTER_OFFSET(data->layers[layer_index + n].data, offset);
+  return POINTER_OFFSET(layer_data, size_t(index) * layerType_getInfo(type)->size);
 }
 
 void *CustomData_get_layer(const CustomData *data, const int type)
 {
-  /* get the layer index of the active layer of type */
   int layer_index = CustomData_get_active_layer_index(data, type);
   if (layer_index == -1) {
     return nullptr;
@@ -3555,7 +3543,6 @@ void *CustomData_get_layer(const CustomData *data, const int type)
 
 void *CustomData_get_layer_n(const CustomData *data, const int type, const int n)
 {
-  /* get the layer index of the active layer of type */
   int layer_index = CustomData_get_layer_index_n(data, type, n);
   if (layer_index == -1) {
     return nullptr;
@@ -3576,7 +3563,6 @@ void *CustomData_get_layer_named(const CustomData *data, const int type, const c
 
 int CustomData_get_offset(const CustomData *data, const int type)
 {
-  /* get the layer index of the active layer of type */
   int layer_index = CustomData_get_active_layer_index(data, type);
   if (layer_index == -1) {
     return -1;
@@ -3587,7 +3573,6 @@ int CustomData_get_offset(const CustomData *data, const int type)
 
 int CustomData_get_n_offset(const CustomData *data, const int type, const int n)
 {
-  /* get the layer index of the active layer of type */
   int layer_index = CustomData_get_layer_index_n(data, type, n);
   if (layer_index == -1) {
     return -1;
@@ -3608,7 +3593,6 @@ int CustomData_get_offset_named(const CustomData *data, int type, const char *na
 
 bool CustomData_set_layer_name(CustomData *data, const int type, const int n, const char *name)
 {
-  /* get the layer index of the first layer of type */
   const int layer_index = CustomData_get_layer_index_n(data, type, n);
 
   if ((layer_index == -1) || !name) {
@@ -3629,7 +3613,6 @@ const char *CustomData_get_layer_name(const CustomData *data, const int type, co
 
 void *CustomData_set_layer(const CustomData *data, const int type, void *ptr)
 {
-  /* get the layer index of the first layer of type */
   int layer_index = CustomData_get_active_layer_index(data, type);
 
   if (layer_index == -1) {
@@ -3643,7 +3626,6 @@ void *CustomData_set_layer(const CustomData *data, const int type, void *ptr)
 
 void *CustomData_set_layer_n(const CustomData *data, const int type, const int n, void *ptr)
 {
-  /* get the layer index of the first layer of type */
   int layer_index = CustomData_get_layer_index_n(data, type, n);
   if (layer_index == -1) {
     return nullptr;
@@ -3988,7 +3970,6 @@ void CustomData_bmesh_copy_data(const CustomData *source,
 
 void *CustomData_bmesh_get(const CustomData *data, void *block, const int type)
 {
-  /* get the layer index of the first layer of type */
   int layer_index = CustomData_get_active_layer_index(data, type);
   if (layer_index == -1) {
     return nullptr;
@@ -3999,7 +3980,6 @@ void *CustomData_bmesh_get(const CustomData *data, void *block, const int type)
 
 void *CustomData_bmesh_get_n(const CustomData *data, void *block, const int type, const int n)
 {
-  /* get the layer index of the first layer of type */
   int layer_index = CustomData_get_layer_index(data, type);
   if (layer_index == -1) {
     return nullptr;
