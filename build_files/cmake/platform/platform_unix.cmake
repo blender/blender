@@ -89,7 +89,7 @@ macro(add_bundled_libraries library)
     file(GLOB _all_library_versions ${LIBDIR}/${library}/lib/*\.so*)
     list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_all_library_versions})
     unset(_all_library_versions)
- endif()
+  endif()
 endmacro()
 
 # ----------------------------------------------------------------------------
