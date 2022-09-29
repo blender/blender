@@ -306,7 +306,7 @@ static void sculpt_calc_blurred_cavity(SculptSession *ss,
   float3 sno2(0.0f);
   float3 sco1(0.0f);
   float3 sco2(0.0f);
-  float len1_sum = 0.0f, len2_sum = 0.0f;
+  float len1_sum = 0.0f;
   int sco1_len = 0, sco2_len = 0;
 
   /* Steps starts at 1, but API and user interface
@@ -349,7 +349,6 @@ static void sculpt_calc_blurred_cavity(SculptSession *ss,
     if (blurvert.depth < steps) {
       sco2 += co;
       sno2 += no;
-      len2_sum += centdist;
       sco2_len++;
     }
 
@@ -409,7 +408,6 @@ static void sculpt_calc_blurred_cavity(SculptSession *ss,
   }
   else {
     sco2 /= (float)sco2_len;
-    len2_sum /= sco2_len;
   }
 
   normalize_v3(sno1);
