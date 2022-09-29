@@ -1934,8 +1934,6 @@ class VIEW3D_PT_tools_grease_pencil_brush_gap_closure(View3DPanel, Panel):
         if gp_settings.fill_extend_mode == 'EXTEND':
             row = col.row(align=True)
             row.prop(gp_settings, "use_collide_strokes")
-            row = col.row(align=True)
-            row.prop(gp_settings, "use_collide_only")
 
 
 # Grease Pencil stroke sculpting tools

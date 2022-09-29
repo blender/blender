@@ -857,12 +857,12 @@ static bool gpencil_stroke_is_drawable(tGPDfill *tgpf, bGPDstroke *gps)
   const bool is_line_mode = (tgpf->fill_extend_mode == GP_FILL_EMODE_EXTEND);
   const bool show_help = (tgpf->flag & GP_BRUSH_FILL_SHOW_HELPLINES) != 0;
   const bool show_extend = (tgpf->flag & GP_BRUSH_FILL_SHOW_EXTENDLINES) != 0;
+  const bool use_stroke_collide = (tgpf->flag & GP_BRUSH_FILL_STROKE_COLLIDE) != 0;
   const bool is_extend_stroke = (gps->flag & GP_STROKE_NOFILL) && (gps->flag & GP_STROKE_TAG);
   const bool is_help_stroke = (gps->flag & GP_STROKE_NOFILL) && (gps->flag & GP_STROKE_HELP);
-  const bool only_collide_strokes = (tgpf->flag & GP_BRUSH_FILL_COLLIDE_ONLY) != 0;
   const bool stroke_collide = (gps->flag & GP_STROKE_COLLIDE) != 0;
 
-  if (is_line_mode && is_extend_stroke && only_collide_strokes && tgpf->is_render &&
+  if (is_line_mode && is_extend_stroke && tgpf->is_render && use_stroke_collide &&
       !stroke_collide) {
     return false;
   }
@@ -910,7 +910,7 @@ static void gpencil_draw_basic_stroke(tGPDfill *tgpf,
                          !(gps->flag & GP_STROKE_HELP);
   const bool is_help = gps->flag & GP_STROKE_HELP;
   const bool is_line_mode = (tgpf->fill_extend_mode == GP_FILL_EMODE_EXTEND);
-  const bool only_collide = (tgpf->flag & GP_BRUSH_FILL_COLLIDE_ONLY) != 0;
+  const bool use_stroke_collide = (tgpf->flag & GP_BRUSH_FILL_STROKE_COLLIDE) != 0;
   const bool stroke_collide = (gps->flag & GP_STROKE_COLLIDE) != 0;
 
   if (!gpencil_stroke_is_drawable(tgpf, gps)) {
@@ -931,7 +931,7 @@ static void gpencil_draw_basic_stroke(tGPDfill *tgpf,
     col[3] = (gps->flag & GP_STROKE_TAG) ? 0.0f : 0.5f;
   }
   else if ((is_extend) && (!tgpf->is_render)) {
-    if (stroke_collide || !only_collide || !is_line_mode) {
+    if (stroke_collide || !use_stroke_collide || !is_line_mode) {
       copy_v4_v4(col, extend_col);
     }
     else {
