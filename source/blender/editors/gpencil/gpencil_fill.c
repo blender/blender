@@ -479,21 +479,6 @@ static void gpencil_load_array_strokes(tGPDfill *tgpf)
   tgpf->stroke_array_num = idx;
 }
 
-/* Check if a 2D point is inside a 2D Bounding Box. */
-static bool is_point_in_bbox(tGPDfill *tgpf,
-                             bGPDstroke *gps,
-                             float diff_mat[4][4],
-                             float point2d[2])
-{
-  float boundbox_min[2];
-  float boundbox_max[2];
-
-  ED_gpencil_projected_2d_bound_box(&tgpf->gsc, gps, diff_mat, boundbox_min, boundbox_max);
-
-  rctf rect_stroke = {boundbox_min[0], boundbox_max[0], boundbox_min[1], boundbox_max[1]};
-  return BLI_rctf_isect_pt_v(&rect_stroke, point2d);
-}
-
 static void set_stroke_collide(bGPDstroke *gps_a, bGPDstroke *gps_b, const float connection_dist)
 {
   gps_a->flag |= GP_STROKE_COLLIDE;
@@ -544,11 +529,6 @@ static void gpencil_stroke_collision(
         float intersection2D[2];
         isect_line_line_v2_point(
             a1xy, a2xy, stroke->points2d[i], stroke->points2d[i + 1], intersection2D);
-        /* Verify the collision is inside the bounding box of the strokes. */
-        if (!is_point_in_bbox(tgpf, gps_a, diff_mat, intersection2D) &&
-            !is_point_in_bbox(tgpf, gps_b, diff_mat, intersection2D)) {
-          continue;
-        }
 
         gpencil_point_xy_to_3d(&tgpf->gsc, tgpf->scene, intersection2D, &extreme_a->x);
         mul_m4_v3(inv_mat, &extreme_a->x);
