@@ -111,7 +111,7 @@ void BKE_object_eval_constraints(Depsgraph *depsgraph, Scene *scene, Object *ob)
    *
    * Not sure why, this is from Joshua - sergey
    */
-  cob = BKE_constraints_make_evalob(depsgraph, scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
+  cob = BKE_constraints_make_evalob(depsgraph, scene, ob, nullptr, CONSTRAINT_OBTYPE_OBJECT);
   BKE_constraints_solve(depsgraph, &ob->constraints, cob, ctime);
   BKE_constraints_clear_evalob(cob);
 }
@@ -205,7 +205,7 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
     const bool use_render_params = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
     ParticleSystem *tpsys, *psys;
     ob->transflag &= ~OB_DUPLIPARTS;
-    psys = ob->particlesystem.first;
+    psys = static_cast<ParticleSystem *>(ob->particlesystem.first);
     while (psys) {
       if (psys_check_enabled(ob, psys, use_render_params)) {
         /* check use of dupli objects here */
@@ -240,9 +240,9 @@ static void object_sync_boundbox_to_original(Object *object_orig, Object *object
   }
 
   bb = BKE_object_boundbox_get(object_eval);
-  if (bb != NULL) {
-    if (object_orig->runtime.bb == NULL) {
-      object_orig->runtime.bb = MEM_mallocN(sizeof(*object_orig->runtime.bb), __func__);
+  if (bb != nullptr) {
+    if (object_orig->runtime.bb == nullptr) {
+      object_orig->runtime.bb = MEM_new<BoundBox>(__func__);
     }
     *object_orig->runtime.bb = *bb;
   }
@@ -264,12 +264,13 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
   object_orig->flag = object->flag;
 
   /* Copy back error messages from modifiers. */
-  for (ModifierData *md = object->modifiers.first, *md_orig = object_orig->modifiers.first;
-       md != NULL && md_orig != NULL;
+  for (ModifierData *md = static_cast<ModifierData *>(object->modifiers.first),
+                    *md_orig = static_cast<ModifierData *>(object_orig->modifiers.first);
+       md != nullptr && md_orig != nullptr;
        md = md->next, md_orig = md_orig->next) {
     BLI_assert(md->type == md_orig->type && STREQ(md->name, md_orig->name));
     MEM_SAFE_FREE(md_orig->error);
-    if (md->error != NULL) {
+    if (md->error != nullptr) {
       md_orig->error = BLI_strdup(md->error);
     }
   }
@@ -338,7 +339,7 @@ void BKE_object_eval_transform_all(Depsgraph *depsgraph, Scene *scene, Object *o
 {
   /* This mimics full transform update chain from new depsgraph. */
   BKE_object_eval_local_transform(depsgraph, object);
-  if (object->parent != NULL) {
+  if (object->parent != nullptr) {
     BKE_object_eval_parent(depsgraph, object);
   }
   if (!BLI_listbase_is_empty(&object->constraints)) {
@@ -373,12 +374,12 @@ void BKE_object_select_update(Depsgraph *depsgraph, Object *object)
   if (object->type == OB_MESH && !object->runtime.is_data_eval_owned) {
     Mesh *mesh_input = (Mesh *)object->runtime.data_orig;
     Mesh_Runtime *mesh_runtime = &mesh_input->runtime;
-    BLI_mutex_lock(mesh_runtime->eval_mutex);
-    BKE_object_data_select_update(depsgraph, object->data);
-    BLI_mutex_unlock(mesh_runtime->eval_mutex);
+    BLI_mutex_lock(static_cast<ThreadMutex *>(mesh_runtime->eval_mutex));
+    BKE_object_data_select_update(depsgraph, static_cast<ID *>(object->data));
+    BLI_mutex_unlock(static_cast<ThreadMutex *>(mesh_runtime->eval_mutex));
   }
   else {
-    BKE_object_data_select_update(depsgraph, object->data);
+    BKE_object_data_select_update(depsgraph, static_cast<ID *>(object->data));
   }
 }
 
@@ -391,9 +392,10 @@ void BKE_object_eval_eval_base_flags(Depsgraph *depsgraph,
 {
   /* TODO(sergey): Avoid list lookup. */
   BLI_assert(view_layer_index >= 0);
-  ViewLayer *view_layer = BLI_findlink(&scene->view_layers, view_layer_index);
-  BLI_assert(view_layer != NULL);
-  BLI_assert(view_layer->object_bases_array != NULL);
+  ViewLayer *view_layer = static_cast<ViewLayer *>(
+      BLI_findlink(&scene->view_layers, view_layer_index));
+  BLI_assert(view_layer != nullptr);
+  BLI_assert(view_layer->object_bases_array != nullptr);
   BLI_assert(base_index >= 0);
   BLI_assert(base_index < MEM_allocN_len(view_layer->object_bases_array) / sizeof(Base *));
   Base *base = view_layer->object_bases_array[base_index];
@@ -425,7 +427,9 @@ void BKE_object_eval_eval_base_flags(Depsgraph *depsgraph,
   object->runtime.local_collections_bits = base->local_collections_bits;
 
   if (object->mode == OB_MODE_PARTICLE_EDIT) {
-    for (ParticleSystem *psys = object->particlesystem.first; psys != NULL; psys = psys->next) {
+    for (ParticleSystem *psys = static_cast<ParticleSystem *>(object->particlesystem.first);
+         psys != nullptr;
+         psys = psys->next) {
       BKE_particle_batch_cache_dirty_tag(psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
     }
   }
@@ -433,8 +437,8 @@ void BKE_object_eval_eval_base_flags(Depsgraph *depsgraph,
   /* Copy base flag back to the original view layer for editing. */
   if (DEG_is_active(depsgraph) && (view_layer == DEG_get_evaluated_view_layer(depsgraph))) {
     Base *base_orig = base->base_orig;
-    BLI_assert(base_orig != NULL);
-    BLI_assert(base_orig->object != NULL);
+    BLI_assert(base_orig != nullptr);
+    BLI_assert(base_orig->object != nullptr);
     base_orig->flag = base->flag;
   }
 }
