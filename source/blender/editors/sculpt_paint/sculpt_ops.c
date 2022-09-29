@@ -1034,7 +1034,7 @@ static void sculpt_bake_cavity_exec_task_cb(void *__restrict userdata,
   SCULPT_undo_push_node(tdata->ob, node, SCULPT_UNDO_MASK);
 
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(tdata->ob, ss, ss->cache->automasking, &automask_data, node);
+  SCULPT_automasking_node_begin(tdata->ob, ss, tdata->automasking, &automask_data, node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
@@ -1136,14 +1136,14 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   brush2.automasking_boundary_edges_propagation_steps = 1;
   brush2.automasking_cavity_curve = sd2.automasking_cavity_curve;
 
+  SCULPT_stroke_id_next(ob);
+
   tdata.ob = ob;
   tdata.mode = mode;
   tdata.factor = factor;
   tdata.ss = ss;
   tdata.nodes = nodes;
   tdata.automasking = SCULPT_automasking_cache_init(&sd2, &brush2, ob);
-
-  SCULPT_stroke_id_next(ob);
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
