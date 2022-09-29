@@ -1556,7 +1556,7 @@ class NodeTreeMainUpdater {
         }
       }
       if (socket.is_input()) {
-        for (const bNodeSocket *origin_socket : socket.logically_linked_sockets()) {
+        for (const bNodeSocket *origin_socket : socket.directly_linked_sockets()) {
           bool &pushed = pushed_by_socket_id[origin_socket->index_in_tree()];
           if (!pushed) {
             sockets_to_check.push(origin_socket);
