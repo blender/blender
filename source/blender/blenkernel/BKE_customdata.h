@@ -464,18 +464,6 @@ void CustomData_bmesh_set(const struct CustomData *data,
 
 void CustomData_bmesh_set_n(
     struct CustomData *data, void *block, int type, int n, const void *source);
-/**
- * Sets the data of the block at physical layer n.
- * no real type checking is performed.
- */
-void CustomData_bmesh_set_layer_n(struct CustomData *data, void *block, int n, const void *source);
-
-/**
- * Set the pointer of to the first layer of type. the old data is not freed.
- * returns the value of `ptr` if the layer is found, NULL otherwise.
- */
-void *CustomData_set_layer(const struct CustomData *data, int type, void *ptr);
-void *CustomData_set_layer_n(const struct CustomData *data, int type, int n, void *ptr);
 
 /**
  * Sets the nth layer of type as active.
@@ -584,7 +572,6 @@ void CustomData_bmesh_init_pool(struct CustomData *data, int totelem, char htype
  * \return True if some errors were found.
  */
 bool CustomData_layer_validate(struct CustomDataLayer *layer, uint totitems, bool do_fixes);
-void CustomData_layers__print(struct CustomData *data);
 
 /* External file storage */
 

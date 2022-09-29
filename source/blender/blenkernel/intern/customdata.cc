@@ -3611,31 +3611,6 @@ const char *CustomData_get_layer_name(const CustomData *data, const int type, co
   return (layer_index == -1) ? nullptr : data->layers[layer_index].name;
 }
 
-void *CustomData_set_layer(const CustomData *data, const int type, void *ptr)
-{
-  int layer_index = CustomData_get_active_layer_index(data, type);
-
-  if (layer_index == -1) {
-    return nullptr;
-  }
-
-  data->layers[layer_index].data = ptr;
-
-  return ptr;
-}
-
-void *CustomData_set_layer_n(const CustomData *data, const int type, const int n, void *ptr)
-{
-  int layer_index = CustomData_get_layer_index_n(data, type, n);
-  if (layer_index == -1) {
-    return nullptr;
-  }
-
-  data->layers[layer_index].data = ptr;
-
-  return ptr;
-}
-
 /* BMesh functions */
 
 void CustomData_bmesh_update_active_layers(CustomData *fdata, CustomData *ldata)
@@ -4183,23 +4158,6 @@ void CustomData_bmesh_set_n(
   }
 }
 
-void CustomData_bmesh_set_layer_n(CustomData *data, void *block, const int n, const void *source)
-{
-  void *dest = CustomData_bmesh_get_layer_n(data, block, n);
-  const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[n].type);
-
-  if (!dest) {
-    return;
-  }
-
-  if (typeInfo->copy) {
-    typeInfo->copy(source, dest, 1);
-  }
-  else {
-    memcpy(dest, source, typeInfo->size);
-  }
-}
-
 void CustomData_bmesh_interp_n(CustomData *data,
                                const void **src_blocks_ofs,
                                const float *weights,
@@ -4620,30 +4578,6 @@ bool CustomData_layer_validate(CustomDataLayer *layer, const uint totitems, cons
   }
 
   return false;
-}
-
-void CustomData_layers__print(CustomData *data)
-{
-  printf("{\n");
-
-  int i;
-  const CustomDataLayer *layer;
-  for (i = 0, layer = data->layers; i < data->totlayer; i++, layer++) {
-    const char *name = CustomData_layertype_name(layer->type);
-    const int size = CustomData_sizeof(layer->type);
-    const char *structname;
-    int structnum;
-    CustomData_file_write_info(layer->type, &structname, &structnum);
-    printf("        dict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d, length=%d),\n",
-           name,
-           structname,
-           layer->type,
-           (const void *)layer->data,
-           size,
-           (int)(MEM_allocN_len(layer->data) / size));
-  }
-
-  printf("}\n");
 }
 
 /** \} */
