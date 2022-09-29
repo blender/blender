@@ -550,27 +550,40 @@ struct PBVHBatches {
       }
       case CD_PBVH_FSET_TYPE: {
         int *face_sets = static_cast<int *>(
-            CustomData_get_layer(args->pdata, CD_SCULPT_FACE_SETS));
-        int last_poly = -1;
-        uchar fset_color[3] = {255, 255, 255};
+            CustomData_get_layer_named(args->pdata, CD_PROP_INT32, ".sculpt_face_set"));
 
-        foreach_faces([&](int /*buffer_i*/, int /*tri_i*/, int /*vertex_i*/, const MLoopTri *tri) {
-          if (last_poly != tri->poly && args->face_sets) {
-            last_poly = tri->poly;
+        if (face_sets) {
+          int last_poly = -1;
+          uchar fset_color[3] = {255, 255, 255};
 
-            const int fset = abs(face_sets[tri->poly]);
+          foreach_faces(
+              [&](int /*buffer_i*/, int /*tri_i*/, int /*vertex_i*/, const MLoopTri *tri) {
+                if (last_poly != tri->poly && args->face_sets) {
+                  last_poly = tri->poly;
 
-            if (fset != args->face_sets_color_default) {
-              BKE_paint_face_set_overlay_color_get(fset, args->face_sets_color_seed, fset_color);
-            }
-            else {
-              /* Skip for the default color face set to render it white. */
-              fset_color[0] = fset_color[1] = fset_color[2] = 255;
-            }
-          }
+                  const int fset = abs(face_sets[tri->poly]);
 
-          *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = fset_color;
-        });
+                  if (fset != args->face_sets_color_default) {
+                    BKE_paint_face_set_overlay_color_get(
+                        fset, args->face_sets_color_seed, fset_color);
+                  }
+                  else {
+                    /* Skip for the default color face set to render it white. */
+                    fset_color[0] = fset_color[1] = fset_color[2] = 255;
+                  }
+                }
+
+                *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = fset_color;
+              });
+        }
+        else {
+          uchar fset_color[3] = {255, 255, 255};
+
+          foreach_faces(
+              [&](int /*buffer_i*/, int /*tri_i*/, int /*vertex_i*/, const MLoopTri *tri) {
+                *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = fset_color;
+              });
+        }
 
         break;
       }
