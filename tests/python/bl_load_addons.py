@@ -14,7 +14,7 @@ import sys
 import importlib
 
 BLACKLIST_DIRS = (
-    os.path.join(bpy.utils.resource_path('USER'), "scripts"),
+    bpy.utils.user_resource('SCRIPTS'),
 ) + tuple(addon_utils.paths()[1:])
 BLACKLIST_ADDONS = set()
 
