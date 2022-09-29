@@ -570,7 +570,9 @@ bool ED_object_parent_set(ReportList *reports,
       pchan = BKE_pose_channel_active_if_layer_visible(par);
       pchan_eval = BKE_pose_channel_active_if_layer_visible(parent_eval);
 
-      if (pchan == NULL) {
+      if (pchan == NULL || pchan_eval == NULL) {
+        /* If pchan_eval is NULL, pchan should also be NULL. */
+        BLI_assert_msg(pchan == NULL, "Missing evaluated bone data");
         BKE_report(reports, RPT_ERROR, "No active bone");
         return false;
       }
