@@ -1402,11 +1402,16 @@ class NodeTreeMainUpdater {
   }
 
   Array<uint32_t> get_socket_topology_hashes(const bNodeTree &tree,
-                                             Span<const bNodeSocket *> sockets)
+                                             const Span<const bNodeSocket *> sockets)
   {
     BLI_assert(!tree.has_available_link_cycle());
     Array<std::optional<uint32_t>> hash_by_socket_id(tree.all_sockets().size());
     Stack<const bNodeSocket *> sockets_to_check = sockets;
+
+    auto get_socket_ptr_hash = [&](const bNodeSocket &socket) {
+      const uint64_t socket_ptr = uintptr_t(&socket);
+      return noise::hash(socket_ptr, socket_ptr >> 32);
+    };
 
     while (!sockets_to_check.is_empty()) {
       const bNodeSocket &socket = *sockets_to_check.peek();
@@ -1418,31 +1423,45 @@ class NodeTreeMainUpdater {
         continue;
       }
 
+      uint32_t socket_hash = 0;
       if (socket.is_input()) {
         /* For input sockets, first compute the hashes of all linked sockets. */
         bool all_origins_computed = true;
-        for (const bNodeSocket *origin_socket : socket.logically_linked_sockets()) {
-          if (!hash_by_socket_id[origin_socket->index_in_tree()].has_value()) {
-            sockets_to_check.push(origin_socket);
+        bool get_value_from_origin = false;
+        for (const bNodeLink *link : socket.directly_linked_links()) {
+          if (link->is_muted()) {
+            continue;
+          }
+          if (!link->is_available()) {
+            continue;
+          }
+          const bNodeSocket &origin_socket = *link->fromsock;
+          const std::optional<uint32_t> origin_hash =
+              hash_by_socket_id[origin_socket.index_in_tree()];
+          if (origin_hash.has_value()) {
+            if (get_value_from_origin || socket.type != origin_socket.type) {
+              socket_hash = noise::hash(socket_hash, *origin_hash);
+            }
+            else {
+              /* Copy the socket hash because the link did not change it. */
+              socket_hash = *origin_hash;
+            }
+            get_value_from_origin = true;
+          }
+          else {
+            sockets_to_check.push(&origin_socket);
             all_origins_computed = false;
           }
         }
         if (!all_origins_computed) {
           continue;
         }
-        /* When the hashes for the linked sockets are ready, combine them into a hash for the input
-         * socket. */
-        const uint64_t socket_ptr = uintptr_t(&socket);
-        uint32_t socket_hash = noise::hash(socket_ptr, socket_ptr >> 32);
-        for (const bNodeSocket *origin_socket : socket.logically_linked_sockets()) {
-          const uint32_t origin_socket_hash = *hash_by_socket_id[origin_socket->index_in_tree()];
-          socket_hash = noise::hash(socket_hash, origin_socket_hash);
+
+        if (!get_value_from_origin) {
+          socket_hash = get_socket_ptr_hash(socket);
         }
-        hash_by_socket_id[socket.index_in_tree()] = socket_hash;
-        sockets_to_check.pop();
       }
       else {
-        /* For output sockets, first compute the hashes of all available input sockets. */
         bool all_available_inputs_computed = true;
         for (const bNodeSocket *input_socket : node.input_sockets()) {
           if (input_socket->is_available()) {
@@ -1455,29 +1474,48 @@ class NodeTreeMainUpdater {
         if (!all_available_inputs_computed) {
           continue;
         }
-        /* When all input socket hashes have been computed, combine them into a hash for the output
-         * socket. */
-        const uint64_t socket_ptr = uintptr_t(&socket);
-        uint32_t socket_hash = noise::hash(socket_ptr, socket_ptr >> 32);
-        for (const bNodeSocket *input_socket : node.input_sockets()) {
-          if (input_socket->is_available()) {
-            const uint32_t input_socket_hash = *hash_by_socket_id[input_socket->index_in_tree()];
-            socket_hash = noise::hash(socket_hash, input_socket_hash);
+        if (node.type == NODE_REROUTE) {
+          socket_hash = *hash_by_socket_id[node.input_socket(0).index_in_tree()];
+        }
+        else if (node.is_muted()) {
+          const bNodeSocket *internal_input = socket.internal_link_input();
+          if (internal_input == nullptr) {
+            socket_hash = get_socket_ptr_hash(socket);
+          }
+          else {
+            if (internal_input->type == socket.type) {
+              socket_hash = *hash_by_socket_id[internal_input->index_in_tree()];
+            }
+            else {
+              socket_hash = get_socket_ptr_hash(socket);
+            }
           }
         }
-        /* The Image Texture node has a special case. The behavior of the color output changes
-         * depending on whether the Alpha output is linked. */
-        if (node.type == SH_NODE_TEX_IMAGE && socket.index() == 0) {
-          BLI_assert(STREQ(socket.name, "Color"));
-          const bNodeSocket &alpha_socket = node.output_socket(1);
-          BLI_assert(STREQ(alpha_socket.name, "Alpha"));
-          if (alpha_socket.is_directly_linked()) {
-            socket_hash = noise::hash(socket_hash);
+        else {
+          socket_hash = get_socket_ptr_hash(socket);
+          for (const bNodeSocket *input_socket : node.input_sockets()) {
+            if (input_socket->is_available()) {
+              const uint32_t input_socket_hash = *hash_by_socket_id[input_socket->index_in_tree()];
+              socket_hash = noise::hash(socket_hash, input_socket_hash);
+            }
+          }
+
+          /* The Image Texture node has a special case. The behavior of the color output changes
+           * depending on whether the Alpha output is linked. */
+          if (node.type == SH_NODE_TEX_IMAGE && socket.index() == 0) {
+            BLI_assert(STREQ(socket.name, "Color"));
+            const bNodeSocket &alpha_socket = node.output_socket(1);
+            BLI_assert(STREQ(alpha_socket.name, "Alpha"));
+            if (alpha_socket.is_directly_linked()) {
+              socket_hash = noise::hash(socket_hash);
+            }
           }
         }
-        hash_by_socket_id[socket.index_in_tree()] = socket_hash;
-        sockets_to_check.pop();
       }
+      hash_by_socket_id[socket.index_in_tree()] = socket_hash;
+      /* Check that nothing has been pushed in the meantime. */
+      BLI_assert(sockets_to_check.peek() == &socket);
+      sockets_to_check.pop();
     }
 
     /* Create output array. */
