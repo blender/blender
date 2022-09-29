@@ -456,10 +456,13 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
     const char *blendfile_path = BKE_main_blendfile_path_from_global();
     if (blendfile_path[0] != '\0') {
       char str[sizeof(((Main *)NULL)->filepath) + 24];
+      struct BlenderProject *project = CTX_wm_project();
+
       BLI_snprintf(str,
                    sizeof(str),
-                   "Blender%s [%s%s]",
+                   "Blender%s [%s%s%s]",
                    wm->file_saved ? "" : "*",
+                   project ? IFACE_("Has Project - ") : "",
                    blendfile_path,
                    G_MAIN->recovered ? " (Recovered)" : "");
       GHOST_SetTitle(win->ghostwin, str);
