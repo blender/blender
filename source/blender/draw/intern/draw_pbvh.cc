@@ -533,12 +533,19 @@ struct PBVHBatches {
       case CD_PBVH_MASK_TYPE: {
         float *mask = static_cast<float *>(CustomData_get_layer(args->vdata, CD_PAINT_MASK));
 
-        foreach_faces(
-            [&](int /*buffer_i*/, int /*tri_i*/, int vertex_i, const MLoopTri * /*tri*/) {
-              *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = (uchar)(mask[vertex_i] *
-                                                                             255.0f);
-            });
-
+        if (mask) {
+          foreach_faces(
+              [&](int /*buffer_i*/, int /*tri_i*/, int vertex_i, const MLoopTri * /*tri*/) {
+                *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = (uchar)(mask[vertex_i] *
+                                                                               255.0f);
+              });
+        }
+        else {
+          foreach_faces(
+              [&](int /*buffer_i*/, int /*tri_i*/, int vertex_i, const MLoopTri * /*tri*/) {
+                *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = 0;
+              });
+        }
         break;
       }
       case CD_PBVH_FSET_TYPE: {
@@ -731,7 +738,7 @@ struct PBVHBatches {
 
         if (cd_mask == -1) {
           foreach_bmesh(
-              [&](BMLoop * /*l*/) { *static_cast<float *>(GPU_vertbuf_raw_step(&access)) = 255; });
+              [&](BMLoop * /*l*/) { *static_cast<float *>(GPU_vertbuf_raw_step(&access)) = 0; });
         }
         else {
           foreach_bmesh([&](BMLoop *l) {
