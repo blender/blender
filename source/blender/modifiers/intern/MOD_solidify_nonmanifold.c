@@ -2048,7 +2048,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                                                               0.0f;
             }
             if (result_edge_bweight) {
-              result_edge_bweight[insert] = orig_edge_bweight[(*l)->old_edge];
+              result_edge_bweight[insert] = orig_edge_bweight ? orig_edge_bweight[(*l)->old_edge] :
+                                                                0.0f;
             }
             if (bevel_convex != 0.0f && (*l)->faces[1] != NULL) {
               result_edge_bweight[insert] = clamp_f(
