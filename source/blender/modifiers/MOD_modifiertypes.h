@@ -79,7 +79,7 @@ extern ModifierTypeInfo modifierType_VolumeToMesh;
 /* MOD_util.c */
 
 /**
- * Only called by `BKE_modifier.h/modifier.c`
+ * Only called by `BKE_modifier.h/modifier.cc`
  */
 void modifier_type_init(ModifierTypeInfo *types[]);
 

@@ -214,7 +214,7 @@ set(SRC
   intern/mesh_tessellate.cc
   intern/mesh_validate.cc
   intern/mesh_wrapper.cc
-  intern/modifier.c
+  intern/modifier.cc
   intern/movieclip.c
   intern/multires.c
   intern/multires_reshape.c
