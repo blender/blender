@@ -38,6 +38,8 @@ BlenderProject *BKE_project_active_load_from_path(const char *path) ATTR_NONNULL
 
 const char *BKE_project_root_path_get(const BlenderProject *project) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
+const char *BKE_project_name_get(const BlenderProject *project) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL();
 
 #ifdef __cplusplus
 }

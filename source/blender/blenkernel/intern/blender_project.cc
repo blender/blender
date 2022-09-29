@@ -4,16 +4,21 @@
  * \ingroup bke
  */
 
+#include <fstream>
+
 #include "BKE_blender_project.h"
 #include "BKE_blender_project.hh"
 
 #include "BLI_path_util.h"
+#include "BLI_serialize.hh"
 #include "BLI_string.h"
 
 #include "DNA_space_types.h"
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
+
+namespace serialize = blender::io::serialize;
 
 namespace blender::bke {
 
@@ -102,6 +107,51 @@ static bool path_contains_project_settings(StringRef path)
   return BLI_exists(std::string(path + SEP_STR + ProjectSettings::SETTINGS_DIRNAME).c_str());
 }
 
+struct ExtractedSettings {
+  std::string project_name;
+};
+
+static std::unique_ptr<serialize::Value> read_settings_file(StringRef settings_filepath)
+{
+  std::ifstream is;
+  is.open(settings_filepath);
+  if (is.fail()) {
+    return nullptr;
+  }
+
+  serialize::JsonFormatter formatter;
+  /* Will not be a dictionary in case of error (corrupted file). */
+  std::unique_ptr<serialize::Value> deserialized_values = formatter.deserialize(is);
+  is.close();
+
+  if (deserialized_values->type() != serialize::eValueType::Dictionary) {
+    return nullptr;
+  }
+
+  return deserialized_values;
+}
+
+static std::unique_ptr<ExtractedSettings> extract_settings(
+    const serialize::DictionaryValue &dictionary)
+{
+  using namespace serialize;
+
+  std::unique_ptr extracted_settings = std::make_unique<ExtractedSettings>();
+
+  const DictionaryValue::Lookup attributes = dictionary.create_lookup();
+  const DictionaryValue::LookupValue *project_value = attributes.lookup_ptr("project");
+  BLI_assert(project_value != nullptr);
+
+  const DictionaryValue *project_dict = (*project_value)->as_dictionary_value();
+  const StringValue *project_name_value =
+      project_dict->create_lookup().lookup("name")->as_string_value();
+  if (project_name_value) {
+    extracted_settings->project_name = project_name_value->value();
+  }
+
+  return extracted_settings;
+}
+
 std::unique_ptr<ProjectSettings> ProjectSettings::load_from_disk(StringRef project_path)
 {
   std::string project_path_native = project_path;
@@ -122,12 +172,31 @@ std::unique_ptr<ProjectSettings> ProjectSettings::load_from_disk(StringRef proje
     return nullptr;
   }
 
-  return std::make_unique<ProjectSettings>(project_root_path);
+  std::string settings_filepath = project_path_native + SEP + SETTINGS_DIRNAME + SEP +
+                                  SETTINGS_FILENAME;
+  std::unique_ptr<serialize::Value> values = read_settings_file(settings_filepath);
+  std::unique_ptr<ExtractedSettings> extracted_settings = nullptr;
+  if (values) {
+    BLI_assert(values->as_dictionary_value() != nullptr);
+    extracted_settings = extract_settings(*values->as_dictionary_value());
+  }
+
+  std::unique_ptr loaded_settings = std::make_unique<ProjectSettings>(project_root_path);
+  if (extracted_settings) {
+    loaded_settings->project_name_ = extracted_settings->project_name;
+  }
+
+  return loaded_settings;
 }
 
 StringRefNull ProjectSettings::project_root_path() const
 {
   return project_root_path_;
+}
+
+StringRefNull ProjectSettings::project_name() const
+{
+  return project_name_;
 }
 
 }  // namespace blender::bke
@@ -177,4 +246,11 @@ const char *BKE_project_root_path_get(const BlenderProject *project_handle)
   const bke::BlenderProject *project = reinterpret_cast<const bke::BlenderProject *>(
       project_handle);
   return project->get_settings().project_root_path().c_str();
+}
+
+const char *BKE_project_name_get(const BlenderProject *project_handle)
+{
+  const bke::BlenderProject *project = reinterpret_cast<const bke::BlenderProject *>(
+      project_handle);
+  return project->get_settings().project_name().c_str();
 }

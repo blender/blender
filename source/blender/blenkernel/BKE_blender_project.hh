@@ -43,9 +43,11 @@ class BlenderProject {
 class ProjectSettings {
   /* Path to the project root using slashes in the OS native format. */
   std::string project_root_path_;
+  std::string project_name_;
 
  public:
   inline static const StringRefNull SETTINGS_DIRNAME = ".blender_project";
+  inline static const StringRefNull SETTINGS_FILENAME = "settings.json";
 
   /**
    * Initializes a blender project by creating a .blender_project directory at the given \a
@@ -67,6 +69,7 @@ class ProjectSettings {
   explicit ProjectSettings(StringRef project_root_path);
 
   auto project_root_path [[nodiscard]] () const -> StringRefNull;
+  auto project_name [[nodiscard]] () const -> StringRefNull;
 };
 
 }  // namespace blender::bke

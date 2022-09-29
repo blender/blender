@@ -28,6 +28,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_blender_project.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
@@ -447,6 +448,8 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 
 void wm_window_title(wmWindowManager *wm, wmWindow *win)
 {
+#define MAX_PROJECT_NAME_HINT (MAX_NAME + 4)
+
   if (WM_window_is_temp_screen(win)) {
     /* Nothing to do for 'temp' windows,
      * because #WM_window_open always sets window title. */
@@ -455,14 +458,23 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
     /* this is set to 1 if you don't have startup.blend open */
     const char *blendfile_path = BKE_main_blendfile_path_from_global();
     if (blendfile_path[0] != '\0') {
-      char str[sizeof(((Main *)NULL)->filepath) + 24];
+      char project_name_hint[MAX_PROJECT_NAME_HINT] = "";
+      char str[sizeof(((Main *)NULL)->filepath) + sizeof(project_name_hint) + 24];
+
       struct BlenderProject *project = CTX_wm_project();
+      if (project) {
+        const char *name = BKE_project_name_get(project);
+        BLI_snprintf(project_name_hint,
+                     sizeof(project_name_hint),
+                     "%s - ",
+                     (name && name[0]) ? name : IFACE_("Unnamed project"));
+      }
 
       BLI_snprintf(str,
                    sizeof(str),
                    "Blender%s [%s%s%s]",
                    wm->file_saved ? "" : "*",
-                   project ? IFACE_("Has Project - ") : "",
+                   project_name_hint,
                    blendfile_path,
                    G_MAIN->recovered ? " (Recovered)" : "");
       GHOST_SetTitle(win->ghostwin, str);
@@ -476,6 +488,8 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
      * terminate request (e.g. OS Shortcut Alt+F4, Command+Q, (...), or session end). */
     GHOST_SetWindowModifiedState(win->ghostwin, (bool)!wm->file_saved);
   }
+
+#undef MAX_PROJECT_NAME_HINT
 }
 
 void WM_window_set_dpi(const wmWindow *win)

@@ -127,6 +127,7 @@ TEST_F(ProjectTest, settings_load_from_project_root_path)
     std::unique_ptr project_settings = ProjectSettings::load_from_disk(project_path);
     EXPECT_NE(project_settings, nullptr);
     EXPECT_EQ(project_settings->project_root_path(), project_path_native);
+    EXPECT_EQ(project_settings->project_name(), "");
   });
 }
 
@@ -141,6 +142,7 @@ TEST_F(ProjectTest, settings_load_from_project_settings_path)
         project_path + SEP_STR + ProjectSettings::SETTINGS_DIRNAME);
     EXPECT_NE(project_settings, nullptr);
     EXPECT_EQ(project_settings->project_root_path(), project_path_native);
+    EXPECT_EQ(project_settings->project_name(), "");
   });
 }
 
@@ -188,6 +190,7 @@ TEST_F(BlendfileProjectLoadingTest, load_blend_file)
   ::BlenderProject *svn_project = BKE_project_active_load_from_path(bfile->main->filepath);
   EXPECT_NE(svn_project, nullptr);
   EXPECT_EQ(BKE_project_active_get(), svn_project);
+  EXPECT_STREQ("Ružena", BKE_project_name_get(svn_project));
   /* Note: The project above will be freed once a different active project is set. So get the path
    * for future comparisons. */
   std::string svn_project_path = BKE_project_root_path_get(svn_project);
@@ -204,6 +207,7 @@ TEST_F(BlendfileProjectLoadingTest, load_blend_file)
   EXPECT_NE(svn_project_from_nested, nullptr);
   EXPECT_EQ(BKE_project_active_get(), svn_project_from_nested);
   EXPECT_STREQ(svn_project_path.c_str(), BKE_project_root_path_get(svn_project_from_nested));
+  EXPECT_STREQ("Ružena", BKE_project_name_get(svn_project_from_nested));
   blendfile_free();
 
   /* Check if loading a .blend that's not in the project unsets the project properly. */
