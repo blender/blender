@@ -54,10 +54,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-/* ************************************************************************** */
-/* CHANNELS API - Exposed API */
-
-/* -------------------------- Selection ------------------------------------- */
+/* -------------------------------------------------------------------- */
+/** \name Public Channel Selection API
+ * \{ */
 
 void ANIM_set_active_channel(bAnimContext *ac,
                              void *data,
@@ -463,7 +462,11 @@ void ANIM_anim_channels_select_toggle(bAnimContext *ac)
   ANIM_animdata_freelist(&anim_data);
 }
 
-/* ---------------------------- Graph Editor ------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public Graph Editor API
+ * \{ */
 
 /* Copy a certain channel setting to parents of the modified channel. */
 static void anim_flush_channel_setting_up(bAnimContext *ac,
@@ -627,7 +630,11 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
   anim_flush_channel_setting_down(ac, setting, mode, match, matchLevel);
 }
 
-/* -------------------------- F-Curves ------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public F-Curves API
+ * \{ */
 
 void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *fcu)
 {
@@ -699,10 +706,11 @@ bool ANIM_remove_empty_action_from_animdata(struct AnimData *adt)
   return false;
 }
 
-/* ************************************************************************** */
-/* OPERATORS */
+/** \} */
 
-/* ****************** Operator Utilities ********************************** */
+/* -------------------------------------------------------------------- */
+/** \name Operator Utilities
+ * \{ */
 
 /* poll callback for being in an Animation Editor channels list region */
 static bool animedit_poll_channels_active(bContext *C)
@@ -748,7 +756,11 @@ static bool animedit_poll_channels_nla_tweakmode_off(bContext *C)
   return true;
 }
 
-/* ****************** Rearrange Channels Operator ******************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Move (Rearrange) Channels Operator
+ * \{ */
 
 /* constants for channel rearranging */
 /* WARNING: don't change existing ones without modifying rearrange func accordingly */
@@ -1581,7 +1593,11 @@ static void ANIM_OT_channels_move(wmOperatorType *ot)
                           "");
 }
 
-/* ******************** Group Channel Operator ************************ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Group Channel Operator
+ * \{ */
 
 static bool animchannels_grouping_poll(bContext *C)
 {
@@ -1739,7 +1755,11 @@ static void ANIM_OT_channels_group(wmOperatorType *ot)
   // RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 
-/* ----------------------------------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Ungroup Channels Operator
+ * \{ */
 
 static int animchannels_ungroup_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1805,7 +1825,11 @@ static void ANIM_OT_channels_ungroup(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************** Delete Channel Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Delete Channel Operator
+ * \{ */
 
 static void tag_update_animation_element(bAnimListElem *ale)
 {
@@ -1976,7 +2000,11 @@ static void ANIM_OT_channels_delete(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ********************** Set Flags Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set/Toggle Channel Flags Operator Utilities
+ * \{ */
 
 /* defines for setting animation-channel flags */
 static const EnumPropertyItem prop_animchannel_setflag_types[] = {
@@ -2223,7 +2251,11 @@ static void ANIM_OT_channels_editable_toggle(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN); /* internal hack - don't expose */
 }
 
-/* ********************** Expand Channels Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Expand Channels Operator
+ * \{ */
 
 static int animchannels_expand_exec(bContext *C, wmOperator *op)
 {
@@ -2268,7 +2300,11 @@ static void ANIM_OT_channels_expand(wmOperatorType *ot)
       ot->srna, "all", 1, "All", "Expand all channels (not just selected ones)");
 }
 
-/* ********************** Collapse Channels Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Collapse Channels Operator
+ * \{ */
 
 static int animchannels_collapse_exec(bContext *C, wmOperator *op)
 {
@@ -2313,17 +2349,22 @@ static void ANIM_OT_channels_collapse(wmOperatorType *ot)
       ot->srna, "all", true, "All", "Collapse all channels (not just selected ones)");
 }
 
-/* ************ Remove All "Empty" AnimData Blocks Operator ********* */
-/* We define "empty" AnimData blocks here as those which have all 3 of criteria:
- *  1) No active action OR that active actions are empty
- *     Assuming that all legitimate entries will have an action,
- *     and that empty actions
- *  2) No NLA Tracks + NLA Strips
- *     Assuming that users haven't set up any of these as "placeholders"
- *     for convenience sake, and that most that exist were either unintentional
- *     or are no longer wanted
- *  3) No drivers
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Remove All "Empty" AnimData Blocks Operator
+ *
+ * We define "empty" AnimData blocks here as those which have all 3 of criteria:
+ *
+ * 1) No active action OR that active actions are empty
+ *    Assuming that all legitimate entries will have an action,
+ *    and that empty actions
+ * 2) No NLA Tracks + NLA Strips
+ *    Assuming that users haven't set up any of these as "placeholders"
+ *    for convenience sake, and that most that exist were either unintentional
+ *    or are no longer wanted
+ * 3) No drivers
+ * \{ */
 
 static int animchannels_clean_empty_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -2422,7 +2463,11 @@ static void ANIM_OT_channels_clean_empty(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************* Re-enable Disabled Operator ******************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Re-enable Disabled Operator
+ * \{ */
 
 static bool animchannels_enable_poll(bContext *C)
 {
@@ -2499,7 +2544,11 @@ static void ANIM_OT_channels_fcurves_enable(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ****************** Select Filter Textbox Operator ******************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Filter Text-box Operator
+ * \{ */
 
 /* XXX: make this generic? */
 static bool animchannels_select_filter_poll(bContext *C)
@@ -2572,7 +2621,11 @@ static void ANIM_OT_channels_select_filter(wmOperatorType *ot)
   ot->poll = animchannels_select_filter_poll;
 }
 
-/* ********************** Select All Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select All Operator
+ * \{ */
 
 static int animchannels_selectall_exec(bContext *C, wmOperator *op)
 {
@@ -2627,7 +2680,11 @@ static void ANIM_OT_channels_select_all(wmOperatorType *ot)
   WM_operator_properties_select_all(ot);
 }
 
-/* ******************** Box Select Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Box Select Operator
+ * \{ */
 
 static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectmode)
 {
@@ -2705,8 +2762,6 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
   ANIM_animdata_freelist(&anim_data);
 }
 
-/* ------------------- */
-
 static int animchannels_box_select_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
@@ -2765,8 +2820,13 @@ static void ANIM_OT_channels_select_box(wmOperatorType *ot)
   WM_operator_properties_gesture_box_select(ot);
 }
 
-/* ******************* Rename Operator ***************************** */
-/* Allow renaming some channels by clicking on them */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rename Channel Operator
+ *
+ * Allow renaming some channels by clicking on them.
+ * \{ */
 
 static bool rename_anim_channels(bAnimContext *ac, int channel_index)
 {
@@ -2923,7 +2983,12 @@ static void ANIM_OT_channels_rename(wmOperatorType *ot)
   ot->poll = animedit_poll_channels_active;
 }
 
-/* ******************** Mouse-Click Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Channel Keyframes Operator (Internal Logic)
+ * \{ */
+
 /* Handle selection changes due to clicking on channels. Settings will get caught by UI code... */
 
 static int click_select_channel_scene(bAnimListElem *ale,
@@ -3366,9 +3431,13 @@ static int mouse_anim_channels(bContext *C,
   return notifierFlags;
 }
 
-/* ------------------- */
+/** \} */
 
-/* handle clicking */
+/* -------------------------------------------------------------------- */
+/** \name Select Channel Keyframes Operator
+ * \{ */
+
+/** Handle picking logic. */
 static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   bAnimContext ac;
@@ -3554,8 +3623,11 @@ static void ANIM_OT_channel_select_keys(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/* ************************************************************************** */
-/* Operator Registration */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operator Registration
+ * \{ */
 
 void ED_operatortypes_animchannels(void)
 {
@@ -3596,4 +3668,4 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
   WM_keymap_ensure(keyconf, "Animation Channels", 0, 0);
 }
 
-/* ************************************************************************** */
+/** \} */
