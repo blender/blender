@@ -192,14 +192,14 @@ void SCULPT_filter_cache_init(bContext *C,
       radius = paint_calc_object_space_radius(&vc, co, (float)ups->size * area_normal_radius);
     }
 
-    SculptSearchSphereData search_data = {
+    SculptSearchSphereData search_data2 = {
         .original = true,
         .center = co,
         .radius_squared = radius * radius,
         .ignore_fully_ineffective = true,
     };
 
-    BKE_pbvh_search_gather(pbvh, SCULPT_search_sphere_cb, &search_data, &nodes, &totnode);
+    BKE_pbvh_search_gather(pbvh, SCULPT_search_sphere_cb, &search_data2, &nodes, &totnode);
 
     if (SCULPT_pbvh_calc_area_normal(
             brush, ob, nodes, totnode, true, ss->filter_cache->initial_normal)) {

@@ -133,7 +133,7 @@ static int sculpt_automasking_mode_effective_bits(const Sculpt *sculpt, const Br
   return sculpt->automasking_flags;
 }
 
-bool SCULPT_automasking_needs_normal(const SculptSession *UNUSED(ss),
+bool SCULPT_automasking_needs_normal(const SculptSession * /*ss*/,
                                      const Sculpt *sculpt,
                                      const Brush *brush)
 {
@@ -244,7 +244,7 @@ static float automasking_view_occlusion_factor(AutomaskingCache *automasking,
                                                SculptSession *ss,
                                                PBVHVertRef vertex,
                                                uchar stroke_id,
-                                               AutomaskingNodeData *UNUSED(automask_data))
+                                               AutomaskingNodeData * /*automask_data*/)
 {
   char f = *(char *)SCULPT_vertex_attr_get(vertex, ss->attrs.automasking_occlusion);
 
@@ -600,11 +600,8 @@ struct AutomaskFloodFillData {
   char symm;
 };
 
-static bool automask_floodfill_cb(SculptSession *ss,
-                                  PBVHVertRef from_v,
-                                  PBVHVertRef to_v,
-                                  bool UNUSED(is_duplicate),
-                                  void *userdata)
+static bool automask_floodfill_cb(
+    SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool /*is_duplicate*/, void *userdata)
 {
   AutomaskFloodFillData *data = (AutomaskFloodFillData *)userdata;
 
