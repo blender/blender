@@ -888,16 +888,31 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object
   ss->attrs.automasking_factor = BKE_sculpt_attribute_ensure(
       ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, SCULPT_ATTRIBUTE_NAME(automasking_factor), &params);
 
+  float initial_value;
+
+  /* Topology, boundary and boundary face sets build up the mask
+   * from zero which other modes can subtract from.  If none of them are
+   * enabled initialize to 1.
+   */
+  if (!(mode & (BRUSH_AUTOMASKING_BOUNDARY_EDGES | BRUSH_AUTOMASKING_TOPOLOGY |
+                BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS))) {
+    initial_value = 1.0f;
+  }
+  else {
+    initial_value = 0.0f;
+  }
+
   for (int i : IndexRange(totvert)) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
-    (*(float *)SCULPT_vertex_attr_get(vertex, ss->attrs.automasking_factor)) = 0.0f;
+    (*(float *)SCULPT_vertex_attr_get(vertex, ss->attrs.automasking_factor)) = initial_value;
   }
 
   const int boundary_propagation_steps = brush ?
                                              brush->automasking_boundary_edges_propagation_steps :
                                              1;
 
+  /* Additive modes. */
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_TOPOLOGY)) {
     SCULPT_vertex_random_access_ensure(ss);
     SCULPT_topology_automasking_init(sd, ob);
@@ -905,14 +920,6 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_FACE_SETS)) {
     SCULPT_vertex_random_access_ensure(ss);
     sculpt_face_sets_automasking_init(sd, ob);
-  }
-
-  int normal_bits = sculpt_automasking_mode_effective_bits(sd, brush) &
-                    (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL |
-                     BRUSH_AUTOMASKING_VIEW_OCCLUSION);
-
-  if (normal_bits) {
-    sculpt_normal_occlusion_automasking_fill(automasking, ob, (eAutomasking_flag)normal_bits);
   }
 
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_EDGES)) {
@@ -923,6 +930,15 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object
     SCULPT_vertex_random_access_ensure(ss);
     SCULPT_boundary_automasking_init(
         ob, AUTOMASK_INIT_BOUNDARY_FACE_SETS, boundary_propagation_steps);
+  }
+
+  /* Subtractive modes. */
+  int normal_bits = sculpt_automasking_mode_effective_bits(sd, brush) &
+                    (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL |
+                     BRUSH_AUTOMASKING_VIEW_OCCLUSION);
+
+  if (normal_bits) {
+    sculpt_normal_occlusion_automasking_fill(automasking, ob, (eAutomasking_flag)normal_bits);
   }
 
   return automasking;
