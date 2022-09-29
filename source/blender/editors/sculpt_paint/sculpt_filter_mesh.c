@@ -847,7 +847,7 @@ void SCULPT_mesh_filter_properties(struct wmOperatorType *ot)
       0.001,
       5.0,
       "Normal Radius",
-      "Radius used for calculating area normal on initial click,\nin percentage of brush radius.",
+      "Radius used for calculating area normal on initial click,\nin percentage of brush radius",
       0.01,
       1.0);
   RNA_def_float(

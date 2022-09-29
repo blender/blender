@@ -542,7 +542,7 @@ struct PBVHBatches {
         }
         else {
           foreach_faces(
-              [&](int /*buffer_i*/, int /*tri_i*/, int vertex_i, const MLoopTri * /*tri*/) {
+              [&](int /*buffer_i*/, int /*tri_i*/, int /*vertex_i*/, const MLoopTri * /*tri*/) {
                 *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = 0;
               });
         }
