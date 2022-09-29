@@ -362,7 +362,8 @@ template<typename T> class TotalFieldInput final : public bke::GeometryFieldInpu
     return false;
   }
 
-  std::optional<eAttrDomain> preferred_domain(const GeometryComponent & /*component*/) const
+  std::optional<eAttrDomain> preferred_domain(
+      const GeometryComponent & /*component*/) const override
   {
     return source_domain_;
   }
