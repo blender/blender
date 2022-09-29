@@ -1239,7 +1239,7 @@ static void SCULPT_OT_mask_from_cavity(wmOperatorType *ot)
                   "use_automask_settings",
                   false,
                   "Use Automask Settings",
-                  "Use default settings from Options panel in sculpt mode.");
+                  "Use default settings from Options panel in sculpt mode");
 
   RNA_def_float(ot->srna,
                 "factor",
