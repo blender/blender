@@ -1443,7 +1443,7 @@ bool BLO_write_file(Main *mainvar,
   }
 
   /* Update active project information based on the new file location. */
-  BKE_project_active_load_from_path(mainvar->filepath);
+  BKE_project_active_load_from_path(filepath);
 
   /* actual file writing */
   const bool err = write_file_handle(

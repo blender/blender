@@ -448,6 +448,13 @@ static void setup_app_blend_file_data(bContext *C,
   }
 }
 
+static void setup_app_project_data(BlendFileData *bfd, const struct BlendFileReadParams *params)
+{
+  if ((params->skip_flags & BLO_READ_SKIP_DATA) == 0) {
+    BKE_project_active_load_from_path(bfd->main->filepath);
+  }
+}
+
 static void handle_subversion_warning(Main *main, BlendFileReadReport *reports)
 {
   if (main->minversionfile > BLENDER_FILE_VERSION ||
@@ -474,8 +481,8 @@ void BKE_blendfile_read_setup_ex(bContext *C,
       BLO_update_defaults_startup_blend(bfd->main, startup_app_template);
     }
   }
+  setup_app_project_data(bfd, params);
   setup_app_blend_file_data(C, bfd, params, reports);
-  BKE_project_active_load_from_path(bfd->filepath);
   BLO_blendfiledata_free(bfd);
 }
 
