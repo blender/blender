@@ -494,7 +494,7 @@ static int customdata_compare(
   }
 
   if (layer_count1 != layer_count2) {
-    /* TODO(@HooglyBoogly): Reenable after tests are updated for material index refactor. */
+    /* TODO(@HooglyBoogly): Re-enable after tests are updated for material index refactor. */
     // return MESHCMP_CDLAYERS_MISMATCH;
   }
 

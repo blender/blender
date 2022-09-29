@@ -2422,7 +2422,7 @@ static void ANIM_OT_channels_clean_empty(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************* Reenable Disabled Operator ******************* */
+/* ******************* Re-enable Disabled Operator ******************* */
 
 static bool animchannels_enable_poll(bContext *C)
 {

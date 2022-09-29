@@ -838,7 +838,7 @@ static void graph_blend_write(BlendWriter *writer, SpaceLink *sl)
     BLO_write_struct(writer, bDopeSheet, sipo->ads);
   }
 
-  /* reenable ghost curves */
+  /* Re-enable ghost curves. */
   sipo->runtime.ghost_curves = tmpGhosts;
 }
 

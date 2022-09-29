@@ -4,8 +4,8 @@
 /** \file
  * \ingroup gpu
  *
- * PBVH drawing.  Embedds GPU meshes inside of PBVH nodes,
- * used by mesh sculpt mode.
+ * PBVH drawing.
+ * Embeds GPU meshes inside of PBVH nodes, used by mesh sculpt mode.
  */
 
 #include <limits.h>

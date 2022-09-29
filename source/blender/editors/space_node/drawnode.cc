@@ -1983,7 +1983,7 @@ static void node_draw_link_end_marker(const float2 center,
 
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
   UI_draw_roundbox_4fv(&rect, true, radius, color);
-  /* Roundbox disables alpha. Reenable it for node links that are drawn after this one. */
+  /* Round-box disables alpha. Re-enable it for node links that are drawn after this one. */
   GPU_blend(GPU_BLEND_ALPHA);
 }
 
