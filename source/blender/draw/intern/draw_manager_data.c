@@ -1349,15 +1349,16 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
 
   memset(attrs, 0, sizeof(attrs));
 
-  attrs[attrs_num++].type = CD_PBVH_CO_TYPE;
-  attrs[attrs_num++].type = CD_PBVH_NO_TYPE;
+  /* NOTE: these are NOT #eCustomDataType, they are extended values, ASAN may warn about this. */
+  attrs[attrs_num++].type = (eCustomDataType)CD_PBVH_CO_TYPE;
+  attrs[attrs_num++].type = (eCustomDataType)CD_PBVH_NO_TYPE;
 
   if (use_mask) {
-    attrs[attrs_num++].type = CD_PBVH_MASK_TYPE;
+    attrs[attrs_num++].type = (eCustomDataType)CD_PBVH_MASK_TYPE;
   }
 
   if (use_fset) {
-    attrs[attrs_num++].type = CD_PBVH_FSET_TYPE;
+    attrs[attrs_num++].type = (eCustomDataType)CD_PBVH_FSET_TYPE;
   }
 
   Mesh *me = BKE_object_get_original_mesh(ob);
@@ -1421,8 +1422,9 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
   memset(attrs, 0, sizeof(PBVHAttrReq) * attrs_num);
   int attrs_i = 0;
 
-  attrs[attrs_i++].type = CD_PBVH_CO_TYPE;
-  attrs[attrs_i++].type = CD_PBVH_NO_TYPE;
+  /* NOTE: these are NOT #eCustomDataType, they are extended values, ASAN may warn about this. */
+  attrs[attrs_i++].type = (eCustomDataType)CD_PBVH_CO_TYPE;
+  attrs[attrs_i++].type = (eCustomDataType)CD_PBVH_NO_TYPE;
 
   for (int i = 0; i < draw_attrs.num_requests; i++) {
     DRW_AttributeRequest *req = draw_attrs.requests + i;

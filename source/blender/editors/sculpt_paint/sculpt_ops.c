@@ -1191,7 +1191,6 @@ static void cavity_bake_ui(bContext *C, wmOperator *op)
   }
 
   if (use_curve) {
-    Scene *scene = CTX_data_scene(C);
     PointerRNA sculpt_ptr;
 
     const char *curve_prop;
