@@ -3654,23 +3654,6 @@ void *CustomData_set_layer_n(const CustomData *data, const int type, const int n
   return ptr;
 }
 
-void CustomData_set(const CustomData *data, const int index, const int type, const void *source)
-{
-  void *dest = CustomData_get(data, index, type);
-  const LayerTypeInfo *typeInfo = layerType_getInfo(type);
-
-  if (!dest) {
-    return;
-  }
-
-  if (typeInfo->copy) {
-    typeInfo->copy(source, dest, 1);
-  }
-  else {
-    memcpy(dest, source, typeInfo->size);
-  }
-}
-
 /* BMesh functions */
 
 void CustomData_bmesh_update_active_layers(CustomData *fdata, CustomData *ldata)

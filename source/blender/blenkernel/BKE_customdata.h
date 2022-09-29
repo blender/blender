@@ -457,12 +457,6 @@ const char *CustomData_get_active_layer_name(const struct CustomData *data, int 
  */
 const char *CustomData_get_render_layer_name(const struct CustomData *data, int type);
 
-/**
- * Copies the data from source to the data element at index in the first layer of type
- * no effect if there is no layer of type.
- */
-void CustomData_set(const struct CustomData *data, int index, int type, const void *source);
-
 void CustomData_bmesh_set(const struct CustomData *data,
                           void *block,
                           int type,
