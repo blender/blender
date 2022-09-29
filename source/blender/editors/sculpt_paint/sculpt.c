@@ -5557,6 +5557,9 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
     if (SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob)) {
       SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_IMAGE);
     }
+    else {
+      BKE_sculpt_attributes_destroy_temporary_stroke(ob);
+    }
   }
   else {
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
