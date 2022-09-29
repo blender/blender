@@ -126,6 +126,10 @@ static VArray<float> construct_curve_parameter_varray(const bke::CurvesGeometry 
             value *= factor;
           }
         }
+        else if (curve_lengths.size() == 1) {
+          /* The curve is a single point. */
+          curve_lengths[0] = 0.0f;
+        }
         else {
           /* It is arbitrary what to do in those rare cases when all the points are
            * in the same position. In this case we are just arbitrarily giving a valid
