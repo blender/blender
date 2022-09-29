@@ -164,16 +164,7 @@ struct CavityBlurVert {
   {
   }
 
-  CavityBlurVert()
-  {
-  }
-
-  CavityBlurVert(const CavityBlurVert &b)
-  {
-    vertex = b.vertex;
-    dist = b.dist;
-    depth = b.depth;
-  }
+  CavityBlurVert() = default;
 };
 
 static void sculpt_calc_blurred_cavity(SculptSession *ss,
