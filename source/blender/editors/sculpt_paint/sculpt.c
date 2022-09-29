@@ -1268,11 +1268,11 @@ static bool sculpt_brush_use_topology_rake(const SculptSession *ss, const Brush 
 /**
  * Test whether the #StrokeCache.sculpt_normal needs update in #do_brush_action
  */
-static int sculpt_brush_needs_normal(const SculptSession *ss, const Brush *brush)
+static int sculpt_brush_needs_normal(const SculptSession *ss, Sculpt *sd, const Brush *brush)
 {
   return ((SCULPT_TOOL_HAS_NORMAL_WEIGHT(brush->sculpt_tool) &&
            (ss->cache->normal_weight > 0.0f)) ||
-
+          SCULPT_automasking_needs_normal(ss, sd, brush) ||
           ELEM(brush->sculpt_tool,
                SCULPT_TOOL_BLOB,
                SCULPT_TOOL_CREASE,
@@ -2413,7 +2413,8 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
                                    const float fno[3],
                                    float mask,
                                    const PBVHVertRef vertex,
-                                   int thread_id)
+                                   const int thread_id,
+                                   AutomaskingNodeData *automask_data)
 {
   StrokeCache *cache = ss->cache;
   const Scene *scene = cache->vc->scene;
@@ -2497,7 +2498,7 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
   avg *= 1.0f - mask;
 
   /* Auto-masking. */
-  avg *= SCULPT_automasking_factor_get(cache->automasking, ss, vertex);
+  avg *= SCULPT_automasking_factor_get(cache->automasking, ss, vertex, automask_data);
 
   return avg;
 }
@@ -3087,7 +3088,8 @@ static void do_gravity_task_cb_ex(void *__restrict userdata,
                                                     vd.fno,
                                                     vd.mask ? *vd.mask : 0.0f,
                                                     vd.vertex,
-                                                    thread_id);
+                                                    thread_id,
+                                                    NULL);
 
     mul_v3_v3fl(proxy[vd.i], offset, fade);
 
@@ -3396,7 +3398,7 @@ static void do_brush_action(Sculpt *sd,
     BLI_task_parallel_range(0, totnode, &task_data, do_brush_action_task_cb, &settings);
   }
 
-  if (sculpt_brush_needs_normal(ss, brush)) {
+  if (sculpt_brush_needs_normal(ss, sd, brush)) {
     update_sculpt_normal(sd, ob, nodes, totnode);
   }
 
@@ -3548,7 +3550,7 @@ static void do_brush_action(Sculpt *sd,
     SCULPT_bmesh_topology_rake(sd, ob, nodes, totnode, brush->topology_rake_factor);
   }
 
-  if (!SCULPT_tool_can_reuse_cavity_mask(brush->sculpt_tool) ||
+  if (!SCULPT_tool_can_reuse_automask(brush->sculpt_tool) ||
       (ss->cache->supports_gravity && sd->gravity_factor > 0.0f)) {
     /* Clear cavity mask cache. */
     ss->last_automasking_settings_hash = 0;
@@ -4241,8 +4243,6 @@ static void sculpt_update_cache_invariants(
   int mode;
 
   ss->cache = cache;
-
-  cache->stroke_id = ss->stroke_id;
 
   /* Set scaling adjustment. */
   max_scale = 0.0f;
@@ -5413,6 +5413,7 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
     }
 
     SCULPT_stroke_id_next(ob);
+    ss->cache->stroke_id = ss->stroke_id;
 
     return true;
   }
@@ -6012,6 +6013,70 @@ void SCULPT_fake_neighbors_free(Object *ob)
   sculpt_pose_fake_neighbors_free(ss);
 }
 
+void SCULPT_automasking_node_begin(Object *ob,
+                                   const SculptSession *UNUSED(ss),
+                                   AutomaskingCache *automasking,
+                                   AutomaskingNodeData *node_data,
+                                   PBVHNode *node)
+{
+  if (!automasking) {
+    memset(node_data, 0, sizeof(*node_data));
+    return;
+  }
+
+  node_data->node = node;
+  node_data->have_orig_data = automasking->settings.flags &
+                              (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL);
+
+  if (node_data->have_orig_data) {
+    SCULPT_orig_vert_data_init(&node_data->orig_data, ob, node, SCULPT_UNDO_COORDS);
+  }
+  else {
+    memset(&node_data->orig_data, 0, sizeof(node_data->orig_data));
+  }
+}
+
+void SCULPT_automasking_node_update(SculptSession *UNUSED(ss),
+                                    AutomaskingNodeData *automask_data,
+                                    PBVHVertexIter *vd)
+{
+  if (automask_data->have_orig_data) {
+    SCULPT_orig_vert_data_update(&automask_data->orig_data, vd);
+  }
+}
+
+bool SCULPT_vertex_is_occluded(SculptSession *ss, PBVHVertRef vertex, bool original)
+{
+  float ray_start[3], ray_end[3], ray_normal[3], face_normal[3];
+  float co[3];
+
+  copy_v3_v3(co, SCULPT_vertex_co_get(ss, vertex));
+  float mouse[2];
+
+  ED_view3d_project_float_v2_m4(ss->cache->vc->region, co, mouse, ss->cache->projection_mat);
+
+  int depth = SCULPT_raycast_init(ss->cache->vc, mouse, ray_end, ray_start, ray_normal, original);
+
+  negate_v3(ray_normal);
+
+  copy_v3_v3(ray_start, SCULPT_vertex_co_get(ss, vertex));
+  madd_v3_v3fl(ray_start, ray_normal, 0.002);
+
+  SculptRaycastData srd = {0};
+  srd.original = original;
+  srd.ss = ss;
+  srd.hit = false;
+  srd.ray_start = ray_start;
+  srd.ray_normal = ray_normal;
+  srd.depth = depth;
+  srd.face_normal = face_normal;
+
+  isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
+  BKE_pbvh_raycast(ss->pbvh, sculpt_raycast_cb, &srd, ray_start, ray_normal, srd.original);
+
+  return srd.hit;
+}
+
 void SCULPT_stroke_id_next(Object *ob)
 {
   /* Manually wrap in int32 space to avoid tripping up undefined behavior
@@ -6024,11 +6089,14 @@ void SCULPT_stroke_id_ensure(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
 
-  if (!ss->attrs.stroke_id) {
+  if (!ss->attrs.automasking_stroke_id) {
     SculptAttributeParams params = {0};
-
-    ss->attrs.stroke_id = BKE_sculpt_attribute_ensure(
-        ob, ATTR_DOMAIN_POINT, CD_PROP_INT8, SCULPT_ATTRIBUTE_NAME(stroke_id), &params);
+    ss->attrs.automasking_stroke_id = BKE_sculpt_attribute_ensure(
+        ob,
+        ATTR_DOMAIN_POINT,
+        CD_PROP_INT8,
+        SCULPT_ATTRIBUTE_NAME(automasking_stroke_id),
+        &params);
   }
 }
 

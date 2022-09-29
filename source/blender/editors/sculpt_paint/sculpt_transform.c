@@ -46,7 +46,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-void ED_sculpt_init_transform(struct bContext *C, Object *ob, const char *undo_name)
+void ED_sculpt_init_transform(struct bContext *C, Object *ob, const int mval[2], const char *undo_name)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
@@ -66,7 +66,8 @@ void ED_sculpt_init_transform(struct bContext *C, Object *ob, const char *undo_n
   ss->pivot_rot[3] = 1.0f;
 
   SCULPT_vertex_random_access_ensure(ss);
-  SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS);
+
+  SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS, mval, 5.0);
 
   if (sd->transform_mode == SCULPT_TRANSFORM_MODE_RADIUS_ELASTIC) {
     ss->filter_cache->transform_displacement_mode = SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL;

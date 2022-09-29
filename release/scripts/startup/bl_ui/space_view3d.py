@@ -5497,6 +5497,8 @@ class VIEW3D_MT_sculpt_automasking_pie(Menu):
         pie.prop(sculpt, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
         pie.prop(sculpt, "use_automasking_cavity", text="Cavity")
         pie.prop(sculpt, "use_automasking_cavity_inverted", text="Cavity (Inverted)")
+        pie.prop(sculpt, "use_automasking_start_normal", text="Area Normal")
+        pie.prop(sculpt, "use_automasking_view_normal", text="View Normal")
 
 
 class VIEW3D_MT_sculpt_face_sets_edit_pie(Menu):

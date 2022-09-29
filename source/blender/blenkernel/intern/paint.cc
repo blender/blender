@@ -2079,6 +2079,14 @@ void BKE_sculpt_toolsettings_data_ensure(Scene *scene)
     sd->constant_detail = 3.0f;
   }
 
+  if (!sd->automasking_start_normal_limit) {
+    sd->automasking_start_normal_limit = 20.0f / 180.0f * M_PI;
+    sd->automasking_start_normal_falloff = 0.25f;
+
+    sd->automasking_view_normal_limit = 90.0f / 180.0f * M_PI;
+    sd->automasking_view_normal_falloff = 0.25f;
+  }
+
   /* Set sane default tiling offsets. */
   if (!sd->paint.tile_offset[0]) {
     sd->paint.tile_offset[0] = 1.0f;

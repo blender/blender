@@ -1025,6 +1025,9 @@ typedef struct Sculpt {
   float automasking_cavity_factor;
   char _pad[4];
 
+  float automasking_start_normal_limit, automasking_start_normal_falloff;
+  float automasking_view_normal_limit, automasking_view_normal_falloff;
+
   struct CurveMapping *automasking_cavity_curve;
   struct CurveMapping *automasking_cavity_curve_op; /* For use by operators */
   struct Object *gravity_object;

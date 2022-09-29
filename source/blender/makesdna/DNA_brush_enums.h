@@ -338,6 +338,10 @@ typedef enum eAutomasking_flag {
   BRUSH_AUTOMASKING_CAVITY_INVERTED = (1 << 5),
   BRUSH_AUTOMASKING_CAVITY_ALL = (1 << 4) | (1 << 5),
   BRUSH_AUTOMASKING_CAVITY_USE_CURVE = (1 << 6),
+  /* (1 << 7) - unused. */
+  BRUSH_AUTOMASKING_BRUSH_NORMAL = (1 << 8),
+  BRUSH_AUTOMASKING_VIEW_NORMAL = (1 << 9),
+  BRUSH_AUTOMASKING_VIEW_OCCLUSION = (1 << 10),
 } eAutomasking_flag;
 
 typedef enum ePaintBrush_flag {

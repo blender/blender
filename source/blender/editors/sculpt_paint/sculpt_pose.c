@@ -157,9 +157,13 @@ static void do_pose_brush_task_cb_ex(void *__restrict userdata,
 
   SculptOrigVertData orig_data;
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
     float total_disp[3];
     zero_v3(total_disp);
@@ -182,7 +186,8 @@ static void do_pose_brush_task_cb_ex(void *__restrict userdata,
 
       /* Apply the vertex mask to the displacement. */
       const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
-      const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.vertex);
+      const float automask = SCULPT_automasking_factor_get(
+          ss->cache->automasking, ss, vd.vertex, &automask_data);
       mul_v3_fl(disp, mask * automask);
 
       /* Accumulate the displacement. */

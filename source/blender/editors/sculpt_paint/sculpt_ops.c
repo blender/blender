@@ -1033,8 +1033,15 @@ static void sculpt_bake_cavity_exec_task_cb(void *__restrict userdata,
 
   SCULPT_undo_push_node(tdata->ob, node, SCULPT_UNDO_MASK);
 
+  AutomaskingNodeData automask_data;
+  SCULPT_automasking_node_begin(
+      tdata->ob, ss, ss->cache->automasking, &automask_data, node);
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-    float automask = SCULPT_automasking_factor_get(tdata->automasking, ss, vd.vertex);
+    SCULPT_automasking_node_update(ss, &automask_data, &vd);
+
+    float automask = SCULPT_automasking_factor_get(
+        tdata->automasking, ss, vd.vertex, &automask_data);
     float mask;
 
     switch (mode) {
