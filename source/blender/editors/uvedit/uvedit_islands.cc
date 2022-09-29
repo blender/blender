@@ -75,7 +75,7 @@ static void bm_face_uv_translate_and_scale_around_pivot(BMFace *f,
  * \{ */
 
 static void bm_face_array_calc_bounds(BMFace **faces,
-                                      int faces_len,
+                                      const int faces_len,
                                       const int cd_loop_uv_offset,
                                       rctf *r_bounds_rect)
 {
@@ -276,7 +276,7 @@ static float uv_nearest_image_tile_distance(const Image *image,
  * Calculates distance to nearest UDIM grid tile in UV space and its UDIM tile number.
  */
 static float uv_nearest_grid_tile_distance(const int udim_grid[2],
-                                           float coords[2],
+                                           const float coords[2],
                                            float nearest_tile_co[2])
 {
   const float coords_floor[2] = {floorf(coords[0]), floorf(coords[1])};
@@ -419,7 +419,7 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
 /* -------------------------------------------------------------------- */
 /** \name Public UV Island Packing
  *
- * \note This behavior follows #param_pack.
+ * \note This behavior loosely follows #GEO_uv_parametrizer_pack.
  * \{ */
 
 void ED_uvedit_pack_islands_multi(const Scene *scene,
@@ -428,17 +428,13 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
                                   const struct UVMapUDIM_Params *udim_params,
                                   const struct UVPackIsland_Params *params)
 {
-  /* Align to the Y axis, could make this configurable. */
-  const int rotate_align_axis = 1;
-  ListBase island_list = {NULL};
-  int island_list_len = 0;
+  blender::Vector<FaceIsland *> island_vector;
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    BMesh *bm = em->bm;
 
-    const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+    const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
     if (cd_loop_uv_offset == -1) {
       continue;
     }
@@ -452,34 +448,38 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
       }
     }
 
-    island_list_len += bm_mesh_calc_uv_islands(scene,
-                                               bm,
-                                               &island_list,
-                                               params->only_selected_faces,
-                                               params->only_selected_uvs,
-                                               params->use_seams,
-                                               aspect_y,
-                                               cd_loop_uv_offset);
+    ListBase island_list = {NULL};
+    bm_mesh_calc_uv_islands(scene,
+                            em->bm,
+                            &island_list,
+                            params->only_selected_faces,
+                            params->only_selected_uvs,
+                            params->use_seams,
+                            aspect_y,
+                            cd_loop_uv_offset);
+
+    int index;
+    LISTBASE_FOREACH_INDEX (struct FaceIsland *, island, &island_list, index) {
+      island_vector.append(island);
+    }
   }
 
-  if (island_list_len == 0) {
+  if (island_vector.size() == 0) {
     return;
   }
 
   float margin = scene->toolsettings->uvcalc_margin;
   double area = 0.0f;
 
-  struct FaceIsland **island_array = static_cast<struct FaceIsland **>(
-      MEM_mallocN(sizeof(*island_array) * island_list_len, __func__));
   BoxPack *boxarray = static_cast<BoxPack *>(
-      MEM_mallocN(sizeof(*boxarray) * island_list_len, __func__));
+      MEM_mallocN(sizeof(*boxarray) * island_vector.size(), __func__));
 
-  int index;
   /* Coordinates of bounding box containing all selected UVs. */
   float selection_min_co[2], selection_max_co[2];
   INIT_MINMAX2(selection_min_co, selection_max_co);
 
-  LISTBASE_FOREACH_INDEX (struct FaceIsland *, island, &island_list, index) {
+  for (int index = 0; index < island_vector.size(); index++) {
+    FaceIsland *island = island_vector[index];
 
     /* Skip calculation if using specified UDIM option. */
     if (udim_params && (udim_params->use_target_udim == false)) {
@@ -502,6 +502,8 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
             island->faces, island->faces_len, 1.0f / island->aspect_y, island->cd_loop_uv_offset);
       }
 
+      /* Align to the Y axis, could make this configurable. */
+      const int rotate_align_axis = 1;
       bm_face_array_uv_rotate_fit_aabb(
           island->faces, island->faces_len, rotate_align_axis, island->cd_loop_uv_offset);
 
@@ -521,8 +523,6 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
     box->w = BLI_rctf_size_x(&island->bounds_rect);
     box->h = BLI_rctf_size_y(&island->bounds_rect);
 
-    island_array[index] = island;
-
     if (margin > 0.0f) {
       area += double(sqrtf(box->w * box->h));
     }
@@ -536,12 +536,12 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
   }
 
   if (margin > 0.0f) {
-    /* Logic matches behavior from #param_pack,
+    /* Logic matches behavior from #GEO_uv_parametrizer_pack,
      * use area so multiply the margin by the area to give
      * predictable results not dependent on UV scale. */
     margin = (margin * float(area)) * 0.1f;
-    for (int i = 0; i < island_list_len; i++) {
-      struct FaceIsland *island = island_array[i];
+    for (int i = 0; i < island_vector.size(); i++) {
+      FaceIsland *island = island_vector[i];
       BoxPack *box = &boxarray[i];
 
       BLI_rctf_pad(&island->bounds_rect, margin, margin);
@@ -551,7 +551,7 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
   }
 
   float boxarray_size[2];
-  BLI_box_pack_2d(boxarray, island_list_len, &boxarray_size[0], &boxarray_size[1]);
+  BLI_box_pack_2d(boxarray, island_vector.size(), &boxarray_size[0], &boxarray_size[1]);
 
   /* Don't change the aspect when scaling. */
   boxarray_size[0] = boxarray_size[1] = max_ff(boxarray_size[0], boxarray_size[1]);
@@ -605,8 +605,8 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
     }
   }
 
-  for (int i = 0; i < island_list_len; i++) {
-    struct FaceIsland *island = island_array[boxarray[i].index];
+  for (int i = 0; i < island_vector.size(); i++) {
+    FaceIsland *island = island_vector[boxarray[i].index];
     const float pivot[2] = {
         island->bounds_rect.xmin,
         island->bounds_rect.ymin,
@@ -628,12 +628,11 @@ void ED_uvedit_pack_islands_multi(const Scene *scene,
     WM_main_add_notifier(NC_GEOM | ND_DATA, obedit->data);
   }
 
-  for (int i = 0; i < island_list_len; i++) {
-    MEM_freeN(island_array[i]->faces);
-    MEM_freeN(island_array[i]);
+  for (FaceIsland *island : island_vector) {
+    MEM_freeN(island->faces);
+    MEM_freeN(island);
   }
 
-  MEM_freeN(island_array);
   MEM_freeN(boxarray);
 }
 
