@@ -30,6 +30,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_blender_project.h"
 #include "BKE_context.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
@@ -780,6 +781,11 @@ struct ReportList *CTX_wm_reports(const bContext *C)
   }
 
   return NULL;
+}
+
+BlenderProject *CTX_wm_project(void)
+{
+  return BKE_project_active_get();
 }
 
 View3D *CTX_wm_view3d(const bContext *C)

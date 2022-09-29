@@ -12,6 +12,34 @@
 
 namespace blender::bke {
 
+class ProjectSettings;
+
+class BlenderProject {
+  inline static std::unique_ptr<BlenderProject> instance_;
+
+  std::unique_ptr<ProjectSettings> settings_;
+
+ public:
+  static auto get_active [[nodiscard]] () -> BlenderProject *;
+  static auto set_active_from_settings(std::unique_ptr<ProjectSettings> settings)
+      -> BlenderProject *;
+
+  /**
+   * Check if \a path points into a project and return the root directory path of that project (the
+   * one containing the .blender_project directory). Walks "upwards" through the path and returns
+   * the first project found, so if a project is nested inside another one, the nested project is
+   * used.
+   * Both Unix and Windows style slashes are allowed.
+   * \return the project root path or an empty path if not found.
+   */
+  static auto project_root_path_find_from_path [[nodiscard]] (StringRef path) -> StringRef;
+
+  auto get_settings [[nodiscard]] () const -> ProjectSettings &;
+
+ private:
+  explicit BlenderProject(std::unique_ptr<ProjectSettings> settings);
+};
+
 class ProjectSettings {
   /* Path to the project root using slashes in the OS native format. */
   std::string project_root_path_;

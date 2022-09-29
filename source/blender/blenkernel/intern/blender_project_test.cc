@@ -2,17 +2,24 @@
  * Copyright 2022 Blender Foundation. All rights reserved. */
 
 #include "BKE_appdir.h"
-#include "BKE_project_settings.hh"
+#include "BKE_blender_project.h"
+#include "BKE_blender_project.hh"
+#include "BKE_main.h"
 
 #include "BLI_fileops.h"
 #include "BLI_function_ref.hh"
 #include "BLI_path_util.h"
+#include "BLI_vector.hh"
+
+#include "BLO_readfile.h"
+
+#include "blendfile_loading_base_test.h"
 
 #include "testing/testing.h"
 
 namespace blender::bke::tests {
 
-class ProjectSettingsTest : public testing::Test {
+class ProjectTest : public testing::Test {
   /* RAII helper to delete the created directories reliably after testing or on errors. */
   struct ProjectDirectoryRAIIWrapper {
     std::string project_path_;
@@ -73,7 +80,7 @@ class ProjectSettingsTest : public testing::Test {
   void test_foreach_project_path(FunctionRef<void(StringRefNull /* project_path */,
                                                   StringRefNull /* project_path_native */)> fn)
   {
-    std::vector<StringRefNull> subpaths = {
+    const Vector<StringRefNull> subpaths = {
         "temporary-project-root",
         "test-temporary-unicode-dir-новый/temporary-project-root",
         /* Same but with trailing slash. */
@@ -94,7 +101,7 @@ class ProjectSettingsTest : public testing::Test {
   }
 };
 
-TEST_F(ProjectSettingsTest, create)
+TEST_F(ProjectTest, settings_create)
 {
   test_foreach_project_path([](StringRefNull project_path, StringRefNull project_path_native) {
     if (!ProjectSettings::create_settings_directory(project_path)) {
@@ -112,7 +119,7 @@ TEST_F(ProjectSettingsTest, create)
 
 /* Load the project by pointing to the project root directory (as opposed to the .blender_project
  * directory). */
-TEST_F(ProjectSettingsTest, load_from_project_root_path)
+TEST_F(ProjectTest, settings_load_from_project_root_path)
 {
   test_foreach_project_path([](StringRefNull project_path, StringRefNull project_path_native) {
     ProjectSettings::create_settings_directory(project_path);
@@ -125,7 +132,7 @@ TEST_F(ProjectSettingsTest, load_from_project_root_path)
 
 /* Load the project by pointing to the .blender_project directory (as opposed to the project root
  * directory). */
-TEST_F(ProjectSettingsTest, load_from_project_settings_path)
+TEST_F(ProjectTest, settings_load_from_project_settings_path)
 {
   test_foreach_project_path([](StringRefNull project_path, StringRefNull project_path_native) {
     ProjectSettings::create_settings_directory(project_path);
@@ -135,6 +142,76 @@ TEST_F(ProjectSettingsTest, load_from_project_settings_path)
     EXPECT_NE(project_settings, nullptr);
     EXPECT_EQ(project_settings->project_root_path(), project_path_native);
   });
+}
+
+struct SVNFiles {
+  const std::string svn_root = blender::tests::flags_test_asset_dir();
+  const std::string project_root_rel = "blender_project/the_project";
+  const std::string project_root = svn_root + "/blender_project/the_project";
+};
+
+TEST_F(ProjectTest, project_root_path_find_from_path)
+{
+  /* Test the temporarily created directories with their various path formats. */
+  test_foreach_project_path([](StringRefNull project_path, StringRefNull /*project_path_native*/) {
+    /* First test without a .blender_project directory present. */
+    EXPECT_EQ(BlenderProject::project_root_path_find_from_path(project_path), "");
+
+    ProjectSettings::create_settings_directory(project_path);
+    EXPECT_EQ(BlenderProject::project_root_path_find_from_path(project_path), project_path);
+  });
+
+  SVNFiles svn_files{};
+
+  /* Test the prepared project directory from the libs SVN repository. */
+  EXPECT_EQ(BlenderProject::project_root_path_find_from_path(svn_files.project_root +
+                                                             "/some_project_file.blend"),
+            svn_files.project_root);
+  EXPECT_EQ(BlenderProject::project_root_path_find_from_path(
+                svn_files.project_root +
+                "/unicode_subdirectory_новый/another_subdirectory/some_nested_project_file.blend"),
+            svn_files.project_root);
+}
+
+class BlendfileProjectLoadingTest : public BlendfileLoadingBaseTest {
+};
+
+/* Test if loading the blend file loads the project data as expected. */
+TEST_F(BlendfileProjectLoadingTest, load_blend_file)
+{
+  EXPECT_EQ(BKE_project_active_get(), nullptr);
+
+  if (!blendfile_load("blender_project/the_project/some_project_file.blend")) {
+    FAIL();
+  }
+
+  ::BlenderProject *svn_project = BKE_project_active_load_from_path(bfile->main->filepath);
+  EXPECT_NE(svn_project, nullptr);
+  EXPECT_EQ(BKE_project_active_get(), svn_project);
+  /* Note: The project above will be freed once a different active project is set. So get the path
+   * for future comparisons. */
+  std::string svn_project_path = BKE_project_root_path_get(svn_project);
+
+  blendfile_free();
+
+  /* Check if loading a different .blend updates the project properly */
+  if (!blendfile_load("blender_project/the_project/unicode_subdirectory_новый/"
+                      "another_subdirectory/some_nested_project_file.blend")) {
+    FAIL();
+  }
+  ::BlenderProject *svn_project_from_nested = BKE_project_active_load_from_path(
+      bfile->main->filepath);
+  EXPECT_NE(svn_project_from_nested, nullptr);
+  EXPECT_EQ(BKE_project_active_get(), svn_project_from_nested);
+  EXPECT_STREQ(svn_project_path.c_str(), BKE_project_root_path_get(svn_project_from_nested));
+  blendfile_free();
+
+  /* Check if loading a .blend that's not in the project unsets the project properly. */
+  if (!blendfile_load("blender_project/not_a_project_file.blend")) {
+    FAIL();
+  }
+  BKE_project_active_load_from_path(bfile->main->filepath);
+  EXPECT_EQ(BKE_project_active_get(), nullptr);
 }
 
 }  // namespace blender::bke::tests

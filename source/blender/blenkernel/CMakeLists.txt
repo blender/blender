@@ -81,6 +81,7 @@ set(SRC
   intern/autoexec.c
   intern/blender.c
   intern/blender_copybuffer.c
+  intern/blender_project.cc
   intern/blender_undo.c
   intern/blender_user_menu.c
   intern/blendfile.c
@@ -254,7 +255,6 @@ set(SRC
   intern/pointcache.c
   intern/pointcloud.cc
   intern/preferences.c
-  intern/project_settings.cc
   intern/report.c
   intern/rigidbody.c
   intern/scene.cc
@@ -330,6 +330,8 @@ set(SRC
   BKE_autoexec.h
   BKE_blender.h
   BKE_blender_copybuffer.h
+  BKE_blender_project.h
+  BKE_blender_project.hh
   BKE_blender_undo.h
   BKE_blender_user_menu.h
   BKE_blender_version.h
@@ -454,7 +456,6 @@ set(SRC
   BKE_pointcache.h
   BKE_pointcloud.h
   BKE_preferences.h
-  BKE_project_settings.hh
   BKE_report.h
   BKE_rigidbody.h
   BKE_scene.h
@@ -835,6 +836,7 @@ if(WITH_GTESTS)
     intern/asset_library_service_test.cc
     intern/asset_library_test.cc
     intern/asset_test.cc
+    intern/blender_project_test.cc
     intern/bpath_test.cc
     intern/cryptomatte_test.cc
     intern/curves_geometry_test.cc
@@ -847,11 +849,11 @@ if(WITH_GTESTS)
     intern/lib_id_remapper_test.cc
     intern/lib_id_test.cc
     intern/lib_remap_test.cc
-    intern/project_settings_test.cc
     intern/tracking_test.cc
   )
   set(TEST_INC
     ../editors/include
+    ../blenloader/tests
   )
   include(GTestTesting)
   blender_add_test_lib(bf_blenkernel_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB}")

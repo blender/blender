@@ -29,6 +29,7 @@
 #include "BKE_addon.h"
 #include "BKE_appdir.h"
 #include "BKE_blender.h"
+#include "BKE_blender_project.h"
 #include "BKE_blender_version.h"
 #include "BKE_blendfile.h"
 #include "BKE_bpath.h"
@@ -474,6 +475,7 @@ void BKE_blendfile_read_setup_ex(bContext *C,
     }
   }
   setup_app_blend_file_data(C, bfd, params, reports);
+  BKE_project_active_load_from_path(bfd->filepath);
   BLO_blendfiledata_free(bfd);
 }
 

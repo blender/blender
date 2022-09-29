@@ -93,6 +93,8 @@
 #include "BLI_threads.h"
 #include "MEM_guardedalloc.h" /* MEM_freeN */
 
+#include "BKE_blender_project.h"
+#include "BKE_blender_project.hh"
 #include "BKE_blender_version.h"
 #include "BKE_bpath.h"
 #include "BKE_global.h" /* for G */
@@ -1439,6 +1441,9 @@ bool BLO_write_file(Main *mainvar,
       STRNCPY(mainvar->filepath, mainvar_filepath_orig);
     }
   }
+
+  /* Update active project information based on the new file location. */
+  BKE_project_active_load_from_path(mainvar->filepath);
 
   /* actual file writing */
   const bool err = write_file_handle(
