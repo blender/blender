@@ -270,10 +270,12 @@ class TOPBAR_MT_file(Menu):
 
         layout.operator_context = 'INVOKE_AREA'
         layout.menu("TOPBAR_MT_file_new", text="New", icon='FILE_NEW')
-        layout.operator("wm.open_mainfile", text="Open...", icon='FILE_FOLDER')
+        layout.operator("wm.open_mainfile", text="Open File...", icon='FILE_FOLDER')
         layout.menu("TOPBAR_MT_file_open_recent")
         layout.operator("wm.revert_mainfile")
         layout.menu("TOPBAR_MT_file_recover")
+
+        layout.operator("wm.new_project", text="New Project...")
 
         layout.separator()
 

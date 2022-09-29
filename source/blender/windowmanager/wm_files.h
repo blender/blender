@@ -104,6 +104,8 @@ void WM_OT_recover_auto_save(struct wmOperatorType *ot);
 void WM_OT_save_as_mainfile(struct wmOperatorType *ot);
 void WM_OT_save_mainfile(struct wmOperatorType *ot);
 
+void WM_OT_new_project(struct wmOperatorType *ot);
+
 /* wm_files_link.c */
 
 void WM_OT_link(struct wmOperatorType *ot);

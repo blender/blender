@@ -17,6 +17,9 @@ extern "C" {
 /* C-handle for #bke::BlenderProject. */
 typedef struct BlenderProject BlenderProject;
 
+/** See #bke::ProjectSettings::create_settings_directory(). */
+bool BKE_project_create_settings_directory(const char *project_root_path) ATTR_NONNULL();
+
 BlenderProject *BKE_project_active_get(void) ATTR_WARN_UNUSED_RESULT;
 /**
  * \note: When unsetting an active project, the previously active one will be destroyed, so

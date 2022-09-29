@@ -136,6 +136,11 @@ StringRefNull ProjectSettings::project_root_path() const
 
 using namespace blender;
 
+bool BKE_project_create_settings_directory(const char *project_root_path)
+{
+  return bke::ProjectSettings::create_settings_directory(project_root_path);
+}
+
 BlenderProject *BKE_project_active_get(void)
 {
   return reinterpret_cast<BlenderProject *>(bke::BlenderProject::get_active());
