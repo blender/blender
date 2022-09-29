@@ -1299,8 +1299,8 @@ typedef struct AutomaskingNodeData {
 } AutomaskingNodeData;
 
 /** Call before PBVH vertex iteration.
-  * \param automask_data: pointer to an uninitialized AutomaskingNodeData struct.
-  */
+ * \param automask_data: pointer to an uninitialized AutomaskingNodeData struct.
+ */
 void SCULPT_automasking_node_begin(struct Object *ob,
                                    const SculptSession *ss,
                                    struct AutomaskingCache *automasking,

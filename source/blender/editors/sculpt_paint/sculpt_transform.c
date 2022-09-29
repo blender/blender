@@ -46,7 +46,10 @@
 #include <math.h>
 #include <stdlib.h>
 
-void ED_sculpt_init_transform(struct bContext *C, Object *ob, const int mval[2], const char *undo_name)
+void ED_sculpt_init_transform(struct bContext *C,
+                              Object *ob,
+                              const int mval[2],
+                              const char *undo_name)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
