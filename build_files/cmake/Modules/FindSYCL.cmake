@@ -44,7 +44,7 @@ FIND_PROGRAM(SYCL_COMPILER
 # compiler.
 if(NOT SYCL_COMPILER)
   FIND_PROGRAM(SYCL_COMPILER
-   NAMES
+    NAMES
       dpcpp
     HINTS
       ${_sycl_search_dirs}

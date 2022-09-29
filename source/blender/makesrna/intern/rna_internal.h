@@ -24,7 +24,7 @@ struct AssetLibraryReference;
 struct FreestyleSettings;
 struct ID;
 struct IDOverrideLibrary;
-struct IDOverrideLibraryPropertyOperation;
+struct IDOverrideLibraryenOperation;
 struct IDProperty;
 struct Main;
 struct Object;

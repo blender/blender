@@ -30,7 +30,7 @@ macro(add_bundled_libraries library)
     list(APPEND PLATFORM_BUNDLED_LIBRARY_DIRS ${_library_dir})
     unset(_all_library_versions)
     unset(_library_dir)
- endif()
+  endif()
 endmacro()
 
 # ------------------------------------------------------------------------
@@ -324,7 +324,7 @@ if(WITH_LLVM)
   if(WITH_CLANG)
     find_package(Clang)
     if(NOT CLANG_FOUND)
-       message(FATAL_ERROR "Clang not found.")
+      message(FATAL_ERROR "Clang not found.")
     endif()
   endif()
 

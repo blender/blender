@@ -52,6 +52,7 @@ struct Palette;
 struct PaletteColor;
 struct Scene;
 struct StrokeCache;
+struct Sculpt;
 struct SubdivCCG;
 struct Tex;
 struct ToolSettings;
@@ -548,6 +549,9 @@ typedef struct SculptAttributePointers {
   /* Precomputed auto-mask factor indexed by vertex, owned by the auto-masking system and
    * initialized in #SCULPT_automasking_cache_init when needed. */
   SculptAttribute *automasking_factor;
+  SculptAttribute *automasking_occlusion; /* CD_PROP_INT8. */
+  SculptAttribute *automasking_stroke_id;
+  SculptAttribute *automasking_cavity;
 
   /* BMesh */
   SculptAttribute *dyntopo_node_id_vertex;
@@ -738,11 +742,16 @@ typedef struct SculptSession {
    */
   bool sticky_shading_color;
 
+  uchar stroke_id;
+
   /**
    * Last used painting canvas key.
    */
   char *last_paint_canvas_key;
+  float last_normal[3];
 
+  int last_automasking_settings_hash;
+  uchar last_automask_stroke_id;
 } SculptSession;
 
 void BKE_sculptsession_free(struct Object *ob);
@@ -900,6 +909,8 @@ bool BKE_paint_canvas_image_get(struct PaintModeSettings *settings,
                                 struct ImageUser **r_image_user);
 int BKE_paint_canvas_uvmap_layer_index_get(const struct PaintModeSettings *settings,
                                            struct Object *ob);
+void BKE_sculpt_check_cavity_curves(struct Sculpt *sd);
+struct CurveMapping *BKE_sculpt_default_cavity_curve(void);
 
 #ifdef __cplusplus
 }

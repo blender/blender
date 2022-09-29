@@ -1366,7 +1366,7 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
   }
 }
 
-void pbvh_free_draw_buffers(PBVH *pbvh, PBVHNode *node)
+void pbvh_free_draw_buffers(PBVH *UNUSED(pbvh), PBVHNode *node)
 {
   if (node->draw_batches) {
     DRW_pbvh_node_free(node->draw_batches);

@@ -1412,7 +1412,7 @@ static void draw_selected_name(
 
   if (v3d->flag2 & V3D_SHOW_VIEWER) {
     if (!BLI_listbase_is_empty(&v3d->viewer_path.path)) {
-      s += sprintf(s, IFACE_(" (Viewer)"));
+      s += sprintf(s, "%s", IFACE_(" (Viewer)"));
     }
   }
 

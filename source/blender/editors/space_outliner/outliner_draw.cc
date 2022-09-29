@@ -2985,7 +2985,7 @@ static void outliner_draw_iconrow_number(const uiFontStyle *fstyle,
                            number_text,
                            text_col);
   UI_fontstyle_set(fstyle);
-  GPU_blend(GPU_BLEND_ALPHA); /* Roundbox and text drawing disables. */
+  GPU_blend(GPU_BLEND_ALPHA); /* Round-box and text drawing disables. */
 }
 
 static void outliner_icon_background_colors(float icon_color[4], float icon_border[4])
@@ -3015,7 +3015,7 @@ static void outliner_draw_active_indicator(const float minx,
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
   UI_draw_roundbox_aa(&rect, true, radius, icon_color);
   UI_draw_roundbox_aa(&rect, false, radius, icon_border);
-  GPU_blend(GPU_BLEND_ALPHA); /* Roundbox disables. */
+  GPU_blend(GPU_BLEND_ALPHA); /* Round-box disables. */
 }
 
 static void outliner_draw_iconrow_doit(uiBlock *block,

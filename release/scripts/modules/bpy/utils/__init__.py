@@ -358,56 +358,50 @@ def script_paths(*, subdir=None, user_pref=True, check_all=False, use_user=True)
     :return: script paths.
     :rtype: list
     """
-    scripts = []
 
-    # Only script paths Blender uses.
-    #
-    # This is needed even when `check_all` is enabled.
-    # NOTE: Use `_script_base_dir` instead of `_bpy_script_paths()[0]` as it's taken from this files path.
-    base_paths = (_script_base_dir, )
-    if use_user:
-        base_paths += _bpy_script_paths()[1:]
+    if check_all or use_user:
+        path_system, path_user = _bpy_script_paths()
 
-    # Defined to be (system, user) so we can skip the second if needed.
-    if not use_user:
-        base_paths = base_paths[:1]
+    base_paths = []
 
     if check_all:
-        # All possible paths, no duplicates, keep order.
+        # Order: 'LOCAL', 'USER', 'SYSTEM' (where user is optional).
+        if path_local := resource_path('LOCAL'):
+            base_paths.append(_os.path.join(path_local, "scripts"))
         if use_user:
-            test_paths = ('LOCAL', 'USER', 'SYSTEM')
-        else:
-            test_paths = ('LOCAL', 'SYSTEM')
+            base_paths.append(path_user)
+        base_paths.append(path_system)  # Same as: `system_resource('SCRIPTS')`.
 
-        base_paths = (
-            *(path for path in (
-                _os.path.join(resource_path(res), "scripts")
-                for res in test_paths) if path not in base_paths),
-            *base_paths,
-        )
+    # Note that `_script_base_dir` may be either:
+    # - `os.path.join(bpy.utils.resource_path('LOCAL'), "scripts")`
+    # - `bpy.utils.system_resource('SCRIPTS')`.
+    # When `check_all` is enabled duplicate paths will be added however
+    # paths are de-duplicated so it wont cause problems.
+    base_paths.append(_script_base_dir)
 
-    test_paths = (
-        *base_paths,
-        *((script_path_user(),) if use_user else ()),
-        *((script_path_pref(),) if user_pref else ()),
-    )
+    if not check_all:
+        if use_user:
+            base_paths.append(path_user)
 
-    for path in test_paths:
-        if path:
-            path = _os.path.normpath(path)
-            if path not in scripts and _os.path.isdir(path):
-                scripts.append(path)
+    if user_pref:
+        base_paths.append(script_path_pref())
 
-    if subdir is None:
-        return scripts
+    scripts = []
+    for path in base_paths:
+        if not path:
+            continue
 
-    scripts_subdir = []
-    for path in scripts:
-        path_subdir = _os.path.join(path, subdir)
-        if _os.path.isdir(path_subdir):
-            scripts_subdir.append(path_subdir)
+        path = _os.path.normpath(path)
+        if subdir is not None:
+            path = _os.path.join(path, subdir)
 
-    return scripts_subdir
+        if path in scripts:
+            continue
+        if not _os.path.isdir(path):
+            continue
+        scripts.append(path)
+
+    return scripts
 
 
 def refresh_script_paths():

@@ -1101,8 +1101,13 @@ static void gizmo_prepare_mat(const bContext *C,
 
       if (scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) {
         bGPdata *gpd = CTX_data_gpencil_data(C);
+        /* Grease Pencil uses object origin. */
         if (gpd && (gpd->flag & GP_DATA_STROKE_EDITMODE)) {
-          /* pass */
+          BKE_view_layer_synced_ensure(scene, view_layer);
+          Object *ob = BKE_view_layer_active_object_get(view_layer);
+          if (ob != NULL) {
+            ED_object_calc_active_center(ob, false, rv3d->twmat[3]);
+          }
         }
         else {
           BKE_view_layer_synced_ensure(scene, view_layer);

@@ -551,7 +551,7 @@ static bNodeSocket *determine_socket_to_view(bNode &node_to_view)
   }
 
   if (last_linked_socket_index == -1) {
-    /* Returnt he first socket that can be viewed. */
+    /* Return the first socket that can be viewed. */
     for (bNodeSocket *socket : node_to_view.output_sockets()) {
       if (socket_can_be_viewed(*socket)) {
         return socket;
@@ -932,7 +932,7 @@ static void node_link_exit(bContext &C, wmOperator &op, const bool apply_links)
 
   ED_node_tree_propagate_change(&C, bmain, &ntree);
 
-  /* Ensure draglink tooltip is disabled. */
+  /* Ensure drag-link tool-tip is disabled. */
   draw_draglink_tooltip_deactivate(*CTX_wm_region(&C), *nldrag);
 
   ED_workspace_status_text(&C, nullptr);

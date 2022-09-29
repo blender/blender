@@ -1071,6 +1071,12 @@ struct GeometryNodesLazyFunctionGraphBuilder {
 
   void insert_links_from_socket(const bNodeSocket &from_bsocket, lf::OutputSocket &from_lf_socket)
   {
+    const bNode &from_bnode = from_bsocket.owner_node();
+    if (this->is_dangling_reroute_input(from_bnode)) {
+      /* Dangling reroutes should not be used as source of values. */
+      return;
+    }
+
     const Span<const bNodeLink *> links_from_bsocket = from_bsocket.directly_linked_links();
 
     struct TypeWithLinks {
@@ -1162,6 +1168,33 @@ struct GeometryNodesLazyFunctionGraphBuilder {
             make_input_link_or_set_default(*to_lf_socket);
           }
         }
+      }
+    }
+  }
+
+  bool is_dangling_reroute_input(const bNode &node)
+  {
+    if (!node.is_reroute()) {
+      return false;
+    }
+    const bNode *iter_node = &node;
+    /* It is guaranteed at a higher level that there are no link cycles. */
+    while (true) {
+      const Span<const bNodeLink *> links = iter_node->input_socket(0).directly_linked_links();
+      BLI_assert(links.size() <= 1);
+      if (links.is_empty()) {
+        return true;
+      }
+      const bNodeLink &link = *links[0];
+      if (!link.is_available()) {
+        return false;
+      }
+      if (link.is_muted()) {
+        return false;
+      }
+      iter_node = link.fromnode;
+      if (!iter_node->is_reroute()) {
+        return false;
       }
     }
   }
