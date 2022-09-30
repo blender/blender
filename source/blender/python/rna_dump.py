@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-if 1:
+if True:
     # Print once every 1000
     GEN_PATH = True
     PRINT_DATA = False
