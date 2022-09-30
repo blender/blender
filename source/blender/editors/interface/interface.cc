@@ -5933,7 +5933,7 @@ bContextStore *UI_but_context_get(const uiBut *but)
 
 void UI_but_unit_type_set(uiBut *but, const int unit_type)
 {
-  but->unit_type = (uchar)(RNA_SUBTYPE_UNIT_VALUE(unit_type));
+  but->unit_type = uchar(RNA_SUBTYPE_UNIT_VALUE(unit_type));
 }
 
 int UI_but_unit_type_get(const uiBut *but)

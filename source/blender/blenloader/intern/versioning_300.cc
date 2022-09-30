@@ -3034,9 +3034,9 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             gpmd->factor *= 2.0f;
           }
           else {
-            gpmd->step = 1 + (int)(gpmd->factor * max_ff(0.0f,
-                                                         min_ff(5.1f * sqrtf(gpmd->step) - 3.0f,
-                                                                gpmd->step + 2.0f)));
+            gpmd->step = 1 + int(gpmd->factor * max_ff(0.0f,
+                                                       min_ff(5.1f * sqrtf(gpmd->step) - 3.0f,
+                                                              gpmd->step + 2.0f)));
             gpmd->factor = 1.0f;
           }
         }

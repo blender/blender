@@ -3861,7 +3861,7 @@ static int generate_arc_from_point_to_point(ListBase *list,
   /* Number of points is 2^(n+1) + 1 on half a circle (n=subdivisions)
    * so we multiply by (angle / pi) to get the right amount of
    * points to insert. */
-  int num_points = (int)(((1 << (subdivisions + 1)) - 1) * (angle / M_PI));
+  int num_points = int(((1 << (subdivisions + 1)) - 1) * (angle / M_PI));
   if (num_points > 0) {
     float angle_incr = angle / float(num_points);
 

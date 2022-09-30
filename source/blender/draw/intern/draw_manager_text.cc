@@ -137,7 +137,7 @@ static void drw_text_cache_draw_ex(DRWTextStore *dt, ARegion *region)
       }
 
       BLF_position(
-          font_id, (float)(vos->sco[0] + vos->xoffs), (float)(vos->sco[1] + vos->yoffs), 2.0f);
+          font_id, float(vos->sco[0] + vos->xoffs), float(vos->sco[1] + vos->yoffs), 2.0f);
       BLF_draw(font_id,
                (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ? *((const char **)vos->str) : vos->str,
                vos->str_len);
@@ -248,7 +248,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
   if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_INDICES) && (em->selectmode & SCE_SELECT_EDGE)) {
     edge_tex_count += 1;
   }
-  const short edge_tex_sep = (short)((edge_tex_count - 1) * 5.0f * U.dpi_fac);
+  const short edge_tex_sep = short((edge_tex_count - 1) * 5.0f * U.dpi_fac);
 
   /* Make the precision of the display value proportionate to the grid-size. */
 
@@ -450,14 +450,14 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
           area += area_tri_v3(v1, v2, v3);
         }
 
-        mul_v3_fl(vmid, 1.0f / (float)n);
+        mul_v3_fl(vmid, 1.0f / float(n));
         mul_m4_v3(ob->obmat, vmid);
 
         if (unit->system) {
           numstr_len = BKE_unit_value_as_string(
               numstr,
               sizeof(numstr),
-              (double)(area * unit->scale_length * unit->scale_length),
+              double(area * unit->scale_length * unit->scale_length),
               3,
               B_UNIT_AREA,
               unit,

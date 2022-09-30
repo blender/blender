@@ -3085,7 +3085,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
         make_bevel_list_segment_3D(bl);
       }
       else {
-        make_bevel_list_3D(bl, (int)(resolu * cu->twist_smooth), cu->twist_mode);
+        make_bevel_list_3D(bl, int(resolu * cu->twist_smooth), cu->twist_mode);
       }
     }
   }

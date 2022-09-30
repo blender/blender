@@ -399,7 +399,7 @@ static void sculpt_calc_blurred_cavity(SculptSession *ss,
     sco1 = SCULPT_vertex_co_get(ss, vertex);
   }
   else {
-    sco1 /= (float)sco1_len;
+    sco1 /= float(sco1_len);
     len1_sum /= sco1_len;
   }
 
@@ -407,7 +407,7 @@ static void sculpt_calc_blurred_cavity(SculptSession *ss,
     sco2 = SCULPT_vertex_co_get(ss, vertex);
   }
   else {
-    sco2 /= (float)sco2_len;
+    sco2 /= float(sco2_len);
   }
 
   normalize_v3(sno1);
@@ -448,8 +448,8 @@ int SCULPT_automasking_settings_hash(Object *ob, AutomaskingCache *automasking)
       for (int i = 0; i < cm->totpoint; i++) {
         hash = BLI_hash_int_2d(hash, *reinterpret_cast<uint *>(&cm->curve[i].x));
         hash = BLI_hash_int_2d(hash, *reinterpret_cast<uint *>(&cm->curve[i].y));
-        hash = BLI_hash_int_2d(hash, (uint)cm->curve[i].flag);
-        hash = BLI_hash_int_2d(hash, (uint)cm->curve[i].shorty);
+        hash = BLI_hash_int_2d(hash, uint(cm->curve[i].flag));
+        hash = BLI_hash_int_2d(hash, uint(cm->curve[i].shorty));
       }
     }
   }
@@ -778,11 +778,11 @@ static void sculpt_normal_occlusion_automasking_fill(AutomaskingCache *automaski
 
     float f = *(float *)SCULPT_vertex_attr_get(vertex, ss->attrs.automasking_factor);
 
-    if ((int)mode & BRUSH_AUTOMASKING_BRUSH_NORMAL) {
+    if (int(mode) & BRUSH_AUTOMASKING_BRUSH_NORMAL) {
       f *= automasking_brush_normal_factor(automasking, ss, vertex, &nodedata);
     }
-    if ((int)mode & BRUSH_AUTOMASKING_VIEW_NORMAL) {
-      if ((int)mode & BRUSH_AUTOMASKING_VIEW_OCCLUSION) {
+    if (int(mode) & BRUSH_AUTOMASKING_VIEW_NORMAL) {
+      if (int(mode) & BRUSH_AUTOMASKING_VIEW_OCCLUSION) {
         f *= automasking_view_occlusion_factor(automasking, ss, vertex, -1, &nodedata);
       }
 

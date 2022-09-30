@@ -350,7 +350,7 @@ void BKE_modifier_copydata_generic(const ModifierData *md_src,
   const char *md_src_data = ((const char *)md_src) + data_size;
   char *md_dst_data = ((char *)md_dst) + data_size;
   BLI_assert(data_size <= (size_t)mti->structSize);
-  memcpy(md_dst_data, md_src_data, (size_t)mti->structSize - data_size);
+  memcpy(md_dst_data, md_src_data, size_t(mti->structSize) - data_size);
 
   /* Runtime fields are never to be preserved. */
   md_dst->runtime = nullptr;

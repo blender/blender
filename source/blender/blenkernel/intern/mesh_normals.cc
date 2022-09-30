@@ -1678,7 +1678,7 @@ void BKE_mesh_normals_loop_split(const MVert *mverts,
                                            size_t(numLoops), sizeof(*loop_to_poly), __func__);
 
   /* When using custom loop normals, disable the angle feature! */
-  const bool check_angle = (split_angle < (float)M_PI) && (clnors_data == nullptr);
+  const bool check_angle = (split_angle < float(M_PI)) && (clnors_data == nullptr);
 
   MLoopNorSpaceArray _lnors_spacearr = {nullptr};
 
@@ -1784,7 +1784,7 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
   /* In this case we always consider split nors as ON,
    * and do not want to use angle to define smooth fans! */
   const bool use_split_normals = true;
-  const float split_angle = (float)M_PI;
+  const float split_angle = float(M_PI);
 
   BLI_SMALLSTACK_DECLARE(clnors_data, short *);
 

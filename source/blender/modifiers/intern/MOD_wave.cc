@@ -135,7 +135,7 @@ static void waveModifier_do(WaveModifierData *md,
   const MDeformVert *dvert;
   int defgrp_index;
   float ctime = DEG_get_ctime(ctx->depsgraph);
-  float minfac = (float)(1.0 / exp(wmd->width * wmd->narrow * wmd->width * wmd->narrow));
+  float minfac = float(1.0 / exp(wmd->width * wmd->narrow * wmd->width * wmd->narrow));
   float lifefac = wmd->height;
   float(*tex_co)[3] = nullptr;
   const int wmd_axis = wmd->flag & (MOD_WAVE_X | MOD_WAVE_Y);
@@ -175,7 +175,7 @@ static void waveModifier_do(WaveModifierData *md,
         lifefac = 0.0;
       }
       else {
-        lifefac = (float)(wmd->height * (1.0f - sqrtf(lifefac / wmd->damp)));
+        lifefac = float(wmd->height * (1.0f - sqrtf(lifefac / wmd->damp)));
       }
     }
   }
@@ -227,7 +227,7 @@ static void waveModifier_do(WaveModifierData *md,
       amplit -= (ctime - wmd->timeoffs) * wmd->speed;
 
       if (wmd->flag & MOD_WAVE_CYCL) {
-        amplit = (float)fmodf(amplit - wmd->width, 2.0f * wmd->width) + wmd->width;
+        amplit = float(fmodf(amplit - wmd->width, 2.0f * wmd->width)) + wmd->width;
       }
 
       if (falloff != 0.0f) {
@@ -252,7 +252,7 @@ static void waveModifier_do(WaveModifierData *md,
       /* GAUSSIAN */
       if ((falloff_fac != 0.0f) && (amplit > -wmd->width) && (amplit < wmd->width)) {
         amplit = amplit * wmd->narrow;
-        amplit = (float)(1.0f / expf(amplit * amplit) - minfac);
+        amplit = float(1.0f / expf(amplit * amplit) - minfac);
 
         /* Apply texture. */
         if (tex_co) {

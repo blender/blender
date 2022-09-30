@@ -89,7 +89,7 @@ struct PBVHVbo {
   {
     char buf[512];
 
-    sprintf(buf, "%d:%d:%s", (int)type, (int)domain, name.c_str());
+    sprintf(buf, "%d:%d:%s", int(type), int(domain), name.c_str());
 
     key = string(buf);
     return key;
@@ -382,7 +382,7 @@ struct PBVHBatches {
         foreach_grids([&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem *elems[4], int i) {
           float *mask = CCG_elem_mask(&args->ccg_key, elems[i]);
 
-          *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = mask ? (uchar)(*mask * 255.0f) :
+          *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = mask ? uchar(*mask * 255.0f) :
                                                                         255;
         });
         break;
@@ -536,8 +536,8 @@ struct PBVHBatches {
         if (mask) {
           foreach_faces(
               [&](int /*buffer_i*/, int /*tri_i*/, int vertex_i, const MLoopTri * /*tri*/) {
-                *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = (uchar)(mask[vertex_i] *
-                                                                               255.0f);
+                *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = uchar(mask[vertex_i] *
+                                                                             255.0f);
               });
         }
         else {
@@ -757,7 +757,7 @@ struct PBVHBatches {
           foreach_bmesh([&](BMLoop *l) {
             float mask = BM_ELEM_CD_GET_FLOAT(l->v, cd_mask);
 
-            *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = (uchar)(mask * 255.0f);
+            *static_cast<uchar *>(GPU_vertbuf_raw_step(&access)) = uchar(mask * 255.0f);
           });
         }
         break;
@@ -1154,11 +1154,11 @@ struct PBVHBatches {
     for (int i : IndexRange(attrs_num)) {
       PBVHAttrReq *attr = attrs + i;
 
-      if (!has_vbo(attr->domain, (int)attr->type, attr->name)) {
-        create_vbo(attr->domain, (uint32_t)attr->type, attr->name, args);
+      if (!has_vbo(attr->domain, int(attr->type), attr->name)) {
+        create_vbo(attr->domain, uint32_t(attr->type), attr->name, args);
       }
 
-      PBVHVbo *vbo = get_vbo(attr->domain, (uint32_t)attr->type, attr->name);
+      PBVHVbo *vbo = get_vbo(attr->domain, uint32_t(attr->type), attr->name);
       int vbo_i = get_vbo_index(vbo);
 
       batch.vbos.append(vbo_i);
