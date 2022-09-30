@@ -498,8 +498,6 @@ struct PBVHBatches {
 
   void fill_vbo_faces(PBVHVbo &vbo, PBVH_GPU_Args *args)
   {
-    int totvert = args->totprim * 3;
-
     auto foreach_faces =
         [&](std::function<void(int buffer_i, int tri_i, int vertex_i, const MLoopTri *tri)> func) {
           int buffer_i = 0;
@@ -520,6 +518,9 @@ struct PBVHBatches {
             }
           }
         };
+
+    int totvert = 0;
+    foreach_faces([&totvert](int, int, int, const MLoopTri *) { totvert++; });
 
     int existing_num = GPU_vertbuf_get_vertex_len(vbo.vert_buf);
     void *existing_data = GPU_vertbuf_get_data(vbo.vert_buf);
