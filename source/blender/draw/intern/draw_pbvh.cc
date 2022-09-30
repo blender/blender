@@ -580,7 +580,7 @@ struct PBVHBatches {
           uchar fset_color[3] = {255, 255, 255};
 
           foreach_faces(
-              [&](int /*buffer_i*/, int /*tri_i*/, int /*vertex_i*/, const MLoopTri *tri) {
+              [&](int /*buffer_i*/, int /*tri_i*/, int /*vertex_i*/, const MLoopTri * /*tri*/) {
                 *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = fset_color;
               });
         }
