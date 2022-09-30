@@ -61,7 +61,6 @@ using blender::IndexRange;
 using blender::Map;
 using blender::short3;
 using blender::uchar3;
-using blender::uchar4;
 using blender::ushort3;
 using blender::ushort4;
 using blender::Vector;
@@ -395,13 +394,13 @@ struct PBVHBatches {
 
           foreach_grids(
               [&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem * /*elems*/[4], int /*i*/) {
-                *static_cast<uchar4 *>(GPU_vertbuf_raw_step(&access)) = white;
+                *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = white;
               });
         }
         else {
           foreach_grids(
               [&](int /*x*/, int /*y*/, int grid_index, CCGElem * /*elems*/[4], int /*i*/) {
-                uchar face_set_color[3] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
+                uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
 
                 if (face_sets) {
                   const int face_index = BKE_subdiv_ccg_grid_to_face_index(args->subdiv_ccg,
@@ -554,7 +553,7 @@ struct PBVHBatches {
 
         if (face_sets) {
           int last_poly = -1;
-          uchar fset_color[3] = {255, 255, 255};
+          uchar fset_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
 
           foreach_faces(
               [&](int /*buffer_i*/, int /*tri_i*/, int /*vertex_i*/, const MLoopTri *tri) {
@@ -569,7 +568,7 @@ struct PBVHBatches {
                   }
                   else {
                     /* Skip for the default color face set to render it white. */
-                    fset_color[0] = fset_color[1] = fset_color[2] = 255;
+                    fset_color[0] = fset_color[1] = fset_color[2] = UCHAR_MAX;
                   }
                 }
 
@@ -577,7 +576,7 @@ struct PBVHBatches {
               });
         }
         else {
-          uchar fset_color[3] = {255, 255, 255};
+          uchar fset_color[4] = {255, 255, 255, 255};
 
           foreach_faces(
               [&](int /*buffer_i*/, int /*tri_i*/, int /*vertex_i*/, const MLoopTri * /*tri*/) {
@@ -763,7 +762,7 @@ struct PBVHBatches {
         break;
       }
       case CD_PBVH_FSET_TYPE: {
-        uchar3 white(255, 255, 255);
+        uchar3 white(UCHAR_MAX, UCHAR_MAX, UCHAR_MAX);
 
         foreach_bmesh([&](BMLoop * /*l*/) {
           *static_cast<uchar3 *>(GPU_vertbuf_raw_step(&access)) = white;
