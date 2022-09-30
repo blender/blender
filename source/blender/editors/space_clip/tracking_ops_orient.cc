@@ -109,7 +109,7 @@ static int count_selected_bundles(bContext *C)
   MovieClip *clip = ED_space_clip_get_clip(sc);
   ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
   int tot = 0;
-  for (MovieTrackingTrack *track = tracksbase->first; track != NULL; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
     if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_HAS_BUNDLE)) {
       tot++;
     }
@@ -120,7 +120,7 @@ static int count_selected_bundles(bContext *C)
 static void object_solver_inverted_matrix(Scene *scene, Object *ob, float invmat[4][4])
 {
   bool found = false;
-  for (bConstraint *con = ob->constraints.first; con != NULL; con = con->next) {
+  LISTBASE_FOREACH (bConstraint *, con, &ob->constraints) {
     const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
     if (cti == NULL) {
       continue;
@@ -145,7 +145,7 @@ static void object_solver_inverted_matrix(Scene *scene, Object *ob, float invmat
 
 static Object *object_solver_camera(Scene *scene, Object *ob)
 {
-  for (bConstraint *con = ob->constraints.first; con != NULL; con = con->next) {
+  LISTBASE_FOREACH (bConstraint *, con, &ob->constraints) {
     const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
     if (cti == NULL) {
       continue;
@@ -187,7 +187,7 @@ static int set_origin_exec(bContext *C, wmOperator *op)
 
   float median[3] = {0.0f, 0.0f, 0.0f};
   zero_v3(median);
-  for (MovieTrackingTrack *track = tracksbase->first; track != NULL; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
     if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_HAS_BUNDLE)) {
       add_v3_v3(median, track->bundle_pos);
     }
@@ -410,7 +410,7 @@ static int set_plane_exec(bContext *C, wmOperator *op)
   BKE_tracking_get_camera_object_matrix(camera, mat);
 
   /* Get 3 bundles to use as reference. */
-  track = tracksbase->first;
+  track = static_cast<MovieTrackingTrack *>(tracksbase->first);
   while (track && tot < 3) {
     if (track->flag & TRACK_HAS_BUNDLE && TRACK_VIEW_SELECTED(sc, track)) {
       mul_v3_m4v3(vec[tot], mat, track->bundle_pos);
@@ -538,7 +538,7 @@ static int set_axis_exec(bContext *C, wmOperator *op)
   }
 
   ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
-  MovieTrackingTrack *track = tracksbase->first;
+  MovieTrackingTrack *track = static_cast<MovieTrackingTrack *>(tracksbase->first);
   while (track) {
     if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_HAS_BUNDLE)) {
       break;
@@ -616,7 +616,7 @@ static int do_set_scale(bContext *C, wmOperator *op, bool scale_solution, bool a
 
   BKE_tracking_get_camera_object_matrix(camera, mat);
 
-  track = tracksbase->first;
+  track = static_cast<MovieTrackingTrack *>(tracksbase->first);
   while (track) {
     if (TRACK_VIEW_SELECTED(sc, track)) {
       mul_v3_m4v3(vec[tot], mat, track->bundle_pos);
@@ -636,7 +636,8 @@ static int do_set_scale(bContext *C, wmOperator *op, bool scale_solution, bool a
       MovieReconstructedCamera *reconstructed_cameras;
       int i;
 
-      for (track = tracksbase->first; track; track = track->next) {
+      for (track = static_cast<MovieTrackingTrack *>(tracksbase->first); track;
+           track = static_cast<MovieTrackingTrack *>(track->next)) {
         mul_v3_fl(track->bundle_pos, scale);
       }
 
