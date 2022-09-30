@@ -258,16 +258,18 @@ static const char32_t *blf_get_sample_text(FT_Face face)
                        count_bits_i((uint)os2_table->ulUnicodeRange4);
 
   for (uint i = 0; i < ARRAY_SIZE(unicode_samples); ++i) {
-    UnicodeSample s = unicode_samples[i];
-    if (os2_table && s.field && s.mask) {
+    const UnicodeSample *s = &unicode_samples[i];
+    if (os2_table && s->field && s->mask) {
       /* OS/2 Table contains 4 contiguous integers of script coverage bit flags. */
-      FT_ULong *field = &(os2_table->ulUnicodeRange1) + (s.field - 1);
-      if (!(*field & (FT_ULong)s.mask)) {
+      const FT_ULong *unicode_range = &os2_table->ulUnicodeRange1;
+      const size_t index = (s->field - 1);
+      BLI_assert(index < 4);
+      if (!(unicode_range[index] & (FT_ULong)s->mask)) {
         continue;
       }
     }
-    if (FT_Get_Char_Index(face, s.sample[0]) != 0) {
-      sample = s.sample;
+    if (FT_Get_Char_Index(face, s->sample[0]) != 0) {
+      sample = s->sample;
       break;
     }
   }
