@@ -585,87 +585,18 @@ static DRWUniformAttrBuf *drw_uniform_attrs_pool_ensure(GHash *table,
   return (DRWUniformAttrBuf *)*pval;
 }
 
-/* This function mirrors lookup_property in cycles/blender/blender_object.cpp */
-static bool drw_uniform_property_lookup(ID *id, const char *name, float r_data[4])
-{
-  PointerRNA ptr, id_ptr;
-  PropertyRNA *prop;
-
-  if (!id) {
-    return false;
-  }
-
-  RNA_id_pointer_create(id, &id_ptr);
-
-  if (!RNA_path_resolve(&id_ptr, name, &ptr, &prop)) {
-    return false;
-  }
-
-  if (prop == NULL) {
-    return false;
-  }
-
-  PropertyType type = RNA_property_type(prop);
-  int arraylen = RNA_property_array_length(&ptr, prop);
-
-  if (arraylen == 0) {
-    float value;
-
-    if (type == PROP_FLOAT) {
-      value = RNA_property_float_get(&ptr, prop);
-    }
-    else if (type == PROP_INT) {
-      value = RNA_property_int_get(&ptr, prop);
-    }
-    else {
-      return false;
-    }
-
-    copy_v4_fl4(r_data, value, value, value, 1);
-    return true;
-  }
-
-  if (type == PROP_FLOAT && arraylen <= 4) {
-    copy_v4_fl4(r_data, 0, 0, 0, 1);
-    RNA_property_float_get_array(&ptr, prop, r_data);
-    return true;
-  }
-
-  return false;
-}
-
-/* This function mirrors lookup_instance_property in cycles/blender/blender_object.cpp */
 static void drw_uniform_attribute_lookup(GPUUniformAttr *attr,
                                          Object *ob,
                                          Object *dupli_parent,
                                          DupliObject *dupli_source,
                                          float r_data[4])
 {
-  copy_v4_fl(r_data, 0);
-
   /* If requesting instance data, check the parent particle system and object. */
   if (attr->use_dupli) {
-    if (dupli_source && dupli_source->particle_system) {
-      ParticleSettings *settings = dupli_source->particle_system->part;
-      if (drw_uniform_property_lookup((ID *)settings, attr->name_id_prop, r_data) ||
-          drw_uniform_property_lookup((ID *)settings, attr->name, r_data)) {
-        return;
-      }
-    }
-    if (drw_uniform_property_lookup((ID *)dupli_parent, attr->name_id_prop, r_data) ||
-        drw_uniform_property_lookup((ID *)dupli_parent, attr->name, r_data)) {
-      return;
-    }
+    BKE_object_dupli_find_rgba_attribute(ob, dupli_source, dupli_parent, attr->name, r_data);
   }
-
-  /* Check the object and mesh. */
-  if (ob) {
-    if (drw_uniform_property_lookup((ID *)ob, attr->name_id_prop, r_data) ||
-        drw_uniform_property_lookup((ID *)ob, attr->name, r_data) ||
-        drw_uniform_property_lookup((ID *)ob->data, attr->name_id_prop, r_data) ||
-        drw_uniform_property_lookup((ID *)ob->data, attr->name, r_data)) {
-      return;
-    }
+  else {
+    BKE_object_dupli_find_rgba_attribute(ob, NULL, NULL, attr->name, r_data);
   }
 }
 

@@ -58,6 +58,9 @@
 #include "BLI_hash.h"
 
 #include "NOD_geometry_nodes_log.hh"
+#include "RNA_access.h"
+#include "RNA_path.h"
+#include "RNA_types.h"
 
 using blender::Array;
 using blender::float3;
@@ -1708,6 +1711,123 @@ void free_object_duplilist(ListBase *lb)
 {
   BLI_freelistN(lb);
   MEM_freeN(lb);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Uniform attribute lookup
+ * \{ */
+
+/** Lookup an arbitrary RNA property and convert it to RGBA if possible. */
+static bool find_rna_property_rgba(PointerRNA *id_ptr, const char *name, float r_data[4])
+{
+  if (id_ptr->data == nullptr) {
+    return false;
+  }
+
+  /* First, check custom properties. */
+  IDProperty *group = RNA_struct_idprops(id_ptr, false);
+  PropertyRNA *prop = nullptr;
+
+  if (group && group->type == IDP_GROUP) {
+    prop = (PropertyRNA *)IDP_GetPropertyFromGroup(group, name);
+  }
+
+  /* If not found, do full path lookup. */
+  PointerRNA ptr;
+
+  if (prop != nullptr) {
+    ptr = *id_ptr;
+  }
+  else if (!RNA_path_resolve(id_ptr, name, &ptr, &prop)) {
+    return false;
+  }
+
+  if (prop == nullptr) {
+    return false;
+  }
+
+  /* Convert the value to RGBA if possible. */
+  PropertyType type = RNA_property_type(prop);
+  int array_len = RNA_property_array_length(&ptr, prop);
+
+  if (array_len == 0) {
+    float value;
+
+    if (type == PROP_FLOAT) {
+      value = RNA_property_float_get(&ptr, prop);
+    }
+    else if (type == PROP_INT) {
+      value = static_cast<float>(RNA_property_int_get(&ptr, prop));
+    }
+    else if (type == PROP_BOOLEAN) {
+      value = RNA_property_boolean_get(&ptr, prop) ? 1.0f : 0.0f;
+    }
+    else {
+      return false;
+    }
+
+    copy_v4_fl4(r_data, value, value, value, 1);
+    return true;
+  }
+
+  if (type == PROP_FLOAT && array_len <= 4) {
+    copy_v4_fl4(r_data, 0, 0, 0, 1);
+    RNA_property_float_get_array(&ptr, prop, r_data);
+    return true;
+  }
+
+  if (type == PROP_INT && array_len <= 4) {
+    int tmp[4] = {0, 0, 0, 1};
+    RNA_property_int_get_array(&ptr, prop, tmp);
+    for (int i = 0; i < 4; i++) {
+      r_data[i] = static_cast<float>(tmp[i]);
+    }
+    return true;
+  }
+
+  return false;
+}
+
+static bool find_rna_property_rgba(ID *id, const char *name, float r_data[4])
+{
+  PointerRNA ptr;
+  RNA_id_pointer_create(id, &ptr);
+  return find_rna_property_rgba(&ptr, name, r_data);
+}
+
+bool BKE_object_dupli_find_rgba_attribute(
+    Object *ob, DupliObject *dupli, Object *dupli_parent, const char *name, float r_value[4])
+{
+  /* Check the dupli particle system. */
+  if (dupli && dupli->particle_system) {
+    ParticleSettings *settings = dupli->particle_system->part;
+
+    if (find_rna_property_rgba(&settings->id, name, r_value)) {
+      return true;
+    }
+  }
+
+  /* Check the dupli parent object. */
+  if (dupli_parent && find_rna_property_rgba(&dupli_parent->id, name, r_value)) {
+    return true;
+  }
+
+  /* Check the main object. */
+  if (ob) {
+    if (find_rna_property_rgba(&ob->id, name, r_value)) {
+      return true;
+    }
+
+    /* Check the main object data (e.g. mesh). */
+    if (ob->data && find_rna_property_rgba((ID *)ob->data, name, r_value)) {
+      return true;
+    }
+  }
+
+  copy_v4_fl(r_value, 0.0f);
+  return false;
 }
 
 /** \} */

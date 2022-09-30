@@ -7,6 +7,7 @@ set(INC
   ../../mikktspace
   ../../../source/blender/makesdna
   ../../../source/blender/makesrna
+  ../../../source/blender/blenkernel
   ../../../source/blender/blenlib
   ../../../source/blender/gpu
   ../../../source/blender/render
