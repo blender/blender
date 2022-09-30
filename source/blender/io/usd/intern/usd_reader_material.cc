@@ -752,10 +752,37 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
      * necessary for UDIM paths). */
     file_path = asset_path.GetAssetPath();
 
-    /* Texture paths are frequently relative to the USD, so get
-     * the absolute path. */
-    if (pxr::SdfLayerHandle layer_handle = get_layer_handle(file_input.GetAttr())) {
-      file_path = layer_handle->ComputeAbsolutePath(file_path);
+    if (!file_path.empty() && is_udim_path(file_path)) {
+      /* Texture paths are frequently relative to the USD, so get
+       * the absolute path. */
+      if (pxr::SdfLayerHandle layer_handle = get_layer_handle(file_input.GetAttr())) {
+
+        /* SdfLayer::ComputeAbsolutePath() doesn' work for context-dependent paths
+         * where the file name has a UDIM token (e.g., '0/foo.<UDIM>.png').
+         * We therefore compute the absolube path of the parent directory of the
+         * UDIM file. */
+
+        char file[FILE_MAXFILE];
+        char dir[FILE_MAXDIR];
+        BLI_split_dirfile(file_path.c_str(), dir, file, sizeof(dir), sizeof(file));
+
+        if (strlen(dir) == 0) {
+          /* No directory in path, assume asset is a sibling of the layer. */
+          dir[0] = '.';
+          dir[1] = '\0';
+        }
+
+        /* Get the absolute path of the directory relative to the layer. */
+        std::string dir_abs_path = layer_handle->ComputeAbsolutePath(dir);
+
+        char result[FILE_MAX];
+        /* Finally, join the original file name with the absolute path. */
+        BLI_path_join(result, FILE_MAX, dir_abs_path.c_str(), file, nullptr);
+
+        /* Use forward slashes. */
+        BLI_str_replace_char(result, SEP, ALTSEP);
+        file_path = result;
+      }
     }
   }
 
