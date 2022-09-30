@@ -663,7 +663,8 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
                           CCGKey *key,
                           void **gridfaces,
                           DMFlagMat *flagmats,
-                          BLI_bitmap **grid_hidden)
+                          BLI_bitmap **grid_hidden,
+                          Mesh *me)
 {
   const int gridsize = key->grid_size;
 
@@ -675,6 +676,14 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
   pbvh->gridkey = *key;
   pbvh->grid_hidden = grid_hidden;
   pbvh->leaf_limit = max_ii(LEAF_LIMIT / (gridsize * gridsize), 1);
+
+  /* We need the base mesh attribute layout for PBVH draw. */
+  pbvh->vdata = &me->vdata;
+  pbvh->ldata = &me->ldata;
+  pbvh->pdata = &me->pdata;
+
+  /* We also need the base mesh for PBVH draw. */
+  pbvh->mesh = me;
 
   BB cb;
   BB_reset(&cb);

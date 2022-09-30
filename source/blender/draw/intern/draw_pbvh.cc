@@ -345,6 +345,19 @@ struct PBVHBatches {
     GPU_vertbuf_attr_get_raw_data(vbo.vert_buf, 0, &access);
 
     switch (vbo.type) {
+      case CD_PROP_COLOR:
+      case CD_PROP_BYTE_COLOR: {
+        /* TODO: Implement color support for multires similar to the mesh cache
+         * extractor code. For now just upload white.
+         */
+        const ushort4 white(USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX);
+
+        foreach_grids(
+            [&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem * /*elems*/[4], int /*i*/) {
+              *static_cast<ushort4 *>(GPU_vertbuf_raw_step(&access)) = white;
+            });
+        break;
+      }
       case CD_PBVH_CO_TYPE:
         foreach_grids([&](int /*x*/, int /*y*/, int /*grid_index*/, CCGElem *elems[4], int i) {
           float *co = CCG_elem_co(&args->ccg_key, elems[i]);
