@@ -532,12 +532,27 @@ bool ED_view3d_win_to_3d_on_plane(const ARegion *region,
                                   const bool do_clip,
                                   float r_out[3])
 {
+  const RegionView3D *rv3d = region->regiondata;
+  const bool ray_co_is_centered = rv3d->is_persp == false && rv3d->persp != RV3D_CAMOB;
+  const bool do_clip_ray_plane = do_clip && !ray_co_is_centered;
   float ray_co[3], ray_no[3];
   ED_view3d_win_to_origin(region, mval, ray_co);
   ED_view3d_win_to_vector(region, mval, ray_no);
   float lambda;
-  if (isect_ray_plane_v3(ray_co, ray_no, plane, &lambda, do_clip)) {
+  if (isect_ray_plane_v3(ray_co, ray_no, plane, &lambda, do_clip_ray_plane)) {
     madd_v3_v3v3fl(r_out, ray_co, ray_no, lambda);
+
+    /* Handle clipping with an orthographic view differently,
+     * check if the resulting point is behind the view instead of clipping the ray. */
+    if (do_clip && (do_clip_ray_plane == false)) {
+      /* The offset is unit length where over 1.0 is beyond the views clip-plane (near and far)
+       * as non-camera orthographic views only use far distance in both directions.
+       * Multiply `r_out` by `persmat` (with translation), and get it's Z value. */
+      const float z_offset = fabsf(dot_m4_v3_row_z(rv3d->persmat, r_out) + rv3d->persmat[3][2]);
+      if (z_offset > 1.0f) {
+        return false;
+      }
+    }
     return true;
   }
   return false;
