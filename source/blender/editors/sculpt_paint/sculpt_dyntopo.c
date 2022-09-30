@@ -147,8 +147,13 @@ static void SCULPT_dynamic_topology_disable_ex(
   SculptSession *ss = ob->sculpt;
   Mesh *me = ob->data;
 
-  BKE_sculpt_attribute_destroy(ob, ss->attrs.dyntopo_node_id_vertex);
-  BKE_sculpt_attribute_destroy(ob, ss->attrs.dyntopo_node_id_face);
+  if (ss->attrs.dyntopo_node_id_vertex) {
+    BKE_sculpt_attribute_destroy(ob, ss->attrs.dyntopo_node_id_vertex);
+  }
+
+  if (ss->attrs.dyntopo_node_id_face) {
+    BKE_sculpt_attribute_destroy(ob, ss->attrs.dyntopo_node_id_face);
+  }
 
   SCULPT_pbvh_clear(ob);
 
