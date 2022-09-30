@@ -1172,7 +1172,7 @@ static void cavity_bake_ui(bContext *C, wmOperator *op)
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  bool use_curve;
+  bool use_curve = false;
 
   if (!sd || !RNA_boolean_get(op->ptr, "use_automask_settings")) {
     uiItemR(layout, op->ptr, "mix_mode", 0, NULL, ICON_NONE);
@@ -1193,7 +1193,7 @@ static void cavity_bake_ui(bContext *C, wmOperator *op)
     uiItemR(layout, op->ptr, "mix_factor", 0, NULL, ICON_NONE);
     uiItemR(layout, op->ptr, "use_automask_settings", 0, NULL, ICON_NONE);
 
-    use_curve = RNA_boolean_get(&sculpt_ptr, "use_automasking_custom_cavity_curve");
+    use_curve = false;
   }
 
   if (use_curve) {
