@@ -486,8 +486,13 @@ static bool sculpt_undo_restore_face_sets(bContext *C, SculptUndoNode *unode)
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   Mesh *me = BKE_object_get_original_mesh(ob);
-  int *face_sets = CustomData_add_layer_named(
-      &me->pdata, CD_PROP_INT32, CD_CONSTRUCT, NULL, me->totpoly, ".sculpt_face_set");
+
+  int *face_sets = CustomData_get_layer_named(&me->pdata, CD_PROP_INT32, ".sculpt_face_set");
+  if (!face_sets) {
+    face_sets = CustomData_add_layer_named(
+        &me->pdata, CD_PROP_INT32, CD_CONSTRUCT, NULL, me->totpoly, ".sculpt_face_set");
+  }
+
   for (int i = 0; i < me->totpoly; i++) {
     SWAP(int, face_sets[i], unode->face_sets[i]);
   }
